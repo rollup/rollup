@@ -30,16 +30,16 @@ export function augmentCodeLocation(
 	}
 }
 
-enum Errors {
+export enum Errors {
 	ASSET_NOT_FINALISED = 'ASSET_NOT_FINALISED',
 	ASSET_NOT_FOUND = 'ASSET_NOT_FOUND',
 	ASSET_SOURCE_ALREADY_SET = 'ASSET_SOURCE_ALREADY_SET',
 	ASSET_SOURCE_MISSING = 'ASSET_SOURCE_MISSING',
-	ASSET_SOURCE_NOT_FOUND = 'ASSET_SOURCE_NOT_FOUND',
 	CHUNK_NOT_FOUND = 'CHUNK_NOT_FOUND',
 	CHUNK_NOT_GENERATED = 'CHUNK_NOT_GENERATED',
 	INVALID_ASSET_NAME = 'INVALID_ASSET_NAME',
-	INVALID_CHUNK = 'INVALID_CHUNK'
+	INVALID_CHUNK = 'INVALID_CHUNK',
+	INVALID_ROLLUP_PHASE = 'INVALID_ROLLUP_PHASE'
 }
 
 export function errorAssetNotFinalisedForFileName(asset: Asset) {
@@ -92,7 +92,7 @@ export function errorAssetSourceMissingForSetSource(asset: Asset) {
 
 export function errorNoAssetSourceSet(asset: Asset) {
 	error({
-		code: Errors.ASSET_SOURCE_NOT_FOUND,
+		code: Errors.ASSET_SOURCE_MISSING,
 		message: `Plugin error creating asset "${asset.name}" - no asset source set.`
 	});
 }

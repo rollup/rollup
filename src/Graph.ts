@@ -23,6 +23,7 @@ import {
 	WarningHandler
 } from './rollup/types';
 import { finaliseAsset } from './utils/assetHooks';
+import { BuildPhase } from './utils/buildPhase';
 import { assignChunkColouringHashes } from './utils/chunkColouring';
 import { Uint8ArrayToHexString } from './utils/entryHashing';
 import { analyseModuleExecution, sortByExecutionOrder } from './utils/executionOrder';
@@ -66,14 +67,13 @@ export default class Graph {
 	contextParse: (code: string, acornOptions?: acorn.Options) => ESTree.Program;
 	curChunkIndex = 0;
 	deoptimizationTracker: EntityPathTracker;
-	// track graph build status as each graph instance is used only once
-	finished = false;
 	getModuleContext: (id: string) => string;
 	isExternal: IsExternal;
 	isPureExternalModule: (id: string) => boolean;
 	moduleById = new Map<string, Module | ExternalModule>();
 	moduleLoader: ModuleLoader;
 	needsTreeshakingPass: boolean = false;
+	phase: BuildPhase = BuildPhase.LOAD_AND_PARSE;
 	pluginDriver: PluginDriver;
 	preserveModules: boolean;
 	scope: GlobalScope;
@@ -238,6 +238,8 @@ export default class Graph {
 			}
 			timeEnd('parse modules', 2);
 
+			this.phase = BuildPhase.ANALYSE;
+
 			// Phase 2 - linking. We populate the module dependency links and
 			// determine the topological execution order for the bundle
 			timeStart('analyse dependency graph', 2);
@@ -341,7 +343,7 @@ export default class Graph {
 
 			timeEnd('generate chunks', 2);
 
-			this.finished = true;
+			this.phase = BuildPhase.GENERATE;
 			return chunks.concat(facades);
 		});
 	}

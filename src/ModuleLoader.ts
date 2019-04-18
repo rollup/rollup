@@ -70,7 +70,6 @@ export class ModuleLoader {
 		return metaId;
 	}
 
-	// TODO Lukas fail if finished
 	addEntryModules(
 		unresolvedEntryModules: UnresolvedModuleWithAlias[]
 	): Promise<{
@@ -118,7 +117,6 @@ export class ModuleLoader {
 		return this.awaitLoadModulesPromise(loadNewManualChunkModulesPromise);
 	}
 
-	// TODO Lukas use graph phases
 	getChunkFileName(metaId: string): string {
 		const entryRecord = this.entriesByMetaId.get(metaId);
 		if (!entryRecord) errorChunkMetaIdNotFoundForFilename(metaId);

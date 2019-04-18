@@ -15,8 +15,9 @@ import {
 	SerializablePluginCache
 } from '../rollup/types';
 import { createAssetPluginHooks } from './assetHooks';
+import { BuildPhase } from './buildPhase';
 import { getRollupDefaultPlugin } from './defaultPlugin';
-import { error } from './error';
+import { error, Errors } from './error';
 import { NameCollection } from './reservedNames';
 
 type Args<T> = T extends (...args: infer K) => any ? K : never;
@@ -137,11 +138,19 @@ export function createPluginDriver(
 
 		const context: PluginContext = {
 			emitEntryChunk(id: string) {
+				if (graph.phase > BuildPhase.LOAD_AND_PARSE)
+					this.error({
+						code: Errors.INVALID_ROLLUP_PHASE,
+						message: `Cannot call emitEntryChunk after module loading has finished.`
+					});
 				return graph.moduleLoader.addEntryModuleAndGetMetaId({ alias: null, unresolvedId: id });
 			},
 			addWatchFile(id: string) {
-				// TODO Lukas is this tested?
-				if (graph.finished) this.error('addWatchFile can only be called during the build.');
+				if (graph.phase >= BuildPhase.GENERATE)
+					this.error({
+						code: Errors.INVALID_ROLLUP_PHASE,
+						message: `Cannot call addWatchFile after the build has finished.`
+					});
 				graph.watchFiles[id] = true;
 			},
 			cache: cacheInstance,

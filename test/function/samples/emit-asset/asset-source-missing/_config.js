@@ -9,7 +9,7 @@ module.exports = {
 		}
 	},
 	generateError: {
-		code: 'ASSET_SOURCE_NOT_FOUND',
+		code: 'ASSET_SOURCE_MISSING',
 		message: 'Plugin error creating asset "test.ext" - no asset source set.'
 	}
 };
