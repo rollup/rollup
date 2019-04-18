@@ -1,4 +1,5 @@
 export enum BuildPhase {
-	INIT = 1,
-	LOAD
+	LOAD_AND_PARSE = 0,
+	ANALYSE,
+	GENERATE
 }
