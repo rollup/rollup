@@ -2,7 +2,14 @@ import * as ESTree from 'estree';
 import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import Module from './Module';
-import { ModuleJSON, ResolvedId, ResolveIdResult, SourceDescription } from './rollup/types';
+import {
+	ExternalOption,
+	IsExternal,
+	ModuleJSON,
+	ResolvedId,
+	ResolveIdResult,
+	SourceDescription
+} from './rollup/types';
 import {
 	error,
 	errorCannotAssignModuleToChunk,
@@ -30,6 +37,7 @@ function normalizeRelativeExternalId(importee: string, source: string) {
 }
 
 export class ModuleLoader {
+	readonly isExternal: IsExternal;
 	private readonly entriesByMetaId = new Map<string, { module: Module | null; name: string }>();
 	private readonly entryModules: Module[] = [];
 	private readonly graph: Graph;
@@ -38,15 +46,22 @@ export class ModuleLoader {
 	private readonly modulesById: Map<string, Module | ExternalModule>;
 	private readonly pluginDriver: PluginDriver;
 
-	// TODO Lukas get rid of graph dependency
 	constructor(
 		graph: Graph,
 		modulesById: Map<string, Module | ExternalModule>,
-		pluginDriver: PluginDriver
+		pluginDriver: PluginDriver,
+		external: ExternalOption
 	) {
 		this.graph = graph;
 		this.modulesById = modulesById;
 		this.pluginDriver = pluginDriver;
+		if (typeof external === 'function') {
+			this.isExternal = (id, parentId, isResolved) =>
+				!id.startsWith('\0') && external(id, parentId, isResolved);
+		} else {
+			const ids = new Set(Array.isArray(external) ? external : external ? [external] : []);
+			this.isExternal = id => ids.has(id);
+		}
 	}
 
 	addEntryModuleAndGetMetaId(unresolvedEntryModule: UnresolvedModuleWithAlias): string {
@@ -162,7 +177,7 @@ export class ModuleLoader {
 						dynamicImport.alias = getAliasName(replacement);
 						if (typeof dynamicImportExpression !== 'string') {
 							dynamicImport.resolution = replacement;
-						} else if (this.graph.isExternal(replacement, module.id, true)) {
+						} else if (this.isExternal(replacement, module.id, true)) {
 							let externalModule;
 							if (!this.modulesById.has(replacement)) {
 								externalModule = new ExternalModule({
@@ -344,7 +359,7 @@ export class ModuleLoader {
 				}
 			} else {
 				id = resolveIdResult;
-				if (this.graph.isExternal(id, module.id, true)) {
+				if (this.isExternal(id, module.id, true)) {
 					external = true;
 				}
 			}
@@ -354,7 +369,7 @@ export class ModuleLoader {
 		} else {
 			id = normalizeRelativeExternalId(module.id, source);
 			external = true;
-			if (resolveIdResult !== false && !this.graph.isExternal(id, module.id, true)) {
+			if (resolveIdResult !== false && !this.isExternal(id, module.id, true)) {
 				if (isRelative(source)) {
 					error({
 						code: 'UNRESOLVED_IMPORT',
@@ -379,7 +394,7 @@ export class ModuleLoader {
 		return Promise.resolve(
 			module.resolvedIds[source] ||
 				Promise.resolve(
-					this.graph.isExternal(source, module.id, false)
+					this.isExternal(source, module.id, false)
 						? { id: source, external: true }
 						: this.pluginDriver.hookFirst('resolveId', [source, module.id])
 				).then((result: ResolveIdResult) => this.normalizeResolveIdResult(result, module, source))
