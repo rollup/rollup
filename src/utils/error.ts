@@ -1,7 +1,7 @@
 import { locate } from 'locate-character';
 import { Asset, RollupError, RollupWarning } from '../rollup/types';
 import getCodeFrame from './getCodeFrame';
-import { relative } from './path';
+import relativeId from './relativeId';
 
 export function error(base: Error | RollupError, props?: RollupError) {
 	if (base instanceof Error === false) base = Object.assign(new Error(base.message), base);
@@ -111,7 +111,6 @@ export function errorInvalidAssetName(name: string) {
 	});
 }
 
-// TODO Lukas polyfill process.cwd()
 // TODO Lukas other errors
 export function errorCannotAssignModuleToChunk(
 	moduleId: string,
@@ -120,8 +119,7 @@ export function errorCannotAssignModuleToChunk(
 ) {
 	error({
 		code: Errors.INVALID_CHUNK,
-		message: `Cannot assign ${relative(
-			process.cwd(),
+		message: `Cannot assign ${relativeId(
 			moduleId
 		)} to the "${assignToAlias}" chunk as it is already in the "${currentAlias}" chunk.`
 	});
