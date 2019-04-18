@@ -167,11 +167,11 @@ export class ModuleLoader {
 			module.getDynamicImportExpressions().map((dynamicImportExpression, index) =>
 				// TODO we only should expose the acorn AST here
 				this.pluginDriver
-					.hookFirst<'resolveDynamicImport', string>('resolveDynamicImport', [
+					.hookFirst('resolveDynamicImport', [
 						dynamicImportExpression as string | ESTree.Node,
 						module.id
 					])
-					.then(replacement => {
+					.then((replacement: string | void) => {
 						if (!replacement) return;
 						const dynamicImport = module.dynamicImports[index];
 						dynamicImport.alias = getAliasName(replacement);

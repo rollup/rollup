@@ -124,7 +124,7 @@ export interface PluginContext extends MinimalPluginContext {
 	isExternal: IsExternal;
 	moduleIds: IterableIterator<string>;
 	parse: (input: string, options: any) => ESTree.Program;
-	resolveId: ResolveIdHook;
+	resolveId: (id: string, parent: string) => Promise<ResolveIdResult>;
 	setAssetSource: (assetMetaId: string, source: string | Buffer) => void;
 	warn: (warning: RollupWarning | string, pos?: { column: number; line: number }) => void;
 	/** @deprecated */
@@ -190,6 +190,7 @@ export type RenderChunkHook = (
 	| string
 	| null;
 
+// TODO this should probably return ResolveIdResult
 export type ResolveDynamicImportHook = (
 	this: PluginContext,
 	specifier: string | ESTree.Node,
