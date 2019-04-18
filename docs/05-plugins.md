@@ -349,7 +349,7 @@ or converted into an Array via `Array.from(this.moduleIds)`.
 
 Use Rollup's internal acorn instance to parse code to an AST.
 
-#### `this.resolveId(importee: string, importer: string) => string`
+#### `this.resolveId(importee: string, importer: string) => Promise<string | false | null | {id: string, external?: boolean}>`
 
 Resolve imports to module ids (i.e. file names). Uses the same hooks as Rollup itself.
 

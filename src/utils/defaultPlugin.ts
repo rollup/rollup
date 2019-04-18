@@ -12,6 +12,7 @@ export function getRollupDefaultPlugin(options: InputOptions): Plugin {
 		},
 		resolveDynamicImport(specifier, parentId) {
 			if (typeof specifier === 'string' && !this.isExternal(specifier, parentId, false))
+				// TODO this typecast will cause problems if resolveId returns false or an object
 				return <Promise<string>>this.resolveId(specifier, parentId);
 		},
 		resolveFileUrl({ relativePath, format }) {
