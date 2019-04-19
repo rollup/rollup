@@ -1,8 +1,5 @@
 'use strict';
 
-const getWorkerMessage = () => new Promise(resolve => {
-  const worker = new Worker((typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __dirname + '/../worker.js').href : new URL((document.currentScript && document.currentScript.src || document.baseURI) + '/../../worker.js').href), {type: 'module'});
-  worker.onmessage = resolve;
-});
+const shared = 'shared';
 
-exports.getWorkerMessage = getWorkerMessage;
+exports.shared = shared;

@@ -1,6 +1,3 @@
-const getWorkerMessage = () => new Promise(resolve => {
-  const worker = new Worker(new URL('../worker.js', import.meta.url).href, {type: 'module'});
-  worker.onmessage = resolve;
-});
+const shared = 'shared';
 
-export { getWorkerMessage };
+export { shared as a };

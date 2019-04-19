@@ -22,7 +22,6 @@ import { NameCollection } from './reservedNames';
 
 type Args<T> = T extends (...args: infer K) => any ? K : never;
 
-// TODO Lukas include defaultPlugin type
 export interface PluginDriver {
 	emitAsset: EmitAsset;
 	hasLoadersOrTransforms: boolean;
