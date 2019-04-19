@@ -124,7 +124,7 @@ export interface PluginContext extends MinimalPluginContext {
 	isExternal: IsExternal;
 	moduleIds: IterableIterator<string>;
 	parse: (input: string, options: any) => ESTree.Program;
-	resolveId: (id: string, parent: string) => Promise<ResolveIdResult>;
+	resolveId: (id: string, parent: string) => Promise<string>;
 	setAssetSource: (assetMetaId: string, source: string | Buffer) => void;
 	warn: (warning: RollupWarning | string, pos?: { column: number; line: number }) => void;
 	/** @deprecated */
