@@ -1,10 +1,7 @@
-define(['module', 'exports'], function (module, exports) { 'use strict';
+define(['exports'], function (exports) { 'use strict';
 
-  const getWorkerMessage = () => new Promise(resolve => {
-    const worker = new Worker(new URL(module.uri + '/../../worker.js', document.baseURI).href, {type: 'module'});
-    worker.onmessage = resolve;
-  });
+	const shared = 'shared';
 
-  exports.getWorkerMessage = getWorkerMessage;
+	exports.shared = shared;
 
 });

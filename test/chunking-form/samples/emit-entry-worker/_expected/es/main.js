@@ -1,10 +1,13 @@
+import { a as shared } from './chunks/chunk.js';
+
 const getWorkerMessage = () => new Promise(resolve => {
-  const worker = new Worker(new URL('worker.js', import.meta.url).href, {type: 'module'});
+  const worker = new Worker(new URL('worker-proxy.js', import.meta.url).href);
   worker.onmessage = resolve;
 });
 
-getWorkerMessage().then(message => document.write(`<h1>1: ${message.data}</h1>`));
+document.body.innerHTML += `<h1>main: ${shared}</h1>`;
+getWorkerMessage().then(message => (document.body.innerHTML += `<h1>1: ${message.data}</h1>`));
 
-import('./chunks/chunk.js')
+import('./chunks/chunk2.js')
 	.then(result => result.getWorkerMessage())
-	.then(message => document.write(`<h1>2: ${message.data}</h1>`));
+	.then(message => (document.body.innerHTML += `<h1>2: ${message.data}</h1>`));

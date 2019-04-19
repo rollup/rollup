@@ -1,3 +1,5 @@
 'use strict';
 
-postMessage('from worker');
+var __chunk_1 = require('./chunks/chunk.js');
+
+postMessage(`from worker: ${__chunk_1.shared}`);

@@ -1,14 +1,15 @@
-define(['module', 'require'], function (module, require) { 'use strict';
+define(['module', 'require', './chunks/chunk.js'], function (module, require, __chunk_1) { 'use strict';
 
   const getWorkerMessage = () => new Promise(resolve => {
-    const worker = new Worker(new URL(module.uri + '/../worker.js', document.baseURI).href, {type: 'module'});
+    const worker = new Worker(new URL(module.uri + '/../worker-proxy.js', document.baseURI).href);
     worker.onmessage = resolve;
   });
 
-  getWorkerMessage().then(message => document.write(`<h1>1: ${message.data}</h1>`));
+  document.body.innerHTML += `<h1>main: ${__chunk_1.shared}</h1>`;
+  getWorkerMessage().then(message => (document.body.innerHTML += `<h1>1: ${message.data}</h1>`));
 
-  new Promise(function (resolve, reject) { require(['./chunks/chunk.js'], resolve, reject) })
+  new Promise(function (resolve, reject) { require(['./chunks/chunk2.js'], resolve, reject) })
   	.then(result => result.getWorkerMessage())
-  	.then(message => document.write(`<h1>2: ${message.data}</h1>`));
+  	.then(message => (document.body.innerHTML += `<h1>2: ${message.data}</h1>`));
 
 });
