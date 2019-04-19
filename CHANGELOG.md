@@ -1,10 +1,11 @@
 # rollup changelog
 
 ## 1.10.1
-*unreleased*
+*2019-04-19*
 
 ### Pull Requests
 * [#2812](https://github.com/rollup/rollup/pull/2812): Minor documentation update (@dnalborczyk)
+* [#2813](https://github.com/rollup/rollup/pull/2813): Catch invalid options.format values (@marijnh)
 * [#2816](https://github.com/rollup/rollup/pull/2816): Update all dependencies to fix security issues (@lukastaegert)
 
 ## 1.10.0
