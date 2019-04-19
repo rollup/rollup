@@ -1,5 +1,12 @@
 # rollup changelog
 
+## 1.10.1
+*unreleased*
+
+### Pull Requests
+* [#2812](https://github.com/rollup/rollup/pull/2812): Minor documentation update (@dnalborczyk)
+* [#2816](https://github.com/rollup/rollup/pull/2816): Update all dependencies to fix security issues (@lukastaegert)
+
 ## 1.10.0
 *2019-04-11*
 

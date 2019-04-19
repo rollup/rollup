@@ -604,7 +604,7 @@ The wrinkle is that if you use `named` exports but *also* have a `default` expor
 
 ```js
 const yourMethod = require( 'your-lib' ).yourMethod;
-const yourLib = require( 'your-lib' )['default'];
+const yourLib = require( 'your-lib' ).default;
 ```
 
 #### output.freeze
