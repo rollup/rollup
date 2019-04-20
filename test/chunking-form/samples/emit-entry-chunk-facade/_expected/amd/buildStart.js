@@ -1,4 +1,4 @@
-define(['exports', './generated-build-starter.js'], function (exports, buildStart) { 'use strict';
+define(['exports', './generated-build-starter'], function (exports, buildStart) { 'use strict';
 
 
 

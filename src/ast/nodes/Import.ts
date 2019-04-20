@@ -91,8 +91,11 @@ export default class Import extends NodeBase {
 		}
 	}
 
-	renderFinalResolution(code: MagicString, resolution: string) {
+	renderFinalResolution(code: MagicString, resolution: string, format: string) {
 		if (this.included) {
+			if (format === 'amd' && resolution.startsWith("'.") && resolution.endsWith(".js'")) {
+				resolution = resolution.slice(0, -4) + "'";
+			}
 			code.overwrite(this.parent.arguments[0].start, this.parent.arguments[0].end, resolution);
 		}
 	}

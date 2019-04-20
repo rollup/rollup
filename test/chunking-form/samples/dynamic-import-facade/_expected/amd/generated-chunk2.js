@@ -1,4 +1,4 @@
-define(['exports', './generated-chunk.js'], function (exports, dynamic_js) { 'use strict';
+define(['exports', './generated-chunk'], function (exports, dynamic_js) { 'use strict';
 
 
 

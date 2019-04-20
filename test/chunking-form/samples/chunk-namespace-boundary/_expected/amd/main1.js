@@ -1,4 +1,4 @@
-define(['./generated-chunk.js'], function (__chunk_1) { 'use strict';
+define(['./generated-chunk'], function (__chunk_1) { 'use strict';
 
 	__chunk_1.commonjsGlobal.fn = d => d + 1;
 	var cjs = __chunk_1.commonjsGlobal.fn;

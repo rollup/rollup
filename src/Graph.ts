@@ -5,7 +5,7 @@ import injectImportMeta from 'acorn-import-meta';
 import * as ESTree from 'estree';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { EntityPathTracker } from './ast/utils/EntityPathTracker';
-import Chunk from './Chunk';
+import Chunk, { isChunkRendered } from './Chunk';
 import ExternalModule from './ExternalModule';
 import Module, { defaultAcornOptions } from './Module';
 import { ModuleLoader, UnresolvedModuleWithAlias } from './ModuleLoader';
@@ -308,9 +308,7 @@ export default class Graph {
 			}
 
 			// filter out empty dependencies
-			chunks = chunks.filter(
-				chunk => !chunk.isEmpty || chunk.entryModules.length > 0 || chunk.manualChunkAlias !== null
-			);
+			chunks = chunks.filter(isChunkRendered);
 
 			// then go over and ensure all entry chunks export their variables
 			for (const chunk of chunks) {
