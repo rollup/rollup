@@ -1,4 +1,4 @@
-define(['exports', './generated-other.js'], function (exports, main) { 'use strict';
+define(['exports', './generated-other'], function (exports, main) { 'use strict';
 
 
 

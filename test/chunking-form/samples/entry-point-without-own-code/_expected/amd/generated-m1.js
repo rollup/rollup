@@ -1,4 +1,4 @@
-define(['exports', './m2.js'], function (exports, m2) { 'use strict';
+define(['exports', './m2'], function (exports, m2) { 'use strict';
 
 
 

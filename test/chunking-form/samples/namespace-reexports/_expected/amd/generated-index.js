@@ -1,4 +1,4 @@
-define(['exports', './hsl2hsv.js'], function (exports, hsl2hsv$1) { 'use strict';
+define(['exports', './hsl2hsv'], function (exports, hsl2hsv$1) { 'use strict';
 
 	var hsl2hsv = 'asdf';
 

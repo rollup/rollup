@@ -107,6 +107,10 @@ function getGlobalName(
 	}
 }
 
+export function isChunkRendered(chunk: Chunk): boolean {
+	return !chunk.isEmpty || chunk.entryModules.length > 0 || chunk.manualChunkAlias !== null;
+}
+
 export default class Chunk {
 	entryModules: Module[] = [];
 	execIndex: number;
@@ -597,7 +601,7 @@ export default class Chunk {
 			renderedDependency.id = relPath;
 		}
 
-		this.finaliseDynamicImports();
+		this.finaliseDynamicImports(options.format);
 		const needsAmdModule = this.finaliseImportMetas(options);
 
 		const hasExports =
@@ -782,23 +786,23 @@ export default class Chunk {
 		return hash.digest('hex').substr(0, 8);
 	}
 
-	private finaliseDynamicImports() {
+	private finaliseDynamicImports(format: string) {
 		for (let i = 0; i < this.orderedModules.length; i++) {
 			const module = this.orderedModules[i];
 			const code = this.renderedModuleSources[i];
 			for (const { node, resolution } of module.dynamicImports) {
 				if (!resolution) continue;
 				if (resolution instanceof Module) {
-					if (!resolution.chunk.isEmpty && resolution.chunk !== this) {
+					if (resolution.chunk !== this && isChunkRendered(resolution.chunk)) {
 						const resolutionChunk = resolution.facadeChunk || resolution.chunk;
 						let relPath = normalize(relative(dirname(this.id), resolutionChunk.id));
 						if (!relPath.startsWith('../')) relPath = './' + relPath;
-						node.renderFinalResolution(code, `'${relPath}'`);
+						node.renderFinalResolution(code, `'${relPath}'`, format);
 					}
 				} else if (resolution instanceof ExternalModule) {
-					node.renderFinalResolution(code, `'${resolution.id}'`);
+					node.renderFinalResolution(code, `'${resolution.id}'`, format);
 				} else {
-					node.renderFinalResolution(code, resolution);
+					node.renderFinalResolution(code, resolution, format);
 				}
 			}
 		}
