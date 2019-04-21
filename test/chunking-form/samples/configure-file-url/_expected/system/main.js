@@ -7,9 +7,9 @@ System.register([], function (exports, module) {
 			const chunk = 'resolved';
 
 			const asset$1 = new URL('assets/asset-unresolved-9548436d.txt', module.meta.url).href;
-			const chunk$1 = new URL('chunk.js', module.meta.url).href;
+			const chunk$1 = new URL('nested/chunk.js', module.meta.url).href;
 
-			module.import('./nested/chunk.js').then(result => console.log(result, chunk, chunk$1, asset, asset$1));
+			module.import('./nested/chunk2.js').then(result => console.log(result, chunk, chunk$1, asset, asset$1));
 
 		}
 	};

@@ -5,7 +5,7 @@ module.exports = {
 		plugins: {
 			name: 'test-plugin',
 			buildStart() {
-				const chunkId = this.emitEntryChunk('chunk.js');
+				const chunkId = this.emitChunk('chunk.js');
 				this.getChunkFileName(chunkId);
 			}
 		}

@@ -192,6 +192,7 @@ export default class Module {
 	isEntryPoint: boolean = false;
 	isExecuted: boolean = false;
 	isExternal: false;
+	isUserDefinedEntryPoint: boolean = false;
 	manualChunkAlias: string = null;
 	originalCode: string;
 	originalSourcemap: RawSourceMap | void;
@@ -201,7 +202,6 @@ export default class Module {
 	sourcemapChain: RawSourceMap[];
 	sources: string[] = [];
 	transformAssets: Asset[];
-	type: 'Module';
 	usesTopLevelAwait: boolean = false;
 
 	private ast: Program;

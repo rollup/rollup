@@ -14,7 +14,7 @@ module.exports = {
 				load(id) {
 					if (id.endsWith('solved')) {
 						const assetId = this.emitAsset(`asset-${id}.txt`, `Asset for: ${id}`);
-						const chunkId = this.emitEntryChunk('chunk.js');
+						const chunkId = this.emitChunk('chunk.js');
 						return (
 							`export const asset = import.meta.ROLLUP_ASSET_URL_${assetId};\n` +
 							`export const chunk = import.meta.ROLLUP_CHUNK_URL_${chunkId};`

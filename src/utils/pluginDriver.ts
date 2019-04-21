@@ -136,11 +136,11 @@ export function createPluginDriver(
 		}
 
 		const context: PluginContext = {
-			emitEntryChunk(id: string) {
+			emitChunk(id: string) {
 				if (graph.phase > BuildPhase.LOAD_AND_PARSE)
 					this.error({
 						code: Errors.INVALID_ROLLUP_PHASE,
-						message: `Cannot call emitEntryChunk after module loading has finished.`
+						message: `Cannot call emitChunk after module loading has finished.`
 					});
 				return graph.moduleLoader.addEntryModuleAndGetMetaId({ alias: null, unresolvedId: id });
 			},
