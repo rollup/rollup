@@ -104,7 +104,7 @@ export interface MinimalPluginContext {
 }
 
 export type EmitAsset = (name: string, source?: string | Buffer) => string;
-export type EmitChunk = (name: string) => string;
+export type EmitChunk = (name: string, options?: { name?: string }) => string;
 
 export interface PluginContext extends MinimalPluginContext {
 	addWatchFile: (id: string) => void;
