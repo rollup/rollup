@@ -4,7 +4,7 @@ module.exports = {
 		input: 'main.js',
 		plugins: {
 			buildStart() {
-				this.emitEntryChunk('not-found.js');
+				this.emitChunk('not-found.js');
 			}
 		}
 	},

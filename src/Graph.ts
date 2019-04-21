@@ -212,7 +212,7 @@ export default class Graph {
 		timeStart('parse modules', 2);
 
 		return Promise.all([
-			this.moduleLoader.addEntryModules(normalizeEntryModules(entryModules)),
+			this.moduleLoader.addEntryModules(normalizeEntryModules(entryModules), true),
 			manualChunks && this.moduleLoader.addManualChunks(manualChunks)
 		]).then(([{ entryModules, manualChunkModulesByAlias }]) => {
 			for (const entryModule of entryModules) {

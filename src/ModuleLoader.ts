@@ -74,7 +74,7 @@ export class ModuleLoader {
 			this.entriesByMetaId,
 			unresolvedEntryModule.unresolvedId
 		);
-		this.addEntryModules([unresolvedEntryModule])
+		this.addEntryModules([unresolvedEntryModule], false)
 			.then(({ newEntryModules: [module] }) => {
 				entryRecord.module = module;
 			})
@@ -86,7 +86,8 @@ export class ModuleLoader {
 	}
 
 	addEntryModules(
-		unresolvedEntryModules: UnresolvedModuleWithAlias[]
+		unresolvedEntryModules: UnresolvedModuleWithAlias[],
+		isUserDefined: boolean
 	): Promise<{
 		entryModules: Module[];
 		manualChunkModulesByAlias: Record<string, Module[]>;
@@ -96,6 +97,7 @@ export class ModuleLoader {
 			unresolvedEntryModules.map(this.loadEntryModule)
 		).then(entryModules => {
 			for (const entryModule of entryModules) {
+				entryModule.isUserDefinedEntryPoint = entryModule.isUserDefinedEntryPoint || isUserDefined;
 				const existingEntryModule = this.entryModules.find(module => module.id === entryModule.id);
 				if (!existingEntryModule) {
 					this.entryModules.push(entryModule);

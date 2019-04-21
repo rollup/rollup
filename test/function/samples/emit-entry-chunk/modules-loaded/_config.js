@@ -5,14 +5,14 @@ module.exports = {
 		plugins: {
 			name: 'test-plugin',
 			buildEnd() {
-				this.emitEntryChunk('chunk.js');
+				this.emitChunk('chunk.js');
 			}
 		}
 	},
 	error: {
 		code: 'PLUGIN_ERROR',
 		hook: 'buildEnd',
-		message: 'Cannot call emitEntryChunk after module loading has finished.',
+		message: 'Cannot call emitChunk after module loading has finished.',
 		plugin: 'test-plugin',
 		pluginCode: 'INVALID_ROLLUP_PHASE'
 	}
