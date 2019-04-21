@@ -9,7 +9,6 @@ import {
 	PluginCache,
 	PluginContext,
 	PluginHooks,
-	RollupError,
 	RollupWarning,
 	RollupWatcher,
 	SerializablePluginCache
@@ -136,15 +135,7 @@ export function createPluginDriver(
 		}
 
 		const context: PluginContext = {
-			emitChunk(id: string) {
-				if (graph.phase > BuildPhase.LOAD_AND_PARSE)
-					this.error({
-						code: Errors.INVALID_ROLLUP_PHASE,
-						message: `Cannot call emitChunk after module loading has finished.`
-					});
-				return graph.moduleLoader.addEntryModuleAndGetMetaId({ alias: null, unresolvedId: id });
-			},
-			addWatchFile(id: string) {
+			addWatchFile(id) {
 				if (graph.phase >= BuildPhase.GENERATE)
 					this.error({
 						code: Errors.INVALID_ROLLUP_PHASE,
@@ -154,21 +145,32 @@ export function createPluginDriver(
 			},
 			cache: cacheInstance,
 			emitAsset,
-			error: (err: RollupError | string) => {
+			emitChunk(id, options) {
+				if (graph.phase > BuildPhase.LOAD_AND_PARSE)
+					this.error({
+						code: Errors.INVALID_ROLLUP_PHASE,
+						message: `Cannot call emitChunk after module loading has finished.`
+					});
+				return graph.moduleLoader.addEntryModuleAndGetMetaId({
+					alias: (options && options.name) || null,
+					unresolvedId: id
+				});
+			},
+			error(err) {
 				if (typeof err === 'string') err = { message: err };
 				if (err.code) err.pluginCode = err.code;
 				err.code = 'PLUGIN_ERROR';
 				err.plugin = plugin.name || `Plugin at position ${pidx + 1}`;
 				error(err);
 			},
-			isExternal(id: string, parentId: string, isResolved = false) {
+			isExternal(id, parentId, isResolved = false) {
 				return graph.moduleLoader.isExternal(id, parentId, isResolved);
 			},
 			getAssetFileName,
-			getChunkFileName(chunkMetaId: string): string {
+			getChunkFileName(chunkMetaId) {
 				return graph.moduleLoader.getChunkFileName(chunkMetaId);
 			},
-			getModuleInfo(moduleId: string) {
+			getModuleInfo(moduleId) {
 				const foundModule = graph.moduleById.get(moduleId);
 				if (foundModule == null) {
 					throw new Error(`Unable to find module ${moduleId}`);
@@ -187,11 +189,11 @@ export function createPluginDriver(
 			},
 			moduleIds: graph.moduleById.keys(),
 			parse: graph.contextParse,
-			resolveId(id: string, parent: string) {
+			resolveId(id, parent) {
 				return pluginDriver.hookFirst('resolveId', [id, parent]);
 			},
 			setAssetSource,
-			warn: (warning: RollupWarning | string) => {
+			warn(warning) {
 				if (typeof warning === 'string') warning = { message: warning } as RollupWarning;
 				if (warning.code) warning.pluginCode = warning.code;
 				warning.code = 'PLUGIN_WARNING';
