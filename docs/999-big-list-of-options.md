@@ -220,7 +220,7 @@ export default (async () => ({
     commonjs(),
     isProduction && (await import('rollup-plugin-terser')).terser()
   ]
-})();
+}))();
 ```
 
 (This example also demonstrates how to use an async IIFE and dynamic imports to avoid unnecessary module loading, which can be surprisingly slow.)
