@@ -322,7 +322,7 @@ The pattern to use for naming custom emitted assets to include in the build outp
  * `[hash]`: A hash based on the name and content of the asset.
  * `[name]`: The file name of the asset excluding any extension.
 
-Forward slashes `/` can be used to place files in sub-directories. See also [`output.chunkFileNames`](guide/en#output-chunkfilenames), [`output.entryFileNames`](guide/en#output-entryfilenames).
+Forward slashes `/` can be used to place files in sub-directories. See also `[`output.chunkFileNames`](guide/en#output-chunkfilenames)`, [`output.entryFileNames`](guide/en#output-entryfilenames).
 
 #### output.banner/output.footer
 Type: `string | (() => string | Promise<string>)`<br>
