@@ -24,7 +24,7 @@ type Args<T> = T extends (...args: infer K) => any ? K : never;
 export interface PluginDriver {
 	emitAsset: EmitAsset;
 	hasLoadersOrTransforms: boolean;
-	getAssetFileName(assetMetaId: string): string;
+	getAssetFileName(assetReferenceId: string): string;
 	hookFirst<H extends keyof PluginHooks, R = ReturnType<PluginHooks[H]>>(
 		hook: H,
 		args: Args<PluginHooks[H]>,
@@ -151,7 +151,7 @@ export function createPluginDriver(
 						code: Errors.INVALID_ROLLUP_PHASE,
 						message: `Cannot call emitChunk after module loading has finished.`
 					});
-				return graph.moduleLoader.addEntryModuleAndGetMetaId({
+				return graph.moduleLoader.addEntryModuleAndGetReferenceId({
 					alias: (options && options.name) || null,
 					unresolvedId: id
 				});
@@ -167,8 +167,8 @@ export function createPluginDriver(
 				return graph.moduleLoader.isExternal(id, parentId, isResolved);
 			},
 			getAssetFileName,
-			getChunkFileName(chunkMetaId) {
-				return graph.moduleLoader.getChunkFileName(chunkMetaId);
+			getChunkFileName(chunkReferenceId) {
+				return graph.moduleLoader.getChunkFileName(chunkReferenceId);
 			},
 			getModuleInfo(moduleId) {
 				const foundModule = graph.moduleById.get(moduleId);

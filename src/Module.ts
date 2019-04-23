@@ -88,8 +88,8 @@ export interface AstContext {
 	deoptimizationTracker: EntityPathTracker;
 	error: (props: RollupError, pos: number) => void;
 	fileName: string;
-	getAssetFileName: (assetMetaId: string) => string;
-	getChunkFileName: (metaId: string) => string;
+	getAssetFileName: (assetReferenceId: string) => string;
+	getChunkFileName: (chunkReferenceId: string) => string;
 	getExports: () => string[];
 	getModuleExecIndex: () => number;
 	getModuleName: () => string;

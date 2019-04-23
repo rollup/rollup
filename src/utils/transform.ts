@@ -133,8 +133,8 @@ export default function transform(
 						transformDependencies.push(id);
 						pluginContext.addWatchFile(id);
 					},
-					setAssetSource(assetMetaId, source) {
-						pluginContext.setAssetSource(assetMetaId, source);
+					setAssetSource(assetReferenceId, source) {
+						pluginContext.setAssetSource(assetReferenceId, source);
 						if (!customTransformCache && !setAssetSourceErr) {
 							try {
 								this.error({

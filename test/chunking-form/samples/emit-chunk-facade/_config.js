@@ -1,5 +1,5 @@
 const assert = require('assert');
-let metaId;
+let referenceId;
 
 module.exports = {
 	description: 'retrieves the correct name of an emitted chunk in case a facade is created',
@@ -10,10 +10,10 @@ module.exports = {
 		},
 		plugins: {
 			buildStart() {
-				metaId = this.emitChunk('buildStart');
+				referenceId = this.emitChunk('buildStart');
 			},
 			renderChunk() {
-				assert.strictEqual(this.getChunkFileName(metaId), 'generated-buildStart.js');
+				assert.strictEqual(this.getChunkFileName(referenceId), 'generated-buildStart.js');
 			}
 		}
 	}

@@ -21,7 +21,15 @@ module.exports = {
 						);
 					}
 				},
-				resolveFileUrl({ chunkId, fileName, format, moduleId, relativePath, type }) {
+				resolveFileUrl({
+					assetReferenceId,
+					chunkId,
+					chunkReferenceId,
+					fileName,
+					format,
+					moduleId,
+					relativePath
+				}) {
 					if (!moduleId.endsWith('resolved')) {
 						return `'chunkId=${chunkId}:moduleId=${moduleId
 							.replace(/\\/g, '/')
@@ -29,7 +37,7 @@ module.exports = {
 							.slice(-2)
 							.join(
 								'/'
-							)}:fileName=${fileName}:format=${format}:relativePath=${relativePath}:type=${type}'`;
+							)}:fileName=${fileName}:format=${format}:relativePath=${relativePath}:assetReferenceId=${assetReferenceId}:chunkReferenceId=${chunkReferenceId}'`;
 					}
 					return null;
 				}
