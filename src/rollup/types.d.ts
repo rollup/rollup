@@ -214,7 +214,6 @@ export type ResolveAssetUrlHook = (
 	}
 ) => string | void;
 
-// TODO Lukas do not require an input to be present if entries are created dynamically
 export type ResolveFileUrlHook = (
 	this: PluginContext,
 	options: {
@@ -326,7 +325,7 @@ export interface InputOptions {
 	experimentalTopLevelAwait?: boolean;
 	external?: ExternalOption;
 	inlineDynamicImports?: boolean;
-	input: InputOption;
+	input?: InputOption;
 	manualChunks?: { [chunkAlias: string]: string[] };
 	moduleContext?: ((id: string) => string) | { [id: string]: string };
 	onwarn?: WarningHandler;

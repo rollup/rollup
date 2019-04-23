@@ -88,7 +88,7 @@ export default function mergeOptions({
 	config: GenericConfigObject;
 	defaultOnWarnHandler?: WarningHandler;
 }): {
-	inputOptions: any;
+	inputOptions: InputOptions;
 	optionError: string | null;
 	outputOptions: any;
 } {
@@ -204,7 +204,7 @@ function getInputOptions(
 		experimentalTopLevelAwait: getOption('experimentalTopLevelAwait'),
 		external: getExternal(config, command),
 		inlineDynamicImports: getOption('inlineDynamicImports', false),
-		input: getOption('input'),
+		input: getOption('input', []),
 		manualChunks: getOption('manualChunks'),
 		moduleContext: config.moduleContext,
 		onwarn: getOnWarn(config, command, defaultOnWarnHandler),
