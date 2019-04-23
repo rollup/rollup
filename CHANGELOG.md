@@ -1,7 +1,16 @@
 # rollup changelog
 
+## 1.10.2
+*unreleased*
+
+### Pull Requests
+* [#2821](https://github.com/rollup/rollup/pull/2821): Fix syntax error in documentation (@FFxSquall)
+
 ## 1.10.1
 *2019-04-19*
+
+### Bug Fixes
+* Invalid options.format values will now trigger a helpful error (#2813)
 
 ### Pull Requests
 * [#2812](https://github.com/rollup/rollup/pull/2812): Minor documentation update (@dnalborczyk)
