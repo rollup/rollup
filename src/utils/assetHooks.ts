@@ -1,16 +1,16 @@
 import sha256 from 'hash.js/lib/hash/sha/256';
 import { Asset, EmitAsset, OutputBundle } from '../rollup/types';
 import {
-	errorAssetMetaIdNotFoundForFilename,
-	errorAssetMetaIdNotFoundForSetSource,
 	errorAssetNotFinalisedForFileName,
+	errorAssetReferenceIdNotFoundForFilename,
+	errorAssetReferenceIdNotFoundForSetSource,
 	errorAssetSourceAlreadySet,
 	errorAssetSourceMissingForSetSource,
 	errorInvalidAssetName,
 	errorNoAssetSourceSet
 } from './error';
-import { addWithNewMetaId } from './metaIds';
 import { extname } from './path';
+import { addWithNewReferenceId } from './referenceIds';
 import { isPlainName } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';
 
@@ -44,7 +44,7 @@ export function getAssetFileName(
 }
 
 export function createAssetPluginHooks(
-	assetsByMetaId: Map<string, Asset>,
+	assetsByReferenceId: Map<string, Asset>,
 	outputBundle?: OutputBundle,
 	assetFileNames?: string
 ) {
@@ -53,21 +53,21 @@ export function createAssetPluginHooks(
 			if (typeof name !== 'string' || !isPlainName(name)) errorInvalidAssetName(name);
 			const asset: Asset = { name, source, fileName: undefined };
 			if (outputBundle && source !== undefined) finaliseAsset(asset, outputBundle, assetFileNames);
-			return addWithNewMetaId(asset, assetsByMetaId, name);
+			return addWithNewReferenceId(asset, assetsByReferenceId, name);
 		},
 
-		setAssetSource(assetMetaId: string, source?: string | Buffer) {
-			const asset = assetsByMetaId.get(assetMetaId);
-			if (!asset) errorAssetMetaIdNotFoundForSetSource(assetMetaId);
+		setAssetSource(assetReferenceId: string, source?: string | Buffer) {
+			const asset = assetsByReferenceId.get(assetReferenceId);
+			if (!asset) errorAssetReferenceIdNotFoundForSetSource(assetReferenceId);
 			if (asset.source !== undefined) errorAssetSourceAlreadySet(asset);
 			if (typeof source !== 'string' && !source) errorAssetSourceMissingForSetSource(asset);
 			asset.source = source;
 			if (outputBundle) finaliseAsset(asset, outputBundle, assetFileNames);
 		},
 
-		getAssetFileName(assetMetaId: string) {
-			const asset = assetsByMetaId.get(assetMetaId);
-			if (!asset) errorAssetMetaIdNotFoundForFilename(assetMetaId);
+		getAssetFileName(assetReferenceId: string) {
+			const asset = assetsByReferenceId.get(assetReferenceId);
+			if (!asset) errorAssetReferenceIdNotFoundForFilename(assetReferenceId);
 			if (asset.fileName === undefined) errorAssetNotFinalisedForFileName(asset);
 			return asset.fileName;
 		}
@@ -84,19 +84,22 @@ export function finaliseAsset(asset: Asset, outputBundle: OutputBundle, assetFil
 	};
 }
 
-export function createTransformEmitAsset(assetsByMetaId: Map<string, Asset>, emitAsset: EmitAsset) {
+export function createTransformEmitAsset(
+	assetsByReferenceId: Map<string, Asset>,
+	emitAsset: EmitAsset
+) {
 	const assets: Asset[] = [];
 	return {
 		assets,
 		emitAsset: (name: string, source?: string | Buffer) => {
-			const assetMetaId = emitAsset(name, source);
-			const asset = assetsByMetaId.get(assetMetaId);
+			const assetReferenceId = emitAsset(name, source);
+			const asset = assetsByReferenceId.get(assetReferenceId);
 			assets.push({
 				fileName: undefined,
 				name: asset.name,
 				source: asset.source
 			});
-			return assetMetaId;
+			return assetReferenceId;
 		}
 	};
 }

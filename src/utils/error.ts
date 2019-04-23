@@ -60,17 +60,17 @@ export function errorChunkNotGeneratedForFileName(entry: { name: string }) {
 	});
 }
 
-export function errorAssetMetaIdNotFoundForFilename(assetMetaId: string) {
+export function errorAssetReferenceIdNotFoundForFilename(assetReferenceId: string) {
 	error({
 		code: Errors.ASSET_NOT_FOUND,
-		message: `Plugin error - Unable to get file name for unknown asset "${assetMetaId}".`
+		message: `Plugin error - Unable to get file name for unknown asset "${assetReferenceId}".`
 	});
 }
 
-export function errorAssetMetaIdNotFoundForSetSource(assetMetaId: string) {
+export function errorAssetReferenceIdNotFoundForSetSource(assetReferenceId: string) {
 	error({
 		code: Errors.ASSET_NOT_FOUND,
-		message: `Plugin error - Unable to set the source for unknown asset "${assetMetaId}".`
+		message: `Plugin error - Unable to set the source for unknown asset "${assetReferenceId}".`
 	});
 }
 
@@ -97,10 +97,10 @@ export function errorNoAssetSourceSet(asset: Asset) {
 	});
 }
 
-export function errorChunkMetaIdNotFoundForFilename(chunkMetaId: string) {
+export function errorChunkReferenceIdNotFoundForFilename(chunkReferenceId: string) {
 	error({
 		code: Errors.CHUNK_NOT_FOUND,
-		message: `Plugin error - Unable to get file name for unknown chunk "${chunkMetaId}".`
+		message: `Plugin error - Unable to get file name for unknown chunk "${chunkReferenceId}".`
 	});
 }
 

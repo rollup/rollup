@@ -112,8 +112,8 @@ export interface PluginContext extends MinimalPluginContext {
 	emitAsset: EmitAsset;
 	emitChunk: EmitChunk;
 	error: (err: RollupError | string, pos?: { column: number; line: number }) => void;
-	getAssetFileName: (assetMetaId: string) => string;
-	getChunkFileName: (chunkMetaId: string) => string;
+	getAssetFileName: (assetReferenceId: string) => string;
+	getChunkFileName: (chunkReferenceId: string) => string;
 	getModuleInfo: (
 		moduleId: string
 	) => {
@@ -125,7 +125,7 @@ export interface PluginContext extends MinimalPluginContext {
 	moduleIds: IterableIterator<string>;
 	parse: (input: string, options: any) => ESTree.Program;
 	resolveId: (id: string, parent: string) => Promise<string>;
-	setAssetSource: (assetMetaId: string, source: string | Buffer) => void;
+	setAssetSource: (assetReferenceId: string, source: string | Buffer) => void;
 	warn: (warning: RollupWarning | string, pos?: { column: number; line: number }) => void;
 	/** @deprecated */
 	watcher: EventEmitter;
@@ -214,17 +214,17 @@ export type ResolveAssetUrlHook = (
 	}
 ) => string | void;
 
-type EmittedFileType = 'ASSET' | 'CHUNK';
-
+// TODO Lukas do not require an input to be present if entries are created dynamically
 export type ResolveFileUrlHook = (
 	this: PluginContext,
 	options: {
+		assetReferenceId: string | null;
 		chunkId: string;
+		chunkReferenceId: string | null;
 		fileName: string;
 		format: string;
 		moduleId: string;
 		relativePath: string;
-		type: EmittedFileType;
 	}
 ) => string | void;
 

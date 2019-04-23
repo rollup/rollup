@@ -1,6 +1,6 @@
 define(['module'], function (module) { 'use strict';
 
-	var asset1 = 'chunkId=amd.js:moduleId=solved:fileName=assets/asset-solved-9b321da2.txt:format=amd:relativePath=assets/asset-solved-9b321da2.txt:type=ASSET';
+	var asset1 = 'chunkId=amd.js:moduleId=solved:fileName=assets/asset-solved-9b321da2.txt:format=amd:relativePath=assets/asset-solved-9b321da2.txt:assetReferenceId=6296c678:chunkReferenceId=null';
 
 	var asset2 = 'resolved';
 

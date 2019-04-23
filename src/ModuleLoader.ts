@@ -13,12 +13,12 @@ import {
 import {
 	error,
 	errorCannotAssignModuleToChunk,
-	errorChunkMetaIdNotFoundForFilename,
-	errorChunkNotGeneratedForFileName
+	errorChunkNotGeneratedForFileName,
+	errorChunkReferenceIdNotFoundForFilename
 } from './utils/error';
-import { addWithNewMetaId } from './utils/metaIds';
 import { isRelative, resolve } from './utils/path';
 import { PluginDriver } from './utils/pluginDriver';
+import { addWithNewReferenceId } from './utils/referenceIds';
 import relativeId, { getAliasName } from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
 import transform from './utils/transform';
@@ -38,7 +38,10 @@ function normalizeRelativeExternalId(importee: string, source: string) {
 
 export class ModuleLoader {
 	readonly isExternal: IsExternal;
-	private readonly entriesByMetaId = new Map<string, { module: Module | null; name: string }>();
+	private readonly entriesByReferenceId = new Map<
+		string,
+		{ module: Module | null; name: string }
+	>();
 	private readonly entryModules: Module[] = [];
 	private readonly graph: Graph;
 	private latestLoadModulesPromise: Promise<any> = Promise.resolve();
@@ -64,14 +67,14 @@ export class ModuleLoader {
 		}
 	}
 
-	addEntryModuleAndGetMetaId(unresolvedEntryModule: UnresolvedModuleWithAlias): string {
+	addEntryModuleAndGetReferenceId(unresolvedEntryModule: UnresolvedModuleWithAlias): string {
 		const entryRecord: { module: Module | null; name: string } = {
 			module: null,
 			name: unresolvedEntryModule.unresolvedId
 		};
-		const metaId = addWithNewMetaId(
+		const referenceId = addWithNewReferenceId(
 			entryRecord,
-			this.entriesByMetaId,
+			this.entriesByReferenceId,
 			unresolvedEntryModule.unresolvedId
 		);
 		this.addEntryModules([unresolvedEntryModule], false)
@@ -82,7 +85,7 @@ export class ModuleLoader {
 				// Avoid unhandled Promise rejection as the error will be thrown later
 				// once module loading has finished
 			});
-		return metaId;
+		return referenceId;
 	}
 
 	addEntryModules(
@@ -134,9 +137,9 @@ export class ModuleLoader {
 		return this.awaitLoadModulesPromise(loadNewManualChunkModulesPromise);
 	}
 
-	getChunkFileName(metaId: string): string {
-		const entryRecord = this.entriesByMetaId.get(metaId);
-		if (!entryRecord) errorChunkMetaIdNotFoundForFilename(metaId);
+	getChunkFileName(referenceId: string): string {
+		const entryRecord = this.entriesByReferenceId.get(referenceId);
+		if (!entryRecord) errorChunkReferenceIdNotFoundForFilename(referenceId);
 		const fileName =
 			entryRecord.module &&
 			(entryRecord.module.facadeChunk

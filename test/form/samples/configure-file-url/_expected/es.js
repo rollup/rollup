@@ -1,4 +1,4 @@
-var asset1 = 'chunkId=es.js:moduleId=solved:fileName=assets/asset-solved-9b321da2.txt:format=es:relativePath=assets/asset-solved-9b321da2.txt:type=ASSET';
+var asset1 = 'chunkId=es.js:moduleId=solved:fileName=assets/asset-solved-9b321da2.txt:format=es:relativePath=assets/asset-solved-9b321da2.txt:assetReferenceId=6296c678:chunkReferenceId=null';
 
 var asset2 = 'resolved';
 

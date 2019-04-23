@@ -186,19 +186,20 @@ Kind: `async, first`
 Defines a custom resolver for dynamic imports. In case a dynamic import is not passed a string as argument, this hook gets access to the raw AST nodes to analyze. Returning `null` will defer to other resolvers and eventually to `resolveId` if this is possible; returning `false` signals that the import should be kept as it is and not be passed to other resolvers thus making it external. Note that the return value of this hook will not be passed to `resolveId` afterwards; if you need access to the static resolution algorithm, you can use `this.resolveId(importee, importer)` on the plugin context.
 
 #### `resolveFileUrl`
-Type: `({chunkId: string, fileName: string, format: string, moduleId: string, relativePath: string, type: 'ASSET' | 'CHUNK}) => string | null`<br>
+Type: `({assetReferenceId: string | null, chunkId: string, chunkReferenceId: string | null, fileName: string, format: string, moduleId: string, relativePath: string}) => string | null`<br>
 Kind: `sync, first`
 
 Allows to customize how Rollup resolves URLs of files that were emitted by plugins via `this.emitAsset` or `this.emitChunk`. By default, Rollup will generate code for `import.meta.ROLLUP_ASSET_URL_assetReferenceId` and `import.meta.ROLLUP_CHUNK_URL_chunkReferenceId` that should correctly generate absolute URLs of emitted files independent of the output format and the host system where the code is deployed.
 
 For that, all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available. In case that fails or to generate more optimized code, this hook can be used to customize this behaviour. To do that, the following information is available:
 
+- `assetReferenceId`: The asset reference id if we are resolving `import.meta.ROLLUP_ASSET_URL_assetReferenceId`, otherwise `null`.
 - `chunkId`: The id of the chunk this file is referenced from.
+- `chunkReferenceId`: The chunk reference id if we are resolving `import.meta.ROLLUP_CHUNK_URL_chunkReferenceId`, otherwise `null`.
 - `fileName`: The path and file name of the emitted asset, relative to `output.dir` without a leading `./`.
 - `format`: The rendered output format.
 - `moduleId`: The id of the original module this file is referenced from. Useful for conditionally resolving certain assets differently.
 - `relativePath`: The path and file name of the emitted file, relative to the chunk the file is referenced from. This will path will contain no leading `./` but may contain a leading `../`.
-- `type`: Either `CHUNK` for `import.meta.ROLLUP_CHUNK_URL_chunkReferenceId` or `ASSET` for `import.meta.ROLLUP_ASSET_URL_assetReferenceId`.
 
 Note that since this hook has access to the filename of the current chunk, its return value will not be considered when generating the hash of this chunk.
 

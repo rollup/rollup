@@ -1,5 +1,4 @@
 import MagicString from 'magic-string';
-import { EmittedFileType } from '../../rollup/types';
 import { dirname, normalize, relative } from '../../utils/path';
 import { PluginDriver } from '../../utils/pluginDriver';
 import { ObjectPathKey } from '../values';
@@ -44,15 +43,19 @@ export default class MetaProperty extends NodeBase {
 			importMetaProperty &&
 			(importMetaProperty.startsWith(ASSET_PREFIX) || importMetaProperty.startsWith(CHUNK_PREFIX))
 		) {
-			const [type, fileName]: [EmittedFileType, string] = importMetaProperty.startsWith(
-				ASSET_PREFIX
-			)
-				? ['ASSET', this.context.getAssetFileName(importMetaProperty.substr(ASSET_PREFIX.length))]
-				: ['CHUNK', this.context.getChunkFileName(importMetaProperty.substr(CHUNK_PREFIX.length))];
-
+			let assetReferenceId: string | null = null;
+			let chunkReferenceId: string | null = null;
+			let fileName: string;
+			if (importMetaProperty.startsWith(ASSET_PREFIX)) {
+				assetReferenceId = importMetaProperty.substr(ASSET_PREFIX.length);
+				fileName = this.context.getAssetFileName(assetReferenceId);
+			} else {
+				chunkReferenceId = importMetaProperty.substr(CHUNK_PREFIX.length);
+				fileName = this.context.getChunkFileName(chunkReferenceId);
+			}
 			const relativePath = normalize(relative(dirname(chunkId), fileName));
 			let replacement;
-			if (type === 'ASSET') {
+			if (assetReferenceId !== null) {
 				// deprecated hook for assets
 				replacement = pluginDriver.hookFirstSync('resolveAssetUrl', [
 					{
@@ -67,12 +70,13 @@ export default class MetaProperty extends NodeBase {
 			if (!replacement) {
 				replacement = pluginDriver.hookFirstSync<'resolveFileUrl', string>('resolveFileUrl', [
 					{
+						assetReferenceId,
 						chunkId,
+						chunkReferenceId,
 						fileName,
 						format,
 						moduleId: this.context.module.id,
-						relativePath,
-						type
+						relativePath
 					}
 				]);
 			}

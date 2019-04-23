@@ -53,7 +53,6 @@ function normalizeEntryModules(
 	}
 	return Object.keys(entryModules).map(alias => ({
 		alias,
-		metaId: null,
 		unresolvedId: entryModules[alias]
 	}));
 }

@@ -1,5 +1,5 @@
 const assert = require('assert');
-let metaId;
+let referenceId;
 
 module.exports = {
 	description: 'allows naming emitted chunks',
@@ -7,10 +7,10 @@ module.exports = {
 		input: 'main',
 		plugins: {
 			buildStart() {
-				metaId = this.emitChunk('buildStart', { name: 'nested/my-chunk' });
+				referenceId = this.emitChunk('buildStart', { name: 'nested/my-chunk' });
 			},
 			renderChunk() {
-				assert.strictEqual(this.getChunkFileName(metaId), 'generated-nested/my-chunk.js');
+				assert.strictEqual(this.getChunkFileName(referenceId), 'generated-nested/my-chunk.js');
 			}
 		}
 	}

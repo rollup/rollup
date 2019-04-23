@@ -1,7 +1,7 @@
 (function () {
 	'use strict';
 
-	var asset1 = 'chunkId=iife.js:moduleId=solved:fileName=assets/asset-solved-9b321da2.txt:format=iife:relativePath=assets/asset-solved-9b321da2.txt:type=ASSET';
+	var asset1 = 'chunkId=iife.js:moduleId=solved:fileName=assets/asset-solved-9b321da2.txt:format=iife:relativePath=assets/asset-solved-9b321da2.txt:assetReferenceId=6296c678:chunkReferenceId=null';
 
 	var asset2 = 'resolved';
 
