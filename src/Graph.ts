@@ -108,10 +108,6 @@ export default class Graph {
 
 		this.cacheExpiry = options.experimentalCacheExpiry;
 
-		if (!options.input) {
-			throw new Error('You must supply options.input to rollup');
-		}
-
 		this.treeshake = options.treeshake !== false;
 		if (this.treeshake) {
 			this.treeshakingOptions = options.treeshake
@@ -214,6 +210,9 @@ export default class Graph {
 			this.moduleLoader.addEntryModules(normalizeEntryModules(entryModules), true),
 			manualChunks && this.moduleLoader.addManualChunks(manualChunks)
 		]).then(([{ entryModules, manualChunkModulesByAlias }]) => {
+			if (entryModules.length === 0) {
+				throw new Error('You must supply options.input to rollup');
+			}
 			for (const entryModule of entryModules) {
 				if (entryModule.chunkAlias === null) {
 					entryModule.chunkAlias = getAliasName(entryModule.id);

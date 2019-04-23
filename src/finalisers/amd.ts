@@ -6,7 +6,7 @@ import getExportBlock from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
 import warnOnBuiltins from './shared/warnOnBuiltins';
 
-// TODO Lukas consider improved AMD relative imports:
+// TODO consider using improved AMD relative imports:
 // https://requirejs.org/docs/api.html#modulenotes-urls
 
 // AMD resolution will only respect the AMD baseUrl if the .js extension is omitted.
