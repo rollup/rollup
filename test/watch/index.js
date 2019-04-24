@@ -605,13 +605,13 @@ describe('rollup.watch', () => {
 						'BUNDLE_END',
 						'END',
 						() => {
-							[chunkName, dynamicName, staticName] = sander.readdirSync('test/_tmp/output').sort();
+							[dynamicName, staticName, chunkName] = sander.readdirSync('test/_tmp/output').sort();
 							sander.rimrafSync('test/_tmp/output');
 
 							// this should only update the hash of that particular entry point
 							sander.writeFileSync(
 								'test/_tmp/input/main-static.js',
-								"import {value} from './shared';export default 2*value;"
+								"import {value} from './shared';\nexport default 2 * value;"
 							);
 						},
 						'START',
@@ -619,7 +619,7 @@ describe('rollup.watch', () => {
 						'BUNDLE_END',
 						'END',
 						() => {
-							const [newChunkName, newDynamicName, newStaticName] = sander
+							const [newDynamicName, newStaticName, newChunkName] = sander
 								.readdirSync('test/_tmp/output')
 								.sort();
 							sander.rimrafSync('test/_tmp/output');
@@ -636,7 +636,7 @@ describe('rollup.watch', () => {
 						'BUNDLE_END',
 						'END',
 						() => {
-							const [newChunkName, newDynamicName, newStaticName] = sander
+							const [newDynamicName, newStaticName, newChunkName] = sander
 								.readdirSync('test/_tmp/output')
 								.sort();
 							assert.notEqual(newStaticName, staticName);

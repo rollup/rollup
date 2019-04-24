@@ -30,7 +30,7 @@ import { sortByExecutionOrder } from './utils/executionOrder';
 import getIndentString from './utils/getIndentString';
 import { makeLegal } from './utils/identifierHelpers';
 import { basename, dirname, isAbsolute, normalize, relative, resolve } from './utils/path';
-import relativeId from './utils/relativeId';
+import relativeId, { getAliasName } from './utils/relativeId';
 import renderChunk from './utils/renderChunk';
 import { RenderOptions } from './utils/renderHelpers';
 import { makeUnique, renderNamePattern } from './utils/renderNamePattern';
@@ -171,7 +171,9 @@ export default class Chunk {
 		const entryModule = this.entryModules[0];
 		if (entryModule) {
 			this.variableName = makeLegal(
-				basename(entryModule.chunkAlias || entryModule.manualChunkAlias || entryModule.id)
+				basename(
+					entryModule.chunkAlias || entryModule.manualChunkAlias || getAliasName(entryModule.id)
+				)
 			);
 		} else {
 			this.variableName = '__chunk_' + ++graph.curChunkIndex;
@@ -762,8 +764,8 @@ export default class Chunk {
 		if (this.manualChunkAlias) {
 			return sanitizeFileName(this.manualChunkAlias);
 		}
-		if (this.facadeModule !== null && this.facadeModule.chunkAlias) {
-			return sanitizeFileName(this.facadeModule.chunkAlias);
+		if (this.facadeModule !== null) {
+			return sanitizeFileName(this.facadeModule.chunkAlias || getAliasName(this.facadeModule.id));
 		}
 		for (const module of this.orderedModules) {
 			if (module.chunkAlias) return sanitizeFileName(module.chunkAlias);

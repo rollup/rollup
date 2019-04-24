@@ -3,7 +3,7 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			module.import('./generated-chunk2.js').then(({ bar }) => console.log(bar()));
+			module.import('./generated-dep1.js').then(({ bar }) => console.log(bar()));
 
 		}
 	};

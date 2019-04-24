@@ -1,4 +1,4 @@
-import value from './dep.js';
+import {value} from './dep.js';
 
 console.log('startBuild', value);
 

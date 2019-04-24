@@ -28,7 +28,7 @@ import { Uint8ArrayToHexString } from './utils/entryHashing';
 import { analyseModuleExecution, sortByExecutionOrder } from './utils/executionOrder';
 import { resolve } from './utils/path';
 import { createPluginDriver, PluginDriver } from './utils/pluginDriver';
-import relativeId, { getAliasName } from './utils/relativeId';
+import relativeId from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
 
 function makeOnwarn() {
@@ -212,11 +212,6 @@ export default class Graph {
 		]).then(([{ entryModules, manualChunkModulesByAlias }]) => {
 			if (entryModules.length === 0) {
 				throw new Error('You must supply options.input to rollup');
-			}
-			for (const entryModule of entryModules) {
-				if (entryModule.chunkAlias === null) {
-					entryModule.chunkAlias = getAliasName(entryModule.id);
-				}
 			}
 			for (const module of Array.from(this.moduleById.values())) {
 				if (module instanceof Module) {

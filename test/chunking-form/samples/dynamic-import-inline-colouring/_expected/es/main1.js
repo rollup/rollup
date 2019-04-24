@@ -1,7 +1,7 @@
-import './generated-chunk.js';
-import './generated-chunk2.js';
+import './generated-inlined.js';
+import './generated-separate.js';
 
-const inlined = import('./generated-chunk.js');
-const separate = import('./generated-chunk2.js');
+const inlined = import('./generated-inlined.js');
+const separate = import('./generated-separate.js');
 
 export { inlined, separate };
