@@ -279,7 +279,7 @@ System.register(['./generated-chunk.js'], function (exports, module) {
 		}],
 		execute: function () {
 
-			const lazy = exports('lazy', module.import('./generated-chunk2.js'));
+			const lazy = exports('lazy', module.import('./generated-lazy.js'));
 
 		}
 	};

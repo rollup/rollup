@@ -8,6 +8,6 @@ const getWorkerMessage = () => new Promise(resolve => {
 document.body.innerHTML += `<h1>main: ${shared}</h1>`;
 getWorkerMessage().then(message => (document.body.innerHTML += `<h1>1: ${message.data}</h1>`));
 
-import('./chunks/chunk2.js')
+import('./chunks/nested.js')
 	.then(result => result.getWorkerMessage())
 	.then(message => (document.body.innerHTML += `<h1>2: ${message.data}</h1>`));

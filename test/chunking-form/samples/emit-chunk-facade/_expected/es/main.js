@@ -1,3 +1,3 @@
-import { a as value } from './generated-build-starter.js';
+import { a as value, b as otherValue } from './generated-build-starter.js';
 
-console.log('main', value);
+console.log('main', value, otherValue);

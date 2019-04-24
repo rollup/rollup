@@ -1,3 +1,3 @@
-const separate = import('./generated-chunk2.js');
+const separate = import('./generated-separate.js');
 
 export { separate };

@@ -1,1 +1,1 @@
-import('./generated-chunk2.js').then(({ bar }) => console.log(bar()));
+import('./generated-dep1.js').then(({ bar }) => console.log(bar()));

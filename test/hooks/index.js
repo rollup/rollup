@@ -1311,18 +1311,18 @@ module.exports = input;
 						modules: ['input']
 					},
 					{
-						fileName: 'generated-chunk.js',
-						imports: ['generated-chunk2.js'],
+						fileName: 'generated-a.js',
+						imports: ['generated-chunk.js'],
 						modules: ['d', 'a']
 					},
 					{
-						fileName: 'generated-chunk2.js',
+						fileName: 'generated-chunk.js',
 						imports: [],
 						modules: ['c']
 					},
 					{
-						fileName: 'generated-chunk3.js',
-						imports: ['generated-chunk2.js'],
+						fileName: 'generated-b.js',
+						imports: ['generated-chunk.js'],
 						modules: ['b']
 					}
 				]);

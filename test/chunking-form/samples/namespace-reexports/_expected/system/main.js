@@ -1,4 +1,4 @@
-System.register(['./hsl2hsv.js', './generated-index.js'], function (exports, module) {
+System.register(['./hsl2hsv.js', './generated-chunk.js'], function (exports, module) {
 	'use strict';
 	var p, lib;
 	return {

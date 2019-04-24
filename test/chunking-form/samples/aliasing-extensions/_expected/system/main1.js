@@ -4,8 +4,8 @@ System.register([], function (exports, module) {
 		execute: function () {
 
 			console.log('main1');
-			module.import('./generated-chunk.js');
-			module.import('./generated-chunk2.js');
+			module.import('./generated-main4.dynamic.js');
+			module.import('./generated-main5.js');
 
 		}
 	};

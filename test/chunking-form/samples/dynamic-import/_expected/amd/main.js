@@ -2,7 +2,7 @@ define(['require', 'exports', './chunks/chunk'], function (require, exports, __c
 
 	assert.equal(__chunk_1.sharedValue, 'shared');
 
-	const promise = new Promise(function (resolve, reject) { require(['./chunks/chunk2'], resolve, reject) }).then(result =>
+	const promise = new Promise(function (resolve, reject) { require(['./chunks/other'], resolve, reject) }).then(result =>
 		assert.deepEqual(result, { value: 'shared' })
 	);
 

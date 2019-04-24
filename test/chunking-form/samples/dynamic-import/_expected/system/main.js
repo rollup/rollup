@@ -9,7 +9,7 @@ System.register(['./chunks/chunk.js'], function (exports, module) {
 
 			assert.equal(sharedValue, 'shared');
 
-			const promise = exports('promise', module.import('./chunks/chunk2.js').then(result =>
+			const promise = exports('promise', module.import('./chunks/other.js').then(result =>
 				assert.deepEqual(result, { value: 'shared' })
 			));
 

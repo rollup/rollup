@@ -1,3 +1,3 @@
-import value from './dep.js';
+import { value, otherValue } from './dep';
 
-console.log('main', value);
+console.log('main', value, otherValue);
