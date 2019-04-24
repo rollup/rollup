@@ -205,10 +205,12 @@ resolveAssetUrl({assetFileName}) {
 ```
 
 #### `resolveDynamicImport`
-Type: `(specifier: string | ESTree.Node, importer: string) => string | false | null`<br>
+Type: `(specifier: string | ESTree.Node, importer: string) => string | false | null | {id: string, external?: boolean}`<br>
 Kind: `async, first`
 
-Defines a custom resolver for dynamic imports. In case a dynamic import is not passed a string as argument, this hook gets access to the raw AST nodes to analyze. Returning `null` will defer to other resolvers and eventually to `resolveId` if this is possible; returning `false` signals that the import should be kept as it is and not be passed to other resolvers thus making it external. Note that the return value of this hook will not be passed to `resolveId` afterwards; if you need access to the static resolution algorithm, you can use `this.resolveId(importee, importer)` on the plugin context.
+Defines a custom resolver for dynamic imports. In case a dynamic import is not passed a string as argument, this hook gets access to the raw AST nodes to analyze. Returning `null` will defer to other resolvers and eventually to `resolveId` if this is possible; returning `false` signals that the import should be kept as it is and not be passed to other resolvers thus making it external. Similar to the [`resolveId`](guide/en#resolveid) hook, you can also return an object to resolve the import to a different id while marking it as external at the same time.
+
+Note that the return value of this hook will not be passed to `resolveId` afterwards; if you need access to the static resolution algorithm, you can use [`this.resolveId(importee, importer)`](guide/en#this-resolveid-importee-string-importer-string-string-null) on the plugin context.
 
 #### `resolveId`
 Type: `(importee: string, importer: string) => string | false | null | {id: string, external?: boolean}`<br>
@@ -325,9 +327,9 @@ Returns additional information about the module in question in the form
 
 If the module id cannot be found, an error is thrown.
 
-#### `this.isExternal(id: string, parentId: string, isResolved: boolean): boolean`
+#### `this.isExternal(id: string, importer: string, isResolved: boolean): boolean`
 
-Determine if a given module ID is external.
+Determine if a given module ID is external when imported by `importer`. When `isResolved` is false, Rollup will try to resolve the id before testing if it is external.
 
 #### `this.meta: {rollupVersion: string}`
 
@@ -347,9 +349,9 @@ or converted into an Array via `Array.from(this.moduleIds)`.
 
 Use Rollup's internal acorn instance to parse code to an AST.
 
-#### `this.resolveId(importee: string, importer: string) => string`
+#### `this.resolveId(importee: string, importer: string) => string | null`
 
-Resolve imports to module ids (i.e. file names). Uses the same hooks as Rollup itself.
+Resolve imports to module ids (i.e. file names) using the same plugins that Rollup uses. Returns `null` if an id cannot be resolved. Use [`this.isExternal(importee, importer, true)`](guide/en#this-isexternal-id-string-importer-string-isresolved-boolean-boolean) to determine if a resolved id is external.
 
 #### `this.setAssetSource(assetId: string, source: string | Buffer) => void`
 
