@@ -402,8 +402,11 @@ export default class Graph {
 		const fetchDynamicImportsPromise = Promise.all(
 			module.getDynamicImportExpressions().map((dynamicImportExpression, index) =>
 				this.pluginDriver
-					.hookFirst('resolveDynamicImport', [dynamicImportExpression, module.id])
-					.then(replacement => {
+					.hookFirst('resolveDynamicImport', [
+						dynamicImportExpression as string | ESTree.Node,
+						module.id
+					])
+					.then((replacement: string | void) => {
 						if (!replacement) return;
 						const dynamicImport = module.dynamicImports[index];
 						dynamicImport.alias = getAliasName(
@@ -454,7 +457,9 @@ export default class Graph {
 		this.watchFiles[id] = true;
 
 		timeStart('load modules', 3);
-		return Promise.resolve(this.pluginDriver.hookFirst('load', [id]))
+		return Promise.resolve(
+			this.pluginDriver.hookFirst<'load', string | SourceDescription>('load', [id])
+		)
 			.catch((err: Error) => {
 				timeEnd('load modules', 3);
 				let msg = `Could not load ${id}`;
@@ -617,25 +622,23 @@ export default class Graph {
 	}
 
 	private loadModule(entryName: string) {
-		return this.pluginDriver
-			.hookFirst<string | boolean | void>('resolveId', [entryName, undefined])
-			.then(id => {
-				if (id === false) {
-					error({
-						code: 'UNRESOLVED_ENTRY',
-						message: `Entry module cannot be external`
-					});
-				}
+		return this.pluginDriver.hookFirst('resolveId', [entryName, undefined]).then(id => {
+			if (id === false) {
+				error({
+					code: 'UNRESOLVED_ENTRY',
+					message: `Entry module cannot be external`
+				});
+			}
 
-				if (id == null) {
-					error({
-						code: 'UNRESOLVED_ENTRY',
-						message: `Could not resolve entry (${entryName})`
-					});
-				}
+			if (id == null) {
+				error({
+					code: 'UNRESOLVED_ENTRY',
+					message: `Could not resolve entry (${entryName})`
+				});
+			}
 
-				return this.fetchModule(<string>id, undefined);
-			});
+			return this.fetchModule(<string>id, undefined);
+		});
 	}
 
 	private normalizeResolveIdResult(
@@ -690,8 +693,8 @@ export default class Graph {
 				Promise.resolve(
 					this.isExternal(source, module.id, false)
 						? { id: source, external: true }
-						: this.pluginDriver.hookFirst<ResolveIdResult>('resolveId', [source, module.id])
-				).then(result => this.normalizeResolveIdResult(result, module, source))
+						: this.pluginDriver.hookFirst('resolveId', [source, module.id])
+				).then((result: ResolveIdResult) => this.normalizeResolveIdResult(result, module, source))
 		).then(resolvedId => {
 			module.resolvedIds[source] = resolvedId;
 			if (resolvedId.external) {

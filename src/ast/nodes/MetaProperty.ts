@@ -35,7 +35,7 @@ export default class MetaProperty extends NodeBase {
 		if (importMetaProperty && importMetaProperty.startsWith('ROLLUP_ASSET_URL_')) {
 			const assetFileName = this.context.getAssetFileName(importMetaProperty.substr(17));
 			const relativeAssetPath = normalize(relative(dirname(chunkId), assetFileName));
-			const replacement = pluginDriver.hookFirstSync<string>('resolveAssetUrl', [
+			const replacement = pluginDriver.hookFirstSync<'resolveAssetUrl', string>('resolveAssetUrl', [
 				{
 					assetFileName,
 					chunkId,
@@ -53,7 +53,7 @@ export default class MetaProperty extends NodeBase {
 			return true;
 		}
 
-		const replacement = pluginDriver.hookFirstSync<string | void>('resolveImportMeta', [
+		const replacement = pluginDriver.hookFirstSync('resolveImportMeta', [
 			importMetaProperty,
 			{
 				chunkId,
