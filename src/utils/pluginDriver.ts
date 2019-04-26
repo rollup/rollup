@@ -8,7 +8,6 @@ import {
 	PluginCache,
 	PluginContext,
 	PluginHooks,
-	RollupError,
 	RollupWarning,
 	RollupWatcher,
 	SerializablePluginCache
@@ -86,7 +85,7 @@ export function createPluginDriver(
 	pluginCache: Record<string, SerializablePluginCache>,
 	watcher?: RollupWatcher
 ): PluginDriver {
-	const plugins = [...(options.plugins || []), getRollupDefaultPlugin(options)];
+	const plugins = [...(options.plugins || []), getRollupDefaultPlugin(options.preserveSymlinks)];
 	const { emitAsset, getAssetFileName, setAssetSource } = createAssetPluginHooks(graph.assetsById);
 	const existingPluginKeys: NameCollection = {};
 
@@ -134,24 +133,24 @@ export function createPluginDriver(
 		}
 
 		const context: PluginContext = {
-			addWatchFile(id: string) {
+			addWatchFile(id) {
 				if (graph.finished) this.error('addWatchFile can only be called during the build.');
 				graph.watchFiles[id] = true;
 			},
 			cache: cacheInstance,
 			emitAsset,
-			error: (err: RollupError | string) => {
+			error: err => {
 				if (typeof err === 'string') err = { message: err };
 				if (err.code) err.pluginCode = err.code;
 				err.code = 'PLUGIN_ERROR';
 				err.plugin = plugin.name || `Plugin at position ${pidx + 1}`;
 				error(err);
 			},
-			isExternal(id: string, parentId: string, isResolved = false) {
+			isExternal(id, parentId, isResolved = false) {
 				return graph.isExternal(id, parentId, isResolved);
 			},
 			getAssetFileName,
-			getModuleInfo: (moduleId: string) => {
+			getModuleInfo: moduleId => {
 				const foundModule = graph.moduleById.get(moduleId);
 				if (foundModule == null) {
 					throw new Error(`Unable to find module ${moduleId}`);
@@ -170,11 +169,11 @@ export function createPluginDriver(
 			},
 			moduleIds: graph.moduleById.keys(),
 			parse: graph.contextParse,
-			resolveId(id: string, parent: string) {
-				return pluginDriver.hookFirst('resolveId', [id, parent]);
+			resolveId(id, parent) {
+				return graph.resolveId(id, parent, false).then(resolveId => resolveId && resolveId.id);
 			},
 			setAssetSource,
-			warn: (warning: RollupWarning | string) => {
+			warn: warning => {
 				if (typeof warning === 'string') warning = { message: warning } as RollupWarning;
 				if (warning.code) warning.pluginCode = warning.code;
 				warning.code = 'PLUGIN_WARNING';
