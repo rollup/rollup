@@ -189,9 +189,9 @@ export function createPluginDriver(
 			},
 			moduleIds: graph.moduleById.keys(),
 			parse: graph.contextParse,
-			resolveId(id, parent) {
+			resolveId(source, importer) {
 				return graph.moduleLoader
-					.resolveId(id, parent, false)
+					.resolveId(source, importer, false)
 					.then(resolveId => resolveId && resolveId.id);
 			},
 			setAssetSource,

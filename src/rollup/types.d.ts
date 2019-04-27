@@ -124,7 +124,7 @@ export interface PluginContext extends MinimalPluginContext {
 	isExternal: IsExternal;
 	moduleIds: IterableIterator<string>;
 	parse: (input: string, options: any) => ESTree.Program;
-	resolveId: (id: string, parent: string) => Promise<string | null>;
+	resolveId: (source: string, importer: string) => Promise<string | null>;
 	setAssetSource: (assetReferenceId: string, source: string | Buffer) => void;
 	warn: (warning: RollupWarning | string, pos?: { column: number; line: number }) => void;
 	/** @deprecated */
@@ -148,11 +148,11 @@ export interface ResolvedIdMap {
 
 export type ResolveIdHook = (
 	this: PluginContext,
-	id: string,
-	parent: string
+	source: string,
+	importer: string
 ) => Promise<ResolveIdResult> | ResolveIdResult;
 
-export type IsExternal = (id: string, parentId: string, isResolved: boolean) => boolean | void;
+export type IsExternal = (source: string, importer: string, isResolved: boolean) => boolean | void;
 
 export type LoadHook = (
 	this: PluginContext,
@@ -194,7 +194,7 @@ export type RenderChunkHook = (
 export type ResolveDynamicImportHook = (
 	this: PluginContext,
 	specifier: string | ESTree.Node,
-	parentId: string
+	importer: string
 ) => Promise<string | void> | string | void;
 
 export type ResolveImportMetaHook = (

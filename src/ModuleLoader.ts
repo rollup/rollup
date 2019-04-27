@@ -32,8 +32,8 @@ interface UnresolvedEntryModuleWithAlias extends UnresolvedModuleWithAlias {
 	isManualChunkEntry?: boolean;
 }
 
-function normalizeRelativeExternalId(importee: string, source: string) {
-	return isRelative(source) ? resolve(importee, '..', source) : source;
+function normalizeRelativeExternalId(importer: string, source: string) {
+	return isRelative(source) ? resolve(importer, '..', source) : source;
 }
 
 export class ModuleLoader {
@@ -149,37 +149,37 @@ export class ModuleLoader {
 		return fileName;
 	}
 
-	resolveId(importee: string, importer: string, resolveImport: true): Promise<ResolvedId>;
-	resolveId(importee: string, importer: string, resolveImport: false): Promise<ResolvedId | null>;
+	resolveId(source: string, importer: string, resolveImport: true): Promise<ResolvedId>;
+	resolveId(source: string, importer: string, resolveImport: false): Promise<ResolvedId | null>;
 	resolveId(
-		importee: string,
+		source: string,
 		importer: string,
-		resolveImport: boolean
+		forceResolveImport: boolean
 	): Promise<ResolvedId | null> {
 		return Promise.resolve(
-			this.isExternal(importee, importer, false)
-				? { id: importee, external: true }
-				: this.pluginDriver.hookFirst('resolveId', [importee, importer])
+			this.isExternal(source, importer, false)
+				? { id: source, external: true }
+				: this.pluginDriver.hookFirst('resolveId', [source, importer])
 		)
-			.then((result: ResolveIdResult) => this.normalizeResolveIdResult(result, importer, importee))
+			.then((result: ResolveIdResult) => this.normalizeResolveIdResult(result, importer, source))
 			.then(resolvedId => {
-				if (resolveImport && resolvedId === null) {
-					if (isRelative(importee)) {
+				if (forceResolveImport && resolvedId === null) {
+					if (isRelative(source)) {
 						error({
 							code: 'UNRESOLVED_IMPORT',
-							message: `Could not resolve '${importee}' from ${relativeId(importer)}`
+							message: `Could not resolve '${source}' from ${relativeId(importer)}`
 						});
 					}
 					this.graph.warn({
 						code: 'UNRESOLVED_IMPORT',
 						importer: relativeId(importer),
-						message: `'${importee}' is imported by ${relativeId(
+						message: `'${source}' is imported by ${relativeId(
 							importer
 						)}, but could not be resolved – treating it as an external dependency`,
-						source: importee,
+						source,
 						url: 'https://rollupjs.org/guide/en#warning-treating-module-as-external-dependency'
 					});
-					return { id: normalizeRelativeExternalId(importer, importee), external: true };
+					return { id: source, external: true };
 				}
 				return resolvedId;
 			});

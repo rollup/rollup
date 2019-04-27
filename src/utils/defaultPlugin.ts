@@ -54,7 +54,7 @@ function addJsExtensionIfNecessary(file: string, preserveSymlinks: boolean) {
 }
 
 function createResolveId(preserveSymlinks: boolean) {
-	return function(importee: string, importer: string) {
+	return function(source: string, importer: string) {
 		if (typeof process === 'undefined') {
 			error({
 				code: 'MISSING_PROCESS',
@@ -65,14 +65,14 @@ function createResolveId(preserveSymlinks: boolean) {
 
 		// external modules (non-entry modules that start with neither '.' or '/')
 		// are skipped at this stage.
-		if (importer !== undefined && !isAbsolute(importee) && importee[0] !== '.') return null;
+		if (importer !== undefined && !isAbsolute(source) && source[0] !== '.') return null;
 
 		// `resolve` processes paths from right to left, prepending them until an
 		// absolute path is created. Absolute importees therefore shortcircuit the
 		// resolve call and require no special handing on our part.
 		// See https://nodejs.org/api/path.html#path_path_resolve_paths
 		return addJsExtensionIfNecessary(
-			resolve(importer ? dirname(importer) : resolve(), importee),
+			resolve(importer ? dirname(importer) : resolve(), source),
 			preserveSymlinks
 		);
 	};
