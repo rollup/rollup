@@ -87,7 +87,7 @@ export function createPluginDriver(
 	pluginCache: Record<string, SerializablePluginCache>,
 	watcher?: RollupWatcher
 ): PluginDriver {
-	const plugins = [...(options.plugins || []), getRollupDefaultPlugin(options)];
+	const plugins = [...(options.plugins || []), getRollupDefaultPlugin(options.preserveSymlinks)];
 	const { emitAsset, getAssetFileName, setAssetSource } = createAssetPluginHooks(graph.assetsById);
 	const existingPluginKeys: NameCollection = {};
 
@@ -190,7 +190,9 @@ export function createPluginDriver(
 			moduleIds: graph.moduleById.keys(),
 			parse: graph.contextParse,
 			resolveId(id, parent) {
-				return pluginDriver.hookFirst('resolveId', [id, parent]);
+				return graph.moduleLoader
+					.resolveId(id, parent, false)
+					.then(resolveId => resolveId && resolveId.id);
 			},
 			setAssetSource,
 			warn(warning) {

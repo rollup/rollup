@@ -1,19 +1,19 @@
-import { InputOptions, Plugin } from '../rollup/types';
+import { Plugin } from '../rollup/types';
 import { error } from './error';
 import { lstatSync, readdirSync, readFileSync, realpathSync } from './fs';
 import { basename, dirname, isAbsolute, resolve } from './path';
 
-export function getRollupDefaultPlugin(options: InputOptions): Plugin {
+export function getRollupDefaultPlugin(preserveSymlinks: boolean): Plugin {
 	return {
 		name: 'Rollup Core',
-		resolveId: createResolveId(options),
+		resolveId: createResolveId(preserveSymlinks),
 		load(id) {
 			return readFileSync(id, 'utf-8');
 		},
 		resolveDynamicImport(specifier, parentId) {
 			if (typeof specifier === 'string' && !this.isExternal(specifier, parentId, false))
 				// TODO this typecast will cause problems if resolveId returns false or an object
-				return <Promise<string>>this.resolveId(specifier, parentId);
+				return this.resolveId(specifier, parentId);
 		},
 		resolveFileUrl({ relativePath, format }) {
 			return relativeUrlMechanisms[format](relativePath);
@@ -53,7 +53,7 @@ function addJsExtensionIfNecessary(file: string, preserveSymlinks: boolean) {
 	return found;
 }
 
-function createResolveId(options: InputOptions) {
+function createResolveId(preserveSymlinks: boolean) {
 	return function(importee: string, importer: string) {
 		if (typeof process === 'undefined') {
 			error({
@@ -73,7 +73,7 @@ function createResolveId(options: InputOptions) {
 		// See https://nodejs.org/api/path.html#path_path_resolve_paths
 		return addJsExtensionIfNecessary(
 			resolve(importer ? dirname(importer) : resolve(), importee),
-			options.preserveSymlinks
+			preserveSymlinks
 		);
 	};
 }

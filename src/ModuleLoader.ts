@@ -149,6 +149,42 @@ export class ModuleLoader {
 		return fileName;
 	}
 
+	resolveId(importee: string, importer: string, resolveImport: true): Promise<ResolvedId>;
+	resolveId(importee: string, importer: string, resolveImport: false): Promise<ResolvedId | null>;
+	resolveId(
+		importee: string,
+		importer: string,
+		resolveImport: boolean
+	): Promise<ResolvedId | null> {
+		return Promise.resolve(
+			this.isExternal(importee, importer, false)
+				? { id: importee, external: true }
+				: this.pluginDriver.hookFirst('resolveId', [importee, importer])
+		)
+			.then((result: ResolveIdResult) => this.normalizeResolveIdResult(result, importer, importee))
+			.then(resolvedId => {
+				if (resolveImport && resolvedId === null) {
+					if (isRelative(importee)) {
+						error({
+							code: 'UNRESOLVED_IMPORT',
+							message: `Could not resolve '${importee}' from ${relativeId(importer)}`
+						});
+					}
+					this.graph.warn({
+						code: 'UNRESOLVED_IMPORT',
+						importer: relativeId(importer),
+						message: `'${importee}' is imported by ${relativeId(
+							importer
+						)}, but could not be resolved – treating it as an external dependency`,
+						source: importee,
+						url: 'https://rollupjs.org/guide/en#warning-treating-module-as-external-dependency'
+					});
+					return { id: normalizeRelativeExternalId(importer, importee), external: true };
+				}
+				return resolvedId;
+			});
+	}
+
 	private awaitLoadModulesPromise<T>(loadNewModulesPromise: Promise<T>): Promise<T> {
 		this.latestLoadModulesPromise = Promise.all([
 			loadNewModulesPromise,
@@ -315,45 +351,53 @@ export class ModuleLoader {
 		unresolvedId,
 		isManualChunkEntry
 	}: UnresolvedEntryModuleWithAlias): Promise<Module> => {
-		return this.pluginDriver.hookFirst('resolveId', [unresolvedId, undefined]).then(id => {
-			if (id === false) {
-				error({
-					code: 'UNRESOLVED_ENTRY',
-					message: `Entry module cannot be external`
-				});
-			}
+		return this.pluginDriver
+			.hookFirst('resolveId', [unresolvedId, undefined])
+			.then((resolveIdResult: ResolveIdResult) => {
+				if (
+					resolveIdResult === false ||
+					(resolveIdResult && typeof resolveIdResult === 'object' && resolveIdResult.external)
+				) {
+					error({
+						code: 'UNRESOLVED_ENTRY',
+						message: `Entry module cannot be external`
+					});
+				}
+				const id =
+					resolveIdResult && typeof resolveIdResult === 'object'
+						? resolveIdResult.id
+						: resolveIdResult;
 
-			if (id == null) {
+				if (typeof id === 'string') {
+					return this.fetchModule(id, undefined).then(module => {
+						if (alias !== null) {
+							if (isManualChunkEntry) {
+								if (module.manualChunkAlias !== null && module.manualChunkAlias !== alias) {
+									errorCannotAssignModuleToChunk(module.id, alias, module.manualChunkAlias);
+								}
+								module.manualChunkAlias = alias;
+								return module;
+							}
+							if (module.chunkAlias !== null && module.chunkAlias !== alias) {
+								errorCannotAssignModuleToChunk(module.id, alias, module.chunkAlias);
+							}
+							module.chunkAlias = alias;
+						}
+						return module;
+					});
+				}
 				error({
 					code: 'UNRESOLVED_ENTRY',
 					message: `Could not resolve entry (${unresolvedId})`
 				});
-			}
-
-			return this.fetchModule(<string>id, undefined).then(module => {
-				if (alias !== null) {
-					if (isManualChunkEntry) {
-						if (module.manualChunkAlias !== null && module.manualChunkAlias !== alias) {
-							errorCannotAssignModuleToChunk(module.id, alias, module.manualChunkAlias);
-						}
-						module.manualChunkAlias = alias;
-						return module;
-					}
-					if (module.chunkAlias !== null && module.chunkAlias !== alias) {
-						errorCannotAssignModuleToChunk(module.id, alias, module.chunkAlias);
-					}
-					module.chunkAlias = alias;
-				}
-				return module;
 			});
-		});
 	};
 
 	private normalizeResolveIdResult(
 		resolveIdResult: ResolveIdResult,
-		module: Module,
+		importer: string,
 		source: string
-	): ResolvedId {
+	): ResolvedId | null {
 		let id = '';
 		let external = false;
 		if (resolveIdResult) {
@@ -364,45 +408,26 @@ export class ModuleLoader {
 				}
 			} else {
 				id = resolveIdResult;
-				if (this.isExternal(id, module.id, true)) {
+				if (this.isExternal(id, importer, true)) {
 					external = true;
 				}
 			}
 			if (external) {
-				id = normalizeRelativeExternalId(module.id, id);
+				id = normalizeRelativeExternalId(importer, id);
 			}
 		} else {
-			id = normalizeRelativeExternalId(module.id, source);
-			external = true;
-			if (resolveIdResult !== false && !this.isExternal(id, module.id, true)) {
-				if (isRelative(source)) {
-					error({
-						code: 'UNRESOLVED_IMPORT',
-						message: `Could not resolve '${source}' from ${relativeId(module.id)}`
-					});
-				}
-				this.graph.warn({
-					code: 'UNRESOLVED_IMPORT',
-					importer: relativeId(module.id),
-					message: `'${source}' is imported by ${relativeId(
-						module.id
-					)}, but could not be resolved – treating it as an external dependency`,
-					source,
-					url: 'https://rollupjs.org/guide/en#warning-treating-module-as-external-dependency'
-				});
+			id = normalizeRelativeExternalId(importer, source);
+			if (resolveIdResult !== false && !this.isExternal(id, importer, true)) {
+				return null;
 			}
+			external = true;
 		}
 		return { id, external };
 	}
 
 	private resolveAndFetchDependency(module: Module, source: string): Promise<any> {
 		return Promise.resolve(
-			module.resolvedIds[source] ||
-				Promise.resolve(
-					this.isExternal(source, module.id, false)
-						? { id: source, external: true }
-						: this.pluginDriver.hookFirst('resolveId', [source, module.id])
-				).then((result: ResolveIdResult) => this.normalizeResolveIdResult(result, module, source))
+			module.resolvedIds[source] || this.resolveId(source, module.id, true)
 		).then(resolvedId => {
 			module.resolvedIds[source] = resolvedId;
 			if (resolvedId.external) {

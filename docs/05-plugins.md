@@ -179,11 +179,55 @@ Kind: `async, parallel`
 
 Called initially each time `bundle.generate()` or `bundle.write()` is called. To get notified when generation has completed, use the `generateBundle` and `renderError` hooks.
 
+#### `resolveAssetUrl`
+Type: `({assetFileName: string, relativeAssetPath: string, chunkId: string, moduleId: string, format: string}) => string | null`<br>
+Kind: `sync, first`
+
+Allows to customize how Rollup resolves URLs of assets emitted via `this.emitAsset` by plugins. By default, Rollup will generate code for `import.meta.ROLLUP_ASSET_URL_[assetId]` that should correctly generate absolute URLs of emitted assets independent of the output format and the host system where the code is deployed.
+
+For that, all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available. In case that fails or to generate more optimized code, this hook can be used to customize this behaviour. To do that, the following information is available:
+
+- `assetFileName`: The path and file name of the emitted asset, relative to `output.dir` without a leading `./`.
+- `relativeAssetPath`: The path and file name of the emitted asset, relative to the chunk from which the asset is referenced via `import.meta.ROLLUP_ASSET_URL_[assetId]`. This will also contain no leading `./` but may contain a leading `../`.
+- `moduleId`: The id of the original module this asset is referenced from. Useful for conditionally resolving certain assets differently.
+- `chunkId`: The id of the chunk this asset is referenced from.
+- `format`: The rendered output format.
+
+Note that since this hook has access to the filename of the current chunk, its return value will not be considered when generating the hash of this chunk.
+
+The following plugin will always resolve all assets relative to the current document:
+
+```javascript
+// rollup.config.js
+resolveAssetUrl({assetFileName}) {
+	return `new URL('${assetFileName}', document.baseURI).href`;
+}
+```
+
 #### `resolveDynamicImport`
-Type: `(specifier: string | ESTree.Node, importer: string) => string | false | null`<br>
+Type: `(specifier: string | ESTree.Node, importer: string) => string | false | null | {id: string, external?: boolean}`<br>
 Kind: `async, first`
 
-Defines a custom resolver for dynamic imports. In case a dynamic import is not passed a string as argument, this hook gets access to the raw AST nodes to analyze. Returning `null` will defer to other resolvers and eventually to `resolveId` if this is possible; returning `false` signals that the import should be kept as it is and not be passed to other resolvers thus making it external. Note that the return value of this hook will not be passed to `resolveId` afterwards; if you need access to the static resolution algorithm, you can use `this.resolveId(importee, importer)` on the plugin context.
+Defines a custom resolver for dynamic imports. In case a dynamic import is not passed a string as argument, this hook gets access to the raw AST nodes to analyze. Returning `null` will defer to other resolvers and eventually to `resolveId` if this is possible; returning `false` signals that the import should be kept as it is and not be passed to other resolvers thus making it external. Similar to the [`resolveId`](guide/en#resolveid) hook, you can also return an object to resolve the import to a different id while marking it as external at the same time.
+
+Note that the return value of this hook will not be passed to `resolveId` afterwards; if you need access to the static resolution algorithm, you can use [`this.resolveId(importee, importer)`](guide/en#this-resolveid-importee-string-importer-string-string-null) on the plugin context.
+
+#### `resolveId`
+Type: `(importee: string, importer: string) => string | false | null | {id: string, external?: boolean}`<br>
+Kind: `async, first`
+
+Defines a custom resolver. A resolver can be useful for e.g. locating third-party dependencies. Returning `null` defers to other `resolveId` functions (and eventually the default resolution behavior); returning `false` signals that `importee` should be treated as an external module and not included in the bundle.
+
+If you return an object, then it is possible to resolve an import to a different id while excluding it from the bundle at the same time. This allows you to replace dependencies with external dependencies without the need for the user to mark them as "external" manually via the `external` option:
+
+```js
+resolveId(id) {
+  if (id === 'my-dependency') {
+    return {id: 'my-dependency-develop', external: true};
+  }
+  return null;
+}
+```
 
 #### `resolveFileUrl`
 Type: `({assetReferenceId: string | null, chunkId: string, chunkReferenceId: string | null, fileName: string, format: string, moduleId: string, relativePath: string}) => string | null`<br>
@@ -209,23 +253,6 @@ The following plugin will always resolve all files relative to the current docum
 // rollup.config.js
 resolveFileUrl({fileName}) {
   return `new URL('${fileName}', document.baseURI).href`;
-}
-```
-
-#### `resolveId`
-Type: `(importee: string, importer: string) => string | false | null | {id: string, external?: boolean}`<br>
-Kind: `async, first`
-
-Defines a custom resolver. A resolver can be useful for e.g. locating third-party dependencies. Returning `null` defers to other `resolveId` functions (and eventually the default resolution behavior); returning `false` signals that `importee` should be treated as an external module and not included in the bundle.
-
-If you return an object, then it is possible to resolve an import to a different id while excluding it from the bundle at the same time. This allows you to replace dependencies with external dependencies without the need for the user to mark them as "external" manually via the `external` option:
-
-```js
-resolveId(id) {
-  if (id === 'my-dependency') {
-    return {id: 'my-dependency-develop', external: true};
-  }
-  return null;
 }
 ```
 
@@ -345,9 +372,9 @@ Returns additional information about the module in question in the form
 
 If the module id cannot be found, an error is thrown.
 
-#### `this.isExternal(id: string, parentId: string, isResolved: boolean): boolean`
+#### `this.isExternal(id: string, importer: string, isResolved: boolean): boolean`
 
-Determine if a given module ID is external.
+Determine if a given module ID is external when imported by `importer`. When `isResolved` is false, Rollup will try to resolve the id before testing if it is external.
 
 #### `this.meta: {rollupVersion: string}`
 
@@ -367,9 +394,9 @@ or converted into an Array via `Array.from(this.moduleIds)`.
 
 Use Rollup's internal acorn instance to parse code to an AST.
 
-#### `this.resolveId(importee: string, importer: string) => Promise<string>`
+#### `this.resolveId(importee: string, importer: string) => Promise<string | null>`
 
-Resolve imports to module ids (i.e. file names). Uses the same hooks as Rollup itself.
+Resolve imports to module ids (i.e. file names) using the same plugins that Rollup uses. Returns `null` if an id cannot be resolved.
 
 #### `this.setAssetSource(assetReferenceId: string, source: string | Buffer) => void`
 
