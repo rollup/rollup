@@ -3,15 +3,6 @@ const assert = require('assert');
 
 module.exports = {
 	description: 'correctly returns string or null for the context resolveId helper',
-	exports(exports) {
-		assert.deepStrictEqual(exports, {
-			externalName: 'external name',
-			externalObject: 'external object',
-			name: 'existing name',
-			object: 'existing object',
-			unresolved: 'unresolved'
-		});
-	},
 	context: {
 		require(id) {
 			switch (id) {

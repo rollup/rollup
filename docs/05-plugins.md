@@ -394,6 +394,9 @@ or converted into an Array via `Array.from(this.moduleIds)`.
 
 Use Rollup's internal acorn instance to parse code to an AST.
 
+#### `this.resolve(importee: string, importer: string) => Promise<{id: string, external: boolean} | null>`
+Resolve imports to module ids (i.e. file names) using the same plugins that Rollup uses, and determine if an import should be external. If `null` is returned, the import could not be resolved by Rollup or any plugin but was not explicitly marked as external by the user.
+
 #### `this.resolveId(importee: string, importer: string) => Promise<string | null>`
 
 Resolve imports to module ids (i.e. file names) using the same plugins that Rollup uses. Returns `null` if an id cannot be resolved.

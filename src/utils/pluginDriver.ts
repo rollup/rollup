@@ -194,6 +194,9 @@ export function createPluginDriver(
 					.resolveId(source, importer, false)
 					.then(resolveId => resolveId && resolveId.id);
 			},
+			resolve(source, importer) {
+				return graph.moduleLoader.resolveId(source, importer, false);
+			},
 			setAssetSource,
 			warn(warning) {
 				if (typeof warning === 'string') warning = { message: warning } as RollupWarning;

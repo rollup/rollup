@@ -124,6 +124,7 @@ export interface PluginContext extends MinimalPluginContext {
 	isExternal: IsExternal;
 	moduleIds: IterableIterator<string>;
 	parse: (input: string, options: any) => ESTree.Program;
+	resolve: (source: string, importer: string) => Promise<ResolvedId | null>;
 	resolveId: (source: string, importer: string) => Promise<string | null>;
 	setAssetSource: (assetReferenceId: string, source: string | Buffer) => void;
 	warn: (warning: RollupWarning | string, pos?: { column: number; line: number }) => void;
@@ -136,15 +137,17 @@ export interface PluginContextMeta {
 }
 
 export interface ResolvedId {
-	external?: boolean | void;
+	external: boolean;
 	id: string;
 }
-
-export type ResolveIdResult = string | false | void | ResolvedId;
 
 export interface ResolvedIdMap {
 	[key: string]: ResolvedId;
 }
+
+type PartialResolvedId = Partial<ResolvedId> & { id: string };
+
+export type ResolveIdResult = string | false | void | PartialResolvedId;
 
 export type ResolveIdHook = (
 	this: PluginContext,
