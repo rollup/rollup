@@ -19,7 +19,7 @@ import {
 import { isRelative, resolve } from './utils/path';
 import { PluginDriver } from './utils/pluginDriver';
 import { addWithNewReferenceId } from './utils/referenceIds';
-import relativeId, { getAliasName } from './utils/relativeId';
+import relativeId from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
 import transform from './utils/transform';
 
@@ -215,7 +215,6 @@ export class ModuleLoader {
 					.then((replacement: string | void) => {
 						if (!replacement) return;
 						const dynamicImport = module.dynamicImports[index];
-						dynamicImport.alias = getAliasName(replacement);
 						if (typeof dynamicImportExpression !== 'string') {
 							dynamicImport.resolution = replacement;
 						} else if (this.isExternal(replacement, module.id, true)) {
