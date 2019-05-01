@@ -191,11 +191,11 @@ export function createPluginDriver(
 			parse: graph.contextParse,
 			resolveId(source, importer) {
 				return graph.moduleLoader
-					.resolveId(source, importer, false)
+					.resolveId(source, importer)
 					.then(resolveId => resolveId && resolveId.id);
 			},
 			resolve(source, importer) {
-				return graph.moduleLoader.resolveId(source, importer, false);
+				return graph.moduleLoader.resolveId(source, importer);
 			},
 			setAssetSource,
 			warn(warning) {
@@ -363,9 +363,9 @@ export function createPluginDriver(
 				promise = promise.then(arg0 => {
 					const hookPromise = runHook(name, [arg0, ...args], i, false, hookContext);
 					if (!hookPromise) return arg0;
-					return hookPromise.then((result: any) => {
-						return reduce.call(pluginContexts[i], arg0, result, plugins[i]);
-					});
+					return hookPromise.then((result: any) =>
+						reduce.call(pluginContexts[i], arg0, result, plugins[i])
+					);
 				});
 			}
 			return promise;

@@ -557,8 +557,10 @@ export default class Chunk {
 			});
 		}
 
+		this.setExternalRenderPaths(options, inputBase);
+
 		this.renderedDeclarations = {
-			dependencies: this.getChunkDependencyDeclarations(options, inputBase),
+			dependencies: this.getChunkDependencyDeclarations(options),
 			exports: this.exportMode === 'none' ? [] : this.getChunkExportDeclarations()
 		};
 
@@ -802,7 +804,12 @@ export default class Chunk {
 						node.renderFinalResolution(code, `'${relPath}'`, format);
 					}
 				} else if (resolution instanceof ExternalModule) {
-					node.renderFinalResolution(code, `'${resolution.id}'`, format);
+					let resolutionId = resolution.id;
+					if (resolution.renormalizeRenderPath) {
+						resolutionId = normalize(relative(dirname(this.id), resolution.renderPath));
+						if (!resolutionId.startsWith('../')) resolutionId = './' + resolutionId;
+					}
+					node.renderFinalResolution(code, `'${resolutionId}'`, format);
 				} else {
 					node.renderFinalResolution(code, resolution, format);
 				}
@@ -826,10 +833,7 @@ export default class Chunk {
 		return needsAmdModule;
 	}
 
-	private getChunkDependencyDeclarations(
-		options: OutputOptions,
-		inputBase: string
-	): ChunkDependencies {
+	private getChunkDependencyDeclarations(options: OutputOptions): ChunkDependencies {
 		const reexportDeclarations = new Map<Chunk | ExternalModule, ReexportSpecifier[]>();
 
 		for (let exportName of this.getExportNames()) {
@@ -902,7 +906,7 @@ export default class Chunk {
 			let id: string;
 			let globalName: string;
 			if (dep instanceof ExternalModule) {
-				id = dep.setRenderPath(options, inputBase);
+				id = dep.renderPath;
 				if (options.format === 'umd' || options.format === 'iife') {
 					globalName = getGlobalName(
 						dep,
@@ -1012,10 +1016,18 @@ export default class Chunk {
 						node.setResolution(false);
 					}
 				} else if (resolution instanceof ExternalModule) {
-					node.setResolution(true);
+					node.setResolution(false);
 				} else {
 					node.setResolution(false);
 				}
+			}
+		}
+	}
+
+	private setExternalRenderPaths(options: OutputOptions, inputBase: string) {
+		for (const dependency of this.dependencies.concat(this.dynamicDependencies)) {
+			if (dependency instanceof ExternalModule) {
+				dependency.setRenderPath(options, inputBase);
 			}
 		}
 	}

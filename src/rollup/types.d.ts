@@ -193,12 +193,11 @@ export type RenderChunkHook = (
 	| string
 	| null;
 
-// TODO this should probably return ResolveIdResult
 export type ResolveDynamicImportHook = (
 	this: PluginContext,
 	specifier: string | ESTree.Node,
 	importer: string
-) => Promise<string | void> | string | void;
+) => Promise<ResolveIdResult> | ResolveIdResult;
 
 export type ResolveImportMetaHook = (
 	this: PluginContext,

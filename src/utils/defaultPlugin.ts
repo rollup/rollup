@@ -10,11 +10,6 @@ export function getRollupDefaultPlugin(preserveSymlinks: boolean): Plugin {
 		load(id) {
 			return readFileSync(id, 'utf-8');
 		},
-		resolveDynamicImport(specifier, parentId) {
-			if (typeof specifier === 'string' && !this.isExternal(specifier, parentId, false))
-				// TODO this typecast will cause problems if resolveId returns false or an object
-				return this.resolveId(specifier, parentId);
-		},
 		resolveFileUrl({ relativePath, format }) {
 			return relativeUrlMechanisms[format](relativePath);
 		},
