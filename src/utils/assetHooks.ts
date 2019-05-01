@@ -1,13 +1,14 @@
 import sha256 from 'hash.js/lib/hash/sha/256';
 import { Asset, EmitAsset, OutputBundle } from '../rollup/types';
 import {
-	errorAssetNotFinalisedForFileName,
-	errorAssetReferenceIdNotFoundForFilename,
-	errorAssetReferenceIdNotFoundForSetSource,
-	errorAssetSourceAlreadySet,
-	errorAssetSourceMissingForSetSource,
-	errorInvalidAssetName,
-	errorNoAssetSourceSet
+	errAssetNotFinalisedForFileName,
+	errAssetReferenceIdNotFoundForFilename,
+	errAssetReferenceIdNotFoundForSetSource,
+	errAssetSourceAlreadySet,
+	errAssetSourceMissingForSetSource,
+	errInvalidAssetName,
+	errNoAssetSourceSet,
+	error
 } from './error';
 import { extname } from './path';
 import { addWithNewReferenceId } from './referenceIds';
@@ -19,7 +20,7 @@ export function getAssetFileName(
 	existingNames: Record<string, any>,
 	assetFileNames: string
 ) {
-	if (asset.source === undefined) errorNoAssetSourceSet(asset);
+	if (asset.source === undefined) error(errNoAssetSourceSet(asset));
 	if (asset.fileName) return asset.fileName;
 
 	return makeUnique(
@@ -50,7 +51,7 @@ export function createAssetPluginHooks(
 ) {
 	return {
 		emitAsset(name: string, source?: string | Buffer) {
-			if (typeof name !== 'string' || !isPlainName(name)) errorInvalidAssetName(name);
+			if (typeof name !== 'string' || !isPlainName(name)) error(errInvalidAssetName(name));
 			const asset: Asset = { name, source, fileName: undefined };
 			if (outputBundle && source !== undefined) finaliseAsset(asset, outputBundle, assetFileNames);
 			return addWithNewReferenceId(asset, assetsByReferenceId, name);
@@ -58,17 +59,17 @@ export function createAssetPluginHooks(
 
 		setAssetSource(assetReferenceId: string, source?: string | Buffer) {
 			const asset = assetsByReferenceId.get(assetReferenceId);
-			if (!asset) errorAssetReferenceIdNotFoundForSetSource(assetReferenceId);
-			if (asset.source !== undefined) errorAssetSourceAlreadySet(asset);
-			if (typeof source !== 'string' && !source) errorAssetSourceMissingForSetSource(asset);
+			if (!asset) error(errAssetReferenceIdNotFoundForSetSource(assetReferenceId));
+			if (asset.source !== undefined) error(errAssetSourceAlreadySet(asset));
+			if (typeof source !== 'string' && !source) error(errAssetSourceMissingForSetSource(asset));
 			asset.source = source;
 			if (outputBundle) finaliseAsset(asset, outputBundle, assetFileNames);
 		},
 
 		getAssetFileName(assetReferenceId: string) {
 			const asset = assetsByReferenceId.get(assetReferenceId);
-			if (!asset) errorAssetReferenceIdNotFoundForFilename(assetReferenceId);
-			if (asset.fileName === undefined) errorAssetNotFinalisedForFileName(asset);
+			if (!asset) error(errAssetReferenceIdNotFoundForFilename(assetReferenceId));
+			if (asset.fileName === undefined) error(errAssetNotFinalisedForFileName(asset));
 			return asset.fileName;
 		}
 	};

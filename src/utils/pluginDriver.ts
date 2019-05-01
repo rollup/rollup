@@ -16,7 +16,11 @@ import {
 import { createAssetPluginHooks } from './assetHooks';
 import { BuildPhase } from './buildPhase';
 import { getRollupDefaultPlugin } from './defaultPlugin';
-import { error, Errors } from './error';
+import {
+	errInvalidRollupPhaseForAddWatchFile,
+	errInvalidRollupPhaseForEmitChunk,
+	error
+} from './error';
 import { NameCollection } from './reservedNames';
 
 type Args<T> = T extends (...args: infer K) => any ? K : never;
@@ -136,21 +140,14 @@ export function createPluginDriver(
 
 		const context: PluginContext = {
 			addWatchFile(id) {
-				if (graph.phase >= BuildPhase.GENERATE)
-					this.error({
-						code: Errors.INVALID_ROLLUP_PHASE,
-						message: `Cannot call addWatchFile after the build has finished.`
-					});
+				if (graph.phase >= BuildPhase.GENERATE) this.error(errInvalidRollupPhaseForAddWatchFile());
 				graph.watchFiles[id] = true;
 			},
 			cache: cacheInstance,
 			emitAsset,
 			emitChunk(id, options) {
 				if (graph.phase > BuildPhase.LOAD_AND_PARSE)
-					this.error({
-						code: Errors.INVALID_ROLLUP_PHASE,
-						message: `Cannot call emitChunk after module loading has finished.`
-					});
+					this.error(errInvalidRollupPhaseForEmitChunk());
 				return graph.moduleLoader.addEntryModuleAndGetReferenceId({
 					alias: (options && options.name) || null,
 					unresolvedId: id

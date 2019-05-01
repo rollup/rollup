@@ -11,15 +11,17 @@ import {
 	SourceDescription
 } from './rollup/types';
 import {
-	errorBadLoader,
-	errorCannotAssignModuleToChunk,
-	errorChunkNotGeneratedForFileName,
-	errorChunkReferenceIdNotFoundForFilename,
-	errorEntryCannotBeExternal,
-	errorInternalIdCannotBeExternal,
-	Errors,
-	errorUnresolvedEntry,
-	errorUnresolvedImport
+	errBadLoader,
+	errCannotAssignModuleToChunk,
+	errChunkNotGeneratedForFileName,
+	errChunkReferenceIdNotFoundForFilename,
+	errEntryCannotBeExternal,
+	errInternalIdCannotBeExternal,
+	errNamespaceConflict,
+	error,
+	errUnresolvedEntry,
+	errUnresolvedImport,
+	errUnresolvedImportTreatedAsExternal
 } from './utils/error';
 import { isRelative, resolve } from './utils/path';
 import { PluginDriver } from './utils/pluginDriver';
@@ -144,13 +146,13 @@ export class ModuleLoader {
 
 	getChunkFileName(referenceId: string): string {
 		const entryRecord = this.entriesByReferenceId.get(referenceId);
-		if (!entryRecord) errorChunkReferenceIdNotFoundForFilename(referenceId);
+		if (!entryRecord) error(errChunkReferenceIdNotFoundForFilename(referenceId));
 		const fileName =
 			entryRecord.module &&
 			(entryRecord.module.facadeChunk
 				? entryRecord.module.facadeChunk.id
 				: entryRecord.module.chunk.id);
-		if (!fileName) errorChunkNotGeneratedForFileName(entryRecord);
+		if (!fileName) error(errChunkNotGeneratedForFileName(entryRecord));
 		return fileName;
 	}
 
@@ -233,7 +235,7 @@ export class ModuleLoader {
 				timeEnd('load modules', 3);
 				if (typeof source === 'string') return source;
 				if (source && typeof source === 'object' && typeof source.code === 'string') return source;
-				errorBadLoader(id);
+				error(errBadLoader(id));
 			})
 			.then(source => {
 				const sourceDescription: SourceDescription =
@@ -274,25 +276,13 @@ export class ModuleLoader {
 					module.exportAllSources.forEach(source => {
 						const id = module.resolvedIds[source].id;
 						const exportAllModule = this.modulesById.get(id);
-						if (exportAllModule.isExternal) return;
+						if (exportAllModule instanceof ExternalModule) return;
 
-						for (const name in (<Module>exportAllModule).exportsAll) {
+						for (const name in exportAllModule.exportsAll) {
 							if (name in module.exportsAll) {
-								this.graph.warn({
-									code: 'NAMESPACE_CONFLICT',
-									message: `Conflicting namespaces: ${relativeId(
-										module.id
-									)} re-exports '${name}' from both ${relativeId(
-										module.exportsAll[name]
-									)} and ${relativeId(
-										(<Module>exportAllModule).exportsAll[name]
-									)} (will be ignored)`,
-									name,
-									reexporter: module.id,
-									sources: [module.exportsAll[name], (<Module>exportAllModule).exportsAll[name]]
-								});
+								this.graph.warn(errNamespaceConflict(name, module, exportAllModule));
 							} else {
-								module.exportsAll[name] = (<Module>exportAllModule).exportsAll[name];
+								module.exportsAll[name] = exportAllModule.exportsAll[name];
 							}
 						}
 					});
@@ -316,7 +306,7 @@ export class ModuleLoader {
 
 			const externalModule = this.modulesById.get(resolvedId.id);
 			if (externalModule instanceof ExternalModule === false) {
-				errorInternalIdCannotBeExternal(source, importer);
+				error(errInternalIdCannotBeExternal(source, importer));
 			}
 			return Promise.resolve(externalModule);
 		} else {
@@ -331,17 +321,9 @@ export class ModuleLoader {
 	): ResolvedId {
 		if (resolvedId === null) {
 			if (isRelative(source)) {
-				errorUnresolvedImport(source, importer);
+				error(errUnresolvedImport(source, importer));
 			}
-			this.graph.warn({
-				code: Errors.UNRESOLVED_IMPORT,
-				importer: relativeId(importer),
-				message: `'${source}' is imported by ${relativeId(
-					importer
-				)}, but could not be resolved – treating it as an external dependency`,
-				source,
-				url: 'https://rollupjs.org/guide/en#warning-treating-module-as-external-dependency'
-			});
+			this.graph.warn(errUnresolvedImportTreatedAsExternal(source, importer));
 			return { id: source, external: true };
 		}
 		return resolvedId;
@@ -359,7 +341,7 @@ export class ModuleLoader {
 					resolveIdResult === false ||
 					(resolveIdResult && typeof resolveIdResult === 'object' && resolveIdResult.external)
 				) {
-					errorEntryCannotBeExternal(unresolvedId);
+					error(errEntryCannotBeExternal(unresolvedId));
 				}
 				const id =
 					resolveIdResult && typeof resolveIdResult === 'object'
@@ -371,20 +353,20 @@ export class ModuleLoader {
 						if (alias !== null) {
 							if (isManualChunkEntry) {
 								if (module.manualChunkAlias !== null && module.manualChunkAlias !== alias) {
-									errorCannotAssignModuleToChunk(module.id, alias, module.manualChunkAlias);
+									error(errCannotAssignModuleToChunk(module.id, alias, module.manualChunkAlias));
 								}
 								module.manualChunkAlias = alias;
 								return module;
 							}
 							if (module.chunkAlias !== null && module.chunkAlias !== alias) {
-								errorCannotAssignModuleToChunk(module.id, alias, module.chunkAlias);
+								error(errCannotAssignModuleToChunk(module.id, alias, module.chunkAlias));
 							}
 							module.chunkAlias = alias;
 						}
 						return module;
 					});
 				}
-				errorUnresolvedEntry(unresolvedId);
+				error(errUnresolvedEntry(unresolvedId));
 			});
 
 	private normalizeResolveIdResult(
