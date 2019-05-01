@@ -304,7 +304,7 @@ Kind: `async, parallel`
 
 Called only at the end of `bundle.write()` once all files have been written. Similar to the [`generateBundle`](guide/en#generatebundle) hook, `bundle` provides the full list of files being written along with their details.
 
-### Deprecated
+### Deprecated Hooks
 
 ☢️ These hooks have been deprecated and may be removed in a future Rollup version.
 
@@ -379,10 +379,6 @@ Returns additional information about the module in question in the form
 
 If the module id cannot be found, an error is thrown.
 
-#### `this.isExternal(id: string, importer: string, isResolved: boolean): boolean`
-
-Determine if a given module ID is external when imported by `importer`. When `isResolved` is false, Rollup will try to resolve the id before testing if it is external.
-
 #### `this.meta: {rollupVersion: string}`
 
 An `Object` containing potentially useful Rollup metadata. `meta` is the only context property accessible from the [`options`](guide/en#options) hook.
@@ -404,10 +400,6 @@ Use Rollup's internal acorn instance to parse code to an AST.
 #### `this.resolve(source: string, importer: string) => Promise<{id: string, external: boolean} | null>`
 Resolve imports to module ids (i.e. file names) using the same plugins that Rollup uses, and determine if an import should be external. If `null` is returned, the import could not be resolved by Rollup or any plugin but was not explicitly marked as external by the user.
 
-#### `this.resolveId(source: string, importer: string) => Promise<string | null>`
-
-Resolve imports to module ids (i.e. file names) using the same plugins that Rollup uses. Returns `null` if an id cannot be resolved.
-
 #### `this.setAssetSource(assetReferenceId: string, source: string | Buffer) => void`
 
 Set the deferred source of an asset.
@@ -427,6 +419,14 @@ this.warn({ message: 'hmm...' });
 Use the second form if you need to add additional properties to your warning object. Rollup will augment the warning object with a `plugin` property containing the plugin name, `code` (`PLUGIN_WARNING`) and `id` (the file being transformed) properties.
 
 The `position` argument is a character index where the warning was raised. If present, Rollup will augment the warning object with `pos`, `loc` (a standard `{ file, line, column }` object) and `frame` (a snippet of code showing the error).
+
+### Deprecated Context Functions
+
+☢️ These context utility functions have been deprecated and may be removed in a future Rollup version.
+
+- `this.isExternal(id: string, importer: string, isResolved: boolean): boolean` - _**Use [`this.resolve`](guide/en#this-resolve-source-string-importer-string-promise-id-string-external-boolean-null)**_ - Determine if a given module ID is external when imported by `importer`. When `isResolved` is false, Rollup will try to resolve the id before testing if it is external.
+
+- `this.resolveId(source: string, importer: string) => Promise<string | null>` - _**Use [`this.resolve`](guide/en#this-resolve-source-string-importer-string-promise-id-string-external-boolean-null)**_ - Resolve imports to module ids (i.e. file names) using the same plugins that Rollup uses. Returns `null` if an id cannot be resolved.
 
 ### Asset URLs
 

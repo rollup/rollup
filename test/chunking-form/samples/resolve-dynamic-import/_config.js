@@ -26,7 +26,6 @@ module.exports = {
 				}
 			},
 
-			// TODO Lukas soft-deprecate resolveId context function
 			// TODO Lukas extract errors
 			resolveDynamicImport(specifier) {
 				if (typeof specifier === 'string') {
