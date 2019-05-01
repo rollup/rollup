@@ -35,13 +35,18 @@ export enum Errors {
 	ASSET_NOT_FOUND = 'ASSET_NOT_FOUND',
 	ASSET_SOURCE_ALREADY_SET = 'ASSET_SOURCE_ALREADY_SET',
 	ASSET_SOURCE_MISSING = 'ASSET_SOURCE_MISSING',
+	BAD_LOADER = 'BAD_LOADER',
 	CHUNK_NOT_FOUND = 'CHUNK_NOT_FOUND',
 	CHUNK_NOT_GENERATED = 'CHUNK_NOT_GENERATED',
 	INVALID_ASSET_NAME = 'INVALID_ASSET_NAME',
 	INVALID_CHUNK = 'INVALID_CHUNK',
-	INVALID_ROLLUP_PHASE = 'INVALID_ROLLUP_PHASE'
+	INVALID_EXTERNAL_ID = 'INVALID_EXTERNAL_ID',
+	INVALID_ROLLUP_PHASE = 'INVALID_ROLLUP_PHASE',
+	UNRESOLVED_ENTRY = 'UNRESOLVED_ENTRY',
+	UNRESOLVED_IMPORT = 'UNRESOLVED_IMPORT'
 }
 
+// TODO Lukas only export objects
 export function errorAssetNotFinalisedForFileName(asset: Asset) {
 	error({
 		code: Errors.ASSET_NOT_FINALISED,
@@ -97,6 +102,15 @@ export function errorNoAssetSourceSet(asset: Asset) {
 	});
 }
 
+export function errorBadLoader(id: string) {
+	error({
+		code: Errors.BAD_LOADER,
+		message: `Error loading ${relativeId(
+			id
+		)}: plugin load hook should return a string, a { code, map } object, or nothing/null`
+	});
+}
+
 export function errorChunkReferenceIdNotFoundForFilename(chunkReferenceId: string) {
 	error({
 		code: Errors.CHUNK_NOT_FOUND,
@@ -121,5 +135,35 @@ export function errorCannotAssignModuleToChunk(
 		message: `Cannot assign ${relativeId(
 			moduleId
 		)} to the "${assignToAlias}" chunk as it is already in the "${currentAlias}" chunk.`
+	});
+}
+
+export function errorInternalIdCannotBeExternal(source: string, importer: string) {
+	error({
+		code: Errors.INVALID_EXTERNAL_ID,
+		message: `'${source}' is imported as an external by ${relativeId(
+			importer
+		)}, but is already an existing non-external module id.`
+	});
+}
+
+export function errorEntryCannotBeExternal(unresolvedId: string) {
+	error({
+		code: Errors.UNRESOLVED_ENTRY,
+		message: `Entry module cannot be external (${unresolvedId}).`
+	});
+}
+
+export function errorUnresolvedEntry(unresolvedId: string) {
+	error({
+		code: Errors.UNRESOLVED_ENTRY,
+		message: `Could not resolve entry module (${unresolvedId}).`
+	});
+}
+
+export function errorUnresolvedImport(source: string, importer: string) {
+	error({
+		code: Errors.UNRESOLVED_IMPORT,
+		message: `Could not resolve '${source}' from ${relativeId(importer)}`
 	});
 }

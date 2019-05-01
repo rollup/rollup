@@ -11,10 +11,15 @@ import {
 	SourceDescription
 } from './rollup/types';
 import {
-	error,
+	errorBadLoader,
 	errorCannotAssignModuleToChunk,
 	errorChunkNotGeneratedForFileName,
-	errorChunkReferenceIdNotFoundForFilename
+	errorChunkReferenceIdNotFoundForFilename,
+	errorEntryCannotBeExternal,
+	errorInternalIdCannotBeExternal,
+	Errors,
+	errorUnresolvedEntry,
+	errorUnresolvedImport
 } from './utils/error';
 import { isRelative, resolve } from './utils/path';
 import { PluginDriver } from './utils/pluginDriver';
@@ -228,13 +233,7 @@ export class ModuleLoader {
 				timeEnd('load modules', 3);
 				if (typeof source === 'string') return source;
 				if (source && typeof source === 'object' && typeof source.code === 'string') return source;
-
-				error({
-					code: 'BAD_LOADER',
-					message: `Error loading ${relativeId(
-						id
-					)}: plugin load hook should return a string, a { code, map } object, or nothing/null`
-				});
+				errorBadLoader(id);
 			})
 			.then(source => {
 				const sourceDescription: SourceDescription =
@@ -317,12 +316,7 @@ export class ModuleLoader {
 
 			const externalModule = this.modulesById.get(resolvedId.id);
 			if (externalModule instanceof ExternalModule === false) {
-				error({
-					code: 'INVALID_EXTERNAL_ID',
-					message: `'${source}' is imported as an external by ${relativeId(
-						importer
-					)}, but is already an existing non-external module id.`
-				});
+				errorInternalIdCannotBeExternal(source, importer);
 			}
 			return Promise.resolve(externalModule);
 		} else {
@@ -337,13 +331,10 @@ export class ModuleLoader {
 	): ResolvedId {
 		if (resolvedId === null) {
 			if (isRelative(source)) {
-				error({
-					code: 'UNRESOLVED_IMPORT',
-					message: `Could not resolve '${source}' from ${relativeId(importer)}`
-				});
+				errorUnresolvedImport(source, importer);
 			}
 			this.graph.warn({
-				code: 'UNRESOLVED_IMPORT',
+				code: Errors.UNRESOLVED_IMPORT,
 				importer: relativeId(importer),
 				message: `'${source}' is imported by ${relativeId(
 					importer
@@ -368,10 +359,7 @@ export class ModuleLoader {
 					resolveIdResult === false ||
 					(resolveIdResult && typeof resolveIdResult === 'object' && resolveIdResult.external)
 				) {
-					error({
-						code: 'UNRESOLVED_ENTRY',
-						message: `Entry module cannot be external`
-					});
+					errorEntryCannotBeExternal(unresolvedId);
 				}
 				const id =
 					resolveIdResult && typeof resolveIdResult === 'object'
@@ -396,10 +384,7 @@ export class ModuleLoader {
 						return module;
 					});
 				}
-				error({
-					code: 'UNRESOLVED_ENTRY',
-					message: `Could not resolve entry (${unresolvedId})`
-				});
+				errorUnresolvedEntry(unresolvedId);
 			});
 
 	private normalizeResolveIdResult(

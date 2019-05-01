@@ -10,6 +10,6 @@ module.exports = {
 	},
 	error: {
 		code: 'UNRESOLVED_ENTRY',
-		message: 'Could not resolve entry (not-found.js)'
+		message: 'Could not resolve entry module (not-found.js).'
 	}
 };
