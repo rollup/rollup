@@ -37,7 +37,7 @@ export interface UnresolvedModuleWithAlias {
 }
 
 interface UnresolvedEntryModuleWithAlias extends UnresolvedModuleWithAlias {
-	isManualChunkEntry?: boolean;
+	manualChunkAlias?: string;
 }
 
 function normalizeRelativeExternalId(importer: string, source: string) {
@@ -131,15 +131,17 @@ export class ModuleLoader {
 		for (const alias of Object.keys(manualChunks)) {
 			const manualChunkIds = manualChunks[alias];
 			for (const unresolvedId of manualChunkIds) {
-				unresolvedManualChunks.push({ alias, unresolvedId, isManualChunkEntry: true });
+				unresolvedManualChunks.push({ alias: null, unresolvedId, manualChunkAlias: alias });
 			}
 		}
 		const loadNewManualChunkModulesPromise = Promise.all(
 			unresolvedManualChunks.map(this.loadEntryModule)
 		).then(manualChunkModules => {
-			for (const module of manualChunkModules) {
-				// TODO Lukas can we do the assigment and error handling here?
-				this.addToManualChunk(module.manualChunkAlias, module);
+			for (let index = 0; index < manualChunkModules.length; index++) {
+				this.addToManualChunk(
+					unresolvedManualChunks[index].manualChunkAlias,
+					manualChunkModules[index]
+				);
 			}
 		});
 
@@ -167,6 +169,10 @@ export class ModuleLoader {
 	}
 
 	private addToManualChunk(alias: string, module: Module) {
+		if (module.manualChunkAlias !== null && module.manualChunkAlias !== alias) {
+			error(errCannotAssignModuleToChunk(module.id, alias, module.manualChunkAlias));
+		}
+		module.manualChunkAlias = alias;
 		if (!this.manualChunkModules[alias]) {
 			this.manualChunkModules[alias] = [];
 		}
@@ -229,7 +235,6 @@ export class ModuleLoader {
 		this.modulesById.set(id, module);
 		const manualChunkAlias = this.getManualChunk(id);
 		if (typeof manualChunkAlias === 'string') {
-			module.manualChunkAlias = manualChunkAlias;
 			this.addToManualChunk(manualChunkAlias, module);
 		}
 
@@ -343,11 +348,7 @@ export class ModuleLoader {
 		return resolvedId;
 	}
 
-	private loadEntryModule = ({
-		alias,
-		unresolvedId,
-		isManualChunkEntry
-	}: UnresolvedEntryModuleWithAlias): Promise<Module> =>
+	private loadEntryModule = ({ alias, unresolvedId }: UnresolvedModuleWithAlias): Promise<Module> =>
 		this.pluginDriver
 			.hookFirst('resolveId', [unresolvedId, undefined])
 			.then((resolveIdResult: ResolveIdResult) => {
@@ -364,13 +365,6 @@ export class ModuleLoader {
 
 				if (typeof id === 'string') {
 					return this.fetchModule(id, undefined).then(module => {
-						if (isManualChunkEntry) {
-							if (module.manualChunkAlias !== null && module.manualChunkAlias !== alias) {
-								error(errCannotAssignModuleToChunk(module.id, alias, module.manualChunkAlias));
-							}
-							module.manualChunkAlias = alias;
-							return module;
-						}
 						if (alias !== null) {
 							if (module.chunkAlias !== null && module.chunkAlias !== alias) {
 								error(errCannotAssignModuleToChunk(module.id, alias, module.chunkAlias));
