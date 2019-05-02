@@ -263,7 +263,7 @@ Default: `false`
 This will inline dynamic imports instead of creating new chunks to create a single bundle. Only possible if a single input is provided.
 
 #### manualChunks
-Type: `{ [chunkAlias: string]: string[] } | ((id: string) => string | null)`
+Type: `{ [chunkAlias: string]: string[] } | ((id: string) => string | void)`
 
 Allows the creation of custom shared common chunks. When using the object form, each property represents a chunk that contains the listed modules and all their dependencies if they are part of the module graph unless they are already in another manual chunk. The name of the chunk will be determined by the property key.
 
@@ -277,7 +277,15 @@ manualChunks: {
 
 will put all lodash modules into a manual chunk even if you are only using imports of the form `import get from 'lodash/get'`.
 
-When using the function form, each resolved module id will be passed to the function. If a string is returned, the module and all its dependency will be added to the manual chunk with the given name.
+When using the function form, each resolved module id will be passed to the function. If a string is returned, the module and all its dependency will be added to the manual chunk with the given name. For instance this will create a `vendor` chunk containing all dependencies inside `node_modules`:
+
+```javascript
+manualChunks(id) {
+  if (id.includes('node_modules')) {
+    return 'vendor';
+  }
+}
+```
 
 Be aware that manual chunks can change the behaviour of the application if side-effects are triggered before the corresponding modules are actually used.
 
