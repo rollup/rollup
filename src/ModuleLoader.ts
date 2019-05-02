@@ -4,6 +4,7 @@ import Graph from './Graph';
 import Module from './Module';
 import {
 	ExternalOption,
+	GetManualChunk,
 	IsExternal,
 	ModuleJSON,
 	ResolvedId,
@@ -50,6 +51,7 @@ export class ModuleLoader {
 		{ module: Module | null; name: string }
 	>();
 	private readonly entryModules: Module[] = [];
+	private readonly getManualChunk: GetManualChunk;
 	private readonly graph: Graph;
 	private latestLoadModulesPromise: Promise<any> = Promise.resolve();
 	private readonly manualChunkModules: Record<string, Module[]> = {};
@@ -60,7 +62,8 @@ export class ModuleLoader {
 		graph: Graph,
 		modulesById: Map<string, Module | ExternalModule>,
 		pluginDriver: PluginDriver,
-		external: ExternalOption
+		external: ExternalOption,
+		getManualChunk: GetManualChunk | null
 	) {
 		this.graph = graph;
 		this.modulesById = modulesById;
@@ -72,6 +75,7 @@ export class ModuleLoader {
 			const ids = new Set(Array.isArray(external) ? external : external ? [external] : []);
 			this.isExternal = id => ids.has(id);
 		}
+		this.getManualChunk = typeof getManualChunk === 'function' ? getManualChunk : () => null;
 	}
 
 	addEntryModuleAndGetReferenceId(unresolvedEntryModule: UnresolvedModuleWithAlias): string {
@@ -134,10 +138,8 @@ export class ModuleLoader {
 			unresolvedManualChunks.map(this.loadEntryModule)
 		).then(manualChunkModules => {
 			for (const module of manualChunkModules) {
-				if (!this.manualChunkModules[module.manualChunkAlias]) {
-					this.manualChunkModules[module.manualChunkAlias] = [];
-				}
-				this.manualChunkModules[module.manualChunkAlias].push(module);
+				// TODO Lukas can we do the assigment and error handling here?
+				this.addToManualChunk(module.manualChunkAlias, module);
 			}
 		});
 
@@ -162,6 +164,13 @@ export class ModuleLoader {
 				? { id: source, external: true }
 				: this.pluginDriver.hookFirst('resolveId', [source, importer])
 		).then((result: ResolveIdResult) => this.normalizeResolveIdResult(result, importer, source));
+	}
+
+	private addToManualChunk(alias: string, module: Module) {
+		if (!this.manualChunkModules[alias]) {
+			this.manualChunkModules[alias] = [];
+		}
+		this.manualChunkModules[alias].push(module);
 	}
 
 	private awaitLoadModulesPromise<T>(loadNewModulesPromise: Promise<T>): Promise<T> {
@@ -218,6 +227,11 @@ export class ModuleLoader {
 
 		const module: Module = new Module(this.graph, id);
 		this.modulesById.set(id, module);
+		const manualChunkAlias = this.getManualChunk(id);
+		if (typeof manualChunkAlias === 'string') {
+			module.manualChunkAlias = manualChunkAlias;
+			this.addToManualChunk(manualChunkAlias, module);
+		}
 
 		timeStart('load modules', 3);
 		return Promise.resolve(
@@ -350,14 +364,14 @@ export class ModuleLoader {
 
 				if (typeof id === 'string') {
 					return this.fetchModule(id, undefined).then(module => {
-						if (alias !== null) {
-							if (isManualChunkEntry) {
-								if (module.manualChunkAlias !== null && module.manualChunkAlias !== alias) {
-									error(errCannotAssignModuleToChunk(module.id, alias, module.manualChunkAlias));
-								}
-								module.manualChunkAlias = alias;
-								return module;
+						if (isManualChunkEntry) {
+							if (module.manualChunkAlias !== null && module.manualChunkAlias !== alias) {
+								error(errCannotAssignModuleToChunk(module.id, alias, module.manualChunkAlias));
 							}
+							module.manualChunkAlias = alias;
+							return module;
+						}
+						if (alias !== null) {
 							if (module.chunkAlias !== null && module.chunkAlias !== alias) {
 								error(errCannotAssignModuleToChunk(module.id, alias, module.chunkAlias));
 							}

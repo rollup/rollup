@@ -56,6 +56,7 @@ const getOnWarn = (
 		? warning => config.onwarn(warning, defaultOnWarnHandler)
 		: defaultOnWarnHandler;
 
+// TODO Lukas manual chunks should receive the same treatment
 const getExternal = (config: GenericConfigObject, command: GenericConfigObject) => {
 	const configExternal = config.external;
 	return typeof configExternal === 'function'
