@@ -184,14 +184,14 @@ export function errNamespaceConflict(
 export function errEntryCannotBeExternal(unresolvedId: string) {
 	return {
 		code: Errors.UNRESOLVED_ENTRY,
-		message: `Entry module cannot be external (${unresolvedId}).`
+		message: `Entry module cannot be external (${relativeId(unresolvedId)}).`
 	};
 }
 
 export function errUnresolvedEntry(unresolvedId: string) {
 	return {
 		code: Errors.UNRESOLVED_ENTRY,
-		message: `Could not resolve entry module (${unresolvedId}).`
+		message: `Could not resolve entry module (${relativeId(unresolvedId)}).`
 	};
 }
 

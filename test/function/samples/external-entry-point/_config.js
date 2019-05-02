@@ -1,5 +1,3 @@
-const path = require('path');
-
 module.exports = {
 	description: 'throws for entry points that are resolved as false by plugins',
 	options: {
@@ -11,6 +9,6 @@ module.exports = {
 	},
 	error: {
 		code: 'UNRESOLVED_ENTRY',
-		message: `Entry module cannot be external (${path.resolve(__dirname, 'main.js')}).`
+		message: `Entry module cannot be external (main.js).`
 	}
 };
