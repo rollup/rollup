@@ -46,7 +46,7 @@ import relativeId from './utils/relativeId';
 import { RenderOptions } from './utils/renderHelpers';
 import { SOURCEMAPPING_URL_RE } from './utils/sourceMappingURL';
 import { timeEnd, timeStart } from './utils/timers';
-import { visitStaticModuleDependencies } from './utils/traverseStaticDependencies';
+import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
 import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
 
 export interface CommentDescription {
@@ -194,6 +194,7 @@ export default class Module {
 	manualChunkAlias: string = null;
 	originalCode: string;
 	originalSourcemap: RawSourceMap | void;
+	pure = false;
 	reexports: { [name: string]: ReexportDescription } = Object.create(null);
 	resolvedIds: ResolvedIdMap;
 	scope: ModuleScope;
@@ -410,11 +411,7 @@ export default class Module {
 	includeAllExports() {
 		if (!this.isExecuted) {
 			this.graph.needsTreeshakingPass = true;
-			visitStaticModuleDependencies(this, module => {
-				if (module instanceof ExternalModule || module.isExecuted) return true;
-				module.isExecuted = true;
-				return false;
-			});
+			markModuleAndImpureDependenciesAsExecuted(this);
 		}
 
 		for (const exportName of this.getExports()) {
@@ -768,11 +765,15 @@ export default class Module {
 	}
 
 	private includeVariable(variable: Variable) {
+		const variableModule = variable.module;
 		if (!variable.included) {
 			variable.include();
+			if (variableModule instanceof Module && !variableModule.isExecuted) {
+				markModuleAndImpureDependenciesAsExecuted(variableModule);
+			}
 			this.graph.needsTreeshakingPass = true;
 		}
-		if (variable.module && variable.module !== this) {
+		if (variableModule && variableModule !== this) {
 			this.imports.add(variable);
 		}
 	}

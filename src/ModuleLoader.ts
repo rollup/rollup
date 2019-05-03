@@ -327,9 +327,17 @@ export class ModuleLoader {
 			if (externalModule instanceof ExternalModule === false) {
 				error(errInternalIdCannotBeExternal(source, importer));
 			}
+			if (resolvedId.pure) {
+				externalModule.pure = true;
+			}
 			return Promise.resolve(externalModule);
 		} else {
-			return this.fetchModule(resolvedId.id, importer);
+			return this.fetchModule(resolvedId.id, importer).then(module => {
+				if (resolvedId.pure) {
+					module.pure = true;
+				}
+				return module;
+			});
 		}
 	}
 
@@ -343,7 +351,7 @@ export class ModuleLoader {
 				error(errUnresolvedImport(source, importer));
 			}
 			this.graph.warn(errUnresolvedImportTreatedAsExternal(source, importer));
-			return { id: source, external: true };
+			return { id: source, external: true, pure: false };
 		}
 		return resolvedId;
 	}
@@ -384,11 +392,15 @@ export class ModuleLoader {
 	): ResolvedId | null {
 		let id = '';
 		let external = false;
+		let pure = false;
 		if (resolveIdResult) {
 			if (typeof resolveIdResult === 'object') {
 				id = resolveIdResult.id;
 				if (resolveIdResult.external) {
 					external = true;
+				}
+				if (resolveIdResult.pure) {
+					pure = true;
 				}
 			} else {
 				id = resolveIdResult;
@@ -406,7 +418,7 @@ export class ModuleLoader {
 			}
 			external = true;
 		}
-		return { id, external };
+		return { id, external, pure };
 	}
 
 	private resolveAndFetchDependency(
@@ -441,6 +453,7 @@ export class ModuleLoader {
 					}
 					return {
 						external: false,
+						pure: false,
 						...resolution
 					};
 				}
