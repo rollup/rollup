@@ -26,6 +26,7 @@
 * [#2829](https://github.com/rollup/rollup/pull/2829): Improve id resolution (@lukastaegert)
 * [#2831](https://github.com/rollup/rollup/pull/2831): Allow manualChunks to be a function (@lukastaegert)
 * [#2832](https://github.com/rollup/rollup/pull/2832): Improve `generateBundle` documentation (@lukastaegert)
+* [#2833](https://github.com/rollup/rollup/pull/2833): Update dependencies (@lukastaegert)
 
 ## 1.10.1
 *2019-04-19*
