@@ -112,6 +112,7 @@ Called at the end of `bundle.generate()` or immediately before the files are wri
 
 // ChunkInfo
 {
+  code: string,
   dynamicImports: string[],
   exports: string[],
   facadeModuleId: string | null,
@@ -119,6 +120,7 @@ Called at the end of `bundle.generate()` or immediately before the files are wri
   imports: string[],
   isDynamicEntry: boolean,
   isEntry: boolean,
+  map: SourceMap | null,
   modules: {
     [id: string]: {
       renderedExports: string[],
