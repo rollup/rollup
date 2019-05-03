@@ -1,11 +1,31 @@
 # rollup changelog
 
-## 1.10.2
-*unreleased*
+## 1.11.0
+*2019-05-03*
+
+### Features
+* Add `emitChunk` plugin context function to emit additional entry chunks that can be referenced from the code (#2809)
+* Allow `manualChunks` to be a function (#2831)
+* Omit `.js` extensions in AMD imports to make sure an AMD `baseUrl` would work (#2809)
+* Automatically use the name of the imported module as a base for dynamically imported chunks (#2809)
+* Add `resolveFileUrl` plugin hook to replace `resolveAssetUrl` and handle emitted chunks as well (#2809)
+* Add `resolve` plugin hook to replace `resolveId` and `isExternal` that returns an object (#2829)
+* Allow `resolveDynamicImport` to return an `{id, external}` object to also resolve unresolvable dynamic imports to a module (#2829)
+
+### Bug Fixes
+* Do not create invalid code if a dynamic import contains nothing but reexports (#2809)
+* Do not fail if modules that define a manual chunk depend on each other (#2809)
+* Do not fail if a module that defines a manual chunk is the dependency of a module defining a different manual chunk (#2809)
+* No longer fail for unnamed duplicate entry points but combine them (#2809)
+* Always return `string | null` from `this.resolveId` even if some `resolveId` hooks return objects (#2829)
+* Show proper warnings when `resolveDynamicImport` resolves to a non-external module that does not exist (#2829)
 
 ### Pull Requests
+* [#2809](https://github.com/rollup/rollup/pull/2809): Add hook for dynamic entry chunk emission (@lukastaegert)
 * [#2821](https://github.com/rollup/rollup/pull/2821): Fix syntax error in documentation (@FFxSquall)
-* [#2832](https://github.com/rollup/rollup/pull/2821): Improve `generateBundle` documentation (@lukastaegert)
+* [#2829](https://github.com/rollup/rollup/pull/2829): Improve id resolution (@lukastaegert)
+* [#2831](https://github.com/rollup/rollup/pull/2831): Allow manualChunks to be a function (@lukastaegert)
+* [#2832](https://github.com/rollup/rollup/pull/2832): Improve `generateBundle` documentation (@lukastaegert)
 
 ## 1.10.1
 *2019-04-19*
