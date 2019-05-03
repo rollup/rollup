@@ -11,15 +11,22 @@ import {
 	SourceDescription
 } from './rollup/types';
 import {
+	errBadLoader,
+	errCannotAssignModuleToChunk,
+	errChunkNotGeneratedForFileName,
+	errChunkReferenceIdNotFoundForFilename,
+	errEntryCannotBeExternal,
+	errInternalIdCannotBeExternal,
+	errNamespaceConflict,
 	error,
-	errorCannotAssignModuleToChunk,
-	errorChunkNotGeneratedForFileName,
-	errorChunkReferenceIdNotFoundForFilename
+	errUnresolvedEntry,
+	errUnresolvedImport,
+	errUnresolvedImportTreatedAsExternal
 } from './utils/error';
 import { isRelative, resolve } from './utils/path';
 import { PluginDriver } from './utils/pluginDriver';
 import { addWithNewReferenceId } from './utils/referenceIds';
-import relativeId, { getAliasName } from './utils/relativeId';
+import relativeId from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
 import transform from './utils/transform';
 
@@ -32,8 +39,8 @@ interface UnresolvedEntryModuleWithAlias extends UnresolvedModuleWithAlias {
 	isManualChunkEntry?: boolean;
 }
 
-function normalizeRelativeExternalId(importee: string, source: string) {
-	return isRelative(source) ? resolve(importee, '..', source) : source;
+function normalizeRelativeExternalId(importer: string, source: string) {
+	return isRelative(source) ? resolve(importer, '..', source) : source;
 }
 
 export class ModuleLoader {
@@ -139,14 +146,22 @@ export class ModuleLoader {
 
 	getChunkFileName(referenceId: string): string {
 		const entryRecord = this.entriesByReferenceId.get(referenceId);
-		if (!entryRecord) errorChunkReferenceIdNotFoundForFilename(referenceId);
+		if (!entryRecord) error(errChunkReferenceIdNotFoundForFilename(referenceId));
 		const fileName =
 			entryRecord.module &&
 			(entryRecord.module.facadeChunk
 				? entryRecord.module.facadeChunk.id
 				: entryRecord.module.chunk.id);
-		if (!fileName) errorChunkNotGeneratedForFileName(entryRecord);
+		if (!fileName) error(errChunkNotGeneratedForFileName(entryRecord));
 		return fileName;
+	}
+
+	resolveId(source: string, importer: string): Promise<ResolvedId | null> {
+		return Promise.resolve(
+			this.isExternal(source, importer, false)
+				? { id: source, external: true }
+				: this.pluginDriver.hookFirst('resolveId', [source, importer])
+		).then((result: ResolveIdResult) => this.normalizeResolveIdResult(result, importer, source));
 	}
 
 	private awaitLoadModulesPromise<T>(loadNewModulesPromise: Promise<T>): Promise<T> {
@@ -169,38 +184,22 @@ export class ModuleLoader {
 
 	private fetchAllDependencies(module: Module) {
 		const fetchDynamicImportsPromise = Promise.all(
-			module.getDynamicImportExpressions().map((dynamicImportExpression, index) =>
-				// TODO we only should expose the acorn AST here
-				this.pluginDriver
-					.hookFirst('resolveDynamicImport', [
-						dynamicImportExpression as string | ESTree.Node,
-						module.id
-					])
-					.then((replacement: string | void) => {
-						if (!replacement) return;
-						const dynamicImport = module.dynamicImports[index];
-						dynamicImport.alias = getAliasName(replacement);
-						if (typeof dynamicImportExpression !== 'string') {
-							dynamicImport.resolution = replacement;
-						} else if (this.isExternal(replacement, module.id, true)) {
-							let externalModule;
-							if (!this.modulesById.has(replacement)) {
-								externalModule = new ExternalModule({
-									graph: this.graph,
-									id: replacement
-								});
-								this.modulesById.set(replacement, module);
-							} else {
-								externalModule = <ExternalModule>this.modulesById.get(replacement);
-							}
-							dynamicImport.resolution = externalModule;
-							externalModule.exportsNamespace = true;
-						} else {
-							return this.fetchModule(replacement, module.id).then(depModule => {
-								dynamicImport.resolution = depModule;
-							});
-						}
-					})
+			module.getDynamicImportExpressions().map((specifier, index) =>
+				this.resolveDynamicImport(specifier as string | ESTree.Node, module.id).then(resolvedId => {
+					if (resolvedId === null) return;
+					const dynamicImport = module.dynamicImports[index];
+					if (typeof resolvedId === 'string') {
+						dynamicImport.resolution = resolvedId;
+						return;
+					}
+					return this.fetchResolvedDependency(
+						relativeId(resolvedId.id),
+						module.id,
+						resolvedId
+					).then(module => {
+						dynamicImport.resolution = module;
+					});
+				})
 			)
 		);
 		fetchDynamicImportsPromise.catch(() => {});
@@ -236,13 +235,7 @@ export class ModuleLoader {
 				timeEnd('load modules', 3);
 				if (typeof source === 'string') return source;
 				if (source && typeof source === 'object' && typeof source.code === 'string') return source;
-
-				error({
-					code: 'BAD_LOADER',
-					message: `Error loading ${relativeId(
-						id
-					)}: plugin load hook should return a string, a { code, map } object, or nothing/null`
-				});
+				error(errBadLoader(id));
 			})
 			.then(source => {
 				const sourceDescription: SourceDescription =
@@ -283,25 +276,13 @@ export class ModuleLoader {
 					module.exportAllSources.forEach(source => {
 						const id = module.resolvedIds[source].id;
 						const exportAllModule = this.modulesById.get(id);
-						if (exportAllModule.isExternal) return;
+						if (exportAllModule instanceof ExternalModule) return;
 
-						for (const name in (<Module>exportAllModule).exportsAll) {
+						for (const name in exportAllModule.exportsAll) {
 							if (name in module.exportsAll) {
-								this.graph.warn({
-									code: 'NAMESPACE_CONFLICT',
-									message: `Conflicting namespaces: ${relativeId(
-										module.id
-									)} re-exports '${name}' from both ${relativeId(
-										module.exportsAll[name]
-									)} and ${relativeId(
-										(<Module>exportAllModule).exportsAll[name]
-									)} (will be ignored)`,
-									name,
-									reexporter: module.id,
-									sources: [module.exportsAll[name], (<Module>exportAllModule).exportsAll[name]]
-								});
+								this.graph.warn(errNamespaceConflict(name, module, exportAllModule));
 							} else {
-								module.exportsAll[name] = (<Module>exportAllModule).exportsAll[name];
+								module.exportsAll[name] = exportAllModule.exportsAll[name];
 							}
 						}
 					});
@@ -310,50 +291,89 @@ export class ModuleLoader {
 			});
 	}
 
+	private fetchResolvedDependency(
+		source: string,
+		importer: string,
+		resolvedId: ResolvedId
+	): Promise<Module | ExternalModule> {
+		if (resolvedId.external) {
+			if (!this.modulesById.has(resolvedId.id)) {
+				this.modulesById.set(
+					resolvedId.id,
+					new ExternalModule({ graph: this.graph, id: resolvedId.id })
+				);
+			}
+
+			const externalModule = this.modulesById.get(resolvedId.id);
+			if (externalModule instanceof ExternalModule === false) {
+				error(errInternalIdCannotBeExternal(source, importer));
+			}
+			return Promise.resolve(externalModule);
+		} else {
+			return this.fetchModule(resolvedId.id, importer);
+		}
+	}
+
+	private handleMissingImports(
+		resolvedId: ResolvedId | null,
+		source: string,
+		importer: string
+	): ResolvedId {
+		if (resolvedId === null) {
+			if (isRelative(source)) {
+				error(errUnresolvedImport(source, importer));
+			}
+			this.graph.warn(errUnresolvedImportTreatedAsExternal(source, importer));
+			return { id: source, external: true };
+		}
+		return resolvedId;
+	}
+
 	private loadEntryModule = ({
 		alias,
 		unresolvedId,
 		isManualChunkEntry
-	}: UnresolvedEntryModuleWithAlias): Promise<Module> => {
-		return this.pluginDriver.hookFirst('resolveId', [unresolvedId, undefined]).then(id => {
-			if (id === false) {
-				error({
-					code: 'UNRESOLVED_ENTRY',
-					message: `Entry module cannot be external`
-				});
-			}
-
-			if (id == null) {
-				error({
-					code: 'UNRESOLVED_ENTRY',
-					message: `Could not resolve entry (${unresolvedId})`
-				});
-			}
-
-			return this.fetchModule(<string>id, undefined).then(module => {
-				if (alias !== null) {
-					if (isManualChunkEntry) {
-						if (module.manualChunkAlias !== null && module.manualChunkAlias !== alias) {
-							errorCannotAssignModuleToChunk(module.id, alias, module.manualChunkAlias);
-						}
-						module.manualChunkAlias = alias;
-						return module;
-					}
-					if (module.chunkAlias !== null && module.chunkAlias !== alias) {
-						errorCannotAssignModuleToChunk(module.id, alias, module.chunkAlias);
-					}
-					module.chunkAlias = alias;
+	}: UnresolvedEntryModuleWithAlias): Promise<Module> =>
+		this.pluginDriver
+			.hookFirst('resolveId', [unresolvedId, undefined])
+			.then((resolveIdResult: ResolveIdResult) => {
+				if (
+					resolveIdResult === false ||
+					(resolveIdResult && typeof resolveIdResult === 'object' && resolveIdResult.external)
+				) {
+					error(errEntryCannotBeExternal(unresolvedId));
 				}
-				return module;
+				const id =
+					resolveIdResult && typeof resolveIdResult === 'object'
+						? resolveIdResult.id
+						: resolveIdResult;
+
+				if (typeof id === 'string') {
+					return this.fetchModule(id, undefined).then(module => {
+						if (alias !== null) {
+							if (isManualChunkEntry) {
+								if (module.manualChunkAlias !== null && module.manualChunkAlias !== alias) {
+									error(errCannotAssignModuleToChunk(module.id, alias, module.manualChunkAlias));
+								}
+								module.manualChunkAlias = alias;
+								return module;
+							}
+							if (module.chunkAlias !== null && module.chunkAlias !== alias) {
+								error(errCannotAssignModuleToChunk(module.id, alias, module.chunkAlias));
+							}
+							module.chunkAlias = alias;
+						}
+						return module;
+					});
+				}
+				error(errUnresolvedEntry(unresolvedId));
 			});
-		});
-	};
 
 	private normalizeResolveIdResult(
 		resolveIdResult: ResolveIdResult,
-		module: Module,
+		importer: string,
 		source: string
-	): ResolvedId {
+	): ResolvedId | null {
 		let id = '';
 		let external = false;
 		if (resolveIdResult) {
@@ -364,67 +384,68 @@ export class ModuleLoader {
 				}
 			} else {
 				id = resolveIdResult;
-				if (this.isExternal(id, module.id, true)) {
+				if (this.isExternal(id, importer, true)) {
 					external = true;
 				}
 			}
 			if (external) {
-				id = normalizeRelativeExternalId(module.id, id);
+				id = normalizeRelativeExternalId(importer, id);
 			}
 		} else {
-			id = normalizeRelativeExternalId(module.id, source);
-			external = true;
-			if (resolveIdResult !== false && !this.isExternal(id, module.id, true)) {
-				if (isRelative(source)) {
-					error({
-						code: 'UNRESOLVED_IMPORT',
-						message: `Could not resolve '${source}' from ${relativeId(module.id)}`
-					});
-				}
-				this.graph.warn({
-					code: 'UNRESOLVED_IMPORT',
-					importer: relativeId(module.id),
-					message: `'${source}' is imported by ${relativeId(
-						module.id
-					)}, but could not be resolved – treating it as an external dependency`,
-					source,
-					url: 'https://rollupjs.org/guide/en#warning-treating-module-as-external-dependency'
-				});
+			id = normalizeRelativeExternalId(importer, source);
+			if (resolveIdResult !== false && !this.isExternal(id, importer, true)) {
+				return null;
 			}
+			external = true;
 		}
 		return { id, external };
 	}
 
-	private resolveAndFetchDependency(module: Module, source: string): Promise<any> {
+	private resolveAndFetchDependency(
+		module: Module,
+		source: string
+	): Promise<Module | ExternalModule> {
 		return Promise.resolve(
 			module.resolvedIds[source] ||
-				Promise.resolve(
-					this.isExternal(source, module.id, false)
-						? { id: source, external: true }
-						: this.pluginDriver.hookFirst('resolveId', [source, module.id])
-				).then((result: ResolveIdResult) => this.normalizeResolveIdResult(result, module, source))
+				this.resolveId(source, module.id).then(resolvedId =>
+					this.handleMissingImports(resolvedId, source, module.id)
+				)
 		).then(resolvedId => {
 			module.resolvedIds[source] = resolvedId;
-			if (resolvedId.external) {
-				if (!this.modulesById.has(resolvedId.id)) {
-					this.modulesById.set(
-						resolvedId.id,
-						new ExternalModule({ graph: this.graph, id: resolvedId.id })
+			return this.fetchResolvedDependency(source, module.id, resolvedId);
+		});
+	}
+
+	private resolveDynamicImport(
+		specifier: string | ESTree.Node,
+		importer: string
+	): Promise<ResolvedId | string | null> {
+		// TODO we only should expose the acorn AST here
+		return this.pluginDriver
+			.hookFirst('resolveDynamicImport', [specifier, importer])
+			.then((resolution: ResolveIdResult) => {
+				if (typeof specifier !== 'string') {
+					if (typeof resolution === 'string') {
+						return resolution;
+					}
+					if (!resolution) {
+						return null;
+					}
+					return {
+						external: false,
+						...resolution
+					};
+				}
+				if (resolution == null) {
+					return this.resolveId(specifier, importer).then(resolvedId =>
+						this.handleMissingImports(resolvedId, specifier, importer)
 					);
 				}
-
-				const externalModule = this.modulesById.get(resolvedId.id);
-				if (externalModule instanceof ExternalModule === false) {
-					error({
-						code: 'INVALID_EXTERNAL_ID',
-						message: `'${source}' is imported as an external by ${relativeId(
-							module.id
-						)}, but is already an existing non-external module id.`
-					});
-				}
-			} else {
-				return this.fetchModule(resolvedId.id, module.id);
-			}
-		});
+				return this.handleMissingImports(
+					this.normalizeResolveIdResult(resolution, importer, specifier),
+					specifier,
+					importer
+				);
+			});
 	}
 }

@@ -172,7 +172,6 @@ export default class Module {
 	dynamicallyImportedBy: Module[] = [];
 	dynamicDependencies: (Module | ExternalModule)[] = [];
 	dynamicImports: {
-		alias: string | null;
 		node: Import;
 		resolution: Module | ExternalModule | string | void;
 	}[] = [];
@@ -613,7 +612,7 @@ export default class Module {
 	}
 
 	private addDynamicImport(node: Import) {
-		this.dynamicImports.push({ node, alias: undefined, resolution: undefined });
+		this.dynamicImports.push({ node, resolution: undefined });
 	}
 
 	private addExport(

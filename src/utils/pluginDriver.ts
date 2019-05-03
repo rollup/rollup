@@ -16,7 +16,11 @@ import {
 import { createAssetPluginHooks } from './assetHooks';
 import { BuildPhase } from './buildPhase';
 import { getRollupDefaultPlugin } from './defaultPlugin';
-import { error, Errors } from './error';
+import {
+	errInvalidRollupPhaseForAddWatchFile,
+	errInvalidRollupPhaseForEmitChunk,
+	error
+} from './error';
 import { NameCollection } from './reservedNames';
 
 type Args<T> = T extends (...args: infer K) => any ? K : never;
@@ -87,7 +91,7 @@ export function createPluginDriver(
 	pluginCache: Record<string, SerializablePluginCache>,
 	watcher?: RollupWatcher
 ): PluginDriver {
-	const plugins = [...(options.plugins || []), getRollupDefaultPlugin(options)];
+	const plugins = [...(options.plugins || []), getRollupDefaultPlugin(options.preserveSymlinks)];
 	const { emitAsset, getAssetFileName, setAssetSource } = createAssetPluginHooks(graph.assetsById);
 	const existingPluginKeys: NameCollection = {};
 
@@ -136,21 +140,14 @@ export function createPluginDriver(
 
 		const context: PluginContext = {
 			addWatchFile(id) {
-				if (graph.phase >= BuildPhase.GENERATE)
-					this.error({
-						code: Errors.INVALID_ROLLUP_PHASE,
-						message: `Cannot call addWatchFile after the build has finished.`
-					});
+				if (graph.phase >= BuildPhase.GENERATE) this.error(errInvalidRollupPhaseForAddWatchFile());
 				graph.watchFiles[id] = true;
 			},
 			cache: cacheInstance,
 			emitAsset,
 			emitChunk(id, options) {
 				if (graph.phase > BuildPhase.LOAD_AND_PARSE)
-					this.error({
-						code: Errors.INVALID_ROLLUP_PHASE,
-						message: `Cannot call emitChunk after module loading has finished.`
-					});
+					this.error(errInvalidRollupPhaseForEmitChunk());
 				return graph.moduleLoader.addEntryModuleAndGetReferenceId({
 					alias: (options && options.name) || null,
 					unresolvedId: id
@@ -189,8 +186,13 @@ export function createPluginDriver(
 			},
 			moduleIds: graph.moduleById.keys(),
 			parse: graph.contextParse,
-			resolveId(id, parent) {
-				return pluginDriver.hookFirst('resolveId', [id, parent]);
+			resolveId(source, importer) {
+				return graph.moduleLoader
+					.resolveId(source, importer)
+					.then(resolveId => resolveId && resolveId.id);
+			},
+			resolve(source, importer) {
+				return graph.moduleLoader.resolveId(source, importer);
 			},
 			setAssetSource,
 			warn(warning) {
@@ -358,9 +360,9 @@ export function createPluginDriver(
 				promise = promise.then(arg0 => {
 					const hookPromise = runHook(name, [arg0, ...args], i, false, hookContext);
 					if (!hookPromise) return arg0;
-					return hookPromise.then((result: any) => {
-						return reduce.call(pluginContexts[i], arg0, result, plugins[i]);
-					});
+					return hookPromise.then((result: any) =>
+						reduce.call(pluginContexts[i], arg0, result, plugins[i])
+					);
 				});
 			}
 			return promise;

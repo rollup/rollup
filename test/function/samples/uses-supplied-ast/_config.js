@@ -6,9 +6,9 @@ const modules = {
 	// the code points to './bar' but the AST points to './baz', so we
 	// can check the AST is being used
 	foo: {
-		code: "import bar from 'bar';\nexport default function foo () {\n\tconsole.log( bar );\n}",
+		code: "import bar from 'bar';\nexport default function foo () {\n\tassert.equal(bar, 42);\n}",
 		ast: acorn.parse(
-			"import bar from 'baz';\nexport default function foo () {\n\tconsole.log( bar );\n}",
+			"import bar from 'baz';\nexport default function foo () {\n\tassert.equal(bar, 42);\n}",
 			{
 				ecmaVersion: 6,
 				sourceType: 'module'

@@ -1,19 +1,14 @@
-import { InputOptions, Plugin } from '../rollup/types';
+import { Plugin } from '../rollup/types';
 import { error } from './error';
 import { lstatSync, readdirSync, readFileSync, realpathSync } from './fs';
 import { basename, dirname, isAbsolute, resolve } from './path';
 
-export function getRollupDefaultPlugin(options: InputOptions): Plugin {
+export function getRollupDefaultPlugin(preserveSymlinks: boolean): Plugin {
 	return {
 		name: 'Rollup Core',
-		resolveId: createResolveId(options),
+		resolveId: createResolveId(preserveSymlinks),
 		load(id) {
 			return readFileSync(id, 'utf-8');
-		},
-		resolveDynamicImport(specifier, parentId) {
-			if (typeof specifier === 'string' && !this.isExternal(specifier, parentId, false))
-				// TODO this typecast will cause problems if resolveId returns false or an object
-				return <Promise<string>>this.resolveId(specifier, parentId);
 		},
 		resolveFileUrl({ relativePath, format }) {
 			return relativeUrlMechanisms[format](relativePath);
@@ -53,8 +48,8 @@ function addJsExtensionIfNecessary(file: string, preserveSymlinks: boolean) {
 	return found;
 }
 
-function createResolveId(options: InputOptions) {
-	return function(importee: string, importer: string) {
+function createResolveId(preserveSymlinks: boolean) {
+	return function(source: string, importer: string) {
 		if (typeof process === 'undefined') {
 			error({
 				code: 'MISSING_PROCESS',
@@ -65,15 +60,15 @@ function createResolveId(options: InputOptions) {
 
 		// external modules (non-entry modules that start with neither '.' or '/')
 		// are skipped at this stage.
-		if (importer !== undefined && !isAbsolute(importee) && importee[0] !== '.') return null;
+		if (importer !== undefined && !isAbsolute(source) && source[0] !== '.') return null;
 
 		// `resolve` processes paths from right to left, prepending them until an
 		// absolute path is created. Absolute importees therefore shortcircuit the
 		// resolve call and require no special handing on our part.
 		// See https://nodejs.org/api/path.html#path_path_resolve_paths
 		return addJsExtensionIfNecessary(
-			resolve(importer ? dirname(importer) : resolve(), importee),
-			options.preserveSymlinks
+			resolve(importer ? dirname(importer) : resolve(), source),
+			preserveSymlinks
 		);
 	};
 }
