@@ -19,7 +19,7 @@ jobs:
           key: dependency-cache-{{ checksum "package-lock.json" }}
       - run:
           name: Install Dependencies
-          command: npm ci
+          command: npm ci --ignore-scripts
       - run:
           name: Run linting.
           command: npm run lint

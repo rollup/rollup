@@ -15,7 +15,7 @@
     "build:bootstrap": "bin/rollup -c && shx cp src/rollup/types.d.ts dist/rollup.d.ts && shx chmod a+x bin/rollup",
     "ci:coverage": "npm run test:coverage",
     "ci:lint": "npm run lint:nofix && npm run security",
-    "ci:test": "npm run build:bootstrap && npm run test:all",
+    "ci:test": "npm run build:test && npm run build:bootstrap && npm run test:all",
     "lint": "npm run lint:ts -- --fix && npm run lint:js -- --fix && npm run lint:markdown",
     "lint:nofix": "npm run lint:ts && npm run lint:js && npm run lint:markdown",
     "lint:ts": "tslint --project .",
