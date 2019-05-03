@@ -195,7 +195,6 @@ export type RenderChunkHook = (
 	| string
 	| null;
 
-// TODO this should probably return ResolveIdResult
 export type ResolveDynamicImportHook = (
 	this: PluginContext,
 	specifier: string | ESTree.Node,
@@ -315,9 +314,12 @@ export interface TreeshakingOptions {
 	pureExternalModules?: boolean;
 }
 
+export type GetManualChunk = (id: string) => string | void;
+
 export type ExternalOption = string[] | IsExternal;
 export type GlobalsOption = { [name: string]: string } | ((name: string) => string);
 export type InputOption = string | string[] | { [entryAlias: string]: string };
+export type ManualChunksOption = { [chunkAlias: string]: string[] } | GetManualChunk;
 
 export interface InputOptions {
 	acorn?: any;
@@ -331,7 +333,7 @@ export interface InputOptions {
 	external?: ExternalOption;
 	inlineDynamicImports?: boolean;
 	input?: InputOption;
-	manualChunks?: { [chunkAlias: string]: string[] };
+	manualChunks?: ManualChunksOption;
 	moduleContext?: ((id: string) => string) | { [id: string]: string };
 	onwarn?: WarningHandler;
 	perf?: boolean;

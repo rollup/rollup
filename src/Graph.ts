@@ -12,6 +12,7 @@ import { ModuleLoader, UnresolvedModuleWithAlias } from './ModuleLoader';
 import {
 	Asset,
 	InputOptions,
+	ManualChunksOption,
 	ModuleJSON,
 	OutputBundle,
 	RollupCache,
@@ -191,13 +192,14 @@ export default class Graph {
 			this,
 			this.moduleById,
 			this.pluginDriver,
-			options.external
+			options.external,
+			typeof options.manualChunks === 'function' && options.manualChunks
 		);
 	}
 
 	build(
 		entryModules: string | string[] | Record<string, string>,
-		manualChunks: Record<string, string[]> | void,
+		manualChunks: ManualChunksOption | void,
 		inlineDynamicImports: boolean
 	): Promise<Chunk[]> {
 		// Phase 1 – discovery. We load the entry module and find which
@@ -208,7 +210,9 @@ export default class Graph {
 
 		return Promise.all([
 			this.moduleLoader.addEntryModules(normalizeEntryModules(entryModules), true),
-			manualChunks && this.moduleLoader.addManualChunks(manualChunks)
+			manualChunks &&
+				typeof manualChunks === 'object' &&
+				this.moduleLoader.addManualChunks(manualChunks)
 		]).then(([{ entryModules, manualChunkModulesByAlias }]) => {
 			if (entryModules.length === 0) {
 				throw new Error('You must supply options.input to rollup');

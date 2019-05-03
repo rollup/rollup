@@ -9,6 +9,6 @@ module.exports = {
 	},
 	error: {
 		code: 'INVALID_CHUNK',
-		message: `Cannot assign dep.js to the "dep1" chunk as it is already in the "dep2" chunk.`
+		message: `Cannot assign dep.js to the "dep2" chunk as it is already in the "dep1" chunk.`
 	}
 };
