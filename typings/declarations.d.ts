@@ -7,7 +7,6 @@ declare module 'help.md' {
 
 // external libs
 declare module 'ansi-escapes';
-declare module 'pretty-ms';
 declare module 'pretty-bytes';
 declare module 'rollup-plugin-buble';
 declare module 'signal-exit';

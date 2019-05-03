@@ -4,6 +4,7 @@
         "diagnostics": true,
         "downlevelIteration": false,
         "lib": ["es5", "es6", "dom"],
+        "module": "commonjs",
         "noEmitOnError": true,
         "noImplicitAny": true,
         "noImplicitThis": true,
