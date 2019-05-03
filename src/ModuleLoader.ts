@@ -327,15 +327,12 @@ export class ModuleLoader {
 			if (externalModule instanceof ExternalModule === false) {
 				error(errInternalIdCannotBeExternal(source, importer));
 			}
-			if (resolvedId.pure) {
-				externalModule.pure = true;
-			}
+			externalModule.pure =
+				externalModule.pure === null ? resolvedId.pure : externalModule.pure && resolvedId.pure;
 			return Promise.resolve(externalModule);
 		} else {
 			return this.fetchModule(resolvedId.id, importer).then(module => {
-				if (resolvedId.pure) {
-					module.pure = true;
-				}
+				module.pure = module.pure === null ? resolvedId.pure : module.pure && resolvedId.pure;
 				return module;
 			});
 		}

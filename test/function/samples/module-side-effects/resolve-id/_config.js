@@ -1,9 +1,8 @@
 const assert = require('assert');
 const sideEffects = [];
 
-// TODO Lukas interaction with pureExternalModules, use as default?
-// TODO Lukas how to handle if one says pure and one says impure
 module.exports = {
+	solo: true,
 	description: 'does not include modules without used exports if moduleSideEffect is false',
 	context: {
 		sideEffects,
@@ -28,7 +27,7 @@ module.exports = {
 		plugins: {
 			name: 'test-plugin',
 			resolveId(id) {
-				if (!(id[0] === '/')) {
+				if (id[0] !== '/') {
 					const [, pure, , external] = id.split('-');
 					return {
 						id,
@@ -38,7 +37,7 @@ module.exports = {
 				}
 			},
 			load(id) {
-				if (!(id[0] === '/')) {
+				if (id[0] !== '/') {
 					return `export const value = '${id}'; sideEffects.push(value);`;
 				}
 			}

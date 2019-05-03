@@ -16,7 +16,7 @@ export default class ExternalModule {
 	isExternal = true;
 	mostCommonSuggestion: number = 0;
 	nameSuggestions: { [name: string]: number };
-	pure = false;
+	pure: boolean | null = null;
 	reexported = false;
 	renderPath: string = undefined;
 	renormalizeRenderPath = false;
