@@ -5,6 +5,7 @@
 
 ### Pull Requests
 * [#2821](https://github.com/rollup/rollup/pull/2821): Fix syntax error in documentation (@FFxSquall)
+* [#2832](https://github.com/rollup/rollup/pull/2821): Improve `generateBundle` documentation (@lukastaegert)
 
 ## 1.10.1
 *2019-04-19*
