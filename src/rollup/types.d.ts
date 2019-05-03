@@ -62,12 +62,12 @@ export interface SourceMap {
 }
 
 export interface SourceDescription {
+	ast?: ESTree.Program;
 	code: string;
 	map?: string | RawSourceMap;
 }
 
 export interface TransformSourceDescription extends SourceDescription {
-	ast?: ESTree.Program;
 	dependencies?: string[];
 }
 
@@ -103,10 +103,17 @@ export interface MinimalPluginContext {
 	meta: PluginContextMeta;
 }
 
+export type EmitAsset = (name: string, source?: string | Buffer) => string;
+export type EmitChunk = (name: string, options?: { name?: string }) => string;
+
 export interface PluginContext extends MinimalPluginContext {
 	addWatchFile: (id: string) => void;
 	cache: PluginCache;
-	getAssetFileName: (assetId: string) => string;
+	emitAsset: EmitAsset;
+	emitChunk: EmitChunk;
+	error: (err: RollupError | string, pos?: { column: number; line: number }) => void;
+	getAssetFileName: (assetReferenceId: string) => string;
+	getChunkFileName: (chunkReferenceId: string) => string;
 	getModuleInfo: (
 		moduleId: string
 	) => {
@@ -117,13 +124,11 @@ export interface PluginContext extends MinimalPluginContext {
 	isExternal: IsExternal;
 	moduleIds: IterableIterator<string>;
 	parse: (input: string, options: any) => ESTree.Program;
-	resolveId: ResolveIdHook;
-	setAssetSource: (assetId: string, source: string | Buffer) => void;
+	resolveId: (id: string, parent: string) => Promise<string>;
+	setAssetSource: (assetReferenceId: string, source: string | Buffer) => void;
+	warn: (warning: RollupWarning | string, pos?: { column: number; line: number }) => void;
 	/** @deprecated */
 	watcher: EventEmitter;
-	emitAsset(name: string, source?: string | Buffer): string;
-	error(err: RollupError | string, pos?: { column: number; line: number }): void;
-	warn(warning: RollupWarning | string, pos?: { column: number; line: number }): void;
 }
 
 export interface PluginContextMeta {
@@ -185,6 +190,7 @@ export type RenderChunkHook = (
 	| string
 	| null;
 
+// TODO this should probably return ResolveIdResult
 export type ResolveDynamicImportHook = (
 	this: PluginContext,
 	specifier: string | ESTree.Node,
@@ -208,6 +214,19 @@ export type ResolveAssetUrlHook = (
 	}
 ) => string | void;
 
+export type ResolveFileUrlHook = (
+	this: PluginContext,
+	options: {
+		assetReferenceId: string | null;
+		chunkId: string;
+		chunkReferenceId: string | null;
+		fileName: string;
+		format: string;
+		moduleId: string;
+		relativePath: string;
+	}
+) => string | void;
+
 export type AddonHook = string | ((this: PluginContext) => string | Promise<string>);
 
 /**
@@ -226,41 +245,45 @@ export interface OutputBundle {
 	[fileName: string]: OutputAsset | OutputChunk;
 }
 
-export interface Plugin {
-	banner?: AddonHook;
+interface OnGenerateOptions extends OutputOptions {
+	bundle: OutputChunk;
+}
+
+interface OnWriteOptions extends OutputOptions {
+	bundle: RollupBuild;
+}
+
+export interface PluginHooks {
 	buildEnd?: (this: PluginContext, err?: Error) => Promise<void> | void;
 	buildStart?: (this: PluginContext, options: InputOptions) => Promise<void> | void;
-	cacheKey?: string;
-	footer?: AddonHook;
 	generateBundle?: (
 		this: PluginContext,
 		options: OutputOptions,
 		bundle: OutputBundle,
 		isWrite: boolean
 	) => void | Promise<void>;
-	intro?: AddonHook;
 	load?: LoadHook;
-	name: string;
 	/** @deprecated */
 	ongenerate?: (
 		this: PluginContext,
-		options: OutputOptions,
+		options: OnGenerateOptions,
 		chunk: OutputChunk
 	) => void | Promise<void>;
 	/** @deprecated */
 	onwrite?: (
 		this: PluginContext,
-		options: OutputOptions,
+		options: OnWriteOptions,
 		chunk: OutputChunk
 	) => void | Promise<void>;
 	options?: (this: MinimalPluginContext, options: InputOptions) => InputOptions | void | null;
 	outputOptions?: (this: PluginContext, options: OutputOptions) => OutputOptions | void | null;
-	outro?: AddonHook;
 	renderChunk?: RenderChunkHook;
 	renderError?: (this: PluginContext, err?: Error) => Promise<void> | void;
 	renderStart?: (this: PluginContext) => Promise<void> | void;
+	/** @deprecated */
 	resolveAssetUrl?: ResolveAssetUrlHook;
 	resolveDynamicImport?: ResolveDynamicImportHook;
+	resolveFileUrl?: ResolveFileUrlHook;
 	resolveId?: ResolveIdHook;
 	resolveImportMeta?: ResolveImportMetaHook;
 	transform?: TransformHook;
@@ -270,6 +293,15 @@ export interface Plugin {
 	transformChunk?: TransformChunkHook;
 	watchChange?: (id: string) => void;
 	writeBundle?: (this: PluginContext, bundle: OutputBundle) => void | Promise<void>;
+}
+
+export interface Plugin extends PluginHooks {
+	banner?: AddonHook;
+	cacheKey?: string;
+	footer?: AddonHook;
+	intro?: AddonHook;
+	name: string;
+	outro?: AddonHook;
 }
 
 export interface TreeshakingOptions {
@@ -293,7 +325,7 @@ export interface InputOptions {
 	experimentalTopLevelAwait?: boolean;
 	external?: ExternalOption;
 	inlineDynamicImports?: boolean;
-	input: InputOption;
+	input?: InputOption;
 	manualChunks?: { [chunkAlias: string]: string[] };
 	moduleContext?: ((id: string) => string) | { [id: string]: string };
 	onwarn?: WarningHandler;

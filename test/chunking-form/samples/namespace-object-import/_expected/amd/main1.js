@@ -1,4 +1,4 @@
-define(['./generated-main2.js'], function (main2) { 'use strict';
+define(['./generated-chunk'], function (main2) { 'use strict';
 
 	console.log(main2.a);
 

@@ -12,10 +12,11 @@ export function getRollupDefaultPlugin(options: InputOptions): Plugin {
 		},
 		resolveDynamicImport(specifier, parentId) {
 			if (typeof specifier === 'string' && !this.isExternal(specifier, parentId, false))
+				// TODO this typecast will cause problems if resolveId returns false or an object
 				return <Promise<string>>this.resolveId(specifier, parentId);
 		},
-		resolveAssetUrl({ relativeAssetPath, format }) {
-			return relativeUrlMechanisms[format](relativeAssetPath);
+		resolveFileUrl({ relativePath, format }) {
+			return relativeUrlMechanisms[format](relativePath);
 		},
 		resolveImportMeta(prop, { chunkId, format }) {
 			const mechanism = importMetaMechanisms[format] && importMetaMechanisms[format](prop, chunkId);

@@ -1,5 +1,5 @@
-define(['./generated-chunk.js'], function (dynamic_js) { 'use strict';
+define(['./generated-chunk'], function (dynamic) { 'use strict';
 
-	console.log('main2', dynamic_js.dynamic, dynamic_js.dep);
+	console.log('main2', dynamic.dynamic, dynamic.dep);
 
 });

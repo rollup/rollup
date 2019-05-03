@@ -1,4 +1,4 @@
-define(['exports', 'external', './other.js', './_virtual/_commonjs-external-external', './_virtual/other.js'], function (exports, external, __chunk_1, __chunk_2, __chunk_3) { 'use strict';
+define(['exports', 'external', './other', './_virtual/_commonjs-external-external', './_virtual/other'], function (exports, external, __chunk_1, __chunk_2, __chunk_3) { 'use strict';
 
 	external = external && external.hasOwnProperty('default') ? external['default'] : external;
 

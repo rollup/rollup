@@ -1,6 +1,6 @@
-define(['require', 'exports', './generated-chunk.js'], function (require, exports, __chunk_1) { 'use strict';
+define(['require', 'exports', './generated-chunk'], function (require, exports, __chunk_1) { 'use strict';
 
-	const lazy = new Promise(function (resolve, reject) { require(['./generated-chunk2.js'], resolve, reject) });
+	const lazy = new Promise(function (resolve, reject) { require(['./generated-lazy'], resolve, reject) });
 
 	exports.v1 = __chunk_1.v1;
 	exports.v10 = __chunk_1.v10;

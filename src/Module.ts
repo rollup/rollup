@@ -88,7 +88,8 @@ export interface AstContext {
 	deoptimizationTracker: EntityPathTracker;
 	error: (props: RollupError, pos: number) => void;
 	fileName: string;
-	getAssetFileName: (assetId: string) => string;
+	getAssetFileName: (assetReferenceId: string) => string;
+	getChunkFileName: (chunkReferenceId: string) => string;
 	getExports: () => string[];
 	getModuleExecIndex: () => number;
 	getModuleName: () => string;
@@ -163,7 +164,7 @@ const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
 
 export default class Module {
 	chunk: Chunk;
-	chunkAlias: string = undefined;
+	chunkAlias: string = null;
 	code: string;
 	comments: CommentDescription[] = [];
 	customTransformCache: boolean;
@@ -191,6 +192,8 @@ export default class Module {
 	isEntryPoint: boolean = false;
 	isExecuted: boolean = false;
 	isExternal: false;
+	isUserDefinedEntryPoint: boolean = false;
+	manualChunkAlias: string = null;
 	originalCode: string;
 	originalSourcemap: RawSourceMap | void;
 	reexports: { [name: string]: ReexportDescription } = Object.create(null);
@@ -199,7 +202,6 @@ export default class Module {
 	sourcemapChain: RawSourceMap[];
 	sources: string[] = [];
 	transformAssets: Asset[];
-	type: 'Module';
 	usesTopLevelAwait: boolean = false;
 
 	private ast: Program;
@@ -522,6 +524,7 @@ export default class Module {
 			error: this.error.bind(this),
 			fileName, // Needed for warnings
 			getAssetFileName: this.graph.pluginDriver.getAssetFileName,
+			getChunkFileName: this.graph.moduleLoader.getChunkFileName.bind(this.graph.moduleLoader),
 			getExports: this.getExports.bind(this),
 			getModuleExecIndex: () => this.execIndex,
 			getModuleName: this.basename.bind(this),

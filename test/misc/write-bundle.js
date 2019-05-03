@@ -9,12 +9,8 @@ describe('bundle.write()', () => {
 				input: 'x',
 				plugins: [
 					{
-						resolveId: () => {
-							return 'test';
-						},
-						load: () => {
-							return '// empty';
-						}
+						resolveId: () => 'test',
+						load: () => '// empty'
 					}
 				]
 			})
@@ -37,12 +33,8 @@ describe('bundle.write()', () => {
 				input: 'x',
 				plugins: [
 					{
-						resolveId: () => {
-							return 'test';
-						},
-						load: () => {
-							return 'export var foo = 42;';
-						}
+						resolveId: () => 'test',
+						load: () => 'export var foo = 42;'
 					}
 				]
 			})

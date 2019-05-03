@@ -1,1 +1,1 @@
-import('./generated-chunk.js').then(({ value }) => console.log(value));
+import('./generated-dynamic.js').then(({ value }) => console.log(value));

@@ -1,2 +1,2 @@
 console.log('main');
-import('./generated-chunk2.js');
+import('./generated-dep1.js');

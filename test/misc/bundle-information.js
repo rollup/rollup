@@ -109,7 +109,7 @@ describe('The bundle object', () => {
 			.then(({ output }) => {
 				assert.deepEqual(
 					output.map(chunk => chunk.fileName),
-					['input1.js', 'input2.js', 'generated-input2.js'],
+					['input1.js', 'input2.js', 'generated-chunk.js'],
 					'fileName'
 				);
 				assert.deepEqual(
@@ -150,7 +150,7 @@ describe('The bundle object', () => {
 			.then(({ output }) => {
 				assert.deepEqual(
 					output.map(chunk => chunk.fileName),
-					['input1.js', 'input2.js', 'input22.js'],
+					['input1.js', 'input2.js', 'chunk.js'],
 					'fileName'
 				);
 				assert.deepEqual(
@@ -184,14 +184,14 @@ describe('The bundle object', () => {
 			.then(({ output }) => {
 				assert.deepEqual(
 					output.map(chunk => chunk.fileName),
-					['input.js', 'dynamic1.js', 'generated-chunk.js'],
+					['input.js', 'dynamic1.js', 'generated-dynamic2.js'],
 					'fileName'
 				);
 				assert.deepEqual(output.map(chunk => chunk.isEntry), [true, true, false], 'isEntry');
 				assert.deepEqual(
 					output.map(chunk => chunk.code),
 					[
-						`Promise.all([import('./dynamic1.js'), import('./generated-chunk.js')]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));\n`,
+						`Promise.all([import('./dynamic1.js'), import('./generated-dynamic2.js')]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));\n`,
 						'const dynamic1 = "dynamic1";\n\nexport { dynamic1 };\n',
 						'const dynamic2 = "dynamic2";\n\nexport { dynamic2 };\n'
 					],
@@ -209,7 +209,7 @@ describe('The bundle object', () => {
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.dynamicImports),
-					[['dynamic1.js', 'generated-chunk.js'], [], []],
+					[['dynamic1.js', 'generated-dynamic2.js'], [], []],
 					'dynamicImports'
 				);
 			});
@@ -239,7 +239,7 @@ describe('The bundle object', () => {
 			.then(({ output }) => {
 				assert.deepEqual(
 					output.map(chunk => chunk.fileName),
-					['input1.js', 'input2.js', 'generated-chunk.js', 'generated-chunk2.js'],
+					['input1.js', 'input2.js', 'generated-chunk.js', 'generated-dynamic.js'],
 					'fileName'
 				);
 				assert.deepEqual(
@@ -348,7 +348,7 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.name),
-					['input', 'dynamic1', 'chunk', 'chunk'],
+					['input', 'dynamic1', 'other', 'dynamic2'],
 					'name'
 				);
 				assert.deepEqual(

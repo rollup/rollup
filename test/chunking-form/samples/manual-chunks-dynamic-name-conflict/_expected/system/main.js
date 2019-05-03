@@ -3,7 +3,7 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			module.import('./generated-dynamic2.js').then(result => console.log(result));
+			module.import('./generated-dynamic1.js').then(result => console.log(result));
 			module.import('./generated-dynamic.js').then(result => console.log(result));
 
 		}

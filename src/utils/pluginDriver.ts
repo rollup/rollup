@@ -3,39 +3,55 @@ import { version as rollupVersion } from 'package.json';
 import Graph from '../Graph';
 import Module from '../Module';
 import {
+	EmitAsset,
 	InputOptions,
 	Plugin,
 	PluginCache,
 	PluginContext,
-	RollupError,
+	PluginHooks,
 	RollupWarning,
 	RollupWatcher,
 	SerializablePluginCache
 } from '../rollup/types';
-import { createAssetPluginHooks, EmitAsset } from './assetHooks';
+import { createAssetPluginHooks } from './assetHooks';
+import { BuildPhase } from './buildPhase';
 import { getRollupDefaultPlugin } from './defaultPlugin';
-import { error } from './error';
+import { error, Errors } from './error';
 import { NameCollection } from './reservedNames';
+
+type Args<T> = T extends (...args: infer K) => any ? K : never;
 
 export interface PluginDriver {
 	emitAsset: EmitAsset;
 	hasLoadersOrTransforms: boolean;
-	getAssetFileName(assetId: string): string;
-	hookFirst<T = any>(hook: string, args?: any[], hookContext?: HookContext): Promise<T>;
-	hookFirstSync<T = any>(hook: string, args?: any[], hookContext?: HookContext): T;
-	hookParallel(hook: string, args?: any[], hookContext?: HookContext): Promise<void>;
-	hookReduceArg0<R = any, T = any>(
-		hook: string,
-		args: any[],
-		reduce: Reduce<R, T>,
+	getAssetFileName(assetReferenceId: string): string;
+	hookFirst<H extends keyof PluginHooks, R = ReturnType<PluginHooks[H]>>(
+		hook: H,
+		args: Args<PluginHooks[H]>,
 		hookContext?: HookContext
-	): Promise<T>;
-	hookReduceArg0Sync<R = any, T = any>(
-		hook: string,
-		args: any[],
-		reduce: Reduce<R, T>,
+	): Promise<R>;
+	hookFirstSync<H extends keyof PluginHooks, R = ReturnType<PluginHooks[H]>>(
+		hook: H,
+		args: Args<PluginHooks[H]>,
 		hookContext?: HookContext
-	): T;
+	): R;
+	hookParallel<H extends keyof PluginHooks>(
+		hook: H,
+		args: Args<PluginHooks[H]>,
+		hookContext?: HookContext
+	): Promise<void>;
+	hookReduceArg0<H extends keyof PluginHooks, V, R = ReturnType<PluginHooks[H]>>(
+		hook: H,
+		args: any[],
+		reduce: Reduce<V, R>,
+		hookContext?: HookContext
+	): Promise<R>;
+	hookReduceArg0Sync<H extends keyof PluginHooks, V, R = ReturnType<PluginHooks[H]>>(
+		hook: H,
+		args: any[],
+		reduce: Reduce<V, R>,
+		hookContext?: HookContext
+	): R;
 	hookReduceValue<R = any, T = any>(
 		hook: string,
 		value: T | Promise<T>,
@@ -43,8 +59,16 @@ export interface PluginDriver {
 		reduce: Reduce<R, T>,
 		hookContext?: HookContext
 	): Promise<T>;
-	hookSeq(hook: string, args?: any[], context?: HookContext): Promise<void>;
-	hookSeqSync(hook: string, args?: any[], context?: HookContext): void;
+	hookSeq<H extends keyof PluginHooks>(
+		hook: H,
+		args: Args<PluginHooks[H]>,
+		context?: HookContext
+	): Promise<void>;
+	hookSeqSync<H extends keyof PluginHooks>(
+		hook: H,
+		args: Args<PluginHooks[H]>,
+		context?: HookContext
+	): void;
 }
 
 export type Reduce<R = any, T = any> = (reduction: T, result: R, plugin: Plugin) => T;
@@ -111,24 +135,42 @@ export function createPluginDriver(
 		}
 
 		const context: PluginContext = {
-			addWatchFile(id: string) {
-				if (graph.finished) this.error('addWatchFile can only be called during the build.');
+			addWatchFile(id) {
+				if (graph.phase >= BuildPhase.GENERATE)
+					this.error({
+						code: Errors.INVALID_ROLLUP_PHASE,
+						message: `Cannot call addWatchFile after the build has finished.`
+					});
 				graph.watchFiles[id] = true;
 			},
 			cache: cacheInstance,
 			emitAsset,
-			error: (err: RollupError | string) => {
+			emitChunk(id, options) {
+				if (graph.phase > BuildPhase.LOAD_AND_PARSE)
+					this.error({
+						code: Errors.INVALID_ROLLUP_PHASE,
+						message: `Cannot call emitChunk after module loading has finished.`
+					});
+				return graph.moduleLoader.addEntryModuleAndGetReferenceId({
+					alias: (options && options.name) || null,
+					unresolvedId: id
+				});
+			},
+			error(err) {
 				if (typeof err === 'string') err = { message: err };
 				if (err.code) err.pluginCode = err.code;
 				err.code = 'PLUGIN_ERROR';
 				err.plugin = plugin.name || `Plugin at position ${pidx + 1}`;
 				error(err);
 			},
-			isExternal(id: string, parentId: string, isResolved = false) {
-				return graph.isExternal(id, parentId, isResolved);
+			isExternal(id, parentId, isResolved = false) {
+				return graph.moduleLoader.isExternal(id, parentId, isResolved);
 			},
 			getAssetFileName,
-			getModuleInfo: (moduleId: string) => {
+			getChunkFileName(chunkReferenceId) {
+				return graph.moduleLoader.getChunkFileName(chunkReferenceId);
+			},
+			getModuleInfo(moduleId) {
 				const foundModule = graph.moduleById.get(moduleId);
 				if (foundModule == null) {
 					throw new Error(`Unable to find module ${moduleId}`);
@@ -147,11 +189,11 @@ export function createPluginDriver(
 			},
 			moduleIds: graph.moduleById.keys(),
 			parse: graph.contextParse,
-			resolveId(id: string, parent: string) {
+			resolveId(id, parent) {
 				return pluginDriver.hookFirst('resolveId', [id, parent]);
 			},
 			setAssetSource,
-			warn: (warning: RollupWarning | string) => {
+			warn(warning) {
 				if (typeof warning === 'string') warning = { message: warning } as RollupWarning;
 				if (warning.code) warning.pluginCode = warning.code;
 				warning.code = 'PLUGIN_WARNING';
@@ -268,9 +310,7 @@ export function createPluginDriver(
 		hookSeq(name, args, hookContext) {
 			let promise: Promise<void> = <any>Promise.resolve();
 			for (let i = 0; i < plugins.length; i++)
-				promise = promise.then(() => {
-					return runHook<void>(name, args, i, false, hookContext);
-				});
+				promise = promise.then(() => runHook<void>(name, args, i, false, hookContext));
 			return promise;
 		},
 
@@ -342,9 +382,9 @@ export function createPluginDriver(
 				promise = promise.then(value => {
 					const hookPromise = runHook(name, args, i, true, hookContext);
 					if (!hookPromise) return value;
-					return hookPromise.then((result: any) => {
-						return reduce.call(pluginContexts[i], value, result, plugins[i]);
-					});
+					return hookPromise.then((result: any) =>
+						reduce.call(pluginContexts[i], value, result, plugins[i])
+					);
 				});
 			}
 			return promise;

@@ -4,7 +4,7 @@ System.register([], function (exports, module) {
 		execute: function () {
 
 			console.log('main');
-			module.import('./generated-chunk2.js');
+			module.import('./generated-dep1.js');
 
 		}
 	};

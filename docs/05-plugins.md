@@ -181,36 +181,38 @@ Kind: `async, parallel`
 
 Called initially each time `bundle.generate()` or `bundle.write()` is called. To get notified when generation has completed, use the `generateBundle` and `renderError` hooks.
 
-#### `resolveAssetUrl`
-Type: `({assetFileName: string, relativeAssetPath: string, chunkId: string, moduleId: string, format: string}) => string | null`<br>
-Kind: `sync, first`
-
-Allows to customize how Rollup resolves URLs of assets emitted via `this.emitAsset` by plugins. By default, Rollup will generate code for `import.meta.ROLLUP_ASSET_URL_[assetId]` that should correctly generate absolute URLs of emitted assets independent of the output format and the host system where the code is deployed.
-
-For that, all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available. In case that fails or to generate more optimized code, this hook can be used to customize this behaviour. To do that, the following information is available:
-
-- `assetFileName`: The path and file name of the emitted asset, relative to `output.dir` without a leading `./`.
-- `relativeAssetPath`: The path and file name of the emitted asset, relative to the chunk from which the asset is referenced via `import.meta.ROLLUP_ASSET_URL_[assetId]`. This will also contain no leading `./` but may contain a leading `../`.
-- `moduleId`: The id of the original module this asset is referenced from. Useful for conditionally resolving certain assets differently.
-- `chunkId`: The id of the chunk this asset is referenced from.
-- `format`: The rendered output format.
-
-Note that since this hook has access to the filename of the current chunk, its return value will not be considered when generating the hash of this chunk.
-
-The following plugin will always resolve all assets relative to the current document:
-
-```javascript
-// rollup.config.js
-resolveAssetUrl({assetFileName}) {
-	return `new URL('${assetFileName}', document.baseURI).href`;
-}
-```
-
 #### `resolveDynamicImport`
 Type: `(specifier: string | ESTree.Node, importer: string) => string | false | null`<br>
 Kind: `async, first`
 
 Defines a custom resolver for dynamic imports. In case a dynamic import is not passed a string as argument, this hook gets access to the raw AST nodes to analyze. Returning `null` will defer to other resolvers and eventually to `resolveId` if this is possible; returning `false` signals that the import should be kept as it is and not be passed to other resolvers thus making it external. Note that the return value of this hook will not be passed to `resolveId` afterwards; if you need access to the static resolution algorithm, you can use `this.resolveId(importee, importer)` on the plugin context.
+
+#### `resolveFileUrl`
+Type: `({assetReferenceId: string | null, chunkId: string, chunkReferenceId: string | null, fileName: string, format: string, moduleId: string, relativePath: string}) => string | null`<br>
+Kind: `sync, first`
+
+Allows to customize how Rollup resolves URLs of files that were emitted by plugins via `this.emitAsset` or `this.emitChunk`. By default, Rollup will generate code for `import.meta.ROLLUP_ASSET_URL_assetReferenceId` and `import.meta.ROLLUP_CHUNK_URL_chunkReferenceId` that should correctly generate absolute URLs of emitted files independent of the output format and the host system where the code is deployed.
+
+For that, all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available. In case that fails or to generate more optimized code, this hook can be used to customize this behaviour. To do that, the following information is available:
+
+- `assetReferenceId`: The asset reference id if we are resolving `import.meta.ROLLUP_ASSET_URL_assetReferenceId`, otherwise `null`.
+- `chunkId`: The id of the chunk this file is referenced from.
+- `chunkReferenceId`: The chunk reference id if we are resolving `import.meta.ROLLUP_CHUNK_URL_chunkReferenceId`, otherwise `null`.
+- `fileName`: The path and file name of the emitted asset, relative to `output.dir` without a leading `./`.
+- `format`: The rendered output format.
+- `moduleId`: The id of the original module this file is referenced from. Useful for conditionally resolving certain assets differently.
+- `relativePath`: The path and file name of the emitted file, relative to the chunk the file is referenced from. This will path will contain no leading `./` but may contain a leading `../`.
+
+Note that since this hook has access to the filename of the current chunk, its return value will not be considered when generating the hash of this chunk.
+
+The following plugin will always resolve all files relative to the current document:
+
+```javascript
+// rollup.config.js
+resolveFileUrl({fileName}) {
+  return `new URL('${fileName}', document.baseURI).href`;
+}
+```
 
 #### `resolveId`
 Type: `(importee: string, importer: string) => string | false | null | {id: string, external?: boolean}`<br>
@@ -281,6 +283,8 @@ called when `bundle.generate()` is being executed.
 called when `bundle.write()` is being executed, after the file has been written
 to disk.
 
+- `resolveAssetUrl` - _**Use [`resolveFileUrl`](guide/en#resolvefileurl)**_ - Function hook that allows to customize the generated code for asset URLs.
+
 - `transformBundle` – _**Use [`renderChunk`](guide/en#renderchunk)**_ - A `( source, { format } ) =>
 code` or `( source, { format } ) => { code, map }` bundle transformer function.
 
@@ -303,15 +307,31 @@ In general, it is recommended to use `this.addWatchfile` from within the hook th
 
 #### `this.emitAsset(assetName: string, source: string) => string`
 
-Emits a custom file to include in the build output, returning its `assetId`. You can defer setting the source if you provide it later via `this.setAssetSource(assetId, source)`. A string or Buffer source must be set for each asset through either method or an error will be thrown on generate completion.
+Emits a custom file that is included in the build output, returning an `assetReferenceId` that can be used to reference the emitted file. You can defer setting the source if you provide it later via [`this.setAssetSource(assetReferenceId, source)`](guide/en#this-setassetsource-assetreferenceid-string-source-string-buffer-void). A string or Buffer source must be set for each asset through either method or an error will be thrown on generate completion.
+
+Emitted assets will follow the [`output.assetFileNames`](guide/en#output-assetfilenames) naming scheme. You can reference the URL of the file in any code returned by a [`load`](guide/en#load) or [`transform`](guide/en#transform) plugin hook via `import.meta.ROLLUP_ASSET_URL_assetReferenceId`. See [Asset URLs](guide/en#asset-urls) for more details and an example.
+
+The generated code that replaces `import.meta.ROLLUP_ASSET_URL_assetReferenceId` can be customized via the [`resolveFileUrl`](guide/en#resolvefileurl) plugin hook. Once the asset has been finalized during `generate`, you can also use [`this.getAssetFileName(assetReferenceId)`](guide/en#this-getassetfilename-assetreferenceid-string-string) to determine the file name.
+
+#### `this.emitChunk(moduleId: string, options?: {name?: string}) => string`
+
+Emits a new chunk with the given module as entry point. This will not result in duplicate modules in the graph, instead if necessary, existing chunks will be split. It returns a `chunkReferenceId` that can be used to later access the generated file name of the chunk.
+
+Emitted chunks will follow the [`output.chunkFileNames`](guide/en#output-chunkfilenames), [`output.entryFileNames`](guide/en#output-entryfilenames) naming scheme. If a `name` is provided, this will be used for the `[name]` file name placeholder, otherwise the name will be derived from the file name. If a `name` is provided, this name must not conflict with any other entry point names unless the entry points reference the same entry module. You can reference the URL of the emitted chunk in any code returned by a [`load`](guide/en#load) or [`transform`](guide/en#transform) plugin hook via `import.meta.ROLLUP_CHUNK_URL_chunkReferenceId`.
+
+The generated code that replaces `import.meta.ROLLUP_CHUNK_URL_chunkReferenceId` can be customized via the [`resolveFileUrl`](guide/en#resolvefileurl) plugin hook. Once the chunk has been rendered during `generate`, you can also use [`this.getChunkFileName(chunkReferenceId)`](guide/en#this-getchunkfilename-chunkreferenceid-string-string) to determine the file name.
 
 #### `this.error(error: string | Error, position?: number) => void`
 
 Structurally equivalent to `this.warn`, except that it will also abort the bundling process.
 
-#### `this.getAssetFileName(assetId: string) => string`
+#### `this.getAssetFileName(assetReferenceId: string) => string`
 
-Get the file name of an asset, according to the `assetFileNames` output option pattern.
+Get the file name of an asset, according to the `assetFileNames` output option pattern. The file name will be relative to `outputOptions.dir`.
+
+#### `this.getChunkFileName(chunkReferenceId: string) => string`
+
+Get the file name of an emitted chunk. The file name will be relative to `outputOptions.dir`.
 
 #### `this.getModuleInfo(moduleId: string) => ModuleInfo`
 
@@ -349,11 +369,11 @@ or converted into an Array via `Array.from(this.moduleIds)`.
 
 Use Rollup's internal acorn instance to parse code to an AST.
 
-#### `this.resolveId(importee: string, importer: string) => string`
+#### `this.resolveId(importee: string, importer: string) => Promise<string>`
 
 Resolve imports to module ids (i.e. file names). Uses the same hooks as Rollup itself.
 
-#### `this.setAssetSource(assetId: string, source: string | Buffer) => void`
+#### `this.setAssetSource(assetReferenceId: string, source: string | Buffer) => void`
 
 Set the deferred source of an asset.
 
@@ -375,7 +395,7 @@ The `position` argument is a character index where the warning was raised. If pr
 
 ### Asset URLs
 
-To reference an asset URL reference from within JS code, use the `import.meta.ROLLUP_ASSET_URL_[assetId]` replacement. This will generate code that depends on the output format and generates a URL that points to the emitted file in the target environment. Note that all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available.
+To reference an asset URL reference from within JS code, use the `import.meta.ROLLUP_ASSET_URL_assetReferenceId` replacement. This will generate code that depends on the output format and generates a URL that points to the emitted file in the target environment. Note that all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available.
 
 The following example will detect imports of `.svg` files, emit the imported files as assets, and return their URLs to be used e.g. as the `src` attribute of an `img` tag:
 
@@ -390,11 +410,11 @@ export default function svgResolverPlugin () {
     },
     load(id) {
       if (id.endsWith('.svg')) {
-      	const assetId = this.emitAsset(
+      	const assetReferenceId = this.emitAsset(
           path.basename(id),
           fs.readFileSync(id)
         );
-        return `export default import.meta.ROLLUP_ASSET_URL_${assetId};`;
+        return `export default import.meta.ROLLUP_ASSET_URL_${assetReferenceId};`;
       }
     }
   });
@@ -406,6 +426,69 @@ const image = document.createElement('img');
 image.src = logo;
 document.body.appendChild(image);
 ```
+
+### Chunk URLs
+
+Similar to assets, emitted chunks can be referenced from within JS code via the `import.meta.ROLLUP_CHUNK_URL_chunkReferenceId` replacement.
+
+The following example will detect imports prefixed with `register-paint-worklet:` and generate the necessary code and separate chunk to generate a CSS paint worklet. Note that this will only work in modern browsers and will only work if the output format is set to `esm`.
+
+```js
+// plugin
+const REGISTER_WORKLET = 'register-paint-worklet:';
+export default function paintWorkletPlugin () {
+  return ({
+    load(id) {
+      if (id.startsWith(REGISTER_WORKLET)) {
+        return `CSS.paintWorklet.addModule(import.meta.ROLLUP_CHUNK_URL_${this.emitChunk(
+          id.slice(REGISTER_WORKLET.length)
+        )});`;
+      }
+    },
+    resolveId(id, importee) {
+      // We remove the prefix, resolve everything to absolute ids and add the prefix again
+      // This makes sure that you can use relative imports to define worklets
+      if (id.startsWith(REGISTER_WORKLET)) {
+        return this.resolveId(id.slice(REGISTER_WORKLET.length), importee).then(
+          id => REGISTER_WORKLET + id
+        );
+      }
+      return null;
+    }
+  });
+}
+```
+
+Usage:
+
+```js
+// main.js
+import 'register-paint-worklet:./worklet.js';
+import { color, size } from './config.js';
+document.body.innerHTML += `<h1 style="background-image: paint(vertical-lines);">color: ${color}, size: ${size}</h1>`;
+
+// worklet.js
+import { color, size } from './config.js';
+registerPaint(
+	'vertical-lines',
+	class {
+		paint(ctx, geom) {
+			for (let x = 0; x < geom.width / size; x++) {
+				ctx.beginPath();
+				ctx.fillStyle = color;
+				ctx.rect(x * size, 0, 2, geom.height);
+				ctx.fill();
+			}
+		}
+	}
+);
+
+// config.js
+export const color = 'greenyellow';
+export const size = 6;
+```
+
+If you build this code, both the main chunk and the worklet will share the code from `config.js` via a shared chunk. This enables us to make use of the browser cache to reduce transmitted data and speed up loading the worklet.
 
 ### Advanced Loaders
 

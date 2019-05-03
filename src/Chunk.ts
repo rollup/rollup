@@ -30,7 +30,7 @@ import { sortByExecutionOrder } from './utils/executionOrder';
 import getIndentString from './utils/getIndentString';
 import { makeLegal } from './utils/identifierHelpers';
 import { basename, dirname, isAbsolute, normalize, relative, resolve } from './utils/path';
-import relativeId from './utils/relativeId';
+import relativeId, { getAliasName } from './utils/relativeId';
 import renderChunk from './utils/renderChunk';
 import { RenderOptions } from './utils/renderHelpers';
 import { makeUnique, renderNamePattern } from './utils/renderNamePattern';
@@ -107,6 +107,10 @@ function getGlobalName(
 	}
 }
 
+export function isChunkRendered(chunk: Chunk): boolean {
+	return !chunk.isEmpty || chunk.entryModules.length > 0 || chunk.manualChunkAlias !== null;
+}
+
 export default class Chunk {
 	entryModules: Module[] = [];
 	execIndex: number;
@@ -117,7 +121,7 @@ export default class Chunk {
 	id: string = undefined;
 	indentString: string = undefined;
 	isEmpty: boolean;
-	isManualChunk: boolean = false;
+	manualChunkAlias: string | null = null;
 	orderedModules: Module[];
 	renderedModules: {
 		[moduleId: string]: RenderedModule;
@@ -152,8 +156,8 @@ export default class Chunk {
 			if (this.isEmpty && module.isIncluded()) {
 				this.isEmpty = false;
 			}
-			if (module.chunkAlias) {
-				this.isManualChunk = true;
+			if (module.manualChunkAlias) {
+				this.manualChunkAlias = module.manualChunkAlias;
 			}
 			module.chunk = this;
 			if (
@@ -164,14 +168,16 @@ export default class Chunk {
 			}
 		}
 
-		if (this.entryModules.length > 0) {
+		const entryModule = this.entryModules[0];
+		if (entryModule) {
 			this.variableName = makeLegal(
 				basename(
-					this.entryModules.map(module => module.chunkAlias).find(Boolean) ||
-						this.entryModules[0].id
+					entryModule.chunkAlias || entryModule.manualChunkAlias || getAliasName(entryModule.id)
 				)
 			);
-		} else this.variableName = '__chunk_' + ++graph.curChunkIndex;
+		} else {
+			this.variableName = '__chunk_' + ++graph.curChunkIndex;
+		}
 	}
 
 	generateEntryExportsOrMarkAsTainted() {
@@ -187,6 +193,13 @@ export default class Chunk {
 		const exposedVariables = Array.from(this.exports);
 		checkNextEntryModule: for (const { map, module } of exportVariableMaps) {
 			if (!this.graph.preserveModules) {
+				if (
+					this.manualChunkAlias &&
+					module.chunkAlias &&
+					this.manualChunkAlias !== module.chunkAlias
+				) {
+					continue checkNextEntryModule;
+				}
 				for (const exposedVariable of exposedVariables) {
 					if (!map.has(exposedVariable)) {
 						continue checkNextEntryModule;
@@ -590,7 +603,7 @@ export default class Chunk {
 			renderedDependency.id = relPath;
 		}
 
-		this.finaliseDynamicImports();
+		this.finaliseDynamicImports(options.format);
 		const needsAmdModule = this.finaliseImportMetas(options);
 
 		const hasExports =
@@ -748,8 +761,11 @@ export default class Chunk {
 	}
 
 	private computeChunkName(): string {
-		if (this.facadeModule !== null && this.facadeModule.chunkAlias) {
-			return sanitizeFileName(this.facadeModule.chunkAlias);
+		if (this.manualChunkAlias) {
+			return sanitizeFileName(this.manualChunkAlias);
+		}
+		if (this.facadeModule !== null) {
+			return sanitizeFileName(this.facadeModule.chunkAlias || getAliasName(this.facadeModule.id));
 		}
 		for (const module of this.orderedModules) {
 			if (module.chunkAlias) return sanitizeFileName(module.chunkAlias);
@@ -772,23 +788,23 @@ export default class Chunk {
 		return hash.digest('hex').substr(0, 8);
 	}
 
-	private finaliseDynamicImports() {
+	private finaliseDynamicImports(format: string) {
 		for (let i = 0; i < this.orderedModules.length; i++) {
 			const module = this.orderedModules[i];
 			const code = this.renderedModuleSources[i];
 			for (const { node, resolution } of module.dynamicImports) {
 				if (!resolution) continue;
 				if (resolution instanceof Module) {
-					if (!resolution.chunk.isEmpty && resolution.chunk !== this) {
+					if (resolution.chunk !== this && isChunkRendered(resolution.chunk)) {
 						const resolutionChunk = resolution.facadeChunk || resolution.chunk;
 						let relPath = normalize(relative(dirname(this.id), resolutionChunk.id));
 						if (!relPath.startsWith('../')) relPath = './' + relPath;
-						node.renderFinalResolution(code, `'${relPath}'`);
+						node.renderFinalResolution(code, `'${relPath}'`, format);
 					}
 				} else if (resolution instanceof ExternalModule) {
-					node.renderFinalResolution(code, `'${resolution.id}'`);
+					node.renderFinalResolution(code, `'${resolution.id}'`, format);
 				} else {
-					node.renderFinalResolution(code, resolution);
+					node.renderFinalResolution(code, resolution, format);
 				}
 			}
 		}

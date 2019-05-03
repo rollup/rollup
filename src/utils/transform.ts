@@ -5,6 +5,7 @@ import Graph from '../Graph';
 import Module from '../Module';
 import {
 	Asset,
+	EmitAsset,
 	Plugin,
 	PluginCache,
 	PluginContext,
@@ -13,7 +14,7 @@ import {
 	RollupWarning,
 	TransformSourceDescription
 } from '../rollup/types';
-import { createTransformEmitAsset, EmitAsset } from './assetHooks';
+import { createTransformEmitAsset } from './assetHooks';
 import { augmentCodeLocation, error } from './error';
 import { dirname, resolve } from './path';
 import { trackPluginCache } from './pluginDriver';
@@ -132,8 +133,8 @@ export default function transform(
 						transformDependencies.push(id);
 						pluginContext.addWatchFile(id);
 					},
-					setAssetSource(assetId, source) {
-						pluginContext.setAssetSource(assetId, source);
+					setAssetSource(assetReferenceId, source) {
+						pluginContext.setAssetSource(assetReferenceId, source);
 						if (!customTransformCache && !setAssetSourceErr) {
 							try {
 								this.error({
