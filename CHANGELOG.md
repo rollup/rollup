@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.11.2
+*2019-05-04*
+
+### Bug Fixes
+* Prevent a crash when handling circular namespace exports (#2836)
+
+### Pull Requests
+* [#2836](https://github.com/rollup/rollup/pull/2836): Make sure circular `export * from X` does not stack overflow (@Swatinem)
+
 ## 1.11.1
 *2019-05-04*
 
