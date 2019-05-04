@@ -70,7 +70,7 @@ export default class Graph {
 	isPureExternalModule: (id: string) => boolean;
 	moduleById = new Map<string, Module | ExternalModule>();
 	moduleLoader: ModuleLoader;
-	needsTreeshakingPass: boolean = false;
+	needsTreeshakingPass = false;
 	phase: BuildPhase = BuildPhase.LOAD_AND_PARSE;
 	pluginDriver: PluginDriver;
 	preserveModules: boolean;

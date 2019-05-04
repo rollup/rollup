@@ -23,9 +23,9 @@ export class Watcher {
 
 	private buildTimeout: NodeJS.Timer;
 	private invalidatedIds: Set<string> = new Set();
-	private rerun: boolean = false;
+	private rerun = false;
 	private running: boolean;
-	private succeeded: boolean = false;
+	private succeeded = false;
 	private tasks: Task[];
 
 	constructor(configs: RollupWatchOptions[]) {

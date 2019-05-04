@@ -10,11 +10,11 @@ export default class ExternalModule {
 	execIndex: number;
 	exportedVariables: Map<ExternalVariable, string>;
 	exportsNames = false;
-	exportsNamespace: boolean = false;
+	exportsNamespace = false;
 	id: string;
 	isEntryPoint = false;
 	isExternal = true;
-	mostCommonSuggestion: number = 0;
+	mostCommonSuggestion = 0;
 	nameSuggestions: { [name: string]: number };
 	pure: boolean | null = null;
 	reexported = false;

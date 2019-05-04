@@ -10,6 +10,7 @@
 				"alphabetize": true
 			}
 		],
+		"no-inferrable-types": true,
 		"no-string-literal": true,
 		"no-unnecessary-type-assertion": true,
 		"object-literal-shorthand": true,
