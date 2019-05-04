@@ -307,7 +307,13 @@ export default class Module {
 		);
 	}
 
-	getReexports() {
+	getReexports(walkedModuleIds = new Set<string>()) {
+		// avoid infinite recursion when using circular `export * from X`
+		if (walkedModuleIds.has(this.id)) {
+			return [];
+		}
+		walkedModuleIds.add(this.id);
+
 		const reexports = Object.create(null);
 
 		for (const name in this.reexports) {
@@ -320,7 +326,9 @@ export default class Module {
 				return;
 			}
 
-			for (const name of (<Module>module).getExports().concat((<Module>module).getReexports())) {
+			for (const name of (<Module>module)
+				.getExports()
+				.concat((<Module>module).getReexports(walkedModuleIds))) {
 				if (name !== 'default') reexports[name] = true;
 			}
 		});
