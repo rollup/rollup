@@ -416,4 +416,107 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 				);
 			});
 	});
+
+	it('contains correct information about rendered/removedExports when directly exporting items', () => {
+		return rollup
+			.rollup({
+				input: ['input'],
+				plugins: [
+					loader({
+						input: 'export { renderedFn, renderedClass, renderedConst } from "code"',
+						code:
+							'export function renderedFn() {}\nexport function removedFn() {}\n' +
+							'export class renderedClass {}\nexport class removedClass {}\n' +
+							'export const renderedConst = 1;\nexport const removedConst = 1;'
+					})
+				]
+			})
+			.then(bundle =>
+				bundle.generate({
+					format: 'esm'
+				})
+			)
+			.then(({ output: [output] }) => {
+				assert.deepEqual(
+					output.code,
+					'function renderedFn() {}\nclass renderedClass {}\nconst renderedConst = 1;\n\nexport { renderedClass, renderedConst, renderedFn };\n',
+					'code'
+				);
+				assert.deepEqual(
+					output.exports,
+					['renderedClass', 'renderedConst', 'renderedFn'],
+					'exports'
+				);
+				assert.deepEqual(
+					output.modules,
+					{
+						code: {
+							originalLength: 184,
+							removedExports: ['removedFn', 'removedClass', 'removedConst'],
+							renderedExports: ['renderedFn', 'renderedClass', 'renderedConst'],
+							renderedLength: 72
+						},
+						input: {
+							originalLength: 63,
+							removedExports: [],
+							renderedExports: [],
+							renderedLength: 0
+						}
+					},
+					'modules'
+				);
+			});
+	});
+
+	it('contains correct information about rendered/removedExports when using export declaration', () => {
+		return rollup
+			.rollup({
+				input: ['input'],
+				plugins: [
+					loader({
+						input: 'export { renderedFn, renderedClass, renderedConst } from "code"',
+						code:
+							'function renderedFn() {}\nfunction removedFn() {}\n' +
+							'class renderedClass {}\nclass removedClass {}\n' +
+							'const renderedConst = 1;\nconst removedConst = 1;\n' +
+							'export { renderedFn, renderedClass, renderedConst, removedFn, removedClass, removedConst }'
+					})
+				]
+			})
+			.then(bundle =>
+				bundle.generate({
+					format: 'esm'
+				})
+			)
+			.then(({ output: [output] }) => {
+				assert.deepEqual(
+					output.code,
+					'function renderedFn() {}\nclass renderedClass {}\nconst renderedConst = 1;\n\nexport { renderedClass, renderedConst, renderedFn };\n',
+					'code'
+				);
+				assert.deepEqual(
+					output.exports,
+					['renderedClass', 'renderedConst', 'renderedFn'],
+					'exports'
+				);
+				assert.deepEqual(
+					output.modules,
+					{
+						code: {
+							originalLength: 233,
+							removedExports: ['removedFn', 'removedClass', 'removedConst'],
+							renderedExports: ['renderedFn', 'renderedClass', 'renderedConst'],
+							renderedLength: 72
+						},
+						input: {
+							originalLength: 63,
+							removedExports: [],
+							renderedExports: [],
+							renderedLength: 0
+						}
+					},
+					'modules'
+				);
+			});
+	});
 });

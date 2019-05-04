@@ -66,7 +66,6 @@ export interface ImportDescription {
 export interface ExportDescription {
 	identifier?: string;
 	localName: string;
-	node?: Node;
 }
 
 export interface ReexportDescription {
@@ -334,8 +333,8 @@ export default class Module {
 		const renderedExports: string[] = [];
 		const removedExports: string[] = [];
 		for (const exportName in this.exports) {
-			const expt = this.exports[exportName];
-			(expt.node && expt.node.included ? renderedExports : removedExports).push(exportName);
+			const variable = this.getVariableForExportName(exportName);
+			(variable && variable.included ? renderedExports : removedExports).push(exportName);
 		}
 		return { renderedExports, removedExports };
 	}
@@ -666,8 +665,7 @@ export default class Module {
 
 			this.exports.default = {
 				identifier: node.variable.getOriginalVariableName(),
-				localName: 'default',
-				node
+				localName: 'default'
 			};
 		} else if ((<ExportNamedDeclaration>node).declaration) {
 			// export var { foo, bar } = ...
@@ -679,13 +677,13 @@ export default class Module {
 			if (declaration.type === NodeType.VariableDeclaration) {
 				for (const decl of declaration.declarations) {
 					for (const localName of extractAssignedNames(decl.id)) {
-						this.exports[localName] = { localName, node };
+						this.exports[localName] = { localName };
 					}
 				}
 			} else {
 				// export function foo () {}
 				const localName = declaration.id.name;
-				this.exports[localName] = { localName, node };
+				this.exports[localName] = { localName };
 			}
 		} else {
 			// export { foo, bar, baz }
@@ -703,7 +701,7 @@ export default class Module {
 					);
 				}
 
-				this.exports[exportedName] = { localName, node };
+				this.exports[exportedName] = { localName };
 			}
 		}
 	}
