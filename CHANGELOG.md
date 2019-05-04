@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.11.1
+*2019-05-04*
+
+### Bug Fixes
+* Fix an issue where rendered exports were reported as "removed" in the bundle information (#2835)
+
+### Pull Requests
+* [#2835](https://github.com/rollup/rollup/pull/2835): Fix `removedExports` to correctly track the exported item (@Swatinem)
+
 ## 1.11.0
 *2019-05-03*
 
