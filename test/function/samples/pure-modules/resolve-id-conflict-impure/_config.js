@@ -1,11 +1,8 @@
 const assert = require('assert');
 const sideEffects = [];
 
-// TODO Lukas interaction with pureExternalModules, use as default?
-// TODO Lukas resolvers without an opinion should not override pureness
 module.exports = {
-	solo: true,
-	description: 'handles conflicts between different resolveId results',
+	description: 'handles conflicts between different resolveId results when one result is impure',
 	context: {
 		sideEffects,
 		require(id) {

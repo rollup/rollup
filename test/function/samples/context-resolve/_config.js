@@ -4,7 +4,7 @@ const assert = require('assert');
 const tests = [
 	{
 		source: './existing',
-		expected: { id: path.resolve(__dirname, 'existing.js'), external: false, pure: false }
+		expected: { id: path.resolve(__dirname, 'existing.js'), external: false, pure: null }
 	},
 	{
 		source: './missing-relative',
@@ -19,7 +19,7 @@ const tests = [
 		expected: {
 			id: path.resolve(__dirname, 'marked-directly-external-relative'),
 			external: true,
-			pure: false
+			pure: null
 		}
 	},
 	{
@@ -27,32 +27,32 @@ const tests = [
 		expected: {
 			id: path.resolve(__dirname, 'marked-external-relative'),
 			external: true,
-			pure: false
+			pure: null
 		}
 	},
 	{
 		source: 'marked-external-absolute',
-		expected: { id: 'marked-external-absolute', external: true, pure: false }
+		expected: { id: 'marked-external-absolute', external: true, pure: null }
 	},
 	{
 		source: 'resolved-name',
-		expected: { id: 'resolved:resolved-name', external: false, pure: false }
+		expected: { id: 'resolved:resolved-name', external: false, pure: null }
 	},
 	{
 		source: 'resolved-false',
-		expected: { id: 'resolved-false', external: true, pure: false }
+		expected: { id: 'resolved-false', external: true, pure: null }
 	},
 	{
 		source: 'resolved-object',
-		expected: { id: 'resolved:resolved-object', external: false, pure: false }
+		expected: { id: 'resolved:resolved-object', external: false, pure: null }
 	},
 	{
 		source: 'resolved-object-non-external',
-		expected: { id: 'resolved:resolved-object-non-external', external: false, pure: false }
+		expected: { id: 'resolved:resolved-object-non-external', external: false, pure: null }
 	},
 	{
 		source: 'resolved-object-external',
-		expected: { id: 'resolved:resolved-object-external', external: true, pure: false }
+		expected: { id: 'resolved:resolved-object-external', external: true, pure: null }
 	}
 ];
 

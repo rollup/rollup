@@ -141,18 +141,14 @@ export interface PluginContextMeta {
 export interface ResolvedId {
 	external: boolean;
 	id: string;
-	pure: boolean;
+	pure: boolean | null;
 }
 
 export interface ResolvedIdMap {
 	[key: string]: ResolvedId;
 }
 
-interface PartialResolvedId {
-	external?: boolean;
-	id: string;
-	pure?: boolean | null;
-}
+type PartialResolvedId = Partial<ResolvedId> & { id: string };
 
 export type ResolveIdResult = string | false | void | PartialResolvedId;
 

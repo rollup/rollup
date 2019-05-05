@@ -50,6 +50,14 @@ export default class ExternalModule {
 		return declaration;
 	}
 
+	markAsPure(pure: boolean | null) {
+		if (pure === false) {
+			this.pure = false;
+		} else if (pure === true && this.pure === null) {
+			this.pure = true;
+		}
+	}
+
 	setRenderPath(options: OutputOptions, inputBase: string) {
 		this.renderPath = '';
 		if (options.paths) {

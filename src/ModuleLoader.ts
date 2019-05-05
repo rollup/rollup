@@ -327,12 +327,11 @@ export class ModuleLoader {
 			if (externalModule instanceof ExternalModule === false) {
 				error(errInternalIdCannotBeExternal(source, importer));
 			}
-			externalModule.pure =
-				externalModule.pure === null ? resolvedId.pure : externalModule.pure && resolvedId.pure;
+			externalModule.markAsPure(resolvedId.pure);
 			return Promise.resolve(externalModule);
 		} else {
 			return this.fetchModule(resolvedId.id, importer).then(module => {
-				module.pure = module.pure === null ? resolvedId.pure : module.pure && resolvedId.pure;
+				module.markAsPure(resolvedId.pure);
 				return module;
 			});
 		}
@@ -389,15 +388,15 @@ export class ModuleLoader {
 	): ResolvedId | null {
 		let id = '';
 		let external = false;
-		let pure = false;
+		let pure = null;
 		if (resolveIdResult) {
 			if (typeof resolveIdResult === 'object') {
 				id = resolveIdResult.id;
 				if (resolveIdResult.external) {
 					external = true;
 				}
-				if (resolveIdResult.pure) {
-					pure = true;
+				if (typeof resolveIdResult.pure === 'boolean') {
+					pure = resolveIdResult.pure;
 				}
 			} else {
 				id = resolveIdResult;

@@ -469,6 +469,14 @@ export default class Module {
 		});
 	}
 
+	markAsPure(pure: boolean | null) {
+		if (pure === false) {
+			this.pure = false;
+		} else if (pure === true && this.pure === null) {
+			this.pure = true;
+		}
+	}
+
 	render(options: RenderOptions): MagicString {
 		const magicString = this.magicString.clone();
 		this.ast.render(magicString, options);
