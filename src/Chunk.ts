@@ -753,8 +753,7 @@ export default class Chunk {
 			if (depModule instanceof Module) {
 				dependency = depModule.chunk;
 			} else {
-				// TODO Lukas can we use a different flag that is only set depending on pureness?
-				if (!depModule.used && (depModule.pure || this.graph.isPureExternalModule(depModule.id))) {
+				if (!depModule.used && depModule.pure) {
 					continue;
 				}
 				dependency = depModule;

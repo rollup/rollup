@@ -67,7 +67,6 @@ export default class Graph {
 	curChunkIndex = 0;
 	deoptimizationTracker: EntityPathTracker;
 	getModuleContext: (id: string) => string;
-	isPureExternalModule: (id: string) => boolean;
 	moduleById = new Map<string, Module | ExternalModule>();
 	moduleLoader: ModuleLoader;
 	needsTreeshakingPass = false;
@@ -116,21 +115,15 @@ export default class Graph {
 						annotations: (<TreeshakingOptions>options.treeshake).annotations !== false,
 						propertyReadSideEffects:
 							(<TreeshakingOptions>options.treeshake).propertyReadSideEffects !== false,
-						pureExternalModules: (<TreeshakingOptions>options.treeshake).pureExternalModules
+						pureExternalModules: (<TreeshakingOptions>options.treeshake).pureExternalModules,
+						pureInternalModules: (<TreeshakingOptions>options.treeshake).pureInternalModules
 				  }
-				: { propertyReadSideEffects: true, annotations: true, pureExternalModules: false };
-			if (this.treeshakingOptions.pureExternalModules === true) {
-				this.isPureExternalModule = () => true;
-			} else if (typeof this.treeshakingOptions.pureExternalModules === 'function') {
-				this.isPureExternalModule = this.treeshakingOptions.pureExternalModules;
-			} else if (Array.isArray(this.treeshakingOptions.pureExternalModules)) {
-				const pureExternalModules = new Set(this.treeshakingOptions.pureExternalModules);
-				this.isPureExternalModule = id => pureExternalModules.has(id);
-			} else {
-				this.isPureExternalModule = () => false;
-			}
-		} else {
-			this.isPureExternalModule = () => false;
+				: {
+						annotations: true,
+						propertyReadSideEffects: true,
+						pureExternalModules: false,
+						pureInternalModules: false
+				  };
 		}
 
 		this.contextParse = (code: string, options: acorn.Options = {}) =>
@@ -193,7 +186,9 @@ export default class Graph {
 			this.moduleById,
 			this.pluginDriver,
 			options.external,
-			typeof options.manualChunks === 'function' && options.manualChunks
+			typeof options.manualChunks === 'function' && options.manualChunks,
+			this.treeshake ? this.treeshakingOptions.pureExternalModules : false,
+			this.treeshake ? this.treeshakingOptions.pureInternalModules : false
 		);
 	}
 

@@ -6,7 +6,9 @@ import {
 	ExternalOption,
 	GetManualChunk,
 	IsExternal,
+	IsPureModule,
 	ModuleJSON,
+	PureModulesOption,
 	ResolvedId,
 	ResolveIdResult,
 	SourceDescription
@@ -44,6 +46,21 @@ function normalizeRelativeExternalId(importer: string, source: string) {
 	return isRelative(source) ? resolve(importer, '..', source) : source;
 }
 
+function getIdMatcher<T extends Array<any>>(
+	option: boolean | string[] | ((id: string, ...args: T) => boolean | void)
+): (id: string, ...args: T) => boolean {
+	if (option === true) {
+		return () => true;
+	} else if (typeof option === 'function') {
+		return (id, ...args) => (!id.startsWith('\0') && option(id, ...args)) || false;
+	} else if (option) {
+		const ids = new Set(Array.isArray(option) ? option : option ? [option] : []);
+		return id => ids.has(id);
+	} else {
+		return () => false;
+	}
+}
+
 export class ModuleLoader {
 	readonly isExternal: IsExternal;
 	private readonly entriesByReferenceId = new Map<
@@ -53,6 +70,8 @@ export class ModuleLoader {
 	private readonly entryModules: Module[] = [];
 	private readonly getManualChunk: GetManualChunk;
 	private readonly graph: Graph;
+	private readonly isPureExternalModule: IsPureModule;
+	private readonly isPureInternalModule: IsPureModule;
 	private latestLoadModulesPromise: Promise<any> = Promise.resolve();
 	private readonly manualChunkModules: Record<string, Module[]> = {};
 	private readonly modulesById: Map<string, Module | ExternalModule>;
@@ -63,18 +82,16 @@ export class ModuleLoader {
 		modulesById: Map<string, Module | ExternalModule>,
 		pluginDriver: PluginDriver,
 		external: ExternalOption,
-		getManualChunk: GetManualChunk | null
+		getManualChunk: GetManualChunk | null,
+		pureExternalModules: PureModulesOption,
+		pureInternalModules: PureModulesOption
 	) {
 		this.graph = graph;
 		this.modulesById = modulesById;
 		this.pluginDriver = pluginDriver;
-		if (typeof external === 'function') {
-			this.isExternal = (id, parentId, isResolved) =>
-				!id.startsWith('\0') && external(id, parentId, isResolved);
-		} else {
-			const ids = new Set(Array.isArray(external) ? external : external ? [external] : []);
-			this.isExternal = id => ids.has(id);
-		}
+		this.isExternal = getIdMatcher(external);
+		this.isPureExternalModule = getIdMatcher(pureExternalModules);
+		this.isPureInternalModule = getIdMatcher(pureInternalModules);
 		this.getManualChunk = typeof getManualChunk === 'function' ? getManualChunk : () => null;
 	}
 
@@ -386,15 +403,15 @@ export class ModuleLoader {
 	): ResolvedId | null {
 		let id = '';
 		let external = false;
-		let pure = false;
+		let pure = null;
 		if (resolveIdResult) {
 			if (typeof resolveIdResult === 'object') {
 				id = resolveIdResult.id;
 				if (resolveIdResult.external) {
 					external = true;
 				}
-				if (resolveIdResult.pure) {
-					pure = true;
+				if (typeof resolveIdResult.pure === 'boolean') {
+					pure = resolveIdResult.pure;
 				}
 			} else {
 				id = resolveIdResult;
@@ -412,7 +429,14 @@ export class ModuleLoader {
 			}
 			external = true;
 		}
-		return { id, external, pure };
+		return {
+			external,
+			id,
+			pure:
+				pure === null
+					? (external ? this.isPureExternalModule : this.isPureInternalModule)(id) || false
+					: pure
+		};
 	}
 
 	private resolveAndFetchDependency(
