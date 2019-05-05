@@ -1,5 +1,6 @@
 import Module, { AstContext } from '../../Module';
 import { RenderOptions } from '../../utils/renderHelpers';
+import { RESERVED_NAMES } from '../../utils/reservedNames';
 import Identifier from '../nodes/Identifier';
 import { UNKNOWN_PATH } from '../values';
 import Variable from './Variable';
@@ -82,7 +83,9 @@ export default class NamespaceVariable extends Variable {
 				}${_}}`;
 			}
 
-			return `${t}${name}: ${original.getName()}`;
+			const safeName = RESERVED_NAMES[name] ? `'${name}'` : name;
+
+			return `${t}${safeName}: ${original.getName()}`;
 		});
 
 		const name = this.getName();
