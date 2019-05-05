@@ -185,7 +185,9 @@ export function createPluginDriver(
 			meta: {
 				rollupVersion
 			},
-			moduleIds: graph.moduleById.keys(),
+			get moduleIds() {
+				return graph.moduleById.keys();
+			},
 			parse: graph.contextParse,
 			resolveId(source, importer) {
 				return graph.moduleLoader
