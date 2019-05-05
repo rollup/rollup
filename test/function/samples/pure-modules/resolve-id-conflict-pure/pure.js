@@ -1,2 +1,0 @@
-import 'external';
-import 'internal';

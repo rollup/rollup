@@ -20,22 +20,26 @@ module.exports = {
 					assert.deepEqual(this.getModuleInfo(ID_MAIN), {
 						id: ID_MAIN,
 						importedIds: [ID_FOO, ID_NESTED],
-						isExternal: false
+						isExternal: false,
+						isPure: false
 					});
 					assert.deepEqual(this.getModuleInfo(ID_FOO), {
 						id: ID_FOO,
 						importedIds: [ID_PATH],
-						isExternal: false
+						isExternal: false,
+						isPure: false
 					});
 					assert.deepEqual(this.getModuleInfo(ID_NESTED), {
 						id: ID_NESTED,
 						importedIds: [ID_FOO],
-						isExternal: false
+						isExternal: false,
+						isPure: false
 					});
 					assert.deepEqual(this.getModuleInfo(ID_PATH), {
 						id: ID_PATH,
 						importedIds: [],
-						isExternal: true
+						isExternal: true,
+						isPure: false
 					});
 				}
 			}

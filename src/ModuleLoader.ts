@@ -224,14 +224,14 @@ export class ModuleLoader {
 		).then(() => fetchDynamicImportsPromise);
 	}
 
-	private fetchModule(id: string, importer: string): Promise<Module> {
+	private fetchModule(id: string, importer: string, pure: boolean): Promise<Module> {
 		const existingModule = this.modulesById.get(id);
 		if (existingModule) {
 			if (existingModule.isExternal) throw new Error(`Cannot fetch external module ${id}`);
 			return Promise.resolve(<Module>existingModule);
 		}
 
-		const module: Module = new Module(this.graph, id);
+		const module: Module = new Module(this.graph, id, pure);
 		this.modulesById.set(id, module);
 		const manualChunkAlias = this.getManualChunk(id);
 		if (typeof manualChunkAlias === 'string') {
@@ -319,7 +319,7 @@ export class ModuleLoader {
 			if (!this.modulesById.has(resolvedId.id)) {
 				this.modulesById.set(
 					resolvedId.id,
-					new ExternalModule({ graph: this.graph, id: resolvedId.id })
+					new ExternalModule(this.graph, resolvedId.id, resolvedId.pure)
 				);
 			}
 
@@ -327,13 +327,9 @@ export class ModuleLoader {
 			if (externalModule instanceof ExternalModule === false) {
 				error(errInternalIdCannotBeExternal(source, importer));
 			}
-			externalModule.markAsPure(resolvedId.pure);
 			return Promise.resolve(externalModule);
 		} else {
-			return this.fetchModule(resolvedId.id, importer).then(module => {
-				module.markAsPure(resolvedId.pure);
-				return module;
-			});
+			return this.fetchModule(resolvedId.id, importer, resolvedId.pure);
 		}
 	}
 
@@ -366,9 +362,11 @@ export class ModuleLoader {
 					resolveIdResult && typeof resolveIdResult === 'object'
 						? resolveIdResult.id
 						: resolveIdResult;
+				const pure =
+					(resolveIdResult && typeof resolveIdResult === 'object' && resolveIdResult.pure) || false;
 
 				if (typeof id === 'string') {
-					return this.fetchModule(id, undefined).then(module => {
+					return this.fetchModule(id, undefined, pure).then(module => {
 						if (alias !== null) {
 							if (module.chunkAlias !== null && module.chunkAlias !== alias) {
 								error(errCannotAssignModuleToChunk(module.id, alias, module.chunkAlias));
@@ -388,15 +386,15 @@ export class ModuleLoader {
 	): ResolvedId | null {
 		let id = '';
 		let external = false;
-		let pure = null;
+		let pure = false;
 		if (resolveIdResult) {
 			if (typeof resolveIdResult === 'object') {
 				id = resolveIdResult.id;
 				if (resolveIdResult.external) {
 					external = true;
 				}
-				if (typeof resolveIdResult.pure === 'boolean') {
-					pure = resolveIdResult.pure;
+				if (resolveIdResult.pure) {
+					pure = true;
 				}
 			} else {
 				id = resolveIdResult;

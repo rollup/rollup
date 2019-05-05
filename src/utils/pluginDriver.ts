@@ -178,7 +178,8 @@ export function createPluginDriver(
 					importedIds: foundModule.isExternal
 						? []
 						: (foundModule as Module).sources.map(id => (foundModule as Module).resolvedIds[id].id),
-					isExternal: !!foundModule.isExternal
+					isExternal: !!foundModule.isExternal,
+					isPure: foundModule.pure
 				};
 			},
 			meta: {

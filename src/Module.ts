@@ -194,7 +194,7 @@ export default class Module {
 	manualChunkAlias: string = null;
 	originalCode: string;
 	originalSourcemap: RawSourceMap | void;
-	pure: boolean | null = null;
+	pure: boolean;
 	reexports: { [name: string]: ReexportDescription } = Object.create(null);
 	resolvedIds: ResolvedIdMap;
 	scope: ModuleScope;
@@ -212,11 +212,12 @@ export default class Module {
 	private namespaceVariable: NamespaceVariable = undefined;
 	private transformDependencies: string[];
 
-	constructor(graph: Graph, id: string) {
+	constructor(graph: Graph, id: string, pure: boolean) {
 		this.id = id;
 		this.graph = graph;
 		this.excludeFromSourcemap = /\0/.test(id);
 		this.context = graph.getModuleContext(id);
+		this.pure = pure;
 	}
 
 	basename() {
@@ -467,14 +468,6 @@ export default class Module {
 			const id = this.resolvedIds[source].id;
 			return this.graph.moduleById.get(id);
 		});
-	}
-
-	markAsPure(pure: boolean | null) {
-		if (pure === false) {
-			this.pure = false;
-		} else if (pure === true && this.pure === null) {
-			this.pure = true;
-		}
 	}
 
 	render(options: RenderOptions): MagicString {

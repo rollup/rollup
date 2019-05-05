@@ -12,11 +12,10 @@ export default class ExternalModule {
 	exportsNames = false;
 	exportsNamespace = false;
 	id: string;
-	isEntryPoint = false;
 	isExternal = true;
 	mostCommonSuggestion = 0;
 	nameSuggestions: { [name: string]: number };
-	pure: boolean | null = null;
+	pure: boolean;
 	reexported = false;
 	renderPath: string = undefined;
 	renormalizeRenderPath = false;
@@ -25,10 +24,11 @@ export default class ExternalModule {
 
 	private graph: Graph;
 
-	constructor({ graph, id }: { graph: Graph; id: string }) {
+	constructor(graph: Graph, id: string, pure: boolean) {
 		this.graph = graph;
 		this.id = id;
 		this.execIndex = Infinity;
+		this.pure = pure;
 
 		const parts = id.split(/[\\/]/);
 		this.variableName = makeLegal(parts.pop());
@@ -48,14 +48,6 @@ export default class ExternalModule {
 		this.declarations[name] = declaration = new ExternalVariable(this, name);
 		this.exportedVariables.set(declaration, name);
 		return declaration;
-	}
-
-	markAsPure(pure: boolean | null) {
-		if (pure === false) {
-			this.pure = false;
-		} else if (pure === true && this.pure === null) {
-			this.pure = true;
-		}
 	}
 
 	setRenderPath(options: OutputOptions, inputBase: string) {
