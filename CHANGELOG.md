@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.11.3
+*2019-05-05*
+
+### Bug Fixes
+* Quote es3 keywords in namespace objects (#2825)
+
+### Pull Requests
+* [#2825](https://github.com/rollup/rollup/pull/2825): Add es3 support for namespace object import (@sormy)
+
 ## 1.11.2
 *2019-05-04*
 
