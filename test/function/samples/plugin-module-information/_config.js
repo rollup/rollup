@@ -18,28 +18,28 @@ module.exports = {
 					rendered = true;
 					assert.deepEqual(Array.from(this.moduleIds), [ID_MAIN, ID_FOO, ID_NESTED, ID_PATH]);
 					assert.deepEqual(this.getModuleInfo(ID_MAIN), {
+						hasModuleSideEffects: true,
 						id: ID_MAIN,
 						importedIds: [ID_FOO, ID_NESTED],
-						isExternal: false,
-						isPure: false
+						isExternal: false
 					});
 					assert.deepEqual(this.getModuleInfo(ID_FOO), {
+						hasModuleSideEffects: true,
 						id: ID_FOO,
 						importedIds: [ID_PATH],
-						isExternal: false,
-						isPure: false
+						isExternal: false
 					});
 					assert.deepEqual(this.getModuleInfo(ID_NESTED), {
+						hasModuleSideEffects: true,
 						id: ID_NESTED,
 						importedIds: [ID_FOO],
-						isExternal: false,
-						isPure: false
+						isExternal: false
 					});
 					assert.deepEqual(this.getModuleInfo(ID_PATH), {
+						hasModuleSideEffects: true,
 						id: ID_PATH,
 						importedIds: [],
-						isExternal: true,
-						isPure: false
+						isExternal: true
 					});
 				}
 			}

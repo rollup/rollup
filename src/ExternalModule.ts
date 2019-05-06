@@ -13,9 +13,9 @@ export default class ExternalModule {
 	exportsNamespace = false;
 	id: string;
 	isExternal = true;
+	moduleSideEffects: boolean;
 	mostCommonSuggestion = 0;
 	nameSuggestions: { [name: string]: number };
-	pure: boolean;
 	reexported = false;
 	renderPath: string = undefined;
 	renormalizeRenderPath = false;
@@ -24,11 +24,11 @@ export default class ExternalModule {
 
 	private graph: Graph;
 
-	constructor(graph: Graph, id: string, pure: boolean) {
+	constructor(graph: Graph, id: string, moduleSideEffects: boolean) {
 		this.graph = graph;
 		this.id = id;
 		this.execIndex = Infinity;
-		this.pure = pure;
+		this.moduleSideEffects = moduleSideEffects;
 
 		const parts = id.split(/[\\/]/);
 		this.variableName = makeLegal(parts.pop());

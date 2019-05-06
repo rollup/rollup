@@ -192,9 +192,9 @@ export default class Module {
 	isExternal: false;
 	isUserDefinedEntryPoint = false;
 	manualChunkAlias: string = null;
+	moduleSideEffects: boolean;
 	originalCode: string;
 	originalSourcemap: RawSourceMap | void;
-	pure: boolean;
 	reexports: { [name: string]: ReexportDescription } = Object.create(null);
 	resolvedIds: ResolvedIdMap;
 	scope: ModuleScope;
@@ -212,12 +212,12 @@ export default class Module {
 	private namespaceVariable: NamespaceVariable = undefined;
 	private transformDependencies: string[];
 
-	constructor(graph: Graph, id: string, pure: boolean) {
+	constructor(graph: Graph, id: string, moduleSideEffects: boolean) {
 		this.id = id;
 		this.graph = graph;
 		this.excludeFromSourcemap = /\0/.test(id);
 		this.context = graph.getModuleContext(id);
-		this.pure = pure;
+		this.moduleSideEffects = moduleSideEffects;
 	}
 
 	basename() {

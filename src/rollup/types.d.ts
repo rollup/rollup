@@ -117,10 +117,10 @@ export interface PluginContext extends MinimalPluginContext {
 	getModuleInfo: (
 		moduleId: string
 	) => {
+		hasModuleSideEffects: boolean;
 		id: string;
 		importedIds: string[];
 		isExternal: boolean;
-		isPure: boolean;
 	};
 	/** @deprecated */
 	isExternal: IsExternal;
@@ -142,7 +142,7 @@ export interface PluginContextMeta {
 export interface ResolvedId {
 	external: boolean;
 	id: string;
-	pure: boolean;
+	moduleSideEffects: boolean;
 }
 
 export interface ResolvedIdMap {
@@ -152,7 +152,7 @@ export interface ResolvedIdMap {
 interface PartialResolvedId {
 	external?: boolean;
 	id: string;
-	pure?: boolean | null;
+	moduleSideEffects?: boolean | null;
 }
 
 export type ResolveIdResult = string | false | void | PartialResolvedId;

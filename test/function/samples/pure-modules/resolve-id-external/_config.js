@@ -11,18 +11,18 @@ module.exports = {
 	},
 	exports() {
 		assert.deepStrictEqual(sideEffects, [
-			'pure-false-pureext-false',
-			'pure-false-pureext-false-unused-import',
-			'pure-false-pureext-false-used-import',
-			'pure-null-pureext-false',
-			'pure-null-pureext-false-unused-import',
-			'pure-null-pureext-false-used-import',
-			'pure-true-pureext-false-used-import',
-			'pure-false-pureext-true',
-			'pure-false-pureext-true-unused-import',
-			'pure-false-pureext-true-used-import',
-			'pure-null-pureext-true-used-import',
-			'pure-true-pureext-true-used-import'
+			'sideeffects-false-pureext-false-used-import',
+			'sideeffects-null-pureext-false',
+			'sideeffects-null-pureext-false-unused-import',
+			'sideeffects-null-pureext-false-used-import',
+			'sideeffects-true-pureext-false',
+			'sideeffects-true-pureext-false-unused-import',
+			'sideeffects-true-pureext-false-used-import',
+			'sideeffects-false-pureext-true-used-import',
+			'sideeffects-null-pureext-true-used-import',
+			'sideeffects-true-pureext-true',
+			'sideeffects-true-pureext-true-unused-import',
+			'sideeffects-true-pureext-true-used-import'
 		]);
 	},
 	options: {
@@ -38,7 +38,7 @@ module.exports = {
 					return {
 						id,
 						external: true,
-						pure: JSON.parse(id.split('-')[1])
+						moduleSideEffects: JSON.parse(id.split('-')[1])
 					};
 				}
 			},
@@ -47,26 +47,26 @@ module.exports = {
 					Array.from(this.moduleIds)
 						.filter(id => id[0] !== '/')
 						.sort()
-						.map(id => ({ id, isPure: this.getModuleInfo(id).isPure })),
+						.map(id => ({ id, hasModuleSideEffects: this.getModuleInfo(id).hasModuleSideEffects })),
 					[
-						{ id: 'pure-false-pureext-false', isPure: false },
-						{ id: 'pure-false-pureext-false-unused-import', isPure: false },
-						{ id: 'pure-false-pureext-false-used-import', isPure: false },
-						{ id: 'pure-false-pureext-true', isPure: false },
-						{ id: 'pure-false-pureext-true-unused-import', isPure: false },
-						{ id: 'pure-false-pureext-true-used-import', isPure: false },
-						{ id: 'pure-null-pureext-false', isPure: false },
-						{ id: 'pure-null-pureext-false-unused-import', isPure: false },
-						{ id: 'pure-null-pureext-false-used-import', isPure: false },
-						{ id: 'pure-null-pureext-true', isPure: true },
-						{ id: 'pure-null-pureext-true-unused-import', isPure: true },
-						{ id: 'pure-null-pureext-true-used-import', isPure: true },
-						{ id: 'pure-true-pureext-false', isPure: true },
-						{ id: 'pure-true-pureext-false-unused-import', isPure: true },
-						{ id: 'pure-true-pureext-false-used-import', isPure: true },
-						{ id: 'pure-true-pureext-true', isPure: true },
-						{ id: 'pure-true-pureext-true-unused-import', isPure: true },
-						{ id: 'pure-true-pureext-true-used-import', isPure: true }
+						{ id: 'sideeffects-false-pureext-false', hasModuleSideEffects: false },
+						{ id: 'sideeffects-false-pureext-false-unused-import', hasModuleSideEffects: false },
+						{ id: 'sideeffects-false-pureext-false-used-import', hasModuleSideEffects: false },
+						{ id: 'sideeffects-false-pureext-true', hasModuleSideEffects: false },
+						{ id: 'sideeffects-false-pureext-true-unused-import', hasModuleSideEffects: false },
+						{ id: 'sideeffects-false-pureext-true-used-import', hasModuleSideEffects: false },
+						{ id: 'sideeffects-null-pureext-false', hasModuleSideEffects: true },
+						{ id: 'sideeffects-null-pureext-false-unused-import', hasModuleSideEffects: true },
+						{ id: 'sideeffects-null-pureext-false-used-import', hasModuleSideEffects: true },
+						{ id: 'sideeffects-null-pureext-true', hasModuleSideEffects: false },
+						{ id: 'sideeffects-null-pureext-true-unused-import', hasModuleSideEffects: false },
+						{ id: 'sideeffects-null-pureext-true-used-import', hasModuleSideEffects: false },
+						{ id: 'sideeffects-true-pureext-false', hasModuleSideEffects: true },
+						{ id: 'sideeffects-true-pureext-false-unused-import', hasModuleSideEffects: true },
+						{ id: 'sideeffects-true-pureext-false-used-import', hasModuleSideEffects: true },
+						{ id: 'sideeffects-true-pureext-true', hasModuleSideEffects: true },
+						{ id: 'sideeffects-true-pureext-true-unused-import', hasModuleSideEffects: true },
+						{ id: 'sideeffects-true-pureext-true-used-import', hasModuleSideEffects: true }
 					]
 				);
 			}

@@ -753,7 +753,7 @@ export default class Chunk {
 			if (depModule instanceof Module) {
 				dependency = depModule.chunk;
 			} else {
-				if (!depModule.used && depModule.pure) {
+				if (!(depModule.used || depModule.moduleSideEffects)) {
 					continue;
 				}
 				dependency = depModule;

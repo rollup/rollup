@@ -174,12 +174,12 @@ export function createPluginDriver(
 				}
 
 				return {
+					hasModuleSideEffects: foundModule.moduleSideEffects,
 					id: foundModule.id,
 					importedIds: foundModule.isExternal
 						? []
 						: (foundModule as Module).sources.map(id => (foundModule as Module).resolvedIds[id].id),
-					isExternal: !!foundModule.isExternal,
-					isPure: foundModule.pure
+					isExternal: !!foundModule.isExternal
 				};
 			},
 			meta: {

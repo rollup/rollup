@@ -241,14 +241,14 @@ export class ModuleLoader {
 		).then(() => fetchDynamicImportsPromise);
 	}
 
-	private fetchModule(id: string, importer: string, pure: boolean): Promise<Module> {
+	private fetchModule(id: string, importer: string, moduleSideEffects: boolean): Promise<Module> {
 		const existingModule = this.modulesById.get(id);
 		if (existingModule) {
 			if (existingModule.isExternal) throw new Error(`Cannot fetch external module ${id}`);
 			return Promise.resolve(<Module>existingModule);
 		}
 
-		const module: Module = new Module(this.graph, id, pure);
+		const module: Module = new Module(this.graph, id, moduleSideEffects);
 		this.modulesById.set(id, module);
 		const manualChunkAlias = this.getManualChunk(id);
 		if (typeof manualChunkAlias === 'string') {
@@ -336,7 +336,7 @@ export class ModuleLoader {
 			if (!this.modulesById.has(resolvedId.id)) {
 				this.modulesById.set(
 					resolvedId.id,
-					new ExternalModule(this.graph, resolvedId.id, resolvedId.pure)
+					new ExternalModule(this.graph, resolvedId.id, resolvedId.moduleSideEffects)
 				);
 			}
 
@@ -346,7 +346,7 @@ export class ModuleLoader {
 			}
 			return Promise.resolve(externalModule);
 		} else {
-			return this.fetchModule(resolvedId.id, importer, resolvedId.pure);
+			return this.fetchModule(resolvedId.id, importer, resolvedId.moduleSideEffects);
 		}
 	}
 
@@ -360,7 +360,8 @@ export class ModuleLoader {
 				error(errUnresolvedImport(source, importer));
 			}
 			this.graph.warn(errUnresolvedImportTreatedAsExternal(source, importer));
-			return { id: source, external: true, pure: false };
+			// TODO Lukas use proper default from option
+			return { id: source, external: true, moduleSideEffects: true };
 		}
 		return resolvedId;
 	}
@@ -379,11 +380,9 @@ export class ModuleLoader {
 					resolveIdResult && typeof resolveIdResult === 'object'
 						? resolveIdResult.id
 						: resolveIdResult;
-				const pure =
-					(resolveIdResult && typeof resolveIdResult === 'object' && resolveIdResult.pure) || false;
 
 				if (typeof id === 'string') {
-					return this.fetchModule(id, undefined, pure).then(module => {
+					return this.fetchModule(id, undefined, true).then(module => {
 						if (alias !== null) {
 							if (module.chunkAlias !== null && module.chunkAlias !== alias) {
 								error(errCannotAssignModuleToChunk(module.id, alias, module.chunkAlias));
@@ -403,15 +402,15 @@ export class ModuleLoader {
 	): ResolvedId | null {
 		let id = '';
 		let external = false;
-		let pure = null;
+		let moduleSideEffects = null;
 		if (resolveIdResult) {
 			if (typeof resolveIdResult === 'object') {
 				id = resolveIdResult.id;
 				if (resolveIdResult.external) {
 					external = true;
 				}
-				if (typeof resolveIdResult.pure === 'boolean') {
-					pure = resolveIdResult.pure;
+				if (typeof resolveIdResult.moduleSideEffects === 'boolean') {
+					moduleSideEffects = resolveIdResult.moduleSideEffects;
 				}
 			} else {
 				id = resolveIdResult;
@@ -432,10 +431,10 @@ export class ModuleLoader {
 		return {
 			external,
 			id,
-			pure:
-				pure === null
-					? (external ? this.isPureExternalModule : this.isPureInternalModule)(id) || false
-					: pure
+			moduleSideEffects:
+				moduleSideEffects === null
+					? !(external ? this.isPureExternalModule : this.isPureInternalModule)(id)
+					: moduleSideEffects
 		};
 	}
 
@@ -471,7 +470,7 @@ export class ModuleLoader {
 					}
 					return {
 						external: false,
-						pure: false,
+						moduleSideEffects: true,
 						...resolution
 					};
 				}
