@@ -1,9 +1,7 @@
 const assert = require('assert');
 const sideEffects = [];
 
-// TODO Lukas implement load and transform hooks
 module.exports = {
-	solo: true,
 	description: 'does not include modules without used exports if moduleSideEffect is false',
 	context: {
 		sideEffects

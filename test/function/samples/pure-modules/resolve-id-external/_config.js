@@ -2,7 +2,6 @@ const assert = require('assert');
 const sideEffects = [];
 
 module.exports = {
-	solo: true,
 	description: 'does not include modules without used exports if moduleSideEffect is false',
 	context: {
 		require(id) {

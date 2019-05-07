@@ -6,12 +6,12 @@ import {
 	ExternalOption,
 	GetManualChunk,
 	IsExternal,
-	ModuleJSON,
 	ModuleSideEffectsOption,
 	PureModulesOption,
 	ResolvedId,
 	ResolveIdResult,
 	SourceDescription,
+	TransformModuleJSON,
 	WarningHandler
 } from './rollup/types';
 import {
@@ -304,19 +304,11 @@ export class ModuleLoader {
 			})
 			.then(source => {
 				timeEnd('load modules', 3);
-				if (typeof source === 'string') return source;
+				if (typeof source === 'string') return { code: source };
 				if (source && typeof source === 'object' && typeof source.code === 'string') return source;
 				error(errBadLoader(id));
 			})
-			.then(source => {
-				const sourceDescription: SourceDescription =
-					typeof source === 'string'
-						? {
-								ast: null,
-								code: source
-						  }
-						: source;
-
+			.then(sourceDescription => {
 				const cachedModule = this.graph.cachedModules.get(id);
 				if (
 					cachedModule &&
@@ -331,11 +323,13 @@ export class ModuleLoader {
 					return cachedModule;
 				}
 
+				if (typeof sourceDescription.moduleSideEffects === 'boolean') {
+					module.moduleSideEffects = sourceDescription.moduleSideEffects;
+				}
 				return transform(this.graph, sourceDescription, module);
 			})
-			.then((source: ModuleJSON) => {
+			.then((source: TransformModuleJSON) => {
 				module.setSource(source);
-
 				this.modulesById.set(id, module);
 
 				return this.fetchAllDependencies(module).then(() => {

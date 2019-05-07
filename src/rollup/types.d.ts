@@ -65,25 +65,30 @@ export interface SourceDescription {
 	ast?: ESTree.Program;
 	code: string;
 	map?: string | RawSourceMap;
+	moduleSideEffects?: boolean | null;
 }
 
 export interface TransformSourceDescription extends SourceDescription {
 	dependencies?: string[];
 }
 
-export interface ModuleJSON {
+export interface TransformModuleJSON {
 	ast: ESTree.Program;
 	code: string;
 	// note if plugins use new this.cache to opt-out auto transform cache
 	customTransformCache: boolean;
-	dependencies: string[];
-	id: string;
+	moduleSideEffects: boolean | null;
 	originalCode: string;
 	originalSourcemap: RawSourceMap | void;
-	resolvedIds: ResolvedIdMap;
-	sourcemapChain: RawSourceMap[];
-	transformAssets: Asset[] | void;
+	resolvedIds?: ResolvedIdMap;
+	sourcemapChain: (RawSourceMap | { missing: true; plugin: string })[];
 	transformDependencies: string[] | null;
+}
+
+export interface ModuleJSON extends TransformModuleJSON {
+	dependencies: string[];
+	id: string;
+	transformAssets: Asset[] | void;
 }
 
 export interface Asset {
@@ -174,15 +179,13 @@ export type LoadHook = (
 	id: string
 ) => Promise<SourceDescription | string | null> | SourceDescription | string | null;
 
+export type TransformResult = string | void | TransformSourceDescription;
+
 export type TransformHook = (
 	this: PluginContext,
 	code: string,
 	id: string
-) =>
-	| Promise<TransformSourceDescription | string | void>
-	| TransformSourceDescription
-	| string
-	| void;
+) => Promise<TransformResult> | TransformResult;
 
 export type TransformChunkHook = (
 	this: PluginContext,

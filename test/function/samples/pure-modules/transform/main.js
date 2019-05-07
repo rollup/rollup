@@ -1,0 +1,29 @@
+import 'sideeffects-false-1-false-2-false';
+import 'sideeffects-null-1-false-2-false';
+import 'sideeffects-true-1-false-2-false';
+import 'sideeffects-false-1-null-2-false';
+import 'sideeffects-null-1-null-2-false';
+import 'sideeffects-true-1-null-2-false';
+import 'sideeffects-false-1-true-2-false';
+import 'sideeffects-null-1-true-2-false';
+import 'sideeffects-true-1-true-2-false';
+
+import 'sideeffects-false-1-false-2-null';
+import 'sideeffects-null-1-false-2-null';
+import 'sideeffects-true-1-false-2-null';
+import 'sideeffects-false-1-null-2-null';
+import 'sideeffects-null-1-null-2-null';
+import 'sideeffects-true-1-null-2-null';
+import 'sideeffects-false-1-true-2-null';
+import 'sideeffects-null-1-true-2-null';
+import 'sideeffects-true-1-true-2-null';
+
+import 'sideeffects-false-1-false-2-true';
+import 'sideeffects-null-1-false-2-true';
+import 'sideeffects-true-1-false-2-true';
+import 'sideeffects-false-1-null-2-true';
+import 'sideeffects-null-1-null-2-true';
+import 'sideeffects-true-1-null-2-true';
+import 'sideeffects-false-1-true-2-true';
+import 'sideeffects-null-1-true-2-true';
+import 'sideeffects-true-1-true-2-true';

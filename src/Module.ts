@@ -34,7 +34,8 @@ import {
 	RawSourceMap,
 	ResolvedIdMap,
 	RollupError,
-	RollupWarning
+	RollupWarning,
+	TransformModuleJSON
 } from './rollup/types';
 import { error } from './utils/error';
 import getCodeFrame from './utils/getCodeFrame';
@@ -478,21 +479,25 @@ export default class Module {
 	}
 
 	setSource({
+		ast,
 		code,
+		customTransformCache,
+		moduleSideEffects,
 		originalCode,
 		originalSourcemap,
-		ast,
-		sourcemapChain,
 		resolvedIds,
-		transformDependencies,
-		customTransformCache
-	}: ModuleJSON) {
+		sourcemapChain,
+		transformDependencies
+	}: TransformModuleJSON) {
 		this.code = code;
 		this.originalCode = originalCode;
 		this.originalSourcemap = originalSourcemap;
-		this.sourcemapChain = sourcemapChain;
+		this.sourcemapChain = sourcemapChain as RawSourceMap[];
 		this.transformDependencies = transformDependencies;
 		this.customTransformCache = customTransformCache;
+		if (typeof moduleSideEffects === 'boolean') {
+			this.moduleSideEffects = moduleSideEffects;
+		}
 
 		timeStart('generate ast', 3);
 
@@ -568,6 +573,7 @@ export default class Module {
 			customTransformCache: this.customTransformCache,
 			dependencies: this.dependencies.map(module => module.id),
 			id: this.id,
+			moduleSideEffects: this.moduleSideEffects,
 			originalCode: this.originalCode,
 			originalSourcemap: this.originalSourcemap,
 			resolvedIds: this.resolvedIds,
