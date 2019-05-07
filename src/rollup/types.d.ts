@@ -167,6 +167,8 @@ export type IsExternal = (source: string, importer: string, isResolved: boolean)
 
 export type IsPureModule = (id: string) => boolean | void;
 
+export type HasModuleSideEffects = (id: string, external: boolean) => boolean | void;
+
 export type LoadHook = (
 	this: PluginContext,
 	id: string
@@ -318,11 +320,11 @@ export interface Plugin extends PluginHooks {
 
 export interface TreeshakingOptions {
 	annotations?: boolean;
+	// TODO Lukas adjust docs
+	moduleSideEffects?: ModuleSideEffectsOption;
 	propertyReadSideEffects?: boolean;
 	// TODO Lukas adjust docs
 	pureExternalModules?: PureModulesOption;
-	// TODO Lukas adjust docs
-	pureInternalModules?: PureModulesOption;
 }
 
 export type GetManualChunk = (id: string) => string | void;
@@ -333,6 +335,7 @@ export type PureModulesOption = boolean | string[] | IsPureModule;
 export type GlobalsOption = { [name: string]: string } | ((name: string) => string);
 export type InputOption = string | string[] | { [entryAlias: string]: string };
 export type ManualChunksOption = { [chunkAlias: string]: string[] } | GetManualChunk;
+export type ModuleSideEffectsOption = boolean | 'no-external' | string[] | HasModuleSideEffects;
 
 export interface InputOptions {
 	acorn?: any;

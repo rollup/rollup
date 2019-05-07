@@ -2,6 +2,7 @@ const assert = require('assert');
 const sideEffects = [];
 
 module.exports = {
+	solo: true,
 	description: 'does not include modules without used exports if moduleSideEffect is false',
 	context: {
 		require(id) {
@@ -11,23 +12,25 @@ module.exports = {
 	},
 	exports() {
 		assert.deepStrictEqual(sideEffects, [
-			'sideeffects-false-pureext-false-used-import',
-			'sideeffects-null-pureext-false',
-			'sideeffects-null-pureext-false-unused-import',
-			'sideeffects-null-pureext-false-used-import',
-			'sideeffects-true-pureext-false',
-			'sideeffects-true-pureext-false-unused-import',
-			'sideeffects-true-pureext-false-used-import',
-			'sideeffects-false-pureext-true-used-import',
-			'sideeffects-null-pureext-true-used-import',
-			'sideeffects-true-pureext-true',
-			'sideeffects-true-pureext-true-unused-import',
-			'sideeffects-true-pureext-true-used-import'
+			'sideeffects-false-usereffects-false-used-import',
+			'sideeffects-null-usereffects-false-used-import',
+			'sideeffects-true-usereffects-false',
+			'sideeffects-true-usereffects-false-unused-import',
+			'sideeffects-true-usereffects-false-used-import',
+			'sideeffects-false-usereffects-true',
+			'sideeffects-false-usereffects-true-unused-import',
+			'sideeffects-false-usereffects-true-used-import',
+			'sideeffects-null-usereffects-true',
+			'sideeffects-null-usereffects-true-unused-import',
+			'sideeffects-null-usereffects-true-used-import',
+			'sideeffects-true-usereffects-true',
+			'sideeffects-true-usereffects-true-unused-import',
+			'sideeffects-true-usereffects-true-used-import'
 		]);
 	},
 	options: {
 		treeshake: {
-			pureExternalModules(id) {
+			moduleSideEffects(id) {
 				return JSON.parse(id.split('-')[3]);
 			}
 		},
@@ -49,24 +52,27 @@ module.exports = {
 						.sort()
 						.map(id => ({ id, hasModuleSideEffects: this.getModuleInfo(id).hasModuleSideEffects })),
 					[
-						{ id: 'sideeffects-false-pureext-false', hasModuleSideEffects: false },
-						{ id: 'sideeffects-false-pureext-false-unused-import', hasModuleSideEffects: false },
-						{ id: 'sideeffects-false-pureext-false-used-import', hasModuleSideEffects: false },
-						{ id: 'sideeffects-false-pureext-true', hasModuleSideEffects: false },
-						{ id: 'sideeffects-false-pureext-true-unused-import', hasModuleSideEffects: false },
-						{ id: 'sideeffects-false-pureext-true-used-import', hasModuleSideEffects: false },
-						{ id: 'sideeffects-null-pureext-false', hasModuleSideEffects: true },
-						{ id: 'sideeffects-null-pureext-false-unused-import', hasModuleSideEffects: true },
-						{ id: 'sideeffects-null-pureext-false-used-import', hasModuleSideEffects: true },
-						{ id: 'sideeffects-null-pureext-true', hasModuleSideEffects: false },
-						{ id: 'sideeffects-null-pureext-true-unused-import', hasModuleSideEffects: false },
-						{ id: 'sideeffects-null-pureext-true-used-import', hasModuleSideEffects: false },
-						{ id: 'sideeffects-true-pureext-false', hasModuleSideEffects: true },
-						{ id: 'sideeffects-true-pureext-false-unused-import', hasModuleSideEffects: true },
-						{ id: 'sideeffects-true-pureext-false-used-import', hasModuleSideEffects: true },
-						{ id: 'sideeffects-true-pureext-true', hasModuleSideEffects: true },
-						{ id: 'sideeffects-true-pureext-true-unused-import', hasModuleSideEffects: true },
-						{ id: 'sideeffects-true-pureext-true-used-import', hasModuleSideEffects: true }
+						{ id: 'sideeffects-false-usereffects-false', hasModuleSideEffects: false },
+						{
+							id: 'sideeffects-false-usereffects-false-unused-import',
+							hasModuleSideEffects: false
+						},
+						{ id: 'sideeffects-false-usereffects-false-used-import', hasModuleSideEffects: false },
+						{ id: 'sideeffects-false-usereffects-true', hasModuleSideEffects: true },
+						{ id: 'sideeffects-false-usereffects-true-unused-import', hasModuleSideEffects: true },
+						{ id: 'sideeffects-false-usereffects-true-used-import', hasModuleSideEffects: true },
+						{ id: 'sideeffects-null-usereffects-false', hasModuleSideEffects: false },
+						{ id: 'sideeffects-null-usereffects-false-unused-import', hasModuleSideEffects: false },
+						{ id: 'sideeffects-null-usereffects-false-used-import', hasModuleSideEffects: false },
+						{ id: 'sideeffects-null-usereffects-true', hasModuleSideEffects: true },
+						{ id: 'sideeffects-null-usereffects-true-unused-import', hasModuleSideEffects: true },
+						{ id: 'sideeffects-null-usereffects-true-used-import', hasModuleSideEffects: true },
+						{ id: 'sideeffects-true-usereffects-false', hasModuleSideEffects: true },
+						{ id: 'sideeffects-true-usereffects-false-unused-import', hasModuleSideEffects: true },
+						{ id: 'sideeffects-true-usereffects-false-used-import', hasModuleSideEffects: true },
+						{ id: 'sideeffects-true-usereffects-true', hasModuleSideEffects: true },
+						{ id: 'sideeffects-true-usereffects-true-unused-import', hasModuleSideEffects: true },
+						{ id: 'sideeffects-true-usereffects-true-used-import', hasModuleSideEffects: true }
 					]
 				);
 			}

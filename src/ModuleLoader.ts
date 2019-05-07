@@ -6,12 +6,13 @@ import {
 	ExternalOption,
 	GetManualChunk,
 	IsExternal,
-	IsPureModule,
 	ModuleJSON,
+	ModuleSideEffectsOption,
 	PureModulesOption,
 	ResolvedId,
 	ResolveIdResult,
-	SourceDescription
+	SourceDescription,
+	WarningHandler
 } from './rollup/types';
 import {
 	errBadLoader,
@@ -61,6 +62,38 @@ function getIdMatcher<T extends Array<any>>(
 	}
 }
 
+function getHasModuleSideEffects(
+	moduleSideEffectsOption: ModuleSideEffectsOption,
+	pureExternalModules: PureModulesOption,
+	warn: WarningHandler
+): (id: string, external: boolean) => boolean {
+	if (moduleSideEffectsOption === false) {
+		return () => false;
+	}
+	if (moduleSideEffectsOption === 'no-external') {
+		// TODO Lukas test
+		return (_id, external) => !external;
+	}
+	if (typeof moduleSideEffectsOption === 'function') {
+		return (id, ...args) =>
+			!id.startsWith('\0') ? moduleSideEffectsOption(id, ...args) !== false : true;
+	}
+	if (Array.isArray(moduleSideEffectsOption)) {
+		// TODO Lukas test
+		const ids = new Set(moduleSideEffectsOption);
+		return id => ids.has(id);
+	}
+	if (moduleSideEffectsOption && moduleSideEffectsOption !== true) {
+		// TODO Lukas test
+		warn({
+			code: 'TODO',
+			message: 'TODO'
+		});
+	}
+	const isPureExternalModule = getIdMatcher(pureExternalModules);
+	return (id, external) => !(external && isPureExternalModule(id));
+}
+
 export class ModuleLoader {
 	readonly isExternal: IsExternal;
 	private readonly entriesByReferenceId = new Map<
@@ -70,8 +103,7 @@ export class ModuleLoader {
 	private readonly entryModules: Module[] = [];
 	private readonly getManualChunk: GetManualChunk;
 	private readonly graph: Graph;
-	private readonly isPureExternalModule: IsPureModule;
-	private readonly isPureInternalModule: IsPureModule;
+	private readonly hasModuleSideEffects: (id: string, external: boolean) => boolean;
 	private latestLoadModulesPromise: Promise<any> = Promise.resolve();
 	private readonly manualChunkModules: Record<string, Module[]> = {};
 	private readonly modulesById: Map<string, Module | ExternalModule>;
@@ -83,15 +115,18 @@ export class ModuleLoader {
 		pluginDriver: PluginDriver,
 		external: ExternalOption,
 		getManualChunk: GetManualChunk | null,
-		pureExternalModules: PureModulesOption,
-		pureInternalModules: PureModulesOption
+		moduleSideEffects: ModuleSideEffectsOption,
+		pureExternalModules: PureModulesOption
 	) {
 		this.graph = graph;
 		this.modulesById = modulesById;
 		this.pluginDriver = pluginDriver;
 		this.isExternal = getIdMatcher(external);
-		this.isPureExternalModule = getIdMatcher(pureExternalModules);
-		this.isPureInternalModule = getIdMatcher(pureInternalModules);
+		this.hasModuleSideEffects = getHasModuleSideEffects(
+			moduleSideEffects,
+			pureExternalModules,
+			graph.warn
+		);
 		this.getManualChunk = typeof getManualChunk === 'function' ? getManualChunk : () => null;
 	}
 
@@ -360,7 +395,6 @@ export class ModuleLoader {
 				error(errUnresolvedImport(source, importer));
 			}
 			this.graph.warn(errUnresolvedImportTreatedAsExternal(source, importer));
-			// TODO Lukas use proper default from option
 			return { id: source, external: true, moduleSideEffects: true };
 		}
 		return resolvedId;
@@ -431,10 +465,7 @@ export class ModuleLoader {
 		return {
 			external,
 			id,
-			moduleSideEffects:
-				moduleSideEffects === null
-					? !(external ? this.isPureExternalModule : this.isPureInternalModule)(id)
-					: moduleSideEffects
+			moduleSideEffects: moduleSideEffects || this.hasModuleSideEffects(id, external)
 		};
 	}
 

@@ -113,16 +113,16 @@ export default class Graph {
 			this.treeshakingOptions = options.treeshake
 				? {
 						annotations: (<TreeshakingOptions>options.treeshake).annotations !== false,
+						moduleSideEffects: (<TreeshakingOptions>options.treeshake).moduleSideEffects,
 						propertyReadSideEffects:
 							(<TreeshakingOptions>options.treeshake).propertyReadSideEffects !== false,
-						pureExternalModules: (<TreeshakingOptions>options.treeshake).pureExternalModules,
-						pureInternalModules: (<TreeshakingOptions>options.treeshake).pureInternalModules
+						pureExternalModules: (<TreeshakingOptions>options.treeshake).pureExternalModules
 				  }
 				: {
 						annotations: true,
+						moduleSideEffects: true,
 						propertyReadSideEffects: true,
-						pureExternalModules: false,
-						pureInternalModules: false
+						pureExternalModules: false
 				  };
 		}
 
@@ -187,8 +187,8 @@ export default class Graph {
 			this.pluginDriver,
 			options.external,
 			typeof options.manualChunks === 'function' && options.manualChunks,
-			this.treeshake ? this.treeshakingOptions.pureExternalModules : false,
-			this.treeshake ? this.treeshakingOptions.pureInternalModules : false
+			this.treeshake ? this.treeshakingOptions.moduleSideEffects : false,
+			this.treeshake ? this.treeshakingOptions.pureExternalModules : false
 		);
 	}
 
