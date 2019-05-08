@@ -42,6 +42,7 @@ export enum Errors {
 	INVALID_ASSET_NAME = 'INVALID_ASSET_NAME',
 	INVALID_CHUNK = 'INVALID_CHUNK',
 	INVALID_EXTERNAL_ID = 'INVALID_EXTERNAL_ID',
+	INVALID_OPTION = 'INVALID_OPTION',
 	INVALID_PLUGIN_HOOK = 'INVALID_PLUGIN_HOOK',
 	INVALID_ROLLUP_PHASE = 'INVALID_ROLLUP_PHASE',
 	NAMESPACE_CONFLICT = 'NAMESPACE_CONFLICT',
@@ -146,6 +147,13 @@ export function errInternalIdCannotBeExternal(source: string, importer: string) 
 		message: `'${source}' is imported as an external by ${relativeId(
 			importer
 		)}, but is already an existing non-external module id.`
+	};
+}
+
+export function errInvalidOption(option: string, explanation: string) {
+	return {
+		code: Errors.INVALID_OPTION,
+		message: `Invalid value for option "${option}" - ${explanation}.`
 	};
 }
 

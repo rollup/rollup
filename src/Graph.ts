@@ -187,7 +187,7 @@ export default class Graph {
 			this.pluginDriver,
 			options.external,
 			typeof options.manualChunks === 'function' && options.manualChunks,
-			this.treeshake ? this.treeshakingOptions.moduleSideEffects : false,
+			this.treeshake ? this.treeshakingOptions.moduleSideEffects : null,
 			this.treeshake ? this.treeshakingOptions.pureExternalModules : false
 		);
 	}

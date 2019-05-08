@@ -327,13 +327,14 @@ export interface TreeshakingOptions {
 	moduleSideEffects?: ModuleSideEffectsOption;
 	propertyReadSideEffects?: boolean;
 	// TODO Lukas adjust docs
+	// TODO Lukas explain deprecations in JSDoc
+	/** @deprecated */
 	pureExternalModules?: PureModulesOption;
 }
 
 export type GetManualChunk = (id: string) => string | void;
 
-// TODO Lukas test and document true
-export type ExternalOption = boolean | string[] | IsExternal;
+export type ExternalOption = string[] | IsExternal;
 export type PureModulesOption = boolean | string[] | IsPureModule;
 export type GlobalsOption = { [name: string]: string } | ((name: string) => string);
 export type InputOption = string | string[] | { [entryAlias: string]: string };

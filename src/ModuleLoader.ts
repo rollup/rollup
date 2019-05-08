@@ -11,8 +11,7 @@ import {
 	ResolvedId,
 	ResolveIdResult,
 	SourceDescription,
-	TransformModuleJSON,
-	WarningHandler
+	TransformModuleJSON
 } from './rollup/types';
 import {
 	errBadLoader,
@@ -21,6 +20,7 @@ import {
 	errChunkReferenceIdNotFoundForFilename,
 	errEntryCannotBeExternal,
 	errInternalIdCannotBeExternal,
+	errInvalidOption,
 	errNamespaceConflict,
 	error,
 	errUnresolvedEntry,
@@ -65,13 +65,12 @@ function getIdMatcher<T extends Array<any>>(
 function getHasModuleSideEffects(
 	moduleSideEffectsOption: ModuleSideEffectsOption,
 	pureExternalModules: PureModulesOption,
-	warn: WarningHandler
+	graph: Graph
 ): (id: string, external: boolean) => boolean {
 	if (moduleSideEffectsOption === false) {
 		return () => false;
 	}
 	if (moduleSideEffectsOption === 'no-external') {
-		// TODO Lukas test
 		return (_id, external) => !external;
 	}
 	if (typeof moduleSideEffectsOption === 'function') {
@@ -79,21 +78,22 @@ function getHasModuleSideEffects(
 			!id.startsWith('\0') ? moduleSideEffectsOption(id, ...args) !== false : true;
 	}
 	if (Array.isArray(moduleSideEffectsOption)) {
-		// TODO Lukas test
 		const ids = new Set(moduleSideEffectsOption);
 		return id => ids.has(id);
 	}
 	if (moduleSideEffectsOption && moduleSideEffectsOption !== true) {
-		// TODO Lukas test
-		warn({
-			code: 'TODO',
-			message: 'TODO'
-		});
+		graph.warn(
+			errInvalidOption(
+				'treeshake.moduleSideEffects',
+				'please use one of false, "no-external", a function or an array'
+			)
+		);
 	}
 	const isPureExternalModule = getIdMatcher(pureExternalModules);
 	return (id, external) => !(external && isPureExternalModule(id));
 }
 
+// TODO Lukas document load and transform hook changes
 export class ModuleLoader {
 	readonly isExternal: IsExternal;
 	private readonly entriesByReferenceId = new Map<
@@ -125,7 +125,7 @@ export class ModuleLoader {
 		this.hasModuleSideEffects = getHasModuleSideEffects(
 			moduleSideEffects,
 			pureExternalModules,
-			graph.warn
+			graph
 		);
 		this.getManualChunk = typeof getManualChunk === 'function' ? getManualChunk : () => null;
 	}
