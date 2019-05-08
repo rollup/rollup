@@ -127,16 +127,16 @@ export interface PluginContext extends MinimalPluginContext {
 		importedIds: string[];
 		isExternal: boolean;
 	};
-	/** @deprecated */
+	/** @deprecated Use `this.resolve` instead */
 	isExternal: IsExternal;
 	moduleIds: IterableIterator<string>;
 	parse: (input: string, options: any) => ESTree.Program;
 	resolve: (source: string, importer: string) => Promise<ResolvedId | null>;
-	/** @deprecated */
+	/** @deprecated Use `this.resolve` instead */
 	resolveId: (source: string, importer: string) => Promise<string | null>;
 	setAssetSource: (assetReferenceId: string, source: string | Buffer) => void;
 	warn: (warning: RollupWarning | string, pos?: { column: number; line: number }) => void;
-	/** @deprecated */
+	/** @deprecated Use `this.addWatchFile` and the `watchChange` hook instead  */
 	watcher: EventEmitter;
 }
 
@@ -280,13 +280,13 @@ export interface PluginHooks {
 		isWrite: boolean
 	) => void | Promise<void>;
 	load?: LoadHook;
-	/** @deprecated */
+	/** @deprecated Use `generateBundle` instead */
 	ongenerate?: (
 		this: PluginContext,
 		options: OnGenerateOptions,
 		chunk: OutputChunk
 	) => void | Promise<void>;
-	/** @deprecated */
+	/** @deprecated Use `writeBundle` instead */
 	onwrite?: (
 		this: PluginContext,
 		options: OnWriteOptions,
@@ -297,16 +297,16 @@ export interface PluginHooks {
 	renderChunk?: RenderChunkHook;
 	renderError?: (this: PluginContext, err?: Error) => Promise<void> | void;
 	renderStart?: (this: PluginContext) => Promise<void> | void;
-	/** @deprecated */
+	/** @deprecated Use `resolveFileUrl` instead */
 	resolveAssetUrl?: ResolveAssetUrlHook;
 	resolveDynamicImport?: ResolveDynamicImportHook;
 	resolveFileUrl?: ResolveFileUrlHook;
 	resolveId?: ResolveIdHook;
 	resolveImportMeta?: ResolveImportMetaHook;
 	transform?: TransformHook;
-	/** @deprecated */
+	/** @deprecated Use `renderChunk` instead */
 	transformBundle?: TransformChunkHook;
-	/** @deprecated */
+	/** @deprecated Use `renderChunk` instead */
 	transformChunk?: TransformChunkHook;
 	watchChange?: (id: string) => void;
 	writeBundle?: (this: PluginContext, bundle: OutputBundle) => void | Promise<void>;
@@ -327,8 +327,7 @@ export interface TreeshakingOptions {
 	moduleSideEffects?: ModuleSideEffectsOption;
 	propertyReadSideEffects?: boolean;
 	// TODO Lukas adjust docs
-	// TODO Lukas explain deprecations in JSDoc
-	/** @deprecated */
+	/** @deprecated Use `moduleSideEffects` instead */
 	pureExternalModules?: PureModulesOption;
 }
 
