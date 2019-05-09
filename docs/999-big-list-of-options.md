@@ -103,7 +103,7 @@ Specifies the format of the generated bundle. One of the following:
 
 * `amd` – Asynchronous Module Definition, used with module loaders like RequireJS
 * `cjs` – CommonJS, suitable for Node and other bundlers
-* `esm` – Keep the bundle as an ES module file, suitable for other bundlers and inclusion as a `<script type=module>` tag in modern browsers
+* `es` – Keep the bundle as an ES module file, suitable for other bundlers and inclusion as a `<script type=module>` tag in modern browsers
 * `iife` – A self-executing function, suitable for inclusion as a `<script>` tag. (If you want to create a bundle for your application, you probably want to use this.)
 * `umd` – Universal Module Definition, works as `amd`, `cjs` and `iife` all in one
 * `system` – Native format of the SystemJS loader
