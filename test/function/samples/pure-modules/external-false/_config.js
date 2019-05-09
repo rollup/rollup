@@ -1,4 +1,5 @@
 const assert = require('assert');
+const path = require('path');
 const sideEffects = [];
 
 module.exports = {
@@ -20,7 +21,7 @@ module.exports = {
 		plugins: {
 			name: 'test-plugin',
 			resolveId(id) {
-				if (id[0] !== '/') {
+				if (!path.isAbsolute(id)) {
 					if (id === 'internal') {
 						return id;
 					}
@@ -32,7 +33,7 @@ module.exports = {
 				}
 			},
 			load(id) {
-				if (id[0] !== '/') {
+				if (!path.isAbsolute(id)) {
 					return `export const value = '${id}'; sideEffects.push(value);`;
 				}
 			}

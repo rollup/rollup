@@ -1,4 +1,5 @@
 const assert = require('assert');
+const path = require('path');
 const sideEffects = [];
 
 module.exports = {
@@ -34,17 +35,17 @@ module.exports = {
 			{
 				name: 'test-plugin-1',
 				resolveId(id) {
-					if (id[0] !== '/') {
+					if (!path.isAbsolute(id)) {
 						return id;
 					}
 				},
 				load(id) {
-					if (id[0] !== '/') {
+					if (!path.isAbsolute(id)) {
 						return `export const value = '${id}'; sideEffects.push(value);`;
 					}
 				},
 				transform(code, id) {
-					if (id[0] !== '/') {
+					if (!path.isAbsolute(id)) {
 						const moduleSideEffects = JSON.parse(id.split('-')[3]);
 						return {
 							code,
@@ -56,7 +57,7 @@ module.exports = {
 			{
 				name: 'test-plugin-2',
 				transform(code, id) {
-					if (id[0] !== '/') {
+					if (!path.isAbsolute(id)) {
 						const moduleSideEffects = JSON.parse(id.split('-')[5]);
 						return {
 							code,

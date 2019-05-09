@@ -1,4 +1,5 @@
 const assert = require('assert');
+const path = require('path');
 const sideEffects = [];
 
 module.exports = {
@@ -21,7 +22,7 @@ module.exports = {
 		plugins: {
 			name: 'test-plugin',
 			resolveId(id) {
-				if (id[0] !== '/') {
+				if (!path.isAbsolute(id)) {
 					const moduleSideEffects = JSON.parse(id.split('-')[1]);
 					if (moduleSideEffects) {
 						return { id, moduleSideEffects };
@@ -30,7 +31,7 @@ module.exports = {
 				}
 			},
 			load(id) {
-				if (id[0] !== '/') {
+				if (!path.isAbsolute(id)) {
 					return `export const value = '${id}'; sideEffects.push(value);`;
 				}
 			}

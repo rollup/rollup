@@ -1,4 +1,5 @@
 const assert = require('assert');
+const path = require('path');
 const sideEffects = [];
 
 module.exports = {
@@ -33,7 +34,7 @@ module.exports = {
 		plugins: {
 			name: 'test-plugin',
 			resolveId(id) {
-				if (id[0] !== '/') {
+				if (!path.isAbsolute(id)) {
 					return {
 						id,
 						external: false,
@@ -42,7 +43,7 @@ module.exports = {
 				}
 			},
 			load(id) {
-				if (id[0] !== '/') {
+				if (!path.isAbsolute(id)) {
 					const sideEffects = JSON.parse(id.split('-')[1]);
 					const userEffects = JSON.parse(id.split('-')[3]);
 					assert.strictEqual(
@@ -55,7 +56,7 @@ module.exports = {
 			buildEnd() {
 				assert.deepStrictEqual(
 					Array.from(this.moduleIds)
-						.filter(id => id[0] !== '/')
+						.filter(id => !path.isAbsolute(id))
 						.sort()
 						.map(id => ({ id, hasModuleSideEffects: this.getModuleInfo(id).hasModuleSideEffects })),
 					[
