@@ -93,7 +93,6 @@ function getHasModuleSideEffects(
 	return (id, external) => !(external && isPureExternalModule(id));
 }
 
-// TODO Lukas document load and transform hook changes
 export class ModuleLoader {
 	readonly isExternal: IsExternal;
 	private readonly entriesByReferenceId = new Map<

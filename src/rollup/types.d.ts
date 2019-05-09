@@ -323,10 +323,8 @@ export interface Plugin extends PluginHooks {
 
 export interface TreeshakingOptions {
 	annotations?: boolean;
-	// TODO Lukas adjust docs
 	moduleSideEffects?: ModuleSideEffectsOption;
 	propertyReadSideEffects?: boolean;
-	// TODO Lukas adjust docs
 	/** @deprecated Use `moduleSideEffects` instead */
 	pureExternalModules?: PureModulesOption;
 }
