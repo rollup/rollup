@@ -775,9 +775,6 @@ export default class Module {
 		const variableModule = variable.module;
 		if (!variable.included) {
 			variable.include();
-			if (variableModule instanceof Module && !variableModule.isExecuted) {
-				markModuleAndImpureDependenciesAsExecuted(variableModule);
-			}
 			this.graph.needsTreeshakingPass = true;
 		}
 		if (variableModule && variableModule !== this) {
