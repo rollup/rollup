@@ -212,7 +212,7 @@ export default class Graph {
 			if (entryModules.length === 0) {
 				throw new Error('You must supply options.input to rollup');
 			}
-			for (const module of Array.from(this.moduleById.values())) {
+			for (const module of this.moduleById.values()) {
 				if (module instanceof Module) {
 					this.modules.push(module);
 					this.watchFiles[module.id] = true;

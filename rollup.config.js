@@ -84,8 +84,8 @@ export default command => {
 				alias(moduleAliases),
 				resolve(),
 				json(),
-				typescript(),
 				commonjs({ include: 'node_modules/**', namedExports: { micromatch: ['matcher'] } }),
+				typescript({include: '**/*.{ts,js}'}),
 				fixAcornEsmImport()
 			],
 			// acorn needs to be external as some plugins rely on a shared acorn instance
@@ -108,8 +108,8 @@ export default command => {
 				resolve(),
 				json(),
 				string({ include: '**/*.md' }),
-				typescript(),
-				commonjs({ include: 'node_modules/**' })
+				commonjs({ include: 'node_modules/**' }),
+				typescript({include: '**/*.{ts,js}'}),
 			],
 			external: ['fs', 'path', 'module', 'events', 'rollup', 'assert', 'os', 'util'],
 			treeshake: {
@@ -145,8 +145,8 @@ export default command => {
 						if (~id.indexOf('path.ts')) return fs.readFileSync('browser/path.ts', 'utf-8');
 					}
 				},
-				typescript(),
 				commonjs(),
+				typescript({include: '**/*.{ts,js}'}),
 				terser({ module: true, output: { comments: 'some' } })
 			],
 			treeshake: {

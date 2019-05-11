@@ -70,7 +70,7 @@ function deconflictImportsEsm(
 	_dependencies: (ExternalModule | Chunk)[],
 	interop: boolean
 ) {
-	for (const variable of Array.from(imports)) {
+	for (const variable of imports) {
 		const module = variable.module;
 		const name = variable.name;
 		let proposedName: string;
@@ -97,7 +97,7 @@ function deconflictImportsOther(
 	for (const chunkOrExternalModule of dependencies) {
 		chunkOrExternalModule.variableName = getSafeName(chunkOrExternalModule.variableName, usedNames);
 	}
-	for (const variable of Array.from(imports)) {
+	for (const variable of imports) {
 		const module = variable.module;
 		if (module instanceof ExternalModule) {
 			const name = variable.name;
