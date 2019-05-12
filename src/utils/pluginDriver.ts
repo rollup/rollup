@@ -32,7 +32,8 @@ export interface PluginDriver {
 	hookFirst<H extends keyof PluginHooks, R = ReturnType<PluginHooks[H]>>(
 		hook: H,
 		args: Args<PluginHooks[H]>,
-		hookContext?: HookContext
+		hookContext?: HookContext | null,
+		skip?: number
 	): Promise<R>;
 	hookFirstSync<H extends keyof PluginHooks, R = ReturnType<PluginHooks[H]>>(
 		hook: H,
@@ -194,8 +195,12 @@ export function createPluginDriver(
 					.resolveId(source, importer)
 					.then(resolveId => resolveId && resolveId.id);
 			},
-			resolve(source, importer) {
-				return graph.moduleLoader.resolveId(source, importer);
+			resolve(source, importer, options?: { skipSelf: boolean }) {
+				return graph.moduleLoader.resolveId(
+					source,
+					importer,
+					options && options.skipSelf ? pidx : null
+				);
 			},
 			setAssetSource,
 			warn(warning) {
@@ -265,7 +270,7 @@ export function createPluginDriver(
 		args: any[],
 		pluginIndex: number,
 		permitValues = false,
-		hookContext?: HookContext
+		hookContext?: HookContext | null
 	): Promise<T> {
 		const plugin = plugins[pluginIndex];
 		let context = pluginContexts[pluginIndex];
@@ -325,9 +330,10 @@ export function createPluginDriver(
 		},
 
 		// chains, first non-null result stops and returns
-		hookFirst(name, args, hookContext) {
+		hookFirst(name, args, hookContext, skip) {
 			let promise: Promise<any> = Promise.resolve();
 			for (let i = 0; i < plugins.length; i++) {
+				if (skip === i) continue;
 				promise = promise.then((result: any) => {
 					if (result != null) return result;
 					return runHook(name, args, i, false, hookContext);

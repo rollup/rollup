@@ -211,11 +211,11 @@ export class ModuleLoader {
 		return fileName;
 	}
 
-	resolveId(source: string, importer: string): Promise<ResolvedId | null> {
+	resolveId(source: string, importer: string, skip?: number | null): Promise<ResolvedId | null> {
 		return Promise.resolve(
 			this.isExternal(source, importer, false)
 				? { id: source, external: true }
-				: this.pluginDriver.hookFirst('resolveId', [source, importer])
+				: this.pluginDriver.hookFirst('resolveId', [source, importer], null, skip)
 		).then((result: ResolveIdResult) => this.normalizeResolveIdResult(result, importer, source));
 	}
 

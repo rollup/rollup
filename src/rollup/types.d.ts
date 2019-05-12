@@ -131,7 +131,11 @@ export interface PluginContext extends MinimalPluginContext {
 	isExternal: IsExternal;
 	moduleIds: IterableIterator<string>;
 	parse: (input: string, options: any) => ESTree.Program;
-	resolve: (source: string, importer: string) => Promise<ResolvedId | null>;
+	resolve: (
+		source: string,
+		importer: string,
+		options?: { skipSelf: boolean }
+	) => Promise<ResolvedId | null>;
 	/** @deprecated Use `this.resolve` instead */
 	resolveId: (source: string, importer: string) => Promise<string | null>;
 	setAssetSource: (assetReferenceId: string, source: string | Buffer) => void;
