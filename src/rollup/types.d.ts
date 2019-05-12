@@ -172,7 +172,7 @@ export type IsExternal = (source: string, importer: string, isResolved: boolean)
 
 export type IsPureModule = (id: string) => boolean | void;
 
-export type HasModuleSideEffects = (id: string, external: boolean) => boolean | void;
+export type HasModuleSideEffects = (id: string, external: boolean) => boolean;
 
 export type LoadHook = (
 	this: PluginContext,

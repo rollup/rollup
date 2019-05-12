@@ -756,9 +756,9 @@ class Impure {
 ```
 
 **treeshake.moduleSideEffects**<br>
-Type: `boolean | null | "no-external" | string[] | (id: string, external: boolean) => boolean | null`<br>
+Type: `boolean | "no-external" | string[] | (id: string, external: boolean) => boolean`<br>
 CLI: `--treeshake.moduleSideEffects`/`--no-treeshake.moduleSideEffects`<br>
-Default: `null`
+Default: `true`
 
 If `false`, assume modules and external dependencies from which nothing is imported do not have other side-effects like mutating global variables or logging without checking. For external dependencies, this will suppress empty imports:
 
@@ -770,7 +770,7 @@ console.log(42);
 ```
 
 ```javascript
-// output with treeshake.moduleSideEffects === null
+// output with treeshake.moduleSideEffects === true
 import 'external-a';
 import 'external-b';
 console.log(42);
@@ -793,7 +793,7 @@ console.log('side-effect');
 ```
 
 ```javascript
-// output with treeshake.moduleSideEffects === null
+// output with treeshake.moduleSideEffects === true
 console.log('side-effect');
 
 console.log(42);
@@ -804,7 +804,7 @@ console.log(42);
 console.log(42);
 ```
 
-The value `"no-external"` will only remove external imports if possible. You can also supply a list of modules with side-effects or a function to determine it for each module individually. Using `true` will behave the same as `null` except that it cannot be overridden by the `resolveId` hook of plugins.
+You can also supply a list of modules with side-effects or a function to determine it for each module individually. The value `"no-external"` will only remove external imports if possible and is equivalent to the function `(id, external) => !external`;
 
 **treeshake.propertyReadSideEffects**
 Type: `boolean`<br>

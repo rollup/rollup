@@ -67,21 +67,21 @@ function getHasModuleSideEffects(
 	pureExternalModules: PureModulesOption,
 	graph: Graph
 ): (id: string, external: boolean) => boolean {
-	if (moduleSideEffectsOption === false) {
-		return () => false;
+	if (typeof moduleSideEffectsOption === 'boolean') {
+		return () => moduleSideEffectsOption;
 	}
 	if (moduleSideEffectsOption === 'no-external') {
 		return (_id, external) => !external;
 	}
 	if (typeof moduleSideEffectsOption === 'function') {
-		return (id, ...args) =>
-			!id.startsWith('\0') ? moduleSideEffectsOption(id, ...args) !== false : true;
+		return (id, external) =>
+			!id.startsWith('\0') ? moduleSideEffectsOption(id, external) !== false : true;
 	}
 	if (Array.isArray(moduleSideEffectsOption)) {
 		const ids = new Set(moduleSideEffectsOption);
 		return id => ids.has(id);
 	}
-	if (moduleSideEffectsOption && moduleSideEffectsOption !== true) {
+	if (moduleSideEffectsOption) {
 		graph.warn(
 			errInvalidOption(
 				'treeshake.moduleSideEffects',
@@ -458,7 +458,10 @@ export class ModuleLoader {
 		return {
 			external,
 			id,
-			moduleSideEffects: moduleSideEffects || this.hasModuleSideEffects(id, external)
+			moduleSideEffects:
+				typeof moduleSideEffects === 'boolean'
+					? moduleSideEffects
+					: this.hasModuleSideEffects(id, external)
 		};
 	}
 

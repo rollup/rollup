@@ -14,8 +14,6 @@ module.exports = {
 			'sideeffects-true-usereffects-false',
 			'sideeffects-true-usereffects-false-unused-import',
 			'sideeffects-true-usereffects-false-used-import',
-			'sideeffects-false-usereffects-true',
-			'sideeffects-false-usereffects-true-unused-import',
 			'sideeffects-false-usereffects-true-used-import',
 			'sideeffects-null-usereffects-true',
 			'sideeffects-null-usereffects-true-unused-import',
@@ -48,7 +46,7 @@ module.exports = {
 					const userEffects = JSON.parse(id.split('-')[3]);
 					assert.strictEqual(
 						this.getModuleInfo(id).hasModuleSideEffects,
-						sideEffects || userEffects
+						typeof sideEffects === 'boolean' ? sideEffects : userEffects
 					);
 					return `export const value = '${id}'; sideEffects.push(value);`;
 				}
@@ -66,9 +64,9 @@ module.exports = {
 							hasModuleSideEffects: false
 						},
 						{ id: 'sideeffects-false-usereffects-false-used-import', hasModuleSideEffects: false },
-						{ id: 'sideeffects-false-usereffects-true', hasModuleSideEffects: true },
-						{ id: 'sideeffects-false-usereffects-true-unused-import', hasModuleSideEffects: true },
-						{ id: 'sideeffects-false-usereffects-true-used-import', hasModuleSideEffects: true },
+						{ id: 'sideeffects-false-usereffects-true', hasModuleSideEffects: false },
+						{ id: 'sideeffects-false-usereffects-true-unused-import', hasModuleSideEffects: false },
+						{ id: 'sideeffects-false-usereffects-true-used-import', hasModuleSideEffects: false },
 						{ id: 'sideeffects-null-usereffects-false', hasModuleSideEffects: false },
 						{ id: 'sideeffects-null-usereffects-false-unused-import', hasModuleSideEffects: false },
 						{ id: 'sideeffects-null-usereffects-false-used-import', hasModuleSideEffects: false },
