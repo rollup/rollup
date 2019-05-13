@@ -159,7 +159,9 @@ export class ModuleLoader {
 		newEntryModules: Module[];
 	}> {
 		const loadNewEntryModulesPromise = Promise.all(
-			unresolvedEntryModules.map(this.loadEntryModule)
+			unresolvedEntryModules.map(unresolvedEntryModule =>
+				this.loadEntryModule(unresolvedEntryModule, true)
+			)
 		).then(entryModules => {
 			for (const entryModule of entryModules) {
 				entryModule.isUserDefinedEntryPoint = entryModule.isUserDefinedEntryPoint || isUserDefined;
@@ -186,7 +188,9 @@ export class ModuleLoader {
 			}
 		}
 		const loadNewManualChunkModulesPromise = Promise.all(
-			unresolvedManualChunks.map(this.loadEntryModule)
+			unresolvedManualChunks.map(unresolvedManualChunk =>
+				this.loadEntryModule(unresolvedManualChunk, false)
+			)
 		).then(manualChunkModules => {
 			for (let index = 0; index < manualChunkModules.length; index++) {
 				this.addToManualChunk(
@@ -275,14 +279,21 @@ export class ModuleLoader {
 		).then(() => fetchDynamicImportsPromise);
 	}
 
-	private fetchModule(id: string, importer: string, moduleSideEffects: boolean): Promise<Module> {
+	private fetchModule(
+		id: string,
+		importer: string,
+		moduleSideEffects: boolean,
+		isEntry: boolean
+	): Promise<Module> {
 		const existingModule = this.modulesById.get(id);
 		if (existingModule) {
-			if (existingModule.isExternal) throw new Error(`Cannot fetch external module ${id}`);
-			return Promise.resolve(<Module>existingModule);
+			if (existingModule instanceof ExternalModule)
+				throw new Error(`Cannot fetch external module ${id}`);
+			existingModule.isEntryPoint = existingModule.isEntryPoint || isEntry;
+			return Promise.resolve(existingModule);
 		}
 
-		const module: Module = new Module(this.graph, id, moduleSideEffects);
+		const module: Module = new Module(this.graph, id, moduleSideEffects, isEntry);
 		this.modulesById.set(id, module);
 		const manualChunkAlias = this.getManualChunk(id);
 		if (typeof manualChunkAlias === 'string') {
@@ -374,7 +385,7 @@ export class ModuleLoader {
 			}
 			return Promise.resolve(externalModule);
 		} else {
-			return this.fetchModule(resolvedId.id, importer, resolvedId.moduleSideEffects);
+			return this.fetchModule(resolvedId.id, importer, resolvedId.moduleSideEffects, false);
 		}
 	}
 
@@ -393,7 +404,10 @@ export class ModuleLoader {
 		return resolvedId;
 	}
 
-	private loadEntryModule = ({ alias, unresolvedId }: UnresolvedModuleWithAlias): Promise<Module> =>
+	private loadEntryModule = (
+		{ alias, unresolvedId }: UnresolvedModuleWithAlias,
+		isEntry: boolean
+	): Promise<Module> =>
 		this.pluginDriver
 			.hookFirst('resolveId', [unresolvedId, undefined])
 			.then((resolveIdResult: ResolveIdResult) => {
@@ -409,7 +423,7 @@ export class ModuleLoader {
 						: resolveIdResult;
 
 				if (typeof id === 'string') {
-					return this.fetchModule(id, undefined, true).then(module => {
+					return this.fetchModule(id, undefined, true, isEntry).then(module => {
 						if (alias !== null) {
 							if (module.chunkAlias !== null && module.chunkAlias !== alias) {
 								error(errCannotAssignModuleToChunk(module.id, alias, module.chunkAlias));

@@ -53,7 +53,6 @@ export function analyseModuleExecution(entryModules: Module[]) {
 	};
 
 	for (const curEntry of entryModules) {
-		curEntry.isEntryPoint = true;
 		if (!parents[curEntry.id]) {
 			parents[curEntry.id] = null;
 			analyseModule(curEntry);

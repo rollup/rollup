@@ -188,7 +188,7 @@ export default class Module {
 	importDescriptions: { [name: string]: ImportDescription } = Object.create(null);
 	importMetas: MetaProperty[] = [];
 	imports = new Set<Variable>();
-	isEntryPoint = false;
+	isEntryPoint: boolean;
 	isExecuted = false;
 	isExternal: false;
 	isUserDefinedEntryPoint = false;
@@ -213,12 +213,13 @@ export default class Module {
 	private namespaceVariable: NamespaceVariable = undefined;
 	private transformDependencies: string[];
 
-	constructor(graph: Graph, id: string, moduleSideEffects: boolean) {
+	constructor(graph: Graph, id: string, moduleSideEffects: boolean, isEntry: boolean) {
 		this.id = id;
 		this.graph = graph;
 		this.excludeFromSourcemap = /\0/.test(id);
 		this.context = graph.getModuleContext(id);
 		this.moduleSideEffects = moduleSideEffects;
+		this.isEntryPoint = isEntry;
 	}
 
 	basename() {
