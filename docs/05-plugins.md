@@ -360,6 +360,7 @@ Returns additional information about the module in question in the form
 ```
 {
   id: string, // the id of the module, for convenience
+  isEntry: boolean, // is this a user- or plugin-defined entry point
   isExternal: boolean, // for external modules that are not included in the graph
   importedIds: string[], // the module ids imported by this module
   hasModuleSideEffects: boolean // are imports of this module included if nothing is imported from it

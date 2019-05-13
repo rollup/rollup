@@ -1,5 +1,6 @@
 import { EventEmitter } from 'events';
 import { version as rollupVersion } from 'package.json';
+import ExternalModule from '../ExternalModule';
 import Graph from '../Graph';
 import Module from '../Module';
 import {
@@ -177,10 +178,12 @@ export function createPluginDriver(
 				return {
 					hasModuleSideEffects: foundModule.moduleSideEffects,
 					id: foundModule.id,
-					importedIds: foundModule.isExternal
-						? []
-						: (foundModule as Module).sources.map(id => (foundModule as Module).resolvedIds[id].id),
-					isExternal: !!foundModule.isExternal
+					importedIds:
+						foundModule instanceof ExternalModule
+							? []
+							: foundModule.sources.map(id => foundModule.resolvedIds[id].id),
+					isEntry: foundModule instanceof Module && foundModule.isEntryPoint,
+					isExternal: foundModule instanceof ExternalModule
 				};
 			},
 			meta: {

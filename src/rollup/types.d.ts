@@ -125,6 +125,7 @@ export interface PluginContext extends MinimalPluginContext {
 		hasModuleSideEffects: boolean;
 		id: string;
 		importedIds: string[];
+		isEntry: boolean;
 		isExternal: boolean;
 	};
 	/** @deprecated Use `this.resolve` instead */
