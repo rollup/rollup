@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 1.12.0
+*2019-05-15*
+
+### Features
+* Add `treeshake.moduleSideEffects` option to allow removing empty imports without a side-effect check (#2844)
+* Extend plugin API to allow marking modules as side-effect-free (#2844)
+* Extend `this.resolve` plugin context function with an option to skip the `resolveId` hook of the calling plugin (#2844)
+* Add `isEntry` flag to `this.getModuleInfo` plugin context function (#2844)
+* Distribute Rollup as optimized ES2015 code (#2851)
+
+### Pull Requests
+* [#2844](https://github.com/rollup/rollup/pull/2844): Add options and hooks to control module side effects (@lukastaegert)
+* [#2851](https://github.com/rollup/rollup/pull/2851): Switch to ES2015 output (@lukastaegert)
+
 ## 1.11.3
 *2019-05-05*
 
