@@ -186,11 +186,10 @@ export default class Chunk {
 			module
 		}));
 		for (const { map } of exportVariableMaps) {
-			for (const exposedVariable of Array.from(map.keys())) {
+			for (const exposedVariable of map.keys()) {
 				this.exports.add(exposedVariable);
 			}
 		}
-		const exposedVariables = Array.from(this.exports);
 		checkNextEntryModule: for (const { map, module } of exportVariableMaps) {
 			if (!this.graph.preserveModules) {
 				if (
@@ -200,14 +199,14 @@ export default class Chunk {
 				) {
 					continue checkNextEntryModule;
 				}
-				for (const exposedVariable of exposedVariables) {
+				for (const exposedVariable of this.exports) {
 					if (!map.has(exposedVariable)) {
 						continue checkNextEntryModule;
 					}
 				}
 			}
 			this.facadeModule = module;
-			for (const [variable, exportNames] of Array.from(map)) {
+			for (const [variable, exportNames] of map) {
 				for (const exportName of exportNames) {
 					this.exportNames[exportName] = variable;
 				}
@@ -260,9 +259,8 @@ export default class Chunk {
 			safeExportName: string;
 		this.exportNames = Object.create(null);
 		this.sortedExportNames = null;
-		const exportedVariables = Array.from(this.exports);
 		if (mangle) {
-			for (const variable of exportedVariables) {
+			for (const variable of this.exports) {
 				do {
 					safeExportName = toBase64(++i);
 					// skip past leading number identifiers
@@ -274,7 +272,7 @@ export default class Chunk {
 				this.exportNames[safeExportName] = variable;
 			}
 		} else {
-			for (const variable of exportedVariables) {
+			for (const variable of this.exports) {
 				i = 0;
 				safeExportName = variable.name;
 				while (this.exportNames[safeExportName]) {
@@ -361,7 +359,7 @@ export default class Chunk {
 			this.orderedModules.push(module);
 		}
 
-		for (const variable of Array.from(chunk.imports)) {
+		for (const variable of chunk.imports) {
 			if (!this.imports.has(variable) && variable.module.chunk !== this) {
 				this.imports.add(variable);
 			}
@@ -369,7 +367,7 @@ export default class Chunk {
 
 		// NB detect when exported variables are orphaned by the merge itself
 		// (involves reverse tracing dependents)
-		for (const variable of Array.from(chunk.exports)) {
+		for (const variable of chunk.exports) {
 			if (!this.exports.has(variable)) {
 				this.exports.add(variable);
 			}
@@ -475,7 +473,7 @@ export default class Chunk {
 		};
 
 		// Make sure the direct dependencies of a chunk are present to maintain execution order
-		for (const { module } of Array.from(this.imports)) {
+		for (const { module } of this.imports) {
 			const chunkOrExternal = module instanceof Module ? module.chunk : module;
 			if (this.dependencies.indexOf(chunkOrExternal) === -1) {
 				this.dependencies.push(chunkOrExternal);
@@ -863,13 +861,12 @@ export default class Chunk {
 			exportDeclaration.push({ imported: importName, reexported: exportName, needsLiveBinding });
 		}
 
-		const importsAsArray = Array.from(this.imports);
 		const renderedImports = new Set<Variable>();
 		const dependencies: ChunkDependencies = [];
 
 		for (const dep of this.dependencies) {
 			const imports: ImportSpecifier[] = [];
-			for (const variable of importsAsArray) {
+			for (const variable of this.imports) {
 				const renderedVariable =
 					variable instanceof ExportDefaultVariable && variable.referencesOriginal()
 						? variable.getOriginalVariable()
@@ -1071,7 +1068,7 @@ export default class Chunk {
 	}
 
 	private setUpModuleImports(module: Module) {
-		for (const variable of Array.from(module.imports)) {
+		for (const variable of module.imports) {
 			if (variable.module.chunk !== this) {
 				this.imports.add(variable);
 				if (variable.module instanceof Module) {

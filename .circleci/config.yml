@@ -42,13 +42,6 @@ jobs:
     docker:
       - image: rollupcabal/circleci-node-v10:latest
     <<: *unit_tests
-      # - run:
-      #     name: Run unit tests.
-      #     command: npm run ci:coverage
-      # - run:
-      #     name: Submit coverage data to codecov.
-      #     command: bash <(curl -s https://codecov.io/bash)
-      #     when: on_success
 
 workflows:
   version: 2
