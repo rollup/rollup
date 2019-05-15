@@ -42,6 +42,7 @@ export default function watch(
 
 	const warnings = batchWarnings();
 
+	let processConfigsErr: any;
 	const initialConfigs = processConfigs(configs);
 
 	const clearScreen = initialConfigs.every(config => config.watch.clearScreen !== false);
@@ -51,8 +52,6 @@ export default function watch(
 
 	let watcher: Watcher;
 	let configWatcher: Watcher;
-
-	let processConfigsErr: any;
 
 	function processConfigs(configs: RollupWatchOptions[]): RollupWatchOptions[] {
 		return configs.map(options => {
