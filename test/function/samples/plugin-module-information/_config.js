@@ -12,34 +12,49 @@ module.exports = {
 	description: 'provides module information on the plugin context',
 	options: {
 		external: ['path'],
-		plugins: [
-			{
-				renderStart() {
-					rendered = true;
-					assert.deepEqual(Array.from(this.moduleIds), [ID_MAIN, ID_FOO, ID_NESTED, ID_PATH]);
-					assert.deepEqual(this.getModuleInfo(ID_MAIN), {
-						id: ID_MAIN,
-						importedIds: [ID_FOO, ID_NESTED],
-						isExternal: false
-					});
-					assert.deepEqual(this.getModuleInfo(ID_FOO), {
-						id: ID_FOO,
-						importedIds: [ID_PATH],
-						isExternal: false
-					});
-					assert.deepEqual(this.getModuleInfo(ID_NESTED), {
-						id: ID_NESTED,
-						importedIds: [ID_FOO],
-						isExternal: false
-					});
-					assert.deepEqual(this.getModuleInfo(ID_PATH), {
-						id: ID_PATH,
-						importedIds: [],
-						isExternal: true
-					});
-				}
+		plugins: {
+			load(id) {
+				assert.deepStrictEqual(this.getModuleInfo(id), {
+					hasModuleSideEffects: true,
+					id,
+					importedIds: [],
+					isEntry: id === ID_MAIN,
+					isExternal: false
+				});
+			},
+			renderStart() {
+				rendered = true;
+				assert.deepStrictEqual(Array.from(this.moduleIds), [ID_MAIN, ID_FOO, ID_NESTED, ID_PATH]);
+				assert.deepStrictEqual(this.getModuleInfo(ID_MAIN), {
+					hasModuleSideEffects: true,
+					id: ID_MAIN,
+					importedIds: [ID_FOO, ID_NESTED],
+					isEntry: true,
+					isExternal: false
+				});
+				assert.deepStrictEqual(this.getModuleInfo(ID_FOO), {
+					hasModuleSideEffects: true,
+					id: ID_FOO,
+					importedIds: [ID_PATH],
+					isEntry: false,
+					isExternal: false
+				});
+				assert.deepStrictEqual(this.getModuleInfo(ID_NESTED), {
+					hasModuleSideEffects: true,
+					id: ID_NESTED,
+					importedIds: [ID_FOO],
+					isEntry: false,
+					isExternal: false
+				});
+				assert.deepStrictEqual(this.getModuleInfo(ID_PATH), {
+					hasModuleSideEffects: true,
+					id: ID_PATH,
+					importedIds: [],
+					isEntry: false,
+					isExternal: true
+				});
 			}
-		]
+		}
 	},
 	bundle() {
 		assert.ok(rendered);

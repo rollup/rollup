@@ -73,7 +73,7 @@ function createResolveId(preserveSymlinks: boolean) {
 	};
 }
 
-const getResolveUrl = (path: string, URL: string = 'URL') => `new ${URL}(${path}).href`;
+const getResolveUrl = (path: string, URL = 'URL') => `new ${URL}(${path}).href`;
 
 const getUrlFromDocument = (chunkId: string) =>
 	`(document.currentScript && document.currentScript.src || new URL('${chunkId}', document.baseURI).href)`;

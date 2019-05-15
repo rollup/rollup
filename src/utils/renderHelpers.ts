@@ -23,11 +23,7 @@ export interface NodeRenderOptions {
 
 export const NO_SEMICOLON: NodeRenderOptions = { isNoStatement: true };
 
-export function findFirstOccurrenceOutsideComment(
-	code: string,
-	searchString: string,
-	start: number = 0
-) {
+export function findFirstOccurrenceOutsideComment(code: string, searchString: string, start = 0) {
 	let searchPos, charCodeAfterSlash;
 	searchPos = code.indexOf(searchString, start);
 	while (true) {
@@ -50,7 +46,7 @@ export function findFirstOccurrenceOutsideComment(
 	}
 }
 
-export function findFirstLineBreakOutsideComment(code: string, start: number = 0) {
+export function findFirstLineBreakOutsideComment(code: string, start = 0) {
 	let lineBreakPos, charCodeAfterSlash;
 	lineBreakPos = code.indexOf('\n', start);
 	while (true) {

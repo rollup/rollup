@@ -9,7 +9,7 @@ export default class CatchScope extends ParameterScope {
 		identifier: Identifier,
 		context: AstContext,
 		init: ExpressionEntity | null = null,
-		isHoisted: boolean = false
+		isHoisted = false
 	) {
 		if (isHoisted) {
 			return this.parent.addDeclaration(identifier, context, init, true) as LocalVariable;

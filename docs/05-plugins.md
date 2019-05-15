@@ -140,10 +140,14 @@ Kind: `async, parallel`
 Cf. [`output.intro/output.outro`](guide/en#output-intro-output-outro).
 
 #### `load`
-Type: `(id: string) => string | null | { code: string, map?: string | SourceMap }`<br>
+Type: `(id: string) => string | null | { code: string, map?: string | SourceMap, ast? : ESTree.Program, moduleSideEffects?: boolean | null }`<br>
 Kind: `async, first`
 
-Defines a custom loader. Returning `null` defers to other `load` functions (and eventually the default behavior of loading from the file system).
+Defines a custom loader. Returning `null` defers to other `load` functions (and eventually the default behavior of loading from the file system). To prevent additional parsing overhead in case e.g. this hook already used `this.parse` to generate an AST for some reason, this hook can optionally return a `{ code, ast }` object. The `ast` must be a standard ESTree AST with `start` and `end` properties for each node.
+
+If `false` is returned for `moduleSideEffects` and no other module imports anything from this module, then this module will not be included in the bundle without checking for actual side-effects inside the module. If `true` is returned, Rollup will use its default algorithm to include all statements in the module that have side-effects (such as modifying a global or exported variable). If `null` is returned or the flag is omitted, then `moduleSideEffects` will be determined by the first `resolveId` hook that resolved this module, the `treeshake.moduleSideEffects` option, or eventually default to `true`. The `transform` hook can override this.
+
+You can use [`this.getModuleInfo`](guide/en#this-getmoduleinfo-moduleid-string-moduleinfo) to find out the previous value of `moduleSideEffects` inside this hook.
 
 #### `options`
 Type: `(options: InputOptions) => InputOptions | null`<br>
@@ -224,10 +228,10 @@ resolveFileUrl({fileName}) {
 ```
 
 #### `resolveId`
-Type: `(source: string, importer: string) => string | false | null | {id: string, external?: boolean}`<br>
+Type: `(source: string, importer: string) => string | false | null | {id: string, external?: boolean, moduleSideEffects?: boolean | null}`<br>
 Kind: `async, first`
 
-Defines a custom resolver. A resolver can be useful for e.g. locating third-party dependencies. Returning `null` defers to other `resolveId` functions (and eventually the default resolution behavior); returning `false` signals that `source` should be treated as an external module and not included in the bundle.
+Defines a custom resolver. A resolver can be useful for e.g. locating third-party dependencies. Returning `null` defers to other `resolveId` functions and eventually the default resolution behavior; returning `false` signals that `source` should be treated as an external module and not included in the bundle.
 
 If you return an object, then it is possible to resolve an import to a different id while excluding it from the bundle at the same time. This allows you to replace dependencies with external dependencies without the need for the user to mark them as "external" manually via the `external` option:
 
@@ -239,6 +243,8 @@ resolveId(source) {
   return null;
 }
 ```
+
+If `false` is returned for `moduleSideEffects` in the first hook that resolves a module id and no other module imports anything from this module, then this module will not be included without checking for actual side-effects inside the module. If `true` is returned, Rollup will use its default algorithm to include all statements in the module that have side-effects (such as modifying a global or exported variable). If `null` is returned or the flag is omitted, then `moduleSideEffects` will be determined by the `treeshake.moduleSideEffects` option or default to `true`. The `load` and `transform` hooks can override this.
 
 #### `resolveImportMeta`
 Type: `(property: string | null, {chunkId: string, moduleId: string, format: string}) => string | null`<br>
@@ -263,11 +269,16 @@ resolveImportMeta(property, {moduleId}) {
 Note that since this hook has access to the filename of the current chunk, its return value will not be considered when generating the hash of this chunk.
 
 #### `transform`
-Type: `(code: string, id: string) => string | { code: string, map?: string | SourceMap, ast? : ESTree.Program } | null`
-<br>
+Type: `(code: string, id: string) => string | null | { code: string, map?: string | SourceMap, ast? : ESTree.Program, moduleSideEffects?: boolean | null }`<br>
 Kind: `async, sequential`
 
-Can be used to transform individual modules. Note that in watch mode, the result of this hook is cached when rebuilding and the hook is only triggered again for a module `id` if either the `code` of the module has changed or a file has changed that was added via `this.addWatchFile` the last time the hook was triggered for this module.
+Can be used to transform individual modules. To prevent additional parsing overhead in case e.g. this hook already used `this.parse` to generate an AST for some reason, this hook can optionally return a `{ code, ast }` object. The `ast` must be a standard ESTree AST with `start` and `end` properties for each node.
+
+Note that in watch mode, the result of this hook is cached when rebuilding and the hook is only triggered again for a module `id` if either the `code` of the module has changed or a file has changed that was added via `this.addWatchFile` the last time the hook was triggered for this module.
+
+If `false` is returned for `moduleSideEffects` and no other module imports anything from this module, then this module will not be included without checking for actual side-effects inside the module. If `true` is returned, Rollup will use its default algorithm to include all statements in the module that have side-effects (such as modifying a global or exported variable). If `null` is returned or the flag is omitted, then `moduleSideEffects` will be determined by the first `resolveId` hook that resolved this module, the `treeshake.moduleSideEffects` option, or eventually default to `true`.
+
+You can use [`this.getModuleInfo`](guide/en#this-getmoduleinfo-moduleid-string-moduleinfo) to find out the previous value of `moduleSideEffects` inside this hook.
 
 #### `watchChange`
 Type: `(id: string) => void`<br>
@@ -346,11 +357,13 @@ Get the file name of an emitted chunk. The file name will be relative to `output
 
 Returns additional information about the module in question in the form
 
-```js
+```
 {
-  id, // the id of the module, for convenience
-  isExternal, // for external modules that are not included in the graph
-  importedIds // the module ids imported by this module
+  id: string, // the id of the module, for convenience
+  isEntry: boolean, // is this a user- or plugin-defined entry point
+  isExternal: boolean, // for external modules that are not included in the graph
+  importedIds: string[], // the module ids imported by this module
+  hasModuleSideEffects: boolean // are imports of this module included if nothing is imported from it
 }
 ```
 
@@ -374,8 +387,10 @@ or converted into an Array via `Array.from(this.moduleIds)`.
 
 Use Rollup's internal acorn instance to parse code to an AST.
 
-#### `this.resolve(source: string, importer: string) => Promise<{id: string, external: boolean} | null>`
+#### `this.resolve(source: string, importer: string, options?: {skipSelf: boolean}) => Promise<{id: string, external: boolean} | null>`
 Resolve imports to module ids (i.e. file names) using the same plugins that Rollup uses, and determine if an import should be external. If `null` is returned, the import could not be resolved by Rollup or any plugin but was not explicitly marked as external by the user.
+
+If you pass `skipSelf: true`, then the `resolveId` hook of the plugin from which `this.resolve` is called will be skipped when resolving.
 
 #### `this.setAssetSource(assetReferenceId: string, source: string | Buffer) => void`
 
@@ -501,10 +516,6 @@ export const size = 6;
 ```
 
 If you build this code, both the main chunk and the worklet will share the code from `config.js` via a shared chunk. This enables us to make use of the browser cache to reduce transmitted data and speed up loading the worklet.
-
-### Advanced Loaders
-
-The `load` hook can optionally return a `{ code, ast }` object. The `ast` must be a standard ESTree AST with `start` and `end` properties for each node.
 
 ### Transformers
 

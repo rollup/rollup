@@ -65,25 +65,30 @@ export interface SourceDescription {
 	ast?: ESTree.Program;
 	code: string;
 	map?: string | RawSourceMap;
+	moduleSideEffects?: boolean | null;
 }
 
 export interface TransformSourceDescription extends SourceDescription {
 	dependencies?: string[];
 }
 
-export interface ModuleJSON {
+export interface TransformModuleJSON {
 	ast: ESTree.Program;
 	code: string;
 	// note if plugins use new this.cache to opt-out auto transform cache
 	customTransformCache: boolean;
-	dependencies: string[];
-	id: string;
+	moduleSideEffects: boolean | null;
 	originalCode: string;
 	originalSourcemap: RawSourceMap | void;
-	resolvedIds: ResolvedIdMap;
-	sourcemapChain: RawSourceMap[];
-	transformAssets: Asset[] | void;
+	resolvedIds?: ResolvedIdMap;
+	sourcemapChain: (RawSourceMap | { missing: true; plugin: string })[];
 	transformDependencies: string[] | null;
+}
+
+export interface ModuleJSON extends TransformModuleJSON {
+	dependencies: string[];
+	id: string;
+	transformAssets: Asset[] | void;
 }
 
 export interface Asset {
@@ -117,20 +122,26 @@ export interface PluginContext extends MinimalPluginContext {
 	getModuleInfo: (
 		moduleId: string
 	) => {
+		hasModuleSideEffects: boolean;
 		id: string;
 		importedIds: string[];
+		isEntry: boolean;
 		isExternal: boolean;
 	};
-	/** @deprecated */
+	/** @deprecated Use `this.resolve` instead */
 	isExternal: IsExternal;
 	moduleIds: IterableIterator<string>;
 	parse: (input: string, options: any) => ESTree.Program;
-	resolve: (source: string, importer: string) => Promise<ResolvedId | null>;
-	/** @deprecated */
+	resolve: (
+		source: string,
+		importer: string,
+		options?: { skipSelf: boolean }
+	) => Promise<ResolvedId | null>;
+	/** @deprecated Use `this.resolve` instead */
 	resolveId: (source: string, importer: string) => Promise<string | null>;
 	setAssetSource: (assetReferenceId: string, source: string | Buffer) => void;
 	warn: (warning: RollupWarning | string, pos?: { column: number; line: number }) => void;
-	/** @deprecated */
+	/** @deprecated Use `this.addWatchFile` and the `watchChange` hook instead  */
 	watcher: EventEmitter;
 }
 
@@ -141,13 +152,18 @@ export interface PluginContextMeta {
 export interface ResolvedId {
 	external: boolean;
 	id: string;
+	moduleSideEffects: boolean;
 }
 
 export interface ResolvedIdMap {
 	[key: string]: ResolvedId;
 }
 
-type PartialResolvedId = Partial<ResolvedId> & { id: string };
+interface PartialResolvedId {
+	external?: boolean;
+	id: string;
+	moduleSideEffects?: boolean | null;
+}
 
 export type ResolveIdResult = string | false | void | PartialResolvedId;
 
@@ -159,20 +175,22 @@ export type ResolveIdHook = (
 
 export type IsExternal = (source: string, importer: string, isResolved: boolean) => boolean | void;
 
+export type IsPureModule = (id: string) => boolean | void;
+
+export type HasModuleSideEffects = (id: string, external: boolean) => boolean;
+
 export type LoadHook = (
 	this: PluginContext,
 	id: string
 ) => Promise<SourceDescription | string | null> | SourceDescription | string | null;
 
+export type TransformResult = string | void | TransformSourceDescription;
+
 export type TransformHook = (
 	this: PluginContext,
 	code: string,
 	id: string
-) =>
-	| Promise<TransformSourceDescription | string | void>
-	| TransformSourceDescription
-	| string
-	| void;
+) => Promise<TransformResult> | TransformResult;
 
 export type TransformChunkHook = (
 	this: PluginContext,
@@ -267,13 +285,13 @@ export interface PluginHooks {
 		isWrite: boolean
 	) => void | Promise<void>;
 	load?: LoadHook;
-	/** @deprecated */
+	/** @deprecated Use `generateBundle` instead */
 	ongenerate?: (
 		this: PluginContext,
 		options: OnGenerateOptions,
 		chunk: OutputChunk
 	) => void | Promise<void>;
-	/** @deprecated */
+	/** @deprecated Use `writeBundle` instead */
 	onwrite?: (
 		this: PluginContext,
 		options: OnWriteOptions,
@@ -284,16 +302,16 @@ export interface PluginHooks {
 	renderChunk?: RenderChunkHook;
 	renderError?: (this: PluginContext, err?: Error) => Promise<void> | void;
 	renderStart?: (this: PluginContext) => Promise<void> | void;
-	/** @deprecated */
+	/** @deprecated Use `resolveFileUrl` instead */
 	resolveAssetUrl?: ResolveAssetUrlHook;
 	resolveDynamicImport?: ResolveDynamicImportHook;
 	resolveFileUrl?: ResolveFileUrlHook;
 	resolveId?: ResolveIdHook;
 	resolveImportMeta?: ResolveImportMetaHook;
 	transform?: TransformHook;
-	/** @deprecated */
+	/** @deprecated Use `renderChunk` instead */
 	transformBundle?: TransformChunkHook;
-	/** @deprecated */
+	/** @deprecated Use `renderChunk` instead */
 	transformChunk?: TransformChunkHook;
 	watchChange?: (id: string) => void;
 	writeBundle?: (this: PluginContext, bundle: OutputBundle) => void | Promise<void>;
@@ -310,16 +328,20 @@ export interface Plugin extends PluginHooks {
 
 export interface TreeshakingOptions {
 	annotations?: boolean;
+	moduleSideEffects?: ModuleSideEffectsOption;
 	propertyReadSideEffects?: boolean;
-	pureExternalModules?: boolean;
+	/** @deprecated Use `moduleSideEffects` instead */
+	pureExternalModules?: PureModulesOption;
 }
 
 export type GetManualChunk = (id: string) => string | void;
 
 export type ExternalOption = string[] | IsExternal;
+export type PureModulesOption = boolean | string[] | IsPureModule;
 export type GlobalsOption = { [name: string]: string } | ((name: string) => string);
 export type InputOption = string | string[] | { [entryAlias: string]: string };
 export type ManualChunksOption = { [chunkAlias: string]: string[] } | GetManualChunk;
+export type ModuleSideEffectsOption = boolean | 'no-external' | string[] | HasModuleSideEffects;
 
 export interface InputOptions {
 	acorn?: any;

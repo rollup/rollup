@@ -114,10 +114,10 @@ export function isChunkRendered(chunk: Chunk): boolean {
 export default class Chunk {
 	entryModules: Module[] = [];
 	execIndex: number;
-	exportMode: string = 'named';
+	exportMode = 'named';
 	facadeModule: Module | null = null;
 	graph: Graph;
-	hasDynamicImport: boolean = false;
+	hasDynamicImport = false;
 	id: string = undefined;
 	indentString: string = undefined;
 	isEmpty: boolean;
@@ -135,7 +135,7 @@ export default class Chunk {
 	private exportNames: { [name: string]: Variable } = Object.create(null);
 	private exports = new Set<Variable>();
 	private imports = new Set<Variable>();
-	private needsExportsShim: boolean = false;
+	private needsExportsShim = false;
 	private renderedDeclarations: {
 		dependencies: ChunkDependencies;
 		exports: ChunkExports;
@@ -753,7 +753,7 @@ export default class Chunk {
 			if (depModule instanceof Module) {
 				dependency = depModule.chunk;
 			} else {
-				if (!depModule.used && this.graph.isPureExternalModule(depModule.id)) {
+				if (!(depModule.used || depModule.moduleSideEffects)) {
 					continue;
 				}
 				dependency = depModule;

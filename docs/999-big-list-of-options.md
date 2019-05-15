@@ -729,31 +729,12 @@ Default: `false`
 If this option is provided, bundling will not fail if bindings are imported from a file that does not define these bindings. Instead, new variables will be created for these bindings with the value `undefined`.
 
 #### treeshake
-Type: `boolean | { propertyReadSideEffects?: boolean, annotations?: boolean, pureExternalModules?: boolean }`<br>
+Type: `boolean | { annotations?: boolean, moduleSideEffects?: ModuleSideEffectsOption, propertyReadSideEffects?: boolean }`<br>
 CLI: `--treeshake`/`--no-treeshake`<br>
 Default: `true`
 
 Whether or not to apply tree-shaking and to fine-tune the tree-shaking process. Setting this option to `false` will produce bigger bundles but may improve build performance. If you discover a bug caused by the tree-shaking algorithm, please file an issue!
 Setting this option to an object implies tree-shaking is enabled and grants the following additional options:
-
-**treeshake.propertyReadSideEffects**
-Type: `boolean`<br>
-CLI: `--treeshake.propertyReadSideEffects`/`--no-treeshake.propertyReadSideEffects`<br>
-Default: `true`
-
-If `false`, assume reading a property of an object never has side-effects. Depending on your code, disabling this option can significantly reduce bundle size but can potentially break functionality if you rely on getters or errors from illegal property access.
-
-```javascript
-// Will be removed if treeshake.propertyReadSideEffects === false
-const foo = {
-  get bar() {
-    console.log('effect');
-    return 'bar';
-  }
-}
-const result = foo.bar;
-const illegalAccess = foo.quux.tooDeep;
-```
 
 **treeshake.annotations**<br>
 Type: `boolean`<br>
@@ -774,12 +755,12 @@ class Impure {
 /*@__PURE__*/new Impure();
 ```
 
-**treeshake.pureExternalModules**<br>
-Type: `boolean`<br>
-CLI: `--treeshake.pureExternalModules`/`--no-treeshake.pureExternalModules`<br>
-Default: `false`
+**treeshake.moduleSideEffects**<br>
+Type: `boolean | "no-external" | string[] | (id: string, external: boolean) => boolean`<br>
+CLI: `--treeshake.moduleSideEffects`/`--no-treeshake.moduleSideEffects`<br>
+Default: `true`
 
-If `true`, assume external dependencies from which nothing is imported do not have other side-effects like mutating global variables or logging.
+If `false`, assume modules and external dependencies from which nothing is imported do not have other side-effects like mutating global variables or logging without checking. For external dependencies, this will suppress empty imports:
 
 ```javascript
 // input file
@@ -789,15 +770,59 @@ console.log(42);
 ```
 
 ```javascript
-// output with treeshake.pureExternalModules === false
+// output with treeshake.moduleSideEffects === true
 import 'external-a';
 import 'external-b';
 console.log(42);
 ```
 
 ```javascript
-// output with treeshake.pureExternalModules === true
+// output with treeshake.moduleSideEffects === false
 console.log(42);
+```
+
+For non-external modules, `false` will not include any statements from a module unless at least one import from this module is included:
+
+```javascript
+// input file a.js
+import {unused} from './b.js';
+console.log(42);
+
+// input file b.js
+console.log('side-effect');
+```
+
+```javascript
+// output with treeshake.moduleSideEffects === true
+console.log('side-effect');
+
+console.log(42);
+```
+
+```javascript
+// output with treeshake.moduleSideEffects === false
+console.log(42);
+```
+
+You can also supply a list of modules with side-effects or a function to determine it for each module individually. The value `"no-external"` will only remove external imports if possible and is equivalent to the function `(id, external) => !external`;
+
+**treeshake.propertyReadSideEffects**
+Type: `boolean`<br>
+CLI: `--treeshake.propertyReadSideEffects`/`--no-treeshake.propertyReadSideEffects`<br>
+Default: `true`
+
+If `false`, assume reading a property of an object never has side-effects. Depending on your code, disabling this option can significantly reduce bundle size but can potentially break functionality if you rely on getters or errors from illegal property access.
+
+```javascript
+// Will be removed if treeshake.propertyReadSideEffects === false
+const foo = {
+  get bar() {
+    console.log('effect');
+    return 'bar';
+  }
+}
+const result = foo.bar;
+const illegalAccess = foo.quux.tooDeep;
 ```
 
 ### Experimental options
@@ -903,3 +928,35 @@ export default {
   }
 };
 ```
+
+### Deprecated options
+
+☢️ These options have been deprecated and may be removed in a future Rollup version.
+
+#### treeshake.pureExternalModules
+Type: `boolean | string[] | (id: string) => boolean | null`<br>
+CLI: `--treeshake.pureExternalModules`/`--no-treeshake.pureExternalModules`<br>
+Default: `false`
+
+If `true`, assume external dependencies from which nothing is imported do not have other side-effects like mutating global variables or logging.
+
+```javascript
+// input file
+import {unused} from 'external-a';
+import 'external-b';
+console.log(42);
+```
+
+```javascript
+// output with treeshake.pureExternalModules === false
+import 'external-a';
+import 'external-b';
+console.log(42);
+```
+
+```javascript
+// output with treeshake.pureExternalModules === true
+console.log(42);
+```
+
+You can also supply a list of external ids to be considered pure or a function that is called whenever an external import could be removed.

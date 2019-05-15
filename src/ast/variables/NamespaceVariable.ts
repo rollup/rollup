@@ -11,8 +11,8 @@ export default class NamespaceVariable extends Variable {
 	memberVariables: { [name: string]: Variable } = Object.create(null);
 	module: Module;
 
-	private containsExternalNamespace: boolean = false;
-	private referencedEarly: boolean = false;
+	private containsExternalNamespace = false;
+	private referencedEarly = false;
 	private references: Identifier[] = [];
 
 	constructor(context: AstContext) {

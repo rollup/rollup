@@ -10,13 +10,13 @@ export default class ExternalModule {
 	execIndex: number;
 	exportedVariables: Map<ExternalVariable, string>;
 	exportsNames = false;
-	exportsNamespace: boolean = false;
+	exportsNamespace = false;
 	id: string;
-	isEntryPoint = false;
 	isExternal = true;
-	mostCommonSuggestion: number = 0;
+	moduleSideEffects: boolean;
+	mostCommonSuggestion = 0;
 	nameSuggestions: { [name: string]: number };
-	reexported: boolean = false;
+	reexported = false;
 	renderPath: string = undefined;
 	renormalizeRenderPath = false;
 	used = false;
@@ -24,10 +24,11 @@ export default class ExternalModule {
 
 	private graph: Graph;
 
-	constructor({ graph, id }: { graph: Graph; id: string }) {
+	constructor(graph: Graph, id: string, moduleSideEffects: boolean) {
 		this.graph = graph;
 		this.id = id;
 		this.execIndex = Infinity;
+		this.moduleSideEffects = moduleSideEffects;
 
 		const parts = id.split(/[\\/]/);
 		this.variableName = makeLegal(parts.pop());

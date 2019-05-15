@@ -34,7 +34,8 @@ import {
 	RawSourceMap,
 	ResolvedIdMap,
 	RollupError,
-	RollupWarning
+	RollupWarning,
+	TransformModuleJSON
 } from './rollup/types';
 import { error } from './utils/error';
 import getCodeFrame from './utils/getCodeFrame';
@@ -46,7 +47,7 @@ import relativeId from './utils/relativeId';
 import { RenderOptions } from './utils/renderHelpers';
 import { SOURCEMAPPING_URL_RE } from './utils/sourceMappingURL';
 import { timeEnd, timeStart } from './utils/timers';
-import { visitStaticModuleDependencies } from './utils/traverseStaticDependencies';
+import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
 import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
 
 export interface CommentDescription {
@@ -176,7 +177,7 @@ export default class Module {
 	}[] = [];
 	entryPointsHash: Uint8Array = new Uint8Array(10);
 	excludeFromSourcemap: boolean;
-	execIndex: number = Infinity;
+	execIndex = Infinity;
 	exportAllModules: (Module | ExternalModule)[] = null;
 	exportAllSources: string[] = [];
 	exports: { [name: string]: ExportDescription } = Object.create(null);
@@ -187,11 +188,12 @@ export default class Module {
 	importDescriptions: { [name: string]: ImportDescription } = Object.create(null);
 	importMetas: MetaProperty[] = [];
 	imports = new Set<Variable>();
-	isEntryPoint: boolean = false;
-	isExecuted: boolean = false;
+	isEntryPoint: boolean;
+	isExecuted = false;
 	isExternal: false;
-	isUserDefinedEntryPoint: boolean = false;
+	isUserDefinedEntryPoint = false;
 	manualChunkAlias: string = null;
+	moduleSideEffects: boolean;
 	originalCode: string;
 	originalSourcemap: RawSourceMap | void;
 	reexports: { [name: string]: ReexportDescription } = Object.create(null);
@@ -200,7 +202,7 @@ export default class Module {
 	sourcemapChain: RawSourceMap[];
 	sources: string[] = [];
 	transformAssets: Asset[];
-	usesTopLevelAwait: boolean = false;
+	usesTopLevelAwait = false;
 
 	private ast: Program;
 	private astContext: AstContext;
@@ -211,11 +213,13 @@ export default class Module {
 	private namespaceVariable: NamespaceVariable = undefined;
 	private transformDependencies: string[];
 
-	constructor(graph: Graph, id: string) {
+	constructor(graph: Graph, id: string, moduleSideEffects: boolean, isEntry: boolean) {
 		this.id = id;
 		this.graph = graph;
 		this.excludeFromSourcemap = /\0/.test(id);
 		this.context = graph.getModuleContext(id);
+		this.moduleSideEffects = moduleSideEffects;
+		this.isEntryPoint = isEntry;
 	}
 
 	basename() {
@@ -410,11 +414,7 @@ export default class Module {
 	includeAllExports() {
 		if (!this.isExecuted) {
 			this.graph.needsTreeshakingPass = true;
-			visitStaticModuleDependencies(this, module => {
-				if (module instanceof ExternalModule || module.isExecuted) return true;
-				module.isExecuted = true;
-				return false;
-			});
+			markModuleAndImpureDependenciesAsExecuted(this);
 		}
 
 		for (const exportName of this.getExports()) {
@@ -480,21 +480,25 @@ export default class Module {
 	}
 
 	setSource({
+		ast,
 		code,
+		customTransformCache,
+		moduleSideEffects,
 		originalCode,
 		originalSourcemap,
-		ast,
-		sourcemapChain,
 		resolvedIds,
-		transformDependencies,
-		customTransformCache
-	}: ModuleJSON) {
+		sourcemapChain,
+		transformDependencies
+	}: TransformModuleJSON) {
 		this.code = code;
 		this.originalCode = originalCode;
 		this.originalSourcemap = originalSourcemap;
-		this.sourcemapChain = sourcemapChain;
+		this.sourcemapChain = sourcemapChain as RawSourceMap[];
 		this.transformDependencies = transformDependencies;
 		this.customTransformCache = customTransformCache;
+		if (typeof moduleSideEffects === 'boolean') {
+			this.moduleSideEffects = moduleSideEffects;
+		}
 
 		timeStart('generate ast', 3);
 
@@ -570,6 +574,7 @@ export default class Module {
 			customTransformCache: this.customTransformCache,
 			dependencies: this.dependencies.map(module => module.id),
 			id: this.id,
+			moduleSideEffects: this.moduleSideEffects,
 			originalCode: this.originalCode,
 			originalSourcemap: this.originalSourcemap,
 			resolvedIds: this.resolvedIds,
@@ -768,11 +773,12 @@ export default class Module {
 	}
 
 	private includeVariable(variable: Variable) {
+		const variableModule = variable.module;
 		if (!variable.included) {
 			variable.include();
 			this.graph.needsTreeshakingPass = true;
 		}
-		if (variable.module && variable.module !== this) {
+		if (variableModule && variableModule !== this) {
 			this.imports.add(variable);
 		}
 	}

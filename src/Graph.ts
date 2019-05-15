@@ -67,10 +67,9 @@ export default class Graph {
 	curChunkIndex = 0;
 	deoptimizationTracker: EntityPathTracker;
 	getModuleContext: (id: string) => string;
-	isPureExternalModule: (id: string) => boolean;
 	moduleById = new Map<string, Module | ExternalModule>();
 	moduleLoader: ModuleLoader;
-	needsTreeshakingPass: boolean = false;
+	needsTreeshakingPass = false;
 	phase: BuildPhase = BuildPhase.LOAD_AND_PARSE;
 	pluginDriver: PluginDriver;
 	preserveModules: boolean;
@@ -114,23 +113,17 @@ export default class Graph {
 			this.treeshakingOptions = options.treeshake
 				? {
 						annotations: (<TreeshakingOptions>options.treeshake).annotations !== false,
+						moduleSideEffects: (<TreeshakingOptions>options.treeshake).moduleSideEffects,
 						propertyReadSideEffects:
 							(<TreeshakingOptions>options.treeshake).propertyReadSideEffects !== false,
 						pureExternalModules: (<TreeshakingOptions>options.treeshake).pureExternalModules
 				  }
-				: { propertyReadSideEffects: true, annotations: true, pureExternalModules: false };
-			if (this.treeshakingOptions.pureExternalModules === true) {
-				this.isPureExternalModule = () => true;
-			} else if (typeof this.treeshakingOptions.pureExternalModules === 'function') {
-				this.isPureExternalModule = this.treeshakingOptions.pureExternalModules;
-			} else if (Array.isArray(this.treeshakingOptions.pureExternalModules)) {
-				const pureExternalModules = new Set(this.treeshakingOptions.pureExternalModules);
-				this.isPureExternalModule = id => pureExternalModules.has(id);
-			} else {
-				this.isPureExternalModule = () => false;
-			}
-		} else {
-			this.isPureExternalModule = () => false;
+				: {
+						annotations: true,
+						moduleSideEffects: true,
+						propertyReadSideEffects: true,
+						pureExternalModules: false
+				  };
 		}
 
 		this.contextParse = (code: string, options: acorn.Options = {}) =>
@@ -193,7 +186,9 @@ export default class Graph {
 			this.moduleById,
 			this.pluginDriver,
 			options.external,
-			typeof options.manualChunks === 'function' && options.manualChunks
+			typeof options.manualChunks === 'function' && options.manualChunks,
+			this.treeshake ? this.treeshakingOptions.moduleSideEffects : null,
+			this.treeshake ? this.treeshakingOptions.pureExternalModules : false
 		);
 	}
 
