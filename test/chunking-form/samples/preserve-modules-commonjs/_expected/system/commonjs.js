@@ -1,4 +1,4 @@
-System.register(['external', './other.js', './_virtual/_commonjs-external-external', './_virtual/other.js'], function (exports, module) {
+System.register(['external', './other.js', './_virtual/_external_commonjs-external', './_virtual/other.js_commonjs-proxy'], function (exports, module) {
 	'use strict';
 	var external, require$$0;
 	return {
