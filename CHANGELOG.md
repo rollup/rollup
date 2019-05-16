@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.12.1
+*unreleased*
+
+### Bug Fixes
+* Extend file name sanitation to also replace "?" and "*" e.g. when preserving modules with the updated commonjs plugin (#2860)
+
+### Pull Requests
+* [#2860](https://github.com/rollup/rollup/pull/2860): Update to latest plugins and extend file name sanitation (@lukastaegert)
+
 ## 1.12.0
 *2019-05-15*
 
