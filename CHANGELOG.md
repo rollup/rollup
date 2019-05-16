@@ -1,7 +1,7 @@
 # rollup changelog
 
 ## 1.12.1
-*unreleased*
+*2019-05-16*
 
 ### Bug Fixes
 * Extend file name sanitation to also replace "?" and "*" e.g. when preserving modules with the updated commonjs plugin (#2860)
