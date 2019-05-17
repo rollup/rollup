@@ -10,15 +10,15 @@ import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } 
 
 export default class Variable implements ExpressionEntity {
 	exportName: string | null = null;
-	included: boolean = false;
+	included = false;
 	isDefault?: boolean;
 	isExternal?: boolean;
-	isId: boolean = false;
+	isId = false;
 	isNamespace?: boolean;
-	isReassigned: boolean = false;
+	isReassigned = false;
 	module: Module | ExternalModule | null;
 	name: string;
-	reexported: boolean = false;
+	reexported = false;
 	renderBaseName: string | null = null;
 	renderName: string | null = null;
 	safeExportName: string | null = null;

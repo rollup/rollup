@@ -1,4 +1,4 @@
-define(['exports', './generated-dynamic.js'], function (exports, dynamic) { 'use strict';
+define(['exports', './generated-dynamic'], function (exports, dynamic) { 'use strict';
 
 
 

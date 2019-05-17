@@ -10,4 +10,4 @@ cBar = 2;
 var dFoo = 1, dBar;
 dFoo = 2;
 
-export { aFoo, aBar, bFoo, bBar, cFoo, cBar, dFoo, dBar };
+export { aBar, aFoo, bBar, bFoo, cBar, cFoo, dBar, dFoo };

@@ -10,6 +10,6 @@ module.exports = {
 		code: 'NAMESPACE_CANNOT_CONTAIN_EXTERNAL',
 		message:
 			'Cannot create an explicit namespace object for module "reexport" because it contains a reexported external namespace',
-		id: path.join(__dirname, '/reexport.js')
+		id: path.join(__dirname, 'reexport.js')
 	}
 };

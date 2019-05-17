@@ -3,7 +3,7 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			module.import('./generated-chunk.js');
+			module.import('./generated-dynamic1.js');
 			console.log('main');
 
 		}

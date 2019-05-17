@@ -109,7 +109,7 @@ describe('The bundle object', () => {
 			.then(({ output }) => {
 				assert.deepEqual(
 					output.map(chunk => chunk.fileName),
-					['input1.js', 'input2.js', 'generated-input2.js'],
+					['input1.js', 'input2.js', 'generated-chunk.js'],
 					'fileName'
 				);
 				assert.deepEqual(
@@ -150,7 +150,7 @@ describe('The bundle object', () => {
 			.then(({ output }) => {
 				assert.deepEqual(
 					output.map(chunk => chunk.fileName),
-					['input1.js', 'input2.js', 'input22.js'],
+					['input1.js', 'input2.js', 'chunk.js'],
 					'fileName'
 				);
 				assert.deepEqual(
@@ -184,14 +184,14 @@ describe('The bundle object', () => {
 			.then(({ output }) => {
 				assert.deepEqual(
 					output.map(chunk => chunk.fileName),
-					['input.js', 'dynamic1.js', 'generated-chunk.js'],
+					['input.js', 'dynamic1.js', 'generated-dynamic2.js'],
 					'fileName'
 				);
 				assert.deepEqual(output.map(chunk => chunk.isEntry), [true, true, false], 'isEntry');
 				assert.deepEqual(
 					output.map(chunk => chunk.code),
 					[
-						`Promise.all([import('./dynamic1.js'), import('./generated-chunk.js')]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));\n`,
+						`Promise.all([import('./dynamic1.js'), import('./generated-dynamic2.js')]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));\n`,
 						'const dynamic1 = "dynamic1";\n\nexport { dynamic1 };\n',
 						'const dynamic2 = "dynamic2";\n\nexport { dynamic2 };\n'
 					],
@@ -209,7 +209,7 @@ describe('The bundle object', () => {
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.dynamicImports),
-					[['dynamic1.js', 'generated-chunk.js'], [], []],
+					[['dynamic1.js', 'generated-dynamic2.js'], [], []],
 					'dynamicImports'
 				);
 			});
@@ -239,7 +239,7 @@ describe('The bundle object', () => {
 			.then(({ output }) => {
 				assert.deepEqual(
 					output.map(chunk => chunk.fileName),
-					['input1.js', 'input2.js', 'generated-chunk.js', 'generated-chunk2.js'],
+					['input1.js', 'input2.js', 'generated-chunk.js', 'generated-dynamic.js'],
 					'fileName'
 				);
 				assert.deepEqual(
@@ -348,7 +348,7 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.name),
-					['input', 'dynamic1', 'chunk', 'chunk'],
+					['input', 'dynamic1', 'other', 'dynamic2'],
 					'name'
 				);
 				assert.deepEqual(
@@ -413,6 +413,109 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 					output.map(chunk => chunk.facadeModuleId),
 					['input', 'dynamic1', 'other', 'dynamic2'],
 					'facadeModuleId'
+				);
+			});
+	});
+
+	it('contains correct information about rendered/removedExports when directly exporting items', () => {
+		return rollup
+			.rollup({
+				input: ['input'],
+				plugins: [
+					loader({
+						input: 'export { renderedFn, renderedClass, renderedConst } from "code"',
+						code:
+							'export function renderedFn() {}\nexport function removedFn() {}\n' +
+							'export class renderedClass {}\nexport class removedClass {}\n' +
+							'export const renderedConst = 1;\nexport const removedConst = 1;'
+					})
+				]
+			})
+			.then(bundle =>
+				bundle.generate({
+					format: 'esm'
+				})
+			)
+			.then(({ output: [output] }) => {
+				assert.deepEqual(
+					output.code,
+					'function renderedFn() {}\nclass renderedClass {}\nconst renderedConst = 1;\n\nexport { renderedClass, renderedConst, renderedFn };\n',
+					'code'
+				);
+				assert.deepEqual(
+					output.exports,
+					['renderedClass', 'renderedConst', 'renderedFn'],
+					'exports'
+				);
+				assert.deepEqual(
+					output.modules,
+					{
+						code: {
+							originalLength: 184,
+							removedExports: ['removedFn', 'removedClass', 'removedConst'],
+							renderedExports: ['renderedFn', 'renderedClass', 'renderedConst'],
+							renderedLength: 72
+						},
+						input: {
+							originalLength: 63,
+							removedExports: [],
+							renderedExports: [],
+							renderedLength: 0
+						}
+					},
+					'modules'
+				);
+			});
+	});
+
+	it('contains correct information about rendered/removedExports when using export declaration', () => {
+		return rollup
+			.rollup({
+				input: ['input'],
+				plugins: [
+					loader({
+						input: 'export { renderedFn, renderedClass, renderedConst } from "code"',
+						code:
+							'function renderedFn() {}\nfunction removedFn() {}\n' +
+							'class renderedClass {}\nclass removedClass {}\n' +
+							'const renderedConst = 1;\nconst removedConst = 1;\n' +
+							'export { renderedFn, renderedClass, renderedConst, removedFn, removedClass, removedConst }'
+					})
+				]
+			})
+			.then(bundle =>
+				bundle.generate({
+					format: 'esm'
+				})
+			)
+			.then(({ output: [output] }) => {
+				assert.deepEqual(
+					output.code,
+					'function renderedFn() {}\nclass renderedClass {}\nconst renderedConst = 1;\n\nexport { renderedClass, renderedConst, renderedFn };\n',
+					'code'
+				);
+				assert.deepEqual(
+					output.exports,
+					['renderedClass', 'renderedConst', 'renderedFn'],
+					'exports'
+				);
+				assert.deepEqual(
+					output.modules,
+					{
+						code: {
+							originalLength: 233,
+							removedExports: ['removedFn', 'removedClass', 'removedConst'],
+							renderedExports: ['renderedFn', 'renderedClass', 'renderedConst'],
+							renderedLength: 72
+						},
+						input: {
+							originalLength: 63,
+							removedExports: [],
+							renderedExports: [],
+							renderedLength: 0
+						}
+					},
+					'modules'
 				);
 			});
 	});

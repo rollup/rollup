@@ -79,7 +79,7 @@ const callsArgReturnsUnknown: RawMemberDescription = {
 };
 
 export class UnknownArrayExpression implements ExpressionEntity {
-	included: boolean = false;
+	included = false;
 
 	deoptimizePath() {}
 
@@ -275,7 +275,7 @@ const returnsString: RawMemberDescription = {
 };
 
 export class UnknownObjectExpression implements ExpressionEntity {
-	included: boolean = false;
+	included = false;
 
 	deoptimizePath() {}
 

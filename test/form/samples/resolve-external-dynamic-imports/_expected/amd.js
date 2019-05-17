@@ -6,8 +6,8 @@ define(['require', 'exports', 'external'], function (require, exports, myExterna
 
 	const someDynamicImport = () => new Promise(function (resolve, reject) { require(['external'], resolve, reject) });
 
-	exports.test = test;
 	exports.someDynamicImport = someDynamicImport;
+	exports.test = test;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

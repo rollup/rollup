@@ -1,4 +1,4 @@
 'use strict';
 
 console.log('main');
-Promise.resolve(require('./generated-chunk2.js'));
+Promise.resolve(require('./generated-dep1.js'));

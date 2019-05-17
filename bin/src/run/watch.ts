@@ -9,6 +9,7 @@ import {
 	RollupBuild,
 	RollupError,
 	RollupWatchOptions,
+	WarningHandler,
 	WatcherOptions
 } from '../../../src/rollup/types';
 import mergeOptions from '../../../src/utils/mergeOptions';
@@ -43,6 +44,7 @@ export default function watch(
 
 	const warnings = batchWarnings();
 
+	let processConfigsErr: any;
 	const initialConfigs = processConfigs(configs);
 
 	const clearScreen = initialConfigs.every(
@@ -54,8 +56,6 @@ export default function watch(
 
 	let watcher: Watcher;
 	let configWatcher: Watcher;
-
-	let processConfigsErr: any;
 
 	function processConfigs(configs: RollupWatchOptions[]): RollupWatchOptions[] {
 		return configs.map(options => {
@@ -73,7 +73,7 @@ export default function watch(
 			if (!result.watch) result.watch = {};
 
 			if (merged.optionError)
-				merged.inputOptions.onwarn({
+				(merged.inputOptions.onwarn as WarningHandler)({
 					code: 'UNKNOWN_OPTION',
 					message: merged.optionError
 				});
@@ -140,7 +140,7 @@ export default function watch(
 							tc.green(
 								`created ${tc.bold(
 									(event.output as string[]).map(relativeId).join(', ')
-								)} in ${tc.bold(ms(event.duration))}`
+								)} in ${tc.bold(ms(event.duration as number))}`
 							)
 						);
 					if (event.result && event.result.getTimings) {

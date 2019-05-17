@@ -10,7 +10,7 @@ export default class BlockScope extends ChildScope {
 		identifier: Identifier,
 		context: AstContext,
 		init: ExpressionEntity | null = null,
-		isHoisted: boolean = false
+		isHoisted = false
 	) {
 		if (isHoisted) {
 			return this.parent.addDeclaration(

@@ -39,9 +39,9 @@ const getObjectOption = (
 
 const defaultOnWarn: WarningHandler = warning => {
 	if (typeof warning === 'string') {
-		console.warn(warning); // eslint-disable-line no-console
+		console.warn(warning);
 	} else {
-		console.warn(warning.message); // eslint-disable-line no-console
+		console.warn(warning.message);
 	}
 };
 
@@ -88,7 +88,7 @@ export default function mergeOptions({
 	config: GenericConfigObject;
 	defaultOnWarnHandler?: WarningHandler;
 }): {
-	inputOptions: any;
+	inputOptions: InputOptions;
 	optionError: string | null;
 	outputOptions: any;
 } {
@@ -204,7 +204,7 @@ function getInputOptions(
 		experimentalTopLevelAwait: getOption('experimentalTopLevelAwait'),
 		external: getExternal(config, command),
 		inlineDynamicImports: getOption('inlineDynamicImports', false),
-		input: getOption('input'),
+		input: getOption('input', []),
 		manualChunks: getOption('manualChunks'),
 		moduleContext: config.moduleContext,
 		onwarn: getOnWarn(config, command, defaultOnWarnHandler),
@@ -229,7 +229,17 @@ function getOutputOptions(
 	command: GenericConfigObject = {}
 ): OutputOptions {
 	const getOption = createGetOption(config, command);
-	const format = getOption('format');
+	let format = getOption('format');
+
+	// Handle format aliases
+	switch (format) {
+		case 'esm':
+		case 'module':
+			format = 'es';
+			break;
+		case 'commonjs':
+			format = 'cjs';
+	}
 
 	return {
 		amd: { ...config.amd, ...command.amd },

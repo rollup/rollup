@@ -1,4 +1,4 @@
-define(['exports', './hsl2hsv.js', './generated-index.js'], function (exports, hsl2hsv$1, index) { 'use strict';
+define(['exports', './hsl2hsv', './generated-chunk'], function (exports, hsl2hsv$1, index) { 'use strict';
 
 
 

@@ -1,3 +1,3 @@
 var _missingExportShim=void 0;function x () {
   sideEffect();
-}export{x,_missingExportShim as missingFn,_missingExportShim as missingExport};
+}export{_missingExportShim as missingExport,_missingExportShim as missingFn,x};

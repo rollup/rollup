@@ -1,6 +1,6 @@
 import { realpathSync } from 'fs';
 import relative from 'require-relative';
-import { InputOptions } from '../../../src/rollup/types';
+import { InputOptions, WarningHandler } from '../../../src/rollup/types';
 import mergeOptions from '../../../src/utils/mergeOptions';
 import { getAliasName } from '../../../src/utils/relativeId';
 import { handleError } from '../logging';
@@ -107,7 +107,8 @@ function execute(configFile: string, configs: InputOptions[], command: any) {
 					defaultOnWarnHandler: warnings.add
 				});
 
-				if (optionError) inputOptions.onwarn({ code: 'UNKNOWN_OPTION', message: optionError });
+				if (optionError)
+					(inputOptions.onwarn as WarningHandler)({ code: 'UNKNOWN_OPTION', message: optionError });
 				return build(inputOptions, outputOptions, warnings, command.silent);
 			});
 		}

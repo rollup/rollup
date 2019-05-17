@@ -3,6 +3,14 @@
 	factory();
 }(function () { 'use strict';
 
-	console.log((typeof document !== 'undefined' ? document.currentScript && document.currentScript.src || document.baseURI : new (typeof URL !== 'undefined' ? URL : require('ur'+'l').URL)('file:' + __filename).href));
+	function log(url) {
+		if (typeof document === 'undefined') {
+			console.log(url);
+		} else {
+			document.body.innerText = url;
+		}
+	}
+
+	log((typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __filename).href : (document.currentScript && document.currentScript.src || new URL('umd.js', document.baseURI).href)));
 
 }));

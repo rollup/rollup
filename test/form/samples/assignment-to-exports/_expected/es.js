@@ -22,4 +22,4 @@ baz2 = 2;
 
 console.log( kept1, kept2 );
 
-export { foo1, bar1, baz1, foo2, bar2, baz2 };
+export { bar1, bar2, baz1, baz2, foo1, foo2 };

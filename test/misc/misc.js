@@ -92,7 +92,7 @@ describe('misc', () => {
 					'main1.js',
 					'main2.js',
 					'chunk-9d1272f4.js',
-					'chunk-80285050.js'
+					'dyndep-80285050.js'
 				]);
 			});
 	});

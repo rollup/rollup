@@ -26,4 +26,4 @@ console.log(baz);
 update$2();
 console.log(baz);
 
-export { update as updateFoo, update$1 as updateBar, update$2 as updateBaz, foo, bar, baz };
+export { bar, baz, foo, update$1 as updateBar, update$2 as updateBaz, update as updateFoo };

@@ -236,12 +236,12 @@ describe('incremental', () => {
 				plugins: [plugin]
 			})
 			.then(bundle => {
-				assert.equal(bundle.cache.modules[1].id, 'foo');
-				assert.equal(bundle.cache.modules[0].id, 'entry');
+				assert.equal(bundle.cache.modules[0].id, 'foo');
+				assert.equal(bundle.cache.modules[1].id, 'entry');
 
-				assert.deepEqual(bundle.cache.modules[0].resolvedIds, {
-					foo: { id: 'foo', external: false },
-					external: { id: 'external', external: true }
+				assert.deepEqual(bundle.cache.modules[1].resolvedIds, {
+					foo: { id: 'foo', external: false, moduleSideEffects: true },
+					external: { id: 'external', external: true, moduleSideEffects: true }
 				});
 			});
 	});

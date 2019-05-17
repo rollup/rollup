@@ -6,5 +6,5 @@ var __chunk_1 = require('./dep.js');
 
 
 
-exports.foo = __chunk_1.foo;
 exports.bar = __chunk_1.foo;
+exports.foo = __chunk_1.foo;

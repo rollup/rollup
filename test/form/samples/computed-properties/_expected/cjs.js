@@ -15,5 +15,5 @@ class X {
 	set [bam] ( value ) {}
 }
 
-exports.x = x;
 exports.X = X;
+exports.x = x;

@@ -36,7 +36,7 @@ export function optimizeChunks(
 			nextChunk = execGroup[1];
 
 		const isMergeCandidate = (chunk: Chunk) => {
-			if (chunk.facadeModule !== null || chunk.isManualChunk) {
+			if (chunk.facadeModule !== null || chunk.manualChunkAlias !== null) {
 				return false;
 			}
 			if (!nextChunk || nextChunk.facadeModule !== null) {

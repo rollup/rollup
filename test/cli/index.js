@@ -25,8 +25,8 @@ runTestSuiteWithSamples(
 
 				const command = 'node ' + path.resolve(__dirname, '../../bin') + path.sep + config.command;
 
-				exec(command, {}, (err, code, stderr) => {
-					if (err) {
+				const childProcess = exec(command, { timeout: 2000 }, (err, code, stderr) => {
+					if (err && !err.killed) {
 						if (config.error) {
 							const shouldContinue = config.error(err);
 							if (!shouldContinue) return done();
@@ -109,6 +109,12 @@ runTestSuiteWithSamples(
 						} catch (err) {
 							done(err);
 						}
+					}
+				});
+
+				childProcess.stderr.on('data', data => {
+					if (config.abortOnStderr && config.abortOnStderr(data)) {
+						childProcess.kill('SIGINT');
 					}
 				});
 			}

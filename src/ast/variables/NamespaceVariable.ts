@@ -1,5 +1,6 @@
 import Module, { AstContext } from '../../Module';
 import { RenderOptions } from '../../utils/renderHelpers';
+import { RESERVED_NAMES } from '../../utils/reservedNames';
 import Identifier from '../nodes/Identifier';
 import { UNKNOWN_PATH } from '../values';
 import Variable from './Variable';
@@ -10,8 +11,8 @@ export default class NamespaceVariable extends Variable {
 	memberVariables: { [name: string]: Variable } = Object.create(null);
 	module: Module;
 
-	private containsExternalNamespace: boolean = false;
-	private referencedEarly: boolean = false;
+	private containsExternalNamespace = false;
+	private referencedEarly = false;
 	private references: Identifier[] = [];
 
 	constructor(context: AstContext) {
@@ -82,7 +83,9 @@ export default class NamespaceVariable extends Variable {
 				}${_}}`;
 			}
 
-			return `${t}${name}: ${original.getName()}`;
+			const safeName = RESERVED_NAMES[name] ? `'${name}'` : name;
+
+			return `${t}${safeName}: ${original.getName()}`;
 		});
 
 		const name = this.getName();

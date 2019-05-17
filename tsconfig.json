@@ -2,8 +2,8 @@
     "compilerOptions": {
         "allowSyntheticDefaultImports": true,
         "diagnostics": true,
-        "downlevelIteration": false,
-        "lib": ["es5", "es6", "dom"],
+        "lib": ["es6", "dom"],
+        "module": "commonjs",
         "noEmitOnError": true,
         "noImplicitAny": true,
         "noImplicitThis": true,
@@ -12,7 +12,7 @@
         "pretty": true,
         "skipLibCheck": true,
         "strictNullChecks": true,
-        "target": "es5"
+        "target": "es2015"
     },
     "include": [
         "typings/**/*.d.ts",

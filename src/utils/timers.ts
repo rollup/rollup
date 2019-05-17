@@ -48,7 +48,7 @@ function getPersistedLabel(label: string, level: number) {
 	}
 }
 
-function timeStartImpl(label: string, level: number = 3) {
+function timeStartImpl(label: string, level = 3) {
 	label = getPersistedLabel(label, level);
 	if (!timers.hasOwnProperty(label)) {
 		timers[label] = {
@@ -64,7 +64,7 @@ function timeStartImpl(label: string, level: number = 3) {
 	timers[label].startMemory = currentMemory;
 }
 
-function timeEndImpl(label: string, level: number = 3) {
+function timeEndImpl(label: string, level = 3) {
 	label = getPersistedLabel(label, level);
 	if (timers.hasOwnProperty(label)) {
 		const currentMemory = getMemory();

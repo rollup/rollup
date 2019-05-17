@@ -1,5 +1,8 @@
 'use strict';
 
-var main = new (typeof URL !== 'undefined' ? URL : require('ur'+'l').URL)((process.browser ? '' : 'file:') + __dirname + '/assets/test-19916f7d.ext', process.browser && document.baseURI).href;
+var __chunk_1 = require('./nested/chunk.js');
 
-module.exports = main;
+var logo = (typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __dirname + '/assets/logo1-25253976.svg').href : new URL((document.currentScript && document.currentScript.src || document.baseURI) + '/../assets/logo1-25253976.svg').href);
+
+__chunk_1.showImage(logo);
+Promise.resolve(require('./nested/chunk2.js'));

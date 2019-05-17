@@ -10,5 +10,5 @@ const test = () => myExternal;
 
 const someDynamicImport = () => Promise.resolve(require('external'));
 
-exports.test = test;
 exports.someDynamicImport = someDynamicImport;
+exports.test = test;

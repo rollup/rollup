@@ -12,9 +12,9 @@ System.register([], function (exports, module) {
       }
 
       exports({
-        missingFn: _missingExportShim,
+        default: _missingExportShim,
         missingExport: _missingExportShim,
-        default: _missingExportShim
+        missingFn: _missingExportShim
       });
 
     }

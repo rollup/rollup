@@ -7,8 +7,8 @@ var bundle = (function (exports) {
 	class bar {}
 	bar = 1;
 
-	exports.foo = foo;
 	exports.bar = bar;
+	exports.foo = foo;
 
 	return exports;
 

@@ -1,7 +1,7 @@
 import { WatchOptions } from 'chokidar';
 import { EventEmitter } from 'events';
 import path from 'path';
-import createFilter from 'rollup-pluginutils/src/createFilter.js';
+import createFilter from 'rollup-pluginutils/src/createFilter';
 import rollup, { setWatcher } from '../rollup/index';
 import {
 	InputOptions,
@@ -10,7 +10,8 @@ import {
 	RollupBuild,
 	RollupCache,
 	RollupWatcher,
-	RollupWatchOptions
+	RollupWatchOptions,
+	WatcherOptions
 } from '../rollup/types';
 import mergeOptions from '../utils/mergeOptions';
 import chokidar from './chokidar';
@@ -23,13 +24,13 @@ export class Watcher {
 
 	private buildTimeout: NodeJS.Timer;
 	private invalidatedIds: Set<string> = new Set();
-	private rerun: boolean = false;
+	private rerun = false;
 	private running: boolean;
-	private succeeded: boolean = false;
+	private succeeded = false;
 	private tasks: Task[];
 
 	constructor(configs: RollupWatchOptions[]) {
-		this.emitter = new class extends EventEmitter implements RollupWatcher {
+		this.emitter = new (class extends EventEmitter implements RollupWatcher {
 			close: () => void;
 			constructor(close: () => void) {
 				super();
@@ -38,7 +39,7 @@ export class Watcher {
 				// showing the `MaxListenersExceededWarning` to the user.
 				this.setMaxListeners(Infinity);
 			}
-		}(this.close.bind(this));
+		})(this.close.bind(this));
 		this.tasks = (Array.isArray(configs) ? configs : configs ? [configs] : []).map(
 			config => new Task(this, config)
 		);
@@ -146,8 +147,9 @@ export class Task {
 			return undefined as any;
 		});
 
-		const watchOptions = inputOptions.watch || {};
-		if ('useChokidar' in watchOptions) watchOptions.chokidar = watchOptions.useChokidar;
+		const watchOptions: WatcherOptions = inputOptions.watch || {};
+		if ('useChokidar' in watchOptions)
+			(watchOptions as any).chokidar = (watchOptions as any).useChokidar;
 		let chokidarOptions = 'chokidar' in watchOptions ? watchOptions.chokidar : !!chokidar;
 		if (chokidarOptions) {
 			chokidarOptions = {
@@ -163,7 +165,7 @@ export class Task {
 			);
 		}
 
-		this.chokidarOptions = chokidarOptions;
+		this.chokidarOptions = chokidarOptions as WatchOptions;
 		this.chokidarOptionsHash = JSON.stringify(chokidarOptions);
 
 		this.filter = createFilter(watchOptions.include, watchOptions.exclude);
@@ -231,11 +233,7 @@ export class Task {
 					if (!watched.has(id)) deleteTask(id, this, this.chokidarOptionsHash);
 				});
 
-				return Promise.all(
-					this.outputs.map(output => {
-						return result.write(output);
-					})
-				).then(() => result);
+				return Promise.all(this.outputs.map(output => result.write(output))).then(() => result);
 			})
 			.then((result: RollupBuild) => {
 				this.watcher.emit('event', {

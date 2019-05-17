@@ -24,6 +24,7 @@ import Identifier from './Identifier';
 import Literal from './Literal';
 import * as NodeType from './NodeType';
 import { ExpressionNode, Node, NodeBase } from './shared/Node';
+import { PatternNode } from './shared/Pattern';
 
 function getResolvablePropertyKey(memberExpression: MemberExpression): string | null {
 	return memberExpression.computed
@@ -72,7 +73,7 @@ export function isMemberExpression(node: Node): node is MemberExpression {
 	return node.type === NodeType.MemberExpression;
 }
 
-export default class MemberExpression extends NodeBase implements DeoptimizableEntity {
+export default class MemberExpression extends NodeBase implements DeoptimizableEntity, PatternNode {
 	computed: boolean;
 	object: ExpressionNode;
 	property: ExpressionNode;
@@ -83,6 +84,8 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	private bound: boolean;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[];
 	private replacement: string | null;
+
+	addExportedVariables(): void {}
 
 	bind() {
 		if (this.bound) return;

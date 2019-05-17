@@ -49,8 +49,20 @@ runTestSuiteWithSamples('chunking form', path.resolve(__dirname, 'samples'), (di
 	);
 });
 
-function generateAndTestBundle(bundle, outputOptions, expectedDir) {
+function generateAndTestBundle(bundle, outputOptions, expectedDir, config) {
 	return bundle
 		.write(outputOptions)
+		.then(() => {
+			if (outputOptions.format === 'amd' && config.runAmd) {
+				return new Promise(resolve => {
+					global.assert = require('assert');
+					const requirejs = require('requirejs');
+					requirejs.config({ baseUrl: outputOptions.dir });
+					requirejs(['main'], main => {
+						Promise.resolve(config.runAmd.exports && config.runAmd.exports(main)).then(resolve);
+					});
+				});
+			}
+		})
 		.then(() => assertDirectoriesAreEqual(outputOptions.dir, expectedDir));
 }

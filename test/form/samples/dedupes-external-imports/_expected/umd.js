@@ -29,9 +29,9 @@
 	const bar = new Bar();
 	const baz = new Baz();
 
-	exports.foo = foo;
 	exports.bar = bar;
 	exports.baz = baz;
+	exports.foo = foo;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

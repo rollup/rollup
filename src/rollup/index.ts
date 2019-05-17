@@ -25,7 +25,8 @@ import {
 	RollupBuild,
 	RollupCache,
 	RollupOutput,
-	RollupWatcher
+	RollupWatcher,
+	WarningHandler
 } from './types';
 
 function checkOutputOptions(options: OutputOptions) {
@@ -36,7 +37,7 @@ function checkOutputOptions(options: OutputOptions) {
 		});
 	}
 
-	if (!options.format) {
+	if (['amd', 'cjs', 'system', 'es', 'iife', 'umd'].indexOf(options.format as string) < 0) {
 		error({
 			message: `You must specify "output.format", which can be one of "amd", "cjs", "system", "esm", "iife" or "umd".`,
 			url: `https://rollupjs.org/guide/en#output-format`
@@ -69,7 +70,7 @@ function applyOptionHook(inputOptions: InputOptions, plugin: Plugin) {
 	return inputOptions;
 }
 
-function getInputOptions(rawInputOptions: GenericConfigObject): any {
+function getInputOptions(rawInputOptions: GenericConfigObject): InputOptions {
 	if (!rawInputOptions) {
 		throw new Error('You must supply an options object to rollup');
 	}
@@ -77,7 +78,8 @@ function getInputOptions(rawInputOptions: GenericConfigObject): any {
 		config: rawInputOptions
 	});
 
-	if (optionError) inputOptions.onwarn({ message: optionError, code: 'UNKNOWN_OPTION' });
+	if (optionError)
+		(inputOptions.onwarn as WarningHandler)({ message: optionError, code: 'UNKNOWN_OPTION' });
 
 	const plugins = inputOptions.plugins;
 	inputOptions.plugins = Array.isArray(plugins)
@@ -152,16 +154,13 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 			.hookParallel('buildStart', [inputOptions])
 			.then(() =>
 				graph.build(
-					inputOptions.input,
+					inputOptions.input as string | string[] | Record<string, string>,
 					inputOptions.manualChunks,
-					inputOptions.inlineDynamicImports
+					inputOptions.inlineDynamicImports as boolean
 				)
 			)
 			.then(
-				chunks =>
-					graph.pluginDriver.hookParallel('buildEnd').then(() => {
-						return chunks;
-					}),
+				chunks => graph.pluginDriver.hookParallel('buildEnd', []).then(() => chunks),
 				err =>
 					graph.pluginDriver.hookParallel('buildEnd', [err]).then(() => {
 						throw err;
@@ -173,14 +172,16 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 				// ensure we only do one optimization pass per build
 				let optimized = false;
 
-				function generate(rawOutputOptions: GenericConfigObject, isWrite: boolean) {
-					const outputOptions = normalizeOutputOptions(
+				function getOutputOptions(rawOutputOptions: GenericConfigObject) {
+					return normalizeOutputOptions(
 						inputOptions,
 						rawOutputOptions,
 						chunks.length > 1,
 						graph.pluginDriver
 					);
+				}
 
+				function generate(outputOptions: OutputOptions, isWrite: boolean) {
 					timeStart('GENERATE', 1);
 
 					const assetFileNames = outputOptions.assetFileNames || 'assets/[name]-[hash][extname]';
@@ -188,7 +189,7 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 					const inputBase = commondir(getAbsoluteEntryModulePaths(chunks));
 
 					return graph.pluginDriver
-						.hookParallel('renderStart')
+						.hookParallel('renderStart', [])
 						.then(() => createAddons(graph, outputOptions))
 						.then(addons => {
 							// pre-render all chunks
@@ -201,7 +202,12 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 								chunk.preRender(outputOptions, inputBase);
 							}
 							if (!optimized && inputOptions.experimentalOptimizeChunks) {
-								optimizeChunks(chunks, outputOptions, inputOptions.chunkGroupingSize, inputBase);
+								optimizeChunks(
+									chunks,
+									outputOptions,
+									inputOptions.chunkGroupingSize as number,
+									inputBase
+								);
 								optimized = true;
 							}
 
@@ -289,14 +295,17 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 				const result: RollupBuild = {
 					cache: cache as RollupCache,
 					generate: <any>((rawOutputOptions: GenericConfigObject) => {
-						const promise = generate(rawOutputOptions, false).then(result => createOutput(result));
+						const promise = generate(getOutputOptions(rawOutputOptions), false).then(result =>
+							createOutput(result)
+						);
 						Object.defineProperty(promise, 'code', throwAsyncGenerateError);
 						Object.defineProperty(promise, 'map', throwAsyncGenerateError);
 						return promise;
 					}),
 					watchFiles: Object.keys(graph.watchFiles),
-					write: <any>((outputOptions: OutputOptions) => {
-						if (!outputOptions || (!outputOptions.dir && !outputOptions.file)) {
+					write: <any>((rawOutputOptions: OutputOptions) => {
+						const outputOptions = getOutputOptions(rawOutputOptions);
+						if (!outputOptions.dir && !outputOptions.file) {
 							error({
 								code: 'MISSING_OPTION',
 								message: 'You must specify "output.file" or "output.dir" for the build.'
@@ -328,9 +337,9 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 									});
 							}
 							return Promise.all(
-								Object.keys(bundle).map(chunkId => {
-									return writeOutputFile(graph, result, bundle[chunkId], outputOptions);
-								})
+								Object.keys(bundle).map(chunkId =>
+									writeOutputFile(graph, result, bundle[chunkId], outputOptions)
+								)
 							)
 								.then(() => graph.pluginDriver.hookParallel('writeBundle', [bundle]))
 								.then(() => createOutput(bundle));
@@ -384,7 +393,7 @@ function writeOutputFile(
 	outputFile: OutputAsset | OutputChunk,
 	outputOptions: OutputOptions
 ): Promise<void> {
-	const filename = resolve(
+	const fileName = resolve(
 		outputOptions.dir || dirname(outputOptions.file as string),
 		outputFile.fileName
 	);
@@ -400,17 +409,17 @@ function writeOutputFile(
 				url = outputFile.map.toUrl();
 			} else {
 				url = `${basename(outputFile.fileName)}.map`;
-				writeSourceMapPromise = writeFile(`${filename}.map`, outputFile.map.toString());
+				writeSourceMapPromise = writeFile(`${fileName}.map`, outputFile.map.toString());
 			}
 			source += `//# ${SOURCEMAPPING_URL}=${url}\n`;
 		}
 	}
 
-	return writeFile(filename, source)
+	return writeFile(fileName, source)
 		.then(() => writeSourceMapPromise)
 		.then(
-			() =>
-				(!isOutputAsset(outputFile) as any) &&
+			(): any =>
+				!isOutputAsset(outputFile) &&
 				graph.pluginDriver.hookSeq('onwrite', [
 					{
 						bundle: build,
@@ -441,9 +450,8 @@ function normalizeOutputOptions(
 
 	// now outputOptions is an array, but rollup.rollup API doesn't support arrays
 	const mergedOutputOptions = mergedOptions.outputOptions[0];
-	const outputOptionsReducer = (outputOptions: OutputOptions, result: OutputOptions) => {
-		return result || outputOptions;
-	};
+	const outputOptionsReducer = (outputOptions: OutputOptions, result: OutputOptions) =>
+		result || outputOptions;
 	const outputOptions = pluginDriver.hookReduceArg0Sync(
 		'outputOptions',
 		[mergedOutputOptions],

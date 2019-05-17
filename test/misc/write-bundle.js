@@ -9,22 +9,18 @@ describe('bundle.write()', () => {
 				input: 'x',
 				plugins: [
 					{
-						resolveId: () => {
-							return 'test';
-						},
-						load: () => {
-							return '// empty';
-						}
+						resolveId: () => 'test',
+						load: () => '// empty'
 					}
 				]
 			})
 			.then(bundle => {
 				assert.throws(() => {
 					bundle.write();
-				}, /You must specify "output\.file"/);
+				}, /You must supply an options object/);
 
 				assert.throws(() => {
-					bundle.write({});
+					bundle.write({format: 'esm'});
 				}, /You must specify "output\.file"/);
 			});
 	});
@@ -37,12 +33,8 @@ describe('bundle.write()', () => {
 				input: 'x',
 				plugins: [
 					{
-						resolveId: () => {
-							return 'test';
-						},
-						load: () => {
-							return 'export var foo = 42;';
-						}
+						resolveId: () => 'test',
+						load: () => 'export var foo = 42;'
 					}
 				]
 			})

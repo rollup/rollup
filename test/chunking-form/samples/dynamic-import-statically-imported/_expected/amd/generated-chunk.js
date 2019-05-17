@@ -14,7 +14,7 @@ define(['require', 'exports'], function (require, exports) { 'use strict';
 		bar: bar
 	});
 
-	exports.foo = foo;
 	exports.bar = bar;
+	exports.foo = foo;
 
 });

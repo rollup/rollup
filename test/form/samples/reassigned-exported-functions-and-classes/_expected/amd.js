@@ -6,8 +6,8 @@ define(['exports'], function (exports) { 'use strict';
 	class bar {}
 	bar = 1;
 
-	exports.foo = foo;
 	exports.bar = bar;
+	exports.foo = foo;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

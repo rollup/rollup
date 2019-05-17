@@ -9,9 +9,9 @@ const command = minimist(process.argv.slice(2), {
 });
 
 if (command.help || (process.argv.length <= 2 && process.stdin.isTTY)) {
-	console.log(`\n${help.replace('__VERSION__', version)}\n`); // eslint-disable-line no-console
+	console.log(`\n${help.replace('__VERSION__', version)}\n`);
 } else if (command.version) {
-	console.log(`rollup v${version}`); // eslint-disable-line no-console
+	console.log(`rollup v${version}`);
 } else {
 	try {
 		require('source-map-support').install();

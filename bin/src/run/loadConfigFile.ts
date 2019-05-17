@@ -10,10 +10,6 @@ interface NodeModuleWithCompile extends NodeModule {
 	_compile(code: string, filename: string): any;
 }
 
-function interopDefault<T>(ex: T): T {
-	return ex && typeof ex === 'object' && 'default' in ex ? (ex as any).default : ex;
-}
-
 export default function loadConfigFile(
 	configFile: string,
 	commandOptions: any = {}
@@ -23,9 +19,8 @@ export default function loadConfigFile(
 
 	return rollup
 		.rollup({
-			external: (id: string) => {
-				return (id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5, id.length) === '.json';
-			},
+			external: (id: string) =>
+				(id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5, id.length) === '.json',
 			input: configFile,
 			onwarn: warnings.add,
 			treeshake: false
@@ -54,8 +49,9 @@ export default function loadConfigFile(
 
 			delete require.cache[configFile];
 
-			return Promise.resolve(interopDefault(require(configFile)))
+			return Promise.resolve(require(configFile))
 				.then(configFileContent => {
+					if (configFileContent.default) configFileContent = configFileContent.default;
 					if (typeof configFileContent === 'function') {
 						return configFileContent(commandOptions);
 					}

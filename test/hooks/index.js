@@ -4,6 +4,8 @@ const sander = require('sander');
 const { loader } = require('../utils.js');
 const rollup = require('../../dist/rollup.js');
 
+const TEMP_DIR = path.join(__dirname, 'tmp');
+
 describe('hooks', () => {
 	it('allows to read and modify options in the options hook', () => {
 		return rollup
@@ -58,6 +60,41 @@ describe('hooks', () => {
 			})
 			.then(({ output }) => {
 				assert.equal(output[0].code, `new banner\n'use strict';\n\nalert('hello');\n`);
+			});
+	});
+
+	it('allows to replace file with dir in the outputOptions hook', () => {
+		return rollup
+			.rollup({
+				input: 'input',
+				treeshake: false,
+				plugins: [
+					loader({
+						input: `console.log('input');import('other');`,
+						other: `console.log('other');`
+					}),
+					{
+						outputOptions(options) {
+							const newOptions = Object.assign({}, options, {
+								dir: TEMP_DIR,
+								chunkFileNames: 'chunk.js'
+							});
+							delete newOptions.file;
+							return newOptions;
+						}
+					}
+				]
+			})
+			.then(bundle =>
+				bundle.write({
+					file: path.join(TEMP_DIR, 'bundle.js'),
+					format: 'esm'
+				})
+			)
+			.then(() => {
+				const fileNames = sander.readdirSync(TEMP_DIR).sort();
+				assert.deepStrictEqual(fileNames, ['chunk.js', 'input.js']);
+				return sander.rimraf(TEMP_DIR);
 			});
 	});
 
@@ -213,8 +250,6 @@ describe('hooks', () => {
 	});
 
 	it('passes bundle & output object to ongenerate & onwrite hooks, with deprecation warnings', () => {
-		const file = path.join(__dirname, 'tmp/bundle.js');
-
 		let deprecationCnt = 0;
 
 		return rollup
@@ -251,13 +286,13 @@ describe('hooks', () => {
 			})
 			.then(bundle => {
 				return bundle.write({
-					file,
+					file: path.join(TEMP_DIR, 'bundle.js'),
 					format: 'es'
 				});
 			})
 			.then(() => {
 				assert.equal(deprecationCnt, 2);
-				return sander.unlink(file);
+				return sander.rimraf(TEMP_DIR);
 			});
 	});
 
@@ -289,7 +324,7 @@ describe('hooks', () => {
 
 	it('calls onwrite hooks in sequence', () => {
 		const result = [];
-		const file = path.join(__dirname, 'tmp/bundle.js');
+		const file = path.join(TEMP_DIR, 'bundle.js');
 
 		return rollup
 			.rollup({
@@ -321,8 +356,7 @@ describe('hooks', () => {
 			})
 			.then(() => {
 				assert.deepEqual(result, [{ a: file, format: 'cjs' }, { b: file, format: 'cjs' }]);
-
-				return sander.unlink(file);
+				return sander.rimraf(TEMP_DIR);
 			});
 	});
 
@@ -351,7 +385,7 @@ describe('hooks', () => {
 				assert.equal(output[0].isEntry, true);
 				assert.equal(
 					output[0].code,
-					`var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`
+					`var input = new URL('assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`
 				);
 			});
 	});
@@ -378,7 +412,7 @@ describe('hooks', () => {
 			.then(({ output }) => {
 				assert.equal(
 					output[0].code,
-					`var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`
+					`var input = new URL('assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`
 				);
 				assert.equal(output[1].fileName, 'assets/test-19916f7d.ext');
 				assert.equal(output[1].source, 'hello world');
@@ -404,7 +438,7 @@ describe('hooks', () => {
 			.then(({ output }) => {
 				assert.equal(
 					output[0].code,
-					`var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`
+					`var input = new URL('assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`
 				);
 				assert.equal(output[1].fileName, 'assets/test-19916f7d.ext');
 				assert.equal(output[1].source, 'hello world');
@@ -439,7 +473,7 @@ describe('hooks', () => {
 			.then(({ output }) => {
 				assert.equal(
 					output[0].code,
-					`var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`
+					`var input = new URL('assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`
 				);
 				assert.equal(output[1].fileName, 'assets/test-19916f7d.ext');
 				assert.equal(output[1].source, 'hello world');
@@ -493,7 +527,7 @@ describe('hooks', () => {
 					code,
 					`'use strict';
 
-var input = new (typeof URL !== 'undefined' ? URL : require('ur'+'l').URL)((process.browser ? '' : 'file:') + __dirname + '/assets/test-19916f7d.ext', process.browser && document.baseURI).href;
+var input = (typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __dirname + '/assets/test-19916f7d.ext').href : new URL((document.currentScript && document.currentScript.src || document.baseURI) + '/../assets/test-19916f7d.ext').href);
 
 module.exports = input;
 `
@@ -551,62 +585,6 @@ module.exports = input;
 			.then(({ output: [, output] }) => {
 				assert.equal(output.fileName, 'assets/test-19916f7d.ext');
 				assert.equal(output.source, 'hello world');
-			});
-	});
-
-	it('throws when calling setAssetSource in transform', () => {
-		return rollup
-			.rollup({
-				input: 'input',
-				plugins: [
-					loader({ input: `alert('hello')` }),
-					{
-						transform() {
-							const assetId = this.emitAsset('test.ext');
-							this.setAssetSource(assetId, 'asdf');
-							return '';
-						}
-					}
-				]
-			})
-			.then(({ output }) => {
-				throw new Error('should fail');
-			})
-			.catch(err => {
-				assert.equal(err.code, 'PLUGIN_ERROR');
-				assert.equal(err.pluginCode, 'INVALID_SETASSETSOURCE');
-			});
-	});
-
-	it('throws when setting asset source twice', () => {
-		let thrown = false;
-		return rollup
-			.rollup({
-				input: 'input',
-				plugins: [
-					loader({ input: `alert('hello')` }),
-					{
-						buildEnd() {
-							const assetId = this.emitAsset('test.ext');
-							this.setAssetSource(assetId, 'hello world');
-							try {
-								this.setAssetSource(assetId, 'another');
-							} catch (e) {
-								assert.equal(e.code, 'ASSET_SOURCE_ALREADY_SET');
-								thrown = true;
-								return '';
-							}
-							assert.fail();
-						}
-					}
-				]
-			})
-			.then(bundle => {
-				return bundle.generate({ format: 'es' });
-			})
-			.then(({ output: [, output] }) => {
-				assert.equal(output.source, 'hello world');
-				assert.equal(thrown, true);
 			});
 	});
 
@@ -759,7 +737,7 @@ module.exports = input;
 							assert.equal(outputBundle['assets/test-19916f7d.ext'].source, 'hello world');
 							assert.equal(
 								outputBundle['input.js'].code,
-								`var input = new URL('../assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`
+								`var input = new URL('assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`
 							);
 						}
 					}
@@ -863,7 +841,7 @@ module.exports = input;
 	});
 
 	it('supports writeBundle hook', () => {
-		const file = path.join(__dirname, 'tmp/bundle.js');
+		const file = path.join(TEMP_DIR, 'bundle.js');
 		let bundle;
 		let callCount = 0;
 		return rollup
@@ -889,7 +867,10 @@ module.exports = input;
 				]
 			})
 			.then(bundle => bundle.write({ format: 'esm', file }))
-			.then(() => assert.strictEqual(callCount, 1));
+			.then(() => {
+				assert.strictEqual(callCount, 1);
+				return sander.rimraf(TEMP_DIR);
+			});
 	});
 
 	it('supports this.cache for plugins', () => {
@@ -1227,6 +1208,9 @@ module.exports = input;
 					'this.watcher usage is deprecated in plugins. Use the watchChange plugin hook and this.addWatchFile() instead.'
 				);
 			},
+			output: {
+				format: 'esm'
+			},
 			plugins: [
 				loader({ input: `alert('hello')` }),
 				{
@@ -1327,18 +1311,18 @@ module.exports = input;
 						modules: ['input']
 					},
 					{
-						fileName: 'generated-chunk.js',
-						imports: ['generated-chunk2.js'],
+						fileName: 'generated-a.js',
+						imports: ['generated-chunk.js'],
 						modules: ['d', 'a']
 					},
 					{
-						fileName: 'generated-chunk2.js',
+						fileName: 'generated-chunk.js',
 						imports: [],
 						modules: ['c']
 					},
 					{
-						fileName: 'generated-chunk3.js',
-						imports: ['generated-chunk2.js'],
+						fileName: 'generated-b.js',
+						imports: ['generated-chunk.js'],
 						modules: ['b']
 					}
 				]);

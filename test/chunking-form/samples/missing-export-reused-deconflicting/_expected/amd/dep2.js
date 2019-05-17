@@ -8,7 +8,7 @@ define(['exports'], function (exports) { 'use strict';
 
 	console.log(_missingExportShim$1);
 
-	exports.previousShimmedExport = _missingExportShim$1;
 	exports.missing2 = _missingExportShim;
+	exports.previousShimmedExport = _missingExportShim$1;
 
 });

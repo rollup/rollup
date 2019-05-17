@@ -3,7 +3,12 @@ var myBundle = (function (exports, external) {
 
 
 
-	exports.s = external.p;
+	Object.defineProperty(exports, 's', {
+		enumerable: true,
+		get: function () {
+			return external.p;
+		}
+	});
 
 	return exports;
 

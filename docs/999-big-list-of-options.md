@@ -145,7 +145,7 @@ Alternatively, supply a function that will turn an external module ID into a glo
 
 When given as a command line argument, it should be a comma-separated list of `id:variableName` pairs:
 
-```bash
+```
 rollup -i src/main.js ... -g jquery:$,underscore:_
 ```
 
@@ -220,7 +220,7 @@ export default (async () => ({
     commonjs(),
     isProduction && (await import('rollup-plugin-terser')).terser()
   ]
-})();
+}))();
 ```
 
 (This example also demonstrates how to use an async IIFE and dynamic imports to avoid unnecessary module loading, which can be surprisingly slow.)
@@ -263,11 +263,31 @@ Default: `false`
 This will inline dynamic imports instead of creating new chunks to create a single bundle. Only possible if a single input is provided.
 
 #### manualChunks
-Type: `{ [chunkAlias: string]: string[] }`
+Type: `{ [chunkAlias: string]: string[] } | ((id: string) => string | void)`
 
-Allows the creation of custom shared common chunks. Provides an alias for the chunk and the list of modules to include in that chunk. Modules are bundled into the chunk along with their dependencies. If a module is already in a previous chunk, then the chunk will reference it there. Modules defined into chunks this way are considered to be entry points that can execute independently to any parent importers.
+Allows the creation of custom shared common chunks. When using the object form, each property represents a chunk that contains the listed modules and all their dependencies if they are part of the module graph unless they are already in another manual chunk. The name of the chunk will be determined by the property key.
 
-Note that manual chunks can change the behaviour of the application if side-effects are triggered before the corresponding modules are actually used.
+Note that it is not necessary for the listed modules themselves to be be part of the module graph, which is useful if you are working with `rollup-plugin-node-resolve` and use deep imports from packages. For instance
+
+```
+manualChunks: {
+  lodash: ['lodash']
+}
+```
+
+will put all lodash modules into a manual chunk even if you are only using imports of the form `import get from 'lodash/get'`.
+
+When using the function form, each resolved module id will be passed to the function. If a string is returned, the module and all its dependency will be added to the manual chunk with the given name. For instance this will create a `vendor` chunk containing all dependencies inside `node_modules`:
+
+```javascript
+manualChunks(id) {
+  if (id.includes('node_modules')) {
+    return 'vendor';
+  }
+}
+```
+
+Be aware that manual chunks can change the behaviour of the application if side-effects are triggered before the corresponding modules are actually used.
 
 #### onwarn
 Type: `(warning: RollupWarning, defaultHandler: (warning: string | RollupWarning) => void) => void;`
@@ -322,7 +342,7 @@ The pattern to use for naming custom emitted assets to include in the build outp
  * `[hash]`: A hash based on the name and content of the asset.
  * `[name]`: The file name of the asset excluding any extension.
 
-Forward slashes `/` can be used to place files in sub-directories. See also [`output.chunkFileNames`](guide/en#output-chunkfilenames), [`output.entryFileNames`](guide/en#output-entryfilenames).
+Forward slashes `/` can be used to place files in sub-directories. See also `[`output.chunkFileNames`](guide/en#output-chunkfilenames)`, [`output.entryFileNames`](guide/en#output-entryfilenames).
 
 #### output.banner/output.footer
 Type: `string | (() => string | Promise<string>)`<br>
@@ -604,7 +624,7 @@ The wrinkle is that if you use `named` exports but *also* have a `default` expor
 
 ```js
 const yourMethod = require( 'your-lib' ).yourMethod;
-const yourLib = require( 'your-lib' )['default'];
+const yourLib = require( 'your-lib' ).default;
 ```
 
 #### output.freeze
@@ -709,31 +729,12 @@ Default: `false`
 If this option is provided, bundling will not fail if bindings are imported from a file that does not define these bindings. Instead, new variables will be created for these bindings with the value `undefined`.
 
 #### treeshake
-Type: `boolean | { propertyReadSideEffects?: boolean, annotations?: boolean, pureExternalModules?: boolean }`<br>
+Type: `boolean | { annotations?: boolean, moduleSideEffects?: ModuleSideEffectsOption, propertyReadSideEffects?: boolean }`<br>
 CLI: `--treeshake`/`--no-treeshake`<br>
 Default: `true`
 
 Whether or not to apply tree-shaking and to fine-tune the tree-shaking process. Setting this option to `false` will produce bigger bundles but may improve build performance. If you discover a bug caused by the tree-shaking algorithm, please file an issue!
 Setting this option to an object implies tree-shaking is enabled and grants the following additional options:
-
-**treeshake.propertyReadSideEffects**
-Type: `boolean`<br>
-CLI: `--treeshake.propertyReadSideEffects`/`--no-treeshake.propertyReadSideEffects`<br>
-Default: `true`
-
-If `false`, assume reading a property of an object never has side-effects. Depending on your code, disabling this option can significantly reduce bundle size but can potentially break functionality if you rely on getters or errors from illegal property access.
-
-```javascript
-// Will be removed if treeshake.propertyReadSideEffects === false
-const foo = {
-  get bar() {
-    console.log('effect');
-    return 'bar';
-  }
-}
-const result = foo.bar;
-const illegalAccess = foo.quux.tooDeep;
-```
 
 **treeshake.annotations**<br>
 Type: `boolean`<br>
@@ -754,12 +755,12 @@ class Impure {
 /*@__PURE__*/new Impure();
 ```
 
-**treeshake.pureExternalModules**<br>
-Type: `boolean`<br>
-CLI: `--treeshake.pureExternalModules`/`--no-treeshake.pureExternalModules`<br>
-Default: `false`
+**treeshake.moduleSideEffects**<br>
+Type: `boolean | "no-external" | string[] | (id: string, external: boolean) => boolean`<br>
+CLI: `--treeshake.moduleSideEffects`/`--no-treeshake.moduleSideEffects`<br>
+Default: `true`
 
-If `true`, assume external dependencies from which nothing is imported do not have other side-effects like mutating global variables or logging.
+If `false`, assume modules and external dependencies from which nothing is imported do not have other side-effects like mutating global variables or logging without checking. For external dependencies, this will suppress empty imports:
 
 ```javascript
 // input file
@@ -769,15 +770,59 @@ console.log(42);
 ```
 
 ```javascript
-// output with treeshake.pureExternalModules === false
+// output with treeshake.moduleSideEffects === true
 import 'external-a';
 import 'external-b';
 console.log(42);
 ```
 
 ```javascript
-// output with treeshake.pureExternalModules === true
+// output with treeshake.moduleSideEffects === false
 console.log(42);
+```
+
+For non-external modules, `false` will not include any statements from a module unless at least one import from this module is included:
+
+```javascript
+// input file a.js
+import {unused} from './b.js';
+console.log(42);
+
+// input file b.js
+console.log('side-effect');
+```
+
+```javascript
+// output with treeshake.moduleSideEffects === true
+console.log('side-effect');
+
+console.log(42);
+```
+
+```javascript
+// output with treeshake.moduleSideEffects === false
+console.log(42);
+```
+
+You can also supply a list of modules with side-effects or a function to determine it for each module individually. The value `"no-external"` will only remove external imports if possible and is equivalent to the function `(id, external) => !external`;
+
+**treeshake.propertyReadSideEffects**
+Type: `boolean`<br>
+CLI: `--treeshake.propertyReadSideEffects`/`--no-treeshake.propertyReadSideEffects`<br>
+Default: `true`
+
+If `false`, assume reading a property of an object never has side-effects. Depending on your code, disabling this option can significantly reduce bundle size but can potentially break functionality if you rely on getters or errors from illegal property access.
+
+```javascript
+// Will be removed if treeshake.propertyReadSideEffects === false
+const foo = {
+  get bar() {
+    console.log('effect');
+    return 'bar';
+  }
+}
+const result = foo.bar;
+const illegalAccess = foo.quux.tooDeep;
 ```
 
 ### Experimental options
@@ -883,3 +928,35 @@ export default {
   }
 };
 ```
+
+### Deprecated options
+
+☢️ These options have been deprecated and may be removed in a future Rollup version.
+
+#### treeshake.pureExternalModules
+Type: `boolean | string[] | (id: string) => boolean | null`<br>
+CLI: `--treeshake.pureExternalModules`/`--no-treeshake.pureExternalModules`<br>
+Default: `false`
+
+If `true`, assume external dependencies from which nothing is imported do not have other side-effects like mutating global variables or logging.
+
+```javascript
+// input file
+import {unused} from 'external-a';
+import 'external-b';
+console.log(42);
+```
+
+```javascript
+// output with treeshake.pureExternalModules === false
+import 'external-a';
+import 'external-b';
+console.log(42);
+```
+
+```javascript
+// output with treeshake.pureExternalModules === true
+console.log(42);
+```
+
+You can also supply a list of external ids to be considered pure or a function that is called whenever an external import could be removed.

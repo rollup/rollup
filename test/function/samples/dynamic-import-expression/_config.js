@@ -24,6 +24,6 @@ module.exports = {
 		]
 	},
 	runtimeError(error) {
-		assert.equal("Cannot find module 'x/y'", error.message);
+		assert.equal(error.message.split('\n')[0], "Cannot find module 'x/y'");
 	}
 };

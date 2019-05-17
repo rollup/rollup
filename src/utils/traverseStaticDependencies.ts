@@ -2,16 +2,19 @@ import ExternalModule from '../ExternalModule';
 import Module from '../Module';
 import { NameCollection } from './reservedNames';
 
-export function visitStaticModuleDependencies(
-	baseModule: Module | ExternalModule,
-	areDependenciesSkipped: (module: Module | ExternalModule) => boolean
-) {
+export function markModuleAndImpureDependenciesAsExecuted(baseModule: Module) {
+	baseModule.isExecuted = true;
 	const modules = [baseModule];
 	const visitedModules: NameCollection = {};
 	for (const module of modules) {
-		if (areDependenciesSkipped(module) || module instanceof ExternalModule) continue;
 		for (const dependency of module.dependencies) {
-			if (!visitedModules[dependency.id]) {
+			if (
+				!(dependency instanceof ExternalModule) &&
+				!dependency.isExecuted &&
+				dependency.moduleSideEffects &&
+				!visitedModules[dependency.id]
+			) {
+				dependency.isExecuted = true;
 				visitedModules[dependency.id] = true;
 				modules.push(dependency);
 			}

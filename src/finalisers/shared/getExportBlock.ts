@@ -6,9 +6,11 @@ export default function getExportBlock(
 	namedExportsMode: boolean,
 	interop: boolean,
 	compact: boolean,
+	t: string,
 	mechanism = 'return '
 ) {
 	const _ = compact ? '' : ' ';
+	const n = compact ? '' : '\n';
 
 	if (!namedExportsMode) {
 		let local;
@@ -43,7 +45,13 @@ export default function getExportBlock(
 			reexports.forEach(specifier => {
 				if (specifier.reexported === '*') {
 					if (!compact && exportBlock) exportBlock += '\n';
-					exportBlock += `Object.keys(${name}).forEach(function${_}(key)${_}{${_}exports[key]${_}=${_}${name}[key];${_}});`;
+					exportBlock +=
+						`Object.keys(${name}).forEach(function${_}(key)${_}{${n}` +
+						`${t}Object.defineProperty(exports,${_}key,${_}{${n}` +
+						`${t}${t}enumerable:${_}true,${n}` +
+						`${t}${t}get:${_}function${_}()${_}{${n}` +
+						`${t}${t}${t}return ${name}[key];${n}` +
+						`${t}${t}}${n}${t}});${n}});`;
 				}
 			});
 		}
@@ -55,10 +63,7 @@ export default function getExportBlock(
 				reexports.forEach(specifier => {
 					if (specifier.imported === 'default' && !isChunk) {
 						const exportsNamesOrNamespace =
-							(imports &&
-								imports.some(
-									specifier => specifier.imported === '*' || specifier.imported !== 'default'
-								)) ||
+							(imports && imports.some(specifier => specifier.imported !== 'default')) ||
 							(reexports &&
 								reexports.some(
 									specifier => specifier.imported !== 'default' && specifier.imported !== '*'
@@ -82,7 +87,12 @@ export default function getExportBlock(
 							specifier.imported === 'default' && !depNamedExportsMode
 								? name
 								: `${name}.${specifier.imported}`;
-						exportBlock += `exports.${specifier.reexported}${_}=${_}${importName};`;
+						exportBlock += specifier.needsLiveBinding
+							? `Object.defineProperty(exports,${_}'${specifier.reexported}',${_}{${n}` +
+							  `${t}enumerable:${_}true,${n}` +
+							  `${t}get:${_}function${_}()${_}{${n}` +
+							  `${t}${t}return ${importName};${n}${t}}${n}});`
+							: `exports.${specifier.reexported}${_}=${_}${importName};`;
 					} else if (specifier.reexported !== '*') {
 						if (exportBlock && !compact) exportBlock += '\n';
 						exportBlock += `exports.${specifier.reexported}${_}=${_}${name};`;

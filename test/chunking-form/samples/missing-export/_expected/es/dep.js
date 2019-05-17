@@ -5,4 +5,4 @@ function x () {
 }
 
 export default _missingExportShim;
-export { x, _missingExportShim as missingFn, _missingExportShim as missingExport };
+export { _missingExportShim as missingExport, _missingExportShim as missingFn, x };

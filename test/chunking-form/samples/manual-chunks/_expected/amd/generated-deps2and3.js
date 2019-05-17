@@ -1,4 +1,4 @@
-define(['exports', './generated-lib1.js'], function (exports, __chunk_2) { 'use strict';
+define(['exports', './generated-lib1'], function (exports, __chunk_2) { 'use strict';
 
   function fn () {
     console.log('lib2 fn');

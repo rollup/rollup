@@ -1,4 +1,4 @@
-define(['exports', './dep.js'], function (exports, __chunk_1) { 'use strict';
+define(['exports', './dep'], function (exports, __chunk_1) { 'use strict';
 
 
 

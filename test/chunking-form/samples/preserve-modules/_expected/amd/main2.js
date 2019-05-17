@@ -1,4 +1,4 @@
-define(['./deps/dep2.js', './deps/dep3.js'], function (__chunk_3, __chunk_5) { 'use strict';
+define(['./deps/dep2', './deps/dep3'], function (__chunk_3, __chunk_5) { 'use strict';
 
   class Main2 {
     constructor () {

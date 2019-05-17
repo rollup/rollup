@@ -1,40 +1,63 @@
 import { EventEmitter } from 'events';
 import { version as rollupVersion } from 'package.json';
+import ExternalModule from '../ExternalModule';
 import Graph from '../Graph';
 import Module from '../Module';
 import {
+	EmitAsset,
 	InputOptions,
 	Plugin,
 	PluginCache,
 	PluginContext,
-	RollupError,
+	PluginHooks,
 	RollupWarning,
 	RollupWatcher,
 	SerializablePluginCache
 } from '../rollup/types';
-import { createAssetPluginHooks, EmitAsset } from './assetHooks';
+import { createAssetPluginHooks } from './assetHooks';
+import { BuildPhase } from './buildPhase';
 import { getRollupDefaultPlugin } from './defaultPlugin';
-import { error } from './error';
+import {
+	errInvalidRollupPhaseForAddWatchFile,
+	errInvalidRollupPhaseForEmitChunk,
+	error
+} from './error';
 import { NameCollection } from './reservedNames';
+
+type Args<T> = T extends (...args: infer K) => any ? K : never;
 
 export interface PluginDriver {
 	emitAsset: EmitAsset;
 	hasLoadersOrTransforms: boolean;
-	getAssetFileName(assetId: string): string;
-	hookFirst<T = any>(hook: string, args?: any[], hookContext?: HookContext): Promise<T>;
-	hookParallel(hook: string, args?: any[], hookContext?: HookContext): Promise<void>;
-	hookReduceArg0<R = any, T = any>(
-		hook: string,
-		args: any[],
-		reduce: Reduce<R, T>,
+	getAssetFileName(assetReferenceId: string): string;
+	hookFirst<H extends keyof PluginHooks, R = ReturnType<PluginHooks[H]>>(
+		hook: H,
+		args: Args<PluginHooks[H]>,
+		hookContext?: HookContext | null,
+		skip?: number
+	): Promise<R>;
+	hookFirstSync<H extends keyof PluginHooks, R = ReturnType<PluginHooks[H]>>(
+		hook: H,
+		args: Args<PluginHooks[H]>,
 		hookContext?: HookContext
-	): Promise<T>;
-	hookReduceArg0Sync<R = any, T = any>(
-		hook: string,
-		args: any[],
-		reduce: Reduce<R, T>,
+	): R;
+	hookParallel<H extends keyof PluginHooks>(
+		hook: H,
+		args: Args<PluginHooks[H]>,
 		hookContext?: HookContext
-	): T;
+	): Promise<void>;
+	hookReduceArg0<H extends keyof PluginHooks, V, R = ReturnType<PluginHooks[H]>>(
+		hook: H,
+		args: any[],
+		reduce: Reduce<V, R>,
+		hookContext?: HookContext
+	): Promise<R>;
+	hookReduceArg0Sync<H extends keyof PluginHooks, V, R = ReturnType<PluginHooks[H]>>(
+		hook: H,
+		args: any[],
+		reduce: Reduce<V, R>,
+		hookContext?: HookContext
+	): R;
 	hookReduceValue<R = any, T = any>(
 		hook: string,
 		value: T | Promise<T>,
@@ -42,8 +65,16 @@ export interface PluginDriver {
 		reduce: Reduce<R, T>,
 		hookContext?: HookContext
 	): Promise<T>;
-	hookSeq(hook: string, args?: any[], context?: HookContext): Promise<void>;
-	hookSeqSync(hook: string, args?: any[], context?: HookContext): void;
+	hookSeq<H extends keyof PluginHooks>(
+		hook: H,
+		args: Args<PluginHooks[H]>,
+		context?: HookContext
+	): Promise<void>;
+	hookSeqSync<H extends keyof PluginHooks>(
+		hook: H,
+		args: Args<PluginHooks[H]>,
+		context?: HookContext
+	): void;
 }
 
 export type Reduce<R = any, T = any> = (reduction: T, result: R, plugin: Plugin) => T;
@@ -62,7 +93,10 @@ export function createPluginDriver(
 	pluginCache: Record<string, SerializablePluginCache>,
 	watcher?: RollupWatcher
 ): PluginDriver {
-	const plugins = [...(options.plugins || []), getRollupDefaultPlugin(options)];
+	const plugins = [
+		...(options.plugins || []),
+		getRollupDefaultPlugin(options.preserveSymlinks as boolean)
+	];
 	const { emitAsset, getAssetFileName, setAssetSource } = createAssetPluginHooks(graph.assetsById);
 	const existingPluginKeys: NameCollection = {};
 
@@ -110,47 +144,72 @@ export function createPluginDriver(
 		}
 
 		const context: PluginContext = {
-			addWatchFile(id: string) {
-				if (graph.finished) this.error('addWatchFile can only be called during the build.');
+			addWatchFile(id) {
+				if (graph.phase >= BuildPhase.GENERATE) this.error(errInvalidRollupPhaseForAddWatchFile());
 				graph.watchFiles[id] = true;
 			},
 			cache: cacheInstance,
 			emitAsset,
-			error: (err: RollupError | string) => {
+			emitChunk(id, options) {
+				if (graph.phase > BuildPhase.LOAD_AND_PARSE)
+					this.error(errInvalidRollupPhaseForEmitChunk());
+				return graph.moduleLoader.addEntryModuleAndGetReferenceId({
+					alias: (options && options.name) || null,
+					unresolvedId: id
+				});
+			},
+			error(err): never {
 				if (typeof err === 'string') err = { message: err };
 				if (err.code) err.pluginCode = err.code;
 				err.code = 'PLUGIN_ERROR';
 				err.plugin = plugin.name || `Plugin at position ${pidx + 1}`;
-				error(err);
+				return error(err);
 			},
-			isExternal(id: string, parentId: string, isResolved = false) {
-				return graph.isExternal(id, parentId, isResolved);
+			isExternal(id, parentId, isResolved = false) {
+				return graph.moduleLoader.isExternal(id, parentId, isResolved);
 			},
 			getAssetFileName: getAssetFileName as (assetId: string) => string,
-			getModuleInfo: (moduleId: string) => {
+			getChunkFileName(chunkReferenceId) {
+				return graph.moduleLoader.getChunkFileName(chunkReferenceId);
+			},
+			getModuleInfo(moduleId) {
 				const foundModule = graph.moduleById.get(moduleId);
 				if (foundModule == null) {
 					throw new Error(`Unable to find module ${moduleId}`);
 				}
 
 				return {
+					hasModuleSideEffects: foundModule.moduleSideEffects,
 					id: foundModule.id,
-					importedIds: foundModule.isExternal
-						? []
-						: (foundModule as Module).sources.map(id => (foundModule as Module).resolvedIds[id].id),
-					isExternal: !!foundModule.isExternal
+					importedIds:
+						foundModule instanceof ExternalModule
+							? []
+							: foundModule.sources.map(id => foundModule.resolvedIds[id].id),
+					isEntry: foundModule instanceof Module && foundModule.isEntryPoint,
+					isExternal: foundModule instanceof ExternalModule
 				};
 			},
 			meta: {
 				rollupVersion
 			},
-			moduleIds: graph.moduleById.keys(),
+			get moduleIds() {
+				return graph.moduleById.keys();
+			},
 			parse: graph.contextParse,
-			resolveId(id: string, parent: string) {
-				return pluginDriver.hookFirst('resolveId', [id, parent]);
+			resolveId(source, importer) {
+				return graph.moduleLoader
+					.resolveId(source, importer)
+					.then(resolveId => resolveId && resolveId.id);
+			},
+			resolve(source, importer, options?: { skipSelf: boolean }) {
+				return graph.moduleLoader.resolveId(
+					source,
+					importer,
+					options && options.skipSelf ? pidx : null
+				);
 			},
 			setAssetSource,
-			warn: (warning: RollupWarning | string) => {
+			warn(warning) {
 				if (typeof warning === 'string') warning = { message: warning } as RollupWarning;
 				if (warning.code) warning.pluginCode = warning.code;
 				warning.code = 'PLUGIN_WARNING';
@@ -171,22 +230,22 @@ export function createPluginDriver(
 	function runHookSync<T>(
 		hookName: string,
 		args: any[],
-		pidx: number,
+		pluginIndex: number,
 		permitValues = false,
 		hookContext?: HookContext
-	): Promise<T> {
-		const plugin = plugins[pidx];
-		let context = pluginContexts[pidx];
+	): T {
+		const plugin = plugins[pluginIndex];
+		let context = pluginContexts[pluginIndex];
 		const hook = (<any>plugin)[hookName];
 		if (!hook) return undefined as any;
 
 		const deprecatedHookNewName = deprecatedHookNames[hookName];
 		if (deprecatedHookNewName)
-			context.warn(hookDeprecationWarning(hookName, deprecatedHookNewName, plugin, pidx));
+			context.warn(hookDeprecationWarning(hookName, deprecatedHookNewName, plugin, pluginIndex));
 
 		if (hookContext) {
 			context = hookContext(context, plugin);
-			if (!context || context === pluginContexts[pidx])
+			if (!context || context === pluginContexts[pluginIndex])
 				throw new Error('Internal Rollup error: hookContext must return a new context object.');
 		}
 		try {
@@ -196,7 +255,7 @@ export function createPluginDriver(
 				error({
 					code: 'INVALID_PLUGIN_HOOK',
 					message: `Error running plugin hook ${hookName} for ${plugin.name ||
-						`Plugin at position ${pidx + 1}`}, expected a function hook.`
+						`Plugin at position ${pluginIndex + 1}`}, expected a function hook.`
 				});
 			}
 			return hook.apply(context, args);
@@ -206,7 +265,7 @@ export function createPluginDriver(
 				if (err.code) err.pluginCode = err.code;
 				err.code = 'PLUGIN_ERROR';
 			}
-			err.plugin = plugin.name || `Plugin at position ${pidx + 1}`;
+			err.plugin = plugin.name || `Plugin at position ${pluginIndex + 1}`;
 			err.hook = hookName;
 			error(err);
 		}
@@ -216,22 +275,22 @@ export function createPluginDriver(
 	function runHook<T>(
 		hookName: string,
 		args: any[],
-		pidx: number,
+		pluginIndex: number,
 		permitValues = false,
-		hookContext?: HookContext
+		hookContext?: HookContext | null
 	): Promise<T> {
-		const plugin = plugins[pidx];
-		let context = pluginContexts[pidx];
+		const plugin = plugins[pluginIndex];
+		let context = pluginContexts[pluginIndex];
 		const hook = (<any>plugin)[hookName];
 		if (!hook) return undefined as any;
 
 		const deprecatedHookNewName = deprecatedHookNames[hookName];
 		if (deprecatedHookNewName)
-			context.warn(hookDeprecationWarning(hookName, deprecatedHookNewName, plugin, pidx));
+			context.warn(hookDeprecationWarning(hookName, deprecatedHookNewName, plugin, pluginIndex));
 
 		if (hookContext) {
 			context = hookContext(context, plugin);
-			if (!context || context === pluginContexts[pidx])
+			if (!context || context === pluginContexts[pluginIndex])
 				throw new Error('Internal Rollup error: hookContext must return a new context object.');
 		}
 		return Promise.resolve()
@@ -242,7 +301,7 @@ export function createPluginDriver(
 					error({
 						code: 'INVALID_PLUGIN_HOOK',
 						message: `Error running plugin hook ${hookName} for ${plugin.name ||
-							`Plugin at position ${pidx + 1}`}, expected a function hook.`
+							`Plugin at position ${pluginIndex + 1}`}, expected a function hook.`
 					});
 				}
 				return hook.apply(context, args);
@@ -253,7 +312,7 @@ export function createPluginDriver(
 					if (err.code) err.pluginCode = err.code;
 					err.code = 'PLUGIN_ERROR';
 				}
-				err.plugin = plugin.name || `Plugin at position ${pidx + 1}`;
+				err.plugin = plugin.name || `Plugin at position ${pluginIndex + 1}`;
 				err.hook = hookName;
 				error(err);
 			});
@@ -268,9 +327,7 @@ export function createPluginDriver(
 		hookSeq(name, args, hookContext) {
 			let promise: Promise<void> = <any>Promise.resolve();
 			for (let i = 0; i < plugins.length; i++)
-				promise = promise.then(() => {
-					return runHook<void>(name, args as any[], i, false, hookContext);
-				});
+				promise = promise.then(() => runHook<void>(name, args as any[], i, false, hookContext));
 			return promise;
 		},
 
@@ -281,9 +338,10 @@ export function createPluginDriver(
 		},
 
 		// chains, first non-null result stops and returns
-		hookFirst(name, args, hookContext) {
+		hookFirst(name, args, hookContext, skip) {
 			let promise: Promise<any> = Promise.resolve();
 			for (let i = 0; i < plugins.length; i++) {
+				if (skip === i) continue;
 				promise = promise.then((result: any) => {
 					if (result != null) return result;
 					return runHook(name, args as any[], i, false, hookContext);
@@ -291,6 +349,16 @@ export function createPluginDriver(
 			}
 			return promise;
 		},
+
+		// chains synchronously, first non-null result stops and returns
+		hookFirstSync(name, args?, hookContext?) {
+			for (let i = 0; i < plugins.length; i++) {
+				const result = runHookSync(name, args, i, false, hookContext);
+				if (result != null) return result as any;
+			}
+			return null;
+		},
+
 		// parallel, ignores returns
 		hookParallel(name, args, hookContext) {
 			const promises: Promise<void>[] = [];
@@ -301,6 +369,7 @@ export function createPluginDriver(
 			}
 			return Promise.all(promises).then(() => {});
 		},
+
 		// chains, reduces returns of type R, to type T, handling the reduced value as the first hook argument
 		hookReduceArg0(name, [arg0, ...args], reduce, hookContext) {
 			let promise = Promise.resolve(arg0);
@@ -308,14 +377,15 @@ export function createPluginDriver(
 				promise = promise.then(arg0 => {
 					const hookPromise = runHook(name, [arg0, ...args], i, false, hookContext);
 					if (!hookPromise) return arg0;
-					return hookPromise.then((result: any) => {
-						return reduce.call(pluginContexts[i], arg0, result, plugins[i]);
-					});
+					return hookPromise.then((result: any) =>
+						reduce.call(pluginContexts[i], arg0, result, plugins[i])
+					);
 				});
 			}
 			return promise;
 		},
-		// chains, synchronically reduces returns of type R, to type T, handling the reduced value as the first hook argument
+
+		// chains synchronously, reduces returns of type R, to type T, handling the reduced value as the first hook argument
 		hookReduceArg0Sync(name, [arg0, ...args], reduce, hookContext) {
 			for (let i = 0; i < plugins.length; i++) {
 				const result = runHookSync(name, [arg0, ...args], i, false, hookContext);
@@ -323,6 +393,7 @@ export function createPluginDriver(
 			}
 			return arg0;
 		},
+
 		// chains, reduces returns of type R, to type T, handling the reduced value separately. permits hooks as values.
 		hookReduceValue(name, initial, args, reduce, hookContext) {
 			let promise = Promise.resolve(initial);
@@ -330,9 +401,9 @@ export function createPluginDriver(
 				promise = promise.then(value => {
 					const hookPromise = runHook(name, args, i, true, hookContext);
 					if (!hookPromise) return value;
-					return hookPromise.then((result: any) => {
-						return reduce.call(pluginContexts[i], value, result, plugins[i]);
-					});
+					return hookPromise.then((result: any) =>
+						reduce.call(pluginContexts[i], value, result, plugins[i])
+					);
 				});
 			}
 			return promise;
@@ -433,10 +504,15 @@ const uncacheablePlugin: (pluginName: string) => PluginCache = pluginName => ({
 	}
 });
 
-function hookDeprecationWarning(name: string, newName: string, plugin: Plugin, pidx: number) {
+function hookDeprecationWarning(
+	name: string,
+	newName: string,
+	plugin: Plugin,
+	pluginIndex: number
+) {
 	return {
 		code: name.toUpperCase() + '_HOOK_DEPRECATED',
 		message: `The ${name} hook used by plugin ${plugin.name ||
-			`at position ${pidx + 1}`} is deprecated. The ${newName} hook should be used instead.`
+			`at position ${pluginIndex + 1}`} is deprecated. The ${newName} hook should be used instead.`
 	};
 }

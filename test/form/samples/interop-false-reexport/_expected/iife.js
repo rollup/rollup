@@ -3,8 +3,13 @@ var foo = (function (exports, external) {
 
 
 
-	exports.q = external.p;
 	exports.p = external.default;
+	Object.defineProperty(exports, 'q', {
+		enumerable: true,
+		get: function () {
+			return external.p;
+		}
+	});
 
 	return exports;
 
