@@ -212,6 +212,7 @@ export default class Module {
 	private magicString: MagicString;
 	private namespaceVariable: NamespaceVariable = undefined;
 	private transformDependencies: string[];
+	private transitiveReexports: string[];
 
 	constructor(graph: Graph, id: string, moduleSideEffects: boolean, isEntry: boolean) {
 		this.id = id;
@@ -315,7 +316,11 @@ export default class Module {
 		return this.getReexports().map(exportName => this.getVariableForExportName(exportName).module);
 	}
 
-	getReexports(walkedModuleIds = new Set<string>()) {
+	getReexports(walkedModuleIds = new Set<string>()): string[] {
+		if (this.transitiveReexports) {
+			return this.transitiveReexports;
+		}
+
 		// avoid infinite recursion when using circular `export * from X`
 		if (walkedModuleIds.has(this.id)) {
 			return [];
@@ -323,11 +328,9 @@ export default class Module {
 		walkedModuleIds.add(this.id);
 
 		const reexports = Object.create(null);
-
 		for (const name in this.reexports) {
 			reexports[name] = true;
 		}
-
 		this.exportAllModules.forEach(module => {
 			if (module.isExternal) {
 				reexports[`*${module.id}`] = true;
@@ -341,7 +344,7 @@ export default class Module {
 			}
 		});
 
-		return Object.keys(reexports);
+		return (this.transitiveReexports = Object.keys(reexports));
 	}
 
 	getRenderedExports() {
