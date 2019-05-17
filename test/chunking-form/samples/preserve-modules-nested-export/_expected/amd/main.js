@@ -1,4 +1,4 @@
-define(['exports', './inner/more_inner/something'], function (exports, __chunk_1) { 'use strict';
+define(['exports', './inner/more_inner/something', './inner/some_effect'], function (exports, __chunk_1, __chunk_3) { 'use strict';
 
 
 
