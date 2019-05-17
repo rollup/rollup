@@ -6,7 +6,8 @@ import {
 	OutputAsset,
 	OutputChunk,
 	OutputOptions,
-	RollupBuild
+	RollupBuild,
+	SourceMap
 } from '../../../src/rollup/types';
 import relativeId from '../../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
@@ -23,9 +24,11 @@ export default function build(
 	const useStdout = !outputOptions[0].file && !outputOptions[0].dir;
 
 	const start = Date.now();
-	const files = useStdout ? ['stdout'] : outputOptions.map(t => relativeId(t.file || t.dir));
+	const files = useStdout
+		? ['stdout']
+		: outputOptions.map(t => relativeId(t.file || (t.dir as string)));
 	if (!silent) {
-		let inputFiles: string;
+		let inputFiles: string = undefined as any;
 		if (typeof inputOptions.input === 'string') {
 			inputFiles = inputOptions.input;
 		} else if (inputOptions.input instanceof Array) {
@@ -58,7 +61,8 @@ export default function build(
 						} else {
 							source = (<OutputChunk>file).code;
 							if (output.sourcemap === 'inline') {
-								source += `\n//# ${SOURCEMAPPING_URL}=${(<OutputChunk>file).map.toUrl()}\n`;
+								source += `\n//# ${SOURCEMAPPING_URL}=${((<OutputChunk>file)
+									.map as SourceMap).toUrl()}\n`;
 							}
 						}
 						if (outputs.length > 1)

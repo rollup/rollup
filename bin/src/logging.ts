@@ -20,7 +20,7 @@ export function handleError(err: RollupError, recover = false) {
 	}
 
 	if (err.loc) {
-		stderr(`${relativeId(err.loc.file || err.id)} (${err.loc.line}:${err.loc.column})`);
+		stderr(`${relativeId((err.loc.file || err.id) as string)} (${err.loc.line}:${err.loc.column})`);
 	} else if (err.id) {
 		stderr(relativeId(err.id));
 	}

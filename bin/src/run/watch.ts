@@ -8,7 +8,8 @@ import {
 	InputOption,
 	RollupBuild,
 	RollupError,
-	RollupWatchOptions
+	RollupWatchOptions,
+	WatcherOptions
 } from '../../../src/rollup/types';
 import mergeOptions from '../../../src/utils/mergeOptions';
 import relativeId from '../../../src/utils/relativeId';
@@ -44,7 +45,9 @@ export default function watch(
 
 	const initialConfigs = processConfigs(configs);
 
-	const clearScreen = initialConfigs.every(config => config.watch.clearScreen !== false);
+	const clearScreen = initialConfigs.every(
+		config => (config.watch as WatcherOptions).clearScreen !== false
+	);
 
 	const screen = alternateScreen(isTTY && clearScreen);
 	screen.open();
@@ -77,7 +80,7 @@ export default function watch(
 
 			if (
 				(<RollupWatchOptions>merged.inputOptions).watch &&
-				(<RollupWatchOptions>merged.inputOptions).watch.clearScreen === false
+				((<RollupWatchOptions>merged.inputOptions).watch as WatcherOptions).clearScreen === false
 			) {
 				processConfigsErr = stderr;
 			}
@@ -95,13 +98,13 @@ export default function watch(
 			switch (event.code) {
 				case 'FATAL':
 					screen.close();
-					handleError(event.error, true);
+					handleError(event.error as RollupError, true);
 					process.exit(1);
 					break;
 
 				case 'ERROR':
 					warnings.flush();
-					handleError(event.error, true);
+					handleError(event.error as RollupError, true);
 					break;
 
 				case 'START':
@@ -116,13 +119,15 @@ export default function watch(
 						if (typeof input !== 'string') {
 							input = Array.isArray(input)
 								? input.join(', ')
-								: Object.keys(input)
+								: Object.keys(<Record<string, string>>input)
 										.map(key => (<Record<string, string>>input)[key])
 										.join(', ');
 						}
 						stderr(
 							tc.cyan(
-								`bundles ${tc.bold(input)} → ${tc.bold(event.output.map(relativeId).join(', '))}...`
+								`bundles ${tc.bold(input)} → ${tc.bold(
+									(event.output as string[]).map(relativeId).join(', ')
+								)}...`
 							)
 						);
 					}
@@ -133,9 +138,9 @@ export default function watch(
 					if (!silent)
 						stderr(
 							tc.green(
-								`created ${tc.bold(event.output.map(relativeId).join(', '))} in ${tc.bold(
-									ms(event.duration)
-								)}`
+								`created ${tc.bold(
+									(event.output as string[]).map(relativeId).join(', ')
+								)} in ${tc.bold(ms(event.duration))}`
 							)
 						);
 					if (event.result && event.result.getTimings) {
