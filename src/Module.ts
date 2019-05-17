@@ -311,6 +311,10 @@ export default class Module {
 		);
 	}
 
+	getReexportModules() {
+		return this.getReexports().map(exportName => this.getVariableForExportName(exportName).module);
+	}
+
 	getReexports(walkedModuleIds = new Set<string>()) {
 		// avoid infinite recursion when using circular `export * from X`
 		if (walkedModuleIds.has(this.id)) {
