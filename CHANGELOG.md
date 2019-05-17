@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 1.12.3
+*unreleased*
+
+### Pull Requests
+* [#2755](https://github.com/rollup/rollup/pull/2755): Enable TypeScript strictNullChecks (@edsrzf)
+
 ## 1.12.2
 *2019-05-17*
 
