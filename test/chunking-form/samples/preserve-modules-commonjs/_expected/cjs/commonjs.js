@@ -2,8 +2,8 @@
 
 require('external');
 require('./other.js');
-var __chunk_2 = require('./_virtual/_commonjs-external-external');
-var __chunk_3 = require('./_virtual/other.js');
+var __chunk_2 = require('./_virtual/_external_commonjs-external');
+var __chunk_3 = require('./_virtual/other.js_commonjs-proxy');
 
 const { value } = __chunk_3.default;
 

@@ -76,21 +76,21 @@ export default function transform(
 			}
 		}
 
-		if (!result) return code;
-
 		if (typeof result === 'string') {
 			result = {
 				ast: undefined,
 				code: result,
 				map: undefined
 			};
-		} else {
+		} else if (result && typeof result === 'object') {
 			if (typeof result.map === 'string') {
 				result.map = JSON.parse(result.map);
 			}
 			if (typeof result.moduleSideEffects === 'boolean') {
 				moduleSideEffects = result.moduleSideEffects;
 			}
+		} else {
+			return code;
 		}
 
 		if (result.map && typeof (result.map as ExistingRawSourceMap).mappings === 'string') {

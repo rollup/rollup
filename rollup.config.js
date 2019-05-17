@@ -91,7 +91,7 @@ export default command => {
 			// acorn needs to be external as some plugins rely on a shared acorn instance
 			external: ['fs', 'path', 'events', 'module', 'util', 'crypto', 'acorn', 'tty', 'net', 'url'],
 			treeshake: {
-				pureExternalModules: true,
+				moduleSideEffects: false,
 				propertyReadSideEffects: false
 			},
 			output: [
@@ -113,7 +113,7 @@ export default command => {
 			],
 			external: ['fs', 'path', 'module', 'events', 'rollup', 'assert', 'os', 'util'],
 			treeshake: {
-				pureExternalModules: true,
+				moduleSideEffects: false,
 				propertyReadSideEffects: false
 			},
 			output: {
@@ -150,7 +150,7 @@ export default command => {
 				terser({ module: true, output: { comments: 'some' } })
 			],
 			treeshake: {
-				pureExternalModules: true,
+				moduleSideEffects: false,
 				propertyReadSideEffects: false
 			},
 			output: [
