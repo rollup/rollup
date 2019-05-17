@@ -711,7 +711,7 @@ export default class Chunk {
 	): boolean {
 		const seen = new Set<Chunk | ExternalModule>();
 		function visitDep(dep: Chunk | ExternalModule): boolean {
-			if (seen.has(dep)) return false;
+			if (seen.has(dep)) return undefined as any;
 			seen.add(dep);
 			if (dep instanceof Chunk) {
 				for (const subDep of dep.dependencies) {

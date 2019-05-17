@@ -97,7 +97,7 @@ export default function system(
 	const dependencyIds = dependencies.map(m => `'${m.id}'`);
 
 	const importBindings: string[] = [];
-	let starExcludes: Set<string> | undefined = undefined;
+	let starExcludes: Set<string> | undefined;
 	const setters: string[] = [];
 
 	dependencies.forEach(({ imports, reexports }) => {

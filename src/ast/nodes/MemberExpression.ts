@@ -88,26 +88,32 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.bound) return;
 		this.bound = true;
 		const path = getPathIfNotComputed(this);
-		if (path) {
-			const baseVariable = this.scope.findVariable(path[0].key);
-			if (baseVariable && baseVariable.isNamespace) {
-				const resolvedVariable = this.resolveNamespaceVariables(baseVariable, path.slice(1));
-				if (!resolvedVariable) {
-					super.bind();
-				} else if (typeof resolvedVariable === 'string') {
-					this.replacement = resolvedVariable;
-				} else {
-					if (resolvedVariable.isExternal && (<ExternalVariable>resolvedVariable).module) {
-						(<ExternalVariable>resolvedVariable).module.suggestName(path[0].key);
-					}
-					this.variable = resolvedVariable;
-					this.scope.addNamespaceMemberAccess(getStringFromPath(path), resolvedVariable);
+		const baseVariable = path && this.scope.findVariable(path[0].key);
+		if (baseVariable && baseVariable.isNamespace) {
+			const resolvedVariable = this.resolveNamespaceVariables(
+				baseVariable,
+				(path as PathWithPositions).slice(1)
+			);
+			if (!resolvedVariable) {
+				super.bind();
+			} else if (typeof resolvedVariable === 'string') {
+				this.replacement = resolvedVariable;
+			} else {
+				if (resolvedVariable.isExternal && (<ExternalVariable>resolvedVariable).module) {
+					(<ExternalVariable>resolvedVariable).module.suggestName(
+						(path as PathWithPositions)[0].key
+					);
 				}
+				this.variable = resolvedVariable;
+				this.scope.addNamespaceMemberAccess(
+					getStringFromPath(path as PathWithPositions),
+					resolvedVariable
+				);
 			}
-			return;
+		} else {
+			super.bind();
+			if (this.propertyKey === null) this.analysePropertyKey();
 		}
-		super.bind();
-		if (this.propertyKey === null) this.analysePropertyKey();
 	}
 
 	deoptimizeCache() {

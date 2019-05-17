@@ -9,7 +9,7 @@ export function assignChunkColouringHashes(
 	manualChunkModules: Record<string, Module[]>
 ) {
 	let currentEntry: Module, currentEntryHash: Uint8Array;
-	let modulesVisitedForCurrentEntry: { [id: string]: boolean };
+	let modulesVisitedForCurrentEntry: { [id: string]: boolean | null };
 	const handledEntryPoints: { [id: string]: boolean } = {};
 	const dynamicImports: Module[] = [];
 
@@ -68,7 +68,7 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 	for (currentEntry of entryModules) {
 		handledEntryPoints[currentEntry.id] = true;
 		currentEntryHash = randomUint8Array(10);
-		modulesVisitedForCurrentEntry = { [currentEntry.id]: false };
+		modulesVisitedForCurrentEntry = { [currentEntry.id]: null };
 		addCurrentEntryColourToModule(currentEntry);
 	}
 
@@ -78,7 +78,7 @@ Try defining "${chunkName}" first in the manualChunks definitions of the Rollup 
 		}
 		handledEntryPoints[currentEntry.id] = true;
 		currentEntryHash = randomUint8Array(10);
-		modulesVisitedForCurrentEntry = { [currentEntry.id]: false };
+		modulesVisitedForCurrentEntry = { [currentEntry.id]: null };
 		addCurrentEntryColourToModule(currentEntry);
 	}
 }
