@@ -212,6 +212,7 @@ export default class Module {
 	private magicString: MagicString;
 	private namespaceVariable: NamespaceVariable = undefined;
 	private transformDependencies: string[];
+	private transitiveReexports: string[];
 
 	constructor(graph: Graph, id: string, moduleSideEffects: boolean, isEntry: boolean) {
 		this.id = id;
@@ -311,37 +312,27 @@ export default class Module {
 		);
 	}
 
-	getReexportModules() {
-		return this.getReexports().map(exportName => this.getVariableForExportName(exportName).module);
-	}
-
-	getReexports(walkedModuleIds = new Set<string>()) {
-		// avoid infinite recursion when using circular `export * from X`
-		if (walkedModuleIds.has(this.id)) {
-			return [];
+	getReexports(): string[] {
+		if (this.transitiveReexports) {
+			return this.transitiveReexports;
 		}
-		walkedModuleIds.add(this.id);
+		// to avoid infinite recursion when using circular `export * from X`
+		this.transitiveReexports = [];
 
-		const reexports = Object.create(null);
-
+		const reexports = new Set<string>();
 		for (const name in this.reexports) {
-			reexports[name] = true;
+			reexports.add(name);
 		}
-
-		this.exportAllModules.forEach(module => {
-			if (module.isExternal) {
-				reexports[`*${module.id}`] = true;
-				return;
+		for (const module of this.exportAllModules) {
+			if (module instanceof ExternalModule) {
+				reexports.add(`*${module.id}`);
+			} else {
+				for (const name of module.getExports().concat(module.getReexports())) {
+					if (name !== 'default') reexports.add(name);
+				}
 			}
-
-			for (const name of (<Module>module)
-				.getExports()
-				.concat((<Module>module).getReexports(walkedModuleIds))) {
-				if (name !== 'default') reexports[name] = true;
-			}
-		});
-
-		return Object.keys(reexports);
+		}
+		return (this.transitiveReexports = Array.from(reexports));
 	}
 
 	getRenderedExports() {
@@ -353,6 +344,12 @@ export default class Module {
 			(variable && variable.included ? renderedExports : removedExports).push(exportName);
 		}
 		return { renderedExports, removedExports };
+	}
+
+	getTransitiveDependencies() {
+		return this.dependencies.concat(
+			this.getReexports().map(exportName => this.getVariableForExportName(exportName).module)
+		);
 	}
 
 	getVariableForExportName(name: string, isExportAllSearch?: boolean): Variable | null {

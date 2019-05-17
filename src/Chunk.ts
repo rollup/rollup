@@ -337,8 +337,7 @@ export default class Chunk {
 		const dependencies: Set<Chunk | ExternalModule> = new Set();
 		const dynamicDependencies: Set<Chunk | ExternalModule> = new Set();
 		for (const module of this.orderedModules) {
-			this.addChunksFromDependencies(module.dependencies, dependencies);
-			this.addChunksFromDependencies(module.getReexportModules(), dependencies);
+			this.addChunksFromDependencies(module.getTransitiveDependencies(), dependencies);
 			this.addChunksFromDependencies(module.dynamicDependencies, dynamicDependencies);
 			this.setUpModuleImports(module);
 		}

@@ -3,7 +3,7 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			const foo = exports('foo', 1);
+			console.log('side-effect');
 
 		}
 	};
