@@ -1,7 +1,7 @@
 # rollup changelog
 
 ## 1.12.2
-*unreleased*
+*2019-05-17*
 
 ### Bug Fixes
 * Do not fail when using clearScreen:false in watchMode (#2858)
@@ -10,6 +10,7 @@
 ### Pull Requests
 * [#2858](https://github.com/rollup/rollup/pull/2858): Declare processConfigsErr before use (@humphd)
 * [#2860](https://github.com/rollup/rollup/pull/2860): Keep nested exports with preserveModules (@TomCaserta)
+* [#2864](https://github.com/rollup/rollup/pull/2864): Cache transitive reexport detection (@lukastaegert)
 
 ## 1.12.1
 *2019-05-16*
