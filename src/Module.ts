@@ -109,7 +109,7 @@ export interface AstContext {
 	preserveModules: boolean;
 	propertyReadSideEffects: boolean;
 	traceExport: (name: string) => Variable;
-	traceVariable: (name: string) => Variable;
+	traceVariable: (name: string) => Variable | null;
 	treeshake: boolean;
 	usesTopLevelAwait: boolean;
 	warn: (warning: RollupWarning, pos: number) => void;
@@ -354,12 +354,12 @@ export default class Module {
 	getTransitiveDependencies() {
 		return this.dependencies.concat(
 			this.getReexports().map(
-				exportName => (this.getVariableForExportName(exportName) as Variable).module as Module
+				exportName => (this.getVariableForExportName(exportName)).module as Module
 			)
 		);
 	}
 
-	getVariableForExportName(name: string, isExportAllSearch?: boolean): Variable | null {
+	getVariableForExportName(name: string, isExportAllSearch?: boolean): Variable {
 		if (name[0] === '*') {
 			if (name.length === 1) {
 				return this.getOrCreateNamespace();
@@ -427,7 +427,7 @@ export default class Module {
 		}
 
 		for (const exportName of this.getExports()) {
-			const variable = this.getVariableForExportName(exportName) as Variable;
+			const variable = this.getVariableForExportName(exportName);
 
 			variable.deoptimizePath(UNKNOWN_PATH);
 			if (!variable.included) {
@@ -437,7 +437,7 @@ export default class Module {
 		}
 
 		for (const name of this.getReexports()) {
-			const variable = this.getVariableForExportName(name) as Variable;
+			const variable = this.getVariableForExportName(name);
 
 			if (variable.isExternal) {
 				variable.reexported = (variable as ExternalVariable).module.reexported = true;
