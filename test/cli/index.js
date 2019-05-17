@@ -114,7 +114,7 @@ runTestSuiteWithSamples(
 
 				childProcess.stderr.on('data', data => {
 					if (config.abortOnStderr && config.abortOnStderr(data)) {
-						childProcess.kill('SIGINT');
+						childProcess.kill();
 					}
 				});
 			}
