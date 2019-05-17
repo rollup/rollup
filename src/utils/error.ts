@@ -20,7 +20,7 @@ export function augmentCodeLocation(
 		const { line, column } = pos;
 		object.loc = { file: id, line, column };
 	} else {
-		object.pos = <any>pos;
+		object.pos = pos as any;
 		const { line, column } = locate(source, pos, { offsetLine: 1 });
 		object.loc = { file: id, line, column };
 	}

@@ -103,7 +103,7 @@ export default class SequenceExpression extends NodeBase {
 				node.render(code, options, {
 					isCalleeOfRenderedParent: renderedParentType
 						? isCalleeOfRenderedParent
-						: (<CallExpression>this.parent).callee === this,
+						: (this.parent as CallExpression).callee === this,
 					renderedParentType: renderedParentType || this.parent.type
 				});
 			} else {

@@ -20,7 +20,7 @@ export default class AwaitExpression extends NodeBase {
 			let parent = this.parent;
 			do {
 				if (parent instanceof FunctionNode || parent instanceof ArrowFunctionExpression) return;
-			} while ((parent = <Node>(<Node>parent).parent));
+			} while ((parent = (parent as Node).parent as Node));
 			this.context.usesTopLevelAwait = true;
 		}
 	}

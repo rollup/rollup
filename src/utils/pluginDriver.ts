@@ -217,11 +217,11 @@ export function createPluginDriver(
 				graph.warn(warning);
 			},
 			watcher: watcher
-				? <EventEmitter>{
-						...(<EventEmitter>watcher),
+				? ({
+						...(watcher as EventEmitter),
 						addListener: deprecatedWatchListener,
 						on: deprecatedWatchListener
-				  }
+				  } as EventEmitter)
 				: (undefined as any)
 		};
 		return context;
@@ -236,7 +236,7 @@ export function createPluginDriver(
 	): T {
 		const plugin = plugins[pluginIndex];
 		let context = pluginContexts[pluginIndex];
-		const hook = (<any>plugin)[hookName];
+		const hook = (plugin as any)[hookName];
 		if (!hook) return undefined as any;
 
 		const deprecatedHookNewName = deprecatedHookNames[hookName];
@@ -281,7 +281,7 @@ export function createPluginDriver(
 	): Promise<T> {
 		const plugin = plugins[pluginIndex];
 		let context = pluginContexts[pluginIndex];
-		const hook = (<any>plugin)[hookName];
+		const hook = (plugin as any)[hookName];
 		if (!hook) return undefined as any;
 
 		const deprecatedHookNewName = deprecatedHookNames[hookName];
@@ -325,7 +325,7 @@ export function createPluginDriver(
 
 		// chains, ignores returns
 		hookSeq(name, args, hookContext) {
-			let promise: Promise<void> = <any>Promise.resolve();
+			let promise: Promise<void> = Promise.resolve() as any;
 			for (let i = 0; i < plugins.length; i++)
 				promise = promise.then(() => runHook<void>(name, args as any[], i, false, hookContext));
 			return promise;

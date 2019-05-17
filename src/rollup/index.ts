@@ -30,7 +30,7 @@ import {
 } from './types';
 
 function checkOutputOptions(options: OutputOptions) {
-	if (<string>options.format === 'es6') {
+	if ((options.format as string) === 'es6') {
 		error({
 			message: 'The "es6" output format is deprecated – use "esm" instead',
 			url: `https://rollupjs.org/guide/en#output-format`
@@ -238,7 +238,7 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 
 							return Promise.all(
 								chunks.map(chunk => {
-									const outputChunk = <OutputChunk>outputBundle[chunk.id];
+									const outputChunk = outputBundle[chunk.id] as OutputChunk;
 									return chunk.render(outputOptions, addons, outputChunk).then(rendered => {
 										outputChunk.code = rendered.code;
 										outputChunk.map = rendered.map;
@@ -294,16 +294,16 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 				const cache = useCache ? graph.getCache() : undefined;
 				const result: RollupBuild = {
 					cache: cache as RollupCache,
-					generate: <any>((rawOutputOptions: GenericConfigObject) => {
+					generate: ((rawOutputOptions: GenericConfigObject) => {
 						const promise = generate(getOutputOptions(rawOutputOptions), false).then(result =>
 							createOutput(result)
 						);
 						Object.defineProperty(promise, 'code', throwAsyncGenerateError);
 						Object.defineProperty(promise, 'map', throwAsyncGenerateError);
 						return promise;
-					}),
+					}) as any,
 					watchFiles: Object.keys(graph.watchFiles),
-					write: <any>((rawOutputOptions: OutputOptions) => {
+					write: ((rawOutputOptions: OutputOptions) => {
 						const outputOptions = getOutputOptions(rawOutputOptions);
 						if (!outputOptions.dir && !outputOptions.file) {
 							error({
@@ -315,7 +315,7 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 							let chunkCnt = 0;
 							for (const fileName of Object.keys(bundle)) {
 								const file = bundle[fileName];
-								if ((<OutputAsset>file).isAsset) continue;
+								if ((file as OutputAsset).isAsset) continue;
 								chunkCnt++;
 								if (chunkCnt > 1) break;
 							}
@@ -344,7 +344,7 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 								.then(() => graph.pluginDriver.hookParallel('writeBundle', [bundle]))
 								.then(() => createOutput(bundle));
 						});
-					})
+					}) as any
 				};
 				if (inputOptions.perf === true) result.getTimings = getTimings;
 				return result;
@@ -361,10 +361,10 @@ enum SortingFileType {
 }
 
 function getSortingFileType(file: OutputAsset | OutputChunk): SortingFileType {
-	if ((<OutputAsset>file).isAsset) {
+	if ((file as OutputAsset).isAsset) {
 		return SortingFileType.ASSET;
 	}
-	if ((<OutputChunk>file).isEntry) {
+	if ((file as OutputChunk).isEntry) {
 		return SortingFileType.ENTRY_CHUNK;
 	}
 	return SortingFileType.SECONDARY_CHUNK;
@@ -384,7 +384,7 @@ function createOutput(outputBundle: Record<string, OutputChunk | OutputAsset>): 
 }
 
 function isOutputAsset(file: OutputAsset | OutputChunk): file is OutputAsset {
-	return (<OutputAsset>file).isAsset === true;
+	return (file as OutputAsset).isAsset === true;
 }
 
 function writeOutputFile(

@@ -79,8 +79,8 @@ export default function watch(
 				});
 
 			if (
-				(<RollupWatchOptions>merged.inputOptions).watch &&
-				((<RollupWatchOptions>merged.inputOptions).watch as WatcherOptions).clearScreen === false
+				(merged.inputOptions as RollupWatchOptions).watch &&
+				((merged.inputOptions as RollupWatchOptions).watch as WatcherOptions).clearScreen === false
 			) {
 				processConfigsErr = stderr;
 			}
@@ -119,8 +119,8 @@ export default function watch(
 						if (typeof input !== 'string') {
 							input = Array.isArray(input)
 								? input.join(', ')
-								: Object.keys(<Record<string, string>>input)
-										.map(key => (<Record<string, string>>input)[key])
+								: Object.keys(input as Record<string, string>)
+										.map(key => (input as Record<string, string>)[key])
 										.join(', ');
 						}
 						stderr(

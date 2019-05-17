@@ -57,7 +57,7 @@ export default class BinaryExpression extends NodeBase {
 		const operatorFn = binaryOperators[this.operator];
 		if (!operatorFn) return UNKNOWN_VALUE;
 
-		return operatorFn(<LiteralValue>leftValue, <LiteralValue>rightValue);
+		return operatorFn(leftValue as LiteralValue, rightValue as LiteralValue);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {

@@ -849,7 +849,7 @@ export default class Chunk {
 			let importName: string;
 			let needsLiveBinding = false;
 			if (exportName[0] === '*') {
-				exportModule = <ExternalModule>this.graph.moduleById.get(exportName.substr(1));
+				exportModule = this.graph.moduleById.get(exportName.substr(1)) as ExternalModule;
 				importName = exportName = '*';
 			} else {
 				const variable = this.exportNames[exportName];
@@ -930,7 +930,7 @@ export default class Chunk {
 				globalName,
 				id, // chunk id updated on render
 				imports: imports.length > 0 ? imports : (null as any),
-				isChunk: !(<ExternalModule>dep).isExternal,
+				isChunk: !(dep as ExternalModule).isExternal,
 				name: dep.variableName,
 				namedExportsMode,
 				reexports

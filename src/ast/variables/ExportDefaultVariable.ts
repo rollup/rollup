@@ -28,12 +28,12 @@ export default class ExportDefaultVariable extends LocalVariable {
 		if (
 			(declaration.type === NodeType.FunctionDeclaration ||
 				declaration.type === NodeType.ClassDeclaration) &&
-			(<FunctionDeclaration | ClassDeclaration>declaration).id
+			(declaration as FunctionDeclaration | ClassDeclaration).id
 		) {
 			this.hasId = true;
-			this.originalId = (<FunctionDeclaration | ClassDeclaration>declaration).id;
+			this.originalId = (declaration as FunctionDeclaration | ClassDeclaration).id;
 		} else if (declaration.type === NodeType.Identifier) {
-			this.originalId = <Identifier>declaration;
+			this.originalId = declaration as Identifier;
 		}
 	}
 

@@ -24,8 +24,8 @@ export default class BlockStatement extends StatementBase {
 	}
 
 	createScope(parentScope: Scope) {
-		this.scope = (<Node>this.parent).preventChildBlockScope
-			? <ChildScope>parentScope
+		this.scope = (this.parent as Node).preventChildBlockScope
+			? (parentScope as ChildScope)
 			: new BlockScope(parentScope);
 	}
 

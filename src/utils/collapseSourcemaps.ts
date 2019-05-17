@@ -97,7 +97,7 @@ class Link {
 							names.push(traced.name);
 						}
 
-						(<SourceMapSegmentVector>tracedSegment)[4] = nameIndex;
+						(tracedSegment as SourceMapSegmentVector)[4] = nameIndex;
 					}
 
 					tracedLine.push(tracedSegment);
@@ -168,7 +168,7 @@ export default function collapseSourcemaps(
 			};
 		}
 
-		return <any>new Link(map, [source]);
+		return new Link(map, [source]) as any;
 	}
 
 	const moduleSources = modules
@@ -177,7 +177,7 @@ export default function collapseSourcemaps(
 			let sourcemapChain = module.sourcemapChain;
 
 			let source: Source;
-			const originalSourcemap = <ExistingRawSourceMap>module.originalSourcemap;
+			const originalSourcemap = module.originalSourcemap as ExistingRawSourceMap;
 			if (!originalSourcemap) {
 				source = new Source(module.id, module.originalCode);
 			} else {
@@ -186,7 +186,7 @@ export default function collapseSourcemaps(
 
 				if (sources == null || (sources.length <= 1 && sources[0] == null)) {
 					source = new Source(module.id, sourcesContent[0]);
-					sourcemapChain = [<RawSourceMap>originalSourcemap].concat(sourcemapChain);
+					sourcemapChain = [originalSourcemap as RawSourceMap].concat(sourcemapChain);
 				} else {
 					// TODO indiscriminately treating IDs and sources as normal paths is probably bad.
 					const directory = dirname(module.id) || '.';
@@ -196,7 +196,7 @@ export default function collapseSourcemaps(
 						(source, i) => new Source(resolve(directory, sourceRoot, source), sourcesContent[i])
 					);
 
-					source = <any>new Link(<any>originalSourcemap, baseSources);
+					source = new Link(originalSourcemap as any, baseSources) as any;
 				}
 			}
 
@@ -205,7 +205,7 @@ export default function collapseSourcemaps(
 			return source;
 		});
 
-	let source = new Link(<any>map, moduleSources);
+	let source = new Link(map as any, moduleSources);
 
 	source = bundleSourcemapChain.reduce(linkMap, source);
 

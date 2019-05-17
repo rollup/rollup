@@ -89,7 +89,7 @@ export default function runRollup(command: any) {
 			.then(configs => execute(configFile, configs, command))
 			.catch(handleError);
 	} else {
-		return execute(configFile, <any>[{ input: null }], command);
+		return execute(configFile, [{ input: null }] as any, command);
 	}
 }
 

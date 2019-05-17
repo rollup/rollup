@@ -36,7 +36,7 @@ export default class ExportNamedDeclaration extends NodeBase {
 			code.remove(start as number, end as number);
 		} else {
 			code.remove(this.start, this.declaration.start);
-			(<Node>this.declaration).render(code, options, { start, end });
+			(this.declaration as Node).render(code, options, { start, end });
 		}
 	}
 }

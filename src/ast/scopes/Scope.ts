@@ -20,7 +20,7 @@ export default class Scope {
 	) {
 		const name = identifier.name;
 		if (this.variables[name]) {
-			(<LocalVariable>this.variables[name]).addDeclaration(identifier, init);
+			(this.variables[name] as LocalVariable).addDeclaration(identifier, init);
 		} else {
 			this.variables[name] = new LocalVariable(
 				identifier.name,

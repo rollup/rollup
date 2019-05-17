@@ -9,8 +9,8 @@ export function handleError(err: RollupError, recover = false) {
 	let description = err.message || err;
 	if (err.name) description = `${err.name}: ${description}`;
 	const message =
-		((<{ plugin?: string }>err).plugin
-			? `(${(<{ plugin?: string }>err).plugin} plugin) ${description}`
+		((err as { plugin?: string }).plugin
+			? `(${(err as { plugin?: string }).plugin} plugin) ${description}`
 			: description) || err;
 
 	stderr(tc.bold.red(`[!] ${tc.bold(message.toString())}`));

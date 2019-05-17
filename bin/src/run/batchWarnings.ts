@@ -286,7 +286,7 @@ function nest<T>(array: T[], prop: string) {
 	const lookup = new Map<string, { items: T[]; key: string }>();
 
 	array.forEach(item => {
-		const key = (<any>item)[prop];
+		const key = (item as any)[prop];
 		if (!lookup.has(key)) {
 			lookup.set(key, {
 				items: [],

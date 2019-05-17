@@ -79,7 +79,7 @@ export class ExecutionPathOptions {
 	}
 
 	getArgumentsVariables(): ExpressionEntity[] {
-		return <ExpressionEntity[]>(this.get(OptionTypes.ARGUMENTS_VARIABLES) || []);
+		return (this.get(OptionTypes.ARGUMENTS_VARIABLES) || []) as ExpressionEntity[];
 	}
 
 	getHasEffectsWhenCalledOptions() {

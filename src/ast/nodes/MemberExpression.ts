@@ -29,7 +29,7 @@ import { PatternNode } from './shared/Pattern';
 function getResolvablePropertyKey(memberExpression: MemberExpression): string | null {
 	return memberExpression.computed
 		? getResolvableComputedPropertyKey(memberExpression.property)
-		: (<Identifier>memberExpression.property).name;
+		: (memberExpression.property as Identifier).name;
 }
 
 function getResolvableComputedPropertyKey(propertyKey: ExpressionNode): string | null {
@@ -102,8 +102,8 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			} else if (typeof resolvedVariable === 'string') {
 				this.replacement = resolvedVariable;
 			} else {
-				if (resolvedVariable.isExternal && (<ExternalVariable>resolvedVariable).module) {
-					(<ExternalVariable>resolvedVariable).module.suggestName(
+				if (resolvedVariable.isExternal && (resolvedVariable as ExternalVariable).module) {
+					(resolvedVariable as ExternalVariable).module.suggestName(
 						(path as PathWithPositions)[0].key
 					);
 				}
@@ -288,12 +288,12 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (!baseVariable.isNamespace) return null;
 		const exportName = path[0].key;
 		const variable = baseVariable.isExternal
-			? (<ExternalVariable>baseVariable).module.getVariableForExportName(exportName)
-			: (<NamespaceVariable>baseVariable).context.traceExport(exportName);
+			? (baseVariable as ExternalVariable).module.getVariableForExportName(exportName)
+			: (baseVariable as NamespaceVariable).context.traceExport(exportName);
 		if (!variable) {
 			const fileName = baseVariable.isExternal
-				? (<ExternalVariable>baseVariable).module.id
-				: (<NamespaceVariable>baseVariable).context.fileName;
+				? (baseVariable as ExternalVariable).module.id
+				: (baseVariable as NamespaceVariable).context.fileName;
 			this.context.warn(
 				{
 					code: 'MISSING_EXPORT',

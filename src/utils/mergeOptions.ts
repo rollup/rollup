@@ -218,8 +218,8 @@ function getInputOptions(
 	};
 
 	// support rollup({ cache: prevBuildObject })
-	if (inputOptions.cache && (<any>inputOptions.cache).cache)
-		inputOptions.cache = (<any>inputOptions.cache).cache;
+	if (inputOptions.cache && (inputOptions.cache as any).cache)
+		inputOptions.cache = (inputOptions.cache as any).cache;
 
 	return inputOptions;
 }

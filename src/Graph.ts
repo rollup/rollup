@@ -116,11 +116,11 @@ export default class Graph {
 		if (this.treeshake) {
 			this.treeshakingOptions = options.treeshake
 				? {
-						annotations: (<TreeshakingOptions>options.treeshake).annotations !== false,
-						moduleSideEffects: (<TreeshakingOptions>options.treeshake).moduleSideEffects,
+						annotations: (options.treeshake as TreeshakingOptions).annotations !== false,
+						moduleSideEffects: (options.treeshake as TreeshakingOptions).moduleSideEffects,
 						propertyReadSideEffects:
-							(<TreeshakingOptions>options.treeshake).propertyReadSideEffects !== false,
-						pureExternalModules: (<TreeshakingOptions>options.treeshake).pureExternalModules
+							(options.treeshake as TreeshakingOptions).propertyReadSideEffects !== false,
+						pureExternalModules: (options.treeshake as TreeshakingOptions).pureExternalModules
 				  }
 				: {
 						annotations: true,
@@ -173,7 +173,7 @@ export default class Graph {
 		acornPluginsToInject.push(injectBigInt);
 
 		if (options.experimentalTopLevelAwait) {
-			(<any>this.acornOptions).allowAwaitOutsideFunction = true;
+			(this.acornOptions as any).allowAwaitOutsideFunction = true;
 		}
 
 		const acornInjectPlugins = options.acornInjectPlugins;
@@ -184,7 +184,7 @@ export default class Graph {
 				? [acornInjectPlugins]
 				: [])
 		);
-		this.acornParser = <any>acorn.Parser.extend(...acornPluginsToInject);
+		this.acornParser = acorn.Parser.extend(...acornPluginsToInject) as any;
 		this.moduleLoader = new ModuleLoader(
 			this,
 			this.moduleById,
@@ -356,10 +356,10 @@ export default class Graph {
 			if (allDeleted) delete this.pluginCache[name];
 		}
 
-		return <any>{
+		return {
 			modules: this.modules.map(module => module.toJSON()),
 			plugins: this.pluginCache
-		};
+		} as any;
 	}
 
 	includeMarked(modules: Module[]) {

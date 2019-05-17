@@ -5,7 +5,7 @@ import { ObjectPath, UNKNOWN_EXPRESSION } from '../values';
 import LocalVariable from './LocalVariable';
 
 const getParameterVariable = (path: ObjectPath, options: ExecutionPathOptions) => {
-	const firstArgNum = parseInt(<string>path[0], 10);
+	const firstArgNum = parseInt(path[0] as string, 10);
 
 	return (
 		(firstArgNum < options.getArgumentsVariables().length &&
@@ -23,7 +23,7 @@ export default class ArgumentsVariable extends LocalVariable {
 	}
 
 	deoptimizePath(path: ObjectPath) {
-		const firstArgNum = parseInt(<string>path[0], 10);
+		const firstArgNum = parseInt(path[0] as string, 10);
 		if (path.length > 0) {
 			if (firstArgNum >= 0 && this.parameters[firstArgNum]) {
 				this.parameters[firstArgNum].deoptimizePath(path.slice(1));

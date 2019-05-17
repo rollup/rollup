@@ -281,7 +281,7 @@ export default class Module {
 				return;
 			}
 
-			for (const name of (<Module>module).getAllExports()) {
+			for (const name of (module as Module).getAllExports()) {
 				if (name !== 'default') allExports[name] = true;
 			}
 		});
@@ -365,7 +365,7 @@ export default class Module {
 				return this.getOrCreateNamespace();
 			} else {
 				// export * from 'external'
-				const module = <ExternalModule>this.graph.moduleById.get(name.slice(1));
+				const module = this.graph.moduleById.get(name.slice(1)) as ExternalModule;
 				return module.getVariableForExportName('*');
 			}
 		}
@@ -440,7 +440,7 @@ export default class Module {
 			const variable = this.getVariableForExportName(name) as Variable;
 
 			if (variable.isExternal) {
-				variable.reexported = (<ExternalVariable>variable).module.reexported = true;
+				variable.reexported = (variable as ExternalVariable).module.reexported = true;
 			} else if (!variable.included) {
 				variable.include();
 				variable.deoptimizePath(UNKNOWN_PATH);
@@ -463,7 +463,7 @@ export default class Module {
 
 			if (id) {
 				const module = this.graph.moduleById.get(id);
-				this.dependencies.push(<Module>module);
+				this.dependencies.push(module as Module);
 			}
 		}
 		for (const { resolution } of this.dynamicImports) {
@@ -602,7 +602,7 @@ export default class Module {
 			const otherModule = importDeclaration.module as Module | ExternalModule;
 
 			if (!otherModule.isExternal && importDeclaration.name === '*') {
-				return (<Module>otherModule).getOrCreateNamespace();
+				return (otherModule as Module).getOrCreateNamespace();
 			}
 
 			const declaration = otherModule.getVariableForExportName(importDeclaration.name);
@@ -638,7 +638,8 @@ export default class Module {
 	private addExport(
 		node: ExportAllDeclaration | ExportNamedDeclaration | ExportDefaultDeclaration
 	) {
-		const source = (<ExportAllDeclaration>node).source && (<ExportAllDeclaration>node).source.value;
+		const source =
+			(node as ExportAllDeclaration).source && (node as ExportAllDeclaration).source.value;
 
 		// export { name } from './other'
 		if (source) {
@@ -649,7 +650,7 @@ export default class Module {
 				// When an unknown import is encountered, we see if one of them can satisfy it.
 				this.exportAllSources.push(source);
 			} else {
-				for (const specifier of (<ExportNamedDeclaration>node).specifiers) {
+				for (const specifier of (node as ExportNamedDeclaration).specifiers) {
 					const name = specifier.exported.name;
 
 					if (this.exports[name] || this.reexports[name]) {
@@ -688,12 +689,12 @@ export default class Module {
 				identifier: node.variable.getOriginalVariableName() as string | undefined,
 				localName: 'default'
 			};
-		} else if ((<ExportNamedDeclaration>node).declaration) {
+		} else if ((node as ExportNamedDeclaration).declaration) {
 			// export var { foo, bar } = ...
 			// export var foo = 42;
 			// export var a = 1, b = 2, c = 3;
 			// export function foo () {}
-			const declaration = (<ExportNamedDeclaration>node).declaration as
+			const declaration = (node as ExportNamedDeclaration).declaration as
 				| FunctionDeclaration
 				| ClassDeclaration
 				| VariableDeclaration;
@@ -711,7 +712,7 @@ export default class Module {
 			}
 		} else {
 			// export { foo, bar, baz }
-			for (const specifier of (<ExportNamedDeclaration>node).specifiers) {
+			for (const specifier of (node as ExportNamedDeclaration).specifiers) {
 				const localName = specifier.local.name;
 				const exportedName = specifier.exported.name;
 
@@ -755,7 +756,7 @@ export default class Module {
 				? 'default'
 				: isNamespace
 				? '*'
-				: (<ImportSpecifier>specifier).imported.name;
+				: (specifier as ImportSpecifier).imported.name;
 			this.importDescriptions[localName] = { source, start: specifier.start, name, module: null };
 		}
 	}

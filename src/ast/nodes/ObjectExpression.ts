@@ -313,7 +313,7 @@ export default class ObjectExpression extends NodeBase {
 			} else if (property.key instanceof Identifier) {
 				key = property.key.name;
 			} else {
-				key = String((<Literal>property.key).value);
+				key = String((property.key as Literal).value);
 			}
 			const propertyMapProperty = (this.propertyMap as PropertyMap)[key];
 			if (!propertyMapProperty) {

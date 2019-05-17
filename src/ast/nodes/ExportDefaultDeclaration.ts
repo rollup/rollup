@@ -58,7 +58,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		this.included = false;
 		const declaration = this.declaration as FunctionDeclaration | ClassDeclaration;
 		this.declarationName =
-			(declaration.id && declaration.id.name) || (<Identifier>this.declaration).name;
+			(declaration.id && declaration.id.name) || (this.declaration as Identifier).name;
 		this.variable = this.scope.addExportDefaultDeclaration(
 			this.declarationName || this.context.getModuleName(),
 			this,

@@ -26,9 +26,11 @@ export default class CatchClause extends NodeBase {
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode) {
-		this.body = <BlockStatement>(
-			new this.context.nodeConstructors.BlockStatement(esTreeNode.body, this, this.scope)
-		);
+		this.body = new this.context.nodeConstructors.BlockStatement(
+			esTreeNode.body,
+			this,
+			this.scope
+		) as BlockStatement;
 		super.parseNode(esTreeNode);
 	}
 }

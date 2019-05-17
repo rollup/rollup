@@ -168,7 +168,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 			(this.usedBranch as ExpressionNode).render(code, options, {
 				isCalleeOfRenderedParent: renderedParentType
 					? isCalleeOfRenderedParent
-					: (<CallExpression>this.parent).callee === this,
+					: (this.parent as CallExpression).callee === this,
 				renderedParentType: renderedParentType || this.parent.type
 			});
 		} else {

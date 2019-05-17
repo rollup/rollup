@@ -119,7 +119,7 @@ function getPluginWithTimers(plugin: any, index: number): Plugin {
 			timedPlugin[hook] = plugin[hook];
 		}
 	}
-	return <Plugin>timedPlugin;
+	return timedPlugin as Plugin;
 }
 
 export function initialiseTimers(inputOptions: InputOptions) {

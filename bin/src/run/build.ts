@@ -35,7 +35,7 @@ export default function build(
 			inputFiles = inputOptions.input.join(', ');
 		} else if (typeof inputOptions.input === 'object' && inputOptions.input !== null) {
 			inputFiles = Object.keys(inputOptions.input)
-				.map(name => (<Record<string, string>>inputOptions.input)[name])
+				.map(name => (inputOptions.input as Record<string, string>)[name])
 				.join(', ');
 		}
 		stderr(tc.cyan(`\n${tc.bold(inputFiles)} → ${tc.bold(files.join(', '))}...`));
@@ -56,12 +56,12 @@ export default function build(
 				return bundle.generate(output).then(({ output: outputs }) => {
 					for (const file of outputs) {
 						let source: string | Buffer;
-						if ((<OutputAsset>file).isAsset) {
-							source = (<OutputAsset>file).source;
+						if ((file as OutputAsset).isAsset) {
+							source = (file as OutputAsset).source;
 						} else {
-							source = (<OutputChunk>file).code;
+							source = (file as OutputChunk).code;
 							if (output.sourcemap === 'inline') {
-								source += `\n//# ${SOURCEMAPPING_URL}=${((<OutputChunk>file)
+								source += `\n//# ${SOURCEMAPPING_URL}=${((file as OutputChunk)
 									.map as SourceMap).toUrl()}\n`;
 							}
 						}
@@ -72,7 +72,7 @@ export default function build(
 				});
 			}
 
-			return Promise.all(outputOptions.map(output => <Promise<any>>bundle.write(output))).then(
+			return Promise.all(outputOptions.map(output => bundle.write(output) as Promise<any>)).then(
 				() => bundle
 			);
 		})

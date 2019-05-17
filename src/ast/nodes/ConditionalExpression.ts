@@ -164,7 +164,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 			(this.usedBranch as ExpressionNode).render(code, options, {
 				isCalleeOfRenderedParent: renderedParentType
 					? isCalleeOfRenderedParent
-					: (<CallExpression>this.parent).callee === this,
+					: (this.parent as CallExpression).callee === this,
 				renderedParentType: renderedParentType || this.parent.type
 			});
 		} else {

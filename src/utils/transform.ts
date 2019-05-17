@@ -64,12 +64,12 @@ export default function transform(
 
 			if (result && typeof result === 'object' && Array.isArray(result.dependencies)) {
 				// not great, but a useful way to track this without assuming WeakMap
-				if (!(<any>curPlugin).warnedTransformDependencies)
+				if (!(curPlugin as any).warnedTransformDependencies)
 					this.warn({
 						code: 'TRANSFORM_DEPENDENCIES_DEPRECATED',
 						message: `Returning "dependencies" from plugin transform hook is deprecated for using this.addWatchFile() instead.`
 					});
-				(<any>curPlugin).warnedTransformDependencies = true;
+				(curPlugin as any).warnedTransformDependencies = true;
 				if (!transformDependencies) transformDependencies = [];
 				for (const dep of result.dependencies)
 					transformDependencies.push(resolve(dirname(id), dep));
