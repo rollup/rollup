@@ -56,10 +56,9 @@ export default class ExportDefaultDeclaration extends NodeBase {
 
 	initialise() {
 		this.included = false;
+		const declaration = this.declaration as FunctionDeclaration | ClassDeclaration;
 		this.declarationName =
-			((<FunctionDeclaration | ClassDeclaration>this.declaration).id &&
-				(<FunctionDeclaration | ClassDeclaration>this.declaration).id.name) ||
-			(<Identifier>this.declaration).name;
+			(declaration.id && declaration.id.name) || (this.declaration as Identifier).name;
 		this.variable = this.scope.addExportDefaultDeclaration(
 			this.declarationName || this.context.getModuleName(),
 			this,
@@ -91,12 +90,12 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			// Remove altogether to prevent re-declaring the same variable
 			if (options.format === 'system' && this.variable.exportName) {
 				code.overwrite(
-					start,
-					end,
+					start as number,
+					end as number,
 					`exports('${this.variable.exportName}', ${this.variable.getName()});`
 				);
 			} else {
-				treeshakeNode(this, code, start, end);
+				treeshakeNode(this, code, start as number, end as number);
 			}
 			return;
 		} else if (this.variable.included) {

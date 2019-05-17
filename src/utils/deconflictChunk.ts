@@ -109,11 +109,13 @@ function deconflictImportsOther(
 				variable.setRenderNames(module.variableName, null);
 			}
 		} else {
-			const chunk = module.chunk;
+			const chunk = (module as Module).chunk;
 			if (chunk.exportMode === 'default' || (preserveModules && variable.isNamespace)) {
 				variable.setRenderNames(null, chunk.variableName);
 			} else {
-				variable.setRenderNames(chunk.variableName, module.chunk.getVariableExportName(variable));
+				variable.setRenderNames(chunk.variableName, chunk.getVariableExportName(variable) as
+					| string
+					| null);
 			}
 		}
 	}

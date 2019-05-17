@@ -81,7 +81,9 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 				? this.alternate === null || !this.alternate.included
 				: !this.consequent.included)
 		) {
-			const singleRetainedBranch = this.testValue ? this.consequent : this.alternate;
+			const singleRetainedBranch = (this.testValue
+				? this.consequent
+				: this.alternate) as StatementNode;
 			code.remove(this.start, singleRetainedBranch.start);
 			code.remove(singleRetainedBranch.end, this.end);
 			removeAnnotations(this, code);

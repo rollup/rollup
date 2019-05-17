@@ -39,6 +39,7 @@ export function getAssetFileName(
 				case 'ext':
 					return extname(asset.name).substr(1);
 			}
+			return undefined as any;
 		}),
 		existingNames
 	);
@@ -52,25 +53,28 @@ export function createAssetPluginHooks(
 	return {
 		emitAsset(name: string, source?: string | Buffer) {
 			if (typeof name !== 'string' || !isPlainName(name)) error(errInvalidAssetName(name));
-			const asset: Asset = { name, source, fileName: undefined };
-			if (outputBundle && source !== undefined) finaliseAsset(asset, outputBundle, assetFileNames);
+			const asset: Asset = { name, source: source as string | Buffer, fileName: undefined as any };
+			if (outputBundle && source !== undefined)
+				finaliseAsset(asset, outputBundle, assetFileNames as string);
 			return addWithNewReferenceId(asset, assetsByReferenceId, name);
 		},
 
 		setAssetSource(assetReferenceId: string, source?: string | Buffer) {
 			const asset = assetsByReferenceId.get(assetReferenceId);
-			if (!asset) error(errAssetReferenceIdNotFoundForSetSource(assetReferenceId));
-			if (asset.source !== undefined) error(errAssetSourceAlreadySet(asset));
-			if (typeof source !== 'string' && !source) error(errAssetSourceMissingForSetSource(asset));
+			if (!asset) return error(errAssetReferenceIdNotFoundForSetSource(assetReferenceId));
+			if (asset.source !== undefined) return error(errAssetSourceAlreadySet(asset));
+			if (typeof source !== 'string' && !source)
+				return error(errAssetSourceMissingForSetSource(asset));
 			asset.source = source;
-			if (outputBundle) finaliseAsset(asset, outputBundle, assetFileNames);
+			if (outputBundle) finaliseAsset(asset, outputBundle, assetFileNames as string);
 		},
 
 		getAssetFileName(assetReferenceId: string) {
 			const asset = assetsByReferenceId.get(assetReferenceId);
-			if (!asset) error(errAssetReferenceIdNotFoundForFilename(assetReferenceId));
-			if (asset.fileName === undefined) error(errAssetNotFinalisedForFileName(asset));
-			return asset.fileName;
+			if (!asset) return error(errAssetReferenceIdNotFoundForFilename(assetReferenceId));
+			if ((asset).fileName === undefined)
+				return error(errAssetNotFinalisedForFileName(asset));
+			return (asset).fileName;
 		}
 	};
 }
@@ -94,9 +98,9 @@ export function createTransformEmitAsset(
 		assets,
 		emitAsset: (name: string, source?: string | Buffer) => {
 			const assetReferenceId = emitAsset(name, source);
-			const asset = assetsByReferenceId.get(assetReferenceId);
+			const asset = assetsByReferenceId.get(assetReferenceId) as Asset;
 			assets.push({
-				fileName: undefined,
+				fileName: undefined as any,
 				name: asset.name,
 				source: asset.source
 			});

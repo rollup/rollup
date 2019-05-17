@@ -13,6 +13,7 @@ export default class Program extends NodeBase {
 		for (const node of this.body) {
 			if (node.hasEffects(options)) return true;
 		}
+		return false;
 	}
 
 	include(includeAllChildrenRecursively: boolean) {

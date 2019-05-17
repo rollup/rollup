@@ -4,7 +4,7 @@ import { Asset, RollupError, RollupWarning } from '../rollup/types';
 import getCodeFrame from './getCodeFrame';
 import relativeId from './relativeId';
 
-export function error(base: Error | RollupError, props?: RollupError) {
+export function error(base: Error | RollupError, props?: RollupError): never {
 	if (base instanceof Error === false) base = Object.assign(new Error(base.message), base);
 	if (props) Object.assign(base, props);
 	throw base;
@@ -20,7 +20,7 @@ export function augmentCodeLocation(
 		const { line, column } = pos;
 		object.loc = { file: id, line, column };
 	} else {
-		object.pos = <any>pos;
+		object.pos = pos as any;
 		const { line, column } = locate(source, pos, { offsetLine: 1 });
 		object.loc = { file: id, line, column };
 	}

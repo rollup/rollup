@@ -6,7 +6,8 @@ import {
 	OutputAsset,
 	OutputChunk,
 	OutputOptions,
-	RollupBuild
+	RollupBuild,
+	SourceMap
 } from '../../../src/rollup/types';
 import relativeId from '../../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
@@ -23,16 +24,18 @@ export default function build(
 	const useStdout = !outputOptions[0].file && !outputOptions[0].dir;
 
 	const start = Date.now();
-	const files = useStdout ? ['stdout'] : outputOptions.map(t => relativeId(t.file || t.dir));
+	const files = useStdout
+		? ['stdout']
+		: outputOptions.map(t => relativeId(t.file || (t.dir as string)));
 	if (!silent) {
-		let inputFiles: string;
+		let inputFiles: string = undefined as any;
 		if (typeof inputOptions.input === 'string') {
 			inputFiles = inputOptions.input;
 		} else if (inputOptions.input instanceof Array) {
 			inputFiles = inputOptions.input.join(', ');
 		} else if (typeof inputOptions.input === 'object' && inputOptions.input !== null) {
 			inputFiles = Object.keys(inputOptions.input)
-				.map(name => (<Record<string, string>>inputOptions.input)[name])
+				.map(name => (inputOptions.input as Record<string, string>)[name])
 				.join(', ');
 		}
 		stderr(tc.cyan(`\n${tc.bold(inputFiles)} → ${tc.bold(files.join(', '))}...`));
@@ -53,12 +56,13 @@ export default function build(
 				return bundle.generate(output).then(({ output: outputs }) => {
 					for (const file of outputs) {
 						let source: string | Buffer;
-						if ((<OutputAsset>file).isAsset) {
-							source = (<OutputAsset>file).source;
+						if ((file as OutputAsset).isAsset) {
+							source = (file as OutputAsset).source;
 						} else {
-							source = (<OutputChunk>file).code;
+							source = (file as OutputChunk).code;
 							if (output.sourcemap === 'inline') {
-								source += `\n//# ${SOURCEMAPPING_URL}=${(<OutputChunk>file).map.toUrl()}\n`;
+								source += `\n//# ${SOURCEMAPPING_URL}=${((file as OutputChunk)
+									.map as SourceMap).toUrl()}\n`;
 							}
 						}
 						if (outputs.length > 1)
@@ -68,7 +72,7 @@ export default function build(
 				});
 			}
 
-			return Promise.all(outputOptions.map(output => <Promise<any>>bundle.write(output))).then(
+			return Promise.all(outputOptions.map(output => bundle.write(output) as Promise<any>)).then(
 				() => bundle
 			);
 		})

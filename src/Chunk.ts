@@ -118,20 +118,20 @@ export default class Chunk {
 	facadeModule: Module | null = null;
 	graph: Graph;
 	hasDynamicImport = false;
-	id: string = undefined;
-	indentString: string = undefined;
+	id: string = undefined as any;
+	indentString: string = undefined as any;
 	isEmpty: boolean;
 	manualChunkAlias: string | null = null;
 	orderedModules: Module[];
 	renderedModules: {
 		[moduleId: string]: RenderedModule;
 	};
-	usedModules: Module[] = undefined;
+	usedModules: Module[] = undefined as any;
 	variableName: string;
 
 	private chunkName: string | void;
-	private dependencies: (ExternalModule | Chunk)[] = undefined;
-	private dynamicDependencies: (ExternalModule | Chunk)[] = undefined;
+	private dependencies: (ExternalModule | Chunk)[] = undefined as any;
+	private dynamicDependencies: (ExternalModule | Chunk)[] = undefined as any;
 	private exportNames: { [name: string]: Variable } = Object.create(null);
 	private exports = new Set<Variable>();
 	private imports = new Set<Variable>();
@@ -139,11 +139,11 @@ export default class Chunk {
 	private renderedDeclarations: {
 		dependencies: ChunkDependencies;
 		exports: ChunkExports;
-	} = undefined;
-	private renderedHash: string = undefined;
-	private renderedModuleSources: MagicString[] = undefined;
+	} = undefined as any;
+	private renderedHash: string = undefined as any;
+	private renderedModuleSources: MagicString[] = undefined as any;
 	private renderedSource: MagicStringBundle | null = null;
-	private renderedSourceLength: number = undefined;
+	private renderedSourceLength: number = undefined as any;
 	private sortedExportNames: string[] | null = null;
 
 	constructor(graph: Graph, orderedModules: Module[]) {
@@ -232,6 +232,7 @@ export default class Chunk {
 					case 'name':
 						return this.getChunkName();
 				}
+				return undefined as any;
 			}),
 			existingNames
 		);
@@ -310,7 +311,7 @@ export default class Chunk {
 			this.getExportNames()
 				.map(exportName => {
 					const variable = this.exportNames[exportName];
-					return `${relativeId(variable.module.id).replace(/\\/g, '/')}:${
+					return `${relativeId((variable.module as Module).id).replace(/\\/g, '/')}:${
 						variable.name
 					}:${exportName}`;
 				})
@@ -321,7 +322,7 @@ export default class Chunk {
 
 	getRenderedSourceLength() {
 		if (this.renderedSourceLength !== undefined) return this.renderedSourceLength;
-		return (this.renderedSourceLength = this.renderedSource.length());
+		return (this.renderedSourceLength = (this.renderedSource as MagicStringBundle).length());
 	}
 
 	getVariableExportName(variable: Variable) {
@@ -360,7 +361,7 @@ export default class Chunk {
 		}
 
 		for (const variable of chunk.imports) {
-			if (!this.imports.has(variable) && variable.module.chunk !== this) {
+			if (!this.imports.has(variable) && (variable.module as Module).chunk !== this) {
 				this.imports.add(variable);
 			}
 		}
@@ -384,12 +385,14 @@ export default class Chunk {
 		) => {
 			if (dep.imports) {
 				for (const impt of dep.imports) {
-					impt.imported = this.getVariableExportName(oldExportNames[impt.imported]);
+					impt.imported = this.getVariableExportName(oldExportNames[impt.imported]) as string;
 				}
 			}
 			if (dep.reexports) {
 				for (const reexport of dep.reexports) {
-					reexport.imported = this.getVariableExportName(oldExportNames[reexport.imported]);
+					reexport.imported = this.getVariableExportName(
+						oldExportNames[reexport.imported]
+					) as string;
 				}
 			}
 		};
@@ -424,7 +427,7 @@ export default class Chunk {
 		// go through the other chunks and update their dependencies
 		// also update their import and reexport names in the process
 		for (const c of chunkList) {
-			let includedDeclaration: ModuleDeclarationDependency;
+			let includedDeclaration: ModuleDeclarationDependency = undefined as any;
 			for (let i = 0; i < c.dependencies.length; i++) {
 				const dep = c.dependencies[i];
 				if ((dep === chunk || dep === this) && includedDeclaration) {
@@ -463,9 +466,9 @@ export default class Chunk {
 		const _ = options.compact ? '' : ' ';
 
 		const renderOptions: RenderOptions = {
-			compact: options.compact,
-			dynamicImportFunction: options.dynamicImportFunction,
-			format: options.format,
+			compact: options.compact as boolean,
+			dynamicImportFunction: options.dynamicImportFunction as string,
+			format: options.format as string,
 			freeze: options.freeze !== false,
 			indent: this.indentString,
 			namespaceToStringTag: options.namespaceToStringTag === true,
@@ -474,7 +477,9 @@ export default class Chunk {
 
 		// Make sure the direct dependencies of a chunk are present to maintain execution order
 		for (const { module } of this.imports) {
-			const chunkOrExternal = module instanceof Module ? module.chunk : module;
+			const chunkOrExternal = (module instanceof Module ? module.chunk : module) as
+				| Chunk
+				| ExternalModule;
 			if (this.dependencies.indexOf(chunkOrExternal) === -1) {
 				this.dependencies.push(chunkOrExternal);
 			}
@@ -545,8 +550,8 @@ export default class Chunk {
 			this.renderedSource = magicString.trim();
 		}
 
-		this.renderedSourceLength = undefined;
-		this.renderedHash = undefined;
+		this.renderedSourceLength = undefined as any;
+		this.renderedHash = undefined as any;
 
 		if (this.getExportNames().length === 0 && this.getImportIds().length === 0 && this.isEmpty) {
 			this.graph.warn({
@@ -571,7 +576,7 @@ export default class Chunk {
 		if (!this.renderedSource)
 			throw new Error('Internal error: Chunk render called before preRender');
 
-		const finalise = finalisers[options.format];
+		const finalise = finalisers[options.format as string];
 		if (!finalise) {
 			error({
 				code: 'INVALID_OPTION',
@@ -603,13 +608,13 @@ export default class Chunk {
 			renderedDependency.id = relPath;
 		}
 
-		this.finaliseDynamicImports(options.format);
+		this.finaliseDynamicImports(options.format as string);
 		const needsAmdModule = this.finaliseImportMetas(options);
 
 		const hasExports =
 			this.renderedDeclarations.exports.length !== 0 ||
 			this.renderedDeclarations.dependencies.some(
-				dep => dep.reexports && dep.reexports.length !== 0
+				dep => (dep.reexports && dep.reexports.length !== 0) as boolean
 			);
 
 		const usesTopLevelAwait = this.orderedModules.some(module => module.usesTopLevelAwait);
@@ -630,11 +635,11 @@ export default class Chunk {
 				exports: this.renderedDeclarations.exports,
 				hasExports,
 				indentString: this.indentString,
-				intro: addons.intro,
+				intro: addons.intro as string,
 				isEntryModuleFacade: this.facadeModule !== null && this.facadeModule.isEntryPoint,
 				namedExportsMode: this.exportMode !== 'default',
 				needsAmdModule,
-				outro: addons.outro,
+				outro: addons.outro as string,
 				usesTopLevelAwait,
 				varOrConst: options.preferConst ? 'const' : 'var',
 				warn: this.graph.warn.bind(this.graph)
@@ -647,7 +652,7 @@ export default class Chunk {
 
 		timeEnd('render format', 3);
 
-		let map: SourceMap = null;
+		let map: SourceMap = null as any;
 		const chunkSourcemapChain: RawSourceMap[] = [];
 
 		return renderChunk({
@@ -674,7 +679,7 @@ export default class Chunk {
 						decodedMap,
 						this.usedModules,
 						chunkSourcemapChain,
-						options.sourcemapExcludeSources
+						options.sourcemapExcludeSources as boolean
 					);
 				} else {
 					map = magicString.generateMap({ file, includeContent: !options.sourcemapExcludeSources });
@@ -701,7 +706,7 @@ export default class Chunk {
 		this.facadeModule = facadedModule;
 		facadedModule.facadeChunk = this;
 		for (const exportName of facadedModule.getAllExports()) {
-			const tracedVariable = facadedModule.getVariableForExportName(exportName);
+			const tracedVariable = facadedModule.getVariableForExportName(exportName) as Variable;
 			this.exports.add(tracedVariable);
 			this.exportNames[exportName] = tracedVariable;
 		}
@@ -727,7 +732,7 @@ export default class Chunk {
 	): boolean {
 		const seen = new Set<Chunk | ExternalModule>();
 		function visitDep(dep: Chunk | ExternalModule): boolean {
-			if (seen.has(dep)) return;
+			if (seen.has(dep)) return undefined as any;
 			seen.add(dep);
 			if (dep instanceof Chunk) {
 				for (const subDep of dep.dependencies) {
@@ -822,7 +827,12 @@ export default class Chunk {
 			const code = this.renderedModuleSources[i];
 			for (const importMeta of module.importMetas) {
 				if (
-					importMeta.renderFinalMechanism(code, this.id, options.format, this.graph.pluginDriver)
+					importMeta.renderFinalMechanism(
+						code,
+						this.id,
+						options.format as string,
+						this.graph.pluginDriver
+					)
 				) {
 					needsAmdModule = true;
 				}
@@ -839,7 +849,7 @@ export default class Chunk {
 			let importName: string;
 			let needsLiveBinding = false;
 			if (exportName[0] === '*') {
-				exportModule = <ExternalModule>this.graph.moduleById.get(exportName.substr(1));
+				exportModule = this.graph.moduleById.get(exportName.substr(1)) as ExternalModule;
 				importName = exportName = '*';
 			} else {
 				const variable = this.exportNames[exportName];
@@ -848,7 +858,7 @@ export default class Chunk {
 				if (!module || module.chunk === this) continue;
 				if (module instanceof Module) {
 					exportModule = module.chunk;
-					importName = module.chunk.getVariableExportName(variable);
+					importName = module.chunk.getVariableExportName(variable) as string;
 					needsLiveBinding = variable.isReassigned;
 				} else {
 					exportModule = module;
@@ -869,7 +879,7 @@ export default class Chunk {
 			for (const variable of this.imports) {
 				const renderedVariable =
 					variable instanceof ExportDefaultVariable && variable.referencesOriginal()
-						? variable.getOriginalVariable()
+						? (variable.getOriginalVariable() as Variable)
 						: variable;
 				if (
 					(variable.module instanceof Module
@@ -882,8 +892,8 @@ export default class Chunk {
 					const imported =
 						variable.module instanceof ExternalModule
 							? variable.name
-							: variable.module.chunk.getVariableExportName(variable);
-					imports.push({ local, imported });
+							: (variable.module as Module).chunk.getVariableExportName(variable);
+					imports.push({ local, imported: imported as string });
 				}
 			}
 
@@ -900,17 +910,17 @@ export default class Chunk {
 				namedExportsMode = dep.exportMode !== 'default';
 			}
 
-			let id: string;
-			let globalName: string;
+			let id: string = undefined as any;
+			let globalName: string = undefined as any;
 			if (dep instanceof ExternalModule) {
 				id = dep.renderPath;
 				if (options.format === 'umd' || options.format === 'iife') {
 					globalName = getGlobalName(
 						dep,
-						options.globals,
+						options.globals as GlobalsOption,
 						this.graph,
 						exportsNames || exportsDefault
-					);
+					) as string;
 				}
 			}
 
@@ -919,8 +929,8 @@ export default class Chunk {
 				exportsNames,
 				globalName,
 				id, // chunk id updated on render
-				imports: imports.length > 0 ? imports : null,
-				isChunk: !(<ExternalModule>dep).isExternal,
+				imports: imports.length > 0 ? imports : (null as any),
+				isChunk: !(dep as ExternalModule).isExternal,
 				name: dep.variableName,
 				namedExportsMode,
 				reexports
@@ -1061,7 +1071,7 @@ export default class Chunk {
 			this.dependencies,
 			this.imports,
 			usedNames,
-			options.format,
+			options.format as string,
 			options.interop !== false,
 			this.graph.preserveModules
 		);
@@ -1069,7 +1079,7 @@ export default class Chunk {
 
 	private setUpModuleImports(module: Module) {
 		for (const variable of module.imports) {
-			if (variable.module.chunk !== this) {
+			if ((variable.module as Module).chunk !== this) {
 				this.imports.add(variable);
 				if (variable.module instanceof Module) {
 					variable.module.chunk.exports.add(variable);
@@ -1079,8 +1089,8 @@ export default class Chunk {
 		if (module.getOrCreateNamespace().included) {
 			for (const reexportName of Object.keys(module.reexports)) {
 				const reexport = module.reexports[reexportName];
-				const variable = reexport.module.getVariableForExportName(reexport.localName);
-				if (variable.module.chunk !== this) {
+				const variable = reexport.module.getVariableForExportName(reexport.localName) as Variable;
+				if ((variable.module as Module).chunk !== this) {
 					this.imports.add(variable);
 					if (variable.module instanceof Module) {
 						variable.module.chunk.exports.add(variable);

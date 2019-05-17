@@ -5,6 +5,7 @@ import createFilter from 'rollup-pluginutils/src/createFilter';
 import rollup, { setWatcher } from '../rollup/index';
 import {
 	InputOptions,
+	ModuleJSON,
 	OutputOptions,
 	RollupBuild,
 	RollupCache,
@@ -71,7 +72,7 @@ export class Watcher {
 		if (this.buildTimeout) clearTimeout(this.buildTimeout);
 
 		this.buildTimeout = setTimeout(() => {
-			this.buildTimeout = undefined;
+			this.buildTimeout = undefined as any;
 			this.invalidatedIds.forEach(id => this.emit('change', id));
 			this.invalidatedIds.clear();
 			this.emit('restart');
@@ -129,7 +130,7 @@ export class Task {
 	private watcher: Watcher;
 
 	constructor(watcher: Watcher, config: RollupWatchOptions) {
-		this.cache = null;
+		this.cache = null as any;
 		this.watcher = watcher;
 
 		this.closed = false;
@@ -142,7 +143,8 @@ export class Task {
 
 		this.outputs = outputOptions;
 		this.outputFiles = this.outputs.map(output => {
-			if (output.file || output.dir) return path.resolve(output.file || output.dir);
+			if (output.file || output.dir) return path.resolve(output.file || (output.dir as string));
+			return undefined as any;
 		});
 
 		const watchOptions: WatcherOptions = inputOptions.watch || {};
@@ -179,11 +181,11 @@ export class Task {
 	invalidate(id: string, isTransformDependency: boolean) {
 		this.invalidated = true;
 		if (isTransformDependency) {
-			this.cache.modules.forEach(module => {
+			(this.cache.modules as ModuleJSON[]).forEach(module => {
 				if (!module.transformDependencies || module.transformDependencies.indexOf(id) === -1)
 					return;
 				// effective invalidation
-				module.originalCode = null;
+				module.originalCode = null as any;
 			});
 		}
 		this.watcher.invalidate(id);
@@ -209,13 +211,13 @@ export class Task {
 		setWatcher(this.watcher.emitter);
 		return rollup(options)
 			.then(result => {
-				if (this.closed) return;
+				if (this.closed) return undefined as any;
 
 				const watched = (this.watched = new Set());
 
 				this.cache = result.cache;
 				this.watchFiles = result.watchFiles;
-				this.cache.modules.forEach(module => {
+				(this.cache.modules as ModuleJSON[]).forEach(module => {
 					if (module.transformDependencies) {
 						module.transformDependencies.forEach(depId => {
 							watched.add(depId);

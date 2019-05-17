@@ -12,7 +12,7 @@ export default class ReturnValueScope extends ParameterScope {
 
 	getReturnExpression(): ExpressionEntity {
 		if (this.returnExpression === null) this.updateReturnExpression();
-		return this.returnExpression;
+		return this.returnExpression as ExpressionEntity;
 	}
 
 	private updateReturnExpression() {

@@ -19,7 +19,7 @@ function getStarExcludes({ dependencies, exports }: ModuleDeclarations): Set<str
 }
 
 const getStarExcludesBlock = (
-	starExcludes: Set<string>,
+	starExcludes: Set<string> | undefined,
 	varOrConst: string,
 	_: string,
 	t: string,
@@ -96,7 +96,7 @@ export default function system(
 	const dependencyIds = dependencies.map(m => `'${m.id}'`);
 
 	const importBindings: string[] = [];
-	let starExcludes: Set<string>;
+	let starExcludes: Set<string> | undefined;
 	const setters: string[] = [];
 
 	dependencies.forEach(({ imports, reexports }) => {

@@ -11,7 +11,8 @@ export default class ReturnStatement extends StatementBase {
 
 	hasEffects(options: ExecutionPathOptions) {
 		return (
-			!options.ignoreReturnAwaitYield() || (this.argument && this.argument.hasEffects(options))
+			!options.ignoreReturnAwaitYield() ||
+			((this.argument && this.argument.hasEffects(options)) as boolean)
 		);
 	}
 

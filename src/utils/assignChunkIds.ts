@@ -11,7 +11,7 @@ export function assignChunkIds(
 	addons: Addons
 ) {
 	const usedIds: Record<string, true> = {};
-	const [entryChunks, otherChunks] = chunks.reduce(
+	const [entryChunks, otherChunks] = chunks.reduce<[Chunk[], Chunk[]]>(
 		([entryChunks, otherChunks], chunk) => {
 			(chunk.facadeModule && chunk.facadeModule.isUserDefinedEntryPoint
 				? entryChunks

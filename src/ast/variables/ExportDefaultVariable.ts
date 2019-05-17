@@ -8,7 +8,7 @@ import LocalVariable from './LocalVariable';
 import Variable from './Variable';
 
 export function isExportDefaultVariable(variable: Variable): variable is ExportDefaultVariable {
-	return variable.isDefault;
+	return variable.isDefault as boolean;
 }
 
 export default class ExportDefaultVariable extends LocalVariable {
@@ -28,12 +28,12 @@ export default class ExportDefaultVariable extends LocalVariable {
 		if (
 			(declaration.type === NodeType.FunctionDeclaration ||
 				declaration.type === NodeType.ClassDeclaration) &&
-			(<FunctionDeclaration | ClassDeclaration>declaration).id
+			(declaration as FunctionDeclaration | ClassDeclaration).id
 		) {
 			this.hasId = true;
-			this.originalId = (<FunctionDeclaration | ClassDeclaration>declaration).id;
+			this.originalId = (declaration as FunctionDeclaration | ClassDeclaration).id;
 		} else if (declaration.type === NodeType.Identifier) {
-			this.originalId = <Identifier>declaration;
+			this.originalId = declaration as Identifier;
 		}
 	}
 
@@ -44,7 +44,9 @@ export default class ExportDefaultVariable extends LocalVariable {
 	}
 
 	getName() {
-		return this.referencesOriginal() ? this.originalId.variable.getName() : super.getName();
+		return this.referencesOriginal()
+			? (this.originalId as Identifier).variable.getName()
+			: super.getName();
 	}
 
 	getOriginalVariable(): Variable | null {
@@ -61,7 +63,7 @@ export default class ExportDefaultVariable extends LocalVariable {
 
 	setRenderNames(baseName: string | null, name: string | null) {
 		if (this.referencesOriginal()) {
-			this.originalId.variable.setRenderNames(baseName, name);
+			(this.originalId as Identifier).variable.setRenderNames(baseName, name);
 		} else {
 			super.setRenderNames(baseName, name);
 		}
@@ -69,7 +71,7 @@ export default class ExportDefaultVariable extends LocalVariable {
 
 	setSafeName(name: string | null) {
 		if (this.referencesOriginal()) {
-			this.originalId.variable.setSafeName(name);
+			(this.originalId as Identifier).variable.setSafeName(name);
 		} else {
 			super.setSafeName(name);
 		}

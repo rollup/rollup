@@ -32,7 +32,7 @@ function markPureNode(
 		node = node.expression;
 	}
 	if (node.type === 'CallExpression' || node.type === 'NewExpression') {
-		(<any>node).annotatedPure = true;
+		(node as any).annotatedPure = true;
 	}
 }
 
@@ -40,7 +40,7 @@ const pureCommentRegex = /[@#]__PURE__/;
 const isPureComment = (comment: CommentDescription) => pureCommentRegex.test(comment.text);
 
 export function markPureCallExpressions(comments: CommentDescription[], esTreeAst: ESTree.Program) {
-	handlePureAnnotationsOfNode(<any>esTreeAst, {
+	handlePureAnnotationsOfNode(esTreeAst as any, {
 		commentIndex: 0,
 		commentNodes: comments.filter(isPureComment)
 	});

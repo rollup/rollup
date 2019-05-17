@@ -53,8 +53,8 @@ function timeStartImpl(label: string, level = 3) {
 	if (!timers.hasOwnProperty(label)) {
 		timers[label] = {
 			memory: 0,
-			startMemory: undefined,
-			startTime: undefined,
+			startMemory: undefined as any,
+			startTime: undefined as any,
 			time: 0,
 			totalMemory: 0
 		};
@@ -119,7 +119,7 @@ function getPluginWithTimers(plugin: any, index: number): Plugin {
 			timedPlugin[hook] = plugin[hook];
 		}
 	}
-	return <Plugin>timedPlugin;
+	return timedPlugin as Plugin;
 }
 
 export function initialiseTimers(inputOptions: InputOptions) {
@@ -128,7 +128,7 @@ export function initialiseTimers(inputOptions: InputOptions) {
 		setTimeHelpers();
 		timeStart = timeStartImpl;
 		timeEnd = timeEndImpl;
-		inputOptions.plugins = inputOptions.plugins.map(getPluginWithTimers);
+		inputOptions.plugins = (inputOptions.plugins as Plugin[]).map(getPluginWithTimers);
 	} else {
 		timeStart = NOOP;
 		timeEnd = NOOP;

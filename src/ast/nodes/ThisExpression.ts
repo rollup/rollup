@@ -15,7 +15,7 @@ export default class ThisExpression extends NodeBase {
 
 	bind() {
 		super.bind();
-		this.variable = <ThisVariable>this.scope.findVariable('this');
+		this.variable = this.scope.findVariable('this') as ThisVariable;
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
@@ -28,7 +28,7 @@ export default class ThisExpression extends NodeBase {
 
 	initialise() {
 		this.included = false;
-		this.variable = null;
+		this.variable = null as any;
 		this.alias =
 			this.scope.findLexicalBoundary() instanceof ModuleScope ? this.context.moduleContext : null;
 		if (this.alias === 'undefined') {

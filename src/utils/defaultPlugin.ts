@@ -1,4 +1,4 @@
-import { Plugin } from '../rollup/types';
+import { Plugin, ResolveIdHook } from '../rollup/types';
 import { error } from './error';
 import { lstatSync, readdirSync, readFileSync, realpathSync } from './fs';
 import { basename, dirname, isAbsolute, resolve } from './path';
@@ -6,7 +6,7 @@ import { basename, dirname, isAbsolute, resolve } from './path';
 export function getRollupDefaultPlugin(preserveSymlinks: boolean): Plugin {
 	return {
 		name: 'Rollup Core',
-		resolveId: createResolveId(preserveSymlinks),
+		resolveId: createResolveId(preserveSymlinks) as ResolveIdHook,
 		load(id) {
 			return readFileSync(id, 'utf-8');
 		},

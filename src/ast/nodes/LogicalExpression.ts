@@ -46,7 +46,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 			// We did not track if there were reassignments to any of the branches.
 			// Also, the return values might need reassignment.
 			this.usedBranch = null;
-			this.unusedBranch.deoptimizePath(UNKNOWN_PATH);
+			(this.unusedBranch as ExpressionNode).deoptimizePath(UNKNOWN_PATH);
 			for (const expression of this.expressionsToBeDeoptimized) {
 				expression.deoptimizeCache();
 			}
@@ -139,7 +139,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		if (
 			includeAllChildrenRecursively ||
 			this.usedBranch === null ||
-			this.unusedBranch.shouldBeIncluded()
+			(this.unusedBranch as ExpressionNode).shouldBeIncluded()
 		) {
 			this.left.include(includeAllChildrenRecursively);
 			this.right.include(includeAllChildrenRecursively);
@@ -162,13 +162,13 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		{ renderedParentType, isCalleeOfRenderedParent }: NodeRenderOptions = BLANK
 	) {
 		if (!this.left.included || !this.right.included) {
-			code.remove(this.start, this.usedBranch.start);
-			code.remove(this.usedBranch.end, this.end);
+			code.remove(this.start, (this.usedBranch as ExpressionNode).start);
+			code.remove((this.usedBranch as ExpressionNode).end, this.end);
 			removeAnnotations(this, code);
-			this.usedBranch.render(code, options, {
+			(this.usedBranch as ExpressionNode).render(code, options, {
 				isCalleeOfRenderedParent: renderedParentType
 					? isCalleeOfRenderedParent
-					: (<CallExpression>this.parent).callee === this,
+					: (this.parent as CallExpression).callee === this,
 				renderedParentType: renderedParentType || this.parent.type
 			});
 		} else {

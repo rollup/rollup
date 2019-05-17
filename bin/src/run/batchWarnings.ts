@@ -23,13 +23,13 @@ export default function batchWarnings() {
 				warning = { code: 'UNKNOWN', message: warning };
 			}
 
-			if (warning.code in immediateHandlers) {
-				immediateHandlers[warning.code](warning);
+			if ((warning.code as string) in immediateHandlers) {
+				immediateHandlers[warning.code as string](warning);
 				return;
 			}
 
-			if (!allWarnings.has(warning.code)) allWarnings.set(warning.code, []);
-			allWarnings.get(warning.code).push(warning);
+			if (!allWarnings.has(warning.code as string)) allWarnings.set(warning.code as string, []);
+			(allWarnings.get(warning.code as string) as RollupWarning[]).push(warning);
 
 			count += 1;
 		},
@@ -44,7 +44,10 @@ export default function batchWarnings() {
 
 				if (deferredHandlers[a]) return -1;
 				if (deferredHandlers[b]) return 1;
-				return allWarnings.get(b).length - allWarnings.get(a).length;
+				return (
+					(allWarnings.get(b) as RollupWarning[]).length -
+					(allWarnings.get(a) as RollupWarning[]).length
+				);
 			});
 
 			codes.forEach(code => {
@@ -52,9 +55,9 @@ export default function batchWarnings() {
 				const warnings = allWarnings.get(code);
 
 				if (handler) {
-					handler.fn(warnings);
+					handler.fn(warnings as RollupWarning[]);
 				} else {
-					warnings.forEach(warning => {
+					(warnings as RollupWarning[]).forEach(warning => {
 						title(warning.message);
 
 						if (warning.url) info(warning.url);
@@ -91,12 +94,12 @@ const immediateHandlers: {
 		title(`Missing shims for Node.js built-ins`);
 
 		const detail =
-			warning.modules.length === 1
-				? `'${warning.modules[0]}'`
-				: `${warning.modules
+			(warning.modules as string[]).length === 1
+				? `'${(warning.modules as string[])[0]}'`
+				: `${(warning.modules as string[])
 						.slice(0, -1)
 						.map((name: string) => `'${name}'`)
-						.join(', ')} and '${warning.modules.slice(-1)}'`;
+						.join(', ')} and '${(warning.modules as string[]).slice(-1)}'`;
 		stderr(
 			`Creating a browser bundle that depends on ${detail}. You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins`
 		);
@@ -156,9 +159,9 @@ const deferredHandlers: {
 			info('https://rollupjs.org/guide/en#error-name-is-not-exported-by-module-');
 
 			warnings.forEach(warning => {
-				stderr(tc.bold(warning.importer));
+				stderr(tc.bold(warning.importer as string));
 				stderr(`${warning.missing} is not exported by ${warning.exporter}`);
-				stderr(tc.gray(warning.frame));
+				stderr(tc.gray(warning.frame as string));
 			});
 		},
 		priority: 1
@@ -195,10 +198,10 @@ const deferredHandlers: {
 			title(`Conflicting re-exports`);
 			warnings.forEach(warning => {
 				stderr(
-					`${tc.bold(relativeId(warning.reexporter))} re-exports '${
+					`${tc.bold(relativeId(warning.reexporter as string))} re-exports '${
 						warning.name
-					}' from both ${relativeId(warning.sources[0])} and ${relativeId(
-						warning.sources[1]
+					}' from both ${relativeId((warning.sources as string[])[0])} and ${relativeId(
+						(warning.sources as string[])[1]
 					)} (will be ignored)`
 				);
 			});
@@ -213,7 +216,7 @@ const deferredHandlers: {
 				`Use output.globals to specify browser global variable names corresponding to external modules`
 			);
 			warnings.forEach(warning => {
-				stderr(`${tc.bold(warning.source)} (guessing '${warning.guess}')`);
+				stderr(`${tc.bold(warning.source as string)} (guessing '${warning.guess}')`);
 			});
 		},
 		priority: 1
@@ -252,7 +255,7 @@ const deferredHandlers: {
 				nestedByMessage.forEach(({ key: message, items }) => {
 					title(`${plugin} plugin: ${message}`);
 					items.forEach(warning => {
-						if (warning.url !== lastUrl) info((lastUrl = warning.url));
+						if (warning.url !== lastUrl) info((lastUrl = warning.url as string));
 
 						if (warning.id) {
 							let loc = relativeId(warning.id);
@@ -283,17 +286,17 @@ function nest<T>(array: T[], prop: string) {
 	const lookup = new Map<string, { items: T[]; key: string }>();
 
 	array.forEach(item => {
-		const key = (<any>item)[prop];
+		const key = (item as any)[prop];
 		if (!lookup.has(key)) {
 			lookup.set(key, {
 				items: [],
 				key
 			});
 
-			nested.push(lookup.get(key));
+			nested.push(lookup.get(key) as { items: T[]; key: string });
 		}
 
-		lookup.get(key).items.push(item);
+		(lookup.get(key) as { items: T[]; key: string }).items.push(item);
 	});
 
 	return nested;
@@ -305,7 +308,7 @@ function showTruncatedWarnings(warnings: RollupWarning[]) {
 	const sliced = nestedByModule.length > 5 ? nestedByModule.slice(0, 3) : nestedByModule;
 	sliced.forEach(({ key: id, items }) => {
 		stderr(tc.bold(relativeId(id)));
-		stderr(tc.gray(items[0].frame));
+		stderr(tc.gray(items[0].frame as string));
 
 		if (items.length > 1) {
 			stderr(`...and ${items.length - 1} other ${items.length > 2 ? 'occurrences' : 'occurrence'}`);

@@ -15,7 +15,7 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 	addExportedVariables(variables: Variable[]): void {
 		for (const property of this.properties) {
 			if (property.type === NodeType.Property) {
-				(<PatternNode>(<unknown>property.value)).addExportedVariables(variables);
+				((property.value as unknown) as PatternNode).addExportedVariables(variables);
 			} else {
 				property.argument.addExportedVariables(variables);
 			}

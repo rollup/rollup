@@ -1,5 +1,5 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
-import { OutputOptions } from '../rollup/types';
+import { GlobalsOption, OutputOptions } from '../rollup/types';
 import { error } from '../utils/error';
 import { FinaliserOptions } from './index';
 import { compactEsModuleExport, esModuleExport } from './shared/esModuleExport';
@@ -63,11 +63,11 @@ export default function umd(
 		cjsDeps.unshift(`exports`);
 		globalDeps.unshift(
 			assignToDeepVariable(
-				options.name,
+				options.name as string,
 				globalVar,
-				options.globals,
-				options.compact,
-				`${options.extend ? `${globalProp(options.name, globalVar)}${_}||${_}` : ''}{}`
+				options.globals as GlobalsOption,
+				options.compact as boolean,
+				`${options.extend ? `${globalProp(options.name as string, globalVar)}${_}||${_}` : ''}{}`
 			)
 		);
 
@@ -92,10 +92,10 @@ export default function umd(
 
 		if (!namedExportsMode && hasExports) {
 			factory = `var ${noConflictExportsVar}${_}=${_}${assignToDeepVariable(
-				options.name,
+				options.name as string,
 				globalVar,
-				options.globals,
-				options.compact,
+				options.globals as GlobalsOption,
+				options.compact as boolean,
 				`${factoryVar}(${globalDeps.join(`,${_}`)})`
 			)};`;
 		} else if (namedExportsMode) {
@@ -106,21 +106,22 @@ export default function umd(
 		}
 		iifeExport =
 			`(function${_}()${_}{${n}` +
-			`${t}${t}var current${_}=${_}${safeAccess(options.name, globalVar, _)};${n}` +
+			`${t}${t}var current${_}=${_}${safeAccess(options.name as string, globalVar, _)};${n}` +
 			`${t}${t}${factory}${n}` +
 			`${t}${t}${noConflictExportsVar}.noConflict${_}=${_}function${_}()${_}{${_}` +
-			`${globalProp(options.name, globalVar)}${_}=${_}current;${_}return ${noConflictExportsVar}${
-				options.compact ? '' : '; '
-			}};${n}` +
+			`${globalProp(
+				options.name as string,
+				globalVar
+			)}${_}=${_}current;${_}return ${noConflictExportsVar}${options.compact ? '' : '; '}};${n}` +
 			`${t}}())`;
 	} else {
 		iifeExport = `${factoryVar}(${globalDeps.join(`,${_}`)})`;
 		if (!namedExportsMode && hasExports) {
 			iifeExport = assignToDeepVariable(
-				options.name,
+				options.name as string,
 				globalVar,
-				options.globals,
-				options.compact,
+				options.globals as GlobalsOption,
+				options.compact as boolean,
 				iifeExport
 			);
 		}
@@ -156,8 +157,8 @@ export default function umd(
 		exports,
 		dependencies,
 		namedExportsMode,
-		options.interop,
-		options.compact,
+		options.interop as boolean,
+		options.compact as boolean,
 		t
 	);
 	if (exportBlock) magicString.append(n + n + exportBlock);

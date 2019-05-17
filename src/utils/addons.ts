@@ -9,7 +9,9 @@ export interface Addons {
 	outro?: string;
 }
 
-function evalIfFn(strOrFn: string | (() => string | Promise<string>)): string | Promise<string> {
+function evalIfFn(
+	strOrFn: string | (() => string | Promise<string>) | undefined
+): string | Promise<string> {
 	switch (typeof strOrFn) {
 		case 'function':
 			return strOrFn();

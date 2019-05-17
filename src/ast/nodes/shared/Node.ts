@@ -110,7 +110,7 @@ export class NodeBase implements ExpressionNode {
 	 */
 	bind() {
 		for (const key of this.keys) {
-			const value = (<GenericEsTreeNode>this)[key];
+			const value = (this as GenericEsTreeNode)[key];
 			if (value === null || key === 'annotations') continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
@@ -151,7 +151,7 @@ export class NodeBase implements ExpressionNode {
 
 	hasEffects(options: ExecutionPathOptions): boolean {
 		for (const key of this.keys) {
-			const value = (<GenericEsTreeNode>this)[key];
+			const value = (this as GenericEsTreeNode)[key];
 			if (value === null || key === 'annotations') continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
@@ -181,7 +181,7 @@ export class NodeBase implements ExpressionNode {
 	include(includeAllChildrenRecursively: boolean) {
 		this.included = true;
 		for (const key of this.keys) {
-			const value = (<GenericEsTreeNode>this)[key];
+			const value = (this as GenericEsTreeNode)[key];
 			if (value === null || key === 'annotations') continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
@@ -225,11 +225,11 @@ export class NodeBase implements ExpressionNode {
 			if (this.hasOwnProperty(key)) continue;
 			const value = esTreeNode[key];
 			if (typeof value !== 'object' || value === null || key === 'annotations') {
-				(<GenericEsTreeNode>this)[key] = value;
+				(this as GenericEsTreeNode)[key] = value;
 			} else if (Array.isArray(value)) {
-				(<GenericEsTreeNode>this)[key] = [];
+				(this as GenericEsTreeNode)[key] = [];
 				for (const child of value) {
-					(<GenericEsTreeNode>this)[key].push(
+					(this as GenericEsTreeNode)[key].push(
 						child === null
 							? null
 							: new (this.context.nodeConstructors[child.type] ||
@@ -237,7 +237,7 @@ export class NodeBase implements ExpressionNode {
 					);
 				}
 			} else {
-				(<GenericEsTreeNode>this)[key] = new (this.context.nodeConstructors[value.type] ||
+				(this as GenericEsTreeNode)[key] = new (this.context.nodeConstructors[value.type] ||
 					this.context.nodeConstructors.UnknownNode)(value, this, this.scope);
 			}
 		}
@@ -245,7 +245,7 @@ export class NodeBase implements ExpressionNode {
 
 	render(code: MagicString, options: RenderOptions) {
 		for (const key of this.keys) {
-			const value = (<GenericEsTreeNode>this)[key];
+			const value = (this as GenericEsTreeNode)[key];
 			if (value === null || key === 'annotations') continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {

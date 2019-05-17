@@ -20,11 +20,8 @@ export default class FunctionDeclaration extends FunctionNode {
 
 	parseNode(esTreeNode: GenericEsTreeNode) {
 		if (esTreeNode.id !== null) {
-			this.id = <Identifier>(
-				new this.context.nodeConstructors.Identifier(esTreeNode.id, this, <ChildScope>(
-					this.scope.parent
-				))
-			);
+			this.id = new this.context.nodeConstructors.Identifier(esTreeNode.id, this, this.scope
+				.parent as ChildScope) as Identifier;
 		}
 		super.parseNode(esTreeNode);
 	}

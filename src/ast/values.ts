@@ -30,7 +30,7 @@ interface RawMemberDescription {
 
 function assembleMemberDescriptions(
 	memberDescriptions: { [key: string]: RawMemberDescription },
-	inheritedDescriptions: MemberDescriptions = null
+	inheritedDescriptions: MemberDescriptions | null = null
 ): MemberDescriptions {
 	return Object.create(inheritedDescriptions, memberDescriptions);
 }
@@ -438,7 +438,7 @@ export function hasMemberEffectWhenCalled(
 	if (typeof memberName !== 'string' || !members[memberName]) return true;
 	if (members[memberName].mutatesSelf && parentIncluded) return true;
 	if (!members[memberName].callsArgs) return false;
-	for (const argIndex of members[memberName].callsArgs) {
+	for (const argIndex of members[memberName].callsArgs as number[]) {
 		if (
 			callOptions.args[argIndex] &&
 			callOptions.args[argIndex].hasEffectsWhenCalledAtPath(
@@ -462,6 +462,6 @@ export function getMemberReturnExpressionWhenCalled(
 ): ExpressionEntity {
 	if (typeof memberName !== 'string' || !members[memberName]) return UNKNOWN_EXPRESSION;
 	return members[memberName].returnsPrimitive !== null
-		? members[memberName].returnsPrimitive
-		: new members[memberName].returns();
+		? (members[memberName].returnsPrimitive as ExpressionEntity)
+		: new (members[memberName].returns as any)();
 }

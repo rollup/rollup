@@ -73,7 +73,7 @@ export default class Literal<T = LiteralValue> extends NodeBase {
 
 	render(code: MagicString, _options: RenderOptions) {
 		if (typeof this.value === 'string') {
-			(<[number, number][]>code.indentExclusionRanges).push([this.start + 1, this.end - 1]);
+			(code.indentExclusionRanges as [number, number][]).push([this.start + 1, this.end - 1]);
 		}
 	}
 }

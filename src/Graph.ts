@@ -11,10 +11,14 @@ import Module, { defaultAcornOptions } from './Module';
 import { ModuleLoader, UnresolvedModuleWithAlias } from './ModuleLoader';
 import {
 	Asset,
+	ExternalOption,
+	GetManualChunk,
 	InputOptions,
 	ManualChunksOption,
 	ModuleJSON,
+	ModuleSideEffectsOption,
 	OutputBundle,
+	PureModulesOption,
 	RollupCache,
 	RollupWarning,
 	RollupWatcher,
@@ -104,19 +108,19 @@ export default class Graph {
 				for (const key of Object.keys(cache)) cache[key][0]++;
 			}
 		}
-		this.preserveModules = options.preserveModules;
+		this.preserveModules = options.preserveModules as boolean;
 
-		this.cacheExpiry = options.experimentalCacheExpiry;
+		this.cacheExpiry = options.experimentalCacheExpiry as number;
 
 		this.treeshake = options.treeshake !== false;
 		if (this.treeshake) {
 			this.treeshakingOptions = options.treeshake
 				? {
-						annotations: (<TreeshakingOptions>options.treeshake).annotations !== false,
-						moduleSideEffects: (<TreeshakingOptions>options.treeshake).moduleSideEffects,
+						annotations: (options.treeshake as TreeshakingOptions).annotations !== false,
+						moduleSideEffects: (options.treeshake as TreeshakingOptions).moduleSideEffects,
 						propertyReadSideEffects:
-							(<TreeshakingOptions>options.treeshake).propertyReadSideEffects !== false,
-						pureExternalModules: (<TreeshakingOptions>options.treeshake).pureExternalModules
+							(options.treeshake as TreeshakingOptions).propertyReadSideEffects !== false,
+						pureExternalModules: (options.treeshake as TreeshakingOptions).pureExternalModules
 				  }
 				: {
 						annotations: true,
@@ -143,7 +147,7 @@ export default class Graph {
 			});
 		}
 
-		this.shimMissingExports = options.shimMissingExports;
+		this.shimMissingExports = options.shimMissingExports as boolean;
 		this.scope = new GlobalScope();
 		this.context = String(options.context);
 
@@ -169,7 +173,7 @@ export default class Graph {
 		acornPluginsToInject.push(injectBigInt);
 
 		if (options.experimentalTopLevelAwait) {
-			(<any>this.acornOptions).allowAwaitOutsideFunction = true;
+			(this.acornOptions as any).allowAwaitOutsideFunction = true;
 		}
 
 		const acornInjectPlugins = options.acornInjectPlugins;
@@ -180,15 +184,17 @@ export default class Graph {
 				? [acornInjectPlugins]
 				: [])
 		);
-		this.acornParser = <any>acorn.Parser.extend(...acornPluginsToInject);
+		this.acornParser = acorn.Parser.extend(...acornPluginsToInject) as any;
 		this.moduleLoader = new ModuleLoader(
 			this,
 			this.moduleById,
 			this.pluginDriver,
-			options.external,
-			typeof options.manualChunks === 'function' && options.manualChunks,
-			this.treeshake ? this.treeshakingOptions.moduleSideEffects : null,
-			this.treeshake ? this.treeshakingOptions.pureExternalModules : false
+			options.external as ExternalOption,
+			(typeof options.manualChunks === 'function' && options.manualChunks) as GetManualChunk | null,
+			(this.treeshake
+				? this.treeshakingOptions.moduleSideEffects
+				: null) as ModuleSideEffectsOption,
+			(this.treeshake ? this.treeshakingOptions.pureExternalModules : false) as PureModulesOption
 		);
 	}
 
@@ -205,9 +211,9 @@ export default class Graph {
 
 		return Promise.all([
 			this.moduleLoader.addEntryModules(normalizeEntryModules(entryModules), true),
-			manualChunks &&
+			(manualChunks &&
 				typeof manualChunks === 'object' &&
-				this.moduleLoader.addManualChunks(manualChunks)
+				this.moduleLoader.addManualChunks(manualChunks)) as Promise<void>
 		]).then(([{ entryModules, manualChunkModulesByAlias }]) => {
 			if (entryModules.length === 0) {
 				throw new Error('You must supply options.input to rollup');
@@ -350,10 +356,10 @@ export default class Graph {
 			if (allDeleted) delete this.pluginCache[name];
 		}
 
-		return <any>{
+		return {
 			modules: this.modules.map(module => module.toJSON()),
 			plugins: this.pluginCache
-		};
+		} as any;
 	}
 
 	includeMarked(modules: Module[]) {
@@ -379,7 +385,9 @@ export default class Graph {
 
 			if (warning.plugin) str += `(${warning.plugin} plugin) `;
 			if (warning.loc)
-				str += `${relativeId(warning.loc.file)} (${warning.loc.line}:${warning.loc.column}) `;
+				str += `${relativeId(warning.loc.file as string)} (${warning.loc.line}:${
+					warning.loc.column
+				}) `;
 			str += warning.message;
 
 			return str;
@@ -413,16 +421,16 @@ export default class Graph {
 				const importDescription = module.importDescriptions[importName];
 				if (
 					importDescription.name !== '*' &&
-					!importDescription.module.getVariableForExportName(importDescription.name)
+					!(importDescription.module as Module).getVariableForExportName(importDescription.name)
 				) {
 					module.warn(
 						{
 							code: 'NON_EXISTENT_EXPORT',
 							message: `Non-existent export '${
 								importDescription.name
-							}' is imported from ${relativeId(importDescription.module.id)}`,
+							}' is imported from ${relativeId((importDescription.module as Module).id)}`,
 							name: importDescription.name,
-							source: importDescription.module.id
+							source: (importDescription.module as Module).id
 						},
 						importDescription.start
 					);

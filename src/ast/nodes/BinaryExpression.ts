@@ -19,13 +19,15 @@ const binaryOperators: {
 	'+': (left: any, right: any) => left + right,
 	'-': (left: any, right: any) => left - right,
 	'/': (left: any, right: any) => left / right,
-	'<': (left, right) => left < right,
+	'<': (left, right) => (left as NonNullable<LiteralValue>) < (right as NonNullable<LiteralValue>),
 	'<<': (left: any, right: any) => left << right,
-	'<=': (left, right) => left <= right,
+	'<=': (left, right) =>
+		(left as NonNullable<LiteralValue>) <= (right as NonNullable<LiteralValue>),
 	'==': (left, right) => left == right,
 	'===': (left, right) => left === right,
-	'>': (left, right) => left > right,
-	'>=': (left, right) => left >= right,
+	'>': (left, right) => (left as NonNullable<LiteralValue>) > (right as NonNullable<LiteralValue>),
+	'>=': (left, right) =>
+		(left as NonNullable<LiteralValue>) >= (right as NonNullable<LiteralValue>),
 	'>>': (left: any, right: any) => left >> right,
 	'>>>': (left: any, right: any) => left >>> right,
 	'^': (left: any, right: any) => left ^ right,
@@ -55,7 +57,7 @@ export default class BinaryExpression extends NodeBase {
 		const operatorFn = binaryOperators[this.operator];
 		if (!operatorFn) return UNKNOWN_VALUE;
 
-		return operatorFn(<LiteralValue>leftValue, <LiteralValue>rightValue);
+		return operatorFn(leftValue as LiteralValue, rightValue as LiteralValue);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {

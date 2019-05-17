@@ -16,19 +16,19 @@ export default class TaggedTemplateExpression extends NodeBase {
 	bind() {
 		super.bind();
 		if (this.tag.type === NodeType.Identifier) {
-			const variable = this.scope.findVariable((<Identifier>this.tag).name);
+			const variable = this.scope.findVariable((this.tag as Identifier).name);
 
 			if (variable.isNamespace) {
 				this.context.error(
 					{
 						code: 'CANNOT_CALL_NAMESPACE',
-						message: `Cannot call a namespace ('${(<Identifier>this.tag).name}')`
+						message: `Cannot call a namespace ('${(this.tag as Identifier).name}')`
 					},
 					this.start
 				);
 			}
 
-			if ((<Identifier>this.tag).name === 'eval') {
+			if ((this.tag as Identifier).name === 'eval') {
 				this.context.warn(
 					{
 						code: 'EVAL',

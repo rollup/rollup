@@ -165,7 +165,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		return (
 			path.length > 0 &&
 			!options.hasReturnExpressionBeenAccessedAtPath(path, this) &&
-			this.returnExpression.hasEffectsWhenAccessedAtPath(
+			(this.returnExpression as ExpressionEntity).hasEffectsWhenAccessedAtPath(
 				path,
 				options.addAccessedReturnExpressionAtPath(path, this)
 			)
@@ -176,7 +176,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		return (
 			path.length === 0 ||
 			(!options.hasReturnExpressionBeenAssignedAtPath(path, this) &&
-				this.returnExpression.hasEffectsWhenAssignedAtPath(
+				(this.returnExpression as ExpressionEntity).hasEffectsWhenAssignedAtPath(
 					path,
 					options.addAssignedReturnExpressionAtPath(path, this)
 				))
@@ -189,7 +189,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		options: ExecutionPathOptions
 	): boolean {
 		if (options.hasReturnExpressionBeenCalledAtPath(path, this)) return false;
-		return this.returnExpression.hasEffectsWhenCalledAtPath(
+		return (this.returnExpression as ExpressionEntity).hasEffectsWhenCalledAtPath(
 			path,
 			callOptions,
 			options.addCalledReturnExpressionAtPath(path, this)
@@ -198,8 +198,8 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 
 	include(includeAllChildrenRecursively: boolean) {
 		super.include(includeAllChildrenRecursively);
-		if (!this.returnExpression.included) {
-			this.returnExpression.include(false);
+		if (!(this.returnExpression as ExpressionEntity).included) {
+			(this.returnExpression as ExpressionEntity).include(false);
 		}
 	}
 

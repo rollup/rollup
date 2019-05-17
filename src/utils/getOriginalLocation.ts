@@ -7,7 +7,7 @@ export function getOriginalLocation(
 	const filteredSourcemapChain = sourcemapChain.filter(sourcemap => sourcemap.mappings);
 
 	while (filteredSourcemapChain.length > 0) {
-		const sourcemap = <ExistingRawSourceMap>filteredSourcemapChain.pop();
+		const sourcemap = filteredSourcemapChain.pop() as ExistingRawSourceMap;
 		const line: any = sourcemap.mappings[location.line - 1];
 		let locationFound = false;
 

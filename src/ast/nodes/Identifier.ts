@@ -41,10 +41,10 @@ export default class Identifier extends NodeBase implements PatternNode {
 		}
 		if (
 			this.variable !== null &&
-			(<LocalVariable>this.variable).isLocal &&
-			(<LocalVariable>this.variable).additionalInitializers !== null
+			(this.variable as LocalVariable).isLocal &&
+			(this.variable as LocalVariable).additionalInitializers !== null
 		) {
-			(<LocalVariable>this.variable).consolidateInitializers();
+			(this.variable as LocalVariable).consolidateInitializers();
 		}
 	}
 
@@ -60,7 +60,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 				this.variable = this.scope.addDeclaration(this, this.context, init, false);
 				break;
 			case 'parameter':
-				this.variable = (<FunctionScope>this.scope).addParameterDeclaration(this);
+				this.variable = (this.scope as FunctionScope).addParameterDeclaration(this);
 				break;
 			default:
 				throw new Error(`Unexpected identifier kind ${kind}.`);
@@ -135,7 +135,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		this.bound = false;
 		// To avoid later shape mutations
 		if (!this.variable) {
-			this.variable = null;
+			this.variable = null as any;
 		}
 	}
 

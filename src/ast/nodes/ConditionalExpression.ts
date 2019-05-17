@@ -44,7 +44,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 			// We did not track if there were reassignments to the previous branch.
 			// Also, the return value might need to be reassigned.
 			this.usedBranch = null;
-			this.unusedBranch.deoptimizePath(UNKNOWN_PATH);
+			(this.unusedBranch as ExpressionNode).deoptimizePath(UNKNOWN_PATH);
 			for (const expression of this.expressionsToBeDeoptimized) {
 				expression.deoptimizeCache();
 			}
@@ -158,13 +158,13 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		{ renderedParentType, isCalleeOfRenderedParent }: NodeRenderOptions = BLANK
 	) {
 		if (!this.test.included) {
-			code.remove(this.start, this.usedBranch.start);
-			code.remove(this.usedBranch.end, this.end);
+			code.remove(this.start, (this.usedBranch as ExpressionNode).start);
+			code.remove((this.usedBranch as ExpressionNode).end, this.end);
 			removeAnnotations(this, code);
-			this.usedBranch.render(code, options, {
+			(this.usedBranch as ExpressionNode).render(code, options, {
 				isCalleeOfRenderedParent: renderedParentType
 					? isCalleeOfRenderedParent
-					: (<CallExpression>this.parent).callee === this,
+					: (this.parent as CallExpression).callee === this,
 				renderedParentType: renderedParentType || this.parent.type
 			});
 		} else {

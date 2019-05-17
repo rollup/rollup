@@ -44,6 +44,7 @@ const getDynamicImportMechanism = (options: RenderOptions): DynamicImportMechani
 				right: ')'
 			};
 	}
+	return undefined as any;
 };
 
 export default class Import extends NodeBase {
@@ -60,7 +61,7 @@ export default class Import extends NodeBase {
 
 	initialise() {
 		this.included = false;
-		this.resolutionNamespace = undefined;
+		this.resolutionNamespace = undefined as any;
 		this.resolutionInterop = false;
 		this.context.addDynamicImport(this);
 	}
@@ -100,8 +101,8 @@ export default class Import extends NodeBase {
 		}
 	}
 
-	setResolution(interop: boolean, namespace: string = undefined): void {
+	setResolution(interop: boolean, namespace?: string): void {
 		this.resolutionInterop = interop;
-		this.resolutionNamespace = namespace;
+		this.resolutionNamespace = namespace as string;
 	}
 }

@@ -1,27 +1,19 @@
 {
-    "compilerOptions": {
-        "allowSyntheticDefaultImports": true,
-        "diagnostics": true,
-        "lib": ["es6", "dom"],
-        "module": "commonjs",
-        "noEmitOnError": true,
-        "noImplicitAny": true,
-        "noImplicitThis": true,
-        "noUnusedLocals": true,
-        "noUnusedParameters": true,
-        "pretty": true,
-        "skipLibCheck": true,
-        "target": "es2015"
-    },
-    "include": [
-        "typings/**/*.d.ts",
-        "src",
-        "bin",
-        "browser"
-    ],
-    "exclude": [
-        "dist",
-        "node_modules",
-        "test/typescript"
-    ]
+	"compilerOptions": {
+		"allowSyntheticDefaultImports": true,
+		"diagnostics": true,
+		"lib": ["es6", "dom"],
+		"module": "commonjs",
+		"noEmitOnError": true,
+		"noUnusedLocals": true,
+		"noUnusedParameters": true,
+		"pretty": true,
+		"skipLibCheck": true,
+		"strictPropertyInitialization": false,
+		"strictFunctionTypes": false,
+		"strict": true,
+		"target": "es2015"
+	},
+	"include": ["typings/**/*.d.ts", "src", "bin", "browser"],
+	"exclude": ["dist", "node_modules", "test/typescript"]
 }

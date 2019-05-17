@@ -1,6 +1,6 @@
 import { realpathSync } from 'fs';
 import relative from 'require-relative';
-import { InputOptions } from '../../../src/rollup/types';
+import { InputOptions, WarningHandler } from '../../../src/rollup/types';
 import mergeOptions from '../../../src/utils/mergeOptions';
 import { getAliasName } from '../../../src/utils/relativeId';
 import { handleError } from '../logging';
@@ -89,7 +89,7 @@ export default function runRollup(command: any) {
 			.then(configs => execute(configFile, configs, command))
 			.catch(handleError);
 	} else {
-		return execute(configFile, <any>[{ input: null }], command);
+		return execute(configFile, [{ input: null }] as any, command);
 	}
 }
 
@@ -107,7 +107,8 @@ function execute(configFile: string, configs: InputOptions[], command: any) {
 					defaultOnWarnHandler: warnings.add
 				});
 
-				if (optionError) inputOptions.onwarn({ code: 'UNKNOWN_OPTION', message: optionError });
+				if (optionError)
+					(inputOptions.onwarn as WarningHandler)({ code: 'UNKNOWN_OPTION', message: optionError });
 				return build(inputOptions, outputOptions, warnings, command.silent);
 			});
 		}

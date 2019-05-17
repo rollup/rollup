@@ -1,7 +1,7 @@
 import sha256 from 'hash.js/lib/hash/sha/256';
 
 export function addWithNewReferenceId<T>(item: T, idMap: Map<string, T>, hashBase: string): string {
-	let referenceId: string;
+	let referenceId: string | undefined;
 	do {
 		const hash = sha256();
 		if (referenceId) {

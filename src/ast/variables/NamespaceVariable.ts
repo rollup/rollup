@@ -49,7 +49,7 @@ export default class NamespaceVariable extends Variable {
 						id: this.module.id,
 						message: `Cannot create an explicit namespace object for module "${this.context.getModuleName()}" because it contains a reexported external namespace`
 					},
-					undefined
+					undefined as any
 				);
 			}
 			this.included = true;

@@ -103,7 +103,7 @@ export default class SequenceExpression extends NodeBase {
 				node.render(code, options, {
 					isCalleeOfRenderedParent: renderedParentType
 						? isCalleeOfRenderedParent
-						: (<CallExpression>this.parent).callee === this,
+						: (this.parent as CallExpression).callee === this,
 					renderedParentType: renderedParentType || this.parent.type
 				});
 			} else {
@@ -113,7 +113,7 @@ export default class SequenceExpression extends NodeBase {
 		// Round brackets are part of the actual parent and should be re-added in case the parent changed
 		if (includedNodes > 1 && renderedParentType) {
 			code.prependRight(firstStart, '(');
-			code.appendLeft(lastEnd, ')');
+			code.appendLeft(lastEnd as number, ')');
 		}
 	}
 }

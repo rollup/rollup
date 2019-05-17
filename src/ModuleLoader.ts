@@ -126,7 +126,8 @@ export class ModuleLoader {
 			pureExternalModules,
 			graph
 		);
-		this.getManualChunk = typeof getManualChunk === 'function' ? getManualChunk : () => null;
+		this.getManualChunk =
+			typeof getManualChunk === 'function' ? getManualChunk : () => (null as unknown) as void;
 	}
 
 	addEntryModuleAndGetReferenceId(unresolvedEntryModule: UnresolvedModuleWithAlias): string {
@@ -194,7 +195,7 @@ export class ModuleLoader {
 		).then(manualChunkModules => {
 			for (let index = 0; index < manualChunkModules.length; index++) {
 				this.addToManualChunk(
-					unresolvedManualChunks[index].manualChunkAlias,
+					unresolvedManualChunks[index].manualChunkAlias as string,
 					manualChunkModules[index]
 				);
 			}
@@ -205,13 +206,13 @@ export class ModuleLoader {
 
 	getChunkFileName(referenceId: string): string {
 		const entryRecord = this.entriesByReferenceId.get(referenceId);
-		if (!entryRecord) error(errChunkReferenceIdNotFoundForFilename(referenceId));
+		if (!entryRecord) return error(errChunkReferenceIdNotFoundForFilename(referenceId));
 		const fileName =
 			entryRecord.module &&
 			(entryRecord.module.facadeChunk
 				? entryRecord.module.facadeChunk.id
 				: entryRecord.module.chunk.id);
-		if (!fileName) error(errChunkNotGeneratedForFileName(entryRecord));
+		if (!fileName) return error(errChunkNotGeneratedForFileName(entryRecord));
 		return fileName;
 	}
 
@@ -219,7 +220,7 @@ export class ModuleLoader {
 		return Promise.resolve(
 			this.isExternal(source, importer, false)
 				? { id: source, external: true }
-				: this.pluginDriver.hookFirst('resolveId', [source, importer], null, skip)
+				: this.pluginDriver.hookFirst('resolveId', [source, importer], null, skip as number)
 		).then((result: ResolveIdResult) => this.normalizeResolveIdResult(result, importer, source));
 	}
 
@@ -240,7 +241,7 @@ export class ModuleLoader {
 			this.latestLoadModulesPromise
 		]);
 
-		const getCombinedPromise = (): Promise<never> => {
+		const getCombinedPromise = (): Promise<void> => {
 			const startingPromise = this.latestLoadModulesPromise;
 			return startingPromise.then(() => {
 				if (this.latestLoadModulesPromise !== startingPromise) {
@@ -316,7 +317,7 @@ export class ModuleLoader {
 				timeEnd('load modules', 3);
 				if (typeof source === 'string') return { code: source };
 				if (source && typeof source === 'object' && typeof source.code === 'string') return source;
-				error(errBadLoader(id));
+				return error(errBadLoader(id));
 			})
 			.then(sourceDescription => {
 				const cachedModule = this.graph.cachedModules.get(id);
@@ -353,11 +354,11 @@ export class ModuleLoader {
 						const exportAllModule = this.modulesById.get(id);
 						if (exportAllModule instanceof ExternalModule) return;
 
-						for (const name in exportAllModule.exportsAll) {
+						for (const name in (exportAllModule as Module).exportsAll) {
 							if (name in module.exportsAll) {
-								this.graph.warn(errNamespaceConflict(name, module, exportAllModule));
+								this.graph.warn(errNamespaceConflict(name, module, exportAllModule as Module));
 							} else {
-								module.exportsAll[name] = exportAllModule.exportsAll[name];
+								module.exportsAll[name] = (exportAllModule as Module).exportsAll[name];
 							}
 						}
 					});
@@ -380,8 +381,8 @@ export class ModuleLoader {
 			}
 
 			const externalModule = this.modulesById.get(resolvedId.id);
-			if (externalModule instanceof ExternalModule === false) {
-				error(errInternalIdCannotBeExternal(source, importer));
+			if (!(externalModule instanceof ExternalModule)) {
+				return error(errInternalIdCannotBeExternal(source, importer));
 			}
 			return Promise.resolve(externalModule);
 		} else {
@@ -409,13 +410,13 @@ export class ModuleLoader {
 		isEntry: boolean
 	): Promise<Module> =>
 		this.pluginDriver
-			.hookFirst('resolveId', [unresolvedId, undefined])
+			.hookFirst('resolveId', [unresolvedId, undefined as any])
 			.then((resolveIdResult: ResolveIdResult) => {
 				if (
 					resolveIdResult === false ||
 					(resolveIdResult && typeof resolveIdResult === 'object' && resolveIdResult.external)
 				) {
-					error(errEntryCannotBeExternal(unresolvedId));
+					return error(errEntryCannotBeExternal(unresolvedId));
 				}
 				const id =
 					resolveIdResult && typeof resolveIdResult === 'object'
@@ -423,17 +424,17 @@ export class ModuleLoader {
 						: resolveIdResult;
 
 				if (typeof id === 'string') {
-					return this.fetchModule(id, undefined, true, isEntry).then(module => {
+					return this.fetchModule(id, undefined as any, true, isEntry).then(module => {
 						if (alias !== null) {
 							if (module.chunkAlias !== null && module.chunkAlias !== alias) {
-								error(errCannotAssignModuleToChunk(module.id, alias, module.chunkAlias));
+								return error(errCannotAssignModuleToChunk(module.id, alias, module.chunkAlias));
 							}
 							module.chunkAlias = alias;
 						}
 						return module;
 					});
 				}
-				error(errUnresolvedEntry(unresolvedId));
+				return error(errUnresolvedEntry(unresolvedId));
 			});
 
 	private normalizeResolveIdResult(
@@ -507,7 +508,7 @@ export class ModuleLoader {
 						return resolution;
 					}
 					if (!resolution) {
-						return null;
+						return null as any;
 					}
 					return {
 						external: false,

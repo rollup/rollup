@@ -116,7 +116,7 @@ export interface PluginContext extends MinimalPluginContext {
 	cache: PluginCache;
 	emitAsset: EmitAsset;
 	emitChunk: EmitChunk;
-	error: (err: RollupError | string, pos?: { column: number; line: number }) => void;
+	error: (err: RollupError | string, pos?: { column: number; line: number }) => never;
 	getAssetFileName: (assetReferenceId: string) => string;
 	getChunkFileName: (chunkReferenceId: string) => string;
 	getModuleInfo: (
@@ -276,48 +276,48 @@ interface OnWriteOptions extends OutputOptions {
 }
 
 export interface PluginHooks {
-	buildEnd?: (this: PluginContext, err?: Error) => Promise<void> | void;
-	buildStart?: (this: PluginContext, options: InputOptions) => Promise<void> | void;
-	generateBundle?: (
+	buildEnd: (this: PluginContext, err?: Error) => Promise<void> | void;
+	buildStart: (this: PluginContext, options: InputOptions) => Promise<void> | void;
+	generateBundle: (
 		this: PluginContext,
 		options: OutputOptions,
 		bundle: OutputBundle,
 		isWrite: boolean
 	) => void | Promise<void>;
-	load?: LoadHook;
+	load: LoadHook;
 	/** @deprecated Use `generateBundle` instead */
-	ongenerate?: (
+	ongenerate: (
 		this: PluginContext,
 		options: OnGenerateOptions,
 		chunk: OutputChunk
 	) => void | Promise<void>;
 	/** @deprecated Use `writeBundle` instead */
-	onwrite?: (
+	onwrite: (
 		this: PluginContext,
 		options: OnWriteOptions,
 		chunk: OutputChunk
 	) => void | Promise<void>;
-	options?: (this: MinimalPluginContext, options: InputOptions) => InputOptions | void | null;
-	outputOptions?: (this: PluginContext, options: OutputOptions) => OutputOptions | void | null;
-	renderChunk?: RenderChunkHook;
-	renderError?: (this: PluginContext, err?: Error) => Promise<void> | void;
-	renderStart?: (this: PluginContext) => Promise<void> | void;
+	options: (this: MinimalPluginContext, options: InputOptions) => InputOptions | void | null;
+	outputOptions: (this: PluginContext, options: OutputOptions) => OutputOptions | void | null;
+	renderChunk: RenderChunkHook;
+	renderError: (this: PluginContext, err?: Error) => Promise<void> | void;
+	renderStart: (this: PluginContext) => Promise<void> | void;
 	/** @deprecated Use `resolveFileUrl` instead */
-	resolveAssetUrl?: ResolveAssetUrlHook;
-	resolveDynamicImport?: ResolveDynamicImportHook;
-	resolveFileUrl?: ResolveFileUrlHook;
-	resolveId?: ResolveIdHook;
-	resolveImportMeta?: ResolveImportMetaHook;
-	transform?: TransformHook;
+	resolveAssetUrl: ResolveAssetUrlHook;
+	resolveDynamicImport: ResolveDynamicImportHook;
+	resolveFileUrl: ResolveFileUrlHook;
+	resolveId: ResolveIdHook;
+	resolveImportMeta: ResolveImportMetaHook;
+	transform: TransformHook;
 	/** @deprecated Use `renderChunk` instead */
-	transformBundle?: TransformChunkHook;
+	transformBundle: TransformChunkHook;
 	/** @deprecated Use `renderChunk` instead */
-	transformChunk?: TransformChunkHook;
-	watchChange?: (id: string) => void;
-	writeBundle?: (this: PluginContext, bundle: OutputBundle) => void | Promise<void>;
+	transformChunk: TransformChunkHook;
+	watchChange: (id: string) => void;
+	writeBundle: (this: PluginContext, bundle: OutputBundle) => void | Promise<void>;
 }
 
-export interface Plugin extends PluginHooks {
+export interface Plugin extends Partial<PluginHooks> {
 	banner?: AddonHook;
 	cacheKey?: string;
 	footer?: AddonHook;

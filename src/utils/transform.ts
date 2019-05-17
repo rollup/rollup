@@ -64,12 +64,12 @@ export default function transform(
 
 			if (result && typeof result === 'object' && Array.isArray(result.dependencies)) {
 				// not great, but a useful way to track this without assuming WeakMap
-				if (!(<any>curPlugin).warnedTransformDependencies)
+				if (!(curPlugin as any).warnedTransformDependencies)
 					this.warn({
 						code: 'TRANSFORM_DEPENDENCIES_DEPRECATED',
 						message: `Returning "dependencies" from plugin transform hook is deprecated for using this.addWatchFile() instead.`
 					});
-				(<any>curPlugin).warnedTransformDependencies = true;
+				(curPlugin as any).warnedTransformDependencies = true;
 				if (!transformDependencies) transformDependencies = [];
 				for (const dep of result.dependencies)
 					transformDependencies.push(resolve(dirname(id), dep));
@@ -119,8 +119,8 @@ export default function transform(
 			[curSource, id],
 			transformReducer,
 			(pluginContext, plugin) => {
-				curPlugin = plugin;
-				if (plugin.cacheKey) customTransformCache = true;
+				curPlugin = plugin as Plugin;
+				if (curPlugin.cacheKey) customTransformCache = true;
 				else trackedPluginCache = trackPluginCache(pluginContext.cache);
 
 				let emitAsset: EmitAsset;
@@ -135,12 +135,12 @@ export default function transform(
 						warning.hook = 'transform';
 						pluginContext.warn(warning);
 					},
-					error(err: RollupError | string, pos?: { column: number; line: number }) {
+					error(err: RollupError | string, pos?: { column: number; line: number }): never {
 						if (typeof err === 'string') err = { message: err };
 						if (pos) augmentCodeLocation(err, pos, curSource, id);
 						err.id = id;
 						err.hook = 'transform';
-						pluginContext.error(err);
+						return pluginContext.error(err);
 					},
 					emitAsset,
 					addWatchFile(id: string) {
@@ -177,7 +177,7 @@ export default function transform(
 			if (!customTransformCache && setAssetSourceErr) throw setAssetSourceErr;
 
 			return {
-				ast,
+				ast: ast as any,
 				code,
 				customTransformCache,
 				moduleSideEffects,

@@ -84,8 +84,8 @@ export default function cjs(
 		exports,
 		dependencies,
 		namedExportsMode,
-		options.interop,
-		options.compact,
+		options.interop as boolean,
+		options.compact as boolean,
 		t,
 		`module.exports${_}=${_}`
 	);

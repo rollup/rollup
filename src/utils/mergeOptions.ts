@@ -93,7 +93,7 @@ export default function mergeOptions({
 	outputOptions: any;
 } {
 	const command = getCommandOptions(rawCommandOptions);
-	const inputOptions = getInputOptions(config, command, defaultOnWarnHandler);
+	const inputOptions = getInputOptions(config, command, defaultOnWarnHandler as WarningHandler);
 
 	if (command.output) {
 		Object.assign(command, command.output);
@@ -119,7 +119,7 @@ export default function mergeOptions({
 	const validOutputOptions = Object.keys(outputOptions[0]);
 	addUnknownOptionErrors(
 		unknownOptionErrors,
-		outputOptions.reduce((allKeys, options) => allKeys.concat(Object.keys(options)), []),
+		outputOptions.reduce<string[]>((allKeys, options) => allKeys.concat(Object.keys(options)), []),
 		validOutputOptions,
 		'output option'
 	);
@@ -218,8 +218,8 @@ function getInputOptions(
 	};
 
 	// support rollup({ cache: prevBuildObject })
-	if (inputOptions.cache && (<any>inputOptions.cache).cache)
-		inputOptions.cache = (<any>inputOptions.cache).cache;
+	if (inputOptions.cache && (inputOptions.cache as any).cache)
+		inputOptions.cache = (inputOptions.cache as any).cache;
 
 	return inputOptions;
 }

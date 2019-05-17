@@ -21,20 +21,23 @@ import {
 	OutputChunk,
 	OutputOptions,
 	Plugin,
+	PluginContext,
 	RollupBuild,
+	RollupCache,
 	RollupOutput,
-	RollupWatcher
+	RollupWatcher,
+	WarningHandler
 } from './types';
 
 function checkOutputOptions(options: OutputOptions) {
-	if (<string>options.format === 'es6') {
+	if ((options.format as string) === 'es6') {
 		error({
 			message: 'The "es6" output format is deprecated – use "esm" instead',
 			url: `https://rollupjs.org/guide/en#output-format`
 		});
 	}
 
-	if (['amd', 'cjs', 'system', 'es', 'iife', 'umd'].indexOf(options.format) < 0) {
+	if (['amd', 'cjs', 'system', 'es', 'iife', 'umd'].indexOf(options.format as string) < 0) {
 		error({
 			message: `You must specify "output.format", which can be one of "amd", "cjs", "system", "esm", "iife" or "umd".`,
 			url: `https://rollupjs.org/guide/en#output-format`
@@ -75,7 +78,8 @@ function getInputOptions(rawInputOptions: GenericConfigObject): InputOptions {
 		config: rawInputOptions
 	});
 
-	if (optionError) inputOptions.onwarn({ message: optionError, code: 'UNKNOWN_OPTION' });
+	if (optionError)
+		(inputOptions.onwarn as WarningHandler)({ message: optionError, code: 'UNKNOWN_OPTION' });
 
 	const plugins = inputOptions.plugins;
 	inputOptions.plugins = Array.isArray(plugins)
@@ -137,7 +141,7 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 		initialiseTimers(inputOptions);
 
 		const graph = new Graph(inputOptions, curWatcher);
-		curWatcher = undefined;
+		curWatcher = undefined as any;
 
 		// remove the cache option from the memory after graph creation (cache is not used anymore)
 		const useCache = rawInputOptions.cache !== false;
@@ -150,9 +154,9 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 			.hookParallel('buildStart', [inputOptions])
 			.then(() =>
 				graph.build(
-					inputOptions.input,
+					inputOptions.input as string | string[] | Record<string, string>,
 					inputOptions.manualChunks,
-					inputOptions.inlineDynamicImports
+					inputOptions.inlineDynamicImports as boolean
 				)
 			)
 			.then(
@@ -198,7 +202,12 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 								chunk.preRender(outputOptions, inputBase);
 							}
 							if (!optimized && inputOptions.experimentalOptimizeChunks) {
-								optimizeChunks(chunks, outputOptions, inputOptions.chunkGroupingSize, inputBase);
+								optimizeChunks(
+									chunks,
+									outputOptions,
+									inputOptions.chunkGroupingSize as number,
+									inputBase
+								);
 								optimized = true;
 							}
 
@@ -210,7 +219,7 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 								const facadeModule = chunk.facadeModule;
 
 								outputBundle[chunk.id] = {
-									code: undefined,
+									code: undefined as any,
 									dynamicImports: chunk.getDynamicImportIds(),
 									exports: chunk.getExportNames(),
 									facadeModuleId: facadeModule && facadeModule.id,
@@ -224,12 +233,12 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 									get name() {
 										return chunk.getChunkName();
 									}
-								};
+								} as OutputChunk;
 							}
 
 							return Promise.all(
 								chunks.map(chunk => {
-									const outputChunk = <OutputChunk>outputBundle[chunk.id];
+									const outputChunk = outputBundle[chunk.id] as OutputChunk;
 									return chunk.render(outputOptions, addons, outputChunk).then(rendered => {
 										outputChunk.code = rendered.code;
 										outputChunk.map = rendered.map;
@@ -259,10 +268,15 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 							);
 
 							return graph.pluginDriver
-								.hookSeq('generateBundle', [outputOptions, outputBundle, isWrite], context => ({
-									...context,
-									...generateAssetPluginHooks
-								}))
+								.hookSeq(
+									'generateBundle',
+									[outputOptions, outputBundle, isWrite],
+									context =>
+										({
+											...context,
+											...generateAssetPluginHooks
+										} as PluginContext)
+								)
 								.then(() => {
 									// throw errors for assets not finalised with a source
 									assets.forEach(asset => {
@@ -279,17 +293,17 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 
 				const cache = useCache ? graph.getCache() : undefined;
 				const result: RollupBuild = {
-					cache,
-					generate: <any>((rawOutputOptions: GenericConfigObject) => {
+					cache: cache as RollupCache,
+					generate: ((rawOutputOptions: GenericConfigObject) => {
 						const promise = generate(getOutputOptions(rawOutputOptions), false).then(result =>
 							createOutput(result)
 						);
 						Object.defineProperty(promise, 'code', throwAsyncGenerateError);
 						Object.defineProperty(promise, 'map', throwAsyncGenerateError);
 						return promise;
-					}),
+					}) as any,
 					watchFiles: Object.keys(graph.watchFiles),
-					write: <any>((rawOutputOptions: OutputOptions) => {
+					write: ((rawOutputOptions: OutputOptions) => {
 						const outputOptions = getOutputOptions(rawOutputOptions);
 						if (!outputOptions.dir && !outputOptions.file) {
 							error({
@@ -301,7 +315,7 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 							let chunkCnt = 0;
 							for (const fileName of Object.keys(bundle)) {
 								const file = bundle[fileName];
-								if ((<OutputAsset>file).isAsset) continue;
+								if ((file as OutputAsset).isAsset) continue;
 								chunkCnt++;
 								if (chunkCnt > 1) break;
 							}
@@ -330,7 +344,7 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 								.then(() => graph.pluginDriver.hookParallel('writeBundle', [bundle]))
 								.then(() => createOutput(bundle));
 						});
-					})
+					}) as any
 				};
 				if (inputOptions.perf === true) result.getTimings = getTimings;
 				return result;
@@ -347,10 +361,10 @@ enum SortingFileType {
 }
 
 function getSortingFileType(file: OutputAsset | OutputChunk): SortingFileType {
-	if ((<OutputAsset>file).isAsset) {
+	if ((file as OutputAsset).isAsset) {
 		return SortingFileType.ASSET;
 	}
-	if ((<OutputChunk>file).isEntry) {
+	if ((file as OutputChunk).isEntry) {
 		return SortingFileType.ENTRY_CHUNK;
 	}
 	return SortingFileType.SECONDARY_CHUNK;
@@ -370,7 +384,7 @@ function createOutput(outputBundle: Record<string, OutputChunk | OutputAsset>): 
 }
 
 function isOutputAsset(file: OutputAsset | OutputChunk): file is OutputAsset {
-	return (<OutputAsset>file).isAsset === true;
+	return (file as OutputAsset).isAsset === true;
 }
 
 function writeOutputFile(
@@ -379,7 +393,10 @@ function writeOutputFile(
 	outputFile: OutputAsset | OutputChunk,
 	outputOptions: OutputOptions
 ): Promise<void> {
-	const fileName = resolve(outputOptions.dir || dirname(outputOptions.file), outputFile.fileName);
+	const fileName = resolve(
+		outputOptions.dir || dirname(outputOptions.file as string),
+		outputFile.fileName
+	);
 	let writeSourceMapPromise: Promise<void>;
 	let source: string | Buffer;
 	if (isOutputAsset(outputFile)) {
@@ -401,7 +418,7 @@ function writeOutputFile(
 	return writeFile(fileName, source)
 		.then(() => writeSourceMapPromise)
 		.then(
-			() =>
+			(): any =>
 				!isOutputAsset(outputFile) &&
 				graph.pluginDriver.hookSeq('onwrite', [
 					{

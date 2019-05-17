@@ -41,7 +41,7 @@ export default class FunctionNode extends NodeBase {
 	}
 
 	hasEffects(options: ExecutionPathOptions) {
-		return this.id && this.id.hasEffects(options);
+		return (this.id && this.id.hasEffects(options)) as boolean;
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
@@ -91,13 +91,11 @@ export default class FunctionNode extends NodeBase {
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode) {
-		this.body = <BlockStatement>(
-			new this.context.nodeConstructors.BlockStatement(
-				esTreeNode.body,
-				this,
-				this.scope.hoistedBodyVarScope
-			)
-		);
+		this.body = new this.context.nodeConstructors.BlockStatement(
+			esTreeNode.body,
+			this,
+			this.scope.hoistedBodyVarScope
+		) as BlockStatement;
 		super.parseNode(esTreeNode);
 	}
 }

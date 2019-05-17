@@ -1,5 +1,5 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
-import { OutputOptions } from '../rollup/types';
+import { GlobalsOption, OutputOptions } from '../rollup/types';
 import { error } from '../utils/error';
 import { isLegal } from '../utils/identifierHelpers';
 import { FinaliserOptions } from './index';
@@ -56,7 +56,7 @@ export default function iife(
 
 	if (namedExportsMode && hasExports) {
 		if (extend) {
-			deps.unshift(`${thisProp(name)}${_}=${_}${thisProp(name)}${_}||${_}{}`);
+			deps.unshift(`${thisProp(name as string)}${_}=${_}${thisProp(name as string)}${_}||${_}{}`);
 			args.unshift('exports');
 		} else {
 			deps.unshift('{}');
@@ -70,12 +70,18 @@ export default function iife(
 
 	if (hasExports && (!extend || !namedExportsMode)) {
 		wrapperIntro =
-			(useVariableAssignment ? `${varOrConst} ${name}` : thisProp(name)) +
+			(useVariableAssignment ? `${varOrConst} ${name}` : thisProp(name as string)) +
 			`${_}=${_}${wrapperIntro}`;
 	}
 
 	if (isNamespaced && hasExports) {
-		wrapperIntro = setupNamespace(name, 'this', options.globals, options.compact) + wrapperIntro;
+		wrapperIntro =
+			setupNamespace(
+				name as string,
+				'this',
+				options.globals as GlobalsOption,
+				options.compact as boolean
+			) + wrapperIntro;
 	}
 
 	let wrapperOutro = `${n}${n}}(${deps.join(`,${_}`)}));`;
@@ -94,8 +100,8 @@ export default function iife(
 		exports,
 		dependencies,
 		namedExportsMode,
-		options.interop,
-		options.compact,
+		options.interop as boolean,
+		options.compact as boolean,
 		t
 	);
 	if (exportBlock) magicString.append(n + n + exportBlock);
