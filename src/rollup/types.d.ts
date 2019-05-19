@@ -357,7 +357,7 @@ export interface InputOptions {
 	input?: InputOption;
 	manualChunks?: ManualChunksOption;
 	moduleContext?: ((id: string) => string) | { [id: string]: string };
-	onwarn?: WarningHandler;
+	onwarn?: WarningHandlerWithDefault;
 	perf?: boolean;
 	plugins?: Plugin[];
 	preserveModules?: boolean;
@@ -421,6 +421,10 @@ export interface OutputOptions {
 	strict?: boolean;
 }
 
+export type WarningHandlerWithDefault = (
+	warning: string | RollupWarning,
+	defaultHandler: WarningHandler
+) => void;
 export type WarningHandler = (warning: string | RollupWarning) => void;
 
 export interface SerializedTimings {
