@@ -1,6 +1,7 @@
 import sha256 from 'hash.js/lib/hash/sha/256';
 import MagicString, { Bundle as MagicStringBundle, SourceMap } from 'magic-string';
-import * as NodeType from './ast/nodes/NodeType';
+import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
+import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
 import { UNDEFINED_EXPRESSION } from './ast/values';
 import ExportDefaultVariable, {
 	isExportDefaultVariable
@@ -953,13 +954,16 @@ export default class Chunk {
 				if (variable.init === UNDEFINED_EXPRESSION) {
 					uninitialized = true;
 				}
-				variable.declarations.forEach(decl => {
-					if (decl.type === NodeType.ExportDefaultDeclaration) {
-						if (decl.declaration.type === NodeType.FunctionDeclaration) hoisted = true;
-					} else if (decl.parent.type === NodeType.FunctionDeclaration) {
+				for (const declaration of variable.declarations) {
+					if (
+						declaration.parent instanceof FunctionDeclaration ||
+						(declaration instanceof ExportDefaultDeclaration &&
+							declaration.declaration instanceof FunctionDeclaration)
+					) {
 						hoisted = true;
+						break;
 					}
-				});
+				}
 			} else if (variable instanceof GlobalVariable) {
 				hoisted = true;
 			}
