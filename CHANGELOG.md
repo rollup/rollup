@@ -1,10 +1,14 @@
 # rollup changelog
 
 ## 1.12.3
-*unreleased*
+*2019-05-19*
+
+### Bug Fixes
+* Prevent duplicate imports when exports are reexported as default exports (#2866)
 
 ### Pull Requests
 * [#2755](https://github.com/rollup/rollup/pull/2755): Enable TypeScript strictNullChecks (@edsrzf)
+* [#2866](https://github.com/rollup/rollup/pull/2866): Properly deduplicate reexported default exports (@lukastaegert)
 
 ## 1.12.2
 *2019-05-17*
