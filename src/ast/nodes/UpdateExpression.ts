@@ -2,7 +2,7 @@ import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { EMPTY_PATH, ObjectPath } from '../values';
-import { isIdentifier } from './Identifier';
+import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
@@ -15,7 +15,7 @@ export default class UpdateExpression extends NodeBase {
 	bind() {
 		super.bind();
 		this.argument.deoptimizePath(EMPTY_PATH);
-		if (isIdentifier(this.argument)) {
+		if (this.argument instanceof Identifier) {
 			const variable = this.scope.findVariable(this.argument.name);
 			variable.isReassigned = true;
 		}

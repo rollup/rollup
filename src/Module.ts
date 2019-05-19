@@ -69,7 +69,7 @@ export interface ImportDescription {
 }
 
 export interface ExportDescription {
-	identifier?: string;
+	identifier: string | null;
 	localName: string;
 }
 
@@ -163,6 +163,7 @@ function handleMissingExport(
 }
 
 const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
+	identifier: null,
 	localName: MISSING_EXPORT_SHIM_VARIABLE
 };
 
@@ -354,7 +355,7 @@ export default class Module {
 	getTransitiveDependencies() {
 		return this.dependencies.concat(
 			this.getReexports().map(
-				exportName => (this.getVariableForExportName(exportName)).module as Module
+				exportName => this.getVariableForExportName(exportName).module as Module
 			)
 		);
 	}
@@ -686,7 +687,7 @@ export default class Module {
 			}
 
 			this.exports.default = {
-				identifier: node.variable.getOriginalVariableName() as string | undefined,
+				identifier: node.variable.getAssignedVariableName(),
 				localName: 'default'
 			};
 		} else if ((node as ExportNamedDeclaration).declaration) {
@@ -702,13 +703,13 @@ export default class Module {
 			if (declaration.type === NodeType.VariableDeclaration) {
 				for (const decl of declaration.declarations) {
 					for (const localName of extractAssignedNames(decl.id)) {
-						this.exports[localName] = { localName };
+						this.exports[localName] = { identifier: null, localName };
 					}
 				}
 			} else {
 				// export function foo () {}
 				const localName = (declaration.id as Identifier).name;
-				this.exports[localName] = { localName };
+				this.exports[localName] = { identifier: null, localName };
 			}
 		} else {
 			// export { foo, bar, baz }
@@ -726,7 +727,7 @@ export default class Module {
 					);
 				}
 
-				this.exports[exportedName] = { localName };
+				this.exports[exportedName] = { identifier: null, localName };
 			}
 		}
 	}

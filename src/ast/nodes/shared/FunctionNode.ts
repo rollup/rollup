@@ -4,14 +4,14 @@ import FunctionScope from '../../scopes/FunctionScope';
 import BlockScope from '../../scopes/FunctionScope';
 import { ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_KEY, UNKNOWN_PATH } from '../../values';
 import BlockStatement from '../BlockStatement';
-import Identifier from '../Identifier';
+import { IdentifierWithVariable } from '../Identifier';
 import { GenericEsTreeNode, NodeBase } from './Node';
 import { PatternNode } from './Pattern';
 
 export default class FunctionNode extends NodeBase {
 	async: boolean;
 	body: BlockStatement;
-	id: Identifier | null;
+	id: IdentifierWithVariable | null;
 	params: PatternNode[];
 	preventChildBlockScope: true;
 	scope: BlockScope;
@@ -41,7 +41,7 @@ export default class FunctionNode extends NodeBase {
 	}
 
 	hasEffects(options: ExecutionPathOptions) {
-		return (this.id && this.id.hasEffects(options)) as boolean;
+		return this.id !== null && this.id.hasEffects(options);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath) {

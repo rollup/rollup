@@ -86,7 +86,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 				this.declaration.id === null,
 				options
 			);
-		} else if (this.variable.referencesOriginal()) {
+		} else if (this.variable.getOriginalVariable() !== this.variable) {
 			// Remove altogether to prevent re-declaring the same variable
 			if (options.format === 'system' && this.variable.exportName) {
 				code.overwrite(

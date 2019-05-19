@@ -29,9 +29,11 @@ export default class ClassNode extends NodeBase {
 		callOptions: CallOptions,
 		options: ExecutionPathOptions
 	) {
-		return (this.body.hasEffectsWhenCalledAtPath(path, callOptions, options) ||
-			(this.superClass &&
-				this.superClass.hasEffectsWhenCalledAtPath(path, callOptions, options))) as boolean;
+		return (
+			this.body.hasEffectsWhenCalledAtPath(path, callOptions, options) ||
+			(this.superClass !== null &&
+				this.superClass.hasEffectsWhenCalledAtPath(path, callOptions, options))
+		);
 	}
 
 	initialise() {

@@ -9,13 +9,13 @@ import { getSystemExportStatement } from '../../utils/systemJsRendering';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { EMPTY_PATH, ObjectPath } from '../values';
 import Variable from '../variables/Variable';
-import { isIdentifier } from './Identifier';
+import Identifier, { IdentifierWithVariable } from './Identifier';
 import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 import VariableDeclarator from './VariableDeclarator';
 
 function isReassignedExportsMember(variable: Variable): boolean {
-	return (variable.renderBaseName && variable.exportName && variable.isReassigned) as boolean;
+	return variable.renderBaseName !== null && variable.exportName !== null && variable.isReassigned;
 }
 
 function areAllDeclarationsIncludedAndNotExported(declarations: VariableDeclarator[]): boolean {
@@ -155,14 +155,19 @@ export default class VariableDeclaration extends NodeBase {
 		for (const { node, start, separator, contentEnd, end } of separatedNodes) {
 			if (
 				!node.included ||
-				(isIdentifier(node.id) && isReassignedExportsMember(node.id.variable) && node.init === null)
+				(node.id instanceof Identifier &&
+					isReassignedExportsMember((node.id as IdentifierWithVariable).variable) &&
+					node.init === null)
 			) {
 				code.remove(start, end);
 				continue;
 			}
 			leadingString = '';
 			nextSeparatorString = '';
-			if (isIdentifier(node.id) && isReassignedExportsMember(node.id.variable)) {
+			if (
+				node.id instanceof Identifier &&
+				isReassignedExportsMember((node.id as IdentifierWithVariable).variable)
+			) {
 				if (hasRenderedContent) {
 					separatorString += ';';
 				}

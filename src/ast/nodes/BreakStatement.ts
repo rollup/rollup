@@ -11,7 +11,7 @@ export default class BreakStatement extends StatementBase {
 		return (
 			super.hasEffects(options) ||
 			!options.ignoreBreakStatements() ||
-			((this.label && !options.ignoreLabel(this.label.name)) as boolean)
+			(this.label !== null && !options.ignoreLabel(this.label.name))
 		);
 	}
 }

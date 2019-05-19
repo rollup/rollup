@@ -1,7 +1,7 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import ChildScope from '../scopes/ChildScope';
-import Identifier from './Identifier';
+import { IdentifierWithVariable } from './Identifier';
 import * as NodeType from './NodeType';
 import ClassNode from './shared/ClassNode';
 import { GenericEsTreeNode, Node } from './shared/Node';
@@ -11,7 +11,7 @@ export function isClassDeclaration(node: Node): node is ClassDeclaration {
 }
 
 export default class ClassDeclaration extends ClassNode {
-	id: Identifier;
+	id: IdentifierWithVariable | null;
 	type: NodeType.tClassDeclaration;
 
 	initialise() {
@@ -24,7 +24,7 @@ export default class ClassDeclaration extends ClassNode {
 	parseNode(esTreeNode: GenericEsTreeNode) {
 		if (esTreeNode.id !== null) {
 			this.id = new this.context.nodeConstructors.Identifier(esTreeNode.id, this, this.scope
-				.parent as ChildScope) as Identifier;
+				.parent as ChildScope) as IdentifierWithVariable;
 		}
 		super.parseNode(esTreeNode);
 	}

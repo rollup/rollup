@@ -23,7 +23,7 @@ export default class ExportNamedDeclaration extends NodeBase {
 	}
 
 	hasEffects(options: ExecutionPathOptions) {
-		return (this.declaration && this.declaration.hasEffects(options)) as boolean;
+		return this.declaration !== null && this.declaration.hasEffects(options);
 	}
 
 	initialise() {

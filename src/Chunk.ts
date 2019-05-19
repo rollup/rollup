@@ -706,7 +706,7 @@ export default class Chunk {
 		this.facadeModule = facadedModule;
 		facadedModule.facadeChunk = this;
 		for (const exportName of facadedModule.getAllExports()) {
-			const tracedVariable = facadedModule.getVariableForExportName(exportName) as Variable;
+			const tracedVariable = facadedModule.getVariableForExportName(exportName);
 			this.exports.add(tracedVariable);
 			this.exportNames[exportName] = tracedVariable;
 		}
@@ -878,9 +878,7 @@ export default class Chunk {
 			const imports: ImportSpecifier[] = [];
 			for (const variable of this.imports) {
 				const renderedVariable =
-					variable instanceof ExportDefaultVariable && variable.referencesOriginal()
-						? (variable.getOriginalVariable() as Variable)
-						: variable;
+					variable instanceof ExportDefaultVariable ? variable.getOriginalVariable() : variable;
 				if (
 					(variable.module instanceof Module
 						? variable.module.chunk === dep
@@ -1089,7 +1087,7 @@ export default class Chunk {
 		if (module.getOrCreateNamespace().included) {
 			for (const reexportName of Object.keys(module.reexports)) {
 				const reexport = module.reexports[reexportName];
-				const variable = reexport.module.getVariableForExportName(reexport.localName) as Variable;
+				const variable = reexport.module.getVariableForExportName(reexport.localName);
 				if ((variable.module as Module).chunk !== this) {
 					this.imports.add(variable);
 					if (variable.module instanceof Module) {
