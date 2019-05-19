@@ -131,7 +131,7 @@ function deconflictTopLevelVariables(usedNames: NameCollection, modules: Module[
 				// this will only happen for exports in some formats
 				!(
 					variable.renderBaseName ||
-					(variable instanceof ExportDefaultVariable && variable.referencesOriginal())
+					(variable instanceof ExportDefaultVariable && variable.getOriginalVariable() !== variable)
 				)
 			) {
 				variable.setRenderNames(null, getSafeName(variable.name, usedNames));

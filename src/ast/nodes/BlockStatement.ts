@@ -8,10 +8,6 @@ import { UNKNOWN_EXPRESSION } from '../values';
 import * as NodeType from './NodeType';
 import { Node, StatementBase, StatementNode } from './shared/Node';
 
-export function isBlockStatement(node: Node): node is BlockStatement {
-	return node.type === NodeType.BlockStatement;
-}
-
 export default class BlockStatement extends StatementBase {
 	body: StatementNode[];
 	type: NodeType.tBlockStatement;

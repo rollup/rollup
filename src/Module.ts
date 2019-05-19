@@ -5,9 +5,7 @@ import MagicString from 'magic-string';
 import extractAssignedNames from 'rollup-pluginutils/src/extractAssignedNames';
 import ClassDeclaration from './ast/nodes/ClassDeclaration';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
-import ExportDefaultDeclaration, {
-	isExportDefaultDeclaration
-} from './ast/nodes/ExportDefaultDeclaration';
+import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
 import ExportNamedDeclaration from './ast/nodes/ExportNamedDeclaration';
 import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
 import Identifier from './ast/nodes/Identifier';
@@ -15,12 +13,12 @@ import Import from './ast/nodes/Import';
 import ImportDeclaration from './ast/nodes/ImportDeclaration';
 import ImportSpecifier from './ast/nodes/ImportSpecifier';
 import { nodeConstructors } from './ast/nodes/index';
-import { isLiteral } from './ast/nodes/Literal';
+import Literal from './ast/nodes/Literal';
 import MetaProperty from './ast/nodes/MetaProperty';
 import * as NodeType from './ast/nodes/NodeType';
 import Program from './ast/nodes/Program';
 import { Node, NodeBase } from './ast/nodes/shared/Node';
-import { isTemplateLiteral } from './ast/nodes/TemplateLiteral';
+import TemplateLiteral from './ast/nodes/TemplateLiteral';
 import VariableDeclaration from './ast/nodes/VariableDeclaration';
 import ModuleScope from './ast/scopes/ModuleScope';
 import { EntityPathTracker } from './ast/utils/EntityPathTracker';
@@ -69,7 +67,7 @@ export interface ImportDescription {
 }
 
 export interface ExportDescription {
-	identifier?: string;
+	identifier: string | null;
 	localName: string;
 }
 
@@ -163,6 +161,7 @@ function handleMissingExport(
 }
 
 const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
+	identifier: null,
 	localName: MISSING_EXPORT_SHIM_VARIABLE
 };
 
@@ -292,11 +291,11 @@ export default class Module {
 	getDynamicImportExpressions(): (string | Node)[] {
 		return this.dynamicImports.map(({ node }) => {
 			const importArgument = node.parent.arguments[0];
-			if (isTemplateLiteral(importArgument)) {
+			if (importArgument instanceof TemplateLiteral) {
 				if (importArgument.expressions.length === 0 && importArgument.quasis.length === 1) {
 					return importArgument.quasis[0].value.cooked;
 				}
-			} else if (isLiteral(importArgument)) {
+			} else if (importArgument instanceof Literal) {
 				if (typeof importArgument.value === 'string') {
 					return importArgument.value;
 				}
@@ -354,7 +353,7 @@ export default class Module {
 	getTransitiveDependencies() {
 		return this.dependencies.concat(
 			this.getReexports().map(
-				exportName => (this.getVariableForExportName(exportName)).module as Module
+				exportName => this.getVariableForExportName(exportName).module as Module
 			)
 		);
 	}
@@ -671,7 +670,7 @@ export default class Module {
 					};
 				}
 			}
-		} else if (isExportDefaultDeclaration(node)) {
+		} else if (node instanceof ExportDefaultDeclaration) {
 			// export default function foo () {}
 			// export default foo;
 			// export default 42;
@@ -686,7 +685,7 @@ export default class Module {
 			}
 
 			this.exports.default = {
-				identifier: node.variable.getOriginalVariableName() as string | undefined,
+				identifier: node.variable.getAssignedVariableName(),
 				localName: 'default'
 			};
 		} else if ((node as ExportNamedDeclaration).declaration) {
@@ -702,13 +701,13 @@ export default class Module {
 			if (declaration.type === NodeType.VariableDeclaration) {
 				for (const decl of declaration.declarations) {
 					for (const localName of extractAssignedNames(decl.id)) {
-						this.exports[localName] = { localName };
+						this.exports[localName] = { identifier: null, localName };
 					}
 				}
 			} else {
 				// export function foo () {}
 				const localName = (declaration.id as Identifier).name;
-				this.exports[localName] = { localName };
+				this.exports[localName] = { identifier: null, localName };
 			}
 		} else {
 			// export { foo, bar, baz }
@@ -726,7 +725,7 @@ export default class Module {
 					);
 				}
 
-				this.exports[exportedName] = { localName };
+				this.exports[exportedName] = { identifier: null, localName };
 			}
 		}
 	}

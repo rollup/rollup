@@ -2,12 +2,8 @@ import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../values';
 import * as NodeType from './NodeType';
-import { ExpressionNode, Node, NodeBase } from './shared/Node';
+import { ExpressionNode, NodeBase } from './shared/Node';
 import TemplateElement from './TemplateElement';
-
-export function isTemplateLiteral(node: Node): node is TemplateLiteral {
-	return node.type === NodeType.TemplateLiteral;
-}
 
 export default class TemplateLiteral extends NodeBase {
 	expressions: ExpressionNode[];

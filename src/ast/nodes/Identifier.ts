@@ -12,22 +12,20 @@ import LocalVariable from '../variables/LocalVariable';
 import Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
-import { Node, NodeBase } from './shared/Node';
+import { NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
-export function isIdentifier(node: Node): node is Identifier {
-	return node.type === NodeType.Identifier;
-}
+export type IdentifierWithVariable = Identifier & { variable: Variable };
 
 export default class Identifier extends NodeBase implements PatternNode {
 	name: string;
 	type: NodeType.tIdentifier;
 
-	variable: Variable;
+	variable: Variable | null;
 	private bound: boolean;
 
 	addExportedVariables(variables: Variable[]): void {
-		if (this.variable.exportName) {
+		if (this.variable !== null && this.variable.exportName) {
 			variables.push(this.variable);
 		}
 	}
@@ -106,7 +104,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return this.variable && this.variable.hasEffectsWhenAccessedAtPath(path, options);
+		return this.variable !== null && this.variable.hasEffectsWhenAccessedAtPath(path, options);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
@@ -135,7 +133,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		this.bound = false;
 		// To avoid later shape mutations
 		if (!this.variable) {
-			this.variable = null as any;
+			this.variable = null;
 		}
 	}
 

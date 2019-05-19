@@ -20,7 +20,7 @@ export default class YieldExpression extends NodeBase {
 	hasEffects(options: ExecutionPathOptions) {
 		return (
 			!options.ignoreReturnAwaitYield() ||
-			((this.argument && this.argument.hasEffects(options)) as boolean)
+			(this.argument !== null && this.argument.hasEffects(options))
 		);
 	}
 

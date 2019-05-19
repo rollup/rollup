@@ -1,10 +1,9 @@
 import sha256 from 'hash.js/lib/hash/sha/256';
 import MagicString, { Bundle as MagicStringBundle, SourceMap } from 'magic-string';
-import * as NodeType from './ast/nodes/NodeType';
+import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
+import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
 import { UNDEFINED_EXPRESSION } from './ast/values';
-import ExportDefaultVariable, {
-	isExportDefaultVariable
-} from './ast/variables/ExportDefaultVariable';
+import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
 import ExportShimVariable from './ast/variables/ExportShimVariable';
 import GlobalVariable from './ast/variables/GlobalVariable';
 import LocalVariable from './ast/variables/LocalVariable';
@@ -706,7 +705,7 @@ export default class Chunk {
 		this.facadeModule = facadedModule;
 		facadedModule.facadeChunk = this;
 		for (const exportName of facadedModule.getAllExports()) {
-			const tracedVariable = facadedModule.getVariableForExportName(exportName) as Variable;
+			const tracedVariable = facadedModule.getVariableForExportName(exportName);
 			this.exports.add(tracedVariable);
 			this.exportNames[exportName] = tracedVariable;
 		}
@@ -878,9 +877,7 @@ export default class Chunk {
 			const imports: ImportSpecifier[] = [];
 			for (const variable of this.imports) {
 				const renderedVariable =
-					variable instanceof ExportDefaultVariable && variable.referencesOriginal()
-						? (variable.getOriginalVariable() as Variable)
-						: variable;
+					variable instanceof ExportDefaultVariable ? variable.getOriginalVariable() : variable;
 				if (
 					(variable.module instanceof Module
 						? variable.module.chunk === dep
@@ -955,13 +952,16 @@ export default class Chunk {
 				if (variable.init === UNDEFINED_EXPRESSION) {
 					uninitialized = true;
 				}
-				variable.declarations.forEach(decl => {
-					if (decl.type === NodeType.ExportDefaultDeclaration) {
-						if (decl.declaration.type === NodeType.FunctionDeclaration) hoisted = true;
-					} else if (decl.parent.type === NodeType.FunctionDeclaration) {
+				for (const declaration of variable.declarations) {
+					if (
+						declaration.parent instanceof FunctionDeclaration ||
+						(declaration instanceof ExportDefaultDeclaration &&
+							declaration.declaration instanceof FunctionDeclaration)
+					) {
 						hoisted = true;
+						break;
 					}
-				});
+				}
 			} else if (variable instanceof GlobalVariable) {
 				hoisted = true;
 			}
@@ -1052,7 +1052,7 @@ export default class Chunk {
 					options.format !== 'system' &&
 					exportVariable.isReassigned &&
 					!exportVariable.isId &&
-					(!isExportDefaultVariable(exportVariable) || !exportVariable.hasId)
+					!(exportVariable instanceof ExportDefaultVariable && exportVariable.hasId)
 				) {
 					exportVariable.setRenderNames('exports', exportName);
 				} else {
@@ -1089,7 +1089,7 @@ export default class Chunk {
 		if (module.getOrCreateNamespace().included) {
 			for (const reexportName of Object.keys(module.reexports)) {
 				const reexport = module.reexports[reexportName];
-				const variable = reexport.module.getVariableForExportName(reexport.localName) as Variable;
+				const variable = reexport.module.getVariableForExportName(reexport.localName);
 				if ((variable.module as Module).chunk !== this) {
 					this.imports.add(variable);
 					if (variable.module instanceof Module) {

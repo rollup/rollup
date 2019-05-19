@@ -164,7 +164,7 @@ export default class Graph {
 			this.getModuleContext = () => this.context;
 		}
 
-		this.onwarn = options.onwarn || makeOnwarn();
+		this.onwarn = (options.onwarn as WarningHandler) || makeOnwarn();
 		this.acornOptions = options.acorn || {};
 		const acornPluginsToInject = [];
 

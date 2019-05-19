@@ -2,21 +2,17 @@ import { AstContext } from '../../Module';
 import ClassDeclaration from '../nodes/ClassDeclaration';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from '../nodes/FunctionDeclaration';
-import Identifier from '../nodes/Identifier';
-import * as NodeType from '../nodes/NodeType';
+import Identifier, { IdentifierWithVariable } from '../nodes/Identifier';
 import LocalVariable from './LocalVariable';
 import Variable from './Variable';
-
-export function isExportDefaultVariable(variable: Variable): variable is ExportDefaultVariable {
-	return variable.isDefault as boolean;
-}
 
 export default class ExportDefaultVariable extends LocalVariable {
 	hasId: boolean;
 	isDefault: true;
 
 	// Not initialised during construction
-	private originalId: Identifier | null = null;
+	private originalId: IdentifierWithVariable | null = null;
+	private originalVariable: Variable | null = null;
 
 	constructor(
 		name: string,
@@ -26,14 +22,13 @@ export default class ExportDefaultVariable extends LocalVariable {
 		super(name, exportDefaultDeclaration, exportDefaultDeclaration.declaration, context);
 		const declaration = exportDefaultDeclaration.declaration;
 		if (
-			(declaration.type === NodeType.FunctionDeclaration ||
-				declaration.type === NodeType.ClassDeclaration) &&
-			(declaration as FunctionDeclaration | ClassDeclaration).id
+			(declaration instanceof FunctionDeclaration || declaration instanceof ClassDeclaration) &&
+			declaration.id
 		) {
 			this.hasId = true;
-			this.originalId = (declaration as FunctionDeclaration | ClassDeclaration).id;
-		} else if (declaration.type === NodeType.Identifier) {
-			this.originalId = declaration as Identifier;
+			this.originalId = declaration.id;
+		} else if (declaration instanceof Identifier) {
+			this.originalId = declaration as IdentifierWithVariable;
 		}
 	}
 
@@ -43,37 +38,49 @@ export default class ExportDefaultVariable extends LocalVariable {
 		}
 	}
 
-	getName() {
-		return this.referencesOriginal()
-			? (this.originalId as Identifier).variable.getName()
-			: super.getName();
-	}
-
-	getOriginalVariable(): Variable | null {
-		return (this.originalId && this.originalId.variable) || null;
-	}
-
-	getOriginalVariableName(): string | null {
+	getAssignedVariableName(): string | null {
 		return (this.originalId && this.originalId.name) || null;
 	}
 
-	referencesOriginal() {
-		return this.originalId && (this.hasId || !this.originalId.variable.isReassigned);
+	getName() {
+		const original = this.getOriginalVariable();
+		if (original === this) {
+			return super.getName();
+		} else {
+			return original.getName();
+		}
+	}
+
+	getOriginalVariable(): Variable {
+		if (this.originalVariable === null) {
+			if (!this.originalId || (!this.hasId && this.originalId.variable.isReassigned)) {
+				this.originalVariable = this;
+			} else {
+				const assignedOriginal = this.originalId.variable;
+				this.originalVariable =
+					assignedOriginal instanceof ExportDefaultVariable
+						? assignedOriginal.getOriginalVariable()
+						: assignedOriginal;
+			}
+		}
+		return this.originalVariable;
 	}
 
 	setRenderNames(baseName: string | null, name: string | null) {
-		if (this.referencesOriginal()) {
-			(this.originalId as Identifier).variable.setRenderNames(baseName, name);
-		} else {
+		const original = this.getOriginalVariable();
+		if (original === this) {
 			super.setRenderNames(baseName, name);
+		} else {
+			original.setRenderNames(baseName, name);
 		}
 	}
 
 	setSafeName(name: string | null) {
-		if (this.referencesOriginal()) {
-			(this.originalId as Identifier).variable.setSafeName(name);
-		} else {
+		const original = this.getOriginalVariable();
+		if (original === this) {
 			super.setSafeName(name);
+		} else {
+			original.setSafeName(name);
 		}
 	}
 }

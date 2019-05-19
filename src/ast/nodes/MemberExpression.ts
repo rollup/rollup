@@ -23,7 +23,7 @@ import Variable from '../variables/Variable';
 import Identifier from './Identifier';
 import Literal from './Literal';
 import * as NodeType from './NodeType';
-import { ExpressionNode, Node, NodeBase } from './shared/Node';
+import { ExpressionNode, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
 function getResolvablePropertyKey(memberExpression: MemberExpression): string | null {
@@ -51,7 +51,7 @@ function getPathIfNotComputed(memberExpression: MemberExpression): PathWithPosit
 				{ key: nextPathKey, pos: memberExpression.property.start }
 			];
 		}
-		if (isMemberExpression(object)) {
+		if (object instanceof MemberExpression) {
 			const parentPath = getPathIfNotComputed(object);
 			return (
 				parentPath && [...parentPath, { key: nextPathKey, pos: memberExpression.property.start }]
@@ -67,10 +67,6 @@ function getStringFromPath(path: PathWithPositions): string {
 		pathString += '.' + path[index].key;
 	}
 	return pathString;
-}
-
-export function isMemberExpression(node: Node): node is MemberExpression {
-	return node.type === NodeType.MemberExpression;
 }
 
 export default class MemberExpression extends NodeBase implements DeoptimizableEntity, PatternNode {
