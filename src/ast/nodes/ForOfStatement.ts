@@ -5,13 +5,9 @@ import BlockScope from '../scopes/BlockScope';
 import Scope from '../scopes/Scope';
 import { EMPTY_PATH } from '../values';
 import * as NodeType from './NodeType';
-import { ExpressionNode, Node, StatementBase, StatementNode } from './shared/Node';
+import { ExpressionNode, StatementBase, StatementNode } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 import VariableDeclaration from './VariableDeclaration';
-
-export function isForOfStatement(node: Node): node is ForOfStatement {
-	return node.type === NodeType.ForOfStatement;
-}
 
 export default class ForOfStatement extends StatementBase {
 	await: boolean;

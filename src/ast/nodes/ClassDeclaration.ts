@@ -4,11 +4,7 @@ import ChildScope from '../scopes/ChildScope';
 import { IdentifierWithVariable } from './Identifier';
 import * as NodeType from './NodeType';
 import ClassNode from './shared/ClassNode';
-import { GenericEsTreeNode, Node } from './shared/Node';
-
-export function isClassDeclaration(node: Node): node is ClassDeclaration {
-	return node.type === NodeType.ClassDeclaration;
-}
+import { GenericEsTreeNode } from './shared/Node';
 
 export default class ClassDeclaration extends ClassNode {
 	id: IdentifierWithVariable | null;

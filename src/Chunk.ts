@@ -3,9 +3,7 @@ import MagicString, { Bundle as MagicStringBundle, SourceMap } from 'magic-strin
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
 import { UNDEFINED_EXPRESSION } from './ast/values';
-import ExportDefaultVariable, {
-	isExportDefaultVariable
-} from './ast/variables/ExportDefaultVariable';
+import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
 import ExportShimVariable from './ast/variables/ExportShimVariable';
 import GlobalVariable from './ast/variables/GlobalVariable';
 import LocalVariable from './ast/variables/LocalVariable';
@@ -1054,7 +1052,7 @@ export default class Chunk {
 					options.format !== 'system' &&
 					exportVariable.isReassigned &&
 					!exportVariable.isId &&
-					(!isExportDefaultVariable(exportVariable) || !exportVariable.hasId)
+					!(exportVariable instanceof ExportDefaultVariable && exportVariable.hasId)
 				) {
 					exportVariable.setRenderNames('exports', exportName);
 				} else {

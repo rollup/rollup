@@ -6,10 +6,6 @@ import Identifier, { IdentifierWithVariable } from '../nodes/Identifier';
 import LocalVariable from './LocalVariable';
 import Variable from './Variable';
 
-export function isExportDefaultVariable(variable: Variable): variable is ExportDefaultVariable {
-	return variable.isDefault as boolean;
-}
-
 export default class ExportDefaultVariable extends LocalVariable {
 	hasId: boolean;
 	isDefault: true;

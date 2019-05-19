@@ -4,12 +4,8 @@ import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import BlockScope from '../scopes/BlockScope';
 import Scope from '../scopes/Scope';
 import * as NodeType from './NodeType';
-import { ExpressionNode, Node, StatementBase, StatementNode } from './shared/Node';
+import { ExpressionNode, StatementBase, StatementNode } from './shared/Node';
 import VariableDeclaration from './VariableDeclaration';
-
-export function isForStatement(node: Node): node is ForStatement {
-	return node.type === NodeType.ForStatement;
-}
 
 export default class ForStatement extends StatementBase {
 	body: StatementNode;

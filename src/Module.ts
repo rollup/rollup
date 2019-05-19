@@ -5,9 +5,7 @@ import MagicString from 'magic-string';
 import extractAssignedNames from 'rollup-pluginutils/src/extractAssignedNames';
 import ClassDeclaration from './ast/nodes/ClassDeclaration';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
-import ExportDefaultDeclaration, {
-	isExportDefaultDeclaration
-} from './ast/nodes/ExportDefaultDeclaration';
+import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
 import ExportNamedDeclaration from './ast/nodes/ExportNamedDeclaration';
 import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
 import Identifier from './ast/nodes/Identifier';
@@ -15,12 +13,12 @@ import Import from './ast/nodes/Import';
 import ImportDeclaration from './ast/nodes/ImportDeclaration';
 import ImportSpecifier from './ast/nodes/ImportSpecifier';
 import { nodeConstructors } from './ast/nodes/index';
-import { isLiteral } from './ast/nodes/Literal';
+import Literal from './ast/nodes/Literal';
 import MetaProperty from './ast/nodes/MetaProperty';
 import * as NodeType from './ast/nodes/NodeType';
 import Program from './ast/nodes/Program';
 import { Node, NodeBase } from './ast/nodes/shared/Node';
-import { isTemplateLiteral } from './ast/nodes/TemplateLiteral';
+import TemplateLiteral from './ast/nodes/TemplateLiteral';
 import VariableDeclaration from './ast/nodes/VariableDeclaration';
 import ModuleScope from './ast/scopes/ModuleScope';
 import { EntityPathTracker } from './ast/utils/EntityPathTracker';
@@ -293,11 +291,11 @@ export default class Module {
 	getDynamicImportExpressions(): (string | Node)[] {
 		return this.dynamicImports.map(({ node }) => {
 			const importArgument = node.parent.arguments[0];
-			if (isTemplateLiteral(importArgument)) {
+			if (importArgument instanceof TemplateLiteral) {
 				if (importArgument.expressions.length === 0 && importArgument.quasis.length === 1) {
 					return importArgument.quasis[0].value.cooked;
 				}
-			} else if (isLiteral(importArgument)) {
+			} else if (importArgument instanceof Literal) {
 				if (typeof importArgument.value === 'string') {
 					return importArgument.value;
 				}
@@ -672,7 +670,7 @@ export default class Module {
 					};
 				}
 			}
-		} else if (isExportDefaultDeclaration(node)) {
+		} else if (node instanceof ExportDefaultDeclaration) {
 			// export default function foo () {}
 			// export default foo;
 			// export default 42;
