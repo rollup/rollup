@@ -305,16 +305,19 @@ export class ModuleLoader {
 		return Promise.resolve(
 			this.pluginDriver.hookFirst<'load', string | SourceDescription>('load', [id])
 		)
-			.catch(({ message, stack }: Error) => {
+			.catch((err: Error) => {
 				timeEnd('load modules', 3);
 				let prefix = `Could not load ${id}`;
 				if (importer) prefix += ` (imported by ${importer})`;
 				prefix += ':\n';
-        var error = new Error('~');
-        var surfix = error.stack.replace('Error: ~', '');
-        error.message = prefix + message;
-        error.stack = prefix + stack + surfix;
-        throw error;
+				const message = err.message || '';
+				const stack = err.stack || '';
+				const error = new Error('~');
+				let surfix = error.stack || '';
+				surfix = surfix.replace('Error: ~', '');
+				error.message = prefix + message;
+				error.stack = prefix + stack + surfix;
+				throw error;
 			})
 			.then(source => {
 				timeEnd('load modules', 3);
