@@ -307,16 +307,20 @@ export class ModuleLoader {
 		)
 			.catch((err: Error) => {
 				timeEnd('load modules', 3);
+				const error = new Error('~');
+
+				let surfix = error.stack || '';
+				surfix = surfix.replace('Error: ~', '');
+
 				let prefix = `Could not load ${id}`;
 				if (importer) prefix += ` (imported by ${importer})`;
 				prefix += ':\n';
+
 				const message = err.message || '';
 				const stack = err.stack || '';
-				const error = new Error('~');
-				let surfix = error.stack || '';
-				surfix = surfix.replace('Error: ~', '');
 				error.message = prefix + message;
 				error.stack = prefix + stack + surfix;
+
 				throw error;
 			})
 			.then(source => {
