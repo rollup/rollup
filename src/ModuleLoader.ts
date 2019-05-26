@@ -307,21 +307,11 @@ export class ModuleLoader {
 		)
 			.catch((err: Error) => {
 				timeEnd('load modules', 3);
-				const error = new Error('~');
-
-				let surfix = error.stack || '';
-				surfix = surfix.replace('Error: ~', '');
-
-				let prefix = `Could not load ${id}`;
-				if (importer) prefix += ` (imported by ${importer})`;
-				prefix += ':\n';
-
-				const message = err.message || '';
-				const stack = err.stack || '';
-				error.message = prefix + message;
-				error.stack = prefix + stack + surfix;
-
-				throw error;
+				let msg = `Could not load ${id}`;
+				if (importer) msg += ` (imported by ${importer})`;
+				msg += `: ${err.message}`;
+				err.message = msg;
+				throw err;
 			})
 			.then(source => {
 				timeEnd('load modules', 3);
