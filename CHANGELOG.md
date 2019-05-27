@@ -1,5 +1,15 @@
 # rollup changelog
 
+## 1.12.4
+*2019-05-27*
+
+### Bug Fixes
+* Show correct error stack trace for errors throw in "load" hooks (#2871)
+
+### Pull Requests
+* [#2875](https://github.com/rollup/rollup/pull/2875): Mention subfolders in docs (@lukastaegert)
+* [#2871](https://github.com/rollup/rollup/pull/2871): Reserve error stack information (@LongTengDao)
+
 ## 1.12.3
 *2019-05-19*
 
