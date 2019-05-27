@@ -46,7 +46,7 @@ CLI: `-i`/`--input <filename>`
 
 The bundle's entry point(s) (e.g. your `main.js` or `app.js` or `index.js`). If you provide an array of entry points or an object mapping names to entry points, they will be bundled to separate output chunks. Unless the [`output.file`](guide/en#output-file) option is used, generated chunk names will follow the [`output.entryFileNames`](guide/en#output-entryfilenames) option. When using the object form, the `[name]` portion of the file name will be the name of the object property while for the array form, it will be the file name of the entry point.
 
-This will generate at least two entry chunks with the names `entry-a.js` and `entry-b.js`:
+Note that it is possible when using the object form to put entry points into different sub-folders by adding a `/` to the name. The following will generate at least two entry chunks with the names `entry-a.js` and `entry-b/index.js`, i.e. the file `index.js` is placed in the folder `entry-b`:
 
 ```js
 // rollup.config.js
@@ -54,7 +54,7 @@ export default {
   ...,
   input: {
     a: 'src/main-a.js',
-    b: 'src/main-b.js'
+    'b/index': 'src/main-b.js'
   },
   output: {
     ...,
