@@ -66,16 +66,44 @@ const EXPORTS: NameCollection = { exports: true };
 export const RESERVED_NAMES_BY_FORMAT: {
 	[format: string]: { forbiddenNames: NameCollection; formatGlobals: NameCollection };
 } = {
-	amd: { formatGlobals: EXPORTS, forbiddenNames: RESERVED_NAMES },
+	amd: {
+		forbiddenNames: Object.assign(Object.create(null), RESERVED_NAMES, {
+			document: true,
+			module: true,
+			require: true,
+			URL: true
+		}),
+		formatGlobals: EXPORTS
+	},
 	cjs: {
-		forbiddenNames: RESERVED_NAMES,
+		forbiddenNames: Object.assign(Object.create(null), RESERVED_NAMES, {
+			document: true,
+			require: true,
+			URL: true
+		}),
 		formatGlobals: { exports: true, module: true, [INTEROP_DEFAULT_VARIABLE]: true }
 	},
 	es: { formatGlobals: NONE, forbiddenNames: RESERVED_NAMES },
-	iife: { formatGlobals: EXPORTS, forbiddenNames: RESERVED_NAMES },
+	iife: {
+		forbiddenNames: Object.assign(Object.create(null), RESERVED_NAMES, {
+			document: true,
+			URL: true
+		}),
+		formatGlobals: EXPORTS
+	},
 	system: {
-		forbiddenNames: Object.assign(Object.create(null), RESERVED_NAMES, EXPORTS),
+		forbiddenNames: Object.assign(Object.create(null), RESERVED_NAMES, {
+			exports: true,
+			module: true
+		}),
 		formatGlobals: NONE
 	},
-	umd: { formatGlobals: EXPORTS, forbiddenNames: RESERVED_NAMES }
+	umd: {
+		forbiddenNames: Object.assign(Object.create(null), RESERVED_NAMES, {
+			document: true,
+			require: true,
+			URL: true
+		}),
+		formatGlobals: EXPORTS
+	}
 };
