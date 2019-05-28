@@ -8,11 +8,15 @@ export default class GlobalScope extends Scope {
 
 	constructor() {
 		super();
-		this.variables.undefined = new UndefinedVariable();
+		this.variables.set('undefined', new UndefinedVariable());
 	}
 
 	findVariable(name: string): Variable {
-		if (!this.variables[name]) return (this.variables[name] = new GlobalVariable(name));
-		return this.variables[name] as GlobalVariable;
+		let variable = this.variables.get(name);
+		if (!variable) {
+			variable = new GlobalVariable(name);
+			this.variables.set(name, variable);
+		}
+		return variable;
 	}
 }

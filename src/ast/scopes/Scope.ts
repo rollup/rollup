@@ -8,9 +8,7 @@ import ChildScope from './ChildScope';
 
 export default class Scope {
 	children: ChildScope[] = [];
-	variables: {
-		[name: string]: Variable;
-	} = Object.create(null);
+	variables = new Map<string, Variable>();
 
 	addDeclaration(
 		identifier: Identifier,
@@ -19,21 +17,23 @@ export default class Scope {
 		_isHoisted: boolean
 	) {
 		const name = identifier.name;
-		if (this.variables[name]) {
-			(this.variables[name] as LocalVariable).addDeclaration(identifier, init);
+		let variable = this.variables.get(name) as LocalVariable;
+		if (variable) {
+			variable.addDeclaration(identifier, init);
 		} else {
-			this.variables[name] = new LocalVariable(
+			variable = new LocalVariable(
 				identifier.name,
 				identifier,
 				init || UNDEFINED_EXPRESSION,
 				context
 			);
+			this.variables.set(name, variable);
 		}
-		return this.variables[name];
+		return variable;
 	}
 
 	contains(name: string): boolean {
-		return name in this.variables;
+		return this.variables.has(name);
 	}
 
 	findVariable(_name: string): Variable {

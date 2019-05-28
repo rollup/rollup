@@ -23,14 +23,13 @@ export default class ParameterScope extends ChildScope {
 	 */
 	addParameterDeclaration(identifier: Identifier) {
 		const name = identifier.name;
-		let variable;
-		if (name in this.hoistedBodyVarScope.variables) {
-			variable = this.hoistedBodyVarScope.variables[name] as LocalVariable;
+		let variable = this.hoistedBodyVarScope.variables.get(name) as LocalVariable;
+		if (variable) {
 			variable.addDeclaration(identifier, null);
 		} else {
 			variable = new LocalVariable(name, identifier, UNKNOWN_EXPRESSION, this.context);
 		}
-		this.variables[name] = variable;
+		this.variables.set(name, variable);
 		this.parameters.push(variable);
 		return variable;
 	}

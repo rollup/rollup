@@ -1050,9 +1050,9 @@ export default class Chunk {
 			}
 		}
 
-		const usedNames = Object.create(null);
+		const usedNames = new Set<string>();
 		if (this.needsExportsShim) {
-			usedNames[MISSING_EXPORT_SHIM_VARIABLE] = true;
+			usedNames.add(MISSING_EXPORT_SHIM_VARIABLE);
 		}
 
 		deconflictChunk(
