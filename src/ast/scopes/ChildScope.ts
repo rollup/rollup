@@ -4,6 +4,7 @@ import Variable from '../variables/Variable';
 import Scope from './Scope';
 
 export default class ChildScope extends Scope {
+	accessedGlobalVariablesByFormat?: Map<string, Set<string>>;
 	accessedOutsideVariables = new Map<string, Variable>();
 	parent: Scope;
 
@@ -11,6 +12,26 @@ export default class ChildScope extends Scope {
 		super();
 		this.parent = parent;
 		parent.children.push(this);
+	}
+
+	addAccessedGlobalsByFormat(globalsByFormat: { [format: string]: string[] }) {
+		let accessedGlobalVariablesByFormat = this.accessedGlobalVariablesByFormat;
+		if (!accessedGlobalVariablesByFormat) {
+			accessedGlobalVariablesByFormat = this.accessedGlobalVariablesByFormat = new Map();
+		}
+		for (const format of Object.keys(globalsByFormat)) {
+			let accessedGlobalVariables = accessedGlobalVariablesByFormat.get(format);
+			if (!accessedGlobalVariables) {
+				accessedGlobalVariables = new Set();
+				accessedGlobalVariablesByFormat.set(format, accessedGlobalVariables);
+			}
+			for (const name of globalsByFormat[format]) {
+				accessedGlobalVariables.add(name);
+			}
+		}
+		if (this.parent instanceof ChildScope) {
+			this.parent.addAccessedGlobalsByFormat(globalsByFormat);
+		}
 	}
 
 	addNamespaceMemberAccess(name: string, variable: Variable) {
@@ -28,11 +49,21 @@ export default class ChildScope extends Scope {
 		return this.variables.has(name) || this.parent.contains(name);
 	}
 
-	deconflict() {
+	deconflict(format: string) {
 		const usedNames = new Set<string>();
 		for (const variable of this.accessedOutsideVariables.values()) {
 			if (variable.included) {
 				usedNames.add(variable.getBaseVariableName());
+				if (variable.exportName && format === 'system') {
+					usedNames.add('exports');
+				}
+			}
+		}
+		const accessedGlobalVariables =
+			this.accessedGlobalVariablesByFormat && this.accessedGlobalVariablesByFormat.get(format);
+		if (accessedGlobalVariables) {
+			for (const name of accessedGlobalVariables) {
+				usedNames.add(name);
 			}
 		}
 		for (const [name, variable] of this.variables) {
@@ -41,7 +72,7 @@ export default class ChildScope extends Scope {
 			}
 		}
 		for (const scope of this.children) {
-			scope.deconflict();
+			scope.deconflict(format);
 		}
 	}
 

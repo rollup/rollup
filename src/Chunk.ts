@@ -36,7 +36,7 @@ import { makeUnique, renderNamePattern } from './utils/renderNamePattern';
 import { RESERVED_NAMES } from './utils/reservedNames';
 import { sanitizeFileName } from './utils/sanitizeFileName';
 import { timeEnd, timeStart } from './utils/timers';
-import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
+import { INTEROP_DEFAULT_VARIABLE, MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
 
 export interface ModuleDeclarations {
 	dependencies: ModuleDeclarationDependency[];
@@ -1053,6 +1053,15 @@ export default class Chunk {
 		const usedNames = new Set<string>();
 		if (this.needsExportsShim) {
 			usedNames.add(MISSING_EXPORT_SHIM_VARIABLE);
+		}
+		if (options.format !== 'es') {
+			usedNames.add('exports');
+			if (options.format === 'cjs') {
+				usedNames.add(INTEROP_DEFAULT_VARIABLE);
+				if (this.exportMode === 'default') {
+					usedNames.add('module');
+				}
+			}
 		}
 
 		deconflictChunk(

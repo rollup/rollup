@@ -127,3 +127,11 @@ const relativeUrlMechanisms: Record<string, (relativePath: string) => string> = 
 			`(require('u' + 'rl').URL)`
 		)} : ${getRelativeUrlFromDocument(relativePath)})`
 };
+
+export const accessedMetaPropertyGlobals = {
+	amd: ['document', 'module', 'URL'],
+	cjs: ['document', 'require', 'URL'],
+	iife: ['document', 'URL'],
+	system: ['module'],
+	umd: ['document', 'require', 'URL']
+};

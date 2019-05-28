@@ -1,5 +1,3 @@
-import { INTEROP_DEFAULT_VARIABLE } from './variableNames';
-
 export interface NameCollection {
 	[name: string]: true;
 }
@@ -58,13 +56,4 @@ export const RESERVED_NAMES: NameCollection = Object.assign(Object.create(null),
 	while: true,
 	with: true,
 	yield: true
-});
-
-export const FORBIDDEN_NAMES = Object.assign(Object.create(null), RESERVED_NAMES, {
-	document: true,
-	exports: true,
-	module: true,
-	require: true,
-	URL: true,
-	[INTEROP_DEFAULT_VARIABLE]: true
 });

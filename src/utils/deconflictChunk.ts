@@ -31,7 +31,7 @@ export function deconflictChunk(
 	interop: boolean,
 	preserveModules: boolean
 ) {
-	addUsedGlobalNames(usedNames, modules);
+	addUsedGlobalNames(usedNames, modules, format);
 	deconflictTopLevelVariables(usedNames, modules);
 	DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT[format](
 		usedNames,
@@ -42,14 +42,23 @@ export function deconflictChunk(
 	);
 
 	for (const module of modules) {
-		module.scope.deconflict();
+		module.scope.deconflict(format);
 	}
 }
 
-function addUsedGlobalNames(usedNames: Set<string>, modules: Module[]) {
+function addUsedGlobalNames(usedNames: Set<string>, modules: Module[], format: string) {
 	for (const module of modules) {
-		for (const [name, variable] of module.scope.accessedOutsideVariables) {
+		const moduleScope = module.scope;
+		for (const [name, variable] of moduleScope.accessedOutsideVariables) {
 			if (variable.included) {
+				usedNames.add(name);
+			}
+		}
+		const accessedGlobalVariables =
+			moduleScope.accessedGlobalVariablesByFormat &&
+			moduleScope.accessedGlobalVariablesByFormat.get(format);
+		if (accessedGlobalVariables) {
+			for (const name of accessedGlobalVariables) {
 				usedNames.add(name);
 			}
 		}

@@ -47,12 +47,23 @@ const getDynamicImportMechanism = (options: RenderOptions): DynamicImportMechani
 	return undefined as any;
 };
 
+const accessedImportGlobals = {
+	amd: ['require'],
+	cjs: ['require'],
+	system: ['module']
+};
+
 export default class Import extends NodeBase {
 	parent: CallExpression;
 	type: NodeType.tImport;
 
 	private resolutionInterop: boolean;
 	private resolutionNamespace: string;
+
+	bind() {
+		super.bind();
+		this.scope.addAccessedGlobalsByFormat(accessedImportGlobals);
+	}
 
 	include() {
 		this.included = true;

@@ -34,9 +34,9 @@ export default class ModuleScope extends ChildScope {
 		}
 	}
 
-	deconflict() {
+	deconflict(format: string) {
 		// all module level variables are already deconflicted when deconflicting the chunk
-		for (const scope of this.children) scope.deconflict();
+		for (const scope of this.children) scope.deconflict(format);
 	}
 
 	findLexicalBoundary() {

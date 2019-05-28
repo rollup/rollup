@@ -1,4 +1,5 @@
 import MagicString from 'magic-string';
+import { accessedMetaPropertyGlobals } from '../../utils/defaultPlugin';
 import { dirname, normalize, relative } from '../../utils/path';
 import { PluginDriver } from '../../utils/pluginDriver';
 import { ObjectPathKey } from '../values';
@@ -14,6 +15,11 @@ export default class MetaProperty extends NodeBase {
 	meta: Identifier;
 	property: Identifier;
 	type: NodeType.tMetaProperty;
+
+	bind() {
+		super.bind();
+		this.scope.addAccessedGlobalsByFormat(accessedMetaPropertyGlobals);
+	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPathKey[]): boolean {
 		return path.length > 1;

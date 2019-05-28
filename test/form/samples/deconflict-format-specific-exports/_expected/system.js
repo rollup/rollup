@@ -17,10 +17,10 @@ System.register('bundle', [], function (exports, module) {
 			}
 
 			function nestedNoConflict() {
-				const exports$1 = {
+				const exports = {
 					x: 42
 				};
-				console.log(exports$1);
+				console.log(exports);
 			}
 
 			var x = exports('x', 43);

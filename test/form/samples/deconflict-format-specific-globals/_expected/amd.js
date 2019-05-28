@@ -16,7 +16,7 @@ define(['module', 'require', 'external'], function (module, require, external) {
 	exports.default = 0;
 	console.log(new URL(module.uri, document.baseURI).href);
 
-	function nested() {
+	function nested1() {
 		const _interopDefault = 0;
 		const module$1 = 1;
 		const require$1 = 2;
@@ -30,7 +30,19 @@ define(['module', 'require', 'external'], function (module, require, external) {
 		console.log(new URL(module.uri, document.baseURI).href);
 	}
 
-	nested();
+	nested1();
+
+	function nested2() {
+		const _interopDefault = 0;
+		const module = 1;
+		const require = 2;
+		const exports = 3;
+		const document = 4;
+		const URL = 5;
+		console.log(_interopDefault, module, require, exports, document, URL);
+	}
+
+	nested2();
 
 	return exports.default;
 
