@@ -11,8 +11,6 @@ export function getRollupDefaultPlugin(preserveSymlinks: boolean): Plugin {
 			return readFileSync(id, 'utf-8');
 		},
 		resolveFileUrl({ relativePath, format }) {
-			// TODO consider using improved AMD relative imports:
-			// https://requirejs.org/docs/api.html#modulenotes-urls
 			return relativeUrlMechanisms[format](relativePath);
 		},
 		resolveImportMeta(prop, { chunkId, format }) {
@@ -114,7 +112,7 @@ const getRelativeUrlFromDocument = (relativePath: string) =>
 	);
 
 const relativeUrlMechanisms: Record<string, (relativePath: string) => string> = {
-	amd: relativePath => getResolveUrl(`module.uri + '/../${relativePath}', document.baseURI`),
+	amd: relativePath => getResolveUrl(`require.toUrl('${relativePath}'), document.baseURI`),
 	cjs: relativePath =>
 		`(typeof document === 'undefined' ? ${getResolveUrl(
 			`'file:' + __dirname + '/${relativePath}'`,
@@ -139,7 +137,7 @@ export const accessedMetaUrlGlobals = {
 };
 
 export const accessedFileUrlGlobals = {
-	amd: ['document', 'module', 'URL'],
+	amd: ['document', 'require', 'URL'],
 	cjs: ['document', 'require', 'URL'],
 	iife: ['document', 'URL'],
 	system: ['module', 'URL'],
