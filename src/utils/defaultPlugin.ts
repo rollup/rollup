@@ -130,11 +130,18 @@ const relativeUrlMechanisms: Record<string, (relativePath: string) => string> = 
 		)} : ${getRelativeUrlFromDocument(relativePath)})`
 };
 
-// TODO Lukas also for resolved file URLs
-export const accessedMetaPropertyGlobals = {
+export const accessedMetaUrlGlobals = {
 	amd: ['document', 'module', 'URL'],
 	cjs: ['document', 'require', 'URL'],
 	iife: ['document', 'URL'],
 	system: ['module'],
+	umd: ['document', 'require', 'URL']
+};
+
+export const accessedFileUrlGlobals = {
+	amd: ['document', 'module', 'URL'],
+	cjs: ['document', 'require', 'URL'],
+	iife: ['document', 'URL'],
+	system: ['module', 'URL'],
 	umd: ['document', 'require', 'URL']
 };

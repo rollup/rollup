@@ -1,5 +1,5 @@
 import MagicString from 'magic-string';
-import { accessedMetaPropertyGlobals } from '../../utils/defaultPlugin';
+import { accessedFileUrlGlobals, accessedMetaUrlGlobals } from '../../utils/defaultPlugin';
 import { dirname, normalize, relative } from '../../utils/path';
 import { PluginDriver } from '../../utils/pluginDriver';
 import { ObjectPathKey } from '../values';
@@ -16,14 +16,28 @@ export default class MetaProperty extends NodeBase {
 	property: Identifier;
 	type: NodeType.tMetaProperty;
 
-	bind() {
-		super.bind();
-		// TODO Lukas only when included, only when needed
-		this.scope.addAccessedGlobalsByFormat(accessedMetaPropertyGlobals);
-	}
+	private metaProperty?: string | null;
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPathKey[]): boolean {
 		return path.length > 1;
+	}
+
+	include() {
+		if (!this.included) {
+			this.included = true;
+			const parent = this.parent;
+			const metaProperty = (this.metaProperty =
+				parent instanceof MemberExpression && typeof parent.propertyKey === 'string'
+					? parent.propertyKey
+					: null);
+			if (metaProperty) {
+				if (metaProperty === 'url') {
+					this.scope.addAccessedGlobalsByFormat(accessedMetaUrlGlobals);
+				} else if (metaProperty.startsWith(ASSET_PREFIX) || metaProperty.startsWith(CHUNK_PREFIX)) {
+					this.scope.addAccessedGlobalsByFormat(accessedFileUrlGlobals);
+				}
+			}
+		}
 	}
 
 	initialise() {
@@ -41,10 +55,7 @@ export default class MetaProperty extends NodeBase {
 	): void {
 		if (!this.included) return;
 		const parent = this.parent;
-		const importMetaProperty =
-			parent instanceof MemberExpression && typeof parent.propertyKey === 'string'
-				? parent.propertyKey
-				: null;
+		const importMetaProperty = this.metaProperty as string | null;
 
 		if (
 			importMetaProperty &&
