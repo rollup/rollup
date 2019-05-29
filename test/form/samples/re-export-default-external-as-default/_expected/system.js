@@ -1,4 +1,4 @@
-System.register('reexportsDefaultExternalAsDefault', ['external'], function (exports, module) {
+System.register('reexportsDefaultExternalAsDefault', ['external'], function (exports) {
 	'use strict';
 	var _starExcludes = { default: 1 };
 	return {

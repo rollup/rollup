@@ -80,8 +80,10 @@ const getMissingExportsBlock = (exports: ChunkExports, _: string, t: string, n: 
 export default function system(
 	magicString: MagicStringBundle,
 	{
+		accessedGlobals,
 		dependencies,
 		exports,
+		hasExports,
 		indentString: t,
 		intro,
 		outro,
@@ -162,11 +164,16 @@ export default function system(
 	});
 
 	const registeredName = options.name ? `'${options.name}',${_}` : '';
+	const wrapperParams = accessedGlobals.has('module')
+		? `exports,${_}module`
+		: hasExports
+		? 'exports'
+		: '';
 
 	let wrapperStart =
 		`System.register(${registeredName}[` +
 		dependencyIds.join(`,${_}`) +
-		`],${_}function${_}(exports,${_}module)${_}{${n}${t}'use strict';` +
+		`],${_}function${_}(${wrapperParams})${_}{${n}${t}'use strict';` +
 		getStarExcludesBlock(starExcludes, varOrConst, _, t, n) +
 		getImportBindingsBlock(importBindings, _, t, n) +
 		`${n}${t}return${_}{${

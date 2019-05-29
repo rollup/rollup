@@ -1,4 +1,4 @@
-System.register(['./lib/throttle.js'], function (exports, module) {
+System.register(['./lib/throttle.js'], function () {
 	'use strict';
 	var throttle;
 	return {

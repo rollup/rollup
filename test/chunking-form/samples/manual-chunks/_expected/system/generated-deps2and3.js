@@ -1,4 +1,4 @@
-System.register(['./generated-lib1.js'], function (exports, module) {
+System.register(['./generated-lib1.js'], function (exports) {
   'use strict';
   var fn$3;
   return {

@@ -1,4 +1,4 @@
-System.register(['./dep.js'], function (exports, module) {
+System.register(['./dep.js'], function (exports) {
 	'use strict';
 	return {
 		setters: [function (module) {

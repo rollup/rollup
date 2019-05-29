@@ -60,14 +60,12 @@ export default class Import extends NodeBase {
 	private resolutionInterop: boolean;
 	private resolutionNamespace: string;
 
-	bind() {
-		super.bind();
-		this.scope.addAccessedGlobalsByFormat(accessedImportGlobals);
-	}
-
 	include() {
-		this.included = true;
-		this.context.includeDynamicImport(this);
+		if (!this.included) {
+			this.included = true;
+			this.context.includeDynamicImport(this);
+			this.scope.addAccessedGlobalsByFormat(accessedImportGlobals);
+		}
 	}
 
 	initialise() {

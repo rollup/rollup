@@ -1,4 +1,4 @@
-System.register(['factory', 'baz', 'shipping-port', 'alphabet'], function (exports, module) {
+System.register(['factory', 'baz', 'shipping-port', 'alphabet'], function () {
 	'use strict';
 	var factory, foo, bar, port, forEach, a, alphabet;
 	return {

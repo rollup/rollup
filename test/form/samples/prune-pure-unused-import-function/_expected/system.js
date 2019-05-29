@@ -1,4 +1,4 @@
-System.register(['other'], function (exports, module) {
+System.register(['other'], function () {
 	'use strict';
 	return {
 		setters: [function () {}],

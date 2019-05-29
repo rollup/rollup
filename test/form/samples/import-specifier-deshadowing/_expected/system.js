@@ -1,4 +1,4 @@
-System.register('Sticky', ['react-sticky'], function (exports, module) {
+System.register('Sticky', ['react-sticky'], function (exports) {
 	'use strict';
 	var Sticky$1;
 	return {

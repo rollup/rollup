@@ -1,4 +1,4 @@
-System.register(['jquery'], function (exports, module) {
+System.register(['jquery'], function () {
 	'use strict';
 	var $;
 	return {

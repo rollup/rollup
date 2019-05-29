@@ -1,4 +1,4 @@
-System.register(['./inner/more_inner/something.js', './inner/some_effect.js'], function (exports, module) {
+System.register(['./inner/more_inner/something.js', './inner/some_effect.js'], function (exports) {
 	'use strict';
 	return {
 		setters: [function (module) {

@@ -18,6 +18,7 @@ export default class MetaProperty extends NodeBase {
 
 	bind() {
 		super.bind();
+		// TODO Lukas only when included, only when needed
 		this.scope.addAccessedGlobalsByFormat(accessedMetaPropertyGlobals);
 	}
 
@@ -37,8 +38,8 @@ export default class MetaProperty extends NodeBase {
 		chunkId: string,
 		format: string,
 		pluginDriver: PluginDriver
-	): boolean {
-		if (!this.included) return false;
+	): void {
+		if (!this.included) return;
 		const parent = this.parent;
 		const importMetaProperty =
 			parent instanceof MemberExpression && typeof parent.propertyKey === 'string'
@@ -92,7 +93,7 @@ export default class MetaProperty extends NodeBase {
 				(parent as MemberExpression).end,
 				replacement
 			);
-			return true;
+			return;
 		}
 
 		const replacement = pluginDriver.hookFirstSync('resolveImportMeta', [
@@ -109,8 +110,6 @@ export default class MetaProperty extends NodeBase {
 			} else {
 				code.overwrite(this.start, this.end, replacement);
 			}
-			return true;
 		}
-		return false;
 	}
 }

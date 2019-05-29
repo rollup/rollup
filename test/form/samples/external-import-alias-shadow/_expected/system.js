@@ -1,4 +1,4 @@
-System.register(['acorn'], function (exports, module) {
+System.register(['acorn'], function () {
 	'use strict';
 	var parse$1;
 	return {

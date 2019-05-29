@@ -1,4 +1,4 @@
-System.register(['./generated-main2alias.js'], function (exports, module) {
+System.register(['./generated-main2alias.js'], function () {
 	'use strict';
 	var log, dep;
 	return {

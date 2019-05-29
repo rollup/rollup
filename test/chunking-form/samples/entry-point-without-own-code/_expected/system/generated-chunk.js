@@ -1,4 +1,4 @@
-System.register(['./m2.js'], function (exports, module) {
+System.register(['./m2.js'], function (exports) {
 	'use strict';
 	var m2;
 	return {

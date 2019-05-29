@@ -1,4 +1,4 @@
-System.register(['./_virtual/_virtualModule'], function (exports, module) {
+System.register(['./_virtual/_virtualModule'], function () {
 	'use strict';
 	var virtual;
 	return {

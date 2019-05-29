@@ -1,4 +1,4 @@
-System.register(['./generated-dep.js'], function (exports, module) {
+System.register(['./generated-dep.js'], function () {
 	'use strict';
 	var value;
 	return {

@@ -1,4 +1,4 @@
-System.register(['./hsl2hsv.js'], function (exports, module) {
+System.register(['./hsl2hsv.js'], function (exports) {
 	'use strict';
 	var hsl2hsv$1;
 	return {
