@@ -89,7 +89,7 @@ export default command => {
 				fixAcornEsmImport()
 			],
 			// acorn needs to be external as some plugins rely on a shared acorn instance
-			external: ['fs', 'path', 'events', 'module', 'util', 'crypto', 'acorn', 'tty', 'net', 'url'],
+			external: ['fs', 'path', 'events', 'module', 'util', 'acorn'],
 			treeshake: {
 				moduleSideEffects: false,
 				propertyReadSideEffects: false
@@ -111,7 +111,7 @@ export default command => {
 				commonjs({ include: 'node_modules/**' }),
 				typescript({include: '**/*.{ts,js}'}),
 			],
-			external: ['fs', 'path', 'module', 'events', 'rollup', 'assert', 'os', 'util'],
+			external: ['fs', 'path', 'module', 'assert', 'events', 'rollup'],
 			treeshake: {
 				moduleSideEffects: false,
 				propertyReadSideEffects: false
