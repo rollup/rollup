@@ -10,10 +10,9 @@ import {
 	RollupBuild,
 	RollupCache,
 	RollupWatcher,
-	RollupWatchOptions,
 	WatcherOptions
 } from '../rollup/types';
-import mergeOptions from '../utils/mergeOptions';
+import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
 import chokidar from './chokidar';
 import { addTask, deleteTask } from './fileWatchers';
 
@@ -29,7 +28,7 @@ export class Watcher {
 	private succeeded = false;
 	private tasks: Task[];
 
-	constructor(configs: RollupWatchOptions[]) {
+	constructor(configs: GenericConfigObject[]) {
 		this.emitter = new (class extends EventEmitter implements RollupWatcher {
 			close: () => void;
 			constructor(close: () => void) {
@@ -129,7 +128,7 @@ export class Task {
 	private watched: Set<string>;
 	private watcher: Watcher;
 
-	constructor(watcher: Watcher, config: RollupWatchOptions) {
+	constructor(watcher: Watcher, config: GenericConfigObject) {
 		this.cache = null as any;
 		this.watcher = watcher;
 
@@ -280,6 +279,6 @@ export class Task {
 	}
 }
 
-export default function watch(configs: RollupWatchOptions[]): EventEmitter {
+export default function watch(configs: GenericConfigObject[]): EventEmitter {
 	return new Watcher(configs).emitter;
 }
