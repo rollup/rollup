@@ -1,7 +1,8 @@
 import path from 'path';
 import rollup from 'rollup';
 import tc from 'turbocolor';
-import { InputOptions, RollupBuild, RollupOutput } from '../../../src/rollup/types';
+import { RollupBuild, RollupOutput } from '../../../src/rollup/types';
+import { GenericConfigObject } from '../../../src/utils/mergeOptions';
 import relativeId from '../../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
 import batchWarnings from './batchWarnings';
@@ -13,7 +14,7 @@ interface NodeModuleWithCompile extends NodeModule {
 export default function loadConfigFile(
 	configFile: string,
 	commandOptions: any = {}
-): Promise<InputOptions[]> {
+): Promise<GenericConfigObject[]> {
 	const silent = commandOptions.silent || false;
 	const warnings = batchWarnings();
 

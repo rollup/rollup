@@ -1,7 +1,7 @@
 import { realpathSync } from 'fs';
 import relative from 'require-relative';
-import { InputOptions, WarningHandler } from '../../../src/rollup/types';
-import mergeOptions from '../../../src/utils/mergeOptions';
+import { WarningHandler } from '../../../src/rollup/types';
+import mergeOptions, { GenericConfigObject } from '../../../src/utils/mergeOptions';
 import { getAliasName } from '../../../src/utils/relativeId';
 import { handleError } from '../logging';
 import batchWarnings from './batchWarnings';
@@ -93,7 +93,7 @@ export default function runRollup(command: any) {
 	}
 }
 
-function execute(configFile: string, configs: InputOptions[], command: any) {
+function execute(configFile: string, configs: GenericConfigObject[], command: any) {
 	if (command.watch) {
 		watch(configFile, configs, command, command.silent);
 	} else {

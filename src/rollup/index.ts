@@ -174,7 +174,7 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 
 				function getOutputOptions(rawOutputOptions: GenericConfigObject) {
 					return normalizeOutputOptions(
-						inputOptions,
+						inputOptions as GenericConfigObject,
 						rawOutputOptions,
 						chunks.length > 1,
 						graph.pluginDriver
@@ -303,7 +303,7 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 						return promise;
 					}) as any,
 					watchFiles: Object.keys(graph.watchFiles),
-					write: ((rawOutputOptions: OutputOptions) => {
+					write: ((rawOutputOptions: GenericConfigObject) => {
 						const outputOptions = getOutputOptions(rawOutputOptions);
 						if (!outputOptions.dir && !outputOptions.file) {
 							error({

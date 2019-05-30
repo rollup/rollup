@@ -40,9 +40,9 @@ const onwarn = warning => {
 	throw new Error(warning.message);
 };
 
-const expectedAcornImport = "import acorn__default, { tokTypes, Parser as Parser$1 } from 'acorn';";
+const expectedAcornImport = "import acorn__default, { tokTypes, Parser } from 'acorn';";
 const newAcornImport =
-	"import * as acorn__default from 'acorn';\nimport { tokTypes, Parser as Parser$1 } from 'acorn';";
+	"import * as acorn__default from 'acorn';\nimport { tokTypes, Parser } from 'acorn';";
 
 // by default, rollup-plugin-commonjs will translate require statements as default imports
 // which can cause issues for secondary tools that use the ESM version of acorn
@@ -84,12 +84,12 @@ export default command => {
 				alias(moduleAliases),
 				resolve(),
 				json(),
-				commonjs({ include: 'node_modules/**', namedExports: { micromatch: ['matcher'] } }),
+				commonjs({ include: 'node_modules/**' }),
 				typescript({include: '**/*.{ts,js}'}),
 				fixAcornEsmImport()
 			],
 			// acorn needs to be external as some plugins rely on a shared acorn instance
-			external: ['fs', 'path', 'events', 'module', 'util', 'crypto', 'acorn', 'tty', 'net', 'url'],
+			external: ['fs', 'path', 'events', 'module', 'util', 'acorn'],
 			treeshake: {
 				moduleSideEffects: false,
 				propertyReadSideEffects: false
@@ -111,7 +111,7 @@ export default command => {
 				commonjs({ include: 'node_modules/**' }),
 				typescript({include: '**/*.{ts,js}'}),
 			],
-			external: ['fs', 'path', 'module', 'events', 'rollup', 'assert', 'os', 'util'],
+			external: ['fs', 'path', 'module', 'assert', 'events', 'rollup'],
 			treeshake: {
 				moduleSideEffects: false,
 				propertyReadSideEffects: false
