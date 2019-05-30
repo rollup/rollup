@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 1.12.5
+*2019-05-30*
+
+### Pull Requests
+* [#2884](https://github.com/rollup/rollup/pull/2884): Update pluginutils for new micormatch and reduced bundle size (@lukastaegert)
+
 ## 1.12.4
 *2019-05-27*
 
