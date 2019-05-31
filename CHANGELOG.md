@@ -1,5 +1,20 @@
 # rollup changelog
 
+## 1.13.0
+*2019-05-31*
+
+### Features
+* Omit `exports` and `module` from SystemJS wrapper if possible (#2880)
+* Try to use the first letters of names when mangling exports (#2885)
+
+### Bug Fixes
+* Avoid conflicts with local variables when using format specific globals to render dynamic imports and file URLs (#2880)
+* Do not produce undefined reexports when reexporting from entry points (#2885)
+
+### Pull Requests
+* [#2880](https://github.com/rollup/rollup/pull/2880): Deconflict global variables used inside format-specific code (@lukastaegert)
+* [#2885](https://github.com/rollup/rollup/pull/2885): Do not produce undefined reexports when reexporting from entry points and refactor chunk linking (@lukastaegert)
+
 ## 1.12.5
 *2019-05-30*
 
