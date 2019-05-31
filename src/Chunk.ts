@@ -111,6 +111,20 @@ export function isChunkRendered(chunk: Chunk): boolean {
 }
 
 export default class Chunk {
+	static generateFacade(graph: Graph, facadedModule: Module): Chunk {
+		const chunk = new Chunk(graph, []);
+		chunk.dependencies = [facadedModule.chunk];
+		chunk.dynamicDependencies = [];
+		chunk.facadeModule = facadedModule;
+		facadedModule.facadeChunk = chunk;
+		for (const exportName of facadedModule.getAllExportNames()) {
+			const tracedVariable = facadedModule.getVariableForExportName(exportName);
+			chunk.exports.add(tracedVariable);
+			chunk.exportNames[exportName] = tracedVariable;
+		}
+		return chunk;
+	}
+
 	entryModules: Module[] = [];
 	execIndex: number;
 	exportMode = 'named';
@@ -126,8 +140,8 @@ export default class Chunk {
 		[moduleId: string]: RenderedModule;
 	};
 	usedModules: Module[] = undefined as any;
-	variableName: string;
 
+	variableName: string;
 	private chunkName: string | void;
 	private dependencies: (ExternalModule | Chunk)[] = undefined as any;
 	private dynamicDependencies: (ExternalModule | Chunk)[] = undefined as any;
@@ -212,9 +226,7 @@ export default class Chunk {
 					continue;
 				}
 			}
-			const entryPointFacade = new Chunk(this.graph, []);
-			entryPointFacade.turnIntoFacade(module);
-			facades.push(entryPointFacade);
+			facades.push(Chunk.generateFacade(this.graph, module));
 		}
 		return facades;
 	}
@@ -706,18 +718,6 @@ export default class Chunk {
 
 			return { code, map };
 		});
-	}
-
-	turnIntoFacade(facadedModule: Module) {
-		this.dependencies = [facadedModule.chunk];
-		this.dynamicDependencies = [];
-		this.facadeModule = facadedModule;
-		facadedModule.facadeChunk = this;
-		for (const exportName of facadedModule.getAllExportNames()) {
-			const tracedVariable = facadedModule.getVariableForExportName(exportName);
-			this.exports.add(tracedVariable);
-			this.exportNames[exportName] = tracedVariable;
-		}
 	}
 
 	visitDependencies(handleDependency: (dependency: Chunk | ExternalModule) => void) {
