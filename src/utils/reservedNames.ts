@@ -1,5 +1,3 @@
-import { INTEROP_DEFAULT_VARIABLE } from './variableNames';
-
 export interface NameCollection {
 	[name: string]: true;
 }
@@ -59,23 +57,3 @@ export const RESERVED_NAMES: NameCollection = Object.assign(Object.create(null),
 	with: true,
 	yield: true
 });
-
-const NONE: NameCollection = {};
-const EXPORTS: NameCollection = { exports: true };
-
-export const RESERVED_NAMES_BY_FORMAT: {
-	[format: string]: { forbiddenNames: NameCollection; formatGlobals: NameCollection };
-} = {
-	amd: { formatGlobals: EXPORTS, forbiddenNames: RESERVED_NAMES },
-	cjs: {
-		forbiddenNames: RESERVED_NAMES,
-		formatGlobals: { exports: true, module: true, [INTEROP_DEFAULT_VARIABLE]: true }
-	},
-	es: { formatGlobals: NONE, forbiddenNames: RESERVED_NAMES },
-	iife: { formatGlobals: EXPORTS, forbiddenNames: RESERVED_NAMES },
-	system: {
-		forbiddenNames: Object.assign(Object.create(null), RESERVED_NAMES, EXPORTS),
-		formatGlobals: NONE
-	},
-	umd: { formatGlobals: EXPORTS, forbiddenNames: RESERVED_NAMES }
-};

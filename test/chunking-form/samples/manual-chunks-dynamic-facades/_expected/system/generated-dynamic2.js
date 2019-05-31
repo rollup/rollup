@@ -1,4 +1,4 @@
-System.register(['./generated-dynamic.js'], function (exports, module) {
+System.register(['./generated-dynamic.js'], function (exports) {
 	'use strict';
 	return {
 		setters: [function (module) {

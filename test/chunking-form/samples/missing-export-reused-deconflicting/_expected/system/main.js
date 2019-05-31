@@ -1,4 +1,4 @@
-System.register(['./dep1.js', './dep2.js'], function (exports, module) {
+System.register(['./dep1.js', './dep2.js'], function () {
 	'use strict';
 	var _missingExportShim, _missingExportShim$1, _missingExportShim$2;
 	return {

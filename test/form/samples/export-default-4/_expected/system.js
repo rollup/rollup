@@ -1,4 +1,4 @@
-System.register('my.global.namespace', [], function (exports, module) {
+System.register('my.global.namespace', [], function (exports) {
 	'use strict';
 	return {
 		execute: function () {

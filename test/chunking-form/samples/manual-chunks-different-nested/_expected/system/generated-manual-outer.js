@@ -1,4 +1,4 @@
-System.register(['./generated-manual-middle.js'], function (exports, module) {
+System.register(['./generated-manual-middle.js'], function () {
 	'use strict';
 	return {
 		setters: [function () {}],

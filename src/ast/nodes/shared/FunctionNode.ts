@@ -74,7 +74,7 @@ export default class FunctionNode extends NodeBase {
 	}
 
 	include(includeAllChildrenRecursively: boolean) {
-		this.scope.variables.arguments.include();
+		this.scope.argumentsVariable.include();
 		super.include(includeAllChildrenRecursively);
 	}
 

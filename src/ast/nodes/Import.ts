@@ -47,6 +47,12 @@ const getDynamicImportMechanism = (options: RenderOptions): DynamicImportMechani
 	return undefined as any;
 };
 
+const accessedImportGlobals = {
+	amd: ['require'],
+	cjs: ['require'],
+	system: ['module']
+};
+
 export default class Import extends NodeBase {
 	parent: CallExpression;
 	type: NodeType.tImport;
@@ -55,8 +61,11 @@ export default class Import extends NodeBase {
 	private resolutionNamespace: string;
 
 	include() {
-		this.included = true;
-		this.context.includeDynamicImport(this);
+		if (!this.included) {
+			this.included = true;
+			this.context.includeDynamicImport(this);
+			this.scope.addAccessedGlobalsByFormat(accessedImportGlobals);
+		}
 	}
 
 	initialise() {

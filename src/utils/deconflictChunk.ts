@@ -3,12 +3,11 @@ import Variable from '../ast/variables/Variable';
 import Chunk from '../Chunk';
 import ExternalModule from '../ExternalModule';
 import Module from '../Module';
-import { NameCollection, RESERVED_NAMES_BY_FORMAT } from './reservedNames';
 import { getSafeName } from './safeName';
 
 const DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT: {
 	[format: string]: (
-		usedNames: NameCollection,
+		usedNames: Set<string>,
 		imports: Set<Variable>,
 		dependencies: (ExternalModule | Chunk)[],
 		interop: boolean,
@@ -27,15 +26,12 @@ export function deconflictChunk(
 	modules: Module[],
 	dependencies: (ExternalModule | Chunk)[],
 	imports: Set<Variable>,
-	usedNames: NameCollection,
+	usedNames: Set<string>,
 	format: string,
 	interop: boolean,
 	preserveModules: boolean
 ) {
-	const { forbiddenNames, formatGlobals } = RESERVED_NAMES_BY_FORMAT[format];
-	Object.assign(usedNames, forbiddenNames);
-	Object.assign(usedNames, formatGlobals);
-	addUsedGlobalNames(usedNames, modules);
+	addUsedGlobalNames(usedNames, modules, format);
 	deconflictTopLevelVariables(usedNames, modules);
 	DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT[format](
 		usedNames,
@@ -46,26 +42,31 @@ export function deconflictChunk(
 	);
 
 	for (const module of modules) {
-		module.scope.deconflict(forbiddenNames);
+		module.scope.deconflict(format);
 	}
 }
 
-function addUsedGlobalNames(usedNames: NameCollection, modules: Module[]) {
-	const accessedGlobals: { [name: string]: Variable } = Object.assign(
-		{},
-		...modules.map(module => module.scope.accessedOutsideVariables)
-	);
-
-	for (const name of Object.keys(accessedGlobals)) {
-		const variable = accessedGlobals[name];
-		if (variable.included) {
-			usedNames[name] = true;
+function addUsedGlobalNames(usedNames: Set<string>, modules: Module[], format: string) {
+	for (const module of modules) {
+		const moduleScope = module.scope;
+		for (const [name, variable] of moduleScope.accessedOutsideVariables) {
+			if (variable.included) {
+				usedNames.add(name);
+			}
+		}
+		const accessedGlobalVariables =
+			moduleScope.accessedGlobalVariablesByFormat &&
+			moduleScope.accessedGlobalVariablesByFormat.get(format);
+		if (accessedGlobalVariables) {
+			for (const name of accessedGlobalVariables) {
+				usedNames.add(name);
+			}
 		}
 	}
 }
 
 function deconflictImportsEsm(
-	usedNames: NameCollection,
+	usedNames: Set<string>,
 	imports: Set<Variable>,
 	_dependencies: (ExternalModule | Chunk)[],
 	interop: boolean
@@ -88,7 +89,7 @@ function deconflictImportsEsm(
 }
 
 function deconflictImportsOther(
-	usedNames: NameCollection,
+	usedNames: Set<string>,
 	imports: Set<Variable>,
 	dependencies: (ExternalModule | Chunk)[],
 	interop: boolean,
@@ -121,11 +122,9 @@ function deconflictImportsOther(
 	}
 }
 
-function deconflictTopLevelVariables(usedNames: NameCollection, modules: Module[]) {
+function deconflictTopLevelVariables(usedNames: Set<string>, modules: Module[]) {
 	for (const module of modules) {
-		const moduleVariables = module.scope.variables;
-		for (const name of Object.keys(moduleVariables)) {
-			const variable = moduleVariables[name];
+		for (const variable of module.scope.variables.values()) {
 			if (
 				variable.included &&
 				// this will only happen for exports in some formats

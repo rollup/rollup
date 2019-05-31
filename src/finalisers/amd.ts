@@ -6,9 +6,6 @@ import getExportBlock from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
 import warnOnBuiltins from './shared/warnOnBuiltins';
 
-// TODO consider using improved AMD relative imports:
-// https://requirejs.org/docs/api.html#modulenotes-urls
-
 // AMD resolution will only respect the AMD baseUrl if the .js extension is omitted.
 // The assumption is that this makes sense for all relative ids:
 // https://requirejs.org/docs/api.html#jsfiles
@@ -22,15 +19,14 @@ function removeExtensionFromRelativeAmdId(id: string) {
 export default function amd(
 	magicString: MagicStringBundle,
 	{
+		accessedGlobals,
 		dependencies,
-		dynamicImport,
 		exports,
 		hasExports,
 		indentString: t,
 		intro,
 		isEntryModuleFacade,
 		namedExportsMode,
-		needsAmdModule,
 		outro,
 		varOrConst,
 		warn
@@ -49,12 +45,12 @@ export default function amd(
 		deps.unshift(`'exports'`);
 	}
 
-	if (dynamicImport) {
+	if (accessedGlobals.has('require')) {
 		args.unshift('require');
 		deps.unshift(`'require'`);
 	}
 
-	if (needsAmdModule) {
+	if (accessedGlobals.has('module')) {
 		args.unshift('module');
 		deps.unshift(`'module'`);
 	}

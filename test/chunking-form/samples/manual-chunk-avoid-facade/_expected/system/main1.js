@@ -1,4 +1,4 @@
-System.register(['./manual.js'], function (exports, module) {
+System.register(['./manual.js'], function () {
 	'use strict';
 	var value;
 	return {

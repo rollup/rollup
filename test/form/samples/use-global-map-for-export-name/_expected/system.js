@@ -1,4 +1,4 @@
-System.register('leaflet.terminator', ['leaflet'], function (exports, module) {
+System.register('leaflet.terminator', ['leaflet'], function () {
 	'use strict';
 	var L;
 	return {

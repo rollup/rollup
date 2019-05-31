@@ -22,7 +22,6 @@ import {
 	errInvalidRollupPhaseForEmitChunk,
 	error
 } from './error';
-import { NameCollection } from './reservedNames';
 
 type Args<T> = T extends (...args: infer K) => any ? K : never;
 
@@ -98,17 +97,17 @@ export function createPluginDriver(
 		getRollupDefaultPlugin(options.preserveSymlinks as boolean)
 	];
 	const { emitAsset, getAssetFileName, setAssetSource } = createAssetPluginHooks(graph.assetsById);
-	const existingPluginKeys: NameCollection = {};
+	const existingPluginKeys = new Set<string>();
 
 	let hasLoadersOrTransforms = false;
 
 	const pluginContexts: PluginContext[] = plugins.map((plugin, pidx) => {
 		let cacheable = true;
 		if (typeof plugin.cacheKey !== 'string') {
-			if (typeof plugin.name !== 'string' || existingPluginKeys[plugin.name]) {
+			if (typeof plugin.name !== 'string' || existingPluginKeys.has(plugin.name)) {
 				cacheable = false;
 			} else {
-				existingPluginKeys[plugin.name] = true;
+				existingPluginKeys.add(plugin.name);
 			}
 		}
 

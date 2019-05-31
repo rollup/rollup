@@ -9,15 +9,14 @@ import system from './system';
 import umd from './umd';
 
 export interface FinaliserOptions {
+	accessedGlobals: Set<string>;
 	dependencies: ChunkDependencies;
-	dynamicImport: boolean;
 	exports: ChunkExports;
 	hasExports: boolean;
 	indentString: string;
 	intro: string;
 	isEntryModuleFacade: boolean;
 	namedExportsMode: boolean;
-	needsAmdModule: boolean;
 	outro: string;
 	usesTopLevelAwait: boolean;
 	varOrConst: 'var' | 'const';

@@ -2,7 +2,7 @@
 /* first banner */
 /* second banner */
 /* 3rd banner */
-System.register([], function (exports, module) {
+System.register([], function () {
 	'use strict';
 	return {
 		execute: function () {

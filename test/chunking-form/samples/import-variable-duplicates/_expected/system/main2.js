@@ -1,4 +1,4 @@
-System.register(['./first.js'], function (exports, module) {
+System.register(['./first.js'], function () {
 	'use strict';
 	return {
 		setters: [function () {}],

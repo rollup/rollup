@@ -1,5 +1,4 @@
 import { AstContext } from '../../Module';
-import { NameCollection } from '../../utils/reservedNames';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import { UNDEFINED_EXPRESSION } from '../values';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
@@ -16,7 +15,7 @@ export default class ModuleScope extends ChildScope {
 	constructor(parent: GlobalScope, context: AstContext) {
 		super(parent);
 		this.context = context;
-		this.variables.this = new LocalVariable('this', null, UNDEFINED_EXPRESSION, context);
+		this.variables.set('this', new LocalVariable('this', null, UNDEFINED_EXPRESSION, context));
 	}
 
 	addExportDefaultDeclaration(
@@ -24,22 +23,20 @@ export default class ModuleScope extends ChildScope {
 		exportDefaultDeclaration: ExportDefaultDeclaration,
 		context: AstContext
 	): ExportDefaultVariable {
-		return (this.variables.default = new ExportDefaultVariable(
-			name,
-			exportDefaultDeclaration,
-			context
-		));
+		const variable = new ExportDefaultVariable(name, exportDefaultDeclaration, context);
+		this.variables.set('default', variable);
+		return variable;
 	}
 
 	addNamespaceMemberAccess(_name: string, variable: Variable) {
 		if (variable instanceof GlobalVariable) {
-			this.accessedOutsideVariables[variable.name] = variable;
+			this.accessedOutsideVariables.set(variable.name, variable);
 		}
 	}
 
-	deconflict(forbiddenNames: NameCollection) {
+	deconflict(format: string) {
 		// all module level variables are already deconflicted when deconflicting the chunk
-		for (const scope of this.children) scope.deconflict(forbiddenNames);
+		for (const scope of this.children) scope.deconflict(format);
 	}
 
 	findLexicalBoundary() {
@@ -47,13 +44,13 @@ export default class ModuleScope extends ChildScope {
 	}
 
 	findVariable(name: string) {
-		const knownVariable = this.variables[name] || this.accessedOutsideVariables[name];
+		const knownVariable = this.variables.get(name) || this.accessedOutsideVariables.get(name);
 		if (knownVariable) {
 			return knownVariable;
 		}
 		const variable = this.context.traceVariable(name) || this.parent.findVariable(name);
 		if (variable instanceof GlobalVariable) {
-			this.accessedOutsideVariables[name] = variable;
+			this.accessedOutsideVariables.set(name, variable);
 		}
 		return variable;
 	}

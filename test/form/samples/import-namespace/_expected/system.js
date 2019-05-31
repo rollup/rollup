@@ -1,4 +1,4 @@
-System.register(['foo', 'bar'], function (exports, module) {
+System.register(['foo', 'bar'], function () {
 	'use strict';
 	var x, bar;
 	return {

@@ -112,7 +112,7 @@ const getRelativeUrlFromDocument = (relativePath: string) =>
 	);
 
 const relativeUrlMechanisms: Record<string, (relativePath: string) => string> = {
-	amd: relativePath => getResolveUrl(`module.uri + '/../${relativePath}', document.baseURI`),
+	amd: relativePath => getResolveUrl(`require.toUrl('${relativePath}'), document.baseURI`),
 	cjs: relativePath =>
 		`(typeof document === 'undefined' ? ${getResolveUrl(
 			`'file:' + __dirname + '/${relativePath}'`,
@@ -126,4 +126,20 @@ const relativeUrlMechanisms: Record<string, (relativePath: string) => string> = 
 			`'file:' + __dirname + '/${relativePath}'`,
 			`(require('u' + 'rl').URL)`
 		)} : ${getRelativeUrlFromDocument(relativePath)})`
+};
+
+export const accessedMetaUrlGlobals = {
+	amd: ['document', 'module', 'URL'],
+	cjs: ['document', 'require', 'URL'],
+	iife: ['document', 'URL'],
+	system: ['module'],
+	umd: ['document', 'require', 'URL']
+};
+
+export const accessedFileUrlGlobals = {
+	amd: ['document', 'require', 'URL'],
+	cjs: ['document', 'require', 'URL'],
+	iife: ['document', 'URL'],
+	system: ['module', 'URL'],
+	umd: ['document', 'require', 'URL']
 };

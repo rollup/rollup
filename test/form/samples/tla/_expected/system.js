@@ -1,4 +1,4 @@
-System.register([], function (exports, module) {
+System.register([], function () {
 	'use strict';
 	return {
 		execute: async function () {

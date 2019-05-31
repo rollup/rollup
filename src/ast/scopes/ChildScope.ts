@@ -1,11 +1,11 @@
-import { NameCollection } from '../../utils/reservedNames';
 import { getSafeName } from '../../utils/safeName';
 import { ExpressionEntity } from '../nodes/shared/Expression';
 import Variable from '../variables/Variable';
 import Scope from './Scope';
 
 export default class ChildScope extends Scope {
-	accessedOutsideVariables: { [name: string]: Variable } = Object.create(null);
+	accessedGlobalVariablesByFormat?: Map<string, Set<string>>;
+	accessedOutsideVariables = new Map<string, Variable>();
 	parent: Scope;
 
 	constructor(parent: Scope) {
@@ -14,8 +14,28 @@ export default class ChildScope extends Scope {
 		parent.children.push(this);
 	}
 
+	addAccessedGlobalsByFormat(globalsByFormat: { [format: string]: string[] }) {
+		let accessedGlobalVariablesByFormat = this.accessedGlobalVariablesByFormat;
+		if (!accessedGlobalVariablesByFormat) {
+			accessedGlobalVariablesByFormat = this.accessedGlobalVariablesByFormat = new Map();
+		}
+		for (const format of Object.keys(globalsByFormat)) {
+			let accessedGlobalVariables = accessedGlobalVariablesByFormat.get(format);
+			if (!accessedGlobalVariables) {
+				accessedGlobalVariables = new Set();
+				accessedGlobalVariablesByFormat.set(format, accessedGlobalVariables);
+			}
+			for (const name of globalsByFormat[format]) {
+				accessedGlobalVariables.add(name);
+			}
+		}
+		if (this.parent instanceof ChildScope) {
+			this.parent.addAccessedGlobalsByFormat(globalsByFormat);
+		}
+	}
+
 	addNamespaceMemberAccess(name: string, variable: Variable) {
-		this.accessedOutsideVariables[name] = variable;
+		this.accessedOutsideVariables.set(name, variable);
 		if (this.parent instanceof ChildScope) {
 			this.parent.addNamespaceMemberAccess(name, variable);
 		}
@@ -26,25 +46,33 @@ export default class ChildScope extends Scope {
 	}
 
 	contains(name: string): boolean {
-		return name in this.variables || this.parent.contains(name);
+		return this.variables.has(name) || this.parent.contains(name);
 	}
 
-	deconflict(forbiddenNames: NameCollection) {
-		const usedNames: NameCollection = Object.assign(Object.create(null), forbiddenNames);
-		for (const name of Object.keys(this.accessedOutsideVariables)) {
-			const variable = this.accessedOutsideVariables[name];
+	deconflict(format: string) {
+		const usedNames = new Set<string>();
+		for (const variable of this.accessedOutsideVariables.values()) {
 			if (variable.included) {
-				usedNames[variable.getBaseVariableName()] = true;
+				usedNames.add(variable.getBaseVariableName());
+				if (variable.exportName && format === 'system') {
+					usedNames.add('exports');
+				}
 			}
 		}
-		for (const name of Object.keys(this.variables)) {
-			const variable = this.variables[name];
+		const accessedGlobalVariables =
+			this.accessedGlobalVariablesByFormat && this.accessedGlobalVariablesByFormat.get(format);
+		if (accessedGlobalVariables) {
+			for (const name of accessedGlobalVariables) {
+				usedNames.add(name);
+			}
+		}
+		for (const [name, variable] of this.variables) {
 			if (variable.included) {
 				variable.setSafeName(getSafeName(name, usedNames));
 			}
 		}
 		for (const scope of this.children) {
-			scope.deconflict(forbiddenNames);
+			scope.deconflict(format);
 		}
 	}
 
@@ -53,10 +81,12 @@ export default class ChildScope extends Scope {
 	}
 
 	findVariable(name: string): Variable {
-		const knownVariable = this.variables[name] || this.accessedOutsideVariables[name];
+		const knownVariable = this.variables.get(name) || this.accessedOutsideVariables.get(name);
 		if (knownVariable) {
 			return knownVariable;
 		}
-		return (this.accessedOutsideVariables[name] = this.parent.findVariable(name));
+		const variable = this.parent.findVariable(name);
+		this.accessedOutsideVariables.set(name, variable);
+		return variable;
 	}
 }

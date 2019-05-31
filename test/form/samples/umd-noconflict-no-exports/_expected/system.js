@@ -1,4 +1,4 @@
-System.register('FooBar', [], function (exports, module) {
+System.register('FooBar', [], function () {
 	'use strict';
 	return {
 		execute: function () {

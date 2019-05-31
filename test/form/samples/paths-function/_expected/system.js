@@ -1,4 +1,4 @@
-System.register(['https://unpkg.com/foo'], function (exports, module) {
+System.register(['https://unpkg.com/foo'], function () {
 	'use strict';
 	var foo;
 	return {

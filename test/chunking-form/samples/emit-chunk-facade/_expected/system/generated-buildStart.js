@@ -1,4 +1,4 @@
-System.register(['./generated-build-starter.js'], function (exports, module) {
+System.register(['./generated-build-starter.js'], function (exports) {
 	'use strict';
 	return {
 		setters: [function (module) {

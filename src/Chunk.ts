@@ -36,7 +36,7 @@ import { makeUnique, renderNamePattern } from './utils/renderNamePattern';
 import { RESERVED_NAMES } from './utils/reservedNames';
 import { sanitizeFileName } from './utils/sanitizeFileName';
 import { timeEnd, timeStart } from './utils/timers';
-import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
+import { INTEROP_DEFAULT_VARIABLE, MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
 
 export interface ModuleDeclarations {
 	dependencies: ModuleDeclarationDependency[];
@@ -130,7 +130,6 @@ export default class Chunk {
 	exportMode = 'named';
 	facadeModule: Module | null = null;
 	graph: Graph;
-	hasDynamicImport = false;
 	id: string = undefined as any;
 	indentString: string = undefined as any;
 	isEmpty: boolean;
@@ -596,16 +595,17 @@ export default class Chunk {
 		if (!this.renderedSource)
 			throw new Error('Internal error: Chunk render called before preRender');
 
-		const finalise = finalisers[options.format as string];
+		const format = options.format as string;
+		const finalise = finalisers[format];
 		if (!finalise) {
 			error({
 				code: 'INVALID_OPTION',
-				message: `Invalid format: ${options.format} - valid options are ${Object.keys(
-					finalisers
-				).join(', ')}.`
+				message: `Invalid format: ${format} - valid options are ${Object.keys(finalisers).join(
+					', '
+				)}.`
 			});
 		}
-		if (options.dynamicImportFunction && options.format !== 'es') {
+		if (options.dynamicImportFunction && format !== 'es') {
 			this.graph.warn({
 				code: 'INVALID_OPTION',
 				message: '"output.dynamicImportFunction" is ignored for formats other than "esm".'
@@ -628,8 +628,8 @@ export default class Chunk {
 			renderedDependency.id = relPath;
 		}
 
-		this.finaliseDynamicImports(options.format as string);
-		const needsAmdModule = this.finaliseImportMetas(options);
+		this.finaliseDynamicImports(format);
+		this.finaliseImportMetas(format);
 
 		const hasExports =
 			this.renderedDeclarations.exports.length !== 0 ||
@@ -637,28 +637,40 @@ export default class Chunk {
 				dep => (dep.reexports && dep.reexports.length !== 0) as boolean
 			);
 
-		const usesTopLevelAwait = this.orderedModules.some(module => module.usesTopLevelAwait);
-		if (usesTopLevelAwait && options.format !== 'es' && options.format !== 'system') {
+		let usesTopLevelAwait = false;
+		const accessedGlobals = new Set<string>();
+		for (const module of this.orderedModules) {
+			if (module.usesTopLevelAwait) {
+				usesTopLevelAwait = true;
+			}
+			const accessedGlobalVariablesByFormat = module.scope.accessedGlobalVariablesByFormat;
+			const accessedGlobalVariables =
+				accessedGlobalVariablesByFormat && accessedGlobalVariablesByFormat.get(format);
+			if (accessedGlobalVariables) {
+				for (const name of accessedGlobalVariables) {
+					accessedGlobals.add(name);
+				}
+			}
+		}
+
+		if (usesTopLevelAwait && format !== 'es' && format !== 'system') {
 			error({
 				code: 'INVALID_TLA_FORMAT',
-				message: `Module format ${
-					options.format
-				} does not support top-level await. Use the "es" or "system" output formats rather.`
+				message: `Module format ${format} does not support top-level await. Use the "es" or "system" output formats rather.`
 			});
 		}
 
 		const magicString = finalise(
 			this.renderedSource,
 			{
+				accessedGlobals,
 				dependencies: this.renderedDeclarations.dependencies,
-				dynamicImport: this.hasDynamicImport,
 				exports: this.renderedDeclarations.exports,
 				hasExports,
 				indentString: this.indentString,
 				intro: addons.intro as string,
 				isEntryModuleFacade: this.facadeModule !== null && this.facadeModule.isEntryPoint,
 				namedExportsMode: this.exportMode !== 'default',
-				needsAmdModule,
 				outro: addons.outro as string,
 				usesTopLevelAwait,
 				varOrConst: options.preferConst ? 'const' : 'var',
@@ -828,25 +840,14 @@ export default class Chunk {
 		}
 	}
 
-	private finaliseImportMetas(options: OutputOptions): boolean {
-		let needsAmdModule = false;
+	private finaliseImportMetas(format: string): void {
 		for (let i = 0; i < this.orderedModules.length; i++) {
 			const module = this.orderedModules[i];
 			const code = this.renderedModuleSources[i];
 			for (const importMeta of module.importMetas) {
-				if (
-					importMeta.renderFinalMechanism(
-						code,
-						this.id,
-						options.format as string,
-						this.graph.pluginDriver
-					)
-				) {
-					needsAmdModule = true;
-				}
+				importMeta.renderFinalMechanism(code, this.id, format, this.graph.pluginDriver);
 			}
 		}
-		return needsAmdModule;
 	}
 
 	private getChunkDependencyDeclarations(options: OutputOptions): ChunkDependencies {
@@ -1050,9 +1051,18 @@ export default class Chunk {
 			}
 		}
 
-		const usedNames = Object.create(null);
+		const usedNames = new Set<string>();
 		if (this.needsExportsShim) {
-			usedNames[MISSING_EXPORT_SHIM_VARIABLE] = true;
+			usedNames.add(MISSING_EXPORT_SHIM_VARIABLE);
+		}
+		if (options.format !== 'es') {
+			usedNames.add('exports');
+			if (options.format === 'cjs') {
+				usedNames.add(INTEROP_DEFAULT_VARIABLE);
+				if (this.exportMode === 'default') {
+					usedNames.add('module');
+				}
+			}
 		}
 
 		deconflictChunk(
@@ -1098,11 +1108,8 @@ export default class Chunk {
 			}
 		}
 		for (const { node, resolution } of module.dynamicImports) {
-			if (node.included) {
-				this.hasDynamicImport = true;
-				if (resolution instanceof Module && resolution.chunk === this)
-					resolution.getOrCreateNamespace().include();
-			}
+			if (node.included && resolution instanceof Module && resolution.chunk === this)
+				resolution.getOrCreateNamespace().include();
 		}
 	}
 }

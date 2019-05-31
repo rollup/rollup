@@ -1,4 +1,4 @@
-System.register(['external', './commonjs.js'], function (exports, module) {
+System.register(['external', './commonjs.js'], function () {
 	'use strict';
 	var external, value;
 	return {
