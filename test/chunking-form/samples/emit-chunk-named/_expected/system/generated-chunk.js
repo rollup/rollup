@@ -3,7 +3,7 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			var value = exports('a', 42);
+			var value = exports('v', 42);
 
 		}
 	};

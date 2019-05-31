@@ -4,4 +4,4 @@ console.log('main');
 
 const value = 42;
 
-export { value as a };
+export { value as v };

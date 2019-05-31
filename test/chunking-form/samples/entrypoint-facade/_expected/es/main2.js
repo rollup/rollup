@@ -1,1 +1,1 @@
-export { a as default } from './generated-chunk.js';
+export { l as default } from './generated-chunk.js';

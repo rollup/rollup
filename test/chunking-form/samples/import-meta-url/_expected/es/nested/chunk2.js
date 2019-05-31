@@ -1,3 +1,3 @@
-import { a as log } from './chunk.js';
+import { l as log } from './chunk.js';
 
 log('nested: ' + import.meta.url);

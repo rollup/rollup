@@ -7,6 +7,6 @@
 }class Main2 {
   constructor () {
     fn$1();
-    __chunk_1.a();
+    __chunk_1.f();
   }
 }module.exports=Main2;

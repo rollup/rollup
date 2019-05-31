@@ -4,8 +4,8 @@ System.register([], function (exports, module) {
     execute: function () {
 
       exports({
-        a: fn$2,
-        c: fn$1
+        a: fn$1,
+        f: fn$2
       });
 
       function fn () {
@@ -15,17 +15,17 @@ System.register([], function (exports, module) {
       function fn$1 () {
         fn();
         console.log(text$1);
-        text = exports('d', 'dep1 fn after dep2');
+        text = exports('b', 'dep1 fn after dep2');
       }
 
-      var text = exports('d', 'dep1 fn');
+      var text = exports('b', 'dep1 fn');
 
       function fn$2 () {
         console.log(text);
-        text$1 = exports('b', 'dep2 fn after dep1');
+        text$1 = exports('t', 'dep2 fn after dep1');
       }
 
-      var text$1 = exports('b', 'dep2 fn');
+      var text$1 = exports('t', 'dep2 fn');
 
     }
   };

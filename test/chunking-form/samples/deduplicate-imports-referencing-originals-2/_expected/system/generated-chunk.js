@@ -5,7 +5,7 @@ System.register([], function (exports, module) {
 
 			const foo = {};
 
-			exports('a', foo);
+			exports('f', foo);
 
 			exports('b', foo);
 

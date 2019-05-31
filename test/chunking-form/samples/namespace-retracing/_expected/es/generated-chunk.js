@@ -10,4 +10,4 @@ class Other {
 
 Other.doSomething = function() { console.log('other'); };
 
-export { Other as a, Broken as b };
+export { Broken as B, Other as O };

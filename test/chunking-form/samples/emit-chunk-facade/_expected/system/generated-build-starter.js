@@ -3,8 +3,8 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			const value = exports('a', 42);
-			const otherValue = exports('b', 43);
+			const value = exports('v', 42);
+			const otherValue = exports('o', 43);
 
 			console.log('startBuild', value);
 

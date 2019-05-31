@@ -2,4 +2,4 @@ function fn () {
   console.log('lib1 fn');
 }
 
-export { fn as a };
+export { fn as f };

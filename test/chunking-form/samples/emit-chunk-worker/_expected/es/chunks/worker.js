@@ -1,3 +1,3 @@
-import { a as shared } from './chunk.js';
+import { s as shared } from './chunk.js';
 
 postMessage(`from worker: ${shared}`);

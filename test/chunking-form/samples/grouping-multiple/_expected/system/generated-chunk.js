@@ -3,11 +3,11 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			const x = exports('a', 1);
+			const x = exports('x', 1);
 
-			const y = exports('b', 2);
+			const y = exports('y', 2);
 
-			const z = exports('c', 3);
+			const z = exports('z', 3);
 
 		}
 	};

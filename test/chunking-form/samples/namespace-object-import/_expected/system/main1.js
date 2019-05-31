@@ -4,7 +4,7 @@ System.register(['./generated-chunk.js'], function (exports, module) {
 	return {
 		setters: [function (module) {
 			a = module.a;
-			main2 = module.b;
+			main2 = module.m;
 		}],
 		execute: function () {
 

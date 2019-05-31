@@ -1,3 +1,3 @@
 const reexported = 1;
 
-export { reexported as a };
+export { reexported as r };

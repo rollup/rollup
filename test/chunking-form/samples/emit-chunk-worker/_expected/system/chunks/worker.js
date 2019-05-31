@@ -3,7 +3,7 @@ System.register(['./chunk.js'], function (exports, module) {
 	var shared;
 	return {
 		setters: [function (module) {
-			shared = module.a;
+			shared = module.s;
 		}],
 		execute: function () {
 

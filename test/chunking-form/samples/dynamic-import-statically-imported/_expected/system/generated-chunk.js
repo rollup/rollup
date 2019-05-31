@@ -4,8 +4,8 @@ System.register([], function (exports, module) {
 		execute: function () {
 
 			exports({
-				a: foo,
-				b: bar
+				b: bar,
+				f: foo
 			});
 
 			function foo() {

@@ -7,4 +7,4 @@ function showImage(url) {
 	}
 }
 
-export { showImage as a };
+export { showImage as s };

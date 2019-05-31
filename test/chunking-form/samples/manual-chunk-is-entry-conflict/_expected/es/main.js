@@ -1,1 +1,1 @@
-export { a as value } from './generated-other.js';
+export { v as value } from './generated-other.js';

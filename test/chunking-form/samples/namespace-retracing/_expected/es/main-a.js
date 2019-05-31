@@ -1,4 +1,4 @@
-import { a as Other, b as Broken } from './generated-chunk.js';
+import { O as Other, B as Broken } from './generated-chunk.js';
 
 Other.doSomething();
 Broken.doSomething();

@@ -3,15 +3,15 @@ System.register(['./generated-chunk.js', './generated-chunk3.js'], function (exp
 	var x$1, x$2;
 	return {
 		setters: [function (module) {
-			x$1 = module.a;
+			x$1 = module.x;
 		}, function (module) {
-			x$2 = module.a;
+			x$2 = module.x;
 		}],
 		execute: function () {
 
-			var x = exports('a', x$1 + 1);
+			var x = exports('x', x$1 + 1);
 
-			var y = exports('b', x$2 + 1);
+			var y = exports('y', x$2 + 1);
 
 		}
 	};

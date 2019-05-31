@@ -3,7 +3,7 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			var num = exports('a', 3);
+			var num = exports('n', 3);
 
 		}
 	};

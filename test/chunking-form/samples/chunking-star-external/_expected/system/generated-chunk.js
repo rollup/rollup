@@ -4,7 +4,7 @@ System.register(['starexternal2', 'external2'], function (exports, module) {
 		setters: [function () {}, function () {}],
 		execute: function () {
 
-			var dep = exports('a', 'dep');
+			var dep = exports('d', 'dep');
 
 		}
 	};

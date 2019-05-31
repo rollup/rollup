@@ -1,3 +1,3 @@
 const sharedValue = 'shared';
 
-export { sharedValue as a };
+export { sharedValue as s };

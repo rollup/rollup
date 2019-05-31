@@ -3,8 +3,8 @@ System.register(['./generated-build-starter.js'], function (exports, module) {
 	var value, otherValue;
 	return {
 		setters: [function (module) {
-			value = module.a;
-			otherValue = module.b;
+			value = module.v;
+			otherValue = module.o;
 		}],
 		execute: function () {
 

@@ -3,7 +3,7 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			var dep = exports('a',
+			var dep = exports('d',
 				/*#__PURE__*/
 				(function() {
 					return 0;

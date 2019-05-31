@@ -3,11 +3,11 @@ System.register(['./generated-chunk.js', './generated-chunk2.js', './generated-c
 	var broken, foo, bar;
 	return {
 		setters: [function (module) {
-			broken = module.a;
+			broken = module.b;
 		}, function (module) {
-			foo = module.a;
+			foo = module.f;
 		}, function (module) {
-			bar = module.a;
+			bar = module.b;
 		}],
 		execute: function () {
 

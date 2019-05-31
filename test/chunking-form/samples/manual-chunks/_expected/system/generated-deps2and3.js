@@ -3,13 +3,13 @@ System.register(['./generated-lib1.js'], function (exports, module) {
   var fn$3;
   return {
     setters: [function (module) {
-      fn$3 = module.a;
+      fn$3 = module.f;
     }],
     execute: function () {
 
       exports({
-        a: fn$1,
-        b: fn$2
+        a: fn$2,
+        f: fn$1
       });
 
       function fn () {

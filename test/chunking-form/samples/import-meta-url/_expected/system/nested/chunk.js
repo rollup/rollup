@@ -3,7 +3,7 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			exports('a', log);
+			exports('l', log);
 
 			function log(url) {
 				if (typeof document === 'undefined') {

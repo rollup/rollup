@@ -3,7 +3,7 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			var multiplier = exports('a', 7);
+			var multiplier = exports('m', 7);
 
 		}
 	};

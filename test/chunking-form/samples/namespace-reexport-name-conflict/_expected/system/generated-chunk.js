@@ -3,7 +3,7 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			const reexported = exports('a', 1);
+			const reexported = exports('r', 1);
 
 		}
 	};

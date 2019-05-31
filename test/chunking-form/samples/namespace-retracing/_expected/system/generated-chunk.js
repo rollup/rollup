@@ -4,14 +4,14 @@ System.register([], function (exports, module) {
 		execute: function () {
 
 			class Broken {
-			} exports('b', Broken);
+			} exports('B', Broken);
 
 			Broken.doSomething = function() { console.log('broken'); };
 
 			Broken.doSomething();
 
 			class Other {
-			} exports('a', Other);
+			} exports('O', Other);
 
 			Other.doSomething = function() { console.log('other'); };
 
