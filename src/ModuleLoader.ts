@@ -56,7 +56,7 @@ function getIdMatcher<T extends Array<any>>(
 		return (id, ...args) => (!id.startsWith('\0') && option(id, ...args)) || false;
 	} else if (option) {
 		const ids = new Set(Array.isArray(option) ? option : option ? [option] : []);
-		return id => ids.has(id);
+		return (id => ids.has(id)) as (id: string, ...args: T) => boolean;
 	} else {
 		return () => false;
 	}
@@ -217,11 +217,13 @@ export class ModuleLoader {
 	}
 
 	resolveId(source: string, importer: string, skip?: number | null): Promise<ResolvedId | null> {
-		return Promise.resolve(
+		return (Promise.resolve(
 			this.isExternal(source, importer, false)
 				? { id: source, external: true }
 				: this.pluginDriver.hookFirst('resolveId', [source, importer], null, skip as number)
-		).then((result: ResolveIdResult) => this.normalizeResolveIdResult(result, importer, source));
+		)).then(result =>
+			this.normalizeResolveIdResult(result, importer, source)
+		);
 	}
 
 	private addToManualChunk(alias: string, module: Module) {
@@ -409,33 +411,31 @@ export class ModuleLoader {
 		{ alias, unresolvedId }: UnresolvedModuleWithAlias,
 		isEntry: boolean
 	): Promise<Module> =>
-		this.pluginDriver
-			.hookFirst('resolveId', [unresolvedId, undefined as any])
-			.then((resolveIdResult: ResolveIdResult) => {
-				if (
-					resolveIdResult === false ||
-					(resolveIdResult && typeof resolveIdResult === 'object' && resolveIdResult.external)
-				) {
-					return error(errEntryCannotBeExternal(unresolvedId));
-				}
-				const id =
-					resolveIdResult && typeof resolveIdResult === 'object'
-						? resolveIdResult.id
-						: resolveIdResult;
+		(this.pluginDriver.hookFirst('resolveId', [unresolvedId, undefined as any])).then(resolveIdResult => {
+			if (
+				resolveIdResult === false ||
+				(resolveIdResult && typeof resolveIdResult === 'object' && resolveIdResult.external)
+			) {
+				return error(errEntryCannotBeExternal(unresolvedId));
+			}
+			const id =
+				resolveIdResult && typeof resolveIdResult === 'object'
+					? resolveIdResult.id
+					: resolveIdResult;
 
-				if (typeof id === 'string') {
-					return this.fetchModule(id, undefined as any, true, isEntry).then(module => {
-						if (alias !== null) {
-							if (module.chunkAlias !== null && module.chunkAlias !== alias) {
-								return error(errCannotAssignModuleToChunk(module.id, alias, module.chunkAlias));
-							}
-							module.chunkAlias = alias;
+			if (typeof id === 'string') {
+				return this.fetchModule(id, undefined as any, true, isEntry).then(module => {
+					if (alias !== null) {
+						if (module.chunkAlias !== null && module.chunkAlias !== alias) {
+							return error(errCannotAssignModuleToChunk(module.id, alias, module.chunkAlias));
 						}
-						return module;
-					});
-				}
-				return error(errUnresolvedEntry(unresolvedId));
-			});
+						module.chunkAlias = alias;
+					}
+					return module;
+				});
+			}
+			return error(errUnresolvedEntry(unresolvedId));
+		});
 
 	private normalizeResolveIdResult(
 		resolveIdResult: ResolveIdResult,
@@ -500,32 +500,30 @@ export class ModuleLoader {
 		importer: string
 	): Promise<ResolvedId | string | null> {
 		// TODO we only should expose the acorn AST here
-		return this.pluginDriver
-			.hookFirst('resolveDynamicImport', [specifier, importer])
-			.then((resolution: ResolveIdResult) => {
-				if (typeof specifier !== 'string') {
-					if (typeof resolution === 'string') {
-						return resolution;
-					}
-					if (!resolution) {
-						return null as any;
-					}
-					return {
-						external: false,
-						moduleSideEffects: true,
-						...resolution
-					};
+		return (this.pluginDriver.hookFirst('resolveDynamicImport', [specifier, importer])).then(resolution => {
+			if (typeof specifier !== 'string') {
+				if (typeof resolution === 'string') {
+					return resolution;
 				}
-				if (resolution == null) {
-					return this.resolveId(specifier, importer).then(resolvedId =>
-						this.handleMissingImports(resolvedId, specifier, importer)
-					);
+				if (!resolution) {
+					return null as any;
 				}
-				return this.handleMissingImports(
-					this.normalizeResolveIdResult(resolution, importer, specifier),
-					specifier,
-					importer
+				return {
+					external: false,
+					moduleSideEffects: true,
+					...resolution
+				};
+			}
+			if (resolution == null) {
+				return this.resolveId(specifier, importer).then(resolvedId =>
+					this.handleMissingImports(resolvedId, specifier, importer)
 				);
-			});
+			}
+			return this.handleMissingImports(
+				this.normalizeResolveIdResult(resolution, importer, specifier),
+				specifier,
+				importer
+			);
+		});
 	}
 }

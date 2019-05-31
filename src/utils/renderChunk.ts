@@ -18,7 +18,7 @@ export default function renderChunk({
 	options: OutputOptions;
 	renderChunk: RenderedChunk;
 	sourcemapChain: RawSourceMap[];
-}) {
+}): Promise<string> {
 	const renderChunkReducer = (code: string, result: any, plugin: Plugin): string => {
 		if (result == null) return code;
 
@@ -59,7 +59,7 @@ export default function renderChunk({
 		})
 		.catch(err => {
 			if (inRenderChunk) throw err;
-			error(err, {
+			return error(err, {
 				code: inTransformBundle ? 'BAD_BUNDLE_TRANSFORMER' : 'BAD_CHUNK_TRANSFORMER',
 				message: `Error transforming ${(inTransformBundle ? 'bundle' : 'chunk') +
 					(err.plugin ? ` with '${err.plugin}' plugin` : '')}: ${err.message}`,

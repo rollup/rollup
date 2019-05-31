@@ -1,6 +1,6 @@
 import { InputOptions, SerializedTimings } from '../rollup/types';
 
-type StartTime = [number, number] | number;
+type StartTime = [number, number];
 
 interface Timer {
 	memory: number;
@@ -15,7 +15,7 @@ interface Timers {
 }
 
 const NOOP = () => {};
-let getStartTime: () => StartTime = () => 0;
+let getStartTime: () => StartTime = () => [0, 0];
 let getElapsedTime: (previous: StartTime) => number = () => 0;
 let getMemory: () => number = () => 0;
 let timers: Timers = {};
@@ -25,10 +25,10 @@ const normalizeHrTime = (time: [number, number]) => time[0] * 1e3 + time[1] / 1e
 function setTimeHelpers() {
 	if (typeof process !== 'undefined' && typeof process.hrtime === 'function') {
 		getStartTime = process.hrtime.bind(process);
-		getElapsedTime = (previous: [number, number]) => normalizeHrTime(process.hrtime(previous));
+		getElapsedTime = previous => normalizeHrTime(process.hrtime(previous));
 	} else if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
-		getStartTime = performance.now.bind(performance);
-		getElapsedTime = (previous: number) => performance.now() - previous;
+		getStartTime = () => [performance.now(), 0];
+		getElapsedTime = previous => performance.now() - previous[0];
 	}
 	if (typeof process !== 'undefined' && typeof process.memoryUsage === 'function') {
 		getMemory = () => process.memoryUsage().heapUsed;

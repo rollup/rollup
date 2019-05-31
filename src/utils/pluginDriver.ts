@@ -387,7 +387,7 @@ export function createPluginDriver(
 		// chains synchronously, reduces returns of type R, to type T, handling the reduced value as the first hook argument
 		hookReduceArg0Sync(name, [arg0, ...args], reduce, hookContext) {
 			for (let i = 0; i < plugins.length; i++) {
-				const result = runHookSync(name, [arg0, ...args], i, false, hookContext);
+				const result: any = runHookSync(name, [arg0, ...args], i, false, hookContext);
 				arg0 = reduce.call(pluginContexts[i], arg0, result, plugins[i]);
 			}
 			return arg0;
