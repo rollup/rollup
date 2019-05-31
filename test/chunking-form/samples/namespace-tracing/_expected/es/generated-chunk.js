@@ -2,4 +2,4 @@ function broken() {
   console.log('broken');
 }
 
-export { broken as a };
+export { broken as b };

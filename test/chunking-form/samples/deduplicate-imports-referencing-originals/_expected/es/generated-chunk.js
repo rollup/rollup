@@ -1,3 +1,3 @@
 const foo = {};
 
-export { foo as a, foo as b };
+export { foo as b, foo as f };

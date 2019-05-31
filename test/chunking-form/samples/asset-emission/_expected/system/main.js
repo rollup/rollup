@@ -3,7 +3,7 @@ System.register(['./nested/chunk.js'], function (exports, module) {
 	var showImage;
 	return {
 		setters: [function (module) {
-			showImage = module.a;
+			showImage = module.s;
 		}],
 		execute: function () {
 

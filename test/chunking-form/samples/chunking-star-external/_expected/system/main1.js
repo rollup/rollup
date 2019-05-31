@@ -11,7 +11,7 @@ System.register(['starexternal1', 'external1', 'starexternal2', 'external2', './
 		}, function (module) {
 			exports('e', module.e);
 		}, function () {}, function () {}, function (module) {
-			exports('dep', module.a);
+			exports('dep', module.d);
 		}],
 		execute: function () {
 

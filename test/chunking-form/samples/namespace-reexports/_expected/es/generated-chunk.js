@@ -1,5 +1,5 @@
 import hsl2hsv$1 from './hsl2hsv.js';
-export { default as b } from './hsl2hsv.js';
+export { default as h } from './hsl2hsv.js';
 
 var hsl2hsv = 'asdf';
 
@@ -9,4 +9,4 @@ var lib = /*#__PURE__*/Object.freeze({
 	hsl2hsv: hsl2hsv$1
 });
 
-export { lib as a };
+export { lib as l };

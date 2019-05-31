@@ -1,4 +1,4 @@
-import { a as showImage } from './nested/chunk.js';
+import { s as showImage } from './nested/chunk.js';
 
 var logo = new URL('assets/logo1-25253976.svg', import.meta.url).href;
 

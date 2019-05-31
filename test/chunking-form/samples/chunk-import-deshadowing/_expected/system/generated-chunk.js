@@ -3,7 +3,7 @@ System.register([], function (exports, module) {
   return {
     execute: function () {
 
-      exports('a', emptyFunction);
+      exports('e', emptyFunction);
 
       function emptyFunction () {
 

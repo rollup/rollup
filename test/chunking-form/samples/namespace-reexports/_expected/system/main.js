@@ -5,7 +5,7 @@ System.register(['./hsl2hsv.js', './generated-chunk.js'], function (exports, mod
 		setters: [function (module) {
 			p = module.p;
 		}, function (module) {
-			lib = module.a;
+			lib = module.l;
 		}],
 		execute: function () {
 

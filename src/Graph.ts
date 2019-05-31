@@ -299,33 +299,14 @@ export default class Graph {
 				}
 			}
 
-			// for each chunk module, set up its imports to other
-			// chunks, if those variables are included after treeshaking
 			for (const chunk of chunks) {
 				chunk.link();
 			}
-
-			// filter out empty dependencies
 			chunks = chunks.filter(isChunkRendered);
-
-			// then go over and ensure all entry chunks export their variables
+			const facades: Chunk[] = [];
 			for (const chunk of chunks) {
-				if (this.preserveModules || chunk.entryModules.length > 0) {
-					chunk.generateEntryExportsOrMarkAsTainted();
-				}
-			}
-
-			// create entry point facades for entry module chunks that have tainted exports
-			const facades = [];
-			if (!this.preserveModules) {
-				for (const chunk of chunks) {
-					for (const entryModule of chunk.entryModules) {
-						if (chunk.facadeModule !== entryModule) {
-							const entryPointFacade = new Chunk(this, []);
-							entryPointFacade.turnIntoFacade(entryModule);
-							facades.push(entryPointFacade);
-						}
-					}
+				for (const facade of chunk.generateFacades()) {
+					facades.push(facade);
 				}
 			}
 

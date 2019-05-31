@@ -4,4 +4,4 @@ var dep =
 		return 0;
 	})();
 
-export { dep as a };
+export { dep as d };

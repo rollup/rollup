@@ -3,7 +3,7 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			exports('a', foo);
+			exports('f', foo);
 
 			function foo() {}
 

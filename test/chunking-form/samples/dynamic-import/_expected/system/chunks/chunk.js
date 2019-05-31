@@ -3,7 +3,7 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			const sharedValue = exports('a', 'shared');
+			const sharedValue = exports('s', 'shared');
 
 		}
 	};

@@ -4,4 +4,4 @@ const y = 2;
 
 const z = 3;
 
-export { x as a, y as b, z as c };
+export { x, y, z };

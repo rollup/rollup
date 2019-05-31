@@ -1,1 +1,1 @@
-export { a as dynamic } from './generated-chunk.js';
+export { d as dynamic } from './generated-chunk.js';

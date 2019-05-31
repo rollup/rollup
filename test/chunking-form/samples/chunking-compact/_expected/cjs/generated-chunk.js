@@ -3,4 +3,4 @@
 }function fn$1 () {
   fn();
   console.log('dep2 fn');
-}exports.a=fn$1;
+}exports.f=fn$1;

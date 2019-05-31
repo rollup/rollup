@@ -1,4 +1,4 @@
-import { b as size, a as color } from './chunk.js';
+import { s as size, c as color } from './chunk.js';
 
 registerPaint(
 	'vertical-lines',

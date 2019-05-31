@@ -3,4 +3,4 @@ function fn () {
 }function fn$1 () {
   fn();
   console.log('dep2 fn');
-}export{fn$1 as a};
+}export{fn$1 as f};

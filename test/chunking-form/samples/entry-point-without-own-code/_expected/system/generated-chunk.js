@@ -4,7 +4,7 @@ System.register(['./m2.js'], function (exports, module) {
 	return {
 		setters: [function (module) {
 			m2 = module.default;
-			exports('b', module.default);
+			exports('m', module.default);
 		}],
 		execute: function () {
 

@@ -207,6 +207,7 @@ export default class Module {
 	transformAssets: Asset[];
 	usesTopLevelAwait = false;
 
+	private allExportNames?: Set<string>;
 	private ast: Program;
 	private astContext: AstContext;
 	private context: string;
@@ -271,21 +272,29 @@ export default class Module {
 		error(props);
 	}
 
-	getAllExports() {
-		const allExports = Object.assign(Object.create(null), this.exports, this.reexports);
-
-		this.exportAllModules.forEach(module => {
-			if (module.isExternal) {
-				allExports[`*${module.id}`] = true;
-				return;
+	getAllExportNames(): Set<string> {
+		if (this.allExportNames) {
+			return this.allExportNames;
+		}
+		const allExportNames = (this.allExportNames = new Set<string>());
+		for (const name of Object.keys(this.exports)) {
+			allExportNames.add(name);
+		}
+		for (const name of Object.keys(this.reexports)) {
+			allExportNames.add(name);
+		}
+		for (const module of this.exportAllModules) {
+			if (module instanceof ExternalModule) {
+				allExportNames.add(`*${module.id}`);
+				continue;
 			}
 
-			for (const name of (module as Module).getAllExports()) {
-				if (name !== 'default') allExports[name] = true;
+			for (const name of module.getAllExportNames()) {
+				if (name !== 'default') allExportNames.add(name);
 			}
-		});
+		}
 
-		return Object.keys(allExports);
+		return allExportNames;
 	}
 
 	getDynamicImportExpressions(): (string | Node)[] {
@@ -304,6 +313,23 @@ export default class Module {
 			}
 			return undefined as any;
 		});
+	}
+
+	getExportNamesByVariable(): Map<Variable, string[]> {
+		const exportNamesByVariable: Map<Variable, string[]> = new Map();
+		for (const exportName of this.getAllExportNames()) {
+			const tracedVariable = this.getVariableForExportName(exportName);
+			if (!tracedVariable || !(tracedVariable.included || tracedVariable.isExternal)) {
+				continue;
+			}
+			const existingExportNames = exportNamesByVariable.get(tracedVariable);
+			if (existingExportNames) {
+				existingExportNames.push(exportName);
+			} else {
+				exportNamesByVariable.set(tracedVariable, [exportName]);
+			}
+		}
+		return exportNamesByVariable;
 	}
 
 	getExports() {

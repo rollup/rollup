@@ -1,10 +1,10 @@
-System.register(['./chunk-chunk-26e1391e-system.js'], function (exports, module) {
+System.register(['./chunk-chunk-63744fb4-system.js'], function (exports, module) {
 	'use strict';
 	var log, dep;
 	return {
 		setters: [function (module) {
-			log = module.a;
-			dep = module.b;
+			log = module.l;
+			dep = module.d;
 		}],
 		execute: function () {
 

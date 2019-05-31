@@ -15,4 +15,4 @@ function fn$2 () {
 
 var text$1 = 'dep2 fn';
 
-export { fn$2 as a, fn$1 as b };
+export { fn$1 as a, fn$2 as f };

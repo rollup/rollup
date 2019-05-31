@@ -12,4 +12,4 @@ var dep1 = /*#__PURE__*/Object.freeze({
 	bar: bar
 });
 
-export { foo as a, bar as b };
+export { bar as b, foo as f };

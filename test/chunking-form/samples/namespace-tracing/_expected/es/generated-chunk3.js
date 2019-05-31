@@ -4,4 +4,4 @@ function bar() {
   console.log('bar');
 }
 
-export { bar as a };
+export { bar as b };

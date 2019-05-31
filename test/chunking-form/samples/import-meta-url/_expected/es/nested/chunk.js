@@ -6,4 +6,4 @@ function log(url) {
 	}
 }
 
-export { log as a };
+export { log as l };

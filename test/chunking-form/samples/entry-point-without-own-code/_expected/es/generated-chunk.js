@@ -1,5 +1,5 @@
 import m2 from './m2.js';
-export { default as b } from './m2.js';
+export { default as m } from './m2.js';
 
 
 

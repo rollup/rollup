@@ -1,3 +1,3 @@
 var num = 1;
 
-export { num as a };
+export { num as n };

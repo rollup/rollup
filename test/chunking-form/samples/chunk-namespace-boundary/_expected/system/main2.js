@@ -3,7 +3,7 @@ System.register(['./generated-chunk.js'], function (exports, module) {
 	var d;
 	return {
 		setters: [function (module) {
-			d = module.b;
+			d = module.d;
 		}],
 		execute: function () {
 
