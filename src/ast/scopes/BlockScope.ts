@@ -11,16 +11,11 @@ export default class BlockScope extends ChildScope {
 		context: AstContext,
 		init: ExpressionEntity | null = null,
 		isHoisted = false
-	) {
+	): LocalVariable {
 		if (isHoisted) {
-			return this.parent.addDeclaration(
-				identifier,
-				context,
-				UNKNOWN_EXPRESSION,
-				true
-			) as LocalVariable;
+			return this.parent.addDeclaration(identifier, context, UNKNOWN_EXPRESSION, true);
 		} else {
-			return super.addDeclaration(identifier, context, init, false) as LocalVariable;
+			return super.addDeclaration(identifier, context, init, false);
 		}
 	}
 }
