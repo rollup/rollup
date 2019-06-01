@@ -1,22 +1,4 @@
-import { NameCollection } from '../../../utils/reservedNames';
-
-const pureFunctions: NameCollection = Object.create(null);
-
-const arrayTypes = 'Array Int8Array Uint8Array Uint8ClampedArray Int16Array Uint16Array Int32Array Uint32Array Float32Array Float64Array'.split(
-	' '
-);
-const simdTypes = 'Int8x16 Int16x8 Int32x4 Float32x4 Float64x2'.split(' ');
-const simdMethods = 'abs add and bool check div equal extractLane fromFloat32x4 fromFloat32x4Bits fromFloat64x2 fromFloat64x2Bits fromInt16x8Bits fromInt32x4 fromInt32x4Bits fromInt8x16Bits greaterThan greaterThanOrEqual lessThan lessThanOrEqual load max maxNum min minNum mul neg not notEqual or reciprocalApproximation reciprocalSqrtApproximation replaceLane select selectBits shiftLeftByScalar shiftRightArithmeticByScalar shiftRightLogicalByScalar shuffle splat sqrt store sub swizzle xor'.split(
-	' '
-);
-const allSimdMethods: string[] = [];
-simdTypes.forEach(t => {
-	simdMethods.forEach(m => {
-		allSimdMethods.push(`SIMD.${t}.${m}`);
-	});
-});
-
-[
+const pureFunctions = [
 	'Array.isArray',
 	'Error',
 	'EvalError',
@@ -120,17 +102,29 @@ simdTypes.forEach(t => {
 	'Intl.DateTimeFormat.supportedLocalesOf',
 	'Intl.NumberFormat',
 	'Intl.NumberFormat.supportedLocalesOf'
+];
 
-	// TODO properties of e.g. window...
-]
-	.concat(
-		arrayTypes,
-		arrayTypes.map(t => `${t}.from`),
-		arrayTypes.map(t => `${t}.of`),
-		simdTypes.map(t => `SIMD.${t}`),
-		allSimdMethods
-	)
-	.forEach(name => (pureFunctions[name] = true));
+const arrayTypes = 'Array Int8Array Uint8Array Uint8ClampedArray Int16Array Uint16Array Int32Array Uint32Array Float32Array Float64Array'.split(
+	' '
+);
+
+for (const type of arrayTypes) {
+	pureFunctions.push(type, `${type}.from`, `${type}.of`);
+}
+
+const simdTypes = 'Int8x16 Int16x8 Int32x4 Float32x4 Float64x2'.split(' ');
+const simdMethods = 'abs add and bool check div equal extractLane fromFloat32x4 fromFloat32x4Bits fromFloat64x2 fromFloat64x2Bits fromInt16x8Bits fromInt32x4 fromInt32x4Bits fromInt8x16Bits greaterThan greaterThanOrEqual lessThan lessThanOrEqual load max maxNum min minNum mul neg not notEqual or reciprocalApproximation reciprocalSqrtApproximation replaceLane select selectBits shiftLeftByScalar shiftRightArithmeticByScalar shiftRightLogicalByScalar shuffle splat sqrt store sub swizzle xor'.split(
+	' '
+);
+
+for (const type of simdTypes) {
+	const typeString = `SIMD.${type}`;
+	pureFunctions.push(typeString);
+	for (const method of simdMethods) {
+		pureFunctions.push(`${typeString}.${method}`);
+	}
+}
+
 // TODO add others to this list from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects
 
-export default pureFunctions;
+export default new Set(pureFunctions);
