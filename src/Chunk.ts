@@ -1058,10 +1058,12 @@ export default class Chunk {
 		if (options.format !== 'es') {
 			usedNames.add('exports');
 			if (options.format === 'cjs') {
-				usedNames.add(INTEROP_DEFAULT_VARIABLE);
-				if (this.exportMode === 'default') {
-					usedNames.add('module');
-				}
+				usedNames
+					.add(INTEROP_DEFAULT_VARIABLE)
+					.add('require')
+					.add('module')
+					.add('__filename')
+					.add('__dirname');
 			}
 		}
 
