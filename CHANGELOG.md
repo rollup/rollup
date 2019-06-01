@@ -1,10 +1,14 @@
 # rollup changelog
 
 ## 1.13.1
-*unreleased*
+*2019-06-01*
+
+### Bug Fixes
+* Avoid conflicts between top-level module, require etc. and CommonJS runtimes (#2889)
 
 ### Pull Requests
 * [#2888](https://github.com/rollup/rollup/pull/2888): Enable full TypeScript strict mode (@lukastaegert)
+* [#2889](https://github.com/rollup/rollup/pull/2889): Protect all module globals for CJS output from being redefined (@lukastaegert)
 
 ## 1.13.0
 *2019-05-31*
