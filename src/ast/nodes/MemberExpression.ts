@@ -70,16 +70,16 @@ function getStringFromPath(path: PathWithPositions): string {
 }
 
 export default class MemberExpression extends NodeBase implements DeoptimizableEntity, PatternNode {
-	computed: boolean;
-	object: ExpressionNode;
-	property: ExpressionNode;
-	propertyKey: ObjectPathKey | null;
-	type: NodeType.tMemberExpression;
-	variable: Variable = null as any;
+	computed!: boolean;
+	object!: ExpressionNode;
+	property!: ExpressionNode;
+	propertyKey!: ObjectPathKey | null;
+	type!: NodeType.tMemberExpression;
+	variable: Variable | null = null;
 
-	private bound: boolean;
-	private expressionsToBeDeoptimized: DeoptimizableEntity[];
-	private replacement: string | null;
+	private bound = false;
+	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
+	private replacement: string | null = null;
 
 	addExportedVariables(): void {}
 
@@ -98,10 +98,8 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			} else if (typeof resolvedVariable === 'string') {
 				this.replacement = resolvedVariable;
 			} else {
-				if (resolvedVariable.isExternal && (resolvedVariable as ExternalVariable).module) {
-					(resolvedVariable as ExternalVariable).module.suggestName(
-						(path as PathWithPositions)[0].key
-					);
+				if (resolvedVariable instanceof ExternalVariable && resolvedVariable.module) {
+					resolvedVariable.module.suggestName((path as PathWithPositions)[0].key);
 				}
 				this.variable = resolvedVariable;
 				this.scope.addNamespaceMemberAccess(
@@ -225,12 +223,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	}
 
 	initialise() {
-		this.included = false;
 		this.propertyKey = getResolvablePropertyKey(this);
-		this.variable = null as any;
-		this.bound = false;
-		this.replacement = null;
-		this.expressionsToBeDeoptimized = [];
 	}
 
 	render(
@@ -283,13 +276,15 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (path.length === 0) return baseVariable;
 		if (!baseVariable.isNamespace) return null;
 		const exportName = path[0].key;
-		const variable = baseVariable.isExternal
-			? (baseVariable as ExternalVariable).module.getVariableForExportName(exportName)
-			: (baseVariable as NamespaceVariable).context.traceExport(exportName);
+		const variable =
+			baseVariable instanceof ExternalVariable
+				? baseVariable.module.getVariableForExportName(exportName)
+				: (baseVariable as NamespaceVariable).context.traceExport(exportName);
 		if (!variable) {
-			const fileName = baseVariable.isExternal
-				? (baseVariable as ExternalVariable).module.id
-				: (baseVariable as NamespaceVariable).context.fileName;
+			const fileName =
+				baseVariable instanceof ExternalVariable
+					? baseVariable.module.id
+					: (baseVariable as NamespaceVariable).context.fileName;
 			this.context.warn(
 				{
 					code: 'MISSING_EXPORT',

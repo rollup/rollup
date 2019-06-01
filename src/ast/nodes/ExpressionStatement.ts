@@ -5,10 +5,9 @@ import { ExpressionNode, StatementBase } from './shared/Node';
 
 export default class ExpressionStatement extends StatementBase {
 	directive?: string;
-	expression: ExpressionNode;
+	expression!: ExpressionNode;
 
 	initialise() {
-		this.included = false;
 		if (
 			this.directive &&
 			this.directive !== 'use strict' &&

@@ -8,9 +8,9 @@ import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase, StatementNode } from './shared/Node';
 
 export default class SwitchCase extends NodeBase {
-	consequent: StatementNode[];
-	test: ExpressionNode | null;
-	type: NodeType.tSwitchCase;
+	consequent!: StatementNode[];
+	test!: ExpressionNode | null;
+	type!: NodeType.tSwitchCase;
 
 	include(includeAllChildrenRecursively: boolean) {
 		this.included = true;

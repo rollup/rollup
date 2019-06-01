@@ -25,16 +25,16 @@ import { ExpressionNode, NodeBase } from './shared/Node';
 export type LogicalOperator = '||' | '&&';
 
 export default class LogicalExpression extends NodeBase implements DeoptimizableEntity {
-	left: ExpressionNode;
-	operator: LogicalOperator;
-	right: ExpressionNode;
-	type: NodeType.tLogicalExpression;
+	left!: ExpressionNode;
+	operator!: LogicalOperator;
+	right!: ExpressionNode;
+	type!: NodeType.tLogicalExpression;
 
 	// We collect deoptimization information if usedBranch !== null
-	private expressionsToBeDeoptimized: DeoptimizableEntity[];
-	private isBranchResolutionAnalysed: boolean;
-	private unusedBranch: ExpressionNode | null;
-	private usedBranch: ExpressionNode | null;
+	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
+	private isBranchResolutionAnalysed = false;
+	private unusedBranch: ExpressionNode | null = null;
+	private usedBranch: ExpressionNode | null = null;
 
 	bind() {
 		super.bind();
@@ -146,14 +146,6 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		} else {
 			this.usedBranch.include(includeAllChildrenRecursively);
 		}
-	}
-
-	initialise() {
-		this.included = false;
-		this.isBranchResolutionAnalysed = false;
-		this.usedBranch = null;
-		this.unusedBranch = null;
-		this.expressionsToBeDeoptimized = [];
 	}
 
 	render(

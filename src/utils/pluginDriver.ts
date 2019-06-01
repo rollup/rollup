@@ -24,6 +24,7 @@ import {
 } from './error';
 
 type Args<T> = T extends (...args: infer K) => any ? K : never;
+type EnsurePromise<T> = Promise<T extends Promise<infer K> ? K : T>;
 
 export interface PluginDriver {
 	emitAsset: EmitAsset;
@@ -34,7 +35,7 @@ export interface PluginDriver {
 		args: Args<PluginHooks[H]>,
 		hookContext?: HookContext | null,
 		skip?: number
-	): Promise<R>;
+	): EnsurePromise<R>;
 	hookFirstSync<H extends keyof PluginHooks, R = ReturnType<PluginHooks[H]>>(
 		hook: H,
 		args: Args<PluginHooks[H]>,
@@ -50,7 +51,7 @@ export interface PluginDriver {
 		args: any[],
 		reduce: Reduce<V, R>,
 		hookContext?: HookContext
-	): Promise<R>;
+	): EnsurePromise<R>;
 	hookReduceArg0Sync<H extends keyof PluginHooks, V, R = ReturnType<PluginHooks[H]>>(
 		hook: H,
 		args: any[],
@@ -89,7 +90,7 @@ const deprecatedHookNames: Record<string, string> = {
 export function createPluginDriver(
 	graph: Graph,
 	options: InputOptions,
-	pluginCache: Record<string, SerializablePluginCache>,
+	pluginCache: Record<string, SerializablePluginCache> | void,
 	watcher?: RollupWatcher
 ): PluginDriver {
 	const plugins = [

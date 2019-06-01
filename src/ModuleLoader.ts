@@ -1,4 +1,5 @@
 import * as ESTree from 'estree';
+import Chunk from './Chunk';
 import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import Module from './Module';
@@ -10,7 +11,6 @@ import {
 	PureModulesOption,
 	ResolvedId,
 	ResolveIdResult,
-	SourceDescription,
 	TransformModuleJSON
 } from './rollup/types';
 import {
@@ -211,19 +211,17 @@ export class ModuleLoader {
 			entryRecord.module &&
 			(entryRecord.module.facadeChunk
 				? entryRecord.module.facadeChunk.id
-				: entryRecord.module.chunk.id);
+				: (entryRecord.module.chunk as Chunk).id);
 		if (!fileName) return error(errChunkNotGeneratedForFileName(entryRecord));
 		return fileName;
 	}
 
 	resolveId(source: string, importer: string, skip?: number | null): Promise<ResolvedId | null> {
-		return (Promise.resolve(
+		return Promise.resolve(
 			this.isExternal(source, importer, false)
 				? { id: source, external: true }
 				: this.pluginDriver.hookFirst('resolveId', [source, importer], null, skip as number)
-		)).then(result =>
-			this.normalizeResolveIdResult(result, importer, source)
-		);
+		).then(result => this.normalizeResolveIdResult(result, importer, source));
 	}
 
 	private addToManualChunk(alias: string, module: Module) {
@@ -304,9 +302,7 @@ export class ModuleLoader {
 		}
 
 		timeStart('load modules', 3);
-		return Promise.resolve(
-			this.pluginDriver.hookFirst<'load', string | SourceDescription>('load', [id])
-		)
+		return Promise.resolve(this.pluginDriver.hookFirst('load', [id]))
 			.catch((err: Error) => {
 				timeEnd('load modules', 3);
 				let msg = `Could not load ${id}`;
@@ -411,7 +407,7 @@ export class ModuleLoader {
 		{ alias, unresolvedId }: UnresolvedModuleWithAlias,
 		isEntry: boolean
 	): Promise<Module> =>
-		(this.pluginDriver.hookFirst('resolveId', [unresolvedId, undefined as any])).then(resolveIdResult => {
+		this.pluginDriver.hookFirst('resolveId', [unresolvedId, undefined]).then(resolveIdResult => {
 			if (
 				resolveIdResult === false ||
 				(resolveIdResult && typeof resolveIdResult === 'object' && resolveIdResult.external)
@@ -500,30 +496,32 @@ export class ModuleLoader {
 		importer: string
 	): Promise<ResolvedId | string | null> {
 		// TODO we only should expose the acorn AST here
-		return (this.pluginDriver.hookFirst('resolveDynamicImport', [specifier, importer])).then(resolution => {
-			if (typeof specifier !== 'string') {
-				if (typeof resolution === 'string') {
-					return resolution;
+		return this.pluginDriver
+			.hookFirst('resolveDynamicImport', [specifier, importer])
+			.then(resolution => {
+				if (typeof specifier !== 'string') {
+					if (typeof resolution === 'string') {
+						return resolution;
+					}
+					if (!resolution) {
+						return null as any;
+					}
+					return {
+						external: false,
+						moduleSideEffects: true,
+						...resolution
+					};
 				}
-				if (!resolution) {
-					return null as any;
+				if (resolution == null) {
+					return this.resolveId(specifier, importer).then(resolvedId =>
+						this.handleMissingImports(resolvedId, specifier, importer)
+					);
 				}
-				return {
-					external: false,
-					moduleSideEffects: true,
-					...resolution
-				};
-			}
-			if (resolution == null) {
-				return this.resolveId(specifier, importer).then(resolvedId =>
-					this.handleMissingImports(resolvedId, specifier, importer)
+				return this.handleMissingImports(
+					this.normalizeResolveIdResult(resolution, importer, specifier),
+					specifier,
+					importer
 				);
-			}
-			return this.handleMissingImports(
-				this.normalizeResolveIdResult(resolution, importer, specifier),
-				specifier,
-				importer
-			);
-		});
+			});
 	}
 }

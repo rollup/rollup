@@ -170,7 +170,7 @@ export type ResolveIdResult = string | false | void | PartialResolvedId;
 export type ResolveIdHook = (
 	this: PluginContext,
 	source: string,
-	importer: string
+	importer: string | undefined
 ) => Promise<ResolveIdResult> | ResolveIdResult;
 
 export type IsExternal = (source: string, importer: string, isResolved: boolean) => boolean | void;

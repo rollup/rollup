@@ -10,11 +10,11 @@ import { PatternNode } from './shared/Pattern';
 import VariableDeclaration from './VariableDeclaration';
 
 export default class ForOfStatement extends StatementBase {
-	await: boolean;
-	body: StatementNode;
-	left: VariableDeclaration | PatternNode;
-	right: ExpressionNode;
-	type: NodeType.tForOfStatement;
+	await!: boolean;
+	body!: StatementNode;
+	left!: VariableDeclaration | PatternNode;
+	right!: ExpressionNode;
+	type!: NodeType.tForOfStatement;
 
 	bind() {
 		this.left.bind();

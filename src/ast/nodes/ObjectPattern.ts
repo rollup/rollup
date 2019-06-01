@@ -9,8 +9,8 @@ import { NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
 export default class ObjectPattern extends NodeBase implements PatternNode {
-	properties: (Property | RestElement)[];
-	type: NodeType.tObjectPattern;
+	properties!: (Property | RestElement)[];
+	type!: NodeType.tObjectPattern;
 
 	addExportedVariables(variables: Variable[]): void {
 		for (const property of this.properties) {

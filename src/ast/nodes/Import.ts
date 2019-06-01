@@ -54,11 +54,11 @@ const accessedImportGlobals = {
 };
 
 export default class Import extends NodeBase {
-	parent: CallExpression;
-	type: NodeType.tImport;
+	parent!: CallExpression;
+	type!: NodeType.tImport;
 
-	private resolutionInterop: boolean;
-	private resolutionNamespace: string;
+	private resolutionInterop = false;
+	private resolutionNamespace?: string;
 
 	include() {
 		if (!this.included) {
@@ -69,9 +69,6 @@ export default class Import extends NodeBase {
 	}
 
 	initialise() {
-		this.included = false;
-		this.resolutionNamespace = undefined as any;
-		this.resolutionInterop = false;
 		this.context.addDynamicImport(this);
 	}
 

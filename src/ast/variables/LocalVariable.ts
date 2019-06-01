@@ -26,7 +26,6 @@ export default class LocalVariable extends Variable {
 	additionalInitializers: ExpressionEntity[] | null = null;
 	declarations: (Identifier | ExportDefaultDeclaration)[];
 	init: ExpressionEntity | null;
-	isLocal: true;
 	module: Module;
 
 	// Caching and deoptimization:
@@ -192,5 +191,3 @@ export default class LocalVariable extends Variable {
 		}
 	}
 }
-
-LocalVariable.prototype.isLocal = true;

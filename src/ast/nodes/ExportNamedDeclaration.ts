@@ -11,11 +11,11 @@ import { Node, NodeBase } from './shared/Node';
 import VariableDeclaration from './VariableDeclaration';
 
 export default class ExportNamedDeclaration extends NodeBase {
-	declaration: FunctionDeclaration | ClassDeclaration | VariableDeclaration | null;
-	needsBoundaries: true;
-	source: Literal<string> | null;
-	specifiers: ExportSpecifier[];
-	type: NodeType.tExportNamedDeclaration;
+	declaration!: FunctionDeclaration | ClassDeclaration | VariableDeclaration | null;
+	needsBoundaries!: true;
+	source!: Literal<string> | null;
+	specifiers!: ExportSpecifier[];
+	type!: NodeType.tExportNamedDeclaration;
 
 	bind() {
 		// Do not bind specifiers
@@ -27,7 +27,6 @@ export default class ExportNamedDeclaration extends NodeBase {
 	}
 
 	initialise() {
-		this.included = false;
 		this.context.addExport(this);
 	}
 

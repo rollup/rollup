@@ -7,8 +7,8 @@ import FunctionNode from './shared/FunctionNode';
 import { ExpressionNode, Node, NodeBase } from './shared/Node';
 
 export default class AwaitExpression extends NodeBase {
-	argument: ExpressionNode;
-	type: NodeType.tAwaitExpression;
+	argument!: ExpressionNode;
+	type!: NodeType.tAwaitExpression;
 
 	hasEffects(options: ExecutionPathOptions) {
 		return super.hasEffects(options) || !options.ignoreReturnAwaitYield();

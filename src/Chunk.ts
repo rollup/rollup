@@ -113,7 +113,7 @@ export function isChunkRendered(chunk: Chunk): boolean {
 export default class Chunk {
 	static generateFacade(graph: Graph, facadedModule: Module): Chunk {
 		const chunk = new Chunk(graph, []);
-		chunk.dependencies = [facadedModule.chunk];
+		chunk.dependencies = [facadedModule.chunk as Chunk];
 		chunk.dynamicDependencies = [];
 		chunk.facadeModule = facadedModule;
 		facadedModule.facadeChunk = chunk;
@@ -135,13 +135,13 @@ export default class Chunk {
 	isEmpty: boolean;
 	manualChunkAlias: string | null = null;
 	orderedModules: Module[];
-	renderedModules: {
+	renderedModules?: {
 		[moduleId: string]: RenderedModule;
 	};
 	usedModules: Module[] = undefined as any;
 
 	variableName: string;
-	private chunkName: string | void;
+	private chunkName?: string;
 	private dependencies: (ExternalModule | Chunk)[] = undefined as any;
 	private dynamicDependencies: (ExternalModule | Chunk)[] = undefined as any;
 	private exportNames: { [name: string]: Variable } = Object.create(null);
@@ -524,7 +524,7 @@ export default class Chunk {
 
 		let hoistedSource = '';
 
-		this.renderedModules = Object.create(null);
+		const renderedModules = (this.renderedModules = Object.create(null));
 		this.renderedModuleSources = [];
 
 		for (let i = 0; i < this.orderedModules.length; i++) {
@@ -535,7 +535,7 @@ export default class Chunk {
 			this.renderedModuleSources.push(source);
 
 			const { renderedExports, removedExports } = module.getRenderedExports();
-			this.renderedModules[module.id] = {
+			renderedModules[module.id] = {
 				originalLength: module.originalCode.length,
 				removedExports,
 				renderedExports,
@@ -774,7 +774,7 @@ export default class Chunk {
 			}
 			let dependency: Chunk | ExternalModule;
 			if (depModule instanceof Module) {
-				dependency = depModule.chunk;
+				dependency = depModule.chunk as Chunk;
 			} else {
 				if (!(depModule.used || depModule.moduleSideEffects)) {
 					continue;
@@ -820,8 +820,8 @@ export default class Chunk {
 			for (const { node, resolution } of module.dynamicImports) {
 				if (!resolution) continue;
 				if (resolution instanceof Module) {
-					if (resolution.chunk !== this && isChunkRendered(resolution.chunk)) {
-						const resolutionChunk = resolution.facadeChunk || resolution.chunk;
+					if (resolution.chunk !== this && isChunkRendered(resolution.chunk as Chunk)) {
+						const resolutionChunk = resolution.facadeChunk || (resolution.chunk as Chunk);
 						let relPath = normalize(relative(dirname(this.id), resolutionChunk.id));
 						if (!relPath.startsWith('../')) relPath = './' + relPath;
 						node.renderFinalResolution(code, `'${relPath}'`, format);
@@ -866,8 +866,8 @@ export default class Chunk {
 				// skip local exports
 				if (!module || module.chunk === this) continue;
 				if (module instanceof Module) {
-					exportChunk = module.chunk;
-					importName = module.chunk.getVariableExportName(variable);
+					exportChunk = module.chunk as Chunk;
+					importName = exportChunk.getVariableExportName(variable);
 					needsLiveBinding = variable.isReassigned;
 				} else {
 					exportChunk = module;
@@ -899,7 +899,7 @@ export default class Chunk {
 						imported:
 							variable.module instanceof ExternalModule
 								? variable.name
-								: (variable.module as Module).chunk.getVariableExportName(variable),
+								: ((variable.module as Module).chunk as Chunk).getVariableExportName(variable),
 						local: variable.getName()
 					});
 				}
@@ -938,7 +938,7 @@ export default class Chunk {
 				globalName,
 				id, // chunk id updated on render
 				imports: imports.length > 0 ? imports : (null as any),
-				isChunk: !(dep as ExternalModule).isExternal,
+				isChunk: dep instanceof Chunk,
 				name: dep.variableName,
 				namedExportsMode,
 				reexports
@@ -1081,7 +1081,7 @@ export default class Chunk {
 			if ((variable.module as Module).chunk !== this) {
 				this.imports.add(variable);
 				if (variable.module instanceof Module) {
-					variable.module.chunk.exports.add(variable);
+					(variable.module.chunk as Chunk).exports.add(variable);
 				}
 			}
 		}
@@ -1102,7 +1102,7 @@ export default class Chunk {
 				if ((variable.module as Module).chunk !== this) {
 					this.imports.add(variable);
 					if (variable.module instanceof Module) {
-						variable.module.chunk.exports.add(variable);
+						(variable.module.chunk as Chunk).exports.add(variable);
 					}
 				}
 			}

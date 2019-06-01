@@ -8,10 +8,10 @@ import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
 export default class ThisExpression extends NodeBase {
-	type: NodeType.tThisExpression;
+	type!: NodeType.tThisExpression;
 
-	variable: ThisVariable;
-	private alias: string | null;
+	variable!: ThisVariable;
+	private alias!: string | null;
 
 	bind() {
 		super.bind();
@@ -27,8 +27,6 @@ export default class ThisExpression extends NodeBase {
 	}
 
 	initialise() {
-		this.included = false;
-		this.variable = null as any;
 		this.alias =
 			this.scope.findLexicalBoundary() instanceof ModuleScope ? this.context.moduleContext : null;
 		if (this.alias === 'undefined') {

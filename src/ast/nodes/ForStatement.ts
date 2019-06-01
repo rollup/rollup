@@ -8,11 +8,11 @@ import { ExpressionNode, StatementBase, StatementNode } from './shared/Node';
 import VariableDeclaration from './VariableDeclaration';
 
 export default class ForStatement extends StatementBase {
-	body: StatementNode;
-	init: VariableDeclaration | ExpressionNode | null;
-	test: ExpressionNode | null;
-	type: NodeType.tForStatement;
-	update: ExpressionNode | null;
+	body!: StatementNode;
+	init!: VariableDeclaration | ExpressionNode | null;
+	test!: ExpressionNode | null;
+	type!: NodeType.tForStatement;
+	update!: ExpressionNode | null;
 
 	createScope(parentScope: Scope) {
 		this.scope = new BlockScope(parentScope);

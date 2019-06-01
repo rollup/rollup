@@ -7,11 +7,11 @@ import { ExpressionNode, NodeBase } from './shared/Node';
 import TemplateLiteral from './TemplateLiteral';
 
 export default class TaggedTemplateExpression extends NodeBase {
-	quasi: TemplateLiteral;
-	tag: ExpressionNode;
-	type: NodeType.tTaggedTemplateExpression;
+	quasi!: TemplateLiteral;
+	tag!: ExpressionNode;
+	type!: NodeType.tTaggedTemplateExpression;
 
-	private callOptions: CallOptions;
+	private callOptions!: CallOptions;
 
 	bind() {
 		super.bind();
@@ -53,7 +53,6 @@ export default class TaggedTemplateExpression extends NodeBase {
 	}
 
 	initialise() {
-		this.included = false;
 		this.callOptions = CallOptions.create({
 			callIdentifier: this,
 			withNew: false

@@ -4,8 +4,8 @@ import * as NodeType from './NodeType';
 import { StatementBase } from './shared/Node';
 
 export default class BreakStatement extends StatementBase {
-	label: Identifier | null;
-	type: NodeType.tBreakStatement;
+	label!: Identifier | null;
+	type!: NodeType.tBreakStatement;
 
 	hasEffects(options: ExecutionPathOptions) {
 		return (

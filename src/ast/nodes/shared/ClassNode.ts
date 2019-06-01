@@ -8,9 +8,9 @@ import Identifier from '../Identifier';
 import { ExpressionNode, NodeBase } from './Node';
 
 export default class ClassNode extends NodeBase {
-	body: ClassBody;
-	id: Identifier | null;
-	superClass: ExpressionNode | null;
+	body!: ClassBody;
+	id!: Identifier | null;
+	superClass!: ExpressionNode | null;
 
 	createScope(parentScope: Scope) {
 		this.scope = new ChildScope(parentScope);
@@ -37,7 +37,6 @@ export default class ClassNode extends NodeBase {
 	}
 
 	initialise() {
-		this.included = false;
 		if (this.id !== null) {
 			this.id.declare('class', this);
 		}

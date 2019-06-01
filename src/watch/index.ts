@@ -21,7 +21,7 @@ const DELAY = 200;
 export class Watcher {
 	emitter: RollupWatcher;
 
-	private buildTimeout: NodeJS.Timer;
+	private buildTimeout: NodeJS.Timer | null = null;
 	private invalidatedIds: Set<string> = new Set();
 	private rerun = false;
 	private running: boolean;
@@ -71,7 +71,7 @@ export class Watcher {
 		if (this.buildTimeout) clearTimeout(this.buildTimeout);
 
 		this.buildTimeout = setTimeout(() => {
-			this.buildTimeout = undefined as any;
+			this.buildTimeout = null;
 			this.invalidatedIds.forEach(id => this.emit('change', id));
 			this.invalidatedIds.clear();
 			this.emit('restart');
@@ -115,7 +115,7 @@ export class Watcher {
 
 export class Task {
 	cache: RollupCache;
-	watchFiles: string[];
+	watchFiles: string[] = [];
 
 	private chokidarOptions: WatchOptions;
 	private chokidarOptionsHash: string;

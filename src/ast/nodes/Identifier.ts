@@ -18,11 +18,11 @@ import { PatternNode } from './shared/Pattern';
 export type IdentifierWithVariable = Identifier & { variable: Variable };
 
 export default class Identifier extends NodeBase implements PatternNode {
-	name: string;
-	type: NodeType.tIdentifier;
+	name!: string;
+	type!: NodeType.tIdentifier;
 
-	variable: Variable | null;
-	private bound: boolean;
+	variable: Variable | null = null;
+	private bound = false;
 
 	addExportedVariables(variables: Variable[]): void {
 		if (this.variable !== null && this.variable.exportName) {
@@ -39,10 +39,10 @@ export default class Identifier extends NodeBase implements PatternNode {
 		}
 		if (
 			this.variable !== null &&
-			(this.variable as LocalVariable).isLocal &&
-			(this.variable as LocalVariable).additionalInitializers !== null
+			this.variable instanceof LocalVariable &&
+			this.variable.additionalInitializers !== null
 		) {
-			(this.variable as LocalVariable).consolidateInitializers();
+			this.variable.consolidateInitializers();
 		}
 	}
 
@@ -125,15 +125,6 @@ export default class Identifier extends NodeBase implements PatternNode {
 			if (this.variable !== null) {
 				this.context.includeVariable(this.variable);
 			}
-		}
-	}
-
-	initialise() {
-		this.included = false;
-		this.bound = false;
-		// To avoid later shape mutations
-		if (!this.variable) {
-			this.variable = null;
 		}
 	}
 

@@ -9,8 +9,8 @@ import * as NodeType from './NodeType';
 import { Node, StatementBase, StatementNode } from './shared/Node';
 
 export default class BlockStatement extends StatementBase {
-	body: StatementNode[];
-	type: NodeType.tBlockStatement;
+	body!: StatementNode[];
+	type!: NodeType.tBlockStatement;
 
 	addImplicitReturnExpressionToScope() {
 		const lastStatement = this.body[this.body.length - 1];

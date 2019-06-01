@@ -7,8 +7,8 @@ import { NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
 export default class RestElement extends NodeBase implements PatternNode {
-	argument: PatternNode;
-	type: NodeType.tRestElement;
+	argument!: PatternNode;
+	type!: NodeType.tRestElement;
 
 	private declarationInit: ExpressionEntity | null = null;
 

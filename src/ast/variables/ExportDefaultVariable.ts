@@ -7,8 +7,7 @@ import LocalVariable from './LocalVariable';
 import Variable from './Variable';
 
 export default class ExportDefaultVariable extends LocalVariable {
-	hasId: boolean;
-	isDefault: true;
+	hasId = false;
 
 	// Not initialised during construction
 	private originalId: IdentifierWithVariable | null = null;
@@ -86,5 +85,3 @@ export default class ExportDefaultVariable extends LocalVariable {
 }
 
 ExportDefaultVariable.prototype.getBaseVariableName = ExportDefaultVariable.prototype.getName;
-
-ExportDefaultVariable.prototype.isDefault = true;

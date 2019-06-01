@@ -7,7 +7,7 @@ import Variable from './Variable';
 
 export default class NamespaceVariable extends Variable {
 	context: AstContext;
-	isNamespace: true;
+	isNamespace!: true;
 	memberVariables: { [name: string]: Variable } = Object.create(null);
 	module: Module;
 

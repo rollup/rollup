@@ -9,8 +9,8 @@ import { ExpressionNode, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
 export default class AssignmentExpression extends NodeBase {
-	left: PatternNode | ExpressionNode;
-	operator:
+	left!: PatternNode | ExpressionNode;
+	operator!:
 		| '='
 		| '+='
 		| '-='
@@ -24,8 +24,8 @@ export default class AssignmentExpression extends NodeBase {
 		| '^='
 		| '&='
 		| '**=';
-	right: ExpressionNode;
-	type: NodeType.tAssignmentExpression;
+	right!: ExpressionNode;
+	type!: NodeType.tAssignmentExpression;
 
 	bind() {
 		super.bind();

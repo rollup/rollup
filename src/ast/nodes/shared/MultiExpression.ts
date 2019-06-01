@@ -6,7 +6,7 @@ import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../../values';
 import { ExpressionEntity } from './Expression';
 
 export class MultiExpression implements ExpressionEntity {
-	included: boolean;
+	included = false;
 
 	private expressions: ExpressionEntity[];
 

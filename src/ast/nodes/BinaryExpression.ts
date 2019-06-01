@@ -37,10 +37,10 @@ const binaryOperators: {
 };
 
 export default class BinaryExpression extends NodeBase {
-	left: ExpressionNode;
-	operator: keyof typeof binaryOperators;
-	right: ExpressionNode;
-	type: NodeType.tBinaryExpression;
+	left!: ExpressionNode;
+	operator!: keyof typeof binaryOperators;
+	right!: ExpressionNode;
+	type!: NodeType.tBinaryExpression;
 
 	getLiteralValueAtPath(
 		path: ObjectPath,

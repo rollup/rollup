@@ -3,8 +3,8 @@ import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class SpreadElement extends NodeBase {
-	argument: ExpressionNode;
-	type: NodeType.tSpreadElement;
+	argument!: ExpressionNode;
+	type!: NodeType.tSpreadElement;
 
 	bind() {
 		super.bind();

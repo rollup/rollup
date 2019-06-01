@@ -18,7 +18,7 @@ export function addTask(
 	const group = watchers.get(chokidarOptionsHash) as Map<string, FileWatcher>;
 
 	const watcher = group.get(id) || new FileWatcher(id, chokidarOptions, group);
-	if (!watcher.fileExists) {
+	if (!watcher.fsWatcher) {
 		if (isTransformDependency) throw new Error(`Transform dependency ${id} does not exist.`);
 	} else {
 		watcher.addTask(task, isTransformDependency);
@@ -32,8 +32,7 @@ export function deleteTask(id: string, target: Task, chokidarOptionsHash: string
 }
 
 export default class FileWatcher {
-	fileExists: boolean;
-	fsWatcher: FSWatcher | fs.FSWatcher;
+	fsWatcher?: FSWatcher | fs.FSWatcher;
 
 	private id: string;
 	private tasks: Set<Task>;
@@ -49,12 +48,10 @@ export default class FileWatcher {
 		try {
 			const stats = fs.statSync(id);
 			modifiedTime = +stats.mtime;
-			this.fileExists = true;
 		} catch (err) {
 			if (err.code === 'ENOENT') {
 				// can't watch files that don't exist (e.g. injected
 				// by plugins somehow)
-				this.fileExists = false;
 				return;
 			} else {
 				throw err;
@@ -83,11 +80,9 @@ export default class FileWatcher {
 			}
 		};
 
-		if (chokidarOptions) {
-			this.fsWatcher = chokidar.watch(id, chokidarOptions).on('all', handleWatchEvent);
-		} else {
-			this.fsWatcher = fs.watch(id, opts, handleWatchEvent);
-		}
+		this.fsWatcher = chokidarOptions
+			? chokidar.watch(id, chokidarOptions).on('all', handleWatchEvent)
+			: fs.watch(id, opts, handleWatchEvent);
 
 		group.set(id, this);
 	}
@@ -98,7 +93,7 @@ export default class FileWatcher {
 	}
 
 	close() {
-		this.fsWatcher.close();
+		if (this.fsWatcher) this.fsWatcher.close();
 	}
 
 	deleteTask(task: Task, group: Map<string, FileWatcher>) {
