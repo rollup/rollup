@@ -20,17 +20,17 @@ import { ExpressionEntity } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class Property extends NodeBase implements DeoptimizableEntity {
-	computed: boolean;
-	key: ExpressionNode;
-	kind: 'init' | 'get' | 'set';
-	method: boolean;
-	shorthand: boolean;
-	type: NodeType.tProperty;
-	value: ExpressionNode;
+	computed!: boolean;
+	key!: ExpressionNode;
+	kind!: 'init' | 'get' | 'set';
+	method!: boolean;
+	shorthand!: boolean;
+	type!: NodeType.tProperty;
+	value!: ExpressionNode;
 
-	private accessorCallOptions: CallOptions;
+	private accessorCallOptions!: CallOptions;
 	private declarationInit: ExpressionEntity | null = null;
-	private returnExpression: ExpressionEntity | null;
+	private returnExpression: ExpressionEntity | null = null;
 
 	bind() {
 		super.bind();
@@ -155,8 +155,6 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 	}
 
 	initialise() {
-		this.included = false;
-		this.returnExpression = null;
 		this.accessorCallOptions = CallOptions.create({
 			callIdentifier: this,
 			withNew: false

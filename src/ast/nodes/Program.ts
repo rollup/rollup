@@ -5,9 +5,9 @@ import * as NodeType from './NodeType';
 import { NodeBase, StatementNode } from './shared/Node';
 
 export default class Program extends NodeBase {
-	body: StatementNode[];
-	sourceType: 'module';
-	type: NodeType.tProgram;
+	body!: StatementNode[];
+	sourceType!: 'module';
+	type!: NodeType.tProgram;
 
 	hasEffects(options: ExecutionPathOptions) {
 		for (const node of this.body) {

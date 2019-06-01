@@ -24,14 +24,14 @@ import SpreadElement from './SpreadElement';
 
 export default class CallExpression extends NodeBase implements DeoptimizableEntity {
 	annotatedPure?: boolean;
-	arguments: (ExpressionNode | SpreadElement)[];
-	callee: ExpressionNode;
-	type: NodeType.tCallExpression;
+	arguments!: (ExpressionNode | SpreadElement)[];
+	callee!: ExpressionNode;
+	type!: NodeType.tCallExpression;
 
-	private callOptions: CallOptions;
+	private callOptions!: CallOptions;
 	// We collect deoptimization information if returnExpression !== UNKNOWN_EXPRESSION
-	private expressionsToBeDeoptimized: DeoptimizableEntity[];
-	private returnExpression: ExpressionEntity | null;
+	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
+	private returnExpression: ExpressionEntity | null = null;
 
 	bind() {
 		super.bind();
@@ -204,14 +204,11 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 	}
 
 	initialise() {
-		this.included = false;
-		this.returnExpression = null;
 		this.callOptions = CallOptions.create({
 			args: this.arguments,
 			callIdentifier: this,
 			withNew: false
 		});
-		this.expressionsToBeDeoptimized = [];
 	}
 
 	render(

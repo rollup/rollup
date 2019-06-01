@@ -6,12 +6,12 @@ import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class MethodDefinition extends NodeBase {
-	computed: boolean;
-	key: ExpressionNode;
-	kind: 'constructor' | 'method' | 'get' | 'set';
-	static: boolean;
-	type: NodeType.tMethodDefinition;
-	value: FunctionExpression;
+	computed!: boolean;
+	key!: ExpressionNode;
+	kind!: 'constructor' | 'method' | 'get' | 'set';
+	static!: boolean;
+	type!: NodeType.tMethodDefinition;
+	value!: FunctionExpression;
 
 	hasEffects(options: ExecutionPathOptions) {
 		return this.key.hasEffects(options);

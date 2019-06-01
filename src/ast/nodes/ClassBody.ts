@@ -6,10 +6,10 @@ import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
 export default class ClassBody extends NodeBase {
-	body: MethodDefinition[];
-	type: NodeType.tClassBody;
+	body!: MethodDefinition[];
+	type!: NodeType.tClassBody;
 
-	private classConstructor: MethodDefinition | null;
+	private classConstructor!: MethodDefinition | null;
 
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
@@ -26,7 +26,6 @@ export default class ClassBody extends NodeBase {
 	}
 
 	initialise() {
-		this.included = false;
 		for (const method of this.body) {
 			if (method.kind === 'constructor') {
 				this.classConstructor = method;

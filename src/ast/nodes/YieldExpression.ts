@@ -6,9 +6,9 @@ import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class YieldExpression extends NodeBase {
-	argument: ExpressionNode | null;
-	delegate: boolean;
-	type: NodeType.tYieldExpression;
+	argument!: ExpressionNode | null;
+	delegate!: boolean;
+	type!: NodeType.tYieldExpression;
 
 	bind() {
 		super.bind();

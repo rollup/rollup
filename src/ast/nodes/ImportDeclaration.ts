@@ -9,10 +9,10 @@ import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
 export default class ImportDeclaration extends NodeBase {
-	needsBoundaries: true;
-	source: Literal<string>;
-	specifiers: (ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier)[];
-	type: NodeType.tImportDeclaration;
+	needsBoundaries!: true;
+	source!: Literal<string>;
+	specifiers!: (ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier)[];
+	type!: NodeType.tImportDeclaration;
 
 	bind() {}
 
@@ -21,7 +21,6 @@ export default class ImportDeclaration extends NodeBase {
 	}
 
 	initialise() {
-		this.included = false;
 		this.context.addImport(this);
 	}
 

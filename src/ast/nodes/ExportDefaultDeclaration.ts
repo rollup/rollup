@@ -35,13 +35,13 @@ function getIdInsertPosition(code: string, declarationKeyword: string, start = 0
 }
 
 export default class ExportDefaultDeclaration extends NodeBase {
-	declaration: FunctionDeclaration | ClassDeclaration | ExpressionNode;
-	needsBoundaries: true;
-	scope: ModuleScope;
-	type: NodeType.tExportDefaultDeclaration;
-	variable: ExportDefaultVariable;
+	declaration!: FunctionDeclaration | ClassDeclaration | ExpressionNode;
+	needsBoundaries!: true;
+	scope!: ModuleScope;
+	type!: NodeType.tExportDefaultDeclaration;
+	variable!: ExportDefaultVariable;
 
-	private declarationName: string;
+	private declarationName: string | undefined;
 
 	include(includeAllChildrenRecursively: boolean) {
 		super.include(includeAllChildrenRecursively);
@@ -51,7 +51,6 @@ export default class ExportDefaultDeclaration extends NodeBase {
 	}
 
 	initialise() {
-		this.included = false;
 		const declaration = this.declaration as FunctionDeclaration | ClassDeclaration;
 		this.declarationName =
 			(declaration.id && declaration.id.name) || (this.declaration as Identifier).name;

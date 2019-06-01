@@ -9,14 +9,14 @@ import { GenericEsTreeNode, NodeBase } from './Node';
 import { PatternNode } from './Pattern';
 
 export default class FunctionNode extends NodeBase {
-	async: boolean;
-	body: BlockStatement;
-	id: IdentifierWithVariable | null;
-	params: PatternNode[];
-	preventChildBlockScope: true;
-	scope: BlockScope;
+	async!: boolean;
+	body!: BlockStatement;
+	id!: IdentifierWithVariable | null;
+	params!: PatternNode[];
+	preventChildBlockScope!: true;
+	scope!: BlockScope;
 
-	private isPrototypeDeoptimized: boolean;
+	private isPrototypeDeoptimized = false;
 
 	createScope(parentScope: FunctionScope) {
 		this.scope = new FunctionScope(parentScope, this.context);
@@ -79,8 +79,6 @@ export default class FunctionNode extends NodeBase {
 	}
 
 	initialise() {
-		this.included = false;
-		this.isPrototypeDeoptimized = false;
 		if (this.id !== null) {
 			this.id.declare('function', this);
 		}

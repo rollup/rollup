@@ -9,11 +9,11 @@ import { ExpressionNode, GenericEsTreeNode, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
 export default class ArrowFunctionExpression extends NodeBase {
-	body: BlockStatement | ExpressionNode;
-	params: PatternNode[];
-	preventChildBlockScope: true;
-	scope: ReturnValueScope;
-	type: NodeType.tArrowFunctionExpression;
+	body!: BlockStatement | ExpressionNode;
+	params!: PatternNode[];
+	preventChildBlockScope!: true;
+	scope!: ReturnValueScope;
+	type!: NodeType.tArrowFunctionExpression;
 
 	createScope(parentScope: Scope) {
 		this.scope = new ReturnValueScope(parentScope, this.context);
@@ -58,7 +58,6 @@ export default class ArrowFunctionExpression extends NodeBase {
 	}
 
 	initialise() {
-		this.included = false;
 		for (const param of this.params) {
 			param.declare('parameter', UNKNOWN_EXPRESSION);
 		}

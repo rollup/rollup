@@ -6,11 +6,11 @@ import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class NewExpression extends NodeBase {
 	annotatedPure?: boolean;
-	arguments: ExpressionNode[];
-	callee: ExpressionNode;
-	type: NodeType.tNewExpression;
+	arguments!: ExpressionNode[];
+	callee!: ExpressionNode;
+	type!: NodeType.tNewExpression;
 
-	private callOptions: CallOptions;
+	private callOptions!: CallOptions;
 
 	bind() {
 		super.bind();
@@ -37,7 +37,6 @@ export default class NewExpression extends NodeBase {
 	}
 
 	initialise() {
-		this.included = false;
 		this.callOptions = CallOptions.create({
 			args: this.arguments,
 			callIdentifier: this,

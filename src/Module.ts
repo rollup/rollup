@@ -166,11 +166,11 @@ const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
 };
 
 export default class Module {
-	chunk: Chunk;
+	chunk?: Chunk;
 	chunkAlias: string = null as any;
-	code: string;
+	code!: string;
 	comments: CommentDescription[] = [];
-	customTransformCache: boolean;
+	customTransformCache!: boolean;
 	dependencies: (Module | ExternalModule)[] = [];
 	dynamicallyImportedBy: Module[] = [];
 	dynamicDependencies: (Module | ExternalModule)[] = [];
@@ -193,30 +193,29 @@ export default class Module {
 	imports = new Set<Variable>();
 	isEntryPoint: boolean;
 	isExecuted = false;
-	isExternal: false;
 	isUserDefinedEntryPoint = false;
 	manualChunkAlias: string = null as any;
 	moduleSideEffects: boolean;
-	originalCode: string;
-	originalSourcemap: RawSourceMap | void;
+	originalCode!: string;
+	originalSourcemap!: RawSourceMap | void;
 	reexports: { [name: string]: ReexportDescription } = Object.create(null);
-	resolvedIds: ResolvedIdMap;
-	scope: ModuleScope;
-	sourcemapChain: RawSourceMap[];
+	resolvedIds!: ResolvedIdMap;
+	scope!: ModuleScope;
+	sourcemapChain!: RawSourceMap[];
 	sources: string[] = [];
-	transformAssets: Asset[];
+	transformAssets?: Asset[];
 	usesTopLevelAwait = false;
 
 	private allExportNames?: Set<string>;
-	private ast: Program;
-	private astContext: AstContext;
+	private ast!: Program;
+	private astContext!: AstContext;
 	private context: string;
-	private esTreeAst: ESTree.Program;
+	private esTreeAst!: ESTree.Program;
 	private graph: Graph;
-	private magicString: MagicString;
+	private magicString!: MagicString;
 	private namespaceVariable: NamespaceVariable = undefined as any;
-	private transformDependencies: string[];
-	private transitiveReexports: string[];
+	private transformDependencies!: string[];
+	private transitiveReexports?: string[];
 
 	constructor(graph: Graph, id: string, moduleSideEffects: boolean, isEntry: boolean) {
 		this.id = id;
@@ -319,7 +318,10 @@ export default class Module {
 		const exportNamesByVariable: Map<Variable, string[]> = new Map();
 		for (const exportName of this.getAllExportNames()) {
 			const tracedVariable = this.getVariableForExportName(exportName);
-			if (!tracedVariable || !(tracedVariable.included || tracedVariable.isExternal)) {
+			if (
+				!tracedVariable ||
+				!(tracedVariable.included || tracedVariable instanceof ExternalVariable)
+			) {
 				continue;
 			}
 			const existingExportNames = exportNamesByVariable.get(tracedVariable);
@@ -464,8 +466,8 @@ export default class Module {
 		for (const name of this.getReexports()) {
 			const variable = this.getVariableForExportName(name);
 
-			if (variable.isExternal) {
-				variable.reexported = (variable as ExternalVariable).module.reexported = true;
+			if (variable instanceof ExternalVariable) {
+				variable.reexported = variable.module.reexported = true;
 			} else if (!variable.included) {
 				variable.include();
 				variable.deoptimizePath(UNKNOWN_PATH);
@@ -560,7 +562,8 @@ export default class Module {
 			addExport: this.addExport.bind(this),
 			addImport: this.addImport.bind(this),
 			addImportMeta: this.addImportMeta.bind(this),
-			annotations: (this.graph.treeshake && this.graph.treeshakingOptions.annotations) as boolean,
+			annotations: (this.graph.treeshakingOptions &&
+				this.graph.treeshakingOptions.annotations) as boolean,
 			code, // Only needed for debugging
 			deoptimizationTracker: this.graph.deoptimizationTracker,
 			error: this.error.bind(this),
@@ -581,11 +584,11 @@ export default class Module {
 			moduleContext: this.context,
 			nodeConstructors,
 			preserveModules: this.graph.preserveModules,
-			propertyReadSideEffects: (!this.graph.treeshake ||
+			propertyReadSideEffects: (!this.graph.treeshakingOptions ||
 				this.graph.treeshakingOptions.propertyReadSideEffects) as boolean,
 			traceExport: this.getVariableForExportName.bind(this),
 			traceVariable: this.traceVariable.bind(this),
-			treeshake: this.graph.treeshake,
+			treeshake: !!this.graph.treeshakingOptions,
 			usesTopLevelAwait: false,
 			warn: this.warn.bind(this)
 		};
@@ -627,8 +630,8 @@ export default class Module {
 			const importDeclaration = this.importDescriptions[name];
 			const otherModule = importDeclaration.module as Module | ExternalModule;
 
-			if (!otherModule.isExternal && importDeclaration.name === '*') {
-				return (otherModule as Module).getOrCreateNamespace();
+			if (otherModule instanceof Module && importDeclaration.name === '*') {
+				return (otherModule).getOrCreateNamespace();
 			}
 
 			const declaration = otherModule.getVariableForExportName(importDeclaration.name);

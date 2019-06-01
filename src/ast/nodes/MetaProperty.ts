@@ -12,9 +12,9 @@ const ASSET_PREFIX = 'ROLLUP_ASSET_URL_';
 const CHUNK_PREFIX = 'ROLLUP_CHUNK_URL_';
 
 export default class MetaProperty extends NodeBase {
-	meta: Identifier;
-	property: Identifier;
-	type: NodeType.tMetaProperty;
+	meta!: Identifier;
+	property!: Identifier;
+	type!: NodeType.tMetaProperty;
 
 	private metaProperty?: string | null;
 
@@ -44,7 +44,6 @@ export default class MetaProperty extends NodeBase {
 		if (this.meta.name === 'import') {
 			this.context.addImportMeta(this);
 		}
-		this.included = false;
 	}
 
 	renderFinalMechanism(

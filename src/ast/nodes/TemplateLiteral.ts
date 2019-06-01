@@ -6,9 +6,9 @@ import { ExpressionNode, NodeBase } from './shared/Node';
 import TemplateElement from './TemplateElement';
 
 export default class TemplateLiteral extends NodeBase {
-	expressions: ExpressionNode[];
-	quasis: TemplateElement[];
-	type: NodeType.tTemplateLiteral;
+	expressions!: ExpressionNode[];
+	quasis!: TemplateElement[];
+	type!: NodeType.tTemplateLiteral;
 
 	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
 		if (path.length > 0 || this.quasis.length !== 1) {

@@ -1,4 +1,5 @@
 import * as ESTree from 'estree';
+import Chunk from './Chunk';
 import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import Module from './Module';
@@ -10,7 +11,6 @@ import {
 	PureModulesOption,
 	ResolvedId,
 	ResolveIdResult,
-	SourceDescription,
 	TransformModuleJSON
 } from './rollup/types';
 import {
@@ -56,7 +56,7 @@ function getIdMatcher<T extends Array<any>>(
 		return (id, ...args) => (!id.startsWith('\0') && option(id, ...args)) || false;
 	} else if (option) {
 		const ids = new Set(Array.isArray(option) ? option : option ? [option] : []);
-		return id => ids.has(id);
+		return (id => ids.has(id)) as (id: string, ...args: T) => boolean;
 	} else {
 		return () => false;
 	}
@@ -211,7 +211,7 @@ export class ModuleLoader {
 			entryRecord.module &&
 			(entryRecord.module.facadeChunk
 				? entryRecord.module.facadeChunk.id
-				: entryRecord.module.chunk.id);
+				: (entryRecord.module.chunk as Chunk).id);
 		if (!fileName) return error(errChunkNotGeneratedForFileName(entryRecord));
 		return fileName;
 	}
@@ -221,7 +221,7 @@ export class ModuleLoader {
 			this.isExternal(source, importer, false)
 				? { id: source, external: true }
 				: this.pluginDriver.hookFirst('resolveId', [source, importer], null, skip as number)
-		).then((result: ResolveIdResult) => this.normalizeResolveIdResult(result, importer, source));
+		).then(result => this.normalizeResolveIdResult(result, importer, source));
 	}
 
 	private addToManualChunk(alias: string, module: Module) {
@@ -302,9 +302,7 @@ export class ModuleLoader {
 		}
 
 		timeStart('load modules', 3);
-		return Promise.resolve(
-			this.pluginDriver.hookFirst<'load', string | SourceDescription>('load', [id])
-		)
+		return Promise.resolve(this.pluginDriver.hookFirst('load', [id]))
 			.catch((err: Error) => {
 				timeEnd('load modules', 3);
 				let msg = `Could not load ${id}`;
@@ -409,33 +407,31 @@ export class ModuleLoader {
 		{ alias, unresolvedId }: UnresolvedModuleWithAlias,
 		isEntry: boolean
 	): Promise<Module> =>
-		this.pluginDriver
-			.hookFirst('resolveId', [unresolvedId, undefined as any])
-			.then((resolveIdResult: ResolveIdResult) => {
-				if (
-					resolveIdResult === false ||
-					(resolveIdResult && typeof resolveIdResult === 'object' && resolveIdResult.external)
-				) {
-					return error(errEntryCannotBeExternal(unresolvedId));
-				}
-				const id =
-					resolveIdResult && typeof resolveIdResult === 'object'
-						? resolveIdResult.id
-						: resolveIdResult;
+		this.pluginDriver.hookFirst('resolveId', [unresolvedId, undefined]).then(resolveIdResult => {
+			if (
+				resolveIdResult === false ||
+				(resolveIdResult && typeof resolveIdResult === 'object' && resolveIdResult.external)
+			) {
+				return error(errEntryCannotBeExternal(unresolvedId));
+			}
+			const id =
+				resolveIdResult && typeof resolveIdResult === 'object'
+					? resolveIdResult.id
+					: resolveIdResult;
 
-				if (typeof id === 'string') {
-					return this.fetchModule(id, undefined as any, true, isEntry).then(module => {
-						if (alias !== null) {
-							if (module.chunkAlias !== null && module.chunkAlias !== alias) {
-								return error(errCannotAssignModuleToChunk(module.id, alias, module.chunkAlias));
-							}
-							module.chunkAlias = alias;
+			if (typeof id === 'string') {
+				return this.fetchModule(id, undefined as any, true, isEntry).then(module => {
+					if (alias !== null) {
+						if (module.chunkAlias !== null && module.chunkAlias !== alias) {
+							return error(errCannotAssignModuleToChunk(module.id, alias, module.chunkAlias));
 						}
-						return module;
-					});
-				}
-				return error(errUnresolvedEntry(unresolvedId));
-			});
+						module.chunkAlias = alias;
+					}
+					return module;
+				});
+			}
+			return error(errUnresolvedEntry(unresolvedId));
+		});
 
 	private normalizeResolveIdResult(
 		resolveIdResult: ResolveIdResult,
@@ -502,7 +498,7 @@ export class ModuleLoader {
 		// TODO we only should expose the acorn AST here
 		return this.pluginDriver
 			.hookFirst('resolveDynamicImport', [specifier, importer])
-			.then((resolution: ResolveIdResult) => {
+			.then(resolution => {
 				if (typeof specifier !== 'string') {
 					if (typeof resolution === 'string') {
 						return resolution;

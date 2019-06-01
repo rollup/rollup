@@ -12,7 +12,6 @@ export default class ExternalModule {
 	exportsNames = false;
 	exportsNamespace = false;
 	id: string;
-	isExternal = true;
 	moduleSideEffects: boolean;
 	mostCommonSuggestion = 0;
 	nameSuggestions: { [name: string]: number };

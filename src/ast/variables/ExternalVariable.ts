@@ -3,7 +3,6 @@ import Identifier from '../nodes/Identifier';
 import Variable from './Variable';
 
 export default class ExternalVariable extends Variable {
-	isExternal: true;
 	isNamespace: boolean;
 	module: ExternalModule;
 	referenced: boolean;
@@ -29,5 +28,3 @@ export default class ExternalVariable extends Variable {
 		}
 	}
 }
-
-ExternalVariable.prototype.isExternal = true;

@@ -79,9 +79,7 @@ export default class Graph {
 	preserveModules: boolean;
 	scope: GlobalScope;
 	shimMissingExports: boolean;
-	// deprecated
-	treeshake: boolean;
-	treeshakingOptions: TreeshakingOptions;
+	treeshakingOptions?: TreeshakingOptions;
 	watchFiles: Record<string, true> = Object.create(null);
 
 	private cacheExpiry: number;
@@ -89,7 +87,7 @@ export default class Graph {
 	private externalModules: ExternalModule[] = [];
 	private modules: Module[] = [];
 	private onwarn: WarningHandler;
-	private pluginCache: Record<string, SerializablePluginCache>;
+	private pluginCache?: Record<string, SerializablePluginCache>;
 
 	constructor(options: InputOptions, watcher?: RollupWatcher) {
 		this.curChunkIndex = 0;
@@ -112,8 +110,7 @@ export default class Graph {
 
 		this.cacheExpiry = options.experimentalCacheExpiry as number;
 
-		this.treeshake = options.treeshake !== false;
-		if (this.treeshake) {
+		if (options.treeshake !== false) {
 			this.treeshakingOptions = options.treeshake
 				? {
 						annotations: (options.treeshake as TreeshakingOptions).annotations !== false,
@@ -191,10 +188,12 @@ export default class Graph {
 			this.pluginDriver,
 			options.external as ExternalOption,
 			(typeof options.manualChunks === 'function' && options.manualChunks) as GetManualChunk | null,
-			(this.treeshake
+			(this.treeshakingOptions
 				? this.treeshakingOptions.moduleSideEffects
 				: null) as ModuleSideEffectsOption,
-			(this.treeshake ? this.treeshakingOptions.pureExternalModules : false) as PureModulesOption
+			(this.treeshakingOptions
+				? this.treeshakingOptions.pureExternalModules
+				: false) as PureModulesOption
 		);
 	}
 
@@ -344,7 +343,7 @@ export default class Graph {
 	}
 
 	includeMarked(modules: Module[]) {
-		if (this.treeshake) {
+		if (this.treeshakingOptions) {
 			let treeshakingPass = 1;
 			do {
 				timeStart(`treeshaking pass ${treeshakingPass}`, 3);

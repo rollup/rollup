@@ -19,10 +19,10 @@ const unaryOperators: {
 };
 
 export default class UnaryExpression extends NodeBase {
-	argument: ExpressionNode;
-	operator: keyof typeof unaryOperators;
-	prefix: boolean;
-	type: NodeType.tUnaryExpression;
+	argument!: ExpressionNode;
+	operator!: keyof typeof unaryOperators;
+	prefix!: boolean;
+	type!: NodeType.tUnaryExpression;
 
 	bind() {
 		super.bind();

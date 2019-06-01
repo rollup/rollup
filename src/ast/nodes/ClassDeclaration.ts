@@ -7,8 +7,8 @@ import ClassNode from './shared/ClassNode';
 import { GenericEsTreeNode } from './shared/Node';
 
 export default class ClassDeclaration extends ClassNode {
-	id: IdentifierWithVariable | null;
-	type: NodeType.tClassDeclaration;
+	id!: IdentifierWithVariable | null;
+	type!: NodeType.tClassDeclaration;
 
 	initialise() {
 		super.initialise();

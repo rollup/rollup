@@ -168,7 +168,7 @@ export default function collapseSourcemaps(
 			};
 		}
 
-		return new Link(map, [source]) as any;
+		return new Link(map, [source]);
 	}
 
 	const moduleSources = modules
@@ -200,14 +200,14 @@ export default function collapseSourcemaps(
 				}
 			}
 
-			source = sourcemapChain.reduce(linkMap, source);
+			source = sourcemapChain.reduce(linkMap as any, source);
 
 			return source;
 		});
 
 	let source = new Link(map as any, moduleSources);
 
-	source = bundleSourcemapChain.reduce(linkMap, source);
+	source = bundleSourcemapChain.reduce(linkMap as any, source);
 
 	let { sources, sourcesContent, names, mappings } = source.traceMappings();
 

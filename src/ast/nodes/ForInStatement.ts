@@ -10,10 +10,10 @@ import { PatternNode } from './shared/Pattern';
 import VariableDeclaration from './VariableDeclaration';
 
 export default class ForInStatement extends StatementBase {
-	body: StatementNode;
-	left: VariableDeclaration | PatternNode;
-	right: ExpressionNode;
-	type: NodeType.tForInStatement;
+	body!: StatementNode;
+	left!: VariableDeclaration | PatternNode;
+	right!: ExpressionNode;
+	type!: NodeType.tForInStatement;
 
 	bind() {
 		this.left.bind();

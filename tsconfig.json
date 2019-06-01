@@ -9,8 +9,6 @@
 		"noUnusedParameters": true,
 		"pretty": true,
 		"skipLibCheck": true,
-		"strictPropertyInitialization": false,
-		"strictFunctionTypes": false,
 		"strict": true,
 		"target": "es2015"
 	},

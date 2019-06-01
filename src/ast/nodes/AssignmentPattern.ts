@@ -10,9 +10,9 @@ import { ExpressionNode, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
 export default class AssignmentPattern extends NodeBase implements PatternNode {
-	left: PatternNode;
-	right: ExpressionNode;
-	type: NodeType.tAssignmentPattern;
+	left!: PatternNode;
+	right!: ExpressionNode;
+	type!: NodeType.tAssignmentPattern;
 
 	addExportedVariables(variables: Variable[]): void {
 		this.left.addExportedVariables(variables);

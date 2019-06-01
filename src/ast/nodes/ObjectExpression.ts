@@ -37,16 +37,16 @@ interface PropertyMap {
 }
 
 export default class ObjectExpression extends NodeBase {
-	properties: (Property | SpreadElement)[];
-	type: NodeType.tObjectExpression;
+	properties!: (Property | SpreadElement)[];
+	type!: NodeType.tObjectExpression;
 
 	private deoptimizedPaths = new Set<string>();
 	// We collect deoptimization information if we can resolve a computed property access
 	private expressionsToBeDeoptimized = new Map<string, DeoptimizableEntity[]>();
 	private hasUnknownDeoptimizedProperty = false;
 	private propertyMap: PropertyMap | null = null;
-	private unmatchablePropertiesRead: (Property | SpreadElement)[] | null;
-	private unmatchablePropertiesWrite: Property[] | null;
+	private unmatchablePropertiesRead: (Property | SpreadElement)[] = [];
+	private unmatchablePropertiesWrite: Property[] = [];
 
 	bind() {
 		super.bind();
@@ -114,7 +114,7 @@ export default class ObjectExpression extends NodeBase {
 			path.length === 1 &&
 			!(this.propertyMap as PropertyMap)[key] &&
 			!objectMembers[key] &&
-			(this.unmatchablePropertiesRead as (Property | SpreadElement)[]).length === 0
+			(this.unmatchablePropertiesRead).length === 0
 		) {
 			const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized.get(key);
 			if (expressionsToBeDeoptimized) {
@@ -162,7 +162,7 @@ export default class ObjectExpression extends NodeBase {
 		if (
 			path.length === 1 &&
 			objectMembers[key] &&
-			this.unmatchablePropertiesRead!.length === 0 &&
+			this.unmatchablePropertiesRead.length === 0 &&
 			(!(this.propertyMap as PropertyMap)[key] ||
 				(this.propertyMap as PropertyMap)[key].exactMatchRead === null)
 		)
@@ -266,10 +266,6 @@ export default class ObjectExpression extends NodeBase {
 		return false;
 	}
 
-	initialise() {
-		this.included = false;
-	}
-
 	render(
 		code: MagicString,
 		options: RenderOptions,
@@ -284,8 +280,6 @@ export default class ObjectExpression extends NodeBase {
 
 	private buildPropertyMap() {
 		this.propertyMap = Object.create(null);
-		this.unmatchablePropertiesRead = [];
-		this.unmatchablePropertiesWrite = [];
 		for (let index = this.properties.length - 1; index >= 0; index--) {
 			const property = this.properties[index];
 			if (property instanceof SpreadElement) {
