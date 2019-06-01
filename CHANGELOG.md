@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 1.13.1
+*unreleased*
+
+### Pull Requests
+* [#2888](https://github.com/rollup/rollup/pull/2888): Enable full TypeScript strict mode (@lukastaegert)
+
 ## 1.13.0
 *2019-05-31*
 
