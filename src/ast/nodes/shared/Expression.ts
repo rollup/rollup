@@ -4,6 +4,7 @@ import { WritableEntity } from '../../Entity';
 import { ExecutionPathOptions } from '../../ExecutionPathOptions';
 import { ImmutableEntityPathTracker } from '../../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath } from '../../values';
+import { IncludeChildren } from './Node';
 
 export interface ExpressionEntity extends WritableEntity {
 	included: boolean;
@@ -29,5 +30,5 @@ export interface ExpressionEntity extends WritableEntity {
 		callOptions: CallOptions,
 		options: ExecutionPathOptions
 	): boolean;
-	include(includeAllChildrenRecursively: boolean): void;
+	include(includeChildrenRecursively: IncludeChildren): void;
 }

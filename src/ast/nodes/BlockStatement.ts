@@ -6,7 +6,7 @@ import ChildScope from '../scopes/ChildScope';
 import Scope from '../scopes/Scope';
 import { UNKNOWN_EXPRESSION } from '../values';
 import * as NodeType from './NodeType';
-import { Node, StatementBase, StatementNode } from './shared/Node';
+import { IncludeChildren, Node, StatementBase, StatementNode } from './shared/Node';
 
 export default class BlockStatement extends StatementBase {
 	body!: StatementNode[];
@@ -32,11 +32,11 @@ export default class BlockStatement extends StatementBase {
 		return false;
 	}
 
-	include(includeAllChildrenRecursively: boolean) {
+	include(includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		for (const node of this.body) {
-			if (includeAllChildrenRecursively || node.shouldBeIncluded())
-				node.include(includeAllChildrenRecursively);
+			if (includeChildrenRecursively || node.shouldBeIncluded())
+				node.include(includeChildrenRecursively);
 		}
 	}
 

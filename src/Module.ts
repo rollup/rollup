@@ -631,7 +631,7 @@ export default class Module {
 			const otherModule = importDeclaration.module as Module | ExternalModule;
 
 			if (otherModule instanceof Module && importDeclaration.name === '*') {
-				return (otherModule).getOrCreateNamespace();
+				return otherModule.getOrCreateNamespace();
 			}
 
 			const declaration = otherModule.getVariableForExportName(importDeclaration.name);

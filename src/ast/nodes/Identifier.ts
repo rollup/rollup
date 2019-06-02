@@ -12,7 +12,7 @@ import LocalVariable from '../variables/LocalVariable';
 import Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
-import { NodeBase } from './shared/Node';
+import { INCLUDE_VARIABLES, IncludeChildren, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
 export type IdentifierWithVariable = Identifier & { variable: Variable };
@@ -119,12 +119,15 @@ export default class Identifier extends NodeBase implements PatternNode {
 		return !this.variable || this.variable.hasEffectsWhenCalledAtPath(path, callOptions, options);
 	}
 
-	include(_includeAllChildrenRecursively: boolean) {
+	include(includeChildrenRecursively: IncludeChildren) {
 		if (!this.included) {
 			this.included = true;
 			if (this.variable !== null) {
 				this.context.includeVariable(this.variable);
 			}
+		}
+		if (includeChildrenRecursively === INCLUDE_VARIABLES && this.variable) {
+			this.variable.includeInitRecursively();
 		}
 	}
 

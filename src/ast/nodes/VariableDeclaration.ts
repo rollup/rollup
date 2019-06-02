@@ -11,7 +11,7 @@ import { EMPTY_PATH, ObjectPath } from '../values';
 import Variable from '../variables/Variable';
 import Identifier, { IdentifierWithVariable } from './Identifier';
 import * as NodeType from './NodeType';
-import { NodeBase } from './shared/Node';
+import { IncludeChildren, NodeBase } from './shared/Node';
 import VariableDeclarator from './VariableDeclarator';
 
 function isReassignedExportsMember(variable: Variable): boolean {
@@ -49,18 +49,18 @@ export default class VariableDeclaration extends NodeBase {
 		return false;
 	}
 
-	include(includeAllChildrenRecursively: boolean) {
+	include(includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		for (const declarator of this.declarations) {
-			if (includeAllChildrenRecursively || declarator.shouldBeIncluded())
-				declarator.include(includeAllChildrenRecursively);
+			if (includeChildrenRecursively || declarator.shouldBeIncluded())
+				declarator.include(includeChildrenRecursively);
 		}
 	}
 
-	includeWithAllDeclaredVariables(includeAllChildrenRecursively: boolean) {
+	includeWithAllDeclaredVariables(includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		for (const declarator of this.declarations) {
-			declarator.include(includeAllChildrenRecursively);
+			declarator.include(includeChildrenRecursively);
 		}
 	}
 

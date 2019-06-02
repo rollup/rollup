@@ -20,7 +20,7 @@ import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
 import { MultiExpression } from './shared/MultiExpression';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 
 export type LogicalOperator = '||' | '&&';
 
@@ -134,17 +134,17 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		return this.usedBranch.hasEffectsWhenCalledAtPath(path, callOptions, options);
 	}
 
-	include(includeAllChildrenRecursively: boolean) {
+	include(includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		if (
-			includeAllChildrenRecursively ||
+			includeChildrenRecursively ||
 			this.usedBranch === null ||
 			(this.unusedBranch as ExpressionNode).shouldBeIncluded()
 		) {
-			this.left.include(includeAllChildrenRecursively);
-			this.right.include(includeAllChildrenRecursively);
+			this.left.include(includeChildrenRecursively);
+			this.right.include(includeChildrenRecursively);
 		} else {
-			this.usedBranch.include(includeAllChildrenRecursively);
+			this.usedBranch.include(includeChildrenRecursively);
 		}
 	}
 

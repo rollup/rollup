@@ -4,7 +4,7 @@ import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import ArrowFunctionExpression from './ArrowFunctionExpression';
 import * as NodeType from './NodeType';
 import FunctionNode from './shared/FunctionNode';
-import { ExpressionNode, Node, NodeBase } from './shared/Node';
+import { ExpressionNode, IncludeChildren, Node, NodeBase } from './shared/Node';
 
 export default class AwaitExpression extends NodeBase {
 	argument!: ExpressionNode;
@@ -14,15 +14,15 @@ export default class AwaitExpression extends NodeBase {
 		return super.hasEffects(options) || !options.ignoreReturnAwaitYield();
 	}
 
-	include(includeAllChildrenRecursively: boolean) {
-		super.include(includeAllChildrenRecursively);
-		if (!this.context.usesTopLevelAwait) {
+	include(includeChildrenRecursively: IncludeChildren) {
+		if (!this.included && !this.context.usesTopLevelAwait) {
 			let parent = this.parent;
 			do {
 				if (parent instanceof FunctionNode || parent instanceof ArrowFunctionExpression) return;
 			} while ((parent = (parent as Node).parent as Node));
 			this.context.usesTopLevelAwait = true;
 		}
+		super.include(includeChildrenRecursively);
 	}
 
 	render(code: MagicString, options: RenderOptions) {

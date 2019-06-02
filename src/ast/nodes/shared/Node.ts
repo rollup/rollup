@@ -18,6 +18,9 @@ export interface GenericEsTreeNode {
 	[key: string]: any;
 }
 
+export const INCLUDE_VARIABLES: 'variables' = 'variables';
+export type IncludeChildren = boolean | typeof INCLUDE_VARIABLES;
+
 export interface Node extends Entity {
 	annotations?: CommentDescription[];
 	context: AstContext;
@@ -54,14 +57,14 @@ export interface Node extends Entity {
 	 * if they are necessary for this node (e.g. a function body) or if they have effects.
 	 * Necessary variables need to be included as well.
 	 */
-	include(includeAllChildrenRecursively: boolean): void;
+	include(includeChildrenRecursively: IncludeChildren): void;
 
 	/**
 	 * Alternative version of include to override the default behaviour of
 	 * declarations to only include nodes for declarators that have an effect. Necessary
 	 * for for-loops that do not use a declared loop variable.
 	 */
-	includeWithAllDeclaredVariables(includeAllChildrenRecursively: boolean): void;
+	includeWithAllDeclaredVariables(includeChildrenRecursively: IncludeChildren): void;
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void;
 
 	/**
@@ -178,23 +181,23 @@ export class NodeBase implements ExpressionNode {
 		return true;
 	}
 
-	include(includeAllChildrenRecursively: boolean) {
+	include(includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		for (const key of this.keys) {
 			const value = (this as GenericEsTreeNode)[key];
 			if (value === null || key === 'annotations') continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
-					if (child !== null) child.include(includeAllChildrenRecursively);
+					if (child !== null) child.include(includeChildrenRecursively);
 				}
 			} else {
-				value.include(includeAllChildrenRecursively);
+				value.include(includeChildrenRecursively);
 			}
 		}
 	}
 
-	includeWithAllDeclaredVariables(includeAllChildrenRecursively: boolean) {
-		this.include(includeAllChildrenRecursively);
+	includeWithAllDeclaredVariables(includeChildrenRecursively: IncludeChildren) {
+		this.include(includeChildrenRecursively);
 	}
 
 	/**

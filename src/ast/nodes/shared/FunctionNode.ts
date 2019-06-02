@@ -5,7 +5,7 @@ import BlockScope from '../../scopes/FunctionScope';
 import { ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_KEY, UNKNOWN_PATH } from '../../values';
 import BlockStatement from '../BlockStatement';
 import { IdentifierWithVariable } from '../Identifier';
-import { GenericEsTreeNode, NodeBase } from './Node';
+import { GenericEsTreeNode, IncludeChildren, NodeBase } from './Node';
 import { PatternNode } from './Pattern';
 
 export default class FunctionNode extends NodeBase {
@@ -73,9 +73,9 @@ export default class FunctionNode extends NodeBase {
 		return this.body.hasEffects(innerOptions);
 	}
 
-	include(includeAllChildrenRecursively: boolean) {
+	include(includeChildrenRecursively: IncludeChildren) {
 		this.scope.argumentsVariable.include();
-		super.include(includeAllChildrenRecursively);
+		super.include(includeChildrenRecursively);
 	}
 
 	initialise() {

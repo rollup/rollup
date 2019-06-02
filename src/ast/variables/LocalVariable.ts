@@ -7,7 +7,7 @@ import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import Identifier from '../nodes/Identifier';
 import * as NodeType from '../nodes/NodeType';
 import { ExpressionEntity } from '../nodes/shared/Expression';
-import { Node } from '../nodes/shared/Node';
+import { INCLUDE_VARIABLES, Node } from '../nodes/shared/Node';
 import { EntityPathTracker } from '../utils/EntityPathTracker';
 import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
 import {
@@ -32,6 +32,7 @@ export default class LocalVariable extends Variable {
 	// We track deoptimization when we do not return something unknown
 	private deoptimizationTracker: EntityPathTracker;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
+	private hasInitBeenIncluded = false;
 
 	constructor(
 		name: string,
@@ -187,6 +188,15 @@ export default class LocalVariable extends Variable {
 					if (node.type === NodeType.Program) break;
 					node = node.parent as Node;
 				}
+			}
+		}
+	}
+
+	includeInitRecursively() {
+		if (!this.hasInitBeenIncluded) {
+			this.hasInitBeenIncluded = true;
+			if (this.init && this.init !== UNKNOWN_EXPRESSION) {
+				this.init.include(INCLUDE_VARIABLES);
 			}
 		}
 	}

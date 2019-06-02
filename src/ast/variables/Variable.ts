@@ -84,6 +84,8 @@ export default class Variable implements ExpressionEntity {
 		this.included = true;
 	}
 
+	includeInitRecursively() {}
+
 	setRenderNames(baseName: string | null, name: string | null) {
 		this.renderBaseName = baseName;
 		this.renderName = name;

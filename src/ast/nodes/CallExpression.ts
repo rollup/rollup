@@ -19,7 +19,7 @@ import {
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 import SpreadElement from './SpreadElement';
 
 export default class CallExpression extends NodeBase implements DeoptimizableEntity {
@@ -196,8 +196,8 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		);
 	}
 
-	include(includeAllChildrenRecursively: boolean) {
-		super.include(includeAllChildrenRecursively);
+	include(includeChildrenRecursively: IncludeChildren) {
+		super.include(includeChildrenRecursively);
 		if (!(this.returnExpression as ExpressionEntity).included) {
 			(this.returnExpression as ExpressionEntity).include(false);
 		}

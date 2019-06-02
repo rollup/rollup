@@ -2,7 +2,7 @@ import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import BlockStatement from './BlockStatement';
 import CatchClause from './CatchClause';
 import * as NodeType from './NodeType';
-import { StatementBase } from './shared/Node';
+import { INCLUDE_VARIABLES, IncludeChildren, StatementBase } from './shared/Node';
 
 export default class TryStatement extends StatementBase {
 	block!: BlockStatement;
@@ -18,16 +18,16 @@ export default class TryStatement extends StatementBase {
 		);
 	}
 
-	include(includeAllChildrenRecursively: boolean) {
+	include(includeChildrenRecursively: IncludeChildren) {
 		if (!this.included) {
 			this.included = true;
-			this.block.include(true);
+			this.block.include(INCLUDE_VARIABLES);
 		}
 		if (this.handler !== null) {
-			this.handler.include(includeAllChildrenRecursively);
+			this.handler.include(includeChildrenRecursively);
 		}
 		if (this.finalizer !== null) {
-			this.finalizer.include(includeAllChildrenRecursively);
+			this.finalizer.include(includeChildrenRecursively);
 		}
 	}
 }
