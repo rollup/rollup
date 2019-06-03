@@ -24,8 +24,8 @@ export default class RestElement extends NodeBase implements PatternNode {
 	}
 
 	declare(kind: string, init: ExpressionEntity) {
-		this.argument.declare(kind, UNKNOWN_EXPRESSION);
 		this.declarationInit = init;
+		return this.argument.declare(kind, UNKNOWN_EXPRESSION);
 	}
 
 	deoptimizePath(path: ObjectPath) {

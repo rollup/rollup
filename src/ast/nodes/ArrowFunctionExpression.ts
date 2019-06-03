@@ -5,8 +5,10 @@ import Scope from '../scopes/Scope';
 import { ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_KEY, UNKNOWN_PATH } from '../values';
 import BlockStatement from './BlockStatement';
 import * as NodeType from './NodeType';
+import RestElement from './RestElement';
 import { ExpressionNode, GenericEsTreeNode, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
+import SpreadElement from './SpreadElement';
 
 export default class ArrowFunctionExpression extends NodeBase {
 	body!: BlockStatement | ExpressionNode;
@@ -57,10 +59,15 @@ export default class ArrowFunctionExpression extends NodeBase {
 		return this.body.hasEffects(options);
 	}
 
+	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+		this.scope.includeCallArguments(args);
+	}
+
 	initialise() {
-		for (const param of this.params) {
-			param.declare('parameter', UNKNOWN_EXPRESSION);
-		}
+		this.scope.addParameterVariables(
+			this.params.map(param => param.declare('parameter', UNKNOWN_EXPRESSION)),
+			this.params[this.params.length - 1] instanceof RestElement
+		);
 		if (this.body instanceof BlockStatement) {
 			this.body.addImplicitReturnExpressionToScope();
 		} else {

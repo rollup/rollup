@@ -38,6 +38,20 @@ System.register('stirred', ['external'], function (exports) {
 				}
 			}
 
+			function test(
+				unusedParam = {
+					prop: function test() {
+						var unused = 1;
+					}
+				}
+			) {}
+
+			test({
+				prop: function test() {
+					var unused = 1;
+				}
+			});
+
 		}
 	};
 });

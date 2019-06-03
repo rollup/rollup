@@ -3,7 +3,9 @@ import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../../ExecutionPathOptions';
 import { ImmutableEntityPathTracker } from '../../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../../values';
+import SpreadElement from '../SpreadElement';
 import { ExpressionEntity } from './Expression';
+import { ExpressionNode } from './Node';
 
 export class MultiExpression implements ExpressionEntity {
 	included = false;
@@ -62,4 +64,10 @@ export class MultiExpression implements ExpressionEntity {
 	}
 
 	include(): void {}
+
+	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+		for (const expression of this.expressions) {
+			expression.includeCallArguments(args);
+		}
+	}
 }

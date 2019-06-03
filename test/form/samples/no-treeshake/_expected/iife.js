@@ -32,6 +32,20 @@ var stirred = (function (exports, external) {
 		}
 	}
 
+	function test(
+		unusedParam = {
+			prop: function test() {
+				var unused = 1;
+			}
+		}
+	) {}
+
+	test({
+		prop: function test() {
+			var unused = 1;
+		}
+	});
+
 	exports.create = create;
 	exports.getPrototypeOf = getPrototypeOf;
 	exports.strange = quux;

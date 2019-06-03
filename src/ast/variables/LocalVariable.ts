@@ -7,7 +7,8 @@ import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import Identifier from '../nodes/Identifier';
 import * as NodeType from '../nodes/NodeType';
 import { ExpressionEntity } from '../nodes/shared/Expression';
-import { INCLUDE_VARIABLES, Node } from '../nodes/shared/Node';
+import { ExpressionNode, INCLUDE_VARIABLES, Node } from '../nodes/shared/Node';
+import SpreadElement from '../nodes/SpreadElement';
 import { EntityPathTracker } from '../utils/EntityPathTracker';
 import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
 import {
@@ -25,6 +26,7 @@ const MAX_PATH_DEPTH = 7;
 export default class LocalVariable extends Variable {
 	additionalInitializers: ExpressionEntity[] | null = null;
 	declarations: (Identifier | ExportDefaultDeclaration)[];
+	hasInitBeenForceIncluded = false;
 	init: ExpressionEntity | null;
 	module: Module;
 
@@ -32,7 +34,6 @@ export default class LocalVariable extends Variable {
 	// We track deoptimization when we do not return something unknown
 	private deoptimizationTracker: EntityPathTracker;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
-	private hasInitBeenIncluded = false;
 
 	constructor(
 		name: string,
@@ -192,9 +193,19 @@ export default class LocalVariable extends Variable {
 		}
 	}
 
+	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+		if (this.isReassigned) {
+			for (const arg of args) {
+				arg.include(false);
+			}
+		} else if (this.init) {
+			this.init.includeCallArguments(args);
+		}
+	}
+
 	includeInitRecursively() {
-		if (!this.hasInitBeenIncluded) {
-			this.hasInitBeenIncluded = true;
+		if (!this.hasInitBeenForceIncluded) {
+			this.hasInitBeenForceIncluded = true;
 			if (this.init && this.init !== UNKNOWN_EXPRESSION) {
 				this.init.include(INCLUDE_VARIABLES);
 			}

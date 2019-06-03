@@ -26,3 +26,17 @@ function unusedButIncluded() {
 			const ignored = 2;
 	}
 }
+
+function test(
+	unusedParam = {
+		prop: function test() {
+			var unused = 1;
+		}
+	}
+) {}
+
+test({
+	prop: function test() {
+		var unused = 1;
+	}
+});

@@ -10,7 +10,9 @@ import { getAndCreateKeys, keys } from '../../keys';
 import ChildScope from '../../scopes/ChildScope';
 import { ImmutableEntityPathTracker } from '../../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../../values';
+import LocalVariable from '../../variables/LocalVariable';
 import Variable from '../../variables/Variable';
+import SpreadElement from '../SpreadElement';
 import { ExpressionEntity } from './Expression';
 
 export interface GenericEsTreeNode {
@@ -42,7 +44,7 @@ export interface Node extends Entity {
 	/**
 	 * Declare a new variable with the optional initialisation.
 	 */
-	declare(kind: string, init: ExpressionEntity | null): void;
+	declare(kind: string, init: ExpressionEntity | null): LocalVariable[];
 
 	/**
 	 * Determine if this Node would have an effect on the bundle.
@@ -132,7 +134,9 @@ export class NodeBase implements ExpressionNode {
 		this.scope = parentScope;
 	}
 
-	declare(_kind: string, _init: ExpressionEntity | null) {}
+	declare(_kind: string, _init: ExpressionEntity | null): LocalVariable[] {
+		return [];
+	}
 
 	deoptimizePath(_path: ObjectPath) {}
 
@@ -193,6 +197,12 @@ export class NodeBase implements ExpressionNode {
 			} else {
 				value.include(includeChildrenRecursively);
 			}
+		}
+	}
+
+	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+		for (const arg of args) {
+			arg.include(false);
 		}
 	}
 
