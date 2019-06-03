@@ -1,7 +1,11 @@
-function callGlobal() {
+function callGlobalRemoved() {
+}
+
+function callGlobalRetained() {
 	Object.create(null);
+	callGlobalRemoved();
 }
 
 try {
-	callGlobal();
+	callGlobalRetained();
 } catch {}

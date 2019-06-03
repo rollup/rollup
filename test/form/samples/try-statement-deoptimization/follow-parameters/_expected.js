@@ -1,8 +1,12 @@
-function callGlobal1() {
+function callGlobalRemoved1() {
 }
 
-function callGlobal2() {
+function callGlobalRemoved2() {
+}
+
+function callGlobalRetained() {
 	Object.create(null);
+	callGlobalRemoved1();
 }
 
 function tryIt(other, callback) {
@@ -11,4 +15,12 @@ function tryIt(other, callback) {
 	} catch {}
 }
 
-tryIt(callGlobal1, callGlobal2);
+tryIt(callGlobalRemoved2, callGlobalRetained);
+
+tryIt(
+	() => {
+	},
+	() => {
+		Object.create(null);
+	}
+);

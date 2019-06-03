@@ -1,9 +1,20 @@
-function callGlobal1() {
+function callGlobalTreeshaken() {
 	Object.create(null);
 }
 
-function callGlobal2() {
+function callGlobalRemoved1() {
 	Object.create(null);
+	callGlobalTreeshaken();
+}
+
+function callGlobalRemoved2() {
+	Object.create(null);
+	callGlobalTreeshaken();
+}
+
+function callGlobalRetained() {
+	Object.create(null);
+	callGlobalRemoved1();
 }
 
 function tryIt(other, callback) {
@@ -12,4 +23,13 @@ function tryIt(other, callback) {
 	} catch {}
 }
 
-tryIt(callGlobal1, callGlobal2);
+tryIt(callGlobalRemoved2, callGlobalRetained);
+
+tryIt(
+	() => {
+		Object.create(null);
+	},
+	() => {
+		Object.create(null);
+	}
+);

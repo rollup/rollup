@@ -23,7 +23,7 @@ import {
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
-import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
+import { ExpressionNode, INCLUDE_VARIABLES, IncludeChildren, NodeBase } from './shared/Node';
 import SpreadElement from './SpreadElement';
 
 export default class CallExpression extends NodeBase implements DeoptimizableEntity {
@@ -203,6 +203,13 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 	include(includeChildrenRecursively: IncludeChildren) {
 		if (includeChildrenRecursively) {
 			super.include(includeChildrenRecursively);
+			if (
+				includeChildrenRecursively === INCLUDE_VARIABLES &&
+				this.callee instanceof Identifier &&
+				this.callee.variable
+			) {
+				this.callee.variable.includeInitRecursively();
+			}
 		} else {
 			this.included = true;
 			this.callee.include(false);

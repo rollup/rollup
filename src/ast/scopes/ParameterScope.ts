@@ -1,6 +1,6 @@
 import { AstContext } from '../../Module';
 import Identifier from '../nodes/Identifier';
-import { ExpressionNode, INCLUDE_VARIABLES } from '../nodes/shared/Node';
+import { ExpressionNode } from '../nodes/shared/Node';
 import SpreadElement from '../nodes/SpreadElement';
 import { UNKNOWN_EXPRESSION } from '../values';
 import LocalVariable from '../variables/LocalVariable';
@@ -54,9 +54,12 @@ export default class ParameterScope extends ChildScope {
 						break;
 					}
 				}
-				arg.include(hasInitBeenForceIncluded ? INCLUDE_VARIABLES : false);
-			} else if (this.hasRest || arg.shouldBeIncluded()) {
-				arg.include(hasInitBeenForceIncluded ? INCLUDE_VARIABLES : false);
+			}
+			if (paramVars || this.hasRest || arg.shouldBeIncluded()) {
+				arg.include(hasInitBeenForceIncluded);
+				if (hasInitBeenForceIncluded && arg instanceof Identifier && arg.variable) {
+					arg.variable.includeInitRecursively();
+				}
 			}
 		}
 	}

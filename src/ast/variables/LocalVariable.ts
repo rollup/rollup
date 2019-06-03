@@ -7,7 +7,7 @@ import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import Identifier from '../nodes/Identifier';
 import * as NodeType from '../nodes/NodeType';
 import { ExpressionEntity } from '../nodes/shared/Expression';
-import { ExpressionNode, INCLUDE_VARIABLES, Node } from '../nodes/shared/Node';
+import { ExpressionNode, Node } from '../nodes/shared/Node';
 import SpreadElement from '../nodes/SpreadElement';
 import { EntityPathTracker } from '../utils/EntityPathTracker';
 import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
@@ -207,7 +207,7 @@ export default class LocalVariable extends Variable {
 		if (!this.hasInitBeenForceIncluded) {
 			this.hasInitBeenForceIncluded = true;
 			if (this.init && this.init !== UNKNOWN_EXPRESSION) {
-				this.init.include(INCLUDE_VARIABLES);
+				this.init.include(true);
 			}
 		}
 	}
