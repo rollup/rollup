@@ -4,6 +4,7 @@ import ReturnValueScope from '../scopes/ReturnValueScope';
 import Scope from '../scopes/Scope';
 import { ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_KEY, UNKNOWN_PATH } from '../values';
 import BlockStatement from './BlockStatement';
+import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import RestElement from './RestElement';
 import { ExpressionNode, GenericEsTreeNode, NodeBase } from './shared/Node';
@@ -57,6 +58,16 @@ export default class ArrowFunctionExpression extends NodeBase {
 			if (param.hasEffects(options)) return true;
 		}
 		return this.body.hasEffects(options);
+	}
+
+	include(includeChildrenRecursively: boolean | 'variables') {
+		this.included = true;
+		this.body.include(includeChildrenRecursively);
+		for (const param of this.params) {
+			if (!(param instanceof Identifier)) {
+				param.include(includeChildrenRecursively);
+			}
+		}
 	}
 
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {

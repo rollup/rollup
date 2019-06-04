@@ -43,19 +43,25 @@ export default class ParameterScope extends ChildScope {
 
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
 		let hasInitBeenForceIncluded = false;
-		for (let index = 0; index < args.length; index++) {
-			const paramVars = this.parameters[index];
+		let argIncluded = false;
+		const restParam = this.hasRest && this.parameters[this.parameters.length - 1];
+		for (let index = args.length - 1; index >= 0; index--) {
+			const paramVars = this.parameters[index] || restParam;
 			const arg = args[index];
 			if (paramVars) {
 				hasInitBeenForceIncluded = false;
 				for (const variable of paramVars) {
+					if (variable.included) {
+						argIncluded = true;
+					}
 					if (variable.hasInitBeenForceIncluded) {
 						hasInitBeenForceIncluded = true;
-						break;
 					}
 				}
+			} else if (!argIncluded && arg.shouldBeIncluded()) {
+				argIncluded = true;
 			}
-			if (paramVars || this.hasRest || arg.shouldBeIncluded()) {
+			if (argIncluded) {
 				arg.include(hasInitBeenForceIncluded);
 				if (hasInitBeenForceIncluded && arg instanceof Identifier && arg.variable) {
 					arg.variable.includeInitRecursively();

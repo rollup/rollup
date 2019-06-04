@@ -3,7 +3,7 @@ import { ExecutionPathOptions } from '../../ExecutionPathOptions';
 import FunctionScope from '../../scopes/FunctionScope';
 import { ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_KEY, UNKNOWN_PATH } from '../../values';
 import BlockStatement from '../BlockStatement';
-import { IdentifierWithVariable } from '../Identifier';
+import Identifier, { IdentifierWithVariable } from '../Identifier';
 import RestElement from '../RestElement';
 import SpreadElement from '../SpreadElement';
 import { ExpressionNode, GenericEsTreeNode, NodeBase } from './Node';
@@ -72,6 +72,20 @@ export default class FunctionNode extends NodeBase {
 			if (param.hasEffects(innerOptions)) return true;
 		}
 		return this.body.hasEffects(innerOptions);
+	}
+
+	include(includeChildrenRecursively: boolean | 'variables') {
+		this.included = true;
+		this.body.include(includeChildrenRecursively);
+		if (this.id) {
+			this.id.include();
+		}
+		const hasArguments = this.scope.argumentsVariable.included;
+		for (const param of this.params) {
+			if (!(param instanceof Identifier) || hasArguments) {
+				param.include(includeChildrenRecursively);
+			}
+		}
 	}
 
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
