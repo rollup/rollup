@@ -25,6 +25,7 @@ import Literal from './Literal';
 import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
+import SpreadElement from './SpreadElement';
 
 function getResolvablePropertyKey(memberExpression: MemberExpression): string | null {
 	return memberExpression.computed
@@ -220,6 +221,14 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		}
 		this.object.include(includeChildrenRecursively);
 		this.property.include(includeChildrenRecursively);
+	}
+
+	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+		if (this.variable) {
+			this.variable.includeCallArguments(args);
+		} else {
+			super.includeCallArguments(args);
+		}
 	}
 
 	initialise() {
