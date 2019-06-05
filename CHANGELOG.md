@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 1.14.1
+*2019-06-05*
+
+### Bug Fixes
+* Fix an issue where try-statements were not included properly when a variable declared inside the statement was accessed outside it (#2898)
+* Fix an issue where `await` expressions were not included properly (#2899)
+
+### Pull Requests
+* [#2898](https://github.com/rollup/rollup/pull/2898): Properly include try-catch-statements even if they have already been included in some way (@lukastaegert)
+* [#2899](https://github.com/rollup/rollup/pull/2899): Fix unintended early return in await inclusion handling (@lukastaegert)
+
 ## 1.14.0
 *2019-06-05*
 
