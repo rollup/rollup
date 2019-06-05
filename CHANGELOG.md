@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.14.2
+*2019-06-05*
+
+### Bug Fixes
+* Prevent unnecessary inclusion of external namespace import in certain situations (#2900)
+
+### Pull Requests
+* [#2900](https://github.com/rollup/rollup/pull/2900): Handle early bind for member expressions (@lukastaegert)
+
 ## 1.14.1
 *2019-06-05*
 
