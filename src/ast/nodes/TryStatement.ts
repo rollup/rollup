@@ -10,6 +10,8 @@ export default class TryStatement extends StatementBase {
 	handler!: CatchClause | null;
 	type!: NodeType.tTryStatement;
 
+	private directlyIncluded = false;
+
 	hasEffects(options: ExecutionPathOptions): boolean {
 		return (
 			this.block.body.length > 0 ||
@@ -19,8 +21,9 @@ export default class TryStatement extends StatementBase {
 	}
 
 	include(includeChildrenRecursively: IncludeChildren) {
-		if (!this.included) {
+		if (!this.directlyIncluded) {
 			this.included = true;
+			this.directlyIncluded = true;
 			this.block.include(
 				this.context.tryCatchDeoptimization ? INCLUDE_VARIABLES : includeChildrenRecursively
 			);
