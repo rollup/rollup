@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 1.14.0
+*2019-06-05*
+
+### Features
+* Deoptimize code inside and called from try-statements for feature detection (#2892)
+* Tree-shake unused call arguments (#2892)
+
+### Pull Requests
+* [#2892](https://github.com/rollup/rollup/pull/2892): Implement try-statement-deoptimization for feature detection, tree-shake unused arguments (@lukastaegert)
+
+
 ## 1.13.1
 *2019-06-01*
 
