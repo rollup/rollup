@@ -21,7 +21,9 @@ export default class TryStatement extends StatementBase {
 	include(includeChildrenRecursively: IncludeChildren) {
 		if (!this.included) {
 			this.included = true;
-			this.block.include(INCLUDE_VARIABLES);
+			this.block.include(
+				this.context.tryCatchDeoptimization ? INCLUDE_VARIABLES : includeChildrenRecursively
+			);
 		}
 		if (this.handler !== null) {
 			this.handler.include(includeChildrenRecursively);

@@ -109,6 +109,7 @@ export interface AstContext {
 	traceExport: (name: string) => Variable;
 	traceVariable: (name: string) => Variable | null;
 	treeshake: boolean;
+	tryCatchDeoptimization: boolean;
 	usesTopLevelAwait: boolean;
 	warn: (warning: RollupWarning, pos: number) => void;
 }
@@ -589,6 +590,8 @@ export default class Module {
 			traceExport: this.getVariableForExportName.bind(this),
 			traceVariable: this.traceVariable.bind(this),
 			treeshake: !!this.graph.treeshakingOptions,
+			tryCatchDeoptimization: (!this.graph.treeshakingOptions ||
+				this.graph.treeshakingOptions.tryCatchDeoptimization) as boolean,
 			usesTopLevelAwait: false,
 			warn: this.warn.bind(this)
 		};
