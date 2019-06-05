@@ -23,8 +23,9 @@ import Variable from '../variables/Variable';
 import Identifier from './Identifier';
 import Literal from './Literal';
 import * as NodeType from './NodeType';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
+import SpreadElement from './SpreadElement';
 
 function getResolvablePropertyKey(memberExpression: MemberExpression): string | null {
 	return memberExpression.computed
@@ -211,15 +212,23 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		);
 	}
 
-	include(includeAllChildrenRecursively: boolean) {
+	include(includeChildrenRecursively: IncludeChildren) {
 		if (!this.included) {
 			this.included = true;
 			if (this.variable !== null) {
 				this.context.includeVariable(this.variable);
 			}
 		}
-		this.object.include(includeAllChildrenRecursively);
-		this.property.include(includeAllChildrenRecursively);
+		this.object.include(includeChildrenRecursively);
+		this.property.include(includeChildrenRecursively);
+	}
+
+	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+		if (this.variable) {
+			this.variable.includeCallArguments(args);
+		} else {
+			super.includeCallArguments(args);
+		}
 	}
 
 	initialise() {

@@ -825,6 +825,56 @@ const result = foo.bar;
 const illegalAccess = foo.quux.tooDeep;
 ```
 
+**treeshake.tryCatchDeoptimization**
+Type: `boolean`<br>
+CLI: `--treeshake.tryCatchDeoptimization`/`--no-treeshake.tryCatchDeoptimization`<br>
+Default: `true`
+
+By default, Rollup assumes that many builtin globals of the runtime behave according to the latest specs when tree-shaking and do not throw unexpected errors. In order to support e.g. feature detection workflows that rely on those errors being thrown, Rollup will by default deactivate tree-shaking inside try-statements. Furthermore, it will also deactivate tree-shaking inside functions that are called directly from a try-statement if Rollup can resolve the function. Set `treeshake.tryCatchDeoptimization` to `false` if you do not need this feature and want to have tree-shaking inside try-statements as well as inside functions called from those statements.
+
+```js
+function directlyCalled1() {
+  // as this function is directly called from a try-statement, it will be
+  // retained unmodified for tryCatchDeoptimization: true including staements
+  // that would usually be removed 
+  Object.create(null);
+  notDirectlyCalled();
+}
+
+function directlyCalled2() {
+  Object.create(null);
+  notDirectlyCalled();
+}
+
+function notDirectlyCalled() {
+  // even if this function is retained, this will be removed as the function is
+  // never directly called from a try-statement
+  Object.create(null);
+}
+
+function test(callback) {
+  try {
+  	// calls to otherwise side-effect-free global functions are retained
+  	// inside try-statements for tryCatchDeoptimization: true
+    Object.create(null);
+    
+  	// directly resolvable calls will also be deoptimized
+    directlyCalled1();
+    
+    // if a parameter is called, then all arguments passed to that function
+    // parameter will be deoptimized
+    callback();
+    
+    // all calls will be retained but only calls of the form
+    // "identifier(someArguments)" will also deoptimize the target
+    (notDirectlyCalled && notDirectlyCalled)();
+  } catch {}
+}
+
+test(directlyCalled2);
+
+```
+
 ### Experimental options
 
 These options reflect new features that have not yet been fully finalized. Availability, behaviour and usage may therefore be subject to change between minor versions.

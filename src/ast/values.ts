@@ -2,6 +2,8 @@ import CallOptions from './CallOptions';
 import { ExecutionPathOptions } from './ExecutionPathOptions';
 import { LiteralValue } from './nodes/Literal';
 import { ExpressionEntity } from './nodes/shared/Expression';
+import { ExpressionNode } from './nodes/shared/Node';
+import SpreadElement from './nodes/SpreadElement';
 
 export interface UnknownKey {
 	UNKNOWN_KEY: true;
@@ -49,6 +51,11 @@ export const UNKNOWN_EXPRESSION: ExpressionEntity = {
 	hasEffectsWhenAssignedAtPath: path => path.length > 0,
 	hasEffectsWhenCalledAtPath: () => true,
 	include: () => {},
+	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+		for (const arg of args) {
+			arg.include(false);
+		}
+	},
 	included: true,
 	toString: () => '[[UNKNOWN]]'
 };
@@ -60,6 +67,7 @@ export const UNDEFINED_EXPRESSION: ExpressionEntity = {
 	hasEffectsWhenAssignedAtPath: path => path.length > 0,
 	hasEffectsWhenCalledAtPath: () => true,
 	include: () => {},
+	includeCallArguments(): void {},
 	included: true,
 	toString: () => 'undefined'
 };
@@ -115,6 +123,12 @@ export class UnknownArrayExpression implements ExpressionEntity {
 
 	include() {
 		this.included = true;
+	}
+
+	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+		for (const arg of args) {
+			arg.include(false);
+		}
 	}
 
 	toString() {
@@ -174,6 +188,11 @@ const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = {
 		return true;
 	},
 	include: () => {},
+	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+		for (const arg of args) {
+			arg.include(false);
+		}
+	},
 	included: true,
 	toString: () => '[[UNKNOWN BOOLEAN]]'
 };
@@ -214,6 +233,11 @@ const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = {
 		return true;
 	},
 	include: () => {},
+	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+		for (const arg of args) {
+			arg.include(false);
+		}
+	},
 	included: true,
 	toString: () => '[[UNKNOWN NUMBER]]'
 };
@@ -261,6 +285,11 @@ const UNKNOWN_LITERAL_STRING: ExpressionEntity = {
 		return true;
 	},
 	include: () => {},
+	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+		for (const arg of args) {
+			arg.include(false);
+		}
+	},
 	included: true,
 	toString: () => '[[UNKNOWN STRING]]'
 };
@@ -311,6 +340,12 @@ export class UnknownObjectExpression implements ExpressionEntity {
 
 	include() {
 		this.included = true;
+	}
+
+	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+		for (const arg of args) {
+			arg.include(false);
+		}
 	}
 
 	toString() {

@@ -42,7 +42,7 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 
 	declare(kind: string, init: ExpressionEntity) {
 		this.declarationInit = init;
-		this.value.declare(kind, UNKNOWN_EXPRESSION);
+		return this.value.declare(kind, UNKNOWN_EXPRESSION);
 	}
 
 	deoptimizeCache() {

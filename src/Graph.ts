@@ -117,13 +117,16 @@ export default class Graph {
 						moduleSideEffects: (options.treeshake as TreeshakingOptions).moduleSideEffects,
 						propertyReadSideEffects:
 							(options.treeshake as TreeshakingOptions).propertyReadSideEffects !== false,
-						pureExternalModules: (options.treeshake as TreeshakingOptions).pureExternalModules
+						pureExternalModules: (options.treeshake as TreeshakingOptions).pureExternalModules,
+						tryCatchDeoptimization:
+							(options.treeshake as TreeshakingOptions).tryCatchDeoptimization !== false
 				  }
 				: {
 						annotations: true,
 						moduleSideEffects: true,
 						propertyReadSideEffects: true,
-						pureExternalModules: false
+						pureExternalModules: false,
+						tryCatchDeoptimization: true
 				  };
 		}
 

@@ -5,6 +5,8 @@ import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import Identifier from '../nodes/Identifier';
 import { ExpressionEntity } from '../nodes/shared/Expression';
+import { ExpressionNode } from '../nodes/shared/Node';
+import SpreadElement from '../nodes/SpreadElement';
 import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 
@@ -83,6 +85,14 @@ export default class Variable implements ExpressionEntity {
 	include() {
 		this.included = true;
 	}
+
+	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+		for (const arg of args) {
+			arg.include(false);
+		}
+	}
+
+	includeInitRecursively() {}
 
 	setRenderNames(baseName: string | null, name: string | null) {
 		this.renderBaseName = baseName;

@@ -13,7 +13,7 @@ import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker'
 import { LiteralValueOrUnknown, ObjectPath } from '../values';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 
 export default class SequenceExpression extends NodeBase {
 	expressions!: ExpressionNode[];
@@ -68,14 +68,14 @@ export default class SequenceExpression extends NodeBase {
 		);
 	}
 
-	include(includeAllChildrenRecursively: boolean) {
+	include(includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		for (let i = 0; i < this.expressions.length - 1; i++) {
 			const node = this.expressions[i];
-			if (includeAllChildrenRecursively || node.shouldBeIncluded())
-				node.include(includeAllChildrenRecursively);
+			if (includeChildrenRecursively || node.shouldBeIncluded())
+				node.include(includeChildrenRecursively);
 		}
-		this.expressions[this.expressions.length - 1].include(includeAllChildrenRecursively);
+		this.expressions[this.expressions.length - 1].include(includeChildrenRecursively);
 	}
 
 	render(

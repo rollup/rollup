@@ -1,5 +1,5 @@
-function foo () {
-	return 42;
+function foo (x) {
+	return x;
 }
 
 var str = `

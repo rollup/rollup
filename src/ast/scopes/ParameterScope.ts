@@ -1,5 +1,7 @@
 import { AstContext } from '../../Module';
 import Identifier from '../nodes/Identifier';
+import { ExpressionNode } from '../nodes/shared/Node';
+import SpreadElement from '../nodes/SpreadElement';
 import { UNKNOWN_EXPRESSION } from '../values';
 import LocalVariable from '../variables/LocalVariable';
 import ChildScope from './ChildScope';
@@ -8,8 +10,9 @@ import Scope from './Scope';
 export default class ParameterScope extends ChildScope {
 	hoistedBodyVarScope: ChildScope;
 
+	protected parameters: LocalVariable[][] = [];
 	private context: AstContext;
-	private parameters: LocalVariable[] = [];
+	private hasRest = false;
 
 	constructor(parent: Scope, context: AstContext) {
 		super(parent);
@@ -30,11 +33,40 @@ export default class ParameterScope extends ChildScope {
 			variable = new LocalVariable(name, identifier, UNKNOWN_EXPRESSION, this.context);
 		}
 		this.variables.set(name, variable);
-		this.parameters.push(variable);
 		return variable;
 	}
 
-	getParameterVariables() {
-		return this.parameters;
+	addParameterVariables(parameters: LocalVariable[][], hasRest: boolean) {
+		this.parameters = parameters;
+		this.hasRest = hasRest;
+	}
+
+	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+		let hasInitBeenForceIncluded = false;
+		let argIncluded = false;
+		const restParam = this.hasRest && this.parameters[this.parameters.length - 1];
+		for (let index = args.length - 1; index >= 0; index--) {
+			const paramVars = this.parameters[index] || restParam;
+			const arg = args[index];
+			if (paramVars) {
+				hasInitBeenForceIncluded = false;
+				for (const variable of paramVars) {
+					if (variable.included) {
+						argIncluded = true;
+					}
+					if (variable.hasInitBeenForceIncluded) {
+						hasInitBeenForceIncluded = true;
+					}
+				}
+			} else if (!argIncluded && arg.shouldBeIncluded()) {
+				argIncluded = true;
+			}
+			if (argIncluded) {
+				arg.include(hasInitBeenForceIncluded);
+				if (hasInitBeenForceIncluded && arg instanceof Identifier && arg.variable) {
+					arg.variable.includeInitRecursively();
+				}
+			}
+		}
 	}
 }

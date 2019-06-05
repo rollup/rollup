@@ -12,8 +12,9 @@ import LocalVariable from '../variables/LocalVariable';
 import Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
-import { NodeBase } from './shared/Node';
+import { ExpressionNode, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
+import SpreadElement from './SpreadElement';
 
 export type IdentifierWithVariable = Identifier & { variable: Variable };
 
@@ -47,22 +48,24 @@ export default class Identifier extends NodeBase implements PatternNode {
 	}
 
 	declare(kind: string, init: ExpressionEntity) {
+		let variable: LocalVariable;
 		switch (kind) {
 			case 'var':
 			case 'function':
-				this.variable = this.scope.addDeclaration(this, this.context, init, true);
+				variable = this.scope.addDeclaration(this, this.context, init, true);
 				break;
 			case 'let':
 			case 'const':
 			case 'class':
-				this.variable = this.scope.addDeclaration(this, this.context, init, false);
+				variable = this.scope.addDeclaration(this, this.context, init, false);
 				break;
 			case 'parameter':
-				this.variable = (this.scope as FunctionScope).addParameterDeclaration(this);
+				variable = (this.scope as FunctionScope).addParameterDeclaration(this);
 				break;
 			default:
 				throw new Error(`Unexpected identifier kind ${kind}.`);
 		}
+		return [(this.variable = variable)];
 	}
 
 	deoptimizePath(path: ObjectPath) {
@@ -119,12 +122,18 @@ export default class Identifier extends NodeBase implements PatternNode {
 		return !this.variable || this.variable.hasEffectsWhenCalledAtPath(path, callOptions, options);
 	}
 
-	include(_includeAllChildrenRecursively: boolean) {
+	include() {
 		if (!this.included) {
 			this.included = true;
 			if (this.variable !== null) {
 				this.context.includeVariable(this.variable);
 			}
+		}
+	}
+
+	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+		if (this.variable) {
+			this.variable.includeCallArguments(args);
 		}
 	}
 

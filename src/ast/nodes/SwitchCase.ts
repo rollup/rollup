@@ -5,19 +5,19 @@ import {
 	renderStatementList
 } from '../../utils/renderHelpers';
 import * as NodeType from './NodeType';
-import { ExpressionNode, NodeBase, StatementNode } from './shared/Node';
+import { ExpressionNode, IncludeChildren, NodeBase, StatementNode } from './shared/Node';
 
 export default class SwitchCase extends NodeBase {
 	consequent!: StatementNode[];
 	test!: ExpressionNode | null;
 	type!: NodeType.tSwitchCase;
 
-	include(includeAllChildrenRecursively: boolean) {
+	include(includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		if (this.test) this.test.include(includeAllChildrenRecursively);
+		if (this.test) this.test.include(includeChildrenRecursively);
 		for (const node of this.consequent) {
-			if (includeAllChildrenRecursively || node.shouldBeIncluded())
-				node.include(includeAllChildrenRecursively);
+			if (includeChildrenRecursively || node.shouldBeIncluded())
+				node.include(includeChildrenRecursively);
 		}
 	}
 

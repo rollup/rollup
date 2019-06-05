@@ -3,8 +3,8 @@
 	factory();
 }(function () { 'use strict';
 
-	function foo () {
-		return 42;
+	function foo (x) {
+		return x;
 	}
 
 	var str = `

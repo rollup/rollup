@@ -12,7 +12,7 @@ import ClassDeclaration from './ClassDeclaration';
 import FunctionDeclaration from './FunctionDeclaration';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 
 const WHITESPACE = /\s/;
 
@@ -43,9 +43,9 @@ export default class ExportDefaultDeclaration extends NodeBase {
 
 	private declarationName: string | undefined;
 
-	include(includeAllChildrenRecursively: boolean) {
-		super.include(includeAllChildrenRecursively);
-		if (includeAllChildrenRecursively) {
+	include(includeChildrenRecursively: IncludeChildren) {
+		super.include(includeChildrenRecursively);
+		if (includeChildrenRecursively) {
 			this.context.includeVariable(this.variable);
 		}
 	}

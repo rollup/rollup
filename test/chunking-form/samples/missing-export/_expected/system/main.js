@@ -9,7 +9,7 @@ System.register(['./dep.js'], function () {
 		execute: function () {
 
 			_missingExportShim();
-			x(_missingExportShim, _missingExportShim);
+			x(_missingExportShim);
 
 		}
 	};

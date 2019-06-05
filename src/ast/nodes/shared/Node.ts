@@ -10,13 +10,18 @@ import { getAndCreateKeys, keys } from '../../keys';
 import ChildScope from '../../scopes/ChildScope';
 import { ImmutableEntityPathTracker } from '../../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../../values';
+import LocalVariable from '../../variables/LocalVariable';
 import Variable from '../../variables/Variable';
+import SpreadElement from '../SpreadElement';
 import { ExpressionEntity } from './Expression';
 
 export interface GenericEsTreeNode {
 	type: string;
 	[key: string]: any;
 }
+
+export const INCLUDE_VARIABLES: 'variables' = 'variables';
+export type IncludeChildren = boolean | typeof INCLUDE_VARIABLES;
 
 export interface Node extends Entity {
 	annotations?: CommentDescription[];
@@ -39,7 +44,7 @@ export interface Node extends Entity {
 	/**
 	 * Declare a new variable with the optional initialisation.
 	 */
-	declare(kind: string, init: ExpressionEntity | null): void;
+	declare(kind: string, init: ExpressionEntity | null): LocalVariable[];
 
 	/**
 	 * Determine if this Node would have an effect on the bundle.
@@ -54,14 +59,14 @@ export interface Node extends Entity {
 	 * if they are necessary for this node (e.g. a function body) or if they have effects.
 	 * Necessary variables need to be included as well.
 	 */
-	include(includeAllChildrenRecursively: boolean): void;
+	include(includeChildrenRecursively: IncludeChildren): void;
 
 	/**
 	 * Alternative version of include to override the default behaviour of
 	 * declarations to only include nodes for declarators that have an effect. Necessary
 	 * for for-loops that do not use a declared loop variable.
 	 */
-	includeWithAllDeclaredVariables(includeAllChildrenRecursively: boolean): void;
+	includeWithAllDeclaredVariables(includeChildrenRecursively: IncludeChildren): void;
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void;
 
 	/**
@@ -129,7 +134,9 @@ export class NodeBase implements ExpressionNode {
 		this.scope = parentScope;
 	}
 
-	declare(_kind: string, _init: ExpressionEntity | null) {}
+	declare(_kind: string, _init: ExpressionEntity | null): LocalVariable[] {
+		return [];
+	}
 
 	deoptimizePath(_path: ObjectPath) {}
 
@@ -178,23 +185,29 @@ export class NodeBase implements ExpressionNode {
 		return true;
 	}
 
-	include(includeAllChildrenRecursively: boolean) {
+	include(includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		for (const key of this.keys) {
 			const value = (this as GenericEsTreeNode)[key];
 			if (value === null || key === 'annotations') continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
-					if (child !== null) child.include(includeAllChildrenRecursively);
+					if (child !== null) child.include(includeChildrenRecursively);
 				}
 			} else {
-				value.include(includeAllChildrenRecursively);
+				value.include(includeChildrenRecursively);
 			}
 		}
 	}
 
-	includeWithAllDeclaredVariables(includeAllChildrenRecursively: boolean) {
-		this.include(includeAllChildrenRecursively);
+	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+		for (const arg of args) {
+			arg.include(false);
+		}
+	}
+
+	includeWithAllDeclaredVariables(includeChildrenRecursively: IncludeChildren) {
+		this.include(includeChildrenRecursively);
 	}
 
 	/**

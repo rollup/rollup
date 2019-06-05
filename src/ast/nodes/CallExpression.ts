@@ -1,6 +1,10 @@
 import MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
-import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import {
+	findFirstOccurrenceOutsideComment,
+	NodeRenderOptions,
+	RenderOptions
+} from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
@@ -19,7 +23,7 @@ import {
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import { ExpressionNode, INCLUDE_VARIABLES, IncludeChildren, NodeBase } from './shared/Node';
 import SpreadElement from './SpreadElement';
 
 export default class CallExpression extends NodeBase implements DeoptimizableEntity {
@@ -196,8 +200,21 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		);
 	}
 
-	include(includeAllChildrenRecursively: boolean) {
-		super.include(includeAllChildrenRecursively);
+	include(includeChildrenRecursively: IncludeChildren) {
+		if (includeChildrenRecursively) {
+			super.include(includeChildrenRecursively);
+			if (
+				includeChildrenRecursively === INCLUDE_VARIABLES &&
+				this.callee instanceof Identifier &&
+				this.callee.variable
+			) {
+				this.callee.variable.includeInitRecursively();
+			}
+		} else {
+			this.included = true;
+			this.callee.include(false);
+		}
+		this.callee.includeCallArguments(this.arguments);
 		if (!(this.returnExpression as ExpressionEntity).included) {
 			(this.returnExpression as ExpressionEntity).include(false);
 		}
@@ -216,7 +233,30 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		options: RenderOptions,
 		{ renderedParentType }: NodeRenderOptions = BLANK
 	) {
-		super.render(code, options);
+		this.callee.render(code, options);
+		if (this.arguments.length > 0) {
+			if (this.arguments[this.arguments.length - 1].included) {
+				for (const arg of this.arguments) {
+					arg.render(code, options);
+				}
+			} else {
+				let lastIncludedIndex = this.arguments.length - 2;
+				while (lastIncludedIndex >= 0 && !this.arguments[lastIncludedIndex].included) {
+					lastIncludedIndex--;
+				}
+				if (lastIncludedIndex >= 0) {
+					for (let index = 0; index <= lastIncludedIndex; index++) {
+						this.arguments[index].render(code, options);
+					}
+					code.remove(this.arguments[lastIncludedIndex].end, this.end - 1);
+				} else {
+					code.remove(
+						findFirstOccurrenceOutsideComment(code.original, '(', this.callee.end) + 1,
+						this.end - 1
+					);
+				}
+			}
+		}
 		if (
 			renderedParentType === NodeType.ExpressionStatement &&
 			this.callee.type === NodeType.FunctionExpression

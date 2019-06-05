@@ -6,7 +6,7 @@ import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { EMPTY_IMMUTABLE_TRACKER } from '../utils/ImmutableEntityPathTracker';
 import { EMPTY_PATH, LiteralValueOrUnknown, UNKNOWN_VALUE } from '../values';
 import * as NodeType from './NodeType';
-import { ExpressionNode, StatementBase, StatementNode } from './shared/Node';
+import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from './shared/Node';
 
 export default class IfStatement extends StatementBase implements DeoptimizableEntity {
 	alternate!: StatementNode | null;
@@ -43,13 +43,13 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			: this.alternate !== null && this.alternate.hasEffects(options);
 	}
 
-	include(includeAllChildrenRecursively: boolean) {
+	include(includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		if (includeAllChildrenRecursively) {
-			this.test.include(true);
-			this.consequent.include(true);
+		if (includeChildrenRecursively) {
+			this.test.include(includeChildrenRecursively);
+			this.consequent.include(includeChildrenRecursively);
 			if (this.alternate !== null) {
-				this.alternate.include(true);
+				this.alternate.include(includeChildrenRecursively);
 			}
 			return;
 		}

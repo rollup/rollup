@@ -19,11 +19,13 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 	}
 
 	declare(kind: string, _init: ExpressionEntity) {
+		const variables = [];
 		for (const element of this.elements) {
 			if (element !== null) {
-				element.declare(kind, UNKNOWN_EXPRESSION);
+				variables.push(...element.declare(kind, UNKNOWN_EXPRESSION));
 			}
 		}
+		return variables;
 	}
 
 	deoptimizePath(path: ObjectPath) {
