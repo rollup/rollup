@@ -1,5 +1,6 @@
 import sha256 from 'hash.js/lib/hash/sha/256';
 import MagicString, { Bundle as MagicStringBundle, SourceMap } from 'magic-string';
+import { relative } from '../browser/path';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
 import { UNDEFINED_EXPRESSION } from './ast/values';
@@ -28,7 +29,7 @@ import { error } from './utils/error';
 import { sortByExecutionOrder } from './utils/executionOrder';
 import getIndentString from './utils/getIndentString';
 import { makeLegal } from './utils/identifierHelpers';
-import { basename, dirname, isAbsolute, normalize, relative, resolve } from './utils/path';
+import { basename, dirname, isAbsolute, normalize, resolve } from './utils/path';
 import relativeId, { getAliasName } from './utils/relativeId';
 import renderChunk from './utils/renderChunk';
 import { RenderOptions } from './utils/renderHelpers';
