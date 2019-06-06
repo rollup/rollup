@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.14.3
+*2019-06-06*
+
+### Bug Fixes
+* Generate correct external imports when importing from a directory that would be above the root of the current working directory (#2902)
+
+### Pull Requests
+* [#2902](https://github.com/rollup/rollup/pull/2902): Use browser relative path algorithm for chunks (@lukastaegert)
+
 ## 1.14.2
 *2019-06-05*
 
