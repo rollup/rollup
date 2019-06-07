@@ -456,7 +456,6 @@ export default class Module {
 
 		for (const exportName of this.getExports()) {
 			const variable = this.getVariableForExportName(exportName);
-
 			variable.deoptimizePath(UNKNOWN_PATH);
 			if (!variable.included) {
 				variable.include();
@@ -466,13 +465,13 @@ export default class Module {
 
 		for (const name of this.getReexports()) {
 			const variable = this.getVariableForExportName(name);
-
-			if (variable instanceof ExternalVariable) {
-				variable.reexported = variable.module.reexported = true;
-			} else if (!variable.included) {
+			variable.deoptimizePath(UNKNOWN_PATH);
+			if (!variable.included) {
 				variable.include();
-				variable.deoptimizePath(UNKNOWN_PATH);
 				this.graph.needsTreeshakingPass = true;
+			}
+			if (variable instanceof ExternalVariable) {
+				variable.module.reexported = true;
 			}
 		}
 	}

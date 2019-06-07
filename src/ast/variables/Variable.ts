@@ -18,7 +18,6 @@ export default class Variable implements ExpressionEntity {
 	isReassigned = false;
 	module?: Module | ExternalModule;
 	name: string;
-	reexported = false;
 	renderBaseName: string | null = null;
 	renderName: string | null = null;
 	safeExportName: string | null = null;
