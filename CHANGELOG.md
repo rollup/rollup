@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.14.4
+*2019-06-07*
+
+### Bug Fixes
+* Do not omit external re-exports for `moduleSideEffects: false` (#2905)
+
+### Pull Requests
+* [#2905](https://github.com/rollup/rollup/pull/2905): Make sure external re-exports are included for moduleSideEffects: false (@lukastaegert)
+
 ## 1.14.3
 *2019-06-06*
 
