@@ -398,7 +398,11 @@ export class ModuleLoader {
 				error(errUnresolvedImport(source, importer));
 			}
 			this.graph.warn(errUnresolvedImportTreatedAsExternal(source, importer));
-			return { id: source, external: true, moduleSideEffects: true };
+			return {
+				external: true,
+				id: source,
+				moduleSideEffects: this.hasModuleSideEffects(source, true)
+			};
 		}
 		return resolvedId;
 	}
