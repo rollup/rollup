@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 1.14.5
+*unreleased*
+
+### Pull Requests
+* [#2906](https://github.com/rollup/rollup/pull/2906): Update dependencies (@lukastaegert)
+
 ## 1.14.4
 *2019-06-07*
 
