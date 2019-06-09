@@ -38,4 +38,10 @@ const needed63 = 3;
 
 (function(p1, p2, p3) {
 	console.log(p1, p3);
-} (needed61, needed62, needed63));
+})(needed61, needed62, needed63);
+
+const needed7 = 1;
+
+(function(p1) {
+	console.log(p1);
+}((((needed7)))));

@@ -248,7 +248,14 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 					for (let index = 0; index <= lastIncludedIndex; index++) {
 						this.arguments[index].render(code, options);
 					}
-					code.remove(this.arguments[lastIncludedIndex].end, this.end - 1);
+					code.remove(
+						findFirstOccurrenceOutsideComment(
+							code.original,
+							',',
+							this.arguments[lastIncludedIndex].end
+						),
+						this.end - 1
+					);
 				} else {
 					code.remove(
 						findFirstOccurrenceOutsideComment(code.original, '(', this.callee.end) + 1,
