@@ -1,10 +1,18 @@
 # rollup changelog
 
 ## 1.14.5
-*unreleased*
+*2019-06-09*
+
+### Bug Fixes
+* Keep external ids unmodified when using the object form of resolveId (#2907)
+* Cache dynamic import resolutions when using Rollup cache (#2908)
+* Keep all necessary parentheses when tree-shaking call arguments (#2911)
 
 ### Pull Requests
 * [#2906](https://github.com/rollup/rollup/pull/2906): Update dependencies (@lukastaegert)
+* [#2907](https://github.com/rollup/rollup/pull/2907): Do not renormalize external ids when using the object form (@lukastaegert)
+* [#2908](https://github.com/rollup/rollup/pull/2908): Cache dynamic ids if possible (@lukastaegert)
+* [#2911](https://github.com/rollup/rollup/pull/2911): Fix treeshaken parameters around parentheses (@manucorporat)
 
 ## 1.14.4
 *2019-06-07*
