@@ -34,7 +34,7 @@ export interface PluginDriver {
 		hook: H,
 		args: Args<PluginHooks[H]>,
 		hookContext?: HookContext | null,
-		skip?: number
+		skip?: number | null
 	): EnsurePromise<R>;
 	hookFirstSync<H extends keyof PluginHooks, R = ReturnType<PluginHooks[H]>>(
 		hook: H,
