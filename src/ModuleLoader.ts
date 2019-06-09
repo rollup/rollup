@@ -262,21 +262,23 @@ export class ModuleLoader {
 	private fetchAllDependencies(module: Module) {
 		const fetchDynamicImportsPromise = Promise.all(
 			module.getDynamicImportExpressions().map((specifier, index) =>
-				this.resolveDynamicImport(specifier as string | ESTree.Node, module.id).then(resolvedId => {
-					if (resolvedId === null) return;
-					const dynamicImport = module.dynamicImports[index];
-					if (typeof resolvedId === 'string') {
-						dynamicImport.resolution = resolvedId;
-						return;
+				this.resolveDynamicImport(module, specifier as string | ESTree.Node, module.id).then(
+					resolvedId => {
+						if (resolvedId === null) return;
+						const dynamicImport = module.dynamicImports[index];
+						if (typeof resolvedId === 'string') {
+							dynamicImport.resolution = resolvedId;
+							return;
+						}
+						return this.fetchResolvedDependency(
+							relativeId(resolvedId.id),
+							module.id,
+							resolvedId
+						).then(module => {
+							dynamicImport.resolution = module;
+						});
 					}
-					return this.fetchResolvedDependency(
-						relativeId(resolvedId.id),
-						module.id,
-						resolvedId
-					).then(module => {
-						dynamicImport.resolution = module;
-					});
-				})
+				)
 			)
 		);
 		fetchDynamicImportsPromise.catch(() => {});
@@ -487,44 +489,51 @@ export class ModuleLoader {
 		module: Module,
 		source: string
 	): Promise<Module | ExternalModule> {
-		const resolvedId =
-			module.resolvedIds[source] ||
-			this.handleMissingImports(await this.resolveId(source, module.id), source, module.id);
-		module.resolvedIds[source] = resolvedId;
-		return this.fetchResolvedDependency(source, module.id, resolvedId);
+		return this.fetchResolvedDependency(
+			source,
+			module.id,
+			(module.resolvedIds[source] =
+				module.resolvedIds[source] ||
+				this.handleMissingImports(await this.resolveId(source, module.id), source, module.id))
+		);
 	}
 
-	private resolveDynamicImport(
+	private async resolveDynamicImport(
+		module: Module,
 		specifier: string | ESTree.Node,
 		importer: string
 	): Promise<ResolvedId | string | null> {
 		// TODO we only should expose the acorn AST here
-		return this.pluginDriver
-			.hookFirst('resolveDynamicImport', [specifier, importer])
-			.then(resolution => {
-				if (typeof specifier !== 'string') {
-					if (typeof resolution === 'string') {
-						return resolution;
-					}
-					if (!resolution) {
-						return null as any;
-					}
-					return {
-						external: false,
-						moduleSideEffects: true,
-						...resolution
-					};
-				}
-				if (resolution == null) {
-					return this.resolveId(specifier, importer).then(resolvedId =>
-						this.handleMissingImports(resolvedId, specifier, importer)
-					);
-				}
-				return this.handleMissingImports(
-					this.normalizeResolveIdResult(resolution, importer, specifier),
+		const resolution = await this.pluginDriver.hookFirst('resolveDynamicImport', [
+			specifier,
+			importer
+		]);
+		if (typeof specifier !== 'string') {
+			if (typeof resolution === 'string') {
+				return resolution;
+			}
+			if (!resolution) {
+				return null;
+			}
+			return {
+				external: false,
+				moduleSideEffects: true,
+				...resolution
+			} as ResolvedId;
+		}
+		if (resolution == null) {
+			return (module.resolvedIds[specifier] =
+				module.resolvedIds[specifier] ||
+				this.handleMissingImports(
+					await this.resolveId(specifier, module.id),
 					specifier,
-					importer
-				);
-			});
+					module.id
+				));
+		}
+		return this.handleMissingImports(
+			this.normalizeResolveIdResult(resolution, importer, specifier),
+			specifier,
+			importer
+		);
 	}
 }
