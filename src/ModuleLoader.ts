@@ -216,12 +216,18 @@ export class ModuleLoader {
 		return fileName;
 	}
 
-	resolveId(source: string, importer: string, skip?: number | null): Promise<ResolvedId | null> {
-		return Promise.resolve(
+	async resolveId(
+		source: string,
+		importer: string,
+		skip?: number | null
+	): Promise<ResolvedId | null> {
+		return this.normalizeResolveIdResult(
 			this.isExternal(source, importer, false)
-				? { id: source, external: true }
-				: this.pluginDriver.hookFirst('resolveId', [source, importer], null, skip as number)
-		).then(result => this.normalizeResolveIdResult(result, importer, source));
+				? false
+				: await this.pluginDriver.hookFirst('resolveId', [source, importer], null, skip),
+			importer,
+			source
+		);
 	}
 
 	private addToManualChunk(alias: string, module: Module) {
@@ -455,13 +461,10 @@ export class ModuleLoader {
 					moduleSideEffects = resolveIdResult.moduleSideEffects;
 				}
 			} else {
-				id = resolveIdResult;
-				if (this.isExternal(id, importer, true)) {
+				if (this.isExternal(resolveIdResult, importer, true)) {
 					external = true;
 				}
-			}
-			if (external) {
-				id = normalizeRelativeExternalId(importer, id);
+				id = external ? normalizeRelativeExternalId(importer, resolveIdResult) : resolveIdResult;
 			}
 		} else {
 			id = normalizeRelativeExternalId(importer, source);
@@ -480,19 +483,15 @@ export class ModuleLoader {
 		};
 	}
 
-	private resolveAndFetchDependency(
+	private async resolveAndFetchDependency(
 		module: Module,
 		source: string
 	): Promise<Module | ExternalModule> {
-		return Promise.resolve(
+		const resolvedId =
 			module.resolvedIds[source] ||
-				this.resolveId(source, module.id).then(resolvedId =>
-					this.handleMissingImports(resolvedId, source, module.id)
-				)
-		).then(resolvedId => {
-			module.resolvedIds[source] = resolvedId;
-			return this.fetchResolvedDependency(source, module.id, resolvedId);
-		});
+			this.handleMissingImports(await this.resolveId(source, module.id), source, module.id);
+		module.resolvedIds[source] = resolvedId;
+		return this.fetchResolvedDependency(source, module.id, resolvedId);
 	}
 
 	private resolveDynamicImport(
