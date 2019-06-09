@@ -11,3 +11,5 @@ const needed22 = 2;
 const needed23 = 3;
 
 someUsedParams(needed21, needed22, needed23, unneeded2);
+someUsedParams(needed21, needed22, (needed23), unneeded2);
+(someUsedParams)(needed21, needed22, needed23  , unneeded2);
