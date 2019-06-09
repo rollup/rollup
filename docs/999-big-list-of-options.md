@@ -40,6 +40,31 @@ When providing a function, it is actually called with three parameters `(id, par
 
 When creating an `iife` or `umd` bundle, you will need to provide global variable names to replace your external imports via the `output.globals` option.
 
+If a relative import, i.e. starting with `./` or `../`, is marked as "external", rollup will internally resolve the id to an absolute file system location so that different imports of the external module can be merged. When the resulting bundle is written, the import will again be converted to a relative import. Example:
+
+```js
+// input
+// src/main.js (entry point)
+import x from '../external.js';
+import './nested/nested.js';
+console.log(x);
+
+// src/nested/nested.js
+// the import would point to the same file if it existed
+import x from '../../external.js';
+console.log(x);
+
+// output
+// the different imports are merged
+import x from '../external.js';
+
+console.log(x);
+
+console.log(x);
+```
+
+The conversion back to a relative import is done as if `output.file` or `output.dir` were in the same location as the entry point or the common base directory of all entry points if there is more than one.
+
 #### input
 Type: `string | string [] | { [entryName: string]: string }`<br>
 CLI: `-i`/`--input <filename>`
