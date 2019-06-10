@@ -2,6 +2,7 @@ import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
 import { EMPTY_PATH, LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../values';
+import ExpressionStatement from './ExpressionStatement';
 import { LiteralValue } from './Literal';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
@@ -58,6 +59,14 @@ export default class BinaryExpression extends NodeBase {
 		if (!operatorFn) return UNKNOWN_VALUE;
 
 		return operatorFn(leftValue as LiteralValue, rightValue as LiteralValue);
+	}
+
+	hasEffects(options: ExecutionPathOptions): boolean {
+		// support some implicit type coercion runtime errors
+		if (this.operator === '+' && this.parent instanceof ExpressionStatement) {
+			return true;
+		}
+		return super.hasEffects(options);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
