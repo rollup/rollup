@@ -1328,4 +1328,109 @@ module.exports = input;
 				]);
 			});
 	});
+	it('supports augmentChunkHash hook', () => {
+		let augmentChunkHashCalls = 0;
+		return rollup
+			.rollup({
+				input: 'input',
+				plugins: [
+					loader({
+						input: `alert('hello')`
+					}),
+					{
+						augmentChunkHash(update) {
+							augmentChunkHashCalls++;
+							assert(this.meta);
+							assert(this.meta.rollupVersion);
+						}
+					}
+				]
+			})
+			.then(bundle =>
+				bundle.generate({
+					format: 'esm',
+					dir: 'dist',
+					entryFileNames: '[name]-[hash].js'
+				})
+			)
+			.then(output => {
+				assert.equal(augmentChunkHashCalls, 1);
+			});
+	});
+	it('augments the chunk hash when the update function is called within the augmentChunkHash hook', () => {
+		const inputCode = `alert('hello')`;
+		const outputOptions = {
+			format: 'esm',
+			dir: 'dist',
+			entryFileNames: '[name]-[hash].js'
+		};
+		function bundleWithoutAugment() {
+			return rollup
+				.rollup({
+					input: 'input',
+					plugins: [
+						loader({
+							input: inputCode
+						})
+					]
+				})
+				.then(bundle => bundle.generate(outputOptions))
+				.then(({ output }) => {
+					return output[0].fileName;
+				});
+		}
+		function bundleWithAugment() {
+			return rollup
+				.rollup({
+					input: 'input',
+					plugins: [
+						loader({
+							input: inputCode
+						}),
+						{
+							augmentChunkHash(update) {
+								update('foo');
+							}
+						}
+					]
+				})
+				.then(bundle => bundle.generate(outputOptions))
+				.then(({ output }) => {
+					return output[0].fileName;
+				});
+		}
+		return Promise.all([bundleWithoutAugment(), bundleWithAugment()]).then(([base, augmented]) => {
+			assert.notEqual(base, augmented);
+		});
+	});
+	it('propagates hash updates of augmentChunkHash to all dependents', () => {
+		return rollup
+			.rollup({
+				input: 'input',
+				plugins: [
+					loader({
+						input: `console.log('input');import('other');`,
+						other: `console.log('other');`
+					}),
+					{
+						augmentChunkHash(update) {
+							update('foo');
+						}
+					}
+				]
+			})
+			.then(bundle =>
+				bundle.generate({
+					format: 'esm',
+					dir: 'dist',
+					entryFileNames: '[name]-[hash].js',
+					chunkFileNames: '[name]-[hash].js'
+				})
+			)
+			.then(({ output }) => {
+				const importedFileName = output[0].dynamicImports[0];
+				const otherFileName = output[1].fileName;
+				assert.equal(otherFileName, importedFileName);
+			});
+	});
 });
