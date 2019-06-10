@@ -1,6 +1,9 @@
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
+import {
+	EMPTY_IMMUTABLE_TRACKER,
+	ImmutableEntityPathTracker
+} from '../utils/ImmutableEntityPathTracker';
 import { EMPTY_PATH, LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../values';
 import ExpressionStatement from './ExpressionStatement';
 import { LiteralValue } from './Literal';
@@ -37,11 +40,13 @@ const binaryOperators: {
 	'|': (left: any, right: any) => left | right
 };
 
-export default class BinaryExpression extends NodeBase {
+export default class BinaryExpression extends NodeBase implements DeoptimizableEntity {
 	left!: ExpressionNode;
 	operator!: keyof typeof binaryOperators;
 	right!: ExpressionNode;
 	type!: NodeType.tBinaryExpression;
+
+	deoptimizeCache(): void {}
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
@@ -63,7 +68,11 @@ export default class BinaryExpression extends NodeBase {
 
 	hasEffects(options: ExecutionPathOptions): boolean {
 		// support some implicit type coercion runtime errors
-		if (this.operator === '+' && this.parent instanceof ExpressionStatement) {
+		if (
+			this.operator === '+' &&
+			this.parent instanceof ExpressionStatement &&
+			this.left.getLiteralValueAtPath(EMPTY_PATH, EMPTY_IMMUTABLE_TRACKER, this) === ''
+		) {
 			return true;
 		}
 		return super.hasEffects(options);
