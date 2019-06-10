@@ -42,30 +42,27 @@ export default class ParameterScope extends ChildScope {
 	}
 
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
-		let hasInitBeenForceIncluded = false;
+		let calledFromTryStatement = false;
 		let argIncluded = false;
 		const restParam = this.hasRest && this.parameters[this.parameters.length - 1];
 		for (let index = args.length - 1; index >= 0; index--) {
 			const paramVars = this.parameters[index] || restParam;
 			const arg = args[index];
 			if (paramVars) {
-				hasInitBeenForceIncluded = false;
+				calledFromTryStatement = false;
 				for (const variable of paramVars) {
 					if (variable.included) {
 						argIncluded = true;
 					}
-					if (variable.hasInitBeenForceIncluded) {
-						hasInitBeenForceIncluded = true;
+					if (variable.calledFromTryStatement) {
+						calledFromTryStatement = true;
 					}
 				}
 			} else if (!argIncluded && arg.shouldBeIncluded()) {
 				argIncluded = true;
 			}
 			if (argIncluded) {
-				arg.include(hasInitBeenForceIncluded);
-				if (hasInitBeenForceIncluded && arg instanceof Identifier && arg.variable) {
-					arg.variable.includeInitRecursively();
-				}
+				arg.include(calledFromTryStatement);
 			}
 		}
 	}

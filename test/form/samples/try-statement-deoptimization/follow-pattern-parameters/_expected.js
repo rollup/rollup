@@ -1,4 +1,4 @@
-function callGlobalRetained() {
+function properlyTreeshaken() {
 }
 
 function tryIt({ callback }) {
@@ -7,7 +7,7 @@ function tryIt({ callback }) {
 	} catch {}
 }
 
-tryIt({ callback: callGlobalRetained });
+tryIt({ callback: properlyTreeshaken });
 
 tryIt({
 	callback: () => {
