@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.14.6
+*2019-06-10*
+
+### Bug Fixes
+* Fix an issue where call arguments were not included in try statements (#2914)
+
+### Pull Requests
+* [#2914](https://github.com/rollup/rollup/pull/2914): Properly include try statements for each pass when deoptimization is deactivated (@lukastaegert)
+
 ## 1.14.5
 *2019-06-09*
 
