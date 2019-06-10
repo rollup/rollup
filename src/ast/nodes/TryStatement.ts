@@ -21,7 +21,7 @@ export default class TryStatement extends StatementBase {
 	}
 
 	include(includeChildrenRecursively: IncludeChildren) {
-		if (!this.directlyIncluded) {
+		if (!this.directlyIncluded || !this.context.tryCatchDeoptimization) {
 			this.included = true;
 			this.directlyIncluded = true;
 			this.block.include(
