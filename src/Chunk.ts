@@ -98,9 +98,7 @@ function getGlobalName(
 		graph.warn({
 			code: 'MISSING_GLOBAL_NAME',
 			guess: module.variableName,
-			message: `No name was provided for external module '${
-				module.id
-			}' in output.globals – guessing '${module.variableName}'`,
+			message: `No name was provided for external module '${module.id}' in output.globals – guessing '${module.variableName}'`,
 			source: module.id
 		});
 		return module.variableName;
@@ -338,6 +336,7 @@ export default class Chunk {
 				})
 				.join(',')
 		);
+		this.graph.pluginDriver.hookSeqSync('augmentChunkHash', [hash.update.bind(hash)]);
 		return (this.renderedHash = hash.digest('hex'));
 	}
 

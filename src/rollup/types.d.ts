@@ -276,6 +276,7 @@ interface OnWriteOptions extends OutputOptions {
 }
 
 export interface PluginHooks {
+	augmentChunkHash: (this: PluginContext, update: Function) => void;
 	buildEnd: (this: PluginContext, err?: Error) => Promise<void> | void;
 	buildStart: (this: PluginContext, options: InputOptions) => Promise<void> | void;
 	generateBundle: (
