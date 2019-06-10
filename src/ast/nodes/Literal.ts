@@ -26,9 +26,11 @@ export default class Literal<T = LiteralValue> extends NodeBase {
 	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
 		if (
 			path.length > 0 ||
-			// unknown literals such as bigints can also be null but do not start with an "n"
+			// unknown literals can also be null but do not start with an "n"
 			(this.value === null && this.context.code.charCodeAt(this.start) !== 110) ||
-			typeof this.value === 'bigint'
+			typeof this.value === 'bigint' ||
+			// to support shims for regular expressions
+			this.context.code.charCodeAt(this.start) === 47
 		) {
 			return UNKNOWN_VALUE;
 		}
