@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 1.15.0
+*2019-06-11*
+
+### Features
+* Tone down try-catch deoptimization while maintaining polyfill support (#2918)
+
+### Bug Fixes
+* Handle feature detection with "typeof" for regular expressios (#2916)
+* Deoptimize `'' + variable'` type coercion as expression statement for feature detection (#2917)
+* Always observe argument side-effects when tree-shaking (#2924)
+
+### Pull Requests
+* [#2916](https://github.com/rollup/rollup/pull/2916): Deoptimize typeof for regular expression literals to better support es6-shim (@lukastaegert)
+* [#2917](https://github.com/rollup/rollup/pull/2917): Support implicit type coercion errors in es5-shim (@lukastaegert)
+* [#2918](https://github.com/rollup/rollup/pull/2918): Deoptimize try-catch less radically (@lukastaegert)
+* [#2924](https://github.com/rollup/rollup/pull/2924): Do not tree-shake arguments with side-effects (@lukastaegert)
+
 ## 1.14.6
 *2019-06-10*
 
