@@ -25,8 +25,8 @@ const MAX_PATH_DEPTH = 7;
 
 export default class LocalVariable extends Variable {
 	additionalInitializers: ExpressionEntity[] | null = null;
+	calledFromTryStatement = false;
 	declarations: (Identifier | ExportDefaultDeclaration)[];
-	hasInitBeenForceIncluded = false;
 	init: ExpressionEntity | null;
 	module: Module;
 
@@ -203,12 +203,7 @@ export default class LocalVariable extends Variable {
 		}
 	}
 
-	includeInitRecursively() {
-		if (!this.hasInitBeenForceIncluded) {
-			this.hasInitBeenForceIncluded = true;
-			if (this.init && this.init !== UNKNOWN_EXPRESSION) {
-				this.init.include(true);
-			}
-		}
+	markCalledFromTryStatement() {
+		this.calledFromTryStatement = true;
 	}
 }

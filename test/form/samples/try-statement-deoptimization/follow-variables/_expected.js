@@ -1,11 +1,6 @@
-function callGlobalRemoved() {
-}
-
-function callGlobalRetained() {
-	Object.create(null);
-	callGlobalRemoved();
+function properlyTreeshaken() {
 }
 
 try {
-	callGlobalRetained();
+	properlyTreeshaken();
 } catch {}

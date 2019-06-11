@@ -91,7 +91,7 @@ export default class Variable implements ExpressionEntity {
 		}
 	}
 
-	includeInitRecursively() {}
+	markCalledFromTryStatement() {}
 
 	setRenderNames(baseName: string | null, name: string | null) {
 		this.renderBaseName = baseName;
