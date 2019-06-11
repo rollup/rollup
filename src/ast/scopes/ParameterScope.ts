@@ -58,7 +58,8 @@ export default class ParameterScope extends ChildScope {
 						calledFromTryStatement = true;
 					}
 				}
-			} else if (!argIncluded && arg.shouldBeIncluded()) {
+			}
+			if (!argIncluded && arg.shouldBeIncluded()) {
 				argIncluded = true;
 			}
 			if (argIncluded) {
