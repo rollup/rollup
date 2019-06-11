@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.15.1
+*2019-06-11*
+
+### Bug Fixes
+* Do not fail when reexporting variables in dynamic entry points from other chunks (#2928)
+
+### Pull Requests
+* [#2928](https://github.com/rollup/rollup/pull/2928): Handle reexports from dynamic entries across chunk (@lukastaegert)
+
 ## 1.15.0
 *2019-06-11*
 
