@@ -5,6 +5,7 @@ import Graph from '../Graph';
 import Module from '../Module';
 import {
 	EmitAsset,
+	EmitChunk,
 	InputOptions,
 	Plugin,
 	PluginCache,
@@ -28,6 +29,7 @@ type EnsurePromise<T> = Promise<T extends Promise<infer K> ? K : T>;
 
 export interface PluginDriver {
 	emitAsset: EmitAsset;
+	emitChunk: EmitChunk;
 	hasLoadersOrTransforms: boolean;
 	getAssetFileName(assetReferenceId: string): string;
 	hookFirst<H extends keyof PluginHooks, R = ReturnType<PluginHooks[H]>>(
@@ -153,10 +155,7 @@ export function createPluginDriver(
 			emitChunk(id, options) {
 				if (graph.phase > BuildPhase.LOAD_AND_PARSE)
 					this.error(errInvalidRollupPhaseForEmitChunk());
-				return graph.moduleLoader.addEntryModuleAndGetReferenceId({
-					alias: (options && options.name) || null,
-					unresolvedId: id
-				});
+				return pluginDriver.emitChunk(id, options);
 			},
 			error(err): never {
 				if (typeof err === 'string') err = { message: err };
@@ -320,6 +319,12 @@ export function createPluginDriver(
 
 	const pluginDriver: PluginDriver = {
 		emitAsset,
+		emitChunk(id, options) {
+			return graph.moduleLoader.addEntryModuleAndGetReferenceId({
+				alias: (options && options.name) || null,
+				unresolvedId: id
+			});
+		},
 		getAssetFileName: getAssetFileName as (assetId: string) => string,
 		hasLoadersOrTransforms,
 

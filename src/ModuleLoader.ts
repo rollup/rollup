@@ -332,10 +332,13 @@ export class ModuleLoader {
 					!cachedModule.customTransformCache &&
 					cachedModule.originalCode === sourceDescription.code
 				) {
-					// re-emit transform assets
 					if (cachedModule.transformAssets) {
-						for (const asset of cachedModule.transformAssets)
-							this.pluginDriver.emitAsset(asset.name, asset.source);
+						for (const { name, source } of cachedModule.transformAssets)
+							this.pluginDriver.emitAsset(name, source);
+					}
+					if (cachedModule.transformChunks) {
+						for (const { id, options } of cachedModule.transformChunks)
+							this.pluginDriver.emitChunk(id, options);
 					}
 					return cachedModule;
 				}

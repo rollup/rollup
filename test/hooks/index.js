@@ -360,6 +360,58 @@ describe('hooks', () => {
 			});
 	});
 
+	it('caches chunk emission in transform hook', () => {
+		let cache;
+		return rollup
+			.rollup({
+				input: 'input',
+				plugins: [
+					loader({ input: '', chunk: "console.log('chunk');" }),
+					{
+						transform(code, id) {
+							if (id === 'input') {
+								return `export default import.meta.ROLLUP_CHUNK_URL_${this.emitChunk('chunk')};`;
+							}
+						}
+					}
+				]
+			})
+			.then(bundle => {
+				cache = bundle.cache;
+				return bundle.generate({ format: 'es' });
+			})
+			.then(({ output }) => {
+				assert.equal(
+					output[0].code,
+					`var input = new URL('chunk-01406d83.js', import.meta.url).href;\n\nexport default input;\n`
+				);
+				assert.equal(output[1].fileName, 'chunk-01406d83.js');
+				assert.equal(output[1].code, `console.log('chunk');\n`);
+
+				return rollup.rollup({
+					cache,
+					input: 'input',
+					plugins: [
+						loader({ input: '', chunk: "console.log('chunk');" }),
+						{
+							transform() {
+								assert.fail('Should cache transform');
+							}
+						}
+					]
+				});
+			})
+			.then(bundle => bundle.generate({ format: 'es' }))
+			.then(({ output }) => {
+				assert.equal(
+					output[0].code,
+					`var input = new URL('chunk-01406d83.js', import.meta.url).href;\n\nexport default input;\n`
+				);
+				assert.equal(output[1].fileName, 'chunk-01406d83.js');
+				assert.equal(output[1].code, `console.log('chunk');\n`);
+			});
+	});
+
 	it('supports asset emission', () => {
 		return rollup
 			.rollup({

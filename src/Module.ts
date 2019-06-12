@@ -32,6 +32,7 @@ import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import {
 	Asset,
+	EmittedChunk,
 	ModuleJSON,
 	RawSourceMap,
 	ResolvedIdMap,
@@ -205,6 +206,7 @@ export default class Module {
 	sourcemapChain!: RawSourceMap[];
 	sources: string[] = [];
 	transformAssets?: Asset[];
+	transformChunks?: EmittedChunk[];
 	usesTopLevelAwait = false;
 
 	private allExportNames?: Set<string>;
@@ -618,6 +620,7 @@ export default class Module {
 			resolvedIds: this.resolvedIds,
 			sourcemapChain: this.sourcemapChain,
 			transformAssets: this.transformAssets,
+			transformChunks: this.transformChunks,
 			transformDependencies: this.transformDependencies
 		};
 	}
