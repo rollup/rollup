@@ -1087,7 +1087,10 @@ export default class Chunk {
 				}
 			}
 		}
-		if (module.isEntryPoint) {
+		if (
+			module.isEntryPoint ||
+			module.dynamicallyImportedBy.some(importer => importer.chunk !== this)
+		) {
 			const map = module.getExportNamesByVariable();
 			for (const exportedVariable of map.keys()) {
 				this.exports.add(exportedVariable);

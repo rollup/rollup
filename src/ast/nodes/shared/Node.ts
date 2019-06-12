@@ -20,8 +20,8 @@ export interface GenericEsTreeNode {
 	[key: string]: any;
 }
 
-export const INCLUDE_VARIABLES: 'variables' = 'variables';
-export type IncludeChildren = boolean | typeof INCLUDE_VARIABLES;
+export const INCLUDE_PARAMETERS: 'variables' = 'variables';
+export type IncludeChildren = boolean | typeof INCLUDE_PARAMETERS;
 
 export interface Node extends Entity {
 	annotations?: CommentDescription[];
