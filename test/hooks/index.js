@@ -1364,6 +1364,11 @@ module.exports = input;
 			dir: 'dist',
 			entryFileNames: '[name]-[hash].js'
 		};
+		function getFileName(bundle) {
+			return bundle.generate(outputOptions).then(({ output }) => {
+				return output[0].fileName;
+			});
+		}
 		function bundleWithoutAugment() {
 			return rollup
 				.rollup({
@@ -1374,10 +1379,7 @@ module.exports = input;
 						})
 					]
 				})
-				.then(bundle => bundle.generate(outputOptions))
-				.then(({ output }) => {
-					return output[0].fileName;
-				});
+				.then(getFileName);
 		}
 		function bundleWithAugment() {
 			return rollup
@@ -1388,16 +1390,13 @@ module.exports = input;
 							input: inputCode
 						}),
 						{
-							augmentChunkHash(update) {
-								update('foo');
+							augmentChunkHash() {
+								return 'foo';
 							}
 						}
 					]
 				})
-				.then(bundle => bundle.generate(outputOptions))
-				.then(({ output }) => {
-					return output[0].fileName;
-				});
+				.then(getFileName);
 		}
 		return Promise.all([bundleWithoutAugment(), bundleWithAugment()]).then(([base, augmented]) => {
 			assert.notEqual(base, augmented);
@@ -1413,8 +1412,8 @@ module.exports = input;
 						other: `console.log('other');`
 					}),
 					{
-						augmentChunkHash(update) {
-							update('foo');
+						augmentChunkHash() {
+							return Promise.resolve('foo');
 						}
 					}
 				]
@@ -1432,5 +1431,54 @@ module.exports = input;
 				const otherFileName = output[1].fileName;
 				assert.equal(otherFileName, importedFileName);
 			});
+	});
+	it('augmentChunkHash only takes effect for chunks whose call got a return value', () => {
+		const outputOptions = {
+			format: 'esm',
+			dir: 'dist',
+			entryFileNames: '[name]-[hash].js'
+		};
+		const input = ['input', 'other'];
+		const inputCode = {
+			input: `console.log('input');`,
+			other: `console.log('other');`
+		};
+		function getFileNamesForChunks(bundle) {
+			return bundle.generate(outputOptions).then(({ output }) => {
+				return output.reduce((result, chunk) => {
+					result[chunk.name] = chunk.fileName;
+					return result;
+				}, {});
+			});
+		}
+		function bundleWithoutAugment() {
+			return rollup
+				.rollup({
+					input,
+					plugins: [loader(inputCode)]
+				})
+				.then(getFileNamesForChunks);
+		}
+		function bundleWithAugment() {
+			return rollup
+				.rollup({
+					input,
+					plugins: [
+						loader(inputCode),
+						{
+							augmentChunkHash(chunk) {
+								if (chunk.name === 'input') {
+									return 'foo';
+								}
+							}
+						}
+					]
+				})
+				.then(getFileNamesForChunks);
+		}
+		return Promise.all([bundleWithoutAugment(), bundleWithAugment()]).then(([base, augmented]) => {
+			assert.notEqual(base.input, augmented.input);
+			assert.equal(base.other, augmented.other);
+		});
 	});
 });
