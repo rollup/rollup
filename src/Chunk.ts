@@ -124,6 +124,7 @@ export default class Chunk {
 		return chunk;
 	}
 
+	augmentedHash?: string;
 	entryModules: Module[] = [];
 	execIndex: number;
 	exportMode = 'named';
@@ -325,6 +326,9 @@ export default class Chunk {
 		if (this.renderedHash) return this.renderedHash;
 		if (!this.renderedSource) return '';
 		const hash = sha256();
+		if (this.augmentedHash) {
+			hash.update(this.augmentedHash);
+		}
 		hash.update(this.renderedSource.toString());
 		hash.update(
 			this.getExportNames()
@@ -336,7 +340,6 @@ export default class Chunk {
 				})
 				.join(',')
 		);
-		this.graph.pluginDriver.hookSeqSync('augmentChunkHash', [hash.update.bind(hash)]);
 		return (this.renderedHash = hash.digest('hex'));
 	}
 
@@ -800,7 +803,6 @@ export default class Chunk {
 
 	private computeContentHashWithDependencies(addons: Addons, options: OutputOptions): string {
 		const hash = sha256();
-
 		hash.update(
 			[addons.intro, addons.outro, addons.banner, addons.footer].map(addon => addon || '').join(':')
 		);

@@ -276,7 +276,7 @@ interface OnWriteOptions extends OutputOptions {
 }
 
 export interface PluginHooks {
-	augmentChunkHash: (this: PluginContext, update: Function) => void;
+	augmentChunkHash: (this: PluginContext, chunk: PreOutputChunk) => void;
 	buildEnd: (this: PluginContext, err?: Error) => Promise<void> | void;
 	buildStart: (this: PluginContext, options: InputOptions) => Promise<void> | void;
 	generateBundle: (
@@ -447,11 +447,10 @@ export interface RenderedModule {
 	renderedLength: number;
 }
 
-export interface RenderedChunk {
+export interface PreRenderedChunk {
 	dynamicImports: string[];
 	exports: string[];
 	facadeModuleId: string | null;
-	fileName: string;
 	imports: string[];
 	isDynamicEntry: boolean;
 	isEntry: boolean;
@@ -459,6 +458,10 @@ export interface RenderedChunk {
 		[id: string]: RenderedModule;
 	};
 	name: string;
+}
+
+export interface RenderedChunk extends PreRenderedChunk {
+	fileName: string;
 }
 
 export interface OutputChunk extends RenderedChunk {

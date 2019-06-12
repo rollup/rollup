@@ -22,6 +22,7 @@ import {
 	OutputOptions,
 	Plugin,
 	PluginContext,
+	PreRenderedChunk,
 	RollupBuild,
 	RollupCache,
 	RollupOutput,
@@ -211,45 +212,81 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 								optimized = true;
 							}
 
-							assignChunkIds(chunks, inputOptions, outputOptions, inputBase, addons);
-
-							// assign to outputBundle
-							for (let i = 0; i < chunks.length; i++) {
-								const chunk = chunks[i];
-								const facadeModule = chunk.facadeModule;
-
-								outputBundle[chunk.id] = {
-									code: undefined as any,
-									dynamicImports: chunk.getDynamicImportIds(),
-									exports: chunk.getExportNames(),
-									facadeModuleId: facadeModule && facadeModule.id,
-									fileName: chunk.id,
-									imports: chunk.getImportIds(),
-									isDynamicEntry:
-										facadeModule !== null && facadeModule.dynamicallyImportedBy.length > 0,
-									isEntry: facadeModule !== null && facadeModule.isEntryPoint,
-									map: undefined,
-									modules: chunk.renderedModules,
-									get name() {
-										return chunk.getChunkName();
-									}
-								} as OutputChunk;
-							}
-
 							return Promise.all(
 								chunks.map(chunk => {
-									const outputChunk = outputBundle[chunk.id] as OutputChunk;
-									return chunk.render(outputOptions, addons, outputChunk).then(rendered => {
-										outputChunk.code = rendered.code;
-										outputChunk.map = rendered.map;
-
-										return graph.pluginDriver.hookParallel('ongenerate', [
-											{ bundle: outputChunk, ...outputOptions },
-											outputChunk
-										]);
-									});
+									const facadeModule = chunk.facadeModule;
+									const chunkInfo = {
+										dynamicImports: chunk.getDynamicImportIds(),
+										exports: chunk.getExportNames(),
+										facadeModuleId: facadeModule && facadeModule.id,
+										imports: chunk.getImportIds(),
+										isDynamicEntry:
+											facadeModule !== null && facadeModule.dynamicallyImportedBy.length > 0,
+										isEntry: facadeModule !== null && facadeModule.isEntryPoint,
+										modules: chunk.renderedModules,
+										get name() {
+											return chunk.getChunkName();
+										}
+									} as PreRenderedChunk;
+									return graph.pluginDriver
+										.hookReduceValue(
+											'augmentChunkHash',
+											'',
+											[chunkInfo],
+											(hashForChunk, pluginHash) => {
+												if (pluginHash) {
+													hashForChunk += pluginHash;
+												}
+												return hashForChunk;
+											}
+										)
+										.then(hashForChunk => {
+											if (hashForChunk) {
+												chunk.augmentedHash = hashForChunk;
+											}
+										});
 								})
-							).then(() => {});
+							).then(() => {
+								assignChunkIds(chunks, inputOptions, outputOptions, inputBase, addons);
+
+								// assign to outputBundle
+								for (let i = 0; i < chunks.length; i++) {
+									const chunk = chunks[i];
+									const facadeModule = chunk.facadeModule;
+
+									outputBundle[chunk.id] = {
+										code: undefined as any,
+										dynamicImports: chunk.getDynamicImportIds(),
+										exports: chunk.getExportNames(),
+										facadeModuleId: facadeModule && facadeModule.id,
+										fileName: chunk.id,
+										imports: chunk.getImportIds(),
+										isDynamicEntry:
+											facadeModule !== null && facadeModule.dynamicallyImportedBy.length > 0,
+										isEntry: facadeModule !== null && facadeModule.isEntryPoint,
+										map: undefined,
+										modules: chunk.renderedModules,
+										get name() {
+											return chunk.getChunkName();
+										}
+									} as OutputChunk;
+								}
+
+								return Promise.all(
+									chunks.map(chunk => {
+										const outputChunk = outputBundle[chunk.id] as OutputChunk;
+										return chunk.render(outputOptions, addons, outputChunk).then(rendered => {
+											outputChunk.code = rendered.code;
+											outputChunk.map = rendered.map;
+
+											return graph.pluginDriver.hookParallel('ongenerate', [
+												{ bundle: outputChunk, ...outputOptions },
+												outputChunk
+											]);
+										});
+									})
+								).then(() => {});
+							});
 						})
 						.catch(error =>
 							graph.pluginDriver.hookParallel('renderError', [error]).then(() => {
