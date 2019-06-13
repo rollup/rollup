@@ -88,8 +88,8 @@ export interface TransformModuleJSON {
 export interface ModuleJSON extends TransformModuleJSON {
 	dependencies: string[];
 	id: string;
-	transformAssets: Asset[] | void;
-	transformChunks: EmittedChunk[] | void;
+	transformAssets: Asset[] | undefined;
+	transformChunks: EmittedChunk[] | undefined;
 }
 
 export interface EmittedChunk {
