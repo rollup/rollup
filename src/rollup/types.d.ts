@@ -89,6 +89,12 @@ export interface ModuleJSON extends TransformModuleJSON {
 	dependencies: string[];
 	id: string;
 	transformAssets: Asset[] | void;
+	transformChunks: EmittedChunk[] | void;
+}
+
+export interface EmittedChunk {
+	id: string;
+	options: { name?: string } | undefined;
 }
 
 export interface Asset {

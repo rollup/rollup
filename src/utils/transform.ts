@@ -4,6 +4,7 @@ import Module from '../Module';
 import {
 	Asset,
 	EmitAsset,
+	EmittedChunk,
 	ExistingRawSourceMap,
 	Plugin,
 	PluginCache,
@@ -36,7 +37,8 @@ export default function transform(
 	const originalCode = source.code;
 	let ast = source.ast;
 	let transformDependencies: string[];
-	let assets: Asset[];
+	let emittedAssets: Asset[];
+	const emittedChunks: EmittedChunk[] = [];
 	let customTransformCache = false;
 	let moduleSideEffects: boolean | null = null;
 	let trackedPluginCache: { cache: PluginCache; used: boolean };
@@ -60,7 +62,8 @@ export default function transform(
 			}
 		} else {
 			// assets emitted by transform are transformDependencies
-			if (assets.length) module.transformAssets = assets;
+			if (emittedAssets.length) module.transformAssets = emittedAssets;
+			if (emittedChunks.length) module.transformChunks = emittedChunks;
 
 			if (result && typeof result === 'object' && Array.isArray(result.dependencies)) {
 				// not great, but a useful way to track this without assuming WeakMap
@@ -124,7 +127,10 @@ export default function transform(
 				else trackedPluginCache = trackPluginCache(pluginContext.cache);
 
 				let emitAsset: EmitAsset;
-				({ assets, emitAsset } = createTransformEmitAsset(graph.assetsById, baseEmitAsset));
+				({ assets: emittedAssets, emitAsset } = createTransformEmitAsset(
+					graph.assetsById,
+					baseEmitAsset
+				));
 				return {
 					...pluginContext,
 					cache: trackedPluginCache ? trackedPluginCache.cache : pluginContext.cache,
@@ -143,6 +149,10 @@ export default function transform(
 						return pluginContext.error(err);
 					},
 					emitAsset,
+					emitChunk(id, options) {
+						emittedChunks.push({ id, options });
+						return graph.pluginDriver.emitChunk(id, options);
+					},
 					addWatchFile(id: string) {
 						if (!transformDependencies) transformDependencies = [];
 						transformDependencies.push(id);
