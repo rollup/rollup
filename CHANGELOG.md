@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.15.2
+*2019-06-13*
+
+### Bug Fixes
+* Make sure chunks emitted from transform hooks are also emitted for incremental builds in watch mode (#2933)
+
+### Pull Requests
+* [#2933](https://github.com/rollup/rollup/pull/2933): Reemit chunks emitted from transform hooks (@lukastaegert)
+
 ## 1.15.1
 *2019-06-11*
 
