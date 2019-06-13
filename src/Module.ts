@@ -217,7 +217,7 @@ export default class Module {
 	private graph: Graph;
 	private magicString!: MagicString;
 	private namespaceVariable: NamespaceVariable = undefined as any;
-	private transformDependencies!: string[];
+	private transformDependencies: string[] | null = null;
 	private transitiveReexports?: string[];
 
 	constructor(graph: Graph, id: string, moduleSideEffects: boolean, isEntry: boolean) {
@@ -526,13 +526,24 @@ export default class Module {
 		originalSourcemap,
 		resolvedIds,
 		sourcemapChain,
+		transformAssets,
+		transformChunks,
 		transformDependencies
-	}: TransformModuleJSON) {
+	}: TransformModuleJSON & {
+		transformAssets?: Asset[] | undefined;
+		transformChunks?: EmittedChunk[] | undefined;
+	}) {
 		this.code = code;
 		this.originalCode = originalCode;
 		this.originalSourcemap = originalSourcemap;
 		this.sourcemapChain = sourcemapChain as RawSourceMap[];
-		this.transformDependencies = transformDependencies as string[];
+		if (transformAssets) {
+			this.transformAssets = transformAssets;
+		}
+		if (transformChunks) {
+			this.transformChunks = transformChunks;
+		}
+		this.transformDependencies = transformDependencies;
 		this.customTransformCache = customTransformCache;
 		if (typeof moduleSideEffects === 'boolean') {
 			this.moduleSideEffects = moduleSideEffects;

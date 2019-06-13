@@ -7,6 +7,7 @@ import {
 	ExternalOption,
 	GetManualChunk,
 	IsExternal,
+	ModuleJSON,
 	ModuleSideEffectsOption,
 	PureModulesOption,
 	ResolvedId,
@@ -348,7 +349,7 @@ export class ModuleLoader {
 				}
 				return transform(this.graph, sourceDescription, module);
 			})
-			.then((source: TransformModuleJSON) => {
+			.then((source: TransformModuleJSON | ModuleJSON) => {
 				module.setSource(source);
 				this.modulesById.set(id, module);
 
