@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.15.3
+*2019-06-13*
+
+### Bug Fixes
+* Always reemit assets and chunks from cached transform hooks (#2936)
+
+### Pull Requests
+* [#2936](https://github.com/rollup/rollup/pull/2936): Fix repeated re-emission of files emitted from a transform hook (@lukastaegert)
+
 ## 1.15.2
 *2019-06-13*
 
