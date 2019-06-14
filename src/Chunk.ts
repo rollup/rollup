@@ -152,7 +152,7 @@ export default class Chunk {
 		exports: ChunkExports;
 	} = undefined as any;
 	private renderedHash: string = undefined as any;
-	private renderedModuleSources: MagicString[] = undefined as any;
+	private renderedModuleSources = new Map<Module, MagicString>();
 	private renderedSource: MagicStringBundle | null = null;
 	private renderedSourceLength: number = undefined as any;
 	private sortedExportNames: string[] | null = null;
@@ -522,36 +522,34 @@ export default class Chunk {
 		this.prepareDynamicImports();
 
 		let hoistedSource = '';
-
 		const renderedModules = (this.renderedModules = Object.create(null));
-		this.renderedModuleSources = [];
 
-		for (let i = 0; i < this.orderedModules.length; i++) {
-			const module = this.orderedModules[i];
-			const source = module.render(renderOptions);
-			source.trim();
-			if (options.compact && source.lastLine().indexOf('//') !== -1) source.append('\n');
-			this.renderedModuleSources.push(source);
+		for (const module of this.orderedModules) {
+			let renderedLength = 0;
+			if (module.isIncluded()) {
+				const source = module.render(renderOptions).trim();
+				if (options.compact && source.lastLine().indexOf('//') !== -1) source.append('\n');
+				const namespace = module.getOrCreateNamespace();
+				if (namespace.included || source.length() > 0) {
+					renderedLength = source.length();
+					this.renderedModuleSources.set(module, source);
+					magicString.addSource(source);
+					this.usedModules.push(module);
 
+					if (namespace.included && !this.graph.preserveModules) {
+						const rendered = namespace.renderBlock(renderOptions);
+						if (namespace.renderFirst()) hoistedSource += n + rendered;
+						else magicString.addSource(new MagicString(rendered));
+					}
+				}
+			}
 			const { renderedExports, removedExports } = module.getRenderedExports();
 			renderedModules[module.id] = {
 				originalLength: module.originalCode.length,
 				removedExports,
 				renderedExports,
-				renderedLength: source.length()
+				renderedLength
 			};
-
-			const namespace = module.getOrCreateNamespace();
-			if (namespace.included || !source.isEmpty()) {
-				magicString.addSource(source);
-				this.usedModules.push(module);
-
-				if (namespace.included && !this.graph.preserveModules) {
-					const rendered = namespace.renderBlock(renderOptions);
-					if (namespace.renderFirst()) hoistedSource += n + rendered;
-					else magicString.addSource(new MagicString(rendered));
-				}
-			}
 		}
 
 		if (hoistedSource) magicString.prepend(hoistedSource + n + n);
@@ -813,9 +811,7 @@ export default class Chunk {
 	}
 
 	private finaliseDynamicImports(format: string) {
-		for (let i = 0; i < this.orderedModules.length; i++) {
-			const module = this.orderedModules[i];
-			const code = this.renderedModuleSources[i];
+		for (const [module, code] of this.renderedModuleSources) {
 			for (const { node, resolution } of module.dynamicImports) {
 				if (!resolution) continue;
 				if (resolution instanceof Module) {
@@ -840,9 +836,7 @@ export default class Chunk {
 	}
 
 	private finaliseImportMetas(format: string): void {
-		for (let i = 0; i < this.orderedModules.length; i++) {
-			const module = this.orderedModules[i];
-			const code = this.renderedModuleSources[i];
+		for (const [module, code] of this.renderedModuleSources) {
 			for (const importMeta of module.importMetas) {
 				importMeta.renderFinalMechanism(code, this.id, format, this.graph.pluginDriver);
 			}
