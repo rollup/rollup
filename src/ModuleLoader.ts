@@ -49,18 +49,19 @@ function normalizeRelativeExternalId(importer: string, source: string) {
 }
 
 function getIdMatcher<T extends Array<any>>(
-	option: boolean | string[] | ((id: string, ...args: T) => boolean | void)
+	option: boolean | string[] | ((id: string, ...args: T) => boolean | null | undefined)
 ): (id: string, ...args: T) => boolean {
 	if (option === true) {
 		return () => true;
-	} else if (typeof option === 'function') {
+	}
+	if (typeof option === 'function') {
 		return (id, ...args) => (!id.startsWith('\0') && option(id, ...args)) || false;
-	} else if (option) {
+	}
+	if (option) {
 		const ids = new Set(Array.isArray(option) ? option : option ? [option] : []);
 		return (id => ids.has(id)) as (id: string, ...args: T) => boolean;
-	} else {
-		return () => false;
 	}
+	return () => false;
 }
 
 function getHasModuleSideEffects(
@@ -127,8 +128,7 @@ export class ModuleLoader {
 			pureExternalModules,
 			graph
 		);
-		this.getManualChunk =
-			typeof getManualChunk === 'function' ? getManualChunk : () => (null as unknown) as void;
+		this.getManualChunk = typeof getManualChunk === 'function' ? getManualChunk : () => null;
 	}
 
 	addEntryModuleAndGetReferenceId(unresolvedEntryModule: UnresolvedModuleWithAlias): string {
