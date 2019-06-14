@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 1.15.5
+*2019-06-14*
+
+### Bug Fixes
+* Do not include any comments for completely tree-shaken files so that `renderedLength === 0` is a reliable check (#2940)
+* Do not cause type errors when returning `null` from `resolveId` (#2941)
+
+### Pull Requests
+* [#2940](https://github.com/rollup/rollup/pull/2940): Completely omit files that do not have any included statements (@lukastaegert)
+* [#2941](https://github.com/rollup/rollup/pull/2941): Explicitly allow null as return value for various hooks (@lukastaegert)
+
 ## 1.15.4
 *2019-06-14*
 
