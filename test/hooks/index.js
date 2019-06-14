@@ -615,7 +615,7 @@ describe('hooks', () => {
 					code,
 					`'use strict';
 
-var input = (typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __dirname + '/assets/test-19916f7d.ext').href : new URL((document.currentScript && document.currentScript.src || document.baseURI) + '/../assets/test-19916f7d.ext').href);
+var input = (typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __dirname + '/assets/test-19916f7d.ext').href : new URL('assets/test-19916f7d.ext', document.currentScript && document.currentScript.src || document.baseURI).href);
 
 module.exports = input;
 `

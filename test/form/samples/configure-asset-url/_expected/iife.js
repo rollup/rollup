@@ -5,7 +5,7 @@
 
 	var asset2 = 'resolved';
 
-	var asset3 = new URL((document.currentScript && document.currentScript.src || document.baseURI) + '/../assets/asset-unresolved-9548436d.txt').href;
+	var asset3 = new URL('assets/asset-unresolved-9548436d.txt', document.currentScript && document.currentScript.src || document.baseURI).href;
 
 	console.log(asset1, asset2, asset3);
 
