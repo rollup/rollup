@@ -199,7 +199,7 @@ export default class Module {
 	manualChunkAlias: string = null as any;
 	moduleSideEffects: boolean;
 	originalCode!: string;
-	originalSourcemap!: RawSourceMap | void;
+	originalSourcemap!: RawSourceMap | null;
 	reexports: { [name: string]: ReexportDescription } = Object.create(null);
 	resolvedIds!: ResolvedIdMap;
 	scope!: ModuleScope;
