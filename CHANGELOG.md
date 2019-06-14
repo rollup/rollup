@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.15.4
+*2019-06-14*
+
+### Bug Fixes
+* Improve how asset and chunk URLs are resolved for UMD, IIFE and CJS output (#2937)
+
+### Pull Requests
+* [#2937](https://github.com/rollup/rollup/pull/2937): Fix URL resolution to work when the current script contains query parameters (@lukastaegert)
+
 ## 1.15.3
 *2019-06-13*
 
