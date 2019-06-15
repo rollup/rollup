@@ -1,11 +1,12 @@
 import CallOptions from '../../CallOptions';
 import { ExecutionPathOptions } from '../../ExecutionPathOptions';
 import FunctionScope from '../../scopes/FunctionScope';
-import BlockScope from '../../scopes/FunctionScope';
 import { ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_KEY, UNKNOWN_PATH } from '../../values';
 import BlockStatement from '../BlockStatement';
-import { IdentifierWithVariable } from '../Identifier';
-import { GenericEsTreeNode, NodeBase } from './Node';
+import Identifier, { IdentifierWithVariable } from '../Identifier';
+import RestElement from '../RestElement';
+import SpreadElement from '../SpreadElement';
+import { ExpressionNode, GenericEsTreeNode, NodeBase } from './Node';
 import { PatternNode } from './Pattern';
 
 export default class FunctionNode extends NodeBase {
@@ -14,7 +15,7 @@ export default class FunctionNode extends NodeBase {
 	id!: IdentifierWithVariable | null;
 	params!: PatternNode[];
 	preventChildBlockScope!: true;
-	scope!: BlockScope;
+	scope!: FunctionScope;
 
 	private isPrototypeDeoptimized = false;
 
@@ -73,18 +74,32 @@ export default class FunctionNode extends NodeBase {
 		return this.body.hasEffects(innerOptions);
 	}
 
-	include(includeAllChildrenRecursively: boolean) {
-		this.scope.argumentsVariable.include();
-		super.include(includeAllChildrenRecursively);
+	include(includeChildrenRecursively: boolean | 'variables') {
+		this.included = true;
+		this.body.include(includeChildrenRecursively);
+		if (this.id) {
+			this.id.include();
+		}
+		const hasArguments = this.scope.argumentsVariable.included;
+		for (const param of this.params) {
+			if (!(param instanceof Identifier) || hasArguments) {
+				param.include(includeChildrenRecursively);
+			}
+		}
+	}
+
+	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+		this.scope.includeCallArguments(args);
 	}
 
 	initialise() {
 		if (this.id !== null) {
 			this.id.declare('function', this);
 		}
-		for (const param of this.params) {
-			param.declare('parameter', UNKNOWN_EXPRESSION);
-		}
+		this.scope.addParameterVariables(
+			this.params.map(param => param.declare('parameter', UNKNOWN_EXPRESSION)),
+			this.params[this.params.length - 1] instanceof RestElement
+		);
 		this.body.addImplicitReturnExpressionToScope();
 	}
 

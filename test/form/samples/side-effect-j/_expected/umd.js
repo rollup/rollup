@@ -5,7 +5,7 @@
 }(this, function () { 'use strict';
 
 	var augment;
-	augment = x => x.augmented = true;
+	augment = y => y.augmented = true;
 
 	function x () {}
 	augment( x );

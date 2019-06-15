@@ -32,6 +32,7 @@ import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import {
 	Asset,
+	EmittedChunk,
 	ModuleJSON,
 	RawSourceMap,
 	ResolvedIdMap,
@@ -109,6 +110,7 @@ export interface AstContext {
 	traceExport: (name: string) => Variable;
 	traceVariable: (name: string) => Variable | null;
 	treeshake: boolean;
+	tryCatchDeoptimization: boolean;
 	usesTopLevelAwait: boolean;
 	warn: (warning: RollupWarning, pos: number) => void;
 }
@@ -197,13 +199,14 @@ export default class Module {
 	manualChunkAlias: string = null as any;
 	moduleSideEffects: boolean;
 	originalCode!: string;
-	originalSourcemap!: RawSourceMap | void;
+	originalSourcemap!: RawSourceMap | null;
 	reexports: { [name: string]: ReexportDescription } = Object.create(null);
 	resolvedIds!: ResolvedIdMap;
 	scope!: ModuleScope;
 	sourcemapChain!: RawSourceMap[];
 	sources: string[] = [];
 	transformAssets?: Asset[];
+	transformChunks?: EmittedChunk[];
 	usesTopLevelAwait = false;
 
 	private allExportNames?: Set<string>;
@@ -214,7 +217,7 @@ export default class Module {
 	private graph: Graph;
 	private magicString!: MagicString;
 	private namespaceVariable: NamespaceVariable = undefined as any;
-	private transformDependencies!: string[];
+	private transformDependencies: string[] | null = null;
 	private transitiveReexports?: string[];
 
 	constructor(graph: Graph, id: string, moduleSideEffects: boolean, isEntry: boolean) {
@@ -454,7 +457,6 @@ export default class Module {
 
 		for (const exportName of this.getExports()) {
 			const variable = this.getVariableForExportName(exportName);
-
 			variable.deoptimizePath(UNKNOWN_PATH);
 			if (!variable.included) {
 				variable.include();
@@ -464,13 +466,13 @@ export default class Module {
 
 		for (const name of this.getReexports()) {
 			const variable = this.getVariableForExportName(name);
-
-			if (variable instanceof ExternalVariable) {
-				variable.reexported = variable.module.reexported = true;
-			} else if (!variable.included) {
+			variable.deoptimizePath(UNKNOWN_PATH);
+			if (!variable.included) {
 				variable.include();
-				variable.deoptimizePath(UNKNOWN_PATH);
 				this.graph.needsTreeshakingPass = true;
+			}
+			if (variable instanceof ExternalVariable) {
+				variable.module.reexported = true;
 			}
 		}
 	}
@@ -529,13 +531,24 @@ export default class Module {
 		originalSourcemap,
 		resolvedIds,
 		sourcemapChain,
+		transformAssets,
+		transformChunks,
 		transformDependencies
-	}: TransformModuleJSON) {
+	}: TransformModuleJSON & {
+		transformAssets?: Asset[] | undefined;
+		transformChunks?: EmittedChunk[] | undefined;
+	}) {
 		this.code = code;
 		this.originalCode = originalCode;
 		this.originalSourcemap = originalSourcemap;
 		this.sourcemapChain = sourcemapChain as RawSourceMap[];
-		this.transformDependencies = transformDependencies as string[];
+		if (transformAssets) {
+			this.transformAssets = transformAssets;
+		}
+		if (transformChunks) {
+			this.transformChunks = transformChunks;
+		}
+		this.transformDependencies = transformDependencies;
 		this.customTransformCache = customTransformCache;
 		if (typeof moduleSideEffects === 'boolean') {
 			this.moduleSideEffects = moduleSideEffects;
@@ -594,6 +607,8 @@ export default class Module {
 			traceExport: this.getVariableForExportName.bind(this),
 			traceVariable: this.traceVariable.bind(this),
 			treeshake: !!this.graph.treeshakingOptions,
+			tryCatchDeoptimization: (!this.graph.treeshakingOptions ||
+				this.graph.treeshakingOptions.tryCatchDeoptimization) as boolean,
 			usesTopLevelAwait: false,
 			warn: this.warn.bind(this)
 		};
@@ -621,6 +636,7 @@ export default class Module {
 			resolvedIds: this.resolvedIds,
 			sourcemapChain: this.sourcemapChain,
 			transformAssets: this.transformAssets,
+			transformChunks: this.transformChunks,
 			transformDependencies: this.transformDependencies
 		};
 	}

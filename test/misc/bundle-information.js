@@ -423,7 +423,7 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 				input: ['input'],
 				plugins: [
 					loader({
-						input: 'export { renderedFn, renderedClass, renderedConst } from "code"',
+						input: '/* removed header */ export { renderedFn, renderedClass, renderedConst } from "code"',
 						code:
 							'export function renderedFn() {}\nexport function removedFn() {}\n' +
 							'export class renderedClass {}\nexport class removedClass {}\n' +
@@ -457,7 +457,7 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 							renderedLength: 72
 						},
 						input: {
-							originalLength: 63,
+							originalLength: 84,
 							removedExports: [],
 							renderedExports: [],
 							renderedLength: 0

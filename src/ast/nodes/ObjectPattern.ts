@@ -23,9 +23,11 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 	}
 
 	declare(kind: string, init: ExpressionEntity) {
+		const variables = [];
 		for (const property of this.properties) {
-			property.declare(kind, init);
+			variables.push(...property.declare(kind, init));
 		}
+		return variables;
 	}
 
 	deoptimizePath(path: ObjectPath) {

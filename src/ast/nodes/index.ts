@@ -42,7 +42,7 @@ import Property from './Property';
 import RestElement from './RestElement';
 import ReturnStatement from './ReturnStatement';
 import SequenceExpression from './SequenceExpression';
-import { NodeBase, StatementBase } from './shared/Node';
+import { NodeBase } from './shared/Node';
 import SpreadElement from './SpreadElement';
 import SwitchCase from './SwitchCase';
 import SwitchStatement from './SwitchStatement';
@@ -51,6 +51,7 @@ import TemplateElement from './TemplateElement';
 import TemplateLiteral from './TemplateLiteral';
 import ThisExpression from './ThisExpression';
 import ThrowStatement from './ThrowStatement';
+import TryStatement from './TryStatement';
 import UnaryExpression from './UnaryExpression';
 import UnknownNode from './UnknownNode';
 import UpdateExpression from './UpdateExpression';
@@ -114,7 +115,7 @@ export const nodeConstructors: {
 	TemplateLiteral,
 	ThisExpression,
 	ThrowStatement,
-	TryStatement: StatementBase,
+	TryStatement,
 	UnaryExpression,
 	UnknownNode,
 	UpdateExpression,

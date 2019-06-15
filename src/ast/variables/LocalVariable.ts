@@ -7,7 +7,8 @@ import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import Identifier from '../nodes/Identifier';
 import * as NodeType from '../nodes/NodeType';
 import { ExpressionEntity } from '../nodes/shared/Expression';
-import { Node } from '../nodes/shared/Node';
+import { ExpressionNode, Node } from '../nodes/shared/Node';
+import SpreadElement from '../nodes/SpreadElement';
 import { EntityPathTracker } from '../utils/EntityPathTracker';
 import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
 import {
@@ -24,6 +25,7 @@ const MAX_PATH_DEPTH = 7;
 
 export default class LocalVariable extends Variable {
 	additionalInitializers: ExpressionEntity[] | null = null;
+	calledFromTryStatement = false;
 	declarations: (Identifier | ExportDefaultDeclaration)[];
 	init: ExpressionEntity | null;
 	module: Module;
@@ -189,5 +191,19 @@ export default class LocalVariable extends Variable {
 				}
 			}
 		}
+	}
+
+	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+		if (this.isReassigned) {
+			for (const arg of args) {
+				arg.include(false);
+			}
+		} else if (this.init) {
+			this.init.includeCallArguments(args);
+		}
+	}
+
+	markCalledFromTryStatement() {
+		this.calledFromTryStatement = true;
 	}
 }

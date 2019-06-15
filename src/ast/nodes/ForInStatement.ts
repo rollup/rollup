@@ -5,7 +5,7 @@ import BlockScope from '../scopes/BlockScope';
 import Scope from '../scopes/Scope';
 import { EMPTY_PATH } from '../values';
 import * as NodeType from './NodeType';
-import { ExpressionNode, StatementBase, StatementNode } from './shared/Node';
+import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 import VariableDeclaration from './VariableDeclaration';
 
@@ -36,12 +36,12 @@ export default class ForInStatement extends StatementBase {
 		);
 	}
 
-	include(includeAllChildrenRecursively: boolean) {
+	include(includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		this.left.includeWithAllDeclaredVariables(includeAllChildrenRecursively);
+		this.left.includeWithAllDeclaredVariables(includeChildrenRecursively);
 		this.left.deoptimizePath(EMPTY_PATH);
-		this.right.include(includeAllChildrenRecursively);
-		this.body.include(includeAllChildrenRecursively);
+		this.right.include(includeChildrenRecursively);
+		this.body.include(includeChildrenRecursively);
 	}
 
 	render(code: MagicString, options: RenderOptions) {

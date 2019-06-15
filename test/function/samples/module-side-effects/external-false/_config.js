@@ -25,6 +25,9 @@ module.exports = {
 					if (id === 'internal') {
 						return id;
 					}
+					if (id === 'implicit-external') {
+						return null;
+					}
 					const moduleSideEffects = JSON.parse(id.split('-')[1]);
 					if (moduleSideEffects) {
 						return { id, moduleSideEffects, external: true };
@@ -38,5 +41,15 @@ module.exports = {
 				}
 			}
 		}
-	}
+	},
+	warnings: [
+		{
+			code: 'UNRESOLVED_IMPORT',
+			importer: 'main.js',
+			message:
+				"'implicit-external' is imported by main.js, but could not be resolved – treating it as an external dependency",
+			source: 'implicit-external',
+			url: 'https://rollupjs.org/guide/en#warning-treating-module-as-external-dependency'
+		}
+	]
 };

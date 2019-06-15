@@ -20,7 +20,7 @@ import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
 import { MultiExpression } from './shared/MultiExpression';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 
 export default class ConditionalExpression extends NodeBase implements DeoptimizableEntity {
 	alternate!: ExpressionNode;
@@ -133,14 +133,14 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		return this.usedBranch.hasEffectsWhenCalledAtPath(path, callOptions, options);
 	}
 
-	include(includeAllChildrenRecursively: boolean) {
+	include(includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		if (includeAllChildrenRecursively || this.usedBranch === null || this.test.shouldBeIncluded()) {
-			this.test.include(includeAllChildrenRecursively);
-			this.consequent.include(includeAllChildrenRecursively);
-			this.alternate.include(includeAllChildrenRecursively);
+		if (includeChildrenRecursively || this.usedBranch === null || this.test.shouldBeIncluded()) {
+			this.test.include(includeChildrenRecursively);
+			this.consequent.include(includeChildrenRecursively);
+			this.alternate.include(includeChildrenRecursively);
 		} else {
-			this.usedBranch.include(includeAllChildrenRecursively);
+			this.usedBranch.include(includeChildrenRecursively);
 		}
 	}
 

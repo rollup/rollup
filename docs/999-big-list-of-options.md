@@ -40,6 +40,31 @@ When providing a function, it is actually called with three parameters `(id, par
 
 When creating an `iife` or `umd` bundle, you will need to provide global variable names to replace your external imports via the `output.globals` option.
 
+If a relative import, i.e. starting with `./` or `../`, is marked as "external", rollup will internally resolve the id to an absolute file system location so that different imports of the external module can be merged. When the resulting bundle is written, the import will again be converted to a relative import. Example:
+
+```js
+// input
+// src/main.js (entry point)
+import x from '../external.js';
+import './nested/nested.js';
+console.log(x);
+
+// src/nested/nested.js
+// the import would point to the same file if it existed
+import x from '../../external.js';
+console.log(x);
+
+// output
+// the different imports are merged
+import x from '../external.js';
+
+console.log(x);
+
+console.log(x);
+```
+
+The conversion back to a relative import is done as if `output.file` or `output.dir` were in the same location as the entry point or the common base directory of all entry points if there is more than one.
+
 #### input
 Type: `string | string [] | { [entryName: string]: string }`<br>
 CLI: `-i`/`--input <filename>`
@@ -823,6 +848,46 @@ const foo = {
 }
 const result = foo.bar;
 const illegalAccess = foo.quux.tooDeep;
+```
+
+**treeshake.tryCatchDeoptimization**
+Type: `boolean`<br>
+CLI: `--treeshake.tryCatchDeoptimization`/`--no-treeshake.tryCatchDeoptimization`<br>
+Default: `true`
+
+By default, Rollup assumes that many builtin globals of the runtime behave according to the latest specs when tree-shaking and do not throw unexpected errors. In order to support e.g. feature detection workflows that rely on those errors being thrown, Rollup will by default deactivate tree-shaking inside try-statements. If a function parameter is called from within a try-statement, this parameter will be deoptimized as well. Set `treeshake.tryCatchDeoptimization` to `false` if you do not need this feature and want to have tree-shaking inside try-statements.
+
+```js
+function otherFn() {
+  // even though this function is called from a try-statement, the next line
+  // will be removed as side-effect-free
+  Object.create(null);
+}
+
+function test(callback) {
+  try {
+  	// calls to otherwise side-effect-free global functions are retained
+  	// inside try-statements for tryCatchDeoptimization: true
+    Object.create(null);
+    
+  	// calls to other function are retained as well but the body of this
+  	// function may again be subject to tree-shaking
+    otherFn();
+    
+    // if a parameter is called, then all arguments passed to that function
+    // parameter will be deoptimized
+    callback();
+  } catch {}
+}
+
+test(() => {
+  // will be ratained
+  Object.create(null)
+});
+
+// call will be retained but again, otherFn is not deoptimized
+test(otherFn);
+
 ```
 
 ### Experimental options

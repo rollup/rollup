@@ -1,3 +1,3 @@
-export function x () {
-  sideEffect();
+export function x (arg) {
+  sideEffect(arg);
 }

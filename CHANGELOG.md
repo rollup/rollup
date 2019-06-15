@@ -1,5 +1,141 @@
 # rollup changelog
 
+## 1.15.5
+*2019-06-14*
+
+### Bug Fixes
+* Do not include any comments for completely tree-shaken files so that `renderedLength === 0` is a reliable check (#2940)
+* Do not cause type errors when returning `null` from `resolveId` (#2941)
+
+### Pull Requests
+* [#2940](https://github.com/rollup/rollup/pull/2940): Completely omit files that do not have any included statements (@lukastaegert)
+* [#2941](https://github.com/rollup/rollup/pull/2941): Explicitly allow null as return value for various hooks (@lukastaegert)
+
+## 1.15.4
+*2019-06-14*
+
+### Bug Fixes
+* Improve how asset and chunk URLs are resolved for UMD, IIFE and CJS output (#2937)
+
+### Pull Requests
+* [#2937](https://github.com/rollup/rollup/pull/2937): Fix URL resolution to work when the current script contains query parameters (@lukastaegert)
+
+## 1.15.3
+*2019-06-13*
+
+### Bug Fixes
+* Always reemit assets and chunks from cached transform hooks (#2936)
+
+### Pull Requests
+* [#2936](https://github.com/rollup/rollup/pull/2936): Fix repeated re-emission of files emitted from a transform hook (@lukastaegert)
+
+## 1.15.2
+*2019-06-13*
+
+### Bug Fixes
+* Make sure chunks emitted from transform hooks are also emitted for incremental builds in watch mode (#2933)
+
+### Pull Requests
+* [#2933](https://github.com/rollup/rollup/pull/2933): Reemit chunks emitted from transform hooks (@lukastaegert)
+
+## 1.15.1
+*2019-06-11*
+
+### Bug Fixes
+* Do not fail when reexporting variables in dynamic entry points from other chunks (#2928)
+
+### Pull Requests
+* [#2928](https://github.com/rollup/rollup/pull/2928): Handle reexports from dynamic entries across chunk (@lukastaegert)
+
+## 1.15.0
+*2019-06-11*
+
+### Features
+* Tone down try-catch deoptimization while maintaining polyfill support (#2918)
+
+### Bug Fixes
+* Handle feature detection with "typeof" for regular expressios (#2916)
+* Deoptimize `'' + variable'` type coercion as expression statement for feature detection (#2917)
+* Always observe argument side-effects when tree-shaking (#2924)
+
+### Pull Requests
+* [#2916](https://github.com/rollup/rollup/pull/2916): Deoptimize typeof for regular expression literals to better support es6-shim (@lukastaegert)
+* [#2917](https://github.com/rollup/rollup/pull/2917): Support implicit type coercion errors in es5-shim (@lukastaegert)
+* [#2918](https://github.com/rollup/rollup/pull/2918): Deoptimize try-catch less radically (@lukastaegert)
+* [#2924](https://github.com/rollup/rollup/pull/2924): Do not tree-shake arguments with side-effects (@lukastaegert)
+
+## 1.14.6
+*2019-06-10*
+
+### Bug Fixes
+* Fix an issue where call arguments were not included in try statements (#2914)
+
+### Pull Requests
+* [#2914](https://github.com/rollup/rollup/pull/2914): Properly include try statements for each pass when deoptimization is deactivated (@lukastaegert)
+
+## 1.14.5
+*2019-06-09*
+
+### Bug Fixes
+* Keep external ids unmodified when using the object form of resolveId (#2907)
+* Cache dynamic import resolutions when using Rollup cache (#2908)
+* Keep all necessary parentheses when tree-shaking call arguments (#2911)
+
+### Pull Requests
+* [#2906](https://github.com/rollup/rollup/pull/2906): Update dependencies (@lukastaegert)
+* [#2907](https://github.com/rollup/rollup/pull/2907): Do not renormalize external ids when using the object form (@lukastaegert)
+* [#2908](https://github.com/rollup/rollup/pull/2908): Cache dynamic ids if possible (@lukastaegert)
+* [#2911](https://github.com/rollup/rollup/pull/2911): Fix treeshaken parameters around parentheses (@manucorporat)
+
+## 1.14.4
+*2019-06-07*
+
+### Bug Fixes
+* Do not omit external re-exports for `moduleSideEffects: false` (#2905)
+
+### Pull Requests
+* [#2905](https://github.com/rollup/rollup/pull/2905): Make sure external re-exports are included for moduleSideEffects: false (@lukastaegert)
+
+## 1.14.3
+*2019-06-06*
+
+### Bug Fixes
+* Generate correct external imports when importing from a directory that would be above the root of the current working directory (#2902)
+
+### Pull Requests
+* [#2902](https://github.com/rollup/rollup/pull/2902): Use browser relative path algorithm for chunks (@lukastaegert)
+
+## 1.14.2
+*2019-06-05*
+
+### Bug Fixes
+* Prevent unnecessary inclusion of external namespace import in certain situations (#2900)
+
+### Pull Requests
+* [#2900](https://github.com/rollup/rollup/pull/2900): Handle early bind for member expressions (@lukastaegert)
+
+## 1.14.1
+*2019-06-05*
+
+### Bug Fixes
+* Fix an issue where try-statements were not included properly when a variable declared inside the statement was accessed outside it (#2898)
+* Fix an issue where `await` expressions were not included properly (#2899)
+
+### Pull Requests
+* [#2898](https://github.com/rollup/rollup/pull/2898): Properly include try-catch-statements even if they have already been included in some way (@lukastaegert)
+* [#2899](https://github.com/rollup/rollup/pull/2899): Fix unintended early return in await inclusion handling (@lukastaegert)
+
+## 1.14.0
+*2019-06-05*
+
+### Features
+* Deoptimize code inside and called from try-statements for feature detection (#2892)
+* Tree-shake unused call arguments (#2892)
+
+### Pull Requests
+* [#2892](https://github.com/rollup/rollup/pull/2892): Implement try-statement-deoptimization for feature detection, tree-shake unused arguments (@lukastaegert)
+
+
 ## 1.13.1
 *2019-06-01*
 

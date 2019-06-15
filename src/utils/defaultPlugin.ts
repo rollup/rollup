@@ -108,7 +108,7 @@ const importMetaMechanisms: Record<string, (prop: string | null, chunkId: string
 
 const getRelativeUrlFromDocument = (relativePath: string) =>
 	getResolveUrl(
-		`(document.currentScript && document.currentScript.src || document.baseURI) + '/../${relativePath}'`
+		`'${relativePath}', document.currentScript && document.currentScript.src || document.baseURI`
 	);
 
 const relativeUrlMechanisms: Record<string, (relativePath: string) => string> = {

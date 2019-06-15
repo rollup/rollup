@@ -10,7 +10,6 @@ import ThisVariable from './variables/ThisVariable';
 export enum OptionTypes {
 	IGNORED_LABELS,
 	ACCESSED_NODES,
-	ARGUMENTS_VARIABLES,
 	ASSIGNED_NODES,
 	IGNORE_BREAK_STATEMENTS,
 	IGNORE_RETURN_AWAIT_YIELD,
@@ -76,10 +75,6 @@ export class ExecutionPathOptions {
 			[OptionTypes.RETURN_EXPRESSIONS_CALLED_AT_PATH, callExpression, ...path, RESULT_KEY],
 			true
 		);
-	}
-
-	getArgumentsVariables(): ExpressionEntity[] {
-		return (this.get(OptionTypes.ARGUMENTS_VARIABLES) || []) as ExpressionEntity[];
 	}
 
 	getHasEffectsWhenCalledOptions() {
@@ -169,10 +164,6 @@ export class ExecutionPathOptions {
 
 	replaceVariableInit(variable: ThisVariable, init: ExpressionEntity) {
 		return this.setIn([OptionTypes.REPLACED_VARIABLE_INITS, variable], init);
-	}
-
-	setArgumentsVariables(variables: ExpressionEntity[]) {
-		return this.set(OptionTypes.ARGUMENTS_VARIABLES, variables);
 	}
 
 	setIgnoreBreakStatements(value = true) {

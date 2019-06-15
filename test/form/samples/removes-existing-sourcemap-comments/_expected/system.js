@@ -3,8 +3,8 @@ System.register([], function () {
 	return {
 		execute: function () {
 
-			function foo () {
-				return 42;
+			function foo (x) {
+				return x;
 			}
 
 			var str = `

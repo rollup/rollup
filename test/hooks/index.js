@@ -7,8 +7,8 @@ const rollup = require('../../dist/rollup.js');
 const TEMP_DIR = path.join(__dirname, 'tmp');
 
 describe('hooks', () => {
-	it('allows to read and modify options in the options hook', () => {
-		return rollup
+	it('allows to read and modify options in the options hook', () =>
+		rollup
 			.rollup({
 				input: 'input',
 				treeshake: false,
@@ -28,11 +28,10 @@ describe('hooks', () => {
 					}
 				]
 			})
-			.then(bundle => {});
-	});
+			.then(bundle => {}));
 
-	it('allows to read and modify output options in the outputOptions hook', () => {
-		return rollup
+	it('allows to read and modify output options in the outputOptions hook', () =>
+		rollup
 			.rollup({
 				input: 'input',
 				treeshake: false,
@@ -52,19 +51,18 @@ describe('hooks', () => {
 					}
 				]
 			})
-			.then(bundle => {
-				return bundle.generate({
+			.then(bundle =>
+				bundle.generate({
 					format: 'cjs',
 					banner: 'banner'
-				});
-			})
+				})
+			)
 			.then(({ output }) => {
 				assert.equal(output[0].code, `new banner\n'use strict';\n\nalert('hello');\n`);
-			});
-	});
+			}));
 
-	it('allows to replace file with dir in the outputOptions hook', () => {
-		return rollup
+	it('allows to replace file with dir in the outputOptions hook', () =>
+		rollup
 			.rollup({
 				input: 'input',
 				treeshake: false,
@@ -95,8 +93,7 @@ describe('hooks', () => {
 				const fileNames = sander.readdirSync(TEMP_DIR).sort();
 				assert.deepStrictEqual(fileNames, ['chunk.js', 'input.js']);
 				return sander.rimraf(TEMP_DIR);
-			});
-	});
+			}));
 
 	it('supports buildStart and buildEnd hooks', () => {
 		let buildStartCnt = 0;
@@ -206,8 +203,8 @@ describe('hooks', () => {
 			});
 	});
 
-	it('supports isExternal on plugin context', () => {
-		return rollup.rollup({
+	it('supports isExternal on plugin context', () =>
+		rollup.rollup({
 			input: 'input',
 			external: ['test'],
 			plugins: [
@@ -219,11 +216,10 @@ describe('hooks', () => {
 					}
 				}
 			]
-		});
-	});
+		}));
 
-	it('supports resolveId on plugin context', () => {
-		return rollup
+	it('supports resolveId on plugin context', () =>
+		rollup
 			.rollup({
 				input: 'input',
 				plugins: [
@@ -241,13 +237,10 @@ describe('hooks', () => {
 					}
 				]
 			})
-			.then(bundle => {
-				return bundle.generate({ format: 'es' });
-			})
+			.then(bundle => bundle.generate({ format: 'es' }))
 			.then(({ output: [output] }) => {
 				assert.equal(output.code, `alert('hello');\n`);
-			});
-	});
+			}));
 
 	it('passes bundle & output object to ongenerate & onwrite hooks, with deprecation warnings', () => {
 		let deprecationCnt = 0;
@@ -284,12 +277,12 @@ describe('hooks', () => {
 					}
 				]
 			})
-			.then(bundle => {
-				return bundle.write({
+			.then(bundle =>
+				bundle.write({
 					file: path.join(TEMP_DIR, 'bundle.js'),
 					format: 'es'
-				});
-			})
+				})
+			)
 			.then(() => {
 				assert.equal(deprecationCnt, 2);
 				return sander.rimraf(TEMP_DIR);
@@ -348,20 +341,97 @@ describe('hooks', () => {
 					}
 				]
 			})
-			.then(bundle => {
-				return bundle.write({
+			.then(bundle =>
+				bundle.write({
 					file,
 					format: 'cjs'
-				});
-			})
+				})
+			)
 			.then(() => {
 				assert.deepEqual(result, [{ a: file, format: 'cjs' }, { b: file, format: 'cjs' }]);
 				return sander.rimraf(TEMP_DIR);
 			});
 	});
 
-	it('supports asset emission', () => {
+	it('caches chunk emission in transform hook', () => {
+		let cache;
 		return rollup
+			.rollup({
+				input: 'input',
+				plugins: [
+					loader({ input: '', chunk: "console.log('chunk');" }),
+					{
+						transform(code, id) {
+							if (id === 'input') {
+								return `export default import.meta.ROLLUP_CHUNK_URL_${this.emitChunk('chunk')};`;
+							}
+						}
+					}
+				]
+			})
+			.then(bundle => {
+				cache = bundle.cache;
+				return bundle.generate({ format: 'es' });
+			})
+			.then(({ output }) => {
+				assert.equal(
+					output[0].code,
+					`var input = new URL('chunk-01406d83.js', import.meta.url).href;\n\nexport default input;\n`
+				);
+				assert.equal(output[1].fileName, 'chunk-01406d83.js');
+				assert.equal(output[1].code, `console.log('chunk');\n`);
+
+				return rollup.rollup({
+					cache,
+					input: 'input',
+					plugins: [
+						loader({ input: '', chunk: "console.log('chunk');" }),
+						{
+							transform() {
+								assert.fail('Should cache transform');
+							}
+						}
+					]
+				});
+			})
+			.then(bundle => {
+				cache = bundle.cache;
+				return bundle.generate({ format: 'es' });
+			})
+			.then(({ output }) => {
+				assert.equal(
+					output[0].code,
+					`var input = new URL('chunk-01406d83.js', import.meta.url).href;\n\nexport default input;\n`
+				);
+				assert.equal(output[1].fileName, 'chunk-01406d83.js');
+				assert.equal(output[1].code, `console.log('chunk');\n`);
+
+				return rollup.rollup({
+					cache,
+					input: 'input',
+					plugins: [
+						loader({ input: '', chunk: "console.log('chunk');" }),
+						{
+							transform() {
+								assert.fail('Should cache transform');
+							}
+						}
+					]
+				});
+			})
+			.then(bundle => bundle.generate({ format: 'es' }))
+			.then(({ output }) => {
+				assert.equal(
+					output[0].code,
+					`var input = new URL('chunk-01406d83.js', import.meta.url).href;\n\nexport default input;\n`
+				);
+				assert.equal(output[1].fileName, 'chunk-01406d83.js');
+				assert.equal(output[1].code, `console.log('chunk');\n`);
+			});
+	});
+
+	it('supports asset emission', () =>
+		rollup
 			.rollup({
 				input: 'input',
 				plugins: [
@@ -374,9 +444,7 @@ describe('hooks', () => {
 					}
 				]
 			})
-			.then(bundle => {
-				return bundle.generate({ format: 'es' });
-			})
+			.then(bundle => bundle.generate({ format: 'es' }))
 			.then(({ output }) => {
 				assert.equal(output[1].isAsset, true);
 				assert.equal(output[1].fileName, 'assets/test-19916f7d.ext');
@@ -387,8 +455,7 @@ describe('hooks', () => {
 					output[0].code,
 					`var input = new URL('assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`
 				);
-			});
-	});
+			}));
 
 	it('caches asset emission in transform hook', () => {
 		let cache;
@@ -433,8 +500,33 @@ describe('hooks', () => {
 				});
 			})
 			.then(bundle => {
+				cache = bundle.cache;
 				return bundle.generate({ format: 'es' });
 			})
+			.then(({ output }) => {
+				assert.equal(
+					output[0].code,
+					`var input = new URL('assets/test-19916f7d.ext', import.meta.url).href;\n\nexport default input;\n`
+				);
+				assert.equal(output[1].fileName, 'assets/test-19916f7d.ext');
+				assert.equal(output[1].source, 'hello world');
+				assert.equal(output[1].fileName, 'assets/test-19916f7d.ext');
+				assert.equal(output[1].source, 'hello world');
+
+				return rollup.rollup({
+					cache,
+					input: 'input',
+					plugins: [
+						loader({ input: '' }),
+						{
+							transform() {
+								assert.fail('Should cache transform');
+							}
+						}
+					]
+				});
+			})
+			.then(bundle => bundle.generate({ format: 'es' }))
 			.then(({ output }) => {
 				assert.equal(
 					output[0].code,
@@ -495,9 +587,7 @@ describe('hooks', () => {
 					]
 				});
 			})
-			.then(bundle => {
-				return bundle.generate({ format: 'es' });
-			})
+			.then(bundle => bundle.generate({ format: 'es' }))
 			.then(({ output }) => {
 				assert.equal(runs, 2);
 				assert.equal(output[0].code.trim(), `alert('hello world');`);
@@ -505,8 +595,8 @@ describe('hooks', () => {
 			});
 	});
 
-	it('supports CommonJS asset urls', () => {
-		return rollup
+	it('supports CommonJS asset urls', () =>
+		rollup
 			.rollup({
 				input: 'input',
 				plugins: [
@@ -519,24 +609,21 @@ describe('hooks', () => {
 					}
 				]
 			})
-			.then(bundle => {
-				return bundle.generate({ format: 'cjs' });
-			})
+			.then(bundle => bundle.generate({ format: 'cjs' }))
 			.then(({ output: [{ code }] }) => {
 				assert.equal(
 					code,
 					`'use strict';
 
-var input = (typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __dirname + '/assets/test-19916f7d.ext').href : new URL((document.currentScript && document.currentScript.src || document.baseURI) + '/../assets/test-19916f7d.ext').href);
+var input = (typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __dirname + '/assets/test-19916f7d.ext').href : new URL('assets/test-19916f7d.ext', document.currentScript && document.currentScript.src || document.baseURI).href);
 
 module.exports = input;
 `
 				);
-			});
-	});
+			}));
 
-	it('supports custom asset file names', () => {
-		return rollup
+	it('supports custom asset file names', () =>
+		rollup
 			.rollup({
 				input: 'input',
 				plugins: [
@@ -549,17 +636,16 @@ module.exports = input;
 					}
 				]
 			})
-			.then(bundle => {
-				return bundle.generate({
+			.then(bundle =>
+				bundle.generate({
 					format: 'es',
 					assetFileNames: '[name][extname]'
-				});
-			})
+				})
+			)
 			.then(({ output: [, output] }) => {
 				assert.equal(output.fileName, 'test.ext');
 				assert.equal(output.source, 'hello world');
-			});
-	});
+			}));
 
 	it('allows setting asset source separately', () => {
 		let assetId;
@@ -579,9 +665,7 @@ module.exports = input;
 					}
 				]
 			})
-			.then(bundle => {
-				return bundle.generate({ format: 'es' });
-			})
+			.then(bundle => bundle.generate({ format: 'es' }))
 			.then(({ output: [, output] }) => {
 				assert.equal(output.fileName, 'assets/test-19916f7d.ext');
 				assert.equal(output.source, 'hello world');
@@ -606,9 +690,7 @@ module.exports = input;
 					}
 				]
 			})
-			.then(bundle => {
-				return bundle.generate({ format: 'es' });
-			})
+			.then(bundle => bundle.generate({ format: 'es' }))
 			.then(({ output: [, output] }) => {
 				assert.equal(output.source, 'hello world');
 			});
@@ -642,12 +724,12 @@ module.exports = input;
 					}
 				]
 			})
-			.then(bundle => {
-				return bundle.generate({
+			.then(bundle =>
+				bundle.generate({
 					format: 'es',
 					assetFileNames: '[name][extname]'
-				});
-			})
+				})
+			)
 			.then(() => {
 				assert.equal(deprecationCnt, 1);
 				assert.equal(calledHook, true);
@@ -677,12 +759,12 @@ module.exports = input;
 					}
 				]
 			})
-			.then(bundle => {
-				return bundle.generate({
+			.then(bundle =>
+				bundle.generate({
 					format: 'es',
 					assetFileNames: '[name][extname]'
-				});
-			})
+				})
+			)
 			.then(() => {
 				assert.equal(calledHook, true);
 			});
@@ -711,19 +793,19 @@ module.exports = input;
 					}
 				]
 			})
-			.then(bundle => {
-				return bundle.generate({
+			.then(bundle =>
+				bundle.generate({
 					format: 'es',
 					assetFileNames: '[name][extname]'
-				});
-			})
+				})
+			)
 			.then(() => {
 				assert.equal(calledHook, true);
 			});
 	});
 
-	it('passes bundle object to generateBundle hook', () => {
-		return rollup
+	it('passes bundle object to generateBundle hook', () =>
+		rollup
 			.rollup({
 				input: 'input',
 				plugins: [
@@ -743,13 +825,10 @@ module.exports = input;
 					}
 				]
 			})
-			.then(bundle => {
-				return bundle.generate({ format: 'es' });
-			});
-	});
+			.then(bundle => bundle.generate({ format: 'es' })));
 
-	it('supports assets uniquely defined in the generateBundle hook', () => {
-		return rollup
+	it('supports assets uniquely defined in the generateBundle hook', () =>
+		rollup
 			.rollup({
 				input: 'input',
 				plugins: [
@@ -786,11 +865,10 @@ module.exports = input;
 				assert.equal(output2[0].code, `'use strict';\n\nalert('hello');\n`);
 				assert.equal(output2[1].source, 'different source');
 				assert.equal(output2[2].source, `references assets/lateDepAsset-c107f5fc`);
-			});
-	});
+			}));
 
-	it('supports errors thrown in the generateBundle hook', () => {
-		return rollup
+	it('supports errors thrown in the generateBundle hook', () =>
+		rollup
 			.rollup({
 				input: 'input',
 				plugins: [
@@ -802,16 +880,13 @@ module.exports = input;
 					}
 				]
 			})
-			.then(bundle => {
-				return bundle.generate({ format: 'es' });
-			})
+			.then(bundle => bundle.generate({ format: 'es' }))
 			.catch(err => {
 				assert.equal(err.message, 'test error');
-			});
-	});
+			}));
 
-	it('supports generateBundle hook including reporting rendered exports and source length', () => {
-		return rollup
+	it('supports generateBundle hook including reporting rendered exports and source length', () =>
+		rollup
 			.rollup({
 				input: 'input',
 				plugins: [
@@ -837,8 +912,7 @@ module.exports = input;
 					}
 				]
 			})
-			.then(bundle => bundle.generate({ format: 'es' }));
-	});
+			.then(bundle => bundle.generate({ format: 'es' })));
 
 	it('supports writeBundle hook', () => {
 		const file = path.join(TEMP_DIR, 'bundle.js');
@@ -873,8 +947,8 @@ module.exports = input;
 			});
 	});
 
-	it('supports this.cache for plugins', () => {
-		return rollup
+	it('supports this.cache for plugins', () =>
+		rollup
 			.rollup({
 				input: 'input',
 				plugins: [
@@ -887,8 +961,8 @@ module.exports = input;
 					}
 				]
 			})
-			.then(bundle => {
-				return rollup.rollup({
+			.then(bundle =>
+				rollup.rollup({
 					input: 'input',
 					cache: bundle.cache,
 					plugins: [
@@ -901,12 +975,11 @@ module.exports = input;
 							}
 						}
 					]
-				});
-			});
-	});
+				})
+			));
 
-	it('throws for anonymous plugins using the cache', () => {
-		return rollup
+	it('throws for anonymous plugins using the cache', () =>
+		rollup
 			.rollup({
 				input: 'input',
 				plugins: [
@@ -924,8 +997,7 @@ module.exports = input;
 			.catch(err => {
 				assert.equal(err.code, 'PLUGIN_ERROR');
 				assert.equal(err.pluginCode, 'ANONYMOUS_PLUGIN_CACHE');
-			});
-	});
+			}));
 
 	it('throws for two plugins using the same name and the cache', () => {
 		// we don't throw for duplicate names unless there is cache access
@@ -971,8 +1043,8 @@ module.exports = input;
 			});
 	});
 
-	it('Allows plugins with any names using a shared cacheKey', () => {
-		return rollup.rollup({
+	it('Allows plugins with any names using a shared cacheKey', () =>
+		rollup.rollup({
 			input: 'input',
 			plugins: [
 				loader({ input: `alert('hello')` }),
@@ -998,11 +1070,10 @@ module.exports = input;
 					}
 				}
 			]
-		});
-	});
+		}));
 
-	it('Evicts cache entries after cacheExpiry runs with no usage', () => {
-		return rollup
+	it('Evicts cache entries after cacheExpiry runs with no usage', () =>
+		rollup
 			.rollup({
 				input: 'input',
 				experimentalCacheExpiry: 5,
@@ -1019,9 +1090,9 @@ module.exports = input;
 			})
 			.then(bundle => {
 				let promise = Promise.resolve();
-				for (let i = 0; i < 5; i++) {
-					promise = promise.then(() => {
-						return rollup.rollup({
+				for (let i = 0; i < 5; i++)
+					promise = promise.then(() =>
+						rollup.rollup({
 							cache: bundle.cache,
 							input: 'input',
 							experimentalCacheExpiry: 5,
@@ -1034,13 +1105,12 @@ module.exports = input;
 									}
 								}
 							]
-						});
-					});
-				}
+						})
+					);
 				return promise;
 			})
-			.then(bundle => {
-				return rollup.rollup({
+			.then(bundle =>
+				rollup.rollup({
 					cache: bundle.cache,
 					input: 'input',
 					experimentalCacheExpiry: 5,
@@ -1055,12 +1125,11 @@ module.exports = input;
 							}
 						}
 					]
-				});
-			});
-	});
+				})
+			));
 
-	it('Supports disabling the cache with cache: false', () => {
-		return rollup
+	it('Supports disabling the cache with cache: false', () =>
+		rollup
 			.rollup({
 				input: 'input',
 				cache: false,
@@ -1078,11 +1147,10 @@ module.exports = input;
 			})
 			.then(bundle => {
 				assert.equal(bundle.cache, undefined);
-			});
-	});
+			}));
 
-	it('Disables the default transform cache when using cache in transform only', () => {
-		return rollup
+	it('Disables the default transform cache when using cache in transform only', () =>
+		rollup
 			.rollup({
 				input: 'input',
 				plugins: [
@@ -1096,8 +1164,8 @@ module.exports = input;
 					}
 				]
 			})
-			.then(bundle => {
-				return rollup.rollup({
+			.then(bundle =>
+				rollup.rollup({
 					input: 'input',
 					cache: bundle.cache,
 					plugins: [
@@ -1110,17 +1178,16 @@ module.exports = input;
 							}
 						}
 					]
-				});
-			})
-			.then(bundle => {
-				return bundle.generate({
+				})
+			)
+			.then(bundle =>
+				bundle.generate({
 					format: 'es'
-				});
-			})
+				})
+			)
 			.then(({ output }) => {
 				assert.equal(output[0].code.trim(), `alert('hello');`);
-			});
-	});
+			}));
 
 	it('supports renderStart hook', () => {
 		let renderStartCount = 0;

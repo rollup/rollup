@@ -5,4 +5,4 @@ import './resolved.js';
 import './nested/optionDirectNested.js';
 import './nested/optionIndirectNested.js';
 import './nested/hookNested.js';
-import './nested/resolvedNested.js';
+import './resolvedNested.js';

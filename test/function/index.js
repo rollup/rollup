@@ -51,6 +51,7 @@ runTestSuiteWithSamples('function', path.resolve(__dirname, 'samples'), (dir, co
 		path.basename(dir) + ': ' + config.description,
 		() => {
 			if (config.show) console.group(path.basename(dir));
+			if (config.before) config.before();
 
 			process.chdir(dir);
 			const warnings = [];

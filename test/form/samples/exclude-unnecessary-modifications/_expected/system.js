@@ -5,7 +5,7 @@ System.register([], function () {
 
 			var foo = {};
 
-			mutate1( foo );
+			mutate1();
 
 			// should be included
 			[ 'a', 'b', 'c' ].forEach( function ( letter, i ) {
