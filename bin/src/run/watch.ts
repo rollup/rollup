@@ -15,9 +15,9 @@ import {
 import mergeOptions, { GenericConfigObject } from '../../../src/utils/mergeOptions';
 import relativeId from '../../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
-import alternateScreen from './alternateScreen';
 import batchWarnings from './batchWarnings';
 import loadConfigFile from './loadConfigFile';
+import { getResetScreen } from './resetScreen';
 import { printTimings } from './timings';
 
 interface WatchEvent {
@@ -41,19 +41,13 @@ export default function watch(
 	silent = false
 ) {
 	const isTTY = Boolean(process.stderr.isTTY);
-
 	const warnings = batchWarnings();
-
-	let processConfigsErr: any;
 	const initialConfigs = processConfigs(configs);
-
 	const clearScreen = initialConfigs.every(
 		config => (config.watch as WatcherOptions).clearScreen !== false
 	);
 
-	const screen = alternateScreen(isTTY && clearScreen);
-	screen.open();
-
+	const resetScreen = getResetScreen(isTTY && clearScreen);
 	let watcher: Watcher;
 	let configWatcher: Watcher;
 
@@ -78,26 +72,16 @@ export default function watch(
 					message: merged.optionError
 				});
 
-			if (
-				(merged.inputOptions as RollupWatchOptions).watch &&
-				((merged.inputOptions as RollupWatchOptions).watch as WatcherOptions).clearScreen === false
-			) {
-				processConfigsErr = stderr;
-			}
-
 			return result;
 		});
 	}
 
 	function start(configs: RollupWatchOptions[]) {
-		const screenWriter = processConfigsErr || screen.reset;
-
 		watcher = rollup.watch(configs);
 
 		watcher.on('event', (event: WatchEvent) => {
 			switch (event.code) {
 				case 'FATAL':
-					screen.close();
 					handleError(event.error as RollupError, true);
 					process.exit(1);
 					break;
@@ -109,7 +93,7 @@ export default function watch(
 
 				case 'START':
 					if (!silent) {
-						screenWriter(tc.underline(`rollup v${rollup.VERSION}`));
+						resetScreen(tc.underline(`rollup v${rollup.VERSION}`));
 					}
 					break;
 
@@ -171,7 +155,6 @@ export default function watch(
 		// removing a non-existent listener is a no-op
 		process.stdin.removeListener('end', close);
 
-		screen.close();
 		if (watcher) watcher.close();
 
 		if (configWatcher) configWatcher.close();
