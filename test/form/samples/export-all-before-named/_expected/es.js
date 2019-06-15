@@ -1,4 +1,7 @@
-export * from 'path';
-export function isRelative(path) {
+export * from 'external';
+
+function internalFn(path) {
 	return path[0] === '.';
 }
+
+export { internalFn };

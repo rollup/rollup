@@ -1,4 +1,5 @@
-define(['exports', 'external'], function (exports, external) { 'use strict';
+var exposedInternals = (function (exports, external) {
+	'use strict';
 
 	function internalFn(path) {
 		return path[0] === '.';
@@ -14,6 +15,6 @@ define(['exports', 'external'], function (exports, external) { 'use strict';
 	});
 	exports.internalFn = internalFn;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
+	return exports;
 
-});
+}({}, external));

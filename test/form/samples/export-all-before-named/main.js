@@ -1,2 +1,2 @@
-export * from 'path';
-export * from './path-plus.js';
+export * from 'external';
+export * from './internal.js';

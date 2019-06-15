@@ -426,8 +426,7 @@ export default class Module {
 		}
 
 		if (name !== 'default') {
-			for (let i = 0; i < this.exportAllModules.length; i += 1) {
-				const module = this.exportAllModules[i];
+			for (const module of this.exportAllModules) {
 				const declaration = module.getVariableForExportName(name, true);
 
 				if (declaration) return declaration;
@@ -502,10 +501,16 @@ export default class Module {
 		this.addModulesToSpecifiers(this.importDescriptions);
 		this.addModulesToSpecifiers(this.reexports);
 
-		this.exportAllModules = this.exportAllSources.map(source => {
-			const id = this.resolvedIds[source].id;
-			return this.graph.moduleById.get(id) as any;
-		});
+		this.exportAllModules = this.exportAllSources
+			.map(source => {
+				const id = this.resolvedIds[source].id;
+				return this.graph.moduleById.get(id) as Module | ExternalModule;
+			})
+			.sort((moduleA, moduleB) => {
+				const aExternal = moduleA instanceof ExternalModule;
+				const bExternal = moduleB instanceof ExternalModule;
+				return aExternal === bExternal ? 0 : aExternal ? 1 : -1;
+			});
 	}
 
 	render(options: RenderOptions): MagicString {
@@ -631,7 +636,7 @@ export default class Module {
 			const otherModule = importDeclaration.module as Module | ExternalModule;
 
 			if (otherModule instanceof Module && importDeclaration.name === '*') {
-				return (otherModule).getOrCreateNamespace();
+				return otherModule.getOrCreateNamespace();
 			}
 
 			const declaration = otherModule.getVariableForExportName(importDeclaration.name);

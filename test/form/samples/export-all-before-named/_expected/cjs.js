@@ -2,21 +2,18 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var path = require('path');
+var external = require('external');
 
+function internalFn(path) {
+	return path[0] === '.';
+}
 
-
-Object.keys(path).forEach(function (key) {
+Object.keys(external).forEach(function (key) {
 	Object.defineProperty(exports, key, {
 		enumerable: true,
 		get: function () {
-			return path[key];
+			return external[key];
 		}
 	});
 });
-Object.defineProperty(exports, 'isRelative', {
-	enumerable: true,
-	get: function () {
-		return path.isRelative;
-	}
-});
+exports.internalFn = internalFn;
