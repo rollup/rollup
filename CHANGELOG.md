@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 1.15.6
+*2019-06-16*
+
+### Bug Fixes
+* No longer use an alternate screen in watch mode to allow scrolling (#2942)
+* Prioritize non-external imports over external ones when resolving conflicting namespace re-exports (#2893)
+
+### Pull Requests
+* [#2893](https://github.com/rollup/rollup/pull/2893): Improve handling of conflicting namespace exports (@aleclarson)
+* [#2942](https://github.com/rollup/rollup/pull/2942): Get rid of alternate screen and simplify screen clearing (@lukastaegert)
+
 ## 1.15.5
 *2019-06-14*
 
