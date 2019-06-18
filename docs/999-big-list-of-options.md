@@ -629,7 +629,7 @@ Default: `'auto'`
 
 What export mode to use. Defaults to `auto`, which guesses your intentions based on what the `input` module exports:
 
-* `default` – suitable if you are only exporting one thing using `export default ...`
+* `auto` – suitable if you are only exporting one thing using `export default ...`
 * `named` – suitable if you are exporting more than one thing
 * `none` – suitable if you are not exporting anything (e.g. you are building an app, not a library)
 
