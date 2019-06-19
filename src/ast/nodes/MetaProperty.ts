@@ -73,7 +73,6 @@ export default class MetaProperty extends NodeBase {
 			const relativePath = normalize(relative(dirname(chunkId), fileName));
 			let replacement;
 			if (assetReferenceId !== null) {
-				// deprecated hook for assets
 				replacement = pluginDriver.hookFirstSync('resolveAssetUrl', [
 					{
 						assetFileName: fileName,

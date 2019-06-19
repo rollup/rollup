@@ -61,17 +61,17 @@ export default function transform(
 				}
 			}
 		} else {
-			// assets emitted by transform are transformDependencies
+			// assets/chunks emitted by a transform hook need to be emitted again if the hook is skipped
 			if (emittedAssets.length) module.transformAssets = emittedAssets;
 			if (emittedChunks.length) module.transformChunks = emittedChunks;
 
 			if (result && typeof result === 'object' && Array.isArray(result.dependencies)) {
 				// not great, but a useful way to track this without assuming WeakMap
 				if (!(curPlugin as any).warnedTransformDependencies)
-					this.warn({
-						code: 'TRANSFORM_DEPENDENCIES_DEPRECATED',
-						message: `Returning "dependencies" from plugin transform hook is deprecated for using this.addWatchFile() instead.`
-					});
+					graph.warnDeprecation(
+						`Returning "dependencies" from the "transform" hook as done by plugin ${plugin.name} is deprecated. The "this.addWatchFile" plugin context function should be used instead.`,
+						true
+					);
 				(curPlugin as any).warnedTransformDependencies = true;
 				if (!transformDependencies) transformDependencies = [];
 				for (const dep of result.dependencies)
