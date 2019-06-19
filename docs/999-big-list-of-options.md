@@ -533,6 +533,15 @@ Default: `false`
 
 Instead of creating as few chunks as possible, this mode will create separate chunks for all modules using the original module names as file names. Requires the [`output.dir`](guide/en#output-dir) option. Tree-shaking will still be applied, suppressing files that are not used by the provided entry points or do not have side-effects when executed. This mode can be used to transform a file structure to a different module format.
 
+#### strictDeprecations
+Type: `boolean`<br>
+CLI: `--strictDeprecations`/`--no-strictDeprecations`<br>
+Default: `false`
+
+When this flag is enabled, Rollup will throw an error instead of showing a warning when a deprecated feature is used. Furthermore, features that are marked to receive a deprecation warning with the next major version will also throw an error when used.
+
+This flag is intended to be used by e.g. plugin authors to be able to adjust their plugins for upcoming major releases as early as possible.
+
 ### Danger zone
 
 You probably don't need to use these options unless you know what you are doing!
