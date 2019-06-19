@@ -86,7 +86,7 @@ export const ANONYMOUS_PLUGIN_PREFIX = 'at position ';
 
 const deprecatedHooks: { active: boolean; deprecated: string; replacement: string }[] = [
 	{ active: true, deprecated: 'ongenerate', replacement: 'generateBundle' },
-	{ active: true, deprecated: 'onwrite', replacement: 'generateBundle or writeBundle' },
+	{ active: true, deprecated: 'onwrite', replacement: 'generateBundle/writeBundle' },
 	{ active: true, deprecated: 'transformBundle', replacement: 'renderChunk' },
 	{ active: true, deprecated: 'transformChunk', replacement: 'renderChunk' },
 	{ active: false, deprecated: 'resolveAssetUrl', replacement: 'resolveFileUrl' }
@@ -98,7 +98,7 @@ function warnDeprecatedHooks(plugins: Plugin[], graph: Graph) {
 			if (deprecated in plugin) {
 				graph.warnDeprecation(
 					{
-						message: `The ${deprecated} hook used by plugin ${plugin.name} is deprecated. The ${replacement} hook should be used instead.`,
+						message: `The "${deprecated}" hook used by plugin ${plugin.name} is deprecated. The "${replacement}" hook should be used instead.`,
 						plugin: plugin.name
 					},
 					active
@@ -198,7 +198,7 @@ export function createPluginDriver(
 						deprecationWarningShown = true;
 						graph.warnDeprecation(
 							{
-								message: `The "this.isExternal(...)" plugin context function used by plugin ${plugin.name} is deprecated. The "this.resolve(...)" plugin context function should be used instead.`,
+								message: `The "this.isExternal" plugin context function used by plugin ${plugin.name} is deprecated. The "this.resolve" plugin context function should be used instead.`,
 								plugin: plugin.name
 							},
 							false
@@ -228,7 +228,7 @@ export function createPluginDriver(
 						deprecationWarningShown = true;
 						graph.warnDeprecation(
 							{
-								message: `The "this.resolveId(...)" plugin context function used by plugin ${plugin.name} is deprecated. The "this.resolve(...)" plugin context function should be used instead.`,
+								message: `The "this.resolveId" plugin context function used by plugin ${plugin.name} is deprecated. The "this.resolve" plugin context function should be used instead.`,
 								plugin: plugin.name
 							},
 							false

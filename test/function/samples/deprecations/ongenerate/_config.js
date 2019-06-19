@@ -8,7 +8,7 @@ module.exports = {
 	error: {
 		code: 'DEPRECATED_FEATURE',
 		message:
-			'The ongenerate hook used by plugin at position 1 is deprecated. The generateBundle hook should be used instead.',
+			'The "ongenerate" hook used by plugin at position 1 is deprecated. The "generateBundle" hook should be used instead.',
 		plugin: 'at position 1'
 	}
 };

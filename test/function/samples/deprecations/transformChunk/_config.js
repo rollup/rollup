@@ -10,7 +10,7 @@ module.exports = {
 	error: {
 		code: 'DEPRECATED_FEATURE',
 		message:
-			'The transformChunk hook used by plugin at position 1 is deprecated. The renderChunk hook should be used instead.',
+			'The "transformChunk" hook used by plugin at position 1 is deprecated. The "renderChunk" hook should be used instead.',
 		plugin: 'at position 1'
 	}
 };

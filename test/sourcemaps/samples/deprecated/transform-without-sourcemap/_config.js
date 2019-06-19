@@ -24,7 +24,7 @@ module.exports = {
 		{
 			code: 'DEPRECATED_FEATURE',
 			message:
-				'The transformBundle hook used by plugin fake plugin 2 is deprecated. The renderChunk hook should be used instead.',
+				'The "transformBundle" hook used by plugin fake plugin 2 is deprecated. The "renderChunk" hook should be used instead.',
 			plugin: 'fake plugin 2'
 		},
 		{

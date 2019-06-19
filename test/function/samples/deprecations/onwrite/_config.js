@@ -8,7 +8,7 @@ module.exports = {
 	error: {
 		code: 'DEPRECATED_FEATURE',
 		message:
-			'The onwrite hook used by plugin at position 1 is deprecated. The generateBundle or writeBundle hook should be used instead.',
+			'The "onwrite" hook used by plugin at position 1 is deprecated. The "generateBundle/writeBundle" hook should be used instead.',
 		plugin: 'at position 1'
 	}
 };

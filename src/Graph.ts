@@ -129,9 +129,14 @@ export default class Graph {
 						annotations: true,
 						moduleSideEffects: true,
 						propertyReadSideEffects: true,
-						pureExternalModules: false,
 						tryCatchDeoptimization: true
 				  };
+			if (typeof this.treeshakingOptions.pureExternalModules !== 'undefined') {
+				this.warnDeprecation(
+					`The "treeshake.pureExternalModules" option is deprecated. The "treeshake.moduleSideEffects" option should be used instead. "treeshake.pureExternalModules: true" is equivalent to "treeshake.moduleSideEffects: 'no-external'"`,
+					false
+				);
+			}
 		}
 
 		this.contextParse = (code: string, options: acorn.Options = {}) =>

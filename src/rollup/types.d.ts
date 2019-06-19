@@ -481,7 +481,6 @@ export interface SerializablePluginCache {
 }
 
 export interface RollupCache {
-	// to be deprecated
 	modules?: ModuleJSON[];
 	plugins?: Record<string, SerializablePluginCache>;
 }

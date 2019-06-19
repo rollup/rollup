@@ -39,7 +39,7 @@ describe('sanity checks', () => {
 				assert.equal(args[0].code, 'DEPRECATED_FEATURE');
 				assert.equal(
 					args[0].message,
-					'The ongenerate hook used by plugin at position 2 is deprecated. The generateBundle hook should be used instead.'
+					'The "ongenerate" hook used by plugin at position 2 is deprecated. The "generateBundle" hook should be used instead.'
 				);
 				assert.equal(typeof args[1], 'function');
 			});

@@ -3,9 +3,10 @@ const assert = require('assert');
 module.exports = {
 	description: 'imports from pure external modules that are used should not be omitted',
 	options: {
+		strictDeprecations: false,
 		external: ['warning'],
 		treeshake: {
-			moduleSideEffects: 'no-external'
+			pureExternalModules: ['warning']
 		}
 	},
 	context: {
