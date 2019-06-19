@@ -36,8 +36,7 @@ describe('sanity checks', () => {
 				return bundle.generate({ format: 'es' });
 			})
 			.then(() => {
-				assert.equal(args[0].code, 'PLUGIN_WARNING');
-				assert.equal(args[0].pluginCode, 'ONGENERATE_HOOK_DEPRECATED');
+				assert.equal(args[0].code, 'DEPRECATED_FEATURE');
 				assert.equal(
 					args[0].message,
 					'The ongenerate hook used by plugin at position 2 is deprecated. The generateBundle hook should be used instead.'

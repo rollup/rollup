@@ -82,12 +82,31 @@ export interface PluginDriver {
 export type Reduce<R = any, T = any> = (reduction: T, result: R, plugin: Plugin) => T;
 export type HookContext = (context: PluginContext, plugin?: Plugin) => PluginContext;
 
-const deprecatedHookNames: Record<string, string> = {
-	ongenerate: 'generateBundle',
-	onwrite: 'generateBundle',
-	transformBundle: 'renderChunk',
-	transformChunk: 'renderChunk'
-};
+export const ANONYMOUS_PLUGIN_PREFIX = 'at position ';
+
+const deprecatedHooks: { active: boolean; deprecated: string; replacement: string }[] = [
+	{ active: true, deprecated: 'ongenerate', replacement: 'generateBundle' },
+	{ active: true, deprecated: 'onwrite', replacement: 'generateBundle or writeBundle' },
+	{ active: true, deprecated: 'transformBundle', replacement: 'renderChunk' },
+	{ active: true, deprecated: 'transformChunk', replacement: 'renderChunk' },
+	{ active: false, deprecated: 'resolveAssetUrl', replacement: 'resolveFileUrl' }
+];
+
+function warnDeprecatedHooks(plugins: Plugin[], graph: Graph) {
+	for (const { active, deprecated, replacement } of deprecatedHooks) {
+		for (const plugin of plugins) {
+			if (deprecated in plugin) {
+				graph.warnDeprecation(
+					{
+						message: `The ${deprecated} hook used by plugin ${plugin.name} is deprecated. The ${replacement} hook should be used instead.`,
+						plugin: plugin.name
+					},
+					active
+				);
+			}
+		}
+	}
+}
 
 export function createPluginDriver(
 	graph: Graph,
@@ -95,19 +114,19 @@ export function createPluginDriver(
 	pluginCache: Record<string, SerializablePluginCache> | void,
 	watcher?: RollupWatcher
 ): PluginDriver {
+	warnDeprecatedHooks(options.plugins as Plugin[], graph);
 	const plugins = [
-		...(options.plugins || []),
+		...(options.plugins as Plugin[]),
 		getRollupDefaultPlugin(options.preserveSymlinks as boolean)
 	];
 	const { emitAsset, getAssetFileName, setAssetSource } = createAssetPluginHooks(graph.assetsById);
 	const existingPluginKeys = new Set<string>();
-
 	let hasLoadersOrTransforms = false;
 
 	const pluginContexts: PluginContext[] = plugins.map((plugin, pidx) => {
 		let cacheable = true;
 		if (typeof plugin.cacheKey !== 'string') {
-			if (typeof plugin.name !== 'string' || existingPluginKeys.has(plugin.name)) {
+			if (plugin.name.startsWith(ANONYMOUS_PLUGIN_PREFIX) || existingPluginKeys.has(plugin.name)) {
 				cacheable = false;
 			} else {
 				existingPluginKeys.add(plugin.name);
@@ -161,7 +180,7 @@ export function createPluginDriver(
 				if (typeof err === 'string') err = { message: err };
 				if (err.code) err.pluginCode = err.code;
 				err.code = 'PLUGIN_ERROR';
-				err.plugin = plugin.name || `Plugin at position ${pidx + 1}`;
+				err.plugin = plugin.name;
 				return error(err);
 			},
 			isExternal(id, parentId, isResolved = false) {
@@ -212,7 +231,7 @@ export function createPluginDriver(
 				if (typeof warning === 'string') warning = { message: warning } as RollupWarning;
 				if (warning.code) warning.pluginCode = warning.code;
 				warning.code = 'PLUGIN_WARNING';
-				warning.plugin = plugin.name || `Plugin at position ${pidx + 1}`;
+				warning.plugin = plugin.name;
 				graph.warn(warning);
 			},
 			watcher: watcher
@@ -238,10 +257,6 @@ export function createPluginDriver(
 		const hook = (plugin as any)[hookName];
 		if (!hook) return undefined as any;
 
-		const deprecatedHookNewName = deprecatedHookNames[hookName];
-		if (deprecatedHookNewName)
-			context.warn(hookDeprecationWarning(hookName, deprecatedHookNewName, plugin, pluginIndex));
-
 		if (hookContext) {
 			context = hookContext(context, plugin);
 			if (!context || context === pluginContexts[pluginIndex])
@@ -253,8 +268,7 @@ export function createPluginDriver(
 				if (permitValues) return hook;
 				error({
 					code: 'INVALID_PLUGIN_HOOK',
-					message: `Error running plugin hook ${hookName} for ${plugin.name ||
-						`Plugin at position ${pluginIndex + 1}`}, expected a function hook.`
+					message: `Error running plugin hook ${hookName} for ${plugin.name}, expected a function hook.`
 				});
 			}
 			return hook.apply(context, args);
@@ -264,7 +278,7 @@ export function createPluginDriver(
 				if (err.code) err.pluginCode = err.code;
 				err.code = 'PLUGIN_ERROR';
 			}
-			err.plugin = plugin.name || `Plugin at position ${pluginIndex + 1}`;
+			err.plugin = plugin.name;
 			err.hook = hookName;
 			error(err);
 		}
@@ -283,10 +297,6 @@ export function createPluginDriver(
 		const hook = (plugin as any)[hookName];
 		if (!hook) return undefined as any;
 
-		const deprecatedHookNewName = deprecatedHookNames[hookName];
-		if (deprecatedHookNewName)
-			context.warn(hookDeprecationWarning(hookName, deprecatedHookNewName, plugin, pluginIndex));
-
 		if (hookContext) {
 			context = hookContext(context, plugin);
 			if (!context || context === pluginContexts[pluginIndex])
@@ -299,8 +309,7 @@ export function createPluginDriver(
 					if (permitValues) return hook;
 					error({
 						code: 'INVALID_PLUGIN_HOOK',
-						message: `Error running plugin hook ${hookName} for ${plugin.name ||
-							`Plugin at position ${pluginIndex + 1}`}, expected a function hook.`
+						message: `Error running plugin hook ${hookName} for ${plugin.name}, expected a function hook.`
 					});
 				}
 				return hook.apply(context, args);
@@ -311,7 +320,7 @@ export function createPluginDriver(
 					if (err.code) err.pluginCode = err.code;
 					err.code = 'PLUGIN_ERROR';
 				}
-				err.plugin = plugin.name || `Plugin at position ${pluginIndex + 1}`;
+				err.plugin = plugin.name;
 				err.hook = hookName;
 				error(err);
 			});
@@ -478,7 +487,7 @@ const noCache: PluginCache = {
 };
 
 function uncacheablePluginError(pluginName: string) {
-	if (!pluginName)
+	if (pluginName.startsWith(ANONYMOUS_PLUGIN_PREFIX))
 		error({
 			code: 'ANONYMOUS_PLUGIN_CACHE',
 			message:
@@ -508,16 +517,3 @@ const uncacheablePlugin: (pluginName: string) => PluginCache = pluginName => ({
 		return false;
 	}
 });
-
-function hookDeprecationWarning(
-	name: string,
-	newName: string,
-	plugin: Plugin,
-	pluginIndex: number
-) {
-	return {
-		code: name.toUpperCase() + '_HOOK_DEPRECATED',
-		message: `The ${name} hook used by plugin ${plugin.name ||
-			`at position ${pluginIndex + 1}`} is deprecated. The ${newName} hook should be used instead.`
-	};
-}

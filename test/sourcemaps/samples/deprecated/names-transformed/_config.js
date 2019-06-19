@@ -1,12 +1,13 @@
 const assert = require('assert');
 const terser = require('terser');
 const MagicString = require('magic-string');
-const getLocation = require('../../getLocation');
+const getLocation = require('../../../getLocation');
 const SourceMapConsumer = require('source-map').SourceMapConsumer;
 
 module.exports = {
-	description: 'names are recovered if transforms are used',
+	description: 'names are recovered if transformBundle is used',
 	options: {
+		strictDeprecations: false,
 		plugins: [
 			{
 				transform(code) {
@@ -36,12 +37,14 @@ module.exports = {
 			}
 		]
 	},
-	warnings: [{
-		code: 'PLUGIN_WARNING',
-		message: 'The transformBundle hook used by plugin at position 1 is deprecated. The renderChunk hook should be used instead.',
-		plugin: 'Plugin at position 1',
-		pluginCode: 'TRANSFORMBUNDLE_HOOK_DEPRECATED'
-	}],
+	warnings: [
+		{
+			code: 'DEPRECATED_FEATURE',
+			message:
+				'The transformBundle hook used by plugin at position 1 is deprecated. The renderChunk hook should be used instead.',
+			plugin: 'at position 1'
+		}
+	],
 	test(code, map) {
 		const smc = new SourceMapConsumer(map);
 

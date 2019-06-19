@@ -1,6 +1,7 @@
 module.exports = {
-	description: 'preserves sourcemap chains when transforming',
+	description: 'preserves sourcemap chains when transforming the bundle',
 	options: {
+		strictDeprecations: false,
 		plugins: [
 			{
 				name: 'fake plugin 1',
@@ -21,10 +22,10 @@ module.exports = {
 	},
 	warnings: [
 		{
-			code: 'PLUGIN_WARNING',
-			message: 'The transformBundle hook used by plugin fake plugin 2 is deprecated. The renderChunk hook should be used instead.',
-			plugin: 'fake plugin 2',
-			pluginCode: 'TRANSFORMBUNDLE_HOOK_DEPRECATED'
+			code: 'DEPRECATED_FEATURE',
+			message:
+				'The transformBundle hook used by plugin fake plugin 2 is deprecated. The renderChunk hook should be used instead.',
+			plugin: 'fake plugin 2'
 		},
 		{
 			code: `SOURCEMAP_BROKEN`,

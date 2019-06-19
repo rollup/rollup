@@ -1,6 +1,7 @@
 module.exports = {
 	description: 'allows to configure asset urls',
 	options: {
+		strictDeprecations: false,
 		output: {
 			chunkFileNames: 'nested/chunk.js'
 		},

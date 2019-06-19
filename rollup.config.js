@@ -74,6 +74,12 @@ const moduleAliases = {
 	'package.json': path.resolve('package.json')
 };
 
+const treeshake = {
+	moduleSideEffects: false,
+	propertyReadSideEffects: false,
+	tryCatchDeoptimization: false
+};
+
 export default command => {
 	const nodeBuilds = [
 		/* Rollup core node builds */
@@ -90,10 +96,7 @@ export default command => {
 			],
 			// acorn needs to be external as some plugins rely on a shared acorn instance
 			external: ['fs', 'path', 'events', 'module', 'util', 'acorn'],
-			treeshake: {
-				moduleSideEffects: false,
-				propertyReadSideEffects: false
-			},
+			treeshake,
 			output: [
 				{ file: 'dist/rollup.js', format: 'cjs', sourcemap: true, banner },
 				{ file: 'dist/rollup.es.js', format: 'esm', banner }
@@ -112,10 +115,7 @@ export default command => {
 				typescript({include: '**/*.{ts,js}'}),
 			],
 			external: ['fs', 'path', 'module', 'assert', 'events', 'rollup'],
-			treeshake: {
-				moduleSideEffects: false,
-				propertyReadSideEffects: false
-			},
+			treeshake,
 			output: {
 				file: 'bin/rollup',
 				format: 'cjs',
@@ -149,10 +149,7 @@ export default command => {
 				typescript({include: '**/*.{ts,js}'}),
 				terser({ module: true, output: { comments: 'some' } })
 			],
-			treeshake: {
-				moduleSideEffects: false,
-				propertyReadSideEffects: false
-			},
+			treeshake,
 			output: [
 				{ file: 'dist/rollup.browser.js', format: 'umd', name: 'rollup', banner },
 				{ file: 'dist/rollup.browser.es.js', format: 'esm', banner }

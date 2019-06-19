@@ -1,6 +1,7 @@
 module.exports = {
 	description: 'allows plugins to transform bundle',
 	options: {
+		strictDeprecations: false,
 		plugins: [
 			{
 				transformBundle(code) {

@@ -30,6 +30,7 @@ import { finaliseAsset } from './utils/assetHooks';
 import { BuildPhase } from './utils/buildPhase';
 import { assignChunkColouringHashes } from './utils/chunkColouring';
 import { Uint8ArrayToHexString } from './utils/entryHashing';
+import { errDeprecation, error } from './utils/error';
 import { analyseModuleExecution, sortByExecutionOrder } from './utils/executionOrder';
 import { resolve } from './utils/path';
 import { createPluginDriver, PluginDriver } from './utils/pluginDriver';
@@ -88,8 +89,10 @@ export default class Graph {
 	private modules: Module[] = [];
 	private onwarn: WarningHandler;
 	private pluginCache?: Record<string, SerializablePluginCache>;
+	private strictDeprecations: boolean;
 
 	constructor(options: InputOptions, watcher?: RollupWatcher) {
+		this.onwarn = (options.onwarn as WarningHandler) || makeOnwarn();
 		this.curChunkIndex = 0;
 		this.deoptimizationTracker = new EntityPathTracker();
 		this.cachedModules = new Map();
@@ -107,6 +110,7 @@ export default class Graph {
 			}
 		}
 		this.preserveModules = options.preserveModules as boolean;
+		this.strictDeprecations = options.strictDeprecations as boolean;
 
 		this.cacheExpiry = options.experimentalCacheExpiry as number;
 
@@ -164,7 +168,6 @@ export default class Graph {
 			this.getModuleContext = () => this.context;
 		}
 
-		this.onwarn = (options.onwarn as WarningHandler) || makeOnwarn();
 		this.acornOptions = options.acorn || {};
 		const acornPluginsToInject = [];
 
@@ -377,6 +380,16 @@ export default class Graph {
 		};
 
 		this.onwarn(warning);
+	}
+
+	warnDeprecation(deprecation: string | RollupWarning, activeDeprecation: boolean): void {
+		if (activeDeprecation || this.strictDeprecations) {
+			const warning = errDeprecation(deprecation);
+			if (this.strictDeprecations) {
+				return error(warning);
+			}
+			this.warn(warning);
+		}
 	}
 
 	private link(entryModules: Module[]) {

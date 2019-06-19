@@ -251,16 +251,16 @@ describe('hooks', () => {
 				onwarn(warning) {
 					deprecationCnt++;
 					if (deprecationCnt === 1) {
-						assert.equal(warning.pluginCode, 'ONGENERATE_HOOK_DEPRECATED');
+						assert.equal(warning.code, 'DEPRECATED_FEATURE');
 						assert.equal(
 							warning.message,
 							'The ongenerate hook used by plugin at position 2 is deprecated. The generateBundle hook should be used instead.'
 						);
 					} else {
-						assert.equal(warning.pluginCode, 'ONWRITE_HOOK_DEPRECATED');
+						assert.equal(warning.code, 'DEPRECATED_FEATURE');
 						assert.equal(
 							warning.message,
-							'The onwrite hook used by plugin at position 2 is deprecated. The generateBundle hook should be used instead.'
+							'The onwrite hook used by plugin at position 2 is deprecated. The generateBundle or writeBundle hook should be used instead.'
 						);
 					}
 				},
@@ -704,7 +704,7 @@ module.exports = input;
 				input: 'input',
 				onwarn(warning) {
 					deprecationCnt++;
-					assert.equal(warning.pluginCode, 'TRANSFORMCHUNK_HOOK_DEPRECATED');
+					assert.equal(warning.code, 'DEPRECATED_FEATURE');
 					assert.equal(
 						warning.message,
 						'The transformChunk hook used by plugin at position 2 is deprecated. The renderChunk hook should be used instead.'

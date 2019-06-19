@@ -21,6 +21,6 @@ module.exports = {
 		code: 'PLUGIN_ERROR',
 		hook: 'resolveId',
 		message: 'nope',
-		plugin: 'Plugin at position 1'
+		plugin: 'at position 1'
 	}
 };

@@ -1,6 +1,7 @@
 module.exports = {
 	description: 'throws error only with first plugin transformBundle',
 	options: {
+		strictDeprecations: false,
 		plugins: [
 			{
 				name: 'plugin1',

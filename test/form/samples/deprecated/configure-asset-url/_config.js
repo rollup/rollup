@@ -1,6 +1,7 @@
 module.exports = {
 	description: 'allows to configure asset urls',
 	options: {
+		strictDeprecations: false,
 		plugins: [
 			{
 				resolveId(id) {

@@ -6,12 +6,12 @@ import { createAddons } from '../utils/addons';
 import { createAssetPluginHooks, finaliseAsset } from '../utils/assetHooks';
 import { assignChunkIds } from '../utils/assignChunkIds';
 import commondir from '../utils/commondir';
-import { error } from '../utils/error';
+import { errDeprecation, error } from '../utils/error';
 import { writeFile } from '../utils/fs';
 import getExportMode from '../utils/getExportMode';
 import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
 import { basename, dirname, isAbsolute, resolve } from '../utils/path';
-import { PluginDriver } from '../utils/pluginDriver';
+import { ANONYMOUS_PLUGIN_PREFIX, PluginDriver } from '../utils/pluginDriver';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
 import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timers';
 import {
@@ -31,10 +31,12 @@ import {
 
 function checkOutputOptions(options: OutputOptions) {
 	if ((options.format as string) === 'es6') {
-		error({
-			message: 'The "es6" output format is deprecated – use "esm" instead',
-			url: `https://rollupjs.org/guide/en#output-format`
-		});
+		error(
+			errDeprecation({
+				message: 'The "es6" output format is deprecated – use "esm" instead',
+				url: `https://rollupjs.org/guide/en#output-format`
+			})
+		);
 	}
 
 	if (['amd', 'cjs', 'system', 'es', 'iife', 'umd'].indexOf(options.format as string) < 0) {
@@ -70,6 +72,16 @@ function applyOptionHook(inputOptions: InputOptions, plugin: Plugin) {
 	return inputOptions;
 }
 
+function ensureArray<T>(items: (T | null | undefined)[] | T | null | undefined): T[] {
+	if (Array.isArray(items)) {
+		return items.filter(Boolean) as T[];
+	}
+	if (items) {
+		return [items];
+	}
+	return [];
+}
+
 function getInputOptions(rawInputOptions: GenericConfigObject): InputOptions {
 	if (!rawInputOptions) {
 		throw new Error('You must supply an options object to rollup');
@@ -81,13 +93,14 @@ function getInputOptions(rawInputOptions: GenericConfigObject): InputOptions {
 	if (optionError)
 		(inputOptions.onwarn as WarningHandler)({ message: optionError, code: 'UNKNOWN_OPTION' });
 
-	const plugins = inputOptions.plugins;
-	inputOptions.plugins = Array.isArray(plugins)
-		? plugins.filter(Boolean)
-		: plugins
-		? [plugins]
-		: [];
-	inputOptions = inputOptions.plugins.reduce(applyOptionHook, inputOptions);
+	inputOptions = ensureArray(inputOptions.plugins).reduce(applyOptionHook, inputOptions);
+	inputOptions.plugins = ensureArray(inputOptions.plugins);
+	for (let pluginIndex = 0; pluginIndex < inputOptions.plugins.length; pluginIndex++) {
+		const plugin = inputOptions.plugins[pluginIndex];
+		if (!plugin.name) {
+			plugin.name = `${ANONYMOUS_PLUGIN_PREFIX}${pluginIndex + 1}`;
+		}
+	}
 
 	if (inputOptions.inlineDynamicImports) {
 		if (inputOptions.preserveModules)

@@ -1,11 +1,12 @@
 const babiliResults = require('./babili-results');
 const assert = require('assert');
-const getLocation = require('../../getLocation');
+const getLocation = require('../../../getLocation');
 const SourceMapConsumer = require('source-map').SourceMapConsumer;
 
 module.exports = {
-	description: 'generates valid sourcemap when source could not be determined',
+	description: 'generates valid sourcemap when source could not be determined via transformBundle',
 	options: {
+		strictDeprecations: false,
 		plugins: [
 			{
 				transformBundle(code, options) {
@@ -17,12 +18,14 @@ module.exports = {
 		],
 		output: { indent: false }
 	},
-	warnings: [{
-		code: 'PLUGIN_WARNING',
-		message: 'The transformBundle hook used by plugin at position 1 is deprecated. The renderChunk hook should be used instead.',
-		plugin: 'Plugin at position 1',
-		pluginCode: 'TRANSFORMBUNDLE_HOOK_DEPRECATED'
-	}],
+	warnings: [
+		{
+			code: 'DEPRECATED_FEATURE',
+			message:
+				'The transformBundle hook used by plugin at position 1 is deprecated. The renderChunk hook should be used instead.',
+			plugin: 'at position 1'
+		}
+	],
 	test(code, map) {
 		const smc = new SourceMapConsumer(map);
 
