@@ -151,19 +151,6 @@ export function createPluginDriver(
 			cacheInstance = uncacheablePlugin(plugin.name);
 		}
 
-		let watcherDeprecationWarningShown = false;
-
-		function deprecatedWatchListener(event: string, handler: () => void): EventEmitter {
-			if (!watcherDeprecationWarningShown) {
-				context.warn({
-					code: 'PLUGIN_WATCHER_DEPRECATED',
-					message: `this.watcher usage is deprecated in plugins. Use the watchChange plugin hook and this.addWatchFile() instead.`
-				});
-				watcherDeprecationWarningShown = true;
-			}
-			return (watcher as RollupWatcher).on(event, handler);
-		}
-
 		const context: PluginContext = {
 			addWatchFile(id) {
 				if (graph.phase >= BuildPhase.GENERATE) this.error(errInvalidRollupPhaseForAddWatchFile());
@@ -182,9 +169,6 @@ export function createPluginDriver(
 				err.code = 'PLUGIN_ERROR';
 				err.plugin = plugin.name;
 				return error(err);
-			},
-			isExternal(id, parentId, isResolved = false) {
-				return graph.moduleLoader.isExternal(id, parentId, isResolved);
 			},
 			getAssetFileName: getAssetFileName as (assetId: string) => string,
 			getChunkFileName(chunkReferenceId) {
@@ -207,6 +191,22 @@ export function createPluginDriver(
 					isExternal: foundModule instanceof ExternalModule
 				};
 			},
+			isExternal: (() => {
+				let deprecationWarningShown = false;
+				return (id: string, parentId: string, isResolved = false) => {
+					if (!deprecationWarningShown) {
+						deprecationWarningShown = true;
+						graph.warnDeprecation(
+							{
+								message: `The "this.isExternal(...)" plugin context function used by plugin ${plugin.name} is deprecated. The "this.resolve(...)" plugin context function should be used instead.`,
+								plugin: plugin.name
+							},
+							false
+						);
+					}
+					return graph.moduleLoader.isExternal(id, parentId, isResolved);
+				};
+			})(),
 			meta: {
 				rollupVersion
 			},
@@ -214,11 +214,6 @@ export function createPluginDriver(
 				return graph.moduleById.keys();
 			},
 			parse: graph.contextParse,
-			resolveId(source, importer) {
-				return graph.moduleLoader
-					.resolveId(source, importer)
-					.then(resolveId => resolveId && resolveId.id);
-			},
 			resolve(source, importer, options?: { skipSelf: boolean }) {
 				return graph.moduleLoader.resolveId(
 					source,
@@ -226,6 +221,24 @@ export function createPluginDriver(
 					options && options.skipSelf ? pidx : null
 				);
 			},
+			resolveId: (() => {
+				let deprecationWarningShown = false;
+				return (source: string, importer: string) => {
+					if (!deprecationWarningShown) {
+						deprecationWarningShown = true;
+						graph.warnDeprecation(
+							{
+								message: `The "this.resolveId(...)" plugin context function used by plugin ${plugin.name} is deprecated. The "this.resolve(...)" plugin context function should be used instead.`,
+								plugin: plugin.name
+							},
+							false
+						);
+					}
+					return graph.moduleLoader
+						.resolveId(source, importer)
+						.then(resolveId => resolveId && resolveId.id);
+				};
+			})(),
 			setAssetSource,
 			warn(warning) {
 				if (typeof warning === 'string') warning = { message: warning } as RollupWarning;
@@ -235,11 +248,26 @@ export function createPluginDriver(
 				graph.warn(warning);
 			},
 			watcher: watcher
-				? ({
-						...(watcher as EventEmitter),
-						addListener: deprecatedWatchListener,
-						on: deprecatedWatchListener
-				  } as EventEmitter)
+				? (() => {
+						let deprecationWarningShown = false;
+
+						function deprecatedWatchListener(event: string, handler: () => void): EventEmitter {
+							if (!deprecationWarningShown) {
+								context.warn({
+									code: 'PLUGIN_WATCHER_DEPRECATED',
+									message: `this.watcher usage is deprecated in plugins. Use the watchChange plugin hook and this.addWatchFile() instead.`
+								});
+								deprecationWarningShown = true;
+							}
+							return (watcher as RollupWatcher).on(event, handler);
+						}
+
+						return {
+							...(watcher as EventEmitter),
+							addListener: deprecatedWatchListener,
+							on: deprecatedWatchListener
+						};
+				  })()
 				: (undefined as any)
 		};
 		return context;

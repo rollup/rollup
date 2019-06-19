@@ -22,6 +22,7 @@ module.exports = {
 		assert.strictEqual(warnings[0].code, 'UNRESOLVED_IMPORT');
 	},
 	options: {
+		strictDeprecations: false,
 		plugins: [
 			{
 				resolveId(id, importer) {
