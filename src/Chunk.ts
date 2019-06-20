@@ -126,7 +126,7 @@ export default class Chunk {
 
 	entryModules: Module[] = [];
 	execIndex: number;
-	exportMode = 'named';
+	exportMode: 'none' | 'named' | 'default' = 'named';
 	facadeModule: Module | null = null;
 	graph: Graph;
 	id: string = undefined as any;
@@ -1004,14 +1004,14 @@ export default class Chunk {
 					}
 					if (resolution.chunk === this) {
 						const namespace = resolution.getOrCreateNamespace();
-						node.setResolution(false, namespace.getName());
+						node.setResolution('named', namespace.getName());
 					} else {
-						node.setResolution((resolution.chunk).exportMode === 'default');
+						node.setResolution(resolution.chunk.exportMode);
 					}
 				} else if (resolution instanceof ExternalModule) {
-					node.setResolution(false);
+					node.setResolution('auto');
 				} else {
-					node.setResolution(false);
+					node.setResolution('named');
 				}
 			}
 		}

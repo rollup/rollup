@@ -38,8 +38,11 @@ export default class ExternalModule {
 	}
 
 	getVariableForExportName(name: string, _isExportAllSearch?: boolean): ExternalVariable {
-		if (name !== 'default' && name !== '*') this.exportsNames = true;
-		if (name === '*') this.exportsNamespace = true;
+		if (name === '*') {
+			this.exportsNamespace = true;
+		} else if (name !== 'default') {
+			this.exportsNames = true;
+		}
 
 		let declaration = this.declarations[name];
 		if (declaration) return declaration;
