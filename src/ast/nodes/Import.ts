@@ -16,7 +16,7 @@ const getDynamicImportMechanism = (options: RenderOptions): DynamicImportMechani
 		case 'cjs': {
 			const _ = options.compact ? '' : ' ';
 			return {
-				interopLeft: `Promise.resolve({${_}default:${_}require(`,
+				interopLeft: `Promise.resolve({${_}'default':${_}require(`,
 				interopRight: `)${_}})`,
 				left: 'Promise.resolve(require(',
 				right: '))'
@@ -28,7 +28,7 @@ const getDynamicImportMechanism = (options: RenderOptions): DynamicImportMechani
 			const reject = options.compact ? 'e' : 'reject';
 			return {
 				interopLeft: `new Promise(function${_}(${resolve},${_}${reject})${_}{${_}require([`,
-				interopRight: `],${_}function${_}(m)${_}{${_}${resolve}({${_}default:${_}m${_}})${_}},${_}${reject})${_}})`,
+				interopRight: `],${_}function${_}(m)${_}{${_}${resolve}({${_}'default':${_}m${_}})${_}},${_}${reject})${_}})`,
 				left: `new Promise(function${_}(${resolve},${_}${reject})${_}{${_}require([`,
 				right: `],${_}${resolve},${_}${reject})${_}})`
 			};

@@ -999,11 +999,14 @@ export default class Chunk {
 			for (const { node, resolution } of module.dynamicImports) {
 				if (!resolution) continue;
 				if (resolution instanceof Module) {
+					if (!resolution.chunk) {
+						throw new Error();
+					}
 					if (resolution.chunk === this) {
 						const namespace = resolution.getOrCreateNamespace();
 						node.setResolution(false, namespace.getName());
 					} else {
-						node.setResolution(false);
+						node.setResolution((resolution.chunk).exportMode === 'default');
 					}
 				} else if (resolution instanceof ExternalModule) {
 					node.setResolution(false);
