@@ -9,11 +9,11 @@
 	logicalAExp.bar = 1;
 
 	var bExp = {};
-	var logicalBExp = bExp;
+	var logicalBExp =  bExp;
 	logicalBExp.bar = 1;
 
 	var cExp = {};
-	var logicalCExp = cExp;
+	var logicalCExp =  cExp;
 	logicalCExp.bar = 1;
 
 	exports.aExp = aExp;

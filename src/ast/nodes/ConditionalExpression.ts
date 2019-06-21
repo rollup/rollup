@@ -1,6 +1,10 @@
 import MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
-import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import {
+	findFirstOccurrenceOutsideComment,
+	NodeRenderOptions,
+	RenderOptions
+} from '../../utils/renderHelpers';
 import { removeAnnotations } from '../../utils/treeshakeNode';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
@@ -150,8 +154,18 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		{ renderedParentType, isCalleeOfRenderedParent }: NodeRenderOptions = BLANK
 	) {
 		if (!this.test.included) {
-			code.remove(this.start, (this.usedBranch as ExpressionNode).start);
-			code.remove((this.usedBranch as ExpressionNode).end, this.end);
+			const colonPos = findFirstOccurrenceOutsideComment(code.original, ':', this.consequent.end);
+			if (this.consequent.included) {
+				const questionmarkPos = findFirstOccurrenceOutsideComment(
+					code.original,
+					'?',
+					this.test.end
+				);
+				code.remove(this.start, questionmarkPos + 1);
+				code.remove(colonPos, this.end);
+			} else {
+				code.remove(this.start, colonPos + 1);
+			}
 			removeAnnotations(this, code);
 			(this.usedBranch as ExpressionNode).render(code, options, {
 				isCalleeOfRenderedParent: renderedParentType

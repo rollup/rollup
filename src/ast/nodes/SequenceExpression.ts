@@ -84,7 +84,6 @@ export default class SequenceExpression extends NodeBase {
 		{ renderedParentType, isCalleeOfRenderedParent }: NodeRenderOptions = BLANK
 	) {
 		let firstStart = 0,
-			lastEnd,
 			includedNodes = 0;
 		for (const { node, start, end } of getCommaSeparatedNodesWithBoundaries(
 			this.expressions,
@@ -98,7 +97,6 @@ export default class SequenceExpression extends NodeBase {
 			}
 			includedNodes++;
 			if (firstStart === 0) firstStart = start;
-			lastEnd = end;
 			if (node === this.expressions[this.expressions.length - 1] && includedNodes === 1) {
 				node.render(code, options, {
 					isCalleeOfRenderedParent: renderedParentType
@@ -109,11 +107,6 @@ export default class SequenceExpression extends NodeBase {
 			} else {
 				node.render(code, options);
 			}
-		}
-		// Round brackets are part of the actual parent and should be re-added in case the parent changed
-		if (includedNodes > 1 && renderedParentType) {
-			code.prependRight(firstStart, '(');
-			code.appendLeft(lastEnd as number, ')');
 		}
 	}
 }
