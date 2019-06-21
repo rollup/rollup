@@ -178,7 +178,7 @@ export default class Module {
 	dynamicDependencies: (Module | ExternalModule)[] = [];
 	dynamicImports: {
 		node: Import;
-		resolution: Module | ExternalModule | string | void;
+		resolution: Module | ExternalModule | string | null;
 	}[] = [];
 	entryPointsHash: Uint8Array = new Uint8Array(10);
 	excludeFromSourcemap: boolean;
@@ -682,7 +682,7 @@ export default class Module {
 	}
 
 	private addDynamicImport(node: Import) {
-		this.dynamicImports.push({ node, resolution: undefined });
+		this.dynamicImports.push({ node, resolution: null });
 	}
 
 	private addExport(

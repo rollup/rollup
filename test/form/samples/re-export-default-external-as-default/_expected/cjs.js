@@ -9,11 +9,11 @@ var external__default = _interopDefault(external);
 
 
 
-Object.keys(external).forEach(function (key) {
-	Object.defineProperty(exports, key, {
+Object.keys(external).forEach(function (k) {
+	if (k !== 'default') Object.defineProperty(exports, k, {
 		enumerable: true,
 		get: function () {
-			return external[key];
+			return external[k];
 		}
 	});
 });

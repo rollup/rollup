@@ -1,4 +1,4 @@
-define(['require', 'exports'], function (require, exports) { 'use strict';
+define(['exports'], function (exports) { 'use strict';
 
 	function foo() {
 		return 'dep2';

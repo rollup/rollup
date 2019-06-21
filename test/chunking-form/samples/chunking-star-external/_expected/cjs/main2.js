@@ -8,11 +8,11 @@ var __chunk_1 = require('./generated-chunk.js');
 
 var main = '2';
 
-Object.keys(starexternal2).forEach(function (key) {
-	Object.defineProperty(exports, key, {
+Object.keys(starexternal2).forEach(function (k) {
+	if (k !== 'default') Object.defineProperty(exports, k, {
 		enumerable: true,
 		get: function () {
-			return starexternal2[key];
+			return starexternal2[k];
 		}
 	});
 });
