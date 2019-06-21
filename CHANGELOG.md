@@ -1,5 +1,20 @@
 # rollup changelog
 
+## 1.16.0
+*unreleased*
+
+### Features
+* Keep annotations and comments when simplifying logical and conditional expressions (#2955)
+
+### Bug Fixes
+* Generate proper namespace objects when dynamically importing external dependencies for AMD or CJS formats (#2954)
+* Fix dynamically imported variables not being resolved correctly when importing from an entry chunk with only a default export (#2954)
+* Do not reexport default when reexporting a namespace (#2954)
+
+### Pull Requests
+* [#2954](https://github.com/rollup/rollup/pull/2954): Improve dynamic import interop (@lukastaegert)
+* [#2955](https://github.com/rollup/rollup/pull/2955): Keep annotations and comments when simplifying logical and conditional expressions (@lukastaegert)
+
 ## 1.15.6
 *2019-06-16*
 
