@@ -1,5 +1,7 @@
 import MagicString from 'magic-string';
 import { findFirstOccurrenceOutsideComment, RenderOptions } from '../../utils/renderHelpers';
+import { INTEROP_NAMESPACE_VARIABLE } from '../../utils/variableNames';
+import NamespaceVariable from '../variables/NamespaceVariable';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
@@ -9,24 +11,17 @@ interface DynamicImportMechanism {
 	right: string;
 }
 
-const accessedImportGlobals = {
-	amd: ['require'],
-	cjs: ['require'],
-	system: ['module']
-};
-
 export default class Import extends NodeBase {
 	parent!: CallExpression;
 	type!: NodeType.tImport;
 
 	private exportMode: 'none' | 'named' | 'default' | 'auto' = 'auto';
-	private resolutionNamespace?: string;
+	private inlineNamespace?: NamespaceVariable;
 
 	include() {
 		if (!this.included) {
 			this.included = true;
 			this.context.includeDynamicImport(this);
-			this.scope.addAccessedGlobalsByFormat(accessedImportGlobals);
 		}
 	}
 
@@ -35,13 +30,13 @@ export default class Import extends NodeBase {
 	}
 
 	render(code: MagicString, options: RenderOptions) {
-		if (this.resolutionNamespace) {
+		if (this.inlineNamespace) {
 			const _ = options.compact ? '' : ' ';
 			const s = options.compact ? '' : ';';
 			code.overwrite(
 				this.parent.start,
 				this.parent.end,
-				`Promise.resolve().then(function${_}()${_}{${_}return ${this.resolutionNamespace}${s}${_}})`
+				`Promise.resolve().then(function${_}()${_}{${_}return ${this.inlineNamespace.getName()}${s}${_}})`
 			);
 			return;
 		}
@@ -66,9 +61,27 @@ export default class Import extends NodeBase {
 		}
 	}
 
-	setResolution(exportMode: 'none' | 'named' | 'default' | 'auto', namespace?: string): void {
+	setResolution(
+		exportMode: 'none' | 'named' | 'default' | 'auto',
+		inlineNamespace?: NamespaceVariable
+	): void {
 		this.exportMode = exportMode;
-		this.resolutionNamespace = namespace as string;
+		if (inlineNamespace) {
+			this.inlineNamespace = inlineNamespace;
+		} else {
+			this.scope.addAccessedGlobalsByFormat({
+				amd: ['require'],
+				cjs: ['require'],
+				system: ['module']
+			});
+			if (exportMode === 'auto') {
+				// TODO Lukas test conflicts
+				this.scope.addAccessedGlobalsByFormat({
+					amd: [INTEROP_NAMESPACE_VARIABLE],
+					cjs: [INTEROP_NAMESPACE_VARIABLE]
+				});
+			}
+		}
 	}
 
 	private getDynamicImportMechanism(options: RenderOptions): DynamicImportMechanism | null {
@@ -78,6 +91,8 @@ export default class Import extends NodeBase {
 					case 'default':
 						const _ = options.compact ? '' : ' ';
 						return { left: `Promise.resolve({${_}'default':${_}require(`, right: `)${_}})` };
+					case 'auto':
+						return { left: `Promise.resolve(${INTEROP_NAMESPACE_VARIABLE}(require(`, right: ')))' };
 					default:
 						return { left: 'Promise.resolve(require(', right: '))' };
 				}
@@ -86,18 +101,16 @@ export default class Import extends NodeBase {
 				const _ = options.compact ? '' : ' ';
 				const resolve = options.compact ? 'c' : 'resolve';
 				const reject = options.compact ? 'e' : 'reject';
-				switch (this.exportMode) {
-					case 'default':
-						return {
-							left: `new Promise(function${_}(${resolve},${_}${reject})${_}{${_}require([`,
-							right: `],${_}function${_}(m)${_}{${_}${resolve}({${_}'default':${_}m${_}})${_}},${_}${reject})${_}})`
-						};
-					default:
-						return {
-							left: `new Promise(function${_}(${resolve},${_}${reject})${_}{${_}require([`,
-							right: `],${_}${resolve},${_}${reject})${_}})`
-						};
-				}
+				const resolveNamespace =
+					this.exportMode === 'default'
+						? `function${_}(m)${_}{${_}${resolve}({${_}'default':${_}m${_}});${_}}`
+						: this.exportMode === 'auto'
+						? `function${_}(m)${_}{${_}${resolve}(${INTEROP_NAMESPACE_VARIABLE}(m));${_}}`
+						: resolve;
+				return {
+					left: `new Promise(function${_}(${resolve},${_}${reject})${_}{${_}require([`,
+					right: `],${_}${resolveNamespace},${_}${reject})${_}})`
+				};
 			}
 			case 'system':
 				return {

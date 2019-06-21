@@ -14,13 +14,7 @@ import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';
 import Graph from './Graph';
 import Module from './Module';
-import {
-	GlobalsOption,
-	OutputOptions,
-	RawSourceMap,
-	RenderedChunk,
-	RenderedModule
-} from './rollup/types';
+import { GlobalsOption, OutputOptions, RawSourceMap, RenderedChunk, RenderedModule } from './rollup/types';
 import { Addons } from './utils/addons';
 import { toBase64 } from './utils/base64';
 import collapseSourcemaps from './utils/collapseSourcemaps';
@@ -518,8 +512,8 @@ export default class Chunk {
 		}
 		sortByExecutionOrder(this.dependencies);
 
-		this.setIdentifierRenderResolutions(options);
 		this.prepareDynamicImports();
+		this.setIdentifierRenderResolutions(options);
 
 		let hoistedSource = '';
 		const renderedModules = (this.renderedModules = Object.create(null));
@@ -997,21 +991,16 @@ export default class Chunk {
 	private prepareDynamicImports() {
 		for (const module of this.orderedModules) {
 			for (const { node, resolution } of module.dynamicImports) {
-				if (!resolution) continue;
+				if (!node.included) continue;
 				if (resolution instanceof Module) {
-					if (!resolution.chunk) {
-						throw new Error();
-					}
 					if (resolution.chunk === this) {
 						const namespace = resolution.getOrCreateNamespace();
-						node.setResolution('named', namespace.getName());
+						node.setResolution('named', namespace);
 					} else {
-						node.setResolution(resolution.chunk.exportMode);
+						node.setResolution((resolution.chunk as Chunk).exportMode);
 					}
-				} else if (resolution instanceof ExternalModule) {
-					node.setResolution('auto');
 				} else {
-					node.setResolution('named');
+					node.setResolution('auto');
 				}
 			}
 		}
