@@ -1,9 +1,10 @@
 # rollup changelog
 
 ## 1.16.0
-*unreleased*
+*2019-06-21*
 
 ### Features
+* Add strictDeprecations option to throw when currently or upcoming deprecated features are used (#2945)
 * Keep annotations and comments when simplifying logical and conditional expressions (#2955)
 
 ### Bug Fixes
@@ -12,6 +13,7 @@
 * Do not reexport default when reexporting a namespace (#2954)
 
 ### Pull Requests
+* [#2945](https://github.com/rollup/rollup/pull/2945): Add option to handle use of features marked for deprecation as errors (@lukastaegert)
 * [#2954](https://github.com/rollup/rollup/pull/2954): Improve dynamic import interop (@lukastaegert)
 * [#2955](https://github.com/rollup/rollup/pull/2955): Keep annotations and comments when simplifying logical and conditional expressions (@lukastaegert)
 
