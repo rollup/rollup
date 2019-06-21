@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 1.16.1
+*2019-06-21*
+
+### Pull Requests
+* [#2956](https://github.com/rollup/rollup/pull/2956): Add missing CLI docs for strictDeprecations (@lukastaegert)
+
 ## 1.16.0
 *2019-06-21*
 
