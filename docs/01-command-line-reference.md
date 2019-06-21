@@ -41,6 +41,7 @@ export default { // can be an array (for multiple inputs)
   manualChunks,
   onwarn,
   preserveModules,
+  strictDeprecations,
 
   // danger zone
   acorn,
@@ -230,6 +231,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --silent                    Don't print warnings
 --sourcemapExcludeSources   Do not include source code in source maps
 --sourcemapFile <file>      Specify bundle position for source maps
+--strictDeprecations        Throw errors for deprecated features
 --no-treeshake              Disable tree-shaking optimisations
 --no-treeshake.annotations  Ignore pure call annotations
 --no-treeshake.propertyReadSideEffects Ignore property access side-effects
