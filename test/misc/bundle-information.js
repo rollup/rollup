@@ -296,7 +296,7 @@ describe('The bundle object', () => {
 								originalLength: 47,
 								removedExports: [],
 								renderedExports: ['default'],
-								renderedLength: 17
+								renderedLength: 18
 							}
 						}
 					],

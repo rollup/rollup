@@ -1,5 +1,5 @@
-var a = (foo(), 3 );
-var b = (bar(), 6 );
+var a =  ( foo(), 3 ) ;
+var b =  ( bar(), 6 );
 foo( a, b );
 
 // verify works with no whitespace

@@ -11,9 +11,9 @@ global.iife1 = /*@__PURE__*/(function() {
 bar(), baz(), quux();
 a.b(), f.g();
 /* @__PURE__ */(function(){})() || true ? foo() : bar();
-foo();
+ foo() ;
 /* @__PURE__ */(function(){})() && false ? foo() : bar();
-bar();
+ bar();
 /* @__PURE__ */(function(){})() + "foo" ? bar() : baz();
 "foo" + /* @__PURE__ */(function(){})() ? bar() : baz();
 /* @__PURE__ */(function(){})() ? foo() : foo();
