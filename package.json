@@ -121,7 +121,7 @@
     "systemjs": "^3.1.6",
     "terser": "^4.0.0",
     "tslib": "^1.10.0",
-    "tslint": "^5.17.0",
+    "tslint": "^5.18.0",
     "turbocolor": "^2.6.1",
     "typescript": "^3.5.2",
     "url-parse": "^1.4.7"

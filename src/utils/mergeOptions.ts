@@ -231,6 +231,7 @@ function getInputOptions(
 		preserveModules: getOption('preserveModules'),
 		preserveSymlinks: getOption('preserveSymlinks'),
 		shimMissingExports: getOption('shimMissingExports'),
+		strictDeprecations: getOption('strictDeprecations', false),
 		treeshake: getObjectOption(config, command, 'treeshake'),
 		watch: config.watch as any
 	};

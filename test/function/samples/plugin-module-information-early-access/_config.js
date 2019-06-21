@@ -21,6 +21,6 @@ module.exports = {
 		code: 'PLUGIN_ERROR',
 		hook: 'buildStart',
 		message: `Unable to find module ${ID_MAIN}`,
-		plugin: 'Plugin at position 1'
+		plugin: 'at position 1'
 	}
 };

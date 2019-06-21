@@ -251,16 +251,16 @@ describe('hooks', () => {
 				onwarn(warning) {
 					deprecationCnt++;
 					if (deprecationCnt === 1) {
-						assert.equal(warning.pluginCode, 'ONGENERATE_HOOK_DEPRECATED');
+						assert.equal(warning.code, 'DEPRECATED_FEATURE');
 						assert.equal(
 							warning.message,
-							'The ongenerate hook used by plugin at position 2 is deprecated. The generateBundle hook should be used instead.'
+							'The "ongenerate" hook used by plugin at position 2 is deprecated. The "generateBundle" hook should be used instead.'
 						);
 					} else {
-						assert.equal(warning.pluginCode, 'ONWRITE_HOOK_DEPRECATED');
+						assert.equal(warning.code, 'DEPRECATED_FEATURE');
 						assert.equal(
 							warning.message,
-							'The onwrite hook used by plugin at position 2 is deprecated. The generateBundle hook should be used instead.'
+							'The "onwrite" hook used by plugin at position 2 is deprecated. The "generateBundle/writeBundle" hook should be used instead.'
 						);
 					}
 				},
@@ -704,10 +704,10 @@ module.exports = input;
 				input: 'input',
 				onwarn(warning) {
 					deprecationCnt++;
-					assert.equal(warning.pluginCode, 'TRANSFORMCHUNK_HOOK_DEPRECATED');
+					assert.equal(warning.code, 'DEPRECATED_FEATURE');
 					assert.equal(
 						warning.message,
-						'The transformChunk hook used by plugin at position 2 is deprecated. The renderChunk hook should be used instead.'
+						'The "transformChunk" hook used by plugin at position 2 is deprecated. The "renderChunk" hook should be used instead.'
 					);
 				},
 				plugins: [
@@ -1295,46 +1295,6 @@ module.exports = input;
 			});
 		}).catch(err => {
 			assert.equal(err.message, 'You must specify "output.file" or "output.dir" for the build.');
-			assert.equal(warned, true);
-		});
-	});
-
-	it('Warns when using deprecated transform dependencies in plugins', () => {
-		let warned = false;
-		const watcher = rollup.watch({
-			input: 'input',
-			output: {
-				file: 'asdf',
-				format: 'es'
-			},
-			onwarn(warning) {
-				warned = true;
-				assert.equal(warning.code, 'PLUGIN_WARNING');
-				assert.equal(warning.pluginCode, 'TRANSFORM_DEPENDENCIES_DEPRECATED');
-				assert.equal(
-					warning.message,
-					'Returning "dependencies" from plugin transform hook is deprecated for using this.addWatchFile() instead.'
-				);
-				// throw here to stop file system write
-				throw new Error('STOP');
-			},
-			plugins: [
-				loader({ input: `alert('hello')` }),
-				{
-					name: 'x',
-					transform(code) {
-						return { code, dependencies: [] };
-					}
-				}
-			]
-		});
-		return new Promise((resolve, reject) => {
-			watcher.on('event', evt => {
-				if (evt.code === 'END') resolve();
-				else if (evt.code === 'ERROR' || evt.code === 'FATAL') reject(evt.error);
-			});
-		}).catch(err => {
-			assert.equal(err.message, 'STOP');
 			assert.equal(warned, true);
 		});
 	});

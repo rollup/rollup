@@ -374,6 +374,7 @@ export interface InputOptions {
 	preserveModules?: boolean;
 	preserveSymlinks?: boolean;
 	shimMissingExports?: boolean;
+	strictDeprecations?: boolean;
 	treeshake?: boolean | TreeshakingOptions;
 	watch?: WatcherOptions;
 }
@@ -480,7 +481,6 @@ export interface SerializablePluginCache {
 }
 
 export interface RollupCache {
-	// to be deprecated
 	modules?: ModuleJSON[];
 	plugins?: Record<string, SerializablePluginCache>;
 }

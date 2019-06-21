@@ -41,13 +41,11 @@ export function createAddons(graph: Graph, options: OutputOptions): Promise<Addo
 
 			return { intro, outro, banner, footer };
 		})
-		.catch(
-			(err): any => {
-				error({
-					code: 'ADDON_ERROR',
-					message: `Could not retrieve ${err.hook}. Check configuration of ${err.plugin}.
+		.catch((err): any => {
+			error({
+				code: 'ADDON_ERROR',
+				message: `Could not retrieve ${err.hook}. Check configuration of plugin ${err.plugin}.
 \tError Message: ${err.message}`
-				});
-			}
-		);
+			});
+		});
 }
