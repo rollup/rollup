@@ -75,7 +75,6 @@ export default class Import extends NodeBase {
 				system: ['module']
 			});
 			if (exportMode === 'auto') {
-				// TODO Lukas test conflicts
 				this.scope.addAccessedGlobalsByFormat({
 					amd: [INTEROP_NAMESPACE_VARIABLE],
 					cjs: [INTEROP_NAMESPACE_VARIABLE]
