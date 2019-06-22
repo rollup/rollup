@@ -13,9 +13,6 @@ module.exports = {
 		]
 	},
 	exports(exports) {
-		return exports.promise;
-	},
-	runtimeError(error) {
-		assert.equal(error.message.split('\n')[0], "Cannot find module 'asdf'");
+		return exports.promise.catch(err => assert.equal(err.message, "Cannot find module 'asdf'"));
 	}
 };

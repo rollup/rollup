@@ -1,4 +1,4 @@
 'use strict';
 
 console.log('dep1');
-Promise.resolve(require('./generated-dep2.js'));
+new Promise(function (resolve) { resolve(require('./generated-dep2.js')); });
