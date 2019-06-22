@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.16.2
+*2019-06-22*
+
+### Bug Fixes
+* Properly wrap dynamic imports in Promises that can be caught when generating CJS output (#2958)
+
+### Pull Requests
+* [#2958](https://github.com/rollup/rollup/pull/2958): Make sure errors from dynamic imports can be caught (@lukastaegert)
+
 ## 1.16.1
 *2019-06-21*
 
