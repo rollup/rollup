@@ -19,4 +19,4 @@ function _interopNamespace(e) {
 	}
 }
 
-Promise.resolve(_interopNamespace(require('./foo.js')));
+new Promise(function (resolve) { resolve(_interopNamespace(require('./foo.js'))); });

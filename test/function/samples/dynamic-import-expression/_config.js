@@ -23,7 +23,7 @@ module.exports = {
 			}
 		]
 	},
-	runtimeError(error) {
-		assert.equal(error.message.split('\n')[0], "Cannot find module 'x/y'");
+	exports(exports) {
+		return exports.catch(err => assert.strictEqual(err.message, "Cannot find module 'x/y'"));
 	}
 };

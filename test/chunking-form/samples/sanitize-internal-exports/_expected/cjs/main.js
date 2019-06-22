@@ -4,7 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var __chunk_1 = require('./generated-chunk.js');
 
-const lazy = Promise.resolve(require('./generated-lazy.js'));
+const lazy = new Promise(function (resolve) { resolve(require('./generated-lazy.js')); });
 
 exports.v1 = __chunk_1.v1;
 exports.v10 = __chunk_1.v10;

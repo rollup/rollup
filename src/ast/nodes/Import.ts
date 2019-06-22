@@ -86,14 +86,24 @@ export default class Import extends NodeBase {
 	private getDynamicImportMechanism(options: RenderOptions): DynamicImportMechanism | null {
 		switch (options.format) {
 			case 'cjs': {
+				const _ = options.compact ? '' : ' ';
+				const resolve = options.compact ? 'c' : 'resolve';
 				switch (this.exportMode) {
 					case 'default':
-						const _ = options.compact ? '' : ' ';
-						return { left: `Promise.resolve({${_}'default':${_}require(`, right: `)${_}})` };
+						return {
+							left: `new Promise(function${_}(${resolve})${_}{${_}${resolve}({${_}'default':${_}require(`,
+							right: `)${_}});${_}})`
+						};
 					case 'auto':
-						return { left: `Promise.resolve(${INTEROP_NAMESPACE_VARIABLE}(require(`, right: ')))' };
+						return {
+							left: `new Promise(function${_}(${resolve})${_}{${_}${resolve}(${INTEROP_NAMESPACE_VARIABLE}(require(`,
+							right: `)));${_}})`
+						};
 					default:
-						return { left: 'Promise.resolve(require(', right: '))' };
+						return {
+							left: `new Promise(function${_}(${resolve})${_}{${_}${resolve}(require(`,
+							right: `));${_}})`
+						};
 				}
 			}
 			case 'amd': {
