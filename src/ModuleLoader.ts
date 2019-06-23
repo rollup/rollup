@@ -459,13 +459,13 @@ export class ModuleLoader {
 		let moduleSideEffects = null;
 		if (resolveIdResult) {
 			if (typeof resolveIdResult === 'object') {
-				id = resolveIdResult.id;
 				if (resolveIdResult.external) {
 					external = true;
 				}
 				if (typeof resolveIdResult.moduleSideEffects === 'boolean') {
 					moduleSideEffects = resolveIdResult.moduleSideEffects;
 				}
+				id = external ? normalizeRelativeExternalId(importer, resolveIdResult.id) : resolveIdResult.id;
 			} else {
 				if (this.isExternal(resolveIdResult, importer, true)) {
 					external = true;
