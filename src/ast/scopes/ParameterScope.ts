@@ -38,6 +38,11 @@ export default class ParameterScope extends ChildScope {
 
 	addParameterVariables(parameters: LocalVariable[][], hasRest: boolean) {
 		this.parameters = parameters;
+		for (const parameterList of parameters) {
+			for (const parameter of parameterList) {
+				parameter.alwaysRendered = true;
+			}
+		}
 		this.hasRest = hasRest;
 	}
 
