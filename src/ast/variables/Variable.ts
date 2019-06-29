@@ -11,6 +11,7 @@ import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker'
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 
 export default class Variable implements ExpressionEntity {
+	alwaysRendered = false;
 	exportName: string | null = null;
 	included = false;
 	isId = false;
