@@ -66,7 +66,7 @@ async function build() {
 build();
 ```
 
-#### inputOptions
+#### inputOptions object
 
 The `inputOptions` object can contain the following properties (see the [big list of options](guide/en#big-list-of-options) for full details on these):
 
@@ -103,7 +103,7 @@ const inputOptions = {
 };
 ```
 
-#### outputOptions
+#### outputOptions object
 
 The `outputOptions` object can contain the following properties (see the [big list of options](guide/en#big-list-of-options) for full details on these):
 

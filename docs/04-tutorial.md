@@ -215,7 +215,7 @@ Rollup will use the dynamic import to create a separate chunk that is only loade
 rollup src/main.js -f cjs -d dist
 ```
 
-This will create a folder `dist` containing two files, `main.js` and `chunk-[hash].js`, where `[hash]` is a content based hash string. You can supply your own naming patterns by specifying the [`output.chunkFileNames`](guide/en#output-chunkfilenames) and [`output.entryFileNames`](guide/en#output-entryfilenames) options.
+This will create a folder `dist` containing two files, `main.js` and `chunk-[hash].js`, where `[hash]` is a content based hash string. You can supply your own naming patterns by specifying the [`output.chunkFileNames`](guide/en#outputchunkfilenames) and [`output.entryFileNames`](guide/en#outputentryfilenames) options.
 
 You can still run your code as before with the same output, albeit a little slower as loading and parsing of `./foo.js` will only commence once we call the exported function for the first time.
 
