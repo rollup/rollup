@@ -31,7 +31,7 @@ module.exports = {
 			code: `SOURCEMAP_BROKEN`,
 			plugin: 'fake plugin 1',
 			message: `Sourcemap is likely to be incorrect: a plugin ('fake plugin 1') was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help`,
-			url: `https://rollupjs.org/guide/en#warning-sourcemap-is-likely-to-be-incorrect`
+			url: `https://rollupjs.org/guide/en/#warning-sourcemap-is-likely-to-be-incorrect`
 		}
 	]
 };

@@ -216,7 +216,7 @@ module.exports = main;
 
 Rollup returns Promises which are understood by gulp so integration is relatively painless.
 
-The syntax is very similar to the configuration file, but the properties are split across two different operations corresponding to the [JavaScript API](guide/en#javascript-api):
+The syntax is very similar to the configuration file, but the properties are split across two different operations corresponding to the [JavaScript API](guide/en/#javascript-api):
 
 ```js
 const gulp = require('gulp');

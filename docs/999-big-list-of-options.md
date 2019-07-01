@@ -69,7 +69,7 @@ The conversion back to a relative import is done as if `output.file` or `output.
 Type: `string | string [] | { [entryName: string]: string }`<br>
 CLI: `-i`/`--input <filename>`
 
-The bundle's entry point(s) (e.g. your `main.js` or `app.js` or `index.js`). If you provide an array of entry points or an object mapping names to entry points, they will be bundled to separate output chunks. Unless the [`output.file`](guide/en#outputfile) option is used, generated chunk names will follow the [`output.entryFileNames`](guide/en#outputentryfilenames) option. When using the object form, the `[name]` portion of the file name will be the name of the object property while for the array form, it will be the file name of the entry point.
+The bundle's entry point(s) (e.g. your `main.js` or `app.js` or `index.js`). If you provide an array of entry points or an object mapping names to entry points, they will be bundled to separate output chunks. Unless the [`output.file`](guide/en/#outputfile) option is used, generated chunk names will follow the [`output.entryFileNames`](guide/en/#outputentryfilenames) option. When using the object form, the `[name]` portion of the file name will be the name of the object property while for the array form, it will be the file name of the entry point.
 
 Note that it is possible when using the object form to put entry points into different sub-folders by adding a `/` to the name. The following will generate at least two entry chunks with the names `entry-a.js` and `entry-b/index.js`, i.e. the file `index.js` is placed in the folder `entry-b`:
 
@@ -229,7 +229,7 @@ this.a.b.c = ...
 #### plugins
 Type: `Plugin | (Plugin | void)[]`
 
-See [Using plugins](guide/en#using-plugins) for more information on how to use plugins and [Plugins](guide/en#plugin-development) on how to write your own (try it out, it's not as difficult as it may sound and very much extends what you can do with Rollup!). For plugins imported from packages, remember to call the imported plugin function (i.e. `commonjs()`, not just `commonjs`). Falsy plugins will be ignored, which can be used to easily activate or deactivate plugins.
+See [Using plugins](guide/en/#using-plugins) for more information on how to use plugins and [Plugins](guide/en/#plugin-development) on how to write your own (try it out, it's not as difficult as it may sound and very much extends what you can do with Rollup!). For plugins imported from packages, remember to call the imported plugin function (i.e. `commonjs()`, not just `commonjs`). Falsy plugins will be ignored, which can be used to easily activate or deactivate plugins.
 
 ```js
 // rollup.config.js
@@ -367,7 +367,7 @@ The pattern to use for naming custom emitted assets to include in the build outp
  * `[hash]`: A hash based on the name and content of the asset.
  * `[name]`: The file name of the asset excluding any extension.
 
-Forward slashes `/` can be used to place files in sub-directories. See also `[`output.chunkFileNames`](guide/en#outputchunkfilenames)`, [`output.entryFileNames`](guide/en#outputentryfilenames).
+Forward slashes `/` can be used to place files in sub-directories. See also `[`output.chunkFileNames`](guide/en/#outputchunkfilenames)`, [`output.entryFileNames`](guide/en/#outputentryfilenames).
 
 #### output.banner/output.footer
 Type: `string | (() => string | Promise<string>)`<br>
@@ -387,7 +387,7 @@ export default {
 };
 ```
 
-See also [`output.intro/output.outro`](guide/en#outputintrooutputoutro).
+See also [`output.intro/output.outro`](guide/en/#outputintrooutputoutro).
 
 #### output.chunkFileNames
 Type: `string`<br>
@@ -397,9 +397,9 @@ Default: `"[name]-[hash].js"`
 The pattern to use for naming shared chunks created when code-splitting. Pattern supports the following placeholders:
  * `[format]`: The rendering format defined in the output options, e.g. `esm` or `cjs`.
  * `[hash]`: A hash based on the content of the chunk and the content of all its dependencies.
- * `[name]`: The name of the chunk. This will be `chunk` unless the chunk was created via the [`manualChunks`](guide/en#manualchunks) options.
+ * `[name]`: The name of the chunk. This will be `chunk` unless the chunk was created via the [`manualChunks`](guide/en/#manualchunks) options.
 
-Forward slashes `/` can be used to place files in sub-directories. See also [`output.assetFileNames`](guide/en#outputassetfilenames), [`output.entryFileNames`](guide/en#outputentryfilenames).
+Forward slashes `/` can be used to place files in sub-directories. See also [`output.assetFileNames`](guide/en/#outputassetfilenames), [`output.entryFileNames`](guide/en/#outputentryfilenames).
 
 #### output.compact
 Type: `boolean`<br>
@@ -418,7 +418,7 @@ The pattern to use for chunks created from entry points. Pattern supports the fo
 * `[hash]`: A hash based on the content of the entry point and the content of all its dependencies.
 * `[name]`: The file name (without extension) of the entry point.
 
-Forward slashes `/` can be used to place files in sub-directories. See also [`output.assetFileNames`](guide/en#outputassetfilenames), [`output.chunkFileNames`](guide/en#outputchunkfilenames).
+Forward slashes `/` can be used to place files in sub-directories. See also [`output.assetFileNames`](guide/en/#outputassetfilenames), [`output.chunkFileNames`](guide/en/#outputchunkfilenames).
 
 #### output.extend
 Type: `boolean`<br>
@@ -438,7 +438,7 @@ Whether or not to add an 'interop block'. By default (`interop: true`), for safe
 Type: `string | (() => string | Promise<string>)`<br>
 CLI: `--intro`/`--outro <text>`
 
-Similar to [`output.banner/output.footer`](guide/en#outputbanneroutputfooter), except that the code goes *inside* any format-specific wrapper.
+Similar to [`output.banner/output.footer`](guide/en/#outputbanneroutputfooter), except that the code goes *inside* any format-specific wrapper.
 
 ```js
 export default {
@@ -531,7 +531,7 @@ Type: `boolean`<br>
 CLI: `--preserveModules`/`--no-preserveModules`<br>
 Default: `false`
 
-Instead of creating as few chunks as possible, this mode will create separate chunks for all modules using the original module names as file names. Requires the [`output.dir`](guide/en#outputdir) option. Tree-shaking will still be applied, suppressing files that are not used by the provided entry points or do not have side-effects when executed. This mode can be used to transform a file structure to a different module format.
+Instead of creating as few chunks as possible, this mode will create separate chunks for all modules using the original module names as file names. Requires the [`output.dir`](guide/en/#outputdir) option. Tree-shaking will still be applied, suppressing files that are not used by the provided entry points or do not have side-effects when executed. This mode can be used to transform a file structure to a different module format.
 
 #### strictDeprecations
 Type: `boolean`<br>
@@ -579,7 +579,7 @@ By default, the context of a module – i.e., the value of `this` at the top lev
 #### moduleContext
 Type: `((id: string) => string) | { [id: string]: string }`<br>
 
-Same as [`context`](guide/en#context), but per-module – can either be an object of `id: context` pairs, or an `id => context` function.
+Same as [`context`](guide/en/#context), but per-module – can either be an object of `id: context` pairs, or an `id => context` function.
 
 #### output.amd
 Type: `{ id?: string, define?: string}`
@@ -936,7 +936,7 @@ Type: `boolean`<br>
 CLI: `--perf`/`--no-perf`<br>
 Default: `false`
 
-Whether to collect performance timings. When used from the command line or a configuration file, detailed measurements about the current bundling process will be displayed. When used from the [JavaScript API](guide/en#javascript-api), the returned bundle object will contain an aditional `getTimings()` function that can be called at any time to retrieve all accumulated measurements.
+Whether to collect performance timings. When used from the command line or a configuration file, detailed measurements about the current bundling process will be displayed. When used from the [JavaScript API](guide/en/#javascript-api), the returned bundle object will contain an aditional `getTimings()` function that can be called at any time to retrieve all accumulated measurements.
 
 `getTimings()` returns an object of the following form:
 

@@ -68,7 +68,7 @@ build();
 
 #### inputOptions object
 
-The `inputOptions` object can contain the following properties (see the [big list of options](guide/en#big-list-of-options) for full details on these):
+The `inputOptions` object can contain the following properties (see the [big list of options](guide/en/#big-list-of-options) for full details on these):
 
 ```js
 const inputOptions = {
@@ -105,7 +105,7 @@ const inputOptions = {
 
 #### outputOptions object
 
-The `outputOptions` object can contain the following properties (see the [big list of options](guide/en#big-list-of-options) for full details on these):
+The `outputOptions` object can contain the following properties (see the [big list of options](guide/en/#big-list-of-options) for full details on these):
 
 ```js
 const outputOptions = {
@@ -188,4 +188,4 @@ const watchOptions = {
 };
 ```
 
-See above for details on `inputOptions` and `outputOptions`, or consult the [big list of options](guide/en#big-list-of-options) for info on `chokidar`, `include` and `exclude`.
+See above for details on `inputOptions` and `outputOptions`, or consult the [big list of options](guide/en/#big-list-of-options) for info on `chokidar`, `include` and `exclude`.

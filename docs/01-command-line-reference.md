@@ -24,7 +24,7 @@ module.exports = {
 
 It may be pertinent if you want to use the config file not only from the command line, but also from your custom scripts programmatically.
 
-Consult the [big list of options](guide/en#big-list-of-options) for details on each option you can include in your config file.
+Consult the [big list of options](guide/en/#big-list-of-options) for details on each option you can include in your config file.
 
 ```javascript
 // rollup.config.js
@@ -238,7 +238,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --treeshake.pureExternalModules        Assume side-effect free externals
 ```
 
-The flags listed below are only available via the command line interface. All other flags correspond to and override their config file equivalents, see the [big list of options](guide/en#big-list-of-options) for details.
+The flags listed below are only available via the command line interface. All other flags correspond to and override their config file equivalents, see the [big list of options](guide/en/#big-list-of-options) for details.
 
 #### `-h`/`--help`
 

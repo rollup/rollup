@@ -137,7 +137,7 @@ const deferredHandlers: {
 	UNRESOLVED_IMPORT: {
 		fn: warnings => {
 			title('Unresolved dependencies');
-			info('https://rollupjs.org/guide/en#warning-treating-module-as-external-dependency');
+			info('https://rollupjs.org/guide/en/#warning-treating-module-as-external-dependency');
 
 			const dependencies = new Map();
 			warnings.forEach(warning => {
@@ -156,7 +156,7 @@ const deferredHandlers: {
 	MISSING_EXPORT: {
 		fn: warnings => {
 			title('Missing exports');
-			info('https://rollupjs.org/guide/en#error-name-is-not-exported-by-module-');
+			info('https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module-');
 
 			warnings.forEach(warning => {
 				stderr(tc.bold(warning.importer as string));
@@ -170,7 +170,7 @@ const deferredHandlers: {
 	THIS_IS_UNDEFINED: {
 		fn: warnings => {
 			title('`this` has been rewritten to `undefined`');
-			info('https://rollupjs.org/guide/en#error-this-is-undefined');
+			info('https://rollupjs.org/guide/en/#error-this-is-undefined');
 			showTruncatedWarnings(warnings);
 		},
 		priority: 1
@@ -179,7 +179,7 @@ const deferredHandlers: {
 	EVAL: {
 		fn: warnings => {
 			title('Use of eval is strongly discouraged');
-			info('https://rollupjs.org/guide/en#avoiding-eval');
+			info('https://rollupjs.org/guide/en/#avoiding-eval');
 			showTruncatedWarnings(warnings);
 		},
 		priority: 1
@@ -225,7 +225,7 @@ const deferredHandlers: {
 	SOURCEMAP_BROKEN: {
 		fn: warnings => {
 			title(`Broken sourcemap`);
-			info('https://rollupjs.org/guide/en#warning-sourcemap-is-likely-to-be-incorrect');
+			info('https://rollupjs.org/guide/en/#warning-sourcemap-is-likely-to-be-incorrect');
 
 			const plugins = Array.from(new Set(warnings.map(w => w.plugin).filter(Boolean)));
 			const detail =

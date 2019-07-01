@@ -5,7 +5,7 @@
 First, thank you for considering contributing to rollup! It's people like you that make the open source community such a great community! 😊
 
 We welcome any type of contribution, not only code. You can help with 
-- **QA**: file bug reports, the more details you can give the better (i.e. [REPL](https://rollupjs.org/repl)-links or repos that demonstrate the specific issue)
+- **QA**: file bug reports, the more details you can give the better (i.e. [REPL](https://rollupjs.org/repl/)-links or repos that demonstrate the specific issue)
 - **Marketing**: writing blog posts, howto's, printing stickers, ...
 - **Community**: presenting the project at meetups, organizing a dedicated meetup for the local community, ...
 - **Code**: take a look at the [open issues](https://github.com/rollup/rollup/issues). Even if you can't write code, commenting on them, showing that you care about a given issue matters. It helps us triage them.

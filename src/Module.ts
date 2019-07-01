@@ -156,7 +156,7 @@ function handleMissingExport(
 		{
 			code: 'MISSING_EXPORT',
 			message: `'${exportName}' is not exported by ${relativeId(importedModule)}`,
-			url: `https://rollupjs.org/guide/en#error-name-is-not-exported-by-module-`
+			url: `https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module-`
 		},
 		importerStart as number
 	);
