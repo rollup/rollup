@@ -56,7 +56,7 @@ export interface SourceMap {
 	names: string[];
 	sources: string[];
 	sourcesContent: string[];
-	version: string;
+	version: number;
 	toString(): string;
 	toUrl(): string;
 }
