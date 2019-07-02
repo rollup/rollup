@@ -1,13 +1,14 @@
 # rollup changelog
 
 ## 1.16.4
-*unreleased*
+*2019-07-02*
 
 ### Bug Fixes
 * Do not show a TypeScript error when providing a location as number to this.warn and this.error (#2974)
 * Use the correct TypeScript type for Sourcemap.version (#2976)
 
 ### Pull Requests
+* [#2965](https://github.com/rollup/rollup/pull/2974): Use async readFile in getRollupDefaultPlugin (@kaksmet)
 * [#2974](https://github.com/rollup/rollup/pull/2974): Align TS types, docs and implementation for this.warn and this.error (@lukastaegert)
 * [#2976](https://github.com/rollup/rollup/pull/2976): Fix sourcemap type and update dependencies (@lukastaegert)
 
