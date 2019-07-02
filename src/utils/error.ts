@@ -220,6 +220,6 @@ export function errUnresolvedImportTreatedAsExternal(source: string, importer: s
 			importer
 		)}, but could not be resolved – treating it as an external dependency`,
 		source,
-		url: 'https://rollupjs.org/guide/en#warning-treating-module-as-external-dependency'
+		url: 'https://rollupjs.org/guide/en/#warning-treating-module-as-external-dependency'
 	};
 }

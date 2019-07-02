@@ -159,7 +159,7 @@ export default function collapseSourcemaps(
 					map.plugin ? ` ('${map.plugin}')` : ``
 				} was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help`,
 				plugin: map.plugin,
-				url: `https://rollupjs.org/guide/en#warning-sourcemap-is-likely-to-be-incorrect`
+				url: `https://rollupjs.org/guide/en/#warning-sourcemap-is-likely-to-be-incorrect`
 			});
 
 			map = {

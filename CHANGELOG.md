@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.16.3
+*2019-06-29*
+
+### Bug Fixes
+* Prevent name conflicts with unused function parameters (#2972)
+
+### Pull Requests
+* [#2972](https://github.com/rollup/rollup/pull/2972): Deconflict unused parameters (@lukastaegert)
+
 ## 1.16.2
 *2019-06-22*
 
