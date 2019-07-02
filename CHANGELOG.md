@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.16.4
+*unreleased*
+
+### Bug Fixes
+* Do not show a TypeScript error when providing a location as number to this.warn and this.error (#2974)
+
+### Pull Requests
+* [#2974](https://github.com/rollup/rollup/pull/2974): Align TS types, docs and implementation for this.warn and this.error (@lukastaegert)
+
 ## 1.16.3
 *2019-06-29*
 
