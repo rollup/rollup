@@ -134,14 +134,14 @@ export default function transform(
 				return {
 					...pluginContext,
 					cache: trackedPluginCache ? trackedPluginCache.cache : pluginContext.cache,
-					warn(warning: RollupWarning | string, pos?: { column: number; line: number }) {
+					warn(warning: RollupWarning | string, pos?: number | { column: number; line: number }) {
 						if (typeof warning === 'string') warning = { message: warning } as RollupWarning;
 						if (pos) augmentCodeLocation(warning, pos, curSource, id);
 						warning.id = id;
 						warning.hook = 'transform';
 						pluginContext.warn(warning);
 					},
-					error(err: RollupError | string, pos?: { column: number; line: number }): never {
+					error(err: RollupError | string, pos?: number | { column: number; line: number }): never {
 						if (typeof err === 'string') err = { message: err };
 						if (pos) augmentCodeLocation(err, pos, curSource, id);
 						err.id = id;
