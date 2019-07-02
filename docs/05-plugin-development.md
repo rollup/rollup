@@ -343,7 +343,7 @@ Emitted chunks will follow the [`output.chunkFileNames`](guide/en/#outputchunkfi
 
 The generated code that replaces `import.meta.ROLLUP_CHUNK_URL_chunkReferenceId` can be customized via the [`resolveFileUrl`](guide/en/#resolvefileurl) plugin hook. Once the chunk has been rendered during `generate`, you can also use [`this.getChunkFileName(chunkReferenceId)`](guide/en/#thisgetchunkfilenamechunkreferenceid-string--string) to determine the file name.
 
-#### `this.error(error: string | Error, position?: number) => void`
+#### `this.error(error: string | Error, position?: number | { column: number; line: number }) => never`
 
 Structurally equivalent to `this.warn`, except that it will also abort the bundling process.
 
@@ -398,7 +398,7 @@ If you pass `skipSelf: true`, then the `resolveId` hook of the plugin from which
 
 Set the deferred source of an asset.
 
-#### `this.warn(warning: string | RollupWarning, position?: number )`
+#### `this.warn(warning: string | RollupWarning, position?: number | { column: number; line: number }) => void`
 
 Using this method will queue warnings for a build. These warnings will be printed by the CLI just like internally-generated warnings (except with the plugin name), or captured by custom `onwarn` handlers.
 

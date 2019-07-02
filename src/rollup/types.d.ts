@@ -122,7 +122,7 @@ export interface PluginContext extends MinimalPluginContext {
 	cache: PluginCache;
 	emitAsset: EmitAsset;
 	emitChunk: EmitChunk;
-	error: (err: RollupError | string, pos?: { column: number; line: number }) => never;
+	error: (err: RollupError | string, pos?: number | { column: number; line: number }) => never;
 	getAssetFileName: (assetReferenceId: string) => string;
 	getChunkFileName: (chunkReferenceId: string) => string;
 	getModuleInfo: (
@@ -146,7 +146,7 @@ export interface PluginContext extends MinimalPluginContext {
 	/** @deprecated Use `this.resolve` instead */
 	resolveId: (source: string, importer: string) => Promise<string | null>;
 	setAssetSource: (assetReferenceId: string, source: string | Buffer) => void;
-	warn: (warning: RollupWarning | string, pos?: { column: number; line: number }) => void;
+	warn: (warning: RollupWarning | string, pos?: number | { column: number; line: number }) => void;
 	/** @deprecated Use `this.addWatchFile` and the `watchChange` hook instead  */
 	watcher: EventEmitter;
 }
