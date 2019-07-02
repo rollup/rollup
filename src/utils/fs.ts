@@ -3,6 +3,11 @@ import { dirname } from './path';
 
 export * from 'fs';
 
+export const readFile = (file: string) =>
+	new Promise<string>((fulfil, reject) =>
+		fs.readFile(file, 'utf-8', (err, contents) => (err ? reject(err) : fulfil(contents)))
+	);
+
 function mkdirpath(path: string) {
 	const dir = dirname(path);
 	try {
