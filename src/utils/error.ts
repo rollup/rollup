@@ -12,15 +12,15 @@ export function error(base: Error | RollupError, props?: RollupError): never {
 
 export function augmentCodeLocation(
 	object: RollupError | RollupWarning,
-	pos: { column: number; line: number },
+	pos: number | { column: number; line: number },
 	source: string,
 	id: string
 ): void {
-	if (pos.line !== undefined && pos.column !== undefined) {
+	if (typeof pos === 'object') {
 		const { line, column } = pos;
 		object.loc = { file: id, line, column };
 	} else {
-		object.pos = pos as any;
+		object.pos = pos;
 		const { line, column } = locate(source, pos, { offsetLine: 1 });
 		object.loc = { file: id, line, column };
 	}
