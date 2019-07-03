@@ -77,13 +77,14 @@ export default function build(
 			);
 		})
 		.then((bundle?: RollupBuild) => {
-			warnings.flush();
-			if (!silent)
+			if (!silent) {
+				warnings.flush();
 				stderr(
 					tc.green(`created ${tc.bold(files.join(', '))} in ${tc.bold(ms(Date.now() - start))}`)
 				);
-			if (bundle && bundle.getTimings) {
-				printTimings(bundle.getTimings());
+				if (bundle && bundle.getTimings) {
+					printTimings(bundle.getTimings());
+				}
 			}
 		})
 		.catch((err: any) => {

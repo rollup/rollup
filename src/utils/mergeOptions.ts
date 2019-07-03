@@ -58,12 +58,9 @@ const defaultOnWarn: WarningHandler = warning => {
 
 const getOnWarn = (
 	config: GenericConfigObject,
-	command: CommandConfigObject,
 	defaultOnWarnHandler: WarningHandler = defaultOnWarn
 ): WarningHandler =>
-	command.silent
-		? () => {}
-		: config.onwarn
+	config.onwarn
 		? warning => (config.onwarn as WarningHandlerWithDefault)(warning, defaultOnWarnHandler)
 		: defaultOnWarnHandler;
 
@@ -225,7 +222,7 @@ function getInputOptions(
 		input: getOption('input', []),
 		manualChunks: getOption('manualChunks'),
 		moduleContext: config.moduleContext as any,
-		onwarn: getOnWarn(config, command, defaultOnWarnHandler),
+		onwarn: getOnWarn(config, defaultOnWarnHandler),
 		perf: getOption('perf', false),
 		plugins: config.plugins as any,
 		preserveModules: getOption('preserveModules'),
