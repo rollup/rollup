@@ -253,7 +253,7 @@ const deferredHandlers: {
 				let lastUrl: string;
 
 				nestedByMessage.forEach(({ key: message, items }) => {
-					title(`${plugin} plugin: ${message}`);
+					title(`Plugin ${plugin}: ${message}`);
 					items.forEach(warning => {
 						if (warning.url !== lastUrl) info((lastUrl = warning.url as string));
 
