@@ -24,6 +24,9 @@ module.exports = {
 		]
 	},
 	exports(exports) {
-		return exports.catch(err => assert.strictEqual(err.message, "Cannot find module 'x/y'"));
+		const expectedError = "Cannot find module 'x/y'";
+		return exports.catch(err =>
+			assert.strictEqual(err.message.slice(0, expectedError.length), expectedError)
+		);
 	}
 };

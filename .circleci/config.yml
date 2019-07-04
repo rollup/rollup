@@ -42,6 +42,10 @@ jobs:
     docker:
       - image: rollupcabal/circleci-node-v10:latest
     <<: *unit_tests
+  node-v12-latest:
+    docker:
+      - image: rollupcabal/circleci-node-v12:latest
+    <<: *unit_tests
 
 workflows:
   version: 2
@@ -64,6 +68,12 @@ workflows:
             tags:
               only: /.*/
       - node-v10-latest:
+          requires:
+            - analysis
+          filters:
+            tags:
+              only: /.*/
+      - node-v12-latest:
           requires:
             - analysis
           filters:
