@@ -302,18 +302,17 @@ export default class Module {
 	getDynamicImportExpressions(): (string | Node)[] {
 		return this.dynamicImports.map(({ node }) => {
 			const importArgument = node.parent.arguments[0];
-			if (importArgument instanceof TemplateLiteral) {
-				if (importArgument.expressions.length === 0 && importArgument.quasis.length === 1) {
-					return importArgument.quasis[0].value.cooked;
-				}
-			} else if (importArgument instanceof Literal) {
-				if (typeof importArgument.value === 'string') {
-					return importArgument.value;
-				}
-			} else {
-				return importArgument;
+			if (
+				importArgument instanceof TemplateLiteral &&
+				importArgument.quasis.length === 1 &&
+				importArgument.quasis[0].value.cooked
+			) {
+				return importArgument.quasis[0].value.cooked;
 			}
-			return undefined as any;
+			if (importArgument instanceof Literal && typeof importArgument.value === 'string') {
+				return importArgument.value;
+			}
+			return importArgument;
 		});
 	}
 
