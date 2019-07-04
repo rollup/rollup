@@ -37,13 +37,10 @@ class Link {
 	names: string[];
 	sources: (Source | Link)[];
 
-	constructor(
-		map: { mappings: SourceMapSegmentVector[][]; names: string[] },
-		sources: (Source | Link)[]
-	) {
+	constructor(map: { mappings: number[][][]; names: string[] }, sources: (Source | Link)[]) {
 		this.sources = sources;
 		this.names = map.names;
-		this.mappings = map.mappings;
+		this.mappings = map.mappings as SourceMapSegmentVector[][];
 	}
 
 	traceMappings() {
@@ -152,25 +149,27 @@ export default function collapseSourcemaps(
 	bundleSourcemapChain: DecodedSourceMapOrMissing[],
 	excludeContent: boolean
 ) {
-	function linkMap(source: Source | Link, map: any) {
-		// TODO(jridgewell): missing
-		if (map.missing) {
-			bundle.graph.warn({
-				code: 'SOURCEMAP_BROKEN',
-				message: `Sourcemap is likely to be incorrect: a plugin${
-					map.plugin ? ` ('${map.plugin}')` : ``
-				} was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help`,
-				plugin: map.plugin,
-				url: `https://rollupjs.org/guide/en/#warning-sourcemap-is-likely-to-be-incorrect`
-			});
-
-			map = {
-				mappings: '',
-				names: []
-			};
+	function linkMap(source: Source | Link, map: DecodedSourceMapOrMissing) {
+		if (map.mappings) {
+			return new Link(map, [source]);
 		}
 
-		return new Link(map, [source]);
+		bundle.graph.warn({
+			code: 'SOURCEMAP_BROKEN',
+			message: `Sourcemap is likely to be incorrect: a plugin${
+				map.plugin ? ` ('${map.plugin}')` : ``
+			} was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help`,
+			plugin: map.plugin,
+			url: `https://rollupjs.org/guide/en/#warning-sourcemap-is-likely-to-be-incorrect`
+		});
+
+		return new Link(
+			{
+				mappings: [],
+				names: []
+			},
+			[source]
+		);
 	}
 
 	const moduleSources = modules
