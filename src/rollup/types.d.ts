@@ -58,6 +58,14 @@ export interface ExistingRawSourceMap {
 	version: number;
 }
 
+export type DecodedSourceMapOrMissing =
+	| {
+			mappings?: never;
+			missing: true;
+			plugin: string;
+	  }
+	| ExistingDecodedSourceMap;
+
 export interface SourceMap {
 	file: string;
 	mappings: string;
@@ -89,8 +97,8 @@ export interface TransformModuleJSON {
 	originalCode: string;
 	originalSourcemap: ExistingDecodedSourceMap | null;
 	resolvedIds?: ResolvedIdMap;
-	// TODO
-	sourcemapChain: (ExistingDecodedSourceMap | { missing: true; plugin: string })[];
+	// TODO(jridewell)
+	sourcemapChain: DecodedSourceMapOrMissing[];
 	transformDependencies: string[] | null;
 }
 

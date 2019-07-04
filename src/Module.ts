@@ -32,8 +32,9 @@ import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import {
 	Asset,
+	DecodedSourceMapOrMissing,
 	EmittedChunk,
-	ExistingRawSourceMap,
+	ExistingDecodedSourceMap,
 	ModuleJSON,
 	ResolvedIdMap,
 	RollupError,
@@ -199,11 +200,12 @@ export default class Module {
 	manualChunkAlias: string = null as any;
 	moduleSideEffects: boolean;
 	originalCode!: string;
-	originalSourcemap!: ExistingRawSourceMap | null;
+	originalSourcemap!: ExistingDecodedSourceMap | null;
 	reexports: { [name: string]: ReexportDescription } = Object.create(null);
 	resolvedIds!: ResolvedIdMap;
 	scope!: ModuleScope;
-	sourcemapChain!: ExistingRawSourceMap[];
+	// TODO(jridgewell)
+	sourcemapChain!: DecodedSourceMapOrMissing[];
 	sources: string[] = [];
 	transformAssets?: Asset[];
 	transformChunks?: EmittedChunk[];

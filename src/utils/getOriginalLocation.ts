@@ -1,13 +1,16 @@
-import { ExistingRawSourceMap, ExistingRawSourceMap } from '../rollup/types';
+import { DecodedSourceMapOrMissing, ExistingDecodedSourceMap } from '../rollup/types';
 
 export function getOriginalLocation(
-	sourcemapChain: ExistingRawSourceMap[],
+	sourcemapChain: DecodedSourceMapOrMissing[],
 	location: { column: number; line: number; name?: string; source?: string }
 ) {
-	const filteredSourcemapChain = sourcemapChain.filter(sourcemap => sourcemap.mappings.length);
+	// This cast is guaranteed. If it were a missing Map, it wouldn't have a mappings.
+	const filteredSourcemapChain = sourcemapChain.filter(
+		sourcemap => sourcemap.mappings
+	) as ExistingDecodedSourceMap[];
 
 	while (filteredSourcemapChain.length > 0) {
-		const sourcemap = filteredSourcemapChain.pop();
+		const sourcemap = filteredSourcemapChain.pop()!;
 		const line: any = sourcemap.mappings[location.line - 1];
 		let locationFound = false;
 

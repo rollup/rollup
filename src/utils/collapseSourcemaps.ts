@@ -1,7 +1,7 @@
 import { DecodedSourceMap, SourceMap } from 'magic-string';
 import Chunk from '../Chunk';
 import Module from '../Module';
-import { ExistingRawSourceMap, ExistingRawSourceMap } from '../rollup/types';
+import { DecodedSourceMapOrMissing, ExistingRawSourceMap } from '../rollup/types';
 import { error } from './error';
 import { basename, dirname, relative, resolve } from './path';
 
@@ -146,10 +146,11 @@ export default function collapseSourcemaps(
 	file: string,
 	map: DecodedSourceMap,
 	modules: Module[],
-	bundleSourcemapChain: ExistingRawSourceMap[],
+	bundleSourcemapChain: DecodedSourceMapOrMissing[],
 	excludeContent: boolean
 ) {
 	function linkMap(source: Source, map: any) {
+		// TODO(jridgewell): missing
 		if (map.missing) {
 			bundle.graph.warn({
 				code: 'SOURCEMAP_BROKEN',

@@ -3,6 +3,7 @@ import Graph from '../Graph';
 import Module from '../Module';
 import {
 	Asset,
+	DecodedSourceMapOrMissing,
 	EmitAsset,
 	EmittedChunk,
 	ExistingRawSourceMap,
@@ -26,7 +27,7 @@ export default function transform(
 	module: Module
 ): Promise<TransformModuleJSON> {
 	const id = module.id;
-	const sourcemapChain: (ExistingRawSourceMap | { missing: true; plugin: string })[] = [];
+	const sourcemapChain: DecodedSourceMapOrMissing[] = [];
 
 	const originalSourcemap =
 		typeof source.map === 'string' ? (JSON.parse(source.map) as ExistingRawSourceMap) : source.map;

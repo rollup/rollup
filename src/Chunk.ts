@@ -15,7 +15,7 @@ import finalisers from './finalisers/index';
 import Graph from './Graph';
 import Module from './Module';
 import {
-	ExistingRawSourceMap,
+	DecodedSourceMapOrMissing,
 	GlobalsOption,
 	OutputOptions,
 	RenderedChunk,
@@ -682,7 +682,7 @@ export default class Chunk {
 		timeEnd('render format', 3);
 
 		let map: SourceMap = null as any;
-		const chunkSourcemapChain: ExistingRawSourceMap[] = [];
+		const chunkSourcemapChain: DecodedSourceMapOrMissing[] = [];
 
 		return renderChunk({
 			chunk: this,

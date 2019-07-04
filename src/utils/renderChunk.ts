@@ -1,7 +1,13 @@
 import { decode } from 'sourcemap-codec';
 import Chunk from '../Chunk';
 import Graph from '../Graph';
-import { ExistingRawSourceMap, OutputOptions, Plugin, RenderedChunk } from '../rollup/types';
+import {
+	DecodedSourceMapOrMissing,
+	ExistingRawSourceMap,
+	OutputOptions,
+	Plugin,
+	RenderedChunk
+} from '../rollup/types';
 import { error } from './error';
 
 export default function renderChunk({
@@ -17,7 +23,7 @@ export default function renderChunk({
 	graph: Graph;
 	options: OutputOptions;
 	renderChunk: RenderedChunk;
-	sourcemapChain: ExistingRawSourceMap[];
+	sourcemapChain: DecodedSourceMapOrMissing[];
 }): Promise<string> {
 	const renderChunkReducer = (
 		code: string,
