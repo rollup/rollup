@@ -173,33 +173,26 @@ export default function collapseSourcemaps(
 	const moduleSources = modules
 		.filter(module => !module.excludeFromSourcemap)
 		.map(module => {
-			let sourcemapChain = module.sourcemapChain;
-
 			let source: Source;
-			const originalSourcemap = module.originalSourcemap as ExistingRawSourceMap;
+			const originalSourcemap = module.originalSourcemap;
 			if (!originalSourcemap) {
 				source = new Source(module.id, module.originalCode);
 			} else {
 				const sources = originalSourcemap.sources;
 				const sourcesContent = originalSourcemap.sourcesContent || [];
 
-				if (sources == null || (sources.length <= 1 && sources[0] == null)) {
-					source = new Source(module.id, sourcesContent[0]);
-					sourcemapChain = [originalSourcemap].concat(sourcemapChain);
-				} else {
-					// TODO indiscriminately treating IDs and sources as normal paths is probably bad.
-					const directory = dirname(module.id) || '.';
-					const sourceRoot = originalSourcemap.sourceRoot || '.';
+				// TODO indiscriminately treating IDs and sources as normal paths is probably bad.
+				const directory = dirname(module.id) || '.';
+				const sourceRoot = originalSourcemap.sourceRoot || '.';
 
-					const baseSources = sources.map(
-						(source, i) => new Source(resolve(directory, sourceRoot, source), sourcesContent[i])
-					);
+				const baseSources = sources.map(
+					(source, i) => new Source(resolve(directory, sourceRoot, source), sourcesContent[i])
+				);
 
-					source = new Link(originalSourcemap as any, baseSources) as any;
-				}
+				source = new Link(originalSourcemap as any, baseSources) as any;
 			}
 
-			source = sourcemapChain.reduce(linkMap as any, source);
+			source = module.sourcemapChain.reduce(linkMap as any, source);
 
 			return source;
 		});
