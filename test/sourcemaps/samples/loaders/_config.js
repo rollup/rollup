@@ -24,9 +24,7 @@ module.exports = {
 						source: id
 					});
 
-					if (/main.js$/.test(id)) {
-						delete out.map.sources;
-					} else {
+					if (!/main.js$/.test(id)) {
 						const slash = out.map.sources[0].lastIndexOf('/') + 1;
 						out.map.sources = out.map.sources.map(source => '../' + source.slice(slash));
 						out.map.sourceRoot = 'fake';
