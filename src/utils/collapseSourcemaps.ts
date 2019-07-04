@@ -22,8 +22,9 @@ class Source {
 }
 
 type SourceMapSegmentVector =
-	| [number, number, number, number, number]
-	| [number, number, number, number];
+	| [number]
+	| [number, number, number, number]
+	| [number, number, number, number, number];
 
 interface SourceMapSegmentObject {
 	column: number;
@@ -54,6 +55,7 @@ class Link {
 			const tracedLine: SourceMapSegmentVector[] = [];
 
 			for (const segment of line) {
+				if (segment.length == 1) continue;
 				const source = this.sources[segment[1]];
 				if (!source) continue;
 
@@ -120,6 +122,7 @@ class Link {
 			const m = (i + j) >> 1;
 			const segment = segments[m];
 			if (segment[0] === column) {
+				if (segment.length == 1) return null;
 				const source = this.sources[segment[1]];
 				if (!source) return null;
 
