@@ -140,7 +140,6 @@ class Link {
 	}
 }
 
-// TODO TypeScript: Fix <any> typecasts
 export default function collapseSourcemaps(
 	bundle: Chunk,
 	file: string,
@@ -191,17 +190,17 @@ export default function collapseSourcemaps(
 					(source, i) => new Source(resolve(directory, sourceRoot, source), sourcesContent[i])
 				);
 
-				source = new Link(originalSourcemap as any, baseSources);
+				source = new Link(originalSourcemap, baseSources);
 			}
 
-			source = module.sourcemapChain.reduce(linkMap as any, source);
+			source = module.sourcemapChain.reduce(linkMap, source);
 
 			return source;
 		});
 
-	let source = new Link(map as any, moduleSources);
+	let source = new Link(map, moduleSources);
 
-	source = bundleSourcemapChain.reduce(linkMap as any, source);
+	source = bundleSourcemapChain.reduce(linkMap, source);
 
 	let { sources, sourcesContent, names, mappings } = source.traceMappings();
 
