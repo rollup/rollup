@@ -35,9 +35,12 @@ interface SourceMapSegmentObject {
 class Link {
 	mappings: SourceMapSegmentVector[][];
 	names: string[];
-	sources: Source[];
+	sources: (Source | Link)[];
 
-	constructor(map: { mappings: SourceMapSegmentVector[][]; names: string[] }, sources: Source[]) {
+	constructor(
+		map: { mappings: SourceMapSegmentVector[][]; names: string[] },
+		sources: (Source | Link)[]
+	) {
 		this.sources = sources;
 		this.names = map.names;
 		this.mappings = map.mappings;
@@ -108,7 +111,7 @@ class Link {
 		return { sources, sourcesContent, names, mappings };
 	}
 
-	traceSegment(line: number, column: number, name: string) {
+	traceSegment(line: number, column: number, name: string): SourceMapSegmentObject | null {
 		const segments = this.mappings[line];
 		if (!segments) return null;
 
@@ -149,7 +152,7 @@ export default function collapseSourcemaps(
 	bundleSourcemapChain: DecodedSourceMapOrMissing[],
 	excludeContent: boolean
 ) {
-	function linkMap(source: Source, map: any) {
+	function linkMap(source: Source | Link, map: any) {
 		// TODO(jridgewell): missing
 		if (map.missing) {
 			bundle.graph.warn({
@@ -173,7 +176,7 @@ export default function collapseSourcemaps(
 	const moduleSources = modules
 		.filter(module => !module.excludeFromSourcemap)
 		.map(module => {
-			let source: Source;
+			let source: Source | Link;
 			const originalSourcemap = module.originalSourcemap;
 			if (!originalSourcemap) {
 				source = new Source(module.id, module.originalCode);
@@ -189,7 +192,7 @@ export default function collapseSourcemaps(
 					(source, i) => new Source(resolve(directory, sourceRoot, source), sourcesContent[i])
 				);
 
-				source = new Link(originalSourcemap as any, baseSources) as any;
+				source = new Link(originalSourcemap as any, baseSources);
 			}
 
 			source = module.sourcemapChain.reduce(linkMap as any, source);

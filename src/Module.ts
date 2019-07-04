@@ -204,7 +204,6 @@ export default class Module {
 	reexports: { [name: string]: ReexportDescription } = Object.create(null);
 	resolvedIds!: ResolvedIdMap;
 	scope!: ModuleScope;
-	// TODO(jridgewell)
 	sourcemapChain!: DecodedSourceMapOrMissing[];
 	sources: string[] = [];
 	transformAssets?: Asset[];
