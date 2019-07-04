@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 1.16.5
+*2019-07-04*
+
+### Bug Fixes
+* onwarn should still be called when --silent is used (#2982)
+* Properly clean up watchers for files that are deleted between builds (#2982)
+
+### Pull Requests
+* [#2981](https://github.com/rollup/rollup/pull/2981): Do not skip onwarn handler when --silent is used (@lukastaegert)
+* [#2982](https://github.com/rollup/rollup/pull/2982): Make tests run on Node 12, fix watcher cleanup issue (@lukastaegert)
+
 ## 1.16.4
 *2019-07-02*
 
@@ -8,7 +19,7 @@
 * Use the correct TypeScript type for Sourcemap.version (#2976)
 
 ### Pull Requests
-* [#2965](https://github.com/rollup/rollup/pull/2974): Use async readFile in getRollupDefaultPlugin (@kaksmet)
+* [#2965](https://github.com/rollup/rollup/pull/2965): Use async readFile in getRollupDefaultPlugin (@kaksmet)
 * [#2974](https://github.com/rollup/rollup/pull/2974): Align TS types, docs and implementation for this.warn and this.error (@lukastaegert)
 * [#2976](https://github.com/rollup/rollup/pull/2976): Fix sourcemap type and update dependencies (@lukastaegert)
 
