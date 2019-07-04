@@ -1,4 +1,3 @@
-import { decode } from 'sourcemap-codec';
 import Graph from '../Graph';
 import Module from '../Module';
 import {
@@ -6,7 +5,6 @@ import {
 	DecodedSourceMapOrMissing,
 	EmitAsset,
 	EmittedChunk,
-	ExistingRawSourceMap,
 	Plugin,
 	PluginCache,
 	PluginContext,

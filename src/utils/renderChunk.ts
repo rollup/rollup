@@ -1,4 +1,3 @@
-import { decode } from 'sourcemap-codec';
 import Chunk from '../Chunk';
 import Graph from '../Graph';
 import {
