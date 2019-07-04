@@ -38,7 +38,7 @@ export default function renderChunk({
 				map: undefined
 			};
 
-		// null means code was not moved by the plugin.
+		// strict null check allows 'null' maps to not be pushed to the chain, while 'undefined' gets the missing map warning
 		if (result.map !== null) {
 			const map = decodedSourcemap(result.map);
 			sourcemapChain.push(map || { missing: true, plugin: plugin.name });
