@@ -317,7 +317,7 @@ Be aware that manual chunks can change the behaviour of the application if side-
 #### onwarn
 Type: `(warning: RollupWarning, defaultHandler: (warning: string | RollupWarning) => void) => void;`
 
-A function that will intercept warning messages. If not supplied, warnings will be deduplicated and printed to the console.
+A function that will intercept warning messages. If not supplied, warnings will be deduplicated and printed to the console. When using the [`--silent`](guide/en/#--silent) CLI option, this handler is the only way to get notified about warnings.
 
 The function receives two arguments: the warning object and the default handler. Warnings objects have, at a minimum, a `code` and a `message` property, allowing you to control how different kinds of warnings are handled. Other properties are added depending on the type of warning.
 
