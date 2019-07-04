@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.16.6
+*2019-07-04*
+
+### Bug Fixes
+* Do not pass undefined to resolveDynamicImport for unresolvable template literals (#2984)
+
+### Pull Requests
+* [#2984](https://github.com/rollup/rollup/pull/2984): Always forward AST nodes for unresolvable dynamic imports (@lukastaegert)
+
 ## 1.16.5
 *2019-07-04*
 
