@@ -9,6 +9,15 @@ unit_tests: &unit_tests
         name: Run unit tests.
         command: npm run ci:test
 
+unit_tests_12: &unit_tests_12
+  steps:
+    - checkout
+    - restore_cache:
+        key: dependency-cache-{{ checksum "package-lock.json" }}
+    - run:
+        name: Run unit tests.
+        command: npm run ci:test_12
+
 jobs:
   analysis:
     docker:
@@ -45,7 +54,7 @@ jobs:
   node-v12-latest:
     docker:
       - image: rollupcabal/circleci-node-v12:latest
-    <<: *unit_tests
+    <<: *unit_tests_12
 
 workflows:
   version: 2

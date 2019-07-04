@@ -2,13 +2,6 @@ const path = require('path');
 const rollup = require('../..');
 const weak = require('weak');
 
-if (process.version.startsWith('v12')) {
-	console.log(
-		'Skipping leak test on Node 12, see https://github.com/TooTallNate/node-weak/issues/99'
-	);
-	return;
-}
-
 var shouldCollect = false;
 var isCollected = false;
 

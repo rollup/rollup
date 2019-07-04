@@ -16,6 +16,7 @@
     "ci:coverage": "npm run test:coverage",
     "ci:lint": "npm run lint:nofix && npm run security",
     "ci:test": "npm run build:test && npm run build:bootstrap && npm run test:all",
+    "ci:test_12": "npm run build:test && npm run build:bootstrap && npm run test:only && npm run test:typescript",
     "lint": "npm run lint:ts -- --fix && npm run lint:js -- --fix && npm run lint:markdown",
     "lint:nofix": "npm run lint:ts && npm run lint:js && npm run lint:markdown",
     "lint:ts": "tslint --project .",
