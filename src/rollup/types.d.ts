@@ -224,8 +224,8 @@ export type TransformChunkHook = (
 	code: string,
 	options: OutputOptions
 ) =>
-	| Promise<{ code: string; map: ExistingRawSourceMap } | null | undefined>
-	| { code: string; map: ExistingRawSourceMap }
+	| Promise<{ code: string; map?: ExistingRawSourceMap | string } | null | undefined>
+	| { code: string; map?: ExistingRawSourceMap | string }
 	| null
 	| undefined;
 
@@ -235,8 +235,8 @@ export type RenderChunkHook = (
 	chunk: RenderedChunk,
 	options: OutputOptions
 ) =>
-	| Promise<{ code: string; map: ExistingRawSourceMap } | null>
-	| { code: string; map: ExistingRawSourceMap }
+	| Promise<{ code: string; map?: ExistingRawSourceMap | string } | null>
+	| { code: string; map?: ExistingRawSourceMap | string }
 	| string
 	| null;
 

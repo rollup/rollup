@@ -8,6 +8,7 @@ import {
 	Plugin,
 	RenderedChunk
 } from '../rollup/types';
+import { decodedSourcemap } from './decodedSourcemap';
 import { error } from './error';
 
 export default function renderChunk({
@@ -38,13 +39,7 @@ export default function renderChunk({
 				map: undefined
 			};
 
-		const map =
-			typeof result.map === 'string'
-				? (JSON.parse(result.map) as ExistingRawSourceMap)
-				: result.map || null;
-		if (map && typeof map.mappings === 'string') map.mappings = decode(map.mappings);
-
-		// strict null check allows 'null' maps to not be pushed to the chain, while 'undefined' gets the missing map warning
+		const map = decodedSourcemap(result.map);
 		sourcemapChain.push(map || { missing: true, plugin: plugin.name });
 
 		return result.code;
