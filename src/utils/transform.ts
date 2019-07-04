@@ -28,7 +28,7 @@ export default function transform(
 	const id = module.id;
 	const sourcemapChain: DecodedSourceMapOrMissing[] = [];
 
-	const originalSourcemap = decodedSourcemap(source.map);
+	const originalSourcemap = source.map === null ? null : decodedSourcemap(source.map);
 	const baseEmitAsset = graph.pluginDriver.emitAsset;
 	const originalCode = source.code;
 	let ast = source.ast;
@@ -92,8 +92,11 @@ export default function transform(
 			return code;
 		}
 
-		const map = decodedSourcemap(result.map);
-		sourcemapChain.push(map || { missing: true, plugin: plugin.name });
+		// null means code was not moved by the plugin.
+		if (result.map !== null) {
+			const map = decodedSourcemap(result.map);
+			sourcemapChain.push(map || { missing: true, plugin: plugin.name });
+		}
 
 		ast = result.ast;
 

@@ -77,10 +77,12 @@ export interface SourceMap {
 	toUrl(): string;
 }
 
+export type SourceMapInput = ExistingRawSourceMap | string | null;
+
 export interface SourceDescription {
 	ast?: ESTree.Program;
 	code: string;
-	map?: string | ExistingRawSourceMap;
+	map?: SourceMapInput;
 	moduleSideEffects?: boolean | null;
 }
 
@@ -224,8 +226,8 @@ export type TransformChunkHook = (
 	code: string,
 	options: OutputOptions
 ) =>
-	| Promise<{ code: string; map?: ExistingRawSourceMap | string } | null | undefined>
-	| { code: string; map?: ExistingRawSourceMap | string }
+	| Promise<{ code: string; map?: SourceMapInput } | null | undefined>
+	| { code: string; map?: SourceMapInput }
 	| null
 	| undefined;
 
@@ -235,8 +237,8 @@ export type RenderChunkHook = (
 	chunk: RenderedChunk,
 	options: OutputOptions
 ) =>
-	| Promise<{ code: string; map?: ExistingRawSourceMap | string } | null>
-	| { code: string; map?: ExistingRawSourceMap | string }
+	| Promise<{ code: string; map?: SourceMapInput } | null>
+	| { code: string; map?: SourceMapInput }
 	| string
 	| null;
 

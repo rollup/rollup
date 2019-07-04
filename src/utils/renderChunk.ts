@@ -5,7 +5,8 @@ import {
 	ExistingRawSourceMap,
 	OutputOptions,
 	Plugin,
-	RenderedChunk
+	RenderedChunk,
+	SourceMapInput
 } from '../rollup/types';
 import { decodedSourcemap } from './decodedSourcemap';
 import { error } from './error';
@@ -27,7 +28,7 @@ export default function renderChunk({
 }): Promise<string> {
 	const renderChunkReducer = (
 		code: string,
-		result: { code: string; map?: ExistingRawSourceMap | string },
+		result: { code: string; map?: SourceMapInput },
 		plugin: Plugin
 	): string => {
 		if (result == null) return code;
@@ -38,8 +39,11 @@ export default function renderChunk({
 				map: undefined
 			};
 
-		const map = decodedSourcemap(result.map);
-		sourcemapChain.push(map || { missing: true, plugin: plugin.name });
+		// null means code was not moved by the plugin.
+		if (result.map !== null) {
+			const map = decodedSourcemap(result.map);
+			sourcemapChain.push(map || { missing: true, plugin: plugin.name });
+		}
 
 		return result.code;
 	};
