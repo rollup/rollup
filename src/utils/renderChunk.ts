@@ -2,7 +2,6 @@ import Chunk from '../Chunk';
 import Graph from '../Graph';
 import {
 	DecodedSourceMapOrMissing,
-	ExistingRawSourceMap,
 	OutputOptions,
 	Plugin,
 	RenderedChunk,
