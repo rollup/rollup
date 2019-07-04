@@ -77,7 +77,7 @@ export interface SourceMap {
 	toUrl(): string;
 }
 
-export type SourceMapInput = ExistingRawSourceMap | string | null;
+export type SourceMapInput = ExistingRawSourceMap | string | null | { mappings: '' };
 
 export interface SourceDescription {
 	ast?: ESTree.Program;

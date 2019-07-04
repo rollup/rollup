@@ -1,13 +1,21 @@
 import { decode } from 'sourcemap-codec';
-import { ExistingDecodedSourceMap, ExistingRawSourceMap } from '../rollup/types';
+import { ExistingDecodedSourceMap, ExistingRawSourceMap, SourceMapInput } from '../rollup/types';
 
-type Input = ExistingRawSourceMap | ExistingDecodedSourceMap | string | undefined;
+type Input = SourceMapInput | ExistingDecodedSourceMap | undefined;
 
 export function decodedSourcemap(map: Input): ExistingDecodedSourceMap | null {
 	if (!map) return null;
 
 	if (typeof map === 'string') {
 		map = JSON.parse(map) as ExistingRawSourceMap;
+	}
+	if (map.mappings === '') {
+		return {
+			mappings: [],
+			names: [],
+			sources: [],
+			version: 3
+		};
 	}
 
 	let mappings: number[][][];
@@ -17,5 +25,5 @@ export function decodedSourcemap(map: Input): ExistingDecodedSourceMap | null {
 		mappings = map.mappings;
 	}
 
-	return { ...map, mappings };
+	return { ...(map as ExistingRawSourceMap | ExistingDecodedSourceMap), mappings };
 }
