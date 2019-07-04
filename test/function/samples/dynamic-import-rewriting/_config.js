@@ -13,6 +13,9 @@ module.exports = {
 		]
 	},
 	exports(exports) {
-		return exports.promise.catch(err => assert.equal(err.message, "Cannot find module 'asdf'"));
+		const expectedError = "Cannot find module 'asdf'";
+		return exports.promise.catch(err =>
+			assert.strictEqual(err.message.slice(0, expectedError.length), expectedError)
+		);
 	}
 };
