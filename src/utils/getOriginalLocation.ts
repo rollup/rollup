@@ -1,13 +1,13 @@
-import { ExistingRawSourceMap, RawSourceMap } from '../rollup/types';
+import { ExistingRawSourceMap, ExistingRawSourceMap } from '../rollup/types';
 
 export function getOriginalLocation(
-	sourcemapChain: RawSourceMap[],
+	sourcemapChain: ExistingRawSourceMap[],
 	location: { column: number; line: number; name?: string; source?: string }
 ) {
-	const filteredSourcemapChain = sourcemapChain.filter(sourcemap => sourcemap.mappings);
+	const filteredSourcemapChain = sourcemapChain.filter(sourcemap => sourcemap.mappings.length);
 
 	while (filteredSourcemapChain.length > 0) {
-		const sourcemap = filteredSourcemapChain.pop() as ExistingRawSourceMap;
+		const sourcemap = filteredSourcemapChain.pop();
 		const line: any = sourcemap.mappings[location.line - 1];
 		let locationFound = false;
 

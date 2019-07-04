@@ -1,7 +1,7 @@
 import { DecodedSourceMap, SourceMap } from 'magic-string';
 import Chunk from '../Chunk';
 import Module from '../Module';
-import { ExistingRawSourceMap, RawSourceMap } from '../rollup/types';
+import { ExistingRawSourceMap, ExistingRawSourceMap } from '../rollup/types';
 import { error } from './error';
 import { basename, dirname, relative, resolve } from './path';
 
@@ -77,9 +77,7 @@ class Link {
 						sourcesContent[sourceIndex] !== traced.source.content
 					) {
 						error({
-							message: `Multiple conflicting contents for sourcemap source ${
-								traced.source.filename
-							}`
+							message: `Multiple conflicting contents for sourcemap source ${traced.source.filename}`
 						});
 					}
 
@@ -148,7 +146,7 @@ export default function collapseSourcemaps(
 	file: string,
 	map: DecodedSourceMap,
 	modules: Module[],
-	bundleSourcemapChain: RawSourceMap[],
+	bundleSourcemapChain: ExistingRawSourceMap[],
 	excludeContent: boolean
 ) {
 	function linkMap(source: Source, map: any) {
@@ -186,7 +184,7 @@ export default function collapseSourcemaps(
 
 				if (sources == null || (sources.length <= 1 && sources[0] == null)) {
 					source = new Source(module.id, sourcesContent[0]);
-					sourcemapChain = [originalSourcemap as RawSourceMap].concat(sourcemapChain);
+					sourcemapChain = [originalSourcemap].concat(sourcemapChain);
 				} else {
 					// TODO indiscriminately treating IDs and sources as normal paths is probably bad.
 					const directory = dirname(module.id) || '.';

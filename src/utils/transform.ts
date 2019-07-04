@@ -9,7 +9,6 @@ import {
 	Plugin,
 	PluginCache,
 	PluginContext,
-	RawSourceMap,
 	RollupError,
 	RollupWarning,
 	TransformModuleJSON,
@@ -27,9 +26,10 @@ export default function transform(
 	module: Module
 ): Promise<TransformModuleJSON> {
 	const id = module.id;
-	const sourcemapChain: (RawSourceMap | { missing: true; plugin: string })[] = [];
+	const sourcemapChain: (ExistingRawSourceMap | { missing: true; plugin: string })[] = [];
 
-	const originalSourcemap = typeof source.map === 'string' ? JSON.parse(source.map) : source.map;
+	const originalSourcemap =
+		typeof source.map === 'string' ? (JSON.parse(source.map) as ExistingRawSourceMap) : source.map;
 	if (originalSourcemap && typeof originalSourcemap.mappings === 'string')
 		originalSourcemap.mappings = decode(originalSourcemap.mappings);
 
@@ -103,11 +103,7 @@ export default function transform(
 		}
 
 		// strict null check allows 'null' maps to not be pushed to the chain, while 'undefined' gets the missing map warning
-		if (result.map !== null) {
-			sourcemapChain.push(
-				(result.map as ExistingRawSourceMap) || { missing: true, plugin: plugin.name }
-			);
-		}
+		sourcemapChain.push(result.map || { missing: true, plugin: plugin.name });
 
 		ast = result.ast;
 

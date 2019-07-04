@@ -12,7 +12,9 @@ declare module 'signal-exit';
 declare module 'date-time';
 declare module 'locate-character';
 declare module 'is-reference';
-declare module 'sourcemap-codec';
+declare module 'sourcemap-codec' {
+	export function decode(mappings: string): number[][][];
+}
 declare module 'require-relative';
 declare module 'acorn-dynamic-import';
 declare module 'acorn-import-meta';

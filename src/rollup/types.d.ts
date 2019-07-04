@@ -38,6 +38,16 @@ export interface RollupLogProps {
 	url?: string;
 }
 
+export interface ExistingDecodedSourceMap {
+	file?: string;
+	mappings: number[][][];
+	names: string[];
+	sourceRoot?: string;
+	sources: string[];
+	sourcesContent?: string[];
+	version: number;
+}
+
 export interface ExistingRawSourceMap {
 	file?: string;
 	mappings: string;
@@ -47,8 +57,6 @@ export interface ExistingRawSourceMap {
 	sourcesContent?: string[];
 	version: number;
 }
-
-export type RawSourceMap = { mappings: '' } | ExistingRawSourceMap;
 
 export interface SourceMap {
 	file: string;
@@ -64,7 +72,7 @@ export interface SourceMap {
 export interface SourceDescription {
 	ast?: ESTree.Program;
 	code: string;
-	map?: string | RawSourceMap;
+	map?: string | ExistingRawSourceMap;
 	moduleSideEffects?: boolean | null;
 }
 
@@ -79,9 +87,10 @@ export interface TransformModuleJSON {
 	customTransformCache: boolean;
 	moduleSideEffects: boolean | null;
 	originalCode: string;
-	originalSourcemap: RawSourceMap | null;
+	originalSourcemap: ExistingDecodedSourceMap | null;
 	resolvedIds?: ResolvedIdMap;
-	sourcemapChain: (RawSourceMap | { missing: true; plugin: string })[];
+	// TODO
+	sourcemapChain: (ExistingDecodedSourceMap | { missing: true; plugin: string })[];
 	transformDependencies: string[] | null;
 }
 
@@ -207,8 +216,8 @@ export type TransformChunkHook = (
 	code: string,
 	options: OutputOptions
 ) =>
-	| Promise<{ code: string; map: RawSourceMap } | null | undefined>
-	| { code: string; map: RawSourceMap }
+	| Promise<{ code: string; map: ExistingRawSourceMap } | null | undefined>
+	| { code: string; map: ExistingRawSourceMap }
 	| null
 	| undefined;
 
@@ -218,8 +227,8 @@ export type RenderChunkHook = (
 	chunk: RenderedChunk,
 	options: OutputOptions
 ) =>
-	| Promise<{ code: string; map: RawSourceMap } | null>
-	| { code: string; map: RawSourceMap }
+	| Promise<{ code: string; map: ExistingRawSourceMap } | null>
+	| { code: string; map: ExistingRawSourceMap }
 	| string
 	| null;
 
