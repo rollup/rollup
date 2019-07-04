@@ -1,4 +1,5 @@
 import { DecodedSourceMap, SourceMap } from 'magic-string';
+import { SourceMapLine, SourceMapMappings, SourceMapSegment } from 'sourcemap-codec';
 import Chunk from '../Chunk';
 import Module from '../Module';
 import { DecodedSourceMapOrMissing } from '../rollup/types';
@@ -21,11 +22,6 @@ class Source {
 	}
 }
 
-type SourceMapSegmentVector =
-	| [number]
-	| [number, number, number, number]
-	| [number, number, number, number, number];
-
 interface SourceMapSegmentObject {
 	column: number;
 	line: number;
@@ -34,14 +30,14 @@ interface SourceMapSegmentObject {
 }
 
 class Link {
-	mappings: SourceMapSegmentVector[][];
+	mappings: SourceMapMappings;
 	names: string[];
 	sources: (Source | Link)[];
 
 	constructor(map: { mappings: number[][][]; names: string[] }, sources: (Source | Link)[]) {
 		this.sources = sources;
 		this.names = map.names;
-		this.mappings = map.mappings as SourceMapSegmentVector[][];
+		this.mappings = map.mappings as SourceMapMappings;
 	}
 
 	traceMappings() {
@@ -52,7 +48,7 @@ class Link {
 		const mappings = [];
 
 		for (const line of this.mappings) {
-			const tracedLine: SourceMapSegmentVector[] = [];
+			const tracedLine: SourceMapLine = [];
 
 			for (const segment of line) {
 				if (segment.length == 1) continue;
@@ -83,7 +79,7 @@ class Link {
 						});
 					}
 
-					const tracedSegment: SourceMapSegmentVector = [
+					const tracedSegment: SourceMapSegment = [
 						segment[0],
 						sourceIndex,
 						traced.line,
@@ -97,7 +93,7 @@ class Link {
 							names.push(traced.name);
 						}
 
-						(tracedSegment as SourceMapSegmentVector)[4] = nameIndex;
+						(tracedSegment as SourceMapSegment)[4] = nameIndex;
 					}
 
 					tracedLine.push(tracedSegment);
