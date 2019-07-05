@@ -1,7 +1,6 @@
 const assert = require('assert');
 
 module.exports = {
-	solo: true,
 	description: 'Returns the raw AST nodes for unresolvable dynamic imports',
 	options: {
 		plugins: [
