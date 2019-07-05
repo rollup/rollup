@@ -99,7 +99,6 @@ export interface TransformModuleJSON {
 	originalCode: string;
 	originalSourcemap: ExistingDecodedSourceMap | null;
 	resolvedIds?: ResolvedIdMap;
-	// TODO(jridewell)
 	sourcemapChain: DecodedSourceMapOrMissing[];
 	transformDependencies: string[] | null;
 }
