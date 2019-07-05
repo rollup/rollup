@@ -4,8 +4,8 @@ import ExternalModule from '../ExternalModule';
 import Graph from '../Graph';
 import Module from '../Module';
 import {
-	EmitAsset,
 	EmitChunk,
+	EmitFile,
 	InputOptions,
 	Plugin,
 	PluginCache,
@@ -15,7 +15,6 @@ import {
 	RollupWatcher,
 	SerializablePluginCache
 } from '../rollup/types';
-import { createAssetPluginHooks } from './assetHooks';
 import { BuildPhase } from './buildPhase';
 import { getRollupDefaultPlugin } from './defaultPlugin';
 import {
@@ -23,13 +22,14 @@ import {
 	errInvalidRollupPhaseForEmitChunk,
 	error
 } from './error';
+import { FileEmitter } from './FileEmitter';
 
 type Args<T> = T extends (...args: infer K) => any ? K : never;
 type EnsurePromise<T> = Promise<T extends Promise<infer K> ? K : T>;
 
 export interface PluginDriver {
-	emitAsset: EmitAsset;
 	emitChunk: EmitChunk;
+	emitFile: EmitFile;
 	hasLoadersOrTransforms: boolean;
 	getAssetFileName(assetReferenceId: string): string;
 	hookFirst<H extends keyof PluginHooks, R = ReturnType<PluginHooks[H]>>(
@@ -119,7 +119,7 @@ export function createPluginDriver(
 		...(options.plugins as Plugin[]),
 		getRollupDefaultPlugin(options.preserveSymlinks as boolean)
 	];
-	const { emitAsset, getAssetFileName, setAssetSource } = createAssetPluginHooks(graph.assetsById);
+	const fileEmitter = new FileEmitter(graph.assetsById);
 	const existingPluginKeys = new Set<string>();
 	let hasLoadersOrTransforms = false;
 
@@ -157,11 +157,14 @@ export function createPluginDriver(
 				graph.watchFiles[id] = true;
 			},
 			cache: cacheInstance,
-			emitAsset,
+			emitAsset: (name, source) => fileEmitter.emitFile({ type: 'asset', name, source }),
 			emitChunk(id, options) {
 				if (graph.phase > BuildPhase.LOAD_AND_PARSE)
 					this.error(errInvalidRollupPhaseForEmitChunk());
 				return pluginDriver.emitChunk(id, options);
+			},
+			emitFile(emittedFile) {
+				throw new Error('Not implemented ' + emittedFile);
 			},
 			error(err): never {
 				if (typeof err === 'string') err = { message: err };
@@ -170,7 +173,7 @@ export function createPluginDriver(
 				err.plugin = plugin.name;
 				return error(err);
 			},
-			getAssetFileName: getAssetFileName as (assetId: string) => string,
+			getAssetFileName: fileEmitter.getFileName,
 			getChunkFileName(chunkReferenceId) {
 				return graph.moduleLoader.getChunkFileName(chunkReferenceId);
 			},
@@ -239,7 +242,7 @@ export function createPluginDriver(
 						.then(resolveId => resolveId && resolveId.id);
 				};
 			})(),
-			setAssetSource,
+			setAssetSource: fileEmitter.setFileSource,
 			warn(warning) {
 				if (typeof warning === 'string') warning = { message: warning } as RollupWarning;
 				if (warning.code) warning.pluginCode = warning.code;
@@ -355,14 +358,14 @@ export function createPluginDriver(
 	}
 
 	const pluginDriver: PluginDriver = {
-		emitAsset,
+		emitFile: fileEmitter.emitFile,
 		emitChunk(id, options) {
 			return graph.moduleLoader.addEntryModuleAndGetReferenceId({
 				alias: (options && options.name) || null,
 				unresolvedId: id
 			});
 		},
-		getAssetFileName: getAssetFileName as (assetId: string) => string,
+		getAssetFileName: fileEmitter.getFileName,
 		hasLoadersOrTransforms,
 
 		// chains, ignores returns

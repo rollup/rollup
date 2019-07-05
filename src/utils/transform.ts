@@ -31,7 +31,6 @@ export default function transform(
 	const sourcemapChain: DecodedSourceMapOrMissing[] = [];
 
 	let originalSourcemap = source.map === null ? null : decodedSourcemap(source.map);
-	const baseEmitAsset = graph.pluginDriver.emitAsset;
 	const originalCode = source.code;
 	let ast = source.ast;
 	let transformDependencies: string[];
@@ -120,7 +119,7 @@ export default function transform(
 				let emitAsset: EmitAsset;
 				({ assets: emittedAssets, emitAsset } = createTransformEmitAsset(
 					graph.assetsById,
-					baseEmitAsset
+					graph.pluginDriver.emitFile
 				));
 				return {
 					...pluginContext,

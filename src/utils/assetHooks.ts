@@ -1,5 +1,5 @@
 import sha256 from 'hash.js/lib/hash/sha/256';
-import { Asset, EmitAsset, OutputBundle } from '../rollup/types';
+import { Asset, EmitFile, OutputBundle } from '../rollup/types';
 import {
 	errAssetNotFinalisedForFileName,
 	errAssetReferenceIdNotFoundForFilename,
@@ -15,7 +15,7 @@ import { addWithNewReferenceId } from './referenceIds';
 import { isPlainName } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';
 
-export function getAssetFileName(
+function getAssetFileName(
 	asset: Asset,
 	existingNames: Record<string, any>,
 	assetFileNames: string
@@ -72,9 +72,8 @@ export function createAssetPluginHooks(
 		getAssetFileName(assetReferenceId: string) {
 			const asset = assetsByReferenceId.get(assetReferenceId);
 			if (!asset) return error(errAssetReferenceIdNotFoundForFilename(assetReferenceId));
-			if ((asset).fileName === undefined)
-				return error(errAssetNotFinalisedForFileName(asset));
-			return (asset).fileName;
+			if (asset.fileName === undefined) return error(errAssetNotFinalisedForFileName(asset));
+			return asset.fileName;
 		}
 	};
 }
@@ -91,13 +90,13 @@ export function finaliseAsset(asset: Asset, outputBundle: OutputBundle, assetFil
 
 export function createTransformEmitAsset(
 	assetsByReferenceId: Map<string, Asset>,
-	emitAsset: EmitAsset
+	emitFile: EmitFile
 ) {
 	const assets: Asset[] = [];
 	return {
 		assets,
 		emitAsset: (name: string, source?: string | Buffer) => {
-			const assetReferenceId = emitAsset(name, source);
+			const assetReferenceId = emitFile({ type: 'asset', name, source });
 			const asset = assetsByReferenceId.get(assetReferenceId) as Asset;
 			assets.push({
 				fileName: undefined as any,

@@ -140,11 +140,33 @@ export interface MinimalPluginContext {
 export type EmitAsset = (name: string, source?: string | Buffer) => string;
 export type EmitChunk = (name: string, options?: { name?: string }) => string;
 
+// TODO Lukas do not forget caching tests for files
+export type EmittedFile =
+	| {
+			name: string;
+			source?: string | Buffer;
+			type: 'asset';
+	  }
+	| {
+			entryId: string;
+			name?: string;
+			type: 'chunk';
+	  }
+	| {
+			fileName: string;
+			source?: string | Buffer;
+			type: 'file';
+	  };
+export type EmitFile = (emittedFile: EmittedFile) => string;
+
 export interface PluginContext extends MinimalPluginContext {
 	addWatchFile: (id: string) => void;
 	cache: PluginCache;
+	/** @deprecated Use `this.emitFile` instead */
 	emitAsset: EmitAsset;
+	/** @deprecated Use `this.emitFile` instead */
 	emitChunk: EmitChunk;
+	emitFile: EmitFile;
 	error: (err: RollupError | string, pos?: number | { column: number; line: number }) => never;
 	getAssetFileName: (assetReferenceId: string) => string;
 	getChunkFileName: (chunkReferenceId: string) => string;
