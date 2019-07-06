@@ -1,8 +1,11 @@
 import { DecodedSourceMap, SourceMap } from 'magic-string';
-import { SourceMapLine, SourceMapMappings, SourceMapSegment } from 'sourcemap-codec';
 import Chunk from '../Chunk';
 import Module from '../Module';
-import { DecodedSourceMapOrMissing } from '../rollup/types';
+import {
+	DecodedSourceMapOrMissing,
+	ExistingDecodedSourceMap,
+	SourceMapSegment
+} from '../rollup/types';
 import { error } from './error';
 import { basename, dirname, relative, resolve } from './path';
 
@@ -30,14 +33,17 @@ interface SourceMapSegmentObject {
 }
 
 class Link {
-	mappings: SourceMapMappings;
+	mappings: SourceMapSegment[][];
 	names: string[];
 	sources: (Source | Link)[];
 
-	constructor(map: { mappings: number[][][]; names: string[] }, sources: (Source | Link)[]) {
+	constructor(
+		map: { mappings: SourceMapSegment[][]; names: string[] },
+		sources: (Source | Link)[]
+	) {
 		this.sources = sources;
 		this.names = map.names;
-		this.mappings = map.mappings as SourceMapMappings;
+		this.mappings = map.mappings;
 	}
 
 	traceMappings() {
@@ -48,7 +54,7 @@ class Link {
 		const mappings = [];
 
 		for (const line of this.mappings) {
-			const tracedLine: SourceMapLine = [];
+			const tracedLine: SourceMapSegment[] = [];
 
 			for (const segment of line) {
 				if (segment.length == 1) continue;
@@ -58,7 +64,7 @@ class Link {
 				const traced = source.traceSegment(
 					segment[2],
 					segment[3],
-					this.names[segment[4] as number]
+					segment.length === 5 ? this.names[segment[4]] : ''
 				);
 
 				if (traced) {
@@ -125,7 +131,7 @@ class Link {
 				return source.traceSegment(
 					segment[2],
 					segment[3],
-					this.names[segment[4] as number] || name
+					segment.length === 5 ? this.names[segment[4]] : name
 				);
 			}
 			if (segment[0] > column) {
@@ -197,7 +203,9 @@ export default function collapseSourcemaps(
 			return source;
 		});
 
-	let source = new Link(map, moduleSources);
+	// DecodedSourceMap (from magic-string) uses a number[] instead of the more
+	// correct SourceMapSegment tuples. Cast it here to gain type safety.
+	let source = new Link(map as ExistingDecodedSourceMap, moduleSources);
 
 	source = bundleSourcemapChain.reduce(linkMap, source);
 

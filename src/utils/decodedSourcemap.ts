@@ -18,7 +18,7 @@ export function decodedSourcemap(map: Input): ExistingDecodedSourceMap | null {
 		};
 	}
 
-	let mappings: number[][][];
+	let mappings;
 	if (typeof map.mappings === 'string') {
 		mappings = decode(map.mappings);
 	} else {

@@ -38,9 +38,14 @@ export interface RollupLogProps {
 	url?: string;
 }
 
+export type SourceMapSegment =
+	| [number]
+	| [number, number, number, number]
+	| [number, number, number, number, number];
+
 export interface ExistingDecodedSourceMap {
 	file?: string;
-	mappings: number[][][];
+	mappings: SourceMapSegment[][];
 	names: string[];
 	sourceRoot?: string;
 	sources: string[];

@@ -11,17 +11,17 @@ export function getOriginalLocation(
 
 	while (filteredSourcemapChain.length > 0) {
 		const sourcemap = filteredSourcemapChain.pop()!;
-		const line: any = sourcemap.mappings[location.line - 1];
+		const line = sourcemap.mappings[location.line - 1];
 		let locationFound = false;
 
 		if (line !== undefined) {
 			for (const segment of line) {
 				if (segment[0] >= location.column) {
-					if (segment.length < 4) break;
+					if (segment.length === 1) break;
 					location = {
 						column: segment[3],
 						line: segment[2] + 1,
-						name: sourcemap.names[segment[4]],
+						name: segment.length === 5 ? sourcemap.names[segment[4]] : undefined,
 						source: sourcemap.sources[segment[1]]
 					};
 					locationFound = true;
