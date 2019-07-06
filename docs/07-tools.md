@@ -4,7 +4,7 @@ title: Integrating Rollup With Other Tools
 
 ### With NPM Packages
 
-At some point, it's very likely that your project will depend on packages installed from NPM into your `node_modules` folder. Unlike other bundlers such as Webpack and Browserify, Rollup doesn't know "out of the box" how to handle these dependencies - we need to add some configuration.
+At some point, it's likely that your project will depend on packages installed from NPM into your `node_modules` folder. Unlike other bundlers such as Webpack and Browserify, Rollup doesn't know "out of the box" how to handle these dependencies - we need to add some configuration.
 
 Let's add a simple dependency called [the-answer](https://www.npmjs.com/package/the-answer), which exports the answer to the question of life, the universe and everything:
 
@@ -13,7 +13,7 @@ npm install the-answer
 # or `npm i the-answer`
 ```
 
-If we update our `src/main.js` file...
+If we update our `src/main.js` file…
 
 ```js
 // src/main.js
@@ -24,13 +24,13 @@ export default function () {
 }
 ```
 
-...and run Rollup...
+…and run Rollup…
 
 ```console
 npm run build
 ```
 
-...we'll see a warning like this:
+…we'll see a warning like this:
 
 ```
 (!) Unresolved dependencies
@@ -43,13 +43,13 @@ The resulting `bundle.js` will still work in Node.js, because the `import` decla
 
 #### rollup-plugin-node-resolve
 
-The [rollup-plugin-node-resolve](https://github.com/rollup/rollup-plugin-node-resolve) plugin teaches Rollup how to find external modules. Install it...
+The [rollup-plugin-node-resolve](https://github.com/rollup/rollup-plugin-node-resolve) plugin teaches Rollup how to find external modules. Install it…
 
 ```console
 npm install --save-dev rollup-plugin-node-resolve
 ```
 
-...and add it to your config file:
+…and add it to your config file:
 
 ```js
 // rollup.config.js
@@ -111,7 +111,7 @@ export default {
 };
 ```
 
-Voila, `lodash` will now be treated as external, and not be bundled with your library.
+Voilà, `lodash` will now be treated as external, and not be bundled with your library.
 
 The `external` key accepts either an array of module names, or a function which takes the module name and returns true if it should be treated as external. For example:
 

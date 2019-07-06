@@ -137,13 +137,13 @@ Specifies the format of the generated bundle. One of the following:
 Type: `{ [id: string]: string } | ((id: string) => string)`<br>
 CLI: `-g`/`--globals <external-id:variableName,another-external-id:anotherVariableName,...>`
 
-Specifies `id: variableName` pairs necessary for external imports in `umd`/`iife` bundles. For example, in a case like this...
+Specifies `id: variableName` pairs necessary for external imports in `umd`/`iife` bundles. For example, in a case like this…
 
 ```js
 import $ from 'jquery';
 ```
 
-...we want to tell Rollup that `jquery` is external and the `jquery` module ID equates to the global `$` variable:
+…we want to tell Rollup that `jquery` is external and the `jquery` module ID equates to the global `$` variable:
 
 ```js
 // rollup.config.js
@@ -229,7 +229,7 @@ this.a.b.c = ...
 #### plugins
 Type: `Plugin | (Plugin | void)[]`
 
-See [Using plugins](guide/en/#using-plugins) for more information on how to use plugins and [Plugins](guide/en/#plugin-development) on how to write your own (try it out, it's not as difficult as it may sound and very much extends what you can do with Rollup!). For plugins imported from packages, remember to call the imported plugin function (i.e. `commonjs()`, not just `commonjs`). Falsy plugins will be ignored, which can be used to easily activate or deactivate plugins.
+See [Using plugins](guide/en/#using-plugins) for more information on how to use plugins and [Plugins](guide/en/#plugin-development) on how to write your own (try it out, it's not as difficult as it may sound and very much extends what you can do with Rollup). For plugins imported from packages, remember to call the imported plugin function (i.e. `commonjs()`, not just `commonjs`). Falsy plugins will be ignored, which can be used to easily activate or deactivate plugins.
 
 ```js
 // rollup.config.js
@@ -719,7 +719,7 @@ Type: `boolean`<br>
 CLI: `--strict`/`--no-strict`<br>
 Default: `true`
 
-Whether to include the 'use strict' pragma at the top of generated non-ESM bundles. Strictly-speaking, ES modules are *always* in strict mode, so you shouldn't disable this without good reason.
+Whether to include the 'use strict' pragma at the top of generated non-ESM bundles. Strictly speaking, ES modules are *always* in strict mode, so you shouldn't disable this without good reason.
 
 #### output.dynamicImportFunction
 Type: `string`<br>

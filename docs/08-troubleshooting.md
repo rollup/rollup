@@ -71,13 +71,13 @@ Usually, a plugin will only omit the sourcemap if it (the plugin, not the bundle
 
 ### Warning: "Treating [module] as external dependency"
 
-Rollup will only resolve *relative* module IDs by default. This means that an import statement like this...
+Rollup will only resolve *relative* module IDs by default. This means that an import statement like this…
 
 ```js
 import moment from 'moment';
 ```
 
-...won't result in `moment` being included in your bundle – instead, it will be an external dependency that is required at runtime. If that's what you want, you can suppress this warning with the `external` option, which makes your intentions explicit:
+…won't result in `moment` being included in your bundle – instead, it will be an external dependency that is required at runtime. If that's what you want, you can suppress this warning with the `external` option, which makes your intentions explicit:
 
 ```js
 // rollup.config.js

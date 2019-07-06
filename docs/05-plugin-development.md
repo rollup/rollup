@@ -400,7 +400,7 @@ Set the deferred source of an asset.
 
 #### `this.warn(warning: string | RollupWarning, position?: number | { column: number; line: number }) => void`
 
-Using this method will queue warnings for a build. These warnings will be printed by the CLI just like internally-generated warnings (except with the plugin name), or captured by custom `onwarn` handlers.
+Using this method will queue warnings for a build. These warnings will be printed by the CLI just like internally generated warnings (except with the plugin name), or captured by custom `onwarn` handlers.
 
 The `warning` argument can be a `string` or an object with (at minimum) a `message` property:
 

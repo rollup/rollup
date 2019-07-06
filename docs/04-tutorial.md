@@ -103,7 +103,7 @@ export default {
 };
 ```
 
-(Note that you can use CJS modules as well, to wit, `module.exports = {/* config */}`)
+(Note that you can use CJS modules and therefore `module.exports = {/* config */}`)
 
 To use the config file, we use the `--config` or `-c` flag:
 
@@ -196,7 +196,7 @@ const main = function () {
 module.exports = main;
 ```
 
-_Note: Only the data we actually need gets imported – `name` and `devDependencies` and other parts of `package.json` are ignored. That's **tree-shaking** in action!_
+_Note: Only the data we actually need gets imported – `name` and `devDependencies` and other parts of `package.json` are ignored. That's **tree-shaking** in action._
 
 ### Code Splitting
 
@@ -243,7 +243,7 @@ var foo = 'hello world!';
 exports.default = foo;
 ```
 
-This is very useful if you want to load and parse expensive features only once they are used.
+This is useful if you want to load and parse expensive features only once they are used.
 
 A different use for code-splitting is the ability to specify several entry points that share some dependencies. Again we extend our example to add a second entry point `src/main2.js` that statically imports `src/foo.js` just like we did in the original example:
 
