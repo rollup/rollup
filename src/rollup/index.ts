@@ -3,7 +3,6 @@ import Chunk from '../Chunk';
 import { optimizeChunks } from '../chunk-optimization';
 import Graph from '../Graph';
 import { createAddons } from '../utils/addons';
-import { createAssetPluginHooks, finaliseAsset } from '../utils/assetHooks';
 import { assignChunkIds } from '../utils/assignChunkIds';
 import commondir from '../utils/commondir';
 import { errDeprecation, error } from '../utils/error';
@@ -21,7 +20,6 @@ import {
 	OutputChunk,
 	OutputOptions,
 	Plugin,
-	PluginContext,
 	RollupBuild,
 	RollupCache,
 	RollupOutput,
@@ -198,8 +196,9 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 					timeStart('GENERATE', 1);
 
 					const assetFileNames = outputOptions.assetFileNames || 'assets/[name]-[hash][extname]';
-					const outputBundle: OutputBundle = graph.finaliseAssets(assetFileNames);
+					const outputBundle: OutputBundle = Object.create(null);
 					const inputBase = commondir(getAbsoluteEntryModulePaths(chunks));
+					graph.pluginDriver.startOutput(outputBundle, assetFileNames);
 
 					return graph.pluginDriver
 						.hookParallel('renderStart', [])
@@ -271,32 +270,9 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 						)
 						.then(() => {
 							// run generateBundle hook
-
-							// assets emitted during generateBundle are unique to that specific generate call
-							const assets = new Map(graph.assetsById);
-							const generateAssetPluginHooks = createAssetPluginHooks(
-								assets,
-								outputBundle,
-								assetFileNames
-							);
-
 							return graph.pluginDriver
-								.hookSeq(
-									'generateBundle',
-									[outputOptions, outputBundle, isWrite],
-									context =>
-										({
-											...context,
-											...generateAssetPluginHooks
-										} as PluginContext)
-								)
-								.then(() => {
-									// throw errors for assets not finalised with a source
-									assets.forEach(asset => {
-										if (asset.fileName === undefined)
-											finaliseAsset(asset, outputBundle, assetFileNames);
-									});
-								});
+								.hookSeq('generateBundle', [outputOptions, outputBundle, isWrite])
+								.then(() => graph.pluginDriver.finaliseAssets());
 						})
 						.then(() => {
 							timeEnd('GENERATE', 1);

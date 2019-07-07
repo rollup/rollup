@@ -7,7 +7,7 @@ System.register(['./nested/chunk.js'], function (exports, module) {
 		}],
 		execute: function () {
 
-			var logo = new URL('assets/logo1-25253976.svg', module.meta.url).href;
+			var logo = new URL('assets/logo1-a5ec488b.svg', module.meta.url).href;
 
 			showImage(logo);
 			module.import('./nested/chunk2.js');

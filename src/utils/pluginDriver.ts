@@ -7,6 +7,7 @@ import {
 	EmitChunk,
 	EmitFile,
 	InputOptions,
+	OutputBundle,
 	Plugin,
 	PluginCache,
 	PluginContext,
@@ -31,6 +32,7 @@ export interface PluginDriver {
 	emitChunk: EmitChunk;
 	emitFile: EmitFile;
 	hasLoadersOrTransforms: boolean;
+	finaliseAssets(): void;
 	getAssetFileName(assetReferenceId: string): string;
 	hookFirst<H extends keyof PluginHooks, R = ReturnType<PluginHooks[H]>>(
 		hook: H,
@@ -77,6 +79,7 @@ export interface PluginDriver {
 		args: Args<PluginHooks[H]>,
 		context?: HookContext
 	): void;
+	startOutput(outputBundle: OutputBundle, assetFileNames: string): void;
 }
 
 export type Reduce<R = any, T = any> = (reduction: T, result: R, plugin: Plugin) => T;
@@ -365,6 +368,9 @@ export function createPluginDriver(
 				unresolvedId: id
 			});
 		},
+		finaliseAssets() {
+			fileEmitter.finaliseAssets();
+		},
 		getAssetFileName: fileEmitter.getFileName,
 		hasLoadersOrTransforms,
 
@@ -452,6 +458,10 @@ export function createPluginDriver(
 				});
 			}
 			return promise;
+		},
+
+		startOutput(outputBundle: OutputBundle, assetFileNames: string): void {
+			fileEmitter.startOutput(outputBundle, assetFileNames);
 		}
 	};
 

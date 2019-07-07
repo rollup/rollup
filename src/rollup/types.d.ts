@@ -141,6 +141,7 @@ export type EmitAsset = (name: string, source?: string | Buffer) => string;
 export type EmitChunk = (name: string, options?: { name?: string }) => string;
 
 // TODO Lukas do not forget caching tests for files
+// TODO Lukas can there be interactions in names between multiple outputs?
 export type EmittedFile =
 	| {
 			name: string;

@@ -3,7 +3,7 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			var logo = new URL('assets/logo-25253976.svg', module.meta.url).href;
+			var logo = new URL('assets/logo-25585ac1.svg', module.meta.url).href;
 
 			function showImage(url) {
 				console.log(url);

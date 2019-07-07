@@ -7,7 +7,7 @@ System.register(['./chunk.js'], function (exports, module) {
 		}],
 		execute: function () {
 
-			var logo = new URL('../assets/logo2-25253976.svg', module.meta.url).href;
+			var logo = new URL('../assets/logo2-c943ca3c.svg', module.meta.url).href;
 
 			showImage(logo);
 

@@ -17,7 +17,6 @@ import {
 	ManualChunksOption,
 	ModuleJSON,
 	ModuleSideEffectsOption,
-	OutputBundle,
 	PureModulesOption,
 	RollupCache,
 	RollupWarning,
@@ -26,7 +25,6 @@ import {
 	TreeshakingOptions,
 	WarningHandler
 } from './rollup/types';
-import { finaliseAsset } from './utils/assetHooks';
 import { BuildPhase } from './utils/buildPhase';
 import { assignChunkColouringHashes } from './utils/chunkColouring';
 import { Uint8ArrayToHexString } from './utils/entryHashing';
@@ -325,14 +323,6 @@ export default class Graph {
 			this.phase = BuildPhase.GENERATE;
 			return chunks.concat(facades);
 		});
-	}
-
-	finaliseAssets(assetFileNames: string) {
-		const outputBundle: OutputBundle = Object.create(null);
-		this.assetsById.forEach(asset => {
-			if (asset.source !== undefined) finaliseAsset(asset, outputBundle, assetFileNames);
-		});
-		return outputBundle;
 	}
 
 	getCache(): RollupCache {

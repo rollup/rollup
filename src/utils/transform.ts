@@ -4,7 +4,6 @@ import Module from '../Module';
 import {
 	Asset,
 	DecodedSourceMapOrMissing,
-	EmitAsset,
 	EmittedChunk,
 	Plugin,
 	PluginCache,
@@ -15,7 +14,6 @@ import {
 	TransformResult,
 	TransformSourceDescription
 } from '../rollup/types';
-import { createTransformEmitAsset } from './assetHooks';
 import { collapseSourcemap } from './collapseSourcemaps';
 import { decodedSourcemap } from './decodedSourcemap';
 import { augmentCodeLocation, error } from './error';
@@ -34,7 +32,7 @@ export default function transform(
 	const originalCode = source.code;
 	let ast = source.ast;
 	let transformDependencies: string[];
-	let emittedAssets: Asset[];
+	const emittedAssets: Asset[] = [];
 	const emittedChunks: EmittedChunk[] = [];
 	let customTransformCache = false;
 	let moduleSideEffects: boolean | null = null;
@@ -115,12 +113,6 @@ export default function transform(
 				curPlugin = plugin as Plugin;
 				if (curPlugin.cacheKey) customTransformCache = true;
 				else trackedPluginCache = trackPluginCache(pluginContext.cache);
-
-				let emitAsset: EmitAsset;
-				({ assets: emittedAssets, emitAsset } = createTransformEmitAsset(
-					graph.assetsById,
-					graph.pluginDriver.emitFile
-				));
 				return {
 					...pluginContext,
 					cache: trackedPluginCache ? trackedPluginCache.cache : pluginContext.cache,
@@ -138,11 +130,19 @@ export default function transform(
 						err.hook = 'transform';
 						return pluginContext.error(err);
 					},
-					emitAsset,
+					emitAsset(name: string, source?: string | Buffer) {
+						emittedAssets.push({
+							fileName: undefined as any,
+							name,
+							source: source as any
+						});
+						return graph.pluginDriver.emitFile({ type: 'asset', name, source });
+					},
 					emitChunk(id, options) {
 						emittedChunks.push({ id, options });
 						return graph.pluginDriver.emitChunk(id, options);
 					},
+					// TODO Lukas this needs to be repeated as well
 					addWatchFile(id: string) {
 						if (!transformDependencies) transformDependencies = [];
 						transformDependencies.push(id);

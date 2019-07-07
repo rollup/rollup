@@ -1,4 +1,4 @@
-var logo = new URL('assets/logo-25253976.svg', import.meta.url).href;
+var logo = new URL('assets/logo-25585ac1.svg', import.meta.url).href;
 
 function showImage(url) {
 	console.log(url);

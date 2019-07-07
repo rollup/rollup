@@ -93,10 +93,10 @@ export function errAssetSourceMissingForSetSource(asset: Asset) {
 	};
 }
 
-export function errNoAssetSourceSet(asset: Asset) {
+export function errNoAssetSourceSet(assetName: string) {
 	return {
 		code: Errors.ASSET_SOURCE_MISSING,
-		message: `Plugin error creating asset "${asset.name}" - no asset source set.`
+		message: `Plugin error creating asset "${assetName}" - no asset source set.`
 	};
 }
 
