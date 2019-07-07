@@ -166,9 +166,7 @@ export function createPluginDriver(
 					this.error(errInvalidRollupPhaseForEmitChunk());
 				return pluginDriver.emitChunk(id, options);
 			},
-			emitFile(emittedFile) {
-				throw new Error('Not implemented ' + emittedFile);
-			},
+			emitFile: fileEmitter.emitFile,
 			error(err): never {
 				if (typeof err === 'string') err = { message: err };
 				if (err.code) err.pluginCode = err.code;
