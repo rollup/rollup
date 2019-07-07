@@ -1,15 +1,13 @@
-import { decode } from 'sourcemap-codec';
 import Graph from '../Graph';
 import Module from '../Module';
 import {
 	Asset,
+	DecodedSourceMapOrMissing,
 	EmitAsset,
 	EmittedChunk,
-	ExistingRawSourceMap,
 	Plugin,
 	PluginCache,
 	PluginContext,
-	RawSourceMap,
 	RollupError,
 	RollupWarning,
 	TransformModuleJSON,
@@ -17,6 +15,7 @@ import {
 	TransformSourceDescription
 } from '../rollup/types';
 import { createTransformEmitAsset } from './assetHooks';
+import { decodedSourcemap } from './decodedSourcemap';
 import { augmentCodeLocation, error } from './error';
 import { dirname, resolve } from './path';
 import { trackPluginCache } from './pluginDriver';
@@ -27,12 +26,9 @@ export default function transform(
 	module: Module
 ): Promise<TransformModuleJSON> {
 	const id = module.id;
-	const sourcemapChain: (RawSourceMap | { missing: true; plugin: string })[] = [];
+	const sourcemapChain: DecodedSourceMapOrMissing[] = [];
 
-	const originalSourcemap = typeof source.map === 'string' ? JSON.parse(source.map) : source.map;
-	if (originalSourcemap && typeof originalSourcemap.mappings === 'string')
-		originalSourcemap.mappings = decode(originalSourcemap.mappings);
-
+	const originalSourcemap = source.map === null ? null : decodedSourcemap(source.map);
 	const baseEmitAsset = graph.pluginDriver.emitAsset;
 	const originalCode = source.code;
 	let ast = source.ast;
@@ -96,17 +92,10 @@ export default function transform(
 			return code;
 		}
 
-		if (result.map && typeof (result.map as ExistingRawSourceMap).mappings === 'string') {
-			(result.map as ExistingRawSourceMap).mappings = decode(
-				(result.map as ExistingRawSourceMap).mappings
-			);
-		}
-
 		// strict null check allows 'null' maps to not be pushed to the chain, while 'undefined' gets the missing map warning
 		if (result.map !== null) {
-			sourcemapChain.push(
-				(result.map as ExistingRawSourceMap) || { missing: true, plugin: plugin.name }
-			);
+			const map = decodedSourcemap(result.map);
+			sourcemapChain.push(map || { missing: true, plugin: plugin.name });
 		}
 
 		ast = result.ast;

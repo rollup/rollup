@@ -38,6 +38,21 @@ export interface RollupLogProps {
 	url?: string;
 }
 
+export type SourceMapSegment =
+	| [number]
+	| [number, number, number, number]
+	| [number, number, number, number, number];
+
+export interface ExistingDecodedSourceMap {
+	file?: string;
+	mappings: SourceMapSegment[][];
+	names: string[];
+	sourceRoot?: string;
+	sources: string[];
+	sourcesContent?: string[];
+	version: number;
+}
+
 export interface ExistingRawSourceMap {
 	file?: string;
 	mappings: string;
@@ -48,7 +63,13 @@ export interface ExistingRawSourceMap {
 	version: number;
 }
 
-export type RawSourceMap = { mappings: '' } | ExistingRawSourceMap;
+export type DecodedSourceMapOrMissing =
+	| {
+			mappings?: never;
+			missing: true;
+			plugin: string;
+	  }
+	| ExistingDecodedSourceMap;
 
 export interface SourceMap {
 	file: string;
@@ -61,10 +82,12 @@ export interface SourceMap {
 	toUrl(): string;
 }
 
+export type SourceMapInput = ExistingRawSourceMap | string | null | { mappings: '' };
+
 export interface SourceDescription {
 	ast?: ESTree.Program;
 	code: string;
-	map?: string | RawSourceMap;
+	map?: SourceMapInput;
 	moduleSideEffects?: boolean | null;
 }
 
@@ -79,9 +102,9 @@ export interface TransformModuleJSON {
 	customTransformCache: boolean;
 	moduleSideEffects: boolean | null;
 	originalCode: string;
-	originalSourcemap: RawSourceMap | null;
+	originalSourcemap: ExistingDecodedSourceMap | null;
 	resolvedIds?: ResolvedIdMap;
-	sourcemapChain: (RawSourceMap | { missing: true; plugin: string })[];
+	sourcemapChain: DecodedSourceMapOrMissing[];
 	transformDependencies: string[] | null;
 }
 
@@ -207,8 +230,8 @@ export type TransformChunkHook = (
 	code: string,
 	options: OutputOptions
 ) =>
-	| Promise<{ code: string; map: RawSourceMap } | null | undefined>
-	| { code: string; map: RawSourceMap }
+	| Promise<{ code: string; map?: SourceMapInput } | null | undefined>
+	| { code: string; map?: SourceMapInput }
 	| null
 	| undefined;
 
@@ -218,8 +241,8 @@ export type RenderChunkHook = (
 	chunk: RenderedChunk,
 	options: OutputOptions
 ) =>
-	| Promise<{ code: string; map: RawSourceMap } | null>
-	| { code: string; map: RawSourceMap }
+	| Promise<{ code: string; map?: SourceMapInput } | null>
+	| { code: string; map?: SourceMapInput }
 	| string
 	| null;
 

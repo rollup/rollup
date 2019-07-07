@@ -14,7 +14,13 @@ import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';
 import Graph from './Graph';
 import Module from './Module';
-import { GlobalsOption, OutputOptions, RawSourceMap, RenderedChunk, RenderedModule } from './rollup/types';
+import {
+	DecodedSourceMapOrMissing,
+	GlobalsOption,
+	OutputOptions,
+	RenderedChunk,
+	RenderedModule
+} from './rollup/types';
 import { Addons } from './utils/addons';
 import { toBase64 } from './utils/base64';
 import collapseSourcemaps from './utils/collapseSourcemaps';
@@ -676,7 +682,7 @@ export default class Chunk {
 		timeEnd('render format', 3);
 
 		let map: SourceMap = null as any;
-		const chunkSourcemapChain: RawSourceMap[] = [];
+		const chunkSourcemapChain: DecodedSourceMapOrMissing[] = [];
 
 		return renderChunk({
 			chunk: this,
