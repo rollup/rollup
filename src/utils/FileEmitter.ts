@@ -18,8 +18,6 @@ import { makeUnique, renderNamePattern } from './renderNamePattern';
 // TODO Lukas setFileSource in transform needs to be repeated as well
 interface OutputSpecificAssetData {
 	assetFileNames: string;
-	// TODO Lukas instead replace this.assetsByReferenceId and keep a copy in this.buildAssetsByReferenceId
-	assetsByReferenceId: Map<string, Asset>;
 	bundle: OutputBundle;
 }
 
@@ -64,16 +62,12 @@ function addAssetToBundle(asset: Asset, output: OutputSpecificAssetData) {
 // TODO Lukas general assumption: Having a source means having a reliable filename
 // TODO Lukas only access filename during generate? Or disallow setSource if there is a fileName?
 export class FileEmitter {
-	private assetsByReferenceId: Map<string, Asset>;
+	// TODO Lukas change everything to files instead of assets
+	private assetsByReferenceId: Map<string, Asset> = new Map<string, Asset>();
+	private buildAssetsByReferenceId = this.assetsByReferenceId;
 	private output: OutputSpecificAssetData | null = null;
 
-	constructor(assetsByReferenceId: Map<string, Asset>) {
-		// TODO Lukas can this be moved here solely?
-		this.assetsByReferenceId = assetsByReferenceId;
-	}
-
 	public emitFile = (emittedFile: EmittedFile): string => {
-		console.log('emitFile', emittedFile);
 		if (emittedFile.type !== 'asset') {
 			throw new Error(`Unhandled file type ${emittedFile.type}`);
 		}
@@ -86,25 +80,17 @@ export class FileEmitter {
 		if (this.output && source !== undefined) {
 			addAssetToBundle(asset, this.output);
 		}
-		return addWithNewReferenceId(
-			asset,
-			this.output ? this.output.assetsByReferenceId : this.assetsByReferenceId,
-			name
-		);
+		return addWithNewReferenceId(asset, this.assetsByReferenceId, name);
 	};
 
 	public finaliseAssets() {
-		const { assetsByReferenceId } = this.output as OutputSpecificAssetData;
-		for (const asset of assetsByReferenceId.values()) {
-			// TODO Lukas error: source not set
+		for (const asset of this.assetsByReferenceId.values()) {
 			if (asset.source === undefined) error(errNoAssetSourceSet(asset.name));
 		}
 	}
 
 	public getFileName = (fileReferenceId: string) => {
-		const asset = (this.output ? this.output.assetsByReferenceId : this.assetsByReferenceId).get(
-			fileReferenceId
-		);
+		const asset = this.assetsByReferenceId.get(fileReferenceId);
 		if (!asset) return error(errAssetReferenceIdNotFoundForFilename(fileReferenceId));
 		// TODO Lukas error: source not set for filename
 		if (asset.source === undefined) return error(errAssetNotFinalisedForFileName(asset));
@@ -112,9 +98,7 @@ export class FileEmitter {
 	};
 
 	public setFileSource = (fileReferenceId: string, source?: string | Buffer) => {
-		const asset = (this.output ? this.output.assetsByReferenceId : this.assetsByReferenceId).get(
-			fileReferenceId
-		);
+		const asset = this.assetsByReferenceId.get(fileReferenceId);
 		if (!asset) return error(errAssetReferenceIdNotFoundForSetSource(fileReferenceId));
 		// TODO Lukas can we allow this as long as output is not set?
 		if (asset.source !== undefined) return error(errAssetSourceAlreadySet(asset));
@@ -125,7 +109,7 @@ export class FileEmitter {
 		if (this.output) {
 			// We must not modify the original assets to not interact with other outputs
 			const assetWithSource = { ...asset, source };
-			this.output.assetsByReferenceId.set(fileReferenceId, assetWithSource);
+			this.assetsByReferenceId.set(fileReferenceId, assetWithSource);
 			addAssetToBundle(assetWithSource, this.output);
 		} else {
 			asset.source = source;
@@ -134,12 +118,11 @@ export class FileEmitter {
 
 	// TODO Lukas how do we unfinalize assets for different outputs that have their source set during generate? Test!
 	public startOutput(outputBundle: OutputBundle, assetFileNames: string) {
-		console.log('startOutput');
-		this.output = {
-			assetFileNames,
-			assetsByReferenceId: new Map(this.assetsByReferenceId),
-			bundle: outputBundle
-		};
+		(this.assetsByReferenceId = new Map(this.buildAssetsByReferenceId)),
+			(this.output = {
+				assetFileNames,
+				bundle: outputBundle
+			});
 		for (const asset of this.assetsByReferenceId.values()) {
 			if (asset.source !== undefined) {
 				addAssetToBundle(asset, this.output);

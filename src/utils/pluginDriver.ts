@@ -122,7 +122,7 @@ export function createPluginDriver(
 		...(options.plugins as Plugin[]),
 		getRollupDefaultPlugin(options.preserveSymlinks as boolean)
 	];
-	const fileEmitter = new FileEmitter(graph.assetsById);
+	const fileEmitter = new FileEmitter();
 	const existingPluginKeys = new Set<string>();
 	let hasLoadersOrTransforms = false;
 

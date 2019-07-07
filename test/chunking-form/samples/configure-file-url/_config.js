@@ -1,5 +1,4 @@
 module.exports = {
-	solo: true,
 	description: 'allows to configure file urls',
 	options: {
 		output: {

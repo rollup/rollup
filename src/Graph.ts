@@ -10,7 +10,6 @@ import ExternalModule from './ExternalModule';
 import Module, { defaultAcornOptions } from './Module';
 import { ModuleLoader, UnresolvedModuleWithAlias } from './ModuleLoader';
 import {
-	Asset,
 	ExternalOption,
 	GetManualChunk,
 	InputOptions,
@@ -64,7 +63,6 @@ function normalizeEntryModules(
 export default class Graph {
 	acornOptions: acorn.Options;
 	acornParser: typeof acorn.Parser;
-	assetsById = new Map<string, Asset>();
 	cachedModules: Map<string, ModuleJSON>;
 	contextParse: (code: string, acornOptions?: acorn.Options) => ESTree.Program;
 	curChunkIndex = 0;
