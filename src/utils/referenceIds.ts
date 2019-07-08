@@ -1,5 +1,6 @@
 import sha256 from 'hash.js/lib/hash/sha/256';
 
+// TODO Lukas inline into FileEmitter
 export function addWithNewReferenceId<T>(item: T, idMap: Map<string, T>, hashBase: string): string {
 	let referenceId: string | undefined;
 	do {

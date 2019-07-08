@@ -120,6 +120,7 @@ export interface EmittedChunk {
 	options: { name?: string } | undefined;
 }
 
+// TODO Lukas get rid of this type
 export interface Asset {
 	fileName: string;
 	name: string;
@@ -142,12 +143,14 @@ export type EmitChunk = (name: string, options?: { name?: string }) => string;
 
 // TODO Lukas do not forget caching tests for files
 // TODO Lukas can there be interactions in names between multiple outputs?
+export interface EmittedAsset {
+	name: string;
+	source?: string | Buffer;
+	type: 'asset';
+}
+
 export type EmittedFile =
-	| {
-			name: string;
-			source?: string | Buffer;
-			type: 'asset';
-	  }
+	| EmittedAsset
 	| {
 			entryId: string;
 			name?: string;

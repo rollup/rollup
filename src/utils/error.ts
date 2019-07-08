@@ -1,6 +1,6 @@
 import { locate } from 'locate-character';
 import Module from '../Module';
-import { Asset, RollupError, RollupWarning } from '../rollup/types';
+import { RollupError, RollupWarning } from '../rollup/types';
 import getCodeFrame from './getCodeFrame';
 import relativeId from './relativeId';
 
@@ -51,10 +51,10 @@ export enum Errors {
 	UNRESOLVED_IMPORT = 'UNRESOLVED_IMPORT'
 }
 
-export function errAssetNotFinalisedForFileName(asset: Asset) {
+export function errAssetNotFinalisedForFileName(name: string) {
 	return {
 		code: Errors.ASSET_NOT_FINALISED,
-		message: `Plugin error - Unable to get file name for asset "${asset.name}". Ensure that the source is set and that generate is called first.`
+		message: `Plugin error - Unable to get file name for asset "${name}". Ensure that the source is set and that generate is called first.`
 	};
 }
 
@@ -79,17 +79,17 @@ export function errAssetReferenceIdNotFoundForSetSource(assetReferenceId: string
 	};
 }
 
-export function errAssetSourceAlreadySet(asset: Asset) {
+export function errAssetSourceAlreadySet(name: string) {
 	return {
 		code: Errors.ASSET_SOURCE_ALREADY_SET,
-		message: `Plugin error - Unable to set the source for asset "${asset.name}", source already set.`
+		message: `Plugin error - Unable to set the source for asset "${name}", source already set.`
 	};
 }
 
-export function errAssetSourceMissingForSetSource(asset: Asset) {
+export function errAssetSourceMissingForSetSource(name: string) {
 	return {
 		code: Errors.ASSET_SOURCE_MISSING,
-		message: `Plugin error creating asset "${asset.name}", setAssetSource call without a source.`
+		message: `Plugin error creating asset "${name}", setAssetSource call without a source.`
 	};
 }
 

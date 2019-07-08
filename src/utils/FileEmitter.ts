@@ -1,5 +1,5 @@
 import sha256 from 'hash.js/lib/hash/sha/256';
-import { Asset, EmittedFile, OutputBundle } from '../rollup/types';
+import { EmittedAsset, EmittedFile, OutputBundle } from '../rollup/types';
 import {
 	errAssetNotFinalisedForFileName,
 	errAssetReferenceIdNotFoundForFilename,
@@ -16,15 +16,16 @@ import { isPlainName } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';
 
 // TODO Lukas setFileSource in transform needs to be repeated as well
-interface OutputSpecificAssetData {
+interface OutputSpecificFileData {
 	assetFileNames: string;
+	assignedFileNames: Map<EmittedFile, string>;
 	bundle: OutputBundle;
 }
 
 function getAssetFileName(
 	name: string,
 	source: string | Buffer,
-	output: OutputSpecificAssetData
+	output: OutputSpecificFileData
 ): string {
 	return makeUnique(
 		renderNamePattern(output.assetFileNames, 'assetFileNames', placeholder => {
@@ -49,9 +50,11 @@ function getAssetFileName(
 	);
 }
 
-function addAssetToBundle(asset: Asset, output: OutputSpecificAssetData) {
+type EmittedAssetWithSource = EmittedAsset & { source: string | Buffer };
+
+function addAssetToBundle(asset: EmittedAssetWithSource, output: OutputSpecificFileData) {
 	const fileName = getAssetFileName(asset.name, asset.source, output);
-	asset.fileName = fileName;
+	output.assignedFileNames.set(asset, fileName);
 	output.bundle[fileName] = {
 		fileName,
 		isAsset: true,
@@ -62,70 +65,78 @@ function addAssetToBundle(asset: Asset, output: OutputSpecificAssetData) {
 // TODO Lukas general assumption: Having a source means having a reliable filename
 // TODO Lukas only access filename during generate? Or disallow setSource if there is a fileName?
 export class FileEmitter {
-	// TODO Lukas change everything to files instead of assets
-	private assetsByReferenceId: Map<string, Asset> = new Map<string, Asset>();
-	private buildAssetsByReferenceId = this.assetsByReferenceId;
-	private output: OutputSpecificAssetData | null = null;
+	private filesByReferenceId: Map<string, EmittedAsset> = new Map<string, EmittedAsset>();
+	// tslint:disable member-ordering
+	private buildFilesByReferenceId = this.filesByReferenceId;
+	private output: OutputSpecificFileData | null = null;
 
 	public emitFile = (emittedFile: EmittedFile): string => {
 		if (emittedFile.type !== 'asset') {
 			throw new Error(`Unhandled file type ${emittedFile.type}`);
 		}
-		const { name, source } = emittedFile;
-		if (typeof name !== 'string' || !isPlainName(name)) {
-			return error(errInvalidAssetName(name as any));
+		if (typeof emittedFile.name !== 'string' || !isPlainName(emittedFile.name)) {
+			return error(errInvalidAssetName(emittedFile.name));
 		}
-		// TODO Lukas allow fileName to be undefined or null in type
-		const asset: Asset = { name, source: source as string | Buffer, fileName: undefined as any };
-		if (this.output && source !== undefined) {
-			addAssetToBundle(asset, this.output);
+		if (this.output && emittedFile.source !== undefined) {
+			addAssetToBundle(emittedFile as EmittedAssetWithSource, this.output);
 		}
-		return addWithNewReferenceId(asset, this.assetsByReferenceId, name);
+		return addWithNewReferenceId(emittedFile, this.filesByReferenceId, emittedFile.name);
 	};
 
 	public finaliseAssets() {
-		for (const asset of this.assetsByReferenceId.values()) {
-			if (asset.source === undefined) error(errNoAssetSourceSet(asset.name));
+		for (const emittedFile of this.filesByReferenceId.values()) {
+			if (emittedFile.type === 'asset' && emittedFile.source === undefined)
+				error(errNoAssetSourceSet(emittedFile.name));
 		}
 	}
 
 	public getFileName = (fileReferenceId: string) => {
-		const asset = this.assetsByReferenceId.get(fileReferenceId);
-		if (!asset) return error(errAssetReferenceIdNotFoundForFilename(fileReferenceId));
-		// TODO Lukas error: source not set for filename
-		if (asset.source === undefined) return error(errAssetNotFinalisedForFileName(asset));
-		return asset.fileName;
+		const emittedFile = this.filesByReferenceId.get(fileReferenceId);
+		if (!emittedFile) return error(errAssetReferenceIdNotFoundForFilename(fileReferenceId));
+		// TODO Lukas and there is no pre-assigned name
+		if (!this.output) {
+			// TODO Lukas proper error
+			throw new Error('Cannot get file name during build phase');
+		}
+		const fileName = this.output.assignedFileNames.get(emittedFile);
+		if (typeof fileName !== 'string') {
+			return error(errAssetNotFinalisedForFileName(emittedFile.name));
+		}
+		return fileName;
 	};
 
+	// TODO Lukas this should only be allowed
+	//  - unlimited times during build phase or
+	//  - at most once during generate phase if no source has been set yet
 	public setFileSource = (fileReferenceId: string, source?: string | Buffer) => {
-		const asset = this.assetsByReferenceId.get(fileReferenceId);
-		if (!asset) return error(errAssetReferenceIdNotFoundForSetSource(fileReferenceId));
-		// TODO Lukas can we allow this as long as output is not set?
-		if (asset.source !== undefined) return error(errAssetSourceAlreadySet(asset));
+		const emittedFile = this.filesByReferenceId.get(fileReferenceId);
+		if (!emittedFile) return error(errAssetReferenceIdNotFoundForSetSource(fileReferenceId));
+		if (emittedFile.source !== undefined) return error(errAssetSourceAlreadySet(emittedFile.name));
 		// TODO Lukas check for string | Buffer instead?
 		if (typeof source !== 'string' && !source) {
-			return error(errAssetSourceMissingForSetSource(asset));
+			return error(errAssetSourceMissingForSetSource(emittedFile.name));
 		}
 		if (this.output) {
 			// We must not modify the original assets to not interact with other outputs
-			const assetWithSource = { ...asset, source };
-			this.assetsByReferenceId.set(fileReferenceId, assetWithSource);
+			const assetWithSource = { ...emittedFile, source };
+			this.filesByReferenceId.set(fileReferenceId, assetWithSource);
 			addAssetToBundle(assetWithSource, this.output);
 		} else {
-			asset.source = source;
+			emittedFile.source = source;
 		}
 	};
 
 	// TODO Lukas how do we unfinalize assets for different outputs that have their source set during generate? Test!
 	public startOutput(outputBundle: OutputBundle, assetFileNames: string) {
-		(this.assetsByReferenceId = new Map(this.buildAssetsByReferenceId)),
-			(this.output = {
-				assetFileNames,
-				bundle: outputBundle
-			});
-		for (const asset of this.assetsByReferenceId.values()) {
-			if (asset.source !== undefined) {
-				addAssetToBundle(asset, this.output);
+		this.filesByReferenceId = new Map(this.buildFilesByReferenceId);
+		this.output = {
+			assetFileNames,
+			assignedFileNames: new Map(),
+			bundle: outputBundle
+		};
+		for (const emittedFile of this.filesByReferenceId.values()) {
+			if (emittedFile.source !== undefined) {
+				addAssetToBundle(emittedFile as EmittedAssetWithSource, this.output);
 			}
 		}
 	}
