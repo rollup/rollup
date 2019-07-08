@@ -11,9 +11,9 @@ System.register([], function (exports, module) {
 			console.log(module.meta.privateProp);
 			console.log(module.meta);
 
-			console.log('url=system.js:configure-import-meta-url/main.js');
-			console.log('privateProp=system.js:configure-import-meta-url/main.js');
-			console.log('null=system.js:configure-import-meta-url/main.js');
+			console.log('url=system.js:resolve-import-meta-url/main.js');
+			console.log('privateProp=system.js:resolve-import-meta-url/main.js');
+			console.log('null=system.js:resolve-import-meta-url/main.js');
 
 		}
 	};
