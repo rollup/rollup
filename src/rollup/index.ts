@@ -198,6 +198,7 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 					const assetFileNames = outputOptions.assetFileNames || 'assets/[name]-[hash][extname]';
 					const outputBundle: OutputBundle = Object.create(null);
 					const inputBase = commondir(getAbsoluteEntryModulePaths(chunks));
+					// TODO Lukas throw error when emitting assets or setting their source in outputOptions or make it work?
 					graph.pluginDriver.startOutput(outputBundle, assetFileNames);
 
 					return graph.pluginDriver

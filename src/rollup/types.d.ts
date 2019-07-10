@@ -111,8 +111,8 @@ export interface TransformModuleJSON {
 export interface ModuleJSON extends TransformModuleJSON {
 	dependencies: string[];
 	id: string;
-	transformAssets: Asset[] | undefined;
 	transformChunks: EmittedChunk[] | undefined;
+	transformFiles: EmittedFile[] | undefined;
 }
 
 export interface EmittedChunk {
@@ -172,8 +172,12 @@ export interface PluginContext extends MinimalPluginContext {
 	emitChunk: EmitChunk;
 	emitFile: EmitFile;
 	error: (err: RollupError | string, pos?: number | { column: number; line: number }) => never;
+	/** @deprecated Use `this.getFileName` instead */
 	getAssetFileName: (assetReferenceId: string) => string;
+	/** @deprecated Use `this.getFileName` instead */
 	getChunkFileName: (chunkReferenceId: string) => string;
+	// TODO Lukas test
+	getFileName: (fileReferenceId: string) => string;
 	getModuleInfo: (
 		moduleId: string
 	) => {
@@ -304,6 +308,7 @@ export type ResolveFileUrlHook = (
 		fileName: string;
 		format: string;
 		moduleId: string;
+		referenceId: string;
 		relativePath: string;
 	}
 ) => string | null | undefined;

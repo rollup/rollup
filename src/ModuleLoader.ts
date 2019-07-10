@@ -333,9 +333,9 @@ export class ModuleLoader {
 					!cachedModule.customTransformCache &&
 					cachedModule.originalCode === sourceDescription.code
 				) {
-					if (cachedModule.transformAssets) {
-						for (const { name, source } of cachedModule.transformAssets)
-							this.pluginDriver.emitFile({ type: 'asset', name, source });
+					if (cachedModule.transformFiles) {
+						for (const emittedFile of cachedModule.transformFiles)
+							this.pluginDriver.emitFile(emittedFile);
 					}
 					if (cachedModule.transformChunks) {
 						for (const { id, options } of cachedModule.transformChunks)

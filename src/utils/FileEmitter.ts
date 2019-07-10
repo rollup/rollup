@@ -15,9 +15,12 @@ import { addWithNewReferenceId } from './referenceIds';
 import { isPlainName } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';
 
-// TODO Lukas setFileSource in transform needs to be repeated as well
+// TODO Lukas setAssetSource in transform needs to be repeated as well
+// TODO Lukas use EmittedFile and ConsumedEmittedFile types?
 interface OutputSpecificFileData {
 	assetFileNames: string;
+	// TODO Lukas instead of this map and relying on references, how about replacing the emitted file in
+	// this.filesByReferenceId?
 	assignedFileNames: Map<EmittedFile, string>;
 	bundle: OutputBundle;
 }
@@ -108,7 +111,7 @@ export class FileEmitter {
 	// TODO Lukas this should only be allowed
 	//  - unlimited times during build phase or
 	//  - at most once during generate phase if no source has been set yet
-	public setFileSource = (fileReferenceId: string, source?: string | Buffer) => {
+	public setAssetSource = (fileReferenceId: string, source?: string | Buffer) => {
 		const emittedFile = this.filesByReferenceId.get(fileReferenceId);
 		if (!emittedFile) return error(errAssetReferenceIdNotFoundForSetSource(fileReferenceId));
 		if (emittedFile.source !== undefined) return error(errAssetSourceAlreadySet(emittedFile.name));

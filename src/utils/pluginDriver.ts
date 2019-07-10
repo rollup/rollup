@@ -33,7 +33,7 @@ export interface PluginDriver {
 	emitFile: EmitFile;
 	hasLoadersOrTransforms: boolean;
 	finaliseAssets(): void;
-	getAssetFileName(assetReferenceId: string): string;
+	getFileName(assetReferenceId: string): string;
 	hookFirst<H extends keyof PluginHooks, R = ReturnType<PluginHooks[H]>>(
 		hook: H,
 		args: Args<PluginHooks[H]>,
@@ -160,7 +160,16 @@ export function createPluginDriver(
 				graph.watchFiles[id] = true;
 			},
 			cache: cacheInstance,
-			emitAsset: (name, source) => fileEmitter.emitFile({ type: 'asset', name, source }),
+			emitAsset: (name, source) => {
+				graph.warnDeprecation(
+					{
+						message: `The "this.emitAsset" plugin context function used by plugin ${plugin.name} is deprecated. The "this.emitFile" plugin context function should be used instead with "type: 'asset'".`,
+						plugin: plugin.name
+					},
+					false
+				);
+				return fileEmitter.emitFile({ type: 'asset', name, source });
+			},
 			emitChunk(id, options) {
 				if (graph.phase > BuildPhase.LOAD_AND_PARSE)
 					this.error(errInvalidRollupPhaseForEmitChunk());
@@ -178,6 +187,7 @@ export function createPluginDriver(
 			getChunkFileName(chunkReferenceId) {
 				return graph.moduleLoader.getChunkFileName(chunkReferenceId);
 			},
+			getFileName: fileEmitter.getFileName,
 			getModuleInfo(moduleId) {
 				const foundModule = graph.moduleById.get(moduleId);
 				if (foundModule == null) {
@@ -243,7 +253,7 @@ export function createPluginDriver(
 						.then(resolveId => resolveId && resolveId.id);
 				};
 			})(),
-			setAssetSource: fileEmitter.setFileSource,
+			setAssetSource: fileEmitter.setAssetSource,
 			warn(warning) {
 				if (typeof warning === 'string') warning = { message: warning } as RollupWarning;
 				if (warning.code) warning.pluginCode = warning.code;
@@ -369,7 +379,7 @@ export function createPluginDriver(
 		finaliseAssets() {
 			fileEmitter.finaliseAssets();
 		},
-		getAssetFileName: fileEmitter.getFileName,
+		getFileName: fileEmitter.getFileName,
 		hasLoadersOrTransforms,
 
 		// chains, ignores returns

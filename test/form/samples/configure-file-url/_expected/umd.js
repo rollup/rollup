@@ -3,7 +3,7 @@
 	factory();
 }(function () { 'use strict';
 
-	var asset1 = 'chunkId=umd.js:moduleId=solved:fileName=assets/asset-solved-28a7ac89.txt:format=umd:relativePath=assets/asset-solved-28a7ac89.txt:assetReferenceId=6296c678:chunkReferenceId=null';
+	var asset1 = 'chunkId=umd.js:moduleId=solved:fileName=assets/asset-solved-28a7ac89.txt:format=umd:relativePath=assets/asset-solved-28a7ac89.txt:referenceId=6296c678';
 
 	var asset2 = 'resolved';
 

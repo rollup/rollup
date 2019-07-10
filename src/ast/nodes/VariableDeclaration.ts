@@ -131,6 +131,7 @@ export default class VariableDeclaration extends NodeBase {
 		options: RenderOptions,
 		{ start = this.start, end = this.end, isNoStatement }: NodeRenderOptions
 	): void {
+		// TODO Lukas fix this
 		const separatedNodes = getCommaSeparatedNodesWithBoundaries(
 			this.declarations,
 			code,
