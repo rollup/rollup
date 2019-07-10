@@ -120,13 +120,6 @@ export interface EmittedChunk {
 	options: { name?: string } | undefined;
 }
 
-// TODO Lukas get rid of this type
-export interface Asset {
-	fileName: string;
-	name: string;
-	source: string | Buffer;
-}
-
 export interface PluginCache {
 	delete(id: string): boolean;
 	get<T = any>(id: string): T;
@@ -176,7 +169,6 @@ export interface PluginContext extends MinimalPluginContext {
 	getAssetFileName: (assetReferenceId: string) => string;
 	/** @deprecated Use `this.getFileName` instead */
 	getChunkFileName: (chunkReferenceId: string) => string;
-	// TODO Lukas test
 	getFileName: (fileReferenceId: string) => string;
 	getModuleInfo: (
 		moduleId: string

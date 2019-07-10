@@ -118,6 +118,30 @@ export function createPluginDriver(
 	watcher?: RollupWatcher
 ): PluginDriver {
 	warnDeprecatedHooks(options.plugins as Plugin[], graph);
+
+	function getDeprecatedHookHandler<H extends Function>(
+		handler: H,
+		handlerName: string,
+		newHandlerName: string,
+		pluginName: string,
+		acitveDeprecation: boolean
+	): H {
+		let deprecationWarningShown = false;
+		return (((...args: any[]) => {
+			if (!deprecationWarningShown) {
+				deprecationWarningShown = true;
+				graph.warnDeprecation(
+					{
+						message: `The "this.${handlerName}" plugin context function used by plugin ${pluginName} is deprecated. The "this.${newHandlerName}" plugin context function should be used instead.`,
+						plugin: pluginName
+					},
+					acitveDeprecation
+				);
+			}
+			return handler(...args);
+		}) as unknown) as H;
+	}
+
 	const plugins = [
 		...(options.plugins as Plugin[]),
 		getRollupDefaultPlugin(options.preserveSymlinks as boolean)
@@ -160,16 +184,14 @@ export function createPluginDriver(
 				graph.watchFiles[id] = true;
 			},
 			cache: cacheInstance,
-			emitAsset: (name, source) => {
-				graph.warnDeprecation(
-					{
-						message: `The "this.emitAsset" plugin context function used by plugin ${plugin.name} is deprecated. The "this.emitFile" plugin context function should be used instead with "type: 'asset'".`,
-						plugin: plugin.name
-					},
-					false
-				);
-				return fileEmitter.emitFile({ type: 'asset', name, source });
-			},
+			emitAsset: getDeprecatedHookHandler(
+				(name: string, source?: string | Buffer) =>
+					fileEmitter.emitFile({ type: 'asset', name, source }),
+				'emitAsset',
+				'emitFile',
+				plugin.name,
+				false
+			),
 			emitChunk(id, options) {
 				if (graph.phase > BuildPhase.LOAD_AND_PARSE)
 					this.error(errInvalidRollupPhaseForEmitChunk());
@@ -183,7 +205,13 @@ export function createPluginDriver(
 				err.plugin = plugin.name;
 				return error(err);
 			},
-			getAssetFileName: fileEmitter.getFileName,
+			getAssetFileName: getDeprecatedHookHandler(
+				fileEmitter.getFileName,
+				'getAssetFileName',
+				'getFileName',
+				plugin.name,
+				false
+			),
 			getChunkFileName(chunkReferenceId) {
 				return graph.moduleLoader.getChunkFileName(chunkReferenceId);
 			},
@@ -205,22 +233,14 @@ export function createPluginDriver(
 					isExternal: foundModule instanceof ExternalModule
 				};
 			},
-			isExternal: (() => {
-				let deprecationWarningShown = false;
-				return (id: string, parentId: string, isResolved = false) => {
-					if (!deprecationWarningShown) {
-						deprecationWarningShown = true;
-						graph.warnDeprecation(
-							{
-								message: `The "this.isExternal" plugin context function used by plugin ${plugin.name} is deprecated. The "this.resolve" plugin context function should be used instead.`,
-								plugin: plugin.name
-							},
-							false
-						);
-					}
-					return graph.moduleLoader.isExternal(id, parentId, isResolved);
-				};
-			})(),
+			isExternal: getDeprecatedHookHandler(
+				(id: string, parentId: string, isResolved = false) =>
+					graph.moduleLoader.isExternal(id, parentId, isResolved),
+				'isExternal',
+				'resolve',
+				plugin.name,
+				false
+			),
 			meta: {
 				rollupVersion
 			},
@@ -235,24 +255,16 @@ export function createPluginDriver(
 					options && options.skipSelf ? pidx : null
 				);
 			},
-			resolveId: (() => {
-				let deprecationWarningShown = false;
-				return (source: string, importer: string) => {
-					if (!deprecationWarningShown) {
-						deprecationWarningShown = true;
-						graph.warnDeprecation(
-							{
-								message: `The "this.resolveId" plugin context function used by plugin ${plugin.name} is deprecated. The "this.resolve" plugin context function should be used instead.`,
-								plugin: plugin.name
-							},
-							false
-						);
-					}
-					return graph.moduleLoader
+			resolveId: getDeprecatedHookHandler(
+				(source: string, importer: string) =>
+					graph.moduleLoader
 						.resolveId(source, importer)
-						.then(resolveId => resolveId && resolveId.id);
-				};
-			})(),
+						.then(resolveId => resolveId && resolveId.id),
+				'resolveId',
+				'resolve',
+				plugin.name,
+				false
+			),
 			setAssetSource: fileEmitter.setAssetSource,
 			warn(warning) {
 				if (typeof warning === 'string') warning = { message: warning } as RollupWarning;

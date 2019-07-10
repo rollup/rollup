@@ -50,7 +50,7 @@ module.exports = {
 				this.setAssetSource(localAsset, options.format);
 				this.setAssetSource(
 					generateBundle,
-					`generateBundle ${options.format} with ${this.getAssetFileName(localAsset)}`
+					`generateBundle ${options.format} with ${this.getFileName(localAsset)}`
 				);
 			}
 		}
