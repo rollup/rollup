@@ -414,6 +414,10 @@ Use the second form if you need to add additional properties to your warning obj
 
 The `position` argument is a character index where the warning was raised. If present, Rollup will augment the warning object with `pos`, `loc` (a standard `{ file, line, column }` object) and `frame` (a snippet of code showing the error).
 
+### `this.getCombinedSourceMap() => SourceMap`
+
+Get the combined source maps of all previous plugins. This context function can only be used in [`transform`](guide/en/#transform) plugin hook.
+
 ### Deprecated Context Functions
 
 ☢️ These context utility functions have been deprecated and may be removed in a future Rollup version.

@@ -1,3 +1,4 @@
+import MagicString, { DecodedSourceMap, SourceMap } from 'magic-string';
 import Graph from '../Graph';
 import Module from '../Module';
 import {
@@ -5,6 +6,7 @@ import {
 	DecodedSourceMapOrMissing,
 	EmitAsset,
 	EmittedChunk,
+	ExistingDecodedSourceMap,
 	Plugin,
 	PluginCache,
 	PluginContext,
@@ -15,6 +17,7 @@ import {
 	TransformSourceDescription
 } from '../rollup/types';
 import { createTransformEmitAsset } from './assetHooks';
+import { collapseSourcemap } from './collapseSourcemaps';
 import { decodedSourcemap } from './decodedSourcemap';
 import { augmentCodeLocation, error } from './error';
 import { dirname, resolve } from './path';
@@ -28,7 +31,7 @@ export default function transform(
 	const id = module.id;
 	const sourcemapChain: DecodedSourceMapOrMissing[] = [];
 
-	const originalSourcemap = source.map === null ? null : decodedSourcemap(source.map);
+	let originalSourcemap = source.map === null ? null : decodedSourcemap(source.map);
 	const baseEmitAsset = graph.pluginDriver.emitAsset;
 	const originalCode = source.code;
 	let ast = source.ast;
@@ -159,6 +162,27 @@ export default function transform(
 								setAssetSourceErr = err;
 							}
 						}
+					},
+					getCombinedSourceMap() {
+						const combinedMap = collapseSourcemap(
+							graph,
+							id,
+							originalCode,
+							originalSourcemap as ExistingDecodedSourceMap,
+							sourcemapChain
+						);
+						if (!combinedMap) {
+							const magicString = new MagicString(originalCode);
+							return magicString.generateMap({ includeContent: true, hires: true, source: id });
+						}
+						if (originalSourcemap !== combinedMap) {
+							originalSourcemap = { version: 3, ...combinedMap };
+							sourcemapChain.length = 0;
+						}
+						return new SourceMap({
+							...combinedMap,
+							file: null as any
+						} as DecodedSourceMap);
 					}
 				};
 			}
