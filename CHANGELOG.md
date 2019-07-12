@@ -1,5 +1,15 @@
 # rollup changelog
 
+## 1.16.7
+*2019-07-09*
+
+### Bug Fixes
+* Fix an issue where exported import.meta properties would lead to invalid code (#2986)
+
+### Pull Requests
+* [#2985](https://github.com/rollup/rollup/pull/2985): Improve sourcemap types (@jridgewell)
+* [#2986](https://github.com/rollup/rollup/pull/2986): Only overwrite content when resolving import.meta properties (@lukastaegert)
+
 ## 1.16.6
 *2019-07-04*
 
