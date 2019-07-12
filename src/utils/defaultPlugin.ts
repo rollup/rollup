@@ -112,7 +112,10 @@ const getRelativeUrlFromDocument = (relativePath: string) =>
 	);
 
 const relativeUrlMechanisms: Record<string, (relativePath: string) => string> = {
-	amd: relativePath => getResolveUrl(`require.toUrl('${relativePath}'), document.baseURI`),
+	amd: relativePath => {
+		if (relativePath[0] !== '.') relativePath = './' + relativePath;
+		return getResolveUrl(`require.toUrl('${relativePath}'), document.baseURI`);
+	},
 	cjs: relativePath =>
 		`(typeof document === 'undefined' ? ${getResolveUrl(
 			`'file:' + __dirname + '/${relativePath}'`,

@@ -37,9 +37,9 @@ export enum Errors {
 	ASSET_SOURCE_ALREADY_SET = 'ASSET_SOURCE_ALREADY_SET',
 	ASSET_SOURCE_MISSING = 'ASSET_SOURCE_MISSING',
 	BAD_LOADER = 'BAD_LOADER',
-	CHUNK_NOT_FOUND = 'CHUNK_NOT_FOUND',
 	CHUNK_NOT_GENERATED = 'CHUNK_NOT_GENERATED',
 	DEPRECATED_FEATURE = 'DEPRECATED_FEATURE',
+	FILE_NOT_FOUND = 'FILE_NOT_FOUND',
 	INVALID_ASSET_NAME = 'INVALID_ASSET_NAME',
 	INVALID_CHUNK = 'INVALID_CHUNK',
 	INVALID_EXTERNAL_ID = 'INVALID_EXTERNAL_ID',
@@ -58,17 +58,10 @@ export function errAssetNotFinalisedForFileName(name: string) {
 	};
 }
 
-export function errChunkNotGeneratedForFileName(entry: { name: string }) {
+export function errChunkNotGeneratedForFileName(name: string) {
 	return {
 		code: Errors.CHUNK_NOT_GENERATED,
-		message: `Plugin error - Unable to get file name for chunk "${entry.name}". Ensure that generate is called first.`
-	};
-}
-
-export function errAssetReferenceIdNotFoundForFilename(assetReferenceId: string) {
-	return {
-		code: Errors.ASSET_NOT_FOUND,
-		message: `Plugin error - Unable to get file name for unknown asset "${assetReferenceId}".`
+		message: `Plugin error - Unable to get file name for chunk "${name}". Ensure that generate is called first.`
 	};
 }
 
@@ -109,17 +102,17 @@ export function errBadLoader(id: string) {
 	};
 }
 
-export function errChunkReferenceIdNotFoundForFilename(chunkReferenceId: string) {
-	return {
-		code: Errors.CHUNK_NOT_FOUND,
-		message: `Plugin error - Unable to get file name for unknown chunk "${chunkReferenceId}".`
-	};
-}
-
 export function errDeprecation(deprecation: string | RollupWarning) {
 	return {
 		code: Errors.DEPRECATED_FEATURE,
 		...(typeof deprecation === 'string' ? { message: deprecation } : deprecation)
+	};
+}
+
+export function errFileReferenceIdNotFoundForFilename(assetReferenceId: string) {
+	return {
+		code: Errors.FILE_NOT_FOUND,
+		message: `Plugin error - Unable to get file name for unknown file "${assetReferenceId}".`
 	};
 }
 
@@ -166,10 +159,10 @@ export function errInvalidRollupPhaseForAddWatchFile() {
 	};
 }
 
-export function errInvalidRollupPhaseForEmitChunk() {
+export function errInvalidRollupPhaseForChunkEmission() {
 	return {
 		code: Errors.INVALID_ROLLUP_PHASE,
-		message: `Cannot call emitChunk after module loading has finished.`
+		message: `Cannot emit chunks after module loading has finished.`
 	};
 }
 

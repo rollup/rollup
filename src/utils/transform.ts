@@ -3,7 +3,6 @@ import Graph from '../Graph';
 import Module from '../Module';
 import {
 	DecodedSourceMapOrMissing,
-	EmittedChunk,
 	EmittedFile,
 	Plugin,
 	PluginCache,
@@ -32,7 +31,6 @@ export default function transform(
 	const originalCode = source.code;
 	let ast = source.ast;
 	let transformDependencies: string[];
-	const emittedChunks: EmittedChunk[] = [];
 	const emittedFiles: EmittedFile[] = [];
 	let customTransformCache = false;
 	let moduleSideEffects: boolean | null = null;
@@ -56,10 +54,8 @@ export default function transform(
 				}
 			}
 		} else {
-			// assets/chunks emitted by a transform hook need to be emitted again if the hook is skipped
+			// files emitted by a transform hook need to be emitted again if the hook is skipped
 			if (emittedFiles.length) module.transformFiles = emittedFiles;
-			if (emittedChunks.length) module.transformChunks = emittedChunks;
-
 			if (result && typeof result === 'object' && Array.isArray(result.dependencies)) {
 				// not great, but a useful way to track this without assuming WeakMap
 				if (!(curPlugin as any).warnedTransformDependencies)
@@ -136,8 +132,9 @@ export default function transform(
 						return graph.pluginDriver.emitFile(emittedFile);
 					},
 					emitChunk(id, options) {
-						emittedChunks.push({ id, options });
-						return graph.pluginDriver.emitChunk(id, options);
+						const emittedFile = { type: 'chunk' as 'chunk', id, name: options && options.name };
+						emittedFiles.push({ ...emittedFile });
+						return graph.pluginDriver.emitFile(emittedFile);
 					},
 					emitFile(emittedFile: EmittedFile) {
 						// TODO Lukas test that we are creating a copy or in the future, do not mutate emitted files

@@ -1,5 +1,4 @@
 import * as ESTree from 'estree';
-import Chunk from './Chunk';
 import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import Module from './Module';
@@ -17,8 +16,6 @@ import {
 import {
 	errBadLoader,
 	errCannotAssignModuleToChunk,
-	errChunkNotGeneratedForFileName,
-	errChunkReferenceIdNotFoundForFilename,
 	errEntryCannotBeExternal,
 	errInternalIdCannotBeExternal,
 	errInvalidOption,
@@ -30,7 +27,6 @@ import {
 } from './utils/error';
 import { isRelative, resolve } from './utils/path';
 import { PluginDriver } from './utils/pluginDriver';
-import { addWithNewReferenceId } from './utils/referenceIds';
 import relativeId from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
 import transform from './utils/transform';
@@ -97,10 +93,6 @@ function getHasModuleSideEffects(
 
 export class ModuleLoader {
 	readonly isExternal: IsExternal;
-	private readonly entriesByReferenceId = new Map<
-		string,
-		{ module: Module | null; name: string }
-	>();
 	private readonly entryModules: Module[] = [];
 	private readonly getManualChunk: GetManualChunk;
 	private readonly graph: Graph;
@@ -129,27 +121,6 @@ export class ModuleLoader {
 			graph
 		);
 		this.getManualChunk = typeof getManualChunk === 'function' ? getManualChunk : () => null;
-	}
-
-	addEntryModuleAndGetReferenceId(unresolvedEntryModule: UnresolvedModuleWithAlias): string {
-		const entryRecord: { module: Module | null; name: string } = {
-			module: null,
-			name: unresolvedEntryModule.unresolvedId
-		};
-		const referenceId = addWithNewReferenceId(
-			entryRecord,
-			this.entriesByReferenceId,
-			unresolvedEntryModule.unresolvedId
-		);
-		this.addEntryModules([unresolvedEntryModule], false)
-			.then(({ newEntryModules: [module] }) => {
-				entryRecord.module = module;
-			})
-			.catch(() => {
-				// Avoid unhandled Promise rejection as the error will be thrown later
-				// once module loading has finished
-			});
-		return referenceId;
 	}
 
 	addEntryModules(
@@ -203,18 +174,6 @@ export class ModuleLoader {
 		});
 
 		return this.awaitLoadModulesPromise(loadNewManualChunkModulesPromise);
-	}
-
-	getChunkFileName(referenceId: string): string {
-		const entryRecord = this.entriesByReferenceId.get(referenceId);
-		if (!entryRecord) return error(errChunkReferenceIdNotFoundForFilename(referenceId));
-		const fileName =
-			entryRecord.module &&
-			(entryRecord.module.facadeChunk
-				? entryRecord.module.facadeChunk.id
-				: (entryRecord.module.chunk as Chunk).id);
-		if (!fileName) return error(errChunkNotGeneratedForFileName(entryRecord));
-		return fileName;
 	}
 
 	async resolveId(
@@ -336,10 +295,6 @@ export class ModuleLoader {
 					if (cachedModule.transformFiles) {
 						for (const emittedFile of cachedModule.transformFiles)
 							this.pluginDriver.emitFile(emittedFile);
-					}
-					if (cachedModule.transformChunks) {
-						for (const { id, options } of cachedModule.transformChunks)
-							this.pluginDriver.emitChunk(id, options);
 					}
 					return cachedModule;
 				}

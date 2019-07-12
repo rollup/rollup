@@ -1,5 +1,5 @@
 module.exports = {
-	description: 'marks this.emitAsset as deprecated',
+	description: 'marks this.getAssetFileName as deprecated',
 	options: {
 		plugins: {
 			renderChunk() {

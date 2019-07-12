@@ -4,7 +4,6 @@ import ExternalModule from '../ExternalModule';
 import Graph from '../Graph';
 import Module from '../Module';
 import {
-	EmitChunk,
 	EmitFile,
 	InputOptions,
 	OutputBundle,
@@ -18,18 +17,13 @@ import {
 } from '../rollup/types';
 import { BuildPhase } from './buildPhase';
 import { getRollupDefaultPlugin } from './defaultPlugin';
-import {
-	errInvalidRollupPhaseForAddWatchFile,
-	errInvalidRollupPhaseForEmitChunk,
-	error
-} from './error';
+import { errInvalidRollupPhaseForAddWatchFile, error } from './error';
 import { FileEmitter } from './FileEmitter';
 
 type Args<T> = T extends (...args: infer K) => any ? K : never;
 type EnsurePromise<T> = Promise<T extends Promise<infer K> ? K : T>;
 
 export interface PluginDriver {
-	emitChunk: EmitChunk;
 	emitFile: EmitFile;
 	hasLoadersOrTransforms: boolean;
 	finaliseAssets(): void;
@@ -146,7 +140,7 @@ export function createPluginDriver(
 		...(options.plugins as Plugin[]),
 		getRollupDefaultPlugin(options.preserveSymlinks as boolean)
 	];
-	const fileEmitter = new FileEmitter();
+	const fileEmitter = new FileEmitter(graph);
 	const existingPluginKeys = new Set<string>();
 	let hasLoadersOrTransforms = false;
 
@@ -192,11 +186,14 @@ export function createPluginDriver(
 				plugin.name,
 				false
 			),
-			emitChunk(id, options) {
-				if (graph.phase > BuildPhase.LOAD_AND_PARSE)
-					this.error(errInvalidRollupPhaseForEmitChunk());
-				return pluginDriver.emitChunk(id, options);
-			},
+			emitChunk: getDeprecatedHookHandler(
+				(id: string, options?: { name?: string }) =>
+					fileEmitter.emitFile({ type: 'chunk', id, name: options && options.name }),
+				'emitChunk',
+				'emitFile',
+				plugin.name,
+				false
+			),
 			emitFile: fileEmitter.emitFile,
 			error(err): never {
 				if (typeof err === 'string') err = { message: err };
@@ -212,9 +209,13 @@ export function createPluginDriver(
 				plugin.name,
 				false
 			),
-			getChunkFileName(chunkReferenceId) {
-				return graph.moduleLoader.getChunkFileName(chunkReferenceId);
-			},
+			getChunkFileName: getDeprecatedHookHandler(
+				fileEmitter.getFileName,
+				'getChunkFileName',
+				'getFileName',
+				plugin.name,
+				false
+			),
 			getFileName: fileEmitter.getFileName,
 			getModuleInfo(moduleId) {
 				const foundModule = graph.moduleById.get(moduleId);
@@ -382,12 +383,6 @@ export function createPluginDriver(
 
 	const pluginDriver: PluginDriver = {
 		emitFile: fileEmitter.emitFile,
-		emitChunk(id, options) {
-			return graph.moduleLoader.addEntryModuleAndGetReferenceId({
-				alias: (options && options.name) || null,
-				unresolvedId: id
-			});
-		},
 		finaliseAssets() {
 			fileEmitter.finaliseAssets();
 		},

@@ -111,13 +111,7 @@ export interface TransformModuleJSON {
 export interface ModuleJSON extends TransformModuleJSON {
 	dependencies: string[];
 	id: string;
-	transformChunks: EmittedChunk[] | undefined;
 	transformFiles: EmittedFile[] | undefined;
-}
-
-export interface EmittedChunk {
-	id: string;
-	options: { name?: string } | undefined;
 }
 
 export interface PluginCache {
@@ -131,29 +125,28 @@ export interface MinimalPluginContext {
 	meta: PluginContextMeta;
 }
 
-export type EmitAsset = (name: string, source?: string | Buffer) => string;
-export type EmitChunk = (name: string, options?: { name?: string }) => string;
-
 // TODO Lukas do not forget caching tests for files
 // TODO Lukas can there be interactions in names between multiple outputs?
+// TODO Lukas can we make "name" optional to align the interfaces?
 export interface EmittedAsset {
 	name: string;
 	source?: string | Buffer;
 	type: 'asset';
 }
 
-export type EmittedFile =
-	| EmittedAsset
-	| {
-			entryId: string;
-			name?: string;
-			type: 'chunk';
-	  }
-	| {
-			fileName: string;
-			source?: string | Buffer;
-			type: 'file';
-	  };
+// TODO Lukas is it possible to control the generated fileName directly?
+export interface EmittedChunk {
+	id: string;
+	name?: string;
+	type: 'chunk';
+}
+
+export type EmittedFile = EmittedAsset | EmittedChunk;
+
+export type EmitAsset = (name: string, source?: string | Buffer) => string;
+
+export type EmitChunk = (id: string, options?: { name?: string }) => string;
+
 export type EmitFile = (emittedFile: EmittedFile) => string;
 
 export interface PluginContext extends MinimalPluginContext {

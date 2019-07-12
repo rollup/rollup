@@ -76,15 +76,19 @@ export default class MetaProperty extends NodeBase {
 				referenceId = metaProperty.substr(FILE_PREFIX.length);
 				fileName = this.context.getFileName(referenceId);
 			} else if (metaProperty.startsWith(ASSET_PREFIX)) {
-				assetReferenceId = metaProperty.substr(ASSET_PREFIX.length);
-				fileName = this.context.getFileName(assetReferenceId);
 				this.context.warnDeprecation(
 					`Using the "${ASSET_PREFIX}" prefix to reference files is deprecated. Use the "${FILE_PREFIX}" prefix instead.`,
 					false
 				);
+				assetReferenceId = metaProperty.substr(ASSET_PREFIX.length);
+				fileName = this.context.getFileName(assetReferenceId);
 			} else {
+				this.context.warnDeprecation(
+					`Using the "${CHUNK_PREFIX}" prefix to reference files is deprecated. Use the "${FILE_PREFIX}" prefix instead.`,
+					false
+				);
 				chunkReferenceId = metaProperty.substr(CHUNK_PREFIX.length);
-				fileName = this.context.getChunkFileName(chunkReferenceId);
+				fileName = this.context.getFileName(chunkReferenceId);
 			}
 			const relativePath = normalize(relative(dirname(chunkId), fileName));
 			let replacement;

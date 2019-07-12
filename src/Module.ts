@@ -32,7 +32,6 @@ import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import {
 	DecodedSourceMapOrMissing,
-	EmittedChunk,
 	EmittedFile,
 	ExistingDecodedSourceMap,
 	ModuleJSON,
@@ -92,7 +91,6 @@ export interface AstContext {
 	deoptimizationTracker: EntityPathTracker;
 	error: (props: RollupError, pos: number) => void;
 	fileName: string;
-	getChunkFileName: (chunkReferenceId: string) => string;
 	getExports: () => string[];
 	getFileName: (fileReferenceId: string) => string;
 	getModuleExecIndex: () => number;
@@ -207,7 +205,6 @@ export default class Module {
 	scope!: ModuleScope;
 	sourcemapChain!: DecodedSourceMapOrMissing[];
 	sources: string[] = [];
-	transformChunks?: EmittedChunk[];
 	transformFiles?: EmittedFile[];
 	usesTopLevelAwait = false;
 
@@ -532,11 +529,9 @@ export default class Module {
 		originalSourcemap,
 		resolvedIds,
 		sourcemapChain,
-		transformChunks,
 		transformDependencies,
 		transformFiles
 	}: TransformModuleJSON & {
-		transformChunks?: EmittedChunk[] | undefined;
 		transformFiles?: EmittedFile[] | undefined;
 	}) {
 		this.code = code;
@@ -545,9 +540,6 @@ export default class Module {
 		this.sourcemapChain = sourcemapChain;
 		if (transformFiles) {
 			this.transformFiles = transformFiles;
-		}
-		if (transformChunks) {
-			this.transformChunks = transformChunks;
 		}
 		this.transformDependencies = transformDependencies;
 		this.customTransformCache = customTransformCache;
@@ -587,7 +579,6 @@ export default class Module {
 			deoptimizationTracker: this.graph.deoptimizationTracker,
 			error: this.error.bind(this),
 			fileName, // Needed for warnings
-			getChunkFileName: this.graph.moduleLoader.getChunkFileName.bind(this.graph.moduleLoader),
 			getExports: this.getExports.bind(this),
 			getFileName: this.graph.pluginDriver.getFileName,
 			getModuleExecIndex: () => this.execIndex,
@@ -637,7 +628,6 @@ export default class Module {
 			originalSourcemap: this.originalSourcemap,
 			resolvedIds: this.resolvedIds,
 			sourcemapChain: this.sourcemapChain,
-			transformChunks: this.transformChunks,
 			transformDependencies: this.transformDependencies,
 			transformFiles: this.transformFiles
 		};

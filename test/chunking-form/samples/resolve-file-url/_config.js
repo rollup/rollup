@@ -18,10 +18,10 @@ module.exports = {
 							name: `asset-${id}.txt`,
 							source: `Asset for: ${id}`
 						});
-						const chunkId = this.emitChunk('chunk.js');
+						const chunkId = this.emitFile({ type: 'chunk', id: 'chunk.js' });
 						return (
 							`export const asset = import.meta.ROLLUP_FILE_URL_${assetId};\n` +
-							`export const chunk = import.meta.ROLLUP_CHUNK_URL_${chunkId};`
+							`export const chunk = import.meta.ROLLUP_FILE_URL_${chunkId};`
 						);
 					}
 				},
