@@ -355,6 +355,10 @@ Get the file name of an asset, according to the `assetFileNames` output option p
 
 Get the file name of an emitted chunk. The file name will be relative to `outputOptions.dir`.
 
+#### `this.getCombinedSourceMap() => SourceMap`
+
+Get the combined source maps of all previous plugins. This context function can only be used in [`transform`](guide/en/#transform) plugin hook.
+
 #### `this.getModuleInfo(moduleId: string) => ModuleInfo`
 
 Returns additional information about the module in question in the form
@@ -413,10 +417,6 @@ this.warn({ message: 'hmm...' });
 Use the second form if you need to add additional properties to your warning object. Rollup will augment the warning object with a `plugin` property containing the plugin name, `code` (`PLUGIN_WARNING`) and `id` (the file being transformed) properties.
 
 The `position` argument is a character index where the warning was raised. If present, Rollup will augment the warning object with `pos`, `loc` (a standard `{ file, line, column }` object) and `frame` (a snippet of code showing the error).
-
-### `this.getCombinedSourceMap() => SourceMap`
-
-Get the combined source maps of all previous plugins. This context function can only be used in [`transform`](guide/en/#transform) plugin hook.
 
 ### Deprecated Context Functions
 

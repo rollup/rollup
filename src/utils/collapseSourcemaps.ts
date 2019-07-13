@@ -146,7 +146,7 @@ class Link {
 	}
 }
 
-function linkMapper(graph: Graph) {
+function getLinkMap(graph: Graph) {
 	return function linkMap(source: Source | Link, map: DecodedSourceMapOrMissing) {
 		if (map.mappings) {
 			return new Link(map, [source]);
@@ -171,14 +171,15 @@ function linkMapper(graph: Graph) {
 	};
 }
 
-function unionSourcemaps(
+function getCollapsedSourcemap(
 	id: string,
 	originalCode: string,
 	originalSourcemap: ExistingDecodedSourceMap | null,
 	sourcemapChain: DecodedSourceMapOrMissing[],
 	linkMap: (source: Source | Link, map: DecodedSourceMapOrMissing) => Link
-) {
+): Source | Link {
 	let source: Source | Link;
+
 	if (!originalSourcemap) {
 		source = new Source(id, originalCode);
 	} else {
@@ -205,11 +206,11 @@ export function collapseSourcemaps(
 	bundleSourcemapChain: DecodedSourceMapOrMissing[],
 	excludeContent: boolean
 ) {
-	const linkMap = linkMapper(bundle.graph);
+	const linkMap = getLinkMap(bundle.graph);
 	const moduleSources = modules
 		.filter(module => !module.excludeFromSourcemap)
 		.map(module =>
-			unionSourcemaps(
+			getCollapsedSourcemap(
 				module.id,
 				module.originalCode,
 				module.originalSourcemap,
@@ -241,20 +242,20 @@ export function collapseSourcemap(
 	graph: Graph,
 	id: string,
 	originalCode: string,
-	originalSourcemap: ExistingDecodedSourceMap,
+	originalSourcemap: ExistingDecodedSourceMap | null,
 	sourcemapChain: DecodedSourceMapOrMissing[]
-) {
+): ExistingDecodedSourceMap | null {
 	if (!sourcemapChain.length) {
 		return originalSourcemap;
 	}
 
-	const source = unionSourcemaps(
+	const source = getCollapsedSourcemap(
 		id,
 		originalCode,
 		originalSourcemap,
 		sourcemapChain,
-		linkMapper(graph)
+		getLinkMap(graph)
 	) as Link;
-
-	return source.traceMappings();
+	const map = source.traceMappings();
+	return { version: 3, ...map };
 }

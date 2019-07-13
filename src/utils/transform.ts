@@ -1,4 +1,4 @@
-import MagicString, { DecodedSourceMap, SourceMap } from 'magic-string';
+import MagicString, { SourceMap } from 'magic-string';
 import Graph from '../Graph';
 import Module from '../Module';
 import {
@@ -6,7 +6,6 @@ import {
 	DecodedSourceMapOrMissing,
 	EmitAsset,
 	EmittedChunk,
-	ExistingDecodedSourceMap,
 	Plugin,
 	PluginCache,
 	PluginContext,
@@ -168,7 +167,7 @@ export default function transform(
 							graph,
 							id,
 							originalCode,
-							originalSourcemap as ExistingDecodedSourceMap,
+							originalSourcemap,
 							sourcemapChain
 						);
 						if (!combinedMap) {
@@ -176,13 +175,14 @@ export default function transform(
 							return magicString.generateMap({ includeContent: true, hires: true, source: id });
 						}
 						if (originalSourcemap !== combinedMap) {
-							originalSourcemap = { version: 3, ...combinedMap };
+							originalSourcemap = combinedMap;
 							sourcemapChain.length = 0;
 						}
 						return new SourceMap({
 							...combinedMap,
-							file: null as any
-						} as DecodedSourceMap);
+							file: null as any,
+							sourcesContent: combinedMap.sourcesContent as string[]
+						});
 					}
 				};
 			}
