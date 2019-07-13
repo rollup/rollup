@@ -4,6 +4,7 @@ import { RollupError, RollupWarning } from '../rollup/types';
 import getCodeFrame from './getCodeFrame';
 import relativeId from './relativeId';
 
+// TODO Lukas check for unused errors when done
 export function error(base: Error | RollupError, props?: RollupError): never {
 	if (base instanceof Error === false) base = Object.assign(new Error(base.message), base);
 	if (props) Object.assign(base, props);

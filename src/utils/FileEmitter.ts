@@ -18,16 +18,13 @@ import {
 } from './error';
 import { extname } from './path';
 import { addWithNewReferenceId } from './referenceIds';
-import { isPlainName } from './relativeId';
+import { isPlainPathFragment } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';
 
 // TODO Lukas setAssetSource in transform needs to be repeated as well
 // TODO Lukas use EmittedFile and ConsumedEmittedFile types?
 interface OutputSpecificFileData {
 	assetFileNames: string;
-	// TODO Lukas instead of this map and relying on references, how about replacing the emitted file in
-	// this.filesByReferenceId?
-	assignedFileNames: Map<EmittedFile, string>;
 	bundle: OutputBundle;
 }
 
@@ -59,13 +56,11 @@ function getAssetFileName(
 	);
 }
 
-type EmittedAssetWithSource = EmittedAsset & { source: string | Buffer };
+type CompleteAsset = ConsumedAsset & { fileName: string; source: string | Buffer };
 
-function addAssetToBundle(asset: EmittedAssetWithSource, output: OutputSpecificFileData) {
-	const fileName = getAssetFileName(asset.name, asset.source, output);
-	output.assignedFileNames.set(asset, fileName);
-	output.bundle[fileName] = {
-		fileName,
+function addAssetToBundle(asset: CompleteAsset, output: OutputSpecificFileData) {
+	output.bundle[asset.fileName] = {
+		fileName: asset.fileName,
 		isAsset: true,
 		source: asset.source
 	};
@@ -77,12 +72,20 @@ interface ConsumedChunk {
 	type: 'chunk';
 }
 
-type ConsumedFile = ConsumedChunk | EmittedAsset;
+interface ConsumedAsset {
+	fileName: string | undefined;
+	name: string | undefined;
+	source: string | Buffer | undefined;
+	type: 'asset';
+}
+
+type ConsumedFile = ConsumedChunk | ConsumedAsset;
 
 // TODO Lukas general assumption: Having a source means having a reliable filename
 // TODO Lukas only access filename during generate? Or disallow setSource if there is a fileName?
+// TODO Lukas convert all "throw" into proper errors
 export class FileEmitter {
-	private filesByReferenceId: Map<string, ConsumedFile> = new Map<string, EmittedAsset>();
+	private filesByReferenceId = new Map<string, ConsumedFile>();
 	// tslint:disable member-ordering
 	private buildFilesByReferenceId = this.filesByReferenceId;
 	private graph: Graph;
@@ -99,7 +102,6 @@ export class FileEmitter {
 				return this.emitAsset(emittedFile);
 			case 'chunk':
 				return this.emitChunk(emittedFile);
-			// TODO Lukas make proper error and test
 			default:
 				throw new Error(`Unhandled file type ${(emittedFile as any).type}`);
 		}
@@ -107,13 +109,40 @@ export class FileEmitter {
 
 	private emitAsset(asset: EmittedAsset): string {
 		// TODO Lukas this could become shared validation
-		if (typeof asset.name !== 'string' || !isPlainName(asset.name)) {
-			return error(errInvalidAssetName(asset.name));
+		// TODO Lukas test validations
+		if ('fileName' in asset) {
+			if ('name' in asset) {
+				throw new Error('Cannot use both name and fileName');
+			}
+			if (typeof asset.fileName !== 'string' || !isPlainPathFragment(asset.fileName)) {
+				throw new Error('Asset fileName must be non-relative, non-absolute path');
+			}
+		} else if ('name' in asset) {
+			if (typeof asset.name !== 'string' || !isPlainPathFragment(asset.name)) {
+				return error(errInvalidAssetName(asset.name as string));
+			}
 		}
+		const consumedAsset: ConsumedAsset = {
+			fileName: asset.fileName,
+			name: asset.name,
+			source: asset.source,
+			type: 'asset'
+		};
 		if (this.output && asset.source !== undefined) {
-			addAssetToBundle(asset as EmittedAssetWithSource, this.output);
+			if (typeof consumedAsset.fileName !== 'string') {
+				consumedAsset.fileName = getAssetFileName(
+					consumedAsset.name || 'asset',
+					asset.source,
+					this.output
+				);
+			}
+			addAssetToBundle(consumedAsset as CompleteAsset, this.output);
 		}
-		return addWithNewReferenceId(asset, this.filesByReferenceId, asset.name);
+		return addWithNewReferenceId(
+			consumedAsset,
+			this.filesByReferenceId,
+			asset.fileName || asset.name || asset.type
+		);
 	}
 
 	private emitChunk(chunk: EmittedChunk): string {
@@ -139,9 +168,9 @@ export class FileEmitter {
 	}
 
 	public finaliseAssets() {
-		for (const emittedFile of this.filesByReferenceId.values()) {
-			if (emittedFile.type === 'asset' && emittedFile.source === undefined)
-				error(errNoAssetSourceSet(emittedFile.name));
+		for (const [referenceId, emittedFile] of this.filesByReferenceId.entries()) {
+			if (emittedFile.type === 'asset' && typeof emittedFile.fileName !== 'string')
+				error(errNoAssetSourceSet(emittedFile.name || referenceId));
 		}
 	}
 
@@ -150,16 +179,10 @@ export class FileEmitter {
 		if (!emittedFile) return error(errFileReferenceIdNotFoundForFilename(fileReferenceId));
 		switch (emittedFile.type) {
 			case 'asset': {
-				// TODO Lukas and there is no pre-assigned name
-				if (!this.output) {
-					// TODO Lukas proper error
-					throw new Error('Cannot get file name during build phase');
+				if (typeof emittedFile.fileName !== 'string') {
+					return error(errAssetNotFinalisedForFileName(emittedFile.name || fileReferenceId));
 				}
-				const fileName = this.output.assignedFileNames.get(emittedFile);
-				if (typeof fileName !== 'string') {
-					return error(errAssetNotFinalisedForFileName(emittedFile.name));
-				}
-				return fileName;
+				return emittedFile.fileName;
 			}
 			case 'chunk': {
 				const fileName =
@@ -179,16 +202,18 @@ export class FileEmitter {
 	public setAssetSource = (fileReferenceId: string, source?: string | Buffer) => {
 		const emittedFile = this.filesByReferenceId.get(fileReferenceId);
 		if (!emittedFile) return error(errAssetReferenceIdNotFoundForSetSource(fileReferenceId));
-		// TODO Lukas refine error
 		if (emittedFile.type !== 'asset') throw new Error('cannot set source for chunk');
-		if (emittedFile.source !== undefined) return error(errAssetSourceAlreadySet(emittedFile.name));
+		if (emittedFile.source !== undefined)
+			return error(errAssetSourceAlreadySet(emittedFile.name || fileReferenceId));
 		// TODO Lukas check for string | Buffer instead?
 		if (typeof source !== 'string' && !source) {
-			return error(errAssetSourceMissingForSetSource(emittedFile.name));
+			return error(errAssetSourceMissingForSetSource(emittedFile.name || fileReferenceId));
 		}
 		if (this.output) {
+			const fileName =
+				emittedFile.fileName || getAssetFileName(emittedFile.name || 'asset', source, this.output);
 			// We must not modify the original assets to not interact with other outputs
-			const assetWithSource = { ...emittedFile, source };
+			const assetWithSource = { ...emittedFile, fileName, source };
 			this.filesByReferenceId.set(fileReferenceId, assetWithSource);
 			addAssetToBundle(assetWithSource, this.output);
 		} else {
@@ -201,12 +226,17 @@ export class FileEmitter {
 		this.filesByReferenceId = new Map(this.buildFilesByReferenceId);
 		this.output = {
 			assetFileNames,
-			assignedFileNames: new Map(),
 			bundle: outputBundle
 		};
-		for (const emittedFile of this.filesByReferenceId.values()) {
+		for (const [referenceId, emittedFile] of this.filesByReferenceId.entries()) {
 			if (emittedFile.type === 'asset' && emittedFile.source !== undefined) {
-				addAssetToBundle(emittedFile as EmittedAssetWithSource, this.output);
+				const fileName =
+					emittedFile.fileName ||
+					getAssetFileName(emittedFile.name || 'asset', emittedFile.source, this.output);
+				// We must not modify the original assets to not interact with other outputs
+				const assetWithFileName = { ...emittedFile, fileName };
+				this.filesByReferenceId.set(referenceId, assetWithFileName);
+				addAssetToBundle(assetWithFileName as CompleteAsset, this.output);
 			}
 		}
 	}

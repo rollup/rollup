@@ -129,7 +129,8 @@ export interface MinimalPluginContext {
 // TODO Lukas can there be interactions in names between multiple outputs?
 // TODO Lukas can we make "name" optional to align the interfaces?
 export interface EmittedAsset {
-	name: string;
+	fileName?: string;
+	name?: string;
 	source?: string | Buffer;
 	type: 'asset';
 }
