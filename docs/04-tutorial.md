@@ -146,10 +146,12 @@ Now you can run it inside the root folder of your project like so:
 
 In this case it's best to just add this command as a script to your `package.json`:
 
-```console
+```json
+{
   "scripts": {
     "build": "./node_modules/.bin/rollup --config"
   }
+}
 ```
 
 ### Using plugins
