@@ -127,6 +127,31 @@ rollup --config rollup.config.dev.js
 rollup --config rollup.config.prod.js
 ```
 
+### Using Rollup locally
+
+When working with multiple environments or in a team, it's often smart to add Rollup as a _local_ dependency. This way you don't have to remember (or remind team members) to install Rollup globally and you can make sure everyone is using the same version.
+
+To install Rollup locally you can simply do:
+
+```console
+npm i -D rollup
+// OR yarn -D add rollup
+```
+
+Now you can run it inside the root folder of your project like so:
+
+```console
+./node_modules/.bin/rollup --config
+```
+
+In this case it's best to just add this command as a script to your `package.json`:
+
+```console
+  "scripts": {
+    "build": "./node_modules/.bin/rollup --config"
+  }
+```
+
 ### Using plugins
 
 So far, we've created a simple bundle from an entry point and a module imported via a relative path. As you build more complex bundles, you'll often need more flexibility – importing modules installed with NPM, compiling code with Babel, working with JSON files and so on.
