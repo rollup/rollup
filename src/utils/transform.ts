@@ -162,7 +162,7 @@ export default function transform(
 							}
 						}
 					},
-					getCombinedSourceMap() {
+					getCombinedSourcemap() {
 						const combinedMap = collapseSourcemap(
 							graph,
 							id,

@@ -23,7 +23,7 @@ module.exports = {
 			},
 			{
 				transform(code, id) {
-					const sourcemap = this.getCombinedSourceMap();
+					const sourcemap = this.getCombinedSourcemap();
 					const smc = new SourceMapConsumer(sourcemap);
 					const s = new MagicString(code);
 
@@ -47,7 +47,7 @@ module.exports = {
 			},
 			{
 				transform(code, id) {
-					const sourcemap = this.getCombinedSourceMap();
+					const sourcemap = this.getCombinedSourcemap();
 					const smc = new SourceMapConsumer(sourcemap);
 					const s = new MagicString(code);
 
