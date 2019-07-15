@@ -4,7 +4,7 @@
 *2019-07-15*
 
 ### Features
-* Allow plugins to access current combined sourcemap in transform hook for coverage instrumentation (#2986)
+* Allow plugins to access current combined sourcemap in transform hook for coverage instrumentation (#2993)
 
 ### Pull Requests
 * [#2987](https://github.com/rollup/rollup/pull/2987): Fix code fences for link (@johanholmerin)
