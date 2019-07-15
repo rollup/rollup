@@ -13,3 +13,4 @@ test/hooks/tmp
 test/tmp
 test/typescript/typings
 perf/
+.nyc_output/

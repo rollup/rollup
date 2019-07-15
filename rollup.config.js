@@ -1,4 +1,5 @@
 import fs from 'fs';
+import istanbul from 'istanbul-lib-instrument';
 import path from 'path';
 import alias from 'rollup-plugin-alias';
 import commonjs from 'rollup-plugin-commonjs';
@@ -67,6 +68,28 @@ function fixAcornEsmImport() {
 	};
 }
 
+function addInstrumentation() {
+	const instrumenter = new istanbul.createInstrumenter({
+		produceSourceMap: true,
+		esModules: true
+	});
+
+	return {
+		name: 'instrumentation',
+		transform(code, id) {
+			const { version, sources, sourcesContent, names, mappings } = this.getCombinedSourcemap();
+			code = instrumenter.instrumentSync(code, id, {
+				version,
+				sources,
+				sourcesContent,
+				names,
+				mappings
+			});
+			return { code, map: instrumenter.lastSourceMap() };
+		}
+	};
+}
+
 const moduleAliases = {
 	resolve: ['.js', '.json', '.md'],
 	'acorn-dynamic-import': path.resolve('node_modules/acorn-dynamic-import/src/index.js'),
@@ -81,6 +104,9 @@ const treeshake = {
 };
 
 export default command => {
+	if (command.configCoverage) {
+		command.configTest = true;
+	}
 	const nodeBuilds = [
 		/* Rollup core node builds */
 		{
@@ -91,16 +117,16 @@ export default command => {
 				resolve(),
 				json(),
 				commonjs({ include: 'node_modules/**' }),
-				typescript({include: '**/*.{ts,js}'}),
-				fixAcornEsmImport()
+				typescript({ include: '**/*.{ts,js}' }),
+				fixAcornEsmImport(),
+				command.configCoverage && addInstrumentation()
 			],
 			// acorn needs to be external as some plugins rely on a shared acorn instance
 			external: ['fs', 'path', 'events', 'module', 'util', 'acorn'],
 			treeshake,
-			output: [
-				{ file: 'dist/rollup.js', format: 'cjs', sourcemap: true, banner },
-				{ file: 'dist/rollup.es.js', format: 'esm', banner }
-			]
+			output: [{ file: 'dist/rollup.js', format: 'cjs', sourcemap: true, banner }].concat(
+				command.configTest ? [] : [{ file: 'dist/rollup.es.js', format: 'esm', banner }]
+			)
 		},
 		/* Rollup CLI */
 		{
@@ -112,7 +138,8 @@ export default command => {
 				json(),
 				string({ include: '**/*.md' }),
 				commonjs({ include: 'node_modules/**' }),
-				typescript({include: '**/*.{ts,js}'}),
+				typescript({ include: '**/*.{ts,js}' }),
+				command.configCoverage && addInstrumentation()
 			],
 			external: ['fs', 'path', 'module', 'assert', 'events', 'rollup'],
 			treeshake,
@@ -127,7 +154,7 @@ export default command => {
 		}
 	];
 
-	if (command.configNoBrowser) {
+	if (command.configTest) {
 		return nodeBuilds;
 	}
 	return nodeBuilds.concat([
@@ -146,7 +173,7 @@ export default command => {
 					}
 				},
 				commonjs(),
-				typescript({include: '**/*.{ts,js}'}),
+				typescript({ include: '**/*.{ts,js}' }),
 				terser({ module: true, output: { comments: 'some' } })
 			],
 			treeshake,
