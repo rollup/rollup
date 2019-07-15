@@ -61,7 +61,7 @@ jobs:
       - run:
           name: Run tests with coverage.
           command: npm run ci:coverage
-      - store_artifacts
+      - store_artifacts:
           path: coverage
 
 workflows:
