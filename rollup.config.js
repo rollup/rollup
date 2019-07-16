@@ -1,5 +1,4 @@
 import fs from 'fs';
-import istanbul from 'istanbul-lib-instrument';
 import path from 'path';
 import alias from 'rollup-plugin-alias';
 import commonjs from 'rollup-plugin-commonjs';
@@ -68,28 +67,6 @@ function fixAcornEsmImport() {
 	};
 }
 
-function addInstrumentation() {
-	const instrumenter = new istanbul.createInstrumenter({
-		produceSourceMap: true,
-		esModules: true
-	});
-
-	return {
-		name: 'instrumentation',
-		transform(code, id) {
-			const { version, sources, sourcesContent, names, mappings } = this.getCombinedSourcemap();
-			code = instrumenter.instrumentSync(code, id, {
-				version,
-				sources,
-				sourcesContent,
-				names,
-				mappings
-			});
-			return { code, map: instrumenter.lastSourceMap() };
-		}
-	};
-}
-
 const moduleAliases = {
 	resolve: ['.js', '.json', '.md'],
 	'acorn-dynamic-import': path.resolve('node_modules/acorn-dynamic-import/src/index.js'),
@@ -104,9 +81,6 @@ const treeshake = {
 };
 
 export default command => {
-	if (command.configCoverage) {
-		command.configTest = true;
-	}
 	const nodeBuilds = [
 		/* Rollup core node builds */
 		{
@@ -118,8 +92,7 @@ export default command => {
 				json(),
 				commonjs({ include: 'node_modules/**' }),
 				typescript({ include: '**/*.{ts,js}' }),
-				fixAcornEsmImport(),
-				command.configCoverage && addInstrumentation()
+				fixAcornEsmImport()
 			],
 			// acorn needs to be external as some plugins rely on a shared acorn instance
 			external: ['fs', 'path', 'events', 'module', 'util', 'acorn'],
@@ -138,8 +111,7 @@ export default command => {
 				json(),
 				string({ include: '**/*.md' }),
 				commonjs({ include: 'node_modules/**' }),
-				typescript({ include: '**/*.{ts,js}' }),
-				command.configCoverage && addInstrumentation()
+				typescript({ include: '**/*.{ts,js}' })
 			],
 			external: ['fs', 'path', 'module', 'assert', 'events', 'rollup'],
 			treeshake,
@@ -149,7 +121,8 @@ export default command => {
 				banner: '#!/usr/bin/env node',
 				paths: {
 					rollup: '../dist/rollup.js'
-				}
+				},
+				sourcemap: true
 			}
 		}
 	];

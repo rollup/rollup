@@ -1,5 +1,4 @@
 {
-  "instrument": false,
-  "exclude": ["*commonjsHelpers.js"],
-  "extension": [".ts"]
+  "exclude": ["*commonjsHelpers.js", "test"],
+  "extension": [".ts", ""]
 }
