@@ -5,6 +5,7 @@
 
 ### Pull Requests
 * [#2997](https://github.com/rollup/rollup/pull/2997): Integrate coverage into CI setup (@lukastaegert)
+* [#2998](https://github.com/rollup/rollup/pull/2998): Update readme badges (@lukastaegert)
 
 ## 1.17.0
 *2019-07-15*
