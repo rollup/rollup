@@ -1,0 +1,4 @@
+{
+  "exclude": ["*commonjsHelpers.js", "test"],
+  "extension": [".ts", ""]
+}
