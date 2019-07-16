@@ -16,7 +16,7 @@
     "build:bootstrap": "bin/rollup -c && shx cp src/rollup/types.d.ts dist/rollup.d.ts && shx chmod a+x bin/rollup",
     "ci:lint": "npm run lint:nofix && npm run security",
     "ci:test": "npm run build:test && npm run build:bootstrap && npm run test:all",
-    "ci:coverage": "npm run build:coverage && nyc --reporter lcovonly mocha",
+    "ci:coverage": "npm run build:coverage && nyc --reporter lcovonly mocha && codecov",
     "lint": "npm run lint:ts -- --fix && npm run lint:js -- --fix && npm run lint:markdown",
     "lint:nofix": "npm run lint:ts && npm run lint:js && npm run lint:markdown",
     "lint:ts": "tslint --project .",
@@ -60,7 +60,7 @@
   "homepage": "https://github.com/rollup/rollup",
   "dependencies": {
     "@types/estree": "0.0.39",
-    "@types/node": "^12.6.2",
+    "@types/node": "^12.6.3",
     "acorn": "^6.2.0"
   },
   "devDependencies": {
@@ -74,6 +74,7 @@
     "acorn-walk": "^6.2.0",
     "buble": "^0.19.8",
     "chokidar": "^2.1.6",
+    "codecov": "^3.5.0",
     "console-group": "^0.3.3",
     "core-js": "^3.1.4",
     "date-time": "^3.1.0",
