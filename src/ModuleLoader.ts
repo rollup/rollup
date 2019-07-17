@@ -36,10 +36,6 @@ export interface UnresolvedModuleWithAlias {
 	unresolvedId: string;
 }
 
-interface UnresolvedEntryModuleWithAlias extends UnresolvedModuleWithAlias {
-	manualChunkAlias?: string;
-}
-
 function normalizeRelativeExternalId(importer: string, source: string) {
 	return isRelative(source) ? resolve(importer, '..', source) : source;
 }
@@ -132,8 +128,13 @@ export class ModuleLoader {
 		newEntryModules: Module[];
 	}> {
 		const loadNewEntryModulesPromise = Promise.all(
-			unresolvedEntryModules.map(unresolvedEntryModule =>
-				this.loadEntryModule(unresolvedEntryModule, true)
+			unresolvedEntryModules.map(({ alias, unresolvedId }) =>
+				this.loadEntryModule(unresolvedId, true).then(module => {
+					if (alias !== null && (module.chunkAlias === null || isUserDefined)) {
+						module.chunkAlias = alias;
+					}
+					return module;
+				})
 			)
 		).then(entryModules => {
 			for (const entryModule of entryModules) {
@@ -153,21 +154,19 @@ export class ModuleLoader {
 	}
 
 	addManualChunks(manualChunks: Record<string, string[]>): Promise<void> {
-		const unresolvedManualChunks: UnresolvedEntryModuleWithAlias[] = [];
+		const unresolvedManualChunks: { manualChunkAlias: string; unresolvedId: string }[] = [];
 		for (const alias of Object.keys(manualChunks)) {
 			const manualChunkIds = manualChunks[alias];
 			for (const unresolvedId of manualChunkIds) {
-				unresolvedManualChunks.push({ alias: null, unresolvedId, manualChunkAlias: alias });
+				unresolvedManualChunks.push({ unresolvedId, manualChunkAlias: alias });
 			}
 		}
 		const loadNewManualChunkModulesPromise = Promise.all(
-			unresolvedManualChunks.map(unresolvedManualChunk =>
-				this.loadEntryModule(unresolvedManualChunk, false)
-			)
+			unresolvedManualChunks.map(({ unresolvedId }) => this.loadEntryModule(unresolvedId, false))
 		).then(manualChunkModules => {
 			for (let index = 0; index < manualChunkModules.length; index++) {
-				this.addToManualChunk(
-					unresolvedManualChunks[index].manualChunkAlias as string,
+				this.addModuleToManualChunk(
+					unresolvedManualChunks[index].manualChunkAlias,
 					manualChunkModules[index]
 				);
 			}
@@ -190,7 +189,7 @@ export class ModuleLoader {
 		);
 	}
 
-	private addToManualChunk(alias: string, module: Module) {
+	private addModuleToManualChunk(alias: string, module: Module) {
 		if (module.manualChunkAlias !== null && module.manualChunkAlias !== alias) {
 			error(errCannotAssignModuleToChunk(module.id, alias, module.manualChunkAlias));
 		}
@@ -266,7 +265,7 @@ export class ModuleLoader {
 		this.modulesById.set(id, module);
 		const manualChunkAlias = this.getManualChunk(id);
 		if (typeof manualChunkAlias === 'string') {
-			this.addToManualChunk(manualChunkAlias, module);
+			this.addModuleToManualChunk(manualChunkAlias, module);
 		}
 
 		timeStart('load modules', 3);
@@ -374,10 +373,7 @@ export class ModuleLoader {
 		return resolvedId;
 	}
 
-	private loadEntryModule = (
-		{ alias, unresolvedId }: UnresolvedModuleWithAlias,
-		isEntry: boolean
-	): Promise<Module> =>
+	private loadEntryModule = (unresolvedId: string, isEntry: boolean): Promise<Module> =>
 		this.pluginDriver.hookFirst('resolveId', [unresolvedId, undefined]).then(resolveIdResult => {
 			if (
 				resolveIdResult === false ||
@@ -391,15 +387,7 @@ export class ModuleLoader {
 					: resolveIdResult;
 
 			if (typeof id === 'string') {
-				return this.fetchModule(id, undefined as any, true, isEntry).then(module => {
-					if (alias !== null) {
-						if (module.chunkAlias !== null && module.chunkAlias !== alias) {
-							return error(errCannotAssignModuleToChunk(module.id, alias, module.chunkAlias));
-						}
-						module.chunkAlias = alias;
-					}
-					return module;
-				});
+				return this.fetchModule(id, undefined as any, true, isEntry);
 			}
 			return error(errUnresolvedEntry(unresolvedId));
 		});
