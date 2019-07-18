@@ -141,15 +141,16 @@ npm i -D rollup
 Now you can run it inside the root folder of your project like so:
 
 ```console
-./node_modules/.bin/rollup --config
+npm run rollup --config
+// OR yarn rollup --config
 ```
 
-In this case it's best to just add this command as a script to your `package.json`:
+In this case it's usually a good idea to also add a script to your `package.json`, so the whole team uses the correct build command:
 
 ```json
 {
   "scripts": {
-    "build": "./node_modules/.bin/rollup --config"
+    "build": "npm run rollup --config"
   }
 }
 ```
