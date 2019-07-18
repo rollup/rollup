@@ -38,6 +38,21 @@ export interface RollupLogProps {
 	url?: string;
 }
 
+export type SourceMapSegment =
+	| [number]
+	| [number, number, number, number]
+	| [number, number, number, number, number];
+
+export interface ExistingDecodedSourceMap {
+	file?: string;
+	mappings: SourceMapSegment[][];
+	names: string[];
+	sourceRoot?: string;
+	sources: string[];
+	sourcesContent?: string[];
+	version: number;
+}
+
 export interface ExistingRawSourceMap {
 	file?: string;
 	mappings: string;
@@ -48,7 +63,13 @@ export interface ExistingRawSourceMap {
 	version: number;
 }
 
-export type RawSourceMap = { mappings: '' } | ExistingRawSourceMap;
+export type DecodedSourceMapOrMissing =
+	| {
+			mappings?: never;
+			missing: true;
+			plugin: string;
+	  }
+	| ExistingDecodedSourceMap;
 
 export interface SourceMap {
 	file: string;
@@ -56,15 +77,17 @@ export interface SourceMap {
 	names: string[];
 	sources: string[];
 	sourcesContent: string[];
-	version: string;
+	version: number;
 	toString(): string;
 	toUrl(): string;
 }
 
+export type SourceMapInput = ExistingRawSourceMap | string | null | { mappings: '' };
+
 export interface SourceDescription {
 	ast?: ESTree.Program;
 	code: string;
-	map?: string | RawSourceMap;
+	map?: SourceMapInput;
 	moduleSideEffects?: boolean | null;
 }
 
@@ -79,16 +102,22 @@ export interface TransformModuleJSON {
 	customTransformCache: boolean;
 	moduleSideEffects: boolean | null;
 	originalCode: string;
-	originalSourcemap: RawSourceMap | void;
+	originalSourcemap: ExistingDecodedSourceMap | null;
 	resolvedIds?: ResolvedIdMap;
-	sourcemapChain: (RawSourceMap | { missing: true; plugin: string })[];
+	sourcemapChain: DecodedSourceMapOrMissing[];
 	transformDependencies: string[] | null;
 }
 
 export interface ModuleJSON extends TransformModuleJSON {
 	dependencies: string[];
 	id: string;
-	transformAssets: Asset[] | void;
+	transformAssets: Asset[] | undefined;
+	transformChunks: EmittedChunk[] | undefined;
+}
+
+export interface EmittedChunk {
+	id: string;
+	options: { name?: string } | undefined;
 }
 
 export interface Asset {
@@ -116,7 +145,7 @@ export interface PluginContext extends MinimalPluginContext {
 	cache: PluginCache;
 	emitAsset: EmitAsset;
 	emitChunk: EmitChunk;
-	error: (err: RollupError | string, pos?: { column: number; line: number }) => never;
+	error: (err: RollupError | string, pos?: number | { column: number; line: number }) => never;
 	getAssetFileName: (assetReferenceId: string) => string;
 	getChunkFileName: (chunkReferenceId: string) => string;
 	getModuleInfo: (
@@ -140,7 +169,7 @@ export interface PluginContext extends MinimalPluginContext {
 	/** @deprecated Use `this.resolve` instead */
 	resolveId: (source: string, importer: string) => Promise<string | null>;
 	setAssetSource: (assetReferenceId: string, source: string | Buffer) => void;
-	warn: (warning: RollupWarning | string, pos?: { column: number; line: number }) => void;
+	warn: (warning: RollupWarning | string, pos?: number | { column: number; line: number }) => void;
 	/** @deprecated Use `this.addWatchFile` and the `watchChange` hook instead  */
 	watcher: EventEmitter;
 }
@@ -165,7 +194,7 @@ interface PartialResolvedId {
 	moduleSideEffects?: boolean | null;
 }
 
-export type ResolveIdResult = string | false | void | PartialResolvedId;
+export type ResolveIdResult = string | false | null | undefined | PartialResolvedId;
 
 export type ResolveIdHook = (
 	this: PluginContext,
@@ -173,9 +202,13 @@ export type ResolveIdHook = (
 	importer: string | undefined
 ) => Promise<ResolveIdResult> | ResolveIdResult;
 
-export type IsExternal = (source: string, importer: string, isResolved: boolean) => boolean | void;
+export type IsExternal = (
+	source: string,
+	importer: string,
+	isResolved: boolean
+) => boolean | null | undefined;
 
-export type IsPureModule = (id: string) => boolean | void;
+export type IsPureModule = (id: string) => boolean | null | undefined;
 
 export type HasModuleSideEffects = (id: string, external: boolean) => boolean;
 
@@ -184,7 +217,7 @@ export type LoadHook = (
 	id: string
 ) => Promise<SourceDescription | string | null> | SourceDescription | string | null;
 
-export type TransformResult = string | void | TransformSourceDescription;
+export type TransformResult = string | null | undefined | TransformSourceDescription;
 
 export type TransformHook = (
 	this: PluginContext,
@@ -197,10 +230,10 @@ export type TransformChunkHook = (
 	code: string,
 	options: OutputOptions
 ) =>
-	| Promise<{ code: string; map: RawSourceMap } | void>
-	| { code: string; map: RawSourceMap }
-	| void
-	| null;
+	| Promise<{ code: string; map?: SourceMapInput } | null | undefined>
+	| { code: string; map?: SourceMapInput }
+	| null
+	| undefined;
 
 export type RenderChunkHook = (
 	this: PluginContext,
@@ -208,8 +241,8 @@ export type RenderChunkHook = (
 	chunk: RenderedChunk,
 	options: OutputOptions
 ) =>
-	| Promise<{ code: string; map: RawSourceMap } | null>
-	| { code: string; map: RawSourceMap }
+	| Promise<{ code: string; map?: SourceMapInput } | null>
+	| { code: string; map?: SourceMapInput }
 	| string
 	| null;
 
@@ -223,7 +256,7 @@ export type ResolveImportMetaHook = (
 	this: PluginContext,
 	prop: string | null,
 	options: { chunkId: string; format: string; moduleId: string }
-) => string | void;
+) => string | null | undefined;
 
 export type ResolveAssetUrlHook = (
 	this: PluginContext,
@@ -234,7 +267,7 @@ export type ResolveAssetUrlHook = (
 		moduleId: string;
 		relativeAssetPath: string;
 	}
-) => string | void;
+) => string | null | undefined;
 
 export type ResolveFileUrlHook = (
 	this: PluginContext,
@@ -247,7 +280,7 @@ export type ResolveFileUrlHook = (
 		moduleId: string;
 		relativePath: string;
 	}
-) => string | void;
+) => string | null | undefined;
 
 export type AddonHook = string | ((this: PluginContext) => string | Promise<string>);
 
@@ -298,8 +331,8 @@ export interface PluginHooks {
 		options: OnWriteOptions,
 		chunk: OutputChunk
 	) => void | Promise<void>;
-	options: (this: MinimalPluginContext, options: InputOptions) => InputOptions | void | null;
-	outputOptions: (this: PluginContext, options: OutputOptions) => OutputOptions | void | null;
+	options: (this: MinimalPluginContext, options: InputOptions) => InputOptions | null | undefined;
+	outputOptions: (this: PluginContext, options: OutputOptions) => OutputOptions | null | undefined;
 	renderChunk: RenderChunkHook;
 	renderError: (this: PluginContext, err?: Error) => Promise<void> | void;
 	renderStart: (this: PluginContext) => Promise<void> | void;
@@ -336,7 +369,7 @@ export interface TreeshakingOptions {
 	tryCatchDeoptimization?: boolean;
 }
 
-export type GetManualChunk = (id: string) => string | void;
+export type GetManualChunk = (id: string) => string | null | undefined;
 
 export type ExternalOption = string[] | IsExternal;
 export type PureModulesOption = boolean | string[] | IsPureModule;
@@ -365,6 +398,7 @@ export interface InputOptions {
 	preserveModules?: boolean;
 	preserveSymlinks?: boolean;
 	shimMissingExports?: boolean;
+	strictDeprecations?: boolean;
 	treeshake?: boolean | TreeshakingOptions;
 	watch?: WatcherOptions;
 }
@@ -474,7 +508,6 @@ export interface SerializablePluginCache {
 }
 
 export interface RollupCache {
-	// to be deprecated
 	modules?: ModuleJSON[];
 	plugins?: Record<string, SerializablePluginCache>;
 }

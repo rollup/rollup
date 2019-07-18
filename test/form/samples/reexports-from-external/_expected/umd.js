@@ -4,11 +4,11 @@
 	(global = global || self, factory(global.myBundle = {}, global.external));
 }(this, function (exports, external) { 'use strict';
 
-	Object.keys(external).forEach(function (key) {
-		Object.defineProperty(exports, key, {
+	Object.keys(external).forEach(function (k) {
+		if (k !== 'default') Object.defineProperty(exports, k, {
 			enumerable: true,
 			get: function () {
-				return external[key];
+				return external[k];
 			}
 		});
 	});

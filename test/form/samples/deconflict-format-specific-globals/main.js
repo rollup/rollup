@@ -1,13 +1,15 @@
 import external from 'external';
+
 console.log(external);
 
-const _interopDefault = 0;
+const _interopDefault = 1;
+const _interopNamespace = 1;
 const module = 1;
-const require = 2;
-const exports = 3;
-const document = 4;
-const URL = 5;
-console.log(_interopDefault, module, require, exports, document, URL);
+const require = 1;
+const exports = 1;
+const document = 1;
+const URL = 1;
+console.log(_interopDefault, _interopNamespace, module, require, exports, document, URL);
 
 import('external');
 let value = 0;
@@ -15,13 +17,14 @@ export { value as default };
 console.log(import.meta.url);
 
 function nested1() {
-	const _interopDefault = 0;
+	const _interopDefault = 1;
+	const _interopNamespace = 1;
 	const module = 1;
-	const require = 2;
-	const exports = 3;
-	const document = 4;
-	const URL = 5;
-	console.log(_interopDefault, module, require, exports, document, URL);
+	const require = 1;
+	const exports = 1;
+	const document = 1;
+	const URL = 1;
+	console.log(_interopDefault, _interopNamespace, module, require, exports, document, URL);
 
 	import('external');
 	value = 1;
@@ -31,13 +34,14 @@ function nested1() {
 nested1();
 
 function nested2() {
-	const _interopDefault = 0;
+	const _interopDefault = 1;
+	const _interopNamespace = 1;
 	const module = 1;
-	const require = 2;
-	const exports = 3;
-	const document = 4;
-	const URL = 5;
-	console.log(_interopDefault, module, require, exports, document, URL);
+	const require = 1;
+	const exports = 1;
+	const document = 1;
+	const URL = 1;
+	console.log(_interopDefault, _interopNamespace, module, require, exports, document, URL);
 }
 
 nested2();

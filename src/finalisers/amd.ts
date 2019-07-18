@@ -1,9 +1,11 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { OutputOptions } from '../rollup/types';
+import { INTEROP_NAMESPACE_VARIABLE } from '../utils/variableNames';
 import { FinaliserOptions } from './index';
 import { compactEsModuleExport, esModuleExport } from './shared/esModuleExport';
 import getExportBlock from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
+import { getInteropNamespace } from './shared/getInteropNamespace';
 import warnOnBuiltins from './shared/warnOnBuiltins';
 
 // AMD resolution will only respect the AMD baseUrl if the .js extension is omitted.
@@ -69,7 +71,12 @@ export default function amd(
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
 	const interopBlock = getInteropBlock(dependencies, options, varOrConst);
-	if (interopBlock) magicString.prepend(interopBlock + n + n);
+	if (interopBlock) {
+		magicString.prepend(interopBlock + n + n);
+	}
+	if (accessedGlobals.has(INTEROP_NAMESPACE_VARIABLE)) {
+		magicString.prepend(getInteropNamespace(_, n, t));
+	}
 
 	if (intro) magicString.prepend(intro);
 

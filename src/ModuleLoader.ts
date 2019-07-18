@@ -7,6 +7,7 @@ import {
 	ExternalOption,
 	GetManualChunk,
 	IsExternal,
+	ModuleJSON,
 	ModuleSideEffectsOption,
 	PureModulesOption,
 	ResolvedId,
@@ -48,18 +49,19 @@ function normalizeRelativeExternalId(importer: string, source: string) {
 }
 
 function getIdMatcher<T extends Array<any>>(
-	option: boolean | string[] | ((id: string, ...args: T) => boolean | void)
+	option: boolean | string[] | ((id: string, ...args: T) => boolean | null | undefined)
 ): (id: string, ...args: T) => boolean {
 	if (option === true) {
 		return () => true;
-	} else if (typeof option === 'function') {
+	}
+	if (typeof option === 'function') {
 		return (id, ...args) => (!id.startsWith('\0') && option(id, ...args)) || false;
-	} else if (option) {
+	}
+	if (option) {
 		const ids = new Set(Array.isArray(option) ? option : option ? [option] : []);
 		return (id => ids.has(id)) as (id: string, ...args: T) => boolean;
-	} else {
-		return () => false;
 	}
+	return () => false;
 }
 
 function getHasModuleSideEffects(
@@ -126,8 +128,7 @@ export class ModuleLoader {
 			pureExternalModules,
 			graph
 		);
-		this.getManualChunk =
-			typeof getManualChunk === 'function' ? getManualChunk : () => (null as unknown) as void;
+		this.getManualChunk = typeof getManualChunk === 'function' ? getManualChunk : () => null;
 	}
 
 	addEntryModuleAndGetReferenceId(unresolvedEntryModule: UnresolvedModuleWithAlias): string {
@@ -332,10 +333,13 @@ export class ModuleLoader {
 					!cachedModule.customTransformCache &&
 					cachedModule.originalCode === sourceDescription.code
 				) {
-					// re-emit transform assets
 					if (cachedModule.transformAssets) {
-						for (const asset of cachedModule.transformAssets)
-							this.pluginDriver.emitAsset(asset.name, asset.source);
+						for (const { name, source } of cachedModule.transformAssets)
+							this.pluginDriver.emitAsset(name, source);
+					}
+					if (cachedModule.transformChunks) {
+						for (const { id, options } of cachedModule.transformChunks)
+							this.pluginDriver.emitChunk(id, options);
 					}
 					return cachedModule;
 				}
@@ -345,7 +349,7 @@ export class ModuleLoader {
 				}
 				return transform(this.graph, sourceDescription, module);
 			})
-			.then((source: TransformModuleJSON) => {
+			.then((source: TransformModuleJSON | ModuleJSON) => {
 				module.setSource(source);
 				this.modulesById.set(id, module);
 

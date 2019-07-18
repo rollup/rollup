@@ -1,5 +1,155 @@
 # rollup changelog
 
+## 1.17.1
+*unreleased*
+
+### Pull Requests
+* [#2997](https://github.com/rollup/rollup/pull/2997): Integrate coverage into CI setup (@lukastaegert)
+* [#2998](https://github.com/rollup/rollup/pull/2998): Update readme badges (@lukastaegert)
+
+## 1.17.0
+*2019-07-15*
+
+### Features
+* Allow plugins to access current combined sourcemap in transform hook for coverage instrumentation (#2993)
+
+### Pull Requests
+* [#2987](https://github.com/rollup/rollup/pull/2987): Fix code fences for link (@johanholmerin)
+* [#2989](https://github.com/rollup/rollup/pull/2989): Bump lodash from 4.17.11 to 4.17.14 (@dependabot)
+* [#2993](https://github.com/rollup/rollup/pull/2993): Add getCombinedSourceMap in transform plugin context (@billowz)
+
+## 1.16.7
+*2019-07-09*
+
+### Bug Fixes
+* Fix an issue where exported import.meta properties would lead to invalid code (#2986)
+
+### Pull Requests
+* [#2985](https://github.com/rollup/rollup/pull/2985): Improve sourcemap types (@jridgewell)
+* [#2986](https://github.com/rollup/rollup/pull/2986): Only overwrite content when resolving import.meta properties (@lukastaegert)
+
+## 1.16.6
+*2019-07-04*
+
+### Bug Fixes
+* Do not pass undefined to resolveDynamicImport for unresolvable template literals (#2984)
+
+### Pull Requests
+* [#2984](https://github.com/rollup/rollup/pull/2984): Always forward AST nodes for unresolvable dynamic imports (@lukastaegert)
+
+## 1.16.5
+*2019-07-04*
+
+### Bug Fixes
+* onwarn should still be called when --silent is used (#2982)
+* Properly clean up watchers for files that are deleted between builds (#2982)
+
+### Pull Requests
+* [#2981](https://github.com/rollup/rollup/pull/2981): Do not skip onwarn handler when --silent is used (@lukastaegert)
+* [#2982](https://github.com/rollup/rollup/pull/2982): Make tests run on Node 12, fix watcher cleanup issue (@lukastaegert)
+
+## 1.16.4
+*2019-07-02*
+
+### Bug Fixes
+* Do not show a TypeScript error when providing a location as number to this.warn and this.error (#2974)
+* Use the correct TypeScript type for Sourcemap.version (#2976)
+
+### Pull Requests
+* [#2965](https://github.com/rollup/rollup/pull/2965): Use async readFile in getRollupDefaultPlugin (@kaksmet)
+* [#2974](https://github.com/rollup/rollup/pull/2974): Align TS types, docs and implementation for this.warn and this.error (@lukastaegert)
+* [#2976](https://github.com/rollup/rollup/pull/2976): Fix sourcemap type and update dependencies (@lukastaegert)
+
+## 1.16.3
+*2019-06-29*
+
+### Bug Fixes
+* Prevent name conflicts with unused function parameters (#2972)
+
+### Pull Requests
+* [#2972](https://github.com/rollup/rollup/pull/2972): Deconflict unused parameters (@lukastaegert)
+
+## 1.16.2
+*2019-06-22*
+
+### Bug Fixes
+* Properly wrap dynamic imports in Promises that can be caught when generating CJS output (#2958)
+
+### Pull Requests
+* [#2958](https://github.com/rollup/rollup/pull/2958): Make sure errors from dynamic imports can be caught (@lukastaegert)
+
+## 1.16.1
+*2019-06-21*
+
+### Pull Requests
+* [#2956](https://github.com/rollup/rollup/pull/2956): Add missing CLI docs for strictDeprecations (@lukastaegert)
+
+## 1.16.0
+*2019-06-21*
+
+### Features
+* Add strictDeprecations option to throw when currently or upcoming deprecated features are used (#2945)
+* Keep annotations and comments when simplifying logical and conditional expressions (#2955)
+
+### Bug Fixes
+* Generate proper namespace objects when dynamically importing external dependencies for AMD or CJS formats (#2954)
+* Fix dynamically imported variables not being resolved correctly when importing from an entry chunk with only a default export (#2954)
+* Do not reexport default when reexporting a namespace (#2954)
+
+### Pull Requests
+* [#2945](https://github.com/rollup/rollup/pull/2945): Add option to handle use of features marked for deprecation as errors (@lukastaegert)
+* [#2954](https://github.com/rollup/rollup/pull/2954): Improve dynamic import interop (@lukastaegert)
+* [#2955](https://github.com/rollup/rollup/pull/2955): Keep annotations and comments when simplifying logical and conditional expressions (@lukastaegert)
+
+## 1.15.6
+*2019-06-16*
+
+### Bug Fixes
+* No longer use an alternate screen in watch mode to allow scrolling (#2942)
+* Prioritize non-external imports over external ones when resolving conflicting namespace re-exports (#2893)
+
+### Pull Requests
+* [#2893](https://github.com/rollup/rollup/pull/2893): Improve handling of conflicting namespace exports (@aleclarson)
+* [#2942](https://github.com/rollup/rollup/pull/2942): Get rid of alternate screen and simplify screen clearing (@lukastaegert)
+
+## 1.15.5
+*2019-06-14*
+
+### Bug Fixes
+* Do not include any comments for completely tree-shaken files so that `renderedLength === 0` is a reliable check (#2940)
+* Do not cause type errors when returning `null` from `resolveId` (#2941)
+
+### Pull Requests
+* [#2940](https://github.com/rollup/rollup/pull/2940): Completely omit files that do not have any included statements (@lukastaegert)
+* [#2941](https://github.com/rollup/rollup/pull/2941): Explicitly allow null as return value for various hooks (@lukastaegert)
+
+## 1.15.4
+*2019-06-14*
+
+### Bug Fixes
+* Improve how asset and chunk URLs are resolved for UMD, IIFE and CJS output (#2937)
+
+### Pull Requests
+* [#2937](https://github.com/rollup/rollup/pull/2937): Fix URL resolution to work when the current script contains query parameters (@lukastaegert)
+
+## 1.15.3
+*2019-06-13*
+
+### Bug Fixes
+* Always reemit assets and chunks from cached transform hooks (#2936)
+
+### Pull Requests
+* [#2936](https://github.com/rollup/rollup/pull/2936): Fix repeated re-emission of files emitted from a transform hook (@lukastaegert)
+
+## 1.15.2
+*2019-06-13*
+
+### Bug Fixes
+* Make sure chunks emitted from transform hooks are also emitted for incremental builds in watch mode (#2933)
+
+### Pull Requests
+* [#2933](https://github.com/rollup/rollup/pull/2933): Reemit chunks emitted from transform hooks (@lukastaegert)
+
 ## 1.15.1
 *2019-06-11*
 

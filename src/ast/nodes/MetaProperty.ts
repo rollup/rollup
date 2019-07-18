@@ -73,7 +73,6 @@ export default class MetaProperty extends NodeBase {
 			const relativePath = normalize(relative(dirname(chunkId), fileName));
 			let replacement;
 			if (assetReferenceId !== null) {
-				// deprecated hook for assets
 				replacement = pluginDriver.hookFirstSync('resolveAssetUrl', [
 					{
 						assetFileName: fileName,
@@ -101,7 +100,8 @@ export default class MetaProperty extends NodeBase {
 			code.overwrite(
 				(parent as MemberExpression).start,
 				(parent as MemberExpression).end,
-				replacement
+				replacement,
+				{ contentOnly: true }
 			);
 			return;
 		}
@@ -116,9 +116,9 @@ export default class MetaProperty extends NodeBase {
 		]);
 		if (typeof replacement === 'string') {
 			if (parent instanceof MemberExpression) {
-				code.overwrite(parent.start, parent.end, replacement);
+				code.overwrite(parent.start, parent.end, replacement, { contentOnly: true });
 			} else {
-				code.overwrite(this.start, this.end, replacement);
+				code.overwrite(this.start, this.end, replacement, { contentOnly: true });
 			}
 		}
 	}

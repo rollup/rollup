@@ -1,13 +1,15 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { OutputOptions } from '../rollup/types';
-import { INTEROP_DEFAULT_VARIABLE } from '../utils/variableNames';
+import { INTEROP_DEFAULT_VARIABLE, INTEROP_NAMESPACE_VARIABLE } from '../utils/variableNames';
 import { FinaliserOptions } from './index';
 import { compactEsModuleExport, esModuleExport } from './shared/esModuleExport';
 import getExportBlock from './shared/getExportBlock';
+import { getInteropNamespace } from './shared/getInteropNamespace';
 
 export default function cjs(
 	magicString: MagicStringBundle,
 	{
+		accessedGlobals,
 		dependencies,
 		exports,
 		hasExports,
@@ -76,6 +78,9 @@ export default function cjs(
 			`function ${INTEROP_DEFAULT_VARIABLE}${_}(${ex})${_}{${_}return${_}` +
 			`(${ex}${_}&&${_}(typeof ${ex}${_}===${_}'object')${_}&&${_}'default'${_}in ${ex})${_}` +
 			`?${_}${ex}['default']${_}:${_}${ex}${options.compact ? '' : '; '}}${n}${n}`;
+	}
+	if (accessedGlobals.has(INTEROP_NAMESPACE_VARIABLE)) {
+		intro += getInteropNamespace(_, n, t);
 	}
 
 	if (importBlock) intro += importBlock + n + n;

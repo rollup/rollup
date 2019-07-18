@@ -2,11 +2,11 @@ define(['exports', 'starexternal1', 'external1', 'starexternal2', 'external2', '
 
 	var main = '1';
 
-	Object.keys(starexternal1).forEach(function (key) {
-		Object.defineProperty(exports, key, {
+	Object.keys(starexternal1).forEach(function (k) {
+		if (k !== 'default') Object.defineProperty(exports, k, {
 			enumerable: true,
 			get: function () {
-				return starexternal1[key];
+				return starexternal1[k];
 			}
 		});
 	});

@@ -1,14 +1,14 @@
-import { decode } from 'sourcemap-codec';
+import MagicString, { SourceMap } from 'magic-string';
 import Graph from '../Graph';
 import Module from '../Module';
 import {
 	Asset,
+	DecodedSourceMapOrMissing,
 	EmitAsset,
-	ExistingRawSourceMap,
+	EmittedChunk,
 	Plugin,
 	PluginCache,
 	PluginContext,
-	RawSourceMap,
 	RollupError,
 	RollupWarning,
 	TransformModuleJSON,
@@ -16,6 +16,8 @@ import {
 	TransformSourceDescription
 } from '../rollup/types';
 import { createTransformEmitAsset } from './assetHooks';
+import { collapseSourcemap } from './collapseSourcemaps';
+import { decodedSourcemap } from './decodedSourcemap';
 import { augmentCodeLocation, error } from './error';
 import { dirname, resolve } from './path';
 import { trackPluginCache } from './pluginDriver';
@@ -26,17 +28,15 @@ export default function transform(
 	module: Module
 ): Promise<TransformModuleJSON> {
 	const id = module.id;
-	const sourcemapChain: (RawSourceMap | { missing: true; plugin: string })[] = [];
+	const sourcemapChain: DecodedSourceMapOrMissing[] = [];
 
-	const originalSourcemap = typeof source.map === 'string' ? JSON.parse(source.map) : source.map;
-	if (originalSourcemap && typeof originalSourcemap.mappings === 'string')
-		originalSourcemap.mappings = decode(originalSourcemap.mappings);
-
+	let originalSourcemap = source.map === null ? null : decodedSourcemap(source.map);
 	const baseEmitAsset = graph.pluginDriver.emitAsset;
 	const originalCode = source.code;
 	let ast = source.ast;
 	let transformDependencies: string[];
-	let assets: Asset[];
+	let emittedAssets: Asset[];
+	const emittedChunks: EmittedChunk[] = [];
 	let customTransformCache = false;
 	let moduleSideEffects: boolean | null = null;
 	let trackedPluginCache: { cache: PluginCache; used: boolean };
@@ -59,16 +59,17 @@ export default function transform(
 				}
 			}
 		} else {
-			// assets emitted by transform are transformDependencies
-			if (assets.length) module.transformAssets = assets;
+			// assets/chunks emitted by a transform hook need to be emitted again if the hook is skipped
+			if (emittedAssets.length) module.transformAssets = emittedAssets;
+			if (emittedChunks.length) module.transformChunks = emittedChunks;
 
 			if (result && typeof result === 'object' && Array.isArray(result.dependencies)) {
 				// not great, but a useful way to track this without assuming WeakMap
 				if (!(curPlugin as any).warnedTransformDependencies)
-					this.warn({
-						code: 'TRANSFORM_DEPENDENCIES_DEPRECATED',
-						message: `Returning "dependencies" from plugin transform hook is deprecated for using this.addWatchFile() instead.`
-					});
+					graph.warnDeprecation(
+						`Returning "dependencies" from the "transform" hook as done by plugin ${plugin.name} is deprecated. The "this.addWatchFile" plugin context function should be used instead.`,
+						true
+					);
 				(curPlugin as any).warnedTransformDependencies = true;
 				if (!transformDependencies) transformDependencies = [];
 				for (const dep of result.dependencies)
@@ -93,17 +94,10 @@ export default function transform(
 			return code;
 		}
 
-		if (result.map && typeof (result.map as ExistingRawSourceMap).mappings === 'string') {
-			(result.map as ExistingRawSourceMap).mappings = decode(
-				(result.map as ExistingRawSourceMap).mappings
-			);
-		}
-
 		// strict null check allows 'null' maps to not be pushed to the chain, while 'undefined' gets the missing map warning
 		if (result.map !== null) {
-			sourcemapChain.push(
-				(result.map as ExistingRawSourceMap) || { missing: true, plugin: plugin.name }
-			);
+			const map = decodedSourcemap(result.map);
+			sourcemapChain.push(map || { missing: true, plugin: plugin.name });
 		}
 
 		ast = result.ast;
@@ -124,18 +118,21 @@ export default function transform(
 				else trackedPluginCache = trackPluginCache(pluginContext.cache);
 
 				let emitAsset: EmitAsset;
-				({ assets, emitAsset } = createTransformEmitAsset(graph.assetsById, baseEmitAsset));
+				({ assets: emittedAssets, emitAsset } = createTransformEmitAsset(
+					graph.assetsById,
+					baseEmitAsset
+				));
 				return {
 					...pluginContext,
 					cache: trackedPluginCache ? trackedPluginCache.cache : pluginContext.cache,
-					warn(warning: RollupWarning | string, pos?: { column: number; line: number }) {
+					warn(warning: RollupWarning | string, pos?: number | { column: number; line: number }) {
 						if (typeof warning === 'string') warning = { message: warning } as RollupWarning;
 						if (pos) augmentCodeLocation(warning, pos, curSource, id);
 						warning.id = id;
 						warning.hook = 'transform';
 						pluginContext.warn(warning);
 					},
-					error(err: RollupError | string, pos?: { column: number; line: number }): never {
+					error(err: RollupError | string, pos?: number | { column: number; line: number }): never {
 						if (typeof err === 'string') err = { message: err };
 						if (pos) augmentCodeLocation(err, pos, curSource, id);
 						err.id = id;
@@ -143,6 +140,10 @@ export default function transform(
 						return pluginContext.error(err);
 					},
 					emitAsset,
+					emitChunk(id, options) {
+						emittedChunks.push({ id, options });
+						return graph.pluginDriver.emitChunk(id, options);
+					},
 					addWatchFile(id: string) {
 						if (!transformDependencies) transformDependencies = [];
 						transformDependencies.push(id);
@@ -160,6 +161,28 @@ export default function transform(
 								setAssetSourceErr = err;
 							}
 						}
+					},
+					getCombinedSourcemap() {
+						const combinedMap = collapseSourcemap(
+							graph,
+							id,
+							originalCode,
+							originalSourcemap,
+							sourcemapChain
+						);
+						if (!combinedMap) {
+							const magicString = new MagicString(originalCode);
+							return magicString.generateMap({ includeContent: true, hires: true, source: id });
+						}
+						if (originalSourcemap !== combinedMap) {
+							originalSourcemap = combinedMap;
+							sourcemapChain.length = 0;
+						}
+						return new SourceMap({
+							...combinedMap,
+							file: null as any,
+							sourcesContent: combinedMap.sourcesContent as string[]
+						});
 					}
 				};
 			}

@@ -12,15 +12,15 @@ export function error(base: Error | RollupError, props?: RollupError): never {
 
 export function augmentCodeLocation(
 	object: RollupError | RollupWarning,
-	pos: { column: number; line: number },
+	pos: number | { column: number; line: number },
 	source: string,
 	id: string
 ): void {
-	if (pos.line !== undefined && pos.column !== undefined) {
+	if (typeof pos === 'object') {
 		const { line, column } = pos;
 		object.loc = { file: id, line, column };
 	} else {
-		object.pos = pos as any;
+		object.pos = pos;
 		const { line, column } = locate(source, pos, { offsetLine: 1 });
 		object.loc = { file: id, line, column };
 	}
@@ -39,6 +39,7 @@ export enum Errors {
 	BAD_LOADER = 'BAD_LOADER',
 	CHUNK_NOT_FOUND = 'CHUNK_NOT_FOUND',
 	CHUNK_NOT_GENERATED = 'CHUNK_NOT_GENERATED',
+	DEPRECATED_FEATURE = 'DEPRECATED_FEATURE',
 	INVALID_ASSET_NAME = 'INVALID_ASSET_NAME',
 	INVALID_CHUNK = 'INVALID_CHUNK',
 	INVALID_EXTERNAL_ID = 'INVALID_EXTERNAL_ID',
@@ -53,18 +54,14 @@ export enum Errors {
 export function errAssetNotFinalisedForFileName(asset: Asset) {
 	return {
 		code: Errors.ASSET_NOT_FINALISED,
-		message: `Plugin error - Unable to get file name for asset "${
-			asset.name
-		}". Ensure that the source is set and that generate is called first.`
+		message: `Plugin error - Unable to get file name for asset "${asset.name}". Ensure that the source is set and that generate is called first.`
 	};
 }
 
 export function errChunkNotGeneratedForFileName(entry: { name: string }) {
 	return {
 		code: Errors.CHUNK_NOT_GENERATED,
-		message: `Plugin error - Unable to get file name for chunk "${
-			entry.name
-		}". Ensure that generate is called first.`
+		message: `Plugin error - Unable to get file name for chunk "${entry.name}". Ensure that generate is called first.`
 	};
 }
 
@@ -85,9 +82,7 @@ export function errAssetReferenceIdNotFoundForSetSource(assetReferenceId: string
 export function errAssetSourceAlreadySet(asset: Asset) {
 	return {
 		code: Errors.ASSET_SOURCE_ALREADY_SET,
-		message: `Plugin error - Unable to set the source for asset "${
-			asset.name
-		}", source already set.`
+		message: `Plugin error - Unable to set the source for asset "${asset.name}", source already set.`
 	};
 }
 
@@ -118,6 +113,13 @@ export function errChunkReferenceIdNotFoundForFilename(chunkReferenceId: string)
 	return {
 		code: Errors.CHUNK_NOT_FOUND,
 		message: `Plugin error - Unable to get file name for unknown chunk "${chunkReferenceId}".`
+	};
+}
+
+export function errDeprecation(deprecation: string | RollupWarning) {
+	return {
+		code: Errors.DEPRECATED_FEATURE,
+		...(typeof deprecation === 'string' ? { message: deprecation } : deprecation)
 	};
 }
 
@@ -218,6 +220,6 @@ export function errUnresolvedImportTreatedAsExternal(source: string, importer: s
 			importer
 		)}, but could not be resolved – treating it as an external dependency`,
 		source,
-		url: 'https://rollupjs.org/guide/en#warning-treating-module-as-external-dependency'
+		url: 'https://rollupjs.org/guide/en/#warning-treating-module-as-external-dependency'
 	};
 }

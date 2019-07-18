@@ -74,6 +74,12 @@ const moduleAliases = {
 	'package.json': path.resolve('package.json')
 };
 
+const treeshake = {
+	moduleSideEffects: false,
+	propertyReadSideEffects: false,
+	tryCatchDeoptimization: false
+};
+
 export default command => {
 	const nodeBuilds = [
 		/* Rollup core node builds */
@@ -85,19 +91,15 @@ export default command => {
 				resolve(),
 				json(),
 				commonjs({ include: 'node_modules/**' }),
-				typescript({include: '**/*.{ts,js}'}),
+				typescript({ include: '**/*.{ts,js}' }),
 				fixAcornEsmImport()
 			],
 			// acorn needs to be external as some plugins rely on a shared acorn instance
 			external: ['fs', 'path', 'events', 'module', 'util', 'acorn'],
-			treeshake: {
-				moduleSideEffects: false,
-				propertyReadSideEffects: false
-			},
-			output: [
-				{ file: 'dist/rollup.js', format: 'cjs', sourcemap: true, banner },
-				{ file: 'dist/rollup.es.js', format: 'esm', banner }
-			]
+			treeshake,
+			output: [{ file: 'dist/rollup.js', format: 'cjs', sourcemap: true, banner }].concat(
+				command.configTest ? [] : [{ file: 'dist/rollup.es.js', format: 'esm', banner }]
+			)
 		},
 		/* Rollup CLI */
 		{
@@ -109,25 +111,23 @@ export default command => {
 				json(),
 				string({ include: '**/*.md' }),
 				commonjs({ include: 'node_modules/**' }),
-				typescript({include: '**/*.{ts,js}'}),
+				typescript({ include: '**/*.{ts,js}' })
 			],
 			external: ['fs', 'path', 'module', 'assert', 'events', 'rollup'],
-			treeshake: {
-				moduleSideEffects: false,
-				propertyReadSideEffects: false
-			},
+			treeshake,
 			output: {
 				file: 'bin/rollup',
 				format: 'cjs',
 				banner: '#!/usr/bin/env node',
 				paths: {
 					rollup: '../dist/rollup.js'
-				}
+				},
+				sourcemap: true
 			}
 		}
 	];
 
-	if (command.configNoBrowser) {
+	if (command.configTest) {
 		return nodeBuilds;
 	}
 	return nodeBuilds.concat([
@@ -146,13 +146,10 @@ export default command => {
 					}
 				},
 				commonjs(),
-				typescript({include: '**/*.{ts,js}'}),
+				typescript({ include: '**/*.{ts,js}' }),
 				terser({ module: true, output: { comments: 'some' } })
 			],
-			treeshake: {
-				moduleSideEffects: false,
-				propertyReadSideEffects: false
-			},
+			treeshake,
 			output: [
 				{ file: 'dist/rollup.browser.js', format: 'umd', name: 'rollup', banner },
 				{ file: 'dist/rollup.browser.es.js', format: 'esm', banner }

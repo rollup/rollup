@@ -1,7 +1,13 @@
-import { decode } from 'sourcemap-codec';
 import Chunk from '../Chunk';
 import Graph from '../Graph';
-import { OutputOptions, Plugin, RawSourceMap, RenderedChunk } from '../rollup/types';
+import {
+	DecodedSourceMapOrMissing,
+	OutputOptions,
+	Plugin,
+	RenderedChunk,
+	SourceMapInput
+} from '../rollup/types';
+import { decodedSourcemap } from './decodedSourcemap';
 import { error } from './error';
 
 export default function renderChunk({
@@ -17,9 +23,13 @@ export default function renderChunk({
 	graph: Graph;
 	options: OutputOptions;
 	renderChunk: RenderedChunk;
-	sourcemapChain: RawSourceMap[];
+	sourcemapChain: DecodedSourceMapOrMissing[];
 }): Promise<string> {
-	const renderChunkReducer = (code: string, result: any, plugin: Plugin): string => {
+	const renderChunkReducer = (
+		code: string,
+		result: { code: string; map?: SourceMapInput },
+		plugin: Plugin
+	): string => {
 		if (result == null) return code;
 
 		if (typeof result === 'string')
@@ -28,11 +38,11 @@ export default function renderChunk({
 				map: undefined
 			};
 
-		const map = typeof result.map === 'string' ? JSON.parse(result.map) : result.map;
-		if (map && typeof map.mappings === 'string') map.mappings = decode(map.mappings);
-
 		// strict null check allows 'null' maps to not be pushed to the chain, while 'undefined' gets the missing map warning
-		if (map !== null) sourcemapChain.push(map || { missing: true, plugin: plugin.name });
+		if (result.map !== null) {
+			const map = decodedSourcemap(result.map);
+			sourcemapChain.push(map || { missing: true, plugin: plugin.name });
+		}
 
 		return result.code;
 	};

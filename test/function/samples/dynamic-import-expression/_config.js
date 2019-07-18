@@ -23,7 +23,10 @@ module.exports = {
 			}
 		]
 	},
-	runtimeError(error) {
-		assert.equal(error.message.split('\n')[0], "Cannot find module 'x/y'");
+	exports(exports) {
+		const expectedError = "Cannot find module 'x/y'";
+		return exports.catch(err =>
+			assert.strictEqual(err.message.slice(0, expectedError.length), expectedError)
+		);
 	}
 };

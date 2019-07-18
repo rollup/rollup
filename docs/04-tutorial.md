@@ -103,7 +103,7 @@ export default {
 };
 ```
 
-(Note that you can use CJS modules as well, to wit, `module.exports = {/* config */}`)
+(Note that you can use CJS modules and therefore `module.exports = {/* config */}`)
 
 To use the config file, we use the `--config` or `-c` flag:
 
@@ -196,7 +196,7 @@ const main = function () {
 module.exports = main;
 ```
 
-_Note: Only the data we actually need gets imported – `name` and `devDependencies` and other parts of `package.json` are ignored. That's **tree-shaking** in action!_
+_Note: Only the data we actually need gets imported – `name` and `devDependencies` and other parts of `package.json` are ignored. That's **tree-shaking** in action._
 
 ### Code Splitting
 
@@ -215,7 +215,7 @@ Rollup will use the dynamic import to create a separate chunk that is only loade
 rollup src/main.js -f cjs -d dist
 ```
 
-This will create a folder `dist` containing two files, `main.js` and `chunk-[hash].js`, where `[hash]` is a content based hash string. You can supply your own naming patterns by specifying the [`output.chunkFileNames`](guide/en#output-chunkfilenames) and [`output.entryFileNames`](guide/en#output-entryfilenames) options.
+This will create a folder `dist` containing two files, `main.js` and `chunk-[hash].js`, where `[hash]` is a content based hash string. You can supply your own naming patterns by specifying the [`output.chunkFileNames`](guide/en/#outputchunkfilenames) and [`output.entryFileNames`](guide/en/#outputentryfilenames) options.
 
 You can still run your code as before with the same output, albeit a little slower as loading and parsing of `./foo.js` will only commence once we call the exported function for the first time.
 
@@ -243,7 +243,7 @@ var foo = 'hello world!';
 exports.default = foo;
 ```
 
-This is very useful if you want to load and parse expensive features only once they are used.
+This is useful if you want to load and parse expensive features only once they are used.
 
 A different use for code-splitting is the ability to specify several entry points that share some dependencies. Again we extend our example to add a second entry point `src/main2.js` that statically imports `src/foo.js` just like we did in the original example:
 

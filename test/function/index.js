@@ -61,7 +61,8 @@ runTestSuiteWithSamples('function', path.resolve(__dirname, 'samples'), (dir, co
 					extend(
 						{
 							input: dir + '/main.js',
-							onwarn: warning => warnings.push(warning)
+							onwarn: warning => warnings.push(warning),
+							strictDeprecations: true
 						},
 						config.options || {}
 					)

@@ -4,27 +4,27 @@
 	(global = global || self, factory(global.myBundle = {}, global.foo, global.bar, global.baz));
 }(this, function (exports, foo, bar, baz) { 'use strict';
 
-	Object.keys(foo).forEach(function (key) {
-		Object.defineProperty(exports, key, {
+	Object.keys(foo).forEach(function (k) {
+		if (k !== 'default') Object.defineProperty(exports, k, {
 			enumerable: true,
 			get: function () {
-				return foo[key];
+				return foo[k];
 			}
 		});
 	});
-	Object.keys(bar).forEach(function (key) {
-		Object.defineProperty(exports, key, {
+	Object.keys(bar).forEach(function (k) {
+		if (k !== 'default') Object.defineProperty(exports, k, {
 			enumerable: true,
 			get: function () {
-				return bar[key];
+				return bar[k];
 			}
 		});
 	});
-	Object.keys(baz).forEach(function (key) {
-		Object.defineProperty(exports, key, {
+	Object.keys(baz).forEach(function (k) {
+		if (k !== 'default') Object.defineProperty(exports, k, {
 			enumerable: true,
 			get: function () {
-				return baz[key];
+				return baz[k];
 			}
 		});
 	});

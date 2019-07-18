@@ -1,35 +1,29 @@
 # Rollup
 
 <p align="center">
-  <a href="https://travis-ci.org/rollup/rollup">
-    <img src="https://api.travis-ci.org/rollup/rollup.svg?branch=master"
-         alt="build status">
-  </a>
   <a href="https://www.npmjs.com/package/rollup">
-    <img src="https://img.shields.io/npm/v/rollup.svg"
-         alt="npm version">
+    <img src="https://img.shields.io/npm/v/rollup.svg" alt="npm version" >
   </a>
   <a href="https://packagephobia.now.sh/result?p=rollup">
-    <img src="https://packagephobia.now.sh/badge?p=rollup"
-         alt="install size">
+    <img src="https://packagephobia.now.sh/badge?p=rollup" alt="install size" >
   </a>
-    <a href="#backers" alt="sponsors on Open Collective">
-      <img src="https://opencollective.com/rollup/backers/badge.svg" />
+  <a href="https://codecov.io/gh/rollup/rollup">
+    <img src="https://codecov.io/gh/rollup/rollup/graph/badge.svg" alt="code coverage" >
+  </a>
+  <a href="#backers" alt="sponsors on Open Collective">
+      <img src="https://opencollective.com/rollup/backers/badge.svg" alt="backers" >
   </a> 
   <a href="#sponsors" alt="Sponsors on Open Collective">
-    <img src="https://opencollective.com/rollup/sponsors/badge.svg" />
+    <img src="https://opencollective.com/rollup/sponsors/badge.svg" alt="sponsors" >
   </a> 
   <a href="https://github.com/rollup/rollup/blob/master/LICENSE.md">
-    <img src="https://img.shields.io/npm/l/rollup.svg"
-         alt="license">
+    <img src="https://img.shields.io/npm/l/rollup.svg" alt="license">
   </a>
   <a href="https://david-dm.org/rollup/rollup">
-    <img src="https://david-dm.org/rollup/rollup/status.svg"
-         alt="dependency status">
+    <img src="https://david-dm.org/rollup/rollup/status.svg" alt="dependency status">
   </a>
   <a href='https://gitter.im/rollup/rollup?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge'>
-    <img src='https://badges.gitter.im/rollup/rollup.svg'
-         alt='Join the chat at https://gitter.im/rollup/rollup'>
+    <img src='https://badges.gitter.im/rollup/rollup.svg' alt='Join the chat at https://gitter.im/rollup/rollup'>
   </a>
 </p>
 

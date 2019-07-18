@@ -23,7 +23,8 @@ runTestSuiteWithSamples('chunking form', path.resolve(__dirname, 'samples'), (di
 										if (/No name was provided for/.test(msg)) return;
 										if (/as external dependency/.test(msg)) return;
 										console.error(msg);
-									}
+									},
+									strictDeprecations: true
 								},
 								config.options || {}
 							)

@@ -17,8 +17,8 @@ module.exports = {
 			},
 			resolveId(id, importee) {
 				if (id.startsWith(REGISTER_WORKLET)) {
-					return this.resolveId(id.slice(REGISTER_WORKLET.length), importee).then(
-						id => REGISTER_WORKLET + id
+					return this.resolve(id.slice(REGISTER_WORKLET.length), importee).then(
+						resolvedId => REGISTER_WORKLET + resolvedId.id
 					);
 				}
 				return null;

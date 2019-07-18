@@ -24,7 +24,7 @@ module.exports = {
 
 It may be pertinent if you want to use the config file not only from the command line, but also from your custom scripts programmatically.
 
-Consult the [big list of options](guide/en#big-list-of-options) for details on each option you can include in your config file.
+Consult the [big list of options](guide/en/#big-list-of-options) for details on each option you can include in your config file.
 
 ```javascript
 // rollup.config.js
@@ -41,6 +41,7 @@ export default { // can be an array (for multiple inputs)
   manualChunks,
   onwarn,
   preserveModules,
+  strictDeprecations,
 
   // danger zone
   acorn,
@@ -164,7 +165,7 @@ $ rollup --config
 $ rollup --config my.config.js
 ```
 
-You can also export a function that returns any of the above configuration formats. This function will be passed the current command line arguments so that you can dynamically adapt your configuration to respect e.g. `--silent`. You can even define your own command line options if you prefix them with `config`:
+You can also export a function that returns any of the above configuration formats. This function will be passed the current command line arguments so that you can dynamically adapt your configuration to respect e.g. [`--silent`](guide/en/#--silent). You can even define your own command line options if you prefix them with `config`:
 
 ```javascript
 // rollup.config.js
@@ -230,13 +231,14 @@ Many options have command line equivalents. In those cases, any arguments passed
 --silent                    Don't print warnings
 --sourcemapExcludeSources   Do not include source code in source maps
 --sourcemapFile <file>      Specify bundle position for source maps
+--strictDeprecations        Throw errors for deprecated features
 --no-treeshake              Disable tree-shaking optimisations
 --no-treeshake.annotations  Ignore pure call annotations
 --no-treeshake.propertyReadSideEffects Ignore property access side-effects
 --treeshake.pureExternalModules        Assume side-effect free externals
 ```
 
-The flags listed below are only available via the command line interface. All other flags correspond to and override their config file equivalents, see the [big list of options](guide/en#big-list-of-options) for details.
+The flags listed below are only available via the command line interface. All other flags correspond to and override their config file equivalents, see the [big list of options](guide/en/#big-list-of-options) for details.
 
 #### `-h`/`--help`
 
@@ -252,7 +254,7 @@ Rebuild the bundle when its source files change on disk.
 
 #### `--silent`
 
-Don't print warnings to the console.
+Don't print warnings to the console. If your configuration file contains an `onwarn` handler, this handler will still be called. To manually prevent that, you can access the command line options in your configuration file as described at the end of [Configuration Files](guide/en/#configuration-files).
 
 #### `--environment <values>`
 

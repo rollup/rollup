@@ -21,7 +21,7 @@ module.exports = {
 		}
 	},
 	exports(exports) {
-		return exports.fromFoo.then(value => assert.strictEqual(value, 42));
+		return exports.fromFoo.then(value => assert.deepStrictEqual(value, { default: 42 }));
 	},
 	warnings: [
 		{

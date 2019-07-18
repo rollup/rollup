@@ -26,7 +26,7 @@ about: Something went awry and you'd like to tell us about it.
 
 <!--
   Issues without minimal reproductions will be closed! Please provide one by:
-  1. Using the REPL at https://rollupjs.org/repl, or
+  1. Using the REPL at https://rollupjs.org/repl/, or
   2. Work to isolate the problem and provide the exact steps in this issue, or
   3. Provide a minimal repository link (Read https://git.io/fNzHA for instructions).
      These may take more time to triage than the other options.

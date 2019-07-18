@@ -89,7 +89,7 @@ export default class VariableDeclaration extends NodeBase {
 	private renderDeclarationEnd(
 		code: MagicString,
 		separatorString: string,
-		lastSeparatorPos: number,
+		lastSeparatorPos: number | null,
 		actualContentEnd: number,
 		renderedContentEnd: number,
 		addSemicolon: boolean,

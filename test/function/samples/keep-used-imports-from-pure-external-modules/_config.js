@@ -5,7 +5,7 @@ module.exports = {
 	options: {
 		external: ['warning'],
 		treeshake: {
-			pureExternalModules: ['warning']
+			moduleSideEffects: 'no-external'
 		}
 	},
 	context: {

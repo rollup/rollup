@@ -1,4 +1,4 @@
 'use strict';
 
-Promise.resolve(require('./generated-dynamic5.js'));
+new Promise(function (resolve) { resolve(require('./generated-dynamic5.js')); });
 console.log('dynamic4');

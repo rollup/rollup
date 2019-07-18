@@ -15,15 +15,15 @@ import finalisers from './finalisers/index';
 import Graph from './Graph';
 import Module from './Module';
 import {
+	DecodedSourceMapOrMissing,
 	GlobalsOption,
 	OutputOptions,
-	RawSourceMap,
 	RenderedChunk,
 	RenderedModule
 } from './rollup/types';
 import { Addons } from './utils/addons';
 import { toBase64 } from './utils/base64';
-import collapseSourcemaps from './utils/collapseSourcemaps';
+import { collapseSourcemaps } from './utils/collapseSourcemaps';
 import { deconflictChunk } from './utils/deconflictChunk';
 import { error } from './utils/error';
 import { sortByExecutionOrder } from './utils/executionOrder';
@@ -127,7 +127,7 @@ export default class Chunk {
 	augmentedHash?: string;
 	entryModules: Module[] = [];
 	execIndex: number;
-	exportMode = 'named';
+	exportMode: 'none' | 'named' | 'default' = 'named';
 	facadeModule: Module | null = null;
 	graph: Graph;
 	id: string = undefined as any;
@@ -153,7 +153,7 @@ export default class Chunk {
 		exports: ChunkExports;
 	} = undefined as any;
 	private renderedHash: string = undefined as any;
-	private renderedModuleSources: MagicString[] = undefined as any;
+	private renderedModuleSources = new Map<Module, MagicString>();
 	private renderedSource: MagicStringBundle | null = null;
 	private renderedSourceLength: number = undefined as any;
 	private sortedExportNames: string[] | null = null;
@@ -522,40 +522,38 @@ export default class Chunk {
 		}
 		sortByExecutionOrder(this.dependencies);
 
-		this.setIdentifierRenderResolutions(options);
 		this.prepareDynamicImports();
+		this.setIdentifierRenderResolutions(options);
 
 		let hoistedSource = '';
-
 		const renderedModules = (this.renderedModules = Object.create(null));
-		this.renderedModuleSources = [];
 
-		for (let i = 0; i < this.orderedModules.length; i++) {
-			const module = this.orderedModules[i];
-			const source = module.render(renderOptions);
-			source.trim();
-			if (options.compact && source.lastLine().indexOf('//') !== -1) source.append('\n');
-			this.renderedModuleSources.push(source);
+		for (const module of this.orderedModules) {
+			let renderedLength = 0;
+			if (module.isIncluded()) {
+				const source = module.render(renderOptions).trim();
+				if (options.compact && source.lastLine().indexOf('//') !== -1) source.append('\n');
+				const namespace = module.getOrCreateNamespace();
+				if (namespace.included || source.length() > 0) {
+					renderedLength = source.length();
+					this.renderedModuleSources.set(module, source);
+					magicString.addSource(source);
+					this.usedModules.push(module);
 
+					if (namespace.included && !this.graph.preserveModules) {
+						const rendered = namespace.renderBlock(renderOptions);
+						if (namespace.renderFirst()) hoistedSource += n + rendered;
+						else magicString.addSource(new MagicString(rendered));
+					}
+				}
+			}
 			const { renderedExports, removedExports } = module.getRenderedExports();
 			renderedModules[module.id] = {
 				originalLength: module.originalCode.length,
 				removedExports,
 				renderedExports,
-				renderedLength: source.length()
+				renderedLength
 			};
-
-			const namespace = module.getOrCreateNamespace();
-			if (namespace.included || !source.isEmpty()) {
-				magicString.addSource(source);
-				this.usedModules.push(module);
-
-				if (namespace.included && !this.graph.preserveModules) {
-					const rendered = namespace.renderBlock(renderOptions);
-					if (namespace.renderFirst()) hoistedSource += n + rendered;
-					else magicString.addSource(new MagicString(rendered));
-				}
-			}
 		}
 
 		if (hoistedSource) magicString.prepend(hoistedSource + n + n);
@@ -688,7 +686,7 @@ export default class Chunk {
 		timeEnd('render format', 3);
 
 		let map: SourceMap = null as any;
-		const chunkSourcemapChain: RawSourceMap[] = [];
+		const chunkSourcemapChain: DecodedSourceMapOrMissing[] = [];
 
 		return renderChunk({
 			chunk: this,
@@ -816,9 +814,7 @@ export default class Chunk {
 	}
 
 	private finaliseDynamicImports(format: string) {
-		for (let i = 0; i < this.orderedModules.length; i++) {
-			const module = this.orderedModules[i];
-			const code = this.renderedModuleSources[i];
+		for (const [module, code] of this.renderedModuleSources) {
 			for (const { node, resolution } of module.dynamicImports) {
 				if (!resolution) continue;
 				if (resolution instanceof Module) {
@@ -843,9 +839,7 @@ export default class Chunk {
 	}
 
 	private finaliseImportMetas(format: string): void {
-		for (let i = 0; i < this.orderedModules.length; i++) {
-			const module = this.orderedModules[i];
-			const code = this.renderedModuleSources[i];
+		for (const [module, code] of this.renderedModuleSources) {
 			for (const importMeta of module.importMetas) {
 				importMeta.renderFinalMechanism(code, this.id, format, this.graph.pluginDriver);
 			}
@@ -1006,18 +1000,16 @@ export default class Chunk {
 	private prepareDynamicImports() {
 		for (const module of this.orderedModules) {
 			for (const { node, resolution } of module.dynamicImports) {
-				if (!resolution) continue;
+				if (!node.included) continue;
 				if (resolution instanceof Module) {
 					if (resolution.chunk === this) {
 						const namespace = resolution.getOrCreateNamespace();
-						node.setResolution(false, namespace.getName());
+						node.setResolution('named', namespace);
 					} else {
-						node.setResolution(false);
+						node.setResolution((resolution.chunk as Chunk).exportMode);
 					}
-				} else if (resolution instanceof ExternalModule) {
-					node.setResolution(false);
 				} else {
-					node.setResolution(false);
+					node.setResolution('auto');
 				}
 			}
 		}

@@ -32,8 +32,10 @@ import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import {
 	Asset,
+	DecodedSourceMapOrMissing,
+	EmittedChunk,
+	ExistingDecodedSourceMap,
 	ModuleJSON,
-	RawSourceMap,
 	ResolvedIdMap,
 	RollupError,
 	RollupWarning,
@@ -155,7 +157,7 @@ function handleMissingExport(
 		{
 			code: 'MISSING_EXPORT',
 			message: `'${exportName}' is not exported by ${relativeId(importedModule)}`,
-			url: `https://rollupjs.org/guide/en#error-name-is-not-exported-by-module-`
+			url: `https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module-`
 		},
 		importerStart as number
 	);
@@ -177,7 +179,7 @@ export default class Module {
 	dynamicDependencies: (Module | ExternalModule)[] = [];
 	dynamicImports: {
 		node: Import;
-		resolution: Module | ExternalModule | string | void;
+		resolution: Module | ExternalModule | string | null;
 	}[] = [];
 	entryPointsHash: Uint8Array = new Uint8Array(10);
 	excludeFromSourcemap: boolean;
@@ -198,13 +200,14 @@ export default class Module {
 	manualChunkAlias: string = null as any;
 	moduleSideEffects: boolean;
 	originalCode!: string;
-	originalSourcemap!: RawSourceMap | void;
+	originalSourcemap!: ExistingDecodedSourceMap | null;
 	reexports: { [name: string]: ReexportDescription } = Object.create(null);
 	resolvedIds!: ResolvedIdMap;
 	scope!: ModuleScope;
-	sourcemapChain!: RawSourceMap[];
+	sourcemapChain!: DecodedSourceMapOrMissing[];
 	sources: string[] = [];
 	transformAssets?: Asset[];
+	transformChunks?: EmittedChunk[];
 	usesTopLevelAwait = false;
 
 	private allExportNames?: Set<string>;
@@ -215,7 +218,7 @@ export default class Module {
 	private graph: Graph;
 	private magicString!: MagicString;
 	private namespaceVariable: NamespaceVariable = undefined as any;
-	private transformDependencies!: string[];
+	private transformDependencies: string[] | null = null;
 	private transitiveReexports?: string[];
 
 	constructor(graph: Graph, id: string, moduleSideEffects: boolean, isEntry: boolean) {
@@ -300,18 +303,17 @@ export default class Module {
 	getDynamicImportExpressions(): (string | Node)[] {
 		return this.dynamicImports.map(({ node }) => {
 			const importArgument = node.parent.arguments[0];
-			if (importArgument instanceof TemplateLiteral) {
-				if (importArgument.expressions.length === 0 && importArgument.quasis.length === 1) {
-					return importArgument.quasis[0].value.cooked;
-				}
-			} else if (importArgument instanceof Literal) {
-				if (typeof importArgument.value === 'string') {
-					return importArgument.value;
-				}
-			} else {
-				return importArgument;
+			if (
+				importArgument instanceof TemplateLiteral &&
+				importArgument.quasis.length === 1 &&
+				importArgument.quasis[0].value.cooked
+			) {
+				return importArgument.quasis[0].value.cooked;
 			}
-			return undefined as any;
+			if (importArgument instanceof Literal && typeof importArgument.value === 'string') {
+				return importArgument.value;
+			}
+			return importArgument;
 		});
 	}
 
@@ -427,8 +429,7 @@ export default class Module {
 		}
 
 		if (name !== 'default') {
-			for (let i = 0; i < this.exportAllModules.length; i += 1) {
-				const module = this.exportAllModules[i];
+			for (const module of this.exportAllModules) {
 				const declaration = module.getVariableForExportName(name, true);
 
 				if (declaration) return declaration;
@@ -502,10 +503,16 @@ export default class Module {
 		this.addModulesToSpecifiers(this.importDescriptions);
 		this.addModulesToSpecifiers(this.reexports);
 
-		this.exportAllModules = this.exportAllSources.map(source => {
-			const id = this.resolvedIds[source].id;
-			return this.graph.moduleById.get(id) as any;
-		});
+		this.exportAllModules = this.exportAllSources
+			.map(source => {
+				const id = this.resolvedIds[source].id;
+				return this.graph.moduleById.get(id) as Module | ExternalModule;
+			})
+			.sort((moduleA, moduleB) => {
+				const aExternal = moduleA instanceof ExternalModule;
+				const bExternal = moduleB instanceof ExternalModule;
+				return aExternal === bExternal ? 0 : aExternal ? 1 : -1;
+			});
 	}
 
 	render(options: RenderOptions): MagicString {
@@ -524,13 +531,24 @@ export default class Module {
 		originalSourcemap,
 		resolvedIds,
 		sourcemapChain,
+		transformAssets,
+		transformChunks,
 		transformDependencies
-	}: TransformModuleJSON) {
+	}: TransformModuleJSON & {
+		transformAssets?: Asset[] | undefined;
+		transformChunks?: EmittedChunk[] | undefined;
+	}) {
 		this.code = code;
 		this.originalCode = originalCode;
 		this.originalSourcemap = originalSourcemap;
-		this.sourcemapChain = sourcemapChain as RawSourceMap[];
-		this.transformDependencies = transformDependencies as string[];
+		this.sourcemapChain = sourcemapChain;
+		if (transformAssets) {
+			this.transformAssets = transformAssets;
+		}
+		if (transformChunks) {
+			this.transformChunks = transformChunks;
+		}
+		this.transformDependencies = transformDependencies;
 		this.customTransformCache = customTransformCache;
 		if (typeof moduleSideEffects === 'boolean') {
 			this.moduleSideEffects = moduleSideEffects;
@@ -618,6 +636,7 @@ export default class Module {
 			resolvedIds: this.resolvedIds,
 			sourcemapChain: this.sourcemapChain,
 			transformAssets: this.transformAssets,
+			transformChunks: this.transformChunks,
 			transformDependencies: this.transformDependencies
 		};
 	}
@@ -663,7 +682,7 @@ export default class Module {
 	}
 
 	private addDynamicImport(node: Import) {
-		this.dynamicImports.push({ node, resolution: undefined });
+		this.dynamicImports.push({ node, resolution: null });
 	}
 
 	private addExport(
