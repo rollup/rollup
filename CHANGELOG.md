@@ -1,5 +1,23 @@
 # rollup changelog
 
+## 1.17.1
+*unreleased*
+
+### Pull Requests
+* [#2997](https://github.com/rollup/rollup/pull/2997): Integrate coverage into CI setup (@lukastaegert)
+* [#2998](https://github.com/rollup/rollup/pull/2998): Update readme badges (@lukastaegert)
+
+## 1.17.0
+*2019-07-15*
+
+### Features
+* Allow plugins to access current combined sourcemap in transform hook for coverage instrumentation (#2993)
+
+### Pull Requests
+* [#2987](https://github.com/rollup/rollup/pull/2987): Fix code fences for link (@johanholmerin)
+* [#2989](https://github.com/rollup/rollup/pull/2989): Bump lodash from 4.17.11 to 4.17.14 (@dependabot)
+* [#2993](https://github.com/rollup/rollup/pull/2993): Add getCombinedSourceMap in transform plugin context (@billowz)
+
 ## 1.16.7
 *2019-07-09*
 

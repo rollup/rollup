@@ -91,16 +91,15 @@ export default command => {
 				resolve(),
 				json(),
 				commonjs({ include: 'node_modules/**' }),
-				typescript({include: '**/*.{ts,js}'}),
+				typescript({ include: '**/*.{ts,js}' }),
 				fixAcornEsmImport()
 			],
 			// acorn needs to be external as some plugins rely on a shared acorn instance
 			external: ['fs', 'path', 'events', 'module', 'util', 'acorn'],
 			treeshake,
-			output: [
-				{ file: 'dist/rollup.js', format: 'cjs', sourcemap: true, banner },
-				{ file: 'dist/rollup.es.js', format: 'esm', banner }
-			]
+			output: [{ file: 'dist/rollup.js', format: 'cjs', sourcemap: true, banner }].concat(
+				command.configTest ? [] : [{ file: 'dist/rollup.es.js', format: 'esm', banner }]
+			)
 		},
 		/* Rollup CLI */
 		{
@@ -112,7 +111,7 @@ export default command => {
 				json(),
 				string({ include: '**/*.md' }),
 				commonjs({ include: 'node_modules/**' }),
-				typescript({include: '**/*.{ts,js}'}),
+				typescript({ include: '**/*.{ts,js}' })
 			],
 			external: ['fs', 'path', 'module', 'assert', 'events', 'rollup'],
 			treeshake,
@@ -122,12 +121,13 @@ export default command => {
 				banner: '#!/usr/bin/env node',
 				paths: {
 					rollup: '../dist/rollup.js'
-				}
+				},
+				sourcemap: true
 			}
 		}
 	];
 
-	if (command.configNoBrowser) {
+	if (command.configTest) {
 		return nodeBuilds;
 	}
 	return nodeBuilds.concat([
@@ -146,7 +146,7 @@ export default command => {
 					}
 				},
 				commonjs(),
-				typescript({include: '**/*.{ts,js}'}),
+				typescript({ include: '**/*.{ts,js}' }),
 				terser({ module: true, output: { comments: 'some' } })
 			],
 			treeshake,

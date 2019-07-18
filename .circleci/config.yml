@@ -54,7 +54,13 @@ jobs:
   node-v12-latest:
     docker:
       - image: rollupcabal/circleci-node-v12:latest
-    <<: *unit_tests_12
+    steps:
+      - checkout
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package-lock.json" }}
+      - run:
+          name: Run tests with coverage.
+          command: npm run ci:coverage
 
 workflows:
   version: 2

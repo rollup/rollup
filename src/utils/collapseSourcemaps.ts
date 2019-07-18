@@ -1,5 +1,6 @@
 import { DecodedSourceMap, SourceMap } from 'magic-string';
 import Chunk from '../Chunk';
+import Graph from '../Graph';
 import Module from '../Module';
 import {
 	DecodedSourceMapOrMissing,
@@ -145,20 +146,13 @@ class Link {
 	}
 }
 
-export default function collapseSourcemaps(
-	bundle: Chunk,
-	file: string,
-	map: DecodedSourceMap,
-	modules: Module[],
-	bundleSourcemapChain: DecodedSourceMapOrMissing[],
-	excludeContent: boolean
-) {
-	function linkMap(source: Source | Link, map: DecodedSourceMapOrMissing) {
+function getLinkMap(graph: Graph) {
+	return function linkMap(source: Source | Link, map: DecodedSourceMapOrMissing) {
 		if (map.mappings) {
 			return new Link(map, [source]);
 		}
 
-		bundle.graph.warn({
+		graph.warn({
 			code: 'SOURCEMAP_BROKEN',
 			message: `Sourcemap is likely to be incorrect: a plugin${
 				map.plugin ? ` ('${map.plugin}')` : ``
@@ -174,34 +168,56 @@ export default function collapseSourcemaps(
 			},
 			[source]
 		);
-	}
+	};
+}
 
+function getCollapsedSourcemap(
+	id: string,
+	originalCode: string,
+	originalSourcemap: ExistingDecodedSourceMap | null,
+	sourcemapChain: DecodedSourceMapOrMissing[],
+	linkMap: (source: Source | Link, map: DecodedSourceMapOrMissing) => Link
+): Source | Link {
+	let source: Source | Link;
+
+	if (!originalSourcemap) {
+		source = new Source(id, originalCode);
+	} else {
+		const sources = originalSourcemap.sources;
+		const sourcesContent = originalSourcemap.sourcesContent || [];
+
+		// TODO indiscriminately treating IDs and sources as normal paths is probably bad.
+		const directory = dirname(id) || '.';
+		const sourceRoot = originalSourcemap.sourceRoot || '.';
+
+		const baseSources = sources.map(
+			(source, i) => new Source(resolve(directory, sourceRoot, source), sourcesContent[i])
+		);
+		source = new Link(originalSourcemap, baseSources);
+	}
+	return sourcemapChain.reduce(linkMap, source);
+}
+
+export function collapseSourcemaps(
+	bundle: Chunk,
+	file: string,
+	map: DecodedSourceMap,
+	modules: Module[],
+	bundleSourcemapChain: DecodedSourceMapOrMissing[],
+	excludeContent: boolean
+) {
+	const linkMap = getLinkMap(bundle.graph);
 	const moduleSources = modules
 		.filter(module => !module.excludeFromSourcemap)
-		.map(module => {
-			let source: Source | Link;
-			const originalSourcemap = module.originalSourcemap;
-			if (!originalSourcemap) {
-				source = new Source(module.id, module.originalCode);
-			} else {
-				const sources = originalSourcemap.sources;
-				const sourcesContent = originalSourcemap.sourcesContent || [];
-
-				// TODO indiscriminately treating IDs and sources as normal paths is probably bad.
-				const directory = dirname(module.id) || '.';
-				const sourceRoot = originalSourcemap.sourceRoot || '.';
-
-				const baseSources = sources.map(
-					(source, i) => new Source(resolve(directory, sourceRoot, source), sourcesContent[i])
-				);
-
-				source = new Link(originalSourcemap, baseSources);
-			}
-
-			source = module.sourcemapChain.reduce(linkMap, source);
-
-			return source;
-		});
+		.map(module =>
+			getCollapsedSourcemap(
+				module.id,
+				module.originalCode,
+				module.originalSourcemap,
+				module.sourcemapChain,
+				linkMap
+			)
+		);
 
 	// DecodedSourceMap (from magic-string) uses a number[] instead of the more
 	// correct SourceMapSegment tuples. Cast it here to gain type safety.
@@ -220,4 +236,26 @@ export default function collapseSourcemaps(
 	sourcesContent = (excludeContent ? null : sourcesContent) as string[];
 
 	return new SourceMap({ file, sources, sourcesContent, names, mappings });
+}
+
+export function collapseSourcemap(
+	graph: Graph,
+	id: string,
+	originalCode: string,
+	originalSourcemap: ExistingDecodedSourceMap | null,
+	sourcemapChain: DecodedSourceMapOrMissing[]
+): ExistingDecodedSourceMap | null {
+	if (!sourcemapChain.length) {
+		return originalSourcemap;
+	}
+
+	const source = getCollapsedSourcemap(
+		id,
+		originalCode,
+		originalSourcemap,
+		sourcemapChain,
+		getLinkMap(graph)
+	) as Link;
+	const map = source.traceMappings();
+	return { version: 3, ...map };
 }

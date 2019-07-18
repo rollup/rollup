@@ -23,7 +23,7 @@ import {
 } from './rollup/types';
 import { Addons } from './utils/addons';
 import { toBase64 } from './utils/base64';
-import collapseSourcemaps from './utils/collapseSourcemaps';
+import { collapseSourcemaps } from './utils/collapseSourcemaps';
 import { deconflictChunk } from './utils/deconflictChunk';
 import { error } from './utils/error';
 import { sortByExecutionOrder } from './utils/executionOrder';

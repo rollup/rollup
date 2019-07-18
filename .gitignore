@@ -8,8 +8,10 @@ coverage
 .commithash
 .idea
 bin/rollup
+bin/rollup.map
 test/_tmp
 test/hooks/tmp
 test/tmp
 test/typescript/typings
 perf/
+.nyc_output/
