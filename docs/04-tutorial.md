@@ -141,7 +141,7 @@ npm i -D rollup
 Now you can run it inside the root folder of your project like so:
 
 ```console
-npm run rollup --config
+npx rollup --config
 // OR yarn rollup --config
 ```
 
@@ -150,7 +150,7 @@ In this case it's usually a good idea to also add a script to your `package.json
 ```json
 {
   "scripts": {
-    "build": "npm run rollup --config"
+    "build": "npx rollup --config"
   }
 }
 ```
