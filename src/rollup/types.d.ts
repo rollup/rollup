@@ -136,6 +136,7 @@ export interface EmittedAsset {
 
 // TODO Lukas is it possible to control the generated fileName directly?
 export interface EmittedChunk {
+	fileName?: string;
 	id: string;
 	name?: string;
 	type: 'chunk';

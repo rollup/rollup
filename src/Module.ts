@@ -169,7 +169,8 @@ const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
 
 export default class Module {
 	chunk?: Chunk;
-	chunkAlias: string = null as any;
+	chunkFileName: string | null = null;
+	chunkName: string | null = null;
 	code!: string;
 	comments: CommentDescription[] = [];
 	customTransformCache!: boolean;

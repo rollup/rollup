@@ -129,6 +129,7 @@ export class FileEmitter {
 			type: 'asset'
 		};
 		if (this.output && asset.source !== undefined) {
+			// TODO Lukas throw an error when there is a conflict
 			if (typeof consumedAsset.fileName !== 'string') {
 				consumedAsset.fileName = getAssetFileName(
 					consumedAsset.name || 'asset',
@@ -151,11 +152,14 @@ export class FileEmitter {
 		}
 		const consumedChunk: ConsumedChunk = {
 			module: null,
-			name: chunk.name || chunk.id,
+			name: chunk.fileName || chunk.name || chunk.id,
 			type: 'chunk'
 		};
 		this.graph.moduleLoader
-			.addEntryModules([{ alias: chunk.name || null, unresolvedId: chunk.id }], false)
+			.addEntryModules(
+				[{ fileName: chunk.fileName || null, name: chunk.name || null, id: chunk.id }],
+				false
+			)
 			.then(({ newEntryModules: [module] }) => {
 				consumedChunk.module = module;
 			})
@@ -210,6 +214,7 @@ export class FileEmitter {
 			return error(errAssetSourceMissingForSetSource(emittedFile.name || fileReferenceId));
 		}
 		if (this.output) {
+			// TODO Lukas throw an error when there is a conflict
 			const fileName =
 				emittedFile.fileName || getAssetFileName(emittedFile.name || 'asset', source, this.output);
 			// We must not modify the original assets to not interact with other outputs

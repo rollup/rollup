@@ -30,7 +30,10 @@ export function assignChunkIds(
 		if (outputOptions.file) {
 			chunk.id = basename(outputOptions.file);
 		} else if (inputOptions.preserveModules) {
-			chunk.generateIdPreserveModules(inputBase, usedIds);
+			// TODO Lukas how do we handle emitted chunks when preserving modules?
+			chunk.id = chunk.generateIdPreserveModules(inputBase, usedIds);
+		} else if (chunk.facadeModule && chunk.facadeModule.chunkFileName) {
+			chunk.id = chunk.facadeModule.chunkFileName;
 		} else {
 			let pattern, patternName;
 			if (chunk.facadeModule && chunk.facadeModule.isUserDefinedEntryPoint) {
@@ -40,7 +43,7 @@ export function assignChunkIds(
 				pattern = outputOptions.chunkFileNames || '[name]-[hash].js';
 				patternName = 'output.chunkFileNames';
 			}
-			chunk.generateId(pattern, patternName, addons, outputOptions, usedIds);
+			chunk.id = chunk.generateId(pattern, patternName, addons, outputOptions, usedIds);
 		}
 		usedIds[chunk.id] = true;
 	}

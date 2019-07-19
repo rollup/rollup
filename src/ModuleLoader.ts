@@ -31,9 +31,10 @@ import relativeId from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
 import transform from './utils/transform';
 
-export interface UnresolvedModuleWithAlias {
-	alias: string | null;
-	unresolvedId: string;
+export interface UnresolvedModule {
+	fileName: string | null;
+	id: string;
+	name: string | null;
 }
 
 function normalizeRelativeExternalId(importer: string, source: string) {
@@ -120,7 +121,7 @@ export class ModuleLoader {
 	}
 
 	addEntryModules(
-		unresolvedEntryModules: UnresolvedModuleWithAlias[],
+		unresolvedEntryModules: UnresolvedModule[],
 		isUserDefined: boolean
 	): Promise<{
 		entryModules: Module[];
@@ -128,10 +129,18 @@ export class ModuleLoader {
 		newEntryModules: Module[];
 	}> {
 		const loadNewEntryModulesPromise = Promise.all(
-			unresolvedEntryModules.map(({ alias, unresolvedId }) =>
-				this.loadEntryModule(unresolvedId, true).then(module => {
-					if (alias !== null && (module.chunkAlias === null || isUserDefined)) {
-						module.chunkAlias = alias;
+			unresolvedEntryModules.map(({ fileName, id, name }) =>
+				this.loadEntryModule(id, true).then(module => {
+					if (fileName !== null) {
+						if (module.chunkFileName !== null) {
+							// TODO Lukas test or create facades and make chunkFileName a Set
+							throw new Error('Cannot reassign chunk filename');
+						}
+						module.chunkFileName = fileName;
+						// TODO Lukas can we make sure a precise filename does not override a user-defined one?
+						// should we create facades if the user provides several names for a chunk?
+					} else if (name !== null && (module.chunkName === null || isUserDefined)) {
+						module.chunkName = name;
 					}
 					return module;
 				})
@@ -154,21 +163,18 @@ export class ModuleLoader {
 	}
 
 	addManualChunks(manualChunks: Record<string, string[]>): Promise<void> {
-		const unresolvedManualChunks: { manualChunkAlias: string; unresolvedId: string }[] = [];
+		const unresolvedManualChunks: { alias: string; id: string }[] = [];
 		for (const alias of Object.keys(manualChunks)) {
 			const manualChunkIds = manualChunks[alias];
-			for (const unresolvedId of manualChunkIds) {
-				unresolvedManualChunks.push({ unresolvedId, manualChunkAlias: alias });
+			for (const id of manualChunkIds) {
+				unresolvedManualChunks.push({ id, alias });
 			}
 		}
 		const loadNewManualChunkModulesPromise = Promise.all(
-			unresolvedManualChunks.map(({ unresolvedId }) => this.loadEntryModule(unresolvedId, false))
+			unresolvedManualChunks.map(({ id }) => this.loadEntryModule(id, false))
 		).then(manualChunkModules => {
 			for (let index = 0; index < manualChunkModules.length; index++) {
-				this.addModuleToManualChunk(
-					unresolvedManualChunks[index].manualChunkAlias,
-					manualChunkModules[index]
-				);
+				this.addModuleToManualChunk(unresolvedManualChunks[index].alias, manualChunkModules[index]);
 			}
 		});
 

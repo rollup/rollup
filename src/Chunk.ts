@@ -113,6 +113,7 @@ export default class Chunk {
 	static generateFacade(graph: Graph, facadedModule: Module): Chunk {
 		const chunk = new Chunk(graph, []);
 		chunk.dependencies = [facadedModule.chunk as Chunk];
+		// TODO Lukas also copy id if it exists?
 		chunk.dynamicDependencies = [];
 		chunk.facadeModule = facadedModule;
 		facadedModule.facadeChunk = chunk;
@@ -129,7 +130,7 @@ export default class Chunk {
 	exportMode: 'none' | 'named' | 'default' = 'named';
 	facadeModule: Module | null = null;
 	graph: Graph;
-	id: string = undefined as any;
+	id: string | null = null;
 	indentString: string = undefined as any;
 	isEmpty: boolean;
 	manualChunkAlias: string | null = null;
@@ -140,7 +141,7 @@ export default class Chunk {
 	usedModules: Module[] = undefined as any;
 
 	variableName: string;
-	private chunkName?: string;
+	private chunkName: string | null = null;
 	private dependencies: (ExternalModule | Chunk)[] = undefined as any;
 	private dynamicDependencies: (ExternalModule | Chunk)[] = undefined as any;
 	private exportNames: { [name: string]: Variable } = Object.create(null);
@@ -183,7 +184,10 @@ export default class Chunk {
 		if (entryModule) {
 			this.variableName = makeLegal(
 				basename(
-					entryModule.chunkAlias || entryModule.manualChunkAlias || getAliasName(entryModule.id)
+					(entryModule.chunkFileName && getAliasName(entryModule.chunkFileName)) ||
+						entryModule.chunkName ||
+						entryModule.manualChunkAlias ||
+						getAliasName(entryModule.id)
 				)
 			);
 		} else {
@@ -213,7 +217,7 @@ export default class Chunk {
 				const exportNamesByVariable = module.getExportNamesByVariable();
 				if (
 					this.graph.preserveModules ||
-					this.canModuleBeFacade(exportNamesByVariable, module.chunkAlias)
+					this.canModuleBeFacade(exportNamesByVariable, module.chunkName)
 				) {
 					this.facadeModule = module;
 					for (const [variable, exportNames] of exportNamesByVariable) {
@@ -235,8 +239,8 @@ export default class Chunk {
 		addons: Addons,
 		options: OutputOptions,
 		existingNames: Record<string, true>
-	) {
-		this.id = makeUnique(
+	): string {
+		return makeUnique(
 			renderNamePattern(pattern, patternName, type => {
 				switch (type) {
 					case 'format':
@@ -255,9 +259,9 @@ export default class Chunk {
 	generateIdPreserveModules(
 		preserveModulesRelativeDir: string,
 		existingNames: Record<string, true>
-	) {
+	): string {
 		const sanitizedId = sanitizeFileName(this.orderedModules[0].id);
-		this.id = makeUnique(
+		return makeUnique(
 			normalize(
 				isAbsolute(this.orderedModules[0].id)
 					? relative(preserveModulesRelativeDir, sanitizedId)
@@ -304,11 +308,12 @@ export default class Chunk {
 	}
 
 	getChunkName(): string {
+		// TODO Lukas this.chunkName should be set to the id if a filename is provided, test
 		return this.chunkName || (this.chunkName = this.computeChunkName());
 	}
 
 	getDynamicImportIds(): string[] {
-		return this.dynamicDependencies.map(chunk => chunk.id).filter(Boolean);
+		return this.dynamicDependencies.map(chunk => chunk.id).filter(Boolean) as string[];
 	}
 
 	getExportNames(): string[] {
@@ -318,7 +323,7 @@ export default class Chunk {
 	}
 
 	getImportIds(): string[] {
-		return this.dependencies.map(chunk => chunk.id);
+		return this.dependencies.map(chunk => chunk.id).filter(Boolean) as string[];
 	}
 
 	getRenderedHash(): string {
@@ -617,7 +622,7 @@ export default class Chunk {
 
 			const renderedDependency = this.renderedDeclarations.dependencies[i];
 
-			const depId = dep instanceof ExternalModule ? renderedDependency.id : dep.id;
+			const depId = dep instanceof ExternalModule ? renderedDependency.id : (dep.id as string);
 			let relPath = this.id ? normalize(relative(dirname(this.id), depId)) : depId;
 			if (!relPath.startsWith('../')) relPath = './' + relPath;
 
@@ -697,8 +702,8 @@ export default class Chunk {
 
 				let file: string;
 				if (options.file) file = resolve(options.sourcemapFile || options.file);
-				else if (options.dir) file = resolve(options.dir, this.id);
-				else file = resolve(this.id);
+				else if (options.dir) file = resolve(options.dir, this.id as string);
+				else file = resolve(this.id as string);
 
 				if (this.graph.pluginDriver.hasLoadersOrTransforms) {
 					const decodedMap = magicString.generateDecodedMap({});
@@ -783,14 +788,19 @@ export default class Chunk {
 	}
 
 	private computeChunkName(): string {
+		// TODO Lukas test interaction with manual chunks
 		if (this.manualChunkAlias) {
 			return sanitizeFileName(this.manualChunkAlias);
 		}
 		if (this.facadeModule !== null) {
-			return sanitizeFileName(this.facadeModule.chunkAlias || getAliasName(this.facadeModule.id));
+			return sanitizeFileName(
+				(this.facadeModule.chunkFileName && getAliasName(this.facadeModule.chunkFileName)) ||
+					this.facadeModule.chunkName ||
+					getAliasName(this.facadeModule.id)
+			);
 		}
 		for (const module of this.orderedModules) {
-			if (module.chunkAlias) return sanitizeFileName(module.chunkAlias);
+			if (module.chunkName) return sanitizeFileName(module.chunkName);
 		}
 		return 'chunk';
 	}
@@ -817,14 +827,16 @@ export default class Chunk {
 				if (resolution instanceof Module) {
 					if (resolution.chunk !== this && isChunkRendered(resolution.chunk as Chunk)) {
 						const resolutionChunk = resolution.facadeChunk || (resolution.chunk as Chunk);
-						let relPath = normalize(relative(dirname(this.id), resolutionChunk.id));
+						let relPath = normalize(
+							relative(dirname(this.id as string), resolutionChunk.id as string)
+						);
 						if (!relPath.startsWith('../')) relPath = './' + relPath;
 						node.renderFinalResolution(code, `'${relPath}'`, format);
 					}
 				} else if (resolution instanceof ExternalModule) {
 					let resolutionId = resolution.id;
 					if (resolution.renormalizeRenderPath) {
-						resolutionId = normalize(relative(dirname(this.id), resolution.renderPath));
+						resolutionId = normalize(relative(dirname(this.id as string), resolution.renderPath));
 						if (!resolutionId.startsWith('../')) resolutionId = './' + resolutionId;
 					}
 					node.renderFinalResolution(code, `'${resolutionId}'`, format);
@@ -838,7 +850,7 @@ export default class Chunk {
 	private finaliseImportMetas(format: string): void {
 		for (const [module, code] of this.renderedModuleSources) {
 			for (const importMeta of module.importMetas) {
-				importMeta.renderFinalMechanism(code, this.id, format, this.graph.pluginDriver);
+				importMeta.renderFinalMechanism(code, this.id as string, format, this.graph.pluginDriver);
 			}
 		}
 	}

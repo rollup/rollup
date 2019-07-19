@@ -8,7 +8,7 @@ import { EntityPathTracker } from './ast/utils/EntityPathTracker';
 import Chunk, { isChunkRendered } from './Chunk';
 import ExternalModule from './ExternalModule';
 import Module, { defaultAcornOptions } from './Module';
-import { ModuleLoader, UnresolvedModuleWithAlias } from './ModuleLoader';
+import { ModuleLoader, UnresolvedModule } from './ModuleLoader';
 import {
 	ExternalOption,
 	GetManualChunk,
@@ -47,16 +47,17 @@ function makeOnwarn() {
 
 function normalizeEntryModules(
 	entryModules: string | string[] | Record<string, string>
-): UnresolvedModuleWithAlias[] {
+): UnresolvedModule[] {
 	if (typeof entryModules === 'string') {
-		return [{ alias: null, unresolvedId: entryModules }];
+		return [{ fileName: null, name: null, id: entryModules }];
 	}
 	if (Array.isArray(entryModules)) {
-		return entryModules.map(unresolvedId => ({ alias: null, unresolvedId }));
+		return entryModules.map(id => ({ fileName: null, name: null, id }));
 	}
-	return Object.keys(entryModules).map(alias => ({
-		alias,
-		unresolvedId: entryModules[alias]
+	return Object.keys(entryModules).map(name => ({
+		fileName: null,
+		id: entryModules[name],
+		name
 	}));
 }
 

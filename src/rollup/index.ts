@@ -199,6 +199,7 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 					const outputBundle: OutputBundle = Object.create(null);
 					const inputBase = commondir(getAbsoluteEntryModulePaths(chunks));
 					// TODO Lukas throw error when emitting assets or setting their source in outputOptions or make it work?
+					// TODO Lukas this already adds assets to the bundle. This should probably already reserve slots for all chunks and assets with fixed names and throw errors in case of conflict
 					graph.pluginDriver.startOutput(outputBundle, assetFileNames);
 
 					return graph.pluginDriver
@@ -227,11 +228,13 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 							assignChunkIds(chunks, inputOptions, outputOptions, inputBase, addons);
 
 							// assign to outputBundle
+							// TODO Lukas this should be interleaved with the id assignment
+							// chunks with file names do not
 							for (let i = 0; i < chunks.length; i++) {
 								const chunk = chunks[i];
 								const facadeModule = chunk.facadeModule;
 
-								outputBundle[chunk.id] = {
+								outputBundle[chunk.id as string] = {
 									code: undefined as any,
 									dynamicImports: chunk.getDynamicImportIds(),
 									exports: chunk.getExportNames(),
@@ -251,7 +254,7 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 
 							return Promise.all(
 								chunks.map(chunk => {
-									const outputChunk = outputBundle[chunk.id] as OutputChunk;
+									const outputChunk = outputBundle[chunk.id as string] as OutputChunk;
 									return chunk.render(outputOptions, addons, outputChunk).then(rendered => {
 										outputChunk.code = rendered.code;
 										outputChunk.map = rendered.map;
