@@ -38,9 +38,11 @@ export enum Errors {
 	ASSET_SOURCE_ALREADY_SET = 'ASSET_SOURCE_ALREADY_SET',
 	ASSET_SOURCE_MISSING = 'ASSET_SOURCE_MISSING',
 	BAD_LOADER = 'BAD_LOADER',
+	CANNOT_EMIT_FROM_OPTIONS_HOOK = 'CANNOT_EMIT_FROM_OPTIONS_HOOK',
 	CHUNK_NOT_GENERATED = 'CHUNK_NOT_GENERATED',
 	DEPRECATED_FEATURE = 'DEPRECATED_FEATURE',
 	FILE_NOT_FOUND = 'FILE_NOT_FOUND',
+	FILE_NAME_CONFLICT = 'FILE_NAME_CONFLICT',
 	INVALID_ASSET_NAME = 'INVALID_ASSET_NAME',
 	INVALID_CHUNK = 'INVALID_CHUNK',
 	INVALID_EXTERNAL_ID = 'INVALID_EXTERNAL_ID',
@@ -56,6 +58,13 @@ export function errAssetNotFinalisedForFileName(name: string) {
 	return {
 		code: Errors.ASSET_NOT_FINALISED,
 		message: `Plugin error - Unable to get file name for asset "${name}". Ensure that the source is set and that generate is called first.`
+	};
+}
+
+export function errCannotEmitFromOptionsHook() {
+	return {
+		code: Errors.CANNOT_EMIT_FROM_OPTIONS_HOOK,
+		message: `Cannot emit files from the "outputOptions" hook, use the "renderStart" hook instead.`
 	};
 }
 
@@ -114,6 +123,13 @@ export function errFileReferenceIdNotFoundForFilename(assetReferenceId: string) 
 	return {
 		code: Errors.FILE_NOT_FOUND,
 		message: `Plugin error - Unable to get file name for unknown file "${assetReferenceId}".`
+	};
+}
+
+export function errFileNameConflict(fileName: string) {
+	return {
+		code: Errors.FILE_NAME_CONFLICT,
+		message: `Could not emit file "${fileName}" as it conflicts with an already emitted file.`
 	};
 }
 

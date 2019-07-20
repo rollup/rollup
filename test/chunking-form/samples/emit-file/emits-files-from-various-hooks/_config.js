@@ -23,14 +23,6 @@ module.exports = {
 				this.emitFile({ type: 'asset', name: 'buildEnd.txt', source: 'buildEnd' });
 				this.emitFile({ type: 'asset', fileName: 'custom/buildEnd.txt', source: 'buildEnd' });
 			},
-			outputOptions() {
-				this.emitFile({ type: 'asset', name: 'outputOptions.txt', source: 'outputOptions' });
-				this.emitFile({
-					type: 'asset',
-					fileName: 'custom/outputOptions.txt',
-					source: 'outputOptions'
-				});
-			},
 			renderStart() {
 				this.emitFile({ type: 'asset', name: 'renderStart.txt', source: 'renderStart' });
 				this.emitFile({ type: 'asset', fileName: 'custom/renderStart.txt', source: 'renderStart' });

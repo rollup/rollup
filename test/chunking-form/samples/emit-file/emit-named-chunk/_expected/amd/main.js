@@ -1,5 +1,5 @@
-define(['./generated-chunk', './custom/build-start-chunk'], function (__chunk_1, buildStartChunk) { 'use strict';
+define(['./generated-chunk'], function (__chunk_1) { 'use strict';
 
-	console.log('main', __chunk_1.value, buildStartChunk);
+	console.log('main', __chunk_1.value);
 
 });

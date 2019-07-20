@@ -6,7 +6,7 @@ import Module from '../Module';
 import {
 	EmitFile,
 	InputOptions,
-	OutputBundle,
+	OutputBundleWithPlaceholders,
 	Plugin,
 	PluginCache,
 	PluginContext,
@@ -73,7 +73,7 @@ export interface PluginDriver {
 		args: Args<PluginHooks[H]>,
 		context?: HookContext
 	): void;
-	startOutput(outputBundle: OutputBundle, assetFileNames: string): void;
+	startOutput(outputBundle: OutputBundleWithPlaceholders, assetFileNames: string): void;
 }
 
 export type Reduce<R = any, T = any> = (reduction: T, result: R, plugin: Plugin) => T;
@@ -475,7 +475,7 @@ export function createPluginDriver(
 			return promise;
 		},
 
-		startOutput(outputBundle: OutputBundle, assetFileNames: string): void {
+		startOutput(outputBundle: OutputBundleWithPlaceholders, assetFileNames: string): void {
 			fileEmitter.startOutput(outputBundle, assetFileNames);
 		}
 	};

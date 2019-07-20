@@ -317,6 +317,10 @@ export interface OutputBundle {
 	[fileName: string]: OutputAsset | OutputChunk;
 }
 
+export interface OutputBundleWithPlaceholders {
+	[fileName: string]: OutputAsset | OutputChunk | {};
+}
+
 interface OnGenerateOptions extends OutputOptions {
 	bundle: OutputChunk;
 }

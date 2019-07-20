@@ -2,7 +2,12 @@ import sha256 from 'hash.js/lib/hash/sha/256';
 import Chunk from '../Chunk';
 import Graph from '../Graph';
 import Module from '../Module';
-import { EmittedAsset, EmittedChunk, EmittedFile, OutputBundle } from '../rollup/types';
+import {
+	EmittedAsset,
+	EmittedChunk,
+	EmittedFile,
+	OutputBundleWithPlaceholders
+} from '../rollup/types';
 import { BuildPhase } from './buildPhase';
 import {
 	errAssetNotFinalisedForFileName,
@@ -10,6 +15,7 @@ import {
 	errAssetSourceAlreadySet,
 	errAssetSourceMissingForSetSource,
 	errChunkNotGeneratedForFileName,
+	errFileNameConflict,
 	errFileReferenceIdNotFoundForFilename,
 	errInvalidAssetName,
 	errInvalidRollupPhaseForChunkEmission,
@@ -22,10 +28,9 @@ import { isPlainPathFragment } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';
 
 // TODO Lukas setAssetSource in transform needs to be repeated as well
-// TODO Lukas use EmittedFile and ConsumedEmittedFile types?
 interface OutputSpecificFileData {
 	assetFileNames: string;
-	bundle: OutputBundle;
+	bundle: OutputBundleWithPlaceholders;
 }
 
 function getAssetFileName(
@@ -66,7 +71,15 @@ function addAssetToBundle(asset: CompleteAsset, output: OutputSpecificFileData) 
 	};
 }
 
+function reserveFileNameInBundle(fileName: string, output: OutputSpecificFileData) {
+	if (fileName in output.bundle) {
+		return error(errFileNameConflict(fileName));
+	}
+	output.bundle[fileName] = FILE_PLACEHOLDER;
+}
+
 interface ConsumedChunk {
+	fileName: string | undefined;
 	module: null | Module;
 	name: string;
 	type: 'chunk';
@@ -80,6 +93,10 @@ interface ConsumedAsset {
 }
 
 type ConsumedFile = ConsumedChunk | ConsumedAsset;
+
+export const FILE_PLACEHOLDER = {
+	placeholder: true
+};
 
 // TODO Lukas general assumption: Having a source means having a reliable filename
 // TODO Lukas only access filename during generate? Or disallow setSource if there is a fileName?
@@ -128,16 +145,20 @@ export class FileEmitter {
 			source: asset.source,
 			type: 'asset'
 		};
-		if (this.output && asset.source !== undefined) {
-			// TODO Lukas throw an error when there is a conflict
-			if (typeof consumedAsset.fileName !== 'string') {
-				consumedAsset.fileName = getAssetFileName(
-					consumedAsset.name || 'asset',
-					asset.source,
-					this.output
-				);
+		if (this.output) {
+			if (asset.fileName) {
+				reserveFileNameInBundle(asset.fileName, this.output);
 			}
-			addAssetToBundle(consumedAsset as CompleteAsset, this.output);
+			if (asset.source !== undefined) {
+				if (typeof consumedAsset.fileName !== 'string') {
+					consumedAsset.fileName = getAssetFileName(
+						consumedAsset.name || 'asset',
+						asset.source,
+						this.output
+					);
+				}
+				addAssetToBundle(consumedAsset as CompleteAsset, this.output);
+			}
 		}
 		return addWithNewReferenceId(
 			consumedAsset,
@@ -151,8 +172,9 @@ export class FileEmitter {
 			error(errInvalidRollupPhaseForChunkEmission());
 		}
 		const consumedChunk: ConsumedChunk = {
+			fileName: chunk.fileName,
 			module: null,
-			name: chunk.fileName || chunk.name || chunk.id,
+			name: chunk.name || chunk.id,
 			type: 'chunk'
 		};
 		this.graph.moduleLoader
@@ -194,7 +216,8 @@ export class FileEmitter {
 					(emittedFile.module.facadeChunk
 						? emittedFile.module.facadeChunk.id
 						: (emittedFile.module.chunk as Chunk).id);
-				if (!fileName) return error(errChunkNotGeneratedForFileName(emittedFile.name));
+				if (!fileName)
+					return error(errChunkNotGeneratedForFileName(emittedFile.fileName || emittedFile.name));
 				return fileName;
 			}
 		}
@@ -214,7 +237,6 @@ export class FileEmitter {
 			return error(errAssetSourceMissingForSetSource(emittedFile.name || fileReferenceId));
 		}
 		if (this.output) {
-			// TODO Lukas throw an error when there is a conflict
 			const fileName =
 				emittedFile.fileName || getAssetFileName(emittedFile.name || 'asset', source, this.output);
 			// We must not modify the original assets to not interact with other outputs
@@ -227,12 +249,17 @@ export class FileEmitter {
 	};
 
 	// TODO Lukas how do we unfinalize assets for different outputs that have their source set during generate? Test!
-	public startOutput(outputBundle: OutputBundle, assetFileNames: string) {
+	public startOutput(outputBundle: OutputBundleWithPlaceholders, assetFileNames: string) {
 		this.filesByReferenceId = new Map(this.buildFilesByReferenceId);
 		this.output = {
 			assetFileNames,
 			bundle: outputBundle
 		};
+		for (const emittedFile of this.filesByReferenceId.values()) {
+			if (emittedFile.fileName) {
+				reserveFileNameInBundle(emittedFile.fileName, this.output);
+			}
+		}
 		for (const [referenceId, emittedFile] of this.filesByReferenceId.entries()) {
 			if (emittedFile.type === 'asset' && emittedFile.source !== undefined) {
 				const fileName =

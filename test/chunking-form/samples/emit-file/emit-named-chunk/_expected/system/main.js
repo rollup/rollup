@@ -1,15 +1,13 @@
-System.register(['./generated-chunk.js', './custom/build-start-chunk.js'], function () {
+System.register(['./generated-chunk.js'], function () {
 	'use strict';
-	var value, value2;
+	var value;
 	return {
 		setters: [function (module) {
 			value = module.v;
-		}, function (module) {
-			value2 = module.default;
 		}],
 		execute: function () {
 
-			console.log('main', value, value2);
+			console.log('main', value);
 
 		}
 	};

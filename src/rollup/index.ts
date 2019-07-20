@@ -5,7 +5,7 @@ import Graph from '../Graph';
 import { createAddons } from '../utils/addons';
 import { assignChunkIds } from '../utils/assignChunkIds';
 import commondir from '../utils/commondir';
-import { errDeprecation, error } from '../utils/error';
+import { errCannotEmitFromOptionsHook, errDeprecation, error } from '../utils/error';
 import { writeFile } from '../utils/fs';
 import getExportMode from '../utils/getExportMode';
 import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
@@ -17,6 +17,7 @@ import {
 	InputOptions,
 	OutputAsset,
 	OutputBundle,
+	OutputBundleWithPlaceholders,
 	OutputChunk,
 	OutputOptions,
 	Plugin,
@@ -78,6 +79,15 @@ function ensureArray<T>(items: (T | null | undefined)[] | T | null | undefined):
 		return [items];
 	}
 	return [];
+}
+
+function areNoPlaceholdersInBundle(bundle: OutputBundleWithPlaceholders): bundle is OutputBundle {
+	for (const fileName of Object.keys(bundle)) {
+		if (Object.keys(bundle[fileName]).length === 0) {
+			return false;
+		}
+	}
+	return true;
 }
 
 function getInputOptions(rawInputOptions: GenericConfigObject): InputOptions {
@@ -192,11 +202,11 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 					);
 				}
 
-				function generate(outputOptions: OutputOptions, isWrite: boolean) {
+				function generate(outputOptions: OutputOptions, isWrite: boolean): Promise<OutputBundle> {
 					timeStart('GENERATE', 1);
 
 					const assetFileNames = outputOptions.assetFileNames || 'assets/[name]-[hash][extname]';
-					const outputBundle: OutputBundle = Object.create(null);
+					const outputBundle: OutputBundleWithPlaceholders = Object.create(null);
 					const inputBase = commondir(getAbsoluteEntryModulePaths(chunks));
 					// TODO Lukas throw error when emitting assets or setting their source in outputOptions or make it work?
 					// TODO Lukas this already adds assets to the bundle. This should probably already reserve slots for all chunks and assets with fixed names and throw errors in case of conflict
@@ -225,7 +235,7 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 								optimized = true;
 							}
 
-							assignChunkIds(chunks, inputOptions, outputOptions, inputBase, addons);
+							assignChunkIds(chunks, inputOptions, outputOptions, inputBase, addons, outputBundle);
 
 							// assign to outputBundle
 							// TODO Lukas this should be interleaved with the id assignment
@@ -273,14 +283,16 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 							})
 						)
 						.then(() => {
-							// run generateBundle hook
+							if (!areNoPlaceholdersInBundle(outputBundle)) {
+								throw new Error('Internal Error: Found remaining placeholder in bundle object.');
+							}
 							return graph.pluginDriver
 								.hookSeq('generateBundle', [outputOptions, outputBundle, isWrite])
-								.then(() => graph.pluginDriver.finaliseAssets());
-						})
-						.then(() => {
-							timeEnd('GENERATE', 1);
-							return outputBundle;
+								.then(() => graph.pluginDriver.finaliseAssets())
+								.then(() => {
+									timeEnd('GENERATE', 1);
+									return outputBundle;
+								});
 						});
 				}
 
@@ -363,16 +375,18 @@ function getSortingFileType(file: OutputAsset | OutputChunk): SortingFileType {
 	return SortingFileType.SECONDARY_CHUNK;
 }
 
-function createOutput(outputBundle: Record<string, OutputChunk | OutputAsset>): RollupOutput {
+function createOutput(outputBundle: Record<string, OutputChunk | OutputAsset | {}>): RollupOutput {
 	return {
-		output: Object.keys(outputBundle)
+		output: (Object.keys(outputBundle)
 			.map(fileName => outputBundle[fileName])
-			.sort((outputFileA, outputFileB) => {
-				const fileTypeA = getSortingFileType(outputFileA);
-				const fileTypeB = getSortingFileType(outputFileB);
-				if (fileTypeA === fileTypeB) return 0;
-				return fileTypeA < fileTypeB ? -1 : 1;
-			}) as [OutputChunk, ...(OutputChunk | OutputAsset)[]]
+			.filter(outputFile => Object.keys(outputFile).length > 0) as (
+			| OutputChunk
+			| OutputAsset)[]).sort((outputFileA, outputFileB) => {
+			const fileTypeA = getSortingFileType(outputFileA);
+			const fileTypeB = getSortingFileType(outputFileB);
+			if (fileTypeA === fileTypeB) return 0;
+			return fileTypeA < fileTypeB ? -1 : 1;
+		}) as [OutputChunk, ...(OutputChunk | OutputAsset)[]]
 	};
 }
 
@@ -448,7 +462,15 @@ function normalizeOutputOptions(
 	const outputOptions = pluginDriver.hookReduceArg0Sync(
 		'outputOptions',
 		[mergedOutputOptions],
-		outputOptionsReducer
+		outputOptionsReducer,
+		pluginContext => {
+			return {
+				...pluginContext,
+				emitFile() {
+					return pluginContext.error(errCannotEmitFromOptionsHook());
+				}
+			};
+		}
 	);
 
 	checkOutputOptions(outputOptions);

@@ -238,7 +238,7 @@ export default class Chunk {
 		patternName: string,
 		addons: Addons,
 		options: OutputOptions,
-		existingNames: Record<string, true>
+		existingNames: Record<string, any>
 	): string {
 		return makeUnique(
 			renderNamePattern(pattern, patternName, type => {
@@ -258,7 +258,7 @@ export default class Chunk {
 
 	generateIdPreserveModules(
 		preserveModulesRelativeDir: string,
-		existingNames: Record<string, true>
+		existingNames: Record<string, any>
 	): string {
 		const sanitizedId = sanitizeFileName(this.orderedModules[0].id);
 		return makeUnique(

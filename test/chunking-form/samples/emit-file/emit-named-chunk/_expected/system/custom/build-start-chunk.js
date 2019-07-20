@@ -1,4 +1,4 @@
-System.register(['../generated-chunk.js'], function (exports) {
+System.register(['../generated-chunk.js'], function () {
 	'use strict';
 	var value;
 	return {
@@ -8,8 +8,6 @@ System.register(['../generated-chunk.js'], function (exports) {
 		execute: function () {
 
 			console.log('startBuild', value);
-
-			var value2 = exports('default', 43);
 
 		}
 	};
