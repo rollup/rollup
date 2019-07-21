@@ -3,7 +3,7 @@ System.register([], function () {
 	return {
 		execute: function () {
 
-			console.log('2');
+			console.log(2);
 
 		}
 	};

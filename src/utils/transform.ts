@@ -137,12 +137,9 @@ export default function transform(
 						return graph.pluginDriver.emitFile(emittedFile);
 					},
 					emitFile(emittedFile: EmittedFile) {
-						// TODO Lukas test that we are creating a copy or in the future, do not mutate emitted files
-						// or prevent setAssetSource during build?
-						emittedFiles.push({ ...emittedFile });
+						emittedFiles.push(emittedFile);
 						return graph.pluginDriver.emitFile(emittedFile);
 					},
-					// TODO Lukas this needs to be repeated as well
 					addWatchFile(id: string) {
 						if (!transformDependencies) transformDependencies = [];
 						transformDependencies.push(id);

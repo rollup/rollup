@@ -351,8 +351,6 @@ describe('hooks', () => {
 				);
 				assert.equal(output[1].fileName, 'assets/test-0a676135.ext');
 				assert.equal(output[1].source, 'hello world');
-				assert.equal(output[1].fileName, 'assets/test-0a676135.ext');
-				assert.equal(output[1].source, 'hello world');
 
 				return rollup.rollup({
 					cache,
@@ -378,8 +376,6 @@ describe('hooks', () => {
 				);
 				assert.equal(output[1].fileName, 'assets/test-0a676135.ext');
 				assert.equal(output[1].source, 'hello world');
-				assert.equal(output[1].fileName, 'assets/test-0a676135.ext');
-				assert.equal(output[1].source, 'hello world');
 
 				return rollup.rollup({
 					cache,
@@ -402,8 +398,88 @@ describe('hooks', () => {
 				);
 				assert.equal(output[1].fileName, 'assets/test-0a676135.ext');
 				assert.equal(output[1].source, 'hello world');
-				assert.equal(output[1].fileName, 'assets/test-0a676135.ext');
-				assert.equal(output[1].source, 'hello world');
+			});
+	});
+
+	it('keeps emitted ids stable between runs', () => {
+		let cache;
+		let emittedFile;
+		return rollup
+			.rollup({
+				input: 'input',
+				plugins: [
+					{
+						resolveId(id) {
+							return id;
+						},
+						load(id) {
+							if (id === 'input') {
+								return '';
+							}
+							this.setAssetSource(emittedFile, 'first run');
+							return `console.log('imported')`;
+						},
+						transform(code, id) {
+							if (id === 'input') {
+								emittedFile = this.emitFile({
+									type: 'asset',
+									name: 'test.ext'
+								});
+								return (
+									`import 'imported';\n` +
+									`export default import.meta.ROLLUP_FILE_URL_${emittedFile};`
+								);
+							}
+						}
+					}
+				]
+			})
+			.then(bundle => {
+				cache = bundle.cache;
+				return bundle.generate({ format: 'es' });
+			})
+			.then(({ output }) => {
+				assert.equal(
+					output[0].code,
+					`console.log('imported');\n\n` +
+						`var input = new URL('assets/test-09aeb845.ext', import.meta.url).href;\n\n` +
+						`export default input;\n`
+				);
+				assert.equal(output[1].fileName, 'assets/test-09aeb845.ext');
+				assert.equal(output[1].source, 'first run');
+
+				return rollup.rollup({
+					cache,
+					input: 'input',
+					plugins: [
+						{
+							resolveId(id) {
+								return id;
+							},
+							load(id) {
+								if (id === 'input') {
+									return '';
+								}
+								this.setAssetSource(emittedFile, 'second run');
+								return `console.log('imported')`;
+							},
+							transform() {
+								assert.fail('Should cache transform');
+							}
+						}
+					]
+				});
+			})
+			.then(bundle => bundle.generate({ format: 'es' }))
+			.then(({ output }) => {
+				assert.equal(
+					output[0].code,
+					`console.log('imported');\n\n` +
+						`var input = new URL('assets/test-ce5fc71b.ext', import.meta.url).href;\n\n` +
+						`export default input;\n`
+				);
+				assert.equal(output[1].fileName, 'assets/test-ce5fc71b.ext');
+				assert.equal(output[1].source, 'second run');
 			});
 	});
 
