@@ -4,7 +4,6 @@ import { RollupError, RollupWarning } from '../rollup/types';
 import getCodeFrame from './getCodeFrame';
 import relativeId from './relativeId';
 
-// TODO Lukas check for unused errors when done
 export function error(base: Error | RollupError, props?: RollupError): never {
 	if (base instanceof Error === false) base = Object.assign(new Error(base.message), base);
 	if (props) Object.assign(base, props);
@@ -64,7 +63,7 @@ export function errAssetNotFinalisedForFileName(name: string) {
 export function errCannotEmitFromOptionsHook() {
 	return {
 		code: Errors.CANNOT_EMIT_FROM_OPTIONS_HOOK,
-		message: `Cannot emit files from the "outputOptions" hook, use the "renderStart" hook instead.`
+		message: `Cannot emit files or set asset sources in the "outputOptions" hook, use the "renderStart" hook instead.`
 	};
 }
 

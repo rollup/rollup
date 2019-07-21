@@ -125,8 +125,6 @@ export interface MinimalPluginContext {
 	meta: PluginContextMeta;
 }
 
-// TODO Lukas do not forget caching tests for files
-// TODO Lukas can there be interactions in names between multiple outputs?
 export interface EmittedAsset {
 	fileName?: string;
 	name?: string;
@@ -134,7 +132,6 @@ export interface EmittedAsset {
 	type: 'asset';
 }
 
-// TODO Lukas is it possible to control the generated fileName directly?
 export interface EmittedChunk {
 	fileName?: string;
 	id: string;

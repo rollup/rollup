@@ -308,7 +308,6 @@ export default class Chunk {
 	}
 
 	getChunkName(): string {
-		// TODO Lukas this.chunkName should be set to the id if a filename is provided, test
 		return this.chunkName || (this.chunkName = this.computeChunkName());
 	}
 

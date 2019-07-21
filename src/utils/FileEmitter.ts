@@ -23,7 +23,6 @@ import {
 	error
 } from './error';
 import { extname } from './path';
-import { addWithNewReferenceId } from './referenceIds';
 import { isPlainPathFragment } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';
 
@@ -160,11 +159,7 @@ export class FileEmitter {
 				addAssetToBundle(consumedAsset as CompleteAsset, this.output);
 			}
 		}
-		return addWithNewReferenceId(
-			consumedAsset,
-			this.filesByReferenceId,
-			asset.fileName || asset.name || asset.type
-		);
+		return this.assignReferenceId(consumedAsset, asset.fileName || asset.name || asset.type);
 	}
 
 	private emitChunk(chunk: EmittedChunk): string {
@@ -190,7 +185,22 @@ export class FileEmitter {
 				// once module loading has finished
 			});
 
-		return addWithNewReferenceId(consumedChunk, this.filesByReferenceId, chunk.id);
+		return this.assignReferenceId(consumedChunk, chunk.id);
+	}
+
+	private assignReferenceId(file: ConsumedFile, idBase: string): string {
+		let referenceId: string | undefined;
+		do {
+			const hash = sha256();
+			if (referenceId) {
+				hash.update(referenceId);
+			} else {
+				hash.update(idBase);
+			}
+			referenceId = hash.digest('hex').substr(0, 8);
+		} while (this.filesByReferenceId.has(referenceId));
+		this.filesByReferenceId.set(referenceId, file);
+		return referenceId;
 	}
 
 	public finaliseAssets() {

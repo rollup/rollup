@@ -61,7 +61,6 @@ export default class MetaProperty extends NodeBase {
 		const parent = this.parent;
 		const metaProperty = this.metaProperty as string | null;
 
-		// TODO Lukas deprecation warning
 		if (
 			metaProperty &&
 			(metaProperty.startsWith(FILE_PREFIX) ||

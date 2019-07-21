@@ -1,13 +1,15 @@
+let referenceId;
+
 module.exports = {
-	description: 'throws when trying to emit files from the outputOptions hook',
+	description: 'throws when trying to set file sources in  the outputOptions hook',
 	options: {
 		input: 'main',
 		plugins: {
+			buildStart() {
+				referenceId = this.emitFile({ type: 'asset' });
+			},
 			outputOptions() {
-				this.emitFile({
-					type: 'asset',
-					source: 'asset'
-				});
+				this.setAssetSource(referenceId, 'not allowed');
 			}
 		}
 	},
