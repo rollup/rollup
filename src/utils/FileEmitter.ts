@@ -2,22 +2,16 @@ import sha256 from 'hash.js/lib/hash/sha/256';
 import Chunk from '../Chunk';
 import Graph from '../Graph';
 import Module from '../Module';
-import {
-	EmittedAsset,
-	EmittedChunk,
-	EmittedFile,
-	OutputBundleWithPlaceholders
-} from '../rollup/types';
+import { OutputBundleWithPlaceholders } from '../rollup/types';
 import { BuildPhase } from './buildPhase';
 import {
 	errAssetNotFinalisedForFileName,
 	errAssetReferenceIdNotFoundForSetSource,
 	errAssetSourceAlreadySet,
-	errAssetSourceMissingForSetSource,
 	errChunkNotGeneratedForFileName,
+	errFailedValidation,
 	errFileNameConflict,
 	errFileReferenceIdNotFoundForFilename,
-	errInvalidAssetName,
 	errInvalidRollupPhaseForChunkEmission,
 	errNoAssetSourceSet,
 	error
@@ -26,7 +20,6 @@ import { extname } from './path';
 import { isPlainPathFragment } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';
 
-// TODO Lukas setAssetSource in transform needs to be repeated as well
 interface OutputSpecificFileData {
 	assetFileNames: string;
 	bundle: OutputBundleWithPlaceholders;
@@ -53,8 +46,7 @@ function getAssetFileName(
 				case 'ext':
 					return extname(name).substr(1);
 			}
-			// TODO Lukas test
-			return placeholder;
+			return '';
 		}),
 		output.bundle
 	);
@@ -91,13 +83,57 @@ interface ConsumedAsset {
 	type: 'asset';
 }
 
+interface EmittedFile {
+	fileName?: string;
+	name?: string;
+	type: 'chunk' | 'asset';
+	[key: string]: unknown;
+}
+
 type ConsumedFile = ConsumedChunk | ConsumedAsset;
 
 export const FILE_PLACEHOLDER = {
 	placeholder: true
 };
 
-// TODO Lukas general assumption: Having a source means having a reliable filename
+function hasValidType(
+	emittedFile: unknown
+): emittedFile is { type: 'asset' | 'chunk'; [key: string]: unknown } {
+	return (
+		emittedFile &&
+		((emittedFile as { [key: string]: unknown }).type === 'asset' ||
+			(emittedFile as { [key: string]: unknown }).type === 'chunk')
+	);
+}
+
+function hasValidName(emittedFile: {
+	type: 'asset' | 'chunk';
+	[key: string]: unknown;
+}): emittedFile is EmittedFile {
+	const validatedName = emittedFile.fileName || emittedFile.name;
+	return (
+		!validatedName || (typeof validatedName === 'string' && isPlainPathFragment(validatedName))
+	);
+}
+
+function getValidSource(
+	source: unknown,
+	emittedFile: { fileName?: string; name?: string },
+	fileReferenceId: string | null
+): string | Buffer {
+	if (typeof source !== 'string' && !Buffer.isBuffer(source)) {
+		const assetName = emittedFile.fileName || emittedFile.name || fileReferenceId;
+		const assetDescription =
+			typeof assetName === 'string' ? `asset "${assetName}"` : 'unnamed asset';
+		return error(
+			errFailedValidation(
+				`Could not set source for ${assetDescription}, asset source needs to be a string of Buffer.`
+			)
+		);
+	}
+	return source;
+}
+
 // TODO Lukas only access filename during generate? Or disallow setSource if there is a fileName?
 // TODO Lukas convert all "throw" into proper errors
 export class FileEmitter {
@@ -111,70 +147,89 @@ export class FileEmitter {
 		this.graph = graph;
 	}
 
-	public emitFile = (emittedFile: EmittedFile): string => {
+	public emitFile = (emittedFile: unknown): string => {
 		// TODO Lukas combine switch statements into object
-		switch (emittedFile.type) {
-			case 'asset':
-				return this.emitAsset(emittedFile);
-			case 'chunk':
-				return this.emitChunk(emittedFile);
-			default:
-				throw new Error(`Unhandled file type ${(emittedFile as any).type}`);
+		if (!hasValidType(emittedFile)) {
+			return error(
+				errFailedValidation(
+					`Emitted files must be of type "asset" or "chunk", received "${emittedFile &&
+						(emittedFile as any).type}".`
+				)
+			);
+		}
+		if (!hasValidName(emittedFile)) {
+			return error(
+				errFailedValidation(
+					`The "fileName" or "name" properties of emitted files must be strings that are neither absolute nor relative paths, received "${emittedFile.fileName ||
+						emittedFile.name}".`
+				)
+			);
+		}
+		if (emittedFile.type === 'chunk') {
+			return this.emitChunk(emittedFile);
+		} else {
+			return this.emitAsset(emittedFile);
 		}
 	};
 
-	private emitAsset(asset: EmittedAsset): string {
-		// TODO Lukas this could become shared validation
-		// TODO Lukas test validations
-		if ('fileName' in asset) {
-			if ('name' in asset) {
-				throw new Error('Cannot use both name and fileName');
-			}
-			if (typeof asset.fileName !== 'string' || !isPlainPathFragment(asset.fileName)) {
-				throw new Error('Asset fileName must be non-relative, non-absolute path');
-			}
-		} else if ('name' in asset) {
-			if (typeof asset.name !== 'string' || !isPlainPathFragment(asset.name)) {
-				return error(errInvalidAssetName(asset.name as string));
-			}
-		}
+	private emitAsset(emittedAsset: EmittedFile): string {
+		const source =
+			typeof emittedAsset.source !== 'undefined'
+				? getValidSource(emittedAsset.source, emittedAsset, null)
+				: undefined;
 		const consumedAsset: ConsumedAsset = {
-			fileName: asset.fileName,
-			name: asset.name,
-			source: asset.source,
+			fileName: emittedAsset.fileName,
+			name: emittedAsset.name,
+			source,
 			type: 'asset'
 		};
 		if (this.output) {
-			if (asset.fileName) {
-				reserveFileNameInBundle(asset.fileName, this.output);
+			if (emittedAsset.fileName) {
+				reserveFileNameInBundle(emittedAsset.fileName, this.output);
 			}
-			if (asset.source !== undefined) {
+			if (source !== undefined) {
 				if (typeof consumedAsset.fileName !== 'string') {
 					consumedAsset.fileName = getAssetFileName(
 						consumedAsset.name || 'asset',
-						asset.source,
+						source,
 						this.output
 					);
 				}
 				addAssetToBundle(consumedAsset as CompleteAsset, this.output);
 			}
 		}
-		return this.assignReferenceId(consumedAsset, asset.fileName || asset.name || asset.type);
+		return this.assignReferenceId(
+			consumedAsset,
+			emittedAsset.fileName || emittedAsset.name || emittedAsset.type
+		);
 	}
 
-	private emitChunk(chunk: EmittedChunk): string {
+	private emitChunk(emittedChunk: EmittedFile): string {
 		if (this.graph.phase > BuildPhase.LOAD_AND_PARSE) {
 			error(errInvalidRollupPhaseForChunkEmission());
 		}
+		if (typeof emittedChunk.id !== 'string') {
+			return error(
+				errFailedValidation(
+					`Emitted chunks need to have a valid string id, received "${emittedChunk.id}"`
+				)
+			);
+		}
 		const consumedChunk: ConsumedChunk = {
-			fileName: chunk.fileName,
+			fileName: emittedChunk.fileName,
 			module: null,
-			name: chunk.name || chunk.id,
+			name: emittedChunk.name || emittedChunk.id,
 			type: 'chunk'
 		};
 		this.graph.moduleLoader
 			.addEntryModules(
-				[{ fileName: chunk.fileName || null, name: chunk.name || null, id: chunk.id }],
+				[
+					{
+						fileName: emittedChunk.fileName || null,
+						id: emittedChunk.id,
+						name: emittedChunk.name || null
+					}
+				],
 				false
 			)
 			.then(({ newEntryModules: [module] }) => {
@@ -185,7 +240,7 @@ export class FileEmitter {
 				// once module loading has finished
 			});
 
-		return this.assignReferenceId(consumedChunk, chunk.id);
+		return this.assignReferenceId(consumedChunk, emittedChunk.id);
 	}
 
 	private assignReferenceId(file: ConsumedFile, idBase: string): string {
@@ -236,16 +291,20 @@ export class FileEmitter {
 	// TODO Lukas this should only be allowed
 	//  - unlimited times during build phase or
 	//  - at most once during generate phase if no source has been set yet
-	public setAssetSource = (fileReferenceId: string, source?: string | Buffer) => {
+	public setAssetSource = (fileReferenceId: string, requestedSource: unknown) => {
 		const emittedFile = this.filesByReferenceId.get(fileReferenceId);
 		if (!emittedFile) return error(errAssetReferenceIdNotFoundForSetSource(fileReferenceId));
-		if (emittedFile.type !== 'asset') throw new Error('cannot set source for chunk');
-		if (emittedFile.source !== undefined)
-			return error(errAssetSourceAlreadySet(emittedFile.name || fileReferenceId));
-		// TODO Lukas check for string | Buffer instead?
-		if (typeof source !== 'string' && !source) {
-			return error(errAssetSourceMissingForSetSource(emittedFile.name || fileReferenceId));
+		if (emittedFile.type !== 'asset') {
+			return error(
+				errFailedValidation(
+					`Asset sources can only be set for emitted assets but "${fileReferenceId}" is an emitted chunk.`
+				)
+			);
 		}
+		if (emittedFile.source !== undefined) {
+			return error(errAssetSourceAlreadySet(emittedFile.name || fileReferenceId));
+		}
+		const source = getValidSource(requestedSource, emittedFile, fileReferenceId);
 		if (this.output) {
 			const fileName =
 				emittedFile.fileName || getAssetFileName(emittedFile.name || 'asset', source, this.output);

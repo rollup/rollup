@@ -12,8 +12,8 @@ module.exports = {
 		code: 'PLUGIN_ERROR',
 		hook: 'buildStart',
 		message:
-			'Plugin error creating asset, name "/test.ext" is not a plain (non relative or absolute URL) string name.',
+			'The "fileName" or "name" properties of emitted files must be strings that are neither absolute nor relative paths, received "/test.ext".',
 		plugin: 'test-plugin',
-		pluginCode: 'INVALID_ASSET_NAME'
+		pluginCode: 'VALIDATION_ERROR'
 	}
 };

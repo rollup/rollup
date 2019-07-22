@@ -12,8 +12,9 @@ module.exports = {
 	error: {
 		code: 'PLUGIN_ERROR',
 		hook: 'buildStart',
-		message: 'Plugin error creating asset "test.ext", setAssetSource call without a source.',
+		message:
+			'Could not set source for asset "test.ext", asset source needs to be a string of Buffer.',
 		plugin: 'test-plugin',
-		pluginCode: 'ASSET_SOURCE_MISSING'
+		pluginCode: 'VALIDATION_ERROR'
 	}
 };

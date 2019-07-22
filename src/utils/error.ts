@@ -5,7 +5,7 @@ import getCodeFrame from './getCodeFrame';
 import relativeId from './relativeId';
 
 export function error(base: Error | RollupError, props?: RollupError): never {
-	if (base instanceof Error === false) base = Object.assign(new Error(base.message), base);
+	if (!(base instanceof Error)) base = Object.assign(new Error(base.message), base);
 	if (props) Object.assign(base, props);
 	throw base;
 }
@@ -42,7 +42,6 @@ export enum Errors {
 	DEPRECATED_FEATURE = 'DEPRECATED_FEATURE',
 	FILE_NOT_FOUND = 'FILE_NOT_FOUND',
 	FILE_NAME_CONFLICT = 'FILE_NAME_CONFLICT',
-	INVALID_ASSET_NAME = 'INVALID_ASSET_NAME',
 	INVALID_CHUNK = 'INVALID_CHUNK',
 	INVALID_EXTERNAL_ID = 'INVALID_EXTERNAL_ID',
 	INVALID_OPTION = 'INVALID_OPTION',
@@ -50,7 +49,8 @@ export enum Errors {
 	INVALID_ROLLUP_PHASE = 'INVALID_ROLLUP_PHASE',
 	NAMESPACE_CONFLICT = 'NAMESPACE_CONFLICT',
 	UNRESOLVED_ENTRY = 'UNRESOLVED_ENTRY',
-	UNRESOLVED_IMPORT = 'UNRESOLVED_IMPORT'
+	UNRESOLVED_IMPORT = 'UNRESOLVED_IMPORT',
+	VALIDATION_ERROR = 'VALIDATION_ERROR'
 }
 
 export function errAssetNotFinalisedForFileName(name: string) {
@@ -88,13 +88,6 @@ export function errAssetSourceAlreadySet(name: string) {
 	};
 }
 
-export function errAssetSourceMissingForSetSource(name: string) {
-	return {
-		code: Errors.ASSET_SOURCE_MISSING,
-		message: `Plugin error creating asset "${name}", setAssetSource call without a source.`
-	};
-}
-
 export function errNoAssetSourceSet(assetName: string) {
 	return {
 		code: Errors.ASSET_SOURCE_MISSING,
@@ -129,13 +122,6 @@ export function errFileNameConflict(fileName: string) {
 	return {
 		code: Errors.FILE_NAME_CONFLICT,
 		message: `Could not emit file "${fileName}" as it conflicts with an already emitted file.`
-	};
-}
-
-export function errInvalidAssetName(name: string) {
-	return {
-		code: Errors.INVALID_ASSET_NAME,
-		message: `Plugin error creating asset, name "${name}" is not a plain (non relative or absolute URL) string name.`
 	};
 }
 
@@ -230,5 +216,12 @@ export function errUnresolvedImportTreatedAsExternal(source: string, importer: s
 		)}, but could not be resolved – treating it as an external dependency`,
 		source,
 		url: 'https://rollupjs.org/guide/en/#warning-treating-module-as-external-dependency'
+	};
+}
+
+export function errFailedValidation(message: string) {
+	return {
+		code: Errors.VALIDATION_ERROR,
+		message
 	};
 }
