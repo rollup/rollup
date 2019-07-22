@@ -1,5 +1,5 @@
 module.exports = {
-	description: 'throws for invalid file ids',
+	description: 'throws for invalid reference ids',
 	options: {
 		plugins: {
 			name: 'test-plugin',
