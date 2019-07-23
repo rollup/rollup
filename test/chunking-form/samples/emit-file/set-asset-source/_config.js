@@ -36,6 +36,7 @@ module.exports = {
 				return (
 					`export const renderStart = import.meta.ROLLUP_FILE_URL_${renderStart};\n` +
 					`export const renderStartNamed = import.meta.ROLLUP_FILE_URL_${renderStartNamed};\n` +
+					`export const renderStartNamedImmediately = '${this.getFileName(renderStartNamed)}';\n` +
 					`export const banner = import.meta.ROLLUP_FILE_URL_${banner};\n` +
 					`export const bannerNamed = import.meta.ROLLUP_FILE_URL_${bannerNamed};\n` +
 					`export const footer = import.meta.ROLLUP_FILE_URL_${footer};\n` +

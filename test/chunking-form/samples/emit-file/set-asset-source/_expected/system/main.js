@@ -5,6 +5,7 @@ System.register([], function (exports, module) {
 
 			const renderStart = exports('renderStart', new URL('assets/renderStart-66600c78.txt', module.meta.url).href);
 			const renderStartNamed = exports('renderStartNamed', new URL('renderStart.txt', module.meta.url).href);
+			const renderStartNamedImmediately = exports('renderStartNamedImmediately', 'renderStart.txt');
 			const banner = exports('banner', new URL('assets/banner-2b65cc0c.txt', module.meta.url).href);
 			const bannerNamed = exports('bannerNamed', new URL('banner.txt', module.meta.url).href);
 			const footer = exports('footer', new URL('assets/footer-e1d2fccb.txt', module.meta.url).href);

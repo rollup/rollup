@@ -25,26 +25,27 @@ interface OutputSpecificFileData {
 	bundle: OutputBundleWithPlaceholders;
 }
 
-function getAssetFileName(
-	name: string,
+function generateAssetFileName(
+	name: string | undefined,
 	source: string | Buffer,
 	output: OutputSpecificFileData
 ): string {
+	const emittedName = name || 'asset';
 	return makeUnique(
 		renderNamePattern(output.assetFileNames, 'assetFileNames', placeholder => {
 			switch (placeholder) {
 				case 'hash':
 					const hash = sha256();
-					hash.update(name);
+					hash.update(emittedName);
 					hash.update(':');
 					hash.update(source);
 					return hash.digest('hex').substr(0, 8);
 				case 'name':
-					return name.substr(0, name.length - extname(name).length);
+					return emittedName.substr(0, emittedName.length - extname(emittedName).length);
 				case 'extname':
-					return extname(name);
+					return extname(emittedName);
 				case 'ext':
-					return extname(name).substr(1);
+					return extname(emittedName).substr(1);
 			}
 			return '';
 		}),
@@ -134,8 +135,21 @@ function getValidSource(
 	return source;
 }
 
-// TODO Lukas only access filename during generate? Or disallow setSource if there is a fileName?
-// TODO Lukas convert all "throw" into proper errors
+function getAssetFileName(file: ConsumedAsset, referenceId: string): string {
+	if (typeof file.fileName !== 'string') {
+		return error(errAssetNotFinalisedForFileName(file.name || referenceId));
+	}
+	return file.fileName;
+}
+
+function getChunkFileName(file: ConsumedChunk): string {
+	const fileName =
+		file.module &&
+		(file.module.facadeChunk ? file.module.facadeChunk.id : (file.module.chunk as Chunk).id);
+	if (!fileName) return error(errChunkNotGeneratedForFileName(file.fileName || file.name));
+	return fileName;
+}
+
 export class FileEmitter {
 	private filesByReferenceId = new Map<string, ConsumedFile>();
 	// tslint:disable member-ordering
@@ -148,7 +162,6 @@ export class FileEmitter {
 	}
 
 	public emitFile = (emittedFile: unknown): string => {
-		// TODO Lukas combine switch statements into object
 		if (!hasValidType(emittedFile)) {
 			return error(
 				errFailedValidation(
@@ -189,11 +202,7 @@ export class FileEmitter {
 			}
 			if (source !== undefined) {
 				if (typeof consumedAsset.fileName !== 'string') {
-					consumedAsset.fileName = getAssetFileName(
-						consumedAsset.name || 'asset',
-						source,
-						this.output
-					);
+					consumedAsset.fileName = generateAssetFileName(consumedAsset.name, source, this.output);
 				}
 				addAssetToBundle(consumedAsset as CompleteAsset, this.output);
 			}
@@ -268,23 +277,10 @@ export class FileEmitter {
 	public getFileName = (fileReferenceId: string) => {
 		const emittedFile = this.filesByReferenceId.get(fileReferenceId);
 		if (!emittedFile) return error(errFileReferenceIdNotFoundForFilename(fileReferenceId));
-		switch (emittedFile.type) {
-			case 'asset': {
-				if (typeof emittedFile.fileName !== 'string') {
-					return error(errAssetNotFinalisedForFileName(emittedFile.name || fileReferenceId));
-				}
-				return emittedFile.fileName;
-			}
-			case 'chunk': {
-				const fileName =
-					emittedFile.module &&
-					(emittedFile.module.facadeChunk
-						? emittedFile.module.facadeChunk.id
-						: (emittedFile.module.chunk as Chunk).id);
-				if (!fileName)
-					return error(errChunkNotGeneratedForFileName(emittedFile.fileName || emittedFile.name));
-				return fileName;
-			}
+		if (emittedFile.type === 'chunk') {
+			return getChunkFileName(emittedFile);
+		} else {
+			return getAssetFileName(emittedFile, fileReferenceId);
 		}
 	};
 
@@ -307,7 +303,7 @@ export class FileEmitter {
 		const source = getValidSource(requestedSource, emittedFile, fileReferenceId);
 		if (this.output) {
 			const fileName =
-				emittedFile.fileName || getAssetFileName(emittedFile.name || 'asset', source, this.output);
+				emittedFile.fileName || generateAssetFileName(emittedFile.name, source, this.output);
 			// We must not modify the original assets to not interact with other outputs
 			const assetWithSource = { ...emittedFile, fileName, source };
 			this.filesByReferenceId.set(fileReferenceId, assetWithSource);
@@ -317,7 +313,6 @@ export class FileEmitter {
 		}
 	};
 
-	// TODO Lukas how do we unfinalize assets for different outputs that have their source set during generate? Test!
 	public startOutput(outputBundle: OutputBundleWithPlaceholders, assetFileNames: string) {
 		this.filesByReferenceId = new Map(this.buildFilesByReferenceId);
 		this.output = {
@@ -333,7 +328,7 @@ export class FileEmitter {
 			if (emittedFile.type === 'asset' && emittedFile.source !== undefined) {
 				const fileName =
 					emittedFile.fileName ||
-					getAssetFileName(emittedFile.name || 'asset', emittedFile.source, this.output);
+					generateAssetFileName(emittedFile.name, emittedFile.source, this.output);
 				// We must not modify the original assets to not interact with other outputs
 				const assetWithFileName = { ...emittedFile, fileName };
 				this.filesByReferenceId.set(referenceId, assetWithFileName);
