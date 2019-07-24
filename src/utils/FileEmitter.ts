@@ -2,7 +2,7 @@ import sha256 from 'hash.js/lib/hash/sha/256';
 import Chunk from '../Chunk';
 import Graph from '../Graph';
 import Module from '../Module';
-import { OutputBundleWithPlaceholders } from '../rollup/types';
+import { OutputAsset, OutputBundleWithPlaceholders } from '../rollup/types';
 import { BuildPhase } from './buildPhase';
 import {
 	errAssetNotFinalisedForFileName,
@@ -53,13 +53,11 @@ function generateAssetFileName(
 	);
 }
 
-type CompleteAsset = ConsumedAsset & { fileName: string; source: string | Buffer };
-
-function reserveFileNameInBundle(fileName: string, output: OutputSpecificFileData) {
-	if (fileName in output.bundle) {
+function reserveFileNameInBundle(fileName: string, bundle: OutputBundleWithPlaceholders) {
+	if (fileName in bundle) {
 		return error(errFileNameConflict(fileName));
 	}
-	output.bundle[fileName] = FILE_PLACEHOLDER;
+	bundle[fileName] = FILE_PLACEHOLDER;
 }
 
 interface ConsumedChunk {
@@ -86,7 +84,7 @@ interface EmittedFile {
 type ConsumedFile = ConsumedChunk | ConsumedAsset;
 
 export const FILE_PLACEHOLDER = {
-	placeholder: true
+	isPlaceholder: true
 };
 
 function hasValidType(
@@ -216,7 +214,7 @@ export class FileEmitter {
 		};
 		for (const emittedFile of this.filesByReferenceId.values()) {
 			if (emittedFile.fileName) {
-				reserveFileNameInBundle(emittedFile.fileName, this.output);
+				reserveFileNameInBundle(emittedFile.fileName, this.output.bundle);
 			}
 		}
 		for (const [referenceId, consumedFile] of this.filesByReferenceId.entries()) {
@@ -250,7 +248,7 @@ export class FileEmitter {
 		);
 		if (this.output) {
 			if (emittedAsset.fileName) {
-				reserveFileNameInBundle(emittedAsset.fileName, this.output);
+				reserveFileNameInBundle(emittedAsset.fileName, this.output.bundle);
 			}
 			if (source !== undefined) {
 				this.finalizeAsset(consumedAsset, source, referenceId, this.output);
@@ -313,7 +311,6 @@ export class FileEmitter {
 		return referenceId;
 	}
 
-	// TODO deduplicate assets
 	private finalizeAsset(
 		consumedFile: ConsumedFile,
 		source: string | Buffer,
@@ -321,16 +318,30 @@ export class FileEmitter {
 		output: OutputSpecificFileData
 	) {
 		const fileName =
-			consumedFile.fileName || generateAssetFileName(consumedFile.name, source, output);
+			consumedFile.fileName ||
+			this.findExistingAssetFileNameWithSource(output.bundle, source) ||
+			generateAssetFileName(consumedFile.name, source, output);
+
 		// We must not modify the original assets to avoid interaction between outputs
 		const assetWithFileName = { ...consumedFile, source, fileName };
-		if (referenceId) {
-			this.filesByReferenceId.set(referenceId, assetWithFileName);
+		this.filesByReferenceId.set(referenceId, assetWithFileName);
+		output.bundle[fileName] = { fileName, isAsset: true, source };
+	}
+
+	private findExistingAssetFileNameWithSource(
+		bundle: OutputBundleWithPlaceholders,
+		source: string | Buffer
+	): string | null {
+		for (const fileName of Object.keys(bundle)) {
+			const outputFile = bundle[fileName] as OutputAsset;
+			if (
+				outputFile.isAsset &&
+				(Buffer.isBuffer(source) && Buffer.isBuffer(outputFile.source)
+					? source.equals(outputFile.source)
+					: source === outputFile.source)
+			)
+				return fileName;
 		}
-		output.bundle[(assetWithFileName as CompleteAsset).fileName] = {
-			fileName: (assetWithFileName as CompleteAsset).fileName,
-			isAsset: true,
-			source: (assetWithFileName as CompleteAsset).source
-		};
+		return null;
 	}
 }
