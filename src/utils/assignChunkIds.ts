@@ -32,7 +32,6 @@ export function assignChunkIds(
 		if (outputOptions.file) {
 			chunk.id = basename(outputOptions.file);
 		} else if (inputOptions.preserveModules) {
-			// TODO Lukas how do we handle emitted chunks when preserving modules?
 			chunk.id = chunk.generateIdPreserveModules(inputBase, bundle);
 		} else if (facadeModule && facadeModule.chunkFileName) {
 			chunk.id = facadeModule.chunkFileName;

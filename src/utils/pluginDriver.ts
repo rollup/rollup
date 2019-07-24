@@ -384,7 +384,7 @@ export function createPluginDriver(
 	const pluginDriver: PluginDriver = {
 		emitFile: fileEmitter.emitFile,
 		finaliseAssets() {
-			fileEmitter.finaliseAssets();
+			fileEmitter.assertAssetsFinalized();
 		},
 		getFileName: fileEmitter.getFileName,
 		hasLoadersOrTransforms,

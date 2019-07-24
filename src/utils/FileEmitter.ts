@@ -55,14 +55,6 @@ function generateAssetFileName(
 
 type CompleteAsset = ConsumedAsset & { fileName: string; source: string | Buffer };
 
-function addAssetToBundle(asset: CompleteAsset, output: OutputSpecificFileData) {
-	output.bundle[asset.fileName] = {
-		fileName: asset.fileName,
-		isAsset: true,
-		source: asset.source
-	};
-}
-
 function reserveFileNameInBundle(fileName: string, output: OutputSpecificFileData) {
 	if (fileName in output.bundle) {
 		return error(errFileNameConflict(fileName));
@@ -185,6 +177,62 @@ export class FileEmitter {
 		}
 	};
 
+	public getFileName = (fileReferenceId: string) => {
+		const emittedFile = this.filesByReferenceId.get(fileReferenceId);
+		if (!emittedFile) return error(errFileReferenceIdNotFoundForFilename(fileReferenceId));
+		if (emittedFile.type === 'chunk') {
+			return getChunkFileName(emittedFile);
+		} else {
+			return getAssetFileName(emittedFile, fileReferenceId);
+		}
+	};
+
+	public setAssetSource = (referenceId: string, requestedSource: unknown) => {
+		const consumedFile = this.filesByReferenceId.get(referenceId);
+		if (!consumedFile) return error(errAssetReferenceIdNotFoundForSetSource(referenceId));
+		if (consumedFile.type !== 'asset') {
+			return error(
+				errFailedValidation(
+					`Asset sources can only be set for emitted assets but "${referenceId}" is an emitted chunk.`
+				)
+			);
+		}
+		if (consumedFile.source !== undefined) {
+			return error(errAssetSourceAlreadySet(consumedFile.name || referenceId));
+		}
+		const source = getValidSource(requestedSource, consumedFile, referenceId);
+		if (this.output) {
+			this.finalizeAsset(consumedFile, source, referenceId, this.output);
+		} else {
+			consumedFile.source = source;
+		}
+	};
+
+	public startOutput(outputBundle: OutputBundleWithPlaceholders, assetFileNames: string) {
+		this.filesByReferenceId = new Map(this.buildFilesByReferenceId);
+		this.output = {
+			assetFileNames,
+			bundle: outputBundle
+		};
+		for (const emittedFile of this.filesByReferenceId.values()) {
+			if (emittedFile.fileName) {
+				reserveFileNameInBundle(emittedFile.fileName, this.output);
+			}
+		}
+		for (const [referenceId, consumedFile] of this.filesByReferenceId.entries()) {
+			if (consumedFile.type === 'asset' && consumedFile.source !== undefined) {
+				this.finalizeAsset(consumedFile, consumedFile.source, referenceId, this.output);
+			}
+		}
+	}
+
+	public assertAssetsFinalized() {
+		for (const [referenceId, emittedFile] of this.filesByReferenceId.entries()) {
+			if (emittedFile.type === 'asset' && typeof emittedFile.fileName !== 'string')
+				error(errNoAssetSourceSet(emittedFile.name || referenceId));
+		}
+	}
+
 	private emitAsset(emittedAsset: EmittedFile): string {
 		const source =
 			typeof emittedAsset.source !== 'undefined'
@@ -196,21 +244,19 @@ export class FileEmitter {
 			source,
 			type: 'asset'
 		};
+		const referenceId = this.assignReferenceId(
+			consumedAsset,
+			emittedAsset.fileName || emittedAsset.name || emittedAsset.type
+		);
 		if (this.output) {
 			if (emittedAsset.fileName) {
 				reserveFileNameInBundle(emittedAsset.fileName, this.output);
 			}
 			if (source !== undefined) {
-				if (typeof consumedAsset.fileName !== 'string') {
-					consumedAsset.fileName = generateAssetFileName(consumedAsset.name, source, this.output);
-				}
-				addAssetToBundle(consumedAsset as CompleteAsset, this.output);
+				this.finalizeAsset(consumedAsset, source, referenceId, this.output);
 			}
 		}
-		return this.assignReferenceId(
-			consumedAsset,
-			emittedAsset.fileName || emittedAsset.name || emittedAsset.type
-		);
+		return referenceId;
 	}
 
 	private emitChunk(emittedChunk: EmittedFile): string {
@@ -267,73 +313,24 @@ export class FileEmitter {
 		return referenceId;
 	}
 
-	public finaliseAssets() {
-		for (const [referenceId, emittedFile] of this.filesByReferenceId.entries()) {
-			if (emittedFile.type === 'asset' && typeof emittedFile.fileName !== 'string')
-				error(errNoAssetSourceSet(emittedFile.name || referenceId));
+	// TODO deduplicate assets
+	private finalizeAsset(
+		consumedFile: ConsumedFile,
+		source: string | Buffer,
+		referenceId: string,
+		output: OutputSpecificFileData
+	) {
+		const fileName =
+			consumedFile.fileName || generateAssetFileName(consumedFile.name, source, output);
+		// We must not modify the original assets to avoid interaction between outputs
+		const assetWithFileName = { ...consumedFile, source, fileName };
+		if (referenceId) {
+			this.filesByReferenceId.set(referenceId, assetWithFileName);
 		}
-	}
-
-	public getFileName = (fileReferenceId: string) => {
-		const emittedFile = this.filesByReferenceId.get(fileReferenceId);
-		if (!emittedFile) return error(errFileReferenceIdNotFoundForFilename(fileReferenceId));
-		if (emittedFile.type === 'chunk') {
-			return getChunkFileName(emittedFile);
-		} else {
-			return getAssetFileName(emittedFile, fileReferenceId);
-		}
-	};
-
-	// TODO Lukas this should only be allowed
-	//  - unlimited times during build phase or
-	//  - at most once during generate phase if no source has been set yet
-	public setAssetSource = (fileReferenceId: string, requestedSource: unknown) => {
-		const emittedFile = this.filesByReferenceId.get(fileReferenceId);
-		if (!emittedFile) return error(errAssetReferenceIdNotFoundForSetSource(fileReferenceId));
-		if (emittedFile.type !== 'asset') {
-			return error(
-				errFailedValidation(
-					`Asset sources can only be set for emitted assets but "${fileReferenceId}" is an emitted chunk.`
-				)
-			);
-		}
-		if (emittedFile.source !== undefined) {
-			return error(errAssetSourceAlreadySet(emittedFile.name || fileReferenceId));
-		}
-		const source = getValidSource(requestedSource, emittedFile, fileReferenceId);
-		if (this.output) {
-			const fileName =
-				emittedFile.fileName || generateAssetFileName(emittedFile.name, source, this.output);
-			// We must not modify the original assets to not interact with other outputs
-			const assetWithSource = { ...emittedFile, fileName, source };
-			this.filesByReferenceId.set(fileReferenceId, assetWithSource);
-			addAssetToBundle(assetWithSource, this.output);
-		} else {
-			emittedFile.source = source;
-		}
-	};
-
-	public startOutput(outputBundle: OutputBundleWithPlaceholders, assetFileNames: string) {
-		this.filesByReferenceId = new Map(this.buildFilesByReferenceId);
-		this.output = {
-			assetFileNames,
-			bundle: outputBundle
+		output.bundle[(assetWithFileName as CompleteAsset).fileName] = {
+			fileName: (assetWithFileName as CompleteAsset).fileName,
+			isAsset: true,
+			source: (assetWithFileName as CompleteAsset).source
 		};
-		for (const emittedFile of this.filesByReferenceId.values()) {
-			if (emittedFile.fileName) {
-				reserveFileNameInBundle(emittedFile.fileName, this.output);
-			}
-		}
-		for (const [referenceId, emittedFile] of this.filesByReferenceId.entries()) {
-			if (emittedFile.type === 'asset' && emittedFile.source !== undefined) {
-				const fileName =
-					emittedFile.fileName ||
-					generateAssetFileName(emittedFile.name, emittedFile.source, this.output);
-				// We must not modify the original assets to not interact with other outputs
-				const assetWithFileName = { ...emittedFile, fileName };
-				this.filesByReferenceId.set(referenceId, assetWithFileName);
-				addAssetToBundle(assetWithFileName as CompleteAsset, this.output);
-			}
-		}
 	}
 }
