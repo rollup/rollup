@@ -851,6 +851,7 @@ export default class Chunk {
 			let importName: string;
 			let needsLiveBinding = false;
 			if (exportName[0] === '*') {
+				needsLiveBinding = options.externalLiveBindings !== false;
 				exportChunk = this.graph.moduleById.get(exportName.substr(1)) as ExternalModule;
 				importName = exportName = '*';
 			} else {
@@ -865,7 +866,7 @@ export default class Chunk {
 				} else {
 					exportChunk = module;
 					importName = variable.name;
-					needsLiveBinding = true;
+					needsLiveBinding = options.externalLiveBindings !== false;
 				}
 			}
 			let reexportDeclaration = reexportDeclarations.get(exportChunk);
