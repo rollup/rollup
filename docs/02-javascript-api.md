@@ -109,41 +109,42 @@ The `outputOptions` object can contain the following properties (see the [big li
 
 ```js
 const outputOptions = {
-    // core output options
-    dir,
-    file,
-    format, // required
-    globals,
-    name,
-
-    // advanced output options
-    assetFileNames,
-    banner,
-    chunkFileNames,
-    compact,
-    entryFileNames,
-    extend,
-    footer,
-    interop,
-    intro,
-    outro,
-    paths,
-    sourcemap,
-    sourcemapExcludeSources,
-    sourcemapFile,
-    sourcemapPathTransform,
-
-    // danger zone
-    amd,
-    dynamicImportFunction,
-    esModule,
-    exports,
-    freeze,
-    indent,
-    namespaceToStringTag,
-    noConflict,
-    preferConst,
-    strict
+  // core output options
+  dir,
+  file,
+  format, // required
+  globals,
+  name,
+  
+  // advanced output options
+  assetFileNames,
+  banner,
+  chunkFileNames,
+  compact,
+  entryFileNames,
+  extend,
+  externalLiveBindings,
+  footer,
+  interop,
+  intro,
+  outro,
+  paths,
+  sourcemap,
+  sourcemapExcludeSources,
+  sourcemapFile,
+  sourcemapPathTransform,
+  
+  // danger zone
+  amd,
+  dynamicImportFunction,
+  esModule,
+  exports,
+  freeze,
+  indent,
+  namespaceToStringTag,
+  noConflict,
+  preferConst,
+  strict
 };
 ```
 
