@@ -1,4 +1,4 @@
-System.register(['./generated-dynamic.js'], function (exports, module) {
+System.register(['./generated-dynamic1.js'], function (exports, module) {
 	'use strict';
 	var DEP;
 	return {
@@ -7,7 +7,7 @@ System.register(['./generated-dynamic.js'], function (exports, module) {
 		}],
 		execute: function () {
 
-			Promise.all([module.import('./generated-dynamic.js'), module.import('./generated-dynamic2.js'), module.import('./generated-dynamic3.js')]).then(
+			Promise.all([module.import('./generated-dynamic1.js'), module.import('./generated-dynamic2.js'), module.import('./generated-dynamic3.js')]).then(
 				results => console.log(results, DEP)
 			);
 

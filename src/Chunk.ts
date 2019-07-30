@@ -195,13 +195,7 @@ export default class Chunk {
 		}
 	}
 
-	canModuleBeFacade(
-		moduleExportNamesByVariable: Map<Variable, string[]>,
-		moduleChunkAlias: string | null
-	): boolean {
-		if (this.manualChunkAlias && moduleChunkAlias && this.manualChunkAlias !== moduleChunkAlias) {
-			return false;
-		}
+	canModuleBeFacade(moduleExportNamesByVariable: Map<Variable, string[]>): boolean {
 		for (const exposedVariable of this.exports) {
 			if (!moduleExportNamesByVariable.has(exposedVariable)) {
 				return false;
@@ -215,10 +209,7 @@ export default class Chunk {
 		for (const module of this.entryModules) {
 			if (!this.facadeModule) {
 				const exportNamesByVariable = module.getExportNamesByVariable();
-				if (
-					this.graph.preserveModules ||
-					this.canModuleBeFacade(exportNamesByVariable, module.chunkName)
-				) {
+				if (this.graph.preserveModules || this.canModuleBeFacade(exportNamesByVariable)) {
 					this.facadeModule = module;
 					for (const [variable, exportNames] of exportNamesByVariable) {
 						for (const exportName of exportNames) {
@@ -787,16 +778,15 @@ export default class Chunk {
 	}
 
 	private computeChunkName(): string {
-		// TODO Lukas test interaction with manual chunks
-		if (this.manualChunkAlias) {
-			return sanitizeFileName(this.manualChunkAlias);
-		}
 		if (this.facadeModule !== null) {
 			return sanitizeFileName(
 				(this.facadeModule.chunkFileName && getAliasName(this.facadeModule.chunkFileName)) ||
 					this.facadeModule.chunkName ||
 					getAliasName(this.facadeModule.id)
 			);
+		}
+		if (this.manualChunkAlias) {
+			return sanitizeFileName(this.manualChunkAlias);
 		}
 		for (const module of this.orderedModules) {
 			if (module.chunkName) return sanitizeFileName(module.chunkName);

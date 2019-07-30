@@ -1,1 +1,7 @@
-export { v as value } from './generated-other.js';
+console.log('dep');
+
+console.log('main');
+
+const value = 42;
+
+export { value };
