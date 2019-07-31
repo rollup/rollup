@@ -134,8 +134,10 @@ function getAssetFileName(file: ConsumedAsset, referenceId: string): string {
 
 function getChunkFileName(file: ConsumedChunk): string {
 	const fileName =
-		file.module &&
-		(file.module.facadeChunk ? file.module.facadeChunk.id : (file.module.chunk as Chunk).id);
+		// TODO Lukas test first case
+		file.fileName ||
+		(file.module &&
+			(file.module.facadeChunk ? file.module.facadeChunk.id : (file.module.chunk as Chunk).id));
 	if (!fileName) return error(errChunkNotGeneratedForFileName(file.fileName || file.name));
 	return fileName;
 }

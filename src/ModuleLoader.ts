@@ -139,8 +139,13 @@ export class ModuleLoader {
 						module.chunkFileName = fileName;
 						// TODO Lukas can we make sure a precise filename does not override a user-defined one?
 						// should we create facades if the user provides several names for a chunk?
-					} else if (name !== null && (module.chunkName === null || isUserDefined)) {
-						module.chunkName = name;
+					} else if (name !== null) {
+						if (module.chunkName === null) {
+							module.chunkName = name;
+						}
+						if (isUserDefined) {
+							module.userChunkNames.add(name);
+						}
 					}
 					return module;
 				})

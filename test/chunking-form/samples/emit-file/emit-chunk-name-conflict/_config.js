@@ -1,7 +1,7 @@
 module.exports = {
 	description: 'deduplicates named chunks emitted more than once',
 	options: {
-		// The last name is picked
+		// For the second entry, a facade is created
 		input: { mainChunk: 'main', other: 'main' },
 		plugins: {
 			buildStart() {

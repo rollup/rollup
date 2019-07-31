@@ -1,5 +1,5 @@
 'use strict';
 
-var dep3 = 44;
+var value3 = 44;
 
-module.exports = dep3;
+module.exports = value3;

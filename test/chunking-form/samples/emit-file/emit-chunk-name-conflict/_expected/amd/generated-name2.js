@@ -1,7 +1,7 @@
 define(function () { 'use strict';
 
-	var dep3 = 44;
+	var value3 = 44;
 
-	return dep3;
+	return value3;
 
 });

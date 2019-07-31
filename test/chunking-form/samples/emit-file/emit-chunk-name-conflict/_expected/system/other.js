@@ -1,15 +1,10 @@
-System.register(['./generated-name.js', './generated-secondName.js', './generated-name2.js'], function () {
+System.register(['./generated-name.js', './generated-secondName.js', './generated-name2.js', './mainChunk.js'], function () {
 	'use strict';
-	var value1, value2;
 	return {
-		setters: [function (module) {
-			value1 = module.default;
-		}, function (module) {
-			value2 = module.default;
-		}, function () {}],
+		setters: [function () {}, function () {}, function () {}, function () {}],
 		execute: function () {
 
-			console.log('main', value1, value2, value3);
+
 
 		}
 	};

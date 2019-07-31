@@ -1,7 +1,7 @@
 'use strict';
 
-var name = require('./generated-name.js');
-var secondName = require('./generated-secondName.js');
+require('./generated-name.js');
+require('./generated-secondName.js');
 require('./generated-name2.js');
+require('./mainChunk.js');
 
-console.log('main', name, secondName, value3);

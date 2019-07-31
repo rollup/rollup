@@ -196,6 +196,7 @@ export default class Module {
 	imports = new Set<Variable>();
 	isEntryPoint: boolean;
 	isExecuted = false;
+	// TODO Lukas may no longer be necessary
 	isUserDefinedEntryPoint = false;
 	manualChunkAlias: string = null as any;
 	moduleSideEffects: boolean;
@@ -207,6 +208,7 @@ export default class Module {
 	sourcemapChain!: DecodedSourceMapOrMissing[];
 	sources: string[] = [];
 	transformFiles?: EmittedFile[];
+	userChunkNames = new Set<string>();
 	usesTopLevelAwait = false;
 
 	private allExportNames?: Set<string>;

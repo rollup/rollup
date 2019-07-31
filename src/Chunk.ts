@@ -77,6 +77,11 @@ export interface ImportSpecifier {
 	local: string;
 }
 
+interface FacadeName {
+	fileName?: string;
+	name?: string;
+}
+
 function getGlobalName(
 	module: ExternalModule,
 	globals: GlobalsOption,
@@ -110,13 +115,17 @@ export function isChunkRendered(chunk: Chunk): boolean {
 }
 
 export default class Chunk {
-	static generateFacade(graph: Graph, facadedModule: Module): Chunk {
+	static generateFacade(graph: Graph, facadedModule: Module, { name }: FacadeName): Chunk {
 		const chunk = new Chunk(graph, []);
 		chunk.dependencies = [facadedModule.chunk as Chunk];
-		// TODO Lukas also copy id if it exists?
+		if (name) {
+			chunk.chunkName = name;
+		}
 		chunk.dynamicDependencies = [];
 		chunk.facadeModule = facadedModule;
-		facadedModule.facadeChunk = chunk;
+		if (!facadedModule.facadeChunk) {
+			facadedModule.facadeChunk = chunk;
+		}
 		for (const exportName of facadedModule.getAllExportNames()) {
 			const tracedVariable = facadedModule.getVariableForExportName(exportName);
 			chunk.exports.add(tracedVariable);
@@ -191,6 +200,7 @@ export default class Chunk {
 				)
 			);
 		} else {
+			// TODO Lukas this could be derived from the last module
 			this.variableName = '__chunk_' + ++graph.curChunkIndex;
 		}
 	}
@@ -207,19 +217,35 @@ export default class Chunk {
 	generateFacades(): Chunk[] {
 		const facades: Chunk[] = [];
 		for (const module of this.entryModules) {
+			const requiredFacades: FacadeName[] = Array.from(module.userChunkNames).map(name => ({
+				name
+			}));
+			if (requiredFacades.length === 0) {
+				requiredFacades.push({});
+			}
 			if (!this.facadeModule) {
 				const exportNamesByVariable = module.getExportNamesByVariable();
 				if (this.graph.preserveModules || this.canModuleBeFacade(exportNamesByVariable)) {
 					this.facadeModule = module;
+					module.facadeChunk = this;
 					for (const [variable, exportNames] of exportNamesByVariable) {
 						for (const exportName of exportNames) {
 							this.exportNames[exportName] = variable;
 						}
 					}
-					continue;
+					const facadeName = requiredFacades.shift() as { name?: string };
+					// TODO Lukas completely handle the case of a facade module here
+					if (facadeName.name) {
+						this.chunkName = facadeName.name;
+					} else if (module.chunkName) {
+						this.chunkName = module.chunkName;
+					}
 				}
 			}
-			facades.push(Chunk.generateFacade(this.graph, module));
+
+			for (const facadeName of requiredFacades) {
+				facades.push(Chunk.generateFacade(this.graph, module, facadeName));
+			}
 		}
 		return facades;
 	}

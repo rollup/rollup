@@ -1,3 +1,3 @@
-var dep3 = 44;
+var value3 = 44;
 
-export default dep3;
+export default value3;
