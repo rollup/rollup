@@ -1,11 +1,15 @@
 # rollup changelog
 
-## 1.17.1
-*unreleased*
+## 1.18.0
+*2019-08-01*
+
+### Features
+* Add `externalLiveBindings: false` option to optimize code when live bindings are not needed (#3010)
 
 ### Pull Requests
 * [#2997](https://github.com/rollup/rollup/pull/2997): Integrate coverage into CI setup (@lukastaegert)
 * [#2998](https://github.com/rollup/rollup/pull/2998): Update readme badges (@lukastaegert)
+* [#3010](https://github.com/rollup/rollup/pull/3010): Add option to prevent code for external live bindings (@lukastaegert)
 
 ## 1.17.0
 *2019-07-15*
