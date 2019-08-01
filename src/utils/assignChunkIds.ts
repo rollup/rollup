@@ -12,29 +12,25 @@ export function assignChunkIds(
 	addons: Addons,
 	bundle: OutputBundleWithPlaceholders
 ) {
-	const [entryChunks, otherChunks] = chunks.reduce<[Chunk[], Chunk[]]>(
-		([entryChunks, otherChunks], chunk) => {
-			(chunk.facadeModule && chunk.facadeModule.isUserDefinedEntryPoint
-				? entryChunks
-				: otherChunks
-			).push(chunk);
-			return [entryChunks, otherChunks];
-		},
-		[[], []]
-	);
+	// TODO Lukas test conflict between prenamed chunk and entry chunk
+	// TODO Lukas do not filter out prenamed chunks but use new property
+	const entryChunks: Chunk[] = [];
+	const otherChunks: Chunk[] = [];
+	for (const chunk of chunks) {
+		(chunk.facadeModule && chunk.facadeModule.isUserDefinedEntryPoint
+			? entryChunks
+			: otherChunks
+		).push(chunk);
+	}
 
 	// make sure entry chunk names take precedence with regard to deconflicting
 	const chunksForNaming: Chunk[] = entryChunks.concat(otherChunks);
-	for (let i = 0; i < chunksForNaming.length; i++) {
-		const chunk = chunksForNaming[i];
+	for (const chunk of chunksForNaming) {
 		const facadeModule = chunk.facadeModule;
-
 		if (outputOptions.file) {
 			chunk.id = basename(outputOptions.file);
 		} else if (inputOptions.preserveModules) {
 			chunk.id = chunk.generateIdPreserveModules(inputBase, bundle);
-		} else if (facadeModule && facadeModule.chunkFileName) {
-			chunk.id = facadeModule.chunkFileName;
 		} else {
 			let pattern, patternName;
 			if (facadeModule && facadeModule.isUserDefinedEntryPoint) {

@@ -132,13 +132,7 @@ export class ModuleLoader {
 			unresolvedEntryModules.map(({ fileName, id, name }) =>
 				this.loadEntryModule(id, true).then(module => {
 					if (fileName !== null) {
-						if (module.chunkFileName !== null) {
-							// TODO Lukas test or create facades and make chunkFileName a Set
-							throw new Error('Cannot reassign chunk filename');
-						}
-						module.chunkFileName = fileName;
-						// TODO Lukas can we make sure a precise filename does not override a user-defined one?
-						// should we create facades if the user provides several names for a chunk?
+						module.chunkFileNames.add(fileName);
 					} else if (name !== null) {
 						if (module.chunkName === null) {
 							module.chunkName = name;

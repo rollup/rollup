@@ -115,17 +115,19 @@ export function isChunkRendered(chunk: Chunk): boolean {
 }
 
 export default class Chunk {
-	static generateFacade(graph: Graph, facadedModule: Module, { name }: FacadeName): Chunk {
+	private static generateFacade(
+		graph: Graph,
+		facadedModule: Module,
+		facadeName: FacadeName
+	): Chunk {
 		const chunk = new Chunk(graph, []);
-		chunk.dependencies = [facadedModule.chunk as Chunk];
-		if (name) {
-			chunk.chunkName = name;
-		}
-		chunk.dynamicDependencies = [];
-		chunk.facadeModule = facadedModule;
+		chunk.assignFacadeName(facadeName, facadedModule);
 		if (!facadedModule.facadeChunk) {
 			facadedModule.facadeChunk = chunk;
 		}
+		chunk.dependencies = [facadedModule.chunk as Chunk];
+		chunk.dynamicDependencies = [];
+		chunk.facadeModule = facadedModule;
 		for (const exportName of facadedModule.getAllExportNames()) {
 			const tracedVariable = facadedModule.getVariableForExportName(exportName);
 			chunk.exports.add(tracedVariable);
@@ -150,6 +152,8 @@ export default class Chunk {
 	usedModules: Module[] = undefined as any;
 
 	variableName: string;
+	// TODO Lukas remove chunk
+	private chunkFileName: string | null = null;
 	private chunkName: string | null = null;
 	private dependencies: (ExternalModule | Chunk)[] = undefined as any;
 	private dynamicDependencies: (ExternalModule | Chunk)[] = undefined as any;
@@ -193,10 +197,7 @@ export default class Chunk {
 		if (entryModule) {
 			this.variableName = makeLegal(
 				basename(
-					(entryModule.chunkFileName && getAliasName(entryModule.chunkFileName)) ||
-						entryModule.chunkName ||
-						entryModule.manualChunkAlias ||
-						getAliasName(entryModule.id)
+					entryModule.chunkName || entryModule.manualChunkAlias || getAliasName(entryModule.id)
 				)
 			);
 		} else {
@@ -220,6 +221,10 @@ export default class Chunk {
 			const requiredFacades: FacadeName[] = Array.from(module.userChunkNames).map(name => ({
 				name
 			}));
+			if (requiredFacades.length === 0 && module.isUserDefinedEntryPoint) {
+				requiredFacades.push({});
+			}
+			requiredFacades.push(...Array.from(module.chunkFileNames).map(fileName => ({ fileName })));
 			if (requiredFacades.length === 0) {
 				requiredFacades.push({});
 			}
@@ -233,13 +238,7 @@ export default class Chunk {
 							this.exportNames[exportName] = variable;
 						}
 					}
-					const facadeName = requiredFacades.shift() as { name?: string };
-					// TODO Lukas completely handle the case of a facade module here
-					if (facadeName.name) {
-						this.chunkName = facadeName.name;
-					} else if (module.chunkName) {
-						this.chunkName = module.chunkName;
-					}
+					this.assignFacadeName(requiredFacades.shift() as FacadeName, module);
 				}
 			}
 
@@ -257,6 +256,9 @@ export default class Chunk {
 		options: OutputOptions,
 		existingNames: Record<string, any>
 	): string {
+		if (this.chunkFileName !== null) {
+			return this.chunkFileName;
+		}
 		return makeUnique(
 			renderNamePattern(pattern, patternName, type => {
 				switch (type) {
@@ -325,7 +327,7 @@ export default class Chunk {
 	}
 
 	getChunkName(): string {
-		return this.chunkName || (this.chunkName = this.computeChunkName());
+		return this.chunkName || (this.chunkName = sanitizeFileName(this.getFallbackChunkName()));
 	}
 
 	getDynamicImportIds(): string[] {
@@ -803,21 +805,15 @@ export default class Chunk {
 		}
 	}
 
-	private computeChunkName(): string {
-		if (this.facadeModule !== null) {
-			return sanitizeFileName(
-				(this.facadeModule.chunkFileName && getAliasName(this.facadeModule.chunkFileName)) ||
-					this.facadeModule.chunkName ||
-					getAliasName(this.facadeModule.id)
+	private assignFacadeName({ fileName, name }: FacadeName, facadedModule: Module) {
+		if (fileName) {
+			// TODO Lukas all assignments to chunkFileName should be sanitized
+			this.chunkFileName = fileName;
+		} else {
+			this.chunkName = sanitizeFileName(
+				name || facadedModule.chunkName || getAliasName(facadedModule.id)
 			);
 		}
-		if (this.manualChunkAlias) {
-			return sanitizeFileName(this.manualChunkAlias);
-		}
-		for (const module of this.orderedModules) {
-			if (module.chunkName) return sanitizeFileName(module.chunkName);
-		}
-		return 'chunk';
 	}
 
 	private computeContentHashWithDependencies(addons: Addons, options: OutputOptions): string {
@@ -1008,6 +1004,19 @@ export default class Chunk {
 			});
 		}
 		return exports;
+	}
+
+	private getFallbackChunkName(): string {
+		if (this.manualChunkAlias) {
+			return this.manualChunkAlias;
+		}
+		if (this.chunkFileName) {
+			return getAliasName(this.chunkFileName);
+		}
+		for (const module of this.orderedModules) {
+			if (module.chunkName) return module.chunkName;
+		}
+		return 'chunk';
 	}
 
 	private inlineChunkDependencies(chunk: Chunk, deep: boolean) {

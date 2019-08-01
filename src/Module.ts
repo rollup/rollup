@@ -169,7 +169,7 @@ const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
 
 export default class Module {
 	chunk?: Chunk;
-	chunkFileName: string | null = null;
+	chunkFileNames = new Set<string>();
 	chunkName: string | null = null;
 	code!: string;
 	comments: CommentDescription[] = [];

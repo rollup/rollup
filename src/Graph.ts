@@ -313,6 +313,7 @@ export default class Graph {
 			const facades: Chunk[] = [];
 			for (const chunk of chunks) {
 				for (const facade of chunk.generateFacades()) {
+					// TODO Lukas use spread operator
 					facades.push(facade);
 				}
 			}
