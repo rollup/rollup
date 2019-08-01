@@ -1,6 +1,6 @@
 'use strict';
 
-var __chunk_2 = require('./generated-lib1.js');
+var lib1 = require('./generated-lib1.js');
 
 function fn () {
   console.log('lib2 fn');
@@ -12,7 +12,7 @@ function fn$1 () {
 }
 
 function fn$2 () {
-  __chunk_2.fn();
+  lib1.fn();
   console.log('dep3 fn');
 }
 

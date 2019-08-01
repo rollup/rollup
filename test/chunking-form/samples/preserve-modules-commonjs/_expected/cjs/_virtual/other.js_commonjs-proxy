@@ -1,7 +1,7 @@
 'use strict';
 
-var __chunk_1 = require('../other.js');
+var other = require('../other.js');
 
 
 
-exports.default = __chunk_1.__moduleExports;
+exports.default = other.__moduleExports;

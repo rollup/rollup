@@ -1,4 +1,4 @@
-define(['./generated-manual'], function (__chunk_1) { 'use strict';
+define(['./generated-manual'], function (manual) { 'use strict';
 
 	console.log('main');
 

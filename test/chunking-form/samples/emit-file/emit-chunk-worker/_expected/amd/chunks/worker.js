@@ -1,5 +1,5 @@
-define(['./chunk'], function (__chunk_1) { 'use strict';
+define(['./chunk'], function (shared) { 'use strict';
 
-	postMessage(`from worker: ${__chunk_1.shared}`);
+	postMessage(`from worker: ${shared.shared}`);
 
 });

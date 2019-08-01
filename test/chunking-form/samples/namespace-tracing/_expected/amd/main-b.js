@@ -1,8 +1,8 @@
-define(['./generated-chunk', './generated-chunk2', './generated-chunk3'], function (__chunk_1, __chunk_2, __chunk_3) { 'use strict';
+define(['./generated-chunk', './generated-chunk2', './generated-chunk3'], function (broken, foo, bar) { 'use strict';
 
-	__chunk_2.foo();
-	__chunk_1.broken();
-	__chunk_3.bar();
-	__chunk_1.broken();
+	foo.foo();
+	broken.broken();
+	bar.bar();
+	broken.broken();
 
 });

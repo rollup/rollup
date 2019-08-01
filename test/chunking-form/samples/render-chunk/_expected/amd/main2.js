@@ -1,8 +1,8 @@
-define(['./chunk-chunk'], function (__chunk_1) { 'use strict';
+define(['./chunk-chunk'], function (dep2) { 'use strict';
 
 	var num = 3;
 
-	console.log(__chunk_1.num + num);
+	console.log(dep2.num + num);
 
 });
 console.log('fileName', 'main2.js');

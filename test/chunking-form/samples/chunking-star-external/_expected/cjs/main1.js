@@ -6,7 +6,7 @@ var starexternal1 = require('starexternal1');
 var external1 = require('external1');
 require('starexternal2');
 require('external2');
-var __chunk_1 = require('./generated-chunk.js');
+var dep = require('./generated-chunk.js');
 
 var main = '1';
 
@@ -24,5 +24,5 @@ Object.defineProperty(exports, 'e', {
 		return external1.e;
 	}
 });
-exports.dep = __chunk_1.dep;
+exports.dep = dep.dep;
 exports.main = main;

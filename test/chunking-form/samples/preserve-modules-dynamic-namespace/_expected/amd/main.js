@@ -1,5 +1,5 @@
-define(['./m1'], function (__chunk_3) { 'use strict';
+define(['./m1'], function (m1) { 'use strict';
 
-	console.log(__chunk_3);
+	console.log(m1);
 
 });

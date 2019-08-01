@@ -1,8 +1,8 @@
 'use strict';
 
-var __chunk_1 = require('./generated-chunk.js');
-var __chunk_2 = require('./generated-chunk2.js');
+var dep1 = require('./generated-chunk.js');
+var dep2 = require('./generated-chunk2.js');
 
-var main1 = __chunk_1.x + __chunk_2.y;
+var main1 = dep1.x + dep2.y;
 
 module.exports = main1;

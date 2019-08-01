@@ -1,6 +1,6 @@
 'use strict';
 
-var __chunk_1 = require('./generated-chunk.js');
+var dep2 = require('./generated-chunk.js');
 var external = require('external');
 
 function fn () {
@@ -16,7 +16,7 @@ function fn$1 () {
 class Main2 {
   constructor () {
     fn$1();
-    __chunk_1.fn();
+    dep2.fn();
   }
 }
 

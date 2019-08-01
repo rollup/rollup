@@ -1,5 +1,5 @@
 'use strict';
 
-var __chunk_1 = require('./generated-chunk.js');
+var proxy2 = require('./generated-chunk.js');
 
-console.log(__chunk_1.bar, __chunk_1.bar);
+console.log(proxy2.bar, proxy2.bar);

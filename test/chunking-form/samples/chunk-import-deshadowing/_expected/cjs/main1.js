@@ -1,9 +1,9 @@
 'use strict';
 
-var __chunk_1 = require('./generated-chunk.js');
+var lib = require('./generated-chunk.js');
 
 function fn () {
-  var emptyFunction = __chunk_1.emptyFunction;
+  var emptyFunction = lib.emptyFunction;
   console.log(emptyFunction);
 }
 

@@ -152,14 +152,13 @@ export default class Chunk {
 	usedModules: Module[] = undefined as any;
 
 	variableName: string;
-	// TODO Lukas remove chunk
-	private chunkFileName: string | null = null;
-	private chunkName: string | null = null;
 	private dependencies: (ExternalModule | Chunk)[] = undefined as any;
 	private dynamicDependencies: (ExternalModule | Chunk)[] = undefined as any;
 	private exportNames: { [name: string]: Variable } = Object.create(null);
 	private exports = new Set<Variable>();
+	private fileName: string | null = null;
 	private imports = new Set<Variable>();
+	private name: string | null = null;
 	private needsExportsShim = false;
 	private renderedDeclarations: {
 		dependencies: ChunkDependencies;
@@ -193,15 +192,17 @@ export default class Chunk {
 			}
 		}
 
-		const entryModule = this.entryModules[0];
-		if (entryModule) {
+		const moduleForNaming =
+			this.entryModules[0] || this.orderedModules[this.orderedModules.length - 1];
+		if (moduleForNaming) {
 			this.variableName = makeLegal(
 				basename(
-					entryModule.chunkName || entryModule.manualChunkAlias || getAliasName(entryModule.id)
+					moduleForNaming.chunkName ||
+						moduleForNaming.manualChunkAlias ||
+						getAliasName(moduleForNaming.id)
 				)
 			);
 		} else {
-			// TODO Lukas this could be derived from the last module
 			this.variableName = '__chunk_' + ++graph.curChunkIndex;
 		}
 	}
@@ -256,8 +257,8 @@ export default class Chunk {
 		options: OutputOptions,
 		existingNames: Record<string, any>
 	): string {
-		if (this.chunkFileName !== null) {
-			return this.chunkFileName;
+		if (this.fileName !== null) {
+			return this.fileName;
 		}
 		return makeUnique(
 			renderNamePattern(pattern, patternName, type => {
@@ -327,7 +328,7 @@ export default class Chunk {
 	}
 
 	getChunkName(): string {
-		return this.chunkName || (this.chunkName = sanitizeFileName(this.getFallbackChunkName()));
+		return this.name || (this.name = sanitizeFileName(this.getFallbackChunkName()));
 	}
 
 	getDynamicImportIds(): string[] {
@@ -641,7 +642,7 @@ export default class Chunk {
 			const renderedDependency = this.renderedDeclarations.dependencies[i];
 
 			const depId = dep instanceof ExternalModule ? renderedDependency.id : (dep.id as string);
-			let relPath = this.id ? normalize(relative(dirname(this.id), depId)) : depId;
+			let relPath = normalize(relative(dirname(this.id as string), depId));
 			if (!relPath.startsWith('../')) relPath = './' + relPath;
 
 			if (dep instanceof Chunk) renderedDependency.namedExportsMode = dep.exportMode !== 'default';
@@ -723,20 +724,15 @@ export default class Chunk {
 				else if (options.dir) file = resolve(options.dir, this.id as string);
 				else file = resolve(this.id as string);
 
-				if (this.graph.pluginDriver.hasLoadersOrTransforms) {
-					const decodedMap = magicString.generateDecodedMap({});
-					map = collapseSourcemaps(
-						this,
-						file,
-						decodedMap,
-						this.usedModules,
-						chunkSourcemapChain,
-						options.sourcemapExcludeSources as boolean
-					);
-				} else {
-					map = magicString.generateMap({ file, includeContent: !options.sourcemapExcludeSources });
-				}
-
+				const decodedMap = magicString.generateDecodedMap({});
+				map = collapseSourcemaps(
+					this,
+					file,
+					decodedMap,
+					this.usedModules,
+					chunkSourcemapChain,
+					options.sourcemapExcludeSources as boolean
+				);
 				map.sources = map.sources.map(sourcePath =>
 					normalize(
 						options.sourcemapPathTransform ? options.sourcemapPathTransform(sourcePath) : sourcePath
@@ -807,10 +803,9 @@ export default class Chunk {
 
 	private assignFacadeName({ fileName, name }: FacadeName, facadedModule: Module) {
 		if (fileName) {
-			// TODO Lukas all assignments to chunkFileName should be sanitized
-			this.chunkFileName = fileName;
+			this.fileName = fileName;
 		} else {
-			this.chunkName = sanitizeFileName(
+			this.name = sanitizeFileName(
 				name || facadedModule.chunkName || getAliasName(facadedModule.id)
 			);
 		}
@@ -841,6 +836,7 @@ export default class Chunk {
 						let relPath = normalize(
 							relative(dirname(this.id as string), resolutionChunk.id as string)
 						);
+						// TODO Lukas test where relpath starts with '../'
 						if (!relPath.startsWith('../')) relPath = './' + relPath;
 						node.renderFinalResolution(code, `'${relPath}'`, format);
 					}
@@ -848,6 +844,7 @@ export default class Chunk {
 					let resolutionId = resolution.id;
 					if (resolution.renormalizeRenderPath) {
 						resolutionId = normalize(relative(dirname(this.id as string), resolution.renderPath));
+						// TODO Lukas test where resolutionId starts with '../'
 						if (!resolutionId.startsWith('../')) resolutionId = './' + resolutionId;
 					}
 					node.renderFinalResolution(code, `'${resolutionId}'`, format);
@@ -1010,8 +1007,8 @@ export default class Chunk {
 		if (this.manualChunkAlias) {
 			return this.manualChunkAlias;
 		}
-		if (this.chunkFileName) {
-			return getAliasName(this.chunkFileName);
+		if (this.fileName) {
+			return getAliasName(this.fileName);
 		}
 		for (const module of this.orderedModules) {
 			if (module.chunkName) return module.chunkName;

@@ -1,9 +1,9 @@
-define(['./generated-chunk'], function (__chunk_1) { 'use strict';
+define(['./generated-chunk'], function (shared) { 'use strict';
 
-	__chunk_1.commonjsGlobal.fn = d => d + 1;
-	var cjs = __chunk_1.commonjsGlobal.fn;
+	shared.commonjsGlobal.fn = d => d + 1;
+	var cjs = shared.commonjsGlobal.fn;
 
-	var main1 = __chunk_1.d.map(cjs);
+	var main1 = shared.d.map(cjs);
 
 	return main1;
 

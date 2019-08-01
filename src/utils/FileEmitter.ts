@@ -19,6 +19,7 @@ import {
 import { extname } from './path';
 import { isPlainPathFragment } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';
+import { sanitizeFileName } from './sanitizeFileName';
 
 interface OutputSpecificFileData {
 	assetFileNames: string;
@@ -103,7 +104,10 @@ function hasValidName(emittedFile: {
 }): emittedFile is EmittedFile {
 	const validatedName = emittedFile.fileName || emittedFile.name;
 	return (
-		!validatedName || (typeof validatedName === 'string' && isPlainPathFragment(validatedName))
+		!validatedName ||
+		(typeof validatedName === 'string' &&
+			isPlainPathFragment(validatedName) &&
+			sanitizeFileName(validatedName) === validatedName)
 	);
 }
 
@@ -165,7 +169,7 @@ export class FileEmitter {
 		if (!hasValidName(emittedFile)) {
 			return error(
 				errFailedValidation(
-					`The "fileName" or "name" properties of emitted files must be strings that are neither absolute nor relative paths, received "${emittedFile.fileName ||
+					`The "fileName" or "name" properties of emitted files must be strings that are neither absolute nor relative paths and do not contain invalid characters, received "${emittedFile.fileName ||
 						emittedFile.name}".`
 				)
 			);

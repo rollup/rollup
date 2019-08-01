@@ -25,7 +25,6 @@ type EnsurePromise<T> = Promise<T extends Promise<infer K> ? K : T>;
 
 export interface PluginDriver {
 	emitFile: EmitFile;
-	hasLoadersOrTransforms: boolean;
 	finaliseAssets(): void;
 	getFileName(assetReferenceId: string): string;
 	hookFirst<H extends keyof PluginHooks, R = ReturnType<PluginHooks[H]>>(
@@ -142,7 +141,6 @@ export function createPluginDriver(
 	];
 	const fileEmitter = new FileEmitter(graph);
 	const existingPluginKeys = new Set<string>();
-	let hasLoadersOrTransforms = false;
 
 	const pluginContexts: PluginContext[] = plugins.map((plugin, pidx) => {
 		let cacheable = true;
@@ -153,12 +151,6 @@ export function createPluginDriver(
 				existingPluginKeys.add(plugin.name);
 			}
 		}
-
-		if (
-			!hasLoadersOrTransforms &&
-			(plugin.load || plugin.transform || plugin.transformBundle || plugin.transformChunk)
-		)
-			hasLoadersOrTransforms = true;
 
 		let cacheInstance: PluginCache;
 		if (!pluginCache) {
@@ -387,7 +379,6 @@ export function createPluginDriver(
 			fileEmitter.assertAssetsFinalized();
 		},
 		getFileName: fileEmitter.getFileName,
-		hasLoadersOrTransforms,
 
 		// chains, ignores returns
 		hookSeq(name, args, hookContext) {

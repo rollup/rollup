@@ -1,5 +1,5 @@
-define(['./generated-chunk'], function (__chunk_1) { 'use strict';
+define(['./generated-chunk'], function (dep1) { 'use strict';
 
-	console.log(__chunk_1.foo(), __chunk_1.bar());
+	console.log(dep1.foo(), dep1.bar());
 
 });

@@ -1,6 +1,6 @@
-define(['require', 'exports', './chunks/chunk'], function (require, exports, __chunk_1) { 'use strict';
+define(['require', 'exports', './chunks/chunk'], function (require, exports, shared) { 'use strict';
 
-	assert.equal(__chunk_1.sharedValue, 'shared');
+	assert.equal(shared.sharedValue, 'shared');
 
 	const promise = new Promise(function (resolve, reject) { require(['./chunks/other'], resolve, reject) }).then(result =>
 		assert.deepEqual(result, { value: 'shared' })

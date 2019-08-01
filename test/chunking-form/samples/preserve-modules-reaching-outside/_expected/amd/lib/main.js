@@ -1,8 +1,8 @@
-define(['../dep'], function (__chunk_1) { 'use strict';
+define(['../dep'], function (dep) { 'use strict';
 
   class Main {
     constructor () {
-      __chunk_1.fn();
+      dep.fn();
     }
   }
 
