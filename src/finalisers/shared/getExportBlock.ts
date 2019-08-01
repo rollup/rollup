@@ -45,13 +45,19 @@ export default function getExportBlock(
 			reexports.forEach(specifier => {
 				if (specifier.reexported === '*') {
 					if (!compact && exportBlock) exportBlock += '\n';
-					exportBlock +=
-						`Object.keys(${name}).forEach(function${_}(k)${_}{${n}` +
-						`${t}if${_}(k${_}!==${_}'default')${_}Object.defineProperty(exports,${_}k,${_}{${n}` +
-						`${t}${t}enumerable:${_}true,${n}` +
-						`${t}${t}get:${_}function${_}()${_}{${n}` +
-						`${t}${t}${t}return ${name}[k];${n}` +
-						`${t}${t}}${n}${t}});${n}});`;
+					if (specifier.needsLiveBinding) {
+						exportBlock +=
+							`Object.keys(${name}).forEach(function${_}(k)${_}{${n}` +
+							`${t}if${_}(k${_}!==${_}'default')${_}Object.defineProperty(exports,${_}k,${_}{${n}` +
+							`${t}${t}enumerable:${_}true,${n}` +
+							`${t}${t}get:${_}function${_}()${_}{${n}` +
+							`${t}${t}${t}return ${name}[k];${n}` +
+							`${t}${t}}${n}${t}});${n}});`;
+					} else {
+						exportBlock +=
+							`Object.keys(${name}).forEach(function${_}(k)${_}{${n}` +
+							`${t}if${_}(k${_}!==${_}'default')${_}exports[k]${_}=${_}${name}[k];${n}});`;
+					}
 				}
 			});
 		}

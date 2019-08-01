@@ -431,6 +431,7 @@ export interface OutputOptions {
 	esModule?: boolean;
 	exports?: 'default' | 'named' | 'none' | 'auto';
 	extend?: boolean;
+	externalLiveBindings?: boolean;
 	// only required for bundle.write
 	file?: string;
 	footer?: string | (() => string | Promise<string>);

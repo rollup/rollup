@@ -89,6 +89,7 @@ export default { // can be an array (for multiple inputs)
     dynamicImportFunction,
     esModule,
     exports,
+    externalLiveBindings,
     freeze,
     indent,
     namespaceToStringTag,
@@ -214,6 +215,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --no-esModule               Do not add __esModule property
 --exports <mode>            Specify export mode (auto, default, named, none)
 --extend                    Extend global variable defined by --name
+--no-externalLiveBindings   Do not generate code to support live bindings
 --footer <text>             Code to insert at end of bundle (outside wrapper)
 --no-freeze                 Do not freeze namespace objects
 --no-indent                 Don't indent result
