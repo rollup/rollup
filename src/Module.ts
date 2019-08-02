@@ -196,7 +196,6 @@ export default class Module {
 	imports = new Set<Variable>();
 	isEntryPoint: boolean;
 	isExecuted = false;
-	// TODO Lukas may no longer be necessary
 	isUserDefinedEntryPoint = false;
 	manualChunkAlias: string = null as any;
 	moduleSideEffects: boolean;

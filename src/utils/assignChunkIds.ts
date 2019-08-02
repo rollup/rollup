@@ -12,8 +12,6 @@ export function assignChunkIds(
 	addons: Addons,
 	bundle: OutputBundleWithPlaceholders
 ) {
-	// TODO Lukas test conflict between prenamed chunk and entry chunk
-	// TODO Lukas do not filter out prenamed chunks but use new property
 	const entryChunks: Chunk[] = [];
 	const otherChunks: Chunk[] = [];
 	for (const chunk of chunks) {

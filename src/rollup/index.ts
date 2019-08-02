@@ -81,15 +81,6 @@ function ensureArray<T>(items: (T | null | undefined)[] | T | null | undefined):
 	return [];
 }
 
-function areNoPlaceholdersInBundle(bundle: OutputBundleWithPlaceholders): bundle is OutputBundle {
-	for (const fileName of Object.keys(bundle)) {
-		if (Object.keys(bundle[fileName]).length === 0) {
-			return false;
-		}
-	}
-	return true;
-}
-
 function getInputOptions(rawInputOptions: GenericConfigObject): InputOptions {
 	if (!rawInputOptions) {
 		throw new Error('You must supply an options object to rollup');
@@ -156,6 +147,33 @@ export function setWatcher(watcher: RollupWatcher) {
 	curWatcher = watcher;
 }
 
+function assignChunksToBundle(
+	chunks: Chunk[],
+	outputBundle: OutputBundleWithPlaceholders
+): OutputBundle {
+	for (let i = 0; i < chunks.length; i++) {
+		const chunk = chunks[i];
+		const facadeModule = chunk.facadeModule;
+
+		outputBundle[chunk.id as string] = {
+			code: undefined as any,
+			dynamicImports: chunk.getDynamicImportIds(),
+			exports: chunk.getExportNames(),
+			facadeModuleId: facadeModule && facadeModule.id,
+			fileName: chunk.id,
+			imports: chunk.getImportIds(),
+			isDynamicEntry: facadeModule !== null && facadeModule.dynamicallyImportedBy.length > 0,
+			isEntry: facadeModule !== null && facadeModule.isEntryPoint,
+			map: undefined,
+			modules: chunk.renderedModules,
+			get name() {
+				return chunk.getChunkName();
+			}
+		} as OutputChunk;
+	}
+	return outputBundle as OutputBundle;
+}
+
 export default function rollup(rawInputOptions: GenericConfigObject): Promise<RollupBuild> {
 	try {
 		const inputOptions = getInputOptions(rawInputOptions);
@@ -202,94 +220,75 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 					);
 				}
 
-				function generate(outputOptions: OutputOptions, isWrite: boolean): Promise<OutputBundle> {
+				async function generate(
+					outputOptions: OutputOptions,
+					isWrite: boolean
+				): Promise<OutputBundle> {
 					timeStart('GENERATE', 1);
 
 					const assetFileNames = outputOptions.assetFileNames || 'assets/[name]-[hash][extname]';
-					const outputBundle: OutputBundleWithPlaceholders = Object.create(null);
+					const outputBundleWithPlaceholders: OutputBundleWithPlaceholders = Object.create(null);
+					let outputBundle;
 					const inputBase = commondir(getAbsoluteEntryModulePaths(chunks));
-					graph.pluginDriver.startOutput(outputBundle, assetFileNames);
+					graph.pluginDriver.startOutput(outputBundleWithPlaceholders, assetFileNames);
 
-					return graph.pluginDriver
-						.hookParallel('renderStart', [])
-						.then(() => createAddons(graph, outputOptions))
-						.then(addons => {
-							// pre-render all chunks
-							for (const chunk of chunks) {
-								if (!inputOptions.preserveModules) chunk.generateInternalExports(outputOptions);
-								if (chunk.facadeModule && chunk.facadeModule.isEntryPoint)
-									chunk.exportMode = getExportMode(chunk, outputOptions);
-							}
-							for (const chunk of chunks) {
-								chunk.preRender(outputOptions, inputBase);
-							}
-							if (!optimized && inputOptions.experimentalOptimizeChunks) {
-								optimizeChunks(
-									chunks,
-									outputOptions,
-									inputOptions.chunkGroupingSize as number,
-									inputBase
-								);
-								optimized = true;
-							}
+					try {
+						await graph.pluginDriver.hookParallel('renderStart', []);
+						const addons = await createAddons(graph, outputOptions);
+						for (const chunk of chunks) {
+							if (!inputOptions.preserveModules) chunk.generateInternalExports(outputOptions);
+							if (chunk.facadeModule && chunk.facadeModule.isEntryPoint)
+								chunk.exportMode = getExportMode(chunk, outputOptions);
+						}
+						for (const chunk of chunks) {
+							chunk.preRender(outputOptions, inputBase);
+						}
+						if (!optimized && inputOptions.experimentalOptimizeChunks) {
+							optimizeChunks(
+								chunks,
+								outputOptions,
+								inputOptions.chunkGroupingSize as number,
+								inputBase
+							);
+							optimized = true;
+						}
+						assignChunkIds(
+							chunks,
+							inputOptions,
+							outputOptions,
+							inputBase,
+							addons,
+							outputBundleWithPlaceholders
+						);
+						outputBundle = assignChunksToBundle(chunks, outputBundleWithPlaceholders);
 
-							assignChunkIds(chunks, inputOptions, outputOptions, inputBase, addons, outputBundle);
+						await Promise.all(
+							chunks.map(chunk => {
+								const outputChunk = outputBundleWithPlaceholders[chunk.id as string] as OutputChunk;
+								return chunk.render(outputOptions, addons, outputChunk).then(rendered => {
+									outputChunk.code = rendered.code;
+									outputChunk.map = rendered.map;
 
-							// assign to outputBundle
-							for (let i = 0; i < chunks.length; i++) {
-								const chunk = chunks[i];
-								const facadeModule = chunk.facadeModule;
-
-								outputBundle[chunk.id as string] = {
-									code: undefined as any,
-									dynamicImports: chunk.getDynamicImportIds(),
-									exports: chunk.getExportNames(),
-									facadeModuleId: facadeModule && facadeModule.id,
-									fileName: chunk.id,
-									imports: chunk.getImportIds(),
-									isDynamicEntry:
-										facadeModule !== null && facadeModule.dynamicallyImportedBy.length > 0,
-									isEntry: facadeModule !== null && facadeModule.isEntryPoint,
-									map: undefined,
-									modules: chunk.renderedModules,
-									get name() {
-										return chunk.getChunkName();
-									}
-								} as OutputChunk;
-							}
-
-							return Promise.all(
-								chunks.map(chunk => {
-									const outputChunk = outputBundle[chunk.id as string] as OutputChunk;
-									return chunk.render(outputOptions, addons, outputChunk).then(rendered => {
-										outputChunk.code = rendered.code;
-										outputChunk.map = rendered.map;
-
-										return graph.pluginDriver.hookParallel('ongenerate', [
-											{ bundle: outputChunk, ...outputOptions },
-											outputChunk
-										]);
-									});
-								})
-							).then(() => {});
-						})
-						.catch(error =>
-							graph.pluginDriver.hookParallel('renderError', [error]).then(() => {
-								throw error;
-							})
-						)
-						.then(() => {
-							if (!areNoPlaceholdersInBundle(outputBundle)) {
-								throw new Error('Internal Error: Found remaining placeholder in bundle object.');
-							}
-							return graph.pluginDriver
-								.hookSeq('generateBundle', [outputOptions, outputBundle, isWrite])
-								.then(() => graph.pluginDriver.finaliseAssets())
-								.then(() => {
-									timeEnd('GENERATE', 1);
-									return outputBundle;
+									return graph.pluginDriver.hookParallel('ongenerate', [
+										{ bundle: outputChunk, ...outputOptions },
+										outputChunk
+									]);
 								});
-						});
+							})
+						);
+					} catch (error) {
+						await graph.pluginDriver.hookParallel('renderError', [error]);
+						throw error;
+					}
+					await graph.pluginDriver.hookSeq('generateBundle', [
+						outputOptions,
+						outputBundle,
+						isWrite
+					]);
+					graph.pluginDriver.finaliseAssets();
+
+					timeEnd('GENERATE', 1);
+					return outputBundle;
 				}
 
 				const cache = useCache ? graph.getCache() : undefined;

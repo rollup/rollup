@@ -312,10 +312,7 @@ export default class Graph {
 			chunks = chunks.filter(isChunkRendered);
 			const facades: Chunk[] = [];
 			for (const chunk of chunks) {
-				for (const facade of chunk.generateFacades()) {
-					// TODO Lukas use spread operator
-					facades.push(facade);
-				}
+				facades.push(...chunk.generateFacades());
 			}
 
 			timeEnd('generate chunks', 2);
