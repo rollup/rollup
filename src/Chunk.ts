@@ -640,13 +640,9 @@ export default class Chunk {
 			if (dep instanceof ExternalModule && !dep.renormalizeRenderPath) continue;
 
 			const renderedDependency = this.renderedDeclarations.dependencies[i];
-
 			const depId = dep instanceof ExternalModule ? renderedDependency.id : (dep.id as string);
-			let relPath = normalize(relative(dirname(this.id as string), depId));
-			if (!relPath.startsWith('../')) relPath = './' + relPath;
-
 			if (dep instanceof Chunk) renderedDependency.namedExportsMode = dep.exportMode !== 'default';
-			renderedDependency.id = relPath;
+			renderedDependency.id = this.getRelativePath(depId);
 		}
 
 		this.finaliseDynamicImports(format);
@@ -833,23 +829,24 @@ export default class Chunk {
 				if (resolution instanceof Module) {
 					if (resolution.chunk !== this && isChunkRendered(resolution.chunk as Chunk)) {
 						const resolutionChunk = resolution.facadeChunk || (resolution.chunk as Chunk);
-						let relPath = normalize(
-							relative(dirname(this.id as string), resolutionChunk.id as string)
+						node.renderFinalResolution(
+							code,
+							`'${this.getRelativePath(resolutionChunk.id as string)}'`,
+							format
 						);
-						// TODO Lukas test where relpath starts with '../'
-						if (!relPath.startsWith('../')) relPath = './' + relPath;
-						node.renderFinalResolution(code, `'${relPath}'`, format);
 					}
-				} else if (resolution instanceof ExternalModule) {
-					let resolutionId = resolution.id;
-					if (resolution.renormalizeRenderPath) {
-						resolutionId = normalize(relative(dirname(this.id as string), resolution.renderPath));
-						// TODO Lukas test where resolutionId starts with '../'
-						if (!resolutionId.startsWith('../')) resolutionId = './' + resolutionId;
-					}
-					node.renderFinalResolution(code, `'${resolutionId}'`, format);
 				} else {
-					node.renderFinalResolution(code, resolution, format);
+					node.renderFinalResolution(
+						code,
+						resolution instanceof ExternalModule
+							? `'${
+									resolution.renormalizeRenderPath
+										? this.getRelativePath(resolution.renderPath)
+										: resolution.id
+							  }'`
+							: resolution,
+						format
+					);
 				}
 			}
 		}
@@ -1014,6 +1011,11 @@ export default class Chunk {
 			if (module.chunkName) return module.chunkName;
 		}
 		return 'chunk';
+	}
+
+	private getRelativePath(targetPath: string): string {
+		const relativePath = normalize(relative(dirname(this.id as string), targetPath));
+		return relativePath.startsWith('../') ? relativePath : './' + relativePath;
 	}
 
 	private inlineChunkDependencies(chunk: Chunk, deep: boolean) {
