@@ -150,8 +150,8 @@ export default class Chunk {
 		[moduleId: string]: RenderedModule;
 	};
 	usedModules: Module[] = undefined as any;
+	variableName = 'chunk';
 
-	variableName: string;
 	private dependencies: (ExternalModule | Chunk)[] = undefined as any;
 	private dynamicDependencies: (ExternalModule | Chunk)[] = undefined as any;
 	private exportNames: { [name: string]: Variable } = Object.create(null);
@@ -202,8 +202,6 @@ export default class Chunk {
 						getAliasName(moduleForNaming.id)
 				)
 			);
-		} else {
-			this.variableName = '__chunk_' + ++graph.curChunkIndex;
 		}
 	}
 

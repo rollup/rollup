@@ -66,7 +66,6 @@ export default class Graph {
 	acornParser: typeof acorn.Parser;
 	cachedModules: Map<string, ModuleJSON>;
 	contextParse: (code: string, acornOptions?: acorn.Options) => ESTree.Program;
-	curChunkIndex = 0;
 	deoptimizationTracker: EntityPathTracker;
 	getModuleContext: (id: string) => string;
 	moduleById = new Map<string, Module | ExternalModule>();
@@ -90,7 +89,6 @@ export default class Graph {
 
 	constructor(options: InputOptions, watcher?: RollupWatcher) {
 		this.onwarn = (options.onwarn as WarningHandler) || makeOnwarn();
-		this.curChunkIndex = 0;
 		this.deoptimizationTracker = new EntityPathTracker();
 		this.cachedModules = new Map();
 		if (options.cache) {

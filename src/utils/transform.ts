@@ -15,9 +15,9 @@ import {
 } from '../rollup/types';
 import { collapseSourcemap } from './collapseSourcemaps';
 import { decodedSourcemap } from './decodedSourcemap';
-import { augmentCodeLocation, error } from './error';
+import { augmentCodeLocation } from './error';
 import { dirname, resolve } from './path';
-import { trackPluginCache } from './pluginDriver';
+import { throwPluginError, trackPluginCache } from './pluginDriver';
 
 export default function transform(
 	graph: Graph,
@@ -49,8 +49,7 @@ export default function transform(
 		if (customTransformCache) {
 			if (result && typeof result === 'object' && Array.isArray(result.dependencies)) {
 				for (const dep of result.dependencies) {
-					const depId = resolve(dirname(id), dep);
-					if (!graph.watchFiles[depId]) graph.watchFiles[depId] = true;
+					graph.watchFiles[resolve(dirname(id), dep)] = true;
 				}
 			}
 		} else {
@@ -105,7 +104,7 @@ export default function transform(
 			[curSource, id],
 			transformReducer,
 			(pluginContext, plugin) => {
-				curPlugin = plugin as Plugin;
+				curPlugin = plugin;
 				if (curPlugin.cacheKey) customTransformCache = true;
 				else trackedPluginCache = trackPluginCache(pluginContext.cache);
 				return {
@@ -181,15 +180,7 @@ export default function transform(
 				};
 			}
 		)
-		.catch(err => {
-			if (typeof err === 'string') err = { message: err };
-			if (err.code !== 'PLUGIN_ERROR') {
-				if (err.code) err.pluginCode = err.code;
-				err.code = 'PLUGIN_ERROR';
-			}
-			err.id = id;
-			error(err);
-		})
+		.catch(err => throwPluginError(err, curPlugin.name, { hook: 'transform', id }))
 		.then(code => {
 			if (!customTransformCache && setAssetSourceErr) throw setAssetSourceErr;
 

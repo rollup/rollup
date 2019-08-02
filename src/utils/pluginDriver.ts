@@ -11,13 +11,14 @@ import {
 	PluginCache,
 	PluginContext,
 	PluginHooks,
+	RollupError,
 	RollupWarning,
 	RollupWatcher,
 	SerializablePluginCache
 } from '../rollup/types';
 import { BuildPhase } from './buildPhase';
 import { getRollupDefaultPlugin } from './defaultPlugin';
-import { errInvalidRollupPhaseForAddWatchFile, error } from './error';
+import { errInvalidRollupPhaseForAddWatchFile, error, Errors } from './error';
 import { FileEmitter } from './FileEmitter';
 
 type Args<T> = T extends (...args: infer K) => any ? K : never;
@@ -76,7 +77,7 @@ export interface PluginDriver {
 }
 
 export type Reduce<R = any, T = any> = (reduction: T, result: R, plugin: Plugin) => T;
-export type HookContext = (context: PluginContext, plugin?: Plugin) => PluginContext;
+export type HookContext = (context: PluginContext, plugin: Plugin) => PluginContext;
 
 export const ANONYMOUS_PLUGIN_PREFIX = 'at position ';
 
@@ -102,6 +103,26 @@ function warnDeprecatedHooks(plugins: Plugin[], graph: Graph) {
 			}
 		}
 	}
+}
+
+export function throwPluginError(
+	err: string | RollupError,
+	plugin: string,
+	{ hook, id }: { hook?: string; id?: string } = {}
+): never {
+	if (typeof err === 'string') err = { message: err };
+	if (err.code && err.code !== Errors.PLUGIN_ERROR) {
+		err.pluginCode = err.code;
+	}
+	err.code = Errors.PLUGIN_ERROR;
+	err.plugin = plugin;
+	if (hook) {
+		err.hook = hook;
+	}
+	if (id) {
+		err.id = id;
+	}
+	return error(err);
 }
 
 export function createPluginDriver(
@@ -188,11 +209,7 @@ export function createPluginDriver(
 			),
 			emitFile: fileEmitter.emitFile,
 			error(err): never {
-				if (typeof err === 'string') err = { message: err };
-				if (err.code) err.pluginCode = err.code;
-				err.code = 'PLUGIN_ERROR';
-				err.plugin = plugin.name;
-				return error(err);
+				return throwPluginError(err, plugin.name);
 			},
 			getAssetFileName: getDeprecatedHookHandler(
 				fileEmitter.getFileName,
@@ -320,16 +337,8 @@ export function createPluginDriver(
 			}
 			return hook.apply(context, args);
 		} catch (err) {
-			if (typeof err === 'string') err = { message: err };
-			if (err.code !== 'PLUGIN_ERROR') {
-				if (err.code) err.pluginCode = err.code;
-				err.code = 'PLUGIN_ERROR';
-			}
-			err.plugin = plugin.name;
-			err.hook = hookName;
-			error(err);
+			return throwPluginError(err, plugin.name, { hook: hookName });
 		}
-		return undefined as any;
 	}
 
 	function runHook<T>(
@@ -361,16 +370,7 @@ export function createPluginDriver(
 				}
 				return hook.apply(context, args);
 			})
-			.catch(err => {
-				if (typeof err === 'string') err = { message: err };
-				if (err.code !== 'PLUGIN_ERROR') {
-					if (err.code) err.pluginCode = err.code;
-					err.code = 'PLUGIN_ERROR';
-				}
-				err.plugin = plugin.name;
-				err.hook = hookName;
-				error(err);
-			});
+			.catch(err => throwPluginError(err, plugin.name, { hook: hookName }));
 	}
 
 	const pluginDriver: PluginDriver = {
