@@ -19,7 +19,6 @@ import {
 import { extname } from './path';
 import { isPlainPathFragment } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';
-import { sanitizeFileName } from './sanitizeFileName';
 
 interface OutputSpecificFileData {
 	assetFileNames: string;
@@ -33,22 +32,17 @@ function generateAssetFileName(
 ): string {
 	const emittedName = name || 'asset';
 	return makeUnique(
-		renderNamePattern(output.assetFileNames, 'assetFileNames', placeholder => {
-			switch (placeholder) {
-				case 'hash':
-					const hash = sha256();
-					hash.update(emittedName);
-					hash.update(':');
-					hash.update(source);
-					return hash.digest('hex').substr(0, 8);
-				case 'name':
-					return emittedName.substr(0, emittedName.length - extname(emittedName).length);
-				case 'extname':
-					return extname(emittedName);
-				case 'ext':
-					return extname(emittedName).substr(1);
-			}
-			return '';
+		renderNamePattern(output.assetFileNames, 'output.assetFileNames', {
+			hash() {
+				const hash = sha256();
+				hash.update(emittedName);
+				hash.update(':');
+				hash.update(source);
+				return hash.digest('hex').substr(0, 8);
+			},
+			ext: () => extname(emittedName).substr(1),
+			extname: () => extname(emittedName),
+			name: () => emittedName.substr(0, emittedName.length - extname(emittedName).length)
 		}),
 		output.bundle
 	);
@@ -104,10 +98,7 @@ function hasValidName(emittedFile: {
 }): emittedFile is EmittedFile {
 	const validatedName = emittedFile.fileName || emittedFile.name;
 	return (
-		!validatedName ||
-		(typeof validatedName === 'string' &&
-			isPlainPathFragment(validatedName) &&
-			sanitizeFileName(validatedName) === validatedName)
+		!validatedName || (typeof validatedName === 'string' && isPlainPathFragment(validatedName))
 	);
 }
 

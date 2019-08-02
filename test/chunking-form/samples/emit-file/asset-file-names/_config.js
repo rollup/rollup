@@ -9,7 +9,7 @@ module.exports = {
 			}
 		},
 		output: {
-			assetFileNames: '[ext][ignored]/[hash]-[name][extname]'
+			assetFileNames: '[ext]/[hash]-[name][extname]'
 		}
 	}
 };

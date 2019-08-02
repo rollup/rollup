@@ -261,16 +261,10 @@ export default class Chunk {
 			return this.fileName;
 		}
 		return makeUnique(
-			renderNamePattern(pattern, patternName, type => {
-				switch (type) {
-					case 'format':
-						return options.format === 'es' ? 'esm' : options.format;
-					case 'hash':
-						return this.computeContentHashWithDependencies(addons, options);
-					case 'name':
-						return this.getChunkName();
-				}
-				return undefined as any;
+			renderNamePattern(pattern, patternName, {
+				format: () => (options.format === 'es' ? 'esm' : (options.format as string)),
+				hash: () => this.computeContentHashWithDependencies(addons, options),
+				name: () => this.getChunkName()
 			}),
 			existingNames
 		);
