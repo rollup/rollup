@@ -109,11 +109,11 @@ function getValidSource(
 ): string | Buffer {
 	if (typeof source !== 'string' && !Buffer.isBuffer(source)) {
 		const assetName = emittedFile.fileName || emittedFile.name || fileReferenceId;
-		const assetDescription =
-			typeof assetName === 'string' ? `asset "${assetName}"` : 'unnamed asset';
 		return error(
 			errFailedValidation(
-				`Could not set source for ${assetDescription}, asset source needs to be a string of Buffer.`
+				`Could not set source for ${
+					typeof assetName === 'string' ? `asset "${assetName}"` : 'unnamed asset'
+				}, asset source needs to be a string of Buffer.`
 			)
 		);
 	}
@@ -128,11 +128,7 @@ function getAssetFileName(file: ConsumedAsset, referenceId: string): string {
 }
 
 function getChunkFileName(file: ConsumedChunk): string {
-	const fileName =
-		// TODO Lukas test first case
-		file.fileName ||
-		(file.module &&
-			(file.module.facadeChunk ? file.module.facadeChunk.id : (file.module.chunk as Chunk).id));
+	const fileName = file.fileName || (file.module && (file.module.facadeChunk as Chunk).id);
 	if (!fileName) return error(errChunkNotGeneratedForFileName(file.fileName || file.name));
 	return fileName;
 }

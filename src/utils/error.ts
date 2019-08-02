@@ -84,7 +84,7 @@ export function errAssetReferenceIdNotFoundForSetSource(assetReferenceId: string
 export function errAssetSourceAlreadySet(name: string) {
 	return {
 		code: Errors.ASSET_SOURCE_ALREADY_SET,
-		message: `Plugin error - Unable to set the source for asset "${name}", source already set.`
+		message: `Unable to set the source for asset "${name}", source already set.`
 	};
 }
 

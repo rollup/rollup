@@ -30,7 +30,7 @@ export default function transform(
 	let originalSourcemap = source.map === null ? null : decodedSourcemap(source.map);
 	const originalCode = source.code;
 	let ast = source.ast;
-	let transformDependencies: string[];
+	const transformDependencies: string[] = [];
 	const emittedFiles: EmittedFile[] = [];
 	let customTransformCache = false;
 	let moduleSideEffects: boolean | null = null;
@@ -64,7 +64,6 @@ export default function transform(
 						true
 					);
 				(curPlugin as any).warnedTransformDependencies = true;
-				if (!transformDependencies) transformDependencies = [];
 				for (const dep of result.dependencies)
 					transformDependencies.push(resolve(dirname(id), dep));
 			}
@@ -141,7 +140,6 @@ export default function transform(
 						return graph.pluginDriver.emitFile(emittedFile);
 					},
 					addWatchFile(id: string) {
-						if (!transformDependencies) transformDependencies = [];
 						transformDependencies.push(id);
 						pluginContext.addWatchFile(id);
 					},
