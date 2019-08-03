@@ -1,6 +1,6 @@
 'use strict';
 
-var shared = require('./generated-chunk.js');
+var shared = require('./generated-shared.js');
 
 var main1 = shared.d.map(d => d + 1);
 

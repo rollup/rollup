@@ -1,4 +1,4 @@
-import { s as shared } from './chunks/chunk.js';
+import { s as shared } from './chunks/shared.js';
 
 const getWorkerMessage = () => new Promise(resolve => {
   const worker = new Worker(new URL('chunks/worker-proxy.js', import.meta.url).href);

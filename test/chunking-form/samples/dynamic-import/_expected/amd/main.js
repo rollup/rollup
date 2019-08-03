@@ -1,4 +1,4 @@
-define(['require', 'exports', './chunks/chunk'], function (require, exports, shared) { 'use strict';
+define(['require', 'exports', './chunks/shared'], function (require, exports, shared) { 'use strict';
 
 	assert.equal(shared.sharedValue, 'shared');
 

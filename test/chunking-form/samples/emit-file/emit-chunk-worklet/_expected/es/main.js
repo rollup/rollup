@@ -1,4 +1,4 @@
-import { c as color, s as size } from './chunks/chunk.js';
+import { c as color, s as size } from './chunks/shared.js';
 
 CSS.paintWorklet.addModule(new URL('chunks/worklet.js', import.meta.url).href);
 

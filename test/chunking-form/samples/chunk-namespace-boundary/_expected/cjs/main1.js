@@ -1,6 +1,6 @@
 'use strict';
 
-var shared = require('./generated-chunk.js');
+var shared = require('./generated-shared.js');
 
 shared.commonjsGlobal.fn = d => d + 1;
 var cjs = shared.commonjsGlobal.fn;

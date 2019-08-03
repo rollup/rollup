@@ -1,4 +1,4 @@
-define(['exports', './generated-chunk'], function (exports, one) { 'use strict';
+define(['exports', './generated-one'], function (exports, one) { 'use strict';
 
 
 

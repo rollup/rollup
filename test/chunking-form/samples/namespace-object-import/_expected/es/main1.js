@@ -1,4 +1,4 @@
-import { a, m as main2 } from './generated-chunk.js';
+import { a, m as main2 } from './generated-main2.js';
 
 console.log(a);
 

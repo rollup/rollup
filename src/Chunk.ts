@@ -999,10 +999,7 @@ export default class Chunk {
 		if (this.fileName) {
 			return getAliasName(this.fileName);
 		}
-		for (const module of this.orderedModules) {
-			if (module.chunkName) return module.chunkName;
-		}
-		return 'chunk';
+		return getAliasName(this.orderedModules[this.orderedModules.length - 1].id);
 	}
 
 	private getRelativePath(targetPath: string): string {

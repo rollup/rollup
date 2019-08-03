@@ -1,4 +1,4 @@
-define(['require', './generated-chunk'], function (require, dep4) { 'use strict';
+define(['require', './generated-dep4'], function (require, dep4) { 'use strict';
 
   function calc (num) {
     return num * dep4.multiplier;

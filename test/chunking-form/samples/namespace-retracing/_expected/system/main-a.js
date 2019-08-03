@@ -1,4 +1,4 @@
-System.register(['./generated-chunk.js'], function () {
+System.register(['./generated-other.js'], function () {
 	'use strict';
 	var Other, Broken;
 	return {

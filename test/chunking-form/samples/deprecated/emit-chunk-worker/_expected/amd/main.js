@@ -1,4 +1,4 @@
-define(['require', './chunks/chunk'], function (require, shared) { 'use strict';
+define(['require', './chunks/shared'], function (require, shared) { 'use strict';
 
   const getWorkerMessage = () => new Promise(resolve => {
     const worker = new Worker(new URL(require.toUrl('./chunks/worker-proxy.js'), document.baseURI).href);

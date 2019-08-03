@@ -1,4 +1,4 @@
-import { f as fn$2 } from './generated-chunk.js';
+import { f as fn$2 } from './generated-dep2.js';
 
 function fn () {
   console.log('lib1 fn');

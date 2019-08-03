@@ -1,4 +1,4 @@
-define(['require', 'exports', './generated-chunk'], function (require, exports, constants) { 'use strict';
+define(['require', 'exports', './generated-constants'], function (require, exports, constants) { 'use strict';
 
 	const lazy = new Promise(function (resolve, reject) { require(['./generated-lazy'], resolve, reject) });
 

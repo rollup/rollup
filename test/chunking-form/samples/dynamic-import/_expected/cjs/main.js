@@ -2,7 +2,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var shared = require('./chunks/chunk.js');
+var shared = require('./chunks/shared.js');
 
 assert.equal(shared.sharedValue, 'shared');
 

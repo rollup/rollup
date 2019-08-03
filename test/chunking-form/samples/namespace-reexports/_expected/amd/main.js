@@ -1,4 +1,4 @@
-define(['exports', './hsl2hsv', './generated-chunk'], function (exports, hsl2hsv$1, index) { 'use strict';
+define(['exports', './hsl2hsv', './generated-index'], function (exports, hsl2hsv$1, index) { 'use strict';
 
 	console.log(hsl2hsv$1.p);
 	var main = new Map(Object.entries(index.lib));

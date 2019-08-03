@@ -1,5 +1,5 @@
 'use strict';
 
-var shared = require('./chunks/chunk.js');
+var shared = require('./chunks/shared.js');
 
 assert.equal(shared.sharedValue, 'shared');

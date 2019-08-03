@@ -1,4 +1,4 @@
-System.register(['./generated-chunk.js', './generated-chunk2.js'], function (exports) {
+System.register(['./generated-dep1.js', './generated-dep3.js'], function (exports) {
 	'use strict';
 	var x, y;
 	return {

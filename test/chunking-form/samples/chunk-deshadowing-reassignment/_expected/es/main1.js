@@ -1,5 +1,5 @@
-import './generated-chunk.js';
-import { x, y } from './generated-chunk2.js';
-import './generated-chunk3.js';
+import './generated-dep1.js';
+import { x, y } from './generated-shared2.js';
+import './generated-dep2.js';
 
 console.log(x + y);

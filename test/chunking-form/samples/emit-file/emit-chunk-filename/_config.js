@@ -20,7 +20,7 @@ module.exports = {
 				assert.deepStrictEqual(Object.keys(bundle).map(key => bundle[key].name), [
 					'build-start-chunk',
 					'main',
-					'chunk'
+					'dep'
 				]);
 			}
 		}

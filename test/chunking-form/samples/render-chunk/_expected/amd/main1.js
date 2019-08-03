@@ -1,4 +1,4 @@
-define(['./chunk-chunk'], function (dep2) { 'use strict';
+define(['./chunk-dep2'], function (dep2) { 'use strict';
 
 	var num = 1;
 
@@ -6,7 +6,7 @@ define(['./chunk-chunk'], function (dep2) { 'use strict';
 
 });
 console.log('fileName', 'main1.js');
-console.log('imports', 'chunk-chunk.js');
+console.log('imports', 'chunk-dep2.js');
 console.log('isEntry', true);
 console.log('name', 'main1');
 console.log('modules.length', 2);

@@ -1,4 +1,4 @@
-import { v as value } from './generated-chunk.js';
+import { v as value } from './generated-dep.js';
 
 console.log('main1', value);
 
