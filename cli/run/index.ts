@@ -1,8 +1,8 @@
 import { realpathSync } from 'fs';
 import relative from 'require-relative';
-import { WarningHandler } from '../../../src/rollup/types';
-import mergeOptions, { GenericConfigObject } from '../../../src/utils/mergeOptions';
-import { getAliasName } from '../../../src/utils/relativeId';
+import { WarningHandler } from '../../src/rollup/types';
+import mergeOptions, { GenericConfigObject } from '../../src/utils/mergeOptions';
+import { getAliasName } from '../../src/utils/relativeId';
 import { handleError } from '../logging';
 import batchWarnings from './batchWarnings';
 import build from './build';

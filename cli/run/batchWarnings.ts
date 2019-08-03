@@ -1,6 +1,6 @@
 import tc from 'turbocolor';
-import { RollupWarning } from '../../../src/rollup/types';
-import relativeId from '../../../src/utils/relativeId';
+import { RollupWarning } from '../../src/rollup/types';
+import relativeId from '../../src/utils/relativeId';
 import { stderr } from '../logging';
 
 export interface BatchWarnings {

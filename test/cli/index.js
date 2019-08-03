@@ -23,7 +23,8 @@ runTestSuiteWithSamples(
 			done => {
 				process.chdir(config.cwd || dir);
 
-				const command = 'node ' + path.resolve(__dirname, '../../bin') + path.sep + config.command;
+				const command =
+					'node ' + path.resolve(__dirname, '../../dist/bin') + path.sep + config.command;
 
 				const childProcess = exec(command, { timeout: 40000 }, (err, code, stderr) => {
 					if (err && !err.killed) {
