@@ -6,7 +6,7 @@
   "module": "dist/rollup.es.js",
   "typings": "dist/rollup.d.ts",
   "bin": {
-    "rollup": "./dist/bin/rollup.js"
+    "rollup": "./dist/bin/rollup"
   },
   "scripts": {
     "build": "shx rm -rf dist && git rev-parse HEAD > .commithash && rollup -c && shx cp src/rollup/types.d.ts dist/rollup.d.ts && shx chmod a+x dist/bin/rollup",
