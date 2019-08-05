@@ -12,6 +12,6 @@
 		"strict": true,
 		"target": "es2015"
 	},
-	"include": ["typings/**/*.d.ts", "src", "bin", "browser"],
+	"include": ["typings/**/*.d.ts", "src", "cli", "browser"],
 	"exclude": ["dist", "node_modules", "test/typescript"]
 }

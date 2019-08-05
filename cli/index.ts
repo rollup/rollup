@@ -1,7 +1,7 @@
 import help from 'help.md';
 import minimist from 'minimist';
 import { version } from 'package.json';
-import { commandAliases } from '../../src/utils/mergeOptions';
+import { commandAliases } from '../src/utils/mergeOptions';
 import run from './run/index';
 
 const command = minimist(process.argv.slice(2), {

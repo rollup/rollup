@@ -1,9 +1,9 @@
 import path from 'path';
-import rollup from 'rollup';
 import tc from 'turbocolor';
-import { RollupBuild, RollupOutput } from '../../../src/rollup/types';
-import { GenericConfigObject } from '../../../src/utils/mergeOptions';
-import relativeId from '../../../src/utils/relativeId';
+import * as rollup from '../../src/node-entry';
+import { RollupBuild, RollupOutput } from '../../src/rollup/types';
+import { GenericConfigObject } from '../../src/utils/mergeOptions';
+import relativeId from '../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
 import batchWarnings from './batchWarnings';
 

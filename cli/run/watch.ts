@@ -1,19 +1,20 @@
 import dateTime from 'date-time';
 import fs from 'fs';
 import ms from 'pretty-ms';
-import * as rollup from 'rollup';
 import onExit from 'signal-exit';
 import tc from 'turbocolor';
+import * as rollup from '../../src/node-entry';
 import {
 	InputOption,
 	RollupBuild,
 	RollupError,
+	RollupWatcher,
 	RollupWatchOptions,
 	WarningHandler,
 	WatcherOptions
-} from '../../../src/rollup/types';
-import mergeOptions, { GenericConfigObject } from '../../../src/utils/mergeOptions';
-import relativeId from '../../../src/utils/relativeId';
+} from '../../src/rollup/types';
+import mergeOptions, { GenericConfigObject } from '../../src/utils/mergeOptions';
+import relativeId from '../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
 import batchWarnings from './batchWarnings';
 import loadConfigFile from './loadConfigFile';
@@ -27,11 +28,6 @@ interface WatchEvent {
 	input?: InputOption;
 	output?: string[];
 	result?: RollupBuild;
-}
-
-interface Watcher {
-	close: () => void;
-	on: (event: string, fn: (event: WatchEvent) => void) => void;
 }
 
 export default function watch(
@@ -48,8 +44,8 @@ export default function watch(
 	);
 
 	const resetScreen = getResetScreen(isTTY && clearScreen);
-	let watcher: Watcher;
-	let configWatcher: Watcher;
+	let watcher: RollupWatcher;
+	let configWatcher: RollupWatcher;
 
 	function processConfigs(configs: GenericConfigObject[]): RollupWatchOptions[] {
 		return configs.map(options => {
@@ -77,7 +73,7 @@ export default function watch(
 	}
 
 	function start(configs: RollupWatchOptions[]) {
-		watcher = rollup.watch(configs);
+		watcher = rollup.watch(configs as any);
 
 		watcher.on('event', (event: WatchEvent) => {
 			switch (event.code) {
@@ -190,7 +186,7 @@ export default function watch(
 			restarting = true;
 
 			loadConfigFile(configFile, command)
-				.then((_configs: RollupWatchOptions[]) => {
+				.then(() => {
 					restarting = false;
 
 					if (aborted) {
