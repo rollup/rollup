@@ -1,6 +1,6 @@
 import prettyBytes from 'pretty-bytes';
 import tc from 'turbocolor';
-import { SerializedTimings } from '../../../src/rollup/types';
+import { SerializedTimings } from '../../src/rollup/types';
 
 export function printTimings(timings: SerializedTimings) {
 	Object.keys(timings).forEach(label => {
