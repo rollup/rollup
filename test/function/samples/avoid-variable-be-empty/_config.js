@@ -13,8 +13,7 @@ module.exports = {
 			}
 		],
 		output: {
-			format: 'cjs',
-			exports: 'default'
+			format: 'cjs'
 		}
 	}
 };
