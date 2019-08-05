@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 1.19.2
+*2019-08-05*
+
+### Bug Fixes
+* Add bin file to package
+
 ## 1.19.1
 *2019-08-05*
 
