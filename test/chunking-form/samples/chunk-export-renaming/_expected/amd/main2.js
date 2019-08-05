@@ -1,8 +1,8 @@
-define(['exports', './generated-chunk'], function (exports, __chunk_1) { 'use strict';
+define(['exports', './generated-chunk'], function (exports, one) { 'use strict';
 
     class Two {
         test() {
-            return __chunk_1.ONE_CONSTANT;
+            return one.ONE_CONSTANT;
         }
     }
 

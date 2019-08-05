@@ -2,12 +2,12 @@
 
 require('external');
 require('./other.js');
-var __chunk_2 = require('./_virtual/_external_commonjs-external');
-var __chunk_3 = require('./_virtual/other.js_commonjs-proxy');
+var _external_commonjsExternal = require('./_virtual/_external_commonjs-external');
+var other$1 = require('./_virtual/other.js_commonjs-proxy');
 
-const { value } = __chunk_3.default;
+const { value } = other$1.default;
 
-console.log(__chunk_2.default, value);
+console.log(_external_commonjsExternal.default, value);
 
 var commonjs = 42;
 

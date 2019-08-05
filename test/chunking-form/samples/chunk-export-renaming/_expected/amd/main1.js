@@ -1,8 +1,8 @@
-define(['exports', './generated-chunk'], function (exports, __chunk_1) { 'use strict';
+define(['exports', './generated-chunk'], function (exports, one) { 'use strict';
 
 
 
-	exports.ItemOne = __chunk_1.One;
+	exports.ItemOne = one.One;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

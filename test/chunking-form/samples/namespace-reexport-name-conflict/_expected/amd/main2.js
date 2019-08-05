@@ -1,5 +1,5 @@
-define(['./generated-chunk', 'external', './generated-chunk2'], function (__chunk_1, external, __chunk_2) { 'use strict';
+define(['./generated-chunk', 'external', './generated-chunk2'], function (dep, external, index) { 'use strict';
 
-	console.log(__chunk_1.reexported);
+	console.log(dep.reexported);
 
 });

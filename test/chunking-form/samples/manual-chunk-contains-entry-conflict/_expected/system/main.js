@@ -1,12 +1,13 @@
-System.register(['./generated-outer.js'], function (exports) {
+System.register([], function (exports) {
 	'use strict';
 	return {
-		setters: [function (module) {
-			exports('value', module.v);
-		}],
 		execute: function () {
 
+			console.log('dep');
 
+			console.log('main');
+
+			const value = exports('value', 42);
 
 		}
 	};

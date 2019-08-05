@@ -1,9 +1,9 @@
-define(['exports', './generated-chunk', 'external'], function (exports, __chunk_1, external) { 'use strict';
+define(['exports', './generated-chunk', 'external'], function (exports, dep, external) { 'use strict';
 
 	console.log(external.reexported);
 
 	var lib = /*#__PURE__*/Object.freeze({
-		reexported: __chunk_1.reexported
+		reexported: dep.reexported
 	});
 
 	exports.lib = lib;

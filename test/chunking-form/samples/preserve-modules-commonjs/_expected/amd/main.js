@@ -1,7 +1,7 @@
-define(['external', './commonjs'], function (external, __chunk_4) { 'use strict';
+define(['external', './commonjs'], function (external, commonjs) { 'use strict';
 
 	external = external && external.hasOwnProperty('default') ? external['default'] : external;
 
-	console.log(__chunk_4.default, external);
+	console.log(commonjs.default, external);
 
 });

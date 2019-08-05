@@ -1,4 +1,4 @@
-define(['./generated-chunk3'], function (__chunk_3) { 'use strict';
+define(['./generated-chunk3'], function (dep2) { 'use strict';
 
 
 

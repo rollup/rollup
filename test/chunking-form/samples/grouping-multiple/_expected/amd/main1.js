@@ -1,6 +1,6 @@
-define(['./generated-chunk'], function (__chunk_1) { 'use strict';
+define(['./generated-chunk'], function (dep1) { 'use strict';
 
-	var main1 = __chunk_1.x + __chunk_1.y;
+	var main1 = dep1.x + dep1.y;
 
 	return main1;
 

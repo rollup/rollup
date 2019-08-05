@@ -4,7 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var starexternal2 = require('starexternal2');
 var external2 = require('external2');
-var __chunk_1 = require('./generated-chunk.js');
+var dep = require('./generated-chunk.js');
 
 var main = '2';
 
@@ -22,5 +22,5 @@ Object.defineProperty(exports, 'e', {
 		return external2.e;
 	}
 });
-exports.dep = __chunk_1.dep;
+exports.dep = dep.dep;
 exports.main = main;

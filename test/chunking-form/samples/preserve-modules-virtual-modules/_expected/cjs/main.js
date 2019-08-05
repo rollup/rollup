@@ -1,5 +1,5 @@
 'use strict';
 
-var __chunk_1 = require('./_virtual/_virtualModule');
+var _virtualModule = require('./_virtual/_virtualModule');
 
-assert.equal(__chunk_1.virtual, 'Virtual!');
+assert.equal(_virtualModule.virtual, 'Virtual!');

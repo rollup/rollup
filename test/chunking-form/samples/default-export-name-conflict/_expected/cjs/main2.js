@@ -1,5 +1,5 @@
 'use strict';
 
-var __chunk_1 = require('./generated-chunk.js');
+var module3 = require('./generated-chunk.js');
 
-console.log(__chunk_1.b, __chunk_1.b);
+console.log(module3.b, module3.b);

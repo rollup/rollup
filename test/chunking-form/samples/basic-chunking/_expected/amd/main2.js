@@ -1,4 +1,4 @@
-define(['./generated-chunk'], function (__chunk_1) { 'use strict';
+define(['./generated-chunk'], function (dep2) { 'use strict';
 
   function fn () {
     console.log('lib1 fn');
@@ -12,7 +12,7 @@ define(['./generated-chunk'], function (__chunk_1) { 'use strict';
   class Main2 {
     constructor () {
       fn$1();
-      __chunk_1.fn();
+      dep2.fn();
     }
   }
 

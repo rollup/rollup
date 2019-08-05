@@ -1,6 +1,6 @@
 'use strict';
 
-var dynamic = require('./generated-dynamic.js');
+var dynamic = require('./generated-dynamic1.js');
 
 
 

@@ -111,19 +111,7 @@ export interface TransformModuleJSON {
 export interface ModuleJSON extends TransformModuleJSON {
 	dependencies: string[];
 	id: string;
-	transformAssets: Asset[] | undefined;
-	transformChunks: EmittedChunk[] | undefined;
-}
-
-export interface EmittedChunk {
-	id: string;
-	options: { name?: string } | undefined;
-}
-
-export interface Asset {
-	fileName: string;
-	name: string;
-	source: string | Buffer;
+	transformFiles: EmittedFile[] | undefined;
 }
 
 export interface PluginCache {
@@ -137,17 +125,42 @@ export interface MinimalPluginContext {
 	meta: PluginContextMeta;
 }
 
+export interface EmittedAsset {
+	fileName?: string;
+	name?: string;
+	source?: string | Buffer;
+	type: 'asset';
+}
+
+export interface EmittedChunk {
+	fileName?: string;
+	id: string;
+	name?: string;
+	type: 'chunk';
+}
+
+export type EmittedFile = EmittedAsset | EmittedChunk;
+
 export type EmitAsset = (name: string, source?: string | Buffer) => string;
-export type EmitChunk = (name: string, options?: { name?: string }) => string;
+
+export type EmitChunk = (id: string, options?: { name?: string }) => string;
+
+export type EmitFile = (emittedFile: EmittedFile) => string;
 
 export interface PluginContext extends MinimalPluginContext {
 	addWatchFile: (id: string) => void;
 	cache: PluginCache;
+	/** @deprecated Use `this.emitFile` instead */
 	emitAsset: EmitAsset;
+	/** @deprecated Use `this.emitFile` instead */
 	emitChunk: EmitChunk;
+	emitFile: EmitFile;
 	error: (err: RollupError | string, pos?: number | { column: number; line: number }) => never;
+	/** @deprecated Use `this.getFileName` instead */
 	getAssetFileName: (assetReferenceId: string) => string;
+	/** @deprecated Use `this.getFileName` instead */
 	getChunkFileName: (chunkReferenceId: string) => string;
+	getFileName: (fileReferenceId: string) => string;
 	getModuleInfo: (
 		moduleId: string
 	) => {
@@ -278,6 +291,7 @@ export type ResolveFileUrlHook = (
 		fileName: string;
 		format: string;
 		moduleId: string;
+		referenceId: string;
 		relativePath: string;
 	}
 ) => string | null | undefined;
@@ -298,6 +312,10 @@ export type PluginImpl<O extends object = object> = (options?: O) => Plugin;
 
 export interface OutputBundle {
 	[fileName: string]: OutputAsset | OutputChunk;
+}
+
+export interface OutputBundleWithPlaceholders {
+	[fileName: string]: OutputAsset | OutputChunk | {};
 }
 
 interface OnGenerateOptions extends OutputOptions {

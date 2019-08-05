@@ -1,5 +1,5 @@
-define(['./generated-chunk', './generated-chunk2', './generated-chunk3'], function (__chunk_1, __chunk_2, __chunk_3) { 'use strict';
+define(['./generated-chunk', './generated-chunk2', './generated-chunk3'], function (dep1, shared2, dep2) { 'use strict';
 
-	console.log(__chunk_2.x + __chunk_2.y);
+	console.log(shared2.x + shared2.y);
 
 });

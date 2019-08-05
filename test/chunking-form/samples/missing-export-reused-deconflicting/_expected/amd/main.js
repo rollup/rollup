@@ -1,5 +1,5 @@
-define(['./dep1', './dep2'], function (__chunk_1, __chunk_2) { 'use strict';
+define(['./dep1', './dep2'], function (dep1, dep2) { 'use strict';
 
-	console.log(__chunk_1.missing1, __chunk_2.missing2, __chunk_2.previousShimmedExport);
+	console.log(dep1.missing1, dep2.missing2, dep2.previousShimmedExport);
 
 });

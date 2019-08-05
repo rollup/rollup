@@ -1,6 +1,6 @@
 'use strict';
 
-var __chunk_1 = require('./dep1.js');
-var __chunk_2 = require('./dep2.js');
+var dep1 = require('./dep1.js');
+var dep2 = require('./dep2.js');
 
-console.log(__chunk_1.missing1, __chunk_2.missing2, __chunk_2.previousShimmedExport);
+console.log(dep1.missing1, dep2.missing2, dep2.previousShimmedExport);

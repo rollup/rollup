@@ -1,4 +1,4 @@
-define(['exports', 'starexternal2', 'external2', './generated-chunk'], function (exports, starexternal2, external2, __chunk_1) { 'use strict';
+define(['exports', 'starexternal2', 'external2', './generated-chunk'], function (exports, starexternal2, external2, dep) { 'use strict';
 
 	var main = '2';
 
@@ -16,7 +16,7 @@ define(['exports', 'starexternal2', 'external2', './generated-chunk'], function 
 			return external2.e;
 		}
 	});
-	exports.dep = __chunk_1.dep;
+	exports.dep = dep.dep;
 	exports.main = main;
 
 	Object.defineProperty(exports, '__esModule', { value: true });

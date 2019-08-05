@@ -1,0 +1,1 @@
+generateBundle amd with assets/generateBundle-format-78d67aa8.txt

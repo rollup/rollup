@@ -1,5 +1,5 @@
 'use strict';
 
-var __chunk_1 = require('./generated-chunk.js');
+var dep = require('./generated-chunk.js');
 
-console.log(__chunk_1.x);
+console.log(dep.x);

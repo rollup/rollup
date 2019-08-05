@@ -1,9 +1,9 @@
 'use strict';
 
-var __chunk_1 = require('./generated-chunk.js');
+var dep4 = require('./generated-chunk.js');
 
 function calc (num) {
-  return num * __chunk_1.multiplier;
+  return num * dep4.multiplier;
 }
 
 function fn (num) {
