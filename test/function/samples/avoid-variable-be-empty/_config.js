@@ -5,10 +5,10 @@ module.exports = {
 		plugins: [
 			{
 				resolveId (importee) {
-					if ( importee==='' ) { return ''; }
+					return '';
 				},
 				load (path) {
-					if ( path==='' ) { return 'export default 0;'; }
+					return 'export default 0;';
 				},
 			}
 		],
