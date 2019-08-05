@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.19.1
+*2019-08-05*
+
+### Bug Fixes
+* Remove wrong extension in package.json file (#3031)
+
+### Pull Requests
+* [#3031](https://github.com/rollup/rollup/pull/3031): Fix wrong extension (@lukastaegert)
+
 ## 1.19.0
 *2019-08-05*
 
