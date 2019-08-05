@@ -1,4 +1,4 @@
-import { e as emptyFunction } from './generated-chunk.js';
+import { e as emptyFunction } from './generated-lib.js';
 
 function fn () {
   var emptyFunction$1 = emptyFunction;

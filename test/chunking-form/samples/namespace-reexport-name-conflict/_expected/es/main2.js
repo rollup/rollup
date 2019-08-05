@@ -1,5 +1,5 @@
-import { r as reexported } from './generated-chunk.js';
+import { r as reexported } from './generated-dep.js';
 import 'external';
-import './generated-chunk2.js';
+import './generated-index.js';
 
 console.log(reexported);

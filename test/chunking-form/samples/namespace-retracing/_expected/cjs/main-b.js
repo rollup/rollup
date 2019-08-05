@@ -1,5 +1,5 @@
 'use strict';
 
-var other = require('./generated-chunk.js');
+var other = require('./generated-other.js');
 
 other.Other.doSomething();

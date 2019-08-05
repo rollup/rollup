@@ -1,4 +1,4 @@
-define(['exports', '../generated-chunk'], function (exports, dep) { 'use strict';
+define(['exports', '../generated-dep'], function (exports, dep) { 'use strict';
 
 	const id = 'startBuild';
 	console.log(id, dep.value);

@@ -1,7 +1,7 @@
 'use strict';
 
-var broken = require('./generated-chunk.js');
-var bar = require('./generated-chunk3.js');
+var broken = require('./generated-broken.js');
+var bar = require('./generated-bar.js');
 
 bar.bar();
 broken.broken();

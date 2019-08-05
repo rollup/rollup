@@ -19,7 +19,7 @@ function _interopNamespace(e) {
 	}
 }
 
-var dep = require('./generated-chunk.js');
+var dep = require('./generated-dep.js');
 
 console.log('main1', dep.value);
 

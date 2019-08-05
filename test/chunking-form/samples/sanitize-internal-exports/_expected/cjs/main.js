@@ -2,7 +2,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var constants = require('./generated-chunk.js');
+var constants = require('./generated-constants.js');
 
 const lazy = new Promise(function (resolve) { resolve(require('./generated-lazy.js')); });
 

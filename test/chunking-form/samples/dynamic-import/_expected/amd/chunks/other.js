@@ -1,4 +1,4 @@
-define(['exports', './chunk'], function (exports, shared) { 'use strict';
+define(['exports', './shared'], function (exports, shared) { 'use strict';
 
 
 

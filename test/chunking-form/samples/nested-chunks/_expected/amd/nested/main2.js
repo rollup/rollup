@@ -1,4 +1,4 @@
-define(['require', '../generated-chunk'], function (require, dep) { 'use strict';
+define(['require', '../generated-dep'], function (require, dep) { 'use strict';
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) { return e; } else {

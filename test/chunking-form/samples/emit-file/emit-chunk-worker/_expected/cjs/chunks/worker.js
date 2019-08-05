@@ -1,5 +1,5 @@
 'use strict';
 
-var shared = require('./chunk.js');
+var shared = require('./shared.js');
 
 postMessage(`from worker: ${shared.shared}`);

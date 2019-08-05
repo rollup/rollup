@@ -1,4 +1,4 @@
-import { c as commonjsGlobal, d } from './generated-chunk.js';
+import { c as commonjsGlobal, d } from './generated-shared.js';
 
 commonjsGlobal.fn = d => d + 1;
 var cjs = commonjsGlobal.fn;

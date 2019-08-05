@@ -1,3 +1,3 @@
-import './generated-chunk.js';
-import './generated-chunk2.js';
-import './generated-chunk3.js';
+import './generated-dep111.js';
+import './generated-dep112.js';
+import './generated-dep11.js';

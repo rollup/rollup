@@ -1,4 +1,4 @@
-System.register(['./generated-chunk.js', './custom/build-start-chunk.js'], function () {
+System.register(['./generated-dep.js', './custom/build-start-chunk.js'], function () {
 	'use strict';
 	var value, id;
 	return {

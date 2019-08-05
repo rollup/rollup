@@ -1,4 +1,4 @@
-System.register(['./generated-chunk.js'], function () {
+System.register(['./generated-proxy2.js'], function () {
 	'use strict';
 	var bar;
 	return {

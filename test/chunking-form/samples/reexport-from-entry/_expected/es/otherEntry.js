@@ -1,1 +1,1 @@
-export { b, c } from './generated-chunk.js';
+export { b, c } from './generated-otherEntry.js';

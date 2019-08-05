@@ -1,3 +1,3 @@
-import { v as value, x } from './generated-chunk.js';
+import { v as value, x } from './generated-dep.js';
 
 [43].map(dep => console.log(dep, value, x));

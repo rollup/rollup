@@ -1,1 +1,1 @@
-export { s as sharedValue } from './chunks/chunk.js';
+export { s as sharedValue } from './chunks/shared.js';

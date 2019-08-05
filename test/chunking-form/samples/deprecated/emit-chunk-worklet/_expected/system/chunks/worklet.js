@@ -1,4 +1,4 @@
-System.register(['./chunk.js'], function () {
+System.register(['./shared.js'], function () {
 	'use strict';
 	var size, color;
 	return {

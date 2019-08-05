@@ -1,6 +1,6 @@
 'use strict';
 
-var dep = require('./generated-chunk.js');
+var dep = require('./generated-dep.js');
 var buildStart = require('./custom/build-start-chunk.js');
 
 console.log(buildStart.id);

@@ -1,12 +1,26 @@
-System.register(['./generated-chunk.js'], function (exports) {
+System.register([], function (exports) {
 	'use strict';
 	return {
-		setters: [function (module) {
-			exports('bar', module.b);
-		}],
 		execute: function () {
 
+			exports({
+				b: bar,
+				f: foo
+			});
 
+			function foo() {
+				return 'dep2';
+			}
+
+			Promise.resolve().then(function () { return dep1; }).then(({ bar }) => console.log(bar()));
+
+			function bar() {
+				return foo();
+			}
+
+			var dep1 = /*#__PURE__*/Object.freeze({
+				bar: bar
+			});
 
 		}
 	};

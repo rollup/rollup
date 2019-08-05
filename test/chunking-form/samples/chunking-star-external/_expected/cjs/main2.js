@@ -4,7 +4,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var starexternal2 = require('starexternal2');
 var external2 = require('external2');
-var dep = require('./generated-chunk.js');
+var dep = require('./generated-dep.js');
 
 var main = '2';
 

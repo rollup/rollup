@@ -997,17 +997,17 @@ describe('hooks', () => {
 					},
 					{
 						fileName: 'generated-a.js',
-						imports: ['generated-chunk.js'],
+						imports: ['generated-c.js'],
 						modules: ['d', 'a']
 					},
 					{
-						fileName: 'generated-chunk.js',
+						fileName: 'generated-c.js',
 						imports: [],
 						modules: ['c']
 					},
 					{
 						fileName: 'generated-b.js',
-						imports: ['generated-chunk.js'],
+						imports: ['generated-c.js'],
 						modules: ['b']
 					}
 				]);

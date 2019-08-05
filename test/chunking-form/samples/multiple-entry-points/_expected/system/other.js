@@ -1,4 +1,4 @@
-System.register(['./chunks/chunk.js'], function (exports) {
+System.register(['./chunks/shared.js'], function (exports) {
 	'use strict';
 	return {
 		setters: [function (module) {

@@ -1,6 +1,6 @@
 'use strict';
 
-var main2 = require('./generated-chunk.js');
+var main2 = require('./generated-main2.js');
 
 console.log(main2.a);
 

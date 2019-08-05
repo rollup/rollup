@@ -1,4 +1,4 @@
-import { y, z } from './generated-chunk.js';
+import { y, z } from './generated-dep3.js';
 
 var main3 = y + z;
 

@@ -6,7 +6,7 @@ var starexternal1 = require('starexternal1');
 var external1 = require('external1');
 require('starexternal2');
 require('external2');
-var dep = require('./generated-chunk.js');
+var dep = require('./generated-dep.js');
 
 var main = '1';
 
