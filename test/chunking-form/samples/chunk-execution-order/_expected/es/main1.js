@@ -1,6 +1,6 @@
-import './generated-chunk.js';
-import { x } from './generated-chunk2.js';
-import './generated-chunk3.js';
+import './generated-dep111.js';
+import { x } from './generated-dep112.js';
+import './generated-dep11.js';
 
 console.log('1');
 

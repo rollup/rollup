@@ -2,7 +2,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var otherEntry = require('./generated-chunk.js');
+var otherEntry = require('./generated-otherEntry.js');
 
 
 

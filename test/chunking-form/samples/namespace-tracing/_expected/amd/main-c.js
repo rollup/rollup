@@ -1,4 +1,4 @@
-define(['./generated-chunk', './generated-chunk3'], function (broken, bar) { 'use strict';
+define(['./generated-broken', './generated-bar'], function (broken, bar) { 'use strict';
 
 	bar.bar();
 	broken.broken();

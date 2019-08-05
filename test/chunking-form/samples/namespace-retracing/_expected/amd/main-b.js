@@ -1,4 +1,4 @@
-define(['./generated-chunk'], function (other) { 'use strict';
+define(['./generated-other'], function (other) { 'use strict';
 
 	other.Other.doSomething();
 

@@ -1,4 +1,4 @@
-'use strict';var dep2=require('./generated-chunk.js'),external=require('external');function fn () {
+'use strict';var dep2=require('./generated-dep2.js'),external=require('external');function fn () {
   console.log('lib1 fn');
   external.fn();
 }function fn$1 () {

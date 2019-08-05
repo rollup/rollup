@@ -1,6 +1,6 @@
 'use strict';
 
-var dep2 = require('./generated-chunk.js');
+var dep2 = require('./generated-dep2.js');
 var external = require('external');
 
 function fn () {

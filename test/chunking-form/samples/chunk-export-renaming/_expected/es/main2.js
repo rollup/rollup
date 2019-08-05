@@ -1,4 +1,4 @@
-import { a as ONE_CONSTANT } from './generated-chunk.js';
+import { a as ONE_CONSTANT } from './generated-one.js';
 
 class Two {
     test() {

@@ -1,4 +1,4 @@
-System.register(['./generated-chunk.js'], function () {
+System.register(['./generated-dep.js'], function () {
 	'use strict';
 	return {
 		setters: [function () {}],

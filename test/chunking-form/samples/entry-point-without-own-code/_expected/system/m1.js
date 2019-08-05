@@ -1,4 +1,4 @@
-System.register(['./m2.js', './generated-chunk.js'], function (exports) {
+System.register(['./m2.js', './generated-m1.js'], function (exports) {
 	'use strict';
 	return {
 		setters: [function (module) {

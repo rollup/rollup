@@ -1,6 +1,6 @@
 'use strict';
 
-var shared = require('./chunks/chunk.js');
+var shared = require('./chunks/shared.js');
 
 CSS.paintWorklet.addModule((typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __dirname + '/chunks/worklet.js').href : new URL('chunks/worklet.js', document.currentScript && document.currentScript.src || document.baseURI).href));
 

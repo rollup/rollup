@@ -1,6 +1,6 @@
 'use strict';
 
-var shared = require('./chunk.js');
+var shared = require('./shared.js');
 
 registerPaint(
 	'vertical-lines',

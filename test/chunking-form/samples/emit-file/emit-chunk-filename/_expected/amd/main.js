@@ -1,4 +1,4 @@
-define(['./generated-chunk', './custom/build-start-chunk'], function (dep, buildStart) { 'use strict';
+define(['./generated-dep', './custom/build-start-chunk'], function (dep, buildStart) { 'use strict';
 
 	console.log(buildStart.id);
 

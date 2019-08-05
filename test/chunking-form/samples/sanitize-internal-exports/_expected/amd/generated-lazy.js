@@ -1,4 +1,4 @@
-define(['exports', './generated-chunk'], function (exports, constants) { 'use strict';
+define(['exports', './generated-constants'], function (exports, constants) { 'use strict';
 
 	var lazy = () => constants.v1;
 

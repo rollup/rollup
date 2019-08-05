@@ -1,4 +1,4 @@
-import { m as multiplier } from './generated-chunk.js';
+import { m as multiplier } from './generated-dep4.js';
 
 function calc (num) {
   return num * multiplier;

@@ -1,4 +1,4 @@
-System.register(['./generated-chunk.js'], function (exports, module) {
+System.register(['./generated-dep4.js'], function (exports, module) {
   'use strict';
   var multiplier;
   return {
