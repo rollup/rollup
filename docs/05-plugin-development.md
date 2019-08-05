@@ -133,6 +133,8 @@ Called at the end of `bundle.generate()` or immediately before the files are wri
 }
 ```
 
+You can prevent files from being emitted by deleting them from the bundle object in this hook. To emit additional files, use the [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string)  plugin context function.
+
 #### `intro`
 Type: `string | (() => string)`<br>
 Kind: `async, parallel`

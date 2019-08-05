@@ -1,5 +1,23 @@
 # rollup changelog
 
+## 1.19.0
+*2019-08-05*
+
+### Features
+* Implement a new unified file emission API for assets and chunks with support for explicit file names (#2999)
+* Use the id of the last module in a chunk as base for the chunk name if no better name is available (#3025)
+* Use the id of the last module in a chunk as base for the variable name of a chunk in some formats if no better name is available (#2999)
+
+### Bug Fixes
+* Do not produce invalid variable names if an empty name is chosen for a virtual module (#3026)
+* Fix an issue where a module variable name would conflict with a local variable name in some formats (#3020)
+
+### Pull Requests
+* [#2999](https://github.com/rollup/rollup/pull/2999): Unified file emission api (@lukastaegert)
+* [#3020](https://github.com/rollup/rollup/pull/3020): Switch to a code-splitting build and update dependencies (@lukastaegert)
+* [#3025](https://github.com/rollup/rollup/pull/3025): Use id of last module in chunk as name base for auto-generated chunks (@lukastaegert)
+* [#3026](https://github.com/rollup/rollup/pull/3026): Avoid variable from empty module name be empty (@LongTengDao)
+
 ## 1.18.0
 *2019-08-01*
 
