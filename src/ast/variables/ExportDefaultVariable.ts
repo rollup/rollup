@@ -41,6 +41,15 @@ export default class ExportDefaultVariable extends LocalVariable {
 		return (this.originalId && this.originalId.name) || null;
 	}
 
+	getBaseVariableName(): string {
+		const original = this.getOriginalVariable();
+		if (original === this) {
+			return super.getBaseVariableName();
+		} else {
+			return original.getBaseVariableName();
+		}
+	}
+
 	getName() {
 		const original = this.getOriginalVariable();
 		if (original === this) {
@@ -83,5 +92,3 @@ export default class ExportDefaultVariable extends LocalVariable {
 		}
 	}
 }
-
-ExportDefaultVariable.prototype.getBaseVariableName = ExportDefaultVariable.prototype.getName;

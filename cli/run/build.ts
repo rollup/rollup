@@ -1,15 +1,8 @@
 import ms from 'pretty-ms';
-import * as rollup from 'rollup';
 import tc from 'turbocolor';
-import {
-	InputOptions,
-	OutputAsset,
-	OutputChunk,
-	OutputOptions,
-	RollupBuild,
-	SourceMap
-} from '../../../src/rollup/types';
-import relativeId from '../../../src/utils/relativeId';
+import * as rollup from '../../src/node-entry';
+import { InputOptions, OutputAsset, OutputChunk, OutputOptions, RollupBuild, SourceMap } from '../../src/rollup/types';
+import relativeId from '../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
 import SOURCEMAPPING_URL from '../sourceMappingUrl';
 import { BatchWarnings } from './batchWarnings';
@@ -42,7 +35,7 @@ export default function build(
 	}
 
 	return rollup
-		.rollup(inputOptions)
+		.rollup(inputOptions as any)
 		.then((bundle: RollupBuild) => {
 			if (useStdout) {
 				const output = outputOptions[0];
@@ -69,6 +62,7 @@ export default function build(
 							process.stdout.write('\n' + tc.cyan(tc.bold('//→ ' + file.fileName + ':')) + '\n');
 						process.stdout.write(source);
 					}
+					return null
 				});
 			}
 
@@ -76,7 +70,7 @@ export default function build(
 				() => bundle
 			);
 		})
-		.then((bundle?: RollupBuild) => {
+		.then((bundle: RollupBuild | null) => {
 			if (!silent) {
 				warnings.flush();
 				stderr(

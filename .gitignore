@@ -7,8 +7,6 @@ _actual.js
 coverage
 .commithash
 .idea
-bin/rollup
-bin/rollup.map
 test/_tmp
 test/hooks/tmp
 test/tmp
