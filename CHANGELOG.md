@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.19.3
+*2019-08-06*
+
+### Bug Fixes
+* Fix wrong URLs in error messages (#3033)
+
+### Pull Requests
+* [#3033](https://github.com/rollup/rollup/pull/3033): Fix wrong URLs in error messages (@giraffate)
+
 ## 1.19.2
 *2019-08-05*
 
