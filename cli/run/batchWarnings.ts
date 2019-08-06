@@ -156,7 +156,7 @@ const deferredHandlers: {
 	MISSING_EXPORT: {
 		fn: warnings => {
 			title('Missing exports');
-			info('https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module-');
+			info('https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module');
 
 			warnings.forEach(warning => {
 				stderr(tc.bold(warning.importer as string));
