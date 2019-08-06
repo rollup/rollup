@@ -15,6 +15,6 @@ module.exports = {
 			1: export { foo as bar } from './empty.js';
 			            ^
 		`,
-		url: 'https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module-'
+		url: 'https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module'
 	}
 };
