@@ -1,2 +1,2 @@
-import * as module from 'module';
-export { module as default };
+import * as path from 'path';
+export { path as default };
