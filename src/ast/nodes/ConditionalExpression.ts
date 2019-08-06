@@ -1,6 +1,7 @@
 import MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import {
+	findFirstLineBreakOutsideComment,
 	findFirstOccurrenceOutsideComment,
 	NodeRenderOptions,
 	RenderOptions
@@ -151,20 +152,30 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ renderedParentType, isCalleeOfRenderedParent }: NodeRenderOptions = BLANK
+		{ renderedParentType, isCalleeOfRenderedParent, preventASI }: NodeRenderOptions = BLANK
 	) {
 		if (!this.test.included) {
 			const colonPos = findFirstOccurrenceOutsideComment(code.original, ':', this.consequent.end);
+			const inclusionStart =
+				(this.consequent.included
+					? findFirstOccurrenceOutsideComment(code.original, '?', this.test.end)
+					: colonPos) + 1;
+			if (preventASI) {
+				const branchStart = (this.usedBranch as ExpressionNode).start;
+				let lineBreakPos = inclusionStart;
+				do {
+					lineBreakPos = findFirstLineBreakOutsideComment(code.original, lineBreakPos);
+					if (lineBreakPos >= 0 && lineBreakPos < branchStart) {
+						code.remove(lineBreakPos, lineBreakPos + 1);
+						lineBreakPos++;
+					} else {
+						lineBreakPos = -1;
+					}
+				} while (lineBreakPos >= 0);
+			}
+			code.remove(this.start, inclusionStart);
 			if (this.consequent.included) {
-				const questionmarkPos = findFirstOccurrenceOutsideComment(
-					code.original,
-					'?',
-					this.test.end
-				);
-				code.remove(this.start, questionmarkPos + 1);
 				code.remove(colonPos, this.end);
-			} else {
-				code.remove(this.start, colonPos + 1);
 			}
 			removeAnnotations(this, code);
 			(this.usedBranch as ExpressionNode).render(code, options, {

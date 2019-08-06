@@ -22,7 +22,7 @@ export default class ReturnStatement extends StatementBase {
 
 	render(code: MagicString, options: RenderOptions) {
 		if (this.argument) {
-			this.argument.render(code, options);
+			this.argument.render(code, options, { preventASI: true });
 			if (this.argument.start === this.start + 6 /* 'return'.length */) {
 				code.prependLeft(this.start + 6, ' ');
 			}

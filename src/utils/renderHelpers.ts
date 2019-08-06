@@ -17,6 +17,7 @@ export interface NodeRenderOptions {
 	isCalleeOfRenderedParent?: boolean;
 	isNoStatement?: boolean;
 	isShorthandProperty?: boolean;
+	preventASI?: boolean;
 	renderedParentType?: string; // also serves as a flag if the rendered parent is different from the actual parent
 	start?: number;
 }
