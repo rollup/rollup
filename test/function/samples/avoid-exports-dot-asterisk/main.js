@@ -1,2 +1,2 @@
-import * as x from 'x';
-export { x as default };
+import * as module from 'module';
+export { module as default };
