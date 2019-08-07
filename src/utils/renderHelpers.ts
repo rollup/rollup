@@ -165,3 +165,15 @@ export function getCommaSeparatedNodesWithBoundaries<N extends Node>(
 	});
 	return splitUpNodes;
 }
+
+export function removeLineBreaks(code: MagicString, start: number, end: number) {
+	let lineBreakPos = start;
+	while (true) {
+		lineBreakPos = findFirstLineBreakOutsideComment(code.original, lineBreakPos);
+		if (lineBreakPos === -1 || lineBreakPos >= end) {
+			break;
+		}
+		code.remove(lineBreakPos, lineBreakPos + 1);
+		lineBreakPos++;
+	}
+}

@@ -1,9 +1,9 @@
 import MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import {
-	findFirstLineBreakOutsideComment,
 	findFirstOccurrenceOutsideComment,
 	NodeRenderOptions,
+	removeLineBreaks,
 	RenderOptions
 } from '../../utils/renderHelpers';
 import { removeAnnotations } from '../../utils/treeshakeNode';
@@ -161,17 +161,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 					? findFirstOccurrenceOutsideComment(code.original, '?', this.test.end)
 					: colonPos) + 1;
 			if (preventASI) {
-				const branchStart = (this.usedBranch as ExpressionNode).start;
-				let lineBreakPos = inclusionStart;
-				do {
-					lineBreakPos = findFirstLineBreakOutsideComment(code.original, lineBreakPos);
-					if (lineBreakPos >= 0 && lineBreakPos < branchStart) {
-						code.remove(lineBreakPos, lineBreakPos + 1);
-						lineBreakPos++;
-					} else {
-						lineBreakPos = -1;
-					}
-				} while (lineBreakPos >= 0);
+				removeLineBreaks(code, inclusionStart, (this.usedBranch as ExpressionNode).start);
 			}
 			code.remove(this.start, inclusionStart);
 			if (this.consequent.included) {
