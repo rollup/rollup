@@ -17,6 +17,7 @@ export interface NodeRenderOptions {
 	isCalleeOfRenderedParent?: boolean;
 	isNoStatement?: boolean;
 	isShorthandProperty?: boolean;
+	preventASI?: boolean;
 	renderedParentType?: string; // also serves as a flag if the rendered parent is different from the actual parent
 	start?: number;
 }
@@ -163,4 +164,16 @@ export function getCommaSeparatedNodesWithBoundaries<N extends Node>(
 		start
 	});
 	return splitUpNodes;
+}
+
+export function removeLineBreaks(code: MagicString, start: number, end: number) {
+	let lineBreakPos = start;
+	while (true) {
+		lineBreakPos = findFirstLineBreakOutsideComment(code.original, lineBreakPos);
+		if (lineBreakPos === -1 || lineBreakPos >= end) {
+			break;
+		}
+		code.remove(lineBreakPos, lineBreakPos + 1);
+		lineBreakPos++;
+	}
 }
