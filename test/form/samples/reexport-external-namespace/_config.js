@@ -1,0 +1,11 @@
+module.exports = {
+	solo: true,
+	description: 're-exports * from external module (#791)',
+	options: {
+		external: ['external'],
+		output: {
+			globals: { external: 'external' },
+			name: 'bundle'
+		}
+	}
+};
