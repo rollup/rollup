@@ -43,7 +43,6 @@
 	{ "name": "v¹ ⋅ major", "color": "#CDDC39" },
 	{ "name": "v² ⋅ minor", "color": "#FF9800" },
 	{ "name": "v³ ⋅ minor (experimental)", "color": "#FFC107" },
-	{ "name": "v⁴ ⋅ patch", "color": "#CDDC39" },
 
 	{ "name": "x¹ ⋅ abandoned", "color": "#CFD8DC" },
 	{ "name": "x² ⋅ could not reproduce", "color": "#CFD8DC" },
