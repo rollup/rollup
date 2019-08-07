@@ -40,10 +40,10 @@
 	{ "name": "t⁵ ⋅ todo", "color": "#311B92" },
 	{ "name": "t⁶ ⋅ waiting on upstream", "color": "#0D47A1" },
 
-	{ "name": "v¹ ⋅ experimental", "color": "#CDDC39" },
-	{ "name": "v² ⋅ major", "color": "#FF9800" },
-	{ "name": "v³ ⋅ minor", "color": "#FFC107" },
-	{ "name": "v⁴ ⋅ next", "color": "#CDDC39" },
+	{ "name": "v¹ ⋅ major", "color": "#CDDC39" },
+	{ "name": "v² ⋅ minor", "color": "#FF9800" },
+	{ "name": "v³ ⋅ minor (experimental)", "color": "#FFC107" },
+	{ "name": "v⁴ ⋅ patch", "color": "#CDDC39" },
 
 	{ "name": "x¹ ⋅ abandoned", "color": "#CFD8DC" },
 	{ "name": "x² ⋅ could not reproduce", "color": "#CFD8DC" },
