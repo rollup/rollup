@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 1.19.4
+*2019-08-07*
+
+### Bug Fixes
+* Prevent invalid code when exporting an external namespace (#3033)
+* Prevent invalid or non-equivalent code when simplifying expressions in return and throw statements (#3033)
+
+### Pull Requests
+* [#3034](https://github.com/rollup/rollup/pull/3034): Avoid generating .* as export (@LongTengDao)
+* [#3035](https://github.com/rollup/rollup/pull/3035): Prevent ASI errors for conditional expressions (@lukastaegert)
+* [#3036](https://github.com/rollup/rollup/pull/3036): Fix documents to use https, not http (@giraffate)
+
 ## 1.19.3
 *2019-08-06*
 
