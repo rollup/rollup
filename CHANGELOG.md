@@ -4,8 +4,8 @@
 *2019-08-07*
 
 ### Bug Fixes
-* Prevent invalid code when exporting an external namespace (#3033)
-* Prevent invalid or non-equivalent code when simplifying expressions in return and throw statements (#3033)
+* Prevent invalid code when exporting an external namespace (#3034)
+* Prevent invalid or non-equivalent code when simplifying expressions in return and throw statements (#3035)
 
 ### Pull Requests
 * [#3034](https://github.com/rollup/rollup/pull/3034): Avoid generating .* as export (@LongTengDao)
