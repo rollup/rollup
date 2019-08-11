@@ -1,32 +1,58 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('external')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'external'], factory) :
-	(factory((global.stirred = {}),global.external));
-}(this, (function (exports,external) { 'use strict';
+	(global = global || self, factory(global.stirred = {}, global.external));
+}(this, function (exports, external) { 'use strict';
 
-	var foo = 'unused';
+	var foo = 13;
 
 	const quux = 1;
 
 	const other = () => quux;
 
-	function bar () {
-		return foo;
+	function baz() {
+		return foo + external.value;
 	}
 
-	function baz () {
-		return 13 + external.value;
+	var create = Object.create,
+		getPrototypeOf = Object.getPrototypeOf;
+
+	function unusedButIncluded() {
+		const unusedConst = 'unused';
+		if (true) {
+			true ? 'first' : 'second';
+		} else {
+			(true && 'first') || 'second';
+		}
+		'sequence', 'expression';
+		switch ('test') {
+			case 'test':
+				(() => {})();
+			case 'other':
+				'no effect';
+			default:
+				const ignored = 2;
+		}
 	}
 
-	const moreExternal = external.more;
+	function test(
+		unusedParam = {
+			prop: function test() {
+				var unused = 1;
+			}
+		}
+	) {}
 
-	var create = Object.create, getPrototypeOf = Object.getPrototypeOf;
+	test({
+		prop: function test() {
+			var unused = 1;
+		}
+	});
 
-	exports.baz = baz;
 	exports.create = create;
 	exports.getPrototypeOf = getPrototypeOf;
 	exports.strange = quux;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));

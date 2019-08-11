@@ -1,0 +1,2 @@
+define(['external-1','external-2','external-3','external-4','external-5'],function(external1,external2,external3,external4,external5){'use strict';assert.equal(external3.value, '3');
+assert.equal(external4.value, '4');});

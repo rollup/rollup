@@ -1,69 +1,51 @@
-import { runSequence } from './promise';
-import error from './error';
-import callIfFunction from './callIfFunction';
 import Graph from '../Graph';
 import { OutputOptions } from '../rollup/types';
+import { error } from './error';
 
 export interface Addons {
-	intro?: string;
-	outro?: string;
 	banner?: string;
 	footer?: string;
-	hash: Uint8Array;
+	intro?: string;
+	outro?: string;
 }
+
+function evalIfFn(
+	strOrFn: string | (() => string | Promise<string>) | undefined
+): string | Promise<string> {
+	switch (typeof strOrFn) {
+		case 'function':
+			return strOrFn();
+		case 'string':
+			return strOrFn;
+		default:
+			return '';
+	}
+}
+
+const concatSep = (out: string, next: string) => (next ? `${out}\n${next}` : out);
+const concatDblSep = (out: string, next: string) => (next ? `${out}\n\n${next}` : out);
 
 export function createAddons(graph: Graph, options: OutputOptions): Promise<Addons> {
+	const pluginDriver = graph.pluginDriver;
 	return Promise.all([
-		collectAddon(graph, options.banner, 'banner'),
-		collectAddon(graph, options.footer, 'footer'),
-		collectAddon(graph, options.intro, 'intro', '\n\n'),
-		collectAddon(graph, options.outro, 'outro', '\n\n')
-	]).then(([banner, footer, intro, outro]) => {
-		if (intro) intro += '\n\n';
-		if (outro) outro = `\n\n${outro}`;
+		pluginDriver.hookReduceValue('banner', evalIfFn(options.banner), [], concatSep),
+		pluginDriver.hookReduceValue('footer', evalIfFn(options.footer), [], concatSep),
+		pluginDriver.hookReduceValue('intro', evalIfFn(options.intro), [], concatDblSep),
+		pluginDriver.hookReduceValue('outro', evalIfFn(options.outro), [], concatDblSep)
+	])
+		.then(([banner, footer, intro, outro]) => {
+			if (intro) intro += '\n\n';
+			if (outro) outro = `\n\n${outro}`;
+			if (banner.length) banner += '\n';
+			if (footer.length) footer = '\n' + footer;
 
-		const hash = new Uint8Array(4);
-
-		return { intro, outro, banner, footer, hash };
-	});
-}
-
-function collectAddon(
-	graph: Graph,
-	initialAddon: string,
-	addonName: 'banner' | 'footer' | 'intro' | 'outro',
-	sep: string = '\n'
-) {
-	return runSequence(
-		[
-			{ pluginName: 'rollup', source: initialAddon } as {
-				pluginName: string;
-				source: string | (() => string);
-			}
-		]
-			.concat(
-				graph.plugins.map((plugin, idx) => {
-					return {
-						pluginName: plugin.name || `Plugin at pos ${idx}`,
-						source: plugin[addonName]
-					};
-				})
-			)
-			.map(addon => {
-				addon.source = callIfFunction(addon.source);
-				return addon;
-			})
-			.filter(addon => {
-				return addon.source;
-			})
-			.map(({ pluginName, source }) => {
-				return Promise.resolve(source).catch(err => {
-					error({
-						code: 'ADDON_ERROR',
-						message: `Could not retrieve ${addonName}. Check configuration of ${pluginName}.
-	Error Message: ${err.message}`
-					});
-				});
-			})
-	).then(addons => addons.filter(Boolean).join(sep));
+			return { intro, outro, banner, footer };
+		})
+		.catch((err): any => {
+			error({
+				code: 'ADDON_ERROR',
+				message: `Could not retrieve ${err.hook}. Check configuration of plugin ${err.plugin}.
+\tError Message: ${err.message}`
+			});
+		});
 }

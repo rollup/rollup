@@ -1,13 +1,13 @@
-import { p } from './main1.js';
+import { p as p$1 } from './main1.js';
 
 class C {
   fn (num) {
-    console.log(num - p);
+    console.log(num - p$1);
   }
 }
 
-var p$1 = 43;
+var p = 43;
 
-new C().fn(p$1);
+new C().fn(p);
 
-export { p$1 as p };
+export { p };

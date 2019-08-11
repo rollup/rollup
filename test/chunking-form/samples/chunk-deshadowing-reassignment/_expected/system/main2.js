@@ -1,4 +1,4 @@
-System.register(['./chunk-e8996ddf.js', './chunk-3119845f.js', './chunk-114cd46f.js'], function (exports, module) {
+System.register(['./generated-dep1.js', './generated-shared2.js', './generated-dep2.js'], function () {
 	'use strict';
 	return {
 		setters: [function () {}, function () {}, function () {}],

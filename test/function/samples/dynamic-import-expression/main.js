@@ -1,1 +1,1 @@
-import( 'x/' + 'y' )
+export default import('x/' + 'y');

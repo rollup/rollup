@@ -1,32 +1,30 @@
-var buble = require('buble');
-var fs = require('fs');
-var assert = require('assert');
-var getLocation = require('../../getLocation');
-var SourceMapConsumer = require('source-map').SourceMapConsumer;
+const buble = require('buble');
+const fs = require('fs');
+const assert = require('assert');
+const getLocation = require('../../getLocation');
+const SourceMapConsumer = require('source-map').SourceMapConsumer;
 
 module.exports = {
 	description: 'preserves sourcemap chains when transforming',
 	options: {
 		plugins: [
 			{
-				load: function(id) {
+				load(id) {
 					if (/foo.js$/.test(id)) {
 						id = id.replace(/foo.js$/, 'bar.js');
 					} else if (/bar.js$/.test(id)) {
 						id = id.replace(/bar.js$/, 'foo.js');
 					}
 
-					var code = fs.readFileSync(id, 'utf-8');
+					const code = fs.readFileSync(id, 'utf-8');
 
-					var out = buble.transform(code, {
+					const out = buble.transform(code, {
 						transforms: { modules: false },
 						sourceMap: true,
 						source: id
 					});
 
-					if (/main.js$/.test(id)) {
-						delete out.map.sources;
-					} else {
+					if (!/main.js$/.test(id)) {
 						const slash = out.map.sources[0].lastIndexOf('/') + 1;
 						out.map.sources = out.map.sources.map(source => '../' + source.slice(slash));
 						out.map.sourceRoot = 'fake';
@@ -37,10 +35,10 @@ module.exports = {
 			}
 		]
 	},
-	test: function(code, map) {
-		var smc = new SourceMapConsumer(map);
-		var generatedLoc;
-		var originalLoc;
+	test(code, map) {
+		const smc = new SourceMapConsumer(map);
+		let generatedLoc;
+		let originalLoc;
 
 		generatedLoc = getLocation(code, code.indexOf('22'));
 		originalLoc = smc.originalPositionFor(generatedLoc);

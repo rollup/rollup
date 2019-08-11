@@ -1,33 +1,28 @@
+import { ExpressionEntity } from '../nodes/shared/Expression';
+import { UNKNOWN_EXPRESSION, UNKNOWN_PATH } from '../values';
 import ParameterScope from './ParameterScope';
-import CallOptions from '../CallOptions';
-import ExecutionPathOptions from '../ExecutionPathOptions';
-import { ExpressionEntity, ForEachReturnExpressionCallback } from '../nodes/shared/Expression';
 
 export default class ReturnValueScope extends ParameterScope {
-	_returnExpressions: Set<ExpressionEntity>;
-
-	constructor(options = {}) {
-		super(options);
-		this._returnExpressions = new Set();
-	}
+	private returnExpression: ExpressionEntity | null = null;
+	private returnExpressions: ExpressionEntity[] = [];
 
 	addReturnExpression(expression: ExpressionEntity) {
-		this._returnExpressions.add(expression);
+		this.returnExpressions.push(expression);
 	}
 
-	forEachReturnExpressionWhenCalled(
-		_callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback,
-		options: ExecutionPathOptions
-	) {
-		this._returnExpressions.forEach(callback(options));
+	getReturnExpression(): ExpressionEntity {
+		if (this.returnExpression === null) this.updateReturnExpression();
+		return this.returnExpression as ExpressionEntity;
 	}
 
-	someReturnExpressionWhenCalled(
-		_callOptions: CallOptions,
-		predicateFunction: (options: ExecutionPathOptions) => (node: ExpressionEntity) => boolean,
-		options: ExecutionPathOptions
-	): boolean {
-		return Array.from(this._returnExpressions).some(predicateFunction(options));
+	private updateReturnExpression() {
+		if (this.returnExpressions.length === 1) {
+			this.returnExpression = this.returnExpressions[0];
+		} else {
+			this.returnExpression = UNKNOWN_EXPRESSION;
+			for (const expression of this.returnExpressions) {
+				expression.deoptimizePath(UNKNOWN_PATH);
+			}
+		}
 	}
 }

@@ -1,9 +1,8 @@
-var assert = require('assert');
+const assert = require('assert');
 
 module.exports = {
 	description: 'Dynamic import expression replacement',
 	options: {
-		experimentalDynamicImport: true,
 		plugins: [
 			{
 				resolveDynamicImport(specifier, parent) {
@@ -24,7 +23,10 @@ module.exports = {
 			}
 		]
 	},
-	runtimeError: function(error) {
-		assert.equal("Cannot find module 'x/y'", error.message);
+	exports(exports) {
+		const expectedError = "Cannot find module 'x/y'";
+		return exports.catch(err =>
+			assert.strictEqual(err.message.slice(0, expectedError.length), expectedError)
+		);
 	}
 };

@@ -1,5 +1,4 @@
-var path = require('path');
-var assert = require('assert');
+const path = require('path');
 
 module.exports = {
 	description: 'reexporting a missing identifier should print an error',
@@ -16,6 +15,6 @@ module.exports = {
 			1: export { foo as bar } from './empty.js';
 			            ^
 		`,
-		url: 'https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module'
+		url: 'https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module'
 	}
 };

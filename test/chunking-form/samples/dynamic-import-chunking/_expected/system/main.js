@@ -1,9 +1,9 @@
-System.register(['./chunk-abdba260.js'], function (exports, module) {
+System.register(['./generated-dep4.js'], function (exports, module) {
   'use strict';
   var multiplier;
   return {
     setters: [function (module) {
-      multiplier = module.a;
+      multiplier = module.m;
     }],
     execute: function () {
 
@@ -16,7 +16,7 @@ System.register(['./chunk-abdba260.js'], function (exports, module) {
       }
 
       function dynamic (num) {
-        return module.import("./dep2.js")
+        return module.import('./generated-dep2.js')
         .then(dep2 => {
           return dep2.mult(num);
         });

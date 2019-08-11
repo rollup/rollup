@@ -1,11 +1,11 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(factory((global.iife = {})));
-}(this, (function (exports) { 'use strict';
+	(global = global || self, factory(global.iife = {}));
+}(this, function (exports) { 'use strict';
 
 	var self = {
-		get p () { return p$$1; }
+		get p () { return p; }
 	};
 	if (typeof Symbol !== 'undefined' && Symbol.toStringTag)
 		Object.defineProperty(self, Symbol.toStringTag, { value: 'Module' });
@@ -15,10 +15,10 @@
 
 	console.log(Object.keys(self));
 
-	var p$$1 = 5;
+	var p = 5;
 
-	exports.p = p$$1;
+	exports.p = p;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));

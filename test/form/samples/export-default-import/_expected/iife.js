@@ -1,4 +1,4 @@
-var myBundle = (function (exports,x) {
+var myBundle = (function (exports, x) {
 	'use strict';
 
 	x = x && x.hasOwnProperty('default') ? x['default'] : x;
@@ -9,4 +9,4 @@ var myBundle = (function (exports,x) {
 
 	return exports;
 
-}({},x));
+}({}, x));

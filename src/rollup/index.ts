@@ -1,66 +1,61 @@
-import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timers';
-import { basename } from '../utils/path';
-import { writeFile } from '../utils/fs';
-import { mapSequence } from '../utils/promise';
-import error from '../utils/error';
-import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
-import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
-import { Deprecation } from '../utils/deprecateOptions';
-import Graph from '../Graph';
-import ensureArray from '../utils/ensureArray';
-import { SourceMap } from 'magic-string';
-import { createAddons } from '../utils/addons';
-import commondir from '../utils/commondir';
+import { version as rollupVersion } from 'package.json';
+import Chunk from '../Chunk';
 import { optimizeChunks } from '../chunk-optimization';
-
+import Graph from '../Graph';
+import { createAddons } from '../utils/addons';
+import { assignChunkIds } from '../utils/assignChunkIds';
+import commondir from '../utils/commondir';
+import { errCannotEmitFromOptionsHook, errDeprecation, error } from '../utils/error';
+import { writeFile } from '../utils/fs';
+import getExportMode from '../utils/getExportMode';
+import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
+import { basename, dirname, isAbsolute, resolve } from '../utils/path';
+import { ANONYMOUS_PLUGIN_PREFIX, PluginDriver } from '../utils/pluginDriver';
+import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
+import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timers';
 import {
-	WarningHandler,
 	InputOptions,
+	OutputAsset,
+	OutputBundle,
+	OutputBundleWithPlaceholders,
+	OutputChunk,
 	OutputOptions,
-	SerializedTimings,
 	Plugin,
-	ModuleJSON
+	RollupBuild,
+	RollupCache,
+	RollupOutput,
+	RollupWatcher,
+	WarningHandler
 } from './types';
 
-export const VERSION = '<@VERSION@>';
-
-function addDeprecations(deprecations: Deprecation[], warn: WarningHandler) {
-	const message = `The following options have been renamed — please update your config: ${deprecations
-		.map(option => `${option.old} -> ${option.new}`)
-		.join(', ')}`;
-	warn({
-		code: 'DEPRECATED_OPTIONS',
-		message,
-		deprecations
-	});
-}
-
-function checkInputOptions(options: InputOptions) {
-	if (options.transform || options.load || options.resolveId || options.resolveExternal) {
-		throw new Error(
-			'The `transform`, `load`, `resolveId` and `resolveExternal` options are deprecated in favour of a unified plugin API. See https://github.com/rollup/rollup/wiki/Plugins for details'
+function checkOutputOptions(options: OutputOptions) {
+	if ((options.format as string) === 'es6') {
+		error(
+			errDeprecation({
+				message: 'The "es6" output format is deprecated – use "esm" instead',
+				url: `https://rollupjs.org/guide/en/#output-format`
+			})
 		);
 	}
+
+	if (['amd', 'cjs', 'system', 'es', 'iife', 'umd'].indexOf(options.format as string) < 0) {
+		error({
+			message: `You must specify "output.format", which can be one of "amd", "cjs", "system", "esm", "iife" or "umd".`,
+			url: `https://rollupjs.org/guide/en/#output-format`
+		});
+	}
 }
 
-function checkOutputOptions(options: OutputOptions) {
-	if (options.format === 'es6') {
-		error({
-			message: 'The `es6` output format is deprecated – use `es` instead',
-			url: `https://rollupjs.org/#format-f-output-format-`
-		});
+function getAbsoluteEntryModulePaths(chunks: Chunk[]): string[] {
+	const absoluteEntryModulePaths: string[] = [];
+	for (const chunk of chunks) {
+		for (const entryModule of chunk.entryModules) {
+			if (isAbsolute(entryModule.id)) {
+				absoluteEntryModulePaths.push(entryModule.id);
+			}
+		}
 	}
-
-	if (!options.format) {
-		error({
-			message: `You must specify options.format, which can be one of 'amd', 'cjs', 'system', 'esm', 'iife' or 'umd'`,
-			url: `https://rollupjs.org/#format-f-output-format-`
-		});
-	}
-
-	if (options.moduleId) {
-		if (options.amd) throw new Error('Cannot have both options.amd and options.moduleId');
-	}
+	return absoluteEntryModulePaths;
 }
 
 const throwAsyncGenerateError = {
@@ -69,225 +64,146 @@ const throwAsyncGenerateError = {
 	}
 };
 
-export interface OutputChunk {
-	imports: string[];
-	exports: string[];
-	modules: string[];
-	code: string;
-	map?: SourceMap;
-}
-
-export interface Bundle {
-	// TODO: consider deprecating to match code splitting
-	imports: string[];
-	exports: string[];
-	modules: ModuleJSON[];
-	cache: {
-		modules: ModuleJSON[];
-	};
-
-	generate: (outputOptions: OutputOptions) => Promise<OutputChunk>;
-	write: (options: OutputOptions) => Promise<OutputChunk>;
-	getTimings?: () => SerializedTimings;
-}
-
-export interface BundleSet {
-	cache: {
-		modules: ModuleJSON[];
-	};
-	generate: (outputOptions: OutputOptions) => Promise<{ [chunkName: string]: OutputChunk }>;
-	write: (options: OutputOptions) => Promise<{ [chunkName: string]: OutputChunk }>;
-	getTimings?: () => SerializedTimings;
-}
-
 function applyOptionHook(inputOptions: InputOptions, plugin: Plugin) {
-	if (plugin.options) return plugin.options(inputOptions) || inputOptions;
+	if (plugin.options)
+		return plugin.options.call({ meta: { rollupVersion } }, inputOptions) || inputOptions;
+
 	return inputOptions;
 }
 
-function getInputOptions(rawInputOptions: GenericConfigObject): any {
+function ensureArray<T>(items: (T | null | undefined)[] | T | null | undefined): T[] {
+	if (Array.isArray(items)) {
+		return items.filter(Boolean) as T[];
+	}
+	if (items) {
+		return [items];
+	}
+	return [];
+}
+
+function getInputOptions(rawInputOptions: GenericConfigObject): InputOptions {
 	if (!rawInputOptions) {
 		throw new Error('You must supply an options object to rollup');
 	}
-	const { inputOptions, deprecations, optionError } = mergeOptions({
-		config: rawInputOptions,
-		deprecateConfig: { input: true }
+	let { inputOptions, optionError } = mergeOptions({
+		config: rawInputOptions
 	});
 
-	if (optionError) inputOptions.onwarn({ message: optionError, code: 'UNKNOWN_OPTION' });
-	if (deprecations.length) addDeprecations(deprecations, inputOptions.onwarn);
+	if (optionError)
+		(inputOptions.onwarn as WarningHandler)({ message: optionError, code: 'UNKNOWN_OPTION' });
 
-	checkInputOptions(inputOptions);
+	inputOptions = ensureArray(inputOptions.plugins).reduce(applyOptionHook, inputOptions);
 	inputOptions.plugins = ensureArray(inputOptions.plugins);
-	return inputOptions.plugins.reduce(applyOptionHook, inputOptions);
+	for (let pluginIndex = 0; pluginIndex < inputOptions.plugins.length; pluginIndex++) {
+		const plugin = inputOptions.plugins[pluginIndex];
+		if (!plugin.name) {
+			plugin.name = `${ANONYMOUS_PLUGIN_PREFIX}${pluginIndex + 1}`;
+		}
+	}
+
+	if (inputOptions.inlineDynamicImports) {
+		if (inputOptions.preserveModules)
+			error({
+				code: 'INVALID_OPTION',
+				message: `"preserveModules" does not support the "inlineDynamicImports" option.`
+			});
+		if (inputOptions.manualChunks)
+			error({
+				code: 'INVALID_OPTION',
+				message: '"manualChunks" option is not supported for "inlineDynamicImports".'
+			});
+
+		if (inputOptions.experimentalOptimizeChunks)
+			error({
+				code: 'INVALID_OPTION',
+				message: '"experimentalOptimizeChunks" option is not supported for "inlineDynamicImports".'
+			});
+		if (
+			(inputOptions.input instanceof Array && inputOptions.input.length > 1) ||
+			(typeof inputOptions.input === 'object' && Object.keys(inputOptions.input).length > 1)
+		)
+			error({
+				code: 'INVALID_OPTION',
+				message: 'Multiple inputs are not supported for "inlineDynamicImports".'
+			});
+	} else if (inputOptions.preserveModules) {
+		if (inputOptions.manualChunks)
+			error({
+				code: 'INVALID_OPTION',
+				message: '"preserveModules" does not support the "manualChunks" option.'
+			});
+		if (inputOptions.experimentalOptimizeChunks)
+			error({
+				code: 'INVALID_OPTION',
+				message: '"preserveModules" does not support the "experimentalOptimizeChunks" option.'
+			});
+	}
+
+	return inputOptions;
 }
 
-export default function rollup(
-	rawInputOptions: GenericConfigObject | InputOptions
-): Promise<Bundle | BundleSet> {
+let curWatcher: RollupWatcher;
+export function setWatcher(watcher: RollupWatcher) {
+	curWatcher = watcher;
+}
+
+function assignChunksToBundle(
+	chunks: Chunk[],
+	outputBundle: OutputBundleWithPlaceholders
+): OutputBundle {
+	for (let i = 0; i < chunks.length; i++) {
+		const chunk = chunks[i];
+		const facadeModule = chunk.facadeModule;
+
+		outputBundle[chunk.id as string] = {
+			code: undefined as any,
+			dynamicImports: chunk.getDynamicImportIds(),
+			exports: chunk.getExportNames(),
+			facadeModuleId: facadeModule && facadeModule.id,
+			fileName: chunk.id,
+			imports: chunk.getImportIds(),
+			isDynamicEntry: facadeModule !== null && facadeModule.dynamicallyImportedBy.length > 0,
+			isEntry: facadeModule !== null && facadeModule.isEntryPoint,
+			map: undefined,
+			modules: chunk.renderedModules,
+			get name() {
+				return chunk.getChunkName();
+			}
+		} as OutputChunk;
+	}
+	return outputBundle as OutputBundle;
+}
+
+export default function rollup(rawInputOptions: GenericConfigObject): Promise<RollupBuild> {
 	try {
 		const inputOptions = getInputOptions(rawInputOptions);
 		initialiseTimers(inputOptions);
-		const graph = new Graph(inputOptions);
+
+		const graph = new Graph(inputOptions, curWatcher);
+		curWatcher = undefined as any;
+
+		// remove the cache option from the memory after graph creation (cache is not used anymore)
+		const useCache = rawInputOptions.cache !== false;
+		delete inputOptions.cache;
+		delete rawInputOptions.cache;
 
 		timeStart('BUILD', 1);
 
-		const codeSplitting =
-			(inputOptions.experimentalCodeSplitting && typeof inputOptions.input !== 'string') ||
-			inputOptions.experimentalPreserveModules;
-
-		if (!codeSplitting) {
-			if (inputOptions.manualChunks)
-				error({
-					code: 'INVALID_OPTION',
-					message: '"chunks" option is only supported for code-splitting builds.'
-				});
-
-			return graph.buildSingle(inputOptions.input).then(chunk => {
-				timeEnd('BUILD', 1);
-
-				const imports = chunk.getImportIds();
-				const exports = chunk.getExportNames();
-				const modules = graph.getCache().modules;
-
-				function generate(rawOutputOptions: GenericConfigObject) {
-					const outputOptions = normalizeOutputOptions(inputOptions, rawOutputOptions);
-
-					if (outputOptions.entryNames || outputOptions.chunkNames)
-						error({
-							code: 'INVALID_OPTION',
-							message:
-								'"entryNames" and "chunkNames" options are only supported for code-splitting builds.'
-						});
-
-					timeStart('GENERATE', 1);
-
-					const promise = Promise.resolve()
-						.then(() => {
-							return createAddons(graph, outputOptions);
-						})
-						.then(addons => {
-							chunk.generateInternalExports(outputOptions);
-							chunk.preRender(outputOptions);
-							return chunk.render(outputOptions, addons);
-						})
-						.then(rendered => {
-							timeEnd('GENERATE', 1);
-
-							const output = {
-								imports,
-								exports,
-								modules: chunk.getModuleIds(),
-								code: rendered.code,
-								map: rendered.map
-							};
-
-							graph.plugins.forEach(plugin => {
-								if (plugin.ongenerate) {
-									plugin.ongenerate(
-										Object.assign(
-											{
-												bundle: result
-											},
-											outputOptions
-										),
-										output
-									);
-								}
-							});
-
-							return output;
-						});
-
-					Object.defineProperty(promise, 'code', throwAsyncGenerateError);
-					Object.defineProperty(promise, 'map', throwAsyncGenerateError);
-
-					return promise;
-				}
-
-				const result: Bundle = {
-					imports,
-					exports,
-					modules,
-
-					cache: { modules },
-
-					generate,
-					write: (outputOptions: OutputOptions) => {
-						if (!outputOptions || (!outputOptions.file && !outputOptions.dest)) {
-							error({
-								code: 'MISSING_OPTION',
-								message: 'You must specify output.file when doing a single-file input build'
-							});
-						}
-
-						return generate(outputOptions).then(result => {
-							const file = outputOptions.file;
-							let { code, map } = result;
-
-							const promises = [];
-
-							if (outputOptions.sourcemap) {
-								let url;
-
-								if (outputOptions.sourcemap === 'inline') {
-									url = map.toUrl();
-								} else {
-									url = `${basename(file)}.map`;
-									promises.push(writeFile(file + '.map', map.toString()));
-								}
-
-								code += `//# ${SOURCEMAPPING_URL}=${url}\n`;
-							}
-
-							promises.push(writeFile(file, code));
-							return (
-								Promise.all(promises)
-									.then(() =>
-										mapSequence(graph.plugins.filter(plugin => plugin.onwrite), (plugin: Plugin) =>
-											Promise.resolve(
-												plugin.onwrite(
-													Object.assign(
-														{
-															bundle: result
-														},
-														outputOptions
-													),
-													result
-												)
-											)
-										)
-									)
-									// ensures return isn't void[]
-									.then(() => result)
-							);
-						});
-					}
-				};
-
-				if (inputOptions.perf === true) {
-					result.getTimings = getTimings;
-				}
-				return result;
-			});
-		}
-
-		// code splitting case
-		if (inputOptions.experimentalPreserveModules && typeof inputOptions.input === 'string') {
-			inputOptions.input = [inputOptions.input];
-		}
-		if (!(Array.isArray(inputOptions.input) || typeof inputOptions.input === 'object')) {
-			error({
-				code: 'INVALID_OPTION',
-				message: 'When code-splitting, "input" must be an array or object of entry points.'
-			});
-		}
-
-		return graph
-			.buildChunks(
-				inputOptions.input,
-				inputOptions.manualChunks,
-				inputOptions.experimentalPreserveModules
+		return graph.pluginDriver
+			.hookParallel('buildStart', [inputOptions])
+			.then(() =>
+				graph.build(
+					inputOptions.input as string | string[] | Record<string, string>,
+					inputOptions.manualChunks,
+					inputOptions.inlineDynamicImports as boolean
+				)
+			)
+			.then(
+				chunks => graph.pluginDriver.hookParallel('buildEnd', []).then(() => chunks),
+				err =>
+					graph.pluginDriver.hookParallel('buildEnd', [err]).then(() => {
+						throw err;
+					})
 			)
 			.then(chunks => {
 				timeEnd('BUILD', 1);
@@ -295,163 +211,142 @@ export default function rollup(
 				// ensure we only do one optimization pass per build
 				let optimized = false;
 
-				function generate(rawOutputOptions: GenericConfigObject) {
-					const outputOptions = normalizeOutputOptions(inputOptions, rawOutputOptions);
+				function getOutputOptions(rawOutputOptions: GenericConfigObject) {
+					return normalizeOutputOptions(
+						inputOptions as GenericConfigObject,
+						rawOutputOptions,
+						chunks.length > 1,
+						graph.pluginDriver
+					);
+				}
 
-					if (typeof outputOptions.file === 'string')
-						error({
-							code: 'INVALID_OPTION',
-							message: 'When code-splitting, the "dir" output option must be used, not "file".'
-						});
-
-					if (outputOptions.format === 'umd' || outputOptions.format === 'iife') {
-						error({
-							code: 'INVALID_OPTION',
-							message:
-								'UMD and IIFE output formats are not supported with the experimentalCodeSplitting option.'
-						});
-					}
-
+				async function generate(
+					outputOptions: OutputOptions,
+					isWrite: boolean
+				): Promise<OutputBundle> {
 					timeStart('GENERATE', 1);
 
-					const generated: { [chunkName: string]: OutputChunk } = {};
+					const assetFileNames = outputOptions.assetFileNames || 'assets/[name]-[hash][extname]';
+					const outputBundleWithPlaceholders: OutputBundleWithPlaceholders = Object.create(null);
+					let outputBundle;
+					const inputBase = commondir(getAbsoluteEntryModulePaths(chunks));
+					graph.pluginDriver.startOutput(outputBundleWithPlaceholders, assetFileNames);
 
-					let preserveModulesBase: string;
-					if (inputOptions.experimentalPreserveModules)
-						preserveModulesBase = commondir(chunks.map(chunk => chunk.entryModule.id));
-					let existingNames = Object.create(null);
-
-					const promise = createAddons(graph, outputOptions)
-						.then(addons => {
-							// first pre-render all chunks
-							// then name all chunks
-							return (
-								Promise.resolve()
-									.then(() => {
-										if (!inputOptions.experimentalPreserveModules) {
-											for (let chunk of chunks) {
-												chunk.generateInternalExports(outputOptions);
-											}
-										}
-										for (let chunk of chunks) {
-											chunk.preRender(outputOptions);
-										}
-										if (!optimized && inputOptions.optimizeChunks) {
-											if (inputOptions.experimentalPreserveModules) {
-												error({
-													code: 'INVALID_OPTION',
-													message:
-														'experimentalPreserveModules does not support the optimizeChunks option.'
-												});
-											}
-											optimizeChunks(chunks, outputOptions, inputOptions.chunkGroupingSize);
-											optimized = true;
-										}
-										for (let chunk of chunks) {
-											if (inputOptions.experimentalPreserveModules) {
-												chunk.generateNamePreserveModules(preserveModulesBase);
-											} else {
-												let pattern;
-												if (chunk.isEntryModuleFacade) {
-													pattern = outputOptions.entryNames || '[alias].js';
-												} else {
-													pattern = outputOptions.chunkNames || '[alias]-[hash].js';
-												}
-												chunk.generateName(pattern, addons, outputOptions, existingNames);
-											}
-										}
-									})
-									// second render chunks given known names
-									.then(() => {
-										return Promise.all(
-											chunks.map(chunk => {
-												return chunk.render(outputOptions, addons).then(rendered => {
-													const output = {
-														imports: chunk.getImportIds(),
-														exports: chunk.getExportNames(),
-														modules: chunk.getModuleIds(),
-
-														code: rendered.code,
-														map: rendered.map
-													};
-
-													graph.plugins.forEach(plugin => {
-														if (plugin.ongenerate) {
-															plugin.ongenerate(Object.assign(chunk, outputOptions), output);
-														}
-													});
-
-													generated[chunk.id] = output;
-												});
-											})
-										);
-									})
+					try {
+						await graph.pluginDriver.hookParallel('renderStart', []);
+						const addons = await createAddons(graph, outputOptions);
+						for (const chunk of chunks) {
+							if (!inputOptions.preserveModules) chunk.generateInternalExports(outputOptions);
+							if (chunk.facadeModule && chunk.facadeModule.isEntryPoint)
+								chunk.exportMode = getExportMode(chunk, outputOptions);
+						}
+						for (const chunk of chunks) {
+							chunk.preRender(outputOptions, inputBase);
+						}
+						if (!optimized && inputOptions.experimentalOptimizeChunks) {
+							optimizeChunks(
+								chunks,
+								outputOptions,
+								inputOptions.chunkGroupingSize as number,
+								inputBase
 							);
-						})
-						.then(() => {
-							timeEnd('GENERATE', 1);
-							return generated;
-						});
+							optimized = true;
+						}
+						assignChunkIds(
+							chunks,
+							inputOptions,
+							outputOptions,
+							inputBase,
+							addons,
+							outputBundleWithPlaceholders
+						);
+						outputBundle = assignChunksToBundle(chunks, outputBundleWithPlaceholders);
 
-					Object.defineProperty(promise, 'code', throwAsyncGenerateError);
-					Object.defineProperty(promise, 'map', throwAsyncGenerateError);
+						await Promise.all(
+							chunks.map(chunk => {
+								const outputChunk = outputBundleWithPlaceholders[chunk.id as string] as OutputChunk;
+								return chunk.render(outputOptions, addons, outputChunk).then(rendered => {
+									outputChunk.code = rendered.code;
+									outputChunk.map = rendered.map;
 
-					return promise;
+									return graph.pluginDriver.hookParallel('ongenerate', [
+										{ bundle: outputChunk, ...outputOptions },
+										outputChunk
+									]);
+								});
+							})
+						);
+					} catch (error) {
+						await graph.pluginDriver.hookParallel('renderError', [error]);
+						throw error;
+					}
+					await graph.pluginDriver.hookSeq('generateBundle', [
+						outputOptions,
+						outputBundle,
+						isWrite
+					]);
+					graph.pluginDriver.finaliseAssets();
+
+					timeEnd('GENERATE', 1);
+					return outputBundle;
 				}
 
-				const result: BundleSet = {
-					cache: graph.getCache(),
-					generate,
-					write(outputOptions: OutputOptions) {
-						if (!outputOptions || !outputOptions.dir) {
+				const cache = useCache ? graph.getCache() : undefined;
+				const result: RollupBuild = {
+					cache: cache as RollupCache,
+					generate: ((rawOutputOptions: GenericConfigObject) => {
+						const promise = generate(getOutputOptions(rawOutputOptions), false).then(result =>
+							createOutput(result)
+						);
+						Object.defineProperty(promise, 'code', throwAsyncGenerateError);
+						Object.defineProperty(promise, 'map', throwAsyncGenerateError);
+						return promise;
+					}) as any,
+					watchFiles: Object.keys(graph.watchFiles),
+					write: ((rawOutputOptions: GenericConfigObject) => {
+						const outputOptions = getOutputOptions(rawOutputOptions);
+						if (!outputOptions.dir && !outputOptions.file) {
 							error({
 								code: 'MISSING_OPTION',
-								message: 'You must specify output.dir when code-splitting.'
+								message: 'You must specify "output.file" or "output.dir" for the build.'
 							});
 						}
-
-						return generate(outputOptions).then(result => {
-							const dir = outputOptions.dir;
-
-							return Promise.all(
-								Object.keys(result).map(chunkName => {
-									let chunk = result[chunkName];
-									let { code, map } = chunk;
-
-									const promises = [];
-
-									if (outputOptions.sourcemap) {
-										let url;
-
-										if (outputOptions.sourcemap === 'inline') {
-											url = (<any>map).toUrl();
-										} else {
-											url = `${chunkName}.map`;
-											promises.push(writeFile(dir + '/' + chunkName + '.map', map.toString()));
-										}
-
-										code += `//# ${SOURCEMAPPING_URL}=${url}\n`;
-									}
-
-									promises.push(writeFile(dir + '/' + chunkName, code));
-									return Promise.all(promises).then(() => {
-										return mapSequence(
-											graph.plugins.filter(plugin => plugin.onwrite),
-											(plugin: Plugin) =>
-												Promise.resolve(
-													plugin.onwrite(Object.assign({ bundle: chunk }, outputOptions), chunk)
-												)
-										);
+						return generate(outputOptions, true).then(bundle => {
+							let chunkCnt = 0;
+							for (const fileName of Object.keys(bundle)) {
+								const file = bundle[fileName];
+								if ((file as OutputAsset).isAsset) continue;
+								chunkCnt++;
+								if (chunkCnt > 1) break;
+							}
+							if (chunkCnt > 1) {
+								if (outputOptions.sourcemapFile)
+									error({
+										code: 'INVALID_OPTION',
+										message: '"output.sourcemapFile" is only supported for single-file builds.'
 									});
-								})
-							).then(() => result);
+								if (typeof outputOptions.file === 'string')
+									error({
+										code: 'INVALID_OPTION',
+										message:
+											'When building multiple chunks, the "output.dir" option must be used, not "output.file".' +
+											(typeof inputOptions.input !== 'string' ||
+											inputOptions.inlineDynamicImports === true
+												? ''
+												: ' To inline dynamic imports, set the "inlineDynamicImports" option.')
+									});
+							}
+							return Promise.all(
+								Object.keys(bundle).map(chunkId =>
+									writeOutputFile(graph, result, bundle[chunkId], outputOptions)
+								)
+							)
+								.then(() => graph.pluginDriver.hookParallel('writeBundle', [bundle]))
+								.then(() => createOutput(bundle));
 						});
-					}
+					}) as any
 				};
-
-				if (inputOptions.perf === true) {
-					result.getTimings = getTimings;
-				}
+				if (inputOptions.perf === true) result.getTimings = getTimings;
 				return result;
 			});
 	} catch (err) {
@@ -459,36 +354,156 @@ export default function rollup(
 	}
 }
 
+enum SortingFileType {
+	ENTRY_CHUNK = 0,
+	SECONDARY_CHUNK = 1,
+	ASSET = 2
+}
+
+function getSortingFileType(file: OutputAsset | OutputChunk): SortingFileType {
+	if ((file as OutputAsset).isAsset) {
+		return SortingFileType.ASSET;
+	}
+	if ((file as OutputChunk).isEntry) {
+		return SortingFileType.ENTRY_CHUNK;
+	}
+	return SortingFileType.SECONDARY_CHUNK;
+}
+
+function createOutput(outputBundle: Record<string, OutputChunk | OutputAsset | {}>): RollupOutput {
+	return {
+		output: (Object.keys(outputBundle)
+			.map(fileName => outputBundle[fileName])
+			.filter(outputFile => Object.keys(outputFile).length > 0) as (
+			| OutputChunk
+			| OutputAsset)[]).sort((outputFileA, outputFileB) => {
+			const fileTypeA = getSortingFileType(outputFileA);
+			const fileTypeB = getSortingFileType(outputFileB);
+			if (fileTypeA === fileTypeB) return 0;
+			return fileTypeA < fileTypeB ? -1 : 1;
+		}) as [OutputChunk, ...(OutputChunk | OutputAsset)[]]
+	};
+}
+
+function isOutputAsset(file: OutputAsset | OutputChunk): file is OutputAsset {
+	return (file as OutputAsset).isAsset === true;
+}
+
+function writeOutputFile(
+	graph: Graph,
+	build: RollupBuild,
+	outputFile: OutputAsset | OutputChunk,
+	outputOptions: OutputOptions
+): Promise<void> {
+	const fileName = resolve(
+		outputOptions.dir || dirname(outputOptions.file as string),
+		outputFile.fileName
+	);
+	let writeSourceMapPromise: Promise<void>;
+	let source: string | Buffer;
+	if (isOutputAsset(outputFile)) {
+		source = outputFile.source;
+	} else {
+		source = outputFile.code;
+		if (outputOptions.sourcemap && outputFile.map) {
+			let url: string;
+			if (outputOptions.sourcemap === 'inline') {
+				url = outputFile.map.toUrl();
+			} else {
+				url = `${basename(outputFile.fileName)}.map`;
+				writeSourceMapPromise = writeFile(`${fileName}.map`, outputFile.map.toString());
+			}
+			source += `//# ${SOURCEMAPPING_URL}=${url}\n`;
+		}
+	}
+
+	return writeFile(fileName, source)
+		.then(() => writeSourceMapPromise)
+		.then(
+			(): any =>
+				!isOutputAsset(outputFile) &&
+				graph.pluginDriver.hookSeq('onwrite', [
+					{
+						bundle: build,
+						...outputOptions
+					},
+					outputFile
+				])
+		)
+		.then(() => {});
+}
+
 function normalizeOutputOptions(
 	inputOptions: GenericConfigObject,
-	rawOutputOptions: GenericConfigObject
+	rawOutputOptions: GenericConfigObject,
+	hasMultipleChunks: boolean,
+	pluginDriver: PluginDriver
 ): OutputOptions {
 	if (!rawOutputOptions) {
 		throw new Error('You must supply an options object');
 	}
-	// since deprecateOptions, adds the output properties
-	// to `inputOptions` so adding that lastly
-	const consolidatedOutputOptions = Object.assign(
-		{},
-		{
-			output: Object.assign({}, rawOutputOptions, rawOutputOptions.output, inputOptions.output)
-		}
-	);
 	const mergedOptions = mergeOptions({
-		// just for backward compatiblity to fallback on root
-		// if the option isn't present in `output`
-		config: consolidatedOutputOptions,
-		deprecateConfig: { output: true }
+		config: {
+			output: { ...rawOutputOptions, ...rawOutputOptions.output, ...inputOptions.output }
+		}
 	});
 
 	if (mergedOptions.optionError) throw new Error(mergedOptions.optionError);
 
 	// now outputOptions is an array, but rollup.rollup API doesn't support arrays
-	const outputOptions = mergedOptions.outputOptions[0];
-	const deprecations = mergedOptions.deprecations;
+	const mergedOutputOptions = mergedOptions.outputOptions[0];
+	const outputOptionsReducer = (outputOptions: OutputOptions, result: OutputOptions) =>
+		result || outputOptions;
+	const outputOptions = pluginDriver.hookReduceArg0Sync(
+		'outputOptions',
+		[mergedOutputOptions],
+		outputOptionsReducer,
+		pluginContext => {
+			const emitError = () => pluginContext.error(errCannotEmitFromOptionsHook());
+			return {
+				...pluginContext,
+				emitFile: emitError,
+				setAssetSource: emitError
+			};
+		}
+	);
 
-	if (deprecations.length) addDeprecations(deprecations, inputOptions.onwarn);
 	checkOutputOptions(outputOptions);
+
+	if (typeof outputOptions.file === 'string') {
+		if (typeof outputOptions.dir === 'string')
+			error({
+				code: 'INVALID_OPTION',
+				message:
+					'You must set either "output.file" for a single-file build or "output.dir" when generating multiple chunks.'
+			});
+		if (inputOptions.preserveModules) {
+			error({
+				code: 'INVALID_OPTION',
+				message:
+					'You must set "output.dir" instead of "output.file" when using the "preserveModules" option.'
+			});
+		}
+		if (typeof inputOptions.input === 'object' && !Array.isArray(inputOptions.input))
+			error({
+				code: 'INVALID_OPTION',
+				message: 'You must set "output.dir" instead of "output.file" when providing named inputs.'
+			});
+	}
+
+	if (hasMultipleChunks) {
+		if (outputOptions.format === 'umd' || outputOptions.format === 'iife')
+			error({
+				code: 'INVALID_OPTION',
+				message: 'UMD and IIFE output formats are not supported for code-splitting builds.'
+			});
+		if (typeof outputOptions.file === 'string')
+			error({
+				code: 'INVALID_OPTION',
+				message:
+					'You must set "output.dir" instead of "output.file" when generating multiple chunks.'
+			});
+	}
 
 	return outputOptions;
 }

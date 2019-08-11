@@ -1,15 +1,15 @@
-var assert = require('assert');
-var MagicString = require('magic-string');
+const assert = require('assert');
+const MagicString = require('magic-string');
 
 module.exports = {
 	description: 'allows sourcemap chains with some untransformed modules (#404)',
 	options: {
 		plugins: [
 			{
-				transform: function(code, id) {
+				transform(code, id) {
 					if (/untransformed-modules\/foo/.test(id)) {
-						var s = new MagicString(code);
-						var index = code.indexOf('1');
+						const s = new MagicString(code);
+						const index = code.indexOf('1');
 						s.overwrite(index, index + 1, '2');
 
 						return {
@@ -21,7 +21,7 @@ module.exports = {
 			}
 		]
 	},
-	test: function() {
+	test() {
 		assert.ok(true);
 	}
 };

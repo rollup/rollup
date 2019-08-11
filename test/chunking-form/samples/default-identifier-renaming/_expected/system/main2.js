@@ -1,9 +1,9 @@
-System.register(['./chunk-d7e2f776.js'], function (exports, module) {
+System.register(['./generated-shared.js'], function (exports) {
 	'use strict';
 	var d;
 	return {
 		setters: [function (module) {
-			d = module.a;
+			d = module.d;
 		}],
 		execute: function () {
 

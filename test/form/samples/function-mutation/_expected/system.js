@@ -1,9 +1,10 @@
-System.register([], function (exports, module) {
+System.register('bundle', [], function (exports) {
 	'use strict';
 	return {
 		execute: function () {
 
 			exports('a', a);
+
 			function foo () {
 				console.log( 'foo' );
 			}

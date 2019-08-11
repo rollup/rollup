@@ -1,7 +1,7 @@
 'use strict';
 
-var __chunk_2 = require('./chunk-11e07399.js');
-require('./chunk-8a340a3c.js');
-require('./chunk-4b766e46.js');
+require('./generated-dep1.js');
+var shared2 = require('./generated-shared2.js');
+require('./generated-dep2.js');
 
-console.log(__chunk_2.x + __chunk_2.y);
+console.log(shared2.x + shared2.y);

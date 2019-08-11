@@ -1,25 +1,25 @@
-System.register(['./chunk-9a21be24.js'], function (exports, module) {
+System.register(['./generated-dep2.js'], function (exports) {
   'use strict';
-  var fn;
+  var fn$2;
   return {
     setters: [function (module) {
-      fn = module.a;
+      fn$2 = module.f;
     }],
     execute: function () {
 
-      function fn$1 () {
+      function fn () {
         console.log('lib1 fn');
       }
 
-      function fn$2 () {
-        fn$1();
+      function fn$1 () {
+        fn();
         console.log('dep3 fn');
       }
 
       class Main2 {
         constructor () {
+          fn$1();
           fn$2();
-          fn();
         }
       } exports('default', Main2);
 

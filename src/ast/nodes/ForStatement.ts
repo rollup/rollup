@@ -1,25 +1,21 @@
-import BlockScope from '../scopes/BlockScope';
-import VariableDeclaration from './VariableDeclaration';
-import ExecutionPathOptions from '../ExecutionPathOptions';
-import Scope from '../scopes/Scope';
-import { NodeType } from './NodeType';
-import { ExpressionNode, Node, StatementBase, StatementNode } from './shared/Node';
 import MagicString from 'magic-string';
 import { NO_SEMICOLON, RenderOptions } from '../../utils/renderHelpers';
-
-export function isForStatement(node: Node): node is ForStatement {
-	return node.type === NodeType.ForStatement;
-}
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import BlockScope from '../scopes/BlockScope';
+import Scope from '../scopes/Scope';
+import * as NodeType from './NodeType';
+import { ExpressionNode, StatementBase, StatementNode } from './shared/Node';
+import VariableDeclaration from './VariableDeclaration';
 
 export default class ForStatement extends StatementBase {
-	type: NodeType.ForStatement;
-	init: VariableDeclaration | ExpressionNode | null;
-	test: ExpressionNode | null;
-	update: ExpressionNode | null;
-	body: StatementNode;
+	body!: StatementNode;
+	init!: VariableDeclaration | ExpressionNode | null;
+	test!: ExpressionNode | null;
+	type!: NodeType.tForStatement;
+	update!: ExpressionNode | null;
 
 	createScope(parentScope: Scope) {
-		this.scope = new BlockScope({ parent: parentScope });
+		this.scope = new BlockScope(parentScope);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {

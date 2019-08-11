@@ -1,4 +1,4 @@
-var myBundle = (function (exports,external) {
+var myBundle = (function (exports, external) {
 	'use strict';
 
 	class Foo extends external.Component {
@@ -26,10 +26,10 @@ var myBundle = (function (exports,external) {
 	const bar = new Bar();
 	const baz = new Baz();
 
-	exports.foo = foo;
 	exports.bar = bar;
 	exports.baz = baz;
+	exports.foo = foo;
 
 	return exports;
 
-}({},external));
+}({}, external));

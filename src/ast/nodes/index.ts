@@ -19,9 +19,9 @@ import ExportAllDeclaration from './ExportAllDeclaration';
 import ExportDefaultDeclaration from './ExportDefaultDeclaration';
 import ExportNamedDeclaration from './ExportNamedDeclaration';
 import ExpressionStatement from './ExpressionStatement';
-import ForStatement from './ForStatement';
 import ForInStatement from './ForInStatement';
 import ForOfStatement from './ForOfStatement';
+import ForStatement from './ForStatement';
 import FunctionDeclaration from './FunctionDeclaration';
 import FunctionExpression from './FunctionExpression';
 import Identifier from './Identifier';
@@ -32,6 +32,7 @@ import LabeledStatement from './LabeledStatement';
 import Literal from './Literal';
 import LogicalExpression from './LogicalExpression';
 import MemberExpression from './MemberExpression';
+import MetaProperty from './MetaProperty';
 import MethodDefinition from './MethodDefinition';
 import NewExpression from './NewExpression';
 import ObjectExpression from './ObjectExpression';
@@ -41,6 +42,8 @@ import Property from './Property';
 import RestElement from './RestElement';
 import ReturnStatement from './ReturnStatement';
 import SequenceExpression from './SequenceExpression';
+import { NodeBase } from './shared/Node';
+import SpreadElement from './SpreadElement';
 import SwitchCase from './SwitchCase';
 import SwitchStatement from './SwitchStatement';
 import TaggedTemplateExpression from './TaggedTemplateExpression';
@@ -48,14 +51,14 @@ import TemplateElement from './TemplateElement';
 import TemplateLiteral from './TemplateLiteral';
 import ThisExpression from './ThisExpression';
 import ThrowStatement from './ThrowStatement';
+import TryStatement from './TryStatement';
 import UnaryExpression from './UnaryExpression';
 import UnknownNode from './UnknownNode';
 import UpdateExpression from './UpdateExpression';
-import VariableDeclarator from './VariableDeclarator';
 import VariableDeclaration from './VariableDeclaration';
+import VariableDeclarator from './VariableDeclarator';
 import WhileStatement from './WhileStatement';
 import YieldExpression from './YieldExpression';
-import { NodeBase, StatementBase } from './shared/Node';
 
 export const nodeConstructors: {
 	[name: string]: typeof NodeBase;
@@ -81,9 +84,9 @@ export const nodeConstructors: {
 	ExportDefaultDeclaration,
 	ExportNamedDeclaration,
 	ExpressionStatement,
-	ForStatement,
 	ForInStatement,
 	ForOfStatement,
+	ForStatement,
 	FunctionDeclaration,
 	FunctionExpression,
 	Identifier,
@@ -94,6 +97,7 @@ export const nodeConstructors: {
 	Literal,
 	LogicalExpression,
 	MemberExpression,
+	MetaProperty,
 	MethodDefinition,
 	NewExpression,
 	ObjectExpression,
@@ -103,6 +107,7 @@ export const nodeConstructors: {
 	RestElement,
 	ReturnStatement,
 	SequenceExpression,
+	SpreadElement,
 	SwitchCase,
 	SwitchStatement,
 	TaggedTemplateExpression,
@@ -110,12 +115,12 @@ export const nodeConstructors: {
 	TemplateLiteral,
 	ThisExpression,
 	ThrowStatement,
-	TryStatement: StatementBase,
+	TryStatement,
 	UnaryExpression,
 	UnknownNode,
 	UpdateExpression,
-	VariableDeclarator,
 	VariableDeclaration,
+	VariableDeclarator,
 	WhileStatement,
 	YieldExpression
 };

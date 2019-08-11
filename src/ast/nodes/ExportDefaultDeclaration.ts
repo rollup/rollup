@@ -1,16 +1,18 @@
-import { ExpressionNode, Node, NodeBase } from './shared/Node';
-import ExportDefaultVariable from '../variables/ExportDefaultVariable';
-import ClassDeclaration, { isClassDeclaration } from './ClassDeclaration';
-import FunctionDeclaration, { isFunctionDeclaration } from './FunctionDeclaration';
-import Identifier, { isIdentifier } from './Identifier';
 import MagicString from 'magic-string';
-import { NodeType } from './NodeType';
+import { BLANK } from '../../utils/blank';
 import {
 	findFirstOccurrenceOutsideComment,
 	NodeRenderOptions,
 	RenderOptions
 } from '../../utils/renderHelpers';
-import { BLANK } from '../../utils/blank';
+import { treeshakeNode } from '../../utils/treeshakeNode';
+import ModuleScope from '../scopes/ModuleScope';
+import ExportDefaultVariable from '../variables/ExportDefaultVariable';
+import ClassDeclaration from './ClassDeclaration';
+import FunctionDeclaration from './FunctionDeclaration';
+import Identifier from './Identifier';
+import * as NodeType from './NodeType';
+import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 
 const WHITESPACE = /\s/;
 
@@ -32,40 +34,30 @@ function getIdInsertPosition(code: string, declarationKeyword: string, start = 0
 	return declarationEnd + generatorStarPos + 1;
 }
 
-export function isExportDefaultDeclaration(node: Node): node is ExportDefaultDeclaration {
-	return node.type === NodeType.ExportDefaultDeclaration;
-}
-
 export default class ExportDefaultDeclaration extends NodeBase {
-	type: NodeType.ExportDefaultDeclaration;
-	declaration: FunctionDeclaration | ClassDeclaration | ExpressionNode;
+	declaration!: FunctionDeclaration | ClassDeclaration | ExpressionNode;
+	needsBoundaries!: true;
+	scope!: ModuleScope;
+	type!: NodeType.tExportDefaultDeclaration;
+	variable!: ExportDefaultVariable;
 
-	needsBoundaries: true;
-	variable: ExportDefaultVariable;
-	private declarationName: string;
+	private declarationName: string | undefined;
 
-	bind() {
-		super.bind();
-		if (
-			this.declarationName &&
-			// Do not set it for Class and FunctionExpressions otherwise they get treeshaken away
-			(isFunctionDeclaration(this.declaration) ||
-				isClassDeclaration(this.declaration) ||
-				isIdentifier(this.declaration))
-		) {
-			this.variable.setOriginalVariable(this.scope.findVariable(this.declarationName));
+	include(includeChildrenRecursively: IncludeChildren) {
+		super.include(includeChildrenRecursively);
+		if (includeChildrenRecursively) {
+			this.context.includeVariable(this.variable);
 		}
 	}
 
 	initialise() {
-		this.included = false;
+		const declaration = this.declaration as FunctionDeclaration | ClassDeclaration;
 		this.declarationName =
-			((<FunctionDeclaration | ClassDeclaration>this.declaration).id &&
-				(<FunctionDeclaration | ClassDeclaration>this.declaration).id.name) ||
-			(<Identifier>this.declaration).name;
+			(declaration.id && declaration.id.name) || (this.declaration as Identifier).name;
 		this.variable = this.scope.addExportDefaultDeclaration(
 			this.declarationName || this.context.getModuleName(),
-			this
+			this,
+			this.context
 		);
 		this.context.addExport(this);
 	}
@@ -73,7 +65,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 	render(code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
 		const declarationStart = getDeclarationStart(code.original, this.start);
 
-		if (isFunctionDeclaration(this.declaration)) {
+		if (this.declaration instanceof FunctionDeclaration) {
 			this.renderNamedDeclaration(
 				code,
 				declarationStart,
@@ -81,7 +73,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 				this.declaration.id === null,
 				options
 			);
-		} else if (isClassDeclaration(this.declaration)) {
+		} else if (this.declaration instanceof ClassDeclaration) {
 			this.renderNamedDeclaration(
 				code,
 				declarationStart,
@@ -89,16 +81,16 @@ export default class ExportDefaultDeclaration extends NodeBase {
 				this.declaration.id === null,
 				options
 			);
-		} else if (this.variable.referencesOriginal()) {
+		} else if (this.variable.getOriginalVariable() !== this.variable) {
 			// Remove altogether to prevent re-declaring the same variable
-			if (options.systemBindings && this.variable.exportName) {
+			if (options.format === 'system' && this.variable.exportName) {
 				code.overwrite(
-					start,
-					end,
+					start as number,
+					end as number,
 					`exports('${this.variable.exportName}', ${this.variable.getName()});`
 				);
 			} else {
-				code.remove(start, end);
+				treeshakeNode(this, code, start as number, end as number);
 			}
 			return;
 		} else if (this.variable.included) {
@@ -106,15 +98,15 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		} else {
 			code.remove(this.start, declarationStart);
 			this.declaration.render(code, options, {
-				renderedParentType: NodeType.ExpressionStatement,
-				isCalleeOfRenderedParent: false
+				isCalleeOfRenderedParent: false,
+				renderedParentType: NodeType.ExpressionStatement
 			});
 			if (code.original[this.end - 1] !== ';') {
 				code.appendLeft(this.end, ';');
 			}
 			return;
 		}
-		super.render(code, options);
+		this.declaration.render(code, options);
 	}
 
 	private renderNamedDeclaration(
@@ -135,8 +127,8 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			);
 		}
 		if (
-			options.systemBindings &&
-			isClassDeclaration(this.declaration) &&
+			options.format === 'system' &&
+			this.declaration instanceof ClassDeclaration &&
 			this.variable.exportName
 		) {
 			code.appendLeft(this.end, ` exports('${this.variable.exportName}', ${name});`);
@@ -149,16 +141,22 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		options: RenderOptions
 	) {
 		const systemBinding =
-			options.systemBindings && this.variable.exportName
+			options.format === 'system' && this.variable.exportName
 				? `exports('${this.variable.exportName}', `
 				: '';
 		code.overwrite(
 			this.start,
 			declarationStart,
-			`${this.context.varOrConst} ${this.variable.getName()} = ${systemBinding}`
+			`${options.varOrConst} ${this.variable.getName()} = ${systemBinding}`
 		);
+		const hasTrailingSemicolon = code.original.charCodeAt(this.end - 1) === 59; /*";"*/
 		if (systemBinding) {
-			code.appendRight(code.original[this.end - 1] === ';' ? this.end - 1 : this.end, ')');
+			code.appendRight(
+				hasTrailingSemicolon ? this.end - 1 : this.end,
+				')' + (hasTrailingSemicolon ? '' : ';')
+			);
+		} else if (!hasTrailingSemicolon) {
+			code.appendLeft(this.end, ';');
 		}
 	}
 }

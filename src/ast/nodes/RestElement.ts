@@ -1,23 +1,38 @@
-import { ObjectPath, UNKNOWN_EXPRESSION } from '../values';
-import ExecutionPathOptions from '../ExecutionPathOptions';
-import { PatternNode } from './shared/Pattern';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { EMPTY_PATH, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_KEY } from '../values';
+import Variable from '../variables/Variable';
+import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
 import { NodeBase } from './shared/Node';
-import { NodeType } from './NodeType';
+import { PatternNode } from './shared/Pattern';
 
 export default class RestElement extends NodeBase implements PatternNode {
-	type: NodeType.RestElement;
-	argument: PatternNode;
+	argument!: PatternNode;
+	type!: NodeType.tRestElement;
 
-	declare(kind: string, _init: ExpressionEntity | null) {
-		this.argument.declare(kind, UNKNOWN_EXPRESSION);
+	private declarationInit: ExpressionEntity | null = null;
+
+	addExportedVariables(variables: Variable[]): void {
+		this.argument.addExportedVariables(variables);
+	}
+
+	bind() {
+		super.bind();
+		if (this.declarationInit !== null) {
+			this.declarationInit.deoptimizePath([UNKNOWN_KEY, UNKNOWN_KEY]);
+		}
+	}
+
+	declare(kind: string, init: ExpressionEntity) {
+		this.declarationInit = init;
+		return this.argument.declare(kind, UNKNOWN_EXPRESSION);
+	}
+
+	deoptimizePath(path: ObjectPath) {
+		path.length === 0 && this.argument.deoptimizePath(EMPTY_PATH);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return path.length > 0 || this.argument.hasEffectsWhenAssignedAtPath([], options);
-	}
-
-	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
-		path.length === 0 && this.argument.reassignPath([], options);
+		return path.length > 0 || this.argument.hasEffectsWhenAssignedAtPath(EMPTY_PATH, options);
 	}
 }

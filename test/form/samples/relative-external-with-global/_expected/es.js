@@ -1,4 +1,4 @@
-import throttle from '../lib/throttle.js';
+import throttle from './lib/throttle.js';
 
 const fn = throttle( () => {
 	console.log( '.' );

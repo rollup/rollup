@@ -1,25 +1,25 @@
-var assert = require('assert');
+const assert = require('assert');
 
 module.exports = {
 	description: 'accepts multiple transformer functions',
 	options: {
 		plugins: [
 			{
-				transform: function(code, path) {
+				transform(code, path) {
 					return code.replace(/MAGIC_NUMBER/g, 3);
 				}
 			},
 
 			{
-				transform: function(code, path) {
-					return code.replace(/\d+/g, function(match) {
+				transform(code, path) {
+					return code.replace(/\d+/g, (match) => {
 						return 2 * +match;
 					});
 				}
 			}
 		]
 	},
-	exports: function(exports) {
+	exports(exports) {
 		assert.equal(exports.magicNumber, 6);
 	}
 };

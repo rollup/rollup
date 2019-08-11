@@ -1,30 +1,30 @@
-import { ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
+import ExternalModule from '../../ExternalModule';
+import Module from '../../Module';
 import CallOptions from '../CallOptions';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { DeoptimizableEntity } from '../DeoptimizableEntity';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import Identifier from '../nodes/Identifier';
-import {
-	ExpressionEntity,
-	ForEachReturnExpressionCallback,
-	SomeReturnExpressionCallback
-} from '../nodes/shared/Expression';
+import { ExpressionEntity } from '../nodes/shared/Expression';
+import { ExpressionNode } from '../nodes/shared/Node';
+import SpreadElement from '../nodes/SpreadElement';
+import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
+import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 
 export default class Variable implements ExpressionEntity {
-	name: string;
-	safeName: string;
-	isExternal?: boolean;
-	isDefault?: boolean;
-	isNamespace?: boolean;
-
-	// Not initialised during construction
+	alwaysRendered = false;
 	exportName: string | null = null;
-	included: boolean = false;
-	isId: boolean = false;
-	reexported: boolean = false;
-	isReassigned: boolean = false;
+	included = false;
+	isId = false;
+	isNamespace?: boolean;
+	isReassigned = false;
+	module?: Module | ExternalModule;
+	name: string;
+	renderBaseName: string | null = null;
+	renderName: string | null = null;
+	safeExportName: string | null = null;
 
 	constructor(name: string) {
 		this.name = name;
-		this.safeName = null;
 	}
 
 	/**
@@ -33,29 +33,31 @@ export default class Variable implements ExpressionEntity {
 	 */
 	addReference(_identifier: Identifier) {}
 
-	forEachReturnExpressionWhenCalledAtPath(
-		_path: ObjectPath,
-		_callOptions: CallOptions,
-		_callback: ForEachReturnExpressionCallback,
-		_options: ExecutionPathOptions
-	) {}
+	deoptimizePath(_path: ObjectPath) {}
 
-	getName(reset?: boolean): string {
-		if (
-			reset &&
-			this.safeName &&
-			this.safeName !== this.name &&
-			this.safeName[this.name.length] === '$' &&
-			this.safeName[this.name.length + 1] === '$'
-		) {
-			this.safeName = undefined;
-			return this.name;
-		}
-		return this.safeName || this.name;
+	getBaseVariableName(): string {
+		return this.renderBaseName || this.renderName || this.name;
 	}
 
-	getValue() {
+	getLiteralValueAtPath(
+		_path: ObjectPath,
+		_recursionTracker: ImmutableEntityPathTracker,
+		_origin: DeoptimizableEntity
+	): LiteralValueOrUnknown {
 		return UNKNOWN_VALUE;
+	}
+
+	getName(): string {
+		const name = this.renderName || this.name;
+		return this.renderBaseName ? `${this.renderBaseName}.${name}` : name;
+	}
+
+	getReturnExpressionWhenCalledAtPath(
+		_path: ObjectPath,
+		_recursionTracker: ImmutableEntityPathTracker,
+		_origin: DeoptimizableEntity
+	): ExpressionEntity {
+		return UNKNOWN_EXPRESSION;
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
@@ -84,19 +86,21 @@ export default class Variable implements ExpressionEntity {
 		this.included = true;
 	}
 
-	reassignPath(_path: ObjectPath, _options: ExecutionPathOptions) {}
-
-	setSafeName(name: string) {
-		this.safeName = name;
+	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+		for (const arg of args) {
+			arg.include(false);
+		}
 	}
 
-	someReturnExpressionWhenCalledAtPath(
-		_path: ObjectPath,
-		_callOptions: CallOptions,
-		predicateFunction: SomeReturnExpressionCallback,
-		options: ExecutionPathOptions
-	) {
-		return predicateFunction(options)(UNKNOWN_EXPRESSION);
+	markCalledFromTryStatement() {}
+
+	setRenderNames(baseName: string | null, name: string | null) {
+		this.renderBaseName = baseName;
+		this.renderName = name;
+	}
+
+	setSafeName(name: string | null) {
+		this.renderName = name;
 	}
 
 	toString() {

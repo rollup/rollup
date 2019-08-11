@@ -1,14 +1,23 @@
 import { InputOptions, SerializedTimings } from '../rollup/types';
 
-type StartTime = [number, number] | number;
-type Timer = { time: number; start: StartTime };
-type Timers = { [label: string]: Timer };
+type StartTime = [number, number];
+
+interface Timer {
+	memory: number;
+	startMemory: number;
+	startTime: StartTime;
+	time: number;
+	totalMemory: number;
+}
+
+interface Timers {
+	[label: string]: Timer;
+}
 
 const NOOP = () => {};
-
-let getStartTime: () => StartTime = () => 0;
+let getStartTime: () => StartTime = () => [0, 0];
 let getElapsedTime: (previous: StartTime) => number = () => 0;
-
+let getMemory: () => number = () => 0;
 let timers: Timers = {};
 
 const normalizeHrTime = (time: [number, number]) => time[0] * 1e3 + time[1] / 1e6;
@@ -16,10 +25,13 @@ const normalizeHrTime = (time: [number, number]) => time[0] * 1e3 + time[1] / 1e
 function setTimeHelpers() {
 	if (typeof process !== 'undefined' && typeof process.hrtime === 'function') {
 		getStartTime = process.hrtime.bind(process);
-		getElapsedTime = (previous: [number, number]) => normalizeHrTime(process.hrtime(previous));
+		getElapsedTime = previous => normalizeHrTime(process.hrtime(previous));
 	} else if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
-		getStartTime = performance.now.bind(performance);
-		getElapsedTime = (previous: number) => performance.now() - previous;
+		getStartTime = () => [performance.now(), 0];
+		getElapsedTime = previous => performance.now() - previous[0];
+	}
+	if (typeof process !== 'undefined' && typeof process.memoryUsage === 'function') {
+		getMemory = () => process.memoryUsage().heapUsed;
 	}
 }
 
@@ -36,28 +48,36 @@ function getPersistedLabel(label: string, level: number) {
 	}
 }
 
-function timeStartImpl(label: string, level: number = 3) {
+function timeStartImpl(label: string, level = 3) {
 	label = getPersistedLabel(label, level);
 	if (!timers.hasOwnProperty(label)) {
 		timers[label] = {
-			start: undefined,
-			time: 0
+			memory: 0,
+			startMemory: undefined as any,
+			startTime: undefined as any,
+			time: 0,
+			totalMemory: 0
 		};
 	}
-	timers[label].start = getStartTime();
+	const currentMemory = getMemory();
+	timers[label].startTime = getStartTime();
+	timers[label].startMemory = currentMemory;
 }
 
-function timeEndImpl(label: string, level: number = 3) {
+function timeEndImpl(label: string, level = 3) {
 	label = getPersistedLabel(label, level);
 	if (timers.hasOwnProperty(label)) {
-		timers[label].time += getElapsedTime(timers[label].start);
+		const currentMemory = getMemory();
+		timers[label].time += getElapsedTime(timers[label].startTime);
+		timers[label].totalMemory = Math.max(timers[label].totalMemory, currentMemory);
+		timers[label].memory += currentMemory - timers[label].startMemory;
 	}
 }
 
 export function getTimings(): SerializedTimings {
 	const newTimings: SerializedTimings = {};
 	Object.keys(timers).forEach(label => {
-		newTimings[label] = timers[label].time;
+		newTimings[label] = [timers[label].time, timers[label].memory, timers[label].totalMemory];
 	});
 	return newTimings;
 }
@@ -66,13 +86,13 @@ export let timeStart: (label: string, level?: number) => void = NOOP,
 	timeEnd: (label: string, level?: number) => void = NOOP;
 
 const TIMED_PLUGIN_HOOKS: { [hook: string]: boolean } = {
-	transform: true,
-	transformBundle: true,
 	load: true,
-	resolveId: true,
 	ongenerate: true,
 	onwrite: true,
-	resolveDynamicImport: true
+	resolveDynamicImport: true,
+	resolveId: true,
+	transform: true,
+	transformBundle: true
 };
 
 function getPluginWithTimers(plugin: any, index: number): Plugin {
@@ -99,7 +119,7 @@ function getPluginWithTimers(plugin: any, index: number): Plugin {
 			timedPlugin[hook] = plugin[hook];
 		}
 	}
-	return <Plugin>timedPlugin;
+	return timedPlugin as Plugin;
 }
 
 export function initialiseTimers(inputOptions: InputOptions) {
@@ -108,7 +128,7 @@ export function initialiseTimers(inputOptions: InputOptions) {
 		setTimeHelpers();
 		timeStart = timeStartImpl;
 		timeEnd = timeEndImpl;
-		inputOptions.plugins = inputOptions.plugins.map(getPluginWithTimers);
+		inputOptions.plugins = (inputOptions.plugins as Plugin[]).map(getPluginWithTimers);
 	} else {
 		timeStart = NOOP;
 		timeEnd = NOOP;

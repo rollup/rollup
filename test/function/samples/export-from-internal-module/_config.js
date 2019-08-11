@@ -1,8 +1,8 @@
-var assert = require('assert');
+const assert = require('assert');
 
 module.exports = {
 	description: 'exports from an internal module',
-	exports: function(exports) {
+	exports(exports) {
 		assert.equal(exports.foo, 42);
 	}
 };

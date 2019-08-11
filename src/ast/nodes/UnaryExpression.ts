@@ -1,44 +1,53 @@
-import { ObjectPath, UNKNOWN_VALUE } from '../values';
-import ExecutionPathOptions from '../ExecutionPathOptions';
-import { NodeType } from './NodeType';
+import { DeoptimizableEntity } from '../DeoptimizableEntity';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
+import { EMPTY_PATH, LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../values';
+import { LiteralValue } from './Literal';
+import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
-const operators: {
-	[operator: string]: (value: any) => any;
+const unaryOperators: {
+	[operator: string]: (value: LiteralValue) => LiteralValueOrUnknown;
 } = {
-	'-': (value: any) => -value,
-	'+': (value: any) => +value,
-	'!': (value: any) => !value,
-	'~': (value: any) => ~value,
-	typeof: (value: any) => typeof value,
-	void: (): any => undefined,
-	delete: () => UNKNOWN_VALUE
+	'!': value => !value,
+	'+': value => +(value as NonNullable<LiteralValue>),
+	'-': value => -(value as NonNullable<LiteralValue>),
+	delete: () => UNKNOWN_VALUE,
+	typeof: value => typeof value,
+	void: () => undefined,
+	'~': value => ~(value as NonNullable<LiteralValue>)
 };
 
 export default class UnaryExpression extends NodeBase {
-	type: NodeType.UnaryExpression;
-	operator: '-' | '+' | '!' | '~' | 'typeof' | 'void' | 'delete';
-	prefix: boolean;
-	argument: ExpressionNode;
+	argument!: ExpressionNode;
+	operator!: keyof typeof unaryOperators;
+	prefix!: boolean;
+	type!: NodeType.tUnaryExpression;
 
 	bind() {
 		super.bind();
 		if (this.operator === 'delete') {
-			this.argument.reassignPath([], ExecutionPathOptions.create());
+			this.argument.deoptimizePath(EMPTY_PATH);
 		}
 	}
 
-	getValue(): any {
-		const argumentValue: any = this.argument.getValue();
+	getLiteralValueAtPath(
+		path: ObjectPath,
+		recursionTracker: ImmutableEntityPathTracker,
+		origin: DeoptimizableEntity
+	): LiteralValueOrUnknown {
+		if (path.length > 0) return UNKNOWN_VALUE;
+		const argumentValue = this.argument.getLiteralValueAtPath(EMPTY_PATH, recursionTracker, origin);
 		if (argumentValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 
-		return operators[this.operator](argumentValue);
+		return unaryOperators[this.operator](argumentValue as LiteralValue);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
 		return (
 			this.argument.hasEffects(options) ||
-			(this.operator === 'delete' && this.argument.hasEffectsWhenAssignedAtPath([], options))
+			(this.operator === 'delete' &&
+				this.argument.hasEffectsWhenAssignedAtPath(EMPTY_PATH, options))
 		);
 	}
 

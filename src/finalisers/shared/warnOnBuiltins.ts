@@ -1,33 +1,36 @@
 import { ChunkDependencies } from '../../Chunk';
-import Graph from '../../Graph';
+import { RollupWarning } from '../../rollup/types';
 
 const builtins = {
-	process: true,
-	events: true,
-	stream: true,
-	util: true,
-	path: true,
+	assert: true,
 	buffer: true,
-	querystring: true,
-	url: true,
-	string_decoder: true,
-	punycode: true,
+	console: true,
+	constants: true,
+	domain: true,
+	events: true,
 	http: true,
 	https: true,
 	os: true,
-	assert: true,
-	constants: true,
+	path: true,
+	process: true,
+	punycode: true,
+	querystring: true,
+	stream: true,
+	string_decoder: true,
 	timers: true,
-	console: true,
-	vm: true,
-	zlib: true,
 	tty: true,
-	domain: true
+	url: true,
+	util: true,
+	vm: true,
+	zlib: true
 };
 
 // Creating a browser chunk that depends on Node.js built-in modules ('util'). You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins
 
-export default function warnOnBuiltins(graph: Graph, dependencies: ChunkDependencies) {
+export default function warnOnBuiltins(
+	warn: (warning: RollupWarning) => void,
+	dependencies: ChunkDependencies
+) {
 	const externalBuiltins = dependencies.map(({ id }) => id).filter(id => id in builtins);
 
 	if (!externalBuiltins.length) return;
@@ -40,9 +43,9 @@ export default function warnOnBuiltins(graph: Graph, dependencies: ChunkDependen
 					.map(name => `'${name}'`)
 					.join(', ')} and '${externalBuiltins.slice(-1)}')`;
 
-	graph.warn({
+	warn({
 		code: 'MISSING_NODE_BUILTINS',
-		modules: externalBuiltins,
-		message: `Creating a browser bundle that depends on Node.js built-in ${detail}. You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins`
+		message: `Creating a browser bundle that depends on Node.js built-in ${detail}. You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins`,
+		modules: externalBuiltins
 	});
 }

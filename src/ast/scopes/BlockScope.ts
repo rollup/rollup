@@ -1,20 +1,21 @@
-import Scope from './Scope';
+import { AstContext } from '../../Module';
 import Identifier from '../nodes/Identifier';
+import { ExpressionEntity } from '../nodes/shared/Expression';
+import { UNKNOWN_EXPRESSION } from '../values';
 import LocalVariable from '../variables/LocalVariable';
+import ChildScope from './ChildScope';
 
-export default class BlockScope extends Scope {
-	parent: Scope;
-
+export default class BlockScope extends ChildScope {
 	addDeclaration(
 		identifier: Identifier,
-		options = {
-			isHoisted: false
-		}
-	) {
-		if (options.isHoisted) {
-			return this.parent.addDeclaration(identifier, options) as LocalVariable;
+		context: AstContext,
+		init: ExpressionEntity | null = null,
+		isHoisted = false
+	): LocalVariable {
+		if (isHoisted) {
+			return this.parent.addDeclaration(identifier, context, UNKNOWN_EXPRESSION, true);
 		} else {
-			return super.addDeclaration(identifier, options) as LocalVariable;
+			return super.addDeclaration(identifier, context, init, false);
 		}
 	}
 }

@@ -1,7 +1,16 @@
-System.register([], function (exports, module) {
+System.register('bundle', [], function (exports) {
 	'use strict';
 	return {
 		execute: function () {
+
+			exports({
+				aBar: void 0,
+				aFoo: void 0,
+				bBar: void 0,
+				bFoo: void 0,
+				cFoo: void 0,
+				dBar: void 0
+			});
 
 			var aFoo, aBar;
 			aBar = exports('aBar', 2);

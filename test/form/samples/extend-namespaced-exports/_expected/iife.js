@@ -7,4 +7,4 @@ this.foo.bar = this.foo.bar || {};
 
 	exports.answer = answer;
 
-}((this.foo.bar.baz = this.foo.bar.baz || {})));
+}(this.foo.bar.baz = this.foo.bar.baz || {}));

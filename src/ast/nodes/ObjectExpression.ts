@@ -1,78 +1,240 @@
-import Property from './Property';
-import CallOptions from '../CallOptions';
-import ExecutionPathOptions from '../ExecutionPathOptions';
-import Identifier from './Identifier';
-import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
-import { isUnknownKey, objectMembers, ObjectPath, ObjectPathKey, UNKNOWN_KEY } from '../values';
-import { Node, NodeBase } from './shared/Node';
-import { NodeType } from './NodeType';
-import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import { BLANK } from '../../utils/blank';
 import MagicString from 'magic-string';
+import { BLANK } from '../../utils/blank';
+import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import CallOptions from '../CallOptions';
+import { DeoptimizableEntity } from '../DeoptimizableEntity';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import {
+	EMPTY_IMMUTABLE_TRACKER,
+	ImmutableEntityPathTracker
+} from '../utils/ImmutableEntityPathTracker';
+import {
+	EMPTY_PATH,
+	getMemberReturnExpressionWhenCalled,
+	hasMemberEffectWhenCalled,
+	LiteralValueOrUnknown,
+	objectMembers,
+	ObjectPath,
+	UNKNOWN_EXPRESSION,
+	UNKNOWN_PATH,
+	UNKNOWN_VALUE
+} from '../values';
+import Identifier from './Identifier';
+import Literal from './Literal';
+import * as NodeType from './NodeType';
+import Property from './Property';
+import { ExpressionEntity } from './shared/Expression';
+import { NodeBase } from './shared/Node';
+import SpreadElement from './SpreadElement';
 
-const PROPERTY_KINDS_READ = ['init', 'get'];
-const PROPERTY_KINDS_WRITE = ['init', 'set'];
-
-export function isObjectExpression(node: Node): node is ObjectExpression {
-	return node.type === NodeType.ObjectExpression;
+interface PropertyMap {
+	[key: string]: {
+		exactMatchRead: Property | null;
+		exactMatchWrite: Property | null;
+		propertiesRead: (Property | SpreadElement)[];
+		propertiesSet: Property[];
+	};
 }
 
 export default class ObjectExpression extends NodeBase {
-	type: NodeType.ObjectExpression;
-	properties: Property[];
+	properties!: (Property | SpreadElement)[];
+	type!: NodeType.tObjectExpression;
 
-	forEachReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback,
-		options: ExecutionPathOptions
-	) {
-		if (path.length === 0) return;
+	private deoptimizedPaths = new Set<string>();
+	// We collect deoptimization information if we can resolve a computed property access
+	private expressionsToBeDeoptimized = new Map<string, DeoptimizableEntity[]>();
+	private hasUnknownDeoptimizedProperty = false;
+	private propertyMap: PropertyMap | null = null;
+	private unmatchablePropertiesRead: (Property | SpreadElement)[] = [];
+	private unmatchablePropertiesWrite: Property[] = [];
 
-		const { properties, hasCertainHit } = this.getPossiblePropertiesWithName(
-			path[0],
-			PROPERTY_KINDS_READ
-		);
-		if (hasCertainHit) {
-			for (const property of properties) {
-				property.forEachReturnExpressionWhenCalledAtPath(
-					path.slice(1),
-					callOptions,
-					callback,
-					options
-				);
+	bind() {
+		super.bind();
+		if (this.propertyMap === null) this.buildPropertyMap();
+	}
+
+	// We could also track this per-property but this would quickly become much more complex
+	deoptimizeCache() {
+		if (!this.hasUnknownDeoptimizedProperty) this.deoptimizeAllProperties();
+	}
+
+	deoptimizePath(path: ObjectPath) {
+		if (this.hasUnknownDeoptimizedProperty) return;
+		if (this.propertyMap === null) this.buildPropertyMap();
+		if (path.length === 0) {
+			this.deoptimizeAllProperties();
+			return;
+		}
+		const key = path[0];
+		if (path.length === 1) {
+			if (typeof key !== 'string') {
+				this.deoptimizeAllProperties();
+				return;
+			}
+			if (!this.deoptimizedPaths.has(key)) {
+				this.deoptimizedPaths.add(key);
+
+				// we only deoptimizeCache exact matches as in all other cases,
+				// we do not return a literal value or return expression
+				const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized.get(key);
+				if (expressionsToBeDeoptimized) {
+					for (const expression of expressionsToBeDeoptimized) {
+						expression.deoptimizeCache();
+					}
+				}
 			}
 		}
+		const subPath = path.length === 1 ? UNKNOWN_PATH : path.slice(1);
+		for (const property of typeof key === 'string'
+			? (this.propertyMap as PropertyMap)[key]
+				? (this.propertyMap as PropertyMap)[key].propertiesRead
+				: []
+			: this.properties) {
+			property.deoptimizePath(subPath);
+		}
+	}
+
+	getLiteralValueAtPath(
+		path: ObjectPath,
+		recursionTracker: ImmutableEntityPathTracker,
+		origin: DeoptimizableEntity
+	): LiteralValueOrUnknown {
+		if (this.propertyMap === null) this.buildPropertyMap();
+		const key = path[0];
+
+		if (
+			path.length === 0 ||
+			this.hasUnknownDeoptimizedProperty ||
+			typeof key !== 'string' ||
+			this.deoptimizedPaths.has(key)
+		)
+			return UNKNOWN_VALUE;
+
+		if (
+			path.length === 1 &&
+			!(this.propertyMap as PropertyMap)[key] &&
+			!objectMembers[key] &&
+			(this.unmatchablePropertiesRead).length === 0
+		) {
+			const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized.get(key);
+			if (expressionsToBeDeoptimized) {
+				expressionsToBeDeoptimized.push(origin);
+			} else {
+				this.expressionsToBeDeoptimized.set(key, [origin]);
+			}
+			return undefined;
+		}
+
+		if (
+			!(this.propertyMap as PropertyMap)[key] ||
+			(this.propertyMap as PropertyMap)[key].exactMatchRead === null ||
+			(this.propertyMap as PropertyMap)[key].propertiesRead.length > 1
+		) {
+			return UNKNOWN_VALUE;
+		}
+
+		const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized.get(key);
+		if (expressionsToBeDeoptimized) {
+			expressionsToBeDeoptimized.push(origin);
+		} else {
+			this.expressionsToBeDeoptimized.set(key, [origin]);
+		}
+		return ((this.propertyMap as PropertyMap)[key]
+			.exactMatchRead as Property).getLiteralValueAtPath(path.slice(1), recursionTracker, origin);
+	}
+
+	getReturnExpressionWhenCalledAtPath(
+		path: ObjectPath,
+		recursionTracker: ImmutableEntityPathTracker,
+		origin: DeoptimizableEntity
+	): ExpressionEntity {
+		if (this.propertyMap === null) this.buildPropertyMap();
+		const key = path[0];
+
+		if (
+			path.length === 0 ||
+			this.hasUnknownDeoptimizedProperty ||
+			typeof key !== 'string' ||
+			this.deoptimizedPaths.has(key)
+		)
+			return UNKNOWN_EXPRESSION;
+
+		if (
+			path.length === 1 &&
+			objectMembers[key] &&
+			this.unmatchablePropertiesRead.length === 0 &&
+			(!(this.propertyMap as PropertyMap)[key] ||
+				(this.propertyMap as PropertyMap)[key].exactMatchRead === null)
+		)
+			return getMemberReturnExpressionWhenCalled(objectMembers, key);
+
+		if (
+			!(this.propertyMap as PropertyMap)[key] ||
+			(this.propertyMap as PropertyMap)[key].exactMatchRead === null ||
+			(this.propertyMap as PropertyMap)[key].propertiesRead.length > 1
+		)
+			return UNKNOWN_EXPRESSION;
+
+		const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized.get(key);
+		if (expressionsToBeDeoptimized) {
+			expressionsToBeDeoptimized.push(origin);
+		} else {
+			this.expressionsToBeDeoptimized.set(key, [origin]);
+		}
+		return ((this.propertyMap as PropertyMap)[key]
+			.exactMatchRead as Property).getReturnExpressionWhenCalledAtPath(
+			path.slice(1),
+			recursionTracker,
+			origin
+		);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
 		if (path.length === 0) return false;
+		const key = path[0];
+		if (
+			path.length > 1 &&
+			(this.hasUnknownDeoptimizedProperty ||
+				typeof key !== 'string' ||
+				this.deoptimizedPaths.has(key) ||
+				!(this.propertyMap as PropertyMap)[key] ||
+				(this.propertyMap as PropertyMap)[key].exactMatchRead === null)
+		)
+			return true;
 
-		const { properties, hasCertainHit } = this.getPossiblePropertiesWithName(
-			path[0],
-			PROPERTY_KINDS_READ
-		);
-		if (path.length > 1 && !hasCertainHit) return true;
-		for (const property of properties) {
-			if (property.hasEffectsWhenAccessedAtPath(path.slice(1), options)) return true;
+		const subPath = path.slice(1);
+		for (const property of typeof key !== 'string'
+			? this.properties
+			: (this.propertyMap as PropertyMap)[key]
+			? (this.propertyMap as PropertyMap)[key].propertiesRead
+			: []) {
+			if (property.hasEffectsWhenAccessedAtPath(subPath, options)) return true;
 		}
 		return false;
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
 		if (path.length === 0) return false;
+		const key = path[0];
+		if (
+			path.length > 1 &&
+			(this.hasUnknownDeoptimizedProperty ||
+				typeof key !== 'string' ||
+				this.deoptimizedPaths.has(key) ||
+				!(this.propertyMap as PropertyMap)[key] ||
+				(this.propertyMap as PropertyMap)[key].exactMatchRead === null)
+		)
+			return true;
 
-		const { properties, hasCertainHit } = this.getPossiblePropertiesWithName(
-			path[0],
-			path.length === 1 ? PROPERTY_KINDS_WRITE : PROPERTY_KINDS_READ
-		);
-		if (path.length > 1 && !hasCertainHit) return true;
-		for (const property of properties) {
-			if (
-				(path.length > 1 || property.kind === 'set') &&
-				property.hasEffectsWhenAssignedAtPath(path.slice(1), options)
-			)
-				return true;
+		const subPath = path.slice(1);
+		for (const property of typeof key !== 'string'
+			? this.properties
+			: path.length > 1
+			? (this.propertyMap as PropertyMap)[key].propertiesRead
+			: (this.propertyMap as PropertyMap)[key]
+			? (this.propertyMap as PropertyMap)[key].propertiesSet
+			: []) {
+			if (property.hasEffectsWhenAssignedAtPath(subPath, options)) return true;
 		}
 		return false;
 	}
@@ -82,37 +244,26 @@ export default class ObjectExpression extends NodeBase {
 		callOptions: CallOptions,
 		options: ExecutionPathOptions
 	): boolean {
-		if (path.length === 0) return true;
-		const subPath = path[0];
-		if (path.length === 1 && !isUnknownKey(subPath) && objectMembers[subPath]) {
-			return false;
+		const key = path[0];
+		if (
+			path.length === 0 ||
+			this.hasUnknownDeoptimizedProperty ||
+			typeof key !== 'string' ||
+			this.deoptimizedPaths.has(key) ||
+			((this.propertyMap as PropertyMap)[key]
+				? !(this.propertyMap as PropertyMap)[key].exactMatchRead
+				: path.length > 1 || !objectMembers[key])
+		)
+			return true;
+		const subPath = path.slice(1);
+		for (const property of (this.propertyMap as PropertyMap)[key]
+			? (this.propertyMap as PropertyMap)[key].propertiesRead
+			: []) {
+			if (property.hasEffectsWhenCalledAtPath(subPath, callOptions, options)) return true;
 		}
-
-		const { properties, hasCertainHit } = this.getPossiblePropertiesWithName(
-			path[0],
-			PROPERTY_KINDS_READ
-		);
-		if (!hasCertainHit) return true;
-		for (const property of properties) {
-			if (property.hasEffectsWhenCalledAtPath(path.slice(1), callOptions, options)) return true;
-		}
+		if (path.length === 1 && objectMembers[key])
+			return hasMemberEffectWhenCalled(objectMembers, key, this.included, callOptions, options);
 		return false;
-	}
-
-	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
-		if (path.length === 0) return;
-
-		const { properties, hasCertainHit } = this.getPossiblePropertiesWithName(
-			path[0],
-			path.length === 1 ? PROPERTY_KINDS_WRITE : PROPERTY_KINDS_READ
-		);
-		if (path.length === 1 || hasCertainHit) {
-			for (const property of properties) {
-				if (path.length > 1 || property.kind === 'set') {
-					property.reassignPath(path.slice(1), options);
-				}
-			}
-		}
 	}
 
 	render(
@@ -127,55 +278,67 @@ export default class ObjectExpression extends NodeBase {
 		}
 	}
 
-	someReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		predicateFunction: SomeReturnExpressionCallback,
-		options: ExecutionPathOptions
-	): boolean {
-		if (path.length === 0) return true;
-		const subPath = path[0];
-		if (path.length === 1 && !isUnknownKey(subPath) && objectMembers[subPath]) {
-			return predicateFunction(options)(objectMembers[subPath].returns);
-		}
-
-		const { properties, hasCertainHit } = this.getPossiblePropertiesWithName(
-			subPath,
-			PROPERTY_KINDS_READ
-		);
-		if (!hasCertainHit) return true;
-		for (const property of properties) {
-			if (
-				property.someReturnExpressionWhenCalledAtPath(
-					path.slice(1),
-					callOptions,
-					predicateFunction,
-					options
-				)
-			)
-				return true;
-		}
-		return false;
-	}
-
-	private getPossiblePropertiesWithName(name: ObjectPathKey, kinds: ObjectPath) {
-		if (name === UNKNOWN_KEY) {
-			return { properties: this.properties, hasCertainHit: false };
-		}
-		const properties = [];
-		let hasCertainHit = false;
-
+	private buildPropertyMap() {
+		this.propertyMap = Object.create(null);
 		for (let index = this.properties.length - 1; index >= 0; index--) {
 			const property = this.properties[index];
-			if (kinds.indexOf(property.kind) < 0) continue;
+			if (property instanceof SpreadElement) {
+				this.unmatchablePropertiesRead.push(property);
+				continue;
+			}
+			const isWrite = property.kind !== 'get';
+			const isRead = property.kind !== 'set';
+			let key;
 			if (property.computed) {
-				properties.push(property);
-			} else if ((<Identifier>property.key).name === name) {
-				properties.push(property);
-				hasCertainHit = true;
-				break;
+				const keyValue = property.key.getLiteralValueAtPath(
+					EMPTY_PATH,
+					EMPTY_IMMUTABLE_TRACKER,
+					this
+				);
+				if (keyValue === UNKNOWN_VALUE) {
+					if (isRead) {
+						this.unmatchablePropertiesRead.push(property);
+					} else {
+						this.unmatchablePropertiesWrite.push(property);
+					}
+					continue;
+				}
+				key = String(keyValue);
+			} else if (property.key instanceof Identifier) {
+				key = property.key.name;
+			} else {
+				key = String((property.key as Literal).value);
+			}
+			const propertyMapProperty = (this.propertyMap as PropertyMap)[key];
+			if (!propertyMapProperty) {
+				(this.propertyMap as PropertyMap)[key] = {
+					exactMatchRead: isRead ? property : null,
+					exactMatchWrite: isWrite ? property : null,
+					propertiesRead: isRead ? [property, ...this.unmatchablePropertiesRead] : [],
+					propertiesSet: isWrite && !isRead ? [property, ...this.unmatchablePropertiesWrite] : []
+				};
+				continue;
+			}
+			if (isRead && propertyMapProperty.exactMatchRead === null) {
+				propertyMapProperty.exactMatchRead = property;
+				propertyMapProperty.propertiesRead.push(property, ...this.unmatchablePropertiesRead);
+			}
+			if (isWrite && !isRead && propertyMapProperty.exactMatchWrite === null) {
+				propertyMapProperty.exactMatchWrite = property;
+				propertyMapProperty.propertiesSet.push(property, ...this.unmatchablePropertiesWrite);
 			}
 		}
-		return { properties, hasCertainHit };
+	}
+
+	private deoptimizeAllProperties() {
+		this.hasUnknownDeoptimizedProperty = true;
+		for (const property of this.properties) {
+			property.deoptimizePath(UNKNOWN_PATH);
+		}
+		for (const expressionsToBeDeoptimized of this.expressionsToBeDeoptimized.values()) {
+			for (const expression of expressionsToBeDeoptimized) {
+				expression.deoptimizeCache();
+			}
+		}
 	}
 }

@@ -1,7 +1,7 @@
 'use strict';
 
-var __chunk_2 = require('./deps2and3-c820a6ae.js');
-require('./lib1-569e10cd.js');
+var deps2and3 = require('./generated-deps2and3.js');
+require('./generated-lib1.js');
 
 function fn () {
   console.log('dep1 fn');
@@ -10,8 +10,8 @@ function fn () {
 class Main {
   constructor () {
     fn();
-    __chunk_2.fn();
-    __chunk_2.fn$1();
+    deps2and3.fn();
+    deps2and3.fn$1();
   }
 }
 

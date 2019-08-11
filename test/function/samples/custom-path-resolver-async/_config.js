@@ -1,13 +1,13 @@
-var path = require('path');
-var assert = require('assert');
+const path = require('path');
+const assert = require('assert');
 
 module.exports = {
 	description: 'uses a custom path resolver (asynchronous)',
 	options: {
 		plugins: [
 			{
-				resolveId: function(importee, importer) {
-					var resolved;
+				resolveId(importee, importer) {
+					let resolved;
 
 					if (path.normalize(importee) === path.resolve(__dirname, 'main.js')) return importee;
 
@@ -22,7 +22,7 @@ module.exports = {
 			}
 		]
 	},
-	exports: function(exports) {
+	exports(exports) {
 		assert.strictEqual(exports.path, require('path'));
 	}
 };

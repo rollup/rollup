@@ -1,8 +1,7 @@
 'use strict';
 
-require('./dep1.js');
-var __chunk_1 = require('./dep2.js');
+var dep2 = require('./dep2.js');
 
 
 
-module.exports = __chunk_1.default;
+module.exports = dep2.default;

@@ -1,3 +1,9 @@
+if (console.log(1) || unknown) {
+	const x = 1;
+} else {
+	const x = 2;
+}
+
 if (true) {
 	console.log('kept');
 }
@@ -9,6 +15,17 @@ if (true) {
 }
 
 if (true) {
+	console.log('kept');
+} else {
+	console.log('removed');
+	var a;
+	function b() {}
+}
+console.log(typeof a, typeof b);
+
+function noEffect(){}
+
+if (noEffect(), true) {
 	console.log('kept');
 } else {
 	console.log('removed');

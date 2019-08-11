@@ -1,61 +1,103 @@
-import esModuleExport from './shared/esModuleExport';
-import { OutputOptions } from '../rollup/types';
 import { Bundle as MagicStringBundle } from 'magic-string';
-import getExportBlock from './shared/getExportBlock';
+import { OutputOptions } from '../rollup/types';
+import { INTEROP_DEFAULT_VARIABLE, INTEROP_NAMESPACE_VARIABLE } from '../utils/variableNames';
 import { FinaliserOptions } from './index';
+import { compactEsModuleExport, esModuleExport } from './shared/esModuleExport';
+import getExportBlock from './shared/getExportBlock';
+import { getInteropNamespace } from './shared/getInteropNamespace';
 
 export default function cjs(
 	magicString: MagicStringBundle,
-	{ graph, isEntryModuleFacade, exportMode, intro, outro, dependencies, exports }: FinaliserOptions,
+	{
+		accessedGlobals,
+		dependencies,
+		exports,
+		hasExports,
+		indentString: t,
+		intro,
+		isEntryModuleFacade,
+		namedExportsMode,
+		outro,
+		varOrConst
+	}: FinaliserOptions,
 	options: OutputOptions
 ) {
+	const n = options.compact ? '' : '\n';
+	const _ = options.compact ? '' : ' ';
+
 	intro =
-		(options.strict === false ? intro : `'use strict';\n\n${intro}`) +
-		(exportMode === 'named' && options.legacy !== true && isEntryModuleFacade
-			? `${esModuleExport}\n\n`
+		(options.strict === false ? intro : `'use strict';${n}${n}${intro}`) +
+		(namedExportsMode && hasExports && isEntryModuleFacade && options.esModule
+			? `${options.compact ? compactEsModuleExport : esModuleExport}${n}${n}`
 			: '');
 
 	let needsInterop = false;
-
-	const varOrConst = graph.varOrConst;
 	const interop = options.interop !== false;
+	let importBlock: string;
 
-	const importBlock = dependencies
-		.map(({ id, isChunk, name, reexports, imports, exportsNames, exportsDefault }) => {
-			if (!reexports && !imports) {
-				return `require('${id}');`;
+	let definingVariable = false;
+	importBlock = '';
+	for (const {
+		id,
+		namedExportsMode,
+		isChunk,
+		name,
+		reexports,
+		imports,
+		exportsNames,
+		exportsDefault
+	} of dependencies) {
+		if (!reexports && !imports) {
+			if (importBlock) {
+				importBlock += !options.compact || definingVariable ? `;${n}` : ',';
 			}
+			definingVariable = false;
+			importBlock += `require('${id}')`;
+		} else {
+			importBlock +=
+				options.compact && definingVariable ? ',' : `${importBlock ? `;${n}` : ''}${varOrConst} `;
+			definingVariable = true;
 
-			if (!interop || isChunk || !exportsDefault) {
-				return `${varOrConst} ${name} = require('${id}');`;
+			if (!interop || isChunk || !exportsDefault || !namedExportsMode) {
+				importBlock += `${name}${_}=${_}require('${id}')`;
+			} else {
+				needsInterop = true;
+				if (exportsNames)
+					importBlock += `${name}${_}=${_}require('${id}')${
+						options.compact ? ',' : `;\n${varOrConst} `
+					}${name}__default${_}=${_}${INTEROP_DEFAULT_VARIABLE}(${name})`;
+				else importBlock += `${name}${_}=${_}${INTEROP_DEFAULT_VARIABLE}(require('${id}'))`;
 			}
-
-			needsInterop = true;
-
-			if (exportsNames) {
-				return (
-					`${varOrConst} ${name} = require('${id}');` +
-					`\n${varOrConst} ${name}__default = _interopDefault(${name});`
-				);
-			}
-
-			return `${varOrConst} ${name} = _interopDefault(require('${id}'));`;
-		})
-		.join('\n');
+		}
+	}
+	if (importBlock) importBlock += ';';
 
 	if (needsInterop) {
-		intro += `function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }\n\n`;
+		const ex = options.compact ? 'e' : 'ex';
+		intro +=
+			`function ${INTEROP_DEFAULT_VARIABLE}${_}(${ex})${_}{${_}return${_}` +
+			`(${ex}${_}&&${_}(typeof ${ex}${_}===${_}'object')${_}&&${_}'default'${_}in ${ex})${_}` +
+			`?${_}${ex}['default']${_}:${_}${ex}${options.compact ? '' : '; '}}${n}${n}`;
+	}
+	if (accessedGlobals.has(INTEROP_NAMESPACE_VARIABLE)) {
+		intro += getInteropNamespace(_, n, t, options.externalLiveBindings !== false);
 	}
 
-	if (importBlock) {
-		intro += importBlock + '\n\n';
-	}
+	if (importBlock) intro += importBlock + n + n;
 
-	const exportBlock = getExportBlock(exports, dependencies, exportMode, 'module.exports =');
+	const exportBlock = getExportBlock(
+		exports,
+		dependencies,
+		namedExportsMode,
+		options.interop as boolean,
+		options.compact as boolean,
+		t,
+		`module.exports${_}=${_}`
+	);
 
 	magicString.prepend(intro);
 
-	if (exportBlock) magicString.append('\n\n' + exportBlock);
+	if (exportBlock) magicString.append(n + n + exportBlock);
 	if (outro) magicString.append(outro);
 
 	return magicString;

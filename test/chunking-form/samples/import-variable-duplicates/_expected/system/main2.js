@@ -1,7 +1,7 @@
-System.register(['./first.js', './head.js'], function (exports, module) {
+System.register(['./first.js'], function () {
 	'use strict';
 	return {
-		setters: [function () {}, function () {}],
+		setters: [function () {}],
 		execute: function () {
 
 

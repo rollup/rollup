@@ -4,4 +4,4 @@ var first = require('./first.js');
 
 
 
-module.exports = first.default;
+module.exports = first;

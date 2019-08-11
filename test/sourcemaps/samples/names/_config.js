@@ -1,6 +1,6 @@
-var assert = require('assert');
-var getLocation = require('../../getLocation');
-var SourceMapConsumer = require('source-map').SourceMapConsumer;
+const assert = require('assert');
+const getLocation = require('../../getLocation');
+const SourceMapConsumer = require('source-map').SourceMapConsumer;
 
 module.exports = {
 	description: 'names are recovered (https://github.com/rollup/rollup/issues/101)',
@@ -9,17 +9,17 @@ module.exports = {
 			name: 'myModule'
 		}
 	},
-	test: function(code, map) {
-		var smc = new SourceMapConsumer(map);
+	test(code, map) {
+		const smc = new SourceMapConsumer(map);
 
-		var pattern = /Object\.create\( ([\w\$\d]+)\.prototype \)/;
-		var match = pattern.exec(code);
+		let pattern = /Object\.create\( ([\w$\d]+)\.prototype \)/;
+		let match = pattern.exec(code);
 
-		var generatedLoc = getLocation(code, match.index + 'Object.create ( '.length);
-		var original = smc.originalPositionFor(generatedLoc);
+		let generatedLoc = getLocation(code, match.index + 'Object.create ( '.length);
+		let original = smc.originalPositionFor(generatedLoc);
 		assert.equal(original.name, 'Bar');
 
-		pattern = /function Foo([\w\$\d]+)/;
+		pattern = /function Foo([\w$\d]+)/;
 		match = pattern.exec(code);
 
 		generatedLoc = getLocation(code, match.index + 'function '.length);

@@ -1,85 +1,114 @@
-import error from '../utils/error';
-import getInteropBlock from './shared/getInteropBlock';
-import getExportBlock from './shared/getExportBlock';
-import { keypath } from './shared/sanitize';
-import warnOnBuiltins from './shared/warnOnBuiltins';
-import trimEmptyImports from './shared/trimEmptyImports';
-import setupNamespace from './shared/setupNamespace';
-import { isLegal } from '../utils/identifierHelpers';
 import { Bundle as MagicStringBundle } from 'magic-string';
-import { OutputOptions } from '../rollup/types';
+import { GlobalsOption, OutputOptions } from '../rollup/types';
+import { error } from '../utils/error';
+import { isLegal } from '../utils/identifierHelpers';
 import { FinaliserOptions } from './index';
+import getExportBlock from './shared/getExportBlock';
+import getInteropBlock from './shared/getInteropBlock';
+import { keypath } from './shared/sanitize';
+import setupNamespace from './shared/setupNamespace';
+import trimEmptyImports from './shared/trimEmptyImports';
+import warnOnBuiltins from './shared/warnOnBuiltins';
 
 const thisProp = (name: string) => `this${keypath(name)}`;
 
 export default function iife(
 	magicString: MagicStringBundle,
-	{ graph, exportMode, indentString, intro, outro, dependencies, exports }: FinaliserOptions,
+	{
+		dependencies,
+		exports,
+		hasExports,
+		indentString: t,
+		intro,
+		namedExportsMode,
+		outro,
+		varOrConst,
+		warn
+	}: FinaliserOptions,
 	options: OutputOptions
 ) {
+	const _ = options.compact ? '' : ' ';
+	const n = options.compact ? '' : '\n';
+
 	const { extend, name } = options;
 	const isNamespaced = name && name.indexOf('.') !== -1;
-	const possibleVariableAssignment = !extend && !isNamespaced;
+	const useVariableAssignment = !extend && !isNamespaced;
 
-	if (name && possibleVariableAssignment && !isLegal(name)) {
+	if (name && useVariableAssignment && !isLegal(name)) {
 		error({
 			code: 'ILLEGAL_IDENTIFIER_AS_NAME',
 			message: `Given name (${name}) is not legal JS identifier. If you need this you can try --extend option`
 		});
 	}
 
-	warnOnBuiltins(graph, dependencies);
+	warnOnBuiltins(warn, dependencies);
 
 	const external = trimEmptyImports(dependencies);
 	const deps = external.map(dep => dep.globalName || 'null');
 	const args = external.map(m => m.name);
 
-	if (exportMode !== 'none' && !name) {
+	if (hasExports && !name) {
 		error({
 			code: 'INVALID_OPTION',
-			message: `You must supply output.name for IIFE bundles`
+			message: `You must supply "output.name" for IIFE bundles.`
 		});
 	}
 
-	if (extend) {
-		deps.unshift(`(${thisProp(name)} = ${thisProp(name)} || {})`);
-		args.unshift('exports');
-	} else if (exportMode === 'named') {
-		deps.unshift('{}');
-		args.unshift('exports');
+	if (namedExportsMode && hasExports) {
+		if (extend) {
+			deps.unshift(`${thisProp(name as string)}${_}=${_}${thisProp(name as string)}${_}||${_}{}`);
+			args.unshift('exports');
+		} else {
+			deps.unshift('{}');
+			args.unshift('exports');
+		}
 	}
 
-	const useStrict = options.strict !== false ? `${indentString}'use strict';\n\n` : ``;
+	const useStrict = options.strict !== false ? `${t}'use strict';${n}${n}` : ``;
 
-	let wrapperIntro = `(function (${args}) {\n${useStrict}`;
+	let wrapperIntro = `(function${_}(${args.join(`,${_}`)})${_}{${n}${useStrict}`;
 
-	if (exportMode !== 'none' && !extend) {
+	if (hasExports && (!extend || !namedExportsMode)) {
 		wrapperIntro =
-			(isNamespaced ? thisProp(name) : `${graph.varOrConst} ${name}`) + ` = ${wrapperIntro}`;
+			(useVariableAssignment ? `${varOrConst} ${name}` : thisProp(name as string)) +
+			`${_}=${_}${wrapperIntro}`;
 	}
 
-	if (isNamespaced) {
-		wrapperIntro = setupNamespace(name, 'this', false, options.globals) + wrapperIntro;
+	if (isNamespaced && hasExports) {
+		wrapperIntro =
+			setupNamespace(
+				name as string,
+				'this',
+				options.globals as GlobalsOption,
+				options.compact as boolean
+			) + wrapperIntro;
 	}
 
-	let wrapperOutro = `\n\n}(${deps}));`;
+	let wrapperOutro = `${n}${n}}(${deps.join(`,${_}`)}));`;
 
-	if (!extend && exportMode === 'named') {
-		wrapperOutro = `\n\n${indentString}return exports;${wrapperOutro}`;
+	if (!extend && namedExportsMode && hasExports) {
+		wrapperOutro = `${n}${n}${t}return exports;${wrapperOutro}`;
 	}
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
-	const interopBlock = getInteropBlock(dependencies, options, graph.varOrConst);
-	if (interopBlock) magicString.prepend(interopBlock + '\n\n');
+	const interopBlock = getInteropBlock(dependencies, options, varOrConst);
+	if (interopBlock) magicString.prepend(interopBlock + n + n);
 
 	if (intro) magicString.prepend(intro);
 
-	const exportBlock = getExportBlock(exports, dependencies, exportMode);
-	if (exportBlock) magicString.append('\n\n' + exportBlock);
+	const exportBlock = getExportBlock(
+		exports,
+		dependencies,
+		namedExportsMode,
+		options.interop as boolean,
+		options.compact as boolean,
+		t
+	);
+	if (exportBlock) magicString.append(n + n + exportBlock);
 	if (outro) magicString.append(outro);
 
 	return magicString
-		.indent(indentString)
+		.indent(t)
 		.prepend(wrapperIntro)
 		.append(wrapperOutro);
 }

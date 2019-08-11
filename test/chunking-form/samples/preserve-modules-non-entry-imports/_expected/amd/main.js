@@ -1,7 +1,7 @@
-define(['./dep1.js', './dep2.js'], function (__chunk_2, __chunk_1) { 'use strict';
+define(['./dep2'], function (dep2) { 'use strict';
 
 
 
-	return __chunk_1.default;
+	return dep2.default;
 
 });

@@ -1,15 +1,21 @@
-import { isAbsolute, relative } from './path';
+import { basename, extname, isAbsolute, relative } from './path';
+import { sanitizeFileName } from './sanitizeFileName';
 
-export const jsExts = ['.js', '.mjs'];
-
-export function nameWithoutExtension(name: string) {
-	for (let ext of jsExts) {
-		if (name.endsWith(ext)) return name.substr(0, name.length - ext.length);
-	}
-	return name;
+export function getAliasName(id: string) {
+	const base = basename(id);
+	return base.substr(0, base.length - extname(id).length);
 }
 
 export default function relativeId(id: string) {
 	if (typeof process === 'undefined' || !isAbsolute(id)) return id;
 	return relative(process.cwd(), id);
+}
+
+export function isPlainPathFragment(name: string) {
+	// not starting with "/", "./", "../"
+	return (
+		name[0] !== '/' &&
+		!(name[0] === '.' && (name[1] === '/' || name[1] === '.')) &&
+		sanitizeFileName(name) === name
+	);
 }

@@ -1,5 +1,5 @@
 'use strict';
 
-var main2alias = require('./main2alias-952c9a65.js');
+var main2alias = require('./generated-main2.js');
 
 main2alias.log(main2alias.dep);

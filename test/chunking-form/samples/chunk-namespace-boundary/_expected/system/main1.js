@@ -1,10 +1,10 @@
-System.register(['./chunk-48ba2574.js'], function (exports, module) {
+System.register(['./generated-shared.js'], function (exports) {
 	'use strict';
 	var commonjsGlobal, d;
 	return {
 		setters: [function (module) {
-			commonjsGlobal = module.a;
-			d = module.b;
+			commonjsGlobal = module.c;
+			d = module.d;
 		}],
 		execute: function () {
 

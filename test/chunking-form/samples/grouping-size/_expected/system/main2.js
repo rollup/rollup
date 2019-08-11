@@ -1,10 +1,11 @@
-System.register(['./chunk-6c3e3070.js'], function (exports, module) {
+System.register(['./generated-dep1.js', './generated-dep3.js'], function (exports) {
 	'use strict';
 	var x, z;
 	return {
 		setters: [function (module) {
-			x = module.a;
-			z = module.c;
+			x = module.x;
+		}, function (module) {
+			z = module.z;
 		}],
 		execute: function () {
 

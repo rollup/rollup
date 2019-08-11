@@ -1,67 +1,72 @@
-import { makeLegal } from './utils/identifierHelpers';
 import ExternalVariable from './ast/variables/ExternalVariable';
 import Graph from './Graph';
-import Variable from './ast/variables/Variable';
 import { OutputOptions } from './rollup/types';
-import { isAbsolute, resolve, dirname, normalize, relative, isRelative } from './utils/path';
+import { makeLegal } from './utils/identifierHelpers';
+import { isAbsolute, normalize, relative } from './utils/path';
 
 export default class ExternalModule {
-	private graph: Graph;
 	chunk: void;
 	declarations: { [name: string]: ExternalVariable };
-	exportsNames: boolean;
-	exportsNamespace: boolean;
-	id: string;
-	renderPath: string;
-	isExternal: true;
-	isEntryPoint: false;
-	name: string;
-	mostCommonSuggestion: number;
-	nameSuggestions: { [name: string]: number };
-	reexported: boolean;
-	used: boolean;
 	execIndex: number;
+	exportedVariables: Map<ExternalVariable, string>;
+	exportsNames = false;
+	exportsNamespace = false;
+	id: string;
+	moduleSideEffects: boolean;
+	mostCommonSuggestion = 0;
+	nameSuggestions: { [name: string]: number };
+	reexported = false;
+	renderPath: string = undefined as any;
+	renormalizeRenderPath = false;
+	used = false;
+	variableName: string;
 
-	constructor({ graph, id }: { graph: Graph; id: string }) {
+	private graph: Graph;
+
+	constructor(graph: Graph, id: string, moduleSideEffects: boolean) {
 		this.graph = graph;
 		this.id = id;
-		this.renderPath = undefined;
+		this.execIndex = Infinity;
+		this.moduleSideEffects = moduleSideEffects;
 
 		const parts = id.split(/[\\/]/);
-		this.name = makeLegal(parts.pop());
+		this.variableName = makeLegal(parts.pop() as string);
 
 		this.nameSuggestions = Object.create(null);
-		this.mostCommonSuggestion = 0;
-
-		this.isExternal = true;
-		this.used = false;
 		this.declarations = Object.create(null);
-
-		this.exportsNames = false;
+		this.exportedVariables = new Map();
 	}
 
-	setRenderPath(options: OutputOptions, inputPath: string) {
-		if (typeof options.paths === 'function') {
-			let outPath = options.paths(this.id);
-			if (outPath) {
-				this.renderPath = outPath;
-				return;
-			}
-		} else if (options.paths && options.paths.hasOwnProperty(this.id)) {
-			this.renderPath = options.paths[this.id];
-			return;
+	getVariableForExportName(name: string, _isExportAllSearch?: boolean): ExternalVariable {
+		if (name === '*') {
+			this.exportsNamespace = true;
+		} else if (name !== 'default') {
+			this.exportsNames = true;
 		}
 
-		if (isAbsolute(this.id)) {
-			let outDir: string;
-			if (options.dir) outDir = resolve(options.dir);
-			else if (options.file) outDir = dirname(resolve(options.file));
-			else outDir = dirname(inputPath);
-			const relativeToEntry = normalize(relative(outDir, this.id));
-			this.renderPath = isRelative(relativeToEntry) ? relativeToEntry : `./${relativeToEntry}`;
-		} else {
-			this.renderPath = this.id;
+		let declaration = this.declarations[name];
+		if (declaration) return declaration;
+
+		this.declarations[name] = declaration = new ExternalVariable(this, name);
+		this.exportedVariables.set(declaration, name);
+		return declaration;
+	}
+
+	setRenderPath(options: OutputOptions, inputBase: string) {
+		this.renderPath = '';
+		if (options.paths) {
+			this.renderPath =
+				typeof options.paths === 'function' ? options.paths(this.id) : options.paths[this.id];
 		}
+		if (!this.renderPath) {
+			if (!isAbsolute(this.id)) {
+				this.renderPath = this.id;
+			} else {
+				this.renderPath = normalize(relative(inputBase, this.id));
+				this.renormalizeRenderPath = true;
+			}
+		}
+		return this.renderPath;
 	}
 
 	suggestName(name: string) {
@@ -70,7 +75,7 @@ export default class ExternalModule {
 
 		if (this.nameSuggestions[name] > this.mostCommonSuggestion) {
 			this.mostCommonSuggestion = this.nameSuggestions[name];
-			this.name = name;
+			this.variableName = name;
 		}
 	}
 
@@ -93,16 +98,9 @@ export default class ExternalModule {
 
 		this.graph.warn({
 			code: 'UNUSED_EXTERNAL_IMPORT',
-			source: this.id,
+			message: `${names} imported from external module '${this.id}' but never used`,
 			names: unused,
-			message: `${names} imported from external module '${this.id}' but never used`
+			source: this.id
 		});
-	}
-
-	traceExport(name: string): Variable {
-		if (name !== 'default' && name !== '*') this.exportsNames = true;
-		if (name === '*') this.exportsNamespace = true;
-
-		return this.declarations[name] || (this.declarations[name] = new ExternalVariable(this, name));
 	}
 }

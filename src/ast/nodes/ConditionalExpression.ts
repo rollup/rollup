@@ -1,71 +1,127 @@
-import { ObjectPath, UNKNOWN_VALUE } from '../values';
-import ExecutionPathOptions from '../ExecutionPathOptions';
-import CallOptions from '../CallOptions';
 import MagicString from 'magic-string';
-import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
-import { NodeType } from './NodeType';
-import { ExpressionNode, NodeBase } from './shared/Node';
-import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import CallExpression from './CallExpression';
 import { BLANK } from '../../utils/blank';
+import {
+	findFirstOccurrenceOutsideComment,
+	NodeRenderOptions,
+	removeLineBreaks,
+	RenderOptions
+} from '../../utils/renderHelpers';
+import { removeAnnotations } from '../../utils/treeshakeNode';
+import CallOptions from '../CallOptions';
+import { DeoptimizableEntity } from '../DeoptimizableEntity';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import {
+	EMPTY_IMMUTABLE_TRACKER,
+	ImmutableEntityPathTracker
+} from '../utils/ImmutableEntityPathTracker';
+import {
+	EMPTY_PATH,
+	LiteralValueOrUnknown,
+	ObjectPath,
+	UNKNOWN_PATH,
+	UNKNOWN_VALUE
+} from '../values';
+import CallExpression from './CallExpression';
+import * as NodeType from './NodeType';
+import { ExpressionEntity } from './shared/Expression';
+import { MultiExpression } from './shared/MultiExpression';
+import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 
-export default class ConditionalExpression extends NodeBase {
-	type: NodeType.ConditionalExpression;
-	test: ExpressionNode;
-	alternate: ExpressionNode;
-	consequent: ExpressionNode;
+export default class ConditionalExpression extends NodeBase implements DeoptimizableEntity {
+	alternate!: ExpressionNode;
+	consequent!: ExpressionNode;
+	test!: ExpressionNode;
+	type!: NodeType.tConditionalExpression;
 
-	private hasUnknownTestValue: boolean;
+	// We collect deoptimization information if usedBranch !== null
+	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
+	private isBranchResolutionAnalysed = false;
+	private unusedBranch: ExpressionNode | null = null;
+	private usedBranch: ExpressionNode | null = null;
 
-	forEachReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback,
-		options: ExecutionPathOptions
-	) {
-		if (this.hasUnknownTestValue) {
-			this.consequent.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
-			this.alternate.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options);
-		} else {
-			this.forEachRelevantBranch(node =>
-				node.forEachReturnExpressionWhenCalledAtPath(path, callOptions, callback, options)
-			);
+	bind() {
+		super.bind();
+		if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
+	}
+
+	deoptimizeCache() {
+		if (this.usedBranch !== null) {
+			// We did not track if there were reassignments to the previous branch.
+			// Also, the return value might need to be reassigned.
+			this.usedBranch = null;
+			(this.unusedBranch as ExpressionNode).deoptimizePath(UNKNOWN_PATH);
+			for (const expression of this.expressionsToBeDeoptimized) {
+				expression.deoptimizeCache();
+			}
 		}
 	}
 
-	getValue(): any {
-		const testValue = this.test.getValue();
-		if (testValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
-		return testValue ? this.consequent.getValue() : this.alternate.getValue();
+	deoptimizePath(path: ObjectPath) {
+		if (path.length > 0) {
+			if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
+			if (this.usedBranch === null) {
+				this.consequent.deoptimizePath(path);
+				this.alternate.deoptimizePath(path);
+			} else {
+				this.usedBranch.deoptimizePath(path);
+			}
+		}
+	}
+
+	getLiteralValueAtPath(
+		path: ObjectPath,
+		recursionTracker: ImmutableEntityPathTracker,
+		origin: DeoptimizableEntity
+	): LiteralValueOrUnknown {
+		if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
+		if (this.usedBranch === null) return UNKNOWN_VALUE;
+		this.expressionsToBeDeoptimized.push(origin);
+		return this.usedBranch.getLiteralValueAtPath(path, recursionTracker, origin);
+	}
+
+	getReturnExpressionWhenCalledAtPath(
+		path: ObjectPath,
+		recursionTracker: ImmutableEntityPathTracker,
+		origin: DeoptimizableEntity
+	): ExpressionEntity {
+		if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
+		if (this.usedBranch === null)
+			return new MultiExpression([
+				this.consequent.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin),
+				this.alternate.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin)
+			]);
+		this.expressionsToBeDeoptimized.push(origin);
+		return this.usedBranch.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
-		return (
-			this.test.hasEffects(options) ||
-			(this.hasUnknownTestValue
-				? this.consequent.hasEffects(options) || this.alternate.hasEffects(options)
-				: this.someRelevantBranch(node => node.hasEffects(options)))
-		);
+		if (this.test.hasEffects(options)) return true;
+		if (this.usedBranch === null) {
+			return this.consequent.hasEffects(options) || this.alternate.hasEffects(options);
+		}
+		return this.usedBranch.hasEffects(options);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return (
-			path.length > 0 &&
-			(this.hasUnknownTestValue
-				? this.consequent.hasEffectsWhenAccessedAtPath(path, options) ||
-				  this.alternate.hasEffectsWhenAccessedAtPath(path, options)
-				: this.someRelevantBranch(node => node.hasEffectsWhenAccessedAtPath(path, options)))
-		);
+		if (path.length === 0) return false;
+		if (this.usedBranch === null) {
+			return (
+				this.consequent.hasEffectsWhenAccessedAtPath(path, options) ||
+				this.alternate.hasEffectsWhenAccessedAtPath(path, options)
+			);
+		}
+		return this.usedBranch.hasEffectsWhenAccessedAtPath(path, options);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return (
-			path.length === 0 ||
-			(this.hasUnknownTestValue
-				? this.consequent.hasEffectsWhenAssignedAtPath(path, options) ||
-				  this.alternate.hasEffectsWhenAssignedAtPath(path, options)
-				: this.someRelevantBranch(node => node.hasEffectsWhenAssignedAtPath(path, options)))
-		);
+		if (path.length === 0) return true;
+		if (this.usedBranch === null) {
+			return (
+				this.consequent.hasEffectsWhenAssignedAtPath(path, options) ||
+				this.alternate.hasEffectsWhenAssignedAtPath(path, options)
+			);
+		}
+		return this.usedBranch.hasEffectsWhenAssignedAtPath(path, options);
 	}
 
 	hasEffectsWhenCalledAtPath(
@@ -73,107 +129,67 @@ export default class ConditionalExpression extends NodeBase {
 		callOptions: CallOptions,
 		options: ExecutionPathOptions
 	): boolean {
-		return this.hasUnknownTestValue
-			? this.consequent.hasEffectsWhenCalledAtPath(path, callOptions, options) ||
-					this.alternate.hasEffectsWhenCalledAtPath(path, callOptions, options)
-			: this.someRelevantBranch(node =>
-					node.hasEffectsWhenCalledAtPath(path, callOptions, options)
-			  );
-	}
-
-	initialise() {
-		this.included = false;
-		this.hasUnknownTestValue = false;
-	}
-
-	include() {
-		this.included = true;
-		const testValue = this.test.getValue();
-		if (testValue === UNKNOWN_VALUE || this.test.shouldBeIncluded()) {
-			this.test.include();
-			this.consequent.include();
-			this.alternate.include();
-		} else if (testValue) {
-			this.consequent.include();
-		} else {
-			this.alternate.include();
+		if (this.usedBranch === null) {
+			return (
+				this.consequent.hasEffectsWhenCalledAtPath(path, callOptions, options) ||
+				this.alternate.hasEffectsWhenCalledAtPath(path, callOptions, options)
+			);
 		}
+		return this.usedBranch.hasEffectsWhenCalledAtPath(path, callOptions, options);
 	}
 
-	reassignPath(path: ObjectPath, options: ExecutionPathOptions) {
-		if (path.length > 0) {
-			if (this.hasUnknownTestValue) {
-				this.consequent.reassignPath(path, options);
-				this.alternate.reassignPath(path, options);
-			} else {
-				this.forEachRelevantBranch(node => node.reassignPath(path, options));
-			}
+	include(includeChildrenRecursively: IncludeChildren) {
+		this.included = true;
+		if (includeChildrenRecursively || this.usedBranch === null || this.test.shouldBeIncluded()) {
+			this.test.include(includeChildrenRecursively);
+			this.consequent.include(includeChildrenRecursively);
+			this.alternate.include(includeChildrenRecursively);
+		} else {
+			this.usedBranch.include(includeChildrenRecursively);
 		}
 	}
 
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ renderedParentType, isCalleeOfRenderedParent }: NodeRenderOptions = BLANK
+		{ renderedParentType, isCalleeOfRenderedParent, preventASI }: NodeRenderOptions = BLANK
 	) {
-		if (!this.context.treeshake || this.test.included) {
-			super.render(code, options);
-		} else {
-			const branchToRetain = this.consequent.included ? this.consequent : this.alternate;
-			code.remove(this.start, branchToRetain.start);
-			code.remove(branchToRetain.end, this.end);
-			branchToRetain.render(code, options, {
-				renderedParentType: renderedParentType || this.parent.type,
+		if (!this.test.included) {
+			const colonPos = findFirstOccurrenceOutsideComment(code.original, ':', this.consequent.end);
+			const inclusionStart =
+				(this.consequent.included
+					? findFirstOccurrenceOutsideComment(code.original, '?', this.test.end)
+					: colonPos) + 1;
+			if (preventASI) {
+				removeLineBreaks(code, inclusionStart, (this.usedBranch as ExpressionNode).start);
+			}
+			code.remove(this.start, inclusionStart);
+			if (this.consequent.included) {
+				code.remove(colonPos, this.end);
+			}
+			removeAnnotations(this, code);
+			(this.usedBranch as ExpressionNode).render(code, options, {
 				isCalleeOfRenderedParent: renderedParentType
 					? isCalleeOfRenderedParent
-					: (<CallExpression>this.parent).callee === this
+					: (this.parent as CallExpression).callee === this,
+				renderedParentType: renderedParentType || this.parent.type
 			});
-		}
-	}
-
-	someReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		predicateFunction: SomeReturnExpressionCallback,
-		options: ExecutionPathOptions
-	): boolean {
-		return this.hasUnknownTestValue
-			? this.consequent.someReturnExpressionWhenCalledAtPath(
-					path,
-					callOptions,
-					predicateFunction,
-					options
-			  ) ||
-					this.alternate.someReturnExpressionWhenCalledAtPath(
-						path,
-						callOptions,
-						predicateFunction,
-						options
-					)
-			: this.someRelevantBranch(node =>
-					node.someReturnExpressionWhenCalledAtPath(path, callOptions, predicateFunction, options)
-			  );
-	}
-
-	private forEachRelevantBranch(callback: (node: ExpressionNode) => void) {
-		const testValue = this.test.getValue();
-		if (testValue === UNKNOWN_VALUE) {
-			this.hasUnknownTestValue = true;
-			callback(this.consequent);
-			callback(this.alternate);
-		} else if (testValue) {
-			callback(this.consequent);
 		} else {
-			callback(this.alternate);
+			super.render(code, options);
 		}
 	}
 
-	private someRelevantBranch(predicateFunction: (node: ExpressionNode) => boolean): boolean {
-		const testValue = this.test.getValue();
-		if (testValue === UNKNOWN_VALUE) {
-			this.hasUnknownTestValue = true;
-			return predicateFunction(this.consequent) || predicateFunction(this.alternate);
+	private analyseBranchResolution() {
+		this.isBranchResolutionAnalysed = true;
+		const testValue = this.test.getLiteralValueAtPath(EMPTY_PATH, EMPTY_IMMUTABLE_TRACKER, this);
+		if (testValue !== UNKNOWN_VALUE) {
+			if (testValue) {
+				this.usedBranch = this.consequent;
+				this.unusedBranch = this.alternate;
+			} else {
+				this.usedBranch = this.alternate;
+				this.unusedBranch = this.consequent;
+			}
 		}
-		return testValue ? predicateFunction(this.consequent) : predicateFunction(this.alternate);
 	}
 }

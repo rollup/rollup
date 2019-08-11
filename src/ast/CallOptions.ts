@@ -1,9 +1,9 @@
+import CallExpression from './nodes/CallExpression';
+import NewExpression from './nodes/NewExpression';
+import Property from './nodes/Property';
 import { ExpressionEntity } from './nodes/shared/Expression';
 import SpreadElement from './nodes/SpreadElement';
 import TaggedTemplateExpression from './nodes/TaggedTemplateExpression';
-import NewExpression from './nodes/NewExpression';
-import Property from './nodes/Property';
-import CallExpression from './nodes/CallExpression';
 
 export type CallExpressionType =
 	| TaggedTemplateExpression
@@ -12,22 +12,22 @@ export type CallExpressionType =
 	| Property;
 
 export interface CallCreateOptions {
-	withNew: boolean;
 	args?: (ExpressionEntity | SpreadElement)[];
 	callIdentifier: Object;
+	withNew: boolean;
 }
 
 export default class CallOptions implements CallCreateOptions {
-	withNew: boolean;
-	args: (ExpressionEntity | SpreadElement)[];
-	callIdentifier: Object;
-
 	static create(callOptions: CallCreateOptions) {
 		return new this(callOptions);
 	}
 
+	args: (ExpressionEntity | SpreadElement)[];
+	callIdentifier: Object;
+	withNew: boolean;
+
 	constructor(
-		{ withNew = false, args = [], callIdentifier = undefined }: CallCreateOptions = {} as any
+		{ withNew = false, args = [], callIdentifier = undefined as any }: CallCreateOptions = {} as any
 	) {
 		this.withNew = withNew;
 		this.args = args;

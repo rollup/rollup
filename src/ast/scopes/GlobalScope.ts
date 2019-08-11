@@ -1,18 +1,22 @@
 import GlobalVariable from '../variables/GlobalVariable';
+import UndefinedVariable from '../variables/UndefinedVariable';
+import Variable from '../variables/Variable';
 import Scope from './Scope';
 
 export default class GlobalScope extends Scope {
-	parent: void;
+	parent: null;
 
-	findVariable(name: string) {
-		if (!this.variables[name]) {
-			this.variables[name] = new GlobalVariable(name);
-		}
-
-		return this.variables[name] as GlobalVariable;
+	constructor() {
+		super();
+		this.variables.set('undefined', new UndefinedVariable());
 	}
 
-	deshadow(names: Set<string>, children = this.children) {
-		super.deshadow(names, children);
+	findVariable(name: string): Variable {
+		let variable = this.variables.get(name);
+		if (!variable) {
+			variable = new GlobalVariable(name);
+			this.variables.set(name, variable);
+		}
+		return variable;
 	}
 }

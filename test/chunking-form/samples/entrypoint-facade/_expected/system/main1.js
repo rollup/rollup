@@ -1,10 +1,10 @@
-System.register(['./main2-42e739f9.js'], function (exports, module) {
+System.register(['./generated-main2.js'], function () {
 	'use strict';
-	var dep, log;
+	var log, dep;
 	return {
 		setters: [function (module) {
-			dep = module.a;
-			log = module.b;
+			log = module.l;
+			dep = module.d;
 		}],
 		execute: function () {
 

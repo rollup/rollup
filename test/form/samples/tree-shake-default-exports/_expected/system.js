@@ -1,15 +1,7 @@
-System.register([], function (exports, module) {
+System.register([], function () {
 	'use strict';
 	return {
 		execute: function () {
-
-			/* header 1 */
-
-			/* footer 1 */
-
-			/* header 2 */
-
-			/* footer 2 */
 
 			/* header 3 */
 

@@ -1,22 +1,23 @@
-import { ExpressionNode, NodeBase, StatementNode } from './shared/Node';
-import { NodeType } from './NodeType';
+import MagicString from 'magic-string';
 import {
 	findFirstOccurrenceOutsideComment,
 	RenderOptions,
 	renderStatementList
 } from '../../utils/renderHelpers';
-import MagicString from 'magic-string';
+import * as NodeType from './NodeType';
+import { ExpressionNode, IncludeChildren, NodeBase, StatementNode } from './shared/Node';
 
 export default class SwitchCase extends NodeBase {
-	type: NodeType.SwitchCase;
-	test: ExpressionNode | null;
-	consequent: StatementNode[];
+	consequent!: StatementNode[];
+	test!: ExpressionNode | null;
+	type!: NodeType.tSwitchCase;
 
-	include() {
+	include(includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		if (this.test) this.test.include();
+		if (this.test) this.test.include(includeChildrenRecursively);
 		for (const node of this.consequent) {
-			if (node.shouldBeIncluded()) node.include();
+			if (includeChildrenRecursively || node.shouldBeIncluded())
+				node.include(includeChildrenRecursively);
 		}
 	}
 

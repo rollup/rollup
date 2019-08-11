@@ -1,38 +1,39 @@
 import CallOptions from '../CallOptions';
-import TemplateLiteral from './TemplateLiteral';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { EMPTY_PATH } from '../values';
 import Identifier from './Identifier';
-import ExecutionPathOptions from '../ExecutionPathOptions';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
+import TemplateLiteral from './TemplateLiteral';
 
 export default class TaggedTemplateExpression extends NodeBase {
-	type: NodeType.TaggedTemplateExpression;
-	tag: ExpressionNode;
-	quasi: TemplateLiteral;
+	quasi!: TemplateLiteral;
+	tag!: ExpressionNode;
+	type!: NodeType.tTaggedTemplateExpression;
 
-	private callOptions: CallOptions;
+	private callOptions!: CallOptions;
 
 	bind() {
 		super.bind();
 		if (this.tag.type === NodeType.Identifier) {
-			const variable = this.scope.findVariable((<Identifier>this.tag).name);
+			const variable = this.scope.findVariable((this.tag as Identifier).name);
 
 			if (variable.isNamespace) {
 				this.context.error(
 					{
 						code: 'CANNOT_CALL_NAMESPACE',
-						message: `Cannot call a namespace ('${(<Identifier>this.tag).name}')`
+						message: `Cannot call a namespace ('${(this.tag as Identifier).name}')`
 					},
 					this.start
 				);
 			}
 
-			if ((<Identifier>this.tag).name === 'eval') {
+			if ((this.tag as Identifier).name === 'eval') {
 				this.context.warn(
 					{
 						code: 'EVAL',
 						message: `Use of eval is strongly discouraged, as it poses security risks and may cause issues with minification`,
-						url: 'https://github.com/rollup/rollup/wiki/Troubleshooting#avoiding-eval'
+						url: 'https://rollupjs.org/guide/en/#avoiding-eval'
 					},
 					this.start
 				);
@@ -44,7 +45,7 @@ export default class TaggedTemplateExpression extends NodeBase {
 		return (
 			super.hasEffects(options) ||
 			this.tag.hasEffectsWhenCalledAtPath(
-				[],
+				EMPTY_PATH,
 				this.callOptions,
 				options.getHasEffectsWhenCalledOptions()
 			)
@@ -52,10 +53,9 @@ export default class TaggedTemplateExpression extends NodeBase {
 	}
 
 	initialise() {
-		this.included = false;
 		this.callOptions = CallOptions.create({
-			withNew: false,
-			callIdentifier: this
+			callIdentifier: this,
+			withNew: false
 		});
 	}
 }

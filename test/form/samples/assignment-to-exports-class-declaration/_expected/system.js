@@ -1,4 +1,4 @@
-System.register([], function (exports, module) {
+System.register('myModule', [], function (exports) {
 	'use strict';
 	return {
 		execute: function () {

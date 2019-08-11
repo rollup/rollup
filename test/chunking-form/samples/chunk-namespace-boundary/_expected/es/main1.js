@@ -1,4 +1,4 @@
-import { a as commonjsGlobal, b as d } from './chunk-26990fd6.js';
+import { c as commonjsGlobal, d } from './generated-shared.js';
 
 commonjsGlobal.fn = d => d + 1;
 var cjs = commonjsGlobal.fn;

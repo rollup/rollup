@@ -1,19 +1,32 @@
-import SpreadElement from './SpreadElement';
-import { SomeReturnExpressionCallback } from './shared/Expression';
-import { ExpressionNode, NodeBase } from './shared/Node';
-import { NodeType } from './NodeType';
 import CallOptions from '../CallOptions';
-import ExecutionPathOptions from '../ExecutionPathOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import {
 	arrayMembers,
+	getMemberReturnExpressionWhenCalled,
 	hasMemberEffectWhenCalled,
 	ObjectPath,
-	someMemberReturnExpressionWhenCalled
+	UNKNOWN_EXPRESSION,
+	UNKNOWN_PATH
 } from '../values';
+import * as NodeType from './NodeType';
+import { ExpressionNode, NodeBase } from './shared/Node';
+import SpreadElement from './SpreadElement';
 
 export default class ArrayExpression extends NodeBase {
-	type: NodeType.ArrayExpression;
-	elements: (ExpressionNode | SpreadElement | null)[];
+	elements!: (ExpressionNode | SpreadElement | null)[];
+	type!: NodeType.tArrayExpression;
+
+	bind() {
+		super.bind();
+		for (const element of this.elements) {
+			if (element !== null) element.deoptimizePath(UNKNOWN_PATH);
+		}
+	}
+
+	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
+		if (path.length !== 1) return UNKNOWN_EXPRESSION;
+		return getMemberReturnExpressionWhenCalled(arrayMembers, path[0]);
+	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
 		return path.length > 1;
@@ -25,25 +38,7 @@ export default class ArrayExpression extends NodeBase {
 		options: ExecutionPathOptions
 	): boolean {
 		if (path.length === 1) {
-			return hasMemberEffectWhenCalled(arrayMembers, path[0], callOptions, options);
-		}
-		return true;
-	}
-
-	someReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		predicateFunction: SomeReturnExpressionCallback,
-		options: ExecutionPathOptions
-	): boolean {
-		if (path.length === 1) {
-			return someMemberReturnExpressionWhenCalled(
-				arrayMembers,
-				path[0],
-				callOptions,
-				predicateFunction,
-				options
-			);
+			return hasMemberEffectWhenCalled(arrayMembers, path[0], this.included, callOptions, options);
 		}
 		return true;
 	}

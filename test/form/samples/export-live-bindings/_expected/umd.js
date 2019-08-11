@@ -1,8 +1,8 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
-  (factory((global.iife = {})));
-}(this, (function (exports) { 'use strict';
+  (global = global || self, factory(global.iife = {}));
+}(this, function (exports) { 'use strict';
 
   function update () {
     exports.foo += 10;
@@ -32,10 +32,10 @@
   update$2();
   console.log(exports.baz);
 
-  exports.updateFoo = update;
   exports.updateBar = update$1;
   exports.updateBaz = update$2;
+  exports.updateFoo = update;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));

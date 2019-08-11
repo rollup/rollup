@@ -11,7 +11,7 @@ describe('incremental', () => {
 	const plugin = {
 		resolveId: id => {
 			resolveIdCalls += 1;
-			return id;
+			return id === 'external' ? false : id;
 		},
 
 		load: id => {
@@ -35,7 +35,7 @@ describe('incremental', () => {
 		};
 	});
 
-	it('does not resolves id and transforms in the second time', () => {
+	it('does not resolve ids and transforms in the second time', () => {
 		return rollup
 			.rollup({
 				input: 'entry',
@@ -61,6 +61,31 @@ describe('incremental', () => {
 			});
 	});
 
+	it('does not resolve dynamic ids and transforms in the second time', () => {
+		modules = {
+			entry: `export default import('foo');`,
+			foo: `export default 42`
+		};
+		return rollup
+			.rollup({
+				input: 'entry',
+				plugins: [plugin]
+			})
+			.then(bundle => {
+				assert.equal(resolveIdCalls, 2);
+				assert.equal(transformCalls, 2);
+				return rollup.rollup({
+					input: 'entry',
+					plugins: [plugin],
+					cache: bundle
+				});
+			})
+			.then(bundle => {
+				assert.equal(resolveIdCalls, 3); // +1 for entry point which is resolved every time
+				assert.equal(transformCalls, 2);
+			});
+	});
+
 	it('transforms modified sources', () => {
 		let cache;
 
@@ -76,7 +101,7 @@ describe('incremental', () => {
 					assert.equal(result, 42);
 
 					modules.foo = `export default 43`;
-					cache = bundle;
+					cache = bundle.cache;
 				});
 			})
 			.then(() => {
@@ -111,7 +136,7 @@ describe('incremental', () => {
 					assert.equal(result, 42);
 
 					modules.entry = `import bar from 'bar'; export default bar;`;
-					cache = bundle;
+					cache = bundle.cache;
 				});
 			})
 			.then(() => {
@@ -131,6 +156,42 @@ describe('incremental', () => {
 			});
 	});
 
+	it('respects externals from resolveId', () => {
+		let cache;
+		modules.foo = `import p from 'external'; export default p;`;
+
+		const require = id => id === 'external' && 43;
+
+		return rollup
+			.rollup({
+				input: 'entry',
+				plugins: [plugin]
+			})
+			.then(bundle => {
+				assert.equal(resolveIdCalls, 3);
+
+				return executeBundle(bundle, require).then(result => {
+					assert.equal(result, 43);
+					cache = bundle.cache;
+				});
+			})
+			.then(() => {
+				return rollup.rollup({
+					input: 'entry',
+					plugins: [plugin],
+					cache
+				});
+			})
+			.then(bundle => {
+				assert.equal(resolveIdCalls, 4);
+
+				return executeBundle(bundle, require);
+			})
+			.then(result => {
+				assert.equal(result, 43);
+			});
+	});
+
 	it('keeps ASTs between runs', () => {
 		return rollup
 			.rollup({
@@ -139,7 +200,7 @@ describe('incremental', () => {
 			})
 			.then(bundle => {
 				const asts = {};
-				bundle.modules.forEach(module => {
+				bundle.cache.modules.forEach(module => {
 					asts[module.id] = module.ast;
 				});
 
@@ -200,14 +261,12 @@ describe('incremental', () => {
 				plugins: [plugin]
 			})
 			.then(bundle => {
-				assert.deepEqual(bundle.imports, ['external']);
+				assert.equal(bundle.cache.modules[0].id, 'foo');
+				assert.equal(bundle.cache.modules[1].id, 'entry');
 
-				assert.equal(bundle.modules[1].id, 'foo');
-				assert.equal(bundle.modules[0].id, 'entry');
-
-				assert.deepEqual(bundle.modules[0].resolvedIds, {
-					foo: 'foo',
-					external: 'external'
+				assert.deepEqual(bundle.cache.modules[1].resolvedIds, {
+					foo: { id: 'foo', external: false, moduleSideEffects: true },
+					external: { id: 'external', external: true, moduleSideEffects: true }
 				});
 			});
 	});

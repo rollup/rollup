@@ -1,12 +1,12 @@
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
-import ExecutionPathOptions from '../ExecutionPathOptions';
-import { NodeType } from './NodeType';
 
 export default class TemplateElement extends NodeBase {
-	type: NodeType.TemplateElement;
-	tail: boolean;
-	value: {
-		cooked: string;
+	tail!: boolean;
+	type!: NodeType.tTemplateElement;
+	value!: {
+		cooked: string | null;
 		raw: string;
 	};
 

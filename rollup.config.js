@@ -1,23 +1,29 @@
 import fs from 'fs';
+import MagicString from 'magic-string';
 import path from 'path';
+import alias from 'rollup-plugin-alias';
 import commonjs from 'rollup-plugin-commonjs';
 import json from 'rollup-plugin-json';
 import resolve from 'rollup-plugin-node-resolve';
-import string from 'rollup-plugin-string';
+import { string } from 'rollup-plugin-string';
+import { terser } from 'rollup-plugin-terser';
 import typescript from 'rollup-plugin-typescript';
 import pkg from './package.json';
 
-const commitHash = (function () {
+const commitHash = (function() {
 	try {
-		return fs.readFileSync( '.commithash', 'utf-8' );
-	} catch ( err ) {
+		return fs.readFileSync('.commithash', 'utf-8');
+	} catch (err) {
 		return 'unknown';
 	}
 })();
 
-const now = new Date(process.env.SOURCE_DATE_EPOCH ? (process.env.SOURCE_DATE_EPOCH * 1000) : new Date().getTime()).toUTCString();
+const now = new Date(
+	process.env.SOURCE_DATE_EPOCH ? process.env.SOURCE_DATE_EPOCH * 1000 : new Date().getTime()
+).toUTCString();
 
 const banner = `/*
+  @license
 	Rollup.js v${pkg.version}
 	${now} - commit ${commitHash}
 
@@ -28,121 +34,130 @@ const banner = `/*
 
 const onwarn = warning => {
 	// eslint-disable-next-line no-console
-	console.error( 'Building Rollup produced warnings that need to be resolved. ' +
-		'Please keep in mind that the browser build may never have external dependencies!' );
-	throw new Error( warning.message );
+	console.error(
+		'Building Rollup produced warnings that need to be resolved. ' +
+			'Please keep in mind that the browser build may never have external dependencies!'
+	);
+	throw new Error(warning.message);
 };
 
-const src = path.resolve( 'src' );
-const bin = path.resolve( 'bin' );
-
-function resolveTypescript () {
+function addSheBang() {
 	return {
-		name: 'resolve-typescript',
-		resolveId ( importee, importer ) {
-			// work around typescript's inability to resolve other extensions
-			if ( ~importee.indexOf( 'help.md' ) ) return path.resolve( 'bin/src/help.md' );
-			if ( ~importee.indexOf( 'package.json' ) ) return path.resolve( 'package.json' );
-
-			// bit of a hack — TypeScript only really works if it can resolve imports,
-			// but they misguidedly chose to reject imports with file extensions. This
-			// means we need to resolve them here
-			if (
-				importer &&
-				(importer.startsWith( src ) || importer.startsWith( bin )) &&
-				importee[ 0 ] === '.' &&
-				path.extname( importee ) === ''
-			) {
-				return path.resolve( path.dirname( importer ), `${importee}.ts` );
+		name: 'add-bin-shebang',
+		renderChunk(code, chunkInfo) {
+			if (chunkInfo.fileName === 'bin/rollup') {
+				const magicString = new MagicString(code);
+				magicString.prepend('#!/usr/bin/env node\n\n');
+				return { code: magicString.toString(), map: magicString.generateMap({hires: true}) };
 			}
 		}
 	};
 }
 
-export default [
-	/* rollup.js and rollup.es.js */
-	{
-		input: 'src/node-entry.ts',
-		onwarn,
-		plugins: [
-			json(),
-			resolveTypescript(),
-			typescript( {
-				typescript: require( 'typescript' )
-			} ),
-			resolve(),
-			commonjs()
-		],
-		external: [ 'fs', 'path', 'events', 'module', 'util' ],
-		output: [
-			{ file: 'dist/rollup.js', format: 'cjs', sourcemap: true, banner },
-			{ file: 'dist/rollup.es.js', format: 'es', sourcemap: true, banner }
-		]
-	},
+const expectedAcornImport = "import acorn__default, { tokTypes, Parser } from 'acorn';";
+const newAcornImport =
+	"import * as acorn__default from 'acorn';\nimport { tokTypes, Parser } from 'acorn';";
 
-	/* rollup.browser.js */
-	{
+// by default, rollup-plugin-commonjs will translate require statements as default imports
+// which can cause issues for secondary tools that use the ESM version of acorn
+function fixAcornEsmImport() {
+	return {
+		name: 'fix-acorn-esm-import',
+		renderChunk(code) {
+			let found = false;
+			const fixedCode = code.replace(expectedAcornImport, () => {
+				found = true;
+				return newAcornImport;
+			});
+			if (!found) {
+				this.error(
+					'Could not find expected acorn import, please deactive this plugin and examine generated code.'
+				);
+			}
+			return fixedCode;
+		}
+	};
+}
+
+const moduleAliases = {
+	resolve: ['.js', '.json', '.md'],
+	'acorn-dynamic-import': path.resolve('node_modules/acorn-dynamic-import/src/index.js'),
+	'help.md': path.resolve('cli/help.md'),
+	'package.json': path.resolve('package.json')
+};
+
+const treeshake = {
+	moduleSideEffects: false,
+	propertyReadSideEffects: false,
+	tryCatchDeoptimization: false
+};
+
+const nodePlugins = [
+	alias(moduleAliases),
+	resolve(),
+	json(),
+	string({ include: '**/*.md' }),
+	commonjs({ include: 'node_modules/**' }),
+	typescript({ include: '**/*.{ts,js}' })
+];
+
+export default command => {
+	const commonJSBuild = {
+		input: {
+			'rollup.js': 'src/node-entry.ts',
+			'bin/rollup': 'cli/index.ts'
+		},
+		onwarn,
+		plugins: [...nodePlugins, addSheBang()],
+		// acorn needs to be external as some plugins rely on a shared acorn instance
+		external: ['acorn', 'assert', 'events', 'fs', 'module', 'path', 'util'],
+		treeshake,
+		output: {
+			banner,
+			chunkFileNames: 'shared/[name].js',
+			dir: 'dist',
+			entryFileNames: '[name]',
+			externalLiveBindings: false,
+			format: 'cjs',
+			freeze: false,
+			interop: false,
+			sourcemap: true
+		}
+	};
+
+	if (command.configTest) {
+		return commonJSBuild;
+	}
+
+	const esmBuild = Object.assign({}, commonJSBuild, {
+		input: 'src/node-entry.ts',
+		plugins: [...nodePlugins, fixAcornEsmImport()],
+		output: { file: 'dist/rollup.es.js', format: 'esm', banner }
+	});
+
+	const browserBuilds = {
 		input: 'src/browser-entry.ts',
 		onwarn,
 		plugins: [
+			alias(moduleAliases),
+			resolve({ browser: true }),
 			json(),
 			{
 				load: id => {
-					if ( ~id.indexOf( 'fs.ts' ) ) return fs.readFileSync( 'browser/fs.ts', 'utf-8' );
-					if ( ~id.indexOf( 'path.ts' ) ) return fs.readFileSync( 'browser/path.ts', 'utf-8' );
+					if (~id.indexOf('fs.ts')) return fs.readFileSync('browser/fs.ts', 'utf-8');
+					if (~id.indexOf('path.ts')) return fs.readFileSync('browser/path.ts', 'utf-8');
 				}
 			},
-			resolveTypescript(),
-			typescript( {
-				typescript: require( 'typescript' )
-			} ),
-			resolve({ browser: true }),
-			commonjs()
+			commonjs(),
+			typescript({ include: '**/*.{ts,js}' }),
+			terser({ module: true, output: { comments: 'some' } })
 		],
+		treeshake,
 		output: [
-			{
-				file: 'dist/rollup.browser.js',
-				format: 'umd',
-				name: 'rollup',
-				sourcemap: true,
-				banner
-			}
+			{ file: 'dist/rollup.browser.js', format: 'umd', name: 'rollup', banner },
+			{ file: 'dist/rollup.browser.es.js', format: 'esm', banner }
 		]
-	},
+	};
 
-	/* bin/rollup */
-	{
-		input: 'bin/src/index.ts',
-		onwarn,
-		plugins: [
-			string( { include: '**/*.md' } ),
-			json(),
-			resolveTypescript(),
-			typescript( {
-				typescript: require( 'typescript' )
-			} ),
-			commonjs( {
-				include: 'node_modules/**'
-			} ),
-			resolve(),
-		],
-		external: [
-			'fs',
-			'path',
-			'module',
-			'events',
-			'rollup',
-			'assert',
-			'os',
-			'util'
-		],
-		output: {
-			file: 'bin/rollup',
-			format: 'cjs',
-			banner: '#!/usr/bin/env node',
-			paths: {
-				rollup: '../dist/rollup.js'
-			}
-		}
-	}
-];
+	return [commonJSBuild, esmBuild, browserBuilds];
+};

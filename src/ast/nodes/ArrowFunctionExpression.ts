@@ -1,41 +1,37 @@
-import Scope from '../scopes/Scope';
-import ReturnValueScope from '../scopes/ReturnValueScope';
-import BlockStatement, { isBlockStatement } from './BlockStatement';
 import CallOptions from '../CallOptions';
-import ExecutionPathOptions from '../ExecutionPathOptions';
-import { ForEachReturnExpressionCallback, SomeReturnExpressionCallback } from './shared/Expression';
-import { PatternNode } from './shared/Pattern';
-import { NodeType } from './NodeType';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import ReturnValueScope from '../scopes/ReturnValueScope';
+import Scope from '../scopes/Scope';
+import { ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_KEY, UNKNOWN_PATH } from '../values';
+import BlockStatement from './BlockStatement';
+import Identifier from './Identifier';
+import * as NodeType from './NodeType';
+import RestElement from './RestElement';
 import { ExpressionNode, GenericEsTreeNode, NodeBase } from './shared/Node';
-import { ObjectPath } from '../values';
+import { PatternNode } from './shared/Pattern';
+import SpreadElement from './SpreadElement';
 
 export default class ArrowFunctionExpression extends NodeBase {
-	type: NodeType.ArrowFunctionExpression;
-	body: BlockStatement | ExpressionNode;
-	params: PatternNode[];
-
-	scope: ReturnValueScope;
-	preventChildBlockScope: true;
-
-	bind() {
-		super.bind();
-		isBlockStatement(this.body)
-			? this.body.bindImplicitReturnExpressionToScope()
-			: this.scope.addReturnExpression(this.body);
-	}
+	body!: BlockStatement | ExpressionNode;
+	params!: PatternNode[];
+	preventChildBlockScope!: true;
+	scope!: ReturnValueScope;
+	type!: NodeType.tArrowFunctionExpression;
 
 	createScope(parentScope: Scope) {
-		this.scope = new ReturnValueScope({ parent: parentScope });
+		this.scope = new ReturnValueScope(parentScope, this.context);
 	}
 
-	forEachReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback,
-		options: ExecutionPathOptions
-	) {
-		path.length === 0 &&
-			this.scope.forEachReturnExpressionWhenCalled(callOptions, callback, options);
+	deoptimizePath(path: ObjectPath) {
+		// A reassignment of UNKNOWN_PATH is considered equivalent to having lost track
+		// which means the return expression needs to be reassigned
+		if (path.length === 1 && path[0] === UNKNOWN_KEY) {
+			this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
+		}
+	}
+
+	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
+		return path.length === 0 ? this.scope.getReturnExpression() : UNKNOWN_EXPRESSION;
 	}
 
 	hasEffects(_options: ExecutionPathOptions) {
@@ -64,10 +60,29 @@ export default class ArrowFunctionExpression extends NodeBase {
 		return this.body.hasEffects(options);
 	}
 
-	initialise() {
-		this.included = false;
+	include(includeChildrenRecursively: boolean | 'variables') {
+		this.included = true;
+		this.body.include(includeChildrenRecursively);
 		for (const param of this.params) {
-			param.declare('parameter', null);
+			if (!(param instanceof Identifier)) {
+				param.include(includeChildrenRecursively);
+			}
+		}
+	}
+
+	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+		this.scope.includeCallArguments(args);
+	}
+
+	initialise() {
+		this.scope.addParameterVariables(
+			this.params.map(param => param.declare('parameter', UNKNOWN_EXPRESSION)),
+			this.params[this.params.length - 1] instanceof RestElement
+		);
+		if (this.body instanceof BlockStatement) {
+			this.body.addImplicitReturnExpressionToScope();
+		} else {
+			this.scope.addReturnExpression(this.body);
 		}
 	}
 
@@ -76,22 +91,10 @@ export default class ArrowFunctionExpression extends NodeBase {
 			this.body = new this.context.nodeConstructors.BlockStatement(
 				esTreeNode.body,
 				this,
-				new Scope({ parent: this.scope })
+				this.scope.hoistedBodyVarScope
 			);
 		}
 		super.parseNode(esTreeNode);
-	}
-
-	someReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		predicateFunction: SomeReturnExpressionCallback,
-		options: ExecutionPathOptions
-	): boolean {
-		return (
-			path.length > 0 ||
-			this.scope.someReturnExpressionWhenCalled(callOptions, predicateFunction, options)
-		);
 	}
 }
 

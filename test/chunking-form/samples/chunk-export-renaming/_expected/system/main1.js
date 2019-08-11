@@ -1,8 +1,8 @@
-System.register(['./chunk-f42d8bc0.js'], function (exports, module) {
+System.register(['./generated-one.js'], function (exports) {
 	'use strict';
 	return {
 		setters: [function (module) {
-			exports('ItemOne', module.b);
+			exports('ItemOne', module.O);
 		}],
 		execute: function () {
 

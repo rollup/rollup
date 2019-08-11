@@ -1,3 +1,3 @@
-import chalk from 'chalk';
+import tc from 'turbocolor';
 
-assert.ok( chalk );
+assert.ok( tc );

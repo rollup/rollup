@@ -1,2 +1,2 @@
-import View from 'core/view';
+import View, { name } from 'core/view';
 export default View.extend({});

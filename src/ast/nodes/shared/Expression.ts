@@ -1,40 +1,36 @@
-import { WritableEntity } from '../../Entity';
 import CallOptions from '../../CallOptions';
-import ExecutionPathOptions from '../../ExecutionPathOptions';
-import { ObjectPath } from '../../values';
-
-export type PredicateFunction = (node: ExpressionEntity) => boolean;
-export type SomeReturnExpressionCallback = (options: ExecutionPathOptions) => PredicateFunction;
-export type ForEachReturnExpressionCallback = (
-	options: ExecutionPathOptions
-) => (node: ExpressionEntity) => void;
+import { DeoptimizableEntity } from '../../DeoptimizableEntity';
+import { WritableEntity } from '../../Entity';
+import { ExecutionPathOptions } from '../../ExecutionPathOptions';
+import { ImmutableEntityPathTracker } from '../../utils/ImmutableEntityPathTracker';
+import { LiteralValueOrUnknown, ObjectPath } from '../../values';
+import SpreadElement from '../SpreadElement';
+import { ExpressionNode, IncludeChildren } from './Node';
 
 export interface ExpressionEntity extends WritableEntity {
+	included: boolean;
+
 	/**
-	 * Executes the callback on each possible return expression when calling this node.
+	 * If possible it returns a stringifyable literal value for this node that can be used
+	 * for inlining or comparing values.
+	 * Otherwise it should return UNKNOWN_VALUE.
 	 */
-	forEachReturnExpressionWhenCalledAtPath(
+	getLiteralValueAtPath(
 		path: ObjectPath,
-		callOptions: CallOptions,
-		callback: ForEachReturnExpressionCallback,
-		options: ExecutionPathOptions
-	): void;
-	getValue(): any;
+		recursionTracker: ImmutableEntityPathTracker,
+		origin: DeoptimizableEntity
+	): LiteralValueOrUnknown;
+	getReturnExpressionWhenCalledAtPath(
+		path: ObjectPath,
+		recursionTracker: ImmutableEntityPathTracker,
+		origin: DeoptimizableEntity
+	): ExpressionEntity;
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean;
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
 		options: ExecutionPathOptions
 	): boolean;
-
-	/**
-	 * Should return true if some possible return expression when called at the given
-	 * path returns true.
-	 */
-	someReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		predicateFunction: SomeReturnExpressionCallback,
-		options: ExecutionPathOptions
-	): boolean;
+	include(includeChildrenRecursively: IncludeChildren): void;
+	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void;
 }

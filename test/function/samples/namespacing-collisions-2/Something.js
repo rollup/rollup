@@ -1,6 +1,6 @@
 import * as Material from './Material';
 
 export function Something() {
-	console.log(Material);
+	assert.strictEqual(Material.Material(), 'Material');
 	return 'Something';
 }

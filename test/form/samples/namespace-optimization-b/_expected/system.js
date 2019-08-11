@@ -1,4 +1,4 @@
-System.register([], function (exports, module) {
+System.register([], function () {
 	'use strict';
 	return {
 		execute: function () {
@@ -12,9 +12,7 @@ System.register([], function (exports, module) {
 				foo();
 
 				var a;
-				if ( a.b ) {
-					// empty
-				}
+				if ( a.b ) ;
 			}
 
 			a();

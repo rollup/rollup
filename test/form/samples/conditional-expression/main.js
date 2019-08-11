@@ -6,7 +6,6 @@ var unknownValue = bar();
 // unknown branch without side-effects
 var b = unknownValue ? 1 : 2;
 new (unknownValue ? function () {} : function () {this.x = 1;})();
-(unknownValue ? () => () => {} : () => () => {})()();
 
 // unknown branch with side-effect
 var c = unknownValue ? foo() : 2;

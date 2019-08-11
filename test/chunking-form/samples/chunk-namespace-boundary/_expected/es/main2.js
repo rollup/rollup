@@ -1,4 +1,4 @@
-import { b as d } from './chunk-26990fd6.js';
+import { d } from './generated-shared.js';
 
 var main2 = d.map(d => d + 2);
 

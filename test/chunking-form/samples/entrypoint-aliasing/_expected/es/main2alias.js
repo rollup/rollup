@@ -1,1 +1,1 @@
-export { b as default } from './main2alias-de61dac0.js';
+export { l as default } from './generated-main2.js';

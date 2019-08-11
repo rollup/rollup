@@ -1,21 +1,20 @@
-import ParameterScope from './ParameterScope';
+import { AstContext } from '../../Module';
 import Identifier from '../nodes/Identifier';
-import Scope from './Scope';
+import { ExpressionEntity } from '../nodes/shared/Expression';
 import LocalVariable from '../variables/LocalVariable';
+import ParameterScope from './ParameterScope';
 
 export default class CatchScope extends ParameterScope {
-	parent: Scope;
-
 	addDeclaration(
 		identifier: Identifier,
-		options = {
-			isHoisted: false
-		}
-	) {
-		if (options.isHoisted) {
-			return (<Scope>this.parent).addDeclaration(identifier, options) as LocalVariable;
+		context: AstContext,
+		init: ExpressionEntity | null = null,
+		isHoisted = false
+	): LocalVariable {
+		if (isHoisted) {
+			return this.parent.addDeclaration(identifier, context, init, true);
 		} else {
-			return super.addDeclaration(identifier, options) as LocalVariable;
+			return super.addDeclaration(identifier, context, init, false);
 		}
 	}
 }

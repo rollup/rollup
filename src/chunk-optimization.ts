@@ -13,12 +13,13 @@ import { OutputOptions } from './rollup/types';
 export function optimizeChunks(
 	chunks: Chunk[],
 	options: OutputOptions,
-	CHUNK_GROUPING_SIZE: number
+	CHUNK_GROUPING_SIZE: number,
+	inputBase: string
 ): Chunk[] {
 	for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
 		const mainChunk = chunks[chunkIndex];
 		const execGroup: Chunk[] = [];
-		mainChunk.postVisitChunkDependencies(dep => {
+		mainChunk.visitStaticDependenciesUntilCondition(dep => {
 			if (dep instanceof Chunk) {
 				execGroup.push(dep);
 			}
@@ -30,15 +31,15 @@ export function optimizeChunks(
 
 		let execGroupIndex = 1;
 		let seekingFirstMergeCandidate = true;
-		let lastChunk: Chunk,
+		let lastChunk: Chunk = undefined as any,
 			chunk = execGroup[0],
 			nextChunk = execGroup[1];
 
 		const isMergeCandidate = (chunk: Chunk) => {
-			if (chunk.isEntryModuleFacade || chunk.isManualChunk) {
+			if (chunk.facadeModule !== null || chunk.manualChunkAlias !== null) {
 				return false;
 			}
-			if (!nextChunk || nextChunk.isEntryModuleFacade) {
+			if (!nextChunk || nextChunk.facadeModule !== null) {
 				return false;
 			}
 			if (chunk.getRenderedSourceLength() > CHUNK_GROUPING_SIZE) {
@@ -66,12 +67,12 @@ export function optimizeChunks(
 			}
 			// if (!chunk.isPure()) continue;
 
-			const chunkDependencies = new Set<Chunk | External>();
-			chunk.postVisitChunkDependencies(dep => chunkDependencies.add(dep));
+			const chunkDependencies = new Set<Chunk | ExternalModule>();
+			chunk.visitStaticDependenciesUntilCondition(dep => chunkDependencies.add(dep));
 
-			const ignoreSizeChunks = new Set<Chunk | External>([chunk, lastChunk]);
+			const ignoreSizeChunks = new Set<Chunk | ExternalModule>([chunk, lastChunk]);
 			if (
-				lastChunk.postVisitChunkDependencies(dep => {
+				lastChunk.visitStaticDependenciesUntilCondition(dep => {
 					if (dep === chunk || dep === lastChunk) {
 						return false;
 					}
@@ -95,7 +96,7 @@ export function optimizeChunks(
 			}
 
 			if (
-				chunk.postVisitChunkDependencies(dep => {
+				chunk.visitStaticDependenciesUntilCondition(dep => {
 					if (ignoreSizeChunks.has(dep)) {
 						return false;
 					}
@@ -119,7 +120,7 @@ export function optimizeChunks(
 			if (optimizedChunkIndex <= chunkIndex) chunkIndex--;
 			chunks.splice(optimizedChunkIndex, 1);
 
-			lastChunk.merge(chunk, chunks, options);
+			lastChunk.merge(chunk, chunks, options, inputBase);
 
 			execGroup.splice(--execGroupIndex, 1);
 

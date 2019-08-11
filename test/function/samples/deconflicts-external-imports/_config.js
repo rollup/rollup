@@ -1,7 +1,7 @@
 module.exports = {
 	description: 'deconflicts external imports',
 	context: {
-		require: function(id) {
+		require(id) {
 			return function() {
 				return id;
 			};

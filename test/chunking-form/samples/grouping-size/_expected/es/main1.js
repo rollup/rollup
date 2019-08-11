@@ -1,5 +1,6 @@
-import { b as y, c as z } from './chunk-afd977c3.js';
+import { x } from './generated-dep1.js';
+import { y } from './generated-dep3.js';
 
-var main1 = y + z;
+var main1 = x + y;
 
 export default main1;

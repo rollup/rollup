@@ -1,42 +1,55 @@
-import ExecutionPathOptions from '../ExecutionPathOptions';
 import MagicString from 'magic-string';
-import { SomeReturnExpressionCallback } from './shared/Expression';
-import { Node, NodeBase } from './shared/Node';
-import { NodeType } from './NodeType';
+import { RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import {
 	getLiteralMembersForValue,
+	getMemberReturnExpressionWhenCalled,
 	hasMemberEffectWhenCalled,
+	LiteralValueOrUnknown,
 	MemberDescription,
 	ObjectPath,
-	someMemberReturnExpressionWhenCalled
+	UNKNOWN_EXPRESSION,
+	UNKNOWN_VALUE
 } from '../values';
-import { RenderOptions } from '../../utils/renderHelpers';
+import * as NodeType from './NodeType';
+import { NodeBase } from './shared/Node';
 
-export type LiteralValueTypes = string | boolean | null | number | RegExp;
+export type LiteralValue = string | boolean | null | number | RegExp | undefined;
 
-export function isLiteral(node: Node): node is Literal {
-	return node.type === NodeType.Literal;
-}
+export default class Literal<T = LiteralValue> extends NodeBase {
+	type!: NodeType.tLiteral;
+	value!: T;
 
-export default class Literal<T = LiteralValueTypes> extends NodeBase {
-	type: NodeType.Literal;
-	value: T;
+	private members!: { [key: string]: MemberDescription };
 
-	private members: { [key: string]: MemberDescription };
-
-	getValue() {
-		return this.value;
+	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
+		if (
+			path.length > 0 ||
+			// unknown literals can also be null but do not start with an "n"
+			(this.value === null && this.context.code.charCodeAt(this.start) !== 110) ||
+			typeof this.value === 'bigint' ||
+			// to support shims for regular expressions
+			this.context.code.charCodeAt(this.start) === 47
+		) {
+			return UNKNOWN_VALUE;
+		}
+		return this.value as any;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
+	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
+		if (path.length !== 1) return UNKNOWN_EXPRESSION;
+		return getMemberReturnExpressionWhenCalled(this.members, path[0]);
+	}
+
+	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
 		if (this.value === null) {
 			return path.length > 0;
 		}
 		return path.length > 1;
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath) {
 		return path.length > 0;
 	}
 
@@ -46,37 +59,18 @@ export default class Literal<T = LiteralValueTypes> extends NodeBase {
 		options: ExecutionPathOptions
 	): boolean {
 		if (path.length === 1) {
-			return hasMemberEffectWhenCalled(this.members, path[0], callOptions, options);
+			return hasMemberEffectWhenCalled(this.members, path[0], this.included, callOptions, options);
 		}
 		return true;
 	}
 
 	initialise() {
-		this.included = false;
 		this.members = getLiteralMembersForValue(this.value);
 	}
 
 	render(code: MagicString, _options: RenderOptions) {
 		if (typeof this.value === 'string') {
-			(<[number, number][]>code.indentExclusionRanges).push([this.start + 1, this.end - 1]);
+			(code.indentExclusionRanges as [number, number][]).push([this.start + 1, this.end - 1]);
 		}
-	}
-
-	someReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		predicateFunction: SomeReturnExpressionCallback,
-		options: ExecutionPathOptions
-	): boolean {
-		if (path.length === 1) {
-			return someMemberReturnExpressionWhenCalled(
-				this.members,
-				path[0],
-				callOptions,
-				predicateFunction,
-				options
-			);
-		}
-		return true;
 	}
 }

@@ -1,13 +1,13 @@
 import MagicString from 'magic-string';
-import { StatementBase } from './shared/Node';
 import { RenderOptions } from '../../utils/renderHelpers';
-import { NodeType } from './NodeType';
+import * as NodeType from './NodeType';
+import { ExpressionNode, StatementBase } from './shared/Node';
 
 export default class ExpressionStatement extends StatementBase {
 	directive?: string;
+	expression!: ExpressionNode;
 
 	initialise() {
-		this.included = false;
 		if (
 			this.directive &&
 			this.directive !== 'use strict' &&
@@ -26,15 +26,15 @@ export default class ExpressionStatement extends StatementBase {
 		}
 	}
 
+	render(code: MagicString, options: RenderOptions) {
+		super.render(code, options);
+		if (this.included) this.insertSemicolon(code);
+	}
+
 	shouldBeIncluded() {
 		if (this.directive && this.directive !== 'use strict')
 			return this.parent.type !== NodeType.Program;
 
 		return super.shouldBeIncluded();
-	}
-
-	render(code: MagicString, options: RenderOptions) {
-		super.render(code, options);
-		if (this.included) this.insertSemicolon(code);
 	}
 }

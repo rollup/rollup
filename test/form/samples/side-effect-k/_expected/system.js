@@ -1,9 +1,10 @@
-System.register([], function (exports, module) {
+System.register('myBundle', [], function (exports) {
 	'use strict';
 	return {
 		execute: function () {
 
 			exports('default', x);
+
 			function augment ( x ) {
 				var prop, source;
 

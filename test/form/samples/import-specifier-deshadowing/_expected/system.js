@@ -1,18 +1,18 @@
-System.register(['react-sticky'], function (exports, module) {
+System.register('Sticky', ['react-sticky'], function (exports) {
 	'use strict';
-	var Sticky;
+	var Sticky$1;
 	return {
 		setters: [function (module) {
-			Sticky = module.Sticky;
+			Sticky$1 = module.Sticky;
 		}],
 		execute: function () {
 
-			var Sticky$1 = exports('default', function () {
-				function Sticky$$1() {}
+			var Sticky = exports('default', function () {
+				function Sticky() {}
 
-				Sticky$$1.foo = Sticky;
+				Sticky.foo = Sticky$1;
 
-				return Sticky$$1;
+				return Sticky;
 			}());
 
 		}
