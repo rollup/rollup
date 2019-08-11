@@ -1,4 +1,4 @@
-import { f as foo } from './generated-chunk.js';
+import { f as foo } from './generated-dep2.js';
 
 
 

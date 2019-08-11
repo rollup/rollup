@@ -661,6 +661,45 @@ const yourMethod = require( 'your-lib' ).yourMethod;
 const yourLib = require( 'your-lib' ).default;
 ```
 
+#### output.externalLiveBindings
+Type: `boolean`<br>
+CLI: `--externalLiveBindings`/`--no-externalLiveBindings`<br>
+Default: `true`
+
+When set to `false`, Rollup will not generate code to support live bindings for external imports but instead assume that exports do not change over time. This will enable Rollup to generate more optimized code. Note that this can cause issues when there are circular dependencies involving an external dependency. 
+
+This will avoid most cases where Rollup generates getters in the code and can therefore be used to make code IE8 compatible in many cases.
+
+Example:
+
+```js
+// input
+export {x} from 'external';
+
+// CJS output with externalLiveBindings: true
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var external = require('external');
+
+Object.defineProperty(exports, 'x', {
+	enumerable: true,
+	get: function () {
+		return external.x;
+	}
+});
+
+// CJS output with externalLiveBindings: false
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var external = require('external');
+
+exports.x = external.x;
+```
+
 #### output.freeze
 Type: `boolean`<br>
 CLI: `--freeze`/`--no-freeze`<br>

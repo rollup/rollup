@@ -3,6 +3,7 @@ import { BLANK } from '../../utils/blank';
 import {
 	findFirstOccurrenceOutsideComment,
 	NodeRenderOptions,
+	removeLineBreaks,
 	RenderOptions
 } from '../../utils/renderHelpers';
 import { removeAnnotations } from '../../utils/treeshakeNode';
@@ -155,7 +156,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ renderedParentType, isCalleeOfRenderedParent }: NodeRenderOptions = BLANK
+		{ renderedParentType, isCalleeOfRenderedParent, preventASI }: NodeRenderOptions = BLANK
 	) {
 		if (!this.left.included || !this.right.included) {
 			const operatorPos = findFirstOccurrenceOutsideComment(
@@ -165,6 +166,9 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 			);
 			if (this.right.included) {
 				code.remove(this.start, operatorPos + 2);
+				if (preventASI) {
+					removeLineBreaks(code, operatorPos + 2, this.right.start);
+				}
 			} else {
 				code.remove(operatorPos, this.end);
 			}

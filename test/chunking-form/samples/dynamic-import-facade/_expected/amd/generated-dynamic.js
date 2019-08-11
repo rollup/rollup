@@ -1,7 +1,13 @@
-define(['exports', './generated-chunk'], function (exports, dynamic) { 'use strict';
+define(['exports'], function (exports) { 'use strict';
 
+	console.log('dep');
 
+	const dep = 'dep';
 
-	exports.dynamic = dynamic.dynamic;
+	console.log('dynamic', dep);
+	const dynamic = 'dynamic';
+
+	exports.dep = dep;
+	exports.dynamic = dynamic;
 
 });

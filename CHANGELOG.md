@@ -1,11 +1,69 @@
 # rollup changelog
 
-## 1.17.1
-*unreleased*
+## 1.19.4
+*2019-08-07*
+
+### Bug Fixes
+* Prevent invalid code when exporting an external namespace (#3034)
+* Prevent invalid or non-equivalent code when simplifying expressions in return and throw statements (#3035)
+
+### Pull Requests
+* [#3034](https://github.com/rollup/rollup/pull/3034): Avoid generating .* as export (@LongTengDao)
+* [#3035](https://github.com/rollup/rollup/pull/3035): Prevent ASI errors for conditional expressions (@lukastaegert)
+* [#3036](https://github.com/rollup/rollup/pull/3036): Fix documents to use https, not http (@giraffate)
+
+## 1.19.3
+*2019-08-06*
+
+### Bug Fixes
+* Fix wrong URLs in error messages (#3033)
+
+### Pull Requests
+* [#3033](https://github.com/rollup/rollup/pull/3033): Fix wrong URLs in error messages (@giraffate)
+
+## 1.19.2
+*2019-08-05*
+
+### Bug Fixes
+* Add bin file to package
+
+## 1.19.1
+*2019-08-05*
+
+### Bug Fixes
+* Remove wrong extension in package.json file (#3031)
+
+### Pull Requests
+* [#3031](https://github.com/rollup/rollup/pull/3031): Fix wrong extension (@lukastaegert)
+
+## 1.19.0
+*2019-08-05*
+
+### Features
+* Implement a new unified file emission API for assets and chunks with support for explicit file names (#2999)
+* Use the id of the last module in a chunk as base for the chunk name if no better name is available (#3025)
+* Use the id of the last module in a chunk as base for the variable name of a chunk in some formats if no better name is available (#2999)
+
+### Bug Fixes
+* Do not produce invalid variable names if an empty name is chosen for a virtual module (#3026)
+* Fix an issue where a module variable name would conflict with a local variable name in some formats (#3020)
+
+### Pull Requests
+* [#2999](https://github.com/rollup/rollup/pull/2999): Unified file emission api (@lukastaegert)
+* [#3020](https://github.com/rollup/rollup/pull/3020): Switch to a code-splitting build and update dependencies (@lukastaegert)
+* [#3025](https://github.com/rollup/rollup/pull/3025): Use id of last module in chunk as name base for auto-generated chunks (@lukastaegert)
+* [#3026](https://github.com/rollup/rollup/pull/3026): Avoid variable from empty module name be empty (@LongTengDao)
+
+## 1.18.0
+*2019-08-01*
+
+### Features
+* Add `externalLiveBindings: false` option to optimize code when live bindings are not needed (#3010)
 
 ### Pull Requests
 * [#2997](https://github.com/rollup/rollup/pull/2997): Integrate coverage into CI setup (@lukastaegert)
 * [#2998](https://github.com/rollup/rollup/pull/2998): Update readme badges (@lukastaegert)
+* [#3010](https://github.com/rollup/rollup/pull/3010): Add option to prevent code for external live bindings (@lukastaegert)
 
 ## 1.17.0
 *2019-07-15*

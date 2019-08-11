@@ -3,10 +3,9 @@ import Chunk from '../Chunk';
 import { optimizeChunks } from '../chunk-optimization';
 import Graph from '../Graph';
 import { createAddons } from '../utils/addons';
-import { createAssetPluginHooks, finaliseAsset } from '../utils/assetHooks';
 import { assignChunkIds } from '../utils/assignChunkIds';
 import commondir from '../utils/commondir';
-import { errDeprecation, error } from '../utils/error';
+import { errCannotEmitFromOptionsHook, errDeprecation, error } from '../utils/error';
 import { writeFile } from '../utils/fs';
 import getExportMode from '../utils/getExportMode';
 import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
@@ -18,10 +17,10 @@ import {
 	InputOptions,
 	OutputAsset,
 	OutputBundle,
+	OutputBundleWithPlaceholders,
 	OutputChunk,
 	OutputOptions,
 	Plugin,
-	PluginContext,
 	RollupBuild,
 	RollupCache,
 	RollupOutput,
@@ -148,6 +147,33 @@ export function setWatcher(watcher: RollupWatcher) {
 	curWatcher = watcher;
 }
 
+function assignChunksToBundle(
+	chunks: Chunk[],
+	outputBundle: OutputBundleWithPlaceholders
+): OutputBundle {
+	for (let i = 0; i < chunks.length; i++) {
+		const chunk = chunks[i];
+		const facadeModule = chunk.facadeModule;
+
+		outputBundle[chunk.id as string] = {
+			code: undefined as any,
+			dynamicImports: chunk.getDynamicImportIds(),
+			exports: chunk.getExportNames(),
+			facadeModuleId: facadeModule && facadeModule.id,
+			fileName: chunk.id,
+			imports: chunk.getImportIds(),
+			isDynamicEntry: facadeModule !== null && facadeModule.dynamicallyImportedBy.length > 0,
+			isEntry: facadeModule !== null && facadeModule.isEntryPoint,
+			map: undefined,
+			modules: chunk.renderedModules,
+			get name() {
+				return chunk.getChunkName();
+			}
+		} as OutputChunk;
+	}
+	return outputBundle as OutputBundle;
+}
+
 export default function rollup(rawInputOptions: GenericConfigObject): Promise<RollupBuild> {
 	try {
 		const inputOptions = getInputOptions(rawInputOptions);
@@ -194,114 +220,75 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 					);
 				}
 
-				function generate(outputOptions: OutputOptions, isWrite: boolean) {
+				async function generate(
+					outputOptions: OutputOptions,
+					isWrite: boolean
+				): Promise<OutputBundle> {
 					timeStart('GENERATE', 1);
 
 					const assetFileNames = outputOptions.assetFileNames || 'assets/[name]-[hash][extname]';
-					const outputBundle: OutputBundle = graph.finaliseAssets(assetFileNames);
+					const outputBundleWithPlaceholders: OutputBundleWithPlaceholders = Object.create(null);
+					let outputBundle;
 					const inputBase = commondir(getAbsoluteEntryModulePaths(chunks));
+					graph.pluginDriver.startOutput(outputBundleWithPlaceholders, assetFileNames);
 
-					return graph.pluginDriver
-						.hookParallel('renderStart', [])
-						.then(() => createAddons(graph, outputOptions))
-						.then(addons => {
-							// pre-render all chunks
-							for (const chunk of chunks) {
-								if (!inputOptions.preserveModules) chunk.generateInternalExports(outputOptions);
-								if (chunk.facadeModule && chunk.facadeModule.isEntryPoint)
-									chunk.exportMode = getExportMode(chunk, outputOptions);
-							}
-							for (const chunk of chunks) {
-								chunk.preRender(outputOptions, inputBase);
-							}
-							if (!optimized && inputOptions.experimentalOptimizeChunks) {
-								optimizeChunks(
-									chunks,
-									outputOptions,
-									inputOptions.chunkGroupingSize as number,
-									inputBase
-								);
-								optimized = true;
-							}
-
-							assignChunkIds(chunks, inputOptions, outputOptions, inputBase, addons);
-
-							// assign to outputBundle
-							for (let i = 0; i < chunks.length; i++) {
-								const chunk = chunks[i];
-								const facadeModule = chunk.facadeModule;
-
-								outputBundle[chunk.id] = {
-									code: undefined as any,
-									dynamicImports: chunk.getDynamicImportIds(),
-									exports: chunk.getExportNames(),
-									facadeModuleId: facadeModule && facadeModule.id,
-									fileName: chunk.id,
-									imports: chunk.getImportIds(),
-									isDynamicEntry:
-										facadeModule !== null && facadeModule.dynamicallyImportedBy.length > 0,
-									isEntry: facadeModule !== null && facadeModule.isEntryPoint,
-									map: undefined,
-									modules: chunk.renderedModules,
-									get name() {
-										return chunk.getChunkName();
-									}
-								} as OutputChunk;
-							}
-
-							return Promise.all(
-								chunks.map(chunk => {
-									const outputChunk = outputBundle[chunk.id] as OutputChunk;
-									return chunk.render(outputOptions, addons, outputChunk).then(rendered => {
-										outputChunk.code = rendered.code;
-										outputChunk.map = rendered.map;
-
-										return graph.pluginDriver.hookParallel('ongenerate', [
-											{ bundle: outputChunk, ...outputOptions },
-											outputChunk
-										]);
-									});
-								})
-							).then(() => {});
-						})
-						.catch(error =>
-							graph.pluginDriver.hookParallel('renderError', [error]).then(() => {
-								throw error;
-							})
-						)
-						.then(() => {
-							// run generateBundle hook
-
-							// assets emitted during generateBundle are unique to that specific generate call
-							const assets = new Map(graph.assetsById);
-							const generateAssetPluginHooks = createAssetPluginHooks(
-								assets,
-								outputBundle,
-								assetFileNames
+					try {
+						await graph.pluginDriver.hookParallel('renderStart', []);
+						const addons = await createAddons(graph, outputOptions);
+						for (const chunk of chunks) {
+							if (!inputOptions.preserveModules) chunk.generateInternalExports(outputOptions);
+							if (chunk.facadeModule && chunk.facadeModule.isEntryPoint)
+								chunk.exportMode = getExportMode(chunk, outputOptions);
+						}
+						for (const chunk of chunks) {
+							chunk.preRender(outputOptions, inputBase);
+						}
+						if (!optimized && inputOptions.experimentalOptimizeChunks) {
+							optimizeChunks(
+								chunks,
+								outputOptions,
+								inputOptions.chunkGroupingSize as number,
+								inputBase
 							);
+							optimized = true;
+						}
+						assignChunkIds(
+							chunks,
+							inputOptions,
+							outputOptions,
+							inputBase,
+							addons,
+							outputBundleWithPlaceholders
+						);
+						outputBundle = assignChunksToBundle(chunks, outputBundleWithPlaceholders);
 
-							return graph.pluginDriver
-								.hookSeq(
-									'generateBundle',
-									[outputOptions, outputBundle, isWrite],
-									context =>
-										({
-											...context,
-											...generateAssetPluginHooks
-										} as PluginContext)
-								)
-								.then(() => {
-									// throw errors for assets not finalised with a source
-									assets.forEach(asset => {
-										if (asset.fileName === undefined)
-											finaliseAsset(asset, outputBundle, assetFileNames);
-									});
+						await Promise.all(
+							chunks.map(chunk => {
+								const outputChunk = outputBundleWithPlaceholders[chunk.id as string] as OutputChunk;
+								return chunk.render(outputOptions, addons, outputChunk).then(rendered => {
+									outputChunk.code = rendered.code;
+									outputChunk.map = rendered.map;
+
+									return graph.pluginDriver.hookParallel('ongenerate', [
+										{ bundle: outputChunk, ...outputOptions },
+										outputChunk
+									]);
 								});
-						})
-						.then(() => {
-							timeEnd('GENERATE', 1);
-							return outputBundle;
-						});
+							})
+						);
+					} catch (error) {
+						await graph.pluginDriver.hookParallel('renderError', [error]);
+						throw error;
+					}
+					await graph.pluginDriver.hookSeq('generateBundle', [
+						outputOptions,
+						outputBundle,
+						isWrite
+					]);
+					graph.pluginDriver.finaliseAssets();
+
+					timeEnd('GENERATE', 1);
+					return outputBundle;
 				}
 
 				const cache = useCache ? graph.getCache() : undefined;
@@ -383,16 +370,18 @@ function getSortingFileType(file: OutputAsset | OutputChunk): SortingFileType {
 	return SortingFileType.SECONDARY_CHUNK;
 }
 
-function createOutput(outputBundle: Record<string, OutputChunk | OutputAsset>): RollupOutput {
+function createOutput(outputBundle: Record<string, OutputChunk | OutputAsset | {}>): RollupOutput {
 	return {
-		output: Object.keys(outputBundle)
+		output: (Object.keys(outputBundle)
 			.map(fileName => outputBundle[fileName])
-			.sort((outputFileA, outputFileB) => {
-				const fileTypeA = getSortingFileType(outputFileA);
-				const fileTypeB = getSortingFileType(outputFileB);
-				if (fileTypeA === fileTypeB) return 0;
-				return fileTypeA < fileTypeB ? -1 : 1;
-			}) as [OutputChunk, ...(OutputChunk | OutputAsset)[]]
+			.filter(outputFile => Object.keys(outputFile).length > 0) as (
+			| OutputChunk
+			| OutputAsset)[]).sort((outputFileA, outputFileB) => {
+			const fileTypeA = getSortingFileType(outputFileA);
+			const fileTypeB = getSortingFileType(outputFileB);
+			if (fileTypeA === fileTypeB) return 0;
+			return fileTypeA < fileTypeB ? -1 : 1;
+		}) as [OutputChunk, ...(OutputChunk | OutputAsset)[]]
 	};
 }
 
@@ -468,7 +457,15 @@ function normalizeOutputOptions(
 	const outputOptions = pluginDriver.hookReduceArg0Sync(
 		'outputOptions',
 		[mergedOutputOptions],
-		outputOptionsReducer
+		outputOptionsReducer,
+		pluginContext => {
+			const emitError = () => pluginContext.error(errCannotEmitFromOptionsHook());
+			return {
+				...pluginContext,
+				emitFile: emitError,
+				setAssetSource: emitError
+			};
+		}
 	);
 
 	checkOutputOptions(outputOptions);

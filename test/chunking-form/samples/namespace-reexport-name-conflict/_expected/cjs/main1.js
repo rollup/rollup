@@ -1,7 +1,7 @@
 'use strict';
 
-require('./generated-chunk.js');
+require('./generated-dep.js');
 require('external');
-var __chunk_2 = require('./generated-chunk2.js');
+var index = require('./generated-index.js');
 
-console.log(__chunk_2.lib);
+console.log(index.lib);

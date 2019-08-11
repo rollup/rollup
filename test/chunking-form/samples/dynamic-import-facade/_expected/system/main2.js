@@ -1,4 +1,4 @@
-System.register(['./generated-chunk.js'], function () {
+System.register(['./generated-dynamic.js'], function () {
 	'use strict';
 	var dynamic, dep;
 	return {

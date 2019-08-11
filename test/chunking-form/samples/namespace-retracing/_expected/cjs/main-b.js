@@ -1,5 +1,5 @@
 'use strict';
 
-var __chunk_1 = require('./generated-chunk.js');
+var other = require('./generated-other.js');
 
-__chunk_1.Other.doSomething();
+other.Other.doSomething();

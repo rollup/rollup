@@ -1,29 +1,31 @@
-import { error } from './error';
+import { errFailedValidation, error } from './error';
 import { extname } from './path';
-import { isPlainName } from './relativeId';
+import { isPlainPathFragment } from './relativeId';
 
 export function renderNamePattern(
 	pattern: string,
 	patternName: string,
-	getReplacement: (name: string) => string
+	replacements: { [name: string]: () => string }
 ) {
-	if (!isPlainName(pattern))
-		error({
-			code: 'INVALID_PATTERN',
-			message: `Invalid output pattern "${pattern}" for ${patternName}, cannot be an absolute or relative URL or path.`
-		});
+	if (!isPlainPathFragment(pattern))
+		return error(
+			errFailedValidation(
+				`Invalid pattern "${pattern}" for "${patternName}", patterns can be neither absolute nor relative paths and must not contain invalid characters.`
+			)
+		);
 	return pattern.replace(/\[(\w+)\]/g, (_match, type) => {
-		const replacement = getReplacement(type);
-		if (replacement === undefined)
-			error({
-				code: 'INVALID_PATTERN_REPLACEMENT',
-				message: `"${type}" is not a valid substitution name in output option ${patternName} pattern.`
-			});
-		if (!isPlainName(replacement))
-			error({
-				code: 'INVALID_PATTERN_REPLACEMENT',
-				message: `Invalid replacement "${replacement}" for "${type}" in ${patternName} pattern, must be a plain path name.`
-			});
+		if (!replacements.hasOwnProperty(type)) {
+			return error(
+				errFailedValidation(`"[${type}]" is not a valid placeholder in "${patternName}" pattern.`)
+			);
+		}
+		const replacement = replacements[type]();
+		if (!isPlainPathFragment(replacement))
+			return error(
+				errFailedValidation(
+					`Invalid substitution "${replacement}" for placeholder "[${type}]" in "${patternName}" pattern, can be neither absolute nor relative path.`
+				)
+			);
 		return replacement;
 	});
 }

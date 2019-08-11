@@ -4,34 +4,30 @@ import ExternalModule from '../ExternalModule';
 import Graph from '../Graph';
 import Module from '../Module';
 import {
-	EmitAsset,
-	EmitChunk,
+	EmitFile,
 	InputOptions,
+	OutputBundleWithPlaceholders,
 	Plugin,
 	PluginCache,
 	PluginContext,
 	PluginHooks,
+	RollupError,
 	RollupWarning,
 	RollupWatcher,
 	SerializablePluginCache
 } from '../rollup/types';
-import { createAssetPluginHooks } from './assetHooks';
 import { BuildPhase } from './buildPhase';
 import { getRollupDefaultPlugin } from './defaultPlugin';
-import {
-	errInvalidRollupPhaseForAddWatchFile,
-	errInvalidRollupPhaseForEmitChunk,
-	error
-} from './error';
+import { errInvalidRollupPhaseForAddWatchFile, error, Errors } from './error';
+import { FileEmitter } from './FileEmitter';
 
 type Args<T> = T extends (...args: infer K) => any ? K : never;
 type EnsurePromise<T> = Promise<T extends Promise<infer K> ? K : T>;
 
 export interface PluginDriver {
-	emitAsset: EmitAsset;
-	emitChunk: EmitChunk;
-	hasLoadersOrTransforms: boolean;
-	getAssetFileName(assetReferenceId: string): string;
+	emitFile: EmitFile;
+	finaliseAssets(): void;
+	getFileName(assetReferenceId: string): string;
 	hookFirst<H extends keyof PluginHooks, R = ReturnType<PluginHooks[H]>>(
 		hook: H,
 		args: Args<PluginHooks[H]>,
@@ -77,10 +73,11 @@ export interface PluginDriver {
 		args: Args<PluginHooks[H]>,
 		context?: HookContext
 	): void;
+	startOutput(outputBundle: OutputBundleWithPlaceholders, assetFileNames: string): void;
 }
 
 export type Reduce<R = any, T = any> = (reduction: T, result: R, plugin: Plugin) => T;
-export type HookContext = (context: PluginContext, plugin?: Plugin) => PluginContext;
+export type HookContext = (context: PluginContext, plugin: Plugin) => PluginContext;
 
 export const ANONYMOUS_PLUGIN_PREFIX = 'at position ';
 
@@ -108,6 +105,26 @@ function warnDeprecatedHooks(plugins: Plugin[], graph: Graph) {
 	}
 }
 
+export function throwPluginError(
+	err: string | RollupError,
+	plugin: string,
+	{ hook, id }: { hook?: string; id?: string } = {}
+): never {
+	if (typeof err === 'string') err = { message: err };
+	if (err.code && err.code !== Errors.PLUGIN_ERROR) {
+		err.pluginCode = err.code;
+	}
+	err.code = Errors.PLUGIN_ERROR;
+	err.plugin = plugin;
+	if (hook) {
+		err.hook = hook;
+	}
+	if (id) {
+		err.id = id;
+	}
+	return error(err);
+}
+
 export function createPluginDriver(
 	graph: Graph,
 	options: InputOptions,
@@ -115,13 +132,36 @@ export function createPluginDriver(
 	watcher?: RollupWatcher
 ): PluginDriver {
 	warnDeprecatedHooks(options.plugins as Plugin[], graph);
+
+	function getDeprecatedHookHandler<H extends Function>(
+		handler: H,
+		handlerName: string,
+		newHandlerName: string,
+		pluginName: string,
+		acitveDeprecation: boolean
+	): H {
+		let deprecationWarningShown = false;
+		return (((...args: any[]) => {
+			if (!deprecationWarningShown) {
+				deprecationWarningShown = true;
+				graph.warnDeprecation(
+					{
+						message: `The "this.${handlerName}" plugin context function used by plugin ${pluginName} is deprecated. The "this.${newHandlerName}" plugin context function should be used instead.`,
+						plugin: pluginName
+					},
+					acitveDeprecation
+				);
+			}
+			return handler(...args);
+		}) as unknown) as H;
+	}
+
 	const plugins = [
 		...(options.plugins as Plugin[]),
 		getRollupDefaultPlugin(options.preserveSymlinks as boolean)
 	];
-	const { emitAsset, getAssetFileName, setAssetSource } = createAssetPluginHooks(graph.assetsById);
+	const fileEmitter = new FileEmitter(graph);
 	const existingPluginKeys = new Set<string>();
-	let hasLoadersOrTransforms = false;
 
 	const pluginContexts: PluginContext[] = plugins.map((plugin, pidx) => {
 		let cacheable = true;
@@ -132,12 +172,6 @@ export function createPluginDriver(
 				existingPluginKeys.add(plugin.name);
 			}
 		}
-
-		if (
-			!hasLoadersOrTransforms &&
-			(plugin.load || plugin.transform || plugin.transformBundle || plugin.transformChunk)
-		)
-			hasLoadersOrTransforms = true;
 
 		let cacheInstance: PluginCache;
 		if (!pluginCache) {
@@ -157,23 +191,41 @@ export function createPluginDriver(
 				graph.watchFiles[id] = true;
 			},
 			cache: cacheInstance,
-			emitAsset,
-			emitChunk(id, options) {
-				if (graph.phase > BuildPhase.LOAD_AND_PARSE)
-					this.error(errInvalidRollupPhaseForEmitChunk());
-				return pluginDriver.emitChunk(id, options);
-			},
+			emitAsset: getDeprecatedHookHandler(
+				(name: string, source?: string | Buffer) =>
+					fileEmitter.emitFile({ type: 'asset', name, source }),
+				'emitAsset',
+				'emitFile',
+				plugin.name,
+				false
+			),
+			emitChunk: getDeprecatedHookHandler(
+				(id: string, options?: { name?: string }) =>
+					fileEmitter.emitFile({ type: 'chunk', id, name: options && options.name }),
+				'emitChunk',
+				'emitFile',
+				plugin.name,
+				false
+			),
+			emitFile: fileEmitter.emitFile,
 			error(err): never {
-				if (typeof err === 'string') err = { message: err };
-				if (err.code) err.pluginCode = err.code;
-				err.code = 'PLUGIN_ERROR';
-				err.plugin = plugin.name;
-				return error(err);
+				return throwPluginError(err, plugin.name);
 			},
-			getAssetFileName: getAssetFileName as (assetId: string) => string,
-			getChunkFileName(chunkReferenceId) {
-				return graph.moduleLoader.getChunkFileName(chunkReferenceId);
-			},
+			getAssetFileName: getDeprecatedHookHandler(
+				fileEmitter.getFileName,
+				'getAssetFileName',
+				'getFileName',
+				plugin.name,
+				false
+			),
+			getChunkFileName: getDeprecatedHookHandler(
+				fileEmitter.getFileName,
+				'getChunkFileName',
+				'getFileName',
+				plugin.name,
+				false
+			),
+			getFileName: fileEmitter.getFileName,
 			getModuleInfo(moduleId) {
 				const foundModule = graph.moduleById.get(moduleId);
 				if (foundModule == null) {
@@ -191,22 +243,14 @@ export function createPluginDriver(
 					isExternal: foundModule instanceof ExternalModule
 				};
 			},
-			isExternal: (() => {
-				let deprecationWarningShown = false;
-				return (id: string, parentId: string, isResolved = false) => {
-					if (!deprecationWarningShown) {
-						deprecationWarningShown = true;
-						graph.warnDeprecation(
-							{
-								message: `The "this.isExternal" plugin context function used by plugin ${plugin.name} is deprecated. The "this.resolve" plugin context function should be used instead.`,
-								plugin: plugin.name
-							},
-							false
-						);
-					}
-					return graph.moduleLoader.isExternal(id, parentId, isResolved);
-				};
-			})(),
+			isExternal: getDeprecatedHookHandler(
+				(id: string, parentId: string, isResolved = false) =>
+					graph.moduleLoader.isExternal(id, parentId, isResolved),
+				'isExternal',
+				'resolve',
+				plugin.name,
+				false
+			),
 			meta: {
 				rollupVersion
 			},
@@ -221,25 +265,17 @@ export function createPluginDriver(
 					options && options.skipSelf ? pidx : null
 				);
 			},
-			resolveId: (() => {
-				let deprecationWarningShown = false;
-				return (source: string, importer: string) => {
-					if (!deprecationWarningShown) {
-						deprecationWarningShown = true;
-						graph.warnDeprecation(
-							{
-								message: `The "this.resolveId" plugin context function used by plugin ${plugin.name} is deprecated. The "this.resolve" plugin context function should be used instead.`,
-								plugin: plugin.name
-							},
-							false
-						);
-					}
-					return graph.moduleLoader
+			resolveId: getDeprecatedHookHandler(
+				(source: string, importer: string) =>
+					graph.moduleLoader
 						.resolveId(source, importer)
-						.then(resolveId => resolveId && resolveId.id);
-				};
-			})(),
-			setAssetSource,
+						.then(resolveId => resolveId && resolveId.id),
+				'resolveId',
+				'resolve',
+				plugin.name,
+				false
+			),
+			setAssetSource: fileEmitter.setAssetSource,
 			warn(warning) {
 				if (typeof warning === 'string') warning = { message: warning } as RollupWarning;
 				if (warning.code) warning.pluginCode = warning.code;
@@ -301,16 +337,8 @@ export function createPluginDriver(
 			}
 			return hook.apply(context, args);
 		} catch (err) {
-			if (typeof err === 'string') err = { message: err };
-			if (err.code !== 'PLUGIN_ERROR') {
-				if (err.code) err.pluginCode = err.code;
-				err.code = 'PLUGIN_ERROR';
-			}
-			err.plugin = plugin.name;
-			err.hook = hookName;
-			error(err);
+			return throwPluginError(err, plugin.name, { hook: hookName });
 		}
-		return undefined as any;
 	}
 
 	function runHook<T>(
@@ -342,28 +370,15 @@ export function createPluginDriver(
 				}
 				return hook.apply(context, args);
 			})
-			.catch(err => {
-				if (typeof err === 'string') err = { message: err };
-				if (err.code !== 'PLUGIN_ERROR') {
-					if (err.code) err.pluginCode = err.code;
-					err.code = 'PLUGIN_ERROR';
-				}
-				err.plugin = plugin.name;
-				err.hook = hookName;
-				error(err);
-			});
+			.catch(err => throwPluginError(err, plugin.name, { hook: hookName }));
 	}
 
 	const pluginDriver: PluginDriver = {
-		emitAsset,
-		emitChunk(id, options) {
-			return graph.moduleLoader.addEntryModuleAndGetReferenceId({
-				alias: (options && options.name) || null,
-				unresolvedId: id
-			});
+		emitFile: fileEmitter.emitFile,
+		finaliseAssets() {
+			fileEmitter.assertAssetsFinalized();
 		},
-		getAssetFileName: getAssetFileName as (assetId: string) => string,
-		hasLoadersOrTransforms,
+		getFileName: fileEmitter.getFileName,
 
 		// chains, ignores returns
 		hookSeq(name, args, hookContext) {
@@ -449,6 +464,10 @@ export function createPluginDriver(
 				});
 			}
 			return promise;
+		},
+
+		startOutput(outputBundle: OutputBundleWithPlaceholders, assetFileNames: string): void {
+			fileEmitter.startOutput(outputBundle, assetFileNames);
 		}
 	};
 

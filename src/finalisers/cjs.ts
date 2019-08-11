@@ -80,7 +80,7 @@ export default function cjs(
 			`?${_}${ex}['default']${_}:${_}${ex}${options.compact ? '' : '; '}}${n}${n}`;
 	}
 	if (accessedGlobals.has(INTEROP_NAMESPACE_VARIABLE)) {
-		intro += getInteropNamespace(_, n, t);
+		intro += getInteropNamespace(_, n, t, options.externalLiveBindings !== false);
 	}
 
 	if (importBlock) intro += importBlock + n + n;

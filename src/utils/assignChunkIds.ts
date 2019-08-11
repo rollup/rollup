@@ -1,6 +1,7 @@
 import Chunk from '../Chunk';
-import { InputOptions, OutputOptions } from '../rollup/types';
+import { InputOptions, OutputBundleWithPlaceholders, OutputOptions } from '../rollup/types';
 import { Addons } from './addons';
+import { FILE_PLACEHOLDER } from './FileEmitter';
 import { basename } from './path';
 
 export function assignChunkIds(
@@ -8,40 +9,37 @@ export function assignChunkIds(
 	inputOptions: InputOptions,
 	outputOptions: OutputOptions,
 	inputBase: string,
-	addons: Addons
+	addons: Addons,
+	bundle: OutputBundleWithPlaceholders
 ) {
-	const usedIds: Record<string, true> = {};
-	const [entryChunks, otherChunks] = chunks.reduce<[Chunk[], Chunk[]]>(
-		([entryChunks, otherChunks], chunk) => {
-			(chunk.facadeModule && chunk.facadeModule.isUserDefinedEntryPoint
-				? entryChunks
-				: otherChunks
-			).push(chunk);
-			return [entryChunks, otherChunks];
-		},
-		[[], []]
-	);
+	const entryChunks: Chunk[] = [];
+	const otherChunks: Chunk[] = [];
+	for (const chunk of chunks) {
+		(chunk.facadeModule && chunk.facadeModule.isUserDefinedEntryPoint
+			? entryChunks
+			: otherChunks
+		).push(chunk);
+	}
 
 	// make sure entry chunk names take precedence with regard to deconflicting
 	const chunksForNaming: Chunk[] = entryChunks.concat(otherChunks);
-	for (let i = 0; i < chunksForNaming.length; i++) {
-		const chunk = chunksForNaming[i];
-
+	for (const chunk of chunksForNaming) {
+		const facadeModule = chunk.facadeModule;
 		if (outputOptions.file) {
 			chunk.id = basename(outputOptions.file);
 		} else if (inputOptions.preserveModules) {
-			chunk.generateIdPreserveModules(inputBase, usedIds);
+			chunk.id = chunk.generateIdPreserveModules(inputBase, bundle);
 		} else {
 			let pattern, patternName;
-			if (chunk.facadeModule && chunk.facadeModule.isUserDefinedEntryPoint) {
+			if (facadeModule && facadeModule.isUserDefinedEntryPoint) {
 				pattern = outputOptions.entryFileNames || '[name].js';
 				patternName = 'output.entryFileNames';
 			} else {
 				pattern = outputOptions.chunkFileNames || '[name]-[hash].js';
 				patternName = 'output.chunkFileNames';
 			}
-			chunk.generateId(pattern, patternName, addons, outputOptions, usedIds);
+			chunk.id = chunk.generateId(pattern, patternName, addons, outputOptions, bundle);
 		}
-		usedIds[chunk.id] = true;
+		bundle[chunk.id] = FILE_PLACEHOLDER;
 	}
 }

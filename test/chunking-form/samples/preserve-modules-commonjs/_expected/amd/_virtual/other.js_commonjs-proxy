@@ -1,7 +1,7 @@
-define(['exports', '../other'], function (exports, __chunk_1) { 'use strict';
+define(['exports', '../other'], function (exports, other) { 'use strict';
 
 
 
-	exports.default = __chunk_1.__moduleExports;
+	exports.default = other.__moduleExports;
 
 });

@@ -1,3 +1,3 @@
-import { l as log, d as dep } from './generated-main2alias.js';
+import { l as log, d as dep } from './generated-main2.js';
 
 log(dep);

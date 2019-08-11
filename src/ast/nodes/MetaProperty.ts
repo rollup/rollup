@@ -10,6 +10,7 @@ import { NodeBase } from './shared/Node';
 
 const ASSET_PREFIX = 'ROLLUP_ASSET_URL_';
 const CHUNK_PREFIX = 'ROLLUP_CHUNK_URL_';
+const FILE_PREFIX = 'ROLLUP_FILE_URL_';
 
 export default class MetaProperty extends NodeBase {
 	meta!: Identifier;
@@ -33,7 +34,11 @@ export default class MetaProperty extends NodeBase {
 			if (metaProperty) {
 				if (metaProperty === 'url') {
 					this.scope.addAccessedGlobalsByFormat(accessedMetaUrlGlobals);
-				} else if (metaProperty.startsWith(ASSET_PREFIX) || metaProperty.startsWith(CHUNK_PREFIX)) {
+				} else if (
+					metaProperty.startsWith(FILE_PREFIX) ||
+					metaProperty.startsWith(ASSET_PREFIX) ||
+					metaProperty.startsWith(CHUNK_PREFIX)
+				) {
 					this.scope.addAccessedGlobalsByFormat(accessedFileUrlGlobals);
 				}
 			}
@@ -54,21 +59,35 @@ export default class MetaProperty extends NodeBase {
 	): void {
 		if (!this.included) return;
 		const parent = this.parent;
-		const importMetaProperty = this.metaProperty as string | null;
+		const metaProperty = this.metaProperty as string | null;
 
 		if (
-			importMetaProperty &&
-			(importMetaProperty.startsWith(ASSET_PREFIX) || importMetaProperty.startsWith(CHUNK_PREFIX))
+			metaProperty &&
+			(metaProperty.startsWith(FILE_PREFIX) ||
+				metaProperty.startsWith(ASSET_PREFIX) ||
+				metaProperty.startsWith(CHUNK_PREFIX))
 		) {
+			let referenceId: string | null = null;
 			let assetReferenceId: string | null = null;
 			let chunkReferenceId: string | null = null;
 			let fileName: string;
-			if (importMetaProperty.startsWith(ASSET_PREFIX)) {
-				assetReferenceId = importMetaProperty.substr(ASSET_PREFIX.length);
-				fileName = this.context.getAssetFileName(assetReferenceId);
+			if (metaProperty.startsWith(FILE_PREFIX)) {
+				referenceId = metaProperty.substr(FILE_PREFIX.length);
+				fileName = this.context.getFileName(referenceId);
+			} else if (metaProperty.startsWith(ASSET_PREFIX)) {
+				this.context.warnDeprecation(
+					`Using the "${ASSET_PREFIX}" prefix to reference files is deprecated. Use the "${FILE_PREFIX}" prefix instead.`,
+					false
+				);
+				assetReferenceId = metaProperty.substr(ASSET_PREFIX.length);
+				fileName = this.context.getFileName(assetReferenceId);
 			} else {
-				chunkReferenceId = importMetaProperty.substr(CHUNK_PREFIX.length);
-				fileName = this.context.getChunkFileName(chunkReferenceId);
+				this.context.warnDeprecation(
+					`Using the "${CHUNK_PREFIX}" prefix to reference files is deprecated. Use the "${FILE_PREFIX}" prefix instead.`,
+					false
+				);
+				chunkReferenceId = metaProperty.substr(CHUNK_PREFIX.length);
+				fileName = this.context.getFileName(chunkReferenceId);
 			}
 			const relativePath = normalize(relative(dirname(chunkId), fileName));
 			let replacement;
@@ -92,6 +111,7 @@ export default class MetaProperty extends NodeBase {
 						fileName,
 						format,
 						moduleId: this.context.module.id,
+						referenceId: referenceId || assetReferenceId || (chunkReferenceId as string),
 						relativePath
 					}
 				]);
@@ -107,7 +127,7 @@ export default class MetaProperty extends NodeBase {
 		}
 
 		const replacement = pluginDriver.hookFirstSync('resolveImportMeta', [
-			importMetaProperty,
+			metaProperty,
 			{
 				chunkId,
 				format,

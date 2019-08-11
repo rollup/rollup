@@ -3,6 +3,7 @@ import { BLANK } from '../../utils/blank';
 import {
 	findFirstOccurrenceOutsideComment,
 	NodeRenderOptions,
+	removeLineBreaks,
 	RenderOptions
 } from '../../utils/renderHelpers';
 import { removeAnnotations } from '../../utils/treeshakeNode';
@@ -151,20 +152,20 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ renderedParentType, isCalleeOfRenderedParent }: NodeRenderOptions = BLANK
+		{ renderedParentType, isCalleeOfRenderedParent, preventASI }: NodeRenderOptions = BLANK
 	) {
 		if (!this.test.included) {
 			const colonPos = findFirstOccurrenceOutsideComment(code.original, ':', this.consequent.end);
+			const inclusionStart =
+				(this.consequent.included
+					? findFirstOccurrenceOutsideComment(code.original, '?', this.test.end)
+					: colonPos) + 1;
+			if (preventASI) {
+				removeLineBreaks(code, inclusionStart, (this.usedBranch as ExpressionNode).start);
+			}
+			code.remove(this.start, inclusionStart);
 			if (this.consequent.included) {
-				const questionmarkPos = findFirstOccurrenceOutsideComment(
-					code.original,
-					'?',
-					this.test.end
-				);
-				code.remove(this.start, questionmarkPos + 1);
 				code.remove(colonPos, this.end);
-			} else {
-				code.remove(this.start, colonPos + 1);
 			}
 			removeAnnotations(this, code);
 			(this.usedBranch as ExpressionNode).render(code, options, {

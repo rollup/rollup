@@ -269,6 +269,7 @@ function getOutputOptions(
 		esModule: getOption('esModule', true),
 		exports: getOption('exports'),
 		extend: getOption('extend'),
+		externalLiveBindings: getOption('externalLiveBindings', true),
 		file: getOption('file'),
 		footer: getOption('footer'),
 		format: format === 'esm' ? 'es' : format,

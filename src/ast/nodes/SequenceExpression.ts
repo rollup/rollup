@@ -3,6 +3,7 @@ import { BLANK } from '../../utils/blank';
 import {
 	getCommaSeparatedNodesWithBoundaries,
 	NodeRenderOptions,
+	removeLineBreaks,
 	RenderOptions
 } from '../../utils/renderHelpers';
 import { treeshakeNode } from '../../utils/treeshakeNode';
@@ -81,10 +82,9 @@ export default class SequenceExpression extends NodeBase {
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ renderedParentType, isCalleeOfRenderedParent }: NodeRenderOptions = BLANK
+		{ renderedParentType, isCalleeOfRenderedParent, preventASI }: NodeRenderOptions = BLANK
 	) {
-		let firstStart = 0,
-			includedNodes = 0;
+		let includedNodes = 0;
 		for (const { node, start, end } of getCommaSeparatedNodesWithBoundaries(
 			this.expressions,
 			code,
@@ -96,7 +96,9 @@ export default class SequenceExpression extends NodeBase {
 				continue;
 			}
 			includedNodes++;
-			if (firstStart === 0) firstStart = start;
+			if (includedNodes === 1 && preventASI) {
+				removeLineBreaks(code, start, node.start);
+			}
 			if (node === this.expressions[this.expressions.length - 1] && includedNodes === 1) {
 				node.render(code, options, {
 					isCalleeOfRenderedParent: renderedParentType

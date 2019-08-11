@@ -1,8 +1,9 @@
 module.exports = {
-	description: 'Creates proper facades if manual chunks are entry chunks with different alias',
+	description: 'Uses entry alias if manual chunks are entry chunks with different alias',
 	options: {
 		input: {
-			main: 'main.js'
+			main: 'main.js',
+			main2: 'main2.js'
 		},
 		manualChunks: {
 			other: ['main']
