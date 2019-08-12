@@ -23,9 +23,10 @@ runTestSuiteWithSamples(
 			done => {
 				process.chdir(config.cwd || dir);
 
-				const command = 'node ' + path.resolve(__dirname, '../../bin') + path.sep + config.command;
+				const command =
+					'node ' + path.resolve(__dirname, '../../dist/bin') + path.sep + config.command;
 
-				const childProcess = exec(command, { timeout: 25000 }, (err, code, stderr) => {
+				const childProcess = exec(command, { timeout: 40000 }, (err, code, stderr) => {
 					if (err && !err.killed) {
 						if (config.error) {
 							const shouldContinue = config.error(err);
@@ -118,7 +119,7 @@ runTestSuiteWithSamples(
 					}
 				});
 			}
-		).timeout(30000);
+		).timeout(50000);
 	},
 	() => process.chdir(cwd)
 );

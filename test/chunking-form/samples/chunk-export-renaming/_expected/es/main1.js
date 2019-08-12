@@ -1,1 +1,1 @@
-export { O as ItemOne } from './generated-chunk.js';
+export { O as ItemOne } from './generated-one.js';

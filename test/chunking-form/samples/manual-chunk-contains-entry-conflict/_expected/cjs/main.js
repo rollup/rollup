@@ -2,8 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var main = require('./generated-outer.js');
+console.log('dep');
 
+console.log('main');
 
+const value = 42;
 
-exports.value = main.value;
+exports.value = value;

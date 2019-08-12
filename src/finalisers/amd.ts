@@ -75,7 +75,7 @@ export default function amd(
 		magicString.prepend(interopBlock + n + n);
 	}
 	if (accessedGlobals.has(INTEROP_NAMESPACE_VARIABLE)) {
-		magicString.prepend(getInteropNamespace(_, n, t));
+		magicString.prepend(getInteropNamespace(_, n, t, options.externalLiveBindings !== false));
 	}
 
 	if (intro) magicString.prepend(intro);

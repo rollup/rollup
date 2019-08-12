@@ -1,6 +1,6 @@
 'use strict';
 
-require('./generated-chunk.js');
-require('./generated-chunk2.js');
-require('./generated-chunk3.js');
+require('./generated-dep111.js');
+require('./generated-dep112.js');
+require('./generated-dep11.js');
 

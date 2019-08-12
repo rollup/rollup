@@ -1,1 +1,1 @@
-export { DYNAMIC_2 } from './generated-dynamic.js';
+export { DYNAMIC_2 } from './generated-dynamic1.js';

@@ -1,4 +1,4 @@
-System.register(['./generated-chunk.js'], function () {
+System.register(['./generated-module3.js'], function () {
 	'use strict';
 	var b;
 	return {

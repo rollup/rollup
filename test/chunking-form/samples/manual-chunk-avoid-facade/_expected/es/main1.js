@@ -1,3 +1,3 @@
-import { reexported as value } from './manual.js';
+import { reexported as value } from './main2.js';
 
 console.log('main', value);

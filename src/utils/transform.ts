@@ -2,10 +2,8 @@ import MagicString, { SourceMap } from 'magic-string';
 import Graph from '../Graph';
 import Module from '../Module';
 import {
-	Asset,
 	DecodedSourceMapOrMissing,
-	EmitAsset,
-	EmittedChunk,
+	EmittedFile,
 	Plugin,
 	PluginCache,
 	PluginContext,
@@ -15,12 +13,11 @@ import {
 	TransformResult,
 	TransformSourceDescription
 } from '../rollup/types';
-import { createTransformEmitAsset } from './assetHooks';
 import { collapseSourcemap } from './collapseSourcemaps';
 import { decodedSourcemap } from './decodedSourcemap';
-import { augmentCodeLocation, error } from './error';
+import { augmentCodeLocation } from './error';
 import { dirname, resolve } from './path';
-import { trackPluginCache } from './pluginDriver';
+import { throwPluginError, trackPluginCache } from './pluginDriver';
 
 export default function transform(
 	graph: Graph,
@@ -31,12 +28,10 @@ export default function transform(
 	const sourcemapChain: DecodedSourceMapOrMissing[] = [];
 
 	let originalSourcemap = source.map === null ? null : decodedSourcemap(source.map);
-	const baseEmitAsset = graph.pluginDriver.emitAsset;
 	const originalCode = source.code;
 	let ast = source.ast;
-	let transformDependencies: string[];
-	let emittedAssets: Asset[];
-	const emittedChunks: EmittedChunk[] = [];
+	const transformDependencies: string[] = [];
+	const emittedFiles: EmittedFile[] = [];
 	let customTransformCache = false;
 	let moduleSideEffects: boolean | null = null;
 	let trackedPluginCache: { cache: PluginCache; used: boolean };
@@ -54,15 +49,12 @@ export default function transform(
 		if (customTransformCache) {
 			if (result && typeof result === 'object' && Array.isArray(result.dependencies)) {
 				for (const dep of result.dependencies) {
-					const depId = resolve(dirname(id), dep);
-					if (!graph.watchFiles[depId]) graph.watchFiles[depId] = true;
+					graph.watchFiles[resolve(dirname(id), dep)] = true;
 				}
 			}
 		} else {
-			// assets/chunks emitted by a transform hook need to be emitted again if the hook is skipped
-			if (emittedAssets.length) module.transformAssets = emittedAssets;
-			if (emittedChunks.length) module.transformChunks = emittedChunks;
-
+			// files emitted by a transform hook need to be emitted again if the hook is skipped
+			if (emittedFiles.length) module.transformFiles = emittedFiles;
 			if (result && typeof result === 'object' && Array.isArray(result.dependencies)) {
 				// not great, but a useful way to track this without assuming WeakMap
 				if (!(curPlugin as any).warnedTransformDependencies)
@@ -71,7 +63,6 @@ export default function transform(
 						true
 					);
 				(curPlugin as any).warnedTransformDependencies = true;
-				if (!transformDependencies) transformDependencies = [];
 				for (const dep of result.dependencies)
 					transformDependencies.push(resolve(dirname(id), dep));
 			}
@@ -113,15 +104,9 @@ export default function transform(
 			[curSource, id],
 			transformReducer,
 			(pluginContext, plugin) => {
-				curPlugin = plugin as Plugin;
+				curPlugin = plugin;
 				if (curPlugin.cacheKey) customTransformCache = true;
 				else trackedPluginCache = trackPluginCache(pluginContext.cache);
-
-				let emitAsset: EmitAsset;
-				({ assets: emittedAssets, emitAsset } = createTransformEmitAsset(
-					graph.assetsById,
-					baseEmitAsset
-				));
 				return {
 					...pluginContext,
 					cache: trackedPluginCache ? trackedPluginCache.cache : pluginContext.cache,
@@ -139,13 +124,21 @@ export default function transform(
 						err.hook = 'transform';
 						return pluginContext.error(err);
 					},
-					emitAsset,
+					emitAsset(name: string, source?: string | Buffer) {
+						const emittedFile = { type: 'asset' as 'asset', name, source };
+						emittedFiles.push({ ...emittedFile });
+						return graph.pluginDriver.emitFile(emittedFile);
+					},
 					emitChunk(id, options) {
-						emittedChunks.push({ id, options });
-						return graph.pluginDriver.emitChunk(id, options);
+						const emittedFile = { type: 'chunk' as 'chunk', id, name: options && options.name };
+						emittedFiles.push({ ...emittedFile });
+						return graph.pluginDriver.emitFile(emittedFile);
+					},
+					emitFile(emittedFile: EmittedFile) {
+						emittedFiles.push(emittedFile);
+						return graph.pluginDriver.emitFile(emittedFile);
 					},
 					addWatchFile(id: string) {
-						if (!transformDependencies) transformDependencies = [];
 						transformDependencies.push(id);
 						pluginContext.addWatchFile(id);
 					},
@@ -155,7 +148,7 @@ export default function transform(
 							try {
 								this.error({
 									code: 'INVALID_SETASSETSOURCE',
-									message: `setAssetSource cannot be called in transform for caching reasons. Use emitAsset with a source, or call setAssetSource in another hook.`
+									message: `setAssetSource cannot be called in transform for caching reasons. Use emitFile with a source, or call setAssetSource in another hook.`
 								});
 							} catch (err) {
 								setAssetSourceErr = err;
@@ -187,15 +180,7 @@ export default function transform(
 				};
 			}
 		)
-		.catch(err => {
-			if (typeof err === 'string') err = { message: err };
-			if (err.code !== 'PLUGIN_ERROR') {
-				if (err.code) err.pluginCode = err.code;
-				err.code = 'PLUGIN_ERROR';
-			}
-			err.id = id;
-			error(err);
-		})
+		.catch(err => throwPluginError(err, curPlugin.name, { hook: 'transform', id }))
 		.then(code => {
 			if (!customTransformCache && setAssetSourceErr) throw setAssetSourceErr;
 

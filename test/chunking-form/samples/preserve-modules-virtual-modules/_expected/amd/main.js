@@ -1,5 +1,5 @@
-define(['./_virtual/_virtualModule'], function (__chunk_1) { 'use strict';
+define(['./_virtual/_virtualModule'], function (_virtualModule) { 'use strict';
 
-	assert.equal(__chunk_1.virtual, 'Virtual!');
+	assert.equal(_virtualModule.virtual, 'Virtual!');
 
 });

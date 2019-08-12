@@ -1,4 +1,4 @@
-System.register(['./m2.js', './generated-chunk.js'], function () {
+System.register(['./m2.js', './generated-m1.js'], function () {
 	'use strict';
 	var ms;
 	return {

@@ -3,7 +3,7 @@ System.register([], function (exports, module) {
 	return {
 		execute: function () {
 
-			var solved = exports('default', 'nested/chunk.js:solved:assets/asset-solved-9b321da2.txt:../assets/asset-solved-9b321da2.txt');
+			var solved = exports('default', 'nested/chunk.js:solved:assets/asset-solved-28a7ac89.txt:../assets/asset-solved-28a7ac89.txt');
 
 		}
 	};

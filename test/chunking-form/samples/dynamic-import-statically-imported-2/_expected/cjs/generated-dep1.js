@@ -1,7 +1,18 @@
 'use strict';
 
-var dep1 = require('./generated-chunk.js');
+function foo() {
+	return 'dep2';
+}
 
+Promise.resolve().then(function () { return dep1; }).then(({ bar }) => console.log(bar()));
 
+function bar() {
+	return foo();
+}
 
-exports.bar = dep1.bar;
+var dep1 = /*#__PURE__*/Object.freeze({
+	bar: bar
+});
+
+exports.bar = bar;
+exports.foo = foo;

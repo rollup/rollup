@@ -2,7 +2,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var main2 = require('./generated-chunk.js');
+var main2 = require('./generated-main2.js');
 
 
 

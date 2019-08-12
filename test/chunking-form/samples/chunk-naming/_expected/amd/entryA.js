@@ -1,5 +1,5 @@
-define(['./chunks/chunk', './chunks/chunk2'], function (__chunk_1, __chunk_2) { 'use strict';
+define(['./chunks/chunk', './chunks/chunk2'], function (dep1, dep2) { 'use strict';
 
-	console.log(__chunk_1.num + __chunk_2.num);
+	console.log(dep1.num + dep2.num);
 
 });

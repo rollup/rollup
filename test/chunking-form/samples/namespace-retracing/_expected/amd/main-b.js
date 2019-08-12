@@ -1,5 +1,5 @@
-define(['./generated-chunk'], function (__chunk_1) { 'use strict';
+define(['./generated-other'], function (other) { 'use strict';
 
-	__chunk_1.Other.doSomething();
+	other.Other.doSomething();
 
 });

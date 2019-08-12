@@ -24,5 +24,5 @@ export function makeLegal(str: string): string {
 
 	if (startsWithDigit(str) || blacklisted[str]) str = `_${str}`;
 
-	return str;
+	return str || '_';
 }
