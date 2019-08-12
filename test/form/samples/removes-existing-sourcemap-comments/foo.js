@@ -1,5 +1,5 @@
-export default function () {
-	return 42;
+export default function (x) {
+	return x;
 }
 
 //# sourceMappingURL=foo.js.map

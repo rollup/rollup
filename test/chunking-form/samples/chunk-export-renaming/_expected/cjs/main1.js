@@ -2,8 +2,8 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var __chunk_1 = require('./chunk-4eb6177c.js');
+var one = require('./generated-one.js');
 
 
 
-exports.ItemOne = __chunk_1.One;
+exports.ItemOne = one.One;

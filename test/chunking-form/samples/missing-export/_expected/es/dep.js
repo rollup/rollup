@@ -1,8 +1,8 @@
 var _missingExportShim = void 0;
 
-function x () {
-  sideEffect();
+function x (arg) {
+  sideEffect(arg);
 }
 
 export default _missingExportShim;
-export { x, _missingExportShim as missingFn, _missingExportShim as missingExport };
+export { _missingExportShim as missingExport, _missingExportShim as missingFn, x };

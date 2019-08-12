@@ -5,4 +5,4 @@
 
 	exports.foo = foo;
 
-}((this['module-name-with-dashes'] = this['module-name-with-dashes'] || {})));
+}(this['module-name-with-dashes'] = this['module-name-with-dashes'] || {}));

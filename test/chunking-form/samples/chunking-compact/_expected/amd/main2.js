@@ -1,4 +1,4 @@
-define(['external','./chunk-1e9855f7.js'],function(external,__chunk_1){'use strict';function fn () {
+define(['./generated-dep2','external'],function(dep2,external){'use strict';function fn () {
   console.log('lib1 fn');
   external.fn();
 }function fn$1 () {
@@ -7,6 +7,6 @@ define(['external','./chunk-1e9855f7.js'],function(external,__chunk_1){'use stri
 }class Main2 {
   constructor () {
     fn$1();
-    __chunk_1.a();
+    dep2.f();
   }
 }return Main2;});

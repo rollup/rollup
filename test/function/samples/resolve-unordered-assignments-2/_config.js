@@ -1,8 +1,8 @@
-var assert = require('assert');
+const assert = require('assert');
 
 module.exports = {
 	description: 'Assignments should be correctly bound independent of their order',
-	exports: function(exports) {
+	exports(exports) {
 		assert.equal(exports.baz, 'present');
 	}
 };

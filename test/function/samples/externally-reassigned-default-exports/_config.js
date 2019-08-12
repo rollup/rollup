@@ -1,4 +1,4 @@
-var assert = require('assert');
+const assert = require('assert');
 
 module.exports = {
 	description: 'calls to externally reassigned methods of default exports must be retained',

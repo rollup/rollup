@@ -1,2 +1,2 @@
 import foo from './foo.js';
-console.log( true ? false ? foo : 0 : 1 );
+assert.equal(true ? (false ? foo : 0) : 1, 0);

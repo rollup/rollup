@@ -1,8 +1,7 @@
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
+(function (factory) {
 	typeof define === 'function' && define.amd ? define(factory) :
-	(factory());
-}(this, (function () { 'use strict';
+	factory();
+}(function () { 'use strict';
 
 	// side-effect in condition
 	var a = foo() ? 1 : 2;
@@ -15,11 +14,11 @@
 	(unknownValue ? function () {} : function () {this.x = 1;})();
 
 	// known side-effect
-	var h1 = foo();
-	var h2 = (function () {this.x = 1;})();
-	var h3 = (() => () => console.log( 'effect' ))()();
-	var i1 = foo();
-	var i2 = (function () {this.x = 1;})();
-	var i3 = (() => () => console.log( 'effect' ))()();
+	var h1 =  foo() ;
+	var h2 = ( function () {this.x = 1;} )();
+	var h3 = ( () => () => console.log( 'effect' ) )()();
+	var i1 =  foo();
+	var i2 = ( function () {this.x = 1;})();
+	var i3 = ( () => () => console.log( 'effect' ))()();
 
-})));
+}));

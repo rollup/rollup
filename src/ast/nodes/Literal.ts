@@ -13,26 +13,28 @@ import {
 	UNKNOWN_VALUE
 } from '../values';
 import * as NodeType from './NodeType';
-import { Node, NodeBase } from './shared/Node';
+import { NodeBase } from './shared/Node';
 
 export type LiteralValue = string | boolean | null | number | RegExp | undefined;
 
-export function isLiteral(node: Node): node is Literal {
-	return node.type === NodeType.Literal;
-}
-
 export default class Literal<T = LiteralValue> extends NodeBase {
-	type: NodeType.tLiteral;
-	value: T;
+	type!: NodeType.tLiteral;
+	value!: T;
 
-	private members: { [key: string]: MemberDescription };
+	private members!: { [key: string]: MemberDescription };
 
 	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
-		if (path.length > 0) {
+		if (
+			path.length > 0 ||
+			// unknown literals can also be null but do not start with an "n"
+			(this.value === null && this.context.code.charCodeAt(this.start) !== 110) ||
+			typeof this.value === 'bigint' ||
+			// to support shims for regular expressions
+			this.context.code.charCodeAt(this.start) === 47
+		) {
 			return UNKNOWN_VALUE;
 		}
-		// not sure why we need this type cast here
-		return <any>this.value;
+		return this.value as any;
 	}
 
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
@@ -63,13 +65,12 @@ export default class Literal<T = LiteralValue> extends NodeBase {
 	}
 
 	initialise() {
-		this.included = false;
 		this.members = getLiteralMembersForValue(this.value);
 	}
 
 	render(code: MagicString, _options: RenderOptions) {
 		if (typeof this.value === 'string') {
-			(<[number, number][]>code.indentExclusionRanges).push([this.start + 1, this.end - 1]);
+			(code.indentExclusionRanges as [number, number][]).push([this.start + 1, this.end - 1]);
 		}
 	}
 }

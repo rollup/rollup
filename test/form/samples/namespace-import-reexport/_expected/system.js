@@ -1,9 +1,7 @@
-System.register('iife', ['external-package'], function (exports, module) {
+System.register('iife', ['external-package'], function (exports) {
 	'use strict';
-	var externalPackage;
 	return {
 		setters: [function (module) {
-			externalPackage = module;
 			exports('ext', module);
 		}],
 		execute: function () {

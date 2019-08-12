@@ -2,9 +2,14 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-require('./chunk-8b8e0de7.js');
 var external = require('external');
+require('./generated-dep.js');
 
 
 
-exports.dep = external.asdf;
+Object.defineProperty(exports, 'dep', {
+	enumerable: true,
+	get: function () {
+		return external.asdf;
+	}
+});

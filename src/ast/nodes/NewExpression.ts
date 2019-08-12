@@ -5,11 +5,12 @@ import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class NewExpression extends NodeBase {
-	type: NodeType.tNewExpression;
-	callee: ExpressionNode;
-	arguments: ExpressionNode[];
+	annotatedPure?: boolean;
+	arguments!: ExpressionNode[];
+	callee!: ExpressionNode;
+	type!: NodeType.tNewExpression;
 
-	private callOptions: CallOptions;
+	private callOptions!: CallOptions;
 
 	bind() {
 		super.bind();
@@ -23,6 +24,7 @@ export default class NewExpression extends NodeBase {
 		for (const argument of this.arguments) {
 			if (argument.hasEffects(options)) return true;
 		}
+		if (this.annotatedPure) return false;
 		return this.callee.hasEffectsWhenCalledAtPath(
 			EMPTY_PATH,
 			this.callOptions,
@@ -35,11 +37,10 @@ export default class NewExpression extends NodeBase {
 	}
 
 	initialise() {
-		this.included = false;
 		this.callOptions = CallOptions.create({
-			withNew: true,
 			args: this.arguments,
-			callIdentifier: this
+			callIdentifier: this,
+			withNew: true
 		});
 	}
 }

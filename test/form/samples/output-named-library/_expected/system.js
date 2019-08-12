@@ -1,4 +1,4 @@
-System.register('libraryName', [], function (exports, module) {
+System.register('libraryName', [], function (exports) {
 	'use strict';
 	return {
 		execute: function () {

@@ -1,13 +1,13 @@
-import { a as fn } from './chunk-54f33655.js';
+import { f as fn$1 } from './generated-dep2.js';
 
-function fn$1 () {
+function fn () {
   console.log('dep1 fn');
 }
 
 class Main1 {
   constructor () {
-    fn$1();
     fn();
+    fn$1();
   }
 }
 

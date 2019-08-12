@@ -1,5 +1,5 @@
-var assert = require('assert');
-var path = require('path');
+const assert = require('assert');
+const path = require('path');
 
 module.exports = {
 	description: 'includes an external module included dynamically by an alias',
@@ -10,7 +10,7 @@ module.exports = {
 		// Define a simple alias plugin for underscore
 		plugins: [
 			{
-				resolveId: function(id) {
+				resolveId(id) {
 					if (id === 'underscore') {
 						return 'lodash';
 					}
@@ -20,7 +20,7 @@ module.exports = {
 	},
 
 	context: {
-		require: function(required) {
+		require(required) {
 			assert.equal(required, 'lodash');
 			return 1;
 		}

@@ -1,11 +1,8 @@
 import bar from './bar';
 
-export default function foo () {}
-
-foo.prototype.a = function ( foo ) {
-	var foo = foo;
-	foo();
+function test( foo ) {
+	assert.equal(foo, 1);
 	return bar();
-};
+}
 
-assert.equal( new foo().a(function () {}), 'consistent' );
+assert.equal( test(1), 'consistent' );

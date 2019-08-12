@@ -1,14 +1,14 @@
-System.register(['./chunk-ebd5007a.js'], function (exports, module) {
+System.register(['./generated-shared.js'], function (exports) {
 	'use strict';
 	var commonjsGlobal, d;
 	return {
 		setters: [function (module) {
-			commonjsGlobal = module.a;
-			d = module.b;
+			commonjsGlobal = module.c;
+			d = module.d;
 		}],
 		execute: function () {
 
-			commonjsGlobal.fn = d$$1 => d$$1 + 1;
+			commonjsGlobal.fn = d => d + 1;
 			var cjs = commonjsGlobal.fn;
 
 			var main1 = exports('default', d.map(cjs));

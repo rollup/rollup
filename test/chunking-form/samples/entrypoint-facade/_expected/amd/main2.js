@@ -1,4 +1,4 @@
-define(['./main2-bff49b9a.js'], function (main2) { 'use strict';
+define(['./generated-main2'], function (main2) { 'use strict';
 
 
 

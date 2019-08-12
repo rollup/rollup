@@ -1,6 +1,7 @@
 const assert = require('assert');
 const path = require('path');
 const sander = require('sander');
+const fixturify = require('fixturify');
 
 exports.compareError = compareError;
 exports.compareWarnings = compareWarnings;
@@ -10,6 +11,7 @@ exports.extend = extend;
 exports.loader = loader;
 exports.normaliseOutput = normaliseOutput;
 exports.runTestSuiteWithSamples = runTestSuiteWithSamples;
+exports.assertDirectoriesAreEqual = assertDirectoriesAreEqual;
 
 function compareError(actual, expected) {
 	delete actual.stack;
@@ -57,16 +59,16 @@ function deindent(str) {
 		.trim();
 }
 
-function executeBundle(bundle) {
+function executeBundle(bundle, require) {
 	return bundle
 		.generate({
 			format: 'cjs'
 		})
-		.then(cjs => {
-			const m = new Function('module', 'exports', cjs.code);
+		.then(({ output: [cjs] }) => {
+			const m = new Function('module', 'exports', 'require', cjs.code);
 
 			const module = { exports: {} };
-			m(module, module.exports);
+			m(module, module.exports, require);
 
 			return module.exports;
 		});
@@ -96,16 +98,20 @@ function loadConfig(configFile) {
 	}
 }
 
-function removeOldTest(dir) {
-	console.warn(
-		`Test configuration in ${dir} not found.\nTrying to clean up no longer existing test...`
-	);
+function removeOldOutput(dir) {
 	if (sander.existsSync(path.join(dir, '_actual'))) {
 		sander.rimrafSync(path.join(dir, '_actual'));
 	}
 	if (sander.existsSync(path.join(dir, '_actual.js'))) {
 		sander.unlinkSync(path.join(dir, '_actual.js'));
 	}
+}
+
+function removeOldTest(dir) {
+	removeOldOutput(dir);
+	console.warn(
+		`Test configuration in ${dir} not found.\nTrying to clean up no longer existing test...`
+	);
 	sander.rmdirSync(dir);
 	console.warn('Directory removed.');
 }
@@ -157,7 +163,11 @@ function runTestsInDir(dir, runTest) {
 	const fileNames = sander.readdirSync(dir);
 
 	if (fileNames.indexOf('_config.js') >= 0) {
+		removeOldOutput(dir);
 		loadConfigAndRunTest(dir, runTest);
+	} else if (fileNames.indexOf('_actual') >= 0 || fileNames.indexOf('_actual.js') >= 0) {
+		removeOldOutput(dir);
+		removeOldTest(dir);
 	} else {
 		describe(path.basename(dir), () => {
 			fileNames
@@ -177,4 +187,31 @@ function loadConfigAndRunTest(dir, runTest) {
 		(!config.skipIfWindows || process.platform !== 'win32')
 	)
 		runTest(dir, config);
+}
+
+function assertDirectoriesAreEqual(actualDir, expectedDir) {
+	const actualFiles = fixturify.readSync(actualDir);
+
+	let expectedFiles;
+	try {
+		expectedFiles = fixturify.readSync(expectedDir);
+	} catch (err) {
+		expectedFiles = [];
+	}
+	assertFilesAreEqual(actualFiles, expectedFiles);
+}
+
+function assertFilesAreEqual(actualFiles, expectedFiles, dirs = []) {
+	Object.keys(Object.assign({}, actualFiles, expectedFiles)).forEach(fileName => {
+		const pathSegments = dirs.concat(fileName);
+		if (typeof actualFiles[fileName] === 'object' && typeof expectedFiles[fileName] === 'object') {
+			return assertFilesAreEqual(actualFiles[fileName], expectedFiles[fileName], pathSegments);
+		}
+
+		const shortName = pathSegments.join('/');
+		assert.strictEqual(
+			`${shortName}: ${actualFiles[fileName]}`,
+			`${shortName}: ${expectedFiles[fileName]}`
+		);
+	});
 }

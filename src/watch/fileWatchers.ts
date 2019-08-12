@@ -15,10 +15,10 @@ export function addTask(
 	isTransformDependency: boolean
 ) {
 	if (!watchers.has(chokidarOptionsHash)) watchers.set(chokidarOptionsHash, new Map());
-	const group = watchers.get(chokidarOptionsHash);
+	const group = watchers.get(chokidarOptionsHash) as Map<string, FileWatcher>;
 
 	const watcher = group.get(id) || new FileWatcher(id, chokidarOptions, group);
-	if (!watcher.fileExists) {
+	if (!watcher.fsWatcher) {
 		if (isTransformDependency) throw new Error(`Transform dependency ${id} does not exist.`);
 	} else {
 		watcher.addTask(task, isTransformDependency);
@@ -26,14 +26,14 @@ export function addTask(
 }
 
 export function deleteTask(id: string, target: Task, chokidarOptionsHash: string) {
-	const group = watchers.get(chokidarOptionsHash);
+	const group = watchers.get(chokidarOptionsHash) as Map<string, FileWatcher>;
 	const watcher = group.get(id);
 	if (watcher) watcher.deleteTask(target, group);
 }
 
 export default class FileWatcher {
-	fsWatcher: FSWatcher | fs.FSWatcher;
-	fileExists: boolean;
+	fsWatcher?: FSWatcher | fs.FSWatcher;
+
 	private id: string;
 	private tasks: Set<Task>;
 	private transformDependencyTasks: Set<Task>;
@@ -48,12 +48,10 @@ export default class FileWatcher {
 		try {
 			const stats = fs.statSync(id);
 			modifiedTime = +stats.mtime;
-			this.fileExists = true;
 		} catch (err) {
 			if (err.code === 'ENOENT') {
 				// can't watch files that don't exist (e.g. injected
 				// by plugins somehow)
-				this.fileExists = false;
 				return;
 			} else {
 				throw err;
@@ -82,11 +80,9 @@ export default class FileWatcher {
 			}
 		};
 
-		if (chokidarOptions) {
-			this.fsWatcher = chokidar.watch(id, chokidarOptions).on('all', handleWatchEvent);
-		} else {
-			this.fsWatcher = fs.watch(id, opts, handleWatchEvent);
-		}
+		this.fsWatcher = chokidarOptions
+			? chokidar.watch(id, chokidarOptions).on('all', handleWatchEvent)
+			: fs.watch(id, opts, handleWatchEvent);
 
 		group.set(id, this);
 	}
@@ -94,6 +90,10 @@ export default class FileWatcher {
 	addTask(task: Task, isTransformDependency = false) {
 		if (isTransformDependency) this.transformDependencyTasks.add(task);
 		else this.tasks.add(task);
+	}
+
+	close() {
+		if (this.fsWatcher) this.fsWatcher.close();
 	}
 
 	deleteTask(task: Task, group: Map<string, FileWatcher>) {
@@ -104,10 +104,6 @@ export default class FileWatcher {
 			group.delete(this.id);
 			this.close();
 		}
-	}
-
-	close() {
-		this.fsWatcher.close();
 	}
 
 	trigger(id: string) {

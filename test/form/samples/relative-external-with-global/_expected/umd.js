@@ -1,8 +1,8 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('./lib/throttle.js')) :
 	typeof define === 'function' && define.amd ? define(['./lib/throttle.js'], factory) :
-	(factory(global.Lib.throttle));
-}(this, (function (throttle) { 'use strict';
+	(global = global || self, factory(global.Lib.throttle));
+}(this, function (throttle) { 'use strict';
 
 	throttle = throttle && throttle.hasOwnProperty('default') ? throttle['default'] : throttle;
 
@@ -12,4 +12,4 @@
 
 	window.addEventListener( 'mousemove', throttle );
 
-})));
+}));

@@ -1,3 +1,10 @@
+import MagicString from 'magic-string';
+import { BLANK } from '../../utils/blank';
+import {
+	findFirstOccurrenceOutsideComment,
+	NodeRenderOptions,
+	RenderOptions
+} from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
@@ -16,20 +23,19 @@ import {
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import { ExpressionNode, INCLUDE_PARAMETERS, IncludeChildren, NodeBase } from './shared/Node';
 import SpreadElement from './SpreadElement';
 
 export default class CallExpression extends NodeBase implements DeoptimizableEntity {
-	type: NodeType.tCallExpression;
-	callee: ExpressionNode;
-	arguments: (ExpressionNode | SpreadElement)[];
+	annotatedPure?: boolean;
+	arguments!: (ExpressionNode | SpreadElement)[];
+	callee!: ExpressionNode;
+	type!: NodeType.tCallExpression;
 
-	private callOptions: CallOptions;
-
-	// Caching and deoptimization:
+	private callOptions!: CallOptions;
 	// We collect deoptimization information if returnExpression !== UNKNOWN_EXPRESSION
-	private returnExpression: ExpressionEntity | null;
-	private expressionsToBeDeoptimized: DeoptimizableEntity[];
+	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
+	private returnExpression: ExpressionEntity | null = null;
 
 	bind() {
 		super.bind();
@@ -51,7 +57,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 					{
 						code: 'EVAL',
 						message: `Use of eval is strongly discouraged, as it poses security risks and may cause issues with minification`,
-						url: 'https://github.com/rollup/rollup/wiki/Troubleshooting#avoiding-eval'
+						url: 'https://rollupjs.org/guide/en/#avoiding-eval'
 					},
 					this.start
 				);
@@ -76,6 +82,19 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 			for (const expression of this.expressionsToBeDeoptimized) {
 				expression.deoptimizeCache();
 			}
+		}
+	}
+
+	deoptimizePath(path: ObjectPath) {
+		if (path.length > 0 && !this.context.deoptimizationTracker.track(this, path)) {
+			if (this.returnExpression === null) {
+				this.returnExpression = this.callee.getReturnExpressionWhenCalledAtPath(
+					EMPTY_PATH,
+					EMPTY_IMMUTABLE_TRACKER,
+					this
+				);
+			}
+			this.returnExpression.deoptimizePath(path);
 		}
 	}
 
@@ -135,6 +154,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		for (const argument of this.arguments) {
 			if (argument.hasEffects(options)) return true;
 		}
+		if (this.context.annotations && this.annotatedPure) return false;
 		return (
 			this.callee.hasEffects(options) ||
 			this.callee.hasEffectsWhenCalledAtPath(
@@ -149,7 +169,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		return (
 			path.length > 0 &&
 			!options.hasReturnExpressionBeenAccessedAtPath(path, this) &&
-			this.returnExpression.hasEffectsWhenAccessedAtPath(
+			(this.returnExpression as ExpressionEntity).hasEffectsWhenAccessedAtPath(
 				path,
 				options.addAccessedReturnExpressionAtPath(path, this)
 			)
@@ -160,7 +180,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		return (
 			path.length === 0 ||
 			(!options.hasReturnExpressionBeenAssignedAtPath(path, this) &&
-				this.returnExpression.hasEffectsWhenAssignedAtPath(
+				(this.returnExpression as ExpressionEntity).hasEffectsWhenAssignedAtPath(
 					path,
 					options.addAssignedReturnExpressionAtPath(path, this)
 				))
@@ -173,41 +193,83 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		options: ExecutionPathOptions
 	): boolean {
 		if (options.hasReturnExpressionBeenCalledAtPath(path, this)) return false;
-		const innerOptions = options.addCalledReturnExpressionAtPath(path, this);
-		return (
-			this.hasEffects(innerOptions) ||
-			this.returnExpression.hasEffectsWhenCalledAtPath(path, callOptions, innerOptions)
+		return (this.returnExpression as ExpressionEntity).hasEffectsWhenCalledAtPath(
+			path,
+			callOptions,
+			options.addCalledReturnExpressionAtPath(path, this)
 		);
 	}
 
-	include() {
-		super.include();
-		if (!this.returnExpression.included) {
-			this.returnExpression.include();
+	include(includeChildrenRecursively: IncludeChildren) {
+		if (includeChildrenRecursively) {
+			super.include(includeChildrenRecursively);
+			if (
+				includeChildrenRecursively === INCLUDE_PARAMETERS &&
+				this.callee instanceof Identifier &&
+				this.callee.variable
+			) {
+				this.callee.variable.markCalledFromTryStatement();
+			}
+		} else {
+			this.included = true;
+			this.callee.include(false);
+		}
+		this.callee.includeCallArguments(this.arguments);
+		if (!(this.returnExpression as ExpressionEntity).included) {
+			(this.returnExpression as ExpressionEntity).include(false);
 		}
 	}
 
 	initialise() {
-		this.included = false;
-		this.returnExpression = null;
 		this.callOptions = CallOptions.create({
-			withNew: false,
 			args: this.arguments,
-			callIdentifier: this
+			callIdentifier: this,
+			withNew: false
 		});
-		this.expressionsToBeDeoptimized = [];
 	}
 
-	deoptimizePath(path: ObjectPath) {
-		if (path.length > 0 && !this.context.deoptimizationTracker.track(this, path)) {
-			if (this.returnExpression === null) {
-				this.returnExpression = this.callee.getReturnExpressionWhenCalledAtPath(
-					EMPTY_PATH,
-					EMPTY_IMMUTABLE_TRACKER,
-					this
-				);
+	render(
+		code: MagicString,
+		options: RenderOptions,
+		{ renderedParentType }: NodeRenderOptions = BLANK
+	) {
+		this.callee.render(code, options);
+		if (this.arguments.length > 0) {
+			if (this.arguments[this.arguments.length - 1].included) {
+				for (const arg of this.arguments) {
+					arg.render(code, options);
+				}
+			} else {
+				let lastIncludedIndex = this.arguments.length - 2;
+				while (lastIncludedIndex >= 0 && !this.arguments[lastIncludedIndex].included) {
+					lastIncludedIndex--;
+				}
+				if (lastIncludedIndex >= 0) {
+					for (let index = 0; index <= lastIncludedIndex; index++) {
+						this.arguments[index].render(code, options);
+					}
+					code.remove(
+						findFirstOccurrenceOutsideComment(
+							code.original,
+							',',
+							this.arguments[lastIncludedIndex].end
+						),
+						this.end - 1
+					);
+				} else {
+					code.remove(
+						findFirstOccurrenceOutsideComment(code.original, '(', this.callee.end) + 1,
+						this.end - 1
+					);
+				}
 			}
-			this.returnExpression.deoptimizePath(path);
+		}
+		if (
+			renderedParentType === NodeType.ExpressionStatement &&
+			this.callee.type === NodeType.FunctionExpression
+		) {
+			code.appendRight(this.start, '(');
+			code.prependLeft(this.end, ')');
 		}
 	}
 }

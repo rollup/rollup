@@ -9,20 +9,20 @@ import { ExpressionNode, NodeBase } from './shared/Node';
 const unaryOperators: {
 	[operator: string]: (value: LiteralValue) => LiteralValueOrUnknown;
 } = {
-	'-': value => -value,
-	'+': value => +value,
 	'!': value => !value,
-	'~': value => ~value,
+	'+': value => +(value as NonNullable<LiteralValue>),
+	'-': value => -(value as NonNullable<LiteralValue>),
+	delete: () => UNKNOWN_VALUE,
 	typeof: value => typeof value,
 	void: () => undefined,
-	delete: () => UNKNOWN_VALUE
+	'~': value => ~(value as NonNullable<LiteralValue>)
 };
 
 export default class UnaryExpression extends NodeBase {
-	type: NodeType.tUnaryExpression;
-	operator: keyof typeof unaryOperators;
-	prefix: boolean;
-	argument: ExpressionNode;
+	argument!: ExpressionNode;
+	operator!: keyof typeof unaryOperators;
+	prefix!: boolean;
+	type!: NodeType.tUnaryExpression;
 
 	bind() {
 		super.bind();
@@ -40,7 +40,7 @@ export default class UnaryExpression extends NodeBase {
 		const argumentValue = this.argument.getLiteralValueAtPath(EMPTY_PATH, recursionTracker, origin);
 		if (argumentValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
 
-		return unaryOperators[this.operator](<LiteralValue>argumentValue);
+		return unaryOperators[this.operator](argumentValue as LiteralValue);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {

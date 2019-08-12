@@ -15,7 +15,8 @@ runTestSuiteWithSamples('sourcemaps', path.resolve(__dirname, 'samples'), (dir, 
 					const inputOptions = extend(
 						{
 							input: dir + '/main.js',
-							onwarn: warning => warnings.push(warning)
+							onwarn: warning => warnings.push(warning),
+							strictDeprecations: true
 						},
 						config.options || {}
 					);
@@ -59,7 +60,7 @@ function generateAndTestBundle(bundle, outputOptions, config, format, warnings) 
 			}
 			return bundle.generate(outputOptions);
 		})
-		.then(({ code, map }) => {
+		.then(({ output: [{ code, map }] }) => {
 			if (config.test) {
 				return config.test(code, map, { format });
 			}

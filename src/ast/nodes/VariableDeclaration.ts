@@ -5,58 +5,39 @@ import {
 	NodeRenderOptions,
 	RenderOptions
 } from '../../utils/renderHelpers';
+import { getSystemExportStatement } from '../../utils/systemJsRendering';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { EMPTY_PATH, ObjectPath } from '../values';
 import Variable from '../variables/Variable';
-import { isIdentifier } from './Identifier';
+import Identifier, { IdentifierWithVariable } from './Identifier';
 import * as NodeType from './NodeType';
-import { Node, NodeBase } from './shared/Node';
+import { IncludeChildren, NodeBase } from './shared/Node';
 import VariableDeclarator from './VariableDeclarator';
 
 function isReassignedExportsMember(variable: Variable): boolean {
-	return (
-		variable.safeName &&
-		variable.safeName.indexOf('.') !== -1 &&
-		variable.exportName &&
-		variable.isReassigned
-	);
+	return variable.renderBaseName !== null && variable.exportName !== null && variable.isReassigned;
 }
 
-export function isVariableDeclaration(node: Node): node is VariableDeclaration {
-	return node.type === NodeType.VariableDeclaration;
+function areAllDeclarationsIncludedAndNotExported(declarations: VariableDeclarator[]): boolean {
+	for (const declarator of declarations) {
+		if (!declarator.included) {
+			return false;
+		}
+		if (declarator.id.type === NodeType.Identifier) {
+			if ((declarator.id.variable as Variable).exportName) return false;
+		} else {
+			const exportedVariables: Variable[] = [];
+			declarator.id.addExportedVariables(exportedVariables);
+			if (exportedVariables.length > 0) return false;
+		}
+	}
+	return true;
 }
 
 export default class VariableDeclaration extends NodeBase {
-	type: NodeType.tVariableDeclaration;
-	declarations: VariableDeclarator[];
-	kind: 'var' | 'let' | 'const';
-
-	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _options: ExecutionPathOptions) {
-		return false;
-	}
-
-	includeWithAllDeclaredVariables() {
-		let anotherPassNeeded = false;
-		this.included = true;
-		for (const declarator of this.declarations) {
-			if (declarator.include()) anotherPassNeeded = true;
-		}
-		return anotherPassNeeded;
-	}
-
-	include() {
-		this.included = true;
-		for (const declarator of this.declarations) {
-			if (declarator.shouldBeIncluded()) declarator.include();
-		}
-	}
-
-	initialise() {
-		this.included = false;
-		for (const declarator of this.declarations) {
-			declarator.declareDeclarator(this.kind);
-		}
-	}
+	declarations!: VariableDeclarator[];
+	kind!: 'var' | 'let' | 'const';
+	type!: NodeType.tVariableDeclaration;
 
 	deoptimizePath(_path: ObjectPath) {
 		for (const declarator of this.declarations) {
@@ -64,13 +45,33 @@ export default class VariableDeclaration extends NodeBase {
 		}
 	}
 
+	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _options: ExecutionPathOptions) {
+		return false;
+	}
+
+	include(includeChildrenRecursively: IncludeChildren) {
+		this.included = true;
+		for (const declarator of this.declarations) {
+			if (includeChildrenRecursively || declarator.shouldBeIncluded())
+				declarator.include(includeChildrenRecursively);
+		}
+	}
+
+	includeWithAllDeclaredVariables(includeChildrenRecursively: IncludeChildren) {
+		this.included = true;
+		for (const declarator of this.declarations) {
+			declarator.include(includeChildrenRecursively);
+		}
+	}
+
+	initialise() {
+		for (const declarator of this.declarations) {
+			declarator.declareDeclarator(this.kind);
+		}
+	}
+
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions: NodeRenderOptions = BLANK) {
-		if (
-			this.declarations.every(
-				declarator =>
-					declarator.included && (!declarator.id.variable || !declarator.id.variable.exportName)
-			)
-		) {
+		if (areAllDeclarationsIncludedAndNotExported(this.declarations)) {
 			for (const declarator of this.declarations) {
 				declarator.render(code, options);
 			}
@@ -85,103 +86,15 @@ export default class VariableDeclaration extends NodeBase {
 		}
 	}
 
-	private renderReplacedDeclarations(
-		code: MagicString,
-		options: RenderOptions,
-		{ start = this.start, end = this.end, isNoStatement }: NodeRenderOptions
-	) {
-		const separatedNodes = getCommaSeparatedNodesWithBoundaries(
-			this.declarations,
-			code,
-			this.start + this.kind.length,
-			this.end - (code.original.charCodeAt(this.end - 1) === 59 /*";"*/ ? 1 : 0)
-		);
-		let actualContentEnd, renderedContentEnd;
-		if (/\n\s*$/.test(code.slice(this.start, separatedNodes[0].start))) {
-			renderedContentEnd = this.start + this.kind.length;
-		} else {
-			renderedContentEnd = separatedNodes[0].start;
-		}
-		let lastSeparatorPos = renderedContentEnd - 1;
-		code.remove(this.start, lastSeparatorPos);
-		let isInDeclaration = false;
-		let hasRenderedContent = false;
-		let separatorString = '',
-			leadingString,
-			nextSeparatorString;
-		for (const { node, start, separator, contentEnd, end } of separatedNodes) {
-			if (
-				!node.included ||
-				(isIdentifier(node.id) && isReassignedExportsMember(node.id.variable) && node.init === null)
-			) {
-				code.remove(start, end);
-				continue;
-			}
-			leadingString = '';
-			nextSeparatorString = '';
-			if (isIdentifier(node.id) && isReassignedExportsMember(node.id.variable)) {
-				if (hasRenderedContent) {
-					separatorString += ';';
-				}
-				isInDeclaration = false;
-			} else {
-				if (
-					options.format === 'system' &&
-					node.init !== null &&
-					isIdentifier(node.id) &&
-					node.id.variable.exportName
-				) {
-					code.prependLeft(
-						node.init.start,
-						`exports('${node.id.variable.safeExportName || node.id.variable.exportName}', `
-					);
-					nextSeparatorString += ')';
-				}
-				if (isInDeclaration) {
-					separatorString += ',';
-				} else {
-					if (hasRenderedContent) {
-						separatorString += ';';
-					}
-					leadingString += `${this.kind} `;
-					isInDeclaration = true;
-				}
-			}
-			if (renderedContentEnd === lastSeparatorPos + 1) {
-				code.overwrite(lastSeparatorPos, renderedContentEnd, separatorString + leadingString);
-			} else {
-				code.overwrite(lastSeparatorPos, lastSeparatorPos + 1, separatorString);
-				code.appendLeft(renderedContentEnd, leadingString);
-			}
-			node.render(code, options);
-			actualContentEnd = contentEnd;
-			renderedContentEnd = end;
-			hasRenderedContent = true;
-			lastSeparatorPos = separator;
-			separatorString = nextSeparatorString;
-		}
-		if (hasRenderedContent) {
-			this.renderDeclarationEnd(
-				code,
-				separatorString,
-				lastSeparatorPos,
-				actualContentEnd,
-				renderedContentEnd,
-				!isNoStatement
-			);
-		} else {
-			code.remove(start, end);
-		}
-	}
-
 	private renderDeclarationEnd(
 		code: MagicString,
 		separatorString: string,
-		lastSeparatorPos: number,
+		lastSeparatorPos: number | null,
 		actualContentEnd: number,
 		renderedContentEnd: number,
-		addSemicolon: boolean
-	) {
+		addSemicolon: boolean,
+		systemPatternExports: Variable[]
+	): void {
 		if (code.original.charCodeAt(this.end - 1) === 59 /*";"*/) {
 			code.remove(this.end - 1, this.end);
 		}
@@ -208,6 +121,104 @@ export default class VariableDeclaration extends NodeBase {
 		} else {
 			code.appendLeft(renderedContentEnd, separatorString);
 		}
-		return separatorString;
+		if (systemPatternExports.length > 0) {
+			code.appendLeft(renderedContentEnd, ' ' + getSystemExportStatement(systemPatternExports));
+		}
+	}
+
+	private renderReplacedDeclarations(
+		code: MagicString,
+		options: RenderOptions,
+		{ start = this.start, end = this.end, isNoStatement }: NodeRenderOptions
+	): void {
+		const separatedNodes = getCommaSeparatedNodesWithBoundaries(
+			this.declarations,
+			code,
+			this.start + this.kind.length,
+			this.end - (code.original.charCodeAt(this.end - 1) === 59 /*";"*/ ? 1 : 0)
+		);
+		let actualContentEnd, renderedContentEnd;
+		if (/\n\s*$/.test(code.slice(this.start, separatedNodes[0].start))) {
+			renderedContentEnd = this.start + this.kind.length;
+		} else {
+			renderedContentEnd = separatedNodes[0].start;
+		}
+		let lastSeparatorPos = renderedContentEnd - 1;
+		code.remove(this.start, lastSeparatorPos);
+		let isInDeclaration = false;
+		let hasRenderedContent = false;
+		let separatorString = '',
+			leadingString,
+			nextSeparatorString;
+		const systemPatternExports: Variable[] = [];
+		for (const { node, start, separator, contentEnd, end } of separatedNodes) {
+			if (
+				!node.included ||
+				(node.id instanceof Identifier &&
+					isReassignedExportsMember((node.id as IdentifierWithVariable).variable) &&
+					node.init === null)
+			) {
+				code.remove(start, end);
+				continue;
+			}
+			leadingString = '';
+			nextSeparatorString = '';
+			if (
+				node.id instanceof Identifier &&
+				isReassignedExportsMember((node.id as IdentifierWithVariable).variable)
+			) {
+				if (hasRenderedContent) {
+					separatorString += ';';
+				}
+				isInDeclaration = false;
+			} else {
+				if (options.format === 'system' && node.init !== null) {
+					if (node.id.type !== NodeType.Identifier) {
+						node.id.addExportedVariables(systemPatternExports);
+					} else if ((node.id.variable as Variable).exportName) {
+						code.prependLeft(
+							code.original.indexOf('=', node.id.end) + 1,
+							` exports('${(node.id.variable as Variable).safeExportName ||
+								(node.id.variable as Variable).exportName}',`
+						);
+						nextSeparatorString += ')';
+					}
+				}
+				if (isInDeclaration) {
+					separatorString += ',';
+				} else {
+					if (hasRenderedContent) {
+						separatorString += ';';
+					}
+					leadingString += `${this.kind} `;
+					isInDeclaration = true;
+				}
+			}
+			if (renderedContentEnd === lastSeparatorPos + 1) {
+				code.overwrite(lastSeparatorPos, renderedContentEnd, separatorString + leadingString);
+			} else {
+				code.overwrite(lastSeparatorPos, lastSeparatorPos + 1, separatorString);
+				code.appendLeft(renderedContentEnd, leadingString);
+			}
+			node.render(code, options);
+			actualContentEnd = contentEnd;
+			renderedContentEnd = end;
+			hasRenderedContent = true;
+			lastSeparatorPos = separator as number;
+			separatorString = nextSeparatorString;
+		}
+		if (hasRenderedContent) {
+			this.renderDeclarationEnd(
+				code,
+				separatorString,
+				lastSeparatorPos,
+				actualContentEnd as number,
+				renderedContentEnd,
+				!isNoStatement,
+				systemPatternExports
+			);
+		} else {
+			code.remove(start, end);
+		}
 	}
 }

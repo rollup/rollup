@@ -10,23 +10,26 @@ import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker'
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 import LocalVariable from '../variables/LocalVariable';
 import Variable from '../variables/Variable';
-import AssignmentExpression from './AssignmentExpression';
 import * as NodeType from './NodeType';
-import Property from './Property';
 import { ExpressionEntity } from './shared/Expression';
-import { Node, NodeBase } from './shared/Node';
-import UpdateExpression from './UpdateExpression';
+import { ExpressionNode, NodeBase } from './shared/Node';
+import { PatternNode } from './shared/Pattern';
+import SpreadElement from './SpreadElement';
 
-export function isIdentifier(node: Node): node is Identifier {
-	return node.type === NodeType.Identifier;
-}
+export type IdentifierWithVariable = Identifier & { variable: Variable };
 
-export default class Identifier extends NodeBase {
-	type: NodeType.tIdentifier;
-	name: string;
+export default class Identifier extends NodeBase implements PatternNode {
+	name!: string;
+	type!: NodeType.tIdentifier;
 
-	variable: Variable;
-	private bound: boolean;
+	variable: Variable | null = null;
+	private bound = false;
+
+	addExportedVariables(variables: Variable[]): void {
+		if (this.variable !== null && this.variable.exportName) {
+			variables.push(this.variable);
+		}
+	}
 
 	bind() {
 		if (this.bound) return;
@@ -37,42 +40,45 @@ export default class Identifier extends NodeBase {
 		}
 		if (
 			this.variable !== null &&
-			(<LocalVariable>this.variable).isLocal &&
-			(<LocalVariable>this.variable).additionalInitializers !== null
+			this.variable instanceof LocalVariable &&
+			this.variable.additionalInitializers !== null
 		) {
-			(<LocalVariable>this.variable).consolidateInitializers();
+			this.variable.consolidateInitializers();
 		}
 	}
 
 	declare(kind: string, init: ExpressionEntity) {
+		let variable: LocalVariable;
 		switch (kind) {
 			case 'var':
 			case 'function':
-				this.variable = this.scope.addDeclaration(
-					this,
-					this.context.deoptimizationTracker,
-					init,
-					true
-				);
+				variable = this.scope.addDeclaration(this, this.context, init, true);
 				break;
 			case 'let':
 			case 'const':
 			case 'class':
-				this.variable = this.scope.addDeclaration(
-					this,
-					this.context.deoptimizationTracker,
-					init,
-					false
-				);
+				variable = this.scope.addDeclaration(this, this.context, init, false);
 				break;
 			case 'parameter':
-				this.variable = (<FunctionScope>this.scope).addParameterDeclaration(
-					this,
-					this.context.deoptimizationTracker
-				);
+				variable = (this.scope as FunctionScope).addParameterDeclaration(this);
 				break;
 			default:
 				throw new Error(`Unexpected identifier kind ${kind}.`);
+		}
+		return [(this.variable = variable)];
+	}
+
+	deoptimizePath(path: ObjectPath) {
+		if (!this.bound) this.bind();
+		if (this.variable !== null) {
+			if (
+				path.length === 0 &&
+				this.name in this.context.importDescriptions &&
+				!this.scope.contains(this.name)
+			) {
+				this.disallowImportReassignment();
+			}
+			this.variable.deoptimizePath(path);
 		}
 	}
 
@@ -81,6 +87,7 @@ export default class Identifier extends NodeBase {
 		recursionTracker: ImmutableEntityPathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
+		if (!this.bound) this.bind();
 		if (this.variable !== null) {
 			return this.variable.getLiteralValueAtPath(path, recursionTracker, origin);
 		}
@@ -92,6 +99,7 @@ export default class Identifier extends NodeBase {
 		recursionTracker: ImmutableEntityPathTracker,
 		origin: DeoptimizableEntity
 	) {
+		if (!this.bound) this.bind();
 		if (this.variable !== null) {
 			return this.variable.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
 		}
@@ -99,7 +107,7 @@ export default class Identifier extends NodeBase {
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return this.variable && this.variable.hasEffectsWhenAccessedAtPath(path, options);
+		return this.variable !== null && this.variable.hasEffectsWhenAccessedAtPath(path, options);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
@@ -117,50 +125,32 @@ export default class Identifier extends NodeBase {
 	include() {
 		if (!this.included) {
 			this.included = true;
-			if (this.variable !== null && !this.variable.included) {
-				this.variable.include();
-				this.context.requestTreeshakingPass();
+			if (this.variable !== null) {
+				this.context.includeVariable(this.variable);
 			}
 		}
 	}
 
-	initialise() {
-		this.included = false;
-		this.bound = false;
-		// To avoid later shape mutations
-		if (!this.variable) {
-			this.variable = null;
-		}
-	}
-
-	deoptimizePath(path: ObjectPath) {
-		if (!this.bound) this.bind();
-		if (this.variable !== null) {
-			if (
-				path.length === 0 &&
-				this.name in this.context.imports &&
-				!this.scope.contains(this.name)
-			) {
-				this.disallowImportReassignment();
-			}
-			this.variable.deoptimizePath(path);
+	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+		if (this.variable) {
+			this.variable.includeCallArguments(args);
 		}
 	}
 
 	render(
 		code: MagicString,
-		options: RenderOptions,
-		{ renderedParentType, isCalleeOfRenderedParent }: NodeRenderOptions = BLANK
+		_options: RenderOptions,
+		{ renderedParentType, isCalleeOfRenderedParent, isShorthandProperty }: NodeRenderOptions = BLANK
 	) {
 		if (this.variable) {
 			const name = this.variable.getName();
 
 			if (name !== this.name) {
 				code.overwrite(this.start, this.end, name, {
-					storeName: true,
-					contentOnly: true
+					contentOnly: true,
+					storeName: true
 				});
-				if (this.parent.type === NodeType.Property && (<Property>this.parent).shorthand) {
+				if (isShorthandProperty) {
 					code.prependRight(this.start, `${this.name}: `);
 				}
 			}
@@ -171,9 +161,6 @@ export default class Identifier extends NodeBase {
 				isCalleeOfRenderedParent
 			) {
 				code.appendRight(this.start, '0, ');
-			}
-			if (options.format === 'system' && this.variable.exportName) {
-				this.renderSystemBindingUpdate(code, name);
 			}
 		}
 	}
@@ -186,50 +173,5 @@ export default class Identifier extends NodeBase {
 			},
 			this.start
 		);
-	}
-
-	private renderSystemBindingUpdate(code: MagicString, name: string) {
-		switch (this.parent.type) {
-			case NodeType.AssignmentExpression:
-				{
-					const expression: AssignmentExpression = <AssignmentExpression>this.parent;
-					if (expression.left === this) {
-						code.prependLeft(expression.right.start, `exports('${this.variable.exportName}', `);
-						code.prependRight(expression.right.end, `)`);
-					}
-				}
-				break;
-
-			case NodeType.UpdateExpression:
-				{
-					const expression: UpdateExpression = <UpdateExpression>this.parent;
-					if (expression.prefix) {
-						code.overwrite(
-							expression.start,
-							expression.end,
-							`exports('${this.variable.exportName}', ${expression.operator}${name})`
-						);
-					} else {
-						let op;
-						switch (expression.operator) {
-							case '++':
-								op = `${name} + 1`;
-								break;
-							case '--':
-								op = `${name} - 1`;
-								break;
-							case '**':
-								op = `${name} * ${name}`;
-								break;
-						}
-						code.overwrite(
-							expression.start,
-							expression.end,
-							`(exports('${this.variable.exportName}', ${op}), ${name}${expression.operator})`
-						);
-					}
-				}
-				break;
-		}
 	}
 }

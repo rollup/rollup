@@ -1,5 +1,5 @@
-var fs = require('fs');
-var assert = require('assert');
+const fs = require('fs');
+const assert = require('assert');
 
 module.exports = {
 	description: 'uses -o from CLI',

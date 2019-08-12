@@ -1,7 +1,7 @@
 'use strict';
 
+var dep2 = require('./generated-dep2.js');
 var external = require('external');
-var __chunk_1 = require('./chunk-ca3a1cbb.js');
 
 function fn () {
   console.log('lib1 fn');
@@ -16,7 +16,7 @@ function fn$1 () {
 class Main2 {
   constructor () {
     fn$1();
-    __chunk_1.fn();
+    dep2.fn();
   }
 }
 

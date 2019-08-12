@@ -1,23 +1,22 @@
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
+(function (factory) {
 	typeof define === 'function' && define.amd ? define(factory) :
-	(factory());
-}(this, (function () { 'use strict';
+	factory();
+}(function () { 'use strict';
 
 	function getStringA() {
 		return 'A';
 	}
 
-	console.log(getStringA());
+	console.log( getStringA());
 
-	console.log(false);
+	console.log(false );
 
-	console.log(true);
+	console.log(true );
 
 	function getStringD() {
 		return 'D';
 	}
 
-	console.log(getStringD());
+	console.log( getStringD());
 
-})));
+}));

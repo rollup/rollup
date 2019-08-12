@@ -1,20 +1,29 @@
-import { InputOptions, OutputOptions, WarningHandler } from '../rollup/types';
-import deprecateOptions, { Deprecation } from './deprecateOptions';
-import ensureArray from './ensureArray';
+import {
+	InputOptions,
+	OutputOptions,
+	WarningHandler,
+	WarningHandlerWithDefault
+} from '../rollup/types';
 
 export interface GenericConfigObject {
-	[key: string]: any;
+	[key: string]: unknown;
+}
+
+export interface CommandConfigObject {
+	external: string[];
+	globals: { [id: string]: string } | undefined;
+	[key: string]: unknown;
 }
 
 const createGetOption = (config: GenericConfigObject, command: GenericConfigObject) => (
 	name: string,
-	defaultValue?: any
-) =>
+	defaultValue?: unknown
+): any =>
 	command[name] !== undefined
 		? command[name]
 		: config[name] !== undefined
-			? config[name]
-			: defaultValue;
+		? config[name]
+		: defaultValue;
 
 const normalizeObjectOptionValue = (optionValue: any) => {
 	if (!optionValue) {
@@ -41,33 +50,36 @@ const getObjectOption = (
 
 const defaultOnWarn: WarningHandler = warning => {
 	if (typeof warning === 'string') {
-		console.warn(warning); // eslint-disable-line no-console
+		console.warn(warning);
 	} else {
-		console.warn(warning.message); // eslint-disable-line no-console
+		console.warn(warning.message);
 	}
 };
 
 const getOnWarn = (
 	config: GenericConfigObject,
-	command: GenericConfigObject,
 	defaultOnWarnHandler: WarningHandler = defaultOnWarn
 ): WarningHandler =>
-	command.silent
-		? () => {}
-		: config.onwarn
-			? warning => config.onwarn(warning, defaultOnWarnHandler)
-			: defaultOnWarnHandler;
+	config.onwarn
+		? warning => (config.onwarn as WarningHandlerWithDefault)(warning, defaultOnWarnHandler)
+		: defaultOnWarnHandler;
 
-const getExternal = (config: GenericConfigObject, command: GenericConfigObject) => {
+const getExternal = (config: GenericConfigObject, command: CommandConfigObject) => {
 	const configExternal = config.external;
 	return typeof configExternal === 'function'
 		? (id: string, ...rest: string[]) =>
 				configExternal(id, ...rest) || command.external.indexOf(id) !== -1
-		: (configExternal || []).concat(command.external);
+		: (typeof config.external === 'string'
+				? [configExternal]
+				: Array.isArray(configExternal)
+				? configExternal
+				: []
+		  ).concat(command.external);
 };
 
 export const commandAliases: { [key: string]: string } = {
 	c: 'config',
+	d: 'dir',
 	e: 'external',
 	f: 'format',
 	g: 'globals',
@@ -83,28 +95,25 @@ export const commandAliases: { [key: string]: string } = {
 export default function mergeOptions({
 	config = {},
 	command: rawCommandOptions = {},
-	deprecateConfig,
 	defaultOnWarnHandler
 }: {
-	config: GenericConfigObject;
 	command?: GenericConfigObject;
-	deprecateConfig?: GenericConfigObject;
+	config: GenericConfigObject;
 	defaultOnWarnHandler?: WarningHandler;
 }): {
-	inputOptions: any;
-	outputOptions: any;
-	deprecations: Deprecation[];
+	inputOptions: InputOptions;
 	optionError: string | null;
+	outputOptions: any;
 } {
-	const deprecations = deprecate(config, rawCommandOptions, deprecateConfig);
 	const command = getCommandOptions(rawCommandOptions);
-	const inputOptions = getInputOptions(config, command, defaultOnWarnHandler);
+	const inputOptions = getInputOptions(config, command, defaultOnWarnHandler as WarningHandler);
 
 	if (command.output) {
 		Object.assign(command, command.output);
 	}
 
-	const normalizedOutputOptions = ensureArray(config.output);
+	const output = config.output;
+	const normalizedOutputOptions = Array.isArray(output) ? output : output ? [output] : [];
 	if (normalizedOutputOptions.length === 0) normalizedOutputOptions.push({});
 	const outputOptions = normalizedOutputOptions.map(singleOutputOptions =>
 		getOutputOptions(singleOutputOptions, command)
@@ -123,16 +132,19 @@ export default function mergeOptions({
 	const validOutputOptions = Object.keys(outputOptions[0]);
 	addUnknownOptionErrors(
 		unknownOptionErrors,
-		outputOptions.reduce((allKeys, options) => allKeys.concat(Object.keys(options)), []),
+		outputOptions.reduce<string[]>((allKeys, options) => allKeys.concat(Object.keys(options)), []),
 		validOutputOptions,
 		'output option'
 	);
 
+	const validCliOutputOptions = validOutputOptions.filter(
+		option => option !== 'sourcemapPathTransform'
+	);
 	addUnknownOptionErrors(
 		unknownOptionErrors,
 		Object.keys(command),
 		validInputOptions.concat(
-			validOutputOptions,
+			validCliOutputOptions,
 			Object.keys(commandAliases),
 			'config',
 			'environment',
@@ -144,9 +156,8 @@ export default function mergeOptions({
 
 	return {
 		inputOptions,
-		outputOptions,
-		deprecations,
-		optionError: unknownOptionErrors.length > 0 ? unknownOptionErrors.join('\n') : null
+		optionError: unknownOptionErrors.length > 0 ? unknownOptionErrors.join('\n') : null,
+		outputOptions
 	};
 }
 
@@ -168,69 +179,63 @@ function addUnknownOptionErrors(
 		);
 }
 
-function getCommandOptions(rawCommandOptions: GenericConfigObject): GenericConfigObject {
-	const command = { ...rawCommandOptions };
-	command.external = (rawCommandOptions.external || '').split(',');
-
-	if (rawCommandOptions.globals) {
-		command.globals = Object.create(null);
-
-		rawCommandOptions.globals.split(',').forEach((str: string) => {
-			const names = str.split(':');
-			command.globals[names[0]] = names[1];
-
-			// Add missing Module IDs to external.
-			if (command.external.indexOf(names[0]) === -1) {
-				command.external.push(names[0]);
-			}
-		});
-	}
-	return command;
+function getCommandOptions(rawCommandOptions: GenericConfigObject): CommandConfigObject {
+	const external =
+		rawCommandOptions.external && typeof rawCommandOptions.external === 'string'
+			? rawCommandOptions.external.split(',')
+			: [];
+	return {
+		...rawCommandOptions,
+		external,
+		globals:
+			typeof rawCommandOptions.globals === 'string'
+				? rawCommandOptions.globals.split(',').reduce((globals, globalDefinition) => {
+						const [id, variableName] = globalDefinition.split(':');
+						globals[id] = variableName;
+						if (external.indexOf(id) === -1) {
+							external.push(id);
+						}
+						return globals;
+				  }, Object.create(null))
+				: undefined
+	};
 }
 
 function getInputOptions(
 	config: GenericConfigObject,
-	command: GenericConfigObject = {},
+	command: CommandConfigObject = { external: [], globals: undefined },
 	defaultOnWarnHandler: WarningHandler
 ): InputOptions {
 	const getOption = createGetOption(config, command);
 
 	const inputOptions: InputOptions = {
 		acorn: config.acorn,
-		acornInjectPlugins: config.acornInjectPlugins,
+		acornInjectPlugins: config.acornInjectPlugins as any,
 		cache: getOption('cache'),
-		context: config.context,
-		experimentalCodeSplitting: getOption('experimentalCodeSplitting'),
-		experimentalPreserveModules: getOption('experimentalPreserveModules'),
-		experimentalTopLevelAwait: getOption('experimentalTopLevelAwait'),
-		external: getExternal(config, command),
-		inlineDynamicImports: getOption('inlineDynamicImports', false),
-		input: getOption('input'),
-		manualChunks: getOption('manualChunks'),
 		chunkGroupingSize: getOption('chunkGroupingSize', 5000),
-		optimizeChunks: getOption('optimizeChunks'),
-		moduleContext: config.moduleContext,
-		onwarn: getOnWarn(config, command, defaultOnWarnHandler),
+		context: config.context as any,
+		experimentalCacheExpiry: getOption('experimentalCacheExpiry', 10),
+		experimentalOptimizeChunks: getOption('experimentalOptimizeChunks'),
+		experimentalTopLevelAwait: getOption('experimentalTopLevelAwait'),
+		external: getExternal(config, command) as any,
+		inlineDynamicImports: getOption('inlineDynamicImports', false),
+		input: getOption('input', []),
+		manualChunks: getOption('manualChunks'),
+		moduleContext: config.moduleContext as any,
+		onwarn: getOnWarn(config, defaultOnWarnHandler),
 		perf: getOption('perf', false),
-		plugins: config.plugins,
-		preferConst: getOption('preferConst'),
+		plugins: config.plugins as any,
+		preserveModules: getOption('preserveModules'),
 		preserveSymlinks: getOption('preserveSymlinks'),
-		treeshake: getObjectOption(config, command, 'treeshake'),
 		shimMissingExports: getOption('shimMissingExports'),
-		watch: config.watch
+		strictDeprecations: getOption('strictDeprecations', false),
+		treeshake: getObjectOption(config, command, 'treeshake'),
+		watch: config.watch as any
 	};
 
-	// legacy to make sure certain plugins still work
-	if (Array.isArray(inputOptions.input)) {
-		inputOptions.entry = inputOptions.input[0];
-	} else if (typeof inputOptions.input === 'object') {
-		for (const name in inputOptions.input) {
-			inputOptions.entry = inputOptions.input[name];
-			break;
-		}
-	} else {
-		inputOptions.entry = inputOptions.input;
-	}
+	// support rollup({ cache: prevBuildObject })
+	if (inputOptions.cache && (inputOptions.cache as any).cache)
+		inputOptions.cache = (inputOptions.cache as any).cache;
 
 	return inputOptions;
 }
@@ -240,19 +245,31 @@ function getOutputOptions(
 	command: GenericConfigObject = {}
 ): OutputOptions {
 	const getOption = createGetOption(config, command);
-	const format = getOption('format');
+	let format = getOption('format');
+
+	// Handle format aliases
+	switch (format) {
+		case 'esm':
+		case 'module':
+			format = 'es';
+			break;
+		case 'commonjs':
+			format = 'cjs';
+	}
 
 	return {
-		amd: { ...config.amd, ...command.amd },
+		amd: { ...config.amd, ...command.amd } as any,
 		assetFileNames: getOption('assetFileNames'),
 		banner: getOption('banner'),
-		dir: getOption('dir'),
 		chunkFileNames: getOption('chunkFileNames'),
 		compact: getOption('compact', false),
+		dir: getOption('dir'),
+		dynamicImportFunction: getOption('dynamicImportFunction'),
 		entryFileNames: getOption('entryFileNames'),
 		esModule: getOption('esModule', true),
 		exports: getOption('exports'),
 		extend: getOption('extend'),
+		externalLiveBindings: getOption('externalLiveBindings', true),
 		file: getOption('file'),
 		footer: getOption('footer'),
 		format: format === 'esm' ? 'es' : format,
@@ -266,45 +283,11 @@ function getOutputOptions(
 		noConflict: getOption('noConflict'),
 		outro: getOption('outro'),
 		paths: getOption('paths'),
+		preferConst: getOption('preferConst'),
 		sourcemap: getOption('sourcemap'),
+		sourcemapExcludeSources: getOption('sourcemapExcludeSources'),
 		sourcemapFile: getOption('sourcemapFile'),
+		sourcemapPathTransform: getOption('sourcemapPathTransform'),
 		strict: getOption('strict', true)
 	};
-}
-
-function deprecate(
-	config: GenericConfigObject,
-	command: GenericConfigObject = {},
-	deprecateConfig: GenericConfigObject = { input: true, output: true }
-): Deprecation[] {
-	const deprecations = [];
-
-	// CLI
-	if (command.id) {
-		deprecations.push({
-			old: '-u/--id',
-			new: '--amd.id'
-		});
-		(command.amd || (command.amd = {})).id = command.id;
-	}
-
-	if (typeof command.output === 'string') {
-		deprecations.push({
-			old: '--output',
-			new: '--file'
-		});
-		command.output = { file: command.output };
-	}
-
-	if (command.d) {
-		deprecations.push({
-			old: '-d',
-			new: '--indent'
-		});
-		command.indent = command.d;
-	}
-
-	// config file
-	deprecations.push(...deprecateOptions(config, deprecateConfig));
-	return deprecations;
 }

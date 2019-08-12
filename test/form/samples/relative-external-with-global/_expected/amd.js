@@ -1,4 +1,4 @@
-define(['./lib/throttle.js'], function (throttle) { 'use strict';
+define(['./lib/throttle'], function (throttle) { 'use strict';
 
 	throttle = throttle && throttle.hasOwnProperty('default') ? throttle['default'] : throttle;
 

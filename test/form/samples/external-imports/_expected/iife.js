@@ -1,4 +1,4 @@
-(function (factory,baz,containers,alphabet) {
+(function (factory, baz, containers, alphabet) {
 	'use strict';
 
 	factory = factory && factory.hasOwnProperty('default') ? factory['default'] : factory;
@@ -10,4 +10,4 @@
 	console.log( alphabet.a );
 	console.log( alphabet__default.length );
 
-}(factory,baz,containers,alphabet));
+}(factory, baz, containers, alphabet));

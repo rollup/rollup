@@ -6,18 +6,18 @@ module.exports = {
 		plugins: [
 			{
 				banner: '/* first banner */',
-				footer: function() {
+				footer() {
 					return '/* first footer */';
 				}
 			},
 			{
-				banner: function() {
+				banner() {
 					return '/* second banner */';
 				},
 				footer: '/* second footer */'
 			},
 			{
-				banner: function() {
+				banner() {
 					return Promise.reject(new Error('Could not generate banner.'));
 				},
 				footer: '/* 3rd footer */'
@@ -27,6 +27,6 @@ module.exports = {
 	generateError: {
 		code: 'ADDON_ERROR',
 		message:
-			'Could not retrieve banner. Check configuration of Plugin at pos 2.\n\tError Message: Could not generate banner.'
+			'Could not retrieve banner. Check configuration of plugin at position 3.\n\tError Message: Could not generate banner.'
 	}
 };

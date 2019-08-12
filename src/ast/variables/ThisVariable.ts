@@ -1,8 +1,45 @@
-import { EntityPathTracker } from '../utils/EntityPathTracker';
-import ReplaceableInitializationVariable from './ReplaceableInitializationVariable';
+import { AstContext } from '../../Module';
+import CallOptions from '../CallOptions';
+import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExpressionEntity } from '../nodes/shared/Expression';
+import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
+import LocalVariable from './LocalVariable';
 
-export default class ThisVariable extends ReplaceableInitializationVariable {
-	constructor(deoptimizationTracker: EntityPathTracker) {
-		super('this', null, deoptimizationTracker);
+export default class ThisVariable extends LocalVariable {
+	constructor(context: AstContext) {
+		super('this', null, null, context);
+	}
+
+	_getInit(options: ExecutionPathOptions): ExpressionEntity {
+		return options.getReplacedVariableInit(this) || UNKNOWN_EXPRESSION;
+	}
+
+	getLiteralValueAtPath(): LiteralValueOrUnknown {
+		return UNKNOWN_VALUE;
+	}
+
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
+		return (
+			this._getInit(options).hasEffectsWhenAccessedAtPath(path, options) ||
+			super.hasEffectsWhenAccessedAtPath(path, options)
+		);
+	}
+
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
+		return (
+			this._getInit(options).hasEffectsWhenAssignedAtPath(path, options) ||
+			super.hasEffectsWhenAssignedAtPath(path, options)
+		);
+	}
+
+	hasEffectsWhenCalledAtPath(
+		path: ObjectPath,
+		callOptions: CallOptions,
+		options: ExecutionPathOptions
+	) {
+		return (
+			this._getInit(options).hasEffectsWhenCalledAtPath(path, callOptions, options) ||
+			super.hasEffectsWhenCalledAtPath(path, callOptions, options)
+		);
 	}
 }

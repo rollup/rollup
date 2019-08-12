@@ -1,6 +1,12 @@
 import MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
-import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import {
+	findFirstOccurrenceOutsideComment,
+	NodeRenderOptions,
+	removeLineBreaks,
+	RenderOptions
+} from '../../utils/renderHelpers';
+import { removeAnnotations } from '../../utils/treeshakeNode';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
@@ -19,22 +25,21 @@ import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
 import { MultiExpression } from './shared/MultiExpression';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 
 export type LogicalOperator = '||' | '&&';
 
 export default class LogicalExpression extends NodeBase implements DeoptimizableEntity {
-	type: NodeType.tLogicalExpression;
-	operator: LogicalOperator;
-	left: ExpressionNode;
-	right: ExpressionNode;
+	left!: ExpressionNode;
+	operator!: LogicalOperator;
+	right!: ExpressionNode;
+	type!: NodeType.tLogicalExpression;
 
-	// Caching and deoptimization:
 	// We collect deoptimization information if usedBranch !== null
-	private isBranchResolutionAnalysed: boolean;
-	private usedBranch: ExpressionNode | null;
-	private unusedBranch: ExpressionNode | null;
-	private expressionsToBeDeoptimized: DeoptimizableEntity[];
+	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
+	private isBranchResolutionAnalysed = false;
+	private unusedBranch: ExpressionNode | null = null;
+	private usedBranch: ExpressionNode | null = null;
 
 	bind() {
 		super.bind();
@@ -46,9 +51,21 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 			// We did not track if there were reassignments to any of the branches.
 			// Also, the return values might need reassignment.
 			this.usedBranch = null;
-			this.unusedBranch.deoptimizePath(UNKNOWN_PATH);
+			(this.unusedBranch as ExpressionNode).deoptimizePath(UNKNOWN_PATH);
 			for (const expression of this.expressionsToBeDeoptimized) {
 				expression.deoptimizeCache();
+			}
+		}
+	}
+
+	deoptimizePath(path: ObjectPath) {
+		if (path.length > 0) {
+			if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
+			if (this.usedBranch === null) {
+				this.left.deoptimizePath(path);
+				this.right.deoptimizePath(path);
+			} else {
+				this.usedBranch.deoptimizePath(path);
 			}
 		}
 	}
@@ -122,49 +139,45 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		return this.usedBranch.hasEffectsWhenCalledAtPath(path, callOptions, options);
 	}
 
-	include() {
+	include(includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		if (this.usedBranch === null || this.unusedBranch.shouldBeIncluded()) {
-			this.left.include();
-			this.right.include();
+		if (
+			includeChildrenRecursively ||
+			this.usedBranch === null ||
+			(this.unusedBranch as ExpressionNode).shouldBeIncluded()
+		) {
+			this.left.include(includeChildrenRecursively);
+			this.right.include(includeChildrenRecursively);
 		} else {
-			this.usedBranch.include();
-		}
-	}
-
-	initialise() {
-		this.included = false;
-		this.isBranchResolutionAnalysed = false;
-		this.usedBranch = null;
-		this.unusedBranch = null;
-		this.expressionsToBeDeoptimized = [];
-	}
-
-	deoptimizePath(path: ObjectPath) {
-		if (path.length > 0) {
-			if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
-			if (this.usedBranch === null) {
-				this.left.deoptimizePath(path);
-				this.right.deoptimizePath(path);
-			} else {
-				this.usedBranch.deoptimizePath(path);
-			}
+			this.usedBranch.include(includeChildrenRecursively);
 		}
 	}
 
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ renderedParentType, isCalleeOfRenderedParent }: NodeRenderOptions = BLANK
+		{ renderedParentType, isCalleeOfRenderedParent, preventASI }: NodeRenderOptions = BLANK
 	) {
 		if (!this.left.included || !this.right.included) {
-			code.remove(this.start, this.usedBranch.start);
-			code.remove(this.usedBranch.end, this.end);
-			this.usedBranch.render(code, options, {
-				renderedParentType: renderedParentType || this.parent.type,
+			const operatorPos = findFirstOccurrenceOutsideComment(
+				code.original,
+				this.operator,
+				this.left.end
+			);
+			if (this.right.included) {
+				code.remove(this.start, operatorPos + 2);
+				if (preventASI) {
+					removeLineBreaks(code, operatorPos + 2, this.right.start);
+				}
+			} else {
+				code.remove(operatorPos, this.end);
+			}
+			removeAnnotations(this, code);
+			(this.usedBranch as ExpressionNode).render(code, options, {
 				isCalleeOfRenderedParent: renderedParentType
 					? isCalleeOfRenderedParent
-					: (<CallExpression>this.parent).callee === this
+					: (this.parent as CallExpression).callee === this,
+				renderedParentType: renderedParentType || this.parent.type
 			});
 		} else {
 			super.render(code, options);

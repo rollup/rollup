@@ -1,8 +1,8 @@
-var assert = require('assert');
+const assert = require('assert');
 
 module.exports = {
 	description: 'should delete use strict from function body',
-	code: function(code) {
+	code(code) {
 		assert.equal(code.lastIndexOf('use strict'), 1);
 	}
 };

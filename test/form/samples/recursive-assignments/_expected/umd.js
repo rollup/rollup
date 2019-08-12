@@ -1,8 +1,7 @@
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
+(function (factory) {
 	typeof define === 'function' && define.amd ? define(factory) :
-	(factory());
-}(this, (function () { 'use strict';
+	factory();
+}(function () { 'use strict';
 
 	let foo = () => function () {};
 	foo.value = foo;
@@ -16,4 +15,4 @@
 	new (foo())();
 	foo.bar = 1;
 
-})));
+}));

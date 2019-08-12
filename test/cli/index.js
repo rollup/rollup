@@ -3,7 +3,11 @@ const assert = require('assert');
 const sander = require('sander');
 const buble = require('buble');
 const { exec } = require('child_process');
-const { normaliseOutput, runTestSuiteWithSamples } = require('../utils.js');
+const {
+	normaliseOutput,
+	runTestSuiteWithSamples,
+	assertDirectoriesAreEqual
+} = require('../utils.js');
 
 const cwd = process.cwd();
 
@@ -19,10 +23,11 @@ runTestSuiteWithSamples(
 			done => {
 				process.chdir(config.cwd || dir);
 
-				const command = 'node ' + path.resolve(__dirname, '../../bin') + path.sep + config.command;
+				const command =
+					'node ' + path.resolve(__dirname, '../../dist/bin') + path.sep + config.command;
 
-				exec(command, {}, (err, code, stderr) => {
-					if (err) {
+				const childProcess = exec(command, { timeout: 40000 }, (err, code, stderr) => {
+					if (err && !err.killed) {
 						if (config.error) {
 							const shouldContinue = config.error(err);
 							if (!shouldContinue) return done();
@@ -91,17 +96,12 @@ runTestSuiteWithSamples(
 							done(err);
 						}
 					} else if (sander.existsSync('_expected') && sander.statSync('_expected').isDirectory()) {
-						let error = null;
-						sander.readdirSync('_expected').forEach(child => {
-							const expected = sander.readFileSync(path.join('_expected', child)).toString();
-							const actual = sander.readFileSync(path.join('_actual', child)).toString();
-							try {
-								assert.equal(normaliseOutput(actual), normaliseOutput(expected));
-							} catch (err) {
-								error = err;
-							}
-						});
-						done(error);
+						try {
+							assertDirectoriesAreEqual('_actual', '_expected');
+							done();
+						} catch (err) {
+							done(err);
+						}
 					} else {
 						const expected = sander.readFileSync('_expected.js').toString();
 						try {
@@ -112,8 +112,14 @@ runTestSuiteWithSamples(
 						}
 					}
 				});
+
+				childProcess.stderr.on('data', data => {
+					if (config.abortOnStderr && config.abortOnStderr(data)) {
+						childProcess.kill('SIGINT');
+					}
+				});
 			}
-		);
+		).timeout(50000);
 	},
 	() => process.chdir(cwd)
 );

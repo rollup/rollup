@@ -1,29 +1,30 @@
+import ExternalModule from '../../ExternalModule';
+import Module from '../../Module';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import Identifier from '../nodes/Identifier';
 import { ExpressionEntity } from '../nodes/shared/Expression';
+import { ExpressionNode } from '../nodes/shared/Node';
+import SpreadElement from '../nodes/SpreadElement';
 import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 
 export default class Variable implements ExpressionEntity {
-	name: string;
-	safeName: string;
-	isExternal?: boolean;
-	isDefault?: boolean;
-	isNamespace?: boolean;
-
-	// Not initialised during construction
+	alwaysRendered = false;
 	exportName: string | null = null;
+	included = false;
+	isId = false;
+	isNamespace?: boolean;
+	isReassigned = false;
+	module?: Module | ExternalModule;
+	name: string;
+	renderBaseName: string | null = null;
+	renderName: string | null = null;
 	safeExportName: string | null = null;
-	included: boolean = false;
-	isId: boolean = false;
-	reexported: boolean = false;
-	isReassigned: boolean = false;
 
 	constructor(name: string) {
 		this.name = name;
-		this.safeName = null;
 	}
 
 	/**
@@ -32,18 +33,10 @@ export default class Variable implements ExpressionEntity {
 	 */
 	addReference(_identifier: Identifier) {}
 
-	getName(reset?: boolean): string {
-		if (
-			reset &&
-			this.safeName &&
-			this.safeName !== this.name &&
-			this.safeName[this.name.length] === '$' &&
-			this.safeName[this.name.length + 1] === '$'
-		) {
-			this.safeName = undefined;
-			return this.name;
-		}
-		return this.safeName || this.name;
+	deoptimizePath(_path: ObjectPath) {}
+
+	getBaseVariableName(): string {
+		return this.renderBaseName || this.renderName || this.name;
 	}
 
 	getLiteralValueAtPath(
@@ -52,6 +45,11 @@ export default class Variable implements ExpressionEntity {
 		_origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		return UNKNOWN_VALUE;
+	}
+
+	getName(): string {
+		const name = this.renderName || this.name;
+		return this.renderBaseName ? `${this.renderBaseName}.${name}` : name;
 	}
 
 	getReturnExpressionWhenCalledAtPath(
@@ -88,10 +86,21 @@ export default class Variable implements ExpressionEntity {
 		this.included = true;
 	}
 
-	deoptimizePath(_path: ObjectPath) {}
+	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+		for (const arg of args) {
+			arg.include(false);
+		}
+	}
 
-	setSafeName(name: string) {
-		this.safeName = name;
+	markCalledFromTryStatement() {}
+
+	setRenderNames(baseName: string | null, name: string | null) {
+		this.renderBaseName = baseName;
+		this.renderName = name;
+	}
+
+	setSafeName(name: string | null) {
+		this.renderName = name;
 	}
 
 	toString() {

@@ -1,20 +1,21 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
+import { removeAnnotations } from '../../utils/treeshakeNode';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { EMPTY_IMMUTABLE_TRACKER } from '../utils/ImmutableEntityPathTracker';
 import { EMPTY_PATH, LiteralValueOrUnknown, UNKNOWN_VALUE } from '../values';
 import * as NodeType from './NodeType';
-import { ExpressionNode, StatementBase, StatementNode } from './shared/Node';
+import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from './shared/Node';
 
 export default class IfStatement extends StatementBase implements DeoptimizableEntity {
-	type: NodeType.tIfStatement;
-	test: ExpressionNode;
-	consequent: StatementNode;
-	alternate: StatementNode | null;
+	alternate!: StatementNode | null;
+	consequent!: StatementNode;
+	test!: ExpressionNode;
+	type!: NodeType.tIfStatement;
 
+	private isTestValueAnalysed = false;
 	private testValue: LiteralValueOrUnknown;
-	private isTestValueAnalysed: boolean;
 
 	bind() {
 		super.bind();
@@ -42,28 +43,29 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			: this.alternate !== null && this.alternate.hasEffects(options);
 	}
 
-	include() {
+	include(includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		if (this.testValue === UNKNOWN_VALUE || this.test.shouldBeIncluded()) {
-			this.test.include();
+		if (includeChildrenRecursively) {
+			this.test.include(includeChildrenRecursively);
+			this.consequent.include(includeChildrenRecursively);
+			if (this.alternate !== null) {
+				this.alternate.include(includeChildrenRecursively);
+			}
+			return;
 		}
-		if (
-			(this.testValue === UNKNOWN_VALUE || this.testValue) &&
-			this.consequent.shouldBeIncluded()
-		) {
-			this.consequent.include();
+		const hasUnknownTest = this.testValue === UNKNOWN_VALUE;
+		if (hasUnknownTest || this.test.shouldBeIncluded()) {
+			this.test.include(false);
+		}
+		if ((hasUnknownTest || this.testValue) && this.consequent.shouldBeIncluded()) {
+			this.consequent.include(false);
 		}
 		if (
 			this.alternate !== null &&
-			((this.testValue === UNKNOWN_VALUE || !this.testValue) && this.alternate.shouldBeIncluded())
+			((hasUnknownTest || !this.testValue) && this.alternate.shouldBeIncluded())
 		) {
-			this.alternate.include();
+			this.alternate.include(false);
 		}
-	}
-
-	initialise() {
-		this.included = false;
-		this.isTestValueAnalysed = false;
 	}
 
 	render(code: MagicString, options: RenderOptions) {
@@ -74,9 +76,12 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 				? this.alternate === null || !this.alternate.included
 				: !this.consequent.included)
 		) {
-			const singleRetainedBranch = this.testValue ? this.consequent : this.alternate;
+			const singleRetainedBranch = (this.testValue
+				? this.consequent
+				: this.alternate) as StatementNode;
 			code.remove(this.start, singleRetainedBranch.start);
 			code.remove(singleRetainedBranch.end, this.end);
+			removeAnnotations(this, code);
 			singleRetainedBranch.render(code, options);
 		} else {
 			if (this.test.included) {

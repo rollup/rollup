@@ -14,8 +14,8 @@ var computedProperties = (function (exports) {
 		set [bam] ( value ) {}
 	}
 
-	exports.x = x;
 	exports.X = X;
+	exports.x = x;
 
 	return exports;
 

@@ -1,15 +1,15 @@
-var buble = require('buble');
-var MagicString = require('magic-string');
-var assert = require('assert');
-var getLocation = require('../../getLocation');
-var SourceMapConsumer = require('source-map').SourceMapConsumer;
+const buble = require('buble');
+const MagicString = require('magic-string');
+const assert = require('assert');
+const getLocation = require('../../getLocation');
+const SourceMapConsumer = require('source-map').SourceMapConsumer;
 
 module.exports = {
 	description: 'preserves sourcemap chains when transforming',
 	options: {
 		plugins: [
 			{
-				transform: function(source, id) {
+				transform(source, id) {
 					return buble.transform(source, {
 						transforms: { modules: false }
 					});
@@ -17,8 +17,8 @@ module.exports = {
 			},
 
 			{
-				transform: function(source, id) {
-					var s = new MagicString(source);
+				transform(source, id) {
+					const s = new MagicString(source);
 					s.append('\nassert.equal( 1 + 1, 2 );\nassert.equal( 2 + 2, 4 );');
 
 					return {
@@ -29,11 +29,11 @@ module.exports = {
 			}
 		]
 	},
-	test: function(code, map) {
-		var smc = new SourceMapConsumer(map);
+	test(code, map) {
+		const smc = new SourceMapConsumer(map);
 
-		var generatedLoc = getLocation(code, code.indexOf('42'));
-		var originalLoc = smc.originalPositionFor(generatedLoc);
+		let generatedLoc = getLocation(code, code.indexOf('42'));
+		let originalLoc = smc.originalPositionFor(generatedLoc);
 
 		assert.ok(/foo/.test(originalLoc.source));
 		assert.equal(originalLoc.line, 1);

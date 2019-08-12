@@ -1,8 +1,8 @@
-var assert = require('assert');
+const assert = require('assert');
 
 module.exports = {
 	description: 'a module importing its own bindings',
-	exports: function(exports) {
+	exports(exports) {
 		assert.equal(exports.result, 4);
 	},
 	warnings: [

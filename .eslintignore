@@ -1,2 +1,3 @@
-test/*/samples/**
+test/*/samples/**/*.js
+!test/*/samples/**/_config.js
 test/leak/index.js

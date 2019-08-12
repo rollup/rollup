@@ -1,6 +1,12 @@
 import MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
-import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import {
+	findFirstOccurrenceOutsideComment,
+	NodeRenderOptions,
+	removeLineBreaks,
+	RenderOptions
+} from '../../utils/renderHelpers';
+import { removeAnnotations } from '../../utils/treeshakeNode';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
@@ -19,20 +25,19 @@ import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
 import { MultiExpression } from './shared/MultiExpression';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 
 export default class ConditionalExpression extends NodeBase implements DeoptimizableEntity {
-	type: NodeType.tConditionalExpression;
-	test: ExpressionNode;
-	alternate: ExpressionNode;
-	consequent: ExpressionNode;
+	alternate!: ExpressionNode;
+	consequent!: ExpressionNode;
+	test!: ExpressionNode;
+	type!: NodeType.tConditionalExpression;
 
-	// Caching and deoptimization:
 	// We collect deoptimization information if usedBranch !== null
-	private isBranchResolutionAnalysed: boolean;
-	private usedBranch: ExpressionNode | null;
-	private unusedBranch: ExpressionNode | null;
-	private expressionsToBeDeoptimized: DeoptimizableEntity[];
+	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
+	private isBranchResolutionAnalysed = false;
+	private unusedBranch: ExpressionNode | null = null;
+	private usedBranch: ExpressionNode | null = null;
 
 	bind() {
 		super.bind();
@@ -44,9 +49,21 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 			// We did not track if there were reassignments to the previous branch.
 			// Also, the return value might need to be reassigned.
 			this.usedBranch = null;
-			this.unusedBranch.deoptimizePath(UNKNOWN_PATH);
+			(this.unusedBranch as ExpressionNode).deoptimizePath(UNKNOWN_PATH);
 			for (const expression of this.expressionsToBeDeoptimized) {
 				expression.deoptimizeCache();
+			}
+		}
+	}
+
+	deoptimizePath(path: ObjectPath) {
+		if (path.length > 0) {
+			if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
+			if (this.usedBranch === null) {
+				this.consequent.deoptimizePath(path);
+				this.alternate.deoptimizePath(path);
+			} else {
+				this.usedBranch.deoptimizePath(path);
 			}
 		}
 	}
@@ -121,50 +138,41 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		return this.usedBranch.hasEffectsWhenCalledAtPath(path, callOptions, options);
 	}
 
-	initialise() {
-		this.included = false;
-		this.isBranchResolutionAnalysed = false;
-		this.usedBranch = null;
-		this.unusedBranch = null;
-		this.expressionsToBeDeoptimized = [];
-	}
-
-	include() {
+	include(includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		if (this.usedBranch === null || this.test.shouldBeIncluded()) {
-			this.test.include();
-			this.consequent.include();
-			this.alternate.include();
+		if (includeChildrenRecursively || this.usedBranch === null || this.test.shouldBeIncluded()) {
+			this.test.include(includeChildrenRecursively);
+			this.consequent.include(includeChildrenRecursively);
+			this.alternate.include(includeChildrenRecursively);
 		} else {
-			this.usedBranch.include();
-		}
-	}
-
-	deoptimizePath(path: ObjectPath) {
-		if (path.length > 0) {
-			if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
-			if (this.usedBranch === null) {
-				this.consequent.deoptimizePath(path);
-				this.alternate.deoptimizePath(path);
-			} else {
-				this.usedBranch.deoptimizePath(path);
-			}
+			this.usedBranch.include(includeChildrenRecursively);
 		}
 	}
 
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ renderedParentType, isCalleeOfRenderedParent }: NodeRenderOptions = BLANK
+		{ renderedParentType, isCalleeOfRenderedParent, preventASI }: NodeRenderOptions = BLANK
 	) {
 		if (!this.test.included) {
-			code.remove(this.start, this.usedBranch.start);
-			code.remove(this.usedBranch.end, this.end);
-			this.usedBranch.render(code, options, {
-				renderedParentType: renderedParentType || this.parent.type,
+			const colonPos = findFirstOccurrenceOutsideComment(code.original, ':', this.consequent.end);
+			const inclusionStart =
+				(this.consequent.included
+					? findFirstOccurrenceOutsideComment(code.original, '?', this.test.end)
+					: colonPos) + 1;
+			if (preventASI) {
+				removeLineBreaks(code, inclusionStart, (this.usedBranch as ExpressionNode).start);
+			}
+			code.remove(this.start, inclusionStart);
+			if (this.consequent.included) {
+				code.remove(colonPos, this.end);
+			}
+			removeAnnotations(this, code);
+			(this.usedBranch as ExpressionNode).render(code, options, {
 				isCalleeOfRenderedParent: renderedParentType
 					? isCalleeOfRenderedParent
-					: (<CallExpression>this.parent).callee === this
+					: (this.parent as CallExpression).callee === this,
+				renderedParentType: renderedParentType || this.parent.type
 			});
 		} else {
 			super.render(code, options);

@@ -1,6 +1,6 @@
 import Chunk from '../Chunk';
 import { OutputOptions } from '../rollup/types';
-import error from './error';
+import { error } from './error';
 
 function badExports(option: string, keys: string[]) {
 	error({
@@ -31,12 +31,17 @@ export default function getExportMode(
 		} else if (exportKeys.length === 1 && exportKeys[0] === 'default') {
 			exportMode = 'default';
 		} else {
-			if (chunk.isEntryModuleFacade && format !== 'es' && exportKeys.indexOf('default') !== -1) {
+			if (
+				chunk.facadeModule !== null &&
+				chunk.facadeModule.isEntryPoint &&
+				format !== 'es' &&
+				exportKeys.indexOf('default') !== -1
+			) {
 				chunk.graph.warn({
 					code: 'MIXED_EXPORTS',
 					message: `Using named and default exports together. Consumers of your bundle will have to use ${name ||
-						'bundle'}['default'] to access the default export, which may not be what you want. Use \`exports: 'named'\` to disable this warning`,
-					url: `https://rollupjs.org/#exports`
+						'bundle'}['default'] to access the default export, which may not be what you want. Use \`output.exports: 'named'\` to disable this warning`,
+					url: `https://rollupjs.org/guide/en/#output-exports`
 				});
 			}
 			exportMode = 'named';
@@ -46,7 +51,8 @@ export default function getExportMode(
 	if (!/(?:default|named|none)/.test(exportMode)) {
 		error({
 			code: 'INVALID_EXPORT_OPTION',
-			message: `output.exports must be 'default', 'named', 'none', 'auto', or left unspecified (defaults to 'auto')`
+			message: `output.exports must be 'default', 'named', 'none', 'auto', or left unspecified (defaults to 'auto')`,
+			url: `https://rollupjs.org/guide/en/#output-exports`
 		});
 	}
 

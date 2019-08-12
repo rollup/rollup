@@ -6,8 +6,6 @@ export interface Entity {
 }
 
 export interface WritableEntity extends Entity {
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean;
-
 	/**
 	 * Reassign a given path of an object.
 	 * E.g., node.deoptimizePath(['x', 'y']) is called when something
@@ -15,4 +13,5 @@ export interface WritableEntity extends Entity {
 	 * expression of this node is reassigned as well.
 	 */
 	deoptimizePath(path: ObjectPath): void;
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean;
 }

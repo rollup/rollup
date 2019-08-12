@@ -3,15 +3,23 @@ import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../../ExecutionPathOptions';
 import { ImmutableEntityPathTracker } from '../../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../../values';
+import SpreadElement from '../SpreadElement';
 import { ExpressionEntity } from './Expression';
+import { ExpressionNode } from './Node';
 
 export class MultiExpression implements ExpressionEntity {
-	included: boolean;
+	included = false;
 
 	private expressions: ExpressionEntity[];
 
 	constructor(expressions: ExpressionEntity[]) {
 		this.expressions = expressions;
+	}
+
+	deoptimizePath(path: ObjectPath): void {
+		for (const expression of this.expressions) {
+			expression.deoptimizePath(path);
+		}
 	}
 
 	getLiteralValueAtPath(): LiteralValueOrUnknown {
@@ -57,9 +65,9 @@ export class MultiExpression implements ExpressionEntity {
 
 	include(): void {}
 
-	deoptimizePath(path: ObjectPath): void {
+	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
 		for (const expression of this.expressions) {
-			expression.deoptimizePath(path);
+			expression.includeCallArguments(args);
 		}
 	}
 }

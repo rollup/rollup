@@ -3,14 +3,14 @@ module.exports = {
 	options: {
 		plugins: [
 			{
-				load: function(id) {
+				load(id) {
 					if (/foo\.js/.test(id)) {
 						return '';
 					}
 				}
 			},
 			{
-				load: function(id) {
+				load(id) {
 					if (/bar\.js/.test(id)) {
 						return { code: '', map: null };
 					}

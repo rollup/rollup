@@ -1,5 +1,5 @@
 import { b } from './b';
 
-export var c = function () {
-	console.log('c');
+export var c = function() {
+	assert.equal(42, 42);
 };

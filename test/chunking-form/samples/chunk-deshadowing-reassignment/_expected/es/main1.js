@@ -1,5 +1,5 @@
-import { a as x, b as y } from './chunk-c223c238.js';
-import './chunk-91999913.js';
-import './chunk-78fb52ac.js';
+import './generated-dep1.js';
+import { x, y } from './generated-shared2.js';
+import './generated-dep2.js';
 
 console.log(x + y);

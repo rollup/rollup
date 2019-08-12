@@ -5,19 +5,15 @@ import BlockScope from '../scopes/BlockScope';
 import Scope from '../scopes/Scope';
 import { EMPTY_PATH } from '../values';
 import * as NodeType from './NodeType';
-import { ExpressionNode, Node, StatementBase, StatementNode } from './shared/Node';
+import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 import VariableDeclaration from './VariableDeclaration';
 
-export function isForInStatement(node: Node): node is ForInStatement {
-	return node.type === NodeType.ForInStatement;
-}
-
 export default class ForInStatement extends StatementBase {
-	type: NodeType.tForInStatement;
-	left: VariableDeclaration | PatternNode;
-	right: ExpressionNode;
-	body: StatementNode;
+	body!: StatementNode;
+	left!: VariableDeclaration | PatternNode;
+	right!: ExpressionNode;
+	type!: NodeType.tForInStatement;
 
 	bind() {
 		this.left.bind();
@@ -40,12 +36,12 @@ export default class ForInStatement extends StatementBase {
 		);
 	}
 
-	include() {
+	include(includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		this.left.includeWithAllDeclaredVariables();
+		this.left.includeWithAllDeclaredVariables(includeChildrenRecursively);
 		this.left.deoptimizePath(EMPTY_PATH);
-		this.right.include();
-		this.body.include();
+		this.right.include(includeChildrenRecursively);
+		this.body.include(includeChildrenRecursively);
 	}
 
 	render(code: MagicString, options: RenderOptions) {

@@ -5,20 +5,16 @@ import BlockScope from '../scopes/BlockScope';
 import Scope from '../scopes/Scope';
 import { EMPTY_PATH } from '../values';
 import * as NodeType from './NodeType';
-import { ExpressionNode, Node, StatementBase, StatementNode } from './shared/Node';
+import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 import VariableDeclaration from './VariableDeclaration';
 
-export function isForOfStatement(node: Node): node is ForOfStatement {
-	return node.type === NodeType.ForOfStatement;
-}
-
 export default class ForOfStatement extends StatementBase {
-	type: NodeType.tForOfStatement;
-	left: VariableDeclaration | PatternNode;
-	right: ExpressionNode;
-	body: StatementNode;
-	await: boolean;
+	await!: boolean;
+	body!: StatementNode;
+	left!: VariableDeclaration | PatternNode;
+	right!: ExpressionNode;
+	type!: NodeType.tForOfStatement;
 
 	bind() {
 		this.left.bind();
@@ -41,12 +37,12 @@ export default class ForOfStatement extends StatementBase {
 		);
 	}
 
-	include() {
+	include(includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		this.left.includeWithAllDeclaredVariables();
+		this.left.includeWithAllDeclaredVariables(includeChildrenRecursively);
 		this.left.deoptimizePath(EMPTY_PATH);
-		this.right.include();
-		this.body.include();
+		this.right.include(includeChildrenRecursively);
+		this.body.include(includeChildrenRecursively);
 	}
 
 	render(code: MagicString, options: RenderOptions) {

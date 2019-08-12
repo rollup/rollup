@@ -1,31 +1,22 @@
+import { AstContext } from '../../Module';
 import CallOptions from '../CallOptions';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import { EntityPathTracker } from '../utils/EntityPathTracker';
+import { ExpressionNode } from '../nodes/shared/Node';
+import SpreadElement from '../nodes/SpreadElement';
 import { UNKNOWN_EXPRESSION, UnknownObjectExpression } from '../values';
 import ArgumentsVariable from '../variables/ArgumentsVariable';
-import ExportDefaultVariable from '../variables/ExportDefaultVariable';
-import ExternalVariable from '../variables/ExternalVariable';
-import GlobalVariable from '../variables/GlobalVariable';
-import LocalVariable from '../variables/LocalVariable';
 import ThisVariable from '../variables/ThisVariable';
+import ChildScope from './ChildScope';
 import ReturnValueScope from './ReturnValueScope';
-import Scope from './Scope';
 
 export default class FunctionScope extends ReturnValueScope {
-	variables: {
-		this: ThisVariable;
-		default: ExportDefaultVariable;
-		arguments: ArgumentsVariable;
-		[name: string]: LocalVariable | GlobalVariable | ExternalVariable | ArgumentsVariable;
-	};
+	argumentsVariable: ArgumentsVariable;
+	thisVariable: ThisVariable;
 
-	constructor(parent: Scope, deoptimizationTracker: EntityPathTracker) {
-		super(parent);
-		this.variables.arguments = new ArgumentsVariable(
-			super.getParameterVariables(),
-			deoptimizationTracker
-		);
-		this.variables.this = new ThisVariable(deoptimizationTracker);
+	constructor(parent: ChildScope, context: AstContext) {
+		super(parent, context);
+		this.variables.set('arguments', (this.argumentsVariable = new ArgumentsVariable(context)));
+		this.variables.set('this', (this.thisVariable = new ThisVariable(context)));
 	}
 
 	findLexicalBoundary() {
@@ -33,16 +24,23 @@ export default class FunctionScope extends ReturnValueScope {
 	}
 
 	getOptionsWhenCalledWith(
-		{ args, withNew }: CallOptions,
+		{ withNew }: CallOptions,
 		options: ExecutionPathOptions
 	): ExecutionPathOptions {
-		return options
-			.replaceVariableInit(
-				this.variables.this,
-				withNew ? new UnknownObjectExpression() : UNKNOWN_EXPRESSION
-			)
-			.setArgumentsVariables(
-				args.map((parameter, index) => super.getParameterVariables()[index] || parameter)
-			);
+		return options.replaceVariableInit(
+			this.thisVariable,
+			withNew ? new UnknownObjectExpression() : UNKNOWN_EXPRESSION
+		);
+	}
+
+	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+		super.includeCallArguments(args);
+		if (this.argumentsVariable.included) {
+			for (const arg of args) {
+				if (!arg.included) {
+					arg.include(false);
+				}
+			}
+		}
 	}
 }

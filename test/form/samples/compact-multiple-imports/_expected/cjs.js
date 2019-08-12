@@ -1,0 +1,2 @@
+'use strict';require('external-1'),require('external-2');var external3=require('external-3'),external4=require('external-4');require('external-5');assert.equal(external3.value, '3');
+assert.equal(external4.value, '4');

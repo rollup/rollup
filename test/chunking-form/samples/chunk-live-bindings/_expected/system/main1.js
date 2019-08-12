@@ -1,10 +1,10 @@
-System.register(['./chunk-a5a6dea5.js'], function (exports, module) {
+System.register(['./generated-dep1.js'], function (exports) {
   'use strict';
   var fn, text;
   return {
     setters: [function (module) {
-      fn = module.a;
-      text = module.b;
+      fn = module.f;
+      text = module.t;
     }],
     execute: function () {
 

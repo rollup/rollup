@@ -1,12 +1,10 @@
-var assert = require('assert');
-
 module.exports = {
 	description: 'throws error if load returns something wacky',
 	options: {
 		plugins: [
 			{
 				name: 'bad-plugin',
-				load: function() {
+				load() {
 					return 42;
 				}
 			}

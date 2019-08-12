@@ -4,9 +4,9 @@ module.exports = {
 	options: {
 		plugins: [
 			{
-				transform: function(code) {
+				transform(code) {
 					return {
-						code: code,
+						code,
 						// just stringify an otherwise acceptable source map
 						map: JSON.stringify({ mappings: '' })
 					};

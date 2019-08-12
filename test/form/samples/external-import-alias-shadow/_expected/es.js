@@ -1,7 +1,7 @@
-import { parse } from 'acorn';
+import { parse as parse$1 } from 'acorn';
 
-function parse$1(source) {
-	return parse(source, { ecmaVersion: 6 });
+function parse(source) {
+	return parse$1(source, { ecmaVersion: 6 });
 }
 
-console.log(parse$1('foo'));
+console.log(parse('foo'));

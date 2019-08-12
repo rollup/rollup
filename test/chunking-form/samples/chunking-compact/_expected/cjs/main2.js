@@ -1,4 +1,4 @@
-'use strict';var external=require('external'),__chunk_1=require('./chunk-992f09ca.js');function fn () {
+'use strict';var dep2=require('./generated-dep2.js'),external=require('external');function fn () {
   console.log('lib1 fn');
   external.fn();
 }function fn$1 () {
@@ -7,6 +7,6 @@
 }class Main2 {
   constructor () {
     fn$1();
-    __chunk_1.a();
+    dep2.f();
   }
 }module.exports=Main2;

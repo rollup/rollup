@@ -1,8 +1,8 @@
-import { a as emptyFunction } from './chunk-f38e1608.js';
+import { e as emptyFunction } from './generated-lib.js';
 
 function fn () {
-  var emptyFunction$$1 = emptyFunction;
-  console.log(emptyFunction$$1);
+  var emptyFunction$1 = emptyFunction;
+  console.log(emptyFunction$1);
 }
 
 fn();

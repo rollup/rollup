@@ -7,28 +7,28 @@ import { GenericEsTreeNode, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
 export default class CatchClause extends NodeBase {
-	type: NodeType.tCatchClause;
-	param: PatternNode;
-	body: BlockStatement;
-
-	scope: CatchScope;
-	preventChildBlockScope: true;
+	body!: BlockStatement;
+	param!: PatternNode | null;
+	preventChildBlockScope!: true;
+	scope!: CatchScope;
+	type!: NodeType.tCatchClause;
 
 	createScope(parentScope: Scope) {
-		this.scope = new CatchScope(parentScope);
+		this.scope = new CatchScope(parentScope, this.context);
 	}
 
 	initialise() {
-		this.included = false;
-		this.param.declare('parameter', UNKNOWN_EXPRESSION);
+		if (this.param) {
+			this.param.declare('parameter', UNKNOWN_EXPRESSION);
+		}
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode) {
-		this.body = <BlockStatement>new this.context.nodeConstructors.BlockStatement(
+		this.body = new this.context.nodeConstructors.BlockStatement(
 			esTreeNode.body,
 			this,
 			this.scope
-		);
+		) as BlockStatement;
 		super.parseNode(esTreeNode);
 	}
 }

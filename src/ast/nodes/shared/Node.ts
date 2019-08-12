@@ -1,16 +1,18 @@
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
-import { AstContext } from '../../../Module';
+import { AstContext, CommentDescription } from '../../../Module';
 import { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
 import CallOptions from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { Entity } from '../../Entity';
 import { ExecutionPathOptions } from '../../ExecutionPathOptions';
 import { getAndCreateKeys, keys } from '../../keys';
-import Scope from '../../scopes/Scope';
+import ChildScope from '../../scopes/ChildScope';
 import { ImmutableEntityPathTracker } from '../../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../../values';
+import LocalVariable from '../../variables/LocalVariable';
 import Variable from '../../variables/Variable';
+import SpreadElement from '../SpreadElement';
 import { ExpressionEntity } from './Expression';
 
 export interface GenericEsTreeNode {
@@ -18,16 +20,20 @@ export interface GenericEsTreeNode {
 	[key: string]: any;
 }
 
+export const INCLUDE_PARAMETERS: 'variables' = 'variables';
+export type IncludeChildren = boolean | typeof INCLUDE_PARAMETERS;
+
 export interface Node extends Entity {
+	annotations?: CommentDescription[];
+	context: AstContext;
 	end: number;
 	included: boolean;
 	keys: string[];
-	context: AstContext;
+	needsBoundaries?: boolean;
 	parent: Node | { type?: string };
+	preventChildBlockScope?: boolean;
 	start: number;
 	type: string;
-	needsBoundaries?: boolean;
-	preventChildBlockScope?: boolean;
 	variable?: Variable | null;
 
 	/**
@@ -38,7 +44,7 @@ export interface Node extends Entity {
 	/**
 	 * Declare a new variable with the optional initialisation.
 	 */
-	declare(kind: string, init: ExpressionEntity | null): void;
+	declare(kind: string, init: ExpressionEntity | null): LocalVariable[];
 
 	/**
 	 * Determine if this Node would have an effect on the bundle.
@@ -49,19 +55,18 @@ export interface Node extends Entity {
 	hasEffects(options: ExecutionPathOptions): boolean;
 
 	/**
-	 * Includes the node in the bundle. Children are usually included if they are
-	 * necessary for this node (e.g. a function body) or if they have effects.
-	 * Necessary variables need to be included as well. Should return true if any
-	 * nodes or variables have been added that were missing before.
+	 * Includes the node in the bundle. If the flag is not set, children are usually included
+	 * if they are necessary for this node (e.g. a function body) or if they have effects.
+	 * Necessary variables need to be included as well.
 	 */
-	include(): void;
+	include(includeChildrenRecursively: IncludeChildren): void;
 
 	/**
 	 * Alternative version of include to override the default behaviour of
 	 * declarations to only include nodes for declarators that have an effect. Necessary
 	 * for for-loops that do not use a declared loop variable.
 	 */
-	includeWithAllDeclaredVariables(): void;
+	includeWithAllDeclaredVariables(includeChildrenRecursively: IncludeChildren): void;
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void;
 
 	/**
@@ -80,20 +85,19 @@ export interface ExpressionNode extends ExpressionEntity, Node {}
 const NEW_EXECUTION_PATH = ExecutionPathOptions.create();
 
 export class NodeBase implements ExpressionNode {
-	type: string;
-	keys: string[];
-	scope: Scope;
-	start: number;
-	end: number;
 	context: AstContext;
-	parent: Node | { type: string; context: AstContext };
-	included: boolean;
+	end!: number;
+	included = false;
+	keys: string[];
+	parent: Node | { context: AstContext; type: string };
+	scope!: ChildScope;
+	start!: number;
+	type!: string;
 
 	constructor(
 		esTreeNode: GenericEsTreeNode,
-		// we need to pass down the node constructors to avoid a circular dependency
-		parent: Node | { type: string; context: AstContext },
-		parentScope: Scope
+		parent: Node | { context: AstContext; type: string },
+		parentScope: ChildScope
 	) {
 		this.keys = keys[esTreeNode.type] || getAndCreateKeys(esTreeNode);
 		this.parent = parent;
@@ -111,8 +115,8 @@ export class NodeBase implements ExpressionNode {
 	 */
 	bind() {
 		for (const key of this.keys) {
-			const value = (<GenericEsTreeNode>this)[key];
-			if (value === null) continue;
+			const value = (this as GenericEsTreeNode)[key];
+			if (value === null || key === 'annotations') continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
 					if (child !== null) child.bind();
@@ -126,11 +130,15 @@ export class NodeBase implements ExpressionNode {
 	/**
 	 * Override if this node should receive a different scope than the parent scope.
 	 */
-	createScope(parentScope: Scope) {
+	createScope(parentScope: ChildScope) {
 		this.scope = parentScope;
 	}
 
-	declare(_kind: string, _init: ExpressionEntity | null) {}
+	declare(_kind: string, _init: ExpressionEntity | null): LocalVariable[] {
+		return [];
+	}
+
+	deoptimizePath(_path: ObjectPath) {}
 
 	getLiteralValueAtPath(
 		_path: ObjectPath,
@@ -150,8 +158,8 @@ export class NodeBase implements ExpressionNode {
 
 	hasEffects(options: ExecutionPathOptions): boolean {
 		for (const key of this.keys) {
-			const value = (<GenericEsTreeNode>this)[key];
-			if (value === null) continue;
+			const value = (this as GenericEsTreeNode)[key];
+			if (value === null || key === 'annotations') continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
 					if (child !== null && child.hasEffects(options)) return true;
@@ -177,31 +185,35 @@ export class NodeBase implements ExpressionNode {
 		return true;
 	}
 
-	include() {
+	include(includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		for (const key of this.keys) {
-			const value = (<GenericEsTreeNode>this)[key];
-			if (value === null) continue;
+			const value = (this as GenericEsTreeNode)[key];
+			if (value === null || key === 'annotations') continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
-					if (child !== null) child.include();
+					if (child !== null) child.include(includeChildrenRecursively);
 				}
 			} else {
-				value.include();
+				value.include(includeChildrenRecursively);
 			}
 		}
 	}
 
-	includeWithAllDeclaredVariables() {
-		this.include();
+	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+		for (const arg of args) {
+			arg.include(false);
+		}
+	}
+
+	includeWithAllDeclaredVariables(includeChildrenRecursively: IncludeChildren) {
+		this.include(includeChildrenRecursively);
 	}
 
 	/**
 	 * Override to perform special initialisation steps after the scope is initialised
 	 */
-	initialise() {
-		this.included = false;
-	}
+	initialise() {}
 
 	insertSemicolon(code: MagicString) {
 		if (code.original[this.end - 1] !== ';') {
@@ -223,12 +235,12 @@ export class NodeBase implements ExpressionNode {
 			// That way, we can override this function to add custom initialisation and then call super.parseNode
 			if (this.hasOwnProperty(key)) continue;
 			const value = esTreeNode[key];
-			if (typeof value !== 'object' || value === null) {
-				(<GenericEsTreeNode>this)[key] = value;
+			if (typeof value !== 'object' || value === null || key === 'annotations') {
+				(this as GenericEsTreeNode)[key] = value;
 			} else if (Array.isArray(value)) {
-				(<GenericEsTreeNode>this)[key] = [];
+				(this as GenericEsTreeNode)[key] = [];
 				for (const child of value) {
-					(<GenericEsTreeNode>this)[key].push(
+					(this as GenericEsTreeNode)[key].push(
 						child === null
 							? null
 							: new (this.context.nodeConstructors[child.type] ||
@@ -236,18 +248,16 @@ export class NodeBase implements ExpressionNode {
 					);
 				}
 			} else {
-				(<GenericEsTreeNode>this)[key] = new (this.context.nodeConstructors[value.type] ||
+				(this as GenericEsTreeNode)[key] = new (this.context.nodeConstructors[value.type] ||
 					this.context.nodeConstructors.UnknownNode)(value, this, this.scope);
 			}
 		}
 	}
 
-	deoptimizePath(_path: ObjectPath) {}
-
 	render(code: MagicString, options: RenderOptions) {
 		for (const key of this.keys) {
-			const value = (<GenericEsTreeNode>this)[key];
-			if (value === null) continue;
+			const value = (this as GenericEsTreeNode)[key];
+			if (value === null || key === 'annotations') continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
 					if (child !== null) child.render(code, options);

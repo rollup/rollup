@@ -1,0 +1,14 @@
+System.register(['external'], function (exports) {
+	'use strict';
+	var external;
+	return {
+		setters: [function (module) {
+			external = module.default;
+		}],
+		execute: function () {
+
+			exports('default', external);
+
+		}
+	};
+});
