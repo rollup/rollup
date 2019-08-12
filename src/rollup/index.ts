@@ -190,18 +190,22 @@ export default async function rollup(rawInputOptions: GenericConfigObject): Prom
 
 	await graph.pluginDriver.hookParallel('buildStart', [inputOptions]);
 
-	const chunks = await graph.build(
-		inputOptions.input as string | string[] | Record<string, string>,
-		inputOptions.manualChunks,
-		inputOptions.inlineDynamicImports as boolean
-	);
-
-	try {
-		await graph.pluginDriver.hookParallel('buildEnd', []);
-	} catch (err) {
-		await graph.pluginDriver.hookParallel('buildEnd', [err]);
-		throw err;
-	}
+	const chunks = await graph
+		.build(
+			inputOptions.input as string | string[] | Record<string, string>,
+			inputOptions.manualChunks,
+			inputOptions.inlineDynamicImports as boolean
+		)
+		.then(
+			async chunks => {
+				await graph.pluginDriver.hookParallel('buildEnd', []);
+				return chunks;
+			},
+			async err => {
+				await graph.pluginDriver.hookParallel('buildEnd', [err]);
+				throw err;
+			}
+		);
 
 	timeEnd('BUILD', 1);
 
