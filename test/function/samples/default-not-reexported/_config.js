@@ -1,5 +1,4 @@
 const path = require('path');
-const assert = require('assert');
 
 module.exports = {
 	description: 'default export is not re-exported with export *',
@@ -18,6 +17,6 @@ module.exports = {
 			2:
 			3: console.log( def );
 		`,
-		url: `https://github.com/rollup/rollup/wiki/Troubleshooting#name-is-not-exported-by-module`
+		url: `https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module`
 	}
 };

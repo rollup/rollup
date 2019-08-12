@@ -1,5 +1,4 @@
-var assert = require('assert');
-var path = require('path');
+const path = require('path');
 
 module.exports = {
 	description: 'module level directives should produce warnings',
@@ -15,7 +14,7 @@ module.exports = {
 				column: 0
 			},
 			frame: `
-			1: \"use asm\";\n   ^\n2:\n3: export default 1;
+			1: "use asm";\n   ^\n2:\n3: export default 1;
 			`
 		}
 	]

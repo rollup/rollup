@@ -1,13 +1,13 @@
-System.register('bundle', [], function (exports, module) {
+System.register('bundle', [], function (exports) {
 	'use strict';
 	return {
 		execute: function () {
 
 			exports({
-				foo1: void 0,
 				bar1: void 0,
-				foo2: void 0,
-				bar2: void 0
+				bar2: void 0,
+				foo1: void 0,
+				foo2: void 0
 			});
 
 			// Unassigned export

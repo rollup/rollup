@@ -1,15 +1,15 @@
-import { a as fn, b as fn$1 } from './deps2and3-67e5f09d.js';
-import './lib1-a9a3a51f.js';
+import { f as fn$1, a as fn$2 } from './generated-deps2and3.js';
+import './generated-lib1.js';
 
-function fn$2 () {
+function fn () {
   console.log('dep1 fn');
 }
 
 class Main {
   constructor () {
-    fn$2();
     fn();
     fn$1();
+    fn$2();
   }
 }
 

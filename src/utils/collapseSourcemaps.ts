@@ -1,14 +1,19 @@
 import { DecodedSourceMap, SourceMap } from 'magic-string';
 import Chunk from '../Chunk';
+import Graph from '../Graph';
 import Module from '../Module';
-import { RawSourceMap } from '../rollup/types';
-import error from './error';
+import {
+	DecodedSourceMapOrMissing,
+	ExistingDecodedSourceMap,
+	SourceMapSegment
+} from '../rollup/types';
+import { error } from './error';
 import { basename, dirname, relative, resolve } from './path';
 
 class Source {
-	isOriginal: boolean;
-	filename: string;
 	content: string;
+	filename: string;
+	isOriginal: boolean;
 
 	constructor(filename: string, content: string) {
 		this.isOriginal = true;
@@ -21,23 +26,22 @@ class Source {
 	}
 }
 
-type SourceMapSegmentVector =
-	| [number, number, number, number, number]
-	| [number, number, number, number];
-
 interface SourceMapSegmentObject {
-	line: number;
 	column: number;
+	line: number;
 	name: string;
 	source: Source;
 }
 
 class Link {
-	sources: Source[];
+	mappings: SourceMapSegment[][];
 	names: string[];
-	mappings: SourceMapSegmentVector[][];
+	sources: (Source | Link)[];
 
-	constructor(map: { names: string[]; mappings: SourceMapSegmentVector[][] }, sources: Source[]) {
+	constructor(
+		map: { mappings: SourceMapSegment[][]; names: string[] },
+		sources: (Source | Link)[]
+	) {
 		this.sources = sources;
 		this.names = map.names;
 		this.mappings = map.mappings;
@@ -51,13 +55,18 @@ class Link {
 		const mappings = [];
 
 		for (const line of this.mappings) {
-			const tracedLine: SourceMapSegmentVector[] = [];
+			const tracedLine: SourceMapSegment[] = [];
 
 			for (const segment of line) {
+				if (segment.length == 1) continue;
 				const source = this.sources[segment[1]];
 				if (!source) continue;
 
-				const traced = source.traceSegment(segment[2], segment[3], this.names[segment[4]]);
+				const traced = source.traceSegment(
+					segment[2],
+					segment[3],
+					segment.length === 5 ? this.names[segment[4]] : ''
+				);
 
 				if (traced) {
 					// newer sources are more likely to be used, so search backwards.
@@ -73,13 +82,11 @@ class Link {
 						sourcesContent[sourceIndex] !== traced.source.content
 					) {
 						error({
-							message: `Multiple conflicting contents for sourcemap source ${
-								traced.source.filename
-							}`
+							message: `Multiple conflicting contents for sourcemap source ${traced.source.filename}`
 						});
 					}
 
-					const tracedSegment: SourceMapSegmentVector = [
+					const tracedSegment: SourceMapSegment = [
 						segment[0],
 						sourceIndex,
 						traced.line,
@@ -93,7 +100,7 @@ class Link {
 							names.push(traced.name);
 						}
 
-						tracedSegment[4] = nameIndex;
+						(tracedSegment as SourceMapSegment)[4] = nameIndex;
 					}
 
 					tracedLine.push(tracedSegment);
@@ -106,7 +113,7 @@ class Link {
 		return { sources, sourcesContent, names, mappings };
 	}
 
-	traceSegment(line: number, column: number, name: string) {
+	traceSegment(line: number, column: number, name: string): SourceMapSegmentObject | null {
 		const segments = this.mappings[line];
 		if (!segments) return null;
 
@@ -118,10 +125,15 @@ class Link {
 			const m = (i + j) >> 1;
 			const segment = segments[m];
 			if (segment[0] === column) {
+				if (segment.length == 1) return null;
 				const source = this.sources[segment[1]];
 				if (!source) return null;
 
-				return source.traceSegment(segment[2], segment[3], this.names[segment[4]] || name);
+				return source.traceSegment(
+					segment[2],
+					segment[3],
+					segment.length === 5 ? this.names[segment[4]] : name
+				);
 			}
 			if (segment[0] > column) {
 				j = m - 1;
@@ -134,68 +146,84 @@ class Link {
 	}
 }
 
-// TODO TypeScript: Fix <any> typecasts
-export default function collapseSourcemaps(
+function getLinkMap(graph: Graph) {
+	return function linkMap(source: Source | Link, map: DecodedSourceMapOrMissing) {
+		if (map.mappings) {
+			return new Link(map, [source]);
+		}
+
+		graph.warn({
+			code: 'SOURCEMAP_BROKEN',
+			message: `Sourcemap is likely to be incorrect: a plugin${
+				map.plugin ? ` ('${map.plugin}')` : ``
+			} was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help`,
+			plugin: map.plugin,
+			url: `https://rollupjs.org/guide/en/#warning-sourcemap-is-likely-to-be-incorrect`
+		});
+
+		return new Link(
+			{
+				mappings: [],
+				names: []
+			},
+			[source]
+		);
+	};
+}
+
+function getCollapsedSourcemap(
+	id: string,
+	originalCode: string,
+	originalSourcemap: ExistingDecodedSourceMap | null,
+	sourcemapChain: DecodedSourceMapOrMissing[],
+	linkMap: (source: Source | Link, map: DecodedSourceMapOrMissing) => Link
+): Source | Link {
+	let source: Source | Link;
+
+	if (!originalSourcemap) {
+		source = new Source(id, originalCode);
+	} else {
+		const sources = originalSourcemap.sources;
+		const sourcesContent = originalSourcemap.sourcesContent || [];
+
+		// TODO indiscriminately treating IDs and sources as normal paths is probably bad.
+		const directory = dirname(id) || '.';
+		const sourceRoot = originalSourcemap.sourceRoot || '.';
+
+		const baseSources = sources.map(
+			(source, i) => new Source(resolve(directory, sourceRoot, source), sourcesContent[i])
+		);
+		source = new Link(originalSourcemap, baseSources);
+	}
+	return sourcemapChain.reduce(linkMap, source);
+}
+
+export function collapseSourcemaps(
 	bundle: Chunk,
 	file: string,
 	map: DecodedSourceMap,
 	modules: Module[],
-	bundleSourcemapChain: RawSourceMap[]
+	bundleSourcemapChain: DecodedSourceMapOrMissing[],
+	excludeContent: boolean
 ) {
-	const moduleSources = modules.filter(module => !module.excludeFromSourcemap).map(module => {
-		let sourcemapChain = module.sourcemapChain;
+	const linkMap = getLinkMap(bundle.graph);
+	const moduleSources = modules
+		.filter(module => !module.excludeFromSourcemap)
+		.map(module =>
+			getCollapsedSourcemap(
+				module.id,
+				module.originalCode,
+				module.originalSourcemap,
+				module.sourcemapChain,
+				linkMap
+			)
+		);
 
-		let source: Source;
-		if (!module.originalSourcemap) {
-			source = new Source(module.id, module.originalCode);
-		} else {
-			const sources = module.originalSourcemap.sources;
-			const sourcesContent = module.originalSourcemap.sourcesContent || [];
+	// DecodedSourceMap (from magic-string) uses a number[] instead of the more
+	// correct SourceMapSegment tuples. Cast it here to gain type safety.
+	let source = new Link(map as ExistingDecodedSourceMap, moduleSources);
 
-			if (sources == null || (sources.length <= 1 && sources[0] == null)) {
-				source = new Source(module.id, sourcesContent[0]);
-				sourcemapChain = [module.originalSourcemap].concat(sourcemapChain);
-			} else {
-				// TODO indiscriminately treating IDs and sources as normal paths is probably bad.
-				const directory = dirname(module.id) || '.';
-				const sourceRoot = module.originalSourcemap.sourceRoot || '.';
-
-				const baseSources = sources.map((source, i) => {
-					return new Source(resolve(directory, sourceRoot, source), sourcesContent[i]);
-				});
-
-				source = <any>new Link(<any>module.originalSourcemap, baseSources);
-			}
-		}
-
-		sourcemapChain.forEach((map: any) => {
-			if (map.missing) {
-				bundle.graph.warn({
-					code: 'SOURCEMAP_BROKEN',
-					plugin: map.plugin,
-					message: `Sourcemap is likely to be incorrect: a plugin${
-						map.plugin ? ` ('${map.plugin}')` : ``
-					} was used to transform files, but didn't generate a sourcemap for the transformation. Consult the plugin documentation for help`,
-					url: `https://github.com/rollup/rollup/wiki/Troubleshooting#sourcemap-is-likely-to-be-incorrect`
-				});
-
-				map = {
-					names: [],
-					mappings: ''
-				};
-			}
-
-			source = <any>new Link(map, [source]);
-		});
-
-		return source;
-	});
-
-	let source = new Link(<any>map, moduleSources);
-
-	bundleSourcemapChain.forEach(map => {
-		source = new Link(<any>map, [<any>source]);
-	});
+	source = bundleSourcemapChain.reduce(linkMap, source);
 
 	let { sources, sourcesContent, names, mappings } = source.traceMappings();
 
@@ -205,5 +233,29 @@ export default function collapseSourcemaps(
 		file = basename(file);
 	}
 
+	sourcesContent = (excludeContent ? null : sourcesContent) as string[];
+
 	return new SourceMap({ file, sources, sourcesContent, names, mappings });
+}
+
+export function collapseSourcemap(
+	graph: Graph,
+	id: string,
+	originalCode: string,
+	originalSourcemap: ExistingDecodedSourceMap | null,
+	sourcemapChain: DecodedSourceMapOrMissing[]
+): ExistingDecodedSourceMap | null {
+	if (!sourcemapChain.length) {
+		return originalSourcemap;
+	}
+
+	const source = getCollapsedSourcemap(
+		id,
+		originalCode,
+		originalSourcemap,
+		sourcemapChain,
+		getLinkMap(graph)
+	) as Link;
+	const map = source.traceMappings();
+	return { version: 3, ...map };
 }

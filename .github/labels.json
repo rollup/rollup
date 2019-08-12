@@ -1,0 +1,54 @@
+[
+	{ "name": "💩 template incomplete", "color": "#4E342E" },
+	{ "name": "💩 template removed", "color": "#4E342E" },
+
+	{ "name": "b¹ 🐞 code-splitting", "color": "#F44336" },
+	{ "name": "b² 🐞 scope-hoisting", "color": "#F44336" },
+	{ "name": "b³ 🐞 tree-shaking", "color": "#F44336" },
+
+	{ "name": "c¹ ⋅ discussion", "color": "#1976D2" },
+	{ "name": "c² ⋅ feedback wanted", "color": "#F9A825" },
+	{ "name": "c³ ⋅ PR welcome", "color": "#1B5E20" },
+	{ "name": "c⁴ ⋅ need more info", "color": "#6A1B9A" },
+	{ "name": "c⁵ ⋅ question", "color": "#C2185B" },
+	{ "name": "c⁶ ⋅ request for comments", "color": "#BBDEFB" },
+
+	{ "name": "p¹ ⋅ browser", "color": "#B2DFDB" },
+	{ "name": "p² ⋅ linux", "color": "#B2DFDB" },
+	{ "name": "p³ ⋅ mac", "color": "#B2DFDB" },
+	{ "name": "p⁴ ⋅ windows", "color": "#B2DFDB" },
+
+	{ "name": "pr¹ 🔧 chore", "color": "#D7CCC8" },
+	{ "name": "pr² 🔧 docs", "color": "#D7CCC8" },
+	{ "name": "pr³ 🔧 feature", "color": "#D7CCC8" },
+	{ "name": "pr⁴ 🔧 fix", "color": "#D7CCC8" },
+	{ "name": "pr⁵ 🔧 performance", "color": "#D7CCC8" },
+	{ "name": "pr⁶ 🔧 refactor", "color": "#D7CCC8" },
+	{ "name": "pr⁷ 🔧 style", "color": "#D7CCC8" },
+	{ "name": "pr⁸ 🔧 test", "color": "#D7CCC8" },
+
+	{ "name": "s¹ 🔥🔥🔥 critical", "color": "#E53935" },
+	{ "name": "s² 🔥🔥 important", "color": "#FB8C00" },
+	{ "name": "s³ 🔥 nice to have", "color": "#FDD835" },
+	{ "name": "s⁴ 💧 low", "color": "#039BE5" },
+	{ "name": "s⁵ 💧💧 inconvenient", "color": "#c0e0f7" },
+
+	{ "name": "t¹ 🐞 bug", "color": "#F44336" },
+	{ "name": "t² 📚 documentation", "color": "#FDD835" },
+	{ "name": "t³ ✨ enhancement", "color": "#03a9f4" },
+	{ "name": "t⁴ ⋅ regression", "color": "#0052cc" },
+	{ "name": "t⁵ ⋅ todo", "color": "#311B92" },
+	{ "name": "t⁶ ⋅ waiting on upstream", "color": "#0D47A1" },
+
+	{ "name": "v¹ ⋅ major", "color": "#CDDC39" },
+	{ "name": "v² ⋅ minor", "color": "#FF9800" },
+	{ "name": "v³ ⋅ minor (experimental)", "color": "#FFC107" },
+
+	{ "name": "x¹ ⋅ abandoned", "color": "#CFD8DC" },
+	{ "name": "x² ⋅ could not reproduce", "color": "#CFD8DC" },
+	{ "name": "x³ ⋅ duplicate", "color": "#CFD8DC" },
+	{ "name": "x⁴ ⋅ hold", "color": "#CFD8DC" },
+	{ "name": "x⁵ ⋅ in progress", "color": "#4CAF50" },
+	{ "name": "x⁶ ⋅ invalid", "color": "#CFD8DC" },
+	{ "name": "x⁷ ⋅ wontfix", "color": "#CFD8DC" }
+]

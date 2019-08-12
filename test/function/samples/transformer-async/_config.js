@@ -3,17 +3,17 @@ module.exports = {
 	options: {
 		plugins: [
 			{
-				transform: function(code) {
+				transform(code) {
 					return Promise.resolve(code.replace('x', 1));
 				}
 			},
 			{
-				transform: function(code) {
+				transform(code) {
 					return code.replace('1', 2);
 				}
 			},
 			{
-				transform: function(code) {
+				transform(code) {
 					return Promise.resolve(code.replace('2', 3));
 				}
 			}

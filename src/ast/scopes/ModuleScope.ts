@@ -1,73 +1,42 @@
-import Module, { AstContext } from '../../Module';
-import relativeId from '../../utils/relativeId';
+import { AstContext } from '../../Module';
+import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import { UNDEFINED_EXPRESSION } from '../values';
+import ExportDefaultVariable from '../variables/ExportDefaultVariable';
+import GlobalVariable from '../variables/GlobalVariable';
 import LocalVariable from '../variables/LocalVariable';
-import NamespaceVariable from '../variables/NamespaceVariable';
 import Variable from '../variables/Variable';
-import Scope from './Scope';
+import ChildScope from './ChildScope';
+import GlobalScope from './GlobalScope';
 
-const addDeclaredNames = (variable: Variable, names: Set<string>) => {
-	if (variable.isNamespace && !variable.isExternal) {
-		for (const name of (<NamespaceVariable>variable).context.getExports())
-			addDeclaredNames((<NamespaceVariable>variable).context.traceExport(name), names);
-	}
-	names.add(variable.getName());
-};
-
-export default class ModuleScope extends Scope {
-	parent: Scope;
+export default class ModuleScope extends ChildScope {
 	context: AstContext;
+	parent!: GlobalScope;
 
-	constructor(parent: Scope, context: AstContext) {
+	constructor(parent: GlobalScope, context: AstContext) {
 		super(parent);
 		this.context = context;
-		this.isModuleScope = true;
-		this.variables.this = new LocalVariable(
-			'this',
-			null,
-			UNDEFINED_EXPRESSION,
-			context.reassignmentTracker
-		);
+		this.variables.set('this', new LocalVariable('this', null, UNDEFINED_EXPRESSION, context));
 	}
 
-	deshadow(names: Set<string>, children = this.children) {
-		const localNames = new Set(names);
+	addExportDefaultDeclaration(
+		name: string,
+		exportDefaultDeclaration: ExportDefaultDeclaration,
+		context: AstContext
+	): ExportDefaultVariable {
+		const variable = new ExportDefaultVariable(name, exportDefaultDeclaration, context);
+		this.variables.set('default', variable);
+		return variable;
+	}
 
-		for (const importName of Object.keys(this.context.imports)) {
-			const importDescription = this.context.imports[importName];
-
-			if (importDescription.module.isExternal || this.context.isCrossChunkImport(importDescription))
-				continue;
-
-			for (const name of (<Module>importDescription.module).getAllExports())
-				addDeclaredNames(importDescription.module.traceExport(name), localNames);
-
-			if (importDescription.name !== '*') {
-				const declaration = importDescription.module.traceExport(importDescription.name);
-				if (!declaration) {
-					this.context.warn(
-						{
-							code: 'NON_EXISTENT_EXPORT',
-							name: importDescription.name,
-							source: importDescription.module.id,
-							message: `Non-existent export '${
-								importDescription.name
-							}' is imported from ${relativeId(importDescription.module.id)}`
-						},
-						importDescription.start
-					);
-					continue;
-				}
-
-				const name = declaration.getName();
-				if (name !== importDescription.name) localNames.add(name);
-
-				if (importDescription.name !== 'default' && importDescription.name !== importName)
-					localNames.add(importDescription.name);
-			}
+	addNamespaceMemberAccess(_name: string, variable: Variable) {
+		if (variable instanceof GlobalVariable) {
+			this.accessedOutsideVariables.set(variable.name, variable);
 		}
+	}
 
-		super.deshadow(localNames, children);
+	deconflict(format: string) {
+		// all module level variables are already deconflicted when deconflicting the chunk
+		for (const scope of this.children) scope.deconflict(format);
 	}
 
 	findLexicalBoundary() {
@@ -75,10 +44,14 @@ export default class ModuleScope extends Scope {
 	}
 
 	findVariable(name: string) {
-		if (this.variables[name]) {
-			return this.variables[name];
+		const knownVariable = this.variables.get(name) || this.accessedOutsideVariables.get(name);
+		if (knownVariable) {
+			return knownVariable;
 		}
-
-		return this.context.traceVariable(name) || this.parent.findVariable(name);
+		const variable = this.context.traceVariable(name) || this.parent.findVariable(name);
+		if (variable instanceof GlobalVariable) {
+			this.accessedOutsideVariables.set(name, variable);
+		}
+		return variable;
 	}
 }

@@ -1,22 +1,22 @@
-System.register(['./deps2and3-0a7aba06.js', './lib1-f3edc83a.js'], function (exports, module) {
+System.register(['./generated-deps2and3.js', './generated-lib1.js'], function (exports) {
   'use strict';
-  var fn, fn$1;
+  var fn$1, fn$2;
   return {
     setters: [function (module) {
-      fn = module.a;
-      fn$1 = module.b;
+      fn$1 = module.f;
+      fn$2 = module.a;
     }, function () {}],
     execute: function () {
 
-      function fn$2 () {
+      function fn () {
         console.log('dep1 fn');
       }
 
       class Main {
         constructor () {
-          fn$2();
           fn();
           fn$1();
+          fn$2();
         }
       } exports('default', Main);
 

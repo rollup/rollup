@@ -1,8 +1,8 @@
-import { fn } from '../lib/lib1.js';
+import { fn as fn$1 } from '../lib/lib1.js';
 
-function fn$1 () {
-  fn();
+function fn () {
+  fn$1();
   console.log('dep3 fn');
 }
 
-export { fn$1 as fn };
+export { fn };

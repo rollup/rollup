@@ -1,10 +1,12 @@
-var assert = require('assert');
+const assert = require('assert');
 
 module.exports = {
 	description: 'calls to externally reassigned global methods must be retained',
 	exports(exports) {
-		let triggered1 = false,
-			triggered2 = false;
+		let triggered1 = false;
+
+			
+		let triggered2 = false;
 		global.obj1.reassigned = function() {
 			triggered1 = true;
 		};

@@ -1,4 +1,4 @@
-var os = require('os');
+const os = require('os');
 
 function toggleCase(s) {
 	return s == s.toLowerCase() ? s.toUpperCase() : s.toLowerCase();

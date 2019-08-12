@@ -1,5 +1,5 @@
 'use strict';
 
-var chalk = require('chalk');
+var tc = require('turbocolor');
 
-assert.ok( chalk );
+assert.ok( tc );

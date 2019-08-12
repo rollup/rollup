@@ -2,6 +2,8 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-const isNaN$1 = isNaN;
+const localIsNaN = isNaN;
+
+const isNaN$1 = localIsNaN;
 
 exports.isNaN = isNaN$1;

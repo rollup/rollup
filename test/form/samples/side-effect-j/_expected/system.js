@@ -1,4 +1,4 @@
-System.register('myBundle', [], function (exports, module) {
+System.register('myBundle', [], function (exports) {
 	'use strict';
 	return {
 		execute: function () {
@@ -6,7 +6,7 @@ System.register('myBundle', [], function (exports, module) {
 			exports('default', x);
 
 			var augment;
-			augment = x => x.augmented = true;
+			augment = y => y.augmented = true;
 
 			function x () {}
 			augment( x );

@@ -3,8 +3,8 @@ module.exports = {
 	options: {
 		input: ['main.js'],
 		manualChunks: {
-			'lib1': ['lib1.js'],
-			'deps2and3': ['dep2.js', 'dep3.js']
+			lib1: ['lib1.js'],
+			deps2and3: ['dep2.js', 'dep3.js']
 		}
 	}
 };

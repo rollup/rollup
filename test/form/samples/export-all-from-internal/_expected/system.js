@@ -1,4 +1,4 @@
-System.register('exposedInternals', [], function (exports, module) {
+System.register('exposedInternals', [], function (exports) {
 	'use strict';
 	return {
 		execute: function () {

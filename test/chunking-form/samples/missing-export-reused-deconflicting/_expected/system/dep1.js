@@ -1,9 +1,7 @@
-System.register([], function (exports, module) {
+System.register([], function (exports) {
 	'use strict';
 	return {
 		execute: function () {
-
-			exports('missing1', __chunk_1.missing1);
 
 			var _missingExportShim = void 0;
 
@@ -11,11 +9,13 @@ System.register([], function (exports, module) {
 
 			function almostUseUnused(useIt) {
 				if (useIt) {
-					console.log(__chunk_1.missing1);
+					console.log(_missingExportShim);
 				}
 			}
 
 			almostUseUnused(false);
+
+			exports('missing1', _missingExportShim);
 
 		}
 	};

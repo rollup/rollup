@@ -1,12 +1,9 @@
-var assert = require('assert');
-
 module.exports = {
 	description: 'export type must be auto, default, named or none',
-	bundleOptions: {
-		exports: 'blah'
-	},
+	options: { output: { exports: 'blah' } },
 	generateError: {
 		code: 'INVALID_EXPORT_OPTION',
-		message: `options.exports must be 'default', 'named', 'none', 'auto', or left unspecified (defaults to 'auto')`
+		message: `output.exports must be 'default', 'named', 'none', 'auto', or left unspecified (defaults to 'auto')`,
+		url: 'https://rollupjs.org/guide/en/#output-exports'
 	}
 };

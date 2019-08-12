@@ -1,0 +1,1 @@
+{"version":3,"file":"es.js","sources":["../foo.js","../bar.js","../main.js"],"sourcesContent":null,"names":[],"mappings":"AAAe,SAAS,GAAG,IAAI;CAC9B,OAAO,CAAC,GAAG,EAAE,mBAAmB,EAAE,CAAC;CACnC;;ACFc,SAAS,GAAG,IAAI;CAC9B,OAAO,CAAC,GAAG,EAAE,mBAAmB,EAAE,CAAC;CACnC;;ACCD,OAAO,CAAC,GAAG,EAAE,oBAAoB,EAAE,CAAC;;AAEpC,GAAG,EAAE,CAAC;AACN,GAAG,EAAE,CAAC"}

@@ -2,23 +2,26 @@ import MagicString from 'magic-string';
 import { RenderOptions, renderStatementList } from '../../utils/renderHelpers';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import * as NodeType from './NodeType';
-import { NodeBase, StatementNode } from './shared/Node';
+import { IncludeChildren, NodeBase, StatementNode } from './shared/Node';
 
 export default class Program extends NodeBase {
-	type: NodeType.tProgram;
-	body: StatementNode[];
-	sourceType: 'module';
+	body!: StatementNode[];
+	sourceType!: 'module';
+	type!: NodeType.tProgram;
 
 	hasEffects(options: ExecutionPathOptions) {
 		for (const node of this.body) {
 			if (node.hasEffects(options)) return true;
 		}
+		return false;
 	}
 
-	include() {
+	include(includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		for (const node of this.body) {
-			if (node.shouldBeIncluded()) node.include();
+			if (includeChildrenRecursively || node.shouldBeIncluded()) {
+				node.include(includeChildrenRecursively);
+			}
 		}
 	}
 

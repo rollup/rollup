@@ -1,5 +1,5 @@
-define(['./two.js'], function (__chunk_1) { 'use strict';
+define(['./two'], function (two) { 'use strict';
 
-	window.APP = { a: __chunk_1.default };
+	window.APP = { a: two.default };
 
 });

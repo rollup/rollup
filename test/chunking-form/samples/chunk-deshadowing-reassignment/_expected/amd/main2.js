@@ -1,4 +1,4 @@
-define(['./chunk-264eb6ba.js', './chunk-dcefc23d.js', './chunk-406f6d2a.js'], function (__chunk_2, __chunk_1, __chunk_3) { 'use strict';
+define(['./generated-dep1', './generated-shared2', './generated-dep2'], function (dep1, shared2, dep2) { 'use strict';
 
 
 

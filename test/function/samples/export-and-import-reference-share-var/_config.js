@@ -1,8 +1,8 @@
-var assert = require('assert');
+const assert = require('assert');
 
 module.exports = {
 	description: 'allows export and import reference to share name',
-	exports: function(exports) {
+	exports(exports) {
 		assert.equal(exports.b, 9);
 	}
 };

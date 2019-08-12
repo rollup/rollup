@@ -1,4 +1,4 @@
-define(['exports', './main1.js'], function (exports, main1) { 'use strict';
+define(['exports', './main1'], function (exports, main1) { 'use strict';
 
   class C {
     fn (num) {

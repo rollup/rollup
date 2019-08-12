@@ -1,4 +1,3 @@
-this.L = this.L || {};
 (function (L) {
 	'use strict';
 

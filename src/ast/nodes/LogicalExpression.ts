@@ -1,7 +1,14 @@
 import MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
-import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import {
+	findFirstOccurrenceOutsideComment,
+	NodeRenderOptions,
+	removeLineBreaks,
+	RenderOptions
+} from '../../utils/renderHelpers';
+import { removeAnnotations } from '../../utils/treeshakeNode';
 import CallOptions from '../CallOptions';
+import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import {
 	EMPTY_IMMUTABLE_TRACKER,
@@ -11,95 +18,111 @@ import {
 	EMPTY_PATH,
 	LiteralValueOrUnknown,
 	ObjectPath,
-	UNKNOWN_EXPRESSION,
+	UNKNOWN_PATH,
 	UNKNOWN_VALUE
 } from '../values';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import { MultiExpression } from './shared/MultiExpression';
+import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 
 export type LogicalOperator = '||' | '&&';
 
-export default class LogicalExpression extends NodeBase {
-	type: NodeType.tLogicalExpression;
-	operator: LogicalOperator;
-	left: ExpressionNode;
-	right: ExpressionNode;
+export default class LogicalExpression extends NodeBase implements DeoptimizableEntity {
+	left!: ExpressionNode;
+	operator!: LogicalOperator;
+	right!: ExpressionNode;
+	type!: NodeType.tLogicalExpression;
 
-	private hasUnknownLeftValue: boolean;
-	private isOrExpression: boolean;
+	// We collect deoptimization information if usedBranch !== null
+	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
+	private isBranchResolutionAnalysed = false;
+	private unusedBranch: ExpressionNode | null = null;
+	private usedBranch: ExpressionNode | null = null;
+
+	bind() {
+		super.bind();
+		if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
+	}
+
+	deoptimizeCache() {
+		if (this.usedBranch !== null) {
+			// We did not track if there were reassignments to any of the branches.
+			// Also, the return values might need reassignment.
+			this.usedBranch = null;
+			(this.unusedBranch as ExpressionNode).deoptimizePath(UNKNOWN_PATH);
+			for (const expression of this.expressionsToBeDeoptimized) {
+				expression.deoptimizeCache();
+			}
+		}
+	}
+
+	deoptimizePath(path: ObjectPath) {
+		if (path.length > 0) {
+			if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
+			if (this.usedBranch === null) {
+				this.left.deoptimizePath(path);
+				this.right.deoptimizePath(path);
+			} else {
+				this.usedBranch.deoptimizePath(path);
+			}
+		}
+	}
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker,
+		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		const leftValue = this.hasUnknownLeftValue
-			? UNKNOWN_VALUE
-			: this.getLeftValue(recursionTracker);
-		if (leftValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
-		if (this.isOrExpression ? leftValue : !leftValue) return leftValue;
-		return this.right.getLiteralValueAtPath(path, recursionTracker);
+		if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
+		if (this.usedBranch === null) return UNKNOWN_VALUE;
+		this.expressionsToBeDeoptimized.push(origin);
+		return this.usedBranch.getLiteralValueAtPath(path, recursionTracker, origin);
 	}
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker,
+		origin: DeoptimizableEntity
 	): ExpressionEntity {
-		const leftValue = this.hasUnknownLeftValue
-			? UNKNOWN_VALUE
-			: this.getLeftValue(EMPTY_IMMUTABLE_TRACKER);
-		if (leftValue === UNKNOWN_VALUE) return UNKNOWN_EXPRESSION;
-		if (this.isOrExpression ? leftValue : !leftValue)
-			return this.left.getReturnExpressionWhenCalledAtPath(path, recursionTracker);
-		return this.right.getReturnExpressionWhenCalledAtPath(path, recursionTracker);
+		if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
+		if (this.usedBranch === null)
+			return new MultiExpression([
+				this.left.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin),
+				this.right.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin)
+			]);
+		this.expressionsToBeDeoptimized.push(origin);
+		return this.usedBranch.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
-		if (this.left.hasEffects(options)) return true;
-		const leftValue = this.hasUnknownLeftValue
-			? UNKNOWN_VALUE
-			: this.getLeftValue(EMPTY_IMMUTABLE_TRACKER);
-		return (
-			(leftValue === UNKNOWN_VALUE || (this.isOrExpression ? !leftValue : leftValue)) &&
-			this.right.hasEffects(options)
-		);
+		if (this.usedBranch === null) {
+			return this.left.hasEffects(options) || this.right.hasEffects(options);
+		}
+		return this.usedBranch.hasEffects(options);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		if (path.length === 0) return false;
-		const leftValue = this.hasUnknownLeftValue
-			? UNKNOWN_VALUE
-			: this.getLeftValue(EMPTY_IMMUTABLE_TRACKER);
-		if (leftValue === UNKNOWN_VALUE) {
+		if (this.usedBranch === null) {
 			return (
 				this.left.hasEffectsWhenAccessedAtPath(path, options) ||
 				this.right.hasEffectsWhenAccessedAtPath(path, options)
 			);
 		}
-		return (this.isOrExpression
-		? leftValue
-		: !leftValue)
-			? this.left.hasEffectsWhenAccessedAtPath(path, options)
-			: this.right.hasEffectsWhenAccessedAtPath(path, options);
+		return this.usedBranch.hasEffectsWhenAccessedAtPath(path, options);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		if (path.length === 0) return true;
-		const leftValue = this.hasUnknownLeftValue
-			? UNKNOWN_VALUE
-			: this.getLeftValue(EMPTY_IMMUTABLE_TRACKER);
-		if (leftValue === UNKNOWN_VALUE) {
+		if (this.usedBranch === null) {
 			return (
 				this.left.hasEffectsWhenAssignedAtPath(path, options) ||
 				this.right.hasEffectsWhenAssignedAtPath(path, options)
 			);
 		}
-		return (this.isOrExpression
-		? leftValue
-		: !leftValue)
-			? this.left.hasEffectsWhenAssignedAtPath(path, options)
-			: this.right.hasEffectsWhenAssignedAtPath(path, options);
+		return this.usedBranch.hasEffectsWhenAssignedAtPath(path, options);
 	}
 
 	hasEffectsWhenCalledAtPath(
@@ -107,87 +130,71 @@ export default class LogicalExpression extends NodeBase {
 		callOptions: CallOptions,
 		options: ExecutionPathOptions
 	): boolean {
-		const leftValue = this.hasUnknownLeftValue
-			? UNKNOWN_VALUE
-			: this.getLeftValue(EMPTY_IMMUTABLE_TRACKER);
-		if (leftValue === UNKNOWN_VALUE) {
+		if (this.usedBranch === null) {
 			return (
 				this.left.hasEffectsWhenCalledAtPath(path, callOptions, options) ||
 				this.right.hasEffectsWhenCalledAtPath(path, callOptions, options)
 			);
 		}
-		return (this.isOrExpression
-		? leftValue
-		: !leftValue)
-			? this.left.hasEffectsWhenCalledAtPath(path, callOptions, options)
-			: this.right.hasEffectsWhenCalledAtPath(path, callOptions, options);
+		return this.usedBranch.hasEffectsWhenCalledAtPath(path, callOptions, options);
 	}
 
-	include() {
+	include(includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		const leftValue = this.hasUnknownLeftValue
-			? UNKNOWN_VALUE
-			: this.getLeftValue(EMPTY_IMMUTABLE_TRACKER);
 		if (
-			leftValue === UNKNOWN_VALUE ||
-			(this.isOrExpression ? leftValue : !leftValue) ||
-			this.left.shouldBeIncluded()
+			includeChildrenRecursively ||
+			this.usedBranch === null ||
+			(this.unusedBranch as ExpressionNode).shouldBeIncluded()
 		) {
-			this.left.include();
-		}
-		if (leftValue === UNKNOWN_VALUE || (this.isOrExpression ? !leftValue : leftValue)) {
-			this.right.include();
-		}
-	}
-
-	initialise() {
-		this.included = false;
-		this.hasUnknownLeftValue = false;
-		this.isOrExpression = this.operator === '||';
-	}
-
-	reassignPath(path: ObjectPath) {
-		if (path.length > 0) {
-			const leftValue = this.hasUnknownLeftValue
-				? UNKNOWN_VALUE
-				: this.getLeftValue(EMPTY_IMMUTABLE_TRACKER);
-			if (leftValue === UNKNOWN_VALUE) {
-				this.left.reassignPath(path);
-				this.right.reassignPath(path);
-			} else if (this.isOrExpression ? leftValue : !leftValue) {
-				this.left.reassignPath(path);
-			} else {
-				this.right.reassignPath(path);
-			}
+			this.left.include(includeChildrenRecursively);
+			this.right.include(includeChildrenRecursively);
+		} else {
+			this.usedBranch.include(includeChildrenRecursively);
 		}
 	}
 
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ renderedParentType, isCalleeOfRenderedParent }: NodeRenderOptions = BLANK
+		{ renderedParentType, isCalleeOfRenderedParent, preventASI }: NodeRenderOptions = BLANK
 	) {
 		if (!this.left.included || !this.right.included) {
-			const singleRetainedBranch = this.left.included ? this.left : this.right;
-			code.remove(this.start, singleRetainedBranch.start);
-			code.remove(singleRetainedBranch.end, this.end);
-			singleRetainedBranch.render(code, options, {
-				renderedParentType: renderedParentType || this.parent.type,
+			const operatorPos = findFirstOccurrenceOutsideComment(
+				code.original,
+				this.operator,
+				this.left.end
+			);
+			if (this.right.included) {
+				code.remove(this.start, operatorPos + 2);
+				if (preventASI) {
+					removeLineBreaks(code, operatorPos + 2, this.right.start);
+				}
+			} else {
+				code.remove(operatorPos, this.end);
+			}
+			removeAnnotations(this, code);
+			(this.usedBranch as ExpressionNode).render(code, options, {
 				isCalleeOfRenderedParent: renderedParentType
 					? isCalleeOfRenderedParent
-					: (<CallExpression>this.parent).callee === this
+					: (this.parent as CallExpression).callee === this,
+				renderedParentType: renderedParentType || this.parent.type
 			});
 		} else {
 			super.render(code, options);
 		}
 	}
 
-	private getLeftValue(recursionTracker: ImmutableEntityPathTracker) {
-		if (this.hasUnknownLeftValue) return UNKNOWN_VALUE;
-		const value = this.left.getLiteralValueAtPath(EMPTY_PATH, recursionTracker);
-		if (value === UNKNOWN_VALUE) {
-			this.hasUnknownLeftValue = true;
+	private analyseBranchResolution() {
+		this.isBranchResolutionAnalysed = true;
+		const leftValue = this.left.getLiteralValueAtPath(EMPTY_PATH, EMPTY_IMMUTABLE_TRACKER, this);
+		if (leftValue !== UNKNOWN_VALUE) {
+			if (this.operator === '||' ? leftValue : !leftValue) {
+				this.usedBranch = this.left;
+				this.unusedBranch = this.right;
+			} else {
+				this.usedBranch = this.right;
+				this.unusedBranch = this.left;
+			}
 		}
-		return value;
 	}
 }

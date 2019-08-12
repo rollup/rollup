@@ -1,0 +1,1 @@
+import './generated-dep.js';

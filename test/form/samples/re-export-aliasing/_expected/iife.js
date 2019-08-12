@@ -1,10 +1,15 @@
-var reexportsAliasingExternal = (function (exports,d) {
+var reexportsAliasingExternal = (function (exports, d) {
 	'use strict';
 
 
 
-	exports.b = d.d;
+	Object.defineProperty(exports, 'b', {
+		enumerable: true,
+		get: function () {
+			return d.d;
+		}
+	});
 
 	return exports;
 
-}({},d));
+}({}, d));

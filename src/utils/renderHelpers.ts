@@ -1,30 +1,30 @@
 import MagicString from 'magic-string';
 import { Node, StatementNode } from '../ast/nodes/shared/Node';
+import { treeshakeNode } from './treeshakeNode';
 
 export interface RenderOptions {
 	compact: boolean;
-	freeze: boolean;
-	esModule: boolean;
-	namespaceToStringTag: boolean;
-	indent: string;
+	dynamicImportFunction: string;
 	format: string;
+	freeze: boolean;
+	indent: string;
+	namespaceToStringTag: boolean;
+	varOrConst: 'var' | 'const';
 }
 
 export interface NodeRenderOptions {
-	start?: number;
 	end?: number;
-	isNoStatement?: boolean;
-	renderedParentType?: string; // also serves as a flag if the rendered parent is different from the actual parent
 	isCalleeOfRenderedParent?: boolean;
+	isNoStatement?: boolean;
+	isShorthandProperty?: boolean;
+	preventASI?: boolean;
+	renderedParentType?: string; // also serves as a flag if the rendered parent is different from the actual parent
+	start?: number;
 }
 
 export const NO_SEMICOLON: NodeRenderOptions = { isNoStatement: true };
 
-export function findFirstOccurrenceOutsideComment(
-	code: string,
-	searchString: string,
-	start: number = 0
-) {
+export function findFirstOccurrenceOutsideComment(code: string, searchString: string, start = 0) {
 	let searchPos, charCodeAfterSlash;
 	searchPos = code.indexOf(searchString, start);
 	while (true) {
@@ -47,7 +47,7 @@ export function findFirstOccurrenceOutsideComment(
 	}
 }
 
-export function findFirstLineBreakOutsideComment(code: string, start: number = 0) {
+export function findFirstLineBreakOutsideComment(code: string, start = 0) {
 	let lineBreakPos, charCodeAfterSlash;
 	lineBreakPos = code.indexOf('\n', start);
 	while (true) {
@@ -98,12 +98,12 @@ export function renderStatementList(
 			if (currentNode.included) {
 				currentNodeNeedsBoundaries
 					? currentNode.render(code, options, {
-							start: currentNodeStart,
-							end: nextNodeStart
+							end: nextNodeStart,
+							start: currentNodeStart
 					  })
 					: currentNode.render(code, options);
 			} else {
-				code.remove(currentNodeStart, nextNodeStart);
+				treeshakeNode(currentNode, code, currentNodeStart as number, nextNodeStart);
 			}
 		} else {
 			currentNode.render(code, options);
@@ -118,11 +118,11 @@ export function getCommaSeparatedNodesWithBoundaries<N extends Node>(
 	start: number,
 	end: number
 ): ({
-	node: N;
-	start: number;
-	separator: number | null;
 	contentEnd: number;
 	end: number;
+	node: N;
+	separator: number | null;
+	start: number;
 })[] {
 	const splitUpNodes = [];
 	let node, nextNode, nextNodeStart, contentEnd, char;
@@ -146,22 +146,34 @@ export function getCommaSeparatedNodesWithBoundaries<N extends Node>(
 			nextNodeStart++;
 		if (node !== undefined) {
 			splitUpNodes.push({
-				node,
-				start,
 				contentEnd,
+				end: nextNodeStart,
+				node,
 				separator,
-				end: nextNodeStart
+				start
 			});
 		}
 		node = nextNode;
 		start = nextNodeStart;
 	}
 	splitUpNodes.push({
-		node,
-		start,
-		separator: null,
 		contentEnd: end,
-		end
+		end,
+		node: node as N,
+		separator: null,
+		start
 	});
 	return splitUpNodes;
+}
+
+export function removeLineBreaks(code: MagicString, start: number, end: number) {
+	let lineBreakPos = start;
+	while (true) {
+		lineBreakPos = findFirstLineBreakOutsideComment(code.original, lineBreakPos);
+		if (lineBreakPos === -1 || lineBreakPos >= end) {
+			break;
+		}
+		code.remove(lineBreakPos, lineBreakPos + 1);
+		lineBreakPos++;
+	}
 }

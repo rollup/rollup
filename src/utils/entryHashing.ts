@@ -29,6 +29,13 @@ export function randomUint8Array(len: number) {
 	return buffer;
 }
 
+export function Uint8ArrayEqual(bufferA: Uint8Array, bufferB: Uint8Array) {
+	for (let i = 0; i < bufferA.length; i++) {
+		if (bufferA[i] !== bufferB[i]) return false;
+	}
+	return true;
+}
+
 export function randomHexString(len: number) {
 	return Uint8ArrayToHexString(randomUint8Array(Math.floor(len / 2)));
 }

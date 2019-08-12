@@ -1,17 +1,17 @@
-var assert = require('assert');
+const assert = require('assert');
 
 module.exports = {
 	description: 'accepts a single transformer function',
 	options: {
 		plugins: [
 			{
-				transform: function(code, path) {
+				transform(code, path) {
 					return code.replace(/MAGIC_NUMBER/g, 3);
 				}
 			}
 		]
 	},
-	exports: function(exports) {
+	exports(exports) {
 		assert.equal(exports.magicNumber, 3);
 	}
 };

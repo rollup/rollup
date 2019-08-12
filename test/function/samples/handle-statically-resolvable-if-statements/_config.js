@@ -1,4 +1,4 @@
-var assert = require('assert');
+const assert = require('assert');
 
 module.exports = {
 	description: 'handles statically resolvable "if" statements (#2134)',

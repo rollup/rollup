@@ -1,8 +1,8 @@
-var assert = require('assert');
+const assert = require('assert');
 
 module.exports = {
 	description: 'Associates function return values of returned functions',
-	exports: function(exports) {
+	exports(exports) {
 		assert.equal(exports.bar, 'present');
 	}
 };

@@ -1,7 +1,14 @@
 import MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
-import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import {
+	findFirstOccurrenceOutsideComment,
+	NodeRenderOptions,
+	removeLineBreaks,
+	RenderOptions
+} from '../../utils/renderHelpers';
+import { removeAnnotations } from '../../utils/treeshakeNode';
 import CallOptions from '../CallOptions';
+import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import {
 	EMPTY_IMMUTABLE_TRACKER,
@@ -11,89 +18,110 @@ import {
 	EMPTY_PATH,
 	LiteralValueOrUnknown,
 	ObjectPath,
-	UNKNOWN_EXPRESSION,
+	UNKNOWN_PATH,
 	UNKNOWN_VALUE
 } from '../values';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import { MultiExpression } from './shared/MultiExpression';
+import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 
-export default class ConditionalExpression extends NodeBase {
-	type: NodeType.tConditionalExpression;
-	test: ExpressionNode;
-	alternate: ExpressionNode;
-	consequent: ExpressionNode;
+export default class ConditionalExpression extends NodeBase implements DeoptimizableEntity {
+	alternate!: ExpressionNode;
+	consequent!: ExpressionNode;
+	test!: ExpressionNode;
+	type!: NodeType.tConditionalExpression;
 
-	private hasUnknownTestValue: boolean;
+	// We collect deoptimization information if usedBranch !== null
+	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
+	private isBranchResolutionAnalysed = false;
+	private unusedBranch: ExpressionNode | null = null;
+	private usedBranch: ExpressionNode | null = null;
+
+	bind() {
+		super.bind();
+		if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
+	}
+
+	deoptimizeCache() {
+		if (this.usedBranch !== null) {
+			// We did not track if there were reassignments to the previous branch.
+			// Also, the return value might need to be reassigned.
+			this.usedBranch = null;
+			(this.unusedBranch as ExpressionNode).deoptimizePath(UNKNOWN_PATH);
+			for (const expression of this.expressionsToBeDeoptimized) {
+				expression.deoptimizeCache();
+			}
+		}
+	}
+
+	deoptimizePath(path: ObjectPath) {
+		if (path.length > 0) {
+			if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
+			if (this.usedBranch === null) {
+				this.consequent.deoptimizePath(path);
+				this.alternate.deoptimizePath(path);
+			} else {
+				this.usedBranch.deoptimizePath(path);
+			}
+		}
+	}
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker,
+		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		const testValue = this.hasUnknownTestValue
-			? UNKNOWN_VALUE
-			: this.getTestValue(recursionTracker);
-		if (testValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
-		return testValue
-			? this.consequent.getLiteralValueAtPath(path, recursionTracker)
-			: this.alternate.getLiteralValueAtPath(path, recursionTracker);
+		if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
+		if (this.usedBranch === null) return UNKNOWN_VALUE;
+		this.expressionsToBeDeoptimized.push(origin);
+		return this.usedBranch.getLiteralValueAtPath(path, recursionTracker, origin);
 	}
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker,
+		origin: DeoptimizableEntity
 	): ExpressionEntity {
-		const testValue = this.hasUnknownTestValue
-			? UNKNOWN_VALUE
-			: this.getTestValue(EMPTY_IMMUTABLE_TRACKER);
-		if (testValue === UNKNOWN_VALUE) return UNKNOWN_EXPRESSION;
-		return testValue
-			? this.consequent.getReturnExpressionWhenCalledAtPath(path, recursionTracker)
-			: this.alternate.getReturnExpressionWhenCalledAtPath(path, recursionTracker);
+		if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
+		if (this.usedBranch === null)
+			return new MultiExpression([
+				this.consequent.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin),
+				this.alternate.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin)
+			]);
+		this.expressionsToBeDeoptimized.push(origin);
+		return this.usedBranch.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
 		if (this.test.hasEffects(options)) return true;
-		const testValue = this.hasUnknownTestValue
-			? UNKNOWN_VALUE
-			: this.getTestValue(EMPTY_IMMUTABLE_TRACKER);
-		if (testValue === UNKNOWN_VALUE) {
+		if (this.usedBranch === null) {
 			return this.consequent.hasEffects(options) || this.alternate.hasEffects(options);
 		}
-		return testValue ? this.consequent.hasEffects(options) : this.alternate.hasEffects(options);
+		return this.usedBranch.hasEffects(options);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		if (path.length === 0) return false;
-		const testValue = this.hasUnknownTestValue
-			? UNKNOWN_VALUE
-			: this.getTestValue(EMPTY_IMMUTABLE_TRACKER);
-		if (testValue === UNKNOWN_VALUE) {
+		if (this.usedBranch === null) {
 			return (
 				this.consequent.hasEffectsWhenAccessedAtPath(path, options) ||
 				this.alternate.hasEffectsWhenAccessedAtPath(path, options)
 			);
 		}
-		return testValue
-			? this.consequent.hasEffectsWhenAccessedAtPath(path, options)
-			: this.alternate.hasEffectsWhenAccessedAtPath(path, options);
+		return this.usedBranch.hasEffectsWhenAccessedAtPath(path, options);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
 		if (path.length === 0) return true;
-		const testValue = this.hasUnknownTestValue
-			? UNKNOWN_VALUE
-			: this.getTestValue(EMPTY_IMMUTABLE_TRACKER);
-		if (testValue === UNKNOWN_VALUE) {
+		if (this.usedBranch === null) {
 			return (
 				this.consequent.hasEffectsWhenAssignedAtPath(path, options) ||
 				this.alternate.hasEffectsWhenAssignedAtPath(path, options)
 			);
 		}
-		return testValue
-			? this.consequent.hasEffectsWhenAssignedAtPath(path, options)
-			: this.alternate.hasEffectsWhenAssignedAtPath(path, options);
+		return this.usedBranch.hasEffectsWhenAssignedAtPath(path, options);
 	}
 
 	hasEffectsWhenCalledAtPath(
@@ -101,81 +129,67 @@ export default class ConditionalExpression extends NodeBase {
 		callOptions: CallOptions,
 		options: ExecutionPathOptions
 	): boolean {
-		const testValue = this.hasUnknownTestValue
-			? UNKNOWN_VALUE
-			: this.getTestValue(EMPTY_IMMUTABLE_TRACKER);
-		if (testValue === UNKNOWN_VALUE) {
+		if (this.usedBranch === null) {
 			return (
 				this.consequent.hasEffectsWhenCalledAtPath(path, callOptions, options) ||
 				this.alternate.hasEffectsWhenCalledAtPath(path, callOptions, options)
 			);
 		}
-		return testValue
-			? this.consequent.hasEffectsWhenCalledAtPath(path, callOptions, options)
-			: this.alternate.hasEffectsWhenCalledAtPath(path, callOptions, options);
+		return this.usedBranch.hasEffectsWhenCalledAtPath(path, callOptions, options);
 	}
 
-	initialise() {
-		this.included = false;
-		this.hasUnknownTestValue = false;
-	}
-
-	include() {
+	include(includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		const testValue = this.hasUnknownTestValue
-			? UNKNOWN_VALUE
-			: this.getTestValue(EMPTY_IMMUTABLE_TRACKER);
-		if (testValue === UNKNOWN_VALUE || this.test.shouldBeIncluded()) {
-			this.test.include();
-			this.consequent.include();
-			this.alternate.include();
-		} else if (testValue) {
-			this.consequent.include();
+		if (includeChildrenRecursively || this.usedBranch === null || this.test.shouldBeIncluded()) {
+			this.test.include(includeChildrenRecursively);
+			this.consequent.include(includeChildrenRecursively);
+			this.alternate.include(includeChildrenRecursively);
 		} else {
-			this.alternate.include();
-		}
-	}
-
-	reassignPath(path: ObjectPath) {
-		if (path.length > 0) {
-			const testValue = this.hasUnknownTestValue
-				? UNKNOWN_VALUE
-				: this.getTestValue(EMPTY_IMMUTABLE_TRACKER);
-			if (testValue === UNKNOWN_VALUE || testValue) {
-				this.consequent.reassignPath(path);
-			}
-			if (testValue === UNKNOWN_VALUE || !testValue) {
-				this.alternate.reassignPath(path);
-			}
+			this.usedBranch.include(includeChildrenRecursively);
 		}
 	}
 
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ renderedParentType, isCalleeOfRenderedParent }: NodeRenderOptions = BLANK
+		{ renderedParentType, isCalleeOfRenderedParent, preventASI }: NodeRenderOptions = BLANK
 	) {
 		if (!this.test.included) {
-			const singleRetainedBranch = this.consequent.included ? this.consequent : this.alternate;
-			code.remove(this.start, singleRetainedBranch.start);
-			code.remove(singleRetainedBranch.end, this.end);
-			singleRetainedBranch.render(code, options, {
-				renderedParentType: renderedParentType || this.parent.type,
+			const colonPos = findFirstOccurrenceOutsideComment(code.original, ':', this.consequent.end);
+			const inclusionStart =
+				(this.consequent.included
+					? findFirstOccurrenceOutsideComment(code.original, '?', this.test.end)
+					: colonPos) + 1;
+			if (preventASI) {
+				removeLineBreaks(code, inclusionStart, (this.usedBranch as ExpressionNode).start);
+			}
+			code.remove(this.start, inclusionStart);
+			if (this.consequent.included) {
+				code.remove(colonPos, this.end);
+			}
+			removeAnnotations(this, code);
+			(this.usedBranch as ExpressionNode).render(code, options, {
 				isCalleeOfRenderedParent: renderedParentType
 					? isCalleeOfRenderedParent
-					: (<CallExpression>this.parent).callee === this
+					: (this.parent as CallExpression).callee === this,
+				renderedParentType: renderedParentType || this.parent.type
 			});
 		} else {
 			super.render(code, options);
 		}
 	}
 
-	private getTestValue(recursionTracker: ImmutableEntityPathTracker) {
-		if (this.hasUnknownTestValue) return UNKNOWN_VALUE;
-		const value = this.test.getLiteralValueAtPath(EMPTY_PATH, recursionTracker);
-		if (value === UNKNOWN_VALUE) {
-			this.hasUnknownTestValue = true;
+	private analyseBranchResolution() {
+		this.isBranchResolutionAnalysed = true;
+		const testValue = this.test.getLiteralValueAtPath(EMPTY_PATH, EMPTY_IMMUTABLE_TRACKER, this);
+		if (testValue !== UNKNOWN_VALUE) {
+			if (testValue) {
+				this.usedBranch = this.consequent;
+				this.unusedBranch = this.alternate;
+			} else {
+				this.usedBranch = this.alternate;
+				this.unusedBranch = this.consequent;
+			}
 		}
-		return value;
 	}
 }

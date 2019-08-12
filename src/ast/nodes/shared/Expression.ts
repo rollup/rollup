@@ -1,8 +1,11 @@
 import CallOptions from '../../CallOptions';
+import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { WritableEntity } from '../../Entity';
 import { ExecutionPathOptions } from '../../ExecutionPathOptions';
 import { ImmutableEntityPathTracker } from '../../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath } from '../../values';
+import SpreadElement from '../SpreadElement';
+import { ExpressionNode, IncludeChildren } from './Node';
 
 export interface ExpressionEntity extends WritableEntity {
 	included: boolean;
@@ -14,11 +17,13 @@ export interface ExpressionEntity extends WritableEntity {
 	 */
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker,
+		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown;
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker
+		recursionTracker: ImmutableEntityPathTracker,
+		origin: DeoptimizableEntity
 	): ExpressionEntity;
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean;
 	hasEffectsWhenCalledAtPath(
@@ -26,5 +31,6 @@ export interface ExpressionEntity extends WritableEntity {
 		callOptions: CallOptions,
 		options: ExecutionPathOptions
 	): boolean;
-	include(): void;
+	include(includeChildrenRecursively: IncludeChildren): void;
+	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void;
 }

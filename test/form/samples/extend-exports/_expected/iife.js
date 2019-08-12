@@ -5,4 +5,4 @@
 
 	exports.answer = answer;
 
-}((this.foo = this.foo || {})));
+}(this.foo = this.foo || {}));

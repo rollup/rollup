@@ -1,8 +1,8 @@
-define(['exports', './index-583b88ec.js', './hsl2hsv.js'], function (exports, index, hsl2hsv) { 'use strict';
+define(['exports', './hsl2hsv', './generated-index'], function (exports, hsl2hsv$1, index) { 'use strict';
 
 
 
-	exports.hsl2hsv = index.hsl2hsv;
+	exports.hsl2hsv = hsl2hsv$1.default;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

@@ -2,14 +2,14 @@ define(['exports'], function (exports) { 'use strict';
 
   var _missingExportShim = void 0;
 
-  function x () {
-    sideEffect();
+  function x (arg) {
+    sideEffect(arg);
   }
 
+  exports.default = _missingExportShim;
+  exports.missingExport = _missingExportShim;
+  exports.missingFn = _missingExportShim;
   exports.x = x;
-  exports.missingFn = dep.missingFn;
-  exports.missingExport = dep.missingFn;
-  exports.default = dep.missingFn;
 
   Object.defineProperty(exports, '__esModule', { value: true });
 

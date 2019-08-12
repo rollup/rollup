@@ -6,12 +6,12 @@ define(['exports'], function (exports) { 'use strict';
 
 	function almostUseUnused(useIt) {
 		if (useIt) {
-			console.log(__chunk_1.missing1);
+			console.log(_missingExportShim);
 		}
 	}
 
 	almostUseUnused(false);
 
-	exports.missing1 = __chunk_1.missing1;
+	exports.missing1 = _missingExportShim;
 
 });

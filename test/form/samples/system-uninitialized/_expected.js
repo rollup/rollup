@@ -1,12 +1,11 @@
-System.register([], function (exports, module) {
+System.register([], function (exports) {
   'use strict';
   return {
     execute: function () {
 
       exports({
         p: void 0,
-        q: q,
-        globalVar: globalVar
+        q: q
       });
 
       var p;

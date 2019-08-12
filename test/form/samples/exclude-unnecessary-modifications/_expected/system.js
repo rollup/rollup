@@ -1,11 +1,11 @@
-System.register([], function (exports, module) {
+System.register([], function () {
 	'use strict';
 	return {
 		execute: function () {
 
 			var foo = {};
 
-			mutate1( foo );
+			mutate1();
 
 			// should be included
 			[ 'a', 'b', 'c' ].forEach( function ( letter, i ) {

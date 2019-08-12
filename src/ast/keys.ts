@@ -3,8 +3,8 @@ import { GenericEsTreeNode } from './nodes/shared/Node';
 export const keys: {
 	[name: string]: string[];
 } = {
-	Program: ['body'],
-	Literal: []
+	Literal: [],
+	Program: ['body']
 };
 
 export function getAndCreateKeys(esTreeNode: GenericEsTreeNode) {

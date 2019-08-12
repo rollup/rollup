@@ -12,6 +12,7 @@ describe('rollup', function() {
 	require('./function/index.js');
 	require('./form/index.js');
 	require('./chunking-form/index.js');
+	require('./file-hashes/index.js');
 	require('./sourcemaps/index.js');
 	require('./incremental/index.js');
 	require('./hooks/index.js');

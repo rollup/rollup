@@ -4,16 +4,16 @@ define(function () { 'use strict';
 		return 'A';
 	}
 
-	console.log(getStringA());
+	console.log( getStringA());
 
-	console.log(false);
+	console.log(false );
 
-	console.log(true);
+	console.log(true );
 
 	function getStringD() {
 		return 'D';
 	}
 
-	console.log(getStringD());
+	console.log( getStringD());
 
 });

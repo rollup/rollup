@@ -1,4 +1,4 @@
-System.register('foo.@scoped/npm-package.bar.why-would-you-do-this', [], function (exports, module) {
+System.register('foo.@scoped/npm-package.bar.why-would-you-do-this', [], function (exports) {
 	'use strict';
 	return {
 		execute: function () {

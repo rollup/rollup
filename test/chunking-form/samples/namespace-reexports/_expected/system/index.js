@@ -1,8 +1,8 @@
-System.register(['./index-8b381a8d.js', './hsl2hsv.js'], function (exports, module) {
+System.register(['./hsl2hsv.js', './generated-index.js'], function (exports) {
 	'use strict';
 	return {
 		setters: [function (module) {
-			exports('hsl2hsv', module.a);
+			exports('hsl2hsv', module.default);
 		}, function () {}],
 		execute: function () {
 

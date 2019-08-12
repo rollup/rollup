@@ -1,6 +1,6 @@
-define(['./chunk-57cacf62.js'], function (__chunk_1) { 'use strict';
+define(['./generated-shared'], function (shared) { 'use strict';
 
-	var main2 = __chunk_1.d.map(d => d + 2);
+	var main2 = shared.d.map(d => d + 2);
 
 	return main2;
 

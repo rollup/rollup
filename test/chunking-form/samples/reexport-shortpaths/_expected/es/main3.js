@@ -1,1 +1,1 @@
-import './chunk-f419c447.js';
+import './generated-dep2.js';

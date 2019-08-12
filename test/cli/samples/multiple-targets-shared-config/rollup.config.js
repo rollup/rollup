@@ -1,6 +1,6 @@
 export default {
 	input: 'main.js',
-	targets: [
+	output: [
 		{
 			format: 'cjs',
 			file: '_actual/cjs.js',

@@ -1,20 +1,20 @@
-import { fn } from 'external';
-import { a as fn$1 } from './chunk-54f33655.js';
+import { f as fn$3 } from './generated-dep2.js';
+import { fn as fn$2 } from 'external';
 
-function fn$2 () {
+function fn () {
   console.log('lib1 fn');
-  fn();
+  fn$2();
 }
 
-function fn$3 () {
-  fn$2();
+function fn$1 () {
+  fn();
   console.log('dep3 fn');
 }
 
 class Main2 {
   constructor () {
-    fn$3();
     fn$1();
+    fn$3();
   }
 }
 

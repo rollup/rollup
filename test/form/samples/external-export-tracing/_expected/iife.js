@@ -1,10 +1,15 @@
-var myBundle = (function (exports,external) {
+var myBundle = (function (exports, external) {
 	'use strict';
 
 
 
-	exports.s = external.p;
+	Object.defineProperty(exports, 's', {
+		enumerable: true,
+		get: function () {
+			return external.p;
+		}
+	});
 
 	return exports;
 
-}({},external));
+}({}, external));

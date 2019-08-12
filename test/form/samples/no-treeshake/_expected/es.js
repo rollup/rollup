@@ -1,21 +1,48 @@
-import { value, more } from 'external';
+import { value } from 'external';
 
-var foo = 'unused';
+var foo = 13;
 
 const quux = 1;
 
 const other = () => quux;
 
-function bar () {
-	return foo;
+function baz() {
+	return foo + value;
 }
 
-function baz () {
-	return 13 + value;
+var create = Object.create,
+	getPrototypeOf = Object.getPrototypeOf;
+
+function unusedButIncluded() {
+	const unusedConst = 'unused';
+	if (true) {
+		true ? 'first' : 'second';
+	} else {
+		(true && 'first') || 'second';
+	}
+	'sequence', 'expression';
+	switch ('test') {
+		case 'test':
+			(() => {})();
+		case 'other':
+			'no effect';
+		default:
+			const ignored = 2;
+	}
 }
 
-const moreExternal = more;
+function test(
+	unusedParam = {
+		prop: function test() {
+			var unused = 1;
+		}
+	}
+) {}
 
-var create = Object.create, getPrototypeOf = Object.getPrototypeOf;
+test({
+	prop: function test() {
+		var unused = 1;
+	}
+});
 
-export { baz, create, getPrototypeOf, quux as strange };
+export { create, getPrototypeOf, quux as strange };

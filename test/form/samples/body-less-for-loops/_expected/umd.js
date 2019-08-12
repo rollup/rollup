@@ -1,8 +1,7 @@
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory() :
+(function (factory) {
 	typeof define === 'function' && define.amd ? define(factory) :
-	(factory());
-}(this, (function () { 'use strict';
+	factory();
+}(function () { 'use strict';
 
 	for ( let i = 0; i < 10; i += 1 ) console.log( i );
 	for ( const letter of array ) console.log( letter );
@@ -17,4 +16,4 @@
 	let index;
 	for ( index in array ) console.log( index );
 
-})));
+}));

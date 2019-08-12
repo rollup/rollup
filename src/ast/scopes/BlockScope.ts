@@ -1,27 +1,21 @@
+import { AstContext } from '../../Module';
 import Identifier from '../nodes/Identifier';
 import { ExpressionEntity } from '../nodes/shared/Expression';
-import { EntityPathTracker } from '../utils/EntityPathTracker';
+import { UNKNOWN_EXPRESSION } from '../values';
 import LocalVariable from '../variables/LocalVariable';
-import Scope from './Scope';
+import ChildScope from './ChildScope';
 
-export default class BlockScope extends Scope {
-	parent: Scope;
-
+export default class BlockScope extends ChildScope {
 	addDeclaration(
 		identifier: Identifier,
-		reassignmentTracker: EntityPathTracker,
+		context: AstContext,
 		init: ExpressionEntity | null = null,
-		isHoisted: boolean = false
-	) {
+		isHoisted = false
+	): LocalVariable {
 		if (isHoisted) {
-			return this.parent.addDeclaration(
-				identifier,
-				reassignmentTracker,
-				init,
-				true
-			) as LocalVariable;
+			return this.parent.addDeclaration(identifier, context, UNKNOWN_EXPRESSION, true);
 		} else {
-			return super.addDeclaration(identifier, reassignmentTracker, init, false) as LocalVariable;
+			return super.addDeclaration(identifier, context, init, false);
 		}
 	}
 }

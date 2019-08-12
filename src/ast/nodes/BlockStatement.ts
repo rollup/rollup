@@ -2,18 +2,15 @@ import MagicString from 'magic-string';
 import { RenderOptions, renderStatementList } from '../../utils/renderHelpers';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import BlockScope from '../scopes/BlockScope';
+import ChildScope from '../scopes/ChildScope';
 import Scope from '../scopes/Scope';
 import { UNKNOWN_EXPRESSION } from '../values';
 import * as NodeType from './NodeType';
-import { Node, StatementBase, StatementNode } from './shared/Node';
-
-export function isBlockStatement(node: Node): node is BlockStatement {
-	return node.type === NodeType.BlockStatement;
-}
+import { IncludeChildren, Node, StatementBase, StatementNode } from './shared/Node';
 
 export default class BlockStatement extends StatementBase {
-	type: NodeType.tBlockStatement;
-	body: StatementNode[];
+	body!: StatementNode[];
+	type!: NodeType.tBlockStatement;
 
 	addImplicitReturnExpressionToScope() {
 		const lastStatement = this.body[this.body.length - 1];
@@ -23,8 +20,8 @@ export default class BlockStatement extends StatementBase {
 	}
 
 	createScope(parentScope: Scope) {
-		this.scope = (<Node>this.parent).preventChildBlockScope
-			? parentScope
+		this.scope = (this.parent as Node).preventChildBlockScope
+			? (parentScope as ChildScope)
 			: new BlockScope(parentScope);
 	}
 
@@ -32,12 +29,14 @@ export default class BlockStatement extends StatementBase {
 		for (const node of this.body) {
 			if (node.hasEffects(options)) return true;
 		}
+		return false;
 	}
 
-	include() {
+	include(includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		for (const node of this.body) {
-			if (node.shouldBeIncluded()) node.include();
+			if (includeChildrenRecursively || node.shouldBeIncluded())
+				node.include(includeChildrenRecursively);
 		}
 	}
 

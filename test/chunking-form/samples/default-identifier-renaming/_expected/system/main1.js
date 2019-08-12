@@ -1,13 +1,13 @@
-System.register(['./chunk-a4ad63cb.js'], function (exports, module) {
+System.register(['./generated-shared.js'], function (exports) {
 	'use strict';
 	var d;
 	return {
 		setters: [function (module) {
-			d = module.a;
+			d = module.d;
 		}],
 		execute: function () {
 
-			var main1 = exports('default', d.map(d$$1 => d$$1 + 1));
+			var main1 = exports('default', d.map(d => d + 1));
 
 		}
 	};

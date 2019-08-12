@@ -1,13 +1,13 @@
-var assert = require('assert');
+const assert = require('assert');
 
 module.exports = {
 	description: 'correct statement order is preserved even in weird edge cases',
 	context: {
-		getAnswer: function(obj) {
+		getAnswer(obj) {
 			return obj.answer;
 		}
 	},
-	exports: function(exports) {
+	exports(exports) {
 		assert.equal(exports, 'right');
 	}
 };

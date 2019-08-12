@@ -1,8 +1,8 @@
-var assert = require('assert');
+const assert = require('assert');
 
 module.exports = {
 	description: 'exports a default named function',
-	exports: function(exports) {
+	exports(exports) {
 		assert.equal(exports(), 42);
 	}
 };

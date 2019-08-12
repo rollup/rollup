@@ -1,5 +1,7 @@
 import MagicString from 'magic-string';
-import { RenderOptions } from '../../utils/renderHelpers';
+import { findFirstOccurrenceOutsideComment, RenderOptions } from '../../utils/renderHelpers';
+import { INTEROP_NAMESPACE_VARIABLE } from '../../utils/variableNames';
+import NamespaceVariable from '../variables/NamespaceVariable';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
@@ -7,90 +9,131 @@ import { NodeBase } from './shared/Node';
 interface DynamicImportMechanism {
 	left: string;
 	right: string;
-	interopLeft?: string;
-	interopRight?: string;
 }
 
-const getDynamicImportMechanism = (format: string, compact: boolean): DynamicImportMechanism => {
-	switch (format) {
-		case 'cjs': {
-			const _ = compact ? '' : ' ';
-			return {
-				left: 'Promise.resolve(require(',
-				right: '))',
-				interopLeft: `Promise.resolve({${_}default:${_}require(`,
-				interopRight: `)${_}})`
-			};
-		}
-		case 'amd': {
-			const _ = compact ? '' : ' ';
-			const resolve = compact ? 'c' : 'resolve';
-			const reject = compact ? 'e' : 'reject';
-			return {
-				left: `new Promise(function${_}(${resolve},${_}${reject})${_}{${_}require([`,
-				right: `],${_}${resolve},${_}${reject})${_}})`,
-				interopLeft: `new Promise(function${_}(${resolve},${_}${reject})${_}{${_}require([`,
-				interopRight: `],${_}function${_}(m)${_}{${_}${resolve}({${_}default:${_}m${_}})${_}},${_}${reject})${_}})`
-			};
-		}
-		case 'system':
-			return {
-				left: 'module.import(',
-				right: ')'
-			};
-	}
-};
-
 export default class Import extends NodeBase {
-	type: NodeType.tImport;
-	parent: CallExpression;
+	parent!: CallExpression;
+	type!: NodeType.tImport;
 
-	private resolutionNamespace: string;
-	private resolutionInterop: boolean;
-	private rendered: boolean;
+	private exportMode: 'none' | 'named' | 'default' | 'auto' = 'auto';
+	private inlineNamespace?: NamespaceVariable;
+
+	include() {
+		if (!this.included) {
+			this.included = true;
+			this.context.includeDynamicImport(this);
+		}
+	}
 
 	initialise() {
-		this.included = false;
-		this.resolutionNamespace = undefined;
-		this.resolutionInterop = false;
-		this.rendered = false;
 		this.context.addDynamicImport(this);
 	}
 
-	renderFinalResolution(code: MagicString, resolution: string) {
-		// avoid unnecessary writes when tree-shaken
-		if (this.rendered)
-			code.overwrite(this.parent.arguments[0].start, this.parent.arguments[0].end, resolution);
-	}
-
 	render(code: MagicString, options: RenderOptions) {
-		this.rendered = true;
-		if (this.resolutionNamespace) {
+		if (this.inlineNamespace) {
 			const _ = options.compact ? '' : ' ';
 			const s = options.compact ? '' : ';';
 			code.overwrite(
 				this.parent.start,
 				this.parent.end,
-				`Promise.resolve().then(function${_}()${_}{${_}return ${this.resolutionNamespace}${s}${_}})`
+				`Promise.resolve().then(function${_}()${_}{${_}return ${this.inlineNamespace.getName()}${s}${_}})`
 			);
 			return;
 		}
 
-		const importMechanism = getDynamicImportMechanism(options.format, options.compact);
+		const importMechanism = this.getDynamicImportMechanism(options);
 		if (importMechanism) {
-			const leftMechanism =
-				(this.resolutionInterop && importMechanism.interopLeft) || importMechanism.left;
-			code.overwrite(this.parent.start, this.parent.arguments[0].start, leftMechanism);
-
-			const rightMechanism =
-				(this.resolutionInterop && importMechanism.interopRight) || importMechanism.right;
-			code.overwrite(this.parent.arguments[0].end, this.parent.end, rightMechanism);
+			code.overwrite(
+				this.parent.start,
+				findFirstOccurrenceOutsideComment(code.original, '(', this.parent.callee.end) + 1,
+				importMechanism.left
+			);
+			code.overwrite(this.parent.end - 1, this.parent.end, importMechanism.right);
 		}
 	}
 
-	setResolution(interop: boolean, namespace: string = undefined): void {
-		this.rendered = false;
-		this.resolutionInterop = interop;
-		this.resolutionNamespace = namespace;
+	renderFinalResolution(code: MagicString, resolution: string, format: string) {
+		if (this.included) {
+			if (format === 'amd' && resolution.startsWith("'.") && resolution.endsWith(".js'")) {
+				resolution = resolution.slice(0, -4) + "'";
+			}
+			code.overwrite(this.parent.arguments[0].start, this.parent.arguments[0].end, resolution);
+		}
+	}
+
+	setResolution(
+		exportMode: 'none' | 'named' | 'default' | 'auto',
+		inlineNamespace?: NamespaceVariable
+	): void {
+		this.exportMode = exportMode;
+		if (inlineNamespace) {
+			this.inlineNamespace = inlineNamespace;
+		} else {
+			this.scope.addAccessedGlobalsByFormat({
+				amd: ['require'],
+				cjs: ['require'],
+				system: ['module']
+			});
+			if (exportMode === 'auto') {
+				this.scope.addAccessedGlobalsByFormat({
+					amd: [INTEROP_NAMESPACE_VARIABLE],
+					cjs: [INTEROP_NAMESPACE_VARIABLE]
+				});
+			}
+		}
+	}
+
+	private getDynamicImportMechanism(options: RenderOptions): DynamicImportMechanism | null {
+		switch (options.format) {
+			case 'cjs': {
+				const _ = options.compact ? '' : ' ';
+				const resolve = options.compact ? 'c' : 'resolve';
+				switch (this.exportMode) {
+					case 'default':
+						return {
+							left: `new Promise(function${_}(${resolve})${_}{${_}${resolve}({${_}'default':${_}require(`,
+							right: `)${_}});${_}})`
+						};
+					case 'auto':
+						return {
+							left: `new Promise(function${_}(${resolve})${_}{${_}${resolve}(${INTEROP_NAMESPACE_VARIABLE}(require(`,
+							right: `)));${_}})`
+						};
+					default:
+						return {
+							left: `new Promise(function${_}(${resolve})${_}{${_}${resolve}(require(`,
+							right: `));${_}})`
+						};
+				}
+			}
+			case 'amd': {
+				const _ = options.compact ? '' : ' ';
+				const resolve = options.compact ? 'c' : 'resolve';
+				const reject = options.compact ? 'e' : 'reject';
+				const resolveNamespace =
+					this.exportMode === 'default'
+						? `function${_}(m)${_}{${_}${resolve}({${_}'default':${_}m${_}});${_}}`
+						: this.exportMode === 'auto'
+						? `function${_}(m)${_}{${_}${resolve}(${INTEROP_NAMESPACE_VARIABLE}(m));${_}}`
+						: resolve;
+				return {
+					left: `new Promise(function${_}(${resolve},${_}${reject})${_}{${_}require([`,
+					right: `],${_}${resolveNamespace},${_}${reject})${_}})`
+				};
+			}
+			case 'system':
+				return {
+					left: 'module.import(',
+					right: ')'
+				};
+			case 'es':
+				if (options.dynamicImportFunction) {
+					return {
+						left: `${options.dynamicImportFunction}(`,
+						right: ')'
+					};
+				}
+		}
+		return null;
 	}
 }

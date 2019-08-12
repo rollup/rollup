@@ -1,31 +1,43 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { OutputOptions } from '../rollup/types';
+import { INTEROP_NAMESPACE_VARIABLE } from '../utils/variableNames';
 import { FinaliserOptions } from './index';
 import { compactEsModuleExport, esModuleExport } from './shared/esModuleExport';
 import getExportBlock from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
+import { getInteropNamespace } from './shared/getInteropNamespace';
 import warnOnBuiltins from './shared/warnOnBuiltins';
+
+// AMD resolution will only respect the AMD baseUrl if the .js extension is omitted.
+// The assumption is that this makes sense for all relative ids:
+// https://requirejs.org/docs/api.html#jsfiles
+function removeExtensionFromRelativeAmdId(id: string) {
+	if (id[0] === '.' && id.endsWith('.js')) {
+		return id.slice(0, -3);
+	}
+	return id;
+}
 
 export default function amd(
 	magicString: MagicStringBundle,
 	{
-		graph,
-		namedExportsMode,
-		hasExports,
-		indentString,
-		intro,
-		outro,
-		dynamicImport,
-		needsAmdModule,
+		accessedGlobals,
 		dependencies,
 		exports,
-		isEntryModuleFacade
+		hasExports,
+		indentString: t,
+		intro,
+		isEntryModuleFacade,
+		namedExportsMode,
+		outro,
+		varOrConst,
+		warn
 	}: FinaliserOptions,
 	options: OutputOptions
 ) {
-	warnOnBuiltins(graph, dependencies);
+	warnOnBuiltins(warn, dependencies);
 
-	const deps = dependencies.map(m => `'${m.id}'`);
+	const deps = dependencies.map(m => `'${removeExtensionFromRelativeAmdId(m.id)}'`);
 	const args = dependencies.map(m => m.name);
 	const n = options.compact ? '' : '\n';
 	const _ = options.compact ? '' : ' ';
@@ -35,12 +47,12 @@ export default function amd(
 		deps.unshift(`'exports'`);
 	}
 
-	if (dynamicImport) {
+	if (accessedGlobals.has('require')) {
 		args.unshift('require');
 		deps.unshift(`'require'`);
 	}
 
-	if (needsAmdModule) {
+	if (accessedGlobals.has('module')) {
 		args.unshift('module');
 		deps.unshift(`'module'`);
 	}
@@ -58,8 +70,13 @@ export default function amd(
 	)})${_}{${useStrict}${n}${n}`;
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
-	const interopBlock = getInteropBlock(dependencies, options, graph.varOrConst);
-	if (interopBlock) magicString.prepend(interopBlock + n + n);
+	const interopBlock = getInteropBlock(dependencies, options, varOrConst);
+	if (interopBlock) {
+		magicString.prepend(interopBlock + n + n);
+	}
+	if (accessedGlobals.has(INTEROP_NAMESPACE_VARIABLE)) {
+		magicString.prepend(getInteropNamespace(_, n, t, options.externalLiveBindings !== false));
+	}
 
 	if (intro) magicString.prepend(intro);
 
@@ -67,8 +84,9 @@ export default function amd(
 		exports,
 		dependencies,
 		namedExportsMode,
-		options.interop,
-		options.compact
+		options.interop as boolean,
+		options.compact as boolean,
+		t
 	);
 	if (exportBlock) magicString.append(n + n + exportBlock);
 	if (namedExportsMode && hasExports && isEntryModuleFacade && options.esModule)
@@ -76,7 +94,7 @@ export default function amd(
 	if (outro) magicString.append(outro);
 
 	return magicString
-		.indent(indentString)
+		.indent(t)
 		.append(n + n + '});')
 		.prepend(wrapperStart);
 }

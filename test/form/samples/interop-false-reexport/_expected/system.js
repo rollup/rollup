@@ -1,10 +1,10 @@
-System.register('foo', ['external'], function (exports, module) {
+System.register('foo', ['external'], function (exports) {
 	'use strict';
 	return {
 		setters: [function (module) {
 			var _setter = {};
-			_setter.q = module.p;
 			_setter.p = module.default;
+			_setter.q = module.p;
 			exports(_setter);
 		}],
 		execute: function () {

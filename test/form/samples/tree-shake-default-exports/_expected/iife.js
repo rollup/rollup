@@ -1,14 +1,6 @@
 (function () {
 	'use strict';
 
-	/* header 1 */
-
-	/* footer 1 */
-
-	/* header 2 */
-
-	/* footer 2 */
-
 	/* header 3 */
 
 	/* leading retained */

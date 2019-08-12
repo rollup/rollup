@@ -1,8 +1,8 @@
-define(['./chunk-0224b4b1.js'], function (__chunk_1) { 'use strict';
+define(['./generated-dep1'], function (dep1) { 'use strict';
 
   class Main1 {
     constructor () {
-      __chunk_1.fn();
+      dep1.fn();
     }
   }
 

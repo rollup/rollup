@@ -42,7 +42,8 @@ import Property from './Property';
 import RestElement from './RestElement';
 import ReturnStatement from './ReturnStatement';
 import SequenceExpression from './SequenceExpression';
-import { NodeBase, StatementBase } from './shared/Node';
+import { NodeBase } from './shared/Node';
+import SpreadElement from './SpreadElement';
 import SwitchCase from './SwitchCase';
 import SwitchStatement from './SwitchStatement';
 import TaggedTemplateExpression from './TaggedTemplateExpression';
@@ -50,6 +51,7 @@ import TemplateElement from './TemplateElement';
 import TemplateLiteral from './TemplateLiteral';
 import ThisExpression from './ThisExpression';
 import ThrowStatement from './ThrowStatement';
+import TryStatement from './TryStatement';
 import UnaryExpression from './UnaryExpression';
 import UnknownNode from './UnknownNode';
 import UpdateExpression from './UpdateExpression';
@@ -82,9 +84,9 @@ export const nodeConstructors: {
 	ExportDefaultDeclaration,
 	ExportNamedDeclaration,
 	ExpressionStatement,
-	ForStatement,
 	ForInStatement,
 	ForOfStatement,
+	ForStatement,
 	FunctionDeclaration,
 	FunctionExpression,
 	Identifier,
@@ -105,6 +107,7 @@ export const nodeConstructors: {
 	RestElement,
 	ReturnStatement,
 	SequenceExpression,
+	SpreadElement,
 	SwitchCase,
 	SwitchStatement,
 	TaggedTemplateExpression,
@@ -112,12 +115,12 @@ export const nodeConstructors: {
 	TemplateLiteral,
 	ThisExpression,
 	ThrowStatement,
-	TryStatement: StatementBase,
+	TryStatement,
 	UnaryExpression,
 	UnknownNode,
 	UpdateExpression,
-	VariableDeclarator,
 	VariableDeclaration,
+	VariableDeclarator,
 	WhileStatement,
 	YieldExpression
 };

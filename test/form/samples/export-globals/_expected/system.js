@@ -1,9 +1,11 @@
-System.register('myBundle', [], function (exports, module) {
+System.register('myBundle', [], function (exports) {
 	'use strict';
 	return {
 		execute: function () {
 
-			const isNaN$1 = exports('isNaN', isNaN);
+			const localIsNaN = isNaN;
+
+			const isNaN$1 = exports('isNaN', localIsNaN);
 
 		}
 	};

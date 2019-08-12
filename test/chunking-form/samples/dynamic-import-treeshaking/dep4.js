@@ -1,1 +1,0 @@
-export var multiplier = 7;

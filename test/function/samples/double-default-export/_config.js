@@ -1,5 +1,4 @@
 const path = require('path');
-const assert = require('assert');
 
 module.exports = {
 	description: 'throws on double default exports',

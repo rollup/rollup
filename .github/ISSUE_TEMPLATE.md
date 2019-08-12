@@ -1,14 +1,17 @@
 <!--
-Issues without reproductions will be closed. To create a repro,
+  👉🏽 Need help or tech support? Please don't open an issue!
+  Head to https://gitter.im/rollup/rollup or https://stackoverflow.com/questions/tagged/rollupjs
 
-1. Use https://rollupjs.org/repl, or
-2. Follow the instructions in https://gist.github.com/Rich-Harris/88c5fc2ac6dc941b22e7996af05d70ff
+  ❤️ Rollup? Please consider supporting our collective:
+  👉 https://opencollective.com/rollup/donate
 
-If you just require tech support, please avoid creating issues! Though we would love to help you, we have very limited resources. Answering support questions prevents us from fixing bugs and implementing new features. Instead
+  Ahoy!
 
-* search or post a question to https://stackoverflow.com/questions/tagged/rollupjs
-* ask for help on https://gitter.im/rollup/rollup
+  You're seeing this because you felt none of the other options fit the type of
+  issue you'd like to create. Please use this opportunity to tell us about the
+  type of issue you were looking for, so we can try to accommodate similar
+  issues in the future.
 
-Love Rollup? Please consider supporting our collective:
-👉  https://opencollective.com/rollup/donate
+  If you're using this template to report an issue covered by an existing issue
+  type, we'll close it as invalid faster than you can spell 'Mississippi'.
 -->

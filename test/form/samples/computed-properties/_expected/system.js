@@ -1,4 +1,4 @@
-System.register('computedProperties', [], function (exports, module) {
+System.register('computedProperties', [], function (exports) {
 	'use strict';
 	return {
 		execute: function () {

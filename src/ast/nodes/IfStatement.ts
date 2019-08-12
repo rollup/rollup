@@ -1,73 +1,93 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
+import { removeAnnotations } from '../../utils/treeshakeNode';
+import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { EMPTY_IMMUTABLE_TRACKER } from '../utils/ImmutableEntityPathTracker';
-import { EMPTY_PATH, UNKNOWN_VALUE } from '../values';
+import { EMPTY_PATH, LiteralValueOrUnknown, UNKNOWN_VALUE } from '../values';
 import * as NodeType from './NodeType';
-import { ExpressionNode, StatementBase, StatementNode } from './shared/Node';
+import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from './shared/Node';
 
-export default class IfStatement extends StatementBase {
-	type: NodeType.tIfStatement;
-	test: ExpressionNode;
-	consequent: StatementNode;
-	alternate: StatementNode | null;
+export default class IfStatement extends StatementBase implements DeoptimizableEntity {
+	alternate!: StatementNode | null;
+	consequent!: StatementNode;
+	test!: ExpressionNode;
+	type!: NodeType.tIfStatement;
 
-	private hasUnknownTestValue: boolean;
+	private isTestValueAnalysed = false;
+	private testValue: LiteralValueOrUnknown;
+
+	bind() {
+		super.bind();
+		if (!this.isTestValueAnalysed) {
+			this.testValue = UNKNOWN_VALUE;
+			this.isTestValueAnalysed = true;
+			this.testValue = this.test.getLiteralValueAtPath(EMPTY_PATH, EMPTY_IMMUTABLE_TRACKER, this);
+		}
+	}
+
+	deoptimizeCache() {
+		this.testValue = UNKNOWN_VALUE;
+	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
 		if (this.test.hasEffects(options)) return true;
-		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue();
-		if (testValue === UNKNOWN_VALUE) {
+		if (this.testValue === UNKNOWN_VALUE) {
 			return (
 				this.consequent.hasEffects(options) ||
 				(this.alternate !== null && this.alternate.hasEffects(options))
 			);
 		}
-		return testValue
+		return this.testValue
 			? this.consequent.hasEffects(options)
 			: this.alternate !== null && this.alternate.hasEffects(options);
 	}
 
-	include() {
+	include(includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		const testValue = this.hasUnknownTestValue ? UNKNOWN_VALUE : this.getTestValue();
-		if (testValue === UNKNOWN_VALUE || this.test.shouldBeIncluded()) {
-			this.test.include();
+		if (includeChildrenRecursively) {
+			this.test.include(includeChildrenRecursively);
+			this.consequent.include(includeChildrenRecursively);
+			if (this.alternate !== null) {
+				this.alternate.include(includeChildrenRecursively);
+			}
+			return;
 		}
-		if ((testValue === UNKNOWN_VALUE || testValue) && this.consequent.shouldBeIncluded()) {
-			this.consequent.include();
+		const hasUnknownTest = this.testValue === UNKNOWN_VALUE;
+		if (hasUnknownTest || this.test.shouldBeIncluded()) {
+			this.test.include(false);
+		}
+		if ((hasUnknownTest || this.testValue) && this.consequent.shouldBeIncluded()) {
+			this.consequent.include(false);
 		}
 		if (
 			this.alternate !== null &&
-			((testValue === UNKNOWN_VALUE || !testValue) && this.alternate.shouldBeIncluded())
+			((hasUnknownTest || !this.testValue) && this.alternate.shouldBeIncluded())
 		) {
-			this.alternate.include();
+			this.alternate.include(false);
 		}
-	}
-
-	initialise() {
-		this.included = false;
-		this.hasUnknownTestValue = false;
 	}
 
 	render(code: MagicString, options: RenderOptions) {
 		// Note that unknown test values are always included
-		const testValue = this.hasUnknownTestValue
-			? UNKNOWN_VALUE
-			: this.test.getLiteralValueAtPath(EMPTY_PATH, EMPTY_IMMUTABLE_TRACKER);
 		if (
 			!this.test.included &&
-			(testValue ? this.alternate === null || !this.alternate.included : !this.consequent.included)
+			(this.testValue
+				? this.alternate === null || !this.alternate.included
+				: !this.consequent.included)
 		) {
-			const singleRetainedBranch = testValue ? this.consequent : this.alternate;
+			const singleRetainedBranch = (this.testValue
+				? this.consequent
+				: this.alternate) as StatementNode;
 			code.remove(this.start, singleRetainedBranch.start);
 			code.remove(singleRetainedBranch.end, this.end);
+			removeAnnotations(this, code);
 			singleRetainedBranch.render(code, options);
 		} else {
 			if (this.test.included) {
 				this.test.render(code, options);
 			} else {
-				code.overwrite(this.test.start, this.test.end, testValue ? 'true' : 'false');
+				code.overwrite(this.test.start, this.test.end, this.testValue ? 'true' : 'false');
 			}
 			if (this.consequent.included) {
 				this.consequent.render(code, options);
@@ -82,14 +102,5 @@ export default class IfStatement extends StatementBase {
 				}
 			}
 		}
-	}
-
-	private getTestValue() {
-		if (this.hasUnknownTestValue) return UNKNOWN_VALUE;
-		const value = this.test.getLiteralValueAtPath(EMPTY_PATH, EMPTY_IMMUTABLE_TRACKER);
-		if (value === UNKNOWN_VALUE) {
-			this.hasUnknownTestValue = true;
-		}
-		return value;
 	}
 }

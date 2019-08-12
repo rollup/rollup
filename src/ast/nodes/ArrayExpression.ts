@@ -13,13 +13,13 @@ import { ExpressionNode, NodeBase } from './shared/Node';
 import SpreadElement from './SpreadElement';
 
 export default class ArrayExpression extends NodeBase {
-	type: NodeType.tArrayExpression;
-	elements: (ExpressionNode | SpreadElement | null)[];
+	elements!: (ExpressionNode | SpreadElement | null)[];
+	type!: NodeType.tArrayExpression;
 
 	bind() {
 		super.bind();
 		for (const element of this.elements) {
-			if (element !== null) element.reassignPath(UNKNOWN_PATH);
+			if (element !== null) element.deoptimizePath(UNKNOWN_PATH);
 		}
 	}
 

@@ -1,18 +1,18 @@
-var path = require('path');
-var assert = require('assert');
+const path = require('path');
+const assert = require('assert');
 
 module.exports = {
 	description: 'plugins can manipulate the options object',
 	options: {
 		plugins: [
 			{
-				options: function(options) {
+				options(options) {
 					options.input = path.resolve(__dirname, 'answer.js');
 				}
 			}
 		]
 	},
-	exports: function(answer) {
+	exports(answer) {
 		assert.equal(answer, 42);
 	}
 };

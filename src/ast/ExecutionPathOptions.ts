@@ -5,13 +5,11 @@ import CallExpression from './nodes/CallExpression';
 import Property from './nodes/Property';
 import { ExpressionEntity } from './nodes/shared/Expression';
 import { ObjectPath } from './values';
-import ParameterVariable from './variables/ParameterVariable';
 import ThisVariable from './variables/ThisVariable';
 
 export enum OptionTypes {
 	IGNORED_LABELS,
 	ACCESSED_NODES,
-	ARGUMENTS_VARIABLES,
 	ASSIGNED_NODES,
 	IGNORE_BREAK_STATEMENTS,
 	IGNORE_RETURN_AWAIT_YIELD,
@@ -27,32 +25,16 @@ const RESULT_KEY: RESULT_KEY = {};
 type KeyTypes = OptionTypes | Entity | RESULT_KEY;
 
 export class ExecutionPathOptions {
-	private optionValues: Immutable.Map<KeyTypes, boolean | Entity | ExpressionEntity[]>;
-
 	static create() {
 		return new this(Immutable.Map());
 	}
+
+	private optionValues: Immutable.Map<KeyTypes, boolean | Entity | ExpressionEntity[]>;
 
 	private constructor(
 		optionValues: Immutable.Map<KeyTypes, boolean | Entity | ExpressionEntity[]>
 	) {
 		this.optionValues = optionValues;
-	}
-
-	private get(option: OptionTypes) {
-		return this.optionValues.get(option);
-	}
-
-	private remove(option: OptionTypes) {
-		return new ExecutionPathOptions(this.optionValues.remove(option));
-	}
-
-	private set(option: OptionTypes, value: boolean | ExpressionEntity[]) {
-		return new ExecutionPathOptions(this.optionValues.set(option, value));
-	}
-
-	private setIn(optionPath: (string | Entity | RESULT_KEY)[], value: boolean | Entity) {
-		return new ExecutionPathOptions(this.optionValues.setIn(optionPath, value));
 	}
 
 	addAccessedNodeAtPath(path: ObjectPath, node: ExpressionEntity) {
@@ -95,17 +77,13 @@ export class ExecutionPathOptions {
 		);
 	}
 
-	getArgumentsVariables(): ExpressionEntity[] {
-		return <ExpressionEntity[]>(this.get(OptionTypes.ARGUMENTS_VARIABLES) || []);
-	}
-
 	getHasEffectsWhenCalledOptions() {
 		return this.setIgnoreReturnAwaitYield()
 			.setIgnoreBreakStatements(false)
 			.setIgnoreNoLabels();
 	}
 
-	getReplacedVariableInit(variable: ThisVariable | ParameterVariable): ExpressionEntity {
+	getReplacedVariableInit(variable: ThisVariable): ExpressionEntity {
 		return this.optionValues.getIn([OptionTypes.REPLACED_VARIABLE_INITS, variable]);
 	}
 
@@ -184,12 +162,8 @@ export class ExecutionPathOptions {
 		return this.get(OptionTypes.IGNORE_RETURN_AWAIT_YIELD);
 	}
 
-	replaceVariableInit(variable: ThisVariable | ParameterVariable, init: ExpressionEntity) {
+	replaceVariableInit(variable: ThisVariable, init: ExpressionEntity) {
 		return this.setIn([OptionTypes.REPLACED_VARIABLE_INITS, variable], init);
-	}
-
-	setArgumentsVariables(variables: ExpressionEntity[]) {
-		return this.set(OptionTypes.ARGUMENTS_VARIABLES, variables);
 	}
 
 	setIgnoreBreakStatements(value = true) {
@@ -206,5 +180,21 @@ export class ExecutionPathOptions {
 
 	setIgnoreReturnAwaitYield(value = true) {
 		return this.set(OptionTypes.IGNORE_RETURN_AWAIT_YIELD, value);
+	}
+
+	private get(option: OptionTypes) {
+		return this.optionValues.get(option);
+	}
+
+	private remove(option: OptionTypes) {
+		return new ExecutionPathOptions(this.optionValues.remove(option));
+	}
+
+	private set(option: OptionTypes, value: boolean | ExpressionEntity[]) {
+		return new ExecutionPathOptions(this.optionValues.set(option, value));
+	}
+
+	private setIn(optionPath: (string | Entity | RESULT_KEY)[], value: boolean | Entity) {
+		return new ExecutionPathOptions(this.optionValues.setIn(optionPath, value));
 	}
 }

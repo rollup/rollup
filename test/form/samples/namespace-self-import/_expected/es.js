@@ -1,9 +1,9 @@
 var self = /*#__PURE__*/Object.freeze({
-	get p () { return p$$1; }
+	get p () { return p; }
 });
 
 console.log(Object.keys(self));
 
-var p$$1 = 5;
+var p = 5;
 
-export { p$$1 as p };
+export { p };

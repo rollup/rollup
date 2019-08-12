@@ -3,36 +3,31 @@ const assert = require('assert');
 const sander = require('sander');
 const buble = require('buble');
 const { exec } = require('child_process');
-const { deindent, loadConfig, normaliseOutput } = require('../utils.js');
-
-const samples = path.resolve(__dirname, 'samples');
+const {
+	normaliseOutput,
+	runTestSuiteWithSamples,
+	assertDirectoriesAreEqual
+} = require('../utils.js');
 
 const cwd = process.cwd();
 
 sander.rimrafSync(__dirname, 'node_modules');
 sander.copydirSync(__dirname, 'node_modules_rename_me').to(__dirname, 'node_modules');
 
-describe('cli', () => {
-	afterEach(() => {
-		process.chdir(cwd);
-	});
+runTestSuiteWithSamples(
+	'cli',
+	path.resolve(__dirname, 'samples'),
+	(dir, config) => {
+		(config.skip ? it.skip : config.solo ? it.only : it)(
+			path.basename(dir) + ': ' + config.description,
+			done => {
+				process.chdir(config.cwd || dir);
 
-	sander
-		.readdirSync(samples)
-		.sort()
-		.forEach(dir => {
-			if (dir[0] === '.') return; // .DS_Store...
+				const command =
+					'node ' + path.resolve(__dirname, '../../dist/bin') + path.sep + config.command;
 
-			const config = loadConfig(samples + '/' + dir + '/_config.js');
-			if (!config) return;
-
-			(config.skip ? it.skip : config.solo ? it.only : it)(dir, done => {
-				process.chdir(config.cwd || path.resolve(samples, dir));
-
-				const command = 'node ' + path.resolve(__dirname, '../../bin') + path.sep + config.command;
-
-				exec(command, {}, (err, code, stderr) => {
-					if (err) {
+				const childProcess = exec(command, { timeout: 40000 }, (err, code, stderr) => {
+					if (err && !err.killed) {
 						if (config.error) {
 							const shouldContinue = config.error(err);
 							if (!shouldContinue) return done();
@@ -42,7 +37,8 @@ describe('cli', () => {
 					}
 
 					if ('stderr' in config) {
-						assert.equal(deindent(config.stderr), stderr.trim());
+						const shouldContinue = config.stderr(stderr.trim());
+						if (!shouldContinue) return done();
 					} else if (stderr) {
 						console.error(stderr);
 					}
@@ -100,17 +96,12 @@ describe('cli', () => {
 							done(err);
 						}
 					} else if (sander.existsSync('_expected') && sander.statSync('_expected').isDirectory()) {
-						let error = null;
-						sander.readdirSync('_expected').forEach(child => {
-							const expected = sander.readFileSync(path.join('_expected', child)).toString();
-							const actual = sander.readFileSync(path.join('_actual', child)).toString();
-							try {
-								assert.equal(normaliseOutput(actual), normaliseOutput(expected));
-							} catch (err) {
-								error = err;
-							}
-						});
-						done(error);
+						try {
+							assertDirectoriesAreEqual('_actual', '_expected');
+							done();
+						} catch (err) {
+							done(err);
+						}
 					} else {
 						const expected = sander.readFileSync('_expected.js').toString();
 						try {
@@ -121,6 +112,14 @@ describe('cli', () => {
 						}
 					}
 				});
-			});
-		});
-});
+
+				childProcess.stderr.on('data', data => {
+					if (config.abortOnStderr && config.abortOnStderr(data)) {
+						childProcess.kill('SIGINT');
+					}
+				});
+			}
+		).timeout(50000);
+	},
+	() => process.chdir(cwd)
+);

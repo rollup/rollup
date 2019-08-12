@@ -2,15 +2,15 @@ import { Entity } from '../Entity';
 import { ObjectPath } from '../values';
 
 interface TrackedPaths {
+	paths: { [key: string]: TrackedPaths };
 	tracked: boolean;
 	unknownPath: TrackedPaths | null;
-	paths: { [key: string]: TrackedPaths };
 }
 
 const getNewTrackedPaths = (): TrackedPaths => ({
+	paths: Object.create(null),
 	tracked: false,
-	unknownPath: null,
-	paths: Object.create(null)
+	unknownPath: null
 });
 
 export class EntityPathTracker {

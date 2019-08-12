@@ -1,5 +1,5 @@
-export const absolutePath = /^(?:\/|(?:[A-Za-z]:)?[\\|/])/;
-export const relativePath = /^\.?\.\//;
+const absolutePath = /^(?:\/|(?:[A-Za-z]:)?[\\|/])/;
+const relativePath = /^\.?\.\//;
 
 export function isAbsolute(path: string) {
 	return absolutePath.test(path);

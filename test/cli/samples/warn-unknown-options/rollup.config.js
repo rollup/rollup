@@ -7,16 +7,20 @@ module.exports = commands => ({
 	input: 'main.js',
 	plugins: [
 		{
-			ongenerate() {
-				assert.equal(warnings, 1);
+			generateBundle() {
+				assert.strictEqual(warnings, 1);
 			}
 		},
-		replace({ 'ANSWER': commands.configAnswer }),
+		replace({ ANSWER: commands.configAnswer })
 	],
 	onwarn(warning) {
 		warnings++;
 		assert.equal(warning.code, 'UNKNOWN_OPTION');
-		assert.equal(warning.message,
-			`Unknown CLI flag: unknownOption. Allowed options: ${require('../../../misc/optionList').flags}`);
+		assert.equal(
+			warning.message,
+			`Unknown CLI flag: unknownOption. Allowed options: ${
+				require('../../../misc/optionList').flags
+			}`
+		);
 	}
 });

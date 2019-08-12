@@ -1,0 +1,7 @@
+define(['exports', '../other'], function (exports, other) { 'use strict';
+
+
+
+	exports.default = other.__moduleExports;
+
+});

@@ -2,17 +2,13 @@ import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../values';
 import * as NodeType from './NodeType';
-import { ExpressionNode, Node, NodeBase } from './shared/Node';
+import { ExpressionNode, NodeBase } from './shared/Node';
 import TemplateElement from './TemplateElement';
 
-export function isTemplateLiteral(node: Node): node is TemplateLiteral {
-	return node.type === NodeType.TemplateLiteral;
-}
-
 export default class TemplateLiteral extends NodeBase {
-	type: NodeType.tTemplateLiteral;
-	quasis: TemplateElement[];
-	expressions: ExpressionNode[];
+	expressions!: ExpressionNode[];
+	quasis!: TemplateElement[];
+	type!: NodeType.tTemplateLiteral;
 
 	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
 		if (path.length > 0 || this.quasis.length !== 1) {
@@ -22,7 +18,10 @@ export default class TemplateLiteral extends NodeBase {
 	}
 
 	render(code: MagicString, options: RenderOptions) {
-		(<[number, number][]>code.indentExclusionRanges).push(<[number, number]>[this.start, this.end]);
+		(code.indentExclusionRanges as [number, number][]).push([this.start, this.end] as [
+			number,
+			number
+		]);
 		super.render(code, options);
 	}
 }

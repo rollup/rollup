@@ -1,4 +1,4 @@
-System.register([], function (exports, module) {
+System.register([], function () {
 	'use strict';
 	return {
 		execute: function () {
@@ -7,17 +7,17 @@ System.register([], function (exports, module) {
 				return 'A';
 			}
 
-			console.log(getStringA());
+			console.log( getStringA());
 
-			console.log(false);
+			console.log(false );
 
-			console.log(true);
+			console.log(true );
 
 			function getStringD() {
 				return 'D';
 			}
 
-			console.log(getStringD());
+			console.log( getStringD());
 
 		}
 	};

@@ -1,13 +1,13 @@
-System.register('bundle', [], function (exports, module) {
+System.register('bundle', [], function (exports) {
 	'use strict';
 	return {
 		execute: function () {
 
 			exports({
-				aFoo: void 0,
 				aBar: void 0,
-				bFoo: void 0,
+				aFoo: void 0,
 				bBar: void 0,
+				bFoo: void 0,
 				cFoo: void 0,
 				dBar: void 0
 			});
