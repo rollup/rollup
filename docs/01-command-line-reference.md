@@ -254,6 +254,8 @@ Print the installed version number.
 
 Rebuild the bundle when its source files change on disk.
 
+_Note: Alternatively, the `ROLLUP_WATCH` environment variable may be set to `true` to enable watch mode._
+
 #### `--silent`
 
 Don't print warnings to the console. If your configuration file contains an `onwarn` handler, this handler will still be called. To manually prevent that, you can access the command line options in your configuration file as described at the end of [Configuration Files](guide/en/#configuration-files).
