@@ -168,7 +168,7 @@ export default class Graph {
 			this.getModuleContext = () => this.context;
 		}
 
-		this.acornOptions = options.acorn || {};
+		this.acornOptions = options.acorn ? Object.assign({}, options.acorn) : {};
 		const acornPluginsToInject = [];
 
 		acornPluginsToInject.push(injectDynamicImportPlugin);
