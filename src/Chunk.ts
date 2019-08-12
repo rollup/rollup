@@ -18,6 +18,7 @@ import {
 	DecodedSourceMapOrMissing,
 	GlobalsOption,
 	OutputOptions,
+	PreRenderedChunk,
 	RenderedChunk,
 	RenderedModule
 } from './rollup/types';
@@ -136,7 +137,6 @@ export default class Chunk {
 		return chunk;
 	}
 
-	augmentedHash?: string;
 	entryModules: Module[] = [];
 	execIndex: number;
 	exportMode: 'none' | 'named' | 'default' = 'named';
@@ -342,9 +342,8 @@ export default class Chunk {
 		if (this.renderedHash) return this.renderedHash;
 		if (!this.renderedSource) return '';
 		const hash = sha256();
-		if (this.augmentedHash) {
-			hash.update(this.augmentedHash);
-		}
+		const hashAugmentation = this.calculateHashAugmentation();
+		hash.update(hashAugmentation);
 		hash.update(this.renderedSource.toString());
 		hash.update(
 			this.getExportNames()
@@ -801,6 +800,35 @@ export default class Chunk {
 				name || facadedModule.chunkName || getAliasName(facadedModule.id)
 			);
 		}
+	}
+
+	private calculateHashAugmentation(): string {
+		const facadeModule = this.facadeModule;
+		const getChunkName = this.getChunkName.bind(this);
+		const preRenderedChunk = {
+			dynamicImports: this.getDynamicImportIds(),
+			exports: this.getExportNames(),
+			facadeModuleId: facadeModule && facadeModule.id,
+			imports: this.getImportIds(),
+			isDynamicEntry: facadeModule !== null && facadeModule.dynamicallyImportedBy.length > 0,
+			isEntry: facadeModule !== null && facadeModule.isEntryPoint,
+			modules: this.renderedModules,
+			get name() {
+				return getChunkName();
+			}
+		} as PreRenderedChunk;
+		const hashAugmentation = this.graph.pluginDriver.hookReduceValueSync(
+			'augmentChunkHash',
+			'',
+			[preRenderedChunk],
+			(hashAugmentation, pluginHash) => {
+				if (pluginHash) {
+					hashAugmentation += pluginHash;
+				}
+				return hashAugmentation;
+			}
+		);
+		return hashAugmentation;
 	}
 
 	private computeContentHashWithDependencies(addons: Addons, options: OutputOptions): string {

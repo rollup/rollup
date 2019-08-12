@@ -1,3 +1,4 @@
-import {foo} from './dep';
-console.log(foo);
-console.log('main');
+import('./dep').then(({foo})=>{
+  console.log(foo);
+  console.log('main');
+});

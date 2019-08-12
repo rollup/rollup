@@ -9,8 +9,10 @@ module.exports = {
 		},
 		plugins: [
 			{
-				augmentChunkHash() {
-					return 'bar';
+				augmentChunkHash(chunk) {
+					if (chunk.name === 'dep') {
+						return 'adfasdf';
+					}
 				}
 			}
 		]

@@ -72,6 +72,23 @@ In addition to properties defining the identity of your plugin, you may also spe
 * `sequential`: If this hook returns a promise, then other hooks of this kind will only be executed once this hook has resolved
 * `parallel`: If this hook returns a promise, then other hooks of this kind will not wait for this hook to be resolved
 
+#### `augmentChunkHash`
+Type: `(preRenderedChunk: PreRenderedChunk) => string`<br>
+Kind: `sync, sequential`
+
+Can be used to augment the hash of individual chunks. Called for each Rollup output chunk. Returning a falsy value will not modify the hash.
+
+The following plugin will invalidate the hash of chunk `foo` with the timestamp of the last build:
+
+```javascript
+// rollup.config.js
+augmentChunkHash(chunkInfo) {
+  if(chunkInfo.name === 'foo') {
+    return Date.now();
+  }
+}
+```
+
 #### `banner`
 Type: `string | (() => string)`<br>
 Kind: `async, parallel`
@@ -186,23 +203,6 @@ Type: `() => void`<br>
 Kind: `async, parallel`
 
 Called initially each time `bundle.generate()` or `bundle.write()` is called. To get notified when generation has completed, use the `generateBundle` and `renderError` hooks.
-
-#### `augmentChunkHash`
-Type: `(preRenderedChunk: PreRenderedChunk) => any`<br>
-Kind: `sync, sequential`
-
-Can be used to augment the hash of individual chunks. Called for each Rollup output chunk. Returning a falsy value will not modify the hash.
-
-The following plugin will invalidate the hash of chunk `foo` with the timestamp of the last build:
-
-```javascript
-// rollup.config.js
-augmentChunkHash(chunkInfo) {
-  if(chunkInfo.name === 'foo') {
-    return Date.now();
-  }
-}
-```
 
 #### `resolveDynamicImport`
 Type: `(specifier: string | ESTree.Node, importer: string) => string | false | null | {id: string, external?: boolean}`<br>

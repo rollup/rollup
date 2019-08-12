@@ -21,7 +21,6 @@ import {
 	OutputChunk,
 	OutputOptions,
 	Plugin,
-	PreRenderedChunk,
 	RollupBuild,
 	RollupCache,
 	RollupOutput,
@@ -148,37 +147,6 @@ export function setWatcher(watcher: RollupWatcher) {
 	curWatcher = watcher;
 }
 
-function augmentChunkHashes(graph: Graph, chunks: Chunk[]): void {
-	for (let i = 0; i < chunks.length; i++) {
-		const chunk = chunks[i];
-		const facadeModule = chunk.facadeModule;
-		const preRenderedChunk = {
-			dynamicImports: chunk.getDynamicImportIds(),
-			exports: chunk.getExportNames(),
-			facadeModuleId: facadeModule && facadeModule.id,
-			imports: chunk.getImportIds(),
-			isDynamicEntry: facadeModule !== null && facadeModule.dynamicallyImportedBy.length > 0,
-			isEntry: facadeModule !== null && facadeModule.isEntryPoint,
-			modules: chunk.renderedModules,
-			get name() {
-				return chunk.getChunkName();
-			}
-		} as PreRenderedChunk;
-		const augmentedHash = graph.pluginDriver.hookReduceValueSync(
-			'augmentChunkHash',
-			'',
-			[preRenderedChunk],
-			(hashForChunk, pluginHash) => {
-				if (pluginHash) {
-					hashForChunk += pluginHash;
-				}
-				return hashForChunk;
-			}
-		);
-		chunk.augmentedHash = augmentedHash;
-	}
-}
-
 function assignChunksToBundle(
 	chunks: Chunk[],
 	outputBundle: OutputBundleWithPlaceholders
@@ -283,8 +251,6 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 							);
 							optimized = true;
 						}
-
-						augmentChunkHashes(graph, chunks);
 
 						assignChunkIds(
 							chunks,
