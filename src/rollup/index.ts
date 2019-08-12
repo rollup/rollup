@@ -154,6 +154,7 @@ function assignChunksToBundle(
 	for (let i = 0; i < chunks.length; i++) {
 		const chunk = chunks[i];
 		const facadeModule = chunk.facadeModule;
+
 		outputBundle[chunk.id as string] = {
 			code: undefined as any,
 			dynamicImports: chunk.getDynamicImportIds(),
@@ -251,7 +252,6 @@ export default function rollup(rawInputOptions: GenericConfigObject): Promise<Ro
 							);
 							optimized = true;
 						}
-
 						assignChunkIds(
 							chunks,
 							inputOptions,

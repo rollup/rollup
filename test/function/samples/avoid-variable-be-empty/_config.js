@@ -4,12 +4,12 @@ module.exports = {
 		input: '',
 		plugins: [
 			{
-				resolveId(importee) {
+				resolveId (importee) {
 					return '';
 				},
-				load(path) {
+				load (path) {
 					return 'export default 0;';
-				}
+				},
 			}
 		],
 		output: {
