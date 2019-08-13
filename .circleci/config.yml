@@ -1,4 +1,7 @@
-version: 2
+version: 2.1
+
+orbs:
+  win: circleci/windows@1.0.0
 
 unit_tests: &unit_tests
   steps:
@@ -56,6 +59,14 @@ jobs:
       - image: rollupcabal/circleci-node-v12:latest
     steps:
       - checkout
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package-lock.json" }}
+      - run:
+          name: Run tests with coverage.
+          command: npm run ci:coverage
+  windows-node-v12:
+    executor: win/vs2019
+    steps:
       - restore_cache:
           key: dependency-cache-{{ checksum "package-lock.json" }}
       - run:
