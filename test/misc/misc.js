@@ -3,7 +3,7 @@ const rollup = require('../../dist/rollup');
 const { loader } = require('../utils.js');
 
 describe('misc', () => {
-	it('throw modification of options.acorn', () => {
+	it('throw modification of options or its property', () => {
 		const { freeze } = Object;
 		return rollup
 			.rollup(freeze({
