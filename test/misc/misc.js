@@ -16,7 +16,7 @@ describe('misc', () => {
 						load: freeze(() => `export default 0;`),
 					}),
 				]),
-				cache: false,
+				//cache: false,
 				acorn: freeze({}),
 				experimentalTopLevelAwait: true,
 			}));
