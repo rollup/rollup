@@ -23,7 +23,6 @@ runTestSuiteWithSamples('file hashes', path.resolve(__dirname, 'samples'), (dir,
 							)
 					)
 				).then(([generated1, generated2]) => {
-					console.log(generated1, generated2);
 					const fileContentsByHash = new Map();
 					addAndCheckFileContentsByHash(fileContentsByHash, generated1);
 					addAndCheckFileContentsByHash(fileContentsByHash, generated2);
