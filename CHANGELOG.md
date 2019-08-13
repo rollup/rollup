@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 1.19.5
+*unreleased*
+
+### Bug Fixes
+* Make sure the order of emitted chunks always reflects the order in which they were emitted (#3055)
+
+### Pull Requests
+* [#2995](https://github.com/rollup/rollup/pull/2995): Add info on installing locally to docs (@mesqueeb)
+* [#3037](https://github.com/rollup/rollup/pull/3037): Refresh pull request labels (@shellscape)
+* [#3048](https://github.com/rollup/rollup/pull/3048): Document ROLLUP_WATCH environment variable (@shellscape)
+* [#3055](https://github.com/rollup/rollup/pull/3055): Provide consistent chunking via a consistent order of entry modules when emitting chunks (@lukastaegert)
+
 ## 1.19.4
 *2019-08-07*
 
