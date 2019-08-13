@@ -63,6 +63,13 @@ export interface PluginDriver {
 		reduce: Reduce<R, T>,
 		hookContext?: HookContext
 	): Promise<T>;
+	hookReduceValueSync<R = any, T = any>(
+		hook: string,
+		value: T,
+		args: any[],
+		reduce: Reduce<R, T>,
+		hookContext?: HookContext
+	): T;
 	hookSeq<H extends keyof PluginHooks>(
 		hook: H,
 		args: Args<PluginHooks[H]>,
@@ -464,6 +471,16 @@ export function createPluginDriver(
 				});
 			}
 			return promise;
+		},
+
+		// chains, reduces returns of type R, to type T, handling the reduced value separately. permits hooks as values.
+		hookReduceValueSync(name, initial, args, reduce, hookContext) {
+			let acc = initial;
+			for (let i = 0; i < plugins.length; i++) {
+				const result: any = runHookSync(name, args, i, true, hookContext);
+				acc = reduce.call(pluginContexts[i], acc, result, plugins[i]);
+			}
+			return acc;
 		},
 
 		startOutput(outputBundle: OutputBundleWithPlaceholders, assetFileNames: string): void {
