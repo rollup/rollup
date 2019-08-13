@@ -174,184 +174,176 @@ function assignChunksToBundle(
 	return outputBundle as OutputBundle;
 }
 
-export default function rollup(rawInputOptions: GenericConfigObject): Promise<RollupBuild> {
-	try {
-		const inputOptions = getInputOptions(rawInputOptions);
-		initialiseTimers(inputOptions);
+export default async function rollup(rawInputOptions: GenericConfigObject): Promise<RollupBuild> {
+	const inputOptions = getInputOptions(rawInputOptions);
+	initialiseTimers(inputOptions);
 
-		const graph = new Graph(inputOptions, curWatcher);
-		curWatcher = undefined as any;
+	const graph = new Graph(inputOptions, curWatcher);
+	curWatcher = undefined as any;
 
-		// remove the cache option from the memory after graph creation (cache is not used anymore)
-		const useCache = rawInputOptions.cache !== false;
-		delete inputOptions.cache;
-		delete rawInputOptions.cache;
+	// remove the cache option from the memory after graph creation (cache is not used anymore)
+	const useCache = rawInputOptions.cache !== false;
+	delete inputOptions.cache;
+	delete rawInputOptions.cache;
 
-		timeStart('BUILD', 1);
+	timeStart('BUILD', 1);
 
-		return graph.pluginDriver
-			.hookParallel('buildStart', [inputOptions])
-			.then(() =>
-				graph.build(
-					inputOptions.input as string | string[] | Record<string, string>,
-					inputOptions.manualChunks,
-					inputOptions.inlineDynamicImports as boolean
-				)
+	return graph.pluginDriver
+		.hookParallel('buildStart', [inputOptions])
+		.then(() =>
+			graph.build(
+				inputOptions.input as string | string[] | Record<string, string>,
+				inputOptions.manualChunks,
+				inputOptions.inlineDynamicImports as boolean
 			)
-			.then(
-				chunks => graph.pluginDriver.hookParallel('buildEnd', []).then(() => chunks),
-				err =>
-					graph.pluginDriver.hookParallel('buildEnd', [err]).then(() => {
-						throw err;
-					})
-			)
-			.then(chunks => {
-				timeEnd('BUILD', 1);
+		)
+		.then(
+			chunks => graph.pluginDriver.hookParallel('buildEnd', []).then(() => chunks),
+			err =>
+				graph.pluginDriver.hookParallel('buildEnd', [err]).then(() => {
+					throw err;
+				})
+		)
+		.then(chunks => {
+			timeEnd('BUILD', 1);
 
-				// ensure we only do one optimization pass per build
-				let optimized = false;
+			// ensure we only do one optimization pass per build
+			let optimized = false;
 
-				function getOutputOptions(rawOutputOptions: GenericConfigObject) {
-					return normalizeOutputOptions(
-						inputOptions as GenericConfigObject,
-						rawOutputOptions,
-						chunks.length > 1,
-						graph.pluginDriver
-					);
-				}
+			function getOutputOptions(rawOutputOptions: GenericConfigObject) {
+				return normalizeOutputOptions(
+					inputOptions as GenericConfigObject,
+					rawOutputOptions,
+					chunks.length > 1,
+					graph.pluginDriver
+				);
+			}
 
-				async function generate(
-					outputOptions: OutputOptions,
-					isWrite: boolean
-				): Promise<OutputBundle> {
-					timeStart('GENERATE', 1);
+			async function generate(
+				outputOptions: OutputOptions,
+				isWrite: boolean
+			): Promise<OutputBundle> {
+				timeStart('GENERATE', 1);
 
-					const assetFileNames = outputOptions.assetFileNames || 'assets/[name]-[hash][extname]';
-					const outputBundleWithPlaceholders: OutputBundleWithPlaceholders = Object.create(null);
-					let outputBundle;
-					const inputBase = commondir(getAbsoluteEntryModulePaths(chunks));
-					graph.pluginDriver.startOutput(outputBundleWithPlaceholders, assetFileNames);
+				const assetFileNames = outputOptions.assetFileNames || 'assets/[name]-[hash][extname]';
+				const outputBundleWithPlaceholders: OutputBundleWithPlaceholders = Object.create(null);
+				let outputBundle;
+				const inputBase = commondir(getAbsoluteEntryModulePaths(chunks));
+				graph.pluginDriver.startOutput(outputBundleWithPlaceholders, assetFileNames);
 
-					try {
-						await graph.pluginDriver.hookParallel('renderStart', []);
-						const addons = await createAddons(graph, outputOptions);
-						for (const chunk of chunks) {
-							if (!inputOptions.preserveModules) chunk.generateInternalExports(outputOptions);
-							if (chunk.facadeModule && chunk.facadeModule.isEntryPoint)
-								chunk.exportMode = getExportMode(chunk, outputOptions);
-						}
-						for (const chunk of chunks) {
-							chunk.preRender(outputOptions, inputBase);
-						}
-						if (!optimized && inputOptions.experimentalOptimizeChunks) {
-							optimizeChunks(
-								chunks,
-								outputOptions,
-								inputOptions.chunkGroupingSize as number,
-								inputBase
-							);
-							optimized = true;
-						}
-						assignChunkIds(
-							chunks,
-							inputOptions,
-							outputOptions,
-							inputBase,
-							addons,
-							outputBundleWithPlaceholders
-						);
-						outputBundle = assignChunksToBundle(chunks, outputBundleWithPlaceholders);
-
-						await Promise.all(
-							chunks.map(chunk => {
-								const outputChunk = outputBundleWithPlaceholders[chunk.id as string] as OutputChunk;
-								return chunk.render(outputOptions, addons, outputChunk).then(rendered => {
-									outputChunk.code = rendered.code;
-									outputChunk.map = rendered.map;
-
-									return graph.pluginDriver.hookParallel('ongenerate', [
-										{ bundle: outputChunk, ...outputOptions },
-										outputChunk
-									]);
-								});
-							})
-						);
-					} catch (error) {
-						await graph.pluginDriver.hookParallel('renderError', [error]);
-						throw error;
+				try {
+					await graph.pluginDriver.hookParallel('renderStart', []);
+					const addons = await createAddons(graph, outputOptions);
+					for (const chunk of chunks) {
+						if (!inputOptions.preserveModules) chunk.generateInternalExports(outputOptions);
+						if (chunk.facadeModule && chunk.facadeModule.isEntryPoint)
+							chunk.exportMode = getExportMode(chunk, outputOptions);
 					}
-					await graph.pluginDriver.hookSeq('generateBundle', [
-						outputOptions,
-						outputBundle,
-						isWrite
-					]);
-					graph.pluginDriver.finaliseAssets();
-
-					timeEnd('GENERATE', 1);
-					return outputBundle;
-				}
-
-				const cache = useCache ? graph.getCache() : undefined;
-				const result: RollupBuild = {
-					cache: cache as RollupCache,
-					generate: ((rawOutputOptions: GenericConfigObject) => {
-						const promise = generate(getOutputOptions(rawOutputOptions), false).then(result =>
-							createOutput(result)
+					for (const chunk of chunks) {
+						chunk.preRender(outputOptions, inputBase);
+					}
+					if (!optimized && inputOptions.experimentalOptimizeChunks) {
+						optimizeChunks(
+							chunks,
+							outputOptions,
+							inputOptions.chunkGroupingSize as number,
+							inputBase
 						);
-						Object.defineProperty(promise, 'code', throwAsyncGenerateError);
-						Object.defineProperty(promise, 'map', throwAsyncGenerateError);
-						return promise;
-					}) as any,
-					watchFiles: Object.keys(graph.watchFiles),
-					write: ((rawOutputOptions: GenericConfigObject) => {
-						const outputOptions = getOutputOptions(rawOutputOptions);
-						if (!outputOptions.dir && !outputOptions.file) {
-							error({
-								code: 'MISSING_OPTION',
-								message: 'You must specify "output.file" or "output.dir" for the build.'
+						optimized = true;
+					}
+					assignChunkIds(
+						chunks,
+						inputOptions,
+						outputOptions,
+						inputBase,
+						addons,
+						outputBundleWithPlaceholders
+					);
+					outputBundle = assignChunksToBundle(chunks, outputBundleWithPlaceholders);
+
+					await Promise.all(
+						chunks.map(chunk => {
+							const outputChunk = outputBundleWithPlaceholders[chunk.id as string] as OutputChunk;
+							return chunk.render(outputOptions, addons, outputChunk).then(rendered => {
+								outputChunk.code = rendered.code;
+								outputChunk.map = rendered.map;
+
+								return graph.pluginDriver.hookParallel('ongenerate', [
+									{ bundle: outputChunk, ...outputOptions },
+									outputChunk
+								]);
 							});
-						}
-						return generate(outputOptions, true).then(bundle => {
-							let chunkCnt = 0;
-							for (const fileName of Object.keys(bundle)) {
-								const file = bundle[fileName];
-								if ((file as OutputAsset).isAsset) continue;
-								chunkCnt++;
-								if (chunkCnt > 1) break;
-							}
-							if (chunkCnt > 1) {
-								if (outputOptions.sourcemapFile)
-									error({
-										code: 'INVALID_OPTION',
-										message: '"output.sourcemapFile" is only supported for single-file builds.'
-									});
-								if (typeof outputOptions.file === 'string')
-									error({
-										code: 'INVALID_OPTION',
-										message:
-											'When building multiple chunks, the "output.dir" option must be used, not "output.file".' +
-											(typeof inputOptions.input !== 'string' ||
-											inputOptions.inlineDynamicImports === true
-												? ''
-												: ' To inline dynamic imports, set the "inlineDynamicImports" option.')
-									});
-							}
-							return Promise.all(
-								Object.keys(bundle).map(chunkId =>
-									writeOutputFile(graph, result, bundle[chunkId], outputOptions)
-								)
-							)
-								.then(() => graph.pluginDriver.hookParallel('writeBundle', [bundle]))
-								.then(() => createOutput(bundle));
+						})
+					);
+				} catch (error) {
+					await graph.pluginDriver.hookParallel('renderError', [error]);
+					throw error;
+				}
+				await graph.pluginDriver.hookSeq('generateBundle', [outputOptions, outputBundle, isWrite]);
+				graph.pluginDriver.finaliseAssets();
+
+				timeEnd('GENERATE', 1);
+				return outputBundle;
+			}
+
+			const cache = useCache ? graph.getCache() : undefined;
+			const result: RollupBuild = {
+				cache: cache as RollupCache,
+				generate: ((rawOutputOptions: GenericConfigObject) => {
+					const promise = generate(getOutputOptions(rawOutputOptions), false).then(result =>
+						createOutput(result)
+					);
+					Object.defineProperty(promise, 'code', throwAsyncGenerateError);
+					Object.defineProperty(promise, 'map', throwAsyncGenerateError);
+					return promise;
+				}) as any,
+				watchFiles: Object.keys(graph.watchFiles),
+				write: ((rawOutputOptions: GenericConfigObject) => {
+					const outputOptions = getOutputOptions(rawOutputOptions);
+					if (!outputOptions.dir && !outputOptions.file) {
+						error({
+							code: 'MISSING_OPTION',
+							message: 'You must specify "output.file" or "output.dir" for the build.'
 						});
-					}) as any
-				};
-				if (inputOptions.perf === true) result.getTimings = getTimings;
-				return result;
-			});
-	} catch (err) {
-		return Promise.reject(err);
-	}
+					}
+					return generate(outputOptions, true).then(bundle => {
+						let chunkCnt = 0;
+						for (const fileName of Object.keys(bundle)) {
+							const file = bundle[fileName];
+							if ((file as OutputAsset).isAsset) continue;
+							chunkCnt++;
+							if (chunkCnt > 1) break;
+						}
+						if (chunkCnt > 1) {
+							if (outputOptions.sourcemapFile)
+								error({
+									code: 'INVALID_OPTION',
+									message: '"output.sourcemapFile" is only supported for single-file builds.'
+								});
+							if (typeof outputOptions.file === 'string')
+								error({
+									code: 'INVALID_OPTION',
+									message:
+										'When building multiple chunks, the "output.dir" option must be used, not "output.file".' +
+										(typeof inputOptions.input !== 'string' ||
+										inputOptions.inlineDynamicImports === true
+											? ''
+											: ' To inline dynamic imports, set the "inlineDynamicImports" option.')
+								});
+						}
+						return Promise.all(
+							Object.keys(bundle).map(chunkId =>
+								writeOutputFile(graph, result, bundle[chunkId], outputOptions)
+							)
+						)
+							.then(() => graph.pluginDriver.hookParallel('writeBundle', [bundle]))
+							.then(() => createOutput(bundle));
+					});
+				}) as any
+			};
+			if (inputOptions.perf === true) result.getTimings = getTimings;
+			return result;
+		});
 }
 
 enum SortingFileType {
