@@ -12,7 +12,7 @@ describe('misc', () => {
 					freeze({
 						name: 'loader',
 						resolveId: () => 'input',
-						load: `export default 0;`,
+						load: () => `export default 0;`,
 					}),
 				]),
 				cache: false,
