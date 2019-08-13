@@ -4,17 +4,21 @@ const { loader } = require('../utils.js');
 
 describe('misc', () => {
 	it('throw modification of options.acorn', () => {
+		const { freeze } = Object;
 		return rollup
-			.rollup({
+			.rollup(freeze({
 				input: 'input',
-				plugins: Object.freeze([
-					loader({
-						input: `export default 0;`
-					})
+				plugins: freeze([
+					freeze({
+						name: 'loader',
+						resolveId: () => 'input',
+						load: `export default 0;`,
+					}),
 				]),
-				acorn: Object.freeze({}),
+				cache: false,
+				acorn: freeze({}),
 				experimentalTopLevelAwait: true,
-			});
+			}));
 	});
 
 	it('warns if node builtins are unresolved in a non-CJS, non-ES bundle (#1051)', () => {
