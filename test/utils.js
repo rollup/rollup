@@ -117,10 +117,7 @@ function removeOldTest(dir) {
 }
 
 function loader(modules) {
-	modules = Object.assign(Object.create(null), modules);
 	return {
-		name: 'loader',
-
 		resolveId(id) {
 			return id in modules ? id : null;
 		},
