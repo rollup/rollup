@@ -8,7 +8,9 @@ describe('misc', () => {
 			.rollup({
 				input: 'input',
 				plugins: Object.freeze([
-					loader({ input: `export default 0;` })
+					loader({
+						input: `export default 0;`
+					})
 				]),
 				acorn: Object.freeze({}),
 				experimentalTopLevelAwait: true,
