@@ -3,29 +3,19 @@ const rollup = require('../../dist/rollup');
 const { loader } = require('../utils.js');
 
 describe('misc', () => {
-	it('throw modification of options', () => {
-		const handler = Object.assign(Object.create(null), {
-			get () { return protect(Reflect.get(...arguments)); },
-			getOwnPropertyDescriptor () { const descriptor = Reflect.getOwnPropertyDescriptor(...arguments); if ( descriptor.hasOwnProperty('value') ) { descriptor.value = protect(descriptor.value); } return descriptor; },
-			set () { throw assert.fail('set'); },
-			deleteProperty () { throw assert.fail('deleteProperty'); },
-			defineProperty () { throw assert.fail('defineProperty'); },
-			setPrototypeOf () { throw assert.fail('setPrototypeOf'); },
-			preventExtensions () { throw assert.fail('preventExtensions'); },
-		});
-		const cache = new WeakMap;
-		function protect (option) {
-			if ( option===null || typeof option!=='object' && typeof option!=='function' ) { return option; }
-			let proxy = cache.get(option); proxy || cache.set(option, proxy = new Proxy(option, handler)); return proxy;
-		}
-		return Promise.all([
-			{
+	it('throw modification of options.acorn', () => {
+		const acorn = {};
+		return rollup
+			.rollup({
 				input: 'input',
 				plugins: [ loader({ input: `export default 0;` }) ],
-				acorn: {},
+				acorn,
 				experimentalTopLevelAwait: true,
-			},
-		].map(options => rollup.rollup(protect(options))));
+			})
+			.then(() => {
+				assert.deepEqual(acorn, {});
+				assert.deepEqual({}, acorn);
+			});
 	});
 
 	it('warns if node builtins are unresolved in a non-CJS, non-ES bundle (#1051)', () => {
