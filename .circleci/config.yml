@@ -1,5 +1,6 @@
 version: 2.1
 
+# require for windows support
 orbs:
   win: circleci/windows@1.0.0
 
