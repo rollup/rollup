@@ -7,11 +7,11 @@ describe('misc', () => {
 		const handler = Object.assign(Object.create(null), {
 			get () { return protect(Reflect.get(...arguments)); },
 			getOwnPropertyDescriptor () { const descriptor = Reflect.getOwnPropertyDescriptor(...arguments); if ( descriptor.hasOwnProperty('value') ) { descriptor.value = protect(descriptor.value); } return descriptor; },
-			set () { throw Error('set'); },
-			deleteProperty () { throw Error('deleteProperty'); },
-			defineProperty () { throw Error('defineProperty'); },
-			setPrototypeOf () { throw Error('setPrototypeOf'); },
-			preventExtensions () { throw Error('preventExtensions'); },
+			set () { throw assert.fail('set'); },
+			deleteProperty () { throw assert.fail('deleteProperty'); },
+			defineProperty () { throw assert.fail('defineProperty'); },
+			setPrototypeOf () { throw assert.fail('setPrototypeOf'); },
+			preventExtensions () { throw assert.fail('preventExtensions'); },
 		});
 		const cache = new WeakMap;
 		function protect (option) {
