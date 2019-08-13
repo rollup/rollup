@@ -8,6 +8,7 @@ describe('misc', () => {
 		return rollup
 			.rollup(freeze({
 				input: 'input',
+				external: freeze([]),
 				plugins: freeze([
 					freeze({
 						name: 'loader',
