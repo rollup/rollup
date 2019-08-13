@@ -4,17 +4,14 @@ const { loader } = require('../utils.js');
 
 describe('misc', () => {
 	it('throw modification of options.acorn', () => {
-		const acorn = {};
+		const $ = Object.freeze;
+
 		return rollup
 			.rollup({
 				input: 'input',
 				plugins: [ loader({ input: `export default 0;` }) ],
-				acorn,
+				acorn: $({}),
 				experimentalTopLevelAwait: true,
-			})
-			.then(() => {
-				assert.deepEqual(acorn, {});
-				assert.deepEqual({}, acorn);
 			});
 	});
 
