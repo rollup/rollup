@@ -6,13 +6,7 @@ describe('misc', () => {
 	it('throw modification of options', () => {
 		const handler = Object.assign(Object.create(null), {
 			get () { return protect(Reflect.get(...arguments)); },
-			getOwnPropertyDescriptor () {
-				const descriptor = Reflect.getOwnPropertyDescriptor(...arguments);
-				if ( descriptor.hasOwnProperty('value') ) {
-					descriptor.value = protect(descriptor.value);
-				}
-				return descriptor;
-			},
+			getOwnPropertyDescriptor () { const descriptor = Reflect.getOwnPropertyDescriptor(...arguments); if ( descriptor.hasOwnProperty('value') ) { descriptor.value = protect(descriptor.value); } return descriptor; },
 			set () { throw Error('set'); },
 			deleteProperty () { throw Error('deleteProperty'); },
 			defineProperty () { throw Error('defineProperty'); },
@@ -22,9 +16,7 @@ describe('misc', () => {
 		const cache = new WeakMap;
 		function protect (option) {
 			if ( option===null || typeof option!=='object' && typeof option!=='function' ) { return option; }
-			let proxy = cache.get(option);
-			proxy || cache.set(option, proxy = new Proxy(option, handler));
-			return proxy;
+			let proxy = cache.get(option); proxy || cache.set(option, proxy = new Proxy(option, handler)); return proxy;
 		}
 		return Promise.all([
 			{
