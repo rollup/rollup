@@ -1,3 +1,5 @@
+const augment1 = '/*foo*/';
+const augment2 = '/*bar*/';
 module.exports = {
 	description: 'augmentChunkHash updates hashes across all modules when returning something',
 	options1: {
@@ -10,8 +12,13 @@ module.exports = {
 		plugins: [
 			{
 				augmentChunkHash(chunk) {
-					if (chunk.name === 'dep') {
-						return 'adfasdf';
+					if (chunk.name === 'main') {
+						return augment1;
+					}
+				},
+				renderChunk(code, chunk) {
+					if (chunk.name === 'main') {
+						return augment1 + code;
 					}
 				}
 			}
@@ -26,7 +33,16 @@ module.exports = {
 		},
 		plugins: [
 			{
-				augmentChunkHash() {}
+				augmentChunkHash(chunk) {
+					if (chunk.name === 'main') {
+						return augment2;
+					}
+				},
+				renderChunk(code, chunk) {
+					if (chunk.name === 'main') {
+						return augment2 + code;
+					}
+				}
 			}
 		]
 	}
