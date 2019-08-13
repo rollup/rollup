@@ -289,7 +289,7 @@ export default async function rollup(rawInputOptions: GenericConfigObject): Prom
 			return promise;
 		}) as any,
 		watchFiles: Object.keys(graph.watchFiles),
-		write: ((rawOutputOptions: GenericConfigObject) => {
+		write: (async (rawOutputOptions: GenericConfigObject) => {
 			const outputOptions = getOutputOptions(rawOutputOptions);
 			if (!outputOptions.dir && !outputOptions.file) {
 				error({
@@ -297,39 +297,37 @@ export default async function rollup(rawInputOptions: GenericConfigObject): Prom
 					message: 'You must specify "output.file" or "output.dir" for the build.'
 				});
 			}
-			return generate(outputOptions, true).then(bundle => {
-				let chunkCnt = 0;
-				for (const fileName of Object.keys(bundle)) {
-					const file = bundle[fileName];
-					if ((file as OutputAsset).isAsset) continue;
-					chunkCnt++;
-					if (chunkCnt > 1) break;
-				}
-				if (chunkCnt > 1) {
-					if (outputOptions.sourcemapFile)
-						error({
-							code: 'INVALID_OPTION',
-							message: '"output.sourcemapFile" is only supported for single-file builds.'
-						});
-					if (typeof outputOptions.file === 'string')
-						error({
-							code: 'INVALID_OPTION',
-							message:
-								'When building multiple chunks, the "output.dir" option must be used, not "output.file".' +
-								(typeof inputOptions.input !== 'string' ||
-								inputOptions.inlineDynamicImports === true
-									? ''
-									: ' To inline dynamic imports, set the "inlineDynamicImports" option.')
-						});
-				}
-				return Promise.all(
-					Object.keys(bundle).map(chunkId =>
-						writeOutputFile(graph, result, bundle[chunkId], outputOptions)
-					)
+			const bundle = await generate(outputOptions, true);
+			let chunkCnt = 0;
+			for (const fileName of Object.keys(bundle)) {
+				const file = bundle[fileName];
+				if ((file as OutputAsset).isAsset) continue;
+				chunkCnt++;
+				if (chunkCnt > 1) break;
+			}
+			if (chunkCnt > 1) {
+				if (outputOptions.sourcemapFile)
+					error({
+						code: 'INVALID_OPTION',
+						message: '"output.sourcemapFile" is only supported for single-file builds.'
+					});
+				if (typeof outputOptions.file === 'string')
+					error({
+						code: 'INVALID_OPTION',
+						message:
+							'When building multiple chunks, the "output.dir" option must be used, not "output.file".' +
+							(typeof inputOptions.input !== 'string' || inputOptions.inlineDynamicImports === true
+								? ''
+								: ' To inline dynamic imports, set the "inlineDynamicImports" option.')
+					});
+			}
+			await Promise.all(
+				Object.keys(bundle).map(chunkId =>
+					writeOutputFile(graph, result, bundle[chunkId], outputOptions)
 				)
-					.then(() => graph.pluginDriver.hookParallel('writeBundle', [bundle]))
-					.then(() => createOutput(bundle));
-			});
+			);
+			await graph.pluginDriver.hookParallel('writeBundle', [bundle]);
+			return createOutput(bundle);
 		}) as any
 	};
 	if (inputOptions.perf === true) result.getTimings = getTimings;
