@@ -106,3 +106,9 @@ workflows:
           filters:
             tags:
               only: /.*/
+      - windows-node-v12:
+          requires:
+            - analysis
+          filters:
+            tags:
+              only: /.*/
