@@ -12,8 +12,8 @@ describe('misc', () => {
 				plugins: freeze([
 					freeze({
 						name: 'loader',
-						resolveId: () => 'input',
-						load: () => `export default 0;`,
+						resolveId: freeze(() => 'input'),
+						load: freeze(() => `export default 0;`),
 					}),
 				]),
 				cache: false,
