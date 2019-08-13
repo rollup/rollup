@@ -17,8 +17,10 @@ describe('misc', () => {
 					}),
 				]),
 				//cache: false,
+				acornInjectPlugins: freeze([]),
 				acorn: freeze({}),
 				experimentalTopLevelAwait: true,
+				treeshake: freeze({}),
 			}));
 	});
 
