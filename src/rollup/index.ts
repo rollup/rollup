@@ -184,6 +184,7 @@ export default async function rollup(rawInputOptions: GenericConfigObject): Prom
 	// remove the cache option from the memory after graph creation (cache is not used anymore)
 	const useCache = rawInputOptions.cache !== false;
 	delete inputOptions.cache;
+	delete rawInputOptions.cache;
 
 	timeStart('BUILD', 1);
 
