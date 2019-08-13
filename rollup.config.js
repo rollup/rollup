@@ -81,6 +81,7 @@ function fixAcornEsmImport() {
 
 const moduleAliases = {
 	resolve: ['.js', '.json', '.md'],
+	'acorn-dynamic-import': path.resolve('node_modules/acorn-dynamic-import/src/index.js'),
 	'help.md': path.resolve('cli/help.md'),
 	'package.json': path.resolve('package.json')
 };
