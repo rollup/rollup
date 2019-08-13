@@ -297,7 +297,7 @@ export default async function rollup(rawInputOptions: GenericConfigObject): Prom
 					message: 'You must specify "output.file" or "output.dir" for the build.'
 				});
 			}
-			return generate(outputOptions, true).then(bundle => {
+			return generate(outputOptions, true).then(async bundle => {
 				let chunkCnt = 0;
 				for (const fileName of Object.keys(bundle)) {
 					const file = bundle[fileName];
@@ -322,13 +322,13 @@ export default async function rollup(rawInputOptions: GenericConfigObject): Prom
 									: ' To inline dynamic imports, set the "inlineDynamicImports" option.')
 						});
 				}
-				return Promise.all(
+				await Promise.all(
 					Object.keys(bundle).map(chunkId =>
 						writeOutputFile(graph, result, bundle[chunkId], outputOptions)
 					)
-				)
-					.then(() => graph.pluginDriver.hookParallel('writeBundle', [bundle]))
-					.then(() => createOutput(bundle));
+				);
+				await graph.pluginDriver.hookParallel('writeBundle', [bundle]);
+				return createOutput(bundle);
 			});
 		}) as any
 	};
