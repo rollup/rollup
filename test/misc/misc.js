@@ -11,11 +11,13 @@ describe('misc', () => {
 				external: freeze([]),
 				plugins: freeze([
 					freeze({
+						// remove the name field, when rollup don't add auto name to plugin directly any more:
 						name: 'loader',
 						resolveId: freeze(() => 'input'),
 						load: freeze(() => `export default 0;`),
 					}),
 				]),
+				// remove the comment mark, when rollup don't delete rawInputOptions.cache any more:
 				//cache: false,
 				acornInjectPlugins: freeze([]),
 				acorn: freeze({}),
