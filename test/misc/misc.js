@@ -5,25 +5,23 @@ const { loader } = require('../utils.js');
 describe('misc', () => {
 	it('throw modification of options or its property', () => {
 		const { freeze } = Object;
-		return rollup
-			.rollup(freeze({
+		return rollup.rollup(
+			freeze({
 				input: 'input',
 				external: freeze([]),
 				plugins: freeze([
-					freeze({
-						// remove the name field, when rollup don't add auto name to plugin directly any more:
+					{
 						name: 'loader',
 						resolveId: freeze(() => 'input'),
-						load: freeze(() => `export default 0;`),
-					}),
+						load: freeze(() => `export default 0;`)
+					}
 				]),
-				// remove the comment mark, when rollup don't delete rawInputOptions.cache any more:
-				//cache: false,
 				acornInjectPlugins: freeze([]),
 				acorn: freeze({}),
 				experimentalTopLevelAwait: true,
-				treeshake: freeze({}),
-			}));
+				treeshake: freeze({})
+			})
+		);
 	});
 
 	it('warns if node builtins are unresolved in a non-CJS, non-ES bundle (#1051)', () => {
