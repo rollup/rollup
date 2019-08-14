@@ -1,16 +1,24 @@
 # rollup changelog
 
-## 1.19.5
+## 1.20.0
 *unreleased*
 
+### Features
+* Add augmentChunkHash plugin hook to be able to reflect changes in renderChunk in the chunk hash (#2921)
+
 ### Bug Fixes
+* Do not mutate the acorn options object (#3051)
 * Make sure the order of emitted chunks always reflects the order in which they were emitted (#3055)
 
 ### Pull Requests
+* [#2921](https://github.com/rollup/rollup/pull/2921): Add augmentChunkHash plugin hook (@isidrok)
 * [#2995](https://github.com/rollup/rollup/pull/2995): Add info on installing locally to docs (@mesqueeb)
 * [#3037](https://github.com/rollup/rollup/pull/3037): Refresh pull request labels (@shellscape)
 * [#3048](https://github.com/rollup/rollup/pull/3048): Document ROLLUP_WATCH environment variable (@shellscape)
+* [#3051](https://github.com/rollup/rollup/pull/3051): Avoid changes to the original options (.acorn) object (@LongTengDao)
+* [#3052](https://github.com/rollup/rollup/pull/3052): Minor refactoring: Remove one try-catch (@KSXGitHub)
 * [#3055](https://github.com/rollup/rollup/pull/3055): Provide consistent chunking via a consistent order of entry modules when emitting chunks (@lukastaegert)
+* [#3058](https://github.com/rollup/rollup/pull/3058): Remove acorn-bigint and acorn-dynamic-import from bundle (@LongTengDao)
 
 ## 1.19.4
 *2019-08-07*
