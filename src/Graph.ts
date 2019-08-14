@@ -1,6 +1,4 @@
 import * as acorn from 'acorn';
-import injectBigInt from 'acorn-bigint';
-import injectDynamicImportPlugin from 'acorn-dynamic-import';
 import injectImportMeta from 'acorn-import-meta';
 import * as ESTree from 'estree';
 import GlobalScope from './ast/scopes/GlobalScope';
@@ -171,9 +169,7 @@ export default class Graph {
 		this.acornOptions = options.acorn || {};
 		const acornPluginsToInject = [];
 
-		acornPluginsToInject.push(injectDynamicImportPlugin);
 		acornPluginsToInject.push(injectImportMeta);
-		acornPluginsToInject.push(injectBigInt);
 
 		if (options.experimentalTopLevelAwait) {
 			(this.acornOptions as any).allowAwaitOutsideFunction = true;
