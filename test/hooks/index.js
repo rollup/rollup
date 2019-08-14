@@ -1014,6 +1014,36 @@ describe('hooks', () => {
 			});
 	});
 
+	it('supports augmentChunkHash hook', () => {
+		let augmentChunkHashCalls = 0;
+		return rollup
+			.rollup({
+				input: 'input',
+				plugins: [
+					loader({
+						input: `alert('hello')`
+					}),
+					{
+						augmentChunkHash(update) {
+							augmentChunkHashCalls++;
+							assert(this.meta);
+							assert(this.meta.rollupVersion);
+						}
+					}
+				]
+			})
+			.then(bundle =>
+				bundle.generate({
+					format: 'esm',
+					dir: 'dist',
+					entryFileNames: '[name]-[hash].js'
+				})
+			)
+			.then(output => {
+				assert.equal(augmentChunkHashCalls, 1);
+			});
+	});
+
 	describe('deprecated', () => {
 		it('passes bundle & output object to ongenerate & onwrite hooks, with deprecation warnings', () => {
 			let deprecationCnt = 0;

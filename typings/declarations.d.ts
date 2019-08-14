@@ -13,6 +13,4 @@ declare module 'date-time';
 declare module 'locate-character';
 declare module 'is-reference';
 declare module 'require-relative';
-declare module 'acorn-dynamic-import';
 declare module 'acorn-import-meta';
-declare module 'acorn-bigint';

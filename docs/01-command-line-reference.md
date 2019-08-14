@@ -254,6 +254,8 @@ Print the installed version number.
 
 Rebuild the bundle when its source files change on disk.
 
+_Note: While in watch mode, the `ROLLUP_WATCH` environment variable will be set to `"true"` by Rollup's command line interface and can be checked by plugins and other processes._
+
 #### `--silent`
 
 Don't print warnings to the console. If your configuration file contains an `onwarn` handler, this handler will still be called. To manually prevent that, you can access the command line options in your configuration file as described at the end of [Configuration Files](guide/en/#configuration-files).
