@@ -254,7 +254,7 @@ Print the installed version number.
 
 Rebuild the bundle when its source files change on disk.
 
-_Note: Alternatively, the `ROLLUP_WATCH` environment variable may be set to `true` to enable watch mode._
+_Note: While in watch mode, the `ROLLUP_WATCH` environment variable will be set to `"true"` by Rollup's command line interface and can be checked by plugins and other processes._
 
 #### `--silent`
 

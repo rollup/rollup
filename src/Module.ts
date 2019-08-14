@@ -116,7 +116,7 @@ export interface AstContext {
 }
 
 export const defaultAcornOptions: acorn.Options = {
-	ecmaVersion: 2019,
+	ecmaVersion: 2020 as any,
 	preserveParens: false,
 	sourceType: 'module'
 };
