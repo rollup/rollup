@@ -195,7 +195,7 @@ var store = global_1[SHARED] || setGlobal(SHARED, {});
 (module.exports = function (key, value) {
   return store[key] || (store[key] = value !== undefined ? value : {});
 })('versions', []).push({
-  version: '3.1.3',
+  version: '3.2.1',
   mode:  'global',
   copyright: '© 2019 Denis Pushkarev (zloirock.ru)'
 });
@@ -4239,12 +4239,17 @@ var mathFround = Math.fround || function fround(x) {
 // https://tc39.github.io/ecma262/#sec-math.fround
 _export({ target: 'Math', stat: true }, { fround: mathFround });
 
+var $hypot = Math.hypot;
 var abs$4 = Math.abs;
 var sqrt$2 = Math.sqrt;
 
+// Chrome 77 bug
+// https://bugs.chromium.org/p/v8/issues/detail?id=9546
+var BUGGY = !!$hypot && $hypot(Infinity, NaN) !== Infinity;
+
 // `Math.hypot` method
 // https://tc39.github.io/ecma262/#sec-math.hypot
-_export({ target: 'Math', stat: true }, {
+_export({ target: 'Math', stat: true, forced: BUGGY }, {
   hypot: function hypot(value1, value2) { // eslint-disable-line no-unused-vars
     var sum = 0;
     var i = 0;
@@ -4456,6 +4461,8 @@ if (!(TO_PRIMITIVE$1 in DatePrototype$2)) hide(DatePrototype$2, TO_PRIMITIVE$1, 
 // https://tc39.github.io/ecma262/#sec-json-@@tostringtag
 setToStringTag(global_1.JSON, 'JSON', true);
 
+var nativePromiseConstructor = global_1.Promise;
+
 var redefineAll = function (target, src, options) {
   for (var key in src) redefine(target, key, src[key], options);
   return target;
@@ -4573,7 +4580,7 @@ var IS_NODE = classofRaw(process$1) == 'process';
 var queueMicrotaskDescriptor = getOwnPropertyDescriptor$5(global_1, 'queueMicrotask');
 var queueMicrotask = queueMicrotaskDescriptor && queueMicrotaskDescriptor.value;
 
-var flush, head, last, notify, toggle, node, promise;
+var flush, head, last, notify, toggle, node, promise, then;
 
 // modern engines have queueMicrotask method
 if (!queueMicrotask) {
@@ -4611,8 +4618,9 @@ if (!queueMicrotask) {
   } else if (Promise && Promise.resolve) {
     // Promise.resolve without an argument throws an error in LG WebOS 2
     promise = Promise.resolve(undefined);
+    then = promise.then;
     notify = function () {
-      promise.then(flush);
+      then.call(promise, flush);
     };
   // for other environments - macrotask based on:
   // - setImmediate
@@ -4697,7 +4705,7 @@ var PROMISE = 'Promise';
 var getInternalState$4 = internalState.get;
 var setInternalState$4 = internalState.set;
 var getInternalPromiseState = internalState.getterFor(PROMISE);
-var PromiseConstructor = global_1[PROMISE];
+var PromiseConstructor = nativePromiseConstructor;
 var TypeError$1 = global_1.TypeError;
 var document$2 = global_1.document;
 var process$2 = global_1.process;
@@ -4715,7 +4723,7 @@ var FULFILLED = 1;
 var REJECTED = 2;
 var HANDLED = 1;
 var UNHANDLED = 2;
-var Internal, OwnPromiseCapability, PromiseWrapper;
+var Internal, OwnPromiseCapability, PromiseWrapper, nativeThen;
 
 var FORCED$e = isForced_1(PROMISE, function () {
   // correct subclassing with @@species support
@@ -4940,13 +4948,25 @@ if (FORCED$e) {
       : newGenericPromiseCapability(C);
   };
 
-  // wrap fetch result
-  if ( typeof $fetch == 'function') _export({ global: true, enumerable: true, forced: true }, {
-    // eslint-disable-next-line no-unused-vars
-    fetch: function fetch(input) {
-      return promiseResolve(PromiseConstructor, $fetch.apply(global_1, arguments));
-    }
-  });
+  if ( typeof nativePromiseConstructor == 'function') {
+    nativeThen = nativePromiseConstructor.prototype.then;
+
+    // wrap native Promise#then for native async functions
+    redefine(nativePromiseConstructor.prototype, 'then', function then(onFulfilled, onRejected) {
+      var that = this;
+      return new PromiseConstructor(function (resolve, reject) {
+        nativeThen.call(that, resolve, reject);
+      }).then(onFulfilled, onRejected);
+    });
+
+    // wrap fetch result
+    if (typeof $fetch == 'function') _export({ global: true, enumerable: true, forced: true }, {
+      // eslint-disable-next-line no-unused-vars
+      fetch: function fetch(input) {
+        return promiseResolve(PromiseConstructor, $fetch.apply(global_1, arguments));
+      }
+    });
+  }
 }
 
 _export({ global: true, wrap: true, forced: FORCED$e }, {
@@ -5024,6 +5044,43 @@ _export({ target: PROMISE, stat: true, forced: INCORRECT_ITERATION$1 }, {
   }
 });
 
+// `Promise.allSettled` method
+// https://github.com/tc39/proposal-promise-allSettled
+_export({ target: 'Promise', stat: true }, {
+  allSettled: function allSettled(iterable) {
+    var C = this;
+    var capability = newPromiseCapability.f(C);
+    var resolve = capability.resolve;
+    var reject = capability.reject;
+    var result = perform(function () {
+      var promiseResolve = aFunction$1(C.resolve);
+      var values = [];
+      var counter = 0;
+      var remaining = 1;
+      iterate_1(iterable, function (promise) {
+        var index = counter++;
+        var alreadyCalled = false;
+        values.push(undefined);
+        remaining++;
+        promiseResolve.call(C, promise).then(function (value) {
+          if (alreadyCalled) return;
+          alreadyCalled = true;
+          values[index] = { status: 'fulfilled', value: value };
+          --remaining || resolve(values);
+        }, function (e) {
+          if (alreadyCalled) return;
+          alreadyCalled = true;
+          values[index] = { status: 'rejected', reason: e };
+          --remaining || resolve(values);
+        });
+      });
+      --remaining || resolve(values);
+    });
+    if (result.error) reject(result.value);
+    return capability.promise;
+  }
+});
+
 // `Promise.prototype.finally` method
 // https://tc39.github.io/ecma262/#sec-promise.prototype.finally
 _export({ target: 'Promise', proto: true, real: true }, {
@@ -5041,6 +5098,11 @@ _export({ target: 'Promise', proto: true, real: true }, {
   }
 });
 
+// patch native Promise.prototype for native async functions
+if ( typeof nativePromiseConstructor == 'function' && !nativePromiseConstructor.prototype['finally']) {
+  redefine(nativePromiseConstructor.prototype, 'finally', getBuiltIn('Promise').prototype['finally']);
+}
+
 var collection = function (CONSTRUCTOR_NAME, wrapper, common, IS_MAP, IS_WEAK) {
   var NativeConstructor = global_1[CONSTRUCTOR_NAME];
   var NativePrototype = NativeConstructor && NativeConstructor.prototype;
@@ -5051,17 +5113,17 @@ var collection = function (CONSTRUCTOR_NAME, wrapper, common, IS_MAP, IS_WEAK) {
   var fixMethod = function (KEY) {
     var nativeMethod = NativePrototype[KEY];
     redefine(NativePrototype, KEY,
-      KEY == 'add' ? function add(a) {
-        nativeMethod.call(this, a === 0 ? 0 : a);
+      KEY == 'add' ? function add(value) {
+        nativeMethod.call(this, value === 0 ? 0 : value);
         return this;
-      } : KEY == 'delete' ? function (a) {
-        return IS_WEAK && !isObject(a) ? false : nativeMethod.call(this, a === 0 ? 0 : a);
-      } : KEY == 'get' ? function get(a) {
-        return IS_WEAK && !isObject(a) ? undefined : nativeMethod.call(this, a === 0 ? 0 : a);
-      } : KEY == 'has' ? function has(a) {
-        return IS_WEAK && !isObject(a) ? false : nativeMethod.call(this, a === 0 ? 0 : a);
-      } : function set(a, b) {
-        nativeMethod.call(this, a === 0 ? 0 : a, b);
+      } : KEY == 'delete' ? function (key) {
+        return IS_WEAK && !isObject(key) ? false : nativeMethod.call(this, key === 0 ? 0 : key);
+      } : KEY == 'get' ? function get(key) {
+        return IS_WEAK && !isObject(key) ? undefined : nativeMethod.call(this, key === 0 ? 0 : key);
+      } : KEY == 'has' ? function has(key) {
+        return IS_WEAK && !isObject(key) ? false : nativeMethod.call(this, key === 0 ? 0 : key);
+      } : function set(key, value) {
+        nativeMethod.call(this, key === 0 ? 0 : key, value);
         return this;
       }
     );
@@ -5078,7 +5140,7 @@ var collection = function (CONSTRUCTOR_NAME, wrapper, common, IS_MAP, IS_WEAK) {
     var instance = new Constructor();
     // early implementations not supports chaining
     var HASNT_CHAINING = instance[ADDER](IS_WEAK ? {} : -0, 1) != instance;
-    // V8 ~  Chromium 40- weak-collections throws on primitives, but should return false
+    // V8 ~ Chromium 40- weak-collections throws on primitives, but should return false
     var THROWS_ON_PRIMITIVES = fails(function () { instance.has(1); });
     // most early implementations doesn't supports iterables, most modern - not close it correctly
     // eslint-disable-next-line no-new
@@ -5538,7 +5600,8 @@ var isPrototypeOf = ObjectPrototype$3.isPrototypeOf;
 var TO_STRING_TAG$3 = wellKnownSymbol('toStringTag');
 var TYPED_ARRAY_TAG = uid('TYPED_ARRAY_TAG');
 var NATIVE_ARRAY_BUFFER = !!(global_1.ArrayBuffer && DataView);
-var NATIVE_ARRAY_BUFFER_VIEWS = NATIVE_ARRAY_BUFFER && !!objectSetPrototypeOf;
+// Fixing native typed arrays in Opera Presto crashes the browser, see #595
+var NATIVE_ARRAY_BUFFER_VIEWS = NATIVE_ARRAY_BUFFER && !!objectSetPrototypeOf && classof(global_1.opera) !== 'Opera';
 var TYPED_ARRAY_TAG_REQIRED = false;
 var NAME$1;
 
@@ -8798,8 +8861,10 @@ var collectionDeleteAll = function (/* ...elements */) {
   var collection = anObject(this);
   var remover = aFunction$1(collection['delete']);
   var allDeleted = true;
+  var wasDeleted;
   for (var k = 0, len = arguments.length; k < len; k++) {
-    allDeleted = allDeleted && remover.call(collection, arguments[k]);
+    wasDeleted = remover.call(collection, arguments[k]);
+    allDeleted = allDeleted && wasDeleted;
   }
   return !!allDeleted;
 };
@@ -9239,6 +9304,83 @@ _export({ target: 'WeakSet', stat: true }, {
   of: collectionOf
 });
 
+// TODO: in core-js@4, move /modules/ dependencies to public entries for better optimization by tools like `preset-env`
+
+
+
+
+
+var Node = function () {
+  // keys
+  this.object = null;
+  this.symbol = null;
+  // child nodes
+  this.primitives = null;
+  this.objectsByIndex = objectCreate(null);
+};
+
+Node.prototype.get = function (key, initializer) {
+  return this[key] || (this[key] = initializer());
+};
+
+Node.prototype.next = function (i, it, IS_OBJECT) {
+  var store = IS_OBJECT
+    ? this.objectsByIndex[i] || (this.objectsByIndex[i] = new es_weakMap())
+    : this.primitives || (this.primitives = new es_map());
+  var entry = store.get(it);
+  if (!entry) store.set(it, entry = new Node());
+  return entry;
+};
+
+var root = new Node();
+
+var compositeKey = function () {
+  var active = root;
+  var length = arguments.length;
+  var i, it;
+  // for prevent leaking, start from objects
+  for (i = 0; i < length; i++) {
+    if (isObject(it = arguments[i])) active = active.next(i, it, true);
+  }
+  if (this === Object && active === root) throw TypeError('Composite keys must contain a non-primitive component');
+  for (i = 0; i < length; i++) {
+    if (!isObject(it = arguments[i])) active = active.next(i, it, false);
+  } return active;
+};
+
+var initializer = function () {
+  var freeze = getBuiltIn('Object', 'freeze');
+  return freeze ? freeze(objectCreate(null)) : objectCreate(null);
+};
+
+// https://github.com/tc39/proposal-richer-keys/tree/master/compositeKey
+_export({ global: true }, {
+  compositeKey: function compositeKey$1() {
+    return compositeKey.apply(Object, arguments).get('object', initializer);
+  }
+});
+
+// https://github.com/tc39/proposal-richer-keys/tree/master/compositeKey
+_export({ global: true }, {
+  compositeSymbol: function compositeSymbol() {
+    if (arguments.length === 1 && typeof arguments[0] === 'string') return getBuiltIn('Symbol')['for'](arguments[0]);
+    return compositeKey.apply(null, arguments).get('symbol', getBuiltIn('Symbol'));
+  }
+});
+
+// `Set.prototype.updateOrInsert` method
+// https://docs.google.com/presentation/d/1_xtrGSoN1-l2Q74eCXPHBbbrBHsVyqArWN0ebnW-pVQ/
+_export({ target: 'Map', proto: true, real: true, forced: isPure }, {
+  updateOrInsert: function updateOrInsert(key, onUpdate, onInsert) {
+    var map = anObject(this);
+    aFunction$1(onUpdate);
+    aFunction$1(onInsert);
+    var value = map.has(key) ? onUpdate(map.get(key)) : onInsert();
+    map.set(key, value);
+    return value;
+  }
+});
+
 var min$9 = Math.min;
 var max$4 = Math.max;
 
@@ -9574,70 +9716,6 @@ _export({ target: 'Promise', stat: true }, {
   }
 });
 
-// TODO: in core-js@4, move /modules/ dependencies to public entries for better optimization by tools like `preset-env`
-
-
-
-
-
-var Node = function () {
-  // keys
-  this.object = null;
-  this.symbol = null;
-  // child nodes
-  this.primitives = null;
-  this.objectsByIndex = objectCreate(null);
-};
-
-Node.prototype.get = function (key, initializer) {
-  return this[key] || (this[key] = initializer());
-};
-
-Node.prototype.next = function (i, it, IS_OBJECT) {
-  var store = IS_OBJECT
-    ? this.objectsByIndex[i] || (this.objectsByIndex[i] = new es_weakMap())
-    : this.primitives || (this.primitives = new es_map());
-  var entry = store.get(it);
-  if (!entry) store.set(it, entry = new Node());
-  return entry;
-};
-
-var root = new Node();
-
-var compositeKey = function () {
-  var active = root;
-  var length = arguments.length;
-  var i, it;
-  // for prevent leaking, start from objects
-  for (i = 0; i < length; i++) {
-    if (isObject(it = arguments[i])) active = active.next(i, it, true);
-  }
-  if (this === Object && active === root) throw TypeError('Composite keys must contain a non-primitive component');
-  for (i = 0; i < length; i++) {
-    if (!isObject(it = arguments[i])) active = active.next(i, it, false);
-  } return active;
-};
-
-var initializer = function () {
-  var freeze = getBuiltIn('Object', 'freeze');
-  return freeze ? freeze(objectCreate(null)) : objectCreate(null);
-};
-
-// https://github.com/tc39/proposal-richer-keys/tree/master/compositeKey
-_export({ global: true }, {
-  compositeKey: function compositeKey$1() {
-    return compositeKey.apply(Object, arguments).get('object', initializer);
-  }
-});
-
-// https://github.com/tc39/proposal-richer-keys/tree/master/compositeKey
-_export({ global: true }, {
-  compositeSymbol: function compositeSymbol() {
-    if (arguments.length === 1 && typeof arguments[0] === 'string') return getBuiltIn('Symbol')['for'](arguments[0]);
-    return compositeKey.apply(null, arguments).get('symbol', getBuiltIn('Symbol'));
-  }
-});
-
 var SEEDED_RANDOM = 'Seeded Random';
 var SEEDED_RANDOM_GENERATOR = SEEDED_RANDOM + ' Generator';
 var setInternalState$a = internalState.set;
@@ -9698,9 +9776,31 @@ _export({ target: 'String', proto: true }, {
   }
 });
 
-// `Symbol.patternMatch` well-known symbol
-// https://github.com/tc39/proposal-using-statement
-defineWellKnownSymbol('dispose');
+var isFrozen = Object.isFrozen;
+
+var isFrozenStringArray = function (array, allowUndefined) {
+  if (!isFrozen || !isArray(array) || !isFrozen(array)) return false;
+  var index = 0;
+  var length = array.length;
+  var element;
+  while (index < length) {
+    element = array[index++];
+    if (!(typeof element === 'string' || (allowUndefined && typeof element === 'undefined'))) {
+      return false;
+    }
+  } return length !== 0;
+};
+
+// `Array.isTemplateObject` method
+// https://github.com/tc39/proposal-array-is-template-object
+_export({ target: 'Array', stat: true }, {
+  isTemplateObject: function isTemplateObject(value) {
+    if (!isFrozenStringArray(value, true)) return false;
+    var raw = value.raw;
+    if (raw.length !== value.length || !isFrozenStringArray(raw, false)) return false;
+    return true;
+  }
+});
 
 var $AggregateError = function AggregateError(errors, message) {
   var that = this;
@@ -9710,7 +9810,7 @@ var $AggregateError = function AggregateError(errors, message) {
   }
   var errorsArray = [];
   iterate_1(errors, errorsArray.push, errorsArray);
-  that.errors = errorsArray;
+  hide(that, 'errors', errorsArray);
   if (message !== undefined) hide(that, 'message', String(message));
   return that;
 };
@@ -9904,47 +10004,18 @@ _export({ target: 'String', proto: true }, {
 // https://tc39.github.io/proposal-string-replaceall/
 defineWellKnownSymbol('replaceAll');
 
+// `Symbol.asyncDispose` well-known symbol
+// https://github.com/tc39/proposal-using-statement
+defineWellKnownSymbol('asyncDispose');
+
+// `Symbol.dispose` well-known symbol
+// https://github.com/tc39/proposal-using-statement
+defineWellKnownSymbol('dispose');
+
 // `globalThis` object
 // https://github.com/tc39/proposal-global
 _export({ global: true }, {
   globalThis: global_1
-});
-
-// `Promise.allSettled` method
-// https://github.com/tc39/proposal-promise-allSettled
-_export({ target: 'Promise', stat: true }, {
-  allSettled: function allSettled(iterable) {
-    var C = this;
-    var capability = newPromiseCapability.f(C);
-    var resolve = capability.resolve;
-    var reject = capability.reject;
-    var result = perform(function () {
-      var promiseResolve = aFunction$1(C.resolve);
-      var values = [];
-      var counter = 0;
-      var remaining = 1;
-      iterate_1(iterable, function (promise) {
-        var index = counter++;
-        var alreadyCalled = false;
-        values.push(undefined);
-        remaining++;
-        promiseResolve.call(C, promise).then(function (value) {
-          if (alreadyCalled) return;
-          alreadyCalled = true;
-          values[index] = { status: 'fulfilled', value: value };
-          --remaining || resolve(values);
-        }, function (e) {
-          if (alreadyCalled) return;
-          alreadyCalled = true;
-          values[index] = { status: 'rejected', reason: e };
-          --remaining || resolve(values);
-        });
-      });
-      --remaining || resolve(values);
-    });
-    if (result.error) reject(result.value);
-    return capability.promise;
-  }
 });
 
 // iterable DOM collections

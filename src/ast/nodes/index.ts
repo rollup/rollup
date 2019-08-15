@@ -26,8 +26,8 @@ import FunctionDeclaration from './FunctionDeclaration';
 import FunctionExpression from './FunctionExpression';
 import Identifier from './Identifier';
 import IfStatement from './IfStatement';
-import Import from './Import';
 import ImportDeclaration from './ImportDeclaration';
+import ImportExpression from './ImportExpression';
 import LabeledStatement from './LabeledStatement';
 import Literal from './Literal';
 import LogicalExpression from './LogicalExpression';
@@ -91,8 +91,8 @@ export const nodeConstructors: {
 	FunctionExpression,
 	Identifier,
 	IfStatement,
-	Import,
 	ImportDeclaration,
+	ImportExpression,
 	LabeledStatement,
 	Literal,
 	LogicalExpression,
