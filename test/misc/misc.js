@@ -3,6 +3,27 @@ const rollup = require('../../dist/rollup');
 const { loader } = require('../utils.js');
 
 describe('misc', () => {
+	it('throw modification of options or its property', () => {
+		const { freeze } = Object;
+		return rollup.rollup(
+			freeze({
+				input: 'input',
+				external: freeze([]),
+				plugins: freeze([
+					{
+						name: 'loader',
+						resolveId: freeze(() => 'input'),
+						load: freeze(() => `export default 0;`)
+					}
+				]),
+				acornInjectPlugins: freeze([]),
+				acorn: freeze({}),
+				experimentalTopLevelAwait: true,
+				treeshake: freeze({})
+			})
+		);
+	});
+
 	it('warns if node builtins are unresolved in a non-CJS, non-ES bundle (#1051)', () => {
 		const warnings = [];
 

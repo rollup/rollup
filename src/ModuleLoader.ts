@@ -90,13 +90,14 @@ function getHasModuleSideEffects(
 
 export class ModuleLoader {
 	readonly isExternal: IsExternal;
-	private readonly entryModules: Module[] = [];
 	private readonly getManualChunk: GetManualChunk;
 	private readonly graph: Graph;
 	private readonly hasModuleSideEffects: (id: string, external: boolean) => boolean;
+	private readonly indexedEntryModules: { index: number; module: Module }[] = [];
 	private latestLoadModulesPromise: Promise<any> = Promise.resolve();
 	private readonly manualChunkModules: Record<string, Module[]> = {};
 	private readonly modulesById: Map<string, Module | ExternalModule>;
+	private nextEntryModuleIndex = 0;
 	private readonly pluginDriver: PluginDriver;
 
 	constructor(
@@ -128,6 +129,8 @@ export class ModuleLoader {
 		manualChunkModulesByAlias: Record<string, Module[]>;
 		newEntryModules: Module[];
 	}> {
+		const firstEntryModuleIndex = this.nextEntryModuleIndex;
+		this.nextEntryModuleIndex += unresolvedEntryModules.length;
 		const loadNewEntryModulesPromise = Promise.all(
 			unresolvedEntryModules.map(({ fileName, id, name }) =>
 				this.loadEntryModule(id, true).then(module => {
@@ -145,17 +148,26 @@ export class ModuleLoader {
 				})
 			)
 		).then(entryModules => {
+			let moduleIndex = firstEntryModuleIndex;
 			for (const entryModule of entryModules) {
 				entryModule.isUserDefinedEntryPoint = entryModule.isUserDefinedEntryPoint || isUserDefined;
-				const existingEntryModule = this.entryModules.find(module => module.id === entryModule.id);
-				if (!existingEntryModule) {
-					this.entryModules.push(entryModule);
+				const existingIndexModule = this.indexedEntryModules.find(
+					indexedModule => indexedModule.module.id === entryModule.id
+				);
+				if (!existingIndexModule) {
+					this.indexedEntryModules.push({ module: entryModule, index: moduleIndex });
+				} else {
+					existingIndexModule.index = Math.min(existingIndexModule.index, moduleIndex);
 				}
+				moduleIndex++;
 			}
+			this.indexedEntryModules.sort(({ index: indexA }, { index: indexB }) =>
+				indexA > indexB ? 1 : -1
+			);
 			return entryModules;
 		});
 		return this.awaitLoadModulesPromise(loadNewEntryModulesPromise).then(newEntryModules => ({
-			entryModules: this.entryModules,
+			entryModules: this.indexedEntryModules.map(({ module }) => module),
 			manualChunkModulesByAlias: this.manualChunkModules,
 			newEntryModules
 		}));
