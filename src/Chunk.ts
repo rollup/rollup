@@ -699,15 +699,16 @@ export default class Chunk {
 		let map: SourceMap = null as any;
 		const chunkSourcemapChain: DecodedSourceMapOrMissing[] = [];
 
+		const _ = renderChunk({
+			chunk: this,
+			code: prevCode,
+			graph: this.graph,
+			options,
+			renderChunk: outputChunk,
+			sourcemapChain: chunkSourcemapChain
+		});
 		return (async () => {
-			let code: string = await renderChunk({
-				chunk: this,
-				code: prevCode,
-				graph: this.graph,
-				options,
-				renderChunk: outputChunk,
-				sourcemapChain: chunkSourcemapChain
-			});
+			let code: string = await _;
 
 			if (options.sourcemap) {
 				timeStart('sourcemap', 3);

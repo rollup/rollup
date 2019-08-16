@@ -182,10 +182,9 @@ export class ModuleLoader {
 				unresolvedManualChunks.push({ id, alias });
 			}
 		}
+		const _ = unresolvedManualChunks.map(({ id }) => this.loadEntryModule(id, false));
 		const loadNewManualChunkModulesPromise = (async () => {
-			const manualChunkModules = await Promise.all(
-				unresolvedManualChunks.map(({ id }) => this.loadEntryModule(id, false))
-			);
+			const manualChunkModules = await Promise.all(_);
 			for (let index = 0; index < manualChunkModules.length; index++) {
 				this.addModuleToManualChunk(unresolvedManualChunks[index].alias, manualChunkModules[index]);
 			}
@@ -251,7 +250,7 @@ export class ModuleLoader {
 				);
 			})
 		);
-		if (fetchDynamicImportsPromise as unknown instanceof Promise) {
+		if (typeof fetchDynamicImportsPromise.catch === 'function') {
 			fetchDynamicImportsPromise.catch(() => {});
 		}
 		await Promise.all(
