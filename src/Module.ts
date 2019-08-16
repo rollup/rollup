@@ -9,8 +9,8 @@ import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
 import ExportNamedDeclaration from './ast/nodes/ExportNamedDeclaration';
 import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
 import Identifier from './ast/nodes/Identifier';
-import Import from './ast/nodes/Import';
 import ImportDeclaration from './ast/nodes/ImportDeclaration';
+import ImportExpression from './ast/nodes/ImportExpression';
 import ImportSpecifier from './ast/nodes/ImportSpecifier';
 import { nodeConstructors } from './ast/nodes/index';
 import Literal from './ast/nodes/Literal';
@@ -80,7 +80,7 @@ export interface ReexportDescription {
 }
 
 export interface AstContext {
-	addDynamicImport: (node: Import) => void;
+	addDynamicImport: (node: ImportExpression) => void;
 	addExport: (
 		node: ExportAllDeclaration | ExportNamedDeclaration | ExportDefaultDeclaration
 	) => void;
@@ -97,7 +97,7 @@ export interface AstContext {
 	getModuleName: () => string;
 	getReexports: () => string[];
 	importDescriptions: { [name: string]: ImportDescription };
-	includeDynamicImport: (node: Import) => void;
+	includeDynamicImport: (node: ImportExpression) => void;
 	includeVariable: (variable: Variable) => void;
 	isCrossChunkImport: (importDescription: ImportDescription) => boolean;
 	magicString: MagicString;
@@ -178,7 +178,7 @@ export default class Module {
 	dynamicallyImportedBy: Module[] = [];
 	dynamicDependencies: (Module | ExternalModule)[] = [];
 	dynamicImports: {
-		node: Import;
+		node: ImportExpression;
 		resolution: Module | ExternalModule | string | null;
 	}[] = [];
 	entryPointsHash: Uint8Array = new Uint8Array(10);
@@ -302,7 +302,7 @@ export default class Module {
 
 	getDynamicImportExpressions(): (string | Node)[] {
 		return this.dynamicImports.map(({ node }) => {
-			const importArgument = node.parent.arguments[0];
+			const importArgument = node.source;
 			if (
 				importArgument instanceof TemplateLiteral &&
 				importArgument.quasis.length === 1 &&
@@ -675,7 +675,7 @@ export default class Module {
 		this.graph.warn(warning);
 	}
 
-	private addDynamicImport(node: Import) {
+	private addDynamicImport(node: ImportExpression) {
 		this.dynamicImports.push({ node, resolution: null });
 	}
 
@@ -819,7 +819,7 @@ export default class Module {
 		}
 	}
 
-	private includeDynamicImport(node: Import) {
+	private includeDynamicImport(node: ImportExpression) {
 		const resolution = (this.dynamicImports.find(dynamicImport => dynamicImport.node === node) as {
 			resolution: string | Module | ExternalModule | undefined;
 		}).resolution;

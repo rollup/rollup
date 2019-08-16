@@ -19,6 +19,10 @@ export default class MetaProperty extends NodeBase {
 
 	private metaProperty?: string | null;
 
+	hasEffects(): boolean {
+		return false;
+	}
+
 	hasEffectsWhenAccessedAtPath(path: ObjectPathKey[]): boolean {
 		return path.length > 1;
 	}

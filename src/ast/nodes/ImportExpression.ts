@@ -2,9 +2,8 @@ import MagicString from 'magic-string';
 import { findFirstOccurrenceOutsideComment, RenderOptions } from '../../utils/renderHelpers';
 import { INTEROP_NAMESPACE_VARIABLE } from '../../utils/variableNames';
 import NamespaceVariable from '../variables/NamespaceVariable';
-import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
-import { NodeBase } from './shared/Node';
+import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 
 interface DynamicImportMechanism {
 	left: string;
@@ -12,17 +11,22 @@ interface DynamicImportMechanism {
 }
 
 export default class Import extends NodeBase {
-	parent!: CallExpression;
-	type!: NodeType.tImport;
+	source!: ExpressionNode;
+	type!: NodeType.tImportExpression;
 
 	private exportMode: 'none' | 'named' | 'default' | 'auto' = 'auto';
 	private inlineNamespace?: NamespaceVariable;
 
-	include() {
+	hasEffects(): boolean {
+		return true;
+	}
+
+	include(includeChildrenRecursively: IncludeChildren) {
 		if (!this.included) {
 			this.included = true;
 			this.context.includeDynamicImport(this);
 		}
+		this.source.include(includeChildrenRecursively);
 	}
 
 	initialise() {
@@ -34,8 +38,8 @@ export default class Import extends NodeBase {
 			const _ = options.compact ? '' : ' ';
 			const s = options.compact ? '' : ';';
 			code.overwrite(
-				this.parent.start,
-				this.parent.end,
+				this.start,
+				this.end,
 				`Promise.resolve().then(function${_}()${_}{${_}return ${this.inlineNamespace.getName()}${s}${_}})`
 			);
 			return;
@@ -44,11 +48,11 @@ export default class Import extends NodeBase {
 		const importMechanism = this.getDynamicImportMechanism(options);
 		if (importMechanism) {
 			code.overwrite(
-				this.parent.start,
-				findFirstOccurrenceOutsideComment(code.original, '(', this.parent.callee.end) + 1,
+				this.start,
+				findFirstOccurrenceOutsideComment(code.original, '(', this.start + 6) + 1,
 				importMechanism.left
 			);
-			code.overwrite(this.parent.end - 1, this.parent.end, importMechanism.right);
+			code.overwrite(this.end - 1, this.end, importMechanism.right);
 		}
 	}
 
@@ -57,7 +61,7 @@ export default class Import extends NodeBase {
 			if (format === 'amd' && resolution.startsWith("'.") && resolution.endsWith(".js'")) {
 				resolution = resolution.slice(0, -4) + "'";
 			}
-			code.overwrite(this.parent.arguments[0].start, this.parent.arguments[0].end, resolution);
+			code.overwrite(this.source.start, this.source.end, resolution);
 		}
 	}
 
