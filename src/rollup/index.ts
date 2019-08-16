@@ -280,8 +280,9 @@ export default async function rollup(rawInputOptions: GenericConfigObject): Prom
 	const result: RollupBuild = {
 		cache: cache as RollupCache,
 		generate: ((rawOutputOptions: GenericConfigObject) => {
+			const _ = generate(getOutputOptions(rawOutputOptions), false);
 			const promise = (async () => {
-				const result = await generate(getOutputOptions(rawOutputOptions), false);
+				const result = await _;
 				return createOutput(result);
 			})();
 			if (promise as unknown instanceof Promise) {
@@ -299,8 +300,9 @@ export default async function rollup(rawInputOptions: GenericConfigObject): Prom
 					message: 'You must specify "output.file" or "output.dir" for the build.'
 				});
 			}
+			const _ = generate(outputOptions, true);
 			return (async () => {
-				const bundle = await generate(outputOptions, true);
+				const bundle = await _;
 				let chunkCnt = 0;
 				for (const fileName of Object.keys(bundle)) {
 					const file = bundle[fileName];
