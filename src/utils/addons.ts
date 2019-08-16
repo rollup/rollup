@@ -33,14 +33,14 @@ export function createAddons(graph: Graph, options: OutputOptions): Promise<Addo
 		pluginDriver.hookReduceValue('intro', evalIfFn(options.intro), [], concatDblSep),
 		pluginDriver.hookReduceValue('outro', evalIfFn(options.outro), [], concatDblSep)
 	];
-	return (async () :Promise<any> => {
+	return (async () => {
 		try {
 			let [banner, footer, intro, outro] = await Promise.all(_);
 			if (intro) intro += '\n\n';
 			if (outro) outro = `\n\n${outro}`;
 			if (banner.length) banner += '\n';
 			if (footer.length) footer = '\n' + footer;
-			return { intro, outro, banner, footer };
+			return { intro, outro, banner, footer } as any;
 		} catch (err) {
 			error({
 				code: 'ADDON_ERROR',

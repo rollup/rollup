@@ -700,7 +700,7 @@ export default class Chunk {
 		const chunkSourcemapChain: DecodedSourceMapOrMissing[] = [];
 
 		return (async () => {
-			const code: string = await renderChunk({
+			let code: string = await renderChunk({
 				chunk: this,
 				code: prevCode,
 				graph: this.graph,
@@ -726,7 +726,7 @@ export default class Chunk {
 					chunkSourcemapChain,
 					options.sourcemapExcludeSources as boolean
 				);
-				map.sources = map.sources.map(sourcePath =>
+				map.sources = map.sources.map((sourcePath: string) =>
 					normalize(
 						options.sourcemapPathTransform ? options.sourcemapPathTransform(sourcePath) : sourcePath
 					)

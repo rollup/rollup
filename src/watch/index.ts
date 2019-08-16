@@ -207,7 +207,7 @@ export class Task {
 		setWatcher(this.watcher.emitter);
 		return (async () => {
 			try {
-				const result :RollupBuild = await rollup(options);
+				const result: RollupBuild = await rollup(options);
 				if (this.closed) return undefined as any;
 				const previouslyWatched = this.watched;
 				const watched = (this.watched = new Set());
