@@ -17,8 +17,10 @@
 * [#3048](https://github.com/rollup/rollup/pull/3048): Document ROLLUP_WATCH environment variable (@shellscape)
 * [#3051](https://github.com/rollup/rollup/pull/3051): Avoid changes to the original options (.acorn) object (@LongTengDao)
 * [#3052](https://github.com/rollup/rollup/pull/3052): Minor refactoring: Remove one try-catch (@KSXGitHub)
+* [#3053](https://github.com/rollup/rollup/pull/3053): Refactor to use async-await in more places (@KSXGitHub)
 * [#3055](https://github.com/rollup/rollup/pull/3055): Provide consistent chunking via a consistent order of entry modules when emitting chunks (@lukastaegert)
 * [#3058](https://github.com/rollup/rollup/pull/3058): Remove acorn-bigint and acorn-dynamic-import from bundle (@LongTengDao)
+* [#3061](https://github.com/rollup/rollup/pull/3061): Update to acorn@7 (@lukastaegert)
 
 ## 1.19.4
 *2019-08-07*
