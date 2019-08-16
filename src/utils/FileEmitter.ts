@@ -267,18 +267,19 @@ export class FileEmitter {
 			name: emittedChunk.name || emittedChunk.id,
 			type: 'chunk'
 		};
+		const _ = this.graph.moduleLoader.addEntryModules(
+			[
+				{
+					fileName: emittedChunk.fileName || null,
+					id: emittedChunk.id as string,
+					name: emittedChunk.name || null
+				}
+			],
+			false
+		);
 		(async () => {
 			try {
-				const { newEntryModules: [module] } = await this.graph.moduleLoader.addEntryModules(
-					[
-						{
-							fileName: emittedChunk.fileName || null,
-							id: emittedChunk.id as string,
-							name: emittedChunk.name || null
-						}
-					],
-					false
-				);
+				const { newEntryModules: [module] } = await _;
 				consumedChunk.module = module;
 			} catch (error) {
 				// Avoid unhandled Promise rejection as the error will be thrown later

@@ -253,16 +253,19 @@ export default async function rollup(rawInputOptions: GenericConfigObject): Prom
 			outputBundle = assignChunksToBundle(chunks, outputBundleWithPlaceholders);
 
 			await Promise.all(
-				chunks.map(async chunk => {
+				chunks.map(chunk => {
 					const outputChunk = outputBundleWithPlaceholders[chunk.id as string] as OutputChunk;
-					const rendered = await chunk.render(outputOptions, addons, outputChunk);
-					outputChunk.code = rendered.code;
-					outputChunk.map = rendered.map;
+					const _ = chunk.render(outputOptions, addons, outputChunk);
+					return (async () => {
+						const rendered = await _;
+						outputChunk.code = rendered.code;
+						outputChunk.map = rendered.map;
 
-					return graph.pluginDriver.hookParallel('ongenerate', [
-						{ bundle: outputChunk, ...outputOptions },
-						outputChunk
-					]);
+						return graph.pluginDriver.hookParallel('ongenerate', [
+							{ bundle: outputChunk, ...outputOptions },
+							outputChunk
+						]);
+					})();
 				})
 			);
 		} catch (error) {
@@ -376,7 +379,7 @@ function isOutputAsset(file: OutputAsset | OutputChunk): file is OutputAsset {
 	return (file as OutputAsset).isAsset === true;
 }
 
-async function writeOutputFile(
+function writeOutputFile(
 	graph: Graph,
 	build: RollupBuild,
 	outputFile: OutputAsset | OutputChunk,
@@ -404,16 +407,19 @@ async function writeOutputFile(
 		}
 	}
 
-	await writeFile(fileName, source);
-	await writeSourceMapPromise;
-	!isOutputAsset(outputFile) &&
-	await graph.pluginDriver.hookSeq('onwrite', [
-		{
-			bundle: build,
-			...outputOptions
-		},
-		outputFile
-	]);
+	const _ = writeFile(fileName, source);
+	return (async () => {
+		await _;
+		await writeSourceMapPromise;
+		!isOutputAsset(outputFile) &&
+		await graph.pluginDriver.hookSeq('onwrite', [
+			{
+				bundle: build,
+				...outputOptions
+			},
+			outputFile
+		]);
+	})();
 }
 
 function normalizeOutputOptions(

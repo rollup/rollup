@@ -98,90 +98,91 @@ export default function transform(
 
 	let setAssetSourceErr: any;
 
+	const _ = graph.pluginDriver.hookReduceArg0<any, string>(
+		'transform',
+		[curSource, id],
+		transformReducer,
+		(pluginContext, plugin) => {
+			curPlugin = plugin;
+			if (curPlugin.cacheKey) customTransformCache = true;
+			else trackedPluginCache = trackPluginCache(pluginContext.cache);
+			return {
+				...pluginContext,
+				cache: trackedPluginCache ? trackedPluginCache.cache : pluginContext.cache,
+				warn(warning: RollupWarning | string, pos?: number | { column: number; line: number }) {
+					if (typeof warning === 'string') warning = { message: warning } as RollupWarning;
+					if (pos) augmentCodeLocation(warning, pos, curSource, id);
+					warning.id = id;
+					warning.hook = 'transform';
+					pluginContext.warn(warning);
+				},
+				error(err: RollupError | string, pos?: number | { column: number; line: number }): never {
+					if (typeof err === 'string') err = { message: err };
+					if (pos) augmentCodeLocation(err, pos, curSource, id);
+					err.id = id;
+					err.hook = 'transform';
+					return pluginContext.error(err);
+				},
+				emitAsset(name: string, source?: string | Buffer) {
+					const emittedFile = { type: 'asset' as 'asset', name, source };
+					emittedFiles.push({ ...emittedFile });
+					return graph.pluginDriver.emitFile(emittedFile);
+				},
+				emitChunk(id, options) {
+					const emittedFile = { type: 'chunk' as 'chunk', id, name: options && options.name };
+					emittedFiles.push({ ...emittedFile });
+					return graph.pluginDriver.emitFile(emittedFile);
+				},
+				emitFile(emittedFile: EmittedFile) {
+					emittedFiles.push(emittedFile);
+					return graph.pluginDriver.emitFile(emittedFile);
+				},
+				addWatchFile(id: string) {
+					transformDependencies.push(id);
+					pluginContext.addWatchFile(id);
+				},
+				setAssetSource(assetReferenceId, source) {
+					pluginContext.setAssetSource(assetReferenceId, source);
+					if (!customTransformCache && !setAssetSourceErr) {
+						try {
+							this.error({
+								code: 'INVALID_SETASSETSOURCE',
+								message: `setAssetSource cannot be called in transform for caching reasons. Use emitFile with a source, or call setAssetSource in another hook.`
+							});
+						} catch (err) {
+							setAssetSourceErr = err;
+						}
+					}
+				},
+				getCombinedSourcemap() {
+					const combinedMap = collapseSourcemap(
+						graph,
+						id,
+						originalCode,
+						originalSourcemap,
+						sourcemapChain
+					);
+					if (!combinedMap) {
+						const magicString = new MagicString(originalCode);
+						return magicString.generateMap({ includeContent: true, hires: true, source: id });
+					}
+					if (originalSourcemap !== combinedMap) {
+						originalSourcemap = combinedMap;
+						sourcemapChain.length = 0;
+					}
+					return new SourceMap({
+						...combinedMap,
+						file: null as any,
+						sourcesContent: combinedMap.sourcesContent as string[]
+					});
+				}
+			};
+		}
+	);
 	return (async () => {
 		let code;
 		try {
-			code = await graph.pluginDriver.hookReduceArg0<any, string>(
-				'transform',
-				[curSource, id],
-				transformReducer,
-				(pluginContext, plugin) => {
-					curPlugin = plugin;
-					if (curPlugin.cacheKey) customTransformCache = true;
-					else trackedPluginCache = trackPluginCache(pluginContext.cache);
-					return {
-						...pluginContext,
-						cache: trackedPluginCache ? trackedPluginCache.cache : pluginContext.cache,
-						warn(warning: RollupWarning | string, pos?: number | { column: number; line: number }) {
-							if (typeof warning === 'string') warning = { message: warning } as RollupWarning;
-							if (pos) augmentCodeLocation(warning, pos, curSource, id);
-							warning.id = id;
-							warning.hook = 'transform';
-							pluginContext.warn(warning);
-						},
-						error(err: RollupError | string, pos?: number | { column: number; line: number }): never {
-							if (typeof err === 'string') err = { message: err };
-							if (pos) augmentCodeLocation(err, pos, curSource, id);
-							err.id = id;
-							err.hook = 'transform';
-							return pluginContext.error(err);
-						},
-						emitAsset(name: string, source?: string | Buffer) {
-							const emittedFile = { type: 'asset' as 'asset', name, source };
-							emittedFiles.push({ ...emittedFile });
-							return graph.pluginDriver.emitFile(emittedFile);
-						},
-						emitChunk(id, options) {
-							const emittedFile = { type: 'chunk' as 'chunk', id, name: options && options.name };
-							emittedFiles.push({ ...emittedFile });
-							return graph.pluginDriver.emitFile(emittedFile);
-						},
-						emitFile(emittedFile: EmittedFile) {
-							emittedFiles.push(emittedFile);
-							return graph.pluginDriver.emitFile(emittedFile);
-						},
-						addWatchFile(id: string) {
-							transformDependencies.push(id);
-							pluginContext.addWatchFile(id);
-						},
-						setAssetSource(assetReferenceId, source) {
-							pluginContext.setAssetSource(assetReferenceId, source);
-							if (!customTransformCache && !setAssetSourceErr) {
-								try {
-									this.error({
-										code: 'INVALID_SETASSETSOURCE',
-										message: `setAssetSource cannot be called in transform for caching reasons. Use emitFile with a source, or call setAssetSource in another hook.`
-									});
-								} catch (err) {
-									setAssetSourceErr = err;
-								}
-							}
-						},
-						getCombinedSourcemap() {
-							const combinedMap = collapseSourcemap(
-								graph,
-								id,
-								originalCode,
-								originalSourcemap,
-								sourcemapChain
-							);
-							if (!combinedMap) {
-								const magicString = new MagicString(originalCode);
-								return magicString.generateMap({ includeContent: true, hires: true, source: id });
-							}
-							if (originalSourcemap !== combinedMap) {
-								originalSourcemap = combinedMap;
-								sourcemapChain.length = 0;
-							}
-							return new SourceMap({
-								...combinedMap,
-								file: null as any,
-								sourcesContent: combinedMap.sourcesContent as string[]
-							});
-						}
-					};
-				}
-			);
+			code = await _;
 		} catch (err) {
 			code = await throwPluginError(err, curPlugin!.name, { hook: 'transform', id });
 		}

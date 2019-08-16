@@ -121,7 +121,7 @@ export class ModuleLoader {
 		this.getManualChunk = typeof getManualChunk === 'function' ? getManualChunk : () => null;
 	}
 
-	async addEntryModules(
+	addEntryModules(
 		unresolvedEntryModules: UnresolvedModule[],
 		isUserDefined: boolean
 	): Promise<{
@@ -131,9 +131,10 @@ export class ModuleLoader {
 	}> {
 		const firstEntryModuleIndex = this.nextEntryModuleIndex;
 		this.nextEntryModuleIndex += unresolvedEntryModules.length;
-		const entryModules = await Promise.all(
-			unresolvedEntryModules.map(async ({ fileName, id, name }) => {
-				const module = await this.loadEntryModule(id, true);
+		const _ = unresolvedEntryModules.map(({ fileName, id, name }) => {
+			const _ = this.loadEntryModule(id, true);
+			return (async () => {
+				const module = await _;
 				if (fileName !== null) {
 					module.chunkFileNames.add(fileName);
 				} else if (name !== null) {
@@ -145,33 +146,36 @@ export class ModuleLoader {
 					}
 				}
 				return module;
-			})
-		);
-		const loadNewEntryModulesPromise = (async entryModules => {
-			let moduleIndex = firstEntryModuleIndex;
-			for (const entryModule of entryModules) {
-				entryModule.isUserDefinedEntryPoint = entryModule.isUserDefinedEntryPoint || isUserDefined;
-				const existingIndexModule = this.indexedEntryModules.find(
-					indexedModule => indexedModule.module.id === entryModule.id
-				);
-				if (!existingIndexModule) {
-					this.indexedEntryModules.push({ module: entryModule, index: moduleIndex });
-				} else {
-					existingIndexModule.index = Math.min(existingIndexModule.index, moduleIndex);
+			})();
+		});
+		return (async () => {
+			const entryModules = await Promise.all(_);
+			const loadNewEntryModulesPromise = (async entryModules => {
+				let moduleIndex = firstEntryModuleIndex;
+				for (const entryModule of entryModules) {
+					entryModule.isUserDefinedEntryPoint = entryModule.isUserDefinedEntryPoint || isUserDefined;
+					const existingIndexModule = this.indexedEntryModules.find(
+						indexedModule => indexedModule.module.id === entryModule.id
+					);
+					if (!existingIndexModule) {
+						this.indexedEntryModules.push({ module: entryModule, index: moduleIndex });
+					} else {
+						existingIndexModule.index = Math.min(existingIndexModule.index, moduleIndex);
+					}
+					moduleIndex++;
 				}
-				moduleIndex++;
-			}
-			this.indexedEntryModules.sort(({ index: indexA }, { index: indexB }) =>
-				indexA > indexB ? 1 : -1
-			);
-			return entryModules;
-		})(entryModules);
-		const newEntryModules = await this.awaitLoadModulesPromise(loadNewEntryModulesPromise);
-		return {
-			entryModules: this.indexedEntryModules.map(({ module }) => module),
-			manualChunkModulesByAlias: this.manualChunkModules,
-			newEntryModules
-		};
+				this.indexedEntryModules.sort(({ index: indexA }, { index: indexB }) =>
+					indexA > indexB ? 1 : -1
+				);
+				return entryModules;
+			})(entryModules);
+			const newEntryModules = await this.awaitLoadModulesPromise(loadNewEntryModulesPromise);
+			return {
+				entryModules: this.indexedEntryModules.map(({ module }) => module),
+				manualChunkModulesByAlias: this.manualChunkModules,
+				newEntryModules
+			};
+		})();
 	}
 
 	addManualChunks(manualChunks: Record<string, string[]>): Promise<void> {
@@ -233,30 +237,34 @@ export class ModuleLoader {
 		return loadNewModulesPromise;
 	}
 
-	private async fetchAllDependencies(module: Module) {
+	private fetchAllDependencies(module: Module) {
 		const fetchDynamicImportsPromise = Promise.all(
-			module.getDynamicImportExpressions().map(async (specifier, index) => {
-				const resolvedId = await this.resolveDynamicImport(module, specifier as string | ESTree.Node, module.id)
-				if (resolvedId === null) return;
-				const dynamicImport = module.dynamicImports[index];
-				if (typeof resolvedId === 'string') {
-					dynamicImport.resolution = resolvedId;
-					return;
-				}
-				dynamicImport.resolution = await this.fetchResolvedDependency(
-					relativeId(resolvedId.id),
-					module.id,
-					resolvedId
-				);
+			module.getDynamicImportExpressions().map((specifier, index) => {
+				const _ = this.resolveDynamicImport(module, specifier as string | ESTree.Node, module.id);
+				return (async () => {
+					const resolvedId = await _;
+					if (resolvedId === null) return;
+					const dynamicImport = module.dynamicImports[index];
+					if (typeof resolvedId === 'string') {
+						dynamicImport.resolution = resolvedId;
+						return;
+					}
+					dynamicImport.resolution = await this.fetchResolvedDependency(
+						relativeId(resolvedId.id),
+						module.id,
+						resolvedId
+					);
+				})();
 			})
 		);
 		if (typeof fetchDynamicImportsPromise.catch === 'function') {
 			fetchDynamicImportsPromise.catch(() => {});
 		}
-		await Promise.all(
-			module.sources.map(source => this.resolveAndFetchDependency(module, source))
-		);
-		return fetchDynamicImportsPromise;
+		const _ = module.sources.map(source => this.resolveAndFetchDependency(module, source));
+		return (async () => {
+			await Promise.all(_);
+			return fetchDynamicImportsPromise;
+		})();
 	}
 
 	private fetchModule(
@@ -281,10 +289,11 @@ export class ModuleLoader {
 		}
 
 		timeStart('load modules', 3);
+		const _ = this.pluginDriver.hookFirst('load', [id]);
 		return (async () => {
 			let source;
 			try {
-				source = await this.pluginDriver.hookFirst('load', [id]);
+				source = await _;
 			} catch (err) {
 				timeEnd('load modules', 3);
 				let msg = `Could not load ${id}`;
@@ -387,22 +396,25 @@ export class ModuleLoader {
 		return resolvedId;
 	}
 
-	private loadEntryModule = async (unresolvedId: string, isEntry: boolean): Promise<Module> => {
-		const resolveIdResult = await this.pluginDriver.hookFirst('resolveId', [unresolvedId, undefined]);
-		if (
-			resolveIdResult === false ||
-			(resolveIdResult && typeof resolveIdResult === 'object' && resolveIdResult.external)
-		) {
-			return error(errEntryCannotBeExternal(unresolvedId));
-		}
-		const id =
-			resolveIdResult && typeof resolveIdResult === 'object'
-				? resolveIdResult.id
-				: resolveIdResult;
-		if (typeof id === 'string') {
-			return this.fetchModule(id, undefined as any, true, isEntry);
-		}
-		return error(errUnresolvedEntry(unresolvedId));
+	private loadEntryModule = (unresolvedId: string, isEntry: boolean): Promise<Module> => {
+		const _ = this.pluginDriver.hookFirst('resolveId', [unresolvedId, undefined]);
+		return (async () => {
+			const resolveIdResult = await _;
+			if (
+				resolveIdResult === false ||
+				(resolveIdResult && typeof resolveIdResult === 'object' && resolveIdResult.external)
+			) {
+				return error(errEntryCannotBeExternal(unresolvedId));
+			}
+			const id =
+				resolveIdResult && typeof resolveIdResult === 'object'
+					? resolveIdResult.id
+					: resolveIdResult;
+			if (typeof id === 'string') {
+				return this.fetchModule(id, undefined as any, true, isEntry);
+			}
+			return error(errUnresolvedEntry(unresolvedId));
+		})();
 	};
 
 	private normalizeResolveIdResult(
