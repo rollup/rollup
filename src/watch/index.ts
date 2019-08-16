@@ -88,10 +88,10 @@ export class Watcher {
 
 		try {
 			for (const task of this.tasks) await task.run();
-			
+
 			this.succeeded = true;
 			this.running = false;
-			
+
 			this.emit('event', {
 				code: 'END'
 			});
@@ -102,7 +102,7 @@ export class Watcher {
 				error
 			});
 		}
-		
+
 		if (this.rerun) {
 			this.rerun = false;
 			this.invalidate();
@@ -211,7 +211,7 @@ export class Task {
 				if (this.closed) return undefined as any;
 				const previouslyWatched = this.watched;
 				const watched = (this.watched = new Set());
-				
+
 				this.cache = result.cache;
 				this.watchFiles = result.watchFiles;
 				for (const module of this.cache.modules as ModuleJSON[]) {
@@ -229,9 +229,9 @@ export class Task {
 				for (const id of previouslyWatched) {
 					if (!watched.has(id)) deleteTask(id, this, this.chokidarOptionsHash);
 				}
-				
+
 				await Promise.all(this.outputs.map(output => result.write(output)))
-				
+
 				this.watcher.emit('event', {
 					code: 'BUNDLE_END',
 					duration: Date.now() - start,
@@ -241,7 +241,7 @@ export class Task {
 				});
 			} catch (error) {
 				if (this.closed) return;
-				
+
 				if (this.cache) {
 					// this is necessary to ensure that any 'renamed' files
 					// continue to be watched following an error

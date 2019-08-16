@@ -708,15 +708,15 @@ export default class Chunk {
 				renderChunk: outputChunk,
 				sourcemapChain: chunkSourcemapChain
 			});
-			
+
 			if (options.sourcemap) {
 				timeStart('sourcemap', 3);
-				
+
 				let file: string;
 				if (options.file) file = resolve(options.sourcemapFile || options.file);
 				else if (options.dir) file = resolve(options.dir, this.id as string);
 				else file = resolve(this.id as string);
-				
+
 				const decodedMap = magicString.generateDecodedMap({});
 				map = collapseSourcemaps(
 					this,
@@ -731,12 +731,12 @@ export default class Chunk {
 						options.sourcemapPathTransform ? options.sourcemapPathTransform(sourcePath) : sourcePath
 					)
 				);
-				
+
 				timeEnd('sourcemap', 3);
 			}
-			
+
 			if (options.compact !== true && code[code.length - 1] !== '\n') code += '\n';
-			
+
 			return { code, map };
 		})();
 	}

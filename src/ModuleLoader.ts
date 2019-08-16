@@ -314,7 +314,7 @@ export class ModuleLoader {
 						}
 						return cachedModule;
 					}
-					
+
 					if (typeof sourceDescription.moduleSideEffects === 'boolean') {
 						module.moduleSideEffects = sourceDescription.moduleSideEffects;
 					}
@@ -332,7 +332,7 @@ export class ModuleLoader {
 					const id = module.resolvedIds[source].id;
 					const exportAllModule = this.modulesById.get(id);
 					if (exportAllModule instanceof ExternalModule) return;
-					
+
 					for (const name in (exportAllModule as Module).exportsAll) {
 						if (name in module.exportsAll) {
 							this.graph.warn(errNamespaceConflict(name, module, exportAllModule as Module));
