@@ -79,37 +79,34 @@ export class Watcher {
 		}, DELAY);
 	}
 
-	private run() {
+	private async run() {
 		this.running = true;
 
 		this.emit('event', {
 			code: 'START'
 		});
 
-		let taskPromise = Promise.resolve();
-		for (const task of this.tasks) taskPromise = taskPromise.then(() => task.run());
-		return taskPromise
-			.then(() => {
-				this.succeeded = true;
-				this.running = false;
-
-				this.emit('event', {
-					code: 'END'
-				});
-			})
-			.catch(error => {
-				this.running = false;
-				this.emit('event', {
-					code: this.succeeded ? 'ERROR' : 'FATAL',
-					error
-				});
-			})
-			.then(() => {
-				if (this.rerun) {
-					this.rerun = false;
-					this.invalidate();
-				}
+		try {
+			for (const task of this.tasks) await task.run();
+			
+			this.succeeded = true;
+			this.running = false;
+			
+			this.emit('event', {
+				code: 'END'
 			});
+		} catch (error) {
+			this.running = false;
+			this.emit('event', {
+				code: this.succeeded ? 'ERROR' : 'FATAL',
+				error
+			});
+		}
+		
+		if (this.rerun) {
+			this.rerun = false;
+			this.invalidate();
+		}
 	}
 }
 
@@ -208,12 +205,13 @@ export class Task {
 		});
 
 		setWatcher(this.watcher.emitter);
-		return rollup(options)
-			.then(result => {
+		return (async () => {
+			try {
+				const result :RollupBuild = await rollup(options);
 				if (this.closed) return undefined as any;
 				const previouslyWatched = this.watched;
 				const watched = (this.watched = new Set());
-
+				
 				this.cache = result.cache;
 				this.watchFiles = result.watchFiles;
 				for (const module of this.cache.modules as ModuleJSON[]) {
@@ -231,10 +229,9 @@ export class Task {
 				for (const id of previouslyWatched) {
 					if (!watched.has(id)) deleteTask(id, this, this.chokidarOptionsHash);
 				}
-
-				return Promise.all(this.outputs.map(output => result.write(output))).then(() => result);
-			})
-			.then((result: RollupBuild) => {
+				
+				await Promise.all(this.outputs.map(output => result.write(output)))
+				
 				this.watcher.emit('event', {
 					code: 'BUNDLE_END',
 					duration: Date.now() - start,
@@ -242,10 +239,9 @@ export class Task {
 					output: this.outputFiles,
 					result
 				});
-			})
-			.catch((error: Error) => {
+			} catch (error) {
 				if (this.closed) return;
-
+				
 				if (this.cache) {
 					// this is necessary to ensure that any 'renamed' files
 					// continue to be watched following an error
@@ -263,7 +259,8 @@ export class Task {
 					});
 				}
 				throw error;
-			});
+			}
+		})();
 	}
 
 	watchFile(id: string, isTransformDependency = false) {

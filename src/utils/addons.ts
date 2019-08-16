@@ -27,25 +27,26 @@ const concatDblSep = (out: string, next: string) => (next ? `${out}\n\n${next}` 
 
 export function createAddons(graph: Graph, options: OutputOptions): Promise<Addons> {
 	const pluginDriver = graph.pluginDriver;
-	return Promise.all([
+	const _ = [
 		pluginDriver.hookReduceValue('banner', evalIfFn(options.banner), [], concatSep),
 		pluginDriver.hookReduceValue('footer', evalIfFn(options.footer), [], concatSep),
 		pluginDriver.hookReduceValue('intro', evalIfFn(options.intro), [], concatDblSep),
 		pluginDriver.hookReduceValue('outro', evalIfFn(options.outro), [], concatDblSep)
-	])
-		.then(([banner, footer, intro, outro]) => {
+	];
+	return (async () :Promise<any> => {
+		try {
+			let [banner, footer, intro, outro] = await Promise.all(_);
 			if (intro) intro += '\n\n';
 			if (outro) outro = `\n\n${outro}`;
 			if (banner.length) banner += '\n';
 			if (footer.length) footer = '\n' + footer;
-
 			return { intro, outro, banner, footer };
-		})
-		.catch((err): any => {
+		} catch (err) {
 			error({
 				code: 'ADDON_ERROR',
 				message: `Could not retrieve ${err.hook}. Check configuration of plugin ${err.plugin}.
 \tError Message: ${err.message}`
 			});
-		});
+		}
+	})();
 }

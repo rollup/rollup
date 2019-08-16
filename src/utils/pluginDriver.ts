@@ -273,10 +273,13 @@ export function createPluginDriver(
 				);
 			},
 			resolveId: getDeprecatedHookHandler(
-				(source: string, importer: string) =>
-					graph.moduleLoader
-						.resolveId(source, importer)
-						.then(resolveId => resolveId && resolveId.id),
+				(source: string, importer: string) => {
+					const _ = graph.moduleLoader.resolveId(source, importer);
+					return (async () => {
+						const resolveId = await _;
+						return resolveId && resolveId.id
+					})();
+				},
 				'resolveId',
 				'resolve',
 				plugin.name,
@@ -365,8 +368,8 @@ export function createPluginDriver(
 			if (!context || context === pluginContexts[pluginIndex])
 				throw new Error('Internal Rollup error: hookContext must return a new context object.');
 		}
-		return Promise.resolve()
-			.then(() => {
+		return (async () => {
+			try {
 				// permit values allows values to be returned instead of a functional hook
 				if (typeof hook !== 'function') {
 					if (permitValues) return hook;
@@ -376,8 +379,10 @@ export function createPluginDriver(
 					});
 				}
 				return hook.apply(context, args);
-			})
-			.catch(err => throwPluginError(err, plugin.name, { hook: hookName }));
+			} catch (err) {
+				return throwPluginError(err, plugin.name, { hook: hookName });
+			}
+		})();
 	}
 
 	const pluginDriver: PluginDriver = {
@@ -431,7 +436,9 @@ export function createPluginDriver(
 				if (!hookPromise) continue;
 				promises.push(hookPromise);
 			}
-			return Promise.all(promises).then(() => {});
+			return (async () => {
+				await Promise.all(promises);
+			})();
 		},
 
 		// chains, reduces returns of type R, to type T, handling the reduced value as the first hook argument

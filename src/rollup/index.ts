@@ -253,17 +253,16 @@ export default async function rollup(rawInputOptions: GenericConfigObject): Prom
 			outputBundle = assignChunksToBundle(chunks, outputBundleWithPlaceholders);
 
 			await Promise.all(
-				chunks.map(chunk => {
+				chunks.map(async chunk => {
 					const outputChunk = outputBundleWithPlaceholders[chunk.id as string] as OutputChunk;
-					return chunk.render(outputOptions, addons, outputChunk).then(rendered => {
-						outputChunk.code = rendered.code;
-						outputChunk.map = rendered.map;
+					const rendered = await chunk.render(outputOptions, addons, outputChunk);
+					outputChunk.code = rendered.code;
+					outputChunk.map = rendered.map;
 
-						return graph.pluginDriver.hookParallel('ongenerate', [
-							{ bundle: outputChunk, ...outputOptions },
-							outputChunk
-						]);
-					});
+					return graph.pluginDriver.hookParallel('ongenerate', [
+						{ bundle: outputChunk, ...outputOptions },
+						outputChunk
+					]);
 				})
 			);
 		} catch (error) {
@@ -281,11 +280,14 @@ export default async function rollup(rawInputOptions: GenericConfigObject): Prom
 	const result: RollupBuild = {
 		cache: cache as RollupCache,
 		generate: ((rawOutputOptions: GenericConfigObject) => {
-			const promise = generate(getOutputOptions(rawOutputOptions), false).then(result =>
-				createOutput(result)
-			);
-			Object.defineProperty(promise, 'code', throwAsyncGenerateError);
-			Object.defineProperty(promise, 'map', throwAsyncGenerateError);
+			const promise = (async () => {
+				const result = await generate(getOutputOptions(rawOutputOptions), false);
+				return createOutput(result);
+			})();
+			if (promise as unknown instanceof Promise) {
+				Object.defineProperty(promise, 'code', throwAsyncGenerateError);
+				Object.defineProperty(promise, 'map', throwAsyncGenerateError);
+			}
 			return promise;
 		}) as any,
 		watchFiles: Object.keys(graph.watchFiles),
@@ -297,7 +299,8 @@ export default async function rollup(rawInputOptions: GenericConfigObject): Prom
 					message: 'You must specify "output.file" or "output.dir" for the build.'
 				});
 			}
-			return generate(outputOptions, true).then(async bundle => {
+			return (async () => {
+				const bundle = await generate(outputOptions, true);
 				let chunkCnt = 0;
 				for (const fileName of Object.keys(bundle)) {
 					const file = bundle[fileName];
@@ -329,7 +332,7 @@ export default async function rollup(rawInputOptions: GenericConfigObject): Prom
 				);
 				await graph.pluginDriver.hookParallel('writeBundle', [bundle]);
 				return createOutput(bundle);
-			});
+			})();
 		}) as any
 	};
 	if (inputOptions.perf === true) result.getTimings = getTimings;
@@ -371,7 +374,7 @@ function isOutputAsset(file: OutputAsset | OutputChunk): file is OutputAsset {
 	return (file as OutputAsset).isAsset === true;
 }
 
-function writeOutputFile(
+async function writeOutputFile(
 	graph: Graph,
 	build: RollupBuild,
 	outputFile: OutputAsset | OutputChunk,
@@ -381,7 +384,7 @@ function writeOutputFile(
 		outputOptions.dir || dirname(outputOptions.file as string),
 		outputFile.fileName
 	);
-	let writeSourceMapPromise: Promise<void>;
+	let writeSourceMapPromise: Promise<void> | undefined;
 	let source: string | Buffer;
 	if (isOutputAsset(outputFile)) {
 		source = outputFile.source;
@@ -399,20 +402,16 @@ function writeOutputFile(
 		}
 	}
 
-	return writeFile(fileName, source)
-		.then(() => writeSourceMapPromise)
-		.then(
-			(): any =>
-				!isOutputAsset(outputFile) &&
-				graph.pluginDriver.hookSeq('onwrite', [
-					{
-						bundle: build,
-						...outputOptions
-					},
-					outputFile
-				])
-		)
-		.then(() => {});
+	await writeFile(fileName, source);
+	await writeSourceMapPromise;
+	!isOutputAsset(outputFile) &&
+	await graph.pluginDriver.hookSeq('onwrite', [
+		{
+			bundle: build,
+			...outputOptions
+		},
+		outputFile
+	]);
 }
 
 function normalizeOutputOptions(

@@ -210,12 +210,14 @@ export default class Graph {
 
 		timeStart('parse modules', 2);
 
-		return Promise.all([
+		const _ = Promise.all([
 			this.moduleLoader.addEntryModules(normalizeEntryModules(entryModules), true),
 			(manualChunks &&
 				typeof manualChunks === 'object' &&
 				this.moduleLoader.addManualChunks(manualChunks)) as Promise<void>
-		]).then(([{ entryModules, manualChunkModulesByAlias }]) => {
+		]);
+		return (async () => {
+			const [{ entryModules, manualChunkModulesByAlias }] = await _;
 			if (entryModules.length === 0) {
 				throw new Error('You must supply options.input to rollup');
 			}
@@ -228,20 +230,20 @@ export default class Graph {
 				}
 			}
 			timeEnd('parse modules', 2);
-
+			
 			this.phase = BuildPhase.ANALYSE;
-
+			
 			// Phase 2 - linking. We populate the module dependency links and
 			// determine the topological execution order for the bundle
 			timeStart('analyse dependency graph', 2);
-
+			
 			this.link(entryModules);
-
+			
 			timeEnd('analyse dependency graph', 2);
-
+			
 			// Phase 3 – marking. We include all statements that should be included
 			timeStart('mark included statements', 2);
-
+			
 			if (inlineDynamicImports) {
 				if (entryModules.length > 1) {
 					throw new Error(
@@ -253,20 +255,20 @@ export default class Graph {
 				module.includeAllExports();
 			}
 			this.includeMarked(this.modules);
-
+			
 			// check for unused external imports
 			for (const externalModule of this.externalModules) externalModule.warnUnusedImports();
-
+			
 			timeEnd('mark included statements', 2);
-
+			
 			// Phase 4 – we construct the chunks, working out the optimal chunking using
 			// entry point graph colouring, before generating the import and export facades
 			timeStart('generate chunks', 2);
-
+			
 			if (!this.preserveModules && !inlineDynamicImports) {
 				assignChunkColouringHashes(entryModules, manualChunkModulesByAlias);
 			}
-
+			
 			// TODO: there is one special edge case unhandled here and that is that any module
 			//       exposed as an unresolvable export * (to a graph external export *,
 			//       either as a namespace import reexported or top-level export *)
@@ -291,7 +293,7 @@ export default class Graph {
 						chunkModules[entryPointsHashStr] = [module];
 					}
 				}
-
+				
 				for (const entryHashSum in chunkModules) {
 					const chunkModulesOrdered = chunkModules[entryHashSum];
 					sortByExecutionOrder(chunkModulesOrdered);
@@ -299,7 +301,7 @@ export default class Graph {
 					chunks.push(chunk);
 				}
 			}
-
+			
 			for (const chunk of chunks) {
 				chunk.link();
 			}
@@ -308,12 +310,12 @@ export default class Graph {
 			for (const chunk of chunks) {
 				facades.push(...chunk.generateFacades());
 			}
-
+			
 			timeEnd('generate chunks', 2);
-
+			
 			this.phase = BuildPhase.GENERATE;
 			return chunks.concat(facades);
-		});
+		})();
 	}
 
 	getCache(): RollupCache {

@@ -49,31 +49,30 @@ export default function renderChunk({
 
 	let inTransformBundle = false;
 	let inRenderChunk = true;
-	return graph.pluginDriver
-		.hookReduceArg0('renderChunk', [code, renderChunk, options], renderChunkReducer)
-		.then(code => {
+	const _ = graph.pluginDriver.hookReduceArg0('renderChunk', [code, renderChunk, options], renderChunkReducer);
+	return (async () => {
+		try {
+			let code = await _;
 			inRenderChunk = false;
-			return graph.pluginDriver.hookReduceArg0(
+			code = await graph.pluginDriver.hookReduceArg0(
 				'transformChunk',
 				[code, options, chunk],
 				renderChunkReducer
 			);
-		})
-		.then(code => {
 			inTransformBundle = true;
 			return graph.pluginDriver.hookReduceArg0(
 				'transformBundle',
 				[code, options, chunk],
 				renderChunkReducer
 			);
-		})
-		.catch(err => {
+		} catch (err) {
 			if (inRenderChunk) throw err;
 			return error(err, {
 				code: inTransformBundle ? 'BAD_BUNDLE_TRANSFORMER' : 'BAD_CHUNK_TRANSFORMER',
 				message: `Error transforming ${(inTransformBundle ? 'bundle' : 'chunk') +
-					(err.plugin ? ` with '${err.plugin}' plugin` : '')}: ${err.message}`,
+				(err.plugin ? ` with '${err.plugin}' plugin` : '')}: ${err.message}`,
 				plugin: err.plugin
 			});
-		});
+		}
+	})();
 }

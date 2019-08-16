@@ -267,25 +267,24 @@ export class FileEmitter {
 			name: emittedChunk.name || emittedChunk.id,
 			type: 'chunk'
 		};
-		this.graph.moduleLoader
-			.addEntryModules(
-				[
-					{
-						fileName: emittedChunk.fileName || null,
-						id: emittedChunk.id,
-						name: emittedChunk.name || null
-					}
-				],
-				false
-			)
-			.then(({ newEntryModules: [module] }) => {
+		(async () => {
+			try {
+				const { newEntryModules: [module] } = await this.graph.moduleLoader.addEntryModules(
+					[
+						{
+							fileName: emittedChunk.fileName || null,
+							id: emittedChunk.id as string,
+							name: emittedChunk.name || null
+						}
+					],
+					false
+				);
 				consumedChunk.module = module;
-			})
-			.catch(() => {
+			} catch (error) {
 				// Avoid unhandled Promise rejection as the error will be thrown later
 				// once module loading has finished
-			});
-
+			}
+		})();
 		return this.assignReferenceId(consumedChunk, emittedChunk.id);
 	}
 
