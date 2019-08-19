@@ -390,8 +390,10 @@ export function createPluginDriver(
 		// chains, ignores returns
 		hookSeq(name, args, hookContext) {
 			let promise: Promise<void> = Promise.resolve() as any;
-			for (let i = 0; i < plugins.length; i++)
-				promise = promise.then(() => runHook<void>(name, args as any[], i, false, hookContext));////
+			for (let i = 0; i < plugins.length; i++) {
+				const _i = i;
+				promise = promise.then(() => runHook<void>(name, args as any[], _i, false, hookContext));
+			}
 			return promise;
 		},
 
@@ -406,9 +408,10 @@ export function createPluginDriver(
 			let promise: Promise<any> = Promise.resolve();
 			for (let i = 0; i < plugins.length; i++) {
 				if (skip === i) continue;
+				const _i = i;
 				promise = promise.then((result: any) => {
 					if (result != null) return result;
-					return runHook(name, args as any[], i, false, hookContext);////
+					return runHook(name, args as any[], _i, false, hookContext);
 				});
 			}
 			return promise;
@@ -438,11 +441,12 @@ export function createPluginDriver(
 		hookReduceArg0(name, [arg0, ...args], reduce, hookContext) {
 			let promise = Promise.resolve(arg0);
 			for (let i = 0; i < plugins.length; i++) {
+				const _i = i;
 				promise = promise.then(arg0 => {
-					const hookPromise = runHook(name, [arg0, ...args], i, false, hookContext);////
+					const hookPromise = runHook(name, [arg0, ...args], _i, false, hookContext);
 					if (!hookPromise) return arg0;
 					return hookPromise.then((result: any) =>
-						reduce.call(pluginContexts[i], arg0, result, plugins[i])////
+						reduce.call(pluginContexts[_i], arg0, result, plugins[_i])
 					);
 				});
 			}
@@ -462,11 +466,12 @@ export function createPluginDriver(
 		hookReduceValue(name, initial, args, reduce, hookContext) {
 			let promise = Promise.resolve(initial);
 			for (let i = 0; i < plugins.length; i++) {
+				const _i = i;
 				promise = promise.then(value => {
-					const hookPromise = runHook(name, args, i, true, hookContext);////
+					const hookPromise = runHook(name, args, _i, true, hookContext);
 					if (!hookPromise) return value;
 					return hookPromise.then((result: any) =>
-						reduce.call(pluginContexts[i], value, result, plugins[i])////
+						reduce.call(pluginContexts[_i], value, result, plugins[_i])
 					);
 				});
 			}
