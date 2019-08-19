@@ -13,4 +13,4 @@ function accessArg(arg) {
 }
 accessArg(null);
 
-const foo4 = globalVar.unknownProperty;
+const foo4 = globalThis.globalThis.unknown.unknownProperty;

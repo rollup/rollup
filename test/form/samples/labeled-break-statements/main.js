@@ -23,7 +23,7 @@ label2: {
 }
 
 label2NoEffect: {
-	while ( foo ) {
+	while ( condition ) {
 		if ( condition ) {
 			break label2NoEffect;
 		}
@@ -31,8 +31,8 @@ label2NoEffect: {
 }
 
 label3:
-	while ( foo ) {
-		while ( bar ) {
+	while ( condition ) {
+		while ( condition ) {
 			if ( condition ) {
 				continue label3;
 			}

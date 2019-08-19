@@ -7,7 +7,14 @@ import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import FunctionScope from '../scopes/FunctionScope';
 import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
-import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
+import {
+	EMPTY_PATH,
+	LiteralValueOrUnknown,
+	ObjectPath,
+	UNKNOWN_EXPRESSION,
+	UNKNOWN_VALUE
+} from '../values';
+import GlobalVariable from '../variables/GlobalVariable';
 import LocalVariable from '../variables/LocalVariable';
 import Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
@@ -104,6 +111,14 @@ export default class Identifier extends NodeBase implements PatternNode {
 			return this.variable.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
 		}
 		return UNKNOWN_EXPRESSION;
+	}
+
+	hasEffects(): boolean {
+		// TODO Lukas observe the option here
+		return (
+			this.variable instanceof GlobalVariable &&
+			this.variable.hasEffectsWhenAccessedAtPath(EMPTY_PATH)
+		);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {

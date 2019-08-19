@@ -1,23 +1,23 @@
-const x = globalFunction;
+const x = globalThis.unknown;
 function y () {}
 
-switch ( anotherGlobal ) {
+switch ( globalThis.unknown ) {
 	case 1:
 		const x = function () {};
 		x();
 }
 
-switch ( anotherGlobal ) {
+switch ( globalThis.unknown ) {
 	case 2:
 		x();
 }
 
-switch ( anotherGlobal ) {
+switch ( globalThis.unknown ) {
 	case 3:
-		const y = globalFunction;
+		const y = globalThis.unknown;
 }
 y();
 
-switch ( globalFunction() ) {
+switch ( globalThis.unknown() ) {
 	case 4:
 }
