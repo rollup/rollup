@@ -47,7 +47,7 @@ export function findFirstOccurrenceOutsideComment(code: string, searchString: st
 	}
 }
 
-// This assumes there are no non-comment strings containing '/*' or '//'
+// This assumes "code" only contains white-space and comments
 function findFirstLineBreakOutsideComment(code: string) {
 	let lineBreakPos,
 		charCodeAfterSlash,
@@ -56,14 +56,13 @@ function findFirstLineBreakOutsideComment(code: string) {
 	while (true) {
 		start = code.indexOf('/', start);
 		if (start === -1 || start > lineBreakPos) return lineBreakPos;
+
+		// With our assumption, '/' always starts a comment. Determine comment type:
 		charCodeAfterSlash = code.charCodeAt(++start);
 		if (charCodeAfterSlash === 47 /*"/"*/) return lineBreakPos;
-		++start;
-		if (charCodeAfterSlash === 42 /*"*"*/) {
-			start = code.indexOf('*/', start) + 2;
-			if (start > lineBreakPos) {
-				lineBreakPos = code.indexOf('\n', start);
-			}
+		start = code.indexOf('*/', start + 2) + 2;
+		if (start > lineBreakPos) {
+			lineBreakPos = code.indexOf('\n', start);
 		}
 	}
 }
@@ -75,7 +74,6 @@ export function renderStatementList(
 	end: number,
 	options: RenderOptions
 ) {
-	if (statements.length === 0) return;
 	let currentNode, currentNodeStart, currentNodeNeedsBoundaries, nextNodeStart;
 	let nextNode = statements[0];
 	let nextNodeNeedsBoundaries = !nextNode.included || nextNode.needsBoundaries;
@@ -169,7 +167,7 @@ export function getCommaSeparatedNodesWithBoundaries<N extends Node>(
 	return splitUpNodes;
 }
 
-// This assumes there are no non-comment strings containing '/*' or '//' between start and end
+// This assumes there are only white-space and comments between start and end
 export function removeLineBreaks(code: MagicString, start: number, end: number) {
 	while (true) {
 		const lineBreakPos = findFirstLineBreakOutsideComment(code.original.slice(start, end));
