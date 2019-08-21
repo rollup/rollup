@@ -1,7 +1,7 @@
 # rollup changelog
 
 ## 1.20.0
-*unreleased*
+*2019-08.21*
 
 ### Features
 * Add augmentChunkHash plugin hook to be able to reflect changes in renderChunk in the chunk hash (#2921)
@@ -9,6 +9,7 @@
 ### Bug Fixes
 * Do not mutate the acorn options object (#3051)
 * Make sure the order of emitted chunks always reflects the order in which they were emitted (#3055)
+* Do not hang when there are strings containing comment-like syntax in some scenarios (#3069)
 
 ### Pull Requests
 * [#2921](https://github.com/rollup/rollup/pull/2921): Add augmentChunkHash plugin hook (@isidrok)
@@ -21,6 +22,8 @@
 * [#3055](https://github.com/rollup/rollup/pull/3055): Provide consistent chunking via a consistent order of entry modules when emitting chunks (@lukastaegert)
 * [#3058](https://github.com/rollup/rollup/pull/3058): Remove acorn-bigint and acorn-dynamic-import from bundle (@LongTengDao)
 * [#3061](https://github.com/rollup/rollup/pull/3061): Update to acorn@7 (@lukastaegert)
+* [#3063](https://github.com/rollup/rollup/pull/3063): Auto-generate license file (@lukastaegert)
+* [#3069](https://github.com/rollup/rollup/pull/3069): Prevent infinite loop when scanning for line-breaks and there are comment-like strings (@lukastaegert)
 
 ## 1.19.4
 *2019-08-07*
