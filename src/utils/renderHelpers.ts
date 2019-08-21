@@ -47,8 +47,11 @@ export function findFirstOccurrenceOutsideComment(code: string, searchString: st
 	}
 }
 
-export function findFirstLineBreakOutsideComment(code: string, start = 0) {
-	let lineBreakPos, charCodeAfterSlash;
+// This assumes there are no non-comment strings containing '/*' or '//'
+function findFirstLineBreakOutsideComment(code: string) {
+	let lineBreakPos,
+		charCodeAfterSlash,
+		start = 0;
 	lineBreakPos = code.indexOf('\n', start);
 	while (true) {
 		start = code.indexOf('/', start);
@@ -166,14 +169,14 @@ export function getCommaSeparatedNodesWithBoundaries<N extends Node>(
 	return splitUpNodes;
 }
 
+// This assumes there are no non-comment strings containing '/*' or '//' between start and end
 export function removeLineBreaks(code: MagicString, start: number, end: number) {
-	let lineBreakPos = start;
 	while (true) {
-		lineBreakPos = findFirstLineBreakOutsideComment(code.original, lineBreakPos);
-		if (lineBreakPos === -1 || lineBreakPos >= end) {
+		const lineBreakPos = findFirstLineBreakOutsideComment(code.original.slice(start, end));
+		if (lineBreakPos === -1) {
 			break;
 		}
-		code.remove(lineBreakPos, lineBreakPos + 1);
-		lineBreakPos++;
+		start = start + lineBreakPos + 1;
+		code.remove(start - 1, start);
 	}
 }
