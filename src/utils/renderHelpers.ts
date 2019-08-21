@@ -24,6 +24,7 @@ export interface NodeRenderOptions {
 
 export const NO_SEMICOLON: NodeRenderOptions = { isNoStatement: true };
 
+// This assumes there are only white-space and comments between start and the string we are looking for
 export function findFirstOccurrenceOutsideComment(code: string, searchString: string, start = 0) {
 	let searchPos, charCodeAfterSlash;
 	searchPos = code.indexOf(searchString, start);
@@ -32,35 +33,34 @@ export function findFirstOccurrenceOutsideComment(code: string, searchString: st
 		if (start === -1 || start > searchPos) return searchPos;
 		charCodeAfterSlash = code.charCodeAt(++start);
 		++start;
-		if (charCodeAfterSlash === 47 /*"/"*/) {
-			start = code.indexOf('\n', start) + 1;
-			if (start === 0) return -1;
-			if (start > searchPos) {
-				searchPos = code.indexOf(searchString, start);
-			}
-		} else if (charCodeAfterSlash === 42 /*"*"*/) {
-			start = code.indexOf('*/', start) + 2;
-			if (start > searchPos) {
-				searchPos = code.indexOf(searchString, start);
-			}
+
+		// With our assumption, '/' always starts a comment. Determine comment type:
+		start =
+			charCodeAfterSlash === 47 /*"/"*/
+				? code.indexOf('\n', start) + 1
+				: code.indexOf('*/', start) + 2;
+		if (start > searchPos) {
+			searchPos = code.indexOf(searchString, start);
 		}
 	}
 }
 
-export function findFirstLineBreakOutsideComment(code: string, start = 0) {
-	let lineBreakPos, charCodeAfterSlash;
+// This assumes "code" only contains white-space and comments
+function findFirstLineBreakOutsideComment(code: string) {
+	let lineBreakPos,
+		charCodeAfterSlash,
+		start = 0;
 	lineBreakPos = code.indexOf('\n', start);
 	while (true) {
 		start = code.indexOf('/', start);
 		if (start === -1 || start > lineBreakPos) return lineBreakPos;
+
+		// With our assumption, '/' always starts a comment. Determine comment type:
 		charCodeAfterSlash = code.charCodeAt(++start);
 		if (charCodeAfterSlash === 47 /*"/"*/) return lineBreakPos;
-		++start;
-		if (charCodeAfterSlash === 42 /*"*"*/) {
-			start = code.indexOf('*/', start) + 2;
-			if (start > lineBreakPos) {
-				lineBreakPos = code.indexOf('\n', start);
-			}
+		start = code.indexOf('*/', start + 2) + 2;
+		if (start > lineBreakPos) {
+			lineBreakPos = code.indexOf('\n', start);
 		}
 	}
 }
@@ -72,7 +72,6 @@ export function renderStatementList(
 	end: number,
 	options: RenderOptions
 ) {
-	if (statements.length === 0) return;
 	let currentNode, currentNodeStart, currentNodeNeedsBoundaries, nextNodeStart;
 	let nextNode = statements[0];
 	let nextNodeNeedsBoundaries = !nextNode.included || nextNode.needsBoundaries;
@@ -166,14 +165,14 @@ export function getCommaSeparatedNodesWithBoundaries<N extends Node>(
 	return splitUpNodes;
 }
 
+// This assumes there are only white-space and comments between start and end
 export function removeLineBreaks(code: MagicString, start: number, end: number) {
-	let lineBreakPos = start;
 	while (true) {
-		lineBreakPos = findFirstLineBreakOutsideComment(code.original, lineBreakPos);
-		if (lineBreakPos === -1 || lineBreakPos >= end) {
+		const lineBreakPos = findFirstLineBreakOutsideComment(code.original.slice(start, end));
+		if (lineBreakPos === -1) {
 			break;
 		}
-		code.remove(lineBreakPos, lineBreakPos + 1);
-		lineBreakPos++;
+		start = start + lineBreakPos + 1;
+		code.remove(start - 1, start);
 	}
 }
