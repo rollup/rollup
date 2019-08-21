@@ -24,6 +24,7 @@ export interface NodeRenderOptions {
 
 export const NO_SEMICOLON: NodeRenderOptions = { isNoStatement: true };
 
+// This assumes there are only white-space and comments between start and the string we are looking for
 export function findFirstOccurrenceOutsideComment(code: string, searchString: string, start = 0) {
 	let searchPos, charCodeAfterSlash;
 	searchPos = code.indexOf(searchString, start);
@@ -32,17 +33,14 @@ export function findFirstOccurrenceOutsideComment(code: string, searchString: st
 		if (start === -1 || start > searchPos) return searchPos;
 		charCodeAfterSlash = code.charCodeAt(++start);
 		++start;
-		if (charCodeAfterSlash === 47 /*"/"*/) {
-			start = code.indexOf('\n', start) + 1;
-			if (start === 0) return -1;
-			if (start > searchPos) {
-				searchPos = code.indexOf(searchString, start);
-			}
-		} else if (charCodeAfterSlash === 42 /*"*"*/) {
-			start = code.indexOf('*/', start) + 2;
-			if (start > searchPos) {
-				searchPos = code.indexOf(searchString, start);
-			}
+
+		// With our assumption, '/' always starts a comment. Determine comment type:
+		start =
+			charCodeAfterSlash === 47 /*"/"*/
+				? code.indexOf('\n', start) + 1
+				: code.indexOf('*/', start) + 2;
+		if (start > searchPos) {
+			searchPos = code.indexOf(searchString, start);
 		}
 	}
 }
