@@ -1,7 +1,7 @@
 # rollup changelog
 
 ## 1.20.0
-*2019-08.21*
+*2019-08-21*
 
 ### Features
 * Add augmentChunkHash plugin hook to be able to reflect changes in renderChunk in the chunk hash (#2921)

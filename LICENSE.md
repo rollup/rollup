@@ -58,7 +58,7 @@ Repository: https://github.com/adrianheine/acorn-import-meta
 ## acorn-walk
 License: MIT
 By: Marijn Haverbeke, Ingvar Stepanyan, Adrian Heine
-Repository: git+https://github.com/acornjs/acorn.git
+Repository: https://github.com/acornjs/acorn.git
 
 > Copyright (C) 2012-2018 by various contributors (see AUTHORS)
 > 
