@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 1.20.1
+*2019-08-22*
+
+### Bug Fixes
+* Fix an issue where variable names inside dynamic import expressions were not rendered correctly (#3073)
+* Fix type definition to allow a single watcher config as well as an array (#3074)
+
+### Pull Requests
+* [#3073](https://github.com/rollup/rollup/pull/3073): Fix wrong variable name in import expression (@lukastaegert)
+* [#3074](https://github.com/rollup/rollup/pull/3074): Fixes type definition on watch and Watcher constructor (@MicahZoltu)
+
 ## 1.20.0
 *2019-08-21*
 
