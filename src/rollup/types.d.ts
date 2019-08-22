@@ -593,7 +593,7 @@ type RollupWatcherEvent =
 	| {code:'FATAL', error:Error}
 
 export interface RollupWatcher extends EventEmitter {
-	on(event: 'event', listener: (event: RollupWatcherEvent) => void): void;
+	on(event: 'event', listener: (event: RollupWatcherEvent) => void): this;
 	close(): void;
 }
 
