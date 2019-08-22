@@ -584,7 +584,16 @@ export interface RollupWatchOptions extends InputOptions {
 	watch?: WatcherOptions;
 }
 
+type RollupWatcherEvent =
+	{code:'START'}
+	| {code: 'BUNDLE_START', input: InputOption, output: string | undefined}
+	| {code: 'BUNDLE_END', duration: number, input: InputOption, output: string | undefined, result: RollupBuild}
+	| {code:'END'}
+	| {code:'ERROR', error:Error}
+	| {code:'FATAL', error:Error}
+
 export interface RollupWatcher extends EventEmitter {
+	on(event: 'event', listener: (event: RollupWatcherEvent) => void): void;
 	close(): void;
 }
 
