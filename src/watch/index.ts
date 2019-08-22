@@ -28,7 +28,7 @@ export class Watcher {
 	private succeeded = false;
 	private tasks: Task[];
 
-	constructor(configs: GenericConfigObject[]) {
+	constructor(configs: GenericConfigObject[] | GenericConfigObject) {
 		this.emitter = new (class extends EventEmitter implements RollupWatcher {
 			close: () => void;
 			constructor(close: () => void) {
@@ -279,6 +279,6 @@ export class Task {
 	}
 }
 
-export default function watch(configs: GenericConfigObject[]): RollupWatcher {
+export default function watch(configs: GenericConfigObject[] | GenericConfigObject): RollupWatcher {
 	return new Watcher(configs).emitter;
 }
