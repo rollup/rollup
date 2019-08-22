@@ -54,6 +54,7 @@ export default class Import extends NodeBase {
 			);
 			code.overwrite(this.end - 1, this.end, importMechanism.right);
 		}
+		this.source.render(code, options);
 	}
 
 	renderFinalResolution(code: MagicString, resolution: string, format: string) {
