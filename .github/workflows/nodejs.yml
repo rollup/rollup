@@ -19,7 +19,8 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - name: npm install && npm run ci:test
       run: |
-        npm install
-        npm run ci:test
+        npm ci --ignore-scripts
+        node --version && npm --version
+        npm test
       env:
         CI: true
