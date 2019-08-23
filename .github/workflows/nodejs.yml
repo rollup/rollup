@@ -9,7 +9,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [12.x]
+        node-version: [6.x, 10.x]
 
     steps:
     - uses: actions/checkout@v1
@@ -19,6 +19,8 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - name: npm install, test
       run: |
-        npm ci --ignore-scripts && npm test
+        IF ${{ matrix.node-version }} LSS 8 npm i npm@5 -g
+        npm ci --ignore-scripts
+        npm test
       env:
         CI: true
