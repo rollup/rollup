@@ -26,6 +26,9 @@ runTestSuiteWithSamples('file hashes', path.resolve(__dirname, 'samples'), (dir,
 					const fileContentsByHash = new Map();
 					addAndCheckFileContentsByHash(fileContentsByHash, generated1);
 					addAndCheckFileContentsByHash(fileContentsByHash, generated2);
+					if (config.show) {
+						console.log(fileContentsByHash);
+					}
 				});
 			});
 		}
