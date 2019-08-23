@@ -1,6 +1,3 @@
-var a = () => {
-    console.log('props');
-};
+const foo = 1;
 
-a();
-a();
+console.log(foo);

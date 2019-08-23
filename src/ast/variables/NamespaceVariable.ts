@@ -19,10 +19,6 @@ export default class NamespaceVariable extends Variable {
 		super(context.getModuleName());
 		this.context = context;
 		this.module = context.module;
-		for (const name of this.context.getExports().concat(this.context.getReexports())) {
-			if (name[0] === '*' && name.length > 1) this.containsExternalNamespace = true;
-			this.memberVariables[name] = this.context.traceExport(name);
-		}
 	}
 
 	addReference(identifier: Identifier) {
@@ -66,6 +62,13 @@ export default class NamespaceVariable extends Variable {
 				for (const memberName of Object.keys(this.memberVariables))
 					this.context.includeVariable(this.memberVariables[memberName]);
 			}
+		}
+	}
+
+	initialise() {
+		for (const name of this.context.getExports().concat(this.context.getReexports())) {
+			if (name[0] === '*' && name.length > 1) this.containsExternalNamespace = true;
+			this.memberVariables[name] = this.context.traceExport(name);
 		}
 	}
 
