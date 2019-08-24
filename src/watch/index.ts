@@ -9,6 +9,7 @@ import {
 	OutputOptions,
 	RollupBuild,
 	RollupCache,
+	RollupError,
 	RollupWatcher,
 	WatcherOptions
 } from '../rollup/types';
@@ -100,7 +101,7 @@ export class Watcher {
 			.catch(error => {
 				this.running = false;
 				this.emit('event', {
-					code: this.succeeded ? 'ERROR' : 'FATAL',
+					code: 'ERROR',
 					error
 				});
 			})
@@ -243,8 +244,12 @@ export class Task {
 					result
 				});
 			})
-			.catch((error: Error) => {
+			.catch((error: RollupError) => {
 				if (this.closed) return;
+
+				Array.from(error.graph.moduleById.keys()).forEach(id => {
+					this.watchFile(id);
+				});
 
 				if (this.cache) {
 					// this is necessary to ensure that any 'renamed' files
