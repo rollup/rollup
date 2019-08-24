@@ -1,7 +1,7 @@
 const assert = require('assert');
 
 module.exports = {
-	description: 'provides a string representation for warnings',
+	description: 'provides a string conversion for warnings',
 	options: {
 		plugins: {
 			name: 'test-plugin',
