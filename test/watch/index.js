@@ -1054,7 +1054,7 @@ describe('rollup.watch', () => {
 						return sequence(watcher, [
 							'START',
 							'BUNDLE_START',
-							'FATAL',
+							'ERROR',
 							event => {
 								assert.ok(event.error.message.startsWith('Transform dependency'));
 								assert.ok(event.error.message.endsWith('does not exist.'));
