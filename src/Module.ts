@@ -244,7 +244,7 @@ export default class Module {
 	error(props: RollupError, pos: number) {
 		if (pos !== undefined) {
 			props.pos = pos;
-			props.graph = this.graph;
+			props.watchFiles = Array.from(this.graph.moduleById.keys());
 
 			let location = locate(this.code, pos, { offsetLine: 1 });
 			try {

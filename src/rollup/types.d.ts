@@ -1,12 +1,11 @@
 import * as ESTree from 'estree';
 import { EventEmitter } from 'events';
-import Graph from '../Graph';
 
 export const VERSION: string;
 
 export interface RollupError extends RollupLogProps {
-	graph: Graph;
 	stack?: string;
+	watchFiles: string[];
 }
 
 export interface RollupWarning extends RollupLogProps {

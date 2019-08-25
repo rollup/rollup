@@ -247,7 +247,7 @@ export class Task {
 			.catch((error: RollupError) => {
 				if (this.closed) return;
 
-				Array.from(error.graph.moduleById.keys()).forEach(id => {
+				error.watchFiles.forEach(id => {
 					this.watchFile(id);
 				});
 
