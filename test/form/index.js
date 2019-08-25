@@ -21,10 +21,15 @@ runTestSuiteWithSamples('form', path.resolve(__dirname, 'samples'), (dir, config
 						extend(
 							{
 								input: dir + '/main.js',
-								onwarn: msg => {
-									if (/No name was provided for/.test(msg)) return;
-									if (/as external dependency/.test(msg)) return;
-									console.error(msg);
+								onwarn: warning => {
+									if (
+										!(config.expectedWarnings && config.expectedWarnings.indexOf(warning.code) >= 0)
+									) {
+										throw new Error(
+											`Unexpected warnings (${warning.code}): ${warning.message}\n` +
+												'If you expect warnings, list their codes in config.expectedWarnings'
+										);
+									}
 								},
 								strictDeprecations: true
 							},

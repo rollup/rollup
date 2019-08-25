@@ -2,6 +2,10 @@ module.exports = {
 	description: 'reexports with interop: false',
 	options: {
 		external: ['external'],
-		output: { name: 'foo', interop: false }
+		output: {
+			globals: { external: 'external' },
+			name: 'foo',
+			interop: false
+		}
 	}
 };

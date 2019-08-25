@@ -2,6 +2,7 @@ const assert = require('assert');
 
 module.exports = {
 	description: 'plugin .transformBundle gets passed options',
+	expectedWarnings: ['DEPRECATED_FEATURE'],
 	options: {
 		strictDeprecations: false,
 		plugins: [

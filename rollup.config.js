@@ -135,8 +135,10 @@ function fixAcornEsmImport() {
 
 const moduleAliases = {
 	resolve: ['.js', '.json', '.md'],
-	'help.md': path.resolve('cli/help.md'),
-	'package.json': path.resolve('package.json')
+	entries: [
+		{ find: 'help.md', replacement: path.resolve('cli/help.md') },
+		{ find: 'package.json', replacement: path.resolve('package.json') }
+	]
 };
 
 const treeshake = {
