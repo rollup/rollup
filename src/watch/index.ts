@@ -247,9 +247,14 @@ export class Task {
 			.catch((error: RollupError) => {
 				if (this.closed) return;
 
-				error.watchFiles.forEach(id => {
-					this.watchFile(id);
-				});
+				if (this.watched.size === 0) {
+					const watched = (this.watched = new Set());
+
+					error.watchFiles.forEach(id => {
+						watched.add(id);
+						this.watchFile(id);
+					});
+				}
 
 				if (this.cache) {
 					// this is necessary to ensure that any 'renamed' files

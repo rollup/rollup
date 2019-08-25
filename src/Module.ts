@@ -44,7 +44,7 @@ import { error } from './utils/error';
 import getCodeFrame from './utils/getCodeFrame';
 import { getOriginalLocation } from './utils/getOriginalLocation';
 import { makeLegal } from './utils/identifierHelpers';
-import { basename, extname } from './utils/path';
+import { basename, extname, isAbsolute } from './utils/path';
 import { markPureCallExpressions } from './utils/pureComments';
 import relativeId from './utils/relativeId';
 import { RenderOptions } from './utils/renderHelpers';
@@ -244,7 +244,8 @@ export default class Module {
 	error(props: RollupError, pos: number) {
 		if (pos !== undefined) {
 			props.pos = pos;
-			props.watchFiles = Array.from(this.graph.moduleById.keys());
+			// Only consider absolute paths watchFiles since sometimes modules may be caught up in this
+			props.watchFiles = Array.from(this.graph.moduleById.keys()).filter(d => isAbsolute(d));
 
 			let location = locate(this.code, pos, { offsetLine: 1 });
 			try {
