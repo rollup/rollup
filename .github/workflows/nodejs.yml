@@ -1,3 +1,5 @@
+name: Node
+
 on: [push]
 
 jobs:
@@ -9,7 +11,7 @@ jobs:
       matrix:
         node: [ '10', '6' ]
 
-    name: Node ${{ matrix.node }} - Windows
+    name: ${{ matrix.node }} (Windows)
     steps:
     - name: Configure git line-breaks
       run: git config --global core.autocrlf false
