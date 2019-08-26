@@ -1,5 +1,5 @@
 module.exports = {
-	solo: true,
+	// solo: true,
 	description: 're-exports a named external export as default',
 	expectedWarnings: ['MIXED_EXPORTS'],
 	options: {

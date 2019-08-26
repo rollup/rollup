@@ -1,5 +1,5 @@
 module.exports = {
-	solo: true,
+	// solo: true,
 	description: 'reexports an external default export',
 	options: {
 		external: ['external'],

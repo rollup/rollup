@@ -68,7 +68,14 @@ export default function getExportBlock(
 	});
 
 	dependencies.forEach(
-		({ name, imports, reexports, isChunk, namedExportsMode: depNamedExportsMode }) => {
+		({
+			name,
+			imports,
+			reexports,
+			isChunk,
+			namedExportsMode: depNamedExportsMode,
+			exportsNames
+		}) => {
 			if (reexports && namedExportsMode) {
 				reexports.forEach(specifier => {
 					if (specifier.imported === 'default' && !isChunk) {
@@ -86,7 +93,8 @@ export default function getExportBlock(
 							);
 
 						if (exportBlock && !compact) exportBlock += '\n';
-						if (exportsNamesOrNamespace || reexportsDefaultAsDefault)
+						// TODO Lukas do we need the first parameter?
+						if (exportsNamesOrNamespace || (reexportsDefaultAsDefault && exportsNames))
 							exportBlock += `exports.${specifier.reexported}${_}=${_}${name}${
 								interop !== false ? '__default' : '.default'
 							};`;
