@@ -14,6 +14,7 @@ export default function getExportBlock(
 
 	if (!namedExportsMode) {
 		let local;
+		// TODO Lukas replace with loops
 		exports.some(expt => {
 			if (expt.exported === 'default') {
 				local = expt.local;
@@ -27,7 +28,10 @@ export default function getExportBlock(
 				if (!dep.reexports) return false;
 				return dep.reexports.some(expt => {
 					if (expt.reexported === 'default') {
-						local = dep.namedExportsMode && expt.imported !== '*' ? `${dep.name}.${expt.imported}` : dep.name;
+						local =
+							dep.namedExportsMode && expt.imported !== '*' && expt.imported !== 'default'
+								? `${dep.name}.${expt.imported}`
+								: dep.name;
 						return true;
 					}
 					return false;
