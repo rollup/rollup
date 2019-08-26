@@ -26,7 +26,6 @@ export class Watcher {
 	private invalidatedIds: Set<string> = new Set();
 	private rerun = false;
 	private running: boolean;
-	private succeeded = false;
 	private tasks: Task[];
 
 	constructor(configs: GenericConfigObject[] | GenericConfigObject) {
@@ -91,7 +90,6 @@ export class Watcher {
 		for (const task of this.tasks) taskPromise = taskPromise.then(() => task.run());
 		return taskPromise
 			.then(() => {
-				this.succeeded = true;
 				this.running = false;
 
 				this.emit('event', {
@@ -247,7 +245,7 @@ export class Task {
 			.catch((error: RollupError) => {
 				if (this.closed) return;
 
-				if (this.watched.size === 0) {
+				if (this.watched.size === 0 && error.watchFiles) {
 					const watched = (this.watched = new Set());
 
 					error.watchFiles.forEach(id => {

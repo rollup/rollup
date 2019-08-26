@@ -5,7 +5,7 @@ export const VERSION: string;
 
 export interface RollupError extends RollupLogProps {
 	stack?: string;
-	watchFiles: string[];
+	watchFiles?: string[];
 }
 
 export interface RollupWarning extends RollupLogProps {
