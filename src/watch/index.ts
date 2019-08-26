@@ -245,7 +245,7 @@ export class Task {
 			.catch((error: RollupError) => {
 				if (this.closed) return;
 
-				if (this.watched.size === 0 && error.watchFiles) {
+				if (this.watched.size === 0 && Array.isArray(error.watchFiles)) {
 					const watched = (this.watched = new Set());
 
 					error.watchFiles.forEach(id => {
