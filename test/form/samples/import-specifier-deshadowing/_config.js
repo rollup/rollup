@@ -2,6 +2,9 @@ module.exports = {
 	description: 'deshadows aliased import bindings',
 	options: {
 		external: ['react-sticky'],
-		output: { name: 'Sticky' }
+		output: {
+			globals: { 'react-sticky': 'reactSticky' },
+			name: 'Sticky'
+		}
 	}
 };

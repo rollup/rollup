@@ -1,7 +1,10 @@
 module.exports = {
 	description: 'external `export *` must not interfere with internal exports',
 	options: {
-		output: { name: 'exposedInternals' },
+		output: {
+			globals: { external: 'external' },
+			name: 'exposedInternals'
+		},
 		external: ['external']
 	}
 };

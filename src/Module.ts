@@ -346,9 +346,11 @@ export default class Module {
 	}
 
 	getOrCreateNamespace(): NamespaceVariable {
-		return (
-			this.namespaceVariable || (this.namespaceVariable = new NamespaceVariable(this.astContext))
-		);
+		if (!this.namespaceVariable) {
+			this.namespaceVariable = new NamespaceVariable(this.astContext);
+			this.namespaceVariable.initialise();
+		}
+		return this.namespaceVariable;
 	}
 
 	getReexports(): string[] {

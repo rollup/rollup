@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.20.2
+*2019-08-25*
+
+### Bug Fixes
+* Avoid an issue where circular namespace reexports would crash Rollup (#3074)
+
+### Pull Requests
+* [#3077](https://github.com/rollup/rollup/pull/3077): Handle namespaces that reexport themselves (@lukastaegert)
+
 ## 1.20.1
 *2019-08-22*
 

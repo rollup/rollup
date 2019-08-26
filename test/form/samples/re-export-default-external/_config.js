@@ -1,7 +1,10 @@
 module.exports = {
 	description: 're-exports a default import',
 	options: {
-		output: { name: 'reexportsDefaultExternal' },
+		output: {
+			globals: { external: 'external' },
+			name: 'reexportsDefaultExternal'
+		},
 		external: ['external']
 	}
 };

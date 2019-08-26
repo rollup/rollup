@@ -3,6 +3,7 @@ module.exports = {
 	options: {
 		external: ['external-package'],
 		output: {
+			globals: { 'external-package': 'externalPackage' },
 			name: 'iife'
 		}
 	}

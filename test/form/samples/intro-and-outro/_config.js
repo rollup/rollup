@@ -2,6 +2,7 @@ module.exports = {
 	description: 'adds an intro/outro',
 	options: {
 		output: {
+			globals: { external: 'a' },
 			intro: '/* this is an intro */',
 			outro: '/* this is an outro */',
 			name: 'foo'
