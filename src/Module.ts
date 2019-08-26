@@ -244,13 +244,9 @@ export default class Module {
 	error(props: RollupError, pos: number) {
 		if (pos !== undefined) {
 			props.pos = pos;
-			if (this.graph && typeof this.graph.moduleById === 'object') {
-				try {
-					// Only consider absolute paths watchFiles since sometimes modules may be caught up in this
-					props.watchFiles = Array.from(this.graph.moduleById.keys()).filter(d => isAbsolute(d));
-				} catch {
-					props.watchFiles = [];
-				}
+			if (this.graph && this.graph.moduleById instanceof Map === true) {
+				// Only consider absolute paths watchFiles since sometimes modules may be caught up in this
+				props.watchFiles = Array.from(this.graph.moduleById.keys()).filter(d => isAbsolute(d));
 			}
 
 			let location = locate(this.code, pos, { offsetLine: 1 });
