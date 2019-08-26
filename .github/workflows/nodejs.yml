@@ -11,13 +11,13 @@ jobs:
       matrix:
         node: [ '10', '6' ]
 
-    name: Node ${{ matrix.node }} tests
+    name: Node ${{ matrix.node }} - Windows
     steps:
     - name: Configure git line-breaks
       run: git config --global core.autocrlf false
     - name: Checkout repository
       uses: actions/checkout@v1
-    - name: Use Node.js ${{ matrix.node }}
+    - name: Configure Node version
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node }}
