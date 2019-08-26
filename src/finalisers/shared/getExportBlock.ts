@@ -14,29 +14,26 @@ export default function getExportBlock(
 
 	if (!namedExportsMode) {
 		let local;
-		// TODO Lukas replace with loops
-		exports.some(expt => {
+		for (const expt of exports) {
 			if (expt.exported === 'default') {
 				local = expt.local;
-				return true;
+				break;
 			}
-			return false;
-		});
-		// search for reexported default otherwise
+		}
 		if (!local) {
-			dependencies.some(dep => {
-				if (!dep.reexports) return false;
-				return dep.reexports.some(expt => {
-					if (expt.reexported === 'default') {
-						local =
-							dep.namedExportsMode && expt.imported !== '*' && expt.imported !== 'default'
-								? `${dep.name}.${expt.imported}`
-								: dep.name;
-						return true;
+			findReexportedDefault: for (const dep of dependencies) {
+				if (dep.reexports) {
+					for (const expt of dep.reexports) {
+						if (expt.reexported === 'default') {
+							local =
+								dep.namedExportsMode && expt.imported !== '*' && expt.imported !== 'default'
+									? `${dep.name}.${expt.imported}`
+									: dep.name;
+							break findReexportedDefault;
+						}
 					}
-					return false;
-				});
-			});
+				}
+			}
 		}
 		return `${mechanism}${local};`;
 	}
@@ -79,26 +76,23 @@ export default function getExportBlock(
 			if (reexports && namedExportsMode) {
 				reexports.forEach(specifier => {
 					if (specifier.imported === 'default' && !isChunk) {
-						const exportsNamesOrNamespace =
-							(imports && imports.some(specifier => specifier.imported !== 'default')) ||
-							(reexports &&
-								reexports.some(
-									specifier => specifier.imported !== 'default' && specifier.imported !== '*'
-								));
-
-						const reexportsDefaultAsDefault =
-							reexports &&
-							reexports.some(
-								specifier => specifier.imported === 'default' && specifier.reexported === 'default'
-							);
-
 						if (exportBlock && !compact) exportBlock += '\n';
-						// TODO Lukas do we need the first parameter?
-						if (exportsNamesOrNamespace || (reexportsDefaultAsDefault && exportsNames))
+						if (
+							exportsNames &&
+							((reexports &&
+								reexports.some(specifier =>
+									specifier.imported === 'default'
+										? specifier.reexported === 'default'
+										: specifier.imported !== '*'
+								)) ||
+								(imports && imports.some(specifier => specifier.imported !== 'default')))
+						) {
 							exportBlock += `exports.${specifier.reexported}${_}=${_}${name}${
 								interop !== false ? '__default' : '.default'
 							};`;
-						else exportBlock += `exports.${specifier.reexported}${_}=${_}${name};`;
+						} else {
+							exportBlock += `exports.${specifier.reexported}${_}=${_}${name};`;
+						}
 					} else if (specifier.imported !== '*') {
 						if (exportBlock && !compact) exportBlock += '\n';
 						const importName =
