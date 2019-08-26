@@ -14,24 +14,16 @@ export default function getExportBlock(
 
 	if (!namedExportsMode) {
 		let local;
-		for (const expt of exports) {
-			if (expt.exported === 'default') {
-				local = expt.local;
-				break;
-			}
-		}
-		if (!local) {
-			findReexportedDefault: for (const dep of dependencies) {
+		if (exports.length > 0) {
+			local = exports[0].local;
+		} else {
+			for (const dep of dependencies) {
 				if (dep.reexports) {
-					for (const expt of dep.reexports) {
-						if (expt.reexported === 'default') {
-							local =
-								dep.namedExportsMode && expt.imported !== '*' && expt.imported !== 'default'
-									? `${dep.name}.${expt.imported}`
-									: dep.name;
-							break findReexportedDefault;
-						}
-					}
+					const expt = dep.reexports[0];
+					local =
+						dep.namedExportsMode && expt.imported !== '*' && expt.imported !== 'default'
+							? `${dep.name}.${expt.imported}`
+							: dep.name;
 				}
 			}
 		}
@@ -79,12 +71,11 @@ export default function getExportBlock(
 						if (exportBlock && !compact) exportBlock += '\n';
 						if (
 							exportsNames &&
-							((reexports &&
-								reexports.some(specifier =>
-									specifier.imported === 'default'
-										? specifier.reexported === 'default'
-										: specifier.imported !== '*'
-								)) ||
+							(reexports.some(specifier =>
+								specifier.imported === 'default'
+									? specifier.reexported === 'default'
+									: specifier.imported !== '*'
+							) ||
 								(imports && imports.some(specifier => specifier.imported !== 'default')))
 						) {
 							exportBlock += `exports.${specifier.reexported}${_}=${_}${name}${
@@ -106,7 +97,7 @@ export default function getExportBlock(
 							  `${t}${t}return ${importName};${n}${t}}${n}});`
 							: `exports.${specifier.reexported}${_}=${_}${importName};`;
 					} else if (specifier.reexported !== '*') {
-						if (exportBlock && !compact) exportBlock += '\n';
+						if (exportBlock) exportBlock += n;
 						exportBlock += `exports.${specifier.reexported}${_}=${_}${name};`;
 					}
 				});

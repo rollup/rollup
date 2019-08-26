@@ -1,10 +1,10 @@
-var bundle = (function (external) {
+var bundle = (function (external1, external2) {
 	'use strict';
 
-	external = external && external.hasOwnProperty('default') ? external['default'] : external;
+	external2 = external2 && external2.hasOwnProperty('default') ? external2['default'] : external2;
 
+	console.log(external1.foo);
 
+	return external2;
 
-	return external;
-
-}(external));
+}(external1, external2));

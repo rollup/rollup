@@ -1,6 +1,5 @@
 module.exports = {
-	description:
-		'reexports a an external default as a name and imports another name from that dependency',
+	description: 're-exports a named external export as default',
 	expectedWarnings: ['MIXED_EXPORTS'],
 	options: {
 		external: ['external'],
