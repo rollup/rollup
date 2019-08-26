@@ -9,19 +9,20 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [6.x, 10.x]
+        node: [ '10', '6' ]
 
+    name: Node ${{ matrix.node }} tests
     steps:
     - name: Configure git line-breaks
       run: git config --global core.autocrlf false
     - name: Checkout repository
       uses: actions/checkout@v1
-    - name: Use Node.js ${{ matrix.node-version }}
+    - name: Use Node.js ${{ matrix.node }}
       uses: actions/setup-node@v1
       with:
-        node-version: ${{ matrix.node-version }}
-    - name: Check Node Version
-      run: IF ${{ matrix.node-version }} LSS 8 npm i npm@5 -g
+        node-version: ${{ matrix.node }}
+    - name: Check npm version
+      run: IF ${{ matrix.node }} LSS 8 npm i npm@5 -g
     - name: Install dependencies
       run: npm ci --ignore-scripts
     - name: Run tests
