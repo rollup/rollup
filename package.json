@@ -32,7 +32,13 @@
     "test": "npm run test:all",
     "test:all": "npm run test:only && npm run test:typescript && npm run test:leak",
     "test:coverage": "nyc --reporter html mocha",
-    "test:leak": "npm i --silent --no-save weak@1 && node --expose-gc test/leak/index.js",
+    "test:leak": "cross-os test:leak:os",
+    "test:leak:os": {
+      "darwin": "npm run test:leak:nix",
+      "linux": "npm run test:leak:nix",
+      "win32": "echo 'Skipping test:leak on Windows'"
+    },
+    "test:leak:nix": "npm i --silent --no-save weak@1 && node --expose-gc test/leak/index.js",
     "test:only": "mocha",
     "test:quick": "mocha -b",
     "test:typescript": "tsc --noEmit -p test/typescript && tsc --noEmit",
@@ -73,6 +79,7 @@
     "codecov": "^3.5.0",
     "console-group": "^0.3.3",
     "core-js": "^3.2.1",
+    "cross-os": "^1.3.0",
     "date-time": "^3.1.0",
     "es5-shim": "^4.5.13",
     "es6-shim": "^0.35.5",
