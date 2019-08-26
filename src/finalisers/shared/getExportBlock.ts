@@ -11,7 +11,6 @@ export default function getExportBlock(
 ) {
 	const _ = compact ? '' : ' ';
 	const n = compact ? '' : '\n';
-
 	if (!namedExportsMode) {
 		let local;
 		if (exports.length > 0) {
