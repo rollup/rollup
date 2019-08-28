@@ -1,7 +1,7 @@
 # rollup changelog
 
 ## 1.20.3
-*2019-08-25*
+*2019-08-28*
 
 ### Bug Fixes
 * Make sure file hashes change when a change of the naming pattern leads to a file name change of a dependency (#3083)
