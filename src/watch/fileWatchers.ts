@@ -60,9 +60,9 @@ export default class FileWatcher {
 
 		const handleWatchEvent = (event: string) => {
 			if (event === 'rename' || event === 'unlink') {
-				this.close();
-				group.delete(id);
+				modifiedTime = -1;
 				this.trigger(id);
+				return;
 			} else {
 				let stats: fs.Stats;
 				try {

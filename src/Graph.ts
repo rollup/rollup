@@ -222,7 +222,6 @@ export default class Graph {
 			for (const module of this.moduleById.values()) {
 				if (module instanceof Module) {
 					this.modules.push(module);
-					this.watchFiles[module.id] = true;
 				} else {
 					this.externalModules.push(module);
 				}
