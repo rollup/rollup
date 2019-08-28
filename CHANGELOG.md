@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 1.20.3
+*2019-08-25*
+
+### Bug Fixes
+* Make sure file hashes change when a change of the naming pattern leads to a file name change of a dependency (#3083)
+* Fix several issues where reexporting an external "default" export could lead to invalid or incorrect code (#3084)
+
+### Pull Requests
+* [#3078](https://github.com/rollup/rollup/pull/3078): Add github actions workflow config for windows (@shellscape)
+* [#3083](https://github.com/rollup/rollup/pull/3083): Properly reflect dependency file names in hash (@lukastaegert)
+* [#3084](https://github.com/rollup/rollup/pull/3084): Fix "default" reexport issues in non ESM/System formats (@lukastaegert)
+
 ## 1.20.2
 *2019-08-25*
 
