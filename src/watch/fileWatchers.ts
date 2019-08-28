@@ -60,7 +60,12 @@ export default class FileWatcher {
 
 		const handleWatchEvent = (event: string) => {
 			if (event === 'rename' || event === 'unlink') {
-				modifiedTime = -1;
+				if (chokidarOptions) {
+					modifiedTime = -1;
+				} else {
+					this.close();
+					group.delete(id);
+				}
 				this.trigger(id);
 				return;
 			} else {

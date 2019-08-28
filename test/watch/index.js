@@ -356,45 +356,47 @@ describe('rollup.watch', () => {
 				});
 		});
 
-		it('recovers from an error even when an entry file was deleted and recreated', () => {
-			return sander
-				.copydir('test/watch/samples/basic')
-				.to('test/_tmp/input')
-				.then(() => {
-					const watcher = rollup.watch({
-						input: 'test/_tmp/input/main.js',
-						output: {
-							file: 'test/_tmp/output/bundle.js',
-							format: 'cjs'
-						},
-						watch: { chokidar }
-					});
+		if (chokidar) {
+			it('recovers from an error even when an entry file was deleted and recreated', () => {
+				return sander
+					.copydir('test/watch/samples/basic')
+					.to('test/_tmp/input')
+					.then(() => {
+						const watcher = rollup.watch({
+							input: 'test/_tmp/input/main.js',
+							output: {
+								file: 'test/_tmp/output/bundle.js',
+								format: 'cjs'
+							},
+							watch: { chokidar }
+						});
 
-					return sequence(watcher, [
-						'START',
-						'BUNDLE_START',
-						'BUNDLE_END',
-						'END',
-						() => {
-							assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-							sander.unlinkSync('test/_tmp/input/main.js');
-						},
-						'START',
-						'BUNDLE_START',
-						'ERROR',
-						() => {
-							sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
-						},
-						'START',
-						'BUNDLE_START',
-						'BUNDLE_END',
-						'END',
-						() => {
-							assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
-						}
-					]);
-				});
-		});
+						return sequence(watcher, [
+							'START',
+							'BUNDLE_START',
+							'BUNDLE_END',
+							'END',
+							() => {
+								assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+								sander.unlinkSync('test/_tmp/input/main.js');
+							},
+							'START',
+							'BUNDLE_START',
+							'ERROR',
+							() => {
+								sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+							},
+							'START',
+							'BUNDLE_START',
+							'BUNDLE_END',
+							'END',
+							() => {
+								assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
+							}
+						]);
+					});
+			});
+		}
 
 		it('stops watching files that are no longer part of the graph', () => {
 			return sander
