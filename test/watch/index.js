@@ -11,7 +11,7 @@ function wait(ms) {
 	});
 }
 
-describe.only('rollup.watch', () => {
+describe('rollup.watch', () => {
 	beforeEach(() => {
 		process.chdir(cwd);
 		return sander.rimraf('test/_tmp');
@@ -64,9 +64,11 @@ describe.only('rollup.watch', () => {
 		runTests(false);
 	});
 
-	describe('chokidar', () => {
-		runTests(true);
-	});
+	if (!process.env.CI) {
+		describe('chokidar', () => {
+			runTests(true);
+		});
+	}
 
 	function runTests(chokidar) {
 		it('watches a file', () => {
@@ -353,48 +355,6 @@ describe.only('rollup.watch', () => {
 					]);
 				});
 		});
-
-		if (chokidar) {
-			it('recovers from an error even when an entry file was deleted and recreated', () => {
-				return sander
-					.copydir('test/watch/samples/basic')
-					.to('test/_tmp/input')
-					.then(() => {
-						const watcher = rollup.watch({
-							input: 'test/_tmp/input/main.js',
-							output: {
-								file: 'test/_tmp/output/bundle.js',
-								format: 'cjs'
-							},
-							watch: { chokidar }
-						});
-
-						return sequence(watcher, [
-							'START',
-							'BUNDLE_START',
-							'BUNDLE_END',
-							'END',
-							() => {
-								assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-								sander.unlinkSync('test/_tmp/input/main.js');
-							},
-							'START',
-							'BUNDLE_START',
-							'ERROR',
-							() => {
-								sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
-							},
-							'START',
-							'BUNDLE_START',
-							'BUNDLE_END',
-							'END',
-							() => {
-								assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
-							}
-						]);
-					});
-			});
-		}
 
 		it('handles closing the watcher during a build', () => {
 			return sander
