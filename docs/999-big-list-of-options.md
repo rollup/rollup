@@ -397,7 +397,7 @@ Default: `"[name]-[hash].js"`
 The pattern to use for naming shared chunks created when code-splitting. Pattern supports the following placeholders:
  * `[format]`: The rendering format defined in the output options, e.g. `esm` or `cjs`.
  * `[hash]`: A hash based on the content of the chunk and the content of all its dependencies.
- * `[name]`: The name of the chunk. This will be `chunk` unless the chunk was created via the [`manualChunks`](guide/en/#manualchunks) options.
+ * `[name]`: The name of the chunk. This can be explicitly set via the [`manualChunks`](guide/en/#manualchunks) option or when the chunk is created by a plugin via [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string). Otherwise it will be derived from the chunk contents.
 
 Forward slashes `/` can be used to place files in sub-directories. See also [`output.assetFileNames`](guide/en/#outputassetfilenames), [`output.entryFileNames`](guide/en/#outputentryfilenames).
 

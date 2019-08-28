@@ -250,19 +250,25 @@ export default class Chunk {
 	}
 
 	generateId(
-		pattern: string,
-		patternName: string,
 		addons: Addons,
 		options: OutputOptions,
-		existingNames: Record<string, any>
+		existingNames: Record<string, any>,
+		includeHash: boolean
 	): string {
 		if (this.fileName !== null) {
 			return this.fileName;
 		}
+		const [pattern, patternName] =
+			this.facadeModule && this.facadeModule.isUserDefinedEntryPoint
+				? [options.entryFileNames || '[name].js', 'output.entryFileNames']
+				: [options.chunkFileNames || '[name]-[hash].js', 'output.chunkFileNames'];
 		return makeUnique(
 			renderNamePattern(pattern, patternName, {
 				format: () => (options.format === 'es' ? 'esm' : (options.format as string)),
-				hash: () => this.computeContentHashWithDependencies(addons, options),
+				hash: () =>
+					includeHash
+						? this.computeContentHashWithDependencies(addons, options, existingNames)
+						: '[hash]',
 				name: () => this.getChunkName()
 			}),
 			existingNames
@@ -831,15 +837,23 @@ export default class Chunk {
 		return hashAugmentation;
 	}
 
-	private computeContentHashWithDependencies(addons: Addons, options: OutputOptions): string {
+	private computeContentHashWithDependencies(
+		addons: Addons,
+		options: OutputOptions,
+		existingNames: Record<string, any>
+	): string {
 		const hash = sha256();
 		hash.update(
 			[addons.intro, addons.outro, addons.banner, addons.footer].map(addon => addon || '').join(':')
 		);
 		hash.update(options.format);
 		this.visitDependencies(dep => {
-			if (dep instanceof ExternalModule) hash.update(':' + dep.renderPath);
-			else hash.update(dep.getRenderedHash());
+			if (dep instanceof ExternalModule) {
+				hash.update(':' + dep.renderPath);
+			} else {
+				hash.update(dep.getRenderedHash());
+				hash.update(dep.generateId(addons, options, existingNames, false));
+			}
 		});
 
 		return hash.digest('hex').substr(0, 8);
