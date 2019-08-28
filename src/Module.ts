@@ -271,10 +271,7 @@ export default class Module {
 			props.frame = getCodeFrame(this.originalCode, location.line, location.column);
 		}
 
-		const watchFiles = Object.keys(this.graph.watchFiles);
-		if (watchFiles.length > 0) {
-			props.watchFiles = watchFiles;
-		}
+		props.watchFiles = Object.keys(this.graph.watchFiles);
 
 		error(props);
 	}
