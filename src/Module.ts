@@ -40,6 +40,7 @@ import {
 	RollupWarning,
 	TransformModuleJSON
 } from './rollup/types';
+import { BuildPhase } from './utils/buildPhase';
 import { error } from './utils/error';
 import getCodeFrame from './utils/getCodeFrame';
 import { getOriginalLocation } from './utils/getOriginalLocation';
@@ -244,8 +245,6 @@ export default class Module {
 	error(props: RollupError, pos: number) {
 		if (pos !== undefined) {
 			props.pos = pos;
-			props.watchFiles = Object.keys(this.graph.watchFiles);
-
 			let location = locate(this.code, pos, { offsetLine: 1 });
 			try {
 				location = getOriginalLocation(this.sourcemapChain, location);
@@ -271,6 +270,13 @@ export default class Module {
 				line: location.line
 			};
 			props.frame = getCodeFrame(this.originalCode, location.line, location.column);
+		}
+
+		if (this.graph.phase < BuildPhase.GENERATE) {
+			const watchFiles = Object.keys(this.graph.watchFiles);
+			if (watchFiles.length > 0) {
+				props.watchFiles = watchFiles;
+			}
 		}
 
 		error(props);
