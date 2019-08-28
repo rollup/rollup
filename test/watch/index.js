@@ -11,7 +11,7 @@ function wait(ms) {
 	});
 }
 
-describe('rollup.watch', () => {
+describe.only('rollup.watch', () => {
 	beforeEach(() => {
 		process.chdir(cwd);
 		return sander.rimraf('test/_tmp');
@@ -64,11 +64,9 @@ describe('rollup.watch', () => {
 		runTests(false);
 	});
 
-	if (!process.env.CI) {
-		describe('chokidar', () => {
-			runTests(true);
-		});
-	}
+	describe('chokidar', () => {
+		runTests(true);
+	});
 
 	function runTests(chokidar) {
 		it('watches a file', () => {
@@ -397,6 +395,70 @@ describe('rollup.watch', () => {
 					});
 			});
 		}
+
+		it('handles closing the watcher during a build', () => {
+			return sander
+				.copydir('test/watch/samples/basic')
+				.to('test/_tmp/input')
+				.then(() => {
+					const watcher = rollup.watch({
+						input: 'test/_tmp/input/main.js',
+						output: {
+							file: 'test/_tmp/output/bundle.js',
+							format: 'cjs'
+						},
+						watch: { chokidar }
+					});
+
+					setTimeout(() => watcher.close(), 50);
+					return sequence(watcher, [
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						() => {
+							sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+							let unexpectedEvent = false;
+							watcher.once('event', event => {
+								unexpectedEvent = event;
+							});
+							sander.writeFileSync('test/_tmp/input/dep.js', '= invalid');
+							return wait(400).then(() => assert.strictEqual(unexpectedEvent, false));
+						}
+					]);
+				});
+		});
+
+		it('handles closing the watcher during a build even if an error occurred', () => {
+			return sander
+				.copydir('test/watch/samples/error')
+				.to('test/_tmp/input')
+				.then(() => {
+					const watcher = rollup.watch({
+						input: 'test/_tmp/input/main.js',
+						output: {
+							file: 'test/_tmp/output/bundle.js',
+							format: 'cjs'
+						},
+						watch: { chokidar }
+					});
+
+					setTimeout(() => watcher.close(), 50);
+					return sequence(watcher, [
+						'START',
+						'BUNDLE_START',
+						'ERROR',
+						() => {
+							sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+							let unexpectedEvent = false;
+							watcher.once('event', event => {
+								unexpectedEvent = event;
+							});
+							sander.writeFileSync('test/_tmp/input/dep.js', '= invalid');
+							return wait(400).then(() => assert.strictEqual(unexpectedEvent, false));
+						}
+					]);
+				});
+		});
 
 		it('stops watching files that are no longer part of the graph', () => {
 			return sander
@@ -888,12 +950,26 @@ describe('rollup.watch', () => {
 								format: 'cjs'
 							},
 							plugins: {
-								transform() {
-									this.addWatchFile('test/_tmp/input/watched');
-									return `export default "${sander
-										.readFileSync('test/_tmp/input/watched')
-										.toString()
-										.trim()}"`;
+								resolveId(id) {
+									if (id === 'dep') {
+										return id;
+									}
+								},
+								load(id) {
+									if (id === 'dep') {
+										return `throw new Error('This should not be executed);`;
+									}
+								},
+								transform(code, id) {
+									if (id.endsWith('main.js')) {
+										return `export { value as default } from 'dep';`;
+									} else {
+										this.addWatchFile('test/_tmp/input/watched');
+										return `export const value = "${sander
+											.readFileSync('test/_tmp/input/watched')
+											.toString()
+											.trim()}"`;
+									}
 								}
 							},
 							watch: { chokidar }

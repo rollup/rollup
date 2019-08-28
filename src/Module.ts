@@ -40,7 +40,6 @@ import {
 	RollupWarning,
 	TransformModuleJSON
 } from './rollup/types';
-import { BuildPhase } from './utils/buildPhase';
 import { error } from './utils/error';
 import getCodeFrame from './utils/getCodeFrame';
 import { getOriginalLocation } from './utils/getOriginalLocation';
@@ -219,7 +218,7 @@ export default class Module {
 	private graph: Graph;
 	private magicString!: MagicString;
 	private namespaceVariable: NamespaceVariable = undefined as any;
-	private transformDependencies: string[] | null = null;
+	private transformDependencies: string[] = [];
 	private transitiveReexports?: string[];
 
 	constructor(graph: Graph, id: string, moduleSideEffects: boolean, isEntry: boolean) {
@@ -272,11 +271,9 @@ export default class Module {
 			props.frame = getCodeFrame(this.originalCode, location.line, location.column);
 		}
 
-		if (this.graph.phase < BuildPhase.GENERATE) {
-			const watchFiles = Object.keys(this.graph.watchFiles);
-			if (watchFiles.length > 0) {
-				props.watchFiles = watchFiles;
-			}
+		const watchFiles = Object.keys(this.graph.watchFiles);
+		if (watchFiles.length > 0) {
+			props.watchFiles = watchFiles;
 		}
 
 		error(props);

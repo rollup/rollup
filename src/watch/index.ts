@@ -5,7 +5,6 @@ import createFilter from 'rollup-pluginutils/src/createFilter';
 import rollup, { setWatcher } from '../rollup/index';
 import {
 	InputOptions,
-	ModuleJSON,
 	OutputOptions,
 	RollupBuild,
 	RollupCache,
@@ -115,7 +114,7 @@ export class Watcher {
 }
 
 export class Task {
-	cache: RollupCache;
+	cache: RollupCache = { modules: [] };
 	watchFiles: string[] = [];
 
 	private chokidarOptions: WatchOptions;
@@ -130,7 +129,6 @@ export class Task {
 	private watcher: Watcher;
 
 	constructor(watcher: Watcher, config: GenericConfigObject) {
-		this.cache = null as any;
 		this.watcher = watcher;
 
 		this.closed = false;
@@ -181,9 +179,8 @@ export class Task {
 	invalidate(id: string, isTransformDependency: boolean) {
 		this.invalidated = true;
 		if (isTransformDependency) {
-			for (const module of this.cache.modules as ModuleJSON[]) {
-				if (!module.transformDependencies || module.transformDependencies.indexOf(id) === -1)
-					return;
+			for (const module of this.cache.modules) {
+				if (module.transformDependencies.indexOf(id) === -1) return;
 				// effective invalidation
 				module.originalCode = null as any;
 			}
@@ -244,13 +241,9 @@ export class Task {
 		for (const id of this.watchFiles) {
 			this.watchFile(id);
 		}
-		if (this.cache.modules) {
-			for (const module of this.cache.modules) {
-				if (module.transformDependencies) {
-					for (const depId of module.transformDependencies) {
-						this.watchFile(depId, true);
-					}
-				}
+		for (const module of this.cache.modules) {
+			for (const depId of module.transformDependencies) {
+				this.watchFile(depId, true);
 			}
 		}
 		for (const id of previouslyWatched) {

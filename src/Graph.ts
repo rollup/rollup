@@ -330,7 +330,7 @@ export default class Graph {
 		return {
 			modules: this.modules.map(module => module.toJSON()),
 			plugins: this.pluginCache
-		} as any;
+		};
 	}
 
 	includeMarked(modules: Module[]) {
