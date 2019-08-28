@@ -385,6 +385,7 @@ export interface TreeshakingOptions {
 	/** @deprecated Use `moduleSideEffects` instead */
 	pureExternalModules?: PureModulesOption;
 	tryCatchDeoptimization?: boolean;
+	unknownGlobalSideEffects?: boolean;
 }
 
 export type GetManualChunk = (id: string) => string | null | undefined;

@@ -102,8 +102,8 @@ export default class Identifier extends NodeBase implements PatternNode {
 	}
 
 	hasEffects(): boolean {
-		// TODO Lukas observe the option here
 		return (
+			this.context.unknownGlobalSideEffects &&
 			this.variable instanceof GlobalVariable &&
 			this.variable.hasEffectsWhenAccessedAtPath(EMPTY_PATH)
 		);

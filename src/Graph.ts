@@ -116,13 +116,16 @@ export default class Graph {
 							(options.treeshake as TreeshakingOptions).propertyReadSideEffects !== false,
 						pureExternalModules: (options.treeshake as TreeshakingOptions).pureExternalModules,
 						tryCatchDeoptimization:
-							(options.treeshake as TreeshakingOptions).tryCatchDeoptimization !== false
+							(options.treeshake as TreeshakingOptions).tryCatchDeoptimization !== false,
+						unknownGlobalSideEffects:
+							(options.treeshake as TreeshakingOptions).unknownGlobalSideEffects !== false
 				  }
 				: {
 						annotations: true,
 						moduleSideEffects: true,
 						propertyReadSideEffects: true,
-						tryCatchDeoptimization: true
+						tryCatchDeoptimization: true,
+						unknownGlobalSideEffects: true
 				  };
 			if (typeof this.treeshakingOptions.pureExternalModules !== 'undefined') {
 				this.warnDeprecation(
