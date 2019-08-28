@@ -584,7 +584,6 @@ export default class Chunk {
 				`${n}${renderOptions.varOrConst} ${MISSING_EXPORT_SHIM_VARIABLE}${_}=${_}void 0;${n}${n}`
 			);
 		}
-
 		if (options.compact) {
 			this.renderedSource = magicString;
 		} else {
