@@ -105,6 +105,55 @@ describe('rollup.watch', () => {
 				});
 		});
 
+		it('does not fail for virtual files', () => {
+			return sander
+				.copydir('test/watch/samples/basic')
+				.to('test/_tmp/input')
+				.then(() => {
+					const watcher = rollup.watch({
+						input: 'test/_tmp/input/main.js',
+						plugins: {
+							resolveId(id) {
+								if (id === 'virtual') {
+									return id;
+								}
+							},
+							load(id) {
+								if (id === 'virtual') {
+									return `export const value = 42;`;
+								}
+							}
+						},
+						output: {
+							file: 'test/_tmp/output/bundle.js',
+							format: 'cjs'
+						},
+						watch: { chokidar }
+					});
+
+					return sequence(watcher, [
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+							sander.writeFileSync(
+								'test/_tmp/input/main.js',
+								"import {value} from 'virtual';\nexport default value + 1;"
+							);
+						},
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
+						}
+					]);
+				});
+		});
+
 		it('passes file events to the watchChange plugin hook once for each change', () => {
 			let watchChangeCnt = 0;
 			return sander
