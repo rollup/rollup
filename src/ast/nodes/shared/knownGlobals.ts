@@ -65,7 +65,19 @@ const knownGlobals = new Set([
 	'URIError',
 	'valueOf',
 	'WeakMap',
-	'WeakSet'
+	'WeakSet',
+
+	// Additional globals shared by Node and Browser that are not strictly part of the language
+	'clearInterval',
+	'clearTimeout',
+	'console',
+	'Intl',
+	'setInterval',
+	'setTimeout',
+	'TextDecoder',
+	'TextEncoder',
+	'URL',
+	'URLSearchParams'
 ]);
 
 const pureFunctions = new Set([
