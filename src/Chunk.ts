@@ -277,17 +277,27 @@ export default class Chunk {
 
 	generateIdPreserveModules(
 		preserveModulesRelativeDir: string,
+		options: OutputOptions,
 		existingNames: Record<string, any>
 	): string {
 		const sanitizedId = sanitizeFileName(this.orderedModules[0].id);
-		return makeUnique(
-			normalize(
-				isAbsolute(this.orderedModules[0].id)
-					? relative(preserveModulesRelativeDir, sanitizedId)
-					: '_virtual/' + basename(sanitizedId)
-			),
-			existingNames
-		);
+
+		let path: string;
+		if (isAbsolute(this.orderedModules[0].id)) {
+			const name = renderNamePattern(
+				options.entryFileNames || '[name].js',
+				'output.entryFileNames',
+				{
+					format: () => (options.format === 'es' ? 'esm' : (options.format as string)),
+					name: () => this.getChunkName()
+				}
+			);
+
+			path = relative(preserveModulesRelativeDir, `${dirname(sanitizedId)}/${name}`);
+		} else {
+			path = `_virtual/${basename(sanitizedId)}`;
+		}
+		return makeUnique(normalize(path), existingNames);
 	}
 
 	generateInternalExports(options: OutputOptions) {
