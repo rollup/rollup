@@ -176,9 +176,7 @@ export default class Graph {
 
 		acornPluginsToInject.push(injectImportMeta, injectExportNsFrom);
 
-		if (options.experimentalTopLevelAwait) {
-			this.acornOptions.allowAwaitOutsideFunction = true;
-		}
+		(this.acornOptions as any).allowAwaitOutsideFunction = true;
 
 		const acornInjectPlugins = options.acornInjectPlugins;
 		acornPluginsToInject.push(
