@@ -1,5 +1,5 @@
 import { ExecutionContext } from '../ExecutionContext';
-import { EMPTY_PATH, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_KEY } from '../values';
+import { EMPTY_PATH, ObjectPath, UNKNOWN_EXPRESSION, UnknownKey } from '../values';
 import Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
@@ -19,7 +19,7 @@ export default class RestElement extends NodeBase implements PatternNode {
 	bind() {
 		super.bind();
 		if (this.declarationInit !== null) {
-			this.declarationInit.deoptimizePath([UNKNOWN_KEY, UNKNOWN_KEY]);
+			this.declarationInit.deoptimizePath([UnknownKey, UnknownKey]);
 		}
 	}
 

@@ -12,8 +12,8 @@ import {
 	LiteralValueOrUnknown,
 	ObjectPath,
 	UNKNOWN_EXPRESSION,
-	UNKNOWN_KEY,
-	UNKNOWN_VALUE
+	UNKNOWN_VALUE,
+	UnknownKey
 } from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
@@ -36,7 +36,7 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 		super.bind();
 		if (this.kind === 'get' && this.returnExpression === null) this.updateReturnExpression();
 		if (this.declarationInit !== null) {
-			this.declarationInit.deoptimizePath([UNKNOWN_KEY, UNKNOWN_KEY]);
+			this.declarationInit.deoptimizePath([UnknownKey, UnknownKey]);
 		}
 	}
 

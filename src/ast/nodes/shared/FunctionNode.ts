@@ -4,8 +4,8 @@ import FunctionScope from '../../scopes/FunctionScope';
 import {
 	ObjectPath,
 	UNKNOWN_EXPRESSION,
-	UNKNOWN_KEY,
 	UNKNOWN_PATH,
+	UnknownKey,
 	UnknownObjectExpression
 } from '../../values';
 import BlockStatement from '../BlockStatement';
@@ -33,7 +33,7 @@ export default class FunctionNode extends NodeBase {
 		if (path.length === 1) {
 			if (path[0] === 'prototype') {
 				this.isPrototypeDeoptimized = true;
-			} else if (path[0] === UNKNOWN_KEY) {
+			} else if (path[0] === UnknownKey) {
 				this.isPrototypeDeoptimized = true;
 
 				// A reassignment of UNKNOWN_PATH is considered equivalent to having lost track

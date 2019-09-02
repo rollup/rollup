@@ -5,15 +5,12 @@ import { ExpressionEntity } from './nodes/shared/Expression';
 import { ExpressionNode } from './nodes/shared/Node';
 import SpreadElement from './nodes/SpreadElement';
 
-export interface UnknownKey {
-	type: 'unknown';
-}
-export const UNKNOWN_KEY: UnknownKey = { type: 'unknown' };
+export const UnknownKey = Symbol('Unknown Key');
+export type ObjectPathKey = string | typeof UnknownKey;
 
-export type ObjectPathKey = string | UnknownKey;
 export type ObjectPath = ObjectPathKey[];
 export const EMPTY_PATH: ObjectPath = [];
-export const UNKNOWN_PATH: ObjectPath = [UNKNOWN_KEY];
+export const UNKNOWN_PATH: ObjectPath = [UnknownKey];
 
 export interface MemberDescription {
 	callsArgs: number[] | null;

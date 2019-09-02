@@ -2,7 +2,7 @@ import CallOptions from '../CallOptions';
 import { ExecutionContext } from '../ExecutionContext';
 import ReturnValueScope from '../scopes/ReturnValueScope';
 import Scope from '../scopes/Scope';
-import { ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_KEY, UNKNOWN_PATH } from '../values';
+import { ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_PATH, UnknownKey } from '../values';
 import BlockStatement from './BlockStatement';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
@@ -25,7 +25,7 @@ export default class ArrowFunctionExpression extends NodeBase {
 	deoptimizePath(path: ObjectPath) {
 		// A reassignment of UNKNOWN_PATH is considered equivalent to having lost track
 		// which means the return expression needs to be reassigned
-		if (path.length === 1 && path[0] === UNKNOWN_KEY) {
+		if (path.length === 1 && path[0] === UnknownKey) {
 			this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
 		}
 	}
