@@ -1,5 +1,5 @@
 import CallOptions from '../CallOptions';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
@@ -20,19 +20,23 @@ export default class NewExpression extends NodeBase {
 		}
 	}
 
-	hasEffects(options: ExecutionPathOptions): boolean {
+	hasEffects(context: ExecutionContext): boolean {
 		for (const argument of this.arguments) {
-			if (argument.hasEffects(options)) return true;
+			if (argument.hasEffects(context)) return true;
 		}
 		if (this.annotatedPure) return false;
-		return this.callee.hasEffectsWhenCalledAtPath(
-			EMPTY_PATH,
-			this.callOptions,
-			options.getHasEffectsWhenCalledOptions()
-		);
+		const { ignoreBreakStatements, ignoredLabels, ignoreReturnAwaitYield } = context;
+		Object.assign(context, {
+			ignoreBreakStatements: false,
+			ignoredLabels: new Set(),
+			ignoreReturnAwaitYield: true
+		});
+		if (this.callee.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.callOptions, context)) return true;
+		Object.assign(context, { ignoreBreakStatements, ignoredLabels, ignoreReturnAwaitYield });
+		return false;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, _context: ExecutionContext) {
 		return path.length > 1;
 	}
 

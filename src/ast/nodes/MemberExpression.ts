@@ -4,7 +4,7 @@ import relativeId from '../../utils/relativeId';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionContext } from '../ExecutionContext';
 import {
 	EMPTY_IMMUTABLE_TRACKER,
 	ImmutableEntityPathTracker
@@ -167,50 +167,48 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		);
 	}
 
-	hasEffects(options: ExecutionPathOptions): boolean {
+	hasEffects(context: ExecutionContext): boolean {
 		return (
-			this.property.hasEffects(options) ||
-			this.object.hasEffects(options) ||
+			this.property.hasEffects(context) ||
+			this.object.hasEffects(context) ||
 			(this.context.propertyReadSideEffects &&
-				this.object.hasEffectsWhenAccessedAtPath([this.propertyKey as ObjectPathKey], options))
+				this.object.hasEffectsWhenAccessedAtPath([this.propertyKey as ObjectPathKey], context))
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
-		if (path.length === 0) {
-			return false;
-		}
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
+		if (path.length === 0) return false;
 		if (this.variable !== null) {
-			return this.variable.hasEffectsWhenAccessedAtPath(path, options);
+			return this.variable.hasEffectsWhenAccessedAtPath(path, context);
 		}
 		return this.object.hasEffectsWhenAccessedAtPath(
 			[this.propertyKey as ObjectPathKey, ...path],
-			options
+			context
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
 		if (this.variable !== null) {
-			return this.variable.hasEffectsWhenAssignedAtPath(path, options);
+			return this.variable.hasEffectsWhenAssignedAtPath(path, context);
 		}
 		return this.object.hasEffectsWhenAssignedAtPath(
 			[this.propertyKey as ObjectPathKey, ...path],
-			options
+			context
 		);
 	}
 
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		options: ExecutionPathOptions
+		context: ExecutionContext
 	): boolean {
 		if (this.variable !== null) {
-			return this.variable.hasEffectsWhenCalledAtPath(path, callOptions, options);
+			return this.variable.hasEffectsWhenCalledAtPath(path, callOptions, context);
 		}
 		return this.object.hasEffectsWhenCalledAtPath(
 			[this.propertyKey as ObjectPathKey, ...path],
 			callOptions,
-			options
+			context
 		);
 	}
 

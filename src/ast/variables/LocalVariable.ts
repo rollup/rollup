@@ -2,7 +2,7 @@ import Module, { AstContext } from '../../Module';
 import { markModuleAndImpureDependenciesAsExecuted } from '../../utils/traverseStaticDependencies';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionContext } from '../ExecutionContext';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import Identifier from '../nodes/Identifier';
 import * as NodeType from '../nodes/NodeType';
@@ -126,49 +126,33 @@ export default class LocalVariable extends Variable {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: ExecutionContext) {
 		if (path.length === 0) return false;
 		return (
 			this.isReassigned ||
 			path.length > MAX_PATH_DEPTH ||
-			((this.init &&
-				!options.hasNodeBeenAccessedAtPath(path, this.init) &&
-				this.init.hasEffectsWhenAccessedAtPath(
-					path,
-					options.addAccessedNodeAtPath(path, this.init)
-				)) as boolean)
+			((this.init && this.init.hasEffectsWhenAccessedAtPath(path, context)) as boolean)
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: ExecutionContext) {
 		if (this.included || path.length > MAX_PATH_DEPTH) return true;
 		if (path.length === 0) return false;
 		return (
 			this.isReassigned ||
-			((this.init &&
-				!options.hasNodeBeenAssignedAtPath(path, this.init) &&
-				this.init.hasEffectsWhenAssignedAtPath(
-					path,
-					options.addAssignedNodeAtPath(path, this.init)
-				)) as boolean)
+			((this.init && this.init.hasEffectsWhenAssignedAtPath(path, context)) as boolean)
 		);
 	}
 
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		options: ExecutionPathOptions
+		context: ExecutionContext
 	) {
 		if (path.length > MAX_PATH_DEPTH) return true;
 		return (
 			this.isReassigned ||
-			((this.init &&
-				!options.hasNodeBeenCalledAtPathWithOptions(path, this.init, callOptions) &&
-				this.init.hasEffectsWhenCalledAtPath(
-					path,
-					callOptions,
-					options.addCalledNodeAtPathWithOptions(path, this.init, callOptions)
-				)) as boolean)
+			((this.init && this.init.hasEffectsWhenCalledAtPath(path, callOptions, context)) as boolean)
 		);
 	}
 

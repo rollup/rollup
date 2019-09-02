@@ -1,7 +1,13 @@
 import CallOptions from '../../CallOptions';
-import { ExecutionPathOptions } from '../../ExecutionPathOptions';
+import { ExecutionContext } from '../../ExecutionContext';
 import FunctionScope from '../../scopes/FunctionScope';
-import { ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_KEY, UNKNOWN_PATH } from '../../values';
+import {
+	ObjectPath,
+	UNKNOWN_EXPRESSION,
+	UNKNOWN_KEY,
+	UNKNOWN_PATH,
+	UnknownObjectExpression
+} from '../../values';
 import BlockStatement from '../BlockStatement';
 import Identifier, { IdentifierWithVariable } from '../Identifier';
 import RestElement from '../RestElement';
@@ -46,9 +52,7 @@ export default class FunctionNode extends NodeBase {
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
-		if (path.length <= 1) {
-			return false;
-		}
+		if (path.length <= 1) return false;
 		return path.length > 2 || path[0] !== 'prototype' || this.isPrototypeDeoptimized;
 	}
 
@@ -62,16 +66,24 @@ export default class FunctionNode extends NodeBase {
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		options: ExecutionPathOptions
+		context: ExecutionContext
 	) {
-		if (path.length > 0) {
-			return true;
-		}
-		const innerOptions = this.scope.getOptionsWhenCalledWith(callOptions, options);
+		if (path.length > 0) return true;
+		const thisInit = context.replacedVariableInits.get(this.scope.thisVariable);
+		context.replacedVariableInits.set(
+			this.scope.thisVariable,
+			callOptions.withNew ? new UnknownObjectExpression() : UNKNOWN_EXPRESSION
+		);
 		for (const param of this.params) {
-			if (param.hasEffects(innerOptions)) return true;
+			if (param.hasEffects(context)) return true;
 		}
-		return this.body.hasEffects(innerOptions);
+		if (this.body.hasEffects(context)) return true;
+		if (thisInit) {
+			context.replacedVariableInits.set(this.scope.thisVariable, thisInit);
+		} else {
+			context.replacedVariableInits.delete(this.scope.thisVariable);
+		}
+		return false;
 	}
 
 	include(includeChildrenRecursively: boolean | 'variables') {

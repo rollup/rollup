@@ -2,7 +2,7 @@ import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionContext } from '../ExecutionContext';
 import {
 	EMPTY_IMMUTABLE_TRACKER,
 	ImmutableEntityPathTracker
@@ -100,58 +100,65 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 		return this.value.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
 	}
 
-	hasEffects(options: ExecutionPathOptions): boolean {
-		return this.key.hasEffects(options) || this.value.hasEffects(options);
+	hasEffects(context: ExecutionContext): boolean {
+		return this.key.hasEffects(context) || this.value.hasEffects(context);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
 		if (this.kind === 'get') {
+			const { ignoreBreakStatements, ignoredLabels, ignoreReturnAwaitYield } = context;
+			Object.assign(context, {
+				ignoreBreakStatements: false,
+				ignoredLabels: new Set(),
+				ignoreReturnAwaitYield: true
+			});
+			if (this.value.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.accessorCallOptions, context))
+				return true;
+			Object.assign(context, { ignoreBreakStatements, ignoredLabels, ignoreReturnAwaitYield });
 			return (
-				this.value.hasEffectsWhenCalledAtPath(
-					EMPTY_PATH,
-					this.accessorCallOptions,
-					options.getHasEffectsWhenCalledOptions()
-				) ||
-				(path.length > 0 &&
-					(this.returnExpression as ExpressionEntity).hasEffectsWhenAccessedAtPath(path, options))
+				path.length > 0 &&
+				(this.returnExpression as ExpressionEntity).hasEffectsWhenAccessedAtPath(path, context)
 			);
 		}
-		return this.value.hasEffectsWhenAccessedAtPath(path, options);
+		return this.value.hasEffectsWhenAccessedAtPath(path, context);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
 		if (this.kind === 'get') {
 			return (
 				path.length === 0 ||
-				(this.returnExpression as ExpressionEntity).hasEffectsWhenAssignedAtPath(path, options)
+				(this.returnExpression as ExpressionEntity).hasEffectsWhenAssignedAtPath(path, context)
 			);
 		}
 		if (this.kind === 'set') {
-			return (
-				path.length > 0 ||
-				this.value.hasEffectsWhenCalledAtPath(
-					EMPTY_PATH,
-					this.accessorCallOptions,
-					options.getHasEffectsWhenCalledOptions()
-				)
-			);
+			if (path.length > 0) return true;
+			const { ignoreBreakStatements, ignoredLabels, ignoreReturnAwaitYield } = context;
+			Object.assign(context, {
+				ignoreBreakStatements: false,
+				ignoredLabels: new Set(),
+				ignoreReturnAwaitYield: true
+			});
+			if (this.value.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.accessorCallOptions, context))
+				return true;
+			Object.assign(context, { ignoreBreakStatements, ignoredLabels, ignoreReturnAwaitYield });
+			return false;
 		}
-		return this.value.hasEffectsWhenAssignedAtPath(path, options);
+		return this.value.hasEffectsWhenAssignedAtPath(path, context);
 	}
 
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		options: ExecutionPathOptions
+		context: ExecutionContext
 	) {
 		if (this.kind === 'get') {
 			return (this.returnExpression as ExpressionEntity).hasEffectsWhenCalledAtPath(
 				path,
 				callOptions,
-				options
+				context
 			);
 		}
-		return this.value.hasEffectsWhenCalledAtPath(path, callOptions, options);
+		return this.value.hasEffectsWhenCalledAtPath(path, callOptions, context);
 	}
 
 	initialise() {

@@ -1,5 +1,5 @@
 import CallOptions from '../../CallOptions';
-import { ExecutionPathOptions } from '../../ExecutionPathOptions';
+import { ExecutionContext } from '../../ExecutionContext';
 import ChildScope from '../../scopes/ChildScope';
 import Scope from '../../scopes/Scope';
 import { ObjectPath } from '../../values';
@@ -16,23 +16,23 @@ export default class ClassNode extends NodeBase {
 		this.scope = new ChildScope(parentScope);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, _context: ExecutionContext) {
 		return path.length > 1;
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, _context: ExecutionContext) {
 		return path.length > 1;
 	}
 
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		options: ExecutionPathOptions
+		context: ExecutionContext
 	) {
 		return (
-			this.body.hasEffectsWhenCalledAtPath(path, callOptions, options) ||
+			this.body.hasEffectsWhenCalledAtPath(path, callOptions, context) ||
 			(this.superClass !== null &&
-				this.superClass.hasEffectsWhenCalledAtPath(path, callOptions, options))
+				this.superClass.hasEffectsWhenCalledAtPath(path, callOptions, context))
 		);
 	}
 

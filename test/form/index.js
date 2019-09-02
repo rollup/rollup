@@ -6,7 +6,7 @@ const { extend, normaliseOutput, runTestSuiteWithSamples } = require('../utils.j
 
 const FORMATS = ['amd', 'cjs', 'system', 'es', 'iife', 'umd'];
 
-runTestSuiteWithSamples('form', path.resolve(__dirname, 'samples'), (dir, config) => {
+runTestSuiteWithSamples.only('form', path.resolve(__dirname, 'samples'), (dir, config) => {
 	const isSingleFormatTest = sander.existsSync(dir + '/_expected.js');
 	const itOrDescribe = isSingleFormatTest ? it : describe;
 	(config.skip ? itOrDescribe.skip : config.solo ? itOrDescribe.only : itOrDescribe)(

@@ -1,4 +1,4 @@
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import Scope from '../scopes/Scope';
 import * as NodeType from './NodeType';
@@ -14,7 +14,11 @@ export default class SwitchStatement extends StatementBase {
 		this.scope = new BlockScope(parentScope);
 	}
 
-	hasEffects(options: ExecutionPathOptions) {
-		return super.hasEffects(options.setIgnoreBreakStatements());
+	hasEffects(context: ExecutionContext) {
+		const ignoreBreakStatements = context.ignoreBreakStatements;
+		context.ignoreBreakStatements = true;
+		if (super.hasEffects(context)) return true;
+		context.ignoreBreakStatements = ignoreBreakStatements;
+		return false;
 	}
 }

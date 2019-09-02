@@ -1,7 +1,7 @@
 import CallOptions from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { WritableEntity } from '../../Entity';
-import { ExecutionPathOptions } from '../../ExecutionPathOptions';
+import { ExecutionContext } from '../../ExecutionContext';
 import { ImmutableEntityPathTracker } from '../../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath } from '../../values';
 import SpreadElement from '../SpreadElement';
@@ -25,11 +25,11 @@ export interface ExpressionEntity extends WritableEntity {
 		recursionTracker: ImmutableEntityPathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity;
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean;
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: ExecutionContext): boolean;
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		options: ExecutionPathOptions
+		context: ExecutionContext
 	): boolean;
 	include(includeChildrenRecursively: IncludeChildren): void;
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void;

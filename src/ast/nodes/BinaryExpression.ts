@@ -1,5 +1,5 @@
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionContext } from '../ExecutionContext';
 import {
 	EMPTY_IMMUTABLE_TRACKER,
 	ImmutableEntityPathTracker
@@ -66,19 +66,18 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 		return operatorFn(leftValue as LiteralValue, rightValue as LiteralValue);
 	}
 
-	hasEffects(options: ExecutionPathOptions): boolean {
+	hasEffects(context: ExecutionContext): boolean {
 		// support some implicit type coercion runtime errors
 		if (
 			this.operator === '+' &&
 			this.parent instanceof ExpressionStatement &&
 			this.left.getLiteralValueAtPath(EMPTY_PATH, EMPTY_IMMUTABLE_TRACKER, this) === ''
-		) {
+		)
 			return true;
-		}
-		return super.hasEffects(options);
+		return super.hasEffects(context);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, _context: ExecutionContext) {
 		return path.length > 1;
 	}
 }

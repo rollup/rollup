@@ -3,7 +3,7 @@ import { BLANK } from '../../utils/blank';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionContext } from '../ExecutionContext';
 import {
 	EMPTY_IMMUTABLE_TRACKER,
 	ImmutableEntityPathTracker
@@ -114,7 +114,7 @@ export default class ObjectExpression extends NodeBase {
 			path.length === 1 &&
 			!(this.propertyMap as PropertyMap)[key] &&
 			!objectMembers[key] &&
-			(this.unmatchablePropertiesRead).length === 0
+			this.unmatchablePropertiesRead.length === 0
 		) {
 			const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized.get(key);
 			if (expressionsToBeDeoptimized) {
@@ -189,7 +189,7 @@ export default class ObjectExpression extends NodeBase {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: ExecutionContext) {
 		if (path.length === 0) return false;
 		const key = path[0];
 		if (
@@ -208,12 +208,12 @@ export default class ObjectExpression extends NodeBase {
 			: (this.propertyMap as PropertyMap)[key]
 			? (this.propertyMap as PropertyMap)[key].propertiesRead
 			: []) {
-			if (property.hasEffectsWhenAccessedAtPath(subPath, options)) return true;
+			if (property.hasEffectsWhenAccessedAtPath(subPath, context)) return true;
 		}
 		return false;
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: ExecutionContext) {
 		if (path.length === 0) return false;
 		const key = path[0];
 		if (
@@ -234,7 +234,7 @@ export default class ObjectExpression extends NodeBase {
 			: (this.propertyMap as PropertyMap)[key]
 			? (this.propertyMap as PropertyMap)[key].propertiesSet
 			: []) {
-			if (property.hasEffectsWhenAssignedAtPath(subPath, options)) return true;
+			if (property.hasEffectsWhenAssignedAtPath(subPath, context)) return true;
 		}
 		return false;
 	}
@@ -242,7 +242,7 @@ export default class ObjectExpression extends NodeBase {
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		options: ExecutionPathOptions
+		context: ExecutionContext
 	): boolean {
 		const key = path[0];
 		if (
@@ -259,10 +259,10 @@ export default class ObjectExpression extends NodeBase {
 		for (const property of (this.propertyMap as PropertyMap)[key]
 			? (this.propertyMap as PropertyMap)[key].propertiesRead
 			: []) {
-			if (property.hasEffectsWhenCalledAtPath(subPath, callOptions, options)) return true;
+			if (property.hasEffectsWhenCalledAtPath(subPath, callOptions, context)) return true;
 		}
 		if (path.length === 1 && objectMembers[key])
-			return hasMemberEffectWhenCalled(objectMembers, key, this.included, callOptions, options);
+			return hasMemberEffectWhenCalled(objectMembers, key, this.included, callOptions, context);
 		return false;
 	}
 

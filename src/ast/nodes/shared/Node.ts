@@ -5,7 +5,7 @@ import { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
 import CallOptions from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { Entity } from '../../Entity';
-import { ExecutionPathOptions } from '../../ExecutionPathOptions';
+import { createExecutionContext, ExecutionContext } from '../../ExecutionContext';
 import { getAndCreateKeys, keys } from '../../keys';
 import ChildScope from '../../scopes/ChildScope';
 import { ImmutableEntityPathTracker } from '../../utils/ImmutableEntityPathTracker';
@@ -52,7 +52,7 @@ export interface Node extends Entity {
 	 * which only have an effect if their surrounding loop or switch statement is included.
 	 * The options pass on information like this about the current execution path.
 	 */
-	hasEffects(options: ExecutionPathOptions): boolean;
+	hasEffects(context: ExecutionContext): boolean;
 
 	/**
 	 * Includes the node in the bundle. If the flag is not set, children are usually included
@@ -81,8 +81,6 @@ export interface Node extends Entity {
 export interface StatementNode extends Node {}
 
 export interface ExpressionNode extends ExpressionEntity, Node {}
-
-const NEW_EXECUTION_PATH = ExecutionPathOptions.create();
 
 export class NodeBase implements ExpressionNode {
 	context: AstContext;
@@ -156,31 +154,31 @@ export class NodeBase implements ExpressionNode {
 		return UNKNOWN_EXPRESSION;
 	}
 
-	hasEffects(options: ExecutionPathOptions): boolean {
+	hasEffects(context: ExecutionContext): boolean {
 		for (const key of this.keys) {
 			const value = (this as GenericEsTreeNode)[key];
 			if (value === null || key === 'annotations') continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
-					if (child !== null && child.hasEffects(options)) return true;
+					if (child !== null && child.hasEffects(context)) return true;
 				}
-			} else if (value.hasEffects(options)) return true;
+			} else if (value.hasEffects(context)) return true;
 		}
 		return false;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, _context: ExecutionContext) {
 		return path.length > 0;
 	}
 
-	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _context: ExecutionContext) {
 		return true;
 	}
 
 	hasEffectsWhenCalledAtPath(
 		_path: ObjectPath,
 		_callOptions: CallOptions,
-		_options: ExecutionPathOptions
+		_context: ExecutionContext
 	) {
 		return true;
 	}
@@ -269,7 +267,7 @@ export class NodeBase implements ExpressionNode {
 	}
 
 	shouldBeIncluded(): boolean {
-		return this.included || this.hasEffects(NEW_EXECUTION_PATH);
+		return this.included || this.hasEffects(createExecutionContext());
 	}
 
 	toString() {

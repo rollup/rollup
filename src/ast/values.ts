@@ -1,14 +1,14 @@
 import CallOptions from './CallOptions';
-import { ExecutionPathOptions } from './ExecutionPathOptions';
+import { ExecutionContext } from './ExecutionContext';
 import { LiteralValue } from './nodes/Literal';
 import { ExpressionEntity } from './nodes/shared/Expression';
 import { ExpressionNode } from './nodes/shared/Node';
 import SpreadElement from './nodes/SpreadElement';
 
 export interface UnknownKey {
-	UNKNOWN_KEY: true;
+	type: 'unknown';
 }
-export const UNKNOWN_KEY: UnknownKey = { UNKNOWN_KEY: true };
+export const UNKNOWN_KEY: UnknownKey = { type: 'unknown' };
 
 export type ObjectPathKey = string | UnknownKey;
 export type ObjectPath = ObjectPathKey[];
@@ -113,10 +113,10 @@ export class UnknownArrayExpression implements ExpressionEntity {
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		options: ExecutionPathOptions
+		context: ExecutionContext
 	) {
 		if (path.length === 1) {
-			return hasMemberEffectWhenCalled(arrayMembers, path[0], this.included, callOptions, options);
+			return hasMemberEffectWhenCalled(arrayMembers, path[0], this.included, callOptions, context);
 		}
 		return true;
 	}
@@ -330,10 +330,10 @@ export class UnknownObjectExpression implements ExpressionEntity {
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		options: ExecutionPathOptions
+		context: ExecutionContext
 	) {
 		if (path.length === 1) {
-			return hasMemberEffectWhenCalled(objectMembers, path[0], this.included, callOptions, options);
+			return hasMemberEffectWhenCalled(objectMembers, path[0], this.included, callOptions, context);
 		}
 		return true;
 	}
@@ -468,25 +468,41 @@ export function hasMemberEffectWhenCalled(
 	memberName: ObjectPathKey,
 	parentIncluded: boolean,
 	callOptions: CallOptions,
-	options: ExecutionPathOptions
+	context: ExecutionContext
 ) {
-	if (typeof memberName !== 'string' || !members[memberName]) return true;
-	if (members[memberName].mutatesSelf && parentIncluded) return true;
+	if (
+		typeof memberName !== 'string' ||
+		!members[memberName] ||
+		(members[memberName].mutatesSelf && parentIncluded)
+	)
+		return true;
 	if (!members[memberName].callsArgs) return false;
-	for (const argIndex of members[memberName].callsArgs as number[]) {
-		if (
-			callOptions.args[argIndex] &&
-			callOptions.args[argIndex].hasEffectsWhenCalledAtPath(
-				EMPTY_PATH,
-				CallOptions.create({
-					args: [],
-					callIdentifier: {}, // make sure the caller is unique to avoid this check being ignored,
-					withNew: false
-				}),
-				options.getHasEffectsWhenCalledOptions()
-			)
-		)
-			return true;
+	const calledArgs = members[memberName].callsArgs as number[];
+	if (calledArgs.length > 0) {
+		const { ignoreBreakStatements, ignoredLabels, ignoreReturnAwaitYield } = context;
+		Object.assign(context, {
+			ignoreBreakStatements: false,
+			ignoredLabels: new Set(),
+			ignoreReturnAwaitYield: true
+		});
+		for (const argIndex of members[memberName].callsArgs as number[]) {
+			if (callOptions.args[argIndex]) {
+				if (
+					callOptions.args[argIndex].hasEffectsWhenCalledAtPath(
+						EMPTY_PATH,
+						CallOptions.create({
+							args: [],
+							callIdentifier: {}, // make sure the caller is unique to avoid this check being ignored,
+							withNew: false
+						}),
+						context
+					)
+				) {
+					return true;
+				}
+			}
+		}
+		Object.assign(context, { ignoreBreakStatements, ignoredLabels, ignoreReturnAwaitYield });
 	}
 	return false;
 }

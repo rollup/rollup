@@ -1,5 +1,5 @@
 import CallOptions from '../CallOptions';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionContext } from '../ExecutionContext';
 import { EMPTY_PATH } from '../values';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
@@ -41,15 +41,17 @@ export default class TaggedTemplateExpression extends NodeBase {
 		}
 	}
 
-	hasEffects(options: ExecutionPathOptions) {
-		return (
-			super.hasEffects(options) ||
-			this.tag.hasEffectsWhenCalledAtPath(
-				EMPTY_PATH,
-				this.callOptions,
-				options.getHasEffectsWhenCalledOptions()
-			)
-		);
+	hasEffects(context: ExecutionContext) {
+		if (super.hasEffects(context)) return true;
+		const { ignoreBreakStatements, ignoredLabels, ignoreReturnAwaitYield } = context;
+		Object.assign(context, {
+			ignoreBreakStatements: false,
+			ignoredLabels: new Set(),
+			ignoreReturnAwaitYield: true
+		});
+		if (this.tag.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.callOptions, context)) return true;
+		Object.assign(context, { ignoreBreakStatements, ignoredLabels, ignoreReturnAwaitYield });
+		return false;
 	}
 
 	initialise() {

@@ -6,7 +6,7 @@ import {
 	RenderOptions
 } from '../../utils/renderHelpers';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath } from '../values';
 import Variable from '../variables/Variable';
 import Identifier, { IdentifierWithVariable } from './Identifier';
@@ -20,9 +20,7 @@ function isReassignedExportsMember(variable: Variable): boolean {
 
 function areAllDeclarationsIncludedAndNotExported(declarations: VariableDeclarator[]): boolean {
 	for (const declarator of declarations) {
-		if (!declarator.included) {
-			return false;
-		}
+		if (!declarator.included) return false;
 		if (declarator.id.type === NodeType.Identifier) {
 			if ((declarator.id.variable as Variable).exportName) return false;
 		} else {
@@ -45,7 +43,7 @@ export default class VariableDeclaration extends NodeBase {
 		}
 	}
 
-	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _context: ExecutionContext) {
 		return false;
 	}
 

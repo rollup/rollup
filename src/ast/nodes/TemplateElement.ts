@@ -1,4 +1,4 @@
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionContext } from '../ExecutionContext';
 import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
@@ -10,7 +10,7 @@ export default class TemplateElement extends NodeBase {
 		raw: string;
 	};
 
-	hasEffects(_options: ExecutionPathOptions) {
+	hasEffects(_context: ExecutionContext) {
 		return false;
 	}
 }

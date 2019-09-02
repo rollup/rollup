@@ -1,9 +1,6 @@
 import { AstContext } from '../../Module';
-import CallOptions from '../CallOptions';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { ExpressionNode } from '../nodes/shared/Node';
 import SpreadElement from '../nodes/SpreadElement';
-import { UNKNOWN_EXPRESSION, UnknownObjectExpression } from '../values';
 import ArgumentsVariable from '../variables/ArgumentsVariable';
 import ThisVariable from '../variables/ThisVariable';
 import ChildScope from './ChildScope';
@@ -21,16 +18,6 @@ export default class FunctionScope extends ReturnValueScope {
 
 	findLexicalBoundary() {
 		return this;
-	}
-
-	getOptionsWhenCalledWith(
-		{ withNew }: CallOptions,
-		options: ExecutionPathOptions
-	): ExecutionPathOptions {
-		return options.replaceVariableInit(
-			this.thisVariable,
-			withNew ? new UnknownObjectExpression() : UNKNOWN_EXPRESSION
-		);
 	}
 
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {

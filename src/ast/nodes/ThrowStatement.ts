@@ -1,6 +1,6 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionContext } from '../ExecutionContext';
 import * as NodeType from './NodeType';
 import { ExpressionNode, StatementBase } from './shared/Node';
 
@@ -8,7 +8,7 @@ export default class ThrowStatement extends StatementBase {
 	argument!: ExpressionNode;
 	type!: NodeType.tThrowStatement;
 
-	hasEffects(_options: ExecutionPathOptions) {
+	hasEffects(_context: ExecutionContext) {
 		return true;
 	}
 

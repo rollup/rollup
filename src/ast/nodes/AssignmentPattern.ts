@@ -1,7 +1,7 @@
 import MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../values';
 import Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
@@ -32,8 +32,8 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 		path.length === 0 && this.left.deoptimizePath(path);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return path.length > 0 || this.left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, options);
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
+		return path.length > 0 || this.left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context);
 	}
 
 	render(

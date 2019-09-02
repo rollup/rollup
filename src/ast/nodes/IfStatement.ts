@@ -2,7 +2,7 @@ import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { removeAnnotations } from '../../utils/treeshakeNode';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionContext } from '../ExecutionContext';
 import { EMPTY_IMMUTABLE_TRACKER } from '../utils/ImmutableEntityPathTracker';
 import { EMPTY_PATH, LiteralValueOrUnknown, UNKNOWN_VALUE } from '../values';
 import * as NodeType from './NodeType';
@@ -30,17 +30,17 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		this.testValue = UNKNOWN_VALUE;
 	}
 
-	hasEffects(options: ExecutionPathOptions): boolean {
-		if (this.test.hasEffects(options)) return true;
+	hasEffects(context: ExecutionContext): boolean {
+		if (this.test.hasEffects(context)) return true;
 		if (this.testValue === UNKNOWN_VALUE) {
 			return (
-				this.consequent.hasEffects(options) ||
-				(this.alternate !== null && this.alternate.hasEffects(options))
+				this.consequent.hasEffects(context) ||
+				(this.alternate !== null && this.alternate.hasEffects(context))
 			);
 		}
 		return this.testValue
-			? this.consequent.hasEffects(options)
-			: this.alternate !== null && this.alternate.hasEffects(options);
+			? this.consequent.hasEffects(context)
+			: this.alternate !== null && this.alternate.hasEffects(context);
 	}
 
 	include(includeChildrenRecursively: IncludeChildren) {

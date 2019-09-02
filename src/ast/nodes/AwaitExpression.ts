@@ -1,6 +1,6 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionContext } from '../ExecutionContext';
 import ArrowFunctionExpression from './ArrowFunctionExpression';
 import * as NodeType from './NodeType';
 import FunctionNode from './shared/FunctionNode';
@@ -10,8 +10,8 @@ export default class AwaitExpression extends NodeBase {
 	argument!: ExpressionNode;
 	type!: NodeType.tAwaitExpression;
 
-	hasEffects(options: ExecutionPathOptions) {
-		return super.hasEffects(options) || !options.ignoreReturnAwaitYield();
+	hasEffects(context: ExecutionContext) {
+		return super.hasEffects(context) || !context.ignoreReturnAwaitYield;
 	}
 
 	include(includeChildrenRecursively: IncludeChildren) {

@@ -7,7 +7,7 @@ import {
 } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionContext } from '../ExecutionContext';
 import {
 	EMPTY_IMMUTABLE_TRACKER,
 	ImmutableEntityPathTracker
@@ -150,53 +150,47 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		);
 	}
 
-	hasEffects(options: ExecutionPathOptions): boolean {
+	// TODO Lukas can this be made more efficient by grouping properties that can be replaced together?
+	hasEffects(context: ExecutionContext): boolean {
 		for (const argument of this.arguments) {
-			if (argument.hasEffects(options)) return true;
+			if (argument.hasEffects(context)) return true;
 		}
 		if (this.context.annotations && this.annotatedPure) return false;
-		return (
-			this.callee.hasEffects(options) ||
-			this.callee.hasEffectsWhenCalledAtPath(
-				EMPTY_PATH,
-				this.callOptions,
-				options.getHasEffectsWhenCalledOptions()
-			)
-		);
+		if (this.callee.hasEffects(context)) return true;
+		const { ignoreBreakStatements, ignoredLabels, ignoreReturnAwaitYield } = context;
+		Object.assign(context, {
+			ignoreBreakStatements: false,
+			ignoredLabels: new Set(),
+			ignoreReturnAwaitYield: true
+		});
+		if (this.callee.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.callOptions, context)) return true;
+		Object.assign(context, { ignoreBreakStatements, ignoredLabels, ignoreReturnAwaitYield });
+		return false;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
 		return (
 			path.length > 0 &&
-			!options.hasReturnExpressionBeenAccessedAtPath(path, this) &&
-			(this.returnExpression as ExpressionEntity).hasEffectsWhenAccessedAtPath(
-				path,
-				options.addAccessedReturnExpressionAtPath(path, this)
-			)
+			(this.returnExpression as ExpressionEntity).hasEffectsWhenAccessedAtPath(path, context)
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
 		return (
 			path.length === 0 ||
-			(!options.hasReturnExpressionBeenAssignedAtPath(path, this) &&
-				(this.returnExpression as ExpressionEntity).hasEffectsWhenAssignedAtPath(
-					path,
-					options.addAssignedReturnExpressionAtPath(path, this)
-				))
+			(this.returnExpression as ExpressionEntity).hasEffectsWhenAssignedAtPath(path, context)
 		);
 	}
 
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		options: ExecutionPathOptions
+		context: ExecutionContext
 	): boolean {
-		if (options.hasReturnExpressionBeenCalledAtPath(path, this)) return false;
 		return (this.returnExpression as ExpressionEntity).hasEffectsWhenCalledAtPath(
 			path,
 			callOptions,
-			options.addCalledReturnExpressionAtPath(path, this)
+			context
 		);
 	}
 

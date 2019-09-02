@@ -1,4 +1,4 @@
-import { ExecutionPathOptions } from './ExecutionPathOptions';
+import { ExecutionContext } from './ExecutionContext';
 import { ObjectPath } from './values';
 
 export interface Entity {
@@ -13,5 +13,5 @@ export interface WritableEntity extends Entity {
 	 * expression of this node is reassigned as well.
 	 */
 	deoptimizePath(path: ObjectPath): void;
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean;
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, execution: ExecutionContext): boolean;
 }

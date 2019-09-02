@@ -1,4 +1,4 @@
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionContext } from '../ExecutionContext';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import { StatementBase } from './shared/Node';
@@ -7,11 +7,11 @@ export default class BreakStatement extends StatementBase {
 	label!: Identifier | null;
 	type!: NodeType.tBreakStatement;
 
-	hasEffects(options: ExecutionPathOptions) {
+	hasEffects(context: ExecutionContext) {
 		return (
-			super.hasEffects(options) ||
-			!options.ignoreBreakStatements() ||
-			(this.label !== null && !options.ignoreLabel(this.label.name))
+			super.hasEffects(context) ||
+			!context.ignoreBreakStatements ||
+			(this.label !== null && !context.ignoredLabels.has(this.label.name))
 		);
 	}
 }

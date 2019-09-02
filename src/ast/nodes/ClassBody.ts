@@ -1,5 +1,5 @@
 import CallOptions from '../CallOptions';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath } from '../values';
 import MethodDefinition from './MethodDefinition';
 import * as NodeType from './NodeType';
@@ -14,14 +14,12 @@ export default class ClassBody extends NodeBase {
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		options: ExecutionPathOptions
+		context: ExecutionContext
 	) {
-		if (path.length > 0) {
-			return true;
-		}
+		if (path.length > 0) return true;
 		return (
 			this.classConstructor !== null &&
-			this.classConstructor.hasEffectsWhenCalledAtPath(EMPTY_PATH, callOptions, options)
+			this.classConstructor.hasEffectsWhenCalledAtPath(EMPTY_PATH, callOptions, context)
 		);
 	}
 

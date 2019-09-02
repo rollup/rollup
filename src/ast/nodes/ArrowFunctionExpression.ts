@@ -1,5 +1,5 @@
 import CallOptions from '../CallOptions';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionContext } from '../ExecutionContext';
 import ReturnValueScope from '../scopes/ReturnValueScope';
 import Scope from '../scopes/Scope';
 import { ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_KEY, UNKNOWN_PATH } from '../values';
@@ -34,30 +34,28 @@ export default class ArrowFunctionExpression extends NodeBase {
 		return path.length === 0 ? this.scope.getReturnExpression() : UNKNOWN_EXPRESSION;
 	}
 
-	hasEffects(_options: ExecutionPathOptions) {
+	hasEffects(_context: ExecutionContext) {
 		return false;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, _context: ExecutionContext) {
 		return path.length > 1;
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, _context: ExecutionContext) {
 		return path.length > 1;
 	}
 
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		_callOptions: CallOptions,
-		options: ExecutionPathOptions
+		context: ExecutionContext
 	): boolean {
-		if (path.length > 0) {
-			return true;
-		}
+		if (path.length > 0) return true;
 		for (const param of this.params) {
-			if (param.hasEffects(options)) return true;
+			if (param.hasEffects(context)) return true;
 		}
-		return this.body.hasEffects(options);
+		return this.body.hasEffects(context);
 	}
 
 	include(includeChildrenRecursively: boolean | 'variables') {

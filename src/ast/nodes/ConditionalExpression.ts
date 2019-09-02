@@ -9,7 +9,7 @@ import {
 import { removeAnnotations } from '../../utils/treeshakeNode';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionContext } from '../ExecutionContext';
 import {
 	EMPTY_IMMUTABLE_TRACKER,
 	ImmutableEntityPathTracker
@@ -94,48 +94,48 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		return this.usedBranch.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
 	}
 
-	hasEffects(options: ExecutionPathOptions): boolean {
-		if (this.test.hasEffects(options)) return true;
+	hasEffects(context: ExecutionContext): boolean {
+		if (this.test.hasEffects(context)) return true;
 		if (this.usedBranch === null) {
-			return this.consequent.hasEffects(options) || this.alternate.hasEffects(options);
+			return this.consequent.hasEffects(context) || this.alternate.hasEffects(context);
 		}
-		return this.usedBranch.hasEffects(options);
+		return this.usedBranch.hasEffects(context);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
 		if (path.length === 0) return false;
 		if (this.usedBranch === null) {
 			return (
-				this.consequent.hasEffectsWhenAccessedAtPath(path, options) ||
-				this.alternate.hasEffectsWhenAccessedAtPath(path, options)
+				this.consequent.hasEffectsWhenAccessedAtPath(path, context) ||
+				this.alternate.hasEffectsWhenAccessedAtPath(path, context)
 			);
 		}
-		return this.usedBranch.hasEffectsWhenAccessedAtPath(path, options);
+		return this.usedBranch.hasEffectsWhenAccessedAtPath(path, context);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
 		if (path.length === 0) return true;
 		if (this.usedBranch === null) {
 			return (
-				this.consequent.hasEffectsWhenAssignedAtPath(path, options) ||
-				this.alternate.hasEffectsWhenAssignedAtPath(path, options)
+				this.consequent.hasEffectsWhenAssignedAtPath(path, context) ||
+				this.alternate.hasEffectsWhenAssignedAtPath(path, context)
 			);
 		}
-		return this.usedBranch.hasEffectsWhenAssignedAtPath(path, options);
+		return this.usedBranch.hasEffectsWhenAssignedAtPath(path, context);
 	}
 
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		options: ExecutionPathOptions
+		context: ExecutionContext
 	): boolean {
 		if (this.usedBranch === null) {
 			return (
-				this.consequent.hasEffectsWhenCalledAtPath(path, callOptions, options) ||
-				this.alternate.hasEffectsWhenCalledAtPath(path, callOptions, options)
+				this.consequent.hasEffectsWhenCalledAtPath(path, callOptions, context) ||
+				this.alternate.hasEffectsWhenCalledAtPath(path, callOptions, context)
 			);
 		}
-		return this.usedBranch.hasEffectsWhenCalledAtPath(path, callOptions, options);
+		return this.usedBranch.hasEffectsWhenCalledAtPath(path, callOptions, context);
 	}
 
 	include(includeChildrenRecursively: IncludeChildren) {

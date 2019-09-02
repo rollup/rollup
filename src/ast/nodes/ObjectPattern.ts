@@ -1,4 +1,4 @@
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath } from '../values';
 import Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
@@ -38,10 +38,10 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 		}
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: ExecutionContext) {
 		if (path.length > 0) return true;
 		for (const property of this.properties) {
-			if (property.hasEffectsWhenAssignedAtPath(EMPTY_PATH, options)) return true;
+			if (property.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context)) return true;
 		}
 		return false;
 	}

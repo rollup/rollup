@@ -1,6 +1,6 @@
 import { AstContext } from '../../Module';
 import CallOptions from '../CallOptions';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionContext } from '../ExecutionContext';
 import { ExpressionEntity } from '../nodes/shared/Expression';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 import LocalVariable from './LocalVariable';
@@ -10,36 +10,36 @@ export default class ThisVariable extends LocalVariable {
 		super('this', null, null, context);
 	}
 
-	_getInit(options: ExecutionPathOptions): ExpressionEntity {
-		return options.getReplacedVariableInit(this) || UNKNOWN_EXPRESSION;
-	}
-
 	getLiteralValueAtPath(): LiteralValueOrUnknown {
 		return UNKNOWN_VALUE;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: ExecutionContext) {
 		return (
-			this._getInit(options).hasEffectsWhenAccessedAtPath(path, options) ||
-			super.hasEffectsWhenAccessedAtPath(path, options)
+			this.getInit(context).hasEffectsWhenAccessedAtPath(path, context) ||
+			super.hasEffectsWhenAccessedAtPath(path, context)
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: ExecutionContext) {
 		return (
-			this._getInit(options).hasEffectsWhenAssignedAtPath(path, options) ||
-			super.hasEffectsWhenAssignedAtPath(path, options)
+			this.getInit(context).hasEffectsWhenAssignedAtPath(path, context) ||
+			super.hasEffectsWhenAssignedAtPath(path, context)
 		);
 	}
 
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		options: ExecutionPathOptions
+		context: ExecutionContext
 	) {
 		return (
-			this._getInit(options).hasEffectsWhenCalledAtPath(path, callOptions, options) ||
-			super.hasEffectsWhenCalledAtPath(path, callOptions, options)
+			this.getInit(context).hasEffectsWhenCalledAtPath(path, callOptions, context) ||
+			super.hasEffectsWhenCalledAtPath(path, callOptions, context)
 		);
+	}
+
+	private getInit(context: ExecutionContext): ExpressionEntity {
+		return context.replacedVariableInits.get(this) || UNKNOWN_EXPRESSION;
 	}
 }

@@ -1,4 +1,4 @@
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_KEY } from '../values';
 import Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
@@ -32,7 +32,7 @@ export default class RestElement extends NodeBase implements PatternNode {
 		path.length === 0 && this.argument.deoptimizePath(EMPTY_PATH);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return path.length > 0 || this.argument.hasEffectsWhenAssignedAtPath(EMPTY_PATH, options);
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
+		return path.length > 0 || this.argument.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context);
 	}
 }

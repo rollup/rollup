@@ -9,7 +9,7 @@ import {
 import { treeshakeNode } from '../../utils/treeshakeNode';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionContext } from '../ExecutionContext';
 import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
 import { LiteralValueOrUnknown, ObjectPath } from '../values';
 import CallExpression from './CallExpression';
@@ -36,36 +36,36 @@ export default class SequenceExpression extends NodeBase {
 		);
 	}
 
-	hasEffects(options: ExecutionPathOptions): boolean {
+	hasEffects(context: ExecutionContext): boolean {
 		for (const expression of this.expressions) {
-			if (expression.hasEffects(options)) return true;
+			if (expression.hasEffects(context)) return true;
 		}
 		return false;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
 		return (
 			path.length > 0 &&
-			this.expressions[this.expressions.length - 1].hasEffectsWhenAccessedAtPath(path, options)
+			this.expressions[this.expressions.length - 1].hasEffectsWhenAccessedAtPath(path, context)
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
 		return (
 			path.length === 0 ||
-			this.expressions[this.expressions.length - 1].hasEffectsWhenAssignedAtPath(path, options)
+			this.expressions[this.expressions.length - 1].hasEffectsWhenAssignedAtPath(path, context)
 		);
 	}
 
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		options: ExecutionPathOptions
+		context: ExecutionContext
 	): boolean {
 		return this.expressions[this.expressions.length - 1].hasEffectsWhenCalledAtPath(
 			path,
 			callOptions,
-			options
+			context
 		);
 	}
 

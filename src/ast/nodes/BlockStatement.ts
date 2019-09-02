@@ -1,6 +1,6 @@
 import MagicString from 'magic-string';
 import { RenderOptions, renderStatementList } from '../../utils/renderHelpers';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import ChildScope from '../scopes/ChildScope';
 import Scope from '../scopes/Scope';
@@ -25,9 +25,9 @@ export default class BlockStatement extends StatementBase {
 			: new BlockScope(parentScope);
 	}
 
-	hasEffects(options: ExecutionPathOptions) {
+	hasEffects(context: ExecutionContext) {
 		for (const node of this.body) {
-			if (node.hasEffects(options)) return true;
+			if (node.hasEffects(context)) return true;
 		}
 		return false;
 	}

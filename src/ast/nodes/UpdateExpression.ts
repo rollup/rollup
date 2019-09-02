@@ -1,6 +1,6 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath } from '../values';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
@@ -21,14 +21,14 @@ export default class UpdateExpression extends NodeBase {
 		}
 	}
 
-	hasEffects(options: ExecutionPathOptions): boolean {
+	hasEffects(context: ExecutionContext): boolean {
 		return (
-			this.argument.hasEffects(options) ||
-			this.argument.hasEffectsWhenAssignedAtPath(EMPTY_PATH, options)
+			this.argument.hasEffects(context) ||
+			this.argument.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context)
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, _context: ExecutionContext) {
 		return path.length > 1;
 	}
 

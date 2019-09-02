@@ -1,6 +1,6 @@
 import MagicString from 'magic-string';
 import { NO_SEMICOLON, RenderOptions } from '../../utils/renderHelpers';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import Scope from '../scopes/Scope';
 import * as NodeType from './NodeType';
@@ -18,13 +18,18 @@ export default class ForStatement extends StatementBase {
 		this.scope = new BlockScope(parentScope);
 	}
 
-	hasEffects(options: ExecutionPathOptions): boolean {
-		return (
-			(this.init && this.init.hasEffects(options)) ||
-			(this.test && this.test.hasEffects(options)) ||
-			(this.update && this.update.hasEffects(options)) ||
-			this.body.hasEffects(options.setIgnoreBreakStatements())
-		);
+	hasEffects(context: ExecutionContext): boolean {
+		if (
+			(this.init && this.init.hasEffects(context)) ||
+			(this.test && this.test.hasEffects(context)) ||
+			(this.update && this.update.hasEffects(context))
+		)
+			return true;
+		const { ignoreBreakStatements } = context;
+		context.ignoreBreakStatements = true;
+		if (this.body.hasEffects(context)) return true;
+		context.ignoreBreakStatements = ignoreBreakStatements;
+		return false;
 	}
 
 	render(code: MagicString, options: RenderOptions) {

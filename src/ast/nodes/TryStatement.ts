@@ -1,4 +1,4 @@
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionContext } from '../ExecutionContext';
 import BlockStatement from './BlockStatement';
 import CatchClause from './CatchClause';
 import * as NodeType from './NodeType';
@@ -12,11 +12,11 @@ export default class TryStatement extends StatementBase {
 
 	private directlyIncluded = false;
 
-	hasEffects(options: ExecutionPathOptions): boolean {
+	hasEffects(context: ExecutionContext): boolean {
 		return (
 			this.block.body.length > 0 ||
-			(this.handler !== null && this.handler.hasEffects(options)) ||
-			(this.finalizer !== null && this.finalizer.hasEffects(options))
+			(this.handler !== null && this.handler.hasEffects(context)) ||
+			(this.finalizer !== null && this.finalizer.hasEffects(context))
 		);
 	}
 

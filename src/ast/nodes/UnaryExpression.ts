@@ -1,5 +1,5 @@
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { ExecutionContext } from '../ExecutionContext';
 import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
 import { EMPTY_PATH, LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../values';
 import Identifier from './Identifier';
@@ -44,16 +44,16 @@ export default class UnaryExpression extends NodeBase {
 		return unaryOperators[this.operator](argumentValue as LiteralValue);
 	}
 
-	hasEffects(options: ExecutionPathOptions): boolean {
+	hasEffects(context: ExecutionContext): boolean {
 		if (this.operator === 'typeof' && this.argument instanceof Identifier) return false;
 		return (
-			this.argument.hasEffects(options) ||
+			this.argument.hasEffects(context) ||
 			(this.operator === 'delete' &&
-				this.argument.hasEffectsWhenAssignedAtPath(EMPTY_PATH, options))
+				this.argument.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context))
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, _context: ExecutionContext) {
 		if (this.operator === 'void') {
 			return path.length > 0;
 		}
