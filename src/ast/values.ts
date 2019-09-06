@@ -1,5 +1,5 @@
 import CallOptions from './CallOptions';
-import { ExecutionContext } from './ExecutionContext';
+import { ExecutionContext, resetIgnoreForCall } from './ExecutionContext';
 import { LiteralValue } from './nodes/Literal';
 import { ExpressionEntity } from './nodes/shared/Expression';
 import { ExpressionNode } from './nodes/shared/Node';
@@ -476,12 +476,7 @@ export function hasMemberEffectWhenCalled(
 	if (!members[memberName].callsArgs) return false;
 	const calledArgs = members[memberName].callsArgs as number[];
 	if (calledArgs.length > 0) {
-		const { ignoreBreakStatements, ignoredLabels, ignoreReturnAwaitYield } = context;
-		Object.assign(context, {
-			ignoreBreakStatements: false,
-			ignoredLabels: new Set(),
-			ignoreReturnAwaitYield: true
-		});
+		const ignore = resetIgnoreForCall(context);
 		for (const argIndex of members[memberName].callsArgs as number[]) {
 			if (callOptions.args[argIndex]) {
 				if (
@@ -499,7 +494,7 @@ export function hasMemberEffectWhenCalled(
 				}
 			}
 		}
-		Object.assign(context, { ignoreBreakStatements, ignoredLabels, ignoreReturnAwaitYield });
+		context.ignore = ignore;
 	}
 	return false;
 }

@@ -2,7 +2,7 @@ import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionContext } from '../ExecutionContext';
+import { ExecutionContext, resetIgnoreForCall } from '../ExecutionContext';
 import { EMPTY_IMMUTABLE_TRACKER, PathTracker } from '../utils/PathTracker';
 import {
 	EMPTY_PATH,
@@ -103,15 +103,10 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
 		if (this.kind === 'get') {
-			const { ignoreBreakStatements, ignoredLabels, ignoreReturnAwaitYield } = context;
-			Object.assign(context, {
-				ignoreBreakStatements: false,
-				ignoredLabels: new Set(),
-				ignoreReturnAwaitYield: true
-			});
+			const ignore = resetIgnoreForCall(context);
 			if (this.value.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.accessorCallOptions, context))
 				return true;
-			Object.assign(context, { ignoreBreakStatements, ignoredLabels, ignoreReturnAwaitYield });
+			context.ignore = ignore;
 			return (
 				path.length > 0 &&
 				(this.returnExpression as ExpressionEntity).hasEffectsWhenAccessedAtPath(path, context)
@@ -129,15 +124,10 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 		}
 		if (this.kind === 'set') {
 			if (path.length > 0) return true;
-			const { ignoreBreakStatements, ignoredLabels, ignoreReturnAwaitYield } = context;
-			Object.assign(context, {
-				ignoreBreakStatements: false,
-				ignoredLabels: new Set(),
-				ignoreReturnAwaitYield: true
-			});
+			const ignore = resetIgnoreForCall(context);
 			if (this.value.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.accessorCallOptions, context))
 				return true;
-			Object.assign(context, { ignoreBreakStatements, ignoredLabels, ignoreReturnAwaitYield });
+			context.ignore = ignore;
 			return false;
 		}
 		return this.value.hasEffectsWhenAssignedAtPath(path, context);

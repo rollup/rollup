@@ -11,7 +11,7 @@ export default class ReturnStatement extends StatementBase {
 
 	hasEffects(context: ExecutionContext) {
 		return (
-			!context.ignoreReturnAwaitYield ||
+			!context.ignore.returnAwaitYield ||
 			(this.argument !== null && this.argument.hasEffects(context))
 		);
 	}

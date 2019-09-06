@@ -1,5 +1,5 @@
 import CallOptions from '../CallOptions';
-import { ExecutionContext } from '../ExecutionContext';
+import { ExecutionContext, resetIgnoreForCall } from '../ExecutionContext';
 import { EMPTY_PATH } from '../values';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
@@ -43,14 +43,9 @@ export default class TaggedTemplateExpression extends NodeBase {
 
 	hasEffects(context: ExecutionContext) {
 		if (super.hasEffects(context)) return true;
-		const { ignoreBreakStatements, ignoredLabels, ignoreReturnAwaitYield } = context;
-		Object.assign(context, {
-			ignoreBreakStatements: false,
-			ignoredLabels: new Set(),
-			ignoreReturnAwaitYield: true
-		});
+		const ignore = resetIgnoreForCall(context);
 		if (this.tag.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.callOptions, context)) return true;
-		Object.assign(context, { ignoreBreakStatements, ignoredLabels, ignoreReturnAwaitYield });
+		context.ignore = ignore;
 		return false;
 	}
 

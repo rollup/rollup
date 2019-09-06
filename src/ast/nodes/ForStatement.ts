@@ -25,10 +25,12 @@ export default class ForStatement extends StatementBase {
 			(this.update && this.update.hasEffects(context))
 		)
 			return true;
-		const { ignoreBreakStatements } = context;
-		context.ignoreBreakStatements = true;
+		const {
+			ignore: { breakStatements }
+		} = context;
+		context.ignore.breakStatements = true;
 		if (this.body.hasEffects(context)) return true;
-		context.ignoreBreakStatements = ignoreBreakStatements;
+		context.ignore.breakStatements = breakStatements;
 		return false;
 	}
 

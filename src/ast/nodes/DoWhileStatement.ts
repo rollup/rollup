@@ -9,10 +9,12 @@ export default class DoWhileStatement extends StatementBase {
 
 	hasEffects(context: ExecutionContext): boolean {
 		if (this.test.hasEffects(context)) return true;
-		const { ignoreBreakStatements } = context;
-		context.ignoreBreakStatements = true;
+		const {
+			ignore: { breakStatements }
+		} = context;
+		context.ignore.breakStatements = true;
 		if (this.body.hasEffects(context)) return true;
-		context.ignoreBreakStatements = ignoreBreakStatements;
+		context.ignore.breakStatements = breakStatements;
 		return false;
 	}
 }

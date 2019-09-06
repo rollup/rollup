@@ -11,7 +11,7 @@ export default class AwaitExpression extends NodeBase {
 	type!: NodeType.tAwaitExpression;
 
 	hasEffects(context: ExecutionContext) {
-		return super.hasEffects(context) || !context.ignoreReturnAwaitYield;
+		return super.hasEffects(context) || !context.ignore.returnAwaitYield;
 	}
 
 	include(includeChildrenRecursively: IncludeChildren) {

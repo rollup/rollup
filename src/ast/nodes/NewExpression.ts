@@ -1,5 +1,5 @@
 import CallOptions from '../CallOptions';
-import { ExecutionContext } from '../ExecutionContext';
+import { ExecutionContext, resetIgnoreForCall } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
@@ -25,14 +25,9 @@ export default class NewExpression extends NodeBase {
 			if (argument.hasEffects(context)) return true;
 		}
 		if (this.annotatedPure) return false;
-		const { ignoreBreakStatements, ignoredLabels, ignoreReturnAwaitYield } = context;
-		Object.assign(context, {
-			ignoreBreakStatements: false,
-			ignoredLabels: new Set(),
-			ignoreReturnAwaitYield: true
-		});
+		const ignore = resetIgnoreForCall(context);
 		if (this.callee.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.callOptions, context)) return true;
-		Object.assign(context, { ignoreBreakStatements, ignoredLabels, ignoreReturnAwaitYield });
+		context.ignore = ignore;
 		return false;
 	}
 

@@ -9,12 +9,14 @@ export default class LabeledStatement extends StatementBase {
 	type!: NodeType.tLabeledStatement;
 
 	hasEffects(context: ExecutionContext) {
-		const { ignoreBreakStatements } = context;
-		context.ignoreBreakStatements = true;
-		context.ignoredLabels.add(this.label.name);
+		const {
+			ignore: { breakStatements }
+		} = context;
+		context.ignore.breakStatements = true;
+		context.ignore.labels.add(this.label.name);
 		if (this.body.hasEffects(context)) return true;
-		context.ignoreBreakStatements = ignoreBreakStatements;
-		context.ignoredLabels.delete(this.label.name);
+		context.ignore.breakStatements = breakStatements;
+		context.ignore.labels.delete(this.label.name);
 		return false;
 	}
 }

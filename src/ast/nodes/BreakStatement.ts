@@ -10,8 +10,8 @@ export default class BreakStatement extends StatementBase {
 	hasEffects(context: ExecutionContext) {
 		return (
 			super.hasEffects(context) ||
-			!context.ignoreBreakStatements ||
-			(this.label !== null && !context.ignoredLabels.has(this.label.name))
+			!context.ignore.breakStatements ||
+			(this.label !== null && !context.ignore.labels.has(this.label.name))
 		);
 	}
 }

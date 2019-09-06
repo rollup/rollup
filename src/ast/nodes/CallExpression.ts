@@ -7,7 +7,7 @@ import {
 } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionContext } from '../ExecutionContext';
+import { ExecutionContext, resetIgnoreForCall } from '../ExecutionContext';
 import { EMPTY_IMMUTABLE_TRACKER, PathTracker } from '../utils/PathTracker';
 import {
 	EMPTY_PATH,
@@ -153,21 +153,15 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		return value;
 	}
 
-	// TODO Lukas can this be made more efficient by grouping properties that can be replaced together?
 	hasEffects(context: ExecutionContext): boolean {
 		for (const argument of this.arguments) {
 			if (argument.hasEffects(context)) return true;
 		}
 		if (this.context.annotations && this.annotatedPure) return false;
 		if (this.callee.hasEffects(context)) return true;
-		const { ignoreBreakStatements, ignoredLabels, ignoreReturnAwaitYield } = context;
-		Object.assign(context, {
-			ignoreBreakStatements: false,
-			ignoredLabels: new Set(),
-			ignoreReturnAwaitYield: true
-		});
+		const ignore = resetIgnoreForCall(context);
 		if (this.callee.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.callOptions, context)) return true;
-		Object.assign(context, { ignoreBreakStatements, ignoredLabels, ignoreReturnAwaitYield });
+		context.ignore = ignore;
 		return false;
 	}
 

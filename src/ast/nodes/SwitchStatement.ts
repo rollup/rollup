@@ -15,10 +15,10 @@ export default class SwitchStatement extends StatementBase {
 	}
 
 	hasEffects(context: ExecutionContext) {
-		const ignoreBreakStatements = context.ignoreBreakStatements;
-		context.ignoreBreakStatements = true;
+		const ignoreBreakStatements = context.ignore.breakStatements;
+		context.ignore.breakStatements = true;
 		if (super.hasEffects(context)) return true;
-		context.ignoreBreakStatements = ignoreBreakStatements;
+		context.ignore.breakStatements = ignoreBreakStatements;
 		return false;
 	}
 }
