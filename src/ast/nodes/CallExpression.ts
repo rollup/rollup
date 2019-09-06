@@ -7,7 +7,7 @@ import {
 } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionContext, resetIgnoreForCall } from '../ExecutionContext';
+import { ExecutionContext } from '../ExecutionContext';
 import { EMPTY_IMMUTABLE_TRACKER, PathTracker } from '../utils/PathTracker';
 import {
 	EMPTY_PATH,
@@ -158,11 +158,10 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 			if (argument.hasEffects(context)) return true;
 		}
 		if (this.context.annotations && this.annotatedPure) return false;
-		if (this.callee.hasEffects(context)) return true;
-		const ignore = resetIgnoreForCall(context);
-		if (this.callee.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.callOptions, context)) return true;
-		context.ignore = ignore;
-		return false;
+		return (
+			this.callee.hasEffects(context) ||
+			this.callee.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.callOptions, context)
+		);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: ExecutionContext): boolean {

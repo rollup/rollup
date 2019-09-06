@@ -55,7 +55,15 @@ export default class ArrowFunctionExpression extends NodeBase {
 		for (const param of this.params) {
 			if (param.hasEffects(context)) return true;
 		}
-		return this.body.hasEffects(context);
+		const ignore = context.ignore;
+		context.ignore = {
+			breakStatements: false,
+			labels: new Set(),
+			returnAwaitYield: true
+		};
+		if (this.body.hasEffects(context)) return true;
+		context.ignore = ignore;
+		return false;
 	}
 
 	include(includeChildrenRecursively: boolean | 'variables') {

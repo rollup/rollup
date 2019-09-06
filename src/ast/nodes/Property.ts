@@ -2,7 +2,7 @@ import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionContext, resetIgnoreForCall } from '../ExecutionContext';
+import { ExecutionContext } from '../ExecutionContext';
 import { EMPTY_IMMUTABLE_TRACKER, PathTracker } from '../utils/PathTracker';
 import {
 	EMPTY_PATH,
@@ -103,13 +103,10 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
 		if (this.kind === 'get') {
-			const ignore = resetIgnoreForCall(context);
-			if (this.value.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.accessorCallOptions, context))
-				return true;
-			context.ignore = ignore;
 			return (
-				path.length > 0 &&
-				(this.returnExpression as ExpressionEntity).hasEffectsWhenAccessedAtPath(path, context)
+				this.value.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.accessorCallOptions, context) ||
+				(path.length > 0 &&
+					(this.returnExpression as ExpressionEntity).hasEffectsWhenAccessedAtPath(path, context))
 			);
 		}
 		return this.value.hasEffectsWhenAccessedAtPath(path, context);
@@ -123,12 +120,10 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 			);
 		}
 		if (this.kind === 'set') {
-			if (path.length > 0) return true;
-			const ignore = resetIgnoreForCall(context);
-			if (this.value.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.accessorCallOptions, context))
-				return true;
-			context.ignore = ignore;
-			return false;
+			return (
+				path.length > 0 ||
+				this.value.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.accessorCallOptions, context)
+			);
 		}
 		return this.value.hasEffectsWhenAssignedAtPath(path, context);
 	}

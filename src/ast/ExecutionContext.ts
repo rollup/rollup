@@ -22,13 +22,3 @@ export function createExecutionContext(): ExecutionContext {
 		replacedVariableInits: new Map()
 	};
 }
-
-export function resetIgnoreForCall(context: ExecutionContext): ExecutionContextIgnore {
-	const ignore = context.ignore;
-	context.ignore = {
-		breakStatements: false,
-		labels: new Set(),
-		returnAwaitYield: true
-	};
-	return ignore;
-}

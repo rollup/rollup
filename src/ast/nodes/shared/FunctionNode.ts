@@ -69,20 +69,27 @@ export default class FunctionNode extends NodeBase {
 		context: ExecutionContext
 	) {
 		if (path.length > 0) return true;
+		for (const param of this.params) {
+			if (param.hasEffects(context)) return true;
+		}
 		const thisInit = context.replacedVariableInits.get(this.scope.thisVariable);
 		context.replacedVariableInits.set(
 			this.scope.thisVariable,
 			callOptions.withNew ? new UnknownObjectExpression() : UNKNOWN_EXPRESSION
 		);
-		for (const param of this.params) {
-			if (param.hasEffects(context)) return true;
-		}
+		const ignore = context.ignore;
+		context.ignore = {
+			breakStatements: false,
+			labels: new Set(),
+			returnAwaitYield: true
+		};
 		if (this.body.hasEffects(context)) return true;
 		if (thisInit) {
 			context.replacedVariableInits.set(this.scope.thisVariable, thisInit);
 		} else {
 			context.replacedVariableInits.delete(this.scope.thisVariable);
 		}
+		context.ignore = ignore;
 		return false;
 	}
 

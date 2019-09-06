@@ -1,5 +1,5 @@
 import CallOptions from './CallOptions';
-import { ExecutionContext, resetIgnoreForCall } from './ExecutionContext';
+import { ExecutionContext } from './ExecutionContext';
 import { LiteralValue } from './nodes/Literal';
 import { ExpressionEntity } from './nodes/shared/Expression';
 import { ExpressionNode } from './nodes/shared/Node';
@@ -474,27 +474,20 @@ export function hasMemberEffectWhenCalled(
 	)
 		return true;
 	if (!members[memberName].callsArgs) return false;
-	const calledArgs = members[memberName].callsArgs as number[];
-	if (calledArgs.length > 0) {
-		const ignore = resetIgnoreForCall(context);
-		for (const argIndex of members[memberName].callsArgs as number[]) {
-			if (callOptions.args[argIndex]) {
-				if (
-					callOptions.args[argIndex].hasEffectsWhenCalledAtPath(
-						EMPTY_PATH,
-						CallOptions.create({
-							args: [],
-							callIdentifier: {}, // make sure the caller is unique to avoid this check being ignored,
-							withNew: false
-						}),
-						context
-					)
-				) {
-					return true;
-				}
-			}
-		}
-		context.ignore = ignore;
+	for (const argIndex of members[memberName].callsArgs as number[]) {
+		if (
+			callOptions.args[argIndex] &&
+			callOptions.args[argIndex].hasEffectsWhenCalledAtPath(
+				EMPTY_PATH,
+				CallOptions.create({
+					args: [],
+					callIdentifier: {}, // make sure the caller is unique to avoid this check being ignored,
+					withNew: false
+				}),
+				context
+			)
+		)
+			return true;
 	}
 	return false;
 }
