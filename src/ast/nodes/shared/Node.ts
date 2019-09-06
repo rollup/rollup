@@ -8,7 +8,7 @@ import { Entity } from '../../Entity';
 import { createExecutionContext, ExecutionContext } from '../../ExecutionContext';
 import { getAndCreateKeys, keys } from '../../keys';
 import ChildScope from '../../scopes/ChildScope';
-import { ImmutableEntityPathTracker } from '../../utils/ImmutableEntityPathTracker';
+import { PathTracker } from '../../utils/PathTracker';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../../values';
 import LocalVariable from '../../variables/LocalVariable';
 import Variable from '../../variables/Variable';
@@ -140,7 +140,7 @@ export class NodeBase implements ExpressionNode {
 
 	getLiteralValueAtPath(
 		_path: ObjectPath,
-		_recursionTracker: ImmutableEntityPathTracker,
+		_recursionTracker: PathTracker,
 		_origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		return UNKNOWN_VALUE;
@@ -148,7 +148,7 @@ export class NodeBase implements ExpressionNode {
 
 	getReturnExpressionWhenCalledAtPath(
 		_path: ObjectPath,
-		_recursionTracker: ImmutableEntityPathTracker,
+		_recursionTracker: PathTracker,
 		_origin: DeoptimizableEntity
 	): ExpressionEntity {
 		return UNKNOWN_EXPRESSION;

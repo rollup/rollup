@@ -5,10 +5,7 @@ import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionContext } from '../ExecutionContext';
-import {
-	EMPTY_IMMUTABLE_TRACKER,
-	ImmutableEntityPathTracker
-} from '../utils/ImmutableEntityPathTracker';
+import { EMPTY_IMMUTABLE_TRACKER, PathTracker } from '../utils/PathTracker';
 import {
 	EMPTY_PATH,
 	LiteralValueOrUnknown,
@@ -133,7 +130,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (!this.bound) this.bind();
@@ -151,7 +148,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	) {
 		if (!this.bound) this.bind();

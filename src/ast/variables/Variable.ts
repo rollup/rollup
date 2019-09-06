@@ -7,7 +7,7 @@ import Identifier from '../nodes/Identifier';
 import { ExpressionEntity } from '../nodes/shared/Expression';
 import { ExpressionNode } from '../nodes/shared/Node';
 import SpreadElement from '../nodes/SpreadElement';
-import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
+import { PathTracker } from '../utils/PathTracker';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
 
 export default class Variable implements ExpressionEntity {
@@ -41,7 +41,7 @@ export default class Variable implements ExpressionEntity {
 
 	getLiteralValueAtPath(
 		_path: ObjectPath,
-		_recursionTracker: ImmutableEntityPathTracker,
+		_recursionTracker: PathTracker,
 		_origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		return UNKNOWN_VALUE;
@@ -54,7 +54,7 @@ export default class Variable implements ExpressionEntity {
 
 	getReturnExpressionWhenCalledAtPath(
 		_path: ObjectPath,
-		_recursionTracker: ImmutableEntityPathTracker,
+		_recursionTracker: PathTracker,
 		_origin: DeoptimizableEntity
 	): ExpressionEntity {
 		return UNKNOWN_EXPRESSION;

@@ -10,7 +10,7 @@ import { ExpressionEntity } from '../nodes/shared/Expression';
 import { ExpressionNode, Node } from '../nodes/shared/Node';
 import SpreadElement from '../nodes/SpreadElement';
 import { EntityPathTracker } from '../utils/EntityPathTracker';
-import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
+import { PathTracker } from '../utils/PathTracker';
 import {
 	LiteralValueOrUnknown,
 	ObjectPath,
@@ -88,42 +88,43 @@ export default class LocalVariable extends Variable {
 		}
 	}
 
+	// TODO Lukas make bailout more efficient
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		if (
-			this.isReassigned ||
-			!this.init ||
-			path.length > MAX_PATH_DEPTH ||
-			recursionTracker.isTracked(this.init, path)
-		) {
+		if (this.isReassigned || !this.init || path.length > MAX_PATH_DEPTH) {
+			return UNKNOWN_VALUE;
+		}
+		const trackedEntities = recursionTracker.getEntities(path);
+		if (trackedEntities.has(this.init)) {
 			return UNKNOWN_VALUE;
 		}
 		this.expressionsToBeDeoptimized.push(origin);
-		return this.init.getLiteralValueAtPath(path, recursionTracker.track(this.init, path), origin);
+		trackedEntities.add(this.init);
+		const value = this.init.getLiteralValueAtPath(path, recursionTracker, origin);
+		trackedEntities.delete(this.init);
+		return value;
 	}
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
-		if (
-			this.isReassigned ||
-			!this.init ||
-			path.length > MAX_PATH_DEPTH ||
-			recursionTracker.isTracked(this.init, path)
-		) {
+		if (this.isReassigned || !this.init || path.length > MAX_PATH_DEPTH) {
+			return UNKNOWN_EXPRESSION;
+		}
+		const trackedEntities = recursionTracker.getEntities(path);
+		if (trackedEntities.has(this.init)) {
 			return UNKNOWN_EXPRESSION;
 		}
 		this.expressionsToBeDeoptimized.push(origin);
-		return this.init.getReturnExpressionWhenCalledAtPath(
-			path,
-			recursionTracker.track(this.init, path),
-			origin
-		);
+		trackedEntities.add(this.init);
+		const value = this.init.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
+		trackedEntities.delete(this.init);
+		return value;
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: ExecutionContext) {

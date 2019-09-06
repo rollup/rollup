@@ -1,6 +1,6 @@
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionContext } from '../ExecutionContext';
-import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
+import { PathTracker } from '../utils/PathTracker';
 import { EMPTY_PATH, LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../values';
 import Identifier from './Identifier';
 import { LiteralValue } from './Literal';
@@ -34,7 +34,7 @@ export default class UnaryExpression extends NodeBase {
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (path.length > 0) return UNKNOWN_VALUE;

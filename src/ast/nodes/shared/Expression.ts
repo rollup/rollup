@@ -2,7 +2,7 @@ import CallOptions from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { WritableEntity } from '../../Entity';
 import { ExecutionContext } from '../../ExecutionContext';
-import { ImmutableEntityPathTracker } from '../../utils/ImmutableEntityPathTracker';
+import { PathTracker } from '../../utils/PathTracker';
 import { LiteralValueOrUnknown, ObjectPath } from '../../values';
 import SpreadElement from '../SpreadElement';
 import { ExpressionNode, IncludeChildren } from './Node';
@@ -17,12 +17,12 @@ export interface ExpressionEntity extends WritableEntity {
 	 */
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown;
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity;
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: ExecutionContext): boolean;

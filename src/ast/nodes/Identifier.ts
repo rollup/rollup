@@ -6,7 +6,7 @@ import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionContext } from '../ExecutionContext';
 import FunctionScope from '../scopes/FunctionScope';
-import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
+import { PathTracker } from '../utils/PathTracker';
 import { EMPTY_PATH, LiteralValueOrUnknown, ObjectPath } from '../values';
 import GlobalVariable from '../variables/GlobalVariable';
 import LocalVariable from '../variables/LocalVariable';
@@ -81,7 +81,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (!this.bound) this.bind();
@@ -90,7 +90,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	) {
 		if (!this.bound) this.bind();

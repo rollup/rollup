@@ -90,7 +90,6 @@
     "fixturify": "^1.2.0",
     "hash.js": "^1.1.7",
     "husky": "^3.0.8",
-    "immutable": "^4.0.0-rc.12",
     "is-reference": "^1.1.4",
     "lint-staged": "^9.4.1",
     "locate-character": "^2.0.5",

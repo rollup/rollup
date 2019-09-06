@@ -8,10 +8,7 @@ import {
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionContext } from '../ExecutionContext';
-import {
-	EMPTY_IMMUTABLE_TRACKER,
-	ImmutableEntityPathTracker
-} from '../utils/ImmutableEntityPathTracker';
+import { EMPTY_IMMUTABLE_TRACKER, PathTracker } from '../utils/PathTracker';
 import {
 	EMPTY_PATH,
 	LiteralValueOrUnknown,
@@ -100,7 +97,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (this.returnExpression === null) {
@@ -110,23 +107,23 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 				this
 			);
 		}
-		if (
-			this.returnExpression === UNKNOWN_EXPRESSION ||
-			recursionTracker.isTracked(this.returnExpression, path)
-		) {
+		if (this.returnExpression === UNKNOWN_EXPRESSION) {
+			return UNKNOWN_VALUE;
+		}
+		const trackedEntities = recursionTracker.getEntities(path);
+		if (trackedEntities.has(this.returnExpression)) {
 			return UNKNOWN_VALUE;
 		}
 		this.expressionsToBeDeoptimized.push(origin);
-		return this.returnExpression.getLiteralValueAtPath(
-			path,
-			recursionTracker.track(this.returnExpression, path),
-			origin
-		);
+		trackedEntities.add(this.returnExpression);
+		const value = this.returnExpression.getLiteralValueAtPath(path, recursionTracker, origin);
+		trackedEntities.delete(this.returnExpression);
+		return value;
 	}
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	) {
 		if (this.returnExpression === null) {
@@ -136,18 +133,22 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 				this
 			);
 		}
-		if (
-			this.returnExpression === UNKNOWN_EXPRESSION ||
-			recursionTracker.isTracked(this.returnExpression, path)
-		) {
+		if (this.returnExpression === UNKNOWN_EXPRESSION) {
+			return UNKNOWN_EXPRESSION;
+		}
+		const trackedEntities = recursionTracker.getEntities(path);
+		if (trackedEntities.has(this.returnExpression)) {
 			return UNKNOWN_EXPRESSION;
 		}
 		this.expressionsToBeDeoptimized.push(origin);
-		return this.returnExpression.getReturnExpressionWhenCalledAtPath(
+		trackedEntities.add(this.returnExpression);
+		const value = this.returnExpression.getReturnExpressionWhenCalledAtPath(
 			path,
-			recursionTracker.track(this.returnExpression, path),
+			recursionTracker,
 			origin
 		);
+		trackedEntities.delete(this.returnExpression);
+		return value;
 	}
 
 	// TODO Lukas can this be made more efficient by grouping properties that can be replaced together?

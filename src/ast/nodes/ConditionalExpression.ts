@@ -10,10 +10,7 @@ import { removeAnnotations } from '../../utils/treeshakeNode';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionContext } from '../ExecutionContext';
-import {
-	EMPTY_IMMUTABLE_TRACKER,
-	ImmutableEntityPathTracker
-} from '../utils/ImmutableEntityPathTracker';
+import { EMPTY_IMMUTABLE_TRACKER, PathTracker } from '../utils/PathTracker';
 import {
 	EMPTY_PATH,
 	LiteralValueOrUnknown,
@@ -70,7 +67,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
@@ -81,7 +78,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
 		if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();

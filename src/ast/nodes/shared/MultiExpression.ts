@@ -1,7 +1,7 @@
 import CallOptions from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { ExecutionContext } from '../../ExecutionContext';
-import { ImmutableEntityPathTracker } from '../../utils/ImmutableEntityPathTracker';
+import { PathTracker } from '../../utils/PathTracker';
 import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../../values';
 import SpreadElement from '../SpreadElement';
 import { ExpressionEntity } from './Expression';
@@ -28,7 +28,7 @@ export class MultiExpression implements ExpressionEntity {
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
 		return new MultiExpression(

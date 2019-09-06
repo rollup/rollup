@@ -3,7 +3,7 @@ import { RenderOptions } from '../../utils/renderHelpers';
 import { removeAnnotations } from '../../utils/treeshakeNode';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionContext } from '../ExecutionContext';
-import { EMPTY_IMMUTABLE_TRACKER } from '../utils/ImmutableEntityPathTracker';
+import { EMPTY_IMMUTABLE_TRACKER } from '../utils/PathTracker';
 import { EMPTY_PATH, LiteralValueOrUnknown, UNKNOWN_VALUE } from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from './shared/Node';
