@@ -158,10 +158,10 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 			if (argument.hasEffects(context)) return true;
 		}
 		if (this.context.annotations && this.annotatedPure) return false;
-		return (
-			this.callee.hasEffects(context) ||
-			this.callee.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.callOptions, context)
-		);
+		if (this.callee.hasEffects(context)) return true;
+		if (context.calledExpressions.has(this)) return false;
+		context.calledExpressions.add(this);
+		return this.callee.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.callOptions, context);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
