@@ -8,7 +8,6 @@ interface EntityPaths {
 	[pathSegment: string]: EntityPaths;
 }
 
-// TODO Lukas replace other?
 export class PathTracker {
 	entityPaths: EntityPaths = Object.create(null, { [EntitiesKey]: { value: new Set<Entity>() } });
 

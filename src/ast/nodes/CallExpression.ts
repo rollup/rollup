@@ -83,16 +83,18 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 	}
 
 	deoptimizePath(path: ObjectPath) {
-		if (path.length > 0 && !this.context.deoptimizationTracker.track(this, path)) {
-			if (this.returnExpression === null) {
-				this.returnExpression = this.callee.getReturnExpressionWhenCalledAtPath(
-					EMPTY_PATH,
-					EMPTY_IMMUTABLE_TRACKER,
-					this
-				);
-			}
-			this.returnExpression.deoptimizePath(path);
+		if (path.length === 0) return;
+		const trackedEntities = this.context.deoptimizationTracker.getEntities(path);
+		if (trackedEntities.has(this)) return;
+		trackedEntities.add(this);
+		if (this.returnExpression === null) {
+			this.returnExpression = this.callee.getReturnExpressionWhenCalledAtPath(
+				EMPTY_PATH,
+				EMPTY_IMMUTABLE_TRACKER,
+				this
+			);
 		}
+		this.returnExpression.deoptimizePath(path);
 	}
 
 	getLiteralValueAtPath(

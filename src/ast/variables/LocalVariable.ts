@@ -9,7 +9,6 @@ import * as NodeType from '../nodes/NodeType';
 import { ExpressionEntity } from '../nodes/shared/Expression';
 import { ExpressionNode, Node } from '../nodes/shared/Node';
 import SpreadElement from '../nodes/SpreadElement';
-import { EntityPathTracker } from '../utils/EntityPathTracker';
 import { PathTracker } from '../utils/PathTracker';
 import {
 	LiteralValueOrUnknown,
@@ -32,7 +31,7 @@ export default class LocalVariable extends Variable {
 
 	// Caching and deoptimization:
 	// We track deoptimization when we do not return something unknown
-	private deoptimizationTracker: EntityPathTracker;
+	private deoptimizationTracker: PathTracker;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 
 	constructor(
@@ -70,25 +69,25 @@ export default class LocalVariable extends Variable {
 	}
 
 	deoptimizePath(path: ObjectPath) {
-		if (path.length > MAX_PATH_DEPTH) return;
-		if (!(this.isReassigned || this.deoptimizationTracker.track(this, path))) {
-			if (path.length === 0) {
-				if (!this.isReassigned) {
-					this.isReassigned = true;
-					for (const expression of this.expressionsToBeDeoptimized) {
-						expression.deoptimizeCache();
-					}
-					if (this.init) {
-						this.init.deoptimizePath(UNKNOWN_PATH);
-					}
+		if (path.length > MAX_PATH_DEPTH || this.isReassigned) return;
+		const trackedEntities = this.deoptimizationTracker.getEntities(path);
+		if (trackedEntities.has(this)) return;
+		trackedEntities.add(this);
+		if (path.length === 0) {
+			if (!this.isReassigned) {
+				this.isReassigned = true;
+				for (const expression of this.expressionsToBeDeoptimized) {
+					expression.deoptimizeCache();
 				}
-			} else if (this.init) {
-				this.init.deoptimizePath(path);
+				if (this.init) {
+					this.init.deoptimizePath(UNKNOWN_PATH);
+				}
 			}
+		} else if (this.init) {
+			this.init.deoptimizePath(path);
 		}
 	}
 
-	// TODO Lukas make bailout more efficient
 	getLiteralValueAtPath(
 		path: ObjectPath,
 		recursionTracker: PathTracker,

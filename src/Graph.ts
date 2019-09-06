@@ -2,7 +2,7 @@ import * as acorn from 'acorn';
 import injectImportMeta from 'acorn-import-meta';
 import * as ESTree from 'estree';
 import GlobalScope from './ast/scopes/GlobalScope';
-import { EntityPathTracker } from './ast/utils/EntityPathTracker';
+import { PathTracker } from './ast/utils/PathTracker';
 import Chunk, { isChunkRendered } from './Chunk';
 import ExternalModule from './ExternalModule';
 import Module, { defaultAcornOptions } from './Module';
@@ -64,7 +64,7 @@ export default class Graph {
 	acornParser: typeof acorn.Parser;
 	cachedModules: Map<string, ModuleJSON>;
 	contextParse: (code: string, acornOptions?: acorn.Options) => ESTree.Program;
-	deoptimizationTracker: EntityPathTracker;
+	deoptimizationTracker: PathTracker;
 	getModuleContext: (id: string) => string;
 	moduleById = new Map<string, Module | ExternalModule>();
 	moduleLoader: ModuleLoader;
@@ -87,7 +87,7 @@ export default class Graph {
 
 	constructor(options: InputOptions, watcher?: RollupWatcher) {
 		this.onwarn = (options.onwarn as WarningHandler) || makeOnwarn();
-		this.deoptimizationTracker = new EntityPathTracker();
+		this.deoptimizationTracker = new PathTracker();
 		this.cachedModules = new Map();
 		if (options.cache) {
 			if (options.cache.modules)

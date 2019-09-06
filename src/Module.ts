@@ -21,7 +21,7 @@ import { Node, NodeBase } from './ast/nodes/shared/Node';
 import TemplateLiteral from './ast/nodes/TemplateLiteral';
 import VariableDeclaration from './ast/nodes/VariableDeclaration';
 import ModuleScope from './ast/scopes/ModuleScope';
-import { EntityPathTracker } from './ast/utils/EntityPathTracker';
+import { PathTracker } from './ast/utils/PathTracker';
 import { UNKNOWN_PATH } from './ast/values';
 import ExportShimVariable from './ast/variables/ExportShimVariable';
 import ExternalVariable from './ast/variables/ExternalVariable';
@@ -88,7 +88,7 @@ export interface AstContext {
 	addImportMeta: (node: MetaProperty) => void;
 	annotations: boolean;
 	code: string;
-	deoptimizationTracker: EntityPathTracker;
+	deoptimizationTracker: PathTracker;
 	error: (props: RollupError, pos: number) => void;
 	fileName: string;
 	getExports: () => string[];
