@@ -158,24 +158,26 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 			if (argument.hasEffects(context)) return true;
 		}
 		if (this.context.annotations && this.annotatedPure) return false;
-		if (this.callee.hasEffects(context)) return true;
-		if (context.calledExpressions.has(this)) return false;
-		context.calledExpressions.add(this);
-		return this.callee.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.callOptions, context);
+		return (
+			this.callee.hasEffects(context) ||
+			this.callee.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.callOptions, context)
+		);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
-		return (
-			path.length > 0 &&
-			(this.returnExpression as ExpressionEntity).hasEffectsWhenAccessedAtPath(path, context)
-		);
+		if (path.length === 0) return false;
+		const trackedExpressions = context.accessed.getEntities(path);
+		if (trackedExpressions.has(this)) return false;
+		trackedExpressions.add(this);
+		return (this.returnExpression as ExpressionEntity).hasEffectsWhenAccessedAtPath(path, context);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
-		return (
-			path.length === 0 ||
-			(this.returnExpression as ExpressionEntity).hasEffectsWhenAssignedAtPath(path, context)
-		);
+		if (path.length === 0) return true;
+		const trackedExpressions = context.assigned.getEntities(path);
+		if (trackedExpressions.has(this)) return false;
+		trackedExpressions.add(this);
+		return (this.returnExpression as ExpressionEntity).hasEffectsWhenAssignedAtPath(path, context);
 	}
 
 	hasEffectsWhenCalledAtPath(
@@ -183,6 +185,12 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		callOptions: CallOptions,
 		context: ExecutionContext
 	): boolean {
+		const trackedExpressions = (callOptions.withNew
+			? context.instantiated
+			: context.called
+		).getEntities(path);
+		if (trackedExpressions.has(this)) return false;
+		trackedExpressions.add(this);
 		return (this.returnExpression as ExpressionEntity).hasEffectsWhenCalledAtPath(
 			path,
 			callOptions,

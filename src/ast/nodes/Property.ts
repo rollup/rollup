@@ -103,6 +103,9 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
 		if (this.kind === 'get') {
+			const trackedExpressions = context.accessed.getEntities(path);
+			if (trackedExpressions.has(this)) return false;
+			trackedExpressions.add(this);
 			return (
 				this.value.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.accessorCallOptions, context) ||
 				(path.length > 0 &&
@@ -114,16 +117,21 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
 		if (this.kind === 'get') {
-			return (
-				path.length === 0 ||
-				(this.returnExpression as ExpressionEntity).hasEffectsWhenAssignedAtPath(path, context)
+			if (path.length === 0) return true;
+			const trackedExpressions = context.assigned.getEntities(path);
+			if (trackedExpressions.has(this)) return false;
+			trackedExpressions.add(this);
+			return (this.returnExpression as ExpressionEntity).hasEffectsWhenAssignedAtPath(
+				path,
+				context
 			);
 		}
 		if (this.kind === 'set') {
-			return (
-				path.length > 0 ||
-				this.value.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.accessorCallOptions, context)
-			);
+			if (path.length > 0) return true;
+			const trackedExpressions = context.assigned.getEntities(path);
+			if (trackedExpressions.has(this)) return false;
+			trackedExpressions.add(this);
+			return this.value.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.accessorCallOptions, context);
 		}
 		return this.value.hasEffectsWhenAssignedAtPath(path, context);
 	}
@@ -134,6 +142,12 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 		context: ExecutionContext
 	) {
 		if (this.kind === 'get') {
+			const trackedExpressions = (callOptions.withNew
+				? context.instantiated
+				: context.called
+			).getEntities(path);
+			if (trackedExpressions.has(this)) return false;
+			trackedExpressions.add(this);
 			return (this.returnExpression as ExpressionEntity).hasEffectsWhenCalledAtPath(
 				path,
 				callOptions,

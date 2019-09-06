@@ -128,20 +128,21 @@ export default class LocalVariable extends Variable {
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: ExecutionContext) {
 		if (path.length === 0) return false;
-		return (
-			this.isReassigned ||
-			path.length > MAX_PATH_DEPTH ||
-			((this.init && this.init.hasEffectsWhenAccessedAtPath(path, context)) as boolean)
-		);
+		if (this.isReassigned || path.length > MAX_PATH_DEPTH) return true;
+		const trackedExpressions = context.accessed.getEntities(path);
+		if (trackedExpressions.has(this)) return false;
+		trackedExpressions.add(this);
+		return (this.init && this.init.hasEffectsWhenAccessedAtPath(path, context)) as boolean;
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: ExecutionContext) {
 		if (this.included || path.length > MAX_PATH_DEPTH) return true;
 		if (path.length === 0) return false;
-		return (
-			this.isReassigned ||
-			((this.init && this.init.hasEffectsWhenAssignedAtPath(path, context)) as boolean)
-		);
+		if (this.isReassigned) return true;
+		const trackedExpressions = context.assigned.getEntities(path);
+		if (trackedExpressions.has(this)) return false;
+		trackedExpressions.add(this);
+		return (this.init && this.init.hasEffectsWhenAssignedAtPath(path, context)) as boolean;
 	}
 
 	hasEffectsWhenCalledAtPath(
@@ -149,11 +150,15 @@ export default class LocalVariable extends Variable {
 		callOptions: CallOptions,
 		context: ExecutionContext
 	) {
-		if (path.length > MAX_PATH_DEPTH) return true;
-		return (
-			this.isReassigned ||
-			((this.init && this.init.hasEffectsWhenCalledAtPath(path, callOptions, context)) as boolean)
-		);
+		if (path.length > MAX_PATH_DEPTH || this.isReassigned) return true;
+		const trackedExpressions = (callOptions.withNew
+			? context.instantiated
+			: context.called
+		).getEntities(path);
+		if (trackedExpressions.has(this)) return false;
+		trackedExpressions.add(this);
+		return (this.init &&
+			this.init.hasEffectsWhenCalledAtPath(path, callOptions, context)) as boolean;
 	}
 
 	include() {
