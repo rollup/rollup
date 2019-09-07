@@ -9,8 +9,8 @@ import {
 	LiteralValueOrUnknown,
 	ObjectPath,
 	UNKNOWN_EXPRESSION,
-	UNKNOWN_VALUE,
-	UnknownKey
+	UnknownKey,
+	UnknownValue
 } from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
@@ -65,7 +65,7 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (this.kind === 'set') {
-			return UNKNOWN_VALUE;
+			return UnknownValue;
 		}
 		if (this.kind === 'get') {
 			if (this.returnExpression === null) this.updateReturnExpression();

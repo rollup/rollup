@@ -15,7 +15,7 @@ import {
 	ObjectPath,
 	UNKNOWN_EXPRESSION,
 	UNKNOWN_PATH,
-	UNKNOWN_VALUE
+	UnknownValue
 } from '../values';
 import Variable from './Variable';
 
@@ -94,11 +94,11 @@ export default class LocalVariable extends Variable {
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (this.isReassigned || !this.init || path.length > MAX_PATH_DEPTH) {
-			return UNKNOWN_VALUE;
+			return UnknownValue;
 		}
 		const trackedEntities = recursionTracker.getEntities(path);
 		if (trackedEntities.has(this.init)) {
-			return UNKNOWN_VALUE;
+			return UnknownValue;
 		}
 		this.expressionsToBeDeoptimized.push(origin);
 		trackedEntities.add(this.init);

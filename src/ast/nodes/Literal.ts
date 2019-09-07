@@ -10,7 +10,7 @@ import {
 	MemberDescription,
 	ObjectPath,
 	UNKNOWN_EXPRESSION,
-	UNKNOWN_VALUE
+	UnknownValue
 } from '../values';
 import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
@@ -32,7 +32,7 @@ export default class Literal<T = LiteralValue> extends NodeBase {
 			// to support shims for regular expressions
 			this.context.code.charCodeAt(this.start) === 47
 		) {
-			return UNKNOWN_VALUE;
+			return UnknownValue;
 		}
 		return this.value as any;
 	}

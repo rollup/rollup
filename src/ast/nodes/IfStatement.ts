@@ -4,7 +4,7 @@ import { removeAnnotations } from '../../utils/treeshakeNode';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionContext } from '../ExecutionContext';
 import { EMPTY_IMMUTABLE_TRACKER } from '../utils/PathTracker';
-import { EMPTY_PATH, LiteralValueOrUnknown, UNKNOWN_VALUE } from '../values';
+import { EMPTY_PATH, LiteralValueOrUnknown, UnknownValue } from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from './shared/Node';
 
@@ -20,19 +20,19 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	bind() {
 		super.bind();
 		if (!this.isTestValueAnalysed) {
-			this.testValue = UNKNOWN_VALUE;
+			this.testValue = UnknownValue;
 			this.isTestValueAnalysed = true;
 			this.testValue = this.test.getLiteralValueAtPath(EMPTY_PATH, EMPTY_IMMUTABLE_TRACKER, this);
 		}
 	}
 
 	deoptimizeCache() {
-		this.testValue = UNKNOWN_VALUE;
+		this.testValue = UnknownValue;
 	}
 
 	hasEffects(context: ExecutionContext): boolean {
 		if (this.test.hasEffects(context)) return true;
-		if (this.testValue === UNKNOWN_VALUE) {
+		if (this.testValue === UnknownValue) {
 			return (
 				this.consequent.hasEffects(context) ||
 				(this.alternate !== null && this.alternate.hasEffects(context))
@@ -53,7 +53,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			}
 			return;
 		}
-		const hasUnknownTest = this.testValue === UNKNOWN_VALUE;
+		const hasUnknownTest = this.testValue === UnknownValue;
 		if (hasUnknownTest || this.test.shouldBeIncluded()) {
 			this.test.include(false);
 		}

@@ -2,7 +2,7 @@ import { AstContext } from '../../Module';
 import CallOptions from '../CallOptions';
 import { ExecutionContext } from '../ExecutionContext';
 import { ExpressionEntity } from '../nodes/shared/Expression';
-import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
+import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UnknownValue } from '../values';
 import LocalVariable from './LocalVariable';
 
 export default class ThisVariable extends LocalVariable {
@@ -11,7 +11,7 @@ export default class ThisVariable extends LocalVariable {
 	}
 
 	getLiteralValueAtPath(): LiteralValueOrUnknown {
-		return UNKNOWN_VALUE;
+		return UnknownValue;
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: ExecutionContext) {

@@ -14,7 +14,7 @@ import {
 	ObjectPath,
 	UNKNOWN_EXPRESSION,
 	UNKNOWN_PATH,
-	UNKNOWN_VALUE
+	UnknownValue
 } from '../values';
 import Identifier from './Identifier';
 import Literal from './Literal';
@@ -105,7 +105,7 @@ export default class ObjectExpression extends NodeBase {
 			typeof key !== 'string' ||
 			this.deoptimizedPaths.has(key)
 		)
-			return UNKNOWN_VALUE;
+			return UnknownValue;
 
 		if (
 			path.length === 1 &&
@@ -127,7 +127,7 @@ export default class ObjectExpression extends NodeBase {
 			(this.propertyMap as PropertyMap)[key].exactMatchRead === null ||
 			(this.propertyMap as PropertyMap)[key].propertiesRead.length > 1
 		) {
-			return UNKNOWN_VALUE;
+			return UnknownValue;
 		}
 
 		const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized.get(key);
@@ -292,7 +292,7 @@ export default class ObjectExpression extends NodeBase {
 					EMPTY_IMMUTABLE_TRACKER,
 					this
 				);
-				if (keyValue === UNKNOWN_VALUE) {
+				if (keyValue === UnknownValue) {
 					if (isRead) {
 						this.unmatchablePropertiesRead.push(property);
 					} else {

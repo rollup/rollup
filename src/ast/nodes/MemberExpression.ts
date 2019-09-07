@@ -11,8 +11,8 @@ import {
 	LiteralValueOrUnknown,
 	ObjectPath,
 	ObjectPathKey,
-	UNKNOWN_VALUE,
-	UnknownKey
+	UnknownKey,
+	UnknownValue
 } from '../values';
 import ExternalVariable from '../variables/ExternalVariable';
 import NamespaceVariable from '../variables/NamespaceVariable';
@@ -257,7 +257,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	private analysePropertyKey() {
 		this.propertyKey = UnknownKey;
 		const value = this.property.getLiteralValueAtPath(EMPTY_PATH, EMPTY_IMMUTABLE_TRACKER, this);
-		this.propertyKey = value === UNKNOWN_VALUE ? UnknownKey : String(value);
+		this.propertyKey = value === UnknownValue ? UnknownKey : String(value);
 	}
 
 	private disallowNamespaceReassignment() {

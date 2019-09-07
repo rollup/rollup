@@ -2,7 +2,7 @@ import CallOptions from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { ExecutionContext } from '../../ExecutionContext';
 import { PathTracker } from '../../utils/PathTracker';
-import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../../values';
+import { LiteralValueOrUnknown, ObjectPath, UnknownValue } from '../../values';
 import SpreadElement from '../SpreadElement';
 import { ExpressionEntity } from './Expression';
 import { ExpressionNode } from './Node';
@@ -23,7 +23,7 @@ export class MultiExpression implements ExpressionEntity {
 	}
 
 	getLiteralValueAtPath(): LiteralValueOrUnknown {
-		return UNKNOWN_VALUE;
+		return UnknownValue;
 	}
 
 	getReturnExpressionWhenCalledAtPath(

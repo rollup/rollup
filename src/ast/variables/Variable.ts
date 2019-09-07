@@ -8,7 +8,7 @@ import { ExpressionEntity } from '../nodes/shared/Expression';
 import { ExpressionNode } from '../nodes/shared/Node';
 import SpreadElement from '../nodes/SpreadElement';
 import { PathTracker } from '../utils/PathTracker';
-import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
+import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UnknownValue } from '../values';
 
 export default class Variable implements ExpressionEntity {
 	alwaysRendered = false;
@@ -44,7 +44,7 @@ export default class Variable implements ExpressionEntity {
 		_recursionTracker: PathTracker,
 		_origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		return UNKNOWN_VALUE;
+		return UnknownValue;
 	}
 
 	getName(): string {

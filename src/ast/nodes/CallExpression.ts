@@ -15,7 +15,7 @@ import {
 	ObjectPath,
 	UNKNOWN_EXPRESSION,
 	UNKNOWN_PATH,
-	UNKNOWN_VALUE
+	UnknownValue
 } from '../values';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
@@ -110,11 +110,11 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 			);
 		}
 		if (this.returnExpression === UNKNOWN_EXPRESSION) {
-			return UNKNOWN_VALUE;
+			return UnknownValue;
 		}
 		const trackedEntities = recursionTracker.getEntities(path);
 		if (trackedEntities.has(this.returnExpression)) {
-			return UNKNOWN_VALUE;
+			return UnknownValue;
 		}
 		this.expressionsToBeDeoptimized.push(origin);
 		trackedEntities.add(this.returnExpression);

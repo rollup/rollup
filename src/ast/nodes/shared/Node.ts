@@ -9,7 +9,7 @@ import { createExecutionContext, ExecutionContext } from '../../ExecutionContext
 import { getAndCreateKeys, keys } from '../../keys';
 import ChildScope from '../../scopes/ChildScope';
 import { PathTracker } from '../../utils/PathTracker';
-import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../../values';
+import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UnknownValue } from '../../values';
 import LocalVariable from '../../variables/LocalVariable';
 import Variable from '../../variables/Variable';
 import SpreadElement from '../SpreadElement';
@@ -143,7 +143,7 @@ export class NodeBase implements ExpressionNode {
 		_recursionTracker: PathTracker,
 		_origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		return UNKNOWN_VALUE;
+		return UnknownValue;
 	}
 
 	getReturnExpressionWhenCalledAtPath(

@@ -34,15 +34,12 @@ function assembleMemberDescriptions(
 	return Object.create(inheritedDescriptions, memberDescriptions);
 }
 
-export interface UnknownValue {
-	UNKNOWN_VALUE: true;
-}
-export const UNKNOWN_VALUE: UnknownValue = { UNKNOWN_VALUE: true };
-export type LiteralValueOrUnknown = LiteralValue | UnknownValue;
+export const UnknownValue = Symbol('Unknown Value');
+export type LiteralValueOrUnknown = LiteralValue | typeof UnknownValue;
 
 export const UNKNOWN_EXPRESSION: ExpressionEntity = {
 	deoptimizePath: () => {},
-	getLiteralValueAtPath: () => UNKNOWN_VALUE,
+	getLiteralValueAtPath: () => UnknownValue,
 	getReturnExpressionWhenCalledAtPath: () => UNKNOWN_EXPRESSION,
 	hasEffectsWhenAccessedAtPath: path => path.length > 0,
 	hasEffectsWhenAssignedAtPath: path => path.length > 0,
@@ -88,8 +85,8 @@ export class UnknownArrayExpression implements ExpressionEntity {
 
 	deoptimizePath() {}
 
-	getLiteralValueAtPath() {
-		return UNKNOWN_VALUE;
+	getLiteralValueAtPath(): LiteralValueOrUnknown {
+		return UnknownValue;
 	}
 
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
@@ -168,7 +165,7 @@ const callsArgMutatesSelfReturnsArray: RawMemberDescription = {
 
 const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = {
 	deoptimizePath: () => {},
-	getLiteralValueAtPath: () => UNKNOWN_VALUE,
+	getLiteralValueAtPath: () => UnknownValue,
 	getReturnExpressionWhenCalledAtPath: path => {
 		if (path.length === 1) {
 			return getMemberReturnExpressionWhenCalled(literalBooleanMembers, path[0]);
@@ -213,7 +210,7 @@ const callsArgReturnsBoolean: RawMemberDescription = {
 
 const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = {
 	deoptimizePath: () => {},
-	getLiteralValueAtPath: () => UNKNOWN_VALUE,
+	getLiteralValueAtPath: () => UnknownValue,
 	getReturnExpressionWhenCalledAtPath: path => {
 		if (path.length === 1) {
 			return getMemberReturnExpressionWhenCalled(literalNumberMembers, path[0]);
@@ -266,7 +263,7 @@ const callsArgReturnsNumber: RawMemberDescription = {
 
 const UNKNOWN_LITERAL_STRING: ExpressionEntity = {
 	deoptimizePath: () => {},
-	getLiteralValueAtPath: () => UNKNOWN_VALUE,
+	getLiteralValueAtPath: () => UnknownValue,
 	getReturnExpressionWhenCalledAtPath: path => {
 		if (path.length === 1) {
 			return getMemberReturnExpressionWhenCalled(literalStringMembers, path[0]);
@@ -305,8 +302,8 @@ export class UnknownObjectExpression implements ExpressionEntity {
 
 	deoptimizePath() {}
 
-	getLiteralValueAtPath() {
-		return UNKNOWN_VALUE;
+	getLiteralValueAtPath(): LiteralValueOrUnknown {
+		return UnknownValue;
 	}
 
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {

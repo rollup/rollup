@@ -16,7 +16,7 @@ import {
 	LiteralValueOrUnknown,
 	ObjectPath,
 	UNKNOWN_PATH,
-	UNKNOWN_VALUE
+	UnknownValue
 } from '../values';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
@@ -73,7 +73,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
-		if (this.usedBranch === null) return UNKNOWN_VALUE;
+		if (this.usedBranch === null) return UnknownValue;
 		this.expressionsToBeDeoptimized.push(origin);
 		return this.usedBranch.getLiteralValueAtPath(path, recursionTracker, origin);
 	}
@@ -184,7 +184,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 	private analyseBranchResolution() {
 		this.isBranchResolutionAnalysed = true;
 		const leftValue = this.left.getLiteralValueAtPath(EMPTY_PATH, EMPTY_IMMUTABLE_TRACKER, this);
-		if (leftValue !== UNKNOWN_VALUE) {
+		if (leftValue !== UnknownValue) {
 			if (this.operator === '||' ? leftValue : !leftValue) {
 				this.usedBranch = this.left;
 				this.unusedBranch = this.right;

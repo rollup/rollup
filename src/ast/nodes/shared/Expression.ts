@@ -13,7 +13,7 @@ export interface ExpressionEntity extends WritableEntity {
 	/**
 	 * If possible it returns a stringifyable literal value for this node that can be used
 	 * for inlining or comparing values.
-	 * Otherwise it should return UNKNOWN_VALUE.
+	 * Otherwise it should return UnknownValue.
 	 */
 	getLiteralValueAtPath(
 		path: ObjectPath,
