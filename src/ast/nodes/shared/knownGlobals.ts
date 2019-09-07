@@ -1,237 +1,299 @@
 import { ObjectPath } from '../../values';
 
-const globalObjects = new Set(['window', 'global', 'self', 'globalThis']);
+const ValueProperties = Symbol('Value Properties');
 
-const knownGlobals = new Set([
-	'Array',
-	'ArrayBuffer',
-	'Atomics',
-	'BigInt',
-	'BigInt64Array',
-	'BigUint64Array',
-	'Boolean',
-	'constructor',
-	'DataView',
-	'Date',
-	'decodeURI',
-	'decodeURIComponent',
-	'encodeURI',
-	'encodeURIComponent',
-	'Error',
-	'escape',
-	'eval',
-	'EvalError',
-	'Float32Array',
-	'Float64Array',
-	'Function',
-	'globalThis',
-	'hasOwnProperty',
-	'Infinity',
-	'Int16Array',
-	'Int32Array',
-	'Int8Array',
-	'isFinite',
-	'isNaN',
-	'isPrototypeOf',
-	'JSON',
-	'Map',
-	'Math',
-	'NaN',
-	'Number',
-	'Object',
-	'parseFloat',
-	'parseInt',
-	'Promise',
-	'propertyIsEnumerable',
-	'Proxy',
-	'RangeError',
-	'ReferenceError',
-	'Reflect',
-	'RegExp',
-	'Set',
-	'SharedArrayBuffer',
-	'String',
-	'Symbol',
-	'SyntaxError',
-	'toLocaleString',
-	'toString',
-	'TypeError',
-	'Uint16Array',
-	'Uint32Array',
-	'Uint8Array',
-	'Uint8ClampedArray',
-	'undefined',
-	'unescape',
-	'URIError',
-	'valueOf',
-	'WeakMap',
-	'WeakSet',
+interface ValueDescription {
+	pure: boolean;
+}
+
+interface GlobalDescription {
+	[ValueProperties]: ValueDescription;
+	[pathKey: string]: GlobalDescription;
+}
+
+const PURE: ValueDescription = { pure: true };
+const IMPURE: ValueDescription = { pure: false };
+
+const OBJECT: GlobalDescription = {
+	// @ts-ignore
+	__proto__: null,
+	[ValueProperties]: IMPURE
+};
+
+const PURE_FUNCTION: GlobalDescription = {
+	// @ts-ignore
+	__proto__: null,
+	[ValueProperties]: PURE
+};
+
+const CONSTRUCTOR: GlobalDescription = {
+	// @ts-ignore
+	__proto__: null,
+	[ValueProperties]: IMPURE,
+	prototype: OBJECT
+};
+
+const PURE_CONSTRUCTOR: GlobalDescription = {
+	// @ts-ignore
+	__proto__: null,
+	[ValueProperties]: PURE,
+	prototype: OBJECT
+};
+
+const ARRAY_TYPE: GlobalDescription = {
+	// @ts-ignore
+	__proto__: null,
+	[ValueProperties]: PURE,
+	from: PURE_FUNCTION,
+	of: PURE_FUNCTION,
+	prototype: OBJECT
+};
+
+const INTL_MEMBER: GlobalDescription = {
+	// @ts-ignore
+	__proto__: null,
+	[ValueProperties]: PURE,
+	supportedLocalesOf: PURE_CONSTRUCTOR
+};
+
+const knownGlobals: GlobalDescription = {
+	// @ts-ignore
+	__proto__: null,
+	[ValueProperties]: IMPURE,
+	Array: {
+		// @ts-ignore
+		__proto__: null,
+		[ValueProperties]: IMPURE,
+		from: PURE_FUNCTION,
+		isArray: PURE_FUNCTION,
+		of: PURE_FUNCTION,
+		prototype: OBJECT
+	},
+	ArrayBuffer: {
+		// @ts-ignore
+		__proto__: null,
+		[ValueProperties]: PURE,
+		isView: PURE_FUNCTION,
+		prototype: OBJECT
+	},
+	Atomics: OBJECT,
+	BigInt: CONSTRUCTOR,
+	BigInt64Array: CONSTRUCTOR,
+	BigUint64Array: CONSTRUCTOR,
+	Boolean: PURE_CONSTRUCTOR,
+	// @ts-ignore
+	constructor: CONSTRUCTOR,
+	DataView: PURE_CONSTRUCTOR,
+	Date: {
+		// @ts-ignore
+		__proto__: null,
+		[ValueProperties]: PURE,
+		now: PURE_FUNCTION,
+		parse: PURE_FUNCTION,
+		prototype: OBJECT,
+		UTC: PURE_FUNCTION
+	},
+	decodeURI: PURE_FUNCTION,
+	decodeURIComponent: PURE_FUNCTION,
+	encodeURI: PURE_FUNCTION,
+	encodeURIComponent: PURE_FUNCTION,
+	Error: PURE_CONSTRUCTOR,
+	escape: PURE_FUNCTION,
+	eval: OBJECT,
+	EvalError: PURE_CONSTRUCTOR,
+	Float32Array: ARRAY_TYPE,
+	Float64Array: ARRAY_TYPE,
+	Function: CONSTRUCTOR,
+	// @ts-ignore
+	hasOwnProperty: OBJECT,
+	Infinity: OBJECT,
+	Int16Array: ARRAY_TYPE,
+	Int32Array: ARRAY_TYPE,
+	Int8Array: ARRAY_TYPE,
+	isFinite: PURE_FUNCTION,
+	isNaN: PURE_FUNCTION,
+	// @ts-ignore
+	isPrototypeOf: OBJECT,
+	JSON: OBJECT,
+	Map: PURE_CONSTRUCTOR,
+	Math: {
+		// @ts-ignore
+		__proto__: null,
+		[ValueProperties]: IMPURE,
+		abs: PURE_FUNCTION,
+		acos: PURE_FUNCTION,
+		acosh: PURE_FUNCTION,
+		asin: PURE_FUNCTION,
+		asinh: PURE_FUNCTION,
+		atan: PURE_FUNCTION,
+		atan2: PURE_FUNCTION,
+		atanh: PURE_FUNCTION,
+		cbrt: PURE_FUNCTION,
+		ceil: PURE_FUNCTION,
+		clz32: PURE_FUNCTION,
+		cos: PURE_FUNCTION,
+		cosh: PURE_FUNCTION,
+		exp: PURE_FUNCTION,
+		expm1: PURE_FUNCTION,
+		floor: PURE_FUNCTION,
+		fround: PURE_FUNCTION,
+		hypot: PURE_FUNCTION,
+		imul: PURE_FUNCTION,
+		log: PURE_FUNCTION,
+		log10: PURE_FUNCTION,
+		log1p: PURE_FUNCTION,
+		log2: PURE_FUNCTION,
+		max: PURE_FUNCTION,
+		min: PURE_FUNCTION,
+		pow: PURE_FUNCTION,
+		random: PURE_FUNCTION,
+		round: PURE_FUNCTION,
+		sign: PURE_FUNCTION,
+		sin: PURE_FUNCTION,
+		sinh: PURE_FUNCTION,
+		sqrt: PURE_FUNCTION,
+		tan: PURE_FUNCTION,
+		tanh: PURE_FUNCTION,
+		trunc: PURE_FUNCTION
+	},
+	NaN: OBJECT,
+	Number: {
+		// @ts-ignore
+		__proto__: null,
+		[ValueProperties]: PURE,
+		isFinite: PURE_FUNCTION,
+		isInteger: PURE_FUNCTION,
+		isNaN: PURE_FUNCTION,
+		isSafeInteger: PURE_FUNCTION,
+		parseFloat: PURE_FUNCTION,
+		parseInt: PURE_FUNCTION,
+		prototype: OBJECT
+	},
+	Object: {
+		// @ts-ignore
+		__proto__: null,
+		[ValueProperties]: PURE,
+		create: PURE_FUNCTION,
+		getNotifier: PURE_FUNCTION,
+		getOwn: PURE_FUNCTION,
+		getOwnPropertyDescriptor: PURE_FUNCTION,
+		getOwnPropertyNames: PURE_FUNCTION,
+		getOwnPropertySymbols: PURE_FUNCTION,
+		getPrototypeOf: PURE_FUNCTION,
+		is: PURE_FUNCTION,
+		isExtensible: PURE_FUNCTION,
+		isFrozen: PURE_FUNCTION,
+		isSealed: PURE_FUNCTION,
+		keys: PURE_FUNCTION,
+		prototype: OBJECT
+	},
+	parseFloat: PURE_FUNCTION,
+	parseInt: PURE_FUNCTION,
+	Promise: {
+		// @ts-ignore
+		__proto__: null,
+		[ValueProperties]: IMPURE,
+		all: PURE_FUNCTION,
+		prototype: OBJECT,
+		race: PURE_FUNCTION,
+		resolve: PURE_FUNCTION
+	},
+	// @ts-ignore
+	propertyIsEnumerable: OBJECT,
+	Proxy: OBJECT,
+	RangeError: PURE_CONSTRUCTOR,
+	ReferenceError: PURE_CONSTRUCTOR,
+	Reflect: OBJECT,
+	RegExp: PURE_CONSTRUCTOR,
+	Set: PURE_CONSTRUCTOR,
+	SharedArrayBuffer: CONSTRUCTOR,
+	String: {
+		// @ts-ignore
+		__proto__: null,
+		[ValueProperties]: PURE,
+		fromCharCode: PURE_FUNCTION,
+		fromCodePoint: PURE_FUNCTION,
+		prototype: OBJECT,
+		raw: PURE_FUNCTION
+	},
+	Symbol: {
+		// @ts-ignore
+		__proto__: null,
+		[ValueProperties]: PURE,
+		for: PURE_FUNCTION,
+		keyFor: PURE_FUNCTION,
+		prototype: OBJECT
+	},
+	SyntaxError: PURE_CONSTRUCTOR,
+	// @ts-ignore
+	toLocaleString: OBJECT,
+	// @ts-ignore
+	toString: OBJECT,
+	TypeError: PURE_CONSTRUCTOR,
+	Uint16Array: ARRAY_TYPE,
+	Uint32Array: ARRAY_TYPE,
+	Uint8Array: ARRAY_TYPE,
+	Uint8ClampedArray: ARRAY_TYPE,
+	// Technically, this is a global, but it needs special handling
+	// undefined: ?,
+	unescape: PURE_FUNCTION,
+	URIError: PURE_CONSTRUCTOR,
+	// @ts-ignore
+	valueOf: OBJECT,
+	WeakMap: PURE_CONSTRUCTOR,
+	WeakSet: PURE_CONSTRUCTOR,
 
 	// Additional globals shared by Node and Browser that are not strictly part of the language
-	'clearInterval',
-	'clearTimeout',
-	'console',
-	'Intl',
-	'setInterval',
-	'setTimeout',
-	'TextDecoder',
-	'TextEncoder',
-	'URL',
-	'URLSearchParams'
-]);
+	clearInterval: CONSTRUCTOR,
+	clearTimeout: CONSTRUCTOR,
+	console: OBJECT,
+	Intl: {
+		// @ts-ignore
+		__proto__: null,
+		[ValueProperties]: IMPURE,
+		Collator: INTL_MEMBER,
+		DateTimeFormat: INTL_MEMBER,
+		ListFormat: INTL_MEMBER,
+		NumberFormat: INTL_MEMBER,
+		PluralRules: INTL_MEMBER,
+		RelativeTimeFormat: INTL_MEMBER
+	},
+	setInterval: CONSTRUCTOR,
+	setTimeout: CONSTRUCTOR,
+	TextDecoder: CONSTRUCTOR,
+	TextEncoder: CONSTRUCTOR,
+	URL: CONSTRUCTOR,
+	URLSearchParams: CONSTRUCTOR
+};
 
-const pureFunctions = new Set([
-	'Array.isArray',
-	'Error',
-	'EvalError',
-	'InternalError',
-	'RangeError',
-	'ReferenceError',
-	'SyntaxError',
-	'TypeError',
-	'URIError',
-	'isFinite',
-	'isNaN',
-	'parseFloat',
-	'parseInt',
-	'decodeURI',
-	'decodeURIComponent',
-	'encodeURI',
-	'encodeURIComponent',
-	'escape',
-	'unescape',
-	'Object',
-	'Object.create',
-	'Object.getNotifier',
-	'Object.getOwn',
-	'Object.getOwnPropertyDescriptor',
-	'Object.getOwnPropertyNames',
-	'Object.getOwnPropertySymbols',
-	'Object.getPrototypeOf',
-	'Object.is',
-	'Object.isExtensible',
-	'Object.isFrozen',
-	'Object.isSealed',
-	'Object.keys',
-	'Boolean',
-	'Number',
-	'Number.isFinite',
-	'Number.isInteger',
-	'Number.isNaN',
-	'Number.isSafeInteger',
-	'Number.parseFloat',
-	'Number.parseInt',
-	'Symbol',
-	'Symbol.for',
-	'Symbol.keyFor',
-	'Math.abs',
-	'Math.acos',
-	'Math.acosh',
-	'Math.asin',
-	'Math.asinh',
-	'Math.atan',
-	'Math.atan2',
-	'Math.atanh',
-	'Math.cbrt',
-	'Math.ceil',
-	'Math.clz32',
-	'Math.cos',
-	'Math.cosh',
-	'Math.exp',
-	'Math.expm1',
-	'Math.floor',
-	'Math.fround',
-	'Math.hypot',
-	'Math.imul',
-	'Math.log',
-	'Math.log10',
-	'Math.log1p',
-	'Math.log2',
-	'Math.max',
-	'Math.min',
-	'Math.pow',
-	'Math.random',
-	'Math.round',
-	'Math.sign',
-	'Math.sin',
-	'Math.sinh',
-	'Math.sqrt',
-	'Math.tan',
-	'Math.tanh',
-	'Math.trunc',
-	'Date',
-	'Date.UTC',
-	'Date.now',
-	'Date.parse',
-	'String',
-	'String.fromCharCode',
-	'String.fromCodePoint',
-	'String.raw',
-	'RegExp',
-	'Map',
-	'Set',
-	'WeakMap',
-	'WeakSet',
-	'ArrayBuffer',
-	'ArrayBuffer.isView',
-	'DataView',
-	'Promise.all',
-	'Promise.race',
-	'Promise.resolve',
-	'Intl.Collator',
-	'Intl.Collator.supportedLocalesOf',
-	'Intl.DateTimeFormat',
-	'Intl.DateTimeFormat.supportedLocalesOf',
-	'Intl.NumberFormat',
-	'Intl.NumberFormat.supportedLocalesOf'
-]);
-
-const arrayTypes = 'Array Int8Array Uint8Array Uint8ClampedArray Int16Array Uint16Array Int32Array Uint32Array Float32Array Float64Array'.split(
-	' '
-);
-
-for (const type of arrayTypes) {
-	pureFunctions.add(type);
-	pureFunctions.add(`${type}.from`);
-	pureFunctions.add(`${type}.of`);
+for (const global of ['window', 'global', 'self', 'globalThis']) {
+	knownGlobals[global] = knownGlobals;
 }
 
-const simdTypes = 'Int8x16 Int16x8 Int32x4 Float32x4 Float64x2'.split(' ');
-const simdMethods = 'abs add and bool check div equal extractLane fromFloat32x4 fromFloat32x4Bits fromFloat64x2 fromFloat64x2Bits fromInt16x8Bits fromInt32x4 fromInt32x4Bits fromInt8x16Bits greaterThan greaterThanOrEqual lessThan lessThanOrEqual load max maxNum min minNum mul neg not notEqual or reciprocalApproximation reciprocalSqrtApproximation replaceLane select selectBits shiftLeftByScalar shiftRightArithmeticByScalar shiftRightLogicalByScalar shuffle splat sqrt store sub swizzle xor'.split(
-	' '
-);
-
-for (const type of simdTypes) {
-	const typeString = `SIMD.${type}`;
-	pureFunctions.add(typeString);
-	for (const method of simdMethods) {
-		pureFunctions.add(`${typeString}.${method}`);
-	}
-}
-
-export function isPureGlobal(path: ObjectPath) {
-	if (globalObjects.has(path[0] as string)) {
-		path = path.slice(1);
-	}
-	return pureFunctions.has(path.join('.'));
-}
-
-export function isGlobalMember(path: ObjectPath) {
-	while (globalObjects.has(path[0] as string)) {
-		if (path.length <= 2) {
-			return true;
+function getGlobalAtPath(path: ObjectPath): ValueDescription | null {
+	let currentGlobal = knownGlobals;
+	for (const pathSegment of path) {
+		if (typeof pathSegment !== 'string') {
+			return null;
 		}
-		path = path.slice(1);
+		currentGlobal = currentGlobal[pathSegment];
+		if (!currentGlobal) {
+			return null;
+		}
 	}
-	if (path.length <= 2) {
-		const name = path[0];
-		return typeof name === 'string' && knownGlobals.has(name);
+	return currentGlobal[ValueProperties];
+}
+
+export function isPureGlobal(path: ObjectPath): boolean {
+	const globalAtPath = getGlobalAtPath(path);
+	return globalAtPath !== null && globalAtPath.pure;
+}
+
+export function isGlobalMember(path: ObjectPath): boolean {
+	if (path.length === 1) {
+		return path[0] === 'undefined' || getGlobalAtPath(path) !== null;
 	}
-	return (
-		pureFunctions.has(path.join('.')) ||
-		pureFunctions.has(path.slice(0, -1).join('.')) ||
-		(path[path.length - 2] === 'prototype' && pureFunctions.has(path.slice(0, -2).join('.')))
-	);
+	return getGlobalAtPath(path.slice(0, -1)) !== null;
 }
 
 // TODO add others to this list from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects
