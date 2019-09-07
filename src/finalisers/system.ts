@@ -173,7 +173,7 @@ export default function system(
 	let wrapperStart =
 		`System.register(${registeredName}[` +
 		dependencyIds.join(`,${_}`) +
-		`],${_}function${_}(${wrapperParams})${_}{${n}${t}'use strict';` +
+		`],${_}function${_}(${wrapperParams})${_}{${n}${t}${options.strict ? "'use strict';" : ''}` +
 		getStarExcludesBlock(starExcludes, varOrConst, _, t, n) +
 		getImportBindingsBlock(importBindings, _, t, n) +
 		`${n}${t}return${_}{${
