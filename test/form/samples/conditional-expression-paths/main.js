@@ -1,4 +1,4 @@
-var unknownValue = globalFunction();
+var unknownValue = globalThis.unknown();
 var foo = { x: () => {}, y: {} };
 var bar = { x: () => {}, y: {} };
 var baz = { x: () => console.log('effect') };

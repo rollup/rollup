@@ -8,7 +8,7 @@ function* noEffects() {
 const iterator1 = noEffects();
 
 function* sideEffectYield() {
-	yield globalFunction();
+	yield globalThis.unknown();
 	yield 'no side-effect but must be included to ensure proper control flow';
 }
 
@@ -20,10 +20,10 @@ function* effectCallYield() {
 }
 
 const iterator3 = effectCallYield();
-iterator3.next(globalFunction);
+iterator3.next(globalThis.unknown);
 
 function* sideEffectYield2() {
-	yield globalFunction();
+	yield globalThis.unknown();
 }
 
 function* sideEffectNestedYield() {

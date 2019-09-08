@@ -1,0 +1,1 @@
+const { [globalThis.unknown()]: isKept } = {};

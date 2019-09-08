@@ -420,6 +420,8 @@ The pattern to use for chunks created from entry points. Pattern supports the fo
 
 Forward slashes `/` can be used to place files in sub-directories. See also [`output.assetFileNames`](guide/en/#outputassetfilenames), [`output.chunkFileNames`](guide/en/#outputchunkfilenames).
 
+This pattern will also be used when using the [`preserveModules`](guide/en/#preservemodules) option. Note however that when preserving modules, hashes are not yet supported.
+
 #### output.extend
 Type: `boolean`<br>
 CLI: `--extend`/`--no-extend`<br>
@@ -802,7 +804,7 @@ Default: `false`
 If this option is provided, bundling will not fail if bindings are imported from a file that does not define these bindings. Instead, new variables will be created for these bindings with the value `undefined`.
 
 #### treeshake
-Type: `boolean | { annotations?: boolean, moduleSideEffects?: ModuleSideEffectsOption, propertyReadSideEffects?: boolean }`<br>
+Type: `boolean | { annotations?: boolean, moduleSideEffects?: ModuleSideEffectsOption, propertyReadSideEffects?: boolean, tryCatchDeoptimization?: boolean, unknownGlobalSideEffects?: boolean }`<br>
 CLI: `--treeshake`/`--no-treeshake`<br>
 Default: `true`
 
@@ -937,6 +939,29 @@ test(() => {
 test(otherFn);
 
 ```
+
+**treeshake.unknownGlobalSideEffects**
+Type: `boolean`<br>
+CLI: `--treeshake.unknownGlobalSideEffects`/`--no-treeshake.unknownGlobalSideEffects`<br>
+Default: `true`
+
+Since accessing a non-existing global variable will throw an error, Rollup does by default retain any accesses to non-builtin global variables. Set this option to `false` to avoid this check. This is probably safe for most code-bases.
+
+```js
+// input
+const jQuery = $;
+const requestTimeout = setTimeout;
+const element = angular.element;
+
+// output with unknownGlobalSideEffects == true
+const jQuery = $;
+const element = angular.element;
+
+// output with unknownGlobalSideEffects == false
+const element = angular.element;
+```
+
+In the example, the last line is always retained as accessing the `element` property could also throw an error if `angular` is e.g. `null`. To avoid this check, set `treeshake.propertyReadSideEffects` to `false` as well.
 
 ### Experimental options
 

@@ -14,4 +14,4 @@ for ( const foo of [ effect3 ] ) {
 	foo(); // Must not be removed!
 }
 
-for ( globalVar of [ 1 ] ) {}
+for ( globalThis.unknown of [ 1 ] ) {}

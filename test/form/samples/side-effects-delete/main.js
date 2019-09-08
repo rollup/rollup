@@ -4,6 +4,6 @@ delete x.foo;
 var y = {foo: 'bar'};
 delete y.foo;
 
-delete globalVariable.foo;
+delete globalThis.unknown.foo;
 
 export {x};

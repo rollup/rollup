@@ -1,2 +1,2 @@
-const { [globalValue]: isRemoved } = { foo: 'bar' };
-const { [globalValue()]: isKept } = {};
+const { [globalThis.unknown]: isRemoved } = { foo: 'bar' };
+const { [globalThis.unknown()]: isKept } = {};

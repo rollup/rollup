@@ -1,47 +1,47 @@
 var a = {};
-({x: a} = globalVar);
+({x: a} = globalThis.unknown);
 
 var b = {};
-({b} = globalVar);
+({b} = globalThis.unknown);
 
-var {x: c} = globalVar;
+var {x: c} = globalThis.unknown;
 
-var {d} = globalVar;
+var {d} = globalThis.unknown;
 
 var e = {};
-({x: e} = globalVar);
+({x: e} = globalThis.unknown);
 e.foo = 1;
 
 var f = {};
-({f} = globalVar);
+({f} = globalThis.unknown);
 f.foo = 1;
 
-var {x: g} = globalVar;
+var {x: g} = globalThis.unknown;
 g.foo = 1;
 
-var {h} = globalVar;
+var {h} = globalThis.unknown;
 h.foo = 1;
 
 var i = {};
-[i] = globalVar;
+[i] = globalThis.unknown;
 
-var [j] = globalVar;
+var [j] = globalThis.unknown;
 
 var k = {};
-[,...k] = globalVar;
+[,...k] = globalThis.unknown;
 
-var [,...l] = globalVar;
+var [,...l] = globalThis.unknown;
 
 var m = {};
-[m] = globalVar;
+[m] = globalThis.unknown;
 m.foo = 1;
 
-var [n] = globalVar;
+var [n] = globalThis.unknown;
 n.foo = 1;
 
 var o = {};
-[...o] = globalVar;
+[...o] = globalThis.unknown;
 o.foo = 1;
 
-var [...p] = globalVar;
+var [...p] = globalThis.unknown;
 p.foo = 1;

@@ -1,7 +1,7 @@
 import ms from 'pretty-ms';
 import tc from 'turbocolor';
 import * as rollup from '../../src/node-entry';
-import { InputOptions, OutputAsset, OutputChunk, OutputOptions, RollupBuild, SourceMap } from '../../src/rollup/types';
+import { InputOptions, OutputOptions, RollupBuild, SourceMap } from '../../src/rollup/types';
 import relativeId from '../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
 import SOURCEMAPPING_URL from '../sourceMappingUrl';
@@ -49,12 +49,12 @@ export default function build(
 				return bundle.generate(output).then(({ output: outputs }) => {
 					for (const file of outputs) {
 						let source: string | Buffer;
-						if ((file as OutputAsset).isAsset) {
-							source = (file as OutputAsset).source;
+						if (file.type === 'asset') {
+							source = file.source;
 						} else {
-							source = (file as OutputChunk).code;
+							source = file.code;
 							if (output.sourcemap === 'inline') {
-								source += `\n//# ${SOURCEMAPPING_URL}=${((file as OutputChunk)
+								source += `\n//# ${SOURCEMAPPING_URL}=${(file
 									.map as SourceMap).toUrl()}\n`;
 							}
 						}

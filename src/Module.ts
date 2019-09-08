@@ -110,6 +110,7 @@ export interface AstContext {
 	traceVariable: (name: string) => Variable | null;
 	treeshake: boolean;
 	tryCatchDeoptimization: boolean;
+	unknownGlobalSideEffects: boolean;
 	usesTopLevelAwait: boolean;
 	warn: (warning: RollupWarning, pos: number) => void;
 	warnDeprecation: (deprecation: string | RollupWarning, activeDeprecation: boolean) => void;
@@ -218,7 +219,7 @@ export default class Module {
 	private graph: Graph;
 	private magicString!: MagicString;
 	private namespaceVariable: NamespaceVariable = undefined as any;
-	private transformDependencies: string[] | null = null;
+	private transformDependencies: string[] = [];
 	private transitiveReexports?: string[];
 
 	constructor(graph: Graph, id: string, moduleSideEffects: boolean, isEntry: boolean) {
@@ -244,7 +245,6 @@ export default class Module {
 	error(props: RollupError, pos: number) {
 		if (pos !== undefined) {
 			props.pos = pos;
-
 			let location = locate(this.code, pos, { offsetLine: 1 });
 			try {
 				location = getOriginalLocation(this.sourcemapChain, location);
@@ -271,6 +271,8 @@ export default class Module {
 			};
 			props.frame = getCodeFrame(this.originalCode, location.line, location.column);
 		}
+
+		props.watchFiles = Object.keys(this.graph.watchFiles);
 
 		error(props);
 	}
@@ -605,6 +607,8 @@ export default class Module {
 			treeshake: !!this.graph.treeshakingOptions,
 			tryCatchDeoptimization: (!this.graph.treeshakingOptions ||
 				this.graph.treeshakingOptions.tryCatchDeoptimization) as boolean,
+			unknownGlobalSideEffects: (!this.graph.treeshakingOptions ||
+				this.graph.treeshakingOptions.unknownGlobalSideEffects) as boolean,
 			usesTopLevelAwait: false,
 			warn: this.warn.bind(this),
 			warnDeprecation: this.graph.warnDeprecation.bind(this.graph)

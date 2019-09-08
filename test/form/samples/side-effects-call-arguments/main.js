@@ -3,8 +3,8 @@ function foo () {}
 foo();
 foo( 1 );
 foo( foo() );
-foo( globalValue );
-foo( globalFunction() );
+foo( globalThis.unknown );
+foo( globalThis.unknown() );
 
 var bar = 1;
 foo( bar++ );
