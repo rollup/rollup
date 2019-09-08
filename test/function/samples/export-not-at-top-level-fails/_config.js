@@ -6,6 +6,7 @@ module.exports = {
 		code: 'PARSE_ERROR',
 		message: `'import' and 'export' may only appear at the top level`,
 		pos: 19,
+		watchFiles: [path.resolve(__dirname, 'main.js')],
 		loc: {
 			file: path.resolve(__dirname, 'main.js'),
 			line: 2,

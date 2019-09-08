@@ -280,6 +280,7 @@ export class ModuleLoader {
 
 		const module: Module = new Module(this.graph, id, moduleSideEffects, isEntry);
 		this.modulesById.set(id, module);
+		this.graph.watchFiles[id] = true;
 		const manualChunkAlias = this.getManualChunk(id);
 		if (typeof manualChunkAlias === 'string') {
 			this.addModuleToManualChunk(manualChunkAlias, module);
