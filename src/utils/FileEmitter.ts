@@ -2,7 +2,7 @@ import sha256 from 'hash.js/lib/hash/sha/256';
 import Chunk from '../Chunk';
 import Graph from '../Graph';
 import Module from '../Module';
-import { OutputAsset, OutputBundleWithPlaceholders } from '../rollup/types';
+import { FilePlaceholder, OutputBundleWithPlaceholders } from '../rollup/types';
 import { BuildPhase } from './buildPhase';
 import {
 	errAssetNotFinalisedForFileName,
@@ -78,8 +78,8 @@ interface EmittedFile {
 
 type ConsumedFile = ConsumedChunk | ConsumedAsset;
 
-export const FILE_PLACEHOLDER = {
-	isPlaceholder: true
+export const FILE_PLACEHOLDER: FilePlaceholder = {
+	type: 'placeholder'
 };
 
 function hasValidType(
@@ -318,7 +318,20 @@ export class FileEmitter {
 		// We must not modify the original assets to avoid interaction between outputs
 		const assetWithFileName = { ...consumedFile, source, fileName };
 		this.filesByReferenceId.set(referenceId, assetWithFileName);
-		output.bundle[fileName] = { fileName, isAsset: true, source };
+		const graph = this.graph;
+		output.bundle[fileName] = {
+			fileName,
+			get isAsset(): true {
+				graph.warnDeprecation(
+					'Accessing "isAsset" on files in the bundle is deprecated, please use "type === \'asset\'" instead',
+					false
+				);
+
+				return true;
+			},
+			source,
+			type: 'asset'
+		};
 	}
 
 	private findExistingAssetFileNameWithSource(
@@ -326,9 +339,9 @@ export class FileEmitter {
 		source: string | Buffer
 	): string | null {
 		for (const fileName of Object.keys(bundle)) {
-			const outputFile = bundle[fileName] as OutputAsset;
+			const outputFile = bundle[fileName];
 			if (
-				outputFile.isAsset &&
+				outputFile.type === 'asset' &&
 				(Buffer.isBuffer(source) && Buffer.isBuffer(outputFile.source)
 					? source.equals(outputFile.source)
 					: source === outputFile.source)
