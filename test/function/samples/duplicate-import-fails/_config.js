@@ -6,6 +6,7 @@ module.exports = {
 		code: 'PARSE_ERROR',
 		message: `Identifier 'a' has already been declared`,
 		pos: 36,
+		watchFiles: [path.resolve(__dirname, 'main.js')],
 		loc: {
 			file: path.resolve(__dirname, 'main.js'),
 			line: 2,

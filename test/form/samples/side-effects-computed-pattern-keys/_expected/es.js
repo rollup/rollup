@@ -1,1 +1,0 @@
-const { [globalValue()]: isKept } = {};

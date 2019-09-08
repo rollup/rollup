@@ -53,9 +53,8 @@ export default class FileWatcher {
 				// can't watch files that don't exist (e.g. injected
 				// by plugins somehow)
 				return;
-			} else {
-				throw err;
 			}
+			throw err;
 		}
 
 		const handleWatchEvent = (event: string) => {
@@ -63,6 +62,7 @@ export default class FileWatcher {
 				this.close();
 				group.delete(id);
 				this.trigger(id);
+				return;
 			} else {
 				let stats: fs.Stats;
 				try {
@@ -87,7 +87,7 @@ export default class FileWatcher {
 		group.set(id, this);
 	}
 
-	addTask(task: Task, isTransformDependency = false) {
+	addTask(task: Task, isTransformDependency: boolean) {
 		if (isTransformDependency) this.transformDependencyTasks.add(task);
 		else this.tasks.add(task);
 	}

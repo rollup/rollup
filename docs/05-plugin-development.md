@@ -123,8 +123,8 @@ Called at the end of `bundle.generate()` or immediately before the files are wri
 // AssetInfo
 {
   fileName: string,
-  isAsset: true,
-  source: string | Buffer
+  source: string | Buffer,
+  type: 'asset',
 }
 
 // ChunkInfo
@@ -146,7 +146,8 @@ Called at the end of `bundle.generate()` or immediately before the files are wri
       originalLength: number
     },
   },
-  name: string
+  name: string,
+  type: 'chunk',
 }
 ```
 
