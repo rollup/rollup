@@ -5,6 +5,7 @@ export const VERSION: string;
 
 export interface RollupError extends RollupLogProps {
 	stack?: string;
+	watchFiles?: string[];
 }
 
 export interface RollupWarning extends RollupLogProps {
@@ -105,7 +106,7 @@ export interface TransformModuleJSON {
 	originalSourcemap: ExistingDecodedSourceMap | null;
 	resolvedIds?: ResolvedIdMap;
 	sourcemapChain: DecodedSourceMapOrMissing[];
-	transformDependencies: string[] | null;
+	transformDependencies: string[];
 }
 
 export interface ModuleJSON extends TransformModuleJSON {
@@ -527,7 +528,7 @@ export interface SerializablePluginCache {
 }
 
 export interface RollupCache {
-	modules?: ModuleJSON[];
+	modules: ModuleJSON[];
 	plugins?: Record<string, SerializablePluginCache>;
 }
 

@@ -6,6 +6,7 @@ module.exports = {
 		code: 'PARSE_ERROR',
 		message: `Duplicate export 'default'`,
 		pos: 25,
+		watchFiles: [path.resolve(__dirname, 'main.js'), path.resolve(__dirname, 'foo.js')],
 		loc: {
 			file: path.resolve(__dirname, 'foo.js'),
 			line: 2,

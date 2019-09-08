@@ -222,7 +222,6 @@ export default class Graph {
 			for (const module of this.moduleById.values()) {
 				if (module instanceof Module) {
 					this.modules.push(module);
-					this.watchFiles[module.id] = true;
 				} else {
 					this.externalModules.push(module);
 				}
@@ -331,7 +330,7 @@ export default class Graph {
 		return {
 			modules: this.modules.map(module => module.toJSON()),
 			plugins: this.pluginCache
-		} as any;
+		};
 	}
 
 	includeMarked(modules: Module[]) {

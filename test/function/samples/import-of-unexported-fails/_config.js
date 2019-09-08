@@ -6,6 +6,7 @@ module.exports = {
 		code: 'MISSING_EXPORT',
 		message: `'default' is not exported by empty.js`,
 		pos: 7,
+		watchFiles: [path.resolve(__dirname, 'main.js'), path.resolve(__dirname, 'empty.js')],
 		loc: {
 			file: path.resolve(__dirname, 'main.js'),
 			line: 1,
