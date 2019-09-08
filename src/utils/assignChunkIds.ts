@@ -27,7 +27,7 @@ export function assignChunkIds(
 		if (outputOptions.file) {
 			chunk.id = basename(outputOptions.file);
 		} else if (inputOptions.preserveModules) {
-			chunk.id = chunk.generateIdPreserveModules(inputBase, bundle);
+			chunk.id = chunk.generateIdPreserveModules(inputBase, outputOptions, bundle);
 		} else {
 			chunk.id = chunk.generateId(addons, outputOptions, bundle, true);
 		}
