@@ -1,5 +1,25 @@
 # rollup changelog
 
+## 1.21.0
+*2019-09-08*
+
+### Features
+* Respect `output.entryFileNames` when preserving modules (#3088)
+* Make accessing unknown globals a side-effect unless this is deactivated via `treeshake.unknownGlobalSideEffects` (#3068)
+* Respect global objects when checking for pure global functions (#3068)
+* Introduce a `type` to more easily distinguish chunks and assets in the output bundle (#3080)
+
+### Bug Fixes
+* Recover in watch mode when the initial build fails (#3081)
+* Make sure `output.strict` is respected for SystemJS output (#3101)
+
+### Pull Requests
+* [#3068](https://github.com/rollup/rollup/pull/3068): Make accessing unknown globals a side-effect (@lukastaegert)
+* [#3080](https://github.com/rollup/rollup/pull/3080): OutputBundle Tagged union with 'type = chunk|asset' (@askbeka)
+* [#3081](https://github.com/rollup/rollup/pull/3081): Watch files onbuild, even if build fails (@mhkeller)
+* [#3088](https://github.com/rollup/rollup/pull/3088): Add support for entryFileNames pattern used in combination with preserveModules option (@Andarist)
+* [#3101](https://github.com/rollup/rollup/pull/3101): Remove 'use strict'; from systemjs when strict=false (@askbeka)
+
 ## 1.20.3
 *2019-08-28*
 
