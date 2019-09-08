@@ -1,4 +1,4 @@
-switch (someGlobal) {
+switch (globalThis.unknown) {
     case 1:
         var hoisted = true;
     case 2:

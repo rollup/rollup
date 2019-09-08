@@ -1,18 +1,18 @@
 async function hasEffects1 () {
-	await globalPromise;
+	await globalThis.unknown;
 	console.log( 'effect' );
 }
 
 hasEffects1();
 
 async function hasEffects2 () {
-	await globalFunction();
+	await globalThis.unknown();
 }
 
 hasEffects2();
 
 async function isRemoved () {
-	await globalPromise;
+	await globalThis.unknown;
 }
 
 isRemoved();

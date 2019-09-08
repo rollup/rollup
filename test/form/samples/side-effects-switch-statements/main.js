@@ -4,43 +4,43 @@ function effect () {
 	console.log( 'effect' );
 }
 
-switch ( globalVar ) {
-	case foo:
-	case bar:
+switch ( globalThis.unknown ) {
+	case 'foo':
+	case 'bar':
 		effect();
 		noEffect();
-		if ( globalVar > 1 ) {
+		if ( globalThis.unknown > 1 ) {
 			break;
 		}
-	case baz:
+	case 'baz':
 		effect();
 	default:
 		noEffect();
 }
 
-switch ( globalVar ) {
-	case foo:
+switch ( globalThis.unknown ) {
+	case 'foo':
 		noEffect();
 		break;
-	case bar:
+	case 'bar':
 		effect();
 	default:
 		effect();
 }
 
 (function nestedSwitchWithEffects () {
-	switch ( globalVar ) {
+	switch ( globalThis.unknown ) {
 		default:
 			effect();
 	}
 }());
 
 (function nestedSwitchWithoutEffects () {
-	switch ( globalVar ) {
-		case foo:
+	switch ( globalThis.unknown ) {
+		case 'foo':
 			noEffect();
 			break;
-		case bar:
+		case 'bar':
 		default:
 	}
 }());

@@ -110,6 +110,7 @@ export interface AstContext {
 	traceVariable: (name: string) => Variable | null;
 	treeshake: boolean;
 	tryCatchDeoptimization: boolean;
+	unknownGlobalSideEffects: boolean;
 	usesTopLevelAwait: boolean;
 	warn: (warning: RollupWarning, pos: number) => void;
 	warnDeprecation: (deprecation: string | RollupWarning, activeDeprecation: boolean) => void;
@@ -606,6 +607,8 @@ export default class Module {
 			treeshake: !!this.graph.treeshakingOptions,
 			tryCatchDeoptimization: (!this.graph.treeshakingOptions ||
 				this.graph.treeshakingOptions.tryCatchDeoptimization) as boolean,
+			unknownGlobalSideEffects: (!this.graph.treeshakingOptions ||
+				this.graph.treeshakingOptions.unknownGlobalSideEffects) as boolean,
 			usesTopLevelAwait: false,
 			warn: this.warn.bind(this),
 			warnDeprecation: this.graph.warnDeprecation.bind(this.graph)

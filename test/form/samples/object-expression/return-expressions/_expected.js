@@ -1,12 +1,12 @@
 const y = {
 	a: () => () => {},
-	[unknown]: () => () => console.log('effect')
+	[globalThis.unknown]: () => () => console.log('effect')
 };
 
 y.a()();
 
 const z = {
-	[unknown]: () => ({})
+	[globalThis.unknown]: () => ({})
 };
 
 z.a()();

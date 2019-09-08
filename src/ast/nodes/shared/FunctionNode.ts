@@ -41,8 +41,8 @@ export default class FunctionNode extends NodeBase {
 		return path.length === 0 ? this.scope.getReturnExpression() : UNKNOWN_EXPRESSION;
 	}
 
-	hasEffects(options: ExecutionPathOptions) {
-		return this.id !== null && this.id.hasEffects(options);
+	hasEffects() {
+		return this.id !== null && this.id.hasEffects();
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
