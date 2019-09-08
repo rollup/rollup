@@ -420,6 +420,8 @@ The pattern to use for chunks created from entry points. Pattern supports the fo
 
 Forward slashes `/` can be used to place files in sub-directories. See also [`output.assetFileNames`](guide/en/#outputassetfilenames), [`output.chunkFileNames`](guide/en/#outputchunkfilenames).
 
+This pattern will also be used when using the [`preserveModules`](guide/en/#preservemodules) option. Note however that when preserving modules, hashes are not yet supported.
+
 #### output.extend
 Type: `boolean`<br>
 CLI: `--extend`/`--no-extend`<br>
