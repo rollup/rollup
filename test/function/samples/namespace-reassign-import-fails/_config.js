@@ -6,6 +6,7 @@ module.exports = {
 		code: 'ILLEGAL_NAMESPACE_REASSIGNMENT',
 		message: `Illegal reassignment to import 'exp'`,
 		pos: 31,
+		watchFiles: [path.resolve(__dirname, 'main.js'), path.resolve(__dirname, 'foo.js')],
 		loc: {
 			file: path.resolve(__dirname, 'main.js'),
 			line: 3,

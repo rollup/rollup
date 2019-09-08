@@ -8,6 +8,7 @@ module.exports = {
 		message:
 			'Unexpected token (Note that you need plugins to import files that are not JavaScript)',
 		pos: 0,
+		watchFiles: [path.resolve(__dirname, 'main.js'), path.resolve(__dirname, 'file.css')],
 		loc: {
 			file: path.resolve(__dirname, 'file.css'),
 			line: 1,

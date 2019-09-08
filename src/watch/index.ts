@@ -5,10 +5,10 @@ import createFilter from 'rollup-pluginutils/src/createFilter';
 import rollup, { setWatcher } from '../rollup/index';
 import {
 	InputOptions,
-	ModuleJSON,
 	OutputOptions,
 	RollupBuild,
 	RollupCache,
+	RollupError,
 	RollupWatcher,
 	WatcherOptions
 } from '../rollup/types';
@@ -25,7 +25,6 @@ export class Watcher {
 	private invalidatedIds: Set<string> = new Set();
 	private rerun = false;
 	private running: boolean;
-	private succeeded = false;
 	private tasks: Task[];
 
 	constructor(configs: GenericConfigObject[] | GenericConfigObject) {
@@ -48,9 +47,9 @@ export class Watcher {
 
 	close() {
 		if (this.buildTimeout) clearTimeout(this.buildTimeout);
-		this.tasks.forEach(task => {
+		for (const task of this.tasks) {
 			task.close();
-		});
+		}
 
 		this.emitter.removeAllListeners();
 	}
@@ -72,7 +71,9 @@ export class Watcher {
 
 		this.buildTimeout = setTimeout(() => {
 			this.buildTimeout = null;
-			this.invalidatedIds.forEach(id => this.emit('change', id));
+			for (const id of this.invalidatedIds) {
+				this.emit('change', id);
+			}
 			this.invalidatedIds.clear();
 			this.emit('restart');
 			this.run();
@@ -90,7 +91,6 @@ export class Watcher {
 		for (const task of this.tasks) taskPromise = taskPromise.then(() => task.run());
 		return taskPromise
 			.then(() => {
-				this.succeeded = true;
 				this.running = false;
 
 				this.emit('event', {
@@ -100,7 +100,7 @@ export class Watcher {
 			.catch(error => {
 				this.running = false;
 				this.emit('event', {
-					code: this.succeeded ? 'ERROR' : 'FATAL',
+					code: 'ERROR',
 					error
 				});
 			})
@@ -114,7 +114,7 @@ export class Watcher {
 }
 
 export class Task {
-	cache: RollupCache;
+	cache: RollupCache = { modules: [] };
 	watchFiles: string[] = [];
 
 	private chokidarOptions: WatchOptions;
@@ -129,7 +129,6 @@ export class Task {
 	private watcher: Watcher;
 
 	constructor(watcher: Watcher, config: GenericConfigObject) {
-		this.cache = null as any;
 		this.watcher = watcher;
 
 		this.closed = false;
@@ -172,20 +171,19 @@ export class Task {
 
 	close() {
 		this.closed = true;
-		this.watched.forEach(id => {
+		for (const id of this.watched) {
 			deleteTask(id, this, this.chokidarOptionsHash);
-		});
+		}
 	}
 
 	invalidate(id: string, isTransformDependency: boolean) {
 		this.invalidated = true;
 		if (isTransformDependency) {
-			(this.cache.modules as ModuleJSON[]).forEach(module => {
-				if (!module.transformDependencies || module.transformDependencies.indexOf(id) === -1)
-					return;
+			for (const module of this.cache.modules) {
+				if (module.transformDependencies.indexOf(id) === -1) return;
 				// effective invalidation
 				module.originalCode = null as any;
-			});
+			}
 		}
 		this.watcher.invalidate(id);
 	}
@@ -211,27 +209,7 @@ export class Task {
 		return rollup(options)
 			.then(result => {
 				if (this.closed) return undefined as any;
-				const previouslyWatched = this.watched;
-				const watched = (this.watched = new Set());
-
-				this.cache = result.cache;
-				this.watchFiles = result.watchFiles;
-				for (const module of this.cache.modules as ModuleJSON[]) {
-					if (module.transformDependencies) {
-						module.transformDependencies.forEach(depId => {
-							watched.add(depId);
-							this.watchFile(depId, true);
-						});
-					}
-				}
-				for (const id of this.watchFiles) {
-					watched.add(id);
-					this.watchFile(id);
-				}
-				for (const id of previouslyWatched) {
-					if (!watched.has(id)) deleteTask(id, this, this.chokidarOptionsHash);
-				}
-
+				this.updateWatchedFiles(result);
 				return Promise.all(this.outputs.map(output => result.write(output))).then(() => result);
 			})
 			.then((result: RollupBuild) => {
@@ -243,31 +221,39 @@ export class Task {
 					result
 				});
 			})
-			.catch((error: Error) => {
+			.catch((error: RollupError) => {
 				if (this.closed) return;
 
-				if (this.cache) {
-					// this is necessary to ensure that any 'renamed' files
-					// continue to be watched following an error
-					if (this.cache.modules) {
-						this.cache.modules.forEach(module => {
-							if (module.transformDependencies) {
-								module.transformDependencies.forEach(depId => {
-									this.watchFile(depId, true);
-								});
-							}
-						});
-					}
-					this.watchFiles.forEach(id => {
+				if (Array.isArray(error.watchFiles)) {
+					for (const id of error.watchFiles) {
 						this.watchFile(id);
-					});
+					}
 				}
 				throw error;
 			});
 	}
 
-	watchFile(id: string, isTransformDependency = false) {
+	private updateWatchedFiles(result: RollupBuild) {
+		const previouslyWatched = this.watched;
+		this.watched = new Set();
+		this.watchFiles = result.watchFiles;
+		this.cache = result.cache;
+		for (const id of this.watchFiles) {
+			this.watchFile(id);
+		}
+		for (const module of this.cache.modules) {
+			for (const depId of module.transformDependencies) {
+				this.watchFile(depId, true);
+			}
+		}
+		for (const id of previouslyWatched) {
+			if (!this.watched.has(id)) deleteTask(id, this, this.chokidarOptionsHash);
+		}
+	}
+
+	private watchFile(id: string, isTransformDependency = false) {
 		if (!this.filter(id)) return;
+		this.watched.add(id);
 
 		if (this.outputFiles.some(file => file === id)) {
 			throw new Error('Cannot import the generated bundle');

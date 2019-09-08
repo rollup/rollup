@@ -5,6 +5,7 @@ export const VERSION: string;
 
 export interface RollupError extends RollupLogProps {
 	stack?: string;
+	watchFiles?: string[];
 }
 
 export interface RollupWarning extends RollupLogProps {
@@ -105,7 +106,7 @@ export interface TransformModuleJSON {
 	originalSourcemap: ExistingDecodedSourceMap | null;
 	resolvedIds?: ResolvedIdMap;
 	sourcemapChain: DecodedSourceMapOrMissing[];
-	transformDependencies: string[] | null;
+	transformDependencies: string[];
 }
 
 export interface ModuleJSON extends TransformModuleJSON {
@@ -314,8 +315,12 @@ export interface OutputBundle {
 	[fileName: string]: OutputAsset | OutputChunk;
 }
 
+export interface FilePlaceholder {
+	type: 'placeholder';
+}
+
 export interface OutputBundleWithPlaceholders {
-	[fileName: string]: OutputAsset | OutputChunk | {};
+	[fileName: string]: OutputAsset | OutputChunk | FilePlaceholder;
 }
 
 interface OnGenerateOptions extends OutputOptions {
@@ -488,10 +493,11 @@ export interface SerializedTimings {
 }
 
 export interface OutputAsset {
-	code?: undefined;
 	fileName: string;
+	/** @deprecated Accessing "isAsset" on files in the bundle is deprecated, please use "type === \'asset\'" instead */
 	isAsset: true;
 	source: string | Buffer;
+	type: 'asset';
 }
 
 export interface RenderedModule {
@@ -521,6 +527,7 @@ export interface RenderedChunk extends PreRenderedChunk {
 export interface OutputChunk extends RenderedChunk {
 	code: string;
 	map?: SourceMap;
+	type: 'chunk';
 }
 
 export interface SerializablePluginCache {
@@ -528,7 +535,7 @@ export interface SerializablePluginCache {
 }
 
 export interface RollupCache {
-	modules?: ModuleJSON[];
+	modules: ModuleJSON[];
 	plugins?: Record<string, SerializablePluginCache>;
 }
 

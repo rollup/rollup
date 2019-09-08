@@ -25,12 +25,12 @@ async function build() {
   const { output } = await bundle.generate(outputOptions);
 
   for (const chunkOrAsset of output) {
-    if (chunkOrAsset.isAsset) {
+    if (chunkOrAsset.type === 'asset') {
       // For assets, this contains
       // {
-      //   isAsset: true,                 // signifies that this is an asset
       //   fileName: string,              // the asset file name
       //   source: string | Buffer        // the asset source
+      //   type: 'asset'                  // signifies that this is an asset
       // }
       console.log('Asset', chunkOrAsset);
     } else {
@@ -54,6 +54,7 @@ async function build() {
       //     };
       //   },
       //   name: string                   // the name of this chunk as used in naming patterns
+      //   type: 'chunk',                 // signifies that this is a chunk
       // }
       console.log('Chunk', chunkOrAsset.modules);
     }
