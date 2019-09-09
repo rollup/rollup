@@ -276,7 +276,7 @@ export default async function rollup(rawInputOptions: GenericConfigObject): Prom
 			const file = outputBundle[key] as any;
 			if (!file.type) {
 				graph.warnDeprecation(
-					'A plugin is directly adding properties to the bundle object in the "generateBundle" hook. This is deprecated and will be removed in a future Rollup version, please use "this.emitAsset" instead.',
+					'A plugin is directly adding properties to the bundle object in the "generateBundle" hook. This is deprecated and will be removed in a future Rollup version, please use "this.emitFile" instead.',
 					false
 				);
 				file.type = 'asset';
