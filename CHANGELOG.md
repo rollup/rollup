@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.21.1
+*2019-09-09*
+
+### Bug Fixes
+* Allow legacy plugins to still add assets directly to the bundle object (#3105)
+
+### Pull Requests
+* [#3105](https://github.com/rollup/rollup/pull/3105): Allow legacy plugins to still add assets directly to the bundle object (@lukastaegert)
+
 ## 1.21.0
 *2019-09-08*
 
