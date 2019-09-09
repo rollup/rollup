@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 1.21.2
+*2019-09-09*
+
+### Bug Fixes
+* Fix wrong deprecation message to direct to `this.emitFile` instead of `this.emitAsset`
+
 ## 1.21.1
 *2019-09-09*
 
