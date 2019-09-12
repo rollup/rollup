@@ -180,7 +180,7 @@ export class Task {
 		this.invalidated = true;
 		if (isTransformDependency) {
 			for (const module of this.cache.modules) {
-				if (module.transformDependencies.indexOf(id) === -1) return;
+				if (module.transformDependencies.indexOf(id) === -1) continue;
 				// effective invalidation
 				module.originalCode = null as any;
 			}
