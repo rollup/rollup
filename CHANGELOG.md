@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.21.3
+*2019-09-09*
+
+### Bug Fixes
+* Fix a regression where modifying a watched file did not trigger a rebuild (#3112)
+
+### Pull Requests
+* [#3112](https://github.com/rollup/rollup/pull/3112): Fix .addWatchFile() dependencies failing to invalidate in watch mode (@tivac)
+
 ## 1.21.2
 *2019-09-09*
 
