@@ -1512,6 +1512,50 @@ describe('rollup.watch', () => {
 						]);
 					});
 			});
+
+			it('watches transform dependencies when there are multiple modules', () => {
+				let v = 1;
+				return sander
+					.copydir('test/watch/samples/watch-files-multiple')
+					.to('test/_tmp/input')
+					.then(() => {
+						const watcher = rollup.watch({
+							input: 'test/_tmp/input/index.js',
+							output: {
+								file: 'test/_tmp/output/bundle.js',
+								format: 'cjs'
+							},
+							plugins: {
+								transform(code, id) {
+									if (!id.includes('dep.txt')) {
+										return;
+									}
+									this.addWatchFile('test/_tmp/input/depdep.txt');
+									return `export default ${v++};`;
+								}
+							},
+							watch: { chokidar }
+						});
+
+						return sequence(watcher, [
+							'START',
+							'BUNDLE_START',
+							'BUNDLE_END',
+							'END',
+							() => {
+								assert.deepStrictEqual(run('../_tmp/output/bundle.js'), { dep: 1, first: 'b' });
+								sander.writeFileSync('test/_tmp/input/depdep.txt', 'changed');
+							},
+							'START',
+							'BUNDLE_START',
+							'BUNDLE_END',
+							'END',
+							() => {
+								assert.deepStrictEqual(run('../_tmp/output/bundle.js'), { dep: 2, first: 'b' });
+							}
+						]);
+					});
+			});
 		});
 	}
 });
