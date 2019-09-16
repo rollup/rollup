@@ -14,6 +14,7 @@ interface GlobalDescription {
 const PURE: ValueDescription = { pure: true };
 const IMPURE: ValueDescription = { pure: false };
 
+// We use shortened variables to reduce file size here
 /* OBJECT */
 const O: GlobalDescription = {
 	// @ts-ignore
@@ -21,7 +22,6 @@ const O: GlobalDescription = {
 	[ValueProperties]: IMPURE
 };
 
-// We use shortened variables to reduce file size here
 /* PURE FUNCTION */
 const PF: GlobalDescription = {
 	// @ts-ignore
