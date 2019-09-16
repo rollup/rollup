@@ -62,6 +62,13 @@ const INTL_MEMBER: GlobalDescription = {
 };
 
 const knownGlobals: GlobalDescription = {
+	// Placeholders for global objects to avoid shape mutations
+	global: O,
+	globalThis: O,
+	self: O,
+	window: O,
+
+	// Common globals
 	// @ts-ignore
 	__proto__: null,
 	[ValueProperties]: IMPURE,
@@ -677,7 +684,6 @@ const knownGlobals: GlobalDescription = {
 	scrollY: O,
 	SecurityPolicyViolationEvent: C,
 	Selection: C,
-	self: O,
 	ServiceWorker: C,
 	ServiceWorkerContainer: C,
 	ServiceWorkerRegistration: C,
@@ -842,7 +848,6 @@ const knownGlobals: GlobalDescription = {
 	WebGLVertexArrayObject: C,
 	WebSocket: C,
 	WheelEvent: C,
-	window: O,
 	Window: C,
 	Worker: C,
 	WritableStream: C,
