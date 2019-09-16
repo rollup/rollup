@@ -1,7 +1,17 @@
 # rollup changelog
 
+## 1.21.4
+*2019-09-16*
+
+### Bug Fixes
+* Recognize common browser globals (#3117)
+* Do not treat "typeof <global>" as a side-effect (#3117)
+
+### Pull Requests
+* [#3117](https://github.com/rollup/rollup/pull/3117): Add browser globals to known globals and prevent "typeof" side-effects (@lukastaegert)
+
 ## 1.21.3
-*2019-09-09*
+*2019-09-14*
 
 ### Bug Fixes
 * Fix a regression where modifying a watched file did not trigger a rebuild (#3112)
