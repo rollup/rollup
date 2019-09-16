@@ -2,6 +2,7 @@ import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
 import { EMPTY_PATH, LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../values';
+import Identifier from './Identifier';
 import { LiteralValue } from './Literal';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
@@ -20,7 +21,7 @@ const unaryOperators: {
 
 export default class UnaryExpression extends NodeBase {
 	argument!: ExpressionNode;
-	operator!: keyof typeof unaryOperators;
+	operator!: '!' | '+' | '-' | 'delete' | 'typeof' | 'void' | '~';
 	prefix!: boolean;
 	type!: NodeType.tUnaryExpression;
 
@@ -44,6 +45,7 @@ export default class UnaryExpression extends NodeBase {
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
+		if (this.operator === 'typeof' && this.argument instanceof Identifier) return false;
 		return (
 			this.argument.hasEffects(options) ||
 			(this.operator === 'delete' &&
