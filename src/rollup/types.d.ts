@@ -475,7 +475,7 @@ export interface OutputOptions {
 	outro?: string | (() => string | Promise<string>);
 	paths?: OptionsPaths;
 	preferConst?: boolean;
-	sourcemap?: boolean | 'inline';
+	sourcemap?: boolean | 'inline' | 'hidden';
 	sourcemapExcludeSources?: boolean;
 	sourcemapFile?: string;
 	sourcemapPathTransform?: (sourcePath: string) => string;
