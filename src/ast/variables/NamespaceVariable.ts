@@ -98,10 +98,8 @@ export default class NamespaceVariable extends Variable {
 		const name = this.getName();
 
 		const callee = options.freeze ? `/*#__PURE__*/Object.freeze` : '';
-
-		let output = `${options.varOrConst} ${name} = ${`${callee}({${n}${members.join(
-			`,${n}`
-		)}${n}});`}`;
+		const membersStr = members.join(`,${n}`);
+		let output = `${options.varOrConst} ${name}${_}=${_}${callee}({${n}${membersStr}${n}});`;
 
 		if (options.format === 'system' && this.exportName) {
 			output += `${n}exports('${this.exportName}',${_}${name});`;
