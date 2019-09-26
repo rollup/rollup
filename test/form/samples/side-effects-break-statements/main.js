@@ -17,10 +17,6 @@ for ( const val in { x: 1, y: 2 } ) {
 }
 
 for ( const val of { x: 1, y: 2 } ) {
-	break;
-}
-
-for ( const val of { x: 1, y: 2 } ) {
 	console.log( 'effect' );
 	break;
 }

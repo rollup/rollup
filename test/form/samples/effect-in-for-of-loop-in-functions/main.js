@@ -8,14 +8,6 @@ function a () {
 
 a();
 
-function b () {
-	for ( const item of items.children ) {
-		// do nothing
-	}
-}
-
-b();
-
 function c () {
 	let item;
 	for ( item of items.children ) {
@@ -24,15 +16,6 @@ function c () {
 }
 
 c();
-
-function d () {
-	let item;
-	for ( item of items.children ) {
-		// do nothing
-	}
-}
-
-d();
 
 assert.deepEqual( items, [
 	{ foo: 'a', bar: 'c' },

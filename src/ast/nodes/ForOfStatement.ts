@@ -1,6 +1,5 @@
 import MagicString from 'magic-string';
 import { NO_SEMICOLON, RenderOptions } from '../../utils/renderHelpers';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import BlockScope from '../scopes/BlockScope';
 import Scope from '../scopes/Scope';
 import { EMPTY_PATH } from '../values';
@@ -27,14 +26,9 @@ export default class ForOfStatement extends StatementBase {
 		this.scope = new BlockScope(parentScope);
 	}
 
-	hasEffects(options: ExecutionPathOptions): boolean {
-		return (
-			(this.left &&
-				(this.left.hasEffects(options) ||
-					this.left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, options))) ||
-			(this.right && this.right.hasEffects(options)) ||
-			this.body.hasEffects(options.setIgnoreBreakStatements())
-		);
+	hasEffects(): boolean {
+		// Placeholder until proper Symbol.Iterator support
+		return true;
 	}
 
 	include(includeChildrenRecursively: IncludeChildren) {
