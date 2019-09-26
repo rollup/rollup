@@ -28,13 +28,16 @@ export default class ForOfStatement extends StatementBase {
 	}
 
 	hasEffects(options: ExecutionPathOptions): boolean {
-		return (
-			(this.left &&
-				(this.left.hasEffects(options) ||
-					this.left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, options))) ||
-			(this.right && this.right.hasEffects(options)) ||
-			this.body.hasEffects(options.setIgnoreBreakStatements())
-		);
+		// Placeholder until proper Symbol.Iterator support
+		return true;
+
+		// return (
+		// 	(this.left &&
+		// 		(this.left.hasEffects(options) ||
+		// 			this.left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, options))) ||
+		// 	(this.right && this.right.hasEffects(options)) ||
+		// 	this.body.hasEffects(options.setIgnoreBreakStatements())
+		// );
 	}
 
 	include(includeChildrenRecursively: IncludeChildren) {
