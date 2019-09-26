@@ -7,6 +7,7 @@ System.register([], function (exports) {
 			var b = exports('b', 'a');
 
 			var main2 = /*#__PURE__*/Object.freeze({
+				__proto__: null,
 				a: a,
 				b: b
 			});
