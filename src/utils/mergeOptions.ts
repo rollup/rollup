@@ -213,7 +213,7 @@ function getInputOptions(
 		acornInjectPlugins: config.acornInjectPlugins as any,
 		cache: getOption('cache'),
 		chunkGroupingSize: getOption('chunkGroupingSize', 5000),
-		context: config.context as any,
+		context: getOption('context'),
 		experimentalCacheExpiry: getOption('experimentalCacheExpiry', 10),
 		experimentalOptimizeChunks: getOption('experimentalOptimizeChunks'),
 		experimentalTopLevelAwait: getOption('experimentalTopLevelAwait'),
