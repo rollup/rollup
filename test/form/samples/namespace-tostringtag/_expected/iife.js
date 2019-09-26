@@ -1,18 +1,18 @@
 var iife = (function (exports) {
-    'use strict';
+	'use strict';
 
-    var self = /*#__PURE__*/Object.freeze({
-        __proto__: null,
-        [Symbol.toStringTag]: 'Module',
-        get p () { return p; }
-    });
+	var self = /*#__PURE__*/Object.freeze({
+		[Symbol.toStringTag]: 'Module',
+		__proto__: null,
+		get p () { return p; }
+	});
 
-    console.log(Object.keys(self));
+	console.log(Object.keys(self));
 
-    var p = 5;
+	var p = 5;
 
-    exports.p = p;
+	exports.p = p;
 
-    return exports;
+	return exports;
 
 }({}));
