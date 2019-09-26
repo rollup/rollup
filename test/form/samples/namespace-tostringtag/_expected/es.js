@@ -1,7 +1,7 @@
 var self = /*#__PURE__*/Object.freeze({
     __proto__: null,
-	[Symbol.toStringTag]: 'Module',
-	get p () { return p; }
+    [Symbol.toStringTag]: 'Module',
+    get p () { return p; }
 });
 
 console.log(Object.keys(self));

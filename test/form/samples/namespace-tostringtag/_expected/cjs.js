@@ -3,9 +3,9 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var self = /*#__PURE__*/Object.freeze({
-  	__proto__: null,
-	[Symbol.toStringTag]: 'Module',
-	get p () { return p; }
+      __proto__: null,
+    [Symbol.toStringTag]: 'Module',
+    get p () { return p; }
 });
 
 console.log(Object.keys(self));
