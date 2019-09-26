@@ -2,6 +2,7 @@ var iife = (function (exports) {
 	'use strict';
 
 	var self = {
+		__proto__: null,
 		get p () { return p; }
 	};
 	if (typeof Symbol !== 'undefined' && Symbol.toStringTag)

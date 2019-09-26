@@ -3,6 +3,7 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var self = {
+	__proto__: null,
 	get p () { return p; }
 };
 if (typeof Symbol !== 'undefined' && Symbol.toStringTag)

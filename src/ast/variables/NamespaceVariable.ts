@@ -91,7 +91,7 @@ export default class NamespaceVariable extends Variable {
 			return `${t}${safeName}: ${original.getName()}`;
 		});
 
-		members.unshift(`${t}__proto__: null`);
+		members.unshift(`${t}__proto__:${_}null`);
 
 		const name = this.getName();
 
