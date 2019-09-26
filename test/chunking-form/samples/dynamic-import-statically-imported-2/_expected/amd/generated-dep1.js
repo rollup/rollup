@@ -11,6 +11,7 @@ define(['exports'], function (exports) { 'use strict';
 	}
 
 	var dep1 = /*#__PURE__*/Object.freeze({
+		__proto__: null,
 		bar: bar
 	});
 
