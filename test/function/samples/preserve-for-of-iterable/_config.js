@@ -1,4 +1,3 @@
 module.exports = {
-	description: 'preserves for...of loops',
-	solo: true
+	description: 'preserves for...of loops'
 };
