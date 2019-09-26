@@ -3,6 +3,7 @@ var iife = (function (exports) {
 
 	var self = /*#__PURE__*/Object.freeze({
 		[Symbol.toStringTag]: 'Module',
+		__proto__: null,
 		get p () { return p; }
 	});
 

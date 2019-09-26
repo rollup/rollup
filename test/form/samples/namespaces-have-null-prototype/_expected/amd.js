@@ -1,10 +1,9 @@
-var myBundle = (function (exports) {
-	'use strict';
+define(['exports'], function (exports) { 'use strict';
 
 	const foo = 1;
 	const bar = 2;
 
-	var namespace = ({
+	var namespace = /*#__PURE__*/Object.freeze({
 		__proto__: null,
 		foo: foo,
 		bar: bar
@@ -18,6 +17,6 @@ var myBundle = (function (exports) {
 	exports.a = a;
 	exports.b = b;
 
-	return exports;
+	Object.defineProperty(exports, '__esModule', { value: true });
 
-}({}));
+});

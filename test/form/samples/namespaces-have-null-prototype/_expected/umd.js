@@ -1,19 +1,25 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(global = global || self, factory(global.iife = {}));
+	(global = global || self, factory(global.myBundle = {}));
 }(this, function (exports) { 'use strict';
 
-	var self = /*#__PURE__*/Object.freeze({
+	const foo = 1;
+	const bar = 2;
+
+	var namespace = /*#__PURE__*/Object.freeze({
 		__proto__: null,
-		get p () { return p; }
+		foo: foo,
+		bar: bar
 	});
 
-	console.log(Object.keys(self));
+	console.log( Object.keys( namespace ) );
 
-	var p = 5;
+	const a = 1;
+	const b = 2;
 
-	exports.p = p;
+	exports.a = a;
+	exports.b = b;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

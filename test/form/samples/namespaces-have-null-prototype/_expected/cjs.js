@@ -5,7 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 const foo = 1;
 const bar = 2;
 
-var namespace = ({
+var namespace = /*#__PURE__*/Object.freeze({
 	__proto__: null,
 	foo: foo,
 	bar: bar

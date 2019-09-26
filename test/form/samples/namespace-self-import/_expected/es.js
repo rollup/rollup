@@ -1,4 +1,5 @@
 var self = /*#__PURE__*/Object.freeze({
+	__proto__: null,
 	get p () { return p; }
 });
 
