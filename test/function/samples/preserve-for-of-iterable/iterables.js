@@ -1,3 +1,5 @@
+export let dirty;
+
 export const zeroToFive = {
     [Symbol.iterator]() {
         return {
@@ -9,7 +11,7 @@ export const zeroToFive = {
                     : { done: true };
                 
                 // assert later
-                global.foo = this.current;
+                dirty = this.current;
 
                 return ret;
             }

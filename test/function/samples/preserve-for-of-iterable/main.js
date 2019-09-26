@@ -1,6 +1,6 @@
-import { zeroToFive } from './iterables';
+import { zeroToFive, dirty } from './iterables';
 import { iterate } from './loops';
 
-assert.equal(global.foo, undefined);
+assert.equal(dirty, undefined);
 iterate(zeroToFive);
-assert.equal(global.foo, 5);
+assert.equal(dirty, 5);
