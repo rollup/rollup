@@ -91,6 +91,8 @@ export default class NamespaceVariable extends Variable {
 			return `${t}${safeName}: ${original.getName()}`;
 		});
 
+		members.unshift(`${t}__proto__: null`);
+
 		const name = this.getName();
 
 		const callee = options.freeze ? `/*#__PURE__*/Object.freeze` : '';
