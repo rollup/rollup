@@ -91,25 +91,15 @@ export default class NamespaceVariable extends Variable {
 			return `${t}${safeName}: ${original.getName()}`;
 		});
 
+		if (options.namespaceToStringTag) {
+			members.unshift(`${t}[Symbol.toStringTag]:${_}'Module'`);
+		}
+
 		const name = this.getName();
 
 		const callee = options.freeze ? `/*#__PURE__*/Object.freeze` : '';
-
-		let output = `${options.varOrConst} ${name} = ${
-			options.namespaceToStringTag
-				? `{${n}${members.join(`,${n}`)}${n}};`
-				: `${callee}({${n}${members.join(`,${n}`)}${n}});`
-		}`;
-
-		if (options.namespaceToStringTag) {
-			output += `${n}if${_}(typeof Symbol${_}!==${_}'undefined'${_}&&${_}Symbol.toStringTag)${n}`;
-			output += `${t}Object.defineProperty(${name},${_}Symbol.toStringTag,${_}{${_}value:${_}'Module'${_}});${n}`;
-			output += `else${n || ' '}`;
-			output += `${t}Object.defineProperty(${name},${_}'toString',${_}{${_}value:${_}function${_}()${_}{${_}return${_}'[object Module]'${
-				options.compact ? ';' : ''
-			}${_}}${_}});${n}`;
-			output += `${callee}(${name});`;
-		}
+		const membersStr = members.join(`,${n}`);
+		let output = `${options.varOrConst} ${name}${_}=${_}${callee}({${n}${membersStr}${n}});`;
 
 		if (options.format === 'system' && this.exportName) {
 			output += `${n}exports('${this.exportName}',${_}${name});`;
