@@ -5,7 +5,7 @@
 }(this, function (exports) { 'use strict';
 
 	var self = /*#__PURE__*/Object.freeze({
-    __proto__: null,
+    	__proto__: null,
 		[Symbol.toStringTag]: 'Module',
 		get p () { return p; }
 	});
