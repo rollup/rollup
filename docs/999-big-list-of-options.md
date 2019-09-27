@@ -486,11 +486,11 @@ define(['https://d3js.org/d3.v4.min'], function (d3) {
 ```
 
 #### output.sourcemap
-Type: `boolean | 'inline'`<br>
+Type: `boolean | 'inline' | 'hidden'`<br>
 CLI: `-m`/`--sourcemap`/`--no-sourcemap`<br>
 Default: `false`
 
-If `true`, a separate sourcemap file will be created. If `inline`, the sourcemap will be appended to the resulting `output` file as a data URI.
+If `true`, a separate sourcemap file will be created. If `"inline"`, the sourcemap will be appended to the resulting `output` file as a data URI. `"hidden"` works like `true` except that the corresponding sourcemap comments in the bundled files are suppressed.
 
 #### output.sourcemapExcludeSources
 Type: `boolean`<br>
