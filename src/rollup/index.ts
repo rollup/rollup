@@ -402,7 +402,9 @@ function writeOutputFile(
 				url = `${basename(outputFile.fileName)}.map`;
 				writeSourceMapPromise = writeFile(`${fileName}.map`, outputFile.map.toString());
 			}
-			source += `//# ${SOURCEMAPPING_URL}=${url}\n`;
+			if (outputOptions.sourcemap !== 'hidden') {
+				source += `//# ${SOURCEMAPPING_URL}=${url}\n`;
+			}
 		}
 	}
 
