@@ -1,5 +1,27 @@
 # rollup changelog
 
+## 1.22.0
+*2019-09-29*
+
+### Features
+* Add a new "hidden" sourcemap type that generates the map files but omits the sourcemap comment (#3120)
+* Generate more efficient code when using `namespaceToStringTag: true` (#3135)
+* Make sure namespace objects do not have a prototype (#3136)
+
+### Bug Fixes
+* Do not ignore side-effectful iterators by always preserving for..of loops for now (#3132)
+* Make sure `--context` is observed as a CLI option (#3134)
+* Do not require specific versions for @types dependencies (#3131)
+
+### Pull Requests
+* [#3120](https://github.com/rollup/rollup/pull/3120): Generate sourcemaps but omit the comment (@rohitmohan96)
+* [#3131](https://github.com/rollup/rollup/pull/3131): Use asterisk for @types/* dependencies (@frenzzy)
+* [#3132](https://github.com/rollup/rollup/pull/3132): Preserve empty for...of loops (@imatlopez)
+* [#3133](https://github.com/rollup/rollup/pull/3133): Update dependencies (@lukastaegert)
+* [#3134](https://github.com/rollup/rollup/pull/3134): Wire up --context CLI flag (@tchetwin)
+* [#3135](https://github.com/rollup/rollup/pull/3135): Remove Symbol polyfill in module namespaces (@mkubilayk)
+* [#3136](https://github.com/rollup/rollup/pull/3136): Set null prototype on namespace objects (@rpamely)
+
 ## 1.21.4
 *2019-09-16*
 
