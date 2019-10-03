@@ -251,7 +251,7 @@ Repository: Rich-Harris/locate-character
 ## magic-string
 License: MIT
 By: Rich Harris
-Repository: https://github.com/rich-harris/magic-string
+Repository: git+https://github.com/rich-harris/magic-string.git
 
 > Copyright 2018 Rich Harris
 > 

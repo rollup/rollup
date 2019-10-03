@@ -1,5 +1,15 @@
 # rollup changelog
 
+## 1.23.0
+*2019-10-03*
+
+### Features
+* Add placeholders for extensions when preserving modules (#3116)
+
+### Pull Requests
+* [#3116](https://github.com/rollup/rollup/pull/3116): Include extensions in preserveModules output filenames for scriptified assets (@Andarist)
+* [#3142](https://github.com/rollup/rollup/pull/3142): Fix typo (@tu4mo)
+
 ## 1.22.0
 *2019-09-29*
 
