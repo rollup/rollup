@@ -416,11 +416,15 @@ Default: `"[name].js"`
 The pattern to use for chunks created from entry points. Pattern supports the following placeholders:
 * `[format]`: The rendering format defined in the output options, e.g. `esm` or `cjs`.
 * `[hash]`: A hash based on the content of the entry point and the content of all its dependencies.
-* `[name]`: The file name (without extension) of the entry point.
+* `[name]`: The file name (without extension) of the entry point, unless the object form of input was used to define a different name.
 
 Forward slashes `/` can be used to place files in sub-directories. See also [`output.assetFileNames`](guide/en/#outputassetfilenames), [`output.chunkFileNames`](guide/en/#outputchunkfilenames).
 
-This pattern will also be used when using the [`preserveModules`](guide/en/#preservemodules) option. Note however that when preserving modules, hashes are not yet supported.
+This pattern will also be used when using the [`preserveModules`](guide/en/#preservemodules) option. Here there is a different set of placeholders available, though:
+* `[format]`: The rendering format defined in the output options.
+* `[name]`: The file name (without extension) of the file.
+* `[ext]`: The extension of the file.
+* `[extname]`: The extension of the file, prefixed by `.` if it is not empty.
 
 #### output.extend
 Type: `boolean`<br>
