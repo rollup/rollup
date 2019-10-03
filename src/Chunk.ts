@@ -30,7 +30,7 @@ import { error } from './utils/error';
 import { sortByExecutionOrder } from './utils/executionOrder';
 import getIndentString from './utils/getIndentString';
 import { makeLegal } from './utils/identifierHelpers';
-import { basename, dirname, isAbsolute, normalize, resolve } from './utils/path';
+import { basename, dirname, extname, isAbsolute, normalize, resolve } from './utils/path';
 import relativeId, { getAliasName } from './utils/relativeId';
 import renderChunk from './utils/renderChunk';
 import { RenderOptions } from './utils/renderHelpers';
@@ -82,6 +82,8 @@ interface FacadeName {
 	fileName?: string;
 	name?: string;
 }
+
+const NON_ASSET_EXTENSIONS = ['.js', '.jsx', '.ts', '.tsx'];
 
 function getGlobalName(
 	module: ExternalModule,
@@ -280,14 +282,20 @@ export default class Chunk {
 		options: OutputOptions,
 		existingNames: Record<string, any>
 	): string {
-		const sanitizedId = sanitizeFileName(this.orderedModules[0].id);
+		const id = this.orderedModules[0].id;
+		const sanitizedId = sanitizeFileName(id);
 
 		let path: string;
-		if (isAbsolute(this.orderedModules[0].id)) {
+		if (isAbsolute(id)) {
+			const extension = extname(id);
+
 			const name = renderNamePattern(
-				options.entryFileNames || '[name].js',
+				options.entryFileNames ||
+					(NON_ASSET_EXTENSIONS.includes(extension) ? '[name].js' : '[name][extname].js'),
 				'output.entryFileNames',
 				{
+					ext: () => extension.substr(1),
+					extname: () => extension,
 					format: () => (options.format === 'es' ? 'esm' : (options.format as string)),
 					name: () => this.getChunkName()
 				}
