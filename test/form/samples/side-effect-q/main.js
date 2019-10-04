@@ -1,5 +1,5 @@
-var x = true ? foo () : bar();
+var x = true ? foo() : bar();
 
-function foo () {
+function foo() {
 	return 'should be removed, because x is unused';
 }

@@ -369,7 +369,7 @@ Repository: git://github.com/kamicane/require-relative.git
 ## rollup-pluginutils
 License: MIT
 By: Rich Harris
-Repository: git+https://github.com/rollup/rollup-pluginutils.git
+Repository: rollup/rollup-pluginutils
 
 ---------------------------------------
 
