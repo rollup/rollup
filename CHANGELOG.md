@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.23.1
+*2019-10-05*
+
+### Bug Fixes
+* Fix a regression where the node types had a specific minimal version (#3143)
+
+### Pull Requests
+* [#3143](https://github.com/rollup/rollup/pull/3143): Ensure that types packages have star version ranges (@lukastaegert)
+
 ## 1.23.0
 *2019-10-03*
 
