@@ -6,6 +6,7 @@ import {
 	RenderOptions
 } from '../../utils/renderHelpers';
 import { treeshakeNode } from '../../utils/treeshakeNode';
+import { ExecutionContext } from '../ExecutionContext';
 import ModuleScope from '../scopes/ModuleScope';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import ClassDeclaration from './ClassDeclaration';
@@ -43,8 +44,8 @@ export default class ExportDefaultDeclaration extends NodeBase {
 
 	private declarationName: string | undefined;
 
-	include(includeChildrenRecursively: IncludeChildren) {
-		super.include(includeChildrenRecursively);
+	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
+		super.include(includeChildrenRecursively, context);
 		if (includeChildrenRecursively) {
 			this.context.includeVariable(this.variable);
 		}

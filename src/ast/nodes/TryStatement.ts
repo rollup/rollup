@@ -1,4 +1,4 @@
-import { ExecutionContext } from '../ExecutionContext';
+import { EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
 import BlockStatement from './BlockStatement';
 import CatchClause from './CatchClause';
 import * as NodeType from './NodeType';
@@ -12,7 +12,7 @@ export default class TryStatement extends StatementBase {
 
 	private directlyIncluded = false;
 
-	hasEffects(context: ExecutionContext): boolean {
+	hasEffects(context: EffectsExecutionContext): boolean {
 		return (
 			this.block.body.length > 0 ||
 			(this.handler !== null && this.handler.hasEffects(context)) ||
@@ -20,19 +20,20 @@ export default class TryStatement extends StatementBase {
 		);
 	}
 
-	include(includeChildrenRecursively: IncludeChildren) {
+	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
 		if (!this.directlyIncluded || !this.context.tryCatchDeoptimization) {
 			this.included = true;
 			this.directlyIncluded = true;
 			this.block.include(
-				this.context.tryCatchDeoptimization ? INCLUDE_PARAMETERS : includeChildrenRecursively
+				this.context.tryCatchDeoptimization ? INCLUDE_PARAMETERS : includeChildrenRecursively,
+				context
 			);
 		}
 		if (this.handler !== null) {
-			this.handler.include(includeChildrenRecursively);
+			this.handler.include(includeChildrenRecursively, context);
 		}
 		if (this.finalizer !== null) {
-			this.finalizer.include(includeChildrenRecursively);
+			this.finalizer.include(includeChildrenRecursively, context);
 		}
 	}
 }

@@ -7,7 +7,7 @@ import {
 } from '../../utils/renderHelpers';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
 import { ExecutionContext } from '../ExecutionContext';
-import { EMPTY_PATH, ObjectPath } from '../values';
+import { EMPTY_PATH, ObjectPath } from '../utils/PathTracker';
 import Variable from '../variables/Variable';
 import Identifier, { IdentifierWithVariable } from './Identifier';
 import * as NodeType from './NodeType';
@@ -47,18 +47,21 @@ export default class VariableDeclaration extends NodeBase {
 		return false;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren) {
+	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
 		this.included = true;
 		for (const declarator of this.declarations) {
-			if (includeChildrenRecursively || declarator.shouldBeIncluded())
-				declarator.include(includeChildrenRecursively);
+			if (includeChildrenRecursively || declarator.shouldBeIncluded(context))
+				declarator.include(includeChildrenRecursively, context);
 		}
 	}
 
-	includeWithAllDeclaredVariables(includeChildrenRecursively: IncludeChildren) {
+	includeWithAllDeclaredVariables(
+		includeChildrenRecursively: IncludeChildren,
+		context: ExecutionContext
+	) {
 		this.included = true;
 		for (const declarator of this.declarations) {
-			declarator.include(includeChildrenRecursively);
+			declarator.include(includeChildrenRecursively, context);
 		}
 	}
 

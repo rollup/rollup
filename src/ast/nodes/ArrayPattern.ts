@@ -1,5 +1,6 @@
-import { ExecutionContext } from '../ExecutionContext';
-import { EMPTY_PATH, ObjectPath, UNKNOWN_EXPRESSION } from '../values';
+import { EffectsExecutionContext } from '../ExecutionContext';
+import { EMPTY_PATH, ObjectPath } from '../utils/PathTracker';
+import { UNKNOWN_EXPRESSION } from '../values';
 import Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
@@ -38,7 +39,7 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 		}
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: ExecutionContext) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: EffectsExecutionContext) {
 		if (path.length > 0) return true;
 		for (const element of this.elements) {
 			if (element !== null && element.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context))

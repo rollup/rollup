@@ -1,12 +1,11 @@
 import CallOptions from '../CallOptions';
-import { ExecutionContext } from '../ExecutionContext';
+import { EffectsExecutionContext } from '../ExecutionContext';
+import { ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import {
 	arrayMembers,
 	getMemberReturnExpressionWhenCalled,
 	hasMemberEffectWhenCalled,
-	ObjectPath,
-	UNKNOWN_EXPRESSION,
-	UNKNOWN_PATH
+	UNKNOWN_EXPRESSION
 } from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
@@ -35,7 +34,7 @@ export default class ArrayExpression extends NodeBase {
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		context: ExecutionContext
+		context: EffectsExecutionContext
 	): boolean {
 		if (path.length === 1) {
 			return hasMemberEffectWhenCalled(arrayMembers, path[0], this.included, callOptions, context);

@@ -1,4 +1,4 @@
-import { ExecutionContext } from '../ExecutionContext';
+import { EffectsExecutionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import Scope from '../scopes/Scope';
 import * as NodeType from './NodeType';
@@ -14,7 +14,7 @@ export default class SwitchStatement extends StatementBase {
 		this.scope = new BlockScope(parentScope);
 	}
 
-	hasEffects(context: ExecutionContext) {
+	hasEffects(context: EffectsExecutionContext) {
 		const ignoreBreakStatements = context.ignore.breakStatements;
 		context.ignore.breakStatements = true;
 		if (super.hasEffects(context)) return true;

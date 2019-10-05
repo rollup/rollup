@@ -2,7 +2,7 @@ import Module, { AstContext } from '../../Module';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { RESERVED_NAMES } from '../../utils/reservedNames';
 import Identifier from '../nodes/Identifier';
-import { UNKNOWN_PATH } from '../values';
+import { UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class NamespaceVariable extends Variable {
@@ -92,7 +92,7 @@ export default class NamespaceVariable extends Variable {
 		});
 
 		members.unshift(`${t}__proto__:${_}null`);
-    
+
 		if (options.namespaceToStringTag) {
 			members.unshift(`${t}[Symbol.toStringTag]:${_}'Module'`);
 		}

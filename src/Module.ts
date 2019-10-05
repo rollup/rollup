@@ -3,6 +3,7 @@ import * as ESTree from 'estree';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
 import extractAssignedNames from 'rollup-pluginutils/src/extractAssignedNames';
+import { createExecutionContext } from './ast/ExecutionContext';
 import ClassDeclaration from './ast/nodes/ClassDeclaration';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
@@ -21,8 +22,7 @@ import { Node, NodeBase } from './ast/nodes/shared/Node';
 import TemplateLiteral from './ast/nodes/TemplateLiteral';
 import VariableDeclaration from './ast/nodes/VariableDeclaration';
 import ModuleScope from './ast/scopes/ModuleScope';
-import { PathTracker } from './ast/utils/PathTracker';
-import { UNKNOWN_PATH } from './ast/values';
+import { PathTracker, UNKNOWN_PATH } from './ast/utils/PathTracker';
 import ExportShimVariable from './ast/variables/ExportShimVariable';
 import ExternalVariable from './ast/variables/ExternalVariable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
@@ -450,7 +450,8 @@ export default class Module {
 	}
 
 	include(): void {
-		if (this.ast.shouldBeIncluded()) this.ast.include(false);
+		if (this.ast.shouldBeIncluded(createExecutionContext()))
+			this.ast.include(false, createExecutionContext());
 	}
 
 	includeAllExports() {
@@ -482,7 +483,7 @@ export default class Module {
 	}
 
 	includeAllInBundle() {
-		this.ast.include(true);
+		this.ast.include(true, createExecutionContext());
 	}
 
 	isIncluded() {

@@ -1,6 +1,6 @@
 import MagicString from 'magic-string';
 import { NO_SEMICOLON, RenderOptions } from '../../utils/renderHelpers';
-import { ExecutionContext } from '../ExecutionContext';
+import { EffectsExecutionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import Scope from '../scopes/Scope';
 import * as NodeType from './NodeType';
@@ -18,7 +18,7 @@ export default class ForStatement extends StatementBase {
 		this.scope = new BlockScope(parentScope);
 	}
 
-	hasEffects(context: ExecutionContext): boolean {
+	hasEffects(context: EffectsExecutionContext): boolean {
 		if (
 			(this.init && this.init.hasEffects(context)) ||
 			(this.test && this.test.hasEffects(context)) ||

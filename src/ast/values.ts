@@ -1,16 +1,10 @@
 import CallOptions from './CallOptions';
-import { ExecutionContext } from './ExecutionContext';
+import { createExecutionContext, EffectsExecutionContext } from './ExecutionContext';
 import { LiteralValue } from './nodes/Literal';
 import { ExpressionEntity } from './nodes/shared/Expression';
 import { ExpressionNode } from './nodes/shared/Node';
 import SpreadElement from './nodes/SpreadElement';
-
-export const UnknownKey = Symbol('Unknown Key');
-export type ObjectPathKey = string | typeof UnknownKey;
-
-export type ObjectPath = ObjectPathKey[];
-export const EMPTY_PATH: ObjectPath = [];
-export const UNKNOWN_PATH: ObjectPath = [UnknownKey];
+import { EMPTY_PATH, ObjectPath, ObjectPathKey } from './utils/PathTracker';
 
 export interface MemberDescription {
 	callsArgs: number[] | null;
@@ -47,7 +41,7 @@ export const UNKNOWN_EXPRESSION: ExpressionEntity = {
 	include: () => {},
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
-			arg.include(false);
+			arg.include(false, createExecutionContext());
 		}
 	},
 	included: true,
@@ -107,7 +101,7 @@ export class UnknownArrayExpression implements ExpressionEntity {
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		context: ExecutionContext
+		context: EffectsExecutionContext
 	) {
 		if (path.length === 1) {
 			return hasMemberEffectWhenCalled(arrayMembers, path[0], this.included, callOptions, context);
@@ -121,7 +115,7 @@ export class UnknownArrayExpression implements ExpressionEntity {
 
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
-			arg.include(false);
+			arg.include(false, createExecutionContext());
 		}
 	}
 
@@ -184,7 +178,7 @@ const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = {
 	include: () => {},
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
-			arg.include(false);
+			arg.include(false, createExecutionContext());
 		}
 	},
 	included: true,
@@ -229,7 +223,7 @@ const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = {
 	include: () => {},
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
-			arg.include(false);
+			arg.include(false, createExecutionContext());
 		}
 	},
 	included: true,
@@ -272,16 +266,16 @@ const UNKNOWN_LITERAL_STRING: ExpressionEntity = {
 	},
 	hasEffectsWhenAccessedAtPath: path => path.length > 1,
 	hasEffectsWhenAssignedAtPath: path => path.length > 0,
-	hasEffectsWhenCalledAtPath: (path, callOptions, options) => {
+	hasEffectsWhenCalledAtPath: (path, callOptions, context) => {
 		if (path.length === 1) {
-			return hasMemberEffectWhenCalled(literalStringMembers, path[0], true, callOptions, options);
+			return hasMemberEffectWhenCalled(literalStringMembers, path[0], true, callOptions, context);
 		}
 		return true;
 	},
 	include: () => {},
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
-			arg.include(false);
+			arg.include(false, createExecutionContext());
 		}
 	},
 	included: true,
@@ -324,7 +318,7 @@ export class UnknownObjectExpression implements ExpressionEntity {
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		context: ExecutionContext
+		context: EffectsExecutionContext
 	) {
 		if (path.length === 1) {
 			return hasMemberEffectWhenCalled(objectMembers, path[0], this.included, callOptions, context);
@@ -338,7 +332,7 @@ export class UnknownObjectExpression implements ExpressionEntity {
 
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
-			arg.include(false);
+			arg.include(false, createExecutionContext());
 		}
 	}
 
@@ -462,7 +456,7 @@ export function hasMemberEffectWhenCalled(
 	memberName: ObjectPathKey,
 	parentIncluded: boolean,
 	callOptions: CallOptions,
-	context: ExecutionContext
+	context: EffectsExecutionContext
 ) {
 	if (
 		typeof memberName !== 'string' ||

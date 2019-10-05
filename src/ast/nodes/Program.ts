@@ -1,6 +1,6 @@
 import MagicString from 'magic-string';
 import { RenderOptions, renderStatementList } from '../../utils/renderHelpers';
-import { ExecutionContext } from '../ExecutionContext';
+import { EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
 import * as NodeType from './NodeType';
 import { IncludeChildren, NodeBase, StatementNode } from './shared/Node';
 
@@ -9,18 +9,18 @@ export default class Program extends NodeBase {
 	sourceType!: 'module';
 	type!: NodeType.tProgram;
 
-	hasEffects(context: ExecutionContext) {
+	hasEffects(context: EffectsExecutionContext) {
 		for (const node of this.body) {
 			if (node.hasEffects(context)) return true;
 		}
 		return false;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren) {
+	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
 		this.included = true;
 		for (const node of this.body) {
-			if (includeChildrenRecursively || node.shouldBeIncluded()) {
-				node.include(includeChildrenRecursively);
+			if (includeChildrenRecursively || node.shouldBeIncluded(context)) {
+				node.include(includeChildrenRecursively, context);
 			}
 		}
 	}

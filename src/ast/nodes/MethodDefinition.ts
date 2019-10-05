@@ -1,6 +1,6 @@
 import CallOptions from '../CallOptions';
-import { ExecutionContext } from '../ExecutionContext';
-import { EMPTY_PATH, ObjectPath } from '../values';
+import { EffectsExecutionContext } from '../ExecutionContext';
+import { EMPTY_PATH, ObjectPath } from '../utils/PathTracker';
 import FunctionExpression from './FunctionExpression';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
@@ -13,14 +13,14 @@ export default class MethodDefinition extends NodeBase {
 	type!: NodeType.tMethodDefinition;
 	value!: FunctionExpression;
 
-	hasEffects(context: ExecutionContext) {
+	hasEffects(context: EffectsExecutionContext) {
 		return this.key.hasEffects(context);
 	}
 
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		context: ExecutionContext
+		context: EffectsExecutionContext
 	) {
 		return (
 			path.length > 0 || this.value.hasEffectsWhenCalledAtPath(EMPTY_PATH, callOptions, context)

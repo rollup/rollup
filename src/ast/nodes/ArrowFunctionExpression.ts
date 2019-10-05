@@ -1,13 +1,14 @@
 import CallOptions from '../CallOptions';
-import { ExecutionContext } from '../ExecutionContext';
+import { EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
 import ReturnValueScope from '../scopes/ReturnValueScope';
 import Scope from '../scopes/Scope';
-import { ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_PATH, UnknownKey } from '../values';
+import { ObjectPath, UNKNOWN_PATH, UnknownKey } from '../utils/PathTracker';
+import { UNKNOWN_EXPRESSION } from '../values';
 import BlockStatement from './BlockStatement';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import RestElement from './RestElement';
-import { ExpressionNode, GenericEsTreeNode, NodeBase } from './shared/Node';
+import { ExpressionNode, GenericEsTreeNode, IncludeChildren, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 import SpreadElement from './SpreadElement';
 
@@ -49,7 +50,7 @@ export default class ArrowFunctionExpression extends NodeBase {
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		_callOptions: CallOptions,
-		context: ExecutionContext
+		context: EffectsExecutionContext
 	): boolean {
 		if (path.length > 0) return true;
 		for (const param of this.params) {
@@ -66,12 +67,12 @@ export default class ArrowFunctionExpression extends NodeBase {
 		return false;
 	}
 
-	include(includeChildrenRecursively: boolean | 'variables') {
+	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
 		this.included = true;
-		this.body.include(includeChildrenRecursively);
+		this.body.include(includeChildrenRecursively, context);
 		for (const param of this.params) {
 			if (!(param instanceof Identifier)) {
-				param.include(includeChildrenRecursively);
+				param.include(includeChildrenRecursively, context);
 			}
 		}
 	}

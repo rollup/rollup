@@ -1,5 +1,5 @@
-import { ExecutionContext } from '../ExecutionContext';
-import { EMPTY_PATH, ObjectPath } from '../values';
+import { EffectsExecutionContext } from '../ExecutionContext';
+import { EMPTY_PATH, ObjectPath } from '../utils/PathTracker';
 import Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
 import Property from './Property';
@@ -38,7 +38,7 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 		}
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: ExecutionContext) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: EffectsExecutionContext) {
 		if (path.length > 0) return true;
 		for (const property of this.properties) {
 			if (property.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context)) return true;

@@ -1,4 +1,4 @@
-import { ExecutionContext } from '../ExecutionContext';
+import { EffectsExecutionContext } from '../ExecutionContext';
 import * as NodeType from './NodeType';
 import { ExpressionNode, StatementBase, StatementNode } from './shared/Node';
 
@@ -7,7 +7,7 @@ export default class WhileStatement extends StatementBase {
 	test!: ExpressionNode;
 	type!: NodeType.tWhileStatement;
 
-	hasEffects(context: ExecutionContext): boolean {
+	hasEffects(context: EffectsExecutionContext): boolean {
 		if (this.test.hasEffects(context)) return true;
 		const {
 			ignore: { breakStatements }

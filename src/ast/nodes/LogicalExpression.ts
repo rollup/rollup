@@ -9,15 +9,15 @@ import {
 import { removeAnnotations } from '../../utils/treeshakeNode';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionContext } from '../ExecutionContext';
-import { EMPTY_IMMUTABLE_TRACKER, PathTracker } from '../utils/PathTracker';
+import { EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
 import {
+	EMPTY_IMMUTABLE_TRACKER,
 	EMPTY_PATH,
-	LiteralValueOrUnknown,
 	ObjectPath,
-	UNKNOWN_PATH,
-	UnknownValue
-} from '../values';
+	PathTracker,
+	UNKNOWN_PATH
+} from '../utils/PathTracker';
+import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
@@ -93,14 +93,14 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		return this.usedBranch.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
 	}
 
-	hasEffects(context: ExecutionContext): boolean {
+	hasEffects(context: EffectsExecutionContext): boolean {
 		if (this.usedBranch === null) {
 			return this.left.hasEffects(context) || this.right.hasEffects(context);
 		}
 		return this.usedBranch.hasEffects(context);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
 		if (path.length === 0) return false;
 		if (this.usedBranch === null) {
 			return (
@@ -111,7 +111,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		return this.usedBranch.hasEffectsWhenAccessedAtPath(path, context);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
 		if (path.length === 0) return true;
 		if (this.usedBranch === null) {
 			return (
@@ -125,7 +125,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		context: ExecutionContext
+		context: EffectsExecutionContext
 	): boolean {
 		if (this.usedBranch === null) {
 			return (
@@ -136,17 +136,17 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		return this.usedBranch.hasEffectsWhenCalledAtPath(path, callOptions, context);
 	}
 
-	include(includeChildrenRecursively: IncludeChildren) {
+	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
 		this.included = true;
 		if (
 			includeChildrenRecursively ||
 			this.usedBranch === null ||
-			(this.unusedBranch as ExpressionNode).shouldBeIncluded()
+			(this.unusedBranch as ExpressionNode).shouldBeIncluded(context)
 		) {
-			this.left.include(includeChildrenRecursively);
-			this.right.include(includeChildrenRecursively);
+			this.left.include(includeChildrenRecursively, context);
+			this.right.include(includeChildrenRecursively, context);
 		} else {
-			this.usedBranch.include(includeChildrenRecursively);
+			this.usedBranch.include(includeChildrenRecursively, context);
 		}
 	}
 

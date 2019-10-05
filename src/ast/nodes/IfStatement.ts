@@ -2,9 +2,9 @@ import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { removeAnnotations } from '../../utils/treeshakeNode';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionContext } from '../ExecutionContext';
-import { EMPTY_IMMUTABLE_TRACKER } from '../utils/PathTracker';
-import { EMPTY_PATH, LiteralValueOrUnknown, UnknownValue } from '../values';
+import { EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
+import { EMPTY_IMMUTABLE_TRACKER, EMPTY_PATH } from '../utils/PathTracker';
+import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from './shared/Node';
 
@@ -30,7 +30,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		this.testValue = UnknownValue;
 	}
 
-	hasEffects(context: ExecutionContext): boolean {
+	hasEffects(context: EffectsExecutionContext): boolean {
 		if (this.test.hasEffects(context)) return true;
 		if (this.testValue === UnknownValue) {
 			return (
@@ -43,28 +43,28 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			: this.alternate !== null && this.alternate.hasEffects(context);
 	}
 
-	include(includeChildrenRecursively: IncludeChildren) {
+	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
 		this.included = true;
 		if (includeChildrenRecursively) {
-			this.test.include(includeChildrenRecursively);
-			this.consequent.include(includeChildrenRecursively);
+			this.test.include(includeChildrenRecursively, context);
+			this.consequent.include(includeChildrenRecursively, context);
 			if (this.alternate !== null) {
-				this.alternate.include(includeChildrenRecursively);
+				this.alternate.include(includeChildrenRecursively, context);
 			}
 			return;
 		}
 		const hasUnknownTest = this.testValue === UnknownValue;
-		if (hasUnknownTest || this.test.shouldBeIncluded()) {
-			this.test.include(false);
+		if (hasUnknownTest || this.test.shouldBeIncluded(context)) {
+			this.test.include(false, context);
 		}
-		if ((hasUnknownTest || this.testValue) && this.consequent.shouldBeIncluded()) {
-			this.consequent.include(false);
+		if ((hasUnknownTest || this.testValue) && this.consequent.shouldBeIncluded(context)) {
+			this.consequent.include(false, context);
 		}
 		if (
 			this.alternate !== null &&
-			((hasUnknownTest || !this.testValue) && this.alternate.shouldBeIncluded())
+			((hasUnknownTest || !this.testValue) && this.alternate.shouldBeIncluded(context))
 		) {
-			this.alternate.include(false);
+			this.alternate.include(false, context);
 		}
 	}
 

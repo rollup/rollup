@@ -1,6 +1,6 @@
 import CallOptions from '../CallOptions';
-import { ExecutionContext } from '../ExecutionContext';
-import { EMPTY_PATH } from '../values';
+import { EffectsExecutionContext } from '../ExecutionContext';
+import { EMPTY_PATH } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
@@ -41,7 +41,7 @@ export default class TaggedTemplateExpression extends NodeBase {
 		}
 	}
 
-	hasEffects(context: ExecutionContext) {
+	hasEffects(context: EffectsExecutionContext) {
 		return (
 			super.hasEffects(context) ||
 			this.tag.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.callOptions, context)

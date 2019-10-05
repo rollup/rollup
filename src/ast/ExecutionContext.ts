@@ -9,6 +9,11 @@ interface ExecutionContextIgnore {
 }
 
 export interface ExecutionContext {
+	// TODO Lukas remove
+	TODO?: boolean;
+}
+
+export interface EffectsExecutionContext extends ExecutionContext {
 	accessed: PathTracker;
 	assigned: PathTracker;
 	called: PathTracker;
@@ -18,6 +23,10 @@ export interface ExecutionContext {
 }
 
 export function createExecutionContext(): ExecutionContext {
+	return {};
+}
+
+export function createEffectsExecutionContext(): EffectsExecutionContext {
 	return {
 		accessed: new PathTracker(),
 		assigned: new PathTracker(),

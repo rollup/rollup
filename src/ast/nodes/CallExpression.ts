@@ -7,16 +7,15 @@ import {
 } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionContext } from '../ExecutionContext';
-import { EMPTY_IMMUTABLE_TRACKER, PathTracker } from '../utils/PathTracker';
+import { EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
 import {
+	EMPTY_IMMUTABLE_TRACKER,
 	EMPTY_PATH,
-	LiteralValueOrUnknown,
 	ObjectPath,
-	UNKNOWN_EXPRESSION,
-	UNKNOWN_PATH,
-	UnknownValue
-} from '../values';
+	PathTracker,
+	UNKNOWN_PATH
+} from '../utils/PathTracker';
+import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UnknownValue } from '../values';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
@@ -153,7 +152,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		return value;
 	}
 
-	hasEffects(context: ExecutionContext): boolean {
+	hasEffects(context: EffectsExecutionContext): boolean {
 		for (const argument of this.arguments) {
 			if (argument.hasEffects(context)) return true;
 		}
@@ -164,7 +163,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
 		if (path.length === 0) return false;
 		const trackedExpressions = context.accessed.getEntities(path);
 		if (trackedExpressions.has(this)) return false;
@@ -172,7 +171,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		return (this.returnExpression as ExpressionEntity).hasEffectsWhenAccessedAtPath(path, context);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
 		if (path.length === 0) return true;
 		const trackedExpressions = context.assigned.getEntities(path);
 		if (trackedExpressions.has(this)) return false;
@@ -183,7 +182,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		context: ExecutionContext
+		context: EffectsExecutionContext
 	): boolean {
 		const trackedExpressions = (callOptions.withNew
 			? context.instantiated
@@ -198,9 +197,9 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		);
 	}
 
-	include(includeChildrenRecursively: IncludeChildren) {
+	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
 		if (includeChildrenRecursively) {
-			super.include(includeChildrenRecursively);
+			super.include(includeChildrenRecursively, context);
 			if (
 				includeChildrenRecursively === INCLUDE_PARAMETERS &&
 				this.callee instanceof Identifier &&
@@ -210,11 +209,11 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 			}
 		} else {
 			this.included = true;
-			this.callee.include(false);
+			this.callee.include(false, context);
 		}
 		this.callee.includeCallArguments(this.arguments);
 		if (!(this.returnExpression as ExpressionEntity).included) {
-			(this.returnExpression as ExpressionEntity).include(false);
+			(this.returnExpression as ExpressionEntity).include(false, context);
 		}
 	}
 

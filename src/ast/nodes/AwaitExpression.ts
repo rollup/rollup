@@ -1,6 +1,6 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
-import { ExecutionContext } from '../ExecutionContext';
+import { EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
 import ArrowFunctionExpression from './ArrowFunctionExpression';
 import * as NodeType from './NodeType';
 import FunctionNode from './shared/FunctionNode';
@@ -10,11 +10,11 @@ export default class AwaitExpression extends NodeBase {
 	argument!: ExpressionNode;
 	type!: NodeType.tAwaitExpression;
 
-	hasEffects(context: ExecutionContext) {
+	hasEffects(context: EffectsExecutionContext) {
 		return super.hasEffects(context) || !context.ignore.returnAwaitYield;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren) {
+	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
 		checkTopLevelAwait: if (!this.included && !this.context.usesTopLevelAwait) {
 			let parent = this.parent;
 			do {
@@ -23,7 +23,7 @@ export default class AwaitExpression extends NodeBase {
 			} while ((parent = (parent as Node).parent as Node));
 			this.context.usesTopLevelAwait = true;
 		}
-		super.include(includeChildrenRecursively);
+		super.include(includeChildrenRecursively, context);
 	}
 
 	render(code: MagicString, options: RenderOptions) {

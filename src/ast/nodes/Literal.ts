@@ -1,14 +1,14 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
-import { ExecutionContext } from '../ExecutionContext';
+import { EffectsExecutionContext } from '../ExecutionContext';
+import { ObjectPath } from '../utils/PathTracker';
 import {
 	getLiteralMembersForValue,
 	getMemberReturnExpressionWhenCalled,
 	hasMemberEffectWhenCalled,
 	LiteralValueOrUnknown,
 	MemberDescription,
-	ObjectPath,
 	UNKNOWN_EXPRESSION,
 	UnknownValue
 } from '../values';
@@ -56,7 +56,7 @@ export default class Literal<T = LiteralValue> extends NodeBase {
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		context: ExecutionContext
+		context: EffectsExecutionContext
 	): boolean {
 		if (path.length === 1) {
 			return hasMemberEffectWhenCalled(this.members, path[0], this.included, callOptions, context);

@@ -2,13 +2,13 @@ import ExternalModule from '../../ExternalModule';
 import Module from '../../Module';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionContext } from '../ExecutionContext';
+import { createExecutionContext, ExecutionContext } from '../ExecutionContext';
 import Identifier from '../nodes/Identifier';
 import { ExpressionEntity } from '../nodes/shared/Expression';
 import { ExpressionNode } from '../nodes/shared/Node';
 import SpreadElement from '../nodes/SpreadElement';
-import { PathTracker } from '../utils/PathTracker';
-import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UnknownValue } from '../values';
+import { ObjectPath, PathTracker } from '../utils/PathTracker';
+import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UnknownValue } from '../values';
 
 export default class Variable implements ExpressionEntity {
 	alwaysRendered = false;
@@ -88,7 +88,7 @@ export default class Variable implements ExpressionEntity {
 
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
-			arg.include(false);
+			arg.include(false, createExecutionContext());
 		}
 	}
 

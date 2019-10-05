@@ -5,11 +5,16 @@ import { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
 import CallOptions from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { Entity } from '../../Entity';
-import { createExecutionContext, ExecutionContext } from '../../ExecutionContext';
+import {
+	createEffectsExecutionContext,
+	createExecutionContext,
+	EffectsExecutionContext,
+	ExecutionContext
+} from '../../ExecutionContext';
 import { getAndCreateKeys, keys } from '../../keys';
 import ChildScope from '../../scopes/ChildScope';
-import { PathTracker } from '../../utils/PathTracker';
-import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UnknownValue } from '../../values';
+import { ObjectPath, PathTracker } from '../../utils/PathTracker';
+import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UnknownValue } from '../../values';
 import LocalVariable from '../../variables/LocalVariable';
 import Variable from '../../variables/Variable';
 import SpreadElement from '../SpreadElement';
@@ -52,21 +57,24 @@ export interface Node extends Entity {
 	 * which only have an effect if their surrounding loop or switch statement is included.
 	 * The options pass on information like this about the current execution path.
 	 */
-	hasEffects(context: ExecutionContext): boolean;
+	hasEffects(context: EffectsExecutionContext): boolean;
 
 	/**
 	 * Includes the node in the bundle. If the flag is not set, children are usually included
 	 * if they are necessary for this node (e.g. a function body) or if they have effects.
 	 * Necessary variables need to be included as well.
 	 */
-	include(includeChildrenRecursively: IncludeChildren): void;
+	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext): void;
 
 	/**
 	 * Alternative version of include to override the default behaviour of
 	 * declarations to only include nodes for declarators that have an effect. Necessary
 	 * for for-loops that do not use a declared loop variable.
 	 */
-	includeWithAllDeclaredVariables(includeChildrenRecursively: IncludeChildren): void;
+	includeWithAllDeclaredVariables(
+		includeChildrenRecursively: IncludeChildren,
+		context: ExecutionContext
+	): void;
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void;
 
 	/**
@@ -75,7 +83,7 @@ export interface Node extends Entity {
 	 * visits as the inclusion of additional variables may require the inclusion of more child
 	 * nodes in e.g. block statements.
 	 */
-	shouldBeIncluded(): boolean;
+	shouldBeIncluded(context: ExecutionContext): boolean;
 }
 
 export interface StatementNode extends Node {}
@@ -154,7 +162,7 @@ export class NodeBase implements ExpressionNode {
 		return UNKNOWN_EXPRESSION;
 	}
 
-	hasEffects(context: ExecutionContext): boolean {
+	hasEffects(context: EffectsExecutionContext): boolean {
 		for (const key of this.keys) {
 			const value = (this as GenericEsTreeNode)[key];
 			if (value === null || key === 'annotations') continue;
@@ -167,45 +175,48 @@ export class NodeBase implements ExpressionNode {
 		return false;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, _context: ExecutionContext) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, _context: EffectsExecutionContext) {
 		return path.length > 0;
 	}
 
-	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _context: ExecutionContext) {
+	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _context: EffectsExecutionContext) {
 		return true;
 	}
 
 	hasEffectsWhenCalledAtPath(
 		_path: ObjectPath,
 		_callOptions: CallOptions,
-		_context: ExecutionContext
+		_context: EffectsExecutionContext
 	) {
 		return true;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren) {
+	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
 		this.included = true;
 		for (const key of this.keys) {
 			const value = (this as GenericEsTreeNode)[key];
 			if (value === null || key === 'annotations') continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
-					if (child !== null) child.include(includeChildrenRecursively);
+					if (child !== null) child.include(includeChildrenRecursively, context);
 				}
 			} else {
-				value.include(includeChildrenRecursively);
+				value.include(includeChildrenRecursively, context);
 			}
 		}
 	}
 
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
-			arg.include(false);
+			arg.include(false, createExecutionContext());
 		}
 	}
 
-	includeWithAllDeclaredVariables(includeChildrenRecursively: IncludeChildren) {
-		this.include(includeChildrenRecursively);
+	includeWithAllDeclaredVariables(
+		includeChildrenRecursively: IncludeChildren,
+		context: ExecutionContext
+	) {
+		this.include(includeChildrenRecursively, context);
 	}
 
 	/**
@@ -266,8 +277,8 @@ export class NodeBase implements ExpressionNode {
 		}
 	}
 
-	shouldBeIncluded(): boolean {
-		return this.included || this.hasEffects(createExecutionContext());
+	shouldBeIncluded(_context: ExecutionContext): boolean {
+		return this.included || this.hasEffects(createEffectsExecutionContext());
 	}
 
 	toString() {

@@ -9,15 +9,15 @@ import {
 import { removeAnnotations } from '../../utils/treeshakeNode';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionContext } from '../ExecutionContext';
-import { EMPTY_IMMUTABLE_TRACKER, PathTracker } from '../utils/PathTracker';
+import { EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
 import {
+	EMPTY_IMMUTABLE_TRACKER,
 	EMPTY_PATH,
-	LiteralValueOrUnknown,
 	ObjectPath,
-	UNKNOWN_PATH,
-	UnknownValue
-} from '../values';
+	PathTracker,
+	UNKNOWN_PATH
+} from '../utils/PathTracker';
+import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
@@ -91,7 +91,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		return this.usedBranch.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
 	}
 
-	hasEffects(context: ExecutionContext): boolean {
+	hasEffects(context: EffectsExecutionContext): boolean {
 		if (this.test.hasEffects(context)) return true;
 		if (this.usedBranch === null) {
 			return this.consequent.hasEffects(context) || this.alternate.hasEffects(context);
@@ -99,7 +99,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		return this.usedBranch.hasEffects(context);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
 		if (path.length === 0) return false;
 		if (this.usedBranch === null) {
 			return (
@@ -110,7 +110,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		return this.usedBranch.hasEffectsWhenAccessedAtPath(path, context);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
 		if (path.length === 0) return true;
 		if (this.usedBranch === null) {
 			return (
@@ -124,7 +124,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		context: ExecutionContext
+		context: EffectsExecutionContext
 	): boolean {
 		if (this.usedBranch === null) {
 			return (
@@ -135,14 +135,18 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		return this.usedBranch.hasEffectsWhenCalledAtPath(path, callOptions, context);
 	}
 
-	include(includeChildrenRecursively: IncludeChildren) {
+	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
 		this.included = true;
-		if (includeChildrenRecursively || this.usedBranch === null || this.test.shouldBeIncluded()) {
-			this.test.include(includeChildrenRecursively);
-			this.consequent.include(includeChildrenRecursively);
-			this.alternate.include(includeChildrenRecursively);
+		if (
+			includeChildrenRecursively ||
+			this.usedBranch === null ||
+			this.test.shouldBeIncluded(context)
+		) {
+			this.test.include(includeChildrenRecursively, context);
+			this.consequent.include(includeChildrenRecursively, context);
+			this.alternate.include(includeChildrenRecursively, context);
 		} else {
-			this.usedBranch.include(includeChildrenRecursively);
+			this.usedBranch.include(includeChildrenRecursively, context);
 		}
 	}
 

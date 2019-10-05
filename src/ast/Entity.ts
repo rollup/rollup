@@ -1,5 +1,5 @@
-import { ExecutionContext } from './ExecutionContext';
-import { ObjectPath } from './values';
+import { EffectsExecutionContext } from './ExecutionContext';
+import { ObjectPath } from './utils/PathTracker';
 
 export interface Entity {
 	toString: () => string;
@@ -13,5 +13,5 @@ export interface WritableEntity extends Entity {
 	 * expression of this node is reassigned as well.
 	 */
 	deoptimizePath(path: ObjectPath): void;
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, execution: ExecutionContext): boolean;
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, execution: EffectsExecutionContext): boolean;
 }

@@ -1,8 +1,9 @@
 import MagicString from 'magic-string';
 import { NO_SEMICOLON, RenderOptions } from '../../utils/renderHelpers';
+import { ExecutionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import Scope from '../scopes/Scope';
-import { EMPTY_PATH } from '../values';
+import { EMPTY_PATH } from '../utils/PathTracker';
 import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
@@ -31,12 +32,12 @@ export default class ForOfStatement extends StatementBase {
 		return true;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren) {
+	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
 		this.included = true;
-		this.left.includeWithAllDeclaredVariables(includeChildrenRecursively);
+		this.left.includeWithAllDeclaredVariables(includeChildrenRecursively, context);
 		this.left.deoptimizePath(EMPTY_PATH);
-		this.right.include(includeChildrenRecursively);
-		this.body.include(includeChildrenRecursively);
+		this.right.include(includeChildrenRecursively, context);
+		this.body.include(includeChildrenRecursively, context);
 	}
 
 	render(code: MagicString, options: RenderOptions) {

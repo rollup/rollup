@@ -1,5 +1,11 @@
 import { Entity } from '../Entity';
-import { ObjectPath, UnknownKey } from '../values';
+
+export const UnknownKey = Symbol('Unknown Key');
+export type ObjectPathKey = string | typeof UnknownKey;
+
+export type ObjectPath = ObjectPathKey[];
+export const EMPTY_PATH: ObjectPath = [];
+export const UNKNOWN_PATH: ObjectPath = [UnknownKey];
 
 const EntitiesKey = Symbol('Entities');
 interface EntityPaths {

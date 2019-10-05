@@ -1,8 +1,8 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
-import { ExecutionContext } from '../ExecutionContext';
+import { EffectsExecutionContext } from '../ExecutionContext';
 import ModuleScope from '../scopes/ModuleScope';
-import { ObjectPath } from '../values';
+import { ObjectPath } from '../utils/PathTracker';
 import ThisVariable from '../variables/ThisVariable';
 import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
@@ -18,11 +18,11 @@ export default class ThisExpression extends NodeBase {
 		this.variable = this.scope.findVariable('this') as ThisVariable;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
 		return path.length > 0 && this.variable.hasEffectsWhenAccessedAtPath(path, context);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
 		return this.variable.hasEffectsWhenAssignedAtPath(path, context);
 	}
 

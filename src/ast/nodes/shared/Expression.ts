@@ -1,9 +1,9 @@
 import CallOptions from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { WritableEntity } from '../../Entity';
-import { ExecutionContext } from '../../ExecutionContext';
-import { PathTracker } from '../../utils/PathTracker';
-import { LiteralValueOrUnknown, ObjectPath } from '../../values';
+import { EffectsExecutionContext, ExecutionContext } from '../../ExecutionContext';
+import { ObjectPath, PathTracker } from '../../utils/PathTracker';
+import { LiteralValueOrUnknown } from '../../values';
 import SpreadElement from '../SpreadElement';
 import { ExpressionNode, IncludeChildren } from './Node';
 
@@ -25,12 +25,12 @@ export interface ExpressionEntity extends WritableEntity {
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity;
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: ExecutionContext): boolean;
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean;
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		context: ExecutionContext
+		context: EffectsExecutionContext
 	): boolean;
-	include(includeChildrenRecursively: IncludeChildren): void;
+	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext): void;
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void;
 }

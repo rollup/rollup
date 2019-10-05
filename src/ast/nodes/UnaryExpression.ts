@@ -1,7 +1,7 @@
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionContext } from '../ExecutionContext';
-import { PathTracker } from '../utils/PathTracker';
-import { EMPTY_PATH, LiteralValueOrUnknown, ObjectPath, UnknownValue } from '../values';
+import { EffectsExecutionContext } from '../ExecutionContext';
+import { EMPTY_PATH, ObjectPath, PathTracker } from '../utils/PathTracker';
+import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import Identifier from './Identifier';
 import { LiteralValue } from './Literal';
 import * as NodeType from './NodeType';
@@ -44,7 +44,7 @@ export default class UnaryExpression extends NodeBase {
 		return unaryOperators[this.operator](argumentValue);
 	}
 
-	hasEffects(context: ExecutionContext): boolean {
+	hasEffects(context: EffectsExecutionContext): boolean {
 		if (this.operator === 'typeof' && this.argument instanceof Identifier) return false;
 		return (
 			this.argument.hasEffects(context) ||
@@ -53,7 +53,7 @@ export default class UnaryExpression extends NodeBase {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, _context: ExecutionContext) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
 		if (this.operator === 'void') {
 			return path.length > 0;
 		}

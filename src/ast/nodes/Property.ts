@@ -2,16 +2,15 @@ import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionContext } from '../ExecutionContext';
-import { EMPTY_IMMUTABLE_TRACKER, PathTracker } from '../utils/PathTracker';
+import { EffectsExecutionContext } from '../ExecutionContext';
 import {
+	EMPTY_IMMUTABLE_TRACKER,
 	EMPTY_PATH,
-	LiteralValueOrUnknown,
 	ObjectPath,
-	UNKNOWN_EXPRESSION,
-	UnknownKey,
-	UnknownValue
-} from '../values';
+	PathTracker,
+	UnknownKey
+} from '../utils/PathTracker';
+import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UnknownValue } from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
@@ -97,11 +96,11 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 		return this.value.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
 	}
 
-	hasEffects(context: ExecutionContext): boolean {
+	hasEffects(context: EffectsExecutionContext): boolean {
 		return this.key.hasEffects(context) || this.value.hasEffects(context);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
 		if (this.kind === 'get') {
 			const trackedExpressions = context.accessed.getEntities(path);
 			if (trackedExpressions.has(this)) return false;
@@ -115,7 +114,7 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 		return this.value.hasEffectsWhenAccessedAtPath(path, context);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
 		if (this.kind === 'get') {
 			if (path.length === 0) return true;
 			const trackedExpressions = context.assigned.getEntities(path);
@@ -139,7 +138,7 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		context: ExecutionContext
+		context: EffectsExecutionContext
 	) {
 		if (this.kind === 'get') {
 			const trackedExpressions = (callOptions.withNew

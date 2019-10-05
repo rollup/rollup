@@ -4,16 +4,16 @@ import relativeId from '../../utils/relativeId';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionContext } from '../ExecutionContext';
-import { EMPTY_IMMUTABLE_TRACKER, PathTracker } from '../utils/PathTracker';
+import { EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
 import {
+	EMPTY_IMMUTABLE_TRACKER,
 	EMPTY_PATH,
-	LiteralValueOrUnknown,
 	ObjectPath,
 	ObjectPathKey,
-	UnknownKey,
-	UnknownValue
-} from '../values';
+	PathTracker,
+	UnknownKey
+} from '../utils/PathTracker';
+import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import ExternalVariable from '../variables/ExternalVariable';
 import NamespaceVariable from '../variables/NamespaceVariable';
 import Variable from '../variables/Variable';
@@ -164,7 +164,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		);
 	}
 
-	hasEffects(context: ExecutionContext): boolean {
+	hasEffects(context: EffectsExecutionContext): boolean {
 		return (
 			this.property.hasEffects(context) ||
 			this.object.hasEffects(context) ||
@@ -173,7 +173,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
 		if (path.length === 0) return false;
 		if (this.variable !== null) {
 			return this.variable.hasEffectsWhenAccessedAtPath(path, context);
@@ -184,7 +184,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
 		if (this.variable !== null) {
 			return this.variable.hasEffectsWhenAssignedAtPath(path, context);
 		}
@@ -197,7 +197,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		context: ExecutionContext
+		context: EffectsExecutionContext
 	): boolean {
 		if (this.variable !== null) {
 			return this.variable.hasEffectsWhenCalledAtPath(path, callOptions, context);
@@ -209,15 +209,15 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		);
 	}
 
-	include(includeChildrenRecursively: IncludeChildren) {
+	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
 		if (!this.included) {
 			this.included = true;
 			if (this.variable !== null) {
 				this.context.includeVariable(this.variable);
 			}
 		}
-		this.object.include(includeChildrenRecursively);
-		this.property.include(includeChildrenRecursively);
+		this.object.include(includeChildrenRecursively, context);
+		this.property.include(includeChildrenRecursively, context);
 	}
 
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {

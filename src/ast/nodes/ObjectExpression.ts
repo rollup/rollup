@@ -3,17 +3,20 @@ import { BLANK } from '../../utils/blank';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionContext } from '../ExecutionContext';
-import { EMPTY_IMMUTABLE_TRACKER, PathTracker } from '../utils/PathTracker';
+import { EffectsExecutionContext } from '../ExecutionContext';
 import {
+	EMPTY_IMMUTABLE_TRACKER,
 	EMPTY_PATH,
+	ObjectPath,
+	PathTracker,
+	UNKNOWN_PATH
+} from '../utils/PathTracker';
+import {
 	getMemberReturnExpressionWhenCalled,
 	hasMemberEffectWhenCalled,
 	LiteralValueOrUnknown,
 	objectMembers,
-	ObjectPath,
 	UNKNOWN_EXPRESSION,
-	UNKNOWN_PATH,
 	UnknownValue
 } from '../values';
 import Identifier from './Identifier';
@@ -186,7 +189,7 @@ export default class ObjectExpression extends NodeBase {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: ExecutionContext) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: EffectsExecutionContext) {
 		if (path.length === 0) return false;
 		const key = path[0];
 		if (
@@ -210,7 +213,7 @@ export default class ObjectExpression extends NodeBase {
 		return false;
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: ExecutionContext) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: EffectsExecutionContext) {
 		if (path.length === 0) return false;
 		const key = path[0];
 		if (
@@ -239,7 +242,7 @@ export default class ObjectExpression extends NodeBase {
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		context: ExecutionContext
+		context: EffectsExecutionContext
 	): boolean {
 		const key = path[0];
 		if (

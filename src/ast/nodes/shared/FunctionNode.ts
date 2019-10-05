@@ -1,18 +1,13 @@
 import CallOptions from '../../CallOptions';
-import { ExecutionContext } from '../../ExecutionContext';
+import { EffectsExecutionContext, ExecutionContext } from '../../ExecutionContext';
 import FunctionScope from '../../scopes/FunctionScope';
-import {
-	ObjectPath,
-	UNKNOWN_EXPRESSION,
-	UNKNOWN_PATH,
-	UnknownKey,
-	UnknownObjectExpression
-} from '../../values';
+import { ObjectPath, UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
+import { UNKNOWN_EXPRESSION, UnknownObjectExpression } from '../../values';
 import BlockStatement from '../BlockStatement';
 import Identifier, { IdentifierWithVariable } from '../Identifier';
 import RestElement from '../RestElement';
 import SpreadElement from '../SpreadElement';
-import { ExpressionNode, GenericEsTreeNode, NodeBase } from './Node';
+import { ExpressionNode, GenericEsTreeNode, IncludeChildren, NodeBase } from './Node';
 import { PatternNode } from './Pattern';
 
 export default class FunctionNode extends NodeBase {
@@ -66,7 +61,7 @@ export default class FunctionNode extends NodeBase {
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		context: ExecutionContext
+		context: EffectsExecutionContext
 	) {
 		if (path.length > 0) return true;
 		for (const param of this.params) {
@@ -93,16 +88,16 @@ export default class FunctionNode extends NodeBase {
 		return false;
 	}
 
-	include(includeChildrenRecursively: boolean | 'variables') {
+	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
 		this.included = true;
-		this.body.include(includeChildrenRecursively);
+		this.body.include(includeChildrenRecursively, context);
 		if (this.id) {
 			this.id.include();
 		}
 		const hasArguments = this.scope.argumentsVariable.included;
 		for (const param of this.params) {
 			if (!(param instanceof Identifier) || hasArguments) {
-				param.include(includeChildrenRecursively);
+				param.include(includeChildrenRecursively, context);
 			}
 		}
 	}

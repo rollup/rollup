@@ -1,7 +1,7 @@
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionContext } from '../ExecutionContext';
-import { EMPTY_IMMUTABLE_TRACKER, PathTracker } from '../utils/PathTracker';
-import { EMPTY_PATH, LiteralValueOrUnknown, ObjectPath, UnknownValue } from '../values';
+import { EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
+import { EMPTY_IMMUTABLE_TRACKER, EMPTY_PATH, ObjectPath, PathTracker } from '../utils/PathTracker';
+import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import ExpressionStatement from './ExpressionStatement';
 import { LiteralValue } from './Literal';
 import * as NodeType from './NodeType';
@@ -63,7 +63,7 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 		return operatorFn(leftValue, rightValue);
 	}
 
-	hasEffects(context: ExecutionContext): boolean {
+	hasEffects(context: EffectsExecutionContext): boolean {
 		// support some implicit type coercion runtime errors
 		if (
 			this.operator === '+' &&

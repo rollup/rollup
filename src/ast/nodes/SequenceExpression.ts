@@ -9,9 +9,9 @@ import {
 import { treeshakeNode } from '../../utils/treeshakeNode';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionContext } from '../ExecutionContext';
-import { PathTracker } from '../utils/PathTracker';
-import { LiteralValueOrUnknown, ObjectPath } from '../values';
+import { EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
+import { ObjectPath, PathTracker } from '../utils/PathTracker';
+import { LiteralValueOrUnknown } from '../values';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
@@ -36,21 +36,21 @@ export default class SequenceExpression extends NodeBase {
 		);
 	}
 
-	hasEffects(context: ExecutionContext): boolean {
+	hasEffects(context: EffectsExecutionContext): boolean {
 		for (const expression of this.expressions) {
 			if (expression.hasEffects(context)) return true;
 		}
 		return false;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
 		return (
 			path.length > 0 &&
 			this.expressions[this.expressions.length - 1].hasEffectsWhenAccessedAtPath(path, context)
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: ExecutionContext): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
 		return (
 			path.length === 0 ||
 			this.expressions[this.expressions.length - 1].hasEffectsWhenAssignedAtPath(path, context)
@@ -60,7 +60,7 @@ export default class SequenceExpression extends NodeBase {
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		context: ExecutionContext
+		context: EffectsExecutionContext
 	): boolean {
 		return this.expressions[this.expressions.length - 1].hasEffectsWhenCalledAtPath(
 			path,
@@ -69,14 +69,14 @@ export default class SequenceExpression extends NodeBase {
 		);
 	}
 
-	include(includeChildrenRecursively: IncludeChildren) {
+	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
 		this.included = true;
 		for (let i = 0; i < this.expressions.length - 1; i++) {
 			const node = this.expressions[i];
-			if (includeChildrenRecursively || node.shouldBeIncluded())
-				node.include(includeChildrenRecursively);
+			if (includeChildrenRecursively || node.shouldBeIncluded(context))
+				node.include(includeChildrenRecursively, context);
 		}
-		this.expressions[this.expressions.length - 1].include(includeChildrenRecursively);
+		this.expressions[this.expressions.length - 1].include(includeChildrenRecursively, context);
 	}
 
 	render(

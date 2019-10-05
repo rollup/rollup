@@ -1,4 +1,4 @@
-import { ObjectPath } from '../../values';
+import { ObjectPath } from '../../utils/PathTracker';
 
 const ValueProperties = Symbol('Value Properties');
 

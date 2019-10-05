@@ -1,8 +1,9 @@
 import { AstContext } from '../../Module';
 import CallOptions from '../CallOptions';
-import { ExecutionContext } from '../ExecutionContext';
+import { EffectsExecutionContext } from '../ExecutionContext';
 import { ExpressionEntity } from '../nodes/shared/Expression';
-import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UnknownValue } from '../values';
+import { ObjectPath } from '../utils/PathTracker';
+import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UnknownValue } from '../values';
 import LocalVariable from './LocalVariable';
 
 export default class ThisVariable extends LocalVariable {
@@ -14,14 +15,14 @@ export default class ThisVariable extends LocalVariable {
 		return UnknownValue;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: ExecutionContext) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: EffectsExecutionContext) {
 		return (
 			this.getInit(context).hasEffectsWhenAccessedAtPath(path, context) ||
 			super.hasEffectsWhenAccessedAtPath(path, context)
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: ExecutionContext) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: EffectsExecutionContext) {
 		return (
 			this.getInit(context).hasEffectsWhenAssignedAtPath(path, context) ||
 			super.hasEffectsWhenAssignedAtPath(path, context)
@@ -31,7 +32,7 @@ export default class ThisVariable extends LocalVariable {
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		context: ExecutionContext
+		context: EffectsExecutionContext
 	) {
 		return (
 			this.getInit(context).hasEffectsWhenCalledAtPath(path, callOptions, context) ||
@@ -39,7 +40,7 @@ export default class ThisVariable extends LocalVariable {
 		);
 	}
 
-	private getInit(context: ExecutionContext): ExpressionEntity {
+	private getInit(context: EffectsExecutionContext): ExpressionEntity {
 		return context.replacedVariableInits.get(this) || UNKNOWN_EXPRESSION;
 	}
 }

@@ -1,4 +1,5 @@
 import { AstContext } from '../../Module';
+import { createExecutionContext } from '../ExecutionContext';
 import { ExpressionNode } from '../nodes/shared/Node';
 import SpreadElement from '../nodes/SpreadElement';
 import ArgumentsVariable from '../variables/ArgumentsVariable';
@@ -25,7 +26,7 @@ export default class FunctionScope extends ReturnValueScope {
 		if (this.argumentsVariable.included) {
 			for (const arg of args) {
 				if (!arg.included) {
-					arg.include(false);
+					arg.include(false, createExecutionContext());
 				}
 			}
 		}
