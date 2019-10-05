@@ -31,7 +31,7 @@ jobs:
           command: npm ci --ignore-scripts
       - run:
           name: Run linting.
-          command: npm run lint
+          command: npm run ci:lint
       - run:
           name: Run NPM Security Audit
           command: npm run security
