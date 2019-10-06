@@ -44,7 +44,6 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	}
 
 	// TODO Lukas simplify type for BreakFlow to Symbol or Set of labels
-	// TODO Lukas change logic to handle unknown test separately
 	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
 		this.included = true;
 		if (includeChildrenRecursively) {
@@ -53,28 +52,30 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			if (this.alternate !== null) {
 				this.alternate.include(includeChildrenRecursively, context);
 			}
-			return;
-		}
-		const hasUnknownTest = this.testValue === UnknownValue;
-		if (hasUnknownTest || this.test.shouldBeIncluded(context)) {
+		} else if (this.testValue === UnknownValue) {
 			this.test.include(false, context);
-		}
-		if ((hasUnknownTest || this.testValue) && this.consequent.shouldBeIncluded(context)) {
-			this.consequent.include(false, context);
-		}
-		let consequentBreakFlow: BreakFlow | false = false;
-		if (hasUnknownTest) {
-			consequentBreakFlow = context.breakFlow;
-			context.breakFlow = false;
-		}
-		if (
-			this.alternate !== null &&
-			((hasUnknownTest || !this.testValue) && this.alternate.shouldBeIncluded(context))
-		) {
-			this.alternate.include(false, context);
-		}
-		if (hasUnknownTest && !consequentBreakFlow) {
-			context.breakFlow = false;
+			let consequentBreakFlow: BreakFlow | false = false;
+			if (this.consequent.shouldBeIncluded(context)) {
+				this.consequent.include(false, context);
+				consequentBreakFlow = context.breakFlow;
+				context.breakFlow = false;
+			}
+			if (this.alternate !== null && this.alternate.shouldBeIncluded(context)) {
+				this.alternate.include(false, context);
+				if (!consequentBreakFlow) {
+					context.breakFlow = false;
+				}
+			}
+		} else {
+			if (this.test.shouldBeIncluded(context)) {
+				this.test.include(false, context);
+			}
+			if (this.testValue && this.consequent.shouldBeIncluded(context)) {
+				this.consequent.include(false, context);
+			}
+			if (this.alternate !== null && !this.testValue && this.alternate.shouldBeIncluded(context)) {
+				this.alternate.include(false, context);
+			}
 		}
 	}
 
