@@ -1,5 +1,5 @@
 import CallOptions from '../CallOptions';
-import { EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
+import { EffectsExecutionContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
@@ -28,7 +28,7 @@ export default class NewExpression extends NodeBase {
 		return this.callee.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.callOptions, context);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, _context: ExecutionContext) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
 		return path.length > 1;
 	}
 

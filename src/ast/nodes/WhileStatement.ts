@@ -1,6 +1,6 @@
-import { EffectsExecutionContext } from '../ExecutionContext';
+import { EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
 import * as NodeType from './NodeType';
-import { ExpressionNode, StatementBase, StatementNode } from './shared/Node';
+import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from './shared/Node';
 
 export default class WhileStatement extends StatementBase {
 	body!: StatementNode;
@@ -16,5 +16,10 @@ export default class WhileStatement extends StatementBase {
 		if (this.body.hasEffects(context)) return true;
 		context.ignore.breakStatements = breakStatements;
 		return false;
+	}
+
+	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
+		super.include(includeChildrenRecursively, context);
+		context.breakFlow = false;
 	}
 }

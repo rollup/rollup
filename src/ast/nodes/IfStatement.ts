@@ -2,7 +2,7 @@ import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { removeAnnotations } from '../../utils/treeshakeNode';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
+import { BreakFlow, EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
 import { EMPTY_IMMUTABLE_TRACKER, EMPTY_PATH } from '../utils/PathTracker';
 import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import * as NodeType from './NodeType';
@@ -43,6 +43,8 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			: this.alternate !== null && this.alternate.hasEffects(context);
 	}
 
+	// TODO Lukas simplify type for BreakFlow to Symbol or Set of labels
+	// TODO Lukas change logic to handle unknown test separately
 	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
 		this.included = true;
 		if (includeChildrenRecursively) {
@@ -60,11 +62,19 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		if ((hasUnknownTest || this.testValue) && this.consequent.shouldBeIncluded(context)) {
 			this.consequent.include(false, context);
 		}
+		let consequentBreakFlow: BreakFlow | false = false;
+		if (hasUnknownTest) {
+			consequentBreakFlow = context.breakFlow;
+			context.breakFlow = false;
+		}
 		if (
 			this.alternate !== null &&
 			((hasUnknownTest || !this.testValue) && this.alternate.shouldBeIncluded(context))
 		) {
 			this.alternate.include(false, context);
+		}
+		if (hasUnknownTest && !consequentBreakFlow) {
+			context.breakFlow = false;
 		}
 	}
 

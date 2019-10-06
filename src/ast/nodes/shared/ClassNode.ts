@@ -1,5 +1,5 @@
 import CallOptions from '../../CallOptions';
-import { EffectsExecutionContext, ExecutionContext } from '../../ExecutionContext';
+import { EffectsExecutionContext } from '../../ExecutionContext';
 import ChildScope from '../../scopes/ChildScope';
 import Scope from '../../scopes/Scope';
 import { ObjectPath } from '../../utils/PathTracker';
@@ -16,11 +16,11 @@ export default class ClassNode extends NodeBase {
 		this.scope = new ChildScope(parentScope);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, _context: ExecutionContext) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
 		return path.length > 1;
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, _context: ExecutionContext) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath) {
 		return path.length > 1;
 	}
 

@@ -2,7 +2,7 @@ import { ExecutionContext } from '../ExecutionContext';
 import { IncludeChildren, NodeBase } from './shared/Node';
 
 export default class UnknownNode extends NodeBase {
-	hasEffects(_context: ExecutionContext) {
+	hasEffects() {
 		return true;
 	}
 

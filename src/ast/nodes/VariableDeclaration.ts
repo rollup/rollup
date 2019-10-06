@@ -7,7 +7,7 @@ import {
 } from '../../utils/renderHelpers';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
 import { ExecutionContext } from '../ExecutionContext';
-import { EMPTY_PATH, ObjectPath } from '../utils/PathTracker';
+import { EMPTY_PATH } from '../utils/PathTracker';
 import Variable from '../variables/Variable';
 import Identifier, { IdentifierWithVariable } from './Identifier';
 import * as NodeType from './NodeType';
@@ -37,13 +37,13 @@ export default class VariableDeclaration extends NodeBase {
 	kind!: 'var' | 'let' | 'const';
 	type!: NodeType.tVariableDeclaration;
 
-	deoptimizePath(_path: ObjectPath) {
+	deoptimizePath() {
 		for (const declarator of this.declarations) {
 			declarator.deoptimizePath(EMPTY_PATH);
 		}
 	}
 
-	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _context: ExecutionContext) {
+	hasEffectsWhenAssignedAtPath() {
 		return false;
 	}
 

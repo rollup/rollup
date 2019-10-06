@@ -1,5 +1,4 @@
 import MagicString from 'magic-string';
-import { RenderOptions } from '../../utils/renderHelpers';
 import { EffectsExecutionContext } from '../ExecutionContext';
 import ModuleScope from '../scopes/ModuleScope';
 import { ObjectPath } from '../utils/PathTracker';
@@ -41,7 +40,7 @@ export default class ThisExpression extends NodeBase {
 		}
 	}
 
-	render(code: MagicString, _options: RenderOptions) {
+	render(code: MagicString) {
 		if (this.alias !== null) {
 			code.overwrite(this.start, this.end, this.alias, {
 				contentOnly: false,

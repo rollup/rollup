@@ -35,15 +35,15 @@ export default class ArrowFunctionExpression extends NodeBase {
 		return path.length === 0 ? this.scope.getReturnExpression() : UNKNOWN_EXPRESSION;
 	}
 
-	hasEffects(_context: ExecutionContext) {
+	hasEffects() {
 		return false;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, _context: ExecutionContext) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
 		return path.length > 1;
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, _context: ExecutionContext) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath) {
 		return path.length > 1;
 	}
 
@@ -69,7 +69,10 @@ export default class ArrowFunctionExpression extends NodeBase {
 
 	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
 		this.included = true;
+		const breakFlow = context.breakFlow;
+		context.breakFlow = false;
 		this.body.include(includeChildrenRecursively, context);
+		context.breakFlow = breakFlow;
 		for (const param of this.params) {
 			if (!(param instanceof Identifier)) {
 				param.include(includeChildrenRecursively, context);

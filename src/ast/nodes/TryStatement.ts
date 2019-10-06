@@ -28,9 +28,11 @@ export default class TryStatement extends StatementBase {
 				this.context.tryCatchDeoptimization ? INCLUDE_PARAMETERS : includeChildrenRecursively,
 				context
 			);
+			context.breakFlow = false;
 		}
 		if (this.handler !== null) {
 			this.handler.include(includeChildrenRecursively, context);
+			context.breakFlow = false;
 		}
 		if (this.finalizer !== null) {
 			this.finalizer.include(includeChildrenRecursively, context);

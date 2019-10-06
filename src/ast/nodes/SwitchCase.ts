@@ -20,6 +20,7 @@ export default class SwitchCase extends NodeBase {
 			if (includeChildrenRecursively || node.shouldBeIncluded(context))
 				node.include(includeChildrenRecursively, context);
 		}
+		context.breakFlow = false;
 	}
 
 	render(code: MagicString, options: RenderOptions) {

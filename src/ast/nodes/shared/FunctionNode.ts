@@ -90,7 +90,10 @@ export default class FunctionNode extends NodeBase {
 
 	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
 		this.included = true;
+		const breakFlow = context.breakFlow;
+		context.breakFlow = false;
 		this.body.include(includeChildrenRecursively, context);
+		context.breakFlow = breakFlow;
 		if (this.id) {
 			this.id.include();
 		}

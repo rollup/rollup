@@ -49,6 +49,7 @@ export default class ForInStatement extends StatementBase {
 		this.left.deoptimizePath(EMPTY_PATH);
 		this.right.include(includeChildrenRecursively, context);
 		this.body.include(includeChildrenRecursively, context);
+		context.breakFlow = false;
 	}
 
 	render(code: MagicString, options: RenderOptions) {

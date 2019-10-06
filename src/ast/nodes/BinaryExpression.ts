@@ -1,5 +1,5 @@
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
+import { EffectsExecutionContext } from '../ExecutionContext';
 import { EMPTY_IMMUTABLE_TRACKER, EMPTY_PATH, ObjectPath, PathTracker } from '../utils/PathTracker';
 import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import ExpressionStatement from './ExpressionStatement';
@@ -74,7 +74,7 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 		return super.hasEffects(context);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, _context: ExecutionContext) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
 		return path.length > 1;
 	}
 }
