@@ -8,23 +8,16 @@ interface ExecutionContextIgnore {
 	returnAwaitYield: boolean;
 }
 
-export enum BreakFlowType {
+export enum BreakFlow {
 	None = 0,
-	BreakContinue,
-	Return,
 	Error
 }
 
-export interface BreakFlow {
-	label: string | null;
-	type: BreakFlowType;
-}
-
 export interface ExecutionContext {
-	breakFlow: false | BreakFlow;
+	breakFlow: BreakFlow;
 }
 
-export interface EffectsExecutionContext extends ExecutionContext {
+export interface EffectsExecutionContext {
 	accessed: PathTracker;
 	assigned: PathTracker;
 	called: PathTracker;
@@ -35,7 +28,7 @@ export interface EffectsExecutionContext extends ExecutionContext {
 
 export function createExecutionContext(): ExecutionContext {
 	return {
-		breakFlow: false
+		breakFlow: BreakFlow.None
 	};
 }
 
@@ -43,7 +36,6 @@ export function createEffectsExecutionContext(): EffectsExecutionContext {
 	return {
 		accessed: new PathTracker(),
 		assigned: new PathTracker(),
-		breakFlow: false,
 		called: new PathTracker(),
 		ignore: {
 			breakStatements: false,

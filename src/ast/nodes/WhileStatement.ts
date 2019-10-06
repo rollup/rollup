@@ -1,4 +1,4 @@
-import { EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
+import { BreakFlow, EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
 import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from './shared/Node';
 
@@ -20,6 +20,6 @@ export default class WhileStatement extends StatementBase {
 
 	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
 		super.include(includeChildrenRecursively, context);
-		context.breakFlow = false;
+		context.breakFlow = BreakFlow.None;
 	}
 }

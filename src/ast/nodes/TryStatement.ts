@@ -1,4 +1,4 @@
-import { EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
+import { BreakFlow, EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
 import BlockStatement from './BlockStatement';
 import CatchClause from './CatchClause';
 import * as NodeType from './NodeType';
@@ -28,11 +28,11 @@ export default class TryStatement extends StatementBase {
 				this.context.tryCatchDeoptimization ? INCLUDE_PARAMETERS : includeChildrenRecursively,
 				context
 			);
-			context.breakFlow = false;
+			context.breakFlow = BreakFlow.None;
 		}
 		if (this.handler !== null) {
 			this.handler.include(includeChildrenRecursively, context);
-			context.breakFlow = false;
+			context.breakFlow = BreakFlow.None;
 		}
 		if (this.finalizer !== null) {
 			this.finalizer.include(includeChildrenRecursively, context);

@@ -4,7 +4,7 @@ import {
 	RenderOptions,
 	renderStatementList
 } from '../../utils/renderHelpers';
-import { ExecutionContext } from '../ExecutionContext';
+import { BreakFlow, ExecutionContext } from '../ExecutionContext';
 import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, NodeBase, StatementNode } from './shared/Node';
 
@@ -20,7 +20,7 @@ export default class SwitchCase extends NodeBase {
 			if (includeChildrenRecursively || node.shouldBeIncluded(context))
 				node.include(includeChildrenRecursively, context);
 		}
-		context.breakFlow = false;
+		context.breakFlow = BreakFlow.None;
 	}
 
 	render(code: MagicString, options: RenderOptions) {

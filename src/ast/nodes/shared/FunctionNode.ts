@@ -1,5 +1,5 @@
 import CallOptions from '../../CallOptions';
-import { EffectsExecutionContext, ExecutionContext } from '../../ExecutionContext';
+import { BreakFlow, EffectsExecutionContext, ExecutionContext } from '../../ExecutionContext';
 import FunctionScope from '../../scopes/FunctionScope';
 import { ObjectPath, UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
 import { UNKNOWN_EXPRESSION, UnknownObjectExpression } from '../../values';
@@ -91,7 +91,7 @@ export default class FunctionNode extends NodeBase {
 	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
 		this.included = true;
 		const breakFlow = context.breakFlow;
-		context.breakFlow = false;
+		context.breakFlow = BreakFlow.None;
 		this.body.include(includeChildrenRecursively, context);
 		context.breakFlow = breakFlow;
 		if (this.id) {

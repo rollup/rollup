@@ -1,6 +1,6 @@
 import MagicString from 'magic-string';
 import { NO_SEMICOLON, RenderOptions } from '../../utils/renderHelpers';
-import { EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
+import { BreakFlow, EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import Scope from '../scopes/Scope';
 import { EMPTY_PATH } from '../utils/PathTracker';
@@ -49,7 +49,7 @@ export default class ForInStatement extends StatementBase {
 		this.left.deoptimizePath(EMPTY_PATH);
 		this.right.include(includeChildrenRecursively, context);
 		this.body.include(includeChildrenRecursively, context);
-		context.breakFlow = false;
+		context.breakFlow = BreakFlow.None;
 	}
 
 	render(code: MagicString, options: RenderOptions) {

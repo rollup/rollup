@@ -1,6 +1,6 @@
 import MagicString from 'magic-string';
 import { NO_SEMICOLON, RenderOptions } from '../../utils/renderHelpers';
-import { EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
+import { BreakFlow, EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import Scope from '../scopes/Scope';
 import * as NodeType from './NodeType';
@@ -40,7 +40,7 @@ export default class ForStatement extends StatementBase {
 		if (this.test) this.test.include(includeChildrenRecursively, context);
 		if (this.update) this.update.include(includeChildrenRecursively, context);
 		if (this.body) this.body.include(includeChildrenRecursively, context);
-		context.breakFlow = false;
+		context.breakFlow = BreakFlow.None;
 	}
 
 	render(code: MagicString, options: RenderOptions) {

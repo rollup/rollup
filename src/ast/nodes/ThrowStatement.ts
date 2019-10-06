@@ -1,6 +1,6 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
-import { BreakFlowType, ExecutionContext } from '../ExecutionContext';
+import { BreakFlow, ExecutionContext } from '../ExecutionContext';
 import * as NodeType from './NodeType';
 import { ExpressionNode, StatementBase } from './shared/Node';
 
@@ -18,7 +18,7 @@ export default class ThrowStatement extends StatementBase {
 
 	shouldBeIncluded(context: ExecutionContext): boolean {
 		if (context.breakFlow) return false;
-		context.breakFlow = { type: BreakFlowType.Error, label: null };
+		context.breakFlow = BreakFlow.Error;
 		return true;
 	}
 }

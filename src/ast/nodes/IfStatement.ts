@@ -43,7 +43,6 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			: this.alternate !== null && this.alternate.hasEffects(context);
 	}
 
-	// TODO Lukas simplify type for BreakFlow to Symbol or Set of labels
 	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
 		this.included = true;
 		if (includeChildrenRecursively) {
@@ -58,12 +57,12 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			if (this.consequent.shouldBeIncluded(context)) {
 				this.consequent.include(false, context);
 				consequentBreakFlow = context.breakFlow;
-				context.breakFlow = false;
+				context.breakFlow = BreakFlow.None;
 			}
 			if (this.alternate !== null && this.alternate.shouldBeIncluded(context)) {
 				this.alternate.include(false, context);
 				if (!consequentBreakFlow) {
-					context.breakFlow = false;
+					context.breakFlow = BreakFlow.None;
 				}
 			}
 		} else {
