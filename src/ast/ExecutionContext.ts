@@ -11,7 +11,7 @@ interface ExecutionContextIgnore {
 export const BREAKFLOW_NONE: false = false;
 export const BREAKFLOW_ERROR_RETURN: true = true;
 
-export type BreakFlow = typeof BREAKFLOW_NONE | typeof BREAKFLOW_ERROR_RETURN;
+export type BreakFlow = typeof BREAKFLOW_NONE | typeof BREAKFLOW_ERROR_RETURN | Set<string | null>;
 
 export interface InclusionContext {
 	breakFlow: BreakFlow;
