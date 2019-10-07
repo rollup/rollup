@@ -1,7 +1,7 @@
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
-import { StatementBase } from './shared/Node';
+import { IncludeChildren, StatementBase } from './shared/Node';
 
 export default class BreakStatement extends StatementBase {
 	label!: Identifier | null;
@@ -14,11 +14,13 @@ export default class BreakStatement extends StatementBase {
 		);
 	}
 
-	include(_includeChildrenRecursively: boolean | 'variables', context: InclusionContext) {
+	include(_includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
 		this.included = true;
 		if (this.label) {
 			this.label.include();
+			context.breakFlow = new Set([this.label.name]);
+		} else {
+			context.breakFlow = new Set([null]);
 		}
-		context.breakFlow = new Set();
 	}
 }

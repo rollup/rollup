@@ -1,7 +1,7 @@
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
-import { StatementBase } from './shared/Node';
+import { IncludeChildren, StatementBase } from './shared/Node';
 
 export default class ContinueStatement extends StatementBase {
 	label!: Identifier | null;
@@ -14,7 +14,8 @@ export default class ContinueStatement extends StatementBase {
 		);
 	}
 
-	include(_includeChildrenRecursively: boolean | 'variables', context: InclusionContext) {
+	// TODO Lukas add label logic for continue
+	include(_includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
 		this.included = true;
 		if (this.label) this.label.include();
 		context.breakFlow = new Set();

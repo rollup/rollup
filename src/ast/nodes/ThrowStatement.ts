@@ -2,7 +2,7 @@ import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { BREAKFLOW_ERROR_RETURN, InclusionContext } from '../ExecutionContext';
 import * as NodeType from './NodeType';
-import { ExpressionNode, StatementBase } from './shared/Node';
+import { ExpressionNode, IncludeChildren, StatementBase } from './shared/Node';
 
 export default class ThrowStatement extends StatementBase {
 	argument!: ExpressionNode;
@@ -12,7 +12,7 @@ export default class ThrowStatement extends StatementBase {
 		return true;
 	}
 
-	include(includeChildrenRecursively: boolean | 'variables', context: InclusionContext) {
+	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
 		this.included = true;
 		this.argument.include(includeChildrenRecursively, context);
 		context.breakFlow = BREAKFLOW_ERROR_RETURN;

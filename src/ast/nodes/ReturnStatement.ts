@@ -3,7 +3,7 @@ import { RenderOptions } from '../../utils/renderHelpers';
 import { BREAKFLOW_ERROR_RETURN, HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { UNKNOWN_EXPRESSION } from '../values';
 import * as NodeType from './NodeType';
-import { ExpressionNode, StatementBase } from './shared/Node';
+import { ExpressionNode, IncludeChildren, StatementBase } from './shared/Node';
 
 export default class ReturnStatement extends StatementBase {
 	argument!: ExpressionNode | null;
@@ -16,7 +16,7 @@ export default class ReturnStatement extends StatementBase {
 		);
 	}
 
-	include(includeChildrenRecursively: boolean | 'variables', context: InclusionContext) {
+	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
 		this.included = true;
 		if (this.argument) {
 			this.argument.include(includeChildrenRecursively, context);

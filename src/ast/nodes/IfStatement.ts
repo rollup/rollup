@@ -51,36 +51,11 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
 		this.included = true;
 		if (includeChildrenRecursively) {
-			this.test.include(includeChildrenRecursively, context);
-			this.consequent.include(includeChildrenRecursively, context);
-			if (this.alternate !== null) {
-				this.alternate.include(includeChildrenRecursively, context);
-			}
+			this.includeRecursively(includeChildrenRecursively, context);
 		} else if (this.testValue === UnknownValue) {
-			this.test.include(false, context);
-			const breakFlow = context.breakFlow;
-			let consequentBreakFlow: BreakFlow | false = false;
-			if (this.consequent.shouldBeIncluded(context)) {
-				this.consequent.include(false, context);
-				consequentBreakFlow = context.breakFlow;
-				context.breakFlow = breakFlow;
-			}
-			if (this.alternate !== null && this.alternate.shouldBeIncluded(context)) {
-				this.alternate.include(false, context);
-				if (!consequentBreakFlow) {
-					context.breakFlow = BREAKFLOW_NONE;
-				}
-			}
+			this.includeUnknownTest(context);
 		} else {
-			if (this.test.shouldBeIncluded(context)) {
-				this.test.include(false, context);
-			}
-			if (this.testValue && this.consequent.shouldBeIncluded(context)) {
-				this.consequent.include(false, context);
-			}
-			if (this.alternate !== null && !this.testValue && this.alternate.shouldBeIncluded(context)) {
-				this.alternate.include(false, context);
-			}
+			this.includeKnownTest(context);
 		}
 	}
 
@@ -115,6 +90,53 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 					this.alternate.render(code, options);
 				} else {
 					code.remove(this.consequent.end, this.alternate.end);
+				}
+			}
+		}
+	}
+	private includeKnownTest(context: InclusionContext) {
+		if (this.test.shouldBeIncluded(context)) {
+			this.test.include(false, context);
+		}
+		if (this.testValue && this.consequent.shouldBeIncluded(context)) {
+			this.consequent.include(false, context);
+		}
+		if (this.alternate !== null && !this.testValue && this.alternate.shouldBeIncluded(context)) {
+			this.alternate.include(false, context);
+		}
+	}
+
+	private includeRecursively(
+		includeChildrenRecursively: true | 'variables',
+		context: InclusionContext
+	) {
+		this.test.include(includeChildrenRecursively, context);
+		this.consequent.include(includeChildrenRecursively, context);
+		if (this.alternate !== null) {
+			this.alternate.include(includeChildrenRecursively, context);
+		}
+	}
+
+	private includeUnknownTest(context: InclusionContext) {
+		this.test.include(false, context);
+		const breakFlow = context.breakFlow;
+		let consequentBreakFlow: BreakFlow | false = false;
+		if (this.consequent.shouldBeIncluded(context)) {
+			this.consequent.include(false, context);
+			consequentBreakFlow = context.breakFlow;
+			context.breakFlow = breakFlow;
+		}
+		if (this.alternate !== null && this.alternate.shouldBeIncluded(context)) {
+			this.alternate.include(false, context);
+			if (!consequentBreakFlow || !context.breakFlow) {
+				context.breakFlow = BREAKFLOW_NONE;
+			} else if (consequentBreakFlow instanceof Set) {
+				if (context.breakFlow instanceof Set) {
+					for (const label of consequentBreakFlow) {
+						context.breakFlow.add(label);
+					}
+				} else {
+					context.breakFlow = consequentBreakFlow;
 				}
 			}
 		}
