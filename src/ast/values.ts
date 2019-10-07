@@ -1,5 +1,5 @@
 import CallOptions from './CallOptions';
-import { createExecutionContext, EffectsExecutionContext } from './ExecutionContext';
+import { createInclusionContext, HasEffectsContext } from './ExecutionContext';
 import { LiteralValue } from './nodes/Literal';
 import { ExpressionEntity } from './nodes/shared/Expression';
 import { ExpressionNode } from './nodes/shared/Node';
@@ -41,7 +41,7 @@ export const UNKNOWN_EXPRESSION: ExpressionEntity = {
 	include: () => {},
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
-			arg.include(false, createExecutionContext());
+			arg.include(false, createInclusionContext());
 		}
 	},
 	included: true,
@@ -101,7 +101,7 @@ export class UnknownArrayExpression implements ExpressionEntity {
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		context: EffectsExecutionContext
+		context: HasEffectsContext
 	) {
 		if (path.length === 1) {
 			return hasMemberEffectWhenCalled(arrayMembers, path[0], this.included, callOptions, context);
@@ -115,7 +115,7 @@ export class UnknownArrayExpression implements ExpressionEntity {
 
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
-			arg.include(false, createExecutionContext());
+			arg.include(false, createInclusionContext());
 		}
 	}
 
@@ -178,7 +178,7 @@ const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = {
 	include: () => {},
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
-			arg.include(false, createExecutionContext());
+			arg.include(false, createInclusionContext());
 		}
 	},
 	included: true,
@@ -223,7 +223,7 @@ const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = {
 	include: () => {},
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
-			arg.include(false, createExecutionContext());
+			arg.include(false, createInclusionContext());
 		}
 	},
 	included: true,
@@ -275,7 +275,7 @@ const UNKNOWN_LITERAL_STRING: ExpressionEntity = {
 	include: () => {},
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
-			arg.include(false, createExecutionContext());
+			arg.include(false, createInclusionContext());
 		}
 	},
 	included: true,
@@ -318,7 +318,7 @@ export class UnknownObjectExpression implements ExpressionEntity {
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		context: EffectsExecutionContext
+		context: HasEffectsContext
 	) {
 		if (path.length === 1) {
 			return hasMemberEffectWhenCalled(objectMembers, path[0], this.included, callOptions, context);
@@ -332,7 +332,7 @@ export class UnknownObjectExpression implements ExpressionEntity {
 
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
-			arg.include(false, createExecutionContext());
+			arg.include(false, createInclusionContext());
 		}
 	}
 
@@ -456,7 +456,7 @@ export function hasMemberEffectWhenCalled(
 	memberName: ObjectPathKey,
 	parentIncluded: boolean,
 	callOptions: CallOptions,
-	context: EffectsExecutionContext
+	context: HasEffectsContext
 ) {
 	if (
 		typeof memberName !== 'string' ||

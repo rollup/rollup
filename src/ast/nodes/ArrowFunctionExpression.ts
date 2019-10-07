@@ -1,5 +1,5 @@
 import CallOptions from '../CallOptions';
-import { BreakFlow, EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
+import { createInclusionContext, HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import ReturnValueScope from '../scopes/ReturnValueScope';
 import Scope from '../scopes/Scope';
 import { ObjectPath, UNKNOWN_PATH, UnknownKey } from '../utils/PathTracker';
@@ -50,7 +50,7 @@ export default class ArrowFunctionExpression extends NodeBase {
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		_callOptions: CallOptions,
-		context: EffectsExecutionContext
+		context: HasEffectsContext
 	): boolean {
 		if (path.length > 0) return true;
 		for (const param of this.params) {
@@ -67,12 +67,9 @@ export default class ArrowFunctionExpression extends NodeBase {
 		return false;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
+	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
 		this.included = true;
-		const breakFlow = context.breakFlow;
-		context.breakFlow = BreakFlow.None;
-		this.body.include(includeChildrenRecursively, context);
-		context.breakFlow = breakFlow;
+		this.body.include(includeChildrenRecursively, createInclusionContext());
 		for (const param of this.params) {
 			if (!(param instanceof Identifier)) {
 				param.include(includeChildrenRecursively, context);

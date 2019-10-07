@@ -2,7 +2,7 @@ import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { removeAnnotations } from '../../utils/treeshakeNode';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { BreakFlow, EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
+import { BreakFlow, HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { EMPTY_IMMUTABLE_TRACKER, EMPTY_PATH } from '../utils/PathTracker';
 import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import * as NodeType from './NodeType';
@@ -30,7 +30,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		this.testValue = UnknownValue;
 	}
 
-	hasEffects(context: EffectsExecutionContext): boolean {
+	hasEffects(context: HasEffectsContext): boolean {
 		if (this.test.hasEffects(context)) return true;
 		if (this.testValue === UnknownValue) {
 			return (
@@ -43,7 +43,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			: this.alternate !== null && this.alternate.hasEffects(context);
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
+	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
 		this.included = true;
 		if (includeChildrenRecursively) {
 			this.test.include(includeChildrenRecursively, context);
@@ -53,11 +53,12 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			}
 		} else if (this.testValue === UnknownValue) {
 			this.test.include(false, context);
+			const breakFlow = context.breakFlow;
 			let consequentBreakFlow: BreakFlow | false = false;
 			if (this.consequent.shouldBeIncluded(context)) {
 				this.consequent.include(false, context);
 				consequentBreakFlow = context.breakFlow;
-				context.breakFlow = BreakFlow.None;
+				context.breakFlow = breakFlow;
 			}
 			if (this.alternate !== null && this.alternate.shouldBeIncluded(context)) {
 				this.alternate.include(false, context);

@@ -2,7 +2,7 @@ import Module, { AstContext } from '../../Module';
 import { markModuleAndImpureDependenciesAsExecuted } from '../../utils/traverseStaticDependencies';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { createExecutionContext, EffectsExecutionContext } from '../ExecutionContext';
+import { createInclusionContext, HasEffectsContext } from '../ExecutionContext';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import Identifier from '../nodes/Identifier';
 import * as NodeType from '../nodes/NodeType';
@@ -120,7 +120,7 @@ export default class LocalVariable extends Variable {
 		return value;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: EffectsExecutionContext) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext) {
 		if (path.length === 0) return false;
 		if (this.isReassigned || path.length > MAX_PATH_DEPTH) return true;
 		const trackedExpressions = context.accessed.getEntities(path);
@@ -129,7 +129,7 @@ export default class LocalVariable extends Variable {
 		return (this.init && this.init.hasEffectsWhenAccessedAtPath(path, context)) as boolean;
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: EffectsExecutionContext) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext) {
 		if (this.included || path.length > MAX_PATH_DEPTH) return true;
 		if (path.length === 0) return false;
 		if (this.isReassigned) return true;
@@ -142,7 +142,7 @@ export default class LocalVariable extends Variable {
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		context: EffectsExecutionContext
+		context: HasEffectsContext
 	) {
 		if (path.length > MAX_PATH_DEPTH || this.isReassigned) return true;
 		const trackedExpressions = (callOptions.withNew
@@ -163,7 +163,7 @@ export default class LocalVariable extends Variable {
 			}
 			for (const declaration of this.declarations) {
 				// If node is a default export, it can save a tree-shaking run to include the full declaration now
-				if (!declaration.included) declaration.include(false, createExecutionContext());
+				if (!declaration.included) declaration.include(false, createInclusionContext());
 				let node = declaration.parent as Node;
 				while (!node.included) {
 					// We do not want to properly include parents in case they are part of a dead branch
@@ -179,7 +179,7 @@ export default class LocalVariable extends Variable {
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
 		if (this.isReassigned) {
 			for (const arg of args) {
-				arg.include(false, createExecutionContext());
+				arg.include(false, createInclusionContext());
 			}
 		} else if (this.init) {
 			this.init.includeCallArguments(args);

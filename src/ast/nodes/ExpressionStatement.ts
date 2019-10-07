@@ -1,6 +1,6 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
-import { ExecutionContext } from '../ExecutionContext';
+import { InclusionContext } from '../ExecutionContext';
 import * as NodeType from './NodeType';
 import { ExpressionNode, StatementBase } from './shared/Node';
 
@@ -30,7 +30,7 @@ export default class ExpressionStatement extends StatementBase {
 		if (this.included) this.insertSemicolon(code);
 	}
 
-	shouldBeIncluded(context: ExecutionContext) {
+	shouldBeIncluded(context: InclusionContext) {
 		if (this.directive && this.directive !== 'use strict')
 			return this.parent.type !== NodeType.Program;
 

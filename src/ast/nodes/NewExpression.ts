@@ -1,5 +1,5 @@
 import CallOptions from '../CallOptions';
-import { EffectsExecutionContext } from '../ExecutionContext';
+import { HasEffectsContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
@@ -20,7 +20,7 @@ export default class NewExpression extends NodeBase {
 		}
 	}
 
-	hasEffects(context: EffectsExecutionContext): boolean {
+	hasEffects(context: HasEffectsContext): boolean {
 		for (const argument of this.arguments) {
 			if (argument.hasEffects(context)) return true;
 		}

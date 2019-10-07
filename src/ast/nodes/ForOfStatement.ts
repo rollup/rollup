@@ -1,6 +1,6 @@
 import MagicString from 'magic-string';
 import { NO_SEMICOLON, RenderOptions } from '../../utils/renderHelpers';
-import { BreakFlow, ExecutionContext } from '../ExecutionContext';
+import { InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import Scope from '../scopes/Scope';
 import { EMPTY_PATH } from '../utils/PathTracker';
@@ -32,13 +32,14 @@ export default class ForOfStatement extends StatementBase {
 		return true;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
+	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
 		this.included = true;
+		const breakFlow = context.breakFlow;
 		this.left.includeWithAllDeclaredVariables(includeChildrenRecursively, context);
 		this.left.deoptimizePath(EMPTY_PATH);
 		this.right.include(includeChildrenRecursively, context);
 		this.body.include(includeChildrenRecursively, context);
-		context.breakFlow = BreakFlow.None;
+		context.breakFlow = breakFlow;
 	}
 
 	render(code: MagicString, options: RenderOptions) {

@@ -1,6 +1,6 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
-import { EffectsExecutionContext } from '../ExecutionContext';
+import { HasEffectsContext } from '../ExecutionContext';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
@@ -17,7 +17,7 @@ export default class YieldExpression extends NodeBase {
 		}
 	}
 
-	hasEffects(context: EffectsExecutionContext) {
+	hasEffects(context: HasEffectsContext) {
 		return (
 			!context.ignore.returnAwaitYield ||
 			(this.argument !== null && this.argument.hasEffects(context))

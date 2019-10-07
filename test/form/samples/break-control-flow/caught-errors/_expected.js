@@ -43,3 +43,19 @@ function errorFinally() {
 try {
 	errorFinally();
 } catch {}
+
+function tryAfterError() {
+	console.log(hoisted1, hoisted2, hoisted3);
+	throw new Error();
+	try {
+		var hoisted1;
+	} catch {
+		var hoisted2;
+	} finally {
+		var hoisted3;
+	}
+}
+
+try {
+	tryAfterError();
+} catch {}

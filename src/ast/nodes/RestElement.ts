@@ -1,4 +1,4 @@
-import { EffectsExecutionContext } from '../ExecutionContext';
+import { HasEffectsContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath, UnknownKey } from '../utils/PathTracker';
 import { UNKNOWN_EXPRESSION } from '../values';
 import Variable from '../variables/Variable';
@@ -33,7 +33,7 @@ export default class RestElement extends NodeBase implements PatternNode {
 		path.length === 0 && this.argument.deoptimizePath(EMPTY_PATH);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		return path.length > 0 || this.argument.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context);
 	}
 }

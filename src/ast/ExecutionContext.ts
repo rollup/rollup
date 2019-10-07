@@ -13,11 +13,11 @@ export enum BreakFlow {
 	Error
 }
 
-export interface ExecutionContext {
+export interface InclusionContext {
 	breakFlow: BreakFlow;
 }
 
-export interface EffectsExecutionContext {
+export interface HasEffectsContext {
 	accessed: PathTracker;
 	assigned: PathTracker;
 	called: PathTracker;
@@ -26,13 +26,13 @@ export interface EffectsExecutionContext {
 	replacedVariableInits: Map<ThisVariable, ExpressionEntity>;
 }
 
-export function createExecutionContext(): ExecutionContext {
+export function createInclusionContext(): InclusionContext {
 	return {
 		breakFlow: BreakFlow.None
 	};
 }
 
-export function createEffectsExecutionContext(): EffectsExecutionContext {
+export function createHasEffectsContext(): HasEffectsContext {
 	return {
 		accessed: new PathTracker(),
 		assigned: new PathTracker(),

@@ -1,5 +1,9 @@
 import CallOptions from '../../CallOptions';
-import { BreakFlow, EffectsExecutionContext, ExecutionContext } from '../../ExecutionContext';
+import {
+	createInclusionContext,
+	HasEffectsContext,
+	InclusionContext
+} from '../../ExecutionContext';
 import FunctionScope from '../../scopes/FunctionScope';
 import { ObjectPath, UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
 import { UNKNOWN_EXPRESSION, UnknownObjectExpression } from '../../values';
@@ -61,7 +65,7 @@ export default class FunctionNode extends NodeBase {
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		context: EffectsExecutionContext
+		context: HasEffectsContext
 	) {
 		if (path.length > 0) return true;
 		for (const param of this.params) {
@@ -88,15 +92,10 @@ export default class FunctionNode extends NodeBase {
 		return false;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
+	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
 		this.included = true;
-		const breakFlow = context.breakFlow;
-		context.breakFlow = BreakFlow.None;
-		this.body.include(includeChildrenRecursively, context);
-		context.breakFlow = breakFlow;
-		if (this.id) {
-			this.id.include();
-		}
+		this.body.include(includeChildrenRecursively, createInclusionContext());
+		if (this.id) this.id.include();
 		const hasArguments = this.scope.argumentsVariable.included;
 		for (const param of this.params) {
 			if (!(param instanceof Identifier) || hasArguments) {

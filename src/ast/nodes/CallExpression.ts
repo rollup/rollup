@@ -7,7 +7,7 @@ import {
 } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
+import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import {
 	EMPTY_IMMUTABLE_TRACKER,
 	EMPTY_PATH,
@@ -152,7 +152,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		return value;
 	}
 
-	hasEffects(context: EffectsExecutionContext): boolean {
+	hasEffects(context: HasEffectsContext): boolean {
 		for (const argument of this.arguments) {
 			if (argument.hasEffects(context)) return true;
 		}
@@ -163,7 +163,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		if (path.length === 0) return false;
 		const trackedExpressions = context.accessed.getEntities(path);
 		if (trackedExpressions.has(this)) return false;
@@ -171,7 +171,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		return (this.returnExpression as ExpressionEntity).hasEffectsWhenAccessedAtPath(path, context);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		if (path.length === 0) return true;
 		const trackedExpressions = context.assigned.getEntities(path);
 		if (trackedExpressions.has(this)) return false;
@@ -182,7 +182,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		context: EffectsExecutionContext
+		context: HasEffectsContext
 	): boolean {
 		const trackedExpressions = (callOptions.withNew
 			? context.instantiated
@@ -197,7 +197,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		);
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
+	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
 		if (includeChildrenRecursively) {
 			super.include(includeChildrenRecursively, context);
 			if (

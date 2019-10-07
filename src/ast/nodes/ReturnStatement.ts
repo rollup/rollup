@@ -1,6 +1,6 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
-import { EffectsExecutionContext } from '../ExecutionContext';
+import { HasEffectsContext } from '../ExecutionContext';
 import { UNKNOWN_EXPRESSION } from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionNode, StatementBase } from './shared/Node';
@@ -9,7 +9,7 @@ export default class ReturnStatement extends StatementBase {
 	argument!: ExpressionNode | null;
 	type!: NodeType.tReturnStatement;
 
-	hasEffects(context: EffectsExecutionContext) {
+	hasEffects(context: HasEffectsContext) {
 		return (
 			!context.ignore.returnAwaitYield ||
 			(this.argument !== null && this.argument.hasEffects(context))

@@ -47,6 +47,20 @@ try {
 	unknownValueBoth();
 } catch {}
 
+function unknownValueAfterError() {
+	console.log(hoisted1, hoisted2);
+	throw new Error();
+	if (globalThis.unknownValue) {
+		var hoisted1;
+	} else {
+		var hoisted2;
+	}
+}
+
+try {
+	unknownValueAfterError();
+} catch {}
+
 function truthyValueConsequent() {
 	{
 		throw new Error();

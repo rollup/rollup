@@ -1,7 +1,7 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
-import { EffectsExecutionContext } from '../ExecutionContext';
+import { HasEffectsContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
@@ -34,7 +34,7 @@ export default class AssignmentExpression extends NodeBase {
 		this.right.deoptimizePath(UNKNOWN_PATH);
 	}
 
-	hasEffects(context: EffectsExecutionContext): boolean {
+	hasEffects(context: HasEffectsContext): boolean {
 		return (
 			this.right.hasEffects(context) ||
 			this.left.hasEffects(context) ||
@@ -42,7 +42,7 @@ export default class AssignmentExpression extends NodeBase {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		return path.length > 0 && this.right.hasEffectsWhenAccessedAtPath(path, context);
 	}
 

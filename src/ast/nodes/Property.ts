@@ -2,7 +2,7 @@ import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { EffectsExecutionContext } from '../ExecutionContext';
+import { HasEffectsContext } from '../ExecutionContext';
 import {
 	EMPTY_IMMUTABLE_TRACKER,
 	EMPTY_PATH,
@@ -96,11 +96,11 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 		return this.value.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
 	}
 
-	hasEffects(context: EffectsExecutionContext): boolean {
+	hasEffects(context: HasEffectsContext): boolean {
 		return this.key.hasEffects(context) || this.value.hasEffects(context);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		if (this.kind === 'get') {
 			const trackedExpressions = context.accessed.getEntities(path);
 			if (trackedExpressions.has(this)) return false;
@@ -114,7 +114,7 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 		return this.value.hasEffectsWhenAccessedAtPath(path, context);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		if (this.kind === 'get') {
 			if (path.length === 0) return true;
 			const trackedExpressions = context.assigned.getEntities(path);
@@ -138,7 +138,7 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		context: EffectsExecutionContext
+		context: HasEffectsContext
 	) {
 		if (this.kind === 'get') {
 			const trackedExpressions = (callOptions.withNew

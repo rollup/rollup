@@ -3,7 +3,7 @@ import * as ESTree from 'estree';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
 import extractAssignedNames from 'rollup-pluginutils/src/extractAssignedNames';
-import { createExecutionContext } from './ast/ExecutionContext';
+import { createInclusionContext } from './ast/ExecutionContext';
 import ClassDeclaration from './ast/nodes/ClassDeclaration';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
@@ -450,8 +450,8 @@ export default class Module {
 	}
 
 	include(): void {
-		if (this.ast.shouldBeIncluded(createExecutionContext()))
-			this.ast.include(false, createExecutionContext());
+		if (this.ast.shouldBeIncluded(createInclusionContext()))
+			this.ast.include(false, createInclusionContext());
 	}
 
 	includeAllExports() {
@@ -483,7 +483,7 @@ export default class Module {
 	}
 
 	includeAllInBundle() {
-		this.ast.include(true, createExecutionContext());
+		this.ast.include(true, createInclusionContext());
 	}
 
 	isIncluded() {

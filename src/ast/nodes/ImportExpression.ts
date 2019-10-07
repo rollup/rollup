@@ -1,7 +1,7 @@
 import MagicString from 'magic-string';
 import { findFirstOccurrenceOutsideComment, RenderOptions } from '../../utils/renderHelpers';
 import { INTEROP_NAMESPACE_VARIABLE } from '../../utils/variableNames';
-import { ExecutionContext } from '../ExecutionContext';
+import { InclusionContext } from '../ExecutionContext';
 import NamespaceVariable from '../variables/NamespaceVariable';
 import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
@@ -22,7 +22,7 @@ export default class Import extends NodeBase {
 		return true;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
+	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
 		if (!this.included) {
 			this.included = true;
 			this.context.includeDynamicImport(this);

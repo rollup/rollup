@@ -1,4 +1,4 @@
-import { ExecutionContext } from '../ExecutionContext';
+import { InclusionContext } from '../ExecutionContext';
 import { IncludeChildren, NodeBase } from './shared/Node';
 
 export default class UnknownNode extends NodeBase {
@@ -6,7 +6,7 @@ export default class UnknownNode extends NodeBase {
 		return true;
 	}
 
-	include(_includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
+	include(_includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
 		super.include(true, context);
 	}
 }

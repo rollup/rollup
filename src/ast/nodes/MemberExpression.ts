@@ -4,7 +4,7 @@ import relativeId from '../../utils/relativeId';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
+import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import {
 	EMPTY_IMMUTABLE_TRACKER,
 	EMPTY_PATH,
@@ -164,7 +164,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		);
 	}
 
-	hasEffects(context: EffectsExecutionContext): boolean {
+	hasEffects(context: HasEffectsContext): boolean {
 		return (
 			this.property.hasEffects(context) ||
 			this.object.hasEffects(context) ||
@@ -173,7 +173,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		if (path.length === 0) return false;
 		if (this.variable !== null) {
 			return this.variable.hasEffectsWhenAccessedAtPath(path, context);
@@ -184,7 +184,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		if (this.variable !== null) {
 			return this.variable.hasEffectsWhenAssignedAtPath(path, context);
 		}
@@ -197,7 +197,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		context: EffectsExecutionContext
+		context: HasEffectsContext
 	): boolean {
 		if (this.variable !== null) {
 			return this.variable.hasEffectsWhenCalledAtPath(path, callOptions, context);
@@ -209,7 +209,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		);
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
+	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
 		if (!this.included) {
 			this.included = true;
 			if (this.variable !== null) {

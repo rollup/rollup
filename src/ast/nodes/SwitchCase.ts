@@ -4,7 +4,7 @@ import {
 	RenderOptions,
 	renderStatementList
 } from '../../utils/renderHelpers';
-import { BreakFlow, ExecutionContext } from '../ExecutionContext';
+import { InclusionContext } from '../ExecutionContext';
 import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, NodeBase, StatementNode } from './shared/Node';
 
@@ -13,14 +13,13 @@ export default class SwitchCase extends NodeBase {
 	test!: ExpressionNode | null;
 	type!: NodeType.tSwitchCase;
 
-	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
+	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
 		this.included = true;
 		if (this.test) this.test.include(includeChildrenRecursively, context);
 		for (const node of this.consequent) {
 			if (includeChildrenRecursively || node.shouldBeIncluded(context))
 				node.include(includeChildrenRecursively, context);
 		}
-		context.breakFlow = BreakFlow.None;
 	}
 
 	render(code: MagicString, options: RenderOptions) {

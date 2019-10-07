@@ -1,4 +1,4 @@
-import { EffectsExecutionContext } from '../ExecutionContext';
+import { HasEffectsContext } from '../ExecutionContext';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import { StatementBase, StatementNode } from './shared/Node';
@@ -8,7 +8,7 @@ export default class LabeledStatement extends StatementBase {
 	label!: Identifier;
 	type!: NodeType.tLabeledStatement;
 
-	hasEffects(context: EffectsExecutionContext) {
+	hasEffects(context: HasEffectsContext) {
 		const {
 			ignore: { breakStatements }
 		} = context;

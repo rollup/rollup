@@ -1,4 +1,4 @@
-import { EffectsExecutionContext } from '../ExecutionContext';
+import { HasEffectsContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath } from '../utils/PathTracker';
 import { UNKNOWN_EXPRESSION } from '../values';
 import Variable from '../variables/Variable';
@@ -38,7 +38,7 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 		}
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: EffectsExecutionContext) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext) {
 		if (path.length > 0) return true;
 		for (const element of this.elements) {
 			if (element !== null && element.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context))

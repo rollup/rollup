@@ -9,7 +9,7 @@ import {
 import { treeshakeNode } from '../../utils/treeshakeNode';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
+import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { ObjectPath, PathTracker } from '../utils/PathTracker';
 import { LiteralValueOrUnknown } from '../values';
 import CallExpression from './CallExpression';
@@ -36,21 +36,21 @@ export default class SequenceExpression extends NodeBase {
 		);
 	}
 
-	hasEffects(context: EffectsExecutionContext): boolean {
+	hasEffects(context: HasEffectsContext): boolean {
 		for (const expression of this.expressions) {
 			if (expression.hasEffects(context)) return true;
 		}
 		return false;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		return (
 			path.length > 0 &&
 			this.expressions[this.expressions.length - 1].hasEffectsWhenAccessedAtPath(path, context)
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		return (
 			path.length === 0 ||
 			this.expressions[this.expressions.length - 1].hasEffectsWhenAssignedAtPath(path, context)
@@ -60,7 +60,7 @@ export default class SequenceExpression extends NodeBase {
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		context: EffectsExecutionContext
+		context: HasEffectsContext
 	): boolean {
 		return this.expressions[this.expressions.length - 1].hasEffectsWhenCalledAtPath(
 			path,
@@ -69,7 +69,7 @@ export default class SequenceExpression extends NodeBase {
 		);
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
+	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
 		this.included = true;
 		for (let i = 0; i < this.expressions.length - 1; i++) {
 			const node = this.expressions[i];

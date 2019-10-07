@@ -48,3 +48,23 @@ function errorFinally() {
 try {
 	errorFinally();
 } catch {}
+
+function tryAfterError() {
+	console.log(hoisted1, hoisted2, hoisted3);
+	throw new Error();
+	try {
+		console.log('removed');
+		var hoisted1;
+	} catch {
+		console.log('removed');
+		var hoisted2;
+	} finally {
+		console.log('removed');
+		var hoisted3;
+	}
+	console.log('removed');
+}
+
+try {
+	tryAfterError();
+} catch {}

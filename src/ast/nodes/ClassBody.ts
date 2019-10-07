@@ -1,5 +1,5 @@
 import CallOptions from '../CallOptions';
-import { EffectsExecutionContext } from '../ExecutionContext';
+import { HasEffectsContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath } from '../utils/PathTracker';
 import MethodDefinition from './MethodDefinition';
 import * as NodeType from './NodeType';
@@ -14,7 +14,7 @@ export default class ClassBody extends NodeBase {
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		context: EffectsExecutionContext
+		context: HasEffectsContext
 	) {
 		if (path.length > 0) return true;
 		return (

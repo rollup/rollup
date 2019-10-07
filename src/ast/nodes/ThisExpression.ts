@@ -1,5 +1,5 @@
 import MagicString from 'magic-string';
-import { EffectsExecutionContext } from '../ExecutionContext';
+import { HasEffectsContext } from '../ExecutionContext';
 import ModuleScope from '../scopes/ModuleScope';
 import { ObjectPath } from '../utils/PathTracker';
 import ThisVariable from '../variables/ThisVariable';
@@ -17,11 +17,11 @@ export default class ThisExpression extends NodeBase {
 		this.variable = this.scope.findVariable('this') as ThisVariable;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		return path.length > 0 && this.variable.hasEffectsWhenAccessedAtPath(path, context);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		return this.variable.hasEffectsWhenAssignedAtPath(path, context);
 	}
 

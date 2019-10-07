@@ -1,4 +1,4 @@
-import { EffectsExecutionContext } from '../ExecutionContext';
+import { HasEffectsContext } from '../ExecutionContext';
 import * as NodeType from './NodeType';
 import { ExpressionNode, StatementBase, StatementNode } from './shared/Node';
 
@@ -7,7 +7,7 @@ export default class DoWhileStatement extends StatementBase {
 	test!: ExpressionNode;
 	type!: NodeType.tDoWhileStatement;
 
-	hasEffects(context: EffectsExecutionContext): boolean {
+	hasEffects(context: HasEffectsContext): boolean {
 		if (this.test.hasEffects(context)) return true;
 		const {
 			ignore: { breakStatements }

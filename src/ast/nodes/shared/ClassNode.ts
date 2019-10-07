@@ -1,5 +1,5 @@
 import CallOptions from '../../CallOptions';
-import { EffectsExecutionContext } from '../../ExecutionContext';
+import { HasEffectsContext } from '../../ExecutionContext';
 import ChildScope from '../../scopes/ChildScope';
 import Scope from '../../scopes/Scope';
 import { ObjectPath } from '../../utils/PathTracker';
@@ -27,7 +27,7 @@ export default class ClassNode extends NodeBase {
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		context: EffectsExecutionContext
+		context: HasEffectsContext
 	) {
 		return (
 			this.body.hasEffectsWhenCalledAtPath(path, callOptions, context) ||

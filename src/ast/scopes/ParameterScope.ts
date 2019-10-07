@@ -1,5 +1,5 @@
 import { AstContext } from '../../Module';
-import { createExecutionContext } from '../ExecutionContext';
+import { createInclusionContext } from '../ExecutionContext';
 import Identifier from '../nodes/Identifier';
 import { ExpressionNode } from '../nodes/shared/Node';
 import SpreadElement from '../nodes/SpreadElement';
@@ -65,11 +65,11 @@ export default class ParameterScope extends ChildScope {
 					}
 				}
 			}
-			if (!argIncluded && arg.shouldBeIncluded(createExecutionContext())) {
+			if (!argIncluded && arg.shouldBeIncluded(createInclusionContext())) {
 				argIncluded = true;
 			}
 			if (argIncluded) {
-				arg.include(calledFromTryStatement, createExecutionContext());
+				arg.include(calledFromTryStatement, createInclusionContext());
 			}
 		}
 	}

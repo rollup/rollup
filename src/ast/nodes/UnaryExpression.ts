@@ -1,5 +1,5 @@
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { EffectsExecutionContext } from '../ExecutionContext';
+import { HasEffectsContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath, PathTracker } from '../utils/PathTracker';
 import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import Identifier from './Identifier';
@@ -44,7 +44,7 @@ export default class UnaryExpression extends NodeBase {
 		return unaryOperators[this.operator](argumentValue);
 	}
 
-	hasEffects(context: EffectsExecutionContext): boolean {
+	hasEffects(context: HasEffectsContext): boolean {
 		if (this.operator === 'typeof' && this.argument instanceof Identifier) return false;
 		return (
 			this.argument.hasEffects(context) ||

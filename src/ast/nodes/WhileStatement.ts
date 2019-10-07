@@ -1,4 +1,4 @@
-import { BreakFlow, EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
+import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from './shared/Node';
 
@@ -7,7 +7,7 @@ export default class WhileStatement extends StatementBase {
 	test!: ExpressionNode;
 	type!: NodeType.tWhileStatement;
 
-	hasEffects(context: EffectsExecutionContext): boolean {
+	hasEffects(context: HasEffectsContext): boolean {
 		if (this.test.hasEffects(context)) return true;
 		const {
 			ignore: { breakStatements }
@@ -18,8 +18,11 @@ export default class WhileStatement extends StatementBase {
 		return false;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
-		super.include(includeChildrenRecursively, context);
-		context.breakFlow = BreakFlow.None;
+	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
+		this.included = true;
+		const breakFlow = context.breakFlow;
+		this.test.include(includeChildrenRecursively, context);
+		this.body.include(includeChildrenRecursively, context);
+		context.breakFlow = breakFlow;
 	}
 }

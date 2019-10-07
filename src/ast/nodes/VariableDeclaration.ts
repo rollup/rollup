@@ -6,7 +6,7 @@ import {
 	RenderOptions
 } from '../../utils/renderHelpers';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
-import { ExecutionContext } from '../ExecutionContext';
+import { InclusionContext } from '../ExecutionContext';
 import { EMPTY_PATH } from '../utils/PathTracker';
 import Variable from '../variables/Variable';
 import Identifier, { IdentifierWithVariable } from './Identifier';
@@ -47,7 +47,7 @@ export default class VariableDeclaration extends NodeBase {
 		return false;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
+	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
 		this.included = true;
 		for (const declarator of this.declarations) {
 			if (includeChildrenRecursively || declarator.shouldBeIncluded(context))
@@ -57,7 +57,7 @@ export default class VariableDeclaration extends NodeBase {
 
 	includeWithAllDeclaredVariables(
 		includeChildrenRecursively: IncludeChildren,
-		context: ExecutionContext
+		context: InclusionContext
 	) {
 		this.included = true;
 		for (const declarator of this.declarations) {

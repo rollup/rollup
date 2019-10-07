@@ -1,5 +1,5 @@
 import CallOptions from '../CallOptions';
-import { EffectsExecutionContext } from '../ExecutionContext';
+import { HasEffectsContext } from '../ExecutionContext';
 import { ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import {
 	arrayMembers,
@@ -34,7 +34,7 @@ export default class ArrayExpression extends NodeBase {
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		context: EffectsExecutionContext
+		context: HasEffectsContext
 	): boolean {
 		if (path.length === 1) {
 			return hasMemberEffectWhenCalled(arrayMembers, path[0], this.included, callOptions, context);

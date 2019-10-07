@@ -1,6 +1,6 @@
 import CallOptions from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import { EffectsExecutionContext } from '../../ExecutionContext';
+import { HasEffectsContext } from '../../ExecutionContext';
 import { ObjectPath, PathTracker } from '../../utils/PathTracker';
 import { LiteralValueOrUnknown, UnknownValue } from '../../values';
 import SpreadElement from '../SpreadElement';
@@ -38,14 +38,14 @@ export class MultiExpression implements ExpressionEntity {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		for (const expression of this.expressions) {
 			if (expression.hasEffectsWhenAccessedAtPath(path, context)) return true;
 		}
 		return false;
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		for (const expression of this.expressions) {
 			if (expression.hasEffectsWhenAssignedAtPath(path, context)) return true;
 		}
@@ -55,7 +55,7 @@ export class MultiExpression implements ExpressionEntity {
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		context: EffectsExecutionContext
+		context: HasEffectsContext
 	): boolean {
 		for (const expression of this.expressions) {
 			if (expression.hasEffectsWhenCalledAtPath(path, callOptions, context)) return true;

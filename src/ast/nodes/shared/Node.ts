@@ -6,10 +6,10 @@ import CallOptions from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { Entity } from '../../Entity';
 import {
-	createEffectsExecutionContext,
-	createExecutionContext,
-	EffectsExecutionContext,
-	ExecutionContext
+	createHasEffectsContext,
+	createInclusionContext,
+	HasEffectsContext,
+	InclusionContext
 } from '../../ExecutionContext';
 import { getAndCreateKeys, keys } from '../../keys';
 import ChildScope from '../../scopes/ChildScope';
@@ -57,14 +57,14 @@ export interface Node extends Entity {
 	 * which only have an effect if their surrounding loop or switch statement is included.
 	 * The options pass on information like this about the current execution path.
 	 */
-	hasEffects(context: EffectsExecutionContext): boolean;
+	hasEffects(context: HasEffectsContext): boolean;
 
 	/**
 	 * Includes the node in the bundle. If the flag is not set, children are usually included
 	 * if they are necessary for this node (e.g. a function body) or if they have effects.
 	 * Necessary variables need to be included as well.
 	 */
-	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext): void;
+	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext): void;
 
 	/**
 	 * Alternative version of include to override the default behaviour of
@@ -73,7 +73,7 @@ export interface Node extends Entity {
 	 */
 	includeWithAllDeclaredVariables(
 		includeChildrenRecursively: IncludeChildren,
-		context: ExecutionContext
+		context: InclusionContext
 	): void;
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void;
 
@@ -83,7 +83,7 @@ export interface Node extends Entity {
 	 * visits as the inclusion of additional variables may require the inclusion of more child
 	 * nodes in e.g. block statements.
 	 */
-	shouldBeIncluded(context: ExecutionContext): boolean;
+	shouldBeIncluded(context: InclusionContext): boolean;
 }
 
 export interface StatementNode extends Node {}
@@ -162,7 +162,7 @@ export class NodeBase implements ExpressionNode {
 		return UNKNOWN_EXPRESSION;
 	}
 
-	hasEffects(context: EffectsExecutionContext): boolean {
+	hasEffects(context: HasEffectsContext): boolean {
 		for (const key of this.keys) {
 			const value = (this as GenericEsTreeNode)[key];
 			if (value === null || key === 'annotations') continue;
@@ -175,23 +175,23 @@ export class NodeBase implements ExpressionNode {
 		return false;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, _context: EffectsExecutionContext) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, _context: HasEffectsContext) {
 		return path.length > 0;
 	}
 
-	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _context: EffectsExecutionContext) {
+	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _context: HasEffectsContext) {
 		return true;
 	}
 
 	hasEffectsWhenCalledAtPath(
 		_path: ObjectPath,
 		_callOptions: CallOptions,
-		_context: EffectsExecutionContext
+		_context: HasEffectsContext
 	) {
 		return true;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
+	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
 		this.included = true;
 		for (const key of this.keys) {
 			const value = (this as GenericEsTreeNode)[key];
@@ -208,13 +208,13 @@ export class NodeBase implements ExpressionNode {
 
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
-			arg.include(false, createExecutionContext());
+			arg.include(false, createInclusionContext());
 		}
 	}
 
 	includeWithAllDeclaredVariables(
 		includeChildrenRecursively: IncludeChildren,
-		context: ExecutionContext
+		context: InclusionContext
 	) {
 		this.include(includeChildrenRecursively, context);
 	}
@@ -277,10 +277,8 @@ export class NodeBase implements ExpressionNode {
 		}
 	}
 
-	shouldBeIncluded(context: ExecutionContext): boolean {
-		return (
-			this.included || (!context.breakFlow && this.hasEffects(createEffectsExecutionContext()))
-		);
+	shouldBeIncluded(context: InclusionContext): boolean {
+		return this.included || (!context.breakFlow && this.hasEffects(createHasEffectsContext()));
 	}
 
 	toString() {

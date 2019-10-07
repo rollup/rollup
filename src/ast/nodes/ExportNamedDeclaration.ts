@@ -1,7 +1,7 @@
 import MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import { EffectsExecutionContext } from '../ExecutionContext';
+import { HasEffectsContext } from '../ExecutionContext';
 import ClassDeclaration from './ClassDeclaration';
 import ExportSpecifier from './ExportSpecifier';
 import FunctionDeclaration from './FunctionDeclaration';
@@ -22,7 +22,7 @@ export default class ExportNamedDeclaration extends NodeBase {
 		if (this.declaration !== null) this.declaration.bind();
 	}
 
-	hasEffects(context: EffectsExecutionContext) {
+	hasEffects(context: HasEffectsContext) {
 		return this.declaration !== null && this.declaration.hasEffects(context);
 	}
 

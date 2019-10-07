@@ -1,6 +1,6 @@
 import MagicString from 'magic-string';
 import { NO_SEMICOLON, RenderOptions } from '../../utils/renderHelpers';
-import { BreakFlow, EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
+import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import Scope from '../scopes/Scope';
 import * as NodeType from './NodeType';
@@ -18,7 +18,7 @@ export default class ForStatement extends StatementBase {
 		this.scope = new BlockScope(parentScope);
 	}
 
-	hasEffects(context: EffectsExecutionContext): boolean {
+	hasEffects(context: HasEffectsContext): boolean {
 		if (
 			(this.init && this.init.hasEffects(context)) ||
 			(this.test && this.test.hasEffects(context)) ||
@@ -34,13 +34,14 @@ export default class ForStatement extends StatementBase {
 		return false;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
+	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
 		this.included = true;
+		const breakFlow = context.breakFlow;
 		if (this.init) this.init.include(includeChildrenRecursively, context);
 		if (this.test) this.test.include(includeChildrenRecursively, context);
 		if (this.update) this.update.include(includeChildrenRecursively, context);
 		if (this.body) this.body.include(includeChildrenRecursively, context);
-		context.breakFlow = BreakFlow.None;
+		context.breakFlow = breakFlow;
 	}
 
 	render(code: MagicString, options: RenderOptions) {

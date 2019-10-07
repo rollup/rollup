@@ -2,7 +2,7 @@ import ExternalModule from '../../ExternalModule';
 import Module from '../../Module';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { createExecutionContext, EffectsExecutionContext } from '../ExecutionContext';
+import { createInclusionContext, HasEffectsContext } from '../ExecutionContext';
 import Identifier from '../nodes/Identifier';
 import { ExpressionEntity } from '../nodes/shared/Expression';
 import { ExpressionNode } from '../nodes/shared/Node';
@@ -60,18 +60,18 @@ export default class Variable implements ExpressionEntity {
 		return UNKNOWN_EXPRESSION;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, _context: EffectsExecutionContext) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, _context: HasEffectsContext) {
 		return path.length > 0;
 	}
 
-	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _context: EffectsExecutionContext) {
+	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _context: HasEffectsContext) {
 		return true;
 	}
 
 	hasEffectsWhenCalledAtPath(
 		_path: ObjectPath,
 		_callOptions: CallOptions,
-		_context: EffectsExecutionContext
+		_context: HasEffectsContext
 	) {
 		return true;
 	}
@@ -88,7 +88,7 @@ export default class Variable implements ExpressionEntity {
 
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
-			arg.include(false, createExecutionContext());
+			arg.include(false, createInclusionContext());
 		}
 	}
 

@@ -1,4 +1,4 @@
-import { BreakFlow, EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
+import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockStatement from './BlockStatement';
 import CatchClause from './CatchClause';
 import * as NodeType from './NodeType';
@@ -12,7 +12,7 @@ export default class TryStatement extends StatementBase {
 
 	private directlyIncluded = false;
 
-	hasEffects(context: EffectsExecutionContext): boolean {
+	hasEffects(context: HasEffectsContext): boolean {
 		return (
 			this.block.body.length > 0 ||
 			(this.handler !== null && this.handler.hasEffects(context)) ||
@@ -20,7 +20,8 @@ export default class TryStatement extends StatementBase {
 		);
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
+	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
+		const breakFlow = context.breakFlow;
 		if (!this.directlyIncluded || !this.context.tryCatchDeoptimization) {
 			this.included = true;
 			this.directlyIncluded = true;
@@ -28,11 +29,11 @@ export default class TryStatement extends StatementBase {
 				this.context.tryCatchDeoptimization ? INCLUDE_PARAMETERS : includeChildrenRecursively,
 				context
 			);
-			context.breakFlow = BreakFlow.None;
+			context.breakFlow = breakFlow;
 		}
 		if (this.handler !== null) {
 			this.handler.include(includeChildrenRecursively, context);
-			context.breakFlow = BreakFlow.None;
+			context.breakFlow = breakFlow;
 		}
 		if (this.finalizer !== null) {
 			this.finalizer.include(includeChildrenRecursively, context);

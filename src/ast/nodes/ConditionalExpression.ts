@@ -9,7 +9,7 @@ import {
 import { removeAnnotations } from '../../utils/treeshakeNode';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { EffectsExecutionContext, ExecutionContext } from '../ExecutionContext';
+import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import {
 	EMPTY_IMMUTABLE_TRACKER,
 	EMPTY_PATH,
@@ -91,7 +91,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		return this.usedBranch.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
 	}
 
-	hasEffects(context: EffectsExecutionContext): boolean {
+	hasEffects(context: HasEffectsContext): boolean {
 		if (this.test.hasEffects(context)) return true;
 		if (this.usedBranch === null) {
 			return this.consequent.hasEffects(context) || this.alternate.hasEffects(context);
@@ -99,7 +99,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		return this.usedBranch.hasEffects(context);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		if (path.length === 0) return false;
 		if (this.usedBranch === null) {
 			return (
@@ -110,7 +110,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		return this.usedBranch.hasEffectsWhenAccessedAtPath(path, context);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: EffectsExecutionContext): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		if (path.length === 0) return true;
 		if (this.usedBranch === null) {
 			return (
@@ -124,7 +124,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		context: EffectsExecutionContext
+		context: HasEffectsContext
 	): boolean {
 		if (this.usedBranch === null) {
 			return (
@@ -135,7 +135,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		return this.usedBranch.hasEffectsWhenCalledAtPath(path, callOptions, context);
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: ExecutionContext) {
+	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
 		this.included = true;
 		if (
 			includeChildrenRecursively ||
