@@ -8,10 +8,10 @@ interface ExecutionContextIgnore {
 	returnAwaitYield: boolean;
 }
 
-export enum BreakFlow {
-	None = 0,
-	Error
-}
+export const BREAKFLOW_NONE: false = false;
+export const BREAKFLOW_ERROR_RETURN: true = true;
+
+export type BreakFlow = typeof BREAKFLOW_NONE | typeof BREAKFLOW_ERROR_RETURN;
 
 export interface InclusionContext {
 	breakFlow: BreakFlow;
@@ -28,7 +28,7 @@ export interface HasEffectsContext {
 
 export function createInclusionContext(): InclusionContext {
 	return {
-		breakFlow: BreakFlow.None
+		breakFlow: BREAKFLOW_NONE
 	};
 }
 

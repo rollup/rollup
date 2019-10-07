@@ -1,6 +1,6 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
-import { HasEffectsContext } from '../ExecutionContext';
+import { BREAKFLOW_ERROR_RETURN, HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { UNKNOWN_EXPRESSION } from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionNode, StatementBase } from './shared/Node';
@@ -14,6 +14,14 @@ export default class ReturnStatement extends StatementBase {
 			!context.ignore.returnAwaitYield ||
 			(this.argument !== null && this.argument.hasEffects(context))
 		);
+	}
+
+	include(includeChildrenRecursively: boolean | 'variables', context: InclusionContext) {
+		this.included = true;
+		if (this.argument) {
+			this.argument.include(includeChildrenRecursively, context);
+		}
+		context.breakFlow = BREAKFLOW_ERROR_RETURN;
 	}
 
 	initialise() {

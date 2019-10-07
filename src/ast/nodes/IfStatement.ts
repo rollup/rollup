@@ -2,7 +2,12 @@ import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { removeAnnotations } from '../../utils/treeshakeNode';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { BreakFlow, HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import {
+	BreakFlow,
+	BREAKFLOW_NONE,
+	HasEffectsContext,
+	InclusionContext
+} from '../ExecutionContext';
 import { EMPTY_IMMUTABLE_TRACKER, EMPTY_PATH } from '../utils/PathTracker';
 import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import * as NodeType from './NodeType';
@@ -63,7 +68,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			if (this.alternate !== null && this.alternate.shouldBeIncluded(context)) {
 				this.alternate.include(false, context);
 				if (!consequentBreakFlow) {
-					context.breakFlow = BreakFlow.None;
+					context.breakFlow = BREAKFLOW_NONE;
 				}
 			}
 		} else {

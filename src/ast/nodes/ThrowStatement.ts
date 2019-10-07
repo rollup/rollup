@@ -1,6 +1,6 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
-import { BreakFlow, InclusionContext } from '../ExecutionContext';
+import { BREAKFLOW_ERROR_RETURN, InclusionContext } from '../ExecutionContext';
 import * as NodeType from './NodeType';
 import { ExpressionNode, StatementBase } from './shared/Node';
 
@@ -12,13 +12,13 @@ export default class ThrowStatement extends StatementBase {
 		return true;
 	}
 
-	render(code: MagicString, options: RenderOptions) {
-		this.argument.render(code, options, { preventASI: true });
+	include(includeChildrenRecursively: boolean | 'variables', context: InclusionContext) {
+		this.included = true;
+		this.argument.include(includeChildrenRecursively, context);
+		context.breakFlow = BREAKFLOW_ERROR_RETURN;
 	}
 
-	shouldBeIncluded(context: InclusionContext): boolean {
-		if (context.breakFlow) return false;
-		context.breakFlow = BreakFlow.Error;
-		return true;
+	render(code: MagicString, options: RenderOptions) {
+		this.argument.render(code, options, { preventASI: true });
 	}
 }
