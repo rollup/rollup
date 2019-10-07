@@ -3,9 +3,9 @@ import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import { StatementBase } from './shared/Node';
 
-export default class BreakStatement extends StatementBase {
+export default class ContinueStatement extends StatementBase {
 	label!: Identifier | null;
-	type!: NodeType.tBreakStatement;
+	type!: NodeType.tContinueStatement;
 
 	hasEffects(context: HasEffectsContext) {
 		return (
@@ -16,9 +16,7 @@ export default class BreakStatement extends StatementBase {
 
 	include(_includeChildrenRecursively: boolean | 'variables', context: InclusionContext) {
 		this.included = true;
-		if (this.label) {
-			this.label.include();
-		}
+		if (this.label) this.label.include();
 		context.breakFlow = new Set();
 	}
 }

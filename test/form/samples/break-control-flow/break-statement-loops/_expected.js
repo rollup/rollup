@@ -5,6 +5,7 @@ while (globalThis.unknown) {
 
 while (globalThis.unknown) {
 	console.log('retained');
+	continue;
 }
 
 do {
