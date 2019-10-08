@@ -47,6 +47,3 @@ function withReturn() {
 }
 
 withReturn();
-
-// TODO Lukas do-while-loop support
-// TODO Lukas switch statements

@@ -14,10 +14,13 @@ export default class ContinueStatement extends StatementBase {
 		);
 	}
 
-	// TODO Lukas add label logic for continue
 	include(_includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
 		this.included = true;
-		if (this.label) this.label.include();
-		context.breakFlow = new Set();
+		if (this.label) {
+			this.label.include();
+			context.breakFlow = new Set([this.label.name]);
+		} else {
+			context.breakFlow = new Set([null]);
+		}
 	}
 }

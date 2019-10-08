@@ -94,6 +94,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			}
 		}
 	}
+
 	private includeKnownTest(context: InclusionContext) {
 		if (this.test.shouldBeIncluded(context)) {
 			this.test.include(false, context);
