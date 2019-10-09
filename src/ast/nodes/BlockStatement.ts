@@ -29,7 +29,6 @@ export default class BlockStatement extends StatementBase {
 	// simple logic: Break if flow is broken, as we only run this for non-included nodes
 	// Are there other places where this is relevant, everywhere we are using shouldBeIncluded?
 	// We definitely need to restore flow everywhere we do this for include
-	// TODO Lukas we could also eliminate trailing continue statements
 	hasEffects(context: HasEffectsContext) {
 		for (const node of this.body) {
 			if (node.hasEffects(context)) return true;

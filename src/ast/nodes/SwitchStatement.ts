@@ -1,4 +1,10 @@
-import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import {
+	BreakFlow,
+	BREAKFLOW_ERROR_RETURN,
+	BREAKFLOW_NONE,
+	HasEffectsContext,
+	InclusionContext
+} from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import Scope from '../scopes/Scope';
 import * as NodeType from './NodeType';
@@ -26,9 +32,26 @@ export default class SwitchStatement extends StatementBase {
 		this.included = true;
 		this.discriminant.include(includeChildrenRecursively, context);
 		const breakFlow = context.breakFlow;
+		let hasDefault = false;
+		let minBreakFlow: BreakFlow | false = BREAKFLOW_ERROR_RETURN;
 		for (const switchCase of this.cases) {
+			if (switchCase.test === null) hasDefault = true;
 			switchCase.include(includeChildrenRecursively, context);
+			if (!(minBreakFlow && context.breakFlow)) {
+				minBreakFlow = BREAKFLOW_NONE;
+			} else if (minBreakFlow instanceof Set) {
+				if (context.breakFlow instanceof Set) {
+					for (const label of context.breakFlow) {
+						minBreakFlow.add(label);
+					}
+				}
+			} else {
+				minBreakFlow = context.breakFlow;
+			}
 			context.breakFlow = breakFlow;
+		}
+		if (hasDefault && !(minBreakFlow instanceof Set && minBreakFlow.has(null))) {
+			context.breakFlow = minBreakFlow;
 		}
 	}
 }

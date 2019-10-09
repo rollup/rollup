@@ -129,16 +129,16 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		}
 		if (this.alternate !== null && this.alternate.shouldBeIncluded(context)) {
 			this.alternate.include(false, context);
-			if (!consequentBreakFlow || !context.breakFlow) {
+			if (!(consequentBreakFlow && context.breakFlow)) {
 				context.breakFlow = BREAKFLOW_NONE;
-			} else if (consequentBreakFlow instanceof Set) {
-				if (context.breakFlow instanceof Set) {
+			} else if (context.breakFlow instanceof Set) {
+				if (consequentBreakFlow instanceof Set) {
 					for (const label of consequentBreakFlow) {
 						context.breakFlow.add(label);
 					}
-				} else {
-					context.breakFlow = consequentBreakFlow;
 				}
+			} else {
+				context.breakFlow = consequentBreakFlow;
 			}
 		}
 	}
