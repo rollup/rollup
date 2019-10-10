@@ -4,7 +4,7 @@ import {
 	RenderOptions,
 	renderStatementList
 } from '../../utils/renderHelpers';
-import { InclusionContext } from '../ExecutionContext';
+import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, NodeBase, StatementNode } from './shared/Node';
 
@@ -12,6 +12,15 @@ export default class SwitchCase extends NodeBase {
 	consequent!: StatementNode[];
 	test!: ExpressionNode | null;
 	type!: NodeType.tSwitchCase;
+
+	hasEffects(context: HasEffectsContext): boolean {
+		if (this.test && this.test.hasEffects(context)) return true;
+		for (const node of this.consequent) {
+			if (context.breakFlow) break;
+			if (node.hasEffects(context)) return true;
+		}
+		return false;
+	}
 
 	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
 		this.included = true;

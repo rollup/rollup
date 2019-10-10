@@ -8,10 +8,19 @@ outer: {
 }
 
 outer: {
+	console.log('retained');
+	break outer;
+}
+
+outer: {
 	inner: {
 		console.log('retained');
 		break outer;
 	}
+}
+
+{
+	console.log('retained');
 }
 
 outer: {

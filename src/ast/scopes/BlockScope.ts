@@ -10,10 +10,15 @@ export default class BlockScope extends ChildScope {
 		identifier: Identifier,
 		context: AstContext,
 		init: ExpressionEntity | null = null,
-		isHoisted = false
+		isHoisted: boolean | 'function' = false
 	): LocalVariable {
 		if (isHoisted) {
-			return this.parent.addDeclaration(identifier, context, UNKNOWN_EXPRESSION, true);
+			return this.parent.addDeclaration(
+				identifier,
+				context,
+				isHoisted === 'function' ? init : UNKNOWN_EXPRESSION,
+				isHoisted
+			);
 		} else {
 			return super.addDeclaration(identifier, context, init, false);
 		}

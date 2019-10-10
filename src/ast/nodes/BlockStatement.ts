@@ -25,13 +25,10 @@ export default class BlockStatement extends StatementBase {
 			: new BlockScope(parentScope);
 	}
 
-	// TODO Lukas check brokenFlow here as well
-	// simple logic: Break if flow is broken, as we only run this for non-included nodes
-	// Are there other places where this is relevant, everywhere we are using shouldBeIncluded?
-	// We definitely need to restore flow everywhere we do this for include
 	hasEffects(context: HasEffectsContext) {
 		for (const node of this.body) {
 			if (node.hasEffects(context)) return true;
+			if (context.breakFlow) break;
 		}
 		return false;
 	}

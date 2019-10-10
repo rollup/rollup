@@ -26,19 +26,21 @@ export default class ForStatement extends StatementBase {
 		)
 			return true;
 		const {
+			breakFlow,
 			ignore: { breakStatements }
 		} = context;
 		context.ignore.breakStatements = true;
 		if (this.body.hasEffects(context)) return true;
 		context.ignore.breakStatements = breakStatements;
+		context.breakFlow = breakFlow;
 		return false;
 	}
 
 	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
 		this.included = true;
-		const breakFlow = context.breakFlow;
 		if (this.init) this.init.include(includeChildrenRecursively, context);
 		if (this.test) this.test.include(includeChildrenRecursively, context);
+		const breakFlow = context.breakFlow;
 		if (this.update) this.update.include(includeChildrenRecursively, context);
 		if (this.body) this.body.include(includeChildrenRecursively, context);
 		context.breakFlow = breakFlow;

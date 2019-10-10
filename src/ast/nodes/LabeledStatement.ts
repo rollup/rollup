@@ -17,6 +17,9 @@ export default class LabeledStatement extends StatementBase {
 		if (this.body.hasEffects(context)) return true;
 		context.ignore.breakStatements = breakStatements;
 		context.ignore.labels.delete(this.label.name);
+		if (context.breakFlow instanceof Set && context.breakFlow.has(this.label.name)) {
+			context.breakFlow = BREAKFLOW_NONE;
+		}
 		return false;
 	}
 

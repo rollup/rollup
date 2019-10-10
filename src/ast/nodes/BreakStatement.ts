@@ -8,19 +8,18 @@ export default class BreakStatement extends StatementBase {
 	type!: NodeType.tBreakStatement;
 
 	hasEffects(context: HasEffectsContext) {
-		return (
+		if (
 			!context.ignore.breakStatements ||
 			(this.label !== null && !context.ignore.labels.has(this.label.name))
-		);
+		)
+			return true;
+		context.breakFlow = new Set([this.label && this.label.name]);
+		return false;
 	}
 
 	include(_includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
 		this.included = true;
-		if (this.label) {
-			this.label.include();
-			context.breakFlow = new Set([this.label.name]);
-		} else {
-			context.breakFlow = new Set([null]);
-		}
+		if (this.label) this.label.include();
+		context.breakFlow = new Set([this.label && this.label.name]);
 	}
 }

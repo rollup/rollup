@@ -17,7 +17,7 @@ export interface InclusionContext {
 	breakFlow: BreakFlow;
 }
 
-export interface HasEffectsContext {
+export interface HasEffectsContext extends InclusionContext {
 	accessed: PathTracker;
 	assigned: PathTracker;
 	called: PathTracker;
@@ -36,6 +36,7 @@ export function createHasEffectsContext(): HasEffectsContext {
 	return {
 		accessed: new PathTracker(),
 		assigned: new PathTracker(),
+		breakFlow: BREAKFLOW_NONE,
 		called: new PathTracker(),
 		ignore: {
 			breakStatements: false,

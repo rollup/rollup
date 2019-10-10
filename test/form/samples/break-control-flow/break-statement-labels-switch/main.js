@@ -18,14 +18,32 @@ function returnAll() {
 
 returnAll();
 
+{
+	function returnAllRemoved() {
+		switch (globalThis.unknown) {
+			case 1:
+				return;
+				console.log('removed');
+			case 2:
+				return;
+				console.log('removed');
+			default:
+				return;
+				console.log('removed');
+		}
+		console.log('removed');
+	}
+	console.log('retained');
+
+	returnAllRemoved();
+}
+
 function returnNoDefault() {
 	switch (globalThis.unknown) {
 		case 1:
-			console.log('retained');
 			return;
 			console.log('removed');
 		case 2:
-			console.log('retained');
 			return;
 			console.log('removed');
 	}
@@ -37,15 +55,12 @@ returnNoDefault();
 function returnSomeBreak() {
 	switch (globalThis.unknown) {
 		case 1:
-			console.log('retained');
 			return;
 			console.log('removed');
 		case 2:
-			console.log('retained');
 			break;
 			console.log('removed');
 		default:
-			console.log('retained');
 			return;
 			console.log('removed');
 	}
@@ -54,20 +69,34 @@ function returnSomeBreak() {
 
 returnSomeBreak();
 
+function allBreak() {
+	label: switch (globalThis.unknown) {
+		case 1:
+			break label;
+			console.log('removed');
+		case 2:
+			break;
+			console.log('removed');
+		default:
+			break label;
+			console.log('removed');
+	}
+	console.log('retained');
+}
+
+allBreak();
+
 function returnBreakDifferentLabels() {
 	outer: {
 		inner: {
 			switch (globalThis.unknown) {
 				case 1:
-					console.log('retained');
 					break outer;
 					console.log('removed');
 				case 2:
-					console.log('retained');
 					break inner;
 					console.log('removed');
 				default:
-					console.log('retained');
 					break outer;
 					console.log('removed');
 			}
@@ -81,7 +110,8 @@ function returnBreakDifferentLabels() {
 returnBreakDifferentLabels();
 
 function empty() {
-	switch (globalThis.unknown) {}
+	switch (globalThis.unknown) {
+	}
 	console.log('retained');
 }
 

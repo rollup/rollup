@@ -38,10 +38,14 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	hasEffects(context: HasEffectsContext): boolean {
 		if (this.test.hasEffects(context)) return true;
 		if (this.testValue === UnknownValue) {
-			return (
-				this.consequent.hasEffects(context) ||
-				(this.alternate !== null && this.alternate.hasEffects(context))
-			);
+			const breakFlow = context.breakFlow;
+			if (this.consequent.hasEffects(context)) return true;
+			const consequentBreakFlow = context.breakFlow;
+			context.breakFlow = breakFlow;
+			if (this.alternate === null) return false;
+			if (this.alternate.hasEffects(context)) return true;
+			this.updateBreakFlowUnknownCondition(consequentBreakFlow, context);
+			return false;
 		}
 		return this.testValue
 			? this.consequent.hasEffects(context)
@@ -129,17 +133,24 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		}
 		if (this.alternate !== null && this.alternate.shouldBeIncluded(context)) {
 			this.alternate.include(false, context);
-			if (!(consequentBreakFlow && context.breakFlow)) {
-				context.breakFlow = BREAKFLOW_NONE;
-			} else if (context.breakFlow instanceof Set) {
-				if (consequentBreakFlow instanceof Set) {
-					for (const label of consequentBreakFlow) {
-						context.breakFlow.add(label);
-					}
+			this.updateBreakFlowUnknownCondition(consequentBreakFlow, context);
+		}
+	}
+
+	private updateBreakFlowUnknownCondition(
+		consequentBreakFlow: BreakFlow | false,
+		context: InclusionContext
+	) {
+		if (!(consequentBreakFlow && context.breakFlow)) {
+			context.breakFlow = BREAKFLOW_NONE;
+		} else if (context.breakFlow instanceof Set) {
+			if (consequentBreakFlow instanceof Set) {
+				for (const label of consequentBreakFlow) {
+					context.breakFlow.add(label);
 				}
-			} else {
-				context.breakFlow = consequentBreakFlow;
 			}
+		} else {
+			context.breakFlow = consequentBreakFlow;
 		}
 	}
 }

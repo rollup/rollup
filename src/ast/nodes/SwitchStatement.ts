@@ -21,10 +21,25 @@ export default class SwitchStatement extends StatementBase {
 	}
 
 	hasEffects(context: HasEffectsContext) {
-		const ignoreBreakStatements = context.ignore.breakStatements;
+		if (this.discriminant.hasEffects(context)) return true;
+		const {
+			breakFlow,
+			ignore: { breakStatements }
+		} = context;
+		let hasDefault = false;
+		let minBreakFlow: BreakFlow | false = BREAKFLOW_ERROR_RETURN;
 		context.ignore.breakStatements = true;
-		if (super.hasEffects(context)) return true;
-		context.ignore.breakStatements = ignoreBreakStatements;
+		for (const switchCase of this.cases) {
+			if (switchCase.hasEffects(context)) return true;
+			if (switchCase.test === null) hasDefault = true;
+			minBreakFlow = this.getMinBreakflowAfterCase(minBreakFlow, context);
+			context.breakFlow = breakFlow;
+			context.breakFlow = breakFlow;
+		}
+		if (hasDefault && !(minBreakFlow instanceof Set && minBreakFlow.has(null))) {
+			context.breakFlow = minBreakFlow;
+		}
+		context.ignore.breakStatements = breakStatements;
 		return false;
 	}
 
@@ -37,21 +52,29 @@ export default class SwitchStatement extends StatementBase {
 		for (const switchCase of this.cases) {
 			if (switchCase.test === null) hasDefault = true;
 			switchCase.include(includeChildrenRecursively, context);
-			if (!(minBreakFlow && context.breakFlow)) {
-				minBreakFlow = BREAKFLOW_NONE;
-			} else if (minBreakFlow instanceof Set) {
-				if (context.breakFlow instanceof Set) {
-					for (const label of context.breakFlow) {
-						minBreakFlow.add(label);
-					}
-				}
-			} else {
-				minBreakFlow = context.breakFlow;
-			}
+			minBreakFlow = this.getMinBreakflowAfterCase(minBreakFlow, context);
 			context.breakFlow = breakFlow;
 		}
 		if (hasDefault && !(minBreakFlow instanceof Set && minBreakFlow.has(null))) {
 			context.breakFlow = minBreakFlow;
 		}
+	}
+
+	private getMinBreakflowAfterCase(
+		minBreakFlow: BreakFlow | false,
+		context: InclusionContext
+	): BreakFlow | false {
+		if (!(minBreakFlow && context.breakFlow)) {
+			return BREAKFLOW_NONE;
+		}
+		if (minBreakFlow instanceof Set) {
+			if (context.breakFlow instanceof Set) {
+				for (const label of context.breakFlow) {
+					minBreakFlow.add(label);
+				}
+			}
+			return minBreakFlow;
+		}
+		return context.breakFlow;
 	}
 }

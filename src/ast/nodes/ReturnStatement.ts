@@ -10,10 +10,13 @@ export default class ReturnStatement extends StatementBase {
 	type!: NodeType.tReturnStatement;
 
 	hasEffects(context: HasEffectsContext) {
-		return (
+		if (
 			!context.ignore.returnAwaitYield ||
 			(this.argument !== null && this.argument.hasEffects(context))
-		);
+		)
+			return true;
+		context.breakFlow = BREAKFLOW_ERROR_RETURN;
+		return false;
 	}
 
 	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {

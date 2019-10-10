@@ -76,13 +76,14 @@ export default class FunctionNode extends NodeBase {
 			this.scope.thisVariable,
 			callOptions.withNew ? new UnknownObjectExpression() : UNKNOWN_EXPRESSION
 		);
-		const ignore = context.ignore;
+		const { breakFlow, ignore } = context;
 		context.ignore = {
 			breakStatements: false,
 			labels: new Set(),
 			returnAwaitYield: true
 		};
 		if (this.body.hasEffects(context)) return true;
+		context.breakFlow = breakFlow;
 		if (thisInit) {
 			context.replacedVariableInits.set(this.scope.thisVariable, thisInit);
 		} else {

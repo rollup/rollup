@@ -11,11 +11,32 @@ outer: {
 
 outer: {
 	inner: {
+		break inner;
+		console.log('removed');
+	}
+	console.log('retained');
+	break outer;
+	console.log('removed');
+}
+
+outer: {
+	inner: {
 		console.log('retained');
 		break outer;
 		console.log('removed');
 	}
 	console.log('removed');
+}
+
+{
+	outer: {
+		inner: {
+			break outer;
+			console.log('removed');
+		}
+		console.log('removed');
+	}
+	console.log('retained');
 }
 
 outer: {

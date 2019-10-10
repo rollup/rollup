@@ -56,7 +56,7 @@ export default class ArrowFunctionExpression extends NodeBase {
 		for (const param of this.params) {
 			if (param.hasEffects(context)) return true;
 		}
-		const ignore = context.ignore;
+		const { ignore, breakFlow } = context;
 		context.ignore = {
 			breakStatements: false,
 			labels: new Set(),
@@ -64,6 +64,7 @@ export default class ArrowFunctionExpression extends NodeBase {
 		};
 		if (this.body.hasEffects(context)) return true;
 		context.ignore = ignore;
+		context.breakFlow = breakFlow;
 		return false;
 	}
 

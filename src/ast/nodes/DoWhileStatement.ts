@@ -10,18 +10,22 @@ export default class DoWhileStatement extends StatementBase {
 	hasEffects(context: HasEffectsContext): boolean {
 		if (this.test.hasEffects(context)) return true;
 		const {
+			breakFlow,
 			ignore: { breakStatements }
 		} = context;
 		context.ignore.breakStatements = true;
 		if (this.body.hasEffects(context)) return true;
 		context.ignore.breakStatements = breakStatements;
+		if (context.breakFlow instanceof Set && context.breakFlow.has(null)) {
+			context.breakFlow = breakFlow;
+		}
 		return false;
 	}
 
 	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
 		this.included = true;
-		const breakFlow = context.breakFlow;
 		this.test.include(includeChildrenRecursively, context);
+		const breakFlow = context.breakFlow;
 		this.body.include(includeChildrenRecursively, context);
 		if (context.breakFlow instanceof Set && context.breakFlow.has(null)) {
 			context.breakFlow = breakFlow;

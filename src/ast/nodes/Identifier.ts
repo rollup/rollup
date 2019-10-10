@@ -52,8 +52,10 @@ export default class Identifier extends NodeBase implements PatternNode {
 		let variable: LocalVariable;
 		switch (kind) {
 			case 'var':
-			case 'function':
 				variable = this.scope.addDeclaration(this, this.context, init, true);
+				break;
+			case 'function':
+				variable = this.scope.addDeclaration(this, this.context, init, 'function');
 				break;
 			case 'let':
 			case 'const':

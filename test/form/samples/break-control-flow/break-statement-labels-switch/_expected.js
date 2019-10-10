@@ -17,14 +17,16 @@ function returnAll() {
 
 returnAll();
 
+{
+	console.log('retained');
+}
+
 function returnNoDefault() {
 	switch (globalThis.unknown) {
 		case 1:
-			console.log('retained');
 			return;
 
 		case 2:
-			console.log('retained');
 			return;
 
 	}
@@ -36,15 +38,12 @@ returnNoDefault();
 function returnSomeBreak() {
 	switch (globalThis.unknown) {
 		case 1:
-			console.log('retained');
 			return;
 
 		case 2:
-			console.log('retained');
 			break;
 
 		default:
-			console.log('retained');
 			return;
 
 	}
@@ -53,20 +52,23 @@ function returnSomeBreak() {
 
 returnSomeBreak();
 
+function allBreak() {
+	console.log('retained');
+}
+
+allBreak();
+
 function returnBreakDifferentLabels() {
 	outer: {
 		inner: {
 			switch (globalThis.unknown) {
 				case 1:
-					console.log('retained');
 					break outer;
 
 				case 2:
-					console.log('retained');
 					break inner;
 
 				default:
-					console.log('retained');
 					break outer;
 
 			}
