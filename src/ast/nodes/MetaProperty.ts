@@ -36,14 +36,14 @@ export default class MetaProperty extends NodeBase {
 					? parent.propertyKey
 					: null);
 			if (metaProperty) {
-				if (metaProperty === 'url') {
-					this.scope.addAccessedGlobalsByFormat(accessedMetaUrlGlobals);
-				} else if (
+				if (
 					metaProperty.startsWith(FILE_PREFIX) ||
 					metaProperty.startsWith(ASSET_PREFIX) ||
 					metaProperty.startsWith(CHUNK_PREFIX)
 				) {
 					this.scope.addAccessedGlobalsByFormat(accessedFileUrlGlobals);
+				} else {
+					this.scope.addAccessedGlobalsByFormat(accessedMetaUrlGlobals);
 				}
 			}
 		}
