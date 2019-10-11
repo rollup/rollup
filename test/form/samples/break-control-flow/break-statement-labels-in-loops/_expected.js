@@ -10,9 +10,6 @@ while (globalThis.unknown) {
 }
 
 while (globalThis.unknown) {
-	label: {
-		break label;
-	}
 	console.log('retained');
 }
 
@@ -26,10 +23,5 @@ label: {
 
 while (globalThis.unknown) {
 	console.log('retained');
-	outer: {
-		label: {
-			break outer;
-		}
-	}
 	console.log('retained');
 }
