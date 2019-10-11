@@ -9,13 +9,8 @@ export default class LabeledStatement extends StatementBase {
 	type!: NodeType.tLabeledStatement;
 
 	hasEffects(context: HasEffectsContext) {
-		const {
-			ignore: { breakStatements }
-		} = context;
-		context.ignore.breakStatements = true;
 		context.ignore.labels.add(this.label.name);
 		if (this.body.hasEffects(context)) return true;
-		context.ignore.breakStatements = breakStatements;
 		context.ignore.labels.delete(this.label.name);
 		if (context.breakFlow instanceof Set && context.breakFlow.has(this.label.name)) {
 			context.breakFlow = BREAKFLOW_NONE;
