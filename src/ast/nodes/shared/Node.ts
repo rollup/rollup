@@ -64,7 +64,7 @@ export interface Node extends Entity {
 	 * if they are necessary for this node (e.g. a function body) or if they have effects.
 	 * Necessary variables need to be included as well.
 	 */
-	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext): void;
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void;
 
 	/**
 	 * Alternative version of include to override the default behaviour of
@@ -191,24 +191,24 @@ export class NodeBase implements ExpressionNode {
 		return true;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		for (const key of this.keys) {
 			const value = (this as GenericEsTreeNode)[key];
 			if (value === null || key === 'annotations') continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
-					if (child !== null) child.include(includeChildrenRecursively, context);
+					if (child !== null) child.include(context, includeChildrenRecursively);
 				}
 			} else {
-				value.include(includeChildrenRecursively, context);
+				value.include(context, includeChildrenRecursively);
 			}
 		}
 	}
 
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
-			arg.include(false, createInclusionContext());
+			arg.include(createInclusionContext(), false);
 		}
 	}
 
@@ -216,7 +216,7 @@ export class NodeBase implements ExpressionNode {
 		includeChildrenRecursively: IncludeChildren,
 		context: InclusionContext
 	) {
-		this.include(includeChildrenRecursively, context);
+		this.include(context, includeChildrenRecursively);
 	}
 
 	/**

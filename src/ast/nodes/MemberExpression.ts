@@ -209,15 +209,15 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		);
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		if (!this.included) {
 			this.included = true;
 			if (this.variable !== null) {
 				this.context.includeVariable(this.variable);
 			}
 		}
-		this.object.include(includeChildrenRecursively, context);
-		this.property.include(includeChildrenRecursively, context);
+		this.object.include(context, includeChildrenRecursively);
+		this.property.include(context, includeChildrenRecursively);
 	}
 
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {

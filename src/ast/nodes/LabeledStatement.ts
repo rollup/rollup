@@ -18,10 +18,10 @@ export default class LabeledStatement extends StatementBase {
 		return false;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		this.label.include();
-		this.body.include(includeChildrenRecursively, context);
+		this.body.include(context, includeChildrenRecursively);
 		if (context.breakFlow instanceof Set && context.breakFlow.has(this.label.name)) {
 			context.breakFlow = BREAKFLOW_NONE;
 		}

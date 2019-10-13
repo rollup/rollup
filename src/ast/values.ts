@@ -41,7 +41,7 @@ export const UNKNOWN_EXPRESSION: ExpressionEntity = {
 	include: () => {},
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
-			arg.include(false, createInclusionContext());
+			arg.include(createInclusionContext(), false);
 		}
 	},
 	included: true,
@@ -115,7 +115,7 @@ export class UnknownArrayExpression implements ExpressionEntity {
 
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
-			arg.include(false, createInclusionContext());
+			arg.include(createInclusionContext(), false);
 		}
 	}
 
@@ -178,7 +178,7 @@ const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = {
 	include: () => {},
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
-			arg.include(false, createInclusionContext());
+			arg.include(createInclusionContext(), false);
 		}
 	},
 	included: true,
@@ -223,7 +223,7 @@ const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = {
 	include: () => {},
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
-			arg.include(false, createInclusionContext());
+			arg.include(createInclusionContext(), false);
 		}
 	},
 	included: true,
@@ -275,7 +275,7 @@ const UNKNOWN_LITERAL_STRING: ExpressionEntity = {
 	include: () => {},
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
-			arg.include(false, createInclusionContext());
+			arg.include(createInclusionContext(), false);
 		}
 	},
 	included: true,
@@ -332,7 +332,7 @@ export class UnknownObjectExpression implements ExpressionEntity {
 
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
-			arg.include(false, createInclusionContext());
+			arg.include(createInclusionContext(), false);
 		}
 	}
 

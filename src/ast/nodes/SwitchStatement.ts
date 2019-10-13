@@ -60,15 +60,15 @@ export default class SwitchStatement extends StatementBase {
 		return false;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		this.discriminant.include(includeChildrenRecursively, context);
+		this.discriminant.include(context, includeChildrenRecursively);
 		const breakFlow = context.breakFlow;
 		let hasDefault = false;
 		let minBreakFlow: BreakFlow | false = BREAKFLOW_ERROR_RETURN;
 		for (const switchCase of this.cases) {
 			if (switchCase.test === null) hasDefault = true;
-			switchCase.include(includeChildrenRecursively, context);
+			switchCase.include(context, includeChildrenRecursively);
 			minBreakFlow = getMinBreakflowAfterCase(minBreakFlow, context);
 			context.breakFlow = breakFlow;
 		}

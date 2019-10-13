@@ -19,10 +19,10 @@ export default class ReturnStatement extends StatementBase {
 		return false;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		if (this.argument) {
-			this.argument.include(includeChildrenRecursively, context);
+			this.argument.include(context, includeChildrenRecursively);
 		}
 		context.breakFlow = BREAKFLOW_ERROR_RETURN;
 	}

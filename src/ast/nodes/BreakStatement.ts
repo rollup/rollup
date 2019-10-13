@@ -1,7 +1,7 @@
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
-import { IncludeChildren, StatementBase } from './shared/Node';
+import { StatementBase } from './shared/Node';
 
 export default class BreakStatement extends StatementBase {
 	label!: Identifier | null;
@@ -14,7 +14,7 @@ export default class BreakStatement extends StatementBase {
 		return false;
 	}
 
-	include(_includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
+	include(context: InclusionContext) {
 		this.included = true;
 		if (this.label) this.label.include();
 		context.breakFlow = new Set([this.label && this.label.name]);

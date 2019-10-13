@@ -451,7 +451,7 @@ export default class Module {
 
 	include(): void {
 		if (this.ast.shouldBeIncluded(createInclusionContext()))
-			this.ast.include(false, createInclusionContext());
+			this.ast.include(createInclusionContext(), false);
 	}
 
 	includeAllExports() {
@@ -483,7 +483,7 @@ export default class Module {
 	}
 
 	includeAllInBundle() {
-		this.ast.include(true, createInclusionContext());
+		this.ast.include(createInclusionContext(), true);
 	}
 
 	isIncluded() {

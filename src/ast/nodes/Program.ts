@@ -16,11 +16,11 @@ export default class Program extends NodeBase {
 		return false;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		for (const node of this.body) {
 			if (includeChildrenRecursively || node.shouldBeIncluded(context)) {
-				node.include(includeChildrenRecursively, context);
+				node.include(context, includeChildrenRecursively);
 			}
 		}
 	}

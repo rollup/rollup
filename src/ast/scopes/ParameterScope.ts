@@ -69,7 +69,7 @@ export default class ParameterScope extends ChildScope {
 				argIncluded = true;
 			}
 			if (argIncluded) {
-				arg.include(calledFromTryStatement, createInclusionContext());
+				arg.include(createInclusionContext(), calledFromTryStatement);
 			}
 		}
 	}

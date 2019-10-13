@@ -12,9 +12,9 @@ export default class ThrowStatement extends StatementBase {
 		return true;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		this.argument.include(includeChildrenRecursively, context);
+		this.argument.include(context, includeChildrenRecursively);
 		context.breakFlow = BREAKFLOW_ERROR_RETURN;
 	}
 

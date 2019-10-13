@@ -163,7 +163,7 @@ export default class LocalVariable extends Variable {
 			}
 			for (const declaration of this.declarations) {
 				// If node is a default export, it can save a tree-shaking run to include the full declaration now
-				if (!declaration.included) declaration.include(false, createInclusionContext());
+				if (!declaration.included) declaration.include(createInclusionContext(), false);
 				let node = declaration.parent as Node;
 				while (!node.included) {
 					// We do not want to properly include parents in case they are part of a dead branch
@@ -179,7 +179,7 @@ export default class LocalVariable extends Variable {
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
 		if (this.isReassigned) {
 			for (const arg of args) {
-				arg.include(false, createInclusionContext());
+				arg.include(createInclusionContext(), false);
 			}
 		} else if (this.init) {
 			this.init.includeCallArguments(args);

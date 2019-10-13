@@ -31,6 +31,6 @@ export interface ExpressionEntity extends WritableEntity {
 		callOptions: CallOptions,
 		context: HasEffectsContext
 	): boolean;
-	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext): void;
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void;
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void;
 }

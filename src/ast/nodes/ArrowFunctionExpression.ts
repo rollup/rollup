@@ -68,12 +68,12 @@ export default class ArrowFunctionExpression extends NodeBase {
 		return false;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		this.body.include(includeChildrenRecursively, createInclusionContext());
+		this.body.include(createInclusionContext(), includeChildrenRecursively);
 		for (const param of this.params) {
 			if (!(param instanceof Identifier)) {
-				param.include(includeChildrenRecursively, context);
+				param.include(context, includeChildrenRecursively);
 			}
 		}
 	}

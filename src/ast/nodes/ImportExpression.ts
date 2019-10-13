@@ -22,12 +22,12 @@ export default class Import extends NodeBase {
 		return true;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		if (!this.included) {
 			this.included = true;
 			this.context.includeDynamicImport(this);
 		}
-		this.source.include(includeChildrenRecursively, context);
+		this.source.include(context, includeChildrenRecursively);
 	}
 
 	initialise() {

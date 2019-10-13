@@ -44,8 +44,8 @@ export default class ExportDefaultDeclaration extends NodeBase {
 
 	private declarationName: string | undefined;
 
-	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
-		super.include(includeChildrenRecursively, context);
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+		super.include(context, includeChildrenRecursively);
 		if (includeChildrenRecursively) {
 			this.context.includeVariable(this.variable);
 		}

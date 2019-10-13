@@ -47,11 +47,11 @@ export default class VariableDeclaration extends NodeBase {
 		return false;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		for (const declarator of this.declarations) {
 			if (includeChildrenRecursively || declarator.shouldBeIncluded(context))
-				declarator.include(includeChildrenRecursively, context);
+				declarator.include(context, includeChildrenRecursively);
 		}
 	}
 
@@ -61,7 +61,7 @@ export default class VariableDeclaration extends NodeBase {
 	) {
 		this.included = true;
 		for (const declarator of this.declarations) {
-			declarator.include(includeChildrenRecursively, context);
+			declarator.include(context, includeChildrenRecursively);
 		}
 	}
 

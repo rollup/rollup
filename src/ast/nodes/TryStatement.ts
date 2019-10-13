@@ -20,23 +20,23 @@ export default class TryStatement extends StatementBase {
 		);
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		const breakFlow = context.breakFlow;
 		if (!this.directlyIncluded || !this.context.tryCatchDeoptimization) {
 			this.included = true;
 			this.directlyIncluded = true;
 			this.block.include(
-				this.context.tryCatchDeoptimization ? INCLUDE_PARAMETERS : includeChildrenRecursively,
-				context
+				context,
+				this.context.tryCatchDeoptimization ? INCLUDE_PARAMETERS : includeChildrenRecursively
 			);
 			context.breakFlow = breakFlow;
 		}
 		if (this.handler !== null) {
-			this.handler.include(includeChildrenRecursively, context);
+			this.handler.include(context, includeChildrenRecursively);
 			context.breakFlow = breakFlow;
 		}
 		if (this.finalizer !== null) {
-			this.finalizer.include(includeChildrenRecursively, context);
+			this.finalizer.include(context, includeChildrenRecursively);
 		}
 	}
 }

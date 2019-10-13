@@ -20,11 +20,11 @@ export default class WhileStatement extends StatementBase {
 		return false;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		this.test.include(includeChildrenRecursively, context);
+		this.test.include(context, includeChildrenRecursively);
 		const breakFlow = context.breakFlow;
-		this.body.include(includeChildrenRecursively, context);
+		this.body.include(context, includeChildrenRecursively);
 		context.breakFlow = breakFlow;
 	}
 }

@@ -93,14 +93,14 @@ export default class FunctionNode extends NodeBase {
 		return false;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		this.body.include(includeChildrenRecursively, createInclusionContext());
+		this.body.include(createInclusionContext(), includeChildrenRecursively);
 		if (this.id) this.id.include();
 		const hasArguments = this.scope.argumentsVariable.included;
 		for (const param of this.params) {
 			if (!(param instanceof Identifier) || hasArguments) {
-				param.include(includeChildrenRecursively, context);
+				param.include(context, includeChildrenRecursively);
 			}
 		}
 	}

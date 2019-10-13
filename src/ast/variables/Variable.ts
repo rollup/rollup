@@ -88,7 +88,7 @@ export default class Variable implements ExpressionEntity {
 
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
-			arg.include(false, createInclusionContext());
+			arg.include(createInclusionContext(), false);
 		}
 	}
 

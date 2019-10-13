@@ -22,12 +22,12 @@ export default class SwitchCase extends NodeBase {
 		return false;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		if (this.test) this.test.include(includeChildrenRecursively, context);
+		if (this.test) this.test.include(context, includeChildrenRecursively);
 		for (const node of this.consequent) {
 			if (includeChildrenRecursively || node.shouldBeIncluded(context))
-				node.include(includeChildrenRecursively, context);
+				node.include(context, includeChildrenRecursively);
 		}
 	}
 

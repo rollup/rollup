@@ -26,7 +26,7 @@ export default class FunctionScope extends ReturnValueScope {
 		if (this.argumentsVariable.included) {
 			for (const arg of args) {
 				if (!arg.included) {
-					arg.include(false, createInclusionContext());
+					arg.include(createInclusionContext(), false);
 				}
 			}
 		}

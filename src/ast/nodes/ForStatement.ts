@@ -36,13 +36,13 @@ export default class ForStatement extends StatementBase {
 		return false;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		if (this.init) this.init.include(includeChildrenRecursively, context);
-		if (this.test) this.test.include(includeChildrenRecursively, context);
+		if (this.init) this.init.include(context, includeChildrenRecursively);
+		if (this.test) this.test.include(context, includeChildrenRecursively);
 		const breakFlow = context.breakFlow;
-		if (this.update) this.update.include(includeChildrenRecursively, context);
-		if (this.body) this.body.include(includeChildrenRecursively, context);
+		if (this.update) this.update.include(context, includeChildrenRecursively);
+		if (this.body) this.body.include(context, includeChildrenRecursively);
 		context.breakFlow = breakFlow;
 	}
 

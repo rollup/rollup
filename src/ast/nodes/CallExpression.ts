@@ -197,9 +197,9 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		);
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		if (includeChildrenRecursively) {
-			super.include(includeChildrenRecursively, context);
+			super.include(context, includeChildrenRecursively);
 			if (
 				includeChildrenRecursively === INCLUDE_PARAMETERS &&
 				this.callee instanceof Identifier &&
@@ -209,11 +209,11 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 			}
 		} else {
 			this.included = true;
-			this.callee.include(false, context);
+			this.callee.include(context, false);
 		}
 		this.callee.includeCallArguments(this.arguments);
 		if (!(this.returnExpression as ExpressionEntity).included) {
-			(this.returnExpression as ExpressionEntity).include(false, context);
+			(this.returnExpression as ExpressionEntity).include(context, false);
 		}
 	}
 

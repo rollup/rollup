@@ -52,7 +52,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			: this.alternate !== null && this.alternate.hasEffects(context);
 	}
 
-	include(includeChildrenRecursively: IncludeChildren, context: InclusionContext) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		if (includeChildrenRecursively) {
 			this.includeRecursively(includeChildrenRecursively, context);
@@ -101,13 +101,13 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 
 	private includeKnownTest(context: InclusionContext) {
 		if (this.test.shouldBeIncluded(context)) {
-			this.test.include(false, context);
+			this.test.include(context, false);
 		}
 		if (this.testValue && this.consequent.shouldBeIncluded(context)) {
-			this.consequent.include(false, context);
+			this.consequent.include(context, false);
 		}
 		if (this.alternate !== null && !this.testValue && this.alternate.shouldBeIncluded(context)) {
-			this.alternate.include(false, context);
+			this.alternate.include(context, false);
 		}
 	}
 
@@ -115,24 +115,24 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		includeChildrenRecursively: true | 'variables',
 		context: InclusionContext
 	) {
-		this.test.include(includeChildrenRecursively, context);
-		this.consequent.include(includeChildrenRecursively, context);
+		this.test.include(context, includeChildrenRecursively);
+		this.consequent.include(context, includeChildrenRecursively);
 		if (this.alternate !== null) {
-			this.alternate.include(includeChildrenRecursively, context);
+			this.alternate.include(context, includeChildrenRecursively);
 		}
 	}
 
 	private includeUnknownTest(context: InclusionContext) {
-		this.test.include(false, context);
+		this.test.include(context, false);
 		const breakFlow = context.breakFlow;
 		let consequentBreakFlow: BreakFlow | false = false;
 		if (this.consequent.shouldBeIncluded(context)) {
-			this.consequent.include(false, context);
+			this.consequent.include(context, false);
 			consequentBreakFlow = context.breakFlow;
 			context.breakFlow = breakFlow;
 		}
 		if (this.alternate !== null && this.alternate.shouldBeIncluded(context)) {
-			this.alternate.include(false, context);
+			this.alternate.include(context, false);
 			this.updateBreakFlowUnknownCondition(consequentBreakFlow, context);
 		}
 	}
