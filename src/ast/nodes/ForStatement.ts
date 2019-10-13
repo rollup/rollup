@@ -40,7 +40,7 @@ export default class ForStatement extends StatementBase {
 		this.included = true;
 		if (this.init) this.init.include(context, includeChildrenRecursively);
 		if (this.test) this.test.include(context, includeChildrenRecursively);
-		const breakFlow = context.breakFlow;
+		const { breakFlow } = context;
 		if (this.update) this.update.include(context, includeChildrenRecursively);
 		if (this.body) this.body.include(context, includeChildrenRecursively);
 		context.breakFlow = breakFlow;

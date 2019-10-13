@@ -23,7 +23,7 @@ export default class WhileStatement extends StatementBase {
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		this.test.include(context, includeChildrenRecursively);
-		const breakFlow = context.breakFlow;
+		const { breakFlow } = context;
 		this.body.include(context, includeChildrenRecursively);
 		context.breakFlow = breakFlow;
 	}

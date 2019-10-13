@@ -38,7 +38,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	hasEffects(context: HasEffectsContext): boolean {
 		if (this.test.hasEffects(context)) return true;
 		if (this.testValue === UnknownValue) {
-			const breakFlow = context.breakFlow;
+			const { breakFlow } = context;
 			if (this.consequent.hasEffects(context)) return true;
 			const consequentBreakFlow = context.breakFlow;
 			context.breakFlow = breakFlow;
@@ -124,7 +124,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 
 	private includeUnknownTest(context: InclusionContext) {
 		this.test.include(context, false);
-		const breakFlow = context.breakFlow;
+		const { breakFlow } = context;
 		let consequentBreakFlow: BreakFlow | false = false;
 		if (this.consequent.shouldBeIncluded(context)) {
 			this.consequent.include(context, false);

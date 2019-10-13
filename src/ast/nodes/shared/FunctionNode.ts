@@ -1,9 +1,5 @@
 import CallOptions from '../../CallOptions';
-import {
-	createInclusionContext,
-	HasEffectsContext,
-	InclusionContext
-} from '../../ExecutionContext';
+import { BREAKFLOW_NONE, HasEffectsContext, InclusionContext } from '../../ExecutionContext';
 import FunctionScope from '../../scopes/FunctionScope';
 import { ObjectPath, UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
 import { UNKNOWN_EXPRESSION, UnknownObjectExpression } from '../../values';
@@ -95,7 +91,6 @@ export default class FunctionNode extends NodeBase {
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		this.body.include(createInclusionContext(), includeChildrenRecursively);
 		if (this.id) this.id.include();
 		const hasArguments = this.scope.argumentsVariable.included;
 		for (const param of this.params) {
@@ -103,6 +98,10 @@ export default class FunctionNode extends NodeBase {
 				param.include(context, includeChildrenRecursively);
 			}
 		}
+		const { breakFlow } = context;
+		context.breakFlow = BREAKFLOW_NONE;
+		this.body.include(context, includeChildrenRecursively);
+		context.breakFlow = breakFlow;
 	}
 
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {

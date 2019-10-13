@@ -21,7 +21,7 @@ export default class TryStatement extends StatementBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
-		const breakFlow = context.breakFlow;
+		const { breakFlow } = context;
 		if (!this.directlyIncluded || !this.context.tryCatchDeoptimization) {
 			this.included = true;
 			this.directlyIncluded = true;

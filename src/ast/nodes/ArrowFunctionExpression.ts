@@ -1,5 +1,5 @@
 import CallOptions from '../CallOptions';
-import { createInclusionContext, HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { BREAKFLOW_NONE, HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import ReturnValueScope from '../scopes/ReturnValueScope';
 import Scope from '../scopes/Scope';
 import { ObjectPath, UNKNOWN_PATH, UnknownKey } from '../utils/PathTracker';
@@ -70,12 +70,15 @@ export default class ArrowFunctionExpression extends NodeBase {
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		this.body.include(createInclusionContext(), includeChildrenRecursively);
 		for (const param of this.params) {
 			if (!(param instanceof Identifier)) {
 				param.include(context, includeChildrenRecursively);
 			}
 		}
+		const { breakFlow } = context;
+		context.breakFlow = BREAKFLOW_NONE;
+		this.body.include(context, includeChildrenRecursively);
+		context.breakFlow = breakFlow;
 	}
 
 	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {

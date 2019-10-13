@@ -63,7 +63,7 @@ export default class SwitchStatement extends StatementBase {
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		this.discriminant.include(context, includeChildrenRecursively);
-		const breakFlow = context.breakFlow;
+		const { breakFlow } = context;
 		let hasDefault = false;
 		let minBreakFlow: BreakFlow | false = BREAKFLOW_ERROR_RETURN;
 		for (const switchCase of this.cases) {
