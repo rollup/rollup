@@ -16,7 +16,7 @@ export default class ContinueStatement extends StatementBase {
 
 	include(context: InclusionContext) {
 		this.included = true;
-		if (this.label) this.label.include();
+		if (this.label) this.label.include(context);
 		context.breakFlow = new Set([this.label && this.label.name]);
 	}
 }

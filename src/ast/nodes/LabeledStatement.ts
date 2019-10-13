@@ -20,7 +20,7 @@ export default class LabeledStatement extends StatementBase {
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		this.label.include();
+		this.label.include(context);
 		this.body.include(context, includeChildrenRecursively);
 		if (context.breakFlow instanceof Set && context.breakFlow.has(this.label.name)) {
 			context.breakFlow = BREAKFLOW_NONE;

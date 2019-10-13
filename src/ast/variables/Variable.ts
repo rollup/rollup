@@ -82,7 +82,7 @@ export default class Variable implements ExpressionEntity {
 	 * previously.
 	 * Once a variable is included, it should take care all its declarations are included.
 	 */
-	include() {
+	include(_context: InclusionContext) {
 		this.included = true;
 	}
 

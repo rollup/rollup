@@ -3,7 +3,7 @@ import * as ESTree from 'estree';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
 import extractAssignedNames from 'rollup-pluginutils/src/extractAssignedNames';
-import { createInclusionContext } from './ast/ExecutionContext';
+import { createInclusionContext, InclusionContext } from './ast/ExecutionContext';
 import ClassDeclaration from './ast/nodes/ClassDeclaration';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
@@ -98,7 +98,7 @@ export interface AstContext {
 	getReexports: () => string[];
 	importDescriptions: { [name: string]: ImportDescription };
 	includeDynamicImport: (node: ImportExpression) => void;
-	includeVariable: (variable: Variable) => void;
+	includeVariable: (context: InclusionContext, variable: Variable) => void;
 	isCrossChunkImport: (importDescription: ImportDescription) => boolean;
 	magicString: MagicString;
 	module: Module; // not to be used for tree-shaking
@@ -450,8 +450,8 @@ export default class Module {
 	}
 
 	include(): void {
-		if (this.ast.shouldBeIncluded(createInclusionContext()))
-			this.ast.include(createInclusionContext(), false);
+		const context = createInclusionContext();
+		if (this.ast.shouldBeIncluded(context)) this.ast.include(context, false);
 	}
 
 	includeAllExports() {
@@ -460,11 +460,12 @@ export default class Module {
 			markModuleAndImpureDependenciesAsExecuted(this);
 		}
 
+		const context = createInclusionContext();
 		for (const exportName of this.getExports()) {
 			const variable = this.getVariableForExportName(exportName);
 			variable.deoptimizePath(UNKNOWN_PATH);
 			if (!variable.included) {
-				variable.include();
+				variable.include(context);
 				this.graph.needsTreeshakingPass = true;
 			}
 		}
@@ -473,7 +474,7 @@ export default class Module {
 			const variable = this.getVariableForExportName(name);
 			variable.deoptimizePath(UNKNOWN_PATH);
 			if (!variable.included) {
-				variable.include();
+				variable.include(context);
 				this.graph.needsTreeshakingPass = true;
 			}
 			if (variable instanceof ExternalVariable) {
@@ -836,10 +837,10 @@ export default class Module {
 		}
 	}
 
-	private includeVariable(variable: Variable) {
+	private includeVariable(context: InclusionContext, variable: Variable) {
 		const variableModule = variable.module;
 		if (!variable.included) {
-			variable.include();
+			variable.include(context);
 			this.graph.needsTreeshakingPass = true;
 		}
 		if (variableModule && variableModule !== this) {
