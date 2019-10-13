@@ -2,7 +2,7 @@ import ExternalModule from '../../ExternalModule';
 import Module from '../../Module';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { createInclusionContext, HasEffectsContext } from '../ExecutionContext';
+import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import Identifier from '../nodes/Identifier';
 import { ExpressionEntity } from '../nodes/shared/Expression';
 import { ExpressionNode } from '../nodes/shared/Node';
@@ -86,9 +86,9 @@ export default class Variable implements ExpressionEntity {
 		this.included = true;
 	}
 
-	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
-			arg.include(createInclusionContext(), false);
+			arg.include(context, false);
 		}
 	}
 

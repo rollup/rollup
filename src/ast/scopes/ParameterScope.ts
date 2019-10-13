@@ -1,5 +1,5 @@
 import { AstContext } from '../../Module';
-import { createInclusionContext } from '../ExecutionContext';
+import { InclusionContext } from '../ExecutionContext';
 import Identifier from '../nodes/Identifier';
 import { ExpressionNode } from '../nodes/shared/Node';
 import SpreadElement from '../nodes/SpreadElement';
@@ -47,7 +47,7 @@ export default class ParameterScope extends ChildScope {
 		this.hasRest = hasRest;
 	}
 
-	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
 		let calledFromTryStatement = false;
 		let argIncluded = false;
 		const restParam = this.hasRest && this.parameters[this.parameters.length - 1];
@@ -65,11 +65,11 @@ export default class ParameterScope extends ChildScope {
 					}
 				}
 			}
-			if (!argIncluded && arg.shouldBeIncluded(createInclusionContext())) {
+			if (!argIncluded && arg.shouldBeIncluded(context)) {
 				argIncluded = true;
 			}
 			if (argIncluded) {
-				arg.include(createInclusionContext(), calledFromTryStatement);
+				arg.include(context, calledFromTryStatement);
 			}
 		}
 	}

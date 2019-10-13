@@ -4,7 +4,7 @@ import { BLANK } from '../../utils/blank';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { HasEffectsContext } from '../ExecutionContext';
+import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import FunctionScope from '../scopes/FunctionScope';
 import { EMPTY_PATH, ObjectPath, PathTracker } from '../utils/PathTracker';
 import { LiteralValueOrUnknown } from '../values';
@@ -136,8 +136,8 @@ export default class Identifier extends NodeBase implements PatternNode {
 		}
 	}
 
-	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
-		(this.variable as Variable).includeCallArguments(args);
+	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
+		(this.variable as Variable).includeCallArguments(context, args);
 	}
 
 	render(

@@ -81,8 +81,8 @@ export default class ArrowFunctionExpression extends NodeBase {
 		context.breakFlow = breakFlow;
 	}
 
-	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
-		this.scope.includeCallArguments(args);
+	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
+		this.scope.includeCallArguments(context, args);
 	}
 
 	initialise() {

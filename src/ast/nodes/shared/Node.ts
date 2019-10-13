@@ -7,7 +7,6 @@ import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { Entity } from '../../Entity';
 import {
 	createHasEffectsContext,
-	createInclusionContext,
 	HasEffectsContext,
 	InclusionContext
 } from '../../ExecutionContext';
@@ -206,9 +205,9 @@ export class NodeBase implements ExpressionNode {
 		}
 	}
 
-	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
-			arg.include(createInclusionContext(), false);
+			arg.include(context, false);
 		}
 	}
 

@@ -220,11 +220,11 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		this.property.include(context, includeChildrenRecursively);
 	}
 
-	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
 		if (this.variable) {
-			this.variable.includeCallArguments(args);
+			this.variable.includeCallArguments(context, args);
 		} else {
-			super.includeCallArguments(args);
+			super.includeCallArguments(context, args);
 		}
 	}
 

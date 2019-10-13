@@ -2,7 +2,7 @@ import Module, { AstContext } from '../../Module';
 import { markModuleAndImpureDependenciesAsExecuted } from '../../utils/traverseStaticDependencies';
 import CallOptions from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { createInclusionContext, HasEffectsContext } from '../ExecutionContext';
+import { createInclusionContext, HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import Identifier from '../nodes/Identifier';
 import * as NodeType from '../nodes/NodeType';
@@ -176,13 +176,13 @@ export default class LocalVariable extends Variable {
 		}
 	}
 
-	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
 		if (this.isReassigned) {
 			for (const arg of args) {
-				arg.include(createInclusionContext(), false);
+				arg.include(context, false);
 			}
 		} else if (this.init) {
-			this.init.includeCallArguments(args);
+			this.init.includeCallArguments(context, args);
 		}
 	}
 

@@ -1,5 +1,5 @@
 import { AstContext } from '../../Module';
-import { createInclusionContext } from '../ExecutionContext';
+import { InclusionContext } from '../ExecutionContext';
 import { ExpressionNode } from '../nodes/shared/Node';
 import SpreadElement from '../nodes/SpreadElement';
 import ArgumentsVariable from '../variables/ArgumentsVariable';
@@ -21,12 +21,12 @@ export default class FunctionScope extends ReturnValueScope {
 		return this;
 	}
 
-	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
-		super.includeCallArguments(args);
+	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
+		super.includeCallArguments(context, args);
 		if (this.argumentsVariable.included) {
 			for (const arg of args) {
 				if (!arg.included) {
-					arg.include(createInclusionContext(), false);
+					arg.include(context, false);
 				}
 			}
 		}
