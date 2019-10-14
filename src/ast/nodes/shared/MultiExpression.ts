@@ -1,11 +1,9 @@
 import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
+import { HasEffectsContext } from '../../ExecutionContext';
 import { ObjectPath, PathTracker } from '../../utils/PathTracker';
 import { LiteralValueOrUnknown, UnknownValue } from '../../values';
-import SpreadElement from '../SpreadElement';
 import { ExpressionEntity } from './Expression';
-import { ExpressionNode } from './Node';
 
 export class MultiExpression implements ExpressionEntity {
 	included = false;
@@ -65,9 +63,5 @@ export class MultiExpression implements ExpressionEntity {
 
 	include(): void {}
 
-	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
-		for (const expression of this.expressions) {
-			expression.includeCallArguments(context, args);
-		}
-	}
+	includeCallArguments(): void {}
 }

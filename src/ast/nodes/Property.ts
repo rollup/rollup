@@ -10,7 +10,7 @@ import {
 	PathTracker,
 	UnknownKey
 } from '../utils/PathTracker';
-import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UnknownValue } from '../values';
+import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION } from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
@@ -63,9 +63,6 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		if (this.kind === 'set') {
-			return UnknownValue;
-		}
 		if (this.kind === 'get') {
 			if (this.returnExpression === null) this.updateReturnExpression();
 			return (this.returnExpression as ExpressionEntity).getLiteralValueAtPath(
