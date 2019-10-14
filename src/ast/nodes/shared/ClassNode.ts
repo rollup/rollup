@@ -1,4 +1,4 @@
-import CallOptions from '../../CallOptions';
+import { CallOptions } from '../../CallOptions';
 import { HasEffectsContext } from '../../ExecutionContext';
 import ChildScope from '../../scopes/ChildScope';
 import Scope from '../../scopes/Scope';
@@ -29,6 +29,7 @@ export default class ClassNode extends NodeBase {
 		callOptions: CallOptions,
 		context: HasEffectsContext
 	) {
+		if (!callOptions.withNew) return true;
 		return (
 			this.body.hasEffectsWhenCalledAtPath(path, callOptions, context) ||
 			(this.superClass !== null &&

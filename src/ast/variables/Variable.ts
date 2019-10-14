@@ -1,6 +1,6 @@
 import ExternalModule from '../../ExternalModule';
 import Module from '../../Module';
-import CallOptions from '../CallOptions';
+import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import Identifier from '../nodes/Identifier';

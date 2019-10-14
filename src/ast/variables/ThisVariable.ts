@@ -1,5 +1,5 @@
 import { AstContext } from '../../Module';
-import CallOptions from '../CallOptions';
+import { CallOptions } from '../CallOptions';
 import { HasEffectsContext } from '../ExecutionContext';
 import { ExpressionEntity } from '../nodes/shared/Expression';
 import { ObjectPath } from '../utils/PathTracker';

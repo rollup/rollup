@@ -1,6 +1,6 @@
 import Module, { AstContext } from '../../Module';
 import { markModuleAndImpureDependenciesAsExecuted } from '../../utils/traverseStaticDependencies';
-import CallOptions from '../CallOptions';
+import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';

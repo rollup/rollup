@@ -1,5 +1,5 @@
 import MagicString from 'magic-string';
-import CallOptions from '../CallOptions';
+import { CallOptions } from '../CallOptions';
 import { HasEffectsContext } from '../ExecutionContext';
 import { ObjectPath } from '../utils/PathTracker';
 import {

@@ -7,7 +7,7 @@ import {
 	RenderOptions
 } from '../../utils/renderHelpers';
 import { treeshakeNode } from '../../utils/treeshakeNode';
-import CallOptions from '../CallOptions';
+import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { ObjectPath, PathTracker } from '../utils/PathTracker';

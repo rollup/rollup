@@ -2,7 +2,7 @@ import { locate } from 'locate-character';
 import MagicString from 'magic-string';
 import { AstContext, CommentDescription } from '../../../Module';
 import { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
-import CallOptions from '../../CallOptions';
+import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { Entity } from '../../Entity';
 import {

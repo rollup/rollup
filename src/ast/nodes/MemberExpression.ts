@@ -2,7 +2,7 @@ import MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import relativeId from '../../utils/relativeId';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import CallOptions from '../CallOptions';
+import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import {

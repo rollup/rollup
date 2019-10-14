@@ -1,4 +1,4 @@
-import CallOptions from '../../CallOptions';
+import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { WritableEntity } from '../../Entity';
 import { HasEffectsContext, InclusionContext } from '../../ExecutionContext';

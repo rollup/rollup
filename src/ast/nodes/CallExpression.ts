@@ -5,7 +5,7 @@ import {
 	NodeRenderOptions,
 	RenderOptions
 } from '../../utils/renderHelpers';
-import CallOptions from '../CallOptions';
+import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import {
@@ -218,11 +218,10 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 	}
 
 	initialise() {
-		this.callOptions = CallOptions.create({
+		this.callOptions = {
 			args: this.arguments,
-			callIdentifier: this,
 			withNew: false
-		});
+		};
 	}
 
 	render(

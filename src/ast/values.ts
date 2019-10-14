@@ -1,4 +1,4 @@
-import CallOptions from './CallOptions';
+import { CallOptions, NO_ARGS } from './CallOptions';
 import { HasEffectsContext, InclusionContext } from './ExecutionContext';
 import { LiteralValue } from './nodes/Literal';
 import { ExpressionEntity } from './nodes/shared/Expression';
@@ -470,11 +470,10 @@ export function hasMemberEffectWhenCalled(
 			callOptions.args[argIndex] &&
 			callOptions.args[argIndex].hasEffectsWhenCalledAtPath(
 				EMPTY_PATH,
-				CallOptions.create({
-					args: [],
-					callIdentifier: {}, // make sure the caller is unique to avoid this check being ignored,
+				{
+					args: NO_ARGS,
 					withNew: false
-				}),
+				},
 				context
 			)
 		)

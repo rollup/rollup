@@ -1,4 +1,4 @@
-import CallOptions from '../CallOptions';
+import { CallOptions } from '../CallOptions';
 import { HasEffectsContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import * as NodeType from './NodeType';
@@ -24,8 +24,11 @@ export default class NewExpression extends NodeBase {
 		for (const argument of this.arguments) {
 			if (argument.hasEffects(context)) return true;
 		}
-		if (this.annotatedPure) return false;
-		return this.callee.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.callOptions, context);
+		if (this.context.annotations && this.annotatedPure) return false;
+		return (
+			this.callee.hasEffects(context) ||
+			this.callee.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.callOptions, context)
+		);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
@@ -33,10 +36,9 @@ export default class NewExpression extends NodeBase {
 	}
 
 	initialise() {
-		this.callOptions = CallOptions.create({
+		this.callOptions = {
 			args: this.arguments,
-			callIdentifier: this,
 			withNew: true
-		});
+		};
 	}
 }

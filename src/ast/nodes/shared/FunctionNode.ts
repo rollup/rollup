@@ -1,4 +1,4 @@
-import CallOptions from '../../CallOptions';
+import { CallOptions } from '../../CallOptions';
 import { BREAKFLOW_NONE, HasEffectsContext, InclusionContext } from '../../ExecutionContext';
 import FunctionScope from '../../scopes/FunctionScope';
 import { ObjectPath, UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';

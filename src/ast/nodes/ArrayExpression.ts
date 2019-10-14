@@ -1,4 +1,4 @@
-import CallOptions from '../CallOptions';
+import { CallOptions } from '../CallOptions';
 import { HasEffectsContext } from '../ExecutionContext';
 import { ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import {

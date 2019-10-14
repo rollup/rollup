@@ -1,6 +1,6 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
-import CallOptions from '../CallOptions';
+import { CallOptions, NO_ARGS } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext } from '../ExecutionContext';
 import {
@@ -82,9 +82,6 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
-		if (this.kind === 'set') {
-			return UNKNOWN_EXPRESSION;
-		}
 		if (this.kind === 'get') {
 			if (this.returnExpression === null) this.updateReturnExpression();
 			return (this.returnExpression as ExpressionEntity).getReturnExpressionWhenCalledAtPath(
@@ -116,7 +113,6 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		if (this.kind === 'get') {
-			if (path.length === 0) return true;
 			const trackedExpressions = context.assigned.getEntities(path);
 			if (trackedExpressions.has(this)) return false;
 			trackedExpressions.add(this);
@@ -126,7 +122,6 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 			);
 		}
 		if (this.kind === 'set') {
-			if (path.length > 0) return true;
 			const trackedExpressions = context.assigned.getEntities(path);
 			if (trackedExpressions.has(this)) return false;
 			trackedExpressions.add(this);
@@ -157,10 +152,10 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 	}
 
 	initialise() {
-		this.accessorCallOptions = CallOptions.create({
-			callIdentifier: this,
+		this.accessorCallOptions = {
+			args: NO_ARGS,
 			withNew: false
-		});
+		};
 	}
 
 	render(code: MagicString, options: RenderOptions) {

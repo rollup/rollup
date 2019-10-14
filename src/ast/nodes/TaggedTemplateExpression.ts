@@ -1,4 +1,4 @@
-import CallOptions from '../CallOptions';
+import { CallOptions, NO_ARGS } from '../CallOptions';
 import { HasEffectsContext } from '../ExecutionContext';
 import { EMPTY_PATH } from '../utils/PathTracker';
 import Identifier from './Identifier';
@@ -49,9 +49,9 @@ export default class TaggedTemplateExpression extends NodeBase {
 	}
 
 	initialise() {
-		this.callOptions = CallOptions.create({
-			callIdentifier: this,
+		this.callOptions = {
+			args: NO_ARGS,
 			withNew: false
-		});
+		};
 	}
 }

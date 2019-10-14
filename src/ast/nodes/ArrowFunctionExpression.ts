@@ -1,4 +1,4 @@
-import CallOptions from '../CallOptions';
+import { CallOptions } from '../CallOptions';
 import { BREAKFLOW_NONE, HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import ReturnValueScope from '../scopes/ReturnValueScope';
 import Scope from '../scopes/Scope';
