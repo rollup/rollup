@@ -3,7 +3,7 @@ let outsideLet = 'outside';
 
 try {
 	throw new Error();
-} catch {
+} catch (e) {
 	var outsideVar = 'inside';
 	let outsideLet = 'inside';
 	var insideVar = 'inside';
