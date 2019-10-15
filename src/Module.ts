@@ -2,7 +2,7 @@ import * as acorn from 'acorn';
 import * as ESTree from 'estree';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
-import extractAssignedNames from 'rollup-pluginutils/src/extractAssignedNames';
+import { extractAssignedNames } from 'rollup-pluginutils';
 import { createInclusionContext, InclusionContext } from './ast/ExecutionContext';
 import ClassDeclaration from './ast/nodes/ClassDeclaration';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
