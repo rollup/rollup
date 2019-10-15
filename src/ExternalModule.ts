@@ -37,7 +37,7 @@ export default class ExternalModule {
 		this.exportedVariables = new Map();
 	}
 
-	getVariableForExportName(name: string, _isExportAllSearch?: boolean): ExternalVariable {
+	getVariableForExportName(name: string): ExternalVariable {
 		if (name === '*') {
 			this.exportsNamespace = true;
 		} else if (name !== 'default') {

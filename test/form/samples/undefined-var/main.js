@@ -1,16 +1,14 @@
 var x;
 var y = undefined;
 var z;
-if (x)
-	console.log('yes');
-if (!x)
-	console.log('no');
-if (y)
-	console.log('yes');
-if (!y)
-	console.log('no');
-if (z)
-	console.log('yes');
-if (!z)
-	console.log('no');
+
+if (x) console.log('removed');
+else console.log('retained');
+
+if (y) console.log('removed');
+else console.log('retained');
+
+if (z) console.log('retained');
+else console.log('retained');
+
 z = 1;

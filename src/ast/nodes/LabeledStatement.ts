@@ -1,14 +1,29 @@
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { BREAKFLOW_NONE, HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
-import { StatementBase, StatementNode } from './shared/Node';
+import { IncludeChildren, StatementBase, StatementNode } from './shared/Node';
 
 export default class LabeledStatement extends StatementBase {
 	body!: StatementNode;
 	label!: Identifier;
 	type!: NodeType.tLabeledStatement;
 
-	hasEffects(options: ExecutionPathOptions) {
-		return this.body.hasEffects(options.setIgnoreLabel(this.label.name).setIgnoreBreakStatements());
+	hasEffects(context: HasEffectsContext) {
+		context.ignore.labels.add(this.label.name);
+		if (this.body.hasEffects(context)) return true;
+		context.ignore.labels.delete(this.label.name);
+		if (context.breakFlow instanceof Set && context.breakFlow.has(this.label.name)) {
+			context.breakFlow = BREAKFLOW_NONE;
+		}
+		return false;
+	}
+
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+		this.included = true;
+		this.label.include(context);
+		this.body.include(context, includeChildrenRecursively);
+		if (context.breakFlow instanceof Set && context.breakFlow.has(this.label.name)) {
+			context.breakFlow = BREAKFLOW_NONE;
+		}
 	}
 }

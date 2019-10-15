@@ -13,6 +13,7 @@ import ClassBody from './ClassBody';
 import ClassDeclaration from './ClassDeclaration';
 import ClassExpression from './ClassExpression';
 import ConditionalExpression from './ConditionalExpression';
+import ContinueStatement from './ContinueStatement';
 import DoWhileStatement from './DoWhileStatement';
 import EmptyStatement from './EmptyStatement';
 import ExportAllDeclaration from './ExportAllDeclaration';
@@ -78,6 +79,7 @@ export const nodeConstructors: {
 	ClassDeclaration,
 	ClassExpression,
 	ConditionalExpression,
+	ContinueStatement,
 	DoWhileStatement,
 	EmptyStatement,
 	ExportAllDeclaration,

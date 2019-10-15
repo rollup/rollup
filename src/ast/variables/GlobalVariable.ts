@@ -1,5 +1,5 @@
 import { isGlobalMember, isPureGlobal } from '../nodes/shared/knownGlobals';
-import { ObjectPath } from '../values';
+import { ObjectPath } from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class GlobalVariable extends Variable {
