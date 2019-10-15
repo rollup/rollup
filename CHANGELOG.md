@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 1.24.0
+*2019-10-15*
+
+### Features
+* Respect `break`, `continue`, `return` and `throw` when tree-shaking to detect dead code (#3153)
+* Do treat treat hoisted function declarations as "unknown" when checking for call side-effects (#3153)
+
+### Bug Fixes
+* Make sure that unknown `import.meta` properties produce valid code in SystemJS (#3152)
+* Make sure `treeshake.annotations: false` is respected for class instantiation (#3153)
+* Check property access side-effects for class instantiation (#3153)
+* Do not suppress break statements inside labeled statements (#3153)
+
+### Pull Requests
+* [#3152](https://github.com/rollup/rollup/pull/3152): Allow import.meta.* for systemjs format (@dmail)
+* [#3153](https://github.com/rollup/rollup/pull/3153): Get rid of immutable.js and implement tree-shaking for broken control flow (@lukastaegert)
+
 ## 1.23.1
 *2019-10-05*
 
