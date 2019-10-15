@@ -1,8 +1,10 @@
 var z;
-console.log('no');
-console.log('no');
-if (z)
-	console.log('yes');
-if (!z)
-	console.log('no');
+
+console.log('retained');
+
+console.log('retained');
+
+if (z) console.log('retained');
+else console.log('retained');
+
 z = 1;

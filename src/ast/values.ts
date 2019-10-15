@@ -47,6 +47,7 @@ export const UNKNOWN_EXPRESSION: ExpressionEntity = {
 	included: true,
 	toString: () => '[[UNKNOWN]]'
 };
+
 export const UNDEFINED_EXPRESSION: ExpressionEntity = {
 	deoptimizePath: () => {},
 	getLiteralValueAtPath: () => undefined,
@@ -59,6 +60,7 @@ export const UNDEFINED_EXPRESSION: ExpressionEntity = {
 	included: true,
 	toString: () => 'undefined'
 };
+
 const returnsUnknown: RawMemberDescription = {
 	value: {
 		callsArgs: null,

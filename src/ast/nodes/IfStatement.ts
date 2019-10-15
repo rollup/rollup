@@ -19,16 +19,11 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	test!: ExpressionNode;
 	type!: NodeType.tIfStatement;
 
-	private isTestValueAnalysed = false;
 	private testValue: LiteralValueOrUnknown;
 
 	bind() {
 		super.bind();
-		if (!this.isTestValueAnalysed) {
-			this.testValue = UnknownValue;
-			this.isTestValueAnalysed = true;
-			this.testValue = this.test.getLiteralValueAtPath(EMPTY_PATH, EMPTY_IMMUTABLE_TRACKER, this);
-		}
+		this.testValue = this.test.getLiteralValueAtPath(EMPTY_PATH, EMPTY_IMMUTABLE_TRACKER, this);
 	}
 
 	deoptimizeCache() {

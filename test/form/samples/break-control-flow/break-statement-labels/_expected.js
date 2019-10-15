@@ -31,11 +31,11 @@ outer: {
 	console.log('retained');
 }
 
-function withReturn() {
+function withConsequentReturn() {
 	outer: {
 		inner: {
-			if (globalThis.unknown) break inner;
-			else return;
+			if (globalThis.unknown) return;
+			else break inner;
 		}
 		console.log('retained');
 	}
@@ -46,4 +46,16 @@ function withReturn() {
 	}
 }
 
-withReturn();
+withConsequentReturn();
+
+function withAlternateReturn() {
+	outer: {
+		inner: {
+			if (globalThis.unknown) break inner;
+			else return;
+		}
+		console.log('retained');
+	}
+}
+
+withAlternateReturn();

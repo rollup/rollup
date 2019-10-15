@@ -6,13 +6,6 @@ class Effect {
 
 new Effect();
 
-class NoEffect {
-	constructor () {
-	}
-}
-
-new NoEffect();
-
 class Empty {}
 
 new Empty.doesNotExist();
