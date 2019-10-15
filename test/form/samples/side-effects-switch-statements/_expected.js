@@ -30,3 +30,7 @@ switch ( globalThis.unknown ) {
 			effect();
 	}
 }());
+
+switch ( globalThis.unknown ) {
+	case effect():
+}

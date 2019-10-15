@@ -1,8 +1,9 @@
 import Module, { AstContext } from '../../Module';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { RESERVED_NAMES } from '../../utils/reservedNames';
+import { InclusionContext } from '../ExecutionContext';
 import Identifier from '../nodes/Identifier';
-import { UNKNOWN_PATH } from '../values';
+import { UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class NamespaceVariable extends Variable {
@@ -36,7 +37,7 @@ export default class NamespaceVariable extends Variable {
 		}
 	}
 
-	include() {
+	include(context: InclusionContext) {
 		if (!this.included) {
 			if (this.containsExternalNamespace) {
 				this.context.error(
@@ -57,10 +58,10 @@ export default class NamespaceVariable extends Variable {
 			}
 			if (this.context.preserveModules) {
 				for (const memberName of Object.keys(this.memberVariables))
-					this.memberVariables[memberName].include();
+					this.memberVariables[memberName].include(context);
 			} else {
 				for (const memberName of Object.keys(this.memberVariables))
-					this.context.includeVariable(this.memberVariables[memberName]);
+					this.context.includeVariable(context, this.memberVariables[memberName]);
 			}
 		}
 	}
@@ -92,7 +93,7 @@ export default class NamespaceVariable extends Variable {
 		});
 
 		members.unshift(`${t}__proto__:${_}null`);
-    
+
 		if (options.namespaceToStringTag) {
 			members.unshift(`${t}[Symbol.toStringTag]:${_}'Module'`);
 		}

@@ -7,20 +7,17 @@ import {
 	RenderOptions
 } from '../../utils/renderHelpers';
 import { removeAnnotations } from '../../utils/treeshakeNode';
-import CallOptions from '../CallOptions';
+import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import {
 	EMPTY_IMMUTABLE_TRACKER,
-	ImmutableEntityPathTracker
-} from '../utils/ImmutableEntityPathTracker';
-import {
 	EMPTY_PATH,
-	LiteralValueOrUnknown,
 	ObjectPath,
-	UNKNOWN_PATH,
-	UNKNOWN_VALUE
-} from '../values';
+	PathTracker,
+	UNKNOWN_PATH
+} from '../utils/PathTracker';
+import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
@@ -72,18 +69,18 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
-		if (this.usedBranch === null) return UNKNOWN_VALUE;
+		if (this.usedBranch === null) return UnknownValue;
 		this.expressionsToBeDeoptimized.push(origin);
 		return this.usedBranch.getLiteralValueAtPath(path, recursionTracker, origin);
 	}
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
 		if (!this.isBranchResolutionAnalysed) this.analyseBranchResolution();
@@ -96,60 +93,60 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		return this.usedBranch.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
 	}
 
-	hasEffects(options: ExecutionPathOptions): boolean {
+	hasEffects(context: HasEffectsContext): boolean {
 		if (this.usedBranch === null) {
-			return this.left.hasEffects(options) || this.right.hasEffects(options);
+			return this.left.hasEffects(context) || this.right.hasEffects(context);
 		}
-		return this.usedBranch.hasEffects(options);
+		return this.usedBranch.hasEffects(context);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		if (path.length === 0) return false;
 		if (this.usedBranch === null) {
 			return (
-				this.left.hasEffectsWhenAccessedAtPath(path, options) ||
-				this.right.hasEffectsWhenAccessedAtPath(path, options)
+				this.left.hasEffectsWhenAccessedAtPath(path, context) ||
+				this.right.hasEffectsWhenAccessedAtPath(path, context)
 			);
 		}
-		return this.usedBranch.hasEffectsWhenAccessedAtPath(path, options);
+		return this.usedBranch.hasEffectsWhenAccessedAtPath(path, context);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		if (path.length === 0) return true;
 		if (this.usedBranch === null) {
 			return (
-				this.left.hasEffectsWhenAssignedAtPath(path, options) ||
-				this.right.hasEffectsWhenAssignedAtPath(path, options)
+				this.left.hasEffectsWhenAssignedAtPath(path, context) ||
+				this.right.hasEffectsWhenAssignedAtPath(path, context)
 			);
 		}
-		return this.usedBranch.hasEffectsWhenAssignedAtPath(path, options);
+		return this.usedBranch.hasEffectsWhenAssignedAtPath(path, context);
 	}
 
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		options: ExecutionPathOptions
+		context: HasEffectsContext
 	): boolean {
 		if (this.usedBranch === null) {
 			return (
-				this.left.hasEffectsWhenCalledAtPath(path, callOptions, options) ||
-				this.right.hasEffectsWhenCalledAtPath(path, callOptions, options)
+				this.left.hasEffectsWhenCalledAtPath(path, callOptions, context) ||
+				this.right.hasEffectsWhenCalledAtPath(path, callOptions, context)
 			);
 		}
-		return this.usedBranch.hasEffectsWhenCalledAtPath(path, callOptions, options);
+		return this.usedBranch.hasEffectsWhenCalledAtPath(path, callOptions, context);
 	}
 
-	include(includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		if (
 			includeChildrenRecursively ||
 			this.usedBranch === null ||
-			(this.unusedBranch as ExpressionNode).shouldBeIncluded()
+			(this.unusedBranch as ExpressionNode).shouldBeIncluded(context)
 		) {
-			this.left.include(includeChildrenRecursively);
-			this.right.include(includeChildrenRecursively);
+			this.left.include(context, includeChildrenRecursively);
+			this.right.include(context, includeChildrenRecursively);
 		} else {
-			this.usedBranch.include(includeChildrenRecursively);
+			this.usedBranch.include(context, includeChildrenRecursively);
 		}
 	}
 
@@ -187,7 +184,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 	private analyseBranchResolution() {
 		this.isBranchResolutionAnalysed = true;
 		const leftValue = this.left.getLiteralValueAtPath(EMPTY_PATH, EMPTY_IMMUTABLE_TRACKER, this);
-		if (leftValue !== UNKNOWN_VALUE) {
+		if (leftValue !== UnknownValue) {
 			if (this.operator === '||' ? leftValue : !leftValue) {
 				this.usedBranch = this.left;
 				this.unusedBranch = this.right;

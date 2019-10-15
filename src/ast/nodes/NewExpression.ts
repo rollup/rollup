@@ -1,6 +1,6 @@
-import CallOptions from '../CallOptions';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../values';
+import { CallOptions } from '../CallOptions';
+import { HasEffectsContext } from '../ExecutionContext';
+import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
@@ -20,27 +20,25 @@ export default class NewExpression extends NodeBase {
 		}
 	}
 
-	hasEffects(options: ExecutionPathOptions): boolean {
+	hasEffects(context: HasEffectsContext): boolean {
 		for (const argument of this.arguments) {
-			if (argument.hasEffects(options)) return true;
+			if (argument.hasEffects(context)) return true;
 		}
-		if (this.annotatedPure) return false;
-		return this.callee.hasEffectsWhenCalledAtPath(
-			EMPTY_PATH,
-			this.callOptions,
-			options.getHasEffectsWhenCalledOptions()
+		if (this.context.annotations && this.annotatedPure) return false;
+		return (
+			this.callee.hasEffects(context) ||
+			this.callee.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.callOptions, context)
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
 		return path.length > 1;
 	}
 
 	initialise() {
-		this.callOptions = CallOptions.create({
+		this.callOptions = {
 			args: this.arguments,
-			callIdentifier: this,
 			withNew: true
-		});
+		};
 	}
 }

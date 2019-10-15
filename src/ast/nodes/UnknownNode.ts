@@ -1,12 +1,12 @@
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { InclusionContext } from '../ExecutionContext';
 import { NodeBase } from './shared/Node';
 
 export default class UnknownNode extends NodeBase {
-	hasEffects(_options: ExecutionPathOptions) {
+	hasEffects() {
 		return true;
 	}
 
-	include() {
-		super.include(true);
+	include(context: InclusionContext) {
+		super.include(context, true);
 	}
 }

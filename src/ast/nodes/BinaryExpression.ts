@@ -1,10 +1,7 @@
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import {
-	EMPTY_IMMUTABLE_TRACKER,
-	ImmutableEntityPathTracker
-} from '../utils/ImmutableEntityPathTracker';
-import { EMPTY_PATH, LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../values';
+import { HasEffectsContext } from '../ExecutionContext';
+import { EMPTY_IMMUTABLE_TRACKER, EMPTY_PATH, ObjectPath, PathTracker } from '../utils/PathTracker';
+import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import ExpressionStatement from './ExpressionStatement';
 import { LiteralValue } from './Literal';
 import * as NodeType from './NodeType';
@@ -35,8 +32,8 @@ const binaryOperators: {
 	'>>': (left: any, right: any) => left >> right,
 	'>>>': (left: any, right: any) => left >>> right,
 	'^': (left: any, right: any) => left ^ right,
-	in: () => UNKNOWN_VALUE,
-	instanceof: () => UNKNOWN_VALUE,
+	in: () => UnknownValue,
+	instanceof: () => UnknownValue,
 	'|': (left: any, right: any) => left | right
 };
 
@@ -50,35 +47,34 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		if (path.length > 0) return UNKNOWN_VALUE;
+		if (path.length > 0) return UnknownValue;
 		const leftValue = this.left.getLiteralValueAtPath(EMPTY_PATH, recursionTracker, origin);
-		if (leftValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
+		if (leftValue === UnknownValue) return UnknownValue;
 
 		const rightValue = this.right.getLiteralValueAtPath(EMPTY_PATH, recursionTracker, origin);
-		if (rightValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
+		if (rightValue === UnknownValue) return UnknownValue;
 
 		const operatorFn = binaryOperators[this.operator];
-		if (!operatorFn) return UNKNOWN_VALUE;
+		if (!operatorFn) return UnknownValue;
 
-		return operatorFn(leftValue as LiteralValue, rightValue as LiteralValue);
+		return operatorFn(leftValue, rightValue);
 	}
 
-	hasEffects(options: ExecutionPathOptions): boolean {
+	hasEffects(context: HasEffectsContext): boolean {
 		// support some implicit type coercion runtime errors
 		if (
 			this.operator === '+' &&
 			this.parent instanceof ExpressionStatement &&
 			this.left.getLiteralValueAtPath(EMPTY_PATH, EMPTY_IMMUTABLE_TRACKER, this) === ''
-		) {
+		)
 			return true;
-		}
-		return super.hasEffects(options);
+		return super.hasEffects(context);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
 		return path.length > 1;
 	}
 }

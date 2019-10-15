@@ -1,9 +1,7 @@
 import { AstContext } from '../../Module';
-import CallOptions from '../CallOptions';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { InclusionContext } from '../ExecutionContext';
 import { ExpressionNode } from '../nodes/shared/Node';
 import SpreadElement from '../nodes/SpreadElement';
-import { UNKNOWN_EXPRESSION, UnknownObjectExpression } from '../values';
 import ArgumentsVariable from '../variables/ArgumentsVariable';
 import ThisVariable from '../variables/ThisVariable';
 import ChildScope from './ChildScope';
@@ -23,22 +21,12 @@ export default class FunctionScope extends ReturnValueScope {
 		return this;
 	}
 
-	getOptionsWhenCalledWith(
-		{ withNew }: CallOptions,
-		options: ExecutionPathOptions
-	): ExecutionPathOptions {
-		return options.replaceVariableInit(
-			this.thisVariable,
-			withNew ? new UnknownObjectExpression() : UNKNOWN_EXPRESSION
-		);
-	}
-
-	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
-		super.includeCallArguments(args);
+	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
+		super.includeCallArguments(context, args);
 		if (this.argumentsVariable.included) {
 			for (const arg of args) {
 				if (!arg.included) {
-					arg.include(false);
+					arg.include(context, false);
 				}
 			}
 		}

@@ -1,23 +1,16 @@
 import Module, { AstContext } from '../../Module';
 import { markModuleAndImpureDependenciesAsExecuted } from '../../utils/traverseStaticDependencies';
-import CallOptions from '../CallOptions';
+import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import Identifier from '../nodes/Identifier';
 import * as NodeType from '../nodes/NodeType';
 import { ExpressionEntity } from '../nodes/shared/Expression';
 import { ExpressionNode, Node } from '../nodes/shared/Node';
 import SpreadElement from '../nodes/SpreadElement';
-import { EntityPathTracker } from '../utils/EntityPathTracker';
-import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
-import {
-	LiteralValueOrUnknown,
-	ObjectPath,
-	UNKNOWN_EXPRESSION,
-	UNKNOWN_PATH,
-	UNKNOWN_VALUE
-} from '../values';
+import { ObjectPath, PathTracker, UNKNOWN_PATH } from '../utils/PathTracker';
+import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UnknownValue } from '../values';
 import Variable from './Variable';
 
 // To avoid infinite recursions
@@ -32,7 +25,7 @@ export default class LocalVariable extends Variable {
 
 	// Caching and deoptimization:
 	// We track deoptimization when we do not return something unknown
-	private deoptimizationTracker: EntityPathTracker;
+	private deoptimizationTracker: PathTracker;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 
 	constructor(
@@ -70,109 +63,99 @@ export default class LocalVariable extends Variable {
 	}
 
 	deoptimizePath(path: ObjectPath) {
-		if (path.length > MAX_PATH_DEPTH) return;
-		if (!(this.isReassigned || this.deoptimizationTracker.track(this, path))) {
-			if (path.length === 0) {
-				if (!this.isReassigned) {
-					this.isReassigned = true;
-					for (const expression of this.expressionsToBeDeoptimized) {
-						expression.deoptimizeCache();
-					}
-					if (this.init) {
-						this.init.deoptimizePath(UNKNOWN_PATH);
-					}
+		if (path.length > MAX_PATH_DEPTH || this.isReassigned) return;
+		const trackedEntities = this.deoptimizationTracker.getEntities(path);
+		if (trackedEntities.has(this)) return;
+		trackedEntities.add(this);
+		if (path.length === 0) {
+			if (!this.isReassigned) {
+				this.isReassigned = true;
+				for (const expression of this.expressionsToBeDeoptimized) {
+					expression.deoptimizeCache();
 				}
-			} else if (this.init) {
-				this.init.deoptimizePath(path);
+				if (this.init) {
+					this.init.deoptimizePath(UNKNOWN_PATH);
+				}
 			}
+		} else if (this.init) {
+			this.init.deoptimizePath(path);
 		}
 	}
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		if (
-			this.isReassigned ||
-			!this.init ||
-			path.length > MAX_PATH_DEPTH ||
-			recursionTracker.isTracked(this.init, path)
-		) {
-			return UNKNOWN_VALUE;
+		if (this.isReassigned || !this.init || path.length > MAX_PATH_DEPTH) {
+			return UnknownValue;
+		}
+		const trackedEntities = recursionTracker.getEntities(path);
+		if (trackedEntities.has(this.init)) {
+			return UnknownValue;
 		}
 		this.expressionsToBeDeoptimized.push(origin);
-		return this.init.getLiteralValueAtPath(path, recursionTracker.track(this.init, path), origin);
+		trackedEntities.add(this.init);
+		const value = this.init.getLiteralValueAtPath(path, recursionTracker, origin);
+		trackedEntities.delete(this.init);
+		return value;
 	}
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
-		if (
-			this.isReassigned ||
-			!this.init ||
-			path.length > MAX_PATH_DEPTH ||
-			recursionTracker.isTracked(this.init, path)
-		) {
+		if (this.isReassigned || !this.init || path.length > MAX_PATH_DEPTH) {
+			return UNKNOWN_EXPRESSION;
+		}
+		const trackedEntities = recursionTracker.getEntities(path);
+		if (trackedEntities.has(this.init)) {
 			return UNKNOWN_EXPRESSION;
 		}
 		this.expressionsToBeDeoptimized.push(origin);
-		return this.init.getReturnExpressionWhenCalledAtPath(
-			path,
-			recursionTracker.track(this.init, path),
-			origin
-		);
+		trackedEntities.add(this.init);
+		const value = this.init.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
+		trackedEntities.delete(this.init);
+		return value;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext) {
 		if (path.length === 0) return false;
-		return (
-			this.isReassigned ||
-			path.length > MAX_PATH_DEPTH ||
-			((this.init &&
-				!options.hasNodeBeenAccessedAtPath(path, this.init) &&
-				this.init.hasEffectsWhenAccessedAtPath(
-					path,
-					options.addAccessedNodeAtPath(path, this.init)
-				)) as boolean)
-		);
+		if (this.isReassigned || path.length > MAX_PATH_DEPTH) return true;
+		const trackedExpressions = context.accessed.getEntities(path);
+		if (trackedExpressions.has(this)) return false;
+		trackedExpressions.add(this);
+		return (this.init && this.init.hasEffectsWhenAccessedAtPath(path, context)) as boolean;
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext) {
 		if (this.included || path.length > MAX_PATH_DEPTH) return true;
 		if (path.length === 0) return false;
-		return (
-			this.isReassigned ||
-			((this.init &&
-				!options.hasNodeBeenAssignedAtPath(path, this.init) &&
-				this.init.hasEffectsWhenAssignedAtPath(
-					path,
-					options.addAssignedNodeAtPath(path, this.init)
-				)) as boolean)
-		);
+		if (this.isReassigned) return true;
+		const trackedExpressions = context.assigned.getEntities(path);
+		if (trackedExpressions.has(this)) return false;
+		trackedExpressions.add(this);
+		return (this.init && this.init.hasEffectsWhenAssignedAtPath(path, context)) as boolean;
 	}
 
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		options: ExecutionPathOptions
+		context: HasEffectsContext
 	) {
-		if (path.length > MAX_PATH_DEPTH) return true;
-		return (
-			this.isReassigned ||
-			((this.init &&
-				!options.hasNodeBeenCalledAtPathWithOptions(path, this.init, callOptions) &&
-				this.init.hasEffectsWhenCalledAtPath(
-					path,
-					callOptions,
-					options.addCalledNodeAtPathWithOptions(path, this.init, callOptions)
-				)) as boolean)
-		);
+		if (path.length > MAX_PATH_DEPTH || this.isReassigned) return true;
+		const trackedExpressions = (callOptions.withNew
+			? context.instantiated
+			: context.called
+		).getEntities(path);
+		if (trackedExpressions.has(this)) return false;
+		trackedExpressions.add(this);
+		return (this.init &&
+			this.init.hasEffectsWhenCalledAtPath(path, callOptions, context)) as boolean;
 	}
 
-	include() {
+	include(context: InclusionContext) {
 		if (!this.included) {
 			this.included = true;
 			if (!this.module.isExecuted) {
@@ -180,7 +163,7 @@ export default class LocalVariable extends Variable {
 			}
 			for (const declaration of this.declarations) {
 				// If node is a default export, it can save a tree-shaking run to include the full declaration now
-				if (!declaration.included) declaration.include(false);
+				if (!declaration.included) declaration.include(context, false);
 				let node = declaration.parent as Node;
 				while (!node.included) {
 					// We do not want to properly include parents in case they are part of a dead branch
@@ -193,13 +176,13 @@ export default class LocalVariable extends Variable {
 		}
 	}
 
-	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
 		if (this.isReassigned) {
 			for (const arg of args) {
-				arg.include(false);
+				arg.include(context, false);
 			}
 		} else if (this.init) {
-			this.init.includeCallArguments(args);
+			this.init.includeCallArguments(context, args);
 		}
 	}
 

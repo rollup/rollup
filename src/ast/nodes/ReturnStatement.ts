@@ -1,19 +1,30 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { BREAKFLOW_ERROR_RETURN, HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { UNKNOWN_EXPRESSION } from '../values';
 import * as NodeType from './NodeType';
-import { ExpressionNode, StatementBase } from './shared/Node';
+import { ExpressionNode, IncludeChildren, StatementBase } from './shared/Node';
 
 export default class ReturnStatement extends StatementBase {
 	argument!: ExpressionNode | null;
 	type!: NodeType.tReturnStatement;
 
-	hasEffects(options: ExecutionPathOptions) {
-		return (
-			!options.ignoreReturnAwaitYield() ||
-			(this.argument !== null && this.argument.hasEffects(options))
-		);
+	hasEffects(context: HasEffectsContext) {
+		if (
+			!context.ignore.returnAwaitYield ||
+			(this.argument !== null && this.argument.hasEffects(context))
+		)
+			return true;
+		context.breakFlow = BREAKFLOW_ERROR_RETURN;
+		return false;
+	}
+
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+		this.included = true;
+		if (this.argument) {
+			this.argument.include(context, includeChildrenRecursively);
+		}
+		context.breakFlow = BREAKFLOW_ERROR_RETURN;
 	}
 
 	initialise() {

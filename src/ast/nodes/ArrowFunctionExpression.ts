@@ -1,13 +1,14 @@
-import CallOptions from '../CallOptions';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { CallOptions } from '../CallOptions';
+import { BREAKFLOW_NONE, HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import ReturnValueScope from '../scopes/ReturnValueScope';
 import Scope from '../scopes/Scope';
-import { ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_KEY, UNKNOWN_PATH } from '../values';
+import { ObjectPath, UNKNOWN_PATH, UnknownKey } from '../utils/PathTracker';
+import { UNKNOWN_EXPRESSION } from '../values';
 import BlockStatement from './BlockStatement';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import RestElement from './RestElement';
-import { ExpressionNode, GenericEsTreeNode, NodeBase } from './shared/Node';
+import { ExpressionNode, GenericEsTreeNode, IncludeChildren, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 import SpreadElement from './SpreadElement';
 
@@ -25,7 +26,7 @@ export default class ArrowFunctionExpression extends NodeBase {
 	deoptimizePath(path: ObjectPath) {
 		// A reassignment of UNKNOWN_PATH is considered equivalent to having lost track
 		// which means the return expression needs to be reassigned
-		if (path.length === 1 && path[0] === UNKNOWN_KEY) {
+		if (path.length === 1 && path[0] === UnknownKey) {
 			this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
 		}
 	}
@@ -34,44 +35,54 @@ export default class ArrowFunctionExpression extends NodeBase {
 		return path.length === 0 ? this.scope.getReturnExpression() : UNKNOWN_EXPRESSION;
 	}
 
-	hasEffects(_options: ExecutionPathOptions) {
+	hasEffects() {
 		return false;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
 		return path.length > 1;
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath) {
 		return path.length > 1;
 	}
 
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		_callOptions: CallOptions,
-		options: ExecutionPathOptions
+		context: HasEffectsContext
 	): boolean {
-		if (path.length > 0) {
-			return true;
-		}
+		if (path.length > 0) return true;
 		for (const param of this.params) {
-			if (param.hasEffects(options)) return true;
+			if (param.hasEffects(context)) return true;
 		}
-		return this.body.hasEffects(options);
+		const { ignore, breakFlow } = context;
+		context.ignore = {
+			breakStatements: false,
+			labels: new Set(),
+			returnAwaitYield: true
+		};
+		if (this.body.hasEffects(context)) return true;
+		context.ignore = ignore;
+		context.breakFlow = breakFlow;
+		return false;
 	}
 
-	include(includeChildrenRecursively: boolean | 'variables') {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		this.body.include(includeChildrenRecursively);
 		for (const param of this.params) {
 			if (!(param instanceof Identifier)) {
-				param.include(includeChildrenRecursively);
+				param.include(context, includeChildrenRecursively);
 			}
 		}
+		const { breakFlow } = context;
+		context.breakFlow = BREAKFLOW_NONE;
+		this.body.include(context, includeChildrenRecursively);
+		context.breakFlow = breakFlow;
 	}
 
-	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
-		this.scope.includeCallArguments(args);
+	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
+		this.scope.includeCallArguments(context, args);
 	}
 
 	initialise() {

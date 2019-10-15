@@ -1,8 +1,8 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../values';
+import { HasEffectsContext } from '../ExecutionContext';
+import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
@@ -34,16 +34,16 @@ export default class AssignmentExpression extends NodeBase {
 		this.right.deoptimizePath(UNKNOWN_PATH);
 	}
 
-	hasEffects(options: ExecutionPathOptions): boolean {
+	hasEffects(context: HasEffectsContext): boolean {
 		return (
-			this.right.hasEffects(options) ||
-			this.left.hasEffects(options) ||
-			this.left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, options)
+			this.right.hasEffects(context) ||
+			this.left.hasEffects(context) ||
+			this.left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context)
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return path.length > 0 && this.right.hasEffectsWhenAccessedAtPath(path, options);
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
+		return path.length > 0 && this.right.hasEffectsWhenAccessedAtPath(path, context);
 	}
 
 	render(code: MagicString, options: RenderOptions) {

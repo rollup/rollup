@@ -44,3 +44,7 @@ switch ( globalThis.unknown ) {
 		default:
 	}
 }());
+
+switch ( globalThis.unknown ) {
+	case effect():
+}

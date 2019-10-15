@@ -2,14 +2,18 @@ import { locate } from 'locate-character';
 import MagicString from 'magic-string';
 import { AstContext, CommentDescription } from '../../../Module';
 import { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
-import CallOptions from '../../CallOptions';
+import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { Entity } from '../../Entity';
-import { ExecutionPathOptions } from '../../ExecutionPathOptions';
+import {
+	createHasEffectsContext,
+	HasEffectsContext,
+	InclusionContext
+} from '../../ExecutionContext';
 import { getAndCreateKeys, keys } from '../../keys';
 import ChildScope from '../../scopes/ChildScope';
-import { ImmutableEntityPathTracker } from '../../utils/ImmutableEntityPathTracker';
-import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../../values';
+import { ObjectPath, PathTracker } from '../../utils/PathTracker';
+import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UnknownValue } from '../../values';
 import LocalVariable from '../../variables/LocalVariable';
 import Variable from '../../variables/Variable';
 import SpreadElement from '../SpreadElement';
@@ -52,21 +56,24 @@ export interface Node extends Entity {
 	 * which only have an effect if their surrounding loop or switch statement is included.
 	 * The options pass on information like this about the current execution path.
 	 */
-	hasEffects(options: ExecutionPathOptions): boolean;
+	hasEffects(context: HasEffectsContext): boolean;
 
 	/**
 	 * Includes the node in the bundle. If the flag is not set, children are usually included
 	 * if they are necessary for this node (e.g. a function body) or if they have effects.
 	 * Necessary variables need to be included as well.
 	 */
-	include(includeChildrenRecursively: IncludeChildren): void;
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void;
 
 	/**
 	 * Alternative version of include to override the default behaviour of
 	 * declarations to only include nodes for declarators that have an effect. Necessary
 	 * for for-loops that do not use a declared loop variable.
 	 */
-	includeWithAllDeclaredVariables(includeChildrenRecursively: IncludeChildren): void;
+	includeWithAllDeclaredVariables(
+		includeChildrenRecursively: IncludeChildren,
+		context: InclusionContext
+	): void;
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void;
 
 	/**
@@ -75,14 +82,12 @@ export interface Node extends Entity {
 	 * visits as the inclusion of additional variables may require the inclusion of more child
 	 * nodes in e.g. block statements.
 	 */
-	shouldBeIncluded(): boolean;
+	shouldBeIncluded(context: InclusionContext): boolean;
 }
 
 export interface StatementNode extends Node {}
 
 export interface ExpressionNode extends ExpressionEntity, Node {}
-
-const NEW_EXECUTION_PATH = ExecutionPathOptions.create();
 
 export class NodeBase implements ExpressionNode {
 	context: AstContext;
@@ -142,72 +147,75 @@ export class NodeBase implements ExpressionNode {
 
 	getLiteralValueAtPath(
 		_path: ObjectPath,
-		_recursionTracker: ImmutableEntityPathTracker,
+		_recursionTracker: PathTracker,
 		_origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		return UNKNOWN_VALUE;
+		return UnknownValue;
 	}
 
 	getReturnExpressionWhenCalledAtPath(
 		_path: ObjectPath,
-		_recursionTracker: ImmutableEntityPathTracker,
+		_recursionTracker: PathTracker,
 		_origin: DeoptimizableEntity
 	): ExpressionEntity {
 		return UNKNOWN_EXPRESSION;
 	}
 
-	hasEffects(options: ExecutionPathOptions): boolean {
+	hasEffects(context: HasEffectsContext): boolean {
 		for (const key of this.keys) {
 			const value = (this as GenericEsTreeNode)[key];
 			if (value === null || key === 'annotations') continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
-					if (child !== null && child.hasEffects(options)) return true;
+					if (child !== null && child.hasEffects(context)) return true;
 				}
-			} else if (value.hasEffects(options)) return true;
+			} else if (value.hasEffects(context)) return true;
 		}
 		return false;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, _context: HasEffectsContext) {
 		return path.length > 0;
 	}
 
-	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _context: HasEffectsContext) {
 		return true;
 	}
 
 	hasEffectsWhenCalledAtPath(
 		_path: ObjectPath,
 		_callOptions: CallOptions,
-		_options: ExecutionPathOptions
+		_context: HasEffectsContext
 	) {
 		return true;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		for (const key of this.keys) {
 			const value = (this as GenericEsTreeNode)[key];
 			if (value === null || key === 'annotations') continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
-					if (child !== null) child.include(includeChildrenRecursively);
+					if (child !== null) child.include(context, includeChildrenRecursively);
 				}
 			} else {
-				value.include(includeChildrenRecursively);
+				value.include(context, includeChildrenRecursively);
 			}
 		}
 	}
 
-	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
-			arg.include(false);
+			arg.include(context, false);
 		}
 	}
 
-	includeWithAllDeclaredVariables(includeChildrenRecursively: IncludeChildren) {
-		this.include(includeChildrenRecursively);
+	includeWithAllDeclaredVariables(
+		includeChildrenRecursively: IncludeChildren,
+		context: InclusionContext
+	) {
+		this.include(context, includeChildrenRecursively);
 	}
 
 	/**
@@ -268,8 +276,8 @@ export class NodeBase implements ExpressionNode {
 		}
 	}
 
-	shouldBeIncluded(): boolean {
-		return this.included || this.hasEffects(NEW_EXECUTION_PATH);
+	shouldBeIncluded(context: InclusionContext): boolean {
+		return this.included || (!context.breakFlow && this.hasEffects(createHasEffectsContext()));
 	}
 
 	toString() {
