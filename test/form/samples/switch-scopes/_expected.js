@@ -6,5 +6,4 @@ switch ( globalThis.unknown ) {
 }
 
 switch ( globalThis.unknown() ) {
-	case 4:
-}
+	}

@@ -11,7 +11,7 @@ switch ( globalThis.unknown ) {
 		}
 	case 'baz':
 		effect();
-	default:
+		break;
 }
 
 switch ( globalThis.unknown ) {
@@ -32,4 +32,12 @@ switch ( globalThis.unknown ) {
 
 switch ( globalThis.unknown ) {
 	case effect():
+}
+
+switch ( globalThis.unknown ) {
+	default:
+	case 'foo':
+		effect();
+		break;
+	case 'bar':
 }

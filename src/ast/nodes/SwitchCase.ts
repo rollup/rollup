@@ -11,6 +11,7 @@ import { ExpressionNode, IncludeChildren, NodeBase, StatementNode } from './shar
 
 export default class SwitchCase extends NodeBase {
 	consequent!: StatementNode[];
+	needsBoundaries!: true;
 	test!: ExpressionNode | null;
 	type!: NodeType.tSwitchCase;
 
@@ -51,3 +52,5 @@ export default class SwitchCase extends NodeBase {
 		}
 	}
 }
+
+SwitchCase.prototype.needsBoundaries = true;

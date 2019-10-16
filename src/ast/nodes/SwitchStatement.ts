@@ -1,9 +1,10 @@
 import MagicString from 'magic-string';
-import { RenderOptions } from '../../utils/renderHelpers';
+import { RenderOptions, renderStatementList } from '../../utils/renderHelpers';
 import {
 	BreakFlow,
 	BREAKFLOW_ERROR_RETURN,
 	BREAKFLOW_NONE,
+	createHasEffectsContext,
 	HasEffectsContext,
 	InclusionContext
 } from '../ExecutionContext';
@@ -36,6 +37,8 @@ export default class SwitchStatement extends StatementBase {
 	discriminant!: ExpressionNode;
 	type!: NodeType.tSwitchStatement;
 
+	private defaultCase!: number | null;
+
 	createScope(parentScope: Scope) {
 		this.scope = new BlockScope(parentScope);
 	}
@@ -46,16 +49,14 @@ export default class SwitchStatement extends StatementBase {
 			breakFlow,
 			ignore: { breakStatements }
 		} = context;
-		let hasDefault = false;
 		let minBreakFlow: BreakFlow | false = BREAKFLOW_ERROR_RETURN;
 		context.ignore.breakStatements = true;
 		for (const switchCase of this.cases) {
 			if (switchCase.hasEffects(context)) return true;
-			if (switchCase.test === null) hasDefault = true;
 			minBreakFlow = getMinBreakflowAfterCase(minBreakFlow, context);
 			context.breakFlow = breakFlow;
 		}
-		if (hasDefault && !(minBreakFlow instanceof Set && minBreakFlow.has(null))) {
+		if (this.defaultCase !== null && !(minBreakFlow instanceof Set && minBreakFlow.has(null))) {
 			context.breakFlow = minBreakFlow;
 		}
 		context.ignore.breakStatements = breakStatements;
@@ -66,25 +67,45 @@ export default class SwitchStatement extends StatementBase {
 		this.included = true;
 		this.discriminant.include(context, includeChildrenRecursively);
 		const { breakFlow } = context;
-		let hasDefault = false;
 		let minBreakFlow: BreakFlow | false = BREAKFLOW_ERROR_RETURN;
-		for (const switchCase of this.cases) {
-			if (switchCase.test === null) hasDefault = true;
-			switchCase.include(context, includeChildrenRecursively);
-			minBreakFlow = getMinBreakflowAfterCase(minBreakFlow, context);
-			context.breakFlow = breakFlow;
+		let isCaseIncluded =
+			includeChildrenRecursively ||
+			(this.defaultCase !== null && this.defaultCase < this.cases.length - 1);
+		for (let caseIndex = this.cases.length - 1; caseIndex >= 0; caseIndex--) {
+			const switchCase = this.cases[caseIndex];
+			if (switchCase.included) {
+				isCaseIncluded = true;
+			}
+			if (!isCaseIncluded) {
+				const hasEffectsContext = createHasEffectsContext();
+				hasEffectsContext.ignore.breakStatements = true;
+				isCaseIncluded = switchCase.hasEffects(hasEffectsContext);
+			}
+			if (isCaseIncluded) {
+				switchCase.include(context, includeChildrenRecursively);
+				minBreakFlow = getMinBreakflowAfterCase(minBreakFlow, context);
+				context.breakFlow = breakFlow;
+			}
 		}
-		if (hasDefault && !(minBreakFlow instanceof Set && minBreakFlow.has(null))) {
+		if (this.defaultCase !== null && !(minBreakFlow instanceof Set && minBreakFlow.has(null))) {
 			context.breakFlow = minBreakFlow;
 		}
 	}
 
+	initialise() {
+		for (let caseIndex = 0; caseIndex < this.cases.length; caseIndex++) {
+			if (this.cases[caseIndex].test === null) {
+				this.defaultCase = caseIndex;
+				return;
+			}
+		}
+		this.defaultCase = null;
+	}
+
 	render(code: MagicString, options: RenderOptions) {
 		this.discriminant.render(code, options);
-		for (let caseIndex = 0; caseIndex < this.cases.length; caseIndex++) {
-			this.cases[caseIndex].render(code, options, {
-				end: caseIndex + 1 < this.cases.length ? this.cases[caseIndex + 1].start : this.end - 1
-			});
+		if (this.cases.length > 0) {
+			renderStatementList(this.cases, code, this.cases[0].start, this.end - 1, options);
 		}
 	}
 }
