@@ -1,3 +1,5 @@
+import MagicString from 'magic-string';
+import { RenderOptions } from '../../utils/renderHelpers';
 import {
 	BreakFlow,
 	BREAKFLOW_ERROR_RETURN,
@@ -74,6 +76,15 @@ export default class SwitchStatement extends StatementBase {
 		}
 		if (hasDefault && !(minBreakFlow instanceof Set && minBreakFlow.has(null))) {
 			context.breakFlow = minBreakFlow;
+		}
+	}
+
+	render(code: MagicString, options: RenderOptions) {
+		this.discriminant.render(code, options);
+		for (let caseIndex = 0; caseIndex < this.cases.length; caseIndex++) {
+			this.cases[caseIndex].render(code, options, {
+				end: caseIndex + 1 < this.cases.length ? this.cases[caseIndex + 1].start : this.end - 1
+			});
 		}
 	}
 }

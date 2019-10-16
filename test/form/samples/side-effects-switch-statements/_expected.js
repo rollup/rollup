@@ -12,7 +12,6 @@ switch ( globalThis.unknown ) {
 	case 'baz':
 		effect();
 	default:
-
 }
 
 switch ( globalThis.unknown ) {

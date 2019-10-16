@@ -1,10 +1,8 @@
 switch (globalThis.unknown) {
 	case 1:
 		throw new Error();
-
 	case 2:
 		throw new Error();
-
 	case 3:
 		console.log('retained');
 	default:
@@ -22,5 +20,4 @@ switch (globalThis.unknown) {
 	case 3:
 		var hoisted3;
 	default:
-
 }
