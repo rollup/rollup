@@ -43,7 +43,7 @@ export default class SwitchCase extends NodeBase {
 				this.consequent,
 				code,
 				consequentStart,
-				nodeRenderOptions!.end || this.end,
+				(nodeRenderOptions as NodeRenderOptions).end as number,
 				options
 			);
 		} else {
