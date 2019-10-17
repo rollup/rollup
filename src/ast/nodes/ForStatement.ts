@@ -27,11 +27,13 @@ export default class ForStatement extends StatementBase {
 			return true;
 		const {
 			breakFlow,
-			ignore: { breakAndContinue }
+			ignore: { breaks, continues }
 		} = context;
-		context.ignore.breakAndContinue = true;
+		context.ignore.breaks = true;
+		context.ignore.continues = true;
 		if (this.body.hasEffects(context)) return true;
-		context.ignore.breakAndContinue = breakAndContinue;
+		context.ignore.breaks = breaks;
+		context.ignore.continues = continues;
 		context.breakFlow = breakFlow;
 		return false;
 	}

@@ -47,10 +47,10 @@ export default class SwitchStatement extends StatementBase {
 		if (this.discriminant.hasEffects(context)) return true;
 		const {
 			breakFlow,
-			ignore: { breakStatements }
+			ignore: { breaks }
 		} = context;
 		let minBreakFlow: BreakFlow | false = BREAKFLOW_ERROR_RETURN;
-		context.ignore.breakStatements = true;
+		context.ignore.breaks = true;
 		for (const switchCase of this.cases) {
 			if (switchCase.hasEffects(context)) return true;
 			minBreakFlow = getMinBreakflowAfterCase(minBreakFlow, context);
@@ -59,7 +59,7 @@ export default class SwitchStatement extends StatementBase {
 		if (this.defaultCase !== null && !(minBreakFlow instanceof Set && minBreakFlow.has(null))) {
 			context.breakFlow = minBreakFlow;
 		}
-		context.ignore.breakStatements = breakStatements;
+		context.ignore.breaks = breaks;
 		return false;
 	}
 
@@ -78,7 +78,7 @@ export default class SwitchStatement extends StatementBase {
 			}
 			if (!isCaseIncluded) {
 				const hasEffectsContext = createHasEffectsContext();
-				hasEffectsContext.ignore.breakStatements = true;
+				hasEffectsContext.ignore.breaks = true;
 				isCaseIncluded = switchCase.hasEffects(hasEffectsContext);
 			}
 			if (isCaseIncluded) {

@@ -11,11 +11,13 @@ export default class DoWhileStatement extends StatementBase {
 		if (this.test.hasEffects(context)) return true;
 		const {
 			breakFlow,
-			ignore: { breakAndContinue }
+			ignore: { breaks, continues }
 		} = context;
-		context.ignore.breakAndContinue = true;
+		context.ignore.breaks = true;
+		context.ignore.continues = true;
 		if (this.body.hasEffects(context)) return true;
-		context.ignore.breakAndContinue = breakAndContinue;
+		context.ignore.breaks = breaks;
+		context.ignore.continues = continues;
 		if (context.breakFlow instanceof Set && context.breakFlow.has(null)) {
 			context.breakFlow = breakFlow;
 		}
