@@ -74,6 +74,7 @@ export default class FunctionNode extends NodeBase {
 		);
 		const { breakFlow, ignore } = context;
 		context.ignore = {
+			breakAndContinue: false,
 			breakStatements: false,
 			labels: new Set(),
 			returnAwaitYield: true

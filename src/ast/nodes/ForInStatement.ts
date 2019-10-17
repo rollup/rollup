@@ -36,11 +36,11 @@ export default class ForInStatement extends StatementBase {
 			return true;
 		const {
 			breakFlow,
-			ignore: { breakStatements }
+			ignore: { breakAndContinue }
 		} = context;
-		context.ignore.breakStatements = true;
+		context.ignore.breakAndContinue = true;
 		if (this.body.hasEffects(context)) return true;
-		context.ignore.breakStatements = breakStatements;
+		context.ignore.breakAndContinue = breakAndContinue;
 		context.breakFlow = breakFlow;
 		return false;
 	}

@@ -44,3 +44,12 @@ switch (globalThis.unknown) {
 		break;
 	case 'bar':
 }
+
+for (var i = 0; i < 4; i++) {
+	switch (i) {
+		case 0:
+		case 1:
+			continue;
+	}
+	effect();
+}
