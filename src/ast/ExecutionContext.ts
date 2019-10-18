@@ -8,13 +8,12 @@ interface ExecutionContextIgnore {
 	returnAwaitYield: boolean;
 }
 
-export const BREAKFLOW_NONE: false = false;
-export const BREAKFLOW_ERROR_RETURN: true = true;
-
-export type BreakFlow = typeof BREAKFLOW_NONE | typeof BREAKFLOW_ERROR_RETURN | Set<string | null>;
+export const BREAKFLOW_NONE = 0;
+export const BREAKFLOW_BREAK_CONTINUE = 1;
+export const BREAKFLOW_ERROR_RETURN_LABEL = 2;
 
 export interface InclusionContext {
-	breakFlow: BreakFlow;
+	breakFlow: number;
 }
 
 export interface HasEffectsContext extends InclusionContext {

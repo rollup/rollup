@@ -2,12 +2,7 @@ import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { removeAnnotations } from '../../utils/treeshakeNode';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import {
-	BreakFlow,
-	BREAKFLOW_NONE,
-	HasEffectsContext,
-	InclusionContext
-} from '../ExecutionContext';
+import { BREAKFLOW_NONE, HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { EMPTY_IMMUTABLE_TRACKER, EMPTY_PATH } from '../utils/PathTracker';
 import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import * as NodeType from './NodeType';
@@ -39,7 +34,8 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			context.breakFlow = breakFlow;
 			if (this.alternate === null) return false;
 			if (this.alternate.hasEffects(context)) return true;
-			this.updateBreakFlowUnknownCondition(consequentBreakFlow, context);
+			context.breakFlow =
+				context.breakFlow < consequentBreakFlow ? context.breakFlow : consequentBreakFlow;
 			return false;
 		}
 		return this.testValue
@@ -120,7 +116,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	private includeUnknownTest(context: InclusionContext) {
 		this.test.include(context, false);
 		const { breakFlow } = context;
-		let consequentBreakFlow: BreakFlow | false = false;
+		let consequentBreakFlow = BREAKFLOW_NONE;
 		if (this.consequent.shouldBeIncluded(context)) {
 			this.consequent.include(context, false);
 			consequentBreakFlow = context.breakFlow;
@@ -128,24 +124,8 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		}
 		if (this.alternate !== null && this.alternate.shouldBeIncluded(context)) {
 			this.alternate.include(context, false);
-			this.updateBreakFlowUnknownCondition(consequentBreakFlow, context);
-		}
-	}
-
-	private updateBreakFlowUnknownCondition(
-		consequentBreakFlow: BreakFlow | false,
-		context: InclusionContext
-	) {
-		if (!(consequentBreakFlow && context.breakFlow)) {
-			context.breakFlow = BREAKFLOW_NONE;
-		} else if (context.breakFlow instanceof Set) {
-			if (consequentBreakFlow instanceof Set) {
-				for (const label of consequentBreakFlow) {
-					context.breakFlow.add(label);
-				}
-			}
-		} else {
-			context.breakFlow = consequentBreakFlow;
+			context.breakFlow =
+				context.breakFlow < consequentBreakFlow ? context.breakFlow : consequentBreakFlow;
 		}
 	}
 }
