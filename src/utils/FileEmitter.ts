@@ -10,7 +10,6 @@ import {
 	errAssetSourceAlreadySet,
 	errChunkNotGeneratedForFileName,
 	errFailedValidation,
-	errFileNameConflict,
 	errFileReferenceIdNotFoundForFilename,
 	errInvalidRollupPhaseForChunkEmission,
 	errNoAssetSourceSet,
@@ -50,7 +49,8 @@ function generateAssetFileName(
 
 function reserveFileNameInBundle(fileName: string, bundle: OutputBundleWithPlaceholders) {
 	if (fileName in bundle) {
-		return error(errFileNameConflict(fileName));
+		// FIXME this should return error(errFileNameConflict(fileName));
+		// but until #3174 is fixed, this raises spurious errors and is disabled
 	}
 	bundle[fileName] = FILE_PLACEHOLDER;
 }
