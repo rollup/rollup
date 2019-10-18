@@ -22,7 +22,7 @@ export default class TryStatement extends StatementBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
-		const { breakFlow } = context;
+		const { brokenFlow } = context;
 		if (!this.directlyIncluded || !this.context.tryCatchDeoptimization) {
 			this.included = true;
 			this.directlyIncluded = true;
@@ -30,11 +30,11 @@ export default class TryStatement extends StatementBase {
 				context,
 				this.context.tryCatchDeoptimization ? INCLUDE_PARAMETERS : includeChildrenRecursively
 			);
-			context.breakFlow = breakFlow;
+			context.brokenFlow = brokenFlow;
 		}
 		if (this.handler !== null) {
 			this.handler.include(context, includeChildrenRecursively);
-			context.breakFlow = breakFlow;
+			context.brokenFlow = brokenFlow;
 		}
 		if (this.finalizer !== null) {
 			this.finalizer.include(context, includeChildrenRecursively);

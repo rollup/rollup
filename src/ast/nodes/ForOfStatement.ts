@@ -37,9 +37,9 @@ export default class ForOfStatement extends StatementBase {
 		this.left.includeWithAllDeclaredVariables(includeChildrenRecursively, context);
 		this.left.deoptimizePath(EMPTY_PATH);
 		this.right.include(context, includeChildrenRecursively);
-		const { breakFlow } = context;
+		const { brokenFlow } = context;
 		this.body.include(context, includeChildrenRecursively);
-		context.breakFlow = breakFlow;
+		context.brokenFlow = brokenFlow;
 	}
 
 	render(code: MagicString, options: RenderOptions) {

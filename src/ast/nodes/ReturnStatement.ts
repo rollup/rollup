@@ -1,6 +1,10 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
-import { BREAKFLOW_ERROR_RETURN, HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import {
+	BROKEN_FLOW_ERROR_RETURN_LABEL,
+	HasEffectsContext,
+	InclusionContext
+} from '../ExecutionContext';
 import { UNKNOWN_EXPRESSION } from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, StatementBase } from './shared/Node';
@@ -15,7 +19,7 @@ export default class ReturnStatement extends StatementBase {
 			(this.argument !== null && this.argument.hasEffects(context))
 		)
 			return true;
-		context.breakFlow = BREAKFLOW_ERROR_RETURN;
+		context.brokenFlow = BROKEN_FLOW_ERROR_RETURN_LABEL;
 		return false;
 	}
 
@@ -24,7 +28,7 @@ export default class ReturnStatement extends StatementBase {
 		if (this.argument) {
 			this.argument.include(context, includeChildrenRecursively);
 		}
-		context.breakFlow = BREAKFLOW_ERROR_RETURN;
+		context.brokenFlow = BROKEN_FLOW_ERROR_RETURN_LABEL;
 	}
 
 	initialise() {

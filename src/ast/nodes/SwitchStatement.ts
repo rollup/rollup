@@ -1,9 +1,7 @@
 import MagicString from 'magic-string';
 import { RenderOptions, renderStatementList } from '../../utils/renderHelpers';
 import {
-	BreakFlow,
-	BREAKFLOW_ERROR_RETURN,
-	BREAKFLOW_NONE,
+	BROKEN_FLOW_BREAK_CONTINUE,
 	createHasEffectsContext,
 	HasEffectsContext,
 	InclusionContext
@@ -13,24 +11,6 @@ import Scope from '../scopes/Scope';
 import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, StatementBase } from './shared/Node';
 import SwitchCase from './SwitchCase';
-
-function getMinBreakflowAfterCase(
-	minBreakFlow: BreakFlow | false,
-	context: InclusionContext
-): BreakFlow | false {
-	if (!(minBreakFlow && context.breakFlow)) {
-		return BREAKFLOW_NONE;
-	}
-	if (minBreakFlow instanceof Set) {
-		if (context.breakFlow instanceof Set) {
-			for (const label of context.breakFlow) {
-				minBreakFlow.add(label);
-			}
-		}
-		return minBreakFlow;
-	}
-	return context.breakFlow;
-}
 
 export default class SwitchStatement extends StatementBase {
 	cases!: SwitchCase[];
@@ -46,18 +26,18 @@ export default class SwitchStatement extends StatementBase {
 	hasEffects(context: HasEffectsContext) {
 		if (this.discriminant.hasEffects(context)) return true;
 		const {
-			breakFlow,
+			brokenFlow,
 			ignore: { breaks }
 		} = context;
-		let minBreakFlow: BreakFlow | false = BREAKFLOW_ERROR_RETURN;
+		let minBrokenFlow = Infinity;
 		context.ignore.breaks = true;
 		for (const switchCase of this.cases) {
 			if (switchCase.hasEffects(context)) return true;
-			minBreakFlow = getMinBreakflowAfterCase(minBreakFlow, context);
-			context.breakFlow = breakFlow;
+			minBrokenFlow = context.brokenFlow < minBrokenFlow ? context.brokenFlow : minBrokenFlow;
+			context.brokenFlow = brokenFlow;
 		}
-		if (this.defaultCase !== null && !(minBreakFlow instanceof Set && minBreakFlow.has(null))) {
-			context.breakFlow = minBreakFlow;
+		if (this.defaultCase !== null && !(minBrokenFlow === BROKEN_FLOW_BREAK_CONTINUE)) {
+			context.brokenFlow = minBrokenFlow;
 		}
 		context.ignore.breaks = breaks;
 		return false;
@@ -66,8 +46,8 @@ export default class SwitchStatement extends StatementBase {
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		this.discriminant.include(context, includeChildrenRecursively);
-		const { breakFlow } = context;
-		let minBreakFlow: BreakFlow | false = BREAKFLOW_ERROR_RETURN;
+		const { brokenFlow } = context;
+		let minBrokenFlow = Infinity;
 		let isCaseIncluded =
 			includeChildrenRecursively ||
 			(this.defaultCase !== null && this.defaultCase < this.cases.length - 1);
@@ -83,12 +63,12 @@ export default class SwitchStatement extends StatementBase {
 			}
 			if (isCaseIncluded) {
 				switchCase.include(context, includeChildrenRecursively);
-				minBreakFlow = getMinBreakflowAfterCase(minBreakFlow, context);
-				context.breakFlow = breakFlow;
+				minBrokenFlow = minBrokenFlow < context.brokenFlow ? minBrokenFlow : context.brokenFlow;
+				context.brokenFlow = brokenFlow;
 			}
 		}
-		if (this.defaultCase !== null && !(minBreakFlow instanceof Set && minBreakFlow.has(null))) {
-			context.breakFlow = minBreakFlow;
+		if (this.defaultCase !== null && !(minBrokenFlow === BROKEN_FLOW_BREAK_CONTINUE)) {
+			context.brokenFlow = minBrokenFlow;
 		}
 	}
 

@@ -2,12 +2,7 @@ import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { removeAnnotations } from '../../utils/treeshakeNode';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import {
-	BreakFlow,
-	BREAKFLOW_NONE,
-	HasEffectsContext,
-	InclusionContext
-} from '../ExecutionContext';
+import { BROKEN_FLOW_NONE, HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { EMPTY_IMMUTABLE_TRACKER, EMPTY_PATH } from '../utils/PathTracker';
 import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import * as NodeType from './NodeType';
@@ -33,13 +28,14 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	hasEffects(context: HasEffectsContext): boolean {
 		if (this.test.hasEffects(context)) return true;
 		if (this.testValue === UnknownValue) {
-			const { breakFlow } = context;
+			const { brokenFlow } = context;
 			if (this.consequent.hasEffects(context)) return true;
-			const consequentBreakFlow = context.breakFlow;
-			context.breakFlow = breakFlow;
+			const consequentBrokenFlow = context.brokenFlow;
+			context.brokenFlow = brokenFlow;
 			if (this.alternate === null) return false;
 			if (this.alternate.hasEffects(context)) return true;
-			this.updateBreakFlowUnknownCondition(consequentBreakFlow, context);
+			context.brokenFlow =
+				context.brokenFlow < consequentBrokenFlow ? context.brokenFlow : consequentBrokenFlow;
 			return false;
 		}
 		return this.testValue
@@ -119,33 +115,17 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 
 	private includeUnknownTest(context: InclusionContext) {
 		this.test.include(context, false);
-		const { breakFlow } = context;
-		let consequentBreakFlow: BreakFlow | false = false;
+		const { brokenFlow } = context;
+		let consequentBrokenFlow = BROKEN_FLOW_NONE;
 		if (this.consequent.shouldBeIncluded(context)) {
 			this.consequent.include(context, false);
-			consequentBreakFlow = context.breakFlow;
-			context.breakFlow = breakFlow;
+			consequentBrokenFlow = context.brokenFlow;
+			context.brokenFlow = brokenFlow;
 		}
 		if (this.alternate !== null && this.alternate.shouldBeIncluded(context)) {
 			this.alternate.include(context, false);
-			this.updateBreakFlowUnknownCondition(consequentBreakFlow, context);
-		}
-	}
-
-	private updateBreakFlowUnknownCondition(
-		consequentBreakFlow: BreakFlow | false,
-		context: InclusionContext
-	) {
-		if (!(consequentBreakFlow && context.breakFlow)) {
-			context.breakFlow = BREAKFLOW_NONE;
-		} else if (context.breakFlow instanceof Set) {
-			if (consequentBreakFlow instanceof Set) {
-				for (const label of consequentBreakFlow) {
-					context.breakFlow.add(label);
-				}
-			}
-		} else {
-			context.breakFlow = consequentBreakFlow;
+			context.brokenFlow =
+				context.brokenFlow < consequentBrokenFlow ? context.brokenFlow : consequentBrokenFlow;
 		}
 	}
 }

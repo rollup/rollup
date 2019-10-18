@@ -10,7 +10,7 @@ export default class WhileStatement extends StatementBase {
 	hasEffects(context: HasEffectsContext): boolean {
 		if (this.test.hasEffects(context)) return true;
 		const {
-			breakFlow,
+			brokenFlow,
 			ignore: { breaks, continues }
 		} = context;
 		context.ignore.breaks = true;
@@ -18,15 +18,15 @@ export default class WhileStatement extends StatementBase {
 		if (this.body.hasEffects(context)) return true;
 		context.ignore.breaks = breaks;
 		context.ignore.continues = continues;
-		context.breakFlow = breakFlow;
+		context.brokenFlow = brokenFlow;
 		return false;
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		this.test.include(context, includeChildrenRecursively);
-		const { breakFlow } = context;
+		const { brokenFlow } = context;
 		this.body.include(context, includeChildrenRecursively);
-		context.breakFlow = breakFlow;
+		context.brokenFlow = brokenFlow;
 	}
 }

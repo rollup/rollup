@@ -18,7 +18,7 @@ export default class SwitchCase extends NodeBase {
 	hasEffects(context: HasEffectsContext): boolean {
 		if (this.test && this.test.hasEffects(context)) return true;
 		for (const node of this.consequent) {
-			if (context.breakFlow) break;
+			if (context.brokenFlow) break;
 			if (node.hasEffects(context)) return true;
 		}
 		return false;

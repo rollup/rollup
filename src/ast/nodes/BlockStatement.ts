@@ -28,7 +28,7 @@ export default class BlockStatement extends StatementBase {
 	hasEffects(context: HasEffectsContext) {
 		for (const node of this.body) {
 			if (node.hasEffects(context)) return true;
-			if (context.breakFlow) break;
+			if (context.brokenFlow) break;
 		}
 		return false;
 	}

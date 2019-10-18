@@ -9,18 +9,19 @@ interface ExecutionContextIgnore {
 	returnAwaitYield: boolean;
 }
 
-export const BREAKFLOW_NONE: false = false;
-export const BREAKFLOW_ERROR_RETURN: true = true;
-
-export type BreakFlow = typeof BREAKFLOW_NONE | typeof BREAKFLOW_ERROR_RETURN | Set<string | null>;
+export const BROKEN_FLOW_NONE = 0;
+export const BROKEN_FLOW_BREAK_CONTINUE = 1;
+export const BROKEN_FLOW_ERROR_RETURN_LABEL = 2;
 
 export interface InclusionContext {
-	breakFlow: BreakFlow;
+	brokenFlow: number;
+	includedLabels: Set<string>;
 }
 
 export interface HasEffectsContext extends InclusionContext {
 	accessed: PathTracker;
 	assigned: PathTracker;
+	brokenFlow: number;
 	called: PathTracker;
 	ignore: ExecutionContextIgnore;
 	instantiated: PathTracker;
@@ -29,7 +30,8 @@ export interface HasEffectsContext extends InclusionContext {
 
 export function createInclusionContext(): InclusionContext {
 	return {
-		breakFlow: BREAKFLOW_NONE
+		brokenFlow: BROKEN_FLOW_NONE,
+		includedLabels: new Set()
 	};
 }
 
@@ -37,7 +39,7 @@ export function createHasEffectsContext(): HasEffectsContext {
 	return {
 		accessed: new PathTracker(),
 		assigned: new PathTracker(),
-		breakFlow: BREAKFLOW_NONE,
+		brokenFlow: BROKEN_FLOW_NONE,
 		called: new PathTracker(),
 		ignore: {
 			breaks: false,
@@ -45,6 +47,7 @@ export function createHasEffectsContext(): HasEffectsContext {
 			labels: new Set(),
 			returnAwaitYield: false
 		},
+		includedLabels: new Set(),
 		instantiated: new PathTracker(),
 		replacedVariableInits: new Map()
 	};

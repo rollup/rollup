@@ -1,5 +1,5 @@
 import { CallOptions } from '../CallOptions';
-import { BREAKFLOW_NONE, HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { BROKEN_FLOW_NONE, HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import ReturnValueScope from '../scopes/ReturnValueScope';
 import Scope from '../scopes/Scope';
 import { ObjectPath, UNKNOWN_PATH, UnknownKey } from '../utils/PathTracker';
@@ -56,7 +56,7 @@ export default class ArrowFunctionExpression extends NodeBase {
 		for (const param of this.params) {
 			if (param.hasEffects(context)) return true;
 		}
-		const { ignore, breakFlow } = context;
+		const { ignore, brokenFlow } = context;
 		context.ignore = {
 			breaks: false,
 			continues: false,
@@ -65,7 +65,7 @@ export default class ArrowFunctionExpression extends NodeBase {
 		};
 		if (this.body.hasEffects(context)) return true;
 		context.ignore = ignore;
-		context.breakFlow = breakFlow;
+		context.brokenFlow = brokenFlow;
 		return false;
 	}
 
@@ -76,10 +76,10 @@ export default class ArrowFunctionExpression extends NodeBase {
 				param.include(context, includeChildrenRecursively);
 			}
 		}
-		const { breakFlow } = context;
-		context.breakFlow = BREAKFLOW_NONE;
+		const { brokenFlow } = context;
+		context.brokenFlow = BROKEN_FLOW_NONE;
 		this.body.include(context, includeChildrenRecursively);
-		context.breakFlow = breakFlow;
+		context.brokenFlow = brokenFlow;
 	}
 
 	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
