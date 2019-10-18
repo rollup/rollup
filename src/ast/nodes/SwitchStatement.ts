@@ -1,4 +1,8 @@
-import { BREAKFLOW_BREAK_CONTINUE, HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import {
+	BROKEN_FLOW_BREAK_CONTINUE,
+	HasEffectsContext,
+	InclusionContext
+} from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import Scope from '../scopes/Scope';
 import * as NodeType from './NodeType';
@@ -17,20 +21,20 @@ export default class SwitchStatement extends StatementBase {
 	hasEffects(context: HasEffectsContext) {
 		if (this.discriminant.hasEffects(context)) return true;
 		const {
-			breakFlow,
+			brokenFlow,
 			ignore: { breakStatements }
 		} = context;
 		let hasDefault = false;
-		let minBreakFlow = Infinity;
+		let minBrokenFlow = Infinity;
 		context.ignore.breakStatements = true;
 		for (const switchCase of this.cases) {
 			if (switchCase.hasEffects(context)) return true;
 			if (switchCase.test === null) hasDefault = true;
-			minBreakFlow = context.breakFlow < minBreakFlow ? context.breakFlow : minBreakFlow;
-			context.breakFlow = breakFlow;
+			minBrokenFlow = context.brokenFlow < minBrokenFlow ? context.brokenFlow : minBrokenFlow;
+			context.brokenFlow = brokenFlow;
 		}
-		if (hasDefault && !(minBreakFlow === BREAKFLOW_BREAK_CONTINUE)) {
-			context.breakFlow = minBreakFlow;
+		if (hasDefault && !(minBrokenFlow === BROKEN_FLOW_BREAK_CONTINUE)) {
+			context.brokenFlow = minBrokenFlow;
 		}
 		context.ignore.breakStatements = breakStatements;
 		return false;
@@ -39,17 +43,17 @@ export default class SwitchStatement extends StatementBase {
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		this.discriminant.include(context, includeChildrenRecursively);
-		const { breakFlow } = context;
+		const { brokenFlow } = context;
 		let hasDefault = false;
-		let minBreakFlow = Infinity;
+		let minBrokenFlow = Infinity;
 		for (const switchCase of this.cases) {
 			if (switchCase.test === null) hasDefault = true;
 			switchCase.include(context, includeChildrenRecursively);
-			minBreakFlow = minBreakFlow < context.breakFlow ? minBreakFlow : context.breakFlow;
-			context.breakFlow = breakFlow;
+			minBrokenFlow = minBrokenFlow < context.brokenFlow ? minBrokenFlow : context.brokenFlow;
+			context.brokenFlow = brokenFlow;
 		}
-		if (hasDefault && !(minBreakFlow === BREAKFLOW_BREAK_CONTINUE)) {
-			context.breakFlow = minBreakFlow;
+		if (hasDefault && !(minBrokenFlow === BROKEN_FLOW_BREAK_CONTINUE)) {
+			context.brokenFlow = minBrokenFlow;
 		}
 	}
 }

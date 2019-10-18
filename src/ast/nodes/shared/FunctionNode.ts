@@ -1,5 +1,5 @@
 import { CallOptions } from '../../CallOptions';
-import { BREAKFLOW_NONE, HasEffectsContext, InclusionContext } from '../../ExecutionContext';
+import { BROKEN_FLOW_NONE, HasEffectsContext, InclusionContext } from '../../ExecutionContext';
 import FunctionScope from '../../scopes/FunctionScope';
 import { ObjectPath, UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
 import { UNKNOWN_EXPRESSION, UnknownObjectExpression } from '../../values';
@@ -72,14 +72,14 @@ export default class FunctionNode extends NodeBase {
 			this.scope.thisVariable,
 			callOptions.withNew ? new UnknownObjectExpression() : UNKNOWN_EXPRESSION
 		);
-		const { breakFlow, ignore } = context;
+		const { brokenFlow, ignore } = context;
 		context.ignore = {
 			breakStatements: false,
 			labels: new Set(),
 			returnAwaitYield: true
 		};
 		if (this.body.hasEffects(context)) return true;
-		context.breakFlow = breakFlow;
+		context.brokenFlow = brokenFlow;
 		if (thisInit) {
 			context.replacedVariableInits.set(this.scope.thisVariable, thisInit);
 		} else {
@@ -98,10 +98,10 @@ export default class FunctionNode extends NodeBase {
 				param.include(context, includeChildrenRecursively);
 			}
 		}
-		const { breakFlow } = context;
-		context.breakFlow = BREAKFLOW_NONE;
+		const { brokenFlow } = context;
+		context.brokenFlow = BROKEN_FLOW_NONE;
 		this.body.include(context, includeChildrenRecursively);
-		context.breakFlow = breakFlow;
+		context.brokenFlow = brokenFlow;
 	}
 
 	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {

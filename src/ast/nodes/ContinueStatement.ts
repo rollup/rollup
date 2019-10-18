@@ -1,6 +1,6 @@
 import {
-	BREAKFLOW_BREAK_CONTINUE,
-	BREAKFLOW_ERROR_RETURN_LABEL,
+	BROKEN_FLOW_BREAK_CONTINUE,
+	BROKEN_FLOW_ERROR_RETURN_LABEL,
 	HasEffectsContext,
 	InclusionContext
 } from '../ExecutionContext';
@@ -16,10 +16,10 @@ export default class ContinueStatement extends StatementBase {
 		if (this.label) {
 			if (!context.ignore.labels.has(this.label.name)) return true;
 			context.includedLabels.add(this.label.name);
-			context.breakFlow = BREAKFLOW_ERROR_RETURN_LABEL;
+			context.brokenFlow = BROKEN_FLOW_ERROR_RETURN_LABEL;
 		} else {
 			if (!context.ignore.breakStatements) return true;
-			context.breakFlow = BREAKFLOW_BREAK_CONTINUE;
+			context.brokenFlow = BROKEN_FLOW_BREAK_CONTINUE;
 		}
 		return false;
 	}
@@ -30,6 +30,6 @@ export default class ContinueStatement extends StatementBase {
 			this.label.include(context);
 			context.includedLabels.add(this.label.name);
 		}
-		context.breakFlow = this.label ? BREAKFLOW_ERROR_RETURN_LABEL : BREAKFLOW_BREAK_CONTINUE;
+		context.brokenFlow = this.label ? BROKEN_FLOW_ERROR_RETURN_LABEL : BROKEN_FLOW_BREAK_CONTINUE;
 	}
 }

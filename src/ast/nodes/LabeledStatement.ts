@@ -11,25 +11,25 @@ export default class LabeledStatement extends StatementBase {
 	type!: NodeType.tLabeledStatement;
 
 	hasEffects(context: HasEffectsContext) {
-		const breakFlow = context.breakFlow;
+		const brokenFlow = context.brokenFlow;
 		context.ignore.labels.add(this.label.name);
 		if (this.body.hasEffects(context)) return true;
 		context.ignore.labels.delete(this.label.name);
 		if (context.includedLabels.has(this.label.name)) {
 			context.includedLabels.delete(this.label.name);
-			context.breakFlow = breakFlow;
+			context.brokenFlow = brokenFlow;
 		}
 		return false;
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		const breakFlow = context.breakFlow;
+		const brokenFlow = context.brokenFlow;
 		this.body.include(context, includeChildrenRecursively);
 		if (context.includedLabels.has(this.label.name)) {
 			this.label.include(context);
 			context.includedLabels.delete(this.label.name);
-			context.breakFlow = breakFlow;
+			context.brokenFlow = brokenFlow;
 		}
 	}
 

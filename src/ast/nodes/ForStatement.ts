@@ -26,13 +26,13 @@ export default class ForStatement extends StatementBase {
 		)
 			return true;
 		const {
-			breakFlow,
+			brokenFlow,
 			ignore: { breakStatements }
 		} = context;
 		context.ignore.breakStatements = true;
 		if (this.body.hasEffects(context)) return true;
 		context.ignore.breakStatements = breakStatements;
-		context.breakFlow = breakFlow;
+		context.brokenFlow = brokenFlow;
 		return false;
 	}
 
@@ -40,10 +40,10 @@ export default class ForStatement extends StatementBase {
 		this.included = true;
 		if (this.init) this.init.include(context, includeChildrenRecursively);
 		if (this.test) this.test.include(context, includeChildrenRecursively);
-		const { breakFlow } = context;
+		const { brokenFlow } = context;
 		if (this.update) this.update.include(context, includeChildrenRecursively);
 		this.body.include(context, includeChildrenRecursively);
-		context.breakFlow = breakFlow;
+		context.brokenFlow = brokenFlow;
 	}
 
 	render(code: MagicString, options: RenderOptions) {

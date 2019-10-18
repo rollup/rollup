@@ -277,7 +277,7 @@ export class NodeBase implements ExpressionNode {
 	}
 
 	shouldBeIncluded(context: InclusionContext): boolean {
-		return this.included || (!context.breakFlow && this.hasEffects(createHasEffectsContext()));
+		return this.included || (!context.brokenFlow && this.hasEffects(createHasEffectsContext()));
 	}
 
 	toString() {

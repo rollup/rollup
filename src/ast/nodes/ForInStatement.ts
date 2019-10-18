@@ -35,13 +35,13 @@ export default class ForInStatement extends StatementBase {
 		)
 			return true;
 		const {
-			breakFlow,
+			brokenFlow,
 			ignore: { breakStatements }
 		} = context;
 		context.ignore.breakStatements = true;
 		if (this.body.hasEffects(context)) return true;
 		context.ignore.breakStatements = breakStatements;
-		context.breakFlow = breakFlow;
+		context.brokenFlow = brokenFlow;
 		return false;
 	}
 
@@ -50,9 +50,9 @@ export default class ForInStatement extends StatementBase {
 		this.left.includeWithAllDeclaredVariables(includeChildrenRecursively, context);
 		this.left.deoptimizePath(EMPTY_PATH);
 		this.right.include(context, includeChildrenRecursively);
-		const { breakFlow } = context;
+		const { brokenFlow } = context;
 		this.body.include(context, includeChildrenRecursively);
-		context.breakFlow = breakFlow;
+		context.brokenFlow = brokenFlow;
 	}
 
 	render(code: MagicString, options: RenderOptions) {
