@@ -11,11 +11,13 @@ export default class WhileStatement extends StatementBase {
 		if (this.test.hasEffects(context)) return true;
 		const {
 			breakFlow,
-			ignore: { breakStatements }
+			ignore: { breaks, continues }
 		} = context;
-		context.ignore.breakStatements = true;
+		context.ignore.breaks = true;
+		context.ignore.continues = true;
 		if (this.body.hasEffects(context)) return true;
-		context.ignore.breakStatements = breakStatements;
+		context.ignore.breaks = breaks;
+		context.ignore.continues = continues;
 		context.breakFlow = breakFlow;
 		return false;
 	}

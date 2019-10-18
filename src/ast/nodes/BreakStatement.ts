@@ -8,7 +8,7 @@ export default class BreakStatement extends StatementBase {
 	type!: NodeType.tBreakStatement;
 
 	hasEffects(context: HasEffectsContext) {
-		if (!(this.label ? context.ignore.labels.has(this.label.name) : context.ignore.breakStatements))
+		if (!(this.label ? context.ignore.labels.has(this.label.name) : context.ignore.breaks))
 			return true;
 		context.breakFlow = new Set([this.label && this.label.name]);
 		return false;

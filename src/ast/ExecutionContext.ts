@@ -3,7 +3,8 @@ import { PathTracker } from './utils/PathTracker';
 import ThisVariable from './variables/ThisVariable';
 
 interface ExecutionContextIgnore {
-	breakStatements: boolean;
+	breaks: boolean;
+	continues: boolean;
 	labels: Set<string>;
 	returnAwaitYield: boolean;
 }
@@ -39,7 +40,8 @@ export function createHasEffectsContext(): HasEffectsContext {
 		breakFlow: BREAKFLOW_NONE,
 		called: new PathTracker(),
 		ignore: {
-			breakStatements: false,
+			breaks: false,
+			continues: false,
 			labels: new Set(),
 			returnAwaitYield: false
 		},

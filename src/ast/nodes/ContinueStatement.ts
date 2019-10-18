@@ -8,7 +8,7 @@ export default class ContinueStatement extends StatementBase {
 	type!: NodeType.tContinueStatement;
 
 	hasEffects(context: HasEffectsContext) {
-		if (!(this.label ? context.ignore.labels.has(this.label.name) : context.ignore.breakStatements))
+		if (!(this.label ? context.ignore.labels.has(this.label.name) : context.ignore.continues))
 			return true;
 		context.breakFlow = new Set([this.label && this.label.name]);
 		return false;

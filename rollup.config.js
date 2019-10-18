@@ -95,18 +95,20 @@ function generateLicenseFile(dependencies) {
 			return text;
 		})
 		.join('\n---------------------------------------\n\n');
-	fs.writeFileSync(
-		'LICENSE.md',
+	const licenseText =
 		`# Rollup core license\n` +
-			`Rollup is released under the MIT license:\n\n` +
-			coreLicense +
-			`\n# Licenses of bundled dependencies\n` +
-			`The published Rollup artifact additionally contains code with the following licenses:\n` +
-			`${Array.from(licenses).join(', ')}\n\n` +
-			`# Bundled dependencies:\n` +
-			dependencyLicenseTexts
-	);
-	console.log('LICENSE.md updated.');
+		`Rollup is released under the MIT license:\n\n` +
+		coreLicense +
+		`\n# Licenses of bundled dependencies\n` +
+		`The published Rollup artifact additionally contains code with the following licenses:\n` +
+		`${Array.from(licenses).join(', ')}\n\n` +
+		`# Bundled dependencies:\n` +
+		dependencyLicenseTexts;
+	const existingLicenseText = fs.readFileSync('LICENSE.md', 'utf8');
+	if (existingLicenseText !== licenseText) {
+		fs.writeFileSync('LICENSE.md', licenseText);
+		console.warn('LICENSE.md updated. You should commit the updated file.');
+	}
 }
 
 const expectedAcornImport = "import acorn__default, { Parser } from 'acorn';";
