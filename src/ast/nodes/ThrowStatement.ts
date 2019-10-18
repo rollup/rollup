@@ -20,5 +20,8 @@ export default class ThrowStatement extends StatementBase {
 
 	render(code: MagicString, options: RenderOptions) {
 		this.argument.render(code, options, { preventASI: true });
+		if (this.argument.start === this.start + 5 /* 'throw'.length */) {
+			code.prependLeft(this.start + 5, ' ');
+		}
 	}
 }

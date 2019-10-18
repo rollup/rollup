@@ -1,5 +1,3 @@
-import MagicString from 'magic-string';
-import { RenderOptions } from '../../utils/renderHelpers';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import ArrowFunctionExpression from './ArrowFunctionExpression';
 import * as NodeType from './NodeType';
@@ -11,22 +9,21 @@ export default class AwaitExpression extends NodeBase {
 	type!: NodeType.tAwaitExpression;
 
 	hasEffects(context: HasEffectsContext) {
-		return super.hasEffects(context) || !context.ignore.returnAwaitYield;
+		return !context.ignore.returnAwaitYield || this.argument.hasEffects(context);
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
-		checkTopLevelAwait: if (!this.included && !this.context.usesTopLevelAwait) {
-			let parent = this.parent;
-			do {
-				if (parent instanceof FunctionNode || parent instanceof ArrowFunctionExpression)
-					break checkTopLevelAwait;
-			} while ((parent = (parent as Node).parent as Node));
-			this.context.usesTopLevelAwait = true;
+		if (!this.included) {
+			this.included = true;
+			checkTopLevelAwait: if (!this.context.usesTopLevelAwait) {
+				let parent = this.parent;
+				do {
+					if (parent instanceof FunctionNode || parent instanceof ArrowFunctionExpression)
+						break checkTopLevelAwait;
+				} while ((parent = (parent as Node).parent as Node));
+				this.context.usesTopLevelAwait = true;
+			}
 		}
-		super.include(context, includeChildrenRecursively);
-	}
-
-	render(code: MagicString, options: RenderOptions) {
-		super.render(code, options);
+		this.argument.include(context, includeChildrenRecursively);
 	}
 }
