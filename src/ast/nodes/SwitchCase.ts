@@ -1,6 +1,7 @@
 import MagicString from 'magic-string';
 import {
 	findFirstOccurrenceOutsideComment,
+	NodeRenderOptions,
 	RenderOptions,
 	renderStatementList
 } from '../../utils/renderHelpers';
@@ -10,6 +11,7 @@ import { ExpressionNode, IncludeChildren, NodeBase, StatementNode } from './shar
 
 export default class SwitchCase extends NodeBase {
 	consequent!: StatementNode[];
+	needsBoundaries!: true;
 	test!: ExpressionNode | null;
 	type!: NodeType.tSwitchCase;
 
@@ -31,16 +33,24 @@ export default class SwitchCase extends NodeBase {
 		}
 	}
 
-	render(code: MagicString, options: RenderOptions) {
+	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions) {
 		if (this.consequent.length) {
 			this.test && this.test.render(code, options);
 			const testEnd = this.test
 				? this.test.end
 				: findFirstOccurrenceOutsideComment(code.original, 'default', this.start) + 7;
 			const consequentStart = findFirstOccurrenceOutsideComment(code.original, ':', testEnd) + 1;
-			renderStatementList(this.consequent, code, consequentStart, this.end, options);
+			renderStatementList(
+				this.consequent,
+				code,
+				consequentStart,
+				(nodeRenderOptions as NodeRenderOptions).end as number,
+				options
+			);
 		} else {
 			super.render(code, options);
 		}
 	}
 }
+
+SwitchCase.prototype.needsBoundaries = true;

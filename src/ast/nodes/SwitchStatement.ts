@@ -1,5 +1,8 @@
+import MagicString from 'magic-string';
+import { RenderOptions, renderStatementList } from '../../utils/renderHelpers';
 import {
 	BROKEN_FLOW_BREAK_CONTINUE,
+	createHasEffectsContext,
 	HasEffectsContext,
 	InclusionContext
 } from '../ExecutionContext';
@@ -14,6 +17,8 @@ export default class SwitchStatement extends StatementBase {
 	discriminant!: ExpressionNode;
 	type!: NodeType.tSwitchStatement;
 
+	private defaultCase!: number | null;
+
 	createScope(parentScope: Scope) {
 		this.scope = new BlockScope(parentScope);
 	}
@@ -22,21 +27,19 @@ export default class SwitchStatement extends StatementBase {
 		if (this.discriminant.hasEffects(context)) return true;
 		const {
 			brokenFlow,
-			ignore: { breakStatements }
+			ignore: { breaks }
 		} = context;
-		let hasDefault = false;
 		let minBrokenFlow = Infinity;
-		context.ignore.breakStatements = true;
+		context.ignore.breaks = true;
 		for (const switchCase of this.cases) {
 			if (switchCase.hasEffects(context)) return true;
-			if (switchCase.test === null) hasDefault = true;
 			minBrokenFlow = context.brokenFlow < minBrokenFlow ? context.brokenFlow : minBrokenFlow;
 			context.brokenFlow = brokenFlow;
 		}
-		if (hasDefault && !(minBrokenFlow === BROKEN_FLOW_BREAK_CONTINUE)) {
+		if (this.defaultCase !== null && !(minBrokenFlow === BROKEN_FLOW_BREAK_CONTINUE)) {
 			context.brokenFlow = minBrokenFlow;
 		}
-		context.ignore.breakStatements = breakStatements;
+		context.ignore.breaks = breaks;
 		return false;
 	}
 
@@ -44,16 +47,45 @@ export default class SwitchStatement extends StatementBase {
 		this.included = true;
 		this.discriminant.include(context, includeChildrenRecursively);
 		const { brokenFlow } = context;
-		let hasDefault = false;
 		let minBrokenFlow = Infinity;
-		for (const switchCase of this.cases) {
-			if (switchCase.test === null) hasDefault = true;
-			switchCase.include(context, includeChildrenRecursively);
-			minBrokenFlow = minBrokenFlow < context.brokenFlow ? minBrokenFlow : context.brokenFlow;
-			context.brokenFlow = brokenFlow;
+		let isCaseIncluded =
+			includeChildrenRecursively ||
+			(this.defaultCase !== null && this.defaultCase < this.cases.length - 1);
+		for (let caseIndex = this.cases.length - 1; caseIndex >= 0; caseIndex--) {
+			const switchCase = this.cases[caseIndex];
+			if (switchCase.included) {
+				isCaseIncluded = true;
+			}
+			if (!isCaseIncluded) {
+				const hasEffectsContext = createHasEffectsContext();
+				hasEffectsContext.ignore.breaks = true;
+				isCaseIncluded = switchCase.hasEffects(hasEffectsContext);
+			}
+			if (isCaseIncluded) {
+				switchCase.include(context, includeChildrenRecursively);
+				minBrokenFlow = minBrokenFlow < context.brokenFlow ? minBrokenFlow : context.brokenFlow;
+				context.brokenFlow = brokenFlow;
+			}
 		}
-		if (hasDefault && !(minBrokenFlow === BROKEN_FLOW_BREAK_CONTINUE)) {
+		if (this.defaultCase !== null && !(minBrokenFlow === BROKEN_FLOW_BREAK_CONTINUE)) {
 			context.brokenFlow = minBrokenFlow;
+		}
+	}
+
+	initialise() {
+		for (let caseIndex = 0; caseIndex < this.cases.length; caseIndex++) {
+			if (this.cases[caseIndex].test === null) {
+				this.defaultCase = caseIndex;
+				return;
+			}
+		}
+		this.defaultCase = null;
+	}
+
+	render(code: MagicString, options: RenderOptions) {
+		this.discriminant.render(code, options);
+		if (this.cases.length > 0) {
+			renderStatementList(this.cases, code, this.cases[0].start, this.end - 1, options);
 		}
 	}
 }

@@ -58,7 +58,8 @@ export default class ArrowFunctionExpression extends NodeBase {
 		}
 		const { ignore, brokenFlow } = context;
 		context.ignore = {
-			breakStatements: false,
+			breaks: false,
+			continues: false,
 			labels: new Set(),
 			returnAwaitYield: true
 		};

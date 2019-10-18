@@ -46,7 +46,6 @@ switch (globalThis.unknown) {
  case 3: // retained
 		// lead retained
 		console.log(2); // trail retained
-
 	case 4: /* lead retained */ console.log('3'); // trail retained
 	default: // retained
 		/* lead retained */

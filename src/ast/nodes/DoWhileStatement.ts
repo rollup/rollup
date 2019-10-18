@@ -15,11 +15,13 @@ export default class DoWhileStatement extends StatementBase {
 		if (this.test.hasEffects(context)) return true;
 		const {
 			brokenFlow,
-			ignore: { breakStatements }
+			ignore: { breaks, continues }
 		} = context;
-		context.ignore.breakStatements = true;
+		context.ignore.breaks = true;
+		context.ignore.continues = true;
 		if (this.body.hasEffects(context)) return true;
-		context.ignore.breakStatements = breakStatements;
+		context.ignore.breaks = breaks;
+		context.ignore.continues = continues;
 		if (context.brokenFlow === BROKEN_FLOW_BREAK_CONTINUE) {
 			context.brokenFlow = brokenFlow;
 		}

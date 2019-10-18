@@ -18,7 +18,7 @@ export default class ContinueStatement extends StatementBase {
 			context.includedLabels.add(this.label.name);
 			context.brokenFlow = BROKEN_FLOW_ERROR_RETURN_LABEL;
 		} else {
-			if (!context.ignore.breakStatements) return true;
+			if (!context.ignore.continues) return true;
 			context.brokenFlow = BROKEN_FLOW_BREAK_CONTINUE;
 		}
 		return false;
