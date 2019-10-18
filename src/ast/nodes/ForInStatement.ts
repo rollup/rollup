@@ -60,6 +60,10 @@ export default class ForInStatement extends StatementBase {
 	render(code: MagicString, options: RenderOptions) {
 		this.left.render(code, options, NO_SEMICOLON);
 		this.right.render(code, options, NO_SEMICOLON);
+		// handle no space between "in" and the right side
+		if (code.original.charCodeAt(this.right.start - 1) === 110 /* n */) {
+			code.prependLeft(this.right.start, ' ');
+		}
 		this.body.render(code, options);
 	}
 }
