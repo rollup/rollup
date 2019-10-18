@@ -13,15 +13,23 @@ export default class BreakStatement extends StatementBase {
 	type!: NodeType.tBreakStatement;
 
 	hasEffects(context: HasEffectsContext) {
-		if (!(this.label ? context.ignore.labels.has(this.label.name) : context.ignore.breakStatements))
-			return true;
-		context.breakFlow = this.label ? BREAKFLOW_ERROR_RETURN_LABEL : BREAKFLOW_BREAK_CONTINUE;
+		if (this.label) {
+			if (!context.ignore.labels.has(this.label.name)) return true;
+			context.includedLabels.add(this.label.name);
+			context.breakFlow = BREAKFLOW_ERROR_RETURN_LABEL;
+		} else {
+			if (!context.ignore.breakStatements) return true;
+			context.breakFlow = BREAKFLOW_BREAK_CONTINUE;
+		}
 		return false;
 	}
 
 	include(context: InclusionContext) {
 		this.included = true;
-		if (this.label) this.label.include(context);
+		if (this.label) {
+			this.label.include(context);
+			context.includedLabels.add(this.label.name);
+		}
 		context.breakFlow = this.label ? BREAKFLOW_ERROR_RETURN_LABEL : BREAKFLOW_BREAK_CONTINUE;
 	}
 }

@@ -1,4 +1,4 @@
-label: do {
+do {
 	console.log('retained');
 } while (globalThis.unknown);
 
@@ -6,7 +6,7 @@ do {
 	console.log('retained');
 } while (globalThis.unknown);
 
-label: do {
+ do {
 	console.log('retained');
 } while (globalThis.unknown);
 

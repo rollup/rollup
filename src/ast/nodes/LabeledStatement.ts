@@ -1,3 +1,5 @@
+import MagicString from 'magic-string';
+import { findFirstOccurrenceOutsideComment, RenderOptions } from '../../utils/renderHelpers';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
@@ -13,15 +15,33 @@ export default class LabeledStatement extends StatementBase {
 		context.ignore.labels.add(this.label.name);
 		if (this.body.hasEffects(context)) return true;
 		context.ignore.labels.delete(this.label.name);
-		context.breakFlow = breakFlow;
+		if (context.includedLabels.has(this.label.name)) {
+			context.includedLabels.delete(this.label.name);
+			context.breakFlow = breakFlow;
+		}
 		return false;
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		const breakFlow = context.breakFlow;
-		this.label.include(context);
 		this.body.include(context, includeChildrenRecursively);
-		context.breakFlow = breakFlow;
+		if (context.includedLabels.has(this.label.name)) {
+			this.label.include(context);
+			context.includedLabels.delete(this.label.name);
+			context.breakFlow = breakFlow;
+		}
+	}
+
+	render(code: MagicString, options: RenderOptions) {
+		if (this.label.included) {
+			this.label.render(code, options);
+		} else {
+			code.remove(
+				this.start,
+				findFirstOccurrenceOutsideComment(code.original, ':', this.label.end) + 1
+			);
+		}
+		this.body.render(code, options);
 	}
 }

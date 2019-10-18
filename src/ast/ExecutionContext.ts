@@ -8,17 +8,20 @@ interface ExecutionContextIgnore {
 	returnAwaitYield: boolean;
 }
 
+// TODO Lukas rename to broken flow
 export const BREAKFLOW_NONE = 0;
 export const BREAKFLOW_BREAK_CONTINUE = 1;
 export const BREAKFLOW_ERROR_RETURN_LABEL = 2;
 
 export interface InclusionContext {
 	breakFlow: number;
+	includedLabels: Set<string>;
 }
 
 export interface HasEffectsContext extends InclusionContext {
 	accessed: PathTracker;
 	assigned: PathTracker;
+	breakFlow: number;
 	called: PathTracker;
 	ignore: ExecutionContextIgnore;
 	instantiated: PathTracker;
@@ -27,7 +30,8 @@ export interface HasEffectsContext extends InclusionContext {
 
 export function createInclusionContext(): InclusionContext {
 	return {
-		breakFlow: BREAKFLOW_NONE
+		breakFlow: BREAKFLOW_NONE,
+		includedLabels: new Set()
 	};
 }
 
@@ -42,6 +46,7 @@ export function createHasEffectsContext(): HasEffectsContext {
 			labels: new Set(),
 			returnAwaitYield: false
 		},
+		includedLabels: new Set(),
 		instantiated: new PathTracker(),
 		replacedVariableInits: new Map()
 	};
