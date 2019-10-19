@@ -140,7 +140,8 @@ function tryParse(module: Module, Parser: typeof acorn.Parser, acornOptions: aco
 		module.error(
 			{
 				code: 'PARSE_ERROR',
-				message
+				message,
+				parserError: err
 			},
 			err.pos
 		);
