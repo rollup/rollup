@@ -3,15 +3,12 @@ function returnAll() {
 		case 1:
 			console.log('retained');
 			return;
-
 		case 2:
 			console.log('retained');
 			return;
-
 		default:
 			console.log('retained');
 			return;
-
 	}
 }
 
@@ -25,10 +22,8 @@ function returnNoDefault() {
 	switch (globalThis.unknown) {
 		case 1:
 			return;
-
 		case 2:
 			return;
-
 	}
 	console.log('retained');
 }
@@ -39,13 +34,10 @@ function returnSomeBreak() {
 	switch (globalThis.unknown) {
 		case 1:
 			return;
-
 		case 2:
 			break;
-
 		default:
 			return;
-
 	}
 	console.log('retained');
 }
@@ -64,13 +56,10 @@ function returnBreakDifferentLabels() {
 			switch (globalThis.unknown) {
 				case 1:
 					break outer;
-
 				case 2:
 					break inner;
-
 				default:
 					break outer;
-
 			}
 		}
 		console.log('retained');

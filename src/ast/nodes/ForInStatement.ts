@@ -35,13 +35,15 @@ export default class ForInStatement extends StatementBase {
 		)
 			return true;
 		const {
-			breakFlow,
-			ignore: { breakStatements }
+			brokenFlow,
+			ignore: { breaks, continues }
 		} = context;
-		context.ignore.breakStatements = true;
+		context.ignore.breaks = true;
+		context.ignore.continues = true;
 		if (this.body.hasEffects(context)) return true;
-		context.ignore.breakStatements = breakStatements;
-		context.breakFlow = breakFlow;
+		context.ignore.breaks = breaks;
+		context.ignore.continues = continues;
+		context.brokenFlow = brokenFlow;
 		return false;
 	}
 
@@ -50,14 +52,18 @@ export default class ForInStatement extends StatementBase {
 		this.left.includeWithAllDeclaredVariables(includeChildrenRecursively, context);
 		this.left.deoptimizePath(EMPTY_PATH);
 		this.right.include(context, includeChildrenRecursively);
-		const { breakFlow } = context;
+		const { brokenFlow } = context;
 		this.body.include(context, includeChildrenRecursively);
-		context.breakFlow = breakFlow;
+		context.brokenFlow = brokenFlow;
 	}
 
 	render(code: MagicString, options: RenderOptions) {
 		this.left.render(code, options, NO_SEMICOLON);
 		this.right.render(code, options, NO_SEMICOLON);
+		// handle no space between "in" and the right side
+		if (code.original.charCodeAt(this.right.start - 1) === 110 /* n */) {
+			code.prependLeft(this.right.start, ' ');
+		}
 		this.body.render(code, options);
 	}
 }

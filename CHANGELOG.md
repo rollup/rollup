@@ -1,5 +1,24 @@
 # rollup changelog
 
+## 1.25.0
+*2019-10-18*
+
+### Features
+* Remove try-catch if there is no side-effect in the try-block (#3166)
+* Omit side-effect-free trailing cases in switch-statements (#3166)
+* Remove unused labels (#3170)
+
+### Bug Fixes
+* Do not remove code after labeled statements that contain a throw or return if the label is used (#3170)
+* Prevent invalid code when expressions are simplified that do not follow a white-space character (#3173)
+* Do not remove continue statements inside switch statements (#3166)
+* Prevent trailing empty lines when tree-shaking inside switch statements (#3166)
+
+### Pull Requests
+* [#3166](https://github.com/rollup/rollup/pull/3166): Better try statement tree shaking (@lukastaegert)
+* [#3170](https://github.com/rollup/rollup/pull/3170): Handle optional control flow in labeled statements, remove unused labels (@lukastaegert)
+* [#3173](https://github.com/rollup/rollup/pull/3173): Add missing spaces in certain statements and expressions to avoid invalid code (@lukastaegert)
+
 ## 1.24.0
 *2019-10-15*
 

@@ -20,3 +20,13 @@ function test(callback) {
 test(() => {
 	Object.create(null);
 });
+
+try {
+	const x = 1;
+} catch {
+	console.log('removed');
+}
+
+try {} finally {
+	console.log('retained');
+}

@@ -68,3 +68,18 @@ function tryAfterError() {
 try {
 	tryAfterError();
 } catch {}
+
+function errorTryNoCatch() {
+	try {
+		throw new Error('Break');
+		console.log('removed');
+	} finally {
+		console.log('retained');
+	}
+
+	console.log('retained');
+}
+
+try {
+	errorTryNoCatch();
+} catch {}

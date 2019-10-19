@@ -1,6 +1,6 @@
 while (globalThis.unknown) {
 	console.log('retained');
-	label: {
+	 {
 		break;
 	}
 }

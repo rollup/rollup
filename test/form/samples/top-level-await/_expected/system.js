@@ -5,6 +5,8 @@ System.register([], function () {
 
 			await operation();
 
+			await retainedOperation();
+
 		}
 	};
 });

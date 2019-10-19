@@ -13,7 +13,7 @@ outer: {
 }
 
 outer: {
-	inner: {
+	/* retained comment */ {
 		console.log('retained');
 		break outer;
 	}
@@ -26,21 +26,21 @@ outer: {
 outer: {
 	inner: {
 		if (globalThis.unknown) break inner;
-		else break outer;
+		break outer;
 	}
 	console.log('retained');
 }
 
 function withConsequentReturn() {
-	outer: {
+	 {
 		inner: {
 			if (globalThis.unknown) return;
 			else break inner;
 		}
 		console.log('retained');
 	}
-	outer: {
-		inner: {
+	 {
+		 {
 			return;
 		}
 	}
@@ -49,7 +49,7 @@ function withConsequentReturn() {
 withConsequentReturn();
 
 function withAlternateReturn() {
-	outer: {
+	 {
 		inner: {
 			if (globalThis.unknown) break inner;
 			else return;

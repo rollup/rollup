@@ -14,4 +14,8 @@ function test(callback) {
 test(() => {
 });
 
+try {} finally {
+	console.log('retained');
+}
+
 export { mutated };
