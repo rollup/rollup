@@ -67,7 +67,11 @@ export default class SwitchStatement extends StatementBase {
 				context.brokenFlow = brokenFlow;
 			}
 		}
-		if (this.defaultCase !== null && !(minBrokenFlow === BROKEN_FLOW_BREAK_CONTINUE)) {
+		if (
+			isCaseIncluded &&
+			this.defaultCase !== null &&
+			!(minBrokenFlow === BROKEN_FLOW_BREAK_CONTINUE)
+		) {
 			context.brokenFlow = minBrokenFlow;
 		}
 	}
