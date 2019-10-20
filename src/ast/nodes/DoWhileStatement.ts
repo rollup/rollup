@@ -1,8 +1,4 @@
-import {
-	BROKEN_FLOW_BREAK_CONTINUE,
-	HasEffectsContext,
-	InclusionContext
-} from '../ExecutionContext';
+import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from './shared/Node';
 
@@ -22,9 +18,7 @@ export default class DoWhileStatement extends StatementBase {
 		if (this.body.hasEffects(context)) return true;
 		context.ignore.breaks = breaks;
 		context.ignore.continues = continues;
-		if (context.brokenFlow === BROKEN_FLOW_BREAK_CONTINUE) {
-			context.brokenFlow = brokenFlow;
-		}
+		context.brokenFlow = brokenFlow;
 		return false;
 	}
 
@@ -33,8 +27,6 @@ export default class DoWhileStatement extends StatementBase {
 		this.test.include(context, includeChildrenRecursively);
 		const { brokenFlow } = context;
 		this.body.include(context, includeChildrenRecursively);
-		if (context.brokenFlow === BROKEN_FLOW_BREAK_CONTINUE) {
-			context.brokenFlow = brokenFlow;
-		}
+		context.brokenFlow = brokenFlow;
 	}
 }

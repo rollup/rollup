@@ -17,8 +17,13 @@ try {
 function doWhileLoop() {
 	console.log(hoisted);
 	do {
+		if (globalThis.unknown) {
+			break;
+		}
 		throw new Error();
 	} while (globalThis.unknown);
+	console.log('retained');
+	throw new Error();
 	do {
 		var hoisted;
 	} while (globalThis.unknown);
