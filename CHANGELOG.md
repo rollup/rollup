@@ -1,5 +1,21 @@
 # rollup changelog
 
+## 1.25.1
+*2019-10-20*
+
+### Bug Fixes
+* Handle a situation where code was not included after a switch statement (#3178)
+* Handle a situation where code was not included after a do-while loop (#3180)
+* Do not fail if different outputs emit the same file (#3175)
+* Give access to the original acorn error for parse errors (#3176)
+
+### Pull Requests
+* [#3175](https://github.com/rollup/rollup/pull/3175): Disable errors for duplicate emitted file names (@marijnh)
+* [#3176](https://github.com/rollup/rollup/pull/3176): Add original parser error to rollup error; Update tests (@gribnoysup)
+* [#3178](https://github.com/rollup/rollup/pull/3178): Fix switch case not being included correctly (@lukastaegert)
+* [#3179](https://github.com/rollup/rollup/pull/3179): Update dependencies (@lukastaegert)
+* [#3180](https://github.com/rollup/rollup/pull/3180): Handle conditional breaks in do-while loops with unconditional return (@lukastaegert)
+
 ## 1.25.0
 *2019-10-18*
 
