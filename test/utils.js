@@ -13,11 +13,19 @@ exports.normaliseOutput = normaliseOutput;
 exports.runTestSuiteWithSamples = runTestSuiteWithSamples;
 exports.assertDirectoriesAreEqual = assertDirectoriesAreEqual;
 
-function compareError(actual, expected) {
-	delete actual.stack;
-	actual = Object.assign({}, actual, {
-		message: actual.message
+function normaliseError(error) {
+	delete error.stack;
+	return Object.assign({}, error, {
+		message: error.message
 	});
+}
+
+function compareError(actual, expected) {
+	actual = normaliseError(actual);
+
+	if (actual.parserError) {
+		actual.parserError = normaliseError(actual.parserError);
+	}
 
 	if (actual.frame) {
 		actual.frame = actual.frame.replace(/\s+$/gm, '');

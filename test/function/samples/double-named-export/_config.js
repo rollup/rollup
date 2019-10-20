@@ -5,6 +5,15 @@ module.exports = {
 	error: {
 		code: 'PARSE_ERROR',
 		message: `Duplicate export 'foo'`,
+		parserError: {
+			loc: {
+				column: 9,
+				line: 3
+			},
+			message: "Duplicate export 'foo' (3:9)",
+			pos: 38,
+			raisedAt: 43
+		},
 		pos: 38,
 		watchFiles: [path.resolve(__dirname, 'main.js'), path.resolve(__dirname, 'foo.js')],
 		loc: {
