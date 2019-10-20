@@ -4,6 +4,7 @@ import { EventEmitter } from 'events';
 export const VERSION: string;
 
 export interface RollupError extends RollupLogProps {
+	parserError?: Error;
 	stack?: string;
 	watchFiles?: string[];
 }
