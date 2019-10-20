@@ -53,3 +53,10 @@ for (var i = 0; i < 4; i++) {
 	}
 	effect();
 }
+
+var included;
+switch (effect()) {
+	default:
+		included = 1;
+}
+console.log(included);
