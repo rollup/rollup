@@ -20,10 +20,14 @@ try {
 function doWhileLoop() {
 	console.log(hoisted);
 	do {
+		if (globalThis.unknown) {
+			break;
+		}
 		throw new Error();
 		console.log('removed');
 	} while (globalThis.unknown);
-	console.log('removed');
+	console.log('retained');
+	throw new Error();
 	do {
 		var hoisted;
 		console.log('removed');
