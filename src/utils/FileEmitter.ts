@@ -48,10 +48,8 @@ function generateAssetFileName(
 }
 
 function reserveFileNameInBundle(fileName: string, bundle: OutputBundleWithPlaceholders) {
-	if (fileName in bundle) {
-		// FIXME this should return error(errFileNameConflict(fileName));
-		// but until #3174 is fixed, this raises spurious errors and is disabled
-	}
+	// TODO this should warn if the fileName is already in the bundle,
+	//  but until #3174 is fixed, this raises spurious warnings and is disabled
 	bundle[fileName] = FILE_PLACEHOLDER;
 }
 
