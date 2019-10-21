@@ -48,9 +48,8 @@ export default function iife(
 	const args = external.map(m => m.name);
 
 	if (hasExports && !name) {
-		error({
-			code: 'INVALID_OPTION',
-			message: `You must supply "output.name" for IIFE bundles.`
+		warn({
+			message: `If you do not supply "output.name", you may not be able to access the exports of an IIFE bundle.`
 		});
 	}
 
@@ -68,9 +67,9 @@ export default function iife(
 
 	let wrapperIntro = `(function${_}(${args.join(`,${_}`)})${_}{${n}${useStrict}`;
 
-	if (hasExports && (!extend || !namedExportsMode)) {
+	if (hasExports && (!extend || !namedExportsMode) && name) {
 		wrapperIntro =
-			(useVariableAssignment ? `${varOrConst} ${name}` : thisProp(name as string)) +
+			(useVariableAssignment ? `${varOrConst} ${name}` : thisProp(name)) +
 			`${_}=${_}${wrapperIntro}`;
 	}
 
