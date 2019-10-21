@@ -10,7 +10,8 @@ import { writeFile } from '../utils/fs';
 import getExportMode from '../utils/getExportMode';
 import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
 import { basename, dirname, isAbsolute, resolve } from '../utils/path';
-import { ANONYMOUS_PLUGIN_PREFIX, PluginDriver } from '../utils/pluginDriver';
+import { ANONYMOUS_PLUGIN_PREFIX } from '../utils/pluginConstants';
+import { PluginDriver } from '../utils/PluginDriver';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
 import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timers';
 import {

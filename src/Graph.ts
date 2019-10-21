@@ -29,7 +29,7 @@ import { Uint8ArrayToHexString } from './utils/entryHashing';
 import { errDeprecation, error } from './utils/error';
 import { analyseModuleExecution, sortByExecutionOrder } from './utils/executionOrder';
 import { resolve } from './utils/path';
-import { createPluginDriver, PluginDriver } from './utils/pluginDriver';
+import { createPluginDriver, PluginDriver } from './utils/PluginDriver';
 import relativeId from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
 

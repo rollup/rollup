@@ -20,6 +20,8 @@ import { BuildPhase } from './buildPhase';
 import { getRollupDefaultPlugin } from './defaultPlugin';
 import { errInvalidRollupPhaseForAddWatchFile, error, Errors } from './error';
 import { FileEmitter } from './FileEmitter';
+import { createPluginCache, getCacheForUncacheablePlugin, NO_CACHE } from './PluginCache';
+import { ANONYMOUS_PLUGIN_PREFIX, deprecatedHooks } from './pluginConstants';
 
 type Args<T> = T extends (...args: infer K) => any ? K : never;
 type EnsurePromise<T> = Promise<T extends Promise<infer K> ? K : T>;
@@ -85,16 +87,6 @@ export interface PluginDriver {
 
 export type Reduce<R = any, T = any> = (reduction: T, result: R, plugin: Plugin) => T;
 export type HookContext = (context: PluginContext, plugin: Plugin) => PluginContext;
-
-export const ANONYMOUS_PLUGIN_PREFIX = 'at position ';
-
-const deprecatedHooks: { active: boolean; deprecated: string; replacement: string }[] = [
-	{ active: true, deprecated: 'ongenerate', replacement: 'generateBundle' },
-	{ active: true, deprecated: 'onwrite', replacement: 'generateBundle/writeBundle' },
-	{ active: true, deprecated: 'transformBundle', replacement: 'renderChunk' },
-	{ active: true, deprecated: 'transformChunk', replacement: 'renderChunk' },
-	{ active: false, deprecated: 'resolveAssetUrl', replacement: 'resolveFileUrl' }
-];
 
 function warnDeprecatedHooks(plugins: Plugin[], graph: Graph) {
 	for (const { active, deprecated, replacement } of deprecatedHooks) {
@@ -182,14 +174,14 @@ export function createPluginDriver(
 
 		let cacheInstance: PluginCache;
 		if (!pluginCache) {
-			cacheInstance = noCache;
+			cacheInstance = NO_CACHE;
 		} else if (cacheable) {
 			const cacheKey = plugin.cacheKey || plugin.name;
 			cacheInstance = createPluginCache(
 				pluginCache[cacheKey] || (pluginCache[cacheKey] = Object.create(null))
 			);
 		} else {
-			cacheInstance = uncacheablePlugin(plugin.name);
+			cacheInstance = getCacheForUncacheablePlugin(plugin.name);
 		}
 
 		const context: PluginContext = {
@@ -490,94 +482,3 @@ export function createPluginDriver(
 
 	return pluginDriver;
 }
-
-export function createPluginCache(cache: SerializablePluginCache): PluginCache {
-	return {
-		has(id: string) {
-			const item = cache[id];
-			if (!item) return false;
-			item[0] = 0;
-			return true;
-		},
-		get(id: string) {
-			const item = cache[id];
-			if (!item) return undefined;
-			item[0] = 0;
-			return item[1];
-		},
-		set(id: string, value: any) {
-			cache[id] = [0, value];
-		},
-		delete(id: string) {
-			return delete cache[id];
-		}
-	};
-}
-
-export function trackPluginCache(pluginCache: PluginCache) {
-	const result = { used: false, cache: (undefined as any) as PluginCache };
-	result.cache = {
-		has(id: string) {
-			result.used = true;
-			return pluginCache.has(id);
-		},
-		get(id: string) {
-			result.used = true;
-			return pluginCache.get(id);
-		},
-		set(id: string, value: any) {
-			result.used = true;
-			return pluginCache.set(id, value);
-		},
-		delete(id: string) {
-			result.used = true;
-			return pluginCache.delete(id);
-		}
-	};
-	return result;
-}
-
-const noCache: PluginCache = {
-	has() {
-		return false;
-	},
-	get() {
-		return undefined as any;
-	},
-	set() {},
-	delete() {
-		return false;
-	}
-};
-
-function uncacheablePluginError(pluginName: string) {
-	if (pluginName.startsWith(ANONYMOUS_PLUGIN_PREFIX))
-		error({
-			code: 'ANONYMOUS_PLUGIN_CACHE',
-			message:
-				'A plugin is trying to use the Rollup cache but is not declaring a plugin name or cacheKey.'
-		});
-	else
-		error({
-			code: 'DUPLICATE_PLUGIN_NAME',
-			message: `The plugin name ${pluginName} is being used twice in the same build. Plugin names must be distinct or provide a cacheKey (please post an issue to the plugin if you are a plugin user).`
-		});
-}
-
-const uncacheablePlugin: (pluginName: string) => PluginCache = pluginName => ({
-	has() {
-		uncacheablePluginError(pluginName);
-		return false;
-	},
-	get() {
-		uncacheablePluginError(pluginName);
-		return undefined as any;
-	},
-	set() {
-		uncacheablePluginError(pluginName);
-	},
-	delete() {
-		uncacheablePluginError(pluginName);
-		return false;
-	}
-});

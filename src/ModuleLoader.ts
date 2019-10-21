@@ -26,7 +26,7 @@ import {
 	errUnresolvedImportTreatedAsExternal
 } from './utils/error';
 import { isRelative, resolve } from './utils/path';
-import { PluginDriver } from './utils/pluginDriver';
+import { PluginDriver } from './utils/PluginDriver';
 import relativeId from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
 import transform from './utils/transform';

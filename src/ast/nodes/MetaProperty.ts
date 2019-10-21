@@ -1,7 +1,7 @@
 import MagicString from 'magic-string';
 import { accessedFileUrlGlobals, accessedMetaUrlGlobals } from '../../utils/defaultPlugin';
 import { dirname, normalize, relative } from '../../utils/path';
-import { PluginDriver } from '../../utils/pluginDriver';
+import { PluginDriver } from '../../utils/PluginDriver';
 import { ObjectPathKey } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
