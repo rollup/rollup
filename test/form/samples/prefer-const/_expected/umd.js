@@ -2,7 +2,7 @@
 	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('other')) :
 	typeof define === 'function' && define.amd ? define(['other'], factory) :
 	(global = global || self, global.myBundle = factory(global.other));
-}(this, function (other) { 'use strict';
+}(this, (function (other) { 'use strict';
 
 	const a = 1;
 	const b = 2;
@@ -20,4 +20,4 @@
 
 	return main;
 
-}));
+})));

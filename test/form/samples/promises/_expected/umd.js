@@ -2,7 +2,7 @@
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
 	(global = global || self, factory(global.bundle = {}));
-}(this, function (exports) { 'use strict';
+}(this, (function (exports) { 'use strict';
 
 	const p1 = new Promise( () => {
 		console.log( 'fire & forget' );
@@ -22,4 +22,4 @@
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-}));
+})));
