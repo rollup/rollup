@@ -1,27 +1,19 @@
-import { EventEmitter } from 'events';
-import { version as rollupVersion } from 'package.json';
-import ExternalModule from '../ExternalModule';
 import Graph from '../Graph';
-import Module from '../Module';
 import {
 	EmitFile,
 	InputOptions,
 	OutputBundleWithPlaceholders,
 	Plugin,
-	PluginCache,
 	PluginContext,
 	PluginHooks,
-	RollupError,
-	RollupWarning,
 	RollupWatcher,
 	SerializablePluginCache
 } from '../rollup/types';
-import { BuildPhase } from './buildPhase';
 import { getRollupDefaultPlugin } from './defaultPlugin';
-import { errInvalidRollupPhaseForAddWatchFile, error, Errors } from './error';
+import { error } from './error';
 import { FileEmitter } from './FileEmitter';
-import { createPluginCache, getCacheForUncacheablePlugin, NO_CACHE } from './PluginCache';
-import { ANONYMOUS_PLUGIN_PREFIX, deprecatedHooks } from './pluginConstants';
+import { getPluginContexts } from './PluginContext';
+import { throwPluginError } from './pluginUtils';
 
 type Args<T> = T extends (...args: infer K) => any ? K : never;
 type EnsurePromise<T> = Promise<T extends Promise<infer K> ? K : T>;
@@ -88,6 +80,14 @@ export interface PluginDriver {
 export type Reduce<R = any, T = any> = (reduction: T, result: R, plugin: Plugin) => T;
 export type HookContext = (context: PluginContext, plugin: Plugin) => PluginContext;
 
+export const deprecatedHooks: { active: boolean; deprecated: string; replacement: string }[] = [
+	{ active: true, deprecated: 'ongenerate', replacement: 'generateBundle' },
+	{ active: true, deprecated: 'onwrite', replacement: 'generateBundle/writeBundle' },
+	{ active: true, deprecated: 'transformBundle', replacement: 'renderChunk' },
+	{ active: true, deprecated: 'transformChunk', replacement: 'renderChunk' },
+	{ active: false, deprecated: 'resolveAssetUrl', replacement: 'resolveFileUrl' }
+];
+
 function warnDeprecatedHooks(plugins: Plugin[], graph: Graph) {
 	for (const { active, deprecated, replacement } of deprecatedHooks) {
 		for (const plugin of plugins) {
@@ -104,26 +104,6 @@ function warnDeprecatedHooks(plugins: Plugin[], graph: Graph) {
 	}
 }
 
-export function throwPluginError(
-	err: string | RollupError,
-	plugin: string,
-	{ hook, id }: { hook?: string; id?: string } = {}
-): never {
-	if (typeof err === 'string') err = { message: err };
-	if (err.code && err.code !== Errors.PLUGIN_ERROR) {
-		err.pluginCode = err.code;
-	}
-	err.code = Errors.PLUGIN_ERROR;
-	err.plugin = plugin;
-	if (hook) {
-		err.hook = hook;
-	}
-	if (id) {
-		err.id = id;
-	}
-	return error(err);
-}
-
 export function createPluginDriver(
 	graph: Graph,
 	options: InputOptions,
@@ -132,181 +112,15 @@ export function createPluginDriver(
 ): PluginDriver {
 	warnDeprecatedHooks(options.plugins as Plugin[], graph);
 
-	function getDeprecatedHookHandler<H extends Function>(
-		handler: H,
-		handlerName: string,
-		newHandlerName: string,
-		pluginName: string,
-		acitveDeprecation: boolean
-	): H {
-		let deprecationWarningShown = false;
-		return (((...args: any[]) => {
-			if (!deprecationWarningShown) {
-				deprecationWarningShown = true;
-				graph.warnDeprecation(
-					{
-						message: `The "this.${handlerName}" plugin context function used by plugin ${pluginName} is deprecated. The "this.${newHandlerName}" plugin context function should be used instead.`,
-						plugin: pluginName
-					},
-					acitveDeprecation
-				);
-			}
-			return handler(...args);
-		}) as unknown) as H;
-	}
-
 	const plugins = [
 		...(options.plugins as Plugin[]),
 		getRollupDefaultPlugin(options.preserveSymlinks as boolean)
 	];
 	const fileEmitter = new FileEmitter(graph);
-	const existingPluginKeys = new Set<string>();
 
-	const pluginContexts: PluginContext[] = plugins.map((plugin, pidx) => {
-		let cacheable = true;
-		if (typeof plugin.cacheKey !== 'string') {
-			if (plugin.name.startsWith(ANONYMOUS_PLUGIN_PREFIX) || existingPluginKeys.has(plugin.name)) {
-				cacheable = false;
-			} else {
-				existingPluginKeys.add(plugin.name);
-			}
-		}
-
-		let cacheInstance: PluginCache;
-		if (!pluginCache) {
-			cacheInstance = NO_CACHE;
-		} else if (cacheable) {
-			const cacheKey = plugin.cacheKey || plugin.name;
-			cacheInstance = createPluginCache(
-				pluginCache[cacheKey] || (pluginCache[cacheKey] = Object.create(null))
-			);
-		} else {
-			cacheInstance = getCacheForUncacheablePlugin(plugin.name);
-		}
-
-		const context: PluginContext = {
-			addWatchFile(id) {
-				if (graph.phase >= BuildPhase.GENERATE) this.error(errInvalidRollupPhaseForAddWatchFile());
-				graph.watchFiles[id] = true;
-			},
-			cache: cacheInstance,
-			emitAsset: getDeprecatedHookHandler(
-				(name: string, source?: string | Buffer) =>
-					fileEmitter.emitFile({ type: 'asset', name, source }),
-				'emitAsset',
-				'emitFile',
-				plugin.name,
-				false
-			),
-			emitChunk: getDeprecatedHookHandler(
-				(id: string, options?: { name?: string }) =>
-					fileEmitter.emitFile({ type: 'chunk', id, name: options && options.name }),
-				'emitChunk',
-				'emitFile',
-				plugin.name,
-				false
-			),
-			emitFile: fileEmitter.emitFile,
-			error(err): never {
-				return throwPluginError(err, plugin.name);
-			},
-			getAssetFileName: getDeprecatedHookHandler(
-				fileEmitter.getFileName,
-				'getAssetFileName',
-				'getFileName',
-				plugin.name,
-				false
-			),
-			getChunkFileName: getDeprecatedHookHandler(
-				fileEmitter.getFileName,
-				'getChunkFileName',
-				'getFileName',
-				plugin.name,
-				false
-			),
-			getFileName: fileEmitter.getFileName,
-			getModuleInfo(moduleId) {
-				const foundModule = graph.moduleById.get(moduleId);
-				if (foundModule == null) {
-					throw new Error(`Unable to find module ${moduleId}`);
-				}
-
-				return {
-					hasModuleSideEffects: foundModule.moduleSideEffects,
-					id: foundModule.id,
-					importedIds:
-						foundModule instanceof ExternalModule
-							? []
-							: Array.from(foundModule.sources).map(id => foundModule.resolvedIds[id].id),
-					isEntry: foundModule instanceof Module && foundModule.isEntryPoint,
-					isExternal: foundModule instanceof ExternalModule
-				};
-			},
-			isExternal: getDeprecatedHookHandler(
-				(id: string, parentId: string, isResolved = false) =>
-					graph.moduleLoader.isExternal(id, parentId, isResolved),
-				'isExternal',
-				'resolve',
-				plugin.name,
-				false
-			),
-			meta: {
-				rollupVersion
-			},
-			get moduleIds() {
-				return graph.moduleById.keys();
-			},
-			parse: graph.contextParse,
-			resolve(source, importer, options?: { skipSelf: boolean }) {
-				return graph.moduleLoader.resolveId(
-					source,
-					importer,
-					options && options.skipSelf ? pidx : null
-				);
-			},
-			resolveId: getDeprecatedHookHandler(
-				(source: string, importer: string) =>
-					graph.moduleLoader
-						.resolveId(source, importer)
-						.then(resolveId => resolveId && resolveId.id),
-				'resolveId',
-				'resolve',
-				plugin.name,
-				false
-			),
-			setAssetSource: fileEmitter.setAssetSource,
-			warn(warning) {
-				if (typeof warning === 'string') warning = { message: warning } as RollupWarning;
-				if (warning.code) warning.pluginCode = warning.code;
-				warning.code = 'PLUGIN_WARNING';
-				warning.plugin = plugin.name;
-				graph.warn(warning);
-			},
-			watcher: watcher
-				? (() => {
-						let deprecationWarningShown = false;
-
-						function deprecatedWatchListener(event: string, handler: () => void): EventEmitter {
-							if (!deprecationWarningShown) {
-								context.warn({
-									code: 'PLUGIN_WATCHER_DEPRECATED',
-									message: `this.watcher usage is deprecated in plugins. Use the watchChange plugin hook and this.addWatchFile() instead.`
-								});
-								deprecationWarningShown = true;
-							}
-							return (watcher as RollupWatcher).on(event, handler);
-						}
-
-						return {
-							...(watcher as EventEmitter),
-							addListener: deprecatedWatchListener,
-							on: deprecatedWatchListener
-						};
-				  })()
-				: (undefined as any)
-		};
-		return context;
-	});
+	const pluginContexts: PluginContext[] = plugins.map(
+		getPluginContexts(pluginCache, graph, fileEmitter, watcher)
+	);
 
 	function runHookSync<T>(
 		hookName: string,
@@ -372,7 +186,7 @@ export function createPluginDriver(
 			.catch(err => throwPluginError(err, plugin.name, { hook: hookName }));
 	}
 
-	const pluginDriver: PluginDriver = {
+	return {
 		emitFile: fileEmitter.emitFile,
 		finaliseAssets() {
 			fileEmitter.assertAssetsFinalized();
@@ -479,6 +293,4 @@ export function createPluginDriver(
 			fileEmitter.startOutput(outputBundle, assetFileNames);
 		}
 	};
-
-	return pluginDriver;
 }

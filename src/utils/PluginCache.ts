@@ -1,6 +1,6 @@
 import { PluginCache, SerializablePluginCache } from '../rollup/types';
 import { error } from './error';
-import { ANONYMOUS_PLUGIN_PREFIX } from './pluginConstants';
+import { ANONYMOUS_PLUGIN_PREFIX } from './pluginUtils';
 
 export function createPluginCache(cache: SerializablePluginCache): PluginCache {
 	return {

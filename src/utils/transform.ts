@@ -18,7 +18,7 @@ import { decodedSourcemap } from './decodedSourcemap';
 import { augmentCodeLocation } from './error';
 import { dirname, resolve } from './path';
 import { getTrackedPluginCache } from './PluginCache';
-import { throwPluginError } from './PluginDriver';
+import { throwPluginError } from './pluginUtils';
 
 export default function transform(
 	graph: Graph,
