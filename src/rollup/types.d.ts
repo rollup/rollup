@@ -553,7 +553,7 @@ export interface RollupBuild {
 }
 
 export interface RollupOptions extends InputOptions {
-	output?: OutputOptions;
+	output?: OutputOptions | OutputOptions[];
 }
 
 export function rollup(options: RollupOptions): Promise<RollupBuild>;
