@@ -138,14 +138,15 @@ export default function umd(
 		  `${_}${cjsExport}${factoryVar}(${cjsDeps.join(`,${_}`)})${_}:${n}`
 		: '';
 
+	// factory function should be wrapped by parentheses to avoid lazy parsing
 	const wrapperIntro =
 		`(function${_}(${globalParam}${factoryVar})${_}{${n}` +
 		cjsIntro +
 		`${t}typeof ${define}${_}===${_}'function'${_}&&${_}${define}.amd${_}?${_}${define}(${amdParams}${factoryVar})${_}:${n}` +
 		`${t}${iifeStart}${iifeExport}${iifeEnd};${n}` +
-		`}(${globalArg}function${_}(${factoryArgs.join(', ')})${_}{${useStrict}${n}`;
+		`}(${globalArg}(function${_}(${factoryArgs.join(', ')})${_}{${useStrict}${n}`;
 
-	const wrapperOutro = n + n + '}));';
+	const wrapperOutro = n + n + '})));';
 
 	// var foo__default = 'default' in foo ? foo['default'] : foo;
 	const interopBlock = getInteropBlock(dependencies, options, varOrConst);

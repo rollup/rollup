@@ -2,7 +2,7 @@
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('a'), require('b')) :
   typeof define === 'function' && define.amd ? define(['exports', 'a', 'b'], factory) :
   (global = global || self, factory(global.myBundle = {}, global.a, global.b));
-}(this, function (exports, a, Test$1) { 'use strict';
+}(this, (function (exports, a, Test$1) { 'use strict';
 
   Test$1 = Test$1 && Test$1.hasOwnProperty('default') ? Test$1['default'] : Test$1;
 
@@ -19,4 +19,4 @@
 
   Object.defineProperty(exports, '__esModule', { value: true });
 
-}));
+})));

@@ -7,7 +7,7 @@
 		factory(exports);
 		exports.noConflict = function () { global.my.name.spaced.module = current; return exports; };
 	}()));
-}(this, function (exports) { 'use strict';
+}(this, (function (exports) { 'use strict';
 
 	function doThings() {
 		console.log( 'doing things...' );
@@ -23,4 +23,4 @@
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-}));
+})));
