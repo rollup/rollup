@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 1.25.2
+*2019-10-23*
+
+### Bug Fixes
+* Improve performance of bundled UMD code by adding additional parentheses to enforce eager parsing (#3183)
+* Improve types to tolerate passing a Rollup config with multiple outputs to `rollup.rollup` (#3184)
+
+### Pull Requests
+* [#3183](https://github.com/rollup/rollup/pull/3183): Add parentheses to factory function of UMD bundles (@ajihyf)
+* [#3184](https://github.com/rollup/rollup/pull/3184): RollupOptions accept output as array (@imcotton)
+
 ## 1.25.1
 *2019-10-20*
 
