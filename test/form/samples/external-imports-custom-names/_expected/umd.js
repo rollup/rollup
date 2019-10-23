@@ -2,7 +2,7 @@
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('jquery')) :
 	typeof define === 'function' && define.amd ? define(['jquery'], factory) :
 	(global = global || self, factory(global.jQuery));
-}(this, function ($) { 'use strict';
+}(this, (function ($) { 'use strict';
 
 	$ = $ && $.hasOwnProperty('default') ? $['default'] : $;
 
@@ -10,4 +10,4 @@
 		$( 'body' ).html( '<h1>hello world!</h1>' );
 	});
 
-}));
+})));

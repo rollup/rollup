@@ -1,7 +1,7 @@
 (function (factory) {
 	typeof define === 'function' && define.amd ? define(factory) :
 	factory();
-}(function () { 'use strict';
+}((function () { 'use strict';
 
 	// side-effect in condition
 	var a = foo() ? 1 : 2;
@@ -21,4 +21,4 @@
 	var i2 = ( function () {this.x = 1;})();
 	var i3 = ( () => () => console.log( 'effect' ))()();
 
-}));
+})));

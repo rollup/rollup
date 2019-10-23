@@ -2,7 +2,7 @@
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('external1'), require('external2')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'external1', 'external2'], factory) :
 	(global = global || self, factory(global.iife = {}, global.external1, global.external2));
-}(this, function (exports, external1, external2) { 'use strict';
+}(this, (function (exports, external1, external2) { 'use strict';
 
 	Object.defineProperty(exports, 'x', {
 		enumerable: true,
@@ -14,4 +14,4 @@
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-}));
+})));

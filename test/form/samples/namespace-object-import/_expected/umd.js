@@ -1,7 +1,7 @@
 (function (factory) {
 	typeof define === 'function' && define.amd ? define(factory) :
 	factory();
-}(function () { 'use strict';
+}((function () { 'use strict';
 
 	var dep = "default";
 
@@ -12,4 +12,4 @@
 
 	console.log(dep$1);
 
-}));
+})));

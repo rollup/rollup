@@ -1,7 +1,7 @@
 (function (factory) {
 	typeof define === 'function' && define.amd ? define(factory) :
 	factory();
-}(function () { 'use strict';
+}((function () { 'use strict';
 
 	class KeySideEffect {
 		[console.log( 'effect' )] () {}
@@ -37,4 +37,4 @@
 	};
 	const methodCallSideEffect = new MethodCallSideEffect();
 
-}));
+})));

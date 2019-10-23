@@ -1,7 +1,7 @@
 (function (factory) {
 	typeof define === 'function' && define.amd ? define(factory) :
 	factory();
-}(function () { 'use strict';
+}((function () { 'use strict';
 
 	if (console.log(1) || unknown) ;
 
@@ -61,4 +61,4 @@
 		console.log('kept');
 	}
 
-}));
+})));

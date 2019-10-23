@@ -1,7 +1,7 @@
 (function (factory) {
 	typeof define === 'function' && define.amd ? define(factory) :
 	factory();
-}(function () { 'use strict';
+}((function () { 'use strict';
 
 	const items = [{}, {}, {}];
 
@@ -25,4 +25,4 @@
 		{ foo: 'a', bar: 'c', baz: 'e' }
 	]);
 
-}));
+})));

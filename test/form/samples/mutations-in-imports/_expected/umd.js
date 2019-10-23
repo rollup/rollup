@@ -1,7 +1,7 @@
 (function (factory) {
 	typeof define === 'function' && define.amd ? define(factory) :
 	factory();
-}(function () { 'use strict';
+}((function () { 'use strict';
 
 	const x = { a: { b: () => {} } };
 	const y = { a: x.a };
@@ -21,4 +21,4 @@
 	y$2.a.b = () => console.log( 'effect' );
 	x$2.a.b();
 
-}));
+})));
