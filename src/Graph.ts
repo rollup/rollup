@@ -143,7 +143,13 @@ export default class Graph {
 				...this.acornOptions
 			}) as any;
 
-		this.pluginDriver = createPluginDriver(this, options, this.pluginCache, watcher);
+		this.pluginDriver = createPluginDriver(
+			this,
+			options.plugins as Plugin[],
+			this.pluginCache,
+			options.preserveSymlinks === true,
+			watcher
+		);
 
 		if (watcher) {
 			const handleChange = (id: string) => this.pluginDriver.hookSeqSync('watchChange', [id]);

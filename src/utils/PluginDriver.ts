@@ -1,7 +1,6 @@
 import Graph from '../Graph';
 import {
 	EmitFile,
-	InputOptions,
 	OutputBundleWithPlaceholders,
 	Plugin,
 	PluginContext,
@@ -13,7 +12,7 @@ import { getRollupDefaultPlugin } from './defaultPlugin';
 import { error } from './error';
 import { FileEmitter } from './FileEmitter';
 import { getPluginContexts } from './PluginContext';
-import { throwPluginError } from './pluginUtils';
+import { throwPluginError, warnDeprecatedHooks } from './pluginUtils';
 
 type Args<T> = T extends (...args: infer K) => any ? K : never;
 type EnsurePromise<T> = Promise<T extends Promise<infer K> ? K : T>;
@@ -80,42 +79,15 @@ export interface PluginDriver {
 export type Reduce<R = any, T = any> = (reduction: T, result: R, plugin: Plugin) => T;
 export type HookContext = (context: PluginContext, plugin: Plugin) => PluginContext;
 
-export const deprecatedHooks: { active: boolean; deprecated: string; replacement: string }[] = [
-	{ active: true, deprecated: 'ongenerate', replacement: 'generateBundle' },
-	{ active: true, deprecated: 'onwrite', replacement: 'generateBundle/writeBundle' },
-	{ active: true, deprecated: 'transformBundle', replacement: 'renderChunk' },
-	{ active: true, deprecated: 'transformChunk', replacement: 'renderChunk' },
-	{ active: false, deprecated: 'resolveAssetUrl', replacement: 'resolveFileUrl' }
-];
-
-function warnDeprecatedHooks(plugins: Plugin[], graph: Graph) {
-	for (const { active, deprecated, replacement } of deprecatedHooks) {
-		for (const plugin of plugins) {
-			if (deprecated in plugin) {
-				graph.warnDeprecation(
-					{
-						message: `The "${deprecated}" hook used by plugin ${plugin.name} is deprecated. The "${replacement}" hook should be used instead.`,
-						plugin: plugin.name
-					},
-					active
-				);
-			}
-		}
-	}
-}
-
 export function createPluginDriver(
 	graph: Graph,
-	options: InputOptions,
+	userPlugins: Plugin[],
 	pluginCache: Record<string, SerializablePluginCache> | void,
+	preserveSymlinks: boolean,
 	watcher?: RollupWatcher
 ): PluginDriver {
-	warnDeprecatedHooks(options.plugins as Plugin[], graph);
-
-	const plugins = [
-		...(options.plugins as Plugin[]),
-		getRollupDefaultPlugin(options.preserveSymlinks as boolean)
-	];
+	warnDeprecatedHooks(userPlugins, graph);
+	const plugins = userPlugins.concat([getRollupDefaultPlugin(preserveSymlinks)]);
 	const fileEmitter = new FileEmitter(graph);
 
 	const pluginContexts: PluginContext[] = plugins.map(
