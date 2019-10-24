@@ -215,27 +215,34 @@ export default async function rollup(rawInputOptions: GenericConfigObject): Prom
 	// ensure we only do one optimization pass per build
 	let optimized = false;
 
-	function getOutputOptions(rawOutputOptions: GenericConfigObject) {
+	function getOutputOptions(
+		rawOutputOptions: GenericConfigObject,
+		outputPluginDriver: PluginDriver
+	) {
 		return normalizeOutputOptions(
 			inputOptions as GenericConfigObject,
 			rawOutputOptions,
 			chunks.length > 1,
-			graph.pluginDriver
+			outputPluginDriver
 		);
 	}
 
-	async function generate(outputOptions: OutputOptions, isWrite: boolean): Promise<OutputBundle> {
+	async function generate(
+		outputOptions: OutputOptions,
+		isWrite: boolean,
+		outputPluginDriver: PluginDriver
+	): Promise<OutputBundle> {
 		timeStart('GENERATE', 1);
 
 		const assetFileNames = outputOptions.assetFileNames || 'assets/[name]-[hash][extname]';
 		const outputBundleWithPlaceholders: OutputBundleWithPlaceholders = Object.create(null);
 		let outputBundle;
 		const inputBase = commondir(getAbsoluteEntryModulePaths(chunks));
-		graph.pluginDriver.startOutput(outputBundleWithPlaceholders, assetFileNames);
+		outputPluginDriver.startOutput(outputBundleWithPlaceholders, assetFileNames);
 
 		try {
-			await graph.pluginDriver.hookParallel('renderStart', []);
-			const addons = await createAddons(graph, outputOptions);
+			await outputPluginDriver.hookParallel('renderStart', []);
+			const addons = await createAddons(outputOptions, outputPluginDriver);
 			for (const chunk of chunks) {
 				if (!inputOptions.preserveModules) chunk.generateInternalExports(outputOptions);
 				if (chunk.facadeModule && chunk.facadeModule.isEntryPoint)
@@ -254,29 +261,32 @@ export default async function rollup(rawInputOptions: GenericConfigObject): Prom
 				outputOptions,
 				inputBase,
 				addons,
-				outputBundleWithPlaceholders
+				outputBundleWithPlaceholders,
+				outputPluginDriver
 			);
 			outputBundle = assignChunksToBundle(chunks, outputBundleWithPlaceholders);
 
 			await Promise.all(
 				chunks.map(chunk => {
 					const outputChunk = outputBundleWithPlaceholders[chunk.id as string] as OutputChunk;
-					return chunk.render(outputOptions, addons, outputChunk).then(rendered => {
-						outputChunk.code = rendered.code;
-						outputChunk.map = rendered.map;
+					return chunk
+						.render(outputOptions, addons, outputChunk, outputPluginDriver)
+						.then(rendered => {
+							outputChunk.code = rendered.code;
+							outputChunk.map = rendered.map;
 
-						return graph.pluginDriver.hookParallel('ongenerate', [
-							{ bundle: outputChunk, ...outputOptions },
-							outputChunk
-						]);
-					});
+							return outputPluginDriver.hookParallel('ongenerate', [
+								{ bundle: outputChunk, ...outputOptions },
+								outputChunk
+							]);
+						});
 				})
 			);
 		} catch (error) {
-			await graph.pluginDriver.hookParallel('renderError', [error]);
+			await outputPluginDriver.hookParallel('renderError', [error]);
 			throw error;
 		}
-		await graph.pluginDriver.hookSeq('generateBundle', [outputOptions, outputBundle, isWrite]);
+		await outputPluginDriver.hookSeq('generateBundle', [outputOptions, outputBundle, isWrite]);
 		for (const key of Object.keys(outputBundle)) {
 			const file = outputBundle[key] as any;
 			if (!file.type) {
@@ -287,7 +297,7 @@ export default async function rollup(rawInputOptions: GenericConfigObject): Prom
 				file.type = 'asset';
 			}
 		}
-		graph.pluginDriver.finaliseAssets();
+		outputPluginDriver.finaliseAssets();
 
 		timeEnd('GENERATE', 1);
 		return outputBundle;
@@ -297,31 +307,35 @@ export default async function rollup(rawInputOptions: GenericConfigObject): Prom
 	const result: RollupBuild = {
 		cache: cache as RollupCache,
 		generate: ((rawOutputOptions: GenericConfigObject) => {
-			const promise = generate(getOutputOptions(rawOutputOptions), false).then(result =>
-				createOutput(result)
-			);
+			const outputPluginDriver = graph.pluginDriver;
+			const promise = generate(
+				getOutputOptions(rawOutputOptions, outputPluginDriver),
+				false,
+				outputPluginDriver
+			).then(result => createOutput(result));
 			Object.defineProperty(promise, 'code', throwAsyncGenerateError);
 			Object.defineProperty(promise, 'map', throwAsyncGenerateError);
 			return promise;
 		}) as any,
 		watchFiles: Object.keys(graph.watchFiles),
 		write: ((rawOutputOptions: GenericConfigObject) => {
-			const outputOptions = getOutputOptions(rawOutputOptions);
+			const outputPluginDriver = graph.pluginDriver;
+			const outputOptions = getOutputOptions(rawOutputOptions, outputPluginDriver);
 			if (!outputOptions.dir && !outputOptions.file) {
 				error({
 					code: 'MISSING_OPTION',
 					message: 'You must specify "output.file" or "output.dir" for the build.'
 				});
 			}
-			return generate(outputOptions, true).then(async bundle => {
-				let chunkCnt = 0;
+			return generate(outputOptions, true, outputPluginDriver).then(async bundle => {
+				let chunkCount = 0;
 				for (const fileName of Object.keys(bundle)) {
 					const file = bundle[fileName];
 					if (file.type === 'asset') continue;
-					chunkCnt++;
-					if (chunkCnt > 1) break;
+					chunkCount++;
+					if (chunkCount > 1) break;
 				}
-				if (chunkCnt > 1) {
+				if (chunkCount > 1) {
 					if (outputOptions.sourcemapFile)
 						error({
 							code: 'INVALID_OPTION',
@@ -340,10 +354,10 @@ export default async function rollup(rawInputOptions: GenericConfigObject): Prom
 				}
 				await Promise.all(
 					Object.keys(bundle).map(chunkId =>
-						writeOutputFile(graph, result, bundle[chunkId], outputOptions)
+						writeOutputFile(result, bundle[chunkId], outputOptions, outputPluginDriver)
 					)
 				);
-				await graph.pluginDriver.hookParallel('writeBundle', [bundle]);
+				await outputPluginDriver.hookParallel('writeBundle', [bundle]);
 				return createOutput(bundle);
 			});
 		}) as any
@@ -384,10 +398,10 @@ function createOutput(outputBundle: Record<string, OutputChunk | OutputAsset | {
 }
 
 function writeOutputFile(
-	graph: Graph,
 	build: RollupBuild,
 	outputFile: OutputAsset | OutputChunk,
-	outputOptions: OutputOptions
+	outputOptions: OutputOptions,
+	outputPluginDriver: PluginDriver
 ): Promise<void> {
 	const fileName = resolve(
 		outputOptions.dir || dirname(outputOptions.file as string),
@@ -418,7 +432,7 @@ function writeOutputFile(
 		.then(
 			(): any =>
 				outputFile.type === 'chunk' &&
-				graph.pluginDriver.hookSeq('onwrite', [
+				outputPluginDriver.hookSeq('onwrite', [
 					{
 						bundle: build,
 						...outputOptions
@@ -433,7 +447,7 @@ function normalizeOutputOptions(
 	inputOptions: GenericConfigObject,
 	rawOutputOptions: GenericConfigObject,
 	hasMultipleChunks: boolean,
-	pluginDriver: PluginDriver
+	outputPluginDriver: PluginDriver
 ): OutputOptions {
 	if (!rawOutputOptions) {
 		throw new Error('You must supply an options object');
@@ -454,7 +468,7 @@ function normalizeOutputOptions(
 	const mergedOutputOptions = mergedOptions.outputOptions[0];
 	const outputOptionsReducer = (outputOptions: OutputOptions, result: OutputOptions) =>
 		result || outputOptions;
-	const outputOptions = pluginDriver.hookReduceArg0Sync(
+	const outputOptions = outputPluginDriver.hookReduceArg0Sync(
 		'outputOptions',
 		[mergedOutputOptions],
 		outputOptionsReducer,

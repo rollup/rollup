@@ -49,15 +49,15 @@ export interface PluginDriver {
 		reduce: Reduce<V, R>,
 		hookContext?: HookContext
 	): R;
-	hookReduceValue<R = any, T = any>(
-		hook: string,
+	hookReduceValue<H extends keyof Plugin, R = any, T = any>(
+		hook: H,
 		value: T | Promise<T>,
 		args: any[],
 		reduce: Reduce<R, T>,
 		hookContext?: HookContext
 	): Promise<T>;
-	hookReduceValueSync<R = any, T = any>(
-		hook: string,
+	hookReduceValueSync<H extends keyof PluginHooks, R = any, T = any>(
+		hook: H,
 		value: T,
 		args: any[],
 		reduce: Reduce<R, T>,
@@ -108,8 +108,6 @@ export function createPluginDriver(
 
 		if (hookContext) {
 			context = hookContext(context, plugin);
-			if (!context || context === pluginContexts[pluginIndex])
-				throw new Error('Internal Rollup error: hookContext must return a new context object.');
 		}
 		try {
 			// permit values allows values to be returned instead of a functional hook

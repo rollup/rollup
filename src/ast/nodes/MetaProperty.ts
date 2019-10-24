@@ -59,7 +59,7 @@ export default class MetaProperty extends NodeBase {
 		code: MagicString,
 		chunkId: string,
 		format: string,
-		pluginDriver: PluginDriver
+		outputPluginDriver: PluginDriver
 	): void {
 		if (!this.included) return;
 		const parent = this.parent;
@@ -96,7 +96,7 @@ export default class MetaProperty extends NodeBase {
 			const relativePath = normalize(relative(dirname(chunkId), fileName));
 			let replacement;
 			if (assetReferenceId !== null) {
-				replacement = pluginDriver.hookFirstSync('resolveAssetUrl', [
+				replacement = outputPluginDriver.hookFirstSync('resolveAssetUrl', [
 					{
 						assetFileName: fileName,
 						chunkId,
@@ -107,7 +107,7 @@ export default class MetaProperty extends NodeBase {
 				]);
 			}
 			if (!replacement) {
-				replacement = pluginDriver.hookFirstSync<'resolveFileUrl', string>('resolveFileUrl', [
+				replacement = outputPluginDriver.hookFirstSync<'resolveFileUrl', string>('resolveFileUrl', [
 					{
 						assetReferenceId,
 						chunkId,
@@ -130,7 +130,7 @@ export default class MetaProperty extends NodeBase {
 			return;
 		}
 
-		const replacement = pluginDriver.hookFirstSync('resolveImportMeta', [
+		const replacement = outputPluginDriver.hookFirstSync('resolveImportMeta', [
 			metaProperty,
 			{
 				chunkId,
