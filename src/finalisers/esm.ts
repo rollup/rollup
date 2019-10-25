@@ -1,8 +1,8 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
+import { OutputOptions } from '../rollup/types';
 import { FinaliserOptions } from './index';
 
 export * from 'magic-string';
-import { OutputOptions } from '../rollup/types';
 
 export default function esm(
 	magicString: MagicStringBundle,
@@ -89,7 +89,7 @@ export default function esm(
 
 	const exportBlock: string[] = [];
 	const exportDeclaration: string[] = [];
-	exports.forEach(specifier => {
+	for (const specifier of exports) {
 		if (specifier.exported === 'default') {
 			exportBlock.push(`export default ${specifier.local};`);
 		} else {
@@ -99,7 +99,7 @@ export default function esm(
 					: `${specifier.local} as ${specifier.exported}`
 			);
 		}
-	});
+	}
 	if (exportDeclaration.length) {
 		exportBlock.push(`export${_}{${_}${exportDeclaration.join(`,${_}`)}${_}};`);
 	}

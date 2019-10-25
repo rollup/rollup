@@ -331,10 +331,10 @@ export class ModuleLoader {
 							module.exportsAll[name] = module.id;
 						}
 					}
-					module.exportAllSources.forEach(source => {
+					for (const source of module.exportAllSources) {
 						const id = module.resolvedIds[source].id;
 						const exportAllModule = this.modulesById.get(id);
-						if (exportAllModule instanceof ExternalModule) return;
+						if (exportAllModule instanceof ExternalModule) continue;
 
 						for (const name in (exportAllModule as Module).exportsAll) {
 							if (name in module.exportsAll) {
@@ -343,7 +343,7 @@ export class ModuleLoader {
 								module.exportsAll[name] = (exportAllModule as Module).exportsAll[name];
 							}
 						}
-					});
+					}
 					return module;
 				});
 			});

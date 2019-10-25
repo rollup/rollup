@@ -107,11 +107,11 @@ export default class FileWatcher {
 	}
 
 	trigger(id: string) {
-		this.tasks.forEach(task => {
+		for (const task of this.tasks) {
 			task.invalidate(id, false);
-		});
-		this.transformDependencyTasks.forEach(task => {
+		}
+		for (const task of this.transformDependencyTasks) {
 			task.invalidate(id, true);
-		});
+		}
 	}
 }
