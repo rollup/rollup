@@ -24,60 +24,60 @@ export interface PluginDriver {
 	hookFirst<H extends keyof PluginHooks, R = ReturnType<PluginHooks[H]>>(
 		hook: H,
 		args: Args<PluginHooks[H]>,
-		hookContext?: HookContext | null,
+		replaceContext?: ReplaceContext | null,
 		skip?: number | null
 	): EnsurePromise<R>;
 	hookFirstSync<H extends keyof PluginHooks, R = ReturnType<PluginHooks[H]>>(
 		hook: H,
 		args: Args<PluginHooks[H]>,
-		hookContext?: HookContext
+		replaceContext?: ReplaceContext
 	): R;
 	hookParallel<H extends keyof PluginHooks>(
 		hook: H,
 		args: Args<PluginHooks[H]>,
-		hookContext?: HookContext
+		replaceContext?: ReplaceContext
 	): Promise<void>;
 	hookReduceArg0<H extends keyof PluginHooks, V, R = ReturnType<PluginHooks[H]>>(
 		hook: H,
 		args: any[],
 		reduce: Reduce<V, R>,
-		hookContext?: HookContext
+		replaceContext?: ReplaceContext
 	): EnsurePromise<R>;
 	hookReduceArg0Sync<H extends keyof PluginHooks, V, R = ReturnType<PluginHooks[H]>>(
 		hook: H,
 		args: any[],
 		reduce: Reduce<V, R>,
-		hookContext?: HookContext
+		replaceContext?: ReplaceContext
 	): R;
 	hookReduceValue<H extends keyof Plugin, R = any, T = any>(
 		hook: H,
 		value: T | Promise<T>,
 		args: any[],
 		reduce: Reduce<R, T>,
-		hookContext?: HookContext
+		replaceContext?: ReplaceContext
 	): Promise<T>;
 	hookReduceValueSync<H extends keyof PluginHooks, R = any, T = any>(
 		hook: H,
 		value: T,
 		args: any[],
 		reduce: Reduce<R, T>,
-		hookContext?: HookContext
+		replaceContext?: ReplaceContext
 	): T;
 	hookSeq<H extends keyof PluginHooks>(
 		hook: H,
 		args: Args<PluginHooks[H]>,
-		context?: HookContext
+		replaceContext?: ReplaceContext
 	): Promise<void>;
 	hookSeqSync<H extends keyof PluginHooks>(
 		hook: H,
 		args: Args<PluginHooks[H]>,
-		context?: HookContext
+		replaceContext?: ReplaceContext
 	): void;
 	startOutput(outputBundle: OutputBundleWithPlaceholders, assetFileNames: string): void;
 }
 
 export type Reduce<R = any, T = any> = (reduction: T, result: R, plugin: Plugin) => T;
-export type HookContext = (context: PluginContext, plugin: Plugin) => PluginContext;
+export type ReplaceContext = (context: PluginContext, plugin: Plugin) => PluginContext;
 
 export function createPluginDriver(
 	graph: Graph,
@@ -99,7 +99,7 @@ export function createPluginDriver(
 		args: any[],
 		pluginIndex: number,
 		permitValues = false,
-		hookContext?: HookContext
+		hookContext?: ReplaceContext
 	): T {
 		const plugin = plugins[pluginIndex];
 		let context = pluginContexts[pluginIndex];
@@ -129,7 +129,7 @@ export function createPluginDriver(
 		args: any[],
 		pluginIndex: number,
 		permitValues = false,
-		hookContext?: HookContext | null
+		hookContext?: ReplaceContext | null
 	): Promise<T> {
 		const plugin = plugins[pluginIndex];
 		let context = pluginContexts[pluginIndex];
