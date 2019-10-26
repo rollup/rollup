@@ -235,9 +235,18 @@ export class ModuleLoader {
 		return getCombinedPromise().then(() => loadNewModulesPromise);
 	}
 
-	private fetchAllDependencies(module: Module) {
-		const fetchDynamicImportsPromise = Promise.all(
-			module.getDynamicImportExpressions().map((specifier, index) =>
+	private fetchAllDependencies(module: Module): Promise<unknown> {
+		return Promise.all([
+			...(Array.from(module.sources).map(async source =>
+				this.fetchResolvedDependency(
+					source,
+					module.id,
+					(module.resolvedIds[source] =
+						module.resolvedIds[source] ||
+						this.handleMissingImports(await this.resolveId(source, module.id), source, module.id))
+				)
+			) as Promise<unknown>[]),
+			...module.getDynamicImportExpressions().map((specifier, index) =>
 				this.resolveDynamicImport(module, specifier as string | ESTree.Node, module.id).then(
 					resolvedId => {
 						if (resolvedId === null) return;
@@ -256,12 +265,7 @@ export class ModuleLoader {
 					}
 				)
 			)
-		);
-		fetchDynamicImportsPromise.catch(() => {});
-
-		return Promise.all(
-			module.sources.map(source => this.resolveAndFetchDependency(module, source))
-		).then(() => fetchDynamicImportsPromise);
+		]);
 	}
 
 	private fetchModule(
@@ -448,19 +452,6 @@ export class ModuleLoader {
 					? moduleSideEffects
 					: this.hasModuleSideEffects(id, external)
 		};
-	}
-
-	private async resolveAndFetchDependency(
-		module: Module,
-		source: string
-	): Promise<Module | ExternalModule> {
-		return this.fetchResolvedDependency(
-			source,
-			module.id,
-			(module.resolvedIds[source] =
-				module.resolvedIds[source] ||
-				this.handleMissingImports(await this.resolveId(source, module.id), source, module.id))
-		);
 	}
 
 	private async resolveDynamicImport(

@@ -245,7 +245,7 @@ export function createPluginDriver(
 					importedIds:
 						foundModule instanceof ExternalModule
 							? []
-							: foundModule.sources.map(id => foundModule.resolvedIds[id].id),
+							: Array.from(foundModule.sources).map(id => foundModule.resolvedIds[id].id),
 					isEntry: foundModule instanceof Module && foundModule.isEntryPoint,
 					isExternal: foundModule instanceof ExternalModule
 				};
