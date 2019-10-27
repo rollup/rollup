@@ -1,9 +1,9 @@
-import sha256 from 'hash.js/lib/hash/sha/256';
 import Chunk from '../Chunk';
 import Graph from '../Graph';
 import Module from '../Module';
 import { FilePlaceholder, OutputBundleWithPlaceholders } from '../rollup/types';
 import { BuildPhase } from './buildPhase';
+import { createHash } from './crypto';
 import {
 	errAssetNotFinalisedForFileName,
 	errAssetReferenceIdNotFoundForSetSource,
@@ -33,7 +33,7 @@ function generateAssetFileName(
 	return makeUnique(
 		renderNamePattern(output.assetFileNames, 'output.assetFileNames', {
 			hash() {
-				const hash = sha256();
+				const hash = createHash();
 				hash.update(emittedName);
 				hash.update(':');
 				hash.update(source);
@@ -290,7 +290,7 @@ export class FileEmitter {
 	private assignReferenceId(file: ConsumedFile, idBase: string): string {
 		let referenceId: string | undefined;
 		do {
-			const hash = sha256();
+			const hash = createHash();
 			if (referenceId) {
 				hash.update(referenceId);
 			} else {
