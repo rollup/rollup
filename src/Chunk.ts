@@ -1,5 +1,5 @@
-import sha256 from 'hash.js/lib/hash/sha/256';
 import MagicString, { Bundle as MagicStringBundle, SourceMap } from 'magic-string';
+import { createHash } from '../browser/crypto';
 import { relative } from '../browser/path';
 import { createInclusionContext } from './ast/ExecutionContext';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
@@ -366,7 +366,7 @@ export default class Chunk {
 	getRenderedHash(): string {
 		if (this.renderedHash) return this.renderedHash;
 		if (!this.renderedSource) return '';
-		const hash = sha256();
+		const hash = createHash();
 		const hashAugmentation = this.calculateHashAugmentation();
 		hash.update(hashAugmentation);
 		hash.update(this.renderedSource.toString());
@@ -860,11 +860,11 @@ export default class Chunk {
 		options: OutputOptions,
 		existingNames: Record<string, any>
 	): string {
-		const hash = sha256();
+		const hash = createHash();
 		hash.update(
 			[addons.intro, addons.outro, addons.banner, addons.footer].map(addon => addon || '').join(':')
 		);
-		hash.update(options.format);
+		hash.update(options.format as string);
 		this.visitDependencies(dep => {
 			if (dep instanceof ExternalModule) {
 				hash.update(':' + dep.renderPath);
