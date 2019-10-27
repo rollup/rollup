@@ -1,5 +1,21 @@
 # rollup changelog
 
+## 1.26.0
+*2019-10-27*
+
+### Features
+* Only warn when no output is provided for an IIFE bundle but still produce valid code (#3181)
+* Support reexporting namespaces as a binding (#3193)
+* Switch from hash.js to crypto for hashing in the Node build for better performance and support for very large assets (#3194)
+
+### Bug Fixes
+* Correctly handle chunks reexporting the same namespace as two different bindings (#3193)
+
+### Pull Requests
+* [#3181](https://github.com/rollup/rollup/pull/3181): Remove the need to provide an output name for IIFE bundles (@bterrier)
+* [#3193](https://github.com/rollup/rollup/pull/3193): Add support for "export * as name from …" (@lukastaegert)
+* [#3194](https://github.com/rollup/rollup/pull/3194): Add support for large assets (> 100 MB) (@SebastianNiemann)
+
 ## 1.25.2
 *2019-10-23*
 
