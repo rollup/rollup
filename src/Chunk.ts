@@ -864,7 +864,7 @@ export default class Chunk {
 		hash.update(
 			[addons.intro, addons.outro, addons.banner, addons.footer].map(addon => addon || '').join(':')
 		);
-		hash.update(options.format);
+		hash.update(options.format as string);
 		this.visitDependencies(dep => {
 			if (dep instanceof ExternalModule) {
 				hash.update(':' + dep.renderPath);

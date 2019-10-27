@@ -37,7 +37,7 @@ class Hasher {
 
 	update(data: string | Buffer) {
 		if (typeof data === 'string') {
-			this.hasher.process(new TextEncoder().encode(data));
+			this.hasher.process(new Uint8Array(data.length).map((_, i) => data.charCodeAt(i)));
 		} else {
 			this.hasher.process(data);
 		}
