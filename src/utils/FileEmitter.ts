@@ -290,7 +290,7 @@ export class FileEmitter {
 	private assignReferenceId(file: ConsumedFile, idBase: string): string {
 		let referenceId: string | undefined;
 		do {
-			const hash = sha256();
+			const hash = createHash('sha256');
 			if (referenceId) {
 				hash.update(referenceId);
 			} else {
