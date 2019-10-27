@@ -31,7 +31,7 @@ MIT, ISC, Apache-2.0
 ## acorn-export-ns-from
 License: MIT
 By: Adrian Heine
-Repository: git+https://github.com/acornjs/acorn-export-ns-from.git
+Repository: https://github.com/acornjs/acorn-export-ns-from
 
 > Copyright (C) 2017-2018 by Adrian Heine
 > 
@@ -177,13 +177,13 @@ Repository: jonschlinkert/fill-range
 ## hash.js
 License: MIT
 By: Fedor Indutny
-Repository: git+ssh://git@github.com/indutny/hash.js.git
+Repository: git@github.com:indutny/hash.js
 
 ---------------------------------------
 
 ## inherits
 License: ISC
-Repository: git://github.com/isaacs/inherits.git
+Repository: git://github.com/isaacs/inherits
 
 > The ISC License
 > 
@@ -292,7 +292,7 @@ Repository: micromatch/micromatch
 
 ## minimalistic-assert
 License: ISC
-Repository: git+https://github.com/calvinmetcalf/minimalistic-assert.git
+Repository: https://github.com/calvinmetcalf/minimalistic-assert.git
 
 > Copyright 2015 Calvin Metcalf
 > 
