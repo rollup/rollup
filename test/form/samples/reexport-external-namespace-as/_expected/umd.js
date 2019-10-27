@@ -4,7 +4,7 @@
 	(global = global || self, factory(global.bundle = {}, global.external));
 }(this, (function (exports, external) { 'use strict';
 
-	exports.direct = external;
+	exports.external = external;
 	exports.indirect = external;
 
 	Object.defineProperty(exports, '__esModule', { value: true });

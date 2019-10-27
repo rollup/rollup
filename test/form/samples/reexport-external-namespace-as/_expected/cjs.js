@@ -6,5 +6,5 @@ var external = require('external');
 
 
 
-exports.direct = external;
+exports.external = external;
 exports.indirect = external;

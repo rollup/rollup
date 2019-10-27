@@ -37,7 +37,7 @@ export default function iife(
 	if (name && useVariableAssignment && !isLegal(name)) {
 		error({
 			code: 'ILLEGAL_IDENTIFIER_AS_NAME',
-			message: `Given name (${name}) is not legal JS identifier. If you need this you can try --extend option`
+			message: `Given name "${name}" is not a legal JS identifier. If you need this, you can try "output.extend: true".`
 		});
 	}
 

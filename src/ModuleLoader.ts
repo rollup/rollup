@@ -275,9 +275,7 @@ export class ModuleLoader {
 		isEntry: boolean
 	): Promise<Module> {
 		const existingModule = this.modulesById.get(id);
-		if (existingModule) {
-			if (existingModule instanceof ExternalModule)
-				throw new Error(`Cannot fetch external module ${id}`);
+		if (existingModule instanceof Module) {
 			existingModule.isEntryPoint = existingModule.isEntryPoint || isEntry;
 			return Promise.resolve(existingModule);
 		}

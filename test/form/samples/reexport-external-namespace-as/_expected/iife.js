@@ -3,7 +3,7 @@ var bundle = (function (exports, external) {
 
 
 
-	exports.direct = external;
+	exports.external = external;
 	exports.indirect = external;
 
 	return exports;
