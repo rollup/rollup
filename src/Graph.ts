@@ -1,4 +1,5 @@
 import * as acorn from 'acorn';
+import injectExportNsFrom from 'acorn-export-ns-from';
 import injectImportMeta from 'acorn-import-meta';
 import * as ESTree from 'estree';
 import GlobalScope from './ast/scopes/GlobalScope';
@@ -172,7 +173,7 @@ export default class Graph {
 		this.acornOptions = options.acorn ? { ...options.acorn } : {};
 		const acornPluginsToInject = [];
 
-		acornPluginsToInject.push(injectImportMeta);
+		acornPluginsToInject.push(injectImportMeta, injectExportNsFrom);
 
 		if (options.experimentalTopLevelAwait) {
 			(this.acornOptions as any).allowAwaitOutsideFunction = true;

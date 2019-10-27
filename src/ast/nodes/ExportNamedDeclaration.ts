@@ -3,6 +3,7 @@ import { BLANK } from '../../utils/blank';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { HasEffectsContext } from '../ExecutionContext';
 import ClassDeclaration from './ClassDeclaration';
+import ExportNamespaceSpecifier from './ExportNamespaceSpecifier';
 import ExportSpecifier from './ExportSpecifier';
 import FunctionDeclaration from './FunctionDeclaration';
 import Literal from './Literal';
@@ -14,7 +15,7 @@ export default class ExportNamedDeclaration extends NodeBase {
 	declaration!: FunctionDeclaration | ClassDeclaration | VariableDeclaration | null;
 	needsBoundaries!: true;
 	source!: Literal<string> | null;
-	specifiers!: ExportSpecifier[];
+	specifiers!: (ExportSpecifier | ExportNamespaceSpecifier)[];
 	type!: NodeType.tExportNamedDeclaration;
 
 	bind() {
