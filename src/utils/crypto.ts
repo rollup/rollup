@@ -1,0 +1,1 @@
+export { createHash } from 'crypto';
