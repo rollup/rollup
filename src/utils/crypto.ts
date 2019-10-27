@@ -1,1 +1,3 @@
-export { createHash } from 'crypto';
+import { createHash as cryptoCreateHash } from 'crypto';
+
+export const createHash = () => cryptoCreateHash('sha256');

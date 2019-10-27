@@ -33,7 +33,7 @@ function generateAssetFileName(
 	return makeUnique(
 		renderNamePattern(output.assetFileNames, 'output.assetFileNames', {
 			hash() {
-				const hash = createHash('sha256');
+				const hash = createHash();
 				hash.update(emittedName);
 				hash.update(':');
 				hash.update(source);
@@ -290,7 +290,7 @@ export class FileEmitter {
 	private assignReferenceId(file: ConsumedFile, idBase: string): string {
 		let referenceId: string | undefined;
 		do {
-			const hash = createHash('sha256');
+			const hash = createHash();
 			if (referenceId) {
 				hash.update(referenceId);
 			} else {

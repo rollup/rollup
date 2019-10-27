@@ -366,7 +366,7 @@ export default class Chunk {
 	getRenderedHash(): string {
 		if (this.renderedHash) return this.renderedHash;
 		if (!this.renderedSource) return '';
-		const hash = createHash('sha256');
+		const hash = createHash();
 		const hashAugmentation = this.calculateHashAugmentation();
 		hash.update(hashAugmentation);
 		hash.update(this.renderedSource.toString());
@@ -860,7 +860,7 @@ export default class Chunk {
 		options: OutputOptions,
 		existingNames: Record<string, any>
 	): string {
-		const hash = createHash('sha256');
+		const hash = createHash();
 		hash.update(
 			[addons.intro, addons.outro, addons.banner, addons.footer].map(addon => addon || '').join(':')
 		);
