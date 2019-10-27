@@ -14,3 +14,4 @@ declare module 'locate-character';
 declare module 'is-reference';
 declare module 'require-relative';
 declare module 'acorn-import-meta';
+declare module 'acorn-export-ns-from';

@@ -196,7 +196,7 @@ var shared = createCommonjsModule(function (module) {
 (module.exports = function (key, value) {
   return sharedStore[key] || (sharedStore[key] = value !== undefined ? value : {});
 })('versions', []).push({
-  version: '3.3.2',
+  version: '3.3.4',
   mode:  'global',
   copyright: '© 2019 Denis Pushkarev (zloirock.ru)'
 });
@@ -1876,10 +1876,30 @@ _export({ target: 'Array', stat: true, forced: ISNT_GENERIC }, {
   }
 });
 
+var userAgent = getBuiltIn('navigator', 'userAgent') || '';
+
+var process = global_1.process;
+var versions = process && process.versions;
+var v8 = versions && versions.v8;
+var match, version;
+
+if (v8) {
+  match = v8.split('.');
+  version = match[0] + match[1];
+} else if (userAgent) {
+  match = userAgent.match(/Chrome\/(\d+)/);
+  if (match) version = match[1];
+}
+
+var v8Version = version && +version;
+
 var SPECIES$1 = wellKnownSymbol('species');
 
 var arrayMethodHasSpeciesSupport = function (METHOD_NAME) {
-  return !fails(function () {
+  // We can't use this feature detection in V8 since it causes
+  // deoptimization and serious performance degradation
+  // https://github.com/zloirock/core-js/issues/677
+  return v8Version >= 51 || !fails(function () {
     var array = [];
     var constructor = array.constructor = {};
     constructor[SPECIES$1] = function () {
@@ -2868,14 +2888,21 @@ var fixRegexpWellKnownSymbolLogic = function (KEY, length, exec, sham) {
     // Symbol-named RegExp methods call .exec
     var execCalled = false;
     var re = /a/;
-    re.exec = function () { execCalled = true; return null; };
 
     if (KEY === 'split') {
+      // We can't use real regex here since it causes deoptimization
+      // and serious performance degradation in V8
+      // https://github.com/zloirock/core-js/issues/306
+      re = {};
       // RegExp[@@split] doesn't call the regex's exec method, but first creates
       // a new one. We need to return the patched regex when creating the new one.
       re.constructor = {};
       re.constructor[SPECIES$4] = function () { return re; };
+      re.flags = '';
+      re[SYMBOL] = /./[SYMBOL];
     }
+
+    re.exec = function () { execCalled = true; return null; };
 
     re[SYMBOL]('');
     return !execCalled;
@@ -3124,8 +3151,6 @@ var stringPad = {
   // https://tc39.github.io/ecma262/#sec-string.prototype.padend
   end: createMethod$5(true)
 };
-
-var userAgent = getBuiltIn('navigator', 'userAgent') || '';
 
 // https://github.com/zloirock/core-js/issues/280
 
@@ -4505,7 +4530,7 @@ var anInstance = function (it, Constructor, name) {
 var location = global_1.location;
 var set$1 = global_1.setImmediate;
 var clear = global_1.clearImmediate;
-var process = global_1.process;
+var process$1 = global_1.process;
 var MessageChannel = global_1.MessageChannel;
 var Dispatch = global_1.Dispatch;
 var counter = 0;
@@ -4554,9 +4579,9 @@ if (!set$1 || !clear) {
     delete queue[id];
   };
   // Node.js 0.8-
-  if (classofRaw(process) == 'process') {
+  if (classofRaw(process$1) == 'process') {
     defer = function (id) {
-      process.nextTick(runner(id));
+      process$1.nextTick(runner(id));
     };
   // Sphere (JS game engine) Dispatch API
   } else if (Dispatch && Dispatch.now) {
@@ -4602,9 +4627,9 @@ var macrotask = task.set;
 
 
 var MutationObserver = global_1.MutationObserver || global_1.WebKitMutationObserver;
-var process$1 = global_1.process;
+var process$2 = global_1.process;
 var Promise = global_1.Promise;
-var IS_NODE = classofRaw(process$1) == 'process';
+var IS_NODE = classofRaw(process$2) == 'process';
 // Node.js 11 shows ExperimentalWarning on getting `queueMicrotask`
 var queueMicrotaskDescriptor = getOwnPropertyDescriptor$5(global_1, 'queueMicrotask');
 var queueMicrotask = queueMicrotaskDescriptor && queueMicrotaskDescriptor.value;
@@ -4615,7 +4640,7 @@ var flush, head, last, notify, toggle, node, promise, then;
 if (!queueMicrotask) {
   flush = function () {
     var parent, fn;
-    if (IS_NODE && (parent = process$1.domain)) parent.exit();
+    if (IS_NODE && (parent = process$2.domain)) parent.exit();
     while (head) {
       fn = head.fn;
       head = head.next;
@@ -4633,7 +4658,7 @@ if (!queueMicrotask) {
   // Node.js
   if (IS_NODE) {
     notify = function () {
-      process$1.nextTick(flush);
+      process$2.nextTick(flush);
     };
   // browsers with MutationObserver, except iOS - https://github.com/zloirock/core-js/issues/339
   } else if (MutationObserver && !/(iphone|ipod|ipad).*applewebkit/i.test(userAgent)) {
@@ -4737,13 +4762,11 @@ var getInternalPromiseState = internalState.getterFor(PROMISE);
 var PromiseConstructor = nativePromiseConstructor;
 var TypeError$1 = global_1.TypeError;
 var document$2 = global_1.document;
-var process$2 = global_1.process;
-var $fetch = global_1.fetch;
-var versions = process$2 && process$2.versions;
-var v8 = versions && versions.v8 || '';
+var process$3 = global_1.process;
+var $fetch = getBuiltIn('fetch');
 var newPromiseCapability$1 = newPromiseCapability.f;
 var newGenericPromiseCapability = newPromiseCapability$1;
-var IS_NODE$1 = classofRaw(process$2) == 'process';
+var IS_NODE$1 = classofRaw(process$3) == 'process';
 var DISPATCH_EVENT = !!(document$2 && document$2.createEvent && global_1.dispatchEvent);
 var UNHANDLED_REJECTION = 'unhandledrejection';
 var REJECTION_HANDLED = 'rejectionhandled';
@@ -4768,8 +4791,7 @@ var FORCED$e = isForced_1(PROMISE, function () {
     // v8 6.6 (Node 10 and Chrome 66) have a bug with resolving custom thenables
     // https://bugs.chromium.org/p/chromium/issues/detail?id=830565
     // we can't detect it synchronously, so just check versions
-    && v8.indexOf('6.6') !== 0
-    && userAgent.indexOf('Chrome/66') === -1);
+    && v8Version !== 66);
 });
 
 var INCORRECT_ITERATION$1 = FORCED$e || !checkCorrectnessOfIteration(function (iterable) {
@@ -4851,7 +4873,7 @@ var onUnhandled = function (promise, state) {
     if (IS_UNHANDLED) {
       result = perform(function () {
         if (IS_NODE$1) {
-          process$2.emit('unhandledRejection', value, promise);
+          process$3.emit('unhandledRejection', value, promise);
         } else dispatchEvent(UNHANDLED_REJECTION, promise, value);
       });
       // Browsers should not trigger `rejectionHandled` event if it was handled here, NodeJS - should
@@ -4868,7 +4890,7 @@ var isUnhandled = function (state) {
 var onHandleUnhandled = function (promise, state) {
   task$1.call(global_1, function () {
     if (IS_NODE$1) {
-      process$2.emit('rejectionHandled', promise);
+      process$3.emit('rejectionHandled', promise);
     } else dispatchEvent(REJECTION_HANDLED, promise, state.value);
   });
 };
@@ -4952,7 +4974,7 @@ if (FORCED$e) {
       var reaction = newPromiseCapability$1(speciesConstructor(this, PromiseConstructor));
       reaction.ok = typeof onFulfilled == 'function' ? onFulfilled : true;
       reaction.fail = typeof onRejected == 'function' && onRejected;
-      reaction.domain = IS_NODE$1 ? process$2.domain : undefined;
+      reaction.domain = IS_NODE$1 ? process$3.domain : undefined;
       state.parent = true;
       state.reactions.push(reaction);
       if (state.state != PENDING) notify$1(this, state, false);
@@ -4992,7 +5014,7 @@ if (FORCED$e) {
     // wrap fetch result
     if (typeof $fetch == 'function') _export({ global: true, enumerable: true, forced: true }, {
       // eslint-disable-next-line no-unused-vars
-      fetch: function fetch(input) {
+      fetch: function fetch(input /* , init */) {
         return promiseResolve(PromiseConstructor, $fetch.apply(global_1, arguments));
       }
     });
@@ -5006,7 +5028,7 @@ _export({ global: true, wrap: true, forced: FORCED$e }, {
 setToStringTag(PromiseConstructor, PROMISE, false);
 setSpecies(PROMISE);
 
-PromiseWrapper = path[PROMISE];
+PromiseWrapper = getBuiltIn(PROMISE);
 
 // statics
 _export({ target: PROMISE, stat: true, forced: FORCED$e }, {
@@ -7526,6 +7548,12 @@ var getIterator = function (it) {
 
 
 
+
+
+
+
+var $fetch$1 = getBuiltIn('fetch');
+var Headers = getBuiltIn('Headers');
 var ITERATOR$7 = wellKnownSymbol('iterator');
 var URL_SEARCH_PARAMS = 'URLSearchParams';
 var URL_SEARCH_PARAMS_ITERATOR = URL_SEARCH_PARAMS + 'Iterator';
@@ -7816,6 +7844,34 @@ _export({ global: true, forced: !nativeUrl }, {
   URLSearchParams: URLSearchParamsConstructor
 });
 
+// Wrap `fetch` for correct work with polyfilled `URLSearchParams`
+// https://github.com/zloirock/core-js/issues/674
+if (!nativeUrl && typeof $fetch$1 == 'function' && typeof Headers == 'function') {
+  _export({ global: true, enumerable: true, forced: true }, {
+    fetch: function fetch(input /* , init */) {
+      var args = [input];
+      var init, body, headers;
+      if (arguments.length > 1) {
+        init = arguments[1];
+        if (isObject(init)) {
+          body = init.body;
+          if (classof(body) === URL_SEARCH_PARAMS) {
+            headers = new Headers(init.headers);
+            if (!headers.has('content-type')) {
+              headers.set('content-type', 'application/x-www-form-urlencoded;charset=UTF-8');
+            }
+            init = objectCreate(init, {
+              body: createPropertyDescriptor(0, String(body)),
+              headers: createPropertyDescriptor(0, headers)
+            });
+          }
+        }
+        args.push(init);
+      } return $fetch$1.apply(this, args);
+    }
+  });
+}
+
 var web_urlSearchParams = {
   URLSearchParams: URLSearchParamsConstructor,
   getState: getInternalParamsState
@@ -8082,7 +8138,6 @@ var percentEncode = function (char, set) {
 var specialSchemes = {
   ftp: 21,
   file: null,
-  gopher: 70,
   http: 80,
   https: 443,
   ws: 80,
@@ -10779,6 +10834,7 @@ _export({ target: 'String', proto: true }, {
     }
     string = String(O);
     searchString = String(searchValue);
+    if (searchString === '') return replaceAll.call(O, /(?:)/g, replaceValue);
     template = string.split(searchString);
     if (typeof replaceValue !== 'function') {
       return template.join(String(replaceValue));
@@ -10884,14 +10940,14 @@ _export({ global: true, bind: true, enumerable: true, forced: FORCED$k }, {
   clearImmediate: task.clear
 });
 
-var process$3 = global_1.process;
-var isNode = classofRaw(process$3) == 'process';
+var process$4 = global_1.process;
+var isNode = classofRaw(process$4) == 'process';
 
 // `queueMicrotask` method
 // https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#dom-queuemicrotask
 _export({ global: true, enumerable: true, noTargetGet: true }, {
   queueMicrotask: function queueMicrotask(fn) {
-    var domain = isNode && process$3.domain;
+    var domain = isNode && process$4.domain;
     microtask(domain ? domain.bind(fn) : fn);
   }
 });

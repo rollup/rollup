@@ -1180,8 +1180,8 @@ export default class Chunk {
 			}
 		}
 		if (module.getOrCreateNamespace().included) {
-			for (const reexportName of Object.keys(module.reexports)) {
-				const reexport = module.reexports[reexportName];
+			for (const reexportName of Object.keys(module.reexportDescriptions)) {
+				const reexport = module.reexportDescriptions[reexportName];
 				const variable = reexport.module.getVariableForExportName(reexport.localName);
 				if ((variable.module as Module).chunk !== this) {
 					this.imports.add(variable);

@@ -235,9 +235,18 @@ export class ModuleLoader {
 		return getCombinedPromise().then(() => loadNewModulesPromise);
 	}
 
-	private fetchAllDependencies(module: Module) {
-		const fetchDynamicImportsPromise = Promise.all(
-			module.getDynamicImportExpressions().map((specifier, index) =>
+	private fetchAllDependencies(module: Module): Promise<unknown> {
+		return Promise.all([
+			...(Array.from(module.sources).map(async source =>
+				this.fetchResolvedDependency(
+					source,
+					module.id,
+					(module.resolvedIds[source] =
+						module.resolvedIds[source] ||
+						this.handleMissingImports(await this.resolveId(source, module.id), source, module.id))
+				)
+			) as Promise<unknown>[]),
+			...module.getDynamicImportExpressions().map((specifier, index) =>
 				this.resolveDynamicImport(module, specifier as string | ESTree.Node, module.id).then(
 					resolvedId => {
 						if (resolvedId === null) return;
@@ -256,12 +265,7 @@ export class ModuleLoader {
 					}
 				)
 			)
-		);
-		fetchDynamicImportsPromise.catch(() => {});
-
-		return Promise.all(
-			module.sources.map(source => this.resolveAndFetchDependency(module, source))
-		).then(() => fetchDynamicImportsPromise);
+		]);
 	}
 
 	private fetchModule(
@@ -271,9 +275,7 @@ export class ModuleLoader {
 		isEntry: boolean
 	): Promise<Module> {
 		const existingModule = this.modulesById.get(id);
-		if (existingModule) {
-			if (existingModule instanceof ExternalModule)
-				throw new Error(`Cannot fetch external module ${id}`);
+		if (existingModule instanceof Module) {
 			existingModule.isEntryPoint = existingModule.isEntryPoint || isEntry;
 			return Promise.resolve(existingModule);
 		}
@@ -331,10 +333,10 @@ export class ModuleLoader {
 							module.exportsAll[name] = module.id;
 						}
 					}
-					module.exportAllSources.forEach(source => {
+					for (const source of module.exportAllSources) {
 						const id = module.resolvedIds[source].id;
 						const exportAllModule = this.modulesById.get(id);
-						if (exportAllModule instanceof ExternalModule) return;
+						if (exportAllModule instanceof ExternalModule) continue;
 
 						for (const name in (exportAllModule as Module).exportsAll) {
 							if (name in module.exportsAll) {
@@ -343,7 +345,7 @@ export class ModuleLoader {
 								module.exportsAll[name] = (exportAllModule as Module).exportsAll[name];
 							}
 						}
-					});
+					}
 					return module;
 				});
 			});
@@ -448,19 +450,6 @@ export class ModuleLoader {
 					? moduleSideEffects
 					: this.hasModuleSideEffects(id, external)
 		};
-	}
-
-	private async resolveAndFetchDependency(
-		module: Module,
-		source: string
-	): Promise<Module | ExternalModule> {
-		return this.fetchResolvedDependency(
-			source,
-			module.id,
-			(module.resolvedIds[source] =
-				module.resolvedIds[source] ||
-				this.handleMissingImports(await this.resolveId(source, module.id), source, module.id))
-		);
 	}
 
 	private async resolveDynamicImport(
