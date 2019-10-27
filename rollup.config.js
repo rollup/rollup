@@ -171,7 +171,7 @@ export default command => {
 			!command.configTest && license({ thirdParty: generateLicenseFile })
 		],
 		// acorn needs to be external as some plugins rely on a shared acorn instance
-		external: ['acorn', 'assert', 'events', 'fs', 'module', 'path', 'util'],
+		external: ['acorn', 'assert', 'crypto', 'events', 'fs', 'module', 'path', 'util'],
 		treeshake,
 		output: {
 			banner,
@@ -205,6 +205,7 @@ export default command => {
 			json(),
 			{
 				load: id => {
+					if (~id.indexOf('crypto.ts')) return fs.readFileSync('browser/crypto.ts', 'utf-8');
 					if (~id.indexOf('fs.ts')) return fs.readFileSync('browser/fs.ts', 'utf-8');
 					if (~id.indexOf('path.ts')) return fs.readFileSync('browser/path.ts', 'utf-8');
 				}

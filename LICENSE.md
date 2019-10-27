@@ -150,13 +150,13 @@ Repository: jonschlinkert/fill-range
 ## hash.js
 License: MIT
 By: Fedor Indutny
-Repository: git@github.com:indutny/hash.js
+Repository: git+ssh://git@github.com/indutny/hash.js.git
 
 ---------------------------------------
 
 ## inherits
 License: ISC
-Repository: git://github.com/isaacs/inherits
+Repository: git://github.com/isaacs/inherits.git
 
 > The ISC License
 > 
@@ -265,7 +265,7 @@ Repository: micromatch/micromatch
 
 ## minimalistic-assert
 License: ISC
-Repository: https://github.com/calvinmetcalf/minimalistic-assert.git
+Repository: git+https://github.com/calvinmetcalf/minimalistic-assert.git
 
 > Copyright 2015 Calvin Metcalf
 > 
