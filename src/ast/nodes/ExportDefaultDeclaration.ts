@@ -1,5 +1,4 @@
 import MagicString from 'magic-string';
-import { BLANK } from '../../utils/blank';
 import {
 	findFirstOccurrenceOutsideComment,
 	NodeRenderOptions,
@@ -63,7 +62,8 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		this.context.addExport(this);
 	}
 
-	render(code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
+	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions) {
+		const { start, end } = nodeRenderOptions as { end: number; start: number };
 		const declarationStart = getDeclarationStart(code.original, this.start);
 
 		if (this.declaration instanceof FunctionDeclaration) {
@@ -86,12 +86,12 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			// Remove altogether to prevent re-declaring the same variable
 			if (options.format === 'system' && this.variable.exportName) {
 				code.overwrite(
-					start as number,
-					end as number,
+					start,
+					end,
 					`exports('${this.variable.exportName}', ${this.variable.getName()});`
 				);
 			} else {
-				treeshakeNode(this, code, start as number, end as number);
+				treeshakeNode(this, code, start, end);
 			}
 			return;
 		} else if (this.variable.included) {

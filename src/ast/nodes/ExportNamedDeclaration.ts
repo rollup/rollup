@@ -1,5 +1,4 @@
 import MagicString from 'magic-string';
-import { BLANK } from '../../utils/blank';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { HasEffectsContext } from '../ExecutionContext';
 import ClassDeclaration from './ClassDeclaration';
@@ -31,9 +30,10 @@ export default class ExportNamedDeclaration extends NodeBase {
 		this.context.addExport(this);
 	}
 
-	render(code: MagicString, options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
+	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions) {
+		const { start, end } = nodeRenderOptions as { end: number; start: number };
 		if (this.declaration === null) {
-			code.remove(start as number, end as number);
+			code.remove(start, end);
 		} else {
 			code.remove(this.start, this.declaration.start);
 			(this.declaration as Node).render(code, options, { start, end });
