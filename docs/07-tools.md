@@ -111,7 +111,7 @@ export default {
 };
 ```
 
-Voilà, `lodash` will now be treated as external, and not be bundled with your library.
+Now, `lodash` will now be treated as external, and not be bundled with your library.
 
 The `external` key accepts either an array of module names, or a function which takes the module name and returns true if it should be treated as external. For example:
 
