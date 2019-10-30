@@ -164,6 +164,9 @@ $ rollup --config
 
 # alternatively, specify a custom config file location
 $ rollup --config my.config.js
+
+# .js and .mjs are supported
+$ rollup --config my.config.mjs
 ```
 
 You can also export a function that returns any of the above configuration formats. This function will be passed the current command line arguments so that you can dynamically adapt your configuration to respect e.g. [`--silent`](guide/en/#--silent). You can even define your own command line options if you prefix them with `config`:
