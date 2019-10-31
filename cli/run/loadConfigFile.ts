@@ -39,18 +39,15 @@ export default function loadConfigFile(
 		})
 		.then(({ output: [{ code }] }: RollupOutput) => {
 			// temporarily override require
-			const extensions = ['.js','.mjs'];
-			const defaultLoaders = extensions.map(e => {
-				const defaultLoader = require.extensions[e];
-				require.extensions[e] = (module: NodeModule, filename: string) => {
-					if (filename === configFile) {
-						(module as NodeModuleWithCompile)._compile(code, filename);
-					} else {
-						defaultLoader(module, filename);
-					}
-				};	
-				return defaultLoader;
-			});
+			const extension = path.extname(configFile);
+			const defaultLoader = require.extensions[extension];
+			require.extensions[extension] = (module: NodeModule, filename: string) => {
+				if (filename === configFile) {
+					(module as NodeModuleWithCompile)._compile(code, filename);
+				} else {
+					defaultLoader(module, filename);
+				}
+			};
 
 			delete require.cache[configFile];
 
@@ -71,7 +68,7 @@ export default function loadConfigFile(
 						});
 					}
 
-					extensions.forEach((extension,index) => require.extensions[extension] = defaultLoaders[index]);
+					require.extensions[extension] = defaultLoader;
 
 					return Array.isArray(configs) ? configs : [configs];
 				});
