@@ -1,6 +1,8 @@
 import * as external from 'external';
 import foo from './foo.js';
+
 export { quux as strange } from './quux.js';
+export * from './quux.js';
 
 function baz() {
 	return foo + external.value;
