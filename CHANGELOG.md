@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.26.2
+*2019-10-31*
+
+### Bug Fixes
+* Do not create invalid code when using `treeshake: false` and star re-exports (#3209)
+
+### Pull Requests
+* [#3209](https://github.com/rollup/rollup/pull/3209): Also remove export-all declarations when not tree-shaking (@lukastaegert)
+
 ## 1.26.1
 *2019-10-31*
 
