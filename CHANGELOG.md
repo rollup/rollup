@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 1.26.1
+*2019-10-31*
+
+### Bug Fixes
+* Prevent an issue where outputs would overwrite files emitted by other outputs (#3201)
+* Do not throw an error if the config file does not have a .js extension (#3204)
+
+### Pull Requests
+* [#3201](https://github.com/rollup/rollup/pull/3201): Make the CLI run generate/output in serial (@marijnh)
+* [#3204](https://github.com/rollup/rollup/pull/3204): support all config file extensions (.js,.mjs,...) (@arlac77)
+
 ## 1.26.0
 *2019-10-27*
 
