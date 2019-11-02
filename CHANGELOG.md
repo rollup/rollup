@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.26.3
+*2019-11-02*
+
+### Bug Fixes
+* Work around an incompatibility with rollup-plugin-dts (#3211)
+
+### Pull Requests
+* [#3211](https://github.com/rollup/rollup/pull/3211): Do no fail if the source attribute is `undefined` in an unused named export (@lukastaegert)
+
 ## 1.26.2
 *2019-10-31*
 
