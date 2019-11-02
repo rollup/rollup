@@ -1,11 +1,11 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
-import { HasEffectsContext } from '../ExecutionContext';
+import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
 export default class AssignmentExpression extends NodeBase {
@@ -26,15 +26,10 @@ export default class AssignmentExpression extends NodeBase {
 		| '**=';
 	right!: ExpressionNode;
 	type!: NodeType.tAssignmentExpression;
-
-	bind() {
-		super.bind();
-		this.left.deoptimizePath(EMPTY_PATH);
-		// We cannot propagate mutations of the new binding to the old binding with certainty
-		this.right.deoptimizePath(UNKNOWN_PATH);
-	}
+	private deoptimized = false;
 
 	hasEffects(context: HasEffectsContext): boolean {
+		this.deoptimize();
 		return (
 			this.right.hasEffects(context) ||
 			this.left.hasEffects(context) ||
@@ -44,6 +39,11 @@ export default class AssignmentExpression extends NodeBase {
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		return path.length > 0 && this.right.hasEffectsWhenAccessedAtPath(path, context);
+	}
+
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+		this.deoptimize();
+		return super.include(context, includeChildrenRecursively);
 	}
 
 	render(code: MagicString, options: RenderOptions) {
@@ -67,6 +67,19 @@ export default class AssignmentExpression extends NodeBase {
 					code.appendLeft(this.end, ')');
 				}
 			}
+		}
+	}
+
+	shouldBeIncluded(context: InclusionContext): boolean {
+		this.deoptimize();
+		return super.shouldBeIncluded(context);
+	}
+
+	private deoptimize() {
+		if (!this.deoptimized) {
+			this.deoptimized = true;
+			this.left.deoptimizePath(EMPTY_PATH);
+			this.right.deoptimizePath(UNKNOWN_PATH);
 		}
 	}
 }
