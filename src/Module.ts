@@ -703,7 +703,7 @@ export default class Module {
 			const source = node.source.value;
 			this.sources.add(source);
 			this.exportAllSources.add(source);
-		} else if (node.source !== null) {
+		} else if (node.source instanceof Literal) {
 			// export { name } from './other'
 
 			const source = node.source.value;
