@@ -739,7 +739,7 @@ export default class Chunk {
 			chunk: this,
 			code: prevCode,
 			options,
-			outputPluginDriver: this.graph.pluginDriver,
+			outputPluginDriver,
 			renderChunk: outputChunk,
 			sourcemapChain: chunkSourcemapChain
 		}).then((code: string) => {

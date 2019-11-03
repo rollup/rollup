@@ -91,7 +91,6 @@ export interface AstContext {
 	error: (props: RollupError, pos: number) => void;
 	fileName: string;
 	getExports: () => string[];
-	getFileName: (fileReferenceId: string) => string;
 	getModuleExecIndex: () => number;
 	getModuleName: () => string;
 	getReexports: () => string[];
@@ -586,7 +585,6 @@ export default class Module {
 			error: this.error.bind(this),
 			fileName, // Needed for warnings
 			getExports: this.getExports.bind(this),
-			getFileName: this.graph.pluginDriver.getFileName,
 			getModuleExecIndex: () => this.execIndex,
 			getModuleName: this.basename.bind(this),
 			getReexports: this.getReexports.bind(this),

@@ -235,10 +235,10 @@ export default async function rollup(rawInputOptions: GenericConfigObject): Prom
 		timeStart('GENERATE', 1);
 
 		const assetFileNames = outputOptions.assetFileNames || 'assets/[name]-[hash][extname]';
-		const outputBundleWithPlaceholders: OutputBundleWithPlaceholders = Object.create(null);
-		let outputBundle;
 		const inputBase = commondir(getAbsoluteEntryModulePaths(chunks));
-		outputPluginDriver.startOutput(outputBundleWithPlaceholders, assetFileNames);
+		const outputBundleWithPlaceholders: OutputBundleWithPlaceholders = Object.create(null);
+		outputPluginDriver.setOutputBundle(outputBundleWithPlaceholders, assetFileNames);
+		let outputBundle;
 
 		try {
 			await outputPluginDriver.hookParallel('renderStart', []);
@@ -307,7 +307,7 @@ export default async function rollup(rawInputOptions: GenericConfigObject): Prom
 	const result: RollupBuild = {
 		cache: cache as RollupCache,
 		generate: ((rawOutputOptions: GenericConfigObject) => {
-			const outputPluginDriver = graph.pluginDriver;
+			const outputPluginDriver = graph.pluginDriver.createOutputPluginDriver([]);
 			const promise = generate(
 				getOutputOptions(rawOutputOptions, outputPluginDriver),
 				false,
@@ -319,7 +319,7 @@ export default async function rollup(rawInputOptions: GenericConfigObject): Prom
 		}) as any,
 		watchFiles: Object.keys(graph.watchFiles),
 		write: ((rawOutputOptions: GenericConfigObject) => {
-			const outputPluginDriver = graph.pluginDriver;
+			const outputPluginDriver = graph.pluginDriver.createOutputPluginDriver([]);
 			const outputOptions = getOutputOptions(rawOutputOptions, outputPluginDriver);
 			if (!outputOptions.dir && !outputOptions.file) {
 				error({

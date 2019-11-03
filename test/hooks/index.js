@@ -322,6 +322,35 @@ describe('hooks', () => {
 			});
 	});
 
+	it('does not overwrite files in other outputs when emitting assets during generate', () => {
+		return rollup
+			.rollup({
+				input: 'input',
+				plugins: [
+					loader({ input: 'export default 42;' }),
+					{
+						generateBundle(outputOptions) {
+							this.emitFile({ type: 'asset', source: outputOptions.format });
+						}
+					}
+				]
+			})
+			.then(bundle =>
+				Promise.all([
+					bundle.generate({ format: 'es', assetFileNames: 'asset' }),
+					bundle.generate({ format: 'cjs', assetFileNames: 'asset' })
+				])
+			)
+			.then(([{ output: output1 }, { output: output2 }]) => {
+				assert.equal(output1.length, 2, 'output1');
+				assert.equal(output1[1].fileName, 'asset');
+				assert.equal(output1[1].source, 'es');
+				assert.equal(output2.length, 2, 'output2');
+				assert.equal(output2[1].fileName, 'asset');
+				assert.equal(output2[1].source, 'cjs');
+			});
+	});
+
 	it('caches asset emission in transform hook', () => {
 		let cache;
 		return rollup

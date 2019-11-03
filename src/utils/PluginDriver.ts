@@ -24,28 +24,53 @@ export class PluginDriver {
 	public emitFile: EmitFile;
 	public finaliseAssets: () => void;
 	public getFileName: (fileReferenceId: string) => string;
-	public startOutput: (outputBundle: OutputBundleWithPlaceholders, assetFileNames: string) => void;
+	public setOutputBundle: (
+		outputBundle: OutputBundleWithPlaceholders,
+		assetFileNames: string
+	) => void;
 
 	private fileEmitter: FileEmitter;
+	private graph: Graph;
+	private pluginCache: Record<string, SerializablePluginCache> | undefined;
 	private pluginContexts: PluginContext[];
 	private plugins: Plugin[];
+	private preserveSymlinks: boolean;
+	private watcher: RollupWatcher | undefined;
 
 	constructor(
 		graph: Graph,
 		userPlugins: Plugin[],
-		pluginCache: Record<string, SerializablePluginCache> | void,
+		pluginCache: Record<string, SerializablePluginCache> | undefined,
 		preserveSymlinks: boolean,
-		watcher?: RollupWatcher
+		watcher: RollupWatcher | undefined,
+		basePluginDriver?: PluginDriver
 	) {
 		warnDeprecatedHooks(userPlugins, graph);
-		this.fileEmitter = new FileEmitter(graph);
-		this.emitFile = this.fileEmitter.emitFile.bind(this.fileEmitter);
-		this.getFileName = this.fileEmitter.getFileName.bind(this.fileEmitter);
-		this.finaliseAssets = this.fileEmitter.assertAssetsFinalized.bind(this.fileEmitter);
-		this.startOutput = this.fileEmitter.startOutput.bind(this.fileEmitter);
-		this.plugins = userPlugins.concat([getRollupDefaultPlugin(preserveSymlinks)]);
+		this.graph = graph;
+		this.pluginCache = pluginCache;
+		this.preserveSymlinks = preserveSymlinks;
+		this.watcher = watcher;
+		this.fileEmitter = new FileEmitter(graph, basePluginDriver && basePluginDriver.fileEmitter);
+		this.emitFile = this.fileEmitter.emitFile;
+		this.getFileName = this.fileEmitter.getFileName;
+		this.finaliseAssets = this.fileEmitter.assertAssetsFinalized;
+		this.setOutputBundle = this.fileEmitter.setOutputBundle;
+		this.plugins = userPlugins.concat(
+			basePluginDriver ? basePluginDriver.plugins : [getRollupDefaultPlugin(preserveSymlinks)]
+		);
 		this.pluginContexts = this.plugins.map(
 			getPluginContexts(pluginCache, graph, this.fileEmitter, watcher)
+		);
+	}
+
+	public createOutputPluginDriver(plugins: Plugin[]): PluginDriver {
+		return new PluginDriver(
+			this.graph,
+			plugins,
+			this.pluginCache,
+			this.preserveSymlinks,
+			this.watcher,
+			this
 		);
 	}
 
