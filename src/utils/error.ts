@@ -122,7 +122,7 @@ export function errFileReferenceIdNotFoundForFilename(assetReferenceId: string) 
 export function errFileNameConflict(fileName: string) {
 	return {
 		code: Errors.FILE_NAME_CONFLICT,
-		message: `Could not emit file "${fileName}" as it conflicts with an already emitted file.`
+		message: `The emitted file "${fileName}" overwrites a previously emitted file of the same name.`
 	};
 }
 

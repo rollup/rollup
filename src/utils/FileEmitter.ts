@@ -10,6 +10,7 @@ import {
 	errAssetSourceAlreadySet,
 	errChunkNotGeneratedForFileName,
 	errFailedValidation,
+	errFileNameConflict,
 	errFileReferenceIdNotFoundForFilename,
 	errInvalidRollupPhaseForChunkEmission,
 	errNoAssetSourceSet,
@@ -47,9 +48,14 @@ function generateAssetFileName(
 	);
 }
 
-function reserveFileNameInBundle(fileName: string, bundle: OutputBundleWithPlaceholders) {
-	// TODO Lukas this should warn if the fileName is already in the bundle,
-	//  but until #3174 is fixed, this raises spurious warnings and is disabled
+function reserveFileNameInBundle(
+	fileName: string,
+	bundle: OutputBundleWithPlaceholders,
+	graph: Graph
+) {
+	if (fileName in bundle) {
+		graph.warn(errFileNameConflict(fileName));
+	}
 	bundle[fileName] = FILE_PLACEHOLDER;
 }
 
@@ -215,7 +221,7 @@ export class FileEmitter {
 		};
 		for (const emittedFile of this.filesByReferenceId.values()) {
 			if (emittedFile.fileName) {
-				reserveFileNameInBundle(emittedFile.fileName, this.output.bundle);
+				reserveFileNameInBundle(emittedFile.fileName, this.output.bundle, this.graph);
 			}
 		}
 		for (const [referenceId, consumedFile] of this.filesByReferenceId.entries()) {
@@ -257,7 +263,7 @@ export class FileEmitter {
 		);
 		if (this.output) {
 			if (emittedAsset.fileName) {
-				reserveFileNameInBundle(emittedAsset.fileName, this.output.bundle);
+				reserveFileNameInBundle(emittedAsset.fileName, this.output.bundle, this.graph);
 			}
 			if (source !== undefined) {
 				this.finalizeAsset(consumedAsset, source, referenceId, this.output);
