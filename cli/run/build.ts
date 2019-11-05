@@ -66,10 +66,9 @@ export default function build(
 				});
 			}
 
-			return outputOptions.reduce(
-				(prev, output) => prev.then(() => bundle.write(output) as Promise<any>),
-				Promise.resolve()
-			).then(() => bundle)
+			return Promise.all(outputOptions.map(output => bundle.write(output) as Promise<any>)).then(
+				() => bundle
+			);
 		})
 		.then((bundle: RollupBuild | null) => {
 			if (!silent) {
