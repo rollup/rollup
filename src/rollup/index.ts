@@ -82,6 +82,17 @@ function ensureArray<T>(items: (T | null | undefined)[] | T | null | undefined):
 	return [];
 }
 
+function normalizePlugins(rawPlugins: any): Plugin[] {
+	const plugins = ensureArray(rawPlugins);
+	for (let pluginIndex = 0; pluginIndex < plugins.length; pluginIndex++) {
+		const plugin = plugins[pluginIndex];
+		if (!plugin.name) {
+			plugin.name = `${ANONYMOUS_PLUGIN_PREFIX}${pluginIndex + 1}`;
+		}
+	}
+	return plugins;
+}
+
 function getInputOptions(rawInputOptions: GenericConfigObject): InputOptions {
 	if (!rawInputOptions) {
 		throw new Error('You must supply an options object to rollup');
@@ -94,13 +105,7 @@ function getInputOptions(rawInputOptions: GenericConfigObject): InputOptions {
 		(inputOptions.onwarn as WarningHandler)({ message: optionError, code: 'UNKNOWN_OPTION' });
 
 	inputOptions = ensureArray(inputOptions.plugins).reduce(applyOptionHook, inputOptions);
-	inputOptions.plugins = ensureArray(inputOptions.plugins);
-	for (let pluginIndex = 0; pluginIndex < inputOptions.plugins.length; pluginIndex++) {
-		const plugin = inputOptions.plugins[pluginIndex];
-		if (!plugin.name) {
-			plugin.name = `${ANONYMOUS_PLUGIN_PREFIX}${pluginIndex + 1}`;
-		}
-	}
+	inputOptions.plugins = normalizePlugins(inputOptions.plugins);
 
 	if (inputOptions.inlineDynamicImports) {
 		if (inputOptions.preserveModules)
@@ -307,7 +312,9 @@ export default async function rollup(rawInputOptions: GenericConfigObject): Prom
 	const result: RollupBuild = {
 		cache: cache as RollupCache,
 		generate: ((rawOutputOptions: GenericConfigObject) => {
-			const outputPluginDriver = graph.pluginDriver.createOutputPluginDriver([]);
+			const outputPluginDriver = graph.pluginDriver.createOutputPluginDriver(
+				normalizePlugins(rawOutputOptions.plugins)
+			);
 			const promise = generate(
 				getOutputOptions(rawOutputOptions, outputPluginDriver),
 				false,
@@ -319,7 +326,9 @@ export default async function rollup(rawInputOptions: GenericConfigObject): Prom
 		}) as any,
 		watchFiles: Object.keys(graph.watchFiles),
 		write: ((rawOutputOptions: GenericConfigObject) => {
-			const outputPluginDriver = graph.pluginDriver.createOutputPluginDriver([]);
+			const outputPluginDriver = graph.pluginDriver.createOutputPluginDriver(
+				normalizePlugins(rawOutputOptions.plugins)
+			);
 			const outputOptions = getOutputOptions(rawOutputOptions, outputPluginDriver);
 			if (!outputOptions.dir && !outputOptions.file) {
 				error({
