@@ -3,6 +3,6 @@
 	factory();
 }((function () { 'use strict';
 
-	console.log('umd', '!umd!');
+	console.log('umd');
 
 })));

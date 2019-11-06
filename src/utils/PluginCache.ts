@@ -1,6 +1,6 @@
 import { PluginCache, SerializablePluginCache } from '../rollup/types';
 import { error } from './error';
-import { ANONYMOUS_PLUGIN_PREFIX } from './pluginUtils';
+import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from './pluginUtils';
 
 export function createPluginCache(cache: SerializablePluginCache): PluginCache {
 	return {
@@ -64,7 +64,10 @@ export const NO_CACHE: PluginCache = {
 };
 
 function uncacheablePluginError(pluginName: string) {
-	if (pluginName.startsWith(ANONYMOUS_PLUGIN_PREFIX))
+	if (
+		pluginName.startsWith(ANONYMOUS_PLUGIN_PREFIX) ||
+		pluginName.startsWith(ANONYMOUS_OUTPUT_PLUGIN_PREFIX)
+	)
 		error({
 			code: 'ANONYMOUS_PLUGIN_CACHE',
 			message:

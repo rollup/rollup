@@ -1,6 +1,6 @@
 (function () {
 	'use strict';
 
-	console.log('iife', '!iife!');
+	console.log('iife');
 
 }());

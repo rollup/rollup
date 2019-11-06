@@ -15,7 +15,11 @@ import { BuildPhase } from './buildPhase';
 import { errInvalidRollupPhaseForAddWatchFile } from './error';
 import { FileEmitter } from './FileEmitter';
 import { createPluginCache, getCacheForUncacheablePlugin, NO_CACHE } from './PluginCache';
-import { ANONYMOUS_PLUGIN_PREFIX, throwPluginError } from './pluginUtils';
+import {
+	ANONYMOUS_OUTPUT_PLUGIN_PREFIX,
+	ANONYMOUS_PLUGIN_PREFIX,
+	throwPluginError
+} from './pluginUtils';
 
 function getDeprecatedContextHandler<H extends Function>(
 	handler: H,
@@ -51,7 +55,11 @@ export function getPluginContexts(
 	return (plugin, pidx) => {
 		let cacheable = true;
 		if (typeof plugin.cacheKey !== 'string') {
-			if (plugin.name.startsWith(ANONYMOUS_PLUGIN_PREFIX) || existingPluginNames.has(plugin.name)) {
+			if (
+				plugin.name.startsWith(ANONYMOUS_PLUGIN_PREFIX) ||
+				plugin.name.startsWith(ANONYMOUS_OUTPUT_PLUGIN_PREFIX) ||
+				existingPluginNames.has(plugin.name)
+			) {
 				cacheable = false;
 			} else {
 				existingPluginNames.add(plugin.name);

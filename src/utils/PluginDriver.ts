@@ -9,7 +9,7 @@ import {
 	SerializablePluginCache
 } from '../rollup/types';
 import { getRollupDefaultPlugin } from './defaultPlugin';
-import { error } from './error';
+import { errInputHookInOutputPlugin, error } from './error';
 import { FileEmitter } from './FileEmitter';
 import { getPluginContexts } from './PluginContext';
 import { throwPluginError, warnDeprecatedHooks } from './pluginUtils';
@@ -35,6 +35,7 @@ export class PluginDriver {
 	private pluginContexts: PluginContext[];
 	private plugins: Plugin[];
 	private preserveSymlinks: boolean;
+	private previousHooks = new Set<string>(['options']);
 	private watcher: RollupWatcher | undefined;
 
 	constructor(
@@ -61,6 +62,15 @@ export class PluginDriver {
 		this.pluginContexts = this.plugins.map(
 			getPluginContexts(pluginCache, graph, this.fileEmitter, watcher)
 		);
+		if (basePluginDriver) {
+			for (const plugin of userPlugins) {
+				for (const hook of basePluginDriver.previousHooks) {
+					if (hook in plugin) {
+						graph.warn(errInputHookInOutputPlugin(plugin.name, hook));
+					}
+				}
+			}
+		}
 	}
 
 	public createOutputPluginDriver(plugins: Plugin[]): PluginDriver {
@@ -222,6 +232,7 @@ export class PluginDriver {
 		permitValues = false,
 		hookContext?: ReplaceContext | null
 	): Promise<T> {
+		this.previousHooks.add(hookName);
 		const plugin = this.plugins[pluginIndex];
 		const hook = (plugin as any)[hookName];
 		if (!hook) return undefined as any;
@@ -252,6 +263,7 @@ export class PluginDriver {
 		permitValues = false,
 		hookContext?: ReplaceContext
 	): T {
+		this.previousHooks.add(hookName);
 		const plugin = this.plugins[pluginIndex];
 		let context = this.pluginContexts[pluginIndex];
 		const hook = (plugin as any)[hookName];

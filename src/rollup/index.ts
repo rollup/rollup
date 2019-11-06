@@ -11,7 +11,7 @@ import getExportMode from '../utils/getExportMode';
 import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
 import { basename, dirname, isAbsolute, resolve } from '../utils/path';
 import { PluginDriver } from '../utils/PluginDriver';
-import { ANONYMOUS_PLUGIN_PREFIX } from '../utils/pluginUtils';
+import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from '../utils/pluginUtils';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
 import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timers';
 import {
@@ -82,12 +82,12 @@ function ensureArray<T>(items: (T | null | undefined)[] | T | null | undefined):
 	return [];
 }
 
-function normalizePlugins(rawPlugins: any): Plugin[] {
+function normalizePlugins(rawPlugins: any, anonymousPrefix: string): Plugin[] {
 	const plugins = ensureArray(rawPlugins);
 	for (let pluginIndex = 0; pluginIndex < plugins.length; pluginIndex++) {
 		const plugin = plugins[pluginIndex];
 		if (!plugin.name) {
-			plugin.name = `${ANONYMOUS_PLUGIN_PREFIX}${pluginIndex + 1}`;
+			plugin.name = `${anonymousPrefix}${pluginIndex + 1}`;
 		}
 	}
 	return plugins;
@@ -105,7 +105,7 @@ function getInputOptions(rawInputOptions: GenericConfigObject): InputOptions {
 		(inputOptions.onwarn as WarningHandler)({ message: optionError, code: 'UNKNOWN_OPTION' });
 
 	inputOptions = ensureArray(inputOptions.plugins).reduce(applyOptionHook, inputOptions);
-	inputOptions.plugins = normalizePlugins(inputOptions.plugins);
+	inputOptions.plugins = normalizePlugins(inputOptions.plugins, ANONYMOUS_PLUGIN_PREFIX);
 
 	if (inputOptions.inlineDynamicImports) {
 		if (inputOptions.preserveModules)
@@ -220,16 +220,25 @@ export default async function rollup(rawInputOptions: GenericConfigObject): Prom
 	// ensure we only do one optimization pass per build
 	let optimized = false;
 
-	function getOutputOptions(
-		rawOutputOptions: GenericConfigObject,
-		outputPluginDriver: PluginDriver
-	) {
-		return normalizeOutputOptions(
-			inputOptions as GenericConfigObject,
-			rawOutputOptions,
-			chunks.length > 1,
-			outputPluginDriver
+	function getOutputOptionsAndPluginDriver(
+		rawOutputOptions: GenericConfigObject
+	): { outputOptions: OutputOptions; outputPluginDriver: PluginDriver } {
+		if (!rawOutputOptions) {
+			throw new Error('You must supply an options object');
+		}
+		const outputPluginDriver = graph.pluginDriver.createOutputPluginDriver(
+			normalizePlugins(rawOutputOptions.plugins, ANONYMOUS_OUTPUT_PLUGIN_PREFIX)
 		);
+
+		return {
+			outputOptions: normalizeOutputOptions(
+				inputOptions as GenericConfigObject,
+				rawOutputOptions,
+				chunks.length > 1,
+				outputPluginDriver
+			),
+			outputPluginDriver
+		};
 	}
 
 	async function generate(
@@ -312,24 +321,21 @@ export default async function rollup(rawInputOptions: GenericConfigObject): Prom
 	const result: RollupBuild = {
 		cache: cache as RollupCache,
 		generate: ((rawOutputOptions: GenericConfigObject) => {
-			const outputPluginDriver = graph.pluginDriver.createOutputPluginDriver(
-				normalizePlugins(rawOutputOptions.plugins)
+			const { outputOptions, outputPluginDriver } = getOutputOptionsAndPluginDriver(
+				rawOutputOptions
 			);
-			const promise = generate(
-				getOutputOptions(rawOutputOptions, outputPluginDriver),
-				false,
-				outputPluginDriver
-			).then(result => createOutput(result));
+			const promise = generate(outputOptions, false, outputPluginDriver).then(result =>
+				createOutput(result)
+			);
 			Object.defineProperty(promise, 'code', throwAsyncGenerateError);
 			Object.defineProperty(promise, 'map', throwAsyncGenerateError);
 			return promise;
 		}) as any,
 		watchFiles: Object.keys(graph.watchFiles),
 		write: ((rawOutputOptions: GenericConfigObject) => {
-			const outputPluginDriver = graph.pluginDriver.createOutputPluginDriver(
-				normalizePlugins(rawOutputOptions.plugins)
+			const { outputOptions, outputPluginDriver } = getOutputOptionsAndPluginDriver(
+				rawOutputOptions
 			);
-			const outputOptions = getOutputOptions(rawOutputOptions, outputPluginDriver);
 			if (!outputOptions.dir && !outputOptions.file) {
 				error({
 					code: 'MISSING_OPTION',
@@ -458,9 +464,6 @@ function normalizeOutputOptions(
 	hasMultipleChunks: boolean,
 	outputPluginDriver: PluginDriver
 ): OutputOptions {
-	if (!rawOutputOptions) {
-		throw new Error('You must supply an options object');
-	}
 	const mergedOptions = mergeOptions({
 		config: {
 			output: {
@@ -477,6 +480,7 @@ function normalizeOutputOptions(
 	const mergedOutputOptions = mergedOptions.outputOptions[0];
 	const outputOptionsReducer = (outputOptions: OutputOptions, result: OutputOptions) =>
 		result || outputOptions;
+	// TODO Lukas add inputOptions to hook
 	const outputOptions = outputPluginDriver.hookReduceArg0Sync(
 		'outputOptions',
 		[mergedOutputOptions],
