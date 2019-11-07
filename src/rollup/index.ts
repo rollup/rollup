@@ -255,7 +255,7 @@ export default async function rollup(rawInputOptions: GenericConfigObject): Prom
 		let outputBundle;
 
 		try {
-			await outputPluginDriver.hookParallel('renderStart', []);
+			await outputPluginDriver.hookParallel('renderStart', [outputOptions, inputOptions]);
 			const addons = await createAddons(outputOptions, outputPluginDriver);
 			for (const chunk of chunks) {
 				if (!inputOptions.preserveModules) chunk.generateInternalExports(outputOptions);
@@ -480,7 +480,6 @@ function normalizeOutputOptions(
 	const mergedOutputOptions = mergedOptions.outputOptions[0];
 	const outputOptionsReducer = (outputOptions: OutputOptions, result: OutputOptions) =>
 		result || outputOptions;
-	// TODO Lukas add inputOptions to hook
 	const outputOptions = outputPluginDriver.hookReduceArg0Sync(
 		'outputOptions',
 		[mergedOutputOptions],
