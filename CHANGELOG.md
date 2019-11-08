@@ -1,5 +1,13 @@
 # rollup changelog
 
+## 1.26.4
+*unreleased*
+
+### Pull Requests
+* [#3216](https://github.com/rollup/rollup/pull/3216): Fix small typo (@kaisermann)
+* [#3217](https://github.com/rollup/rollup/pull/3217): Update dependencies and fix security vulnerability (#3217)
+ (@lukastaegert)
+
 ## 1.26.3
 *2019-11-02*
 
