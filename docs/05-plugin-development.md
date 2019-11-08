@@ -4,7 +4,7 @@ title: Plugin Development
 
 ### Plugins Overview
 
-A Rollup plugin is an object with one or more of the [properties](guide/en/#properties) and [hooks](guide/en/#hooks) described below, and which follows our [conventions](guide/en/#conventions). A plugin should be distributed as a packages which exports a function that can be called with plugin specific options and returns such an object.
+A Rollup plugin is an object with one or more of the [properties](guide/en/#properties) and [hooks](guide/en/#hooks) described below, and which follows our [conventions](guide/en/#conventions). A plugin should be distributed as a package which exports a function that can be called with plugin specific options and returns such an object.
 
 Plugins allow you to customise Rollup's behaviour by, for example, transpiling code before bundling, or finding third-party modules in your `node_modules` folder. For an example on how to use them, see [Using plugins](guide/en/#using-plugins).
 
