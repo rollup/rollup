@@ -196,7 +196,7 @@ var shared = createCommonjsModule(function (module) {
 (module.exports = function (key, value) {
   return sharedStore[key] || (sharedStore[key] = value !== undefined ? value : {});
 })('versions', []).push({
-  version: '3.3.4',
+  version: '3.4.0',
   mode:  'global',
   copyright: '© 2019 Denis Pushkarev (zloirock.ru)'
 });
@@ -773,8 +773,7 @@ var setInternalState = internalState.set;
 var getInternalState = internalState.getterFor(SYMBOL);
 var ObjectPrototype = Object[PROTOTYPE$1];
 var $Symbol = global_1.Symbol;
-var JSON = global_1.JSON;
-var nativeJSONStringify = JSON && JSON.stringify;
+var $stringify = getBuiltIn('JSON', 'stringify');
 var nativeGetOwnPropertyDescriptor$1 = objectGetOwnPropertyDescriptor.f;
 var nativeDefineProperty$1 = objectDefineProperty.f;
 var nativeGetOwnPropertyNames$1 = objectGetOwnPropertyNamesExternal.f;
@@ -995,30 +994,35 @@ _export({ target: 'Object', stat: true, forced: fails(function () { objectGetOwn
 
 // `JSON.stringify` method behavior with symbols
 // https://tc39.github.io/ecma262/#sec-json.stringify
-JSON && _export({ target: 'JSON', stat: true, forced: !nativeSymbol || fails(function () {
-  var symbol = $Symbol();
-  // MS Edge converts symbol values to JSON as {}
-  return nativeJSONStringify([symbol]) != '[null]'
-    // WebKit converts symbol values to JSON as null
-    || nativeJSONStringify({ a: symbol }) != '{}'
-    // V8 throws on boxed symbols
-    || nativeJSONStringify(Object(symbol)) != '{}';
-}) }, {
-  stringify: function stringify(it) {
-    var args = [it];
-    var index = 1;
-    var replacer, $replacer;
-    while (arguments.length > index) args.push(arguments[index++]);
-    $replacer = replacer = args[1];
-    if (!isObject(replacer) && it === undefined || isSymbol(it)) return; // IE8 returns string on undefined
-    if (!isArray(replacer)) replacer = function (key, value) {
-      if (typeof $replacer == 'function') value = $replacer.call(this, key, value);
-      if (!isSymbol(value)) return value;
-    };
-    args[1] = replacer;
-    return nativeJSONStringify.apply(JSON, args);
-  }
-});
+if ($stringify) {
+  var FORCED_JSON_STRINGIFY = !nativeSymbol || fails(function () {
+    var symbol = $Symbol();
+    // MS Edge converts symbol values to JSON as {}
+    return $stringify([symbol]) != '[null]'
+      // WebKit converts symbol values to JSON as null
+      || $stringify({ a: symbol }) != '{}'
+      // V8 throws on boxed symbols
+      || $stringify(Object(symbol)) != '{}';
+  });
+
+  _export({ target: 'JSON', stat: true, forced: FORCED_JSON_STRINGIFY }, {
+    // eslint-disable-next-line no-unused-vars
+    stringify: function stringify(it, replacer, space) {
+      var args = [it];
+      var index = 1;
+      var $replacer;
+      while (arguments.length > index) args.push(arguments[index++]);
+      $replacer = replacer;
+      if (!isObject(replacer) && it === undefined || isSymbol(it)) return; // IE8 returns string on undefined
+      if (!isArray(replacer)) replacer = function (key, value) {
+        if (typeof $replacer == 'function') value = $replacer.call(this, key, value);
+        if (!isSymbol(value)) return value;
+      };
+      args[1] = replacer;
+      return $stringify.apply(null, args);
+    }
+  });
+}
 
 // `Symbol.prototype[@@toPrimitive]` method
 // https://tc39.github.io/ecma262/#sec-symbol.prototype-@@toprimitive
@@ -1887,8 +1891,11 @@ if (v8) {
   match = v8.split('.');
   version = match[0] + match[1];
 } else if (userAgent) {
-  match = userAgent.match(/Chrome\/(\d+)/);
-  if (match) version = match[1];
+  match = userAgent.match(/Edge\/(\d+)/);
+  if (!match || match[1] >= 74) {
+    match = userAgent.match(/Chrome\/(\d+)/);
+    if (match) version = match[1];
+  }
 }
 
 var v8Version = version && +version;
@@ -1913,7 +1920,10 @@ var IS_CONCAT_SPREADABLE = wellKnownSymbol('isConcatSpreadable');
 var MAX_SAFE_INTEGER = 0x1FFFFFFFFFFFFF;
 var MAXIMUM_ALLOWED_INDEX_EXCEEDED = 'Maximum allowed index exceeded';
 
-var IS_CONCAT_SPREADABLE_SUPPORT = !fails(function () {
+// We can't use this feature detection in V8 since it causes
+// deoptimization and serious performance degradation
+// https://github.com/zloirock/core-js/issues/679
+var IS_CONCAT_SPREADABLE_SUPPORT = v8Version >= 51 || !fails(function () {
   var array = [];
   array[IS_CONCAT_SPREADABLE] = false;
   return array.concat()[0] !== array;
@@ -2315,6 +2325,7 @@ var test$1 = [1, 2];
 // https://bugs.webkit.org/show_bug.cgi?id=188794
 _export({ target: 'Array', proto: true, forced: String(test$1) === String(test$1.reverse()) }, {
   reverse: function reverse() {
+    // eslint-disable-next-line no-self-assign
     if (isArray(this)) this.length = this.length;
     return nativeReverse.call(this);
   }
@@ -4778,20 +4789,24 @@ var UNHANDLED = 2;
 var Internal, OwnPromiseCapability, PromiseWrapper, nativeThen;
 
 var FORCED$e = isForced_1(PROMISE, function () {
-  // correct subclassing with @@species support
+  // V8 6.6 (Node 10 and Chrome 66) have a bug with resolving custom thenables
+  // https://bugs.chromium.org/p/chromium/issues/detail?id=830565
+  // We can't detect it synchronously, so just check versions
+  if (v8Version === 66) return true;
+  // Unhandled rejections tracking support, NodeJS Promise without it fails @@species test
+  if (!IS_NODE$1 && typeof PromiseRejectionEvent != 'function') return true;
+  // We can't use @@species feature detection in V8 since it causes
+  // deoptimization and performance degradation
+  // https://github.com/zloirock/core-js/issues/679
+  if (v8Version >= 51 && /native code/.test(PromiseConstructor)) return false;
+  // Detect correctness of subclassing with @@species support
   var promise = PromiseConstructor.resolve(1);
-  var empty = function () { /* empty */ };
-  var FakePromise = (promise.constructor = {})[SPECIES$6] = function (exec) {
-    exec(empty, empty);
+  var FakePromise = function (exec) {
+    exec(function () { /* empty */ }, function () { /* empty */ });
   };
-  // unhandled rejections tracking support, NodeJS Promise without it fails @@species test
-  return !((IS_NODE$1 || typeof PromiseRejectionEvent == 'function')
-    && (!isPure || promise['finally'])
-    && promise.then(empty) instanceof FakePromise
-    // v8 6.6 (Node 10 and Chrome 66) have a bug with resolving custom thenables
-    // https://bugs.chromium.org/p/chromium/issues/detail?id=830565
-    // we can't detect it synchronously, so just check versions
-    && v8Version !== 66);
+  var constructor = promise.constructor = {};
+  constructor[SPECIES$6] = FakePromise;
+  return !(promise.then(function () { /* empty */ }) instanceof FakePromise);
 });
 
 var INCORRECT_ITERATION$1 = FORCED$e || !checkCorrectnessOfIteration(function (iterable) {
@@ -6170,7 +6185,7 @@ var typedArraysConstructorsRequiresWrappers = !NATIVE_ARRAY_BUFFER_VIEWS$2 || !f
   new Int8Array$2(1.5);
   new Int8Array$2(iterable);
 }, true) || fails(function () {
-  // Safari 11 bug
+  // Safari (11+) bug - a reason why even Safari 13 should load a typed array polyfill
   return new Int8Array$2(new ArrayBuffer$2(2), 1, undefined).length !== 1;
 });
 
@@ -6236,6 +6251,7 @@ var typedArrayConstructor = createCommonjsModule(function (module) {
 var getOwnPropertyNames = objectGetOwnPropertyNames.f;
 
 var forEach = arrayIteration.forEach;
+
 
 
 
@@ -6396,14 +6412,16 @@ if (descriptors) {
     } else if (typedArraysConstructorsRequiresWrappers) {
       TypedArrayConstructor = wrapper(function (dummy, data, typedArrayOffset, $length) {
         anInstance(dummy, TypedArrayConstructor, CONSTRUCTOR_NAME);
-        if (!isObject(data)) return new NativeTypedArrayConstructor(toIndex(data));
-        if (isArrayBuffer(data)) return $length !== undefined
-          ? new NativeTypedArrayConstructor(data, toOffset(typedArrayOffset, BYTES), $length)
-          : typedArrayOffset !== undefined
-            ? new NativeTypedArrayConstructor(data, toOffset(typedArrayOffset, BYTES))
-            : new NativeTypedArrayConstructor(data);
-        if (isTypedArray(data)) return fromList(TypedArrayConstructor, data);
-        return typedArrayFrom.call(TypedArrayConstructor, data);
+        return inheritIfRequired(function () {
+          if (!isObject(data)) return new NativeTypedArrayConstructor(toIndex(data));
+          if (isArrayBuffer(data)) return $length !== undefined
+            ? new NativeTypedArrayConstructor(data, toOffset(typedArrayOffset, BYTES), $length)
+            : typedArrayOffset !== undefined
+              ? new NativeTypedArrayConstructor(data, toOffset(typedArrayOffset, BYTES))
+              : new NativeTypedArrayConstructor(data);
+          if (isTypedArray(data)) return fromList(TypedArrayConstructor, data);
+          return typedArrayFrom.call(TypedArrayConstructor, data);
+        }(), dummy, TypedArrayConstructor);
       });
 
       if (objectSetPrototypeOf) objectSetPrototypeOf(TypedArrayConstructor, TypedArray);
@@ -7263,6 +7281,7 @@ _export({ target: 'Reflect', stat: true }, {
 
 // `Math.iaddh` method
 // https://gist.github.com/BrendanEich/4294d5c212a6d2254703
+// TODO: Remove from `core-js@4`
 _export({ target: 'Math', stat: true }, {
   iaddh: function iaddh(x0, x1, y0, y1) {
     var $x0 = x0 >>> 0;
@@ -7274,6 +7293,7 @@ _export({ target: 'Math', stat: true }, {
 
 // `Math.isubh` method
 // https://gist.github.com/BrendanEich/4294d5c212a6d2254703
+// TODO: Remove from `core-js@4`
 _export({ target: 'Math', stat: true }, {
   isubh: function isubh(x0, x1, y0, y1) {
     var $x0 = x0 >>> 0;
@@ -7285,6 +7305,7 @@ _export({ target: 'Math', stat: true }, {
 
 // `Math.imulh` method
 // https://gist.github.com/BrendanEich/4294d5c212a6d2254703
+// TODO: Remove from `core-js@4`
 _export({ target: 'Math', stat: true }, {
   imulh: function imulh(u, v) {
     var UINT16 = 0xFFFF;
@@ -7301,6 +7322,7 @@ _export({ target: 'Math', stat: true }, {
 
 // `Math.umulh` method
 // https://gist.github.com/BrendanEich/4294d5c212a6d2254703
+// TODO: Remove from `core-js@4`
 _export({ target: 'Math', stat: true }, {
   umulh: function umulh(u, v) {
     var UINT16 = 0xFFFF;
@@ -7856,7 +7878,7 @@ if (!nativeUrl && typeof $fetch$1 == 'function' && typeof Headers == 'function')
         if (isObject(init)) {
           body = init.body;
           if (classof(body) === URL_SEARCH_PARAMS) {
-            headers = new Headers(init.headers);
+            headers = init.headers ? new Headers(init.headers) : new Headers();
             if (!headers.has('content-type')) {
               headers.set('content-type', 'application/x-www-form-urlencoded;charset=UTF-8');
             }
@@ -9555,7 +9577,7 @@ _export({ target: 'Math', stat: true }, {
 // https://github.com/tc39/proposal-Math.signbit
 _export({ target: 'Math', stat: true }, {
   signbit: function signbit(x) {
-    return (x = +x) != x ? x : x == 0 ? 1 / x == Infinity : x > 0;
+    return (x = +x) == x && x == 0 ? 1 / x == -Infinity : x < 0;
   }
 });
 
@@ -9948,6 +9970,10 @@ if (!has(asyncIteratorPrototype, TO_STRING_TAG$4)) {
   createNonEnumerableProperty(asyncIteratorPrototype, TO_STRING_TAG$4, 'AsyncIterator');
 }
 
+if (!has(asyncIteratorPrototype, 'constructor') || asyncIteratorPrototype.constructor === Object) {
+  createNonEnumerableProperty(asyncIteratorPrototype, 'constructor', AsyncIteratorConstructor);
+}
+
 _export({ global: true, forced: isPure }, {
   AsyncIterator: AsyncIteratorConstructor
 });
@@ -10271,6 +10297,10 @@ var IteratorConstructor = function Iterator() {
 
 if (!has(IteratorPrototype$3, TO_STRING_TAG$6)) {
   createNonEnumerableProperty(IteratorPrototype$3, TO_STRING_TAG$6, 'Iterator');
+}
+
+if (!has(IteratorPrototype$3, 'constructor') || IteratorPrototype$3.constructor === Object) {
+  createNonEnumerableProperty(IteratorPrototype$3, 'constructor', IteratorConstructor);
 }
 
 IteratorConstructor.prototype = IteratorPrototype$3;
@@ -10834,7 +10864,7 @@ _export({ target: 'String', proto: true }, {
     }
     string = String(O);
     searchString = String(searchValue);
-    if (searchString === '') return replaceAll.call(O, /(?:)/g, replaceValue);
+    if (searchString === '') return replaceAll.call(string, /(?:)/g, replaceValue);
     template = string.split(searchString);
     if (typeof replaceValue !== 'function') {
       return template.join(String(replaceValue));

@@ -258,7 +258,7 @@ function getOutputOptions(
 	}
 
 	return {
-		amd: { ...config.amd, ...command.amd } as any,
+		amd: { ...(config.amd as object), ...(command.amd as object) } as any,
 		assetFileNames: getOption('assetFileNames'),
 		banner: getOption('banner'),
 		chunkFileNames: getOption('chunkFileNames'),
