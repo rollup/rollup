@@ -199,6 +199,10 @@ export default async function rollup(rawInputOptions: GenericConfigObject): Prom
 			inputOptions.inlineDynamicImports as boolean
 		);
 	} catch (err) {
+		const watchFiles = Object.keys(graph.watchFiles);
+		if (watchFiles.length > 0) {
+			err.watchFiles = watchFiles;
+		}
 		await graph.pluginDriver.hookParallel('buildEnd', [err]);
 		throw err;
 	}
