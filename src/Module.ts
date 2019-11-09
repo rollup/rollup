@@ -272,8 +272,6 @@ export default class Module {
 			props.frame = getCodeFrame(this.originalCode, location.line, location.column);
 		}
 
-		props.watchFiles = Object.keys(this.graph.watchFiles);
-
 		error(props);
 	}
 

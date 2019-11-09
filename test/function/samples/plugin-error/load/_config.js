@@ -16,6 +16,7 @@ module.exports = {
 		code: 'PLUGIN_ERROR',
 		plugin: 'test',
 		message: `Could not load ${path.resolve(__dirname, 'main.js')}: nope`,
-		hook: 'load'
+		hook: 'load',
+		watchFiles: [path.resolve(__dirname, 'main.js')]
 	}
 };

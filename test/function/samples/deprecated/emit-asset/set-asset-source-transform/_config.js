@@ -20,6 +20,7 @@ module.exports = {
 		message:
 			'setAssetSource cannot be called in transform for caching reasons. Use emitFile with a source, or call setAssetSource in another hook.',
 		plugin: 'test-plugin',
-		pluginCode: 'INVALID_SETASSETSOURCE'
+		pluginCode: 'INVALID_SETASSETSOURCE',
+		watchFiles: [path.resolve(__dirname, 'main.js')]
 	}
 };
