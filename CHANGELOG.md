@@ -1,12 +1,15 @@
 # rollup changelog
 
 ## 1.26.4
-*unreleased*
+*2019-11-09*
+
+### Bug Fixes
+* Keep watching known files after a plugin error during the initial build (#3219)
 
 ### Pull Requests
 * [#3216](https://github.com/rollup/rollup/pull/3216): Fix small typo (@kaisermann)
-* [#3217](https://github.com/rollup/rollup/pull/3217): Update dependencies and fix security vulnerability (#3217)
- (@lukastaegert)
+* [#3217](https://github.com/rollup/rollup/pull/3217): Update dependencies and fix security vulnerability (@lukastaegert)
+* [#3219](https://github.com/rollup/rollup/pull/3219): Also recover from plugin errors during the initial build (@lukastaegert)
 
 ## 1.26.3
 *2019-11-02*
