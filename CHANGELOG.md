@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.26.5
+*2019-11-11*
+
+### Bug Fixes
+* Fix a regression where it was no longer to pass a certain option format to generate (#3223)
+
+### Pull Requests
+* [#3223](https://github.com/rollup/rollup/pull/3223): Allow passing input options to output (@lukastaegert)
+
 ## 1.26.4
 *2019-11-09*
 
