@@ -439,7 +439,11 @@ function normalizeOutputOptions(
 	}
 	const mergedOptions = mergeOptions({
 		config: {
-			output: { ...rawOutputOptions, ...(inputOptions.output as Object) }
+			output: {
+				...rawOutputOptions,
+				...(rawOutputOptions.output as Object),
+				...(inputOptions.output as Object)
+			}
 		}
 	});
 
