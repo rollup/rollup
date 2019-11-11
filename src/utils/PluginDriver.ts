@@ -109,7 +109,7 @@ export class PluginDriver {
 		replaceContext?: ReplaceContext
 	): R {
 		for (let i = 0; i < this.plugins.length; i++) {
-			const result = this.runHookSync(hookName, args, i, false, replaceContext);
+			const result = this.runHookSync(hookName, args, i, replaceContext);
 			if (result != null) return result as any;
 		}
 		return null as any;
@@ -158,7 +158,7 @@ export class PluginDriver {
 		replaceContext?: ReplaceContext
 	): R {
 		for (let i = 0; i < this.plugins.length; i++) {
-			const result: any = this.runHookSync(hookName, [arg0, ...args], i, false, replaceContext);
+			const result: any = this.runHookSync(hookName, [arg0, ...args], i, replaceContext);
 			arg0 = reduce.call(this.pluginContexts[i], arg0, result, this.plugins[i]);
 		}
 		return arg0;
@@ -195,7 +195,7 @@ export class PluginDriver {
 	): T {
 		let acc = initialValue;
 		for (let i = 0; i < this.plugins.length; i++) {
-			const result: any = this.runHookSync(hookName, args, i, true, replaceContext);
+			const result: any = this.runHookSync(hookName, args, i, replaceContext);
 			acc = reduce.call(this.pluginContexts[i], acc, result, this.plugins[i]);
 		}
 		return acc;
@@ -222,14 +222,14 @@ export class PluginDriver {
 		replaceContext?: ReplaceContext
 	): void {
 		for (let i = 0; i < this.plugins.length; i++)
-			this.runHookSync<void>(hookName, args as any[], i, false, replaceContext);
+			this.runHookSync<void>(hookName, args as any[], i, replaceContext);
 	}
 
 	private runHook<T>(
 		hookName: string,
 		args: any[],
 		pluginIndex: number,
-		permitValues = false,
+		permitValues: boolean,
 		hookContext?: ReplaceContext | null
 	): Promise<T> {
 		this.previousHooks.add(hookName);
@@ -260,7 +260,6 @@ export class PluginDriver {
 		hookName: string,
 		args: any[],
 		pluginIndex: number,
-		permitValues = false,
 		hookContext?: ReplaceContext
 	): T {
 		this.previousHooks.add(hookName);
@@ -275,7 +274,6 @@ export class PluginDriver {
 		try {
 			// permit values allows values to be returned instead of a functional hook
 			if (typeof hook !== 'function') {
-				if (permitValues) return hook;
 				error({
 					code: 'INVALID_PLUGIN_HOOK',
 					message: `Error running plugin hook ${hookName} for ${plugin.name}, expected a function hook.`

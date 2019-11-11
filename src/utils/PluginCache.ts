@@ -63,39 +63,36 @@ export const NO_CACHE: PluginCache = {
 	}
 };
 
-function uncacheablePluginError(pluginName: string) {
+function uncacheablePluginError(pluginName: string): never {
 	if (
 		pluginName.startsWith(ANONYMOUS_PLUGIN_PREFIX) ||
 		pluginName.startsWith(ANONYMOUS_OUTPUT_PLUGIN_PREFIX)
-	)
-		error({
+	) {
+		return error({
 			code: 'ANONYMOUS_PLUGIN_CACHE',
 			message:
 				'A plugin is trying to use the Rollup cache but is not declaring a plugin name or cacheKey.'
 		});
-	else
-		error({
-			code: 'DUPLICATE_PLUGIN_NAME',
-			message: `The plugin name ${pluginName} is being used twice in the same build. Plugin names must be distinct or provide a cacheKey (please post an issue to the plugin if you are a plugin user).`
-		});
+	}
+	return error({
+		code: 'DUPLICATE_PLUGIN_NAME',
+		message: `The plugin name ${pluginName} is being used twice in the same build. Plugin names must be distinct or provide a cacheKey (please post an issue to the plugin if you are a plugin user).`
+	});
 }
 
 export function getCacheForUncacheablePlugin(pluginName: string): PluginCache {
 	return {
 		has() {
-			uncacheablePluginError(pluginName);
-			return false;
+			return uncacheablePluginError(pluginName);
 		},
 		get() {
-			uncacheablePluginError(pluginName);
-			return undefined as any;
+			return uncacheablePluginError(pluginName);
 		},
 		set() {
-			uncacheablePluginError(pluginName);
+			return uncacheablePluginError(pluginName);
 		},
 		delete() {
-			uncacheablePluginError(pluginName);
-			return false;
+			return uncacheablePluginError(pluginName);
 		}
 	};
 }

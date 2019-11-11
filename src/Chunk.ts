@@ -644,19 +644,8 @@ export default class Chunk {
 	) {
 		timeStart('render format', 3);
 
-		if (!this.renderedSource)
-			throw new Error('Internal error: Chunk render called before preRender');
-
 		const format = options.format as string;
 		const finalise = finalisers[format];
-		if (!finalise) {
-			error({
-				code: 'INVALID_OPTION',
-				message: `Invalid format: ${format} - valid options are ${Object.keys(finalisers).join(
-					', '
-				)}.`
-			});
-		}
 		if (options.dynamicImportFunction && format !== 'es') {
 			this.graph.warn({
 				code: 'INVALID_OPTION',
@@ -709,7 +698,7 @@ export default class Chunk {
 		}
 
 		const magicString = finalise(
-			this.renderedSource,
+			this.renderedSource as MagicStringBundle,
 			{
 				accessedGlobals,
 				dependencies: this.renderedDeclarations.dependencies,
