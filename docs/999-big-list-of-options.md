@@ -226,6 +226,35 @@ this.a.b.c = ...
 */
 ```
 
+#### output.plugins
+Type: `OutputPlugin | (OutputPlugin | void)[]`
+
+Adds a plugin just to this output. See [Using output plugins](guide/en/#using-output-plugins) for more information on how to use output-specific plugins and [Plugins](guide/en/#plugin-development) on how to write your own. For plugins imported from packages, remember to call the imported plugin function (i.e. `commonjs()`, not just `commonjs`). Falsy plugins will be ignored, which can be used to easily activate or deactivate plugins.
+
+Not every plugin can be used here. `output.plugins` is limited to plugins that only use hooks that run during `bundle.generate()` or `bundle.write()`, i.e. after Rollup's main analysis is complete. If you are a plugin author, see [Plugin hooks](guide/en/#hooks) to find out which hooks can be used.
+
+The following will add minifaction to one of the outputs:
+
+```js
+// rollup.config.js
+import {terser} from 'rollup-plugin-terser';
+
+export default {
+  input: 'main.js',
+  output: [
+    {
+      file: 'bundle.js',
+      format: 'esm'
+    },
+    {
+      file: 'bundle.min.js',
+      format: 'esm',
+      plugins: [terser()]
+    }
+  ]
+};
+```
+
 #### plugins
 Type: `Plugin | (Plugin | void)[]`
 
@@ -239,12 +268,16 @@ import commonjs from 'rollup-plugin-commonjs';
 const isProduction = process.env.NODE_ENV === 'production';
 
 export default (async () => ({
-  entry: 'main.js',
+  input: 'main.js',
   plugins: [
     resolve(),
     commonjs(),
     isProduction && (await import('rollup-plugin-terser')).terser()
-  ]
+  ],
+  output: {
+    file: 'bundle.js',
+    format: 'cjs'
+  }
 }))();
 ```
 

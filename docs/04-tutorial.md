@@ -227,16 +227,69 @@ Run Rollup with `npm run build`. The result should look like this:
 ```js
 'use strict';
 
-const version = "1.0.0";
+var version = "1.0.0";
 
-const main = function () {
+function main () {
   console.log('version ' + version);
-};
+}
 
 module.exports = main;
 ```
 
 _Note: Only the data we actually need gets imported – `name` and `devDependencies` and other parts of `package.json` are ignored. That's **tree-shaking** in action._
+
+### Using output plugins
+
+Some plugins can also be applied specifically to some outputs. See [plugin hooks](guide/en/#hooks) for the technical details of what output-specific plugins can do. In a nut-shell, those plugins can only modify code after the main analysis of Rollup has completed. Rollup will warn if an incompatible plugin is used as an output-specific plugin. One possible use-case is minification of bundles to be consumed in a browser.
+
+Let us extend the previous example to provide a minified build together with the non-minified one. To that end, we install `rollup-plugin-terser`:
+
+```console
+npm install --save-dev rollup-plugin-terser
+```
+
+Edit your `rollup.config.js` file to add a second minified output. As format, we choose `iife`. This format wraps the code so that it can be consumed via a `script` tag in the browser while avoiding unwanted interactions with other code. As we have an export, we need to provide the name of a global variable that will be created by our bundle so that other code can access our export via this variable.
+
+```js
+// rollup.config.js
+import json from 'rollup-plugin-json';
+import {terser} from 'rollup-plugin-terser';
+
+export default {
+  input: 'src/main.js',
+  output: [
+    {
+      file: 'bundle.js',
+      format: 'cjs'
+    },
+    {
+      file: 'bundle.min.js',
+      format: 'iife',
+      name: 'version',
+      plugins: [terser()]
+    }
+  ],
+  plugins: [ json() ]
+};
+```
+
+Besides `bundle.js`, Rollup will now create a second file `bundle.min.js`:
+
+```js
+var version = (function () {
+  'use strict';
+
+  var version = "1.0.0";
+
+  function main () {
+    console.log('version ' + version);
+  }
+
+  return main;
+
+}());
+```
+
 
 ### Code Splitting
 

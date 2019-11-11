@@ -66,6 +66,7 @@ export default { // can be an array (for multiple inputs)
     format, // required
     globals,
     name,
+    plugins,
 
     // advanced output options
     assetFileNames,
