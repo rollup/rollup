@@ -42,6 +42,7 @@ export enum Errors {
 	DEPRECATED_FEATURE = 'DEPRECATED_FEATURE',
 	FILE_NOT_FOUND = 'FILE_NOT_FOUND',
 	FILE_NAME_CONFLICT = 'FILE_NAME_CONFLICT',
+	INPUT_HOOK_IN_OUTPUT_PLUGIN = 'INPUT_HOOK_IN_OUTPUT_PLUGIN',
 	INVALID_CHUNK = 'INVALID_CHUNK',
 	INVALID_EXTERNAL_ID = 'INVALID_EXTERNAL_ID',
 	INVALID_OPTION = 'INVALID_OPTION',
@@ -122,7 +123,14 @@ export function errFileReferenceIdNotFoundForFilename(assetReferenceId: string) 
 export function errFileNameConflict(fileName: string) {
 	return {
 		code: Errors.FILE_NAME_CONFLICT,
-		message: `Could not emit file "${fileName}" as it conflicts with an already emitted file.`
+		message: `The emitted file "${fileName}" overwrites a previously emitted file of the same name.`
+	};
+}
+
+export function errInputHookInOutputPlugin(pluginName: string, hookName: string) {
+	return {
+		code: Errors.INPUT_HOOK_IN_OUTPUT_PLUGIN,
+		message: `The "${hookName}" hook used by the output plugin ${pluginName} is a build time hook and will not be run for that plugin. Either this plugin cannot be used as an output plugin, or it should have an option to configure it as an output plugin.`
 	};
 }
 

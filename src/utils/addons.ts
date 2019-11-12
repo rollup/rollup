@@ -1,6 +1,6 @@
-import Graph from '../Graph';
 import { OutputOptions } from '../rollup/types';
 import { error } from './error';
+import { PluginDriver } from './PluginDriver';
 
 export interface Addons {
 	banner?: string;
@@ -25,13 +25,15 @@ function evalIfFn(
 const concatSep = (out: string, next: string) => (next ? `${out}\n${next}` : out);
 const concatDblSep = (out: string, next: string) => (next ? `${out}\n\n${next}` : out);
 
-export function createAddons(graph: Graph, options: OutputOptions): Promise<Addons> {
-	const pluginDriver = graph.pluginDriver;
+export function createAddons(
+	options: OutputOptions,
+	outputPluginDriver: PluginDriver
+): Promise<Addons> {
 	return Promise.all([
-		pluginDriver.hookReduceValue('banner', evalIfFn(options.banner), [], concatSep),
-		pluginDriver.hookReduceValue('footer', evalIfFn(options.footer), [], concatSep),
-		pluginDriver.hookReduceValue('intro', evalIfFn(options.intro), [], concatDblSep),
-		pluginDriver.hookReduceValue('outro', evalIfFn(options.outro), [], concatDblSep)
+		outputPluginDriver.hookReduceValue('banner', evalIfFn(options.banner), [], concatSep),
+		outputPluginDriver.hookReduceValue('footer', evalIfFn(options.footer), [], concatSep),
+		outputPluginDriver.hookReduceValue('intro', evalIfFn(options.intro), [], concatDblSep),
+		outputPluginDriver.hookReduceValue('outro', evalIfFn(options.outro), [], concatDblSep)
 	])
 		.then(([banner, footer, intro, outro]) => {
 			if (intro) intro += '\n\n';

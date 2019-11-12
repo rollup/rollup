@@ -29,7 +29,7 @@ import { Uint8ArrayToHexString } from './utils/entryHashing';
 import { errDeprecation, error } from './utils/error';
 import { analyseModuleExecution, sortByExecutionOrder } from './utils/executionOrder';
 import { resolve } from './utils/path';
-import { createPluginDriver, PluginDriver } from './utils/pluginDriver';
+import { PluginDriver } from './utils/PluginDriver';
 import relativeId from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
 
@@ -143,7 +143,13 @@ export default class Graph {
 				...this.acornOptions
 			}) as any;
 
-		this.pluginDriver = createPluginDriver(this, options, this.pluginCache, watcher);
+		this.pluginDriver = new PluginDriver(
+			this,
+			options.plugins as Plugin[],
+			this.pluginCache,
+			options.preserveSymlinks === true,
+			watcher
+		);
 
 		if (watcher) {
 			const handleChange = (id: string) => this.pluginDriver.hookSeqSync('watchChange', [id]);
