@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 1.27.0
+*2019-11-12*
+
+### Features
+* Add support for output-specific plugins (#3218)
+* Reenable parallel output processing when using the CLI (#3218)
+* Warn if files are emitted that would overwrite previously emitted files (#3218)
+
+### Bug Fixes
+* Do not overwrite files emitted in other builds if outputs are generated in parallel (#3218)
+
+### Pull Requests
+* [#3218](https://github.com/rollup/rollup/pull/3218): Per output plugins (@lukastaegert)
+
 ## 1.26.5
 *2019-11-11*
 
