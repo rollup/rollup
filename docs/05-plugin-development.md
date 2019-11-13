@@ -226,7 +226,7 @@ Called initially each time `bundle.generate()` or `bundle.write()` is called. To
 #### `resolveDynamicImport`
 Type: `(specifier: string | ESTree.Node, importer: string) => string | false | null | {id: string, external?: boolean}`<br>
 Kind: `async, first`<br>
-Phase: `generate`
+Phase: `build`
 
 Defines a custom resolver for dynamic imports. Returning `false` signals that the import should be kept as it is and not be passed to other resolvers thus making it external. Similar to the [`resolveId`](guide/en/#resolveid) hook, you can also return an object to resolve the import to a different id while marking it as external at the same time.
 
