@@ -276,18 +276,7 @@ export default {
 Besides `bundle.js`, Rollup will now create a second file `bundle.min.js`:
 
 ```js
-var version = (function () {
-  'use strict';
-
-  var version = "1.0.0";
-
-  function main () {
-    console.log('version ' + version);
-  }
-
-  return main;
-
-}());
+var version=function(){"use strict";var n="1.0.0";return function(){console.log("version "+n)}}();
 ```
 
 
