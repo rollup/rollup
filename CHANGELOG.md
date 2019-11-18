@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 1.27.1
+*2019-11-18*
+
+### Bug Fixes
+* Fix an issue where code after a switch-statement with removed cases was erroneously not included (#3241)
+
+### Pull Requests
+* [#3237](https://github.com/rollup/rollup/pull/3237): make `acornOptions` optional in `parse()` in docs (@tjenkinson)
+* [#3240](https://github.com/rollup/rollup/pull/3240): Update dependencies and fix vulnerability (@lukastaegert)
+* [#3241](https://github.com/rollup/rollup/pull/3241): Do not truncate after switch-statement with removed case (@lukastaegert)
+
 ## 1.27.0
 *2019-11-12*
 
