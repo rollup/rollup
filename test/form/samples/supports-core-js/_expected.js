@@ -196,7 +196,7 @@ var shared = createCommonjsModule(function (module) {
 (module.exports = function (key, value) {
   return sharedStore[key] || (sharedStore[key] = value !== undefined ? value : {});
 })('versions', []).push({
-  version: '3.4.0',
+  version: '3.4.1',
   mode:  'global',
   copyright: '© 2019 Denis Pushkarev (zloirock.ru)'
 });
@@ -2377,8 +2377,8 @@ _export({ target: 'Array', proto: true, forced: sloppyArrayMethod('some') }, {
   }
 });
 
-var nativeSort = [].sort;
-var test$2 = [1, 2, 3];
+var test$2 = [];
+var nativeSort = test$2.sort;
 
 // IE8-
 var FAILS_ON_UNDEFINED = fails(function () {
@@ -4538,6 +4538,8 @@ var anInstance = function (it, Constructor, name) {
   } return it;
 };
 
+var isIos = /(iphone|ipod|ipad).*applewebkit/i.test(userAgent);
+
 var location = global_1.location;
 var set$1 = global_1.setImmediate;
 var clear = global_1.clearImmediate;
@@ -4601,7 +4603,7 @@ if (!set$1 || !clear) {
     };
   // Browsers with MessageChannel, includes WebWorkers
   // except iOS - https://github.com/zloirock/core-js/issues/624
-  } else if (MessageChannel && !/(iphone|ipod|ipad).*applewebkit/i.test(userAgent)) {
+  } else if (MessageChannel && !isIos) {
     channel = new MessageChannel();
     port = channel.port2;
     channel.port1.onmessage = listener;
@@ -4672,7 +4674,7 @@ if (!queueMicrotask) {
       process$2.nextTick(flush);
     };
   // browsers with MutationObserver, except iOS - https://github.com/zloirock/core-js/issues/339
-  } else if (MutationObserver && !/(iphone|ipod|ipad).*applewebkit/i.test(userAgent)) {
+  } else if (MutationObserver && !isIos) {
     toggle = true;
     node = document.createTextNode('');
     new MutationObserver(flush).observe(node, { characterData: true });
@@ -4774,6 +4776,7 @@ var PromiseConstructor = nativePromiseConstructor;
 var TypeError$1 = global_1.TypeError;
 var document$2 = global_1.document;
 var process$3 = global_1.process;
+var inspectSource = shared('inspectSource');
 var $fetch = getBuiltIn('fetch');
 var newPromiseCapability$1 = newPromiseCapability.f;
 var newGenericPromiseCapability = newPromiseCapability$1;
@@ -4789,12 +4792,13 @@ var UNHANDLED = 2;
 var Internal, OwnPromiseCapability, PromiseWrapper, nativeThen;
 
 var FORCED$e = isForced_1(PROMISE, function () {
+  var GLOBAL_CORE_JS_PROMISE = inspectSource(PromiseConstructor) !== String(PromiseConstructor);
   // V8 6.6 (Node 10 and Chrome 66) have a bug with resolving custom thenables
   // https://bugs.chromium.org/p/chromium/issues/detail?id=830565
   // We can't detect it synchronously, so just check versions
   if (v8Version === 66) return true;
   // Unhandled rejections tracking support, NodeJS Promise without it fails @@species test
-  if (!IS_NODE$1 && typeof PromiseRejectionEvent != 'function') return true;
+  if (!GLOBAL_CORE_JS_PROMISE && !IS_NODE$1 && typeof PromiseRejectionEvent != 'function') return true;
   // We can't use @@species feature detection in V8 since it causes
   // deoptimization and performance degradation
   // https://github.com/zloirock/core-js/issues/679
@@ -10779,14 +10783,7 @@ var $AggregateError = function AggregateError(errors, message) {
 $AggregateError.prototype = objectCreate(Error.prototype, {
   constructor: createPropertyDescriptor(5, $AggregateError),
   message: createPropertyDescriptor(5, ''),
-  name: createPropertyDescriptor(5, 'AggregateError'),
-  toString: createPropertyDescriptor(5, function toString() {
-    var name = anObject(this).name;
-    name = name === undefined ? 'AggregateError' : String(name);
-    var message = this.message;
-    message = message === undefined ? '' : String(message);
-    return name + ': ' + message;
-  })
+  name: createPropertyDescriptor(5, 'AggregateError')
 });
 
 if (descriptors) objectDefineProperty.f($AggregateError.prototype, 'errors', {
@@ -10847,7 +10844,7 @@ var RegExpPrototype$3 = RegExp.prototype;
 _export({ target: 'String', proto: true }, {
   replaceAll: function replaceAll(searchValue, replaceValue) {
     var O = requireObjectCoercible(this);
-    var IS_REG_EXP, flags, replacer, string, searchString, template, result, index;
+    var IS_REG_EXP, flags, replacer, string, searchString, template, result, position, index;
     if (searchValue != null) {
       IS_REG_EXP = isRegexp(searchValue);
       if (IS_REG_EXP) {
@@ -10870,8 +10867,10 @@ _export({ target: 'String', proto: true }, {
       return template.join(String(replaceValue));
     }
     result = template[0];
+    position = result.length;
     for (index = 1; index < template.length; index++) {
-      result += String(replaceValue(searchString, index - 1, string));
+      result += String(replaceValue(searchString, position, string));
+      position += searchString.length + template[index].length;
       result += template[index];
     }
     return result;
