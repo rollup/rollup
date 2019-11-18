@@ -1,5 +1,5 @@
 import MagicString from 'magic-string';
-import { RenderOptions } from '../../utils/renderHelpers';
+import { findFirstOccurrenceOutsideComment, RenderOptions } from '../../utils/renderHelpers';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
 import { HasEffectsContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
@@ -51,9 +51,19 @@ export default class AssignmentExpression extends NodeBase {
 		this.right.render(code, options);
 		if (options.format === 'system') {
 			if (this.left.variable && this.left.variable.exportName) {
-				code.prependLeft(
-					code.original.indexOf('=', this.left.end) + 1,
-					` exports('${this.left.variable.exportName}',`
+				const operatorPos = findFirstOccurrenceOutsideComment(
+					code.original,
+					this.operator,
+					this.left.end
+				);
+				const operation =
+					this.operator.length > 1
+						? ` ${this.left.variable.exportName} ${this.operator.slice(0, -1)}`
+						: '';
+				code.overwrite(
+					operatorPos,
+					operatorPos + this.operator.length,
+					`= exports('${this.left.variable.exportName}',${operation}`
 				);
 				code.appendLeft(this.right.end, `)`);
 			} else if ('addExportedVariables' in this.left) {
