@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.27.2
+*2019-11-18*
+
+### Bug Fixes
+* Fix an issue where live bindings were not working correctly when using `+=` in SystemJS (#3242)
+
+### Pull Requests
+* [#3242](https://github.com/rollup/rollup/pull/3242): Export updated assignments when using shorthand update assignment expressions in SystemJS (@lukastaegert)
+
 ## 1.27.1
 *2019-11-18*
 
