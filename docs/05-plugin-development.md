@@ -446,7 +446,7 @@ for (const moduleId of this.moduleIds) { /* ... */ }
 
 or converted into an Array via `Array.from(this.moduleIds)`.
 
-#### `this.parse(code: string, acornOptions: AcornOptions) => ESTree.Program`
+#### `this.parse(code: string, acornOptions?: AcornOptions) => ESTree.Program`
 
 Use Rollup's internal acorn instance to parse code to an AST.
 
