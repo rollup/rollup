@@ -275,9 +275,7 @@ const deferredHandlers: {
 					warnings.length > 1 ? 'chunks' : 'chunk'
 				}`
 			);
-			warnings.forEach(warning => {
-				stderr(warning.chunkName as string);
-			});
+			stderr(warnings.map(warning => warning.chunkName!).join(', '));
 		},
 		priority: 1
 	}
