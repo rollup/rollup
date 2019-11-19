@@ -110,10 +110,6 @@ const immediateHandlers: {
 		stderr(
 			`Consumers of your bundle will have to use bundle['default'] to access the default export, which may not be what you want. Use \`output.exports: 'named'\` to disable this warning`
 		);
-	},
-
-	EMPTY_BUNDLE: () => {
-		title(`Generated an empty bundle`);
 	}
 };
 
@@ -267,6 +263,20 @@ const deferredHandlers: {
 						if (warning.frame) info(warning.frame);
 					});
 				});
+			});
+		},
+		priority: 1
+	},
+
+	EMPTY_BUNDLE: {
+		fn: warnings => {
+			title(
+				`Generated${warnings.length === 1 ? ' an' : ''} empty ${
+					warnings.length > 1 ? 'chunks' : 'chunk'
+				}`
+			);
+			warnings.forEach(warning => {
+				stderr(warning.chunkName as string);
 			});
 		},
 		priority: 1
