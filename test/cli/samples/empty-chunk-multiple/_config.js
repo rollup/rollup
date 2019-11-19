@@ -5,7 +5,6 @@ module.exports = {
 	command: 'rollup -c',
 	error: () => true,
 	stderr: stderr => {
-		console.log(stderr);
 		assert.ok(stderr.includes('(!) Generated empty chunks\na, b'));
 	}
 };
