@@ -10,6 +10,7 @@ export interface RollupError extends RollupLogProps {
 }
 
 export interface RollupWarning extends RollupLogProps {
+	chunkName?: string;
 	exporter?: string;
 	exportName?: string;
 	guess?: string;

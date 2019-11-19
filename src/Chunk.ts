@@ -620,9 +620,11 @@ export default class Chunk {
 		this.renderedHash = undefined as any;
 
 		if (this.getExportNames().length === 0 && this.getImportIds().length === 0 && this.isEmpty) {
+			const chunkName = this.getChunkName();
 			this.graph.warn({
+				chunkName,
 				code: 'EMPTY_BUNDLE',
-				message: 'Generated an empty bundle'
+				message: `Generated an empty chunk: "${chunkName}"`
 			});
 		}
 

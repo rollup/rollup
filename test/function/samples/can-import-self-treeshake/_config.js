@@ -7,8 +7,9 @@ module.exports = {
 			message: 'Circular dependency: lib.js -> lib.js'
 		},
 		{
+			chunkName: 'main',
 			code: 'EMPTY_BUNDLE',
-			message: `Generated an empty bundle`
+			message: `Generated an empty chunk: "main"`
 		}
 	]
 };
