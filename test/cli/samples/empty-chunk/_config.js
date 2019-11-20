@@ -1,10 +1,8 @@
-const assert = require('assert');
+const { assertStderrIncludes } = require('../../../utils.js');
 
 module.exports = {
 	description: 'shows warning when chunk empty',
 	command: 'rollup -c',
 	error: () => true,
-	stderr: stderr => {
-		assert.ok(stderr.includes('(!) Generated an empty chunk\nmain'));
-	}
+	stderr: stderr => assertStderrIncludes(stderr, '(!) Generated an empty chunk\nmain')
 };

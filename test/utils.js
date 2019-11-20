@@ -12,6 +12,7 @@ exports.loader = loader;
 exports.normaliseOutput = normaliseOutput;
 exports.runTestSuiteWithSamples = runTestSuiteWithSamples;
 exports.assertDirectoriesAreEqual = assertDirectoriesAreEqual;
+exports.assertStderrIncludes = assertStderrIncludes;
 
 function normaliseError(error) {
 	delete error.stack;
@@ -223,4 +224,13 @@ function assertFilesAreEqual(actualFiles, expectedFiles, dirs = []) {
 			`${shortName}: ${expectedFiles[fileName]}`
 		);
 	});
+}
+
+function assertStderrIncludes(stderr, expected) {
+	// eslint-disable-next-line no-control-regex
+	const output = stderr.replace(/\x1b\[[^m]*m/g, '');
+	assert.ok(
+		output.includes(expected),
+		`Could not find ${JSON.stringify(expected)} in ${JSON.stringify(output)}`
+	);
 }
