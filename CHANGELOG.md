@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.27.3
+*2019-11-20*
+
+### Bug Fixes
+* Provide better warning when empty chunks are created in a code-splitting scenario (#3244)
+
+### Pull Requests
+* [#3244](https://github.com/rollup/rollup/pull/3244): Clearer empty chunk warning (@tjenkinson)
+
 ## 1.27.2
 *2019-11-18*
 
