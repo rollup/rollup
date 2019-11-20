@@ -23,13 +23,13 @@ export default function batchWarnings() {
 				warning = { code: 'UNKNOWN', message: warning };
 			}
 
-			if ((warning.code as string) in immediateHandlers) {
-				immediateHandlers[warning.code as string](warning);
+			if (warning.code! in immediateHandlers) {
+				immediateHandlers[warning.code!](warning);
 				return;
 			}
 
-			if (!allWarnings.has(warning.code as string)) allWarnings.set(warning.code as string, []);
-			(allWarnings.get(warning.code as string) as RollupWarning[]).push(warning);
+			if (!allWarnings.has(warning.code!)) allWarnings.set(warning.code!, []);
+			(allWarnings.get(warning.code!) as RollupWarning[]).push(warning);
 
 			count += 1;
 		},
@@ -94,12 +94,12 @@ const immediateHandlers: {
 		title(`Missing shims for Node.js built-ins`);
 
 		const detail =
-			(warning.modules as string[]).length === 1
-				? `'${(warning.modules as string[])[0]}'`
-				: `${(warning.modules as string[])
-						.slice(0, -1)
+			warning.modules!.length === 1
+				? `'${warning.modules![0]}'`
+				: `${warning
+						.modules!.slice(0, -1)
 						.map((name: string) => `'${name}'`)
-						.join(', ')} and '${(warning.modules as string[]).slice(-1)}'`;
+						.join(', ')} and '${warning.modules!.slice(-1)}'`;
 		stderr(
 			`Creating a browser bundle that depends on ${detail}. You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins`
 		);
@@ -110,10 +110,6 @@ const immediateHandlers: {
 		stderr(
 			`Consumers of your bundle will have to use bundle['default'] to access the default export, which may not be what you want. Use \`output.exports: 'named'\` to disable this warning`
 		);
-	},
-
-	EMPTY_BUNDLE: () => {
-		title(`Generated an empty bundle`);
 	}
 };
 
@@ -159,9 +155,9 @@ const deferredHandlers: {
 			info('https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module');
 
 			warnings.forEach(warning => {
-				stderr(tc.bold(warning.importer as string));
+				stderr(tc.bold(warning.importer!));
 				stderr(`${warning.missing} is not exported by ${warning.exporter}`);
-				stderr(tc.gray(warning.frame as string));
+				stderr(tc.gray(warning.frame!));
 			});
 		},
 		priority: 1
@@ -198,10 +194,10 @@ const deferredHandlers: {
 			title(`Conflicting re-exports`);
 			warnings.forEach(warning => {
 				stderr(
-					`${tc.bold(relativeId(warning.reexporter as string))} re-exports '${
+					`${tc.bold(relativeId(warning.reexporter!))} re-exports '${
 						warning.name
-					}' from both ${relativeId((warning.sources as string[])[0])} and ${relativeId(
-						(warning.sources as string[])[1]
+					}' from both ${relativeId(warning.sources![0])} and ${relativeId(
+						warning.sources![1]
 					)} (will be ignored)`
 				);
 			});
@@ -216,7 +212,7 @@ const deferredHandlers: {
 				`Use output.globals to specify browser global variable names corresponding to external modules`
 			);
 			warnings.forEach(warning => {
-				stderr(`${tc.bold(warning.source as string)} (guessing '${warning.guess}')`);
+				stderr(`${tc.bold(warning.source!)} (guessing '${warning.guess}')`);
 			});
 		},
 		priority: 1
@@ -255,7 +251,7 @@ const deferredHandlers: {
 				nestedByMessage.forEach(({ key: message, items }) => {
 					title(`Plugin ${plugin}: ${message}`);
 					items.forEach(warning => {
-						if (warning.url !== lastUrl) info((lastUrl = warning.url as string));
+						if (warning.url !== lastUrl) info((lastUrl = warning.url!));
 
 						if (warning.id) {
 							let loc = relativeId(warning.id);
@@ -268,6 +264,18 @@ const deferredHandlers: {
 					});
 				});
 			});
+		},
+		priority: 1
+	},
+
+	EMPTY_BUNDLE: {
+		fn: warnings => {
+			title(
+				`Generated${warnings.length === 1 ? ' an' : ''} empty ${
+					warnings.length > 1 ? 'chunks' : 'chunk'
+				}`
+			);
+			stderr(warnings.map(warning => warning.chunkName!).join(', '));
 		},
 		priority: 1
 	}
@@ -308,7 +316,7 @@ function showTruncatedWarnings(warnings: RollupWarning[]) {
 	const sliced = nestedByModule.length > 5 ? nestedByModule.slice(0, 3) : nestedByModule;
 	sliced.forEach(({ key: id, items }) => {
 		stderr(tc.bold(relativeId(id)));
-		stderr(tc.gray(items[0].frame as string));
+		stderr(tc.gray(items[0].frame!));
 
 		if (items.length > 1) {
 			stderr(`...and ${items.length - 1} other ${items.length > 2 ? 'occurrences' : 'occurrence'}`);
