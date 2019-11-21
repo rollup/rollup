@@ -2,9 +2,7 @@
 
 import url from 'url';
 import assert from 'assert';
-import 'external';
+import path from 'path';
 import {doesNotExist} from './dep.js';
 
-console.log(this);
-
-export {url, assert as default};
+export {url, assert, path};

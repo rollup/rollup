@@ -1,15 +1,8 @@
 module.exports = {
 	input: 'main.js',
-	external: ['url', 'assert', 'external'],
-	plugins: [
-		{
-			buildStart() {
-				this.warn('Plugin warning.');
-			}
-		}
-	],
+	external: ['url', 'assert', 'path'],
 	output: {
 		name: 'bundle',
-		format: 'iife'
+		format: 'amd'
 	}
 };
