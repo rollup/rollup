@@ -25,7 +25,7 @@ export default function batchWarnings() {
 			}
 
 			if (!allWarnings.has(warning.code!)) allWarnings.set(warning.code!, []);
-			(allWarnings.get(warning.code!)!).push(warning);
+			allWarnings.get(warning.code!)!.push(warning);
 
 			count += 1;
 		},
@@ -208,7 +208,7 @@ const deferredHandlers: {
 			for (const { key: message, items } of nestedByMessage) {
 				title(`Plugin ${plugin}: ${message}`);
 				for (const warning of items) {
-					if (warning.url !== lastUrl) info((lastUrl = warning.url!));
+					if (warning.url && warning.url !== lastUrl) info((lastUrl = warning.url!));
 
 					if (warning.id) {
 						let loc = relativeId(warning.id);
@@ -256,7 +256,7 @@ function nest<T>(array: T[], prop: string) {
 			nested.push(lookup.get(key)!);
 		}
 
-		(lookup.get(key)!).items.push(item);
+		lookup.get(key)!.items.push(item);
 	}
 
 	return nested;
