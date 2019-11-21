@@ -208,7 +208,7 @@ const deferredHandlers: {
 			for (const { key: message, items } of nestedByMessage) {
 				title(`Plugin ${plugin}: ${message}`);
 				for (const warning of items) {
-					if (warning.url && warning.url !== lastUrl) info((lastUrl = warning.url!));
+					if (warning.url && warning.url !== lastUrl) info((lastUrl = warning.url));
 
 					if (warning.id) {
 						let loc = relativeId(warning.id);
