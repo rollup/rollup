@@ -11,14 +11,15 @@ module.exports = {
 		);
 		assertStderrIncludes(
 			stderr,
-			'(!) Import of non-existent export\n' +
+			'(!) Import of non-existent exports\n' +
 				'main.js\n' +
 				"4: import assert from 'assert';\n" +
 				"5: import path from 'path';\n" +
-				"6: import {doesNotExist} from './dep.js';\n" +
+				"6: import {doesNotExist, alsoNotFound} from './dep.js';\n" +
 				'           ^\n' +
 				'7: \n' +
-				'8: export {url, assert, path};\n'
+				'8: export {url, assert, path};\n' +
+				'...and 1 other occurrence\n'
 		);
 		assertStderrIncludes(
 			stderr,

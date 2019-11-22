@@ -11,6 +11,7 @@ module.exports = {
 	warnings: [
 		{
 			code: 'CIRCULAR_DEPENDENCY',
+			cycle: ['a.js', 'b.js', 'a.js'],
 			importer: 'a.js',
 			message: 'Circular dependency: a.js -> b.js -> a.js'
 		}

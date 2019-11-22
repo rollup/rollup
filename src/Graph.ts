@@ -395,6 +395,7 @@ export default class Graph {
 		for (const cyclePath of cyclePaths) {
 			this.warn({
 				code: 'CIRCULAR_DEPENDENCY',
+				cycle: cyclePath,
 				importer: cyclePath[0],
 				message: `Circular dependency: ${cyclePath.join(' -> ')}`
 			});

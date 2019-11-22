@@ -95,6 +95,17 @@ const immediateHandlers: {
 const deferredHandlers: {
 	[code: string]: (warnings: RollupWarning[]) => void;
 } = {
+	CIRCULAR_DEPENDENCY(warnings) {
+		title(`Circular dependenc${warnings.length > 1 ? 'ies' : 'y'}`);
+		const displayed = warnings.length > 5 ? warnings.slice(0, 3) : warnings;
+		for (const warning of displayed) {
+			stderr(warning.cycle!.join(' -> '));
+		}
+		if (warnings.length > displayed.length) {
+			stderr(`...and ${warnings.length - displayed.length} more`);
+		}
+	},
+
 	UNUSED_EXTERNAL_IMPORT(warnings) {
 		title('Unused external imports');
 		for (const warning of warnings) {
@@ -175,9 +186,7 @@ const deferredHandlers: {
 
 		const plugins = Array.from(new Set(warnings.map(w => w.plugin).filter(Boolean)));
 		const detail =
-			plugins.length === 0
-				? ''
-				: plugins.length > 1
+			plugins.length > 1
 				? ` (such as ${plugins
 						.slice(0, -1)
 						.map(p => `'${p}'`)
