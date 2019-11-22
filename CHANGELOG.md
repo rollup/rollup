@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 1.27.4
+*2019-11-22*
+
+### Bug Fixes
+* Aggregate circular dependency warnings in the CLI (#3249)
+* Do not defer non-aggregated handlers in the CLI (#3249)
+
+### Pull Requests
+* [#3249](https://github.com/rollup/rollup/pull/3249): Fix broken Windows CLI tests (@lukastaegert)
+* [#3251](https://github.com/rollup/rollup/pull/3251): Add installation as a separate header (@ashrith-kulai)
+
 ## 1.27.3
 *2019-11-20*
 
