@@ -11,6 +11,7 @@ export interface RollupError extends RollupLogProps {
 
 export interface RollupWarning extends RollupLogProps {
 	chunkName?: string;
+	cycle?: string[];
 	exporter?: string;
 	exportName?: string;
 	guess?: string;
@@ -500,10 +501,10 @@ export interface OutputOptions {
 }
 
 export type WarningHandlerWithDefault = (
-	warning: string | RollupWarning,
+	warning: RollupWarning,
 	defaultHandler: WarningHandler
 ) => void;
-export type WarningHandler = (warning: string | RollupWarning) => void;
+export type WarningHandler = (warning: RollupWarning) => void;
 
 export interface SerializedTimings {
 	[label: string]: [number, number, number];
