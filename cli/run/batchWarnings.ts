@@ -10,7 +10,7 @@ export interface BatchWarnings {
 }
 
 export default function batchWarnings() {
-	let allWarnings = new Map<string, RollupWarning[]>();
+	let deferredWarnings = new Map<keyof typeof deferredHandlers, RollupWarning[]>();
 	let count = 0;
 
 	return {
@@ -19,53 +19,43 @@ export default function batchWarnings() {
 		},
 
 		add: (warning: RollupWarning) => {
-			if (warning.code! in immediateHandlers) {
-				immediateHandlers[warning.code!](warning);
-				return;
-			}
-
-			if (!allWarnings.has(warning.code!)) allWarnings.set(warning.code!, []);
-			allWarnings.get(warning.code!)!.push(warning);
-
 			count += 1;
+
+			if (warning.code! in deferredHandlers) {
+				if (!deferredWarnings.has(warning.code!)) deferredWarnings.set(warning.code!, []);
+				deferredWarnings.get(warning.code!)!.push(warning);
+			} else if (warning.code! in immediateHandlers) {
+				immediateHandlers[warning.code!](warning);
+			} else {
+				title(warning.message);
+
+				if (warning.url) info(warning.url);
+
+				const id = (warning.loc && warning.loc.file) || warning.id;
+				if (id) {
+					const loc = warning.loc
+						? `${relativeId(id)}: (${warning.loc.line}:${warning.loc.column})`
+						: relativeId(id);
+
+					stderr(tc.bold(relativeId(loc)));
+				}
+
+				if (warning.frame) info(warning.frame);
+			}
 		},
 
 		flush: () => {
 			if (count === 0) return;
 
-			const codes = Array.from(allWarnings.keys()).sort((a, b) => {
-				if (deferredHandlers[a]) return -1;
-				if (deferredHandlers[b]) return 1;
-				return allWarnings.get(b)!.length - allWarnings.get(a)!.length;
-			});
+			const codes = Array.from(deferredWarnings.keys()).sort(
+				(a, b) => deferredWarnings.get(b)!.length - deferredWarnings.get(a)!.length
+			);
 
 			for (const code of codes) {
-				const handler = deferredHandlers[code];
-				const warnings = allWarnings.get(code)!;
-
-				if (handler) {
-					handler(warnings);
-				} else {
-					for (const warning of warnings) {
-						title(warning.message);
-
-						if (warning.url) info(warning.url);
-
-						const id = (warning.loc && warning.loc.file) || warning.id;
-						if (id) {
-							const loc = warning.loc
-								? `${relativeId(id)}: (${warning.loc.line}:${warning.loc.column})`
-								: relativeId(id);
-
-							stderr(tc.bold(relativeId(loc)));
-						}
-
-						if (warning.frame) info(warning.frame);
-					}
-				}
+				deferredHandlers[code](deferredWarnings.get(code)!);
 			}
 
-			allWarnings = new Map();
+			deferredWarnings = new Map();
 			count = 0;
 		}
 	};
