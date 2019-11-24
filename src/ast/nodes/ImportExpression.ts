@@ -12,11 +12,11 @@ interface DynamicImportMechanism {
 }
 
 export default class Import extends NodeBase {
+	inlineNamespace?: NamespaceVariable;
 	source!: ExpressionNode;
 	type!: NodeType.tImportExpression;
 
 	private exportMode: 'none' | 'named' | 'default' | 'auto' = 'auto';
-	private inlineNamespace?: NamespaceVariable;
 
 	hasEffects(): boolean {
 		return true;
@@ -26,6 +26,7 @@ export default class Import extends NodeBase {
 		if (!this.included) {
 			this.included = true;
 			this.context.includeDynamicImport(this);
+			this.scope.addAccessedDynamicImport(this);
 		}
 		this.source.include(context, includeChildrenRecursively);
 	}

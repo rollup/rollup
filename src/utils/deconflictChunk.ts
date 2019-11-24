@@ -49,9 +49,9 @@ export function deconflictChunk(
 function addUsedGlobalNames(usedNames: Set<string>, modules: Module[], format: string) {
 	for (const module of modules) {
 		const moduleScope = module.scope;
-		for (const [name, variable] of moduleScope.accessedOutsideVariables) {
+		for (const variable of moduleScope.accessedOutsideVariables.values()) {
 			if (variable.included) {
-				usedNames.add(name);
+				usedNames.add(variable.getBaseVariableName());
 			}
 		}
 		const accessedGlobalVariables =
@@ -114,9 +114,10 @@ function deconflictImportsOther(
 			if (chunk.exportMode === 'default' || (preserveModules && variable.isNamespace)) {
 				variable.setRenderNames(null, chunk.variableName);
 			} else {
-				variable.setRenderNames(chunk.variableName, chunk.getVariableExportName(variable) as
-					| string
-					| null);
+				variable.setRenderNames(
+					chunk.variableName,
+					chunk.getVariableExportName(variable) as string | null
+				);
 			}
 		}
 	}

@@ -1,9 +1,11 @@
 import { getSafeName } from '../../utils/safeName';
+import ImportExpression from '../nodes/ImportExpression';
 import { ExpressionEntity } from '../nodes/shared/Expression';
 import Variable from '../variables/Variable';
 import Scope from './Scope';
 
 export default class ChildScope extends Scope {
+	accessedDynamicImports?: Set<ImportExpression>;
 	accessedGlobalVariablesByFormat?: Map<string, Set<string>>;
 	accessedOutsideVariables = new Map<string, Variable>();
 	parent: Scope;
@@ -14,11 +16,18 @@ export default class ChildScope extends Scope {
 		parent.children.push(this);
 	}
 
-	addAccessedGlobalsByFormat(globalsByFormat: { [format: string]: string[] }) {
-		let accessedGlobalVariablesByFormat = this.accessedGlobalVariablesByFormat;
-		if (!accessedGlobalVariablesByFormat) {
-			accessedGlobalVariablesByFormat = this.accessedGlobalVariablesByFormat = new Map();
+	addAccessedDynamicImport(importExpression: ImportExpression) {
+		(this.accessedDynamicImports || (this.accessedDynamicImports = new Set())).add(
+			importExpression
+		);
+		if (this.parent instanceof ChildScope) {
+			this.parent.addAccessedDynamicImport(importExpression);
 		}
+	}
+
+	addAccessedGlobalsByFormat(globalsByFormat: { [format: string]: string[] }) {
+		const accessedGlobalVariablesByFormat =
+			this.accessedGlobalVariablesByFormat || (this.accessedGlobalVariablesByFormat = new Map());
 		for (const format of Object.keys(globalsByFormat)) {
 			let accessedGlobalVariables = accessedGlobalVariablesByFormat.get(format);
 			if (!accessedGlobalVariables) {
@@ -64,6 +73,13 @@ export default class ChildScope extends Scope {
 		if (accessedGlobalVariables) {
 			for (const name of accessedGlobalVariables) {
 				usedNames.add(name);
+			}
+		}
+		if (this.accessedDynamicImports) {
+			for (const importExpression of this.accessedDynamicImports) {
+				if (importExpression.inlineNamespace) {
+					usedNames.add(importExpression.inlineNamespace.getBaseVariableName());
+				}
 			}
 		}
 		for (const [name, variable] of this.variables) {
