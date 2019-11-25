@@ -54,12 +54,7 @@ export default class ChildScope extends Scope {
 		this.parent instanceof ChildScope && this.parent.addReturnExpression(expression);
 	}
 
-	contains(name: string): boolean {
-		return this.variables.has(name) || this.parent.contains(name);
-	}
-
-	deconflict(format: string) {
-		const usedNames = new Set<string>();
+	addUsedOutsideNames(usedNames: Set<string>, format: string): void {
 		for (const variable of this.accessedOutsideVariables.values()) {
 			if (variable.included) {
 				usedNames.add(variable.getBaseVariableName());
@@ -75,6 +70,15 @@ export default class ChildScope extends Scope {
 				usedNames.add(name);
 			}
 		}
+	}
+
+	contains(name: string): boolean {
+		return this.variables.has(name) || this.parent.contains(name);
+	}
+
+	deconflict(format: string) {
+		const usedNames = new Set<string>();
+		this.addUsedOutsideNames(usedNames, format);
 		if (this.accessedDynamicImports) {
 			for (const importExpression of this.accessedDynamicImports) {
 				if (importExpression.inlineNamespace) {
