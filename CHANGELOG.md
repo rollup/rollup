@@ -1,5 +1,15 @@
 # rollup changelog
 
+## 1.27.5
+*2019-11-25*
+
+### Bug Fixes
+* Make sure namespaces for inlined dynamic imports are treated as variable accesses when deconflicting (#3256)
+
+### Pull Requests
+* [#3256](https://github.com/rollup/rollup/pull/3256): Avoid name conflicts when inlining dynamic imports nested in functions (@lukastaegert)
+* [#3257](https://github.com/rollup/rollup/pull/3257): Update dependencies (@lukastaegert)
+
 ## 1.27.4
 *2019-11-22*
 
