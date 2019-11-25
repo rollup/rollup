@@ -196,7 +196,7 @@ var shared = createCommonjsModule(function (module) {
 (module.exports = function (key, value) {
   return sharedStore[key] || (sharedStore[key] = value !== undefined ? value : {});
 })('versions', []).push({
-  version: '3.4.1',
+  version: '3.4.2',
   mode:  'global',
   copyright: '© 2019 Denis Pushkarev (zloirock.ru)'
 });
@@ -344,7 +344,7 @@ var min$1 = Math.min;
 
 // Helper for a popular repeating case of the spec:
 // Let integer be ? ToInteger(index).
-// If integer < 0, let result be max((length + integer), 0); else let result be min(length, length).
+// If integer < 0, let result be max((length + integer), 0); else let result be min(integer, length).
 var toAbsoluteIndex = function (index, length) {
   var integer = toInteger(index);
   return integer < 0 ? max(integer + length, 0) : min$1(integer, length);
@@ -521,6 +521,12 @@ var nativeSymbol = !!Object.getOwnPropertySymbols && !fails(function () {
   return !String(Symbol());
 });
 
+var useSymbolAsUid = nativeSymbol
+  // eslint-disable-next-line no-undef
+  && !Symbol.sham
+  // eslint-disable-next-line no-undef
+  && typeof Symbol() == 'symbol';
+
 // `IsArray` abstract operation
 // https://tc39.github.io/ecma262/#sec-isarray
 var isArray = Array.isArray || function isArray(arg) {
@@ -622,12 +628,15 @@ var objectGetOwnPropertyNamesExternal = {
 	f: f$5
 };
 
+var WellKnownSymbolsStore = shared('wks');
 var Symbol$1 = global_1.Symbol;
-var store$2 = shared('wks');
+var createWellKnownSymbol = useSymbolAsUid ? Symbol$1 : uid;
 
 var wellKnownSymbol = function (name) {
-  return store$2[name] || (store$2[name] = nativeSymbol && Symbol$1[name]
-    || (nativeSymbol ? Symbol$1 : uid)('Symbol.' + name));
+  if (!has(WellKnownSymbolsStore, name)) {
+    if (nativeSymbol && has(Symbol$1, name)) WellKnownSymbolsStore[name] = Symbol$1[name];
+    else WellKnownSymbolsStore[name] = createWellKnownSymbol('Symbol.' + name);
+  } return WellKnownSymbolsStore[name];
 };
 
 var f$6 = wellKnownSymbol;
@@ -782,7 +791,7 @@ var AllSymbols = shared('symbols');
 var ObjectPrototypeSymbols = shared('op-symbols');
 var StringToSymbolRegistry = shared('string-to-symbol-registry');
 var SymbolToStringRegistry = shared('symbol-to-string-registry');
-var WellKnownSymbolsStore = shared('wks');
+var WellKnownSymbolsStore$1 = shared('wks');
 var QObject = global_1.QObject;
 // Don't use setters in Qt Script, https://github.com/zloirock/core-js/issues/173
 var USE_SETTER = !QObject || !QObject[PROTOTYPE$1] || !QObject[PROTOTYPE$1].findChild;
@@ -925,7 +934,9 @@ if (!nativeSymbol) {
       redefine(ObjectPrototype, 'propertyIsEnumerable', $propertyIsEnumerable, { unsafe: true });
     }
   }
+}
 
+if (!useSymbolAsUid) {
   wrappedWellKnownSymbol.f = function (name) {
     return wrap(wellKnownSymbol(name), name);
   };
@@ -935,7 +946,7 @@ _export({ global: true, wrap: true, forced: !nativeSymbol, sham: !nativeSymbol }
   Symbol: $Symbol
 });
 
-$forEach(objectKeys(WellKnownSymbolsStore), function (name) {
+$forEach(objectKeys(WellKnownSymbolsStore$1), function (name) {
   defineWellKnownSymbol(name);
 });
 
@@ -1319,6 +1330,13 @@ var isArrayIteratorMethod = function (it) {
 };
 
 var TO_STRING_TAG$1 = wellKnownSymbol('toStringTag');
+var test = {};
+
+test[TO_STRING_TAG$1] = 'z';
+
+var toStringTagSupport = String(test) === '[object z]';
+
+var TO_STRING_TAG$2 = wellKnownSymbol('toStringTag');
 // ES3 wrong here
 var CORRECT_ARGUMENTS = classofRaw(function () { return arguments; }()) == 'Arguments';
 
@@ -1330,11 +1348,11 @@ var tryGet = function (it, key) {
 };
 
 // getting tag from ES6+ `Object.prototype.toString`
-var classof = function (it) {
+var classof = toStringTagSupport ? classofRaw : function (it) {
   var O, tag, result;
   return it === undefined ? 'Undefined' : it === null ? 'Null'
     // @@toStringTag case
-    : typeof (tag = tryGet(O = Object(it), TO_STRING_TAG$1)) == 'string' ? tag
+    : typeof (tag = tryGet(O = Object(it), TO_STRING_TAG$2)) == 'string' ? tag
     // builtinTag case
     : CORRECT_ARGUMENTS ? classofRaw(O)
     // ES3 arguments fallback
@@ -1619,23 +1637,16 @@ _export({ target: 'Object', stat: true }, {
   }
 });
 
-var TO_STRING_TAG$2 = wellKnownSymbol('toStringTag');
-var test = {};
-
-test[TO_STRING_TAG$2] = 'z';
-
 // `Object.prototype.toString` method implementation
 // https://tc39.github.io/ecma262/#sec-object.prototype.tostring
-var objectToString = String(test) !== '[object z]' ? function toString() {
+var objectToString = toStringTagSupport ? {}.toString : function toString() {
   return '[object ' + classof(this) + ']';
-} : test.toString;
-
-var ObjectPrototype$2 = Object.prototype;
+};
 
 // `Object.prototype.toString` method
 // https://tc39.github.io/ecma262/#sec-object.prototype.tostring
-if (objectToString !== ObjectPrototype$2.toString) {
-  redefine(ObjectPrototype$2, 'toString', objectToString, { unsafe: true });
+if (!toStringTagSupport) {
+  redefine(Object.prototype, 'toString', objectToString, { unsafe: true });
 }
 
 // Forced replacement object prototype accessors methods
@@ -3109,7 +3120,7 @@ _export({ target: 'String', proto: true, forced: WORKS_WITH_NON_GLOBAL_REGEX }, 
       }
       if (WORKS_WITH_NON_GLOBAL_REGEX) return nativeMatchAll.apply(O, arguments);
       matcher = regexp[MATCH_ALL];
-      if (matcher === undefined && isPure && classof(regexp) == 'RegExp') matcher = $matchAll;
+      if (matcher === undefined && isPure && classofRaw(regexp) == 'RegExp') matcher = $matchAll;
       if (matcher != null) return aFunction$1(matcher).call(regexp, O);
     } else if (WORKS_WITH_NON_GLOBAL_REGEX) return nativeMatchAll.apply(O, arguments);
     S = String(O);
@@ -4793,12 +4804,14 @@ var Internal, OwnPromiseCapability, PromiseWrapper, nativeThen;
 
 var FORCED$e = isForced_1(PROMISE, function () {
   var GLOBAL_CORE_JS_PROMISE = inspectSource(PromiseConstructor) !== String(PromiseConstructor);
-  // V8 6.6 (Node 10 and Chrome 66) have a bug with resolving custom thenables
-  // https://bugs.chromium.org/p/chromium/issues/detail?id=830565
-  // We can't detect it synchronously, so just check versions
-  if (v8Version === 66) return true;
-  // Unhandled rejections tracking support, NodeJS Promise without it fails @@species test
-  if (!GLOBAL_CORE_JS_PROMISE && !IS_NODE$1 && typeof PromiseRejectionEvent != 'function') return true;
+  if (!GLOBAL_CORE_JS_PROMISE) {
+    // V8 6.6 (Node 10 and Chrome 66) have a bug with resolving custom thenables
+    // https://bugs.chromium.org/p/chromium/issues/detail?id=830565
+    // We can't detect it synchronously, so just check versions
+    if (v8Version === 66) return true;
+    // Unhandled rejections tracking support, NodeJS Promise without it fails @@species test
+    if (!IS_NODE$1 && typeof PromiseRejectionEvent != 'function') return true;
+  }
   // We can't use @@species feature detection in V8 since it causes
   // deoptimization and performance degradation
   // https://github.com/zloirock/core-js/issues/679
@@ -5665,8 +5678,8 @@ var Uint8ClampedArray = global_1.Uint8ClampedArray;
 var Uint8ClampedArrayPrototype = Uint8ClampedArray && Uint8ClampedArray.prototype;
 var TypedArray = Int8Array$1 && objectGetPrototypeOf(Int8Array$1);
 var TypedArrayPrototype = Int8ArrayPrototype && objectGetPrototypeOf(Int8ArrayPrototype);
-var ObjectPrototype$3 = Object.prototype;
-var isPrototypeOf = ObjectPrototype$3.isPrototypeOf;
+var ObjectPrototype$2 = Object.prototype;
+var isPrototypeOf = ObjectPrototype$2.isPrototypeOf;
 
 var TO_STRING_TAG$3 = wellKnownSymbol('toStringTag');
 var TYPED_ARRAY_TAG = uid('TYPED_ARRAY_TAG');
@@ -5767,7 +5780,7 @@ if (!NATIVE_ARRAY_BUFFER_VIEWS || typeof TypedArray != 'function' || TypedArray 
   }
 }
 
-if (!NATIVE_ARRAY_BUFFER_VIEWS || !TypedArrayPrototype || TypedArrayPrototype === ObjectPrototype$3) {
+if (!NATIVE_ARRAY_BUFFER_VIEWS || !TypedArrayPrototype || TypedArrayPrototype === ObjectPrototype$2) {
   TypedArrayPrototype = TypedArray.prototype;
   if (NATIVE_ARRAY_BUFFER_VIEWS) for (NAME$1 in TypedArrayConstructorsList) {
     if (global_1[NAME$1]) objectSetPrototypeOf(global_1[NAME$1].prototype, TypedArrayPrototype);
@@ -5790,8 +5803,8 @@ if (descriptors && !has(TypedArrayPrototype, TO_STRING_TAG$3)) {
 }
 
 // WebKit bug - the same parent prototype for typed arrays and data view
-if (NATIVE_ARRAY_BUFFER && objectSetPrototypeOf && objectGetPrototypeOf(DataViewPrototype) !== ObjectPrototype$3) {
-  objectSetPrototypeOf(DataViewPrototype, ObjectPrototype$3);
+if (NATIVE_ARRAY_BUFFER && objectSetPrototypeOf && objectGetPrototypeOf(DataViewPrototype) !== ObjectPrototype$2) {
+  objectSetPrototypeOf(DataViewPrototype, ObjectPrototype$2);
 }
 
 var arrayBufferViewCore = {
@@ -5818,42 +5831,16 @@ var toIndex = function (it) {
   return length;
 };
 
-var NATIVE_ARRAY_BUFFER$1 = arrayBufferViewCore.NATIVE_ARRAY_BUFFER;
-
-
-
-
-
-
-
-var getOwnPropertyNames$2 = objectGetOwnPropertyNames.f;
-var defineProperty$8 = objectDefineProperty.f;
-
-
-
-
-var getInternalState$5 = internalState.get;
-var setInternalState$7 = internalState.set;
-var ARRAY_BUFFER = 'ArrayBuffer';
-var DATA_VIEW = 'DataView';
-var PROTOTYPE$2 = 'prototype';
-var WRONG_LENGTH = 'Wrong length';
-var WRONG_INDEX = 'Wrong index';
-var NativeArrayBuffer = global_1[ARRAY_BUFFER];
-var $ArrayBuffer = NativeArrayBuffer;
-var $DataView = global_1[DATA_VIEW];
-var Math$1 = global_1.Math;
-var RangeError$1 = global_1.RangeError;
+// IEEE754 conversions based on https://github.com/feross/ieee754
 // eslint-disable-next-line no-shadow-restricted-names
 var Infinity$1 = 1 / 0;
-var abs$7 = Math$1.abs;
-var pow$3 = Math$1.pow;
-var floor$6 = Math$1.floor;
-var log$8 = Math$1.log;
-var LN2$2 = Math$1.LN2;
+var abs$7 = Math.abs;
+var pow$3 = Math.pow;
+var floor$6 = Math.floor;
+var log$8 = Math.log;
+var LN2$2 = Math.LN2;
 
-// IEEE754 conversions based on https://github.com/feross/ieee754
-var packIEEE754 = function (number, mantissaLength, bytes) {
+var pack = function (number, mantissaLength, bytes) {
   var buffer = new Array(bytes);
   var exponentLength = bytes * 8 - mantissaLength - 1;
   var eMax = (1 << exponentLength) - 1;
@@ -5902,7 +5889,7 @@ var packIEEE754 = function (number, mantissaLength, bytes) {
   return buffer;
 };
 
-var unpackIEEE754 = function (buffer, mantissaLength) {
+var unpack = function (buffer, mantissaLength) {
   var bytes = buffer.length;
   var exponentLength = bytes * 8 - mantissaLength - 1;
   var eMax = (1 << exponentLength) - 1;
@@ -5928,9 +5915,40 @@ var unpackIEEE754 = function (buffer, mantissaLength) {
   } return (sign ? -1 : 1) * mantissa * pow$3(2, exponent - mantissaLength);
 };
 
-var unpackInt32 = function (buffer) {
-  return buffer[3] << 24 | buffer[2] << 16 | buffer[1] << 8 | buffer[0];
+var ieee754 = {
+  pack: pack,
+  unpack: unpack
 };
+
+var NATIVE_ARRAY_BUFFER$1 = arrayBufferViewCore.NATIVE_ARRAY_BUFFER;
+
+
+
+
+
+
+
+
+var getOwnPropertyNames$2 = objectGetOwnPropertyNames.f;
+var defineProperty$8 = objectDefineProperty.f;
+
+
+
+
+var getInternalState$5 = internalState.get;
+var setInternalState$7 = internalState.set;
+var ARRAY_BUFFER = 'ArrayBuffer';
+var DATA_VIEW = 'DataView';
+var PROTOTYPE$2 = 'prototype';
+var WRONG_LENGTH = 'Wrong length';
+var WRONG_INDEX = 'Wrong index';
+var NativeArrayBuffer = global_1[ARRAY_BUFFER];
+var $ArrayBuffer = NativeArrayBuffer;
+var $DataView = global_1[DATA_VIEW];
+var RangeError$1 = global_1.RangeError;
+
+var packIEEE754 = ieee754.pack;
+var unpackIEEE754 = ieee754.unpack;
 
 var packInt8 = function (number) {
   return [number & 0xFF];
@@ -5942,6 +5960,10 @@ var packInt16 = function (number) {
 
 var packInt32 = function (number) {
   return [number & 0xFF, number >> 8 & 0xFF, number >> 16 & 0xFF, number >> 24 & 0xFF];
+};
+
+var unpackInt32 = function (buffer) {
+  return buffer[3] << 24 | buffer[2] << 16 | buffer[1] << 8 | buffer[0];
 };
 
 var packFloat32 = function (number) {
@@ -5957,8 +5979,7 @@ var addGetter = function (Constructor, key) {
 };
 
 var get$1 = function (view, count, index, isLittleEndian) {
-  var numIndex = +index;
-  var intIndex = toIndex(numIndex);
+  var intIndex = toIndex(index);
   var store = getInternalState$5(view);
   if (intIndex + count > store.byteLength) throw RangeError$1(WRONG_INDEX);
   var bytes = getInternalState$5(store.buffer).bytes;
@@ -5968,8 +5989,7 @@ var get$1 = function (view, count, index, isLittleEndian) {
 };
 
 var set$2 = function (view, count, index, conversion, value, isLittleEndian) {
-  var numIndex = +index;
-  var intIndex = toIndex(numIndex);
+  var intIndex = toIndex(index);
   var store = getInternalState$5(view);
   if (intIndex + count > store.byteLength) throw RangeError$1(WRONG_INDEX);
   var bytes = getInternalState$5(store.buffer).bytes;
@@ -7082,13 +7102,13 @@ if (objectSetPrototypeOf) _export({ target: 'Reflect', stat: true }, {
 
 
 var metadata = shared('metadata');
-var store$3 = metadata.store || (metadata.store = new es_weakMap());
+var store$2 = metadata.store || (metadata.store = new es_weakMap());
 
 var getOrCreateMetadataMap = function (target, targetKey, create) {
-  var targetMetadata = store$3.get(target);
+  var targetMetadata = store$2.get(target);
   if (!targetMetadata) {
     if (!create) return;
-    store$3.set(target, targetMetadata = new es_map());
+    store$2.set(target, targetMetadata = new es_map());
   }
   var keyMetadata = targetMetadata.get(targetKey);
   if (!keyMetadata) {
@@ -7123,7 +7143,7 @@ var toMetadataKey = function (it) {
 };
 
 var reflectMetadata = {
-  store: store$3,
+  store: store$2,
   getMap: getOrCreateMetadataMap,
   has: ordinaryHasOwnMetadata,
   get: ordinaryGetOwnMetadata,
@@ -7146,7 +7166,7 @@ _export({ target: 'Reflect', stat: true }, {
 
 var toMetadataKey$2 = reflectMetadata.toKey;
 var getOrCreateMetadataMap$1 = reflectMetadata.getMap;
-var store$4 = reflectMetadata.store;
+var store$3 = reflectMetadata.store;
 
 // `Reflect.deleteMetadata` method
 // https://github.com/rbuckton/reflect-metadata
@@ -7156,9 +7176,9 @@ _export({ target: 'Reflect', stat: true }, {
     var metadataMap = getOrCreateMetadataMap$1(anObject(target), targetKey, false);
     if (metadataMap === undefined || !metadataMap['delete'](metadataKey)) return false;
     if (metadataMap.size) return true;
-    var targetMetadata = store$4.get(target);
+    var targetMetadata = store$3.get(target);
     targetMetadata['delete'](targetKey);
-    return !!targetMetadata.size || store$4['delete'](target);
+    return !!targetMetadata.size || store$3['delete'](target);
   }
 });
 
