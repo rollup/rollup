@@ -45,9 +45,7 @@ export default class ChildScope extends Scope {
 
 	addNamespaceMemberAccess(name: string, variable: Variable) {
 		this.accessedOutsideVariables.set(name, variable);
-		if (this.parent instanceof ChildScope) {
-			this.parent.addNamespaceMemberAccess(name, variable);
-		}
+		(this.parent as ChildScope).addNamespaceMemberAccess(name, variable);
 	}
 
 	addReturnExpression(expression: ExpressionEntity) {
@@ -97,7 +95,7 @@ export default class ChildScope extends Scope {
 	}
 
 	findLexicalBoundary(): ChildScope {
-		return this.parent instanceof ChildScope ? this.parent.findLexicalBoundary() : this;
+		return (this.parent as ChildScope).findLexicalBoundary();
 	}
 
 	findVariable(name: string): Variable {
