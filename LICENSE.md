@@ -382,7 +382,7 @@ Repository: sindresorhus/pretty-bytes
 ## pretty-ms
 License: MIT
 By: Sindre Sorhus
-Repository: sindresorhus/pretty-ms
+Repository: git+https://github.com/sindresorhus/pretty-ms.git
 
 ---------------------------------------
 
