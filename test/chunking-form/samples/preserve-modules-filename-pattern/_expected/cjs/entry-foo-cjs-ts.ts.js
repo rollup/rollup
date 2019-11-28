@@ -2,4 +2,4 @@
 
 var foo = 42;
 
-exports.default = foo;
+module.exports = foo;

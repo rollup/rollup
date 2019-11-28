@@ -23,6 +23,7 @@ export default function getExportBlock(
 						dep.namedExportsMode && expt.imported !== '*' && expt.imported !== 'default'
 							? `${dep.name}.${expt.imported}`
 							: dep.name;
+					break;
 				}
 			}
 		}

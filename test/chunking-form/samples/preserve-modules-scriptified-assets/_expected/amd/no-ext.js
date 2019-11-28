@@ -1,7 +1,7 @@
-define(['exports'], function (exports) { 'use strict';
+define(function () { 'use strict';
 
 	var noExt = "COULDN'T TRANSFORM";
 
-	exports.default = noExt;
+	return noExt;
 
 });

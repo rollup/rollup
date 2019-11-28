@@ -9,7 +9,7 @@ var noExt = require('./entry-no-ext-cjs-.js');
 
 
 
-exports.foo = foo.default;
-exports.bar = bar.default;
-exports.baz = baz.default;
-exports.noExt = noExt.default;
+exports.foo = foo;
+exports.bar = bar;
+exports.baz = baz;
+exports.noExt = noExt;
