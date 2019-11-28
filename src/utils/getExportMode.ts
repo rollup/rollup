@@ -11,11 +11,9 @@ export default function getExportMode(
 
 	if (exportMode === 'default') {
 		if (exportKeys.length !== 1 || exportKeys[0] !== 'default') {
-			// TODO Lukas test preserveModules
 			error(errIncompatibleExportOptionValue('default', exportKeys, facadeModuleId));
 		}
 	} else if (exportMode === 'none' && exportKeys.length) {
-		// TODO Lukas test preserveModules
 		error(errIncompatibleExportOptionValue('none', exportKeys, facadeModuleId));
 	}
 
@@ -25,7 +23,6 @@ export default function getExportMode(
 		} else if (exportKeys.length === 1 && exportKeys[0] === 'default') {
 			exportMode = 'default';
 		} else {
-			// TODO Lukas test for preserveModules
 			if (format !== 'es' && exportKeys.indexOf('default') !== -1) {
 				chunk.graph.warn(errMixedExport(facadeModuleId, name));
 			}
