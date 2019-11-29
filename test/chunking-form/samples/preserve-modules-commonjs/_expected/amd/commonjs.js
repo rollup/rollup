@@ -11,4 +11,6 @@ define(['exports', 'external', './other', './_virtual/_external_commonjs-externa
 	exports.__moduleExports = commonjs;
 	exports.default = commonjs;
 
+	Object.defineProperty(exports, '__esModule', { value: true });
+
 });

@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 require('external');
 require('./other.js');
 var _external_commonjsExternal = require('./_virtual/_external_commonjs-external');
