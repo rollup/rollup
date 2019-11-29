@@ -7,7 +7,11 @@ module.exports = {
 		assertStderrIncludes(
 			stderr,
 			'(!) Mixing named and default exports\n' +
-				"Consumers of your bundle will have to use bundle['default'] to access the default export, which may not be what you want. Use `output.exports: 'named'` to disable this warning\n"
+				'https://rollupjs.org/guide/en/#output-exports\n' +
+				'The following entry modules are using named and default exports together:\n' +
+				'main.js\n' +
+				'\n' +
+				"Consumers of your bundle will have to use chunk['default'] to access their default export, which may not be what you want. Use `output.exports: 'named'` to disable this warning\n"
 		);
 		assertStderrIncludes(
 			stderr,

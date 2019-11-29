@@ -203,6 +203,7 @@ export function errInvalidRollupPhaseForChunkEmission() {
 export function errMixedExport(facadeModuleId: string, name?: string) {
 	return {
 		code: Errors.MIXED_EXPORTS,
+		id: facadeModuleId,
 		message: `Entry module "${relativeId(
 			facadeModuleId
 		)}" is using named and default exports together. Consumers of your bundle will have to use \`${name ||
