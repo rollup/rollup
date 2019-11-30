@@ -1,3 +1,10 @@
+const removed6 = {
+	get x () {
+		return globalThis.unknown ? removed6.x : () => {};
+	}
+};
+removed6.x();
+
 const retained1 = () => globalThis.unknown ? retained1() : console.log( 'effect' );
 retained1();
 

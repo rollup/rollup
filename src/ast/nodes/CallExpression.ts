@@ -17,6 +17,7 @@ import {
 } from '../utils/PathTracker';
 import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UnknownValue } from '../values';
 import Identifier from './Identifier';
+import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
 import { ExpressionNode, INCLUDE_PARAMETERS, IncludeChildren, NodeBase } from './shared/Node';
@@ -65,6 +66,23 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 				EMPTY_IMMUTABLE_TRACKER,
 				this
 			);
+		}
+		let variable, init, propertyMap, property, exactMatchRead, value, body1, body2;
+		if (
+			this.callee instanceof MemberExpression
+			&& this.callee.property instanceof Identifier
+			&& this.callee.object instanceof Identifier
+			&& (variable = this.callee.object.variable)
+			&& (init = (variable as any).init)
+			&& (propertyMap = init.propertyMap)
+			&& (property = propertyMap[this.callee.property.name])
+			&& (exactMatchRead = property.exactMatchRead)
+			&& (value = exactMatchRead.value)
+			&& (body1 = value.body)
+			&& (body2 = body1.body)
+			&& body2.length
+		) {
+			this.callee.object.deoptimizePath(UNKNOWN_PATH);
 		}
 		for (const argument of this.arguments) {
 			// This will make sure all properties of parameters behave as "unknown"
