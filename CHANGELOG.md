@@ -1,5 +1,15 @@
 # rollup changelog
 
+## 1.27.6
+*2019-11-30*
+
+### Features
+* Use "auto" export mode by default for all modules when preserving modules (#3265)
+* Observe "output.exports" when preserving modules and warn for mixed exports if necessary (#3265)
+
+### Pull Requests
+* [#3265](https://github.com/rollup/rollup/pull/3265): Use export mode "auto" by default when preserving modules (@lukastaegert)
+
 ## 1.27.5
 *2019-11-25*
 
