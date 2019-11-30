@@ -2,4 +2,4 @@
 
 var noExt = 'no-ext';
 
-exports.default = noExt;
+module.exports = noExt;

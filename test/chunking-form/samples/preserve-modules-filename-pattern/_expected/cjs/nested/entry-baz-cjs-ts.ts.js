@@ -2,4 +2,4 @@
 
 var baz = 'whatever';
 
-exports.default = baz;
+module.exports = baz;

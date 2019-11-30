@@ -187,6 +187,22 @@ export default commandLineArgs => {
 
 If you now run `rollup --config --configDebug`, the debug configuration will be used.
 
+By default, command line arguments will always override the respective values exported from a config file. If you want to change this behaviour, you can make Rollup ignore command line arguments by deleting them from the `commandLineArgs` object:
+
+```javascript
+// rollup.config.js
+export default commandLineArgs => {
+  const inputBase = commandLineArgs.input || 'main.js';
+
+  // this will make Rollup ignore the CLI argument
+  delete commandLineArgs.input;
+  return {
+    input: 'src/entries/' + inputBase,
+    output: {...}
+  }
+}
+```
+
 
 ### Command line flags
 

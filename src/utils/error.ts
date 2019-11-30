@@ -44,10 +44,12 @@ export enum Errors {
 	FILE_NAME_CONFLICT = 'FILE_NAME_CONFLICT',
 	INPUT_HOOK_IN_OUTPUT_PLUGIN = 'INPUT_HOOK_IN_OUTPUT_PLUGIN',
 	INVALID_CHUNK = 'INVALID_CHUNK',
+	INVALID_EXPORT_OPTION = 'INVALID_EXPORT_OPTION',
 	INVALID_EXTERNAL_ID = 'INVALID_EXTERNAL_ID',
 	INVALID_OPTION = 'INVALID_OPTION',
 	INVALID_PLUGIN_HOOK = 'INVALID_PLUGIN_HOOK',
 	INVALID_ROLLUP_PHASE = 'INVALID_ROLLUP_PHASE',
+	MIXED_EXPORTS = 'MIXED_EXPORTS',
 	NAMESPACE_CONFLICT = 'NAMESPACE_CONFLICT',
 	PLUGIN_ERROR = 'PLUGIN_ERROR',
 	UNRESOLVED_ENTRY = 'UNRESOLVED_ENTRY',
@@ -147,6 +149,27 @@ export function errCannotAssignModuleToChunk(
 	};
 }
 
+export function errInvalidExportOptionValue(optionValue: string) {
+	return {
+		code: Errors.INVALID_EXPORT_OPTION,
+		message: `"output.exports" must be "default", "named", "none", "auto", or left unspecified (defaults to "auto"), received "${optionValue}"`,
+		url: `https://rollupjs.org/guide/en/#output-exports`
+	};
+}
+
+export function errIncompatibleExportOptionValue(
+	optionValue: string,
+	keys: string[],
+	entryModule: string
+) {
+	return {
+		code: 'INVALID_EXPORT_OPTION',
+		message: `"${optionValue}" was specified for "output.exports", but entry module "${relativeId(
+			entryModule
+		)}" has the following exports: ${keys.join(', ')}`
+	};
+}
+
 export function errInternalIdCannotBeExternal(source: string, importer: string) {
 	return {
 		code: Errors.INVALID_EXTERNAL_ID,
@@ -174,6 +197,18 @@ export function errInvalidRollupPhaseForChunkEmission() {
 	return {
 		code: Errors.INVALID_ROLLUP_PHASE,
 		message: `Cannot emit chunks after module loading has finished.`
+	};
+}
+
+export function errMixedExport(facadeModuleId: string, name?: string) {
+	return {
+		code: Errors.MIXED_EXPORTS,
+		id: facadeModuleId,
+		message: `Entry module "${relativeId(
+			facadeModuleId
+		)}" is using named and default exports together. Consumers of your bundle will have to use \`${name ||
+			'chunk'}["default"]\` to access the default export, which may not be what you want. Use \`output.exports: "named"\` to disable this warning`,
+		url: `https://rollupjs.org/guide/en/#output-exports`
 	};
 }
 

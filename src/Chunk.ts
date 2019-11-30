@@ -619,7 +619,7 @@ export default class Chunk {
 		this.renderedSourceLength = undefined as any;
 		this.renderedHash = undefined as any;
 
-		if (this.getExportNames().length === 0 && this.getImportIds().length === 0 && this.isEmpty) {
+		if (this.isEmpty && this.getExportNames().length === 0 && this.dependencies.length === 0) {
 			const chunkName = this.getChunkName();
 			this.graph.warn({
 				chunkName,
@@ -708,7 +708,9 @@ export default class Chunk {
 				hasExports,
 				indentString: this.indentString,
 				intro: addons.intro as string,
-				isEntryModuleFacade: this.facadeModule !== null && this.facadeModule.isEntryPoint,
+				isEntryModuleFacade:
+					this.graph.preserveModules ||
+					(this.facadeModule !== null && this.facadeModule.isEntryPoint),
 				namedExportsMode: this.exportMode !== 'default',
 				outro: addons.outro as string,
 				usesTopLevelAwait,

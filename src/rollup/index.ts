@@ -5,7 +5,12 @@ import Graph from '../Graph';
 import { createAddons } from '../utils/addons';
 import { assignChunkIds } from '../utils/assignChunkIds';
 import commondir from '../utils/commondir';
-import { errCannotEmitFromOptionsHook, errDeprecation, error } from '../utils/error';
+import {
+	errCannotEmitFromOptionsHook,
+	errDeprecation,
+	errInvalidExportOptionValue,
+	error
+} from '../utils/error';
 import { writeFile } from '../utils/fs';
 import getExportMode from '../utils/getExportMode';
 import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
@@ -44,6 +49,10 @@ function checkOutputOptions(options: OutputOptions) {
 			message: `You must specify "output.format", which can be one of "amd", "cjs", "system", "esm", "iife" or "umd".`,
 			url: `https://rollupjs.org/guide/en/#output-format`
 		});
+	}
+
+	if (options.exports && !['default', 'named', 'none', 'auto'].includes(options.exports)) {
+		error(errInvalidExportOptionValue(options.exports));
 	}
 }
 
@@ -259,8 +268,8 @@ export default async function rollup(rawInputOptions: GenericConfigObject): Prom
 			const addons = await createAddons(outputOptions, outputPluginDriver);
 			for (const chunk of chunks) {
 				if (!inputOptions.preserveModules) chunk.generateInternalExports(outputOptions);
-				if (chunk.facadeModule && chunk.facadeModule.isEntryPoint)
-					chunk.exportMode = getExportMode(chunk, outputOptions);
+				if (inputOptions.preserveModules || (chunk.facadeModule && chunk.facadeModule.isEntryPoint))
+					chunk.exportMode = getExportMode(chunk, outputOptions, chunk.facadeModule!.id);
 			}
 			for (const chunk of chunks) {
 				chunk.preRender(outputOptions, inputBase);
@@ -403,7 +412,8 @@ function createOutput(outputBundle: Record<string, OutputChunk | OutputAsset | {
 			.map(fileName => outputBundle[fileName])
 			.filter(outputFile => Object.keys(outputFile).length > 0) as (
 			| OutputChunk
-			| OutputAsset)[]).sort((outputFileA, outputFileB) => {
+			| OutputAsset
+		)[]).sort((outputFileA, outputFileB) => {
 			const fileTypeA = getSortingFileType(outputFileA);
 			const fileTypeB = getSortingFileType(outputFileB);
 			if (fileTypeA === fileTypeB) return 0;

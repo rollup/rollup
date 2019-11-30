@@ -2,10 +2,10 @@ define(['exports', './entry-foo-amd-ts.ts', './nested/entry-bar-amd-ts.ts', './n
 
 
 
-	exports.foo = foo.default;
-	exports.bar = bar.default;
-	exports.baz = baz.default;
-	exports.noExt = noExt.default;
+	exports.foo = foo;
+	exports.bar = bar;
+	exports.baz = baz;
+	exports.noExt = noExt;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

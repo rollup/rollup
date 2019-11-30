@@ -82,13 +82,6 @@ const immediateHandlers: {
 		stderr(
 			`Creating a browser bundle that depends on ${detail}. You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins`
 		);
-	},
-
-	MIXED_EXPORTS: () => {
-		title('Mixing named and default exports');
-		stderr(
-			`Consumers of your bundle will have to use bundle['default'] to access the default export, which may not be what you want. Use \`output.exports: 'named'\` to disable this warning`
-		);
 	}
 };
 
@@ -106,27 +99,19 @@ const deferredHandlers: {
 		}
 	},
 
-	UNUSED_EXTERNAL_IMPORT(warnings) {
-		title('Unused external imports');
-		for (const warning of warnings) {
-			stderr(`${warning.names} imported from external module '${warning.source}' but never used`);
-		}
+	EMPTY_BUNDLE(warnings) {
+		title(
+			`Generated${warnings.length === 1 ? ' an' : ''} empty ${
+				warnings.length > 1 ? 'chunks' : 'chunk'
+			}`
+		);
+		stderr(warnings.map(warning => warning.chunkName!).join(', '));
 	},
 
-	UNRESOLVED_IMPORT(warnings) {
-		title('Unresolved dependencies');
-		info('https://rollupjs.org/guide/en/#warning-treating-module-as-external-dependency');
-
-		const dependencies = new Map();
-		for (const warning of warnings) {
-			if (!dependencies.has(warning.source)) dependencies.set(warning.source, []);
-			dependencies.get(warning.source).push(warning.importer);
-		}
-
-		for (const dependency of dependencies.keys()) {
-			const importers = dependencies.get(dependency);
-			stderr(`${tc.bold(dependency)} (imported by ${importers.join(', ')})`);
-		}
+	EVAL(warnings) {
+		title('Use of eval is strongly discouraged');
+		info('https://rollupjs.org/guide/en/#avoiding-eval');
+		showTruncatedWarnings(warnings);
 	},
 
 	MISSING_EXPORT(warnings) {
@@ -140,21 +125,32 @@ const deferredHandlers: {
 		}
 	},
 
-	THIS_IS_UNDEFINED(warnings) {
-		title('`this` has been rewritten to `undefined`');
-		info('https://rollupjs.org/guide/en/#error-this-is-undefined');
-		showTruncatedWarnings(warnings);
+	MISSING_GLOBAL_NAME(warnings) {
+		title(`Missing global variable ${warnings.length > 1 ? 'names' : 'name'}`);
+		stderr(
+			`Use output.globals to specify browser global variable names corresponding to external modules`
+		);
+		for (const warning of warnings) {
+			stderr(`${tc.bold(warning.source!)} (guessing '${warning.guess}')`);
+		}
 	},
 
-	EVAL(warnings) {
-		title('Use of eval is strongly discouraged');
-		info('https://rollupjs.org/guide/en/#avoiding-eval');
-		showTruncatedWarnings(warnings);
-	},
-
-	NON_EXISTENT_EXPORT(warnings) {
-		title(`Import of non-existent ${warnings.length > 1 ? 'exports' : 'export'}`);
-		showTruncatedWarnings(warnings);
+	MIXED_EXPORTS: (warnings) => {
+		title('Mixing named and default exports');
+		info(`https://rollupjs.org/guide/en/#output-exports`);
+		stderr(
+			tc.bold('The following entry modules are using named and default exports together:')
+		);
+		const displayedWarnings = warnings.length > 5 ? warnings.slice(0, 3) : warnings;
+		for (const warning of displayedWarnings) {
+			stderr(relativeId(warning.id!));
+		}
+		if (displayedWarnings.length < warnings.length) {
+			stderr(`...and ${warnings.length - displayedWarnings.length} other entry modules`);
+		}
+		stderr(
+			`\nConsumers of your bundle will have to use chunk['default'] to access their default export, which may not be what you want. Use \`output.exports: 'named'\` to disable this warning`
+		);
 	},
 
 	NAMESPACE_CONFLICT(warnings) {
@@ -170,30 +166,9 @@ const deferredHandlers: {
 		}
 	},
 
-	MISSING_GLOBAL_NAME(warnings) {
-		title(`Missing global variable ${warnings.length > 1 ? 'names' : 'name'}`);
-		stderr(
-			`Use output.globals to specify browser global variable names corresponding to external modules`
-		);
-		for (const warning of warnings) {
-			stderr(`${tc.bold(warning.source!)} (guessing '${warning.guess}')`);
-		}
-	},
-
-	SOURCEMAP_BROKEN(warnings) {
-		title(`Broken sourcemap`);
-		info('https://rollupjs.org/guide/en/#warning-sourcemap-is-likely-to-be-incorrect');
-
-		const plugins = Array.from(new Set(warnings.map(w => w.plugin).filter(Boolean)));
-		const detail =
-			plugins.length > 1
-				? ` (such as ${plugins
-						.slice(0, -1)
-						.map(p => `'${p}'`)
-						.join(', ')} and '${plugins.slice(-1)}')`
-				: ` (such as '${plugins[0]}')`;
-
-		stderr(`Plugins that transform code${detail} should generate accompanying sourcemaps`);
+	NON_EXISTENT_EXPORT(warnings) {
+		title(`Import of non-existent ${warnings.length > 1 ? 'exports' : 'export'}`);
+		showTruncatedWarnings(warnings);
 	},
 
 	PLUGIN_WARNING(warnings) {
@@ -222,13 +197,49 @@ const deferredHandlers: {
 		}
 	},
 
-	EMPTY_BUNDLE(warnings) {
-		title(
-			`Generated${warnings.length === 1 ? ' an' : ''} empty ${
-				warnings.length > 1 ? 'chunks' : 'chunk'
-			}`
-		);
-		stderr(warnings.map(warning => warning.chunkName!).join(', '));
+	SOURCEMAP_BROKEN(warnings) {
+		title(`Broken sourcemap`);
+		info('https://rollupjs.org/guide/en/#warning-sourcemap-is-likely-to-be-incorrect');
+
+		const plugins = Array.from(new Set(warnings.map(w => w.plugin).filter(Boolean)));
+		const detail =
+			plugins.length > 1
+				? ` (such as ${plugins
+				.slice(0, -1)
+				.map(p => `'${p}'`)
+				.join(', ')} and '${plugins.slice(-1)}')`
+				: ` (such as '${plugins[0]}')`;
+
+		stderr(`Plugins that transform code${detail} should generate accompanying sourcemaps`);
+	},
+
+	THIS_IS_UNDEFINED(warnings) {
+		title('`this` has been rewritten to `undefined`');
+		info('https://rollupjs.org/guide/en/#error-this-is-undefined');
+		showTruncatedWarnings(warnings);
+	},
+
+	UNRESOLVED_IMPORT(warnings) {
+		title('Unresolved dependencies');
+		info('https://rollupjs.org/guide/en/#warning-treating-module-as-external-dependency');
+
+		const dependencies = new Map();
+		for (const warning of warnings) {
+			if (!dependencies.has(warning.source)) dependencies.set(warning.source, []);
+			dependencies.get(warning.source).push(warning.importer);
+		}
+
+		for (const dependency of dependencies.keys()) {
+			const importers = dependencies.get(dependency);
+			stderr(`${tc.bold(dependency)} (imported by ${importers.join(', ')})`);
+		}
+	},
+
+	UNUSED_EXTERNAL_IMPORT(warnings) {
+		title('Unused external imports');
+		for (const warning of warnings) {
+			stderr(`${warning.names} imported from external module '${warning.source}' but never used`);
+		}
 	}
 };
 

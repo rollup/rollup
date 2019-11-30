@@ -2,4 +2,4 @@
 
 var noExt = "COULDN'T TRANSFORM";
 
-exports.default = noExt;
+module.exports = noExt;
