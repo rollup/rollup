@@ -3,7 +3,7 @@
 ## 1.27.6
 *2019-11-30*
 
-### Features
+### Bug Fixes
 * Use "auto" export mode by default for all modules when preserving modules (#3265)
 * Observe "output.exports" when preserving modules and warn for mixed exports if necessary (#3265)
 
