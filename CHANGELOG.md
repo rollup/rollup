@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.27.7
+*2019-12-01*
+
+### Bug Fixes
+* Fix a scenario where a reassignments to computed properties were not tracked (#3267)
+
+### Pull Requests
+* [#3267](https://github.com/rollup/rollup/pull/3267): Fix incomplete computed property deoptimization (@lukastaegert)
+
 ## 1.27.6
 *2019-11-30*
 
