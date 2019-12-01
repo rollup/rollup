@@ -11,6 +11,7 @@ import {
 	ObjectPath,
 	ObjectPathKey,
 	PathTracker,
+	UNKNOWN_PATH,
 	UnknownKey
 } from '../utils/PathTracker';
 import { LiteralValueOrUnknown, UnknownValue } from '../values';
@@ -77,6 +78,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 
 	private bound = false;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
+	private hasDeoptimizedPath = false;
 	private replacement: string | null = null;
 
 	addExportedVariables(): void {}
@@ -112,6 +114,10 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	}
 
 	deoptimizeCache() {
+		this.propertyKey = UnknownKey;
+		if (this.hasDeoptimizedPath) {
+			this.object.deoptimizePath(UNKNOWN_PATH);
+		}
 		for (const expression of this.expressionsToBeDeoptimized) {
 			expression.deoptimizeCache();
 		}
@@ -124,7 +130,12 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			this.variable.deoptimizePath(path);
 		} else {
 			if (this.propertyKey === null) this.analysePropertyKey();
-			this.object.deoptimizePath([this.propertyKey as ObjectPathKey, ...path]);
+			if (this.propertyKey === UnknownKey) {
+				this.object.deoptimizePath(UNKNOWN_PATH);
+			} else {
+				this.hasDeoptimizedPath = true;
+				this.object.deoptimizePath([this.propertyKey as ObjectPathKey, ...path]);
+			}
 		}
 	}
 

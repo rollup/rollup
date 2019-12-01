@@ -36,11 +36,12 @@ interface PropertyMap {
 	};
 }
 
-export default class ObjectExpression extends NodeBase {
+export default class ObjectExpression extends NodeBase implements DeoptimizableEntity {
 	properties!: (Property | SpreadElement)[];
 	type!: NodeType.tObjectExpression;
 
 	private deoptimizedPaths = new Set<string>();
+
 	// We collect deoptimization information if we can resolve a computed property access
 	private expressionsToBeDeoptimized = new Map<string, DeoptimizableEntity[]>();
 	private hasUnknownDeoptimizedProperty = false;
