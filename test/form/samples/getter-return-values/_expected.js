@@ -9,6 +9,12 @@
 		return {};
 	}
 }).foo.bar.baz;
+
+({
+	get foo () {
+		return () => {};
+	}
+}).foo();
 ({
 	get foo () {
 		console.log( 'effect' );
@@ -20,6 +26,12 @@
 		return () => console.log( 'effect' );
 	}
 }).foo();
+
+({
+	get foo () {
+		return () => () => {};
+	}
+}).foo()();
 ({
 	get foo () {
 		console.log( 'effect' );
