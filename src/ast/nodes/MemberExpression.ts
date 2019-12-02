@@ -18,7 +18,6 @@ import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import ExternalVariable from '../variables/ExternalVariable';
 import NamespaceVariable from '../variables/NamespaceVariable';
 import Variable from '../variables/Variable';
-import AssignmentExpression from './AssignmentExpression';
 import Identifier from './Identifier';
 import Literal from './Literal';
 import * as NodeType from './NodeType';
@@ -111,18 +110,6 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		} else {
 			super.bind();
 			if (this.propertyKey === null) this.analysePropertyKey();
-		}
-
-		let variable, init, propertyMap;
-		if (
-			this.parent instanceof AssignmentExpression
-			&& this === this.parent.left
-			&& (variable = this.object.variable)
-			&& (init = (variable as any).init)
-			&& (propertyMap = init.propertyMap)
-			&& (!this.propertyKey || !(this.propertyKey in propertyMap))
-		) {
-			this.object.deoptimizePath(UNKNOWN_PATH);
 		}
 	}
 

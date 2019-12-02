@@ -1,3 +1,23 @@
+const removed1 = {
+	foo: () => {},
+	foo: () => {},
+	['f' + 'oo']: () => {}
+};
+removed1.foo();
+
+const removed2 = {
+	foo: () => console.log( 'effect' ),
+	foo: () => {}
+};
+removed2.foo();
+
+const removed3 = {
+	['fo' + 'o']: function () {this.x = 1;},
+	['f' + 'oo']: () => console.log( 'effect' ),
+	foo: () => {}
+};
+removed3.foo();
+
 const retained1 = {
 	foo: () => {},
 	foo: function () {this.x = 1;}

@@ -67,21 +67,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 				this
 			);
 		}
-		let variable, init, propertyMap, property, exactMatchRead, value, body1, body2;
-		if (
-			this.callee instanceof MemberExpression
-			&& this.callee.property instanceof Identifier
-			&& this.callee.object instanceof Identifier
-			&& (variable = this.callee.object.variable)
-			&& (init = (variable as any).init)
-			&& (propertyMap = init.propertyMap)
-			&& (property = propertyMap[this.callee.property.name])
-			&& (exactMatchRead = property.exactMatchRead)
-			&& (value = exactMatchRead.value)
-			&& (body1 = value.body)
-			&& (body2 = body1.body)
-			&& body2.length
-		) {
+		if (this.callee instanceof MemberExpression && !this.callee.variable) {
 			this.callee.object.deoptimizePath(UNKNOWN_PATH);
 		}
 		for (const argument of this.arguments) {
