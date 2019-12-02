@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.27.8
+*2019-12-02*
+
+### Bug Fixes
+* Deoptimize objects when a method is called on them to make sure modifications via "this" are observed (#3266)
+
+### Pull Requests
+* [#3266](https://github.com/rollup/rollup/pull/3266): Workaround for various object literal mutation bugs (@lukastaegert)
+
 ## 1.27.7
 *2019-12-01*
 
