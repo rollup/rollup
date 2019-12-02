@@ -159,15 +159,15 @@ You *must* use a configuration file in order to do any of the following:
 
 To use Rollup with a configuration file, pass the `--config` or `-c` flags.
 
-```console
+```
 # use Rollup with a rollup.config.js file
-$ rollup --config
+rollup --config
 
 # alternatively, specify a custom config file location
-$ rollup --config my.config.js
+rollup --config my.config.js
 
 # .js and .mjs are supported
-$ rollup --config my.config.mjs
+rollup --config my.config.mjs
 ```
 
 You can also export a function that returns any of the above configuration formats. This function will be passed the current command line arguments so that you can dynamically adapt your configuration to respect e.g. [`--silent`](guide/en/#--silent). You can even define your own command line options if you prefix them with `config`:
@@ -301,7 +301,7 @@ will set `process.env.INCLUDE_DEPS === 'true'` and `process.env.BUILD === 'produ
 
 If you call this script via:
 
-```console
+```
 npm run build -- --environment BUILD:development
 ```
 

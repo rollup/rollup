@@ -8,14 +8,14 @@ title: Tutorial
 
 The easiest way to use Rollup is via the Command Line Interface (or CLI). For now, we'll install it globally (later on we'll learn how to install it locally to your project so that your build process is portable, but don't worry about that yet). Type this into the command line:
 
-```console
+```
 npm install rollup --global
 # or `npm i rollup -g` for short
 ```
 
 You can now run the `rollup` command. Try it!
 
-```console
+```
 rollup
 ```
 
@@ -23,7 +23,7 @@ Because no arguments were passed, Rollup prints usage instructions. This is the 
 
 Let's create a simple project:
 
-```console
+```
 mkdir -p my-rollup-project/src
 cd my-rollup-project
 ```
@@ -47,7 +47,7 @@ export default 'hello world!';
 
 Now we're ready to create a bundle:
 
-```console
+```
 rollup src/main.js -f cjs
 ```
 
@@ -67,7 +67,7 @@ module.exports = main;
 
 You can save the bundle as a file like so:
 
-```console
+```
 rollup src/main.js -o bundle.js -f cjs
 ```
 
@@ -75,7 +75,7 @@ rollup src/main.js -o bundle.js -f cjs
 
 Try running the code:
 
-```console
+```
 node
 > var myBundle = require('./bundle.js');
 > myBundle();
@@ -107,14 +107,14 @@ export default {
 
 To use the config file, we use the `--config` or `-c` flag:
 
-```console
+```
 rm bundle.js # so we can check the command works!
 rollup -c
 ```
 
 You can override any of the options in the config file with the equivalent command line options:
 
-```console
+```
 rollup -c -o bundle-2.js # `-o` is equivalent to `--file` (formerly "output")
 ```
 
@@ -122,7 +122,7 @@ _Note: Rollup itself processes the config file, which is why we're able to use `
 
 You can, if you like, specify a different config file from the default `rollup.config.js`:
 
-```console
+```
 rollup --config rollup.config.dev.js
 rollup --config rollup.config.prod.js
 ```
@@ -133,25 +133,25 @@ When working within teams or distributed environments it can be wise to add Roll
 
 To install Rollup locally with NPM:
 
-```console
+```
 npm install rollup --save-dev
 ```
 
 Or with Yarn:
 
-```console
+```
 yarn -D add rollup
 ```
 
 After installing, Rollup can be run within the root directory of your project:
 
-```console
+```
 npx rollup --config
 ```
 
 Or with Yarn:
 
-```console
+```
 yarn rollup --config
 ```
 
@@ -189,7 +189,7 @@ Create a file in the project root called `package.json`, and add the following c
 
 Install rollup-plugin-json as a development dependency:
 
-```console
+```
 npm install --save-dev rollup-plugin-json
 ```
 
@@ -244,7 +244,7 @@ Some plugins can also be applied specifically to some outputs. See [plugin hooks
 
 Let us extend the previous example to provide a minified build together with the non-minified one. To that end, we install `rollup-plugin-terser`:
 
-```console
+```
 npm install --save-dev rollup-plugin-terser
 ```
 
@@ -293,7 +293,7 @@ export default function () {
 
 Rollup will use the dynamic import to create a separate chunk that is only loaded on demand. In order for Rollup to know where to place the second chunk, instead of passing the `--file` option we set a folder to output to with the `--dir` option:
 
-```console
+```
 rollup src/main.js -f cjs -d dist
 ```
 
@@ -301,7 +301,7 @@ This will create a folder `dist` containing two files, `main.js` and `chunk-[has
 
 You can still run your code as before with the same output, albeit a little slower as loading and parsing of `./foo.js` will only commence once we call the exported function for the first time.
 
-```console
+```
 node -e "require('./dist/main.js')()"
 ```
 
@@ -339,7 +339,7 @@ export default function () {
 
 If we supply both entry points to rollup, three chunks are created:
 
-```console
+```
 rollup src/main.js src/main2.js -f cjs
 ```
 
@@ -380,7 +380,7 @@ You can build the same code for the browser via native ES modules, an AMD loader
 
 For example, with `-f esm` for native modules:
 
-```console
+```
 rollup src/main.js src/main2.js -f esm -d dist
 ```
 
@@ -394,13 +394,13 @@ rollup src/main.js src/main2.js -f esm -d dist
 
 Or alternatively, for SystemJS with `-f system`:
 
-```console
+```
 rollup src/main.js src/main2.js -f system -d dist
 ```
 
 Install SystemJS via
 
-```console
+```
 npm install --save-dev systemjs
 ```
 

@@ -217,7 +217,7 @@ export default {
 Namespaces are supported i.e. your name can contain dots. The resulting bundle will contain the setup necessary for the namespacing.
 
 ```
-$ rollup -n "a.b.c"
+rollup -n "a.b.c"
 
 /* ->
 this.a = this.a || {};
