@@ -384,9 +384,9 @@ export default class Module {
 
 	getTransitiveDependencies() {
 		return this.dependencies.concat(
-			this.getReexports().map(
-				exportName => this.getVariableForExportName(exportName).module as Module
-			)
+			this.getReexports()
+				.concat(this.getExports())
+				.map((exportName: string) => this.getVariableForExportName(exportName).module as Module)
 		);
 	}
 
