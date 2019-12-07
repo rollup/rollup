@@ -227,10 +227,14 @@ function assertFilesAreEqual(actualFiles, expectedFiles, dirs = []) {
 }
 
 function assertStderrIncludes(stderr, expected) {
-	// eslint-disable-next-line no-control-regex
-	const output = stderr.replace(/\x1b\[[^m]*m/g, '');
-	assert.ok(
-		output.includes(expected),
-		`Could not find ${JSON.stringify(expected)} in ${JSON.stringify(output)}`
-	);
+	try {
+		assert.ok(
+			stderr.includes(expected),
+			`Could not find ${JSON.stringify(expected)} in ${JSON.stringify(stderr)}`
+		);
+	} catch (err) {
+		err.actual = stderr;
+		err.expected = expected;
+		throw err;
+	}
 }

@@ -26,92 +26,99 @@ runTestSuiteWithSamples(
 				const command =
 					'node ' + path.resolve(__dirname, '../../dist/bin') + path.sep + config.command;
 
-				const childProcess = exec(command, { timeout: 40000 }, (err, code, stderr) => {
-					if (err && !err.killed) {
-						if (config.error) {
-							const shouldContinue = config.error(err);
-							if (!shouldContinue) return done();
-						} else {
-							throw err;
-						}
-					}
-
-					if ('stderr' in config) {
-						const shouldContinue = config.stderr(stderr.trim());
-						if (!shouldContinue) return done();
-					} else if (stderr) {
-						console.error(stderr);
-					}
-
-					let unintendedError;
-
-					if (config.execute) {
-						try {
-							if (config.buble) {
-								code = buble.transform(code, {
-									transforms: { modules: false }
-								}).code;
-							}
-
-							const fn = new Function('require', 'module', 'exports', 'assert', code);
-							const module = {
-								exports: {}
-							};
-							fn(require, module, module.exports, assert);
-
+				const childProcess = exec(
+					command,
+					{ timeout: 40000, env: Object.assign({ FORCE_COLOR: '0' }, process.env, config.env) },
+					(err, code, stderr) => {
+						if (err && !err.killed) {
 							if (config.error) {
-								unintendedError = new Error('Expected an error while executing output');
-							}
-
-							if (config.exports) {
-								config.exports(module.exports);
-							}
-						} catch (err) {
-							if (config.error) {
-								config.error(err);
+								const shouldContinue = config.error(err);
+								if (!shouldContinue) return done();
 							} else {
-								unintendedError = err;
+								throw err;
 							}
 						}
 
-						if (config.show || unintendedError) {
-							console.log(code + '\n\n\n');
+						if ('stderr' in config) {
+							const shouldContinue = config.stderr(stderr.trim());
+							if (!shouldContinue) return done();
+						} else if (stderr) {
+							console.error(stderr);
 						}
 
-						if (config.solo) console.groupEnd();
+						let unintendedError;
 
-						unintendedError ? done(unintendedError) : done();
-					} else if (config.result) {
-						try {
-							config.result(code);
-							done();
-						} catch (err) {
-							done(err);
-						}
-					} else if (config.test) {
-						try {
-							config.test();
-							done();
-						} catch (err) {
-							done(err);
-						}
-					} else if (sander.existsSync('_expected') && sander.statSync('_expected').isDirectory()) {
-						try {
-							assertDirectoriesAreEqual('_actual', '_expected');
-							done();
-						} catch (err) {
-							done(err);
-						}
-					} else {
-						const expected = sander.readFileSync('_expected.js').toString();
-						try {
-							assert.equal(normaliseOutput(code), normaliseOutput(expected));
-							done();
-						} catch (err) {
-							done(err);
+						if (config.execute) {
+							try {
+								if (config.buble) {
+									code = buble.transform(code, {
+										transforms: { modules: false }
+									}).code;
+								}
+
+								const fn = new Function('require', 'module', 'exports', 'assert', code);
+								const module = {
+									exports: {}
+								};
+								fn(require, module, module.exports, assert);
+
+								if (config.error) {
+									unintendedError = new Error('Expected an error while executing output');
+								}
+
+								if (config.exports) {
+									config.exports(module.exports);
+								}
+							} catch (err) {
+								if (config.error) {
+									config.error(err);
+								} else {
+									unintendedError = err;
+								}
+							}
+
+							if (config.show || unintendedError) {
+								console.log(code + '\n\n\n');
+							}
+
+							if (config.solo) console.groupEnd();
+
+							unintendedError ? done(unintendedError) : done();
+						} else if (config.result) {
+							try {
+								config.result(code);
+								done();
+							} catch (err) {
+								done(err);
+							}
+						} else if (config.test) {
+							try {
+								config.test();
+								done();
+							} catch (err) {
+								done(err);
+							}
+						} else if (
+							sander.existsSync('_expected') &&
+							sander.statSync('_expected').isDirectory()
+						) {
+							try {
+								assertDirectoriesAreEqual('_actual', '_expected');
+								done();
+							} catch (err) {
+								done(err);
+							}
+						} else {
+							const expected = sander.readFileSync('_expected.js').toString();
+							try {
+								assert.equal(normaliseOutput(code), normaliseOutput(expected));
+								done();
+							} catch (err) {
+								done(err);
+							}
 						}
 					}
-				});
+				);
 
 				childProcess.stderr.on('data', data => {
 					if (config.abortOnStderr && config.abortOnStderr(data)) {
