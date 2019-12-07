@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 1.27.9
+*2019-12-07*
+
+### Bug Fixes
+* Fix an issue where reexports could be missing when preserving modules (#3273)
+* Allow turning of color output via NO_COLOR or FORCE_COLOR=0 environment variables (#3272)
+
+### Pull Requests
+* [#3272](https://github.com/rollup/rollup/pull/3272): Support either NO_COLOR or FORCE_COLOR=0 to turn off color (@kikonen)
+* [#3273](https://github.com/rollup/rollup/pull/3273): Make sure that indirectly reexported modules also become chunk dependencies when preserving modules(@lukastaegert)
+
 ## 1.27.8
 *2019-12-02*
 
