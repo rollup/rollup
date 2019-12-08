@@ -139,6 +139,10 @@ export class Task {
 		});
 		this.inputOptions = inputOptions;
 
+		if (config && config.cache) {
+			this.cache = config.cache as RollupCache;
+		}
+
 		this.outputs = outputOptions;
 		this.outputFiles = this.outputs.map(output => {
 			if (output.file || output.dir) return path.resolve(output.file || (output.dir as string));
