@@ -17,7 +17,8 @@ import { collapseSourcemap } from './collapseSourcemaps';
 import { decodedSourcemap } from './decodedSourcemap';
 import { augmentCodeLocation } from './error';
 import { dirname, resolve } from './path';
-import { throwPluginError, trackPluginCache } from './pluginDriver';
+import { getTrackedPluginCache } from './PluginCache';
+import { throwPluginError } from './pluginUtils';
 
 export default function transform(
 	graph: Graph,
@@ -106,7 +107,7 @@ export default function transform(
 			(pluginContext, plugin) => {
 				curPlugin = plugin;
 				if (curPlugin.cacheKey) customTransformCache = true;
-				else trackedPluginCache = trackPluginCache(pluginContext.cache);
+				else trackedPluginCache = getTrackedPluginCache(pluginContext.cache);
 				return {
 					...pluginContext,
 					cache: trackedPluginCache ? trackedPluginCache.cache : pluginContext.cache,

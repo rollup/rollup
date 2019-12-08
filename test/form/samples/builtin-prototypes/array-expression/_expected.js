@@ -3,6 +3,8 @@ const map4 = [ 1 ].map( x => x ).map( x => console.log( 1 ) );
 const map5 = [ 1 ].map( x => console.log( 1 ) ).map( x => x );
 const map7 = [ 1 ].map( x => x ).map( x => x ).map( x => console.log( 1 ) );
 const map8 = [ 1 ].map( x => x ).map( x => console.log( 1 ) ).map( x => x );
+
+[]();
 const _everyEffect = [ 1 ].every( () => console.log( 1 ) || true );
 const _filterEffect = [ 1 ].filter( () => console.log( 1 ) || true );
 const _findEffect = [ 1 ].find( () => console.log( 1 ) || true );

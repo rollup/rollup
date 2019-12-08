@@ -25,42 +25,6 @@ describe('bundle.write()', () => {
 			});
 	});
 
-	it('expects output.name for IIFE and UMD bundles', () => {
-		let bundle;
-
-		return rollup
-			.rollup({
-				input: 'x',
-				plugins: [
-					{
-						resolveId: () => 'test',
-						load: () => 'export var foo = 42;'
-					}
-				]
-			})
-			.then(rollupInstance => {
-				bundle = rollupInstance;
-				return bundle.generate({
-					format: 'umd'
-				});
-			})
-			.catch(err => {
-				assert.throws(() => {
-					throw err;
-				}, /You must supply "output\.name" for UMD bundles/);
-			})
-			.then(() => {
-				return bundle.generate({
-					format: 'iife'
-				});
-			})
-			.catch(err => {
-				assert.throws(() => {
-					throw err;
-				}, /You must supply "output\.name" for IIFE bundles/);
-			});
-	});
-
 	it('throws on es6 format', () => {
 		return rollup
 			.rollup({

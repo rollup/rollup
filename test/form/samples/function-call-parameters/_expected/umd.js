@@ -1,7 +1,7 @@
 (function (factory) {
 	typeof define === 'function' && define.amd ? define(factory) :
 	factory();
-}(function () { 'use strict';
+}((function () { 'use strict';
 
 	// parameters are associated correctly
 	const retained1 = function ( func, obj ) { return func( obj ); };
@@ -46,4 +46,4 @@
 
 	retained7( {}, {} );
 
-}));
+})));

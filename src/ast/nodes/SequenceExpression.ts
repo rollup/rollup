@@ -7,11 +7,11 @@ import {
 	RenderOptions
 } from '../../utils/renderHelpers';
 import { treeshakeNode } from '../../utils/treeshakeNode';
-import CallOptions from '../CallOptions';
+import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
-import { LiteralValueOrUnknown, ObjectPath } from '../values';
+import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { ObjectPath, PathTracker } from '../utils/PathTracker';
+import { LiteralValueOrUnknown } from '../values';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
@@ -26,7 +26,7 @@ export default class SequenceExpression extends NodeBase {
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		return this.expressions[this.expressions.length - 1].getLiteralValueAtPath(
@@ -36,47 +36,47 @@ export default class SequenceExpression extends NodeBase {
 		);
 	}
 
-	hasEffects(options: ExecutionPathOptions): boolean {
+	hasEffects(context: HasEffectsContext): boolean {
 		for (const expression of this.expressions) {
-			if (expression.hasEffects(options)) return true;
+			if (expression.hasEffects(context)) return true;
 		}
 		return false;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		return (
 			path.length > 0 &&
-			this.expressions[this.expressions.length - 1].hasEffectsWhenAccessedAtPath(path, options)
+			this.expressions[this.expressions.length - 1].hasEffectsWhenAccessedAtPath(path, context)
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		return (
 			path.length === 0 ||
-			this.expressions[this.expressions.length - 1].hasEffectsWhenAssignedAtPath(path, options)
+			this.expressions[this.expressions.length - 1].hasEffectsWhenAssignedAtPath(path, context)
 		);
 	}
 
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		options: ExecutionPathOptions
+		context: HasEffectsContext
 	): boolean {
 		return this.expressions[this.expressions.length - 1].hasEffectsWhenCalledAtPath(
 			path,
 			callOptions,
-			options
+			context
 		);
 	}
 
-	include(includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		for (let i = 0; i < this.expressions.length - 1; i++) {
 			const node = this.expressions[i];
-			if (includeChildrenRecursively || node.shouldBeIncluded())
-				node.include(includeChildrenRecursively);
+			if (includeChildrenRecursively || node.shouldBeIncluded(context))
+				node.include(context, includeChildrenRecursively);
 		}
-		this.expressions[this.expressions.length - 1].include(includeChildrenRecursively);
+		this.expressions[this.expressions.length - 1].include(context, includeChildrenRecursively);
 	}
 
 	render(

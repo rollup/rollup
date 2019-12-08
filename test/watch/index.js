@@ -363,6 +363,47 @@ describe('rollup.watch', () => {
 				});
 		});
 
+		it('recovers from a plugin error on initial build', () => {
+			let count = 0;
+			return sander
+				.copydir('test/watch/samples/basic')
+				.to('test/_tmp/input')
+				.then(() => {
+					const watcher = rollup.watch({
+						input: 'test/_tmp/input/main.js',
+						plugins: {
+							transform() {
+								if (count++ === 0) {
+									this.error('The first run failed, try again.');
+								}
+							}
+						},
+						output: {
+							file: 'test/_tmp/output/bundle.js',
+							format: 'cjs'
+						},
+						watch: { chokidar }
+					});
+
+					return sequence(watcher, [
+						'START',
+						'BUNDLE_START',
+						'ERROR',
+						() => {
+							assert.strictEqual(sander.existsSync('../_tmp/output/bundle.js'), false);
+							sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+						},
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
+						}
+					]);
+				});
+		});
+
 		it('recovers from an error even when erroring file was "renamed" (#38)', () => {
 			return sander
 				.copydir('test/watch/samples/basic')

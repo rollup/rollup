@@ -1,7 +1,7 @@
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
-import { EMPTY_PATH, LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../values';
+import { HasEffectsContext } from '../ExecutionContext';
+import { EMPTY_PATH, ObjectPath, PathTracker } from '../utils/PathTracker';
+import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import Identifier from './Identifier';
 import { LiteralValue } from './Literal';
 import * as NodeType from './NodeType';
@@ -13,7 +13,7 @@ const unaryOperators: {
 	'!': value => !value,
 	'+': value => +(value as NonNullable<LiteralValue>),
 	'-': value => -(value as NonNullable<LiteralValue>),
-	delete: () => UNKNOWN_VALUE,
+	delete: () => UnknownValue,
 	typeof: value => typeof value,
 	void: () => undefined,
 	'~': value => ~(value as NonNullable<LiteralValue>)
@@ -34,26 +34,26 @@ export default class UnaryExpression extends NodeBase {
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		if (path.length > 0) return UNKNOWN_VALUE;
+		if (path.length > 0) return UnknownValue;
 		const argumentValue = this.argument.getLiteralValueAtPath(EMPTY_PATH, recursionTracker, origin);
-		if (argumentValue === UNKNOWN_VALUE) return UNKNOWN_VALUE;
+		if (argumentValue === UnknownValue) return UnknownValue;
 
-		return unaryOperators[this.operator](argumentValue as LiteralValue);
+		return unaryOperators[this.operator](argumentValue);
 	}
 
-	hasEffects(options: ExecutionPathOptions): boolean {
+	hasEffects(context: HasEffectsContext): boolean {
 		if (this.operator === 'typeof' && this.argument instanceof Identifier) return false;
 		return (
-			this.argument.hasEffects(options) ||
+			this.argument.hasEffects(context) ||
 			(this.operator === 'delete' &&
-				this.argument.hasEffectsWhenAssignedAtPath(EMPTY_PATH, options))
+				this.argument.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context))
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
 		if (this.operator === 'void') {
 			return path.length > 0;
 		}

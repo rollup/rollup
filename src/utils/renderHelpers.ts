@@ -30,7 +30,7 @@ export function findFirstOccurrenceOutsideComment(code: string, searchString: st
 	searchPos = code.indexOf(searchString, start);
 	while (true) {
 		start = code.indexOf('/', start);
-		if (start === -1 || start > searchPos) return searchPos;
+		if (start === -1 || start >= searchPos) return searchPos;
 		charCodeAfterSlash = code.charCodeAt(++start);
 		++start;
 
@@ -116,13 +116,13 @@ export function getCommaSeparatedNodesWithBoundaries<N extends Node>(
 	code: MagicString,
 	start: number,
 	end: number
-): ({
+): {
 	contentEnd: number;
 	end: number;
 	node: N;
 	separator: number | null;
 	start: number;
-})[] {
+}[] {
 	const splitUpNodes = [];
 	let node, nextNode, nextNodeStart, contentEnd, char;
 	let separator = start - 1;

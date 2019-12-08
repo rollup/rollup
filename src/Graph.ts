@@ -1,8 +1,9 @@
 import * as acorn from 'acorn';
+import injectExportNsFrom from 'acorn-export-ns-from';
 import injectImportMeta from 'acorn-import-meta';
 import * as ESTree from 'estree';
 import GlobalScope from './ast/scopes/GlobalScope';
-import { EntityPathTracker } from './ast/utils/EntityPathTracker';
+import { PathTracker } from './ast/utils/PathTracker';
 import Chunk, { isChunkRendered } from './Chunk';
 import ExternalModule from './ExternalModule';
 import Module, { defaultAcornOptions } from './Module';
@@ -28,7 +29,7 @@ import { Uint8ArrayToHexString } from './utils/entryHashing';
 import { errDeprecation, error } from './utils/error';
 import { analyseModuleExecution, sortByExecutionOrder } from './utils/executionOrder';
 import { resolve } from './utils/path';
-import { createPluginDriver, PluginDriver } from './utils/pluginDriver';
+import { PluginDriver } from './utils/PluginDriver';
 import relativeId from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
 
@@ -64,7 +65,7 @@ export default class Graph {
 	acornParser: typeof acorn.Parser;
 	cachedModules: Map<string, ModuleJSON>;
 	contextParse: (code: string, acornOptions?: acorn.Options) => ESTree.Program;
-	deoptimizationTracker: EntityPathTracker;
+	deoptimizationTracker: PathTracker;
 	getModuleContext: (id: string) => string;
 	moduleById = new Map<string, Module | ExternalModule>();
 	moduleLoader: ModuleLoader;
@@ -87,7 +88,7 @@ export default class Graph {
 
 	constructor(options: InputOptions, watcher?: RollupWatcher) {
 		this.onwarn = (options.onwarn as WarningHandler) || makeOnwarn();
-		this.deoptimizationTracker = new EntityPathTracker();
+		this.deoptimizationTracker = new PathTracker();
 		this.cachedModules = new Map();
 		if (options.cache) {
 			if (options.cache.modules)
@@ -142,7 +143,13 @@ export default class Graph {
 				...this.acornOptions
 			}) as any;
 
-		this.pluginDriver = createPluginDriver(this, options, this.pluginCache, watcher);
+		this.pluginDriver = new PluginDriver(
+			this,
+			options.plugins as Plugin[],
+			this.pluginCache,
+			options.preserveSymlinks === true,
+			watcher
+		);
 
 		if (watcher) {
 			const handleChange = (id: string) => this.pluginDriver.hookSeqSync('watchChange', [id]);
@@ -172,7 +179,7 @@ export default class Graph {
 		this.acornOptions = options.acorn ? { ...options.acorn } : {};
 		const acornPluginsToInject = [];
 
-		acornPluginsToInject.push(injectImportMeta);
+		acornPluginsToInject.push(injectImportMeta, injectExportNsFrom);
 
 		if (options.experimentalTopLevelAwait) {
 			(this.acornOptions as any).allowAwaitOutsideFunction = true;
@@ -388,6 +395,7 @@ export default class Graph {
 		for (const cyclePath of cyclePaths) {
 			this.warn({
 				code: 'CIRCULAR_DEPENDENCY',
+				cycle: cyclePath,
 				importer: cyclePath[0],
 				message: `Circular dependency: ${cyclePath.join(' -> ')}`
 			});

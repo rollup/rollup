@@ -3,6 +3,7 @@ module.exports = {
 	options: { output: { exports: 'none' } },
 	generateError: {
 		code: 'INVALID_EXPORT_OPTION',
-		message: `'none' was specified for output.exports, but entry module has following exports: default`
+		message:
+			'"none" was specified for "output.exports", but entry module "main.js" has the following exports: default'
 	}
 };

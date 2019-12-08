@@ -1,23 +1,23 @@
 import MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import CallOptions from '../CallOptions';
+import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { HasEffectsContext } from '../ExecutionContext';
 import {
 	EMPTY_IMMUTABLE_TRACKER,
-	ImmutableEntityPathTracker
-} from '../utils/ImmutableEntityPathTracker';
-import {
 	EMPTY_PATH,
+	ObjectPath,
+	PathTracker,
+	UNKNOWN_PATH
+} from '../utils/PathTracker';
+import {
 	getMemberReturnExpressionWhenCalled,
 	hasMemberEffectWhenCalled,
 	LiteralValueOrUnknown,
 	objectMembers,
-	ObjectPath,
 	UNKNOWN_EXPRESSION,
-	UNKNOWN_PATH,
-	UNKNOWN_VALUE
+	UnknownValue
 } from '../values';
 import Identifier from './Identifier';
 import Literal from './Literal';
@@ -36,11 +36,12 @@ interface PropertyMap {
 	};
 }
 
-export default class ObjectExpression extends NodeBase {
+export default class ObjectExpression extends NodeBase implements DeoptimizableEntity {
 	properties!: (Property | SpreadElement)[];
 	type!: NodeType.tObjectExpression;
 
 	private deoptimizedPaths = new Set<string>();
+
 	// We collect deoptimization information if we can resolve a computed property access
 	private expressionsToBeDeoptimized = new Map<string, DeoptimizableEntity[]>();
 	private hasUnknownDeoptimizedProperty = false;
@@ -96,7 +97,7 @@ export default class ObjectExpression extends NodeBase {
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (this.propertyMap === null) this.buildPropertyMap();
@@ -108,13 +109,13 @@ export default class ObjectExpression extends NodeBase {
 			typeof key !== 'string' ||
 			this.deoptimizedPaths.has(key)
 		)
-			return UNKNOWN_VALUE;
+			return UnknownValue;
 
 		if (
 			path.length === 1 &&
 			!(this.propertyMap as PropertyMap)[key] &&
 			!objectMembers[key] &&
-			(this.unmatchablePropertiesRead).length === 0
+			this.unmatchablePropertiesRead.length === 0
 		) {
 			const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized.get(key);
 			if (expressionsToBeDeoptimized) {
@@ -130,7 +131,7 @@ export default class ObjectExpression extends NodeBase {
 			(this.propertyMap as PropertyMap)[key].exactMatchRead === null ||
 			(this.propertyMap as PropertyMap)[key].propertiesRead.length > 1
 		) {
-			return UNKNOWN_VALUE;
+			return UnknownValue;
 		}
 
 		const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized.get(key);
@@ -145,7 +146,7 @@ export default class ObjectExpression extends NodeBase {
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
 		if (this.propertyMap === null) this.buildPropertyMap();
@@ -189,7 +190,7 @@ export default class ObjectExpression extends NodeBase {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext) {
 		if (path.length === 0) return false;
 		const key = path[0];
 		if (
@@ -208,12 +209,12 @@ export default class ObjectExpression extends NodeBase {
 			: (this.propertyMap as PropertyMap)[key]
 			? (this.propertyMap as PropertyMap)[key].propertiesRead
 			: []) {
-			if (property.hasEffectsWhenAccessedAtPath(subPath, options)) return true;
+			if (property.hasEffectsWhenAccessedAtPath(subPath, context)) return true;
 		}
 		return false;
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext) {
 		if (path.length === 0) return false;
 		const key = path[0];
 		if (
@@ -234,7 +235,7 @@ export default class ObjectExpression extends NodeBase {
 			: (this.propertyMap as PropertyMap)[key]
 			? (this.propertyMap as PropertyMap)[key].propertiesSet
 			: []) {
-			if (property.hasEffectsWhenAssignedAtPath(subPath, options)) return true;
+			if (property.hasEffectsWhenAssignedAtPath(subPath, context)) return true;
 		}
 		return false;
 	}
@@ -242,7 +243,7 @@ export default class ObjectExpression extends NodeBase {
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		options: ExecutionPathOptions
+		context: HasEffectsContext
 	): boolean {
 		const key = path[0];
 		if (
@@ -259,10 +260,10 @@ export default class ObjectExpression extends NodeBase {
 		for (const property of (this.propertyMap as PropertyMap)[key]
 			? (this.propertyMap as PropertyMap)[key].propertiesRead
 			: []) {
-			if (property.hasEffectsWhenCalledAtPath(subPath, callOptions, options)) return true;
+			if (property.hasEffectsWhenCalledAtPath(subPath, callOptions, context)) return true;
 		}
 		if (path.length === 1 && objectMembers[key])
-			return hasMemberEffectWhenCalled(objectMembers, key, this.included, callOptions, options);
+			return hasMemberEffectWhenCalled(objectMembers, key, this.included, callOptions, context);
 		return false;
 	}
 
@@ -295,7 +296,7 @@ export default class ObjectExpression extends NodeBase {
 					EMPTY_IMMUTABLE_TRACKER,
 					this
 				);
-				if (keyValue === UNKNOWN_VALUE) {
+				if (keyValue === UnknownValue) {
 					if (isRead) {
 						this.unmatchablePropertiesRead.push(property);
 					} else {

@@ -3,6 +3,7 @@ import { InputOptions, OutputBundleWithPlaceholders, OutputOptions } from '../ro
 import { Addons } from './addons';
 import { FILE_PLACEHOLDER } from './FileEmitter';
 import { basename } from './path';
+import { PluginDriver } from './PluginDriver';
 
 export function assignChunkIds(
 	chunks: Chunk[],
@@ -10,7 +11,8 @@ export function assignChunkIds(
 	outputOptions: OutputOptions,
 	inputBase: string,
 	addons: Addons,
-	bundle: OutputBundleWithPlaceholders
+	bundle: OutputBundleWithPlaceholders,
+	outputPluginDriver: PluginDriver
 ) {
 	const entryChunks: Chunk[] = [];
 	const otherChunks: Chunk[] = [];
@@ -29,7 +31,7 @@ export function assignChunkIds(
 		} else if (inputOptions.preserveModules) {
 			chunk.id = chunk.generateIdPreserveModules(inputBase, outputOptions, bundle);
 		} else {
-			chunk.id = chunk.generateId(addons, outputOptions, bundle, true);
+			chunk.id = chunk.generateId(addons, outputOptions, bundle, true, outputPluginDriver);
 		}
 		bundle[chunk.id] = FILE_PLACEHOLDER;
 	}

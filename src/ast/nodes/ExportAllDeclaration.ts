@@ -1,5 +1,4 @@
 import MagicString from 'magic-string';
-import { BLANK } from '../../utils/blank';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import Literal from './Literal';
 import * as NodeType from './NodeType';
@@ -18,8 +17,11 @@ export default class ExportAllDeclaration extends NodeBase {
 		this.context.addExport(this);
 	}
 
-	render(code: MagicString, _options: RenderOptions, { start, end }: NodeRenderOptions = BLANK) {
-		code.remove(start as number, end as number);
+	render(code: MagicString, _options: RenderOptions, nodeRenderOptions?: NodeRenderOptions) {
+		code.remove(
+			(nodeRenderOptions as NodeRenderOptions).start as number,
+			(nodeRenderOptions as NodeRenderOptions).end as number
+		);
 	}
 }
 

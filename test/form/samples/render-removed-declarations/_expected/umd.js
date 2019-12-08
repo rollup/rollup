@@ -1,7 +1,7 @@
 (function (factory) {
     typeof define === 'function' && define.amd ? define(factory) :
     factory();
-}(function () { 'use strict';
+}((function () { 'use strict';
 
     // -> Middle removed
     var kept1 = 1, kept2 = 3;
@@ -59,4 +59,4 @@
 
     console.log( kept1, kept2 );
 
-}));
+})));

@@ -16,6 +16,7 @@ module.exports = {
 		message:
 			'Returning "dependencies" from the "transform" hook as done by plugin at position 1 is deprecated. The "this.addWatchFile" plugin context function should be used instead.',
 		plugin: 'at position 1',
-		pluginCode: 'DEPRECATED_FEATURE'
+		pluginCode: 'DEPRECATED_FEATURE',
+		watchFiles: [path.resolve(__dirname, 'main.js')]
 	}
 };

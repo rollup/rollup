@@ -1,6 +1,7 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
-import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../values';
+import { ObjectPath } from '../utils/PathTracker';
+import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import TemplateElement from './TemplateElement';
@@ -12,7 +13,7 @@ export default class TemplateLiteral extends NodeBase {
 
 	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
 		if (path.length > 0 || this.quasis.length !== 1) {
-			return UNKNOWN_VALUE;
+			return UnknownValue;
 		}
 		return this.quasis[0].value.cooked;
 	}

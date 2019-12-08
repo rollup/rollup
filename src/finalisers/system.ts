@@ -8,13 +8,14 @@ function getStarExcludes({ dependencies, exports }: ModuleDeclarations): Set<str
 	const starExcludes = new Set(exports.map(expt => expt.exported));
 	if (!starExcludes.has('default')) starExcludes.add('default');
 	// also include reexport names
-	dependencies.forEach(({ reexports }) => {
-		if (reexports)
-			reexports.forEach(reexport => {
+	for (const { reexports } of dependencies) {
+		if (reexports) {
+			for (const reexport of reexports) {
 				if (reexport.imported !== '*' && !starExcludes.has(reexport.reexported))
 					starExcludes.add(reexport.reexported);
-			});
-	});
+			}
+		}
+	}
 	return starExcludes;
 }
 
@@ -101,17 +102,17 @@ export default function system(
 	let starExcludes: Set<string> | undefined;
 	const setters: string[] = [];
 
-	dependencies.forEach(({ imports, reexports }) => {
+	for (const { imports, reexports } of dependencies) {
 		const setter: string[] = [];
 		if (imports) {
-			imports.forEach(specifier => {
+			for (const specifier of imports) {
 				importBindings.push(specifier.local);
 				if (specifier.imported === '*') {
 					setter.push(`${specifier.local}${_}=${_}module;`);
 				} else {
 					setter.push(`${specifier.local}${_}=${_}module.${specifier.imported};`);
 				}
-			});
+			}
 		}
 		if (reexports) {
 			let createdSetter = false;
@@ -122,8 +123,8 @@ export default function system(
 					(reexports[0].reexported === '*' || reexports[0].imported === '*'))
 			) {
 				// star reexports
-				reexports.forEach(specifier => {
-					if (specifier.reexported !== '*') return;
+				for (const specifier of reexports) {
+					if (specifier.reexported !== '*') continue;
 					// need own exports list for deduping in star export case
 					if (!starExcludes) {
 						starExcludes = getStarExcludes({ dependencies, exports });
@@ -135,33 +136,33 @@ export default function system(
 					setter.push(`for${_}(var _$p${_}in${_}module)${_}{`);
 					setter.push(`${t}if${_}(!_starExcludes[_$p])${_}_setter[_$p]${_}=${_}module[_$p];`);
 					setter.push('}');
-				});
+				}
 				// star import reexport
-				reexports.forEach(specifier => {
-					if (specifier.imported !== '*' || specifier.reexported === '*') return;
+				for (const specifier of reexports) {
+					if (specifier.imported !== '*' || specifier.reexported === '*') continue;
 					setter.push(`exports('${specifier.reexported}',${_}module);`);
-				});
+				}
 				// reexports
-				reexports.forEach(specifier => {
-					if (specifier.reexported === '*' || specifier.imported === '*') return;
+				for (const specifier of reexports) {
+					if (specifier.reexported === '*' || specifier.imported === '*') continue;
 					if (!createdSetter) {
 						setter.push(`${varOrConst} _setter${_}=${_}{};`);
 						createdSetter = true;
 					}
 					setter.push(`_setter.${specifier.reexported}${_}=${_}module.${specifier.imported};`);
-				});
+				}
 				if (createdSetter) {
 					setter.push('exports(_setter);');
 				}
 			} else {
 				// single reexport
-				reexports.forEach(specifier => {
+				for (const specifier of reexports) {
 					setter.push(`exports('${specifier.reexported}',${_}module.${specifier.imported});`);
-				});
+				}
 			}
 		}
 		setters.push(setter.join(`${n}${t}${t}${t}`));
-	});
+	}
 
 	const registeredName = options.name ? `'${options.name}',${_}` : '';
 	const wrapperParams = accessedGlobals.has('module')

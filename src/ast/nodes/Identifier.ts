@@ -2,12 +2,12 @@ import isReference from 'is-reference';
 import MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import CallOptions from '../CallOptions';
+import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import FunctionScope from '../scopes/FunctionScope';
-import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
-import { EMPTY_PATH, LiteralValueOrUnknown, ObjectPath } from '../values';
+import { EMPTY_PATH, ObjectPath, PathTracker } from '../utils/PathTracker';
+import { LiteralValueOrUnknown } from '../values';
 import GlobalVariable from '../variables/GlobalVariable';
 import LocalVariable from '../variables/LocalVariable';
 import Variable from '../variables/Variable';
@@ -52,8 +52,10 @@ export default class Identifier extends NodeBase implements PatternNode {
 		let variable: LocalVariable;
 		switch (kind) {
 			case 'var':
-			case 'function':
 				variable = this.scope.addDeclaration(this, this.context, init, true);
+				break;
+			case 'function':
+				variable = this.scope.addDeclaration(this, this.context, init, 'function');
 				break;
 			case 'let':
 			case 'const':
@@ -81,7 +83,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (!this.bound) this.bind();
@@ -90,7 +92,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	) {
 		if (!this.bound) this.bind();
@@ -109,33 +111,33 @@ export default class Identifier extends NodeBase implements PatternNode {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return this.variable !== null && this.variable.hasEffectsWhenAccessedAtPath(path, options);
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
+		return this.variable !== null && this.variable.hasEffectsWhenAccessedAtPath(path, context);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return !this.variable || this.variable.hasEffectsWhenAssignedAtPath(path, options);
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
+		return !this.variable || this.variable.hasEffectsWhenAssignedAtPath(path, context);
 	}
 
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		options: ExecutionPathOptions
+		context: HasEffectsContext
 	) {
-		return !this.variable || this.variable.hasEffectsWhenCalledAtPath(path, callOptions, options);
+		return !this.variable || this.variable.hasEffectsWhenCalledAtPath(path, callOptions, context);
 	}
 
-	include() {
+	include(context: InclusionContext) {
 		if (!this.included) {
 			this.included = true;
 			if (this.variable !== null) {
-				this.context.includeVariable(this.variable);
+				this.context.includeVariable(context, this.variable);
 			}
 		}
 	}
 
-	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
-		(this.variable as Variable).includeCallArguments(args);
+	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
+		(this.variable as Variable).includeCallArguments(context, args);
 	}
 
 	render(

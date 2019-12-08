@@ -23,6 +23,7 @@ export default function getExportBlock(
 						dep.namedExportsMode && expt.imported !== '*' && expt.imported !== 'default'
 							? `${dep.name}.${expt.imported}`
 							: dep.name;
+					break;
 				}
 			}
 		}
@@ -32,9 +33,9 @@ export default function getExportBlock(
 	let exportBlock = '';
 
 	// star exports must always output first for precedence
-	dependencies.forEach(({ name, reexports }) => {
+	for (const { name, reexports } of dependencies) {
 		if (reexports && namedExportsMode) {
-			reexports.forEach(specifier => {
+			for (const specifier of reexports) {
 				if (specifier.reexported === '*') {
 					if (exportBlock) exportBlock += n;
 					if (specifier.needsLiveBinding) {
@@ -51,9 +52,9 @@ export default function getExportBlock(
 							`${t}if${_}(k${_}!==${_}'default')${_}exports[k]${_}=${_}${name}[k];${n}});`;
 					}
 				}
-			});
+			}
 		}
-	});
+	}
 
 	for (const {
 		name,

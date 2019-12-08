@@ -10,7 +10,7 @@ System.register('iife', [], function (exports) {
       });
 
       function update () {
-        foo += exports('foo', 10);
+        foo = exports('foo', foo + 10);
       }
 
       let foo = exports('foo', 10);

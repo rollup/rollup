@@ -1,16 +1,15 @@
 import MagicString from 'magic-string';
-import { RenderOptions } from '../../utils/renderHelpers';
-import CallOptions from '../CallOptions';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { CallOptions } from '../CallOptions';
+import { HasEffectsContext } from '../ExecutionContext';
+import { ObjectPath } from '../utils/PathTracker';
 import {
 	getLiteralMembersForValue,
 	getMemberReturnExpressionWhenCalled,
 	hasMemberEffectWhenCalled,
 	LiteralValueOrUnknown,
 	MemberDescription,
-	ObjectPath,
 	UNKNOWN_EXPRESSION,
-	UNKNOWN_VALUE
+	UnknownValue
 } from '../values';
 import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
@@ -32,7 +31,7 @@ export default class Literal<T = LiteralValue> extends NodeBase {
 			// to support shims for regular expressions
 			this.context.code.charCodeAt(this.start) === 47
 		) {
-			return UNKNOWN_VALUE;
+			return UnknownValue;
 		}
 		return this.value as any;
 	}
@@ -56,10 +55,10 @@ export default class Literal<T = LiteralValue> extends NodeBase {
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		options: ExecutionPathOptions
+		context: HasEffectsContext
 	): boolean {
 		if (path.length === 1) {
-			return hasMemberEffectWhenCalled(this.members, path[0], this.included, callOptions, options);
+			return hasMemberEffectWhenCalled(this.members, path[0], this.included, callOptions, context);
 		}
 		return true;
 	}
@@ -68,7 +67,7 @@ export default class Literal<T = LiteralValue> extends NodeBase {
 		this.members = getLiteralMembersForValue(this.value);
 	}
 
-	render(code: MagicString, _options: RenderOptions) {
+	render(code: MagicString) {
 		if (typeof this.value === 'string') {
 			(code.indentExclusionRanges as [number, number][]).push([this.start + 1, this.end - 1]);
 		}
