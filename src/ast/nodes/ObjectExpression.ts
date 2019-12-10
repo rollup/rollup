@@ -63,10 +63,6 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 	deoptimizePath(path: ObjectPath) {
 		if (this.hasUnknownDeoptimizedProperty) return;
 		const propertyMap = this.getPropertyMap();
-		if (path.length === 0) {
-			this.deoptimizeAllProperties();
-			return;
-		}
 		const key = path[0];
 		if (path.length === 1) {
 			if (typeof key !== 'string') {
@@ -218,18 +214,17 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext) {
-		if (path.length === 0) return false;
 		const key = path[0];
 		const propertyMap = this.propertyMap!;
 		if (
 			path.length > 1 &&
 			(this.hasUnknownDeoptimizedProperty ||
-				typeof key !== 'string' ||
-				this.deoptimizedPaths.has(key) ||
-				!propertyMap[key] ||
-				propertyMap[key].exactMatchRead === null)
-		)
+				this.deoptimizedPaths.has(key as string) ||
+				!propertyMap[key as string] ||
+				propertyMap[key as string].exactMatchRead === null)
+		) {
 			return true;
+		}
 
 		const subPath = path.slice(1);
 		for (const property of typeof key !== 'string'
