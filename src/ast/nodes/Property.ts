@@ -52,10 +52,8 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 
 	deoptimizePath(path: ObjectPath) {
 		if (this.kind === 'get') {
-			if (path.length > 0) {
-				this.getReturnExpression().deoptimizePath(path);
-			}
-		} else if (this.kind !== 'set') {
+			this.getReturnExpression().deoptimizePath(path);
+		} else {
 			this.value.deoptimizePath(path);
 		}
 	}
