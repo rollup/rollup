@@ -10,7 +10,7 @@ function assertThrows(callback, description) {
 
 assertThrows(() => {
 	const obj = { first: { second: 0} };
-	obj[globalThis.unknown].second = 1;
+	obj[globalOther].second = 1;
 }, 'sub-property of unknown property');
 
 assertThrows(() => {

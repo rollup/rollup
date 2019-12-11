@@ -44,11 +44,9 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 		return this.value.declare(kind, UNKNOWN_EXPRESSION);
 	}
 
-	deoptimizeCache(): void {
-		// As getter properties directly receive their values from function expressions that always
-		// have a fixed return value, there is no known situation where a getter is deoptimized.
-		throw new Error('Unexpected deoptimization');
-	}
+	// As getter properties directly receive their values from function expressions that always
+	// have a fixed return value, there is no known situation where a getter is deoptimized.
+	deoptimizeCache(): void {}
 
 	deoptimizePath(path: ObjectPath) {
 		if (this.kind === 'get') {

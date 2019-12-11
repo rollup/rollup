@@ -246,18 +246,20 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 	): boolean {
 		const key = path[0];
 		if (
-			path.length === 0 ||
-			this.hasUnknownDeoptimizedProperty ||
 			typeof key !== 'string' ||
+			this.hasUnknownDeoptimizedProperty ||
 			this.deoptimizedPaths.has(key) ||
 			(this.propertyMap![key]
 				? !this.propertyMap![key].exactMatchRead
 				: path.length > 1 || !objectMembers[key])
-		)
+		) {
 			return true;
+		}
 		const subPath = path.slice(1);
-		for (const property of this.propertyMap![key] ? this.propertyMap![key].propertiesRead : []) {
-			if (property.hasEffectsWhenCalledAtPath(subPath, callOptions, context)) return true;
+		if (this.propertyMap![key]) {
+			for (const property of this.propertyMap![key].propertiesRead) {
+				if (property.hasEffectsWhenCalledAtPath(subPath, callOptions, context)) return true;
+			}
 		}
 		if (path.length === 1 && objectMembers[key])
 			return hasMemberEffectWhenCalled(objectMembers, key, this.included, callOptions, context);
