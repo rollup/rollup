@@ -4,10 +4,10 @@ import { CallOptions, NO_ARGS } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext } from '../ExecutionContext';
 import {
-	EMPTY_IMMUTABLE_TRACKER,
 	EMPTY_PATH,
 	ObjectPath,
 	PathTracker,
+	SHARED_RECURSION_TRACKER,
 	UnknownKey
 } from '../utils/PathTracker';
 import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION } from '../values';
@@ -30,7 +30,10 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 
 	bind() {
 		super.bind();
-		if (this.kind === 'get' && this.returnExpression === null) this.updateReturnExpression();
+		if (this.kind === 'get') {
+			// ensure the returnExpression is set for the tree-shaking passes
+			this.getReturnExpression();
+		}
 		if (this.declarationInit !== null) {
 			this.declarationInit.deoptimizePath([UnknownKey, UnknownKey]);
 		}
@@ -41,19 +44,14 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 		return this.value.declare(kind, UNKNOWN_EXPRESSION);
 	}
 
-	deoptimizeCache() {
-		// As getter properties directly receive their values from function expressions that always
-		// have a fixed return value, there is no known situation where a getter is deoptimized.
-		throw new Error('Unexpected deoptimization');
-	}
+	// As getter properties directly receive their values from function expressions that always
+	// have a fixed return value, there is no known situation where a getter is deoptimized.
+	deoptimizeCache(): void {}
 
 	deoptimizePath(path: ObjectPath) {
 		if (this.kind === 'get') {
-			if (path.length > 0) {
-				if (this.returnExpression === null) this.updateReturnExpression();
-				(this.returnExpression as ExpressionEntity).deoptimizePath(path);
-			}
-		} else if (this.kind !== 'set') {
+			this.getReturnExpression().deoptimizePath(path);
+		} else {
 			this.value.deoptimizePath(path);
 		}
 	}
@@ -64,12 +62,7 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (this.kind === 'get') {
-			if (this.returnExpression === null) this.updateReturnExpression();
-			return (this.returnExpression as ExpressionEntity).getLiteralValueAtPath(
-				path,
-				recursionTracker,
-				origin
-			);
+			return this.getReturnExpression().getLiteralValueAtPath(path, recursionTracker, origin);
 		}
 		return this.value.getLiteralValueAtPath(path, recursionTracker, origin);
 	}
@@ -80,8 +73,7 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
 		if (this.kind === 'get') {
-			if (this.returnExpression === null) this.updateReturnExpression();
-			return (this.returnExpression as ExpressionEntity).getReturnExpressionWhenCalledAtPath(
+			return this.getReturnExpression().getReturnExpressionWhenCalledAtPath(
 				path,
 				recursionTracker,
 				origin
@@ -162,12 +154,15 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 		this.value.render(code, options, { isShorthandProperty: this.shorthand });
 	}
 
-	private updateReturnExpression() {
-		this.returnExpression = UNKNOWN_EXPRESSION;
-		this.returnExpression = this.value.getReturnExpressionWhenCalledAtPath(
-			EMPTY_PATH,
-			EMPTY_IMMUTABLE_TRACKER,
-			this
-		);
+	private getReturnExpression(): ExpressionEntity {
+		if (this.returnExpression === null) {
+			this.returnExpression = UNKNOWN_EXPRESSION;
+			return (this.returnExpression = this.value.getReturnExpressionWhenCalledAtPath(
+				EMPTY_PATH,
+				SHARED_RECURSION_TRACKER,
+				this
+			));
+		}
+		return this.returnExpression;
 	}
 }
