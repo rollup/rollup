@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.27.10
+*2019-12-11*
+
+### Bug Fixes
+* Keep track of function return values in more situations (#3278)
+
+### Pull Requests
+* [#3278](https://github.com/rollup/rollup/pull/3278): Avoid some unnecessary value tracking deoptimizations (@lukastaegert)
+
 ## 1.27.9
 *2019-12-07*
 
