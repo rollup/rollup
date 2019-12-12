@@ -45,10 +45,12 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		if (this.usedBranch !== null) {
 			const unusedBranch = this.usedBranch === this.consequent ? this.alternate : this.consequent;
 			this.usedBranch = null;
+			const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized;
+			this.expressionsToBeDeoptimized = [];
 			if (this.wasPathDeoptimizedWhileOptimized) {
 				unusedBranch.deoptimizePath(UNKNOWN_PATH);
 			}
-			for (const expression of this.expressionsToBeDeoptimized) {
+			for (const expression of expressionsToBeDeoptimized) {
 				expression.deoptimizeCache();
 			}
 		}
