@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.27.11
+*2019-12-12*
+
+### Bug Fixes
+* Resolve a crash due to an infinite loop (#3280)
+
+### Pull Requests
+* [#3280](https://github.com/rollup/rollup/pull/3280): Prevent infinite deoptimizations (@lukastaegert)
+
 ## 1.27.10
 *2019-12-11*
 
