@@ -115,11 +115,13 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	}
 
 	deoptimizeCache() {
+		const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized;
+		this.expressionsToBeDeoptimized = [];
 		this.propertyKey = UnknownKey;
 		if (this.wasPathDeoptimizedWhileOptimized) {
 			this.object.deoptimizePath(UNKNOWN_PATH);
 		}
-		for (const expression of this.expressionsToBeDeoptimized) {
+		for (const expression of expressionsToBeDeoptimized) {
 			expression.deoptimizeCache();
 		}
 	}

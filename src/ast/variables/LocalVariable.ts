@@ -70,7 +70,9 @@ export default class LocalVariable extends Variable {
 		if (path.length === 0) {
 			if (!this.isReassigned) {
 				this.isReassigned = true;
-				for (const expression of this.expressionsToBeDeoptimized) {
+				const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized;
+				this.expressionsToBeDeoptimized = [];
+				for (const expression of expressionsToBeDeoptimized) {
 					expression.deoptimizeCache();
 				}
 				if (this.init) {
