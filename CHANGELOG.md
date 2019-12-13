@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.27.12
+*2019-12-13*
+
+### Bug Fixes
+* Prevent invalid AMD or SystemJS code when accessing `import.meta` (#3282)
+
+### Pull Requests
+* [#3282](https://github.com/rollup/rollup/pull/3282): Always make "module" available for SystemJS and AMD formats if `import.meta` is accessed directly (@lukastaegert)
+
 ## 1.27.11
 *2019-12-12*
 
