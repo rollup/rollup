@@ -48,7 +48,7 @@ export default function runRollup(command: any) {
 		environment.forEach((arg: string) => {
 			arg.split(',').forEach((pair: string) => {
 				const [key, ...value] = pair.split(':');
-				if (value) {
+				if (value && value.length) {
 					process.env[key] = value.join(':');
 				} else {
 					process.env[key] = String(true);
