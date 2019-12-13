@@ -3,6 +3,7 @@ module.exports = {
 	warnings: [
 		{
 			code: 'CIRCULAR_DEPENDENCY',
+			cycle: ['evens.js', 'odds.js', 'evens.js'],
 			importer: 'evens.js',
 			message: 'Circular dependency: evens.js -> odds.js -> evens.js'
 		}

@@ -6,4 +6,4 @@ var external = _interopDefault(require('external'));
 
 
 
-exports.default = external;
+module.exports = external;

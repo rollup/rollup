@@ -39,8 +39,9 @@ export default function loadConfigFile(
 		})
 		.then(({ output: [{ code }] }: RollupOutput) => {
 			// temporarily override require
-			const defaultLoader = require.extensions['.js'];
-			require.extensions['.js'] = (module: NodeModule, filename: string) => {
+			const extension = path.extname(configFile);
+			const defaultLoader = require.extensions[extension];
+			require.extensions[extension] = (module: NodeModule, filename: string) => {
 				if (filename === configFile) {
 					(module as NodeModuleWithCompile)._compile(code, filename);
 				} else {
@@ -67,7 +68,7 @@ export default function loadConfigFile(
 						});
 					}
 
-					require.extensions['.js'] = defaultLoader;
+					require.extensions[extension] = defaultLoader;
 
 					return Array.isArray(configs) ? configs : [configs];
 				});

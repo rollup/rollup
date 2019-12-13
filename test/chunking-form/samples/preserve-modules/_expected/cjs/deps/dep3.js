@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var lib1 = require('../lib/lib1.js');
 
 function fn () {

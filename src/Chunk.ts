@@ -32,6 +32,7 @@ import { sortByExecutionOrder } from './utils/executionOrder';
 import getIndentString from './utils/getIndentString';
 import { makeLegal } from './utils/identifierHelpers';
 import { basename, dirname, extname, isAbsolute, normalize, resolve } from './utils/path';
+import { PluginDriver } from './utils/PluginDriver';
 import relativeId, { getAliasName } from './utils/relativeId';
 import renderChunk from './utils/renderChunk';
 import { RenderOptions } from './utils/renderHelpers';
@@ -256,7 +257,8 @@ export default class Chunk {
 		addons: Addons,
 		options: OutputOptions,
 		existingNames: Record<string, any>,
-		includeHash: boolean
+		includeHash: boolean,
+		outputPluginDriver: PluginDriver
 	): string {
 		if (this.fileName !== null) {
 			return this.fileName;
@@ -270,7 +272,12 @@ export default class Chunk {
 				format: () => (options.format === 'es' ? 'esm' : (options.format as string)),
 				hash: () =>
 					includeHash
-						? this.computeContentHashWithDependencies(addons, options, existingNames)
+						? this.computeContentHashWithDependencies(
+								addons,
+								options,
+								existingNames,
+								outputPluginDriver
+						  )
 						: '[hash]',
 				name: () => this.getChunkName()
 			}),
@@ -363,11 +370,11 @@ export default class Chunk {
 		return this.dependencies.map(chunk => chunk.id).filter(Boolean) as string[];
 	}
 
-	getRenderedHash(): string {
+	getRenderedHash(outputPluginDriver: PluginDriver): string {
 		if (this.renderedHash) return this.renderedHash;
 		if (!this.renderedSource) return '';
 		const hash = createHash();
-		const hashAugmentation = this.calculateHashAugmentation();
+		const hashAugmentation = this.calculateHashAugmentation(outputPluginDriver);
 		hash.update(hashAugmentation);
 		hash.update(this.renderedSource.toString());
 		hash.update(
@@ -612,10 +619,12 @@ export default class Chunk {
 		this.renderedSourceLength = undefined as any;
 		this.renderedHash = undefined as any;
 
-		if (this.getExportNames().length === 0 && this.getImportIds().length === 0 && this.isEmpty) {
+		if (this.isEmpty && this.getExportNames().length === 0 && this.dependencies.length === 0) {
+			const chunkName = this.getChunkName();
 			this.graph.warn({
+				chunkName,
 				code: 'EMPTY_BUNDLE',
-				message: 'Generated an empty bundle'
+				message: `Generated an empty chunk: "${chunkName}"`
 			});
 		}
 
@@ -629,22 +638,16 @@ export default class Chunk {
 		timeEnd('render modules', 3);
 	}
 
-	render(options: OutputOptions, addons: Addons, outputChunk: RenderedChunk) {
+	render(
+		options: OutputOptions,
+		addons: Addons,
+		outputChunk: RenderedChunk,
+		outputPluginDriver: PluginDriver
+	) {
 		timeStart('render format', 3);
-
-		if (!this.renderedSource)
-			throw new Error('Internal error: Chunk render called before preRender');
 
 		const format = options.format as string;
 		const finalise = finalisers[format];
-		if (!finalise) {
-			error({
-				code: 'INVALID_OPTION',
-				message: `Invalid format: ${format} - valid options are ${Object.keys(finalisers).join(
-					', '
-				)}.`
-			});
-		}
 		if (options.dynamicImportFunction && format !== 'es') {
 			this.graph.warn({
 				code: 'INVALID_OPTION',
@@ -665,7 +668,7 @@ export default class Chunk {
 		}
 
 		this.finaliseDynamicImports(format);
-		this.finaliseImportMetas(format);
+		this.finaliseImportMetas(format, outputPluginDriver);
 
 		const hasExports =
 			this.renderedDeclarations.exports.length !== 0 ||
@@ -697,7 +700,7 @@ export default class Chunk {
 		}
 
 		const magicString = finalise(
-			this.renderedSource,
+			this.renderedSource as MagicStringBundle,
 			{
 				accessedGlobals,
 				dependencies: this.renderedDeclarations.dependencies,
@@ -705,7 +708,9 @@ export default class Chunk {
 				hasExports,
 				indentString: this.indentString,
 				intro: addons.intro as string,
-				isEntryModuleFacade: this.facadeModule !== null && this.facadeModule.isEntryPoint,
+				isEntryModuleFacade:
+					this.graph.preserveModules ||
+					(this.facadeModule !== null && this.facadeModule.isEntryPoint),
 				namedExportsMode: this.exportMode !== 'default',
 				outro: addons.outro as string,
 				usesTopLevelAwait,
@@ -726,8 +731,8 @@ export default class Chunk {
 		return renderChunk({
 			chunk: this,
 			code: prevCode,
-			graph: this.graph,
 			options,
+			outputPluginDriver,
 			renderChunk: outputChunk,
 			sourcemapChain: chunkSourcemapChain
 		}).then((code: string) => {
@@ -826,7 +831,7 @@ export default class Chunk {
 		}
 	}
 
-	private calculateHashAugmentation(): string {
+	private calculateHashAugmentation(outputPluginDriver: PluginDriver): string {
 		const facadeModule = this.facadeModule;
 		const getChunkName = this.getChunkName.bind(this);
 		const preRenderedChunk = {
@@ -841,7 +846,7 @@ export default class Chunk {
 				return getChunkName();
 			}
 		} as PreRenderedChunk;
-		const hashAugmentation = this.graph.pluginDriver.hookReduceValueSync(
+		return outputPluginDriver.hookReduceValueSync(
 			'augmentChunkHash',
 			'',
 			[preRenderedChunk],
@@ -852,13 +857,13 @@ export default class Chunk {
 				return hashAugmentation;
 			}
 		);
-		return hashAugmentation;
 	}
 
 	private computeContentHashWithDependencies(
 		addons: Addons,
 		options: OutputOptions,
-		existingNames: Record<string, any>
+		existingNames: Record<string, any>,
+		outputPluginDriver: PluginDriver
 	): string {
 		const hash = createHash();
 		hash.update(
@@ -869,8 +874,8 @@ export default class Chunk {
 			if (dep instanceof ExternalModule) {
 				hash.update(':' + dep.renderPath);
 			} else {
-				hash.update(dep.getRenderedHash());
-				hash.update(dep.generateId(addons, options, existingNames, false));
+				hash.update(dep.getRenderedHash(outputPluginDriver));
+				hash.update(dep.generateId(addons, options, existingNames, false, outputPluginDriver));
 			}
 		});
 
@@ -907,10 +912,10 @@ export default class Chunk {
 		}
 	}
 
-	private finaliseImportMetas(format: string): void {
+	private finaliseImportMetas(format: string, outputPluginDriver: PluginDriver): void {
 		for (const [module, code] of this.renderedModuleSources) {
 			for (const importMeta of module.importMetas) {
-				importMeta.renderFinalMechanism(code, this.id as string, format, this.graph.pluginDriver);
+				importMeta.renderFinalMechanism(code, this.id as string, format, outputPluginDriver);
 			}
 		}
 	}

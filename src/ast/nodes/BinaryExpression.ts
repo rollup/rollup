@@ -1,6 +1,11 @@
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext } from '../ExecutionContext';
-import { EMPTY_IMMUTABLE_TRACKER, EMPTY_PATH, ObjectPath, PathTracker } from '../utils/PathTracker';
+import {
+	EMPTY_PATH,
+	ObjectPath,
+	PathTracker,
+	SHARED_RECURSION_TRACKER
+} from '../utils/PathTracker';
 import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import ExpressionStatement from './ExpressionStatement';
 import { LiteralValue } from './Literal';
@@ -68,7 +73,7 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 		if (
 			this.operator === '+' &&
 			this.parent instanceof ExpressionStatement &&
-			this.left.getLiteralValueAtPath(EMPTY_PATH, EMPTY_IMMUTABLE_TRACKER, this) === ''
+			this.left.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this) === ''
 		)
 			return true;
 		return super.hasEffects(context);

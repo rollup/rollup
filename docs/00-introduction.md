@@ -6,9 +6,15 @@ title: Introduction
 
 Rollup is a module bundler for JavaScript which compiles small pieces of code into something larger and more complex, such as a library or application. It uses the new standardized format for code modules included in the ES6 revision of JavaScript, instead of previous idiosyncratic solutions such as CommonJS and AMD. ES modules let you freely and seamlessly combine the most useful individual functions from your favorite libraries. This will eventually be possible natively everywhere, but Rollup lets you do it today.
 
+### Installation
+
+```
+npm install --global rollup
+```
+
 ### Quick start
 
-Install with `npm install --global rollup`. Rollup can be used either through a [command line interface](guide/en/#command-line-reference) with an optional configuration file, or else through its [JavaScript API](guide/en/#javascript-api). Run `rollup --help` to see the available options and parameters.
+ Rollup can be used either through a [command line interface](guide/en/#command-line-reference) with an optional configuration file, or else through its [JavaScript API](guide/en/#javascript-api). Run `rollup --help` to see the available options and parameters.
 
 > See [rollup-starter-lib](https://github.com/rollup/rollup-starter-lib) and
 [rollup-starter-app](https://github.com/rollup/rollup-starter-app) to see
@@ -18,23 +24,23 @@ These commands assume the entry point to your application is named `main.js`, an
 
 For browsers:
 
-```console
+```
 # compile to a <script> containing a self-executing function ('iife')
-$ rollup main.js --file bundle.js --format iife
+rollup main.js --file bundle.js --format iife
 ```
 
 For Node.js:
 
-```console
+```
 # compile to a CommonJS module ('cjs')
-$ rollup main.js --file bundle.js --format cjs
+rollup main.js --file bundle.js --format cjs
 ```
 
 For both browsers and Node.js:
 
-```console
+```
 # UMD format requires a bundle name
-$ rollup main.js --file bundle.js --format umd --name "myBundle"
+rollup main.js --file bundle.js --format umd --name "myBundle"
 ```
 
 ### The Why

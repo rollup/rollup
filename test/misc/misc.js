@@ -3,7 +3,7 @@ const rollup = require('../../dist/rollup');
 const { loader } = require('../utils.js');
 
 describe('misc', () => {
-	it('throw modification of options or its property', () => {
+	it('avoids modification of options or their properties', () => {
 		const { freeze } = Object;
 		return rollup.rollup(
 			freeze({
@@ -118,12 +118,11 @@ describe('misc', () => {
 			});
 	});
 
-	it('ignores falsy plugins', () => {
-		return rollup.rollup({
+	it('ignores falsy plugins', () =>
+		rollup.rollup({
 			input: 'x',
 			plugins: [loader({ x: `console.log( 42 );` }), null, false, undefined]
-		});
-	});
+		}));
 
 	it('handles different import paths for different outputs', () => {
 		return rollup
@@ -154,6 +153,27 @@ describe('misc', () => {
 							assert.equal(generated.output[0].code, "import 'the-answer';\n", 'no render path 2')
 						)
 				])
+			);
+	});
+
+	it('allows passing the same object to `rollup` and `generate`', () => {
+		const options = {
+			input: 'input',
+			plugins: [
+				loader({
+					input: 'export default 42;'
+				})
+			],
+			output: {
+				format: 'esm'
+			}
+		};
+
+		return rollup
+			.rollup(options)
+			.then(bundle => bundle.generate(options))
+			.then(output =>
+				assert.strictEqual(output.output[0].code, 'var input = 42;\n\nexport default input;\n')
 			);
 	});
 });

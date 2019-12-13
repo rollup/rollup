@@ -1,10 +1,16 @@
-const assert = require('assert');
+const { assertStderrIncludes } = require('../../../utils.js');
 
 module.exports = {
-	description: 'errors with custom (plugin generated) code frame',
+	description: 'errors with plugin generated code frames also contain stack',
 	command: 'rollup -c',
 	error: () => true,
 	stderr: stderr => {
-		assert.ok(/custom code frame/.test(stderr));
+		assertStderrIncludes(
+			stderr,
+			'[!] (plugin at position 1) Error: My error.\n' +
+				'main.js\ncustom code frame\nError: My error.\n' +
+				'    at Object.transform'
+		);
+		assertStderrIncludes(stderr, 'rollup.config.js:11:17');
 	}
 };

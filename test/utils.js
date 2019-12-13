@@ -12,6 +12,7 @@ exports.loader = loader;
 exports.normaliseOutput = normaliseOutput;
 exports.runTestSuiteWithSamples = runTestSuiteWithSamples;
 exports.assertDirectoriesAreEqual = assertDirectoriesAreEqual;
+exports.assertStderrIncludes = assertStderrIncludes;
 
 function normaliseError(error) {
 	delete error.stack;
@@ -223,4 +224,17 @@ function assertFilesAreEqual(actualFiles, expectedFiles, dirs = []) {
 			`${shortName}: ${expectedFiles[fileName]}`
 		);
 	});
+}
+
+function assertStderrIncludes(stderr, expected) {
+	try {
+		assert.ok(
+			stderr.includes(expected),
+			`Could not find ${JSON.stringify(expected)} in ${JSON.stringify(stderr)}`
+		);
+	} catch (err) {
+		err.actual = stderr;
+		err.expected = expected;
+		throw err;
+	}
 }

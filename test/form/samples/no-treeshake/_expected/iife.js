@@ -48,6 +48,7 @@ var stirred = (function (exports, external) {
 
 	exports.create = create;
 	exports.getPrototypeOf = getPrototypeOf;
+	exports.quux = quux;
 	exports.strange = quux;
 
 	return exports;

@@ -65,6 +65,8 @@ export default class SwitchStatement extends StatementBase {
 				switchCase.include(context, includeChildrenRecursively);
 				minBrokenFlow = minBrokenFlow < context.brokenFlow ? minBrokenFlow : context.brokenFlow;
 				context.brokenFlow = brokenFlow;
+			} else {
+				minBrokenFlow = brokenFlow;
 			}
 		}
 		if (

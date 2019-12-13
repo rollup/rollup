@@ -1,5 +1,4 @@
 import Chunk from '../Chunk';
-import Graph from '../Graph';
 import {
 	DecodedSourceMapOrMissing,
 	OutputOptions,
@@ -9,19 +8,20 @@ import {
 } from '../rollup/types';
 import { decodedSourcemap } from './decodedSourcemap';
 import { error } from './error';
+import { PluginDriver } from './PluginDriver';
 
 export default function renderChunk({
-	graph,
 	chunk,
-	renderChunk,
 	code,
-	sourcemapChain,
-	options
+	options,
+	outputPluginDriver,
+	renderChunk,
+	sourcemapChain
 }: {
 	chunk: Chunk;
 	code: string;
-	graph: Graph;
 	options: OutputOptions;
+	outputPluginDriver: PluginDriver;
 	renderChunk: RenderedChunk;
 	sourcemapChain: DecodedSourceMapOrMissing[];
 }): Promise<string> {
@@ -49,11 +49,11 @@ export default function renderChunk({
 
 	let inTransformBundle = false;
 	let inRenderChunk = true;
-	return graph.pluginDriver
+	return outputPluginDriver
 		.hookReduceArg0('renderChunk', [code, renderChunk, options], renderChunkReducer)
 		.then(code => {
 			inRenderChunk = false;
-			return graph.pluginDriver.hookReduceArg0(
+			return outputPluginDriver.hookReduceArg0(
 				'transformChunk',
 				[code, options, chunk],
 				renderChunkReducer
@@ -61,7 +61,7 @@ export default function renderChunk({
 		})
 		.then(code => {
 			inTransformBundle = true;
-			return graph.pluginDriver.hookReduceArg0(
+			return outputPluginDriver.hookReduceArg0(
 				'transformBundle',
 				[code, options, chunk],
 				renderChunkReducer

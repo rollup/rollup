@@ -2,4 +2,4 @@
 
 var bar = 'banana';
 
-exports.default = bar;
+module.exports = bar;

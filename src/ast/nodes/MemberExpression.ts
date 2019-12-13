@@ -6,11 +6,12 @@ import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import {
-	EMPTY_IMMUTABLE_TRACKER,
 	EMPTY_PATH,
 	ObjectPath,
 	ObjectPathKey,
 	PathTracker,
+	SHARED_RECURSION_TRACKER,
+	UNKNOWN_PATH,
 	UnknownKey
 } from '../utils/PathTracker';
 import { LiteralValueOrUnknown, UnknownValue } from '../values';
@@ -78,6 +79,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	private bound = false;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 	private replacement: string | null = null;
+	private wasPathDeoptimizedWhileOptimized = false;
 
 	addExportedVariables(): void {}
 
@@ -107,12 +109,19 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			}
 		} else {
 			super.bind();
-			if (this.propertyKey === null) this.analysePropertyKey();
+			// ensure the propertyKey is set for the tree-shaking passes
+			this.getPropertyKey();
 		}
 	}
 
 	deoptimizeCache() {
-		for (const expression of this.expressionsToBeDeoptimized) {
+		const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized;
+		this.expressionsToBeDeoptimized = [];
+		this.propertyKey = UnknownKey;
+		if (this.wasPathDeoptimizedWhileOptimized) {
+			this.object.deoptimizePath(UNKNOWN_PATH);
+		}
+		for (const expression of expressionsToBeDeoptimized) {
 			expression.deoptimizeCache();
 		}
 	}
@@ -123,8 +132,13 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.variable) {
 			this.variable.deoptimizePath(path);
 		} else {
-			if (this.propertyKey === null) this.analysePropertyKey();
-			this.object.deoptimizePath([this.propertyKey as ObjectPathKey, ...path]);
+			const propertyKey = this.getPropertyKey();
+			if (propertyKey === UnknownKey) {
+				this.object.deoptimizePath(UNKNOWN_PATH);
+			} else {
+				this.wasPathDeoptimizedWhileOptimized = true;
+				this.object.deoptimizePath([propertyKey, ...path]);
+			}
 		}
 	}
 
@@ -137,10 +151,9 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.variable !== null) {
 			return this.variable.getLiteralValueAtPath(path, recursionTracker, origin);
 		}
-		if (this.propertyKey === null) this.analysePropertyKey();
 		this.expressionsToBeDeoptimized.push(origin);
 		return this.object.getLiteralValueAtPath(
-			[this.propertyKey as ObjectPathKey, ...path],
+			[this.getPropertyKey(), ...path],
 			recursionTracker,
 			origin
 		);
@@ -155,10 +168,9 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.variable !== null) {
 			return this.variable.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
 		}
-		if (this.propertyKey === null) this.analysePropertyKey();
 		this.expressionsToBeDeoptimized.push(origin);
 		return this.object.getReturnExpressionWhenCalledAtPath(
-			[this.propertyKey as ObjectPathKey, ...path],
+			[this.getPropertyKey(), ...path],
 			recursionTracker,
 			origin
 		);
@@ -254,12 +266,6 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		}
 	}
 
-	private analysePropertyKey() {
-		this.propertyKey = UnknownKey;
-		const value = this.property.getLiteralValueAtPath(EMPTY_PATH, EMPTY_IMMUTABLE_TRACKER, this);
-		this.propertyKey = value === UnknownValue ? UnknownKey : String(value);
-	}
-
 	private disallowNamespaceReassignment() {
 		if (
 			this.object instanceof Identifier &&
@@ -273,6 +279,15 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 				this.start
 			);
 		}
+	}
+
+	private getPropertyKey(): ObjectPathKey {
+		if (this.propertyKey === null) {
+			this.propertyKey = UnknownKey;
+			const value = this.property.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this);
+			return (this.propertyKey = value === UnknownValue ? UnknownKey : String(value));
+		}
+		return this.propertyKey;
 	}
 
 	private resolveNamespaceVariables(

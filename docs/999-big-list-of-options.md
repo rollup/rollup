@@ -217,13 +217,42 @@ export default {
 Namespaces are supported i.e. your name can contain dots. The resulting bundle will contain the setup necessary for the namespacing.
 
 ```
-$ rollup -n "a.b.c"
+rollup -n "a.b.c"
 
 /* ->
 this.a = this.a || {};
 this.a.b = this.a.b || {};
 this.a.b.c = ...
 */
+```
+
+#### output.plugins
+Type: `OutputPlugin | (OutputPlugin | void)[]`
+
+Adds a plugin just to this output. See [Using output plugins](guide/en/#using-output-plugins) for more information on how to use output-specific plugins and [Plugins](guide/en/#plugin-development) on how to write your own. For plugins imported from packages, remember to call the imported plugin function (i.e. `commonjs()`, not just `commonjs`). Falsy plugins will be ignored, which can be used to easily activate or deactivate plugins.
+
+Not every plugin can be used here. `output.plugins` is limited to plugins that only use hooks that run during `bundle.generate()` or `bundle.write()`, i.e. after Rollup's main analysis is complete. If you are a plugin author, see [Plugin hooks](guide/en/#hooks) to find out which hooks can be used.
+
+The following will add minifaction to one of the outputs:
+
+```js
+// rollup.config.js
+import {terser} from 'rollup-plugin-terser';
+
+export default {
+  input: 'main.js',
+  output: [
+    {
+      file: 'bundle.js',
+      format: 'esm'
+    },
+    {
+      file: 'bundle.min.js',
+      format: 'esm',
+      plugins: [terser()]
+    }
+  ]
+};
 ```
 
 #### plugins
@@ -239,12 +268,16 @@ import commonjs from 'rollup-plugin-commonjs';
 const isProduction = process.env.NODE_ENV === 'production';
 
 export default (async () => ({
-  entry: 'main.js',
+  input: 'main.js',
   plugins: [
     resolve(),
     commonjs(),
     isProduction && (await import('rollup-plugin-terser')).terser()
-  ]
+  ],
+  output: {
+    file: 'bundle.js',
+    format: 'cjs'
+  }
 }))();
 ```
 
@@ -538,6 +571,48 @@ CLI: `--preserveModules`/`--no-preserveModules`<br>
 Default: `false`
 
 Instead of creating as few chunks as possible, this mode will create separate chunks for all modules using the original module names as file names. Requires the [`output.dir`](guide/en/#outputdir) option. Tree-shaking will still be applied, suppressing files that are not used by the provided entry points or do not have side-effects when executed. This mode can be used to transform a file structure to a different module format.
+
+Note that when transforming to `cjs` or `amd` format, each file will by default be treated as an entry point with [`output.exports`](guide/en/#outputexports) set to `auto`. This means that e.g. for `cjs`, a file that only contains a default export will be rendered as
+
+```js
+// input main.js
+export default 42;
+
+// output main.js
+'use strict';
+
+var main = 42;
+
+module.exports = main;
+```
+
+assigning the value directly to `module.exports`. If someone imports this file, they will get access to the default export via
+
+```js
+const main = require('./main.js');
+console.log(main); // 42
+```
+
+As with regular entry points, files that mix default and named exports will produce warnings. You can avoid the warnings by forcing all files to use named export mode via `output.exports: "named"`. In that case, the default export needs to be accessed via the `.default` property of the export:
+
+```js
+// input main.js
+export default 42;
+
+// output main.js
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var main = 42;
+
+exports.default = main;
+
+// consuming file
+const main = require('./main.js');
+console.log(main.default); // 42
+```
+
 
 #### strictDeprecations
 Type: `boolean`<br>

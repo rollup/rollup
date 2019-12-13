@@ -116,6 +116,7 @@ const outputOptions = {
   format, // required
   globals,
   name,
+  plugins,
   
   // advanced output options
   assetFileNames,

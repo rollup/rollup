@@ -81,8 +81,8 @@ export default function build(
 				}
 			}
 		})
-		.catch((err: any) => {
-			if (warnings.count > 0) warnings.flush();
+		.catch((err: Error) => {
+			warnings.flush();
 			handleError(err);
 		});
 }

@@ -2,4 +2,4 @@
 
 var answer = 42;
 
-exports.default = answer;
+module.exports = answer;

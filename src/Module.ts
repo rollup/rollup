@@ -91,7 +91,6 @@ export interface AstContext {
 	error: (props: RollupError, pos: number) => void;
 	fileName: string;
 	getExports: () => string[];
-	getFileName: (fileReferenceId: string) => string;
 	getModuleExecIndex: () => number;
 	getModuleName: () => string;
 	getReexports: () => string[];
@@ -272,8 +271,6 @@ export default class Module {
 			props.frame = getCodeFrame(this.originalCode, location.line, location.column);
 		}
 
-		props.watchFiles = Object.keys(this.graph.watchFiles);
-
 		error(props);
 	}
 
@@ -387,9 +384,9 @@ export default class Module {
 
 	getTransitiveDependencies() {
 		return this.dependencies.concat(
-			this.getReexports().map(
-				exportName => this.getVariableForExportName(exportName).module as Module
-			)
+			this.getReexports()
+				.concat(this.getExports())
+				.map((exportName: string) => this.getVariableForExportName(exportName).module as Module)
 		);
 	}
 
@@ -588,7 +585,6 @@ export default class Module {
 			error: this.error.bind(this),
 			fileName, // Needed for warnings
 			getExports: this.getExports.bind(this),
-			getFileName: this.graph.pluginDriver.getFileName,
 			getModuleExecIndex: () => this.execIndex,
 			getModuleName: this.basename.bind(this),
 			getReexports: this.getReexports.bind(this),
@@ -703,7 +699,7 @@ export default class Module {
 			const source = node.source.value;
 			this.sources.add(source);
 			this.exportAllSources.add(source);
-		} else if (node.source !== null) {
+		} else if (node.source instanceof Literal) {
 			// export { name } from './other'
 
 			const source = node.source.value;

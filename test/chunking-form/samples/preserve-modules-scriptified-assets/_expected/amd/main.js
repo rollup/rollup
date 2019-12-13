@@ -2,9 +2,9 @@ define(['exports', './answer.num', './lorem.str', './no-ext'], function (exports
 
 
 
-	exports.answer = answer.default;
-	exports.lorem = lorem.default;
-	exports.noExt = noExt.default;
+	exports.answer = answer;
+	exports.lorem = lorem;
+	exports.noExt = noExt;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

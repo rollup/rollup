@@ -1,5 +1,184 @@
 # rollup changelog
 
+## 1.27.12
+*2019-12-13*
+
+### Bug Fixes
+* Prevent invalid AMD or SystemJS code when accessing `import.meta` (#3282)
+
+### Pull Requests
+* [#3282](https://github.com/rollup/rollup/pull/3282): Always make "module" available for SystemJS and AMD formats if `import.meta` is accessed directly (@lukastaegert)
+
+## 1.27.11
+*2019-12-12*
+
+### Bug Fixes
+* Resolve a crash due to an infinite loop (#3280)
+
+### Pull Requests
+* [#3280](https://github.com/rollup/rollup/pull/3280): Prevent infinite deoptimizations (@lukastaegert)
+
+## 1.27.10
+*2019-12-11*
+
+### Bug Fixes
+* Keep track of function return values in more situations (#3278)
+
+### Pull Requests
+* [#3278](https://github.com/rollup/rollup/pull/3278): Avoid some unnecessary value tracking deoptimizations (@lukastaegert)
+
+## 1.27.9
+*2019-12-07*
+
+### Bug Fixes
+* Fix an issue where reexports could be missing when preserving modules (#3273)
+* Allow turning of color output via NO_COLOR or FORCE_COLOR=0 environment variables (#3272)
+
+### Pull Requests
+* [#3272](https://github.com/rollup/rollup/pull/3272): Support either NO_COLOR or FORCE_COLOR=0 to turn off color (@kikonen)
+* [#3273](https://github.com/rollup/rollup/pull/3273): Make sure that indirectly reexported modules also become chunk dependencies when preserving modules(@lukastaegert)
+
+## 1.27.8
+*2019-12-02*
+
+### Bug Fixes
+* Deoptimize objects when a method is called on them to make sure modifications via "this" are observed (#3266)
+
+### Pull Requests
+* [#3266](https://github.com/rollup/rollup/pull/3266): Workaround for various object literal mutation bugs (@kzc)
+
+## 1.27.7
+*2019-12-01*
+
+### Bug Fixes
+* Fix a scenario where a reassignments to computed properties were not tracked (#3267)
+
+### Pull Requests
+* [#3267](https://github.com/rollup/rollup/pull/3267): Fix incomplete computed property deoptimization (@lukastaegert)
+
+## 1.27.6
+*2019-11-30*
+
+### Bug Fixes
+* Use "auto" export mode by default for all modules when preserving modules (#3265)
+* Observe "output.exports" when preserving modules and warn for mixed exports if necessary (#3265)
+
+### Pull Requests
+* [#3265](https://github.com/rollup/rollup/pull/3265): Use export mode "auto" by default when preserving modules (@lukastaegert)
+
+## 1.27.5
+*2019-11-25*
+
+### Bug Fixes
+* Make sure namespaces for inlined dynamic imports are treated as variable accesses when deconflicting (#3256)
+
+### Pull Requests
+* [#3256](https://github.com/rollup/rollup/pull/3256): Avoid name conflicts when inlining dynamic imports nested in functions (@lukastaegert)
+* [#3257](https://github.com/rollup/rollup/pull/3257): Update dependencies (@lukastaegert)
+
+## 1.27.4
+*2019-11-22*
+
+### Bug Fixes
+* Aggregate circular dependency warnings in the CLI (#3249)
+* Do not defer non-aggregated handlers in the CLI (#3249)
+
+### Pull Requests
+* [#3249](https://github.com/rollup/rollup/pull/3249): Fix broken Windows CLI tests (@lukastaegert)
+* [#3251](https://github.com/rollup/rollup/pull/3251): Add installation as a separate header (@ashrith-kulai)
+
+## 1.27.3
+*2019-11-20*
+
+### Bug Fixes
+* Provide better warning when empty chunks are created in a code-splitting scenario (#3244)
+
+### Pull Requests
+* [#3244](https://github.com/rollup/rollup/pull/3244): Clearer empty chunk warning (@tjenkinson)
+
+## 1.27.2
+*2019-11-18*
+
+### Bug Fixes
+* Fix an issue where live bindings were not working correctly when using `+=` in SystemJS (#3242)
+
+### Pull Requests
+* [#3242](https://github.com/rollup/rollup/pull/3242): Export updated assignments when using shorthand update assignment expressions in SystemJS (@lukastaegert)
+
+## 1.27.1
+*2019-11-18*
+
+### Bug Fixes
+* Fix an issue where code after a switch-statement with removed cases was erroneously not included (#3241)
+
+### Pull Requests
+* [#3237](https://github.com/rollup/rollup/pull/3237): make `acornOptions` optional in `parse()` in docs (@tjenkinson)
+* [#3240](https://github.com/rollup/rollup/pull/3240): Update dependencies and fix vulnerability (@lukastaegert)
+* [#3241](https://github.com/rollup/rollup/pull/3241): Do not truncate after switch-statement with removed case (@lukastaegert)
+
+## 1.27.0
+*2019-11-12*
+
+### Features
+* Add support for output-specific plugins (#3218)
+* Reenable parallel output processing when using the CLI (#3218)
+* Warn if files are emitted that would overwrite previously emitted files (#3218)
+
+### Bug Fixes
+* Do not overwrite files emitted in other builds if outputs are generated in parallel (#3218)
+
+### Pull Requests
+* [#3218](https://github.com/rollup/rollup/pull/3218): Per output plugins (@lukastaegert)
+
+## 1.26.5
+*2019-11-11*
+
+### Bug Fixes
+* Fix a regression where it was no longer to pass a certain option format to generate (#3223)
+
+### Pull Requests
+* [#3223](https://github.com/rollup/rollup/pull/3223): Allow passing input options to output (@lukastaegert)
+
+## 1.26.4
+*2019-11-09*
+
+### Bug Fixes
+* Keep watching known files after a plugin error during the initial build (#3219)
+
+### Pull Requests
+* [#3216](https://github.com/rollup/rollup/pull/3216): Fix small typo (@kaisermann)
+* [#3217](https://github.com/rollup/rollup/pull/3217): Update dependencies and fix security vulnerability (@lukastaegert)
+* [#3219](https://github.com/rollup/rollup/pull/3219): Also recover from plugin errors during the initial build (@lukastaegert)
+
+## 1.26.3
+*2019-11-02*
+
+### Bug Fixes
+* Work around an incompatibility with rollup-plugin-dts (#3211)
+
+### Pull Requests
+* [#3211](https://github.com/rollup/rollup/pull/3211): Do no fail if the source attribute is `undefined` in an unused named export (@lukastaegert)
+
+## 1.26.2
+*2019-10-31*
+
+### Bug Fixes
+* Do not create invalid code when using `treeshake: false` and star re-exports (#3209)
+
+### Pull Requests
+* [#3209](https://github.com/rollup/rollup/pull/3209): Also remove export-all declarations when not tree-shaking (@lukastaegert)
+
+## 1.26.1
+*2019-10-31*
+
+### Bug Fixes
+* Prevent an issue where outputs would overwrite files emitted by other outputs (#3201)
+* Do not throw an error if the config file does not have a .js extension (#3204)
+
+### Pull Requests
+* [#3201](https://github.com/rollup/rollup/pull/3201): Make the CLI run generate/output in serial (@marijnh)
+* [#3204](https://github.com/rollup/rollup/pull/3204): support all config file extensions (.js,.mjs,...) (@arlac77)
+
 ## 1.26.0
 *2019-10-27*
 
