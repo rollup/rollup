@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.27.13
+*2019-12-14*
+
+### Bug Fixes
+* Do not truncate environment variable values at the first colon when using the `--environment` option (#3283)
+
+### Pull Requests
+* [#3283](https://github.com/rollup/rollup/pull/3283): Allow environment variables to contain colons (@tlaverdure)
+
 ## 1.27.12
 *2019-12-13*
 
