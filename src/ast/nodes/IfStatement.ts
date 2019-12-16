@@ -45,13 +45,15 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		const testValue = this.getTestValue();
 		if (includeChildrenRecursively) {
 			this.includeRecursively(includeChildrenRecursively, context);
-		} else if (testValue === UnknownValue) {
-			this.includeUnknownTest(context);
 		} else {
-			this.includeKnownTest(context);
+			const testValue = this.getTestValue();
+			if (testValue === UnknownValue) {
+				this.includeUnknownTest(context);
+			} else {
+				this.includeKnownTest(context, testValue);
+			}
 		}
 	}
 
@@ -90,16 +92,19 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 
 	private getTestValue(): LiteralValueOrUnknown {
 		if (this.testValue === unset) {
-			this.testValue = this.test.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this);
+			return (this.testValue = this.test.getLiteralValueAtPath(
+				EMPTY_PATH,
+				SHARED_RECURSION_TRACKER,
+				this
+			));
 		}
 		return this.testValue;
 	}
 
-	private includeKnownTest(context: InclusionContext) {
+	private includeKnownTest(context: InclusionContext, testValue: LiteralValueOrUnknown) {
 		if (this.test.shouldBeIncluded(context)) {
 			this.test.include(context, false);
 		}
-		const testValue = this.getTestValue();
 		if (testValue && this.consequent.shouldBeIncluded(context)) {
 			this.consequent.include(context, false);
 		}
