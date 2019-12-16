@@ -29,7 +29,7 @@ export default class AssignmentExpression extends NodeBase {
 	private deoptimized = false;
 
 	hasEffects(context: HasEffectsContext): boolean {
-		this.deoptimize();
+		if (!this.deoptimized) this.applyDeoptimizations();
 		return (
 			this.right.hasEffects(context) ||
 			this.left.hasEffects(context) ||
@@ -41,9 +41,11 @@ export default class AssignmentExpression extends NodeBase {
 		return path.length > 0 && this.right.hasEffectsWhenAccessedAtPath(path, context);
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
-		this.deoptimize();
-		return super.include(context, includeChildrenRecursively);
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		if (!this.deoptimized) this.applyDeoptimizations();
+		this.included = true;
+		this.left.include(context, includeChildrenRecursively);
+		this.right.include(context, includeChildrenRecursively);
 	}
 
 	render(code: MagicString, options: RenderOptions) {
@@ -80,16 +82,9 @@ export default class AssignmentExpression extends NodeBase {
 		}
 	}
 
-	shouldBeIncluded(context: InclusionContext): boolean {
-		this.deoptimize();
-		return super.shouldBeIncluded(context);
-	}
-
-	private deoptimize() {
-		if (!this.deoptimized) {
-			this.deoptimized = true;
-			this.left.deoptimizePath(EMPTY_PATH);
-			this.right.deoptimizePath(UNKNOWN_PATH);
-		}
+	private applyDeoptimizations() {
+		this.deoptimized = true;
+		this.left.deoptimizePath(EMPTY_PATH);
+		this.right.deoptimizePath(UNKNOWN_PATH);
 	}
 }
