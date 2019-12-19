@@ -16,34 +16,31 @@ export function readStdin() {
 
 			const chunks: Buffer[] = [];
 			process.stdin.setEncoding('utf8');
-			process.stdin
-				.on('data', chunk => {
-					if (stdinResult === null) {
-						chunks.push(chunk);
-					}
-				})
-				.on('end', () => {
-					if (stdinResult === null) {
-						stdinResult = chunks.join('');
-						chunks.length = 0;
-					}
-					processPending();
-				})
-				.on('error', err => {
-					if (stdinResult === null) {
-						stdinResult = err instanceof Error ? err : new Error(err);
-						chunks.length = 0;
-					}
-					processPending();
-				});
+			process.stdin.on('data', chunk => {
+				if (stdinResult === null) {
+					chunks.push(chunk);
+				}
+			}).on('end', () => {
+				if (stdinResult === null) {
+					stdinResult = chunks.join('');
+					chunks.length = 0;
+				}
+				processPending();
+			}).on('error', err => {
+				if (stdinResult === null) {
+					stdinResult = err instanceof Error ? err : new Error(err);
+					chunks.length = 0;
+				}
+				processPending();
+			});
 			process.stdin.resume();
 		}
 	});
 
 	function processPending() {
 		if (stdinResult !== null) {
-			for (let it; (it = pending.shift()); ) {
-				if (typeof stdinResult == 'string') {
+			for (let it; it = pending.shift();) {
+				if (typeof stdinResult == "string") {
 					it.resolve(stdinResult);
 				} else {
 					it.reject(stdinResult);
