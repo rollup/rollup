@@ -1,6 +1,5 @@
 module.exports = {
 	description: 'simple chunking',
-	solo: true,
 	options: {
 		input: ['main.js'],
 		plugins: [
