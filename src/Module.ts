@@ -310,10 +310,6 @@ export default class Module {
 		return allExportNames;
 	}
 
-	getDefaultExport() {
-		return this.astContext.traceExport('default') as ExportDefaultVariable;
-	}
-
 	getDynamicImportExpressions(): (string | Node)[] {
 		return this.dynamicImports.map(({ node }) => {
 			const importArgument = node.source;
@@ -461,7 +457,7 @@ export default class Module {
 					syntheticExport = new SyntheticNamedExport(
 						this.astContext,
 						name,
-						this.getDefaultExport()
+						this.astContext.traceExport('default') as ExportDefaultVariable
 					);
 					this.syntheticExports.set(name, syntheticExport);
 				}
