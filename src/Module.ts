@@ -25,6 +25,7 @@ import { PathTracker, UNKNOWN_PATH } from './ast/utils/PathTracker';
 import ExportShimVariable from './ast/variables/ExportShimVariable';
 import ExternalVariable from './ast/variables/ExternalVariable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
+import SyntheticNamedExport from './ast/variables/SyntheticNamedExport';
 import Variable from './ast/variables/Variable';
 import Chunk from './Chunk';
 import ExternalModule from './ExternalModule';
@@ -206,6 +207,8 @@ export default class Module {
 	scope!: ModuleScope;
 	sourcemapChain!: DecodedSourceMapOrMissing[];
 	sources = new Set<string>();
+	syntheticExports = new Map<string, SyntheticNamedExport>();
+	syntheticNamedExports: boolean;
 	transformFiles?: EmittedFile[];
 	userChunkNames = new Set<string>();
 	usesTopLevelAwait = false;
@@ -221,12 +224,19 @@ export default class Module {
 	private transformDependencies: string[] = [];
 	private transitiveReexports: string[] | null = null;
 
-	constructor(graph: Graph, id: string, moduleSideEffects: boolean, isEntry: boolean) {
+	constructor(
+		graph: Graph,
+		id: string,
+		moduleSideEffects: boolean,
+		syntheticNamedExports: boolean,
+		isEntry: boolean
+	) {
 		this.id = id;
 		this.graph = graph;
 		this.excludeFromSourcemap = /\0/.test(id);
 		this.context = graph.getModuleContext(id);
 		this.moduleSideEffects = moduleSideEffects;
+		this.syntheticNamedExports = syntheticNamedExports;
 		this.isEntryPoint = isEntry;
 	}
 
@@ -439,9 +449,23 @@ export default class Module {
 
 		// we don't want to create shims when we are just
 		// probing export * modules for exports
-		if (this.graph.shimMissingExports && !isExportAllSearch) {
-			this.shimMissingExport(name);
-			return this.exportShimVariable;
+		if (!isExportAllSearch) {
+			if (this.syntheticNamedExports) {
+				let syntheticExport = this.syntheticExports.get(name);
+				if (!syntheticExport && !this.exports[name]) {
+					const defaultVariable = this.astContext.traceExport('default');
+					syntheticExport = new SyntheticNamedExport(this.astContext, name, defaultVariable as any);
+					this.syntheticExports.set(name, syntheticExport);
+				}
+				if (syntheticExport) {
+					return syntheticExport;
+				}
+			}
+
+			if (this.graph.shimMissingExports) {
+				this.shimMissingExport(name);
+				return this.exportShimVariable;
+			}
 		}
 		return undefined as any;
 	}
@@ -534,6 +558,7 @@ export default class Module {
 		originalSourcemap,
 		resolvedIds,
 		sourcemapChain,
+		syntheticNamedExports,
 		transformDependencies,
 		transformFiles
 	}: TransformModuleJSON & {
@@ -550,6 +575,9 @@ export default class Module {
 		this.customTransformCache = customTransformCache;
 		if (typeof moduleSideEffects === 'boolean') {
 			this.moduleSideEffects = moduleSideEffects;
+		}
+		if (typeof syntheticNamedExports === 'boolean') {
+			this.syntheticNamedExports = syntheticNamedExports;
 		}
 
 		timeStart('generate ast', 3);
@@ -634,6 +662,7 @@ export default class Module {
 			originalSourcemap: this.originalSourcemap,
 			resolvedIds: this.resolvedIds,
 			sourcemapChain: this.sourcemapChain,
+			syntheticNamedExports: this.syntheticNamedExports,
 			transformDependencies: this.transformDependencies,
 			transformFiles: this.transformFiles
 		};
