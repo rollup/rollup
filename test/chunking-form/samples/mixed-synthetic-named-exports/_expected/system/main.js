@@ -7,12 +7,14 @@ System.register([], function () {
         fn: 42,
         hello: 'hola'
       };
+      const foo = 100;
 
-      var ns = d;
+      var ns = /*#__PURE__*/Object.freeze(Object.assign({
+        __proto__: null,
+        foo: foo
+      }, d));
 
       var fn = d.fn;
-
-      var foo = d.foo;
 
       console.log(fn);
       console.log(foo);

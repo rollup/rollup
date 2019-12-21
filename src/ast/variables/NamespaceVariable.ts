@@ -15,11 +15,13 @@ export default class NamespaceVariable extends Variable {
 	private containsExternalNamespace = false;
 	private referencedEarly = false;
 	private references: Identifier[] = [];
+	private syntheticNamedExports: boolean;
 
-	constructor(context: AstContext) {
+	constructor(context: AstContext, syntheticNamedExports: boolean) {
 		super(context.getModuleName());
 		this.context = context;
 		this.module = context.module;
+		this.syntheticNamedExports = syntheticNamedExports;
 	}
 
 	addReference(identifier: Identifier) {
@@ -35,6 +37,10 @@ export default class NamespaceVariable extends Variable {
 		for (const key in this.memberVariables) {
 			this.memberVariables[key].deoptimizePath(UNKNOWN_PATH);
 		}
+	}
+
+	getDefaultVariableName() {
+		return this.context.traceExport('default').getName();
 	}
 
 	include(context: InclusionContext) {
@@ -77,22 +83,23 @@ export default class NamespaceVariable extends Variable {
 		const _ = options.compact ? '' : ' ';
 		const n = options.compact ? '' : '\n';
 		const t = options.indent;
+		const syntheticNamedExports = this.syntheticNamedExports;
 
-		const members = Object.keys(this.memberVariables).map(name => {
-			const original = this.memberVariables[name];
+		const members = Object.keys(this.memberVariables)
+			.filter(name => !syntheticNamedExports || name !== 'default')
+			.map(name => {
+				const original = this.memberVariables[name];
 
-			if (this.referencedEarly || original.isReassigned) {
-				return `${t}get ${name}${_}()${_}{${_}return ${original.getName()}${
-					options.compact ? '' : ';'
-				}${_}}`;
-			}
+				if (this.referencedEarly || original.isReassigned) {
+					return `${t}get ${name}${_}()${_}{${_}return ${original.getName()}${
+						options.compact ? '' : ';'
+					}${_}}`;
+				}
 
-			const safeName = RESERVED_NAMES[name] ? `'${name}'` : name;
+				const safeName = RESERVED_NAMES[name] ? `'${name}'` : name;
 
-			return `${t}${safeName}: ${original.getName()}`;
-		});
-
-		members.unshift(`${t}__proto__:${_}null`);
+				return `${t}${safeName}: ${original.getName()}`;
+			});
 
 		if (options.namespaceToStringTag) {
 			members.unshift(`${t}[Symbol.toStringTag]:${_}'Module'`);
@@ -100,9 +107,21 @@ export default class NamespaceVariable extends Variable {
 
 		const name = this.getName();
 
-		const callee = options.freeze ? `/*#__PURE__*/Object.freeze` : '';
-		const membersStr = members.join(`,${n}`);
-		let output = `${options.varOrConst} ${name}${_}=${_}${callee}({${n}${membersStr}${n}});`;
+		let output = '';
+		if (this.syntheticNamedExports && members.length === 0) {
+			output = this.getDefaultVariableName();
+		} else {
+			members.unshift(`${t}__proto__:${_}null`);
+
+			output = `{${n}${members.join(`,${n}`)}${n}}`;
+			if (this.syntheticNamedExports) {
+				output = `Object.assign(${output}, ${this.getDefaultVariableName()})`;
+			}
+			if (options.freeze) {
+				output = `/*#__PURE__*/Object.freeze(${output})`;
+			}
+		}
+		output = `${options.varOrConst} ${name}${_}=${_}${output};`;
 
 		if (options.format === 'system' && this.exportName) {
 			output += `${n}exports('${this.exportName}',${_}${name});`;

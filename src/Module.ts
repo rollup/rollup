@@ -22,6 +22,7 @@ import TemplateLiteral from './ast/nodes/TemplateLiteral';
 import VariableDeclaration from './ast/nodes/VariableDeclaration';
 import ModuleScope from './ast/scopes/ModuleScope';
 import { PathTracker, UNKNOWN_PATH } from './ast/utils/PathTracker';
+import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
 import ExportShimVariable from './ast/variables/ExportShimVariable';
 import ExternalVariable from './ast/variables/ExternalVariable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
@@ -309,6 +310,10 @@ export default class Module {
 		return allExportNames;
 	}
 
+	getDefaultExport() {
+		return this.astContext.traceExport('default') as ExportDefaultVariable;
+	}
+
 	getDynamicImportExpressions(): (string | Node)[] {
 		return this.dynamicImports.map(({ node }) => {
 			const importArgument = node.source;
@@ -352,7 +357,7 @@ export default class Module {
 
 	getOrCreateNamespace(): NamespaceVariable {
 		if (!this.namespaceVariable) {
-			this.namespaceVariable = new NamespaceVariable(this.astContext);
+			this.namespaceVariable = new NamespaceVariable(this.astContext, this.syntheticNamedExports);
 			this.namespaceVariable.initialise();
 		}
 		return this.namespaceVariable;
@@ -453,8 +458,11 @@ export default class Module {
 			if (this.syntheticNamedExports) {
 				let syntheticExport = this.syntheticExports.get(name);
 				if (!syntheticExport && !this.exports[name]) {
-					const defaultVariable = this.astContext.traceExport('default');
-					syntheticExport = new SyntheticNamedExport(this.astContext, name, defaultVariable as any);
+					syntheticExport = new SyntheticNamedExport(
+						this.astContext,
+						name,
+						this.getDefaultExport()
+					);
 					this.syntheticExports.set(name, syntheticExport);
 				}
 				if (syntheticExport) {
