@@ -20,7 +20,7 @@ module.exports = {
 			code: 'EXTERNAL_SYNTHETIC_EXPORTS',
 			importer: 'main.js',
 			source: 'dep',
-			message: "External 'dep' can not have 'syntheticNamedExports' enabled"
+			message: "External 'dep' can not have 'syntheticNamedExports' enabled."
 		}
 	],
 	context: {
