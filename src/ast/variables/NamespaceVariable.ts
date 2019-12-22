@@ -79,23 +79,22 @@ export default class NamespaceVariable extends Variable {
 		const _ = options.compact ? '' : ' ';
 		const n = options.compact ? '' : '\n';
 		const t = options.indent;
-		const syntheticNamedExports = this.syntheticNamedExports;
 
-		const members = Object.keys(this.memberVariables)
-			.filter(name => !syntheticNamedExports || name !== 'default')
-			.map(name => {
-				const original = this.memberVariables[name];
+		const members = Object.keys(this.memberVariables).map(name => {
+			const original = this.memberVariables[name];
 
-				if (this.referencedEarly || original.isReassigned) {
-					return `${t}get ${name}${_}()${_}{${_}return ${original.getName()}${
-						options.compact ? '' : ';'
-					}${_}}`;
-				}
+			if (this.referencedEarly || original.isReassigned) {
+				return `${t}get ${name}${_}()${_}{${_}return ${original.getName()}${
+					options.compact ? '' : ';'
+				}${_}}`;
+			}
 
-				const safeName = RESERVED_NAMES[name] ? `'${name}'` : name;
+			const safeName = RESERVED_NAMES[name] ? `'${name}'` : name;
 
-				return `${t}${safeName}: ${original.getName()}`;
-			});
+			return `${t}${safeName}: ${original.getName()}`;
+		});
+
+		members.unshift(`${t}__proto__:${_}null`);
 
 		if (options.namespaceToStringTag) {
 			members.unshift(`${t}[Symbol.toStringTag]:${_}'Module'`);
@@ -104,20 +103,14 @@ export default class NamespaceVariable extends Variable {
 		const name = this.getName();
 		const defaultExport = this.syntheticNamedExports ? this.module.getDefaultExport() : undefined;
 
-		let output = '';
-		if (defaultExport && members.length === 0) {
-			output = defaultExport.getName();
-		} else {
-			members.unshift(`${t}__proto__:${_}null`);
-
-			output = `{${n}${members.join(`,${n}`)}${n}}`;
-			if (defaultExport) {
-				output = `Object.assign(${output}, ${defaultExport.getName()})`;
-			}
-			if (options.freeze) {
-				output = `/*#__PURE__*/Object.freeze(${output})`;
-			}
+		let output = `{${n}${members.join(`,${n}`)}${n}}`;
+		if (defaultExport) {
+			output = `/*#__PURE__*/Object.assign(${output}, ${defaultExport.getName()})`;
 		}
+		if (options.freeze) {
+			output = `/*#__PURE__*/Object.freeze(${output})`;
+		}
+
 		output = `${options.varOrConst} ${name}${_}=${_}${output};`;
 
 		if (options.format === 'system' && this.exportName) {

@@ -3,8 +3,6 @@ const d = {
   hello: 'hola'
 };
 
-var ns = d;
-
 console.log(d.fn);
 console.log(d.foo);
-console.log(ns);
+console.log(d["some-prop"]);

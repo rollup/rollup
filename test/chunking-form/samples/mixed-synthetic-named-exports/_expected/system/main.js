@@ -9,9 +9,10 @@ System.register([], function () {
       };
       const foo = 100;
 
-      var ns = /*#__PURE__*/Object.freeze(Object.assign({
+      var ns = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign({
         __proto__: null,
-        foo: foo
+        foo: foo,
+        'default': d
       }, d));
 
       console.log(d.fn);

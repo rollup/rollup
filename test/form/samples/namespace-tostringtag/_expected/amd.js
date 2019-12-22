@@ -1,8 +1,8 @@
 define(['exports'], function (exports) { 'use strict';
 
 	var self = /*#__PURE__*/Object.freeze({
-		__proto__: null,
 		[Symbol.toStringTag]: 'Module',
+		__proto__: null,
 		get p () { return p; }
 	});
 
