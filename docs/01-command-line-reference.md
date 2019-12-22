@@ -155,7 +155,7 @@ export default Promise.all([
 You *must* use a configuration file in order to do any of the following:
 
 - bundle one project into multiple output files
-- use Rollup plugins, such as [rollup-plugin-node-resolve](https://github.com/rollup/rollup-plugin-node-resolve) and [rollup-plugin-commonjs](https://github.com/rollup/rollup-plugin-commonjs) which let you load CommonJS modules from the Node.js ecosystem
+- use Rollup plugins, such as [@rollup/plugin-node-resolve](https://github.com/rollup/plugins/tree/master/packages/node-resolve) and [@rollup/plugin-commonjs](https://github.com/rollup/plugins/tree/master/packages/commonjs) which let you load CommonJS modules from the Node.js ecosystem
 
 To use Rollup with a configuration file, pass the `--config` or `-c` flags.
 

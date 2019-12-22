@@ -80,7 +80,7 @@ Because Rollup includes the bare minimum, it results in lighter, faster, and les
 
 #### Importing CommonJS
 
-Rollup can import existing CommonJS modules [through a plugin](https://github.com/rollup/rollup-plugin-commonjs).
+Rollup can import existing CommonJS modules [through a plugin](https://github.com/rollup/plugins/tree/master/packages/commonjs).
 
 #### Publishing ES Modules
 

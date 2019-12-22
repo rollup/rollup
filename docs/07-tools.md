@@ -41,7 +41,7 @@ the-answer (imported by main.js)
 The resulting `bundle.js` will still work in Node.js, because the `import` declaration gets turned into a CommonJS `require` statement, but `the-answer` does *not* get included in the bundle. For that, we need a plugin.
 
 
-#### rollup-plugin-node-resolve
+#### @rollup/plugin-node-resolve
 
 The [@rollup/plugin-node-resolve](https://github.com/rollup/plugins/tree/master/packages/node-resolve) plugin teaches Rollup how to find external modules. Install it…
 
@@ -68,13 +68,13 @@ export default {
 This time, when you `npm run build`, no warning is emitted — the bundle contains the imported module.
 
 
-#### rollup-plugin-commonjs
+#### @rollup/plugin-commonjs
 
 Some libraries expose ES modules that you can import as-is — `the-answer` is one such module. But at the moment, the majority of packages on NPM are exposed as CommonJS modules instead. Until that changes, we need to convert CommonJS to ES2015 before Rollup can process them.
 
-The [rollup-plugin-commonjs](https://github.com/rollup/rollup-plugin-commonjs) plugin does exactly that.
+The [@rollup/plugin-commonjs](https://github.com/rollup/plugins/tree/master/packages/commonjs) plugin does exactly that.
 
-Note that `rollup-plugin-commonjs` should go *before* other plugins that transform your modules — this is to prevent other plugins from making changes that break the CommonJS detection.
+Note that `@rollup/plugin-commonjs` should go *before* other plugins that transform your modules — this is to prevent other plugins from making changes that break the CommonJS detection.
 
 
 ### Peer dependencies
@@ -92,7 +92,7 @@ Here is the config file:
 
 ```js
 // rollup.config.js
-import resolve from 'rollup-plugin-node-resolve';
+import resolve from '@rollup/plugin-node-resolve';
 
 export default {
   input: 'src/main.js',
@@ -138,14 +138,14 @@ Many developers use [Babel](https://babeljs.io/) in their projects in order to u
 The easiest way to use both Babel and Rollup is with [rollup-plugin-babel](https://github.com/rollup/rollup-plugin-babel). First, install the plugin:
 
 ```
-npm i -D rollup-plugin-babel rollup-plugin-node-resolve
+npm i -D rollup-plugin-babel @rollup/plugin-node-resolve
 ```
 
 Add it to `rollup.config.js`:
 
 ```js
 // rollup.config.js
-import resolve from 'rollup-plugin-node-resolve';
+import resolve from '@rollup/plugin-node-resolve';
 import babel from 'rollup-plugin-babel';
 
 export default {
@@ -221,7 +221,7 @@ The syntax is very similar to the configuration file, but the properties are spl
 ```js
 const gulp = require('gulp');
 const rollup = require('rollup');
-const rollupTypescript = require('rollup-plugin-typescript');
+const rollupTypescript = require('@rollup/plugin-typescript');
 
 gulp.task('build', () => {
   return rollup.rollup({
@@ -245,7 +245,7 @@ You may also use the `async/await` syntax:
 ```js
 const gulp = require('gulp');
 const rollup = require('rollup');
-const rollupTypescript = require('rollup-plugin-typescript');
+const rollupTypescript = require('@rollup/plugin-typescript');
 
 gulp.task('build', async function () {
   const bundle = await rollup.rollup({
