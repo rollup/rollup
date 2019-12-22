@@ -11,9 +11,7 @@ define(function () { 'use strict';
     foo: foo
   }, d));
 
-  var fn = d.fn;
-
-  console.log(fn);
+  console.log(d.fn);
   console.log(foo);
   console.log(ns);
 

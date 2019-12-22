@@ -7,10 +7,6 @@ const d = {
 
 var ns = d;
 
-var fn = d.fn;
-
-var foo = d.foo;
-
-console.log(fn);
-console.log(foo);
+console.log(d.fn);
+console.log(d.foo);
 console.log(ns);

@@ -244,7 +244,7 @@ export class ModuleLoader {
 					module.id,
 					(module.resolvedIds[source] =
 						module.resolvedIds[source] ||
-						this.handleMissingImports(await this.resolveId(source, module.id), source, module.id))
+						this.handleResolveId(await this.resolveId(source, module.id), source, module.id))
 				)
 			) as Promise<unknown>[]),
 			...module.getDynamicImportExpressions().map((specifier, index) =>
@@ -411,6 +411,33 @@ export class ModuleLoader {
 		return resolvedId;
 	}
 
+	private handleResolveId(
+		resolvedId: ResolvedId | null,
+		source: string,
+		importer: string
+	): ResolvedId {
+		return this.handleSyntheticExports(
+			this.handleMissingImports(resolvedId, source, importer),
+			source,
+			importer
+		);
+	}
+
+	private handleSyntheticExports(
+		resolvedId: ResolvedId,
+		source: string,
+		importer: string
+	): ResolvedId {
+		if (resolvedId.external && resolvedId.syntheticNamedExports) {
+			this.graph.warn(errExternalSyntheticExports(source, importer));
+			return {
+				...resolvedId,
+				syntheticNamedExports: false
+			};
+		}
+		return resolvedId;
+	}
+
 	private loadEntryModule = (unresolvedId: string, isEntry: boolean): Promise<Module> =>
 		this.pluginDriver.hookFirst('resolveId', [unresolvedId, undefined]).then(resolveIdResult => {
 			if (
@@ -464,10 +491,6 @@ export class ModuleLoader {
 			}
 			external = true;
 		}
-		if (external && syntheticNamedExports) {
-			syntheticNamedExports = false;
-			this.graph.warn(errExternalSyntheticExports(source, importer));
-		}
 		return {
 			external,
 			id,
@@ -505,13 +528,9 @@ export class ModuleLoader {
 		if (resolution == null) {
 			return (module.resolvedIds[specifier] =
 				module.resolvedIds[specifier] ||
-				this.handleMissingImports(
-					await this.resolveId(specifier, module.id),
-					specifier,
-					module.id
-				));
+				this.handleResolveId(await this.resolveId(specifier, module.id), specifier, module.id));
 		}
-		return this.handleMissingImports(
+		return this.handleResolveId(
 			this.normalizeResolveIdResult(resolution, importer, specifier),
 			specifier,
 			importer

@@ -14,6 +14,7 @@ export default class SyntheticNamedExport extends Variable {
 		this.context = context;
 		this.module = context.module;
 		this.defaultVariable = defaultVariable;
+		this.setRenderNames(defaultVariable.getName(), name);
 	}
 
 	include(context: InclusionContext) {
@@ -21,13 +22,5 @@ export default class SyntheticNamedExport extends Variable {
 			this.included = true;
 			this.context.includeVariable(context, this.defaultVariable);
 		}
-	}
-
-	renderBlock(options: RenderOptions) {
-		const _ = options.compact ? '' : ' ';
-		const name = this.getName();
-		const defaultVariable = this.defaultVariable.getName();
-		const output = `${options.varOrConst} ${name}${_}=${_}${defaultVariable}.${this.name};`;
-		return output;
 	}
 }

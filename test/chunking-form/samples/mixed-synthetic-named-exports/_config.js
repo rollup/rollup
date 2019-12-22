@@ -1,5 +1,5 @@
 module.exports = {
-	description: 'simple chunking',
+	description: 'mixed synthetic named exports',
 	options: {
 		input: ['main.js'],
 		plugins: [

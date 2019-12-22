@@ -9,8 +9,6 @@ var ns = /*#__PURE__*/Object.freeze(Object.assign({
   foo: foo
 }, d));
 
-var fn = d.fn;
-
-console.log(fn);
+console.log(d.fn);
 console.log(foo);
 console.log(ns);

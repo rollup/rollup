@@ -593,10 +593,6 @@ export default class Chunk {
 						else magicString.addSource(new MagicString(rendered));
 					}
 				}
-				module.syntheticExports.forEach(s => {
-					const rendered = s.renderBlock(renderOptions);
-					magicString.addSource(new MagicString(rendered));
-				});
 			}
 			const { renderedExports, removedExports } = module.getRenderedExports();
 			renderedModules[module.id] = {

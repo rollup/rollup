@@ -268,7 +268,7 @@ export function errExternalSyntheticExports(source: string, importer: string) {
 	return {
 		code: Errors.EXTERNAL_SYNTHETIC_EXPORTS,
 		importer: relativeId(importer),
-		message: `External '${source}' can not have syntheticNamedExports`,
+		message: `External '${source}' can not have 'syntheticNamedExports' enabled`,
 		source
 	};
 }
