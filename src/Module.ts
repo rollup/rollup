@@ -131,7 +131,7 @@ function tryParse(module: Module, Parser: typeof acorn.Parser, acornOptions: aco
 	} catch (err) {
 		let message = err.message.replace(/ \(\d+:\d+\)$/, '');
 		if (module.id.endsWith('.json')) {
-			message += ' (Note that you need rollup-plugin-json to import JSON files)';
+			message += ' (Note that you need @rollup/plugin-json to import JSON files)';
 		} else if (!module.id.endsWith('.js')) {
 			message += ' (Note that you need plugins to import files that are not JavaScript)';
 		}
