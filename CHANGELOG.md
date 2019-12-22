@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 1.27.14
+*2019-12-22*
+
+### Bug Fixes
+* Update references to official rollup plugins in error messages (#3297, #3298)
+
+### Pull Requests
+* [#3286](https://github.com/rollup/rollup/pull/3286): Update link to JavaScript API documentation (@romankaravia)
+* [#3294](https://github.com/rollup/rollup/pull/3294): Update deprecated references to the node-resolve plugin in the documentation (@Vlad-Shcherbina)
+* [#3297](https://github.com/rollup/rollup/pull/3297): Update references to rollup-plugin-json (@cprecioso)
+* [#3298](https://github.com/rollup/rollup/pull/3298): Update references to official rollup plugins (@cprecioso)
+
 ## 1.27.13
 *2019-12-14*
 
