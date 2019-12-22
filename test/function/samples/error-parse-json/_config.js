@@ -5,7 +5,7 @@ module.exports = {
 		'throws with an extended error message when failing to parse a file with ".json" extension',
 	error: {
 		code: 'PARSE_ERROR',
-		message: 'Unexpected token (Note that you need rollup-plugin-json to import JSON files)',
+		message: 'Unexpected token (Note that you need @rollup/plugin-json to import JSON files)',
 		parserError: {
 			loc: {
 				column: 8,
