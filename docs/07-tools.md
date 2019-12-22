@@ -43,17 +43,17 @@ The resulting `bundle.js` will still work in Node.js, because the `import` decla
 
 #### rollup-plugin-node-resolve
 
-The [rollup-plugin-node-resolve](https://github.com/rollup/rollup-plugin-node-resolve) plugin teaches Rollup how to find external modules. Install it…
+The [@rollup/plugin-node-resolve](https://github.com/rollup/plugins/tree/master/packages/node-resolve) plugin teaches Rollup how to find external modules. Install it…
 
 ```
-npm install --save-dev rollup-plugin-node-resolve
+npm install --save-dev @rollup/plugin-node-resolve
 ```
 
 …and add it to your config file:
 
 ```js
 // rollup.config.js
-import resolve from 'rollup-plugin-node-resolve';
+import resolve from '@rollup/plugin-node-resolve';
 
 export default {
   input: 'src/main.js',
