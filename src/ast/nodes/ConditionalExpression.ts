@@ -38,6 +38,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	bind() {
 		super.bind();
 		// ensure the usedBranch is set for the tree-shaking passes
+		// TODO Lukas do not cache
 		this.getUsedBranch();
 	}
 

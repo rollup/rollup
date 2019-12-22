@@ -42,6 +42,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 	bind() {
 		super.bind();
 		// ensure the usedBranch is set for the tree-shaking passes
+		// TODO Lukas do not cache
 		this.getUsedBranch();
 	}
 

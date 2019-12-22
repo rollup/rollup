@@ -20,6 +20,7 @@ export default class RestElement extends NodeBase implements PatternNode {
 	bind() {
 		super.bind();
 		if (this.declarationInit !== null) {
+			// TODO Lukas only deoptimize when live
 			this.declarationInit.deoptimizePath([UnknownKey, UnknownKey]);
 		}
 	}

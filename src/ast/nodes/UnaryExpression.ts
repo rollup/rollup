@@ -25,6 +25,7 @@ export default class UnaryExpression extends NodeBase {
 	prefix!: boolean;
 	type!: NodeType.tUnaryExpression;
 
+	// TODO Lukas only deoptimize when live
 	bind() {
 		super.bind();
 		if (this.operator === 'delete') {

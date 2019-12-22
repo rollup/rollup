@@ -52,6 +52,7 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 	bind() {
 		super.bind();
 		// ensure the propertyMap is set for the tree-shaking passes
+		// TODO Lukas do not cache
 		this.getPropertyMap();
 	}
 

@@ -13,6 +13,7 @@ export default class TaggedTemplateExpression extends NodeBase {
 
 	private callOptions!: CallOptions;
 
+	// TODO Lukas can this be merged with CallExpression?
 	bind() {
 		super.bind();
 		if (this.tag.type === NodeType.Identifier) {

@@ -12,6 +12,7 @@ export default class UpdateExpression extends NodeBase {
 	prefix!: boolean;
 	type!: NodeType.tUpdateExpression;
 
+	// TODO Lukas only deoptimize when live
 	bind() {
 		super.bind();
 		this.argument.deoptimizePath(EMPTY_PATH);

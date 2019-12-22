@@ -16,6 +16,7 @@ export default class ForOfStatement extends StatementBase {
 	right!: ExpressionNode;
 	type!: NodeType.tForOfStatement;
 
+	// TODO Lukas only deoptimize when live
 	bind() {
 		this.left.bind();
 		this.left.deoptimizePath(EMPTY_PATH);

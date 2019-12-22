@@ -61,6 +61,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 			}
 		}
 		// ensure the returnExpression is set for the tree-shaking passes
+		// TODO Lukas only deoptimize when live, do not cache
 		this.getReturnExpression(SHARED_RECURSION_TRACKER);
 		// This deoptimizes "this" for non-namespace calls until we have a better solution
 		if (this.callee instanceof MemberExpression && !this.callee.variable) {

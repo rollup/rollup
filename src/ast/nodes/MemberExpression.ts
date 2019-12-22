@@ -110,6 +110,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		} else {
 			super.bind();
 			// ensure the propertyKey is set for the tree-shaking passes
+			// TODO Lukas do not cache
 			this.getPropertyKey();
 		}
 	}
@@ -127,6 +128,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	}
 
 	deoptimizePath(path: ObjectPath) {
+		// TODO Lukas remove
 		if (!this.bound) this.bind();
 		if (path.length === 0) this.disallowNamespaceReassignment();
 		if (this.variable) {
@@ -147,6 +149,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
+		// TODO Lukas remove
 		if (!this.bound) this.bind();
 		if (this.variable !== null) {
 			return this.variable.getLiteralValueAtPath(path, recursionTracker, origin);
@@ -164,6 +167,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	) {
+		// TODO Lukas remove
 		if (!this.bound) this.bind();
 		if (this.variable !== null) {
 			return this.variable.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);

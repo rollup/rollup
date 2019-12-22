@@ -12,6 +12,7 @@ export default class NewExpression extends NodeBase {
 
 	private callOptions!: CallOptions;
 
+	// TODO Lukas only deoptimize when live
 	bind() {
 		super.bind();
 		for (const argument of this.arguments) {

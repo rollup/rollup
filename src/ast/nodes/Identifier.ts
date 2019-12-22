@@ -74,6 +74,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 	}
 
 	deoptimizePath(path: ObjectPath) {
+		// TODO Lukas remove
 		if (!this.bound) this.bind();
 		if (path.length === 0 && !this.scope.contains(this.name)) {
 			this.disallowImportReassignment();
@@ -86,6 +87,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
+		// TODO Lukas remove
 		if (!this.bound) this.bind();
 		return (this.variable as Variable).getLiteralValueAtPath(path, recursionTracker, origin);
 	}
@@ -95,6 +97,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	) {
+		// TODO Lukas remove
 		if (!this.bound) this.bind();
 		return (this.variable as Variable).getReturnExpressionWhenCalledAtPath(
 			path,

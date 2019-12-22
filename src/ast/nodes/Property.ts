@@ -32,8 +32,10 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 		super.bind();
 		if (this.kind === 'get') {
 			// ensure the returnExpression is set for the tree-shaking passes
+			// TODO Lukas do not cache
 			this.getReturnExpression();
 		}
+		// TODO Lukas only deoptimize when live
 		if (this.declarationInit !== null) {
 			this.declarationInit.deoptimizePath([UnknownKey, UnknownKey]);
 		}

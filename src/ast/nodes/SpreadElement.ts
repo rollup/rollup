@@ -6,6 +6,7 @@ export default class SpreadElement extends NodeBase {
 	argument!: ExpressionNode;
 	type!: NodeType.tSpreadElement;
 
+	// TODO Lukas only deoptimize when live
 	bind() {
 		super.bind();
 		// Only properties of properties of the argument could become subject to reassignment

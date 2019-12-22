@@ -10,6 +10,7 @@ export default class YieldExpression extends NodeBase {
 	delegate!: boolean;
 	type!: NodeType.tYieldExpression;
 
+	// TODO Lukas only deoptimize when live
 	bind() {
 		super.bind();
 		if (this.argument !== null) {
