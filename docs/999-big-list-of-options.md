@@ -262,8 +262,8 @@ See [Using plugins](guide/en/#using-plugins) for more information on how to use 
 
 ```js
 // rollup.config.js
-import resolve from 'rollup-plugin-node-resolve';
-import commonjs from 'rollup-plugin-commonjs';
+import resolve from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -325,7 +325,7 @@ Type: `{ [chunkAlias: string]: string[] } | ((id: string) => string | void)`
 
 Allows the creation of custom shared common chunks. When using the object form, each property represents a chunk that contains the listed modules and all their dependencies if they are part of the module graph unless they are already in another manual chunk. The name of the chunk will be determined by the property key.
 
-Note that it is not necessary for the listed modules themselves to be be part of the module graph, which is useful if you are working with `rollup-plugin-node-resolve` and use deep imports from packages. For instance
+Note that it is not necessary for the listed modules themselves to be be part of the module graph, which is useful if you are working with `@rollup/plugin-node-resolve` and use deep imports from packages. For instance
 
 ```
 manualChunks: {
