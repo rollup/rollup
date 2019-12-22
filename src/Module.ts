@@ -41,7 +41,7 @@ import {
 	RollupWarning,
 	TransformModuleJSON
 } from './rollup/types';
-import { error, Errors, errSyntheticNamedExportsNeedDefault } from './utils/error';
+import { error, Errors } from './utils/error';
 import getCodeFrame from './utils/getCodeFrame';
 import { getOriginalLocation } from './utils/getOriginalLocation';
 import { makeLegal } from './utils/identifierHelpers';
