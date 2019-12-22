@@ -1,6 +1,5 @@
 module.exports = {
 	description: 'external modules can not have syntheticNamedExports',
-	solo: true,
 	options: {
 		plugins: [
 			{

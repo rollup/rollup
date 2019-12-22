@@ -1,5 +1,4 @@
 import Module, { AstContext } from '../../Module';
-import { RenderOptions } from '../../utils/renderHelpers';
 import { InclusionContext } from '../ExecutionContext';
 import ExportDefaultVariable from './ExportDefaultVariable';
 import Variable from './Variable';

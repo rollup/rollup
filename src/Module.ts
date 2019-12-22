@@ -41,7 +41,7 @@ import {
 	RollupWarning,
 	TransformModuleJSON
 } from './rollup/types';
-import { error } from './utils/error';
+import { error, Errors, errSyntheticNamedExportsNeedDefault } from './utils/error';
 import getCodeFrame from './utils/getCodeFrame';
 import { getOriginalLocation } from './utils/getOriginalLocation';
 import { makeLegal } from './utils/identifierHelpers';
@@ -208,7 +208,6 @@ export default class Module {
 	scope!: ModuleScope;
 	sourcemapChain!: DecodedSourceMapOrMissing[];
 	sources = new Set<string>();
-	syntheticExports = new Map<string, SyntheticNamedExport>();
 	syntheticNamedExports: boolean;
 	transformFiles?: EmittedFile[];
 	userChunkNames = new Set<string>();
@@ -218,10 +217,12 @@ export default class Module {
 	private ast!: Program;
 	private astContext!: AstContext;
 	private context: string;
+	private defaultExport: ExportDefaultVariable | null | undefined = null;
 	private esTreeAst!: ESTree.Program;
 	private graph: Graph;
 	private magicString!: MagicString;
 	private namespaceVariable: NamespaceVariable | null = null;
+	private syntheticExports = new Map<string, SyntheticNamedExport>();
 	private transformDependencies: string[] = [];
 	private transitiveReexports: string[] | null = null;
 
@@ -308,6 +309,21 @@ export default class Module {
 		}
 
 		return allExportNames;
+	}
+
+	getDefaultExport() {
+		if (this.defaultExport === null) {
+			this.defaultExport = undefined;
+			this.defaultExport = this.astContext.traceExport('default') as ExportDefaultVariable;
+			if (!this.defaultExport) {
+				error({
+					code: Errors.SYNTHETIC_NAMED_EXPORTS_NEED_DEFAULT,
+					id: this.id,
+					message: `Modules with 'syntheticNamedExports' need a default export.`
+				});
+			}
+		}
+		return this.defaultExport;
 	}
 
 	getDynamicImportExpressions(): (string | Node)[] {
@@ -454,12 +470,11 @@ export default class Module {
 			if (this.syntheticNamedExports) {
 				let syntheticExport = this.syntheticExports.get(name);
 				if (!syntheticExport && !this.exports[name]) {
-					syntheticExport = new SyntheticNamedExport(
-						this.astContext,
-						name,
-						this.astContext.traceExport('default') as ExportDefaultVariable
-					);
-					this.syntheticExports.set(name, syntheticExport);
+					const defaultExport = this.getDefaultExport();
+					if (defaultExport) {
+						syntheticExport = new SyntheticNamedExport(this.astContext, name, defaultExport);
+						this.syntheticExports.set(name, syntheticExport);
+					}
 				}
 				if (syntheticExport) {
 					return syntheticExport;

@@ -39,10 +39,6 @@ export default class NamespaceVariable extends Variable {
 		}
 	}
 
-	getDefaultVariableName() {
-		return this.context.traceExport('default').getName();
-	}
-
 	include(context: InclusionContext) {
 		if (!this.included) {
 			if (this.containsExternalNamespace) {
@@ -106,16 +102,17 @@ export default class NamespaceVariable extends Variable {
 		}
 
 		const name = this.getName();
+		const defaultExport = this.syntheticNamedExports ? this.module.getDefaultExport() : undefined;
 
 		let output = '';
-		if (this.syntheticNamedExports && members.length === 0) {
-			output = this.getDefaultVariableName();
+		if (defaultExport && members.length === 0) {
+			output = defaultExport.getName();
 		} else {
 			members.unshift(`${t}__proto__:${_}null`);
 
 			output = `{${n}${members.join(`,${n}`)}${n}}`;
-			if (this.syntheticNamedExports) {
-				output = `Object.assign(${output}, ${this.getDefaultVariableName()})`;
+			if (defaultExport) {
+				output = `Object.assign(${output}, ${defaultExport.getName()})`;
 			}
 			if (options.freeze) {
 				output = `/*#__PURE__*/Object.freeze(${output})`;

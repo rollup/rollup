@@ -55,7 +55,8 @@ export enum Errors {
 	UNRESOLVED_ENTRY = 'UNRESOLVED_ENTRY',
 	UNRESOLVED_IMPORT = 'UNRESOLVED_IMPORT',
 	VALIDATION_ERROR = 'VALIDATION_ERROR',
-	EXTERNAL_SYNTHETIC_EXPORTS = 'EXTERNAL_SYNTHETIC_EXPORTS'
+	EXTERNAL_SYNTHETIC_EXPORTS = 'EXTERNAL_SYNTHETIC_EXPORTS',
+	SYNTHETIC_NAMED_EXPORTS_NEED_DEFAULT = 'SYNTHETIC_NAMED_EXPORTS_NEED_DEFAULT'
 }
 
 export function errAssetNotFinalisedForFileName(name: string) {
@@ -268,7 +269,7 @@ export function errExternalSyntheticExports(source: string, importer: string) {
 	return {
 		code: Errors.EXTERNAL_SYNTHETIC_EXPORTS,
 		importer: relativeId(importer),
-		message: `External '${source}' can not have 'syntheticNamedExports' enabled`,
+		message: `External '${source}' can not have 'syntheticNamedExports' enabled.`,
 		source
 	};
 }
