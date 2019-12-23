@@ -35,16 +35,15 @@ export default class MetaProperty extends NodeBase {
 				parent instanceof MemberExpression && typeof parent.propertyKey === 'string'
 					? parent.propertyKey
 					: null);
-			if (metaProperty) {
-				if (
-					metaProperty.startsWith(FILE_PREFIX) ||
+			if (
+				metaProperty &&
+				(metaProperty.startsWith(FILE_PREFIX) ||
 					metaProperty.startsWith(ASSET_PREFIX) ||
-					metaProperty.startsWith(CHUNK_PREFIX)
-				) {
-					this.scope.addAccessedGlobalsByFormat(accessedFileUrlGlobals);
-				} else {
-					this.scope.addAccessedGlobalsByFormat(accessedMetaUrlGlobals);
-				}
+					metaProperty.startsWith(CHUNK_PREFIX))
+			) {
+				this.scope.addAccessedGlobalsByFormat(accessedFileUrlGlobals);
+			} else {
+				this.scope.addAccessedGlobalsByFormat(accessedMetaUrlGlobals);
 			}
 		}
 	}

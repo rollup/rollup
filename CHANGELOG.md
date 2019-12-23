@@ -1,5 +1,53 @@
 # rollup changelog
 
+## 1.27.14
+*2019-12-22*
+
+### Bug Fixes
+* Update references to official rollup plugins in error messages (#3297, #3298)
+
+### Pull Requests
+* [#3286](https://github.com/rollup/rollup/pull/3286): Update link to JavaScript API documentation (@romankaravia)
+* [#3294](https://github.com/rollup/rollup/pull/3294): Update deprecated references to the node-resolve plugin in the documentation (@Vlad-Shcherbina)
+* [#3297](https://github.com/rollup/rollup/pull/3297): Update references to rollup-plugin-json (@cprecioso)
+* [#3298](https://github.com/rollup/rollup/pull/3298): Update references to official rollup plugins (@cprecioso)
+
+## 1.27.13
+*2019-12-14*
+
+### Bug Fixes
+* Do not truncate environment variable values at the first colon when using the `--environment` option (#3283)
+
+### Pull Requests
+* [#3283](https://github.com/rollup/rollup/pull/3283): Allow environment variables to contain colons (@tlaverdure)
+
+## 1.27.12
+*2019-12-13*
+
+### Bug Fixes
+* Prevent invalid AMD or SystemJS code when accessing `import.meta` (#3282)
+
+### Pull Requests
+* [#3282](https://github.com/rollup/rollup/pull/3282): Always make "module" available for SystemJS and AMD formats if `import.meta` is accessed directly (@lukastaegert)
+
+## 1.27.11
+*2019-12-12*
+
+### Bug Fixes
+* Resolve a crash due to an infinite loop (#3280)
+
+### Pull Requests
+* [#3280](https://github.com/rollup/rollup/pull/3280): Prevent infinite deoptimizations (@lukastaegert)
+
+## 1.27.10
+*2019-12-11*
+
+### Bug Fixes
+* Keep track of function return values in more situations (#3278)
+
+### Pull Requests
+* [#3278](https://github.com/rollup/rollup/pull/3278): Avoid some unnecessary value tracking deoptimizations (@lukastaegert)
+
 ## 1.27.9
 *2019-12-07*
 

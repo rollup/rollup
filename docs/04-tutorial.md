@@ -173,7 +173,7 @@ So far, we've created a simple bundle from an entry point and a module imported 
 
 For that, we use *plugins*, which change the behaviour of Rollup at key points in the bundling process. A list of awesome plugins is maintained on [the Rollup Awesome List](https://github.com/rollup/awesome).
 
-For this tutorial, we'll use [rollup-plugin-json](https://github.com/rollup/rollup-plugin-json), which allows Rollup to import data from a JSON file.
+For this tutorial, we'll use [@rollup/plugin-json](https://github.com/rollup/plugins/tree/master/packages/json), which allows Rollup to import data from a JSON file.
 
 Create a file in the project root called `package.json`, and add the following content:
 
@@ -187,10 +187,10 @@ Create a file in the project root called `package.json`, and add the following c
 }
 ```
 
-Install rollup-plugin-json as a development dependency:
+Install @rollup/plugin-json as a development dependency:
 
 ```
-npm install --save-dev rollup-plugin-json
+npm install --save-dev @rollup/plugin-json
 ```
 
 (We're using `--save-dev` rather than `--save` because our code doesn't actually depend on the plugin when it runs – only when we're building the bundle.)
@@ -210,7 +210,7 @@ Edit your `rollup.config.js` file to include the JSON plugin:
 
 ```js
 // rollup.config.js
-import json from 'rollup-plugin-json';
+import json from '@rollup/plugin-json';
 
 export default {
   input: 'src/main.js',
@@ -252,7 +252,7 @@ Edit your `rollup.config.js` file to add a second minified output. As format, we
 
 ```js
 // rollup.config.js
-import json from 'rollup-plugin-json';
+import json from '@rollup/plugin-json';
 import {terser} from 'rollup-plugin-terser';
 
 export default {

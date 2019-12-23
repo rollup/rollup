@@ -28,4 +28,4 @@ export class PathTracker {
 	}
 }
 
-export const EMPTY_IMMUTABLE_TRACKER = new PathTracker();
+export const SHARED_RECURSION_TRACKER = new PathTracker();

@@ -3,7 +3,7 @@ import { RenderOptions } from '../../utils/renderHelpers';
 import { removeAnnotations } from '../../utils/treeshakeNode';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { BROKEN_FLOW_NONE, HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { EMPTY_IMMUTABLE_TRACKER, EMPTY_PATH } from '../utils/PathTracker';
+import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
 import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from './shared/Node';
@@ -18,7 +18,8 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 
 	bind() {
 		super.bind();
-		this.testValue = this.test.getLiteralValueAtPath(EMPTY_PATH, EMPTY_IMMUTABLE_TRACKER, this);
+		// ensure the testValue is set for the tree-shaking passes
+		this.testValue = this.test.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this);
 	}
 
 	deoptimizeCache() {
