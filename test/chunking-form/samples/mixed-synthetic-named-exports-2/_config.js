@@ -4,10 +4,11 @@ module.exports = {
 		input: ['main.js'],
 		plugins: [
 			{
-				resolveId(id) {
-					if (id === './dep1.js' || id === './dep2.js') {
+				transform(code, id) {
+					console.log(id);
+					if (id.endsWith('/dep1.js') || id.endsWith('/dep2.js')) {
 						return {
-							id,
+							code,
 							syntheticNamedExports: true
 						};
 					}
