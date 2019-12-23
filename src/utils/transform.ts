@@ -35,6 +35,7 @@ export default function transform(
 	const emittedFiles: EmittedFile[] = [];
 	let customTransformCache = false;
 	let moduleSideEffects: boolean | null = null;
+	let inlineDynamicImport: boolean | null = null;
 	let trackedPluginCache: { cache: PluginCache; used: boolean };
 	let curPlugin: Plugin;
 	const curSource: string = source.code;
@@ -81,6 +82,9 @@ export default function transform(
 			}
 			if (typeof result.moduleSideEffects === 'boolean') {
 				moduleSideEffects = result.moduleSideEffects;
+			}
+			if (typeof result.inlineDynamicImport === 'boolean') {
+				inlineDynamicImport = result.inlineDynamicImport;
 			}
 		} else {
 			return code;
@@ -189,6 +193,7 @@ export default function transform(
 				ast: ast as any,
 				code,
 				customTransformCache,
+				inlineDynamicImport,
 				moduleSideEffects,
 				originalCode,
 				originalSourcemap,

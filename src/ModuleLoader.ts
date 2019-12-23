@@ -272,6 +272,7 @@ export class ModuleLoader {
 		id: string,
 		importer: string,
 		moduleSideEffects: boolean,
+		inlineDynamicImport: boolean,
 		isEntry: boolean
 	): Promise<Module> {
 		const existingModule = this.modulesById.get(id);
@@ -280,7 +281,7 @@ export class ModuleLoader {
 			return Promise.resolve(existingModule);
 		}
 
-		const module: Module = new Module(this.graph, id, moduleSideEffects, isEntry);
+		const module = new Module(this.graph, id, moduleSideEffects, inlineDynamicImport, isEntry);
 		this.modulesById.set(id, module);
 		this.graph.watchFiles[id] = true;
 		const manualChunkAlias = this.getManualChunk(id);
@@ -370,7 +371,13 @@ export class ModuleLoader {
 			}
 			return Promise.resolve(externalModule);
 		} else {
-			return this.fetchModule(resolvedId.id, importer, resolvedId.moduleSideEffects, false);
+			return this.fetchModule(
+				resolvedId.id,
+				importer,
+				resolvedId.moduleSideEffects,
+				resolvedId.inlineDynamicImport,
+				false
+			);
 		}
 	}
 
@@ -387,6 +394,7 @@ export class ModuleLoader {
 			return {
 				external: true,
 				id: source,
+				inlineDynamicImport: true,
 				moduleSideEffects: this.hasModuleSideEffects(source, true)
 			};
 		}
@@ -407,7 +415,7 @@ export class ModuleLoader {
 					: resolveIdResult;
 
 			if (typeof id === 'string') {
-				return this.fetchModule(id, undefined as any, true, isEntry);
+				return this.fetchModule(id, undefined as any, true, false, isEntry);
 			}
 			return error(errUnresolvedEntry(unresolvedId));
 		});
@@ -420,6 +428,7 @@ export class ModuleLoader {
 		let id = '';
 		let external = false;
 		let moduleSideEffects = null;
+		let inlineDynamicImport = false;
 		if (resolveIdResult) {
 			if (typeof resolveIdResult === 'object') {
 				id = resolveIdResult.id;
@@ -428,6 +437,9 @@ export class ModuleLoader {
 				}
 				if (typeof resolveIdResult.moduleSideEffects === 'boolean') {
 					moduleSideEffects = resolveIdResult.moduleSideEffects;
+				}
+				if (typeof resolveIdResult.inlineDynamicImport === 'boolean') {
+					inlineDynamicImport = resolveIdResult.inlineDynamicImport;
 				}
 			} else {
 				if (this.isExternal(resolveIdResult, importer, true)) {
@@ -445,6 +457,7 @@ export class ModuleLoader {
 		return {
 			external,
 			id,
+			inlineDynamicImport,
 			moduleSideEffects:
 				typeof moduleSideEffects === 'boolean'
 					? moduleSideEffects

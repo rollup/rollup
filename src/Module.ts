@@ -194,6 +194,7 @@ export default class Module {
 	importDescriptions: { [name: string]: ImportDescription } = Object.create(null);
 	importMetas: MetaProperty[] = [];
 	imports = new Set<Variable>();
+	inlineDynamicImport = false;
 	isEntryPoint: boolean;
 	isExecuted = false;
 	isUserDefinedEntryPoint = false;
@@ -221,12 +222,19 @@ export default class Module {
 	private transformDependencies: string[] = [];
 	private transitiveReexports: string[] | null = null;
 
-	constructor(graph: Graph, id: string, moduleSideEffects: boolean, isEntry: boolean) {
+	constructor(
+		graph: Graph,
+		id: string,
+		moduleSideEffects: boolean,
+		inlineDynamicImport: boolean,
+		isEntry: boolean
+	) {
 		this.id = id;
 		this.graph = graph;
 		this.excludeFromSourcemap = /\0/.test(id);
 		this.context = graph.getModuleContext(id);
 		this.moduleSideEffects = moduleSideEffects;
+		this.inlineDynamicImport = inlineDynamicImport;
 		this.isEntryPoint = isEntry;
 	}
 
@@ -534,6 +542,7 @@ export default class Module {
 		originalSourcemap,
 		resolvedIds,
 		sourcemapChain,
+		inlineDynamicImport,
 		transformDependencies,
 		transformFiles
 	}: TransformModuleJSON & {
@@ -550,6 +559,10 @@ export default class Module {
 		this.customTransformCache = customTransformCache;
 		if (typeof moduleSideEffects === 'boolean') {
 			this.moduleSideEffects = moduleSideEffects;
+		}
+		if (typeof inlineDynamicImport === 'boolean') {
+			this.inlineDynamicImport = inlineDynamicImport;
+			console.log(this.id, inlineDynamicImport);
 		}
 
 		timeStart('generate ast', 3);

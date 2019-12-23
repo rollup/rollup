@@ -19,6 +19,11 @@ export function assignChunkColouringHashes(
 			Uint8ArrayXor(module.entryPointsHash, currentEntryHash);
 		}
 
+		for (const { resolution } of module.dynamicImports) {
+			if (resolution instanceof Module && resolution.inlineDynamicImport) {
+				module.dependencies.push(resolution);
+			}
+		}
 		for (const dependency of module.dependencies) {
 			if (
 				dependency instanceof ExternalModule ||
@@ -35,6 +40,7 @@ export function assignChunkColouringHashes(
 		for (const { resolution } of module.dynamicImports) {
 			if (
 				resolution instanceof Module &&
+				!resolution.inlineDynamicImport &&
 				resolution.dynamicallyImportedBy.length > 0 &&
 				!resolution.manualChunkAlias
 			) {

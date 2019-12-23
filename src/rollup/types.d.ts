@@ -91,6 +91,7 @@ export type SourceMapInput = ExistingRawSourceMap | string | null | { mappings: 
 export interface SourceDescription {
 	ast?: ESTree.Program;
 	code: string;
+	inlineDynamicImport?: boolean | null;
 	map?: SourceMapInput;
 	moduleSideEffects?: boolean | null;
 }
@@ -104,6 +105,7 @@ export interface TransformModuleJSON {
 	code: string;
 	// note if plugins use new this.cache to opt-out auto transform cache
 	customTransformCache: boolean;
+	inlineDynamicImport: boolean | null;
 	moduleSideEffects: boolean | null;
 	originalCode: string;
 	originalSourcemap: ExistingDecodedSourceMap | null;
@@ -198,6 +200,7 @@ export interface PluginContextMeta {
 export interface ResolvedId {
 	external: boolean;
 	id: string;
+	inlineDynamicImport: boolean;
 	moduleSideEffects: boolean;
 }
 
@@ -208,6 +211,7 @@ export interface ResolvedIdMap {
 interface PartialResolvedId {
 	external?: boolean;
 	id: string;
+	inlineDynamicImport?: boolean | null;
 	moduleSideEffects?: boolean | null;
 }
 
