@@ -4,7 +4,7 @@ function NoEffectsDeclaration () {
 	const mutateNested = () => this.bar = 1;
 	mutateNested();
 
-	if ( globalCondition ) {
+	if ( globalThis.condition ) {
 		this.baz = 1;
 	}
 }
@@ -16,7 +16,7 @@ const NoEffectsExpression = function () {
 	const mutateNested = () => this.bar = 1;
 	mutateNested();
 
-	if ( globalCondition ) {
+	if ( globalThis.condition ) {
 		this.baz = 1;
 	}
 };
@@ -34,7 +34,7 @@ function mutateNestedThis () {
 mutateNestedThis();
 
 function mutateThisConditionally () {
-	if ( globalCondition ) {
+	if ( globalThis.condition ) {
 		this.baz = 1;
 	}
 }
@@ -42,7 +42,7 @@ mutateThisConditionally();
 
 function CallSelfWithoutNew () {
 	this.quux = 1;
-	if ( globalCondition ) {
+	if ( globalThis.condition ) {
 		CallSelfWithoutNew();
 	}
 }

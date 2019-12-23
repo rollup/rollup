@@ -12,6 +12,7 @@ System.register(['./generated-dep.js', 'external'], function (exports) {
 			console.log(reexported);
 
 			var lib = /*#__PURE__*/Object.freeze({
+				__proto__: null,
 				reexported: reexported$1
 			});
 			exports('l', lib);

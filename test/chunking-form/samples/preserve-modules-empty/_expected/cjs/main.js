@@ -2,4 +2,4 @@
 
 var two = require('./two.js');
 
-window.APP = { a: two.default };
+window.APP = { a: two };

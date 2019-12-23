@@ -1,4 +1,3 @@
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
 import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
@@ -10,7 +9,7 @@ export default class TemplateElement extends NodeBase {
 		raw: string;
 	};
 
-	hasEffects(_options: ExecutionPathOptions) {
+	hasEffects() {
 		return false;
 	}
 }

@@ -1,8 +1,9 @@
 import Module, { AstContext } from '../../Module';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { RESERVED_NAMES } from '../../utils/reservedNames';
+import { InclusionContext } from '../ExecutionContext';
 import Identifier from '../nodes/Identifier';
-import { UNKNOWN_PATH } from '../values';
+import { UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class NamespaceVariable extends Variable {
@@ -19,10 +20,6 @@ export default class NamespaceVariable extends Variable {
 		super(context.getModuleName());
 		this.context = context;
 		this.module = context.module;
-		for (const name of this.context.getExports().concat(this.context.getReexports())) {
-			if (name[0] === '*' && name.length > 1) this.containsExternalNamespace = true;
-			this.memberVariables[name] = this.context.traceExport(name);
-		}
 	}
 
 	addReference(identifier: Identifier) {
@@ -40,7 +37,7 @@ export default class NamespaceVariable extends Variable {
 		}
 	}
 
-	include() {
+	include(context: InclusionContext) {
 		if (!this.included) {
 			if (this.containsExternalNamespace) {
 				this.context.error(
@@ -61,11 +58,18 @@ export default class NamespaceVariable extends Variable {
 			}
 			if (this.context.preserveModules) {
 				for (const memberName of Object.keys(this.memberVariables))
-					this.memberVariables[memberName].include();
+					this.memberVariables[memberName].include(context);
 			} else {
 				for (const memberName of Object.keys(this.memberVariables))
-					this.context.includeVariable(this.memberVariables[memberName]);
+					this.context.includeVariable(context, this.memberVariables[memberName]);
 			}
+		}
+	}
+
+	initialise() {
+		for (const name of this.context.getExports().concat(this.context.getReexports())) {
+			if (name[0] === '*' && name.length > 1) this.containsExternalNamespace = true;
+			this.memberVariables[name] = this.context.traceExport(name);
 		}
 	}
 
@@ -88,25 +92,17 @@ export default class NamespaceVariable extends Variable {
 			return `${t}${safeName}: ${original.getName()}`;
 		});
 
+		members.unshift(`${t}__proto__:${_}null`);
+
+		if (options.namespaceToStringTag) {
+			members.unshift(`${t}[Symbol.toStringTag]:${_}'Module'`);
+		}
+
 		const name = this.getName();
 
 		const callee = options.freeze ? `/*#__PURE__*/Object.freeze` : '';
-
-		let output = `${options.varOrConst} ${name} = ${
-			options.namespaceToStringTag
-				? `{${n}${members.join(`,${n}`)}${n}};`
-				: `${callee}({${n}${members.join(`,${n}`)}${n}});`
-		}`;
-
-		if (options.namespaceToStringTag) {
-			output += `${n}if${_}(typeof Symbol${_}!==${_}'undefined'${_}&&${_}Symbol.toStringTag)${n}`;
-			output += `${t}Object.defineProperty(${name},${_}Symbol.toStringTag,${_}{${_}value:${_}'Module'${_}});${n}`;
-			output += `else${n || ' '}`;
-			output += `${t}Object.defineProperty(${name},${_}'toString',${_}{${_}value:${_}function${_}()${_}{${_}return${_}'[object Module]'${
-				options.compact ? ';' : ''
-			}${_}}${_}});${n}`;
-			output += `${callee}(${name});`;
-		}
+		const membersStr = members.join(`,${n}`);
+		let output = `${options.varOrConst} ${name}${_}=${_}${callee}({${n}${membersStr}${n}});`;
 
 		if (options.format === 'system' && this.exportName) {
 			output += `${n}exports('${this.exportName}',${_}${name});`;

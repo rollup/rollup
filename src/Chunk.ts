@@ -1,6 +1,7 @@
-import sha256 from 'hash.js/lib/hash/sha/256';
 import MagicString, { Bundle as MagicStringBundle, SourceMap } from 'magic-string';
+import { createHash } from '../browser/crypto';
 import { relative } from '../browser/path';
+import { createInclusionContext } from './ast/ExecutionContext';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
 import { UNDEFINED_EXPRESSION } from './ast/values';
@@ -30,7 +31,8 @@ import { error } from './utils/error';
 import { sortByExecutionOrder } from './utils/executionOrder';
 import getIndentString from './utils/getIndentString';
 import { makeLegal } from './utils/identifierHelpers';
-import { basename, dirname, isAbsolute, normalize, resolve } from './utils/path';
+import { basename, dirname, extname, isAbsolute, normalize, resolve } from './utils/path';
+import { PluginDriver } from './utils/PluginDriver';
 import relativeId, { getAliasName } from './utils/relativeId';
 import renderChunk from './utils/renderChunk';
 import { RenderOptions } from './utils/renderHelpers';
@@ -82,6 +84,8 @@ interface FacadeName {
 	fileName?: string;
 	name?: string;
 }
+
+const NON_ASSET_EXTENSIONS = ['.js', '.jsx', '.ts', '.tsx'];
 
 function getGlobalName(
 	module: ExternalModule,
@@ -250,19 +254,31 @@ export default class Chunk {
 	}
 
 	generateId(
-		pattern: string,
-		patternName: string,
 		addons: Addons,
 		options: OutputOptions,
-		existingNames: Record<string, any>
+		existingNames: Record<string, any>,
+		includeHash: boolean,
+		outputPluginDriver: PluginDriver
 	): string {
 		if (this.fileName !== null) {
 			return this.fileName;
 		}
+		const [pattern, patternName] =
+			this.facadeModule && this.facadeModule.isUserDefinedEntryPoint
+				? [options.entryFileNames || '[name].js', 'output.entryFileNames']
+				: [options.chunkFileNames || '[name]-[hash].js', 'output.chunkFileNames'];
 		return makeUnique(
 			renderNamePattern(pattern, patternName, {
 				format: () => (options.format === 'es' ? 'esm' : (options.format as string)),
-				hash: () => this.computeContentHashWithDependencies(addons, options),
+				hash: () =>
+					includeHash
+						? this.computeContentHashWithDependencies(
+								addons,
+								options,
+								existingNames,
+								outputPluginDriver
+						  )
+						: '[hash]',
 				name: () => this.getChunkName()
 			}),
 			existingNames
@@ -271,17 +287,33 @@ export default class Chunk {
 
 	generateIdPreserveModules(
 		preserveModulesRelativeDir: string,
+		options: OutputOptions,
 		existingNames: Record<string, any>
 	): string {
-		const sanitizedId = sanitizeFileName(this.orderedModules[0].id);
-		return makeUnique(
-			normalize(
-				isAbsolute(this.orderedModules[0].id)
-					? relative(preserveModulesRelativeDir, sanitizedId)
-					: '_virtual/' + basename(sanitizedId)
-			),
-			existingNames
-		);
+		const id = this.orderedModules[0].id;
+		const sanitizedId = sanitizeFileName(id);
+
+		let path: string;
+		if (isAbsolute(id)) {
+			const extension = extname(id);
+
+			const name = renderNamePattern(
+				options.entryFileNames ||
+					(NON_ASSET_EXTENSIONS.includes(extension) ? '[name].js' : '[name][extname].js'),
+				'output.entryFileNames',
+				{
+					ext: () => extension.substr(1),
+					extname: () => extension,
+					format: () => (options.format === 'es' ? 'esm' : (options.format as string)),
+					name: () => this.getChunkName()
+				}
+			);
+
+			path = relative(preserveModulesRelativeDir, `${dirname(sanitizedId)}/${name}`);
+		} else {
+			path = `_virtual/${basename(sanitizedId)}`;
+		}
+		return makeUnique(normalize(path), existingNames);
 	}
 
 	generateInternalExports(options: OutputOptions) {
@@ -338,11 +370,11 @@ export default class Chunk {
 		return this.dependencies.map(chunk => chunk.id).filter(Boolean) as string[];
 	}
 
-	getRenderedHash(): string {
+	getRenderedHash(outputPluginDriver: PluginDriver): string {
 		if (this.renderedHash) return this.renderedHash;
 		if (!this.renderedSource) return '';
-		const hash = sha256();
-		const hashAugmentation = this.calculateHashAugmentation();
+		const hash = createHash();
+		const hashAugmentation = this.calculateHashAugmentation(outputPluginDriver);
 		hash.update(hashAugmentation);
 		hash.update(this.renderedSource.toString());
 		hash.update(
@@ -578,7 +610,6 @@ export default class Chunk {
 				`${n}${renderOptions.varOrConst} ${MISSING_EXPORT_SHIM_VARIABLE}${_}=${_}void 0;${n}${n}`
 			);
 		}
-
 		if (options.compact) {
 			this.renderedSource = magicString;
 		} else {
@@ -588,10 +619,12 @@ export default class Chunk {
 		this.renderedSourceLength = undefined as any;
 		this.renderedHash = undefined as any;
 
-		if (this.getExportNames().length === 0 && this.getImportIds().length === 0 && this.isEmpty) {
+		if (this.isEmpty && this.getExportNames().length === 0 && this.dependencies.length === 0) {
+			const chunkName = this.getChunkName();
 			this.graph.warn({
+				chunkName,
 				code: 'EMPTY_BUNDLE',
-				message: 'Generated an empty bundle'
+				message: `Generated an empty chunk: "${chunkName}"`
 			});
 		}
 
@@ -605,22 +638,16 @@ export default class Chunk {
 		timeEnd('render modules', 3);
 	}
 
-	render(options: OutputOptions, addons: Addons, outputChunk: RenderedChunk) {
+	render(
+		options: OutputOptions,
+		addons: Addons,
+		outputChunk: RenderedChunk,
+		outputPluginDriver: PluginDriver
+	) {
 		timeStart('render format', 3);
-
-		if (!this.renderedSource)
-			throw new Error('Internal error: Chunk render called before preRender');
 
 		const format = options.format as string;
 		const finalise = finalisers[format];
-		if (!finalise) {
-			error({
-				code: 'INVALID_OPTION',
-				message: `Invalid format: ${format} - valid options are ${Object.keys(finalisers).join(
-					', '
-				)}.`
-			});
-		}
 		if (options.dynamicImportFunction && format !== 'es') {
 			this.graph.warn({
 				code: 'INVALID_OPTION',
@@ -641,7 +668,7 @@ export default class Chunk {
 		}
 
 		this.finaliseDynamicImports(format);
-		this.finaliseImportMetas(format);
+		this.finaliseImportMetas(format, outputPluginDriver);
 
 		const hasExports =
 			this.renderedDeclarations.exports.length !== 0 ||
@@ -673,7 +700,7 @@ export default class Chunk {
 		}
 
 		const magicString = finalise(
-			this.renderedSource,
+			this.renderedSource as MagicStringBundle,
 			{
 				accessedGlobals,
 				dependencies: this.renderedDeclarations.dependencies,
@@ -681,7 +708,9 @@ export default class Chunk {
 				hasExports,
 				indentString: this.indentString,
 				intro: addons.intro as string,
-				isEntryModuleFacade: this.facadeModule !== null && this.facadeModule.isEntryPoint,
+				isEntryModuleFacade:
+					this.graph.preserveModules ||
+					(this.facadeModule !== null && this.facadeModule.isEntryPoint),
 				namedExportsMode: this.exportMode !== 'default',
 				outro: addons.outro as string,
 				usesTopLevelAwait,
@@ -702,8 +731,8 @@ export default class Chunk {
 		return renderChunk({
 			chunk: this,
 			code: prevCode,
-			graph: this.graph,
 			options,
+			outputPluginDriver,
 			renderChunk: outputChunk,
 			sourcemapChain: chunkSourcemapChain
 		}).then((code: string) => {
@@ -802,7 +831,7 @@ export default class Chunk {
 		}
 	}
 
-	private calculateHashAugmentation(): string {
+	private calculateHashAugmentation(outputPluginDriver: PluginDriver): string {
 		const facadeModule = this.facadeModule;
 		const getChunkName = this.getChunkName.bind(this);
 		const preRenderedChunk = {
@@ -817,7 +846,7 @@ export default class Chunk {
 				return getChunkName();
 			}
 		} as PreRenderedChunk;
-		const hashAugmentation = this.graph.pluginDriver.hookReduceValueSync(
+		return outputPluginDriver.hookReduceValueSync(
 			'augmentChunkHash',
 			'',
 			[preRenderedChunk],
@@ -828,18 +857,26 @@ export default class Chunk {
 				return hashAugmentation;
 			}
 		);
-		return hashAugmentation;
 	}
 
-	private computeContentHashWithDependencies(addons: Addons, options: OutputOptions): string {
-		const hash = sha256();
+	private computeContentHashWithDependencies(
+		addons: Addons,
+		options: OutputOptions,
+		existingNames: Record<string, any>,
+		outputPluginDriver: PluginDriver
+	): string {
+		const hash = createHash();
 		hash.update(
 			[addons.intro, addons.outro, addons.banner, addons.footer].map(addon => addon || '').join(':')
 		);
-		hash.update(options.format);
+		hash.update(options.format as string);
 		this.visitDependencies(dep => {
-			if (dep instanceof ExternalModule) hash.update(':' + dep.renderPath);
-			else hash.update(dep.getRenderedHash());
+			if (dep instanceof ExternalModule) {
+				hash.update(':' + dep.renderPath);
+			} else {
+				hash.update(dep.getRenderedHash(outputPluginDriver));
+				hash.update(dep.generateId(addons, options, existingNames, false, outputPluginDriver));
+			}
 		});
 
 		return hash.digest('hex').substr(0, 8);
@@ -875,10 +912,10 @@ export default class Chunk {
 		}
 	}
 
-	private finaliseImportMetas(format: string): void {
+	private finaliseImportMetas(format: string, outputPluginDriver: PluginDriver): void {
 		for (const [module, code] of this.renderedModuleSources) {
 			for (const importMeta of module.importMetas) {
-				importMeta.renderFinalMechanism(code, this.id as string, format, this.graph.pluginDriver);
+				importMeta.renderFinalMechanism(code, this.id as string, format, outputPluginDriver);
 			}
 		}
 	}
@@ -1148,8 +1185,8 @@ export default class Chunk {
 			}
 		}
 		if (module.getOrCreateNamespace().included) {
-			for (const reexportName of Object.keys(module.reexports)) {
-				const reexport = module.reexports[reexportName];
+			for (const reexportName of Object.keys(module.reexportDescriptions)) {
+				const reexport = module.reexportDescriptions[reexportName];
 				const variable = reexport.module.getVariableForExportName(reexport.localName);
 				if ((variable.module as Module).chunk !== this) {
 					this.imports.add(variable);
@@ -1159,9 +1196,10 @@ export default class Chunk {
 				}
 			}
 		}
+		const context = createInclusionContext();
 		for (const { node, resolution } of module.dynamicImports) {
 			if (node.included && resolution instanceof Module && resolution.chunk === this)
-				resolution.getOrCreateNamespace().include();
+				resolution.getOrCreateNamespace().include(context);
 		}
 	}
 }

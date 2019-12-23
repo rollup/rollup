@@ -168,14 +168,15 @@ function addUnknownOptionErrors(
 	optionType: string,
 	ignoredKeys: RegExp = /$./
 ) {
-	const unknownOptions = options.filter(
-		key => validOptions.indexOf(key) === -1 && !ignoredKeys.test(key)
-	);
+	const validOptionSet = new Set(validOptions);
+	const unknownOptions = options.filter(key => !validOptionSet.has(key) && !ignoredKeys.test(key));
 	if (unknownOptions.length > 0)
 		errors.push(
-			`Unknown ${optionType}: ${unknownOptions.join(
-				', '
-			)}. Allowed options: ${validOptions.sort().join(', ')}`
+			`Unknown ${optionType}: ${unknownOptions.join(', ')}. Allowed options: ${Array.from(
+				validOptionSet
+			)
+				.sort()
+				.join(', ')}`
 		);
 }
 
@@ -213,7 +214,7 @@ function getInputOptions(
 		acornInjectPlugins: config.acornInjectPlugins as any,
 		cache: getOption('cache'),
 		chunkGroupingSize: getOption('chunkGroupingSize', 5000),
-		context: config.context as any,
+		context: getOption('context'),
 		experimentalCacheExpiry: getOption('experimentalCacheExpiry', 10),
 		experimentalOptimizeChunks: getOption('experimentalOptimizeChunks'),
 		experimentalTopLevelAwait: getOption('experimentalTopLevelAwait'),
@@ -258,7 +259,7 @@ function getOutputOptions(
 	}
 
 	return {
-		amd: { ...config.amd, ...command.amd } as any,
+		amd: { ...(config.amd as object), ...(command.amd as object) } as any,
 		assetFileNames: getOption('assetFileNames'),
 		banner: getOption('banner'),
 		chunkFileNames: getOption('chunkFileNames'),
@@ -283,6 +284,7 @@ function getOutputOptions(
 		noConflict: getOption('noConflict'),
 		outro: getOption('outro'),
 		paths: getOption('paths'),
+		plugins: config.plugins as any,
 		preferConst: getOption('preferConst'),
 		sourcemap: getOption('sourcemap'),
 		sourcemapExcludeSources: getOption('sourcemapExcludeSources'),

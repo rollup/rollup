@@ -4,7 +4,6 @@ function createCommonjsModule(fn, module) {
 	return module = { exports: {} }, fn(module, module.exports), module.exports;
 }
 
-var O = 'object';
 var check = function (it) {
   return it && it.Math == Math && it;
 };
@@ -12,10 +11,10 @@ var check = function (it) {
 // https://github.com/zloirock/core-js/issues/86#issuecomment-115759028
 var global_1 =
   // eslint-disable-next-line no-undef
-  check(typeof globalThis == O && globalThis) ||
-  check(typeof window == O && window) ||
-  check(typeof self == O && self) ||
-  check(typeof commonjsGlobal == O && commonjsGlobal) ||
+  check(typeof globalThis == 'object' && globalThis) ||
+  check(typeof window == 'object' && window) ||
+  check(typeof self == 'object' && self) ||
+  check(typeof commonjsGlobal == 'object' && commonjsGlobal) ||
   // eslint-disable-next-line no-new-func
   Function('return this')();
 
@@ -171,7 +170,7 @@ var objectDefineProperty = {
 	f: f$2
 };
 
-var hide = descriptors ? function (object, key, value) {
+var createNonEnumerableProperty = descriptors ? function (object, key, value) {
   return objectDefineProperty.f(object, key, createPropertyDescriptor(1, value));
 } : function (object, key, value) {
   object[key] = value;
@@ -180,32 +179,43 @@ var hide = descriptors ? function (object, key, value) {
 
 var setGlobal = function (key, value) {
   try {
-    hide(global_1, key, value);
+    createNonEnumerableProperty(global_1, key, value);
   } catch (error) {
     global_1[key] = value;
   } return value;
 };
 
-var isPure = false;
-
-var shared = createCommonjsModule(function (module) {
 var SHARED = '__core-js_shared__';
 var store = global_1[SHARED] || setGlobal(SHARED, {});
 
+var sharedStore = store;
+
+var functionToString = Function.toString;
+
+// this helper broken in `3.4.1-3.4.4`, so we can't use `shared` helper
+if (typeof sharedStore.inspectSource != 'function') {
+  sharedStore.inspectSource = function (it) {
+    return functionToString.call(it);
+  };
+}
+
+var inspectSource = sharedStore.inspectSource;
+
+var WeakMap = global_1.WeakMap;
+
+var nativeWeakMap = typeof WeakMap === 'function' && /native code/.test(inspectSource(WeakMap));
+
+var isPure = false;
+
+var shared = createCommonjsModule(function (module) {
 (module.exports = function (key, value) {
-  return store[key] || (store[key] = value !== undefined ? value : {});
+  return sharedStore[key] || (sharedStore[key] = value !== undefined ? value : {});
 })('versions', []).push({
-  version: '3.1.3',
+  version: '3.4.8',
   mode:  'global',
   copyright: '© 2019 Denis Pushkarev (zloirock.ru)'
 });
 });
-
-var functionToString = shared('native-function-to-string', Function.toString);
-
-var WeakMap = global_1.WeakMap;
-
-var nativeWeakMap = typeof WeakMap === 'function' && /native code/.test(functionToString.call(WeakMap));
 
 var id = 0;
 var postfix = Math.random();
@@ -239,25 +249,25 @@ var getterFor = function (TYPE) {
 };
 
 if (nativeWeakMap) {
-  var store = new WeakMap$1();
-  var wmget = store.get;
-  var wmhas = store.has;
-  var wmset = store.set;
+  var store$1 = new WeakMap$1();
+  var wmget = store$1.get;
+  var wmhas = store$1.has;
+  var wmset = store$1.set;
   set = function (it, metadata) {
-    wmset.call(store, it, metadata);
+    wmset.call(store$1, it, metadata);
     return metadata;
   };
   get = function (it) {
-    return wmget.call(store, it) || {};
+    return wmget.call(store$1, it) || {};
   };
   has$1 = function (it) {
-    return wmhas.call(store, it);
+    return wmhas.call(store$1, it);
   };
 } else {
   var STATE = sharedKey('state');
   hiddenKeys[STATE] = true;
   set = function (it, metadata) {
-    hide(it, STATE, metadata);
+    createNonEnumerableProperty(it, STATE, metadata);
     return metadata;
   };
   get = function (it) {
@@ -279,18 +289,14 @@ var internalState = {
 var redefine = createCommonjsModule(function (module) {
 var getInternalState = internalState.get;
 var enforceInternalState = internalState.enforce;
-var TEMPLATE = String(functionToString).split('toString');
-
-shared('inspectSource', function (it) {
-  return functionToString.call(it);
-});
+var TEMPLATE = String(String).split('String');
 
 (module.exports = function (O, key, value, options) {
   var unsafe = options ? !!options.unsafe : false;
   var simple = options ? !!options.enumerable : false;
   var noTargetGet = options ? !!options.noTargetGet : false;
   if (typeof value == 'function') {
-    if (typeof key == 'string' && !has(value, 'name')) hide(value, 'name', key);
+    if (typeof key == 'string' && !has(value, 'name')) createNonEnumerableProperty(value, 'name', key);
     enforceInternalState(value).source = TEMPLATE.join(typeof key == 'string' ? key : '');
   }
   if (O === global_1) {
@@ -303,10 +309,10 @@ shared('inspectSource', function (it) {
     simple = true;
   }
   if (simple) O[key] = value;
-  else hide(O, key, value);
+  else createNonEnumerableProperty(O, key, value);
 // add fake Function#toString for correct work wrapped methods / constructors with methods like LoDash isNative
 })(Function.prototype, 'toString', function toString() {
-  return typeof this == 'function' && getInternalState(this).source || functionToString.call(this);
+  return typeof this == 'function' && getInternalState(this).source || inspectSource(this);
 });
 });
 
@@ -343,7 +349,7 @@ var min$1 = Math.min;
 
 // Helper for a popular repeating case of the spec:
 // Let integer be ? ToInteger(index).
-// If integer < 0, let result be max((length + integer), 0); else let result be min(length, length).
+// If integer < 0, let result be max((length + integer), 0); else let result be min(integer, length).
 var toAbsoluteIndex = function (index, length) {
   var integer = toInteger(index);
   return integer < 0 ? max(integer + length, 0) : min$1(integer, length);
@@ -507,7 +513,7 @@ var _export = function (options, source) {
     }
     // add a flag to not completely full polyfills
     if (options.sham || (targetProperty && targetProperty.sham)) {
-      hide(sourceProperty, 'sham', true);
+      createNonEnumerableProperty(sourceProperty, 'sham', true);
     }
     // extend global
     redefine(target, key, sourceProperty, options);
@@ -519,6 +525,12 @@ var nativeSymbol = !!Object.getOwnPropertySymbols && !fails(function () {
   // eslint-disable-next-line no-undef
   return !String(Symbol());
 });
+
+var useSymbolAsUid = nativeSymbol
+  // eslint-disable-next-line no-undef
+  && !Symbol.sham
+  // eslint-disable-next-line no-undef
+  && typeof Symbol() == 'symbol';
 
 // `IsArray` abstract operation
 // https://tc39.github.io/ecma262/#sec-isarray
@@ -621,12 +633,15 @@ var objectGetOwnPropertyNamesExternal = {
 	f: f$5
 };
 
+var WellKnownSymbolsStore = shared('wks');
 var Symbol$1 = global_1.Symbol;
-var store$1 = shared('wks');
+var createWellKnownSymbol = useSymbolAsUid ? Symbol$1 : uid;
 
 var wellKnownSymbol = function (name) {
-  return store$1[name] || (store$1[name] = nativeSymbol && Symbol$1[name]
-    || (nativeSymbol ? Symbol$1 : uid)('Symbol.' + name));
+  if (!has(WellKnownSymbolsStore, name)) {
+    if (nativeSymbol && has(Symbol$1, name)) WellKnownSymbolsStore[name] = Symbol$1[name];
+    else WellKnownSymbolsStore[name] = createWellKnownSymbol('Symbol.' + name);
+  } return WellKnownSymbolsStore[name];
 };
 
 var f$6 = wellKnownSymbol;
@@ -772,8 +787,7 @@ var setInternalState = internalState.set;
 var getInternalState = internalState.getterFor(SYMBOL);
 var ObjectPrototype = Object[PROTOTYPE$1];
 var $Symbol = global_1.Symbol;
-var JSON = global_1.JSON;
-var nativeJSONStringify = JSON && JSON.stringify;
+var $stringify = getBuiltIn('JSON', 'stringify');
 var nativeGetOwnPropertyDescriptor$1 = objectGetOwnPropertyDescriptor.f;
 var nativeDefineProperty$1 = objectDefineProperty.f;
 var nativeGetOwnPropertyNames$1 = objectGetOwnPropertyNamesExternal.f;
@@ -782,7 +796,7 @@ var AllSymbols = shared('symbols');
 var ObjectPrototypeSymbols = shared('op-symbols');
 var StringToSymbolRegistry = shared('string-to-symbol-registry');
 var SymbolToStringRegistry = shared('symbol-to-string-registry');
-var WellKnownSymbolsStore = shared('wks');
+var WellKnownSymbolsStore$1 = shared('wks');
 var QObject = global_1.QObject;
 // Don't use setters in Qt Script, https://github.com/zloirock/core-js/issues/173
 var USE_SETTER = !QObject || !QObject[PROTOTYPE$1] || !QObject[PROTOTYPE$1].findChild;
@@ -925,7 +939,9 @@ if (!nativeSymbol) {
       redefine(ObjectPrototype, 'propertyIsEnumerable', $propertyIsEnumerable, { unsafe: true });
     }
   }
+}
 
+if (!useSymbolAsUid) {
   wrappedWellKnownSymbol.f = function (name) {
     return wrap(wellKnownSymbol(name), name);
   };
@@ -935,7 +951,7 @@ _export({ global: true, wrap: true, forced: !nativeSymbol, sham: !nativeSymbol }
   Symbol: $Symbol
 });
 
-$forEach(objectKeys(WellKnownSymbolsStore), function (name) {
+$forEach(objectKeys(WellKnownSymbolsStore$1), function (name) {
   defineWellKnownSymbol(name);
 });
 
@@ -994,34 +1010,41 @@ _export({ target: 'Object', stat: true, forced: fails(function () { objectGetOwn
 
 // `JSON.stringify` method behavior with symbols
 // https://tc39.github.io/ecma262/#sec-json.stringify
-JSON && _export({ target: 'JSON', stat: true, forced: !nativeSymbol || fails(function () {
-  var symbol = $Symbol();
-  // MS Edge converts symbol values to JSON as {}
-  return nativeJSONStringify([symbol]) != '[null]'
-    // WebKit converts symbol values to JSON as null
-    || nativeJSONStringify({ a: symbol }) != '{}'
-    // V8 throws on boxed symbols
-    || nativeJSONStringify(Object(symbol)) != '{}';
-}) }, {
-  stringify: function stringify(it) {
-    var args = [it];
-    var index = 1;
-    var replacer, $replacer;
-    while (arguments.length > index) args.push(arguments[index++]);
-    $replacer = replacer = args[1];
-    if (!isObject(replacer) && it === undefined || isSymbol(it)) return; // IE8 returns string on undefined
-    if (!isArray(replacer)) replacer = function (key, value) {
-      if (typeof $replacer == 'function') value = $replacer.call(this, key, value);
-      if (!isSymbol(value)) return value;
-    };
-    args[1] = replacer;
-    return nativeJSONStringify.apply(JSON, args);
-  }
-});
+if ($stringify) {
+  var FORCED_JSON_STRINGIFY = !nativeSymbol || fails(function () {
+    var symbol = $Symbol();
+    // MS Edge converts symbol values to JSON as {}
+    return $stringify([symbol]) != '[null]'
+      // WebKit converts symbol values to JSON as null
+      || $stringify({ a: symbol }) != '{}'
+      // V8 throws on boxed symbols
+      || $stringify(Object(symbol)) != '{}';
+  });
+
+  _export({ target: 'JSON', stat: true, forced: FORCED_JSON_STRINGIFY }, {
+    // eslint-disable-next-line no-unused-vars
+    stringify: function stringify(it, replacer, space) {
+      var args = [it];
+      var index = 1;
+      var $replacer;
+      while (arguments.length > index) args.push(arguments[index++]);
+      $replacer = replacer;
+      if (!isObject(replacer) && it === undefined || isSymbol(it)) return; // IE8 returns string on undefined
+      if (!isArray(replacer)) replacer = function (key, value) {
+        if (typeof $replacer == 'function') value = $replacer.call(this, key, value);
+        if (!isSymbol(value)) return value;
+      };
+      args[1] = replacer;
+      return $stringify.apply(null, args);
+    }
+  });
+}
 
 // `Symbol.prototype[@@toPrimitive]` method
 // https://tc39.github.io/ecma262/#sec-symbol.prototype-@@toprimitive
-if (!$Symbol[PROTOTYPE$1][TO_PRIMITIVE]) hide($Symbol[PROTOTYPE$1], TO_PRIMITIVE, $Symbol[PROTOTYPE$1].valueOf);
+if (!$Symbol[PROTOTYPE$1][TO_PRIMITIVE]) {
+  createNonEnumerableProperty($Symbol[PROTOTYPE$1], TO_PRIMITIVE, $Symbol[PROTOTYPE$1].valueOf);
+}
 // `Symbol.prototype[@@toStringTag]` property
 // https://tc39.github.io/ecma262/#sec-symbol.prototype-@@tostringtag
 setToStringTag($Symbol, SYMBOL);
@@ -1123,11 +1146,22 @@ defineWellKnownSymbol('toStringTag');
 defineWellKnownSymbol('unscopables');
 
 var nativeAssign = Object.assign;
+var defineProperty$3 = Object.defineProperty;
 
 // `Object.assign` method
 // https://tc39.github.io/ecma262/#sec-object.assign
-// should work with symbols and should have deterministic property order (V8 bug)
 var objectAssign = !nativeAssign || fails(function () {
+  // should have correct order of operations (Edge bug)
+  if (descriptors && nativeAssign({ b: 1 }, nativeAssign(defineProperty$3({}, 'a', {
+    enumerable: true,
+    get: function () {
+      defineProperty$3(this, 'b', {
+        value: 3,
+        enumerable: false
+      });
+    }
+  }), { b: 2 })).b !== 1) return true;
+  // should work with symbols and should have deterministic property order (V8 bug)
   var A = {};
   var B = {};
   // eslint-disable-next-line no-undef
@@ -1312,6 +1346,13 @@ var isArrayIteratorMethod = function (it) {
 };
 
 var TO_STRING_TAG$1 = wellKnownSymbol('toStringTag');
+var test = {};
+
+test[TO_STRING_TAG$1] = 'z';
+
+var toStringTagSupport = String(test) === '[object z]';
+
+var TO_STRING_TAG$2 = wellKnownSymbol('toStringTag');
 // ES3 wrong here
 var CORRECT_ARGUMENTS = classofRaw(function () { return arguments; }()) == 'Arguments';
 
@@ -1323,11 +1364,11 @@ var tryGet = function (it, key) {
 };
 
 // getting tag from ES6+ `Object.prototype.toString`
-var classof = function (it) {
+var classof = toStringTagSupport ? classofRaw : function (it) {
   var O, tag, result;
   return it === undefined ? 'Undefined' : it === null ? 'Null'
     // @@toStringTag case
-    : typeof (tag = tryGet(O = Object(it), TO_STRING_TAG$1)) == 'string' ? tag
+    : typeof (tag = tryGet(O = Object(it), TO_STRING_TAG$2)) == 'string' ? tag
     // builtinTag case
     : CORRECT_ARGUMENTS ? classofRaw(O)
     // ES3 arguments fallback
@@ -1362,7 +1403,7 @@ var Result = function (stopped, result) {
 
 var iterate = module.exports = function (iterable, fn, that, AS_ENTRIES, IS_ITERATOR) {
   var boundFunction = bindContext(fn, that, AS_ENTRIES ? 2 : 1);
-  var iterator, iterFn, index, length, result, step;
+  var iterator, iterFn, index, length, result, next, step;
 
   if (IS_ITERATOR) {
     iterator = iterable;
@@ -1381,9 +1422,10 @@ var iterate = module.exports = function (iterable, fn, that, AS_ENTRIES, IS_ITER
     iterator = iterFn.call(iterable);
   }
 
-  while (!(step = iterator.next()).done) {
+  next = iterator.next;
+  while (!(step = next.call(iterator)).done) {
     result = callWithSafeIterationClosing(iterator, boundFunction, step.value, AS_ENTRIES);
-    if (result && result instanceof Result) return result;
+    if (typeof result == 'object' && result && result instanceof Result) return result;
   } return new Result(false);
 };
 
@@ -1611,23 +1653,16 @@ _export({ target: 'Object', stat: true }, {
   }
 });
 
-var TO_STRING_TAG$2 = wellKnownSymbol('toStringTag');
-var test = {};
-
-test[TO_STRING_TAG$2] = 'z';
-
 // `Object.prototype.toString` method implementation
 // https://tc39.github.io/ecma262/#sec-object.prototype.tostring
-var objectToString = String(test) !== '[object z]' ? function toString() {
+var objectToString = toStringTagSupport ? {}.toString : function toString() {
   return '[object ' + classof(this) + ']';
-} : test.toString;
-
-var ObjectPrototype$2 = Object.prototype;
+};
 
 // `Object.prototype.toString` method
 // https://tc39.github.io/ecma262/#sec-object.prototype.tostring
-if (objectToString !== ObjectPrototype$2.toString) {
-  redefine(ObjectPrototype$2, 'toString', objectToString, { unsafe: true });
+if (!toStringTagSupport) {
+  redefine(Object.prototype, 'toString', objectToString, { unsafe: true });
 }
 
 // Forced replacement object prototype accessors methods
@@ -1723,7 +1758,7 @@ _export({ target: 'Function', proto: true }, {
   bind: functionBind
 });
 
-var defineProperty$3 = objectDefineProperty.f;
+var defineProperty$4 = objectDefineProperty.f;
 
 var FunctionPrototype = Function.prototype;
 var FunctionPrototypeToString = FunctionPrototype.toString;
@@ -1733,7 +1768,7 @@ var NAME = 'name';
 // Function instances `.name` property
 // https://tc39.github.io/ecma262/#sec-function-instances-name
 if (descriptors && !(NAME in FunctionPrototype)) {
-  defineProperty$3(FunctionPrototype, NAME, {
+  defineProperty$4(FunctionPrototype, NAME, {
     configurable: true,
     get: function () {
       try {
@@ -1760,6 +1795,12 @@ if (!(HAS_INSTANCE in FunctionPrototype$1)) {
   } });
 }
 
+// `globalThis` object
+// https://github.com/tc39/proposal-global
+_export({ global: true }, {
+  globalThis: global_1
+});
+
 // `Array.from` method implementation
 // https://tc39.github.io/ecma262/#sec-array.from
 var arrayFrom = function from(arrayLike /* , mapfn = undefined, thisArg = undefined */) {
@@ -1770,13 +1811,14 @@ var arrayFrom = function from(arrayLike /* , mapfn = undefined, thisArg = undefi
   var mapping = mapfn !== undefined;
   var index = 0;
   var iteratorMethod = getIteratorMethod(O);
-  var length, result, step, iterator;
+  var length, result, step, iterator, next;
   if (mapping) mapfn = bindContext(mapfn, argumentsLength > 2 ? arguments[2] : undefined, 2);
   // if the target is not iterable or it's an array with the default iterator - use a simple case
   if (iteratorMethod != undefined && !(C == Array && isArrayIteratorMethod(iteratorMethod))) {
     iterator = iteratorMethod.call(O);
+    next = iterator.next;
     result = new C();
-    for (;!(step = iterator.next()).done; index++) {
+    for (;!(step = next.call(iterator)).done; index++) {
       createProperty(result, index, mapping
         ? callWithSafeIterationClosing(iterator, mapfn, [step.value, index], true)
         : step.value
@@ -1865,10 +1907,33 @@ _export({ target: 'Array', stat: true, forced: ISNT_GENERIC }, {
   }
 });
 
+var userAgent = getBuiltIn('navigator', 'userAgent') || '';
+
+var process = global_1.process;
+var versions = process && process.versions;
+var v8 = versions && versions.v8;
+var match, version;
+
+if (v8) {
+  match = v8.split('.');
+  version = match[0] + match[1];
+} else if (userAgent) {
+  match = userAgent.match(/Edge\/(\d+)/);
+  if (!match || match[1] >= 74) {
+    match = userAgent.match(/Chrome\/(\d+)/);
+    if (match) version = match[1];
+  }
+}
+
+var v8Version = version && +version;
+
 var SPECIES$1 = wellKnownSymbol('species');
 
 var arrayMethodHasSpeciesSupport = function (METHOD_NAME) {
-  return !fails(function () {
+  // We can't use this feature detection in V8 since it causes
+  // deoptimization and serious performance degradation
+  // https://github.com/zloirock/core-js/issues/677
+  return v8Version >= 51 || !fails(function () {
     var array = [];
     var constructor = array.constructor = {};
     constructor[SPECIES$1] = function () {
@@ -1882,7 +1947,10 @@ var IS_CONCAT_SPREADABLE = wellKnownSymbol('isConcatSpreadable');
 var MAX_SAFE_INTEGER = 0x1FFFFFFFFFFFFF;
 var MAXIMUM_ALLOWED_INDEX_EXCEEDED = 'Maximum allowed index exceeded';
 
-var IS_CONCAT_SPREADABLE_SUPPORT = !fails(function () {
+// We can't use this feature detection in V8 since it causes
+// deoptimization and serious performance degradation
+// https://github.com/zloirock/core-js/issues/679
+var IS_CONCAT_SPREADABLE_SUPPORT = v8Version >= 51 || !fails(function () {
   var array = [];
   array[IS_CONCAT_SPREADABLE] = false;
   return array.concat()[0] !== array;
@@ -1954,7 +2022,7 @@ var ArrayPrototype$1 = Array.prototype;
 // Array.prototype[@@unscopables]
 // https://tc39.github.io/ecma262/#sec-array.prototype-@@unscopables
 if (ArrayPrototype$1[UNSCOPABLES] == undefined) {
-  hide(ArrayPrototype$1, UNSCOPABLES, objectCreate(null));
+  createNonEnumerableProperty(ArrayPrototype$1, UNSCOPABLES, objectCreate(null));
 }
 
 // add a key to Array.prototype[@@unscopables]
@@ -2015,10 +2083,17 @@ addToUnscopables('fill');
 var $filter = arrayIteration.filter;
 
 
+
+var HAS_SPECIES_SUPPORT = arrayMethodHasSpeciesSupport('filter');
+// Edge 14- issue
+var USES_TO_LENGTH = HAS_SPECIES_SUPPORT && !fails(function () {
+  [].filter.call({ length: -1, 0: 1 }, function (it) { throw it; });
+});
+
 // `Array.prototype.filter` method
 // https://tc39.github.io/ecma262/#sec-array.prototype.filter
 // with adding support of @@species
-_export({ target: 'Array', proto: true, forced: !arrayMethodHasSpeciesSupport('filter') }, {
+_export({ target: 'Array', proto: true, forced: !HAS_SPECIES_SUPPORT || !USES_TO_LENGTH }, {
   filter: function filter(callbackfn /* , thisArg */) {
     return $filter(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
   }
@@ -2208,10 +2283,17 @@ _export({ target: 'Array', proto: true, forced: arrayLastIndexOf !== [].lastInde
 var $map = arrayIteration.map;
 
 
+
+var HAS_SPECIES_SUPPORT$1 = arrayMethodHasSpeciesSupport('map');
+// FF49- issue
+var USES_TO_LENGTH$1 = HAS_SPECIES_SUPPORT$1 && !fails(function () {
+  [].map.call({ length: -1, 0: 1 }, function (it) { throw it; });
+});
+
 // `Array.prototype.map` method
 // https://tc39.github.io/ecma262/#sec-array.prototype.map
 // with adding support of @@species
-_export({ target: 'Array', proto: true, forced: !arrayMethodHasSpeciesSupport('map') }, {
+_export({ target: 'Array', proto: true, forced: !HAS_SPECIES_SUPPORT$1 || !USES_TO_LENGTH$1 }, {
   map: function map(callbackfn /* , thisArg */) {
     return $map(this, callbackfn, arguments.length > 1 ? arguments[1] : undefined);
   }
@@ -2284,6 +2366,7 @@ var test$1 = [1, 2];
 // https://bugs.webkit.org/show_bug.cgi?id=188794
 _export({ target: 'Array', proto: true, forced: String(test$1) === String(test$1.reverse()) }, {
   reverse: function reverse() {
+    // eslint-disable-next-line no-self-assign
     if (isArray(this)) this.length = this.length;
     return nativeReverse.call(this);
   }
@@ -2335,8 +2418,8 @@ _export({ target: 'Array', proto: true, forced: sloppyArrayMethod('some') }, {
   }
 });
 
-var nativeSort = [].sort;
-var test$2 = [1, 2, 3];
+var test$2 = [];
+var nativeSort = test$2.sort;
 
 // IE8-
 var FAILS_ON_UNDEFINED = fails(function () {
@@ -2470,7 +2553,9 @@ if ([].keys) {
 if (IteratorPrototype == undefined) IteratorPrototype = {};
 
 // 25.1.2.1.1 %IteratorPrototype%[@@iterator]()
-if ( !has(IteratorPrototype, ITERATOR$3)) hide(IteratorPrototype, ITERATOR$3, returnThis);
+if ( !has(IteratorPrototype, ITERATOR$3)) {
+  createNonEnumerableProperty(IteratorPrototype, ITERATOR$3, returnThis);
+}
 
 var iteratorsCore = {
   IteratorPrototype: IteratorPrototype,
@@ -2533,7 +2618,7 @@ var defineIterator = function (Iterable, NAME, IteratorConstructor, next, DEFAUL
         if (objectSetPrototypeOf) {
           objectSetPrototypeOf(CurrentIteratorPrototype, IteratorPrototype$2);
         } else if (typeof CurrentIteratorPrototype[ITERATOR$4] != 'function') {
-          hide(CurrentIteratorPrototype, ITERATOR$4, returnThis$2);
+          createNonEnumerableProperty(CurrentIteratorPrototype, ITERATOR$4, returnThis$2);
         }
       }
       // Set @@toStringTag to native iterators
@@ -2549,7 +2634,7 @@ var defineIterator = function (Iterable, NAME, IteratorConstructor, next, DEFAUL
 
   // define iterator
   if ( IterablePrototype[ITERATOR$4] !== defaultIterator) {
-    hide(IterablePrototype, ITERATOR$4, defaultIterator);
+    createNonEnumerableProperty(IterablePrototype, ITERATOR$4, defaultIterator);
   }
   iterators[NAME] = defaultIterator;
 
@@ -2722,12 +2807,26 @@ var correctIsRegexpLogic = function (METHOD_NAME) {
   } return false;
 };
 
+var getOwnPropertyDescriptor$4 = objectGetOwnPropertyDescriptor.f;
+
+
+
+
+
+
 var nativeEndsWith = ''.endsWith;
 var min$5 = Math.min;
 
+var CORRECT_IS_REGEXP_LOGIC = correctIsRegexpLogic('endsWith');
+// https://github.com/zloirock/core-js/pull/702
+var MDN_POLYFILL_BUG =  !CORRECT_IS_REGEXP_LOGIC && !!function () {
+  var descriptor = getOwnPropertyDescriptor$4(String.prototype, 'endsWith');
+  return descriptor && !descriptor.writable;
+}();
+
 // `String.prototype.endsWith` method
 // https://tc39.github.io/ecma262/#sec-string.prototype.endswith
-_export({ target: 'String', proto: true, forced: !correctIsRegexpLogic('endsWith') }, {
+_export({ target: 'String', proto: true, forced: !MDN_POLYFILL_BUG && !CORRECT_IS_REGEXP_LOGIC }, {
   endsWith: function endsWith(searchString /* , endPosition = @length */) {
     var that = String(requireObjectCoercible(this));
     notARegexp(searchString);
@@ -2855,14 +2954,21 @@ var fixRegexpWellKnownSymbolLogic = function (KEY, length, exec, sham) {
     // Symbol-named RegExp methods call .exec
     var execCalled = false;
     var re = /a/;
-    re.exec = function () { execCalled = true; return null; };
 
     if (KEY === 'split') {
+      // We can't use real regex here since it causes deoptimization
+      // and serious performance degradation in V8
+      // https://github.com/zloirock/core-js/issues/306
+      re = {};
       // RegExp[@@split] doesn't call the regex's exec method, but first creates
       // a new one. We need to return the patched regex when creating the new one.
       re.constructor = {};
       re.constructor[SPECIES$4] = function () { return re; };
+      re.flags = '';
+      re[SYMBOL] = /./[SYMBOL];
     }
+
+    re.exec = function () { execCalled = true; return null; };
 
     re[SYMBOL]('');
     return !execCalled;
@@ -2899,7 +3005,7 @@ var fixRegexpWellKnownSymbolLogic = function (KEY, length, exec, sham) {
       // 21.2.5.9 RegExp.prototype[@@search](string)
       : function (string) { return regexMethod.call(string, this); }
     );
-    if (sham) hide(RegExp.prototype[SYMBOL], 'sham', true);
+    if (sham) createNonEnumerableProperty(RegExp.prototype[SYMBOL], 'sham', true);
   }
 };
 
@@ -2984,6 +3090,11 @@ var setInternalState$2 = internalState.set;
 var getInternalState$2 = internalState.getterFor(REGEXP_STRING_ITERATOR);
 var RegExpPrototype = RegExp.prototype;
 var regExpBuiltinExec = RegExpPrototype.exec;
+var nativeMatchAll = ''.matchAll;
+
+var WORKS_WITH_NON_GLOBAL_REGEX = !!nativeMatchAll && !fails(function () {
+  'a'.matchAll(/./);
+});
 
 var regExpExec = function (R, S) {
   var exec = R.exec;
@@ -3039,22 +3150,30 @@ var $matchAll = function (string) {
 
 // `String.prototype.matchAll` method
 // https://github.com/tc39/proposal-string-matchall
-_export({ target: 'String', proto: true }, {
+_export({ target: 'String', proto: true, forced: WORKS_WITH_NON_GLOBAL_REGEX }, {
   matchAll: function matchAll(regexp) {
     var O = requireObjectCoercible(this);
-    var S, matcher, rx;
+    var flags, S, matcher, rx;
     if (regexp != null) {
+      if (isRegexp(regexp)) {
+        flags = String(requireObjectCoercible('flags' in RegExpPrototype
+          ? regexp.flags
+          : regexpFlags.call(regexp)
+        ));
+        if (!~flags.indexOf('g')) throw TypeError('`.matchAll` does not allow non-global regexes');
+      }
+      if (WORKS_WITH_NON_GLOBAL_REGEX) return nativeMatchAll.apply(O, arguments);
       matcher = regexp[MATCH_ALL];
-      if (matcher === undefined && isPure && classof(regexp) == 'RegExp') matcher = $matchAll;
+      if (matcher === undefined && isPure && classofRaw(regexp) == 'RegExp') matcher = $matchAll;
       if (matcher != null) return aFunction$1(matcher).call(regexp, O);
-    }
+    } else if (WORKS_WITH_NON_GLOBAL_REGEX) return nativeMatchAll.apply(O, arguments);
     S = String(O);
     rx = new RegExp(regexp, 'g');
     return  rx[MATCH_ALL](S);
   }
 });
 
- MATCH_ALL in RegExpPrototype || hide(RegExpPrototype, MATCH_ALL, $matchAll);
+ MATCH_ALL in RegExpPrototype || createNonEnumerableProperty(RegExpPrototype, MATCH_ALL, $matchAll);
 
 // `String.prototype.repeat` method implementation
 // https://tc39.github.io/ecma262/#sec-string.prototype.repeat
@@ -3098,8 +3217,6 @@ var stringPad = {
   // https://tc39.github.io/ecma262/#sec-string.prototype.padend
   end: createMethod$5(true)
 };
-
-var userAgent = getBuiltIn('navigator', 'userAgent') || '';
 
 // https://github.com/zloirock/core-js/issues/280
 
@@ -3403,12 +3520,26 @@ fixRegexpWellKnownSymbolLogic('split', 2, function (SPLIT, nativeSplit, maybeCal
   ];
 }, !SUPPORTS_Y);
 
+var getOwnPropertyDescriptor$5 = objectGetOwnPropertyDescriptor.f;
+
+
+
+
+
+
 var nativeStartsWith = ''.startsWith;
 var min$8 = Math.min;
 
+var CORRECT_IS_REGEXP_LOGIC$1 = correctIsRegexpLogic('startsWith');
+// https://github.com/zloirock/core-js/pull/702
+var MDN_POLYFILL_BUG$1 =  !CORRECT_IS_REGEXP_LOGIC$1 && !!function () {
+  var descriptor = getOwnPropertyDescriptor$5(String.prototype, 'startsWith');
+  return descriptor && !descriptor.writable;
+}();
+
 // `String.prototype.startsWith` method
 // https://tc39.github.io/ecma262/#sec-string.prototype.startswith
-_export({ target: 'String', proto: true, forced: !correctIsRegexpLogic('startsWith') }, {
+_export({ target: 'String', proto: true, forced: !MDN_POLYFILL_BUG$1 && !CORRECT_IS_REGEXP_LOGIC$1 }, {
   startsWith: function startsWith(searchString /* , position = 0 */) {
     var that = String(requireObjectCoercible(this));
     notARegexp(searchString);
@@ -3671,7 +3802,7 @@ var inheritIfRequired = function ($this, dummy, Wrapper) {
   return $this;
 };
 
-var defineProperty$4 = objectDefineProperty.f;
+var defineProperty$5 = objectDefineProperty.f;
 var getOwnPropertyNames = objectGetOwnPropertyNames.f;
 
 
@@ -3711,7 +3842,7 @@ if (FORCED$5) {
       , thisIsRegExp ? this : RegExpPrototype$1, RegExpWrapper);
   };
   var proxy = function (key) {
-    key in RegExpWrapper || defineProperty$4(RegExpWrapper, key, {
+    key in RegExpWrapper || defineProperty$5(RegExpWrapper, key, {
       configurable: true,
       get: function () { return NativeRegExp[key]; },
       set: function (it) { NativeRegExp[key] = it; }
@@ -3802,8 +3933,8 @@ _export({ global: true, forced: parseFloat != _parseFloat }, {
 });
 
 var getOwnPropertyNames$1 = objectGetOwnPropertyNames.f;
-var getOwnPropertyDescriptor$4 = objectGetOwnPropertyDescriptor.f;
-var defineProperty$5 = objectDefineProperty.f;
+var getOwnPropertyDescriptor$6 = objectGetOwnPropertyDescriptor.f;
+var defineProperty$6 = objectDefineProperty.f;
 var trim$2 = stringTrim.trim;
 
 var NUMBER = 'Number';
@@ -3861,7 +3992,7 @@ if (isForced_1(NUMBER, !NativeNumber(' 0o1') || !NativeNumber('0b1') || NativeNu
     'MIN_SAFE_INTEGER,parseFloat,parseInt,isInteger'
   ).split(','), j = 0, key; keys$2.length > j; j++) {
     if (has(NativeNumber, key = keys$2[j]) && !has(NumberWrapper, key)) {
-      defineProperty$5(NumberWrapper, key, getOwnPropertyDescriptor$4(NativeNumber, key));
+      defineProperty$6(NumberWrapper, key, getOwnPropertyDescriptor$6(NativeNumber, key));
     }
   }
   NumberWrapper.prototype = NumberPrototype;
@@ -4239,12 +4370,17 @@ var mathFround = Math.fround || function fround(x) {
 // https://tc39.github.io/ecma262/#sec-math.fround
 _export({ target: 'Math', stat: true }, { fround: mathFround });
 
+var $hypot = Math.hypot;
 var abs$4 = Math.abs;
 var sqrt$2 = Math.sqrt;
 
+// Chrome 77 bug
+// https://bugs.chromium.org/p/v8/issues/detail?id=9546
+var BUGGY = !!$hypot && $hypot(Infinity, NaN) !== Infinity;
+
 // `Math.hypot` method
 // https://tc39.github.io/ecma262/#sec-math.hypot
-_export({ target: 'Math', stat: true }, {
+_export({ target: 'Math', stat: true, forced: BUGGY }, {
   hypot: function hypot(value1, value2) { // eslint-disable-line no-unused-vars
     var sum = 0;
     var i = 0;
@@ -4450,11 +4586,44 @@ var DatePrototype$2 = Date.prototype;
 
 // `Date.prototype[@@toPrimitive]` method
 // https://tc39.github.io/ecma262/#sec-date.prototype-@@toprimitive
-if (!(TO_PRIMITIVE$1 in DatePrototype$2)) hide(DatePrototype$2, TO_PRIMITIVE$1, dateToPrimitive);
+if (!(TO_PRIMITIVE$1 in DatePrototype$2)) {
+  createNonEnumerableProperty(DatePrototype$2, TO_PRIMITIVE$1, dateToPrimitive);
+}
+
+var $stringify$1 = getBuiltIn('JSON', 'stringify');
+var re = /[\uD800-\uDFFF]/g;
+var low = /^[\uD800-\uDBFF]$/;
+var hi = /^[\uDC00-\uDFFF]$/;
+
+var fix = function (match, offset, string) {
+  var prev = string.charAt(offset - 1);
+  var next = string.charAt(offset + 1);
+  if ((low.test(match) && !hi.test(next)) || (hi.test(match) && !low.test(prev))) {
+    return '\\u' + match.charCodeAt(0).toString(16);
+  } return match;
+};
+
+var FORCED$e = fails(function () {
+  return $stringify$1('\uDF06\uD834') !== '"\\udf06\\ud834"'
+    || $stringify$1('\uDEAD') !== '"\\udead"';
+});
+
+if ($stringify$1) {
+  // https://github.com/tc39/proposal-well-formed-stringify
+  _export({ target: 'JSON', stat: true, forced: FORCED$e }, {
+    // eslint-disable-next-line no-unused-vars
+    stringify: function stringify(it, replacer, space) {
+      var result = $stringify$1.apply(null, arguments);
+      return typeof result == 'string' ? result.replace(re, fix) : result;
+    }
+  });
+}
 
 // JSON[@@toStringTag] property
 // https://tc39.github.io/ecma262/#sec-json-@@tostringtag
 setToStringTag(global_1.JSON, 'JSON', true);
+
+var nativePromiseConstructor = global_1.Promise;
 
 var redefineAll = function (target, src, options) {
   for (var key in src) redefine(target, key, src[key], options);
@@ -4467,10 +4636,12 @@ var anInstance = function (it, Constructor, name) {
   } return it;
 };
 
+var isIos = /(iphone|ipod|ipad).*applewebkit/i.test(userAgent);
+
 var location = global_1.location;
 var set$1 = global_1.setImmediate;
 var clear = global_1.clearImmediate;
-var process = global_1.process;
+var process$1 = global_1.process;
 var MessageChannel = global_1.MessageChannel;
 var Dispatch = global_1.Dispatch;
 var counter = 0;
@@ -4519,9 +4690,9 @@ if (!set$1 || !clear) {
     delete queue[id];
   };
   // Node.js 0.8-
-  if (classofRaw(process) == 'process') {
+  if (classofRaw(process$1) == 'process') {
     defer = function (id) {
-      process.nextTick(runner(id));
+      process$1.nextTick(runner(id));
     };
   // Sphere (JS game engine) Dispatch API
   } else if (Dispatch && Dispatch.now) {
@@ -4529,7 +4700,8 @@ if (!set$1 || !clear) {
       Dispatch.now(runner(id));
     };
   // Browsers with MessageChannel, includes WebWorkers
-  } else if (MessageChannel) {
+  // except iOS - https://github.com/zloirock/core-js/issues/624
+  } else if (MessageChannel && !isIos) {
     channel = new MessageChannel();
     port = channel.port2;
     channel.port1.onmessage = listener;
@@ -4560,26 +4732,26 @@ var task = {
   clear: clear
 };
 
-var getOwnPropertyDescriptor$5 = objectGetOwnPropertyDescriptor.f;
+var getOwnPropertyDescriptor$7 = objectGetOwnPropertyDescriptor.f;
 
 var macrotask = task.set;
 
 
 var MutationObserver = global_1.MutationObserver || global_1.WebKitMutationObserver;
-var process$1 = global_1.process;
+var process$2 = global_1.process;
 var Promise = global_1.Promise;
-var IS_NODE = classofRaw(process$1) == 'process';
+var IS_NODE = classofRaw(process$2) == 'process';
 // Node.js 11 shows ExperimentalWarning on getting `queueMicrotask`
-var queueMicrotaskDescriptor = getOwnPropertyDescriptor$5(global_1, 'queueMicrotask');
+var queueMicrotaskDescriptor = getOwnPropertyDescriptor$7(global_1, 'queueMicrotask');
 var queueMicrotask = queueMicrotaskDescriptor && queueMicrotaskDescriptor.value;
 
-var flush, head, last, notify, toggle, node, promise;
+var flush, head, last, notify, toggle, node, promise, then;
 
 // modern engines have queueMicrotask method
 if (!queueMicrotask) {
   flush = function () {
     var parent, fn;
-    if (IS_NODE && (parent = process$1.domain)) parent.exit();
+    if (IS_NODE && (parent = process$2.domain)) parent.exit();
     while (head) {
       fn = head.fn;
       head = head.next;
@@ -4597,13 +4769,13 @@ if (!queueMicrotask) {
   // Node.js
   if (IS_NODE) {
     notify = function () {
-      process$1.nextTick(flush);
+      process$2.nextTick(flush);
     };
   // browsers with MutationObserver, except iOS - https://github.com/zloirock/core-js/issues/339
-  } else if (MutationObserver && !/(iphone|ipod|ipad).*applewebkit/i.test(userAgent)) {
+  } else if (MutationObserver && !isIos) {
     toggle = true;
     node = document.createTextNode('');
-    new MutationObserver(flush).observe(node, { characterData: true }); // eslint-disable-line no-new
+    new MutationObserver(flush).observe(node, { characterData: true });
     notify = function () {
       node.data = toggle = !toggle;
     };
@@ -4611,8 +4783,9 @@ if (!queueMicrotask) {
   } else if (Promise && Promise.resolve) {
     // Promise.resolve without an argument throws an error in LG WebOS 2
     promise = Promise.resolve(undefined);
+    then = promise.then;
     notify = function () {
-      promise.then(flush);
+      then.call(promise, flush);
     };
   // for other environments - macrotask based on:
   // - setImmediate
@@ -4697,16 +4870,14 @@ var PROMISE = 'Promise';
 var getInternalState$4 = internalState.get;
 var setInternalState$4 = internalState.set;
 var getInternalPromiseState = internalState.getterFor(PROMISE);
-var PromiseConstructor = global_1[PROMISE];
+var PromiseConstructor = nativePromiseConstructor;
 var TypeError$1 = global_1.TypeError;
 var document$2 = global_1.document;
-var process$2 = global_1.process;
-var $fetch = global_1.fetch;
-var versions = process$2 && process$2.versions;
-var v8 = versions && versions.v8 || '';
+var process$3 = global_1.process;
+var $fetch = getBuiltIn('fetch');
 var newPromiseCapability$1 = newPromiseCapability.f;
 var newGenericPromiseCapability = newPromiseCapability$1;
-var IS_NODE$1 = classofRaw(process$2) == 'process';
+var IS_NODE$1 = classofRaw(process$3) == 'process';
 var DISPATCH_EVENT = !!(document$2 && document$2.createEvent && global_1.dispatchEvent);
 var UNHANDLED_REJECTION = 'unhandledrejection';
 var REJECTION_HANDLED = 'rejectionhandled';
@@ -4715,27 +4886,33 @@ var FULFILLED = 1;
 var REJECTED = 2;
 var HANDLED = 1;
 var UNHANDLED = 2;
-var Internal, OwnPromiseCapability, PromiseWrapper;
+var Internal, OwnPromiseCapability, PromiseWrapper, nativeThen;
 
-var FORCED$e = isForced_1(PROMISE, function () {
-  // correct subclassing with @@species support
-  var promise = PromiseConstructor.resolve(1);
-  var empty = function () { /* empty */ };
-  var FakePromise = (promise.constructor = {})[SPECIES$6] = function (exec) {
-    exec(empty, empty);
-  };
-  // unhandled rejections tracking support, NodeJS Promise without it fails @@species test
-  return !((IS_NODE$1 || typeof PromiseRejectionEvent == 'function')
-    && (!isPure || promise['finally'])
-    && promise.then(empty) instanceof FakePromise
-    // v8 6.6 (Node 10 and Chrome 66) have a bug with resolving custom thenables
+var FORCED$f = isForced_1(PROMISE, function () {
+  var GLOBAL_CORE_JS_PROMISE = inspectSource(PromiseConstructor) !== String(PromiseConstructor);
+  if (!GLOBAL_CORE_JS_PROMISE) {
+    // V8 6.6 (Node 10 and Chrome 66) have a bug with resolving custom thenables
     // https://bugs.chromium.org/p/chromium/issues/detail?id=830565
-    // we can't detect it synchronously, so just check versions
-    && v8.indexOf('6.6') !== 0
-    && userAgent.indexOf('Chrome/66') === -1);
+    // We can't detect it synchronously, so just check versions
+    if (v8Version === 66) return true;
+    // Unhandled rejections tracking support, NodeJS Promise without it fails @@species test
+    if (!IS_NODE$1 && typeof PromiseRejectionEvent != 'function') return true;
+  }
+  // We can't use @@species feature detection in V8 since it causes
+  // deoptimization and performance degradation
+  // https://github.com/zloirock/core-js/issues/679
+  if (v8Version >= 51 && /native code/.test(PromiseConstructor)) return false;
+  // Detect correctness of subclassing with @@species support
+  var promise = PromiseConstructor.resolve(1);
+  var FakePromise = function (exec) {
+    exec(function () { /* empty */ }, function () { /* empty */ });
+  };
+  var constructor = promise.constructor = {};
+  constructor[SPECIES$6] = FakePromise;
+  return !(promise.then(function () { /* empty */ }) instanceof FakePromise);
 });
 
-var INCORRECT_ITERATION$1 = FORCED$e || !checkCorrectnessOfIteration(function (iterable) {
+var INCORRECT_ITERATION$1 = FORCED$f || !checkCorrectnessOfIteration(function (iterable) {
   PromiseConstructor.all(iterable)['catch'](function () { /* empty */ });
 });
 
@@ -4814,7 +4991,7 @@ var onUnhandled = function (promise, state) {
     if (IS_UNHANDLED) {
       result = perform(function () {
         if (IS_NODE$1) {
-          process$2.emit('unhandledRejection', value, promise);
+          process$3.emit('unhandledRejection', value, promise);
         } else dispatchEvent(UNHANDLED_REJECTION, promise, value);
       });
       // Browsers should not trigger `rejectionHandled` event if it was handled here, NodeJS - should
@@ -4831,7 +5008,7 @@ var isUnhandled = function (state) {
 var onHandleUnhandled = function (promise, state) {
   task$1.call(global_1, function () {
     if (IS_NODE$1) {
-      process$2.emit('rejectionHandled', promise);
+      process$3.emit('rejectionHandled', promise);
     } else dispatchEvent(REJECTION_HANDLED, promise, state.value);
   });
 };
@@ -4881,7 +5058,7 @@ var internalResolve = function (promise, state, value, unwrap) {
 };
 
 // constructor polyfill
-if (FORCED$e) {
+if (FORCED$f) {
   // 25.4.3.1 Promise(executor)
   PromiseConstructor = function Promise(executor) {
     anInstance(this, PromiseConstructor, PROMISE);
@@ -4915,7 +5092,7 @@ if (FORCED$e) {
       var reaction = newPromiseCapability$1(speciesConstructor(this, PromiseConstructor));
       reaction.ok = typeof onFulfilled == 'function' ? onFulfilled : true;
       reaction.fail = typeof onRejected == 'function' && onRejected;
-      reaction.domain = IS_NODE$1 ? process$2.domain : undefined;
+      reaction.domain = IS_NODE$1 ? process$3.domain : undefined;
       state.parent = true;
       state.reactions.push(reaction);
       if (state.state != PENDING) notify$1(this, state, false);
@@ -4940,26 +5117,39 @@ if (FORCED$e) {
       : newGenericPromiseCapability(C);
   };
 
-  // wrap fetch result
-  if ( typeof $fetch == 'function') _export({ global: true, enumerable: true, forced: true }, {
-    // eslint-disable-next-line no-unused-vars
-    fetch: function fetch(input) {
-      return promiseResolve(PromiseConstructor, $fetch.apply(global_1, arguments));
-    }
-  });
+  if ( typeof nativePromiseConstructor == 'function') {
+    nativeThen = nativePromiseConstructor.prototype.then;
+
+    // wrap native Promise#then for native async functions
+    redefine(nativePromiseConstructor.prototype, 'then', function then(onFulfilled, onRejected) {
+      var that = this;
+      return new PromiseConstructor(function (resolve, reject) {
+        nativeThen.call(that, resolve, reject);
+      }).then(onFulfilled, onRejected);
+    // https://github.com/zloirock/core-js/issues/640
+    }, { unsafe: true });
+
+    // wrap fetch result
+    if (typeof $fetch == 'function') _export({ global: true, enumerable: true, forced: true }, {
+      // eslint-disable-next-line no-unused-vars
+      fetch: function fetch(input /* , init */) {
+        return promiseResolve(PromiseConstructor, $fetch.apply(global_1, arguments));
+      }
+    });
+  }
 }
 
-_export({ global: true, wrap: true, forced: FORCED$e }, {
+_export({ global: true, wrap: true, forced: FORCED$f }, {
   Promise: PromiseConstructor
 });
 
 setToStringTag(PromiseConstructor, PROMISE, false);
 setSpecies(PROMISE);
 
-PromiseWrapper = path[PROMISE];
+PromiseWrapper = getBuiltIn(PROMISE);
 
 // statics
-_export({ target: PROMISE, stat: true, forced: FORCED$e }, {
+_export({ target: PROMISE, stat: true, forced: FORCED$f }, {
   // `Promise.reject` method
   // https://tc39.github.io/ecma262/#sec-promise.reject
   reject: function reject(r) {
@@ -4969,7 +5159,7 @@ _export({ target: PROMISE, stat: true, forced: FORCED$e }, {
   }
 });
 
-_export({ target: PROMISE, stat: true, forced:  FORCED$e }, {
+_export({ target: PROMISE, stat: true, forced:  FORCED$f }, {
   // `Promise.resolve` method
   // https://tc39.github.io/ecma262/#sec-promise.resolve
   resolve: function resolve(x) {
@@ -5024,9 +5214,51 @@ _export({ target: PROMISE, stat: true, forced: INCORRECT_ITERATION$1 }, {
   }
 });
 
+// `Promise.allSettled` method
+// https://github.com/tc39/proposal-promise-allSettled
+_export({ target: 'Promise', stat: true }, {
+  allSettled: function allSettled(iterable) {
+    var C = this;
+    var capability = newPromiseCapability.f(C);
+    var resolve = capability.resolve;
+    var reject = capability.reject;
+    var result = perform(function () {
+      var promiseResolve = aFunction$1(C.resolve);
+      var values = [];
+      var counter = 0;
+      var remaining = 1;
+      iterate_1(iterable, function (promise) {
+        var index = counter++;
+        var alreadyCalled = false;
+        values.push(undefined);
+        remaining++;
+        promiseResolve.call(C, promise).then(function (value) {
+          if (alreadyCalled) return;
+          alreadyCalled = true;
+          values[index] = { status: 'fulfilled', value: value };
+          --remaining || resolve(values);
+        }, function (e) {
+          if (alreadyCalled) return;
+          alreadyCalled = true;
+          values[index] = { status: 'rejected', reason: e };
+          --remaining || resolve(values);
+        });
+      });
+      --remaining || resolve(values);
+    });
+    if (result.error) reject(result.value);
+    return capability.promise;
+  }
+});
+
+// Safari bug https://bugs.webkit.org/show_bug.cgi?id=200829
+var NON_GENERIC = !!nativePromiseConstructor && fails(function () {
+  nativePromiseConstructor.prototype['finally'].call({ then: function () { /* empty */ } }, function () { /* empty */ });
+});
+
 // `Promise.prototype.finally` method
 // https://tc39.github.io/ecma262/#sec-promise.prototype.finally
-_export({ target: 'Promise', proto: true, real: true }, {
+_export({ target: 'Promise', proto: true, real: true, forced: NON_GENERIC }, {
   'finally': function (onFinally) {
     var C = speciesConstructor(this, getBuiltIn('Promise'));
     var isFunction = typeof onFinally == 'function';
@@ -5041,27 +5273,34 @@ _export({ target: 'Promise', proto: true, real: true }, {
   }
 });
 
-var collection = function (CONSTRUCTOR_NAME, wrapper, common, IS_MAP, IS_WEAK) {
+// patch native Promise.prototype for native async functions
+if ( typeof nativePromiseConstructor == 'function' && !nativePromiseConstructor.prototype['finally']) {
+  redefine(nativePromiseConstructor.prototype, 'finally', getBuiltIn('Promise').prototype['finally']);
+}
+
+var collection = function (CONSTRUCTOR_NAME, wrapper, common) {
+  var IS_MAP = CONSTRUCTOR_NAME.indexOf('Map') !== -1;
+  var IS_WEAK = CONSTRUCTOR_NAME.indexOf('Weak') !== -1;
+  var ADDER = IS_MAP ? 'set' : 'add';
   var NativeConstructor = global_1[CONSTRUCTOR_NAME];
   var NativePrototype = NativeConstructor && NativeConstructor.prototype;
   var Constructor = NativeConstructor;
-  var ADDER = IS_MAP ? 'set' : 'add';
   var exported = {};
 
   var fixMethod = function (KEY) {
     var nativeMethod = NativePrototype[KEY];
     redefine(NativePrototype, KEY,
-      KEY == 'add' ? function add(a) {
-        nativeMethod.call(this, a === 0 ? 0 : a);
+      KEY == 'add' ? function add(value) {
+        nativeMethod.call(this, value === 0 ? 0 : value);
         return this;
-      } : KEY == 'delete' ? function (a) {
-        return IS_WEAK && !isObject(a) ? false : nativeMethod.call(this, a === 0 ? 0 : a);
-      } : KEY == 'get' ? function get(a) {
-        return IS_WEAK && !isObject(a) ? undefined : nativeMethod.call(this, a === 0 ? 0 : a);
-      } : KEY == 'has' ? function has(a) {
-        return IS_WEAK && !isObject(a) ? false : nativeMethod.call(this, a === 0 ? 0 : a);
-      } : function set(a, b) {
-        nativeMethod.call(this, a === 0 ? 0 : a, b);
+      } : KEY == 'delete' ? function (key) {
+        return IS_WEAK && !isObject(key) ? false : nativeMethod.call(this, key === 0 ? 0 : key);
+      } : KEY == 'get' ? function get(key) {
+        return IS_WEAK && !isObject(key) ? undefined : nativeMethod.call(this, key === 0 ? 0 : key);
+      } : KEY == 'has' ? function has(key) {
+        return IS_WEAK && !isObject(key) ? false : nativeMethod.call(this, key === 0 ? 0 : key);
+      } : function set(key, value) {
+        nativeMethod.call(this, key === 0 ? 0 : key, value);
         return this;
       }
     );
@@ -5078,7 +5317,7 @@ var collection = function (CONSTRUCTOR_NAME, wrapper, common, IS_MAP, IS_WEAK) {
     var instance = new Constructor();
     // early implementations not supports chaining
     var HASNT_CHAINING = instance[ADDER](IS_WEAK ? {} : -0, 1) != instance;
-    // V8 ~  Chromium 40- weak-collections throws on primitives, but should return false
+    // V8 ~ Chromium 40- weak-collections throws on primitives, but should return false
     var THROWS_ON_PRIMITIVES = fails(function () { instance.has(1); });
     // most early implementations doesn't supports iterables, most modern - not close it correctly
     // eslint-disable-next-line no-new
@@ -5125,7 +5364,7 @@ var collection = function (CONSTRUCTOR_NAME, wrapper, common, IS_MAP, IS_WEAK) {
   return Constructor;
 };
 
-var defineProperty$6 = objectDefineProperty.f;
+var defineProperty$7 = objectDefineProperty.f;
 
 
 
@@ -5267,7 +5506,7 @@ var collectionStrong = {
         return define(this, value = value === 0 ? 0 : value, value);
       }
     });
-    if (descriptors) defineProperty$6(C.prototype, 'size', {
+    if (descriptors) defineProperty$7(C.prototype, 'size', {
       get: function () {
         return getInternalState(this).size;
       }
@@ -5313,14 +5552,14 @@ var collectionStrong = {
 
 // `Map` constructor
 // https://tc39.github.io/ecma262/#sec-map-objects
-var es_map = collection('Map', function (get) {
-  return function Map() { return get(this, arguments.length ? arguments[0] : undefined); };
-}, collectionStrong, true);
+var es_map = collection('Map', function (init) {
+  return function Map() { return init(this, arguments.length ? arguments[0] : undefined); };
+}, collectionStrong);
 
 // `Set` constructor
 // https://tc39.github.io/ecma262/#sec-set-objects
-var es_set = collection('Set', function (get) {
-  return function Set() { return get(this, arguments.length ? arguments[0] : undefined); };
+var es_set = collection('Set', function (init) {
+  return function Set() { return init(this, arguments.length ? arguments[0] : undefined); };
 }, collectionStrong);
 
 var getWeakData = internalMetadata.getWeakData;
@@ -5457,15 +5696,15 @@ var IS_IE11 = !global_1.ActiveXObject && 'ActiveXObject' in global_1;
 var isExtensible = Object.isExtensible;
 var InternalWeakMap;
 
-var wrapper = function (get) {
+var wrapper = function (init) {
   return function WeakMap() {
-    return get(this, arguments.length ? arguments[0] : undefined);
+    return init(this, arguments.length ? arguments[0] : undefined);
   };
 };
 
 // `WeakMap` constructor
 // https://tc39.github.io/ecma262/#sec-weakmap-constructor
-var $WeakMap = module.exports = collection('WeakMap', wrapper, collectionWeak, true, true);
+var $WeakMap = module.exports = collection('WeakMap', wrapper, collectionWeak);
 
 // IE11 WeakMap frozen keys fix
 // We can't use feature detection because it crash some old IE builds
@@ -5514,11 +5753,11 @@ if (nativeWeakMap && IS_IE11) {
 
 // `WeakSet` constructor
 // https://tc39.github.io/ecma262/#sec-weakset-constructor
-collection('WeakSet', function (get) {
-  return function WeakSet() { return get(this, arguments.length ? arguments[0] : undefined); };
-}, collectionWeak, false, true);
+collection('WeakSet', function (init) {
+  return function WeakSet() { return init(this, arguments.length ? arguments[0] : undefined); };
+}, collectionWeak);
 
-var defineProperty$7 = objectDefineProperty.f;
+var defineProperty$8 = objectDefineProperty.f;
 
 
 
@@ -5532,13 +5771,14 @@ var Uint8ClampedArray = global_1.Uint8ClampedArray;
 var Uint8ClampedArrayPrototype = Uint8ClampedArray && Uint8ClampedArray.prototype;
 var TypedArray = Int8Array$1 && objectGetPrototypeOf(Int8Array$1);
 var TypedArrayPrototype = Int8ArrayPrototype && objectGetPrototypeOf(Int8ArrayPrototype);
-var ObjectPrototype$3 = Object.prototype;
-var isPrototypeOf = ObjectPrototype$3.isPrototypeOf;
+var ObjectPrototype$2 = Object.prototype;
+var isPrototypeOf = ObjectPrototype$2.isPrototypeOf;
 
 var TO_STRING_TAG$3 = wellKnownSymbol('toStringTag');
 var TYPED_ARRAY_TAG = uid('TYPED_ARRAY_TAG');
 var NATIVE_ARRAY_BUFFER = !!(global_1.ArrayBuffer && DataView);
-var NATIVE_ARRAY_BUFFER_VIEWS = NATIVE_ARRAY_BUFFER && !!objectSetPrototypeOf;
+// Fixing native typed arrays in Opera Presto crashes the browser, see #595
+var NATIVE_ARRAY_BUFFER_VIEWS = NATIVE_ARRAY_BUFFER && !!objectSetPrototypeOf && classof(global_1.opera) !== 'Opera';
 var TYPED_ARRAY_TAG_REQIRED = false;
 var NAME$1;
 
@@ -5579,7 +5819,7 @@ var aTypedArrayConstructor = function (C) {
   } throw TypeError('Target is not a typed array constructor');
 };
 
-var exportProto = function (KEY, property, forced) {
+var exportTypedArrayMethod = function (KEY, property, forced) {
   if (!descriptors) return;
   if (forced) for (var ARRAY in TypedArrayConstructorsList) {
     var TypedArrayConstructor = global_1[ARRAY];
@@ -5593,7 +5833,7 @@ var exportProto = function (KEY, property, forced) {
   }
 };
 
-var exportStatic = function (KEY, property, forced) {
+var exportTypedArrayStaticMethod = function (KEY, property, forced) {
   var ARRAY, TypedArrayConstructor;
   if (!descriptors) return;
   if (objectSetPrototypeOf) {
@@ -5633,7 +5873,7 @@ if (!NATIVE_ARRAY_BUFFER_VIEWS || typeof TypedArray != 'function' || TypedArray 
   }
 }
 
-if (!NATIVE_ARRAY_BUFFER_VIEWS || !TypedArrayPrototype || TypedArrayPrototype === ObjectPrototype$3) {
+if (!NATIVE_ARRAY_BUFFER_VIEWS || !TypedArrayPrototype || TypedArrayPrototype === ObjectPrototype$2) {
   TypedArrayPrototype = TypedArray.prototype;
   if (NATIVE_ARRAY_BUFFER_VIEWS) for (NAME$1 in TypedArrayConstructorsList) {
     if (global_1[NAME$1]) objectSetPrototypeOf(global_1[NAME$1].prototype, TypedArrayPrototype);
@@ -5647,17 +5887,17 @@ if (NATIVE_ARRAY_BUFFER_VIEWS && objectGetPrototypeOf(Uint8ClampedArrayPrototype
 
 if (descriptors && !has(TypedArrayPrototype, TO_STRING_TAG$3)) {
   TYPED_ARRAY_TAG_REQIRED = true;
-  defineProperty$7(TypedArrayPrototype, TO_STRING_TAG$3, { get: function () {
+  defineProperty$8(TypedArrayPrototype, TO_STRING_TAG$3, { get: function () {
     return isObject(this) ? this[TYPED_ARRAY_TAG] : undefined;
   } });
   for (NAME$1 in TypedArrayConstructorsList) if (global_1[NAME$1]) {
-    hide(global_1[NAME$1], TYPED_ARRAY_TAG, NAME$1);
+    createNonEnumerableProperty(global_1[NAME$1], TYPED_ARRAY_TAG, NAME$1);
   }
 }
 
 // WebKit bug - the same parent prototype for typed arrays and data view
-if (NATIVE_ARRAY_BUFFER && objectSetPrototypeOf && objectGetPrototypeOf(DataViewPrototype) !== ObjectPrototype$3) {
-  objectSetPrototypeOf(DataViewPrototype, ObjectPrototype$3);
+if (NATIVE_ARRAY_BUFFER && objectSetPrototypeOf && objectGetPrototypeOf(DataViewPrototype) !== ObjectPrototype$2) {
+  objectSetPrototypeOf(DataViewPrototype, ObjectPrototype$2);
 }
 
 var arrayBufferViewCore = {
@@ -5666,8 +5906,8 @@ var arrayBufferViewCore = {
   TYPED_ARRAY_TAG: TYPED_ARRAY_TAG_REQIRED && TYPED_ARRAY_TAG,
   aTypedArray: aTypedArray,
   aTypedArrayConstructor: aTypedArrayConstructor,
-  exportProto: exportProto,
-  exportStatic: exportStatic,
+  exportTypedArrayMethod: exportTypedArrayMethod,
+  exportTypedArrayStaticMethod: exportTypedArrayStaticMethod,
   isView: isView,
   isTypedArray: isTypedArray,
   TypedArray: TypedArray,
@@ -5684,69 +5924,40 @@ var toIndex = function (it) {
   return length;
 };
 
-var arrayBuffer = createCommonjsModule(function (module, exports) {
-
-
-var NATIVE_ARRAY_BUFFER = arrayBufferViewCore.NATIVE_ARRAY_BUFFER;
-
-
-
-
-
-
-
-var getOwnPropertyNames = objectGetOwnPropertyNames.f;
-var defineProperty = objectDefineProperty.f;
-
-
-
-
-var getInternalState = internalState.get;
-var setInternalState = internalState.set;
-var ARRAY_BUFFER = 'ArrayBuffer';
-var DATA_VIEW = 'DataView';
-var PROTOTYPE = 'prototype';
-var WRONG_LENGTH = 'Wrong length';
-var WRONG_INDEX = 'Wrong index';
-var NativeArrayBuffer = global_1[ARRAY_BUFFER];
-var $ArrayBuffer = NativeArrayBuffer;
-var $DataView = global_1[DATA_VIEW];
-var Math = global_1.Math;
-var RangeError = global_1.RangeError;
-// eslint-disable-next-line no-shadow-restricted-names
-var Infinity = 1 / 0;
-var abs = Math.abs;
-var pow = Math.pow;
-var floor = Math.floor;
-var log = Math.log;
-var LN2 = Math.LN2;
-
 // IEEE754 conversions based on https://github.com/feross/ieee754
-var packIEEE754 = function (number, mantissaLength, bytes) {
+// eslint-disable-next-line no-shadow-restricted-names
+var Infinity$1 = 1 / 0;
+var abs$7 = Math.abs;
+var pow$3 = Math.pow;
+var floor$6 = Math.floor;
+var log$8 = Math.log;
+var LN2$2 = Math.LN2;
+
+var pack = function (number, mantissaLength, bytes) {
   var buffer = new Array(bytes);
   var exponentLength = bytes * 8 - mantissaLength - 1;
   var eMax = (1 << exponentLength) - 1;
   var eBias = eMax >> 1;
-  var rt = mantissaLength === 23 ? pow(2, -24) - pow(2, -77) : 0;
+  var rt = mantissaLength === 23 ? pow$3(2, -24) - pow$3(2, -77) : 0;
   var sign = number < 0 || number === 0 && 1 / number < 0 ? 1 : 0;
   var index = 0;
   var exponent, mantissa, c;
-  number = abs(number);
+  number = abs$7(number);
   // eslint-disable-next-line no-self-compare
-  if (number != number || number === Infinity) {
+  if (number != number || number === Infinity$1) {
     // eslint-disable-next-line no-self-compare
     mantissa = number != number ? 1 : 0;
     exponent = eMax;
   } else {
-    exponent = floor(log(number) / LN2);
-    if (number * (c = pow(2, -exponent)) < 1) {
+    exponent = floor$6(log$8(number) / LN2$2);
+    if (number * (c = pow$3(2, -exponent)) < 1) {
       exponent--;
       c *= 2;
     }
     if (exponent + eBias >= 1) {
       number += rt / c;
     } else {
-      number += rt * pow(2, 1 - eBias);
+      number += rt * pow$3(2, 1 - eBias);
     }
     if (number * c >= 2) {
       exponent++;
@@ -5756,10 +5967,10 @@ var packIEEE754 = function (number, mantissaLength, bytes) {
       mantissa = 0;
       exponent = eMax;
     } else if (exponent + eBias >= 1) {
-      mantissa = (number * c - 1) * pow(2, mantissaLength);
+      mantissa = (number * c - 1) * pow$3(2, mantissaLength);
       exponent = exponent + eBias;
     } else {
-      mantissa = number * pow(2, eBias - 1) * pow(2, mantissaLength);
+      mantissa = number * pow$3(2, eBias - 1) * pow$3(2, mantissaLength);
       exponent = 0;
     }
   }
@@ -5771,7 +5982,7 @@ var packIEEE754 = function (number, mantissaLength, bytes) {
   return buffer;
 };
 
-var unpackIEEE754 = function (buffer, mantissaLength) {
+var unpack = function (buffer, mantissaLength) {
   var bytes = buffer.length;
   var exponentLength = bytes * 8 - mantissaLength - 1;
   var eMax = (1 << exponentLength) - 1;
@@ -5790,16 +6001,47 @@ var unpackIEEE754 = function (buffer, mantissaLength) {
   if (exponent === 0) {
     exponent = 1 - eBias;
   } else if (exponent === eMax) {
-    return mantissa ? NaN : sign ? -Infinity : Infinity;
+    return mantissa ? NaN : sign ? -Infinity$1 : Infinity$1;
   } else {
-    mantissa = mantissa + pow(2, mantissaLength);
+    mantissa = mantissa + pow$3(2, mantissaLength);
     exponent = exponent - eBias;
-  } return (sign ? -1 : 1) * mantissa * pow(2, exponent - mantissaLength);
+  } return (sign ? -1 : 1) * mantissa * pow$3(2, exponent - mantissaLength);
 };
 
-var unpackInt32 = function (buffer) {
-  return buffer[3] << 24 | buffer[2] << 16 | buffer[1] << 8 | buffer[0];
+var ieee754 = {
+  pack: pack,
+  unpack: unpack
 };
+
+var NATIVE_ARRAY_BUFFER$1 = arrayBufferViewCore.NATIVE_ARRAY_BUFFER;
+
+
+
+
+
+
+
+
+var getOwnPropertyNames$2 = objectGetOwnPropertyNames.f;
+var defineProperty$9 = objectDefineProperty.f;
+
+
+
+
+var getInternalState$5 = internalState.get;
+var setInternalState$7 = internalState.set;
+var ARRAY_BUFFER = 'ArrayBuffer';
+var DATA_VIEW = 'DataView';
+var PROTOTYPE$2 = 'prototype';
+var WRONG_LENGTH = 'Wrong length';
+var WRONG_INDEX = 'Wrong index';
+var NativeArrayBuffer = global_1[ARRAY_BUFFER];
+var $ArrayBuffer = NativeArrayBuffer;
+var $DataView = global_1[DATA_VIEW];
+var RangeError$1 = global_1.RangeError;
+
+var packIEEE754 = ieee754.pack;
+var unpackIEEE754 = ieee754.unpack;
 
 var packInt8 = function (number) {
   return [number & 0xFF];
@@ -5813,6 +6055,10 @@ var packInt32 = function (number) {
   return [number & 0xFF, number >> 8 & 0xFF, number >> 16 & 0xFF, number >> 24 & 0xFF];
 };
 
+var unpackInt32 = function (buffer) {
+  return buffer[3] << 24 | buffer[2] << 16 | buffer[1] << 8 | buffer[0];
+};
+
 var packFloat32 = function (number) {
   return packIEEE754(number, 23, 4);
 };
@@ -5822,36 +6068,34 @@ var packFloat64 = function (number) {
 };
 
 var addGetter = function (Constructor, key) {
-  defineProperty(Constructor[PROTOTYPE], key, { get: function () { return getInternalState(this)[key]; } });
+  defineProperty$9(Constructor[PROTOTYPE$2], key, { get: function () { return getInternalState$5(this)[key]; } });
 };
 
-var get = function (view, count, index, isLittleEndian) {
-  var numIndex = +index;
-  var intIndex = toIndex(numIndex);
-  var store = getInternalState(view);
-  if (intIndex + count > store.byteLength) throw RangeError(WRONG_INDEX);
-  var bytes = getInternalState(store.buffer).bytes;
+var get$1 = function (view, count, index, isLittleEndian) {
+  var intIndex = toIndex(index);
+  var store = getInternalState$5(view);
+  if (intIndex + count > store.byteLength) throw RangeError$1(WRONG_INDEX);
+  var bytes = getInternalState$5(store.buffer).bytes;
   var start = intIndex + store.byteOffset;
   var pack = bytes.slice(start, start + count);
   return isLittleEndian ? pack : pack.reverse();
 };
 
-var set = function (view, count, index, conversion, value, isLittleEndian) {
-  var numIndex = +index;
-  var intIndex = toIndex(numIndex);
-  var store = getInternalState(view);
-  if (intIndex + count > store.byteLength) throw RangeError(WRONG_INDEX);
-  var bytes = getInternalState(store.buffer).bytes;
+var set$2 = function (view, count, index, conversion, value, isLittleEndian) {
+  var intIndex = toIndex(index);
+  var store = getInternalState$5(view);
+  if (intIndex + count > store.byteLength) throw RangeError$1(WRONG_INDEX);
+  var bytes = getInternalState$5(store.buffer).bytes;
   var start = intIndex + store.byteOffset;
   var pack = conversion(+value);
   for (var i = 0; i < count; i++) bytes[start + i] = pack[isLittleEndian ? i : count - i - 1];
 };
 
-if (!NATIVE_ARRAY_BUFFER) {
+if (!NATIVE_ARRAY_BUFFER$1) {
   $ArrayBuffer = function ArrayBuffer(length) {
     anInstance(this, $ArrayBuffer, ARRAY_BUFFER);
     var byteLength = toIndex(length);
-    setInternalState(this, {
+    setInternalState$7(this, {
       bytes: arrayFill.call(new Array(byteLength), 0),
       byteLength: byteLength
     });
@@ -5861,12 +6105,12 @@ if (!NATIVE_ARRAY_BUFFER) {
   $DataView = function DataView(buffer, byteOffset, byteLength) {
     anInstance(this, $DataView, DATA_VIEW);
     anInstance(buffer, $ArrayBuffer, DATA_VIEW);
-    var bufferLength = getInternalState(buffer).byteLength;
+    var bufferLength = getInternalState$5(buffer).byteLength;
     var offset = toInteger(byteOffset);
-    if (offset < 0 || offset > bufferLength) throw RangeError('Wrong offset');
+    if (offset < 0 || offset > bufferLength) throw RangeError$1('Wrong offset');
     byteLength = byteLength === undefined ? bufferLength - offset : toLength(byteLength);
-    if (offset + byteLength > bufferLength) throw RangeError(WRONG_LENGTH);
-    setInternalState(this, {
+    if (offset + byteLength > bufferLength) throw RangeError$1(WRONG_LENGTH);
+    setInternalState$7(this, {
       buffer: buffer,
       byteLength: byteLength,
       byteOffset: offset
@@ -5885,56 +6129,56 @@ if (!NATIVE_ARRAY_BUFFER) {
     addGetter($DataView, 'byteOffset');
   }
 
-  redefineAll($DataView[PROTOTYPE], {
+  redefineAll($DataView[PROTOTYPE$2], {
     getInt8: function getInt8(byteOffset) {
-      return get(this, 1, byteOffset)[0] << 24 >> 24;
+      return get$1(this, 1, byteOffset)[0] << 24 >> 24;
     },
     getUint8: function getUint8(byteOffset) {
-      return get(this, 1, byteOffset)[0];
+      return get$1(this, 1, byteOffset)[0];
     },
     getInt16: function getInt16(byteOffset /* , littleEndian */) {
-      var bytes = get(this, 2, byteOffset, arguments.length > 1 ? arguments[1] : undefined);
+      var bytes = get$1(this, 2, byteOffset, arguments.length > 1 ? arguments[1] : undefined);
       return (bytes[1] << 8 | bytes[0]) << 16 >> 16;
     },
     getUint16: function getUint16(byteOffset /* , littleEndian */) {
-      var bytes = get(this, 2, byteOffset, arguments.length > 1 ? arguments[1] : undefined);
+      var bytes = get$1(this, 2, byteOffset, arguments.length > 1 ? arguments[1] : undefined);
       return bytes[1] << 8 | bytes[0];
     },
     getInt32: function getInt32(byteOffset /* , littleEndian */) {
-      return unpackInt32(get(this, 4, byteOffset, arguments.length > 1 ? arguments[1] : undefined));
+      return unpackInt32(get$1(this, 4, byteOffset, arguments.length > 1 ? arguments[1] : undefined));
     },
     getUint32: function getUint32(byteOffset /* , littleEndian */) {
-      return unpackInt32(get(this, 4, byteOffset, arguments.length > 1 ? arguments[1] : undefined)) >>> 0;
+      return unpackInt32(get$1(this, 4, byteOffset, arguments.length > 1 ? arguments[1] : undefined)) >>> 0;
     },
     getFloat32: function getFloat32(byteOffset /* , littleEndian */) {
-      return unpackIEEE754(get(this, 4, byteOffset, arguments.length > 1 ? arguments[1] : undefined), 23);
+      return unpackIEEE754(get$1(this, 4, byteOffset, arguments.length > 1 ? arguments[1] : undefined), 23);
     },
     getFloat64: function getFloat64(byteOffset /* , littleEndian */) {
-      return unpackIEEE754(get(this, 8, byteOffset, arguments.length > 1 ? arguments[1] : undefined), 52);
+      return unpackIEEE754(get$1(this, 8, byteOffset, arguments.length > 1 ? arguments[1] : undefined), 52);
     },
     setInt8: function setInt8(byteOffset, value) {
-      set(this, 1, byteOffset, packInt8, value);
+      set$2(this, 1, byteOffset, packInt8, value);
     },
     setUint8: function setUint8(byteOffset, value) {
-      set(this, 1, byteOffset, packInt8, value);
+      set$2(this, 1, byteOffset, packInt8, value);
     },
     setInt16: function setInt16(byteOffset, value /* , littleEndian */) {
-      set(this, 2, byteOffset, packInt16, value, arguments.length > 2 ? arguments[2] : undefined);
+      set$2(this, 2, byteOffset, packInt16, value, arguments.length > 2 ? arguments[2] : undefined);
     },
     setUint16: function setUint16(byteOffset, value /* , littleEndian */) {
-      set(this, 2, byteOffset, packInt16, value, arguments.length > 2 ? arguments[2] : undefined);
+      set$2(this, 2, byteOffset, packInt16, value, arguments.length > 2 ? arguments[2] : undefined);
     },
     setInt32: function setInt32(byteOffset, value /* , littleEndian */) {
-      set(this, 4, byteOffset, packInt32, value, arguments.length > 2 ? arguments[2] : undefined);
+      set$2(this, 4, byteOffset, packInt32, value, arguments.length > 2 ? arguments[2] : undefined);
     },
     setUint32: function setUint32(byteOffset, value /* , littleEndian */) {
-      set(this, 4, byteOffset, packInt32, value, arguments.length > 2 ? arguments[2] : undefined);
+      set$2(this, 4, byteOffset, packInt32, value, arguments.length > 2 ? arguments[2] : undefined);
     },
     setFloat32: function setFloat32(byteOffset, value /* , littleEndian */) {
-      set(this, 4, byteOffset, packFloat32, value, arguments.length > 2 ? arguments[2] : undefined);
+      set$2(this, 4, byteOffset, packFloat32, value, arguments.length > 2 ? arguments[2] : undefined);
     },
     setFloat64: function setFloat64(byteOffset, value /* , littleEndian */) {
-      set(this, 8, byteOffset, packFloat64, value, arguments.length > 2 ? arguments[2] : undefined);
+      set$2(this, 8, byteOffset, packFloat64, value, arguments.length > 2 ? arguments[2] : undefined);
     }
   });
 } else {
@@ -5952,18 +6196,20 @@ if (!NATIVE_ARRAY_BUFFER) {
       anInstance(this, $ArrayBuffer);
       return new NativeArrayBuffer(toIndex(length));
     };
-    var ArrayBufferPrototype = $ArrayBuffer[PROTOTYPE] = NativeArrayBuffer[PROTOTYPE];
-    for (var keys = getOwnPropertyNames(NativeArrayBuffer), j = 0, key; keys.length > j;) {
-      if (!((key = keys[j++]) in $ArrayBuffer)) hide($ArrayBuffer, key, NativeArrayBuffer[key]);
+    var ArrayBufferPrototype = $ArrayBuffer[PROTOTYPE$2] = NativeArrayBuffer[PROTOTYPE$2];
+    for (var keys$3 = getOwnPropertyNames$2(NativeArrayBuffer), j$1 = 0, key$1; keys$3.length > j$1;) {
+      if (!((key$1 = keys$3[j$1++]) in $ArrayBuffer)) {
+        createNonEnumerableProperty($ArrayBuffer, key$1, NativeArrayBuffer[key$1]);
+      }
     }
     ArrayBufferPrototype.constructor = $ArrayBuffer;
   }
   // iOS Safari 7.x bug
   var testView = new $DataView(new $ArrayBuffer(2));
-  var nativeSetInt8 = $DataView[PROTOTYPE].setInt8;
+  var nativeSetInt8 = $DataView[PROTOTYPE$2].setInt8;
   testView.setInt8(0, 2147483648);
   testView.setInt8(1, 2147483649);
-  if (testView.getInt8(0) || !testView.getInt8(1)) redefineAll($DataView[PROTOTYPE], {
+  if (testView.getInt8(0) || !testView.getInt8(1)) redefineAll($DataView[PROTOTYPE$2], {
     setInt8: function setInt8(byteOffset, value) {
       nativeSetInt8.call(this, byteOffset, value << 24 >> 24);
     },
@@ -5975,21 +6221,23 @@ if (!NATIVE_ARRAY_BUFFER) {
 
 setToStringTag($ArrayBuffer, ARRAY_BUFFER);
 setToStringTag($DataView, DATA_VIEW);
-exports[ARRAY_BUFFER] = $ArrayBuffer;
-exports[DATA_VIEW] = $DataView;
-});
 
-var ARRAY_BUFFER = 'ArrayBuffer';
-var ArrayBuffer = arrayBuffer[ARRAY_BUFFER];
-var NativeArrayBuffer = global_1[ARRAY_BUFFER];
+var arrayBuffer = {
+  ArrayBuffer: $ArrayBuffer,
+  DataView: $DataView
+};
+
+var ARRAY_BUFFER$1 = 'ArrayBuffer';
+var ArrayBuffer = arrayBuffer[ARRAY_BUFFER$1];
+var NativeArrayBuffer$1 = global_1[ARRAY_BUFFER$1];
 
 // `ArrayBuffer` constructor
 // https://tc39.github.io/ecma262/#sec-arraybuffer-constructor
-_export({ global: true, forced: NativeArrayBuffer !== ArrayBuffer }, {
+_export({ global: true, forced: NativeArrayBuffer$1 !== ArrayBuffer }, {
   ArrayBuffer: ArrayBuffer
 });
 
-setSpecies(ARRAY_BUFFER);
+setSpecies(ARRAY_BUFFER$1);
 
 var NATIVE_ARRAY_BUFFER_VIEWS$1 = arrayBufferViewCore.NATIVE_ARRAY_BUFFER_VIEWS;
 
@@ -6027,11 +6275,11 @@ _export({ target: 'ArrayBuffer', proto: true, unsafe: true, forced: INCORRECT_SL
   }
 });
 
-var NATIVE_ARRAY_BUFFER$1 = arrayBufferViewCore.NATIVE_ARRAY_BUFFER;
+var NATIVE_ARRAY_BUFFER$2 = arrayBufferViewCore.NATIVE_ARRAY_BUFFER;
 
 // `DataView` constructor
 // https://tc39.github.io/ecma262/#sec-dataview-constructor
-_export({ global: true, forced: !NATIVE_ARRAY_BUFFER$1 }, {
+_export({ global: true, forced: !NATIVE_ARRAY_BUFFER$2 }, {
   DataView: arrayBuffer.DataView
 });
 
@@ -6054,13 +6302,19 @@ var typedArraysConstructorsRequiresWrappers = !NATIVE_ARRAY_BUFFER_VIEWS$2 || !f
   new Int8Array$2(1.5);
   new Int8Array$2(iterable);
 }, true) || fails(function () {
-  // Safari 11 bug
+  // Safari (11+) bug - a reason why even Safari 13 should load a typed array polyfill
   return new Int8Array$2(new ArrayBuffer$2(2), 1, undefined).length !== 1;
 });
 
+var toPositiveInteger = function (it) {
+  var result = toInteger(it);
+  if (result < 0) throw RangeError("The argument can't be less than 0");
+  return result;
+};
+
 var toOffset = function (it, BYTES) {
-  var offset = toInteger(it);
-  if (offset < 0 || offset % BYTES) throw RangeError('Wrong offset');
+  var offset = toPositiveInteger(it);
+  if (offset % BYTES) throw RangeError('Wrong offset');
   return offset;
 };
 
@@ -6072,11 +6326,12 @@ var typedArrayFrom = function from(source /* , mapfn, thisArg */) {
   var mapfn = argumentsLength > 1 ? arguments[1] : undefined;
   var mapping = mapfn !== undefined;
   var iteratorMethod = getIteratorMethod(O);
-  var i, length, result, step, iterator;
+  var i, length, result, step, iterator, next;
   if (iteratorMethod != undefined && !isArrayIteratorMethod(iteratorMethod)) {
     iterator = iteratorMethod.call(O);
+    next = iterator.next;
     O = [];
-    while (!(step = iterator.next()).done) {
+    while (!(step = next.call(iterator)).done) {
       O.push(step.value);
     }
   }
@@ -6113,6 +6368,7 @@ var typedArrayConstructor = createCommonjsModule(function (module) {
 var getOwnPropertyNames = objectGetOwnPropertyNames.f;
 
 var forEach = arrayIteration.forEach;
+
 
 
 
@@ -6198,8 +6454,8 @@ if (descriptors) {
     defineProperty: wrappedDefineProperty
   });
 
-  // eslint-disable-next-line max-statements
-  module.exports = function (TYPE, BYTES, wrapper, CLAMPED) {
+  module.exports = function (TYPE, wrapper, CLAMPED) {
+    var BYTES = TYPE.match(/\d+$/)[0] / 8;
     var CONSTRUCTOR_NAME = TYPE + (CLAMPED ? 'Clamped' : '') + 'Array';
     var GETTER = 'get' + TYPE;
     var SETTER = 'set' + TYPE;
@@ -6274,28 +6530,34 @@ if (descriptors) {
     } else if (typedArraysConstructorsRequiresWrappers) {
       TypedArrayConstructor = wrapper(function (dummy, data, typedArrayOffset, $length) {
         anInstance(dummy, TypedArrayConstructor, CONSTRUCTOR_NAME);
-        if (!isObject(data)) return new NativeTypedArrayConstructor(toIndex(data));
-        if (isArrayBuffer(data)) return $length !== undefined
-          ? new NativeTypedArrayConstructor(data, toOffset(typedArrayOffset, BYTES), $length)
-          : typedArrayOffset !== undefined
-            ? new NativeTypedArrayConstructor(data, toOffset(typedArrayOffset, BYTES))
-            : new NativeTypedArrayConstructor(data);
-        if (isTypedArray(data)) return fromList(TypedArrayConstructor, data);
-        return typedArrayFrom.call(TypedArrayConstructor, data);
+        return inheritIfRequired(function () {
+          if (!isObject(data)) return new NativeTypedArrayConstructor(toIndex(data));
+          if (isArrayBuffer(data)) return $length !== undefined
+            ? new NativeTypedArrayConstructor(data, toOffset(typedArrayOffset, BYTES), $length)
+            : typedArrayOffset !== undefined
+              ? new NativeTypedArrayConstructor(data, toOffset(typedArrayOffset, BYTES))
+              : new NativeTypedArrayConstructor(data);
+          if (isTypedArray(data)) return fromList(TypedArrayConstructor, data);
+          return typedArrayFrom.call(TypedArrayConstructor, data);
+        }(), dummy, TypedArrayConstructor);
       });
 
       if (objectSetPrototypeOf) objectSetPrototypeOf(TypedArrayConstructor, TypedArray);
       forEach(getOwnPropertyNames(NativeTypedArrayConstructor), function (key) {
-        if (!(key in TypedArrayConstructor)) hide(TypedArrayConstructor, key, NativeTypedArrayConstructor[key]);
+        if (!(key in TypedArrayConstructor)) {
+          createNonEnumerableProperty(TypedArrayConstructor, key, NativeTypedArrayConstructor[key]);
+        }
       });
       TypedArrayConstructor.prototype = TypedArrayConstructorPrototype;
     }
 
     if (TypedArrayConstructorPrototype.constructor !== TypedArrayConstructor) {
-      hide(TypedArrayConstructorPrototype, 'constructor', TypedArrayConstructor);
+      createNonEnumerableProperty(TypedArrayConstructorPrototype, 'constructor', TypedArrayConstructor);
     }
 
-    if (TYPED_ARRAY_TAG) hide(TypedArrayConstructorPrototype, TYPED_ARRAY_TAG, CONSTRUCTOR_NAME);
+    if (TYPED_ARRAY_TAG) {
+      createNonEnumerableProperty(TypedArrayConstructorPrototype, TYPED_ARRAY_TAG, CONSTRUCTOR_NAME);
+    }
 
     exported[CONSTRUCTOR_NAME] = TypedArrayConstructor;
 
@@ -6304,11 +6566,11 @@ if (descriptors) {
     }, exported);
 
     if (!(BYTES_PER_ELEMENT in TypedArrayConstructor)) {
-      hide(TypedArrayConstructor, BYTES_PER_ELEMENT, BYTES);
+      createNonEnumerableProperty(TypedArrayConstructor, BYTES_PER_ELEMENT, BYTES);
     }
 
     if (!(BYTES_PER_ELEMENT in TypedArrayConstructorPrototype)) {
-      hide(TypedArrayConstructorPrototype, BYTES_PER_ELEMENT, BYTES);
+      createNonEnumerableProperty(TypedArrayConstructorPrototype, BYTES_PER_ELEMENT, BYTES);
     }
 
     setSpecies(CONSTRUCTOR_NAME);
@@ -6318,7 +6580,7 @@ if (descriptors) {
 
 // `Int8Array` constructor
 // https://tc39.github.io/ecma262/#sec-typedarray-objects
-typedArrayConstructor('Int8', 1, function (init) {
+typedArrayConstructor('Int8', function (init) {
   return function Int8Array(data, byteOffset, length) {
     return init(this, data, byteOffset, length);
   };
@@ -6326,7 +6588,7 @@ typedArrayConstructor('Int8', 1, function (init) {
 
 // `Uint8Array` constructor
 // https://tc39.github.io/ecma262/#sec-typedarray-objects
-typedArrayConstructor('Uint8', 1, function (init) {
+typedArrayConstructor('Uint8', function (init) {
   return function Uint8Array(data, byteOffset, length) {
     return init(this, data, byteOffset, length);
   };
@@ -6334,7 +6596,7 @@ typedArrayConstructor('Uint8', 1, function (init) {
 
 // `Uint8ClampedArray` constructor
 // https://tc39.github.io/ecma262/#sec-typedarray-objects
-typedArrayConstructor('Uint8', 1, function (init) {
+typedArrayConstructor('Uint8', function (init) {
   return function Uint8ClampedArray(data, byteOffset, length) {
     return init(this, data, byteOffset, length);
   };
@@ -6342,7 +6604,7 @@ typedArrayConstructor('Uint8', 1, function (init) {
 
 // `Int16Array` constructor
 // https://tc39.github.io/ecma262/#sec-typedarray-objects
-typedArrayConstructor('Int16', 2, function (init) {
+typedArrayConstructor('Int16', function (init) {
   return function Int16Array(data, byteOffset, length) {
     return init(this, data, byteOffset, length);
   };
@@ -6350,7 +6612,7 @@ typedArrayConstructor('Int16', 2, function (init) {
 
 // `Uint16Array` constructor
 // https://tc39.github.io/ecma262/#sec-typedarray-objects
-typedArrayConstructor('Uint16', 2, function (init) {
+typedArrayConstructor('Uint16', function (init) {
   return function Uint16Array(data, byteOffset, length) {
     return init(this, data, byteOffset, length);
   };
@@ -6358,7 +6620,7 @@ typedArrayConstructor('Uint16', 2, function (init) {
 
 // `Int32Array` constructor
 // https://tc39.github.io/ecma262/#sec-typedarray-objects
-typedArrayConstructor('Int32', 4, function (init) {
+typedArrayConstructor('Int32', function (init) {
   return function Int32Array(data, byteOffset, length) {
     return init(this, data, byteOffset, length);
   };
@@ -6366,7 +6628,7 @@ typedArrayConstructor('Int32', 4, function (init) {
 
 // `Uint32Array` constructor
 // https://tc39.github.io/ecma262/#sec-typedarray-objects
-typedArrayConstructor('Uint32', 4, function (init) {
+typedArrayConstructor('Uint32', function (init) {
   return function Uint32Array(data, byteOffset, length) {
     return init(this, data, byteOffset, length);
   };
@@ -6374,7 +6636,7 @@ typedArrayConstructor('Uint32', 4, function (init) {
 
 // `Float32Array` constructor
 // https://tc39.github.io/ecma262/#sec-typedarray-objects
-typedArrayConstructor('Float32', 4, function (init) {
+typedArrayConstructor('Float32', function (init) {
   return function Float32Array(data, byteOffset, length) {
     return init(this, data, byteOffset, length);
   };
@@ -6382,21 +6644,25 @@ typedArrayConstructor('Float32', 4, function (init) {
 
 // `Float64Array` constructor
 // https://tc39.github.io/ecma262/#sec-typedarray-objects
-typedArrayConstructor('Float64', 8, function (init) {
+typedArrayConstructor('Float64', function (init) {
   return function Float64Array(data, byteOffset, length) {
     return init(this, data, byteOffset, length);
   };
 });
 
+var exportTypedArrayStaticMethod$1 = arrayBufferViewCore.exportTypedArrayStaticMethod;
+
+
 // `%TypedArray%.from` method
 // https://tc39.github.io/ecma262/#sec-%typedarray%.from
-arrayBufferViewCore.exportStatic('from', typedArrayFrom, typedArraysConstructorsRequiresWrappers);
+exportTypedArrayStaticMethod$1('from', typedArrayFrom, typedArraysConstructorsRequiresWrappers);
 
 var aTypedArrayConstructor$2 = arrayBufferViewCore.aTypedArrayConstructor;
+var exportTypedArrayStaticMethod$2 = arrayBufferViewCore.exportTypedArrayStaticMethod;
 
 // `%TypedArray%.of` method
 // https://tc39.github.io/ecma262/#sec-%typedarray%.of
-arrayBufferViewCore.exportStatic('of', function of(/* ...items */) {
+exportTypedArrayStaticMethod$2('of', function of(/* ...items */) {
   var index = 0;
   var length = arguments.length;
   var result = new (aTypedArrayConstructor$2(this))(length);
@@ -6405,29 +6671,32 @@ arrayBufferViewCore.exportStatic('of', function of(/* ...items */) {
 }, typedArraysConstructorsRequiresWrappers);
 
 var aTypedArray$1 = arrayBufferViewCore.aTypedArray;
+var exportTypedArrayMethod$1 = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.copyWithin` method
 // https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.copywithin
-arrayBufferViewCore.exportProto('copyWithin', function copyWithin(target, start /* , end */) {
+exportTypedArrayMethod$1('copyWithin', function copyWithin(target, start /* , end */) {
   return arrayCopyWithin.call(aTypedArray$1(this), target, start, arguments.length > 2 ? arguments[2] : undefined);
 });
 
 var $every$1 = arrayIteration.every;
 
 var aTypedArray$2 = arrayBufferViewCore.aTypedArray;
+var exportTypedArrayMethod$2 = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.every` method
 // https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.every
-arrayBufferViewCore.exportProto('every', function every(callbackfn /* , thisArg */) {
+exportTypedArrayMethod$2('every', function every(callbackfn /* , thisArg */) {
   return $every$1(aTypedArray$2(this), callbackfn, arguments.length > 1 ? arguments[1] : undefined);
 });
 
 var aTypedArray$3 = arrayBufferViewCore.aTypedArray;
+var exportTypedArrayMethod$3 = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.fill` method
 // https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.fill
 // eslint-disable-next-line no-unused-vars
-arrayBufferViewCore.exportProto('fill', function fill(value /* , start, end */) {
+exportTypedArrayMethod$3('fill', function fill(value /* , start, end */) {
   return arrayFill.apply(aTypedArray$3(this), arguments);
 });
 
@@ -6436,10 +6705,11 @@ var $filter$1 = arrayIteration.filter;
 
 var aTypedArray$4 = arrayBufferViewCore.aTypedArray;
 var aTypedArrayConstructor$3 = arrayBufferViewCore.aTypedArrayConstructor;
+var exportTypedArrayMethod$4 = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.filter` method
 // https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.filter
-arrayBufferViewCore.exportProto('filter', function filter(callbackfn /* , thisArg */) {
+exportTypedArrayMethod$4('filter', function filter(callbackfn /* , thisArg */) {
   var list = $filter$1(aTypedArray$4(this), callbackfn, arguments.length > 1 ? arguments[1] : undefined);
   var C = speciesConstructor(this, this.constructor);
   var index = 0;
@@ -6452,50 +6722,55 @@ arrayBufferViewCore.exportProto('filter', function filter(callbackfn /* , thisAr
 var $find$1 = arrayIteration.find;
 
 var aTypedArray$5 = arrayBufferViewCore.aTypedArray;
+var exportTypedArrayMethod$5 = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.find` method
 // https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.find
-arrayBufferViewCore.exportProto('find', function find(predicate /* , thisArg */) {
+exportTypedArrayMethod$5('find', function find(predicate /* , thisArg */) {
   return $find$1(aTypedArray$5(this), predicate, arguments.length > 1 ? arguments[1] : undefined);
 });
 
 var $findIndex$1 = arrayIteration.findIndex;
 
 var aTypedArray$6 = arrayBufferViewCore.aTypedArray;
+var exportTypedArrayMethod$6 = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.findIndex` method
 // https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.findindex
-arrayBufferViewCore.exportProto('findIndex', function findIndex(predicate /* , thisArg */) {
+exportTypedArrayMethod$6('findIndex', function findIndex(predicate /* , thisArg */) {
   return $findIndex$1(aTypedArray$6(this), predicate, arguments.length > 1 ? arguments[1] : undefined);
 });
 
 var $forEach$2 = arrayIteration.forEach;
 
 var aTypedArray$7 = arrayBufferViewCore.aTypedArray;
+var exportTypedArrayMethod$7 = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.forEach` method
 // https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.foreach
-arrayBufferViewCore.exportProto('forEach', function forEach(callbackfn /* , thisArg */) {
+exportTypedArrayMethod$7('forEach', function forEach(callbackfn /* , thisArg */) {
   $forEach$2(aTypedArray$7(this), callbackfn, arguments.length > 1 ? arguments[1] : undefined);
 });
 
 var $includes$1 = arrayIncludes.includes;
 
 var aTypedArray$8 = arrayBufferViewCore.aTypedArray;
+var exportTypedArrayMethod$8 = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.includes` method
 // https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.includes
-arrayBufferViewCore.exportProto('includes', function includes(searchElement /* , fromIndex */) {
+exportTypedArrayMethod$8('includes', function includes(searchElement /* , fromIndex */) {
   return $includes$1(aTypedArray$8(this), searchElement, arguments.length > 1 ? arguments[1] : undefined);
 });
 
 var $indexOf$1 = arrayIncludes.indexOf;
 
 var aTypedArray$9 = arrayBufferViewCore.aTypedArray;
+var exportTypedArrayMethod$9 = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.indexOf` method
 // https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.indexof
-arrayBufferViewCore.exportProto('indexOf', function indexOf(searchElement /* , fromIndex */) {
+exportTypedArrayMethod$9('indexOf', function indexOf(searchElement /* , fromIndex */) {
   return $indexOf$1(aTypedArray$9(this), searchElement, arguments.length > 1 ? arguments[1] : undefined);
 });
 
@@ -6505,7 +6780,7 @@ var arrayValues = es_array_iterator.values;
 var arrayKeys = es_array_iterator.keys;
 var arrayEntries = es_array_iterator.entries;
 var aTypedArray$a = arrayBufferViewCore.aTypedArray;
-var exportProto$1 = arrayBufferViewCore.exportProto;
+var exportTypedArrayMethod$a = arrayBufferViewCore.exportTypedArrayMethod;
 var nativeTypedArrayIterator = Uint8Array && Uint8Array.prototype[ITERATOR$5];
 
 var CORRECT_ITER_NAME = !!nativeTypedArrayIterator
@@ -6517,37 +6792,39 @@ var typedArrayValues = function values() {
 
 // `%TypedArray%.prototype.entries` method
 // https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.entries
-exportProto$1('entries', function entries() {
+exportTypedArrayMethod$a('entries', function entries() {
   return arrayEntries.call(aTypedArray$a(this));
 });
 // `%TypedArray%.prototype.keys` method
 // https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.keys
-exportProto$1('keys', function keys() {
+exportTypedArrayMethod$a('keys', function keys() {
   return arrayKeys.call(aTypedArray$a(this));
 });
 // `%TypedArray%.prototype.values` method
 // https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.values
-exportProto$1('values', typedArrayValues, !CORRECT_ITER_NAME);
+exportTypedArrayMethod$a('values', typedArrayValues, !CORRECT_ITER_NAME);
 // `%TypedArray%.prototype[@@iterator]` method
 // https://tc39.github.io/ecma262/#sec-%typedarray%.prototype-@@iterator
-exportProto$1(ITERATOR$5, typedArrayValues, !CORRECT_ITER_NAME);
+exportTypedArrayMethod$a(ITERATOR$5, typedArrayValues, !CORRECT_ITER_NAME);
 
 var aTypedArray$b = arrayBufferViewCore.aTypedArray;
+var exportTypedArrayMethod$b = arrayBufferViewCore.exportTypedArrayMethod;
 var $join = [].join;
 
 // `%TypedArray%.prototype.join` method
 // https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.join
 // eslint-disable-next-line no-unused-vars
-arrayBufferViewCore.exportProto('join', function join(separator) {
+exportTypedArrayMethod$b('join', function join(separator) {
   return $join.apply(aTypedArray$b(this), arguments);
 });
 
 var aTypedArray$c = arrayBufferViewCore.aTypedArray;
+var exportTypedArrayMethod$c = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.lastIndexOf` method
 // https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.lastindexof
 // eslint-disable-next-line no-unused-vars
-arrayBufferViewCore.exportProto('lastIndexOf', function lastIndexOf(searchElement /* , fromIndex */) {
+exportTypedArrayMethod$c('lastIndexOf', function lastIndexOf(searchElement /* , fromIndex */) {
   return arrayLastIndexOf.apply(aTypedArray$c(this), arguments);
 });
 
@@ -6556,10 +6833,11 @@ var $map$1 = arrayIteration.map;
 
 var aTypedArray$d = arrayBufferViewCore.aTypedArray;
 var aTypedArrayConstructor$4 = arrayBufferViewCore.aTypedArrayConstructor;
+var exportTypedArrayMethod$d = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.map` method
 // https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.map
-arrayBufferViewCore.exportProto('map', function map(mapfn /* , thisArg */) {
+exportTypedArrayMethod$d('map', function map(mapfn /* , thisArg */) {
   return $map$1(aTypedArray$d(this), mapfn, arguments.length > 1 ? arguments[1] : undefined, function (O, length) {
     return new (aTypedArrayConstructor$4(speciesConstructor(O, O.constructor)))(length);
   });
@@ -6568,32 +6846,35 @@ arrayBufferViewCore.exportProto('map', function map(mapfn /* , thisArg */) {
 var $reduce$1 = arrayReduce.left;
 
 var aTypedArray$e = arrayBufferViewCore.aTypedArray;
+var exportTypedArrayMethod$e = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.reduce` method
 // https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.reduce
-arrayBufferViewCore.exportProto('reduce', function reduce(callbackfn /* , initialValue */) {
+exportTypedArrayMethod$e('reduce', function reduce(callbackfn /* , initialValue */) {
   return $reduce$1(aTypedArray$e(this), callbackfn, arguments.length, arguments.length > 1 ? arguments[1] : undefined);
 });
 
 var $reduceRight$1 = arrayReduce.right;
 
 var aTypedArray$f = arrayBufferViewCore.aTypedArray;
+var exportTypedArrayMethod$f = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.reduceRicht` method
 // https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.reduceright
-arrayBufferViewCore.exportProto('reduceRight', function reduceRight(callbackfn /* , initialValue */) {
+exportTypedArrayMethod$f('reduceRight', function reduceRight(callbackfn /* , initialValue */) {
   return $reduceRight$1(aTypedArray$f(this), callbackfn, arguments.length, arguments.length > 1 ? arguments[1] : undefined);
 });
 
 var aTypedArray$g = arrayBufferViewCore.aTypedArray;
-var floor$6 = Math.floor;
+var exportTypedArrayMethod$g = arrayBufferViewCore.exportTypedArrayMethod;
+var floor$7 = Math.floor;
 
 // `%TypedArray%.prototype.reverse` method
 // https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.reverse
-arrayBufferViewCore.exportProto('reverse', function reverse() {
+exportTypedArrayMethod$g('reverse', function reverse() {
   var that = this;
   var length = aTypedArray$g(that).length;
-  var middle = floor$6(length / 2);
+  var middle = floor$7(length / 2);
   var index = 0;
   var value;
   while (index < middle) {
@@ -6604,15 +6885,16 @@ arrayBufferViewCore.exportProto('reverse', function reverse() {
 });
 
 var aTypedArray$h = arrayBufferViewCore.aTypedArray;
+var exportTypedArrayMethod$h = arrayBufferViewCore.exportTypedArrayMethod;
 
-var FORCED$f = fails(function () {
+var FORCED$g = fails(function () {
   // eslint-disable-next-line no-undef
   new Int8Array(1).set({});
 });
 
 // `%TypedArray%.prototype.set` method
 // https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.set
-arrayBufferViewCore.exportProto('set', function set(arrayLike /* , offset */) {
+exportTypedArrayMethod$h('set', function set(arrayLike /* , offset */) {
   aTypedArray$h(this);
   var offset = toOffset(arguments.length > 1 ? arguments[1] : undefined, 1);
   var length = this.length;
@@ -6621,20 +6903,21 @@ arrayBufferViewCore.exportProto('set', function set(arrayLike /* , offset */) {
   var index = 0;
   if (len + offset > length) throw RangeError('Wrong length');
   while (index < len) this[offset + index] = src[index++];
-}, FORCED$f);
+}, FORCED$g);
 
 var aTypedArray$i = arrayBufferViewCore.aTypedArray;
 var aTypedArrayConstructor$5 = arrayBufferViewCore.aTypedArrayConstructor;
+var exportTypedArrayMethod$i = arrayBufferViewCore.exportTypedArrayMethod;
 var $slice = [].slice;
 
-var FORCED$g = fails(function () {
+var FORCED$h = fails(function () {
   // eslint-disable-next-line no-undef
   new Int8Array(1).slice();
 });
 
 // `%TypedArray%.prototype.slice` method
 // https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.slice
-arrayBufferViewCore.exportProto('slice', function slice(start, end) {
+exportTypedArrayMethod$i('slice', function slice(start, end) {
   var list = $slice.call(aTypedArray$i(this), start, end);
   var C = speciesConstructor(this, this.constructor);
   var index = 0;
@@ -6642,32 +6925,35 @@ arrayBufferViewCore.exportProto('slice', function slice(start, end) {
   var result = new (aTypedArrayConstructor$5(C))(length);
   while (length > index) result[index] = list[index++];
   return result;
-}, FORCED$g);
+}, FORCED$h);
 
 var $some$1 = arrayIteration.some;
 
 var aTypedArray$j = arrayBufferViewCore.aTypedArray;
+var exportTypedArrayMethod$j = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.some` method
 // https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.some
-arrayBufferViewCore.exportProto('some', function some(callbackfn /* , thisArg */) {
+exportTypedArrayMethod$j('some', function some(callbackfn /* , thisArg */) {
   return $some$1(aTypedArray$j(this), callbackfn, arguments.length > 1 ? arguments[1] : undefined);
 });
 
 var aTypedArray$k = arrayBufferViewCore.aTypedArray;
+var exportTypedArrayMethod$k = arrayBufferViewCore.exportTypedArrayMethod;
 var $sort = [].sort;
 
 // `%TypedArray%.prototype.sort` method
 // https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.sort
-arrayBufferViewCore.exportProto('sort', function sort(comparefn) {
+exportTypedArrayMethod$k('sort', function sort(comparefn) {
   return $sort.call(aTypedArray$k(this), comparefn);
 });
 
 var aTypedArray$l = arrayBufferViewCore.aTypedArray;
+var exportTypedArrayMethod$l = arrayBufferViewCore.exportTypedArrayMethod;
 
 // `%TypedArray%.prototype.subarray` method
 // https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.subarray
-arrayBufferViewCore.exportProto('subarray', function subarray(begin, end) {
+exportTypedArrayMethod$l('subarray', function subarray(begin, end) {
   var O = aTypedArray$l(this);
   var length = O.length;
   var beginIndex = toAbsoluteIndex(begin, length);
@@ -6680,6 +6966,7 @@ arrayBufferViewCore.exportProto('subarray', function subarray(begin, end) {
 
 var Int8Array$3 = global_1.Int8Array;
 var aTypedArray$m = arrayBufferViewCore.aTypedArray;
+var exportTypedArrayMethod$m = arrayBufferViewCore.exportTypedArrayMethod;
 var $toLocaleString = [].toLocaleString;
 var $slice$1 = [].slice;
 
@@ -6688,7 +6975,7 @@ var TO_LOCALE_STRING_BUG = !!Int8Array$3 && fails(function () {
   $toLocaleString.call(new Int8Array$3(1));
 });
 
-var FORCED$h = fails(function () {
+var FORCED$i = fails(function () {
   return [1, 2].toLocaleString() != new Int8Array$3([1, 2]).toLocaleString();
 }) || !fails(function () {
   Int8Array$3.prototype.toLocaleString.call([1, 2]);
@@ -6696,12 +6983,16 @@ var FORCED$h = fails(function () {
 
 // `%TypedArray%.prototype.toLocaleString` method
 // https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.tolocalestring
-arrayBufferViewCore.exportProto('toLocaleString', function toLocaleString() {
+exportTypedArrayMethod$m('toLocaleString', function toLocaleString() {
   return $toLocaleString.apply(TO_LOCALE_STRING_BUG ? $slice$1.call(aTypedArray$m(this)) : aTypedArray$m(this), arguments);
-}, FORCED$h);
+}, FORCED$i);
+
+var exportTypedArrayMethod$n = arrayBufferViewCore.exportTypedArrayMethod;
+
+
 
 var Uint8Array$1 = global_1.Uint8Array;
-var Uint8ArrayPrototype = Uint8Array$1 && Uint8Array$1.prototype;
+var Uint8ArrayPrototype = Uint8Array$1 && Uint8Array$1.prototype || {};
 var arrayToString = [].toString;
 var arrayJoin = [].join;
 
@@ -6711,9 +7002,11 @@ if (fails(function () { arrayToString.call({}); })) {
   };
 }
 
+var IS_NOT_ARRAY_METHOD = Uint8ArrayPrototype.toString != arrayToString;
+
 // `%TypedArray%.prototype.toString` method
 // https://tc39.github.io/ecma262/#sec-%typedarray%.prototype.tostring
-arrayBufferViewCore.exportProto('toString', arrayToString, (Uint8ArrayPrototype || {}).toString != arrayToString);
+exportTypedArrayMethod$n('toString', arrayToString, IS_NOT_ARRAY_METHOD);
 
 var nativeApply = getBuiltIn('Reflect', 'apply');
 var functionApply = Function.apply;
@@ -6748,9 +7041,9 @@ var NEW_TARGET_BUG = fails(function () {
 var ARGS_BUG = !fails(function () {
   nativeConstruct(function () { /* empty */ });
 });
-var FORCED$i = NEW_TARGET_BUG || ARGS_BUG;
+var FORCED$j = NEW_TARGET_BUG || ARGS_BUG;
 
-_export({ target: 'Reflect', stat: true, forced: FORCED$i, sham: FORCED$i }, {
+_export({ target: 'Reflect', stat: true, forced: FORCED$j, sham: FORCED$j }, {
   construct: function construct(Target, args /* , newTarget */) {
     aFunction$1(Target);
     anObject(args);
@@ -6800,20 +7093,20 @@ _export({ target: 'Reflect', stat: true, forced: ERROR_INSTEAD_OF_FALSE, sham: !
   }
 });
 
-var getOwnPropertyDescriptor$6 = objectGetOwnPropertyDescriptor.f;
+var getOwnPropertyDescriptor$8 = objectGetOwnPropertyDescriptor.f;
 
 // `Reflect.deleteProperty` method
 // https://tc39.github.io/ecma262/#sec-reflect.deleteproperty
 _export({ target: 'Reflect', stat: true }, {
   deleteProperty: function deleteProperty(target, propertyKey) {
-    var descriptor = getOwnPropertyDescriptor$6(anObject(target), propertyKey);
+    var descriptor = getOwnPropertyDescriptor$8(anObject(target), propertyKey);
     return descriptor && !descriptor.configurable ? false : delete target[propertyKey];
   }
 });
 
 // `Reflect.get` method
 // https://tc39.github.io/ecma262/#sec-reflect.get
-function get$1(target, propertyKey /* , receiver */) {
+function get$2(target, propertyKey /* , receiver */) {
   var receiver = arguments.length < 3 ? target : arguments[2];
   var descriptor, prototype;
   if (anObject(target) === receiver) return target[propertyKey];
@@ -6822,11 +7115,11 @@ function get$1(target, propertyKey /* , receiver */) {
     : descriptor.get === undefined
       ? undefined
       : descriptor.get.call(receiver);
-  if (isObject(prototype = objectGetPrototypeOf(target))) return get$1(prototype, propertyKey, receiver);
+  if (isObject(prototype = objectGetPrototypeOf(target))) return get$2(prototype, propertyKey, receiver);
 }
 
 _export({ target: 'Reflect', stat: true }, {
-  get: get$1
+  get: get$2
 });
 
 // `Reflect.getOwnPropertyDescriptor` method
@@ -6887,13 +7180,13 @@ _export({ target: 'Reflect', stat: true, sham: !freezing }, {
 
 // `Reflect.set` method
 // https://tc39.github.io/ecma262/#sec-reflect.set
-function set$2(target, propertyKey, V /* , receiver */) {
+function set$3(target, propertyKey, V /* , receiver */) {
   var receiver = arguments.length < 4 ? target : arguments[3];
   var ownDescriptor = objectGetOwnPropertyDescriptor.f(anObject(target), propertyKey);
   var existingDescriptor, prototype;
   if (!ownDescriptor) {
     if (isObject(prototype = objectGetPrototypeOf(target))) {
-      return set$2(prototype, propertyKey, V, receiver);
+      return set$3(prototype, propertyKey, V, receiver);
     }
     ownDescriptor = createPropertyDescriptor(0);
   }
@@ -6909,8 +7202,16 @@ function set$2(target, propertyKey, V /* , receiver */) {
   return ownDescriptor.set === undefined ? false : (ownDescriptor.set.call(receiver, V), true);
 }
 
-_export({ target: 'Reflect', stat: true }, {
-  set: set$2
+// MS Edge 17-18 Reflect.set allows setting the property to object
+// with non-writable property on the prototype
+var MS_EDGE_BUG = fails(function () {
+  var object = objectDefineProperty.f({}, 'a', { configurable: true });
+  // eslint-disable-next-line no-undef
+  return Reflect.set(objectGetPrototypeOf(object), 'a', 1, object) !== false;
+});
+
+_export({ target: 'Reflect', stat: true, forced: MS_EDGE_BUG }, {
+  set: set$3
 });
 
 // `Reflect.setPrototypeOf` method
@@ -7137,6 +7438,7 @@ _export({ target: 'Reflect', stat: true }, {
 
 // `Math.iaddh` method
 // https://gist.github.com/BrendanEich/4294d5c212a6d2254703
+// TODO: Remove from `core-js@4`
 _export({ target: 'Math', stat: true }, {
   iaddh: function iaddh(x0, x1, y0, y1) {
     var $x0 = x0 >>> 0;
@@ -7148,6 +7450,7 @@ _export({ target: 'Math', stat: true }, {
 
 // `Math.isubh` method
 // https://gist.github.com/BrendanEich/4294d5c212a6d2254703
+// TODO: Remove from `core-js@4`
 _export({ target: 'Math', stat: true }, {
   isubh: function isubh(x0, x1, y0, y1) {
     var $x0 = x0 >>> 0;
@@ -7159,6 +7462,7 @@ _export({ target: 'Math', stat: true }, {
 
 // `Math.imulh` method
 // https://gist.github.com/BrendanEich/4294d5c212a6d2254703
+// TODO: Remove from `core-js@4`
 _export({ target: 'Math', stat: true }, {
   imulh: function imulh(u, v) {
     var UINT16 = 0xFFFF;
@@ -7175,6 +7479,7 @@ _export({ target: 'Math', stat: true }, {
 
 // `Math.umulh` method
 // https://gist.github.com/BrendanEich/4294d5c212a6d2254703
+// TODO: Remove from `core-js@4`
 _export({ target: 'Math', stat: true }, {
   umulh: function umulh(u, v) {
     var UINT16 = 0xFFFF;
@@ -7202,13 +7507,18 @@ _export({ target: 'String', proto: true }, {
 var ITERATOR$6 = wellKnownSymbol('iterator');
 
 var nativeUrl = !fails(function () {
-  var url = new URL('b?e=1', 'http://a');
+  var url = new URL('b?a=1&b=2&c=3', 'http://a');
   var searchParams = url.searchParams;
+  var result = '';
   url.pathname = 'c%20d';
+  searchParams.forEach(function (value, key) {
+    searchParams['delete']('b');
+    result += key + value;
+  });
   return (isPure && !url.toJSON)
     || !searchParams.sort
-    || url.href !== 'http://a/c%20d?e=1'
-    || searchParams.get('e') !== '1'
+    || url.href !== 'http://a/c%20d?a=1&c=3'
+    || searchParams.get('c') !== '3'
     || String(new URLSearchParams('?a=1')) !== 'a=1'
     || !searchParams[ITERATOR$6]
     // throws in Edge
@@ -7217,7 +7527,11 @@ var nativeUrl = !fails(function () {
     // not punycoded in Edge
     || new URL('http://тест').host !== 'xn--e1aybc'
     // not escaped in Chrome 62-
-    || new URL('http://a#б').hash !== '#%D0%B1';
+    || new URL('http://a#б').hash !== '#%D0%B1'
+    // fails in Chrome 66-
+    || result !== 'a1c3'
+    // throws in Safari
+    || new URL('http://x', undefined).host !== 'x';
 });
 
 // based on https://github.com/bestiejs/punycode.js/blob/master/punycode.js
@@ -7234,7 +7548,7 @@ var regexNonASCII = /[^\0-\u007E]/; // non-ASCII chars
 var regexSeparators = /[.\u3002\uFF0E\uFF61]/g; // RFC 3490 separators
 var OVERFLOW_ERROR = 'Overflow: input needs wider integers to process';
 var baseMinusTMin = base - tMin;
-var floor$7 = Math.floor;
+var floor$8 = Math.floor;
 var stringFromCharCode = String.fromCharCode;
 
 /**
@@ -7283,12 +7597,12 @@ var digitToBasic = function (digit) {
  */
 var adapt = function (delta, numPoints, firstTime) {
   var k = 0;
-  delta = firstTime ? floor$7(delta / damp) : delta >> 1;
-  delta += floor$7(delta / numPoints);
+  delta = firstTime ? floor$8(delta / damp) : delta >> 1;
+  delta += floor$8(delta / numPoints);
   for (; delta > baseMinusTMin * tMax >> 1; k += base) {
-    delta = floor$7(delta / baseMinusTMin);
+    delta = floor$8(delta / baseMinusTMin);
   }
-  return floor$7(k + (baseMinusTMin + 1) * delta / (delta + skew));
+  return floor$8(k + (baseMinusTMin + 1) * delta / (delta + skew));
 };
 
 /**
@@ -7340,7 +7654,7 @@ var encode = function (input) {
 
     // Increase `delta` enough to advance the decoder's <n,i> state to <m,0>, but guard against overflow.
     var handledCPCountPlusOne = handledCPCount + 1;
-    if (m - n > floor$7((maxInt - delta) / handledCPCountPlusOne)) {
+    if (m - n > floor$8((maxInt - delta) / handledCPCountPlusOne)) {
       throw RangeError(OVERFLOW_ERROR);
     }
 
@@ -7361,7 +7675,7 @@ var encode = function (input) {
           var qMinusT = q - t;
           var baseMinusT = base - t;
           output.push(stringFromCharCode(digitToBasic(t + qMinusT % baseMinusT)));
-          q = floor$7(qMinusT / baseMinusT);
+          q = floor$8(qMinusT / baseMinusT);
         }
 
         output.push(stringFromCharCode(digitToBasic(q)));
@@ -7413,10 +7727,16 @@ var getIterator = function (it) {
 
 
 
+
+
+
+
+var $fetch$1 = getBuiltIn('fetch');
+var Headers = getBuiltIn('Headers');
 var ITERATOR$7 = wellKnownSymbol('iterator');
 var URL_SEARCH_PARAMS = 'URLSearchParams';
 var URL_SEARCH_PARAMS_ITERATOR = URL_SEARCH_PARAMS + 'Iterator';
-var setInternalState$7 = internalState.set;
+var setInternalState$8 = internalState.set;
 var getInternalParamsState = internalState.getterFor(URL_SEARCH_PARAMS);
 var getInternalIteratorState = internalState.getterFor(URL_SEARCH_PARAMS_ITERATOR);
 
@@ -7495,7 +7815,7 @@ var validateArgumentsLength = function (passed, required) {
 };
 
 var URLSearchParamsIterator = createIteratorConstructor(function Iterator(params, kind) {
-  setInternalState$7(this, {
+  setInternalState$8(this, {
     type: URL_SEARCH_PARAMS_ITERATOR,
     iterator: getIterator(getInternalParamsState(params).entries),
     kind: kind
@@ -7517,9 +7837,9 @@ var URLSearchParamsConstructor = function URLSearchParams(/* init */) {
   var init = arguments.length > 0 ? arguments[0] : undefined;
   var that = this;
   var entries = [];
-  var iteratorMethod, iterator, step, entryIterator, first, second, key;
+  var iteratorMethod, iterator, next, step, entryIterator, entryNext, first, second, key;
 
-  setInternalState$7(that, {
+  setInternalState$8(that, {
     type: URL_SEARCH_PARAMS,
     entries: entries,
     updateURL: function () { /* empty */ },
@@ -7531,12 +7851,14 @@ var URLSearchParamsConstructor = function URLSearchParams(/* init */) {
       iteratorMethod = getIteratorMethod(init);
       if (typeof iteratorMethod === 'function') {
         iterator = iteratorMethod.call(init);
-        while (!(step = iterator.next()).done) {
+        next = iterator.next;
+        while (!(step = next.call(iterator)).done) {
           entryIterator = getIterator(anObject(step.value));
+          entryNext = entryIterator.next;
           if (
-            (first = entryIterator.next()).done ||
-            (second = entryIterator.next()).done ||
-            !entryIterator.next().done
+            (first = entryNext.call(entryIterator)).done ||
+            (second = entryNext.call(entryIterator)).done ||
+            !entryNext.call(entryIterator).done
           ) throw TypeError('Expected sequence with length 2');
           entries.push({ key: first.value + '', value: second.value + '' });
         }
@@ -7701,6 +8023,34 @@ _export({ global: true, forced: !nativeUrl }, {
   URLSearchParams: URLSearchParamsConstructor
 });
 
+// Wrap `fetch` for correct work with polyfilled `URLSearchParams`
+// https://github.com/zloirock/core-js/issues/674
+if (!nativeUrl && typeof $fetch$1 == 'function' && typeof Headers == 'function') {
+  _export({ global: true, enumerable: true, forced: true }, {
+    fetch: function fetch(input /* , init */) {
+      var args = [input];
+      var init, body, headers;
+      if (arguments.length > 1) {
+        init = arguments[1];
+        if (isObject(init)) {
+          body = init.body;
+          if (classof(body) === URL_SEARCH_PARAMS) {
+            headers = init.headers ? new Headers(init.headers) : new Headers();
+            if (!headers.has('content-type')) {
+              headers.set('content-type', 'application/x-www-form-urlencoded;charset=UTF-8');
+            }
+            init = objectCreate(init, {
+              body: createPropertyDescriptor(0, String(body)),
+              headers: createPropertyDescriptor(0, headers)
+            });
+          }
+        }
+        args.push(init);
+      } return $fetch$1.apply(this, args);
+    }
+  });
+}
+
 var web_urlSearchParams = {
   URLSearchParams: URLSearchParamsConstructor,
   getState: getInternalParamsState
@@ -7727,10 +8077,10 @@ var codeAt$1 = stringMultibyte.codeAt;
 var NativeURL = global_1.URL;
 var URLSearchParams$1 = web_urlSearchParams.URLSearchParams;
 var getInternalSearchParamsState = web_urlSearchParams.getState;
-var setInternalState$8 = internalState.set;
+var setInternalState$9 = internalState.set;
 var getInternalURLState = internalState.getterFor('URL');
-var floor$8 = Math.floor;
-var pow$3 = Math.pow;
+var floor$9 = Math.floor;
+var pow$4 = Math.pow;
 
 var INVALID_AUTHORITY = 'Invalid authority';
 var INVALID_SCHEME = 'Invalid scheme';
@@ -7807,12 +8157,12 @@ var parseIPv4 = function (input) {
   for (index = 0; index < partsLength; index++) {
     number = numbers[index];
     if (index == partsLength - 1) {
-      if (number >= pow$3(256, 5 - partsLength)) return null;
+      if (number >= pow$4(256, 5 - partsLength)) return null;
     } else if (number > 255) return null;
   }
   ipv4 = numbers.pop();
   for (index = 0; index < numbers.length; index++) {
-    ipv4 += numbers[index] * pow$3(256, 3 - index);
+    ipv4 += numbers[index] * pow$4(256, 3 - index);
   }
   return ipv4;
 };
@@ -7927,7 +8277,7 @@ var serializeHost = function (host) {
     result = [];
     for (index = 0; index < 4; index++) {
       result.unshift(host % 256);
-      host = floor$8(host / 256);
+      host = floor$9(host / 256);
     } return result.join('.');
   // ipv6
   } else if (typeof host == 'object') {
@@ -7967,7 +8317,6 @@ var percentEncode = function (char, set) {
 var specialSchemes = {
   ftp: 21,
   file: null,
-  gopher: 70,
   http: 80,
   https: 443,
   ws: 80,
@@ -8445,7 +8794,7 @@ var URLConstructor = function URL(url /* , base */) {
   var that = anInstance(this, URLConstructor, 'URL');
   var base = arguments.length > 1 ? arguments[1] : undefined;
   var urlString = String(url);
-  var state = setInternalState$8(that, { type: 'URL' });
+  var state = setInternalState$9(that, { type: 'URL' });
   var baseState, failure;
   if (base !== undefined) {
     if (base instanceof URLConstructor) baseState = getInternalURLState(base);
@@ -8722,12 +9071,12 @@ _export({ target: 'URL', proto: true, enumerable: true }, {
   }
 });
 
-var defineProperty$8 = objectDefineProperty.f;
+var defineProperty$a = objectDefineProperty.f;
 
 // `Array.prototype.lastIndex` getter
 // https://github.com/keithamus/proposal-array-last
 if (descriptors && !('lastIndex' in [])) {
-  defineProperty$8(Array.prototype, 'lastIndex', {
+  defineProperty$a(Array.prototype, 'lastIndex', {
     configurable: true,
     get: function lastIndex() {
       var O = toObject(this);
@@ -8739,12 +9088,12 @@ if (descriptors && !('lastIndex' in [])) {
   addToUnscopables('lastIndex');
 }
 
-var defineProperty$9 = objectDefineProperty.f;
+var defineProperty$b = objectDefineProperty.f;
 
 // `Array.prototype.lastIndex` accessor
 // https://github.com/keithamus/proposal-array-last
 if (descriptors && !('lastItem' in [])) {
-  defineProperty$9(Array.prototype, 'lastItem', {
+  defineProperty$b(Array.prototype, 'lastItem', {
     configurable: true,
     get: function lastItem() {
       var O = toObject(this);
@@ -8798,8 +9147,10 @@ var collectionDeleteAll = function (/* ...elements */) {
   var collection = anObject(this);
   var remover = aFunction$1(collection['delete']);
   var allDeleted = true;
+  var wasDeleted;
   for (var k = 0, len = arguments.length; k < len; k++) {
-    allDeleted = allDeleted && remover.call(collection, arguments[k]);
+    wasDeleted = remover.call(collection, arguments[k]);
+    allDeleted = allDeleted && wasDeleted;
   }
   return !!allDeleted;
 };
@@ -8952,17 +9303,18 @@ _export({ target: 'Map', proto: true, real: true, forced: isPure }, {
   reduce: function reduce(callbackfn /* , initialValue */) {
     var map = anObject(this);
     var iterator = getMapIterator(map);
-    var accumulator, step;
+    var noInitial = arguments.length < 2;
+    var accumulator = noInitial ? undefined : arguments[1];
     aFunction$1(callbackfn);
-    if (arguments.length > 1) accumulator = arguments[1];
-    else {
-      step = iterator.next();
-      if (step.done) throw TypeError('Reduce of empty map with no initial value');
-      accumulator = step.value[1];
-    }
     iterate_1(iterator, function (key, value) {
-      accumulator = callbackfn(accumulator, value, key, map);
+      if (noInitial) {
+        noInitial = false;
+        accumulator = value;
+      } else {
+        accumulator = callbackfn(accumulator, value, key, map);
+      }
     }, undefined, true, true);
+    if (noInitial) throw TypeError('Reduce of empty map with no initial value');
     return accumulator;
   }
 });
@@ -9105,17 +9457,18 @@ _export({ target: 'Set', proto: true, real: true, forced: isPure }, {
   reduce: function reduce(callbackfn /* , initialValue */) {
     var set = anObject(this);
     var iterator = getSetIterator(set);
-    var accumulator, step;
+    var noInitial = arguments.length < 2;
+    var accumulator = noInitial ? undefined : arguments[1];
     aFunction$1(callbackfn);
-    if (arguments.length > 1) accumulator = arguments[1];
-    else {
-      step = iterator.next();
-      if (step.done) throw TypeError('Reduce of empty set with no initial value');
-      accumulator = step.value;
-    }
     iterate_1(iterator, function (value) {
-      accumulator = callbackfn(accumulator, value, value, set);
+      if (noInitial) {
+        noInitial = false;
+        accumulator = value;
+      } else {
+        accumulator = callbackfn(accumulator, value, value, set);
+      }
     }, undefined, false, true);
+    if (noInitial) throw TypeError('Reduce of empty set with no initial value');
     return accumulator;
   }
 });
@@ -9239,6 +9592,70 @@ _export({ target: 'WeakSet', stat: true }, {
   of: collectionOf
 });
 
+// TODO: in core-js@4, move /modules/ dependencies to public entries for better optimization by tools like `preset-env`
+
+
+
+
+
+var Node = function () {
+  // keys
+  this.object = null;
+  this.symbol = null;
+  // child nodes
+  this.primitives = null;
+  this.objectsByIndex = objectCreate(null);
+};
+
+Node.prototype.get = function (key, initializer) {
+  return this[key] || (this[key] = initializer());
+};
+
+Node.prototype.next = function (i, it, IS_OBJECT) {
+  var store = IS_OBJECT
+    ? this.objectsByIndex[i] || (this.objectsByIndex[i] = new es_weakMap())
+    : this.primitives || (this.primitives = new es_map());
+  var entry = store.get(it);
+  if (!entry) store.set(it, entry = new Node());
+  return entry;
+};
+
+var root = new Node();
+
+var compositeKey = function () {
+  var active = root;
+  var length = arguments.length;
+  var i, it;
+  // for prevent leaking, start from objects
+  for (i = 0; i < length; i++) {
+    if (isObject(it = arguments[i])) active = active.next(i, it, true);
+  }
+  if (this === Object && active === root) throw TypeError('Composite keys must contain a non-primitive component');
+  for (i = 0; i < length; i++) {
+    if (!isObject(it = arguments[i])) active = active.next(i, it, false);
+  } return active;
+};
+
+var initializer = function () {
+  var freeze = getBuiltIn('Object', 'freeze');
+  return freeze ? freeze(objectCreate(null)) : objectCreate(null);
+};
+
+// https://github.com/tc39/proposal-richer-keys/tree/master/compositeKey
+_export({ global: true }, {
+  compositeKey: function compositeKey$1() {
+    return compositeKey.apply(Object, arguments).get('object', initializer);
+  }
+});
+
+// https://github.com/tc39/proposal-richer-keys/tree/master/compositeKey
+_export({ global: true }, {
+  compositeSymbol: function compositeSymbol() {
+    if (arguments.length === 1 && typeof arguments[0] === 'string') return getBuiltIn('Symbol')['for'](arguments[0]);
+    return compositeKey.apply(null, arguments).get('symbol', getBuiltIn('Symbol'));
+  }
+});
+
 var min$9 = Math.min;
 var max$4 = Math.max;
 
@@ -9317,8 +9734,7 @@ _export({ target: 'Math', stat: true }, {
 // https://github.com/tc39/proposal-Math.signbit
 _export({ target: 'Math', stat: true }, {
   signbit: function signbit(x) {
-    // eslint-disable-next-line no-self-compare
-    return (x = +x) != x ? x : x == 0 ? 1 / x == Infinity : x > 0;
+    return (x = +x) == x && x == 0 ? 1 / x == -Infinity : x < 0;
   }
 });
 
@@ -9356,7 +9772,7 @@ _export({ target: 'Number', stat: true }, {
 
 
 
-var defineProperty$a = objectDefineProperty.f;
+var defineProperty$c = objectDefineProperty.f;
 
 
 
@@ -9366,8 +9782,8 @@ var defineProperty$a = objectDefineProperty.f;
 
 
 var OBSERVABLE = wellKnownSymbol('observable');
-var getInternalState$5 = internalState.get;
-var setInternalState$9 = internalState.set;
+var getInternalState$6 = internalState.get;
+var setInternalState$a = internalState.set;
 
 var getMethod = function (fn) {
   return fn == null ? undefined : aFunction$1(fn);
@@ -9398,7 +9814,7 @@ var close = function (subscription, subscriptionState) {
 };
 
 var Subscription = function (observer, subscriber) {
-  var subscriptionState = setInternalState$9(this, {
+  var subscriptionState = setInternalState$a(this, {
     cleanup: undefined,
     observer: anObject(observer),
     subscriptionObserver: undefined
@@ -9426,7 +9842,7 @@ var Subscription = function (observer, subscriber) {
 
 Subscription.prototype = redefineAll({}, {
   unsubscribe: function unsubscribe() {
-    var subscriptionState = getInternalState$5(this);
+    var subscriptionState = getInternalState$6(this);
     if (!subscriptionClosed(subscriptionState)) {
       close(this, subscriptionState);
       cleanupSubscription(subscriptionState);
@@ -9434,21 +9850,21 @@ Subscription.prototype = redefineAll({}, {
   }
 });
 
-if (descriptors) defineProperty$a(Subscription.prototype, 'closed', {
+if (descriptors) defineProperty$c(Subscription.prototype, 'closed', {
   configurable: true,
   get: function () {
-    return subscriptionClosed(getInternalState$5(this));
+    return subscriptionClosed(getInternalState$6(this));
   }
 });
 
 var SubscriptionObserver = function (subscription) {
-  setInternalState$9(this, { subscription: subscription });
+  setInternalState$a(this, { subscription: subscription });
   if (!descriptors) this.closed = false;
 };
 
 SubscriptionObserver.prototype = redefineAll({}, {
   next: function next(value) {
-    var subscriptionState = getInternalState$5(getInternalState$5(this).subscription);
+    var subscriptionState = getInternalState$6(getInternalState$6(this).subscription);
     if (!subscriptionClosed(subscriptionState)) {
       var observer = subscriptionState.observer;
       try {
@@ -9460,8 +9876,8 @@ SubscriptionObserver.prototype = redefineAll({}, {
     }
   },
   error: function error(value) {
-    var subscription = getInternalState$5(this).subscription;
-    var subscriptionState = getInternalState$5(subscription);
+    var subscription = getInternalState$6(this).subscription;
+    var subscriptionState = getInternalState$6(subscription);
     if (!subscriptionClosed(subscriptionState)) {
       var observer = subscriptionState.observer;
       close(subscription, subscriptionState);
@@ -9475,8 +9891,8 @@ SubscriptionObserver.prototype = redefineAll({}, {
     }
   },
   complete: function complete() {
-    var subscription = getInternalState$5(this).subscription;
-    var subscriptionState = getInternalState$5(subscription);
+    var subscription = getInternalState$6(this).subscription;
+    var subscriptionState = getInternalState$6(subscription);
     if (!subscriptionClosed(subscriptionState)) {
       var observer = subscriptionState.observer;
       close(subscription, subscriptionState);
@@ -9490,16 +9906,16 @@ SubscriptionObserver.prototype = redefineAll({}, {
   }
 });
 
-if (descriptors) defineProperty$a(SubscriptionObserver.prototype, 'closed', {
+if (descriptors) defineProperty$c(SubscriptionObserver.prototype, 'closed', {
   configurable: true,
   get: function () {
-    return subscriptionClosed(getInternalState$5(getInternalState$5(this).subscription));
+    return subscriptionClosed(getInternalState$6(getInternalState$6(this).subscription));
   }
 });
 
 var $Observable = function Observable(subscriber) {
   anInstance(this, $Observable, 'Observable');
-  setInternalState$9(this, { subscriber: aFunction$1(subscriber) });
+  setInternalState$a(this, { subscriber: aFunction$1(subscriber) });
 };
 
 redefineAll($Observable.prototype, {
@@ -9509,7 +9925,7 @@ redefineAll($Observable.prototype, {
       next: observer,
       error: length > 1 ? arguments[1] : undefined,
       complete: length > 2 ? arguments[2] : undefined
-    } : isObject(observer) ? observer : {}, getInternalState$5(this).subscriber);
+    } : isObject(observer) ? observer : {}, getInternalState$6(this).subscriber);
   }
 });
 
@@ -9547,7 +9963,7 @@ redefineAll($Observable, {
   }
 });
 
-hide($Observable.prototype, OBSERVABLE, function () { return this; });
+createNonEnumerableProperty($Observable.prototype, OBSERVABLE, function () { return this; });
 
 _export({ global: true }, {
   Observable: $Observable
@@ -9574,83 +9990,19 @@ _export({ target: 'Promise', stat: true }, {
   }
 });
 
-// TODO: in core-js@4, move /modules/ dependencies to public entries for better optimization by tools like `preset-env`
-
-
-
-
-
-var Node = function () {
-  // keys
-  this.object = null;
-  this.symbol = null;
-  // child nodes
-  this.primitives = null;
-  this.objectsByIndex = objectCreate(null);
-};
-
-Node.prototype.get = function (key, initializer) {
-  return this[key] || (this[key] = initializer());
-};
-
-Node.prototype.next = function (i, it, IS_OBJECT) {
-  var store = IS_OBJECT
-    ? this.objectsByIndex[i] || (this.objectsByIndex[i] = new es_weakMap())
-    : this.primitives || (this.primitives = new es_map());
-  var entry = store.get(it);
-  if (!entry) store.set(it, entry = new Node());
-  return entry;
-};
-
-var root = new Node();
-
-var compositeKey = function () {
-  var active = root;
-  var length = arguments.length;
-  var i, it;
-  // for prevent leaking, start from objects
-  for (i = 0; i < length; i++) {
-    if (isObject(it = arguments[i])) active = active.next(i, it, true);
-  }
-  if (this === Object && active === root) throw TypeError('Composite keys must contain a non-primitive component');
-  for (i = 0; i < length; i++) {
-    if (!isObject(it = arguments[i])) active = active.next(i, it, false);
-  } return active;
-};
-
-var initializer = function () {
-  var freeze = getBuiltIn('Object', 'freeze');
-  return freeze ? freeze(objectCreate(null)) : objectCreate(null);
-};
-
-// https://github.com/tc39/proposal-richer-keys/tree/master/compositeKey
-_export({ global: true }, {
-  compositeKey: function compositeKey$1() {
-    return compositeKey.apply(Object, arguments).get('object', initializer);
-  }
-});
-
-// https://github.com/tc39/proposal-richer-keys/tree/master/compositeKey
-_export({ global: true }, {
-  compositeSymbol: function compositeSymbol() {
-    if (arguments.length === 1 && typeof arguments[0] === 'string') return getBuiltIn('Symbol')['for'](arguments[0]);
-    return compositeKey.apply(null, arguments).get('symbol', getBuiltIn('Symbol'));
-  }
-});
-
 var SEEDED_RANDOM = 'Seeded Random';
 var SEEDED_RANDOM_GENERATOR = SEEDED_RANDOM + ' Generator';
-var setInternalState$a = internalState.set;
-var getInternalState$6 = internalState.getterFor(SEEDED_RANDOM_GENERATOR);
+var setInternalState$b = internalState.set;
+var getInternalState$7 = internalState.getterFor(SEEDED_RANDOM_GENERATOR);
 var SEED_TYPE_ERROR = 'Math.seededPRNG() argument should have a "seed" field with a finite value.';
 
 var $SeededRandomGenerator = createIteratorConstructor(function SeededRandomGenerator(seed) {
-  setInternalState$a(this, {
+  setInternalState$b(this, {
     type: SEEDED_RANDOM_GENERATOR,
     seed: seed % 2147483647
   });
 }, SEEDED_RANDOM, function next() {
-  var state = getInternalState$6(this);
+  var state = getInternalState$7(this);
   var seed = state.seed = (state.seed * 1103515245 + 12345) % 2147483647;
   return { value: (seed & 1073741823) / 1073741823, done: false };
 });
@@ -9669,18 +10021,18 @@ _export({ target: 'Math', stat: true, forced: true }, {
 var codeAt$2 = stringMultibyte.codeAt;
 var charAt$3 = stringMultibyte.charAt;
 var STRING_ITERATOR$1 = 'String Iterator';
-var setInternalState$b = internalState.set;
-var getInternalState$7 = internalState.getterFor(STRING_ITERATOR$1);
+var setInternalState$c = internalState.set;
+var getInternalState$8 = internalState.getterFor(STRING_ITERATOR$1);
 
 // TODO: unify with String#@@iterator
 var $StringIterator = createIteratorConstructor(function StringIterator(string) {
-  setInternalState$b(this, {
+  setInternalState$c(this, {
     type: STRING_ITERATOR$1,
     string: string,
     index: 0
   });
 }, 'String', function next() {
-  var state = getInternalState$7(this);
+  var state = getInternalState$8(this);
   var string = state.string;
   var index = state.index;
   var point;
@@ -9698,69 +10050,996 @@ _export({ target: 'String', proto: true }, {
   }
 });
 
-// `Symbol.patternMatch` well-known symbol
-// https://github.com/tc39/proposal-using-statement
-defineWellKnownSymbol('dispose');
+var isFrozen = Object.isFrozen;
 
-var $AggregateError = function AggregateError(errors, message) {
-  var that = this;
-  if (!(that instanceof $AggregateError)) return new $AggregateError(errors, message);
-  if (objectSetPrototypeOf) {
-    that = objectSetPrototypeOf(new Error(message), objectGetPrototypeOf(that));
-  }
-  var errorsArray = [];
-  iterate_1(errors, errorsArray.push, errorsArray);
-  that.errors = errorsArray;
-  if (message !== undefined) hide(that, 'message', String(message));
-  return that;
+var isFrozenStringArray = function (array, allowUndefined) {
+  if (!isFrozen || !isArray(array) || !isFrozen(array)) return false;
+  var index = 0;
+  var length = array.length;
+  var element;
+  while (index < length) {
+    element = array[index++];
+    if (!(typeof element === 'string' || (allowUndefined && typeof element === 'undefined'))) {
+      return false;
+    }
+  } return length !== 0;
 };
 
-$AggregateError.prototype = objectCreate(Error.prototype, {
-  constructor: createPropertyDescriptor(5, $AggregateError),
-  name: createPropertyDescriptor(5, 'AggregateError')
-});
-
-_export({ global: true }, {
-  AggregateError: $AggregateError
-});
-
-var PROMISE_ANY_ERROR = 'No one promise resolved';
-
-// `Promise.any` method
-// https://github.com/tc39/proposal-promise-any
-_export({ target: 'Promise', stat: true }, {
-  any: function any(iterable) {
-    var C = this;
-    var capability = newPromiseCapability.f(C);
-    var resolve = capability.resolve;
-    var reject = capability.reject;
-    var result = perform(function () {
-      var promiseResolve = aFunction$1(C.resolve);
-      var errors = [];
-      var counter = 0;
-      var remaining = 1;
-      var alreadyResolved = false;
-      iterate_1(iterable, function (promise) {
-        var index = counter++;
-        var alreadyRejected = false;
-        errors.push(undefined);
-        remaining++;
-        promiseResolve.call(C, promise).then(function (value) {
-          if (alreadyRejected || alreadyResolved) return;
-          alreadyResolved = true;
-          resolve(value);
-        }, function (e) {
-          if (alreadyRejected || alreadyResolved) return;
-          alreadyRejected = true;
-          errors[index] = e;
-          --remaining || reject(new (getBuiltIn('AggregateError'))(errors, PROMISE_ANY_ERROR));
-        });
-      });
-      --remaining || reject(new (getBuiltIn('AggregateError'))(errors, PROMISE_ANY_ERROR));
-    });
-    if (result.error) reject(result.value);
-    return capability.promise;
+// `Array.isTemplateObject` method
+// https://github.com/tc39/proposal-array-is-template-object
+_export({ target: 'Array', stat: true }, {
+  isTemplateObject: function isTemplateObject(value) {
+    if (!isFrozenStringArray(value, true)) return false;
+    var raw = value.raw;
+    if (raw.length !== value.length || !isFrozenStringArray(raw, false)) return false;
+    return true;
   }
+});
+
+var USE_FUNCTION_CONSTRUCTOR = 'USE_FUNCTION_CONSTRUCTOR';
+var ASYNC_ITERATOR = wellKnownSymbol('asyncIterator');
+var AsyncIterator = global_1.AsyncIterator;
+var PassedAsyncIteratorPrototype = sharedStore.AsyncIteratorPrototype;
+var AsyncIteratorPrototype, prototype;
+
+{
+  if (PassedAsyncIteratorPrototype) {
+    AsyncIteratorPrototype = PassedAsyncIteratorPrototype;
+  } else if (typeof AsyncIterator == 'function') {
+    AsyncIteratorPrototype = AsyncIterator.prototype;
+  } else if (sharedStore[USE_FUNCTION_CONSTRUCTOR] || global_1[USE_FUNCTION_CONSTRUCTOR]) {
+    try {
+      // eslint-disable-next-line no-new-func
+      prototype = objectGetPrototypeOf(objectGetPrototypeOf(objectGetPrototypeOf(Function('return async function*(){}()')())));
+      if (objectGetPrototypeOf(prototype) === Object.prototype) AsyncIteratorPrototype = prototype;
+    } catch (error) { /* empty */ }
+  }
+}
+
+if (!AsyncIteratorPrototype) AsyncIteratorPrototype = {};
+
+if (!has(AsyncIteratorPrototype, ASYNC_ITERATOR)) {
+  createNonEnumerableProperty(AsyncIteratorPrototype, ASYNC_ITERATOR, function () {
+    return this;
+  });
+}
+
+var asyncIteratorPrototype = AsyncIteratorPrototype;
+
+// https://github.com/tc39/proposal-iterator-helpers
+
+
+
+
+
+
+
+
+var TO_STRING_TAG$4 = wellKnownSymbol('toStringTag');
+
+var AsyncIteratorConstructor = function AsyncIterator() {
+  anInstance(this, AsyncIteratorConstructor);
+};
+
+AsyncIteratorConstructor.prototype = asyncIteratorPrototype;
+
+if (!has(asyncIteratorPrototype, TO_STRING_TAG$4)) {
+  createNonEnumerableProperty(asyncIteratorPrototype, TO_STRING_TAG$4, 'AsyncIterator');
+}
+
+if (!has(asyncIteratorPrototype, 'constructor') || asyncIteratorPrototype.constructor === Object) {
+  createNonEnumerableProperty(asyncIteratorPrototype, 'constructor', AsyncIteratorConstructor);
+}
+
+_export({ global: true, forced: isPure }, {
+  AsyncIterator: AsyncIteratorConstructor
+});
+
+var Promise$1 = getBuiltIn('Promise');
+
+var setInternalState$d = internalState.set;
+var getInternalState$9 = internalState.get;
+
+var TO_STRING_TAG$5 = wellKnownSymbol('toStringTag');
+
+var $return = function (value) {
+  var iterator = getInternalState$9(this).iterator;
+  var $$return = iterator['return'];
+  return $$return === undefined
+    ? Promise$1.resolve({ done: true, value: value })
+    : anObject($$return.call(iterator, value));
+};
+
+var $throw = function (value) {
+  var iterator = getInternalState$9(this).iterator;
+  var $$throw = iterator['throw'];
+  return $$throw === undefined
+    ? Promise$1.reject(value)
+    : $$throw.call(iterator, value);
+};
+
+var createAsyncIteratorProxy = function (nextHandler, IS_ITERATOR) {
+  var AsyncIteratorProxy = function AsyncIterator(state) {
+    state.next = aFunction$1(state.iterator.next);
+    state.done = false;
+    setInternalState$d(this, state);
+  };
+
+  AsyncIteratorProxy.prototype = redefineAll(objectCreate(path.AsyncIterator.prototype), {
+    next: function next(arg) {
+      var state = getInternalState$9(this);
+      if (state.done) return Promise$1.resolve({ done: true, value: undefined });
+      try {
+        return Promise$1.resolve(anObject(nextHandler.call(state, arg, Promise$1)));
+      } catch (error) {
+        return Promise$1.reject(error);
+      }
+    },
+    'return': $return,
+    'throw': $throw
+  });
+
+  if (!IS_ITERATOR) {
+    createNonEnumerableProperty(AsyncIteratorProxy.prototype, TO_STRING_TAG$5, 'Generator');
+  }
+
+  return AsyncIteratorProxy;
+};
+
+// https://github.com/tc39/proposal-iterator-helpers
+
+
+
+
+var AsyncIteratorProxy = createAsyncIteratorProxy(function (arg, Promise) {
+  var state = this;
+  var iterator = state.iterator;
+
+  return Promise.resolve(anObject(state.next.call(iterator, arg))).then(function (step) {
+    if (anObject(step).done) {
+      state.done = true;
+      return { done: true, value: undefined };
+    }
+    return { done: false, value: [state.index++, step.value] };
+  });
+});
+
+_export({ target: 'AsyncIterator', proto: true, real: true }, {
+  asIndexedPairs: function asIndexedPairs() {
+    return new AsyncIteratorProxy({
+      iterator: anObject(this),
+      index: 0
+    });
+  }
+});
+
+// https://github.com/tc39/proposal-iterator-helpers
+
+
+
+
+
+var AsyncIteratorProxy$1 = createAsyncIteratorProxy(function (arg, Promise) {
+  var state = this;
+
+  return new Promise(function (resolve, reject) {
+    var loop = function () {
+      try {
+        Promise.resolve(
+          anObject(state.next.call(state.iterator, state.remaining ? undefined : arg))
+        ).then(function (step) {
+          try {
+            if (anObject(step).done) {
+              state.done = true;
+              resolve({ done: true, value: undefined });
+            } else if (state.remaining) {
+              state.remaining--;
+              loop();
+            } else resolve({ done: false, value: step.value });
+          } catch (err) { reject(err); }
+        }, reject);
+      } catch (error) { reject(error); }
+    };
+
+    loop();
+  });
+});
+
+_export({ target: 'AsyncIterator', proto: true, real: true }, {
+  drop: function drop(limit) {
+    return new AsyncIteratorProxy$1({
+      iterator: anObject(this),
+      remaining: toPositiveInteger(limit)
+    });
+  }
+});
+
+// https://github.com/tc39/proposal-iterator-helpers
+
+
+
+
+var Promise$2 = getBuiltIn('Promise');
+var push$1 = [].push;
+
+var createMethod$7 = function (TYPE) {
+  var IS_TO_ARRAY = TYPE == 0;
+  var IS_FOR_EACH = TYPE == 1;
+  var IS_EVERY = TYPE == 2;
+  var IS_SOME = TYPE == 3;
+  return function (iterator, fn) {
+    anObject(iterator);
+    var next = aFunction$1(iterator.next);
+    var array = IS_TO_ARRAY ? [] : undefined;
+    if (!IS_TO_ARRAY) aFunction$1(fn);
+
+    return new Promise$2(function (resolve, reject) {
+      var loop = function () {
+        try {
+          Promise$2.resolve(anObject(next.call(iterator))).then(function (step) {
+            try {
+              if (anObject(step).done) {
+                resolve(IS_TO_ARRAY ? array : IS_SOME ? false : IS_EVERY || undefined);
+              } else {
+                var value = step.value;
+                if (IS_TO_ARRAY) {
+                  push$1.call(array, value);
+                  loop();
+                } else {
+                  Promise$2.resolve(fn(value)).then(function (result) {
+                    if (IS_FOR_EACH) {
+                      loop();
+                    } else if (IS_EVERY) {
+                      result ? loop() : resolve(false);
+                    } else {
+                      result ? resolve(IS_SOME || value) : loop();
+                    }
+                  }, reject);
+                }
+              }
+            } catch (err) { reject(err); }
+          }, reject);
+        } catch (error) { reject(error); }
+      };
+
+      loop();
+    });
+  };
+};
+
+var asyncIteratorIteration = {
+  toArray: createMethod$7(0),
+  forEach: createMethod$7(1),
+  every: createMethod$7(2),
+  some: createMethod$7(3),
+  find: createMethod$7(4)
+};
+
+// https://github.com/tc39/proposal-iterator-helpers
+
+var $every$2 = asyncIteratorIteration.every;
+
+_export({ target: 'AsyncIterator', proto: true, real: true }, {
+  every: function every(fn) {
+    return $every$2(this, fn);
+  }
+});
+
+// https://github.com/tc39/proposal-iterator-helpers
+
+
+
+
+
+var AsyncIteratorProxy$2 = createAsyncIteratorProxy(function (arg, Promise) {
+  var state = this;
+  var filterer = state.filterer;
+
+  return new Promise(function (resolve, reject) {
+    var loop = function () {
+      try {
+        Promise.resolve(anObject(state.next.call(state.iterator, arg))).then(function (step) {
+          try {
+            if (anObject(step).done) {
+              state.done = true;
+              resolve({ done: true, value: undefined });
+            } else {
+              var value = step.value;
+              Promise.resolve(filterer(value)).then(function (selected) {
+                selected ? resolve({ done: false, value: value }) : loop();
+              }, reject);
+            }
+          } catch (err) { reject(err); }
+        }, reject);
+      } catch (error) { reject(error); }
+    };
+
+    loop();
+  });
+});
+
+_export({ target: 'AsyncIterator', proto: true, real: true }, {
+  filter: function filter(filterer) {
+    return new AsyncIteratorProxy$2({
+      iterator: anObject(this),
+      filterer: aFunction$1(filterer)
+    });
+  }
+});
+
+// https://github.com/tc39/proposal-iterator-helpers
+
+var $find$2 = asyncIteratorIteration.find;
+
+_export({ target: 'AsyncIterator', proto: true, real: true }, {
+  find: function find(fn) {
+    return $find$2(this, fn);
+  }
+});
+
+var ASYNC_ITERATOR$1 = wellKnownSymbol('asyncIterator');
+
+var getAsyncIteratorMethod = function (it) {
+  var method = it[ASYNC_ITERATOR$1];
+  return method === undefined ? getIteratorMethod(it) : method;
+};
+
+// https://github.com/tc39/proposal-iterator-helpers
+
+
+
+
+
+
+var AsyncIteratorProxy$3 = createAsyncIteratorProxy(function (arg, Promise) {
+  var state = this;
+  var mapper = state.mapper;
+  var innerIterator, iteratorMethod;
+
+  return new Promise(function (resolve, reject) {
+    var outerLoop = function () {
+      try {
+        Promise.resolve(anObject(state.next.call(state.iterator, arg))).then(function (step) {
+          try {
+            if (anObject(step).done) {
+              state.done = true;
+              resolve({ done: true, value: undefined });
+            } else {
+              Promise.resolve(mapper(step.value)).then(function (mapped) {
+                try {
+                  iteratorMethod = getAsyncIteratorMethod(mapped);
+                  if (iteratorMethod !== undefined) {
+                    state.innerIterator = innerIterator = anObject(iteratorMethod.call(mapped));
+                    state.innerNext = aFunction$1(innerIterator.next);
+                    return innerLoop();
+                  } reject(TypeError('.flatMap callback should return an iterable object'));
+                } catch (error2) { reject(error2); }
+              }, reject);
+            }
+          } catch (error1) { reject(error1); }
+        }, reject);
+      } catch (error) { reject(error); }
+    };
+
+    var innerLoop = function () {
+      if (innerIterator = state.innerIterator) {
+        try {
+          Promise.resolve(anObject(state.innerNext.call(innerIterator))).then(function (result) {
+            try {
+              if (anObject(result).done) {
+                state.innerIterator = state.innerNext = null;
+                outerLoop();
+              } else resolve({ done: false, value: result.value });
+            } catch (error1) { reject(error1); }
+          }, reject);
+        } catch (error) { reject(error); }
+      } else outerLoop();
+    };
+
+    innerLoop();
+  });
+});
+
+_export({ target: 'AsyncIterator', proto: true, real: true }, {
+  flatMap: function flatMap(mapper) {
+    return new AsyncIteratorProxy$3({
+      iterator: anObject(this),
+      mapper: aFunction$1(mapper),
+      innerIterator: null,
+      innerNext: null
+    });
+  }
+});
+
+// https://github.com/tc39/proposal-iterator-helpers
+
+var $forEach$3 = asyncIteratorIteration.forEach;
+
+_export({ target: 'AsyncIterator', proto: true, real: true }, {
+  forEach: function forEach(fn) {
+    return $forEach$3(this, fn);
+  }
+});
+
+// https://github.com/tc39/proposal-iterator-helpers
+
+
+
+
+
+
+
+
+var AsyncIterator$1 = path.AsyncIterator;
+
+var AsyncIteratorProxy$4 = createAsyncIteratorProxy(function (arg) {
+  return anObject(this.next.call(this.iterator, arg));
+}, true);
+
+_export({ target: 'AsyncIterator', stat: true }, {
+  from: function from(O) {
+    var object = toObject(O);
+    var usingIterator = getAsyncIteratorMethod(object);
+    var iterator;
+    if (usingIterator != null) {
+      iterator = aFunction$1(usingIterator).call(object);
+      if (iterator instanceof AsyncIterator$1) return iterator;
+    } else {
+      iterator = object;
+    } return new AsyncIteratorProxy$4({
+      iterator: iterator
+    });
+  }
+});
+
+// https://github.com/tc39/proposal-iterator-helpers
+
+
+
+
+
+var AsyncIteratorProxy$5 = createAsyncIteratorProxy(function (arg, Promise) {
+  var state = this;
+  var mapper = state.mapper;
+
+  return Promise.resolve(anObject(state.next.call(state.iterator, arg))).then(function (step) {
+    if (anObject(step).done) {
+      state.done = true;
+      return { done: true, value: undefined };
+    }
+    return Promise.resolve(mapper(step.value)).then(function (value) {
+      return { done: false, value: value };
+    });
+  });
+});
+
+_export({ target: 'AsyncIterator', proto: true, real: true }, {
+  map: function map(mapper) {
+    return new AsyncIteratorProxy$5({
+      iterator: anObject(this),
+      mapper: aFunction$1(mapper)
+    });
+  }
+});
+
+// https://github.com/tc39/proposal-iterator-helpers
+
+
+
+
+
+var Promise$3 = getBuiltIn('Promise');
+
+_export({ target: 'AsyncIterator', proto: true, real: true }, {
+  reduce: function reduce(reducer /* , initialValue */) {
+    var iterator = anObject(this);
+    var next = aFunction$1(iterator.next);
+    var noInitial = arguments.length < 2;
+    var accumulator = noInitial ? undefined : arguments[1];
+    aFunction$1(reducer);
+
+    return new Promise$3(function (resolve, reject) {
+      var loop = function () {
+        try {
+          Promise$3.resolve(anObject(next.call(iterator))).then(function (step) {
+            try {
+              if (anObject(step).done) {
+                noInitial ? reject(TypeError('Reduce of empty iterator with no initial value')) : resolve(accumulator);
+              } else {
+                var value = step.value;
+                if (noInitial) {
+                  noInitial = false;
+                  accumulator = value;
+                  loop();
+                } else {
+                  Promise$3.resolve(reducer(accumulator, value)).then(function (result) {
+                    accumulator = result;
+                    loop();
+                  }, reject);
+                }
+              }
+            } catch (err) { reject(err); }
+          }, reject);
+        } catch (error) { reject(error); }
+      };
+
+      loop();
+    });
+  }
+});
+
+// https://github.com/tc39/proposal-iterator-helpers
+
+var $some$2 = asyncIteratorIteration.some;
+
+_export({ target: 'AsyncIterator', proto: true, real: true }, {
+  some: function some(fn) {
+    return $some$2(this, fn);
+  }
+});
+
+// https://github.com/tc39/proposal-iterator-helpers
+
+
+
+
+
+var AsyncIteratorProxy$6 = createAsyncIteratorProxy(function (arg) {
+  if (!this.remaining--) {
+    this.done = true;
+    return { done: true, value: undefined };
+  } return this.next.call(this.iterator, arg);
+});
+
+_export({ target: 'AsyncIterator', proto: true, real: true }, {
+  take: function take(limit) {
+    return new AsyncIteratorProxy$6({
+      iterator: anObject(this),
+      remaining: toPositiveInteger(limit)
+    });
+  }
+});
+
+// https://github.com/tc39/proposal-iterator-helpers
+
+var $toArray = asyncIteratorIteration.toArray;
+
+_export({ target: 'AsyncIterator', proto: true, real: true }, {
+  toArray: function toArray() {
+    return $toArray(this);
+  }
+});
+
+// https://github.com/tc39/proposal-iterator-helpers
+
+
+
+
+
+
+
+var IteratorPrototype$3 = iteratorsCore.IteratorPrototype;
+
+
+var ITERATOR$8 = wellKnownSymbol('iterator');
+var TO_STRING_TAG$6 = wellKnownSymbol('toStringTag');
+
+var NativeIterator = global_1.Iterator;
+
+// FF56- have non-standard global helper `Iterator`
+var FORCED$k =  typeof NativeIterator != 'function'
+  || NativeIterator.prototype !== IteratorPrototype$3
+  // FF44- non-standard `Iterator` passes previous tests
+  || !fails(function () { NativeIterator({}); });
+
+var IteratorConstructor = function Iterator() {
+  anInstance(this, IteratorConstructor);
+};
+
+if (!has(IteratorPrototype$3, TO_STRING_TAG$6)) {
+  createNonEnumerableProperty(IteratorPrototype$3, TO_STRING_TAG$6, 'Iterator');
+}
+
+if (FORCED$k || !has(IteratorPrototype$3, 'constructor') || IteratorPrototype$3.constructor === Object) {
+  createNonEnumerableProperty(IteratorPrototype$3, 'constructor', IteratorConstructor);
+}
+
+IteratorConstructor.prototype = IteratorPrototype$3;
+
+_export({ global: true, forced: FORCED$k }, {
+  Iterator: IteratorConstructor
+});
+
+var setInternalState$e = internalState.set;
+var getInternalState$a = internalState.get;
+
+var TO_STRING_TAG$7 = wellKnownSymbol('toStringTag');
+
+var $return$1 = function (value) {
+  var iterator = getInternalState$a(this).iterator;
+  var $$return = iterator['return'];
+  return $$return === undefined ? { done: true, value: value } : anObject($$return.call(iterator, value));
+};
+
+var $throw$1 = function (value) {
+  var iterator = getInternalState$a(this).iterator;
+  var $$throw = iterator['throw'];
+  if ($$throw === undefined) throw value;
+  return $$throw.call(iterator, value);
+};
+
+var createIteratorProxy = function (nextHandler, IS_ITERATOR) {
+  var IteratorProxy = function Iterator(state) {
+    state.next = aFunction$1(state.iterator.next);
+    state.done = false;
+    setInternalState$e(this, state);
+  };
+
+  IteratorProxy.prototype = redefineAll(objectCreate(path.Iterator.prototype), {
+    next: function next() {
+      var state = getInternalState$a(this);
+      var result = state.done ? undefined : nextHandler.apply(state, arguments);
+      return { done: state.done, value: result };
+    },
+    'return': $return$1,
+    'throw': $throw$1
+  });
+
+  if (!IS_ITERATOR) {
+    createNonEnumerableProperty(IteratorProxy.prototype, TO_STRING_TAG$7, 'Generator');
+  }
+
+  return IteratorProxy;
+};
+
+// https://github.com/tc39/proposal-iterator-helpers
+
+
+
+
+var IteratorProxy = createIteratorProxy(function (arg) {
+  var result = anObject(this.next.call(this.iterator, arg));
+  var done = this.done = !!result.done;
+  if (!done) return [this.index++, result.value];
+});
+
+_export({ target: 'Iterator', proto: true, real: true }, {
+  asIndexedPairs: function asIndexedPairs() {
+    return new IteratorProxy({
+      iterator: anObject(this),
+      index: 0
+    });
+  }
+});
+
+// https://github.com/tc39/proposal-iterator-helpers
+
+
+
+
+
+var IteratorProxy$1 = createIteratorProxy(function (arg) {
+  var iterator = this.iterator;
+  var next = this.next;
+  var result, done;
+  while (this.remaining) {
+    this.remaining--;
+    result = anObject(next.call(iterator));
+    done = this.done = !!result.done;
+    if (done) return;
+  }
+  result = anObject(next.call(iterator, arg));
+  done = this.done = !!result.done;
+  if (!done) return result.value;
+});
+
+_export({ target: 'Iterator', proto: true, real: true }, {
+  drop: function drop(limit) {
+    return new IteratorProxy$1({
+      iterator: anObject(this),
+      remaining: toPositiveInteger(limit)
+    });
+  }
+});
+
+// https://github.com/tc39/proposal-iterator-helpers
+
+
+
+
+
+_export({ target: 'Iterator', proto: true, real: true }, {
+  every: function every(fn) {
+    anObject(this);
+    aFunction$1(fn);
+    return !iterate_1(this, function (value) {
+      if (!fn(value)) return iterate_1.stop();
+    }, undefined, false, true).stopped;
+  }
+});
+
+// https://github.com/tc39/proposal-iterator-helpers
+
+
+
+
+
+
+var IteratorProxy$2 = createIteratorProxy(function (arg) {
+  var iterator = this.iterator;
+  var filterer = this.filterer;
+  var next = this.next;
+  var result, done, value;
+  while (true) {
+    result = anObject(next.call(iterator, arg));
+    done = this.done = !!result.done;
+    if (done) return;
+    value = result.value;
+    if (callWithSafeIterationClosing(iterator, filterer, value)) return value;
+  }
+});
+
+_export({ target: 'Iterator', proto: true, real: true }, {
+  filter: function filter(filterer) {
+    return new IteratorProxy$2({
+      iterator: anObject(this),
+      filterer: aFunction$1(filterer)
+    });
+  }
+});
+
+// https://github.com/tc39/proposal-iterator-helpers
+
+
+
+
+
+_export({ target: 'Iterator', proto: true, real: true }, {
+  find: function find(fn) {
+    anObject(this);
+    aFunction$1(fn);
+    return iterate_1(this, function (value) {
+      if (fn(value)) return iterate_1.stop(value);
+    }, undefined, false, true).result;
+  }
+});
+
+// https://github.com/tc39/proposal-iterator-helpers
+
+
+
+
+
+
+
+var IteratorProxy$3 = createIteratorProxy(function (arg) {
+  var iterator = this.iterator;
+  var result, mapped, iteratorMethod, innerIterator;
+
+  while (true) {
+    if (innerIterator = this.innerIterator) {
+      result = anObject(this.innerNext.call(innerIterator));
+      if (!result.done) return result.value;
+      this.innerIterator = this.innerNext = null;
+    }
+
+    result = anObject(this.next.call(iterator, arg));
+
+    if (this.done = !!result.done) return;
+
+    mapped = callWithSafeIterationClosing(iterator, this.mapper, result.value);
+    iteratorMethod = getIteratorMethod(mapped);
+
+    if (iteratorMethod === undefined) {
+      throw TypeError('.flatMap callback should return an iterable object');
+    }
+
+    this.innerIterator = innerIterator = anObject(iteratorMethod.call(mapped));
+    this.innerNext = aFunction$1(innerIterator.next);
+  }
+});
+
+_export({ target: 'Iterator', proto: true, real: true }, {
+  flatMap: function flatMap(mapper) {
+    return new IteratorProxy$3({
+      iterator: anObject(this),
+      mapper: aFunction$1(mapper),
+      innerIterator: null,
+      innerNext: null
+    });
+  }
+});
+
+// https://github.com/tc39/proposal-iterator-helpers
+
+
+
+
+_export({ target: 'Iterator', proto: true, real: true }, {
+  forEach: function forEach(fn) {
+    iterate_1(anObject(this), fn, undefined, false, true);
+  }
+});
+
+// https://github.com/tc39/proposal-iterator-helpers
+
+
+
+
+
+
+
+
+var Iterator = path.Iterator;
+
+var IteratorProxy$4 = createIteratorProxy(function (arg) {
+  var result = anObject(this.next.call(this.iterator, arg));
+  var done = this.done = !!result.done;
+  if (!done) return result.value;
+}, true);
+
+_export({ target: 'Iterator', stat: true }, {
+  from: function from(O) {
+    var object = toObject(O);
+    var usingIterator = getIteratorMethod(object);
+    var iterator;
+    if (usingIterator != null) {
+      iterator = aFunction$1(usingIterator).call(object);
+      if (iterator instanceof Iterator) return iterator;
+    } else {
+      iterator = object;
+    } return new IteratorProxy$4({
+      iterator: iterator
+    });
+  }
+});
+
+// https://github.com/tc39/proposal-iterator-helpers
+
+
+
+
+
+
+var IteratorProxy$5 = createIteratorProxy(function (arg) {
+  var iterator = this.iterator;
+  var result = anObject(this.next.call(iterator, arg));
+  var done = this.done = !!result.done;
+  if (!done) return callWithSafeIterationClosing(iterator, this.mapper, result.value);
+});
+
+_export({ target: 'Iterator', proto: true, real: true }, {
+  map: function map(mapper) {
+    return new IteratorProxy$5({
+      iterator: anObject(this),
+      mapper: aFunction$1(mapper)
+    });
+  }
+});
+
+// https://github.com/tc39/proposal-iterator-helpers
+
+
+
+
+
+_export({ target: 'Iterator', proto: true, real: true }, {
+  reduce: function reduce(reducer /* , initialValue */) {
+    anObject(this);
+    aFunction$1(reducer);
+    var noInitial = arguments.length < 2;
+    var accumulator = noInitial ? undefined : arguments[1];
+    iterate_1(this, function (value) {
+      if (noInitial) {
+        noInitial = false;
+        accumulator = value;
+      } else {
+        accumulator = reducer(accumulator, value);
+      }
+    }, undefined, false, true);
+    if (noInitial) throw TypeError('Reduce of empty iterator with no initial value');
+    return accumulator;
+  }
+});
+
+// https://github.com/tc39/proposal-iterator-helpers
+
+
+
+
+
+_export({ target: 'Iterator', proto: true, real: true }, {
+  some: function some(fn) {
+    anObject(this);
+    aFunction$1(fn);
+    return iterate_1(this, function (value) {
+      if (fn(value)) return iterate_1.stop();
+    }, undefined, false, true).stopped;
+  }
+});
+
+// https://github.com/tc39/proposal-iterator-helpers
+
+
+
+
+
+var IteratorProxy$6 = createIteratorProxy(function (arg) {
+  if (!this.remaining--) {
+    this.done = true;
+    return;
+  }
+  var result = anObject(this.next.call(this.iterator, arg));
+  var done = this.done = !!result.done;
+  if (!done) return result.value;
+});
+
+_export({ target: 'Iterator', proto: true, real: true }, {
+  take: function take(limit) {
+    return new IteratorProxy$6({
+      iterator: anObject(this),
+      remaining: toPositiveInteger(limit)
+    });
+  }
+});
+
+// https://github.com/tc39/proposal-iterator-helpers
+
+
+
+
+var push$2 = [].push;
+
+_export({ target: 'Iterator', proto: true, real: true }, {
+  toArray: function toArray() {
+    var result = [];
+    iterate_1(anObject(this), push$2, result, false, true);
+    return result;
+  }
+});
+
+// `Map.prototype.upsert` method
+// https://github.com/thumbsupep/proposal-upsert
+var mapUpsert = function upsert(key, updateFn /* , insertFn */) {
+  var map = anObject(this);
+  var insertFn = arguments.length > 2 ? arguments[2] : undefined;
+  var value;
+  if (typeof updateFn != 'function' && typeof insertFn != 'function') {
+    throw TypeError('At least one callback required');
+  }
+  if (map.has(key)) {
+    value = map.get(key);
+    if (typeof updateFn == 'function') {
+      value = updateFn(value);
+      map.set(key, value);
+    }
+  } else if (typeof insertFn == 'function') {
+    value = insertFn();
+    map.set(key, value);
+  } return value;
+};
+
+// TODO: remove from `core-js@4`
+
+
+
+
+// `Map.prototype.updateOrInsert` method (replaced by `Map.prototype.upsert`)
+// https://github.com/thumbsupep/proposal-upsert
+_export({ target: 'Map', proto: true, real: true, forced: isPure }, {
+  updateOrInsert: mapUpsert
+});
+
+// `Map.prototype.upsert` method
+// https://github.com/thumbsupep/proposal-upsert
+_export({ target: 'Map', proto: true, real: true, forced: isPure }, {
+  upsert: mapUpsert
+});
+
+// `WeakMap.prototype.upsert` method
+// https://github.com/thumbsupep/proposal-upsert
+_export({ target: 'WeakMap', proto: true, real: true, forced: isPure }, {
+  upsert: mapUpsert
 });
 
 // `Set.prototype.difference` method
@@ -9859,93 +11138,132 @@ _export({ target: 'Set', proto: true, real: true, forced: isPure }, {
   }
 });
 
-var REPLACE_ALL = wellKnownSymbol('replaceAll');
-var RegExpPrototype$3 = RegExp.prototype;
+// `Symbol.asyncDispose` well-known symbol
+// https://github.com/tc39/proposal-using-statement
+defineWellKnownSymbol('asyncDispose');
 
-var $replaceAll = function (string, replaceValue) {
-  var rx = anObject(this);
-  var flags = String('flags' in RegExpPrototype$3 ? rx.flags : regexpFlags.call(rx));
-  if (!~flags.indexOf('g')) {
-    rx = new (speciesConstructor(rx, RegExp))(rx.source, flags + 'g');
+// `Symbol.dispose` well-known symbol
+// https://github.com/tc39/proposal-using-statement
+defineWellKnownSymbol('dispose');
+
+var setInternalState$f = internalState.set;
+var getInternalAggregateErrorState = internalState.getterFor('AggregateError');
+
+var $AggregateError = function AggregateError(errors, message) {
+  var that = this;
+  if (!(that instanceof $AggregateError)) return new $AggregateError(errors, message);
+  if (objectSetPrototypeOf) {
+    that = objectSetPrototypeOf(new Error(message), objectGetPrototypeOf(that));
   }
-  return String(string).replace(rx, replaceValue);
+  var errorsArray = [];
+  iterate_1(errors, errorsArray.push, errorsArray);
+  if (descriptors) setInternalState$f(that, { errors: errorsArray, type: 'AggregateError' });
+  else that.errors = errorsArray;
+  if (message !== undefined) createNonEnumerableProperty(that, 'message', String(message));
+  return that;
 };
 
-// `String.prototype.replaceAll` method
-// https://github.com/tc39/proposal-string-replace-all
-_export({ target: 'String', proto: true }, {
-  replaceAll: function replaceAll(searchValue, replaceValue) {
-    var O = requireObjectCoercible(this);
-    var replacer, string, searchString, template, result, index;
-    if (searchValue != null) {
-      replacer = searchValue[REPLACE_ALL];
-      if (replacer !== undefined) {
-        return replacer.call(searchValue, O, replaceValue);
-      }
-    }
-    string = String(O);
-    searchString = String(searchValue);
-    template = string.split(searchString);
-    if (typeof replaceValue !== 'function') {
-      return template.join(String(replaceValue));
-    }
-    result = template[0];
-    for (index = 1; index < template.length; index++) {
-      result += String(replaceValue(searchString, index - 1, string));
-      result += template[index];
-    }
-    return result;
-  }
+$AggregateError.prototype = objectCreate(Error.prototype, {
+  constructor: createPropertyDescriptor(5, $AggregateError),
+  message: createPropertyDescriptor(5, ''),
+  name: createPropertyDescriptor(5, 'AggregateError')
 });
 
- REPLACE_ALL in RegExpPrototype$3 || hide(RegExpPrototype$3, REPLACE_ALL, $replaceAll);
+if (descriptors) objectDefineProperty.f($AggregateError.prototype, 'errors', {
+  get: function () {
+    return getInternalAggregateErrorState(this).errors;
+  },
+  configurable: true
+});
 
-// `Symbol.replaceAll` well-known symbol
-// https://tc39.github.io/proposal-string-replaceall/
-defineWellKnownSymbol('replaceAll');
-
-// `globalThis` object
-// https://github.com/tc39/proposal-global
 _export({ global: true }, {
-  globalThis: global_1
+  AggregateError: $AggregateError
 });
 
-// `Promise.allSettled` method
-// https://github.com/tc39/proposal-promise-allSettled
+var PROMISE_ANY_ERROR = 'No one promise resolved';
+
+// `Promise.any` method
+// https://github.com/tc39/proposal-promise-any
 _export({ target: 'Promise', stat: true }, {
-  allSettled: function allSettled(iterable) {
+  any: function any(iterable) {
     var C = this;
     var capability = newPromiseCapability.f(C);
     var resolve = capability.resolve;
     var reject = capability.reject;
     var result = perform(function () {
       var promiseResolve = aFunction$1(C.resolve);
-      var values = [];
+      var errors = [];
       var counter = 0;
       var remaining = 1;
+      var alreadyResolved = false;
       iterate_1(iterable, function (promise) {
         var index = counter++;
-        var alreadyCalled = false;
-        values.push(undefined);
+        var alreadyRejected = false;
+        errors.push(undefined);
         remaining++;
         promiseResolve.call(C, promise).then(function (value) {
-          if (alreadyCalled) return;
-          alreadyCalled = true;
-          values[index] = { status: 'fulfilled', value: value };
-          --remaining || resolve(values);
+          if (alreadyRejected || alreadyResolved) return;
+          alreadyResolved = true;
+          resolve(value);
         }, function (e) {
-          if (alreadyCalled) return;
-          alreadyCalled = true;
-          values[index] = { status: 'rejected', reason: e };
-          --remaining || resolve(values);
+          if (alreadyRejected || alreadyResolved) return;
+          alreadyRejected = true;
+          errors[index] = e;
+          --remaining || reject(new (getBuiltIn('AggregateError'))(errors, PROMISE_ANY_ERROR));
         });
       });
-      --remaining || resolve(values);
+      --remaining || reject(new (getBuiltIn('AggregateError'))(errors, PROMISE_ANY_ERROR));
     });
     if (result.error) reject(result.value);
     return capability.promise;
   }
 });
+
+var REPLACE = wellKnownSymbol('replace');
+var RegExpPrototype$3 = RegExp.prototype;
+
+// `String.prototype.replaceAll` method
+// https://github.com/tc39/proposal-string-replace-all
+_export({ target: 'String', proto: true }, {
+  replaceAll: function replaceAll(searchValue, replaceValue) {
+    var O = requireObjectCoercible(this);
+    var IS_REG_EXP, flags, replacer, string, searchString, template, result, position, index;
+    if (searchValue != null) {
+      IS_REG_EXP = isRegexp(searchValue);
+      if (IS_REG_EXP) {
+        flags = String(requireObjectCoercible('flags' in RegExpPrototype$3
+          ? searchValue.flags
+          : regexpFlags.call(searchValue)
+        ));
+        if (!~flags.indexOf('g')) throw TypeError('`.replaceAll` does not allow non-global regexes');
+      }
+      replacer = searchValue[REPLACE];
+      if (replacer !== undefined) {
+        return replacer.call(searchValue, O, replaceValue);
+      }
+    }
+    string = String(O);
+    searchString = String(searchValue);
+    if (searchString === '') return replaceAll.call(string, /(?:)/g, replaceValue);
+    template = string.split(searchString);
+    if (typeof replaceValue !== 'function') {
+      return template.join(String(replaceValue));
+    }
+    result = template[0];
+    position = result.length;
+    for (index = 1; index < template.length; index++) {
+      result += String(replaceValue(searchString, position, string));
+      position += searchString.length + template[index].length;
+      result += template[index];
+    }
+    return result;
+  }
+});
+
+// TODO: remove from `core-js@4`
+
+
+defineWellKnownSymbol('replaceAll');
 
 // iterable DOM collections
 // flag - `iterable` interface - 'entries', 'keys', 'values', 'forEach' methods
@@ -9988,14 +11306,14 @@ for (var COLLECTION_NAME in domIterables) {
   var CollectionPrototype = Collection && Collection.prototype;
   // some Chrome versions have non-configurable methods on DOMTokenList
   if (CollectionPrototype && CollectionPrototype.forEach !== arrayForEach) try {
-    hide(CollectionPrototype, 'forEach', arrayForEach);
+    createNonEnumerableProperty(CollectionPrototype, 'forEach', arrayForEach);
   } catch (error) {
     CollectionPrototype.forEach = arrayForEach;
   }
 }
 
-var ITERATOR$8 = wellKnownSymbol('iterator');
-var TO_STRING_TAG$4 = wellKnownSymbol('toStringTag');
+var ITERATOR$9 = wellKnownSymbol('iterator');
+var TO_STRING_TAG$8 = wellKnownSymbol('toStringTag');
 var ArrayValues = es_array_iterator.values;
 
 for (var COLLECTION_NAME$1 in domIterables) {
@@ -10003,16 +11321,18 @@ for (var COLLECTION_NAME$1 in domIterables) {
   var CollectionPrototype$1 = Collection$1 && Collection$1.prototype;
   if (CollectionPrototype$1) {
     // some Chrome versions have non-configurable methods on DOMTokenList
-    if (CollectionPrototype$1[ITERATOR$8] !== ArrayValues) try {
-      hide(CollectionPrototype$1, ITERATOR$8, ArrayValues);
+    if (CollectionPrototype$1[ITERATOR$9] !== ArrayValues) try {
+      createNonEnumerableProperty(CollectionPrototype$1, ITERATOR$9, ArrayValues);
     } catch (error) {
-      CollectionPrototype$1[ITERATOR$8] = ArrayValues;
+      CollectionPrototype$1[ITERATOR$9] = ArrayValues;
     }
-    if (!CollectionPrototype$1[TO_STRING_TAG$4]) hide(CollectionPrototype$1, TO_STRING_TAG$4, COLLECTION_NAME$1);
+    if (!CollectionPrototype$1[TO_STRING_TAG$8]) {
+      createNonEnumerableProperty(CollectionPrototype$1, TO_STRING_TAG$8, COLLECTION_NAME$1);
+    }
     if (domIterables[COLLECTION_NAME$1]) for (var METHOD_NAME in es_array_iterator) {
       // some Chrome versions have non-configurable methods on DOMTokenList
       if (CollectionPrototype$1[METHOD_NAME] !== es_array_iterator[METHOD_NAME]) try {
-        hide(CollectionPrototype$1, METHOD_NAME, es_array_iterator[METHOD_NAME]);
+        createNonEnumerableProperty(CollectionPrototype$1, METHOD_NAME, es_array_iterator[METHOD_NAME]);
       } catch (error) {
         CollectionPrototype$1[METHOD_NAME] = es_array_iterator[METHOD_NAME];
       }
@@ -10020,10 +11340,10 @@ for (var COLLECTION_NAME$1 in domIterables) {
   }
 }
 
-var FORCED$j = !global_1.setImmediate || !global_1.clearImmediate;
+var FORCED$l = !global_1.setImmediate || !global_1.clearImmediate;
 
 // http://w3c.github.io/setImmediate/
-_export({ global: true, bind: true, enumerable: true, forced: FORCED$j }, {
+_export({ global: true, bind: true, enumerable: true, forced: FORCED$l }, {
   // `setImmediate` method
   // http://w3c.github.io/setImmediate/#si-setImmediate
   setImmediate: task.set,
@@ -10032,14 +11352,14 @@ _export({ global: true, bind: true, enumerable: true, forced: FORCED$j }, {
   clearImmediate: task.clear
 });
 
-var process$3 = global_1.process;
-var isNode = classofRaw(process$3) == 'process';
+var process$4 = global_1.process;
+var isNode = classofRaw(process$4) == 'process';
 
 // `queueMicrotask` method
 // https://html.spec.whatwg.org/multipage/timers-and-user-prompts.html#dom-queuemicrotask
 _export({ global: true, enumerable: true, noTargetGet: true }, {
   queueMicrotask: function queueMicrotask(fn) {
-    var domain = isNode && process$3.domain;
+    var domain = isNode && process$4.domain;
     microtask(domain ? domain.bind(fn) : fn);
   }
 });

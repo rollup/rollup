@@ -34,7 +34,7 @@ Rollup is a module bundler for JavaScript which compiles small pieces of code in
 
 ## Quick Start Guide
 
-Install with `npm install --global rollup`. Rollup can be used either through a [command line interface](https://rollupjs.org/#command-line-reference) with an optional configuration file, or else through its [JavaScript API](https://rollupjs.org/#javascript-api). Run `rollup --help` to see the available options and parameters. The starter project templates, [rollup-starter-lib](https://github.com/rollup/rollup-starter-lib) and [rollup-starter-app](https://github.com/rollup/rollup-starter-app), demonstrate common configuration options, and more detailed instructions are available throughout the [user guide](https://rollupjs.org/).
+Install with `npm install --global rollup`. Rollup can be used either through a [command line interface](https://rollupjs.org/#command-line-reference) with an optional configuration file, or else through its [JavaScript API](https://rollupjs.org/guide/en/#javascript-api). Run `rollup --help` to see the available options and parameters. The starter project templates, [rollup-starter-lib](https://github.com/rollup/rollup-starter-lib) and [rollup-starter-app](https://github.com/rollup/rollup-starter-app), demonstrate common configuration options, and more detailed instructions are available throughout the [user guide](https://rollupjs.org/).
 
 ### Commands
 
@@ -44,21 +44,21 @@ For browsers:
 
 ```bash
 # compile to a <script> containing a self-executing function
-$ rollup main.js --format iife --name "myBundle" --file bundle.js
+rollup main.js --format iife --name "myBundle" --file bundle.js
 ```
 
 For Node.js:
 
 ```bash
 # compile to a CommonJS module
-$ rollup main.js --format cjs --file bundle.js
+rollup main.js --format cjs --file bundle.js
 ```
 
 For both browsers and Node.js:
 
 ```bash
 # UMD format requires a bundle name
-$ rollup main.js --format umd --name "myBundle" --file bundle.js
+rollup main.js --format umd --name "myBundle" --file bundle.js
 ```
 
 ## Why
@@ -97,7 +97,7 @@ Because Rollup includes the bare minimum, it results in lighter, faster, and les
 
 ### Importing CommonJS
 
-Rollup can import existing CommonJS modules [through a plugin](https://github.com/rollup/rollup-plugin-commonjs).
+Rollup can import existing CommonJS modules [through a plugin](https://github.com/rollup/plugins/tree/master/packages/commonjs).
 
 ### Publishing ES Modules
 

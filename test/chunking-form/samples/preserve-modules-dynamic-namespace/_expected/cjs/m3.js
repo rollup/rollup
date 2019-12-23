@@ -2,4 +2,4 @@
 
 var m3 = {b:2};
 
-exports.default = m3;
+module.exports = m3;

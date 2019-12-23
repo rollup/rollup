@@ -1,11 +1,7 @@
-try {} catch {
-	console.log('retained');
-}
-
 try {} catch {} finally {
 	console.log('retained');
-}
+} // this will be retained
 
 try {
-	Object.create(null);
+	Object.create(null); // this will be retained
 } catch {}

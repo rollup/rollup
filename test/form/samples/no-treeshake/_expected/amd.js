@@ -47,6 +47,7 @@ define(['exports', 'external'], function (exports, external) { 'use strict';
 
 	exports.create = create;
 	exports.getPrototypeOf = getPrototypeOf;
+	exports.quux = quux;
 	exports.strange = quux;
 
 	Object.defineProperty(exports, '__esModule', { value: true });

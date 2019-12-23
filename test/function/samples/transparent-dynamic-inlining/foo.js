@@ -1,4 +1,7 @@
 export var x = 42;
 import('./main').then(x => {
-	assert.deepStrictEqual(x, { y: 42 });
+	const expected = { y: 42 };
+	Object.setPrototypeOf(expected, null);
+
+	assert.deepStrictEqual(x, expected);
 });

@@ -4,6 +4,7 @@ define(['exports'], function (exports) { 'use strict';
 	const bar = 2;
 
 	var namespace = ({
+		__proto__: null,
 		foo: foo,
 		bar: bar
 	});

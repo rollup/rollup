@@ -34,6 +34,7 @@ bar();
 bar(), baz(), quux();
 a.b(), /* @__PURE__ */ c.d.e(), f.g();
 
+var x, y;
 /* @__PURE__ */(function(){x})(), void/* @__PURE__ */(function(){y})();
 /* @__PURE__ */(function(){x})() || true ? foo() : bar();
 true || /* @__PURE__ */(function(){y})() ? foo() : bar();

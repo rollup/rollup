@@ -1,3 +1,5 @@
+const path = require('path');
+
 module.exports = {
 	description: 'Throws if an emitted entry chunk cannot be resolved',
 	options: {
@@ -10,6 +12,7 @@ module.exports = {
 	},
 	error: {
 		code: 'UNRESOLVED_ENTRY',
-		message: 'Could not resolve entry module (not-found.js).'
+		message: 'Could not resolve entry module (not-found.js).',
+		watchFiles: [path.resolve(__dirname, 'main.js')]
 	}
 };

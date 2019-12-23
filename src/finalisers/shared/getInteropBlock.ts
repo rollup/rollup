@@ -6,21 +6,23 @@ export default function getInteropBlock(
 	options: OutputOptions,
 	varOrConst: string
 ) {
+	const _ = options.compact ? '' : ' ';
+
 	return dependencies
 		.map(({ name, exportsNames, exportsDefault, namedExportsMode }) => {
-			if (!namedExportsMode) return;
-
-			if (!exportsDefault || options.interop === false) return null;
+			if (!namedExportsMode || !exportsDefault || options.interop === false) return null;
 
 			if (exportsNames) {
-				if (options.compact)
-					return `${varOrConst} ${name}__default='default'in ${name}?${name}['default']:${name};`;
-				return `${varOrConst} ${name}__default = 'default' in ${name} ? ${name}['default'] : ${name};`;
+				return (
+					`${varOrConst} ${name}__default${_}=${_}'default'${_}in ${name}${_}?` +
+					`${_}${name}['default']${_}:${_}${name};`
+				);
 			}
 
-			if (options.compact)
-				return `${name}=${name}&&${name}.hasOwnProperty('default')?${name}['default']:${name};`;
-			return `${name} = ${name} && ${name}.hasOwnProperty('default') ? ${name}['default'] : ${name};`;
+			return (
+				`${name}${_}=${_}${name}${_}&&${_}${name}.hasOwnProperty('default')${_}?` +
+				`${_}${name}['default']${_}:${_}${name};`
+			);
 		})
 		.filter(Boolean)
 		.join(options.compact ? '' : '\n');

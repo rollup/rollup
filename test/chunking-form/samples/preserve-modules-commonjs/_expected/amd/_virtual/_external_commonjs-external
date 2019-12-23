@@ -1,9 +1,9 @@
-define(['exports', 'external'], function (exports, external) { 'use strict';
+define(['external'], function (external) { 'use strict';
 
 	external = external && external.hasOwnProperty('default') ? external['default'] : external;
 
 
 
-	exports.default = external;
+	return external;
 
 });

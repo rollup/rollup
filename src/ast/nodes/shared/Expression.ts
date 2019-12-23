@@ -1,9 +1,9 @@
-import CallOptions from '../../CallOptions';
+import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { WritableEntity } from '../../Entity';
-import { ExecutionPathOptions } from '../../ExecutionPathOptions';
-import { ImmutableEntityPathTracker } from '../../utils/ImmutableEntityPathTracker';
-import { LiteralValueOrUnknown, ObjectPath } from '../../values';
+import { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
+import { ObjectPath, PathTracker } from '../../utils/PathTracker';
+import { LiteralValueOrUnknown } from '../../values';
 import SpreadElement from '../SpreadElement';
 import { ExpressionNode, IncludeChildren } from './Node';
 
@@ -13,24 +13,24 @@ export interface ExpressionEntity extends WritableEntity {
 	/**
 	 * If possible it returns a stringifyable literal value for this node that can be used
 	 * for inlining or comparing values.
-	 * Otherwise it should return UNKNOWN_VALUE.
+	 * Otherwise it should return UnknownValue.
 	 */
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown;
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity;
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean;
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean;
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		options: ExecutionPathOptions
+		context: HasEffectsContext
 	): boolean;
-	include(includeChildrenRecursively: IncludeChildren): void;
-	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void;
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void;
+	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void;
 }

@@ -1,9 +1,9 @@
 import MagicString from 'magic-string';
 import { NO_SEMICOLON, RenderOptions } from '../../utils/renderHelpers';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import Scope from '../scopes/Scope';
-import { EMPTY_PATH } from '../values';
+import { EMPTY_PATH } from '../utils/PathTracker';
 import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
@@ -27,27 +27,28 @@ export default class ForOfStatement extends StatementBase {
 		this.scope = new BlockScope(parentScope);
 	}
 
-	hasEffects(options: ExecutionPathOptions): boolean {
-		return (
-			(this.left &&
-				(this.left.hasEffects(options) ||
-					this.left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, options))) ||
-			(this.right && this.right.hasEffects(options)) ||
-			this.body.hasEffects(options.setIgnoreBreakStatements())
-		);
+	hasEffects(): boolean {
+		// Placeholder until proper Symbol.Iterator support
+		return true;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		this.left.includeWithAllDeclaredVariables(includeChildrenRecursively);
+		this.left.includeWithAllDeclaredVariables(includeChildrenRecursively, context);
 		this.left.deoptimizePath(EMPTY_PATH);
-		this.right.include(includeChildrenRecursively);
-		this.body.include(includeChildrenRecursively);
+		this.right.include(context, includeChildrenRecursively);
+		const { brokenFlow } = context;
+		this.body.include(context, includeChildrenRecursively);
+		context.brokenFlow = brokenFlow;
 	}
 
 	render(code: MagicString, options: RenderOptions) {
 		this.left.render(code, options, NO_SEMICOLON);
 		this.right.render(code, options, NO_SEMICOLON);
+		// handle no space between "of" and the right side
+		if (code.original.charCodeAt(this.right.start - 1) === 102 /* f */) {
+			code.prependLeft(this.right.start, ' ');
+		}
 		this.body.render(code, options);
 	}
 }

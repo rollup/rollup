@@ -1,7 +1,7 @@
 console.log( 1 );
 var result;
-switch ( whatever ) {
-	case foo:
+switch ( globalThis.unknown ) {
+	case 'foo':
 		result = 'foo';
 		break;
 

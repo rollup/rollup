@@ -1,11 +1,9 @@
-import CallOptions from '../../CallOptions';
+import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import { ExecutionPathOptions } from '../../ExecutionPathOptions';
-import { ImmutableEntityPathTracker } from '../../utils/ImmutableEntityPathTracker';
-import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_VALUE } from '../../values';
-import SpreadElement from '../SpreadElement';
+import { HasEffectsContext } from '../../ExecutionContext';
+import { ObjectPath, PathTracker } from '../../utils/PathTracker';
+import { LiteralValueOrUnknown, UnknownValue } from '../../values';
 import { ExpressionEntity } from './Expression';
-import { ExpressionNode } from './Node';
 
 export class MultiExpression implements ExpressionEntity {
 	included = false;
@@ -23,12 +21,12 @@ export class MultiExpression implements ExpressionEntity {
 	}
 
 	getLiteralValueAtPath(): LiteralValueOrUnknown {
-		return UNKNOWN_VALUE;
+		return UnknownValue;
 	}
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
 		return new MultiExpression(
@@ -38,16 +36,16 @@ export class MultiExpression implements ExpressionEntity {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		for (const expression of this.expressions) {
-			if (expression.hasEffectsWhenAccessedAtPath(path, options)) return true;
+			if (expression.hasEffectsWhenAccessedAtPath(path, context)) return true;
 		}
 		return false;
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		for (const expression of this.expressions) {
-			if (expression.hasEffectsWhenAssignedAtPath(path, options)) return true;
+			if (expression.hasEffectsWhenAssignedAtPath(path, context)) return true;
 		}
 		return false;
 	}
@@ -55,19 +53,15 @@ export class MultiExpression implements ExpressionEntity {
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		options: ExecutionPathOptions
+		context: HasEffectsContext
 	): boolean {
 		for (const expression of this.expressions) {
-			if (expression.hasEffectsWhenCalledAtPath(path, callOptions, options)) return true;
+			if (expression.hasEffectsWhenCalledAtPath(path, callOptions, context)) return true;
 		}
 		return false;
 	}
 
 	include(): void {}
 
-	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
-		for (const expression of this.expressions) {
-			expression.includeCallArguments(args);
-		}
-	}
+	includeCallArguments(): void {}
 }

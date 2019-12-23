@@ -3,6 +3,7 @@ module.exports = {
 	options: {
 		external: ['highcharts'],
 		output: {
+			globals: { highcharts: 'highcharts' },
 			name: 'myBundle'
 		}
 	}

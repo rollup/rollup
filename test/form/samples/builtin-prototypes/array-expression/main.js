@@ -12,6 +12,8 @@ const map6 = [ 1 ].map( x => x ).map( x => x ).map( x => x );
 const map7 = [ 1 ].map( x => x ).map( x => x ).map( x => console.log( 1 ) );
 const map8 = [ 1 ].map( x => x ).map( x => console.log( 1 ) ).map( x => x );
 
+[]();
+
 // accessor methods
 const _includes = [].includes( 1 ).valueOf();
 const _indexOf = [].indexOf( 1 ).toPrecision( 1 );

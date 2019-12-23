@@ -105,6 +105,55 @@ describe('rollup.watch', () => {
 				});
 		});
 
+		it('does not fail for virtual files', () => {
+			return sander
+				.copydir('test/watch/samples/basic')
+				.to('test/_tmp/input')
+				.then(() => {
+					const watcher = rollup.watch({
+						input: 'test/_tmp/input/main.js',
+						plugins: {
+							resolveId(id) {
+								if (id === 'virtual') {
+									return id;
+								}
+							},
+							load(id) {
+								if (id === 'virtual') {
+									return `export const value = 42;`;
+								}
+							}
+						},
+						output: {
+							file: 'test/_tmp/output/bundle.js',
+							format: 'cjs'
+						},
+						watch: { chokidar }
+					});
+
+					return sequence(watcher, [
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+							sander.writeFileSync(
+								'test/_tmp/input/main.js',
+								"import {value} from 'virtual';\nexport default value + 1;"
+							);
+						},
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
+						}
+					]);
+				});
+		});
+
 		it('passes file events to the watchChange plugin hook once for each change', () => {
 			let watchChangeCnt = 0;
 			return sander
@@ -281,6 +330,80 @@ describe('rollup.watch', () => {
 				});
 		});
 
+		it('recovers from an error on initial build', () => {
+			return sander
+				.copydir('test/watch/samples/error')
+				.to('test/_tmp/input')
+				.then(() => {
+					const watcher = rollup.watch({
+						input: 'test/_tmp/input/main.js',
+						output: {
+							file: 'test/_tmp/output/bundle.js',
+							format: 'cjs'
+						},
+						watch: { chokidar }
+					});
+
+					return sequence(watcher, [
+						'START',
+						'BUNDLE_START',
+						'ERROR',
+						() => {
+							assert.strictEqual(sander.existsSync('../_tmp/output/bundle.js'), false);
+							sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+						},
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
+						}
+					]);
+				});
+		});
+
+		it('recovers from a plugin error on initial build', () => {
+			let count = 0;
+			return sander
+				.copydir('test/watch/samples/basic')
+				.to('test/_tmp/input')
+				.then(() => {
+					const watcher = rollup.watch({
+						input: 'test/_tmp/input/main.js',
+						plugins: {
+							transform() {
+								if (count++ === 0) {
+									this.error('The first run failed, try again.');
+								}
+							}
+						},
+						output: {
+							file: 'test/_tmp/output/bundle.js',
+							format: 'cjs'
+						},
+						watch: { chokidar }
+					});
+
+					return sequence(watcher, [
+						'START',
+						'BUNDLE_START',
+						'ERROR',
+						() => {
+							assert.strictEqual(sander.existsSync('../_tmp/output/bundle.js'), false);
+							sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+						},
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
+						}
+					]);
+				});
+		});
+
 		it('recovers from an error even when erroring file was "renamed" (#38)', () => {
 			return sander
 				.copydir('test/watch/samples/basic')
@@ -318,6 +441,110 @@ describe('rollup.watch', () => {
 						'END',
 						() => {
 							assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
+						}
+					]);
+				});
+		});
+
+		it('handles closing the watcher during a build', () => {
+			return sander
+				.copydir('test/watch/samples/basic')
+				.to('test/_tmp/input')
+				.then(() => {
+					const watcher = rollup.watch({
+						input: 'test/_tmp/input/main.js',
+						output: {
+							file: 'test/_tmp/output/bundle.js',
+							format: 'cjs'
+						},
+						watch: { chokidar }
+					});
+
+					setTimeout(() => watcher.close(), 50);
+					return sequence(watcher, [
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						() => {
+							sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+							let unexpectedEvent = false;
+							watcher.once('event', event => {
+								unexpectedEvent = event;
+							});
+							sander.writeFileSync('test/_tmp/input/dep.js', '= invalid');
+							return wait(400).then(() => assert.strictEqual(unexpectedEvent, false));
+						}
+					]);
+				});
+		});
+
+		it('handles closing the watcher during a build even if an error occurred', () => {
+			return sander
+				.copydir('test/watch/samples/error')
+				.to('test/_tmp/input')
+				.then(() => {
+					const watcher = rollup.watch({
+						input: 'test/_tmp/input/main.js',
+						output: {
+							file: 'test/_tmp/output/bundle.js',
+							format: 'cjs'
+						},
+						watch: { chokidar }
+					});
+
+					setTimeout(() => watcher.close(), 50);
+					return sequence(watcher, [
+						'START',
+						'BUNDLE_START',
+						'ERROR',
+						() => {
+							sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+							let unexpectedEvent = false;
+							watcher.once('event', event => {
+								unexpectedEvent = event;
+							});
+							sander.writeFileSync('test/_tmp/input/dep.js', '= invalid');
+							return wait(400).then(() => assert.strictEqual(unexpectedEvent, false));
+						}
+					]);
+				});
+		});
+
+		it('stops watching files that are no longer part of the graph', () => {
+			return sander
+				.copydir('test/watch/samples/dependency')
+				.to('test/_tmp/input')
+				.then(() => {
+					const watcher = rollup.watch({
+						input: 'test/_tmp/input/main.js',
+						output: {
+							file: 'test/_tmp/output/bundle.js',
+							format: 'cjs'
+						},
+						watch: { chokidar }
+					});
+
+					return sequence(watcher, [
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
+							sander.writeFileSync('test/_tmp/input/main.js', 'export default 42;');
+						},
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+							let unexpectedEvent = false;
+							watcher.once('event', event => {
+								unexpectedEvent = event;
+							});
+							sander.writeFileSync('test/_tmp/input/dep.js', '= invalid');
+							return wait(400).then(() => assert.strictEqual(unexpectedEvent, false));
 						}
 					]);
 				});
@@ -402,12 +629,17 @@ describe('rollup.watch', () => {
 								foo: 'foo-2',
 								bar: 'bar-1'
 							});
-							sander.writeFileSync('test/_tmp/input/bar.js', `export default 'bar-2';`);
-						},
-						() => {
-							assert.deepStrictEqual(run('../_tmp/output/bundle.js'), {
-								foo: 'foo-2',
-								bar: 'bar-1'
+							let unexpectedEvent = false;
+							watcher.once('event', event => {
+								unexpectedEvent = event;
+							});
+							sander.writeFileSync('test/_tmp/input/bar.js', "export default 'bar-2';");
+							return wait(400).then(() => {
+								assert.deepStrictEqual(run('../_tmp/output/bundle.js'), {
+									foo: 'foo-2',
+									bar: 'bar-1'
+								});
+								assert.strictEqual(unexpectedEvent, false);
 							});
 						}
 					]);
@@ -452,12 +684,17 @@ describe('rollup.watch', () => {
 								foo: 'foo-2',
 								bar: 'bar-1'
 							});
-							sander.writeFileSync('test/_tmp/input/bar.js', `export default 'bar-2';`);
-						},
-						() => {
-							assert.deepStrictEqual(run('../_tmp/output/bundle.js'), {
-								foo: 'foo-2',
-								bar: 'bar-1'
+							let unexpectedEvent = false;
+							watcher.once('event', event => {
+								unexpectedEvent = event;
+							});
+							sander.writeFileSync('test/_tmp/input/bar.js', "export default 'bar-2';");
+							return wait(400).then(() => {
+								assert.deepStrictEqual(run('../_tmp/output/bundle.js'), {
+									foo: 'foo-2',
+									bar: 'bar-1'
+								});
+								assert.strictEqual(unexpectedEvent, false);
 							});
 						}
 					]);
@@ -763,12 +1000,26 @@ describe('rollup.watch', () => {
 								format: 'cjs'
 							},
 							plugins: {
-								transform() {
-									this.addWatchFile('test/_tmp/input/watched');
-									return `export default "${sander
-										.readFileSync('test/_tmp/input/watched')
-										.toString()
-										.trim()}"`;
+								resolveId(id) {
+									if (id === 'dep') {
+										return id;
+									}
+								},
+								load(id) {
+									if (id === 'dep') {
+										return `throw new Error('This should not be executed);`;
+									}
+								},
+								transform(code, id) {
+									if (id.endsWith('main.js')) {
+										return `export { value as default } from 'dep';`;
+									} else {
+										this.addWatchFile('test/_tmp/input/watched');
+										return `export const value = "${sander
+											.readFileSync('test/_tmp/input/watched')
+											.toString()
+											.trim()}"`;
+									}
 								}
 							},
 							watch: { chokidar }
@@ -1054,7 +1305,7 @@ describe('rollup.watch', () => {
 						return sequence(watcher, [
 							'START',
 							'BUNDLE_START',
-							'FATAL',
+							'ERROR',
 							event => {
 								assert.ok(event.error.message.startsWith('Transform dependency'));
 								assert.ok(event.error.message.endsWith('does not exist.'));
@@ -1298,6 +1549,50 @@ describe('rollup.watch', () => {
 								assert.strictEqual(run('../_tmp/output/bundle.js'), 3);
 								sander.writeFileSync('test/_tmp/input/watched', 'ignored');
 								return new Promise(resolve => setTimeout(resolve, 50));
+							}
+						]);
+					});
+			});
+
+			it('watches transform dependencies when there are multiple modules', () => {
+				let v = 1;
+				return sander
+					.copydir('test/watch/samples/watch-files-multiple')
+					.to('test/_tmp/input')
+					.then(() => {
+						const watcher = rollup.watch({
+							input: 'test/_tmp/input/index.js',
+							output: {
+								file: 'test/_tmp/output/bundle.js',
+								format: 'cjs'
+							},
+							plugins: {
+								transform(code, id) {
+									if (!id.includes('dep.txt')) {
+										return;
+									}
+									this.addWatchFile('test/_tmp/input/depdep.txt');
+									return `export default ${v++};`;
+								}
+							},
+							watch: { chokidar }
+						});
+
+						return sequence(watcher, [
+							'START',
+							'BUNDLE_START',
+							'BUNDLE_END',
+							'END',
+							() => {
+								assert.deepStrictEqual(run('../_tmp/output/bundle.js'), { dep: 1, first: 'b' });
+								sander.writeFileSync('test/_tmp/input/depdep.txt', 'changed');
+							},
+							'START',
+							'BUNDLE_START',
+							'BUNDLE_END',
+							'END',
+							() => {
+								assert.deepStrictEqual(run('../_tmp/output/bundle.js'), { dep: 2, first: 'b' });
 							}
 						]);
 					});

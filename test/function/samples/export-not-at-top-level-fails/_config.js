@@ -5,7 +5,17 @@ module.exports = {
 	error: {
 		code: 'PARSE_ERROR',
 		message: `'import' and 'export' may only appear at the top level`,
+		parserError: {
+			loc: {
+				column: 2,
+				line: 2
+			},
+			message: "'import' and 'export' may only appear at the top level (2:2)",
+			pos: 19,
+			raisedAt: 25
+		},
 		pos: 19,
+		watchFiles: [path.resolve(__dirname, 'main.js')],
 		loc: {
 			file: path.resolve(__dirname, 'main.js'),
 			line: 2,

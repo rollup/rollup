@@ -12,12 +12,21 @@ exports.loader = loader;
 exports.normaliseOutput = normaliseOutput;
 exports.runTestSuiteWithSamples = runTestSuiteWithSamples;
 exports.assertDirectoriesAreEqual = assertDirectoriesAreEqual;
+exports.assertStderrIncludes = assertStderrIncludes;
+
+function normaliseError(error) {
+	delete error.stack;
+	return Object.assign({}, error, {
+		message: error.message
+	});
+}
 
 function compareError(actual, expected) {
-	delete actual.stack;
-	actual = Object.assign({}, actual, {
-		message: actual.message
-	});
+	actual = normaliseError(actual);
+
+	if (actual.parserError) {
+		actual.parserError = normaliseError(actual.parserError);
+	}
 
 	if (actual.frame) {
 		actual.frame = actual.frame.replace(/\s+$/gm, '');
@@ -215,4 +224,17 @@ function assertFilesAreEqual(actualFiles, expectedFiles, dirs = []) {
 			`${shortName}: ${expectedFiles[fileName]}`
 		);
 	});
+}
+
+function assertStderrIncludes(stderr, expected) {
+	try {
+		assert.ok(
+			stderr.includes(expected),
+			`Could not find ${JSON.stringify(expected)} in ${JSON.stringify(stderr)}`
+		);
+	} catch (err) {
+		err.actual = stderr;
+		err.expected = expected;
+		throw err;
+	}
 }

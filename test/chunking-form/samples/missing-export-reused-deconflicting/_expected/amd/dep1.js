@@ -14,4 +14,6 @@ define(['exports'], function (exports) { 'use strict';
 
 	exports.missing1 = _missingExportShim;
 
+	Object.defineProperty(exports, '__esModule', { value: true });
+
 });

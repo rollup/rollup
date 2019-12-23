@@ -1,7 +1,6 @@
 const path = require('path');
 const rollup = require('../../dist/rollup');
 const { extend, runTestSuiteWithSamples } = require('../utils.js');
-const assert = require('assert');
 
 runTestSuiteWithSamples('file hashes', path.resolve(__dirname, 'samples'), (dir, config) => {
 	(config.skip ? describe.skip : config.solo ? describe.only : describe)(
@@ -24,24 +23,41 @@ runTestSuiteWithSamples('file hashes', path.resolve(__dirname, 'samples'), (dir,
 					)
 				).then(([generated1, generated2]) => {
 					const fileContentsByHash = new Map();
-					addAndCheckFileContentsByHash(fileContentsByHash, generated1);
-					addAndCheckFileContentsByHash(fileContentsByHash, generated2);
+					addFileContentsByFileName(fileContentsByHash, generated1);
+					addFileContentsByFileName(fileContentsByHash, generated2);
+					if (config.show) {
+						console.log(fileContentsByHash);
+					}
+					for (const contents of fileContentsByHash.values()) {
+						if (contents.size > 1) {
+							throw new Error(
+								`Two chunks contained different code even though the hashes were the same: ${Array.from(
+									contents
+								)
+									.map(JSON.stringify)
+									.join(' != ')}`
+							);
+						}
+					}
 				});
 			});
 		}
 	);
 });
 
-function addAndCheckFileContentsByHash(fileContentsByHash, generated) {
+function addFileContentsByFileName(fileContentsByFileName, generated) {
 	for (const chunk of generated.output) {
-		const hash = chunk.fileName;
-		if (fileContentsByHash.has(hash)) {
-			assert.equal(
-				fileContentsByHash.get(hash),
-				chunk.code,
-				'Two chunks contained different code even though the hashes were the same.'
-			);
+		const fileName = chunk.fileName;
+		if (fileContentsByFileName.has(fileName)) {
+			fileContentsByFileName.get(fileName).add(chunk.code);
+		} else {
+			fileContentsByFileName.set(fileName, new Set([chunk.code]));
 		}
-		fileContentsByHash.set(hash, chunk.code);
 	}
 }
+
+// assert.equal(
+// 	fileContentsByHash.get(hash),
+// 	chunk.code,
+// 	'Two chunks contained different code even though the hashes were the same.'
+// );

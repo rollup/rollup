@@ -45,4 +45,4 @@ const retainedResult6 = retained6.foo.bar;
 let retained7 = 3;
 const retainedResult7 = (retained7++).foo.bar;
 
-const retained8 = globalVar.x;
+const retained8 = globalThis.unknown .x;

@@ -51,4 +51,5 @@ test({
 
 exports.create = create;
 exports.getPrototypeOf = getPrototypeOf;
+exports.quux = quux;
 exports.strange = quux;

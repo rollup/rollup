@@ -18,6 +18,7 @@ module.exports = {
 		message: 'nope',
 		hook: 'transform',
 		id: path.resolve(__dirname, 'main.js'),
+		watchFiles: [path.resolve(__dirname, 'main.js')],
 		loc: {
 			file: path.resolve(__dirname, 'main.js'),
 			line: 1,

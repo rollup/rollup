@@ -2,6 +2,12 @@ import tc from 'turbocolor';
 import { RollupError } from '../src/rollup/types';
 import relativeId from '../src/utils/relativeId';
 
+// @see https://no-color.org
+// @see https://www.npmjs.com/package/chalk
+if (process.env.FORCE_COLOR === '0' || process.env.NO_COLOR) {
+  tc.enabled = false;
+}
+
 // log to stderr to keep `rollup main.js > bundle.js` from breaking
 export const stderr = console.error.bind(console);
 
