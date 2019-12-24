@@ -584,16 +584,44 @@ export interface RollupWatchOptions extends InputOptions {
 	watch?: WatcherOptions;
 }
 
-type RollupWatcherEvent =
-	{code:'START'}
-	| {code: 'BUNDLE_START', input: InputOption, output: string | undefined}
-	| {code: 'BUNDLE_END', duration: number, input: InputOption, output: string | undefined, result: RollupBuild}
-	| {code:'END'}
-	| {code:'ERROR', error:Error}
-	| {code:'FATAL', error:Error}
+interface TypedEventEmitter<T> {
+	addListener<K extends keyof T>(event: K, listener: T[K]): this;
+	emit<K extends keyof T>(event: K, ...args: Parameters<T[K]>): boolean;
+	eventNames(): Array<keyof T>;
+	getMaxListeners(): number;
+	listenerCount(type: keyof T): number;
+	listeners<K extends keyof T>(event: K): Array<T[K]>;
+	off<K extends keyof T>(event: K, listener: T[K]): this;
+	on<K extends keyof T>(event: K, listener: T[K]): this;
+	once<K extends keyof T>(event: K, listener: T[K]): this;
+	prependListener<K extends keyof T>(event: K, listener: T[K]): this;
+	prependOnceListener<K extends keyof T>(event: K, listener: T[K]): this;
+	rawListeners<K extends keyof T>(event: K): Array<T[K]>;
+	removeAllListeners<K extends keyof T>(event?: K): this;
+	removeListener<K extends keyof T>(event: K, listener: T[K]): this;
+	setMaxListeners(n: number): this;
+}
 
-export interface RollupWatcher extends EventEmitter {
-	on(event: 'event', listener: (event: RollupWatcherEvent) => void): this;
+export type RollupWatcherEvent =
+	| { code: 'START' }
+	| { code: 'BUNDLE_START'; input: InputOption; output: readonly string[] }
+	| {
+			code: 'BUNDLE_END';
+			duration: number;
+			input: InputOption;
+			output: readonly string[];
+			result: RollupBuild;
+	  }
+	| { code: 'END' }
+	| { code: 'ERROR'; error: RollupError }
+	| { code: 'FATAL'; error: RollupError };
+
+export interface RollupWatcher
+	extends TypedEventEmitter<{
+		change: (id: string) => void;
+		event: (event: RollupWatcherEvent) => void;
+		restart: () => void;
+	}> {
 	close(): void;
 }
 

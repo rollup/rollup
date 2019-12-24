@@ -29,7 +29,7 @@ export class Watcher {
 	private tasks: Task[];
 
 	constructor(configs: GenericConfigObject[] | GenericConfigObject) {
-		this.emitter = new (class extends EventEmitter implements RollupWatcher {
+		this.emitter = new (class extends EventEmitter {
 			close: () => void;
 			constructor(close: () => void) {
 				super();
@@ -38,7 +38,7 @@ export class Watcher {
 				// showing the `MaxListenersExceededWarning` to the user.
 				this.setMaxListeners(Infinity);
 			}
-		})(this.close.bind(this));
+		})(this.close.bind(this)) as RollupWatcher;
 		this.tasks = (Array.isArray(configs) ? configs : configs ? [configs] : []).map(
 			config => new Task(this, config)
 		);
@@ -56,7 +56,7 @@ export class Watcher {
 	}
 
 	emit(event: string, value?: any) {
-		this.emitter.emit(event, value);
+		this.emitter.emit(event as any, value);
 	}
 
 	invalidate(id?: string) {

@@ -302,7 +302,7 @@ export function createPluginDriver(
 								});
 								deprecationWarningShown = true;
 							}
-							return (watcher as RollupWatcher).on(event, handler);
+							return watcher!.on(event as any, handler);
 						}
 
 						return {
