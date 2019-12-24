@@ -1,5 +1,5 @@
 console.log( 1 );
-if ( nothing ) {
+if ( globalThis.unknown ) {
 	// empty
 }
 console.log( 2 );

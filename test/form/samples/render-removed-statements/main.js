@@ -20,14 +20,14 @@ retained */
 console.log(2); // trail retained
 var a = 1; console.log(2);
 
-if (globalVar) {
+if (globalThis.unknown) {
 	// lead removed
 	var a = 1; // trail removed
 	// lead retained
 	console.log(2); // trail retained
 }
 
-if (globalVar) {
+if (globalThis.unknown) {
 	// lead removed
 	var a = 1; // trail removed
 	// lead retained
@@ -36,26 +36,26 @@ if (globalVar) {
 	var a = 1; // trail removed
 }
 
-if (globalVar) {
+if (globalThis.unknown) {
 	// lead retained
 	console.log(2); // trail retained
 	// lead removed
 	var a = 1; // trail removed
 }
 
-if (globalVar) {
+if (globalThis.unknown) {
 	console.log(2);
 	var a = 1; /* trail
 	removed */
 }
 
-if (globalVar) { /* removed */ var a = 1; /* retained */ console.log(2);}
+if (globalThis.unknown) { /* removed */ var a = 1; /* retained */ console.log(2);}
 
-if (globalVar) { /* removed */ var a = 1; /* retained */ console.log(2); /* removed */ var a = 1;}
+if (globalThis.unknown) { /* removed */ var a = 1; /* retained */ console.log(2); /* removed */ var a = 1;}
 
-if (globalVar) { /* retained */ console.log(2); /* removed */ var a = 1;}
+if (globalThis.unknown) { /* retained */ console.log(2); /* removed */ var a = 1;}
 
-switch (globalVar) {
+switch (globalThis.unknown) {
 	case 1: // retained
 		// lead removed
 		var a = 1; // trail removed

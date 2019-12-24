@@ -1,6 +1,7 @@
 const rollup = require('../../dist/rollup');
 const assert = require('assert');
 const { loader } = require('../utils.js');
+const { compareError } = require('../utils.js');
 
 function runTestCode(code, globals) {
 	const globalsWithAssert = Object.assign({}, globals, { assert });
@@ -49,22 +50,14 @@ function runTestsWithCode(code, outputOptions, expectedExports) {
 	it('works with extend=false', () => {
 		const options = Object.assign({ extend: false }, outputOptions);
 		return getIifeCode(code, options).then(code =>
-			assert.deepEqual(
-				runIifeTest(code, options),
-				expectedExports,
-				'expected exports are returned'
-			)
+			assert.deepEqual(runIifeTest(code, options), expectedExports, 'expected exports are returned')
 		);
 	});
 
 	it('works with extend=true', () => {
 		const options = Object.assign({ extend: true }, outputOptions);
 		return getIifeCode(code, options).then(code =>
-			assert.deepEqual(
-				runIifeTest(code, options),
-				expectedExports,
-				'expected exports are returned'
-			)
+			assert.deepEqual(runIifeTest(code, options), expectedExports, 'expected exports are returned')
 		);
 	});
 }
@@ -102,3 +95,46 @@ function runTestsWithCode(code, outputOptions, expectedExports) {
 		})
 	)
 );
+
+describe('The IIFE wrapper with an illegal name', () => {
+	it('fails if the name starts with a digit', () =>
+		getIifeCode('export const x = 42;', { name: '1name' })
+			.then(() => {
+				throw new Error('Expected an error to be thrown.');
+			})
+			.catch(error =>
+				compareError(error, {
+					code: 'ILLEGAL_IDENTIFIER_AS_NAME',
+					message:
+						'Given name "1name" is not a legal JS identifier. If you need this, you can try "output.extend: true".'
+				})
+			));
+
+	it('fails if the name contains an illegal character', () =>
+		getIifeCode('export const x = 42;', { name: 'my=name' })
+			.then(() => {
+				throw new Error('Expected an error to be thrown.');
+			})
+			.catch(error =>
+				compareError(error, {
+					code: 'ILLEGAL_IDENTIFIER_AS_NAME',
+					message:
+						'Given name "my=name" is not a legal JS identifier. If you need this, you can try "output.extend: true".'
+				})
+			));
+
+	it('does not fail for illegal characters if the extend option is used', () =>
+		getIifeCode('export const x = 42;', { name: 'my=name', extend: true }).then(code =>
+			assert.equal(
+				code,
+				'(function (exports) {\n' +
+					"\t'use strict';\n" +
+					'\n' +
+					'\tconst x = 42;\n' +
+					'\n' +
+					'\texports.x = x;\n' +
+					'\n' +
+					"}(this['my=name'] = this['my=name'] || {}));\n"
+			)
+		));
+});

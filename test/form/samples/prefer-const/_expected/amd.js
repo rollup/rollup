@@ -4,6 +4,7 @@ define(['other'], function (other) { 'use strict';
 	const b = 2;
 
 	const namespace = /*#__PURE__*/Object.freeze({
+		__proto__: null,
 		a: a,
 		b: b
 	});

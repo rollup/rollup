@@ -76,9 +76,9 @@ function timeEndImpl(label: string, level = 3) {
 
 export function getTimings(): SerializedTimings {
 	const newTimings: SerializedTimings = {};
-	Object.keys(timers).forEach(label => {
+	for (const label of Object.keys(timers)) {
 		newTimings[label] = [timers[label].time, timers[label].memory, timers[label].totalMemory];
-	});
+	}
 	return newTimings;
 }
 

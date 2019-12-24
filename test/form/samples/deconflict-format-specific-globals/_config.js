@@ -3,6 +3,7 @@ module.exports = {
 	options: {
 		external: 'external',
 		output: {
+			globals: { external: 'external' },
 			name: 'bundle'
 		}
 	}

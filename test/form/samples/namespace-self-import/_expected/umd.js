@@ -2,9 +2,10 @@
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
 	(global = global || self, factory(global.iife = {}));
-}(this, function (exports) { 'use strict';
+}(this, (function (exports) { 'use strict';
 
 	var self = /*#__PURE__*/Object.freeze({
+		__proto__: null,
 		get p () { return p; }
 	});
 
@@ -16,4 +17,4 @@
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-}));
+})));

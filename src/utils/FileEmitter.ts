@@ -1,9 +1,9 @@
-import sha256 from 'hash.js/lib/hash/sha/256';
 import Chunk from '../Chunk';
 import Graph from '../Graph';
 import Module from '../Module';
-import { OutputAsset, OutputBundleWithPlaceholders } from '../rollup/types';
+import { FilePlaceholder, OutputBundleWithPlaceholders } from '../rollup/types';
 import { BuildPhase } from './buildPhase';
+import { createHash } from './crypto';
 import {
 	errAssetNotFinalisedForFileName,
 	errAssetReferenceIdNotFoundForSetSource,
@@ -34,7 +34,7 @@ function generateAssetFileName(
 	return makeUnique(
 		renderNamePattern(output.assetFileNames, 'output.assetFileNames', {
 			hash() {
-				const hash = sha256();
+				const hash = createHash();
 				hash.update(emittedName);
 				hash.update(':');
 				hash.update(source);
@@ -48,9 +48,13 @@ function generateAssetFileName(
 	);
 }
 
-function reserveFileNameInBundle(fileName: string, bundle: OutputBundleWithPlaceholders) {
+function reserveFileNameInBundle(
+	fileName: string,
+	bundle: OutputBundleWithPlaceholders,
+	graph: Graph
+) {
 	if (fileName in bundle) {
-		return error(errFileNameConflict(fileName));
+		graph.warn(errFileNameConflict(fileName));
 	}
 	bundle[fileName] = FILE_PLACEHOLDER;
 }
@@ -78,8 +82,8 @@ interface EmittedFile {
 
 type ConsumedFile = ConsumedChunk | ConsumedAsset;
 
-export const FILE_PLACEHOLDER = {
-	isPlaceholder: true
+export const FILE_PLACEHOLDER: FilePlaceholder = {
+	type: 'placeholder'
 };
 
 function hasValidType(
@@ -134,15 +138,23 @@ function getChunkFileName(file: ConsumedChunk): string {
 }
 
 export class FileEmitter {
-	private filesByReferenceId = new Map<string, ConsumedFile>();
-	// tslint:disable member-ordering
-	private buildFilesByReferenceId = this.filesByReferenceId;
+	private filesByReferenceId: Map<string, ConsumedFile>;
 	private graph: Graph;
 	private output: OutputSpecificFileData | null = null;
 
-	constructor(graph: Graph) {
+	constructor(graph: Graph, baseFileEmitter?: FileEmitter) {
 		this.graph = graph;
+		this.filesByReferenceId = baseFileEmitter
+			? new Map(baseFileEmitter.filesByReferenceId)
+			: new Map();
 	}
+
+	public assertAssetsFinalized = (): void => {
+		for (const [referenceId, emittedFile] of this.filesByReferenceId.entries()) {
+			if (emittedFile.type === 'asset' && typeof emittedFile.fileName !== 'string')
+				error(errNoAssetSourceSet(emittedFile.name || referenceId));
+		}
+	};
 
 	public emitFile = (emittedFile: unknown): string => {
 		if (!hasValidType(emittedFile)) {
@@ -168,7 +180,7 @@ export class FileEmitter {
 		}
 	};
 
-	public getFileName = (fileReferenceId: string) => {
+	public getFileName = (fileReferenceId: string): string => {
 		const emittedFile = this.filesByReferenceId.get(fileReferenceId);
 		if (!emittedFile) return error(errFileReferenceIdNotFoundForFilename(fileReferenceId));
 		if (emittedFile.type === 'chunk') {
@@ -178,7 +190,7 @@ export class FileEmitter {
 		}
 	};
 
-	public setAssetSource = (referenceId: string, requestedSource: unknown) => {
+	public setAssetSource = (referenceId: string, requestedSource: unknown): void => {
 		const consumedFile = this.filesByReferenceId.get(referenceId);
 		if (!consumedFile) return error(errAssetReferenceIdNotFoundForSetSource(referenceId));
 		if (consumedFile.type !== 'asset') {
@@ -199,15 +211,17 @@ export class FileEmitter {
 		}
 	};
 
-	public startOutput(outputBundle: OutputBundleWithPlaceholders, assetFileNames: string) {
-		this.filesByReferenceId = new Map(this.buildFilesByReferenceId);
+	public setOutputBundle = (
+		outputBundle: OutputBundleWithPlaceholders,
+		assetFileNames: string
+	): void => {
 		this.output = {
 			assetFileNames,
 			bundle: outputBundle
 		};
 		for (const emittedFile of this.filesByReferenceId.values()) {
 			if (emittedFile.fileName) {
-				reserveFileNameInBundle(emittedFile.fileName, this.output.bundle);
+				reserveFileNameInBundle(emittedFile.fileName, this.output.bundle, this.graph);
 			}
 		}
 		for (const [referenceId, consumedFile] of this.filesByReferenceId.entries()) {
@@ -215,13 +229,21 @@ export class FileEmitter {
 				this.finalizeAsset(consumedFile, consumedFile.source, referenceId, this.output);
 			}
 		}
-	}
+	};
 
-	public assertAssetsFinalized() {
-		for (const [referenceId, emittedFile] of this.filesByReferenceId.entries()) {
-			if (emittedFile.type === 'asset' && typeof emittedFile.fileName !== 'string')
-				error(errNoAssetSourceSet(emittedFile.name || referenceId));
-		}
+	private assignReferenceId(file: ConsumedFile, idBase: string): string {
+		let referenceId: string | undefined;
+		do {
+			const hash = createHash();
+			if (referenceId) {
+				hash.update(referenceId);
+			} else {
+				hash.update(idBase);
+			}
+			referenceId = hash.digest('hex').substr(0, 8);
+		} while (this.filesByReferenceId.has(referenceId));
+		this.filesByReferenceId.set(referenceId, file);
+		return referenceId;
 	}
 
 	private emitAsset(emittedAsset: EmittedFile): string {
@@ -241,7 +263,7 @@ export class FileEmitter {
 		);
 		if (this.output) {
 			if (emittedAsset.fileName) {
-				reserveFileNameInBundle(emittedAsset.fileName, this.output.bundle);
+				reserveFileNameInBundle(emittedAsset.fileName, this.output.bundle, this.graph);
 			}
 			if (source !== undefined) {
 				this.finalizeAsset(consumedAsset, source, referenceId, this.output);
@@ -289,27 +311,12 @@ export class FileEmitter {
 		return this.assignReferenceId(consumedChunk, emittedChunk.id);
 	}
 
-	private assignReferenceId(file: ConsumedFile, idBase: string): string {
-		let referenceId: string | undefined;
-		do {
-			const hash = sha256();
-			if (referenceId) {
-				hash.update(referenceId);
-			} else {
-				hash.update(idBase);
-			}
-			referenceId = hash.digest('hex').substr(0, 8);
-		} while (this.filesByReferenceId.has(referenceId));
-		this.filesByReferenceId.set(referenceId, file);
-		return referenceId;
-	}
-
 	private finalizeAsset(
 		consumedFile: ConsumedFile,
 		source: string | Buffer,
 		referenceId: string,
 		output: OutputSpecificFileData
-	) {
+	): void {
 		const fileName =
 			consumedFile.fileName ||
 			this.findExistingAssetFileNameWithSource(output.bundle, source) ||
@@ -318,7 +325,20 @@ export class FileEmitter {
 		// We must not modify the original assets to avoid interaction between outputs
 		const assetWithFileName = { ...consumedFile, source, fileName };
 		this.filesByReferenceId.set(referenceId, assetWithFileName);
-		output.bundle[fileName] = { fileName, isAsset: true, source };
+		const graph = this.graph;
+		output.bundle[fileName] = {
+			fileName,
+			get isAsset(): true {
+				graph.warnDeprecation(
+					'Accessing "isAsset" on files in the bundle is deprecated, please use "type === \'asset\'" instead',
+					false
+				);
+
+				return true;
+			},
+			source,
+			type: 'asset'
+		};
 	}
 
 	private findExistingAssetFileNameWithSource(
@@ -326,9 +346,9 @@ export class FileEmitter {
 		source: string | Buffer
 	): string | null {
 		for (const fileName of Object.keys(bundle)) {
-			const outputFile = bundle[fileName] as OutputAsset;
+			const outputFile = bundle[fileName];
 			if (
-				outputFile.isAsset &&
+				outputFile.type === 'asset' &&
 				(Buffer.isBuffer(source) && Buffer.isBuffer(outputFile.source)
 					? source.equals(outputFile.source)
 					: source === outputFile.source)

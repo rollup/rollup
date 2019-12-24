@@ -66,6 +66,7 @@ export default { // can be an array (for multiple inputs)
     format, // required
     globals,
     name,
+    plugins,
 
     // advanced output options
     assetFileNames,
@@ -154,16 +155,19 @@ export default Promise.all([
 You *must* use a configuration file in order to do any of the following:
 
 - bundle one project into multiple output files
-- use Rollup plugins, such as [rollup-plugin-node-resolve](https://github.com/rollup/rollup-plugin-node-resolve) and [rollup-plugin-commonjs](https://github.com/rollup/rollup-plugin-commonjs) which let you load CommonJS modules from the Node.js ecosystem
+- use Rollup plugins, such as [@rollup/plugin-node-resolve](https://github.com/rollup/plugins/tree/master/packages/node-resolve) and [@rollup/plugin-commonjs](https://github.com/rollup/plugins/tree/master/packages/commonjs) which let you load CommonJS modules from the Node.js ecosystem
 
 To use Rollup with a configuration file, pass the `--config` or `-c` flags.
 
-```console
+```
 # use Rollup with a rollup.config.js file
-$ rollup --config
+rollup --config
 
 # alternatively, specify a custom config file location
-$ rollup --config my.config.js
+rollup --config my.config.js
+
+# .js and .mjs are supported
+rollup --config my.config.mjs
 ```
 
 You can also export a function that returns any of the above configuration formats. This function will be passed the current command line arguments so that you can dynamically adapt your configuration to respect e.g. [`--silent`](guide/en/#--silent). You can even define your own command line options if you prefix them with `config`:
@@ -182,6 +186,22 @@ export default commandLineArgs => {
 ```
 
 If you now run `rollup --config --configDebug`, the debug configuration will be used.
+
+By default, command line arguments will always override the respective values exported from a config file. If you want to change this behaviour, you can make Rollup ignore command line arguments by deleting them from the `commandLineArgs` object:
+
+```javascript
+// rollup.config.js
+export default commandLineArgs => {
+  const inputBase = commandLineArgs.input || 'main.js';
+
+  // this will make Rollup ignore the CLI argument
+  delete commandLineArgs.input;
+  return {
+    input: 'src/entries/' + inputBase,
+    output: {...}
+  }
+}
+```
 
 
 ### Command line flags
@@ -281,7 +301,7 @@ will set `process.env.INCLUDE_DEPS === 'true'` and `process.env.BUILD === 'produ
 
 If you call this script via:
 
-```console
+```
 npm run build -- --environment BUILD:development
 ```
 

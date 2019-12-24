@@ -1,8 +1,8 @@
 import MagicString from 'magic-string';
 import { accessedFileUrlGlobals, accessedMetaUrlGlobals } from '../../utils/defaultPlugin';
 import { dirname, normalize, relative } from '../../utils/path';
-import { PluginDriver } from '../../utils/pluginDriver';
-import { ObjectPathKey } from '../values';
+import { PluginDriver } from '../../utils/PluginDriver';
+import { ObjectPathKey } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
@@ -35,16 +35,15 @@ export default class MetaProperty extends NodeBase {
 				parent instanceof MemberExpression && typeof parent.propertyKey === 'string'
 					? parent.propertyKey
 					: null);
-			if (metaProperty) {
-				if (metaProperty === 'url') {
-					this.scope.addAccessedGlobalsByFormat(accessedMetaUrlGlobals);
-				} else if (
-					metaProperty.startsWith(FILE_PREFIX) ||
+			if (
+				metaProperty &&
+				(metaProperty.startsWith(FILE_PREFIX) ||
 					metaProperty.startsWith(ASSET_PREFIX) ||
-					metaProperty.startsWith(CHUNK_PREFIX)
-				) {
-					this.scope.addAccessedGlobalsByFormat(accessedFileUrlGlobals);
-				}
+					metaProperty.startsWith(CHUNK_PREFIX))
+			) {
+				this.scope.addAccessedGlobalsByFormat(accessedFileUrlGlobals);
+			} else {
+				this.scope.addAccessedGlobalsByFormat(accessedMetaUrlGlobals);
 			}
 		}
 	}
@@ -59,7 +58,7 @@ export default class MetaProperty extends NodeBase {
 		code: MagicString,
 		chunkId: string,
 		format: string,
-		pluginDriver: PluginDriver
+		outputPluginDriver: PluginDriver
 	): void {
 		if (!this.included) return;
 		const parent = this.parent;
@@ -77,26 +76,26 @@ export default class MetaProperty extends NodeBase {
 			let fileName: string;
 			if (metaProperty.startsWith(FILE_PREFIX)) {
 				referenceId = metaProperty.substr(FILE_PREFIX.length);
-				fileName = this.context.getFileName(referenceId);
+				fileName = outputPluginDriver.getFileName(referenceId);
 			} else if (metaProperty.startsWith(ASSET_PREFIX)) {
 				this.context.warnDeprecation(
 					`Using the "${ASSET_PREFIX}" prefix to reference files is deprecated. Use the "${FILE_PREFIX}" prefix instead.`,
 					false
 				);
 				assetReferenceId = metaProperty.substr(ASSET_PREFIX.length);
-				fileName = this.context.getFileName(assetReferenceId);
+				fileName = outputPluginDriver.getFileName(assetReferenceId);
 			} else {
 				this.context.warnDeprecation(
 					`Using the "${CHUNK_PREFIX}" prefix to reference files is deprecated. Use the "${FILE_PREFIX}" prefix instead.`,
 					false
 				);
 				chunkReferenceId = metaProperty.substr(CHUNK_PREFIX.length);
-				fileName = this.context.getFileName(chunkReferenceId);
+				fileName = outputPluginDriver.getFileName(chunkReferenceId);
 			}
 			const relativePath = normalize(relative(dirname(chunkId), fileName));
 			let replacement;
 			if (assetReferenceId !== null) {
-				replacement = pluginDriver.hookFirstSync('resolveAssetUrl', [
+				replacement = outputPluginDriver.hookFirstSync('resolveAssetUrl', [
 					{
 						assetFileName: fileName,
 						chunkId,
@@ -107,7 +106,7 @@ export default class MetaProperty extends NodeBase {
 				]);
 			}
 			if (!replacement) {
-				replacement = pluginDriver.hookFirstSync<'resolveFileUrl', string>('resolveFileUrl', [
+				replacement = outputPluginDriver.hookFirstSync<'resolveFileUrl', string>('resolveFileUrl', [
 					{
 						assetReferenceId,
 						chunkId,
@@ -130,7 +129,7 @@ export default class MetaProperty extends NodeBase {
 			return;
 		}
 
-		const replacement = pluginDriver.hookFirstSync('resolveImportMeta', [
+		const replacement = outputPluginDriver.hookFirstSync('resolveImportMeta', [
 			metaProperty,
 			{
 				chunkId,

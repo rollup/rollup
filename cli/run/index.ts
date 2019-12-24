@@ -9,7 +9,7 @@ import build from './build';
 import loadConfigFile from './loadConfigFile';
 import watch from './watch';
 
-export default function runRollup(command: any) {
+export default function runRollup (command: any) {
 	let inputSource;
 	if (command._.length > 0) {
 		if (command.input) {
@@ -47,9 +47,9 @@ export default function runRollup(command: any) {
 
 		environment.forEach((arg: string) => {
 			arg.split(',').forEach((pair: string) => {
-				const [key, value] = pair.split(':');
-				if (value) {
-					process.env[key] = value;
+				const [key, ...value] = pair.split(':');
+				if (value.length) {
+					process.env[key] = value.join(':');
 				} else {
 					process.env[key] = String(true);
 				}
@@ -93,7 +93,7 @@ export default function runRollup(command: any) {
 	}
 }
 
-function execute(configFile: string, configs: GenericConfigObject[], command: any) {
+function execute (configFile: string, configs: GenericConfigObject[], command: any) {
 	if (command.watch) {
 		watch(configFile, configs, command, command.silent);
 	} else {

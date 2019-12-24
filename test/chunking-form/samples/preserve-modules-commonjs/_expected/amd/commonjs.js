@@ -2,13 +2,15 @@ define(['exports', 'external', './other', './_virtual/_external_commonjs-externa
 
 	external = external && external.hasOwnProperty('default') ? external['default'] : external;
 
-	const { value } = other$1.default;
+	const { value } = other$1;
 
-	console.log(_external_commonjsExternal.default, value);
+	console.log(_external_commonjsExternal, value);
 
 	var commonjs = 42;
 
 	exports.__moduleExports = commonjs;
 	exports.default = commonjs;
+
+	Object.defineProperty(exports, '__esModule', { value: true });
 
 });

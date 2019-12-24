@@ -217,13 +217,42 @@ export default {
 Namespaces are supported i.e. your name can contain dots. The resulting bundle will contain the setup necessary for the namespacing.
 
 ```
-$ rollup -n "a.b.c"
+rollup -n "a.b.c"
 
 /* ->
 this.a = this.a || {};
 this.a.b = this.a.b || {};
 this.a.b.c = ...
 */
+```
+
+#### output.plugins
+Type: `OutputPlugin | (OutputPlugin | void)[]`
+
+Adds a plugin just to this output. See [Using output plugins](guide/en/#using-output-plugins) for more information on how to use output-specific plugins and [Plugins](guide/en/#plugin-development) on how to write your own. For plugins imported from packages, remember to call the imported plugin function (i.e. `commonjs()`, not just `commonjs`). Falsy plugins will be ignored, which can be used to easily activate or deactivate plugins.
+
+Not every plugin can be used here. `output.plugins` is limited to plugins that only use hooks that run during `bundle.generate()` or `bundle.write()`, i.e. after Rollup's main analysis is complete. If you are a plugin author, see [Plugin hooks](guide/en/#hooks) to find out which hooks can be used.
+
+The following will add minifaction to one of the outputs:
+
+```js
+// rollup.config.js
+import {terser} from 'rollup-plugin-terser';
+
+export default {
+  input: 'main.js',
+  output: [
+    {
+      file: 'bundle.js',
+      format: 'esm'
+    },
+    {
+      file: 'bundle.min.js',
+      format: 'esm',
+      plugins: [terser()]
+    }
+  ]
+};
 ```
 
 #### plugins
@@ -233,18 +262,22 @@ See [Using plugins](guide/en/#using-plugins) for more information on how to use 
 
 ```js
 // rollup.config.js
-import resolve from 'rollup-plugin-node-resolve';
-import commonjs from 'rollup-plugin-commonjs';
+import resolve from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
 
 const isProduction = process.env.NODE_ENV === 'production';
 
 export default (async () => ({
-  entry: 'main.js',
+  input: 'main.js',
   plugins: [
     resolve(),
     commonjs(),
     isProduction && (await import('rollup-plugin-terser')).terser()
-  ]
+  ],
+  output: {
+    file: 'bundle.js',
+    format: 'cjs'
+  }
 }))();
 ```
 
@@ -292,7 +325,7 @@ Type: `{ [chunkAlias: string]: string[] } | ((id: string) => string | void)`
 
 Allows the creation of custom shared common chunks. When using the object form, each property represents a chunk that contains the listed modules and all their dependencies if they are part of the module graph unless they are already in another manual chunk. The name of the chunk will be determined by the property key.
 
-Note that it is not necessary for the listed modules themselves to be be part of the module graph, which is useful if you are working with `rollup-plugin-node-resolve` and use deep imports from packages. For instance
+Note that it is not necessary for the listed modules themselves to be be part of the module graph, which is useful if you are working with `@rollup/plugin-node-resolve` and use deep imports from packages. For instance
 
 ```
 manualChunks: {
@@ -397,7 +430,7 @@ Default: `"[name]-[hash].js"`
 The pattern to use for naming shared chunks created when code-splitting. Pattern supports the following placeholders:
  * `[format]`: The rendering format defined in the output options, e.g. `esm` or `cjs`.
  * `[hash]`: A hash based on the content of the chunk and the content of all its dependencies.
- * `[name]`: The name of the chunk. This will be `chunk` unless the chunk was created via the [`manualChunks`](guide/en/#manualchunks) options.
+ * `[name]`: The name of the chunk. This can be explicitly set via the [`manualChunks`](guide/en/#manualchunks) option or when the chunk is created by a plugin via [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string). Otherwise it will be derived from the chunk contents.
 
 Forward slashes `/` can be used to place files in sub-directories. See also [`output.assetFileNames`](guide/en/#outputassetfilenames), [`output.entryFileNames`](guide/en/#outputentryfilenames).
 
@@ -416,9 +449,15 @@ Default: `"[name].js"`
 The pattern to use for chunks created from entry points. Pattern supports the following placeholders:
 * `[format]`: The rendering format defined in the output options, e.g. `esm` or `cjs`.
 * `[hash]`: A hash based on the content of the entry point and the content of all its dependencies.
-* `[name]`: The file name (without extension) of the entry point.
+* `[name]`: The file name (without extension) of the entry point, unless the object form of input was used to define a different name.
 
 Forward slashes `/` can be used to place files in sub-directories. See also [`output.assetFileNames`](guide/en/#outputassetfilenames), [`output.chunkFileNames`](guide/en/#outputchunkfilenames).
+
+This pattern will also be used when using the [`preserveModules`](guide/en/#preservemodules) option. Here there is a different set of placeholders available, though:
+* `[format]`: The rendering format defined in the output options.
+* `[name]`: The file name (without extension) of the file.
+* `[ext]`: The extension of the file.
+* `[extname]`: The extension of the file, prefixed by `.` if it is not empty.
 
 #### output.extend
 Type: `boolean`<br>
@@ -484,11 +523,11 @@ define(['https://d3js.org/d3.v4.min'], function (d3) {
 ```
 
 #### output.sourcemap
-Type: `boolean | 'inline'`<br>
+Type: `boolean | 'inline' | 'hidden'`<br>
 CLI: `-m`/`--sourcemap`/`--no-sourcemap`<br>
 Default: `false`
 
-If `true`, a separate sourcemap file will be created. If `inline`, the sourcemap will be appended to the resulting `output` file as a data URI.
+If `true`, a separate sourcemap file will be created. If `"inline"`, the sourcemap will be appended to the resulting `output` file as a data URI. `"hidden"` works like `true` except that the corresponding sourcemap comments in the bundled files are suppressed.
 
 #### output.sourcemapExcludeSources
 Type: `boolean`<br>
@@ -532,6 +571,48 @@ CLI: `--preserveModules`/`--no-preserveModules`<br>
 Default: `false`
 
 Instead of creating as few chunks as possible, this mode will create separate chunks for all modules using the original module names as file names. Requires the [`output.dir`](guide/en/#outputdir) option. Tree-shaking will still be applied, suppressing files that are not used by the provided entry points or do not have side-effects when executed. This mode can be used to transform a file structure to a different module format.
+
+Note that when transforming to `cjs` or `amd` format, each file will by default be treated as an entry point with [`output.exports`](guide/en/#outputexports) set to `auto`. This means that e.g. for `cjs`, a file that only contains a default export will be rendered as
+
+```js
+// input main.js
+export default 42;
+
+// output main.js
+'use strict';
+
+var main = 42;
+
+module.exports = main;
+```
+
+assigning the value directly to `module.exports`. If someone imports this file, they will get access to the default export via
+
+```js
+const main = require('./main.js');
+console.log(main); // 42
+```
+
+As with regular entry points, files that mix default and named exports will produce warnings. You can avoid the warnings by forcing all files to use named export mode via `output.exports: "named"`. In that case, the default export needs to be accessed via the `.default` property of the export:
+
+```js
+// input main.js
+export default 42;
+
+// output main.js
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var main = 42;
+
+exports.default = main;
+
+// consuming file
+const main = require('./main.js');
+console.log(main.default); // 42
+```
+
 
 #### strictDeprecations
 Type: `boolean`<br>
@@ -802,7 +883,7 @@ Default: `false`
 If this option is provided, bundling will not fail if bindings are imported from a file that does not define these bindings. Instead, new variables will be created for these bindings with the value `undefined`.
 
 #### treeshake
-Type: `boolean | { annotations?: boolean, moduleSideEffects?: ModuleSideEffectsOption, propertyReadSideEffects?: boolean }`<br>
+Type: `boolean | { annotations?: boolean, moduleSideEffects?: ModuleSideEffectsOption, propertyReadSideEffects?: boolean, tryCatchDeoptimization?: boolean, unknownGlobalSideEffects?: boolean }`<br>
 CLI: `--treeshake`/`--no-treeshake`<br>
 Default: `true`
 
@@ -938,6 +1019,29 @@ test(otherFn);
 
 ```
 
+**treeshake.unknownGlobalSideEffects**
+Type: `boolean`<br>
+CLI: `--treeshake.unknownGlobalSideEffects`/`--no-treeshake.unknownGlobalSideEffects`<br>
+Default: `true`
+
+Since accessing a non-existing global variable will throw an error, Rollup does by default retain any accesses to non-builtin global variables. Set this option to `false` to avoid this check. This is probably safe for most code-bases.
+
+```js
+// input
+const jQuery = $;
+const requestTimeout = setTimeout;
+const element = angular.element;
+
+// output with unknownGlobalSideEffects == true
+const jQuery = $;
+const element = angular.element;
+
+// output with unknownGlobalSideEffects == false
+const element = angular.element;
+```
+
+In the example, the last line is always retained as accessing the `element` property could also throw an error if `angular` is e.g. `null`. To avoid this check, set `treeshake.propertyReadSideEffects` to `false` as well.
+
 ### Experimental options
 
 These options reflect new features that have not yet been fully finalized. Availability, behaviour and usage may therefore be subject to change between minor versions.
@@ -975,7 +1079,7 @@ Type: `boolean`<br>
 CLI: `--perf`/`--no-perf`<br>
 Default: `false`
 
-Whether to collect performance timings. When used from the command line or a configuration file, detailed measurements about the current bundling process will be displayed. When used from the [JavaScript API](guide/en/#javascript-api), the returned bundle object will contain an aditional `getTimings()` function that can be called at any time to retrieve all accumulated measurements.
+Whether to collect performance timings. When used from the command line or a configuration file, detailed measurements about the current bundling process will be displayed. When used from the [JavaScript API](guide/en/#javascript-api), the returned bundle object will contain an additional `getTimings()` function that can be called at any time to retrieve all accumulated measurements.
 
 `getTimings()` returns an object of the following form:
 

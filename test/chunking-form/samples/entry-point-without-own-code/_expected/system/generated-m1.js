@@ -11,6 +11,7 @@ System.register(['./m2.js'], function (exports) {
 
 
 			var ms = /*#__PURE__*/Object.freeze({
+				__proto__: null,
 				m2: m2
 			});
 			exports('a', ms);

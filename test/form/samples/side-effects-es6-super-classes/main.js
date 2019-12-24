@@ -7,7 +7,7 @@ class SuperNoEffects {
 class NoEffects extends SuperNoEffects {}
 const noEffects = new NoEffects();
 
-class GlobalSuper extends GlobalClass {}
+class GlobalSuper extends globalThis.UnknownClass {}
 const globalSuper = new GlobalSuper();
 
 class SideEffectSuper extends (() => {

@@ -23,7 +23,7 @@ function retained1 () {
 retained1()();
 
 function retained2 () {
-	if ( globalCondition ) {
+	if ( globalThis.unknown ) {
 		return () => console.log( 'effect' );
 	}
 	return () => {};
@@ -32,7 +32,7 @@ function retained2 () {
 retained2()();
 
 function retained3 () {
-	if ( globalCondition ) {
+	if ( globalThis.unknown ) {
 		return () => {};
 	}
 }

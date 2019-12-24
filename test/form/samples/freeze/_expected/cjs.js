@@ -6,6 +6,7 @@ const foo = 1;
 const bar = 2;
 
 var namespace = ({
+	__proto__: null,
 	foo: foo,
 	bar: bar
 });

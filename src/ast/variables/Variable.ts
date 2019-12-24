@@ -1,14 +1,14 @@
 import ExternalModule from '../../ExternalModule';
 import Module from '../../Module';
-import CallOptions from '../CallOptions';
+import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import Identifier from '../nodes/Identifier';
 import { ExpressionEntity } from '../nodes/shared/Expression';
 import { ExpressionNode } from '../nodes/shared/Node';
 import SpreadElement from '../nodes/SpreadElement';
-import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
-import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
+import { ObjectPath, PathTracker } from '../utils/PathTracker';
+import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UnknownValue } from '../values';
 
 export default class Variable implements ExpressionEntity {
 	alwaysRendered = false;
@@ -41,10 +41,10 @@ export default class Variable implements ExpressionEntity {
 
 	getLiteralValueAtPath(
 		_path: ObjectPath,
-		_recursionTracker: ImmutableEntityPathTracker,
+		_recursionTracker: PathTracker,
 		_origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		return UNKNOWN_VALUE;
+		return UnknownValue;
 	}
 
 	getName(): string {
@@ -54,24 +54,24 @@ export default class Variable implements ExpressionEntity {
 
 	getReturnExpressionWhenCalledAtPath(
 		_path: ObjectPath,
-		_recursionTracker: ImmutableEntityPathTracker,
+		_recursionTracker: PathTracker,
 		_origin: DeoptimizableEntity
 	): ExpressionEntity {
 		return UNKNOWN_EXPRESSION;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, _context: HasEffectsContext) {
 		return path.length > 0;
 	}
 
-	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _context: HasEffectsContext) {
 		return true;
 	}
 
 	hasEffectsWhenCalledAtPath(
 		_path: ObjectPath,
 		_callOptions: CallOptions,
-		_options: ExecutionPathOptions
+		_context: HasEffectsContext
 	) {
 		return true;
 	}
@@ -82,13 +82,13 @@ export default class Variable implements ExpressionEntity {
 	 * previously.
 	 * Once a variable is included, it should take care all its declarations are included.
 	 */
-	include() {
+	include(_context: InclusionContext) {
 		this.included = true;
 	}
 
-	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
+	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
-			arg.include(false);
+			arg.include(context, false);
 		}
 	}
 

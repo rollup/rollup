@@ -8,7 +8,9 @@ const configFile = path.resolve(exports.targetDir, 'rollup.config.js');
 try {
 	fs.accessSync(configFile, fs.constants.R_OK);
 } catch (e) {
-	console.error(`No valid "rollup.config.js" in ${exports.targetDir}. Did you "npm run perf:init"?`);
+	console.error(
+		`No valid "rollup.config.js" in ${exports.targetDir}. Did you "npm run perf:init"?`
+	);
 	process.exit(1);
 }
 
@@ -18,8 +20,9 @@ exports.loadPerfConfig = async () => {
 		external: id => (id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5, id.length) === '.json',
 		onwarn: warning => console.error(warning.message)
 	});
-	const configs = loadConfigFromCode((await bundle.generate({ format: 'cjs' })).code);
-	return Array.isArray(configs) ? configs[0] : configs;
+	let config = loadConfigFromCode((await bundle.generate({ format: 'cjs' })).output[0].code);
+	config = typeof config === 'function' ? config({}) : config;
+	return Array.isArray(config) ? config[0] : config;
 };
 
 function loadConfigFromCode(code) {

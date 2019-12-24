@@ -1,9 +1,9 @@
 import MagicString from 'magic-string';
 import { NO_SEMICOLON, RenderOptions } from '../../utils/renderHelpers';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import Scope from '../scopes/Scope';
-import { EMPTY_PATH } from '../values';
+import { EMPTY_PATH } from '../utils/PathTracker';
 import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
@@ -26,27 +26,44 @@ export default class ForInStatement extends StatementBase {
 		this.scope = new BlockScope(parentScope);
 	}
 
-	hasEffects(options: ExecutionPathOptions): boolean {
-		return (
+	hasEffects(context: HasEffectsContext): boolean {
+		if (
 			(this.left &&
-				(this.left.hasEffects(options) ||
-					this.left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, options))) ||
-			(this.right && this.right.hasEffects(options)) ||
-			this.body.hasEffects(options.setIgnoreBreakStatements())
-		);
+				(this.left.hasEffects(context) ||
+					this.left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context))) ||
+			(this.right && this.right.hasEffects(context))
+		)
+			return true;
+		const {
+			brokenFlow,
+			ignore: { breaks, continues }
+		} = context;
+		context.ignore.breaks = true;
+		context.ignore.continues = true;
+		if (this.body.hasEffects(context)) return true;
+		context.ignore.breaks = breaks;
+		context.ignore.continues = continues;
+		context.brokenFlow = brokenFlow;
+		return false;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		this.left.includeWithAllDeclaredVariables(includeChildrenRecursively);
+		this.left.includeWithAllDeclaredVariables(includeChildrenRecursively, context);
 		this.left.deoptimizePath(EMPTY_PATH);
-		this.right.include(includeChildrenRecursively);
-		this.body.include(includeChildrenRecursively);
+		this.right.include(context, includeChildrenRecursively);
+		const { brokenFlow } = context;
+		this.body.include(context, includeChildrenRecursively);
+		context.brokenFlow = brokenFlow;
 	}
 
 	render(code: MagicString, options: RenderOptions) {
 		this.left.render(code, options, NO_SEMICOLON);
 		this.right.render(code, options, NO_SEMICOLON);
+		// handle no space between "in" and the right side
+		if (code.original.charCodeAt(this.right.start - 1) === 110 /* n */) {
+			code.prependLeft(this.right.start, ' ');
+		}
 		this.body.render(code, options);
 	}
 }

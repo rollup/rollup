@@ -4,6 +4,7 @@ System.register('iife', [], function (exports) {
 		execute: function () {
 
 			var self = /*#__PURE__*/Object.freeze({
+				__proto__: null,
 				get p () { return p; }
 			});
 

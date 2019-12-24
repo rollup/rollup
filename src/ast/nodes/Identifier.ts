@@ -2,12 +2,13 @@ import isReference from 'is-reference';
 import MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import CallOptions from '../CallOptions';
+import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import FunctionScope from '../scopes/FunctionScope';
-import { ImmutableEntityPathTracker } from '../utils/ImmutableEntityPathTracker';
-import { LiteralValueOrUnknown, ObjectPath, UNKNOWN_EXPRESSION, UNKNOWN_VALUE } from '../values';
+import { EMPTY_PATH, ObjectPath, PathTracker } from '../utils/PathTracker';
+import { LiteralValueOrUnknown } from '../values';
+import GlobalVariable from '../variables/GlobalVariable';
 import LocalVariable from '../variables/LocalVariable';
 import Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
@@ -51,8 +52,10 @@ export default class Identifier extends NodeBase implements PatternNode {
 		let variable: LocalVariable;
 		switch (kind) {
 			case 'var':
-			case 'function':
 				variable = this.scope.addDeclaration(this, this.context, init, true);
+				break;
+			case 'function':
+				variable = this.scope.addDeclaration(this, this.context, init, 'function');
 				break;
 			case 'let':
 			case 'const':
@@ -62,79 +65,79 @@ export default class Identifier extends NodeBase implements PatternNode {
 			case 'parameter':
 				variable = (this.scope as FunctionScope).addParameterDeclaration(this);
 				break;
+			/* istanbul ignore next */
 			default:
-				throw new Error(`Unexpected identifier kind ${kind}.`);
+				/* istanbul ignore next */
+				throw new Error(`Internal Error: Unexpected identifier kind ${kind}.`);
 		}
 		return [(this.variable = variable)];
 	}
 
 	deoptimizePath(path: ObjectPath) {
 		if (!this.bound) this.bind();
-		if (this.variable !== null) {
-			if (
-				path.length === 0 &&
-				this.name in this.context.importDescriptions &&
-				!this.scope.contains(this.name)
-			) {
-				this.disallowImportReassignment();
-			}
-			this.variable.deoptimizePath(path);
+		if (path.length === 0 && !this.scope.contains(this.name)) {
+			this.disallowImportReassignment();
 		}
+		(this.variable as Variable).deoptimizePath(path);
 	}
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (!this.bound) this.bind();
-		if (this.variable !== null) {
-			return this.variable.getLiteralValueAtPath(path, recursionTracker, origin);
-		}
-		return UNKNOWN_VALUE;
+		return (this.variable as Variable).getLiteralValueAtPath(path, recursionTracker, origin);
 	}
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
-		recursionTracker: ImmutableEntityPathTracker,
+		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	) {
 		if (!this.bound) this.bind();
-		if (this.variable !== null) {
-			return this.variable.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
-		}
-		return UNKNOWN_EXPRESSION;
+		return (this.variable as Variable).getReturnExpressionWhenCalledAtPath(
+			path,
+			recursionTracker,
+			origin
+		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return this.variable !== null && this.variable.hasEffectsWhenAccessedAtPath(path, options);
+	hasEffects(): boolean {
+		return (
+			this.context.unknownGlobalSideEffects &&
+			this.variable instanceof GlobalVariable &&
+			this.variable.hasEffectsWhenAccessedAtPath(EMPTY_PATH)
+		);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return !this.variable || this.variable.hasEffectsWhenAssignedAtPath(path, options);
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
+		return this.variable !== null && this.variable.hasEffectsWhenAccessedAtPath(path, context);
+	}
+
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
+		return !this.variable || this.variable.hasEffectsWhenAssignedAtPath(path, context);
 	}
 
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		options: ExecutionPathOptions
+		context: HasEffectsContext
 	) {
-		return !this.variable || this.variable.hasEffectsWhenCalledAtPath(path, callOptions, options);
+		return !this.variable || this.variable.hasEffectsWhenCalledAtPath(path, callOptions, context);
 	}
 
-	include() {
+	include(context: InclusionContext) {
 		if (!this.included) {
 			this.included = true;
 			if (this.variable !== null) {
-				this.context.includeVariable(this.variable);
+				this.context.includeVariable(context, this.variable);
 			}
 		}
 	}
 
-	includeCallArguments(args: (ExpressionNode | SpreadElement)[]): void {
-		if (this.variable) {
-			this.variable.includeCallArguments(args);
-		}
+	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
+		(this.variable as Variable).includeCallArguments(context, args);
 	}
 
 	render(

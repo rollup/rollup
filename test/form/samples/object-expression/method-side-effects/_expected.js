@@ -1,6 +1,15 @@
+const x = {
+	[globalThis.unknown]() {
+		console.log('effect');
+	},
+	a() {}
+};
+
+x.a();
+
 const y = {
 	a() {},
-	[unknown]() {
+	[globalThis.unknown]() {
 		console.log('effect');
 	}
 };
@@ -8,7 +17,8 @@ const y = {
 y.a();
 
 const z = {
-	[unknown]() {}
+	[globalThis.unknown]() {}
 };
 
 z.a();
+z.hasOwnProperty('a'); // removed

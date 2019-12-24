@@ -1,8 +1,7 @@
 import MagicString from 'magic-string';
-import { RenderOptions } from '../../utils/renderHelpers';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
+import { HasEffectsContext } from '../ExecutionContext';
 import ModuleScope from '../scopes/ModuleScope';
-import { ObjectPath } from '../values';
+import { ObjectPath } from '../utils/PathTracker';
 import ThisVariable from '../variables/ThisVariable';
 import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
@@ -18,12 +17,12 @@ export default class ThisExpression extends NodeBase {
 		this.variable = this.scope.findVariable('this') as ThisVariable;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return path.length > 0 && this.variable.hasEffectsWhenAccessedAtPath(path, options);
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
+		return path.length > 0 && this.variable.hasEffectsWhenAccessedAtPath(path, context);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, options: ExecutionPathOptions): boolean {
-		return this.variable.hasEffectsWhenAssignedAtPath(path, options);
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
+		return this.variable.hasEffectsWhenAssignedAtPath(path, context);
 	}
 
 	initialise() {
@@ -41,7 +40,7 @@ export default class ThisExpression extends NodeBase {
 		}
 	}
 
-	render(code: MagicString, _options: RenderOptions) {
+	render(code: MagicString) {
 		if (this.alias !== null) {
 			code.overwrite(this.start, this.end, this.alias, {
 				contentOnly: false,

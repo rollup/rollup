@@ -1,17 +1,26 @@
+const x = {
+	[globalThis.unknown]: () => () => console.log('effect'),
+	a: () => () => {}
+};
+
+x.a()();
+
 const y = {
 	a: () => () => {},
-	[unknown]: () => () => console.log('effect')
+	[globalThis.unknown]: () => () => console.log('effect')
 };
 
 y.a()();
 
 const z = {
-	[unknown]: () => ({})
+	[globalThis.unknown]: () => ({})
 };
 
 z.a()();
 
 const v = {};
+
+v.toString().charCodeAt(0); // removed
 v.toString().doesNotExist(0); // retained
 
 const w = {

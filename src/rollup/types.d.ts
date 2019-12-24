@@ -4,10 +4,14 @@ import { EventEmitter } from 'events';
 export const VERSION: string;
 
 export interface RollupError extends RollupLogProps {
+	parserError?: Error;
 	stack?: string;
+	watchFiles?: string[];
 }
 
 export interface RollupWarning extends RollupLogProps {
+	chunkName?: string;
+	cycle?: string[];
 	exporter?: string;
 	exportName?: string;
 	guess?: string;
@@ -105,7 +109,7 @@ export interface TransformModuleJSON {
 	originalSourcemap: ExistingDecodedSourceMap | null;
 	resolvedIds?: ResolvedIdMap;
 	sourcemapChain: DecodedSourceMapOrMissing[];
-	transformDependencies: string[] | null;
+	transformDependencies: string[];
 }
 
 export interface ModuleJSON extends TransformModuleJSON {
@@ -314,8 +318,12 @@ export interface OutputBundle {
 	[fileName: string]: OutputAsset | OutputChunk;
 }
 
+export interface FilePlaceholder {
+	type: 'placeholder';
+}
+
 export interface OutputBundleWithPlaceholders {
-	[fileName: string]: OutputAsset | OutputChunk | {};
+	[fileName: string]: OutputAsset | OutputChunk | FilePlaceholder;
 }
 
 interface OnGenerateOptions extends OutputOptions {
@@ -326,17 +334,14 @@ interface OnWriteOptions extends OutputOptions {
 	bundle: RollupBuild;
 }
 
-export interface PluginHooks {
+interface OutputPluginHooks {
 	augmentChunkHash: (this: PluginContext, chunk: PreRenderedChunk) => string | void;
-	buildEnd: (this: PluginContext, err?: Error) => Promise<void> | void;
-	buildStart: (this: PluginContext, options: InputOptions) => Promise<void> | void;
 	generateBundle: (
 		this: PluginContext,
 		options: OutputOptions,
 		bundle: OutputBundle,
 		isWrite: boolean
 	) => void | Promise<void>;
-	load: LoadHook;
 	/** @deprecated Use `generateBundle` instead */
 	ongenerate: (
 		this: PluginContext,
@@ -349,33 +354,50 @@ export interface PluginHooks {
 		options: OnWriteOptions,
 		chunk: OutputChunk
 	) => void | Promise<void>;
-	options: (this: MinimalPluginContext, options: InputOptions) => InputOptions | null | undefined;
 	outputOptions: (this: PluginContext, options: OutputOptions) => OutputOptions | null | undefined;
 	renderChunk: RenderChunkHook;
 	renderError: (this: PluginContext, err?: Error) => Promise<void> | void;
-	renderStart: (this: PluginContext) => Promise<void> | void;
+	renderStart: (
+		this: PluginContext,
+		outputOptions: OutputOptions,
+		inputOptions: InputOptions
+	) => Promise<void> | void;
 	/** @deprecated Use `resolveFileUrl` instead */
 	resolveAssetUrl: ResolveAssetUrlHook;
 	resolveDynamicImport: ResolveDynamicImportHook;
 	resolveFileUrl: ResolveFileUrlHook;
-	resolveId: ResolveIdHook;
-	resolveImportMeta: ResolveImportMetaHook;
-	transform: TransformHook;
 	/** @deprecated Use `renderChunk` instead */
 	transformBundle: TransformChunkHook;
 	/** @deprecated Use `renderChunk` instead */
 	transformChunk: TransformChunkHook;
-	watchChange: (id: string) => void;
 	writeBundle: (this: PluginContext, bundle: OutputBundle) => void | Promise<void>;
 }
 
-export interface Plugin extends Partial<PluginHooks> {
-	banner?: AddonHook;
-	cacheKey?: string;
-	footer?: AddonHook;
-	intro?: AddonHook;
+export interface PluginHooks extends OutputPluginHooks {
+	buildEnd: (this: PluginContext, err?: Error) => Promise<void> | void;
+	buildStart: (this: PluginContext, options: InputOptions) => Promise<void> | void;
+	load: LoadHook;
+	options: (this: MinimalPluginContext, options: InputOptions) => InputOptions | null | undefined;
+	resolveId: ResolveIdHook;
+	resolveImportMeta: ResolveImportMetaHook;
+	transform: TransformHook;
+	watchChange: (id: string) => void;
+}
+
+interface OutputPluginValueHooks {
+	banner: AddonHook;
+	cacheKey: string;
+	footer: AddonHook;
+	intro: AddonHook;
+	outro: AddonHook;
+}
+
+export interface Plugin extends Partial<PluginHooks>, Partial<OutputPluginValueHooks> {
 	name: string;
-	outro?: AddonHook;
+}
+
+export interface OutputPlugin extends Partial<OutputPluginHooks>, Partial<OutputPluginValueHooks> {
+	name: string;
 }
 
 export interface TreeshakingOptions {
@@ -385,6 +407,7 @@ export interface TreeshakingOptions {
 	/** @deprecated Use `moduleSideEffects` instead */
 	pureExternalModules?: PureModulesOption;
 	tryCatchDeoptimization?: boolean;
+	unknownGlobalSideEffects?: boolean;
 }
 
 export type GetManualChunk = (id: string) => string | null | undefined;
@@ -468,8 +491,9 @@ export interface OutputOptions {
 	noConflict?: boolean;
 	outro?: string | (() => string | Promise<string>);
 	paths?: OptionsPaths;
+	plugins?: OutputPlugin[];
 	preferConst?: boolean;
-	sourcemap?: boolean | 'inline';
+	sourcemap?: boolean | 'inline' | 'hidden';
 	sourcemapExcludeSources?: boolean;
 	sourcemapFile?: string;
 	sourcemapPathTransform?: (sourcePath: string) => string;
@@ -477,20 +501,21 @@ export interface OutputOptions {
 }
 
 export type WarningHandlerWithDefault = (
-	warning: string | RollupWarning,
+	warning: RollupWarning,
 	defaultHandler: WarningHandler
 ) => void;
-export type WarningHandler = (warning: string | RollupWarning) => void;
+export type WarningHandler = (warning: RollupWarning) => void;
 
 export interface SerializedTimings {
 	[label: string]: [number, number, number];
 }
 
 export interface OutputAsset {
-	code?: undefined;
 	fileName: string;
+	/** @deprecated Accessing "isAsset" on files in the bundle is deprecated, please use "type === \'asset\'" instead */
 	isAsset: true;
 	source: string | Buffer;
+	type: 'asset';
 }
 
 export interface RenderedModule {
@@ -520,6 +545,7 @@ export interface RenderedChunk extends PreRenderedChunk {
 export interface OutputChunk extends RenderedChunk {
 	code: string;
 	map?: SourceMap;
+	type: 'chunk';
 }
 
 export interface SerializablePluginCache {
@@ -527,7 +553,7 @@ export interface SerializablePluginCache {
 }
 
 export interface RollupCache {
-	modules?: ModuleJSON[];
+	modules: ModuleJSON[];
 	plugins?: Record<string, SerializablePluginCache>;
 }
 
@@ -544,7 +570,8 @@ export interface RollupBuild {
 }
 
 export interface RollupOptions extends InputOptions {
-	output?: OutputOptions;
+	// This is included for compatibility with config files but ignored by rollup.rollup
+	output?: OutputOptions | OutputOptions[];
 }
 
 export function rollup(options: RollupOptions): Promise<RollupBuild>;
@@ -586,7 +613,7 @@ export interface RollupWatchOptions extends InputOptions {
 
 interface TypedEventEmitter<T> {
 	addListener<K extends keyof T>(event: K, listener: T[K]): this;
-	emit<K extends keyof T>(event: K, ...args: Parameters<T[K]>): boolean;
+	emit<K extends keyof T>(event: K, ...args: any[]): boolean;
 	eventNames(): Array<keyof T>;
 	getMaxListeners(): number;
 	listenerCount(type: keyof T): number;

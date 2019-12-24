@@ -45,4 +45,4 @@ test({
 	}
 });
 
-export { create, getPrototypeOf, quux as strange };
+export { create, getPrototypeOf, quux, quux as strange };

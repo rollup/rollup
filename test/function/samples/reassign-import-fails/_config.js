@@ -6,6 +6,7 @@ module.exports = {
 		code: 'ILLEGAL_REASSIGNMENT',
 		message: `Illegal reassignment to import 'x'`,
 		pos: 113,
+		watchFiles: [path.resolve(__dirname, 'main.js'), path.resolve(__dirname, 'foo.js')],
 		loc: {
 			file: path.resolve(__dirname, 'main.js'),
 			line: 8,

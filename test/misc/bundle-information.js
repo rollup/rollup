@@ -26,14 +26,14 @@ describe('The bundle object', () => {
 			.then(({ output }) => {
 				assert.deepEqual(
 					output.map(chunk => chunk.fileName),
-					['input1-91cf8b5e.js', 'input2-28e1210a.js', 'generated-shared-e9283962.js'],
+					['input1-3810e839.js', 'input2-14354d1f.js', 'generated-shared-f6027271.js'],
 					'fileName'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.code),
 					[
-						`import './generated-shared-e9283962.js';\n\nconsole.log("input1");const out = true;\n\nexport { out };\n`,
-						`import './generated-shared-e9283962.js';\n\nconsole.log("input2");var input2 = 42;\n\nexport default input2;\n`,
+						`import './generated-shared-f6027271.js';\n\nconsole.log("input1");const out = true;\n\nexport { out };\n`,
+						`import './generated-shared-f6027271.js';\n\nconsole.log("input2");var input2 = 42;\n\nexport default input2;\n`,
 						'console.log("shared");\n'
 					],
 					'code'
@@ -48,7 +48,7 @@ describe('The bundle object', () => {
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.imports),
-					[['generated-shared-e9283962.js'], ['generated-shared-e9283962.js'], []],
+					[['generated-shared-f6027271.js'], ['generated-shared-f6027271.js'], []],
 					'imports'
 				);
 				assert.deepEqual(output.map(chunk => chunk.dynamicImports), [[], [], []], 'dynamicImports');

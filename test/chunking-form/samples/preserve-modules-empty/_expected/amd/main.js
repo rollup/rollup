@@ -1,5 +1,5 @@
 define(['./two'], function (two) { 'use strict';
 
-	window.APP = { a: two.default };
+	window.APP = { a: two };
 
 });

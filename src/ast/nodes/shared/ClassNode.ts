@@ -1,8 +1,8 @@
-import CallOptions from '../../CallOptions';
-import { ExecutionPathOptions } from '../../ExecutionPathOptions';
+import { CallOptions } from '../../CallOptions';
+import { HasEffectsContext } from '../../ExecutionContext';
 import ChildScope from '../../scopes/ChildScope';
 import Scope from '../../scopes/Scope';
-import { ObjectPath } from '../../values';
+import { ObjectPath } from '../../utils/PathTracker';
 import ClassBody from '../ClassBody';
 import Identifier from '../Identifier';
 import { ExpressionNode, NodeBase } from './Node';
@@ -16,23 +16,24 @@ export default class ClassNode extends NodeBase {
 		this.scope = new ChildScope(parentScope);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
 		return path.length > 1;
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath) {
 		return path.length > 1;
 	}
 
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
-		options: ExecutionPathOptions
+		context: HasEffectsContext
 	) {
+		if (!callOptions.withNew) return true;
 		return (
-			this.body.hasEffectsWhenCalledAtPath(path, callOptions, options) ||
+			this.body.hasEffectsWhenCalledAtPath(path, callOptions, context) ||
 			(this.superClass !== null &&
-				this.superClass.hasEffectsWhenCalledAtPath(path, callOptions, options))
+				this.superClass.hasEffectsWhenCalledAtPath(path, callOptions, context))
 		);
 	}
 

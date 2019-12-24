@@ -26,10 +26,10 @@ const retained6 = { x: { y: {} } };
 retained6.x = {};
 retained6.x.y.z = 3;
 
-const retained7 = { x: { y: globalVar } };
+const retained7 = { x: { y: globalThis.unknown } };
 const retained8 = { x: retained7.x };
 retained8.x.y.z = 3;
 
-const removed3 = { a: { x: { y: globalVar } } };
+const removed3 = { a: { x: { y: globalThis.unknown } } };
 const removed4 = { x: removed3.a.x };
 removed4.x.y = 2;

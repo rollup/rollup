@@ -3,6 +3,7 @@ import { InputOptions, OutputBundleWithPlaceholders, OutputOptions } from '../ro
 import { Addons } from './addons';
 import { FILE_PLACEHOLDER } from './FileEmitter';
 import { basename } from './path';
+import { PluginDriver } from './PluginDriver';
 
 export function assignChunkIds(
 	chunks: Chunk[],
@@ -10,7 +11,8 @@ export function assignChunkIds(
 	outputOptions: OutputOptions,
 	inputBase: string,
 	addons: Addons,
-	bundle: OutputBundleWithPlaceholders
+	bundle: OutputBundleWithPlaceholders,
+	outputPluginDriver: PluginDriver
 ) {
 	const entryChunks: Chunk[] = [];
 	const otherChunks: Chunk[] = [];
@@ -24,21 +26,12 @@ export function assignChunkIds(
 	// make sure entry chunk names take precedence with regard to deconflicting
 	const chunksForNaming: Chunk[] = entryChunks.concat(otherChunks);
 	for (const chunk of chunksForNaming) {
-		const facadeModule = chunk.facadeModule;
 		if (outputOptions.file) {
 			chunk.id = basename(outputOptions.file);
 		} else if (inputOptions.preserveModules) {
-			chunk.id = chunk.generateIdPreserveModules(inputBase, bundle);
+			chunk.id = chunk.generateIdPreserveModules(inputBase, outputOptions, bundle);
 		} else {
-			let pattern, patternName;
-			if (facadeModule && facadeModule.isUserDefinedEntryPoint) {
-				pattern = outputOptions.entryFileNames || '[name].js';
-				patternName = 'output.entryFileNames';
-			} else {
-				pattern = outputOptions.chunkFileNames || '[name]-[hash].js';
-				patternName = 'output.chunkFileNames';
-			}
-			chunk.id = chunk.generateId(pattern, patternName, addons, outputOptions, bundle);
+			chunk.id = chunk.generateId(addons, outputOptions, bundle, true, outputPluginDriver);
 		}
 		bundle[chunk.id] = FILE_PLACEHOLDER;
 	}

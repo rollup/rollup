@@ -1,5 +1,6 @@
 import { AstContext } from '../../Module';
-import { ObjectPath, UNKNOWN_EXPRESSION } from '../values';
+import { ObjectPath } from '../utils/PathTracker';
+import { UNKNOWN_EXPRESSION } from '../values';
 import LocalVariable from './LocalVariable';
 
 export default class ArgumentsVariable extends LocalVariable {

@@ -1,2 +1,2 @@
-const localDocument = document;
+const localDocument = window.document;
 export { localDocument as document };

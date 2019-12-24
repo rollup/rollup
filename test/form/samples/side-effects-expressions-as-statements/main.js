@@ -1,6 +1,6 @@
 // Access getters with side-effects to e.g. force DOM repaints
-globalVar.getter;
-globalVar && globalVar.member && globalVar.member.getter;
+globalThis.unknown.getter;
+globalThis.unknown && globalThis.unknown.member && globalThis.unknown.member.getter;
 
 // Call pure constructors for side-effects for e.g. feature detection
 new Function('');

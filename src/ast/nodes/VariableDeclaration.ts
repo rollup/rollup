@@ -6,8 +6,8 @@ import {
 	RenderOptions
 } from '../../utils/renderHelpers';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
-import { ExecutionPathOptions } from '../ExecutionPathOptions';
-import { EMPTY_PATH, ObjectPath } from '../values';
+import { InclusionContext } from '../ExecutionContext';
+import { EMPTY_PATH } from '../utils/PathTracker';
 import Variable from '../variables/Variable';
 import Identifier, { IdentifierWithVariable } from './Identifier';
 import * as NodeType from './NodeType';
@@ -20,9 +20,7 @@ function isReassignedExportsMember(variable: Variable): boolean {
 
 function areAllDeclarationsIncludedAndNotExported(declarations: VariableDeclarator[]): boolean {
 	for (const declarator of declarations) {
-		if (!declarator.included) {
-			return false;
-		}
+		if (!declarator.included) return false;
 		if (declarator.id.type === NodeType.Identifier) {
 			if ((declarator.id.variable as Variable).exportName) return false;
 		} else {
@@ -39,28 +37,31 @@ export default class VariableDeclaration extends NodeBase {
 	kind!: 'var' | 'let' | 'const';
 	type!: NodeType.tVariableDeclaration;
 
-	deoptimizePath(_path: ObjectPath) {
+	deoptimizePath() {
 		for (const declarator of this.declarations) {
 			declarator.deoptimizePath(EMPTY_PATH);
 		}
 	}
 
-	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _options: ExecutionPathOptions) {
+	hasEffectsWhenAssignedAtPath() {
 		return false;
 	}
 
-	include(includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		for (const declarator of this.declarations) {
-			if (includeChildrenRecursively || declarator.shouldBeIncluded())
-				declarator.include(includeChildrenRecursively);
+			if (includeChildrenRecursively || declarator.shouldBeIncluded(context))
+				declarator.include(context, includeChildrenRecursively);
 		}
 	}
 
-	includeWithAllDeclaredVariables(includeChildrenRecursively: IncludeChildren) {
+	includeWithAllDeclaredVariables(
+		includeChildrenRecursively: IncludeChildren,
+		context: InclusionContext
+	) {
 		this.included = true;
 		for (const declarator of this.declarations) {
-			declarator.include(includeChildrenRecursively);
+			declarator.include(context, includeChildrenRecursively);
 		}
 	}
 

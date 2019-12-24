@@ -2,4 +2,4 @@
 
 var a = {};
 
-exports.default = a;
+module.exports = a;
