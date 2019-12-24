@@ -128,7 +128,7 @@ export function initialiseTimers(inputOptions: InputOptions) {
 		setTimeHelpers();
 		timeStart = timeStartImpl;
 		timeEnd = timeEndImpl;
-		inputOptions.plugins = (inputOptions.plugins as Plugin[]).map(getPluginWithTimers);
+		inputOptions.plugins = inputOptions.plugins!.map(getPluginWithTimers);
 	} else {
 		timeStart = NOOP;
 		timeEnd = NOOP;

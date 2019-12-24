@@ -84,8 +84,8 @@ export default function amd(
 		exports,
 		dependencies,
 		namedExportsMode,
-		options.interop as boolean,
-		options.compact as boolean,
+		options.interop,
+		options.compact,
 		t
 	);
 	if (exportBlock) magicString.append(n + n + exportBlock);

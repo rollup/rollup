@@ -24,10 +24,7 @@ export default class ImportDeclaration extends NodeBase {
 	}
 
 	render(code: MagicString, _options: RenderOptions, nodeRenderOptions?: NodeRenderOptions) {
-		code.remove(
-			(nodeRenderOptions as NodeRenderOptions).start as number,
-			(nodeRenderOptions as NodeRenderOptions).end as number
-		);
+		code.remove(nodeRenderOptions!.start!, nodeRenderOptions!.end!);
 	}
 }
 

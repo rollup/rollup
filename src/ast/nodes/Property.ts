@@ -93,8 +93,7 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 			trackedExpressions.add(this);
 			return (
 				this.value.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.accessorCallOptions, context) ||
-				(path.length > 0 &&
-					(this.returnExpression as ExpressionEntity).hasEffectsWhenAccessedAtPath(path, context))
+				(path.length > 0 && this.returnExpression!.hasEffectsWhenAccessedAtPath(path, context))
 			);
 		}
 		return this.value.hasEffectsWhenAccessedAtPath(path, context);
@@ -105,10 +104,7 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 			const trackedExpressions = context.assigned.getEntities(path);
 			if (trackedExpressions.has(this)) return false;
 			trackedExpressions.add(this);
-			return (this.returnExpression as ExpressionEntity).hasEffectsWhenAssignedAtPath(
-				path,
-				context
-			);
+			return this.returnExpression!.hasEffectsWhenAssignedAtPath(path, context);
 		}
 		if (this.kind === 'set') {
 			const trackedExpressions = context.assigned.getEntities(path);
@@ -131,11 +127,7 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 			).getEntities(path);
 			if (trackedExpressions.has(this)) return false;
 			trackedExpressions.add(this);
-			return (this.returnExpression as ExpressionEntity).hasEffectsWhenCalledAtPath(
-				path,
-				callOptions,
-				context
-			);
+			return this.returnExpression!.hasEffectsWhenCalledAtPath(path, callOptions, context);
 		}
 		return this.value.hasEffectsWhenCalledAtPath(path, callOptions, context);
 	}

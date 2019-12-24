@@ -338,11 +338,11 @@ export class ModuleLoader {
 						const exportAllModule = this.modulesById.get(id);
 						if (exportAllModule instanceof ExternalModule) continue;
 
-						for (const name in (exportAllModule as Module).exportsAll) {
+						for (const name in exportAllModule!.exportsAll) {
 							if (name in module.exportsAll) {
-								this.graph.warn(errNamespaceConflict(name, module, exportAllModule as Module));
+								this.graph.warn(errNamespaceConflict(name, module, exportAllModule!));
 							} else {
-								module.exportsAll[name] = (exportAllModule as Module).exportsAll[name];
+								module.exportsAll[name] = exportAllModule!.exportsAll[name];
 							}
 						}
 					}

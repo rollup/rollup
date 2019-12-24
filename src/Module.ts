@@ -158,7 +158,7 @@ function handleMissingExport(
 			message: `'${exportName}' is not exported by ${relativeId(importedModule)}`,
 			url: `https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module`
 		},
-		importerStart as number
+		importerStart!
 	);
 }
 
@@ -566,7 +566,7 @@ export default class Module {
 		const fileName = this.id;
 
 		this.magicString = new MagicString(code, {
-			filename: (this.excludeFromSourcemap ? null : fileName) as string, // don't include plugin helpers in sourcemap
+			filename: (this.excludeFromSourcemap ? null : fileName)!, // don't include plugin helpers in sourcemap
 			indentExclusionRanges: []
 		});
 		this.removeExistingSourceMap();
@@ -578,8 +578,7 @@ export default class Module {
 			addExport: this.addExport.bind(this),
 			addImport: this.addImport.bind(this),
 			addImportMeta: this.addImportMeta.bind(this),
-			annotations: (this.graph.treeshakingOptions &&
-				this.graph.treeshakingOptions.annotations) as boolean,
+			annotations: (this.graph.treeshakingOptions && this.graph.treeshakingOptions.annotations)!,
 			code, // Only needed for debugging
 			deoptimizationTracker: this.graph.deoptimizationTracker,
 			error: this.error.bind(this),
@@ -599,14 +598,14 @@ export default class Module {
 			nodeConstructors,
 			preserveModules: this.graph.preserveModules,
 			propertyReadSideEffects: (!this.graph.treeshakingOptions ||
-				this.graph.treeshakingOptions.propertyReadSideEffects) as boolean,
+				this.graph.treeshakingOptions.propertyReadSideEffects)!,
 			traceExport: this.getVariableForExportName.bind(this),
 			traceVariable: this.traceVariable.bind(this),
 			treeshake: !!this.graph.treeshakingOptions,
 			tryCatchDeoptimization: (!this.graph.treeshakingOptions ||
-				this.graph.treeshakingOptions.tryCatchDeoptimization) as boolean,
+				this.graph.treeshakingOptions.tryCatchDeoptimization)!,
 			unknownGlobalSideEffects: (!this.graph.treeshakingOptions ||
-				this.graph.treeshakingOptions.unknownGlobalSideEffects) as boolean,
+				this.graph.treeshakingOptions.unknownGlobalSideEffects)!,
 			usesTopLevelAwait: false,
 			warn: this.warn.bind(this),
 			warnDeprecation: this.graph.warnDeprecation.bind(this.graph)
@@ -647,7 +646,7 @@ export default class Module {
 
 		if (name in this.importDescriptions) {
 			const importDeclaration = this.importDescriptions[name];
-			const otherModule = importDeclaration.module as Module | ExternalModule;
+			const otherModule = importDeclaration.module!;
 
 			if (otherModule instanceof Module && importDeclaration.name === '*') {
 				return otherModule.getOrCreateNamespace();

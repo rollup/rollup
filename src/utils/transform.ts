@@ -126,12 +126,12 @@ export default function transform(
 						return pluginContext.error(err);
 					},
 					emitAsset(name: string, source?: string | Buffer) {
-						const emittedFile = { type: 'asset' as 'asset', name, source };
+						const emittedFile = { type: 'asset' as const, name, source };
 						emittedFiles.push({ ...emittedFile });
 						return graph.pluginDriver.emitFile(emittedFile);
 					},
 					emitChunk(id, options) {
-						const emittedFile = { type: 'chunk' as 'chunk', id, name: options && options.name };
+						const emittedFile = { type: 'chunk' as const, id, name: options && options.name };
 						emittedFiles.push({ ...emittedFile });
 						return graph.pluginDriver.emitFile(emittedFile);
 					},
@@ -175,7 +175,7 @@ export default function transform(
 						return new SourceMap({
 							...combinedMap,
 							file: null as any,
-							sourcesContent: combinedMap.sourcesContent as string[]
+							sourcesContent: combinedMap.sourcesContent!
 						});
 					}
 				};
@@ -186,7 +186,7 @@ export default function transform(
 			if (!customTransformCache && setAssetSourceErr) throw setAssetSourceErr;
 
 			return {
-				ast: ast as any,
+				ast: ast!,
 				code,
 				customTransformCache,
 				moduleSideEffects,

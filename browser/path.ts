@@ -28,7 +28,7 @@ export function dirname(path: string) {
 }
 
 export function extname(path: string) {
-	const match = /\.[^.]+$/.exec(basename(path) as string);
+	const match = /\.[^.]+$/.exec(basename(path)!);
 	if (!match) return '';
 	return match[0];
 }
@@ -58,7 +58,7 @@ export function relative(from: string, to: string) {
 }
 
 export function resolve(...paths: string[]) {
-	let resolvedParts = (paths.shift() as string).split(/[/\\]/);
+	let resolvedParts = paths.shift()!.split(/[/\\]/);
 
 	paths.forEach(path => {
 		if (isAbsolute(path)) {

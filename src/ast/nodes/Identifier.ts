@@ -78,7 +78,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		if (path.length === 0 && !this.scope.contains(this.name)) {
 			this.disallowImportReassignment();
 		}
-		(this.variable as Variable).deoptimizePath(path);
+		this.variable!.deoptimizePath(path);
 	}
 
 	getLiteralValueAtPath(
@@ -87,7 +87,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
 		if (!this.bound) this.bind();
-		return (this.variable as Variable).getLiteralValueAtPath(path, recursionTracker, origin);
+		return this.variable!.getLiteralValueAtPath(path, recursionTracker, origin);
 	}
 
 	getReturnExpressionWhenCalledAtPath(
@@ -96,11 +96,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		origin: DeoptimizableEntity
 	) {
 		if (!this.bound) this.bind();
-		return (this.variable as Variable).getReturnExpressionWhenCalledAtPath(
-			path,
-			recursionTracker,
-			origin
-		);
+		return this.variable!.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
 	}
 
 	hasEffects(): boolean {
@@ -137,7 +133,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 	}
 
 	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
-		(this.variable as Variable).includeCallArguments(context, args);
+		this.variable!.includeCallArguments(context, args);
 	}
 
 	render(
