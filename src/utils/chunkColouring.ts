@@ -82,6 +82,7 @@ export function assignChunkColouringHashes(
 		if (handledEntryPoints.has(currentEntry.id)) {
 			continue;
 		}
+		handledEntryPoints.add(currentEntry.id);
 		const dynamicDependentEntryPoints = dynamicDependentEntryPointsByDynamicEntry.get(currentEntry);
 		const dependentEntryPoints = dependentEntryPointsByModule.get(currentEntry);
 		const inMemory = [...(dynamicDependentEntryPoints || [])].every(
