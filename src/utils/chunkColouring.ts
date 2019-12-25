@@ -10,6 +10,8 @@ export function assignChunkColouringHashes(
 	let modulesVisitedForCurrentEntry: Set<string>;
 	const handledEntryPoints: Set<string> = new Set();
 	const dynamicImports: Module[] = [];
+	const dependentEntryPointsByModule: Map<Module, Set<Module>> = new Map();
+	const dynamicDependentEntryPointsByDynamicEntry: Map<Module, Set<Module>> = new Map();
 
 	const addCurrentEntryColourToModule = (module: Module) => {
 		if (currentEntry.manualChunkAlias) {
@@ -19,6 +21,10 @@ export function assignChunkColouringHashes(
 			Uint8ArrayXor(module.entryPointsHash, currentEntryHash);
 		}
 
+		const dependentEntryPoints = dependentEntryPointsByModule.get(module) || new Set();
+		dependentEntryPointsByModule.set(module, dependentEntryPoints);
+		dependentEntryPoints.add(module);
+
 		for (const dependency of module.dependencies) {
 			if (
 				dependency instanceof ExternalModule ||
@@ -26,18 +32,27 @@ export function assignChunkColouringHashes(
 			) {
 				continue;
 			}
+			dependentEntryPoints.add(dependency);
 			modulesVisitedForCurrentEntry.add(dependency.id);
 			if (!handledEntryPoints.has(dependency.id) && !dependency.manualChunkAlias) {
 				addCurrentEntryColourToModule(dependency);
 			}
 		}
 
+		const dynamicDependentEntryPoints =
+			dynamicDependentEntryPointsByDynamicEntry.get(module) || new Set();
+		dynamicDependentEntryPointsByDynamicEntry.set(module, dynamicDependentEntryPoints);
 		for (const { resolution } of module.dynamicImports) {
 			if (
 				resolution instanceof Module &&
 				resolution.dynamicallyImportedBy.length > 0 &&
 				!resolution.manualChunkAlias
 			) {
+				const dynamicImportDependentEntryPoints =
+					dependentEntryPointsByModule.get(resolution) || new Set();
+				dynamicImportDependentEntryPoints.forEach(entryPoint =>
+					dynamicDependentEntryPoints.add(entryPoint)
+				);
 				dynamicImports.push(resolution);
 			}
 		}
@@ -67,7 +82,15 @@ export function assignChunkColouringHashes(
 		if (handledEntryPoints.has(currentEntry.id)) {
 			continue;
 		}
-		handledEntryPoints.add(currentEntry.id);
+		const dynamicDependentEntryPoints = dynamicDependentEntryPointsByDynamicEntry.get(currentEntry);
+		const dependentEntryPoints = dependentEntryPointsByModule.get(currentEntry);
+		const inMemory = [...(dynamicDependentEntryPoints || [])].every(
+			dynamicDependentEntryPoint =>
+				dependentEntryPoints && dependentEntryPoints.has(dynamicDependentEntryPoint)
+		);
+		if (inMemory) {
+			continue;
+		}
 		currentEntryHash = randomUint8Array(10);
 		modulesVisitedForCurrentEntry = new Set([currentEntry.id]);
 		addCurrentEntryColourToModule(currentEntry);
