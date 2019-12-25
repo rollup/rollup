@@ -102,7 +102,7 @@ export function renderStatementList(
 					  })
 					: currentNode.render(code, options);
 			} else {
-				treeshakeNode(currentNode, code, currentNodeStart as number, nextNodeStart);
+				treeshakeNode(currentNode, code, currentNodeStart!, nextNodeStart);
 			}
 		} else {
 			currentNode.render(code, options);

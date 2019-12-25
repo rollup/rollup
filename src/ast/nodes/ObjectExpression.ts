@@ -137,7 +137,7 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		} else {
 			this.expressionsToBeDeoptimized.set(key, [origin]);
 		}
-		return (propertyMap[key].exactMatchRead as Property).getLiteralValueAtPath(
+		return propertyMap[key].exactMatchRead!.getLiteralValueAtPath(
 			path.slice(1),
 			recursionTracker,
 			origin
@@ -181,7 +181,7 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		} else {
 			this.expressionsToBeDeoptimized.set(key, [origin]);
 		}
-		return (propertyMap[key].exactMatchRead as Property).getReturnExpressionWhenCalledAtPath(
+		return propertyMap[key].exactMatchRead!.getReturnExpressionWhenCalledAtPath(
 			path.slice(1),
 			recursionTracker,
 			origin

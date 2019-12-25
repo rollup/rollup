@@ -89,7 +89,7 @@ const NON_ASSET_EXTENSIONS = ['.js', '.jsx', '.ts', '.tsx'];
 
 function getGlobalName(
 	module: ExternalModule,
-	globals: GlobalsOption,
+	globals: GlobalsOption | undefined,
 	graph: Graph,
 	hasExports: boolean
 ) {
@@ -130,7 +130,7 @@ export default class Chunk {
 		if (!facadedModule.facadeChunk) {
 			facadedModule.facadeChunk = chunk;
 		}
-		chunk.dependencies = [facadedModule.chunk as Chunk];
+		chunk.dependencies = [facadedModule.chunk!];
 		chunk.dynamicDependencies = [];
 		chunk.facadeModule = facadedModule;
 		for (const exportName of facadedModule.getAllExportNames()) {
@@ -662,7 +662,7 @@ export default class Chunk {
 			if (dep instanceof ExternalModule && !dep.renormalizeRenderPath) continue;
 
 			const renderedDependency = this.renderedDeclarations.dependencies[i];
-			const depId = dep instanceof ExternalModule ? renderedDependency.id : (dep.id as string);
+			const depId = dep instanceof ExternalModule ? renderedDependency.id : dep.id!;
 			if (dep instanceof Chunk) renderedDependency.namedExportsMode = dep.exportMode !== 'default';
 			renderedDependency.id = this.getRelativePath(depId);
 		}
@@ -673,7 +673,7 @@ export default class Chunk {
 		const hasExports =
 			this.renderedDeclarations.exports.length !== 0 ||
 			this.renderedDeclarations.dependencies.some(
-				dep => (dep.reexports && dep.reexports.length !== 0) as boolean
+				dep => (dep.reexports && dep.reexports.length !== 0)!
 			);
 
 		let usesTopLevelAwait = false;
@@ -700,19 +700,19 @@ export default class Chunk {
 		}
 
 		const magicString = finalise(
-			this.renderedSource as MagicStringBundle,
+			this.renderedSource!,
 			{
 				accessedGlobals,
 				dependencies: this.renderedDeclarations.dependencies,
 				exports: this.renderedDeclarations.exports,
 				hasExports,
 				indentString: this.indentString,
-				intro: addons.intro as string,
+				intro: addons.intro!,
 				isEntryModuleFacade:
 					this.graph.preserveModules ||
 					(this.facadeModule !== null && this.facadeModule.isEntryPoint),
 				namedExportsMode: this.exportMode !== 'default',
-				outro: addons.outro as string,
+				outro: addons.outro!,
 				usesTopLevelAwait,
 				varOrConst: options.preferConst ? 'const' : 'var',
 				warn: this.graph.warn.bind(this.graph)
@@ -741,8 +741,8 @@ export default class Chunk {
 
 				let file: string;
 				if (options.file) file = resolve(options.sourcemapFile || options.file);
-				else if (options.dir) file = resolve(options.dir, this.id as string);
-				else file = resolve(this.id as string);
+				else if (options.dir) file = resolve(options.dir, this.id!);
+				else file = resolve(this.id!);
 
 				const decodedMap = magicString.generateDecodedMap({});
 				map = collapseSourcemaps(
@@ -751,7 +751,7 @@ export default class Chunk {
 					decodedMap,
 					this.usedModules,
 					chunkSourcemapChain,
-					options.sourcemapExcludeSources as boolean
+					options.sourcemapExcludeSources!
 				);
 				map.sources = map.sources.map(sourcePath =>
 					normalize(
@@ -810,7 +810,7 @@ export default class Chunk {
 			}
 			let dependency: Chunk | ExternalModule;
 			if (depModule instanceof Module) {
-				dependency = depModule.chunk as Chunk;
+				dependency = depModule.chunk!;
 			} else {
 				if (!(depModule.used || depModule.moduleSideEffects)) {
 					continue;
@@ -887,11 +887,11 @@ export default class Chunk {
 			for (const { node, resolution } of module.dynamicImports) {
 				if (!resolution) continue;
 				if (resolution instanceof Module) {
-					if (resolution.chunk !== this && isChunkRendered(resolution.chunk as Chunk)) {
-						const resolutionChunk = resolution.facadeChunk || (resolution.chunk as Chunk);
+					if (resolution.chunk !== this && isChunkRendered(resolution.chunk!)) {
+						const resolutionChunk = resolution.facadeChunk || resolution.chunk!;
 						node.renderFinalResolution(
 							code,
-							`'${this.getRelativePath(resolutionChunk.id as string)}'`,
+							`'${this.getRelativePath(resolutionChunk.id!)}'`,
 							format
 						);
 					}
@@ -915,7 +915,7 @@ export default class Chunk {
 	private finaliseImportMetas(format: string, outputPluginDriver: PluginDriver): void {
 		for (const [module, code] of this.renderedModuleSources) {
 			for (const importMeta of module.importMetas) {
-				importMeta.renderFinalMechanism(code, this.id as string, format, outputPluginDriver);
+				importMeta.renderFinalMechanism(code, this.id!, format, outputPluginDriver);
 			}
 		}
 	}
@@ -937,7 +937,7 @@ export default class Chunk {
 				// skip local exports
 				if (!module || module.chunk === this) continue;
 				if (module instanceof Module) {
-					exportChunk = module.chunk as Chunk;
+					exportChunk = module.chunk!;
 					importName = exportChunk.getVariableExportName(variable);
 					needsLiveBinding = variable.isReassigned;
 				} else {
@@ -970,7 +970,7 @@ export default class Chunk {
 						imported:
 							variable.module instanceof ExternalModule
 								? variable.name
-								: ((variable.module as Module).chunk as Chunk).getVariableExportName(variable),
+								: variable.module!.chunk!.getVariableExportName(variable),
 						local: variable.getName()
 					});
 				}
@@ -996,10 +996,10 @@ export default class Chunk {
 				if (options.format === 'umd' || options.format === 'iife') {
 					globalName = getGlobalName(
 						dep,
-						options.globals as GlobalsOption,
+						options.globals,
 						this.graph,
 						exportsNames || exportsDefault
-					) as string;
+					)!;
 				}
 			}
 
@@ -1071,7 +1071,7 @@ export default class Chunk {
 	}
 
 	private getRelativePath(targetPath: string): string {
-		const relativePath = normalize(relative(dirname(this.id as string), targetPath));
+		const relativePath = normalize(relative(dirname(this.id!), targetPath));
 		return relativePath.startsWith('../') ? relativePath : './' + relativePath;
 	}
 
@@ -1096,7 +1096,7 @@ export default class Chunk {
 						const namespace = resolution.getOrCreateNamespace();
 						node.setResolution('named', namespace);
 					} else {
-						node.setResolution((resolution.chunk as Chunk).exportMode);
+						node.setResolution(resolution.chunk!.exportMode);
 					}
 				} else {
 					node.setResolution('auto');
@@ -1167,7 +1167,7 @@ export default class Chunk {
 			if ((variable.module as Module).chunk !== this) {
 				this.imports.add(variable);
 				if (variable.module instanceof Module) {
-					(variable.module.chunk as Chunk).exports.add(variable);
+					variable.module.chunk!.exports.add(variable);
 				}
 			}
 		}
@@ -1191,7 +1191,7 @@ export default class Chunk {
 				if ((variable.module as Module).chunk !== this) {
 					this.imports.add(variable);
 					if (variable.module instanceof Module) {
-						(variable.module.chunk as Chunk).exports.add(variable);
+						variable.module.chunk!.exports.add(variable);
 					}
 				}
 			}

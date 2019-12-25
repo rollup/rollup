@@ -205,7 +205,7 @@ export function collapseSourcemaps(
 	map: DecodedSourceMap,
 	modules: Module[],
 	bundleSourcemapChain: DecodedSourceMapOrMissing[],
-	excludeContent: boolean
+	excludeContent: boolean | undefined
 ) {
 	const linkMap = getLinkMap(bundle.graph);
 	const moduleSources = modules

@@ -207,7 +207,7 @@ export class PluginDriver {
 		args: Args<PluginHooks[H]>,
 		replaceContext?: ReplaceContext
 	): Promise<void> {
-		let promise: Promise<void> = Promise.resolve() as any;
+		let promise: Promise<void> = Promise.resolve();
 		for (let i = 0; i < this.plugins.length; i++)
 			promise = promise.then(() =>
 				this.runHook<void>(hookName, args as any[], i, false, replaceContext)

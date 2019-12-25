@@ -4,8 +4,8 @@ export default function getExportBlock(
 	exports: ChunkExports,
 	dependencies: ChunkDependencies,
 	namedExportsMode: boolean,
-	interop: boolean,
-	compact: boolean,
+	interop: boolean | undefined,
+	compact: boolean | undefined,
 	t: string,
 	mechanism = 'return '
 ) {

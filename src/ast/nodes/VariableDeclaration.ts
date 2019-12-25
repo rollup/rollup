@@ -22,7 +22,7 @@ function areAllDeclarationsIncludedAndNotExported(declarations: VariableDeclarat
 	for (const declarator of declarations) {
 		if (!declarator.included) return false;
 		if (declarator.id.type === NodeType.Identifier) {
-			if ((declarator.id.variable as Variable).exportName) return false;
+			if (declarator.id.variable!.exportName) return false;
 		} else {
 			const exportedVariables: Variable[] = [];
 			declarator.id.addExportedVariables(exportedVariables);
@@ -138,7 +138,7 @@ export default class VariableDeclaration extends NodeBase {
 			this.start + this.kind.length,
 			this.end - (code.original.charCodeAt(this.end - 1) === 59 /*";"*/ ? 1 : 0)
 		);
-		let actualContentEnd, renderedContentEnd;
+		let actualContentEnd: number | undefined, renderedContentEnd: number;
 		if (/\n\s*$/.test(code.slice(this.start, separatedNodes[0].start))) {
 			renderedContentEnd = this.start + this.kind.length;
 		} else {
@@ -176,11 +176,10 @@ export default class VariableDeclaration extends NodeBase {
 				if (options.format === 'system' && node.init !== null) {
 					if (node.id.type !== NodeType.Identifier) {
 						node.id.addExportedVariables(systemPatternExports);
-					} else if ((node.id.variable as Variable).exportName) {
+					} else if (node.id.variable!.exportName) {
 						code.prependLeft(
 							code.original.indexOf('=', node.id.end) + 1,
-							` exports('${(node.id.variable as Variable).safeExportName ||
-								(node.id.variable as Variable).exportName}',`
+							` exports('${node.id.variable!.safeExportName || node.id.variable!.exportName}',`
 						);
 						nextSeparatorString += ')';
 					}
@@ -205,7 +204,7 @@ export default class VariableDeclaration extends NodeBase {
 			actualContentEnd = contentEnd;
 			renderedContentEnd = end;
 			hasRenderedContent = true;
-			lastSeparatorPos = separator as number;
+			lastSeparatorPos = separator!;
 			separatorString = nextSeparatorString;
 		}
 		if (hasRenderedContent) {
@@ -213,7 +212,7 @@ export default class VariableDeclaration extends NodeBase {
 				code,
 				separatorString,
 				lastSeparatorPos,
-				actualContentEnd as number,
+				actualContentEnd!,
 				renderedContentEnd,
 				!isNoStatement,
 				systemPatternExports

@@ -73,7 +73,7 @@ function getCyclePath(id: string, parentId: string, parents: { [id: string]: str
 	let curId = parentId;
 	while (curId !== id) {
 		path.push(relativeId(curId));
-		curId = parents[curId] as string;
+		curId = parents[curId]!;
 		if (!curId) break;
 	}
 	path.push(path[0]);
