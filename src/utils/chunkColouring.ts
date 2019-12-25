@@ -48,7 +48,7 @@ export function assignChunkColouringHashes(
 			currentEntryHash = randomUint8Array(10);
 
 			for (currentEntry of manualChunkModules[chunkName]) {
-				modulesVisitedForCurrentEntry = new Set(currentEntry.id);
+				modulesVisitedForCurrentEntry = new Set([currentEntry.id]);
 				addCurrentEntryColourToModule(currentEntry);
 			}
 		}
@@ -57,7 +57,7 @@ export function assignChunkColouringHashes(
 	for (currentEntry of entryModules) {
 		handledEntryPoints.add(currentEntry.id);
 		currentEntryHash = randomUint8Array(10);
-		modulesVisitedForCurrentEntry = new Set(currentEntry.id);
+		modulesVisitedForCurrentEntry = new Set([currentEntry.id]);
 		if (!currentEntry.manualChunkAlias) {
 			addCurrentEntryColourToModule(currentEntry);
 		}
@@ -69,7 +69,7 @@ export function assignChunkColouringHashes(
 		}
 		handledEntryPoints.add(currentEntry.id);
 		currentEntryHash = randomUint8Array(10);
-		modulesVisitedForCurrentEntry = new Set(currentEntry.id);
+		modulesVisitedForCurrentEntry = new Set([currentEntry.id]);
 		addCurrentEntryColourToModule(currentEntry);
 	}
 }
