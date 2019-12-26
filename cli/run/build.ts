@@ -1,7 +1,7 @@
 import ms from 'pretty-ms';
 import tc from 'turbocolor';
 import * as rollup from '../../src/node-entry';
-import { InputOptions, OutputOptions, RollupBuild, SourceMap } from '../../src/rollup/types';
+import { InputOptions, OutputOptions, RollupBuild } from '../../src/rollup/types';
 import relativeId from '../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
 import SOURCEMAPPING_URL from '../sourceMappingUrl';
@@ -19,9 +19,9 @@ export default function build(
 	const start = Date.now();
 	const files = useStdout
 		? ['stdout']
-		: outputOptions.map(t => relativeId(t.file || (t.dir as string)));
+		: outputOptions.map(t => relativeId(t.file || t.dir!));
 	if (!silent) {
-		let inputFiles: string = undefined as any;
+		let inputFiles: string | undefined;
 		if (typeof inputOptions.input === 'string') {
 			inputFiles = inputOptions.input;
 		} else if (inputOptions.input instanceof Array) {
@@ -31,7 +31,7 @@ export default function build(
 				.map(name => (inputOptions.input as Record<string, string>)[name])
 				.join(', ');
 		}
-		stderr(tc.cyan(`\n${tc.bold(inputFiles)} → ${tc.bold(files.join(', '))}...`));
+		stderr(tc.cyan(`\n${tc.bold(inputFiles!)} → ${tc.bold(files.join(', '))}...`));
 	}
 
 	return rollup
@@ -54,8 +54,7 @@ export default function build(
 						} else {
 							source = file.code;
 							if (output.sourcemap === 'inline') {
-								source += `\n//# ${SOURCEMAPPING_URL}=${(file
-									.map as SourceMap).toUrl()}\n`;
+								source += `\n//# ${SOURCEMAPPING_URL}=${file.map!.toUrl()}\n`;
 							}
 						}
 						if (outputs.length > 1)
@@ -66,7 +65,7 @@ export default function build(
 				});
 			}
 
-			return Promise.all(outputOptions.map(output => bundle.write(output) as Promise<any>)).then(
+			return Promise.all(outputOptions.map(output => bundle.write(output))).then(
 				() => bundle
 			);
 		})

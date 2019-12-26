@@ -9,13 +9,10 @@ import ExternalModule from './ExternalModule';
 import Module, { defaultAcornOptions } from './Module';
 import { ModuleLoader, UnresolvedModule } from './ModuleLoader';
 import {
-	ExternalOption,
 	GetManualChunk,
 	InputOptions,
 	ManualChunksOption,
 	ModuleJSON,
-	ModuleSideEffectsOption,
-	PureModulesOption,
 	RollupCache,
 	RollupWarning,
 	RollupWatcher,
@@ -103,31 +100,29 @@ export default class Graph {
 				for (const key of Object.keys(cache)) cache[key][0]++;
 			}
 		}
-		this.preserveModules = options.preserveModules as boolean;
-		this.strictDeprecations = options.strictDeprecations as boolean;
+		this.preserveModules = options.preserveModules!;
+		this.strictDeprecations = options.strictDeprecations!;
 
-		this.cacheExpiry = options.experimentalCacheExpiry as number;
+		this.cacheExpiry = options.experimentalCacheExpiry!;
 
 		if (options.treeshake !== false) {
-			this.treeshakingOptions = options.treeshake
-				? {
-						annotations: (options.treeshake as TreeshakingOptions).annotations !== false,
-						moduleSideEffects: (options.treeshake as TreeshakingOptions).moduleSideEffects,
-						propertyReadSideEffects:
-							(options.treeshake as TreeshakingOptions).propertyReadSideEffects !== false,
-						pureExternalModules: (options.treeshake as TreeshakingOptions).pureExternalModules,
-						tryCatchDeoptimization:
-							(options.treeshake as TreeshakingOptions).tryCatchDeoptimization !== false,
-						unknownGlobalSideEffects:
-							(options.treeshake as TreeshakingOptions).unknownGlobalSideEffects !== false
-				  }
-				: {
-						annotations: true,
-						moduleSideEffects: true,
-						propertyReadSideEffects: true,
-						tryCatchDeoptimization: true,
-						unknownGlobalSideEffects: true
-				  };
+			this.treeshakingOptions =
+				options.treeshake && options.treeshake !== true
+					? {
+							annotations: options.treeshake.annotations !== false,
+							moduleSideEffects: options.treeshake.moduleSideEffects,
+							propertyReadSideEffects: options.treeshake.propertyReadSideEffects !== false,
+							pureExternalModules: options.treeshake.pureExternalModules,
+							tryCatchDeoptimization: options.treeshake.tryCatchDeoptimization !== false,
+							unknownGlobalSideEffects: options.treeshake.unknownGlobalSideEffects !== false
+					  }
+					: {
+							annotations: true,
+							moduleSideEffects: true,
+							propertyReadSideEffects: true,
+							tryCatchDeoptimization: true,
+							unknownGlobalSideEffects: true
+					  };
 			if (typeof this.treeshakingOptions.pureExternalModules !== 'undefined') {
 				this.warnDeprecation(
 					`The "treeshake.pureExternalModules" option is deprecated. The "treeshake.moduleSideEffects" option should be used instead. "treeshake.pureExternalModules: true" is equivalent to "treeshake.moduleSideEffects: 'no-external'"`,
@@ -145,7 +140,7 @@ export default class Graph {
 
 		this.pluginDriver = new PluginDriver(
 			this,
-			options.plugins as Plugin[],
+			options.plugins!,
 			this.pluginCache,
 			options.preserveSymlinks === true,
 			watcher
@@ -182,7 +177,7 @@ export default class Graph {
 		acornPluginsToInject.push(injectImportMeta, injectExportNsFrom);
 
 		if (options.experimentalTopLevelAwait) {
-			(this.acornOptions as any).allowAwaitOutsideFunction = true;
+			this.acornOptions.allowAwaitOutsideFunction = true;
 		}
 
 		const acornInjectPlugins = options.acornInjectPlugins;
@@ -193,19 +188,15 @@ export default class Graph {
 				? [acornInjectPlugins]
 				: [])
 		);
-		this.acornParser = acorn.Parser.extend(...acornPluginsToInject) as any;
+		this.acornParser = acorn.Parser.extend(...acornPluginsToInject);
 		this.moduleLoader = new ModuleLoader(
 			this,
 			this.moduleById,
 			this.pluginDriver,
-			options.external as ExternalOption,
+			options.external!,
 			(typeof options.manualChunks === 'function' && options.manualChunks) as GetManualChunk | null,
-			(this.treeshakingOptions
-				? this.treeshakingOptions.moduleSideEffects
-				: null) as ModuleSideEffectsOption,
-			(this.treeshakingOptions
-				? this.treeshakingOptions.pureExternalModules
-				: false) as PureModulesOption
+			(this.treeshakingOptions ? this.treeshakingOptions.moduleSideEffects : null)!,
+			(this.treeshakingOptions ? this.treeshakingOptions.pureExternalModules : false)!
 		);
 	}
 
@@ -366,9 +357,7 @@ export default class Graph {
 
 			if (warning.plugin) str += `(${warning.plugin} plugin) `;
 			if (warning.loc)
-				str += `${relativeId(warning.loc.file as string)} (${warning.loc.line}:${
-					warning.loc.column
-				}) `;
+				str += `${relativeId(warning.loc.file!)} (${warning.loc.line}:${warning.loc.column}) `;
 			str += warning.message;
 
 			return str;

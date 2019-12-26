@@ -16,7 +16,7 @@ import { NodeBase } from './shared/Node';
 
 export type LiteralValue = string | boolean | null | number | RegExp | undefined;
 
-export default class Literal<T = LiteralValue> extends NodeBase {
+export default class Literal<T extends LiteralValue = LiteralValue> extends NodeBase {
 	type!: NodeType.tLiteral;
 	value!: T;
 
@@ -33,7 +33,7 @@ export default class Literal<T = LiteralValue> extends NodeBase {
 		) {
 			return UnknownValue;
 		}
-		return this.value as any;
+		return this.value;
 	}
 
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {

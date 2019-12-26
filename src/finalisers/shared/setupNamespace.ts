@@ -4,8 +4,8 @@ import { property } from './sanitize';
 export default function setupNamespace(
 	name: string,
 	root: string,
-	globals: GlobalsOption,
-	compact: boolean
+	globals: GlobalsOption | undefined,
+	compact: boolean | undefined
 ) {
 	const parts = name.split('.');
 	if (globals) {
@@ -28,8 +28,8 @@ export default function setupNamespace(
 export function assignToDeepVariable(
 	deepName: string,
 	root: string,
-	globals: GlobalsOption,
-	compact: boolean,
+	globals: GlobalsOption | undefined,
+	compact: boolean | undefined,
 	assignment: string
 ): string {
 	const _ = compact ? '' : ' ';
@@ -42,7 +42,7 @@ export function assignToDeepVariable(
 	let acc = root;
 	let deepAssignment = parts
 		.map(part => ((acc += property(part)), `${acc}${_}=${_}${acc}${_}||${_}{}`))
-		.concat(`${acc}${property(last as string)}`)
+		.concat(`${acc}${property(last!)}`)
 		.join(`,${_}`)
 		.concat(`${_}=${_}${assignment}`);
 	if (parts.length > 0) {
