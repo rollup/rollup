@@ -23,10 +23,15 @@ runTestSuiteWithSamples(
 			done => {
 				process.chdir(config.cwd || dir);
 
-				const prefix = 'node ' + path.resolve(__dirname, '../../dist/bin') + path.sep;
-				const command = /^rollup /.test(config.command)
-					? prefix + config.command
-					: config.command.replace(/ rollup /g, prefix + 'rollup ');
+				const command = config.command
+					.replace(
+						/(^| )rollup /g,
+						`node ${path.resolve(__dirname, '../../dist/bin')}${path.sep}rollup `
+					)
+					.replace(
+						/(^| )shx /g,
+						`node ${path.resolve(__dirname, '../../node_modules/.bin')}${path.sep}shx `
+					);
 
 				const childProcess = exec(
 					command,

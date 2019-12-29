@@ -210,8 +210,7 @@ function getInputOptions(
 	defaultOnWarnHandler: WarningHandler
 ): InputOptions {
 	const getOption = createGetOption(config, command);
-	const input = getOption('input');
-	const isTTY = () => typeof process === 'undefined' || process.stdin && process.stdin.isTTY;
+	const input = getOption('input', []);
 
 	const inputOptions: InputOptions = {
 		acorn: config.acorn,
@@ -224,7 +223,7 @@ function getInputOptions(
 		experimentalTopLevelAwait: getOption('experimentalTopLevelAwait'),
 		external: getExternal(config, command) as any,
 		inlineDynamicImports: getOption('inlineDynamicImports', false),
-		input: input || input === '' ? input : (isTTY() ? [] : stdinName),
+		input,
 		manualChunks: getOption('manualChunks'),
 		moduleContext: config.moduleContext as any,
 		onwarn: getOnWarn(config, defaultOnWarnHandler),
@@ -238,7 +237,10 @@ function getInputOptions(
 		watch: config.watch as any
 	};
 
-	if (config.watch && (input === stdinName || Array.isArray(input) && input.indexOf(stdinName) >= 0)) {
+	if (
+		config.watch &&
+		(input === stdinName || (Array.isArray(input) && input.indexOf(stdinName) >= 0))
+	) {
 		throw new Error('watch mode is incompatible with stdin input');
 	}
 
