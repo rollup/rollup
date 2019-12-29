@@ -7,4 +7,3 @@ require('./misc');
 require('./sanity-checks');
 require('./umd');
 require('./write-bundle');
-require('./stdin');
