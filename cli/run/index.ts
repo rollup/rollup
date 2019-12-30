@@ -3,14 +3,16 @@ import relative from 'require-relative';
 import { WarningHandler } from '../../src/rollup/types';
 import mergeOptions, { GenericConfigObject } from '../../src/utils/mergeOptions';
 import { getAliasName } from '../../src/utils/relativeId';
-import { stdinName } from '../../src/utils/stdin';
 import { handleError } from '../logging';
 import batchWarnings from './batchWarnings';
 import build from './build';
 import loadConfigFile from './loadConfigFile';
+import { stdinName, stdinPlugin } from './stdin';
 import watch from './watch';
 
-export default function runRollup (command: any) {
+const CONFIG_NO_FILE = { input: [] };
+
+export default function runRollup(command: any) {
 	let inputSource;
 	if (command._.length > 0) {
 		if (command.input) {
@@ -90,36 +92,34 @@ export default function runRollup (command: any) {
 			.then(configs => execute(configFile, configs, command))
 			.catch(handleError);
 	} else {
-		return execute(configFile, [{ input: null }] as any, command);
+		return execute(configFile, [CONFIG_NO_FILE] as any, command);
 	}
 }
 
-function execute (configFile: string, configs: GenericConfigObject[], command: any) {
+async function execute(
+	configFile: string,
+	configs: GenericConfigObject[],
+	command: any
+): Promise<void> {
 	if (command.watch) {
 		watch(configFile, configs, command, command.silent);
 	} else {
-		let promise = Promise.resolve();
 		for (const config of configs) {
-			promise = promise.then(() => {
-				const warnings = batchWarnings();
-				handleMissingInput(command, config);
-				const { inputOptions, outputOptions, optionError } = mergeOptions({
-					command,
-					config,
-					defaultOnWarnHandler: warnings.add
-				});
-
-				if (optionError)
-					(inputOptions.onwarn as WarningHandler)({ code: 'UNKNOWN_OPTION', message: optionError });
-				return build(inputOptions, outputOptions, warnings, command.silent);
+			const warnings = batchWarnings();
+			const { inputOptions, outputOptions, optionError } = mergeOptions({
+				command,
+				config,
+				defaultOnWarnHandler: warnings.add
 			});
-		}
-		return promise;
-	}
-}
 
-function handleMissingInput(command: any, config: GenericConfigObject) {
-	if (!(command.input || config.input || config.input === '' || process.stdin.isTTY)) {
-		command.input = stdinName;
+			if (optionError) {
+				(inputOptions.onwarn as WarningHandler)({ code: 'UNKNOWN_OPTION', message: optionError });
+			}
+			if (config === CONFIG_NO_FILE && !command.input && !process.stdin.isTTY) {
+				inputOptions.input = stdinName;
+			}
+			inputOptions.plugins!.push(stdinPlugin());
+			await build(inputOptions, outputOptions, warnings, command.silent);
+		}
 	}
 }

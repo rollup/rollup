@@ -2,14 +2,13 @@ import { Plugin, ResolveIdHook } from '../rollup/types';
 import { error } from './error';
 import { lstatSync, readdirSync, readFile, realpathSync } from './fs';
 import { basename, dirname, isAbsolute, resolve } from './path';
-import { readStdin, stdinName } from './stdin';
 
 export function getRollupDefaultPlugin(preserveSymlinks: boolean): Plugin {
 	return {
 		name: 'Rollup Core',
 		resolveId: createResolveId(preserveSymlinks) as ResolveIdHook,
 		load(id) {
-			return id === stdinName ? readStdin() : readFile(id);
+			return readFile(id);
 		},
 		resolveFileUrl({ relativePath, format }) {
 			return relativeUrlMechanisms[format](relativePath);
@@ -58,8 +57,6 @@ function createResolveId(preserveSymlinks: boolean) {
 				url: 'https://rollupjs.org/guide/en/#a-simple-example'
 			});
 		}
-
-		if (source === stdinName) return source;
 
 		// external modules (non-entry modules that start with neither '.' or '/')
 		// are skipped at this stage.

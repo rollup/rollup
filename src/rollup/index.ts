@@ -13,7 +13,7 @@ import {
 } from '../utils/error';
 import { writeFile } from '../utils/fs';
 import getExportMode from '../utils/getExportMode';
-import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
+import mergeOptions, { ensureArray, GenericConfigObject } from '../utils/mergeOptions';
 import { basename, dirname, isAbsolute, resolve } from '../utils/path';
 import { PluginDriver } from '../utils/PluginDriver';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from '../utils/pluginUtils';
@@ -80,16 +80,6 @@ function applyOptionHook(inputOptions: InputOptions, plugin: Plugin) {
 	return inputOptions;
 }
 
-function ensureArray<T>(items: (T | null | undefined)[] | T | null | undefined): T[] {
-	if (Array.isArray(items)) {
-		return items.filter(Boolean) as T[];
-	}
-	if (items) {
-		return [items];
-	}
-	return [];
-}
-
 function normalizePlugins(rawPlugins: any, anonymousPrefix: string): Plugin[] {
 	const plugins = ensureArray(rawPlugins);
 	for (let pluginIndex = 0; pluginIndex < plugins.length; pluginIndex++) {
@@ -112,8 +102,8 @@ function getInputOptions(rawInputOptions: GenericConfigObject): InputOptions {
 	if (optionError)
 		(inputOptions.onwarn as WarningHandler)({ message: optionError, code: 'UNKNOWN_OPTION' });
 
-	inputOptions = ensureArray(inputOptions.plugins).reduce(applyOptionHook, inputOptions);
-	inputOptions.plugins = normalizePlugins(inputOptions.plugins, ANONYMOUS_PLUGIN_PREFIX);
+	inputOptions = inputOptions.plugins!.reduce(applyOptionHook, inputOptions);
+	inputOptions.plugins = normalizePlugins(inputOptions.plugins!, ANONYMOUS_PLUGIN_PREFIX);
 
 	if (inputOptions.inlineDynamicImports) {
 		if (inputOptions.preserveModules)

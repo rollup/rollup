@@ -233,10 +233,9 @@ export type IsPureModule = (id: string) => boolean | null | undefined;
 
 export type HasModuleSideEffects = (id: string, external: boolean) => boolean;
 
-export type LoadHook = (
-	this: PluginContext,
-	id: string
-) => Promise<SourceDescription | string | null> | SourceDescription | string | null;
+type LoadResult = SourceDescription | string | null | undefined;
+
+export type LoadHook = (this: PluginContext, id: string) => Promise<LoadResult> | LoadResult;
 
 export type TransformResult = string | null | undefined | TransformSourceDescription;
 
