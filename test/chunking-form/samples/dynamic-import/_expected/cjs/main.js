@@ -2,12 +2,8 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var shared = require('./chunks/shared.js');
+var main = require('./chunks/main.js');
 
-assert.equal(shared.sharedValue, 'shared');
 
-const promise = new Promise(function (resolve) { resolve(require('./chunks/other.js')); }).then(result =>
-	assert.deepEqual(result, { value: 'shared' })
-);
 
-exports.promise = promise;
+exports.promise = main.promise;

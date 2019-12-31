@@ -1,4 +1,4 @@
-System.register(['./shared.js'], function (exports) {
+System.register(['./main.js'], function (exports) {
 	'use strict';
 	return {
 		setters: [function (module) {
