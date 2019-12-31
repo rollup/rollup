@@ -1,7 +1,1 @@
-import './generated-inlined.js';
-import './generated-separate.js';
-
-const inlined = import('./generated-inlined.js');
-const separate = import('./generated-separate.js');
-
-export { inlined, separate };
+export { i as inlined, a as separate } from './generated-main1.js';

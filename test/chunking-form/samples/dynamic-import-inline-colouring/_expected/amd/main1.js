@@ -1,10 +1,9 @@
-define(['require', 'exports', './generated-inlined', './generated-separate'], function (require, exports, inlined$1, separate$1) { 'use strict';
+define(['exports', './generated-main1'], function (exports, separate) { 'use strict';
 
-	const inlined = new Promise(function (resolve, reject) { require(['./generated-inlined'], resolve, reject) });
-	const separate = new Promise(function (resolve, reject) { require(['./generated-separate'], resolve, reject) });
 
-	exports.inlined = inlined;
-	exports.separate = separate;
+
+	exports.inlined = separate.inlined;
+	exports.separate = separate.separate$1;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

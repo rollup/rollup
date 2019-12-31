@@ -1,11 +1,15 @@
-System.register(['./generated-inlined.js', './generated-separate.js'], function (exports, module) {
+System.register(['./generated-main1.js'], function (exports) {
 	'use strict';
 	return {
-		setters: [function () {}, function () {}],
+		setters: [function (module) {
+			var _setter = {};
+			_setter.inlined = module.i;
+			_setter.separate = module.a;
+			exports(_setter);
+		}],
 		execute: function () {
 
-			const inlined = exports('inlined', module.import('./generated-inlined.js'));
-			const separate = exports('separate', module.import('./generated-separate.js'));
+
 
 		}
 	};

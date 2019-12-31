@@ -1,9 +1,8 @@
-define(['exports'], function (exports) { 'use strict';
+define(['exports', './generated-main1'], function (exports, separate) { 'use strict';
 
-	var separate = 'separate';
-	const x = 2;
 
-	exports.default = separate;
-	exports.x = x;
+
+	exports.default = separate.separate;
+	exports.x = separate.x;
 
 });

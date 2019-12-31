@@ -1,5 +1,1 @@
-var separate = 'separate';
-const x = 2;
-
-export default separate;
-export { x };
+export { s as default, x } from './generated-main1.js';

@@ -1,7 +1,8 @@
 'use strict';
 
-var separate = 'separate';
-const x = 2;
+var separate = require('./generated-main1.js');
 
-exports.default = separate;
-exports.x = x;
+
+
+exports.default = separate.separate;
+exports.x = separate.x;

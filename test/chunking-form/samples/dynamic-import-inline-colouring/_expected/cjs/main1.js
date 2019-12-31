@@ -2,11 +2,9 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-require('./generated-inlined.js');
-require('./generated-separate.js');
+var separate = require('./generated-main1.js');
 
-const inlined = new Promise(function (resolve) { resolve(require('./generated-inlined.js')); });
-const separate = new Promise(function (resolve) { resolve(require('./generated-separate.js')); });
 
-exports.inlined = inlined;
-exports.separate = separate;
+
+exports.inlined = separate.inlined;
+exports.separate = separate.separate$1;
