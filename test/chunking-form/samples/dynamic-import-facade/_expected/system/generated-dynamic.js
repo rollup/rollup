@@ -5,10 +5,12 @@ System.register([], function (exports) {
 
 			console.log('dep');
 
-			const dep = exports('a', 'dep');
+			const dep = 'dep';
 
 			console.log('dynamic', dep);
-			const dynamic = exports('d', 'dynamic');
+			const dynamic = exports('dynamic', 'dynamic');
+
+			console.log('main2', dynamic, dep);
 
 		}
 	};

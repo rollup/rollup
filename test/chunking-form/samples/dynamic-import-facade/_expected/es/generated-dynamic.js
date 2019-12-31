@@ -5,4 +5,6 @@ const dep = 'dep';
 console.log('dynamic', dep);
 const dynamic = 'dynamic';
 
-export { dep as a, dynamic as d };
+console.log('main2', dynamic, dep);
+
+export { dynamic };
