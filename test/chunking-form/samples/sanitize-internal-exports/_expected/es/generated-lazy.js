@@ -1,4 +1,4 @@
-import { v as v1 } from './generated-constants.js';
+import { v1 } from './main.js';
 
 var lazy = () => v1;
 

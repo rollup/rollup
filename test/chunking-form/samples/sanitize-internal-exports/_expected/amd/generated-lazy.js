@@ -1,6 +1,6 @@
-define(['exports', './generated-constants'], function (exports, constants) { 'use strict';
+define(['exports', './main'], function (exports, main) { 'use strict';
 
-	var lazy = () => constants.v1;
+	var lazy = () => main.v1;
 
 	exports.default = lazy;
 
