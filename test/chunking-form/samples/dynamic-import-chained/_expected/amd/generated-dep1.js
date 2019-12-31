@@ -1,6 +1,12 @@
-define(['require'], function (require) { 'use strict';
+define(function () { 'use strict';
+
+	console.log('dep2');
+
+	var dep2 = /*#__PURE__*/Object.freeze({
+		__proto__: null
+	});
 
 	console.log('dep1');
-	new Promise(function (resolve, reject) { require(['./generated-dep2'], resolve, reject) });
+	Promise.resolve().then(function () { return dep2; });
 
 });
