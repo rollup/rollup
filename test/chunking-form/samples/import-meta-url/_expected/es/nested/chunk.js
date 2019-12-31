@@ -6,4 +6,7 @@ function log(url) {
 	}
 }
 
+log('main: ' + import.meta.url);
+import('./chunk2.js');
+
 export { log as l };
