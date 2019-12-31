@@ -13,4 +13,6 @@ var dep1 = /*#__PURE__*/Object.freeze({
 	bar: bar
 });
 
-export { bar as b, foo as f };
+console.log(foo(), bar());
+
+export { bar };

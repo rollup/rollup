@@ -15,7 +15,8 @@ define(['exports'], function (exports) { 'use strict';
 		bar: bar
 	});
 
+	console.log(foo(), bar());
+
 	exports.bar = bar;
-	exports.foo = foo;
 
 });

@@ -3,10 +3,7 @@ System.register([], function (exports) {
 	return {
 		execute: function () {
 
-			exports({
-				b: bar,
-				f: foo
-			});
+			exports('bar', bar);
 
 			function foo() {
 				return 'dep2';
@@ -22,6 +19,8 @@ System.register([], function (exports) {
 				__proto__: null,
 				bar: bar
 			});
+
+			console.log(foo(), bar());
 
 		}
 	};

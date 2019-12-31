@@ -15,5 +15,6 @@ var dep1 = /*#__PURE__*/Object.freeze({
 	bar: bar
 });
 
+console.log(foo(), bar());
+
 exports.bar = bar;
-exports.foo = foo;
