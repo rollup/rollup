@@ -816,8 +816,7 @@ describe('rollup.watch', () => {
 				});
 		});
 
-		// TODO
-		xit('updates the right hashes on dependency changes', () => {
+		it('updates the right hashes on dependency changes', () => {
 			let dynamicName;
 			let staticName;
 			let chunkName;
@@ -848,8 +847,8 @@ describe('rollup.watch', () => {
 
 							// this should only update the hash of that particular entry point
 							sander.writeFileSync(
-								'test/_tmp/input/main-static.js',
-								"import {value} from './shared';\nexport default 2 * value;"
+								'test/_tmp/input/main-dynamic.js',
+								"export default import('./shared')\nconsole.log('main-dynamic')"
 							);
 						},
 						'START',
@@ -861,8 +860,8 @@ describe('rollup.watch', () => {
 								.readdirSync('test/_tmp/output')
 								.sort();
 							sander.rimrafSync('test/_tmp/output');
-							assert.notEqual(newStaticName, staticName);
-							assert.strictEqual(newDynamicName, dynamicName);
+							assert.strictEqual(newStaticName, staticName);
+							assert.notEqual(newDynamicName, dynamicName);
 							assert.strictEqual(newChunkName, chunkName);
 							staticName = newStaticName;
 
