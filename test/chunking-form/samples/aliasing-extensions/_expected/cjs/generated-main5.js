@@ -1,3 +1,4 @@
 'use strict';
 
-console.log('main5');
+require('./generated-main4.dynamic.js');
+

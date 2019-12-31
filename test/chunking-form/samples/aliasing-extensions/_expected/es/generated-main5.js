@@ -1,1 +1,1 @@
-console.log('main5');
+import './generated-main4.dynamic.js';
