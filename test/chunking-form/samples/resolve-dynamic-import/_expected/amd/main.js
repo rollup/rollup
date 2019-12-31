@@ -1,4 +1,4 @@
-define(['require', './generated-existing', './direct-relative-external', 'to-indirect-relative-external', 'direct-absolute-external', 'to-indirect-absolute-external'], function (require, existing, directRelativeExternal, toIndirectRelativeExternal, directAbsoluteExternal, toIndirectAbsoluteExternal) { 'use strict';
+define(['require', './direct-relative-external', 'to-indirect-relative-external', 'direct-absolute-external', 'to-indirect-absolute-external'], function (require, directRelativeExternal, toIndirectRelativeExternal, directAbsoluteExternal, toIndirectAbsoluteExternal) { 'use strict';
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) { return e; } else {
@@ -20,14 +20,21 @@ define(['require', './generated-existing', './direct-relative-external', 'to-ind
 	}
 
 	// nested
-	new Promise(function (resolve, reject) { require(['./generated-existing'], resolve, reject) });
+	Promise.resolve().then(function () { return existing; });
 	new Promise(function (resolve, reject) { require(['./direct-relative-external'], function (m) { resolve(_interopNamespace(m)); }, reject) });
 	new Promise(function (resolve, reject) { require(['to-indirect-relative-external'], function (m) { resolve(_interopNamespace(m)); }, reject) });
 	new Promise(function (resolve, reject) { require(['direct-absolute-external'], function (m) { resolve(_interopNamespace(m)); }, reject) });
 	new Promise(function (resolve, reject) { require(['to-indirect-absolute-external'], function (m) { resolve(_interopNamespace(m)); }, reject) });
 
+	const value = 'existing';
+
+	var existing = /*#__PURE__*/Object.freeze({
+		__proto__: null,
+		value: value
+	});
+
 	//main
-	new Promise(function (resolve, reject) { require(['./generated-existing'], resolve, reject) });
+	Promise.resolve().then(function () { return existing; });
 	new Promise(function (resolve, reject) { require(['./direct-relative-external'], function (m) { resolve(_interopNamespace(m)); }, reject) });
 	new Promise(function (resolve, reject) { require(['to-indirect-relative-external'], function (m) { resolve(_interopNamespace(m)); }, reject) });
 	new Promise(function (resolve, reject) { require(['direct-absolute-external'], function (m) { resolve(_interopNamespace(m)); }, reject) });
@@ -35,7 +42,7 @@ define(['require', './generated-existing', './direct-relative-external', 'to-ind
 
 	new Promise(function (resolve, reject) { require(['dynamic-direct-external' + unknown], function (m) { resolve(_interopNamespace(m)); }, reject) });
 	new Promise(function (resolve, reject) { require(['to-dynamic-indirect-external'], function (m) { resolve(_interopNamespace(m)); }, reject) });
-	new Promise(function (resolve, reject) { require(['./generated-existing'], resolve, reject) });
+	Promise.resolve().then(function () { return existing; });
 	new Promise(function (resolve, reject) { require(['my' + 'replacement'], function (m) { resolve(_interopNamespace(m)); }, reject) });
 
 });
