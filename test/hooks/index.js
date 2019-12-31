@@ -1037,19 +1037,19 @@ describe('hooks', () => {
 						modules: ['input']
 					},
 					{
-						fileName: 'generated-a.js',
-						imports: ['generated-c.js'],
-						modules: ['d', 'a']
-					},
-					{
-						fileName: 'generated-c.js',
-						imports: [],
-						modules: ['c']
-					},
-					{
 						fileName: 'generated-b.js',
-						imports: ['generated-c.js'],
-						modules: ['b']
+						imports: [],
+						modules: ['d', 'c', 'a', 'b']
+					},
+					{
+						fileName: 'generated-a.js',
+						imports: ['generated-b.js'],
+						modules: []
+					},
+					{
+						fileName: 'generated-b2.js',
+						imports: ['generated-b.js'],
+						modules: []
 					}
 				]);
 			});
@@ -1192,7 +1192,10 @@ describe('hooks', () => {
 					})
 				)
 				.then(() => {
-					assert.deepEqual(result, [{ a: file, format: 'cjs' }, { b: file, format: 'cjs' }]);
+					assert.deepEqual(result, [
+						{ a: file, format: 'cjs' },
+						{ b: file, format: 'cjs' }
+					]);
 					return sander.rimraf(TEMP_DIR);
 				});
 		});
