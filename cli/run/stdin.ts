@@ -22,10 +22,6 @@ export function stdinPlugin(): Plugin {
 
 function readStdin(): Promise<string> {
 	return new Promise((resolve, reject) => {
-		if (typeof process == 'undefined' || typeof process.stdin == 'undefined') {
-			return reject(new Error('stdin input is invalid in browser'));
-		}
-
 		const chunks: Buffer[] = [];
 		process.stdin.setEncoding('utf8');
 		process.stdin
