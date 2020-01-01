@@ -10,4 +10,4 @@ process.stdin = new Readable({
 	}
 });
 
-require('../../../../dist/bin/rollup');
+require('../../../../../dist/bin/rollup');

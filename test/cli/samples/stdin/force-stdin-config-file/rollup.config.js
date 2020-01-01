@@ -1,16 +1,16 @@
 export default [
 	{
-		input: '-',
+		input: 'b.mjs',
 		output: {
 			file: '_actual/cjs.js',
 			format: 'cjs'
 		}
 	},
 	{
-		input: '-',
+		input: 'a.mjs',
 		output: {
-			file: '_actual/es.js',
-			format: 'es'
+			file: '_actual/esm.js',
+			format: 'esm'
 		}
 	}
 ];

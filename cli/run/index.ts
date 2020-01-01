@@ -10,8 +10,6 @@ import loadConfigFile from './loadConfigFile';
 import { stdinName, stdinPlugin } from './stdin';
 import watch from './watch';
 
-const CONFIG_NO_FILE = { input: [] };
-
 export default function runRollup(command: any) {
 	let inputSource;
 	if (command._.length > 0) {
@@ -88,11 +86,14 @@ export default function runRollup(command: any) {
 
 		if (command.watch) process.env.ROLLUP_WATCH = 'true';
 
-		loadConfigFile(configFile, command)
+		return loadConfigFile(configFile, command)
 			.then(configs => execute(configFile, configs, command))
 			.catch(handleError);
 	} else {
-		return execute(configFile, [CONFIG_NO_FILE] as any, command);
+		if (!command.input && !process.stdin.isTTY) {
+			command.input = stdinName;
+		}
+		return execute(configFile, [{ input: [] }], command);
 	}
 }
 
@@ -111,14 +112,15 @@ async function execute(
 				config,
 				defaultOnWarnHandler: warnings.add
 			});
-
 			if (optionError) {
 				(inputOptions.onwarn as WarningHandler)({ code: 'UNKNOWN_OPTION', message: optionError });
 			}
-			if (config === CONFIG_NO_FILE && !command.input && !process.stdin.isTTY) {
-				inputOptions.input = stdinName;
+			if (command.stdin !== false) {
+				if (command.stdin) {
+					inputOptions.input = stdinName;
+				}
+				inputOptions.plugins!.push(stdinPlugin());
 			}
-			inputOptions.plugins!.push(stdinPlugin());
 			await build(inputOptions, outputOptions, warnings, command.silent);
 		}
 	}
