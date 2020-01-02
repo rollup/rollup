@@ -315,15 +315,15 @@ export default class Module {
 		if (this.defaultExport === null) {
 			this.defaultExport = undefined;
 			this.defaultExport = this.getVariableForExportName('default') as ExportDefaultVariable;
-			if (!this.defaultExport) {
-				return error({
-					code: Errors.SYNTHETIC_NAMED_EXPORTS_NEED_DEFAULT,
-					id: this.id,
-					message: `Modules with 'syntheticNamedExports' need a default export.`
-				});
-			}
 		}
-		return this.defaultExport!;
+		if (!this.defaultExport) {
+			return error({
+				code: Errors.SYNTHETIC_NAMED_EXPORTS_NEED_DEFAULT,
+				id: this.id,
+				message: `Modules with 'syntheticNamedExports' need a default export.`
+			});
+		}
+		return this.defaultExport;
 	}
 
 	getDynamicImportExpressions(): (string | Node)[] {
