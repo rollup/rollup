@@ -391,7 +391,7 @@ export class ModuleLoader {
 		}
 	}
 
-	private handleMissingImports(
+	private handleResolveId(
 		resolvedId: ResolvedId | null,
 		source: string,
 		importer: string
@@ -407,33 +407,10 @@ export class ModuleLoader {
 				moduleSideEffects: this.hasModuleSideEffects(source, true),
 				syntheticNamedExports: false
 			};
-		}
-		return resolvedId;
-	}
-
-	private handleResolveId(
-		resolvedId: ResolvedId | null,
-		source: string,
-		importer: string
-	): ResolvedId {
-		return this.handleSyntheticExports(
-			this.handleMissingImports(resolvedId, source, importer),
-			source,
-			importer
-		);
-	}
-
-	private handleSyntheticExports(
-		resolvedId: ResolvedId,
-		source: string,
-		importer: string
-	): ResolvedId {
-		if (resolvedId.external && resolvedId.syntheticNamedExports) {
-			this.graph.warn(errExternalSyntheticExports(source, importer));
-			return {
-				...resolvedId,
-				syntheticNamedExports: false
-			};
+		} else {
+			if (resolvedId.external && resolvedId.syntheticNamedExports) {
+				this.graph.warn(errExternalSyntheticExports(source, importer));
+			}
 		}
 		return resolvedId;
 	}

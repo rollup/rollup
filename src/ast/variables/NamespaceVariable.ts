@@ -101,11 +101,9 @@ export default class NamespaceVariable extends Variable {
 		}
 
 		const name = this.getName();
-		const defaultExport = this.syntheticNamedExports ? this.module.getDefaultExport() : undefined;
-
 		let output = `{${n}${members.join(`,${n}`)}${n}}`;
-		if (defaultExport) {
-			output = `/*#__PURE__*/Object.assign(${output}, ${defaultExport.getName()})`;
+		if (this.syntheticNamedExports) {
+			output = `/*#__PURE__*/Object.assign(${output}, ${this.module.getDefaultExport().getName()})`;
 		}
 		if (options.freeze) {
 			output = `/*#__PURE__*/Object.freeze(${output})`;

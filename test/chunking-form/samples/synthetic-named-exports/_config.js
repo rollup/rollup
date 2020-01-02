@@ -1,13 +1,25 @@
 module.exports = {
 	description: 'synthetic named exports',
+	solo: true,
 	options: {
 		input: ['main.js'],
 		plugins: [
 			{
 				resolveId(id) {
 					if (id === './dep1.js') {
+						return id;
+					}
+					return null;
+				},
+				load(id) {
+					if (id === './dep1.js') {
 						return {
-							id,
+							code: `
+const d = {
+  fn: 42,
+  hello: 'hola'
+};
+export default d;`,
 							syntheticNamedExports: true
 						};
 					}

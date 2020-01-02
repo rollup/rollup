@@ -314,16 +314,16 @@ export default class Module {
 	getDefaultExport() {
 		if (this.defaultExport === null) {
 			this.defaultExport = undefined;
-			this.defaultExport = this.astContext.traceExport('default') as ExportDefaultVariable;
+			this.defaultExport = this.getVariableForExportName('default') as ExportDefaultVariable;
 			if (!this.defaultExport) {
-				error({
+				return error({
 					code: Errors.SYNTHETIC_NAMED_EXPORTS_NEED_DEFAULT,
 					id: this.id,
 					message: `Modules with 'syntheticNamedExports' need a default export.`
 				});
 			}
 		}
-		return this.defaultExport;
+		return this.defaultExport!;
 	}
 
 	getDynamicImportExpressions(): (string | Node)[] {
@@ -468,15 +468,14 @@ export default class Module {
 		// probing export * modules for exports
 		if (!isExportAllSearch) {
 			if (this.syntheticNamedExports) {
-				let syntheticExport = this.syntheticExports.get(name);
-				if (!syntheticExport && !this.exports[name]) {
-					const defaultExport = this.getDefaultExport();
-					if (defaultExport) {
-						syntheticExport = new SyntheticNamedExport(this.astContext, name, defaultExport);
-						this.syntheticExports.set(name, syntheticExport);
-					}
-				}
+				const syntheticExport = this.syntheticExports.get(name);
 				if (syntheticExport) {
+					return syntheticExport;
+				}
+				if (!this.exports[name]) {
+					const defaultExport = this.getDefaultExport();
+					const syntheticExport = new SyntheticNamedExport(this.astContext, name, defaultExport);
+					this.syntheticExports.set(name, syntheticExport);
 					return syntheticExport;
 				}
 			}
