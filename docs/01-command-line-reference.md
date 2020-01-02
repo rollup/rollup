@@ -253,7 +253,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --silent                    Don't print warnings
 --sourcemapExcludeSources   Do not include source code in source maps
 --sourcemapFile <file>      Specify bundle position for source maps
---stdin                     read input from stdin
+--no-stdin                  do not read "-" from stdin
 --strictDeprecations        Throw errors for deprecated features
 --no-treeshake              Disable tree-shaking optimisations
 --no-treeshake.annotations  Ignore pure call annotations
@@ -308,13 +308,9 @@ npm run build -- --environment BUILD:development
 
 then the config file will receive `process.env.INCLUDE_DEPS === 'true'` and `process.env.BUILD === 'development'`.
 
-#### `--stdin`
-
-Read input from `stdin` instead of a file. This is the default when no config file is used and no entry point is provided and allows piping content to Rollup. When using a config file, this will replace `input` with what is read from `stdin`. See also [Reading a file from stdin](guide/en/#reading-a-file-from-stdin).
-
 #### `--no-stdin`
 
-Do not read input from `stdin`. Setting this flag will also make sure Rollup interprets `-` as a regular file name instead of interpreting this as the name of `stdin`. See also [Reading a file from stdin](guide/en/#reading-a-file-from-stdin).
+Do not read files from `stdin`. Setting this flag will prevent piping content to Rollup and make sure Rollup interprets `-` as a regular file name instead of interpreting this as the name of `stdin`. See also [Reading a file from stdin](guide/en/#reading-a-file-from-stdin).
 
 ### Reading a file from stdin
 
@@ -324,12 +320,12 @@ When using the command line interface, Rollup can also read content from stdin:
 echo "export const foo = 42;" | rollup --format cjs --file out.js
 ```
 
-When this file contains imports, Rollup will try to resolve them relative to the current working directory. When a config file is used, Rollup will only use `stdin` as an entry point if either the entry point is called `-` or you pass the [`--stdin`](guide/en/#--stdin) flag. To read a non-entry-point file from stdin, just call it `-`, which is the file name that is used internally to reference `stdin`. I.e.
+When this file contains imports, Rollup will try to resolve them relative to the current working directory. When a config file is used, Rollup will only use `stdin` as an entry point if the file name of the entry point is `-`. To read a non-entry-point file from stdin, just call it `-`, which is the file name that is used internally to reference `stdin`. I.e.
 
 ```js
 import foo from "-";
 ```
 
-in any file will prompt Rollup to try to read the imported file from `stdin`. You can pass the [`--no-stdin`](guide/en/#--no-stdin) CLI flag to Rollup to treat `-` as a regular file name instead.
+in any file will prompt Rollup to try to read the imported file from `stdin` and assign the default export to `foo`. You can pass the [`--no-stdin`](guide/en/#--no-stdin) CLI flag to Rollup to treat `-` as a regular file name instead.
 
 The JavaScript API will always treat `-` as a regular file name.

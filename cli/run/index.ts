@@ -90,7 +90,7 @@ export default function runRollup(command: any) {
 			.then(configs => execute(configFile, configs, command))
 			.catch(handleError);
 	} else {
-		if (!command.input && !process.stdin.isTTY) {
+		if (!command.input && (command.stdin || !process.stdin.isTTY)) {
 			command.input = stdinName;
 		}
 		return execute(configFile, [{ input: [] }], command);
@@ -116,9 +116,6 @@ async function execute(
 				(inputOptions.onwarn as WarningHandler)({ code: 'UNKNOWN_OPTION', message: optionError });
 			}
 			if (command.stdin !== false) {
-				if (command.stdin) {
-					inputOptions.input = stdinName;
-				}
 				inputOptions.plugins!.push(stdinPlugin());
 			}
 			await build(inputOptions, outputOptions, warnings, command.silent);
