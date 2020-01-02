@@ -3,7 +3,7 @@ import { InclusionContext } from '../ExecutionContext';
 import ExportDefaultVariable from './ExportDefaultVariable';
 import Variable from './Variable';
 
-export default class SyntheticNamedExport extends Variable {
+export default class SyntheticNamedExportVariableVariable extends Variable {
 	context: AstContext;
 	defaultVariable: ExportDefaultVariable;
 	module: Module;

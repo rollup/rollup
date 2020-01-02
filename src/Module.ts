@@ -26,7 +26,7 @@ import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
 import ExportShimVariable from './ast/variables/ExportShimVariable';
 import ExternalVariable from './ast/variables/ExternalVariable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
-import SyntheticNamedExport from './ast/variables/SyntheticNamedExport';
+import SyntheticNamedExportVariable from './ast/variables/SyntheticNamedExportVariable';
 import Variable from './ast/variables/Variable';
 import Chunk from './Chunk';
 import ExternalModule from './ExternalModule';
@@ -222,7 +222,7 @@ export default class Module {
 	private graph: Graph;
 	private magicString!: MagicString;
 	private namespaceVariable: NamespaceVariable | null = null;
-	private syntheticExports = new Map<string, SyntheticNamedExport>();
+	private syntheticExports = new Map<string, SyntheticNamedExportVariable>();
 	private transformDependencies: string[] = [];
 	private transitiveReexports: string[] | null = null;
 
@@ -471,7 +471,7 @@ export default class Module {
 				let syntheticExport = this.syntheticExports.get(name);
 				if (!syntheticExport) {
 					const defaultExport = this.getDefaultExport();
-					syntheticExport = new SyntheticNamedExport(this.astContext, name, defaultExport);
+					syntheticExport = new SyntheticNamedExportVariable(this.astContext, name, defaultExport);
 					this.syntheticExports.set(name, syntheticExport);
 					return syntheticExport;
 				}
