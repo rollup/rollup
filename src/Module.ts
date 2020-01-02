@@ -468,16 +468,14 @@ export default class Module {
 		// probing export * modules for exports
 		if (!isExportAllSearch) {
 			if (this.syntheticNamedExports) {
-				const syntheticExport = this.syntheticExports.get(name);
-				if (syntheticExport) {
-					return syntheticExport;
-				}
-				if (!this.exports[name]) {
+				let syntheticExport = this.syntheticExports.get(name);
+				if (!syntheticExport) {
 					const defaultExport = this.getDefaultExport();
-					const syntheticExport = new SyntheticNamedExport(this.astContext, name, defaultExport);
+					syntheticExport = new SyntheticNamedExport(this.astContext, name, defaultExport);
 					this.syntheticExports.set(name, syntheticExport);
 					return syntheticExport;
 				}
+				return syntheticExport;
 			}
 
 			if (this.graph.shimMissingExports) {
