@@ -249,7 +249,7 @@ Repository: Rich-Harris/locate-character
 ## magic-string
 License: MIT
 By: Rich Harris
-Repository: https://github.com/rich-harris/magic-string
+Repository: git+https://github.com/rich-harris/magic-string.git
 
 > Copyright 2018 Rich Harris
 > 
@@ -427,7 +427,7 @@ Repository: https://github.com/tapjs/signal-exit.git
 ## sourcemap-codec
 License: MIT
 By: Rich Harris
-Repository: https://github.com/Rich-Harris/sourcemap-codec
+Repository: git+https://github.com/Rich-Harris/sourcemap-codec.git
 
 > The MIT License
 > 
