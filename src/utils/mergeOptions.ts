@@ -5,6 +5,8 @@ import {
 	WarningHandlerWithDefault
 } from '../rollup/types';
 
+import { stdinName } from './stdin';
+
 export interface GenericConfigObject {
 	[key: string]: unknown;
 }
@@ -208,6 +210,7 @@ function getInputOptions(
 	defaultOnWarnHandler: WarningHandler
 ): InputOptions {
 	const getOption = createGetOption(config, command);
+	const input = getOption('input', []);
 
 	const inputOptions: InputOptions = {
 		acorn: config.acorn,
@@ -220,7 +223,7 @@ function getInputOptions(
 		experimentalTopLevelAwait: getOption('experimentalTopLevelAwait'),
 		external: getExternal(config, command) as any,
 		inlineDynamicImports: getOption('inlineDynamicImports', false),
-		input: getOption('input', []),
+		input,
 		manualChunks: getOption('manualChunks'),
 		moduleContext: config.moduleContext as any,
 		onwarn: getOnWarn(config, defaultOnWarnHandler),
@@ -233,6 +236,13 @@ function getInputOptions(
 		treeshake: getObjectOption(config, command, 'treeshake'),
 		watch: config.watch as any
 	};
+
+	if (
+		config.watch &&
+		(input === stdinName || (Array.isArray(input) && input.indexOf(stdinName) >= 0))
+	) {
+		throw new Error('watch mode is incompatible with stdin input');
+	}
 
 	// support rollup({ cache: prevBuildObject })
 	if (inputOptions.cache && (inputOptions.cache as any).cache)
@@ -250,6 +260,7 @@ function getOutputOptions(
 
 	// Handle format aliases
 	switch (format) {
+		case undefined:
 		case 'esm':
 		case 'module':
 			format = 'es';
@@ -273,7 +284,7 @@ function getOutputOptions(
 		externalLiveBindings: getOption('externalLiveBindings', true),
 		file: getOption('file'),
 		footer: getOption('footer'),
-		format: format === 'esm' ? 'es' : format,
+		format,
 		freeze: getOption('freeze', true),
 		globals: getOption('globals'),
 		indent: getOption('indent', true),

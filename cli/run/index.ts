@@ -3,6 +3,7 @@ import relative from 'require-relative';
 import { WarningHandler } from '../../src/rollup/types';
 import mergeOptions, { GenericConfigObject } from '../../src/utils/mergeOptions';
 import { getAliasName } from '../../src/utils/relativeId';
+import { stdinName } from '../../src/utils/stdin';
 import { handleError } from '../logging';
 import batchWarnings from './batchWarnings';
 import build from './build';
@@ -101,6 +102,7 @@ function execute (configFile: string, configs: GenericConfigObject[], command: a
 		for (const config of configs) {
 			promise = promise.then(() => {
 				const warnings = batchWarnings();
+				handleMissingInput(command, config);
 				const { inputOptions, outputOptions, optionError } = mergeOptions({
 					command,
 					config,
@@ -113,5 +115,11 @@ function execute (configFile: string, configs: GenericConfigObject[], command: a
 			});
 		}
 		return promise;
+	}
+}
+
+function handleMissingInput(command: any, config: GenericConfigObject) {
+	if (!(command.input || config.input || config.input === '' || process.stdin.isTTY)) {
+		command.input = stdinName;
 	}
 }
