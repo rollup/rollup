@@ -8,27 +8,26 @@ import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from './shared/Node';
 
+const unset = Symbol('unset');
+
 export default class IfStatement extends StatementBase implements DeoptimizableEntity {
 	alternate!: StatementNode | null;
 	consequent!: StatementNode;
 	test!: ExpressionNode;
 	type!: NodeType.tIfStatement;
 
-	private testValue: LiteralValueOrUnknown;
-
-	bind() {
-		super.bind();
-		// ensure the testValue is set for the tree-shaking passes
-		this.testValue = this.test.getLiteralValueAtPath(EMPTY_PATH, SHARED_RECURSION_TRACKER, this);
-	}
+	private testValue: LiteralValueOrUnknown | typeof unset = unset;
 
 	deoptimizeCache() {
 		this.testValue = UnknownValue;
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
-		if (this.test.hasEffects(context)) return true;
-		if (this.testValue === UnknownValue) {
+		if (this.test.hasEffects(context)) {
+			return true;
+		}
+		const testValue = this.getTestValue();
+		if (testValue === UnknownValue) {
 			const { brokenFlow } = context;
 			if (this.consequent.hasEffects(context)) return true;
 			const consequentBrokenFlow = context.brokenFlow;
@@ -39,7 +38,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 				context.brokenFlow < consequentBrokenFlow ? context.brokenFlow : consequentBrokenFlow;
 			return false;
 		}
-		return this.testValue
+		return testValue
 			? this.consequent.hasEffects(context)
 			: this.alternate !== null && this.alternate.hasEffects(context);
 	}
@@ -48,22 +47,24 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		this.included = true;
 		if (includeChildrenRecursively) {
 			this.includeRecursively(includeChildrenRecursively, context);
-		} else if (this.testValue === UnknownValue) {
-			this.includeUnknownTest(context);
 		} else {
-			this.includeKnownTest(context);
+			const testValue = this.getTestValue();
+			if (testValue === UnknownValue) {
+				this.includeUnknownTest(context);
+			} else {
+				this.includeKnownTest(context, testValue);
+			}
 		}
 	}
 
 	render(code: MagicString, options: RenderOptions) {
 		// Note that unknown test values are always included
+		const testValue = this.getTestValue();
 		if (
 			!this.test.included &&
-			(this.testValue
-				? this.alternate === null || !this.alternate.included
-				: !this.consequent.included)
+			(testValue ? this.alternate === null || !this.alternate.included : !this.consequent.included)
 		) {
-			const singleRetainedBranch = (this.testValue ? this.consequent : this.alternate)!;
+			const singleRetainedBranch = (testValue ? this.consequent : this.alternate)!;
 			code.remove(this.start, singleRetainedBranch.start);
 			code.remove(singleRetainedBranch.end, this.end);
 			removeAnnotations(this, code);
@@ -72,7 +73,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			if (this.test.included) {
 				this.test.render(code, options);
 			} else {
-				code.overwrite(this.test.start, this.test.end, this.testValue ? 'true' : 'false');
+				code.overwrite(this.test.start, this.test.end, testValue ? 'true' : 'false');
 			}
 			if (this.consequent.included) {
 				this.consequent.render(code, options);
@@ -89,14 +90,25 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		}
 	}
 
-	private includeKnownTest(context: InclusionContext) {
+	private getTestValue(): LiteralValueOrUnknown {
+		if (this.testValue === unset) {
+			return (this.testValue = this.test.getLiteralValueAtPath(
+				EMPTY_PATH,
+				SHARED_RECURSION_TRACKER,
+				this
+			));
+		}
+		return this.testValue;
+	}
+
+	private includeKnownTest(context: InclusionContext, testValue: LiteralValueOrUnknown) {
 		if (this.test.shouldBeIncluded(context)) {
 			this.test.include(context, false);
 		}
-		if (this.testValue && this.consequent.shouldBeIncluded(context)) {
+		if (testValue && this.consequent.shouldBeIncluded(context)) {
 			this.consequent.include(context, false);
 		}
-		if (this.alternate !== null && !this.testValue && this.alternate.shouldBeIncluded(context)) {
+		if (this.alternate !== null && !testValue && this.alternate.shouldBeIncluded(context)) {
 			this.alternate.include(context, false);
 		}
 	}

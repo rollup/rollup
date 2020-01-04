@@ -1,11 +1,11 @@
 import MagicString from 'magic-string';
 import { findFirstOccurrenceOutsideComment, RenderOptions } from '../../utils/renderHelpers';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
-import { HasEffectsContext } from '../ExecutionContext';
+import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
 export default class AssignmentExpression extends NodeBase {
@@ -26,15 +26,10 @@ export default class AssignmentExpression extends NodeBase {
 		| '**=';
 	right!: ExpressionNode;
 	type!: NodeType.tAssignmentExpression;
-
-	bind() {
-		super.bind();
-		this.left.deoptimizePath(EMPTY_PATH);
-		// We cannot propagate mutations of the new binding to the old binding with certainty
-		this.right.deoptimizePath(UNKNOWN_PATH);
-	}
+	private deoptimized = false;
 
 	hasEffects(context: HasEffectsContext): boolean {
+		if (!this.deoptimized) this.applyDeoptimizations();
 		return (
 			this.right.hasEffects(context) ||
 			this.left.hasEffects(context) ||
@@ -44,6 +39,13 @@ export default class AssignmentExpression extends NodeBase {
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		return path.length > 0 && this.right.hasEffectsWhenAccessedAtPath(path, context);
+	}
+
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		if (!this.deoptimized) this.applyDeoptimizations();
+		this.included = true;
+		this.left.include(context, includeChildrenRecursively);
+		this.right.include(context, includeChildrenRecursively);
 	}
 
 	render(code: MagicString, options: RenderOptions) {
@@ -78,5 +80,11 @@ export default class AssignmentExpression extends NodeBase {
 				}
 			}
 		}
+	}
+
+	private applyDeoptimizations() {
+		this.deoptimized = true;
+		this.left.deoptimizePath(EMPTY_PATH);
+		this.right.deoptimizePath(UNKNOWN_PATH);
 	}
 }
