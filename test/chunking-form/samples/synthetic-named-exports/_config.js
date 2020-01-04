@@ -5,13 +5,13 @@ module.exports = {
 		plugins: [
 			{
 				resolveId(id) {
-					if (id === './dep1.js') {
+					if (id.endsWith('dep1.js')) {
 						return id;
 					}
 					return null;
 				},
 				load(id) {
-					if (id === './dep1.js') {
+					if (id.endsWith('dep1.js')) {
 						return {
 							code: `
 const d = {

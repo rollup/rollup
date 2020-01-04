@@ -5,8 +5,6 @@ import {
 	WarningHandlerWithDefault
 } from '../rollup/types';
 
-import { stdinName } from './stdin';
-
 export interface GenericConfigObject {
 	[key: string]: unknown;
 }
@@ -49,6 +47,16 @@ const getObjectOption = (
 	}
 	return configOption;
 };
+
+export function ensureArray<T>(items: (T | null | undefined)[] | T | null | undefined): T[] {
+	if (Array.isArray(items)) {
+		return items.filter(Boolean) as T[];
+	}
+	if (items) {
+		return [items];
+	}
+	return [];
+}
 
 const defaultOnWarn: WarningHandler = warning => {
 	if (typeof warning === 'string') {
@@ -150,7 +158,8 @@ export default function mergeOptions({
 			Object.keys(commandAliases),
 			'config',
 			'environment',
-			'silent'
+			'silent',
+			'stdin'
 		),
 		'CLI flag',
 		/^_|output|(config.*)$/
@@ -210,8 +219,6 @@ function getInputOptions(
 	defaultOnWarnHandler: WarningHandler
 ): InputOptions {
 	const getOption = createGetOption(config, command);
-	const input = getOption('input', []);
-
 	const inputOptions: InputOptions = {
 		acorn: config.acorn,
 		acornInjectPlugins: config.acornInjectPlugins as any,
@@ -223,12 +230,12 @@ function getInputOptions(
 		experimentalTopLevelAwait: getOption('experimentalTopLevelAwait'),
 		external: getExternal(config, command) as any,
 		inlineDynamicImports: getOption('inlineDynamicImports', false),
-		input,
+		input: getOption('input', []),
 		manualChunks: getOption('manualChunks'),
 		moduleContext: config.moduleContext as any,
 		onwarn: getOnWarn(config, defaultOnWarnHandler),
 		perf: getOption('perf', false),
-		plugins: config.plugins as any,
+		plugins: ensureArray(config.plugins as any),
 		preserveModules: getOption('preserveModules'),
 		preserveSymlinks: getOption('preserveSymlinks'),
 		shimMissingExports: getOption('shimMissingExports'),
@@ -236,13 +243,6 @@ function getInputOptions(
 		treeshake: getObjectOption(config, command, 'treeshake'),
 		watch: config.watch as any
 	};
-
-	if (
-		config.watch &&
-		(input === stdinName || (Array.isArray(input) && input.indexOf(stdinName) >= 0))
-	) {
-		throw new Error('watch mode is incompatible with stdin input');
-	}
 
 	// support rollup({ cache: prevBuildObject })
 	if (inputOptions.cache && (inputOptions.cache as any).cache)
@@ -295,7 +295,7 @@ function getOutputOptions(
 		noConflict: getOption('noConflict'),
 		outro: getOption('outro'),
 		paths: getOption('paths'),
-		plugins: config.plugins as any,
+		plugins: ensureArray(config.plugins as any),
 		preferConst: getOption('preferConst'),
 		sourcemap: getOption('sourcemap'),
 		sourcemapExcludeSources: getOption('sourcemapExcludeSources'),

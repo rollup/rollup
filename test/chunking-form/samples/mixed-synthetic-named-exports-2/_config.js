@@ -5,8 +5,7 @@ module.exports = {
 		plugins: [
 			{
 				transform(code, id) {
-					console.log(id);
-					if (id.endsWith('/dep1.js') || id.endsWith('/dep2.js')) {
+					if (id.endsWith('dep1.js') || id.endsWith('dep2.js')) {
 						return {
 							code,
 							syntheticNamedExports: true
