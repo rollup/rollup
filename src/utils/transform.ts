@@ -35,6 +35,7 @@ export default function transform(
 	const emittedFiles: EmittedFile[] = [];
 	let customTransformCache = false;
 	let moduleSideEffects: boolean | null = null;
+	let syntheticNamedExports: boolean | null = null;
 	let trackedPluginCache: { cache: PluginCache; used: boolean };
 	let curPlugin: Plugin;
 	const curSource: string = source.code;
@@ -81,6 +82,9 @@ export default function transform(
 			}
 			if (typeof result.moduleSideEffects === 'boolean') {
 				moduleSideEffects = result.moduleSideEffects;
+			}
+			if (typeof result.syntheticNamedExports === 'boolean') {
+				syntheticNamedExports = result.syntheticNamedExports;
 			}
 		} else {
 			return code;
@@ -193,6 +197,7 @@ export default function transform(
 				originalCode,
 				originalSourcemap,
 				sourcemapChain,
+				syntheticNamedExports,
 				transformDependencies
 			};
 		});

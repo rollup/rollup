@@ -169,7 +169,7 @@ Phase: `generate`
 Cf. [`output.intro/output.outro`](guide/en/#outputintrooutputoutro).
 
 #### `load`
-Type: `(id: string) => string | null | { code: string, map?: string | SourceMap, ast? : ESTree.Program, moduleSideEffects?: boolean | null }`<br>
+Type: `(id: string) => string | null | { code: string, map?: string | SourceMap, ast? : ESTree.Program, moduleSideEffects?: boolean | null, syntheticNamedExports?: boolean | null }`<br>
 Kind: `async, first`<br>
 Phase: `build`
 
@@ -177,7 +177,25 @@ Defines a custom loader. Returning `null` defers to other `load` functions (and 
 
 If `false` is returned for `moduleSideEffects` and no other module imports anything from this module, then this module will not be included in the bundle without checking for actual side-effects inside the module. If `true` is returned, Rollup will use its default algorithm to include all statements in the module that have side-effects (such as modifying a global or exported variable). If `null` is returned or the flag is omitted, then `moduleSideEffects` will be determined by the first `resolveId` hook that resolved this module, the `treeshake.moduleSideEffects` option, or eventually default to `true`. The `transform` hook can override this.
 
-You can use [`this.getModuleInfo`](guide/en/#thisgetmoduleinfomoduleid-string--moduleinfo) to find out the previous value of `moduleSideEffects` inside this hook.
+If `true` is returned for `syntheticNamedExports`, this module will fallback the resolution of any missing named export to properties of the `default` export. The `transform` hook can override this. This option allows to have dynamic named exports that might not be declared in the module, such as in this example:
+
+**dep.js: (`{syntheticNamedExports: true}`)**
+
+```
+export default {
+  foo: 42,
+  bar: 'hello'
+}
+```
+
+**main.js: (entry point)**
+
+```js
+import { foo, bar } from './dep.js'
+console.log(foo, bar);
+```
+
+You can use [`this.getModuleInfo`](guide/en/#thisgetmoduleinfomoduleid-string--moduleinfo) to find out the previous values of `moduleSideEffects` and `syntheticNamedExports` inside this hook.
 
 #### `options`
 Type: `(options: InputOptions) => InputOptions | null`<br>
@@ -268,7 +286,7 @@ resolveFileUrl({fileName}) {
 ```
 
 #### `resolveId`
-Type: `(source: string, importer: string) => string | false | null | {id: string, external?: boolean, moduleSideEffects?: boolean | null}`<br>
+Type: `(source: string, importer: string) => string | false | null | {id: string, external?: boolean, moduleSideEffects?: boolean | null, syntheticNamedExports?: boolean | null}`<br>
 Kind: `async, first`<br>
 Phase: `build`
 
@@ -288,6 +306,24 @@ resolveId(source) {
 Relative ids, i.e. starting with `./` or `../`, will **not** be renormalized when returning an object. If you want this behaviour, return an absolute file system location as `id` instead.
 
 If `false` is returned for `moduleSideEffects` in the first hook that resolves a module id and no other module imports anything from this module, then this module will not be included without checking for actual side-effects inside the module. If `true` is returned, Rollup will use its default algorithm to include all statements in the module that have side-effects (such as modifying a global or exported variable). If `null` is returned or the flag is omitted, then `moduleSideEffects` will be determined by the `treeshake.moduleSideEffects` option or default to `true`. The `load` and `transform` hooks can override this.
+
+If `true` is returned for `syntheticNamedExports`, this module will fallback the resolution of any missing named export to properties of the `default` export. The `load` and `transform` hooks can override this. This option allows to have dynamic named exports that might not be declared in the module, such as in this example:
+
+**dep.js: (`{syntheticNamedExports: true}`)**
+
+```
+export default {
+  foo: 42,
+  bar: 'hello'
+}
+```
+
+**main.js: (entry point)**
+
+```js
+import { foo, bar } from './dep.js'
+console.log(foo, bar);
+```
 
 #### `resolveImportMeta`
 Type: `(property: string | null, {chunkId: string, moduleId: string, format: string}) => string | null`<br>
@@ -313,7 +349,7 @@ resolveImportMeta(property, {moduleId}) {
 Note that since this hook has access to the filename of the current chunk, its return value will not be considered when generating the hash of this chunk.
 
 #### `transform`
-Type: `(code: string, id: string) => string | null | { code: string, map?: string | SourceMap, ast? : ESTree.Program, moduleSideEffects?: boolean | null }`<br>
+Type: `(code: string, id: string) => string | null | { code: string, map?: string | SourceMap, ast? : ESTree.Program, moduleSideEffects?: boolean | null, syntheticNamedExports?: boolean | null }`<br>
 Kind: `async, sequential`<br>
 Phase: `build`
 
@@ -322,6 +358,24 @@ Can be used to transform individual modules. To prevent additional parsing overh
 Note that in watch mode, the result of this hook is cached when rebuilding and the hook is only triggered again for a module `id` if either the `code` of the module has changed or a file has changed that was added via `this.addWatchFile` the last time the hook was triggered for this module.
 
 If `false` is returned for `moduleSideEffects` and no other module imports anything from this module, then this module will not be included without checking for actual side-effects inside the module. If `true` is returned, Rollup will use its default algorithm to include all statements in the module that have side-effects (such as modifying a global or exported variable). If `null` is returned or the flag is omitted, then `moduleSideEffects` will be determined by the first `resolveId` hook that resolved this module, the `treeshake.moduleSideEffects` option, or eventually default to `true`.
+
+If `true` is returned for `syntheticNamedExports`, this module will fallback the resolution of any missing named export to properties of the `default` export. This option allows to have dynamic named exports that might not be declared in the module, such as in this example:
+
+**dep.js: (`{syntheticNamedExports: true}`)**
+
+```
+export default {
+  foo: 42,
+  bar: 'hello'
+}
+```
+
+**main.js: (entry point)**
+
+```js
+import { foo, bar } from './dep.js'
+console.log(foo, bar);
+```
 
 You can use [`this.getModuleInfo`](guide/en/#thisgetmoduleinfomoduleid-string--moduleinfo) to find out the previous value of `moduleSideEffects` inside this hook.
 

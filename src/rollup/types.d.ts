@@ -93,6 +93,7 @@ export interface SourceDescription {
 	code: string;
 	map?: SourceMapInput;
 	moduleSideEffects?: boolean | null;
+	syntheticNamedExports?: boolean;
 }
 
 export interface TransformSourceDescription extends SourceDescription {
@@ -109,6 +110,7 @@ export interface TransformModuleJSON {
 	originalSourcemap: ExistingDecodedSourceMap | null;
 	resolvedIds?: ResolvedIdMap;
 	sourcemapChain: DecodedSourceMapOrMissing[];
+	syntheticNamedExports: boolean | null;
 	transformDependencies: string[];
 }
 
@@ -199,6 +201,7 @@ export interface ResolvedId {
 	external: boolean;
 	id: string;
 	moduleSideEffects: boolean;
+	syntheticNamedExports: boolean;
 }
 
 export interface ResolvedIdMap {
@@ -209,6 +212,7 @@ interface PartialResolvedId {
 	external?: boolean;
 	id: string;
 	moduleSideEffects?: boolean | null;
+	syntheticNamedExports?: boolean;
 }
 
 export type ResolveIdResult = string | false | null | undefined | PartialResolvedId;

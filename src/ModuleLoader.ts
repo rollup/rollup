@@ -17,6 +17,7 @@ import {
 	errBadLoader,
 	errCannotAssignModuleToChunk,
 	errEntryCannotBeExternal,
+	errExternalSyntheticExports,
 	errInternalIdCannotBeExternal,
 	errInvalidOption,
 	errNamespaceConflict,
@@ -243,7 +244,7 @@ export class ModuleLoader {
 					module.id,
 					(module.resolvedIds[source] =
 						module.resolvedIds[source] ||
-						this.handleMissingImports(await this.resolveId(source, module.id), source, module.id))
+						this.handleResolveId(await this.resolveId(source, module.id), source, module.id))
 				)
 			) as Promise<unknown>[]),
 			...module.getDynamicImportExpressions().map((specifier, index) =>
@@ -272,6 +273,7 @@ export class ModuleLoader {
 		id: string,
 		importer: string,
 		moduleSideEffects: boolean,
+		syntheticNamedExports: boolean,
 		isEntry: boolean
 	): Promise<Module> {
 		const existingModule = this.modulesById.get(id);
@@ -280,7 +282,13 @@ export class ModuleLoader {
 			return Promise.resolve(existingModule);
 		}
 
-		const module: Module = new Module(this.graph, id, moduleSideEffects, isEntry);
+		const module: Module = new Module(
+			this.graph,
+			id,
+			moduleSideEffects,
+			syntheticNamedExports,
+			isEntry
+		);
 		this.modulesById.set(id, module);
 		this.graph.watchFiles[id] = true;
 		const manualChunkAlias = this.getManualChunk(id);
@@ -320,6 +328,9 @@ export class ModuleLoader {
 
 				if (typeof sourceDescription.moduleSideEffects === 'boolean') {
 					module.moduleSideEffects = sourceDescription.moduleSideEffects;
+				}
+				if (typeof sourceDescription.syntheticNamedExports === 'boolean') {
+					module.syntheticNamedExports = sourceDescription.syntheticNamedExports;
 				}
 				return transform(this.graph, sourceDescription, module);
 			})
@@ -370,11 +381,17 @@ export class ModuleLoader {
 			}
 			return Promise.resolve(externalModule);
 		} else {
-			return this.fetchModule(resolvedId.id, importer, resolvedId.moduleSideEffects, false);
+			return this.fetchModule(
+				resolvedId.id,
+				importer,
+				resolvedId.moduleSideEffects,
+				resolvedId.syntheticNamedExports,
+				false
+			);
 		}
 	}
 
-	private handleMissingImports(
+	private handleResolveId(
 		resolvedId: ResolvedId | null,
 		source: string,
 		importer: string
@@ -387,8 +404,13 @@ export class ModuleLoader {
 			return {
 				external: true,
 				id: source,
-				moduleSideEffects: this.hasModuleSideEffects(source, true)
+				moduleSideEffects: this.hasModuleSideEffects(source, true),
+				syntheticNamedExports: false
 			};
+		} else {
+			if (resolvedId.external && resolvedId.syntheticNamedExports) {
+				this.graph.warn(errExternalSyntheticExports(source, importer));
+			}
 		}
 		return resolvedId;
 	}
@@ -407,7 +429,7 @@ export class ModuleLoader {
 					: resolveIdResult;
 
 			if (typeof id === 'string') {
-				return this.fetchModule(id, undefined as any, true, isEntry);
+				return this.fetchModule(id, undefined as any, true, false, isEntry);
 			}
 			return error(errUnresolvedEntry(unresolvedId));
 		});
@@ -420,6 +442,7 @@ export class ModuleLoader {
 		let id = '';
 		let external = false;
 		let moduleSideEffects = null;
+		let syntheticNamedExports = false;
 		if (resolveIdResult) {
 			if (typeof resolveIdResult === 'object') {
 				id = resolveIdResult.id;
@@ -428,6 +451,9 @@ export class ModuleLoader {
 				}
 				if (typeof resolveIdResult.moduleSideEffects === 'boolean') {
 					moduleSideEffects = resolveIdResult.moduleSideEffects;
+				}
+				if (typeof resolveIdResult.syntheticNamedExports === 'boolean') {
+					syntheticNamedExports = resolveIdResult.syntheticNamedExports;
 				}
 			} else {
 				if (this.isExternal(resolveIdResult, importer, true)) {
@@ -448,7 +474,8 @@ export class ModuleLoader {
 			moduleSideEffects:
 				typeof moduleSideEffects === 'boolean'
 					? moduleSideEffects
-					: this.hasModuleSideEffects(id, external)
+					: this.hasModuleSideEffects(id, external),
+			syntheticNamedExports
 		};
 	}
 
@@ -478,13 +505,9 @@ export class ModuleLoader {
 		if (resolution == null) {
 			return (module.resolvedIds[specifier] =
 				module.resolvedIds[specifier] ||
-				this.handleMissingImports(
-					await this.resolveId(specifier, module.id),
-					specifier,
-					module.id
-				));
+				this.handleResolveId(await this.resolveId(specifier, module.id), specifier, module.id));
 		}
-		return this.handleMissingImports(
+		return this.handleResolveId(
 			this.normalizeResolveIdResult(resolution, importer, specifier),
 			specifier,
 			importer

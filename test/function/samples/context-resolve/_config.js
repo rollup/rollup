@@ -7,7 +7,8 @@ const tests = [
 		expected: {
 			id: path.resolve(__dirname, 'existing.js'),
 			external: false,
-			moduleSideEffects: true
+			moduleSideEffects: true,
+			syntheticNamedExports: false
 		}
 	},
 	{
@@ -23,7 +24,8 @@ const tests = [
 		expected: {
 			id: path.resolve(__dirname, 'marked-directly-external-relative'),
 			external: true,
-			moduleSideEffects: true
+			moduleSideEffects: true,
+			syntheticNamedExports: false
 		}
 	},
 	{
@@ -31,36 +33,63 @@ const tests = [
 		expected: {
 			id: path.resolve(__dirname, 'marked-external-relative'),
 			external: true,
-			moduleSideEffects: true
+			moduleSideEffects: true,
+			syntheticNamedExports: false
 		}
 	},
 	{
 		source: 'marked-external-absolute',
-		expected: { id: 'marked-external-absolute', external: true, moduleSideEffects: true }
+		expected: {
+			id: 'marked-external-absolute',
+			external: true,
+			moduleSideEffects: true,
+			syntheticNamedExports: false
+		}
 	},
 	{
 		source: 'resolved-name',
-		expected: { id: 'resolved:resolved-name', external: false, moduleSideEffects: true }
+		expected: {
+			id: 'resolved:resolved-name',
+			external: false,
+			moduleSideEffects: true,
+			syntheticNamedExports: false
+		}
 	},
 	{
 		source: 'resolved-false',
-		expected: { id: 'resolved-false', external: true, moduleSideEffects: true }
+		expected: {
+			id: 'resolved-false',
+			external: true,
+			moduleSideEffects: true,
+			syntheticNamedExports: false
+		}
 	},
 	{
 		source: 'resolved-object',
-		expected: { id: 'resolved:resolved-object', external: false, moduleSideEffects: true }
+		expected: {
+			id: 'resolved:resolved-object',
+			external: false,
+			moduleSideEffects: true,
+			syntheticNamedExports: false
+		}
 	},
 	{
 		source: 'resolved-object-non-external',
 		expected: {
 			id: 'resolved:resolved-object-non-external',
 			external: false,
-			moduleSideEffects: true
+			moduleSideEffects: true,
+			syntheticNamedExports: false
 		}
 	},
 	{
 		source: 'resolved-object-external',
-		expected: { id: 'resolved:resolved-object-external', external: true, moduleSideEffects: true }
+		expected: {
+			id: 'resolved:resolved-object-external',
+			external: true,
+			moduleSideEffects: true,
+			syntheticNamedExports: false
+		}
 	}
 ];
 
