@@ -99,7 +99,6 @@ const inputOptions = {
   chunkGroupingSize,
   experimentalCacheExpiry,
   experimentalOptimizeChunks,
-  experimentalTopLevelAwait,
   perf
 };
 ```

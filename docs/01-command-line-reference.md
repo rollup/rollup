@@ -56,7 +56,6 @@ export default { // can be an array (for multiple inputs)
   chunkGroupingSize,
   experimentalCacheExpiry,
   experimentalOptimizeChunks,
-  experimentalTopLevelAwait,
   perf,
 
   output: { // required (can be an array, for multiple outputs)
