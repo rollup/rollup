@@ -5,7 +5,7 @@ import { FinaliserOptions } from './index';
 
 export default function es(
 	magicString: MagicStringBundle,
-	{ intro, outro, dependencies, exports }: FinaliserOptions,
+	{ intro, outro, dependencies, exports, varOrConst }: FinaliserOptions,
 	options: OutputOptions
 ) {
 	const _ = options.compact ? '' : ' ';
@@ -15,7 +15,7 @@ export default function es(
 	if (importBlock.length > 0) intro += importBlock.join(n) + n + n;
 	if (intro) magicString.prepend(intro);
 
-	const exportBlock = getExportBlock(exports, _);
+	const exportBlock = getExportBlock(exports, _, varOrConst);
 	if (exportBlock.length) magicString.append(n + n + exportBlock.join(n).trim());
 	if (outro) magicString.append(outro);
 
@@ -110,7 +110,7 @@ function getImportBlock(dependencies: ChunkDependencies, _: string): string[] {
 	return importBlock;
 }
 
-function getExportBlock(exports: ChunkExports, _: string): string[] {
+function getExportBlock(exports: ChunkExports, _: string, varOrConst: string): string[] {
 	const exportBlock: string[] = [];
 	const exportDeclaration: string[] = [];
 	for (const specifier of exports) {
@@ -119,7 +119,7 @@ function getExportBlock(exports: ChunkExports, _: string): string[] {
 			exportBlock.push(`export default ${local};`);
 		} else {
 			if (specifier.auxLocal) {
-				exportBlock.push(`const ${specifier.auxLocal}${_}=${_}${local};`);
+				exportBlock.push(`${varOrConst} ${specifier.auxLocal}${_}=${_}${local};`);
 				local = specifier.auxLocal;
 			}
 			exportDeclaration.push(
