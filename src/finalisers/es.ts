@@ -114,13 +114,16 @@ function getExportBlock(exports: ChunkExports, _: string): string[] {
 	const exportBlock: string[] = [];
 	const exportDeclaration: string[] = [];
 	for (const specifier of exports) {
+		let local = specifier.local;
 		if (specifier.exported === 'default') {
-			exportBlock.push(`export default ${specifier.local};`);
+			exportBlock.push(`export default ${local};`);
 		} else {
+			if (specifier.auxLocal) {
+				exportBlock.push(`const ${specifier.auxLocal}${_}=${_}${local};`);
+				local = specifier.auxLocal;
+			}
 			exportDeclaration.push(
-				specifier.exported === specifier.local
-					? specifier.local
-					: `${specifier.local} as ${specifier.exported}`
+				specifier.exported === local ? local : `${local} as ${specifier.exported}`
 			);
 		}
 	}

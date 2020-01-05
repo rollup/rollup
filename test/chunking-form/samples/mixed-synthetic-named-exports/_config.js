@@ -1,5 +1,6 @@
 module.exports = {
 	description: 'mixed synthetic named exports',
+	solo: true,
 	options: {
 		input: ['main.js'],
 		plugins: [

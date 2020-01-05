@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define(['exports'], function (exports) { 'use strict';
 
   const d = {
     fn: 42,
@@ -15,5 +15,10 @@ define(function () { 'use strict';
   console.log(d.fn);
   console.log(foo);
   console.log(ns);
+
+  exports.fn = d.fn;
+  exports.foo = foo;
+
+  Object.defineProperty(exports, '__esModule', { value: true });
 
 });

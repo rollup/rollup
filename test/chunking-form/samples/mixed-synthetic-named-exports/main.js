@@ -1,4 +1,6 @@
-import {fn, foo} from './dep1.js';
+import {fn, foo} from './dep2.js';
+export {fn, foo} from './dep2.js';
+
 import * as ns from './dep1.js';
 
 console.log(fn);

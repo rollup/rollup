@@ -8,6 +8,7 @@ import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
 import ExportShimVariable from './ast/variables/ExportShimVariable';
 import LocalVariable from './ast/variables/LocalVariable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
+import SyntheticNamedExportVariable from './ast/variables/SyntheticNamedExportVariable';
 import Variable from './ast/variables/Variable';
 import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';
@@ -63,6 +64,7 @@ export interface ModuleDeclarationDependency {
 export type ChunkDependencies = ModuleDeclarationDependency[];
 
 export type ChunkExports = {
+	auxLocal: string | null;
 	exported: string;
 	hoisted: boolean;
 	local: string;
@@ -837,7 +839,8 @@ export default class Chunk {
 
 			const variable = this.exportNames[exportName];
 			const module = variable.module;
-
+			const localName = variable.getName();
+			let auxLocal = null;
 			if (module && module.chunk !== this) continue;
 			let hoisted = false;
 			let uninitialized = false;
@@ -855,9 +858,14 @@ export default class Chunk {
 						break;
 					}
 				}
+			} else if (variable instanceof GlobalVariable) {
+				hoisted = true;
+			} else if (variable instanceof SyntheticNamedExportVariable) {
+				auxLocal = variable.name;
 			}
 
 			exports.push({
+				auxLocal,
 				exported: exportName,
 				hoisted,
 				local: variable.getName(),
@@ -957,7 +965,7 @@ export default class Chunk {
 				!exportVariable.isId
 			) {
 				exportVariable.setRenderNames('exports', exportName);
-			} else {
+			} else if (!(exportVariable instanceof SyntheticNamedExportVariable)) {
 				exportVariable.setRenderNames(null, null);
 			}
 		}

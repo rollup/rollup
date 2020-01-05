@@ -13,3 +13,6 @@ var ns = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign({
 console.log(d.fn);
 console.log(foo);
 console.log(ns);
+
+const fn = d.fn;
+export { fn, foo };

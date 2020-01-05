@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 const d = {
   fn: 42,
   hello: 'hola'
@@ -15,3 +17,6 @@ var ns = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign({
 console.log(d.fn);
 console.log(foo);
 console.log(ns);
+
+exports.fn = d.fn;
+exports.foo = foo;
