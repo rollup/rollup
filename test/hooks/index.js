@@ -914,7 +914,7 @@ describe('hooks', () => {
 		return new Promise((resolve, reject) => {
 			watcher.on('event', event => {
 				if (event.code === 'BUNDLE_END') resolve();
-				else if (event.code === 'ERROR' || event.code === 'FATAL') reject(event.error);
+				else if (event.code === 'ERROR') reject(event.error);
 			});
 		}).catch(err => {
 			assert.strictEqual(
@@ -1192,7 +1192,10 @@ describe('hooks', () => {
 					})
 				)
 				.then(() => {
-					assert.deepEqual(result, [{ a: file, format: 'cjs' }, { b: file, format: 'cjs' }]);
+					assert.deepEqual(result, [
+						{ a: file, format: 'cjs' },
+						{ b: file, format: 'cjs' }
+					]);
 					return sander.rimraf(TEMP_DIR);
 				});
 		});

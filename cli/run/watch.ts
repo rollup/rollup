@@ -64,11 +64,6 @@ export default function watch(
 
 		watcher.on('event', event => {
 			switch (event.code) {
-				case 'FATAL':
-					handleError(event.error, true);
-					process.exit(1);
-					break;
-
 				case 'ERROR':
 					warnings.flush();
 					handleError(event.error, true);
