@@ -48,6 +48,16 @@ const getObjectOption = (
 	return configOption;
 };
 
+export function ensureArray<T>(items: (T | null | undefined)[] | T | null | undefined): T[] {
+	if (Array.isArray(items)) {
+		return items.filter(Boolean) as T[];
+	}
+	if (items) {
+		return [items];
+	}
+	return [];
+}
+
 const defaultOnWarn: WarningHandler = warning => {
 	if (typeof warning === 'string') {
 		console.warn(warning);
@@ -148,7 +158,8 @@ export default function mergeOptions({
 			Object.keys(commandAliases),
 			'config',
 			'environment',
-			'silent'
+			'silent',
+			'stdin'
 		),
 		'CLI flag',
 		/^_|output|(config.*)$/
@@ -208,7 +219,6 @@ function getInputOptions(
 	defaultOnWarnHandler: WarningHandler
 ): InputOptions {
 	const getOption = createGetOption(config, command);
-
 	const inputOptions: InputOptions = {
 		acorn: config.acorn,
 		acornInjectPlugins: config.acornInjectPlugins as any,
@@ -225,7 +235,7 @@ function getInputOptions(
 		moduleContext: config.moduleContext as any,
 		onwarn: getOnWarn(config, defaultOnWarnHandler),
 		perf: getOption('perf', false),
-		plugins: config.plugins as any,
+		plugins: ensureArray(config.plugins as any),
 		preserveModules: getOption('preserveModules'),
 		preserveSymlinks: getOption('preserveSymlinks'),
 		shimMissingExports: getOption('shimMissingExports'),
@@ -250,6 +260,7 @@ function getOutputOptions(
 
 	// Handle format aliases
 	switch (format) {
+		case undefined:
 		case 'esm':
 		case 'module':
 			format = 'es';
@@ -273,7 +284,7 @@ function getOutputOptions(
 		externalLiveBindings: getOption('externalLiveBindings', true),
 		file: getOption('file'),
 		footer: getOption('footer'),
-		format: format === 'esm' ? 'es' : format,
+		format,
 		freeze: getOption('freeze', true),
 		globals: getOption('globals'),
 		indent: getOption('indent', true),
@@ -284,7 +295,7 @@ function getOutputOptions(
 		noConflict: getOption('noConflict'),
 		outro: getOption('outro'),
 		paths: getOption('paths'),
-		plugins: config.plugins as any,
+		plugins: ensureArray(config.plugins as any),
 		preferConst: getOption('preferConst'),
 		sourcemap: getOption('sourcemap'),
 		sourcemapExcludeSources: getOption('sourcemapExcludeSources'),

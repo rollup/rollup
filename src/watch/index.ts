@@ -141,7 +141,7 @@ export class Task {
 
 		this.outputs = outputOptions;
 		this.outputFiles = this.outputs.map(output => {
-			if (output.file || output.dir) return path.resolve(output.file || (output.dir as string));
+			if (output.file || output.dir) return path.resolve(output.file || output.dir!);
 			return undefined as any;
 		});
 

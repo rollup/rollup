@@ -1,5 +1,25 @@
 # rollup changelog
 
+## 1.28.0
+*2020-01-04*
+
+### Features
+* Allow piping in stdin via the command line interface (#3312, #3290)
+* Allow plugins to mark modules as having syntheticNamedExports for e.g. better CJS interoperability (#3295)
+* Ignore variable reassignments in dead code when tree-shaking to remove more unneeded code (#3212)
+
+### Bug Fixes
+* Properly respect tree-shaken code when generating sourcemaps (#3318)
+
+### Pull Requests
+* [#3212](https://github.com/rollup/rollup/pull/3212): Handle assignments in dead code (@tjenkinson)
+* [#3290](https://github.com/rollup/rollup/pull/3290): Implement stdin input with optional "-" as the file name (@kzc)
+* [#3295](https://github.com/rollup/rollup/pull/3295): Add syntheticNamedExports (@manucorporat)
+* [#3300](https://github.com/rollup/rollup/pull/3300): Add note about setting `types` in tsconfig file (@tjenkinson)
+* [#3303](https://github.com/rollup/rollup/pull/3303): Use ! to assert not-null in TypeScript (@NotWoods)
+* [#3312](https://github.com/rollup/rollup/pull/3312): Implement stdin input (@lukastaegert)
+* [#3318](https://github.com/rollup/rollup/pull/3318): Update magic-string and other dependencies (@lukastaegert)
+
 ## 1.27.14
 *2019-12-22*
 

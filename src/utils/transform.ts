@@ -35,6 +35,7 @@ export default function transform(
 	const emittedFiles: EmittedFile[] = [];
 	let customTransformCache = false;
 	let moduleSideEffects: boolean | null = null;
+	let syntheticNamedExports: boolean | null = null;
 	let trackedPluginCache: { cache: PluginCache; used: boolean };
 	let curPlugin: Plugin;
 	const curSource: string = source.code;
@@ -82,6 +83,9 @@ export default function transform(
 			if (typeof result.moduleSideEffects === 'boolean') {
 				moduleSideEffects = result.moduleSideEffects;
 			}
+			if (typeof result.syntheticNamedExports === 'boolean') {
+				syntheticNamedExports = result.syntheticNamedExports;
+			}
 		} else {
 			return code;
 		}
@@ -126,12 +130,12 @@ export default function transform(
 						return pluginContext.error(err);
 					},
 					emitAsset(name: string, source?: string | Buffer) {
-						const emittedFile = { type: 'asset' as 'asset', name, source };
+						const emittedFile = { type: 'asset' as const, name, source };
 						emittedFiles.push({ ...emittedFile });
 						return graph.pluginDriver.emitFile(emittedFile);
 					},
 					emitChunk(id, options) {
-						const emittedFile = { type: 'chunk' as 'chunk', id, name: options && options.name };
+						const emittedFile = { type: 'chunk' as const, id, name: options && options.name };
 						emittedFiles.push({ ...emittedFile });
 						return graph.pluginDriver.emitFile(emittedFile);
 					},
@@ -175,7 +179,7 @@ export default function transform(
 						return new SourceMap({
 							...combinedMap,
 							file: null as any,
-							sourcesContent: combinedMap.sourcesContent as string[]
+							sourcesContent: combinedMap.sourcesContent!
 						});
 					}
 				};
@@ -186,13 +190,14 @@ export default function transform(
 			if (!customTransformCache && setAssetSourceErr) throw setAssetSourceErr;
 
 			return {
-				ast: ast as any,
+				ast: ast!,
 				code,
 				customTransformCache,
 				moduleSideEffects,
 				originalCode,
 				originalSourcemap,
 				sourcemapChain,
+				syntheticNamedExports,
 				transformDependencies
 			};
 		});

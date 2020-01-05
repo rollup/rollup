@@ -15,11 +15,13 @@ export default class NamespaceVariable extends Variable {
 	private containsExternalNamespace = false;
 	private referencedEarly = false;
 	private references: Identifier[] = [];
+	private syntheticNamedExports: boolean;
 
-	constructor(context: AstContext) {
+	constructor(context: AstContext, syntheticNamedExports: boolean) {
 		super(context.getModuleName());
 		this.context = context;
 		this.module = context.module;
+		this.syntheticNamedExports = syntheticNamedExports;
 	}
 
 	addReference(identifier: Identifier) {
@@ -99,10 +101,15 @@ export default class NamespaceVariable extends Variable {
 		}
 
 		const name = this.getName();
+		let output = `{${n}${members.join(`,${n}`)}${n}}`;
+		if (this.syntheticNamedExports) {
+			output = `/*#__PURE__*/Object.assign(${output}, ${this.module.getDefaultExport().getName()})`;
+		}
+		if (options.freeze) {
+			output = `/*#__PURE__*/Object.freeze(${output})`;
+		}
 
-		const callee = options.freeze ? `/*#__PURE__*/Object.freeze` : '';
-		const membersStr = members.join(`,${n}`);
-		let output = `${options.varOrConst} ${name}${_}=${_}${callee}({${n}${membersStr}${n}});`;
+		output = `${options.varOrConst} ${name}${_}=${_}${output};`;
 
 		if (options.format === 'system' && this.exportName) {
 			output += `${n}exports('${this.exportName}',${_}${name});`;

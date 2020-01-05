@@ -177,14 +177,14 @@ runTestSuiteWithSamples('function', path.resolve(__dirname, 'samples'), (dir, co
 												.join('\n')}`
 										);
 									}
-
 									if (config.show) console.groupEnd();
-
 									if (unintendedError) throw unintendedError;
+									if (config.after) config.after();
 								});
 						});
 				})
 				.catch(err => {
+					if (config.after) config.after();
 					if (config.error) {
 						compareError(err, config.error);
 					} else {
