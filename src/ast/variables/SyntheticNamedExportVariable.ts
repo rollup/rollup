@@ -18,7 +18,6 @@ export default class SyntheticNamedExportVariable extends Variable {
 	getName(): string {
 		const name = this.name;
 		const renderBaseName = this.defaultVariable.getName();
-		console.log(this.defaultVariable.getOriginalVariable());
 		return `${renderBaseName}${getPropertyAccess(name)}`;
 	}
 

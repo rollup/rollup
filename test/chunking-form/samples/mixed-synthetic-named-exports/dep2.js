@@ -1,1 +1,1 @@
-export {fn, foo} from './dep1.js';
+export {fn, foo, stuff} from './dep1.js';

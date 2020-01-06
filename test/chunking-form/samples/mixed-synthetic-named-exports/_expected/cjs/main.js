@@ -14,9 +14,13 @@ var ns = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign({
   'default': d
 }, d));
 
+const stuff = 12;
+console.log(stuff);
+
 console.log(d.fn);
 console.log(foo);
 console.log(ns);
 
 exports.fn = d.fn;
 exports.foo = foo;
+exports.stuff = d.stuff;

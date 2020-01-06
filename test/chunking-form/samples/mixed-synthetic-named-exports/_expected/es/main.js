@@ -10,9 +10,13 @@ var ns = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign({
   'default': d
 }, d));
 
+const stuff$1 = 12;
+console.log(stuff$1);
+
 console.log(d.fn);
 console.log(foo);
 console.log(ns);
 
 var fn = d.fn;
-export { fn, foo };
+var stuff = d.stuff;
+export { fn, foo, stuff };

@@ -118,9 +118,9 @@ function getExportBlock(exports: ChunkExports, _: string, varOrConst: string): s
 		if (specifier.exported === 'default') {
 			exportBlock.push(`export default ${local};`);
 		} else {
-			if (specifier.auxLocal) {
-				exportBlock.push(`${varOrConst} ${specifier.auxLocal}${_}=${_}${local};`);
-				local = specifier.auxLocal;
+			if (specifier.property) {
+				exportBlock.push(`${varOrConst} ${specifier.property}${_}=${_}${local};`);
+				local = specifier.property;
 			}
 			exportDeclaration.push(
 				specifier.exported === local ? local : `${local} as ${specifier.exported}`

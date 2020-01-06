@@ -80,7 +80,7 @@ const getMissingExportsBlock = (exports: ChunkExports, _: string, t: string, n: 
 
 const getSyntheticExportsBlock = (exports: ChunkExports, _: string, t: string, n: string): string =>
 	getExportsBlock(
-		exports.filter(expt => expt.auxLocal).map(expt => ({ name: expt.exported, value: expt.local })),
+		exports.filter(expt => expt.property).map(expt => ({ name: expt.exported, value: expt.local })),
 		_,
 		t,
 		n

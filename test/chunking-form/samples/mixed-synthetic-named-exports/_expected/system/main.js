@@ -15,11 +15,17 @@ System.register([], function (exports) {
         'default': d
       }, d));
 
+      const stuff = 12;
+      console.log(stuff);
+
       console.log(d.fn);
       console.log(foo);
       console.log(ns);
 
-      exports('fn', d.fn);
+      exports({
+        fn: d.fn,
+        stuff: d.stuff
+      });
 
     }
   };

@@ -39,6 +39,7 @@ import renderChunk from './utils/renderChunk';
 import { RenderOptions } from './utils/renderHelpers';
 import { makeUnique, renderNamePattern } from './utils/renderNamePattern';
 import { RESERVED_NAMES } from './utils/reservedNames';
+import { getSafeName } from './utils/safeName';
 import { sanitizeFileName } from './utils/sanitizeFileName';
 import { timeEnd, timeStart } from './utils/timers';
 import { INTEROP_DEFAULT_VARIABLE, MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
@@ -64,10 +65,10 @@ export interface ModuleDeclarationDependency {
 export type ChunkDependencies = ModuleDeclarationDependency[];
 
 export type ChunkExports = {
-	auxLocal: string | null;
 	exported: string;
 	hoisted: boolean;
 	local: string;
+	property: string | null;
 	uninitialized: boolean;
 }[];
 
@@ -784,7 +785,7 @@ export default class Chunk {
 					renderedImports.add(renderedVariable);
 					if (variable instanceof SyntheticNamedExportVariable) {
 						imports.push({
-							imported: 'default',
+							imported: variable.module.chunk!.getVariableExportName(variable),
 							local: variable.defaultVariable.getName()
 						});
 					} else {
@@ -845,20 +846,21 @@ export default class Chunk {
 	private getChunkExportDeclarations(): ChunkExports {
 		const exports: ChunkExports = [];
 		const exportsNames = new Set<string>();
-		for (let exportName of this.getExportNames()) {
+		for (const exportName of this.getExportNames()) {
 			if (exportName[0] === '*') continue;
 
 			let variable = this.exportNames[exportName];
 			const module = variable.module;
-
 			if (module && module.chunk !== this) continue;
+
+			// Exports of synthetic named exports only become real if
+			// the chunk is a entry-point, otherwise we render the "default" export
 			const isEntryPoint = !!(this.facadeModule && this.facadeModule.isUserDefinedEntryPoint);
 			if (!isEntryPoint && variable instanceof SyntheticNamedExportVariable) {
 				variable = variable.defaultVariable;
-				exportName = 'default';
 			}
 			const localName = variable.getName();
-			let auxLocal = null;
+			let property = null;
 			let hoisted = false;
 			let uninitialized = false;
 			if (variable instanceof LocalVariable) {
@@ -878,14 +880,14 @@ export default class Chunk {
 			} else if (variable instanceof GlobalVariable) {
 				hoisted = true;
 			} else if (variable instanceof SyntheticNamedExportVariable) {
-				auxLocal = variable.name;
+				property = variable.renderName || variable.name;
 			}
 
 			exports.push({
-				auxLocal,
 				exported: exportName,
 				hoisted,
 				local: variable.getName(),
+				property,
 				uninitialized
 			});
 			exportsNames.add(exportName);
@@ -970,6 +972,8 @@ export default class Chunk {
 	}
 
 	private setIdentifierRenderResolutions(options: OutputOptions) {
+		const usedNames = new Set<string>();
+
 		for (const exportName of this.getExportNames()) {
 			const exportVariable = this.exportNames[exportName];
 			if (exportVariable instanceof ExportShimVariable) {
@@ -985,10 +989,12 @@ export default class Chunk {
 				exportVariable.setRenderNames('exports', exportName);
 			} else {
 				exportVariable.setRenderNames(null, null);
+				if (options.format === 'es' && exportVariable instanceof SyntheticNamedExportVariable) {
+					exportVariable.setSafeName(getSafeName(exportVariable.name, usedNames));
+				}
 			}
 		}
 
-		const usedNames = new Set<string>();
 		if (this.needsExportsShim) {
 			usedNames.add(MISSING_EXPORT_SHIM_VARIABLE);
 		}
