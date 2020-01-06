@@ -13,7 +13,17 @@ export default class SyntheticNamedExportVariable extends Variable {
 		this.context = context;
 		this.module = context.module;
 		this.defaultVariable = defaultVariable;
-		this.setRenderNames(defaultVariable.getName(), name);
+	}
+
+	getName(): string {
+		const name = this.name;
+		const renderBaseName = this.defaultVariable.getName();
+		console.log(this.defaultVariable.getOriginalVariable());
+		return `${renderBaseName}${getPropertyAccess(name)}`;
+	}
+
+	getOriginalVariable(): Variable {
+		return this.defaultVariable.getOriginalVariable();
 	}
 
 	include(context: InclusionContext) {
@@ -23,3 +33,7 @@ export default class SyntheticNamedExportVariable extends Variable {
 		}
 	}
 }
+
+const getPropertyAccess = (name: string) => {
+	return /^(?!\d)[\w$]+$/.test(name) ? `.${name}` : `[${JSON.stringify(name)}]`;
+};
