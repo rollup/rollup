@@ -320,8 +320,20 @@ export default class Chunk {
 			safeExportName: string;
 		this.exportNames = Object.create(null);
 		this.sortedExportNames = null;
+
+		const exports = new Set(this.exports);
+		for (let variable of exports) {
+			if (variable instanceof SyntheticNamedExportVariable) {
+				exports.delete(variable);
+				variable = variable.getOriginalVariable();
+				if (!exports.has(variable)) {
+					exports.add(variable);
+				}
+			}
+		}
+
 		if (mangle) {
-			for (const variable of this.exports) {
+			for (const variable of exports) {
 				const suggestedName = variable.name[0];
 				if (!this.exportNames[suggestedName]) {
 					this.exportNames[suggestedName] = variable;
@@ -338,7 +350,7 @@ export default class Chunk {
 				}
 			}
 		} else {
-			for (const variable of this.exports) {
+			for (const variable of exports) {
 				i = 0;
 				safeExportName = variable.name;
 				while (this.exportNames[safeExportName]) {
@@ -772,10 +784,7 @@ export default class Chunk {
 			const imports: ImportSpecifier[] = [];
 			for (const variable of this.imports) {
 				const renderedVariable =
-					variable instanceof ExportDefaultVariable ||
-					variable instanceof SyntheticNamedExportVariable
-						? variable.getOriginalVariable()
-						: variable;
+					variable instanceof ExportDefaultVariable ? variable.getOriginalVariable() : variable;
 				if (
 					(variable.module instanceof Module
 						? variable.module.chunk === dep
@@ -783,20 +792,13 @@ export default class Chunk {
 					!renderedImports.has(renderedVariable)
 				) {
 					renderedImports.add(renderedVariable);
-					if (variable instanceof SyntheticNamedExportVariable) {
-						imports.push({
-							imported: variable.module.chunk!.getVariableExportName(variable),
-							local: variable.defaultVariable.getName()
-						});
-					} else {
-						imports.push({
-							imported:
-								variable.module instanceof ExternalModule
-									? variable.name
-									: variable.module!.chunk!.getVariableExportName(variable),
-							local: variable.getName()
-						});
-					}
+					imports.push({
+						imported:
+							variable.module instanceof ExternalModule
+								? variable.name
+								: variable.module!.chunk!.getVariableExportName(variable),
+						local: variable.getName()
+					});
 				}
 			}
 
@@ -849,16 +851,12 @@ export default class Chunk {
 		for (const exportName of this.getExportNames()) {
 			if (exportName[0] === '*') continue;
 
-			let variable = this.exportNames[exportName];
+			const variable = this.exportNames[exportName];
 			const module = variable.module;
 			if (module && module.chunk !== this) continue;
 
 			// Exports of synthetic named exports only become real if
 			// the chunk is a entry-point, otherwise we render the "default" export
-			const isEntryPoint = !!(this.facadeModule && this.facadeModule.isUserDefinedEntryPoint);
-			if (!isEntryPoint && variable instanceof SyntheticNamedExportVariable) {
-				variable = variable.defaultVariable;
-			}
 			const localName = variable.getName();
 			let property = null;
 			let hoisted = false;
@@ -1022,8 +1020,11 @@ export default class Chunk {
 	}
 
 	private setUpChunkImportsAndExportsForModule(module: Module) {
-		for (const variable of module.imports) {
+		for (let variable of module.imports) {
 			if ((variable.module as Module).chunk !== this) {
+				if (variable instanceof SyntheticNamedExportVariable) {
+					variable = variable.getOriginalVariable();
+				}
 				this.imports.add(variable);
 				if (variable.module instanceof Module) {
 					variable.module.chunk!.exports.add(variable);
