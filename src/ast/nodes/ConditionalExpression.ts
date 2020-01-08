@@ -143,8 +143,8 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		this.included = true;
 		if (
 			includeChildrenRecursively ||
-			this.usedBranch === null ||
-			this.test.shouldBeIncluded(context)
+			this.test.shouldBeIncluded(context) ||
+			this.usedBranch === null
 		) {
 			this.test.include(context, includeChildrenRecursively);
 			this.consequent.include(context, includeChildrenRecursively);
