@@ -22,11 +22,14 @@ module.exports = {
 		]
 	},
 	bundle(bundle) {
-		return bundle.generate({ format: 'esm' }).then(generated =>
-			assert.deepEqual(
-				generated.output.map(chunk => chunk.fileName),
-				['main.js', '_virtual/_virtualModule', 'lib/lib.js']
-			)
-		);
+		return bundle
+			.generate({ format: 'esm' })
+			.then(generated =>
+				assert.deepEqual(generated.output.map(chunk => chunk.fileName), [
+					'main.js',
+					'_virtual/_virtualModule',
+					'lib/lib.js'
+				])
+			);
 	}
 };

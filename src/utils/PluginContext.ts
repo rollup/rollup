@@ -194,7 +194,7 @@ export function getPluginContexts(
 								});
 								deprecationWarningShown = true;
 							}
-							return watcher!.on(event, handler);
+							return watcher!.on(event as any, handler);
 						}
 
 						return {

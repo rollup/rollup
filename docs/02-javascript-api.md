@@ -116,7 +116,7 @@ const outputOptions = {
   globals,
   name,
   plugins,
-  
+
   // advanced output options
   assetFileNames,
   banner,
@@ -134,7 +134,7 @@ const outputOptions = {
   sourcemapExcludeSources,
   sourcemapFile,
   sourcemapPathTransform,
-  
+
   // danger zone
   amd,
   dynamicImportFunction,
@@ -166,7 +166,6 @@ watcher.on('event', event => {
   //   BUNDLE_END   — finished building a bundle
   //   END          — finished building all bundles
   //   ERROR        — encountered an error while bundling
-  //   FATAL        — encountered an unrecoverable error
 });
 
 // stop watching

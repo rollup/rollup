@@ -5,13 +5,9 @@ import onExit from 'signal-exit';
 import tc from 'turbocolor';
 import * as rollup from '../../src/node-entry';
 import {
-	InputOption,
-	RollupBuild,
-	RollupError,
 	RollupWatcher,
 	RollupWatchOptions,
-	WarningHandler,
-	WatcherOptions
+	WarningHandler
 } from '../../src/rollup/types';
 import mergeOptions, { GenericConfigObject } from '../../src/utils/mergeOptions';
 import relativeId from '../../src/utils/relativeId';
@@ -20,15 +16,6 @@ import batchWarnings from './batchWarnings';
 import loadConfigFile from './loadConfigFile';
 import { getResetScreen } from './resetScreen';
 import { printTimings } from './timings';
-
-interface WatchEvent {
-	code?: string;
-	duration?: number;
-	error?: RollupError | Error;
-	input?: InputOption;
-	output?: string[];
-	result?: RollupBuild;
-}
 
 export default function watch(
 	configFile: string,
@@ -40,7 +27,7 @@ export default function watch(
 	const warnings = batchWarnings();
 	const initialConfigs = processConfigs(configs);
 	const clearScreen = initialConfigs.every(
-		config => (config.watch as WatcherOptions).clearScreen !== false
+		config => config.watch!.clearScreen !== false
 	);
 
 	const resetScreen = getResetScreen(isTTY && clearScreen);
@@ -75,16 +62,11 @@ export default function watch(
 	function start(configs: RollupWatchOptions[]) {
 		watcher = rollup.watch(configs as any);
 
-		watcher.on('event', (event: WatchEvent) => {
+		watcher.on('event', event => {
 			switch (event.code) {
-				case 'FATAL':
-					handleError(event.error as RollupError, true);
-					process.exit(1);
-					break;
-
 				case 'ERROR':
 					warnings.flush();
-					handleError(event.error as RollupError, true);
+					handleError(event.error, true);
 					break;
 
 				case 'START':
@@ -106,7 +88,7 @@ export default function watch(
 						stderr(
 							tc.cyan(
 								`bundles ${tc.bold(input)} → ${tc.bold(
-									(event.output as string[]).map(relativeId).join(', ')
+									event.output.map(relativeId).join(', ')
 								)}...`
 							)
 						);
@@ -119,8 +101,8 @@ export default function watch(
 						stderr(
 							tc.green(
 								`created ${tc.bold(
-									(event.output as string[]).map(relativeId).join(', ')
-								)} in ${tc.bold(ms(event.duration as number))}`
+									event.output.map(relativeId).join(', ')
+								)} in ${tc.bold(ms(event.duration))}`
 							)
 						);
 					if (event.result && event.result.getTimings) {
@@ -204,6 +186,6 @@ export default function watch(
 
 		configWatcher = fs.watch(configFile, (event: string) => {
 			if (event === 'change') restart();
-		});
+		}) as RollupWatcher;
 	}
 }

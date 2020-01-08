@@ -401,7 +401,8 @@ function createOutput(outputBundle: Record<string, OutputChunk | OutputAsset | {
 			.map(fileName => outputBundle[fileName])
 			.filter(outputFile => Object.keys(outputFile).length > 0) as (
 			| OutputChunk
-			| OutputAsset)[]).sort((outputFileA, outputFileB) => {
+			| OutputAsset
+		)[]).sort((outputFileA, outputFileB) => {
 			const fileTypeA = getSortingFileType(outputFileA);
 			const fileTypeB = getSortingFileType(outputFileB);
 			if (fileTypeA === fileTypeB) return 0;
