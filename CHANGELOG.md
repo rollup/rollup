@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 1.29.0
+*2020-01-08*
+
+### Features
+* Enable top-level await by default (#3089)
+* Add typings for watch events (#3302)
+
+### Bug Fixes
+* Deconflict files that would conflict only on a case-insensitive OS (#3317)
+* Do not fail in certain scenarios where a logical expression inside a sequence expression was being directly included (#3327)
+
+### Pull Requests
+* [#3089](https://github.com/rollup/rollup/pull/3089): Move top-level await out of experimental (@guybedford)
+* [#3302](https://github.com/rollup/rollup/pull/3302): Adds type definitions for RollupWatcher events (@NotWoods)
+* [#3317](https://github.com/rollup/rollup/pull/3317): Fix module id conflict on a case insensitive OS (@yesmeck)
+* [#3327](https://github.com/rollup/rollup/pull/3327): Handle deoptimizations while a node is being included (@lukastaegert)
+
 ## 1.28.0
 *2020-01-04*
 
