@@ -227,7 +227,6 @@ function getInputOptions(
 		context: getOption('context'),
 		experimentalCacheExpiry: getOption('experimentalCacheExpiry', 10),
 		experimentalOptimizeChunks: getOption('experimentalOptimizeChunks'),
-		experimentalTopLevelAwait: getOption('experimentalTopLevelAwait'),
 		external: getExternal(config, command) as any,
 		inlineDynamicImports: getOption('inlineDynamicImports', false),
 		input: getOption('input', []),

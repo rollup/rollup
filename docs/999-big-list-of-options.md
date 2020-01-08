@@ -1067,13 +1067,6 @@ Default: `false`
 
 Experimental feature to optimize chunk groupings. When a large number of chunks are generated, this allows smaller chunks to group together as long as they are within the `chunkGroupingSize` limit. It results in unnecessary code being loaded in some cases in order to have a smaller number of chunks overall. Disabled by default as it may cause unwanted side effects when loading unexpected code.
 
-#### experimentalTopLevelAwait
-Type: `boolean`<br>
-CLI: `--experimentalTopLevelAwait`/`--no-experimentalTopLevelAwait`<br>
-Default: `false`
-
-Whether to support top-level await statements. The generated code will follow [Variant A of the specification](https://github.com/tc39/proposal-top-level-await#variant-a-top-level-await-blocks-tree-execution).
-
 #### perf
 Type: `boolean`<br>
 CLI: `--perf`/`--no-perf`<br>
