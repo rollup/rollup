@@ -7,6 +7,7 @@ const tests = [
 		expected: {
 			id: path.resolve(__dirname, 'existing.js'),
 			external: false,
+			inlineDynamicImport: false,
 			moduleSideEffects: true
 		}
 	},
@@ -23,6 +24,7 @@ const tests = [
 		expected: {
 			id: path.resolve(__dirname, 'marked-directly-external-relative'),
 			external: true,
+			inlineDynamicImport: false,
 			moduleSideEffects: true
 		}
 	},
@@ -31,36 +33,63 @@ const tests = [
 		expected: {
 			id: path.resolve(__dirname, 'marked-external-relative'),
 			external: true,
+			inlineDynamicImport: false,
 			moduleSideEffects: true
 		}
 	},
 	{
 		source: 'marked-external-absolute',
-		expected: { id: 'marked-external-absolute', external: true, moduleSideEffects: true }
+		expected: {
+			id: 'marked-external-absolute',
+			external: true,
+			inlineDynamicImport: false,
+			moduleSideEffects: true
+		}
 	},
 	{
 		source: 'resolved-name',
-		expected: { id: 'resolved:resolved-name', external: false, moduleSideEffects: true }
+		expected: {
+			id: 'resolved:resolved-name',
+			external: false,
+			inlineDynamicImport: false,
+			moduleSideEffects: true
+		}
 	},
 	{
 		source: 'resolved-false',
-		expected: { id: 'resolved-false', external: true, moduleSideEffects: true }
+		expected: {
+			id: 'resolved-false',
+			external: true,
+			inlineDynamicImport: false,
+			moduleSideEffects: true
+		}
 	},
 	{
 		source: 'resolved-object',
-		expected: { id: 'resolved:resolved-object', external: false, moduleSideEffects: true }
+		expected: {
+			id: 'resolved:resolved-object',
+			external: false,
+			inlineDynamicImport: false,
+			moduleSideEffects: true
+		}
 	},
 	{
 		source: 'resolved-object-non-external',
 		expected: {
 			id: 'resolved:resolved-object-non-external',
 			external: false,
+			inlineDynamicImport: false,
 			moduleSideEffects: true
 		}
 	},
 	{
 		source: 'resolved-object-external',
-		expected: { id: 'resolved:resolved-object-external', external: true, moduleSideEffects: true }
+		expected: {
+			id: 'resolved:resolved-object-external',
+			external: true,
+			inlineDynamicImport: false,
+			moduleSideEffects: true
+		}
 	}
 ];
 
