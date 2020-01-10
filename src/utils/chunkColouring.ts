@@ -39,9 +39,6 @@ export function assignChunkColouringHashes(
 			}
 		}
 
-		const dynamicDependentEntryPoints =
-			dynamicDependentEntryPointsByDynamicEntry.get(module) || new Set();
-		dynamicDependentEntryPointsByDynamicEntry.set(module, dynamicDependentEntryPoints);
 		for (const { resolution } of module.dynamicImports) {
 			if (
 				resolution instanceof Module &&
@@ -50,6 +47,11 @@ export function assignChunkColouringHashes(
 			) {
 				const dynamicImportDependentEntryPoints =
 					dependentEntryPointsByModule.get(resolution) || new Set();
+
+				const dynamicDependentEntryPoints =
+					dynamicDependentEntryPointsByDynamicEntry.get(resolution) || new Set();
+				dynamicDependentEntryPointsByDynamicEntry.set(resolution, dynamicDependentEntryPoints);
+
 				dynamicImportDependentEntryPoints.forEach(entryPoint =>
 					dynamicDependentEntryPoints.add(entryPoint)
 				);
