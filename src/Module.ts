@@ -562,7 +562,6 @@ export default class Module {
 		}
 		if (typeof inlineDynamicImport === 'boolean') {
 			this.inlineDynamicImport = inlineDynamicImport;
-			console.log(this.id, inlineDynamicImport);
 		}
 
 		timeStart('generate ast', 3);
@@ -642,6 +641,7 @@ export default class Module {
 			customTransformCache: this.customTransformCache,
 			dependencies: this.dependencies.map(module => module.id),
 			id: this.id,
+			inlineDynamicImport: this.inlineDynamicImport,
 			moduleSideEffects: this.moduleSideEffects,
 			originalCode: this.originalCode,
 			originalSourcemap: this.originalSourcemap,

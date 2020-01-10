@@ -322,6 +322,9 @@ export class ModuleLoader {
 				if (typeof sourceDescription.moduleSideEffects === 'boolean') {
 					module.moduleSideEffects = sourceDescription.moduleSideEffects;
 				}
+				if (typeof sourceDescription.inlineDynamicImport === 'boolean') {
+					module.inlineDynamicImport = sourceDescription.inlineDynamicImport;
+				}
 				return transform(this.graph, sourceDescription, module);
 			})
 			.then((source: TransformModuleJSON | ModuleJSON) => {
