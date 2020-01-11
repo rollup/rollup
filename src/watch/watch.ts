@@ -1,8 +1,7 @@
 import { WatchOptions } from 'chokidar';
-import { EventEmitter } from 'events';
 import path from 'path';
 import createFilter from 'rollup-pluginutils/src/createFilter';
-import rollup, { setWatcher } from '../rollup/index';
+import rollup, { setWatcher } from '../rollup/rollup';
 import {
 	InputOptions,
 	OutputOptions,
@@ -27,17 +26,9 @@ export class Watcher {
 	private running: boolean;
 	private tasks: Task[];
 
-	constructor(configs: GenericConfigObject[] | GenericConfigObject) {
-		this.emitter = new (class extends EventEmitter {
-			close: () => void;
-			constructor(close: () => void) {
-				super();
-				this.close = close;
-				// Allows more than 10 bundles to be watched without
-				// showing the `MaxListenersExceededWarning` to the user.
-				this.setMaxListeners(Infinity);
-			}
-		})(this.close.bind(this)) as RollupWatcher;
+	constructor(configs: GenericConfigObject[] | GenericConfigObject, emitter: RollupWatcher) {
+		this.emitter = emitter;
+		emitter.close = this.close.bind(this);
 		this.tasks = (Array.isArray(configs) ? configs : configs ? [configs] : []).map(
 			config => new Task(this, config)
 		);
@@ -263,8 +254,4 @@ export class Task {
 		// continue to be watched following an error
 		addTask(id, this, this.chokidarOptions, this.chokidarOptionsHash, isTransformDependency);
 	}
-}
-
-export default function watch(configs: GenericConfigObject[] | GenericConfigObject): RollupWatcher {
-	return new Watcher(configs).emitter;
 }

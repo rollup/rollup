@@ -111,26 +111,26 @@ function generateLicenseFile(dependencies) {
 	}
 }
 
-const expectedAcornImport = "import acorn__default, { Parser } from 'acorn';";
-const newAcornImport = "import * as acorn__default from 'acorn';\nimport { Parser } from 'acorn';";
+const expectedAcornImport = "import acorn, { Parser } from 'acorn';";
+const newAcornImport = "import * as acorn from 'acorn';\nimport { Parser } from 'acorn';";
 
 // by default, rollup-plugin-commonjs will translate require statements as default imports
 // which can cause issues for secondary tools that use the ESM version of acorn
 function fixAcornEsmImport() {
+	let found = false;
+
 	return {
 		name: 'fix-acorn-esm-import',
 		renderChunk(code) {
-			let found = false;
-			const fixedCode = code.replace(expectedAcornImport, () => {
+			return code.replace(expectedAcornImport, () => {
 				found = true;
 				return newAcornImport;
 			});
+		},
+		writeBundle() {
 			if (!found) {
-				this.error(
-					'Could not find expected acorn import, please deactive this plugin and examine generated code.'
-				);
+				this.error('Could not find expected acorn import, please examine generated code.');
 			}
-			return fixedCode;
 		}
 	};
 }
@@ -175,7 +175,7 @@ export default command => {
 		treeshake,
 		output: {
 			banner,
-			chunkFileNames: 'shared/[name].js',
+			chunkFileNames: 'shared-cjs/[name].js',
 			dir: 'dist',
 			entryFileNames: '[name]',
 			externalLiveBindings: false,
@@ -191,9 +191,13 @@ export default command => {
 	}
 
 	const esmBuild = Object.assign({}, commonJSBuild, {
-		input: 'src/node-entry.ts',
+		input: { 'rollup.es.js': 'src/node-entry.ts' },
 		plugins: [...nodePlugins, fixAcornEsmImport()],
-		output: { file: 'dist/rollup.es.js', format: 'esm', banner }
+		output: Object.assign({}, commonJSBuild.output, {
+			chunkFileNames: 'shared-es/[name].js',
+			format: 'esm',
+			sourcemap: false
+		})
 	});
 
 	const browserBuilds = {
