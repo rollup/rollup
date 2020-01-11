@@ -29,6 +29,12 @@ export function randomUint8Array(len: number) {
 	return buffer;
 }
 
+export function cloneUint8Array(input: Uint8Array): Uint8Array {
+	const output = new Uint8Array(input.length);
+	for (let i = 0; i < output.length; i++) output[i] = input[i];
+	return output;
+}
+
 export function Uint8ArrayEqual(bufferA: Uint8Array, bufferB: Uint8Array) {
 	for (let i = 0; i < bufferA.length; i++) {
 		if (bufferA[i] !== bufferB[i]) return false;

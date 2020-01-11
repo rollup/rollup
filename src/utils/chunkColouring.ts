@@ -1,101 +1,104 @@
-import ExternalModule from '../ExternalModule';
 import Module from '../Module';
-import { randomUint8Array, Uint8ArrayXor } from './entryHashing';
+import { cloneUint8Array, randomUint8Array, Uint8ArrayEqual, Uint8ArrayXor } from './entryHashing';
+
+function getOrCreateSetInMap<TKey, TSet>(map: Map<TKey, Set<TSet>>, key: TKey): Set<TSet> {
+	const set = map.get(key) || new Set();
+	map.set(key, set);
+	return set;
+}
 
 export function assignChunkColouringHashes(
 	entryModules: Module[],
 	manualChunkModules: Record<string, Module[]>
 ) {
-	let currentEntry: Module, currentEntryHash: Uint8Array;
-	let modulesVisitedForCurrentEntry: Set<string>;
-	const handledEntryPoints: Set<string> = new Set();
-	const dynamicImports: Module[] = [];
-	const dependentEntryPointsByModule: Map<Module, Set<Module>> = new Map();
-	const dynamicDependentEntryPointsByDynamicEntry: Map<Module, Set<Module>> = new Map();
+	const colouredModules: Set<Module> = new Set();
+	const moduleImportersByModule: Map<Module, Set<Module>> = new Map();
 
-	const addCurrentEntryColourToModule = (module: Module) => {
-		if (currentEntry.manualChunkAlias) {
-			module.manualChunkAlias = currentEntry.manualChunkAlias;
-			module.entryPointsHash = currentEntryHash;
-		} else {
-			Uint8ArrayXor(module.entryPointsHash, currentEntryHash);
+	function allImportersHaveColour(module: Module, colour: Uint8Array): boolean {
+		const importers = moduleImportersByModule.get(module);
+		console.log('checking', module.id.split('/').pop(), importers && importers.size);
+		if (!importers) {
+			return false;
+		}
+		return [...importers].every(importer => {
+			console.log('importer', importer.id.split('/').pop(), importer.entryPointsHash, colour);
+			return (
+				Uint8ArrayEqual(importer.entryPointsHash, colour) ||
+				allImportersHaveColour(importer, colour)
+			);
+		});
+	}
+
+	function colourModule(
+		rootModule: Module,
+		colour: Uint8Array,
+		rootImporterColour?: Uint8Array
+	): void {
+		const visitedModules: Set<Module> = new Set();
+
+		function process(module: Module): void {
+			if (visitedModules.has(module)) {
+				// TODO what if it's from a different import?
+				return;
+			}
+			visitedModules.add(module);
+
+			if (rootModule.manualChunkAlias) {
+				// TODO what if module already has another alias?
+				module.manualChunkAlias = rootModule.manualChunkAlias;
+				module.entryPointsHash = cloneUint8Array(colour);
+			} else {
+				if (!colouredModules.has(module)) {
+					module.entryPointsHash = cloneUint8Array(colour);
+				} else if (module === rootModule) {
+					// force new colour
+					Uint8ArrayXor(module.entryPointsHash, colour);
+				} else {
+					if (!rootImporterColour || !allImportersHaveColour(module, rootImporterColour)) {
+						Uint8ArrayXor(module.entryPointsHash, colour);
+					} // else colour can remain the same, because it's always coming from the colour that imported the rootModule
+				}
+			}
+			console.log('!! ', module.id.split('/').pop(), module.entryPointsHash);
+			colouredModules.add(module);
+
+			for (const dependency of module.dependencies) {
+				if (dependency instanceof Module) {
+					getOrCreateSetInMap(moduleImportersByModule, dependency).add(module);
+					process(dependency);
+				}
+			}
+
+			for (const { resolution } of module.dynamicImports) {
+				if (
+					resolution instanceof Module &&
+					resolution.dynamicallyImportedBy.length > 0 &&
+					!resolution.manualChunkAlias // TODO
+				) {
+					getOrCreateSetInMap(moduleImportersByModule, resolution).add(module);
+					colourModule(resolution, randomUint8Array(10), module.entryPointsHash);
+				}
+			}
 		}
 
-		const dependentEntryPoints = dependentEntryPointsByModule.get(module) || new Set();
-		dependentEntryPointsByModule.set(module, dependentEntryPoints);
-		dependentEntryPoints.add(module);
-
-		for (const dependency of module.dependencies) {
-			if (
-				dependency instanceof ExternalModule ||
-				modulesVisitedForCurrentEntry.has(dependency.id)
-			) {
-				continue;
-			}
-			dependentEntryPoints.add(dependency);
-			modulesVisitedForCurrentEntry.add(dependency.id);
-			if (!handledEntryPoints.has(dependency.id) && !dependency.manualChunkAlias) {
-				addCurrentEntryColourToModule(dependency);
-			}
-		}
-
-		for (const { resolution } of module.dynamicImports) {
-			if (
-				resolution instanceof Module &&
-				resolution.dynamicallyImportedBy.length > 0 &&
-				!resolution.manualChunkAlias
-			) {
-				const dynamicImportDependentEntryPoints =
-					dependentEntryPointsByModule.get(resolution) || new Set();
-
-				const dynamicDependentEntryPoints =
-					dynamicDependentEntryPointsByDynamicEntry.get(resolution) || new Set();
-				dynamicDependentEntryPointsByDynamicEntry.set(resolution, dynamicDependentEntryPoints);
-
-				dynamicImportDependentEntryPoints.forEach(entryPoint =>
-					dynamicDependentEntryPoints.add(entryPoint)
-				);
-				dynamicImports.push(resolution);
-			}
-		}
-	};
+		process(rootModule);
+	}
 
 	if (manualChunkModules) {
 		for (const chunkName of Object.keys(manualChunkModules)) {
-			currentEntryHash = randomUint8Array(10);
+			const colour = randomUint8Array(10);
 
-			for (currentEntry of manualChunkModules[chunkName]) {
-				modulesVisitedForCurrentEntry = new Set([currentEntry.id]);
-				addCurrentEntryColourToModule(currentEntry);
+			for (const module of manualChunkModules[chunkName]) {
+				colourModule(module, colour);
 			}
 		}
 	}
 
-	for (currentEntry of entryModules) {
-		handledEntryPoints.add(currentEntry.id);
-		currentEntryHash = randomUint8Array(10);
-		modulesVisitedForCurrentEntry = new Set([currentEntry.id]);
-		if (!currentEntry.manualChunkAlias) {
-			addCurrentEntryColourToModule(currentEntry);
+	for (const module of entryModules) {
+		const colour = randomUint8Array(10);
+		if (!module.manualChunkAlias) {
+			// TODO
+			colourModule(module, colour);
 		}
-	}
-
-	for (currentEntry of dynamicImports) {
-		if (handledEntryPoints.has(currentEntry.id)) {
-			continue;
-		}
-		handledEntryPoints.add(currentEntry.id);
-		const dynamicDependentEntryPoints = dynamicDependentEntryPointsByDynamicEntry.get(currentEntry);
-		const dependentEntryPoints = dependentEntryPointsByModule.get(currentEntry);
-		const inMemory = [...(dynamicDependentEntryPoints || [])].every(
-			dynamicDependentEntryPoint =>
-				dependentEntryPoints && dependentEntryPoints.has(dynamicDependentEntryPoint)
-		);
-		if (inMemory) {
-			continue;
-		}
-		currentEntryHash = randomUint8Array(10);
-		modulesVisitedForCurrentEntry = new Set([currentEntry.id]);
-		addCurrentEntryColourToModule(currentEntry);
 	}
 }
