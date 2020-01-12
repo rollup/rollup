@@ -76,7 +76,12 @@ export function assignChunkColouringHashes(
 					colouredModules.add(module);
 					for (const dependency of module.dependencies) {
 						if (dependency instanceof Module) {
-							process(dependency, module);
+							if (!module.manualChunkAlias) {
+								process(dependency, module);
+							} else if (!dependency.manualChunkAlias) {
+								dependency.manualChunkAlias = module.manualChunkAlias;
+								process(dependency, module);
+							}
 						}
 					}
 					for (const { resolution } of module.dynamicImports) {
