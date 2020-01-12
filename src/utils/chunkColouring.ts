@@ -23,19 +23,8 @@ export function assignChunkColouringHashes(
 		module: Module;
 	}> = [];
 
-	function allImportersHaveColour(module: Module, colours: Set<Uint8Array>): boolean {
-		const importers = moduleImportersByModule.get(module);
-		// console.log('checking', module.id.split('/').pop(), importers && importers.size);
-		if (!importers) {
-			return false;
-		}
-		return [...importers].every(importer => {
-			// console.log('importer', importer.id.split('/').pop(), importer.entryPointsHash, colours);
-			return (
-				[...colours].some(colour => Uint8ArrayEqual(importer.entryPointsHash, colour)) ||
-				allImportersHaveColour(importer, colours)
-			);
-		});
+	function containsColour(colours: Set<Uint8Array>, colour: Uint8Array): boolean {
+		return !!colours.size && [...colours].some(c => Uint8ArrayEqual(colour, c));
 	}
 
 	function colourModule(
@@ -58,11 +47,11 @@ export function assignChunkColouringHashes(
 			} else {
 				if (!colouredModules.has(module)) {
 					module.entryPointsHash = cloneUint8Array(colour);
-				} else if (!coloursToRoot.size || !allImportersHaveColour(module, coloursToRoot)) {
+				} else if (!containsColour(coloursToRoot, module.entryPointsHash)) {
 					Uint8ArrayXor(module.entryPointsHash, colour);
 				} else {
-					// colour can remain the same, because every route into this point
-					// comes from a colour that has already been loaded
+					// colour can remain the same, because every route to this module
+					// passes through a colour that has already been loaded
 					// TODO can also skip processing any further?
 				}
 			}
