@@ -7,6 +7,10 @@ function getOrCreateSetInMap<TKey, TSet>(map: Map<TKey, Set<TSet>>, key: TKey): 
 	return set;
 }
 
+function randomColour(): Uint8Array {
+	return randomUint8Array(10);
+}
+
 export function assignChunkColouringHashes(
 	entryModules: Module[],
 	manualChunkModules: Record<string, Module[]>
@@ -14,31 +18,30 @@ export function assignChunkColouringHashes(
 	const colouredModules: Set<Module> = new Set();
 	const moduleImportersByModule: Map<Module, Set<Module>> = new Map();
 
-	function allImportersHaveColour(module: Module, colour: Uint8Array): boolean {
+	function allImportersHaveColour(module: Module, colours: Set<Uint8Array>): boolean {
 		const importers = moduleImportersByModule.get(module);
-		console.log('checking', module.id.split('/').pop(), importers && importers.size);
+		// console.log('checking', module.id.split('/').pop(), importers && importers.size);
 		if (!importers) {
 			return false;
 		}
 		return [...importers].every(importer => {
-			console.log('importer', importer.id.split('/').pop(), importer.entryPointsHash, colour);
+			// console.log('importer', importer.id.split('/').pop(), importer.entryPointsHash, colours);
 			return (
-				Uint8ArrayEqual(importer.entryPointsHash, colour) ||
-				allImportersHaveColour(importer, colour)
+				[...colours].some(colour => Uint8ArrayEqual(importer.entryPointsHash, colour)) ||
+				allImportersHaveColour(importer, colours)
 			);
 		});
 	}
 
 	function colourModule(
 		rootModule: Module,
-		colour: Uint8Array,
-		rootImporterColour?: Uint8Array
+		coloursToRoot: Set<Uint8Array>,
+		colour: Uint8Array
 	): void {
 		const visitedModules: Set<Module> = new Set();
 
 		function process(module: Module): void {
 			if (visitedModules.has(module)) {
-				// TODO what if it's from a different import?
 				return;
 			}
 			visitedModules.add(module);
@@ -53,13 +56,14 @@ export function assignChunkColouringHashes(
 				} else if (module === rootModule) {
 					// force new colour
 					Uint8ArrayXor(module.entryPointsHash, colour);
+				} else if (!coloursToRoot.size || !allImportersHaveColour(module, coloursToRoot)) {
+					Uint8ArrayXor(module.entryPointsHash, colour);
 				} else {
-					if (!rootImporterColour || !allImportersHaveColour(module, rootImporterColour)) {
-						Uint8ArrayXor(module.entryPointsHash, colour);
-					} // else colour can remain the same, because it's always coming from the colour that imported the rootModule
+					// colour can remain the same, because every route into this point
+					// comes from a colour that has already been loaded
 				}
 			}
-			console.log('!! ', module.id.split('/').pop(), module.entryPointsHash);
+			// console.log('!! ', module.id.split('/').pop(), module.entryPointsHash);
 			colouredModules.add(module);
 
 			for (const dependency of module.dependencies) {
@@ -76,7 +80,9 @@ export function assignChunkColouringHashes(
 					!resolution.manualChunkAlias // TODO
 				) {
 					getOrCreateSetInMap(moduleImportersByModule, resolution).add(module);
-					colourModule(resolution, randomUint8Array(10), module.entryPointsHash);
+					const coloursToNewRoot = new Set(coloursToRoot);
+					coloursToNewRoot.add(module.entryPointsHash);
+					colourModule(resolution, coloursToNewRoot, randomColour());
 				}
 			}
 		}
@@ -86,19 +92,19 @@ export function assignChunkColouringHashes(
 
 	if (manualChunkModules) {
 		for (const chunkName of Object.keys(manualChunkModules)) {
-			const colour = randomUint8Array(10);
+			const colour = randomColour();
 
 			for (const module of manualChunkModules[chunkName]) {
-				colourModule(module, colour);
+				colourModule(module, new Set(), colour);
 			}
 		}
 	}
 
 	for (const module of entryModules) {
-		const colour = randomUint8Array(10);
+		const colour = randomColour();
+		// TODO what is this check?
 		if (!module.manualChunkAlias) {
-			// TODO
-			colourModule(module, colour);
+			colourModule(module, new Set(), colour);
 		}
 	}
 }
