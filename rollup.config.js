@@ -1,5 +1,4 @@
 import fs from 'fs';
-import MagicString from 'magic-string';
 import path from 'path';
 import alias from 'rollup-plugin-alias';
 import commonjs from 'rollup-plugin-commonjs';
@@ -9,6 +8,10 @@ import resolve from 'rollup-plugin-node-resolve';
 import { string } from 'rollup-plugin-string';
 import { terser } from 'rollup-plugin-terser';
 import typescript from 'rollup-plugin-typescript';
+import addBinShebang from './build-plugins/add-bin-shebang';
+import conditionalFsEventsImport from './build-plugins/conditional-fsevents-import';
+import fixAcornEsmImport from './build-plugins/fix-acorn-esm-import';
+import generateLicenseFile from './build-plugins/generate-license-file';
 import pkg from './package.json';
 
 const commitHash = (function() {
@@ -42,99 +45,6 @@ const onwarn = warning => {
 	throw new Error(warning.message);
 };
 
-function addSheBang() {
-	return {
-		name: 'add-bin-shebang',
-		renderChunk(code, chunkInfo) {
-			if (chunkInfo.fileName === 'bin/rollup') {
-				const magicString = new MagicString(code);
-				magicString.prepend('#!/usr/bin/env node\n\n');
-				return { code: magicString.toString(), map: magicString.generateMap({ hires: true }) };
-			}
-		}
-	};
-}
-
-function generateLicenseFile(dependencies) {
-	const coreLicense = fs.readFileSync('LICENSE-CORE.md');
-	const licenses = new Set();
-	const dependencyLicenseTexts = dependencies
-		.sort(({ name: nameA }, { name: nameB }) => (nameA > nameB ? 1 : -1))
-		.map(({ name, license, licenseText, author, maintainers, contributors, repository }) => {
-			let text = `## ${name}\n`;
-			if (license) {
-				text += `License: ${license}\n`;
-			}
-			const names = new Set();
-			if (author && author.name) {
-				names.add(author.name);
-			}
-			for (const person of maintainers.concat(contributors)) {
-				if (person && person.name) {
-					names.add(person.name);
-				}
-			}
-			if (names.size > 0) {
-				text += `By: ${Array.from(names).join(', ')}\n`;
-			}
-			if (repository) {
-				text += `Repository: ${repository.url || repository}\n`;
-			}
-			if (licenseText) {
-				text +=
-					'\n' +
-					licenseText
-						.trim()
-						.replace(/(\r\n|\r)/gm, '\n')
-						.split('\n')
-						.map(line => `> ${line}`)
-						.join('\n') +
-					'\n';
-			}
-			licenses.add(license);
-			return text;
-		})
-		.join('\n---------------------------------------\n\n');
-	const licenseText =
-		`# Rollup core license\n` +
-		`Rollup is released under the MIT license:\n\n` +
-		coreLicense +
-		`\n# Licenses of bundled dependencies\n` +
-		`The published Rollup artifact additionally contains code with the following licenses:\n` +
-		`${Array.from(licenses).join(', ')}\n\n` +
-		`# Bundled dependencies:\n` +
-		dependencyLicenseTexts;
-	const existingLicenseText = fs.readFileSync('LICENSE.md', 'utf8');
-	if (existingLicenseText !== licenseText) {
-		fs.writeFileSync('LICENSE.md', licenseText);
-		console.warn('LICENSE.md updated. You should commit the updated file.');
-	}
-}
-
-const expectedAcornImport = "import acorn, { Parser } from 'acorn';";
-const newAcornImport = "import * as acorn from 'acorn';\nimport { Parser } from 'acorn';";
-
-// by default, rollup-plugin-commonjs will translate require statements as default imports
-// which can cause issues for secondary tools that use the ESM version of acorn
-function fixAcornEsmImport() {
-	let found = false;
-
-	return {
-		name: 'fix-acorn-esm-import',
-		renderChunk(code) {
-			return code.replace(expectedAcornImport, () => {
-				found = true;
-				return newAcornImport;
-			});
-		},
-		writeBundle() {
-			if (!found) {
-				this.error('Could not find expected acorn import, please examine generated code.');
-			}
-		}
-	};
-}
-
 const moduleAliases = {
 	resolve: ['.js', '.json', '.md'],
 	entries: [
@@ -153,6 +63,7 @@ const nodePlugins = [
 	alias(moduleAliases),
 	resolve(),
 	json(),
+	conditionalFsEventsImport(),
 	string({ include: '**/*.md' }),
 	commonjs({ include: 'node_modules/**' }),
 	typescript({ include: '**/*.{ts,js}' })
@@ -167,7 +78,7 @@ export default command => {
 		onwarn,
 		plugins: [
 			...nodePlugins,
-			addSheBang(),
+			addBinShebang(),
 			!command.configTest && license({ thirdParty: generateLicenseFile })
 		],
 		// acorn needs to be external as some plugins rely on a shared acorn instance

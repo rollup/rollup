@@ -62,7 +62,9 @@
   "dependencies": {
     "@types/estree": "*",
     "@types/node": "*",
-    "acorn": "^7.1.0",
+    "acorn": "^7.1.0"
+  },
+  "optionalDependencies": {
     "fsevents": "~2.1.2"
   },
   "devDependencies": {

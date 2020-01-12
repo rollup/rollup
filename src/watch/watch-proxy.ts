@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events';
 import { RollupWatcher } from '../rollup/types';
 import { GenericConfigObject } from '../utils/mergeOptions';
+import { loadFsEvents } from './fsevents-importer';
 
 class WatchEmitter extends EventEmitter {
 	constructor() {
@@ -15,6 +16,8 @@ class WatchEmitter extends EventEmitter {
 
 export default function watch(configs: GenericConfigObject[] | GenericConfigObject): RollupWatcher {
 	const emitter = new WatchEmitter() as RollupWatcher;
-	import('./watch').then(({ Watcher }) => new Watcher(configs, emitter));
+	loadFsEvents()
+		.then(() => import('./watch'))
+		.then(({ Watcher }) => new Watcher(configs, emitter));
 	return emitter;
 }
