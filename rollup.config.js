@@ -171,7 +171,20 @@ export default command => {
 			!command.configTest && license({ thirdParty: generateLicenseFile })
 		],
 		// acorn needs to be external as some plugins rely on a shared acorn instance
-		external: ['acorn', 'assert', 'crypto', 'events', 'fs', 'module', 'path', 'util'],
+		// fsevents is a dependency of chokidar that cannot be bundled as it contains binary code
+		external: [
+			'acorn',
+			'assert',
+			'crypto',
+			'events',
+			'fs',
+			'fsevents',
+			'module',
+			'path',
+			'os',
+			'stream',
+			'util'
+		],
 		treeshake,
 		output: {
 			banner,

@@ -1,8 +1,8 @@
-import { WatchOptions } from 'chokidar';
 import path from 'path';
 import createFilter from 'rollup-pluginutils/src/createFilter';
 import rollup, { setWatcher } from '../rollup/rollup';
 import {
+	ChokidarOptions,
 	InputOptions,
 	OutputOptions,
 	RollupBuild,
@@ -12,7 +12,6 @@ import {
 	WatcherOptions
 } from '../rollup/types';
 import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
-import chokidar from './chokidar';
 import { addTask, deleteTask } from './fileWatchers';
 
 const DELAY = 200;
@@ -108,7 +107,7 @@ export class Task {
 	cache: RollupCache = { modules: [] };
 	watchFiles: string[] = [];
 
-	private chokidarOptions: WatchOptions;
+	private chokidarOptions: ChokidarOptions;
 	private chokidarOptionsHash: string;
 	private closed: boolean;
 	private filter: (id: string) => boolean;
@@ -137,25 +136,12 @@ export class Task {
 		});
 
 		const watchOptions: WatcherOptions = inputOptions.watch || {};
-		if ('useChokidar' in watchOptions)
-			(watchOptions as any).chokidar = (watchOptions as any).useChokidar;
-		let chokidarOptions = 'chokidar' in watchOptions ? watchOptions.chokidar : !!chokidar;
-		if (chokidarOptions) {
-			chokidarOptions = {
-				...(chokidarOptions === true ? {} : chokidarOptions),
-				disableGlobbing: true,
-				ignoreInitial: true
-			};
-		}
-
-		if (chokidarOptions && !chokidar) {
-			throw new Error(
-				`watch.chokidar was provided, but chokidar could not be found. Have you installed it?`
-			);
-		}
-
-		this.chokidarOptions = chokidarOptions as WatchOptions;
-		this.chokidarOptionsHash = JSON.stringify(chokidarOptions);
+		this.chokidarOptions = {
+			...watchOptions.chokidar,
+			disableGlobbing: true,
+			ignoreInitial: true
+		};
+		this.chokidarOptionsHash = JSON.stringify(this.chokidarOptions);
 
 		this.filter = createFilter(watchOptions.include, watchOptions.exclude);
 	}

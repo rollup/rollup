@@ -1,16 +1,14 @@
-import { FSWatcher, WatchOptions } from 'chokidar';
+import chokidar, { FSWatcher } from 'chokidar';
 import * as fs from 'fs';
-import chokidar from './chokidar';
+import { ChokidarOptions } from '../rollup/types';
 import { Task } from './watch';
-
-const opts = { encoding: 'utf-8', persistent: true };
 
 const watchers = new Map<string, Map<string, FileWatcher>>();
 
 export function addTask(
 	id: string,
 	task: Task,
-	chokidarOptions: WatchOptions,
+	chokidarOptions: ChokidarOptions,
 	chokidarOptionsHash: string,
 	isTransformDependency: boolean
 ) {
@@ -32,13 +30,13 @@ export function deleteTask(id: string, target: Task, chokidarOptionsHash: string
 }
 
 export default class FileWatcher {
-	fsWatcher?: FSWatcher | fs.FSWatcher;
+	fsWatcher?: FSWatcher;
 
 	private id: string;
 	private tasks: Set<Task>;
 	private transformDependencyTasks: Set<Task>;
 
-	constructor(id: string, chokidarOptions: WatchOptions, group: Map<string, FileWatcher>) {
+	constructor(id: string, chokidarOptions: ChokidarOptions, group: Map<string, FileWatcher>) {
 		this.id = id;
 		this.tasks = new Set();
 		this.transformDependencyTasks = new Set();
@@ -80,9 +78,7 @@ export default class FileWatcher {
 			}
 		};
 
-		this.fsWatcher = chokidarOptions
-			? chokidar.watch(id, chokidarOptions).on('all', handleWatchEvent)
-			: fs.watch(id, opts, handleWatchEvent);
+		this.fsWatcher = chokidar.watch(id, chokidarOptions).on('all', handleWatchEvent);
 
 		group.set(id, this);
 	}
