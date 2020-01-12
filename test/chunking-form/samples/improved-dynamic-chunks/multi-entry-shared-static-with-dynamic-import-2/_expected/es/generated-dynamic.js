@@ -1,3 +1,3 @@
-import { v as value1 } from './generated-shared.js';
+import { v as value1 } from './generated-dep.js';
 
 console.log('dynamic', value1);

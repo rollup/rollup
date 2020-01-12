@@ -17,6 +17,11 @@ export function assignChunkColouringHashes(
 ) {
 	const colouredModules: Set<Module> = new Set();
 	const moduleImportersByModule: Map<Module, Set<Module>> = new Map();
+	const dynamicEntryModules: Array<{
+		coloursToModule: Set<Uint8Array>;
+		importer: Module;
+		module: Module;
+	}> = [];
 
 	function allImportersHaveColour(module: Module, colours: Set<Uint8Array>): boolean {
 		const importers = moduleImportersByModule.get(module);
@@ -53,14 +58,12 @@ export function assignChunkColouringHashes(
 			} else {
 				if (!colouredModules.has(module)) {
 					module.entryPointsHash = cloneUint8Array(colour);
-				} else if (module === rootModule) {
-					// force new colour
-					Uint8ArrayXor(module.entryPointsHash, colour);
 				} else if (!coloursToRoot.size || !allImportersHaveColour(module, coloursToRoot)) {
 					Uint8ArrayXor(module.entryPointsHash, colour);
 				} else {
 					// colour can remain the same, because every route into this point
 					// comes from a colour that has already been loaded
+					// TODO can also skip processing any further?
 				}
 			}
 			// console.log('!! ', module.id.split('/').pop(), module.entryPointsHash);
@@ -80,9 +83,14 @@ export function assignChunkColouringHashes(
 					!resolution.manualChunkAlias // TODO
 				) {
 					getOrCreateSetInMap(moduleImportersByModule, resolution).add(module);
-					const coloursToNewRoot = new Set(coloursToRoot);
-					coloursToNewRoot.add(module.entryPointsHash);
-					colourModule(resolution, coloursToNewRoot, randomColour());
+					const coloursToModule = new Set(coloursToRoot);
+					coloursToModule.add(module.entryPointsHash);
+					const alreadySeen = dynamicEntryModules.some(
+						entry => entry.module === resolution && entry.importer === module
+					);
+					if (!alreadySeen) {
+						dynamicEntryModules.push({ module: resolution, importer: module, coloursToModule });
+					}
 				}
 			}
 		}
@@ -101,10 +109,14 @@ export function assignChunkColouringHashes(
 	}
 
 	for (const module of entryModules) {
-		const colour = randomColour();
 		// TODO what is this check?
 		if (!module.manualChunkAlias) {
-			colourModule(module, new Set(), colour);
+			colourModule(module, new Set(), randomColour());
 		}
+	}
+
+	for (let i = 0; i < dynamicEntryModules.length /* note this updates */; i++) {
+		const { module, coloursToModule } = dynamicEntryModules[i];
+		colourModule(module, coloursToModule, randomColour());
 	}
 }
