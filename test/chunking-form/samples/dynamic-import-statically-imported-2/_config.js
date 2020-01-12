@@ -1,5 +1,5 @@
 module.exports = {
-	// solo: true,
+	solo: true, // TODO broken
 	description:
 		'handles dynamic imports of previously statically imported chunks that are also dynamically imported by other chunks',
 	options: {

@@ -1,1 +1,1 @@
-import('./generated-dep1.js').then(({ bar }) => console.log(bar()));
+import('./generated-dep12.js').then(({ bar }) => console.log(bar()));
