@@ -18,11 +18,6 @@ export function Uint8ArrayToHexString(buffer: Uint8Array) {
 	return str;
 }
 
-export function Uint8ArrayXor(to: Uint8Array, from: Uint8Array) {
-	for (let i = 0; i < to.length; i++) to[i] = to[i] ^ from[i];
-	return to;
-}
-
 export function randomUint8Array(len: number) {
 	const buffer = new Uint8Array(len);
 	for (let i = 0; i < buffer.length; i++) buffer[i] = Math.random() * (2 << 8);
