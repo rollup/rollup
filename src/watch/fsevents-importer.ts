@@ -4,7 +4,7 @@ let fsEventsImportError: any;
 export function loadFsEvents() {
 	return import('fsevents')
 		.then(namespace => {
-			fsEvents = namespace;
+			fsEvents = namespace.default;
 		})
 		.catch(err => {
 			fsEventsImportError = err;

@@ -97,6 +97,7 @@ export default command => {
 			'util'
 		],
 		treeshake,
+		manualChunks: { rollup: ['src/node-entry.ts'] },
 		output: {
 			banner,
 			chunkFileNames: 'shared-cjs/[name].js',
