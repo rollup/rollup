@@ -22,18 +22,20 @@ export function assignChunkColouringHashes(
 	function recolourModules(
 		inputEntryModules: Array<{ colour: Uint8Array; rootModule: Module }>
 	): void {
-		const newEntryModules: Array<{
-			module: Module;
+		const entryModules: Array<{
+			colour: Uint8Array;
+			rootModule: Module;
 			trail: Module[];
-		}> = [];
+		}> = inputEntryModules.map(({ colour, rootModule }) => ({ colour, rootModule, trail: [] }));
 
 		function registerNewEntryPoint(module: Module, trail: Module[]): void {
-			const alreadySeen = newEntryModules.some(
-				entry => entry.module === module && arraysEqual(entry.trail, trail)
-			);
+			const alreadySeen =
+				trail.includes(module) ||
+				entryModules.some(entry => entry.rootModule === module && arraysEqual(entry.trail, trail));
 			if (!alreadySeen) {
-				newEntryModules.push({
-					module,
+				entryModules.push({
+					colour: randomColour(),
+					rootModule: module,
 					trail
 				});
 			}
@@ -48,12 +50,18 @@ export function assignChunkColouringHashes(
 					return;
 				}
 
+				// TODO uncommenting fixes circular-entry-points but breaks others
+				// if (module !== rootModule && entryModules.some(a => a.rootModule === module)) {
+				// 	return;
+				// }
+
 				if (
 					module.manualChunkAlias ||
 					(!trailContainsColour(trail, module.entryPointsHash) &&
 						Uint8ArrayEqual(module.entryPointsHash, sourceColour))
 				) {
 					copyUint8Array(module.entryPointsHash, colour);
+					// console.log('colour', module.id.split('/').pop(), colour[0]);
 					colouredModules.add(module);
 					for (const dependency of module.dependencies) {
 						if (dependency instanceof Module) {
@@ -83,14 +91,9 @@ export function assignChunkColouringHashes(
 			process(rootModule, trail);
 		}
 
-		for (let i = 0; i < inputEntryModules.length /* updates */; i++) {
-			const { colour, rootModule } = inputEntryModules[i];
-			_recolourModule(rootModule, [], colour);
-		}
-
-		for (let i = 0; i < newEntryModules.length /* updates */; i++) {
-			const { module, trail } = newEntryModules[i];
-			_recolourModule(module, trail, randomColour());
+		for (let i = 0; i < entryModules.length /* updates */; i++) {
+			const { colour, rootModule, trail } = entryModules[i];
+			_recolourModule(rootModule, trail, colour);
 		}
 	}
 

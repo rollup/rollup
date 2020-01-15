@@ -1,4 +1,5 @@
 module.exports = {
+	// solo: true,
 	description: 'avoid facades if possible when using manual chunks',
 	options: {
 		input: ['main1', 'main2'],
