@@ -282,7 +282,7 @@ var version=function(){"use strict";var n="1.0.0";return function(){console.log(
 
 ### Code Splitting
 
-To use the code splitting feature, we got back to the original example and modify `src/main.js` to load `src/foo.js` dynamically instead of statically:
+To use the code splitting feature, we go back to the original example and modify `src/main.js` to load `src/foo.js` dynamically instead of statically:
 
 ```js
 // src/main.js
