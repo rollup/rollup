@@ -30,7 +30,18 @@ export function cloneUint8Array(input: Uint8Array): Uint8Array {
 	return output;
 }
 
+export function copyUint8Array(destinaton: Uint8Array, source: Uint8Array): Uint8Array {
+	if (destinaton.length !== source.length) {
+		throw new Error('Arrays are different sizes.');
+	}
+	for (let i = 0; i < destinaton.length; i++) destinaton[i] = source[i];
+	return source;
+}
+
 export function Uint8ArrayEqual(bufferA: Uint8Array, bufferB: Uint8Array) {
+	if (bufferA.length !== bufferB.length) {
+		return false;
+	}
 	for (let i = 0; i < bufferA.length; i++) {
 		if (bufferA[i] !== bufferB[i]) return false;
 	}
