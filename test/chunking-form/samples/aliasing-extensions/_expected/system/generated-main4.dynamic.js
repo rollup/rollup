@@ -5,8 +5,6 @@ System.register([], function () {
 
 			console.log('main4');
 
-			console.log('main5');
-
 		}
 	};
 });

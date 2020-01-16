@@ -1,10 +1,14 @@
-define(['exports', './generated-dep1', './generated-dep2'], function (exports, dep1, dep2) { 'use strict';
+define(['exports'], function (exports) { 'use strict';
 
-	var x = dep1.x + 1;
+	var x = 42;
 
-	var y = dep2.x + 1;
+	var x$1 = x + 1;
 
-	exports.x = x;
+	var x$2 = 43;
+
+	var y = x$2 + 1;
+
+	exports.x = x$1;
 	exports.y = y;
 
 });

@@ -2,8 +2,7 @@ const path = require('path');
 const rollup = require('../../dist/rollup');
 const { extend, runTestSuiteWithSamples, assertDirectoriesAreEqual } = require('../utils.js');
 
-// const FORMATS = ['es', 'cjs', 'amd', 'system'];
-const FORMATS = ['es'];
+const FORMATS = ['es', 'cjs', 'amd', 'system'];
 
 runTestSuiteWithSamples('chunking form', path.resolve(__dirname, 'samples'), (dir, config) => {
 	(config.skip ? describe.skip : config.solo ? describe.only : describe)(

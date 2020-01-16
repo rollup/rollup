@@ -1,5 +1,5 @@
 module.exports = {
-	solo: true, // BROKEN
+	// solo: true, // BROKEN
 	description: 'chunk reassignment import deshadowing',
 	options: {
 		input: ['main1.js', 'main2.js']
