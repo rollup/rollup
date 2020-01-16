@@ -267,27 +267,27 @@ describe('The bundle object', () => {
 			.then(({ output }) => {
 				assert.deepEqual(
 					output.map(chunk => chunk.fileName),
-					['input1.js', 'input2.js', 'generated-dynamic.js'],
+					['input1.js', 'input2.js', 'generated-dynamic.js', 'generated-dynamic2.js'],
 					'fileName'
 				);
 				assert.deepEqual(
 					output.map(chunk => Object.keys(chunk.modules)),
-					[['input1'], [], ['dep', 'dynamic', 'input2']],
+					[['input1'], ['input2'], ['dep', 'dynamic'], []],
 					'modules'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.isDynamicEntry),
-					[false, false, true],
+					[false, false, false, true],
 					'isDynamicEntry'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.facadeModuleId),
-					['input1', 'input2', 'dynamic'],
+					['input1', 'input2', null, 'dynamic'],
 					'facadeModuleId'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.dynamicImports),
-					[['generated-dynamic.js'], [], []],
+					[['generated-dynamic.js'], [], [], []],
 					'dynamicImports'
 				);
 			});
