@@ -1,5 +1,5 @@
 import Module from '../Module';
-import { cloneUint8Array, copyUint8Array, randomUint8Array, Uint8ArrayEqual } from './entryHashing';
+import { cloneUint8Array, randomUint8Array, Uint8ArrayEqual, Uint8ArrayXor } from './entryHashing';
 
 function randomColour(): Uint8Array {
 	return randomUint8Array(10);
@@ -19,29 +19,31 @@ export function assignChunkColouringHashes(
 ) {
 	const colouredModules: Set<Module> = new Set();
 
-	function recolourModules(
-		inputEntryModules: Array<{ colour: Uint8Array; rootModule: Module }>
-	): void {
+	function paintModules(inputEntryModules: Array<{ paint: Uint8Array; rootModule: Module }>): void {
 		const entryModules: Array<{
-			colour: Uint8Array;
+			paint: Uint8Array;
 			rootModule: Module;
 			trail: Module[];
-		}> = inputEntryModules.map(({ colour, rootModule }) => ({ colour, rootModule, trail: [] }));
+		}> = inputEntryModules.map(({ paint, rootModule }) => ({
+			paint,
+			rootModule,
+			trail: []
+		}));
 
-		function registerNewEntryPoint(module: Module, trail: Module[]): void {
+		function registerNewEntryPoint(module: Module, trail: Module[], paint: Uint8Array): void {
 			const alreadySeen =
 				trail.includes(module) ||
 				entryModules.some(entry => entry.rootModule === module && arraysEqual(entry.trail, trail));
 			if (!alreadySeen) {
 				entryModules.push({
-					colour: randomColour(),
+					paint,
 					rootModule: module,
 					trail
 				});
 			}
 		}
 
-		function _recolourModule(rootModule: Module, trail: Module[], colour: Uint8Array): void {
+		function _paintModule(rootModule: Module, trail: Module[], paint: Uint8Array): void {
 			const sourceColour = cloneUint8Array(rootModule.entryPointsHash);
 
 			function process(module: Module, trail: Module[]): void {
@@ -55,13 +57,14 @@ export function assignChunkColouringHashes(
 				// 	return;
 				// }
 
-				if (
+				if (!module.manualChunkAlias && trailContainsColour(trail, module.entryPointsHash)) {
+					//
+				} else if (
 					module.manualChunkAlias ||
 					(!trailContainsColour(trail, module.entryPointsHash) &&
 						Uint8ArrayEqual(module.entryPointsHash, sourceColour))
 				) {
-					copyUint8Array(module.entryPointsHash, colour);
-					// console.log('colour', module.id.split('/').pop(), colour[0]);
+					Uint8ArrayXor(module.entryPointsHash, paint);
 					colouredModules.add(module);
 					for (const dependency of module.dependencies) {
 						if (dependency instanceof Module) {
@@ -80,11 +83,13 @@ export function assignChunkColouringHashes(
 							resolution.dynamicallyImportedBy.length > 0 &&
 							!resolution.manualChunkAlias
 						) {
-							registerNewEntryPoint(resolution, [...trail, module]);
+							// registerNewEntryPoint(resolution, [...trail, module], module.entryPointsHash);
+							registerNewEntryPoint(resolution, [...trail, module], randomColour());
 						}
 					}
 				} else {
-					registerNewEntryPoint(module, trail);
+					// TODO out of bounds?
+					registerNewEntryPoint(module, trail, trail[trail.length - 1].entryPointsHash);
 				}
 			}
 
@@ -92,29 +97,29 @@ export function assignChunkColouringHashes(
 		}
 
 		for (let i = 0; i < entryModules.length /* updates */; i++) {
-			const { colour, rootModule, trail } = entryModules[i];
-			_recolourModule(rootModule, trail, colour);
+			const { paint, rootModule, trail } = entryModules[i];
+			_paintModule(rootModule, trail, paint);
 		}
 	}
 
-	const modules: Array<{ colour: Uint8Array; rootModule: Module }> = [];
+	const modules: Array<{ paint: Uint8Array; rootModule: Module }> = [];
 
 	if (manualChunkModules) {
 		for (const chunkName of Object.keys(manualChunkModules)) {
-			const colour = randomColour();
+			const paint = randomColour();
 
 			for (const module of manualChunkModules[chunkName]) {
 				if (!module.manualChunkAlias) {
 					throw new Error('Missing manualChunkAlias');
 				}
-				modules.push({ rootModule: module, colour });
+				modules.push({ rootModule: module, paint });
 			}
 		}
 	}
 
 	for (const module of entryModules) {
-		modules.push({ rootModule: module, colour: randomColour() });
+		modules.push({ rootModule: module, paint: randomColour() });
 	}
 
-	recolourModules(modules);
+	paintModules(modules);
 }
