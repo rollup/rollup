@@ -2,17 +2,15 @@ import path from 'path';
 import createFilter from 'rollup-pluginutils/src/createFilter';
 import rollup, { setWatcher } from '../rollup/rollup';
 import {
-	ChokidarOptions,
 	InputOptions,
 	OutputOptions,
 	RollupBuild,
 	RollupCache,
-	RollupError,
 	RollupWatcher,
 	WatcherOptions
 } from '../rollup/types';
 import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
-import { addTask, deleteTask } from './fileWatchers';
+import { FileWatcher } from './fileWatcher';
 
 const DELAY = 200;
 
@@ -40,7 +38,6 @@ export class Watcher {
 		for (const task of this.tasks) {
 			task.close();
 		}
-
 		this.emitter.removeAllListeners();
 	}
 
@@ -70,36 +67,33 @@ export class Watcher {
 		}, DELAY);
 	}
 
-	private run() {
+	private async run() {
 		this.running = true;
 
 		this.emit('event', {
 			code: 'START'
 		});
 
-		let taskPromise = Promise.resolve();
-		for (const task of this.tasks) taskPromise = taskPromise.then(() => task.run());
-		return taskPromise
-			.then(() => {
-				this.running = false;
-
-				this.emit('event', {
-					code: 'END'
-				});
-			})
-			.catch(error => {
-				this.running = false;
-				this.emit('event', {
-					code: 'ERROR',
-					error
-				});
-			})
-			.then(() => {
-				if (this.rerun) {
-					this.rerun = false;
-					this.invalidate();
-				}
+		try {
+			for (const task of this.tasks) {
+				await task.run();
+			}
+			this.running = false;
+			this.emit('event', {
+				code: 'END'
 			});
+		} catch (error) {
+			this.running = false;
+			this.emit('event', {
+				code: 'ERROR',
+				error
+			});
+		}
+
+		if (this.rerun) {
+			this.rerun = false;
+			this.invalidate();
+		}
 	}
 }
 
@@ -107,9 +101,8 @@ export class Task {
 	cache: RollupCache = { modules: [] };
 	watchFiles: string[] = [];
 
-	private chokidarOptions: ChokidarOptions;
-	private chokidarOptionsHash: string;
 	private closed: boolean;
+	private fileWatcher: FileWatcher;
 	private filter: (id: string) => boolean;
 	private inputOptions: InputOptions;
 	private invalidated = true;
@@ -120,7 +113,6 @@ export class Task {
 
 	constructor(watcher: Watcher, config: GenericConfigObject) {
 		this.watcher = watcher;
-
 		this.closed = false;
 		this.watched = new Set();
 
@@ -128,7 +120,6 @@ export class Task {
 			config
 		});
 		this.inputOptions = inputOptions;
-
 		this.outputs = outputOptions;
 		this.outputFiles = this.outputs.map(output => {
 			if (output.file || output.dir) return path.resolve(output.file || output.dir!);
@@ -136,24 +127,20 @@ export class Task {
 		});
 
 		const watchOptions: WatcherOptions = inputOptions.watch || {};
-		this.chokidarOptions = {
+		this.filter = createFilter(watchOptions.include, watchOptions.exclude);
+		this.fileWatcher = new FileWatcher(this, {
 			...watchOptions.chokidar,
 			disableGlobbing: true,
 			ignoreInitial: true
-		};
-		this.chokidarOptionsHash = JSON.stringify(this.chokidarOptions);
-
-		this.filter = createFilter(watchOptions.include, watchOptions.exclude);
+		});
 	}
 
 	close() {
 		this.closed = true;
-		for (const id of this.watched) {
-			deleteTask(id, this, this.chokidarOptionsHash);
-		}
+		this.fileWatcher.close();
 	}
 
-	invalidate(id: string, isTransformDependency: boolean) {
+	invalidate(id: string, isTransformDependency: boolean | undefined) {
 		this.invalidated = true;
 		if (isTransformDependency) {
 			for (const module of this.cache.modules) {
@@ -165,7 +152,7 @@ export class Task {
 		this.watcher.invalidate(id);
 	}
 
-	run() {
+	async run() {
 		if (!this.invalidated) return;
 		this.invalidated = false;
 
@@ -182,32 +169,35 @@ export class Task {
 			output: this.outputFiles
 		});
 
+		// TODO Lukas improve
 		setWatcher(this.watcher.emitter);
-		return rollup(options)
-			.then(result => {
-				if (this.closed) return undefined as any;
-				this.updateWatchedFiles(result);
-				return Promise.all(this.outputs.map(output => result.write(output))).then(() => result);
-			})
-			.then((result: RollupBuild) => {
-				this.watcher.emit('event', {
-					code: 'BUNDLE_END',
-					duration: Date.now() - start,
-					input: this.inputOptions.input,
-					output: this.outputFiles,
-					result
-				});
-			})
-			.catch((error: RollupError) => {
-				if (this.closed) return;
 
-				if (Array.isArray(error.watchFiles)) {
-					for (const id of error.watchFiles) {
-						this.watchFile(id);
-					}
-				}
-				throw error;
+		try {
+			const result = await rollup(options);
+			if (this.closed) {
+				return;
+			}
+			this.updateWatchedFiles(result);
+			await Promise.all(this.outputs.map(output => result.write(output)));
+			this.watcher.emit('event', {
+				code: 'BUNDLE_END',
+				duration: Date.now() - start,
+				input: this.inputOptions.input,
+				output: this.outputFiles,
+				result
 			});
+		} catch (error) {
+			if (this.closed) {
+				return;
+			}
+
+			if (Array.isArray(error.watchFiles)) {
+				for (const id of error.watchFiles) {
+					this.watchFile(id);
+				}
+			}
+			throw error;
+		}
 	}
 
 	private updateWatchedFiles(result: RollupBuild) {
@@ -224,7 +214,9 @@ export class Task {
 			}
 		}
 		for (const id of previouslyWatched) {
-			if (!this.watched.has(id)) deleteTask(id, this, this.chokidarOptionsHash);
+			if (!this.watched.has(id)) {
+				this.fileWatcher.unwatch(id);
+			}
 		}
 	}
 
@@ -238,6 +230,6 @@ export class Task {
 
 		// this is necessary to ensure that any 'renamed' files
 		// continue to be watched following an error
-		addTask(id, this, this.chokidarOptions, this.chokidarOptionsHash, isTransformDependency);
+		this.fileWatcher.watch(id, isTransformDependency);
 	}
 }

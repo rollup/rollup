@@ -12,9 +12,18 @@ function wait(ms) {
 }
 
 describe('rollup.watch', () => {
+	let watcher;
+
 	beforeEach(() => {
 		process.chdir(cwd);
 		return sander.rimraf('test/_tmp');
+	});
+
+	afterEach(() => {
+		if (watcher) {
+			watcher.close();
+			watcher = null;
+		}
 	});
 
 	function run(file) {
@@ -57,13 +66,26 @@ describe('rollup.watch', () => {
 		});
 	}
 
-	it('watches a file', () => {
+	it('watches a file and triggers reruns if necessary', () => {
+		let triggerRestart = false;
+
 		return sander
 			.copydir('test/watch/samples/basic')
 			.to('test/_tmp/input')
 			.then(() => {
-				const watcher = rollup.watch({
+				watcher = rollup.watch({
 					input: 'test/_tmp/input/main.js',
+					plugins: {
+						transform(code) {
+							if (triggerRestart) {
+								triggerRestart = false;
+								return wait(100)
+									.then(() => sander.writeFileSync('test/_tmp/input/main.js', 'export default 44;'))
+									.then(() => wait(100))
+									.then(() => code);
+							}
+						}
+					},
 					output: {
 						file: 'test/_tmp/output/bundle.js',
 						format: 'cjs'
@@ -77,14 +99,19 @@ describe('rollup.watch', () => {
 					'END',
 					() => {
 						assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+						triggerRestart = true;
 						sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
 					},
 					'START',
 					'BUNDLE_START',
 					'BUNDLE_END',
 					'END',
+					'START',
+					'BUNDLE_START',
+					'BUNDLE_END',
+					'END',
 					() => {
-						assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
+						assert.strictEqual(run('../_tmp/output/bundle.js'), 44);
 					}
 				]);
 			});
@@ -95,7 +122,7 @@ describe('rollup.watch', () => {
 			.copydir('test/watch/samples/basic')
 			.to('test/_tmp/input')
 			.then(() => {
-				const watcher = rollup.watch({
+				watcher = rollup.watch({
 					input: 'test/_tmp/input/main.js',
 					plugins: {
 						resolveId(id) {
@@ -144,7 +171,7 @@ describe('rollup.watch', () => {
 			.copydir('test/watch/samples/basic')
 			.to('test/_tmp/input')
 			.then(() => {
-				const watcher = rollup.watch({
+				watcher = rollup.watch({
 					input: 'test/_tmp/input/main.js',
 					output: {
 						file: 'test/_tmp/output/bundle.js',
@@ -203,7 +230,7 @@ describe('rollup.watch', () => {
 			.copydir('test/watch/samples/code-splitting')
 			.to('test/_tmp/input')
 			.then(() => {
-				const watcher = rollup.watch({
+				watcher = rollup.watch({
 					input: ['test/_tmp/input/main1.js', 'test/_tmp/input/main2.js'],
 					output: {
 						dir: 'test/_tmp/output',
@@ -238,7 +265,7 @@ describe('rollup.watch', () => {
 			.copydir('test/watch/samples/code-splitting')
 			.to('test/_tmp/input')
 			.then(() => {
-				const watcher = rollup.watch({
+				watcher = rollup.watch({
 					input: {
 						_main_1: 'test/_tmp/input/main1.js',
 						'subfolder/_main_2': 'test/_tmp/input/main2.js'
@@ -276,7 +303,7 @@ describe('rollup.watch', () => {
 			.copydir('test/watch/samples/basic')
 			.to('test/_tmp/input')
 			.then(() => {
-				const watcher = rollup.watch({
+				watcher = rollup.watch({
 					input: 'test/_tmp/input/main.js',
 					output: {
 						file: 'test/_tmp/output/bundle.js',
@@ -315,7 +342,7 @@ describe('rollup.watch', () => {
 			.copydir('test/watch/samples/error')
 			.to('test/_tmp/input')
 			.then(() => {
-				const watcher = rollup.watch({
+				watcher = rollup.watch({
 					input: 'test/_tmp/input/main.js',
 					output: {
 						file: 'test/_tmp/output/bundle.js',
@@ -348,7 +375,7 @@ describe('rollup.watch', () => {
 			.copydir('test/watch/samples/basic')
 			.to('test/_tmp/input')
 			.then(() => {
-				const watcher = rollup.watch({
+				watcher = rollup.watch({
 					input: 'test/_tmp/input/main.js',
 					plugins: {
 						transform() {
@@ -382,12 +409,12 @@ describe('rollup.watch', () => {
 			});
 	});
 
-	it('recovers from an error even when erroring file was "renamed" (#38)', () => {
+	it('recovers from an error even when erroring entry was "renamed" (#38)', () => {
 		return sander
 			.copydir('test/watch/samples/basic')
 			.to('test/_tmp/input')
 			.then(() => {
-				const watcher = rollup.watch({
+				watcher = rollup.watch({
 					input: 'test/_tmp/input/main.js',
 					output: {
 						file: 'test/_tmp/output/bundle.js',
@@ -423,12 +450,12 @@ describe('rollup.watch', () => {
 			});
 	});
 
-	it('handles closing the watcher during a build', () => {
+	it('recovers from an error even when erroring dependency was "renamed" (#38)', () => {
 		return sander
-			.copydir('test/watch/samples/basic')
+			.copydir('test/watch/samples/dependency')
 			.to('test/_tmp/input')
 			.then(() => {
-				const watcher = rollup.watch({
+				watcher = rollup.watch({
 					input: 'test/_tmp/input/main.js',
 					output: {
 						file: 'test/_tmp/output/bundle.js',
@@ -436,19 +463,60 @@ describe('rollup.watch', () => {
 					}
 				});
 
-				setTimeout(() => watcher.close(), 50);
 				return sequence(watcher, [
 					'START',
 					'BUNDLE_START',
 					'BUNDLE_END',
+					'END',
 					() => {
-						sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
-						let unexpectedEvent = false;
-						watcher.once('event', event => {
-							unexpectedEvent = event;
-						});
-						sander.writeFileSync('test/_tmp/input/dep.js', '= invalid');
-						return wait(400).then(() => assert.strictEqual(unexpectedEvent, false));
+						assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
+						sander.unlinkSync('test/_tmp/input/dep.js');
+						sander.writeFileSync('test/_tmp/input/dep.js', 'export nope;');
+					},
+					'START',
+					'BUNDLE_START',
+					'ERROR',
+					() => {
+						sander.unlinkSync('test/_tmp/input/dep.js');
+						sander.writeFileSync('test/_tmp/input/dep.js', 'export const value = 43;');
+					},
+					'START',
+					'BUNDLE_START',
+					'BUNDLE_END',
+					'END',
+					() => {
+						assert.strictEqual(run('../_tmp/output/bundle.js'), 44);
+					}
+				]);
+			});
+	});
+
+	it('handles closing the watcher during a build', () => {
+		return sander
+			.copydir('test/watch/samples/basic')
+			.to('test/_tmp/input')
+			.then(() => {
+				watcher = rollup.watch({
+					input: 'test/_tmp/input/main.js',
+					plugins: {
+						load() {
+							watcher.close();
+						}
+					},
+					output: {
+						file: 'test/_tmp/output/bundle.js',
+						format: 'cjs'
+					}
+				});
+				const events = [];
+				watcher.on('event', event => events.push(event.code));
+
+				return sequence(watcher, [
+					'START',
+					'BUNDLE_START',
+					() => {
+						sander.writeFileSync('test/_tmp/input/main.js', 'export default 44;');
+						return wait(400).then(() => assert.deepStrictEqual(events, ['START', 'BUNDLE_START']));
 					}
 				]);
 			});
@@ -459,27 +527,27 @@ describe('rollup.watch', () => {
 			.copydir('test/watch/samples/error')
 			.to('test/_tmp/input')
 			.then(() => {
-				const watcher = rollup.watch({
+				watcher = rollup.watch({
 					input: 'test/_tmp/input/main.js',
+					plugins: {
+						load() {
+							watcher.close();
+						}
+					},
 					output: {
 						file: 'test/_tmp/output/bundle.js',
 						format: 'cjs'
 					}
 				});
+				const events = [];
+				watcher.on('event', event => events.push(event.code));
 
-				setTimeout(() => watcher.close(), 50);
 				return sequence(watcher, [
 					'START',
 					'BUNDLE_START',
-					'ERROR',
 					() => {
-						sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
-						let unexpectedEvent = false;
-						watcher.once('event', event => {
-							unexpectedEvent = event;
-						});
-						sander.writeFileSync('test/_tmp/input/dep.js', '= invalid');
-						return wait(400).then(() => assert.strictEqual(unexpectedEvent, false));
+						sander.writeFileSync('test/_tmp/input/main.js', 'export default 44;');
+						return wait(400).then(() => assert.deepStrictEqual(events, ['START', 'BUNDLE_START']));
 					}
 				]);
 			});
@@ -490,7 +558,7 @@ describe('rollup.watch', () => {
 			.copydir('test/watch/samples/dependency')
 			.to('test/_tmp/input')
 			.then(() => {
-				const watcher = rollup.watch({
+				watcher = rollup.watch({
 					input: 'test/_tmp/input/main.js',
 					output: {
 						file: 'test/_tmp/output/bundle.js',
@@ -529,7 +597,7 @@ describe('rollup.watch', () => {
 			.copydir('test/watch/samples/basic')
 			.to('test/_tmp/input')
 			.then(() => {
-				const watcher = rollup.watch({
+				watcher = rollup.watch({
 					input: 'test/_tmp/input/main.js',
 					output: {
 						file: 'test/_tmp/output/bundle.js',
@@ -569,7 +637,7 @@ describe('rollup.watch', () => {
 			.copydir('test/watch/samples/ignored')
 			.to('test/_tmp/input')
 			.then(() => {
-				const watcher = rollup.watch({
+				watcher = rollup.watch({
 					input: 'test/_tmp/input/main.js',
 					output: {
 						file: 'test/_tmp/output/bundle.js',
@@ -623,7 +691,7 @@ describe('rollup.watch', () => {
 			.copydir('test/watch/samples/ignored')
 			.to('test/_tmp/input')
 			.then(() => {
-				const watcher = rollup.watch({
+				watcher = rollup.watch({
 					input: 'test/_tmp/input/main.js',
 					output: {
 						file: 'test/_tmp/output/bundle.js',
@@ -677,7 +745,7 @@ describe('rollup.watch', () => {
 			.copydir('test/watch/samples/multiple')
 			.to('test/_tmp/input')
 			.then(() => {
-				const watcher = rollup.watch([
+				watcher = rollup.watch([
 					{
 						input: 'test/_tmp/input/main1.js',
 						output: {
@@ -723,7 +791,7 @@ describe('rollup.watch', () => {
 			.copydir('test/watch/samples/globals')
 			.to('test/_tmp/input')
 			.then(() => {
-				const watcher = rollup.watch({
+				watcher = rollup.watch({
 					input: 'test/_tmp/input/main.js',
 					output: {
 						file: 'test/_tmp/output/bundle.js',
@@ -755,7 +823,7 @@ describe('rollup.watch', () => {
 			.copydir('test/watch/samples/non-glob')
 			.to('test/_tmp/input')
 			.then(() => {
-				const watcher = rollup.watch({
+				watcher = rollup.watch({
 					input: 'test/_tmp/input/main.js',
 					output: {
 						file: 'test/_tmp/output/bundle.js',
@@ -791,7 +859,7 @@ describe('rollup.watch', () => {
 			.copydir('test/watch/samples/hashing')
 			.to('test/_tmp/input')
 			.then(() => {
-				const watcher = rollup.watch({
+				watcher = rollup.watch({
 					input: ['test/_tmp/input/main-static.js', 'test/_tmp/input/main-dynamic.js'],
 					output: {
 						dir: 'test/_tmp/output',
@@ -863,7 +931,7 @@ describe('rollup.watch', () => {
 				.to('test/_tmp/input')
 				.then(() => {
 					for (const file of watchFiles) sander.writeFileSync(file, 'initial');
-					const watcher = rollup.watch({
+					watcher = rollup.watch({
 						input: 'test/_tmp/input/main.js',
 						output: {
 							file: 'test/_tmp/output/bundle.js',
@@ -915,7 +983,7 @@ describe('rollup.watch', () => {
 				.copydir('test/watch/samples/watch-files')
 				.to('test/_tmp/input')
 				.then(() => {
-					const watcher = rollup.watch({
+					watcher = rollup.watch({
 						input: 'test/_tmp/input/main.js',
 						output: {
 							file: 'test/_tmp/output/bundle.js',
@@ -957,7 +1025,7 @@ describe('rollup.watch', () => {
 				.copydir('test/watch/samples/watch-files')
 				.to('test/_tmp/input')
 				.then(() => {
-					const watcher = rollup.watch({
+					watcher = rollup.watch({
 						input: 'test/_tmp/input/main.js',
 						output: {
 							file: 'test/_tmp/output/bundle.js',
@@ -1013,7 +1081,7 @@ describe('rollup.watch', () => {
 				.copydir('test/watch/samples/watch-files')
 				.to('test/_tmp/input')
 				.then(() => {
-					const watcher = rollup.watch({
+					watcher = rollup.watch({
 						input: 'test/_tmp/input/main.js',
 						output: {
 							file: 'test/_tmp/output/bundle.js',
@@ -1055,7 +1123,7 @@ describe('rollup.watch', () => {
 				.copydir('test/watch/samples/watch-files')
 				.to('test/_tmp/input')
 				.then(() => {
-					const watcher = rollup.watch({
+					watcher = rollup.watch({
 						input: 'test/_tmp/input/main.js',
 						output: {
 							file: 'test/_tmp/output/bundle.js',
@@ -1095,9 +1163,10 @@ describe('rollup.watch', () => {
 			return sander
 				.copydir('test/watch/samples/watch-files')
 				.to('test/_tmp/input')
+				.then(() => wait(100))
 				.then(() => {
 					sander.writeFileSync('test/_tmp/input/alsoWatched', 'initial');
-					const watcher = rollup.watch({
+					watcher = rollup.watch({
 						input: 'test/_tmp/input/main.js',
 						output: {
 							file: 'test/_tmp/output/bundle.js',
@@ -1146,7 +1215,7 @@ describe('rollup.watch', () => {
 				.copydir('test/watch/samples/basic')
 				.to('test/_tmp/input')
 				.then(() => {
-					const watcher = rollup.watch({
+					watcher = rollup.watch({
 						input: 'test/_tmp/input/main.js',
 						output: {
 							file: 'test/_tmp/output/bundle.js',
@@ -1196,7 +1265,7 @@ describe('rollup.watch', () => {
 				.copydir('test/watch/samples/watch-files')
 				.to('test/_tmp/input')
 				.then(() => {
-					const watcher = rollup.watch({
+					watcher = rollup.watch({
 						input: 'test/_tmp/input/main.js',
 						output: {
 							file: 'test/_tmp/output/bundle.js',
@@ -1235,48 +1304,12 @@ describe('rollup.watch', () => {
 				});
 		});
 
-		it("throws if transform dependency doesn't exist", () => {
-			return sander
-				.copydir('test/watch/samples/watch-files')
-				.to('test/_tmp/input')
-				.then(() => {
-					const watcher = rollup.watch({
-						input: 'test/_tmp/input/main.js',
-						output: {
-							file: 'test/_tmp/output/bundle.js',
-							format: 'cjs'
-						},
-						plugins: {
-							transform() {
-								return {
-									code: `export default "${sander
-										.readFileSync('test/_tmp/input/watched')
-										.toString()
-										.trim()}"`,
-									dependencies: ['./doesnotexist']
-								};
-							}
-						}
-					});
-
-					return sequence(watcher, [
-						'START',
-						'BUNDLE_START',
-						'ERROR',
-						event => {
-							assert.ok(event.error.message.startsWith('Transform dependency'));
-							assert.ok(event.error.message.endsWith('does not exist.'));
-						}
-					]);
-				});
-		});
-
 		it('watches and rebuilds transform dependencies that are modules', () => {
 			return sander
 				.copydir('test/watch/samples/watch-files')
 				.to('test/_tmp/input')
 				.then(() => {
-					const watcher = rollup.watch({
+					watcher = rollup.watch({
 						input: 'test/_tmp/input/main.js',
 						output: {
 							file: 'test/_tmp/output/bundle.js',
@@ -1320,7 +1353,7 @@ describe('rollup.watch', () => {
 				.copydir('test/watch/samples/watch-files')
 				.to('test/_tmp/input')
 				.then(() => {
-					const watcher = rollup.watch({
+					watcher = rollup.watch({
 						input: 'test/_tmp/input/main.js',
 						output: {
 							file: 'test/_tmp/output/bundle.js',
@@ -1362,7 +1395,7 @@ describe('rollup.watch', () => {
 				.copydir('test/watch/samples/watch-files')
 				.to('test/_tmp/input')
 				.then(() => {
-					const watcher = rollup.watch({
+					watcher = rollup.watch({
 						input: 'test/_tmp/input/main.js',
 						output: {
 							file: 'test/_tmp/output/bundle.js',
@@ -1411,7 +1444,7 @@ describe('rollup.watch', () => {
 				.copydir('test/watch/samples/watch-files')
 				.to('test/_tmp/input')
 				.then(() => {
-					const watcher = rollup.watch({
+					watcher = rollup.watch({
 						input: 'test/_tmp/input/main.js',
 						output: {
 							file: 'test/_tmp/output/bundle.js',
@@ -1461,7 +1494,7 @@ describe('rollup.watch', () => {
 				.copydir('test/watch/samples/watch-files')
 				.to('test/_tmp/input')
 				.then(() => {
-					const watcher = rollup.watch({
+					watcher = rollup.watch({
 						input: 'test/_tmp/input/main.js',
 						output: {
 							file: 'test/_tmp/output/bundle.js',
@@ -1512,7 +1545,7 @@ describe('rollup.watch', () => {
 				.copydir('test/watch/samples/watch-files-multiple')
 				.to('test/_tmp/input')
 				.then(() => {
-					const watcher = rollup.watch({
+					watcher = rollup.watch({
 						input: 'test/_tmp/input/index.js',
 						output: {
 							file: 'test/_tmp/output/bundle.js',

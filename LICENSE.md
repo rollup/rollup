@@ -112,7 +112,7 @@ Repository: https://github.com/acornjs/acorn.git
 ## anymatch
 License: ISC
 By: Elan Shanker
-Repository: git+https://github.com/micromatch/anymatch.git
+Repository: https://github.com/micromatch/anymatch
 
 > The ISC License
 > 
@@ -135,14 +135,14 @@ Repository: git+https://github.com/micromatch/anymatch.git
 ## binary-extensions
 License: MIT
 By: Sindre Sorhus
-Repository: git+https://github.com/sindresorhus/binary-extensions.git
+Repository: sindresorhus/binary-extensions
 
 ---------------------------------------
 
 ## braces
 License: MIT
 By: Jon Schlinkert, Brian Woodward, Elan Shanker, Eugene Sharygin, hemanth.hm
-Repository: git+https://github.com/micromatch/braces.git
+Repository: micromatch/braces
 
 > The MIT License (MIT)
 > 
@@ -207,7 +207,7 @@ Repository: sindresorhus/date-time
 ## fill-range
 License: MIT
 By: Jon Schlinkert, Edo Rivai, Paul Miller, Rouven Weßling
-Repository: git+https://github.com/jonschlinkert/fill-range.git
+Repository: jonschlinkert/fill-range
 
 > The MIT License (MIT)
 > 
@@ -236,7 +236,7 @@ Repository: git+https://github.com/jonschlinkert/fill-range.git
 ## glob-parent
 License: ISC
 By: Gulp Team, Elan Shanker, Blaine Bublitz
-Repository: git+https://github.com/gulpjs/glob-parent.git
+Repository: gulpjs/glob-parent
 
 > The ISC License
 > 
@@ -288,7 +288,7 @@ Repository: git://github.com/isaacs/inherits
 ## is-binary-path
 License: MIT
 By: Sindre Sorhus
-Repository: git+https://github.com/sindresorhus/is-binary-path.git
+Repository: sindresorhus/is-binary-path
 
 ---------------------------------------
 
@@ -353,7 +353,7 @@ Repository: micromatch/is-glob
 ## is-number
 License: MIT
 By: Jon Schlinkert, Olsten Larck, Rouven Weßling
-Repository: git+https://github.com/jonschlinkert/is-number.git
+Repository: jonschlinkert/is-number
 
 > The MIT License (MIT)
 > 
@@ -668,7 +668,7 @@ Repository: sindresorhus/time-zone
 ## to-regex-range
 License: MIT
 By: Jon Schlinkert, Rouven Weßling
-Repository: git+https://github.com/micromatch/to-regex-range.git
+Repository: micromatch/to-regex-range
 
 > The MIT License (MIT)
 > 
