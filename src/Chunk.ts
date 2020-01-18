@@ -7,7 +7,6 @@ import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
 import { UNDEFINED_EXPRESSION } from './ast/values';
 import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
 import ExportShimVariable from './ast/variables/ExportShimVariable';
-import GlobalVariable from './ast/variables/GlobalVariable';
 import LocalVariable from './ast/variables/LocalVariable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import Variable from './ast/variables/Variable';
@@ -673,23 +672,6 @@ export default class Chunk {
 		}
 	}
 
-	visitStaticDependenciesUntilCondition(
-		isConditionSatisfied: (dep: Chunk | ExternalModule) => any
-	): boolean {
-		const seen = new Set<Chunk | ExternalModule>();
-		function visitDep(dep: Chunk | ExternalModule): boolean {
-			if (seen.has(dep)) return undefined as any;
-			seen.add(dep);
-			if (dep instanceof Chunk) {
-				for (const subDep of dep.dependencies) {
-					if (visitDep(subDep)) return true;
-				}
-			}
-			return isConditionSatisfied(dep) === true;
-		}
-		return visitDep(this);
-	}
-
 	private addDependenciesToChunk(
 		moduleDependencies: (Module | ExternalModule)[],
 		chunkDependencies: Set<Chunk | ExternalModule>
@@ -934,8 +916,6 @@ export default class Chunk {
 						break;
 					}
 				}
-			} else if (variable instanceof GlobalVariable) {
-				hoisted = true;
 			}
 
 			const localName = variable.getName();
