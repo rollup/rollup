@@ -112,7 +112,7 @@ Repository: https://github.com/acornjs/acorn.git
 ## braces
 License: MIT
 By: Jon Schlinkert, Brian Woodward, Elan Shanker, Eugene Sharygin, hemanth.hm
-Repository: micromatch/braces
+Repository: git+https://github.com/micromatch/braces.git
 
 > The MIT License (MIT)
 > 
@@ -148,7 +148,7 @@ Repository: sindresorhus/date-time
 ## fill-range
 License: MIT
 By: Jon Schlinkert, Edo Rivai, Paul Miller, Rouven Weßling
-Repository: jonschlinkert/fill-range
+Repository: git+https://github.com/jonschlinkert/fill-range.git
 
 > The MIT License (MIT)
 > 
@@ -206,7 +206,7 @@ Repository: git://github.com/isaacs/inherits
 ## is-number
 License: MIT
 By: Jon Schlinkert, Olsten Larck, Rouven Weßling
-Repository: jonschlinkert/is-number
+Repository: git+https://github.com/jonschlinkert/is-number.git
 
 > The MIT License (MIT)
 > 
@@ -249,7 +249,7 @@ Repository: Rich-Harris/locate-character
 ## magic-string
 License: MIT
 By: Rich Harris
-Repository: https://github.com/rich-harris/magic-string
+Repository: git+https://github.com/rich-harris/magic-string.git
 
 > Copyright 2018 Rich Harris
 > 
@@ -427,7 +427,7 @@ Repository: https://github.com/tapjs/signal-exit.git
 ## sourcemap-codec
 License: MIT
 By: Rich Harris
-Repository: https://github.com/Rich-Harris/sourcemap-codec
+Repository: git+https://github.com/Rich-Harris/sourcemap-codec.git
 
 > The MIT License
 > 
@@ -463,7 +463,7 @@ Repository: sindresorhus/time-zone
 ## to-regex-range
 License: MIT
 By: Jon Schlinkert, Rouven Weßling
-Repository: micromatch/to-regex-range
+Repository: git+https://github.com/micromatch/to-regex-range.git
 
 > The MIT License (MIT)
 > 
