@@ -30,7 +30,7 @@ export default class ExternalModule {
 		this.moduleSideEffects = moduleSideEffects;
 
 		const parts = id.split(/[\\/]/);
-		this.variableName = makeLegal(parts.pop() as string);
+		this.variableName = makeLegal(parts.pop()!);
 
 		this.nameSuggestions = Object.create(null);
 		this.declarations = Object.create(null);

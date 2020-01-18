@@ -111,7 +111,7 @@ describe('sanity checks', () => {
 			});
 	});
 
-	it('throws on missing format option', () => {
+	it('throws on incorrect bundle.generate format option', () => {
 		const warnings = [];
 
 		return rollup
@@ -122,8 +122,25 @@ describe('sanity checks', () => {
 			})
 			.then(bundle => {
 				assert.throws(() => {
-					bundle.generate({ file: 'x' });
+					bundle.generate({ file: 'x', format: 'vanilla' });
 				}, /You must specify "output\.format", which can be one of "amd", "cjs", "system", "esm", "iife" or "umd"./);
+			});
+	});
+
+	it('defaults to output format `es` if not specified', () => {
+		const warnings = [];
+
+		return rollup
+			.rollup({
+				input: 'x',
+				plugins: [loader({ x: `export function foo(x){ console.log(x); }` })],
+				onwarn: warning => warnings.push(warning)
+			})
+			.then(bundle => {
+				return bundle.generate({});
+			})
+			.then(({ output: [{ code }] }) => {
+				assert.equal(code, `function foo(x){ console.log(x); }\n\nexport { foo };\n`);
 			});
 	});
 

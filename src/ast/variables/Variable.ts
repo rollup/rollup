@@ -49,7 +49,7 @@ export default class Variable implements ExpressionEntity {
 
 	getName(): string {
 		const name = this.renderName || this.name;
-		return this.renderBaseName ? `${this.renderBaseName}.${name}` : name;
+		return this.renderBaseName ? `${this.renderBaseName}${getPropertyAccess(name)}` : name;
 	}
 
 	getReturnExpressionWhenCalledAtPath(
@@ -107,3 +107,7 @@ export default class Variable implements ExpressionEntity {
 		return this.name;
 	}
 }
+
+const getPropertyAccess = (name: string) => {
+	return /^(?!\d)[\w$]+$/.test(name) ? `.${name}` : `[${JSON.stringify(name)}]`;
+};

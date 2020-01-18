@@ -114,7 +114,7 @@ export default class MetaProperty extends NodeBase {
 						fileName,
 						format,
 						moduleId: this.context.module.id,
-						referenceId: referenceId || assetReferenceId || (chunkReferenceId as string),
+						referenceId: referenceId || assetReferenceId || chunkReferenceId!,
 						relativePath
 					}
 				]);

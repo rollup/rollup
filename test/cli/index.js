@@ -23,12 +23,17 @@ runTestSuiteWithSamples(
 			done => {
 				process.chdir(config.cwd || dir);
 
-				const command =
-					'node ' + path.resolve(__dirname, '../../dist/bin') + path.sep + config.command;
+				const command = config.command.replace(
+					/(^| )rollup($| )/g,
+					`node ${path.resolve(__dirname, '../../dist/bin')}${path.sep}rollup `
+				);
 
 				const childProcess = exec(
 					command,
-					{ timeout: 40000, env: Object.assign({}, process.env, { FORCE_COLOR: '0' }, config.env) },
+					{
+						timeout: 40000,
+						env: Object.assign({}, process.env, { FORCE_COLOR: '0' }, config.env)
+					},
 					(err, code, stderr) => {
 						if (err && !err.killed) {
 							if (config.error) {

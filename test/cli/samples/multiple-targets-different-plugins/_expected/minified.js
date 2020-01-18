@@ -1,1 +1,1 @@
-"use strict";const Hello=1;console.log(1);var main=0;module.exports=main;
+"use strict";console.log(1);module.exports=0;

@@ -440,7 +440,7 @@ const literalStringMembers: MemberDescriptions = assembleMemberDescriptions(
 	objectMembers
 );
 
-export function getLiteralMembersForValue<T = LiteralValue>(value: T) {
+export function getLiteralMembersForValue<T extends LiteralValue = LiteralValue>(value: T) {
 	switch (typeof value) {
 		case 'boolean':
 			return literalBooleanMembers;
@@ -467,7 +467,7 @@ export function hasMemberEffectWhenCalled(
 	)
 		return true;
 	if (!members[memberName].callsArgs) return false;
-	for (const argIndex of members[memberName].callsArgs as number[]) {
+	for (const argIndex of members[memberName].callsArgs!) {
 		if (
 			callOptions.args[argIndex] &&
 			callOptions.args[argIndex].hasEffectsWhenCalledAtPath(
@@ -490,6 +490,6 @@ export function getMemberReturnExpressionWhenCalled(
 ): ExpressionEntity {
 	if (typeof memberName !== 'string' || !members[memberName]) return UNKNOWN_EXPRESSION;
 	return members[memberName].returnsPrimitive !== null
-		? (members[memberName].returnsPrimitive as ExpressionEntity)
-		: new (members[memberName].returns as any)();
+		? members[memberName].returnsPrimitive!
+		: new members[memberName].returns!();
 }

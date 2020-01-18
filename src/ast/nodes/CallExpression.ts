@@ -164,7 +164,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		const trackedExpressions = context.accessed.getEntities(path);
 		if (trackedExpressions.has(this)) return false;
 		trackedExpressions.add(this);
-		return (this.returnExpression as ExpressionEntity).hasEffectsWhenAccessedAtPath(path, context);
+		return this.returnExpression!.hasEffectsWhenAccessedAtPath(path, context);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
@@ -172,7 +172,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		const trackedExpressions = context.assigned.getEntities(path);
 		if (trackedExpressions.has(this)) return false;
 		trackedExpressions.add(this);
-		return (this.returnExpression as ExpressionEntity).hasEffectsWhenAssignedAtPath(path, context);
+		return this.returnExpression!.hasEffectsWhenAssignedAtPath(path, context);
 	}
 
 	hasEffectsWhenCalledAtPath(
@@ -186,11 +186,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		).getEntities(path);
 		if (trackedExpressions.has(this)) return false;
 		trackedExpressions.add(this);
-		return (this.returnExpression as ExpressionEntity).hasEffectsWhenCalledAtPath(
-			path,
-			callOptions,
-			context
-		);
+		return this.returnExpression!.hasEffectsWhenCalledAtPath(path, callOptions, context);
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
@@ -208,8 +204,8 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 			this.callee.include(context, false);
 		}
 		this.callee.includeCallArguments(context, this.arguments);
-		if (!(this.returnExpression as ExpressionEntity).included) {
-			(this.returnExpression as ExpressionEntity).include(context, false);
+		if (!this.returnExpression!.included) {
+			this.returnExpression!.include(context, false);
 		}
 	}
 

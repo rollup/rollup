@@ -93,6 +93,7 @@ export interface SourceDescription {
 	code: string;
 	map?: SourceMapInput;
 	moduleSideEffects?: boolean | null;
+	syntheticNamedExports?: boolean;
 }
 
 export interface TransformSourceDescription extends SourceDescription {
@@ -109,6 +110,7 @@ export interface TransformModuleJSON {
 	originalSourcemap: ExistingDecodedSourceMap | null;
 	resolvedIds?: ResolvedIdMap;
 	sourcemapChain: DecodedSourceMapOrMissing[];
+	syntheticNamedExports: boolean | null;
 	transformDependencies: string[];
 }
 
@@ -199,6 +201,7 @@ export interface ResolvedId {
 	external: boolean;
 	id: string;
 	moduleSideEffects: boolean;
+	syntheticNamedExports: boolean;
 }
 
 export interface ResolvedIdMap {
@@ -209,6 +212,7 @@ interface PartialResolvedId {
 	external?: boolean;
 	id: string;
 	moduleSideEffects?: boolean | null;
+	syntheticNamedExports?: boolean;
 }
 
 export type ResolveIdResult = string | false | null | undefined | PartialResolvedId;
@@ -229,10 +233,9 @@ export type IsPureModule = (id: string) => boolean | null | undefined;
 
 export type HasModuleSideEffects = (id: string, external: boolean) => boolean;
 
-export type LoadHook = (
-	this: PluginContext,
-	id: string
-) => Promise<SourceDescription | string | null> | SourceDescription | string | null;
+type LoadResult = SourceDescription | string | null | undefined;
+
+export type LoadHook = (this: PluginContext, id: string) => Promise<LoadResult> | LoadResult;
 
 export type TransformResult = string | null | undefined | TransformSourceDescription;
 
@@ -427,7 +430,6 @@ export interface InputOptions {
 	context?: string;
 	experimentalCacheExpiry?: number;
 	experimentalOptimizeChunks?: boolean;
-	experimentalTopLevelAwait?: boolean;
 	external?: ExternalOption;
 	inlineDynamicImports?: boolean;
 	input?: InputOption;
@@ -611,7 +613,43 @@ export interface RollupWatchOptions extends InputOptions {
 	watch?: WatcherOptions;
 }
 
-export interface RollupWatcher extends EventEmitter {
+interface TypedEventEmitter<T> {
+	addListener<K extends keyof T>(event: K, listener: T[K]): this;
+	emit<K extends keyof T>(event: K, ...args: any[]): boolean;
+	eventNames(): Array<keyof T>;
+	getMaxListeners(): number;
+	listenerCount(type: keyof T): number;
+	listeners<K extends keyof T>(event: K): Array<T[K]>;
+	off<K extends keyof T>(event: K, listener: T[K]): this;
+	on<K extends keyof T>(event: K, listener: T[K]): this;
+	once<K extends keyof T>(event: K, listener: T[K]): this;
+	prependListener<K extends keyof T>(event: K, listener: T[K]): this;
+	prependOnceListener<K extends keyof T>(event: K, listener: T[K]): this;
+	rawListeners<K extends keyof T>(event: K): Array<T[K]>;
+	removeAllListeners<K extends keyof T>(event?: K): this;
+	removeListener<K extends keyof T>(event: K, listener: T[K]): this;
+	setMaxListeners(n: number): this;
+}
+
+export type RollupWatcherEvent =
+	| { code: 'START' }
+	| { code: 'BUNDLE_START'; input: InputOption; output: readonly string[] }
+	| {
+			code: 'BUNDLE_END';
+			duration: number;
+			input: InputOption;
+			output: readonly string[];
+			result: RollupBuild;
+	  }
+	| { code: 'END' }
+	| { code: 'ERROR'; error: RollupError };
+
+export interface RollupWatcher
+	extends TypedEventEmitter<{
+		change: (id: string) => void;
+		event: (event: RollupWatcherEvent) => void;
+		restart: () => void;
+	}> {
 	close(): void;
 }
 

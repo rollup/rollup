@@ -93,7 +93,7 @@ function deconflictImportsOther(
 				variable.setRenderNames(module.variableName, null);
 			}
 		} else {
-			const chunk = (module as Module).chunk as Chunk;
+			const chunk = module!.chunk!;
 			if (chunk.exportMode === 'default' || (preserveModules && variable.isNamespace)) {
 				variable.setRenderNames(null, chunk.variableName);
 			} else {

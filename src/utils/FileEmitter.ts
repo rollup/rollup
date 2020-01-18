@@ -1,4 +1,3 @@
-import Chunk from '../Chunk';
 import Graph from '../Graph';
 import Module from '../Module';
 import { FilePlaceholder, OutputBundleWithPlaceholders } from '../rollup/types';
@@ -132,7 +131,7 @@ function getAssetFileName(file: ConsumedAsset, referenceId: string): string {
 }
 
 function getChunkFileName(file: ConsumedChunk): string {
-	const fileName = file.fileName || (file.module && (file.module.facadeChunk as Chunk).id);
+	const fileName = file.fileName || (file.module && file.module.facadeChunk!.id);
 	if (!fileName) return error(errChunkNotGeneratedForFileName(file.fileName || file.name));
 	return fileName;
 }

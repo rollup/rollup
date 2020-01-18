@@ -18,7 +18,6 @@ describe('misc', () => {
 				]),
 				acornInjectPlugins: freeze([]),
 				acorn: freeze({}),
-				experimentalTopLevelAwait: true,
 				treeshake: freeze({})
 			})
 		);

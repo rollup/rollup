@@ -34,9 +34,6 @@ describe('rollup.watch', () => {
 				} else if (typeof next === 'string') {
 					watcher.once('event', event => {
 						if (event.code !== next) {
-							if (event.code === 'FATAL') {
-								console.error(event.error);
-							}
 							watcher.close();
 							if (event.code === 'ERROR') console.log(event.error);
 							reject(new Error(`Expected ${next} event, got ${event.code}`));
