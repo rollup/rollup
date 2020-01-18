@@ -30,11 +30,15 @@ export function assignChunkColouringHashes(
 			trail: []
 		}));
 
-		function registerNewEntryPoint(module: Module, trail: Module[], paint: Uint8Array): void {
+		function registerNewEntryPoint(module: Module, trail: Module[], isolated: boolean): void {
+			if (!trail.length) {
+				throw new Error('There must be an importer.');
+			}
 			const alreadySeen =
 				trail.includes(module) ||
 				entryModules.some(entry => entry.rootModule === module && arraysEqual(entry.trail, trail));
 			if (!alreadySeen) {
+				const paint = isolated ? randomColour() : trail[trail.length - 1].entryPointsHash;
 				entryModules.push({
 					paint,
 					rootModule: module,
@@ -44,6 +48,7 @@ export function assignChunkColouringHashes(
 		}
 
 		function _paintModule(rootModule: Module, trail: Module[], paint: Uint8Array): void {
+			// everything this point downwards with this colour should be painted
 			const sourceColour = cloneUint8Array(rootModule.entryPointsHash);
 
 			function process(module: Module, trail: Module[]): void {
@@ -52,17 +57,19 @@ export function assignChunkColouringHashes(
 					return;
 				}
 
-				// TODO uncommenting fixes circular-entry-points but breaks others
-				// if (module !== rootModule && entryModules.some(a => a.rootModule === module)) {
-				// 	return;
-				// }
+				if (
+					!module.manualChunkAlias &&
+					colouredModules.has(module) &&
+					trailContainsColour(trail, module.entryPointsHash)
+				) {
+					// this module is already in memory
+					return;
+				}
 
-				if (!module.manualChunkAlias && trailContainsColour(trail, module.entryPointsHash)) {
-					//
-				} else if (
+				if (
 					module.manualChunkAlias ||
-					(!trailContainsColour(trail, module.entryPointsHash) &&
-						Uint8ArrayEqual(module.entryPointsHash, sourceColour))
+					module === rootModule ||
+					Uint8ArrayEqual(module.entryPointsHash, sourceColour)
 				) {
 					Uint8ArrayXor(module.entryPointsHash, paint);
 					colouredModules.add(module);
@@ -79,17 +86,14 @@ export function assignChunkColouringHashes(
 					for (const { resolution } of module.dynamicImports) {
 						if (
 							resolution instanceof Module &&
-							// TODO why this check?
 							resolution.dynamicallyImportedBy.length > 0 &&
 							!resolution.manualChunkAlias
 						) {
-							// registerNewEntryPoint(resolution, [...trail, module], module.entryPointsHash);
-							registerNewEntryPoint(resolution, [...trail, module], randomColour());
+							registerNewEntryPoint(resolution, [...trail, module], true);
 						}
 					}
 				} else {
-					// TODO out of bounds?
-					registerNewEntryPoint(module, trail, trail[trail.length - 1].entryPointsHash);
+					registerNewEntryPoint(module, trail, false);
 				}
 			}
 
