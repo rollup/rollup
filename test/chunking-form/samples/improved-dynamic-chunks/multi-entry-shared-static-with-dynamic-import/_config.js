@@ -1,5 +1,4 @@
 module.exports = {
-	// solo: true,
 	description:
 		'avoids chunks for always loaded dependencies if multiple entry points with different dependencies have dynamic imports',
 	options: {

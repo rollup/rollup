@@ -8,7 +8,6 @@ System.register(['./generated-dep2.js'], function (exports, module) {
 		}],
 		execute: function () {
 
-			// doesn't import value1, so we can't have also loaded value1?
 			console.log('main2', value2);
 			module.import('./generated-dynamic.js');
 

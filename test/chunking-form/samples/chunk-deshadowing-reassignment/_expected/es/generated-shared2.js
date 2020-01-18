@@ -1,9 +1,8 @@
-var x = 42;
+import { x as x$1 } from './generated-dep1.js';
+import { x as x$2 } from './generated-dep2.js';
 
-var x$1 = x + 1;
-
-var x$2 = 43;
+var x = x$1 + 1;
 
 var y = x$2 + 1;
 
-export { x$1 as x, y };
+export { x, y };

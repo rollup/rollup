@@ -914,7 +914,7 @@ describe('hooks', () => {
 		return new Promise((resolve, reject) => {
 			watcher.on('event', event => {
 				if (event.code === 'BUNDLE_END') resolve();
-				else if (event.code === 'ERROR' || event.code === 'FATAL') reject(event.error);
+				else if (event.code === 'ERROR') reject(event.error);
 			});
 		}).catch(err => {
 			assert.strictEqual(
@@ -1037,19 +1037,19 @@ describe('hooks', () => {
 						modules: ['input']
 					},
 					{
-						fileName: 'generated-b.js',
-						imports: [],
-						modules: ['d', 'c', 'a', 'b']
-					},
-					{
 						fileName: 'generated-a.js',
-						imports: ['generated-b.js'],
-						modules: []
+						imports: ['generated-c.js'],
+						modules: ['d', 'a']
 					},
 					{
-						fileName: 'generated-b2.js',
-						imports: ['generated-b.js'],
-						modules: []
+						fileName: 'generated-c.js',
+						imports: [],
+						modules: ['c']
+					},
+					{
+						fileName: 'generated-b.js',
+						imports: ['generated-c.js'],
+						modules: ['b']
 					}
 				]);
 			});

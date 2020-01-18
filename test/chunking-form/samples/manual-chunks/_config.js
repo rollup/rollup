@@ -1,5 +1,4 @@
 module.exports = {
-	// solo: true,
 	description: 'manual chunks support',
 	options: {
 		input: ['main.js'],
