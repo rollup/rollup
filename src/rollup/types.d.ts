@@ -385,10 +385,8 @@ export interface InputOptions {
 	acorn?: any;
 	acornInjectPlugins?: Function[];
 	cache?: false | RollupCache;
-	chunkGroupingSize?: number;
 	context?: string;
 	experimentalCacheExpiry?: number;
-	experimentalOptimizeChunks?: boolean;
 	external?: ExternalOption;
 	inlineDynamicImports?: boolean;
 	input?: InputOption;

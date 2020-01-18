@@ -53,9 +53,7 @@ export default { // can be an array (for multiple inputs)
   treeshake,
 
   // experimental
-  chunkGroupingSize,
   experimentalCacheExpiry,
-  experimentalOptimizeChunks,
   perf,
 
   output: { // required (can be an array, for multiple outputs)

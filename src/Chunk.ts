@@ -172,7 +172,6 @@ export default class Chunk {
 	private renderedHash: string = undefined as any;
 	private renderedModuleSources = new Map<Module, MagicString>();
 	private renderedSource: MagicStringBundle | null = null;
-	private renderedSourceLength: number = undefined as any;
 	private sortedExportNames: string[] | null = null;
 
 	constructor(graph: Graph, orderedModules: Module[]) {
@@ -390,11 +389,6 @@ export default class Chunk {
 		return (this.renderedHash = hash.digest('hex'));
 	}
 
-	getRenderedSourceLength() {
-		if (this.renderedSourceLength !== undefined) return this.renderedSourceLength;
-		return (this.renderedSourceLength = (this.renderedSource as MagicStringBundle).length());
-	}
-
 	getVariableExportName(variable: Variable): string {
 		if (this.graph.preserveModules && variable instanceof NamespaceVariable) {
 			return '*';
@@ -415,112 +409,6 @@ export default class Chunk {
 		}
 		this.dependencies = Array.from(dependencies);
 		this.dynamicDependencies = Array.from(dynamicDependencies);
-	}
-
-	/*
-	 * Performs a full merge of another chunk into this chunk
-	 * chunkList allows updating references in other chunks for the merged chunk to this chunk
-	 * A new facade will be added to chunkList if tainting exports of either as an entry point
-	 */
-	merge(chunk: Chunk, chunkList: Chunk[], options: OutputOptions, inputBase: string) {
-		if (this.facadeModule !== null || chunk.facadeModule !== null)
-			throw new Error('Internal error: Code splitting chunk merges not supported for facades');
-
-		for (const module of chunk.orderedModules) {
-			module.chunk = this;
-			this.orderedModules.push(module);
-		}
-
-		for (const variable of chunk.imports) {
-			if (!this.imports.has(variable) && (variable.module as Module).chunk !== this) {
-				this.imports.add(variable);
-			}
-		}
-
-		// NB detect when exported variables are orphaned by the merge itself
-		// (involves reverse tracing dependents)
-		for (const variable of chunk.exports) {
-			if (!this.exports.has(variable)) {
-				this.exports.add(variable);
-			}
-		}
-
-		const thisOldExportNames = this.exportNames;
-
-		// regenerate internal names
-		this.generateInternalExports(options);
-
-		const updateRenderedDeclaration = (
-			dep: ModuleDeclarationDependency,
-			oldExportNames: Record<string, Variable>
-		) => {
-			if (dep.imports) {
-				for (const impt of dep.imports) {
-					impt.imported = this.getVariableExportName(oldExportNames[impt.imported]);
-				}
-			}
-			if (dep.reexports) {
-				for (const reexport of dep.reexports) {
-					reexport.imported = this.getVariableExportName(oldExportNames[reexport.imported]);
-				}
-			}
-		};
-
-		const mergeRenderedDeclaration = (
-			into: ModuleDeclarationDependency,
-			from: ModuleDeclarationDependency
-		) => {
-			if (from.imports) {
-				if (!into.imports) {
-					into.imports = from.imports;
-				} else {
-					into.imports = into.imports.concat(from.imports);
-				}
-			}
-			if (from.reexports) {
-				if (!into.reexports) {
-					into.reexports = from.reexports;
-				} else {
-					into.reexports = into.reexports.concat(from.reexports);
-				}
-			}
-			if (!into.exportsNames && from.exportsNames) {
-				into.exportsNames = true;
-			}
-			if (!into.exportsDefault && from.exportsDefault) {
-				into.exportsDefault = true;
-			}
-			into.name = this.variableName;
-		};
-
-		// go through the other chunks and update their dependencies
-		// also update their import and reexport names in the process
-		for (const c of chunkList) {
-			let includedDeclaration: ModuleDeclarationDependency = undefined as any;
-			for (let i = 0; i < c.dependencies.length; i++) {
-				const dep = c.dependencies[i];
-				if ((dep === chunk || dep === this) && includedDeclaration) {
-					const duplicateDeclaration = c.renderedDeclarations.dependencies[i];
-					updateRenderedDeclaration(
-						duplicateDeclaration,
-						dep === chunk ? chunk.exportNames : thisOldExportNames
-					);
-					mergeRenderedDeclaration(includedDeclaration, duplicateDeclaration);
-					c.renderedDeclarations.dependencies.splice(i, 1);
-					c.dependencies.splice(i--, 1);
-				} else if (dep === chunk) {
-					c.dependencies[i] = this;
-					includedDeclaration = c.renderedDeclarations.dependencies[i];
-					updateRenderedDeclaration(includedDeclaration, chunk.exportNames);
-				} else if (dep === this) {
-					includedDeclaration = c.renderedDeclarations.dependencies[i];
-					updateRenderedDeclaration(includedDeclaration, thisOldExportNames);
-				}
-			}
-		}
-
-		// re-render the merged chunk
-		this.preRender(options, inputBase);
 	}
 
 	// prerender allows chunk hashes and names to be generated before finalizing
@@ -620,7 +508,6 @@ export default class Chunk {
 			this.renderedSource = magicString.trim();
 		}
 
-		this.renderedSourceLength = undefined as any;
 		this.renderedHash = undefined as any;
 
 		if (this.isEmpty && this.getExportNames().length === 0 && this.dependencies.length === 0) {
