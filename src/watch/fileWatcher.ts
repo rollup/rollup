@@ -1,4 +1,5 @@
 import chokidar, { FSWatcher } from 'chokidar';
+import { platform } from 'os';
 import { ChokidarOptions } from '../rollup/types';
 import { Task } from './watch';
 
@@ -41,20 +42,20 @@ export class FileWatcher {
 	}
 
 	private createWatcher(transformWatcherId: string | null): FSWatcher {
-		const handleChange = transformWatcherId
-			? () => {
-					// unwatching and watching fixes an issue with chokidar where on certain systems,
-					// a file that was unlinked and immediately recreated would create a change event
-					// but then no longer any further events
-					watcher.unwatch(transformWatcherId);
-					watcher.add(transformWatcherId);
-					this.task.invalidate(transformWatcherId, true);
-			  }
-			: (id: string) => {
-					watcher.unwatch(id);
-					watcher.add(id);
-					this.task.invalidate(id, false);
-			  };
+		const task = this.task;
+		const isLinux = platform() === 'linux';
+		const isTransformDependency = transformWatcherId !== null;
+		const handleChange = (id: string) => {
+			const changedId = transformWatcherId || id;
+			if (isLinux) {
+				// unwatching and watching fixes an issue with chokidar where on certain systems,
+				// a file that was unlinked and immediately recreated would create a change event
+				// but then no longer any further events
+				watcher.unwatch(changedId);
+				watcher.add(changedId);
+			}
+			task.invalidate(changedId, isTransformDependency);
+		};
 		const watcher = chokidar
 			.watch([], this.chokidarOptions)
 			.on('change', handleChange)
