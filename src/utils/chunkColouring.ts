@@ -47,7 +47,7 @@ export function assignChunkColouringHashes(
 			}
 		}
 
-		function _paintModule(rootModule: Module, trail: Module[], paint: Uint8Array): void {
+		function paintModule(rootModule: Module, trail: Module[], paint: Uint8Array): void {
 			// everything this point downwards with this colour should be painted
 			const sourceColour = cloneUint8Array(rootModule.entryPointsHash);
 
@@ -102,7 +102,7 @@ export function assignChunkColouringHashes(
 
 		for (let i = 0; i < entryModules.length /* updates */; i++) {
 			const { paint, rootModule, trail } = entryModules[i];
-			_paintModule(rootModule, trail, paint);
+			paintModule(rootModule, trail, paint);
 		}
 	}
 
