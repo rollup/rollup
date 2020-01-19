@@ -1,4 +1,3 @@
 module.exports = {
-	description: 'allows unknown binary operators',
-	buble: true
+	description: 'allows unknown binary operators'
 };

@@ -1,4 +1,3 @@
 module.exports = {
-	description: 'handles naked return value from top-level arrow function expression (#403)',
-	buble: true
+	description: 'handles naked return value from top-level arrow function expression (#403)'
 };
