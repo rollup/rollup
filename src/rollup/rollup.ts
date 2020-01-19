@@ -146,11 +146,6 @@ function getInputOptions(rawInputOptions: GenericConfigObject): InputOptions {
 	return inputOptions;
 }
 
-let curWatcher: RollupWatcher;
-export function setWatcher(watcher: RollupWatcher) {
-	curWatcher = watcher;
-}
-
 function assignChunksToBundle(
 	chunks: Chunk[],
 	outputBundle: OutputBundleWithPlaceholders
@@ -179,12 +174,18 @@ function assignChunksToBundle(
 	return outputBundle as OutputBundle;
 }
 
-export default async function rollup(rawInputOptions: GenericConfigObject): Promise<RollupBuild> {
+export default function rollup(rawInputOptions: GenericConfigObject): Promise<RollupBuild> {
+	return rollupInternal(rawInputOptions, null);
+}
+
+export async function rollupInternal(
+	rawInputOptions: GenericConfigObject,
+	watcher: RollupWatcher | null
+): Promise<RollupBuild> {
 	const inputOptions = getInputOptions(rawInputOptions);
 	initialiseTimers(inputOptions);
 
-	const graph = new Graph(inputOptions, curWatcher);
-	curWatcher = undefined as any;
+	const graph = new Graph(inputOptions, watcher);
 
 	// remove the cache option from the memory after graph creation (cache is not used anymore)
 	const useCache = rawInputOptions.cache !== false;

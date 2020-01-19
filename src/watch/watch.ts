@@ -1,6 +1,6 @@
 import path from 'path';
 import createFilter from 'rollup-pluginutils/src/createFilter';
-import rollup, { setWatcher } from '../rollup/rollup';
+import { rollupInternal } from '../rollup/rollup';
 import {
 	InputOptions,
 	OutputOptions,
@@ -169,11 +169,8 @@ export class Task {
 			output: this.outputFiles
 		});
 
-		// TODO Lukas improve
-		setWatcher(this.watcher.emitter);
-
 		try {
-			const result = await rollup(options);
+			const result = await rollupInternal(options, this.watcher.emitter);
 			if (this.closed) {
 				return;
 			}
