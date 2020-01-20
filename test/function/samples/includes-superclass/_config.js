@@ -1,4 +1,3 @@
 module.exports = {
-	description: 'includes superclass (#932)',
-	buble: true
+	description: 'includes superclass (#932)'
 };

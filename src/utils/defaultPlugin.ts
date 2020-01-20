@@ -34,7 +34,7 @@ function findFile(file: string, preserveSymlinks: boolean): string | void {
 
 			if (files.indexOf(name) !== -1) return file;
 		}
-	} catch (err) {
+	} catch {
 		// suppress
 	}
 }
