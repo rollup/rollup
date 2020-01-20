@@ -1,3 +1,3 @@
-export { default as rollup } from './rollup/index';
-export { default as watch } from './watch/index';
+export { default as rollup } from './rollup/rollup';
+export { default as watch } from './watch/watch-proxy';
 export { version as VERSION } from 'package.json';

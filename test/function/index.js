@@ -113,7 +113,11 @@ runTestSuiteWithSamples('function', path.resolve(__dirname, 'samples'), (dir, co
 
 							const entryId = result.length === 1 ? result[0].fileName : 'main.js';
 							if (!codeMap.hasOwnProperty(entryId)) {
-								throw new Error(`Could not find entry "${entryId}" in generated output.`);
+								throw new Error(
+									`Could not find entry "${entryId}" in generated output.\nChunks:\n${Object.keys(
+										codeMap
+									).join('\n')}`
+								);
 							}
 							const { exports, error } = runCodeSplitTest(codeMap, entryId, config.context);
 							if (config.runtimeError) {

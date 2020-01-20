@@ -36,14 +36,14 @@ export class PluginDriver {
 	private plugins: Plugin[];
 	private preserveSymlinks: boolean;
 	private previousHooks = new Set<string>(['options']);
-	private watcher: RollupWatcher | undefined;
+	private watcher: RollupWatcher | null;
 
 	constructor(
 		graph: Graph,
 		userPlugins: Plugin[],
 		pluginCache: Record<string, SerializablePluginCache> | undefined,
 		preserveSymlinks: boolean,
-		watcher: RollupWatcher | undefined,
+		watcher: RollupWatcher | null,
 		basePluginDriver?: PluginDriver
 	) {
 		warnDeprecatedHooks(userPlugins, graph);
