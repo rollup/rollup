@@ -417,7 +417,19 @@ export default class Module {
 		);
 	}
 
-	getVariableForExportName(name: string, isExportAllSearch?: boolean): Variable {
+	getVariableForExportName(
+		name: string,
+		isExportAllSearch?: boolean,
+		searchedNamesAndModules?: Array<[string, Module]>
+	): Variable {
+		if (
+			searchedNamesAndModules &&
+			searchedNamesAndModules.find(
+				([searchedName, searchedModule]) => searchedName === name && searchedModule === this
+			)
+		) {
+			return undefined as any;
+		}
 		if (name[0] === '*') {
 			if (name.length === 1) {
 				return this.getOrCreateNamespace();
@@ -431,8 +443,12 @@ export default class Module {
 		// export { foo } from './other'
 		const reexportDeclaration = this.reexportDescriptions[name];
 		if (reexportDeclaration) {
+			searchedNamesAndModules = searchedNamesAndModules || [];
+			searchedNamesAndModules.push([name, this]);
 			const declaration = reexportDeclaration.module.getVariableForExportName(
-				reexportDeclaration.localName
+				reexportDeclaration.localName,
+				false,
+				searchedNamesAndModules
 			);
 
 			if (!declaration) {
@@ -458,7 +474,9 @@ export default class Module {
 
 		if (name !== 'default') {
 			for (const module of this.exportAllModules) {
-				const declaration = module.getVariableForExportName(name, true);
+				searchedNamesAndModules = searchedNamesAndModules || [];
+				searchedNamesAndModules.push([name, this]);
+				const declaration = module.getVariableForExportName(name, true, searchedNamesAndModules);
 
 				if (declaration) return declaration;
 			}
