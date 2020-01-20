@@ -916,20 +916,23 @@ describe('hooks', () => {
 				if (event.code === 'BUNDLE_END') resolve();
 				else if (event.code === 'ERROR') reject(event.error);
 			});
-		}).catch(err => {
-			assert.strictEqual(
-				err.message,
-				'You must specify "output.file" or "output.dir" for the build.'
-			);
-			assert.strictEqual(warnings.length, 1);
-			const warning = warnings[0];
-			assert.strictEqual(warning.code, 'PLUGIN_WARNING');
-			assert.strictEqual(warning.pluginCode, 'PLUGIN_WATCHER_DEPRECATED');
-			assert.strictEqual(
-				warning.message,
-				'this.watcher usage is deprecated in plugins. Use the watchChange plugin hook and this.addWatchFile() instead.'
-			);
-		});
+		})
+			.catch(err => {
+				watcher.close();
+				assert.strictEqual(
+					err.message,
+					'You must specify "output.file" or "output.dir" for the build.'
+				);
+				assert.strictEqual(warnings.length, 1);
+				const warning = warnings[0];
+				assert.strictEqual(warning.code, 'PLUGIN_WARNING');
+				assert.strictEqual(warning.pluginCode, 'PLUGIN_WATCHER_DEPRECATED');
+				assert.strictEqual(
+					warning.message,
+					'this.watcher usage is deprecated in plugins. Use the watchChange plugin hook and this.addWatchFile() instead.'
+				);
+			})
+			.then(() => watcher.close());
 	});
 
 	it('Throws when not specifying "file" or "dir"', () => {
@@ -945,12 +948,15 @@ describe('hooks', () => {
 				if (event.code === 'BUNDLE_END') reject(new Error('Expected an error'));
 				else if (event.code === 'ERROR') reject(event.error);
 			});
-		}).catch(err => {
-			assert.strictEqual(
-				err.message,
-				'You must specify "output.file" or "output.dir" for the build.'
-			);
-		});
+		})
+			.catch(err => {
+				watcher.close();
+				assert.strictEqual(
+					err.message,
+					'You must specify "output.file" or "output.dir" for the build.'
+				);
+			})
+			.then(() => watcher.close());
 	});
 
 	it('Throws when using the "file"" option for multiple chunks', () => {
@@ -967,12 +973,15 @@ describe('hooks', () => {
 				if (event.code === 'BUNDLE_END') reject(new Error('Expected an error'));
 				else if (event.code === 'ERROR') reject(event.error);
 			});
-		}).catch(err => {
-			assert.strictEqual(
-				err.message,
-				'You must set "output.dir" instead of "output.file" when generating multiple chunks.'
-			);
-		});
+		})
+			.catch(err => {
+				watcher.close();
+				assert.strictEqual(
+					err.message,
+					'You must set "output.dir" instead of "output.file" when generating multiple chunks.'
+				);
+			})
+			.then(() => watcher.close());
 	});
 
 	it('Throws when using the "sourcemapFile" option for multiple chunks', () => {
@@ -990,12 +999,15 @@ describe('hooks', () => {
 				if (event.code === 'BUNDLE_END') reject(new Error('Expected an error'));
 				else if (event.code === 'ERROR') reject(event.error);
 			});
-		}).catch(err => {
-			assert.strictEqual(
-				err.message,
-				'"output.sourcemapFile" is only supported for single-file builds.'
-			);
-		});
+		})
+			.catch(err => {
+				watcher.close();
+				assert.strictEqual(
+					err.message,
+					'"output.sourcemapFile" is only supported for single-file builds.'
+				);
+			})
+			.then(() => watcher.close());
 	});
 
 	it('assigns chunk IDs before creating outputBundle chunks', () => {

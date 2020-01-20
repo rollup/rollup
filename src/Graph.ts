@@ -83,7 +83,7 @@ export default class Graph {
 	private pluginCache?: Record<string, SerializablePluginCache>;
 	private strictDeprecations: boolean;
 
-	constructor(options: InputOptions, watcher?: RollupWatcher) {
+	constructor(options: InputOptions, watcher: RollupWatcher | null) {
 		this.onwarn = (options.onwarn as WarningHandler) || makeOnwarn();
 		this.deoptimizationTracker = new PathTracker();
 		this.cachedModules = new Map();

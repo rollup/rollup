@@ -577,8 +577,8 @@ export interface RollupOptions extends InputOptions {
 }
 
 export function rollup(options: RollupOptions): Promise<RollupBuild>;
-// chokidar watch options
-export interface WatchOptions {
+
+export interface ChokidarOptions {
 	alwaysStat?: boolean;
 	atomic?: boolean | number;
 	awaitWriteFinish?:
@@ -602,7 +602,7 @@ export interface WatchOptions {
 }
 
 export interface WatcherOptions {
-	chokidar?: boolean | WatchOptions;
+	chokidar?: ChokidarOptions;
 	clearScreen?: boolean;
 	exclude?: string[];
 	include?: string[];
