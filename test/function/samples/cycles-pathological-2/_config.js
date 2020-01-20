@@ -1,6 +1,5 @@
 module.exports = {
 	description: 'resolves even more pathological cyclical dependencies gracefully',
-	buble: true,
 	warnings: [
 		{
 			code: 'CIRCULAR_DEPENDENCY',
