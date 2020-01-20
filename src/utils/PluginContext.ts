@@ -49,7 +49,7 @@ export function getPluginContexts(
 	pluginCache: Record<string, SerializablePluginCache> | void,
 	graph: Graph,
 	fileEmitter: FileEmitter,
-	watcher: RollupWatcher | undefined
+	watcher: RollupWatcher | null
 ): (plugin: Plugin, pluginIndex: number) => PluginContext {
 	const existingPluginNames = new Set<string>();
 	return (plugin, pidx) => {
