@@ -6,7 +6,10 @@ function runTestCode(code, thisValue, globals) {
 	const globalsWithAssert = Object.assign({}, globals, { assert });
 	const globalKeys = Object.keys(globalsWithAssert);
 	const fn = new Function(globalKeys, code);
-	fn.apply(thisValue, globalKeys.map(key => globalsWithAssert[key]));
+	fn.apply(
+		thisValue,
+		globalKeys.map(key => globalsWithAssert[key])
+	);
 }
 
 function runNodeTest(code) {
@@ -143,14 +146,13 @@ function runTestsWithCode(code, outputOptions, expectedExports) {
 			runTest: runIifeWithExistingValuesTest
 		}
 	].forEach(({ environmentName, runTest }) =>
-		it(`works in ${environmentName} environment`, () =>
-			umdCodePromise.then(code => {
-				assert.deepEqual(
-					runTest(code, outputOptions),
-					expectedExports,
-					'expected exports are returned'
-				);
-			}))
+		umdCodePromise.then(code => {
+			assert.deepEqual(
+				runTest(code, outputOptions),
+				expectedExports,
+				`returns expected exports in ${environmentName} environment`
+			);
+		})
 	);
 }
 
@@ -160,28 +162,28 @@ function runTestsWithCode(code, outputOptions, expectedExports) {
 			describe(`The UMD wrapper with name="${name}", compact=${compact}, noConflict=${noConflict}`, () => {
 				const outputOptions = { compact, name, noConflict };
 
-				describe('creating a bundle with neither exports nor imports', () =>
+				it('creates a bundle with neither exports nor imports', () =>
 					runTestsWithCode('assert.ok(true);', outputOptions, {}));
 
-				describe('creating a bundle with named exports', () =>
+				it('creates a bundle with named exports', () =>
 					runTestsWithCode('export const x = 42;', outputOptions, { x: 42 }));
 
-				describe('creating a bundle with a default export', () =>
+				it('creates a bundle with a default export', () =>
 					runTestsWithCode('export default {value: 42};', outputOptions, { value: 42 }));
 
-				describe('creating a bundle with an external import', () =>
+				it('creates a bundle with an external import', () =>
 					runTestsWithCode(
 						'import value from "external"; assert.equal(value, "external");',
 						outputOptions,
 						{}
 					));
 
-				describe('creating a bundle with an external import and named exports', () =>
+				it('creates a bundle with an external import and named exports', () =>
 					runTestsWithCode('import value from "external"; export const x = value;', outputOptions, {
 						x: 'external'
 					}));
 
-				describe('creating a bundle with an external import and a default export', () =>
+				it('creates a bundle with an external import and a default export', () =>
 					runTestsWithCode('import value from "external"; export default {value};', outputOptions, {
 						value: 'external'
 					}));
