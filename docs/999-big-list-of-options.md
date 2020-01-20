@@ -1099,13 +1099,9 @@ For each key, the first number represents the elapsed time while the second repr
 These options only take effect when running Rollup with the `--watch` flag, or using `rollup.watch`.
 
 #### watch.chokidar
-Type: `boolean | ChokidarOptions`<br>
-CLI: `--watch.chokidar`/`--no-watch.chokidar`<br>
-Default: `false`
+Type: `ChokidarOptions`<br>
 
-A `Boolean` indicating that [chokidar](https://github.com/paulmillr/chokidar) should be used instead of the built-in `fs.watch`, or an `Object` of options that are passed through to chokidar.
-
-You must install chokidar separately if you wish to use it.
+An optional object of watch options that will be passed to the bundled [chokidar](https://github.com/paulmillr/chokidar) instance. See the [chokidar documentation](https://github.com/paulmillr/chokidar#api) to find out what options are available.
 
 #### watch.clearScreen
 Type: `boolean`<br>
