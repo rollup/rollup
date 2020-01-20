@@ -744,6 +744,7 @@ describe('rollup.watch', () => {
 		return sander
 			.copydir('test/watch/samples/multiple')
 			.to('test/_tmp/input')
+			.then(() => wait(100))
 			.then(() => {
 				watcher = rollup.watch([
 					{

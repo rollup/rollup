@@ -66,7 +66,7 @@ const nodePlugins = [
 	conditionalFsEventsImport(),
 	string({ include: '**/*.md' }),
 	commonjs({ include: 'node_modules/**' }),
-	typescript({ include: '**/*.{ts,js}' })
+	typescript()
 ];
 
 export default command => {
@@ -140,7 +140,7 @@ export default command => {
 				}
 			},
 			commonjs(),
-			typescript({ include: '**/*.{ts,js}' }),
+			typescript(),
 			terser({ module: true, output: { comments: 'some' } })
 		],
 		treeshake,
