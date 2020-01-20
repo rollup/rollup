@@ -5,7 +5,7 @@ let chokidar: typeof chokidarType;
 
 try {
 	chokidar = relative('chokidar', process.cwd());
-} catch (err) {
+} catch {
 	chokidar = null as any;
 }
 
