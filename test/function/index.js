@@ -1,6 +1,5 @@
 const path = require('path');
 const assert = require('assert');
-const buble = require('buble');
 const rollup = require('../../dist/rollup');
 const { compareError, compareWarnings, extend, runTestSuiteWithSamples } = require('../utils.js');
 
@@ -103,16 +102,6 @@ runTestSuiteWithSamples('function', path.resolve(__dirname, 'samples'), (dir, co
 						.then(() => {
 							if (unintendedError) throw unintendedError;
 							if (config.error || config.generateError) return;
-
-							if (config.buble) {
-								for (const chunk of result) {
-									if (chunk.code) {
-										chunk.code = buble.transform(chunk.code, {
-											transforms: { modules: false }
-										}).code;
-									}
-								}
-							}
 
 							const codeMap = result.reduce((codeMap, chunk) => {
 								codeMap[chunk.fileName] = chunk.code;
