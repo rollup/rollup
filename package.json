@@ -54,15 +54,11 @@
     "optimizer"
   ],
   "author": "Rich Harris",
-  "contributors": [
-    "Oskar Segersvärd <victorystick@gmail.com>",
-    "Bogdan Chadkin <trysound@yandex.ru>"
-  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/rollup/rollup/issues"
   },
-  "homepage": "https://github.com/rollup/rollup",
+  "homepage": "https://rollupjs.org/",
   "dependencies": {
     "@types/estree": "*",
     "@types/node": "*",
@@ -135,5 +131,8 @@
     "dist/**/*.js",
     "dist/*.d.ts",
     "dist/bin/rollup"
-  ]
+  ],
+  "engines": {
+    "node": ">=10.0.0"
+  }
 }

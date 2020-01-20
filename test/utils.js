@@ -190,13 +190,7 @@ function runTestsInDir(dir, runTest) {
 
 function loadConfigAndRunTest(dir, runTest) {
 	const config = loadConfig(dir + '/_config.js');
-	if (
-		config &&
-		(!config.minNodeVersion ||
-			config.minNodeVersion <= Number(/^v(\d+)/.exec(process.version)[1])) &&
-		(!config.skipIfWindows || process.platform !== 'win32')
-	)
-		runTest(dir, config);
+	if (config && (!config.skipIfWindows || process.platform !== 'win32')) runTest(dir, config);
 }
 
 function assertDirectoriesAreEqual(actualDir, expectedDir) {

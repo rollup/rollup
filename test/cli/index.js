@@ -1,7 +1,6 @@
 const path = require('path');
 const assert = require('assert');
 const sander = require('sander');
-const buble = require('buble');
 const { exec } = require('child_process');
 const {
 	normaliseOutput,
@@ -55,12 +54,6 @@ runTestSuiteWithSamples(
 
 						if (config.execute) {
 							try {
-								if (config.buble) {
-									code = buble.transform(code, {
-										transforms: { modules: false }
-									}).code;
-								}
-
 								const fn = new Function('require', 'module', 'exports', 'assert', code);
 								const module = {
 									exports: {}
