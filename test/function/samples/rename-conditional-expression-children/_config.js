@@ -1,4 +1,3 @@
 module.exports = {
-	description: 'correctly renders children of ConditionalExpressions',
-	buble: true
+	description: 'correctly renders children of ConditionalExpressions'
 };
