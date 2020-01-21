@@ -169,6 +169,24 @@ const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
 	localName: MISSING_EXPORT_SHIM_VARIABLE
 };
 
+function getVariableForExportNameRecursive(
+	target: Module | ExternalModule,
+	name: string,
+	isExportAllSearch: boolean,
+	searchedNamesAndModules = new Map<string, Set<Module | ExternalModule>>()
+): Variable | null {
+	const searchedModules = searchedNamesAndModules.get(name);
+	if (searchedModules) {
+		if (searchedModules.has(target)) {
+			return null;
+		}
+		searchedModules.add(target);
+	} else {
+		searchedNamesAndModules.set(name, new Set([target]));
+	}
+	return target.getVariableForExportName(name, isExportAllSearch, searchedNamesAndModules);
+}
+
 export default class Module {
 	chunk: Chunk | null = null;
 	chunkFileNames = new Set<string>();
@@ -417,16 +435,8 @@ export default class Module {
 	getVariableForExportName(
 		name: string,
 		isExportAllSearch?: boolean,
-		searchedNamesAndModules?: Array<[string, Module]>
+		searchedNamesAndModules?: Map<string, Set<Module | ExternalModule>>
 	): Variable {
-		if (
-			searchedNamesAndModules &&
-			searchedNamesAndModules.find(
-				([searchedName, searchedModule]) => searchedName === name && searchedModule === this
-			)
-		) {
-			return undefined as any;
-		}
 		if (name[0] === '*') {
 			if (name.length === 1) {
 				return this.getOrCreateNamespace();
@@ -440,9 +450,8 @@ export default class Module {
 		// export { foo } from './other'
 		const reexportDeclaration = this.reexportDescriptions[name];
 		if (reexportDeclaration) {
-			searchedNamesAndModules = searchedNamesAndModules || [];
-			searchedNamesAndModules.push([name, this]);
-			const declaration = reexportDeclaration.module.getVariableForExportName(
+			const declaration = getVariableForExportNameRecursive(
+				reexportDeclaration.module,
 				reexportDeclaration.localName,
 				false,
 				searchedNamesAndModules
@@ -471,9 +480,12 @@ export default class Module {
 
 		if (name !== 'default') {
 			for (const module of this.exportAllModules) {
-				searchedNamesAndModules = searchedNamesAndModules || [];
-				searchedNamesAndModules.push([name, this]);
-				const declaration = module.getVariableForExportName(name, true, searchedNamesAndModules);
+				const declaration = getVariableForExportNameRecursive(
+					module,
+					name,
+					true,
+					searchedNamesAndModules
+				);
 
 				if (declaration) return declaration;
 			}
@@ -498,7 +510,7 @@ export default class Module {
 				return this.exportShimVariable;
 			}
 		}
-		return undefined as any;
+		return null as any;
 	}
 
 	include(): void {

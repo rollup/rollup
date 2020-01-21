@@ -21,9 +21,10 @@ module.exports = {
 		},
 		{
 			code: 'NON_EXISTENT_EXPORT',
-			frame:
-				" 1: import { exists, doesNotExist } from './dep1.js';\n" +
-				'                    ^\n2: export { exists };',
+			frame: `
+1: import { exists, doesNotExist } from './dep1.js';
+                    ^
+2: export { exists };`,
 			id: path.resolve(__dirname, 'main.js'),
 			loc: {
 				column: 17,
