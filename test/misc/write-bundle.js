@@ -25,28 +25,6 @@ describe('bundle.write()', () => {
 			});
 	});
 
-	it('throws on es6 format', () => {
-		return rollup
-			.rollup({
-				input: 'x',
-				plugins: [
-					{
-						resolveId: () => {
-							return 'test';
-						},
-						load: () => {
-							return '// empty';
-						}
-					}
-				]
-			})
-			.then(bundle => {
-				assert.throws(() => {
-					return bundle.generate({ format: 'es6' });
-				}, /The "es6" output format is deprecated – use "esm" instead/);
-			});
-	});
-
 	it('works when output options is an array', () => {
 		const warnings = [];
 		const options = {

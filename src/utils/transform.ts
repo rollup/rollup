@@ -9,20 +9,19 @@ import {
 	PluginContext,
 	RollupError,
 	RollupWarning,
+	SourceDescription,
 	TransformModuleJSON,
-	TransformResult,
-	TransformSourceDescription
+	TransformResult
 } from '../rollup/types';
 import { collapseSourcemap } from './collapseSourcemaps';
 import { decodedSourcemap } from './decodedSourcemap';
 import { augmentCodeLocation } from './error';
-import { dirname, resolve } from './path';
 import { getTrackedPluginCache } from './PluginCache';
 import { throwPluginError } from './pluginUtils';
 
 export default function transform(
 	graph: Graph,
-	source: TransformSourceDescription,
+	source: SourceDescription,
 	module: Module
 ): Promise<TransformModuleJSON> {
 	const id = module.id;
@@ -46,27 +45,14 @@ export default function transform(
 		result: TransformResult,
 		plugin: Plugin
 	) {
-		// track which plugins use the custom this.cache to opt-out of transform caching
-		if (!customTransformCache && trackedPluginCache.used) customTransformCache = true;
-		if (customTransformCache) {
-			if (result && typeof result === 'object' && Array.isArray(result.dependencies)) {
-				for (const dep of result.dependencies) {
-					graph.watchFiles[resolve(dirname(id), dep)] = true;
-				}
-			}
-		} else {
-			// files emitted by a transform hook need to be emitted again if the hook is skipped
-			if (emittedFiles.length) module.transformFiles = emittedFiles;
-			if (result && typeof result === 'object' && Array.isArray(result.dependencies)) {
-				// not great, but a useful way to track this without assuming WeakMap
-				if (!(curPlugin as any).warnedTransformDependencies)
-					graph.warnDeprecation(
-						`Returning "dependencies" from the "transform" hook as done by plugin ${plugin.name} is deprecated. The "this.addWatchFile" plugin context function should be used instead.`,
-						true
-					);
-				(curPlugin as any).warnedTransformDependencies = true;
-				for (const dep of result.dependencies)
-					transformDependencies.push(resolve(dirname(id), dep));
+		// TODO Lukas this could also be run once at the end?
+		if (!customTransformCache) {
+			if (trackedPluginCache.used) {
+				// track which plugins use the custom this.cache to opt-out of transform caching
+				customTransformCache = true;
+			} else {
+				// files emitted by a transform hook need to be emitted again if the hook is skipped
+				if (emittedFiles.length) module.transformFiles = emittedFiles;
 			}
 		}
 

@@ -5,12 +5,7 @@ import Graph from '../Graph';
 import { createAddons } from '../utils/addons';
 import { assignChunkIds } from '../utils/assignChunkIds';
 import commondir from '../utils/commondir';
-import {
-	errCannotEmitFromOptionsHook,
-	errDeprecation,
-	errInvalidExportOptionValue,
-	error
-} from '../utils/error';
+import { errCannotEmitFromOptionsHook, errInvalidExportOptionValue, error } from '../utils/error';
 import { writeFile } from '../utils/fs';
 import getExportMode from '../utils/getExportMode';
 import mergeOptions, { ensureArray, GenericConfigObject } from '../utils/mergeOptions';
@@ -34,15 +29,6 @@ import {
 } from './types';
 
 function checkOutputOptions(options: OutputOptions) {
-	if ((options.format as string) === 'es6') {
-		return error(
-			errDeprecation({
-				message: 'The "es6" output format is deprecated – use "esm" instead',
-				url: `https://rollupjs.org/guide/en/#output-format`
-			})
-		);
-	}
-
 	if (['amd', 'cjs', 'system', 'es', 'iife', 'umd'].indexOf(options.format as string) < 0) {
 		return error({
 			message: `You must specify "output.format", which can be one of "amd", "cjs", "system", "esm", "iife" or "umd".`,
@@ -287,11 +273,6 @@ export async function rollupInternal(
 						.then(rendered => {
 							outputChunk.code = rendered.code;
 							outputChunk.map = rendered.map;
-
-							return outputPluginDriver.hookParallel('ongenerate', [
-								{ bundle: outputChunk, ...outputOptions },
-								outputChunk
-							]);
 						});
 				})
 			);
@@ -367,9 +348,7 @@ export async function rollupInternal(
 						});
 				}
 				await Promise.all(
-					Object.keys(bundle).map(chunkId =>
-						writeOutputFile(result, bundle[chunkId], outputOptions, outputPluginDriver)
-					)
+					Object.keys(bundle).map(chunkId => writeOutputFile(bundle[chunkId], outputOptions))
 				);
 				await outputPluginDriver.hookParallel('writeBundle', [bundle]);
 				return createOutput(bundle);
@@ -413,13 +392,11 @@ function createOutput(outputBundle: Record<string, OutputChunk | OutputAsset | {
 }
 
 function writeOutputFile(
-	build: RollupBuild,
 	outputFile: OutputAsset | OutputChunk,
-	outputOptions: OutputOptions,
-	outputPluginDriver: PluginDriver
-): Promise<void> {
+	outputOptions: OutputOptions
+): Promise<unknown> {
 	const fileName = resolve(outputOptions.dir || dirname(outputOptions.file!), outputFile.fileName);
-	let writeSourceMapPromise: Promise<void>;
+	let writeSourceMapPromise: Promise<void> | undefined;
 	let source: string | Buffer;
 	if (outputFile.type === 'asset') {
 		source = outputFile.source;
@@ -439,20 +416,7 @@ function writeOutputFile(
 		}
 	}
 
-	return writeFile(fileName, source)
-		.then(() => writeSourceMapPromise)
-		.then(
-			(): any =>
-				outputFile.type === 'chunk' &&
-				outputPluginDriver.hookSeq('onwrite', [
-					{
-						bundle: build,
-						...outputOptions
-					},
-					outputFile
-				])
-		)
-		.then(() => {});
+	return Promise.all([writeFile(fileName, source), writeSourceMapPromise]);
 }
 
 function normalizeOutputOptions(

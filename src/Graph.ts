@@ -142,8 +142,7 @@ export default class Graph {
 			this,
 			options.plugins!,
 			this.pluginCache,
-			options.preserveSymlinks === true,
-			watcher
+			options.preserveSymlinks === true
 		);
 
 		if (watcher) {

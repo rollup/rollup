@@ -27,7 +27,7 @@ describe('sanity checks', () => {
 		return rollup
 			.rollup({
 				input: 'x',
-				plugins: [loader({ x: `console.log( 42 );` }), { ongenerate() {} }],
+				plugins: [loader({ x: `eval(42);` })],
 				onwarn(warning, onwarn) {
 					args = [warning, onwarn];
 				}
@@ -36,10 +36,10 @@ describe('sanity checks', () => {
 				return bundle.generate({ format: 'es' });
 			})
 			.then(() => {
-				assert.equal(args[0].code, 'DEPRECATED_FEATURE');
+				assert.equal(args[0].code, 'EVAL');
 				assert.equal(
 					args[0].message,
-					'The "ongenerate" hook used by plugin at position 2 is deprecated. The "generateBundle" hook should be used instead.'
+					'Use of eval is strongly discouraged, as it poses security risks and may cause issues with minification'
 				);
 				assert.equal(typeof args[1], 'function');
 			});
