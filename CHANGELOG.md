@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 1.29.1
+*2020-01-21*
+
+### Bug Fixes
+* Avoid crashes for circular reexports when named exports cannot be found (#3350)
+
+### Pull Requests
+* [#3335](https://github.com/rollup/rollup/pull/3335): Fix typo (@robbinworks)
+* [#3342](https://github.com/rollup/rollup/pull/3342): Remove ":" from test file names for Windows and update dependencies (@lukastaegert)
+* [#3350](https://github.com/rollup/rollup/pull/3350): Properly handle circular reexports (@lukastaegert)
+
 ## 1.29.0
 *2020-01-08*
 
