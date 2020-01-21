@@ -165,7 +165,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 	}
 
 	private disallowImportReassignment() {
-		this.context.error(
+		return this.context.error(
 			{
 				code: 'ILLEGAL_REASSIGNMENT',
 				message: `Illegal reassignment to import '${this.name}'`

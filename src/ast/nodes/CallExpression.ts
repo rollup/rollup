@@ -40,7 +40,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 			const variable = this.scope.findVariable(this.callee.name);
 
 			if (variable.isNamespace) {
-				this.context.error(
+				return this.context.error(
 					{
 						code: 'CANNOT_CALL_NAMESPACE',
 						message: `Cannot call a namespace ('${this.callee.name}')`

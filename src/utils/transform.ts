@@ -151,7 +151,7 @@ export default function transform(
 						pluginContext.setAssetSource(assetReferenceId, source);
 						if (!customTransformCache && !setAssetSourceErr) {
 							try {
-								this.error({
+								return this.error({
 									code: 'INVALID_SETASSETSOURCE',
 									message: `setAssetSource cannot be called in transform for caching reasons. Use emitFile with a source, or call setAssetSource in another hook.`
 								});

@@ -246,7 +246,7 @@ export class PluginDriver {
 				// permit values allows values to be returned instead of a functional hook
 				if (typeof hook !== 'function') {
 					if (permitValues) return hook;
-					error({
+					return error({
 						code: 'INVALID_PLUGIN_HOOK',
 						message: `Error running plugin hook ${hookName} for ${plugin.name}, expected a function hook.`
 					});
@@ -274,7 +274,7 @@ export class PluginDriver {
 		try {
 			// permit values allows values to be returned instead of a functional hook
 			if (typeof hook !== 'function') {
-				error({
+				return error({
 					code: 'INVALID_PLUGIN_HOOK',
 					message: `Error running plugin hook ${hookName} for ${plugin.name}, expected a function hook.`
 				});

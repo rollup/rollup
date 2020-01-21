@@ -693,7 +693,7 @@ export default class Chunk {
 		}
 
 		if (usesTopLevelAwait && format !== 'es' && format !== 'system') {
-			error({
+			return error({
 				code: 'INVALID_TLA_FORMAT',
 				message: `Module format ${format} does not support top-level await. Use the "es" or "system" output formats rather.`
 			});

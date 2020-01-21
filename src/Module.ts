@@ -61,21 +61,21 @@ export interface CommentDescription {
 	text: string;
 }
 
-export interface ImportDescription {
-	module: Module | ExternalModule | null;
+interface ImportDescription {
+	module: Module | ExternalModule;
 	name: string;
 	source: string;
 	start: number;
 }
 
-export interface ExportDescription {
+interface ExportDescription {
 	identifier: string | null;
 	localName: string;
 }
 
-export interface ReexportDescription {
+interface ReexportDescription {
 	localName: string;
-	module: Module;
+	module: Module | ExternalModule;
 	source: string;
 	start: number;
 }
@@ -90,7 +90,7 @@ export interface AstContext {
 	annotations: boolean;
 	code: string;
 	deoptimizationTracker: PathTracker;
-	error: (props: RollupError, pos: number) => void;
+	error: (props: RollupError, pos?: number) => never;
 	fileName: string;
 	getExports: () => string[];
 	getModuleExecIndex: () => number;
@@ -112,7 +112,7 @@ export interface AstContext {
 	tryCatchDeoptimization: boolean;
 	unknownGlobalSideEffects: boolean;
 	usesTopLevelAwait: boolean;
-	warn: (warning: RollupWarning, pos: number) => void;
+	warn: (warning: RollupWarning, pos?: number) => void;
 	warnDeprecation: (deprecation: string | RollupWarning, activeDeprecation: boolean) => void;
 }
 
@@ -137,7 +137,7 @@ function tryParse(module: Module, Parser: typeof acorn.Parser, acornOptions: aco
 		} else if (!module.id.endsWith('.js')) {
 			message += ' (Note that you need plugins to import files that are not JavaScript)';
 		}
-		module.error(
+		return module.error(
 			{
 				code: 'PARSE_ERROR',
 				message,
@@ -153,8 +153,8 @@ function handleMissingExport(
 	importingModule: Module,
 	importedModule: string,
 	importerStart?: number
-) {
-	importingModule.error(
+): never {
+	return importingModule.error(
 		{
 			code: 'MISSING_EXPORT',
 			message: `'${exportName}' is not exported by ${relativeId(importedModule)}`,
@@ -168,6 +168,24 @@ const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
 	identifier: null,
 	localName: MISSING_EXPORT_SHIM_VARIABLE
 };
+
+function getVariableForExportNameRecursive(
+	target: Module | ExternalModule,
+	name: string,
+	isExportAllSearch: boolean,
+	searchedNamesAndModules = new Map<string, Set<Module | ExternalModule>>()
+): Variable | null {
+	const searchedModules = searchedNamesAndModules.get(name);
+	if (searchedModules) {
+		if (searchedModules.has(target)) {
+			return null;
+		}
+		searchedModules.add(target);
+	} else {
+		searchedNamesAndModules.set(name, new Set([target]));
+	}
+	return target.getVariableForExportName(name, isExportAllSearch, searchedNamesAndModules);
+}
 
 export default class Module {
 	chunk: Chunk | null = null;
@@ -253,26 +271,23 @@ export default class Module {
 		this.ast.bind();
 	}
 
-	error(props: RollupError, pos: number) {
-		if (pos !== undefined) {
+	error(props: RollupError, pos?: number): never {
+		if (typeof pos === 'number') {
 			props.pos = pos;
 			let location = locate(this.code, pos, { offsetLine: 1 });
 			try {
 				location = getOriginalLocation(this.sourcemapChain, location);
 			} catch (e) {
-				this.warn(
-					{
-						code: 'SOURCEMAP_ERROR',
-						loc: {
-							column: location.column,
-							file: this.id,
-							line: location.line
-						},
-						message: `Error when using sourcemap for reporting an error: ${e.message}`,
-						pos
+				this.warn({
+					code: 'SOURCEMAP_ERROR',
+					loc: {
+						column: location.column,
+						file: this.id,
+						line: location.line
 					},
-					undefined as any
-				);
+					message: `Error when using sourcemap for reporting an error: ${e.message}`,
+					pos
+				});
 			}
 
 			props.loc = {
@@ -283,7 +298,7 @@ export default class Module {
 			props.frame = getCodeFrame(this.originalCode, location.line, location.column);
 		}
 
-		error(props);
+		return error(props);
 	}
 
 	getAllExportNames(): Set<string> {
@@ -417,7 +432,11 @@ export default class Module {
 		);
 	}
 
-	getVariableForExportName(name: string, isExportAllSearch?: boolean): Variable {
+	getVariableForExportName(
+		name: string,
+		isExportAllSearch?: boolean,
+		searchedNamesAndModules?: Map<string, Set<Module | ExternalModule>>
+	): Variable {
 		if (name[0] === '*') {
 			if (name.length === 1) {
 				return this.getOrCreateNamespace();
@@ -431,12 +450,15 @@ export default class Module {
 		// export { foo } from './other'
 		const reexportDeclaration = this.reexportDescriptions[name];
 		if (reexportDeclaration) {
-			const declaration = reexportDeclaration.module.getVariableForExportName(
-				reexportDeclaration.localName
+			const declaration = getVariableForExportNameRecursive(
+				reexportDeclaration.module,
+				reexportDeclaration.localName,
+				false,
+				searchedNamesAndModules
 			);
 
 			if (!declaration) {
-				handleMissingExport(
+				return handleMissingExport(
 					reexportDeclaration.localName,
 					this,
 					reexportDeclaration.module.id,
@@ -458,7 +480,12 @@ export default class Module {
 
 		if (name !== 'default') {
 			for (const module of this.exportAllModules) {
-				const declaration = module.getVariableForExportName(name, true);
+				const declaration = getVariableForExportNameRecursive(
+					module,
+					name,
+					true,
+					searchedNamesAndModules
+				);
 
 				if (declaration) return declaration;
 			}
@@ -483,7 +510,7 @@ export default class Module {
 				return this.exportShimVariable;
 			}
 		}
-		return undefined as any;
+		return null as any;
 	}
 
 	include(): void {
@@ -691,7 +718,7 @@ export default class Module {
 
 		if (name in this.importDescriptions) {
 			const importDeclaration = this.importDescriptions[name];
-			const otherModule = importDeclaration.module!;
+			const otherModule = importDeclaration.module;
 
 			if (otherModule instanceof Module && importDeclaration.name === '*') {
 				return otherModule.getOrCreateNamespace();
@@ -700,7 +727,12 @@ export default class Module {
 			const declaration = otherModule.getVariableForExportName(importDeclaration.name);
 
 			if (!declaration) {
-				handleMissingExport(importDeclaration.name, this, otherModule.id, importDeclaration.start);
+				return handleMissingExport(
+					importDeclaration.name,
+					this,
+					otherModule.id,
+					importDeclaration.start
+				);
 			}
 
 			return declaration;
@@ -709,8 +741,8 @@ export default class Module {
 		return null;
 	}
 
-	warn(warning: RollupWarning, pos: number) {
-		if (pos !== undefined) {
+	warn(warning: RollupWarning, pos?: number) {
+		if (typeof pos === 'number') {
 			warning.pos = pos;
 
 			const { line, column } = locate(this.code, pos, { offsetLine: 1 }); // TODO trace sourcemaps, cf. error()
@@ -793,7 +825,7 @@ export default class Module {
 			const localName = specifier.local.name;
 
 			if (this.importDescriptions[localName]) {
-				this.error(
+				return this.error(
 					{
 						code: 'DUPLICATE_IMPORT',
 						message: `Duplicated import '${localName}'`
@@ -810,7 +842,12 @@ export default class Module {
 				: isNamespace
 				? '*'
 				: (specifier as ImportSpecifier).imported.name;
-			this.importDescriptions[localName] = { source, start: specifier.start, name, module: null };
+			this.importDescriptions[localName] = {
+				module: null as any, // filled in later
+				name,
+				source,
+				start: specifier.start
+			};
 		}
 	}
 
@@ -824,7 +861,7 @@ export default class Module {
 		for (const name of Object.keys(importDescription)) {
 			const specifier = importDescription[name];
 			const id = this.resolvedIds[specifier.source].id;
-			specifier.module = this.graph.moduleById.get(id) as Module | ExternalModule | null;
+			specifier.module = this.graph.moduleById.get(id) as Module | ExternalModule;
 		}
 	}
 

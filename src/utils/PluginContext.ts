@@ -80,7 +80,9 @@ export function getPluginContexts(
 
 		const context: PluginContext = {
 			addWatchFile(id) {
-				if (graph.phase >= BuildPhase.GENERATE) this.error(errInvalidRollupPhaseForAddWatchFile());
+				if (graph.phase >= BuildPhase.GENERATE) {
+					return this.error(errInvalidRollupPhaseForAddWatchFile());
+				}
 				graph.watchFiles[id] = true;
 			},
 			cache: cacheInstance,

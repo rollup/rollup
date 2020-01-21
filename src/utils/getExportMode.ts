@@ -11,10 +11,10 @@ export default function getExportMode(
 
 	if (exportMode === 'default') {
 		if (exportKeys.length !== 1 || exportKeys[0] !== 'default') {
-			error(errIncompatibleExportOptionValue('default', exportKeys, facadeModuleId));
+			return error(errIncompatibleExportOptionValue('default', exportKeys, facadeModuleId));
 		}
 	} else if (exportMode === 'none' && exportKeys.length) {
-		error(errIncompatibleExportOptionValue('none', exportKeys, facadeModuleId));
+		return error(errIncompatibleExportOptionValue('none', exportKeys, facadeModuleId));
 	}
 
 	if (!exportMode || exportMode === 'auto') {
