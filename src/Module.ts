@@ -61,21 +61,21 @@ export interface CommentDescription {
 	text: string;
 }
 
-export interface ImportDescription {
-	module: Module | ExternalModule | null;
+interface ImportDescription {
+	module: Module | ExternalModule;
 	name: string;
 	source: string;
 	start: number;
 }
 
-export interface ExportDescription {
+interface ExportDescription {
 	identifier: string | null;
 	localName: string;
 }
 
-export interface ReexportDescription {
+interface ReexportDescription {
 	localName: string;
-	module: Module;
+	module: Module | ExternalModule;
 	source: string;
 	start: number;
 }
@@ -709,7 +709,7 @@ export default class Module {
 
 		if (name in this.importDescriptions) {
 			const importDeclaration = this.importDescriptions[name];
-			const otherModule = importDeclaration.module!;
+			const otherModule = importDeclaration.module;
 
 			if (otherModule instanceof Module && importDeclaration.name === '*') {
 				return otherModule.getOrCreateNamespace();
@@ -828,7 +828,12 @@ export default class Module {
 				: isNamespace
 				? '*'
 				: (specifier as ImportSpecifier).imported.name;
-			this.importDescriptions[localName] = { source, start: specifier.start, name, module: null };
+			this.importDescriptions[localName] = {
+				module: null as any, // filled in later
+				name,
+				source,
+				start: specifier.start
+			};
 		}
 	}
 
@@ -842,7 +847,7 @@ export default class Module {
 		for (const name of Object.keys(importDescription)) {
 			const specifier = importDescription[name];
 			const id = this.resolvedIds[specifier.source].id;
-			specifier.module = this.graph.moduleById.get(id) as Module | ExternalModule | null;
+			specifier.module = this.graph.moduleById.get(id) as Module | ExternalModule;
 		}
 	}
 
