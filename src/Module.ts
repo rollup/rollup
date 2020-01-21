@@ -90,7 +90,7 @@ export interface AstContext {
 	annotations: boolean;
 	code: string;
 	deoptimizationTracker: PathTracker;
-	error: (props: RollupError, pos: number) => void;
+	error: (props: RollupError, pos?: number) => never;
 	fileName: string;
 	getExports: () => string[];
 	getModuleExecIndex: () => number;
@@ -112,7 +112,7 @@ export interface AstContext {
 	tryCatchDeoptimization: boolean;
 	unknownGlobalSideEffects: boolean;
 	usesTopLevelAwait: boolean;
-	warn: (warning: RollupWarning, pos: number) => void;
+	warn: (warning: RollupWarning, pos?: number) => void;
 	warnDeprecation: (deprecation: string | RollupWarning, activeDeprecation: boolean) => void;
 }
 
@@ -137,7 +137,7 @@ function tryParse(module: Module, Parser: typeof acorn.Parser, acornOptions: aco
 		} else if (!module.id.endsWith('.js')) {
 			message += ' (Note that you need plugins to import files that are not JavaScript)';
 		}
-		module.error(
+		return module.error(
 			{
 				code: 'PARSE_ERROR',
 				message,
@@ -153,8 +153,8 @@ function handleMissingExport(
 	importingModule: Module,
 	importedModule: string,
 	importerStart?: number
-) {
-	importingModule.error(
+): never {
+	return importingModule.error(
 		{
 			code: 'MISSING_EXPORT',
 			message: `'${exportName}' is not exported by ${relativeId(importedModule)}`,
@@ -253,26 +253,23 @@ export default class Module {
 		this.ast.bind();
 	}
 
-	error(props: RollupError, pos: number) {
-		if (pos !== undefined) {
+	error(props: RollupError, pos?: number): never {
+		if (typeof pos === 'number') {
 			props.pos = pos;
 			let location = locate(this.code, pos, { offsetLine: 1 });
 			try {
 				location = getOriginalLocation(this.sourcemapChain, location);
 			} catch (e) {
-				this.warn(
-					{
-						code: 'SOURCEMAP_ERROR',
-						loc: {
-							column: location.column,
-							file: this.id,
-							line: location.line
-						},
-						message: `Error when using sourcemap for reporting an error: ${e.message}`,
-						pos
+				this.warn({
+					code: 'SOURCEMAP_ERROR',
+					loc: {
+						column: location.column,
+						file: this.id,
+						line: location.line
 					},
-					undefined as any
-				);
+					message: `Error when using sourcemap for reporting an error: ${e.message}`,
+					pos
+				});
 			}
 
 			props.loc = {
@@ -283,7 +280,7 @@ export default class Module {
 			props.frame = getCodeFrame(this.originalCode, location.line, location.column);
 		}
 
-		error(props);
+		return error(props);
 	}
 
 	getAllExportNames(): Set<string> {
@@ -452,7 +449,7 @@ export default class Module {
 			);
 
 			if (!declaration) {
-				handleMissingExport(
+				return handleMissingExport(
 					reexportDeclaration.localName,
 					this,
 					reexportDeclaration.module.id,
@@ -718,7 +715,12 @@ export default class Module {
 			const declaration = otherModule.getVariableForExportName(importDeclaration.name);
 
 			if (!declaration) {
-				handleMissingExport(importDeclaration.name, this, otherModule.id, importDeclaration.start);
+				return handleMissingExport(
+					importDeclaration.name,
+					this,
+					otherModule.id,
+					importDeclaration.start
+				);
 			}
 
 			return declaration;
@@ -727,8 +729,8 @@ export default class Module {
 		return null;
 	}
 
-	warn(warning: RollupWarning, pos: number) {
-		if (pos !== undefined) {
+	warn(warning: RollupWarning, pos?: number) {
+		if (typeof pos === 'number') {
 			warning.pos = pos;
 
 			const { line, column } = locate(this.code, pos, { offsetLine: 1 }); // TODO trace sourcemaps, cf. error()
@@ -811,7 +813,7 @@ export default class Module {
 			const localName = specifier.local.name;
 
 			if (this.importDescriptions[localName]) {
-				this.error(
+				return this.error(
 					{
 						code: 'DUPLICATE_IMPORT',
 						message: `Duplicated import '${localName}'`

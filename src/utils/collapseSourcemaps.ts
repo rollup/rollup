@@ -81,7 +81,7 @@ class Link {
 						traced.source.content != null &&
 						sourcesContent[sourceIndex] !== traced.source.content
 					) {
-						error({
+						return error({
 							message: `Multiple conflicting contents for sourcemap source ${traced.source.filename}`
 						});
 					}

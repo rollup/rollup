@@ -209,7 +209,7 @@ export class ModuleLoader {
 
 	private addModuleToManualChunk(alias: string, module: Module) {
 		if (module.manualChunkAlias !== null && module.manualChunkAlias !== alias) {
-			error(errCannotAssignModuleToChunk(module.id, alias, module.manualChunkAlias));
+			return error(errCannotAssignModuleToChunk(module.id, alias, module.manualChunkAlias));
 		}
 		module.manualChunkAlias = alias;
 		if (!this.manualChunkModules[alias]) {
@@ -398,7 +398,7 @@ export class ModuleLoader {
 	): ResolvedId {
 		if (resolvedId === null) {
 			if (isRelative(source)) {
-				error(errUnresolvedImport(source, importer));
+				return error(errUnresolvedImport(source, importer));
 			}
 			this.graph.warn(errUnresolvedImportTreatedAsExternal(source, importer));
 			return {
