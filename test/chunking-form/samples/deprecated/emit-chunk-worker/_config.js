@@ -5,6 +5,7 @@ let proxyId;
 
 module.exports = {
 	description: 'allows adding additional chunks to be used in workers',
+	expectedWarnings: ['DEPRECATED_FEATURE'],
 	options: {
 		strictDeprecations: false,
 		input: 'main',

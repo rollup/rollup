@@ -2,6 +2,7 @@ const REGISTER_WORKLET = 'register-paint-worklet:';
 
 module.exports = {
 	description: 'allows adding additional chunks to be used in worklets',
+	expectedWarnings: ['DEPRECATED_FEATURE'],
 	options: {
 		strictDeprecations: false,
 		input: 'main',

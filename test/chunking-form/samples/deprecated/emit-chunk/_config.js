@@ -3,6 +3,7 @@ let referenceId;
 
 module.exports = {
 	description: 'allows adding additional chunks and retrieving their file name',
+	expectedWarnings: ['DEPRECATED_FEATURE'],
 	options: {
 		strictDeprecations: false,
 		input: 'main',

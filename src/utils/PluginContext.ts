@@ -89,7 +89,7 @@ export function getPluginContexts(
 				'emitAsset',
 				'emitFile',
 				plugin.name,
-				false,
+				true,
 				graph
 			),
 			emitChunk: getDeprecatedContextHandler(
@@ -98,7 +98,7 @@ export function getPluginContexts(
 				'emitChunk',
 				'emitFile',
 				plugin.name,
-				false,
+				true,
 				graph
 			),
 			emitFile: fileEmitter.emitFile,
@@ -110,7 +110,7 @@ export function getPluginContexts(
 				'getAssetFileName',
 				'getFileName',
 				plugin.name,
-				false,
+				true,
 				graph
 			),
 			getChunkFileName: getDeprecatedContextHandler(
@@ -118,7 +118,7 @@ export function getPluginContexts(
 				'getChunkFileName',
 				'getFileName',
 				plugin.name,
-				false,
+				true,
 				graph
 			),
 			getFileName: fileEmitter.getFileName,
@@ -145,7 +145,7 @@ export function getPluginContexts(
 				'isExternal',
 				'resolve',
 				plugin.name,
-				false,
+				true,
 				graph
 			),
 			meta: {
@@ -170,7 +170,7 @@ export function getPluginContexts(
 				'resolveId',
 				'resolve',
 				plugin.name,
-				false,
+				true,
 				graph
 			),
 			setAssetSource: fileEmitter.setAssetSource,

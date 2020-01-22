@@ -286,7 +286,7 @@ export async function rollupInternal(
 			if (!file.type) {
 				graph.warnDeprecation(
 					'A plugin is directly adding properties to the bundle object in the "generateBundle" hook. This is deprecated and will be removed in a future Rollup version, please use "this.emitFile" instead.',
-					false
+					true
 				);
 				file.type = 'asset';
 			}

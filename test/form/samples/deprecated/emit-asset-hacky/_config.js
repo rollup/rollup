@@ -1,5 +1,6 @@
 module.exports = {
 	description: 'supports emitting assets in a hacky way by editing the bundle object',
+	expectedWarnings: ['DEPRECATED_FEATURE'],
 	options: {
 		strictDeprecations: false,
 		plugins: {
