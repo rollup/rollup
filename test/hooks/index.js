@@ -786,6 +786,12 @@ describe('hooks', () => {
 							this.cache.set('asdf', 'asdf');
 							return `alert('hello world')`;
 						}
+					},
+					{
+						name: 'y',
+						transform(code) {
+							return code + `;alert('world')`;
+						}
 					}
 				]
 			})
@@ -804,6 +810,12 @@ describe('hooks', () => {
 								assert.ok(!this.cache.has('asdf'));
 								return `alert('hello')`;
 							}
+						},
+						{
+							name: 'y',
+							transform(code) {
+								return code + `;alert('world')`;
+							}
 						}
 					]
 				})
@@ -814,7 +826,7 @@ describe('hooks', () => {
 				})
 			)
 			.then(({ output }) => {
-				assert.strictEqual(output[0].code.trim(), `alert('hello');`);
+				assert.strictEqual(output[0].code.trim(), `alert('hello');alert('world');`);
 			}));
 
 	it('supports renderStart hook', () => {

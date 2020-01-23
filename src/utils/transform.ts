@@ -5,7 +5,6 @@ import {
 	DecodedSourceMapOrMissing,
 	EmittedFile,
 	Plugin,
-	PluginCache,
 	PluginContext,
 	RollupError,
 	RollupWarning,
@@ -33,9 +32,9 @@ export default function transform(
 	const transformDependencies: string[] = [];
 	const emittedFiles: EmittedFile[] = [];
 	let customTransformCache = false;
+	const useCustomTransformCache = () => (customTransformCache = true);
 	let moduleSideEffects: boolean | null = null;
 	let syntheticNamedExports: boolean | null = null;
-	let trackedPluginCache: { cache: PluginCache; used: boolean };
 	let curPlugin: Plugin;
 	const curSource: string = source.code;
 
@@ -45,17 +44,6 @@ export default function transform(
 		result: TransformResult,
 		plugin: Plugin
 	) {
-		// TODO Lukas this could also be run once at the end?
-		if (!customTransformCache) {
-			if (trackedPluginCache.used) {
-				// track which plugins use the custom this.cache to opt-out of transform caching
-				customTransformCache = true;
-			} else {
-				// files emitted by a transform hook need to be emitted again if the hook is skipped
-				if (emittedFiles.length) module.transformFiles = emittedFiles;
-			}
-		}
-
 		if (typeof result === 'string') {
 			result = {
 				ast: undefined,
@@ -76,7 +64,8 @@ export default function transform(
 			return code;
 		}
 
-		// strict null check allows 'null' maps to not be pushed to the chain, while 'undefined' gets the missing map warning
+		// strict null check allows 'null' maps to not be pushed to the chain,
+		// while 'undefined' gets the missing map warning
 		if (result.map !== null) {
 			const map = decodedSourcemap(result.map);
 			sourcemapChain.push(map || { missing: true, plugin: plugin.name });
@@ -87,8 +76,6 @@ export default function transform(
 		return result.code;
 	}
 
-	let setAssetSourceErr: any;
-
 	return graph.pluginDriver
 		.hookReduceArg0<any, string>(
 			'transform',
@@ -96,11 +83,11 @@ export default function transform(
 			transformReducer,
 			(pluginContext, plugin) => {
 				curPlugin = plugin;
-				if (curPlugin.cacheKey) customTransformCache = true;
-				else trackedPluginCache = getTrackedPluginCache(pluginContext.cache);
 				return {
 					...pluginContext,
-					cache: trackedPluginCache ? trackedPluginCache.cache : pluginContext.cache,
+					cache: customTransformCache
+						? pluginContext.cache
+						: getTrackedPluginCache(pluginContext.cache, useCustomTransformCache),
 					warn(warning: RollupWarning | string, pos?: number | { column: number; line: number }) {
 						if (typeof warning === 'string') warning = { message: warning } as RollupWarning;
 						if (pos) augmentCodeLocation(warning, pos, curSource, id);
@@ -133,18 +120,11 @@ export default function transform(
 						transformDependencies.push(id);
 						pluginContext.addWatchFile(id);
 					},
-					setAssetSource(assetReferenceId, source) {
-						pluginContext.setAssetSource(assetReferenceId, source);
-						if (!customTransformCache && !setAssetSourceErr) {
-							try {
-								return this.error({
-									code: 'INVALID_SETASSETSOURCE',
-									message: `setAssetSource cannot be called in transform for caching reasons. Use emitFile with a source, or call setAssetSource in another hook.`
-								});
-							} catch (err) {
-								setAssetSourceErr = err;
-							}
-						}
+					setAssetSource() {
+						return this.error({
+							code: 'INVALID_SETASSETSOURCE',
+							message: `setAssetSource cannot be called in transform for caching reasons. Use emitFile with a source, or call setAssetSource in another hook.`
+						});
 					},
 					getCombinedSourcemap() {
 						const combinedMap = collapseSourcemap(
@@ -173,7 +153,10 @@ export default function transform(
 		)
 		.catch(err => throwPluginError(err, curPlugin.name, { hook: 'transform', id }))
 		.then(code => {
-			if (!customTransformCache && setAssetSourceErr) throw setAssetSourceErr;
+			if (!customTransformCache) {
+				// files emitted by a transform hook need to be emitted again if the hook is skipped
+				if (emittedFiles.length) module.transformFiles = emittedFiles;
+			}
 
 			return {
 				ast: ast!,
