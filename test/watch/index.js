@@ -1021,7 +1021,8 @@ describe('rollup.watch', () => {
 				});
 		});
 
-		it('respects changed watched files in the transform hook', () => {
+		it('respects changed watched files in the transform hook and removes them if they are no longer watched', () => {
+			let addWatchFile = true;
 			return sander
 				.copydir('test/watch/samples/watch-files')
 				.to('test/_tmp/input')
@@ -1047,7 +1048,9 @@ describe('rollup.watch', () => {
 								if (id.endsWith('main.js')) {
 									return `export { value as default } from 'dep';`;
 								} else {
-									this.addWatchFile('test/_tmp/input/watched');
+									if (addWatchFile) {
+										this.addWatchFile('test/_tmp/input/watched');
+									}
 									return `export const value = "${sander
 										.readFileSync('test/_tmp/input/watched')
 										.toString()
@@ -1056,6 +1059,8 @@ describe('rollup.watch', () => {
 							}
 						}
 					});
+					const events = [];
+					watcher.on('event', event => events.push(event.code));
 
 					return sequence(watcher, [
 						'START',
@@ -1064,6 +1069,7 @@ describe('rollup.watch', () => {
 						'END',
 						() => {
 							assert.strictEqual(run('../_tmp/output/bundle.js'), 'initial');
+							addWatchFile = false;
 							sander.writeFileSync('test/_tmp/input/watched', 'next');
 						},
 						'START',
@@ -1072,6 +1078,9 @@ describe('rollup.watch', () => {
 						'END',
 						() => {
 							assert.strictEqual(run('../_tmp/output/bundle.js'), 'next');
+							sander.writeFileSync('test/_tmp/input/watched', 'other');
+							events.length = 0;
+							return wait(400).then(() => assert.deepStrictEqual(events, []));
 						}
 					]);
 				});
