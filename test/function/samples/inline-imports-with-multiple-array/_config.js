@@ -1,5 +1,5 @@
 module.exports = {
-	description: 'Having multiple inputs is not supported when inlining dynamic imports',
+	description: 'Having multiple inputs in an array is not supported when inlining dynamic imports',
 	options: {
 		input: ['main.js', 'lib.js'],
 		inlineDynamicImports: true
