@@ -945,7 +945,7 @@ describe('hooks', () => {
 				watcher.close();
 				assert.strictEqual(
 					err.message,
-					'You must set "output.dir" instead of "output.file" when generating multiple chunks.'
+					'When building multiple chunks, the "output.dir" option must be used, not "output.file". To inline dynamic imports, set the "inlineDynamicImports" option.'
 				);
 			})
 			.then(() => watcher.close());

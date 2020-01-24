@@ -8,7 +8,12 @@ import commondir from '../utils/commondir';
 import { errCannotEmitFromOptionsHook, errInvalidExportOptionValue, error } from '../utils/error';
 import { writeFile } from '../utils/fs';
 import getExportMode from '../utils/getExportMode';
-import mergeOptions, { ensureArray, GenericConfigObject } from '../utils/mergeOptions';
+import {
+	ensureArray,
+	GenericConfigObject,
+	parseInputOptions,
+	parseOutputOptions
+} from '../utils/parseOptions';
 import { basename, dirname, isAbsolute, resolve } from '../utils/path';
 import { PluginDriver } from '../utils/PluginDriver';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from '../utils/pluginUtils';
@@ -53,12 +58,6 @@ function getAbsoluteEntryModulePaths(chunks: Chunk[]): string[] {
 	return absoluteEntryModulePaths;
 }
 
-const throwAsyncGenerateError = {
-	get() {
-		throw new Error(`bundle.generate(...) now returns a Promise instead of a { code, map } object`);
-	}
-};
-
 function applyOptionHook(inputOptions: InputOptions, plugin: Plugin) {
 	if (plugin.options)
 		return plugin.options.call({ meta: { rollupVersion } }, inputOptions) || inputOptions;
@@ -81,13 +80,7 @@ function getInputOptions(rawInputOptions: GenericConfigObject): InputOptions {
 	if (!rawInputOptions) {
 		throw new Error('You must supply an options object to rollup');
 	}
-	let { inputOptions, optionError } = mergeOptions({
-		config: rawInputOptions
-	});
-
-	if (optionError)
-		(inputOptions.onwarn as WarningHandler)({ message: optionError, code: 'UNKNOWN_OPTION' });
-
+	let inputOptions = parseInputOptions(rawInputOptions);
 	inputOptions = inputOptions.plugins!.reduce(applyOptionHook, inputOptions);
 	inputOptions.plugins = normalizePlugins(inputOptions.plugins!, ANONYMOUS_PLUGIN_PREFIX);
 
@@ -300,21 +293,18 @@ export async function rollupInternal(
 	const cache = useCache ? graph.getCache() : undefined;
 	const result: RollupBuild = {
 		cache: cache!,
-		generate: ((rawOutputOptions: GenericConfigObject) => {
+		generate: (rawOutputOptions: OutputOptions) => {
 			const { outputOptions, outputPluginDriver } = getOutputOptionsAndPluginDriver(
-				rawOutputOptions
+				rawOutputOptions as GenericConfigObject
 			);
-			const promise = generate(outputOptions, false, outputPluginDriver).then(result =>
+			return generate(outputOptions, false, outputPluginDriver).then(result =>
 				createOutput(result)
 			);
-			Object.defineProperty(promise, 'code', throwAsyncGenerateError);
-			Object.defineProperty(promise, 'map', throwAsyncGenerateError);
-			return promise;
-		}) as any,
+		},
 		watchFiles: Object.keys(graph.watchFiles),
-		write: ((rawOutputOptions: GenericConfigObject) => {
+		write: (rawOutputOptions: OutputOptions) => {
 			const { outputOptions, outputPluginDriver } = getOutputOptionsAndPluginDriver(
-				rawOutputOptions
+				rawOutputOptions as GenericConfigObject
 			);
 			if (!outputOptions.dir && !outputOptions.file) {
 				return error({
@@ -323,37 +313,13 @@ export async function rollupInternal(
 				});
 			}
 			return generate(outputOptions, true, outputPluginDriver).then(async bundle => {
-				let chunkCount = 0;
-				for (const fileName of Object.keys(bundle)) {
-					const file = bundle[fileName];
-					if (file.type === 'asset') continue;
-					chunkCount++;
-					if (chunkCount > 1) break;
-				}
-				if (chunkCount > 1) {
-					if (outputOptions.sourcemapFile)
-						return error({
-							code: 'INVALID_OPTION',
-							message: '"output.sourcemapFile" is only supported for single-file builds.'
-						});
-					if (typeof outputOptions.file === 'string')
-						return error({
-							code: 'INVALID_OPTION',
-							message:
-								'When building multiple chunks, the "output.dir" option must be used, not "output.file".' +
-								(typeof inputOptions.input !== 'string' ||
-								inputOptions.inlineDynamicImports === true
-									? ''
-									: ' To inline dynamic imports, set the "inlineDynamicImports" option.')
-						});
-				}
 				await Promise.all(
 					Object.keys(bundle).map(chunkId => writeOutputFile(bundle[chunkId], outputOptions))
 				);
 				await outputPluginDriver.hookParallel('writeBundle', [bundle]);
 				return createOutput(bundle);
 			});
-		}) as any
+		}
 	};
 	if (inputOptions.perf === true) result.getTimings = getTimings;
 	return result;
@@ -425,25 +391,16 @@ function normalizeOutputOptions(
 	hasMultipleChunks: boolean,
 	outputPluginDriver: PluginDriver
 ): OutputOptions {
-	const mergedOptions = mergeOptions({
-		config: {
-			output: {
-				...rawOutputOptions,
-				...(rawOutputOptions.output as object),
-				...(inputOptions.output as object)
-			}
-		}
-	});
-
-	if (mergedOptions.optionError) throw new Error(mergedOptions.optionError);
-
-	// now outputOptions is an array, but rollup.rollup API doesn't support arrays
-	const mergedOutputOptions = mergedOptions.outputOptions[0];
+	const outputOptionBase = rawOutputOptions.output || inputOptions.output || rawOutputOptions;
+	let outputOptions = parseOutputOptions(
+		outputOptionBase as GenericConfigObject,
+		inputOptions.onwarn as WarningHandler
+	);
 	const outputOptionsReducer = (outputOptions: OutputOptions, result: OutputOptions) =>
 		result || outputOptions;
-	const outputOptions = outputPluginDriver.hookReduceArg0Sync(
+	outputOptions = outputPluginDriver.hookReduceArg0Sync(
 		'outputOptions',
-		[mergedOutputOptions],
+		[outputOptions],
 		outputOptionsReducer,
 		pluginContext => {
 			const emitError = () => pluginContext.error(errCannotEmitFromOptionsHook());
@@ -488,7 +445,13 @@ function normalizeOutputOptions(
 			return error({
 				code: 'INVALID_OPTION',
 				message:
-					'You must set "output.dir" instead of "output.file" when generating multiple chunks.'
+					'When building multiple chunks, the "output.dir" option must be used, not "output.file". ' +
+					'To inline dynamic imports, set the "inlineDynamicImports" option.'
+			});
+		if (outputOptions.sourcemapFile)
+			return error({
+				code: 'INVALID_OPTION',
+				message: '"output.sourcemapFile" is only supported for single-file builds.'
 			});
 	}
 

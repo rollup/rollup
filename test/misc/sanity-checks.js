@@ -56,22 +56,6 @@ describe('sanity checks', () => {
 			});
 	});
 
-	it('fails with invalid keys', () => {
-		const warnings = [];
-		const onwarn = warning => warnings.push(warning);
-		return rollup
-			.rollup({ input: 'x', onwarn, plUgins: [], plugins: [loader({ x: `console.log( 42 );` })] })
-			.then(() => {
-				assert.deepEqual(warnings, [
-					{
-						code: 'UNKNOWN_OPTION',
-						message:
-							'Unknown input option: plUgins. Allowed options: ' + require('./optionList').input
-					}
-				]);
-			});
-	});
-
 	it('treats Literals as leaf nodes, even if first literal encountered is null', () => {
 		// this test has to be up here, otherwise the bug doesn't have
 		// an opportunity to present itself
@@ -184,7 +168,7 @@ describe('sanity checks', () => {
 			.then(bundle => {
 				assert.throws(() => {
 					bundle.generate({ file: 'x', format: 'es' });
-				}, /You must set "output\.dir" instead of "output\.file" when generating multiple chunks\./);
+				}, /When building multiple chunks, the "output\.dir" option must be used, not "output\.file"\. To inline dynamic imports, set the "inlineDynamicImports" option\./);
 			});
 	});
 
@@ -212,7 +196,7 @@ describe('sanity checks', () => {
 			.then(bundle => {
 				assert.throws(() => {
 					bundle.generate({ file: 'x', format: 'es' });
-				}, /You must set "output\.dir" instead of "output\.file" when generating multiple chunks\./);
+				}, /When building multiple chunks, the "output\.dir" option must be used, not "output\.file"\. To inline dynamic imports, set the "inlineDynamicImports" option\./);
 			});
 	});
 
