@@ -1,16 +1,17 @@
 import Module from '../Module';
-import { cloneUint8Array, randomUint8Array, Uint8ArrayEqual, Uint8ArrayXor } from './entryHashing';
+import { randomUint8Array, Uint8ArrayXor } from './entryHashing';
 
 function randomColour(): Uint8Array {
 	return randomUint8Array(10);
 }
 
-function trailContainsColour(trail: Module[], colour: Uint8Array): boolean {
-	return trail.some(module => Uint8ArrayEqual(module.entryPointsHash, colour));
+function setsEqual<T>(a: Set<T>, b: Set<T>): boolean {
+	return a.size === b.size && [...a].every(item => b.has(item));
 }
 
-function arraysEqual<T>(a: Array<T>, b: Array<T>): boolean {
-	return a.length === b.length && a.every((item, i) => item === b[i]);
+interface StaticModuleGroup {
+	dynamicEntries: Set<Module>;
+	modules: Set<Module>;
 }
 
 export function assignChunkColouringHashes(
@@ -18,91 +19,95 @@ export function assignChunkColouringHashes(
 	manualChunkModules: Record<string, Module[]>
 ) {
 	const colouredModules: Set<Module> = new Set();
+	const staticModuleGroups: Map<Module, StaticModuleGroup> = new Map();
+
+	function collectStaticModuleGroup(rootModule: Module): StaticModuleGroup {
+		if (staticModuleGroups.has(rootModule)) {
+			return staticModuleGroups.get(rootModule)!;
+		}
+		const modules = new Set<Module>();
+		const dynamicEntries = new Set<Module>();
+		const group: StaticModuleGroup = { modules, dynamicEntries };
+		staticModuleGroups.set(rootModule, group);
+		const process = (module: Module, importer: Module | null) => {
+			if (modules.has(module)) {
+				return;
+			}
+			modules.add(module);
+			if (!module.manualChunkAlias && importer?.manualChunkAlias) {
+				module.manualChunkAlias = importer.manualChunkAlias;
+			}
+			// TODO remove reverse? needed because previously manual chunk alias propogation was other way
+			for (const dependency of module.dependencies.slice().reverse()) {
+				if (dependency instanceof Module) {
+					process(dependency, module);
+				}
+			}
+			for (const { resolution } of module.dynamicImports) {
+				if (resolution instanceof Module && resolution.dynamicallyImportedBy.length > 0) {
+					dynamicEntries.add(resolution);
+				}
+			}
+		};
+		process(rootModule, null);
+		return group;
+	}
 
 	function paintModules(inputEntryModules: Array<{ paint: Uint8Array; rootModule: Module }>): void {
 		const entryModules: Array<{
+			loadedModules: Set<Module>;
 			paint: Uint8Array;
 			rootModule: Module;
-			trail: Module[];
 		}> = inputEntryModules.map(({ paint, rootModule }) => ({
+			loadedModules: new Set(),
 			paint,
-			rootModule,
-			trail: []
+			rootModule
 		}));
 
-		function registerNewEntryPoint(module: Module, trail: Module[], isolated: boolean): void {
-			if (!trail.length) {
-				throw new Error('There must be an importer.');
-			}
-			const alreadySeen =
-				trail.includes(module) ||
-				entryModules.some(entry => entry.rootModule === module && arraysEqual(entry.trail, trail));
+		function registerNewEntryPoint(
+			rootModule: Module,
+			loadedModules: Set<Module>,
+			paint: Uint8Array
+		): void {
+			const alreadySeen = entryModules.some(
+				entry => entry.rootModule === rootModule && setsEqual(entry.loadedModules, loadedModules)
+			);
 			if (!alreadySeen) {
-				const paint = isolated ? randomColour() : trail[trail.length - 1].entryPointsHash;
 				entryModules.push({
+					loadedModules,
 					paint,
-					rootModule: module,
-					trail
+					rootModule
 				});
 			}
 		}
 
-		function paintModule(rootModule: Module, trail: Module[], paint: Uint8Array): void {
-			// everything this point downwards with this colour should be painted
-			const sourceColour = cloneUint8Array(rootModule.entryPointsHash);
-
-			function process(module: Module, trail: Module[]): void {
-				if (module.manualChunkAlias && colouredModules.has(module)) {
-					// this module has already been coloured as part of another manual chunk
-					return;
-				}
-
-				if (
-					!module.manualChunkAlias &&
-					colouredModules.has(module) &&
-					trailContainsColour(trail, module.entryPointsHash)
-				) {
-					// this module is already in memory
-					return;
-				}
-
-				if (
-					module.manualChunkAlias ||
-					module === rootModule ||
-					Uint8ArrayEqual(module.entryPointsHash, sourceColour)
-				) {
-					Uint8ArrayXor(module.entryPointsHash, paint);
-					colouredModules.add(module);
-					for (const dependency of module.dependencies) {
-						if (dependency instanceof Module) {
-							if (!module.manualChunkAlias) {
-								process(dependency, [...trail, module]);
-							} else if (!dependency.manualChunkAlias) {
-								dependency.manualChunkAlias = module.manualChunkAlias;
-								process(dependency, [...trail, module]);
-							}
-						}
-					}
-					for (const { resolution } of module.dynamicImports) {
-						if (
-							resolution instanceof Module &&
-							resolution.dynamicallyImportedBy.length > 0 &&
-							!resolution.manualChunkAlias
-						) {
-							registerNewEntryPoint(resolution, [...trail, module], true);
-						}
+		function paintModule(rootModule: Module, loadedModules: Set<Module>, paint: Uint8Array): void {
+			const { modules, dynamicEntries } = collectStaticModuleGroup(rootModule);
+			const newLoadedModules = new Set([...loadedModules, ...modules]);
+			for (const module of modules) {
+				if (module.manualChunkAlias) {
+					if (
+						!colouredModules.has(module) &&
+						rootModule.manualChunkAlias === module.manualChunkAlias
+					) {
+						Uint8ArrayXor(module.entryPointsHash, paint);
+						colouredModules.add(module);
 					}
 				} else {
-					registerNewEntryPoint(module, trail, false);
+					if (!colouredModules.has(module) || !loadedModules.has(module)) {
+						Uint8ArrayXor(module.entryPointsHash, paint);
+						colouredModules.add(module);
+					}
 				}
 			}
-
-			process(rootModule, trail);
+			for (const module of dynamicEntries) {
+				registerNewEntryPoint(module, newLoadedModules, randomColour());
+			}
 		}
 
 		for (let i = 0; i < entryModules.length /* updates */; i++) {
-			const { paint, rootModule, trail } = entryModules[i];
-			paintModule(rootModule, trail, paint);
+			const { paint, rootModule, loadedModules } = entryModules[i];
+			paintModule(rootModule, loadedModules, paint);
 		}
 	}
 
