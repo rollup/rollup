@@ -43,7 +43,7 @@ const getObjectOption = (
 	const commandOption = normalizeObjectOptionValue(overrides[name]);
 	const configOption = normalizeObjectOptionValue(config[name]);
 	if (commandOption !== undefined) {
-		return commandOption && configOption ? { ...configOption, ...commandOption } : commandOption;
+		return commandOption && { ...configOption, ...commandOption };
 	}
 	return configOption;
 };

@@ -16,7 +16,7 @@ export default function runRollup(command: any) {
 		if (command.input) {
 			handleError({
 				code: 'DUPLICATE_IMPORT_OPTIONS',
-				message: 'use --input, or pass input path as argument'
+				message: 'Either use --input, or pass input path as argument'
 			});
 		}
 		inputSource = command._;
