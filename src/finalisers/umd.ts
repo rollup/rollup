@@ -43,7 +43,7 @@ export default function umd(
 	const globalVar = options.compact ? 'g' : 'global';
 
 	if (hasExports && !options.name) {
-		error({
+		return error({
 			code: 'INVALID_OPTION',
 			message: 'You must supply "output.name" for UMD bundles.'
 		});

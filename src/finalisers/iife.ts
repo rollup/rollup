@@ -35,7 +35,7 @@ export default function iife(
 	const useVariableAssignment = !extend && !isNamespaced;
 
 	if (name && useVariableAssignment && !isLegal(name)) {
-		error({
+		return error({
 			code: 'ILLEGAL_IDENTIFIER_AS_NAME',
 			message: `Given name "${name}" is not a legal JS identifier. If you need this, you can try "output.extend: true".`
 		});

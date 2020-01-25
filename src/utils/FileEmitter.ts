@@ -151,7 +151,7 @@ export class FileEmitter {
 	public assertAssetsFinalized = (): void => {
 		for (const [referenceId, emittedFile] of this.filesByReferenceId.entries()) {
 			if (emittedFile.type === 'asset' && typeof emittedFile.fileName !== 'string')
-				error(errNoAssetSourceSet(emittedFile.name || referenceId));
+				return error(errNoAssetSourceSet(emittedFile.name || referenceId));
 		}
 	};
 
@@ -273,7 +273,7 @@ export class FileEmitter {
 
 	private emitChunk(emittedChunk: EmittedFile): string {
 		if (this.graph.phase > BuildPhase.LOAD_AND_PARSE) {
-			error(errInvalidRollupPhaseForChunkEmission());
+			return error(errInvalidRollupPhaseForChunkEmission());
 		}
 		if (typeof emittedChunk.id !== 'string') {
 			return error(

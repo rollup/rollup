@@ -42,14 +42,11 @@ export default class NamespaceVariable extends Variable {
 	include(context: InclusionContext) {
 		if (!this.included) {
 			if (this.containsExternalNamespace) {
-				this.context.error(
-					{
-						code: 'NAMESPACE_CANNOT_CONTAIN_EXTERNAL',
-						id: this.module.id,
-						message: `Cannot create an explicit namespace object for module "${this.context.getModuleName()}" because it contains a reexported external namespace`
-					},
-					undefined as any
-				);
+				return this.context.error({
+					code: 'NAMESPACE_CANNOT_CONTAIN_EXTERNAL',
+					id: this.module.id,
+					message: `Cannot create an explicit namespace object for module "${this.context.getModuleName()}" because it contains a reexported external namespace`
+				});
 			}
 			this.included = true;
 			for (const identifier of this.references) {

@@ -20,7 +20,7 @@ export default class TaggedTemplateExpression extends NodeBase {
 			const variable = this.scope.findVariable(name);
 
 			if (variable.isNamespace) {
-				this.context.error(
+				return this.context.error(
 					{
 						code: 'CANNOT_CALL_NAMESPACE',
 						message: `Cannot call a namespace ('${name}')`
