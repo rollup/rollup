@@ -5,8 +5,8 @@ function randomColour(): Uint8Array {
 	return randomUint8Array(10);
 }
 
-function setsEqual<T>(a: Set<T>, b: Set<T>): boolean {
-	return a.size === b.size && [...a].every(item => b.has(item));
+function subset<T>(small: Set<T>, big: Set<T>): boolean {
+	return small.size <= big.size && [...small].every(item => big.has(item));
 }
 
 interface StaticModuleGroup {
@@ -69,10 +69,10 @@ export function assignChunkColouringHashes(
 			loadedModules: Set<Module>,
 			paint: Uint8Array
 		): void {
-			const alreadySeen = entryModules.some(
-				entry => entry.rootModule === rootModule && setsEqual(entry.loadedModules, loadedModules)
+			const alreadyProcessed = entryModules.some(
+				entry => entry.rootModule === rootModule && subset(entry.loadedModules, loadedModules)
 			);
-			if (!alreadySeen) {
+			if (!alreadyProcessed) {
 				entryModules.push({
 					loadedModules,
 					paint,
