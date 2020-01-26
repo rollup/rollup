@@ -63,6 +63,39 @@ With this optimization, a JavaScript engine will discover all transitive depende
 
 There may be situations where this optimization is not desired, in which case you can turn it off via the [`output.hoistTransitiveImports`](guide/en/#outputhoisttransitiveimports) option. This optimization is also never applied when using the [`preserveModules`](guide/en/#preservemodules) option.
 
+#### How do I add polyfills to a Rollup bundle?
+
+Even though Rollup will usually try to maintain exact module execution order when bundling, there are two situations when this is not always the case: code-splitting and external dependencies. The problem is most obvious with external dependencies, see the following [example](https://rollupjs.org/repl/?shareable=JTdCJTIybW9kdWxlcyUyMiUzQSU1QiU3QiUyMm5hbWUlMjIlM0ElMjJtYWluLmpzJTIyJTJDJTIyY29kZSUyMiUzQSUyMmltcG9ydCUyMCcuJTJGcG9seWZpbGwuanMnJTNCJTVDbmltcG9ydCUyMCdleHRlcm5hbCclM0IlNUNuY29uc29sZS5sb2coJ21haW4nKSUzQiUyMiUyQyUyMmlzRW50cnklMjIlM0F0cnVlJTdEJTJDJTdCJTIybmFtZSUyMiUzQSUyMnBvbHlmaWxsLmpzJTIyJTJDJTIyY29kZSUyMiUzQSUyMmNvbnNvbGUubG9nKCdwb2x5ZmlsbCcpJTNCJTIyJTJDJTIyaXNFbnRyeSUyMiUzQWZhbHNlJTdEJTVEJTJDJTIyb3B0aW9ucyUyMiUzQSU3QiUyMmZvcm1hdCUyMiUzQSUyMmVzbSUyMiUyQyUyMm5hbWUlMjIlM0ElMjJteUJ1bmRsZSUyMiUyQyUyMmFtZCUyMiUzQSU3QiUyMmlkJTIyJTNBJTIyJTIyJTdEJTJDJTIyZ2xvYmFscyUyMiUzQSU3QiU3RCU3RCUyQyUyMmV4YW1wbGUlMjIlM0FudWxsJTdE):
+
+```js
+// main.js
+import './polyfill.js';
+import 'external';
+console.log('main');
+
+// polyfill.js
+console.log('polyfill');
+```
+
+Here the execution order is `polyfill.js` → `external` → `main.js`. Now when you bundle the code, you will get
+
+```js
+import 'external';
+console.log('polyfill');
+console.log('main');
+```
+
+with the execution order `external` → `polyfill.js` → `main.js`. This is not a problem caused by Rollup putting the `import` at the top of the bundle—imports are always executed first, no matter where they are located in the file. This problem can be solved by creating more chunks: If `dep.js` ends up in a different chunk than `main.js`, [correct execution order will be preserved](https://rollupjs.org/repl/?shareable=JTdCJTIybW9kdWxlcyUyMiUzQSU1QiU3QiUyMm5hbWUlMjIlM0ElMjJtYWluLmpzJTIyJTJDJTIyY29kZSUyMiUzQSUyMmltcG9ydCUyMCcuJTJGcG9seWZpbGwuanMnJTNCJTVDbmltcG9ydCUyMCdleHRlcm5hbCclM0IlNUNuY29uc29sZS5sb2coJ21haW4nKSUzQiUyMiUyQyUyMmlzRW50cnklMjIlM0F0cnVlJTdEJTJDJTdCJTIybmFtZSUyMiUzQSUyMnBvbHlmaWxsLmpzJTIyJTJDJTIyY29kZSUyMiUzQSUyMmNvbnNvbGUubG9nKCdwb2x5ZmlsbCcpJTNCJTIyJTJDJTIyaXNFbnRyeSUyMiUzQXRydWUlN0QlNUQlMkMlMjJvcHRpb25zJTIyJTNBJTdCJTIyZm9ybWF0JTIyJTNBJTIyZXNtJTIyJTJDJTIybmFtZSUyMiUzQSUyMm15QnVuZGxlJTIyJTJDJTIyYW1kJTIyJTNBJTdCJTIyaWQlMjIlM0ElMjIlMjIlN0QlMkMlMjJnbG9iYWxzJTIyJTNBJTdCJTdEJTdEJTJDJTIyZXhhbXBsZSUyMiUzQW51bGwlN0Q=). However there is not yet an automatic way to do this in Rollup. For code-splitting, the situation is similar as Rollup is trying to create as few chunks as possible while making sure no code is executed that is not needed.
+
+For most code this is not a problem, because Rollup can guarantee:
+
+> If module A imports module B and there are no circular imports, then B will always be executed before A.
+
+This is however a problem for polyfills, as those usually need to be executed first but it is usually not desired to place an import of the polyfill in every single module. Luckily, this is not needed:
+
+1. If there are no external dependencies that depend on the polyfill, it is enough to add an import of the polyfill as first statement to each static entry point.
+2. Otherwise, additionally making the polyfill a separate entry or [manual chunk](guide/en/#manualchunks) will always make sure it is executed first.
+
 #### Is Rollup meant for building libraries or applications?
 
 Rollup is already used by many major JavaScript libraries, and can also be used to build the vast majority of applications. However if you want to use code-splitting or dynamic imports with older browsers, you will need an additional runtime to handle loading missing chunks. We recommend using the [SystemJS Production Build](https://github.com/systemjs/systemjs#browser-production) as it integrates nicely with Rollup's system format output and is capable of properly handling all the ES module live bindings and re-export edge cases. Alternatively, an AMD loader can be used as well.
