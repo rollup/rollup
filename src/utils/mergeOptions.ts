@@ -286,6 +286,7 @@ function getOutputOptions(
 		format,
 		freeze: getOption('freeze', true),
 		globals: getOption('globals'),
+		hoistTransitiveImports: getOption('hoistTransitiveImports', true),
 		indent: getOption('indent', true),
 		interop: getOption('interop', true),
 		intro: getOption('intro'),

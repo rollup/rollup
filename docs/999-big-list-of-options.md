@@ -466,6 +466,13 @@ Default: `false`
 
 Whether or not to extend the global variable defined by the `name` option in `umd` or `iife` formats. When `true`, the global variable will be defined as `(global.name = global.name || {})`. When false, the global defined by `name` will be overwritten like `(global.name = {})`.
 
+#### output.hoistTransitiveImports
+Type: `boolean`<br>
+CLI: `--hoistTransitiveImports`/`--no-hoistTransitiveImports`<br>
+Default: `true`
+
+By default when creating multiple chunks, transitive imports of entry chunks will be added as empty imports to the entry chunks. See ["Why do additional imports turn up in my entry chunks when code-splitting?"](guide/en/#why-do-additional-imports-turn-up-in-my-entry-chunks-when-code-splitting) for details and background. Setting this option to `false` will disable this behaviour. This option is ignored when using the [`preserveModules`](guide/en/#preservemodules) option as here, imports will never be hoisted.
+
 #### output.interop
 Type: `boolean`<br>
 CLI: `--interop`/`--no-interop`<br>

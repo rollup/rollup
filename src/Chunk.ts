@@ -554,7 +554,11 @@ export default class Chunk {
 			}
 		}
 		// for static and dynamic entry points, inline the execution list to avoid loading latency
-		if (!this.graph.preserveModules && this.facadeModule !== null) {
+		if (
+			options.hoistTransitiveImports !== false &&
+			!this.graph.preserveModules &&
+			this.facadeModule !== null
+		) {
 			for (const dep of this.dependencies) {
 				if (dep instanceof Chunk) this.inlineChunkDependencies(dep, true);
 			}
