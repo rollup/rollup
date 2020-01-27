@@ -28,7 +28,3 @@ export function Uint8ArrayXor(to: Uint8Array, from: Uint8Array): Uint8Array {
 	for (let i = 0; i < to.length; i++) to[i] = to[i] ^ from[i];
 	return to;
 }
-
-export function randomHexString(len: number): string {
-	return Uint8ArrayToHexString(randomUint8Array(Math.floor(len / 2)));
-}

@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 1.30.0
+*2020-01-27*
+
+### Features
+* Do not split chunks when dynamically imported modules import modules that are already loaded by all dynamic importers (#3354)
+* Add `hoistTransitiveImports` option to disable hoisting imports of static dependencies into entry chunks (#3353)
+
+### Bug Fixes
+* Make sure polyfills are always loaded first when each static entry point contains them as first import (#3354)
+
+### Pull Requests
+* [#3353](https://github.com/rollup/rollup/pull/3353): Add option to avoid hoisting transitive imports (@lukastaegert)
+* [#3354](https://github.com/rollup/rollup/pull/3354): Improve chunking algorithm for dynamic imports (@tjenkinson and @lukastaegert)
+
 ## 1.29.1
 *2020-01-21*
 
