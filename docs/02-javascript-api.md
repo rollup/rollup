@@ -126,6 +126,7 @@ const outputOptions = {
   extend,
   externalLiveBindings,
   footer,
+  hoistTransitiveImports,
   interop,
   intro,
   outro,

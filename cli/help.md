@@ -31,8 +31,10 @@ Basic options:
 --no-esModule               Do not add __esModule property
 --exports <mode>            Specify export mode (auto, default, named, none)
 --extend                    Extend global variable defined by --name
+--no-externalLiveBindings   Do not generate code to support live bindings
 --footer <text>             Code to insert at end of bundle (outside wrapper)
 --no-freeze                 Do not freeze namespace objects
+--no-hoistTransitiveImports Do not hoist transitive imports into entry chunks
 --no-indent                 Don't indent result
 --no-interop                Do not include interop block
 --inlineDynamicImports      Create single bundle when using dynamic imports
@@ -48,6 +50,7 @@ Basic options:
 --silent                    Don't print warnings
 --sourcemapExcludeSources   Do not include source code in source maps
 --sourcemapFile <file>      Specify bundle position for source maps
+--no-stdin                  do not read "-" from stdin
 --strictDeprecations        Throw errors for deprecated features
 --no-treeshake              Disable tree-shaking optimisations
 --no-treeshake.annotations  Ignore pure call annotations

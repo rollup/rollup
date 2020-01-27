@@ -75,6 +75,7 @@ export default { // can be an array (for multiple inputs)
     entryFileNames,
     extend,
     footer,
+    hoistTransitiveImports,
     interop,
     intro,
     outro,
@@ -237,6 +238,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --no-externalLiveBindings   Do not generate code to support live bindings
 --footer <text>             Code to insert at end of bundle (outside wrapper)
 --no-freeze                 Do not freeze namespace objects
+--no-hoistTransitiveImports Do not hoist transitive imports into entry chunks
 --no-indent                 Don't indent result
 --no-interop                Do not include interop block
 --inlineDynamicImports      Create single bundle when using dynamic imports
