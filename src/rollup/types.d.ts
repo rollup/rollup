@@ -485,7 +485,6 @@ export interface OutputOptions {
 	freeze?: boolean;
 	globals?: GlobalsOption;
 	hoistTransitiveImports?: boolean;
-	importMetaUrl?: (chunkId: string, moduleId: string) => string;
 	indent?: boolean;
 	interop?: boolean;
 	intro?: string | (() => string | Promise<string>);
