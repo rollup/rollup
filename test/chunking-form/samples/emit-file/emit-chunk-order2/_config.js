@@ -32,11 +32,10 @@ console.log(id, value);
 				});
 			},
 			generateBundle(options, bundle) {
-				assert.deepStrictEqual(Object.keys(bundle).map(key => bundle[key].name), [
-					'main',
-					'dep',
-					'emitted'
-				]);
+				assert.deepStrictEqual(
+					Object.keys(bundle).map(key => bundle[key].name),
+					['main', 'emitted', 'emitted']
+				);
 			}
 		}
 	}

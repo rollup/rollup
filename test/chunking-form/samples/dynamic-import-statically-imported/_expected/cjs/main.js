@@ -1,5 +1,18 @@
 'use strict';
 
-var dep1 = require('./generated-dep1.js');
+function foo() {
+	return 'dep2';
+}
 
-console.log(dep1.foo(), dep1.bar());
+Promise.resolve().then(function () { return dep1; }).then(({ bar }) => console.log(bar()));
+
+function bar() {
+	return foo();
+}
+
+var dep1 = /*#__PURE__*/Object.freeze({
+	__proto__: null,
+	bar: bar
+});
+
+console.log(foo(), bar());

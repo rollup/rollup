@@ -1,9 +1,9 @@
 'use strict';
 
-var dep4 = require('./generated-dep4.js');
+var main = require('./generated-main.js');
 
 function mult (num) {
-  return num + dep4.multiplier;
+  return num + main.multiplier;
 }
 
 exports.mult = mult;

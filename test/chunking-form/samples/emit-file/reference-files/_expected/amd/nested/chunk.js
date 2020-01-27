@@ -1,4 +1,6 @@
-define(['exports'], function (exports) { 'use strict';
+define(['require', 'exports'], function (require, exports) { 'use strict';
+
+	var logo = new URL(require.toUrl('../assets/logo1-a5ec488b.svg'), document.baseURI).href;
 
 	function showImage(url) {
 		console.log(url);
@@ -8,6 +10,9 @@ define(['exports'], function (exports) { 'use strict';
 			document.body.appendChild(image);
 		}
 	}
+
+	showImage(logo);
+	new Promise(function (resolve, reject) { require(['./chunk2'], resolve, reject) });
 
 	exports.showImage = showImage;
 

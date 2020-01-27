@@ -1,1 +1,1 @@
-export { s as value } from './shared.js';
+export { s as value } from './main.js';

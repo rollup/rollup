@@ -1,12 +1,8 @@
-define(['require', 'exports', './chunks/shared'], function (require, exports, shared) { 'use strict';
+define(['exports', './chunks/main'], function (exports, main) { 'use strict';
 
-	assert.equal(shared.sharedValue, 'shared');
 
-	const promise = new Promise(function (resolve, reject) { require(['./chunks/other'], resolve, reject) }).then(result =>
-		assert.deepEqual(result, { value: 'shared' })
-	);
 
-	exports.promise = promise;
+	exports.promise = main.promise;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

@@ -1,4 +1,4 @@
-System.register([], function (exports) {
+System.register([], function (exports, module) {
 	'use strict';
 	return {
 		execute: function () {
@@ -12,6 +12,9 @@ System.register([], function (exports) {
 					document.body.innerHTML += url + '<br>';
 				}
 			}
+
+			log('main: ' + module.meta.url);
+			module.import('./chunk2.js');
 
 		}
 	};

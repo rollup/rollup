@@ -1,17 +1,12 @@
-System.register(['./chunks/shared.js'], function (exports, module) {
+System.register(['./chunks/main.js'], function (exports) {
 	'use strict';
-	var sharedValue;
 	return {
 		setters: [function (module) {
-			sharedValue = module.s;
+			exports('promise', module.p);
 		}],
 		execute: function () {
 
-			assert.equal(sharedValue, 'shared');
 
-			const promise = exports('promise', module.import('./chunks/other.js').then(result =>
-				assert.deepEqual(result, { value: 'shared' })
-			));
 
 		}
 	};

@@ -1,7 +1,7 @@
 'use strict';
 
-var shared = require('./shared.js');
+var main = require('./main.js');
 
 
 
-exports.value = shared.sharedValue;
+exports.value = main.sharedValue;

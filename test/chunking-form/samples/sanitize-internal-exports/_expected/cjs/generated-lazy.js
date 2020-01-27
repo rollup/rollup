@@ -1,7 +1,7 @@
 'use strict';
 
-var constants = require('./generated-constants.js');
+var main = require('./main.js');
 
-var lazy = () => constants.v1;
+var lazy = () => main.v1;
 
 exports.default = lazy;

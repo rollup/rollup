@@ -1,18 +1,25 @@
-System.register(['./generated-existing.js', './direct-relative-external', 'to-indirect-relative-external', 'direct-absolute-external', 'to-indirect-absolute-external'], function (exports, module) {
+System.register(['./direct-relative-external', 'to-indirect-relative-external', 'direct-absolute-external', 'to-indirect-absolute-external'], function (exports, module) {
 	'use strict';
 	return {
-		setters: [function () {}, function () {}, function () {}, function () {}, function () {}],
+		setters: [function () {}, function () {}, function () {}, function () {}],
 		execute: function () {
 
 			// nested
-			module.import('./generated-existing.js');
+			Promise.resolve().then(function () { return existing; });
 			module.import('./direct-relative-external');
 			module.import('to-indirect-relative-external');
 			module.import('direct-absolute-external');
 			module.import('to-indirect-absolute-external');
 
+			const value = 'existing';
+
+			var existing = /*#__PURE__*/Object.freeze({
+				__proto__: null,
+				value: value
+			});
+
 			//main
-			module.import('./generated-existing.js');
+			Promise.resolve().then(function () { return existing; });
 			module.import('./direct-relative-external');
 			module.import('to-indirect-relative-external');
 			module.import('direct-absolute-external');
@@ -20,7 +27,7 @@ System.register(['./generated-existing.js', './direct-relative-external', 'to-in
 
 			module.import('dynamic-direct-external' + unknown);
 			module.import('to-dynamic-indirect-external');
-			module.import('./generated-existing.js');
+			Promise.resolve().then(function () { return existing; });
 			module.import('my' + 'replacement');
 
 		}

@@ -2,9 +2,8 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var dep = require('../generated-dep.js');
+var buildStart = require('../generated-buildStart.js');
 
-const id = 'startBuild';
-console.log(id, dep.value);
 
-exports.id = id;
+
+exports.id = buildStart.id;

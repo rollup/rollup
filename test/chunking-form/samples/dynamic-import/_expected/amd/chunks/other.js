@@ -1,7 +1,7 @@
-define(['exports', './shared'], function (exports, shared) { 'use strict';
+define(['exports', './main'], function (exports, main) { 'use strict';
 
 
 
-	exports.value = shared.sharedValue;
+	exports.value = main.sharedValue;
 
 });
