@@ -844,8 +844,8 @@ describe('rollup.watch', () => {
 
 							// this should only update the hash of that particular entry point
 							sander.writeFileSync(
-								'test/_tmp/input/main-dynamic.js',
-								"export default import('./shared')\nconsole.log('main-dynamic')"
+								'test/_tmp/input/main-static.js',
+								"import {value} from './shared';\nexport default 2 * value;"
 							);
 						},
 						'START',
@@ -857,8 +857,8 @@ describe('rollup.watch', () => {
 								.readdirSync('test/_tmp/output')
 								.sort();
 							sander.rimrafSync('test/_tmp/output');
-							assert.strictEqual(newStaticName, staticName);
-							assert.notEqual(newDynamicName, dynamicName);
+							assert.notEqual(newStaticName, staticName);
+							assert.strictEqual(newDynamicName, dynamicName);
 							assert.strictEqual(newChunkName, chunkName);
 							staticName = newStaticName;
 

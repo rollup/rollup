@@ -25,9 +25,6 @@ export function randomUint8Array(len: number): Uint8Array {
 }
 
 export function Uint8ArrayXor(to: Uint8Array, from: Uint8Array): Uint8Array {
-	if (to.length !== from.length) {
-		throw new Error('Arrays are different sizes.');
-	}
 	for (let i = 0; i < to.length; i++) to[i] = to[i] ^ from[i];
 	return to;
 }
