@@ -1,14 +1,10 @@
-System.register(['./nested/chunk.js'], function (exports, module) {
+System.register(['./nested/chunk.js'], function () {
 	'use strict';
-	var log;
 	return {
-		setters: [function (module) {
-			log = module.l;
-		}],
+		setters: [function () {}],
 		execute: function () {
 
-			log('main: ' + module.meta.url);
-			module.import('./nested/chunk2.js');
+
 
 		}
 	};

@@ -1,11 +1,10 @@
-System.register(['./generated-dep.js', './custom/build-start-chunk.js'], function () {
+System.register(['./generated-buildStart.js'], function () {
 	'use strict';
-	var value, id;
+	var id, value;
 	return {
 		setters: [function (module) {
+			id = module.i;
 			value = module.v;
-		}, function (module) {
-			id = module.id;
 		}],
 		execute: function () {
 

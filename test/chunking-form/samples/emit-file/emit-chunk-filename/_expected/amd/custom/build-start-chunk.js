@@ -1,9 +1,8 @@
-define(['exports', '../generated-dep'], function (exports, dep) { 'use strict';
+define(['exports', '../generated-buildStart'], function (exports, buildStart) { 'use strict';
 
-	const id = 'startBuild';
-	console.log(id, dep.value);
 
-	exports.id = id;
+
+	exports.id = buildStart.id;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

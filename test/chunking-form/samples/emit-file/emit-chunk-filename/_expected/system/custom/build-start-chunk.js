@@ -1,14 +1,12 @@
-System.register(['../generated-dep.js'], function (exports) {
+System.register(['../generated-buildStart.js'], function (exports) {
 	'use strict';
-	var value;
 	return {
 		setters: [function (module) {
-			value = module.v;
+			exports('id', module.i);
 		}],
 		execute: function () {
 
-			const id = exports('id', 'startBuild');
-			console.log(id, value);
+
 
 		}
 	};

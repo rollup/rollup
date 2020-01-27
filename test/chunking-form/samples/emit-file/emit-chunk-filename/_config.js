@@ -17,11 +17,10 @@ module.exports = {
 				assert.strictEqual(this.getFileName(referenceId), 'custom/build-start-chunk.js');
 			},
 			generateBundle(options, bundle) {
-				assert.deepStrictEqual(Object.keys(bundle).map(key => bundle[key].name), [
-					'build-start-chunk',
-					'main',
-					'dep'
-				]);
+				assert.deepStrictEqual(
+					Object.keys(bundle).map(key => bundle[key].name),
+					['build-start-chunk', 'main', 'buildStart']
+				);
 			}
 		}
 	}

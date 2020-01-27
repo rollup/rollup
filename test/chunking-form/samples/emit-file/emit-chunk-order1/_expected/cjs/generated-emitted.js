@@ -1,10 +1,9 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
-var dep = require('./generated-dep.js');
+var value = 42;
 
 const id = 'emitted';
-console.log(id, dep.value);
+console.log(id, value);
 
 exports.id = id;
+exports.value = value;

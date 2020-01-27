@@ -1,4 +1,4 @@
-import { m as multiplier } from './generated-dep4.js';
+import { m as multiplier } from './generated-main.js';
 
 function mult (num) {
   return num + multiplier;
