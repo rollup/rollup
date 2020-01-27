@@ -15,19 +15,61 @@ export function assignChunkColouringHashes(
 		dependentEntryPointsByModule,
 		dynamicImportersByModule
 	);
+	const staticEntries = new Set(entryModules);
+
+	function addColourToModuleDependencies(
+		entry: Module,
+		colour: Uint8Array,
+		dynamicDependentEntryPoints: Set<Module> | null
+	) {
+		const manualChunkAlias = entry.manualChunkAlias;
+		const modulesToHandle = new Set([entry]);
+		for (const module of modulesToHandle) {
+			if (manualChunkAlias) {
+				module.manualChunkAlias = manualChunkAlias;
+				module.entryPointsHash = colour;
+			} else if (
+				dynamicDependentEntryPoints &&
+				areEntryPointsContainedOrDynamicallyDependent(
+					dynamicDependentEntryPoints,
+					dependentEntryPointsByModule.get(module)!
+				)
+			) {
+				continue;
+			} else {
+				Uint8ArrayXor(module.entryPointsHash, colour);
+			}
+			for (const dependency of module.dependencies) {
+				if (!(dependency instanceof ExternalModule || dependency.manualChunkAlias)) {
+					modulesToHandle.add(dependency);
+				}
+			}
+		}
+	}
+
+	function areEntryPointsContainedOrDynamicallyDependent(
+		entryPoints: Set<Module>,
+		superSet: Set<Module>
+	): boolean {
+		const entriesToCheck = new Set(entryPoints);
+		for (const entry of entriesToCheck) {
+			if (!superSet.has(entry)) {
+				if (staticEntries.has(entry)) return false;
+				const dynamicDependentEntryPoints = dynamicDependentEntryPointsByDynamicEntry.get(entry)!;
+				for (const dependentEntry of dynamicDependentEntryPoints) {
+					entriesToCheck.add(dependentEntry);
+				}
+			}
+		}
+		return true;
+	}
 
 	if (manualChunkModules) {
 		for (const chunkName of Object.keys(manualChunkModules)) {
 			const entryHash = randomUint8Array(10);
 
 			for (const entry of manualChunkModules[chunkName]) {
-				addColourToModuleDependencies(
-					entry,
-					entryHash,
-					null,
-					dependentEntryPointsByModule,
-					dynamicDependentEntryPointsByDynamicEntry
-				);
+				addColourToModuleDependencies(entry, entryHash, null);
 			}
 		}
 	}
@@ -35,13 +77,7 @@ export function assignChunkColouringHashes(
 	for (const entry of entryModules) {
 		if (!entry.manualChunkAlias) {
 			const entryHash = randomUint8Array(10);
-			addColourToModuleDependencies(
-				entry,
-				entryHash,
-				null,
-				dependentEntryPointsByModule,
-				dynamicDependentEntryPointsByDynamicEntry
-			);
+			addColourToModuleDependencies(entry, entryHash, null);
 		}
 	}
 
@@ -51,9 +87,7 @@ export function assignChunkColouringHashes(
 			addColourToModuleDependencies(
 				entry,
 				entryHash,
-				dynamicDependentEntryPointsByDynamicEntry.get(entry)!,
-				dependentEntryPointsByModule,
-				dynamicDependentEntryPointsByDynamicEntry
+				dynamicDependentEntryPointsByDynamicEntry.get(entry)!
 			);
 		}
 	}
@@ -115,62 +149,4 @@ function getDynamicDependentEntryPoints(
 		}
 	}
 	return dynamicDependentEntryPointsByDynamicEntry;
-}
-
-function addColourToModuleDependencies(
-	entry: Module,
-	colour: Uint8Array,
-	dynamicDependentEntryPoints: Set<Module> | null,
-	dependentEntryPointsByModule: DependentModuleMap,
-	dynamicDependentEntryPointsByDynamicEntry: DependentModuleMap
-) {
-	const manualChunkAlias = entry.manualChunkAlias;
-	const modulesToHandle = new Set([entry]);
-	for (const module of modulesToHandle) {
-		if (manualChunkAlias) {
-			module.manualChunkAlias = manualChunkAlias;
-			module.entryPointsHash = colour;
-		} else if (
-			dynamicDependentEntryPoints &&
-			areEntryPointsContainedOrDynamicallyDependent(
-				dynamicDependentEntryPoints,
-				dependentEntryPointsByModule.get(module)!,
-				dynamicDependentEntryPointsByDynamicEntry
-			)
-		) {
-			continue;
-		} else {
-			Uint8ArrayXor(module.entryPointsHash, colour);
-		}
-		for (const dependency of module.dependencies) {
-			if (!(dependency instanceof ExternalModule || dependency.manualChunkAlias)) {
-				modulesToHandle.add(dependency);
-			}
-		}
-	}
-}
-
-function areEntryPointsContainedOrDynamicallyDependent(
-	entryPoints: Set<Module>,
-	superSet: Set<Module>,
-	dynamicDependentEntryPointsByDynamicEntry: DependentModuleMap
-): boolean {
-	for (const module of entryPoints) {
-		if (!superSet.has(module)) {
-			const dynamicDependentEntryPoints = dynamicDependentEntryPointsByDynamicEntry.get(module);
-			if (
-				!(
-					dynamicDependentEntryPoints &&
-					areEntryPointsContainedOrDynamicallyDependent(
-						dynamicDependentEntryPoints,
-						superSet,
-						dynamicDependentEntryPointsByDynamicEntry
-					)
-				)
-			) {
-				return false;
-			}
-		}
-	}
-	return true;
 }
