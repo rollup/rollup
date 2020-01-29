@@ -1,2 +1,0 @@
-/* first plugin */
-/* second plugin */

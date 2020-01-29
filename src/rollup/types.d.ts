@@ -1,5 +1,4 @@
 import * as ESTree from 'estree';
-import { EventEmitter } from 'events';
 
 export const VERSION: string;
 
@@ -96,10 +95,6 @@ export interface SourceDescription {
 	syntheticNamedExports?: boolean;
 }
 
-export interface TransformSourceDescription extends SourceDescription {
-	dependencies?: string[];
-}
-
 export interface TransformModuleJSON {
 	ast: ESTree.Program;
 	code: string;
@@ -189,8 +184,6 @@ export interface PluginContext extends MinimalPluginContext {
 	resolveId: (source: string, importer: string) => Promise<string | null>;
 	setAssetSource: (assetReferenceId: string, source: string | Buffer) => void;
 	warn: (warning: RollupWarning | string, pos?: number | { column: number; line: number }) => void;
-	/** @deprecated Use `this.addWatchFile` and the `watchChange` hook instead  */
-	watcher: EventEmitter;
 }
 
 export interface PluginContextMeta {
@@ -237,23 +230,13 @@ type LoadResult = SourceDescription | string | null | undefined;
 
 export type LoadHook = (this: PluginContext, id: string) => Promise<LoadResult> | LoadResult;
 
-export type TransformResult = string | null | undefined | TransformSourceDescription;
+export type TransformResult = string | null | undefined | SourceDescription;
 
 export type TransformHook = (
 	this: PluginContext,
 	code: string,
 	id: string
 ) => Promise<TransformResult> | TransformResult;
-
-export type TransformChunkHook = (
-	this: PluginContext,
-	code: string,
-	options: OutputOptions
-) =>
-	| Promise<{ code: string; map?: SourceMapInput } | null | undefined>
-	| { code: string; map?: SourceMapInput }
-	| null
-	| undefined;
 
 export type RenderChunkHook = (
 	this: PluginContext,
@@ -329,14 +312,6 @@ export interface OutputBundleWithPlaceholders {
 	[fileName: string]: OutputAsset | OutputChunk | FilePlaceholder;
 }
 
-interface OnGenerateOptions extends OutputOptions {
-	bundle: OutputChunk;
-}
-
-interface OnWriteOptions extends OutputOptions {
-	bundle: RollupBuild;
-}
-
 interface OutputPluginHooks {
 	augmentChunkHash: (this: PluginContext, chunk: PreRenderedChunk) => string | void;
 	generateBundle: (
@@ -344,18 +319,6 @@ interface OutputPluginHooks {
 		options: OutputOptions,
 		bundle: OutputBundle,
 		isWrite: boolean
-	) => void | Promise<void>;
-	/** @deprecated Use `generateBundle` instead */
-	ongenerate: (
-		this: PluginContext,
-		options: OnGenerateOptions,
-		chunk: OutputChunk
-	) => void | Promise<void>;
-	/** @deprecated Use `writeBundle` instead */
-	onwrite: (
-		this: PluginContext,
-		options: OnWriteOptions,
-		chunk: OutputChunk
 	) => void | Promise<void>;
 	outputOptions: (this: PluginContext, options: OutputOptions) => OutputOptions | null | undefined;
 	renderChunk: RenderChunkHook;
@@ -369,10 +332,6 @@ interface OutputPluginHooks {
 	resolveAssetUrl: ResolveAssetUrlHook;
 	resolveDynamicImport: ResolveDynamicImportHook;
 	resolveFileUrl: ResolveFileUrlHook;
-	/** @deprecated Use `renderChunk` instead */
-	transformBundle: TransformChunkHook;
-	/** @deprecated Use `renderChunk` instead */
-	transformChunk: TransformChunkHook;
 	writeBundle: (this: PluginContext, bundle: OutputBundle) => void | Promise<void>;
 }
 

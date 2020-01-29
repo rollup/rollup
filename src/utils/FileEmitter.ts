@@ -330,7 +330,7 @@ export class FileEmitter {
 			get isAsset(): true {
 				graph.warnDeprecation(
 					'Accessing "isAsset" on files in the bundle is deprecated, please use "type === \'asset\'" instead',
-					false
+					true
 				);
 
 				return true;
