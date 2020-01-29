@@ -1,4 +1,3 @@
-import { EventEmitter } from 'events';
 import { version as rollupVersion } from 'package.json';
 import ExternalModule from '../ExternalModule';
 import Graph from '../Graph';
@@ -8,7 +7,6 @@ import {
 	PluginCache,
 	PluginContext,
 	RollupWarning,
-	RollupWatcher,
 	SerializablePluginCache
 } from '../rollup/types';
 import { BuildPhase } from './buildPhase';
@@ -48,8 +46,7 @@ function getDeprecatedContextHandler<H extends Function>(
 export function getPluginContexts(
 	pluginCache: Record<string, SerializablePluginCache> | void,
 	graph: Graph,
-	fileEmitter: FileEmitter,
-	watcher: RollupWatcher | null
+	fileEmitter: FileEmitter
 ): (plugin: Plugin, pluginIndex: number) => PluginContext {
 	const existingPluginNames = new Set<string>();
 	return (plugin, pidx) => {
@@ -92,7 +89,7 @@ export function getPluginContexts(
 				'emitAsset',
 				'emitFile',
 				plugin.name,
-				false,
+				true,
 				graph
 			),
 			emitChunk: getDeprecatedContextHandler(
@@ -101,7 +98,7 @@ export function getPluginContexts(
 				'emitChunk',
 				'emitFile',
 				plugin.name,
-				false,
+				true,
 				graph
 			),
 			emitFile: fileEmitter.emitFile,
@@ -113,7 +110,7 @@ export function getPluginContexts(
 				'getAssetFileName',
 				'getFileName',
 				plugin.name,
-				false,
+				true,
 				graph
 			),
 			getChunkFileName: getDeprecatedContextHandler(
@@ -121,7 +118,7 @@ export function getPluginContexts(
 				'getChunkFileName',
 				'getFileName',
 				plugin.name,
-				false,
+				true,
 				graph
 			),
 			getFileName: fileEmitter.getFileName,
@@ -148,7 +145,7 @@ export function getPluginContexts(
 				'isExternal',
 				'resolve',
 				plugin.name,
-				false,
+				true,
 				graph
 			),
 			meta: {
@@ -173,7 +170,7 @@ export function getPluginContexts(
 				'resolveId',
 				'resolve',
 				plugin.name,
-				false,
+				true,
 				graph
 			),
 			setAssetSource: fileEmitter.setAssetSource,
@@ -183,29 +180,7 @@ export function getPluginContexts(
 				warning.code = 'PLUGIN_WARNING';
 				warning.plugin = plugin.name;
 				graph.warn(warning);
-			},
-			watcher: watcher
-				? (() => {
-						let deprecationWarningShown = false;
-
-						function deprecatedWatchListener(event: string, handler: () => void): EventEmitter {
-							if (!deprecationWarningShown) {
-								context.warn({
-									code: 'PLUGIN_WATCHER_DEPRECATED',
-									message: `this.watcher usage is deprecated in plugins. Use the watchChange plugin hook and this.addWatchFile() instead.`
-								});
-								deprecationWarningShown = true;
-							}
-							return watcher!.on(event as any, handler);
-						}
-
-						return {
-							...(watcher as EventEmitter),
-							addListener: deprecatedWatchListener,
-							on: deprecatedWatchListener
-						};
-				  })()
-				: (undefined as any)
+			}
 		};
 		return context;
 	};

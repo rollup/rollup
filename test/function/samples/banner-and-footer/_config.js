@@ -1,8 +1,10 @@
 module.exports = {
 	description: 'adds a banner/footer',
 	options: {
-		banner: '/* this is a banner */',
-		footer: () => Promise.resolve('/* this is a footer */'),
+		output: {
+			banner: '/* this is a banner */',
+			footer: () => Promise.resolve('/* this is a footer */')
+		},
 		plugins: [
 			{
 				banner: '/* first banner */',

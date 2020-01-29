@@ -3,6 +3,7 @@ const path = require('path');
 
 module.exports = {
 	description: 'supports emitting assets from plugin hooks',
+	expectedWarnings: ['DEPRECATED_FEATURE'],
 	options: {
 		strictDeprecations: false,
 		input: ['main.js'],

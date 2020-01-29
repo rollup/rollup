@@ -1,4 +1,3 @@
-import Chunk from '../Chunk';
 import {
 	DecodedSourceMapOrMissing,
 	OutputOptions,
@@ -7,18 +6,15 @@ import {
 	SourceMapInput
 } from '../rollup/types';
 import { decodedSourcemap } from './decodedSourcemap';
-import { error } from './error';
 import { PluginDriver } from './PluginDriver';
 
 export default function renderChunk({
-	chunk,
 	code,
 	options,
 	outputPluginDriver,
 	renderChunk,
 	sourcemapChain
 }: {
-	chunk: Chunk;
 	code: string;
 	options: OutputOptions;
 	outputPluginDriver: PluginDriver;
@@ -47,33 +43,9 @@ export default function renderChunk({
 		return result.code;
 	};
 
-	let inTransformBundle = false;
-	let inRenderChunk = true;
-	return outputPluginDriver
-		.hookReduceArg0('renderChunk', [code, renderChunk, options], renderChunkReducer)
-		.then(code => {
-			inRenderChunk = false;
-			return outputPluginDriver.hookReduceArg0(
-				'transformChunk',
-				[code, options, chunk],
-				renderChunkReducer
-			);
-		})
-		.then(code => {
-			inTransformBundle = true;
-			return outputPluginDriver.hookReduceArg0(
-				'transformBundle',
-				[code, options, chunk],
-				renderChunkReducer
-			);
-		})
-		.catch(err => {
-			if (inRenderChunk) throw err;
-			return error(err, {
-				code: inTransformBundle ? 'BAD_BUNDLE_TRANSFORMER' : 'BAD_CHUNK_TRANSFORMER',
-				message: `Error transforming ${(inTransformBundle ? 'bundle' : 'chunk') +
-					(err.plugin ? ` with '${err.plugin}' plugin` : '')}: ${err.message}`,
-				plugin: err.plugin
-			});
-		});
+	return outputPluginDriver.hookReduceArg0(
+		'renderChunk',
+		[code, renderChunk, options],
+		renderChunkReducer
+	);
 }

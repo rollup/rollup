@@ -9,7 +9,8 @@ import {
 	RollupWatcher,
 	WatcherOptions
 } from '../rollup/types';
-import mergeOptions, { GenericConfigObject } from '../utils/mergeOptions';
+import { mergeOptions } from '../utils/mergeOptions';
+import { GenericConfigObject } from '../utils/parseOptions';
 import { FileWatcher } from './fileWatcher';
 
 const DELAY = 200;
@@ -116,9 +117,7 @@ export class Task {
 		this.closed = false;
 		this.watched = new Set();
 
-		const { inputOptions, outputOptions } = mergeOptions({
-			config
-		});
+		const { inputOptions, outputOptions } = mergeOptions(config);
 		this.inputOptions = inputOptions;
 		this.outputs = outputOptions;
 		this.outputFiles = this.outputs.map(output => {

@@ -18,7 +18,7 @@ module.exports = commands => ({
 		assert.equal(warning.code, 'UNKNOWN_OPTION');
 		assert.equal(
 			warning.message,
-			`Unknown CLI flag: unknownOption. Allowed options: ${
+			`Unknown CLI flags: unknownOption. Allowed options: ${
 				require('../../../misc/optionList').flags
 			}`
 		);

@@ -26,11 +26,7 @@ export function throwPluginError(
 }
 
 export const deprecatedHooks: { active: boolean; deprecated: string; replacement: string }[] = [
-	{ active: true, deprecated: 'ongenerate', replacement: 'generateBundle' },
-	{ active: true, deprecated: 'onwrite', replacement: 'generateBundle/writeBundle' },
-	{ active: true, deprecated: 'transformBundle', replacement: 'renderChunk' },
-	{ active: true, deprecated: 'transformChunk', replacement: 'renderChunk' },
-	{ active: false, deprecated: 'resolveAssetUrl', replacement: 'resolveFileUrl' }
+	{ active: true, deprecated: 'resolveAssetUrl', replacement: 'resolveFileUrl' }
 ];
 
 export function warnDeprecatedHooks(plugins: Plugin[], graph: Graph) {
