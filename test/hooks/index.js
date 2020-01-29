@@ -786,6 +786,12 @@ describe('hooks', () => {
 							this.cache.set('asdf', 'asdf');
 							return `alert('hello world')`;
 						}
+					},
+					{
+						name: 'y',
+						transform(code) {
+							return code + `;alert('world')`;
+						}
 					}
 				]
 			})
@@ -804,6 +810,12 @@ describe('hooks', () => {
 								assert.ok(!this.cache.has('asdf'));
 								return `alert('hello')`;
 							}
+						},
+						{
+							name: 'y',
+							transform(code) {
+								return code + `;alert('world')`;
+							}
 						}
 					]
 				})
@@ -814,7 +826,7 @@ describe('hooks', () => {
 				})
 			)
 			.then(({ output }) => {
-				assert.strictEqual(output[0].code.trim(), `alert('hello');`);
+				assert.strictEqual(output[0].code.trim(), `alert('hello');alert('world');`);
 			}));
 
 	it('supports renderStart hook', () => {
@@ -890,51 +902,6 @@ describe('hooks', () => {
 			});
 	});
 
-	it('Warns once when using deprecated this.watcher in plugins', () => {
-		const warnings = [];
-		const watcher = rollup.watch({
-			input: 'input',
-			onwarn(warning) {
-				warnings.push(warning);
-			},
-			output: {
-				format: 'esm'
-			},
-			plugins: [
-				loader({ input: `alert('hello')` }),
-				{
-					name: 'x',
-					buildStart() {
-						this.watcher.on('change', () => {});
-						this.watcher.on('change', () => {});
-					}
-				}
-			]
-		});
-		return new Promise((resolve, reject) => {
-			watcher.on('event', event => {
-				if (event.code === 'BUNDLE_END') resolve();
-				else if (event.code === 'ERROR') reject(event.error);
-			});
-		})
-			.catch(err => {
-				watcher.close();
-				assert.strictEqual(
-					err.message,
-					'You must specify "output.file" or "output.dir" for the build.'
-				);
-				assert.strictEqual(warnings.length, 1);
-				const warning = warnings[0];
-				assert.strictEqual(warning.code, 'PLUGIN_WARNING');
-				assert.strictEqual(warning.pluginCode, 'PLUGIN_WATCHER_DEPRECATED');
-				assert.strictEqual(
-					warning.message,
-					'this.watcher usage is deprecated in plugins. Use the watchChange plugin hook and this.addWatchFile() instead.'
-				);
-			})
-			.then(() => watcher.close());
-	});
-
 	it('Throws when not specifying "file" or "dir"', () => {
 		const watcher = rollup.watch({
 			input: 'input',
@@ -978,7 +945,7 @@ describe('hooks', () => {
 				watcher.close();
 				assert.strictEqual(
 					err.message,
-					'You must set "output.dir" instead of "output.file" when generating multiple chunks.'
+					'When building multiple chunks, the "output.dir" option must be used, not "output.file". To inline dynamic imports, set the "inlineDynamicImports" option.'
 				);
 			})
 			.then(() => watcher.close());
@@ -1077,7 +1044,7 @@ describe('hooks', () => {
 						input: `alert('hello')`
 					}),
 					{
-						augmentChunkHash(update) {
+						augmentChunkHash() {
 							augmentChunkHashCalls++;
 							assert(this.meta);
 							assert(this.meta.rollupVersion);
@@ -1097,184 +1064,30 @@ describe('hooks', () => {
 			});
 	});
 
+	it('passes bundle object to generateBundle hook', () =>
+		rollup
+			.rollup({
+				input: 'input',
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						transform() {
+							const assetId = this.emitAsset('test.ext', 'hello world');
+							return `export default import.meta.ROLLUP_ASSET_URL_${assetId};`;
+						},
+						generateBundle(options, outputBundle, isWrite) {
+							assert.strictEqual(outputBundle['assets/test-0a676135.ext'].source, 'hello world');
+							assert.strictEqual(
+								outputBundle['input.js'].code,
+								`var input = new URL('assets/test-0a676135.ext', import.meta.url).href;\n\nexport default input;\n`
+							);
+						}
+					}
+				]
+			})
+			.then(bundle => bundle.generate({ format: 'es' })));
+
 	describe('deprecated', () => {
-		it('passes bundle & output object to ongenerate & onwrite hooks, with deprecation warnings', () => {
-			let deprecationCnt = 0;
-
-			return rollup
-				.rollup({
-					input: 'input',
-					onwarn(warning) {
-						deprecationCnt++;
-						if (deprecationCnt === 1) {
-							assert.strictEqual(warning.code, 'DEPRECATED_FEATURE');
-							assert.strictEqual(
-								warning.message,
-								'The "ongenerate" hook used by plugin at position 2 is deprecated. The "generateBundle" hook should be used instead.'
-							);
-						} else {
-							assert.strictEqual(warning.code, 'DEPRECATED_FEATURE');
-							assert.strictEqual(
-								warning.message,
-								'The "onwrite" hook used by plugin at position 2 is deprecated. The "generateBundle/writeBundle" hook should be used instead.'
-							);
-						}
-					},
-					plugins: [
-						loader({ input: `alert('hello')` }),
-						{
-							ongenerate(bundle, out) {
-								out.ongenerate = true;
-							},
-
-							onwrite(bundle, out) {
-								assert.strictEqual(out.ongenerate, true);
-							}
-						}
-					]
-				})
-				.then(bundle =>
-					bundle.write({
-						file: path.join(TEMP_DIR, 'bundle.js'),
-						format: 'es'
-					})
-				)
-				.then(() => {
-					assert.strictEqual(deprecationCnt, 2);
-					return sander.rimraf(TEMP_DIR);
-				});
-		});
-
-		it('calls ongenerate hooks in sequence', () => {
-			const result = [];
-
-			return rollup
-				.rollup({
-					input: 'input',
-					plugins: [
-						loader({ input: `alert('hello')` }),
-						{
-							ongenerate(info) {
-								result.push({ a: info.format });
-							}
-						},
-						{
-							ongenerate(info) {
-								result.push({ b: info.format });
-							}
-						}
-					]
-				})
-				.then(bundle => bundle.generate({ format: 'cjs' }))
-				.then(() => {
-					assert.deepEqual(result, [{ a: 'cjs' }, { b: 'cjs' }]);
-				});
-		});
-
-		it('calls onwrite hooks in sequence', () => {
-			const result = [];
-			const file = path.join(TEMP_DIR, 'bundle.js');
-
-			return rollup
-				.rollup({
-					input: 'input',
-					plugins: [
-						loader({ input: `alert('hello')` }),
-						{
-							onwrite(info) {
-								return new Promise(fulfil => {
-									setTimeout(() => {
-										result.push({ a: info.file, format: info.format });
-										fulfil();
-									}, 10);
-								});
-							}
-						},
-						{
-							onwrite(info) {
-								result.push({ b: info.file, format: info.format });
-							}
-						}
-					]
-				})
-				.then(bundle =>
-					bundle.write({
-						file,
-						format: 'cjs'
-					})
-				)
-				.then(() => {
-					assert.deepEqual(result, [
-						{ a: file, format: 'cjs' },
-						{ b: file, format: 'cjs' }
-					]);
-					return sander.rimraf(TEMP_DIR);
-				});
-		});
-
-		it('supports transformChunk in place of transformBundle, with deprecation warning', () => {
-			let calledHook = false;
-			let deprecationCnt = 0;
-			return rollup
-				.rollup({
-					input: 'input',
-					onwarn(warning) {
-						deprecationCnt++;
-						assert.strictEqual(warning.code, 'DEPRECATED_FEATURE');
-						assert.strictEqual(
-							warning.message,
-							'The "transformChunk" hook used by plugin at position 2 is deprecated. The "renderChunk" hook should be used instead.'
-						);
-					},
-					plugins: [
-						loader({ input: `alert('hello')` }),
-						{
-							transformChunk(code, id) {
-								calledHook = true;
-								try {
-									this.emitAsset('test.ext', 'hello world');
-								} catch (e) {
-									assert.strictEqual(e.code, 'ASSETS_ALREADY_FINALISED');
-								}
-							}
-						}
-					]
-				})
-				.then(bundle =>
-					bundle.generate({
-						format: 'es',
-						assetFileNames: '[name][extname]'
-					})
-				)
-				.then(() => {
-					assert.strictEqual(deprecationCnt, 1);
-					assert.strictEqual(calledHook, true);
-				});
-		});
-
-		it('passes bundle object to generateBundle hook', () =>
-			rollup
-				.rollup({
-					input: 'input',
-					plugins: [
-						loader({ input: `alert('hello')` }),
-						{
-							transform() {
-								const assetId = this.emitAsset('test.ext', 'hello world');
-								return `export default import.meta.ROLLUP_ASSET_URL_${assetId};`;
-							},
-							generateBundle(options, outputBundle, isWrite) {
-								assert.strictEqual(outputBundle['assets/test-0a676135.ext'].source, 'hello world');
-								assert.strictEqual(
-									outputBundle['input.js'].code,
-									`var input = new URL('assets/test-0a676135.ext', import.meta.url).href;\n\nexport default input;\n`
-								);
-							}
-						}
-					]
-				})
-				.then(bundle => bundle.generate({ format: 'es' })));
-
 		it('caches chunk emission in transform hook', () => {
 			let cache;
 			return rollup

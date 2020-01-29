@@ -87,12 +87,9 @@ export let timeStart: (label: string, level?: number) => void = NOOP,
 
 const TIMED_PLUGIN_HOOKS: { [hook: string]: boolean } = {
 	load: true,
-	ongenerate: true,
-	onwrite: true,
 	resolveDynamicImport: true,
 	resolveId: true,
-	transform: true,
-	transformBundle: true
+	transform: true
 };
 
 function getPluginWithTimers(plugin: any, index: number): Plugin {

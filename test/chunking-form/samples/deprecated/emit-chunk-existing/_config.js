@@ -1,5 +1,6 @@
 module.exports = {
 	description: 'allows adding modules already in the graph as entry points',
+	expectedWarnings: ['DEPRECATED_FEATURE'],
 	options: {
 		strictDeprecations: false,
 		input: {
