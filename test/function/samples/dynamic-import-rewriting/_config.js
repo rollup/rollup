@@ -6,7 +6,7 @@ module.exports = {
 		external: ['asdf'],
 		plugins: [
 			{
-				resolveDynamicImport(specifier, parent) {
+				resolveDynamicImport() {
 					return 'asdf';
 				}
 			}
