@@ -3,6 +3,7 @@ let referenceId;
 
 module.exports = {
 	description: 'retrieves the correct name of an emitted chunk in case a facade is created',
+	expectedWarnings: ['DEPRECATED_FEATURE'],
 	options: {
 		strictDeprecations: false,
 		input: 'main',

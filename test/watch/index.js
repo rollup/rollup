@@ -1051,6 +1051,8 @@ describe('rollup.watch', () => {
 							}
 						}
 					});
+					const events = [];
+					watcher.on('event', event => events.push(event.code));
 
 					return sequence(watcher, [
 						'START',
@@ -1059,6 +1061,7 @@ describe('rollup.watch', () => {
 						'END',
 						() => {
 							assert.strictEqual(run('../_tmp/output/bundle.js'), 'initial');
+							addWatchFile = false;
 							sander.writeFileSync('test/_tmp/input/watched', 'next');
 						},
 						'START',
@@ -1072,7 +1075,8 @@ describe('rollup.watch', () => {
 				});
 		});
 
-		it('respects changed watched files in the transform hook', () => {
+		it('respects changed watched files in the transform hook and removes them if they are no longer watched', () => {
+			let addWatchFile = true;
 			return sander
 				.copydir('test/watch/samples/watch-files')
 				.to('test/_tmp/input')
@@ -1098,7 +1102,9 @@ describe('rollup.watch', () => {
 								if (id.endsWith('main.js')) {
 									return `export { value as default } from 'dep';`;
 								} else {
-									this.addWatchFile('test/_tmp/input/watched');
+									if (addWatchFile) {
+										this.addWatchFile('test/_tmp/input/watched');
+									}
 									return `export const value = "${sander
 										.readFileSync('test/_tmp/input/watched')
 										.toString()
@@ -1123,6 +1129,9 @@ describe('rollup.watch', () => {
 						'END',
 						() => {
 							assert.strictEqual(run('../_tmp/output/bundle.js'), 'next');
+							sander.writeFileSync('test/_tmp/input/watched', 'other');
+							events.length = 0;
+							return wait(400).then(() => assert.deepStrictEqual(events, []));
 						}
 					]);
 				});
@@ -1130,7 +1139,7 @@ describe('rollup.watch', () => {
 
 		it('respects changed watched modules that are already part of the graph in the transform hook', () => {
 			return sander
-				.copydir('test/watch/samples/watch-files')
+				.copydir('test/watch/samples/dependencies')
 				.to('test/_tmp/input')
 				.then(() => {
 					watcher = rollup.watch({
@@ -1140,12 +1149,15 @@ describe('rollup.watch', () => {
 							format: 'cjs'
 						},
 						plugins: {
-							transform() {
-								this.addWatchFile('test/_tmp/input/main.js');
-								return `export default "${sander
-									.readFileSync('test/_tmp/input/main.js')
-									.toString()
-									.trim()}"`;
+							transform(code, id) {
+								if (id.endsWith('dep1.js')) {
+									this.addWatchFile(path.resolve('test/_tmp/input/dep2.js'));
+									const text = sander
+										.readFileSync('test/_tmp/input/dep2.js')
+										.toString()
+										.trim();
+									return `export default ${JSON.stringify(text)}`;
+								}
 							}
 						}
 					});
@@ -1156,15 +1168,21 @@ describe('rollup.watch', () => {
 						'BUNDLE_END',
 						'END',
 						() => {
-							assert.strictEqual(run('../_tmp/output/bundle.js'), 'export default 42;');
-							sander.writeFileSync('test/_tmp/input/main.js', 'next');
+							assert.strictEqual(
+								run('../_tmp/output/bundle.js'),
+								`dep1: "export default 'dep2';", dep2: "dep2"`
+							);
+							sander.writeFileSync('test/_tmp/input/dep2.js', 'export default "next";');
 						},
 						'START',
 						'BUNDLE_START',
 						'BUNDLE_END',
 						'END',
 						() => {
-							assert.strictEqual(run('../_tmp/output/bundle.js'), 'next');
+							assert.strictEqual(
+								run('../_tmp/output/bundle.js'),
+								`dep1: "export default "next";", dep2: "next"`
+							);
 						}
 					]);
 				});
@@ -1254,381 +1272,6 @@ describe('rollup.watch', () => {
 						'END',
 						() => {
 							assert.strictEqual(transformRuns, 1);
-						}
-					]);
-				});
-		});
-	});
-
-	describe('deprecated features', () => {
-		it('provides the watcher through the plugin context', () => {
-			const events = [];
-			return sander
-				.copydir('test/watch/samples/basic')
-				.to('test/_tmp/input')
-				.then(() => {
-					watcher = rollup.watch({
-						input: 'test/_tmp/input/main.js',
-						output: {
-							file: 'test/_tmp/output/bundle.js',
-							format: 'cjs'
-						},
-						onwarn(warning) {
-							assert.strictEqual(
-								warning.message,
-								'this.watcher usage is deprecated in plugins. Use the watchChange plugin hook and this.addWatchFile() instead.'
-							);
-						},
-						plugins: {
-							buildStart(id) {
-								if (!this.watcher) throw new Error('No Watcher');
-
-								this.watcher.on('event', event => {
-									events.push(event);
-								});
-							}
-						}
-					});
-
-					return sequence(watcher, [
-						'START',
-						'BUNDLE_START',
-						'BUNDLE_END',
-						'END',
-						() => {
-							assert.strictEqual(events.length, 2);
-							assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-							sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
-						},
-						'START',
-						'BUNDLE_START',
-						'BUNDLE_END',
-						'END',
-						() => {
-							assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
-							assert.strictEqual(events.length, 8);
-						}
-					]);
-				});
-		});
-
-		it('watches and rebuilds transform dependencies', () => {
-			return sander
-				.copydir('test/watch/samples/watch-files')
-				.to('test/_tmp/input')
-				.then(() => {
-					watcher = rollup.watch({
-						input: 'test/_tmp/input/main.js',
-						output: {
-							file: 'test/_tmp/output/bundle.js',
-							format: 'cjs'
-						},
-						plugins: {
-							transform() {
-								return {
-									code: `export default "${sander
-										.readFileSync('test/_tmp/input/watched')
-										.toString()
-										.trim()}"`,
-									dependencies: ['./watched']
-								};
-							}
-						}
-					});
-
-					return sequence(watcher, [
-						'START',
-						'BUNDLE_START',
-						'BUNDLE_END',
-						'END',
-						() => {
-							assert.strictEqual(run('../_tmp/output/bundle.js'), 'initial');
-							sander.writeFileSync('test/_tmp/input/watched', 'next');
-						},
-						'START',
-						'BUNDLE_START',
-						'BUNDLE_END',
-						'END',
-						() => {
-							assert.strictEqual(run('../_tmp/output/bundle.js'), 'next');
-						}
-					]);
-				});
-		});
-
-		it('watches and rebuilds transform dependencies that are modules', () => {
-			return sander
-				.copydir('test/watch/samples/watch-files')
-				.to('test/_tmp/input')
-				.then(() => {
-					watcher = rollup.watch({
-						input: 'test/_tmp/input/main.js',
-						output: {
-							file: 'test/_tmp/output/bundle.js',
-							format: 'cjs'
-						},
-						plugins: {
-							transform() {
-								const dependencies = ['./main.js'];
-								const text = sander
-									.readFileSync('test/_tmp/input/main.js')
-									.toString()
-									.trim();
-								return { code: `export default "${text}"`, dependencies };
-							}
-						}
-					});
-
-					return sequence(watcher, [
-						'START',
-						'BUNDLE_START',
-						'BUNDLE_END',
-						'END',
-						() => {
-							assert.strictEqual(run('../_tmp/output/bundle.js'), 'export default 42;');
-							sander.writeFileSync('test/_tmp/input/main.js', 'next');
-						},
-						'START',
-						'BUNDLE_START',
-						'BUNDLE_END',
-						'END',
-						() => {
-							assert.strictEqual(run('../_tmp/output/bundle.js'), 'next');
-						}
-					]);
-				});
-		});
-
-		it('watches and rebuilds transform dependencies directories', () => {
-			let v = 1;
-			return sander
-				.copydir('test/watch/samples/watch-files')
-				.to('test/_tmp/input')
-				.then(() => {
-					watcher = rollup.watch({
-						input: 'test/_tmp/input/main.js',
-						output: {
-							file: 'test/_tmp/output/bundle.js',
-							format: 'cjs'
-						},
-						plugins: {
-							transform() {
-								const dependencies = ['./'];
-								return { code: `export default ${v++}`, dependencies };
-							}
-						}
-					});
-
-					return sequence(watcher, [
-						'START',
-						'BUNDLE_START',
-						'BUNDLE_END',
-						'END',
-						() => {
-							assert.strictEqual(run('../_tmp/output/bundle.js'), 1);
-							sander.unlinkSync('test/_tmp/input/watched');
-						},
-						'START',
-						'BUNDLE_START',
-						'BUNDLE_END',
-						'END',
-						() => {
-							assert.strictEqual(run('../_tmp/output/bundle.js'), 2);
-							watcher.close();
-						}
-					]);
-				});
-		});
-
-		it('watches and rebuilds transform dependencies, with transform cache opt-out for custom cache', () => {
-			const file = 'test/_tmp/input/watched';
-			let v = 1;
-			return sander
-				.copydir('test/watch/samples/watch-files')
-				.to('test/_tmp/input')
-				.then(() => {
-					watcher = rollup.watch({
-						input: 'test/_tmp/input/main.js',
-						output: {
-							file: 'test/_tmp/output/bundle.js',
-							format: 'cjs'
-						},
-						plugins: {
-							name: 'x',
-							buildStart() {
-								try {
-									const text = sander.readFileSync(file).toString();
-									this.emitAsset('test', text);
-								} catch (err) {
-									if (err.code !== 'ENOENT') throw err;
-								}
-							},
-							transform() {
-								this.cache.set('someValue', 'someContent');
-								return { code: `export default ${v++}`, dependencies: [path.resolve(file)] };
-							}
-						}
-					});
-
-					return sequence(watcher, [
-						'START',
-						'BUNDLE_START',
-						'BUNDLE_END',
-						'END',
-						() => {
-							assert.strictEqual(run('../_tmp/output/bundle.js'), 1);
-							sander.unlinkSync('test/_tmp/input/watched');
-						},
-						'START',
-						'BUNDLE_START',
-						'BUNDLE_END',
-						'END',
-						() => {
-							assert.strictEqual(run('../_tmp/output/bundle.js'), 2);
-						}
-					]);
-				});
-		});
-
-		it('watches and rebuilds asset transform dependencies', () => {
-			let v = 1;
-			return sander
-				.copydir('test/watch/samples/watch-files')
-				.to('test/_tmp/input')
-				.then(() => {
-					watcher = rollup.watch({
-						input: 'test/_tmp/input/main.js',
-						output: {
-							file: 'test/_tmp/output/bundle.js',
-							format: 'cjs'
-						},
-						plugins: {
-							transform() {
-								const file = 'test/_tmp/input/watched';
-								try {
-									const text = sander.readFileSync(file).toString();
-									this.emitAsset('test', text);
-								} catch (err) {
-									if (err.code !== 'ENOENT') throw err;
-									this.emitAsset('test', 'test');
-								}
-								return {
-									code: `export default ${v++}`,
-									dependencies: v === 2 ? [path.resolve(file)] : []
-								};
-							}
-						}
-					});
-
-					return sequence(watcher, [
-						'START',
-						'BUNDLE_START',
-						'BUNDLE_END',
-						'END',
-						() => {
-							assert.strictEqual(run('../_tmp/output/bundle.js'), 1);
-							sander.unlinkSync('test/_tmp/input/watched');
-						},
-						'START',
-						'BUNDLE_START',
-						'BUNDLE_END',
-						'END',
-						() => {
-							assert.strictEqual(run('../_tmp/output/bundle.js'), 2);
-						}
-					]);
-				});
-		});
-
-		it('watches and rebuilds transform dependencies created and removed between runs', () => {
-			let v = 1;
-			return sander
-				.copydir('test/watch/samples/watch-files')
-				.to('test/_tmp/input')
-				.then(() => {
-					watcher = rollup.watch({
-						input: 'test/_tmp/input/main.js',
-						output: {
-							file: 'test/_tmp/output/bundle.js',
-							format: 'cjs'
-						},
-						plugins: {
-							transform() {
-								let dependencies = [];
-								if (v === 2) dependencies = ['./watched'];
-								return { code: `export default ${v++}`, dependencies };
-							}
-						}
-					});
-
-					return sequence(watcher, [
-						'START',
-						'BUNDLE_START',
-						'BUNDLE_END',
-						'END',
-						() => {
-							assert.strictEqual(run('../_tmp/output/bundle.js'), 1);
-							sander.writeFileSync('test/_tmp/input/main.js', 'next');
-						},
-						'START',
-						'BUNDLE_START',
-						'BUNDLE_END',
-						'END',
-						() => {
-							assert.strictEqual(run('../_tmp/output/bundle.js'), 2);
-							sander.unlinkSync('test/_tmp/input/watched');
-						},
-						'START',
-						'BUNDLE_START',
-						'BUNDLE_END',
-						'END',
-						() => {
-							assert.strictEqual(run('../_tmp/output/bundle.js'), 3);
-							sander.writeFileSync('test/_tmp/input/watched', 'ignored');
-							return new Promise(resolve => setTimeout(resolve, 50));
-						}
-					]);
-				});
-		});
-
-		it('watches transform dependencies when there are multiple modules', () => {
-			let v = 1;
-			return sander
-				.copydir('test/watch/samples/watch-files-multiple')
-				.to('test/_tmp/input')
-				.then(() => {
-					watcher = rollup.watch({
-						input: 'test/_tmp/input/index.js',
-						output: {
-							file: 'test/_tmp/output/bundle.js',
-							format: 'cjs'
-						},
-						plugins: {
-							transform(code, id) {
-								if (!id.includes('dep.txt')) {
-									return;
-								}
-								this.addWatchFile('test/_tmp/input/depdep.txt');
-								return `export default ${v++};`;
-							}
-						}
-					});
-
-					return sequence(watcher, [
-						'START',
-						'BUNDLE_START',
-						'BUNDLE_END',
-						'END',
-						() => {
-							assert.deepStrictEqual(run('../_tmp/output/bundle.js'), { dep: 1, first: 'b' });
-							sander.writeFileSync('test/_tmp/input/depdep.txt', 'changed');
-						},
-						'START',
-						'BUNDLE_START',
-						'BUNDLE_END',
-						'END',
-						() => {
-							assert.deepStrictEqual(run('../_tmp/output/bundle.js'), { dep: 2, first: 'b' });
 						}
 					]);
 				});

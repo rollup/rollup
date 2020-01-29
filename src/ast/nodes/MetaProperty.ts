@@ -80,14 +80,14 @@ export default class MetaProperty extends NodeBase {
 			} else if (metaProperty.startsWith(ASSET_PREFIX)) {
 				this.context.warnDeprecation(
 					`Using the "${ASSET_PREFIX}" prefix to reference files is deprecated. Use the "${FILE_PREFIX}" prefix instead.`,
-					false
+					true
 				);
 				assetReferenceId = metaProperty.substr(ASSET_PREFIX.length);
 				fileName = outputPluginDriver.getFileName(assetReferenceId);
 			} else {
 				this.context.warnDeprecation(
 					`Using the "${CHUNK_PREFIX}" prefix to reference files is deprecated. Use the "${FILE_PREFIX}" prefix instead.`,
-					false
+					true
 				);
 				chunkReferenceId = metaProperty.substr(CHUNK_PREFIX.length);
 				fileName = outputPluginDriver.getFileName(chunkReferenceId);

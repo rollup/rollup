@@ -1,5 +1,5 @@
 module.exports = {
-	description: 'uses config file installed from npm',
+	description: 'uses config file installed from npm, automatically adding a rollup-config- prefix',
 	command: 'rollup --config node:foo',
 	execute: true
 };
