@@ -25,29 +25,25 @@ export function createPluginCache(cache: SerializablePluginCache): PluginCache {
 	};
 }
 
-export function getTrackedPluginCache(pluginCache: PluginCache) {
-	const trackedCache = {
-		cache: {
-			has(id: string) {
-				trackedCache.used = true;
-				return pluginCache.has(id);
-			},
-			get(id: string) {
-				trackedCache.used = true;
-				return pluginCache.get(id);
-			},
-			set(id: string, value: any) {
-				trackedCache.used = true;
-				return pluginCache.set(id, value);
-			},
-			delete(id: string) {
-				trackedCache.used = true;
-				return pluginCache.delete(id);
-			}
+export function getTrackedPluginCache(pluginCache: PluginCache, onUse: () => void): PluginCache {
+	return {
+		has(id: string) {
+			onUse();
+			return pluginCache.has(id);
 		},
-		used: false
+		get(id: string) {
+			onUse();
+			return pluginCache.get(id);
+		},
+		set(id: string, value: any) {
+			onUse();
+			return pluginCache.set(id, value);
+		},
+		delete(id: string) {
+			onUse();
+			return pluginCache.delete(id);
+		}
 	};
-	return trackedCache;
 }
 
 export const NO_CACHE: PluginCache = {

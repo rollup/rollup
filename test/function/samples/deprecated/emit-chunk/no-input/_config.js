@@ -9,5 +9,13 @@ module.exports = {
 				this.emitChunk('chunk.js');
 			}
 		}
-	}
+	},
+	warnings: [
+		{
+			code: 'DEPRECATED_FEATURE',
+			message:
+				'The "this.emitChunk" plugin context function used by plugin test-plugin is deprecated. The "this.emitFile" plugin context function should be used instead.',
+			plugin: 'test-plugin'
+		}
+	]
 };

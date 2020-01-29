@@ -424,22 +424,9 @@ Called only at the end of `bundle.write()` once all files have been written. Sim
 
 ☢️ These hooks have been deprecated and may be removed in a future Rollup version.
 
-- `ongenerate` - _**Use [`generateBundle`](guide/en/#generatebundle)**_ - Function hook
-called when `bundle.generate()` is being executed.
-
-- `onwrite` - _**Use [`generateBundle`](guide/en/#generatebundle)**_ - Function hook
-called when `bundle.write()` is being executed, after the file has been written
-to disk.
-
 - `resolveAssetUrl` - _**Use [`resolveFileUrl`](guide/en/#resolvefileurl)**_ - Function hook that allows to customize the generated code for asset URLs.
 
-- `transformBundle` – _**Use [`renderChunk`](guide/en/#renderchunk)**_ - A `( source, { format } ) =>
-code` or `( source, { format } ) => { code, map }` bundle transformer function.
-
-- `transformChunk` – _**Use [`renderChunk`](guide/en/#renderchunk)**_ - A `( source, outputOptions,
-chunk ) => code | { code, map}` chunk transformer function.
-
-More properties may be supported in future, as and when they prove necessary.
+More properties may be supported in the future, as and when they prove necessary.
 
 ### Plugin Context
 

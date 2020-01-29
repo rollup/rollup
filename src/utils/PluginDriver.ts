@@ -5,7 +5,6 @@ import {
 	Plugin,
 	PluginContext,
 	PluginHooks,
-	RollupWatcher,
 	SerializablePluginCache
 } from '../rollup/types';
 import { getRollupDefaultPlugin } from './defaultPlugin';
@@ -36,21 +35,18 @@ export class PluginDriver {
 	private plugins: Plugin[];
 	private preserveSymlinks: boolean;
 	private previousHooks = new Set<string>(['options']);
-	private watcher: RollupWatcher | null;
 
 	constructor(
 		graph: Graph,
 		userPlugins: Plugin[],
 		pluginCache: Record<string, SerializablePluginCache> | undefined,
 		preserveSymlinks: boolean,
-		watcher: RollupWatcher | null,
 		basePluginDriver?: PluginDriver
 	) {
 		warnDeprecatedHooks(userPlugins, graph);
 		this.graph = graph;
 		this.pluginCache = pluginCache;
 		this.preserveSymlinks = preserveSymlinks;
-		this.watcher = watcher;
 		this.fileEmitter = new FileEmitter(graph, basePluginDriver && basePluginDriver.fileEmitter);
 		this.emitFile = this.fileEmitter.emitFile;
 		this.getFileName = this.fileEmitter.getFileName;
@@ -59,9 +55,7 @@ export class PluginDriver {
 		this.plugins = userPlugins.concat(
 			basePluginDriver ? basePluginDriver.plugins : [getRollupDefaultPlugin(preserveSymlinks)]
 		);
-		this.pluginContexts = this.plugins.map(
-			getPluginContexts(pluginCache, graph, this.fileEmitter, watcher)
-		);
+		this.pluginContexts = this.plugins.map(getPluginContexts(pluginCache, graph, this.fileEmitter));
 		if (basePluginDriver) {
 			for (const plugin of userPlugins) {
 				for (const hook of basePluginDriver.previousHooks) {
@@ -74,14 +68,7 @@ export class PluginDriver {
 	}
 
 	public createOutputPluginDriver(plugins: Plugin[]): PluginDriver {
-		return new PluginDriver(
-			this.graph,
-			plugins,
-			this.pluginCache,
-			this.preserveSymlinks,
-			this.watcher,
-			this
-		);
+		return new PluginDriver(this.graph, plugins, this.pluginCache, this.preserveSymlinks, this);
 	}
 
 	// chains, first non-null result stops and returns

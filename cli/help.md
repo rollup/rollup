@@ -56,7 +56,6 @@ Basic options:
 --no-treeshake              Disable tree-shaking optimisations
 --no-treeshake.annotations  Ignore pure call annotations
 --no-treeshake.propertyReadSideEffects Ignore property access side-effects
---treeshake.pureExternalModules        Assume side-effect free externals
 
 Examples:
 

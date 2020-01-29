@@ -1,8 +1,9 @@
 import { realpathSync } from 'fs';
 import * as path from 'path';
 import relative from 'require-relative';
-import { InputOptions, WarningHandler } from '../../src/rollup/types';
-import mergeOptions, { GenericConfigObject } from '../../src/utils/mergeOptions';
+import { InputOptions } from '../../src/rollup/types';
+import { mergeOptions } from '../../src/utils/mergeOptions';
+import { GenericConfigObject } from '../../src/utils/parseOptions';
 import { getAliasName } from '../../src/utils/relativeId';
 import { handleError } from '../logging';
 import batchWarnings from './batchWarnings';
@@ -17,7 +18,7 @@ export default function runRollup(command: any) {
 		if (command.input) {
 			handleError({
 				code: 'DUPLICATE_IMPORT_OPTIONS',
-				message: 'use --input, or pass input path as argument'
+				message: 'Either use --input, or pass input path as argument'
 			});
 		}
 		inputSource = command._;
@@ -109,14 +110,8 @@ async function execute(
 		for (const config of configs) {
 			const warnings = batchWarnings();
 			try {
-				const { inputOptions, outputOptions, optionError } = mergeOptions({
-					command,
-					config,
-					defaultOnWarnHandler: warnings.add
-				});
-				if (optionError) {
-					(inputOptions.onwarn as WarningHandler)({ code: 'UNKNOWN_OPTION', message: optionError });
-				}
+				const { inputOptions, outputOptions } = mergeOptions(config, command,
+					warnings.add);
 				if (command.stdin !== false) {
 					inputOptions.plugins!.push(stdinPlugin());
 				}

@@ -30,17 +30,6 @@ import { PluginDriver } from './utils/PluginDriver';
 import relativeId from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
 
-function makeOnwarn() {
-	const warned = Object.create(null);
-
-	return (warning: any) => {
-		const str = warning.toString();
-		if (str in warned) return;
-		console.error(str);
-		warned[str] = true;
-	};
-}
-
 function normalizeEntryModules(
 	entryModules: string | string[] | Record<string, string>
 ): UnresolvedModule[] {
@@ -84,7 +73,7 @@ export default class Graph {
 	private strictDeprecations: boolean;
 
 	constructor(options: InputOptions, watcher: RollupWatcher | null) {
-		this.onwarn = (options.onwarn as WarningHandler) || makeOnwarn();
+		this.onwarn = options.onwarn as WarningHandler;
 		this.deoptimizationTracker = new PathTracker();
 		this.cachedModules = new Map();
 		if (options.cache) {
@@ -126,7 +115,7 @@ export default class Graph {
 			if (typeof this.treeshakingOptions.pureExternalModules !== 'undefined') {
 				this.warnDeprecation(
 					`The "treeshake.pureExternalModules" option is deprecated. The "treeshake.moduleSideEffects" option should be used instead. "treeshake.pureExternalModules: true" is equivalent to "treeshake.moduleSideEffects: 'no-external'"`,
-					false
+					true
 				);
 			}
 		}
@@ -142,8 +131,7 @@ export default class Graph {
 			this,
 			options.plugins!,
 			this.pluginCache,
-			options.preserveSymlinks === true,
-			watcher
+			options.preserveSymlinks === true
 		);
 
 		if (watcher) {
@@ -240,13 +228,6 @@ export default class Graph {
 			// Phase 3 – marking. We include all statements that should be included
 			timeStart('mark included statements', 2);
 
-			if (inlineDynamicImports) {
-				if (entryModules.length > 1) {
-					throw new Error(
-						'Internal Error: can only inline dynamic imports for single-file builds.'
-					);
-				}
-			}
 			for (const module of entryModules) {
 				module.includeAllExports();
 			}
