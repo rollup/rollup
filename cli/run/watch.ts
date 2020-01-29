@@ -4,12 +4,9 @@ import ms from 'pretty-ms';
 import onExit from 'signal-exit';
 import tc from 'turbocolor';
 import * as rollup from '../../src/node-entry';
-import {
-	RollupWatcher,
-	RollupWatchOptions,
-	WarningHandler
-} from '../../src/rollup/types';
-import mergeOptions, { GenericConfigObject } from '../../src/utils/mergeOptions';
+import { RollupWatcher, RollupWatchOptions } from '../../src/rollup/types';
+import { mergeOptions } from '../../src/utils/mergeOptions';
+import { GenericConfigObject } from '../../src/utils/parseOptions';
 import relativeId from '../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
 import batchWarnings from './batchWarnings';
@@ -26,9 +23,7 @@ export default function watch(
 	const isTTY = Boolean(process.stderr.isTTY);
 	const warnings = batchWarnings();
 	const initialConfigs = processConfigs(configs);
-	const clearScreen = initialConfigs.every(
-		config => config.watch!.clearScreen !== false
-	);
+	const clearScreen = initialConfigs.every(config => config.watch!.clearScreen !== false);
 
 	const resetScreen = getResetScreen(isTTY && clearScreen);
 	let watcher: RollupWatcher;
@@ -36,25 +31,12 @@ export default function watch(
 
 	function processConfigs(configs: GenericConfigObject[]): RollupWatchOptions[] {
 		return configs.map(options => {
-			const merged = mergeOptions({
-				command,
-				config: options,
-				defaultOnWarnHandler: warnings.add
-			});
-
+			const { inputOptions, outputOptions } = mergeOptions(options, command, warnings.add);
 			const result: RollupWatchOptions = {
-				...merged.inputOptions,
-				output: merged.outputOptions
+				...inputOptions,
+				output: outputOptions
 			};
-
 			if (!result.watch) result.watch = {};
-
-			if (merged.optionError)
-				(merged.inputOptions.onwarn as WarningHandler)({
-					code: 'UNKNOWN_OPTION',
-					message: merged.optionError
-				});
-
 			return result;
 		});
 	}
@@ -87,9 +69,7 @@ export default function watch(
 						}
 						stderr(
 							tc.cyan(
-								`bundles ${tc.bold(input)} → ${tc.bold(
-									event.output.map(relativeId).join(', ')
-								)}...`
+								`bundles ${tc.bold(input)} → ${tc.bold(event.output.map(relativeId).join(', '))}...`
 							)
 						);
 					}
@@ -100,9 +80,9 @@ export default function watch(
 					if (!silent)
 						stderr(
 							tc.green(
-								`created ${tc.bold(
-									event.output.map(relativeId).join(', ')
-								)} in ${tc.bold(ms(event.duration))}`
+								`created ${tc.bold(event.output.map(relativeId).join(', '))} in ${tc.bold(
+									ms(event.duration)
+								)}`
 							)
 						);
 					if (event.result && event.result.getTimings) {

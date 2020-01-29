@@ -1,7 +1,5 @@
 var replace = require( 'rollup-plugin-replace' );
 
-let warnings = [];
-
 module.exports = {
 	entry: 'main.js',
 	input: 'main.js',

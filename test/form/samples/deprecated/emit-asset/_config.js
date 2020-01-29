@@ -4,6 +4,7 @@ const assert = require('assert');
 
 module.exports = {
 	description: 'supports emitting assets from plugin hooks',
+	expectedWarnings: ['DEPRECATED_FEATURE'],
 	options: {
 		strictDeprecations: false,
 		plugins: {

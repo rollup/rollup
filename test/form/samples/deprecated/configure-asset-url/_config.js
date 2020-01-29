@@ -1,5 +1,6 @@
 module.exports = {
 	description: 'allows to configure asset urls',
+	expectedWarnings: ['DEPRECATED_FEATURE'],
 	options: {
 		strictDeprecations: false,
 		plugins: [

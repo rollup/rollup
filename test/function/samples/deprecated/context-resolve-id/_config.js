@@ -17,10 +17,22 @@ module.exports = {
 			}
 		}
 	},
-	warnings(warnings) {
-		assert.strictEqual(warnings.length, 1);
-		assert.strictEqual(warnings[0].code, 'UNRESOLVED_IMPORT');
-	},
+	warnings: [
+		{
+			code: 'DEPRECATED_FEATURE',
+			message:
+				'The "this.resolveId" plugin context function used by plugin at position 1 is deprecated. The "this.resolve" plugin context function should be used instead.',
+			plugin: 'at position 1'
+		},
+		{
+			code: 'UNRESOLVED_IMPORT',
+			importer: 'main.js',
+			message:
+				"'resolveto-unresolved' is imported by main.js, but could not be resolved – treating it as an external dependency",
+			source: 'resolveto-unresolved',
+			url: 'https://rollupjs.org/guide/en/#warning-treating-module-as-external-dependency'
+		}
+	],
 	options: {
 		strictDeprecations: false,
 		plugins: [
