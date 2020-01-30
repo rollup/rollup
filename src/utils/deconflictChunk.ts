@@ -9,7 +9,7 @@ const DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT: {
 	[format: string]: (
 		usedNames: Set<string>,
 		imports: Set<Variable>,
-		dependencies: (ExternalModule | Chunk)[],
+		dependencies: Set<ExternalModule | Chunk>,
 		interop: boolean,
 		preserveModules: boolean
 	) => void;
@@ -24,7 +24,7 @@ const DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT: {
 
 export function deconflictChunk(
 	modules: Module[],
-	dependencies: (ExternalModule | Chunk)[],
+	dependencies: Set<ExternalModule | Chunk>,
 	imports: Set<Variable>,
 	usedNames: Set<string>,
 	format: string,
@@ -51,7 +51,7 @@ export function deconflictChunk(
 function deconflictImportsEsm(
 	usedNames: Set<string>,
 	imports: Set<Variable>,
-	_dependencies: (ExternalModule | Chunk)[],
+	_dependencies: Set<ExternalModule | Chunk>,
 	interop: boolean
 ) {
 	for (const variable of imports) {
@@ -74,7 +74,7 @@ function deconflictImportsEsm(
 function deconflictImportsOther(
 	usedNames: Set<string>,
 	imports: Set<Variable>,
-	dependencies: (ExternalModule | Chunk)[],
+	dependencies: Set<ExternalModule | Chunk>,
 	interop: boolean,
 	preserveModules: boolean
 ) {
