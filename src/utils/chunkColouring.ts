@@ -39,7 +39,7 @@ export function assignChunkColouringHashes(
 			} else {
 				Uint8ArrayXor(module.entryPointsHash, colour);
 			}
-			for (const dependency of module.dependencies) {
+			for (const dependency of module.getDependenciesToBeIncluded()) {
 				if (!(dependency instanceof ExternalModule || dependency.manualChunkAlias)) {
 					modulesToHandle.add(dependency);
 				}
@@ -106,7 +106,7 @@ function analyzeModuleGraph(
 		const modulesToHandle = new Set<Module>([currentEntry]);
 		for (const module of modulesToHandle) {
 			getDependentModules(dependentEntryPointsByModule, module).add(currentEntry);
-			for (const dependency of module.dependencies) {
+			for (const dependency of module.getDependenciesToBeIncluded()) {
 				if (!(dependency instanceof ExternalModule)) {
 					modulesToHandle.add(dependency);
 				}

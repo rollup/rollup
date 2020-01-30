@@ -408,10 +408,11 @@ export default class Chunk {
 	link() {
 		const dependencies: Set<Chunk | ExternalModule> = new Set();
 		const dynamicDependencies: Set<Chunk | ExternalModule> = new Set();
+		// TODO Lukas turn dependencies into sets
 		for (const module of this.orderedModules) {
-			this.addDependenciesToChunk(module.getTransitiveDependencies(), dependencies);
+			this.addDependenciesToChunk(module.getDependenciesToBeIncluded(), dependencies);
 			this.addDependenciesToChunk(module.dynamicDependencies, dynamicDependencies);
-			this.setUpChunkImportsAndExportsForModule(module);
+			this.setUpChunkImportsAndExportsForModule(module, dependencies);
 		}
 		this.dependencies = Array.from(dependencies);
 		this.dynamicDependencies = Array.from(dynamicDependencies);
@@ -804,7 +805,7 @@ export default class Chunk {
 	}
 
 	private addDependenciesToChunk(
-		moduleDependencies: (Module | ExternalModule)[],
+		moduleDependencies: Set<Module | ExternalModule>,
 		chunkDependencies: Set<Chunk | ExternalModule>
 	) {
 		for (const depModule of moduleDependencies) {
@@ -1165,7 +1166,10 @@ export default class Chunk {
 		);
 	}
 
-	private setUpChunkImportsAndExportsForModule(module: Module) {
+	private setUpChunkImportsAndExportsForModule(
+		module: Module,
+		chunkDependencies: Set<Chunk | ExternalModule>
+	) {
 		for (const variable of module.imports) {
 			if ((variable.module as Module).chunk !== this) {
 				this.imports.add(variable);
@@ -1179,8 +1183,17 @@ export default class Chunk {
 			module.dynamicallyImportedBy.some(importer => importer.chunk !== this)
 		) {
 			const map = module.getExportNamesByVariable();
+			// TODO Lukas in the end, sort dependencies by execution order?
 			for (const exportedVariable of map.keys()) {
 				this.exports.add(exportedVariable);
+				const exportSourceModule = exportedVariable.module!;
+				const exportChunk =
+					exportSourceModule instanceof ExternalModule
+						? exportSourceModule
+						: exportSourceModule.chunk!;
+				if (exportChunk !== this) {
+					chunkDependencies.add(exportChunk);
+				}
 				const exportingModule = exportedVariable.module;
 				if (exportingModule && exportingModule.chunk && exportingModule.chunk !== this) {
 					exportingModule.chunk.exports.add(exportedVariable);

@@ -194,9 +194,9 @@ export default class Module {
 	code!: string;
 	comments: CommentDescription[] = [];
 	customTransformCache!: boolean;
-	dependencies: (Module | ExternalModule)[] = [];
+	dependencies = new Set<Module | ExternalModule>();
 	dynamicallyImportedBy: Module[] = [];
-	dynamicDependencies: (Module | ExternalModule)[] = [];
+	dynamicDependencies = new Set<Module | ExternalModule>();
 	dynamicImports: {
 		node: ImportExpression;
 		resolution: Module | ExternalModule | string | null;
@@ -240,6 +240,7 @@ export default class Module {
 	private graph: Graph;
 	private magicString!: MagicString;
 	private namespaceVariable: NamespaceVariable | null = null;
+	private relevantDependencies: Set<Module | ExternalModule> | null = null;
 	private syntheticExports = new Map<string, SyntheticNamedExportVariable>();
 	private transformDependencies: string[] = [];
 	private transitiveReexports: string[] | null = null;
@@ -341,6 +342,20 @@ export default class Module {
 		return this.defaultExport;
 	}
 
+	getDependenciesToBeIncluded(): Set<Module | ExternalModule> {
+		if (this.relevantDependencies) return this.relevantDependencies;
+		const relevantDependencies = new Set<Module | ExternalModule>();
+		for (const variable of this.imports) {
+			relevantDependencies.add(variable.module!);
+		}
+		for (const dependency of this.dependencies) {
+			if (dependency.moduleSideEffects) {
+				relevantDependencies.add(dependency);
+			}
+		}
+		return (this.relevantDependencies = relevantDependencies);
+	}
+
 	getDynamicImportExpressions(): (string | Node)[] {
 		return this.dynamicImports.map(({ node }) => {
 			const importArgument = node.source;
@@ -422,14 +437,6 @@ export default class Module {
 			(variable && variable.included ? renderedExports : removedExports).push(exportName);
 		}
 		return { renderedExports, removedExports };
-	}
-
-	getTransitiveDependencies() {
-		return this.dependencies.concat(
-			this.getReexports()
-				.concat(this.getExports())
-				.map((exportName: string) => this.getVariableForExportName(exportName).module as Module)
-		);
 	}
 
 	getVariableForExportName(
@@ -560,13 +567,13 @@ export default class Module {
 			const id = this.resolvedIds[source].id;
 
 			if (id) {
-				const module = this.graph.moduleById.get(id);
-				this.dependencies.push(module as Module);
+				const module = this.graph.moduleById.get(id)!;
+				this.dependencies.add(module);
 			}
 		}
 		for (const { resolution } of this.dynamicImports) {
 			if (resolution instanceof Module || resolution instanceof ExternalModule) {
-				this.dynamicDependencies.push(resolution);
+				this.dynamicDependencies.add(resolution);
 			}
 		}
 
@@ -697,7 +704,7 @@ export default class Module {
 			ast: this.esTreeAst,
 			code: this.code,
 			customTransformCache: this.customTransformCache,
-			dependencies: this.dependencies.map(module => module.id),
+			dependencies: Array.from(this.dependencies).map(module => module.id),
 			id: this.id,
 			moduleSideEffects: this.moduleSideEffects,
 			originalCode: this.originalCode,
