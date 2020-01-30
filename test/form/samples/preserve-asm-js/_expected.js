@@ -1,4 +1,15 @@
-function asmjs_included() {
+function asmjs_included_1() {
+	'use asm';
+
+	function noop(e) {
+		// this is crucial
+		e = e | 0;
+	}
+
+	return { noop: noop };
+}
+
+function asmjs_included_2() {
 	'use asm';
 
 	function noop(e) {
@@ -11,9 +22,13 @@ function asmjs_included() {
 			default:
 				return e | 0;
 		}
+
+		// this is crucial
+		return e | 0;
 	}
 
 	return { noop: noop };
 }
 
-console.log(asmjs_included().noop(3));
+console.log(asmjs_included_1().noop(3));
+console.log(asmjs_included_2().noop(3));

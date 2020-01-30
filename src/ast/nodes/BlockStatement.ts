@@ -13,7 +13,7 @@ export default class BlockStatement extends StatementBase {
 	body!: StatementNode[];
 	type!: NodeType.tBlockStatement;
 
-	private deoptimizeBody = false;
+	private deoptimizeBody!: boolean;
 	private directlyIncluded = false;
 
 	addImplicitReturnExpressionToScope() {
@@ -52,12 +52,9 @@ export default class BlockStatement extends StatementBase {
 
 	initialise() {
 		const firstBodyStatement = this.body[0];
-		if (
+		this.deoptimizeBody =
 			firstBodyStatement instanceof ExpressionStatement &&
-			firstBodyStatement.directive === 'use asm'
-		) {
-			this.deoptimizeBody = true;
-		}
+			firstBodyStatement.directive === 'use asm';
 	}
 
 	render(code: MagicString, options: RenderOptions) {
