@@ -3,9 +3,10 @@ System.register([], function () {
 	return {
 		execute: function () {
 
-			var dep = 42;
+			var value = 42;
+			console.log('Ignored side-effect');
 
-			console.log('main1', dep);
+			console.log('main1', value);
 
 		}
 	};

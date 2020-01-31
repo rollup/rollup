@@ -348,11 +348,22 @@ export default class Module {
 		for (const variable of this.imports) {
 			relevantDependencies.add(variable.module!);
 		}
+		if (this.isEntryPoint || this.dynamicallyImportedBy.length > 0) {
+			for (const exportName of this.getReexports().concat(this.getExports())) {
+				relevantDependencies.add(this.getVariableForExportName(exportName).module as Module);
+			}
+		}
 		for (const dependency of this.dependencies) {
 			if (dependency.moduleSideEffects) {
 				relevantDependencies.add(dependency);
 			}
 		}
+		// TODO Lukas remove
+		// console.log(
+		// 	'relevantDependencies',
+		// 	this.id.split('/').slice(-1)[0],
+		// 	Array.from(relevantDependencies).map(module => module.id.split('/').slice(-1)[0])
+		// );
 		return (this.relevantDependencies = relevantDependencies);
 	}
 
