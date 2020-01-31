@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 1.31.0
+*2020-01-31*
+
+### Features
+* Always disable tree-shaking for asm.js functions to maintain semantics (#3362)
+
+### Pull Requests
+* [#3362](https://github.com/rollup/rollup/pull/3362): Preserve asm.js code (@lukastaegert)
+
 ## 1.30.1
 *2020-01-27*
 
@@ -8,7 +17,7 @@
 * Resolve a crash when chunking circular dynamic imports (#3357)
 
 ### Pull Requests
-* [#3357](https://github.com/rollup/rollup/pull/3357):Resolve issues with circular dynamic entries (@lukastaegert)
+* [#3357](https://github.com/rollup/rollup/pull/3357): Resolve issues with circular dynamic entries (@lukastaegert)
 
 ## 1.30.0
 *2020-01-27*
