@@ -233,7 +233,7 @@ Adds a plugin just to this output. See [Using output plugins](guide/en/#using-ou
 
 Not every plugin can be used here. `output.plugins` is limited to plugins that only use hooks that run during `bundle.generate()` or `bundle.write()`, i.e. after Rollup's main analysis is complete. If you are a plugin author, see [Plugin hooks](guide/en/#hooks) to find out which hooks can be used.
 
-The following will add minifaction to one of the outputs:
+The following will add minification to one of the outputs:
 
 ```js
 // rollup.config.js
