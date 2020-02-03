@@ -6,6 +6,7 @@ System.register(['./generated-separate.js'], function (exports, module) {
 
 			var inlined = 'inlined';
 			const x = 1;
+			console.log('inlined');
 
 			var inlined$1 = /*#__PURE__*/Object.freeze({
 				__proto__: null,

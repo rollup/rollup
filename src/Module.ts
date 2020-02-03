@@ -3,7 +3,11 @@ import * as ESTree from 'estree';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
 import extractAssignedNames from 'rollup-pluginutils/src/extractAssignedNames';
-import { createInclusionContext, InclusionContext } from './ast/ExecutionContext';
+import {
+	createHasEffectsContext,
+	createInclusionContext,
+	InclusionContext
+} from './ast/ExecutionContext';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
 import ExportNamedDeclaration from './ast/nodes/ExportNamedDeclaration';
@@ -348,13 +352,29 @@ export default class Module {
 		for (const variable of this.imports) {
 			relevantDependencies.add(variable.module!);
 		}
-		if (this.isEntryPoint || this.dynamicallyImportedBy.length > 0) {
+		if (this.isEntryPoint || this.dynamicallyImportedBy.length > 0 || this.graph.preserveModules) {
 			for (const exportName of this.getReexports().concat(this.getExports())) {
 				relevantDependencies.add(this.getVariableForExportName(exportName).module as Module);
 			}
 		}
-		for (const dependency of this.dependencies) {
-			if (dependency.moduleSideEffects) {
+		// TODO Lukas this could be a performance risk
+		if (this.graph.treeshakingOptions) {
+			const possibleDependencies = new Set(this.dependencies);
+			for (const dependency of possibleDependencies) {
+				if (!dependency.moduleSideEffects || relevantDependencies.has(dependency)) continue;
+				if (
+					dependency instanceof ExternalModule ||
+					(dependency.ast.included && dependency.ast.hasEffects(createHasEffectsContext()))
+				) {
+					relevantDependencies.add(dependency);
+				} else {
+					for (const transitiveDependency of dependency.dependencies) {
+						possibleDependencies.add(transitiveDependency);
+					}
+				}
+			}
+		} else {
+			for (const dependency of this.dependencies) {
 				relevantDependencies.add(dependency);
 			}
 		}

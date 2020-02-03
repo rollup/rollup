@@ -12,6 +12,7 @@ System.register(['./direct-relative-external', 'to-indirect-relative-external', 
 			module.import('to-indirect-absolute-external');
 
 			const value = 'existing';
+			console.log('existing');
 
 			var existing = /*#__PURE__*/Object.freeze({
 				__proto__: null,
