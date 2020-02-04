@@ -115,10 +115,6 @@ function getGlobalName(
 	}
 }
 
-export function isChunkRendered(chunk: Chunk): boolean {
-	return !chunk.isEmpty || chunk.entryModules.length > 0 || chunk.manualChunkAlias !== null;
-}
-
 export default class Chunk {
 	private static generateFacade(
 		graph: Graph,
@@ -147,7 +143,6 @@ export default class Chunk {
 	graph: Graph;
 	id: string | null = null;
 	indentString: string = undefined as any;
-	isEmpty: boolean;
 	manualChunkAlias: string | null = null;
 	orderedModules: Module[];
 	renderedModules?: {
@@ -162,6 +157,7 @@ export default class Chunk {
 	private exports = new Set<Variable>();
 	private fileName: string | null = null;
 	private imports = new Set<Variable>();
+	private isEmpty = true;
 	private name: string | null = null;
 	private needsExportsShim = false;
 	private renderedDependencies: Map<
@@ -180,7 +176,6 @@ export default class Chunk {
 		this.orderedModules = orderedModules;
 		this.execIndex = orderedModules.length > 0 ? orderedModules[0].execIndex : Infinity;
 
-		this.isEmpty = true;
 		for (const module of orderedModules) {
 			if (this.isEmpty && module.isIncluded()) {
 				this.isEmpty = false;
@@ -357,9 +352,7 @@ export default class Chunk {
 	}
 
 	getDynamicImportIds(): string[] {
-		return Array.from(this.dynamicDependencies)
-			.map(chunk => chunk.id)
-			.filter(Boolean) as string[];
+		return Array.from(this.dynamicDependencies).map(chunk => chunk.id as string);
 	}
 
 	getExportNames(): string[] {
@@ -369,9 +362,7 @@ export default class Chunk {
 	}
 
 	getImportIds(): string[] {
-		return Array.from(this.dependencies)
-			.map(chunk => chunk.id)
-			.filter(Boolean) as string[];
+		return Array.from(this.dependencies).map(chunk => chunk.id as string);
 	}
 
 	getRenderedHash(outputPluginDriver: PluginDriver): string {
@@ -561,7 +552,6 @@ export default class Chunk {
 				if (dep instanceof Chunk) this.inlineChunkDependencies(dep, true);
 			}
 		}
-		// TODO Lukas filtering and sorting dependencies, could this be done earlier?
 		const sortedDependencies = Array.from(this.dependencies);
 		sortByExecutionOrder(sortedDependencies);
 		this.dependencies = new Set(sortedDependencies);
@@ -783,19 +773,13 @@ export default class Chunk {
 		chunkDependencies: Set<Chunk | ExternalModule>
 	) {
 		for (const depModule of moduleDependencies) {
-			if (depModule.chunk === this) {
-				continue;
-			}
-			let dependency: Chunk | ExternalModule;
 			if (depModule instanceof Module) {
-				dependency = depModule.chunk!;
-			} else {
-				if (!(depModule.used || depModule.moduleSideEffects)) {
-					continue;
+				if (depModule.chunk && depModule.chunk !== this) {
+					chunkDependencies.add(depModule.chunk);
 				}
-				dependency = depModule;
+			} else {
+				chunkDependencies.add(depModule);
 			}
-			chunkDependencies.add(dependency);
 		}
 	}
 
@@ -872,8 +856,8 @@ export default class Chunk {
 			for (const { node, resolution } of module.dynamicImports) {
 				if (!resolution) continue;
 				if (resolution instanceof Module) {
-					if (resolution.chunk !== this && isChunkRendered(resolution.chunk!)) {
-						const resolutionChunk = resolution.facadeChunk || resolution.chunk!;
+					if (resolution.chunk && resolution.chunk !== this) {
+						const resolutionChunk = resolution.facadeChunk || resolution.chunk;
 						node.renderFinalResolution(
 							code,
 							`'${this.getRelativePath(resolutionChunk.id!)}'`,

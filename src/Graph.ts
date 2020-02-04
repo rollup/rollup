@@ -4,7 +4,7 @@ import injectImportMeta from 'acorn-import-meta';
 import * as ESTree from 'estree';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { PathTracker } from './ast/utils/PathTracker';
-import Chunk, { isChunkRendered } from './Chunk';
+import Chunk from './Chunk';
 import ExternalModule from './ExternalModule';
 import Module, { defaultAcornOptions } from './Module';
 import { ModuleLoader, UnresolvedModule } from './ModuleLoader';
@@ -21,8 +21,7 @@ import {
 	WarningHandler
 } from './rollup/types';
 import { BuildPhase } from './utils/buildPhase';
-import { assignChunkColouringHashes } from './utils/chunkColouring';
-import { Uint8ArrayToHexString } from './utils/entryHashing';
+import { getChunkAssignments } from './utils/chunkAssignment';
 import { errDeprecation, error } from './utils/error';
 import { analyseModuleExecution, sortByExecutionOrder } from './utils/executionOrder';
 import { resolve } from './utils/path';
@@ -249,33 +248,22 @@ export default class Graph {
 			const chunks: Chunk[] = [];
 			if (this.preserveModules) {
 				for (const module of this.modules) {
-					const chunk = new Chunk(this, [module]);
-					if (isChunkRendered(chunk)) {
+					if (
+						module.isIncluded() ||
+						module.isEntryPoint ||
+						module.dynamicallyImportedBy.length > 0
+					) {
+						const chunk = new Chunk(this, [module]);
 						chunk.entryModules = [module];
 						chunks.push(chunk);
 					}
 				}
 			} else {
-				// TODO Lukas we want to get rid of hashes
-				if (!inlineDynamicImports) {
-					assignChunkColouringHashes(entryModules, manualChunkModulesByAlias);
-				}
-				const chunkModules: { [entryHashSum: string]: Module[] } = {};
-				for (const module of this.modules) {
-					const entryPointsHashStr = Uint8ArrayToHexString(module.entryPointsHash);
-					const curChunk = chunkModules[entryPointsHashStr];
-					if (curChunk) {
-						curChunk.push(module);
-					} else {
-						chunkModules[entryPointsHashStr] = [module];
-					}
-				}
-
-				for (const entryHashSum in chunkModules) {
-					const chunkModulesOrdered = chunkModules[entryHashSum];
-					sortByExecutionOrder(chunkModulesOrdered);
-					const chunk = new Chunk(this, chunkModulesOrdered);
-					if (isChunkRendered(chunk)) chunks.push(chunk);
+				for (const chunkModules of inlineDynamicImports
+					? [this.modules]
+					: getChunkAssignments(entryModules, manualChunkModulesByAlias)) {
+					sortByExecutionOrder(chunkModules);
+					chunks.push(new Chunk(this, chunkModules));
 				}
 			}
 

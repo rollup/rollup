@@ -1,13 +1,14 @@
 import ExternalModule from '../ExternalModule';
 import Module from '../Module';
-import { randomUint8Array, Uint8ArrayXor } from './entryHashing';
+import { randomUint8Array, Uint8ArrayToHexString, Uint8ArrayXor } from './entryHashing';
 
 type DependentModuleMap = Map<Module, Set<Module>>;
 
-export function assignChunkColouringHashes(
+export function getChunkAssignments(
 	entryModules: Module[],
 	manualChunkModules: Record<string, Module[]>
-) {
+): Module[][] {
+	const includedModules = new Set<Module>();
 	const { dependentEntryPointsByModule, dynamicEntryModules } = analyzeModuleGraph(entryModules);
 	const dynamicDependentEntryPointsByDynamicEntry: DependentModuleMap = getDynamicDependentEntryPoints(
 		dependentEntryPointsByModule,
@@ -23,6 +24,7 @@ export function assignChunkColouringHashes(
 		const manualChunkAlias = entry.manualChunkAlias;
 		const modulesToHandle = new Set([entry]);
 		for (const module of modulesToHandle) {
+			includedModules.add(module);
 			if (manualChunkAlias) {
 				module.manualChunkAlias = manualChunkAlias;
 				module.entryPointsHash = colour;
@@ -89,6 +91,18 @@ export function assignChunkColouringHashes(
 			);
 		}
 	}
+
+	const chunkModules: { [entryHashSum: string]: Module[] } = {};
+	for (const module of includedModules) {
+		const entryPointsHashStr = Uint8ArrayToHexString(module.entryPointsHash);
+		const curChunk = chunkModules[entryPointsHashStr];
+		if (curChunk) {
+			curChunk.push(module);
+		} else {
+			chunkModules[entryPointsHashStr] = [module];
+		}
+	}
+	return Object.keys(chunkModules).map(entryHashSum => chunkModules[entryHashSum]);
 }
 
 function analyzeModuleGraph(

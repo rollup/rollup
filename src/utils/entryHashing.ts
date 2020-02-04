@@ -1,3 +1,4 @@
+// TODO Lukas delete?
 const CHAR_CODE_A = 97;
 const CHAR_CODE_0 = 48;
 

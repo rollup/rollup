@@ -347,7 +347,6 @@ export default class Module {
 	}
 
 	getDependenciesToBeIncluded(): Set<Module | ExternalModule> {
-		timeStart('getDependenciesToBeIncluded', 3);
 		if (this.relevantDependencies) return this.relevantDependencies;
 		const relevantDependencies = new Set<Module | ExternalModule>();
 		for (const variable of this.imports) {
@@ -358,7 +357,6 @@ export default class Module {
 				relevantDependencies.add(this.getVariableForExportName(exportName).module as Module);
 			}
 		}
-		// TODO Lukas this could be a performance risk
 		if (this.graph.treeshakingOptions) {
 			const possibleDependencies = new Set(this.dependencies);
 			for (const dependency of possibleDependencies) {
@@ -379,7 +377,6 @@ export default class Module {
 				relevantDependencies.add(dependency);
 			}
 		}
-		timeEnd('getDependenciesToBeIncluded', 3);
 		return (this.relevantDependencies = relevantDependencies);
 	}
 
