@@ -352,7 +352,7 @@ export default class Chunk {
 	}
 
 	getDynamicImportIds(): string[] {
-		return Array.from(this.dynamicDependencies).map(chunk => chunk.id as string);
+		return [...this.dynamicDependencies].map(chunk => chunk.id as string);
 	}
 
 	getExportNames(): string[] {
@@ -362,7 +362,7 @@ export default class Chunk {
 	}
 
 	getImportIds(): string[] {
-		return Array.from(this.dependencies).map(chunk => chunk.id as string);
+		return [...this.dependencies].map(chunk => chunk.id as string);
 	}
 
 	getRenderedHash(outputPluginDriver: PluginDriver): string {
@@ -552,7 +552,7 @@ export default class Chunk {
 				if (dep instanceof Chunk) this.inlineChunkDependencies(dep, true);
 			}
 		}
-		const sortedDependencies = Array.from(this.dependencies);
+		const sortedDependencies = [...this.dependencies];
 		sortByExecutionOrder(sortedDependencies);
 		this.dependencies = new Set(sortedDependencies);
 
@@ -656,7 +656,7 @@ export default class Chunk {
 
 		const hasExports =
 			this.renderedExports!.length !== 0 ||
-			Array.from(this.renderedDependencies!.values()).some(
+			[...this.renderedDependencies!.values()].some(
 				dep => (dep.reexports && dep.reexports.length !== 0)!
 			);
 
@@ -687,7 +687,7 @@ export default class Chunk {
 			this.renderedSource!,
 			{
 				accessedGlobals,
-				dependencies: Array.from(this.renderedDependencies!.values()),
+				dependencies: [...this.renderedDependencies!.values()],
 				exports: this.renderedExports!,
 				hasExports,
 				indentString: this.indentString,
@@ -841,10 +841,7 @@ export default class Chunk {
 				hash.update(current.generateId(addons, options, existingNames, false, outputPluginDriver));
 			}
 			if (current instanceof ExternalModule) continue;
-			for (const dependency of current.dependencies) {
-				dependenciesForHashing.add(dependency);
-			}
-			for (const dependency of current.dynamicDependencies) {
+			for (const dependency of [...current.dependencies, ...current.dynamicDependencies]) {
 				dependenciesForHashing.add(dependency);
 			}
 		}
@@ -1077,12 +1074,7 @@ export default class Chunk {
 	}
 
 	private setExternalRenderPaths(options: OutputOptions, inputBase: string) {
-		for (const dependency of this.dependencies) {
-			if (dependency instanceof ExternalModule) {
-				dependency.setRenderPath(options, inputBase);
-			}
-		}
-		for (const dependency of this.dynamicDependencies) {
+		for (const dependency of [...this.dependencies, ...this.dynamicDependencies]) {
 			if (dependency instanceof ExternalModule) {
 				dependency.setRenderPath(options, inputBase);
 			}
@@ -1154,14 +1146,6 @@ export default class Chunk {
 			const map = module.getExportNamesByVariable();
 			for (const exportedVariable of map.keys()) {
 				this.exports.add(exportedVariable);
-				const exportSourceModule = exportedVariable.module!;
-				const exportChunk =
-					exportSourceModule instanceof ExternalModule
-						? exportSourceModule
-						: exportSourceModule.chunk!;
-				if (exportChunk !== this) {
-					this.dependencies.add(exportChunk);
-				}
 				const exportingModule = exportedVariable.module;
 				if (exportingModule && exportingModule.chunk && exportingModule.chunk !== this) {
 					exportingModule.chunk.exports.add(exportedVariable);

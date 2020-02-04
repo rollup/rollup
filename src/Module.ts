@@ -205,7 +205,6 @@ export default class Module {
 		node: ImportExpression;
 		resolution: Module | ExternalModule | string | null;
 	}[] = [];
-	entryPointsHash: Uint8Array = new Uint8Array(10);
 	excludeFromSourcemap: boolean;
 	execIndex = Infinity;
 	exportAllModules: (Module | ExternalModule)[] = [];
@@ -353,7 +352,7 @@ export default class Module {
 			relevantDependencies.add(variable.module!);
 		}
 		if (this.isEntryPoint || this.dynamicallyImportedBy.length > 0 || this.graph.preserveModules) {
-			for (const exportName of this.getReexports().concat(this.getExports())) {
+			for (const exportName of [...this.getReexports(), ...this.getExports()]) {
 				relevantDependencies.add(this.getVariableForExportName(exportName).module as Module);
 			}
 		}
@@ -444,7 +443,7 @@ export default class Module {
 			if (module instanceof ExternalModule) {
 				reexports.add(`*${module.id}`);
 			} else {
-				for (const name of module.getExports().concat(module.getReexports())) {
+				for (const name of [...module.getReexports(), ...module.getExports()]) {
 					if (name !== 'default') reexports.add(name);
 				}
 			}
@@ -613,7 +612,7 @@ export default class Module {
 				module
 			);
 		}
-		this.exportAllModules = this.exportAllModules.concat(externalExportAllModules);
+		this.exportAllModules = [...this.exportAllModules, ...externalExportAllModules];
 	}
 
 	render(options: RenderOptions): MagicString {

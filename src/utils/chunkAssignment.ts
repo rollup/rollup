@@ -1,33 +1,32 @@
 import ExternalModule from '../ExternalModule';
 import Module from '../Module';
-import { randomUint8Array, Uint8ArrayToHexString, Uint8ArrayXor } from './entryHashing';
 
-type DependentModuleMap = Map<Module, Set<Module>>;
+type DependentModuleMap<T = Module> = Map<Module, Set<T>>;
 
 export function getChunkAssignments(
 	entryModules: Module[],
 	manualChunkModules: Record<string, Module[]>
 ): Module[][] {
-	const includedModules = new Set<Module>();
+	const assignedEntryPointsByModule: DependentModuleMap<Module | string> = new Map();
 	const { dependentEntryPointsByModule, dynamicEntryModules } = analyzeModuleGraph(entryModules);
-	const dynamicDependentEntryPointsByDynamicEntry: DependentModuleMap = getDynamicDependentEntryPoints(
+	const dynamicallyDependentEntryPointsByDynamicEntry: DependentModuleMap = getDynamicDependentEntryPoints(
 		dependentEntryPointsByModule,
 		dynamicEntryModules
 	);
 	const staticEntries = new Set(entryModules);
 
-	function addColourToModuleDependencies(
+	function assignEntryToStaticDependencies(
 		entry: Module,
-		colour: Uint8Array,
-		dynamicDependentEntryPoints: Set<Module> | null
+		dynamicDependentEntryPoints: Set<Module> | null,
+		assignedEntry: Module | string = entry
 	) {
 		const manualChunkAlias = entry.manualChunkAlias;
 		const modulesToHandle = new Set([entry]);
 		for (const module of modulesToHandle) {
-			includedModules.add(module);
+			const assignedEntryPoints = getDependentModules(assignedEntryPointsByModule, module);
 			if (manualChunkAlias) {
 				module.manualChunkAlias = manualChunkAlias;
-				module.entryPointsHash = colour;
+				assignedEntryPoints.add(assignedEntry);
 			} else if (
 				dynamicDependentEntryPoints &&
 				areEntryPointsContainedOrDynamicallyDependent(
@@ -37,7 +36,7 @@ export function getChunkAssignments(
 			) {
 				continue;
 			} else {
-				Uint8ArrayXor(module.entryPointsHash, colour);
+				assignedEntryPoints.add(assignedEntry);
 			}
 			for (const dependency of module.getDependenciesToBeIncluded()) {
 				if (!(dependency instanceof ExternalModule || dependency.manualChunkAlias)) {
@@ -55,7 +54,9 @@ export function getChunkAssignments(
 		for (const entry of entriesToCheck) {
 			if (!superSet.has(entry)) {
 				if (staticEntries.has(entry)) return false;
-				const dynamicDependentEntryPoints = dynamicDependentEntryPointsByDynamicEntry.get(entry)!;
+				const dynamicDependentEntryPoints = dynamicallyDependentEntryPointsByDynamicEntry.get(
+					entry
+				)!;
 				for (const dependentEntry of dynamicDependentEntryPoints) {
 					entriesToCheck.add(dependentEntry);
 				}
@@ -66,43 +67,31 @@ export function getChunkAssignments(
 
 	if (manualChunkModules) {
 		for (const chunkName of Object.keys(manualChunkModules)) {
-			const entryHash = randomUint8Array(10);
-
 			for (const entry of manualChunkModules[chunkName]) {
-				addColourToModuleDependencies(entry, entryHash, null);
+				assignEntryToStaticDependencies(entry, null, chunkName);
 			}
 		}
 	}
 
 	for (const entry of entryModules) {
 		if (!entry.manualChunkAlias) {
-			const entryHash = randomUint8Array(10);
-			addColourToModuleDependencies(entry, entryHash, null);
+			assignEntryToStaticDependencies(entry, null);
 		}
 	}
 
 	for (const entry of dynamicEntryModules) {
 		if (!entry.manualChunkAlias) {
-			const entryHash = randomUint8Array(10);
-			addColourToModuleDependencies(
+			assignEntryToStaticDependencies(
 				entry,
-				entryHash,
-				dynamicDependentEntryPointsByDynamicEntry.get(entry)!
+				dynamicallyDependentEntryPointsByDynamicEntry.get(entry)!
 			);
 		}
 	}
 
-	const chunkModules: { [entryHashSum: string]: Module[] } = {};
-	for (const module of includedModules) {
-		const entryPointsHashStr = Uint8ArrayToHexString(module.entryPointsHash);
-		const curChunk = chunkModules[entryPointsHashStr];
-		if (curChunk) {
-			curChunk.push(module);
-		} else {
-			chunkModules[entryPointsHashStr] = [module];
-		}
-	}
-	return Object.keys(chunkModules).map(entryHashSum => chunkModules[entryHashSum]);
+	return createChunks(
+		[...Object.keys(manualChunkModules), ...entryModules, ...dynamicEntryModules],
+		assignedEntryPointsByModule
+	);
 }
 
 function analyzeModuleGraph(
@@ -138,7 +127,7 @@ function analyzeModuleGraph(
 	return { dependentEntryPointsByModule, dynamicEntryModules };
 }
 
-function getDependentModules(moduleMap: DependentModuleMap, module: Module): Set<Module> {
+function getDependentModules<T>(moduleMap: DependentModuleMap<T>, module: Module): Set<T> {
 	const dependentModules = moduleMap.get(module) || new Set();
 	moduleMap.set(module, dependentModules);
 	return dependentModules;
@@ -148,10 +137,10 @@ function getDynamicDependentEntryPoints(
 	dependentEntryPointsByModule: DependentModuleMap,
 	dynamicEntryModules: Set<Module>
 ): DependentModuleMap {
-	const dynamicDependentEntryPointsByDynamicEntry: DependentModuleMap = new Map();
+	const dynamicallyDependentEntryPointsByDynamicEntry: DependentModuleMap = new Map();
 	for (const dynamicEntry of dynamicEntryModules) {
 		const dynamicDependentEntryPoints = getDependentModules(
-			dynamicDependentEntryPointsByDynamicEntry,
+			dynamicallyDependentEntryPointsByDynamicEntry,
 			dynamicEntry
 		);
 		for (const importer of dynamicEntry.dynamicallyImportedBy) {
@@ -160,5 +149,25 @@ function getDynamicDependentEntryPoints(
 			}
 		}
 	}
-	return dynamicDependentEntryPointsByDynamicEntry;
+	return dynamicallyDependentEntryPointsByDynamicEntry;
+}
+
+function createChunks(
+	allEntryPoints: (Module | string)[],
+	assignedEntryPointsByModule: DependentModuleMap<Module | string>
+) {
+	const chunkModules: { [chunkSignature: string]: Module[] } = Object.create(null);
+	for (const [module, assignedEntryPoints] of assignedEntryPointsByModule) {
+		let chunkSignature = '';
+		for (const entry of allEntryPoints) {
+			chunkSignature += assignedEntryPoints.has(entry) ? 'X' : '_';
+		}
+		const chunk = chunkModules[chunkSignature];
+		if (chunk) {
+			chunk.push(module);
+		} else {
+			chunkModules[chunkSignature] = [module];
+		}
+	}
+	return Object.keys(chunkModules).map(chunkSignature => chunkModules[chunkSignature]);
 }

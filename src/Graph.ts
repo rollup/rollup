@@ -278,7 +278,7 @@ export default class Graph {
 			timeEnd('generate chunks', 2);
 
 			this.phase = BuildPhase.GENERATE;
-			return chunks.concat(facades);
+			return [...chunks, ...facades];
 		});
 	}
 
