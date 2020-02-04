@@ -8,12 +8,10 @@ export function assignChunkColouringHashes(
 	entryModules: Module[],
 	manualChunkModules: Record<string, Module[]>
 ) {
-	const { dependentEntryPointsByModule, dynamicImportersByModule } = analyzeModuleGraph(
-		entryModules
-	);
+	const { dependentEntryPointsByModule, dynamicEntryModules } = analyzeModuleGraph(entryModules);
 	const dynamicDependentEntryPointsByDynamicEntry: DependentModuleMap = getDynamicDependentEntryPoints(
 		dependentEntryPointsByModule,
-		dynamicImportersByModule
+		dynamicEntryModules
 	);
 	const staticEntries = new Set(entryModules);
 
@@ -81,7 +79,7 @@ export function assignChunkColouringHashes(
 		}
 	}
 
-	for (const entry of dynamicImportersByModule.keys()) {
+	for (const entry of dynamicEntryModules) {
 		if (!entry.manualChunkAlias) {
 			const entryHash = randomUint8Array(10);
 			addColourToModuleDependencies(
@@ -97,9 +95,9 @@ function analyzeModuleGraph(
 	entryModules: Module[]
 ): {
 	dependentEntryPointsByModule: DependentModuleMap;
-	dynamicImportersByModule: DependentModuleMap;
+	dynamicEntryModules: Set<Module>;
 } {
-	const dynamicImportersByModule: DependentModuleMap = new Map();
+	const dynamicEntryModules = new Set<Module>();
 	const dependentEntryPointsByModule: DependentModuleMap = new Map();
 	const entriesToHandle = new Set(entryModules);
 	for (const currentEntry of entriesToHandle) {
@@ -117,13 +115,13 @@ function analyzeModuleGraph(
 					resolution.dynamicallyImportedBy.length > 0 &&
 					!resolution.manualChunkAlias
 				) {
-					getDependentModules(dynamicImportersByModule, resolution).add(module);
+					dynamicEntryModules.add(resolution);
 					entriesToHandle.add(resolution);
 				}
 			}
 		}
 	}
-	return { dependentEntryPointsByModule, dynamicImportersByModule };
+	return { dependentEntryPointsByModule, dynamicEntryModules };
 }
 
 function getDependentModules(moduleMap: DependentModuleMap, module: Module): Set<Module> {
@@ -134,15 +132,15 @@ function getDependentModules(moduleMap: DependentModuleMap, module: Module): Set
 
 function getDynamicDependentEntryPoints(
 	dependentEntryPointsByModule: DependentModuleMap,
-	dynamicImportersByModule: DependentModuleMap
+	dynamicEntryModules: Set<Module>
 ): DependentModuleMap {
 	const dynamicDependentEntryPointsByDynamicEntry: DependentModuleMap = new Map();
-	for (const [dynamicEntry, importers] of dynamicImportersByModule.entries()) {
+	for (const dynamicEntry of dynamicEntryModules) {
 		const dynamicDependentEntryPoints = getDependentModules(
 			dynamicDependentEntryPointsByDynamicEntry,
 			dynamicEntry
 		);
-		for (const importer of importers) {
+		for (const importer of dynamicEntry.dynamicallyImportedBy) {
 			for (const entryPoint of dependentEntryPointsByModule.get(importer)!) {
 				dynamicDependentEntryPoints.add(entryPoint);
 			}

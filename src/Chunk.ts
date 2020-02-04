@@ -561,13 +561,6 @@ export default class Chunk {
 				if (dep instanceof Chunk) this.inlineChunkDependencies(dep, true);
 			}
 		}
-		// prune empty dependency chunks, inlining their side-effect dependencies
-		for (const dependency of this.dependencies) {
-			if (dependency instanceof Chunk && dependency.isEmpty) {
-				this.dependencies.delete(dependency);
-				this.inlineChunkDependencies(dependency, false);
-			}
-		}
 		// TODO Lukas filtering and sorting dependencies, could this be done earlier?
 		const sortedDependencies = Array.from(this.dependencies);
 		sortByExecutionOrder(sortedDependencies);
@@ -1075,7 +1068,7 @@ export default class Chunk {
 				this.dependencies.add(dep);
 			} else {
 				if (dep === this) continue;
-				if (!dep.isEmpty) this.dependencies.add(dep);
+				this.dependencies.add(dep);
 				if (deep) this.inlineChunkDependencies(dep, true);
 			}
 		}

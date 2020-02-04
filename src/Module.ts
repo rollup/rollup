@@ -347,6 +347,7 @@ export default class Module {
 	}
 
 	getDependenciesToBeIncluded(): Set<Module | ExternalModule> {
+		timeStart('getDependenciesToBeIncluded', 3);
 		if (this.relevantDependencies) return this.relevantDependencies;
 		const relevantDependencies = new Set<Module | ExternalModule>();
 		for (const variable of this.imports) {
@@ -378,12 +379,7 @@ export default class Module {
 				relevantDependencies.add(dependency);
 			}
 		}
-		// TODO Lukas remove
-		// console.log(
-		// 	'relevantDependencies',
-		// 	this.id.split('/').slice(-1)[0],
-		// 	Array.from(relevantDependencies).map(module => module.id.split('/').slice(-1)[0])
-		// );
+		timeEnd('getDependenciesToBeIncluded', 3);
 		return (this.relevantDependencies = relevantDependencies);
 	}
 

@@ -242,24 +242,24 @@ export default class Graph {
 			// entry point graph colouring, before generating the import and export facades
 			timeStart('generate chunks', 2);
 
-			if (!this.preserveModules && !inlineDynamicImports) {
-				assignChunkColouringHashes(entryModules, manualChunkModulesByAlias);
-			}
-
 			// TODO: there is one special edge case unhandled here and that is that any module
 			//       exposed as an unresolvable export * (to a graph external export *,
 			//       either as a namespace import reexported or top-level export *)
 			//       should be made to be its own entry point module before chunking
-			let chunks: Chunk[] = [];
+			const chunks: Chunk[] = [];
 			if (this.preserveModules) {
 				for (const module of this.modules) {
 					const chunk = new Chunk(this, [module]);
-					if (module.isEntryPoint || !chunk.isEmpty) {
+					if (isChunkRendered(chunk)) {
 						chunk.entryModules = [module];
+						chunks.push(chunk);
 					}
-					chunks.push(chunk);
 				}
 			} else {
+				// TODO Lukas we want to get rid of hashes
+				if (!inlineDynamicImports) {
+					assignChunkColouringHashes(entryModules, manualChunkModulesByAlias);
+				}
 				const chunkModules: { [entryHashSum: string]: Module[] } = {};
 				for (const module of this.modules) {
 					const entryPointsHashStr = Uint8ArrayToHexString(module.entryPointsHash);
@@ -275,14 +275,13 @@ export default class Graph {
 					const chunkModulesOrdered = chunkModules[entryHashSum];
 					sortByExecutionOrder(chunkModulesOrdered);
 					const chunk = new Chunk(this, chunkModulesOrdered);
-					chunks.push(chunk);
+					if (isChunkRendered(chunk)) chunks.push(chunk);
 				}
 			}
 
 			for (const chunk of chunks) {
 				chunk.link();
 			}
-			chunks = chunks.filter(isChunkRendered);
 			const facades: Chunk[] = [];
 			for (const chunk of chunks) {
 				facades.push(...chunk.generateFacades());
