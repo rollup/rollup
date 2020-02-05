@@ -65,11 +65,9 @@ export function getChunkAssignments(
 		return true;
 	}
 
-	if (manualChunkModules) {
-		for (const chunkName of Object.keys(manualChunkModules)) {
-			for (const entry of manualChunkModules[chunkName]) {
-				assignEntryToStaticDependencies(entry, null, chunkName);
-			}
+	for (const chunkName of Object.keys(manualChunkModules)) {
+		for (const entry of manualChunkModules[chunkName]) {
+			assignEntryToStaticDependencies(entry, null, chunkName);
 		}
 	}
 

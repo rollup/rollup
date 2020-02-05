@@ -587,12 +587,7 @@ export default class Module {
 
 	linkDependencies() {
 		for (const source of this.sources) {
-			const id = this.resolvedIds[source].id;
-
-			if (id) {
-				const module = this.graph.moduleById.get(id)!;
-				this.dependencies.add(module);
-			}
+			this.dependencies.add(this.graph.moduleById.get(this.resolvedIds[source].id)!);
 		}
 		for (const { resolution } of this.dynamicImports) {
 			if (resolution instanceof Module || resolution instanceof ExternalModule) {

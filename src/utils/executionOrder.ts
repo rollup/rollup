@@ -22,8 +22,6 @@ export function analyseModuleExecution(entryModules: Module[]) {
 	const orderedModules: Module[] = [];
 
 	const analyseModule = (module: Module | ExternalModule) => {
-		if (analysedModules.has(module)) return;
-
 		if (module instanceof Module) {
 			for (const dependency of module.dependencies) {
 				if (parents.has(dependency)) {
@@ -74,7 +72,6 @@ function getCyclePath(
 	while (nextModule !== module) {
 		path.push(relativeId(nextModule.id));
 		nextModule = parents.get(nextModule)!;
-		if (!nextModule) break;
 	}
 	path.push(path[0]);
 	path.reverse();

@@ -7,7 +7,6 @@ import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
 import { UNDEFINED_EXPRESSION } from './ast/values';
 import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
 import ExportShimVariable from './ast/variables/ExportShimVariable';
-import GlobalVariable from './ast/variables/GlobalVariable';
 import LocalVariable from './ast/variables/LocalVariable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import Variable from './ast/variables/Variable';
@@ -367,11 +366,10 @@ export default class Chunk {
 
 	getRenderedHash(outputPluginDriver: PluginDriver): string {
 		if (this.renderedHash) return this.renderedHash;
-		if (!this.renderedSource) return '';
 		const hash = createHash();
 		const hashAugmentation = this.calculateHashAugmentation(outputPluginDriver);
 		hash.update(hashAugmentation);
-		hash.update(this.renderedSource.toString());
+		hash.update(this.renderedSource!.toString());
 		hash.update(
 			this.getExportNames()
 				.map(exportName => {
@@ -549,7 +547,7 @@ export default class Chunk {
 			this.facadeModule !== null
 		) {
 			for (const dep of this.dependencies) {
-				if (dep instanceof Chunk) this.inlineChunkDependencies(dep, true);
+				if (dep instanceof Chunk) this.inlineChunkDependencies(dep);
 			}
 		}
 		const sortedDependencies = [...this.dependencies];
@@ -1012,16 +1010,12 @@ export default class Chunk {
 						break;
 					}
 				}
-			} else if (variable instanceof GlobalVariable) {
-				hoisted = true;
 			}
 
-			const localName = variable.getName();
-
 			exports.push({
-				exported: exportName === '*' ? localName : exportName,
+				exported: exportName,
 				hoisted,
-				local: localName,
+				local: variable.getName(),
 				uninitialized
 			});
 		}
@@ -1043,14 +1037,17 @@ export default class Chunk {
 		return relativePath.startsWith('../') ? relativePath : './' + relativePath;
 	}
 
-	private inlineChunkDependencies(chunk: Chunk, deep: boolean) {
+	private inlineChunkDependencies(chunk: Chunk) {
 		for (const dep of chunk.dependencies) {
 			if (dep instanceof ExternalModule) {
 				this.dependencies.add(dep);
 			} else {
-				if (dep === this) continue;
+				// At the moment, circular dependencies between chunks are not possible; this will
+				// change if we ever add logic to ensure correct execution order or open up the
+				// chunking to plugins
+				// if (dep === this) continue;
 				this.dependencies.add(dep);
-				if (deep) this.inlineChunkDependencies(dep, true);
+				this.inlineChunkDependencies(dep);
 			}
 		}
 	}
@@ -1084,22 +1081,19 @@ export default class Chunk {
 	private setIdentifierRenderResolutions(options: OutputOptions) {
 		for (const exportName of this.getExportNames()) {
 			const exportVariable = this.exportNames[exportName];
-			if (exportVariable) {
-				if (exportVariable instanceof ExportShimVariable) {
-					this.needsExportsShim = true;
-				}
-				exportVariable.exportName = exportName;
-				if (
-					options.format !== 'es' &&
-					options.format !== 'system' &&
-					exportVariable.isReassigned &&
-					!exportVariable.isId &&
-					!(exportVariable instanceof ExportDefaultVariable && exportVariable.hasId)
-				) {
-					exportVariable.setRenderNames('exports', exportName);
-				} else {
-					exportVariable.setRenderNames(null, null);
-				}
+			if (exportVariable instanceof ExportShimVariable) {
+				this.needsExportsShim = true;
+			}
+			exportVariable.exportName = exportName;
+			if (
+				options.format !== 'es' &&
+				options.format !== 'system' &&
+				exportVariable.isReassigned &&
+				!exportVariable.isId
+			) {
+				exportVariable.setRenderNames('exports', exportName);
+			} else {
+				exportVariable.setRenderNames(null, null);
 			}
 		}
 
@@ -1158,9 +1152,7 @@ export default class Chunk {
 				const variable = reexport.module.getVariableForExportName(reexport.localName);
 				if ((variable.module as Module).chunk !== this) {
 					this.imports.add(variable);
-					if (variable.module instanceof Module) {
-						variable.module.chunk!.exports.add(variable);
-					}
+					(variable.module as Module).chunk!.exports.add(variable);
 				}
 			}
 		}
