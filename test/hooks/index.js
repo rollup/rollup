@@ -620,7 +620,8 @@ describe('hooks', () => {
 						}
 					},
 					{
-						writeBundle(outputBundle) {
+						writeBundle(options, outputBundle) {
+							assert.deepStrictEqual(options.file, file);
 							assert.deepStrictEqual(outputBundle, bundle);
 							callCount++;
 						}
