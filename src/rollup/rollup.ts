@@ -316,7 +316,7 @@ export async function rollupInternal(
 				await Promise.all(
 					Object.keys(bundle).map(chunkId => writeOutputFile(bundle[chunkId], outputOptions))
 				);
-				await outputPluginDriver.hookParallel('writeBundle', [bundle]);
+				await outputPluginDriver.hookParallel('writeBundle', [outputOptions, bundle]);
 				return createOutput(bundle);
 			});
 		}
