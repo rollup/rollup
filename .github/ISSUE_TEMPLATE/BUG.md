@@ -28,7 +28,7 @@ about: Something went awry and you'd like to tell us about it.
 <!--
   Issues without minimal reproductions will be closed! Please provide a link to one by:
   1. Using the REPL at https://rollupjs.org/repl/, or
-  2. Using the REPL.it reproduction template at https://repl.it/@rollup/rollup-plugin-repro
+  2. Using the REPL.it reproduction template at https://repl.it/@rollup/rollup-repro
      (allows full use of all rollup options and plugins), or
   3. Provide a minimal repository link (Read https://git.io/fNzHA for instructions).
      These may take more time to triage than the other options.
