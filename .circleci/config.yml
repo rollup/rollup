@@ -1,14 +1,5 @@
 version: 2
 
-unit_tests: &unit_tests
-  steps:
-    - checkout
-    - restore_cache:
-        key: dependency-cache-{{ checksum "package-lock.json" }}
-    - run:
-        name: Run unit tests.
-        command: npm run ci:test
-
 jobs:
   analysis:
     docker:
@@ -18,13 +9,13 @@ jobs:
       - restore_cache:
           key: dependency-cache-{{ checksum "package-lock.json" }}
       - run:
-          name: Install Dependencies
+          name: Installing Dependencies
           command: npm ci --ignore-scripts
       - run:
-          name: Run linting.
+          name: Running linting
           command: npm run ci:lint
       - run:
-          name: Run NPM Security Audit
+          name: Running NPM Security Audit
           command: npm run security
       - save_cache:
           key: dependency-cache-{{ checksum "package-lock.json" }}
@@ -33,7 +24,20 @@ jobs:
   node-v10-latest:
     docker:
       - image: rollupcabal/circleci-node-v10:latest
-    <<: *unit_tests
+    steps:
+      - checkout
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package-lock.json" }}
+      - run:
+          name: Running tests
+          command: npm run ci:test
+      - store_artifacts:
+          name: Storing browser build for REPL
+          path: /home/circleci/project/dist/rollup.browser.js
+          destination: rollup.browser.js
+      - run:
+          name: Post REPL comment
+          command: ./scripts/post-comment.js
   node-v12-latest:
     docker:
       - image: rollupcabal/circleci-node-v12:latest
@@ -42,8 +46,9 @@ jobs:
       - restore_cache:
           key: dependency-cache-{{ checksum "package-lock.json" }}
       - run:
-          name: Run tests with coverage.
+          name: Running tests with coverage
           command: npm run ci:coverage
+
 
 workflows:
   version: 2
