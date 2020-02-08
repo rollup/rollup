@@ -1,5 +1,12 @@
 # rollup changelog
 
+## 1.31.1
+*unreleased*
+
+### Pull Requests
+* [#3366](https://github.com/rollup/rollup/pull/3366): Correct spelling minifaction to minification (@VictorHom)
+* [#3371](https://github.com/rollup/rollup/pull/3371): Adjust bug template to mention REPL.it (@lukastaegert)
+
 ## 1.31.0
 *2020-01-31*
 
