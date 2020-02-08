@@ -1,6 +1,8 @@
 import { emptyFunction as x } from './lib';
 
-export function fn () {
-  var emptyFunction = x;
-  console.log(emptyFunction);
+export function fn() {
+	var emptyFunction = x;
+	console.log(emptyFunction);
 }
+
+console.log('dep1');

@@ -4,7 +4,7 @@ System.register([], function (exports) {
 		execute: function () {
 
 			var x = 42;
-			exports('x', x);
+			exports('x', x);console.log('dep1');
 
 		}
 	};

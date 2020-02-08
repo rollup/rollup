@@ -1,1 +1,2 @@
-import './dep';
+import { reexported } from './dep';
+console.log(reexported);

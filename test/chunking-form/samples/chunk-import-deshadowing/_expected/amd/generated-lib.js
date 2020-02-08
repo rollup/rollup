@@ -1,9 +1,9 @@
 define(['exports'], function (exports) { 'use strict';
 
-  function emptyFunction () {
+	function emptyFunction() {}
 
-  }
+	console.log('lib');
 
-  exports.emptyFunction = emptyFunction;
+	exports.emptyFunction = emptyFunction;
 
 });
