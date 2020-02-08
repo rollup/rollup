@@ -986,9 +986,9 @@ describe('hooks', () => {
 				plugins: [
 					loader({
 						input: `export default [import('a'), import('b')];`,
-						a: `import d from 'd'; import c from 'c'; export default () => c();`,
-						b: `import c from 'c'; export default () => c();`,
-						c: `export default () => console.log('c');`,
+						a: `import d from 'd'; import c from 'c'; export default () => c(d);`,
+						b: `import c from 'c'; export default () => c(0);`,
+						c: `export default (x) => console.log('c', x);`,
 						d: `export default {};`
 					}),
 					{

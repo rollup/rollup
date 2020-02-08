@@ -1,14 +1,14 @@
 System.register([], function (exports) {
-  'use strict';
-  return {
-    execute: function () {
+	'use strict';
+	return {
+		execute: function () {
 
-      exports('e', emptyFunction);
+			exports('e', emptyFunction);
 
-      function emptyFunction () {
+			function emptyFunction() {}
 
-      }
+			console.log('lib');
 
-    }
-  };
+		}
+	};
 });
