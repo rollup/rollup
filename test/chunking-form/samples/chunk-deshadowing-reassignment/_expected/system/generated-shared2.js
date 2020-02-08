@@ -10,8 +10,10 @@ System.register(['./generated-dep1.js', './generated-dep2.js'], function (export
 		execute: function () {
 
 			var x = exports('x', x$1 + 1);
+			console.log('shared1');
 
 			var y = exports('y', x$2 + 1);
+			console.log('shared2');
 
 		}
 	};

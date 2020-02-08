@@ -27,6 +27,7 @@ define(['require', './direct-relative-external', 'to-indirect-relative-external'
 	new Promise(function (resolve, reject) { require(['to-indirect-absolute-external'], function (m) { resolve(_interopNamespace(m)); }, reject) });
 
 	const value = 'existing';
+	console.log('existing');
 
 	var existing = /*#__PURE__*/Object.freeze({
 		__proto__: null,
