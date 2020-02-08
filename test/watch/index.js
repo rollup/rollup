@@ -867,8 +867,7 @@ describe('rollup.watch', () => {
 						format: 'cjs',
 						entryFileNames: '[name].[hash].js',
 						chunkFileNames: '[name].[hash].js'
-					},
-					experimentalCodeSplitting: true
+					}
 				});
 
 				return sequence(watcher, [

@@ -114,7 +114,7 @@ describe('The bundle object', () => {
 					loader({
 						input1:
 							'import {shared} from "shared";import {input2} from "input2";console.log(input2, shared);',
-						input2: 'import {shared} from "shared";export const input2 = "input2";',
+						input2: 'import {shared} from "shared";export const input2 = shared + "input2";',
 						shared: 'export const shared = "shared"'
 					})
 				]
@@ -158,7 +158,7 @@ describe('The bundle object', () => {
 					loader({
 						input1:
 							'import {shared} from "shared";import {input2} from "input2";console.log(input2, shared);',
-						input2: 'import {shared} from "shared";export const input2 = "input2";',
+						input2: 'import {shared} from "shared";export const input2 = shared + "input2";',
 						shared: 'export const shared = "shared"'
 					})
 				]

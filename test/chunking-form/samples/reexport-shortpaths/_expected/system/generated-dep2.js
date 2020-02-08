@@ -6,6 +6,7 @@ System.register([], function (exports) {
 			exports('f', foo);
 
 			function foo() {}
+			console.log('dep2');
 
 		}
 	};
