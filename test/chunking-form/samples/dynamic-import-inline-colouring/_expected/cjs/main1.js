@@ -6,6 +6,7 @@ require('./generated-separate.js');
 
 var inlined = 'inlined';
 const x = 1;
+console.log('inlined');
 
 var inlined$1 = /*#__PURE__*/Object.freeze({
 	__proto__: null,

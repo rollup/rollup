@@ -5,6 +5,7 @@ System.register([], function (exports) {
 
 			var separate = exports('default', 'separate');
 			const x = exports('x', 2);
+			console.log('separate');
 
 		}
 	};
