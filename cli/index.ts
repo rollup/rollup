@@ -1,6 +1,6 @@
 import help from 'help.md';
-import argParser from 'yargs-parser';
 import { version } from 'package.json';
+import argParser from 'yargs-parser';
 import { commandAliases } from '../src/utils/mergeOptions';
 import run from './run/index';
 
