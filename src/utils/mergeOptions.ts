@@ -98,6 +98,7 @@ export const commandAliases: { [key: string]: string } = {
 	m: 'sourcemap',
 	n: 'name',
 	o: 'file',
+	p: 'plugin',
 	v: 'version',
 	w: 'watch'
 };
@@ -158,6 +159,7 @@ export default function mergeOptions({
 			Object.keys(commandAliases),
 			'config',
 			'environment',
+			'plugin',
 			'silent',
 			'stdin'
 		),
