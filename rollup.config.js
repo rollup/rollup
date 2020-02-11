@@ -10,7 +10,7 @@ import { terser } from 'rollup-plugin-terser';
 import typescript from 'rollup-plugin-typescript';
 import addBinShebang from './build-plugins/add-bin-shebang';
 import conditionalFsEventsImport from './build-plugins/conditional-fsevents-import';
-import fixAcornEsmImport from './build-plugins/fix-acorn-esm-import';
+import fixAcornEsImport from './build-plugins/fix-acorn-es-import.js';
 import generateLicenseFile from './build-plugins/generate-license-file';
 import pkg from './package.json';
 
@@ -117,10 +117,10 @@ export default command => {
 
 	const esmBuild = Object.assign({}, commonJSBuild, {
 		input: { 'rollup.es.js': 'src/node-entry.ts' },
-		plugins: [...nodePlugins, fixAcornEsmImport()],
+		plugins: [...nodePlugins, fixAcornEsImport()],
 		output: Object.assign({}, commonJSBuild.output, {
 			chunkFileNames: 'shared-es/[name].js',
-			format: 'esm',
+			format: 'es',
 			sourcemap: false
 		})
 	});
@@ -146,7 +146,7 @@ export default command => {
 		treeshake,
 		output: [
 			{ file: 'dist/rollup.browser.js', format: 'umd', name: 'rollup', banner },
-			{ file: 'dist/rollup.browser.es.js', format: 'esm', banner }
+			{ file: 'dist/rollup.browser.es.js', format: 'es', banner }
 		]
 	};
 

@@ -21,7 +21,7 @@ module.exports = {
 		}
 	],
 	output: {
-		format: 'esm',
+		format: 'es',
 		file: 'bundle',
 		sourcemap: true
 	}

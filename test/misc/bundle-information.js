@@ -17,7 +17,7 @@ describe('The bundle object', () => {
 			})
 			.then(bundle =>
 				bundle.generate({
-					format: 'esm',
+					format: 'es',
 					dir: 'dist',
 					chunkFileNames: 'generated-[name]-[hash].js',
 					entryFileNames: '[name]-[hash].js'
@@ -121,7 +121,7 @@ describe('The bundle object', () => {
 			})
 			.then(bundle =>
 				bundle.generate({
-					format: 'esm',
+					format: 'es',
 					dir: 'dist',
 					chunkFileNames: 'generated-[name].js'
 				})
@@ -165,7 +165,7 @@ describe('The bundle object', () => {
 			})
 			.then(bundle =>
 				bundle.generate({
-					format: 'esm',
+					format: 'es',
 					dir: 'dist',
 					entryFileNames: '[name].js',
 					chunkFileNames: '[name].js'
@@ -199,7 +199,7 @@ describe('The bundle object', () => {
 			})
 			.then(bundle =>
 				bundle.generate({
-					format: 'esm',
+					format: 'es',
 					dir: 'dist',
 					entryFileNames: '[name].js',
 					chunkFileNames: 'generated-[name].js'
@@ -258,7 +258,7 @@ describe('The bundle object', () => {
 			})
 			.then(bundle =>
 				bundle.generate({
-					format: 'esm',
+					format: 'es',
 					dir: 'dist',
 					entryFileNames: '[name].js',
 					chunkFileNames: 'generated-[name].js'
@@ -306,7 +306,7 @@ describe('The bundle object', () => {
 			})
 			.then(bundle =>
 				bundle.generate({
-					format: 'esm',
+					format: 'es',
 					dir: 'dist',
 					entryFileNames: '[name].js',
 					chunkFileNames: 'generated-[name].js'
@@ -361,7 +361,7 @@ describe('The bundle object', () => {
 			})
 			.then(bundle =>
 				bundle.generate({
-					format: 'esm',
+					format: 'es',
 					dir: 'dist',
 					entryFileNames: '[name].js',
 					chunkFileNames: 'generated-[name].js'
@@ -478,7 +478,7 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 			})
 			.then(bundle =>
 				bundle.generate({
-					format: 'esm'
+					format: 'es'
 				})
 			)
 			.then(({ output: [output] }) => {
@@ -530,7 +530,7 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 			})
 			.then(bundle =>
 				bundle.generate({
-					format: 'esm'
+					format: 'es'
 				})
 			)
 			.then(({ output: [output] }) => {

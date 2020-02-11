@@ -15,7 +15,7 @@ runTestSuiteWithSamples('file hashes', path.resolve(__dirname, 'samples'), (dir,
 							.then(bundle =>
 								bundle.generate(
 									extend(
-										{ format: 'esm', chunkFileNames: '[hash]', entryFileNames: '[hash]' },
+										{ format: 'es', chunkFileNames: '[hash]', entryFileNames: '[hash]' },
 										options.output
 									)
 								)
