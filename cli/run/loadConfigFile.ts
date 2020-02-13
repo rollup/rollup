@@ -1,4 +1,4 @@
-import path from 'path';
+import { extname, isAbsolute } from 'path';
 import tc from 'turbocolor';
 import * as rollup from '../../src/node-entry';
 import { RollupBuild, RollupOutput } from '../../src/rollup/types';
@@ -21,7 +21,7 @@ export default function loadConfigFile(
 	return rollup
 		.rollup({
 			external: (id: string) =>
-				(id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5, id.length) === '.json',
+				(id[0] !== '.' && !isAbsolute(id)) || id.slice(-5, id.length) === '.json',
 			input: configFile,
 			onwarn: warnings.add,
 			treeshake: false
@@ -39,7 +39,7 @@ export default function loadConfigFile(
 		})
 		.then(({ output: [{ code }] }: RollupOutput) => {
 			// temporarily override require
-			const extension = path.extname(configFile);
+			const extension = extname(configFile);
 			const defaultLoader = require.extensions[extension];
 			require.extensions[extension] = (module: NodeModule, filename: string) => {
 				if (filename === configFile) {

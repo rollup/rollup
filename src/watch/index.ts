@@ -1,6 +1,6 @@
 import { WatchOptions } from 'chokidar';
 import { EventEmitter } from 'events';
-import path from 'path';
+import { resolve } from 'path';
 import createFilter from 'rollup-pluginutils/src/createFilter';
 import rollup, { setWatcher } from '../rollup/index';
 import {
@@ -141,7 +141,7 @@ export class Task {
 
 		this.outputs = outputOptions;
 		this.outputFiles = this.outputs.map(output => {
-			if (output.file || output.dir) return path.resolve(output.file || output.dir!);
+			if (output.file || output.dir) return resolve(output.file || output.dir!);
 			return undefined as any;
 		});
 
