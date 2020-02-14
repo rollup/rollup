@@ -53,7 +53,7 @@ runTestSuiteWithSamples('form', path.resolve(__dirname, 'samples'), (dir, config
 			};
 
 			if (isSingleFormatTest) {
-				return runRollupTest(dir + '/_actual.js', dir + '/_expected.js', 'esm');
+				return runRollupTest(dir + '/_actual.js', dir + '/_expected.js', 'es');
 			}
 
 			(config.formats || FORMATS).forEach(format =>

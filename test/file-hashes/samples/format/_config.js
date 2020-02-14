@@ -3,7 +3,7 @@ module.exports = {
 	options1: {
 		input: 'main',
 		output: {
-			format: 'esm'
+			format: 'es'
 		}
 	},
 	options2: {

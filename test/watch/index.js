@@ -1050,8 +1050,6 @@ describe('rollup.watch', () => {
 							}
 						}
 					});
-					const events = [];
-					watcher.on('event', event => events.push(event.code));
 
 					return sequence(watcher, [
 						'START',
@@ -1060,7 +1058,6 @@ describe('rollup.watch', () => {
 						'END',
 						() => {
 							assert.strictEqual(run('../_tmp/output/bundle.js'), 'initial');
-							addWatchFile = false;
 							sander.writeFileSync('test/_tmp/input/watched', 'next');
 						},
 						'START',
@@ -1112,6 +1109,8 @@ describe('rollup.watch', () => {
 							}
 						}
 					});
+					const events = [];
+					watcher.on('event', event => events.push(event.code));
 
 					return sequence(watcher, [
 						'START',
@@ -1120,6 +1119,7 @@ describe('rollup.watch', () => {
 						'END',
 						() => {
 							assert.strictEqual(run('../_tmp/output/bundle.js'), 'initial');
+							addWatchFile = false;
 							sander.writeFileSync('test/_tmp/input/watched', 'next');
 						},
 						'START',
