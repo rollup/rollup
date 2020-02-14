@@ -491,6 +491,46 @@ describe('rollup.watch', () => {
 			});
 	});
 
+	it('recovers from an error even when erroring dependency was "renamed" (#38)', () => {
+		return sander
+			.copydir('test/watch/samples/dependency')
+			.to('test/_tmp/input')
+			.then(() => {
+				watcher = rollup.watch({
+					input: 'test/_tmp/input/main.js',
+					output: {
+						file: 'test/_tmp/output/bundle.js',
+						format: 'cjs'
+					}
+				});
+
+				return sequence(watcher, [
+					'START',
+					'BUNDLE_START',
+					'BUNDLE_END',
+					'END',
+					() => {
+						assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
+						sander.unlinkSync('test/_tmp/input/dep.js');
+						sander.writeFileSync('test/_tmp/input/dep.js', 'export nope;');
+					},
+					'START',
+					'BUNDLE_START',
+					'ERROR',
+					() => {
+						sander.unlinkSync('test/_tmp/input/dep.js');
+						sander.writeFileSync('test/_tmp/input/dep.js', 'export const value = 43;');
+					},
+					'START',
+					'BUNDLE_START',
+					'BUNDLE_END',
+					'END',
+					() => {
+						assert.strictEqual(run('../_tmp/output/bundle.js'), 44);
+					}
+				]);
+			});
+	});
 	it('handles closing the watcher during a build', () => {
 		return sander
 			.copydir('test/watch/samples/basic')
