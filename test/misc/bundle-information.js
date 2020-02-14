@@ -17,7 +17,7 @@ describe('The bundle object', () => {
 			})
 			.then(bundle =>
 				bundle.generate({
-					format: 'esm',
+					format: 'es',
 					dir: 'dist',
 					chunkFileNames: 'generated-[name]-[hash].js',
 					entryFileNames: '[name]-[hash].js'
@@ -114,14 +114,14 @@ describe('The bundle object', () => {
 					loader({
 						input1:
 							'import {shared} from "shared";import {input2} from "input2";console.log(input2, shared);',
-						input2: 'import {shared} from "shared";export const input2 = "input2";',
+						input2: 'import {shared} from "shared";export const input2 = shared + "input2";',
 						shared: 'export const shared = "shared"'
 					})
 				]
 			})
 			.then(bundle =>
 				bundle.generate({
-					format: 'esm',
+					format: 'es',
 					dir: 'dist',
 					chunkFileNames: 'generated-[name].js'
 				})
@@ -158,14 +158,14 @@ describe('The bundle object', () => {
 					loader({
 						input1:
 							'import {shared} from "shared";import {input2} from "input2";console.log(input2, shared);',
-						input2: 'import {shared} from "shared";export const input2 = "input2";',
+						input2: 'import {shared} from "shared";export const input2 = shared + "input2";',
 						shared: 'export const shared = "shared"'
 					})
 				]
 			})
 			.then(bundle =>
 				bundle.generate({
-					format: 'esm',
+					format: 'es',
 					dir: 'dist',
 					entryFileNames: '[name].js',
 					chunkFileNames: '[name].js'
@@ -199,7 +199,7 @@ describe('The bundle object', () => {
 			})
 			.then(bundle =>
 				bundle.generate({
-					format: 'esm',
+					format: 'es',
 					dir: 'dist',
 					entryFileNames: '[name].js',
 					chunkFileNames: 'generated-[name].js'
@@ -258,7 +258,7 @@ describe('The bundle object', () => {
 			})
 			.then(bundle =>
 				bundle.generate({
-					format: 'esm',
+					format: 'es',
 					dir: 'dist',
 					entryFileNames: '[name].js',
 					chunkFileNames: 'generated-[name].js'
@@ -306,7 +306,7 @@ describe('The bundle object', () => {
 			})
 			.then(bundle =>
 				bundle.generate({
-					format: 'esm',
+					format: 'es',
 					dir: 'dist',
 					entryFileNames: '[name].js',
 					chunkFileNames: 'generated-[name].js'
@@ -361,7 +361,7 @@ describe('The bundle object', () => {
 			})
 			.then(bundle =>
 				bundle.generate({
-					format: 'esm',
+					format: 'es',
 					dir: 'dist',
 					entryFileNames: '[name].js',
 					chunkFileNames: 'generated-[name].js'
@@ -478,7 +478,7 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 			})
 			.then(bundle =>
 				bundle.generate({
-					format: 'esm'
+					format: 'es'
 				})
 			)
 			.then(({ output: [output] }) => {
@@ -530,7 +530,7 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 			})
 			.then(bundle =>
 				bundle.generate({
-					format: 'esm'
+					format: 'es'
 				})
 			)
 			.then(({ output: [output] }) => {

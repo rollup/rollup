@@ -332,7 +332,11 @@ interface OutputPluginHooks {
 	resolveAssetUrl: ResolveAssetUrlHook;
 	resolveDynamicImport: ResolveDynamicImportHook;
 	resolveFileUrl: ResolveFileUrlHook;
-	writeBundle: (this: PluginContext, bundle: OutputBundle) => void | Promise<void>;
+	writeBundle: (
+		this: PluginContext,
+		options: OutputOptions,
+		bundle: OutputBundle
+	) => void | Promise<void>;
 }
 
 export interface PluginHooks extends OutputPluginHooks {
@@ -412,6 +416,7 @@ export type ModuleFormat =
 	| 'iife'
 	| 'module'
 	| 'system'
+	| 'systemjs'
 	| 'umd';
 
 export type OptionsPaths = Record<string, string> | ((id: string) => string);

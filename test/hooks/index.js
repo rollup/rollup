@@ -86,7 +86,7 @@ describe('hooks', () => {
 			.then(bundle =>
 				bundle.write({
 					file: path.join(TEMP_DIR, 'bundle.js'),
-					format: 'esm'
+					format: 'es'
 				})
 			)
 			.then(() => {
@@ -620,14 +620,15 @@ describe('hooks', () => {
 						}
 					},
 					{
-						writeBundle(outputBundle) {
+						writeBundle(options, outputBundle) {
+							assert.deepStrictEqual(options.file, file);
 							assert.deepStrictEqual(outputBundle, bundle);
 							callCount++;
 						}
 					}
 				]
 			})
-			.then(bundle => bundle.write({ format: 'esm', file }))
+			.then(bundle => bundle.write({ format: 'es', file }))
 			.then(() => {
 				assert.strictEqual(callCount, 1);
 				return sander.rimraf(TEMP_DIR);
@@ -855,7 +856,7 @@ describe('hooks', () => {
 					}
 				]
 			})
-			.then(bundle => bundle.generate({ format: 'esm' }))
+			.then(bundle => bundle.generate({ format: 'es' }))
 			.then(() => {
 				assert.strictEqual(renderStartCount, 1, 'renderStart count');
 				assert.strictEqual(generateBundleCount, 1, 'generateBundle count');
@@ -891,7 +892,7 @@ describe('hooks', () => {
 					}
 				]
 			})
-			.then(bundle => bundle.generate({ format: 'esm' }))
+			.then(bundle => bundle.generate({ format: 'es' }))
 			.catch(err => {
 				assert.ok(err);
 			})
@@ -906,7 +907,7 @@ describe('hooks', () => {
 		const watcher = rollup.watch({
 			input: 'input',
 			output: {
-				format: 'esm'
+				format: 'es'
 			},
 			plugins: [loader({ input: `alert('hello')` })]
 		});
@@ -930,7 +931,7 @@ describe('hooks', () => {
 		const watcher = rollup.watch({
 			input: 'input',
 			output: {
-				format: 'esm',
+				format: 'es',
 				file: 'bundle.js'
 			},
 			plugins: [loader({ input: `import('dep')`, dep: `console.log('dep')` })]
@@ -955,7 +956,7 @@ describe('hooks', () => {
 		const watcher = rollup.watch({
 			input: 'input',
 			output: {
-				format: 'esm',
+				format: 'es',
 				sourcemapFile: 'bundle.map',
 				dir: 'ignored'
 			},
@@ -985,9 +986,9 @@ describe('hooks', () => {
 				plugins: [
 					loader({
 						input: `export default [import('a'), import('b')];`,
-						a: `import d from 'd'; import c from 'c'; export default () => c();`,
-						b: `import c from 'c'; export default () => c();`,
-						c: `export default () => console.log('c');`,
+						a: `import d from 'd'; import c from 'c'; export default () => c(d);`,
+						b: `import c from 'c'; export default () => c(0);`,
+						c: `export default (x) => console.log('c', x);`,
 						d: `export default {};`
 					}),
 					{
@@ -1005,7 +1006,7 @@ describe('hooks', () => {
 				bundle.generate({
 					entryFileNames: '[name].js',
 					chunkFileNames: 'generated-[name].js',
-					format: 'esm'
+					format: 'es'
 				})
 			)
 			.then(() => {
@@ -1054,7 +1055,7 @@ describe('hooks', () => {
 			})
 			.then(bundle =>
 				bundle.generate({
-					format: 'esm',
+					format: 'es',
 					dir: 'dist',
 					entryFileNames: '[name]-[hash].js'
 				})

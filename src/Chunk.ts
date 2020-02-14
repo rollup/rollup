@@ -114,10 +114,6 @@ function getGlobalName(
 	}
 }
 
-export function isChunkRendered(chunk: Chunk): boolean {
-	return !chunk.isEmpty || chunk.entryModules.length > 0 || chunk.manualChunkAlias !== null;
-}
-
 export default class Chunk {
 	private static generateFacade(
 		graph: Graph,
@@ -129,8 +125,7 @@ export default class Chunk {
 		if (!facadedModule.facadeChunk) {
 			facadedModule.facadeChunk = chunk;
 		}
-		chunk.dependencies = [facadedModule.chunk!];
-		chunk.dynamicDependencies = [];
+		chunk.dependencies.add(facadedModule.chunk!);
 		chunk.facadeModule = facadedModule;
 		for (const exportName of facadedModule.getAllExportNames()) {
 			const tracedVariable = facadedModule.getVariableForExportName(exportName);
@@ -147,7 +142,6 @@ export default class Chunk {
 	graph: Graph;
 	id: string | null = null;
 	indentString: string = undefined as any;
-	isEmpty: boolean;
 	manualChunkAlias: string | null = null;
 	orderedModules: Module[];
 	renderedModules?: {
@@ -156,18 +150,20 @@ export default class Chunk {
 	usedModules: Module[] = undefined as any;
 	variableName = 'chunk';
 
-	private dependencies: (ExternalModule | Chunk)[] = undefined as any;
-	private dynamicDependencies: (ExternalModule | Chunk)[] = undefined as any;
+	private dependencies = new Set<ExternalModule | Chunk>();
+	private dynamicDependencies = new Set<ExternalModule | Chunk>();
 	private exportNames: { [name: string]: Variable } = Object.create(null);
 	private exports = new Set<Variable>();
 	private fileName: string | null = null;
 	private imports = new Set<Variable>();
+	private isEmpty = true;
 	private name: string | null = null;
 	private needsExportsShim = false;
-	private renderedDeclarations: {
-		dependencies: ChunkDependencies;
-		exports: ChunkExports;
-	} = undefined as any;
+	private renderedDependencies: Map<
+		ExternalModule | Chunk,
+		ModuleDeclarationDependency
+	> | null = null;
+	private renderedExports: ChunkExports | null = null;
 	private renderedHash: string = undefined as any;
 	private renderedModuleSources = new Map<Module, MagicString>();
 	private renderedSource: MagicStringBundle | null = null;
@@ -178,7 +174,6 @@ export default class Chunk {
 		this.orderedModules = orderedModules;
 		this.execIndex = orderedModules.length > 0 ? orderedModules[0].execIndex : Infinity;
 
-		this.isEmpty = true;
 		for (const module of orderedModules) {
 			if (this.isEmpty && module.isIncluded()) {
 				this.isEmpty = false;
@@ -267,7 +262,7 @@ export default class Chunk {
 				: [options.chunkFileNames || '[name]-[hash].js', 'output.chunkFileNames'];
 		return makeUnique(
 			renderNamePattern(pattern, patternName, {
-				format: () => (options.format === 'es' ? 'esm' : (options.format as string)),
+				format: () => options.format as string,
 				hash: () =>
 					includeHash
 						? this.computeContentHashWithDependencies(
@@ -302,7 +297,7 @@ export default class Chunk {
 				{
 					ext: () => extension.substr(1),
 					extname: () => extension,
-					format: () => (options.format === 'es' ? 'esm' : (options.format as string)),
+					format: () => options.format as string,
 					name: () => this.getChunkName()
 				}
 			);
@@ -355,7 +350,7 @@ export default class Chunk {
 	}
 
 	getDynamicImportIds(): string[] {
-		return this.dynamicDependencies.map(chunk => chunk.id).filter(Boolean) as string[];
+		return [...this.dynamicDependencies].map(chunk => chunk.id as string);
 	}
 
 	getExportNames(): string[] {
@@ -365,16 +360,15 @@ export default class Chunk {
 	}
 
 	getImportIds(): string[] {
-		return this.dependencies.map(chunk => chunk.id).filter(Boolean) as string[];
+		return [...this.dependencies].map(chunk => chunk.id as string);
 	}
 
 	getRenderedHash(outputPluginDriver: PluginDriver): string {
 		if (this.renderedHash) return this.renderedHash;
-		if (!this.renderedSource) return '';
 		const hash = createHash();
 		const hashAugmentation = this.calculateHashAugmentation(outputPluginDriver);
 		hash.update(hashAugmentation);
-		hash.update(this.renderedSource.toString());
+		hash.update(this.renderedSource!.toString());
 		hash.update(
 			this.getExportNames()
 				.map(exportName => {
@@ -399,15 +393,11 @@ export default class Chunk {
 	}
 
 	link() {
-		const dependencies: Set<Chunk | ExternalModule> = new Set();
-		const dynamicDependencies: Set<Chunk | ExternalModule> = new Set();
 		for (const module of this.orderedModules) {
-			this.addDependenciesToChunk(module.getTransitiveDependencies(), dependencies);
-			this.addDependenciesToChunk(module.dynamicDependencies, dynamicDependencies);
+			this.addDependenciesToChunk(module.getDependenciesToBeIncluded(), this.dependencies);
+			this.addDependenciesToChunk(module.dynamicDependencies, this.dynamicDependencies);
 			this.setUpChunkImportsAndExportsForModule(module);
 		}
-		this.dependencies = Array.from(dependencies);
-		this.dynamicDependencies = Array.from(dynamicDependencies);
 	}
 
 	// prerender allows chunk hashes and names to be generated before finalizing
@@ -431,15 +421,6 @@ export default class Chunk {
 			varOrConst: options.preferConst ? 'const' : 'var'
 		};
 
-		// Make sure the direct dependencies of a chunk are present to maintain execution order
-		for (const { module } of this.imports) {
-			const chunkOrExternal = (module instanceof Module ? module.chunk : module) as
-				| Chunk
-				| ExternalModule;
-			if (this.dependencies.indexOf(chunkOrExternal) === -1) {
-				this.dependencies.push(chunkOrExternal);
-			}
-		}
 		// for static and dynamic entry points, inline the execution list to avoid loading latency
 		if (
 			options.hoistTransitiveImports !== false &&
@@ -447,18 +428,12 @@ export default class Chunk {
 			this.facadeModule !== null
 		) {
 			for (const dep of this.dependencies) {
-				if (dep instanceof Chunk) this.inlineChunkDependencies(dep, true);
+				if (dep instanceof Chunk) this.inlineChunkDependencies(dep);
 			}
 		}
-		// prune empty dependency chunks, inlining their side-effect dependencies
-		for (let i = 0; i < this.dependencies.length; i++) {
-			const dep = this.dependencies[i];
-			if (dep instanceof Chunk && dep.isEmpty) {
-				this.dependencies.splice(i--, 1);
-				this.inlineChunkDependencies(dep, false);
-			}
-		}
-		sortByExecutionOrder(this.dependencies);
+		const sortedDependencies = [...this.dependencies];
+		sortByExecutionOrder(sortedDependencies);
+		this.dependencies = new Set(sortedDependencies);
 
 		this.prepareDynamicImports();
 		this.setIdentifierRenderResolutions(options);
@@ -509,7 +484,7 @@ export default class Chunk {
 
 		this.renderedHash = undefined as any;
 
-		if (this.isEmpty && this.getExportNames().length === 0 && this.dependencies.length === 0) {
+		if (this.isEmpty && this.getExportNames().length === 0 && this.dependencies.size === 0) {
 			const chunkName = this.getChunkName();
 			this.graph.warn({
 				chunkName,
@@ -520,10 +495,8 @@ export default class Chunk {
 
 		this.setExternalRenderPaths(options, inputBase);
 
-		this.renderedDeclarations = {
-			dependencies: this.getChunkDependencyDeclarations(options),
-			exports: this.exportMode === 'none' ? [] : this.getChunkExportDeclarations()
-		};
+		this.renderedDependencies = this.getChunkDependencyDeclarations(options);
+		this.renderedExports = this.exportMode === 'none' ? [] : this.getChunkExportDeclarations();
 
 		timeEnd('render modules', 3);
 	}
@@ -541,19 +514,18 @@ export default class Chunk {
 		if (options.dynamicImportFunction && format !== 'es') {
 			this.graph.warn({
 				code: 'INVALID_OPTION',
-				message: '"output.dynamicImportFunction" is ignored for formats other than "esm".'
+				message: '"output.dynamicImportFunction" is ignored for formats other than "es".'
 			});
 		}
 
 		// populate ids in the rendered declarations only here
 		// as chunk ids known only after prerender
-		for (let i = 0; i < this.dependencies.length; i++) {
-			const dep = this.dependencies[i];
-			if (dep instanceof ExternalModule && !dep.renormalizeRenderPath) continue;
-
-			const renderedDependency = this.renderedDeclarations.dependencies[i];
-			const depId = dep instanceof ExternalModule ? renderedDependency.id : dep.id!;
-			if (dep instanceof Chunk) renderedDependency.namedExportsMode = dep.exportMode !== 'default';
+		for (const dependency of this.dependencies) {
+			if (dependency instanceof ExternalModule && !dependency.renormalizeRenderPath) continue;
+			const renderedDependency = this.renderedDependencies!.get(dependency)!;
+			const depId = dependency instanceof ExternalModule ? renderedDependency.id : dependency.id!;
+			if (dependency instanceof Chunk)
+				renderedDependency.namedExportsMode = dependency.exportMode !== 'default';
 			renderedDependency.id = this.getRelativePath(depId);
 		}
 
@@ -561,8 +533,8 @@ export default class Chunk {
 		this.finaliseImportMetas(format, outputPluginDriver);
 
 		const hasExports =
-			this.renderedDeclarations.exports.length !== 0 ||
-			this.renderedDeclarations.dependencies.some(
+			this.renderedExports!.length !== 0 ||
+			[...this.renderedDependencies!.values()].some(
 				dep => (dep.reexports && dep.reexports.length !== 0)!
 			);
 
@@ -593,8 +565,8 @@ export default class Chunk {
 			this.renderedSource!,
 			{
 				accessedGlobals,
-				dependencies: this.renderedDeclarations.dependencies,
-				exports: this.renderedDeclarations.exports,
+				dependencies: [...this.renderedDependencies!.values()],
+				exports: this.renderedExports!,
 				hasExports,
 				indentString: this.indentString,
 				intro: addons.intro!,
@@ -657,39 +629,18 @@ export default class Chunk {
 		});
 	}
 
-	visitDependencies(handleDependency: (dependency: Chunk | ExternalModule) => void) {
-		const toBeVisited: (Chunk | ExternalModule)[] = [this];
-		const visited: Set<Chunk | ExternalModule> = new Set();
-		for (const current of toBeVisited) {
-			handleDependency(current);
-			if (current instanceof ExternalModule) continue;
-			for (const dependency of current.dependencies.concat(current.dynamicDependencies)) {
-				if (!visited.has(dependency)) {
-					visited.add(dependency);
-					toBeVisited.push(dependency);
-				}
-			}
-		}
-	}
-
 	private addDependenciesToChunk(
-		moduleDependencies: (Module | ExternalModule)[],
+		moduleDependencies: Set<Module | ExternalModule>,
 		chunkDependencies: Set<Chunk | ExternalModule>
 	) {
 		for (const depModule of moduleDependencies) {
-			if (depModule.chunk === this) {
-				continue;
-			}
-			let dependency: Chunk | ExternalModule;
 			if (depModule instanceof Module) {
-				dependency = depModule.chunk!;
-			} else {
-				if (!(depModule.used || depModule.moduleSideEffects)) {
-					continue;
+				if (depModule.chunk && depModule.chunk !== this) {
+					chunkDependencies.add(depModule.chunk);
 				}
-				dependency = depModule;
+			} else {
+				chunkDependencies.add(depModule);
 			}
-			chunkDependencies.add(dependency);
 		}
 	}
 
@@ -742,15 +693,19 @@ export default class Chunk {
 			[addons.intro, addons.outro, addons.banner, addons.footer].map(addon => addon || '').join(':')
 		);
 		hash.update(options.format as string);
-		this.visitDependencies(dep => {
-			if (dep instanceof ExternalModule) {
-				hash.update(':' + dep.renderPath);
+		const dependenciesForHashing = new Set<Chunk | ExternalModule>([this]);
+		for (const current of dependenciesForHashing) {
+			if (current instanceof ExternalModule) {
+				hash.update(':' + current.renderPath);
 			} else {
-				hash.update(dep.getRenderedHash(outputPluginDriver));
-				hash.update(dep.generateId(addons, options, existingNames, false, outputPluginDriver));
+				hash.update(current.getRenderedHash(outputPluginDriver));
+				hash.update(current.generateId(addons, options, existingNames, false, outputPluginDriver));
 			}
-		});
-
+			if (current instanceof ExternalModule) continue;
+			for (const dependency of [...current.dependencies, ...current.dynamicDependencies]) {
+				dependenciesForHashing.add(dependency);
+			}
+		}
 		return hash.digest('hex').substr(0, 8);
 	}
 
@@ -759,8 +714,8 @@ export default class Chunk {
 			for (const { node, resolution } of module.dynamicImports) {
 				if (!resolution) continue;
 				if (resolution instanceof Module) {
-					if (resolution.chunk !== this && isChunkRendered(resolution.chunk!)) {
-						const resolutionChunk = resolution.facadeChunk || resolution.chunk!;
+					if (resolution.chunk && resolution.chunk !== this) {
+						const resolutionChunk = resolution.facadeChunk || resolution.chunk;
 						node.renderFinalResolution(
 							code,
 							`'${this.getRelativePath(resolutionChunk.id!)}'`,
@@ -792,7 +747,9 @@ export default class Chunk {
 		}
 	}
 
-	private getChunkDependencyDeclarations(options: OutputOptions): ChunkDependencies {
+	private getChunkDependencyDeclarations(
+		options: OutputOptions
+	): Map<Chunk | ExternalModule, ModuleDeclarationDependency> {
 		const reexportDeclarations = new Map<Chunk | ExternalModule, ReexportSpecifier[]>();
 
 		for (let exportName of this.getExportNames()) {
@@ -824,7 +781,7 @@ export default class Chunk {
 		}
 
 		const renderedImports = new Set<Variable>();
-		const dependencies: ChunkDependencies = [];
+		const dependencies = new Map<Chunk | ExternalModule, ModuleDeclarationDependency>();
 
 		for (const dep of this.dependencies) {
 			const imports: ImportSpecifier[] = [];
@@ -875,7 +832,7 @@ export default class Chunk {
 				}
 			}
 
-			dependencies.push({
+			dependencies.set(dep, {
 				exportsDefault,
 				exportsNames,
 				globalName,
@@ -918,12 +875,10 @@ export default class Chunk {
 				}
 			}
 
-			const localName = variable.getName();
-
 			exports.push({
-				exported: exportName === '*' ? localName : exportName,
+				exported: exportName,
 				hoisted,
-				local: localName,
+				local: variable.getName(),
 				uninitialized
 			});
 		}
@@ -945,14 +900,17 @@ export default class Chunk {
 		return relativePath.startsWith('../') ? relativePath : './' + relativePath;
 	}
 
-	private inlineChunkDependencies(chunk: Chunk, deep: boolean) {
+	private inlineChunkDependencies(chunk: Chunk) {
 		for (const dep of chunk.dependencies) {
 			if (dep instanceof ExternalModule) {
-				if (this.dependencies.indexOf(dep) === -1) this.dependencies.push(dep);
+				this.dependencies.add(dep);
 			} else {
-				if (dep === this || this.dependencies.indexOf(dep) !== -1) continue;
-				if (!dep.isEmpty) this.dependencies.push(dep);
-				if (deep) this.inlineChunkDependencies(dep, true);
+				// At the moment, circular dependencies between chunks are not possible; this will
+				// change if we ever add logic to ensure correct execution order or open up the
+				// chunking to plugins
+				// if (dep === this) continue;
+				this.dependencies.add(dep);
+				this.inlineChunkDependencies(dep);
 			}
 		}
 	}
@@ -976,7 +934,7 @@ export default class Chunk {
 	}
 
 	private setExternalRenderPaths(options: OutputOptions, inputBase: string) {
-		for (const dependency of this.dependencies.concat(this.dynamicDependencies)) {
+		for (const dependency of [...this.dependencies, ...this.dynamicDependencies]) {
 			if (dependency instanceof ExternalModule) {
 				dependency.setRenderPath(options, inputBase);
 			}
@@ -986,22 +944,19 @@ export default class Chunk {
 	private setIdentifierRenderResolutions(options: OutputOptions) {
 		for (const exportName of this.getExportNames()) {
 			const exportVariable = this.exportNames[exportName];
-			if (exportVariable) {
-				if (exportVariable instanceof ExportShimVariable) {
-					this.needsExportsShim = true;
-				}
-				exportVariable.exportName = exportName;
-				if (
-					options.format !== 'es' &&
-					options.format !== 'system' &&
-					exportVariable.isReassigned &&
-					!exportVariable.isId &&
-					!(exportVariable instanceof ExportDefaultVariable && exportVariable.hasId)
-				) {
-					exportVariable.setRenderNames('exports', exportName);
-				} else {
-					exportVariable.setRenderNames(null, null);
-				}
+			if (exportVariable instanceof ExportShimVariable) {
+				this.needsExportsShim = true;
+			}
+			exportVariable.exportName = exportName;
+			if (
+				options.format !== 'es' &&
+				options.format !== 'system' &&
+				exportVariable.isReassigned &&
+				!exportVariable.isId
+			) {
+				exportVariable.setRenderNames('exports', exportName);
+			} else {
+				exportVariable.setRenderNames(null, null);
 			}
 		}
 
@@ -1060,9 +1015,7 @@ export default class Chunk {
 				const variable = reexport.module.getVariableForExportName(reexport.localName);
 				if ((variable.module as Module).chunk !== this) {
 					this.imports.add(variable);
-					if (variable.module instanceof Module) {
-						variable.module.chunk!.exports.add(variable);
-					}
+					(variable.module as Module).chunk!.exports.add(variable);
 				}
 			}
 		}

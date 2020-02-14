@@ -3,7 +3,7 @@ import { ChunkDependencies, ChunkExports, ImportSpecifier, ReexportSpecifier } f
 import { OutputOptions } from '../rollup/types';
 import { FinaliserOptions } from './index';
 
-export default function esm(
+export default function es(
 	magicString: MagicStringBundle,
 	{ intro, outro, dependencies, exports }: FinaliserOptions,
 	options: OutputOptions

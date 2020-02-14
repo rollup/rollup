@@ -126,7 +126,7 @@ export default [{
     },
     {
       file: 'dist/bundle-b2.js',
-      format: 'esm'
+      format: 'es'
     }
   ]
 }];
@@ -211,7 +211,7 @@ Many options have command line equivalents. In those cases, any arguments passed
                               is unspecified, defaults to rollup.config.js)
 -d, --dir <dirname>         Directory for chunks (if absent, prints to stdout)
 -e, --external <ids>        Comma-separate list of module IDs to exclude
--f, --format <format>       Type of output (amd, cjs, esm, iife, umd)
+-f, --format <format>       Type of output (amd, cjs, es, iife, umd, system)
 -g, --globals <pairs>       Comma-separate list of `moduleID:Global` pairs
 -h, --help                  Show this help message
 -i, --input <filename>      Input (alternative to <entry file>)

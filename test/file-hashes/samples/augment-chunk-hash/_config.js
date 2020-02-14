@@ -5,7 +5,7 @@ module.exports = {
 	options1: {
 		input: 'main',
 		output: {
-			format: 'esm',
+			format: 'es',
 			entryFileNames: '[name]-[hash].js',
 			chunkFileNames: '[name]-[hash].js'
 		},
@@ -27,7 +27,7 @@ module.exports = {
 	options2: {
 		input: 'main',
 		output: {
-			format: 'esm',
+			format: 'es',
 			entryFileNames: '[name]-[hash].js',
 			chunkFileNames: '[name]-[hash].js'
 		},

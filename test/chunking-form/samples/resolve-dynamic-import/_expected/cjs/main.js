@@ -32,6 +32,7 @@ new Promise(function (resolve) { resolve(_interopNamespace(require('direct-absol
 new Promise(function (resolve) { resolve(_interopNamespace(require('to-indirect-absolute-external'))); });
 
 const value = 'existing';
+console.log('existing');
 
 var existing = /*#__PURE__*/Object.freeze({
 	__proto__: null,

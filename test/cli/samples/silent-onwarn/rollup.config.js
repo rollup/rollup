@@ -5,7 +5,7 @@ const warnings = [];
 export default {
 	input: 'main.js',
 	output: {
-		format: 'esm'
+		format: 'es'
 	},
 	onwarn(warning) {
 		warnings.push(warning);

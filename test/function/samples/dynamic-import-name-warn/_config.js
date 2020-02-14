@@ -1,7 +1,7 @@
 const assert = require('assert');
 
 module.exports = {
-	description: 'warns when specifying a custom importer function for formats other than "esm"',
+	description: 'warns when specifying a custom importer function for formats other than "es"',
 	context: {
 		require(path) {
 			assert.equal(path, './foo.js');
@@ -26,7 +26,7 @@ module.exports = {
 	warnings: [
 		{
 			code: 'INVALID_OPTION',
-			message: '"output.dynamicImportFunction" is ignored for formats other than "esm".'
+			message: '"output.dynamicImportFunction" is ignored for formats other than "es".'
 		}
 	]
 };

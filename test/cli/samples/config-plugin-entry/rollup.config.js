@@ -1,6 +1,6 @@
 export default {
 	output: {
-		format: 'esm'
+		format: 'es'
 	},
 	plugins: [
 		{
