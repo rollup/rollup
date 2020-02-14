@@ -1,9 +1,11 @@
 import {
 	InputOptions,
+	ModuleFormat,
 	OutputOptions,
 	WarningHandler,
 	WarningHandlerWithDefault
 } from '../rollup/types';
+import { errInvalidExportOptionValue, error } from './error';
 
 export interface GenericConfigObject {
 	[key: string]: unknown;
@@ -137,18 +139,6 @@ export function parseOutputOptions(
 	overrides: GenericConfigObject = {}
 ): OutputOptions {
 	const getOption = createGetOption(config, overrides);
-	let format = getOption('format');
-
-	// Handle format aliases
-	switch (format) {
-		case undefined:
-		case 'esm':
-		case 'module':
-			format = 'es';
-			break;
-		case 'commonjs':
-			format = 'cjs';
-	}
 	const outputOptions = {
 		amd: { ...(config.amd as object), ...(overrides.amd as object) } as any,
 		assetFileNames: getOption('assetFileNames'),
@@ -159,15 +149,16 @@ export function parseOutputOptions(
 		dynamicImportFunction: getOption('dynamicImportFunction'),
 		entryFileNames: getOption('entryFileNames'),
 		esModule: getOption('esModule', true),
-		exports: getOption('exports'),
+		exports: normalizeExports(getOption('exports')),
 		extend: getOption('extend'),
 		externalLiveBindings: getOption('externalLiveBindings', true),
 		file: getOption('file'),
 		footer: getOption('footer'),
-		format,
+		format: normalizeFormat(getOption('format')),
 		freeze: getOption('freeze', true),
 		globals: getOption('globals'),
-		hoistTransitiveImports: getOption('hoistTransitiveImports', true), indent: getOption('indent', true),
+		hoistTransitiveImports: getOption('hoistTransitiveImports', true),
+		indent: getOption('indent', true),
 		interop: getOption('interop', true),
 		intro: getOption('intro'),
 		name: getOption('name'),
@@ -209,4 +200,36 @@ export function warnUnknownOptions(
 				.join(', ')}`
 		});
 	}
+}
+
+function normalizeFormat(format: string): ModuleFormat {
+	switch (format) {
+		case undefined:
+		case 'es':
+		case 'esm':
+		case 'module':
+			return 'es';
+		case 'cjs':
+		case 'commonjs':
+			return 'cjs';
+		case 'system':
+		case 'systemjs':
+			return 'system';
+		case 'amd':
+		case 'iife':
+		case 'umd':
+			return format;
+		default:
+			return error({
+				message: `You must specify "output.format", which can be one of "amd", "cjs", "system", "es", "iife" or "umd".`,
+				url: `https://rollupjs.org/guide/en/#output-format`
+			});
+	}
+}
+
+function normalizeExports(exports: string | undefined): 'default' | 'named' | 'none' | 'auto' {
+	if (exports && !['default', 'named', 'none', 'auto'].includes(exports)) {
+		return error(errInvalidExportOptionValue(exports));
+	}
+	return exports as 'default' | 'named' | 'none' | 'auto';
 }

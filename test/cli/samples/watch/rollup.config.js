@@ -2,7 +2,7 @@ export default {
 	input: 'main.js',
 	output: {
 		file: '_actual.js',
-		format: 'esm'
+		format: 'es'
 	},
 	watch: {
 		clearScreen: false

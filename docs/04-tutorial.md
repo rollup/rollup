@@ -378,7 +378,7 @@ Notice how both entry points import the same shared chunk. Rollup will never dup
 
 You can build the same code for the browser via native ES modules, an AMD loader or SystemJS.
 
-For example, with `-f esm` for native modules:
+For example, with `-f es` for native modules:
 
 ```
 rollup src/main.js src/main2.js -f esm -d dist

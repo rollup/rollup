@@ -10,14 +10,14 @@ export default [
 		input: '-',
 		output: {
 			file: '_actual/es.js',
-			format: 'esm'
+			format: 'es'
 		}
 	},
 	{
 		input: 'a.mjs',
 		output: {
 			file: '_actual/no-stdin.js',
-			format: 'esm'
+			format: 'es'
 		}
 	}
 ];
