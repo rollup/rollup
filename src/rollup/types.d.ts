@@ -418,6 +418,7 @@ export type ModuleFormat =
 	| 'iife'
 	| 'module'
 	| 'system'
+	| 'systemjs'
 	| 'umd';
 
 export type OptionsPaths = Record<string, string> | ((id: string) => string);

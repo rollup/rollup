@@ -263,7 +263,7 @@ export default class Chunk {
 				: [options.chunkFileNames || '[name]-[hash].js', 'output.chunkFileNames'];
 		return makeUnique(
 			renderNamePattern(pattern, patternName, {
-				format: () => (options.format === 'es' ? 'esm' : (options.format as string)),
+				format: () => options.format as string,
 				hash: () =>
 					includeHash
 						? this.computeContentHashWithDependencies(
@@ -298,7 +298,7 @@ export default class Chunk {
 				{
 					ext: () => extension.substr(1),
 					extname: () => extension,
-					format: () => (options.format === 'es' ? 'esm' : (options.format as string)),
+					format: () => options.format as string,
 					name: () => this.getChunkName()
 				}
 			);
@@ -634,7 +634,7 @@ export default class Chunk {
 		if (options.dynamicImportFunction && format !== 'es') {
 			this.graph.warn({
 				code: 'INVALID_OPTION',
-				message: '"output.dynamicImportFunction" is ignored for formats other than "esm".'
+				message: '"output.dynamicImportFunction" is ignored for formats other than "es".'
 			});
 		}
 
