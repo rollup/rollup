@@ -1,11 +1,15 @@
 # rollup changelog
 
 ## 1.31.1
-*unreleased*
+*2020-02-14*
+
+### Bug Fixes
+* Make sure errored files are always re-evaluated in watch mode to avoid an issue in the typescript plugin (#3388)
 
 ### Pull Requests
 * [#3366](https://github.com/rollup/rollup/pull/3366): Correct spelling minifaction to minification (@VictorHom)
 * [#3371](https://github.com/rollup/rollup/pull/3371): Adjust bug template to mention REPL.it (@lukastaegert)
+* [#3388](https://github.com/rollup/rollup/pull/3388): Run transform hooks again in watch mode on files that errored (@lukastaegert)
 
 ## 1.31.0
 *2020-01-31*
