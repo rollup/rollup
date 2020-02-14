@@ -91,21 +91,21 @@ export default {
 When using the command line interface, multiple inputs can be provided by using the option multiple times. When provided as the first options, it is equivalent to not prefix them with `--input`:
 
 ```sh
-rollup --format esm --input src/entry1.js --input src/entry2.js
+rollup --format es --input src/entry1.js --input src/entry2.js
 # is equivalent to
-rollup src/entry1.js src/entry2.js --format esm
+rollup src/entry1.js src/entry2.js --format es
 ```
 
 Chunks can be named by adding an `=` to the provided value:
 
 ```sh
-rollup main=src/entry1.js other=src/entry2.js --format esm
+rollup main=src/entry1.js other=src/entry2.js --format es
 ```
 
 File names containing spaces can be specified by using quotes:
 
 ```sh
-rollup "main entry"="src/entry 1.js" "src/other entry.js" --format esm
+rollup "main entry"="src/entry 1.js" "src/other entry.js" --format es
 ```
 
 #### output.dir
@@ -128,7 +128,7 @@ Specifies the format of the generated bundle. One of the following:
 
 * `amd` – Asynchronous Module Definition, used with module loaders like RequireJS
 * `cjs` – CommonJS, suitable for Node and other bundlers
-* `esm` – Keep the bundle as an ES module file, suitable for other bundlers and inclusion as a `<script type=module>` tag in modern browsers
+* `es` – Keep the bundle as an ES module file, suitable for other bundlers and inclusion as a `<script type=module>` tag in modern browsers
 * `iife` – A self-executing function, suitable for inclusion as a `<script>` tag. (If you want to create a bundle for your application, you probably want to use this.)
 * `umd` – Universal Module Definition, works as `amd`, `cjs` and `iife` all in one
 * `system` – Native format of the SystemJS loader
@@ -244,11 +244,11 @@ export default {
   output: [
     {
       file: 'bundle.js',
-      format: 'esm'
+      format: 'es'
     },
     {
       file: 'bundle.min.js',
-      format: 'esm',
+      format: 'es',
       plugins: [terser()]
     }
   ]
@@ -428,7 +428,7 @@ CLI: `--chunkFileNames <pattern>`<br>
 Default: `"[name]-[hash].js"`
 
 The pattern to use for naming shared chunks created when code-splitting. Pattern supports the following placeholders:
- * `[format]`: The rendering format defined in the output options, e.g. `esm` or `cjs`.
+ * `[format]`: The rendering format defined in the output options, e.g. `es` or `cjs`.
  * `[hash]`: A hash based on the content of the chunk and the content of all its dependencies.
  * `[name]`: The name of the chunk. This can be explicitly set via the [`manualChunks`](guide/en/#manualchunks) option or when the chunk is created by a plugin via [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string). Otherwise it will be derived from the chunk contents.
 
@@ -447,7 +447,7 @@ CLI: `--entryFileNames <pattern>`<br>
 Default: `"[name].js"`
 
 The pattern to use for chunks created from entry points. Pattern supports the following placeholders:
-* `[format]`: The rendering format defined in the output options, e.g. `esm` or `cjs`.
+* `[format]`: The rendering format defined in the output options, e.g. `es` or `cjs`.
 * `[hash]`: A hash based on the content of the entry point and the content of all its dependencies.
 * `[name]`: The file name (without extension) of the entry point, unless the object form of input was used to define a different name.
 
@@ -566,7 +566,7 @@ export default ({
       // will transform e.g. "src/main.js" -> "main.js"
       return path.relative('src', relativePath)
     },
-    format: 'esm',
+    format: 'es',
     sourcemap: true
   }]
 });
@@ -717,7 +717,7 @@ Type: `boolean`<br>
 CLI: `--esModule`/`--no-esModule`
 Default: `true`
 
-Whether or not to add a `__esModule: true` property when generating exports for non-ESM formats.
+Whether or not to add a `__esModule: true` property when generating exports for non-ES formats.
 
 #### output.exports
 Type: `string`<br>
@@ -846,14 +846,14 @@ Type: `boolean`<br>
 CLI: `--strict`/`--no-strict`<br>
 Default: `true`
 
-Whether to include the 'use strict' pragma at the top of generated non-ESM bundles. Strictly speaking, ES modules are *always* in strict mode, so you shouldn't disable this without good reason.
+Whether to include the 'use strict' pragma at the top of generated non-ES bundles. Strictly speaking, ES modules are *always* in strict mode, so you shouldn't disable this without good reason.
 
 #### output.dynamicImportFunction
 Type: `string`<br>
 CLI: `--dynamicImportFunction <name>`<br>
 Default: `import`
 
-This will rename the dynamic import function to the chosen name when outputting ESM bundles. This is useful for generating code that uses a dynamic import polyfill such as [this one](https://github.com/uupaa/dynamic-import-polyfill).
+This will rename the dynamic import function to the chosen name when outputting ES bundles. This is useful for generating code that uses a dynamic import polyfill such as [this one](https://github.com/uupaa/dynamic-import-polyfill).
 
 #### preserveSymlinks
 Type: `boolean`<br>

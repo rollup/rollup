@@ -20,7 +20,7 @@ describe('bundle.write()', () => {
 				}, /You must supply an options object/);
 
 				assert.throws(() => {
-					bundle.write({format: 'esm'});
+					bundle.write({format: 'es'});
 				}, /You must specify "output\.file"/);
 			});
 	});
