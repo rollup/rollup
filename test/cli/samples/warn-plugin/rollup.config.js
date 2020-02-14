@@ -13,7 +13,7 @@ module.exports = {
 		}
 	],
 	output: {
-		format: 'esm',
+		format: 'es',
 		plugins: [
 			{
 				name: 'second-plugin',

@@ -5,7 +5,7 @@ import Graph from '../Graph';
 import { createAddons } from '../utils/addons';
 import { assignChunkIds } from '../utils/assignChunkIds';
 import commondir from '../utils/commondir';
-import { errCannotEmitFromOptionsHook, errInvalidExportOptionValue, error } from '../utils/error';
+import { errCannotEmitFromOptionsHook, error } from '../utils/error';
 import { writeFile } from '../utils/fs';
 import getExportMode from '../utils/getExportMode';
 import {
@@ -32,19 +32,6 @@ import {
 	RollupWatcher,
 	WarningHandler
 } from './types';
-
-function checkOutputOptions(options: OutputOptions) {
-	if (['amd', 'cjs', 'system', 'es', 'iife', 'umd'].indexOf(options.format as string) < 0) {
-		return error({
-			message: `You must specify "output.format", which can be one of "amd", "cjs", "system", "esm", "iife" or "umd".`,
-			url: `https://rollupjs.org/guide/en/#output-format`
-		});
-	}
-
-	if (options.exports && !['default', 'named', 'none', 'auto'].includes(options.exports)) {
-		return error(errInvalidExportOptionValue(options.exports));
-	}
-}
 
 function getAbsoluteEntryModulePaths(chunks: Chunk[]): string[] {
 	const absoluteEntryModulePaths: string[] = [];
@@ -391,28 +378,22 @@ function normalizeOutputOptions(
 	hasMultipleChunks: boolean,
 	outputPluginDriver: PluginDriver
 ): OutputOptions {
-	const outputOptionBase = rawOutputOptions.output || inputOptions.output || rawOutputOptions;
-	let outputOptions = parseOutputOptions(
-		outputOptionBase as GenericConfigObject,
+	const outputOptions = parseOutputOptions(
+		outputPluginDriver.hookReduceArg0Sync(
+			'outputOptions',
+			[rawOutputOptions.output || inputOptions.output || rawOutputOptions],
+			(outputOptions: OutputOptions, result: OutputOptions) => result || outputOptions,
+			pluginContext => {
+				const emitError = () => pluginContext.error(errCannotEmitFromOptionsHook());
+				return {
+					...pluginContext,
+					emitFile: emitError,
+					setAssetSource: emitError
+				};
+			}
+		) as GenericConfigObject,
 		inputOptions.onwarn as WarningHandler
 	);
-	const outputOptionsReducer = (outputOptions: OutputOptions, result: OutputOptions) =>
-		result || outputOptions;
-	outputOptions = outputPluginDriver.hookReduceArg0Sync(
-		'outputOptions',
-		[outputOptions],
-		outputOptionsReducer,
-		pluginContext => {
-			const emitError = () => pluginContext.error(errCannotEmitFromOptionsHook());
-			return {
-				...pluginContext,
-				emitFile: emitError,
-				setAssetSource: emitError
-			};
-		}
-	);
-
-	checkOutputOptions(outputOptions);
 
 	if (typeof outputOptions.file === 'string') {
 		if (typeof outputOptions.dir === 'string')
