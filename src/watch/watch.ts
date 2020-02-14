@@ -193,8 +193,9 @@ export class Task {
 				}
 			}
 			if (error.id) {
-					this.cache.modules = this.cache.modules.filter(module => module.id !== error.id);
-				}throw error;
+				this.cache.modules = this.cache.modules.filter(module => module.id !== error.id);
+			}
+			throw error;
 		}
 	}
 

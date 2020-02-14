@@ -1,6 +1,5 @@
 import { version as rollupVersion } from 'package.json';
 import Chunk from '../Chunk';
-import { optimizeChunks } from '../chunk-optimization';
 import Graph from '../Graph';
 import { createAddons } from '../utils/addons';
 import { assignChunkIds } from '../utils/assignChunkIds';
@@ -82,12 +81,6 @@ function getInputOptions(rawInputOptions: GenericConfigObject): InputOptions {
 				code: 'INVALID_OPTION',
 				message: '"manualChunks" option is not supported for "inlineDynamicImports".'
 			});
-
-		if (inputOptions.experimentalOptimizeChunks)
-			return error({
-				code: 'INVALID_OPTION',
-				message: '"experimentalOptimizeChunks" option is not supported for "inlineDynamicImports".'
-			});
 		if (
 			(inputOptions.input instanceof Array && inputOptions.input.length > 1) ||
 			(typeof inputOptions.input === 'object' && Object.keys(inputOptions.input).length > 1)
@@ -101,11 +94,6 @@ function getInputOptions(rawInputOptions: GenericConfigObject): InputOptions {
 			return error({
 				code: 'INVALID_OPTION',
 				message: '"preserveModules" does not support the "manualChunks" option.'
-			});
-		if (inputOptions.experimentalOptimizeChunks)
-			return error({
-				code: 'INVALID_OPTION',
-				message: '"preserveModules" does not support the "experimentalOptimizeChunks" option.'
 			});
 	}
 
@@ -182,9 +170,6 @@ export async function rollupInternal(
 
 	timeEnd('BUILD', 1);
 
-	// ensure we only do one optimization pass per build
-	let optimized = false;
-
 	function getOutputOptionsAndPluginDriver(
 		rawOutputOptions: GenericConfigObject
 	): { outputOptions: OutputOptions; outputPluginDriver: PluginDriver } {
@@ -229,10 +214,6 @@ export async function rollupInternal(
 			}
 			for (const chunk of chunks) {
 				chunk.preRender(outputOptions, inputBase);
-			}
-			if (!optimized && inputOptions.experimentalOptimizeChunks) {
-				optimizeChunks(chunks, outputOptions, inputOptions.chunkGroupingSize!, inputBase);
-				optimized = true;
 			}
 			assignChunkIds(
 				chunks,

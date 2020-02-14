@@ -1053,26 +1053,12 @@ In the example, the last line is always retained as accessing the `element` prop
 
 These options reflect new features that have not yet been fully finalized. Availability, behaviour and usage may therefore be subject to change between minor versions.
 
-#### chunkGroupingSize
-Type: `number`<br>
-CLI: `--chunkGroupingSize <size>`<br>
-Default: `5000`
-
-The total source length allowed to be loaded unnecessarily when using `experimentalOptimizeChunks`.
-
 #### experimentalCacheExpiry
 Type: `number`<br>
 CLI: `--experimentalCacheExpiry <numberOfRuns>`<br>
 Default: `10`
 
 Determines after how many runs cached assets that are no longer used by plugins should be removed.
-
-#### experimentalOptimizeChunks
-Type: `boolean`<br>
-CLI: `--experimentalOptimizeChunks`/`--no-experimentalOptimizeChunks`<br>
-Default: `false`
-
-Experimental feature to optimize chunk groupings. When a large number of chunks are generated, this allows smaller chunks to group together as long as they are within the `chunkGroupingSize` limit. It results in unnecessary code being loaded in some cases in order to have a smaller number of chunks overall. Disabled by default as it may cause unwanted side effects when loading unexpected code.
 
 #### perf
 Type: `boolean`<br>
