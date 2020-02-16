@@ -10,6 +10,7 @@ import { terser } from 'rollup-plugin-terser';
 import typescript from 'rollup-plugin-typescript';
 import addBinShebang from './build-plugins/add-bin-shebang';
 import conditionalFsEventsImport from './build-plugins/conditional-fsevents-import';
+import emitModulePackageFile from './build-plugins/emit-module-package-file.js';
 import fixAcornEsImport from './build-plugins/fix-acorn-es-import.js';
 import generateLicenseFile from './build-plugins/generate-license-file';
 import pkg from './package.json';
@@ -100,7 +101,7 @@ export default command => {
 		manualChunks: { rollup: ['src/node-entry.ts'] },
 		output: {
 			banner,
-			chunkFileNames: 'shared-cjs/[name].js',
+			chunkFileNames: 'shared/[name].js',
 			dir: 'dist',
 			entryFileNames: '[name]',
 			externalLiveBindings: false,
@@ -116,10 +117,10 @@ export default command => {
 	}
 
 	const esmBuild = Object.assign({}, commonJSBuild, {
-		input: { 'rollup.es.js': 'src/node-entry.ts' },
-		plugins: [...nodePlugins, fixAcornEsImport()],
+		input: { 'rollup.js': 'src/node-entry.ts' },
+		plugins: [fixAcornEsImport(), emitModulePackageFile(), ...nodePlugins],
 		output: Object.assign({}, commonJSBuild.output, {
-			chunkFileNames: 'shared-es/[name].js',
+			dir: 'dist/es',
 			format: 'es',
 			sourcemap: false
 		})
@@ -146,7 +147,7 @@ export default command => {
 		treeshake,
 		output: [
 			{ file: 'dist/rollup.browser.js', format: 'umd', name: 'rollup', banner },
-			{ file: 'dist/rollup.browser.es.js', format: 'es', banner }
+			{ file: 'dist/es/rollup.browser.js', format: 'es', banner }
 		]
 	};
 
