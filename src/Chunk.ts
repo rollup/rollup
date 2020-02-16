@@ -1,5 +1,4 @@
 import MagicString, { Bundle as MagicStringBundle, SourceMap } from 'magic-string';
-import { createHash } from '../browser/crypto';
 import { relative } from '../browser/path';
 import { createInclusionContext } from './ast/ExecutionContext';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
@@ -25,6 +24,7 @@ import {
 import { Addons } from './utils/addons';
 import { toBase64 } from './utils/base64';
 import { collapseSourcemaps } from './utils/collapseSourcemaps';
+import { createHash } from './utils/crypto';
 import { deconflictChunk } from './utils/deconflictChunk';
 import { error } from './utils/error';
 import { sortByExecutionOrder } from './utils/executionOrder';

@@ -11,7 +11,6 @@ import typescript from 'rollup-plugin-typescript';
 import addBinShebang from './build-plugins/add-bin-shebang';
 import conditionalFsEventsImport from './build-plugins/conditional-fsevents-import';
 import emitModulePackageFile from './build-plugins/emit-module-package-file.js';
-import fixAcornEsImport from './build-plugins/fix-acorn-es-import.js';
 import generateLicenseFile from './build-plugins/generate-license-file';
 import pkg from './package.json';
 
@@ -82,10 +81,8 @@ export default command => {
 			addBinShebang(),
 			!command.configTest && license({ thirdParty: generateLicenseFile })
 		],
-		// acorn needs to be external as some plugins rely on a shared acorn instance
 		// fsevents is a dependency of chokidar that cannot be bundled as it contains binary code
 		external: [
-			'acorn',
 			'assert',
 			'crypto',
 			'events',
@@ -118,7 +115,7 @@ export default command => {
 
 	const esmBuild = Object.assign({}, commonJSBuild, {
 		input: { 'rollup.js': 'src/node-entry.ts' },
-		plugins: [fixAcornEsImport(), emitModulePackageFile(), ...nodePlugins],
+		plugins: [emitModulePackageFile(), ...nodePlugins],
 		output: Object.assign({}, commonJSBuild.output, {
 			dir: 'dist/es',
 			format: 'es',
