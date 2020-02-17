@@ -8,7 +8,7 @@ import { ExpressionEntity } from '../nodes/shared/Expression';
 import { ExpressionNode } from '../nodes/shared/Node';
 import SpreadElement from '../nodes/SpreadElement';
 import { ObjectPath, PathTracker } from '../utils/PathTracker';
-import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UnknownValue } from '../values';
+import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../values';
 
 export default class Variable implements ExpressionEntity {
 	alwaysRendered = false;

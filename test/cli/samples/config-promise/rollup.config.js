@@ -1,4 +1,4 @@
-var replace = require( 'rollup-plugin-replace' );
+var replace = require( '@rollup/plugin-replace' );
 
 module.exports = Promise.resolve( {
 	input: 'main.js',

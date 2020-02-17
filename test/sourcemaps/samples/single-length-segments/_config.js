@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const assert = require('assert');
 const getLocation = require('../../getLocation');
-const SourceMapConsumer = require('source-map').SourceMapConsumer;
+const { SourceMapConsumer } = require('source-map');
 
 const original = fs.readFileSync(path.resolve(__dirname, 'main.js'), 'utf-8');
 
@@ -23,10 +23,10 @@ module.exports = {
 			name: 'x'
 		}
 	},
-	test(code, map) {
-		const smc = new SourceMapConsumer(map);
+	async test(code, map) {
+		const smc = await new SourceMapConsumer(map);
 
-		['Foo', 'log'].forEach((token) => {
+		['Foo', 'log'].forEach(token => {
 			const generatedLoc = getLocation(code, code.indexOf(token));
 			const originalLoc = smc.originalPositionFor(generatedLoc);
 			const expectedLoc = getLocation(original, original.indexOf(token));

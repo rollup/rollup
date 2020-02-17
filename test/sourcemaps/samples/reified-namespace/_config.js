@@ -2,12 +2,12 @@ const fs = require('fs');
 const path = require('path');
 const assert = require('assert');
 const getLocation = require('../../getLocation');
-const SourceMapConsumer = require('source-map').SourceMapConsumer;
+const { SourceMapConsumer } = require('source-map');
 
 module.exports = {
 	description: 'generates correct sourcemap with reified namespace (#668)',
-	test: (code, map) => {
-		const smc = new SourceMapConsumer(map);
+	async test(code, map) {
+		const smc = await new SourceMapConsumer(map);
 
 		const main = fs.readFileSync(path.join(__dirname, 'main.js'), 'utf-8');
 		const generatedLoc = getLocation(code, 'deepEqual');

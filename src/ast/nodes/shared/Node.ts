@@ -13,7 +13,7 @@ import {
 import { getAndCreateKeys, keys } from '../../keys';
 import ChildScope from '../../scopes/ChildScope';
 import { ObjectPath, PathTracker } from '../../utils/PathTracker';
-import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UnknownValue } from '../../values';
+import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../../values';
 import LocalVariable from '../../variables/LocalVariable';
 import Variable from '../../variables/Variable';
 import SpreadElement from '../SpreadElement';

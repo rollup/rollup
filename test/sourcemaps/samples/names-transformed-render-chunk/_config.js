@@ -2,7 +2,7 @@ const assert = require('assert');
 const terser = require('terser');
 const MagicString = require('magic-string');
 const getLocation = require('../../getLocation');
-const SourceMapConsumer = require('source-map').SourceMapConsumer;
+const { SourceMapConsumer } = require('source-map');
 
 module.exports = {
 	description: 'names are recovered if transforms are used',
@@ -36,8 +36,8 @@ module.exports = {
 			}
 		]
 	},
-	test(code, map) {
-		const smc = new SourceMapConsumer(map);
+	async test(code, map) {
+		const smc = await new SourceMapConsumer(map);
 
 		let generatedLoc = getLocation(code, /\w+=["']this/.exec(code).index);
 		let originalLoc = smc.originalPositionFor(generatedLoc);

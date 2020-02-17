@@ -1,4 +1,4 @@
-import replace from 'rollup-plugin-replace';
+import replace from '@rollup/plugin-replace';
 
 export default commandOptions => {
 	const COMMAND_OPTIONS = JSON.stringify(commandOptions);

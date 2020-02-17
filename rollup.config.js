@@ -1,10 +1,10 @@
+import alias from '@rollup/plugin-alias';
+import commonjs from '@rollup/plugin-commonjs';
+import json from '@rollup/plugin-json';
+import resolve from '@rollup/plugin-node-resolve';
 import fs from 'fs';
 import path from 'path';
-import alias from 'rollup-plugin-alias';
-import commonjs from 'rollup-plugin-commonjs';
-import json from 'rollup-plugin-json';
 import license from 'rollup-plugin-license';
-import resolve from 'rollup-plugin-node-resolve';
 import { string } from 'rollup-plugin-string';
 import { terser } from 'rollup-plugin-terser';
 import typescript from 'rollup-plugin-typescript';
@@ -113,15 +113,12 @@ export default command => {
 		return commonJSBuild;
 	}
 
-	const esmBuild = Object.assign({}, commonJSBuild, {
+	const esmBuild = {
+		...commonJSBuild,
 		input: { 'rollup.js': 'src/node-entry.ts' },
 		plugins: [emitModulePackageFile(), ...nodePlugins],
-		output: Object.assign({}, commonJSBuild.output, {
-			dir: 'dist/es',
-			format: 'es',
-			sourcemap: false
-		})
-	});
+		output: { ...commonJSBuild.output, dir: 'dist/es', format: 'es', sourcemap: false }
+	};
 
 	const browserBuilds = {
 		input: 'src/browser-entry.ts',
