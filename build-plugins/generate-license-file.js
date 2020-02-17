@@ -1,6 +1,7 @@
 import fs from 'fs';
+import license from 'rollup-plugin-license';
 
-export default function generateLicenseFile(dependencies) {
+function generateLicenseFile(dependencies) {
 	const coreLicense = fs.readFileSync('LICENSE-CORE.md');
 	const licenses = new Set();
 	const dependencyLicenseTexts = dependencies
@@ -54,4 +55,26 @@ export default function generateLicenseFile(dependencies) {
 		fs.writeFileSync('LICENSE.md', licenseText);
 		console.warn('LICENSE.md updated. You should commit the updated file.');
 	}
+}
+
+export default function getLicenseHandler() {
+	const licenses = new Map();
+	return {
+		collectLicenses() {
+			function addLicenses(dependencies) {
+				for (const dependency of dependencies) {
+					licenses.set(dependency.name, dependency);
+				}
+			}
+
+			return license({ thirdParty: addLicenses });
+		},
+		writeLicense() {
+			return {
+				writeBundle() {
+					generateLicenseFile(Array.from(licenses.values()));
+				}
+			};
+		}
+	};
 }

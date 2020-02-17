@@ -4,14 +4,13 @@ import json from '@rollup/plugin-json';
 import resolve from '@rollup/plugin-node-resolve';
 import fs from 'fs';
 import path from 'path';
-import license from 'rollup-plugin-license';
 import { string } from 'rollup-plugin-string';
 import { terser } from 'rollup-plugin-terser';
 import typescript from 'rollup-plugin-typescript';
 import addBinShebang from './build-plugins/add-bin-shebang';
 import conditionalFsEventsImport from './build-plugins/conditional-fsevents-import';
 import emitModulePackageFile from './build-plugins/emit-module-package-file.js';
-import generateLicenseFile from './build-plugins/generate-license-file';
+import getLicenseHandler from './build-plugins/generate-license-file';
 import pkg from './package.json';
 
 const commitHash = (function() {
@@ -70,17 +69,14 @@ const nodePlugins = [
 ];
 
 export default command => {
+	const { collectLicenses, writeLicense } = getLicenseHandler();
 	const commonJSBuild = {
 		input: {
 			'rollup.js': 'src/node-entry.ts',
 			'bin/rollup': 'cli/index.ts'
 		},
 		onwarn,
-		plugins: [
-			...nodePlugins,
-			addBinShebang(),
-			!command.configTest && license({ thirdParty: generateLicenseFile })
-		],
+		plugins: [...nodePlugins, addBinShebang(), !command.configTest && collectLicenses()],
 		// fsevents is a dependency of chokidar that cannot be bundled as it contains binary code
 		external: [
 			'assert',
@@ -116,7 +112,7 @@ export default command => {
 	const esmBuild = {
 		...commonJSBuild,
 		input: { 'rollup.js': 'src/node-entry.ts' },
-		plugins: [emitModulePackageFile(), ...nodePlugins],
+		plugins: [...nodePlugins, emitModulePackageFile(), collectLicenses()],
 		output: { ...commonJSBuild.output, dir: 'dist/es', format: 'es', sourcemap: false }
 	};
 
@@ -136,7 +132,9 @@ export default command => {
 			},
 			commonjs(),
 			typescript(),
-			terser({ module: true, output: { comments: 'some' } })
+			terser({ module: true, output: { comments: 'some' } }),
+			collectLicenses(),
+			writeLicense()
 		],
 		treeshake,
 		output: [
