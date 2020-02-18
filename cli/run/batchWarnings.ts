@@ -1,4 +1,4 @@
-import tc from 'turbocolor';
+import color from 'colorette';
 import { RollupWarning } from '../../src/rollup/types';
 import relativeId from '../../src/utils/relativeId';
 import { stderr } from '../logging';
@@ -37,7 +37,7 @@ export default function batchWarnings() {
 						? `${relativeId(id)}: (${warning.loc.line}:${warning.loc.column})`
 						: relativeId(id);
 
-					stderr(tc.bold(relativeId(loc)));
+					stderr(color.bold(relativeId(loc)));
 				}
 
 				if (warning.frame) info(warning.frame);
@@ -119,9 +119,9 @@ const deferredHandlers: {
 		info('https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module');
 
 		for (const warning of warnings) {
-			stderr(tc.bold(warning.importer!));
+			stderr(color.bold(warning.importer!));
 			stderr(`${warning.missing} is not exported by ${warning.exporter}`);
-			stderr(tc.gray(warning.frame!));
+			stderr(color.gray(warning.frame!));
 		}
 	},
 
@@ -131,7 +131,7 @@ const deferredHandlers: {
 			`Use output.globals to specify browser global variable names corresponding to external modules`
 		);
 		for (const warning of warnings) {
-			stderr(`${tc.bold(warning.source!)} (guessing '${warning.guess}')`);
+			stderr(`${color.bold(warning.source!)} (guessing '${warning.guess}')`);
 		}
 	},
 
@@ -139,7 +139,7 @@ const deferredHandlers: {
 		title('Mixing named and default exports');
 		info(`https://rollupjs.org/guide/en/#output-exports`);
 		stderr(
-			tc.bold('The following entry modules are using named and default exports together:')
+			color.bold('The following entry modules are using named and default exports together:')
 		);
 		const displayedWarnings = warnings.length > 5 ? warnings.slice(0, 3) : warnings;
 		for (const warning of displayedWarnings) {
@@ -157,7 +157,7 @@ const deferredHandlers: {
 		title(`Conflicting re-exports`);
 		for (const warning of warnings) {
 			stderr(
-				`${tc.bold(relativeId(warning.reexporter!))} re-exports '${
+				`${color.bold(relativeId(warning.reexporter!))} re-exports '${
 					warning.name
 				}' from both ${relativeId(warning.sources![0])} and ${relativeId(
 					warning.sources![1]
@@ -189,7 +189,7 @@ const deferredHandlers: {
 						if (warning.loc) {
 							loc += `: (${warning.loc.line}:${warning.loc.column})`;
 						}
-						stderr(tc.bold(loc));
+						stderr(color.bold(loc));
 					}
 					if (warning.frame) info(warning.frame);
 				}
@@ -231,7 +231,7 @@ const deferredHandlers: {
 
 		for (const dependency of dependencies.keys()) {
 			const importers = dependencies.get(dependency);
-			stderr(`${tc.bold(dependency)} (imported by ${importers.join(', ')})`);
+			stderr(`${color.bold(dependency)} (imported by ${importers.join(', ')})`);
 		}
 	},
 
@@ -244,11 +244,11 @@ const deferredHandlers: {
 };
 
 function title(str: string) {
-	stderr(`${tc.bold.yellow('(!)')} ${tc.bold.yellow(str)}`);
+	stderr(color.bold(color.yellow(`(!) ${str}`)));
 }
 
 function info(url: string) {
-	stderr(tc.gray(url));
+	stderr(color.gray(url));
 }
 
 function nest<T>(array: T[], prop: string) {
@@ -277,8 +277,8 @@ function showTruncatedWarnings(warnings: RollupWarning[]) {
 
 	const displayedByModule = nestedByModule.length > 5 ? nestedByModule.slice(0, 3) : nestedByModule;
 	for (const { key: id, items } of displayedByModule) {
-		stderr(tc.bold(relativeId(id)));
-		stderr(tc.gray(items[0].frame!));
+		stderr(color.bold(relativeId(id)));
+		stderr(color.gray(items[0].frame!));
 
 		if (items.length > 1) {
 			stderr(`...and ${items.length - 1} other ${items.length > 2 ? 'occurrences' : 'occurrence'}`);
