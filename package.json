@@ -137,5 +137,12 @@
   ],
   "engines": {
     "node": ">=10.0.0"
+  },
+  "exports": {
+    ".": {
+      "require": "./dist/rollup.js",
+      "import": "./dist/es/rollup.js"
+    },
+    "./dist/": "./dist/"
   }
 }
