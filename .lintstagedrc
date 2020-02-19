@@ -1,17 +1,14 @@
 {
   "{src,bin,browser,typings}/**/*.ts": [
     "prettier --write",
-    "tslint --project . --fix",
-    "git add"
+    "tslint --project . --fix"
   ],
   "test/**/*.ts": [
     "prettier --write",
-    "tslint --project test/typescript --fix",
-    "git add"
+    "tslint --project test/typescript --fix"
   ],
   "{test/test,test/*/index,test/utils,test/**/_config}.js": [
     "prettier --write",
-    "eslint --fix",
-    "git add"
+    "eslint --fix"
   ]
 }

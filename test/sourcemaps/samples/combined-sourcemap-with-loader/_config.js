@@ -3,7 +3,7 @@ const buble = require('buble');
 const MagicString = require('magic-string');
 const assert = require('assert');
 const getLocation = require('../../getLocation');
-const SourceMapConsumer = require('source-map').SourceMapConsumer;
+const { SourceMapConsumer } = require('source-map');
 
 module.exports = {
 	description: 'get combined sourcemap in transforming with loader',
@@ -22,9 +22,9 @@ module.exports = {
 				}
 			},
 			{
-				transform(code, id) {
+				async transform(code, id) {
 					const sourcemap = this.getCombinedSourcemap();
-					const smc = new SourceMapConsumer(sourcemap);
+					const smc = await new SourceMapConsumer(sourcemap);
 					const s = new MagicString(code);
 
 					if (/foo.js$/.test(id)) {
@@ -46,9 +46,9 @@ module.exports = {
 				}
 			},
 			{
-				transform(code, id) {
+				async transform(code, id) {
 					const sourcemap = this.getCombinedSourcemap();
-					const smc = new SourceMapConsumer(sourcemap);
+					const smc = await new SourceMapConsumer(sourcemap);
 					const s = new MagicString(code);
 
 					if (/foo.js$/.test(id)) {
@@ -71,8 +71,8 @@ module.exports = {
 			}
 		]
 	},
-	test(code, map) {
-		const smc = new SourceMapConsumer(map);
+	async test(code, map) {
+		const smc = await new SourceMapConsumer(map);
 		testFoo(code, smc);
 		testMain(code, smc);
 	}

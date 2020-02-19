@@ -1,7 +1,7 @@
-const commonjs = require('rollup-plugin-commonjs');
+const commonjs = require('@rollup/plugin-commonjs');
 
 module.exports = {
-	description: 'Handles output from rollup-plugin-commonjs',
+	description: 'Handles output from @rollup/plugin-commonjs',
 	expectedWarnings: ['MIXED_EXPORTS'],
 	options: {
 		input: 'main.js',
