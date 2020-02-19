@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 1.31.2
+*unreleased*
+
+### Pull Requests
+* [#3390](https://github.com/rollup/rollup/pull/3390): fix typo: this.addWatchfile (@mistlog)
+
 ## 1.31.1
 *2020-02-14*
 
