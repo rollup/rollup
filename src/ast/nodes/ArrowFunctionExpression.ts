@@ -2,7 +2,7 @@ import { CallOptions } from '../CallOptions';
 import { BROKEN_FLOW_NONE, HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import ReturnValueScope from '../scopes/ReturnValueScope';
 import Scope from '../scopes/Scope';
-import { ObjectPath, UNKNOWN_PATH, UnknownKey } from '../utils/PathTracker';
+import { ObjectPath, UnknownKey, UNKNOWN_PATH } from '../utils/PathTracker';
 import { UNKNOWN_EXPRESSION } from '../values';
 import BlockStatement from './BlockStatement';
 import Identifier from './Identifier';

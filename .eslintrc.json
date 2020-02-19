@@ -1,6 +1,11 @@
 {
-    "root": true,
-    "rules": {
+	"ignorePatterns": [
+		"test/*/samples/**/*.js",
+		"!test/*/samples/**/_config.js",
+		"test/leak/index.js",
+		"**/*.ts"
+	],
+	"rules": {
         "indent": [ 2, "tab", { "SwitchCase": 1 } ],
         "semi": [ 2, "always" ],
         "keyword-spacing": [ 2, { "before": true, "after": true } ],

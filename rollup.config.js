@@ -1,17 +1,16 @@
+import alias from '@rollup/plugin-alias';
+import commonjs from '@rollup/plugin-commonjs';
+import json from '@rollup/plugin-json';
+import resolve from '@rollup/plugin-node-resolve';
 import fs from 'fs';
 import path from 'path';
-import alias from 'rollup-plugin-alias';
-import commonjs from 'rollup-plugin-commonjs';
-import json from 'rollup-plugin-json';
-import license from 'rollup-plugin-license';
-import resolve from 'rollup-plugin-node-resolve';
 import { string } from 'rollup-plugin-string';
 import { terser } from 'rollup-plugin-terser';
 import typescript from 'rollup-plugin-typescript';
 import addBinShebang from './build-plugins/add-bin-shebang';
 import conditionalFsEventsImport from './build-plugins/conditional-fsevents-import';
-import fixAcornEsImport from './build-plugins/fix-acorn-es-import.js';
-import generateLicenseFile from './build-plugins/generate-license-file';
+import emitModulePackageFile from './build-plugins/emit-module-package-file.js';
+import getLicenseHandler from './build-plugins/generate-license-file';
 import pkg from './package.json';
 
 const commitHash = (function() {
@@ -70,21 +69,16 @@ const nodePlugins = [
 ];
 
 export default command => {
+	const { collectLicenses, writeLicense } = getLicenseHandler();
 	const commonJSBuild = {
 		input: {
 			'rollup.js': 'src/node-entry.ts',
 			'bin/rollup': 'cli/index.ts'
 		},
 		onwarn,
-		plugins: [
-			...nodePlugins,
-			addBinShebang(),
-			!command.configTest && license({ thirdParty: generateLicenseFile })
-		],
-		// acorn needs to be external as some plugins rely on a shared acorn instance
+		plugins: [...nodePlugins, addBinShebang(), !command.configTest && collectLicenses()],
 		// fsevents is a dependency of chokidar that cannot be bundled as it contains binary code
 		external: [
-			'acorn',
 			'assert',
 			'crypto',
 			'events',
@@ -100,7 +94,7 @@ export default command => {
 		manualChunks: { rollup: ['src/node-entry.ts'] },
 		output: {
 			banner,
-			chunkFileNames: 'shared-cjs/[name].js',
+			chunkFileNames: 'shared/[name].js',
 			dir: 'dist',
 			entryFileNames: '[name]',
 			externalLiveBindings: false,
@@ -115,15 +109,12 @@ export default command => {
 		return commonJSBuild;
 	}
 
-	const esmBuild = Object.assign({}, commonJSBuild, {
-		input: { 'rollup.es.js': 'src/node-entry.ts' },
-		plugins: [...nodePlugins, fixAcornEsImport()],
-		output: Object.assign({}, commonJSBuild.output, {
-			chunkFileNames: 'shared-es/[name].js',
-			format: 'es',
-			sourcemap: false
-		})
-	});
+	const esmBuild = {
+		...commonJSBuild,
+		input: { 'rollup.js': 'src/node-entry.ts' },
+		plugins: [...nodePlugins, emitModulePackageFile(), collectLicenses()],
+		output: { ...commonJSBuild.output, dir: 'dist/es', format: 'es', sourcemap: false }
+	};
 
 	const browserBuilds = {
 		input: 'src/browser-entry.ts',
@@ -141,12 +132,14 @@ export default command => {
 			},
 			commonjs(),
 			typescript(),
-			terser({ module: true, output: { comments: 'some' } })
+			terser({ module: true, output: { comments: 'some' } }),
+			collectLicenses(),
+			writeLicense()
 		],
 		treeshake,
 		output: [
 			{ file: 'dist/rollup.browser.js', format: 'umd', name: 'rollup', banner },
-			{ file: 'dist/rollup.browser.es.js', format: 'es', banner }
+			{ file: 'dist/es/rollup.browser.js', format: 'es', banner }
 		]
 	};
 

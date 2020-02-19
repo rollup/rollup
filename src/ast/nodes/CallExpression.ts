@@ -15,12 +15,12 @@ import {
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH
 } from '../utils/PathTracker';
-import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UnknownValue } from '../values';
+import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../values';
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
-import { ExpressionNode, INCLUDE_PARAMETERS, IncludeChildren, NodeBase } from './shared/Node';
+import { ExpressionNode, IncludeChildren, INCLUDE_PARAMETERS, NodeBase } from './shared/Node';
 import SpreadElement from './SpreadElement';
 
 export default class CallExpression extends NodeBase implements DeoptimizableEntity {
