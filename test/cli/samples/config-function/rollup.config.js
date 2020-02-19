@@ -1,5 +1,5 @@
 import assert from 'assert';
-import replace from 'rollup-plugin-replace';
+import replace from '@rollup/plugin-replace';
 
 export default commandOptions => {
 	assert.equal(commandOptions.silent, true);

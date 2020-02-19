@@ -1,11 +1,11 @@
-import tc from 'turbocolor';
+import color from 'colorette';
 import { RollupError } from '../src/rollup/types';
 import relativeId from '../src/utils/relativeId';
 
 // @see https://no-color.org
 // @see https://www.npmjs.com/package/chalk
 if (process.env.FORCE_COLOR === '0' || process.env.NO_COLOR) {
-  tc.enabled = false;
+  color.options.enabled = false;
 }
 
 // log to stderr to keep `rollup main.js > bundle.js` from breaking
@@ -19,10 +19,10 @@ export function handleError(err: RollupError, recover = false) {
 			? `(plugin ${(err).plugin}) ${description}`
 			: description) || err;
 
-	stderr(tc.bold.red(`[!] ${tc.bold(message.toString())}`));
+	stderr(color.bold(color.red(`[!] ${color.bold(message.toString())}`)));
 
 	if (err.url) {
-		stderr(tc.cyan(err.url));
+		stderr(color.cyan(err.url));
 	}
 
 	if (err.loc) {
@@ -32,11 +32,11 @@ export function handleError(err: RollupError, recover = false) {
 	}
 
 	if (err.frame) {
-		stderr(tc.dim(err.frame));
+		stderr(color.dim(err.frame));
 	}
 
 	if (err.stack) {
-		stderr(tc.dim(err.stack));
+		stderr(color.dim(err.stack));
 	}
 
 	stderr('');

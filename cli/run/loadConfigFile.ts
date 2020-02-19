@@ -1,5 +1,5 @@
+import color from 'colorette';
 import * as path from 'path';
-import tc from 'turbocolor';
 import * as rollup from '../../src/node-entry';
 import { RollupBuild, RollupOutput } from '../../src/rollup/types';
 import { GenericConfigObject } from '../../src/utils/parseOptions';
@@ -28,7 +28,7 @@ export default function loadConfigFile(
 		})
 		.then((bundle: RollupBuild) => {
 			if (!silent && warnings.count > 0) {
-				stderr(tc.bold(`loaded ${relativeId(configFile)} with warnings`));
+				stderr(color.bold(`loaded ${relativeId(configFile)} with warnings`));
 				warnings.flush();
 			}
 

@@ -675,12 +675,12 @@ The `transform` hook, if returning an object, can also include an `ast` property
 
 #### Example Transformer
 
-(Use [rollup-pluginutils](https://github.com/rollup/rollup-pluginutils) for
+(Use [@rollup/pluginutils](https://github.com/rollup/plugins/tree/master/packages/pluginutils) for
 commonly needed functions, and to implement a transformer in the recommended
 manner.)
 
 ```js
-import { createFilter } from 'rollup-pluginutils';
+import { createFilter } from '@rollup/pluginutils';
 
 export default function myPlugin ( options = {} ) {
   const filter = createFilter( options.include, options.exclude );

@@ -1,5 +1,5 @@
+import color from 'colorette';
 import ms from 'pretty-ms';
-import tc from 'turbocolor';
 import * as rollup from '../../src/node-entry';
 import { InputOptions, OutputOptions, RollupBuild } from '../../src/rollup/types';
 import relativeId from '../../src/utils/relativeId';
@@ -29,7 +29,7 @@ export default function build(
 				.map(name => (inputOptions.input as Record<string, string>)[name])
 				.join(', ');
 		}
-		stderr(tc.cyan(`\n${tc.bold(inputFiles!)} → ${tc.bold(files.join(', '))}...`));
+		stderr(color.cyan(`\n${color.bold(inputFiles!)} → ${color.bold(files.join(', '))}...`));
 	}
 
 	return rollup
@@ -56,7 +56,7 @@ export default function build(
 							}
 						}
 						if (outputs.length > 1)
-							process.stdout.write('\n' + tc.cyan(tc.bold('//→ ' + file.fileName + ':')) + '\n');
+							process.stdout.write('\n' + color.cyan(color.bold('//→ ' + file.fileName + ':')) + '\n');
 						process.stdout.write(source);
 					}
 					return null;
@@ -69,7 +69,7 @@ export default function build(
 			if (!silent) {
 				warnings.flush();
 				stderr(
-					tc.green(`created ${tc.bold(files.join(', '))} in ${tc.bold(ms(Date.now() - start))}`)
+					color.green(`created ${color.bold(files.join(', '))} in ${color.bold(ms(Date.now() - start))}`)
 				);
 				if (bundle && bundle.getTimings) {
 					printTimings(bundle.getTimings());
