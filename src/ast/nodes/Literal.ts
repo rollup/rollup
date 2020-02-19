@@ -8,8 +8,8 @@ import {
 	hasMemberEffectWhenCalled,
 	LiteralValueOrUnknown,
 	MemberDescription,
-	UNKNOWN_EXPRESSION,
-	UnknownValue
+	UnknownValue,
+	UNKNOWN_EXPRESSION
 } from '../values';
 import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';

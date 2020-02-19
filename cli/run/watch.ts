@@ -1,8 +1,8 @@
+import color from 'colorette';
 import dateTime from 'date-time';
 import fs from 'fs';
 import ms from 'pretty-ms';
 import onExit from 'signal-exit';
-import tc from 'turbocolor';
 import * as rollup from '../../src/node-entry';
 import { RollupWatcher, RollupWatchOptions } from '../../src/rollup/types';
 import { mergeOptions } from '../../src/utils/mergeOptions';
@@ -53,7 +53,7 @@ export default function watch(
 
 				case 'START':
 					if (!silent) {
-						resetScreen(tc.underline(`rollup v${rollup.VERSION}`));
+						resetScreen(color.underline(`rollup v${rollup.VERSION}`));
 					}
 					break;
 
@@ -68,8 +68,8 @@ export default function watch(
 										.join(', ');
 						}
 						stderr(
-							tc.cyan(
-								`bundles ${tc.bold(input)} → ${tc.bold(event.output.map(relativeId).join(', '))}...`
+							color.cyan(
+								`bundles ${color.bold(input)} → ${color.bold(event.output.map(relativeId).join(', '))}...`
 							)
 						);
 					}
@@ -79,8 +79,8 @@ export default function watch(
 					warnings.flush();
 					if (!silent)
 						stderr(
-							tc.green(
-								`created ${tc.bold(event.output.map(relativeId).join(', '))} in ${tc.bold(
+							color.green(
+								`created ${color.bold(event.output.map(relativeId).join(', '))} in ${color.bold(
 									ms(event.duration)
 								)}`
 							)

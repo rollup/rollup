@@ -8,6 +8,6 @@ module.exports = {
 		},
 		// check against tree-shake: false when updating the shim
 		treeshake: true,
-		plugins: [require('rollup-plugin-node-resolve')(), require('rollup-plugin-commonjs')()]
+		plugins: [require('@rollup/plugin-node-resolve')(), require('@rollup/plugin-commonjs')()]
 	}
 };
