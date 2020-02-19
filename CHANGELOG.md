@@ -1,5 +1,60 @@
 # rollup changelog
 
+## 2.0.0
+*unreleased*
+
+### Breaking Changes
+* Rollup now requires at least Node 10 to run, or a sufficiently modern browser (#3346)
+* The file structure of Rollup's ESM builds has changed:
+  - The main ESM entry point is now at `rollup/dist/es/rollup.js` instead of `rollup/dist/rollup.es.js`
+  - The ESM browser build is at `rollup/dist/es/rollup.browser.js` instead of `rollup/dist/rollup.browser.es.js`
+  
+  In general, the ESM builds now follow the same naming scheme as the CJS builds but are located in the `rollup/dist/es` subfolder instead of `rollup/dist` (#3391)
+* The "watch.chokidar" option no longer accepts a `boolean` value but only an object of parameters that is passed to the bundled Chokidar instance. Chokidar installations by the user will be ignored in favour of the bundled instance (#3331)
+* Modules that are completely tree-shaken will no longer be listed as part of any chunks in `generateBundle`
+* The `experimentalOptimizeChunks` and `chunkGroupingSize` options have been removed
+* [acorn](https://github.com/acornjs/acorn) plugins can only be used if they accept a passed-in acorn instance instead of importing it themselves. See https://github.com/acornjs/acorn/pull/870#issuecomment-527339830 for what needs to be done to make plugins compatible that do not support this yet (#3391)
+* The signature of the `writeBundle` plugin hook has been changed to match `generateBundle`: The bundle object is now passed as second parameter instead of first and the first parameter is the output options (#3361)
+* The following plugin hooks have been removed:
+  - ongenerate: use `generateBundle` instead
+  - onwrite: use `writeBundle` instead
+  - transformBundle: use `renderChunk` instead
+  - transformChunk: use `renderChunk` instead
+- You can no longer access `this.watcher` on the plugin context.
+- The `transform` hook can no longer return `dependencies`.
+- The `treeshake.pureExternalModules` option will now show a deprecation warning when used: use `treeshake.moduleSideEffects: 'no-external'` instead
+- Using `import.meta.ROLLUP_ASSET_URL_<..>` and `import.meta.ROLLUP_CHUNK_URL_<..>` in code will now show warnings: use `import.meta.ROLLUP_FILE_URL_<..>` instead
+- The `resolveAssetUrl` hook will now show a deprecation warning when used: use `resolveFileUrl` instead
+- The following plugin context functions will show warnings when used:
+  - `this.emitAsset`: use `this.emitFile`
+  - `this.emitChunk`: use `this.emitFile`
+  - `this.getAssetFileName`: use `this.getFileName`
+  - `this.getChunkFileName`: use `this.getFileName`
+  - `this.isExternal`: use `this.resolve`
+  - `this.resolveId`: use `this.resolve`
+- Directly adding properties to the bundle object in the `generateBundle` is deprecated will show a warning (removing properties is allowed, though): Use `this.emitFile`
+- Accessing `chunk.isAsset` on the bundle is deprecated: Use `chunk.type === 'asset'` instead
+
+### Features
+* Rollup now bundles [Chokidar](https://github.com/paulmillr/chokidar) for a better watch experience (#3331)
+* Rollup now bundles [acorn](https://github.com/acornjs/acorn) again, removing its only external dependency (#3391)
+* Do not consider empty imports from side-effect-free modules for chunking and hoist side-effect imports if necessary (#3369)
+* Rollup can now be imported as an ES module in Node via `import {rollup} from 'rollup'`. Note that this relies on Node's experimental [conditional package exports](https://nodejs.org/dist/latest-v13.x/docs/api/esm.html#esm_conditional_exports) feature and is therefore itself experimental (#3391)
+* `systemjs` can be used as format alias for `system` (#3381)
+
+### Bug Fixes
+* Unknown output options now trigger a warning when using the JavaScript API (#3352)
+
+### Pull Requests
+* [#3331](https://github.com/rollup/rollup/pull/3331): Bundle Chokidar (@lukastaegert)
+* [#3343](https://github.com/rollup/rollup/pull/3343): Remove experimentalOptimizeChunks (@lukastaegert)
+* [#3346](https://github.com/rollup/rollup/pull/3346): Update minimum required Node version to 10 (@lukastaegert)
+* [#3352](https://github.com/rollup/rollup/pull/3352): Remove active deprecations (@lukastaegert)
+* [#3361](https://github.com/rollup/rollup/pull/3361): Change writeBundle signature to match generateBundle (@lukastaegert)
+* [#3369](https://github.com/rollup/rollup/pull/3369): Avoid empty imports from side-effect-free chunks (@lukastaegert)
+* [#3381](https://github.com/rollup/rollup/pull/3381): Rename esm to es everywhere, add systemjs alias (@lukastaegert)
+* [#3391](https://github.com/rollup/rollup/pull/3391): Bundle acorn, allow importing Rollup as Node ES module, update dependencies (@lukastaegert)
+
 ## 1.32.1
 *2020-03-06*
 

@@ -31,7 +31,7 @@ async function postComment() {
 		body: JSON.stringify({
 			body: `${headline}
 
-You can try out this pull request locally via
+You can try out this pull request locally by installing Rollup via
 
 \`\`\`
 npm install ${installPath}
