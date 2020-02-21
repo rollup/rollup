@@ -129,7 +129,7 @@ export interface MinimalPluginContext {
 export interface EmittedAsset {
 	fileName?: string;
 	name?: string;
-	source?: string | Buffer;
+	source?: string | Uint8Array;
 	type: 'asset';
 }
 
@@ -142,7 +142,7 @@ export interface EmittedChunk {
 
 export type EmittedFile = EmittedAsset | EmittedChunk;
 
-export type EmitAsset = (name: string, source?: string | Buffer) => string;
+export type EmitAsset = (name: string, source?: string | Uint8Array) => string;
 
 export type EmitChunk = (id: string, options?: { name?: string }) => string;
 
@@ -182,7 +182,7 @@ export interface PluginContext extends MinimalPluginContext {
 	) => Promise<ResolvedId | null>;
 	/** @deprecated Use `this.resolve` instead */
 	resolveId: (source: string, importer: string) => Promise<string | null>;
-	setAssetSource: (assetReferenceId: string, source: string | Buffer) => void;
+	setAssetSource: (assetReferenceId: string, source: string | Uint8Array) => void;
 	warn: (warning: RollupWarning | string, pos?: number | { column: number; line: number }) => void;
 }
 
@@ -478,7 +478,7 @@ export interface OutputAsset {
 	fileName: string;
 	/** @deprecated Accessing "isAsset" on files in the bundle is deprecated, please use "type === \'asset\'" instead */
 	isAsset: true;
-	source: string | Buffer;
+	source: string | Uint8Array;
 	type: 'asset';
 }
 

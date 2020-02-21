@@ -48,7 +48,7 @@ export default function build(
 
 				return bundle.generate(output).then(({ output: outputs }) => {
 					for (const file of outputs) {
-						let source: string | Buffer;
+						let source: string | Uint8Array;
 						if (file.type === 'asset') {
 							source = file.source;
 						} else {

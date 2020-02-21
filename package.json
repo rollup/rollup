@@ -60,8 +60,7 @@
   },
   "homepage": "https://rollupjs.org/",
   "dependencies": {
-    "@types/estree": "*",
-    "@types/node": "*"
+    "@types/estree": "*"
   },
   "optionalDependencies": {
     "fsevents": "~2.1.2"
@@ -75,6 +74,7 @@
     "@rollup/plugin-replace": "^2.3.1",
     "@types/micromatch": "^4.0.1",
     "@types/minimist": "^1.2.0",
+    "@types/node": "^13.7.4",
     "acorn": "^7.1.0",
     "acorn-export-ns-from": "^0.1.0",
     "acorn-import-meta": "^1.0.0",
