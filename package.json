@@ -59,9 +59,6 @@
     "url": "https://github.com/rollup/rollup/issues"
   },
   "homepage": "https://rollupjs.org/",
-  "dependencies": {
-    "@types/estree": "*"
-  },
   "optionalDependencies": {
     "fsevents": "~2.1.2"
   },
@@ -125,9 +122,9 @@
     "sourcemap-codec": "^1.4.8",
     "systemjs": "^6.2.3",
     "terser": "^4.6.3",
-    "tslib": "^1.10.0",
+    "tslib": "^1.11.0",
     "tslint": "^6.0.0",
-    "typescript": "^3.7.5",
+    "typescript": "^3.8.2",
     "url-parse": "^1.4.7"
   },
   "files": [

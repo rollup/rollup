@@ -1,7 +1,6 @@
 import * as acorn from 'acorn';
 import injectExportNsFrom from 'acorn-export-ns-from';
 import injectImportMeta from 'acorn-import-meta';
-import * as ESTree from 'estree';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { PathTracker } from './ast/utils/PathTracker';
 import Chunk from './Chunk';
@@ -49,7 +48,7 @@ export default class Graph {
 	acornOptions: acorn.Options;
 	acornParser: typeof acorn.Parser;
 	cachedModules: Map<string, ModuleJSON>;
-	contextParse: (code: string, acornOptions?: acorn.Options) => ESTree.Program;
+	contextParse: (code: string, acornOptions?: acorn.Options) => acorn.Node;
 	deoptimizationTracker: PathTracker;
 	getModuleContext: (id: string) => string;
 	moduleById = new Map<string, Module | ExternalModule>();
@@ -124,7 +123,7 @@ export default class Graph {
 				...defaultAcornOptions,
 				...options,
 				...this.acornOptions
-			}) as any;
+			});
 
 		this.pluginDriver = new PluginDriver(
 			this,

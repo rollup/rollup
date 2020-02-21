@@ -1,5 +1,3 @@
-import * as ESTree from 'estree';
-
 export const VERSION: string;
 
 export interface RollupError extends RollupLogProps {
@@ -88,7 +86,7 @@ export interface SourceMap {
 export type SourceMapInput = ExistingRawSourceMap | string | null | { mappings: '' };
 
 export interface SourceDescription {
-	ast?: ESTree.Program;
+	ast?: AcornNode;
 	code: string;
 	map?: SourceMapInput;
 	moduleSideEffects?: boolean | null;
@@ -96,7 +94,7 @@ export interface SourceDescription {
 }
 
 export interface TransformModuleJSON {
-	ast: ESTree.Program;
+	ast: AcornNode;
 	code: string;
 	// note if plugins use new this.cache to opt-out auto transform cache
 	customTransformCache: boolean;
@@ -174,7 +172,7 @@ export interface PluginContext extends MinimalPluginContext {
 	/** @deprecated Use `this.resolve` instead */
 	isExternal: IsExternal;
 	moduleIds: IterableIterator<string>;
-	parse: (input: string, options: any) => ESTree.Program;
+	parse: (input: string, options: any) => AcornNode;
 	resolve: (
 		source: string,
 		importer: string,
@@ -251,7 +249,7 @@ export type RenderChunkHook = (
 
 export type ResolveDynamicImportHook = (
 	this: PluginContext,
-	specifier: string | ESTree.Node,
+	specifier: string | AcornNode,
 	importer: string
 ) => Promise<ResolveIdResult> | ResolveIdResult;
 
@@ -616,3 +614,9 @@ export interface RollupWatcher
 }
 
 export function watch(configs: RollupWatchOptions[]): RollupWatcher;
+
+interface AcornNode {
+	end: number;
+	start: number;
+	type: string;
+}
