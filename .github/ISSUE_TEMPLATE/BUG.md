@@ -13,6 +13,8 @@ about: Something went awry and you'd like to tell us about it.
 
   👉🏽 Need help or tech support? Please don't open an issue!
   Head to https://gitter.im/rollup/rollup or https://stackoverflow.com/questions/tagged/rollupjs
+  
+  👉🏽 Is this issue related to an official plugin? Please do not open an issue here, go to the plugins repository instead: https://github.com/rollup/plugins/issues
 
   ❤️ Rollup? Please consider supporting our collective:
   👉 https://opencollective.com/rollup/donate
@@ -20,16 +22,21 @@ about: Something went awry and you'd like to tell us about it.
 
 - Rollup Version:
 - Operating System (or Browser):
-- Node Version:
-
-### How Do We Reproduce?
+- Node Version (if applicable):
+- Link to reproduction (IMPORTANT, read below):
 
 <!--
-  Issues without minimal reproductions will be closed! Please provide one by:
+  Issues without minimal reproductions will be closed! Please provide a link to one by:
   1. Using the REPL at https://rollupjs.org/repl/, or
-  2. Work to isolate the problem and provide the exact steps in this issue, or
+  2. Using the REPL.it reproduction template at https://repl.it/@rollup/rollup-repro
+     (allows full use of all rollup options and plugins), or
   3. Provide a minimal repository link (Read https://git.io/fNzHA for instructions).
      These may take more time to triage than the other options.
+     
+  For some bugs it this may seem like overkill but believe us, very often what seems like a
+  "clear issue" is actually specific to some details of your setup. Having a runnable
+  reproduction not only "proves" your bug to us but also allows us to spend all our effort
+  fixing the bug instead of struggling to understand your issue.
 -->
 
 

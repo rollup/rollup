@@ -881,6 +881,58 @@ describe('rollup.watch', () => {
 				});
 		});
 
+		it('runs transforms again on previously erroring files that were changed back', () => {
+			const brokenFiles = new Set();
+			const INITIAL_CONTENT = 'export default 42;';
+			sander.writeFileSync('test/_tmp/input/main.js', INITIAL_CONTENT);
+			const watcher = rollup.watch({
+				input: 'test/_tmp/input/main.js',
+				plugins: {
+					transform(code, id) {
+						if (code.includes('broken')) {
+							brokenFiles.add(id);
+							throw new Error('Broken in transform');
+						} else {
+							brokenFiles.delete(id);
+						}
+					},
+					generateBundle() {
+						if (brokenFiles.size > 0) {
+							throw new Error('Broken in generate');
+						}
+					}
+				},
+				output: {
+					file: 'test/_tmp/output/bundle.js',
+					format: 'cjs'
+				},
+				watch: { chokidar }
+			});
+			return sequence(watcher, [
+				'START',
+				'BUNDLE_START',
+				'BUNDLE_END',
+				'END',
+				() => {
+					assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+					sander.writeFileSync('test/_tmp/input/main.js', 'export default "broken";');
+				},
+				'START',
+				'BUNDLE_START',
+				'ERROR',
+				() => {
+					sander.writeFileSync('test/_tmp/input/main.js', INITIAL_CONTENT);
+				},
+				'START',
+				'BUNDLE_START',
+				'BUNDLE_END',
+				'END',
+				() => {
+					assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+				}
+			]);
+		});
+
 		describe('addWatchFile', () => {
 			it('supports adding additional watch files in plugin hooks', () => {
 				const watchChangeIds = [];
