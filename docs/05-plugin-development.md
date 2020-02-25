@@ -424,7 +424,7 @@ Adds additional files to be monitored in watch mode so that changes to these fil
 
 **Note:** Usually in watch mode to improve rebuild speed, the `transform` hook will only be triggered for a given module if its contents actually changed. Using `this.addWatchFile` from within the `transform` hook will make sure the `transform` hook is also reevaluated for this module if the watched file changes.
 
-In general, it is recommended to use `this.addWatchfile` from within the hook that depends on the watched file.
+In general, it is recommended to use `this.addWatchFile` from within the hook that depends on the watched file.
 
 #### `this.emitFile(emittedFile: EmittedChunk | EmittedAsset) => string`
 
