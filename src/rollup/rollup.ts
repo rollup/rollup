@@ -331,7 +331,7 @@ function writeOutputFile(
 ): Promise<unknown> {
 	const fileName = resolve(outputOptions.dir || dirname(outputOptions.file!), outputFile.fileName);
 	let writeSourceMapPromise: Promise<void> | undefined;
-	let source: string | Buffer;
+	let source: string | Uint8Array;
 	if (outputFile.type === 'asset') {
 		source = outputFile.source;
 	} else {

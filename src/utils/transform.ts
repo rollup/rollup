@@ -102,7 +102,7 @@ export default function transform(
 						err.hook = 'transform';
 						return pluginContext.error(err);
 					},
-					emitAsset(name: string, source?: string | Buffer) {
+					emitAsset(name: string, source?: string | Uint8Array) {
 						const emittedFile = { type: 'asset' as const, name, source };
 						emittedFiles.push({ ...emittedFile });
 						return graph.pluginDriver.emitFile(emittedFile);

@@ -282,7 +282,7 @@ Called at the end of `bundle.generate()` or immediately before the files are wri
 // AssetInfo
 {
   fileName: string,
-  source: string | Buffer,
+  source: string | UInt8Array,
   type: 'asset',
 }
 
@@ -456,7 +456,7 @@ Emits a new file that is included in the build output and returns a `referenceId
 // EmittedAsset
 {
   type: 'asset',
-  source?: string | Buffer,
+  source?: string | UInt8Array,
   name?: string,
   fileName?: string
 }
@@ -470,7 +470,7 @@ The generated code that replaces `import.meta.ROLLUP_FILE_URL_referenceId` can b
 
 If the `type` is *`chunk`*, then this emits a new chunk with the given module id as entry point. This will not result in duplicate modules in the graph, instead if necessary, existing chunks will be split or a facade chunk with reexports will be created. Chunks with a specified `fileName` will always generate separate chunks while other emitted chunks may be deduplicated with existing chunks even if the `name` does not match. If such a chunk is not deduplicated, the [`output.chunkFileNames`](guide/en/#outputchunkfilenames) name pattern will be used.
 
-If the `type` is *`asset`*, then this emits an arbitrary new file with the given `source` as content. It is possible to defer setting the `source` via [`this.setAssetSource(assetReferenceId, source)`](guide/en/#thissetassetsourceassetreferenceid-string-source-string--buffer--void) to a later time to be able to reference a file during the build phase while setting the source separately for each output during the generate phase. Assets with a specified `fileName` will always generate separate files while other emitted assets may be deduplicated with existing assets if they have the same source even if the `name` does not match. If such an asset is not deduplicated, the [`output.assetFileNames`](guide/en/#outputassetfilenames) name pattern will be used.
+If the `type` is *`asset`*, then this emits an arbitrary new file with the given `source` as content. It is possible to defer setting the `source` via [`this.setAssetSource(assetReferenceId, source)`](guide/en/#thissetassetsourceassetreferenceid-string-source-string--uint8array--void) to a later time to be able to reference a file during the build phase while setting the source separately for each output during the generate phase. Assets with a specified `fileName` will always generate separate files while other emitted assets may be deduplicated with existing assets if they have the same source even if the `name` does not match. If such an asset is not deduplicated, the [`output.assetFileNames`](guide/en/#outputassetfilenames) name pattern will be used.
 
 #### `this.error(error: string | Error, position?: number | { column: number; line: number }) => never`
 
@@ -523,9 +523,9 @@ Resolve imports to module ids (i.e. file names) using the same plugins that Roll
 
 If you pass `skipSelf: true`, then the `resolveId` hook of the plugin from which `this.resolve` is called will be skipped when resolving.
 
-#### `this.setAssetSource(assetReferenceId: string, source: string | Buffer) => void`
+#### `this.setAssetSource(assetReferenceId: string, source: string | UInt8Array) => void`
 
-Set the deferred source of an asset.
+Set the deferred source of an asset. Note that you can also pass a Node `Buffer` as `source` as it is a sub-class of `UInt8Array`.
 
 #### `this.warn(warning: string | RollupWarning, position?: number | { column: number; line: number }) => void`
 
@@ -547,7 +547,7 @@ The `position` argument is a character index where the warning was raised. If pr
 
 ☢️ These context utility functions have been deprecated and may be removed in a future Rollup version.
 
-- `this.emitAsset(assetName: string, source: string) => string` - _**Use [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string)**_ - Emits a custom file that is included in the build output, returning an `assetReferenceId` that can be used to reference the emitted file. You can defer setting the source if you provide it later via [`this.setAssetSource(assetReferenceId, source)`](guide/en/#thissetassetsourceassetreferenceid-string-source-string--buffer--void). A string or Buffer source must be set for each asset through either method or an error will be thrown on generate completion.
+- `this.emitAsset(assetName: string, source: string) => string` - _**Use [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string)**_ - Emits a custom file that is included in the build output, returning an `assetReferenceId` that can be used to reference the emitted file. You can defer setting the source if you provide it later via [`this.setAssetSource(assetReferenceId, source)`](guide/en/#thissetassetsourceassetreferenceid-string-source-string--uint8array--void). A string or `UInt8Array`/`Buffer` source must be set for each asset through either method or an error will be thrown on generate completion.
 
   Emitted assets will follow the [`output.assetFileNames`](guide/en/#outputassetfilenames) naming scheme. You can reference the URL of the file in any code returned by a [`load`](guide/en/#load) or [`transform`](guide/en/#transform) plugin hook via `import.meta.ROLLUP_ASSET_URL_assetReferenceId`.
 

@@ -1,5 +1,4 @@
 import * as acorn from 'acorn';
-import * as ESTree from 'estree';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
 import extractAssignedNames from 'rollup-pluginutils/src/extractAssignedNames';
@@ -121,7 +120,7 @@ export interface AstContext {
 }
 
 export const defaultAcornOptions: acorn.Options = {
-	ecmaVersion: 2020 as any,
+	ecmaVersion: 2020,
 	preserveParens: false,
 	sourceType: 'module'
 };
@@ -241,7 +240,7 @@ export default class Module {
 	private astContext!: AstContext;
 	private context: string;
 	private defaultExport: ExportDefaultVariable | null | undefined = null;
-	private esTreeAst!: ESTree.Program;
+	private esTreeAst!: acorn.Node;
 	private graph: Graph;
 	private magicString!: MagicString;
 	private namespaceVariable: NamespaceVariable | null = null;

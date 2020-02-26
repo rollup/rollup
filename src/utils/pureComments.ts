@@ -1,11 +1,10 @@
 import * as acorn from 'acorn';
 // @ts-ignore
 import { base as basicWalker } from 'acorn-walk';
-import * as ESTree from 'estree';
 import { CommentDescription } from '../Module';
 
 function handlePureAnnotationsOfNode(
-	node: ESTree.Node & acorn.Node,
+	node: acorn.Node,
 	state: { commentIndex: number; commentNodes: CommentDescription[] },
 	type: string = node.type
 ) {
@@ -20,7 +19,7 @@ function handlePureAnnotationsOfNode(
 }
 
 function markPureNode(
-	node: ESTree.Node & { annotations?: CommentDescription[] },
+	node: acorn.Node & { annotations?: CommentDescription[] },
 	comment: CommentDescription
 ) {
 	if (node.annotations) {
@@ -29,7 +28,7 @@ function markPureNode(
 		node.annotations = [comment];
 	}
 	if (node.type === 'ExpressionStatement') {
-		node = node.expression;
+		node = (node as any).expression;
 	}
 	if (node.type === 'CallExpression' || node.type === 'NewExpression') {
 		(node as any).annotatedPure = true;
@@ -39,8 +38,8 @@ function markPureNode(
 const pureCommentRegex = /[@#]__PURE__/;
 const isPureComment = (comment: CommentDescription) => pureCommentRegex.test(comment.text);
 
-export function markPureCallExpressions(comments: CommentDescription[], esTreeAst: ESTree.Program) {
-	handlePureAnnotationsOfNode(esTreeAst as any, {
+export function markPureCallExpressions(comments: CommentDescription[], esTreeAst: acorn.Node) {
+	handlePureAnnotationsOfNode(esTreeAst, {
 		commentIndex: 0,
 		commentNodes: comments.filter(isPureComment)
 	});
