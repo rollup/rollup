@@ -1,4 +1,4 @@
-import * as ESTree from 'estree';
+import * as acorn from 'acorn';
 import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import Module from './Module';
@@ -248,23 +248,21 @@ export class ModuleLoader {
 				)
 			) as Promise<unknown>[]),
 			...module.getDynamicImportExpressions().map((specifier, index) =>
-				this.resolveDynamicImport(module, specifier as string | ESTree.Node, module.id).then(
-					resolvedId => {
-						if (resolvedId === null) return;
-						const dynamicImport = module.dynamicImports[index];
-						if (typeof resolvedId === 'string') {
-							dynamicImport.resolution = resolvedId;
-							return;
-						}
-						return this.fetchResolvedDependency(
-							relativeId(resolvedId.id),
-							module.id,
-							resolvedId
-						).then(module => {
-							dynamicImport.resolution = module;
-						});
+				this.resolveDynamicImport(module, specifier, module.id).then(resolvedId => {
+					if (resolvedId === null) return;
+					const dynamicImport = module.dynamicImports[index];
+					if (typeof resolvedId === 'string') {
+						dynamicImport.resolution = resolvedId;
+						return;
 					}
-				)
+					return this.fetchResolvedDependency(
+						relativeId(resolvedId.id),
+						module.id,
+						resolvedId
+					).then(module => {
+						dynamicImport.resolution = module;
+					});
+				})
 			)
 		]);
 	}
@@ -481,7 +479,7 @@ export class ModuleLoader {
 
 	private async resolveDynamicImport(
 		module: Module,
-		specifier: string | ESTree.Node,
+		specifier: string | acorn.Node,
 		importer: string
 	): Promise<ResolvedId | string | null> {
 		// TODO we only should expose the acorn AST here

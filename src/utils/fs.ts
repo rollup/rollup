@@ -24,7 +24,7 @@ function mkdirpath(path: string) {
 	}
 }
 
-export function writeFile(dest: string, data: string | Buffer) {
+export function writeFile(dest: string, data: string | Uint8Array) {
 	return new Promise<void>((fulfil, reject) => {
 		mkdirpath(dest);
 

@@ -84,7 +84,7 @@ export function getPluginContexts(
 			},
 			cache: cacheInstance,
 			emitAsset: getDeprecatedContextHandler(
-				(name: string, source?: string | Buffer) =>
+				(name: string, source?: string | Uint8Array) =>
 					fileEmitter.emitFile({ type: 'asset', name, source }),
 				'emitAsset',
 				'emitFile',
