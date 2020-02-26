@@ -14,6 +14,8 @@
 * Modules that are completely tree-shaken will no longer be listed as part of any chunks in `generateBundle`
 * The `experimentalOptimizeChunks` and `chunkGroupingSize` options have been removed
 * [acorn](https://github.com/acornjs/acorn) plugins can only be used if they accept a passed-in acorn instance instead of importing it themselves. See https://github.com/acornjs/acorn/pull/870#issuecomment-527339830 for what needs to be done to make plugins compatible that do not support this yet (#3391)
+* Emitted chunks now have the TypeScript type `UInt8Array` instead of `Buffer`. A `Buffer` can still be used, though (#3395)
+* The TypeScript types no longer use ESTree types for AST nodes but a very generic type that does not contain information specific to certain node types (#3395)
 * The signature of the `writeBundle` plugin hook has been changed to match `generateBundle`: The bundle object is now passed as second parameter instead of first and the first parameter is the output options (#3361)
 * The following plugin hooks have been removed:
   - ongenerate: use `generateBundle` instead
@@ -44,6 +46,7 @@
 
 ### Bug Fixes
 * Unknown output options now trigger a warning when using the JavaScript API (#3352)
+* Rollup will no longer introduce Node types into TypeScript projects that do not use them (#3395)
 
 ### Pull Requests
 * [#3331](https://github.com/rollup/rollup/pull/3331): Bundle Chokidar (@lukastaegert)
@@ -54,6 +57,7 @@
 * [#3369](https://github.com/rollup/rollup/pull/3369): Avoid empty imports from side-effect-free chunks (@lukastaegert)
 * [#3381](https://github.com/rollup/rollup/pull/3381): Rename esm to es everywhere, add systemjs alias (@lukastaegert)
 * [#3391](https://github.com/rollup/rollup/pull/3391): Bundle acorn, allow importing Rollup as Node ES module, update dependencies (@lukastaegert)
+* [#3395](https://github.com/rollup/rollup/pull/3395): Remove `@types` dependencies (@lukastaegert)
 
 ## 1.32.1
 *2020-03-06*
