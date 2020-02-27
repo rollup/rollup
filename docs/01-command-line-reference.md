@@ -307,7 +307,7 @@ rollup -i input.js -f es -p node-resolve -p commonjs,json
 By default, plugins that export functions will be called with no argument to create the plugin. You can however pass a custom argument as well:
 
 ```
-rollup -i input.js -f es -p "terser={output: {beautify: true, indent_level: 2}}"`
+rollup -i input.js -f es -p "terser={output: {beautify: true, indent_level: 2}}"
 ```
 
 #### `-v`/`--version`
