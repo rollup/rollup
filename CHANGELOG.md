@@ -5,6 +5,7 @@
 
 ### Pull Requests
 * [#3390](https://github.com/rollup/rollup/pull/3390): fix typo: this.addWatchfile (@mistlog)
+* [#3392](https://github.com/rollup/rollup/pull/3392): Bump codecov from 3.6.1 to 3.6.5
 
 ## 1.31.1
 *2020-02-14*
