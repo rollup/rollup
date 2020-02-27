@@ -1,4 +1,5 @@
 import { realpathSync } from 'fs';
+import * as path from 'path';
 import relative from 'require-relative';
 import { InputOptions, WarningHandler } from '../../src/rollup/types';
 import mergeOptions, { GenericConfigObject } from '../../src/utils/mergeOptions';
@@ -107,79 +108,86 @@ async function execute(
 	} else {
 		for (const config of configs) {
 			const warnings = batchWarnings();
-			const { inputOptions, outputOptions, optionError } = mergeOptions({
-				command,
-				config,
-				defaultOnWarnHandler: warnings.add
-			});
-			if (optionError) {
-				(inputOptions.onwarn as WarningHandler)({ code: 'UNKNOWN_OPTION', message: optionError });
-			}
-			if (command.stdin !== false) {
-				inputOptions.plugins!.push(stdinPlugin());
-			}
-			if (command.plugin) {
-				const plugins = Array.isArray(command.plugin) ? command.plugin : [command.plugin];
-				for (const plugin of plugins) {
-					if (/[={}]/.test(plugin)) {
-						// -p plugin=value
-						// -p "{transform(c,i){...}}"
-						loadAndRegisterPlugin(inputOptions, plugin)
-					} else {
-						// split out plugins joined by commas
-						// -p node-resolve,commonjs,buble
-						plugin.split(",").forEach((plugin: string) => loadAndRegisterPlugin(inputOptions, plugin));
-					}
+			try {
+				const { inputOptions, outputOptions, optionError } = mergeOptions({
+					command,
+					config,
+					defaultOnWarnHandler: warnings.add
+				});
+				if (optionError) {
+					(inputOptions.onwarn as WarningHandler)({ code: 'UNKNOWN_OPTION', message: optionError });
 				}
-			}
-			await build(inputOptions, outputOptions, warnings, command.silent);
-		}
-	}
-
-	function loadAndRegisterPlugin(inputOptions: InputOptions, pluginText: string) {
-		let plugin : any = null;
-		let pluginArg : any = undefined;
-		if (pluginText[0] === '{') {
-			// -p "{transform(c,i){...}}"
-			plugin = new Function('return ' + pluginText);
-		} else {
-			const match = pluginText.match(/^([@.\/\\\w|^{}|-]+)(=(.*))?$/);
-			if (match) {
-				// -p plugin
-				// -p plugin=arg
-				pluginText = match[1];
-				pluginArg = new Function('return ' + match[3])();
-			} else {
-				throw new Error(`Invalid --plugin argument format: ${JSON.stringify(pluginText)}`);
-			}
-			if (!/^\.|[@\/\\]/.test(pluginText)) {
-				// Try using plugin prefix variations first if applicable.
-				// Prefix order is significant - left has higher precedence.
-				for (const prefix of ['@rollup/plugin-', 'rollup-plugin-']) {
-					if (!RegExp(prefix).test(pluginText)) {
-						try {
-							plugin = require(prefix + pluginText);
-							break;
-						} catch (ex) {
-							// do nothing
+				if (command.stdin !== false) {
+					inputOptions.plugins!.push(stdinPlugin());
+				}
+				if (command.plugin) {
+					const plugins = Array.isArray(command.plugin) ? command.plugin : [command.plugin];
+					for (const plugin of plugins) {
+						if (/[={}]/.test(plugin)) {
+							// -p plugin=value
+							// -p "{transform(c,i){...}}"
+							loadAndRegisterPlugin(inputOptions, plugin);
+						} else {
+							// split out plugins joined by commas
+							// -p node-resolve,commonjs,buble
+							plugin
+								.split(',')
+								.forEach((plugin: string) => loadAndRegisterPlugin(inputOptions, plugin));
 						}
 					}
 				}
+				await build(inputOptions, outputOptions, warnings, command.silent);
+			} catch (err) {
+				warnings.flush();
+				handleError(err);
 			}
-			if (!plugin) {
+		}
+	}
+}
+
+function loadAndRegisterPlugin(inputOptions: InputOptions, pluginText: string) {
+	let plugin: any = null;
+	let pluginArg: any = undefined;
+	if (pluginText[0] === '{') {
+		// -p "{transform(c,i){...}}"
+		plugin = new Function('return ' + pluginText);
+	} else {
+		const match = pluginText.match(/^([@.\/\\\w|^{}|-]+)(=(.*))?$/);
+		if (match) {
+			// -p plugin
+			// -p plugin=arg
+			pluginText = match[1];
+			pluginArg = new Function('return ' + match[3])();
+		} else {
+			throw new Error(`Invalid --plugin argument format: ${JSON.stringify(pluginText)}`);
+		}
+		if (!/^\.|^rollup-plugin-|[@\/\\]/.test(pluginText)) {
+			// Try using plugin prefix variations first if applicable.
+			// Prefix order is significant - left has higher precedence.
+			for (const prefix of ['@rollup/plugin-', 'rollup-plugin-']) {
 				try {
-					if (pluginText[0] == ".") pluginText = process.cwd() + "/" + pluginText;
-					plugin = require(pluginText);
+					plugin = require(prefix + pluginText);
+					break;
 				} catch (ex) {
-					throw new Error(`Cannot load plugin '${pluginText}'`);
+					// if this does not work, we try requiring the actual name below
 				}
 			}
 		}
-		if (typeof plugin === 'object' && pluginText in plugin) {
-			// some plugins do not use `export default` for their entry point.
-			// attempt to use the plugin name as the named import name.
-			plugin = plugin[pluginText];
+		if (!plugin) {
+			try {
+				if (pluginText[0] == '.') pluginText = path.resolve(pluginText);
+				plugin = require(pluginText);
+			} catch (ex) {
+				throw new Error(`Cannot load plugin "${pluginText}"`);
+			}
 		}
-		inputOptions.plugins!.push(typeof plugin === 'function' ? plugin.call(plugin, pluginArg) : plugin);
 	}
+	if (typeof plugin === 'object' && pluginText in plugin) {
+		// some plugins do not use `export default` for their entry point.
+		// attempt to use the plugin name as the named import name.
+		plugin = plugin[pluginText];
+	}
+	inputOptions.plugins!.push(
+		typeof plugin === 'function' ? plugin.call(plugin, pluginArg) : plugin
+	);
 }
