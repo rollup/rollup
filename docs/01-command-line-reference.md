@@ -291,7 +291,9 @@ Use the specified plugin. There are several ways to specify plugins here:
   ```
   rollup -i input.js -f es -p node-resolve
   ```
+
 - Via an inline implementation:
+
   ```
   rollup -i input.js -f es -p '{transform: c => "/* TEST */" + c}
   ```
