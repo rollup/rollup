@@ -295,7 +295,7 @@ Use the specified plugin. There are several ways to specify plugins here:
 - Via an inline implementation:
 
   ```
-  rollup -i input.js -f es -p '{transform: c => "/* TEST */" + c}
+  rollup -i input.js -f es -p '{transform: (c, i) => `/* ${JSON.stringify(i)} */\n${c}`}'
   ```
   
 If you want to load more than one plugin, you can repeat the option or supply a comma-separated list of names:
@@ -307,7 +307,7 @@ rollup -i input.js -f es -p node-resolve -p commonjs,json
 By default, plugins that export functions will be called with no argument to create the plugin. You can however pass a custom argument as well:
 
 ```
-rollup -i input.js -f es -p "terser={output: {beautify: true, indent_level: 2}}"
+rollup -i input.js -f es -p 'terser={output: {beautify: true, indent_level: 2}}'
 ```
 
 #### `-v`/`--version`
