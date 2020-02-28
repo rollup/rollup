@@ -1,11 +1,16 @@
 # rollup changelog
 
-## 1.31.2
-*unreleased*
+## 1.32.0
+*2020-02-28*
+
+### Features
+* Allow adding plugins on the command line via `--plugin <plugin>` (#3379)
 
 ### Pull Requests
+* [#3379](https://github.com/rollup/rollup/pull/3379): introduce CLI --plugin support (@kzc)
 * [#3390](https://github.com/rollup/rollup/pull/3390): fix typo: this.addWatchfile (@mistlog)
 * [#3392](https://github.com/rollup/rollup/pull/3392): Bump codecov from 3.6.1 to 3.6.5
+* [#3404](https://github.com/rollup/rollup/pull/3404): Update resolveFileUrl docs (@jakearchibald)
 
 ## 1.31.1
 *2020-02-14*
