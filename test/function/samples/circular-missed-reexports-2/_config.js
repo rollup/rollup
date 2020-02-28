@@ -16,7 +16,7 @@ module.exports = {
 			file: path.resolve(__dirname, 'dep2.js'),
 			line: 1
 		},
-		message: "'doesNotExist' is not exported by dep1.js",
+		message: "'doesNotExist' is not exported by dep1.js, imported by dep2.js",
 		pos: 9,
 		url: 'https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module',
 		watchFiles: [

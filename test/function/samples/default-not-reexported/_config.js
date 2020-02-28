@@ -4,7 +4,7 @@ module.exports = {
 	description: 'default export is not re-exported with export *',
 	error: {
 		code: 'MISSING_EXPORT',
-		message: `'default' is not exported by foo.js`,
+		message: `'default' is not exported by foo.js, imported by main.js`,
 		pos: 7,
 		watchFiles: [
 			path.resolve(__dirname, 'main.js'),
