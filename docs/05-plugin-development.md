@@ -65,7 +65,7 @@ The name of the plugin, for use in error messages and warnings.
 
 ### Build Hooks
 
-To make your plugin functional, you add function properties that correspond to some of the various available hooks. They will be called by Rollup at specific points in the build process. Hooks can affect how a build is run, provide information about a build, or modify a build once complete. There are different kinds of hooks:
+To interact with the build process, your plugin object includes 'hooks'. Hooks are functions which are called at various stages of the build. Hooks can affect how a build is run, provide information about a build, or modify a build once complete. There are different kinds of hooks:
 
 * `async`: The hook may also return a promise resolving to the same type of value; otherwise, the hook is marked as `sync`.
 * `first`: If several plugins implement this hook, the hooks are run sequentially until a hook returns a value other than `null` or `undefined`.
