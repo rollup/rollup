@@ -72,7 +72,7 @@ To interact with the build process, your plugin object includes 'hooks'. Hooks a
 * `sequential`: If several plugins implement this hook, all of them will be run in the specified plugin order. If a hook is async, subsequent hooks of this kind will wait until the current hook is resolved.
 * `parallel`: If several plugins implement this hook, all of them will be run in the specified plugin order. If a hook is async, subsequent hooks of this kind will be run in parallel and not wait for the current hook.
 
-Build hooks are run during the build phase, which is triggered by `rollup.rollup(inputOptions)`. They are mainly concerned with locating, providing and transforming input files before they are processed by Rollup. The first hook of the build phase is [options](guide/en/#options), the last one is always [buildEnd](guide/en/#buidend). Additionally, the [watchChange](guide/en/#watchchange) hook can be triggered at any time to notify a new build will be performed after the current has completed.
+Build hooks are run during the build phase, which is triggered by `rollup.rollup(inputOptions)`. They are mainly concerned with locating, providing and transforming input files before they are processed by Rollup. The first hook of the build phase is [options](guide/en/#options), the last one is always [buildEnd](guide/en/#buidend). Additionally in watch mode, the [watchChange](guide/en/#watchchange) hook can be triggered at any time to notify a new run will be triggered once the current run has generated its outputs.
 
 See [Output Generation Hooks](guide/en/#output-generation-hooks) for hooks that run during the output generation phase to modify the generated output.
 
@@ -239,7 +239,7 @@ The first hook of the output generation phase is [outputOptions](guide/en/#outpu
 Type: `(preRenderedChunk: PreRenderedChunk) => string`<br>
 Kind: `sync, sequential`<br>
 Previous Hook: [`banner`](guide/en/#banner), [`footer`](guide/en/#footer), [`intro`](guide/en/#intro), [`outro`](guide/en/#outro).<br>
-Next Hook: [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta`. Otherwise [`renderChunk`](guide/en/#renderchunk) for each chunk.
+Next Hook: [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta`. Then [`renderChunk`](guide/en/#renderchunk) for each chunk.
 
 Can be used to augment the hash of individual chunks. Called for each Rollup output chunk. Returning a falsy value will not modify the hash.
 
@@ -258,7 +258,7 @@ augmentChunkHash(chunkInfo) {
 Type: `string | (() => string)`<br>
 Kind: `async, parallel`<br>
 Previous Hook: [`renderStart`](guide/en/#renderstart)<br>
-Next Hook: [`augmentChunkHash`](guide/en/#augmentchunkhash) for each chunk with that would contain a hash in the file name. Otherwise [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta`. Otherwise [`renderChunk`](guide/en/#renderchunk) for each chunk.
+Next Hook: [`augmentChunkHash`](guide/en/#augmentchunkhash) for each chunk that would contain a hash in the file name. Then [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta`. Then [`renderChunk`](guide/en/#renderchunk) for each chunk.
 
 Cf. [`output.banner/output.footer`](guide/en/#outputbanneroutputfooter).
 
@@ -266,7 +266,7 @@ Cf. [`output.banner/output.footer`](guide/en/#outputbanneroutputfooter).
 Type: `string | (() => string)`<br>
 Kind: `async, parallel`<br>
 Previous Hook: [`renderStart`](guide/en/#renderstart)<br>
-Next Hook: [`augmentChunkHash`](guide/en/#augmentchunkhash) for each chunk with that would contain a hash in the file name. Otherwise [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta`. Otherwise [`renderChunk`](guide/en/#renderchunk) for each chunk.
+Next Hook: [`augmentChunkHash`](guide/en/#augmentchunkhash) for each chunk that would contain a hash in the file name. Then [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta`. Then [`renderChunk`](guide/en/#renderchunk) for each chunk.
 
 Cf. [`output.banner/output.footer`](guide/en/#outputbanneroutputfooter).
 
@@ -316,7 +316,7 @@ You can prevent files from being emitted by deleting them from the bundle object
 Type: `string | (() => string)`<br>
 Kind: `async, parallel`<br>
 Previous Hook: [`renderStart`](guide/en/#renderstart)<br>
-Next Hook: [`augmentChunkHash`](guide/en/#augmentchunkhash) for each chunk with that would contain a hash in the file name. Otherwise [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta`. Otherwise [`renderChunk`](guide/en/#renderchunk) for each chunk.
+Next Hook: [`augmentChunkHash`](guide/en/#augmentchunkhash) for each chunk that would contain a hash in the file name. Then [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta`. Then [`renderChunk`](guide/en/#renderchunk) for each chunk.
 
 Cf. [`output.intro/output.outro`](guide/en/#outputintrooutputoutro).
 
@@ -332,14 +332,14 @@ Replaces or manipulates the output options object passed to `bundle.generate()` 
 Type: `string | (() => string)`<br>
 Kind: `async, parallel`<br>
 Previous Hook: [`renderStart`](guide/en/#renderstart)<br>
-Next Hook: [`augmentChunkHash`](guide/en/#augmentchunkhash) for each chunk with that would contain a hash in the file name. Otherwise [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta`. Otherwise [`renderChunk`](guide/en/#renderchunk) for each chunk.
+Next Hook: [`augmentChunkHash`](guide/en/#augmentchunkhash) for each chunk that would contain a hash in the file name. Then [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta`. Then [`renderChunk`](guide/en/#renderchunk) for each chunk.
 
 Cf. [`output.intro/output.outro`](guide/en/#outputintrooutputoutro).
 
 #### `renderChunk`
 Type: `(code: string, chunk: ChunkInfo, options: OutputOptions) => string | { code: string, map: SourceMap } | null`<br>
 Kind: `async, sequential`<br>
-Previous Hook: [`resolveFileUrl`](guide/en/#resolvefileurl) or [`resolveImportMeta`](guide/en/#resolveimportmeta) if `import.meta` properties are used. Otherwise [`augmentChunkHash`](guide/en/#augmentchunkhash) if there are chunks that would contain a hash in the file name. Otherwise [`banner`](guide/en/#banner), [`footer`](guide/en/#footer), [`intro`](guide/en/#intro), [`outro`](guide/en/#outro).<br>
+Previous Hook: [`resolveFileUrl`](guide/en/#resolvefileurl) or [`resolveImportMeta`](guide/en/#resolveimportmeta) if `import.meta` properties are used. Before that [`augmentChunkHash`](guide/en/#augmentchunkhash) if there are chunks that would contain a hash in the file name. Before that [`banner`](guide/en/#banner), [`footer`](guide/en/#footer), [`intro`](guide/en/#intro), [`outro`](guide/en/#outro).<br>
 Next Hook: [`generateBundle`](guide/en/#generatebundle).
 
 Can be used to transform individual chunks. Called for each Rollup output chunk file. Returning `null` will apply no transformations.
@@ -363,7 +363,7 @@ Called initially each time `bundle.generate()` or `bundle.write()` is called. To
 #### `resolveFileUrl`
 Type: `({chunkId: string, fileName: string, format: string, moduleId: string, referenceId: string, relativePath: string}) => string | null`<br>
 Kind: `sync, first`<br>
-Previous Hook: [`augmentChunkHash`](guide/en/#augmentchunkhash) if there are chunks that would contain a hash in the file name. Otherwise [`banner`](guide/en/#banner), [`footer`](guide/en/#footer), [`intro`](guide/en/#intro), [`outro`](guide/en/#outro).<br>
+Previous Hook: [`augmentChunkHash`](guide/en/#augmentchunkhash) if there are chunks that would contain a hash in the file name. Before that [`banner`](guide/en/#banner), [`footer`](guide/en/#footer), [`intro`](guide/en/#intro), [`outro`](guide/en/#outro).<br>
 Next Hook: [`renderChunk`](guide/en/#renderchunk) for each chunk.
 
 Allows to customize how Rollup resolves URLs of files that were emitted by plugins via `this.emitFile`. By default, Rollup will generate code for `import.meta.ROLLUP_FILE_URL_referenceId` that should correctly generate absolute URLs of emitted files independent of the output format and the host system where the code is deployed.
@@ -391,7 +391,7 @@ resolveFileUrl({fileName}) {
 #### `resolveImportMeta`
 Type: `(property: string | null, {chunkId: string, moduleId: string, format: string}) => string | null`<br>
 Kind: `sync, first`<br>
-Previous Hook: [`augmentChunkHash`](guide/en/#augmentchunkhash) if there are chunks that would contain a hash in the file name. Otherwise [`banner`](guide/en/#banner), [`footer`](guide/en/#footer), [`intro`](guide/en/#intro), [`outro`](guide/en/#outro).<br>
+Previous Hook: [`augmentChunkHash`](guide/en/#augmentchunkhash) if there are chunks that would contain a hash in the file name. Before that [`banner`](guide/en/#banner), [`footer`](guide/en/#footer), [`intro`](guide/en/#intro), [`outro`](guide/en/#outro).<br>
 Next Hook: [`renderChunk`](guide/en/#renderchunk) for each chunk.
 
 Allows to customize how Rollup handles `import.meta` and `import.meta.someProperty`, in particular `import.meta.url`. In ES modules, `import.meta` is an object and `import.meta.url` contains the URL of the current module, e.g. `http://server.net/bundle.js` for browsers or `file:///path/to/bundle.js` in Node.
