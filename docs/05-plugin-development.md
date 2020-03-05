@@ -4,7 +4,7 @@ title: Plugin Development
 
 ### Plugins Overview
 
-A Rollup plugin is an object with one or more of the [properties](guide/en/#properties) and [hooks](guide/en/#hooks) described below, and which follows our [conventions](guide/en/#conventions). A plugin should be distributed as a package which exports a function that can be called with plugin specific options and returns such an object.
+A Rollup plugin is an object with one or more of the [properties](guide/en/#properties), [build hooks](guide/en/#build-hooks), and [output generation hooks](guide/en/#output-generation-hooks) described below, and which follows our [conventions](guide/en/#conventions). A plugin should be distributed as a package which exports a function that can be called with plugin specific options and returns such an object.
 
 Plugins allow you to customise Rollup's behaviour by, for example, transpiling code before bundling, or finding third-party modules in your `node_modules` folder. For an example on how to use them, see [Using plugins](guide/en/#using-plugins).
 
@@ -72,7 +72,7 @@ To interact with the build process, your plugin object includes 'hooks'. Hooks a
 * `sequential`: If several plugins implement this hook, all of them will be run in the specified plugin order. If a hook is async, subsequent hooks of this kind will wait until the current hook is resolved.
 * `parallel`: If several plugins implement this hook, all of them will be run in the specified plugin order. If a hook is async, subsequent hooks of this kind will be run in parallel and not wait for the current hook.
 
-Build hooks are run during the build phase, which is triggered by `rollup.rollup(inputOptions)`. They are mainly concerned with locating, providing and transforming input files before they are processed by Rollup. The first hook of the build phase is [options](guide/en/#options), the last one is always [buildEnd](guide/en/#buidend). Additionally in watch mode, the [watchChange](guide/en/#watchchange) hook can be triggered at any time to notify a new run will be triggered once the current run has generated its outputs.
+Build hooks are run during the build phase, which is triggered by `rollup.rollup(inputOptions)`. They are mainly concerned with locating, providing and transforming input files before they are processed by Rollup. The first hook of the build phase is [options](guide/en/#options), the last one is always [buildEnd](guide/en/#buildend). Additionally in watch mode, the [watchChange](guide/en/#watchchange) hook can be triggered at any time to notify a new run will be triggered once the current run has generated its outputs.
 
 See [Output Generation Hooks](guide/en/#output-generation-hooks) for hooks that run during the output generation phase to modify the generated output.
 
@@ -443,7 +443,7 @@ More properties may be supported in future, as and when they prove necessary.
 
 ### Plugin Context
 
-A number of utility functions and informational bits can be accessed from within most [hooks](guide/en/#hooks) via `this`:
+A number of utility functions and informational bits can be accessed from within most [hooks](guide/en/#build-hooks) via `this`:
 
 #### `this.addWatchFile(id: string) => void`
 

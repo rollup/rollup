@@ -231,7 +231,7 @@ Type: `OutputPlugin | (OutputPlugin | void)[]`
 
 Adds a plugin just to this output. See [Using output plugins](guide/en/#using-output-plugins) for more information on how to use output-specific plugins and [Plugins](guide/en/#plugin-development) on how to write your own. For plugins imported from packages, remember to call the imported plugin function (i.e. `commonjs()`, not just `commonjs`). Falsy plugins will be ignored, which can be used to easily activate or deactivate plugins.
 
-Not every plugin can be used here. `output.plugins` is limited to plugins that only use hooks that run during `bundle.generate()` or `bundle.write()`, i.e. after Rollup's main analysis is complete. If you are a plugin author, see [Plugin hooks](guide/en/#hooks) to find out which hooks can be used.
+Not every plugin can be used here. `output.plugins` is limited to plugins that only use hooks that run during `bundle.generate()` or `bundle.write()`, i.e. after Rollup's main analysis is complete. If you are a plugin author, see [output generation hooks](guide/en/#output-generation-hooks) to find out which hooks can be used.
 
 The following will add minification to one of the outputs:
 
