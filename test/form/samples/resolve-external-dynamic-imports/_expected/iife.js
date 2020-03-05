@@ -1,7 +1,7 @@
 var bundle = (function (exports, myExternal) {
 	'use strict';
 
-	myExternal = myExternal && myExternal.hasOwnProperty('default') ? myExternal['default'] : myExternal;
+	myExternal = myExternal && Object.prototype.hasOwnProperty.call(myExternal, 'default') ? myExternal['default'] : myExternal;
 
 	const test = () => myExternal;
 
