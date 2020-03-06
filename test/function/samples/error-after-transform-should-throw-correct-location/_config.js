@@ -20,7 +20,7 @@ module.exports = {
 	},
 	error: {
 		code: 'MISSING_EXPORT',
-		message: `'default' is not exported by empty.js`,
+		message: `'default' is not exported by empty.js, imported by main.js`,
 		pos: 44,
 		watchFiles: [path.resolve(__dirname, 'main.js'), path.resolve(__dirname, 'empty.js')],
 		loc: {
