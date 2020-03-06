@@ -1,6 +1,6 @@
 define(['exports', 'external', './other', './_virtual/_external_commonjs-external', './_virtual/other.js_commonjs-proxy'], function (exports, external, other, _external_commonjsExternal, other$1) { 'use strict';
 
-	external = external && external.hasOwnProperty('default') ? external['default'] : external;
+	external = external && Object.prototype.hasOwnProperty.call(external, 'default') ? external['default'] : external;
 
 	const { value } = other$1;
 
