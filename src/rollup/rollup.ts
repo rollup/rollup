@@ -362,8 +362,8 @@ function normalizeOutputOptions(
 	const outputOptions = parseOutputOptions(
 		outputPluginDriver.hookReduceArg0Sync(
 			'outputOptions',
-			[rawOutputOptions.output || inputOptions.output || rawOutputOptions],
-			(outputOptions: OutputOptions, result: OutputOptions) => result || outputOptions,
+			[rawOutputOptions.output || inputOptions.output || rawOutputOptions] as [OutputOptions],
+			(outputOptions, result) => result || outputOptions,
 			pluginContext => {
 				const emitError = () => pluginContext.error(errCannotEmitFromOptionsHook());
 				return {

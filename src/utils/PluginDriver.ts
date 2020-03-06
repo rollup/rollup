@@ -1,11 +1,18 @@
 import Graph from '../Graph';
 import {
+	AddonHookFunction,
+	AsyncPluginHooks,
 	EmitFile,
+	FirstPluginHooks,
 	OutputBundleWithPlaceholders,
+	ParallelPluginHooks,
 	Plugin,
 	PluginContext,
 	PluginHooks,
-	SerializablePluginCache
+	PluginValueHooks,
+	SequentialPluginHooks,
+	SerializablePluginCache,
+	SyncPluginHooks
 } from '../rollup/types';
 import { getRollupDefaultPlugin } from './defaultPlugin';
 import { errInputHookInOutputPlugin, error } from './error';
@@ -13,11 +20,30 @@ import { FileEmitter } from './FileEmitter';
 import { getPluginContexts } from './PluginContext';
 import { throwPluginError, warnDeprecatedHooks } from './pluginUtils';
 
-type Args<T> = T extends (...args: infer K) => any ? K : never;
-type EnsurePromise<T> = Promise<T extends Promise<infer K> ? K : T>;
+/**
+ * Get the inner type from a promise
+ * @example ResolveValue<Promise<string>> -> string
+ */
+type ResolveValue<T> = T extends Promise<infer K> ? K : T;
+/**
+ * Coerce a promise union to always be a promise.
+ * @example EnsurePromise<string | Promise<string>> -> Promise<string>
+ */
+type EnsurePromise<T> = Promise<ResolveValue<T>>;
+/**
+ * Get the type of the first argument in a function.
+ * @example Arg0<(a: string, b: number) => void> -> string
+ */
+type Arg0<H extends keyof PluginHooks> = Parameters<PluginHooks[H]>[0];
 
-export type Reduce<R = any, T = any> = (reduction: T, result: R, plugin: Plugin) => T;
-export type ReplaceContext = (context: PluginContext, plugin: Plugin) => PluginContext;
+type ReplaceContext = (context: PluginContext, plugin: Plugin) => PluginContext;
+
+function throwInvalidHookError(hookName: string, pluginName: string) {
+	return error({
+		code: 'INVALID_PLUGIN_HOOK',
+		message: `Error running plugin hook ${hookName} for ${pluginName}, expected a function hook.`
+	});
+}
 
 export class PluginDriver {
 	public emitFile: EmitFile;
@@ -72,64 +98,69 @@ export class PluginDriver {
 	}
 
 	// chains, first non-null result stops and returns
-	hookFirst<H extends keyof PluginHooks, R = ReturnType<PluginHooks[H]>>(
+	hookFirst<H extends AsyncPluginHooks & FirstPluginHooks>(
 		hookName: H,
-		args: Args<PluginHooks[H]>,
+		args: Parameters<PluginHooks[H]>,
 		replaceContext?: ReplaceContext | null,
 		skip?: number | null
-	): EnsurePromise<R> {
-		let promise: Promise<any> = Promise.resolve();
+	): EnsurePromise<ReturnType<PluginHooks[H]>> {
+		let promise: EnsurePromise<ReturnType<PluginHooks[H]>> = Promise.resolve(undefined as any);
 		for (let i = 0; i < this.plugins.length; i++) {
 			if (skip === i) continue;
-			promise = promise.then((result: any) => {
+			promise = promise.then(result => {
 				if (result != null) return result;
-				return this.runHook(hookName, args as any[], i, false, replaceContext);
+				return this.runHook(hookName, args, i, false, replaceContext);
 			});
 		}
 		return promise;
 	}
 
 	// chains synchronously, first non-null result stops and returns
-	hookFirstSync<H extends keyof PluginHooks, R = ReturnType<PluginHooks[H]>>(
+	hookFirstSync<H extends SyncPluginHooks & FirstPluginHooks>(
 		hookName: H,
-		args: Args<PluginHooks[H]>,
+		args: Parameters<PluginHooks[H]>,
 		replaceContext?: ReplaceContext
-	): R {
+	): ReturnType<PluginHooks[H]> {
 		for (let i = 0; i < this.plugins.length; i++) {
 			const result = this.runHookSync(hookName, args, i, replaceContext);
-			if (result != null) return result as any;
+			if (result != null) return result;
 		}
 		return null as any;
 	}
 
 	// parallel, ignores returns
-	hookParallel<H extends keyof PluginHooks>(
+	hookParallel<H extends AsyncPluginHooks & ParallelPluginHooks>(
 		hookName: H,
-		args: Args<PluginHooks[H]>,
+		args: Parameters<PluginHooks[H]>,
 		replaceContext?: ReplaceContext
 	): Promise<void> {
 		const promises: Promise<void>[] = [];
 		for (let i = 0; i < this.plugins.length; i++) {
-			const hookPromise = this.runHook<void>(hookName, args as any[], i, false, replaceContext);
+			const hookPromise = this.runHook(hookName, args, i, false, replaceContext);
 			if (!hookPromise) continue;
 			promises.push(hookPromise);
 		}
 		return Promise.all(promises).then(() => {});
 	}
 
-	// chains, reduces returns of type R, to type T, handling the reduced value as the first hook argument
-	hookReduceArg0<H extends keyof PluginHooks, V, R = ReturnType<PluginHooks[H]>>(
+	// chains, reduces returned value, handling the reduced value as the first hook argument
+	hookReduceArg0<H extends AsyncPluginHooks & SequentialPluginHooks>(
 		hookName: H,
-		[arg0, ...args]: any[],
-		reduce: Reduce<V, R>,
+		[arg0, ...rest]: Parameters<PluginHooks[H]>,
+		reduce: (
+			reduction: Arg0<H>,
+			result: ResolveValue<ReturnType<PluginHooks[H]>>,
+			plugin: Plugin
+		) => Arg0<H>,
 		replaceContext?: ReplaceContext
-	) {
+	): Promise<Arg0<H>> {
 		let promise = Promise.resolve(arg0);
 		for (let i = 0; i < this.plugins.length; i++) {
 			promise = promise.then(arg0 => {
-				const hookPromise = this.runHook(hookName, [arg0, ...args], i, false, replaceContext);
+				const args = [arg0, ...rest] as Parameters<PluginHooks[H]>;
+				const hookPromise = this.runHook(hookName, args, i, false, replaceContext);
 				if (!hookPromise) return arg0;
-				return hookPromise.then((result: any) =>
+				return hookPromise.then(result =>
 					reduce.call(this.pluginContexts[i], arg0, result, this.plugins[i])
 				);
 			});
@@ -137,26 +168,31 @@ export class PluginDriver {
 		return promise;
 	}
 
-	// chains synchronously, reduces returns of type R, to type T, handling the reduced value as the first hook argument
-	hookReduceArg0Sync<H extends keyof PluginHooks, V, R = ReturnType<PluginHooks[H]>>(
+	// chains synchronously, reduces returned value, handling the reduced value as the first hook argument
+	hookReduceArg0Sync<H extends SyncPluginHooks & SequentialPluginHooks>(
 		hookName: H,
-		[arg0, ...args]: any[],
-		reduce: Reduce<V, R>,
+		[arg0, ...rest]: Parameters<PluginHooks[H]>,
+		reduce: (reduction: Arg0<H>, result: ReturnType<PluginHooks[H]>, plugin: Plugin) => Arg0<H>,
 		replaceContext?: ReplaceContext
-	): R {
+	): Arg0<H> {
 		for (let i = 0; i < this.plugins.length; i++) {
-			const result: any = this.runHookSync(hookName, [arg0, ...args], i, replaceContext);
+			const args = [arg0, ...rest] as Parameters<PluginHooks[H]>;
+			const result = this.runHookSync(hookName, args, i, replaceContext);
 			arg0 = reduce.call(this.pluginContexts[i], arg0, result, this.plugins[i]);
 		}
 		return arg0;
 	}
 
-	// chains, reduces returns of type R, to type T, handling the reduced value separately. permits hooks as values.
-	hookReduceValue<H extends keyof Plugin, R = any, T = any>(
+	// chains, reduces returned value to type T, handling the reduced value separately. permits hooks as values.
+	hookReduceValue<H extends PluginValueHooks, T>(
 		hookName: H,
 		initialValue: T | Promise<T>,
-		args: any[],
-		reduce: Reduce<R, T>,
+		args: Parameters<AddonHookFunction>,
+		reduce: (
+			reduction: T,
+			result: ResolveValue<ReturnType<AddonHookFunction>>,
+			plugin: Plugin
+		) => T,
 		replaceContext?: ReplaceContext
 	): Promise<T> {
 		let promise = Promise.resolve(initialValue);
@@ -164,7 +200,7 @@ export class PluginDriver {
 			promise = promise.then(value => {
 				const hookPromise = this.runHook(hookName, args, i, true, replaceContext);
 				if (!hookPromise) return value;
-				return hookPromise.then((result: any) =>
+				return hookPromise.then(result =>
 					reduce.call(this.pluginContexts[i], value, result, this.plugins[i])
 				);
 			});
@@ -172,101 +208,128 @@ export class PluginDriver {
 		return promise;
 	}
 
-	// chains, reduces returns of type R, to type T, handling the reduced value separately. permits hooks as values.
-	hookReduceValueSync<H extends keyof PluginHooks, R = any, T = any>(
+	// chains synchronously, reduces returned value to type T, handling the reduced value separately. permits hooks as values.
+	hookReduceValueSync<H extends SyncPluginHooks & SequentialPluginHooks, T>(
 		hookName: H,
 		initialValue: T,
-		args: any[],
-		reduce: Reduce<R, T>,
+		args: Parameters<PluginHooks[H]>,
+		reduce: (reduction: T, result: ReturnType<PluginHooks[H]>, plugin: Plugin) => T,
 		replaceContext?: ReplaceContext
 	): T {
 		let acc = initialValue;
 		for (let i = 0; i < this.plugins.length; i++) {
-			const result: any = this.runHookSync(hookName, args, i, replaceContext);
+			const result = this.runHookSync(hookName, args, i, replaceContext);
 			acc = reduce.call(this.pluginContexts[i], acc, result, this.plugins[i]);
 		}
 		return acc;
 	}
 
 	// chains, ignores returns
-	async hookSeq<H extends keyof PluginHooks>(
+	hookSeq<H extends AsyncPluginHooks & SequentialPluginHooks>(
 		hookName: H,
-		args: Args<PluginHooks[H]>,
+		args: Parameters<PluginHooks[H]>,
 		replaceContext?: ReplaceContext
 	): Promise<void> {
-		let promise: Promise<void> = Promise.resolve();
-		for (let i = 0; i < this.plugins.length; i++)
-			promise = promise.then(() =>
-				this.runHook<void>(hookName, args as any[], i, false, replaceContext)
+		let promise = Promise.resolve();
+		for (let i = 0; i < this.plugins.length; i++) {
+			promise = promise.then(
+				() => this.runHook(hookName, args, i, false, replaceContext) as Promise<void>
 			);
+		}
 		return promise;
 	}
 
-	// chains, ignores returns
-	hookSeqSync<H extends keyof PluginHooks>(
+	// chains synchronously, ignores returns
+	hookSeqSync<H extends SyncPluginHooks & SequentialPluginHooks>(
 		hookName: H,
-		args: Args<PluginHooks[H]>,
+		args: Parameters<PluginHooks[H]>,
 		replaceContext?: ReplaceContext
 	): void {
-		for (let i = 0; i < this.plugins.length; i++)
-			this.runHookSync<void>(hookName, args as any[], i, replaceContext);
+		for (let i = 0; i < this.plugins.length; i++) {
+			this.runHookSync(hookName, args, i, replaceContext);
+		}
 	}
 
-	private runHook<T>(
-		hookName: string,
-		args: any[],
+	/**
+	 * Run an async plugin hook and return the result.
+	 * @param hookName Name of the plugin hook. Must be either in `PluginHooks` or `OutputPluginValueHooks`.
+	 * @param args Arguments passed to the plugin hook.
+	 * @param pluginIndex Index of the plugin inside `this.plugins[]`.
+	 * @param permitValues If true, values can be passed instead of functions for the plugin hook.
+	 * @param hookContext When passed, the plugin context can be overridden.
+	 */
+	private runHook<H extends PluginValueHooks>(
+		hookName: H,
+		args: Parameters<AddonHookFunction>,
+		pluginIndex: number,
+		permitValues: true,
+		hookContext?: ReplaceContext | null
+	): EnsurePromise<ReturnType<AddonHookFunction>>;
+	private runHook<H extends AsyncPluginHooks>(
+		hookName: H,
+		args: Parameters<PluginHooks[H]>,
+		pluginIndex: number,
+		permitValues: false,
+		hookContext?: ReplaceContext | null
+	): EnsurePromise<ReturnType<PluginHooks[H]>>;
+	private runHook<H extends AsyncPluginHooks>(
+		hookName: H,
+		args: Parameters<PluginHooks[H]>,
 		pluginIndex: number,
 		permitValues: boolean,
 		hookContext?: ReplaceContext | null
-	): Promise<T> {
+	): EnsurePromise<ReturnType<PluginHooks[H]>> {
 		this.previousHooks.add(hookName);
 		const plugin = this.plugins[pluginIndex];
-		const hook = (plugin as any)[hookName];
+		const hook = plugin[hookName];
 		if (!hook) return undefined as any;
 
 		let context = this.pluginContexts[pluginIndex];
 		if (hookContext) {
 			context = hookContext(context, plugin);
 		}
+
 		return Promise.resolve()
 			.then(() => {
 				// permit values allows values to be returned instead of a functional hook
 				if (typeof hook !== 'function') {
 					if (permitValues) return hook;
-					return error({
-						code: 'INVALID_PLUGIN_HOOK',
-						message: `Error running plugin hook ${hookName} for ${plugin.name}, expected a function hook.`
-					});
+					return throwInvalidHookError(hookName, plugin.name);
 				}
-				return hook.apply(context, args);
+				return (hook as Function).apply(context, args);
 			})
 			.catch(err => throwPluginError(err, plugin.name, { hook: hookName }));
 	}
 
-	private runHookSync<T>(
-		hookName: string,
-		args: any[],
+	/**
+	 * Run a sync plugin hook and return the result.
+	 * @param hookName Name of the plugin hook. Must be in `PluginHooks`.
+	 * @param args Arguments passed to the plugin hook.
+	 * @param pluginIndex Index of the plugin inside `this.plugins[]`.
+	 * @param hookContext When passed, the plugin context can be overridden.
+	 */
+	private runHookSync<H extends SyncPluginHooks>(
+		hookName: H,
+		args: Parameters<PluginHooks[H]>,
 		pluginIndex: number,
 		hookContext?: ReplaceContext
-	): T {
+	): ReturnType<PluginHooks[H]> {
 		this.previousHooks.add(hookName);
 		const plugin = this.plugins[pluginIndex];
-		let context = this.pluginContexts[pluginIndex];
-		const hook = (plugin as any)[hookName];
+		const hook = plugin[hookName];
 		if (!hook) return undefined as any;
 
+		let context = this.pluginContexts[pluginIndex];
 		if (hookContext) {
 			context = hookContext(context, plugin);
 		}
+
 		try {
 			// permit values allows values to be returned instead of a functional hook
 			if (typeof hook !== 'function') {
-				return error({
-					code: 'INVALID_PLUGIN_HOOK',
-					message: `Error running plugin hook ${hookName} for ${plugin.name}, expected a function hook.`
-				});
+				return throwInvalidHookError(hookName, plugin.name);
 			}
-			return hook.apply(context, args);
+			return (hook as Function).apply(context, args);
 		} catch (err) {
 			return throwPluginError(err, plugin.name, { hook: hookName });
 		}
