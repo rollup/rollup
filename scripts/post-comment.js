@@ -5,7 +5,8 @@ const fetch = require('node-fetch');
 
 const authToken = process.env.GH_AUTH_TOKEN;
 if (!authToken) {
-	throw new Error('Could not find auth token.');
+	console.log('Could not find auth token.');
+	process.exit(0);
 }
 
 const prNumber = path.basename(
