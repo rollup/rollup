@@ -13,13 +13,11 @@ export default function build(
 	outputOptions: OutputOptions[],
 	warnings: BatchWarnings,
 	silent = false
-) {
+): Promise<unknown> {
 	const useStdout = !outputOptions[0].file && !outputOptions[0].dir;
 
 	const start = Date.now();
-	const files = useStdout
-		? ['stdout']
-		: outputOptions.map(t => relativeId(t.file || t.dir!));
+	const files = useStdout ? ['stdout'] : outputOptions.map(t => relativeId(t.file || t.dir!));
 	if (!silent) {
 		let inputFiles: string | undefined;
 		if (typeof inputOptions.input === 'string') {
@@ -61,13 +59,11 @@ export default function build(
 							process.stdout.write('\n' + tc.cyan(tc.bold('//→ ' + file.fileName + ':')) + '\n');
 						process.stdout.write(source);
 					}
-					return null
+					return null;
 				});
 			}
 
-			return Promise.all(outputOptions.map(output => bundle.write(output))).then(
-				() => bundle
-			);
+			return Promise.all(outputOptions.map(output => bundle.write(output))).then(() => bundle);
 		})
 		.then((bundle: RollupBuild | null) => {
 			if (!silent) {
@@ -79,9 +75,5 @@ export default function build(
 					printTimings(bundle.getTimings());
 				}
 			}
-		})
-		.catch((err: Error) => {
-			warnings.flush();
-			handleError(err);
 		});
 }

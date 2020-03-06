@@ -82,6 +82,9 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			}
 			if (this.alternate !== null) {
 				if (this.alternate.included) {
+					if (code.original.charCodeAt(this.alternate.start - 1) === 101 /* e */) {
+						code.prependLeft(this.alternate.start, ' ');
+					}
 					this.alternate.render(code, options);
 				} else {
 					code.remove(this.consequent.end, this.alternate.end);

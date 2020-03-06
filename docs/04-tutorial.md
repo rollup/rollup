@@ -240,7 +240,7 @@ _Note: Only the data we actually need gets imported – `name` and `devDependenc
 
 ### Using output plugins
 
-Some plugins can also be applied specifically to some outputs. See [plugin hooks](guide/en/#hooks) for the technical details of what output-specific plugins can do. In a nut-shell, those plugins can only modify code after the main analysis of Rollup has completed. Rollup will warn if an incompatible plugin is used as an output-specific plugin. One possible use-case is minification of bundles to be consumed in a browser.
+Some plugins can also be applied specifically to some outputs. See [plugin hooks](guide/en/#build-hooks) for the technical details of what output-specific plugins can do. In a nut-shell, those plugins can only modify code after the main analysis of Rollup has completed. Rollup will warn if an incompatible plugin is used as an output-specific plugin. One possible use-case is minification of bundles to be consumed in a browser.
 
 Let us extend the previous example to provide a minified build together with the non-minified one. To that end, we install `rollup-plugin-terser`:
 

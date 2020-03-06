@@ -16,6 +16,7 @@ Basic options:
 -m, --sourcemap             Generate sourcemap (`-m inline` for inline map)
 -n, --name <name>           Name for UMD export
 -o, --file <output>         Single output file (if absent, prints to stdout)
+-p, --plugin <plugin>       Use the plugin specified (may be repeated)
 -v, --version               Show version number
 -w, --watch                 Watch files in bundle and rebuild on changes
 --amd.id <id>               ID for AMD module (default is anonymous)

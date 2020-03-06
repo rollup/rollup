@@ -1,6 +1,6 @@
 define(['exports', 'external'], function (exports, external) { 'use strict';
 
-	external = external && external.hasOwnProperty('default') ? external['default'] : external;
+	external = external && Object.prototype.hasOwnProperty.call(external, 'default') ? external['default'] : external;
 
 	const value = 42;
 
