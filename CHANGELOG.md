@@ -1,5 +1,21 @@
 # rollup changelog
 
+## 1.32.1
+*2020-03-06*
+
+### Bug Fixes
+* Handle default export detection for AMD and IIFE externals that do not have a prototype (#3420)
+* Handle missing whitespace when the else branch of an if-statement is simplified (#3421)
+* Mention the importing module when reporting errors for missing named exports (#3401)
+* Add code to warning for missing output.name of IIFE bundles (#3372)
+
+### Pull Requests
+* [#3372](https://github.com/rollup/rollup/pull/3372): Add warning code for missing output.name of IIFE bundle that has export (@rail44)
+* [#3401](https://github.com/rollup/rollup/pull/3401): Missing exports errors now print the importing module (@timiyay)
+* [#3418](https://github.com/rollup/rollup/pull/3418): Structure lifecycle hooks, add links to build time hooks (@lukastaegert)
+* [#3420](https://github.com/rollup/rollup/pull/3420): Update generated code of getInteropBlock() to work with null prototype objects (@jdalton)
+* [#3421](https://github.com/rollup/rollup/pull/3421): Avoid invalid code when "else" branch is simplified (@lukastaegert)
+
 ## 1.32.0
 *2020-02-28*
 
