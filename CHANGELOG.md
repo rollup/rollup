@@ -22,20 +22,21 @@
   - onwrite: use `writeBundle` instead
   - transformBundle: use `renderChunk` instead
   - transformChunk: use `renderChunk` instead
-- You can no longer access `this.watcher` on the plugin context.
-- The `transform` hook can no longer return `dependencies`.
-- The `treeshake.pureExternalModules` option will now show a deprecation warning when used: use `treeshake.moduleSideEffects: 'no-external'` instead
-- Using `import.meta.ROLLUP_ASSET_URL_<..>` and `import.meta.ROLLUP_CHUNK_URL_<..>` in code will now show warnings: use `import.meta.ROLLUP_FILE_URL_<..>` instead
-- The `resolveAssetUrl` hook will now show a deprecation warning when used: use `resolveFileUrl` instead
-- The following plugin context functions will show warnings when used:
+* You can no longer access `this.watcher` on the plugin context.
+* The `transform` hook can no longer return `dependencies`.
+* The `treeshake.pureExternalModules` option will now show a deprecation warning when used: use `treeshake.moduleSideEffects: 'no-external'` instead
+* Using `import.meta.ROLLUP_ASSET_URL_<..>` and `import.meta.ROLLUP_CHUNK_URL_<..>` in code will now show warnings: use `import.meta.ROLLUP_FILE_URL_<..>` instead
+* The `resolveAssetUrl` hook will now show a deprecation warning when used: use `resolveFileUrl` instead
+* The following plugin context functions will show warnings when used:
   - `this.emitAsset`: use `this.emitFile`
   - `this.emitChunk`: use `this.emitFile`
   - `this.getAssetFileName`: use `this.getFileName`
   - `this.getChunkFileName`: use `this.getFileName`
   - `this.isExternal`: use `this.resolve`
   - `this.resolveId`: use `this.resolve`
-- Directly adding properties to the bundle object in the `generateBundle` is deprecated will show a warning (removing properties is allowed, though): Use `this.emitFile`
-- Accessing `chunk.isAsset` on the bundle is deprecated: Use `chunk.type === 'asset'` instead
+* Directly adding properties to the bundle object in the `generateBundle` is deprecated will show a warning (removing properties is allowed, though): Use `this.emitFile`
+* Accessing `chunk.isAsset` on the bundle is deprecated: Use `chunk.type === 'asset'` instead
+* The error code for a missing `name` property when targeting UMD has been changed to `MISSING_NAME_OPTION_FOR_IIFE_EXPORT` to emphasize this is needed for the IIFE part of UMD (#3393)
 
 ### Features
 * Rollup now bundles [Chokidar](https://github.com/paulmillr/chokidar) for a better watch experience (#3331)
@@ -57,6 +58,7 @@
 * [#3369](https://github.com/rollup/rollup/pull/3369): Avoid empty imports from side-effect-free chunks (@lukastaegert)
 * [#3381](https://github.com/rollup/rollup/pull/3381): Rename esm to es everywhere, add systemjs alias (@lukastaegert)
 * [#3391](https://github.com/rollup/rollup/pull/3391): Bundle acorn, allow importing Rollup as Node ES module, update dependencies (@lukastaegert)
+* [#3393](https://github.com/rollup/rollup/pull/3393): Better error code for name-less umd bundle (@rail44)
 * [#3395](https://github.com/rollup/rollup/pull/3395): Remove `@types` dependencies (@lukastaegert)
 
 ## 1.32.1
