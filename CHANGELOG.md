@@ -1,7 +1,7 @@
 # rollup changelog
 
 ## 2.0.0
-*unreleased*
+*2020-03-06*
 
 ### Breaking Changes
 * Rollup now requires at least Node 10 to run, or a sufficiently modern browser (#3346)
@@ -48,6 +48,7 @@
 ### Bug Fixes
 * Unknown output options now trigger a warning when using the JavaScript API (#3352)
 * Rollup will no longer introduce Node types into TypeScript projects that do not use them (#3395)
+* Generate correct sourcemaps when tree-shaking occurs in a multi-file bundle (#3423)
 
 ### Pull Requests
 * [#3331](https://github.com/rollup/rollup/pull/3331): Bundle Chokidar (@lukastaegert)
@@ -60,6 +61,7 @@
 * [#3391](https://github.com/rollup/rollup/pull/3391): Bundle acorn, allow importing Rollup as Node ES module, update dependencies (@lukastaegert)
 * [#3393](https://github.com/rollup/rollup/pull/3393): Better error code for name-less umd bundle (@rail44)
 * [#3395](https://github.com/rollup/rollup/pull/3395): Remove `@types` dependencies (@lukastaegert)
+* [#3423](https://github.com/rollup/rollup/pull/3423): Update magic-string and fix sourcemaps (@lukastaegert)
 
 ## 1.32.1
 *2020-03-06*
