@@ -96,7 +96,7 @@
     "is-reference": "^1.1.4",
     "lint-staged": "^10.0.8",
     "locate-character": "^2.0.5",
-    "magic-string": "^0.25.6",
+    "magic-string": "^0.25.7",
     "markdownlint-cli": "^0.22.0",
     "micromatch": "^4.0.2",
     "minimist": "^1.2.0",
