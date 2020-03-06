@@ -220,6 +220,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 -m, --sourcemap             Generate sourcemap (`-m inline` for inline map)
 -n, --name <name>           Name for UMD export
 -o, --file <output>         Single output file (if absent, prints to stdout)
+-p, --plugin <plugin>       Use the plugin specified (may be repeated)
 -v, --version               Show version number
 -w, --watch                 Watch files in bundle and rebuild on changes
 --amd.id <id>               ID for AMD module (default is anonymous)
@@ -267,6 +268,47 @@ The flags listed below are only available via the command line interface. All ot
 #### `-h`/`--help`
 
 Print the help document.
+
+#### `-p <plugin>`, `--plugin <plugin>`
+
+Use the specified plugin. There are several ways to specify plugins here:
+
+- Via a relative path:
+  
+  ```
+  rollup -i input.js -f es -p ./my-plugin.js
+  ```
+  
+  The file should export a plugin object or a function returning such an object.
+- Via the name of a plugin that is installed in a local or global `node_modules` folder:
+  
+  ```
+  rollup -i input.js -f es -p @rollup/plugin-node-resolve
+  ```
+  
+  If the plugin name does not start with `rollup-plugin-` or `@rollup/plugin-`, Rollup will automatically try adding these prefixes:
+  
+  ```
+  rollup -i input.js -f es -p node-resolve
+  ```
+
+- Via an inline implementation:
+
+  ```
+  rollup -i input.js -f es -p '{transform: (c, i) => `/* ${JSON.stringify(i)} */\n${c}`}'
+  ```
+  
+If you want to load more than one plugin, you can repeat the option or supply a comma-separated list of names:
+
+```
+rollup -i input.js -f es -p node-resolve -p commonjs,json
+```
+
+By default, plugins that export functions will be called with no argument to create the plugin. You can however pass a custom argument as well:
+
+```
+rollup -i input.js -f es -p 'terser={output: {beautify: true, indent_level: 2}}'
+```
 
 #### `-v`/`--version`
 

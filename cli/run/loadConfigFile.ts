@@ -1,4 +1,4 @@
-import path from 'path';
+import * as path from 'path';
 import tc from 'turbocolor';
 import * as rollup from '../../src/node-entry';
 import { RollupBuild, RollupOutput } from '../../src/rollup/types';
