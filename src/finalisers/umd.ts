@@ -44,8 +44,9 @@ export default function umd(
 
 	if (hasExports && !options.name) {
 		return error({
-			code: 'MISSING_NAME_FOR_EXPORT',
-			message: 'You must supply "output.name" for UMD bundles that have exports.'
+			code: 'MISSING_NAME_OPTION_FOR_IIFE_EXPORT',
+			message:
+				'You must supply "output.name" for UMD bundles that have exports so that the exports are accessible in environments without a module loader.'
 		});
 	}
 
