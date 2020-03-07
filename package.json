@@ -137,6 +137,7 @@
   },
   "exports": {
     ".": {
+      "default": "./dist/rollup.js",
       "require": "./dist/rollup.js",
       "import": "./dist/es/rollup.js"
     },
