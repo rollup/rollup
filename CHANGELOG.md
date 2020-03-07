@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.0.1
+*2020-03-07*
+
+### Bug Fixes
+* Reenable importing rollup in Node 13.0 - 13.7 (#3428)
+
+### Pull Requests
+* [#3428](https://github.com/rollup/rollup/pull/3428): Fix conditional exports in Node 13.0 - 13.7 (@lukastaegert)
+
 ## 2.0.0
 *2020-03-06*
 
