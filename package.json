@@ -71,7 +71,7 @@
     "@rollup/plugin-replace": "^2.3.1",
     "@types/micromatch": "^4.0.1",
     "@types/minimist": "^1.2.0",
-    "@types/node": "^13.7.7",
+    "@types/node": "^13.9.0",
     "acorn": "^7.1.1",
     "acorn-export-ns-from": "^0.1.0",
     "acorn-import-meta": "^1.0.0",
@@ -108,7 +108,7 @@
     "pretty-ms": "^6.0.1",
     "require-relative": "^0.8.7",
     "requirejs": "^2.3.6",
-    "rollup": "^1.32.1",
+    "rollup": "^2.0.0",
     "rollup-plugin-license": "^0.13.0",
     "rollup-plugin-string": "^3.0.0",
     "rollup-plugin-terser": "^5.2.0",
@@ -137,6 +137,7 @@
   },
   "exports": {
     ".": {
+      "default": "./dist/rollup.js",
       "require": "./dist/rollup.js",
       "import": "./dist/es/rollup.js"
     },
