@@ -182,6 +182,7 @@ export interface PluginContext extends MinimalPluginContext {
 	resolveId: (source: string, importer: string) => Promise<string | null>;
 	setAssetSource: (assetReferenceId: string, source: string | Uint8Array) => void;
 	warn: (warning: RollupWarning | string, pos?: number | { column: number; line: number }) => void;
+	getCombinedSourcemap: () => SourceMap;
 }
 
 export interface PluginContextMeta {
