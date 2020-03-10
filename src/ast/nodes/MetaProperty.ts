@@ -106,7 +106,7 @@ export default class MetaProperty extends NodeBase {
 				]);
 			}
 			if (!replacement) {
-				replacement = outputPluginDriver.hookFirstSync<'resolveFileUrl', string>('resolveFileUrl', [
+				replacement = outputPluginDriver.hookFirstSync<'resolveFileUrl'>('resolveFileUrl', [
 					{
 						assetReferenceId,
 						chunkId,
@@ -117,7 +117,7 @@ export default class MetaProperty extends NodeBase {
 						referenceId: referenceId || assetReferenceId || chunkReferenceId!,
 						relativePath
 					}
-				]);
+				]) as string;
 			}
 
 			code.overwrite(

@@ -23,7 +23,7 @@ export default function renderChunk({
 }): Promise<string> {
 	const renderChunkReducer = (
 		code: string,
-		result: { code: string; map?: SourceMapInput },
+		result: { code: string; map?: SourceMapInput } | string | null,
 		plugin: Plugin
 	): string => {
 		if (result == null) return code;

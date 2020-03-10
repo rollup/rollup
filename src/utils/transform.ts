@@ -78,7 +78,7 @@ export default function transform(
 	}
 
 	return graph.pluginDriver
-		.hookReduceArg0<any, string>(
+		.hookReduceArg0(
 			'transform',
 			[curSource, id],
 			transformReducer,

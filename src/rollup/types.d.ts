@@ -288,7 +288,8 @@ export type ResolveFileUrlHook = (
 	}
 ) => string | null | undefined;
 
-export type AddonHook = string | ((this: PluginContext) => string | Promise<string>);
+export type AddonHookFunction = (this: PluginContext) => string | Promise<string>;
+export type AddonHook = string | AddonHookFunction;
 
 /**
  * use this type for plugin annotation
@@ -351,6 +352,51 @@ export interface PluginHooks extends OutputPluginHooks {
 	transform: TransformHook;
 	watchChange: (id: string) => void;
 }
+
+export type AsyncPluginHooks =
+	| 'buildEnd'
+	| 'buildStart'
+	| 'generateBundle'
+	| 'load'
+	| 'renderChunk'
+	| 'renderError'
+	| 'renderStart'
+	| 'resolveDynamicImport'
+	| 'resolveId'
+	| 'transform'
+	| 'writeBundle';
+
+export type PluginValueHooks = 'banner' | 'footer' | 'intro' | 'outro';
+
+export type SyncPluginHooks = Exclude<keyof PluginHooks, AsyncPluginHooks>;
+
+export type FirstPluginHooks =
+	| 'load'
+	| 'resolveAssetUrl'
+	| 'resolveDynamicImport'
+	| 'resolveFileUrl'
+	| 'resolveId'
+	| 'resolveImportMeta';
+
+export type SequentialPluginHooks =
+	| 'augmentChunkHash'
+	| 'generateBundle'
+	| 'options'
+	| 'outputOptions'
+	| 'renderChunk'
+	| 'transform'
+	| 'watchChange';
+
+export type ParallelPluginHooks =
+	| 'banner'
+	| 'buildEnd'
+	| 'buildStart'
+	| 'footer'
+	| 'intro'
+	| 'outro'
+	| 'renderError'
+	| 'renderStart'
+	| 'writeBundle';
 
 interface OutputPluginValueHooks {
 	banner: AddonHook;
