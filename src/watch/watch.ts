@@ -1,4 +1,4 @@
-import path from 'path';
+import * as path from 'path';
 import createFilter from 'rollup-pluginutils/src/createFilter';
 import { rollupInternal } from '../rollup/rollup';
 import {
