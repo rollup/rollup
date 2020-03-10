@@ -352,15 +352,15 @@ export interface PluginHooks extends OutputPluginHooks {
 export type AsyncPluginHooks =
 	| 'buildEnd'
 	| 'buildStart'
+	| 'generateBundle'
+	| 'load'
+	| 'renderChunk'
 	| 'renderError'
 	| 'renderStart'
-	| 'writeBundle'
-	| 'load'
 	| 'resolveDynamicImport'
 	| 'resolveId'
 	| 'transform'
-	| 'generateBundle'
-	| 'renderChunk';
+	| 'writeBundle';
 
 export type PluginValueHooks = 'banner' | 'footer' | 'intro' | 'outro';
 
@@ -368,30 +368,31 @@ export type SyncPluginHooks = Exclude<keyof PluginHooks, AsyncPluginHooks>;
 
 export type FirstPluginHooks =
 	| 'load'
+	| 'resolveAssetUrl'
 	| 'resolveDynamicImport'
-	| 'resolveId'
 	| 'resolveFileUrl'
+	| 'resolveId'
 	| 'resolveImportMeta';
 
 export type SequentialPluginHooks =
-	| 'options'
-	| 'transform'
-	| 'watchChange'
 	| 'augmentChunkHash'
 	| 'generateBundle'
+	| 'options'
 	| 'outputOptions'
-	| 'renderChunk';
+	| 'renderChunk'
+	| 'transform'
+	| 'watchChange';
 
 export type ParallelPluginHooks =
+	| 'banner'
 	| 'buildEnd'
 	| 'buildStart'
-	| 'renderError'
-	| 'renderStart'
-	| 'writeBundle'
-	| 'banner'
 	| 'footer'
 	| 'intro'
-	| 'outro';
+	| 'outro'
+	| 'renderError'
+	| 'renderStart'
+	| 'writeBundle';
 
 interface OutputPluginValueHooks {
 	banner: AddonHook;
