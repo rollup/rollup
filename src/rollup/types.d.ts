@@ -228,10 +228,14 @@ type LoadResult = SourceDescription | string | null | undefined;
 
 export type LoadHook = (this: PluginContext, id: string) => Promise<LoadResult> | LoadResult;
 
+export interface TransformPluginContext extends PluginContext {
+	getCombinedSourcemap: () => SourceMap;
+}
+
 export type TransformResult = string | null | undefined | SourceDescription;
 
 export type TransformHook = (
-	this: PluginContext,
+	this: TransformPluginContext,
 	code: string,
 	id: string
 ) => Promise<TransformResult> | TransformResult;

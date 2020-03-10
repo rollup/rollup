@@ -478,7 +478,7 @@ Structurally equivalent to `this.warn`, except that it will also abort the bundl
 
 #### `this.getCombinedSourcemap() => SourceMap`
 
-Get the combined source maps of all previous plugins. This context function can only be used in [`transform`](guide/en/#transform) plugin hook.
+Get the combined source maps of all previous plugins. This context function can only be used in the [`transform`](guide/en/#transform) plugin hook.
 
 #### `this.getFileName(referenceId: string) => string`
 
