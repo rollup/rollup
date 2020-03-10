@@ -1,5 +1,5 @@
 module.exports = {
-	description: 'confirm exports are preserved when exporting a module',
+	description: 'confirm exports are deconflicted when exporting nested index aliases',
 	options: {
 		input: 'main.js',
 		preserveModules: true
