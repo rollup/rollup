@@ -182,7 +182,6 @@ export interface PluginContext extends MinimalPluginContext {
 	resolveId: (source: string, importer: string) => Promise<string | null>;
 	setAssetSource: (assetReferenceId: string, source: string | Uint8Array) => void;
 	warn: (warning: RollupWarning | string, pos?: number | { column: number; line: number }) => void;
-	getCombinedSourcemap: () => SourceMap;
 }
 
 export interface PluginContextMeta {
@@ -229,10 +228,14 @@ type LoadResult = SourceDescription | string | null | undefined;
 
 export type LoadHook = (this: PluginContext, id: string) => Promise<LoadResult> | LoadResult;
 
+export interface TransformPluginContext extends PluginContext {
+	getCombinedSourcemap: () => SourceMap;
+}
+
 export type TransformResult = string | null | undefined | SourceDescription;
 
 export type TransformHook = (
-	this: PluginContext,
+	this: TransformPluginContext,
 	code: string,
 	id: string
 ) => Promise<TransformResult> | TransformResult;
