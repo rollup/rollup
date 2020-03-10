@@ -5,7 +5,8 @@ import { commandAliases } from '../src/utils/mergeOptions';
 import run from './run/index';
 
 const command = argParser(process.argv.slice(2), {
-	alias: commandAliases
+	alias: commandAliases,
+	configuration: { 'camel-case-expansion': false }
 });
 
 if (command.help || (process.argv.length <= 2 && process.stdin.isTTY)) {
