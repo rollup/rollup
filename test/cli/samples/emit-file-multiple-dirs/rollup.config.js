@@ -7,7 +7,7 @@ export default {
     },
     {
       dir: "_actual/dist2",
-      format: "esm"
+      format: "es"
     }
   ],
   plugins: [{

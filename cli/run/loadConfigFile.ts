@@ -1,8 +1,8 @@
-import { extname, isAbsolute } from 'path';
-import tc from 'turbocolor';
+import color from 'colorette';
+import * as path from 'path';
 import * as rollup from '../../src/node-entry';
 import { RollupBuild, RollupOutput } from '../../src/rollup/types';
-import { GenericConfigObject } from '../../src/utils/mergeOptions';
+import { GenericConfigObject } from '../../src/utils/parseOptions';
 import relativeId from '../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
 import batchWarnings from './batchWarnings';
@@ -21,14 +21,14 @@ export default function loadConfigFile(
 	return rollup
 		.rollup({
 			external: (id: string) =>
-				(id[0] !== '.' && !isAbsolute(id)) || id.slice(-5, id.length) === '.json',
+				(id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5, id.length) === '.json',
 			input: configFile,
 			onwarn: warnings.add,
 			treeshake: false
 		})
 		.then((bundle: RollupBuild) => {
 			if (!silent && warnings.count > 0) {
-				stderr(tc.bold(`loaded ${relativeId(configFile)} with warnings`));
+				stderr(color.bold(`loaded ${relativeId(configFile)} with warnings`));
 				warnings.flush();
 			}
 
@@ -39,7 +39,7 @@ export default function loadConfigFile(
 		})
 		.then(({ output: [{ code }] }: RollupOutput) => {
 			// temporarily override require
-			const extension = extname(configFile);
+			const extension = path.extname(configFile);
 			const defaultLoader = require.extensions[extension];
 			require.extensions[extension] = (module: NodeModule, filename: string) => {
 				if (filename === configFile) {

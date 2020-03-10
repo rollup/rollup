@@ -16,51 +16,45 @@ export function sortByExecutionOrder(units: OrderedExecutionUnit[]) {
 export function analyseModuleExecution(entryModules: Module[]) {
 	let nextExecIndex = 0;
 	const cyclePaths: string[][] = [];
-	const analysedModules: { [id: string]: boolean } = {};
+	const analysedModules = new Set<Module | ExternalModule>();
+	const dynamicImports = new Set<Module>();
+	const parents = new Map<Module | ExternalModule, Module | null>();
 	const orderedModules: Module[] = [];
-	const dynamicImports: Module[] = [];
-	const parents: { [id: string]: string | null } = {};
 
 	const analyseModule = (module: Module | ExternalModule) => {
-		if (analysedModules[module.id]) return;
-
-		if (module instanceof ExternalModule) {
-			module.execIndex = nextExecIndex++;
-			analysedModules[module.id] = true;
-			return;
-		}
-
-		for (const dependency of module.dependencies) {
-			if (dependency.id in parents) {
-				if (!analysedModules[dependency.id]) {
-					cyclePaths.push(getCyclePath(dependency.id, module.id, parents));
+		if (module instanceof Module) {
+			for (const dependency of module.dependencies) {
+				if (parents.has(dependency)) {
+					if (!analysedModules.has(dependency)) {
+						cyclePaths.push(getCyclePath(dependency, module, parents));
+					}
+					continue;
 				}
-				continue;
+				parents.set(dependency, module);
+				analyseModule(dependency);
 			}
-			parents[dependency.id] = module.id;
-			analyseModule(dependency);
-		}
 
-		for (const { resolution } of module.dynamicImports) {
-			if (resolution instanceof Module && dynamicImports.indexOf(resolution) === -1) {
-				dynamicImports.push(resolution);
+			for (const { resolution } of module.dynamicImports) {
+				if (resolution instanceof Module && !dynamicImports.has(resolution)) {
+					dynamicImports.add(resolution);
+				}
 			}
+			orderedModules.push(module);
 		}
 
 		module.execIndex = nextExecIndex++;
-		analysedModules[module.id] = true;
-		orderedModules.push(module);
+		analysedModules.add(module);
 	};
 
 	for (const curEntry of entryModules) {
-		if (!parents[curEntry.id]) {
-			parents[curEntry.id] = null;
+		if (!parents.has(curEntry)) {
+			parents.set(curEntry, null);
 			analyseModule(curEntry);
 		}
 	}
 	for (const curEntry of dynamicImports) {
-		if (!parents[curEntry.id]) {
-			parents[curEntry.id] = null;
+		if (!parents.has(curEntry)) {
+			parents.set(curEntry, null);
 			analyseModule(curEntry);
 		}
 	}
@@ -68,13 +62,16 @@ export function analyseModuleExecution(entryModules: Module[]) {
 	return { orderedModules, cyclePaths };
 }
 
-function getCyclePath(id: string, parentId: string, parents: { [id: string]: string | null }) {
-	const path = [relativeId(id)];
-	let curId = parentId;
-	while (curId !== id) {
-		path.push(relativeId(curId));
-		curId = parents[curId]!;
-		if (!curId) break;
+function getCyclePath(
+	module: Module | ExternalModule,
+	parent: Module,
+	parents: Map<Module | ExternalModule, Module | null>
+) {
+	const path = [relativeId(module.id)];
+	let nextModule = parent;
+	while (nextModule !== module) {
+		path.push(relativeId(nextModule.id));
+		nextModule = parents.get(nextModule)!;
 	}
 	path.push(path[0]);
 	path.reverse();

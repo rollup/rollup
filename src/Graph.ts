@@ -1,10 +1,9 @@
 import * as acorn from 'acorn';
 import injectExportNsFrom from 'acorn-export-ns-from';
 import injectImportMeta from 'acorn-import-meta';
-import * as ESTree from 'estree';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { PathTracker } from './ast/utils/PathTracker';
-import Chunk, { isChunkRendered } from './Chunk';
+import Chunk from './Chunk';
 import ExternalModule from './ExternalModule';
 import Module, { defaultAcornOptions } from './Module';
 import { ModuleLoader, UnresolvedModule } from './ModuleLoader';
@@ -21,25 +20,13 @@ import {
 	WarningHandler
 } from './rollup/types';
 import { BuildPhase } from './utils/buildPhase';
-import { assignChunkColouringHashes } from './utils/chunkColouring';
-import { Uint8ArrayToHexString } from './utils/entryHashing';
+import { getChunkAssignments } from './utils/chunkAssignment';
 import { errDeprecation, error } from './utils/error';
 import { analyseModuleExecution, sortByExecutionOrder } from './utils/executionOrder';
 import { resolve } from './utils/path';
 import { PluginDriver } from './utils/PluginDriver';
 import relativeId from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
-
-function makeOnwarn() {
-	const warned = Object.create(null);
-
-	return (warning: any) => {
-		const str = warning.toString();
-		if (str in warned) return;
-		console.error(str);
-		warned[str] = true;
-	};
-}
 
 function normalizeEntryModules(
 	entryModules: string | string[] | Record<string, string>
@@ -61,7 +48,7 @@ export default class Graph {
 	acornOptions: acorn.Options;
 	acornParser: typeof acorn.Parser;
 	cachedModules: Map<string, ModuleJSON>;
-	contextParse: (code: string, acornOptions?: acorn.Options) => ESTree.Program;
+	contextParse: (code: string, acornOptions?: acorn.Options) => acorn.Node;
 	deoptimizationTracker: PathTracker;
 	getModuleContext: (id: string) => string;
 	moduleById = new Map<string, Module | ExternalModule>();
@@ -83,8 +70,8 @@ export default class Graph {
 	private pluginCache?: Record<string, SerializablePluginCache>;
 	private strictDeprecations: boolean;
 
-	constructor(options: InputOptions, watcher?: RollupWatcher) {
-		this.onwarn = (options.onwarn as WarningHandler) || makeOnwarn();
+	constructor(options: InputOptions, watcher: RollupWatcher | null) {
+		this.onwarn = options.onwarn as WarningHandler;
 		this.deoptimizationTracker = new PathTracker();
 		this.cachedModules = new Map();
 		if (options.cache) {
@@ -126,7 +113,7 @@ export default class Graph {
 			if (typeof this.treeshakingOptions.pureExternalModules !== 'undefined') {
 				this.warnDeprecation(
 					`The "treeshake.pureExternalModules" option is deprecated. The "treeshake.moduleSideEffects" option should be used instead. "treeshake.pureExternalModules: true" is equivalent to "treeshake.moduleSideEffects: 'no-external'"`,
-					false
+					true
 				);
 			}
 		}
@@ -136,14 +123,13 @@ export default class Graph {
 				...defaultAcornOptions,
 				...options,
 				...this.acornOptions
-			}) as any;
+			});
 
 		this.pluginDriver = new PluginDriver(
 			this,
 			options.plugins!,
 			this.pluginCache,
-			options.preserveSymlinks === true,
-			watcher
+			options.preserveSymlinks === true
 		);
 
 		if (watcher) {
@@ -240,13 +226,6 @@ export default class Graph {
 			// Phase 3 – marking. We include all statements that should be included
 			timeStart('mark included statements', 2);
 
-			if (inlineDynamicImports) {
-				if (entryModules.length > 1) {
-					throw new Error(
-						'Internal Error: can only inline dynamic imports for single-file builds.'
-					);
-				}
-			}
 			for (const module of entryModules) {
 				module.includeAllExports();
 			}
@@ -261,47 +240,35 @@ export default class Graph {
 			// entry point graph colouring, before generating the import and export facades
 			timeStart('generate chunks', 2);
 
-			if (!this.preserveModules && !inlineDynamicImports) {
-				assignChunkColouringHashes(entryModules, manualChunkModulesByAlias);
-			}
-
 			// TODO: there is one special edge case unhandled here and that is that any module
 			//       exposed as an unresolvable export * (to a graph external export *,
 			//       either as a namespace import reexported or top-level export *)
 			//       should be made to be its own entry point module before chunking
-			let chunks: Chunk[] = [];
+			const chunks: Chunk[] = [];
 			if (this.preserveModules) {
 				for (const module of this.modules) {
-					const chunk = new Chunk(this, [module]);
-					if (module.isEntryPoint || !chunk.isEmpty) {
+					if (
+						module.isIncluded() ||
+						module.isEntryPoint ||
+						module.dynamicallyImportedBy.length > 0
+					) {
+						const chunk = new Chunk(this, [module]);
 						chunk.entryModules = [module];
+						chunks.push(chunk);
 					}
-					chunks.push(chunk);
 				}
 			} else {
-				const chunkModules: { [entryHashSum: string]: Module[] } = {};
-				for (const module of this.modules) {
-					const entryPointsHashStr = Uint8ArrayToHexString(module.entryPointsHash);
-					const curChunk = chunkModules[entryPointsHashStr];
-					if (curChunk) {
-						curChunk.push(module);
-					} else {
-						chunkModules[entryPointsHashStr] = [module];
-					}
-				}
-
-				for (const entryHashSum in chunkModules) {
-					const chunkModulesOrdered = chunkModules[entryHashSum];
-					sortByExecutionOrder(chunkModulesOrdered);
-					const chunk = new Chunk(this, chunkModulesOrdered);
-					chunks.push(chunk);
+				for (const chunkModules of inlineDynamicImports
+					? [this.modules]
+					: getChunkAssignments(entryModules, manualChunkModulesByAlias)) {
+					sortByExecutionOrder(chunkModules);
+					chunks.push(new Chunk(this, chunkModules));
 				}
 			}
 
 			for (const chunk of chunks) {
 				chunk.link();
 			}
-			chunks = chunks.filter(isChunkRendered);
 			const facades: Chunk[] = [];
 			for (const chunk of chunks) {
 				facades.push(...chunk.generateFacades());
@@ -310,7 +277,7 @@ export default class Graph {
 			timeEnd('generate chunks', 2);
 
 			this.phase = BuildPhase.GENERATE;
-			return chunks.concat(facades);
+			return [...chunks, ...facades];
 		});
 	}
 

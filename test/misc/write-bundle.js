@@ -20,30 +20,8 @@ describe('bundle.write()', () => {
 				}, /You must supply an options object/);
 
 				assert.throws(() => {
-					bundle.write({format: 'esm'});
+					bundle.write({format: 'es'});
 				}, /You must specify "output\.file"/);
-			});
-	});
-
-	it('throws on es6 format', () => {
-		return rollup
-			.rollup({
-				input: 'x',
-				plugins: [
-					{
-						resolveId: () => {
-							return 'test';
-						},
-						load: () => {
-							return '// empty';
-						}
-					}
-				]
-			})
-			.then(bundle => {
-				assert.throws(() => {
-					return bundle.generate({ format: 'es6' });
-				}, /The "es6" output format is deprecated – use "esm" instead/);
 			});
 	});
 

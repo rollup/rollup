@@ -9,8 +9,8 @@ export default [
 	{
 		input: 'a.mjs',
 		output: {
-			file: '_actual/esm.js',
-			format: 'esm'
+			file: '_actual/es.js',
+			format: 'es'
 		}
 	}
 ];

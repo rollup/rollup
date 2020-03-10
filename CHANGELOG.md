@@ -1,11 +1,124 @@
 # rollup changelog
 
+## 2.0.2
+*2020-03-07*
+
+### Bug Fixes
+* Make sure the ESM import still works (#3430)
+
+### Pull Requests
+* [#3430](https://github.com/rollup/rollup/pull/3430): Fix conditional exports again (@lukastaegert)
+
+## 2.0.1
+*2020-03-07*
+
+### Bug Fixes
+* Reenable importing rollup in Node 13.0 - 13.7 (#3428)
+
+### Pull Requests
+* [#3428](https://github.com/rollup/rollup/pull/3428): Fix conditional exports in Node 13.0 - 13.7 (@lukastaegert)
+
+## 2.0.0
+*2020-03-06*
+
+### Breaking Changes
+* Rollup now requires at least Node 10 to run, or a sufficiently modern browser (#3346)
+* The file structure of Rollup's ESM builds has changed:
+  - The main ESM entry point is now at `rollup/dist/es/rollup.js` instead of `rollup/dist/rollup.es.js`
+  - The ESM browser build is at `rollup/dist/es/rollup.browser.js` instead of `rollup/dist/rollup.browser.es.js`
+  
+  In general, the ESM builds now follow the same naming scheme as the CJS builds but are located in the `rollup/dist/es` subfolder instead of `rollup/dist` (#3391)
+* The "watch.chokidar" option no longer accepts a `boolean` value but only an object of parameters that is passed to the bundled Chokidar instance. Chokidar installations by the user will be ignored in favour of the bundled instance (#3331)
+* Modules that are completely tree-shaken will no longer be listed as part of any chunks in `generateBundle`
+* The `experimentalOptimizeChunks` and `chunkGroupingSize` options have been removed
+* [acorn](https://github.com/acornjs/acorn) plugins can only be used if they accept a passed-in acorn instance instead of importing it themselves. See https://github.com/acornjs/acorn/pull/870#issuecomment-527339830 for what needs to be done to make plugins compatible that do not support this yet (#3391)
+* Emitted chunks now have the TypeScript type `UInt8Array` instead of `Buffer`. A `Buffer` can still be used, though (#3395)
+* The TypeScript types no longer use ESTree types for AST nodes but a very generic type that does not contain information specific to certain node types (#3395)
+* The signature of the `writeBundle` plugin hook has been changed to match `generateBundle`: The bundle object is now passed as second parameter instead of first and the first parameter is the output options (#3361)
+* The following plugin hooks have been removed:
+  - ongenerate: use `generateBundle` instead
+  - onwrite: use `writeBundle` instead
+  - transformBundle: use `renderChunk` instead
+  - transformChunk: use `renderChunk` instead
+* You can no longer access `this.watcher` on the plugin context.
+* The `transform` hook can no longer return `dependencies`.
+* The `treeshake.pureExternalModules` option will now show a deprecation warning when used: use `treeshake.moduleSideEffects: 'no-external'` instead
+* Using `import.meta.ROLLUP_ASSET_URL_<..>` and `import.meta.ROLLUP_CHUNK_URL_<..>` in code will now show warnings: use `import.meta.ROLLUP_FILE_URL_<..>` instead
+* The `resolveAssetUrl` hook will now show a deprecation warning when used: use `resolveFileUrl` instead
+* The following plugin context functions will show warnings when used:
+  - `this.emitAsset`: use `this.emitFile`
+  - `this.emitChunk`: use `this.emitFile`
+  - `this.getAssetFileName`: use `this.getFileName`
+  - `this.getChunkFileName`: use `this.getFileName`
+  - `this.isExternal`: use `this.resolve`
+  - `this.resolveId`: use `this.resolve`
+* Directly adding properties to the bundle object in the `generateBundle` is deprecated will show a warning (removing properties is allowed, though): Use `this.emitFile`
+* Accessing `chunk.isAsset` on the bundle is deprecated: Use `chunk.type === 'asset'` instead
+* The error code for a missing `name` property when targeting UMD has been changed to `MISSING_NAME_OPTION_FOR_IIFE_EXPORT` to emphasize this is needed for the IIFE part of UMD (#3393)
+
+### Features
+* Rollup now bundles [Chokidar](https://github.com/paulmillr/chokidar) for a better watch experience (#3331)
+* Rollup now bundles [acorn](https://github.com/acornjs/acorn) again, removing its only external dependency (#3391)
+* Do not consider empty imports from side-effect-free modules for chunking and hoist side-effect imports if necessary (#3369)
+* Rollup can now be imported as an ES module in Node via `import {rollup} from 'rollup'`. Note that this relies on Node's experimental [conditional package exports](https://nodejs.org/dist/latest-v13.x/docs/api/esm.html#esm_conditional_exports) feature and is therefore itself experimental (#3391)
+* `systemjs` can be used as format alias for `system` (#3381)
+
+### Bug Fixes
+* Unknown output options now trigger a warning when using the JavaScript API (#3352)
+* Rollup will no longer introduce Node types into TypeScript projects that do not use them (#3395)
+* Generate correct sourcemaps when tree-shaking occurs in a multi-file bundle (#3423)
+
+### Pull Requests
+* [#3331](https://github.com/rollup/rollup/pull/3331): Bundle Chokidar (@lukastaegert)
+* [#3343](https://github.com/rollup/rollup/pull/3343): Remove experimentalOptimizeChunks (@lukastaegert)
+* [#3346](https://github.com/rollup/rollup/pull/3346): Update minimum required Node version to 10 (@lukastaegert)
+* [#3352](https://github.com/rollup/rollup/pull/3352): Remove active deprecations (@lukastaegert)
+* [#3361](https://github.com/rollup/rollup/pull/3361): Change writeBundle signature to match generateBundle (@lukastaegert)
+* [#3369](https://github.com/rollup/rollup/pull/3369): Avoid empty imports from side-effect-free chunks (@lukastaegert)
+* [#3381](https://github.com/rollup/rollup/pull/3381): Rename esm to es everywhere, add systemjs alias (@lukastaegert)
+* [#3391](https://github.com/rollup/rollup/pull/3391): Bundle acorn, allow importing Rollup as Node ES module, update dependencies (@lukastaegert)
+* [#3393](https://github.com/rollup/rollup/pull/3393): Better error code for name-less umd bundle (@rail44)
+* [#3395](https://github.com/rollup/rollup/pull/3395): Remove `@types` dependencies (@lukastaegert)
+* [#3423](https://github.com/rollup/rollup/pull/3423): Update magic-string and fix sourcemaps (@lukastaegert)
+
+## 1.32.1
+*2020-03-06*
+
+### Bug Fixes
+* Handle default export detection for AMD and IIFE externals that do not have a prototype (#3420)
+* Handle missing whitespace when the else branch of an if-statement is simplified (#3421)
+* Mention the importing module when reporting errors for missing named exports (#3401)
+* Add code to warning for missing output.name of IIFE bundles (#3372)
+
+### Pull Requests
+* [#3372](https://github.com/rollup/rollup/pull/3372): Add warning code for missing output.name of IIFE bundle that has export (@rail44)
+* [#3401](https://github.com/rollup/rollup/pull/3401): Missing exports errors now print the importing module (@timiyay)
+* [#3418](https://github.com/rollup/rollup/pull/3418): Structure lifecycle hooks, add links to build time hooks (@lukastaegert)
+* [#3420](https://github.com/rollup/rollup/pull/3420): Update generated code of getInteropBlock() to work with null prototype objects (@jdalton)
+* [#3421](https://github.com/rollup/rollup/pull/3421): Avoid invalid code when "else" branch is simplified (@lukastaegert)
+
+## 1.32.0
+*2020-02-28*
+
+### Features
+* Allow adding plugins on the command line via `--plugin <plugin>` (#3379)
+
+### Pull Requests
+* [#3379](https://github.com/rollup/rollup/pull/3379): introduce CLI --plugin support (@kzc)
+* [#3390](https://github.com/rollup/rollup/pull/3390): fix typo: this.addWatchfile (@mistlog)
+* [#3392](https://github.com/rollup/rollup/pull/3392): Bump codecov from 3.6.1 to 3.6.5
+* [#3404](https://github.com/rollup/rollup/pull/3404): Update resolveFileUrl docs (@jakearchibald)
+
 ## 1.31.1
-*unreleased*
+*2020-02-14*
+
+### Bug Fixes
+* Make sure errored files are always re-evaluated in watch mode to avoid an issue in the typescript plugin (#3388)
 
 ### Pull Requests
 * [#3366](https://github.com/rollup/rollup/pull/3366): Correct spelling minifaction to minification (@VictorHom)
 * [#3371](https://github.com/rollup/rollup/pull/3371): Adjust bug template to mention REPL.it (@lukastaegert)
+* [#3388](https://github.com/rollup/rollup/pull/3388): Run transform hooks again in watch mode on files that errored (@lukastaegert)
 
 ## 1.31.0
 *2020-01-31*

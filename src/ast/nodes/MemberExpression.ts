@@ -11,8 +11,8 @@ import {
 	ObjectPathKey,
 	PathTracker,
 	SHARED_RECURSION_TRACKER,
-	UNKNOWN_PATH,
-	UnknownKey
+	UnknownKey,
+	UNKNOWN_PATH
 } from '../utils/PathTracker';
 import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import ExternalVariable from '../variables/ExternalVariable';

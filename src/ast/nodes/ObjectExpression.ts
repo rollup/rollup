@@ -16,8 +16,8 @@ import {
 	hasMemberEffectWhenCalled,
 	LiteralValueOrUnknown,
 	objectMembers,
-	UNKNOWN_EXPRESSION,
-	UnknownValue
+	UnknownValue,
+	UNKNOWN_EXPRESSION
 } from '../values';
 import Identifier from './Identifier';
 import Literal from './Literal';

@@ -4,7 +4,7 @@ title: Plugin Development
 
 ### Plugins Overview
 
-A Rollup plugin is an object with one or more of the [properties](guide/en/#properties) and [hooks](guide/en/#hooks) described below, and which follows our [conventions](guide/en/#conventions). A plugin should be distributed as a package which exports a function that can be called with plugin specific options and returns such an object.
+A Rollup plugin is an object with one or more of the [properties](guide/en/#properties), [build hooks](guide/en/#build-hooks), and [output generation hooks](guide/en/#output-generation-hooks) described below, and which follows our [conventions](guide/en/#conventions). A plugin should be distributed as a package which exports a function that can be called with plugin specific options and returns such an object.
 
 Plugins allow you to customise Rollup's behaviour by, for example, transpiling code before bundling, or finding third-party modules in your `node_modules` folder. For an example on how to use them, see [Using plugins](guide/en/#using-plugins).
 
@@ -63,115 +63,40 @@ Type: `string`
 
 The name of the plugin, for use in error messages and warnings.
 
-### Hooks
+### Build Hooks
 
-In addition to properties defining the identity of your plugin, you may also specify properties that correspond to available build hooks. Hooks can affect how a build is run, provide information about a build, or modify a build once complete. There are different kinds of hooks:
+To interact with the build process, your plugin object includes 'hooks'. Hooks are functions which are called at various stages of the build. Hooks can affect how a build is run, provide information about a build, or modify a build once complete. There are different kinds of hooks:
 
-* `async`: The hook can also return a promise resolving to the same type of value; otherwise, the hook is marked as `sync`
-* `first`: If several plugins implement this hook, the hooks are run sequentially until a hook returns a value other than `null` or `undefined`
-* `sequential`: If this hook returns a promise, then other hooks of this kind will only be executed once this hook has resolved
-* `parallel`: If this hook returns a promise, then other hooks of this kind will not wait for this hook to be resolved
+* `async`: The hook may also return a promise resolving to the same type of value; otherwise, the hook is marked as `sync`.
+* `first`: If several plugins implement this hook, the hooks are run sequentially until a hook returns a value other than `null` or `undefined`.
+* `sequential`: If several plugins implement this hook, all of them will be run in the specified plugin order. If a hook is async, subsequent hooks of this kind will wait until the current hook is resolved.
+* `parallel`: If several plugins implement this hook, all of them will be run in the specified plugin order. If a hook is async, subsequent hooks of this kind will be run in parallel and not wait for the current hook.
 
-Furthermore, hooks can be run either during the `build` phase of the Rollup build, which is triggered by `rollup.rollup()`, or during the `generate` phase, which is triggered by `bundle.generate()`  or `bundle.write()`. Plugins that only use `generate` phase hooks can also be passed in via the output options to `bundle.generate()` or `bundle.write()` and therefore run only for certain outputs.
+Build hooks are run during the build phase, which is triggered by `rollup.rollup(inputOptions)`. They are mainly concerned with locating, providing and transforming input files before they are processed by Rollup. The first hook of the build phase is [options](guide/en/#options), the last one is always [buildEnd](guide/en/#buildend). Additionally in watch mode, the [watchChange](guide/en/#watchchange) hook can be triggered at any time to notify a new run will be triggered once the current run has generated its outputs.
 
-#### `augmentChunkHash`
-Type: `(preRenderedChunk: PreRenderedChunk) => string`<br>
-Kind: `sync, sequential`<br>
-Phase: `generate`
-
-Can be used to augment the hash of individual chunks. Called for each Rollup output chunk. Returning a falsy value will not modify the hash.
-
-The following plugin will invalidate the hash of chunk `foo` with the timestamp of the last build:
-
-```javascript
-// rollup.config.js
-augmentChunkHash(chunkInfo) {
-  if(chunkInfo.name === 'foo') {
-    return Date.now();
-  }
-}
-```
-
-#### `banner`
-Type: `string | (() => string)`<br>
-Kind: `async, parallel`<br>
-Phase: `generate`
-
-Cf. [`output.banner/output.footer`](guide/en/#outputbanneroutputfooter).
+See [Output Generation Hooks](guide/en/#output-generation-hooks) for hooks that run during the output generation phase to modify the generated output.
 
 #### `buildEnd`
 Type: `(error?: Error) => void`<br>
 Kind: `async, parallel`<br>
-Phase: `build`
+Previous Hook: [`transform`](guide/en/#transform), [`resolveId`](guide/en/#resolveid) or [`resolveDynamicImport`](guide/en/#resolvedynamicimport).<br>
+Next Hook: [`outputOptions`](guide/en/#outputoptions) in the output generation phase as this is the last hook of the build phase.
 
 Called when rollup has finished bundling, but before `generate` or `write` is called; you can also return a Promise. If an error occurred during the build, it is passed on to this hook.
 
 #### `buildStart`
 Type: `(options: InputOptions) => void`<br>
 Kind: `async, parallel`<br>
-Phase: `build`
+Previous Hook: [`options`](guide/en/#options)<br>
+Next Hook: [`resolveId`](guide/en/#resolveid) to resolve each entry point in parallel.
 
 Called on each `rollup.rollup` build. This is the recommended hook to use when you need access to the options passed to `rollup.rollup()` as it will take the transformations by all [`options`](guide/en/#options) hooks into account.
-
-#### `footer`
-Type: `string | (() => string)`<br>
-Kind: `async, parallel`<br>
-Phase: `generate`
-
-Cf. [`output.banner/output.footer`](guide/en/#outputbanneroutputfooter).
-
-#### `generateBundle`
-Type: `(options: OutputOptions, bundle: { [fileName: string]: AssetInfo | ChunkInfo }, isWrite: boolean) => void`<br>
-Kind: `async, sequential`<br>
-Phase: `generate`
-
-Called at the end of `bundle.generate()` or immediately before the files are written in `bundle.write()`. To modify the files after they have been written, use the [`writeBundle`](guide/en/#writebundle) hook. `bundle` provides the full list of files being written or generated along with their details:
-
-```
-// AssetInfo
-{
-  fileName: string,
-  source: string | Buffer,
-  type: 'asset',
-}
-
-// ChunkInfo
-{
-  code: string,
-  dynamicImports: string[],
-  exports: string[],
-  facadeModuleId: string | null,
-  fileName: string,
-  imports: string[],
-  isDynamicEntry: boolean,
-  isEntry: boolean,
-  map: SourceMap | null,
-  modules: {
-    [id: string]: {
-      renderedExports: string[],
-      removedExports: string[],
-      renderedLength: number,
-      originalLength: number
-    },
-  },
-  name: string,
-  type: 'chunk',
-}
-```
-
-You can prevent files from being emitted by deleting them from the bundle object in this hook. To emit additional files, use the [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string)  plugin context function.
-
-#### `intro`
-Type: `string | (() => string)`<br>
-Kind: `async, parallel`<br>
-Phase: `generate`
-
-Cf. [`output.intro/output.outro`](guide/en/#outputintrooutputoutro).
 
 #### `load`
 Type: `(id: string) => string | null | { code: string, map?: string | SourceMap, ast? : ESTree.Program, moduleSideEffects?: boolean | null, syntheticNamedExports?: boolean | null }`<br>
 Kind: `async, first`<br>
-Phase: `build`
+Previous Hook: [`resolveId`](guide/en/#resolveid) or [`resolveDynamicImport`](guide/en/#resolvedynamicimport) where the loaded id was resolved.<br>
+Next Hook: [`transform`](guide/en/#transform) to transform the loaded file.
 
 Defines a custom loader. Returning `null` defers to other `load` functions (and eventually the default behavior of loading from the file system). To prevent additional parsing overhead in case e.g. this hook already used `this.parse` to generate an AST for some reason, this hook can optionally return a `{ code, ast, map }` object. The `ast` must be a standard ESTree AST with `start` and `end` properties for each node. If the transformation does not move code, you can preserve existing sourcemaps by setting `map` to `null`. Otherwise you might need to generate the source map. See [the section on source code transformations](#source-code-transformations).
 
@@ -200,51 +125,18 @@ You can use [`this.getModuleInfo`](guide/en/#thisgetmoduleinfomoduleid-string--m
 #### `options`
 Type: `(options: InputOptions) => InputOptions | null`<br>
 Kind: `sync, sequential`<br>
-Phase: `build`
+Previous Hook: This is the first hook of the build phase.<br>
+Next Hook: [`buildStart`](guide/en/#buildstart)
 
 Replaces or manipulates the options object passed to `rollup.rollup`. Returning `null` does not replace anything. If you just need to read the options, it is recommended to use the [`buildStart`](guide/en/#buildstart) hook as that hook has access to the options after the transformations from all `options` hooks have been taken into account.
 
 This is the only hook that does not have access to most [plugin context](guide/en/#plugin-context) utility functions as it is run before rollup is fully configured.
 
-#### `outputOptions`
-Type: `(outputOptions: OutputOptions) => OutputOptions | null`<br>
-Kind: `sync, sequential`<br>
-Phase: `generate`
-
-Replaces or manipulates the output options object passed to `bundle.generate()` or `bundle.write()`. Returning `null` does not replace anything. If you just need to read the output options, it is recommended to use the [`renderStart`](guide/en/#renderstart) hook as this hook has access to the output options after the transformations from all `outputOptions` hooks have been taken into account.
-
-#### `outro`
-Type: `string | (() => string)`<br>
-Kind: `async, parallel`<br>
-Phase: `generate`
-
-Cf. [`output.intro/output.outro`](guide/en/#outputintrooutputoutro).
-
-#### `renderChunk`
-Type: `(code: string, chunk: ChunkInfo, options: OutputOptions) => string | { code: string, map: SourceMap } | null`<br>
-Kind: `async, sequential`<br>
-Phase: `generate`
-
-Can be used to transform individual chunks. Called for each Rollup output chunk file. Returning `null` will apply no transformations.
-
-#### `renderError`
-Type: `(error: Error) => void`<br>
-Kind: `async, parallel`<br>
-Phase: `generate`
-
-Called when rollup encounters an error during `bundle.generate()` or `bundle.write()`. The error is passed to this hook. To get notified when generation completes successfully, use the `generateBundle` hook.
-
-#### `renderStart`
-Type: `(outputOptions: OutputOptions, inputOptions: InputOptions) => void`<br>
-Kind: `async, parallel`<br>
-Phase: `generate`
-
-Called initially each time `bundle.generate()` or `bundle.write()` is called. To get notified when generation has completed, use the `generateBundle` and `renderError` hooks. This is the recommended hook to use when you need access to the output options passed to `bundle.generate()` or `bundle.write()` as it will take the transformations by all [`outputOptions`](guide/en/#outputoptions) hooks into account. It also receives the input options passed to `rollup.rollup()` so that plugins that can be used as output plugins, i.e. plugins that only use `generate` phase hooks, can get access to them.
-
 #### `resolveDynamicImport`
 Type: `(specifier: string | ESTree.Node, importer: string) => string | false | null | {id: string, external?: boolean}`<br>
 Kind: `async, first`<br>
-Phase: `build`
+Previous Hook: [`transform`](guide/en/#transform) where the importing file was transformed.<br>
+Next Hook: [`load`](guide/en/#load) if the hook resolved with an id that has not yet been loaded, [`resolveId`](guide/en/#resolveid) if the dynamic import contains a string and was not resolved by the hook, otherwise [`buildEnd`](guide/en/#buildend).
 
 Defines a custom resolver for dynamic imports. Returning `false` signals that the import should be kept as it is and not be passed to other resolvers thus making it external. Similar to the [`resolveId`](guide/en/#resolveid) hook, you can also return an object to resolve the import to a different id while marking it as external at the same time.
 
@@ -257,38 +149,11 @@ In case a dynamic import is not passed a string as argument, this hook gets acce
 
 Note that the return value of this hook will not be passed to `resolveId` afterwards; if you need access to the static resolution algorithm, you can use [`this.resolve(source, importer)`](guide/en/#thisresolvesource-string-importer-string-options-skipself-boolean--promiseid-string-external-boolean--null) on the plugin context.
 
-#### `resolveFileUrl`
-Type: `({chunkId: string, fileName: string, format: string, moduleId: string, referenceId: string, relativePath: string}) => string | null`<br>
-Kind: `sync, first`<br>
-Phase: `generate`
-
-Allows to customize how Rollup resolves URLs of files that were emitted by plugins via `this.emitAsset` or `this.emitChunk`. By default, Rollup will generate code for `import.meta.ROLLUP_ASSET_URL_assetReferenceId` and `import.meta.ROLLUP_CHUNK_URL_chunkReferenceId` that should correctly generate absolute URLs of emitted files independent of the output format and the host system where the code is deployed.
-
-For that, all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available. In case that fails or to generate more optimized code, this hook can be used to customize this behaviour. To do that, the following information is available:
-
-- `assetReferenceId`: The asset reference id if we are resolving `import.meta.ROLLUP_ASSET_URL_assetReferenceId`, otherwise `null`.
-- `chunkId`: The id of the chunk this file is referenced from.
-- `chunkReferenceId`: The chunk reference id if we are resolving `import.meta.ROLLUP_CHUNK_URL_chunkReferenceId`, otherwise `null`.
-- `fileName`: The path and file name of the emitted asset, relative to `output.dir` without a leading `./`.
-- `format`: The rendered output format.
-- `moduleId`: The id of the original module this file is referenced from. Useful for conditionally resolving certain assets differently.
-- `relativePath`: The path and file name of the emitted file, relative to the chunk the file is referenced from. This will path will contain no leading `./` but may contain a leading `../`.
-
-Note that since this hook has access to the filename of the current chunk, its return value will not be considered when generating the hash of this chunk.
-
-The following plugin will always resolve all files relative to the current document:
-
-```javascript
-// rollup.config.js
-resolveFileUrl({fileName}) {
-  return `new URL('${fileName}', document.baseURI).href`;
-}
-```
-
 #### `resolveId`
 Type: `(source: string, importer: string) => string | false | null | {id: string, external?: boolean, moduleSideEffects?: boolean | null, syntheticNamedExports?: boolean | null}`<br>
 Kind: `async, first`<br>
-Phase: `build`
+Previous Hook: [`buildStart`](guide/en/#buildstart) if we are resolving an entry point, [`transform`](guide/en/#transform) if we are resolving an import, or as fallback for [`resolveDynamicImport`](guide/en/#resolvedynamicimport). Additionally this hook can be triggered during the build phase from plugin hooks by calling [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string) to emit an entry point or at any time by calling [`this.resolve`](guide/en/#thisresolvesource-string-importer-string-options-skipself-boolean--promiseid-string-external-boolean--null) to manually resolve an id.<br>
+Next Hook: [`load`](guide/en/#load) if the resolved id that has not yet been loaded, otherwise [`buildEnd`](guide/en/#buildend).
 
 Defines a custom resolver. A resolver can be useful for e.g. locating third-party dependencies. Returning `null` defers to other `resolveId` functions and eventually the default resolution behavior; returning `false` signals that `source` should be treated as an external module and not included in the bundle. If this happens for a relative import, the id will be renormalized the same way as when the `external` option is used.
 
@@ -325,33 +190,11 @@ import { foo, bar } from './dep.js'
 console.log(foo, bar);
 ```
 
-#### `resolveImportMeta`
-Type: `(property: string | null, {chunkId: string, moduleId: string, format: string}) => string | null`<br>
-Kind: `sync, first`<br>
-Phase: `generate`
-
-Allows to customize how Rollup handles `import.meta` and `import.meta.someProperty`, in particular `import.meta.url`. In ES modules, `import.meta` is an object and `import.meta.url` contains the URL of the current module, e.g. `http://server.net/bundle.js` for browsers or `file:///path/to/bundle.js` in Node.
-
-By default for formats other than ES modules, Rollup replaces `import.meta.url` with code that attempts to match this behaviour by returning the dynamic URL of the current chunk. Note that all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available. For other properties, `import.meta.someProperty` is replaced with `undefined` while `import.meta` is replaced with an object containing a `url` property.
-
- This behaviour can be changed—also for ES modules—via this hook. For each occurrence of `import.meta<.someProperty>`, this hook is called with the name of the property or `null` if `import.meta` is accessed directly. For example, the following code will resolve `import.meta.url` using the relative path of the original module to the current working directory and again resolve this path against the base URL of the current document at runtime:
-
-```javascript
-// rollup.config.js
-resolveImportMeta(property, {moduleId}) {
-  if (property === 'url') {
-    return `new URL('${path.relative(process.cwd(), moduleId)}', document.baseURI).href`;
-  }
-  return null;
-}
-```
-
-Note that since this hook has access to the filename of the current chunk, its return value will not be considered when generating the hash of this chunk.
-
 #### `transform`
 Type: `(code: string, id: string) => string | null | { code: string, map?: string | SourceMap, ast? : ESTree.Program, moduleSideEffects?: boolean | null, syntheticNamedExports?: boolean | null }`<br>
 Kind: `async, sequential`<br>
-Phase: `build`
+Previous Hook: [`load`](guide/en/#load) where the currently handled file was loaded.<br>
+NextHook: [`resolveId`](guide/en/#resolveid) and [`resolveDynamicImport`](guide/en/#resolvedynamicimport) to resolve all discovered static and dynamic imports in parallel if present, otherwise [`buildEnd`](guide/en/#buildend).
 
 Can be used to transform individual modules. To prevent additional parsing overhead in case e.g. this hook already used `this.parse` to generate an AST for some reason, this hook can optionally return a `{ code, ast, map }` object. The `ast` must be a standard ESTree AST with `start` and `end` properties for each node. If the transformation does not move code, you can preserve existing sourcemaps by setting `map` to `null`. Otherwise you might need to generate the source map. See [the section on source code transformations](#source-code-transformations).
 
@@ -382,14 +225,198 @@ You can use [`this.getModuleInfo`](guide/en/#thisgetmoduleinfomoduleid-string--m
 #### `watchChange`
 Type: `(id: string) => void`<br>
 Kind: `sync, sequential`<br>
-Phase: `build` (can also be triggered during `generate` but cannot be used by output plugins)
+Previous/Next Hook: This hook can be triggered at any time both during the build and the output generation phases. If that is the case, the current build will still proceed but a new build will be scheduled to start once the current build has completed, starting again with [`options`](guide/en/#options).
 
-Notifies a plugin whenever rollup has detected a change to a monitored file in `--watch` mode.
+Notifies a plugin whenever rollup has detected a change to a monitored file in `--watch` mode. This hook cannot be used by output plugins.
+
+### Output Generation Hooks
+
+Output generation hooks can provide information about a generated bundle and modify a build once complete. They work the same way and have the same types as [Build Hooks](guide/en/#build-hooks) but are called separately for each call to `bundle.generate(outputOptions)` or `bundle.write(outputOptions)`. Plugins that only use output generation hooks can also be passed in via the output options and therefore run only for certain outputs.
+
+The first hook of the output generation phase is [outputOptions](guide/en/#outputoptions), the last one is either [generateBundle](guide/en/#generatebundle) if the output was successfully generated via `bundle.generate(...)`, [writeBundle](guide/en/#writebundle) if the output was successfully generated via `bundle.write(...)`, or [renderError](guide/en/#rendererror) if an error occurred at any time during the output generation.
+
+#### `augmentChunkHash`
+Type: `(preRenderedChunk: PreRenderedChunk) => string`<br>
+Kind: `sync, sequential`<br>
+Previous Hook: [`banner`](guide/en/#banner), [`footer`](guide/en/#footer), [`intro`](guide/en/#intro), [`outro`](guide/en/#outro).<br>
+Next Hook: [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta`. Then [`renderChunk`](guide/en/#renderchunk) for each chunk.
+
+Can be used to augment the hash of individual chunks. Called for each Rollup output chunk. Returning a falsy value will not modify the hash. Truthy values will be passed to [`hash.update`](https://nodejs.org/dist/latest-v12.x/docs/api/crypto.html#crypto_hash_update_data_inputencoding).
+
+The following plugin will invalidate the hash of chunk `foo` with the timestamp of the last build:
+
+```javascript
+// rollup.config.js
+augmentChunkHash(chunkInfo) {
+  if(chunkInfo.name === 'foo') {
+    return Date.now().toString();
+  }
+}
+```
+
+#### `banner`
+Type: `string | (() => string)`<br>
+Kind: `async, parallel`<br>
+Previous Hook: [`renderStart`](guide/en/#renderstart)<br>
+Next Hook: [`augmentChunkHash`](guide/en/#augmentchunkhash) for each chunk that would contain a hash in the file name. Then [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta`. Then [`renderChunk`](guide/en/#renderchunk) for each chunk.
+
+Cf. [`output.banner/output.footer`](guide/en/#outputbanneroutputfooter).
+
+#### `footer`
+Type: `string | (() => string)`<br>
+Kind: `async, parallel`<br>
+Previous Hook: [`renderStart`](guide/en/#renderstart)<br>
+Next Hook: [`augmentChunkHash`](guide/en/#augmentchunkhash) for each chunk that would contain a hash in the file name. Then [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta`. Then [`renderChunk`](guide/en/#renderchunk) for each chunk.
+
+Cf. [`output.banner/output.footer`](guide/en/#outputbanneroutputfooter).
+
+#### `generateBundle`
+Type: `(options: OutputOptions, bundle: { [fileName: string]: AssetInfo | ChunkInfo }, isWrite: boolean) => void`<br>
+Kind: `async, sequential`<br>
+Previous Hook: [`renderChunk`](guide/en/#renderchunk)<br>
+Next Hook: [`writeBundle`](guide/en/#writebundle) if the output was generated via `bundle.write(...)`, otherwise this is the last hook of the output generation phase and may again be followed by [`outputOptions`](guide/en/#outputoptions) if another output is generated.
+
+Called at the end of `bundle.generate()` or immediately before the files are written in `bundle.write()`. To modify the files after they have been written, use the [`writeBundle`](guide/en/#writebundle) hook. `bundle` provides the full list of files being written or generated along with their details:
+
+```
+// AssetInfo
+{
+  fileName: string,
+  source: string | UInt8Array,
+  type: 'asset',
+}
+
+// ChunkInfo
+{
+  code: string,
+  dynamicImports: string[],
+  exports: string[],
+  facadeModuleId: string | null,
+  fileName: string,
+  imports: string[],
+  isDynamicEntry: boolean,
+  isEntry: boolean,
+  map: SourceMap | null,
+  modules: {
+    [id: string]: {
+      renderedExports: string[],
+      removedExports: string[],
+      renderedLength: number,
+      originalLength: number
+    },
+  },
+  name: string,
+  type: 'chunk',
+}
+```
+
+You can prevent files from being emitted by deleting them from the bundle object in this hook. To emit additional files, use the [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string)  plugin context function.
+
+#### `intro`
+Type: `string | (() => string)`<br>
+Kind: `async, parallel`<br>
+Previous Hook: [`renderStart`](guide/en/#renderstart)<br>
+Next Hook: [`augmentChunkHash`](guide/en/#augmentchunkhash) for each chunk that would contain a hash in the file name. Then [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta`. Then [`renderChunk`](guide/en/#renderchunk) for each chunk.
+
+Cf. [`output.intro/output.outro`](guide/en/#outputintrooutputoutro).
+
+#### `outputOptions`
+Type: `(outputOptions: OutputOptions) => OutputOptions | null`<br>
+Kind: `sync, sequential`<br>
+Previous Hook: [`buildEnd`](guide/en/#buildend) if this is the first time an output is generated, otherwise either [`generateBundle`](guide/en/#generatebundle), [`writeBundle`](guide/en/#writebundle) or [`renderError`](guide/en/#rendererror) depending on the previously generated output. This is the first hook of the output generation phase.<br>
+Next Hook: [`renderStart`](guide/en/#renderstart).
+
+Replaces or manipulates the output options object passed to `bundle.generate()` or `bundle.write()`. Returning `null` does not replace anything. If you just need to read the output options, it is recommended to use the [`renderStart`](guide/en/#renderstart) hook as this hook has access to the output options after the transformations from all `outputOptions` hooks have been taken into account.
+
+#### `outro`
+Type: `string | (() => string)`<br>
+Kind: `async, parallel`<br>
+Previous Hook: [`renderStart`](guide/en/#renderstart)<br>
+Next Hook: [`augmentChunkHash`](guide/en/#augmentchunkhash) for each chunk that would contain a hash in the file name. Then [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta`. Then [`renderChunk`](guide/en/#renderchunk) for each chunk.
+
+Cf. [`output.intro/output.outro`](guide/en/#outputintrooutputoutro).
+
+#### `renderChunk`
+Type: `(code: string, chunk: ChunkInfo, options: OutputOptions) => string | { code: string, map: SourceMap } | null`<br>
+Kind: `async, sequential`<br>
+Previous Hook: [`resolveFileUrl`](guide/en/#resolvefileurl) or [`resolveImportMeta`](guide/en/#resolveimportmeta) if `import.meta` properties are used. Before that [`augmentChunkHash`](guide/en/#augmentchunkhash) if there are chunks that would contain a hash in the file name. Before that [`banner`](guide/en/#banner), [`footer`](guide/en/#footer), [`intro`](guide/en/#intro), [`outro`](guide/en/#outro).<br>
+Next Hook: [`generateBundle`](guide/en/#generatebundle).
+
+Can be used to transform individual chunks. Called for each Rollup output chunk file. Returning `null` will apply no transformations.
+
+#### `renderError`
+Type: `(error: Error) => void`<br>
+Kind: `async, parallel`<br>
+Previous Hook: Any hook from [`renderStart`](guide/en/#renderstart) to [`renderChunk`](guide/en/#renderchunk).<br>
+Next Hook: If it is called, this is the last hook of the output generation phase and may again be followed by [`outputOptions`](guide/en/#outputoptions) if another output is generated.
+
+Called when rollup encounters an error during `bundle.generate()` or `bundle.write()`. The error is passed to this hook. To get notified when generation completes successfully, use the `generateBundle` hook.
+
+#### `renderStart`
+Type: `(outputOptions: OutputOptions, inputOptions: InputOptions) => void`<br>
+Kind: `async, parallel`<br>
+Previous Hook: [`outputOptions`](guide/en/#outputoptions)<br>
+Next Hook: [`banner`](guide/en/#banner), [`footer`](guide/en/#footer), [`intro`](guide/en/#intro) and [`outro`](guide/en/#outro) run in parallel.
+
+Called initially each time `bundle.generate()` or `bundle.write()` is called. To get notified when generation has completed, use the `generateBundle` and `renderError` hooks. This is the recommended hook to use when you need access to the output options passed to `bundle.generate()` or `bundle.write()` as it will take the transformations by all [`outputOptions`](guide/en/#outputoptions) hooks into account. It also receives the input options passed to `rollup.rollup()` so that plugins that can be used as output plugins, i.e. plugins that only use `generate` phase hooks, can get access to them.
+
+#### `resolveFileUrl`
+Type: `({chunkId: string, fileName: string, format: string, moduleId: string, referenceId: string, relativePath: string}) => string | null`<br>
+Kind: `sync, first`<br>
+Previous Hook: [`augmentChunkHash`](guide/en/#augmentchunkhash) if there are chunks that would contain a hash in the file name. Before that [`banner`](guide/en/#banner), [`footer`](guide/en/#footer), [`intro`](guide/en/#intro), [`outro`](guide/en/#outro).<br>
+Next Hook: [`renderChunk`](guide/en/#renderchunk) for each chunk.
+
+Allows to customize how Rollup resolves URLs of files that were emitted by plugins via `this.emitFile`. By default, Rollup will generate code for `import.meta.ROLLUP_FILE_URL_referenceId` that should correctly generate absolute URLs of emitted files independent of the output format and the host system where the code is deployed.
+
+For that, all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available. In case that fails or to generate more optimized code, this hook can be used to customize this behaviour. To do that, the following information is available:
+
+- `chunkId`: The id of the chunk this file is referenced from.
+- `fileName`: The path and file name of the emitted asset, relative to `output.dir` without a leading `./`.
+- `format`: The rendered output format.
+- `moduleId`: The id of the original module this file is referenced from. Useful for conditionally resolving certain assets differently.
+- `referenceId`: The reference id of the file.
+- `relativePath`: The path and file name of the emitted file, relative to the chunk the file is referenced from. This will path will contain no leading `./` but may contain a leading `../`.
+
+Note that since this hook has access to the filename of the current chunk, its return value will not be considered when generating the hash of this chunk.
+
+The following plugin will always resolve all files relative to the current document:
+
+```javascript
+// rollup.config.js
+resolveFileUrl({fileName}) {
+  return `new URL('${fileName}', document.baseURI).href`;
+}
+```
+
+#### `resolveImportMeta`
+Type: `(property: string | null, {chunkId: string, moduleId: string, format: string}) => string | null`<br>
+Kind: `sync, first`<br>
+Previous Hook: [`augmentChunkHash`](guide/en/#augmentchunkhash) if there are chunks that would contain a hash in the file name. Before that [`banner`](guide/en/#banner), [`footer`](guide/en/#footer), [`intro`](guide/en/#intro), [`outro`](guide/en/#outro).<br>
+Next Hook: [`renderChunk`](guide/en/#renderchunk) for each chunk.
+
+Allows to customize how Rollup handles `import.meta` and `import.meta.someProperty`, in particular `import.meta.url`. In ES modules, `import.meta` is an object and `import.meta.url` contains the URL of the current module, e.g. `http://server.net/bundle.js` for browsers or `file:///path/to/bundle.js` in Node.
+
+By default for formats other than ES modules, Rollup replaces `import.meta.url` with code that attempts to match this behaviour by returning the dynamic URL of the current chunk. Note that all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available. For other properties, `import.meta.someProperty` is replaced with `undefined` while `import.meta` is replaced with an object containing a `url` property.
+
+ This behaviour can be changed—also for ES modules—via this hook. For each occurrence of `import.meta<.someProperty>`, this hook is called with the name of the property or `null` if `import.meta` is accessed directly. For example, the following code will resolve `import.meta.url` using the relative path of the original module to the current working directory and again resolve this path against the base URL of the current document at runtime:
+
+```javascript
+// rollup.config.js
+resolveImportMeta(property, {moduleId}) {
+  if (property === 'url') {
+    return `new URL('${path.relative(process.cwd(), moduleId)}', document.baseURI).href`;
+  }
+  return null;
+}
+```
+
+Note that since this hook has access to the filename of the current chunk, its return value will not be considered when generating the hash of this chunk.
 
 #### `writeBundle`
 Type: `( bundle: { [fileName: string]: AssetInfo | ChunkInfo }) => void`<br>
 Kind: `async, parallel`<br>
-Phase: `generate`
+Previous Hook: [`generateBundle`](guide/en/#generatebundle)<br>
+Next Hook: If it is called, this is the last hook of the output generation phase and may again be followed by [`outputOptions`](guide/en/#outputoptions) if another output is generated.
 
 Called only at the end of `bundle.write()` once all files have been written. Similar to the [`generateBundle`](guide/en/#generatebundle) hook, `bundle` provides the full list of files being written along with their details.
 
@@ -397,26 +424,13 @@ Called only at the end of `bundle.write()` once all files have been written. Sim
 
 ☢️ These hooks have been deprecated and may be removed in a future Rollup version.
 
-- `ongenerate` - _**Use [`generateBundle`](guide/en/#generatebundle)**_ - Function hook
-called when `bundle.generate()` is being executed.
-
-- `onwrite` - _**Use [`generateBundle`](guide/en/#generatebundle)**_ - Function hook
-called when `bundle.write()` is being executed, after the file has been written
-to disk.
-
 - `resolveAssetUrl` - _**Use [`resolveFileUrl`](guide/en/#resolvefileurl)**_ - Function hook that allows to customize the generated code for asset URLs.
 
-- `transformBundle` – _**Use [`renderChunk`](guide/en/#renderchunk)**_ - A `( source, { format } ) =>
-code` or `( source, { format } ) => { code, map }` bundle transformer function.
-
-- `transformChunk` – _**Use [`renderChunk`](guide/en/#renderchunk)**_ - A `( source, outputOptions,
-chunk ) => code | { code, map}` chunk transformer function.
-
-More properties may be supported in future, as and when they prove necessary.
+More properties may be supported in the future, as and when they prove necessary.
 
 ### Plugin Context
 
-A number of utility functions and informational bits can be accessed from within most [hooks](guide/en/#hooks) via `this`:
+A number of utility functions and informational bits can be accessed from within most [hooks](guide/en/#build-hooks) via `this`:
 
 #### `this.addWatchFile(id: string) => void`
 
@@ -424,7 +438,7 @@ Adds additional files to be monitored in watch mode so that changes to these fil
 
 **Note:** Usually in watch mode to improve rebuild speed, the `transform` hook will only be triggered for a given module if its contents actually changed. Using `this.addWatchFile` from within the `transform` hook will make sure the `transform` hook is also reevaluated for this module if the watched file changes.
 
-In general, it is recommended to use `this.addWatchfile` from within the hook that depends on the watched file.
+In general, it is recommended to use `this.addWatchFile` from within the hook that depends on the watched file.
 
 #### `this.emitFile(emittedFile: EmittedChunk | EmittedAsset) => string`
 
@@ -442,7 +456,7 @@ Emits a new file that is included in the build output and returns a `referenceId
 // EmittedAsset
 {
   type: 'asset',
-  source?: string | Buffer,
+  source?: string | UInt8Array,
   name?: string,
   fileName?: string
 }
@@ -456,7 +470,7 @@ The generated code that replaces `import.meta.ROLLUP_FILE_URL_referenceId` can b
 
 If the `type` is *`chunk`*, then this emits a new chunk with the given module id as entry point. This will not result in duplicate modules in the graph, instead if necessary, existing chunks will be split or a facade chunk with reexports will be created. Chunks with a specified `fileName` will always generate separate chunks while other emitted chunks may be deduplicated with existing chunks even if the `name` does not match. If such a chunk is not deduplicated, the [`output.chunkFileNames`](guide/en/#outputchunkfilenames) name pattern will be used.
 
-If the `type` is *`asset`*, then this emits an arbitrary new file with the given `source` as content. It is possible to defer setting the `source` via [`this.setAssetSource(assetReferenceId, source)`](guide/en/#thissetassetsourceassetreferenceid-string-source-string--buffer--void) to a later time to be able to reference a file during the build phase while setting the source separately for each output during the generate phase. Assets with a specified `fileName` will always generate separate files while other emitted assets may be deduplicated with existing assets if they have the same source even if the `name` does not match. If such an asset is not deduplicated, the [`output.assetFileNames`](guide/en/#outputassetfilenames) name pattern will be used.
+If the `type` is *`asset`*, then this emits an arbitrary new file with the given `source` as content. It is possible to defer setting the `source` via [`this.setAssetSource(assetReferenceId, source)`](guide/en/#thissetassetsourceassetreferenceid-string-source-string--uint8array--void) to a later time to be able to reference a file during the build phase while setting the source separately for each output during the generate phase. Assets with a specified `fileName` will always generate separate files while other emitted assets may be deduplicated with existing assets if they have the same source even if the `name` does not match. If such an asset is not deduplicated, the [`output.assetFileNames`](guide/en/#outputassetfilenames) name pattern will be used.
 
 #### `this.error(error: string | Error, position?: number | { column: number; line: number }) => never`
 
@@ -464,7 +478,7 @@ Structurally equivalent to `this.warn`, except that it will also abort the bundl
 
 #### `this.getCombinedSourcemap() => SourceMap`
 
-Get the combined source maps of all previous plugins. This context function can only be used in [`transform`](guide/en/#transform) plugin hook.
+Get the combined source maps of all previous plugins. This context function can only be used in the [`transform`](guide/en/#transform) plugin hook.
 
 #### `this.getFileName(referenceId: string) => string`
 
@@ -509,9 +523,9 @@ Resolve imports to module ids (i.e. file names) using the same plugins that Roll
 
 If you pass `skipSelf: true`, then the `resolveId` hook of the plugin from which `this.resolve` is called will be skipped when resolving.
 
-#### `this.setAssetSource(assetReferenceId: string, source: string | Buffer) => void`
+#### `this.setAssetSource(assetReferenceId: string, source: string | UInt8Array) => void`
 
-Set the deferred source of an asset.
+Set the deferred source of an asset. Note that you can also pass a Node `Buffer` as `source` as it is a sub-class of `UInt8Array`.
 
 #### `this.warn(warning: string | RollupWarning, position?: number | { column: number; line: number }) => void`
 
@@ -533,7 +547,7 @@ The `position` argument is a character index where the warning was raised. If pr
 
 ☢️ These context utility functions have been deprecated and may be removed in a future Rollup version.
 
-- `this.emitAsset(assetName: string, source: string) => string` - _**Use [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string)**_ - Emits a custom file that is included in the build output, returning an `assetReferenceId` that can be used to reference the emitted file. You can defer setting the source if you provide it later via [`this.setAssetSource(assetReferenceId, source)`](guide/en/#thissetassetsourceassetreferenceid-string-source-string--buffer--void). A string or Buffer source must be set for each asset through either method or an error will be thrown on generate completion.
+- `this.emitAsset(assetName: string, source: string) => string` - _**Use [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string)**_ - Emits a custom file that is included in the build output, returning an `assetReferenceId` that can be used to reference the emitted file. You can defer setting the source if you provide it later via [`this.setAssetSource(assetReferenceId, source)`](guide/en/#thissetassetsourceassetreferenceid-string-source-string--uint8array--void). A string or `UInt8Array`/`Buffer` source must be set for each asset through either method or an error will be thrown on generate completion.
 
   Emitted assets will follow the [`output.assetFileNames`](guide/en/#outputassetfilenames) naming scheme. You can reference the URL of the file in any code returned by a [`load`](guide/en/#load) or [`transform`](guide/en/#transform) plugin hook via `import.meta.ROLLUP_ASSET_URL_assetReferenceId`.
 
@@ -593,7 +607,7 @@ document.body.appendChild(image);
 
 Similar to assets, emitted chunks can be referenced from within JS code via `import.meta.ROLLUP_FILE_URL_referenceId` as well.
 
-The following example will detect imports prefixed with `register-paint-worklet:` and generate the necessary code and separate chunk to generate a CSS paint worklet. Note that this will only work in modern browsers and will only work if the output format is set to `esm`.
+The following example will detect imports prefixed with `register-paint-worklet:` and generate the necessary code and separate chunk to generate a CSS paint worklet. Note that this will only work in modern browsers and will only work if the output format is set to `es`.
 
 ```js
 // plugin
@@ -661,12 +675,12 @@ The `transform` hook, if returning an object, can also include an `ast` property
 
 #### Example Transformer
 
-(Use [rollup-pluginutils](https://github.com/rollup/rollup-pluginutils) for
+(Use [@rollup/pluginutils](https://github.com/rollup/plugins/tree/master/packages/pluginutils) for
 commonly needed functions, and to implement a transformer in the recommended
 manner.)
 
 ```js
-import { createFilter } from 'rollup-pluginutils';
+import { createFilter } from '@rollup/pluginutils';
 
 export default function myPlugin ( options = {} ) {
   const filter = createFilter( options.include, options.exclude );

@@ -1,9 +1,12 @@
 import * as acorn from 'acorn';
-import * as ESTree from 'estree';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
 import extractAssignedNames from 'rollup-pluginutils/src/extractAssignedNames';
-import { createInclusionContext, InclusionContext } from './ast/ExecutionContext';
+import {
+	createHasEffectsContext,
+	createInclusionContext,
+	InclusionContext
+} from './ast/ExecutionContext';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
 import ExportNamedDeclaration from './ast/nodes/ExportNamedDeclaration';
@@ -117,7 +120,7 @@ export interface AstContext {
 }
 
 export const defaultAcornOptions: acorn.Options = {
-	ecmaVersion: 2020 as any,
+	ecmaVersion: 2020,
 	preserveParens: false,
 	sourceType: 'module'
 };
@@ -157,7 +160,9 @@ function handleMissingExport(
 	return importingModule.error(
 		{
 			code: 'MISSING_EXPORT',
-			message: `'${exportName}' is not exported by ${relativeId(importedModule)}`,
+			message: `'${exportName}' is not exported by ${relativeId(
+				importedModule
+			)}, imported by ${relativeId(importingModule.id)}`,
 			url: `https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module`
 		},
 		importerStart!
@@ -194,14 +199,13 @@ export default class Module {
 	code!: string;
 	comments: CommentDescription[] = [];
 	customTransformCache!: boolean;
-	dependencies: (Module | ExternalModule)[] = [];
+	dependencies = new Set<Module | ExternalModule>();
 	dynamicallyImportedBy: Module[] = [];
-	dynamicDependencies: (Module | ExternalModule)[] = [];
+	dynamicDependencies = new Set<Module | ExternalModule>();
 	dynamicImports: {
 		node: ImportExpression;
 		resolution: Module | ExternalModule | string | null;
 	}[] = [];
-	entryPointsHash: Uint8Array = new Uint8Array(10);
 	excludeFromSourcemap: boolean;
 	execIndex = Infinity;
 	exportAllModules: (Module | ExternalModule)[] = [];
@@ -236,10 +240,11 @@ export default class Module {
 	private astContext!: AstContext;
 	private context: string;
 	private defaultExport: ExportDefaultVariable | null | undefined = null;
-	private esTreeAst!: ESTree.Program;
+	private esTreeAst!: acorn.Node;
 	private graph: Graph;
 	private magicString!: MagicString;
 	private namespaceVariable: NamespaceVariable | null = null;
+	private relevantDependencies: Set<Module | ExternalModule> | null = null;
 	private syntheticExports = new Map<string, SyntheticNamedExportVariable>();
 	private transformDependencies: string[] = [];
 	private transitiveReexports: string[] | null = null;
@@ -341,6 +346,40 @@ export default class Module {
 		return this.defaultExport;
 	}
 
+	getDependenciesToBeIncluded(): Set<Module | ExternalModule> {
+		if (this.relevantDependencies) return this.relevantDependencies;
+		const relevantDependencies = new Set<Module | ExternalModule>();
+		for (const variable of this.imports) {
+			relevantDependencies.add(variable.module!);
+		}
+		if (this.isEntryPoint || this.dynamicallyImportedBy.length > 0 || this.graph.preserveModules) {
+			for (const exportName of [...this.getReexports(), ...this.getExports()]) {
+				relevantDependencies.add(this.getVariableForExportName(exportName).module as Module);
+			}
+		}
+		if (this.graph.treeshakingOptions) {
+			const possibleDependencies = new Set(this.dependencies);
+			for (const dependency of possibleDependencies) {
+				if (!dependency.moduleSideEffects || relevantDependencies.has(dependency)) continue;
+				if (
+					dependency instanceof ExternalModule ||
+					(dependency.ast.included && dependency.ast.hasEffects(createHasEffectsContext()))
+				) {
+					relevantDependencies.add(dependency);
+				} else {
+					for (const transitiveDependency of dependency.dependencies) {
+						possibleDependencies.add(transitiveDependency);
+					}
+				}
+			}
+		} else {
+			for (const dependency of this.dependencies) {
+				relevantDependencies.add(dependency);
+			}
+		}
+		return (this.relevantDependencies = relevantDependencies);
+	}
+
 	getDynamicImportExpressions(): (string | Node)[] {
 		return this.dynamicImports.map(({ node }) => {
 			const importArgument = node.source;
@@ -405,7 +444,7 @@ export default class Module {
 			if (module instanceof ExternalModule) {
 				reexports.add(`*${module.id}`);
 			} else {
-				for (const name of module.getExports().concat(module.getReexports())) {
+				for (const name of [...module.getReexports(), ...module.getExports()]) {
 					if (name !== 'default') reexports.add(name);
 				}
 			}
@@ -422,14 +461,6 @@ export default class Module {
 			(variable && variable.included ? renderedExports : removedExports).push(exportName);
 		}
 		return { renderedExports, removedExports };
-	}
-
-	getTransitiveDependencies() {
-		return this.dependencies.concat(
-			this.getReexports()
-				.concat(this.getExports())
-				.map((exportName: string) => this.getVariableForExportName(exportName).module as Module)
-		);
 	}
 
 	getVariableForExportName(
@@ -557,16 +588,11 @@ export default class Module {
 
 	linkDependencies() {
 		for (const source of this.sources) {
-			const id = this.resolvedIds[source].id;
-
-			if (id) {
-				const module = this.graph.moduleById.get(id);
-				this.dependencies.push(module as Module);
-			}
+			this.dependencies.add(this.graph.moduleById.get(this.resolvedIds[source].id)!);
 		}
 		for (const { resolution } of this.dynamicImports) {
 			if (resolution instanceof Module || resolution instanceof ExternalModule) {
-				this.dynamicDependencies.push(resolution);
+				this.dynamicDependencies.add(resolution);
 			}
 		}
 
@@ -582,7 +608,7 @@ export default class Module {
 				module
 			);
 		}
-		this.exportAllModules = this.exportAllModules.concat(externalExportAllModules);
+		this.exportAllModules = [...this.exportAllModules, ...externalExportAllModules];
 	}
 
 	render(options: RenderOptions): MagicString {
@@ -697,7 +723,7 @@ export default class Module {
 			ast: this.esTreeAst,
 			code: this.code,
 			customTransformCache: this.customTransformCache,
-			dependencies: this.dependencies.map(module => module.id),
+			dependencies: Array.from(this.dependencies).map(module => module.id),
 			id: this.id,
 			moduleSideEffects: this.moduleSideEffects,
 			originalCode: this.originalCode,

@@ -1,7 +1,5 @@
-export function emptyFunction () {
+export function emptyFunction() {}
 
-}
+export function another() {}
 
-export function another () {
-  
-}
+console.log('lib');

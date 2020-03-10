@@ -20,7 +20,7 @@ export default function getInteropBlock(
 			}
 
 			return (
-				`${name}${_}=${_}${name}${_}&&${_}${name}.hasOwnProperty('default')${_}?` +
+				`${name}${_}=${_}${name}${_}&&${_}Object.prototype.hasOwnProperty.call(${name},${_}'default')${_}?` +
 				`${_}${name}['default']${_}:${_}${name};`
 			);
 		})

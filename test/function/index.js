@@ -1,6 +1,5 @@
 const path = require('path');
 const assert = require('assert');
-const buble = require('buble');
 const rollup = require('../../dist/rollup');
 const { compareError, compareWarnings, extend, runTestSuiteWithSamples } = require('../utils.js');
 
@@ -104,16 +103,6 @@ runTestSuiteWithSamples('function', path.resolve(__dirname, 'samples'), (dir, co
 							if (unintendedError) throw unintendedError;
 							if (config.error || config.generateError) return;
 
-							if (config.buble) {
-								for (const chunk of result) {
-									if (chunk.code) {
-										chunk.code = buble.transform(chunk.code, {
-											transforms: { modules: false }
-										}).code;
-									}
-								}
-							}
-
 							const codeMap = result.reduce((codeMap, chunk) => {
 								codeMap[chunk.fileName] = chunk.code;
 								return codeMap;
@@ -124,7 +113,11 @@ runTestSuiteWithSamples('function', path.resolve(__dirname, 'samples'), (dir, co
 
 							const entryId = result.length === 1 ? result[0].fileName : 'main.js';
 							if (!codeMap.hasOwnProperty(entryId)) {
-								throw new Error(`Could not find entry "${entryId}" in generated output.`);
+								throw new Error(
+									`Could not find entry "${entryId}" in generated output.\nChunks:\n${Object.keys(
+										codeMap
+									).join('\n')}`
+								);
 							}
 							const { exports, error } = runCodeSplitTest(codeMap, entryId, config.context);
 							if (config.runtimeError) {

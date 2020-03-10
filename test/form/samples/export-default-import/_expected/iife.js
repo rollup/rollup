@@ -1,7 +1,7 @@
 var myBundle = (function (exports, x) {
 	'use strict';
 
-	x = x && x.hasOwnProperty('default') ? x['default'] : x;
+	x = x && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
 
 
 

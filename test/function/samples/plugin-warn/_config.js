@@ -6,8 +6,8 @@ module.exports = {
 		plugins: [
 			{
 				name: 'test',
-				transform(code, id) {
-					this.warn({ message: 'foo' });
+				transform() {
+					this.warn({ message: 'foo', code: 'CODE' });
 					this.warn('bar', 22);
 					return 'assert.equal( 21 * 2, 42 );';
 				}
@@ -20,7 +20,8 @@ module.exports = {
 			id: path.resolve(__dirname, 'main.js'),
 			hook: 'transform',
 			plugin: 'test',
-			message: 'foo'
+			message: 'foo',
+			pluginCode: 'CODE'
 		},
 		{
 			code: 'PLUGIN_WARNING',

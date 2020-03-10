@@ -1,4 +1,4 @@
-var replace = require('rollup-plugin-replace');
+var replace = require('@rollup/plugin-replace');
 var assert = require('assert');
 
 let warnings = 0;
@@ -18,7 +18,7 @@ module.exports = commands => ({
 		assert.equal(warning.code, 'UNKNOWN_OPTION');
 		assert.equal(
 			warning.message,
-			`Unknown CLI flag: unknownOption. Allowed options: ${
+			`Unknown CLI flags: unknownOption. Allowed options: ${
 				require('../../../misc/optionList').flags
 			}`
 		);
