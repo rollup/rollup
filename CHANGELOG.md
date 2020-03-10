@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 2.0.3
+*2020-03-10*
+
+### Bug Fixes
+* Add type for this.getCombinedSourcemap to transform context (#3431)
+
+### Pull Requests
+* [#3377](https://github.com/rollup/rollup/pull/3377): Switch to yargs-parser lib (@jamesgeorge007)
+* [#3426](https://github.com/rollup/rollup/pull/3426): Use strict types with PluginDriver (@NotWoods)
+* [#3431](https://github.com/rollup/rollup/pull/3431): Add missing type declaration for getCombinedSourcemap (@Anidetrix)
+* [#3432](https://github.com/rollup/rollup/pull/3432): Detail how return values from `augmentChunkHash` are used (@jakearchibald)
+
 ## 2.0.2
 *2020-03-07*
 
