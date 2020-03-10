@@ -241,7 +241,7 @@ Kind: `sync, sequential`<br>
 Previous Hook: [`banner`](guide/en/#banner), [`footer`](guide/en/#footer), [`intro`](guide/en/#intro), [`outro`](guide/en/#outro).<br>
 Next Hook: [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta`. Then [`renderChunk`](guide/en/#renderchunk) for each chunk.
 
-Can be used to augment the hash of individual chunks. Called for each Rollup output chunk. Returning a falsy value will not modify the hash.
+Can be used to augment the hash of individual chunks. Called for each Rollup output chunk. Returning a falsy value will not modify the hash. Truthy values will be passed to [`hash.update`](https://nodejs.org/dist/latest-v12.x/docs/api/crypto.html#crypto_hash_update_data_inputencoding).
 
 The following plugin will invalidate the hash of chunk `foo` with the timestamp of the last build:
 
@@ -249,7 +249,7 @@ The following plugin will invalidate the hash of chunk `foo` with the timestamp 
 // rollup.config.js
 augmentChunkHash(chunkInfo) {
   if(chunkInfo.name === 'foo') {
-    return Date.now();
+    return Date.now().toString();
   }
 }
 ```
@@ -478,7 +478,7 @@ Structurally equivalent to `this.warn`, except that it will also abort the bundl
 
 #### `this.getCombinedSourcemap() => SourceMap`
 
-Get the combined source maps of all previous plugins. This context function can only be used in [`transform`](guide/en/#transform) plugin hook.
+Get the combined source maps of all previous plugins. This context function can only be used in the [`transform`](guide/en/#transform) plugin hook.
 
 #### `this.getFileName(referenceId: string) => string`
 

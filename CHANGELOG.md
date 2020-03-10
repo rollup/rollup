@@ -1,5 +1,23 @@
 # rollup changelog
 
+## 2.0.2
+*2020-03-07*
+
+### Bug Fixes
+* Make sure the ESM import still works (#3430)
+
+### Pull Requests
+* [#3430](https://github.com/rollup/rollup/pull/3430): Fix conditional exports again (@lukastaegert)
+
+## 2.0.1
+*2020-03-07*
+
+### Bug Fixes
+* Reenable importing rollup in Node 13.0 - 13.7 (#3428)
+
+### Pull Requests
+* [#3428](https://github.com/rollup/rollup/pull/3428): Fix conditional exports in Node 13.0 - 13.7 (@lukastaegert)
+
 ## 2.0.0
 *2020-03-06*
 
