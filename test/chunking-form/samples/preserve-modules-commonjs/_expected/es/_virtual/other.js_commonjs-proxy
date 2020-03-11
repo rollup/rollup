@@ -1,5 +1,5 @@
-import { __moduleExports as other } from '../other.js';
+import { __moduleExports as other$1 } from '../other.js';
 
 
 
-export default other;
+export default other$1;
