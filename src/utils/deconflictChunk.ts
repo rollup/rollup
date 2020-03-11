@@ -54,15 +54,16 @@ function deconflictImportsEsm(
 	dependencies: Set<ExternalModule | Chunk>,
 	interop: boolean
 ) {
-	for (const chunkOrExternalModule of dependencies) {
-		// only deconflict index aliased variables for ESM/System
-		if (chunkOrExternalModule.variableName === 'index') {
+	// only deconflict all dependencies when preserveModules is enabled
+	if (interop) {
+		for (const chunkOrExternalModule of dependencies) {
 			chunkOrExternalModule.variableName = getSafeName(
 				chunkOrExternalModule.variableName,
 				usedNames
 			);
 		}
 	}
+
 	for (const variable of imports) {
 		const module = variable.module;
 		const name = variable.name;
