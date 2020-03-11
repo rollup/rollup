@@ -18,7 +18,7 @@ const DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT: {
 	cjs: deconflictImportsOther,
 	es: deconflictImportsEsm,
 	iife: deconflictImportsOther,
-	system: deconflictImportsEsm,
+	system: deconflictImportsEsmOrSystem,
 	umd: deconflictImportsOther
 };
 
@@ -66,7 +66,15 @@ function deconflictImportsEsm(
 			);
 		}
 	}
+	deconflictImportsEsmOrSystem(usedNames, imports, dependencies, interop);
+}
 
+function deconflictImportsEsmOrSystem(
+	usedNames: Set<string>,
+	imports: Set<Variable>,
+	_dependencies: Set<ExternalModule | Chunk>,
+	interop: boolean
+) {
 	for (const variable of imports) {
 		const module = variable.module;
 		const name = variable.name;
