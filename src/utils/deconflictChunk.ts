@@ -52,10 +52,13 @@ function deconflictImportsEsm(
 	usedNames: Set<string>,
 	imports: Set<Variable>,
 	dependencies: Set<ExternalModule | Chunk>,
-	interop: boolean
+	interop: boolean,
+	preserveModules: boolean
 ) {
 	// only deconflict all dependencies when preserveModules is enabled
-	if (interop) {
+	// TODO: This isn't ideal, the wider fix is more involved, see:
+	// https://github.com/rollup/rollup/pull/3435#discussion_r390792792
+	if (preserveModules) {
 		for (const chunkOrExternalModule of dependencies) {
 			chunkOrExternalModule.variableName = getSafeName(
 				chunkOrExternalModule.variableName,
