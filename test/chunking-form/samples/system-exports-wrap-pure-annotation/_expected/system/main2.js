@@ -1,13 +1,13 @@
 System.register(['./generated-dep.js'], function () {
 	'use strict';
-	var dep;
+	var dep$1;
 	return {
 		setters: [function (module) {
-			dep = module.d;
+			dep$1 = module.d;
 		}],
 		execute: function () {
 
-			console.log('2', dep);
+			console.log('2', dep$1);
 
 		}
 	};

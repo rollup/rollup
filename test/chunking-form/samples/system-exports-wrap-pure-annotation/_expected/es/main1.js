@@ -1,3 +1,3 @@
-import { d as dep } from './generated-dep.js';
+import { d as dep$1 } from './generated-dep.js';
 
-console.log('1', dep);
+console.log('1', dep$1);
