@@ -1,22 +1,13 @@
-System.register(['./main1.js'], function (exports) {
-  'use strict';
-  var p$1;
-  return {
-    setters: [function (module) {
-      p$1 = module.p;
-    }],
-    execute: function () {
+System.register(['./generated-main1.js'], function (exports) {
+	'use strict';
+	return {
+		setters: [function (module) {
+			exports('p', module.p);
+		}],
+		execute: function () {
 
-      class C {
-        fn (num) {
-          console.log(num - p$1);
-        }
-      }
 
-      var p = exports('p', 43);
 
-      new C().fn(p);
-
-    }
-  };
+		}
+	};
 });

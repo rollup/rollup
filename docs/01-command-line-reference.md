@@ -53,10 +53,7 @@ export default { // can be an array (for multiple inputs)
   treeshake,
 
   // experimental
-  chunkGroupingSize,
   experimentalCacheExpiry,
-  experimentalOptimizeChunks,
-  experimentalTopLevelAwait,
   perf,
 
   output: { // required (can be an array, for multiple outputs)
@@ -76,6 +73,7 @@ export default { // can be an array (for multiple inputs)
     entryFileNames,
     extend,
     footer,
+    hoistTransitiveImports,
     interop,
     intro,
     outro,
@@ -128,7 +126,7 @@ export default [{
     },
     {
       file: 'dist/bundle-b2.js',
-      format: 'esm'
+      format: 'es'
     }
   ]
 }];
@@ -155,7 +153,7 @@ export default Promise.all([
 You *must* use a configuration file in order to do any of the following:
 
 - bundle one project into multiple output files
-- use Rollup plugins, such as [rollup-plugin-node-resolve](https://github.com/rollup/rollup-plugin-node-resolve) and [rollup-plugin-commonjs](https://github.com/rollup/rollup-plugin-commonjs) which let you load CommonJS modules from the Node.js ecosystem
+- use Rollup plugins, such as [@rollup/plugin-node-resolve](https://github.com/rollup/plugins/tree/master/packages/node-resolve) and [@rollup/plugin-commonjs](https://github.com/rollup/plugins/tree/master/packages/commonjs) which let you load CommonJS modules from the Node.js ecosystem
 
 To use Rollup with a configuration file, pass the `--config` or `-c` flags.
 
@@ -213,13 +211,14 @@ Many options have command line equivalents. In those cases, any arguments passed
                               is unspecified, defaults to rollup.config.js)
 -d, --dir <dirname>         Directory for chunks (if absent, prints to stdout)
 -e, --external <ids>        Comma-separate list of module IDs to exclude
--f, --format <format>       Type of output (amd, cjs, esm, iife, umd)
+-f, --format <format>       Type of output (amd, cjs, es, iife, umd, system)
 -g, --globals <pairs>       Comma-separate list of `moduleID:Global` pairs
 -h, --help                  Show this help message
 -i, --input <filename>      Input (alternative to <entry file>)
 -m, --sourcemap             Generate sourcemap (`-m inline` for inline map)
 -n, --name <name>           Name for UMD export
 -o, --file <output>         Single output file (if absent, prints to stdout)
+-p, --plugin <plugin>       Use the plugin specified (may be repeated)
 -v, --version               Show version number
 -w, --watch                 Watch files in bundle and rebuild on changes
 --amd.id <id>               ID for AMD module (default is anonymous)
@@ -238,6 +237,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --no-externalLiveBindings   Do not generate code to support live bindings
 --footer <text>             Code to insert at end of bundle (outside wrapper)
 --no-freeze                 Do not freeze namespace objects
+--no-hoistTransitiveImports Do not hoist transitive imports into entry chunks
 --no-indent                 Don't indent result
 --no-interop                Do not include interop block
 --inlineDynamicImports      Create single bundle when using dynamic imports
@@ -253,6 +253,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --silent                    Don't print warnings
 --sourcemapExcludeSources   Do not include source code in source maps
 --sourcemapFile <file>      Specify bundle position for source maps
+--no-stdin                  do not read "-" from stdin
 --strictDeprecations        Throw errors for deprecated features
 --no-treeshake              Disable tree-shaking optimisations
 --no-treeshake.annotations  Ignore pure call annotations
@@ -265,6 +266,47 @@ The flags listed below are only available via the command line interface. All ot
 #### `-h`/`--help`
 
 Print the help document.
+
+#### `-p <plugin>`, `--plugin <plugin>`
+
+Use the specified plugin. There are several ways to specify plugins here:
+
+- Via a relative path:
+  
+  ```
+  rollup -i input.js -f es -p ./my-plugin.js
+  ```
+  
+  The file should export a plugin object or a function returning such an object.
+- Via the name of a plugin that is installed in a local or global `node_modules` folder:
+  
+  ```
+  rollup -i input.js -f es -p @rollup/plugin-node-resolve
+  ```
+  
+  If the plugin name does not start with `rollup-plugin-` or `@rollup/plugin-`, Rollup will automatically try adding these prefixes:
+  
+  ```
+  rollup -i input.js -f es -p node-resolve
+  ```
+
+- Via an inline implementation:
+
+  ```
+  rollup -i input.js -f es -p '{transform: (c, i) => `/* ${JSON.stringify(i)} */\n${c}`}'
+  ```
+  
+If you want to load more than one plugin, you can repeat the option or supply a comma-separated list of names:
+
+```
+rollup -i input.js -f es -p node-resolve -p commonjs,json
+```
+
+By default, plugins that export functions will be called with no argument to create the plugin. You can however pass a custom argument as well:
+
+```
+rollup -i input.js -f es -p 'terser={output: {beautify: true, indent_level: 2}}'
+```
 
 #### `-v`/`--version`
 
@@ -306,3 +348,25 @@ npm run build -- --environment BUILD:development
 ```
 
 then the config file will receive `process.env.INCLUDE_DEPS === 'true'` and `process.env.BUILD === 'development'`.
+
+#### `--no-stdin`
+
+Do not read files from `stdin`. Setting this flag will prevent piping content to Rollup and make sure Rollup interprets `-` as a regular file name instead of interpreting this as the name of `stdin`. See also [Reading a file from stdin](guide/en/#reading-a-file-from-stdin).
+
+### Reading a file from stdin
+
+When using the command line interface, Rollup can also read content from stdin:
+
+```
+echo "export const foo = 42;" | rollup --format cjs --file out.js
+```
+
+When this file contains imports, Rollup will try to resolve them relative to the current working directory. When a config file is used, Rollup will only use `stdin` as an entry point if the file name of the entry point is `-`. To read a non-entry-point file from stdin, just call it `-`, which is the file name that is used internally to reference `stdin`. I.e.
+
+```js
+import foo from "-";
+```
+
+in any file will prompt Rollup to try to read the imported file from `stdin` and assign the default export to `foo`. You can pass the [`--no-stdin`](guide/en/#--no-stdin) CLI flag to Rollup to treat `-` as a regular file name instead.
+
+The JavaScript API will always treat `-` as a regular file name.

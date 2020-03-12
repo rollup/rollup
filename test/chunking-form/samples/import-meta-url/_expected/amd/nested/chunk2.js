@@ -1,5 +1,5 @@
-define(['module', './chunk'], function (module, log) { 'use strict';
+define(['module', './chunk'], function (module, main) { 'use strict';
 
-	log.log('nested: ' + new URL(module.uri, document.baseURI).href);
+	main.log('nested: ' + new URL(module.uri, document.baseURI).href);
 
 });

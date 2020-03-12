@@ -4,7 +4,7 @@
 	(global = global || self, factory(global.Lib.throttle));
 }(this, (function (throttle) { 'use strict';
 
-	throttle = throttle && throttle.hasOwnProperty('default') ? throttle['default'] : throttle;
+	throttle = throttle && Object.prototype.hasOwnProperty.call(throttle, 'default') ? throttle['default'] : throttle;
 
 	const fn = throttle( () => {
 		console.log( '.' );

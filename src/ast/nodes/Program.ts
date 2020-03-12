@@ -9,9 +9,15 @@ export default class Program extends NodeBase {
 	sourceType!: 'module';
 	type!: NodeType.tProgram;
 
+	private hasCachedEffect = false;
+
 	hasEffects(context: HasEffectsContext) {
+		// We are caching here to later more efficiently identify side-effect-free modules
+		if (this.hasCachedEffect) return true;
 		for (const node of this.body) {
-			if (node.hasEffects(context)) return true;
+			if (node.hasEffects(context)) {
+				return (this.hasCachedEffect = true);
+			}
 		}
 		return false;
 	}

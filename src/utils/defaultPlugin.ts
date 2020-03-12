@@ -34,7 +34,7 @@ function findFile(file: string, preserveSymlinks: boolean): string | void {
 
 			if (files.indexOf(name) !== -1) return file;
 		}
-	} catch (err) {
+	} catch {
 		// suppress
 	}
 }
@@ -51,7 +51,7 @@ function addJsExtensionIfNecessary(file: string, preserveSymlinks: boolean) {
 function createResolveId(preserveSymlinks: boolean) {
 	return function(source: string, importer: string) {
 		if (typeof process === 'undefined') {
-			error({
+			return error({
 				code: 'MISSING_PROCESS',
 				message: `It looks like you're using Rollup in a non-Node.js environment. This means you must supply a plugin with custom resolveId and load functions`,
 				url: 'https://rollupjs.org/guide/en/#a-simple-example'

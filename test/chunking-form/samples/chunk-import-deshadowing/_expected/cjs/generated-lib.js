@@ -1,7 +1,7 @@
 'use strict';
 
-function emptyFunction () {
+function emptyFunction() {}
 
-}
+console.log('lib');
 
 exports.emptyFunction = emptyFunction;

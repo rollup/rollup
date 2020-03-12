@@ -3,7 +3,7 @@ System.register(['./m2.js', './generated-m1.js'], function () {
 	var ms;
 	return {
 		setters: [function () {}, function (module) {
-			ms = module.a;
+			ms = module.m;
 		}],
 		execute: function () {
 

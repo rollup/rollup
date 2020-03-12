@@ -18,7 +18,6 @@ describe('misc', () => {
 				]),
 				acornInjectPlugins: freeze([]),
 				acorn: freeze({}),
-				experimentalTopLevelAwait: true,
 				treeshake: freeze({})
 			})
 		);
@@ -134,12 +133,12 @@ describe('misc', () => {
 			.then(bundle =>
 				Promise.all([
 					bundle
-						.generate({ format: 'esm' })
+						.generate({ format: 'es' })
 						.then(generated =>
 							assert.equal(generated.output[0].code, "import 'the-answer';\n", 'no render path 1')
 						),
 					bundle
-						.generate({ format: 'esm', paths: id => `//unpkg.com/${id}@?module` })
+						.generate({ format: 'es', paths: id => `//unpkg.com/${id}@?module` })
 						.then(generated =>
 							assert.equal(
 								generated.output[0].code,
@@ -148,7 +147,7 @@ describe('misc', () => {
 							)
 						),
 					bundle
-						.generate({ format: 'esm' })
+						.generate({ format: 'es' })
 						.then(generated =>
 							assert.equal(generated.output[0].code, "import 'the-answer';\n", 'no render path 2')
 						)
@@ -165,7 +164,7 @@ describe('misc', () => {
 				})
 			],
 			output: {
-				format: 'esm'
+				format: 'es'
 			}
 		};
 

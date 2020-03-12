@@ -43,9 +43,10 @@ export default function umd(
 	const globalVar = options.compact ? 'g' : 'global';
 
 	if (hasExports && !options.name) {
-		error({
-			code: 'INVALID_OPTION',
-			message: 'You must supply "output.name" for UMD bundles.'
+		return error({
+			code: 'MISSING_NAME_OPTION_FOR_IIFE_EXPORT',
+			message:
+				'You must supply "output.name" for UMD bundles that have exports so that the exports are accessible in environments without a module loader.'
 		});
 	}
 
@@ -63,11 +64,11 @@ export default function umd(
 		cjsDeps.unshift(`exports`);
 		globalDeps.unshift(
 			assignToDeepVariable(
-				options.name as string,
+				options.name!,
 				globalVar,
 				options.globals as GlobalsOption,
-				options.compact as boolean,
-				`${options.extend ? `${globalProp(options.name as string, globalVar)}${_}||${_}` : ''}{}`
+				options.compact!,
+				`${options.extend ? `${globalProp(options.name!, globalVar)}${_}||${_}` : ''}{}`
 			)
 		);
 
@@ -92,10 +93,10 @@ export default function umd(
 
 		if (!namedExportsMode && hasExports) {
 			factory = `var ${noConflictExportsVar}${_}=${_}${assignToDeepVariable(
-				options.name as string,
+				options.name!,
 				globalVar,
-				options.globals as GlobalsOption,
-				options.compact as boolean,
+				options.globals,
+				options.compact,
 				`${factoryVar}(${globalDeps.join(`,${_}`)})`
 			)};`;
 		} else if (namedExportsMode) {
@@ -106,22 +107,21 @@ export default function umd(
 		}
 		iifeExport =
 			`(function${_}()${_}{${n}` +
-			`${t}${t}var current${_}=${_}${safeAccess(options.name as string, globalVar, _)};${n}` +
+			`${t}${t}var current${_}=${_}${safeAccess(options.name!, globalVar, _)};${n}` +
 			`${t}${t}${factory}${n}` +
 			`${t}${t}${noConflictExportsVar}.noConflict${_}=${_}function${_}()${_}{${_}` +
-			`${globalProp(
-				options.name as string,
-				globalVar
-			)}${_}=${_}current;${_}return ${noConflictExportsVar}${options.compact ? '' : '; '}};${n}` +
+			`${globalProp(options.name!, globalVar)}${_}=${_}current;${_}return ${noConflictExportsVar}${
+				options.compact ? '' : '; '
+			}};${n}` +
 			`${t}}())`;
 	} else {
 		iifeExport = `${factoryVar}(${globalDeps.join(`,${_}`)})`;
 		if (!namedExportsMode && hasExports) {
 			iifeExport = assignToDeepVariable(
-				options.name as string,
+				options.name!,
 				globalVar,
 				options.globals as GlobalsOption,
-				options.compact as boolean,
+				options.compact!,
 				iifeExport
 			);
 		}
@@ -158,8 +158,8 @@ export default function umd(
 		exports,
 		dependencies,
 		namedExportsMode,
-		options.interop as boolean,
-		options.compact as boolean,
+		options.interop,
+		options.compact,
 		t
 	);
 	if (exportBlock) magicString.append(n + n + exportBlock);

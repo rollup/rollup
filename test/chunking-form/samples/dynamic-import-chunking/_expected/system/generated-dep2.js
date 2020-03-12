@@ -1,4 +1,4 @@
-System.register(['./generated-dep4.js'], function (exports) {
+System.register(['./generated-main.js'], function (exports) {
   'use strict';
   var multiplier;
   return {

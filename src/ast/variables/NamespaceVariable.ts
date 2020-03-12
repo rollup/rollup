@@ -15,11 +15,13 @@ export default class NamespaceVariable extends Variable {
 	private containsExternalNamespace = false;
 	private referencedEarly = false;
 	private references: Identifier[] = [];
+	private syntheticNamedExports: boolean;
 
-	constructor(context: AstContext) {
+	constructor(context: AstContext, syntheticNamedExports: boolean) {
 		super(context.getModuleName());
 		this.context = context;
 		this.module = context.module;
+		this.syntheticNamedExports = syntheticNamedExports;
 	}
 
 	addReference(identifier: Identifier) {
@@ -40,14 +42,11 @@ export default class NamespaceVariable extends Variable {
 	include(context: InclusionContext) {
 		if (!this.included) {
 			if (this.containsExternalNamespace) {
-				this.context.error(
-					{
-						code: 'NAMESPACE_CANNOT_CONTAIN_EXTERNAL',
-						id: this.module.id,
-						message: `Cannot create an explicit namespace object for module "${this.context.getModuleName()}" because it contains a reexported external namespace`
-					},
-					undefined as any
-				);
+				return this.context.error({
+					code: 'NAMESPACE_CANNOT_CONTAIN_EXTERNAL',
+					id: this.module.id,
+					message: `Cannot create an explicit namespace object for module "${this.context.getModuleName()}" because it contains a reexported external namespace`
+				});
 			}
 			this.included = true;
 			for (const identifier of this.references) {
@@ -99,10 +98,15 @@ export default class NamespaceVariable extends Variable {
 		}
 
 		const name = this.getName();
+		let output = `{${n}${members.join(`,${n}`)}${n}}`;
+		if (this.syntheticNamedExports) {
+			output = `/*#__PURE__*/Object.assign(${output}, ${this.module.getDefaultExport().getName()})`;
+		}
+		if (options.freeze) {
+			output = `/*#__PURE__*/Object.freeze(${output})`;
+		}
 
-		const callee = options.freeze ? `/*#__PURE__*/Object.freeze` : '';
-		const membersStr = members.join(`,${n}`);
-		let output = `${options.varOrConst} ${name}${_}=${_}${callee}({${n}${membersStr}${n}});`;
+		output = `${options.varOrConst} ${name}${_}=${_}${output};`;
 
 		if (options.format === 'system' && this.exportName) {
 			output += `${n}exports('${this.exportName}',${_}${name});`;

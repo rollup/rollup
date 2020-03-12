@@ -31,12 +31,13 @@ export function renderNamePattern(
 }
 
 export function makeUnique(name: string, existingNames: Record<string, any>) {
-	if (name in existingNames === false) return name;
+	const existingNamesLowercase = new Set(Object.keys(existingNames).map(key => key.toLowerCase()));
+	if (!existingNamesLowercase.has(name.toLocaleLowerCase())) return name;
 
 	const ext = extname(name);
 	name = name.substr(0, name.length - ext.length);
 	let uniqueName,
 		uniqueIndex = 1;
-	while (existingNames[(uniqueName = name + ++uniqueIndex + ext)]);
+	while (existingNamesLowercase.has((uniqueName = name + ++uniqueIndex + ext).toLowerCase()));
 	return uniqueName;
 }

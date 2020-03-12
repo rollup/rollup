@@ -1,5 +1,6 @@
 module.exports = {
 	description: 'allows to configure file urls',
+	expectedWarnings: ['DEPRECATED_FEATURE'],
 	options: {
 		strictDeprecations: false,
 		output: {

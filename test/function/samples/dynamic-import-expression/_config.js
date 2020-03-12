@@ -5,7 +5,7 @@ module.exports = {
 	options: {
 		plugins: [
 			{
-				resolveDynamicImport(specifier, parent) {
+				resolveDynamicImport(specifier) {
 					if (typeof specifier !== 'string') {
 						// string literal concatenation
 						if (

@@ -1,6 +1,6 @@
 define(['factory', 'baz', 'shipping-port', 'alphabet'], function (factory, baz, containers, alphabet) { 'use strict';
 
-	factory = factory && factory.hasOwnProperty('default') ? factory['default'] : factory;
+	factory = factory && Object.prototype.hasOwnProperty.call(factory, 'default') ? factory['default'] : factory;
 	var alphabet__default = 'default' in alphabet ? alphabet['default'] : alphabet;
 
 	factory( null );

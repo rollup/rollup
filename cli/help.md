@@ -9,13 +9,14 @@ Basic options:
                               is unspecified, defaults to rollup.config.js)
 -d, --dir <dirname>         Directory for chunks (if absent, prints to stdout)
 -e, --external <ids>        Comma-separate list of module IDs to exclude
--f, --format <format>       Type of output (amd, cjs, esm, iife, umd)
+-f, --format <format>       Type of output (amd, cjs, es, iife, umd, system)
 -g, --globals <pairs>       Comma-separate list of `moduleID:Global` pairs
 -h, --help                  Show this help message
 -i, --input <filename>      Input (alternative to <entry file>)
 -m, --sourcemap             Generate sourcemap (`-m inline` for inline map)
 -n, --name <name>           Name for UMD export
 -o, --file <output>         Single output file (if absent, prints to stdout)
+-p, --plugin <plugin>       Use the plugin specified (may be repeated)
 -v, --version               Show version number
 -w, --watch                 Watch files in bundle and rebuild on changes
 --amd.id <id>               ID for AMD module (default is anonymous)
@@ -31,8 +32,10 @@ Basic options:
 --no-esModule               Do not add __esModule property
 --exports <mode>            Specify export mode (auto, default, named, none)
 --extend                    Extend global variable defined by --name
+--no-externalLiveBindings   Do not generate code to support live bindings
 --footer <text>             Code to insert at end of bundle (outside wrapper)
 --no-freeze                 Do not freeze namespace objects
+--no-hoistTransitiveImports Do not hoist transitive imports into entry chunks
 --no-indent                 Don't indent result
 --no-interop                Do not include interop block
 --inlineDynamicImports      Create single bundle when using dynamic imports
@@ -48,11 +51,11 @@ Basic options:
 --silent                    Don't print warnings
 --sourcemapExcludeSources   Do not include source code in source maps
 --sourcemapFile <file>      Specify bundle position for source maps
+--no-stdin                  do not read "-" from stdin
 --strictDeprecations        Throw errors for deprecated features
 --no-treeshake              Disable tree-shaking optimisations
 --no-treeshake.annotations  Ignore pure call annotations
 --no-treeshake.propertyReadSideEffects Ignore property access side-effects
---treeshake.pureExternalModules        Assume side-effect free externals
 
 Examples:
 

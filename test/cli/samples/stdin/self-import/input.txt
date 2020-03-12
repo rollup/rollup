@@ -1,0 +1,10 @@
+import a from "-";
+import { b as c } from "-";
+
+export let b = 2;
+export default 4;
+
+if (a > c)
+	console.log(a, c);
+else
+	console.log(c, a);

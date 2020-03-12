@@ -1,10 +1,11 @@
-define(['exports', './generated-dep'], function (exports, dep) { 'use strict';
+define(['exports'], function (exports) { 'use strict';
+
+	var value = 42;
 
 	const id = 'emitted';
-	console.log(id, dep.value);
+	console.log(id, value);
 
 	exports.id = id;
-
-	Object.defineProperty(exports, '__esModule', { value: true });
+	exports.value = value;
 
 });

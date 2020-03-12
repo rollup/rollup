@@ -17,7 +17,7 @@ describe('The bundle object', () => {
 			})
 			.then(bundle =>
 				bundle.generate({
-					format: 'esm',
+					format: 'es',
 					dir: 'dist',
 					chunkFileNames: 'generated-[name]-[hash].js',
 					entryFileNames: '[name]-[hash].js'
@@ -38,9 +38,21 @@ describe('The bundle object', () => {
 					],
 					'code'
 				);
-				assert.deepEqual(output.map(chunk => chunk.map), [null, null, null], 'map');
-				assert.deepEqual(output.map(chunk => chunk.isEntry), [true, true, false], 'isEntry');
-				assert.deepEqual(output.map(chunk => chunk.name), ['input1', 'input2', 'shared'], 'name');
+				assert.deepEqual(
+					output.map(chunk => chunk.map),
+					[null, null, null],
+					'map'
+				);
+				assert.deepEqual(
+					output.map(chunk => chunk.isEntry),
+					[true, true, false],
+					'isEntry'
+				);
+				assert.deepEqual(
+					output.map(chunk => chunk.name),
+					['input1', 'input2', 'shared'],
+					'name'
+				);
 				assert.deepEqual(
 					output.map(chunk => chunk.facadeModuleId),
 					['input1', 'input2', null],
@@ -51,8 +63,16 @@ describe('The bundle object', () => {
 					[['generated-shared-f6027271.js'], ['generated-shared-f6027271.js'], []],
 					'imports'
 				);
-				assert.deepEqual(output.map(chunk => chunk.dynamicImports), [[], [], []], 'dynamicImports');
-				assert.deepEqual(output.map(chunk => chunk.exports), [['out'], ['default'], []], 'exports');
+				assert.deepEqual(
+					output.map(chunk => chunk.dynamicImports),
+					[[], [], []],
+					'dynamicImports'
+				);
+				assert.deepEqual(
+					output.map(chunk => chunk.exports),
+					[['out'], ['default'], []],
+					'exports'
+				);
 				assert.deepEqual(
 					output.map(chunk => chunk.modules),
 					[
@@ -94,14 +114,14 @@ describe('The bundle object', () => {
 					loader({
 						input1:
 							'import {shared} from "shared";import {input2} from "input2";console.log(input2, shared);',
-						input2: 'import {shared} from "shared";export const input2 = "input2";',
+						input2: 'import {shared} from "shared";export const input2 = shared + "input2";',
 						shared: 'export const shared = "shared"'
 					})
 				]
 			})
 			.then(bundle =>
 				bundle.generate({
-					format: 'esm',
+					format: 'es',
 					dir: 'dist',
 					chunkFileNames: 'generated-[name].js'
 				})
@@ -117,7 +137,11 @@ describe('The bundle object', () => {
 					[['input1'], [], ['shared', 'input2']],
 					'modules'
 				);
-				assert.deepEqual(output.map(chunk => chunk.isEntry), [true, true, false], 'isEntry');
+				assert.deepEqual(
+					output.map(chunk => chunk.isEntry),
+					[true, true, false],
+					'isEntry'
+				);
 				assert.deepEqual(
 					output.map(chunk => chunk.facadeModuleId),
 					['input1', 'input2', null],
@@ -134,14 +158,14 @@ describe('The bundle object', () => {
 					loader({
 						input1:
 							'import {shared} from "shared";import {input2} from "input2";console.log(input2, shared);',
-						input2: 'import {shared} from "shared";export const input2 = "input2";',
+						input2: 'import {shared} from "shared";export const input2 = shared + "input2";',
 						shared: 'export const shared = "shared"'
 					})
 				]
 			})
 			.then(bundle =>
 				bundle.generate({
-					format: 'esm',
+					format: 'es',
 					dir: 'dist',
 					entryFileNames: '[name].js',
 					chunkFileNames: '[name].js'
@@ -175,7 +199,7 @@ describe('The bundle object', () => {
 			})
 			.then(bundle =>
 				bundle.generate({
-					format: 'esm',
+					format: 'es',
 					dir: 'dist',
 					entryFileNames: '[name].js',
 					chunkFileNames: 'generated-[name].js'
@@ -187,7 +211,11 @@ describe('The bundle object', () => {
 					['input.js', 'dynamic1.js', 'generated-dynamic2.js'],
 					'fileName'
 				);
-				assert.deepEqual(output.map(chunk => chunk.isEntry), [true, true, false], 'isEntry');
+				assert.deepEqual(
+					output.map(chunk => chunk.isEntry),
+					[true, true, false],
+					'isEntry'
+				);
 				assert.deepEqual(
 					output.map(chunk => chunk.code),
 					[
@@ -230,7 +258,7 @@ describe('The bundle object', () => {
 			})
 			.then(bundle =>
 				bundle.generate({
-					format: 'esm',
+					format: 'es',
 					dir: 'dist',
 					entryFileNames: '[name].js',
 					chunkFileNames: 'generated-[name].js'
@@ -278,16 +306,28 @@ describe('The bundle object', () => {
 			})
 			.then(bundle =>
 				bundle.generate({
-					format: 'esm',
+					format: 'es',
 					dir: 'dist',
 					entryFileNames: '[name].js',
 					chunkFileNames: 'generated-[name].js'
 				})
 			)
 			.then(({ output }) => {
-				assert.deepEqual(output.map(chunk => chunk.fileName), ['input.js'], 'fileName');
-				assert.deepEqual(output.map(chunk => chunk.imports), [[]], 'imports');
-				assert.deepEqual(output.map(chunk => chunk.dynamicImports), [[]], 'dynamicImports');
+				assert.deepEqual(
+					output.map(chunk => chunk.fileName),
+					['input.js'],
+					'fileName'
+				);
+				assert.deepEqual(
+					output.map(chunk => chunk.imports),
+					[[]],
+					'imports'
+				);
+				assert.deepEqual(
+					output.map(chunk => chunk.dynamicImports),
+					[[]],
+					'dynamicImports'
+				);
 				assert.deepEqual(
 					output.map(chunk => chunk.modules),
 					[
@@ -321,7 +361,7 @@ describe('The bundle object', () => {
 			})
 			.then(bundle =>
 				bundle.generate({
-					format: 'esm',
+					format: 'es',
 					dir: 'dist',
 					entryFileNames: '[name].js',
 					chunkFileNames: 'generated-[name].js'
@@ -333,13 +373,17 @@ describe('The bundle object', () => {
 					['_virtual/input', '_virtual/dynamic1', '_virtual/other', '_virtual/dynamic2'],
 					'fileName'
 				);
-				assert.deepEqual(output.map(chunk => chunk.isEntry), [true, true, false, false], 'isEntry');
+				assert.deepEqual(
+					output.map(chunk => chunk.isEntry),
+					[true, true, false, false],
+					'isEntry'
+				);
 				assert.deepEqual(
 					output.map(chunk => chunk.code),
 					[
-						`import { other } from './other';
+						`import { other as other$1 } from './other';
 
-console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));\n`,
+console.log(other$1);Promise.all([import('./dynamic1'), import('./dynamic2')]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));\n`,
 						'const dynamic1 = "dynamic1";\n\nexport { dynamic1 };\n',
 						'const other = "other";\n\nexport { other };\n',
 						'const dynamic2 = "dynamic2";\n\nexport { dynamic2 };\n'
@@ -374,7 +418,7 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 								originalLength: 169,
 								removedExports: [],
 								renderedExports: [],
-								renderedLength: 141
+								renderedLength: 143
 							}
 						},
 						{
@@ -423,7 +467,8 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 				input: ['input'],
 				plugins: [
 					loader({
-						input: '/* removed header */ export { renderedFn, renderedClass, renderedConst } from "code"',
+						input:
+							'/* removed header */ export { renderedFn, renderedClass, renderedConst } from "code"',
 						code:
 							'export function renderedFn() {}\nexport function removedFn() {}\n' +
 							'export class renderedClass {}\nexport class removedClass {}\n' +
@@ -433,7 +478,7 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 			})
 			.then(bundle =>
 				bundle.generate({
-					format: 'esm'
+					format: 'es'
 				})
 			)
 			.then(({ output: [output] }) => {
@@ -485,7 +530,7 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 			})
 			.then(bundle =>
 				bundle.generate({
-					format: 'esm'
+					format: 'es'
 				})
 			)
 			.then(({ output: [output] }) => {

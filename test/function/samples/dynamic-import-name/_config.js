@@ -18,7 +18,7 @@ module.exports = {
 		},
 		output: {
 			dynamicImportFunction: 'myImporter',
-			format: 'esm'
+			format: 'es'
 		}
 	},
 	exports() {

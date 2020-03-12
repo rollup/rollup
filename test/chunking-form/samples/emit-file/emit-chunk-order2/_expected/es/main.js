@@ -1,5 +1,4 @@
-import { v as value } from './generated-dep.js';
-import { id } from './generated-emitted.js';
+import { i as id, v as value } from './generated-emitted.js';
 
 console.log(id);
 

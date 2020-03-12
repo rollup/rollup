@@ -1,5 +1,4 @@
-import { v as value } from './generated-dep.js';
-import { id } from './custom/build-start-chunk.js';
+import { i as id, v as value } from './generated-buildStart.js';
 
 console.log(id);
 

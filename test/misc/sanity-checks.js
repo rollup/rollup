@@ -27,7 +27,7 @@ describe('sanity checks', () => {
 		return rollup
 			.rollup({
 				input: 'x',
-				plugins: [loader({ x: `console.log( 42 );` }), { ongenerate() {} }],
+				plugins: [loader({ x: `eval(42);` })],
 				onwarn(warning, onwarn) {
 					args = [warning, onwarn];
 				}
@@ -36,10 +36,10 @@ describe('sanity checks', () => {
 				return bundle.generate({ format: 'es' });
 			})
 			.then(() => {
-				assert.equal(args[0].code, 'DEPRECATED_FEATURE');
+				assert.equal(args[0].code, 'EVAL');
 				assert.equal(
 					args[0].message,
-					'The "ongenerate" hook used by plugin at position 2 is deprecated. The "generateBundle" hook should be used instead.'
+					'Use of eval is strongly discouraged, as it poses security risks and may cause issues with minification'
 				);
 				assert.equal(typeof args[1], 'function');
 			});
@@ -53,22 +53,6 @@ describe('sanity checks', () => {
 			})
 			.catch(err => {
 				assert.equal(err.message, 'You must supply options.input to rollup');
-			});
-	});
-
-	it('fails with invalid keys', () => {
-		const warnings = [];
-		const onwarn = warning => warnings.push(warning);
-		return rollup
-			.rollup({ input: 'x', onwarn, plUgins: [], plugins: [loader({ x: `console.log( 42 );` })] })
-			.then(() => {
-				assert.deepEqual(warnings, [
-					{
-						code: 'UNKNOWN_OPTION',
-						message:
-							'Unknown input option: plUgins. Allowed options: ' + require('./optionList').input
-					}
-				]);
 			});
 	});
 
@@ -111,7 +95,7 @@ describe('sanity checks', () => {
 			});
 	});
 
-	it('throws on missing format option', () => {
+	it('throws on incorrect bundle.generate format option', () => {
 		const warnings = [];
 
 		return rollup
@@ -122,8 +106,25 @@ describe('sanity checks', () => {
 			})
 			.then(bundle => {
 				assert.throws(() => {
-					bundle.generate({ file: 'x' });
-				}, /You must specify "output\.format", which can be one of "amd", "cjs", "system", "esm", "iife" or "umd"./);
+					bundle.generate({ file: 'x', format: 'vanilla' });
+				}, /You must specify "output\.format", which can be one of "amd", "cjs", "system", "es", "iife" or "umd"./);
+			});
+	});
+
+	it('defaults to output format `es` if not specified', () => {
+		const warnings = [];
+
+		return rollup
+			.rollup({
+				input: 'x',
+				plugins: [loader({ x: `export function foo(x){ console.log(x); }` })],
+				onwarn: warning => warnings.push(warning)
+			})
+			.then(bundle => {
+				return bundle.generate({});
+			})
+			.then(({ output: [{ code }] }) => {
+				assert.equal(code, `function foo(x){ console.log(x); }\n\nexport { foo };\n`);
 			});
 	});
 
@@ -167,7 +168,7 @@ describe('sanity checks', () => {
 			.then(bundle => {
 				assert.throws(() => {
 					bundle.generate({ file: 'x', format: 'es' });
-				}, /You must set "output\.dir" instead of "output\.file" when generating multiple chunks\./);
+				}, /When building multiple chunks, the "output\.dir" option must be used, not "output\.file"\. To inline dynamic imports, set the "inlineDynamicImports" option\./);
 			});
 	});
 
@@ -195,7 +196,7 @@ describe('sanity checks', () => {
 			.then(bundle => {
 				assert.throws(() => {
 					bundle.generate({ file: 'x', format: 'es' });
-				}, /You must set "output\.dir" instead of "output\.file" when generating multiple chunks\./);
+				}, /When building multiple chunks, the "output\.dir" option must be used, not "output\.file"\. To inline dynamic imports, set the "inlineDynamicImports" option\./);
 			});
 	});
 

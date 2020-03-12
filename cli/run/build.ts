@@ -1,7 +1,7 @@
+import color from 'colorette';
 import ms from 'pretty-ms';
-import tc from 'turbocolor';
 import * as rollup from '../../src/node-entry';
-import { InputOptions, OutputOptions, RollupBuild, SourceMap } from '../../src/rollup/types';
+import { InputOptions, OutputOptions, RollupBuild } from '../../src/rollup/types';
 import relativeId from '../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
 import SOURCEMAPPING_URL from '../sourceMappingUrl';
@@ -13,15 +13,13 @@ export default function build(
 	outputOptions: OutputOptions[],
 	warnings: BatchWarnings,
 	silent = false
-) {
+): Promise<unknown> {
 	const useStdout = !outputOptions[0].file && !outputOptions[0].dir;
 
 	const start = Date.now();
-	const files = useStdout
-		? ['stdout']
-		: outputOptions.map(t => relativeId(t.file || (t.dir as string)));
+	const files = useStdout ? ['stdout'] : outputOptions.map(t => relativeId(t.file || t.dir!));
 	if (!silent) {
-		let inputFiles: string = undefined as any;
+		let inputFiles: string | undefined;
 		if (typeof inputOptions.input === 'string') {
 			inputFiles = inputOptions.input;
 		} else if (inputOptions.input instanceof Array) {
@@ -31,7 +29,7 @@ export default function build(
 				.map(name => (inputOptions.input as Record<string, string>)[name])
 				.join(', ');
 		}
-		stderr(tc.cyan(`\n${tc.bold(inputFiles)} → ${tc.bold(files.join(', '))}...`));
+		stderr(color.cyan(`\n${color.bold(inputFiles!)} → ${color.bold(files.join(', '))}...`));
 	}
 
 	return rollup
@@ -48,41 +46,34 @@ export default function build(
 
 				return bundle.generate(output).then(({ output: outputs }) => {
 					for (const file of outputs) {
-						let source: string | Buffer;
+						let source: string | Uint8Array;
 						if (file.type === 'asset') {
 							source = file.source;
 						} else {
 							source = file.code;
 							if (output.sourcemap === 'inline') {
-								source += `\n//# ${SOURCEMAPPING_URL}=${(file
-									.map as SourceMap).toUrl()}\n`;
+								source += `\n//# ${SOURCEMAPPING_URL}=${file.map!.toUrl()}\n`;
 							}
 						}
 						if (outputs.length > 1)
-							process.stdout.write('\n' + tc.cyan(tc.bold('//→ ' + file.fileName + ':')) + '\n');
+							process.stdout.write('\n' + color.cyan(color.bold('//→ ' + file.fileName + ':')) + '\n');
 						process.stdout.write(source);
 					}
-					return null
+					return null;
 				});
 			}
 
-			return Promise.all(outputOptions.map(output => bundle.write(output) as Promise<any>)).then(
-				() => bundle
-			);
+			return Promise.all(outputOptions.map(output => bundle.write(output))).then(() => bundle);
 		})
 		.then((bundle: RollupBuild | null) => {
 			if (!silent) {
 				warnings.flush();
 				stderr(
-					tc.green(`created ${tc.bold(files.join(', '))} in ${tc.bold(ms(Date.now() - start))}`)
+					color.green(`created ${color.bold(files.join(', '))} in ${color.bold(ms(Date.now() - start))}`)
 				);
 				if (bundle && bundle.getTimings) {
 					printTimings(bundle.getTimings());
 				}
 			}
-		})
-		.catch((err: Error) => {
-			warnings.flush();
-			handleError(err);
 		});
 }

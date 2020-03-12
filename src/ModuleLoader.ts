@@ -1,4 +1,4 @@
-import * as ESTree from 'estree';
+import * as acorn from 'acorn';
 import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import Module from './Module';
@@ -17,6 +17,7 @@ import {
 	errBadLoader,
 	errCannotAssignModuleToChunk,
 	errEntryCannotBeExternal,
+	errExternalSyntheticExports,
 	errInternalIdCannotBeExternal,
 	errInvalidOption,
 	errNamespaceConflict,
@@ -208,7 +209,7 @@ export class ModuleLoader {
 
 	private addModuleToManualChunk(alias: string, module: Module) {
 		if (module.manualChunkAlias !== null && module.manualChunkAlias !== alias) {
-			error(errCannotAssignModuleToChunk(module.id, alias, module.manualChunkAlias));
+			return error(errCannotAssignModuleToChunk(module.id, alias, module.manualChunkAlias));
 		}
 		module.manualChunkAlias = alias;
 		if (!this.manualChunkModules[alias]) {
@@ -243,27 +244,25 @@ export class ModuleLoader {
 					module.id,
 					(module.resolvedIds[source] =
 						module.resolvedIds[source] ||
-						this.handleMissingImports(await this.resolveId(source, module.id), source, module.id))
+						this.handleResolveId(await this.resolveId(source, module.id), source, module.id))
 				)
 			) as Promise<unknown>[]),
 			...module.getDynamicImportExpressions().map((specifier, index) =>
-				this.resolveDynamicImport(module, specifier as string | ESTree.Node, module.id).then(
-					resolvedId => {
-						if (resolvedId === null) return;
-						const dynamicImport = module.dynamicImports[index];
-						if (typeof resolvedId === 'string') {
-							dynamicImport.resolution = resolvedId;
-							return;
-						}
-						return this.fetchResolvedDependency(
-							relativeId(resolvedId.id),
-							module.id,
-							resolvedId
-						).then(module => {
-							dynamicImport.resolution = module;
-						});
+				this.resolveDynamicImport(module, specifier, module.id).then(resolvedId => {
+					if (resolvedId === null) return;
+					const dynamicImport = module.dynamicImports[index];
+					if (typeof resolvedId === 'string') {
+						dynamicImport.resolution = resolvedId;
+						return;
 					}
-				)
+					return this.fetchResolvedDependency(
+						relativeId(resolvedId.id),
+						module.id,
+						resolvedId
+					).then(module => {
+						dynamicImport.resolution = module;
+					});
+				})
 			)
 		]);
 	}
@@ -272,6 +271,7 @@ export class ModuleLoader {
 		id: string,
 		importer: string,
 		moduleSideEffects: boolean,
+		syntheticNamedExports: boolean,
 		isEntry: boolean
 	): Promise<Module> {
 		const existingModule = this.modulesById.get(id);
@@ -280,7 +280,13 @@ export class ModuleLoader {
 			return Promise.resolve(existingModule);
 		}
 
-		const module: Module = new Module(this.graph, id, moduleSideEffects, isEntry);
+		const module: Module = new Module(
+			this.graph,
+			id,
+			moduleSideEffects,
+			syntheticNamedExports,
+			isEntry
+		);
 		this.modulesById.set(id, module);
 		this.graph.watchFiles[id] = true;
 		const manualChunkAlias = this.getManualChunk(id);
@@ -321,6 +327,9 @@ export class ModuleLoader {
 				if (typeof sourceDescription.moduleSideEffects === 'boolean') {
 					module.moduleSideEffects = sourceDescription.moduleSideEffects;
 				}
+				if (typeof sourceDescription.syntheticNamedExports === 'boolean') {
+					module.syntheticNamedExports = sourceDescription.syntheticNamedExports;
+				}
 				return transform(this.graph, sourceDescription, module);
 			})
 			.then((source: TransformModuleJSON | ModuleJSON) => {
@@ -338,11 +347,11 @@ export class ModuleLoader {
 						const exportAllModule = this.modulesById.get(id);
 						if (exportAllModule instanceof ExternalModule) continue;
 
-						for (const name in (exportAllModule as Module).exportsAll) {
+						for (const name in exportAllModule!.exportsAll) {
 							if (name in module.exportsAll) {
-								this.graph.warn(errNamespaceConflict(name, module, exportAllModule as Module));
+								this.graph.warn(errNamespaceConflict(name, module, exportAllModule!));
 							} else {
-								module.exportsAll[name] = (exportAllModule as Module).exportsAll[name];
+								module.exportsAll[name] = exportAllModule!.exportsAll[name];
 							}
 						}
 					}
@@ -370,25 +379,36 @@ export class ModuleLoader {
 			}
 			return Promise.resolve(externalModule);
 		} else {
-			return this.fetchModule(resolvedId.id, importer, resolvedId.moduleSideEffects, false);
+			return this.fetchModule(
+				resolvedId.id,
+				importer,
+				resolvedId.moduleSideEffects,
+				resolvedId.syntheticNamedExports,
+				false
+			);
 		}
 	}
 
-	private handleMissingImports(
+	private handleResolveId(
 		resolvedId: ResolvedId | null,
 		source: string,
 		importer: string
 	): ResolvedId {
 		if (resolvedId === null) {
 			if (isRelative(source)) {
-				error(errUnresolvedImport(source, importer));
+				return error(errUnresolvedImport(source, importer));
 			}
 			this.graph.warn(errUnresolvedImportTreatedAsExternal(source, importer));
 			return {
 				external: true,
 				id: source,
-				moduleSideEffects: this.hasModuleSideEffects(source, true)
+				moduleSideEffects: this.hasModuleSideEffects(source, true),
+				syntheticNamedExports: false
 			};
+		} else {
+			if (resolvedId.external && resolvedId.syntheticNamedExports) {
+				this.graph.warn(errExternalSyntheticExports(source, importer));
+			}
 		}
 		return resolvedId;
 	}
@@ -407,7 +427,7 @@ export class ModuleLoader {
 					: resolveIdResult;
 
 			if (typeof id === 'string') {
-				return this.fetchModule(id, undefined as any, true, isEntry);
+				return this.fetchModule(id, undefined as any, true, false, isEntry);
 			}
 			return error(errUnresolvedEntry(unresolvedId));
 		});
@@ -420,6 +440,7 @@ export class ModuleLoader {
 		let id = '';
 		let external = false;
 		let moduleSideEffects = null;
+		let syntheticNamedExports = false;
 		if (resolveIdResult) {
 			if (typeof resolveIdResult === 'object') {
 				id = resolveIdResult.id;
@@ -428,6 +449,9 @@ export class ModuleLoader {
 				}
 				if (typeof resolveIdResult.moduleSideEffects === 'boolean') {
 					moduleSideEffects = resolveIdResult.moduleSideEffects;
+				}
+				if (typeof resolveIdResult.syntheticNamedExports === 'boolean') {
+					syntheticNamedExports = resolveIdResult.syntheticNamedExports;
 				}
 			} else {
 				if (this.isExternal(resolveIdResult, importer, true)) {
@@ -448,13 +472,14 @@ export class ModuleLoader {
 			moduleSideEffects:
 				typeof moduleSideEffects === 'boolean'
 					? moduleSideEffects
-					: this.hasModuleSideEffects(id, external)
+					: this.hasModuleSideEffects(id, external),
+			syntheticNamedExports
 		};
 	}
 
 	private async resolveDynamicImport(
 		module: Module,
-		specifier: string | ESTree.Node,
+		specifier: string | acorn.Node,
 		importer: string
 	): Promise<ResolvedId | string | null> {
 		// TODO we only should expose the acorn AST here
@@ -478,13 +503,9 @@ export class ModuleLoader {
 		if (resolution == null) {
 			return (module.resolvedIds[specifier] =
 				module.resolvedIds[specifier] ||
-				this.handleMissingImports(
-					await this.resolveId(specifier, module.id),
-					specifier,
-					module.id
-				));
+				this.handleResolveId(await this.resolveId(specifier, module.id), specifier, module.id));
 		}
-		return this.handleMissingImports(
+		return this.handleResolveId(
 			this.normalizeResolveIdResult(resolution, importer, specifier),
 			specifier,
 			importer

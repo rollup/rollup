@@ -1,21 +1,17 @@
 import * as acorn from 'acorn';
 import injectExportNsFrom from 'acorn-export-ns-from';
 import injectImportMeta from 'acorn-import-meta';
-import * as ESTree from 'estree';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { PathTracker } from './ast/utils/PathTracker';
-import Chunk, { isChunkRendered } from './Chunk';
+import Chunk from './Chunk';
 import ExternalModule from './ExternalModule';
 import Module, { defaultAcornOptions } from './Module';
 import { ModuleLoader, UnresolvedModule } from './ModuleLoader';
 import {
-	ExternalOption,
 	GetManualChunk,
 	InputOptions,
 	ManualChunksOption,
 	ModuleJSON,
-	ModuleSideEffectsOption,
-	PureModulesOption,
 	RollupCache,
 	RollupWarning,
 	RollupWatcher,
@@ -24,25 +20,13 @@ import {
 	WarningHandler
 } from './rollup/types';
 import { BuildPhase } from './utils/buildPhase';
-import { assignChunkColouringHashes } from './utils/chunkColouring';
-import { Uint8ArrayToHexString } from './utils/entryHashing';
+import { getChunkAssignments } from './utils/chunkAssignment';
 import { errDeprecation, error } from './utils/error';
 import { analyseModuleExecution, sortByExecutionOrder } from './utils/executionOrder';
 import { resolve } from './utils/path';
 import { PluginDriver } from './utils/PluginDriver';
 import relativeId from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
-
-function makeOnwarn() {
-	const warned = Object.create(null);
-
-	return (warning: any) => {
-		const str = warning.toString();
-		if (str in warned) return;
-		console.error(str);
-		warned[str] = true;
-	};
-}
 
 function normalizeEntryModules(
 	entryModules: string | string[] | Record<string, string>
@@ -64,7 +48,7 @@ export default class Graph {
 	acornOptions: acorn.Options;
 	acornParser: typeof acorn.Parser;
 	cachedModules: Map<string, ModuleJSON>;
-	contextParse: (code: string, acornOptions?: acorn.Options) => ESTree.Program;
+	contextParse: (code: string, acornOptions?: acorn.Options) => acorn.Node;
 	deoptimizationTracker: PathTracker;
 	getModuleContext: (id: string) => string;
 	moduleById = new Map<string, Module | ExternalModule>();
@@ -86,8 +70,8 @@ export default class Graph {
 	private pluginCache?: Record<string, SerializablePluginCache>;
 	private strictDeprecations: boolean;
 
-	constructor(options: InputOptions, watcher?: RollupWatcher) {
-		this.onwarn = (options.onwarn as WarningHandler) || makeOnwarn();
+	constructor(options: InputOptions, watcher: RollupWatcher | null) {
+		this.onwarn = options.onwarn as WarningHandler;
 		this.deoptimizationTracker = new PathTracker();
 		this.cachedModules = new Map();
 		if (options.cache) {
@@ -103,35 +87,33 @@ export default class Graph {
 				for (const key of Object.keys(cache)) cache[key][0]++;
 			}
 		}
-		this.preserveModules = options.preserveModules as boolean;
-		this.strictDeprecations = options.strictDeprecations as boolean;
+		this.preserveModules = options.preserveModules!;
+		this.strictDeprecations = options.strictDeprecations!;
 
-		this.cacheExpiry = options.experimentalCacheExpiry as number;
+		this.cacheExpiry = options.experimentalCacheExpiry!;
 
 		if (options.treeshake !== false) {
-			this.treeshakingOptions = options.treeshake
-				? {
-						annotations: (options.treeshake as TreeshakingOptions).annotations !== false,
-						moduleSideEffects: (options.treeshake as TreeshakingOptions).moduleSideEffects,
-						propertyReadSideEffects:
-							(options.treeshake as TreeshakingOptions).propertyReadSideEffects !== false,
-						pureExternalModules: (options.treeshake as TreeshakingOptions).pureExternalModules,
-						tryCatchDeoptimization:
-							(options.treeshake as TreeshakingOptions).tryCatchDeoptimization !== false,
-						unknownGlobalSideEffects:
-							(options.treeshake as TreeshakingOptions).unknownGlobalSideEffects !== false
-				  }
-				: {
-						annotations: true,
-						moduleSideEffects: true,
-						propertyReadSideEffects: true,
-						tryCatchDeoptimization: true,
-						unknownGlobalSideEffects: true
-				  };
+			this.treeshakingOptions =
+				options.treeshake && options.treeshake !== true
+					? {
+							annotations: options.treeshake.annotations !== false,
+							moduleSideEffects: options.treeshake.moduleSideEffects,
+							propertyReadSideEffects: options.treeshake.propertyReadSideEffects !== false,
+							pureExternalModules: options.treeshake.pureExternalModules,
+							tryCatchDeoptimization: options.treeshake.tryCatchDeoptimization !== false,
+							unknownGlobalSideEffects: options.treeshake.unknownGlobalSideEffects !== false
+					  }
+					: {
+							annotations: true,
+							moduleSideEffects: true,
+							propertyReadSideEffects: true,
+							tryCatchDeoptimization: true,
+							unknownGlobalSideEffects: true
+					  };
 			if (typeof this.treeshakingOptions.pureExternalModules !== 'undefined') {
 				this.warnDeprecation(
 					`The "treeshake.pureExternalModules" option is deprecated. The "treeshake.moduleSideEffects" option should be used instead. "treeshake.pureExternalModules: true" is equivalent to "treeshake.moduleSideEffects: 'no-external'"`,
-					false
+					true
 				);
 			}
 		}
@@ -141,14 +123,13 @@ export default class Graph {
 				...defaultAcornOptions,
 				...options,
 				...this.acornOptions
-			}) as any;
+			});
 
 		this.pluginDriver = new PluginDriver(
 			this,
-			options.plugins as Plugin[],
+			options.plugins!,
 			this.pluginCache,
-			options.preserveSymlinks === true,
-			watcher
+			options.preserveSymlinks === true
 		);
 
 		if (watcher) {
@@ -181,9 +162,7 @@ export default class Graph {
 
 		acornPluginsToInject.push(injectImportMeta, injectExportNsFrom);
 
-		if (options.experimentalTopLevelAwait) {
-			(this.acornOptions as any).allowAwaitOutsideFunction = true;
-		}
+		(this.acornOptions as any).allowAwaitOutsideFunction = true;
 
 		const acornInjectPlugins = options.acornInjectPlugins;
 		acornPluginsToInject.push(
@@ -193,19 +172,15 @@ export default class Graph {
 				? [acornInjectPlugins]
 				: [])
 		);
-		this.acornParser = acorn.Parser.extend(...acornPluginsToInject) as any;
+		this.acornParser = acorn.Parser.extend(...acornPluginsToInject);
 		this.moduleLoader = new ModuleLoader(
 			this,
 			this.moduleById,
 			this.pluginDriver,
-			options.external as ExternalOption,
+			options.external!,
 			(typeof options.manualChunks === 'function' && options.manualChunks) as GetManualChunk | null,
-			(this.treeshakingOptions
-				? this.treeshakingOptions.moduleSideEffects
-				: null) as ModuleSideEffectsOption,
-			(this.treeshakingOptions
-				? this.treeshakingOptions.pureExternalModules
-				: false) as PureModulesOption
+			(this.treeshakingOptions ? this.treeshakingOptions.moduleSideEffects : null)!,
+			(this.treeshakingOptions ? this.treeshakingOptions.pureExternalModules : false)!
 		);
 	}
 
@@ -251,13 +226,6 @@ export default class Graph {
 			// Phase 3 – marking. We include all statements that should be included
 			timeStart('mark included statements', 2);
 
-			if (inlineDynamicImports) {
-				if (entryModules.length > 1) {
-					throw new Error(
-						'Internal Error: can only inline dynamic imports for single-file builds.'
-					);
-				}
-			}
 			for (const module of entryModules) {
 				module.includeAllExports();
 			}
@@ -272,47 +240,35 @@ export default class Graph {
 			// entry point graph colouring, before generating the import and export facades
 			timeStart('generate chunks', 2);
 
-			if (!this.preserveModules && !inlineDynamicImports) {
-				assignChunkColouringHashes(entryModules, manualChunkModulesByAlias);
-			}
-
 			// TODO: there is one special edge case unhandled here and that is that any module
 			//       exposed as an unresolvable export * (to a graph external export *,
 			//       either as a namespace import reexported or top-level export *)
 			//       should be made to be its own entry point module before chunking
-			let chunks: Chunk[] = [];
+			const chunks: Chunk[] = [];
 			if (this.preserveModules) {
 				for (const module of this.modules) {
-					const chunk = new Chunk(this, [module]);
-					if (module.isEntryPoint || !chunk.isEmpty) {
+					if (
+						module.isIncluded() ||
+						module.isEntryPoint ||
+						module.dynamicallyImportedBy.length > 0
+					) {
+						const chunk = new Chunk(this, [module]);
 						chunk.entryModules = [module];
+						chunks.push(chunk);
 					}
-					chunks.push(chunk);
 				}
 			} else {
-				const chunkModules: { [entryHashSum: string]: Module[] } = {};
-				for (const module of this.modules) {
-					const entryPointsHashStr = Uint8ArrayToHexString(module.entryPointsHash);
-					const curChunk = chunkModules[entryPointsHashStr];
-					if (curChunk) {
-						curChunk.push(module);
-					} else {
-						chunkModules[entryPointsHashStr] = [module];
-					}
-				}
-
-				for (const entryHashSum in chunkModules) {
-					const chunkModulesOrdered = chunkModules[entryHashSum];
-					sortByExecutionOrder(chunkModulesOrdered);
-					const chunk = new Chunk(this, chunkModulesOrdered);
-					chunks.push(chunk);
+				for (const chunkModules of inlineDynamicImports
+					? [this.modules]
+					: getChunkAssignments(entryModules, manualChunkModulesByAlias)) {
+					sortByExecutionOrder(chunkModules);
+					chunks.push(new Chunk(this, chunkModules));
 				}
 			}
 
 			for (const chunk of chunks) {
 				chunk.link();
 			}
-			chunks = chunks.filter(isChunkRendered);
 			const facades: Chunk[] = [];
 			for (const chunk of chunks) {
 				facades.push(...chunk.generateFacades());
@@ -321,7 +277,7 @@ export default class Graph {
 			timeEnd('generate chunks', 2);
 
 			this.phase = BuildPhase.GENERATE;
-			return chunks.concat(facades);
+			return [...chunks, ...facades];
 		});
 	}
 
@@ -366,9 +322,7 @@ export default class Graph {
 
 			if (warning.plugin) str += `(${warning.plugin} plugin) `;
 			if (warning.loc)
-				str += `${relativeId(warning.loc.file as string)} (${warning.loc.line}:${
-					warning.loc.column
-				}) `;
+				str += `${relativeId(warning.loc.file!)} (${warning.loc.line}:${warning.loc.column}) `;
 			str += warning.message;
 
 			return str;

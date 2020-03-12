@@ -81,7 +81,7 @@ class Link {
 						traced.source.content != null &&
 						sourcesContent[sourceIndex] !== traced.source.content
 					) {
-						error({
+						return error({
 							message: `Multiple conflicting contents for sourcemap source ${traced.source.filename}`
 						});
 					}
@@ -205,7 +205,7 @@ export function collapseSourcemaps(
 	map: DecodedSourceMap,
 	modules: Module[],
 	bundleSourcemapChain: DecodedSourceMapOrMissing[],
-	excludeContent: boolean
+	excludeContent: boolean | undefined
 ) {
 	const linkMap = getLinkMap(bundle.graph);
 	const moduleSources = modules

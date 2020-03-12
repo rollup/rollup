@@ -44,7 +44,7 @@ export function createAddons(
 			return { intro, outro, banner, footer };
 		})
 		.catch((err): any => {
-			error({
+			return error({
 				code: 'ADDON_ERROR',
 				message: `Could not retrieve ${err.hook}. Check configuration of plugin ${err.plugin}.
 \tError Message: ${err.message}`

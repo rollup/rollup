@@ -2,7 +2,7 @@ import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockStatement from './BlockStatement';
 import CatchClause from './CatchClause';
 import * as NodeType from './NodeType';
-import { INCLUDE_PARAMETERS, IncludeChildren, StatementBase } from './shared/Node';
+import { IncludeChildren, INCLUDE_PARAMETERS, StatementBase } from './shared/Node';
 
 export default class TryStatement extends StatementBase {
 	block!: BlockStatement;

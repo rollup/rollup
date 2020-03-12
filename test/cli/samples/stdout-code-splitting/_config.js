@@ -5,8 +5,8 @@ const STANDARD = '\u001b[22m\u001b[39m';
 
 module.exports = {
 	description: 'bundles multiple files to stdout while adding file names',
-	command: 'rollup -i main1.js -i main2.js -f es',
-	env: { FORCE_COLOR: '1' },
+	command: 'node wrapper.js -i main1.js -i main2.js -f es',
+	env: { FORCE_COLOR: '1', TERM: 'xterm' },
 	result(code) {
 		assert.equal(
 			code,

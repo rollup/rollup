@@ -4,7 +4,7 @@
 	(global = global || self, factory(global.unchanged, global.changedName, global.specialCharacter, global.slash, global.relative_js));
 }(this, (function (unchanged, changedName, specialCharacter, slash, relative_js) { 'use strict';
 
-	changedName = changedName && changedName.hasOwnProperty('default') ? changedName['default'] : changedName;
+	changedName = changedName && Object.prototype.hasOwnProperty.call(changedName, 'default') ? changedName['default'] : changedName;
 
 	console.log(unchanged.foo, changedName, specialCharacter.bar, slash.baz, relative_js.quux);
 

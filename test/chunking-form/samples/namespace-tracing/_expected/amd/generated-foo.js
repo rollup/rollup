@@ -1,4 +1,4 @@
-define(['exports', './generated-broken'], function (exports, broken) { 'use strict';
+define(['exports'], function (exports) { 'use strict';
 
   function foo() {
     console.log('foo');

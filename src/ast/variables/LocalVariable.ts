@@ -10,7 +10,7 @@ import { ExpressionEntity } from '../nodes/shared/Expression';
 import { ExpressionNode, Node } from '../nodes/shared/Node';
 import SpreadElement from '../nodes/SpreadElement';
 import { ObjectPath, PathTracker, UNKNOWN_PATH } from '../utils/PathTracker';
-import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UnknownValue } from '../values';
+import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../values';
 import Variable from './Variable';
 
 // To avoid infinite recursions
@@ -128,7 +128,7 @@ export default class LocalVariable extends Variable {
 		const trackedExpressions = context.accessed.getEntities(path);
 		if (trackedExpressions.has(this)) return false;
 		trackedExpressions.add(this);
-		return (this.init && this.init.hasEffectsWhenAccessedAtPath(path, context)) as boolean;
+		return (this.init && this.init.hasEffectsWhenAccessedAtPath(path, context))!;
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext) {
@@ -138,7 +138,7 @@ export default class LocalVariable extends Variable {
 		const trackedExpressions = context.assigned.getEntities(path);
 		if (trackedExpressions.has(this)) return false;
 		trackedExpressions.add(this);
-		return (this.init && this.init.hasEffectsWhenAssignedAtPath(path, context)) as boolean;
+		return (this.init && this.init.hasEffectsWhenAssignedAtPath(path, context))!;
 	}
 
 	hasEffectsWhenCalledAtPath(
@@ -153,8 +153,7 @@ export default class LocalVariable extends Variable {
 		).getEntities(path);
 		if (trackedExpressions.has(this)) return false;
 		trackedExpressions.add(this);
-		return (this.init &&
-			this.init.hasEffectsWhenCalledAtPath(path, callOptions, context)) as boolean;
+		return (this.init && this.init.hasEffectsWhenCalledAtPath(path, callOptions, context))!;
 	}
 
 	include(context: InclusionContext) {

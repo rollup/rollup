@@ -1,0 +1,1 @@
+export const TEST_MODULE_B = 'A'

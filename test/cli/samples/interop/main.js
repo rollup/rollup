@@ -1,3 +1,3 @@
-import tc from 'turbocolor';
+import color from 'colorette';
 
-assert.ok( tc );
+assert.ok( color );

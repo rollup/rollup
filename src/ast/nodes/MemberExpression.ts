@@ -11,8 +11,8 @@ import {
 	ObjectPathKey,
 	PathTracker,
 	SHARED_RECURSION_TRACKER,
-	UNKNOWN_PATH,
-	UnknownKey
+	UnknownKey,
+	UNKNOWN_PATH
 } from '../utils/PathTracker';
 import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import ExternalVariable from '../variables/ExternalVariable';
@@ -89,23 +89,17 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		const path = getPathIfNotComputed(this);
 		const baseVariable = path && this.scope.findVariable(path[0].key);
 		if (baseVariable && baseVariable.isNamespace) {
-			const resolvedVariable = this.resolveNamespaceVariables(
-				baseVariable,
-				(path as PathWithPositions).slice(1)
-			);
+			const resolvedVariable = this.resolveNamespaceVariables(baseVariable, path!.slice(1));
 			if (!resolvedVariable) {
 				super.bind();
 			} else if (typeof resolvedVariable === 'string') {
 				this.replacement = resolvedVariable;
 			} else {
 				if (resolvedVariable instanceof ExternalVariable && resolvedVariable.module) {
-					resolvedVariable.module.suggestName((path as PathWithPositions)[0].key);
+					resolvedVariable.module.suggestName(path![0].key);
 				}
 				this.variable = resolvedVariable;
-				this.scope.addNamespaceMemberAccess(
-					getStringFromPath(path as PathWithPositions),
-					resolvedVariable
-				);
+				this.scope.addNamespaceMemberAccess(getStringFromPath(path!), resolvedVariable);
 			}
 		} else {
 			super.bind();
@@ -185,7 +179,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			this.property.hasEffects(context) ||
 			this.object.hasEffects(context) ||
 			(this.context.propertyReadSideEffects &&
-				this.object.hasEffectsWhenAccessedAtPath([this.propertyKey as ObjectPathKey], context))
+				this.object.hasEffectsWhenAccessedAtPath([this.propertyKey!], context))
 		);
 	}
 
@@ -194,20 +188,14 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.variable !== null) {
 			return this.variable.hasEffectsWhenAccessedAtPath(path, context);
 		}
-		return this.object.hasEffectsWhenAccessedAtPath(
-			[this.propertyKey as ObjectPathKey, ...path],
-			context
-		);
+		return this.object.hasEffectsWhenAccessedAtPath([this.propertyKey!, ...path], context);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		if (this.variable !== null) {
 			return this.variable.hasEffectsWhenAssignedAtPath(path, context);
 		}
-		return this.object.hasEffectsWhenAssignedAtPath(
-			[this.propertyKey as ObjectPathKey, ...path],
-			context
-		);
+		return this.object.hasEffectsWhenAssignedAtPath([this.propertyKey!, ...path], context);
 	}
 
 	hasEffectsWhenCalledAtPath(
@@ -219,7 +207,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			return this.variable.hasEffectsWhenCalledAtPath(path, callOptions, context);
 		}
 		return this.object.hasEffectsWhenCalledAtPath(
-			[this.propertyKey as ObjectPathKey, ...path],
+			[this.propertyKey!, ...path],
 			callOptions,
 			context
 		);
@@ -258,7 +246,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.variable || this.replacement) {
 			let replacement = this.variable ? this.variable.getName() : this.replacement;
 			if (isCalleeOfDifferentParent) replacement = '0, ' + replacement;
-			code.overwrite(this.start, this.end, replacement as string, {
+			code.overwrite(this.start, this.end, replacement!, {
 				contentOnly: true,
 				storeName: true
 			});
@@ -275,7 +263,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			this.object instanceof Identifier &&
 			this.scope.findVariable(this.object.name).isNamespace
 		) {
-			this.context.error(
+			return this.context.error(
 				{
 					code: 'ILLEGAL_NAMESPACE_REASSIGNMENT',
 					message: `Illegal reassignment to import '${this.object.name}'`

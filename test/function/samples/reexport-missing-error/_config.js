@@ -4,7 +4,7 @@ module.exports = {
 	description: 'reexporting a missing identifier should print an error',
 	error: {
 		code: 'MISSING_EXPORT',
-		message: `'foo' is not exported by empty.js`,
+		message: `'foo' is not exported by empty.js, imported by main.js`,
 		pos: 9,
 		watchFiles: [path.resolve(__dirname, 'main.js'), path.resolve(__dirname, 'empty.js')],
 		loc: {

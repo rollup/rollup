@@ -1,6 +1,6 @@
 const assert = require('assert');
 const getLocation = require('../../getLocation');
-const SourceMapConsumer = require('source-map').SourceMapConsumer;
+const { SourceMapConsumer } = require('source-map');
 
 module.exports = {
 	description: 'names are recovered (https://github.com/rollup/rollup/issues/101)',
@@ -9,8 +9,8 @@ module.exports = {
 			name: 'myModule'
 		}
 	},
-	test(code, map) {
-		const smc = new SourceMapConsumer(map);
+	async test(code, map) {
+		const smc = await new SourceMapConsumer(map);
 
 		let pattern = /Object\.create\( ([\w$\d]+)\.prototype \)/;
 		let match = pattern.exec(code);

@@ -1,17 +1,9 @@
-define(['exports', './main1'], function (exports, main1) { 'use strict';
+define(['exports', './generated-main1'], function (exports, main2) { 'use strict';
 
-  class C {
-    fn (num) {
-      console.log(num - main1.p);
-    }
-  }
 
-  var p = 43;
 
-  new C().fn(p);
+	exports.p = main2.p;
 
-  exports.p = p;
-
-  Object.defineProperty(exports, '__esModule', { value: true });
+	Object.defineProperty(exports, '__esModule', { value: true });
 
 });

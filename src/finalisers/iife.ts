@@ -1,5 +1,5 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
-import { GlobalsOption, OutputOptions } from '../rollup/types';
+import { OutputOptions } from '../rollup/types';
 import { error } from '../utils/error';
 import { isLegal } from '../utils/identifierHelpers';
 import { FinaliserOptions } from './index';
@@ -35,7 +35,7 @@ export default function iife(
 	const useVariableAssignment = !extend && !isNamespaced;
 
 	if (name && useVariableAssignment && !isLegal(name)) {
-		error({
+		return error({
 			code: 'ILLEGAL_IDENTIFIER_AS_NAME',
 			message: `Given name "${name}" is not a legal JS identifier. If you need this, you can try "output.extend: true".`
 		});
@@ -49,13 +49,14 @@ export default function iife(
 
 	if (hasExports && !name) {
 		warn({
+			code: 'MISSING_NAME_OPTION_FOR_IIFE_EXPORT',
 			message: `If you do not supply "output.name", you may not be able to access the exports of an IIFE bundle.`
 		});
 	}
 
 	if (namedExportsMode && hasExports) {
 		if (extend) {
-			deps.unshift(`${thisProp(name as string)}${_}=${_}${thisProp(name as string)}${_}||${_}{}`);
+			deps.unshift(`${thisProp(name!)}${_}=${_}${thisProp(name!)}${_}||${_}{}`);
 			args.unshift('exports');
 		} else {
 			deps.unshift('{}');
@@ -74,13 +75,7 @@ export default function iife(
 	}
 
 	if (isNamespaced && hasExports) {
-		wrapperIntro =
-			setupNamespace(
-				name as string,
-				'this',
-				options.globals as GlobalsOption,
-				options.compact as boolean
-			) + wrapperIntro;
+		wrapperIntro = setupNamespace(name!, 'this', options.globals, options.compact) + wrapperIntro;
 	}
 
 	let wrapperOutro = `${n}${n}}(${deps.join(`,${_}`)}));`;
@@ -99,8 +94,8 @@ export default function iife(
 		exports,
 		dependencies,
 		namedExportsMode,
-		options.interop as boolean,
-		options.compact as boolean,
+		options.interop,
+		options.compact,
 		t
 	);
 	if (exportBlock) magicString.append(n + n + exportBlock);

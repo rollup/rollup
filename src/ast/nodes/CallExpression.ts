@@ -15,12 +15,12 @@ import {
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH
 } from '../utils/PathTracker';
-import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UnknownValue } from '../values';
+import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../values';
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
-import { ExpressionNode, INCLUDE_PARAMETERS, IncludeChildren, NodeBase } from './shared/Node';
+import { ExpressionNode, IncludeChildren, INCLUDE_PARAMETERS, NodeBase } from './shared/Node';
 import SpreadElement from './SpreadElement';
 
 export default class CallExpression extends NodeBase implements DeoptimizableEntity {
@@ -40,7 +40,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 			const variable = this.scope.findVariable(this.callee.name);
 
 			if (variable.isNamespace) {
-				this.context.error(
+				return this.context.error(
 					{
 						code: 'CANNOT_CALL_NAMESPACE',
 						message: `Cannot call a namespace ('${this.callee.name}')`
@@ -165,7 +165,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		const trackedExpressions = context.accessed.getEntities(path);
 		if (trackedExpressions.has(this)) return false;
 		trackedExpressions.add(this);
-		return (this.returnExpression as ExpressionEntity).hasEffectsWhenAccessedAtPath(path, context);
+		return this.returnExpression!.hasEffectsWhenAccessedAtPath(path, context);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
@@ -173,7 +173,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		const trackedExpressions = context.assigned.getEntities(path);
 		if (trackedExpressions.has(this)) return false;
 		trackedExpressions.add(this);
-		return (this.returnExpression as ExpressionEntity).hasEffectsWhenAssignedAtPath(path, context);
+		return this.returnExpression!.hasEffectsWhenAssignedAtPath(path, context);
 	}
 
 	hasEffectsWhenCalledAtPath(
@@ -187,11 +187,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		).getEntities(path);
 		if (trackedExpressions.has(this)) return false;
 		trackedExpressions.add(this);
-		return (this.returnExpression as ExpressionEntity).hasEffectsWhenCalledAtPath(
-			path,
-			callOptions,
-			context
-		);
+		return this.returnExpression!.hasEffectsWhenCalledAtPath(path, callOptions, context);
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
@@ -209,8 +205,8 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 			this.callee.include(context, false);
 		}
 		this.callee.includeCallArguments(context, this.arguments);
-		if (!(this.returnExpression as ExpressionEntity).included) {
-			(this.returnExpression as ExpressionEntity).include(context, false);
+		if (!this.returnExpression!.included) {
+			this.returnExpression!.include(context, false);
 		}
 	}
 

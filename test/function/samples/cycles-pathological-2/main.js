@@ -3,9 +3,9 @@ import { d, dv } from './d';
 import { c, cv } from './c';
 
 export function a() {
-    b(bv);
-    d(dv);
-    c(cv);
-};
+	b(bv);
+	d(dv);
+	c(cv);
+}
 
-export const av = bv + dv + cv;
+export var av = bv + dv + cv;

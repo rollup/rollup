@@ -1,7 +1,6 @@
 const path = require('path');
 const assert = require('assert');
 const sander = require('sander');
-const buble = require('buble');
 const { exec } = require('child_process');
 const {
 	normaliseOutput,
@@ -23,12 +22,17 @@ runTestSuiteWithSamples(
 			done => {
 				process.chdir(config.cwd || dir);
 
-				const command =
-					'node ' + path.resolve(__dirname, '../../dist/bin') + path.sep + config.command;
+				const command = config.command.replace(
+					/(^| )rollup($| )/g,
+					`node ${path.resolve(__dirname, '../../dist/bin')}${path.sep}rollup `
+				);
 
 				const childProcess = exec(
 					command,
-					{ timeout: 40000, env: Object.assign({}, process.env, { FORCE_COLOR: '0' }, config.env) },
+					{
+						timeout: 40000,
+						env: Object.assign({}, process.env, { FORCE_COLOR: '0' }, config.env)
+					},
 					(err, code, stderr) => {
 						if (err && !err.killed) {
 							if (config.error) {
@@ -50,12 +54,6 @@ runTestSuiteWithSamples(
 
 						if (config.execute) {
 							try {
-								if (config.buble) {
-									code = buble.transform(code, {
-										transforms: { modules: false }
-									}).code;
-								}
-
 								const fn = new Function('require', 'module', 'exports', 'assert', code);
 								const module = {
 									exports: {}

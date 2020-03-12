@@ -29,7 +29,7 @@ async function build() {
       // For assets, this contains
       // {
       //   fileName: string,              // the asset file name
-      //   source: string | Buffer        // the asset source
+      //   source: string | UInt8Array    // the asset source
       //   type: 'asset'                  // signifies that this is an asset
       // }
       console.log('Asset', chunkOrAsset);
@@ -96,10 +96,7 @@ const inputOptions = {
   treeshake,
 
   // experimental
-  chunkGroupingSize,
   experimentalCacheExpiry,
-  experimentalOptimizeChunks,
-  experimentalTopLevelAwait,
   perf
 };
 ```
@@ -117,7 +114,7 @@ const outputOptions = {
   globals,
   name,
   plugins,
-  
+
   // advanced output options
   assetFileNames,
   banner,
@@ -127,6 +124,7 @@ const outputOptions = {
   extend,
   externalLiveBindings,
   footer,
+  hoistTransitiveImports,
   interop,
   intro,
   outro,
@@ -135,7 +133,7 @@ const outputOptions = {
   sourcemapExcludeSources,
   sourcemapFile,
   sourcemapPathTransform,
-  
+
   // danger zone
   amd,
   dynamicImportFunction,
@@ -167,7 +165,6 @@ watcher.on('event', event => {
   //   BUNDLE_END   — finished building a bundle
   //   END          — finished building all bundles
   //   ERROR        — encountered an error while bundling
-  //   FATAL        — encountered an unrecoverable error
 });
 
 // stop watching

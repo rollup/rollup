@@ -1,7 +1,7 @@
 const terser = require('terser');
 const assert = require('assert');
 const getLocation = require('../../getLocation');
-const SourceMapConsumer = require('source-map').SourceMapConsumer;
+const { SourceMapConsumer } = require('source-map');
 
 module.exports = {
 	description: 'preserves sourcemap chains when transforming',
@@ -20,8 +20,8 @@ module.exports = {
 			}
 		]
 	},
-	test(code, map) {
-		const smc = new SourceMapConsumer(map);
+	async test(code, map) {
+		const smc = await new SourceMapConsumer(map);
 
 		let generatedLoc = getLocation(code, code.indexOf('42'));
 		let originalLoc = smc.originalPositionFor(generatedLoc);

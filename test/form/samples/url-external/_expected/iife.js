@@ -1,7 +1,7 @@
 (function (external) {
 	'use strict';
 
-	external = external && external.hasOwnProperty('default') ? external['default'] : external;
+	external = external && Object.prototype.hasOwnProperty.call(external, 'default') ? external['default'] : external;
 
 	console.log(external);
 

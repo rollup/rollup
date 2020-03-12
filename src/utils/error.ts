@@ -4,9 +4,8 @@ import { RollupError, RollupWarning } from '../rollup/types';
 import getCodeFrame from './getCodeFrame';
 import relativeId from './relativeId';
 
-export function error(base: Error | RollupError, props?: RollupError): never {
+export function error(base: Error | RollupError): never {
 	if (!(base instanceof Error)) base = Object.assign(new Error(base.message), base);
-	if (props) Object.assign(base, props);
 	throw base;
 }
 
@@ -54,7 +53,9 @@ export enum Errors {
 	PLUGIN_ERROR = 'PLUGIN_ERROR',
 	UNRESOLVED_ENTRY = 'UNRESOLVED_ENTRY',
 	UNRESOLVED_IMPORT = 'UNRESOLVED_IMPORT',
-	VALIDATION_ERROR = 'VALIDATION_ERROR'
+	VALIDATION_ERROR = 'VALIDATION_ERROR',
+	EXTERNAL_SYNTHETIC_EXPORTS = 'EXTERNAL_SYNTHETIC_EXPORTS',
+	SYNTHETIC_NAMED_EXPORTS_NEED_DEFAULT = 'SYNTHETIC_NAMED_EXPORTS_NEED_DEFAULT'
 }
 
 export function errAssetNotFinalisedForFileName(name: string) {
@@ -260,6 +261,15 @@ export function errUnresolvedImportTreatedAsExternal(source: string, importer: s
 		)}, but could not be resolved – treating it as an external dependency`,
 		source,
 		url: 'https://rollupjs.org/guide/en/#warning-treating-module-as-external-dependency'
+	};
+}
+
+export function errExternalSyntheticExports(source: string, importer: string) {
+	return {
+		code: Errors.EXTERNAL_SYNTHETIC_EXPORTS,
+		importer: relativeId(importer),
+		message: `External '${source}' can not have 'syntheticNamedExports' enabled.`,
+		source
 	};
 }
 

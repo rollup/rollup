@@ -1,4 +1,3 @@
 module.exports = {
-	description: 'handles manually defined iterators',
-	minNodeVersion: 6
+	description: 'handles manually defined iterators'
 };

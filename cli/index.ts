@@ -1,11 +1,12 @@
 import help from 'help.md';
-import minimist from 'minimist';
 import { version } from 'package.json';
+import argParser from 'yargs-parser';
 import { commandAliases } from '../src/utils/mergeOptions';
 import run from './run/index';
 
-const command = minimist(process.argv.slice(2), {
-	alias: commandAliases
+const command = argParser(process.argv.slice(2), {
+	alias: commandAliases,
+	configuration: { 'camel-case-expansion': false }
 });
 
 if (command.help || (process.argv.length <= 2 && process.stdin.isTTY)) {

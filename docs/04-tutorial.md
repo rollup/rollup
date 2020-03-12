@@ -173,7 +173,7 @@ So far, we've created a simple bundle from an entry point and a module imported 
 
 For that, we use *plugins*, which change the behaviour of Rollup at key points in the bundling process. A list of awesome plugins is maintained on [the Rollup Awesome List](https://github.com/rollup/awesome).
 
-For this tutorial, we'll use [rollup-plugin-json](https://github.com/rollup/rollup-plugin-json), which allows Rollup to import data from a JSON file.
+For this tutorial, we'll use [@rollup/plugin-json](https://github.com/rollup/plugins/tree/master/packages/json), which allows Rollup to import data from a JSON file.
 
 Create a file in the project root called `package.json`, and add the following content:
 
@@ -187,10 +187,10 @@ Create a file in the project root called `package.json`, and add the following c
 }
 ```
 
-Install rollup-plugin-json as a development dependency:
+Install @rollup/plugin-json as a development dependency:
 
 ```
-npm install --save-dev rollup-plugin-json
+npm install --save-dev @rollup/plugin-json
 ```
 
 (We're using `--save-dev` rather than `--save` because our code doesn't actually depend on the plugin when it runs – only when we're building the bundle.)
@@ -210,7 +210,7 @@ Edit your `rollup.config.js` file to include the JSON plugin:
 
 ```js
 // rollup.config.js
-import json from 'rollup-plugin-json';
+import json from '@rollup/plugin-json';
 
 export default {
   input: 'src/main.js',
@@ -240,7 +240,7 @@ _Note: Only the data we actually need gets imported – `name` and `devDependenc
 
 ### Using output plugins
 
-Some plugins can also be applied specifically to some outputs. See [plugin hooks](guide/en/#hooks) for the technical details of what output-specific plugins can do. In a nut-shell, those plugins can only modify code after the main analysis of Rollup has completed. Rollup will warn if an incompatible plugin is used as an output-specific plugin. One possible use-case is minification of bundles to be consumed in a browser.
+Some plugins can also be applied specifically to some outputs. See [plugin hooks](guide/en/#build-hooks) for the technical details of what output-specific plugins can do. In a nut-shell, those plugins can only modify code after the main analysis of Rollup has completed. Rollup will warn if an incompatible plugin is used as an output-specific plugin. One possible use-case is minification of bundles to be consumed in a browser.
 
 Let us extend the previous example to provide a minified build together with the non-minified one. To that end, we install `rollup-plugin-terser`:
 
@@ -252,7 +252,7 @@ Edit your `rollup.config.js` file to add a second minified output. As format, we
 
 ```js
 // rollup.config.js
-import json from 'rollup-plugin-json';
+import json from '@rollup/plugin-json';
 import {terser} from 'rollup-plugin-terser';
 
 export default {
@@ -282,7 +282,7 @@ var version=function(){"use strict";var n="1.0.0";return function(){console.log(
 
 ### Code Splitting
 
-To use the code splitting feature, we got back to the original example and modify `src/main.js` to load `src/foo.js` dynamically instead of statically:
+To use the code splitting feature, we go back to the original example and modify `src/main.js` to load `src/foo.js` dynamically instead of statically:
 
 ```js
 // src/main.js
@@ -378,7 +378,7 @@ Notice how both entry points import the same shared chunk. Rollup will never dup
 
 You can build the same code for the browser via native ES modules, an AMD loader or SystemJS.
 
-For example, with `-f esm` for native modules:
+For example, with `-f es` for native modules:
 
 ```
 rollup src/main.js src/main2.js -f esm -d dist

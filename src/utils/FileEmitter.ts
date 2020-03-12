@@ -1,4 +1,3 @@
-import Chunk from '../Chunk';
 import Graph from '../Graph';
 import Module from '../Module';
 import { FilePlaceholder, OutputBundleWithPlaceholders } from '../rollup/types';
@@ -132,7 +131,7 @@ function getAssetFileName(file: ConsumedAsset, referenceId: string): string {
 }
 
 function getChunkFileName(file: ConsumedChunk): string {
-	const fileName = file.fileName || (file.module && (file.module.facadeChunk as Chunk).id);
+	const fileName = file.fileName || (file.module && file.module.facadeChunk!.id);
 	if (!fileName) return error(errChunkNotGeneratedForFileName(file.fileName || file.name));
 	return fileName;
 }
@@ -152,7 +151,7 @@ export class FileEmitter {
 	public assertAssetsFinalized = (): void => {
 		for (const [referenceId, emittedFile] of this.filesByReferenceId.entries()) {
 			if (emittedFile.type === 'asset' && typeof emittedFile.fileName !== 'string')
-				error(errNoAssetSourceSet(emittedFile.name || referenceId));
+				return error(errNoAssetSourceSet(emittedFile.name || referenceId));
 		}
 	};
 
@@ -274,7 +273,7 @@ export class FileEmitter {
 
 	private emitChunk(emittedChunk: EmittedFile): string {
 		if (this.graph.phase > BuildPhase.LOAD_AND_PARSE) {
-			error(errInvalidRollupPhaseForChunkEmission());
+			return error(errInvalidRollupPhaseForChunkEmission());
 		}
 		if (typeof emittedChunk.id !== 'string') {
 			return error(
@@ -331,7 +330,7 @@ export class FileEmitter {
 			get isAsset(): true {
 				graph.warnDeprecation(
 					'Accessing "isAsset" on files in the bundle is deprecated, please use "type === \'asset\'" instead',
-					false
+					true
 				);
 
 				return true;
