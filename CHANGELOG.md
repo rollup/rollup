@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.0.5
+*2020-03-12*
+
+### Bug Fixes
+* Fix an issue where conditional statements would assume they have the wrong test value (#3438)
+
+### Pull Requests
+* [#3438](https://github.com/rollup/rollup/pull/3438): Make sure logical expressions always check the left argument for side-effects (@lukastaegert)
+
 ## 2.0.4
 *2020-03-12*
 
