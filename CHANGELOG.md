@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.0.4
+*2020-03-12*
+
+### Bug Fixes
+* Avoid conflicts between namespace imports when preserving modules (#3435)
+
+### Pull Requests
+* [#3435](https://github.com/rollup/rollup/pull/3435): Deconflict multiple `index` imports for ES format using nested export star statements (@kamranayub)
+
 ## 2.0.3
 *2020-03-10*
 
