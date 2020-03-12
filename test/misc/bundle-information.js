@@ -381,9 +381,9 @@ describe('The bundle object', () => {
 				assert.deepEqual(
 					output.map(chunk => chunk.code),
 					[
-						`import { other } from './other';
+						`import { other as other$1 } from './other';
 
-console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));\n`,
+console.log(other$1);Promise.all([import('./dynamic1'), import('./dynamic2')]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));\n`,
 						'const dynamic1 = "dynamic1";\n\nexport { dynamic1 };\n',
 						'const other = "other";\n\nexport { other };\n',
 						'const dynamic2 = "dynamic2";\n\nexport { dynamic2 };\n'
@@ -418,7 +418,7 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 								originalLength: 169,
 								removedExports: [],
 								renderedExports: [],
-								renderedLength: 141
+								renderedLength: 143
 							}
 						},
 						{

@@ -18,7 +18,7 @@ const DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT: {
 	cjs: deconflictImportsOther,
 	es: deconflictImportsEsm,
 	iife: deconflictImportsOther,
-	system: deconflictImportsEsm,
+	system: deconflictImportsEsmOrSystem,
 	umd: deconflictImportsOther
 };
 
@@ -49,6 +49,29 @@ export function deconflictChunk(
 }
 
 function deconflictImportsEsm(
+	usedNames: Set<string>,
+	imports: Set<Variable>,
+	dependencies: Set<ExternalModule | Chunk>,
+	interop: boolean,
+	preserveModules: boolean
+) {
+	// Deconflict re-exported variables of dependencies when preserveModules is true.
+	// However, this implementation will result in unnecessary variable renaming without
+	// a deeper, wider fix.
+	//
+	// TODO: https://github.com/rollup/rollup/pull/3435#discussion_r390792792
+	if (preserveModules) {
+		for (const chunkOrExternalModule of dependencies) {
+			chunkOrExternalModule.variableName = getSafeName(
+				chunkOrExternalModule.variableName,
+				usedNames
+			);
+		}
+	}
+	deconflictImportsEsmOrSystem(usedNames, imports, dependencies, interop);
+}
+
+function deconflictImportsEsmOrSystem(
 	usedNames: Set<string>,
 	imports: Set<Variable>,
 	_dependencies: Set<ExternalModule | Chunk>,

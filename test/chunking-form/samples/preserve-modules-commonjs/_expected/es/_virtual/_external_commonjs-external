@@ -1,5 +1,5 @@
-import external from 'external';
+import external$1 from 'external';
 
 
 
-export default external;
+export default external$1;
