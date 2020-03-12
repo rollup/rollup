@@ -97,10 +97,13 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
-		if (this.usedBranch === null) {
-			return this.left.hasEffects(context) || this.right.hasEffects(context);
+		if (this.left.hasEffects(context)) {
+			return true;
 		}
-		return this.usedBranch.hasEffects(context);
+		if (this.usedBranch !== this.left) {
+			return this.right.hasEffects(context);
+		}
+		return false;
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
