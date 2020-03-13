@@ -140,7 +140,7 @@ export function getPluginContexts(
 				};
 			},
 			isExternal: getDeprecatedContextHandler(
-				(id: string, parentId: string, isResolved = false) =>
+				(id: string, parentId: string | undefined, isResolved = false) =>
 					graph.moduleLoader.isExternal(id, parentId, isResolved),
 				'isExternal',
 				'resolve',
@@ -163,7 +163,7 @@ export function getPluginContexts(
 				);
 			},
 			resolveId: getDeprecatedContextHandler(
-				(source: string, importer: string) =>
+				(source: string, importer: string | undefined) =>
 					graph.moduleLoader
 						.resolveId(source, importer)
 						.then(resolveId => resolveId && resolveId.id),

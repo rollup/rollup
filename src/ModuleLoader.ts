@@ -35,11 +35,16 @@ import transform from './utils/transform';
 export interface UnresolvedModule {
 	fileName: string | null;
 	id: string;
+	importer: string | undefined;
 	name: string | null;
 }
 
-function normalizeRelativeExternalId(importer: string, source: string) {
-	return isRelative(source) ? resolve(importer, '..', source) : source;
+function normalizeRelativeExternalId(source: string, importer: string | undefined) {
+	return isRelative(source)
+		? importer
+			? resolve(importer, '..', source)
+			: resolve(source)
+		: source;
 }
 
 function getIdMatcher<T extends Array<any>>(
@@ -133,8 +138,8 @@ export class ModuleLoader {
 		const firstEntryModuleIndex = this.nextEntryModuleIndex;
 		this.nextEntryModuleIndex += unresolvedEntryModules.length;
 		const loadNewEntryModulesPromise = Promise.all(
-			unresolvedEntryModules.map(({ fileName, id, name }) =>
-				this.loadEntryModule(id, true).then(module => {
+			unresolvedEntryModules.map(({ fileName, id, name, importer }) =>
+				this.loadEntryModule(id, true, importer).then(module => {
 					if (fileName !== null) {
 						module.chunkFileNames.add(fileName);
 					} else if (name !== null) {
@@ -183,7 +188,7 @@ export class ModuleLoader {
 			}
 		}
 		const loadNewManualChunkModulesPromise = Promise.all(
-			unresolvedManualChunks.map(({ id }) => this.loadEntryModule(id, false))
+			unresolvedManualChunks.map(({ id }) => this.loadEntryModule(id, false, undefined))
 		).then(manualChunkModules => {
 			for (let index = 0; index < manualChunkModules.length; index++) {
 				this.addModuleToManualChunk(unresolvedManualChunks[index].alias, manualChunkModules[index]);
@@ -195,7 +200,7 @@ export class ModuleLoader {
 
 	async resolveId(
 		source: string,
-		importer: string,
+		importer: string | undefined,
 		skip?: number | null
 	): Promise<ResolvedId | null> {
 		return this.normalizeResolveIdResult(
@@ -413,8 +418,12 @@ export class ModuleLoader {
 		return resolvedId;
 	}
 
-	private loadEntryModule = (unresolvedId: string, isEntry: boolean): Promise<Module> =>
-		this.pluginDriver.hookFirst('resolveId', [unresolvedId, undefined]).then(resolveIdResult => {
+	private loadEntryModule = (
+		unresolvedId: string,
+		isEntry: boolean,
+		importer: string | undefined
+	): Promise<Module> =>
+		this.pluginDriver.hookFirst('resolveId', [unresolvedId, importer]).then(resolveIdResult => {
 			if (
 				resolveIdResult === false ||
 				(resolveIdResult && typeof resolveIdResult === 'object' && resolveIdResult.external)
@@ -434,7 +443,7 @@ export class ModuleLoader {
 
 	private normalizeResolveIdResult(
 		resolveIdResult: ResolveIdResult,
-		importer: string,
+		importer: string | undefined,
 		source: string
 	): ResolvedId | null {
 		let id = '';
@@ -457,10 +466,10 @@ export class ModuleLoader {
 				if (this.isExternal(resolveIdResult, importer, true)) {
 					external = true;
 				}
-				id = external ? normalizeRelativeExternalId(importer, resolveIdResult) : resolveIdResult;
+				id = external ? normalizeRelativeExternalId(resolveIdResult, importer) : resolveIdResult;
 			}
 		} else {
-			id = normalizeRelativeExternalId(importer, source);
+			id = normalizeRelativeExternalId(source, importer);
 			if (resolveIdResult !== false && !this.isExternal(id, importer, true)) {
 				return null;
 			}
