@@ -413,7 +413,7 @@ resolveImportMeta(property, {moduleId}) {
 Note that since this hook has access to the filename of the current chunk, its return value will not be considered when generating the hash of this chunk.
 
 #### `writeBundle`
-Type: `( bundle: { [fileName: string]: AssetInfo | ChunkInfo }) => void`<br>
+Type: `(options: OutputOptions, bundle: { [fileName: string]: AssetInfo | ChunkInfo }) => void`<br>
 Kind: `async, parallel`<br>
 Previous Hook: [`generateBundle`](guide/en/#generatebundle)<br>
 Next Hook: If it is called, this is the last hook of the output generation phase and may again be followed by [`outputOptions`](guide/en/#outputoptions) if another output is generated.
