@@ -1,0 +1,1 @@
+{"version":3,"file":"main-cjs.js","sources":["../main.js"],"sourcesContent":["assert.equal( ANSWER, 42 );\n"],"names":[],"mappings":";;AAAA,MAAM,CAAC,KAAK,EAAE,MAAM,EAAE,EAAE,EAAE"}
