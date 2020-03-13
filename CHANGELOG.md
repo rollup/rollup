@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.0.6
+*2020-03-13*
+
+### Bug Fixes
+* Do not use file names from different outputs when generating sourcemaps using the `dir` option (#3440)
+
+### Pull Requests
+* [#3440](https://github.com/rollup/rollup/pull/3440): Use correct file names when writing sourcemaps for multiple outputs (@lukastaegert)
+
 ## 2.0.5
 *2020-03-12*
 
