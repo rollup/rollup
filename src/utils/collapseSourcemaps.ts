@@ -1,5 +1,4 @@
 import { DecodedSourceMap, SourceMap } from 'magic-string';
-import Chunk from '../Chunk';
 import Graph from '../Graph';
 import Module from '../Module';
 import {
@@ -200,14 +199,14 @@ function getCollapsedSourcemap(
 }
 
 export function collapseSourcemaps(
-	bundle: Chunk,
+	graph: Graph,
 	file: string,
 	map: DecodedSourceMap,
 	modules: Module[],
 	bundleSourcemapChain: DecodedSourceMapOrMissing[],
 	excludeContent: boolean | undefined
 ) {
-	const linkMap = getLinkMap(bundle.graph);
+	const linkMap = getLinkMap(graph);
 	const moduleSources = modules
 		.filter(module => !module.excludeFromSourcemap)
 		.map(module =>
