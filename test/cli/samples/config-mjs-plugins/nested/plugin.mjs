@@ -3,6 +3,9 @@ import { fileURLToPath } from 'url';
 
 export default () => ({
 	transform(code) {
-		return `console.log('${relative(process.cwd(), fileURLToPath(import.meta.url))}');\n${code}`;
+		return `console.log('${relative(process.cwd(), fileURLToPath(import.meta.url)).replace(
+			'\\',
+			'/'
+		)}');\n${code}`;
 	}
 });

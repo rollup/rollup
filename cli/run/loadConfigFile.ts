@@ -1,5 +1,6 @@
 import color from 'colorette';
 import * as path from 'path';
+import { pathToFileURL } from 'url';
 import * as rollup from '../../src/node-entry';
 import { GenericConfigObject } from '../../src/utils/parseOptions';
 import relativeId from '../../src/utils/relativeId';
@@ -22,7 +23,7 @@ export default async function loadConfigFile(
 ): Promise<GenericConfigObject[]> {
 	const extension = path.extname(fileName);
 	const configFileExport = await (extension === '.mjs' && supportsNativeESM()
-		? (await esmDynamicImport(fileName)).default
+		? (await esmDynamicImport(pathToFileURL(fileName).href)).default
 		: extension === '.cjs'
 		? getDefaultFromCjs(require(fileName))
 		: getDefaultFromTranspiledConfigFile(fileName, commandOptions.silent));

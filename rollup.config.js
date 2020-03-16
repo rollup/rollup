@@ -88,6 +88,7 @@ export default command => {
 			'path',
 			'os',
 			'stream',
+			'url',
 			'util'
 		],
 		treeshake,
