@@ -15,7 +15,7 @@ import { getResetScreen } from './resetScreen';
 import { printTimings } from './timings';
 
 export default function watch(
-	configFile: string,
+	configFile: string | null,
 	configs: GenericConfigObject[],
 	command: any,
 	silent = false

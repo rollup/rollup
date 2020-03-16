@@ -45,7 +45,6 @@ async function getDefaultFromTranspiledConfigFile(
 		onwarn: warnings.add,
 		treeshake: false
 	});
-	// TODO Lukas test warnings are displayed
 	if (!silent && warnings.count > 0) {
 		stderr(color.bold(`loaded ${relativeId(fileName)} with warnings`));
 		warnings.flush();

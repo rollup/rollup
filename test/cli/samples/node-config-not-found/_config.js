@@ -5,6 +5,7 @@ module.exports = {
 	command: 'rollup --config node:baz',
 	error: () => true,
 	stderr(stderr) {
-		assertStderrIncludes(stderr, '[!] Could not resolve config file node:baz');
+		// TODO Lukas is this documented?
+		assertStderrIncludes(stderr, '[!] Could not resolve config file "node:baz"');
 	}
 };
