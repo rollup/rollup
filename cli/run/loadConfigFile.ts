@@ -15,9 +15,10 @@ interface NodeModuleWithCompile extends NodeModule {
 }
 
 // TODO Lukas catch errors and add helpful messages
+// TODO Lukas write and adjust docs
 export default async function loadConfigFile(
 	fileName: string,
-	commandOptions: any = {}
+	commandOptions: any
 ): Promise<GenericConfigObject[]> {
 	const extension = path.extname(fileName);
 	const configFileExport = await (extension === '.mjs' && supportsNativeESM()
@@ -44,6 +45,7 @@ async function getDefaultFromTranspiledConfigFile(
 		onwarn: warnings.add,
 		treeshake: false
 	});
+	// TODO Lukas test warnings are displayed
 	if (!silent && warnings.count > 0) {
 		stderr(color.bold(`loaded ${relativeId(fileName)} with warnings`));
 		warnings.flush();
