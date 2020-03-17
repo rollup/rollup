@@ -15,7 +15,6 @@ interface NodeModuleWithCompile extends NodeModule {
 	_compile(code: string, filename: string): any;
 }
 
-// TODO Lukas catch errors and add helpful messages
 // TODO Lukas write and adjust docs
 export default async function loadConfigFile(
 	fileName: string,
@@ -70,9 +69,21 @@ async function loadConfigFromBundledFile(fileName: string, bundledCode: string) 
 		}
 	};
 	delete require.cache[fileName];
-	const config = getDefaultFromCjs(require(fileName));
-	require.extensions[extension] = defaultLoader;
-	return config;
+	try {
+		const config = getDefaultFromCjs(require(fileName));
+		require.extensions[extension] = defaultLoader;
+		return config;
+	} catch(err) {
+		if (err.code === 'ERR_REQUIRE_ESM') {
+			handleError({
+				code: 'TRANSPILED_ESM_CONFIG',
+				message: `While loading the Rollup configuration from "${relativeId(fileName)}", Node tried to require an ES module from a CommonJS file, which is not supported. A common cause is if there is a package.json file with "type": "module" in the same folder. You can try to fix this by changing the extension of your configuration file to ".cjs" or ".mjs" depending on the content, which will prevent Rollup from trying to preprocess the file but rather hand it to Node directly.`,
+				url: 'https://rollupjs.org/guide/en/#using-untranspiled-config-files'
+			})
+		}
+		console.error(err.code);
+		throw err;
+	}
 }
 
 function getConfigList(configFileExport: any, commandOptions: any) {

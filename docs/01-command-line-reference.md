@@ -6,14 +6,10 @@ Rollup should typically be used from the command line. You can provide an  optio
 
 ### Configuration Files
 
-Rollup configuration files are optional, but they are powerful and convenient and thus **recommended**.
-
-A config file is an ES module that exports a default object with the desired options. Typically, it is called `rollup.config.js` and sits in the root directory of your project.
-
-Also you can use CJS modules syntax for the config file.
+Rollup configuration files are optional, but they are powerful and convenient and thus **recommended**. A config file is an ES module that exports a default object with the desired options:
 
 ```javascript
-module.exports = {
+export default {
   input: 'src/main.js',
   output: {
     file: 'bundle.js',
@@ -22,9 +18,11 @@ module.exports = {
 };
 ```
 
-It may be pertinent if you want to use the config file not only from the command line, but also from your custom scripts programmatically.
+Typically, it is called `rollup.config.js` and sits in the root directory of your project. Behind the scenes, Rollup will transpile and bundle this file and its relative dependencies to CommonJS before requiring it, which has the advantage that you can share code with an ES module code base while having full interoperability with the Node ecosystem.
 
-Consult the [big list of options](guide/en/#big-list-of-options) for details on each option you can include in your config file.
+If you want to write your config as a CommonJS module using `require` and `module.exports`, you should change the file extension to `.cjs`, which will prevent Rollup from trying to transpile the file. Furthermore if you are on Node 13+, changing the file extension to `.mjs` will also prevent Rollup from transpiling it but import the file as an ES module instead. See [using untranspiled config files](guide/en/#using-untranspiled-config-files) for more details and why you might want to do this.
+
+Config files support the options listed below. Consult the [big list of options](guide/en/#big-list-of-options) for details on each option:
 
 ```javascript
 // rollup.config.js
@@ -150,22 +148,16 @@ export default Promise.all([
 ])
 ```
 
-You *must* use a configuration file in order to do any of the following:
-
-- bundle one project into multiple output files
-- use Rollup plugins, such as [@rollup/plugin-node-resolve](https://github.com/rollup/plugins/tree/master/packages/node-resolve) and [@rollup/plugin-commonjs](https://github.com/rollup/plugins/tree/master/packages/commonjs) which let you load CommonJS modules from the Node.js ecosystem
-
-To use Rollup with a configuration file, pass the `--config` or `-c` flags.
+To use Rollup with a configuration file, pass the `--config` or `-c` flags:
 
 ```
-# use Rollup with a rollup.config.js file
-rollup --config
-
-# alternatively, specify a custom config file location
+# pass a custom config file location to Rollup
 rollup --config my.config.js
 
-# .js and .mjs are supported
-rollup --config my.config.mjs
+# if you do not pass a file name, Rollup will try to load
+# configuration files in the following order:
+# rollup.config.mjs -> rollup.config.cjs -> rollup.config.js
+rollup --config
 ```
 
 You can also export a function that returns any of the above configuration formats. This function will be passed the current command line arguments so that you can dynamically adapt your configuration to respect e.g. [`--silent`](guide/en/#--silent). You can even define your own command line options if you prefix them with `config`:
@@ -201,6 +193,64 @@ export default commandLineArgs => {
 }
 ```
 
+### Differences to the JavaScript API
+
+By default, Rollup will try to bundle and transpile your configuration file to CommonJS before requiring it. While this process is very fast and allows for better interoperability with
+If you want to switch from config files to using the [JavaScript API](guide/en/#javascript-api) at some point, there are some important differences to be aware of:
+
+- When using the JavaScript API, the configuration passed to `rollup.rollup` must be an object and cannot be wrapped in a Promise or a function.
+- You can no longer use an array of configurations. Instead, you should run `rollup.rollup` once for each set of `inputOptions`.
+- The `output` option will be ignored. Instead, you should run `bundle.generate(outputOptions)` or `bundle.write(outputOptions)` once for each set of `outputOptions`.
+
+### Loading a configuration from a Node package
+
+For interoperability, Rollup also supports loading configuration files from packages installed into `node_modules`:
+
+```
+# this will first try to load the package "rollup-config-my-special-config";
+# if that fails, it will then try to load "my-special-config"
+rollup --config node:my-special-config
+```
+
+### Using untranspiled config files
+
+By default, Rollup will expect config files to be ES modules and bundle and transpile them and their relative imports to CommonJS before requiring them. This is a fast process and has the advantage that it is easy to share code between your configuration and an ES module code base. If you want to write your configuration as CommonJS instead, you can skip this process by using the `.cjs` extension:
+
+```javascript
+// rollup.config.cjs
+module.exports = {
+  input: 'src/main.js',
+  output: {
+    file: 'bundle.js',
+    format: 'cjs'
+  }
+};
+```
+
+It may be pertinent if you want to use the config file not only from the command line, but also from your custom scripts programmatically.
+
+On the other hand if you are using at least Node 13 and have `"type": "module"` in your `package.json` file, Rollup's transpilation will prevent your configuration file from importing packages that are themselves ES modules. In that case, changing your file extension to `.mjs` will instruct Rollup to import your configuration directly as an ES module. However note that this is specific to Node 13+; on older Node versions, `.mjs` is treated just like `.js`.
+
+There are some potential gotchas when using `.mjs` on Node 13+:
+
+- You will only get a default export from CommonJS plugins
+- You may not be able to import JSON files such as your `package.json file`. There are two ways to go around this:
+  - run Rollup CLI via
+
+    ```
+    node --experimental-json-modules ./node_modules/.bin/rollup --config
+    ```
+    
+  - create a CommonJS wrapper that requires the JSON file:
+  
+    ```js
+    // load-package.cjs
+    module.exports = require('./package.json');
+    
+    // rollup.config.mjs
+    import pkg from './load-package.cjs';
+    ...
+    ```
 
 ### Command line flags
 

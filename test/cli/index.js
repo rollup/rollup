@@ -13,7 +13,7 @@ const cwd = process.cwd();
 sander.rimrafSync(__dirname, 'node_modules');
 sander.copydirSync(__dirname, 'node_modules_rename_me').to(__dirname, 'node_modules');
 
-runTestSuiteWithSamples(
+runTestSuiteWithSamples.only(
 	'cli',
 	path.resolve(__dirname, 'samples'),
 	(dir, config) => {
