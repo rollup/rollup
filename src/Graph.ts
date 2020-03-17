@@ -184,7 +184,7 @@ export default class Graph {
 		);
 	}
 
-	build(
+	async build(
 		entryModules: string | string[] | Record<string, string>,
 		manualChunks: ManualChunksOption | void,
 		inlineDynamicImports: boolean
@@ -195,90 +195,87 @@ export default class Graph {
 
 		timeStart('parse modules', 2);
 
-		return Promise.all([
+		const [{ entryModules: newEntryModules, manualChunkModulesByAlias }] = await Promise.all([
 			this.moduleLoader.addEntryModules(normalizeEntryModules(entryModules), true),
-			(manualChunks &&
+			manualChunks &&
 				typeof manualChunks === 'object' &&
-				this.moduleLoader.addManualChunks(manualChunks)) as Promise<void>
-		]).then(([{ entryModules, manualChunkModulesByAlias }]) => {
-			if (entryModules.length === 0) {
-				throw new Error('You must supply options.input to rollup');
-			}
-			for (const module of this.moduleById.values()) {
-				if (module instanceof Module) {
-					this.modules.push(module);
-				} else {
-					this.externalModules.push(module);
-				}
-			}
-			timeEnd('parse modules', 2);
+				this.moduleLoader.addManualChunks(manualChunks)
+		]);
 
-			this.phase = BuildPhase.ANALYSE;
+		if (newEntryModules.length === 0) {
+			throw new Error('You must supply options.input to rollup');
+		}
 
-			// Phase 2 - linking. We populate the module dependency links and
-			// determine the topological execution order for the bundle
-			timeStart('analyse dependency graph', 2);
-
-			this.link(entryModules);
-
-			timeEnd('analyse dependency graph', 2);
-
-			// Phase 3 – marking. We include all statements that should be included
-			timeStart('mark included statements', 2);
-
-			for (const module of entryModules) {
-				module.includeAllExports();
-			}
-			this.includeMarked(this.modules);
-
-			// check for unused external imports
-			for (const externalModule of this.externalModules) externalModule.warnUnusedImports();
-
-			timeEnd('mark included statements', 2);
-
-			// Phase 4 – we construct the chunks, working out the optimal chunking using
-			// entry point graph colouring, before generating the import and export facades
-			timeStart('generate chunks', 2);
-
-			// TODO: there is one special edge case unhandled here and that is that any module
-			//       exposed as an unresolvable export * (to a graph external export *,
-			//       either as a namespace import reexported or top-level export *)
-			//       should be made to be its own entry point module before chunking
-			const chunks: Chunk[] = [];
-			if (this.preserveModules) {
-				for (const module of this.modules) {
-					if (
-						module.isIncluded() ||
-						module.isEntryPoint ||
-						module.dynamicallyImportedBy.length > 0
-					) {
-						const chunk = new Chunk(this, [module]);
-						chunk.entryModules = [module];
-						chunks.push(chunk);
-					}
-				}
+		for (const module of this.moduleById.values()) {
+			if (module instanceof Module) {
+				this.modules.push(module);
 			} else {
-				for (const chunkModules of inlineDynamicImports
-					? [this.modules]
-					: getChunkAssignments(entryModules, manualChunkModulesByAlias)) {
-					sortByExecutionOrder(chunkModules);
-					chunks.push(new Chunk(this, chunkModules));
+				this.externalModules.push(module);
+			}
+		}
+		timeEnd('parse modules', 2);
+
+		this.phase = BuildPhase.ANALYSE;
+
+		// Phase 2 - linking. We populate the module dependency links and
+		// determine the topological execution order for the bundle
+		timeStart('analyse dependency graph', 2);
+
+		this.link(newEntryModules);
+
+		timeEnd('analyse dependency graph', 2);
+
+		// Phase 3 – marking. We include all statements that should be included
+		timeStart('mark included statements', 2);
+
+		for (const module of newEntryModules) {
+			module.includeAllExports();
+		}
+		this.includeMarked(this.modules);
+
+		// check for unused external imports
+		for (const externalModule of this.externalModules) externalModule.warnUnusedImports();
+
+		timeEnd('mark included statements', 2);
+
+		// Phase 4 – we construct the chunks, working out the optimal chunking using
+		// entry point graph colouring, before generating the import and export facades
+		timeStart('generate chunks', 2);
+
+		// TODO: there is one special edge case unhandled here and that is that any module
+		//       exposed as an unresolvable export * (to a graph external export *,
+		//       either as a namespace import reexported or top-level export *)
+		//       should be made to be its own entry point module before chunking
+		const chunks: Chunk[] = [];
+		if (this.preserveModules) {
+			for (const module of this.modules) {
+				if (module.isIncluded() || module.isEntryPoint || module.dynamicallyImportedBy.length > 0) {
+					const chunk = new Chunk(this, [module]);
+					chunk.entryModules = [module];
+					chunks.push(chunk);
 				}
 			}
-
-			for (const chunk of chunks) {
-				chunk.link();
+		} else {
+			for (const chunkModules of inlineDynamicImports
+				? [this.modules]
+				: getChunkAssignments(newEntryModules, manualChunkModulesByAlias)) {
+				sortByExecutionOrder(chunkModules);
+				chunks.push(new Chunk(this, chunkModules));
 			}
-			const facades: Chunk[] = [];
-			for (const chunk of chunks) {
-				facades.push(...chunk.generateFacades());
-			}
+		}
 
-			timeEnd('generate chunks', 2);
+		for (const chunk of chunks) {
+			chunk.link();
+		}
+		const facades: Chunk[] = [];
+		for (const chunk of chunks) {
+			facades.push(...chunk.generateFacades());
+		}
 
-			this.phase = BuildPhase.GENERATE;
-			return [...chunks, ...facades];
-		});
+		timeEnd('generate chunks', 2);
+
+		this.phase = BuildPhase.GENERATE;
+		return [...chunks, ...facades];
 	}
 
 	getCache(): RollupCache {

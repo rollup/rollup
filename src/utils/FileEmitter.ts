@@ -138,11 +138,9 @@ function getChunkFileName(file: ConsumedChunk): string {
 
 export class FileEmitter {
 	private filesByReferenceId: Map<string, ConsumedFile>;
-	private graph: Graph;
 	private output: OutputSpecificFileData | null = null;
 
-	constructor(graph: Graph, baseFileEmitter?: FileEmitter) {
-		this.graph = graph;
+	constructor(private graph: Graph, baseFileEmitter?: FileEmitter) {
 		this.filesByReferenceId = baseFileEmitter
 			? new Map(baseFileEmitter.filesByReferenceId)
 			: new Map();

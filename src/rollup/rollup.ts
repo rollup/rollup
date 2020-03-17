@@ -227,14 +227,16 @@ export async function rollupInternal(
 			outputBundle = assignChunksToBundle(chunks, outputBundleWithPlaceholders);
 
 			await Promise.all(
-				chunks.map(chunk => {
+				chunks.map(async chunk => {
 					const outputChunk = outputBundleWithPlaceholders[chunk.id!] as OutputChunk;
-					return chunk
-						.render(outputOptions, addons, outputChunk, outputPluginDriver)
-						.then(rendered => {
-							outputChunk.code = rendered.code;
-							outputChunk.map = rendered.map;
-						});
+					const rendered = await chunk.render(
+						outputOptions,
+						addons,
+						outputChunk,
+						outputPluginDriver
+					);
+					outputChunk.code = rendered.code;
+					outputChunk.map = rendered.map;
 				})
 			);
 		} catch (error) {
@@ -261,16 +263,15 @@ export async function rollupInternal(
 	const cache = useCache ? graph.getCache() : undefined;
 	const result: RollupBuild = {
 		cache: cache!,
-		generate: (rawOutputOptions: OutputOptions) => {
+		watchFiles: Object.keys(graph.watchFiles),
+		async generate(rawOutputOptions: OutputOptions) {
 			const { outputOptions, outputPluginDriver } = getOutputOptionsAndPluginDriver(
 				rawOutputOptions as GenericConfigObject
 			);
-			return generate(outputOptions, false, outputPluginDriver).then(result =>
-				createOutput(result)
-			);
+			const result = await generate(outputOptions, false, outputPluginDriver);
+			return createOutput(result);
 		},
-		watchFiles: Object.keys(graph.watchFiles),
-		write: (rawOutputOptions: OutputOptions) => {
+		async write(rawOutputOptions: OutputOptions) {
 			const { outputOptions, outputPluginDriver } = getOutputOptionsAndPluginDriver(
 				rawOutputOptions as GenericConfigObject
 			);
@@ -280,13 +281,12 @@ export async function rollupInternal(
 					message: 'You must specify "output.file" or "output.dir" for the build.'
 				});
 			}
-			return generate(outputOptions, true, outputPluginDriver).then(async bundle => {
-				await Promise.all(
-					Object.keys(bundle).map(chunkId => writeOutputFile(bundle[chunkId], outputOptions))
-				);
-				await outputPluginDriver.hookParallel('writeBundle', [outputOptions, bundle]);
-				return createOutput(bundle);
-			});
+			const bundle = await generate(outputOptions, true, outputPluginDriver);
+			await Promise.all(
+				Object.keys(bundle).map(chunkId => writeOutputFile(bundle[chunkId], outputOptions))
+			);
+			await outputPluginDriver.hookParallel('writeBundle', [outputOptions, bundle]);
+			return createOutput(bundle);
 		}
 	};
 	if (inputOptions.perf === true) result.getTimings = getTimings;

@@ -92,27 +92,21 @@ function getHasModuleSideEffects(
 export class ModuleLoader {
 	readonly isExternal: IsExternal;
 	private readonly getManualChunk: GetManualChunk;
-	private readonly graph: Graph;
 	private readonly hasModuleSideEffects: (id: string, external: boolean) => boolean;
 	private readonly indexedEntryModules: { index: number; module: Module }[] = [];
 	private latestLoadModulesPromise: Promise<any> = Promise.resolve();
 	private readonly manualChunkModules: Record<string, Module[]> = {};
-	private readonly modulesById: Map<string, Module | ExternalModule>;
 	private nextEntryModuleIndex = 0;
-	private readonly pluginDriver: PluginDriver;
 
 	constructor(
-		graph: Graph,
-		modulesById: Map<string, Module | ExternalModule>,
-		pluginDriver: PluginDriver,
+		private readonly graph: Graph,
+		private readonly modulesById: Map<string, Module | ExternalModule>,
+		private readonly pluginDriver: PluginDriver,
 		external: ExternalOption,
 		getManualChunk: GetManualChunk | null,
 		moduleSideEffects: ModuleSideEffectsOption,
 		pureExternalModules: PureModulesOption
 	) {
-		this.graph = graph;
-		this.modulesById = modulesById;
-		this.pluginDriver = pluginDriver;
 		this.isExternal = getIdMatcher(external);
 		this.hasModuleSideEffects = getHasModuleSideEffects(
 			moduleSideEffects,

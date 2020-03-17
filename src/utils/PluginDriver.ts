@@ -129,7 +129,7 @@ export class PluginDriver {
 	}
 
 	// parallel, ignores returns
-	hookParallel<H extends AsyncPluginHooks & ParallelPluginHooks>(
+	async hookParallel<H extends AsyncPluginHooks & ParallelPluginHooks>(
 		hookName: H,
 		args: Parameters<PluginHooks[H]>,
 		replaceContext?: ReplaceContext
@@ -140,7 +140,7 @@ export class PluginDriver {
 			if (!hookPromise) continue;
 			promises.push(hookPromise);
 		}
-		return Promise.all(promises).then(() => {});
+		await Promise.all(promises);
 	}
 
 	// chains, reduces returned value, handling the reduced value as the first hook argument
