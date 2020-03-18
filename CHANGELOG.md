@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.1.0
+*2020-03-18*
+
+### Features
+* Allow specifying an importer when emitting files to resolve relative ids (#3442)
+
+### Pull Requests
+* [#3442](https://github.com/rollup/rollup/pull/3442): Add optional `importer` parameter to `this.emitFile` (@lukastaegert)
+
 ## 2.0.6
 *2020-03-13*
 
