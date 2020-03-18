@@ -727,7 +727,7 @@ Repository: micromatch/to-regex-range
 ## yargs-parser
 License: ISC
 By: Ben Coe
-Repository: git@github.com:yargs/yargs-parser.git
+Repository: https://github.com/yargs/yargs-parser.git
 
 > Copyright (c) 2016, Contributors
 > 
