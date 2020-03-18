@@ -134,6 +134,7 @@ export interface EmittedAsset {
 export interface EmittedChunk {
 	fileName?: string;
 	id: string;
+	importer?: string;
 	name?: string;
 	type: 'chunk';
 }
@@ -175,11 +176,11 @@ export interface PluginContext extends MinimalPluginContext {
 	parse: (input: string, options: any) => AcornNode;
 	resolve: (
 		source: string,
-		importer: string,
+		importer?: string,
 		options?: { skipSelf: boolean }
 	) => Promise<ResolvedId | null>;
 	/** @deprecated Use `this.resolve` instead */
-	resolveId: (source: string, importer: string) => Promise<string | null>;
+	resolveId: (source: string, importer?: string) => Promise<string | null>;
 	setAssetSource: (assetReferenceId: string, source: string | Uint8Array) => void;
 	warn: (warning: RollupWarning | string, pos?: number | { column: number; line: number }) => void;
 }
@@ -216,7 +217,7 @@ export type ResolveIdHook = (
 
 export type IsExternal = (
 	source: string,
-	importer: string,
+	importer: string | undefined,
 	isResolved: boolean
 ) => boolean | null | undefined;
 

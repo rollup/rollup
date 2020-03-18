@@ -32,14 +32,15 @@ function normalizeEntryModules(
 	entryModules: string | string[] | Record<string, string>
 ): UnresolvedModule[] {
 	if (typeof entryModules === 'string') {
-		return [{ fileName: null, name: null, id: entryModules }];
+		return [{ fileName: null, name: null, id: entryModules, importer: undefined }];
 	}
 	if (Array.isArray(entryModules)) {
-		return entryModules.map(id => ({ fileName: null, name: null, id }));
+		return entryModules.map(id => ({ fileName: null, name: null, id, importer: undefined }));
 	}
 	return Object.keys(entryModules).map(name => ({
 		fileName: null,
 		id: entryModules[name],
+		importer: undefined,
 		name
 	}));
 }
