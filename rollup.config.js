@@ -7,7 +7,7 @@ import path from 'path';
 import { string } from 'rollup-plugin-string';
 import { terser } from 'rollup-plugin-terser';
 import typescript from 'rollup-plugin-typescript';
-import addBinShebang from './build-plugins/add-bin-shebang';
+import addBinShebangAndEsmImport from './build-plugins/add-bin-shebang-and-esm-import.js';
 import conditionalFsEventsImport from './build-plugins/conditional-fsevents-import';
 import emitModulePackageFile from './build-plugins/emit-module-package-file.js';
 import getLicenseHandler from './build-plugins/generate-license-file';
@@ -76,7 +76,7 @@ export default command => {
 			'bin/rollup': 'cli/index.ts'
 		},
 		onwarn,
-		plugins: [...nodePlugins, addBinShebang(), !command.configTest && collectLicenses()],
+		plugins: [...nodePlugins, addBinShebangAndEsmImport(), !command.configTest && collectLicenses()],
 		// fsevents is a dependency of chokidar that cannot be bundled as it contains binary code
 		external: [
 			'assert',
