@@ -86,7 +86,14 @@ export default class Import extends NodeBase {
 		}
 	}
 
-	private getDynamicImportMechanism(options: RenderOptions): DynamicImportMechanism | null {
+	private getDynamicImportMechanism(
+		options: RenderOptions
+		// pluginDriver: PluginDriver
+	): DynamicImportMechanism | null {
+		// const mechanism = pluginDriver.hookFirstSync('renderDynamicImport', [{}]);
+		// if (mechanism) {
+		// 	return mechanism;
+		// }
 		switch (options.format) {
 			case 'cjs': {
 				const _ = options.compact ? '' : ' ';

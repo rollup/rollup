@@ -316,6 +316,17 @@ export interface OutputBundleWithPlaceholders {
 	[fileName: string]: OutputAsset | OutputChunk | FilePlaceholder;
 }
 
+export interface PluginHooks extends OutputPluginHooks {
+	buildEnd: (this: PluginContext, err?: Error) => Promise<void> | void;
+	buildStart: (this: PluginContext, options: InputOptions) => Promise<void> | void;
+	load: LoadHook;
+	options: (this: MinimalPluginContext, options: InputOptions) => InputOptions | null | undefined;
+	resolveDynamicImport: ResolveDynamicImportHook;
+	resolveId: ResolveIdHook;
+	transform: TransformHook;
+	watchChange: (id: string) => void;
+}
+
 interface OutputPluginHooks {
 	augmentChunkHash: (this: PluginContext, chunk: PreRenderedChunk) => string | void;
 	generateBundle: (
@@ -326,6 +337,10 @@ interface OutputPluginHooks {
 	) => void | Promise<void>;
 	outputOptions: (this: PluginContext, options: OutputOptions) => OutputOptions | null | undefined;
 	renderChunk: RenderChunkHook;
+	// renderDynamicImport: (
+	// 	this: PluginContext,
+	// 	options: {}
+	// ) => { left: string; right: string } | null | undefined;
 	renderError: (this: PluginContext, err?: Error) => Promise<void> | void;
 	renderStart: (
 		this: PluginContext,
@@ -334,24 +349,13 @@ interface OutputPluginHooks {
 	) => Promise<void> | void;
 	/** @deprecated Use `resolveFileUrl` instead */
 	resolveAssetUrl: ResolveAssetUrlHook;
-	resolveDynamicImport: ResolveDynamicImportHook;
 	resolveFileUrl: ResolveFileUrlHook;
+	resolveImportMeta: ResolveImportMetaHook;
 	writeBundle: (
 		this: PluginContext,
 		options: OutputOptions,
 		bundle: OutputBundle
 	) => void | Promise<void>;
-}
-
-export interface PluginHooks extends OutputPluginHooks {
-	buildEnd: (this: PluginContext, err?: Error) => Promise<void> | void;
-	buildStart: (this: PluginContext, options: InputOptions) => Promise<void> | void;
-	load: LoadHook;
-	options: (this: MinimalPluginContext, options: InputOptions) => InputOptions | null | undefined;
-	resolveId: ResolveIdHook;
-	resolveImportMeta: ResolveImportMetaHook;
-	transform: TransformHook;
-	watchChange: (id: string) => void;
 }
 
 export type AsyncPluginHooks =
@@ -373,6 +377,7 @@ export type SyncPluginHooks = Exclude<keyof PluginHooks, AsyncPluginHooks>;
 
 export type FirstPluginHooks =
 	| 'load'
+	// | 'renderDynamicImport'
 	| 'resolveAssetUrl'
 	| 'resolveDynamicImport'
 	| 'resolveFileUrl'

@@ -126,12 +126,7 @@ export default class Graph {
 				...this.acornOptions
 			});
 
-		this.pluginDriver = new PluginDriver(
-			this,
-			options.plugins!,
-			this.pluginCache,
-			options.preserveSymlinks === true
-		);
+		this.pluginDriver = new PluginDriver(this, options.plugins!, this.pluginCache);
 
 		if (watcher) {
 			const handleChange = (id: string) => this.pluginDriver.hookSeqSync('watchChange', [id]);
@@ -178,6 +173,7 @@ export default class Graph {
 			this,
 			this.moduleById,
 			this.pluginDriver,
+			options.preserveSymlinks === true,
 			options.external!,
 			(typeof options.manualChunks === 'function' && options.manualChunks) as GetManualChunk | null,
 			(this.treeshakingOptions ? this.treeshakingOptions.moduleSideEffects : null)!,
