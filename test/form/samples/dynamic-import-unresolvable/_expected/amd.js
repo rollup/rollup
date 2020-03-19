@@ -21,6 +21,7 @@ define(['require'], function (require) { 'use strict';
 
 	new Promise(function (resolve, reject) { require([`${globalThis.unknown}`], function (m) { resolve(_interopNamespace(m)); }, reject) });
 	new Promise(function (resolve, reject) { require([`My ${globalThis.unknown}`], function (m) { resolve(_interopNamespace(m)); }, reject) });
-	new Promise(function (resolve, reject) { require([7], function (m) { resolve(_interopNamespace(m)); }, reject) });
+	new Promise(function (resolve, reject) { require(['./seven.js'], function (m) { resolve(_interopNamespace(m)); }, reject) });
+	new Promise(function (resolve, reject) { require(['./seven'], function (m) { resolve(_interopNamespace(m)); }, reject) });
 
 });

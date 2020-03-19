@@ -5,7 +5,8 @@ System.register([], function (exports, module) {
 
 			module.import(`${globalThis.unknown}`);
 			module.import(`My ${globalThis.unknown}`);
-			module.import(7);
+			module.import('./seven.js');
+			module.import('./seven.js');
 
 		}
 	};

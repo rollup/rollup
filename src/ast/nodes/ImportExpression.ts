@@ -47,6 +47,7 @@ export default class Import extends NodeBase {
 			return;
 		}
 
+		// TODO Lukas get the import mechanism via the hook
 		const importMechanism = this.getDynamicImportMechanism(options);
 		if (importMechanism) {
 			code.overwrite(
@@ -59,13 +60,8 @@ export default class Import extends NodeBase {
 		this.source.render(code, options);
 	}
 
-	renderFinalResolution(code: MagicString, resolution: string, format: string) {
-		if (this.included) {
-			if (format === 'amd' && resolution.startsWith("'.") && resolution.endsWith(".js'")) {
-				resolution = resolution.slice(0, -4) + "'";
-			}
-			code.overwrite(this.source.start, this.source.end, resolution);
-		}
+	renderFinalResolution(code: MagicString, resolution: string) {
+		code.overwrite(this.source.start, this.source.end, resolution);
 	}
 
 	setResolution(
