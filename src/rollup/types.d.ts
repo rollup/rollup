@@ -164,6 +164,7 @@ export interface PluginContext extends MinimalPluginContext {
 	getModuleInfo: (
 		moduleId: string
 	) => {
+		dynamicallyImportedIds: string[];
 		hasModuleSideEffects: boolean;
 		id: string;
 		importedIds: string[];

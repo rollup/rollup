@@ -13,6 +13,7 @@ import {
 	ResolveIdResult,
 	TransformModuleJSON
 } from './rollup/types';
+import { resolveId } from './utils/defaultPlugin';
 import {
 	errBadLoader,
 	errCannotAssignModuleToChunk,
@@ -30,7 +31,6 @@ import { readFile } from './utils/fs';
 import { isRelative, resolve } from './utils/path';
 import { PluginDriver } from './utils/PluginDriver';
 import relativeId from './utils/relativeId';
-import { resolveId } from './utils/resolveId';
 import { timeEnd, timeStart } from './utils/timers';
 import transform from './utils/transform';
 

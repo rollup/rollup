@@ -3,8 +3,7 @@ const assert = require('assert');
 const rollup = require('../../dist/rollup');
 const { compareError, compareWarnings, extend, runTestSuiteWithSamples } = require('../utils.js');
 
-function requireWithContext(code, context) {
-	const module = { exports: {} };
+function requireWithContext(code, context, module) {
 	const contextWithExports = Object.assign({}, context, { module, exports: module.exports });
 	const contextKeys = Object.keys(contextWithExports);
 	const contextValues = contextKeys.map(key => contextWithExports[key]);
@@ -19,14 +18,20 @@ function requireWithContext(code, context) {
 }
 
 function runCodeSplitTest(codeMap, entryId, configContext) {
+	const exportsMap = Object.create(null);
+
 	const requireFromOutputVia = importer => importee => {
 		const outputId = path.posix.join(path.posix.dirname(importer), importee);
+		if (outputId in exportsMap) {
+			return exportsMap[outputId];
+		}
 		const code = codeMap[outputId];
 		if (typeof code !== 'undefined') {
-			return requireWithContext(
+			return (exportsMap[outputId] = requireWithContext(
 				code,
-				Object.assign({ require: requireFromOutputVia(outputId) }, context)
-			);
+				Object.assign({ require: requireFromOutputVia(outputId) }, context),
+				(exportsMap[outputId] = { exports: {} })
+			));
 		} else {
 			return require(importee);
 		}
@@ -35,10 +40,7 @@ function runCodeSplitTest(codeMap, entryId, configContext) {
 	const context = Object.assign({ assert }, configContext);
 	let exports;
 	try {
-		exports = requireWithContext(
-			codeMap[entryId],
-			Object.assign({ require: requireFromOutputVia(entryId) }, context)
-		);
+		exports = requireFromOutputVia(entryId)(entryId);
 	} catch (error) {
 		return { error, exports: error.exports };
 	}

@@ -706,10 +706,7 @@ export default class Chunk {
 				}
 				const renderedResolution =
 					resolution instanceof Module
-						? `'${this.getRelativePath(
-								(resolution.facadeChunk || resolution.chunk!).id!,
-								stripKnownJsExtensions
-						  )}'`
+						? `'${this.getRelativePath(resolution.facadeChunk!.id!, stripKnownJsExtensions)}'`
 						: resolution instanceof ExternalModule
 						? `'${
 								resolution.renormalizeRenderPath

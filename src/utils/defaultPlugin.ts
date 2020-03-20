@@ -1,4 +1,3 @@
-import { error } from './error';
 import { lstatSync, readdirSync, realpathSync } from './fs';
 import { basename, dirname, isAbsolute, resolve } from './path';
 import { PluginDriver } from './PluginDriver';
@@ -12,14 +11,6 @@ export async function resolveId(
 ) {
 	const pluginResult = await pluginDriver.hookFirst('resolveId', [source, importer], null, skip);
 	if (pluginResult != null) return pluginResult;
-
-	if (typeof process === 'undefined') {
-		return error({
-			code: 'MISSING_PROCESS',
-			message: `It looks like you're using Rollup in a non-Node.js environment. This means you must supply a plugin with custom resolveId and load functions`,
-			url: 'https://rollupjs.org/guide/en/#a-simple-example'
-		});
-	}
 
 	// external modules (non-entry modules that start with neither '.' or '/')
 	// are skipped at this stage.
