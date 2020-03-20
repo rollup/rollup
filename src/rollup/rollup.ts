@@ -212,7 +212,7 @@ export async function rollupInternal(
 					chunk.exportMode = getExportMode(chunk, outputOptions, chunk.facadeModule!.id);
 			}
 			for (const chunk of chunks) {
-				chunk.preRender(outputOptions, inputBase);
+				chunk.preRender(outputOptions, inputBase, outputPluginDriver);
 			}
 			assignChunkIds(
 				chunks,

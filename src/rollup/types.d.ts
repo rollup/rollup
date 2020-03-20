@@ -261,7 +261,7 @@ export type ResolveDynamicImportHook = (
 export type ResolveImportMetaHook = (
 	this: PluginContext,
 	prop: string | null,
-	options: { chunkId: string; format: string; moduleId: string }
+	options: { chunkId: string; format: InternalModuleFormat; moduleId: string }
 ) => string | null | undefined;
 
 export type ResolveAssetUrlHook = (
@@ -269,7 +269,7 @@ export type ResolveAssetUrlHook = (
 	options: {
 		assetFileName: string;
 		chunkId: string;
-		format: string;
+		format: InternalModuleFormat;
 		moduleId: string;
 		relativeAssetPath: string;
 	}
@@ -282,7 +282,7 @@ export type ResolveFileUrlHook = (
 		chunkId: string;
 		chunkReferenceId: string | null;
 		fileName: string;
-		format: string;
+		format: InternalModuleFormat;
 		moduleId: string;
 		referenceId: string;
 		relativePath: string;
@@ -337,10 +337,15 @@ interface OutputPluginHooks {
 	) => void | Promise<void>;
 	outputOptions: (this: PluginContext, options: OutputOptions) => OutputOptions | null | undefined;
 	renderChunk: RenderChunkHook;
-	// renderDynamicImport: (
-	// 	this: PluginContext,
-	// 	options: {}
-	// ) => { left: string; right: string } | null | undefined;
+	renderDynamicImport: (
+		this: PluginContext,
+		options: {
+			customResolution: string | null;
+			format: InternalModuleFormat;
+			moduleId: string;
+			targetModuleId: string | null;
+		}
+	) => { left: string; right: string } | null | undefined;
 	renderError: (this: PluginContext, err?: Error) => Promise<void> | void;
 	renderStart: (
 		this: PluginContext,
@@ -377,7 +382,7 @@ export type SyncPluginHooks = Exclude<keyof PluginHooks, AsyncPluginHooks>;
 
 export type FirstPluginHooks =
 	| 'load'
-	// | 'renderDynamicImport'
+	| 'renderDynamicImport'
 	| 'resolveAssetUrl'
 	| 'resolveDynamicImport'
 	| 'resolveFileUrl'
@@ -461,17 +466,9 @@ export interface InputOptions {
 	watch?: WatcherOptions;
 }
 
-export type ModuleFormat =
-	| 'amd'
-	| 'cjs'
-	| 'commonjs'
-	| 'es'
-	| 'esm'
-	| 'iife'
-	| 'module'
-	| 'system'
-	| 'systemjs'
-	| 'umd';
+export type InternalModuleFormat = 'amd' | 'cjs' | 'es' | 'iife' | 'system' | 'umd';
+
+export type ModuleFormat = InternalModuleFormat | 'commonjs' | 'esm' | 'module' | 'systemjs';
 
 export type OptionsPaths = Record<string, string> | ((id: string) => string);
 

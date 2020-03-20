@@ -3,7 +3,6 @@ import { lstatSync, readdirSync, realpathSync } from './fs';
 import { basename, dirname, isAbsolute, resolve } from './path';
 import { PluginDriver } from './PluginDriver';
 
-// TODO Lukas rename file
 export async function resolveId(
 	source: string,
 	importer: string | undefined,

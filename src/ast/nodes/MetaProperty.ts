@@ -1,4 +1,5 @@
 import MagicString from 'magic-string';
+import { InternalModuleFormat } from '../../rollup/types';
 import { dirname, normalize, relative } from '../../utils/path';
 import { PluginDriver } from '../../utils/PluginDriver';
 import { ObjectPathKey } from '../utils/PathTracker';
@@ -56,7 +57,7 @@ export default class MetaProperty extends NodeBase {
 	renderFinalMechanism(
 		code: MagicString,
 		chunkId: string,
-		format: string,
+		format: InternalModuleFormat,
 		outputPluginDriver: PluginDriver
 	): void {
 		if (!this.included) return;

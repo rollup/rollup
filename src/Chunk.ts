@@ -16,6 +16,7 @@ import Module from './Module';
 import {
 	DecodedSourceMapOrMissing,
 	GlobalsOption,
+	InternalModuleFormat,
 	OutputOptions,
 	PreRenderedChunk,
 	RenderedChunk,
@@ -411,7 +412,7 @@ export default class Chunk {
 	}
 
 	// prerender allows chunk hashes and names to be generated before finalizing
-	preRender(options: OutputOptions, inputBase: string) {
+	preRender(options: OutputOptions, inputBase: string, outputPluginDriver: PluginDriver) {
 		timeStart('render modules', 3);
 
 		const magicString = new MagicStringBundle({ separator: options.compact ? '' : '\n\n' });
@@ -424,10 +425,11 @@ export default class Chunk {
 		const renderOptions: RenderOptions = {
 			compact: options.compact as boolean,
 			dynamicImportFunction: options.dynamicImportFunction as string,
-			format: options.format as string,
+			format: options.format as InternalModuleFormat,
 			freeze: options.freeze !== false,
 			indent: this.indentString,
 			namespaceToStringTag: options.namespaceToStringTag === true,
+			outputPluginDriver,
 			varOrConst: options.preferConst ? 'const' : 'var'
 		};
 
@@ -520,7 +522,7 @@ export default class Chunk {
 		timeStart('render format', 3);
 
 		const chunkId = this.id!;
-		const format = options.format as string;
+		const format = options.format as InternalModuleFormat;
 		const finalise = finalisers[format];
 		if (options.dynamicImportFunction && format !== 'es') {
 			this.graph.warn({
@@ -720,7 +722,10 @@ export default class Chunk {
 		}
 	}
 
-	private finaliseImportMetas(format: string, outputPluginDriver: PluginDriver): void {
+	private finaliseImportMetas(
+		format: InternalModuleFormat,
+		outputPluginDriver: PluginDriver
+	): void {
 		for (const [module, code] of this.renderedModuleSources) {
 			for (const importMeta of module.importMetas) {
 				importMeta.renderFinalMechanism(code, this.id!, format, outputPluginDriver);
@@ -923,12 +928,12 @@ export default class Chunk {
 				if (resolution instanceof Module) {
 					if (resolution.chunk === this) {
 						const namespace = resolution.getOrCreateNamespace();
-						node.setResolution('named', namespace);
+						node.setResolution('named', resolution, namespace);
 					} else {
-						node.setResolution(resolution.chunk!.exportMode);
+						node.setResolution(resolution.chunk!.exportMode, resolution);
 					}
 				} else {
-					node.setResolution('auto');
+					node.setResolution('auto', resolution);
 				}
 			}
 		}
