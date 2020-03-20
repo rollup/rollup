@@ -61,6 +61,9 @@ module.exports = {
 			}
 		}
 	},
+	context: {
+		thePath: 'path'
+	},
 	bundle() {
 		assert.ok(rendered);
 	}
