@@ -182,6 +182,7 @@ const watchOptions = {
   watch: {
     chokidar,
     clearScreen,
+    skipWrite,
     exclude,
     include
   }
