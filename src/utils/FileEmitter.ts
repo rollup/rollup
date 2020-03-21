@@ -352,7 +352,7 @@ export class FileEmitter {
 			const outputFile = bundle[fileName];
 			if (
 				outputFile.type === 'asset' &&
-				(isBrowser && Buffer.isBuffer(source) && Buffer.isBuffer(outputFile.source)
+				(!isBrowser && Buffer.isBuffer(source) && Buffer.isBuffer(outputFile.source)
 					? source.equals(outputFile.source)
 					: source === outputFile.source)
 			)
