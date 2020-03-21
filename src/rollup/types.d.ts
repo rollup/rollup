@@ -664,7 +664,7 @@ export interface RollupWatcher
 	close(): void;
 }
 
-export function watch(configs: RollupWatchOptions[]): RollupWatcher;
+export function watch(config: RollupWatchOptions | RollupWatchOptions[]): RollupWatcher;
 
 interface AcornNode {
 	end: number;
