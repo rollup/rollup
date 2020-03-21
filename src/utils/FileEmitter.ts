@@ -24,6 +24,8 @@ interface OutputSpecificFileData {
 	bundle: OutputBundleWithPlaceholders;
 }
 
+const isBrowser = typeof window !== 'undefined';
+
 function generateAssetFileName(
 	name: string | undefined,
 	source: string | Buffer,
@@ -110,7 +112,7 @@ function getValidSource(
 	emittedFile: { fileName?: string; name?: string },
 	fileReferenceId: string | null
 ): string | Buffer {
-	if (typeof source !== 'string' && !Buffer.isBuffer(source)) {
+	if (typeof source !== 'string' && (isBrowser || !Buffer.isBuffer(source))) {
 		const assetName = emittedFile.fileName || emittedFile.name || fileReferenceId;
 		return error(
 			errFailedValidation(
