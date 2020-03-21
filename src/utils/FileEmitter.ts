@@ -24,7 +24,7 @@ interface OutputSpecificFileData {
 	bundle: OutputBundleWithPlaceholders;
 }
 
-const isBrowser = typeof window !== 'undefined';
+const isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined';
 
 function generateAssetFileName(
 	name: string | undefined,
