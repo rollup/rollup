@@ -112,6 +112,7 @@ function getValidSource(
 	emittedFile: { fileName?: string; name?: string },
 	fileReferenceId: string | null
 ): string | Buffer {
+	// Since buffer isn't available in browser and the source isn't a string this should throw.
 	if (typeof source !== 'string' && (isBrowser || !Buffer.isBuffer(source))) {
 		const assetName = emittedFile.fileName || emittedFile.name || fileReferenceId;
 		return error(
@@ -351,7 +352,7 @@ export class FileEmitter {
 			const outputFile = bundle[fileName];
 			if (
 				outputFile.type === 'asset' &&
-				(Buffer.isBuffer(source) && Buffer.isBuffer(outputFile.source)
+				(isBrowser && Buffer.isBuffer(source) && Buffer.isBuffer(outputFile.source)
 					? source.equals(outputFile.source)
 					: source === outputFile.source)
 			)
