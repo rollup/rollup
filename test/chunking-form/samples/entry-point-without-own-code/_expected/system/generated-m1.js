@@ -8,8 +8,6 @@ System.register(['./m2.js'], function (exports) {
 		}],
 		execute: function () {
 
-
-
 			var ms = /*#__PURE__*/Object.freeze({
 				__proto__: null,
 				m2: m2

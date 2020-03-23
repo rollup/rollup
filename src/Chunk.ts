@@ -457,19 +457,18 @@ export default class Chunk {
 			let renderedLength = 0;
 			if (module.isIncluded()) {
 				const source = module.render(renderOptions).trim();
-				if (options.compact && source.lastLine().indexOf('//') !== -1) source.append('\n');
-				const namespace = module.getOrCreateNamespace();
-				if (namespace.included || source.length() > 0) {
-					renderedLength = source.length();
+				renderedLength = source.length();
+				if (renderedLength) {
+					if (options.compact && source.lastLine().indexOf('//') !== -1) source.append('\n');
 					this.renderedModuleSources.set(module, source);
 					magicString.addSource(source);
 					this.usedModules.push(module);
-
-					if (namespace.included && !this.graph.preserveModules) {
-						const rendered = namespace.renderBlock(renderOptions);
-						if (namespace.renderFirst()) hoistedSource += n + rendered;
-						else magicString.addSource(new MagicString(rendered));
-					}
+				}
+				const namespace = module.getOrCreateNamespace();
+				if (namespace.included && !this.graph.preserveModules) {
+					const rendered = namespace.renderBlock(renderOptions);
+					if (namespace.renderFirst()) hoistedSource += n + rendered;
+					else magicString.addSource(new MagicString(rendered));
 				}
 			}
 			const { renderedExports, removedExports } = module.getRenderedExports();
