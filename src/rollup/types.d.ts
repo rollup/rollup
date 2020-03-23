@@ -484,6 +484,7 @@ export interface OutputOptions {
 	compact?: boolean;
 	// only required for bundle.write
 	dir?: string;
+	/** @deprecated Use the "renderDynamicImport" plugin hook instead. */
 	dynamicImportFunction?: string;
 	entryFileNames?: string;
 	esModule?: boolean;
@@ -493,8 +494,6 @@ export interface OutputOptions {
 	// only required for bundle.write
 	file?: string;
 	footer?: string | (() => string | Promise<string>);
-	// this is optional at the base-level of RollupWatchOptions,
-	// which extends from this interface through config merge
 	format?: ModuleFormat;
 	freeze?: boolean;
 	globals?: GlobalsOption;

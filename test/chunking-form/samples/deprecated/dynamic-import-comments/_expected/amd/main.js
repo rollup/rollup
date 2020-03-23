@@ -19,8 +19,8 @@ define(['require'], function (require) { 'use strict';
 		}
 	}
 
-	foobar(
+	new Promise(function (resolve, reject) { require([
 	/* webpackChunkName: "chunk-name" */
-	'./foo'/*suffix*/);
+	'./foo'/*suffix*/], function (m) { resolve(_interopNamespace(m)); }, reject) });
 
 });
