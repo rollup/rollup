@@ -10,7 +10,7 @@ var es5Shim = createCommonjsModule(function (module, exports) {
 // see https://github.com/umdjs/umd/blob/master/templates/returnExports.js
 (function (root, factory) {
 
-    /* global define, exports, module */
+    /* global define */
     {
         // Node. Does not work with strict CommonJS, but
         // only CommonJS-like enviroments that support module.exports,
@@ -54,7 +54,6 @@ var es5Shim = createCommonjsModule(function (module, exports) {
     // Having a toString local variable name breaks in Opera so use to_string.
     var to_string = ObjectPrototype.toString;
 
-    /* global Symbol */
     /* eslint-disable one-var-declaration-per-line, no-redeclare, max-statements-per-line */
     var hasToStringTag = typeof Symbol === 'function' && typeof Symbol.toStringTag === 'symbol';
     var isCallable; /* inlined from https://npmjs.com/is-callable */ var fnToStr = Function.prototype.toString, constructorRegex = /^\s*class /, isES6ClassFn = function isES6ClassFn(value) { try { var fnStr = fnToStr.call(value); var singleStripped = fnStr.replace(/\/\/.*\n/g, ''); var multiStripped = singleStripped.replace(/\/\*[.\s\S]*\*\//g, ''); var spaceStripped = multiStripped.replace(/\n/mg, ' ').replace(/ {2}/g, ' '); return constructorRegex.test(spaceStripped); } catch (e) { return false; /* not a function */ } }, tryFunctionObject = function tryFunctionObject(value) { try { if (isES6ClassFn(value)) { return false; } fnToStr.call(value); return true; } catch (e) { return false; } }, fnClass = '[object Function]', genClass = '[object GeneratorFunction]', isCallable = function isCallable(value) { if (!value) { return false; } if (typeof value !== 'function' && typeof value !== 'object') { return false; } if (hasToStringTag) { return tryFunctionObject(value); } if (isES6ClassFn(value)) { return false; } var strClass = to_string.call(value); return strClass === fnClass || strClass === genClass; };
@@ -97,7 +96,7 @@ var es5Shim = createCommonjsModule(function (module, exports) {
                 if (!forceAssign && (name in object)) {
                     return;
                 }
-                object[name] = method;
+                object[name] = method; // eslint-disable-line no-param-reassign
             };
         }
         return function defineProperties(object, map, forceAssign) {
@@ -812,7 +811,11 @@ var es5Shim = createCommonjsModule(function (module, exports) {
             var len = ES.ToUint32(O.length);
             var relativeStart = ES.ToInteger(start);
             var actualStart = relativeStart < 0 ? max((len + relativeStart), 0) : min(relativeStart, len);
-            var actualDeleteCount = min(max(ES.ToInteger(deleteCount), 0), len - actualStart);
+            var actualDeleteCount = arguments.length === 0
+                ? 0
+                : arguments.length === 1
+                    ? len - actualStart
+                    : min(max(ES.ToInteger(deleteCount), 0), len - actualStart);
 
             var k = 0;
             var from;
@@ -1442,7 +1445,6 @@ var es5Shim = createCommonjsModule(function (module, exports) {
     if (doesNotParseY2KNewYear || acceptsInvalidDates || !supportsExtendedYears) {
         // XXX global assignment won't work in embeddings that use
         // an alternate object for the context.
-        /* global Date: true */
         var maxSafeUnsigned32Bit = Math.pow(2, 31) - 1;
         var hasSafariSignedIntBug = isActualNaN(new Date(1970, 0, 1, 0, 0, 0, maxSafeUnsigned32Bit + 1).getTime());
         // eslint-disable-next-line no-implicit-globals, no-global-assign
@@ -1602,7 +1604,6 @@ var es5Shim = createCommonjsModule(function (module, exports) {
 
             return DateShim;
         }(Date));
-        /* global Date: false */
     }
 
     // ES5 15.9.4.4
@@ -1923,9 +1924,9 @@ var es5Shim = createCommonjsModule(function (module, exports) {
                 var wrappedReplaceValue = function (match) {
                     var length = arguments.length;
                     var originalLastIndex = searchValue.lastIndex;
-                    searchValue.lastIndex = 0;
+                    searchValue.lastIndex = 0; // eslint-disable-line no-param-reassign
                     var args = searchValue.exec(match) || [];
-                    searchValue.lastIndex = originalLastIndex;
+                    searchValue.lastIndex = originalLastIndex; // eslint-disable-line no-param-reassign
                     pushCall(args, arguments[length - 2], arguments[length - 1]);
                     return replaceValue.apply(this, args);
                 };
@@ -2007,7 +2008,7 @@ var es5Shim = createCommonjsModule(function (module, exports) {
     // ES-5 15.1.2.2
     // eslint-disable-next-line radix
     if (parseInt(ws + '08') !== 8 || parseInt(ws + '0x16') !== 22) {
-        /* global parseInt: true */
+        // eslint-disable-next-line no-global-assign, no-implicit-globals
         parseInt = (function (origParseInt) {
             var hexRegex = /^[-+]?0[xX]/;
             return function parseInt(str, radix) {
@@ -2026,7 +2027,7 @@ var es5Shim = createCommonjsModule(function (module, exports) {
 
     // https://es5.github.io/#x15.1.2.3
     if (1 / parseFloat('-0') !== -Infinity) {
-        /* global parseFloat: true */
+        // eslint-disable-next-line no-global-assign, no-implicit-globals, no-native-reassign
         parseFloat = (function (origParseFloat) {
             return function parseFloat(string) {
                 var inputString = trim(String(string));

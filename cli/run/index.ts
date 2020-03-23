@@ -88,6 +88,7 @@ async function execute(
 					inputOptions.plugins!.push(stdinPlugin());
 				}
 				addCommandPluginsToInputOptions(inputOptions, command.plugin);
+				// TODO Lukas we want an "execute config file" here
 				await build(inputOptions, outputOptions, warnings, command.silent);
 			} catch (err) {
 				warnings.flush();

@@ -15,14 +15,15 @@ interface NodeModuleWithCompile extends NodeModule {
 	_compile(code: string, filename: string): any;
 }
 
-// TODO Lukas write and adjust docs
+// TODO Lukas document
+// TODO Lukas improve docs for JS API
 export default async function loadConfigFile(
 	fileName: string,
 	commandOptions: any
 ): Promise<GenericConfigObject[]> {
 	const extension = path.extname(fileName);
 	const configFileExport = await (extension === '.mjs' && supportsNativeESM()
-		? (await esmDynamicImport(pathToFileURL(fileName).href)).default
+		? (await import(pathToFileURL(fileName).href)).default
 		: extension === '.cjs'
 		? getDefaultFromCjs(require(fileName))
 		: getDefaultFromTranspiledConfigFile(fileName, commandOptions.silent));
@@ -81,7 +82,6 @@ async function loadConfigFromBundledFile(fileName: string, bundledCode: string) 
 				url: 'https://rollupjs.org/guide/en/#using-untranspiled-config-files'
 			})
 		}
-		console.error(err.code);
 		throw err;
 	}
 }

@@ -14,6 +14,3 @@ declare module 'is-reference';
 declare module 'require-relative';
 declare module 'acorn-import-meta';
 declare module 'acorn-export-ns-from';
-
-// TODO Lukas find a better solution
-declare function esmDynamicImport(fileName: string): Promise<{ [key: string]: unknown }>;
