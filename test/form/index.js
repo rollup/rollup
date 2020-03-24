@@ -12,12 +12,13 @@ runTestSuiteWithSamples('form', path.resolve(__dirname, 'samples'), (dir, config
 	(config.skip ? itOrDescribe.skip : config.solo ? itOrDescribe.only : itOrDescribe)(
 		path.basename(dir) + ': ' + config.description,
 		() => {
-			let promise;
-			const runRollupTest = (inputFile, bundleFile, defaultFormat) => {
+			let bundle;
+			const runRollupTest = async (inputFile, bundleFile, defaultFormat) => {
+				if (config.before) config.before();
 				process.chdir(dir);
-				return (
-					promise ||
-					(promise = rollup.rollup(
+				bundle =
+					bundle ||
+					(await rollup.rollup(
 						extend(
 							{
 								input: dir + '/main.js',
@@ -35,21 +36,20 @@ runTestSuiteWithSamples('form', path.resolve(__dirname, 'samples'), (dir, config
 							},
 							config.options || {}
 						)
-					))
-				).then(bundle =>
-					generateAndTestBundle(
-						bundle,
-						extend(
-							{
-								file: inputFile,
-								format: defaultFormat
-							},
-							(config.options || {}).output || {}
-						),
-						bundleFile,
-						config
-					)
+					));
+				await generateAndTestBundle(
+					bundle,
+					extend(
+						{
+							file: inputFile,
+							format: defaultFormat
+						},
+						(config.options || {}).output || {}
+					),
+					bundleFile,
+					config
 				);
+				if (config.after) config.after();
 			};
 
 			if (isSingleFormatTest) {
@@ -69,42 +69,41 @@ runTestSuiteWithSamples('form', path.resolve(__dirname, 'samples'), (dir, config
 	);
 });
 
-function generateAndTestBundle(bundle, outputOptions, expectedFile, { show }) {
-	return bundle.write(outputOptions).then(() => {
-		const actualCode = normaliseOutput(sander.readFileSync(outputOptions.file));
-		let expectedCode;
-		let actualMap;
-		let expectedMap;
+async function generateAndTestBundle(bundle, outputOptions, expectedFile, { show }) {
+	await bundle.write(outputOptions);
+	const actualCode = normaliseOutput(sander.readFileSync(outputOptions.file));
+	let expectedCode;
+	let actualMap;
+	let expectedMap;
 
-		try {
-			expectedCode = normaliseOutput(sander.readFileSync(expectedFile));
-		} catch (err) {
-			expectedCode = 'missing file';
-		}
+	try {
+		expectedCode = normaliseOutput(sander.readFileSync(expectedFile));
+	} catch (err) {
+		expectedCode = 'missing file';
+	}
 
-		try {
-			actualMap = JSON.parse(sander.readFileSync(outputOptions.file + '.map').toString());
-			actualMap.sourcesContent = actualMap.sourcesContent
-				? actualMap.sourcesContent.map(normaliseOutput)
-				: null;
-		} catch (err) {
-			assert.equal(err.code, 'ENOENT');
-		}
+	try {
+		actualMap = JSON.parse(sander.readFileSync(outputOptions.file + '.map').toString());
+		actualMap.sourcesContent = actualMap.sourcesContent
+			? actualMap.sourcesContent.map(normaliseOutput)
+			: null;
+	} catch (err) {
+		assert.equal(err.code, 'ENOENT');
+	}
 
-		try {
-			expectedMap = JSON.parse(sander.readFileSync(expectedFile + '.map').toString());
-			expectedMap.sourcesContent = actualMap.sourcesContent
-				? expectedMap.sourcesContent.map(normaliseOutput)
-				: null;
-		} catch (err) {
-			assert.equal(err.code, 'ENOENT');
-		}
+	try {
+		expectedMap = JSON.parse(sander.readFileSync(expectedFile + '.map').toString());
+		expectedMap.sourcesContent = actualMap.sourcesContent
+			? expectedMap.sourcesContent.map(normaliseOutput)
+			: null;
+	} catch (err) {
+		assert.equal(err.code, 'ENOENT');
+	}
 
-		if (show) {
-			console.log(actualCode + '\n\n\n');
-		}
+	if (show) {
+		console.log(actualCode + '\n\n\n');
+	}
 
-		assert.equal(actualCode, expectedCode);
-		assert.deepEqual(actualMap, expectedMap);
-	});
+	assert.equal(actualCode, expectedCode);
+	assert.deepEqual(actualMap, expectedMap);
 }

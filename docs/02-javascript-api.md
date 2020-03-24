@@ -29,7 +29,7 @@ async function build() {
       // For assets, this contains
       // {
       //   fileName: string,              // the asset file name
-      //   source: string | UInt8Array    // the asset source
+      //   source: string | Uint8Array    // the asset source
       //   type: 'asset'                  // signifies that this is an asset
       // }
       console.log('Asset', chunkOrAsset);

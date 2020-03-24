@@ -14,7 +14,7 @@ module.exports = {
 		code: 'PLUGIN_ERROR',
 		hook: 'buildStart',
 		message:
-			'Could not set source for asset "test.ext", asset source needs to be a string of Buffer.',
+			'Could not set source for asset "test.ext", asset source needs to be a string, Uint8Array or Buffer.',
 		plugin: 'test-plugin',
 		pluginCode: 'VALIDATION_ERROR'
 	}
