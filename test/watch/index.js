@@ -1009,6 +1009,71 @@ describe('rollup.watch', () => {
 		]);
 	});
 
+	it('skips filesystem writes when configured', () => {
+		let watchChangeCnt = 0;
+		return sander
+			.copydir('test/watch/samples/skip-writes')
+			.to('test/_tmp/input')
+			.then(() => {
+				watcher = rollup.watch({
+					input: 'test/_tmp/input/main.js',
+					output: {
+						file: 'test/_tmp/output/bundle.js',
+						format: 'cjs'
+					},
+					watch: {
+						skipWrite: true
+					},
+					plugins: {
+						watchChange(id) {
+							watchChangeCnt++;
+							assert.strictEqual(id, path.resolve('test/_tmp/input/main.js'));
+						}
+					}
+				});
+
+				return sequence(watcher, [
+					'START',
+					'BUNDLE_START',
+					'BUNDLE_END',
+					'END',
+					() => {
+						assert.strictEqual(sander.existsSync('../_tmp/output/bundle.js'), false);
+						assert.strictEqual(watchChangeCnt, 0);
+						sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+					},
+					'START',
+					'BUNDLE_START',
+					'BUNDLE_END',
+					'END',
+					() => {
+						assert.strictEqual(sander.existsSync('../_tmp/output/bundle.js'), false);
+						assert.strictEqual(watchChangeCnt, 1);
+						sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+					},
+					'START',
+					'BUNDLE_START',
+					'BUNDLE_END',
+					'END',
+					() => {
+						assert.strictEqual(sander.existsSync('../_tmp/output/bundle.js'), false);
+						assert.strictEqual(watchChangeCnt, 2);
+						sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+					},
+					'START',
+					'BUNDLE_START',
+					'BUNDLE_END',
+					// 'END',
+					evt => {
+						assert.strictEqual(sander.existsSync('../_tmp/output/bundle.js'), false);
+						assert.strictEqual(watchChangeCnt, 3);
+						// still aware of its output destination
+						assert.strictEqual(evt.output[0], path.resolve('test/_tmp/output/bundle.js'));
+					}
+				]);
+			});
+	});
+
 	describe('addWatchFile', () => {
 		it('supports adding additional watch files in plugin hooks', () => {
 			const watchChangeIds = [];

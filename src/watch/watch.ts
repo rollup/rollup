@@ -109,6 +109,7 @@ export class Task {
 	private invalidated = true;
 	private outputFiles: string[];
 	private outputs: OutputOptions[];
+	private skipWrite: boolean;
 	private watched: Set<string>;
 	private watcher: Watcher;
 
@@ -117,6 +118,7 @@ export class Task {
 		this.closed = false;
 		this.watched = new Set();
 
+		this.skipWrite = config.watch && !!(config.watch as GenericConfigObject).skipWrite;
 		const { inputOptions, outputOptions } = mergeOptions(config);
 		this.inputOptions = inputOptions;
 		this.outputs = outputOptions;
@@ -174,7 +176,7 @@ export class Task {
 				return;
 			}
 			this.updateWatchedFiles(result);
-			await Promise.all(this.outputs.map(output => result.write(output)));
+			this.skipWrite || (await Promise.all(this.outputs.map(output => result.write(output))));
 			this.watcher.emit('event', {
 				code: 'BUNDLE_END',
 				duration: Date.now() - start,
