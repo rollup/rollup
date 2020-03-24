@@ -26,7 +26,7 @@ interface OutputSpecificFileData {
 
 function generateAssetFileName(
 	name: string | undefined,
-	source: string | Buffer,
+	source: string | Uint8Array,
 	output: OutputSpecificFileData
 ): string {
 	const emittedName = name || 'asset';
@@ -68,7 +68,7 @@ interface ConsumedChunk {
 interface ConsumedAsset {
 	fileName: string | undefined;
 	name: string | undefined;
-	source: string | Buffer | undefined;
+	source: string | Uint8Array | undefined;
 	type: 'asset';
 }
 
@@ -109,14 +109,14 @@ function getValidSource(
 	source: unknown,
 	emittedFile: { fileName?: string; name?: string },
 	fileReferenceId: string | null
-): string | Buffer {
-	if (typeof source !== 'string' && !Buffer.isBuffer(source)) {
+): string | Uint8Array {
+	if (!(typeof source === 'string' || source instanceof Uint8Array)) {
 		const assetName = emittedFile.fileName || emittedFile.name || fileReferenceId;
 		return error(
 			errFailedValidation(
 				`Could not set source for ${
 					typeof assetName === 'string' ? `asset "${assetName}"` : 'unnamed asset'
-				}, asset source needs to be a string of Buffer.`
+				}, asset source needs to be a string, Uint8Array or Buffer.`
 			)
 		);
 	}
@@ -313,13 +313,13 @@ export class FileEmitter {
 
 	private finalizeAsset(
 		consumedFile: ConsumedFile,
-		source: string | Buffer,
+		source: string | Uint8Array,
 		referenceId: string,
 		output: OutputSpecificFileData
 	): void {
 		const fileName =
 			consumedFile.fileName ||
-			this.findExistingAssetFileNameWithSource(output.bundle, source) ||
+			findExistingAssetFileNameWithSource(output.bundle, source) ||
 			generateAssetFileName(consumedFile.name, source, output);
 
 		// We must not modify the original assets to avoid interaction between outputs
@@ -340,21 +340,39 @@ export class FileEmitter {
 			type: 'asset'
 		};
 	}
+}
 
-	private findExistingAssetFileNameWithSource(
-		bundle: OutputBundleWithPlaceholders,
-		source: string | Buffer
-	): string | null {
-		for (const fileName of Object.keys(bundle)) {
-			const outputFile = bundle[fileName];
-			if (
-				outputFile.type === 'asset' &&
-				(Buffer.isBuffer(source) && Buffer.isBuffer(outputFile.source)
-					? source.equals(outputFile.source)
-					: source === outputFile.source)
-			)
-				return fileName;
-		}
-		return null;
+function findExistingAssetFileNameWithSource(
+	bundle: OutputBundleWithPlaceholders,
+	source: string | Uint8Array
+): string | null {
+	for (const fileName of Object.keys(bundle)) {
+		const outputFile = bundle[fileName];
+		if (outputFile.type === 'asset' && areSourcesEqual(source, outputFile.source)) return fileName;
 	}
+	return null;
+}
+
+function areSourcesEqual(
+	sourceA: string | Uint8Array | Buffer,
+	sourceB: string | Uint8Array | Buffer
+): boolean {
+	if (typeof sourceA === 'string') {
+		return sourceA === sourceB;
+	}
+	if (typeof sourceB === 'string') {
+		return false;
+	}
+	if ('equals' in sourceA) {
+		return sourceA.equals(sourceB);
+	}
+	if (sourceA.length !== sourceB.length) {
+		return false;
+	}
+	for (let index = 0; index < sourceA.length; index++) {
+		if (sourceA[index] !== sourceB[index]) {
+			return false;
+		}
+	}
+	return true;
 }
