@@ -1,4 +1,6 @@
 import MagicString from 'magic-string';
+import ExternalModule from '../../ExternalModule';
+import Module from '../../Module';
 import { findFirstOccurrenceOutsideComment, RenderOptions } from '../../utils/renderHelpers';
 import { INTEROP_NAMESPACE_VARIABLE } from '../../utils/variableNames';
 import { InclusionContext } from '../ExecutionContext';
@@ -12,11 +14,12 @@ interface DynamicImportMechanism {
 }
 
 export default class Import extends NodeBase {
-	inlineNamespace?: NamespaceVariable;
+	inlineNamespace: NamespaceVariable | null = null;
 	source!: ExpressionNode;
 	type!: NodeType.tImportExpression;
 
 	private exportMode: 'none' | 'named' | 'default' | 'auto' = 'auto';
+	private resolution: Module | ExternalModule | string | null = null;
 
 	hasEffects(): boolean {
 		return true;
@@ -59,20 +62,17 @@ export default class Import extends NodeBase {
 		this.source.render(code, options);
 	}
 
-	renderFinalResolution(code: MagicString, resolution: string, format: string) {
-		if (this.included) {
-			if (format === 'amd' && resolution.startsWith("'.") && resolution.endsWith(".js'")) {
-				resolution = resolution.slice(0, -4) + "'";
-			}
-			code.overwrite(this.source.start, this.source.end, resolution);
-		}
+	renderFinalResolution(code: MagicString, resolution: string) {
+		code.overwrite(this.source.start, this.source.end, resolution);
 	}
 
 	setResolution(
 		exportMode: 'none' | 'named' | 'default' | 'auto',
-		inlineNamespace?: NamespaceVariable
+		resolution: Module | ExternalModule | string | null,
+		inlineNamespace: NamespaceVariable | false = false
 	): void {
 		this.exportMode = exportMode;
+		this.resolution = resolution;
 		if (inlineNamespace) {
 			this.inlineNamespace = inlineNamespace;
 		} else {
@@ -91,6 +91,18 @@ export default class Import extends NodeBase {
 	}
 
 	private getDynamicImportMechanism(options: RenderOptions): DynamicImportMechanism | null {
+		const mechanism = options.outputPluginDriver.hookFirstSync('renderDynamicImport', [
+			{
+				customResolution: typeof this.resolution === 'string' ? this.resolution : null,
+				format: options.format,
+				moduleId: this.context.module.id,
+				targetModuleId:
+					this.resolution && typeof this.resolution !== 'string' ? this.resolution.id : null
+			}
+		]);
+		if (mechanism) {
+			return mechanism;
+		}
 		switch (options.format) {
 			case 'cjs': {
 				const _ = options.compact ? '' : ' ';

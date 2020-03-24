@@ -36,7 +36,7 @@ module.exports = {
 		{
 			code: 'INPUT_HOOK_IN_OUTPUT_PLUGIN',
 			message:
-				'The "options" hook used by the output plugin test-plugin is a build time hook and will not be run for that plugin. Either this plugin cannot be used as an output plugin, or it should have an option to configure it as an output plugin.'
+				'The "buildEnd" hook used by the output plugin test-plugin is a build time hook and will not be run for that plugin. Either this plugin cannot be used as an output plugin, or it should have an option to configure it as an output plugin.'
 		},
 		{
 			code: 'INPUT_HOOK_IN_OUTPUT_PLUGIN',
@@ -46,22 +46,27 @@ module.exports = {
 		{
 			code: 'INPUT_HOOK_IN_OUTPUT_PLUGIN',
 			message:
-				'The "resolveId" hook used by the output plugin test-plugin is a build time hook and will not be run for that plugin. Either this plugin cannot be used as an output plugin, or it should have an option to configure it as an output plugin.'
-		},
-		{
-			code: 'INPUT_HOOK_IN_OUTPUT_PLUGIN',
-			message:
 				'The "load" hook used by the output plugin test-plugin is a build time hook and will not be run for that plugin. Either this plugin cannot be used as an output plugin, or it should have an option to configure it as an output plugin.'
 		},
 		{
 			code: 'INPUT_HOOK_IN_OUTPUT_PLUGIN',
 			message:
-				'The "transform" hook used by the output plugin test-plugin is a build time hook and will not be run for that plugin. Either this plugin cannot be used as an output plugin, or it should have an option to configure it as an output plugin.'
+				'The "options" hook used by the output plugin test-plugin is a build time hook and will not be run for that plugin. Either this plugin cannot be used as an output plugin, or it should have an option to configure it as an output plugin.'
 		},
 		{
 			code: 'INPUT_HOOK_IN_OUTPUT_PLUGIN',
 			message:
-				'The "buildEnd" hook used by the output plugin test-plugin is a build time hook and will not be run for that plugin. Either this plugin cannot be used as an output plugin, or it should have an option to configure it as an output plugin.'
+				'The "resolveDynamicImport" hook used by the output plugin test-plugin is a build time hook and will not be run for that plugin. Either this plugin cannot be used as an output plugin, or it should have an option to configure it as an output plugin.'
+		},
+		{
+			code: 'INPUT_HOOK_IN_OUTPUT_PLUGIN',
+			message:
+				'The "resolveId" hook used by the output plugin test-plugin is a build time hook and will not be run for that plugin. Either this plugin cannot be used as an output plugin, or it should have an option to configure it as an output plugin.'
+		},
+		{
+			code: 'INPUT_HOOK_IN_OUTPUT_PLUGIN',
+			message:
+				'The "transform" hook used by the output plugin test-plugin is a build time hook and will not be run for that plugin. Either this plugin cannot be used as an output plugin, or it should have an option to configure it as an output plugin.'
 		},
 		{
 			code: 'INPUT_HOOK_IN_OUTPUT_PLUGIN',

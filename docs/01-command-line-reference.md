@@ -85,7 +85,6 @@ export default { // can be an array (for multiple inputs)
 
     // danger zone
     amd,
-    dynamicImportFunction,
     esModule,
     exports,
     externalLiveBindings,
@@ -229,7 +228,6 @@ Many options have command line equivalents. In those cases, any arguments passed
 --chunkFileNames <pattern>  Name pattern for emitted secondary chunks
 --compact                   Minify wrapper code
 --context <variable>        Specify top-level `this` value
---dynamicImportFunction <name>         Rename the dynamic `import()` function
 --entryFileNames <pattern>  Name pattern for emitted entry chunks
 --environment <values>      Settings passed to config file (see example)
 --no-esModule               Do not add __esModule property

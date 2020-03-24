@@ -26,9 +26,11 @@ import {
 	errUnresolvedImport,
 	errUnresolvedImportTreatedAsExternal
 } from './utils/error';
+import { readFile } from './utils/fs';
 import { isRelative, resolve } from './utils/path';
 import { PluginDriver } from './utils/PluginDriver';
 import relativeId from './utils/relativeId';
+import { resolveId } from './utils/resolveId';
 import { timeEnd, timeStart } from './utils/timers';
 import transform from './utils/transform';
 
@@ -97,27 +99,22 @@ function getHasModuleSideEffects(
 export class ModuleLoader {
 	readonly isExternal: IsExternal;
 	private readonly getManualChunk: GetManualChunk;
-	private readonly graph: Graph;
 	private readonly hasModuleSideEffects: (id: string, external: boolean) => boolean;
 	private readonly indexedEntryModules: { index: number; module: Module }[] = [];
 	private latestLoadModulesPromise: Promise<any> = Promise.resolve();
 	private readonly manualChunkModules: Record<string, Module[]> = {};
-	private readonly modulesById: Map<string, Module | ExternalModule>;
 	private nextEntryModuleIndex = 0;
-	private readonly pluginDriver: PluginDriver;
 
 	constructor(
-		graph: Graph,
-		modulesById: Map<string, Module | ExternalModule>,
-		pluginDriver: PluginDriver,
+		private readonly graph: Graph,
+		private readonly modulesById: Map<string, Module | ExternalModule>,
+		private readonly pluginDriver: PluginDriver,
+		private readonly preserveSymlinks: boolean,
 		external: ExternalOption,
 		getManualChunk: GetManualChunk | null,
 		moduleSideEffects: ModuleSideEffectsOption,
 		pureExternalModules: PureModulesOption
 	) {
-		this.graph = graph;
-		this.modulesById = modulesById;
-		this.pluginDriver = pluginDriver;
 		this.isExternal = getIdMatcher(external);
 		this.hasModuleSideEffects = getHasModuleSideEffects(
 			moduleSideEffects,
@@ -201,12 +198,13 @@ export class ModuleLoader {
 	async resolveId(
 		source: string,
 		importer: string | undefined,
-		skip?: number | null
+		skip: number | null = null
 	): Promise<ResolvedId | null> {
 		return this.normalizeResolveIdResult(
 			this.isExternal(source, importer, false)
 				? false
-				: await this.pluginDriver.hookFirst('resolveId', [source, importer], null, skip),
+				: await resolveId(source, importer, this.preserveSymlinks, this.pluginDriver, skip),
+
 			importer,
 			source
 		);
@@ -301,6 +299,7 @@ export class ModuleLoader {
 
 		timeStart('load modules', 3);
 		return Promise.resolve(this.pluginDriver.hookFirst('load', [id]))
+			.then(source => (source != null ? source : readFile(id)))
 			.catch((err: Error) => {
 				timeEnd('load modules', 3);
 				let msg = `Could not load ${id}`;
@@ -423,23 +422,25 @@ export class ModuleLoader {
 		isEntry: boolean,
 		importer: string | undefined
 	): Promise<Module> =>
-		this.pluginDriver.hookFirst('resolveId', [unresolvedId, importer]).then(resolveIdResult => {
-			if (
-				resolveIdResult === false ||
-				(resolveIdResult && typeof resolveIdResult === 'object' && resolveIdResult.external)
-			) {
-				return error(errEntryCannotBeExternal(unresolvedId));
-			}
-			const id =
-				resolveIdResult && typeof resolveIdResult === 'object'
-					? resolveIdResult.id
-					: resolveIdResult;
+		resolveId(unresolvedId, importer, this.preserveSymlinks, this.pluginDriver, null).then(
+			resolveIdResult => {
+				if (
+					resolveIdResult === false ||
+					(resolveIdResult && typeof resolveIdResult === 'object' && resolveIdResult.external)
+				) {
+					return error(errEntryCannotBeExternal(unresolvedId));
+				}
+				const id =
+					resolveIdResult && typeof resolveIdResult === 'object'
+						? resolveIdResult.id
+						: resolveIdResult;
 
-			if (typeof id === 'string') {
-				return this.fetchModule(id, undefined as any, true, false, isEntry);
+				if (typeof id === 'string') {
+					return this.fetchModule(id, undefined as any, true, false, isEntry);
+				}
+				return error(errUnresolvedEntry(unresolvedId));
 			}
-			return error(errUnresolvedEntry(unresolvedId));
-		});
+		);
 
 	private normalizeResolveIdResult(
 		resolveIdResult: ResolveIdResult,

@@ -197,6 +197,12 @@ export async function rollupInternal(
 	): Promise<OutputBundle> {
 		timeStart('GENERATE', 1);
 
+		if (outputOptions.dynamicImportFunction) {
+			graph.warnDeprecation(
+				`The "output.dynamicImportFunction" option is deprecated. Use the "renderDynamicImport" plugin hook instead.`,
+				false
+			);
+		}
 		const assetFileNames = outputOptions.assetFileNames || 'assets/[name]-[hash][extname]';
 		const inputBase = commondir(getAbsoluteEntryModulePaths(chunks));
 		const outputBundleWithPlaceholders: OutputBundleWithPlaceholders = Object.create(null);
@@ -212,7 +218,7 @@ export async function rollupInternal(
 					chunk.exportMode = getExportMode(chunk, outputOptions, chunk.facadeModule!.id);
 			}
 			for (const chunk of chunks) {
-				chunk.preRender(outputOptions, inputBase);
+				chunk.preRender(outputOptions, inputBase, outputPluginDriver);
 			}
 			assignChunkIds(
 				chunks,

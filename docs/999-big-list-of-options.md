@@ -848,13 +848,6 @@ Default: `true`
 
 Whether to include the 'use strict' pragma at the top of generated non-ES bundles. Strictly speaking, ES modules are *always* in strict mode, so you shouldn't disable this without good reason.
 
-#### output.dynamicImportFunction
-Type: `string`<br>
-CLI: `--dynamicImportFunction <name>`<br>
-Default: `import`
-
-This will rename the dynamic import function to the chosen name when outputting ES bundles. This is useful for generating code that uses a dynamic import polyfill such as [this one](https://github.com/uupaa/dynamic-import-polyfill).
-
 #### preserveSymlinks
 Type: `boolean`<br>
 CLI: `--preserveSymlinks`<br>
@@ -1140,6 +1133,7 @@ export default {
 ☢️ These options have been deprecated and may be removed in a future Rollup version.
 
 #### treeshake.pureExternalModules
+_Use [`treeshake.moduleSideEffects: 'no-external'`](guide/en/#treeshake) instead._<br>
 Type: `boolean | string[] | (id: string) => boolean | null`<br>
 CLI: `--treeshake.pureExternalModules`/`--no-treeshake.pureExternalModules`<br>
 Default: `false`
@@ -1166,3 +1160,11 @@ console.log(42);
 ```
 
 You can also supply a list of external ids to be considered pure or a function that is called whenever an external import could be removed.
+
+#### output.dynamicImportFunction
+_Use the [`renderDynamicImport`](guide/en/#renderdynamicimport) plugin hook instead._<br>
+Type: `string`<br>
+CLI: `--dynamicImportFunction <name>`<br>
+Default: `import`
+
+This will rename the dynamic import function to the chosen name when outputting ES bundles. This is useful for generating code that uses a dynamic import polyfill such as [this one](https://github.com/uupaa/dynamic-import-polyfill).

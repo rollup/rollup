@@ -21,4 +21,5 @@ function _interopNamespace(e) {
 
 new Promise(function (resolve) { resolve(_interopNamespace(require(`${globalThis.unknown}`))); });
 new Promise(function (resolve) { resolve(_interopNamespace(require(`My ${globalThis.unknown}`))); });
-new Promise(function (resolve) { resolve(_interopNamespace(require(7))); });
+new Promise(function (resolve) { resolve(_interopNamespace(require('./seven.js'))); });
+new Promise(function (resolve) { resolve(_interopNamespace(require('./seven.js'))); });

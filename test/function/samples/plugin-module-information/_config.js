@@ -15,6 +15,7 @@ module.exports = {
 		plugins: {
 			load(id) {
 				assert.deepStrictEqual(this.getModuleInfo(id), {
+					dynamicallyImportedIds: [],
 					hasModuleSideEffects: true,
 					id,
 					importedIds: [],
@@ -24,15 +25,17 @@ module.exports = {
 			},
 			renderStart() {
 				rendered = true;
-				assert.deepStrictEqual(Array.from(this.moduleIds), [ID_MAIN, ID_FOO, ID_NESTED, ID_PATH]);
+				assert.deepStrictEqual(Array.from(this.moduleIds), [ID_MAIN, ID_FOO, ID_PATH, ID_NESTED]);
 				assert.deepStrictEqual(this.getModuleInfo(ID_MAIN), {
+					dynamicallyImportedIds: [ID_NESTED, ID_PATH],
 					hasModuleSideEffects: true,
 					id: ID_MAIN,
-					importedIds: [ID_FOO, ID_NESTED],
+					importedIds: [ID_FOO],
 					isEntry: true,
 					isExternal: false
 				});
 				assert.deepStrictEqual(this.getModuleInfo(ID_FOO), {
+					dynamicallyImportedIds: [],
 					hasModuleSideEffects: true,
 					id: ID_FOO,
 					importedIds: [ID_PATH],
@@ -40,6 +43,7 @@ module.exports = {
 					isExternal: false
 				});
 				assert.deepStrictEqual(this.getModuleInfo(ID_NESTED), {
+					dynamicallyImportedIds: [],
 					hasModuleSideEffects: true,
 					id: ID_NESTED,
 					importedIds: [ID_FOO],
@@ -47,6 +51,7 @@ module.exports = {
 					isExternal: false
 				});
 				assert.deepStrictEqual(this.getModuleInfo(ID_PATH), {
+					dynamicallyImportedIds: [],
 					hasModuleSideEffects: true,
 					id: ID_PATH,
 					importedIds: [],
@@ -55,6 +60,9 @@ module.exports = {
 				});
 			}
 		}
+	},
+	context: {
+		thePath: 'path'
 	},
 	bundle() {
 		assert.ok(rendered);

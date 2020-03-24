@@ -16,6 +16,7 @@ import Module from './Module';
 import {
 	DecodedSourceMapOrMissing,
 	GlobalsOption,
+	InternalModuleFormat,
 	OutputOptions,
 	PreRenderedChunk,
 	RenderedChunk,
@@ -366,7 +367,17 @@ export default class Chunk {
 	getRenderedHash(outputPluginDriver: PluginDriver): string {
 		if (this.renderedHash) return this.renderedHash;
 		const hash = createHash();
-		const hashAugmentation = this.calculateHashAugmentation(outputPluginDriver);
+		const hashAugmentation = outputPluginDriver.hookReduceValueSync(
+			'augmentChunkHash',
+			'',
+			[this.getPrerenderedChunk()],
+			(hashAugmentation, pluginHash) => {
+				if (pluginHash) {
+					hashAugmentation += pluginHash;
+				}
+				return hashAugmentation;
+			}
+		);
 		hash.update(hashAugmentation);
 		hash.update(this.renderedSource!.toString());
 		hash.update(
@@ -401,7 +412,7 @@ export default class Chunk {
 	}
 
 	// prerender allows chunk hashes and names to be generated before finalizing
-	preRender(options: OutputOptions, inputBase: string) {
+	preRender(options: OutputOptions, inputBase: string, outputPluginDriver: PluginDriver) {
 		timeStart('render modules', 3);
 
 		const magicString = new MagicStringBundle({ separator: options.compact ? '' : '\n\n' });
@@ -414,10 +425,11 @@ export default class Chunk {
 		const renderOptions: RenderOptions = {
 			compact: options.compact as boolean,
 			dynamicImportFunction: options.dynamicImportFunction as string,
-			format: options.format as string,
+			format: options.format as InternalModuleFormat,
 			freeze: options.freeze !== false,
 			indent: this.indentString,
 			namespaceToStringTag: options.namespaceToStringTag === true,
+			outputPluginDriver,
 			varOrConst: options.preferConst ? 'const' : 'var'
 		};
 
@@ -445,19 +457,18 @@ export default class Chunk {
 			let renderedLength = 0;
 			if (module.isIncluded()) {
 				const source = module.render(renderOptions).trim();
-				if (options.compact && source.lastLine().indexOf('//') !== -1) source.append('\n');
-				const namespace = module.getOrCreateNamespace();
-				if (namespace.included || source.length() > 0) {
-					renderedLength = source.length();
+				renderedLength = source.length();
+				if (renderedLength) {
+					if (options.compact && source.lastLine().indexOf('//') !== -1) source.append('\n');
 					this.renderedModuleSources.set(module, source);
 					magicString.addSource(source);
 					this.usedModules.push(module);
-
-					if (namespace.included && !this.graph.preserveModules) {
-						const rendered = namespace.renderBlock(renderOptions);
-						if (namespace.renderFirst()) hoistedSource += n + rendered;
-						else magicString.addSource(new MagicString(rendered));
-					}
+				}
+				const namespace = module.getOrCreateNamespace();
+				if (namespace.included && !this.graph.preserveModules) {
+					const rendered = namespace.renderBlock(renderOptions);
+					if (namespace.renderFirst()) hoistedSource += n + rendered;
+					else magicString.addSource(new MagicString(rendered));
 				}
 			}
 			const { renderedExports, removedExports } = module.getRenderedExports();
@@ -510,7 +521,7 @@ export default class Chunk {
 		timeStart('render format', 3);
 
 		const chunkId = this.id!;
-		const format = options.format as string;
+		const format = options.format as InternalModuleFormat;
 		const finalise = finalisers[format];
 		if (options.dynamicImportFunction && format !== 'es') {
 			this.graph.warn({
@@ -527,10 +538,10 @@ export default class Chunk {
 			const depId = dependency instanceof ExternalModule ? renderedDependency.id : dependency.id!;
 			if (dependency instanceof Chunk)
 				renderedDependency.namedExportsMode = dependency.exportMode !== 'default';
-			renderedDependency.id = this.getRelativePath(depId);
+			renderedDependency.id = this.getRelativePath(depId, false);
 		}
 
-		this.finaliseDynamicImports(format);
+		this.finaliseDynamicImports(format === 'amd');
 		this.finaliseImportMetas(format, outputPluginDriver);
 
 		const hasExports =
@@ -655,34 +666,6 @@ export default class Chunk {
 		}
 	}
 
-	private calculateHashAugmentation(outputPluginDriver: PluginDriver): string {
-		const facadeModule = this.facadeModule;
-		const getChunkName = this.getChunkName.bind(this);
-		const preRenderedChunk = {
-			dynamicImports: this.getDynamicImportIds(),
-			exports: this.getExportNames(),
-			facadeModuleId: facadeModule && facadeModule.id,
-			imports: this.getImportIds(),
-			isDynamicEntry: facadeModule !== null && facadeModule.dynamicallyImportedBy.length > 0,
-			isEntry: facadeModule !== null && facadeModule.isEntryPoint,
-			modules: this.renderedModules,
-			get name() {
-				return getChunkName();
-			}
-		} as PreRenderedChunk;
-		return outputPluginDriver.hookReduceValueSync(
-			'augmentChunkHash',
-			'',
-			[preRenderedChunk],
-			(hashAugmentation, pluginHash) => {
-				if (pluginHash) {
-					hashAugmentation += pluginHash;
-				}
-				return hashAugmentation;
-			}
-		);
-	}
-
 	private computeContentHashWithDependencies(
 		addons: Addons,
 		options: OutputOptions,
@@ -710,37 +693,35 @@ export default class Chunk {
 		return hash.digest('hex').substr(0, 8);
 	}
 
-	private finaliseDynamicImports(format: string) {
+	private finaliseDynamicImports(stripKnownJsExtensions: boolean) {
 		for (const [module, code] of this.renderedModuleSources) {
 			for (const { node, resolution } of module.dynamicImports) {
-				if (!resolution) continue;
-				if (resolution instanceof Module) {
-					if (resolution.chunk && resolution.chunk !== this) {
-						const resolutionChunk = resolution.facadeChunk || resolution.chunk;
-						node.renderFinalResolution(
-							code,
-							`'${this.getRelativePath(resolutionChunk.id!)}'`,
-							format
-						);
-					}
-				} else {
-					node.renderFinalResolution(
-						code,
-						resolution instanceof ExternalModule
-							? `'${
-									resolution.renormalizeRenderPath
-										? this.getRelativePath(resolution.renderPath)
-										: resolution.id
-							  }'`
-							: resolution,
-						format
-					);
+				if (
+					!resolution ||
+					!node.included ||
+					(resolution instanceof Module && resolution.chunk === this)
+				) {
+					continue;
 				}
+				const renderedResolution =
+					resolution instanceof Module
+						? `'${this.getRelativePath(resolution.facadeChunk!.id!, stripKnownJsExtensions)}'`
+						: resolution instanceof ExternalModule
+						? `'${
+								resolution.renormalizeRenderPath
+									? this.getRelativePath(resolution.renderPath, stripKnownJsExtensions)
+									: resolution.id
+						  }'`
+						: resolution;
+				node.renderFinalResolution(code, renderedResolution);
 			}
 		}
 	}
 
-	private finaliseImportMetas(format: string, outputPluginDriver: PluginDriver): void {
+	private finaliseImportMetas(
+		format: InternalModuleFormat,
+		outputPluginDriver: PluginDriver
+	): void {
 		for (const [module, code] of this.renderedModuleSources) {
 			for (const importMeta of module.importMetas) {
 				importMeta.renderFinalMechanism(code, this.id!, format, outputPluginDriver);
@@ -896,8 +877,28 @@ export default class Chunk {
 		return getAliasName(this.orderedModules[this.orderedModules.length - 1].id);
 	}
 
-	private getRelativePath(targetPath: string): string {
-		const relativePath = normalize(relative(dirname(this.id!), targetPath));
+	private getPrerenderedChunk(): PreRenderedChunk {
+		const facadeModule = this.facadeModule;
+		const getChunkName = this.getChunkName.bind(this);
+		return {
+			dynamicImports: this.getDynamicImportIds(),
+			exports: this.getExportNames(),
+			facadeModuleId: facadeModule && facadeModule.id,
+			imports: this.getImportIds(),
+			isDynamicEntry: facadeModule !== null && facadeModule.dynamicallyImportedBy.length > 0,
+			isEntry: facadeModule !== null && facadeModule.isEntryPoint,
+			modules: this.renderedModules!,
+			get name() {
+				return getChunkName();
+			}
+		};
+	}
+
+	private getRelativePath(targetPath: string, stripJsExtension: boolean): string {
+		let relativePath = normalize(relative(dirname(this.id!), targetPath));
+		if (stripJsExtension && relativePath.endsWith('.js')) {
+			relativePath = relativePath.slice(0, -3);
+		}
 		return relativePath.startsWith('../') ? relativePath : './' + relativePath;
 	}
 
@@ -923,12 +924,12 @@ export default class Chunk {
 				if (resolution instanceof Module) {
 					if (resolution.chunk === this) {
 						const namespace = resolution.getOrCreateNamespace();
-						node.setResolution('named', namespace);
+						node.setResolution('named', resolution, namespace);
 					} else {
-						node.setResolution(resolution.chunk!.exportMode);
+						node.setResolution(resolution.chunk!.exportMode, resolution);
 					}
 				} else {
-					node.setResolution('auto');
+					node.setResolution('auto', resolution);
 				}
 			}
 		}

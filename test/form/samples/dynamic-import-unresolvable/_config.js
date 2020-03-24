@@ -6,9 +6,15 @@ module.exports = {
 		plugins: [
 			{
 				resolveDynamicImport(specifier) {
+					if (specifier === './seven.js') {
+						return false;
+					}
 					assert.ok(specifier);
 					assert.strictEqual(typeof specifier, 'object');
-					if (specifier.type !== 'TemplateLiteral' && specifier.type !== 'Literal') {
+					if (specifier.type === 'Literal') {
+						return "'./seven.js'";
+					}
+					if (specifier.type !== 'TemplateLiteral') {
 						throw new Error(`Unexpected specifier type ${specifier.type}.`);
 					}
 					return false;

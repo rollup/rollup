@@ -127,14 +127,23 @@ export function getPluginContexts(
 				if (foundModule == null) {
 					throw new Error(`Unable to find module ${moduleId}`);
 				}
-
+				const importedIds: string[] = [];
+				const dynamicallyImportedIds: string[] = [];
+				if (foundModule instanceof Module) {
+					for (const source of foundModule.sources) {
+						importedIds.push(foundModule.resolvedIds[source].id);
+					}
+					for (const { resolution } of foundModule.dynamicImports) {
+						if (resolution instanceof Module || resolution instanceof ExternalModule) {
+							dynamicallyImportedIds.push(resolution.id);
+						}
+					}
+				}
 				return {
+					dynamicallyImportedIds,
 					hasModuleSideEffects: foundModule.moduleSideEffects,
 					id: foundModule.id,
-					importedIds:
-						foundModule instanceof ExternalModule
-							? []
-							: Array.from(foundModule.sources).map(id => foundModule.resolvedIds[id].id),
+					importedIds,
 					isEntry: foundModule instanceof Module && foundModule.isEntryPoint,
 					isExternal: foundModule instanceof ExternalModule
 				};

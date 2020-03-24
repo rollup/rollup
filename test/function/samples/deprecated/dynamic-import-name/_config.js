@@ -10,6 +10,7 @@ module.exports = {
 		}
 	},
 	options: {
+		strictDeprecations: false,
 		input: 'main.js',
 		plugins: {
 			resolveDynamicImport() {
