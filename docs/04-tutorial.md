@@ -408,7 +408,7 @@ And then load either or both entry points in an HTML page as needed:
 
 ```html
 <!doctype html>
-<script src="node_modules/systemjs/dist/system-production.js"></script>
+<script src="node_modules/systemjs/dist/s.min.js"></script>
 <script>
   System.import('./dist/main2.js')
   .then(({ default: main }) => main());
