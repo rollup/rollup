@@ -617,6 +617,7 @@ export interface WatcherOptions {
 	clearScreen?: boolean;
 	exclude?: string[];
 	include?: string[];
+	skipWrite?: boolean;
 }
 
 export interface RollupWatchOptions extends InputOptions {

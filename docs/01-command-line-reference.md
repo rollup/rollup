@@ -100,6 +100,7 @@ export default { // can be an array (for multiple inputs)
   watch: {
     chokidar,
     clearScreen,
+    skipWrite,
     exclude,
     include
   }
@@ -272,20 +273,20 @@ Print the help document.
 Use the specified plugin. There are several ways to specify plugins here:
 
 - Via a relative path:
-  
+
   ```
   rollup -i input.js -f es -p ./my-plugin.js
   ```
-  
+
   The file should export a plugin object or a function returning such an object.
 - Via the name of a plugin that is installed in a local or global `node_modules` folder:
-  
+
   ```
   rollup -i input.js -f es -p @rollup/plugin-node-resolve
   ```
-  
+
   If the plugin name does not start with `rollup-plugin-` or `@rollup/plugin-`, Rollup will automatically try adding these prefixes:
-  
+
   ```
   rollup -i input.js -f es -p node-resolve
   ```
@@ -295,7 +296,7 @@ Use the specified plugin. There are several ways to specify plugins here:
   ```
   rollup -i input.js -f es -p '{transform: (c, i) => `/* ${JSON.stringify(i)} */\n${c}`}'
   ```
-  
+
 If you want to load more than one plugin, you can repeat the option or supply a comma-separated list of names:
 
 ```

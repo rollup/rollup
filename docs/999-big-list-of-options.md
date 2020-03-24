@@ -361,10 +361,10 @@ export default {
   onwarn (warning, warn) {
     // skip certain warnings
     if (warning.code === 'UNUSED_EXTERNAL_IMPORT') return;
-  
+
     // throw on others
     if (warning.code === 'NON_EXISTENT_EXPORT') throw new Error(warning.message);
-  
+
     // Use default for everything else
     warn(warning);
   }
@@ -754,7 +754,7 @@ Type: `boolean`<br>
 CLI: `--externalLiveBindings`/`--no-externalLiveBindings`<br>
 Default: `true`
 
-When set to `false`, Rollup will not generate code to support live bindings for external imports but instead assume that exports do not change over time. This will enable Rollup to generate more optimized code. Note that this can cause issues when there are circular dependencies involving an external dependency. 
+When set to `false`, Rollup will not generate code to support live bindings for external imports but instead assume that exports do not change over time. This will enable Rollup to generate more optimized code. Note that this can cause issues when there are circular dependencies involving an external dependency.
 
 This will avoid most cases where Rollup generates getters in the code and can therefore be used to make code IE8 compatible in many cases.
 
@@ -1005,11 +1005,11 @@ function test(callback) {
   	// calls to otherwise side-effect-free global functions are retained
   	// inside try-statements for tryCatchDeoptimization: true
     Object.create(null);
-    
+
   	// calls to other function are retained as well but the body of this
   	// function may again be subject to tree-shaking
     otherFn();
-    
+
     // if a parameter is called, then all arguments passed to that function
     // parameter will be deoptimized
     callback();
@@ -1095,6 +1095,13 @@ CLI: `--watch.clearScreen`/`--no-watch.clearScreen`<br>
 Default: `true`
 
 Whether to clear the screen when a rebuild is triggered.
+
+#### watch.skipWrite
+Type: `boolean`<br>
+<!-- CLI: `--watch.skipWrite`<br> -->
+Default: `false`
+
+Whether to skip the `bundle.write()` step when a rebuild is triggered.
 
 #### watch.exclude
 Type: `string`<br>
