@@ -1,5 +1,23 @@
 # rollup changelog
 
+## 2.2.0
+*2020-03-24*
+
+### Features
+* Add `renderDynamicImport` hook to rewrite dynamic import expressions (#3449)
+* Add information about dynamically imported modules to `this.getModuleInfo` (#3449)
+
+### Bug Fixes
+* Make file emission work with Uin8Array sources when using Rollup in the browser (#3452)
+* Fix types to allow watch to accept an array of configs (#3453)
+* Do not strip `.js` extensions from AMD imports when the import is a user-supplied replacement for a non-resolvable dynamic import target (#3453)
+
+### Pull Requests
+* [#3449](https://github.com/rollup/rollup/pull/3449): Avoid the assumption of Buffer in browser envs (@lukastaegert)
+* [#3452](https://github.com/rollup/rollup/pull/3452): Avoid the assumption of Buffer in browser envs (@JoviDeCroock)
+* [#3453](https://github.com/rollup/rollup/pull/3453): fix types since watch accepts single or array config (@lukeed)
+* [#3456](https://github.com/rollup/rollup/pull/3456): fix SystemJS url in tutorial (@guybedford)
+
 ## 2.1.0
 *2020-03-18*
 
