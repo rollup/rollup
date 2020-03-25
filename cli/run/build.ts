@@ -62,7 +62,7 @@ export default async function build(
 		return;
 	}
 
-	await Promise.all(outputOptions.map((output) => bundle.write(output)));
+	await Promise.all(outputOptions.map(bundle.write));
 	if (!silent) {
 		warnings.flush();
 		stderr(

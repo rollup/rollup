@@ -19,8 +19,6 @@ interface NodeModuleWithCompile extends NodeModule {
 	_compile(code: string, filename: string): any;
 }
 
-// TODO Lukas document
-// TODO Lukas improve docs for JS API
 export default async function loadAndParseConfigFile(
 	fileName: string,
 	commandOptions: any = {}
