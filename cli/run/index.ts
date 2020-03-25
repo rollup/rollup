@@ -1,23 +1,22 @@
-import * as path from 'path';
-import { InputOptions } from '../../src/rollup/types';
+import { MergedRollupOptions } from '../../src/rollup/types';
 import { mergeOptions } from '../../src/utils/mergeOptions';
-import { GenericConfigObject } from '../../src/utils/parseOptions';
 import { getAliasName } from '../../src/utils/relativeId';
 import { handleError } from '../logging';
-import batchWarnings from './batchWarnings';
+import batchWarnings, { BatchWarnings } from './batchWarnings';
 import build from './build';
+import { addCommandPluginsToInputOptions } from './commandPlugins';
 import { getConfigPath } from './getConfigPath';
-import loadConfigFile from './loadConfigFile';
-import { stdinName, stdinPlugin } from './stdin';
+import loadAndParseConfigFile from './loadConfigFile';
+import { stdinName } from './stdin';
 import watch from './watch';
 
-export default function runRollup(command: any) {
+export default async function runRollup(command: any) {
 	let inputSource;
 	if (command._.length > 0) {
 		if (command.input) {
 			handleError({
 				code: 'DUPLICATE_IMPORT_OPTIONS',
-				message: 'Either use --input, or pass input path as argument'
+				message: 'Either use --input, or pass input path as argument',
 			});
 		}
 		inputSource = command._;
@@ -59,105 +58,48 @@ export default function runRollup(command: any) {
 		});
 	}
 
+	if (command.watch) process.env.ROLLUP_WATCH = 'true';
+	try {
+		const { configFile, options, warnings } = await getConfigs(command);
+		try {
+			await execute(configFile, options, command, warnings);
+		} catch (err) {
+			warnings.flush();
+			handleError(err);
+		}
+	} catch (err) {
+		handleError(err);
+	}
+}
+
+async function getConfigs(
+	command: any
+): Promise<{ configFile: string | null; options: MergedRollupOptions[]; warnings: BatchWarnings }> {
 	if (command.config) {
 		const configFile = getConfigPath(command.config);
-		if (command.watch) process.env.ROLLUP_WATCH = 'true';
-		return loadConfigFile(configFile, command)
-			.then(configs => execute(configFile, configs, command))
-			.catch(handleError);
+		const { options, warnings } = await loadAndParseConfigFile(configFile, command);
+		return { configFile, options, warnings };
 	}
+	const warnings = batchWarnings();
 	if (!command.input && (command.stdin || !process.stdin.isTTY)) {
 		command.input = stdinName;
 	}
-	return execute(null, [{ input: [] }], command);
+	const options = mergeOptions({ input: [] }, command, warnings.add);
+	addCommandPluginsToInputOptions(options, command);
+	return { configFile: null, options: [options], warnings };
 }
 
 async function execute(
 	configFile: string | null,
-	configs: GenericConfigObject[],
-	command: any
+	configs: MergedRollupOptions[],
+	command: any,
+	warnings: BatchWarnings
 ): Promise<void> {
 	if (command.watch) {
-		watch(configFile, configs, command, command.silent);
+		watch(configFile, configs, command, warnings, command.silent);
 	} else {
-		for (const config of configs) {
-			const warnings = batchWarnings();
-			try {
-				const { inputOptions, outputOptions } = mergeOptions(config, command, warnings.add);
-				if (command.stdin !== false) {
-					inputOptions.plugins!.push(stdinPlugin());
-				}
-				addCommandPluginsToInputOptions(inputOptions, command.plugin);
-				// TODO Lukas we want an "execute config file" here
-				await build(inputOptions, outputOptions, warnings, command.silent);
-			} catch (err) {
-				warnings.flush();
-				handleError(err);
-			}
+		for (const inputOptions of configs) {
+			await build(inputOptions, warnings, command.silent);
 		}
 	}
-}
-
-function addCommandPluginsToInputOptions(inputOptions: InputOptions, commandPlugin: unknown) {
-	if (commandPlugin) {
-		const plugins = Array.isArray(commandPlugin) ? commandPlugin : [commandPlugin];
-		for (const plugin of plugins) {
-			if (/[={}]/.test(plugin)) {
-				// -p plugin=value
-				// -p "{transform(c,i){...}}"
-				loadAndRegisterPlugin(inputOptions, plugin);
-			} else {
-				// split out plugins joined by commas
-				// -p node-resolve,commonjs,buble
-				plugin.split(',').forEach((plugin: string) => loadAndRegisterPlugin(inputOptions, plugin));
-			}
-		}
-	}
-}
-
-function loadAndRegisterPlugin(inputOptions: InputOptions, pluginText: string) {
-	let plugin: any = null;
-	let pluginArg: any = undefined;
-	if (pluginText[0] === '{') {
-		// -p "{transform(c,i){...}}"
-		plugin = new Function('return ' + pluginText);
-	} else {
-		const match = pluginText.match(/^([@.\/\\\w|^{}|-]+)(=(.*))?$/);
-		if (match) {
-			// -p plugin
-			// -p plugin=arg
-			pluginText = match[1];
-			pluginArg = new Function('return ' + match[3])();
-		} else {
-			throw new Error(`Invalid --plugin argument format: ${JSON.stringify(pluginText)}`);
-		}
-		if (!/^\.|^rollup-plugin-|[@\/\\]/.test(pluginText)) {
-			// Try using plugin prefix variations first if applicable.
-			// Prefix order is significant - left has higher precedence.
-			for (const prefix of ['@rollup/plugin-', 'rollup-plugin-']) {
-				try {
-					plugin = require(prefix + pluginText);
-					break;
-				} catch (ex) {
-					// if this does not work, we try requiring the actual name below
-				}
-			}
-		}
-		if (!plugin) {
-			try {
-				if (pluginText[0] == '.') pluginText = path.resolve(pluginText);
-				plugin = require(pluginText);
-			} catch (ex) {
-				throw new Error(`Cannot load plugin "${pluginText}"`);
-			}
-		}
-	}
-	if (typeof plugin === 'object' && pluginText in plugin) {
-		// some plugins do not use `export default` for their entry point.
-		// attempt to use the plugin name as the named import name.
-		plugin = plugin[pluginText];
-	}
-	inputOptions.plugins!.push(
-		typeof plugin === 'function' ? plugin.call(plugin, pluginArg) : plugin
-	);
 }

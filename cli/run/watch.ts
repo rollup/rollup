@@ -4,44 +4,33 @@ import fs from 'fs';
 import ms from 'pretty-ms';
 import onExit from 'signal-exit';
 import * as rollup from '../../src/node-entry';
-import { RollupWatcher, RollupWatchOptions } from '../../src/rollup/types';
-import { mergeOptions } from '../../src/utils/mergeOptions';
-import { GenericConfigObject } from '../../src/utils/parseOptions';
+import { MergedRollupOptions, RollupWatcher } from '../../src/rollup/types';
 import relativeId from '../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
-import batchWarnings from './batchWarnings';
-import loadConfigFile from './loadConfigFile';
+import { BatchWarnings } from './batchWarnings';
+import loadAndParseConfigFile from './loadConfigFile';
 import { getResetScreen } from './resetScreen';
 import { printTimings } from './timings';
 
 export default function watch(
 	configFile: string | null,
-	configs: GenericConfigObject[],
+	configs: MergedRollupOptions[],
 	command: any,
+	warnings: BatchWarnings,
 	silent = false
 ) {
 	const isTTY = Boolean(process.stderr.isTTY);
-	const warnings = batchWarnings();
-	const initialConfigs = processConfigs(configs);
-	const clearScreen = initialConfigs.every(config => config.watch!.clearScreen !== false);
-
+	let clearScreen = true;
+	for (const config of configs) {
+		if (config.watch && config.watch.clearScreen === false) {
+			clearScreen = false;
+		}
+	}
 	const resetScreen = getResetScreen(isTTY && clearScreen);
 	let watcher: RollupWatcher;
 	let configWatcher: RollupWatcher;
 
-	function processConfigs(configs: GenericConfigObject[]): RollupWatchOptions[] {
-		return configs.map(options => {
-			const { inputOptions, outputOptions } = mergeOptions(options, command, warnings.add);
-			const result: RollupWatchOptions = {
-				...inputOptions,
-				output: outputOptions
-			};
-			if (!result.watch) result.watch = {};
-			return result;
-		});
-	}
-
-	function start(configs: RollupWatchOptions[]) {
+	function start(configs: MergedRollupOptions[]) {
 		watcher = rollup.watch(configs as any);
 
 		watcher.on('event', event => {
@@ -124,7 +113,7 @@ export default function watch(
 	}
 
 	try {
-		start(initialConfigs);
+		start(configs);
 	} catch (err) {
 		close(err);
 		return;
@@ -147,16 +136,18 @@ export default function watch(
 
 			restarting = true;
 
-			loadConfigFile(configFile, command)
-				.then(() => {
+			loadAndParseConfigFile(configFile, command)
+				.then(({ options, warnings: newWarnings } ) => {
 					restarting = false;
+					configs = options;
+					warnings = newWarnings;
 
 					if (aborted) {
 						aborted = false;
 						restart();
 					} else {
 						watcher.close();
-						start(initialConfigs);
+						start(configs);
 					}
 				})
 				.catch((err: Error) => {

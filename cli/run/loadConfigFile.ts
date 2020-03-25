@@ -2,10 +2,14 @@ import color from 'colorette';
 import * as path from 'path';
 import { pathToFileURL } from 'url';
 import * as rollup from '../../src/node-entry';
+import { MergedRollupOptions } from '../../src/rollup/types';
+import { error } from '../../src/utils/error';
+import { mergeOptions } from '../../src/utils/mergeOptions';
 import { GenericConfigObject } from '../../src/utils/parseOptions';
 import relativeId from '../../src/utils/relativeId';
-import { handleError, stderr } from '../logging';
-import batchWarnings from './batchWarnings';
+import { stderr } from '../logging';
+import batchWarnings, { BatchWarnings } from './batchWarnings';
+import { addCommandPluginsToInputOptions } from './commandPlugins';
 
 function supportsNativeESM() {
 	return Number(/^v(\d+)/.exec(process.version)![1]) >= 13;
@@ -17,7 +21,33 @@ interface NodeModuleWithCompile extends NodeModule {
 
 // TODO Lukas document
 // TODO Lukas improve docs for JS API
-export default async function loadConfigFile(
+/**
+ * Loads a config file and returns an array of configurations the same way it would be
+ * loaded by Rollup CLI.
+ * @param fileName {string} The fully resolved path to the config file that should be loaded
+ * @param commandOptions {object} An object containing additional command line parameters. Those will be passed to the config file if it contains a function but will not yet be merged with the individual
+ * @returns {Array} An array of configuration objects
+ */
+export default async function loadAndParseConfigFile(
+	fileName: string,
+	commandOptions: any
+): Promise<{options: MergedRollupOptions[], warnings: BatchWarnings}> {
+	const configs = await loadConfigFile(fileName, commandOptions);
+	const warnings = batchWarnings();
+	try {
+		const normalizedConfigs = configs.map((config) => {
+			const options = mergeOptions(config, commandOptions, warnings.add);
+			addCommandPluginsToInputOptions(options, commandOptions);
+			return options;
+		});
+		return {options: normalizedConfigs, warnings};
+	} catch (err) {
+		warnings.flush();
+		throw err;
+	}
+}
+
+async function loadConfigFile(
 	fileName: string,
 	commandOptions: any
 ): Promise<GenericConfigObject[]> {
@@ -25,8 +55,8 @@ export default async function loadConfigFile(
 	const configFileExport = await (extension === '.mjs' && supportsNativeESM()
 		? (await import(pathToFileURL(fileName).href)).default
 		: extension === '.cjs'
-		? getDefaultFromCjs(require(fileName))
-		: getDefaultFromTranspiledConfigFile(fileName, commandOptions.silent));
+			? getDefaultFromCjs(require(fileName))
+			: getDefaultFromTranspiledConfigFile(fileName, commandOptions.silent));
 	return getConfigList(configFileExport, commandOptions);
 }
 
@@ -44,17 +74,17 @@ async function getDefaultFromTranspiledConfigFile(
 			(id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5, id.length) === '.json',
 		input: fileName,
 		onwarn: warnings.add,
-		treeshake: false
+		treeshake: false,
 	});
 	if (!silent && warnings.count > 0) {
 		stderr(color.bold(`loaded ${relativeId(fileName)} with warnings`));
 		warnings.flush();
 	}
 	const {
-		output: [{ code }]
+		output: [{ code }],
 	} = await bundle.generate({
 		exports: 'named',
-		format: 'cjs'
+		format: 'cjs',
 	});
 	return loadConfigFromBundledFile(fileName, code);
 }
@@ -74,13 +104,15 @@ async function loadConfigFromBundledFile(fileName: string, bundledCode: string) 
 		const config = getDefaultFromCjs(require(fileName));
 		require.extensions[extension] = defaultLoader;
 		return config;
-	} catch(err) {
+	} catch (err) {
 		if (err.code === 'ERR_REQUIRE_ESM') {
-			handleError({
+			return error({
 				code: 'TRANSPILED_ESM_CONFIG',
-				message: `While loading the Rollup configuration from "${relativeId(fileName)}", Node tried to require an ES module from a CommonJS file, which is not supported. A common cause is if there is a package.json file with "type": "module" in the same folder. You can try to fix this by changing the extension of your configuration file to ".cjs" or ".mjs" depending on the content, which will prevent Rollup from trying to preprocess the file but rather hand it to Node directly.`,
-				url: 'https://rollupjs.org/guide/en/#using-untranspiled-config-files'
-			})
+				message: `While loading the Rollup configuration from "${relativeId(
+					fileName
+				)}", Node tried to require an ES module from a CommonJS file, which is not supported. A common cause is if there is a package.json file with "type": "module" in the same folder. You can try to fix this by changing the extension of your configuration file to ".cjs" or ".mjs" depending on the content, which will prevent Rollup from trying to preprocess the file but rather hand it to Node directly.`,
+				url: 'https://rollupjs.org/guide/en/#using-untranspiled-config-files',
+			});
 		}
 		throw err;
 	}
@@ -91,10 +123,10 @@ function getConfigList(configFileExport: any, commandOptions: any) {
 	const config =
 		typeof defaultExport === 'function' ? defaultExport(commandOptions) : defaultExport;
 	if (Object.keys(config).length === 0) {
-		handleError({
+		return error({
 			code: 'MISSING_CONFIG',
 			message: 'Config file must export an options object, or an array of options objects',
-			url: 'https://rollupjs.org/guide/en/#configuration-files'
+			url: 'https://rollupjs.org/guide/en/#configuration-files',
 		});
 	}
 	return Array.isArray(config) ? config : [config];
