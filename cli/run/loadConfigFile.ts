@@ -21,16 +21,9 @@ interface NodeModuleWithCompile extends NodeModule {
 
 // TODO Lukas document
 // TODO Lukas improve docs for JS API
-/**
- * Loads a config file and returns an array of configurations the same way it would be
- * loaded by Rollup CLI.
- * @param fileName {string} The fully resolved path to the config file that should be loaded
- * @param commandOptions {object} An object containing additional command line parameters. Those will be passed to the config file if it contains a function but will not yet be merged with the individual
- * @returns {Array} An array of configuration objects
- */
 export default async function loadAndParseConfigFile(
 	fileName: string,
-	commandOptions: any
+	commandOptions: any = {}
 ): Promise<{options: MergedRollupOptions[], warnings: BatchWarnings}> {
 	const configs = await loadConfigFile(fileName, commandOptions);
 	const warnings = batchWarnings();

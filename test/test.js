@@ -10,6 +10,7 @@ describe('rollup', function () {
 	require('./sourcemaps/index.js');
 	require('./incremental/index.js');
 	require('./hooks/index.js');
+	require('./load-config-file/index.js');
 	require('./cli/index.js');
 	require('./watch/index.js');
 });
