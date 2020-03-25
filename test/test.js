@@ -1,7 +1,6 @@
 require('source-map-support').install();
-// require('console-group').install();
 
-describe('rollup', function() {
+describe('rollup', function () {
 	this.timeout(10000);
 	require('./misc/index.js');
 	require('./function/index.js');
