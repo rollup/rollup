@@ -21,6 +21,7 @@ runTestSuiteWithSamples(
 			path.basename(dir) + ': ' + config.description,
 			(done) => {
 				process.chdir(config.cwd || dir);
+				if (config.before) config.before();
 
 				const command = config.command.replace(
 					/(^| )rollup($| )/g,
@@ -34,6 +35,7 @@ runTestSuiteWithSamples(
 						env: Object.assign({}, process.env, { FORCE_COLOR: '0' }, config.env),
 					},
 					(err, code, stderr) => {
+						if (config.after) config.after();
 						if (err && !err.killed) {
 							if (config.error) {
 								const shouldContinue = config.error(err);

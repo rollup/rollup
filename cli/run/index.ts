@@ -1,13 +1,11 @@
 import { MergedRollupOptions } from '../../src/rollup/types';
-import { mergeOptions } from '../../src/utils/mergeOptions';
 import { getAliasName } from '../../src/utils/relativeId';
 import { handleError } from '../logging';
-import batchWarnings, { BatchWarnings } from './batchWarnings';
+import { BatchWarnings } from './batchWarnings';
 import build from './build';
-import { addCommandPluginsToInputOptions } from './commandPlugins';
 import { getConfigPath } from './getConfigPath';
 import loadAndParseConfigFile from './loadConfigFile';
-import { stdinName } from './stdin';
+import loadConfigFromCommand from './loadConfigFromCommand';
 import watch from './watch';
 
 export default async function runRollup(command: any) {
@@ -58,48 +56,32 @@ export default async function runRollup(command: any) {
 		});
 	}
 
-	if (command.watch) process.env.ROLLUP_WATCH = 'true';
-	try {
-		const { configFile, options, warnings } = await getConfigs(command);
+	if (command.watch) {
+		watch(command);
+	} else {
 		try {
-			await execute(configFile, options, command, warnings);
+			const { options, warnings } = await getConfigs(command);
+			try {
+				for (const inputOptions of options) {
+					await build(inputOptions, warnings, command.silent);
+				}
+			} catch (err) {
+				warnings.flush();
+				handleError(err);
+			}
 		} catch (err) {
-			warnings.flush();
 			handleError(err);
 		}
-	} catch (err) {
-		handleError(err);
 	}
 }
 
 async function getConfigs(
 	command: any
-): Promise<{ configFile: string | null; options: MergedRollupOptions[]; warnings: BatchWarnings }> {
+): Promise<{ options: MergedRollupOptions[]; warnings: BatchWarnings }> {
 	if (command.config) {
 		const configFile = getConfigPath(command.config);
 		const { options, warnings } = await loadAndParseConfigFile(configFile, command);
-		return { configFile, options, warnings };
+		return { options, warnings };
 	}
-	const warnings = batchWarnings();
-	if (!command.input && (command.stdin || !process.stdin.isTTY)) {
-		command.input = stdinName;
-	}
-	const options = mergeOptions({ input: [] }, command, warnings.add);
-	addCommandPluginsToInputOptions(options, command);
-	return { configFile: null, options: [options], warnings };
-}
-
-async function execute(
-	configFile: string | null,
-	configs: MergedRollupOptions[],
-	command: any,
-	warnings: BatchWarnings
-): Promise<void> {
-	if (command.watch) {
-		watch(configFile, configs, command, warnings, command.silent);
-	} else {
-		for (const inputOptions of configs) {
-			await build(inputOptions, warnings, command.silent);
-		}
-	}
+	return loadConfigFromCommand(command);
 }

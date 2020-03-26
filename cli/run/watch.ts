@@ -8,32 +8,88 @@ import { MergedRollupOptions, RollupWatcher } from '../../src/rollup/types';
 import relativeId from '../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
 import { BatchWarnings } from './batchWarnings';
+import { getConfigPath } from './getConfigPath';
 import loadAndParseConfigFile from './loadConfigFile';
+import loadConfigFromCommand from './loadConfigFromCommand';
 import { getResetScreen } from './resetScreen';
 import { printTimings } from './timings';
 
-export default function watch(
-	configFile: string | null,
-	configs: MergedRollupOptions[],
-	command: any,
-	warnings: BatchWarnings,
-	silent = false
-) {
-	const isTTY = Boolean(process.stderr.isTTY);
-	let clearScreen = true;
-	for (const config of configs) {
-		if (config.watch && config.watch.clearScreen === false) {
-			clearScreen = false;
-		}
-	}
-	const resetScreen = getResetScreen(isTTY && clearScreen);
+export default async function watch(command: any) {
+	process.env.ROLLUP_WATCH = 'true';
+	const isTTY = process.stderr.isTTY;
+	const silent = command.silent;
+	let configs: MergedRollupOptions[];
+	let warnings: BatchWarnings;
 	let watcher: RollupWatcher;
-	let configWatcher: RollupWatcher;
+	let configWatcher: fs.FSWatcher;
+	const configFile = command.config ? getConfigPath(command.config) : null;
+
+	onExit(close);
+	process.on('uncaughtException', close);
+	// only listen to stdin if it is a pipe
+	if (!process.stdin.isTTY) {
+		process.stdin.on('end', close);
+	}
+
+	if (configFile) {
+		if (configFile.startsWith('node:')) {
+			({ options: configs, warnings } = await loadAndParseConfigFile(configFile, command));
+		} else {
+			let reloadingConfig = false;
+			let aborted = false;
+			let configFileData: string | null = null;
+
+			configWatcher = fs.watch(configFile, (event: string) => {
+				if (event === 'change') reloadConfigFile();
+			});
+
+			await reloadConfigFile();
+
+			async function reloadConfigFile() {
+				try {
+					const newConfigFileData = fs.readFileSync(configFile!, 'utf-8');
+					if (newConfigFileData === configFileData) {
+						return;
+					}
+					if (reloadingConfig) {
+						aborted = true;
+						return;
+					}
+					if (configFileData) {
+						stderr(`\nReloading updated config...`);
+					}
+					configFileData = newConfigFileData;
+					reloadingConfig = true;
+					({ options: configs, warnings } = await loadAndParseConfigFile(configFile!, command));
+					reloadingConfig = false;
+					if (aborted) {
+						aborted = false;
+						reloadConfigFile();
+					} else {
+						if (watcher) {
+							watcher.close();
+						}
+						start(configs);
+					}
+				} catch (err) {
+					configs = [];
+					reloadingConfig = false;
+					handleError(err, true);
+				}
+			}
+		}
+	} else {
+		({ options: configs, warnings } = await loadConfigFromCommand(command));
+		start(configs);
+	}
+
+	// tslint:disable-next-line:no-unnecessary-type-assertion
+	const resetScreen = getResetScreen(configs!, isTTY);
 
 	function start(configs: MergedRollupOptions[]) {
 		watcher = rollup.watch(configs as any);
 
-		watcher.on('event', event => {
+		watcher.on('event', (event) => {
 			switch (event.code) {
 				case 'ERROR':
 					warnings.flush();
@@ -53,12 +109,14 @@ export default function watch(
 							input = Array.isArray(input)
 								? input.join(', ')
 								: Object.keys(input as Record<string, string>)
-										.map(key => (input as Record<string, string>)[key])
+										.map((key) => (input as Record<string, string>)[key])
 										.join(', ');
 						}
 						stderr(
 							color.cyan(
-								`bundles ${color.bold(input)} → ${color.bold(event.output.map(relativeId).join(', '))}...`
+								`bundles ${color.bold(input)} → ${color.bold(
+									event.output.map(relativeId).join(', ')
+								)}...`
 							)
 						);
 					}
@@ -87,76 +145,17 @@ export default function watch(
 		});
 	}
 
-	// catch ctrl+c, kill, and uncaught errors
-	const removeOnExit = onExit(close);
-	process.on('uncaughtException', close);
-
-	// only listen to stdin if it is a pipe
-	if (!process.stdin.isTTY) {
-		process.stdin.on('end', close); // in case we ever support stdin!
-	}
-
 	function close(err: Error) {
-		removeOnExit();
 		process.removeListener('uncaughtException', close);
 		// removing a non-existent listener is a no-op
 		process.stdin.removeListener('end', close);
 
 		if (watcher) watcher.close();
-
 		if (configWatcher) configWatcher.close();
 
 		if (err) {
-			console.error(err);
+			stderr(err);
 			process.exit(1);
 		}
-	}
-
-	try {
-		start(configs);
-	} catch (err) {
-		close(err);
-		return;
-	}
-
-	if (configFile && !configFile.startsWith('node:')) {
-		let restarting = false;
-		let aborted = false;
-		let configFileData = fs.readFileSync(configFile, 'utf-8');
-
-		const restart = () => {
-			const newConfigFileData = fs.readFileSync(configFile, 'utf-8');
-			if (newConfigFileData === configFileData) return;
-			configFileData = newConfigFileData;
-
-			if (restarting) {
-				aborted = true;
-				return;
-			}
-
-			restarting = true;
-
-			loadAndParseConfigFile(configFile, command)
-				.then(({ options, warnings: newWarnings } ) => {
-					restarting = false;
-					configs = options;
-					warnings = newWarnings;
-
-					if (aborted) {
-						aborted = false;
-						restart();
-					} else {
-						watcher.close();
-						start(configs);
-					}
-				})
-				.catch((err: Error) => {
-					handleError(err, true);
-				});
-		};
-
-		configWatcher = fs.watch(configFile, (event: string) => {
-			if (event === 'change') restart();
-		}) as RollupWatcher;
 	}
 }
