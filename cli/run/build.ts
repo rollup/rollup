@@ -36,8 +36,8 @@ export default async function build(
 		const output = outputOptions[0];
 		if (output.sourcemap && output.sourcemap !== 'inline') {
 			handleError({
-				code: 'MISSING_OUTPUT_OPTION',
-				message: 'You must specify a --file (-o) option when creating a file with a sourcemap',
+				code: 'ONLY_INLINE_SOURCEMAPS',
+				message: 'Only inline sourcemaps are supported when bundling to stdout.',
 			});
 		}
 

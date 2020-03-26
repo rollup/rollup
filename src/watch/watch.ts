@@ -10,7 +10,7 @@ import {
 	WatcherOptions,
 } from '../rollup/types';
 import { mergeOptions } from '../utils/mergeOptions';
-import { GenericConfigObject } from '../utils/parseOptions';
+import { ensureArray, GenericConfigObject } from '../utils/parseOptions';
 import { FileWatcher } from './fileWatcher';
 
 const DELAY = 200;
@@ -27,9 +27,7 @@ export class Watcher {
 	constructor(configs: GenericConfigObject[] | GenericConfigObject, emitter: RollupWatcher) {
 		this.emitter = emitter;
 		emitter.close = this.close.bind(this);
-		this.tasks = (Array.isArray(configs) ? configs : configs ? [configs] : []).map(
-			(config) => new Task(this, config)
-		);
+		this.tasks = ensureArray(configs).map((config) => new Task(this, config));
 		this.running = true;
 		process.nextTick(() => this.run());
 	}
