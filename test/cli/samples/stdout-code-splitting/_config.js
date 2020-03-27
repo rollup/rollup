@@ -5,6 +5,7 @@ const STANDARD = '\u001b[22m\u001b[39m';
 
 module.exports = {
 	description: 'bundles multiple files to stdout while adding file names',
+	skipIfWindows: true,
 	command:
 		'node wrapper.js -i main1.js -i main2.js -f es ' +
 		`-p '{buildStart(){this.emitFile({type: "asset",source:"Hello"})}}'`,
