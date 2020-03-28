@@ -41,7 +41,7 @@ export default ({
   plugins: [myExample()],
   output: [{
     file: 'bundle.js',
-    format: 'esm'
+    format: 'es'
   }]
 });
 ```

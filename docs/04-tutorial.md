@@ -381,7 +381,7 @@ You can build the same code for the browser via native ES modules, an AMD loader
 For example, with `-f es` for native modules:
 
 ```
-rollup src/main.js src/main2.js -f esm -d dist
+rollup src/main.js src/main2.js -f es -d dist
 ```
 
 ```html
