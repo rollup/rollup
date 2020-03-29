@@ -1,5 +1,5 @@
 export default {
-	input: {output: "main4.js"},
+	input: 'main.js',
 	output: {
 		dir: "_actual",
 		format: "es"

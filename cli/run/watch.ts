@@ -32,50 +32,46 @@ export default async function watch(command: any) {
 	}
 
 	if (configFile) {
-		if (configFile.startsWith('node:')) {
-			({ options: configs, warnings } = await loadAndParseConfigFile(configFile, command));
-		} else {
-			let reloadingConfig = false;
-			let aborted = false;
-			let configFileData: string | null = null;
+		let reloadingConfig = false;
+		let aborted = false;
+		let configFileData: string | null = null;
 
-			configWatcher = fs.watch(configFile, (event: string) => {
-				if (event === 'change') reloadConfigFile();
-			});
+		configWatcher = fs.watch(configFile, (event: string) => {
+			if (event === 'change') reloadConfigFile();
+		});
 
-			await reloadConfigFile();
+		await reloadConfigFile();
 
-			async function reloadConfigFile() {
-				try {
-					const newConfigFileData = fs.readFileSync(configFile!, 'utf-8');
-					if (newConfigFileData === configFileData) {
-						return;
-					}
-					if (reloadingConfig) {
-						aborted = true;
-						return;
-					}
-					if (configFileData) {
-						stderr(`\nReloading updated config...`);
-					}
-					configFileData = newConfigFileData;
-					reloadingConfig = true;
-					({ options: configs, warnings } = await loadAndParseConfigFile(configFile!, command));
-					reloadingConfig = false;
-					if (aborted) {
-						aborted = false;
-						reloadConfigFile();
-					} else {
-						if (watcher) {
-							watcher.close();
-						}
-						start(configs);
-					}
-				} catch (err) {
-					configs = [];
-					reloadingConfig = false;
-					handleError(err, true);
+		async function reloadConfigFile() {
+			try {
+				const newConfigFileData = fs.readFileSync(configFile!, 'utf-8');
+				if (newConfigFileData === configFileData) {
+					return;
 				}
+				if (reloadingConfig) {
+					aborted = true;
+					return;
+				}
+				if (configFileData) {
+					stderr(`\nReloading updated config...`);
+				}
+				configFileData = newConfigFileData;
+				reloadingConfig = true;
+				({ options: configs, warnings } = await loadAndParseConfigFile(configFile!, command));
+				reloadingConfig = false;
+				if (aborted) {
+					aborted = false;
+					reloadConfigFile();
+				} else {
+					if (watcher) {
+						watcher.close();
+					}
+					start(configs);
+				}
+			} catch (err) {
+				configs = [];
+				reloadingConfig = false;
+				handleError(err, true);
 			}
 		}
 	} else {
