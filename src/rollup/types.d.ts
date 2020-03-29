@@ -589,6 +589,10 @@ export interface RollupOptions extends InputOptions {
 	output?: OutputOptions | OutputOptions[];
 }
 
+export interface MergedRollupOptions extends InputOptions {
+	output: OutputOptions[];
+}
+
 export function rollup(options: RollupOptions): Promise<RollupBuild>;
 
 export interface ChokidarOptions {

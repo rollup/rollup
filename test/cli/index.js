@@ -5,7 +5,7 @@ const { exec } = require('child_process');
 const {
 	normaliseOutput,
 	runTestSuiteWithSamples,
-	assertDirectoriesAreEqual
+	assertDirectoriesAreEqual,
 } = require('../utils.js');
 
 const cwd = process.cwd();
@@ -19,8 +19,9 @@ runTestSuiteWithSamples(
 	(dir, config) => {
 		(config.skip ? it.skip : config.solo ? it.only : it)(
 			path.basename(dir) + ': ' + config.description,
-			done => {
+			(done) => {
 				process.chdir(config.cwd || dir);
+				if (config.before) config.before();
 
 				const command = config.command.replace(
 					/(^| )rollup($| )/g,
@@ -31,9 +32,10 @@ runTestSuiteWithSamples(
 					command,
 					{
 						timeout: 40000,
-						env: Object.assign({}, process.env, { FORCE_COLOR: '0' }, config.env)
+						env: Object.assign({}, process.env, { FORCE_COLOR: '0' }, config.env),
 					},
 					(err, code, stderr) => {
+						if (config.after) config.after();
 						if (err && !err.killed) {
 							if (config.error) {
 								const shouldContinue = config.error(err);
@@ -44,7 +46,7 @@ runTestSuiteWithSamples(
 						}
 
 						if ('stderr' in config) {
-							const shouldContinue = config.stderr(stderr.trim());
+							const shouldContinue = config.stderr(stderr);
 							if (!shouldContinue) return done();
 						} else if (stderr) {
 							console.error(stderr);
@@ -56,7 +58,7 @@ runTestSuiteWithSamples(
 							try {
 								const fn = new Function('require', 'module', 'exports', 'assert', code);
 								const module = {
-									exports: {}
+									exports: {},
 								};
 								fn(require, module, module.exports, assert);
 
@@ -118,7 +120,7 @@ runTestSuiteWithSamples(
 					}
 				);
 
-				childProcess.stderr.on('data', data => {
+				childProcess.stderr.on('data', (data) => {
 					if (config.abortOnStderr && config.abortOnStderr(data)) {
 						childProcess.kill('SIGINT');
 					}

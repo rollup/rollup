@@ -3,8 +3,5 @@ export default {
 	output: {
 		file: '_actual.js',
 		format: 'es'
-	},
-	watch: {
-		clearScreen: false
 	}
 };

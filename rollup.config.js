@@ -7,9 +7,10 @@ import path from 'path';
 import { string } from 'rollup-plugin-string';
 import { terser } from 'rollup-plugin-terser';
 import typescript from 'rollup-plugin-typescript';
-import addBinShebang from './build-plugins/add-bin-shebang';
+import addBinShebang from './build-plugins/add-bin-shebang.js';
 import conditionalFsEventsImport from './build-plugins/conditional-fsevents-import';
 import emitModulePackageFile from './build-plugins/emit-module-package-file.js';
+import esmDynamicImport from './build-plugins/esm-dynamic-import.js';
 import getLicenseHandler from './build-plugins/generate-license-file';
 import pkg from './package.json';
 
@@ -73,10 +74,11 @@ export default command => {
 	const commonJSBuild = {
 		input: {
 			'rollup.js': 'src/node-entry.ts',
-			'bin/rollup': 'cli/index.ts'
+			'bin/rollup': 'cli/index.ts',
+			'loadConfigFile.js': 'cli/run/loadConfigFile.ts'
 		},
 		onwarn,
-		plugins: [...nodePlugins, addBinShebang(), !command.configTest && collectLicenses()],
+		plugins: [...nodePlugins, addBinShebang(), esmDynamicImport(), !command.configTest && collectLicenses()],
 		// fsevents is a dependency of chokidar that cannot be bundled as it contains binary code
 		external: [
 			'assert',
@@ -88,6 +90,7 @@ export default command => {
 			'path',
 			'os',
 			'stream',
+			'url',
 			'util'
 		],
 		treeshake,

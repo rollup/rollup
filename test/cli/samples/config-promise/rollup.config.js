@@ -1,11 +1,11 @@
-var replace = require( '@rollup/plugin-replace' );
+import replace from '@rollup/plugin-replace';
 
-module.exports = Promise.resolve( {
+export const ignored = 'forces named exports mode';
+
+export default Promise.resolve({
 	input: 'main.js',
 	output: {
 		format: 'cjs'
 	},
-	plugins: [
-		replace( { 'ANSWER': 42 } )
-	]
-} );
+	plugins: [replace({ ANSWER: 42 })]
+});

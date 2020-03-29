@@ -2,15 +2,15 @@ import * as path from 'path';
 import createFilter from 'rollup-pluginutils/src/createFilter';
 import { rollupInternal } from '../rollup/rollup';
 import {
-	InputOptions,
+	MergedRollupOptions,
 	OutputOptions,
 	RollupBuild,
 	RollupCache,
 	RollupWatcher,
-	WatcherOptions
+	WatcherOptions,
 } from '../rollup/types';
 import { mergeOptions } from '../utils/mergeOptions';
-import { GenericConfigObject } from '../utils/parseOptions';
+import { ensureArray, GenericConfigObject } from '../utils/parseOptions';
 import { FileWatcher } from './fileWatcher';
 
 const DELAY = 200;
@@ -27,9 +27,7 @@ export class Watcher {
 	constructor(configs: GenericConfigObject[] | GenericConfigObject, emitter: RollupWatcher) {
 		this.emitter = emitter;
 		emitter.close = this.close.bind(this);
-		this.tasks = (Array.isArray(configs) ? configs : configs ? [configs] : []).map(
-			config => new Task(this, config)
-		);
+		this.tasks = ensureArray(configs).map((config) => new Task(this, config));
 		this.running = true;
 		process.nextTick(() => this.run());
 	}
@@ -72,7 +70,7 @@ export class Watcher {
 		this.running = true;
 
 		this.emit('event', {
-			code: 'START'
+			code: 'START',
 		});
 
 		try {
@@ -81,13 +79,13 @@ export class Watcher {
 			}
 			this.running = false;
 			this.emit('event', {
-				code: 'END'
+				code: 'END',
 			});
 		} catch (error) {
 			this.running = false;
 			this.emit('event', {
 				code: 'ERROR',
-				error
+				error,
 			});
 		}
 
@@ -105,8 +103,8 @@ export class Task {
 	private closed: boolean;
 	private fileWatcher: FileWatcher;
 	private filter: (id: string) => boolean;
-	private inputOptions: InputOptions;
 	private invalidated = true;
+	private options: MergedRollupOptions;
 	private outputFiles: string[];
 	private outputs: OutputOptions[];
 	private skipWrite: boolean;
@@ -119,20 +117,19 @@ export class Task {
 		this.watched = new Set();
 
 		this.skipWrite = config.watch && !!(config.watch as GenericConfigObject).skipWrite;
-		const { inputOptions, outputOptions } = mergeOptions(config);
-		this.inputOptions = inputOptions;
-		this.outputs = outputOptions;
-		this.outputFiles = this.outputs.map(output => {
+		this.options = mergeOptions(config);
+		this.outputs = this.options.output;
+		this.outputFiles = this.outputs.map((output) => {
 			if (output.file || output.dir) return path.resolve(output.file || output.dir!);
 			return undefined as any;
 		});
 
-		const watchOptions: WatcherOptions = inputOptions.watch || {};
+		const watchOptions: WatcherOptions = this.options.watch || {};
 		this.filter = createFilter(watchOptions.include, watchOptions.exclude);
 		this.fileWatcher = new FileWatcher(this, {
 			...watchOptions.chokidar,
 			disableGlobbing: true,
-			ignoreInitial: true
+			ignoreInitial: true,
 		});
 	}
 
@@ -158,16 +155,16 @@ export class Task {
 		this.invalidated = false;
 
 		const options = {
-			...this.inputOptions,
-			cache: this.cache
+			...this.options,
+			cache: this.cache,
 		};
 
 		const start = Date.now();
 
 		this.watcher.emit('event', {
 			code: 'BUNDLE_START',
-			input: this.inputOptions.input,
-			output: this.outputFiles
+			input: this.options.input,
+			output: this.outputFiles,
 		});
 
 		try {
@@ -176,13 +173,13 @@ export class Task {
 				return;
 			}
 			this.updateWatchedFiles(result);
-			this.skipWrite || (await Promise.all(this.outputs.map(output => result.write(output))));
+			this.skipWrite || (await Promise.all(this.outputs.map((output) => result.write(output))));
 			this.watcher.emit('event', {
 				code: 'BUNDLE_END',
 				duration: Date.now() - start,
-				input: this.inputOptions.input,
+				input: this.options.input,
 				output: this.outputFiles,
-				result
+				result,
 			});
 		} catch (error) {
 			if (this.closed) {
@@ -195,7 +192,7 @@ export class Task {
 				}
 			}
 			if (error.id) {
-				this.cache.modules = this.cache.modules.filter(module => module.id !== error.id);
+				this.cache.modules = this.cache.modules.filter((module) => module.id !== error.id);
 			}
 			throw error;
 		}
@@ -225,7 +222,7 @@ export class Task {
 		if (!this.filter(id)) return;
 		this.watched.add(id);
 
-		if (this.outputFiles.some(file => file === id)) {
+		if (this.outputFiles.some((file) => file === id)) {
 			throw new Error('Cannot import the generated bundle');
 		}
 

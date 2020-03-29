@@ -1,11 +1,11 @@
-import { InputOptions, OutputOptions, WarningHandler } from '../rollup/types';
+import { MergedRollupOptions, WarningHandler } from '../rollup/types';
 import {
 	CommandConfigObject,
 	ensureArray,
 	GenericConfigObject,
 	parseInputOptions,
 	parseOutputOptions,
-	warnUnknownOptions
+	warnUnknownOptions,
 } from './parseOptions';
 
 export const commandAliases: { [key: string]: string } = {
@@ -21,17 +21,14 @@ export const commandAliases: { [key: string]: string } = {
 	o: 'file',
 	p: 'plugin',
 	v: 'version',
-	w: 'watch'
+	w: 'watch',
 };
 
 export function mergeOptions(
 	config: GenericConfigObject,
 	rawCommandOptions: GenericConfigObject = { external: [], globals: undefined },
 	defaultOnWarnHandler?: WarningHandler
-): {
-	inputOptions: InputOptions;
-	outputOptions: OutputOptions[];
-} {
+): MergedRollupOptions {
 	const command = getCommandOptions(rawCommandOptions);
 	const inputOptions = parseInputOptions(config, command, defaultOnWarnHandler);
 	const warn = inputOptions.onwarn as WarningHandler;
@@ -40,14 +37,14 @@ export function mergeOptions(
 	}
 	const outputOptionsArray = ensureArray(config.output) as GenericConfigObject[];
 	if (outputOptionsArray.length === 0) outputOptionsArray.push({});
-	const outputOptions = outputOptionsArray.map(singleOutputOptions =>
+	const outputOptions = outputOptionsArray.map((singleOutputOptions) =>
 		parseOutputOptions(singleOutputOptions, warn, command)
 	);
 
 	warnUnknownOptions(
 		command,
 		Object.keys(inputOptions).concat(
-			Object.keys(outputOptions[0]).filter(option => option !== 'sourcemapPathTransform'),
+			Object.keys(outputOptions[0]).filter((option) => option !== 'sourcemapPathTransform'),
 			Object.keys(commandAliases),
 			'config',
 			'environment',
@@ -59,10 +56,8 @@ export function mergeOptions(
 		warn,
 		/^_$|output$|config/
 	);
-	return {
-		inputOptions,
-		outputOptions
-	};
+	(inputOptions as MergedRollupOptions).output = outputOptions;
+	return inputOptions as MergedRollupOptions;
 }
 
 function getCommandOptions(rawCommandOptions: GenericConfigObject): CommandConfigObject {
@@ -83,6 +78,6 @@ function getCommandOptions(rawCommandOptions: GenericConfigObject): CommandConfi
 						}
 						return globals;
 				  }, Object.create(null))
-				: undefined
+				: undefined,
 	};
 }
