@@ -1,5 +1,20 @@
 # rollup changelog
 
+## 2.3.0
+*2020-03-29*
+
+### Features
+* Do not transpile config files with `.mjs` extension in Node 13+ or `.cjs` extension in any Node version and load them appropriately (#3445)
+* Extract helper to load a config file the way rollup does it via `rollup/dist/loadConfigFile` (#3445)
+
+### Bug Fixes
+* Keep watching the config file if an error occurs during initial load in watch node (#3445)
+* Add a helpful error message when using a transpiled config in a repository with "type": "module" (#3445)
+
+### Pull Requests
+* [#3445](https://github.com/rollup/rollup/pull/3449): Support native ESM configs in Node 13, support untranspiled configs (@lukastaegert)
+* [#3468](https://github.com/rollup/rollup/pull/3468): Don't use esm output format alias in the documentation (@vsn4ik)
+
 ## 2.2.0
 *2020-03-24*
 
