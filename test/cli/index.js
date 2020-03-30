@@ -9,6 +9,7 @@ const {
 } = require('../utils.js');
 
 const cwd = process.cwd();
+
 sander.rimrafSync(__dirname, 'node_modules');
 sander.copydirSync(__dirname, 'node_modules_rename_me').to(__dirname, 'node_modules');
 
