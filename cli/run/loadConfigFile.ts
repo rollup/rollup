@@ -22,7 +22,7 @@ interface NodeModuleWithCompile extends NodeModule {
 export default async function loadAndParseConfigFile(
 	fileName: string,
 	commandOptions: any = {}
-): Promise<{options: MergedRollupOptions[], warnings: BatchWarnings}> {
+): Promise<{ options: MergedRollupOptions[]; warnings: BatchWarnings }> {
 	const configs = await loadConfigFile(fileName, commandOptions);
 	const warnings = batchWarnings();
 	try {
@@ -31,7 +31,7 @@ export default async function loadAndParseConfigFile(
 			addCommandPluginsToInputOptions(options, commandOptions);
 			return options;
 		});
-		return {options: normalizedConfigs, warnings};
+		return { options: normalizedConfigs, warnings };
 	} catch (err) {
 		warnings.flush();
 		throw err;
@@ -43,11 +43,12 @@ async function loadConfigFile(
 	commandOptions: any
 ): Promise<GenericConfigObject[]> {
 	const extension = path.extname(fileName);
-	const configFileExport = await (extension === '.mjs' && supportsNativeESM()
-		? (await import(pathToFileURL(fileName).href)).default
-		: extension === '.cjs'
+	const configFileExport =
+		extension === '.mjs' && supportsNativeESM()
+			? (await import(pathToFileURL(fileName).href)).default
+			: extension === '.cjs'
 			? getDefaultFromCjs(require(fileName))
-			: getDefaultFromTranspiledConfigFile(fileName, commandOptions.silent));
+			: await getDefaultFromTranspiledConfigFile(fileName, commandOptions.silent);
 	return getConfigList(configFileExport, commandOptions);
 }
 
@@ -109,10 +110,10 @@ async function loadConfigFromBundledFile(fileName: string, bundledCode: string) 
 	}
 }
 
-function getConfigList(configFileExport: any, commandOptions: any) {
-	const defaultExport = configFileExport.default || configFileExport;
-	const config =
-		typeof defaultExport === 'function' ? defaultExport(commandOptions) : defaultExport;
+async function getConfigList(configFileExport: any, commandOptions: any) {
+	const config = await (typeof configFileExport === 'function'
+		? configFileExport(commandOptions)
+		: configFileExport);
 	if (Object.keys(config).length === 0) {
 		return error({
 			code: 'MISSING_CONFIG',
