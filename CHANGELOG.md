@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.3.1
+*2020-03-30*
+
+### Bug Fixes
+* Do not fail if the config file returns an function returning a Promise (#3472)
+
+### Pull Requests
+* [#3472](https://github.com/rollup/rollup/pull/3472): Fix support for async functions as config (@lukastaegert)
+
 ## 2.3.0
 *2020-03-29*
 
@@ -12,7 +21,7 @@
 * Add a helpful error message when using a transpiled config in a repository with "type": "module" (#3445)
 
 ### Pull Requests
-* [#3445](https://github.com/rollup/rollup/pull/3449): Support native ESM configs in Node 13, support untranspiled configs (@lukastaegert)
+* [#3445](https://github.com/rollup/rollup/pull/3445): Support native ESM configs in Node 13, support untranspiled configs (@lukastaegert)
 * [#3468](https://github.com/rollup/rollup/pull/3468): Don't use esm output format alias in the documentation (@vsn4ik)
 
 ## 2.2.0
