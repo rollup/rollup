@@ -1,5 +1,9 @@
 import * as foo from './foo.js';
+
 try {
-  foo();
-}
-catch {}
+	foo();
+} catch {}
+
+try {
+	foo``;
+} catch {}
