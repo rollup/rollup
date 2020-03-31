@@ -195,7 +195,8 @@ export default commandLineArgs => {
 
 ### Differences to the JavaScript API
 
-By default, Rollup will try to bundle and transpile your configuration file to CommonJS before requiring it. While this process is very fast and allows for better interoperability with
+While config files provide an easy way to configure Rollup, they also limit how Rollup can be invoked and where configuration is taken from. Especially if you are rebundling Rollup in another build tool or want to integrate it into an advanced build process, it may be better to directly invoke Rollup programmatically from your scripts.
+
 If you want to switch from config files to using the [JavaScript API](guide/en/#javascript-api) at some point, there are some important differences to be aware of:
 
 - When using the JavaScript API, the configuration passed to `rollup.rollup` must be an object and cannot be wrapped in a Promise or a function.
