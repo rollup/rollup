@@ -1,8 +1,9 @@
 const assert = require('assert');
 
 module.exports = {
-	description: 'combines existing sourcemap files into one',
+	solo: true,
+	description: 'removes existing inline sourcemaps',
 	async test(code) {
-		assert.doesNotMatch(code, /sourceMappingURL=data:/);
-	},
+		assert.strictEqual(code.indexOf('sourceMappingURL'), -1);
+	}
 };
