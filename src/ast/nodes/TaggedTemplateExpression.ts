@@ -20,10 +20,10 @@ export default class TaggedTemplateExpression extends NodeBase {
 			const variable = this.scope.findVariable(name);
 
 			if (variable.isNamespace) {
-				return this.context.error(
+				this.context.warn(
 					{
 						code: 'CANNOT_CALL_NAMESPACE',
-						message: `Cannot call a namespace ('${name}')`
+						message: `Cannot call a namespace ('${name}')`,
 					},
 					this.start
 				);
@@ -34,7 +34,7 @@ export default class TaggedTemplateExpression extends NodeBase {
 					{
 						code: 'EVAL',
 						message: `Use of eval is strongly discouraged, as it poses security risks and may cause issues with minification`,
-						url: 'https://rollupjs.org/guide/en/#avoiding-eval'
+						url: 'https://rollupjs.org/guide/en/#avoiding-eval',
 					},
 					this.start
 				);
@@ -52,7 +52,7 @@ export default class TaggedTemplateExpression extends NodeBase {
 	initialise() {
 		this.callOptions = {
 			args: NO_ARGS,
-			withNew: false
+			withNew: false,
 		};
 	}
 }

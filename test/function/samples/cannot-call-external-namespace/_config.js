@@ -1,21 +1,14 @@
-const path = require('path');
+const assert = require('assert');
 
 module.exports = {
-	description: 'errors if code calls an external namespace',
-	error: {
-		code: 'CANNOT_CALL_NAMESPACE',
-		message: `Cannot call a namespace ('foo')`,
-		pos: 28,
-		watchFiles: [path.resolve(__dirname, 'main.js')],
-		loc: {
-			file: path.resolve(__dirname, 'main.js'),
-			line: 2,
-			column: 0
-		},
-		frame: `
-			1: import * as foo from 'foo';
-			2: foo();
-			   ^
-		`
+	description: 'warns if code calls an external namespace',
+	options: {
+		external: ['fs']
+	},
+	warnings(warnings) {
+		assert.deepStrictEqual(warnings.map(String), [
+			"main.js (4:1) Cannot call a namespace ('foo')",
+			"main.js (8:1) Cannot call a namespace ('foo')"
+		]);
 	}
 };
