@@ -160,7 +160,7 @@ export default function transform(
 			}
 
 			return {
-				ast: ast!,
+				ast,
 				code,
 				customTransformCache,
 				moduleSideEffects,

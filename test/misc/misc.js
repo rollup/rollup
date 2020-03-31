@@ -108,12 +108,10 @@ describe('misc', () => {
 			.then(bundle => bundle.generate({ format: 'es' }))
 			.then(({ output }) => {
 				assert.equal(warnings.length, 0);
-				assert.deepEqual(output.map(({ fileName }) => fileName), [
-					'main1.js',
-					'main2.js',
-					'dep-f8bec8a7.js',
-					'dyndep-b0a9ee12.js'
-				]);
+				assert.deepEqual(
+					output.map(({ fileName }) => fileName),
+					['main1.js', 'main2.js', 'dep-f8bec8a7.js', 'dyndep-b0a9ee12.js']
+				);
 			});
 	});
 
@@ -174,5 +172,39 @@ describe('misc', () => {
 			.then(output =>
 				assert.strictEqual(output.output[0].code, 'var input = 42;\n\nexport default input;\n')
 			);
+	});
+
+	it('consistently handles comments when using the cache', async () => {
+		const FILES = {
+			main: `import value from "other";
+console.log(value);
+/*#__PURE__*/console.log('removed');`,
+			other: `var x = "foo";
+export default x;
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoib3RoZXIuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyJvdGhlci50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiQUFBQSxJQUFNLENBQUMsR0FBVyxLQUFLLENBQUM7QUFDeEIsZUFBZSxDQUFDLENBQUMifQ==`
+		};
+		const EXPECTED_OUTPUT = `var x = "foo";
+
+console.log(x);
+`;
+		const firstBundle = await rollup.rollup({
+			input: 'main',
+			plugins: [loader(FILES)]
+		});
+		assert.strictEqual(
+			(await firstBundle.generate({ format: 'es' })).output[0].code,
+			EXPECTED_OUTPUT,
+			'first'
+		);
+		const secondBundle = await rollup.rollup({
+			cache: firstBundle.cache,
+			input: 'main',
+			plugins: [loader(FILES)]
+		});
+		assert.strictEqual(
+			(await secondBundle.generate({ format: 'es' })).output[0].code,
+			EXPECTED_OUTPUT,
+			'second'
+		);
 	});
 });

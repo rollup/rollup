@@ -94,7 +94,7 @@ export interface SourceDescription {
 }
 
 export interface TransformModuleJSON {
-	ast: AcornNode;
+	ast?: AcornNode;
 	code: string;
 	// note if plugins use new this.cache to opt-out auto transform cache
 	customTransformCache: boolean;
@@ -108,6 +108,8 @@ export interface TransformModuleJSON {
 }
 
 export interface ModuleJSON extends TransformModuleJSON {
+	alwaysRemovedCode: [number, number][];
+	ast: AcornNode;
 	dependencies: string[];
 	id: string;
 	transformFiles: EmittedFile[] | undefined;

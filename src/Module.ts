@@ -236,6 +236,7 @@ export default class Module {
 	usesTopLevelAwait = false;
 
 	private allExportNames: Set<string> | null = null;
+	private alwaysRemovedCode!: [number, number][];
 	private ast!: Program;
 	private astContext!: AstContext;
 	private context: string;
@@ -619,6 +620,7 @@ export default class Module {
 	}
 
 	setSource({
+		alwaysRemovedCode,
 		ast,
 		code,
 		customTransformCache,
@@ -631,6 +633,7 @@ export default class Module {
 		transformDependencies,
 		transformFiles
 	}: TransformModuleJSON & {
+		alwaysRemovedCode?: [number, number][];
 		transformFiles?: EmittedFile[] | undefined;
 	}) {
 		this.code = code;
@@ -651,8 +654,18 @@ export default class Module {
 
 		timeStart('generate ast', 3);
 
-		this.esTreeAst = ast || tryParse(this, this.graph.acornParser, this.graph.acornOptions);
-		markPureCallExpressions(this.comments, this.esTreeAst);
+		this.alwaysRemovedCode = alwaysRemovedCode || [];
+		if (ast) {
+			this.esTreeAst = ast;
+		} else {
+			this.esTreeAst = tryParse(this, this.graph.acornParser, this.graph.acornOptions);
+			for (const comment of this.comments) {
+				if (!comment.block && SOURCEMAPPING_URL_RE.test(comment.text)) {
+					this.alwaysRemovedCode.push([comment.start, comment.end]);
+				}
+			}
+			markPureCallExpressions(this.comments, this.esTreeAst);
+		}
 
 		timeEnd('generate ast', 3);
 
@@ -666,7 +679,9 @@ export default class Module {
 			filename: (this.excludeFromSourcemap ? null : fileName)!, // don't include plugin helpers in sourcemap
 			indentExclusionRanges: []
 		});
-		this.removeExistingSourceMap();
+		for (const [start, end] of this.alwaysRemovedCode) {
+			this.magicString.remove(start, end);
+		}
 
 		timeStart('analyse ast', 3);
 
@@ -720,6 +735,7 @@ export default class Module {
 
 	toJSON(): ModuleJSON {
 		return {
+			alwaysRemovedCode: this.alwaysRemovedCode,
 			ast: this.esTreeAst,
 			code: this.code,
 			customTransformCache: this.customTransformCache,
@@ -909,14 +925,6 @@ export default class Module {
 		}
 		if (variableModule && variableModule !== this) {
 			this.imports.add(variable);
-		}
-	}
-
-	private removeExistingSourceMap() {
-		for (const comment of this.comments) {
-			if (!comment.block && SOURCEMAPPING_URL_RE.test(comment.text)) {
-				this.magicString.remove(comment.start, comment.end);
-			}
 		}
 	}
 
