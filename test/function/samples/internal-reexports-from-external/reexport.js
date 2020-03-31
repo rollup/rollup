@@ -1,1 +1,1 @@
-export * from 'external';
+export * from 'fs';

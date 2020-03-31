@@ -1,16 +1,13 @@
-const path = require('path');
+const assert = require('assert');
+const fs = require('fs');
 
 module.exports = {
 	description:
 		'fails with a helpful error if creating a namespace object containing a reexported external namespace',
 	options: {
-		external: ['external']
+		external: ['fs'],
 	},
-	error: {
-		code: 'NAMESPACE_CANNOT_CONTAIN_EXTERNAL',
-		message:
-			'Cannot create an explicit namespace object for module "reexport" because it contains a reexported external namespace',
-		id: path.join(__dirname, 'reexport.js'),
-		watchFiles: [path.join(__dirname, 'main.js'), path.join(__dirname, 'reexport.js')]
-	}
+	exports(ns) {
+		assert.strictEqual(ns.namespace.readFile, fs.readFile);
+	},
 };
