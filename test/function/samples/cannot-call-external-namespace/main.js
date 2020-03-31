@@ -1,2 +1,9 @@
-import * as foo from 'foo';
-foo();
+import * as foo from 'fs';
+
+try {
+	foo();
+} catch (e) {}
+
+try {
+	foo``;
+} catch (e) {}
