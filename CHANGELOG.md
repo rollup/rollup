@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 2.3.2
+*2020-03-31*
+
+### Bug Fixes
+* Only warn but do not fail build when a namespace is called as a function (#3475)
+* Make sure pre-existing sourcemap comments are also removed when rebuilding using the cache (#3476)
+
+### Pull Requests
+* [#3475](https://github.com/rollup/rollup/pull/3475): Call namespace error as a warning (@guybedford)
+* [#3476](https://github.com/rollup/rollup/pull/3476): Store locations for removed comments in cache (@lukastaegert)
+
 ## 2.3.1
 *2020-03-30*
 
