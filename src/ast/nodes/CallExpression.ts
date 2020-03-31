@@ -3,7 +3,7 @@ import { BLANK } from '../../utils/blank';
 import {
 	findFirstOccurrenceOutsideComment,
 	NodeRenderOptions,
-	RenderOptions
+	RenderOptions,
 } from '../../utils/renderHelpers';
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
@@ -13,7 +13,7 @@ import {
 	ObjectPath,
 	PathTracker,
 	SHARED_RECURSION_TRACKER,
-	UNKNOWN_PATH
+	UNKNOWN_PATH,
 } from '../utils/PathTracker';
 import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../values';
 import Identifier from './Identifier';
@@ -40,10 +40,10 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 			const variable = this.scope.findVariable(this.callee.name);
 
 			if (variable.isNamespace) {
-				return this.context.error(
+				this.context.warn(
 					{
 						code: 'CANNOT_CALL_NAMESPACE',
-						message: `Cannot call a namespace ('${this.callee.name}')`
+						message: `Cannot call a namespace ('${this.callee.name}')`,
 					},
 					this.start
 				);
@@ -54,7 +54,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 					{
 						code: 'EVAL',
 						message: `Use of eval is strongly discouraged, as it poses security risks and may cause issues with minification`,
-						url: 'https://rollupjs.org/guide/en/#avoiding-eval'
+						url: 'https://rollupjs.org/guide/en/#avoiding-eval',
 					},
 					this.start
 				);
@@ -212,7 +212,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 	initialise() {
 		this.callOptions = {
 			args: this.arguments,
-			withNew: false
+			withNew: false,
 		};
 	}
 
