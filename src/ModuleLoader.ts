@@ -50,7 +50,11 @@ function normalizeRelativeExternalId(source: string, importer: string | undefine
 }
 
 function getIdMatcher<T extends Array<any>>(
-	option: boolean | string[] | ((id: string, ...args: T) => boolean | null | undefined)
+	option:
+		| boolean
+		| RegExp
+		| (string | RegExp)[]
+		| ((id: string, ...args: T) => boolean | null | undefined)
 ): (id: string, ...args: T) => boolean {
 	if (option === true) {
 		return () => true;
@@ -58,9 +62,16 @@ function getIdMatcher<T extends Array<any>>(
 	if (typeof option === 'function') {
 		return (id, ...args) => (!id.startsWith('\0') && option(id, ...args)) || false;
 	}
+	if (option instanceof RegExp) {
+		return (id => option.test(id)) as (id: string, ...args: T) => boolean;
+	}
 	if (option) {
 		const ids = new Set(Array.isArray(option) ? option : option ? [option] : []);
-		return (id => ids.has(id)) as (id: string, ...args: T) => boolean;
+		return (id =>
+			[...ids].some(option => {
+				if (option instanceof RegExp) return option.test(id);
+				return option === id;
+			})) as (id: string, ...args: T) => boolean;
 	}
 	return () => false;
 }
