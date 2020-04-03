@@ -92,7 +92,8 @@ export default class NamespaceVariable extends Variable {
 			return `${t}${safeName}: ${original.getName()}`;
 		});
 
-		members.unshift(`${t}__proto__:${_}null`);
+		const objectCreate = this.reexportedNamespaceVariables.length;
+		if (!objectCreate) members.unshift(`${t}__proto__:${_}null`);
 
 		if (options.namespaceToStringTag) {
 			members.unshift(`${t}[Symbol.toStringTag]:${_}'Module'`);
@@ -101,12 +102,15 @@ export default class NamespaceVariable extends Variable {
 		const name = this.getName();
 		let output = `{${n}${members.join(`,${n}`)}${n}}`;
 		if (this.reexportedNamespaceVariables.length) {
-			output = `/*#__PURE__*/Object.assign(${this.reexportedNamespaceVariables
+			output = `Object.assign(Object.create(null), ${this.reexportedNamespaceVariables
 				.map((v) => v.getName())
-				.join(', ')}, ${output})`;
-		}
-		if (this.syntheticNamedExports) {
-			output = `/*#__PURE__*/Object.assign(${output}, ${this.module.getDefaultExport().getName()})`;
+				.join(', ')}, ${output}${
+				this.syntheticNamedExports ? ', ' + this.module.getDefaultExport().getName() : ''
+			})`;
+			if (!options.freeze) output = '*#__PURE__*/' + output;
+		} else if (this.syntheticNamedExports) {
+			output = `Object.assign(${output}, ${this.module.getDefaultExport().getName()})`;
+			if (!options.freeze) output = '*#__PURE__*/' + output;
 		}
 		if (options.freeze) {
 			output = `/*#__PURE__*/Object.freeze(${output})`;
