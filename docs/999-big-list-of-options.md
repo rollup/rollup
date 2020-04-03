@@ -714,7 +714,7 @@ export default {
 
 #### output.esModule
 Type: `boolean`<br>
-CLI: `--esModule`/`--no-esModule`
+CLI: `--esModule`/`--no-esModule`<br>
 Default: `true`
 
 Whether or not to add a `__esModule: true` property when generating exports for non-ES formats.
