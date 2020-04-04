@@ -12,9 +12,9 @@ export default class NamespaceVariable extends Variable {
 	isNamespace!: true;
 	memberVariables: { [name: string]: Variable } = Object.create(null);
 	module: Module;
-	reexportedNamespaces: string[] = [];
-	private reexportedNamespaceVariables: ExternalVariable[] = [];
 
+	private reexportedExternalNamespaces: string[] = [];
+	private reexportedExternalNamespaceVariables: ExternalVariable[] = [];
 	private referencedEarly = false;
 	private references: Identifier[] = [];
 	private syntheticNamedExports: boolean;
@@ -50,8 +50,10 @@ export default class NamespaceVariable extends Variable {
 					break;
 				}
 			}
-			for (const name of this.reexportedNamespaces) {
-				this.reexportedNamespaceVariables.push(this.context.includeExternalReexportNamespace(name));
+			for (const name of this.reexportedExternalNamespaces) {
+				this.reexportedExternalNamespaceVariables.push(
+					this.context.includeExternalReexportNamespace(name)
+				);
 			}
 			if (this.context.preserveModules) {
 				for (const memberName of Object.keys(this.memberVariables))
@@ -66,7 +68,7 @@ export default class NamespaceVariable extends Variable {
 	initialise() {
 		for (const name of this.context.getExports().concat(this.context.getReexports())) {
 			if (name[0] === '*' && name.length > 1) {
-				this.reexportedNamespaces.push(name.slice(1));
+				this.reexportedExternalNamespaces.push(name.slice(1));
 			} else {
 				this.memberVariables[name] = this.context.traceExport(name);
 			}
@@ -78,7 +80,7 @@ export default class NamespaceVariable extends Variable {
 		const n = options.compact ? '' : '\n';
 		const t = options.indent;
 
-		const members = Object.keys(this.memberVariables).map((name) => {
+		const members = Object.keys(this.memberVariables).map(name => {
 			const original = this.memberVariables[name];
 
 			if (this.referencedEarly || original.isReassigned) {
@@ -92,30 +94,33 @@ export default class NamespaceVariable extends Variable {
 			return `${t}${safeName}: ${original.getName()}`;
 		});
 
-		const objectCreate = this.reexportedNamespaceVariables.length;
-		if (!objectCreate) members.unshift(`${t}__proto__:${_}null`);
-
 		if (options.namespaceToStringTag) {
 			members.unshift(`${t}[Symbol.toStringTag]:${_}'Module'`);
 		}
 
-		const name = this.getName();
+		// TODO Lukas rename to reflect they are external
+		const hasExternalReexports = this.reexportedExternalNamespaceVariables.length > 0;
+		if (!hasExternalReexports) members.unshift(`${t}__proto__:${_}null`);
+
 		let output = `{${n}${members.join(`,${n}`)}${n}}`;
-		if (this.reexportedNamespaceVariables.length) {
-			output = `Object.assign(Object.create(null), ${this.reexportedNamespaceVariables
-				.map((v) => v.getName())
-				.join(', ')}, ${output}${
-				this.syntheticNamedExports ? ', ' + this.module.getDefaultExport().getName() : ''
-			})`;
-			if (!options.freeze) output = '*#__PURE__*/' + output;
-		} else if (this.syntheticNamedExports) {
-			output = `Object.assign(${output}, ${this.module.getDefaultExport().getName()})`;
-			if (!options.freeze) output = '*#__PURE__*/' + output;
+		if (hasExternalReexports || this.syntheticNamedExports) {
+			const assignmentArgs = [output];
+			if (hasExternalReexports) {
+				assignmentArgs.unshift(
+					'/*#__PURE__*/Object.create(null)',
+					...this.reexportedExternalNamespaceVariables.map(variable => variable.getName())
+				);
+			}
+			if (this.syntheticNamedExports) {
+				assignmentArgs.push(this.module.getDefaultExport().getName());
+			}
+			output = `/*#__PURE__*/Object.assign(${assignmentArgs.join(`,${_}`)})`;
 		}
 		if (options.freeze) {
 			output = `/*#__PURE__*/Object.freeze(${output})`;
 		}
 
+		const name = this.getName();
 		output = `${options.varOrConst} ${name}${_}=${_}${output};`;
 
 		if (options.format === 'system' && this.exportName) {

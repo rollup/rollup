@@ -3,7 +3,7 @@ import * as externalNs2 from 'external-ns-2';
 
 const val = 5;
 
-var ns = /*#__PURE__*/Object.freeze(Object.assign(Object.create(null), externalNs1, externalNs2, {
+var ns = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), externalNs1, externalNs2, {
 	val: val
 }));
 
