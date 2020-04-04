@@ -100,9 +100,9 @@ export interface AstContext {
 	getModuleName: () => string;
 	getReexports: () => string[];
 	importDescriptions: { [name: string]: ImportDescription };
+	includeAndGetReexportedExternalNamespaces: () => ExternalVariable[];
 	includeDynamicImport: (node: ImportExpression) => void;
 	includeVariable: (context: InclusionContext, variable: Variable) => void;
-	isCrossChunkImport: (importDescription: ImportDescription) => boolean;
 	magicString: MagicString;
 	module: Module; // not to be used for tree-shaking
 	moduleContext: string;
@@ -198,7 +198,6 @@ export default class Module {
 	chunkName: string | null = null;
 	code!: string;
 	comments: CommentDescription[] = [];
-	customTransformCache!: boolean;
 	dependencies = new Set<Module | ExternalModule>();
 	dynamicallyImportedBy: Module[] = [];
 	dynamicDependencies = new Set<Module | ExternalModule>();
@@ -208,11 +207,9 @@ export default class Module {
 	}[] = [];
 	excludeFromSourcemap: boolean;
 	execIndex = Infinity;
-	exportAllModules: (Module | ExternalModule)[] = [];
 	exportAllSources = new Set<string>();
 	exports: { [name: string]: ExportDescription } = Object.create(null);
 	exportsAll: { [name: string]: string } = Object.create(null);
-	exportShimVariable: ExportShimVariable = new ExportShimVariable(this);
 	facadeChunk: Chunk | null = null;
 	id: string;
 	importDescriptions: { [name: string]: ImportDescription } = Object.create(null);
@@ -240,8 +237,11 @@ export default class Module {
 	private ast!: Program;
 	private astContext!: AstContext;
 	private context: string;
+	private customTransformCache!: boolean;
 	private defaultExport: ExportDefaultVariable | null | undefined = null;
 	private esTreeAst!: acorn.Node;
+	private exportAllModules: (Module | ExternalModule)[] = [];
+	private exportShimVariable: ExportShimVariable = new ExportShimVariable(this);
 	private graph: Graph;
 	private magicString!: MagicString;
 	private namespaceVariable: NamespaceVariable | null = null;
@@ -700,10 +700,11 @@ export default class Module {
 			getModuleName: this.basename.bind(this),
 			getReexports: this.getReexports.bind(this),
 			importDescriptions: this.importDescriptions,
+			includeAndGetReexportedExternalNamespaces: this.includeAndGetReexportedExternalNamespaces.bind(
+				this
+			),
 			includeDynamicImport: this.includeDynamicImport.bind(this),
 			includeVariable: this.includeVariable.bind(this),
-			isCrossChunkImport: importDescription =>
-				(importDescription.module as Module).chunk !== this.chunk,
 			magicString: this.magicString,
 			module: this,
 			moduleContext: this.context,
@@ -864,18 +865,6 @@ export default class Module {
 		const source = node.source.value;
 		this.sources.add(source);
 		for (const specifier of node.specifiers) {
-			const localName = specifier.local.name;
-
-			if (this.importDescriptions[localName]) {
-				return this.error(
-					{
-						code: 'DUPLICATE_IMPORT',
-						message: `Duplicated import '${localName}'`
-					},
-					specifier.start
-				);
-			}
-
 			const isDefault = specifier.type === NodeType.ImportDefaultSpecifier;
 			const isNamespace = specifier.type === NodeType.ImportNamespaceSpecifier;
 
@@ -884,7 +873,7 @@ export default class Module {
 				: isNamespace
 				? '*'
 				: (specifier as ImportSpecifier).imported.name;
-			this.importDescriptions[localName] = {
+			this.importDescriptions[specifier.local.name] = {
 				module: null as any, // filled in later
 				name,
 				source,
@@ -905,6 +894,19 @@ export default class Module {
 			const id = this.resolvedIds[specifier.source].id;
 			specifier.module = this.graph.moduleById.get(id) as Module | ExternalModule;
 		}
+	}
+
+	private includeAndGetReexportedExternalNamespaces(): ExternalVariable[] {
+		const reexportedExternalNamespaces: ExternalVariable[] = [];
+		for (const module of this.exportAllModules) {
+			if (module instanceof ExternalModule) {
+				const externalVariable = module.getVariableForExportName('*');
+				externalVariable.include();
+				this.imports.add(externalVariable);
+				reexportedExternalNamespaces.push(externalVariable);
+			}
+		}
+		return reexportedExternalNamespaces;
 	}
 
 	private includeDynamicImport(node: ImportExpression) {
@@ -929,14 +931,12 @@ export default class Module {
 	}
 
 	private shimMissingExport(name: string): void {
-		if (!this.exports[name]) {
-			this.graph.warn({
-				code: 'SHIMMED_EXPORT',
-				exporter: relativeId(this.id),
-				exportName: name,
-				message: `Missing export "${name}" has been shimmed in module ${relativeId(this.id)}.`
-			});
-			this.exports[name] = MISSING_EXPORT_SHIM_DESCRIPTION;
-		}
+		this.graph.warn({
+			code: 'SHIMMED_EXPORT',
+			exporter: relativeId(this.id),
+			exportName: name,
+			message: `Missing export "${name}" has been shimmed in module ${relativeId(this.id)}.`
+		});
+		this.exports[name] = MISSING_EXPORT_SHIM_DESCRIPTION;
 	}
 }

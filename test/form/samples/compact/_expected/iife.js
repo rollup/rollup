@@ -1,4 +1,4 @@
-var foo=(function(x){'use strict';x=x&&Object.prototype.hasOwnProperty.call(x,'default')?x['default']:x;var self=/*#__PURE__*/Object.freeze({[Symbol.toStringTag]:'Module',__proto__:null,get default(){return foo}});console.log(self);
+var foo=(function(x){'use strict';x=x&&Object.prototype.hasOwnProperty.call(x,'default')?x['default']:x;var self=/*#__PURE__*/Object.freeze({__proto__:null,[Symbol.toStringTag]:'Module',get default(){return foo}});console.log(self);
 function foo () {
 	console.log( x );
 }
