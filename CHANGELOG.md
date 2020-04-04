@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.3.3
+*2020-04-04*
+
+### Bug Fixes
+* Add external namespaces to dynamic namespace objects (#3474)
+
+### Pull Requests
+* [#3474](https://github.com/rollup/rollup/pull/3475): Support external star exports on namespace objects (@guybedford)
+
 ## 2.3.2
 *2020-03-31*
 
