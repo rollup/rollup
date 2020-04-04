@@ -1,3 +1,2 @@
-import * as namespace from './reexport.js';
-
-export { namespace };
+export * as fs from './reexport-external.js';
+export * as fsOverride from './reexport-externals-with-override.js';

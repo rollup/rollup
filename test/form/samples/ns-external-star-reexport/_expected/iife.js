@@ -1,4 +1,5 @@
-define(['exports', 'external1', 'external2'], function (exports, external1, external2) { 'use strict';
+var bundle = (function (exports, external1, external2) {
+	'use strict';
 
 	var reexportExternal = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), external1));
 
@@ -16,6 +17,6 @@ define(['exports', 'external1', 'external2'], function (exports, external1, exte
 	exports.external = reexportExternal;
 	exports.externalOverride = reexportExternalsWithOverride$1;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
+	return exports;
 
-});
+}({}, external1, external2));

@@ -100,8 +100,8 @@ export interface AstContext {
 	getModuleName: () => string;
 	getReexports: () => string[];
 	importDescriptions: { [name: string]: ImportDescription };
+	includeAndGetReexportedExternalNamespaces: () => ExternalVariable[];
 	includeDynamicImport: (node: ImportExpression) => void;
-	includeExternalReexportNamespace: (name: string) => ExternalVariable;
 	includeVariable: (context: InclusionContext, variable: Variable) => void;
 	isCrossChunkImport: (importDescription: ImportDescription) => boolean;
 	magicString: MagicString;
@@ -199,7 +199,6 @@ export default class Module {
 	chunkName: string | null = null;
 	code!: string;
 	comments: CommentDescription[] = [];
-	customTransformCache!: boolean;
 	dependencies = new Set<Module | ExternalModule>();
 	dynamicallyImportedBy: Module[] = [];
 	dynamicDependencies = new Set<Module | ExternalModule>();
@@ -209,11 +208,9 @@ export default class Module {
 	}[] = [];
 	excludeFromSourcemap: boolean;
 	execIndex = Infinity;
-	exportAllModules: (Module | ExternalModule)[] = [];
 	exportAllSources = new Set<string>();
 	exports: { [name: string]: ExportDescription } = Object.create(null);
 	exportsAll: { [name: string]: string } = Object.create(null);
-	exportShimVariable: ExportShimVariable = new ExportShimVariable(this);
 	facadeChunk: Chunk | null = null;
 	id: string;
 	importDescriptions: { [name: string]: ImportDescription } = Object.create(null);
@@ -241,8 +238,11 @@ export default class Module {
 	private ast!: Program;
 	private astContext!: AstContext;
 	private context: string;
+	private customTransformCache!: boolean;
 	private defaultExport: ExportDefaultVariable | null | undefined = null;
 	private esTreeAst!: acorn.Node;
+	private exportAllModules: (Module | ExternalModule)[] = [];
+	private exportShimVariable: ExportShimVariable = new ExportShimVariable(this);
 	private graph: Graph;
 	private magicString!: MagicString;
 	private namespaceVariable: NamespaceVariable | null = null;
@@ -701,8 +701,10 @@ export default class Module {
 			getModuleName: this.basename.bind(this),
 			getReexports: this.getReexports.bind(this),
 			importDescriptions: this.importDescriptions,
+			includeAndGetReexportedExternalNamespaces: this.includeAndGetReexportedExternalNamespaces.bind(
+				this
+			),
 			includeDynamicImport: this.includeDynamicImport.bind(this),
-			includeExternalReexportNamespace: this.includeExternalReexportNamespace.bind(this),
 			includeVariable: this.includeVariable.bind(this),
 			isCrossChunkImport: importDescription =>
 				(importDescription.module as Module).chunk !== this.chunk,
@@ -909,6 +911,19 @@ export default class Module {
 		}
 	}
 
+	private includeAndGetReexportedExternalNamespaces(): ExternalVariable[] {
+		const reexportedExternalNamespaces: ExternalVariable[] = [];
+		for (const module of this.exportAllModules) {
+			if (module instanceof ExternalModule) {
+				const externalVariable = module.getVariableForExportName('*');
+				externalVariable.include();
+				this.imports.add(externalVariable);
+				reexportedExternalNamespaces.push(externalVariable);
+			}
+		}
+		return reexportedExternalNamespaces;
+	}
+
 	private includeDynamicImport(node: ImportExpression) {
 		const resolution = (this.dynamicImports.find(dynamicImport => dynamicImport.node === node) as {
 			resolution: string | Module | ExternalModule | undefined;
@@ -917,20 +932,6 @@ export default class Module {
 			resolution.dynamicallyImportedBy.push(this);
 			resolution.includeAllExports();
 		}
-	}
-
-	private includeExternalReexportNamespace(name: string): ExternalVariable {
-		for (const module of this.exportAllModules) {
-			if (module instanceof ExternalModule) {
-				if (module.id === name) {
-					const externalVariable = module.getVariableForExportName('*');
-					externalVariable.include();
-					this.imports.add(externalVariable);
-					return externalVariable;
-				}
-			}
-		}
-		throw new Error(`Unable to find star reexport ExternalModule instance for ${name}`);
 	}
 
 	private includeVariable(context: InclusionContext, variable: Variable) {

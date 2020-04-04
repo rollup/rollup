@@ -13,8 +13,7 @@ export default class NamespaceVariable extends Variable {
 	memberVariables: { [name: string]: Variable } = Object.create(null);
 	module: Module;
 
-	private reexportedExternalNamespaces: string[] = [];
-	private reexportedExternalNamespaceVariables: ExternalVariable[] = [];
+	private reexportedExternalNamespaces: ExternalVariable[] = [];
 	private referencedEarly = false;
 	private references: Identifier[] = [];
 	private syntheticNamedExports: boolean;
@@ -50,11 +49,7 @@ export default class NamespaceVariable extends Variable {
 					break;
 				}
 			}
-			for (const name of this.reexportedExternalNamespaces) {
-				this.reexportedExternalNamespaceVariables.push(
-					this.context.includeExternalReexportNamespace(name)
-				);
-			}
+			this.reexportedExternalNamespaces = this.context.includeAndGetReexportedExternalNamespaces();
 			if (this.context.preserveModules) {
 				for (const memberName of Object.keys(this.memberVariables))
 					this.memberVariables[memberName].include(context);
@@ -67,9 +62,7 @@ export default class NamespaceVariable extends Variable {
 
 	initialise() {
 		for (const name of this.context.getExports().concat(this.context.getReexports())) {
-			if (name[0] === '*' && name.length > 1) {
-				this.reexportedExternalNamespaces.push(name.slice(1));
-			} else {
+			if (name[0] !== '*') {
 				this.memberVariables[name] = this.context.traceExport(name);
 			}
 		}
@@ -98,17 +91,16 @@ export default class NamespaceVariable extends Variable {
 			members.unshift(`${t}[Symbol.toStringTag]:${_}'Module'`);
 		}
 
-		// TODO Lukas rename to reflect they are external
-		const hasExternalReexports = this.reexportedExternalNamespaceVariables.length > 0;
+		const hasExternalReexports = this.reexportedExternalNamespaces.length > 0;
 		if (!hasExternalReexports) members.unshift(`${t}__proto__:${_}null`);
 
 		let output = `{${n}${members.join(`,${n}`)}${n}}`;
 		if (hasExternalReexports || this.syntheticNamedExports) {
-			const assignmentArgs = [output];
+			const assignmentArgs = members.length > 0 ? [output] : [];
 			if (hasExternalReexports) {
 				assignmentArgs.unshift(
 					'/*#__PURE__*/Object.create(null)',
-					...this.reexportedExternalNamespaceVariables.map(variable => variable.getName())
+					...this.reexportedExternalNamespaces.map(variable => variable.getName())
 				);
 			}
 			if (this.syntheticNamedExports) {

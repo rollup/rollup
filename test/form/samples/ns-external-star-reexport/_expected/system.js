@@ -1,21 +1,28 @@
-System.register(['external-ns-1', 'external-ns-2'], function (exports) {
+System.register('bundle', ['external1', 'external2'], function (exports) {
 	'use strict';
-	var externalNs1, externalNs2;
+	var external1, external2;
 	return {
 		setters: [function (module) {
-			externalNs1 = module;
+			external1 = module;
 		}, function (module) {
-			externalNs2 = module;
+			external2 = module;
 		}],
 		execute: function () {
 
-			const val = 5;
+			var reexportExternal = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), external1));
+			exports('external', reexportExternal);
 
-			var ns = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), externalNs1, externalNs2, {
-				val: val
-			}));
+			const extra = 'extra';
 
-			exports('default', ns);
+			const override = 'override';
+			var reexportExternalsWithOverride = { synthetic: 'synthetic' };
+
+			var reexportExternalsWithOverride$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), external1, external2, {
+				override: override,
+				'default': reexportExternalsWithOverride,
+				extra: extra
+			}, reexportExternalsWithOverride));
+			exports('externalOverride', reexportExternalsWithOverride$1);
 
 		}
 	};
