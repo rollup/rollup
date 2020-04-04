@@ -103,7 +103,6 @@ export interface AstContext {
 	includeAndGetReexportedExternalNamespaces: () => ExternalVariable[];
 	includeDynamicImport: (node: ImportExpression) => void;
 	includeVariable: (context: InclusionContext, variable: Variable) => void;
-	isCrossChunkImport: (importDescription: ImportDescription) => boolean;
 	magicString: MagicString;
 	module: Module; // not to be used for tree-shaking
 	moduleContext: string;
@@ -706,8 +705,6 @@ export default class Module {
 			),
 			includeDynamicImport: this.includeDynamicImport.bind(this),
 			includeVariable: this.includeVariable.bind(this),
-			isCrossChunkImport: importDescription =>
-				(importDescription.module as Module).chunk !== this.chunk,
 			magicString: this.magicString,
 			module: this,
 			moduleContext: this.context,
@@ -868,18 +865,6 @@ export default class Module {
 		const source = node.source.value;
 		this.sources.add(source);
 		for (const specifier of node.specifiers) {
-			const localName = specifier.local.name;
-
-			if (this.importDescriptions[localName]) {
-				return this.error(
-					{
-						code: 'DUPLICATE_IMPORT',
-						message: `Duplicated import '${localName}'`
-					},
-					specifier.start
-				);
-			}
-
 			const isDefault = specifier.type === NodeType.ImportDefaultSpecifier;
 			const isNamespace = specifier.type === NodeType.ImportNamespaceSpecifier;
 
@@ -888,7 +873,7 @@ export default class Module {
 				: isNamespace
 				? '*'
 				: (specifier as ImportSpecifier).imported.name;
-			this.importDescriptions[localName] = {
+			this.importDescriptions[specifier.local.name] = {
 				module: null as any, // filled in later
 				name,
 				source,
@@ -946,14 +931,12 @@ export default class Module {
 	}
 
 	private shimMissingExport(name: string): void {
-		if (!this.exports[name]) {
-			this.graph.warn({
-				code: 'SHIMMED_EXPORT',
-				exporter: relativeId(this.id),
-				exportName: name,
-				message: `Missing export "${name}" has been shimmed in module ${relativeId(this.id)}.`
-			});
-			this.exports[name] = MISSING_EXPORT_SHIM_DESCRIPTION;
-		}
+		this.graph.warn({
+			code: 'SHIMMED_EXPORT',
+			exporter: relativeId(this.id),
+			exportName: name,
+			message: `Missing export "${name}" has been shimmed in module ${relativeId(this.id)}.`
+		});
+		this.exports[name] = MISSING_EXPORT_SHIM_DESCRIPTION;
 	}
 }
