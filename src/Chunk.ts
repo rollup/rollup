@@ -320,16 +320,8 @@ export default class Chunk {
 		this.exportNames = Object.create(null);
 		this.sortedExportNames = null;
 
-		const renderedExports = new Set(this.exports);
-		for (const variable of renderedExports) {
-			if (variable instanceof SyntheticNamedExportVariable) {
-				renderedExports.delete(variable);
-				renderedExports.add(variable.getOriginalVariable());
-			}
-		}
-
 		if (mangle) {
-			for (const variable of renderedExports) {
+			for (const variable of this.exports) {
 				const suggestedName = variable.name[0];
 				if (!this.exportNames[suggestedName]) {
 					this.exportNames[suggestedName] = variable;
@@ -346,7 +338,7 @@ export default class Chunk {
 				}
 			}
 		} else {
-			for (const variable of renderedExports) {
+			for (const variable of this.exports) {
 				i = 0;
 				safeExportName = variable.name;
 				while (this.exportNames[safeExportName]) {
@@ -846,7 +838,6 @@ export default class Chunk {
 
 	private getChunkExportDeclarations(format: InternalModuleFormat): ChunkExports {
 		const exports: ChunkExports = [];
-		const exportsNames = new Set<string>();
 		for (const exportName of this.getExportNames()) {
 			if (exportName[0] === '*') continue;
 
@@ -876,7 +867,7 @@ export default class Chunk {
 			} else if (variable instanceof SyntheticNamedExportVariable) {
 				expression = local;
 				if (format === 'es' && exportName !== 'default') {
-					local = variable.renderName || variable.name;
+					local = variable.renderName!;
 				}
 			}
 
@@ -887,7 +878,6 @@ export default class Chunk {
 				local,
 				uninitialized
 			});
-			exportsNames.add(exportName);
 		}
 		return exports;
 	}
@@ -969,7 +959,6 @@ export default class Chunk {
 	}
 
 	private setIdentifierRenderResolutions(options: OutputOptions) {
-		const usedNames = new Set<string>();
 		const syntheticExports = new Set<SyntheticNamedExportVariable>();
 
 		for (const exportName of this.getExportNames()) {
@@ -992,6 +981,7 @@ export default class Chunk {
 			}
 		}
 
+		const usedNames = new Set<string>();
 		if (this.needsExportsShim) {
 			usedNames.add(MISSING_EXPORT_SHIM_VARIABLE);
 		}
