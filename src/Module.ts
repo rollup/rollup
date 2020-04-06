@@ -351,11 +351,20 @@ export default class Module {
 		if (this.relevantDependencies) return this.relevantDependencies;
 		const relevantDependencies = new Set<Module | ExternalModule>();
 		for (const variable of this.imports) {
-			relevantDependencies.add(variable.module!);
+			relevantDependencies.add(
+				variable instanceof SyntheticNamedExportVariable
+					? variable.getOriginalVariable().module!
+					: variable.module!
+			);
 		}
 		if (this.isEntryPoint || this.dynamicallyImportedBy.length > 0 || this.graph.preserveModules) {
 			for (const exportName of [...this.getReexports(), ...this.getExports()]) {
-				relevantDependencies.add(this.getVariableForExportName(exportName).module as Module);
+				const variable = this.getVariableForExportName(exportName);
+				relevantDependencies.add(
+					variable instanceof SyntheticNamedExportVariable
+						? variable.getOriginalVariable().module!
+						: variable.module!
+				);
 			}
 		}
 		if (this.graph.treeshakingOptions) {

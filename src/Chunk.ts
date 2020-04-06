@@ -517,7 +517,6 @@ export default class Chunk {
 
 		this.setExternalRenderPaths(options, inputBase);
 
-		// TODO Lukas combined into getChunkImportAndExportDeclarations
 		this.renderedDependencies = this.getChunkDependencyDeclarations(options);
 		this.renderedExports =
 			this.exportMode === 'none'
@@ -759,10 +758,9 @@ export default class Chunk {
 				importName = exportName = '*';
 			} else {
 				const variable = this.exportNames[exportName];
+				if (variable instanceof SyntheticNamedExportVariable) continue;
 				const module = variable.module;
-				// skip local exports
 				if (!module || module.chunk === this) continue;
-				// TODO Lukas fix for both internal and external modules
 				if (module instanceof Module) {
 					exportChunk = module.chunk!;
 					importName = exportChunk.getVariableExportName(variable);
@@ -846,8 +844,6 @@ export default class Chunk {
 		return dependencies;
 	}
 
-	// TODO Lukas reexports need to become imports and exports, mabe there can be another place?
-	// For now, maybe skip synthetic exports here or just make sure the default is imported
 	private getChunkExportDeclarations(format: InternalModuleFormat): ChunkExports {
 		const exports: ChunkExports = [];
 		const exportsNames = new Set<string>();
@@ -855,8 +851,10 @@ export default class Chunk {
 			if (exportName[0] === '*') continue;
 
 			const variable = this.exportNames[exportName];
-			const module = variable.module;
-			if (module && module.chunk !== this) continue;
+			if (!(variable instanceof SyntheticNamedExportVariable)) {
+				const module = variable.module;
+				if (module && module.chunk !== this) continue;
+			}
 			let expression = null;
 			let hoisted = false;
 			let uninitialized = false;
@@ -877,7 +875,7 @@ export default class Chunk {
 				}
 			} else if (variable instanceof SyntheticNamedExportVariable) {
 				expression = local;
-				if (format === 'es') {
+				if (format === 'es' && exportName !== 'default') {
 					local = variable.renderName || variable.name;
 				}
 			}
@@ -1040,9 +1038,16 @@ export default class Chunk {
 			const map = module.getExportNamesByVariable();
 			for (const exportedVariable of map.keys()) {
 				this.exports.add(exportedVariable);
-				const exportingModule = exportedVariable.module;
+				const isSynthetic = exportedVariable instanceof SyntheticNamedExportVariable;
+				const importedVariable = isSynthetic
+					? (exportedVariable as SyntheticNamedExportVariable).getOriginalVariable()
+					: exportedVariable;
+				const exportingModule = importedVariable.module;
 				if (exportingModule && exportingModule.chunk && exportingModule.chunk !== this) {
-					exportingModule.chunk.exports.add(exportedVariable);
+					exportingModule.chunk.exports.add(importedVariable);
+					if (isSynthetic) {
+						this.imports.add(importedVariable);
+					}
 				}
 			}
 		}
