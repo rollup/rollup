@@ -1,4 +1,5 @@
 import ExportDefaultVariable from '../ast/variables/ExportDefaultVariable';
+import SyntheticNamedExportVariable from '../ast/variables/SyntheticNamedExportVariable';
 import Variable from '../ast/variables/Variable';
 import Chunk from '../Chunk';
 import ExternalModule from '../ExternalModule';
@@ -11,7 +12,8 @@ const DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT: {
 		imports: Set<Variable>,
 		dependencies: Set<ExternalModule | Chunk>,
 		interop: boolean,
-		preserveModules: boolean
+		preserveModules: boolean,
+		syntheticExports: Set<SyntheticNamedExportVariable>
 	) => void;
 } = {
 	amd: deconflictImportsOther,
@@ -29,7 +31,8 @@ export function deconflictChunk(
 	usedNames: Set<string>,
 	format: string,
 	interop: boolean,
-	preserveModules: boolean
+	preserveModules: boolean,
+	syntheticExports: Set<SyntheticNamedExportVariable>
 ) {
 	for (const module of modules) {
 		module.scope.addUsedOutsideNames(usedNames, format);
@@ -40,7 +43,8 @@ export function deconflictChunk(
 		imports,
 		dependencies,
 		interop,
-		preserveModules
+		preserveModules,
+		syntheticExports
 	);
 
 	for (const module of modules) {
@@ -53,7 +57,8 @@ function deconflictImportsEsm(
 	imports: Set<Variable>,
 	dependencies: Set<ExternalModule | Chunk>,
 	interop: boolean,
-	preserveModules: boolean
+	preserveModules: boolean,
+	syntheticExports: Set<SyntheticNamedExportVariable>
 ) {
 	// Deconflict re-exported variables of dependencies when preserveModules is true.
 	// However, this implementation will result in unnecessary variable renaming without
@@ -69,6 +74,9 @@ function deconflictImportsEsm(
 		}
 	}
 	deconflictImportsEsmOrSystem(usedNames, imports, dependencies, interop);
+	for (const variable of syntheticExports) {
+		variable.setSafeName(getSafeName(variable.name, usedNames));
+	}
 }
 
 function deconflictImportsEsmOrSystem(

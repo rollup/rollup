@@ -39,7 +39,6 @@ import renderChunk from './utils/renderChunk';
 import { RenderOptions } from './utils/renderHelpers';
 import { makeUnique, renderNamePattern } from './utils/renderNamePattern';
 import { RESERVED_NAMES } from './utils/reservedNames';
-import { getSafeName } from './utils/safeName';
 import { sanitizeFileName } from './utils/sanitizeFileName';
 import { timeEnd, timeStart } from './utils/timers';
 import { INTEROP_DEFAULT_VARIABLE, MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
@@ -66,9 +65,9 @@ export type ChunkDependencies = ModuleDeclarationDependency[];
 
 export type ChunkExports = {
 	exported: string;
+	expression: string | null;
 	hoisted: boolean;
 	local: string;
-	property: string | null;
 	uninitialized: boolean;
 }[];
 
@@ -321,19 +320,16 @@ export default class Chunk {
 		this.exportNames = Object.create(null);
 		this.sortedExportNames = null;
 
-		const exports = new Set(this.exports);
-		for (let variable of exports) {
+		const renderedExports = new Set(this.exports);
+		for (const variable of renderedExports) {
 			if (variable instanceof SyntheticNamedExportVariable) {
-				exports.delete(variable);
-				variable = variable.getOriginalVariable();
-				if (!exports.has(variable)) {
-					exports.add(variable);
-				}
+				renderedExports.delete(variable);
+				renderedExports.add(variable.getOriginalVariable());
 			}
 		}
 
 		if (mangle) {
-			for (const variable of exports) {
+			for (const variable of renderedExports) {
 				const suggestedName = variable.name[0];
 				if (!this.exportNames[suggestedName]) {
 					this.exportNames[suggestedName] = variable;
@@ -350,7 +346,7 @@ export default class Chunk {
 				}
 			}
 		} else {
-			for (const variable of exports) {
+			for (const variable of renderedExports) {
 				i = 0;
 				safeExportName = variable.name;
 				while (this.exportNames[safeExportName]) {
@@ -521,8 +517,12 @@ export default class Chunk {
 
 		this.setExternalRenderPaths(options, inputBase);
 
+		// TODO Lukas combined into getChunkImportAndExportDeclarations
 		this.renderedDependencies = this.getChunkDependencyDeclarations(options);
-		this.renderedExports = this.exportMode === 'none' ? [] : this.getChunkExportDeclarations();
+		this.renderedExports =
+			this.exportMode === 'none'
+				? []
+				: this.getChunkExportDeclarations(options.format as InternalModuleFormat);
 
 		timeEnd('render modules', 3);
 	}
@@ -762,6 +762,7 @@ export default class Chunk {
 				const module = variable.module;
 				// skip local exports
 				if (!module || module.chunk === this) continue;
+				// TODO Lukas fix for both internal and external modules
 				if (module instanceof Module) {
 					exportChunk = module.chunk!;
 					importName = exportChunk.getVariableExportName(variable);
@@ -845,7 +846,9 @@ export default class Chunk {
 		return dependencies;
 	}
 
-	private getChunkExportDeclarations(): ChunkExports {
+	// TODO Lukas reexports need to become imports and exports, mabe there can be another place?
+	// For now, maybe skip synthetic exports here or just make sure the default is imported
+	private getChunkExportDeclarations(format: InternalModuleFormat): ChunkExports {
 		const exports: ChunkExports = [];
 		const exportsNames = new Set<string>();
 		for (const exportName of this.getExportNames()) {
@@ -854,13 +857,10 @@ export default class Chunk {
 			const variable = this.exportNames[exportName];
 			const module = variable.module;
 			if (module && module.chunk !== this) continue;
-
-			// Exports of synthetic named exports only become real if
-			// the chunk is a entry-point, otherwise we render the "default" export
-			const localName = variable.getName();
-			let property = null;
+			let expression = null;
 			let hoisted = false;
 			let uninitialized = false;
+			let local = variable.getName();
 			if (variable instanceof LocalVariable) {
 				if (variable.init === UNDEFINED_EXPRESSION) {
 					uninitialized = true;
@@ -875,17 +875,18 @@ export default class Chunk {
 						break;
 					}
 				}
-			} else if (variable instanceof GlobalVariable) {
-				hoisted = true;
 			} else if (variable instanceof SyntheticNamedExportVariable) {
-				property = variable.renderName || variable.name;
+				expression = local;
+				if (format === 'es') {
+					local = variable.renderName || variable.name;
+				}
 			}
 
 			exports.push({
 				exported: exportName,
+				expression,
 				hoisted,
-				local: variable.getName(),
-				property,
+				local,
 				uninitialized
 			});
 			exportsNames.add(exportName);
@@ -971,6 +972,7 @@ export default class Chunk {
 
 	private setIdentifierRenderResolutions(options: OutputOptions) {
 		const usedNames = new Set<string>();
+		const syntheticExports = new Set<SyntheticNamedExportVariable>();
 
 		for (const exportName of this.getExportNames()) {
 			const exportVariable = this.exportNames[exportName];
@@ -985,11 +987,10 @@ export default class Chunk {
 				!exportVariable.isId
 			) {
 				exportVariable.setRenderNames('exports', exportName);
+			} else if (exportVariable instanceof SyntheticNamedExportVariable) {
+				syntheticExports.add(exportVariable);
 			} else {
 				exportVariable.setRenderNames(null, null);
-				if (options.format === 'es' && exportVariable instanceof SyntheticNamedExportVariable) {
-					exportVariable.setSafeName(getSafeName(exportVariable.name, usedNames));
-				}
 			}
 		}
 
@@ -1015,7 +1016,8 @@ export default class Chunk {
 			usedNames,
 			options.format as string,
 			options.interop !== false,
-			this.graph.preserveModules
+			this.graph.preserveModules,
+			syntheticExports
 		);
 	}
 
