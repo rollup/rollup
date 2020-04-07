@@ -17,11 +17,11 @@ System.register('bundle', ['external1', 'external2'], function (exports) {
 			const override = 'override';
 			var reexportExternalsWithOverride = { synthetic: 'synthetic' };
 
-			var reexportExternalsWithOverride$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), external1, external2, {
+			var reexportExternalsWithOverride$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), external1, external2, reexportExternalsWithOverride, {
 				override: override,
 				'default': reexportExternalsWithOverride,
 				extra: extra
-			}, reexportExternalsWithOverride));
+			}));
 			exports('externalOverride', reexportExternalsWithOverride$1);
 
 		}

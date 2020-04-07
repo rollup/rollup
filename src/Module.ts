@@ -100,7 +100,7 @@ export interface AstContext {
 	getModuleName: () => string;
 	getReexports: () => string[];
 	importDescriptions: { [name: string]: ImportDescription };
-	includeAndGetReexportedExternalNamespaces: () => ExternalVariable[];
+	includeAndGetAdditionalMergedNamespaces: (context: InclusionContext) => Variable[];
 	includeDynamicImport: (node: ImportExpression) => void;
 	includeVariable: (context: InclusionContext, variable: Variable) => void;
 	magicString: MagicString;
@@ -709,7 +709,7 @@ export default class Module {
 			getModuleName: this.basename.bind(this),
 			getReexports: this.getReexports.bind(this),
 			importDescriptions: this.importDescriptions,
-			includeAndGetReexportedExternalNamespaces: this.includeAndGetReexportedExternalNamespaces.bind(
+			includeAndGetAdditionalMergedNamespaces: this.includeAndGetAdditionalMergedNamespaces.bind(
 				this
 			),
 			includeDynamicImport: this.includeDynamicImport.bind(this),
@@ -905,17 +905,22 @@ export default class Module {
 		}
 	}
 
-	private includeAndGetReexportedExternalNamespaces(): ExternalVariable[] {
-		const reexportedExternalNamespaces: ExternalVariable[] = [];
+	private includeAndGetAdditionalMergedNamespaces(context: InclusionContext): Variable[] {
+		const mergedNamespaces: Variable[] = [];
 		for (const module of this.exportAllModules) {
 			if (module instanceof ExternalModule) {
 				const externalVariable = module.getVariableForExportName('*');
 				externalVariable.include();
 				this.imports.add(externalVariable);
-				reexportedExternalNamespaces.push(externalVariable);
+				mergedNamespaces.push(externalVariable);
+			} else if (module.syntheticNamedExports) {
+				const syntheticNamespace = module.getDefaultExport();
+				syntheticNamespace.include(context);
+				this.imports.add(syntheticNamespace);
+				mergedNamespaces.push(syntheticNamespace);
 			}
 		}
-		return reexportedExternalNamespaces;
+		return mergedNamespaces;
 	}
 
 	private includeDynamicImport(node: ImportExpression) {
