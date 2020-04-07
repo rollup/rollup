@@ -8,6 +8,7 @@ import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
 import ExportShimVariable from './ast/variables/ExportShimVariable';
 import LocalVariable from './ast/variables/LocalVariable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
+import SyntheticNamedExportVariable from './ast/variables/SyntheticNamedExportVariable';
 import Variable from './ast/variables/Variable';
 import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';
@@ -64,6 +65,7 @@ export type ChunkDependencies = ModuleDeclarationDependency[];
 
 export type ChunkExports = {
 	exported: string;
+	expression: string | null;
 	hoisted: boolean;
 	local: string;
 	uninitialized: boolean;
@@ -317,6 +319,7 @@ export default class Chunk {
 			safeExportName: string;
 		this.exportNames = Object.create(null);
 		this.sortedExportNames = null;
+
 		if (mangle) {
 			for (const variable of this.exports) {
 				const suggestedName = variable.name[0];
@@ -507,7 +510,10 @@ export default class Chunk {
 		this.setExternalRenderPaths(options, inputBase);
 
 		this.renderedDependencies = this.getChunkDependencyDeclarations(options);
-		this.renderedExports = this.exportMode === 'none' ? [] : this.getChunkExportDeclarations();
+		this.renderedExports =
+			this.exportMode === 'none'
+				? []
+				: this.getChunkExportDeclarations(options.format as InternalModuleFormat);
 
 		timeEnd('render modules', 3);
 	}
@@ -744,8 +750,8 @@ export default class Chunk {
 				importName = exportName = '*';
 			} else {
 				const variable = this.exportNames[exportName];
+				if (variable instanceof SyntheticNamedExportVariable) continue;
 				const module = variable.module;
-				// skip local exports
 				if (!module || module.chunk === this) continue;
 				if (module instanceof Module) {
 					exportChunk = module.chunk!;
@@ -830,17 +836,20 @@ export default class Chunk {
 		return dependencies;
 	}
 
-	private getChunkExportDeclarations(): ChunkExports {
+	private getChunkExportDeclarations(format: InternalModuleFormat): ChunkExports {
 		const exports: ChunkExports = [];
 		for (const exportName of this.getExportNames()) {
 			if (exportName[0] === '*') continue;
 
 			const variable = this.exportNames[exportName];
-			const module = variable.module;
-
-			if (module && module.chunk !== this) continue;
+			if (!(variable instanceof SyntheticNamedExportVariable)) {
+				const module = variable.module;
+				if (module && module.chunk !== this) continue;
+			}
+			let expression = null;
 			let hoisted = false;
 			let uninitialized = false;
+			let local = variable.getName();
 			if (variable instanceof LocalVariable) {
 				if (variable.init === UNDEFINED_EXPRESSION) {
 					uninitialized = true;
@@ -855,12 +864,18 @@ export default class Chunk {
 						break;
 					}
 				}
+			} else if (variable instanceof SyntheticNamedExportVariable) {
+				expression = local;
+				if (format === 'es' && exportName !== 'default') {
+					local = variable.renderName!;
+				}
 			}
 
 			exports.push({
 				exported: exportName,
+				expression,
 				hoisted,
-				local: variable.getName(),
+				local,
 				uninitialized
 			});
 		}
@@ -944,6 +959,8 @@ export default class Chunk {
 	}
 
 	private setIdentifierRenderResolutions(options: OutputOptions) {
+		const syntheticExports = new Set<SyntheticNamedExportVariable>();
+
 		for (const exportName of this.getExportNames()) {
 			const exportVariable = this.exportNames[exportName];
 			if (exportVariable instanceof ExportShimVariable) {
@@ -957,6 +974,8 @@ export default class Chunk {
 				!exportVariable.isId
 			) {
 				exportVariable.setRenderNames('exports', exportName);
+			} else if (exportVariable instanceof SyntheticNamedExportVariable) {
+				syntheticExports.add(exportVariable);
 			} else {
 				exportVariable.setRenderNames(null, null);
 			}
@@ -985,13 +1004,17 @@ export default class Chunk {
 			usedNames,
 			options.format as string,
 			options.interop !== false,
-			this.graph.preserveModules
+			this.graph.preserveModules,
+			syntheticExports
 		);
 	}
 
 	private setUpChunkImportsAndExportsForModule(module: Module) {
-		for (const variable of module.imports) {
+		for (let variable of module.imports) {
 			if ((variable.module as Module).chunk !== this) {
+				if (variable instanceof SyntheticNamedExportVariable) {
+					variable = variable.getOriginalVariable();
+				}
 				this.imports.add(variable);
 				if (variable.module instanceof Module) {
 					variable.module.chunk!.exports.add(variable);
@@ -1005,9 +1028,16 @@ export default class Chunk {
 			const map = module.getExportNamesByVariable();
 			for (const exportedVariable of map.keys()) {
 				this.exports.add(exportedVariable);
-				const exportingModule = exportedVariable.module;
+				const isSynthetic = exportedVariable instanceof SyntheticNamedExportVariable;
+				const importedVariable = isSynthetic
+					? (exportedVariable as SyntheticNamedExportVariable).getOriginalVariable()
+					: exportedVariable;
+				const exportingModule = importedVariable.module;
 				if (exportingModule && exportingModule.chunk && exportingModule.chunk !== this) {
-					exportingModule.chunk.exports.add(exportedVariable);
+					exportingModule.chunk.exports.add(importedVariable);
+					if (isSynthetic) {
+						this.imports.add(importedVariable);
+					}
 				}
 			}
 		}

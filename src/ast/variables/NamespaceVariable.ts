@@ -4,7 +4,6 @@ import { RESERVED_NAMES } from '../../utils/reservedNames';
 import { InclusionContext } from '../ExecutionContext';
 import Identifier from '../nodes/Identifier';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
-import ExternalVariable from './ExternalVariable';
 import Variable from './Variable';
 
 export default class NamespaceVariable extends Variable {
@@ -13,7 +12,7 @@ export default class NamespaceVariable extends Variable {
 	memberVariables: { [name: string]: Variable } = Object.create(null);
 	module: Module;
 
-	private reexportedExternalNamespaces: ExternalVariable[] = [];
+	private mergedNamespaces: Variable[] = [];
 	private referencedEarly = false;
 	private references: Identifier[] = [];
 	private syntheticNamedExports: boolean;
@@ -49,7 +48,7 @@ export default class NamespaceVariable extends Variable {
 					break;
 				}
 			}
-			this.reexportedExternalNamespaces = this.context.includeAndGetReexportedExternalNamespaces();
+			this.mergedNamespaces = this.context.includeAndGetAdditionalMergedNamespaces(context);
 			if (this.context.preserveModules) {
 				for (const memberName of Object.keys(this.memberVariables))
 					this.memberVariables[memberName].include(context);
@@ -91,20 +90,20 @@ export default class NamespaceVariable extends Variable {
 			members.unshift(`${t}[Symbol.toStringTag]:${_}'Module'`);
 		}
 
-		const hasExternalReexports = this.reexportedExternalNamespaces.length > 0;
-		if (!hasExternalReexports) members.unshift(`${t}__proto__:${_}null`);
+		const needsObjectAssign = this.mergedNamespaces.length > 0 || this.syntheticNamedExports;
+		if (!needsObjectAssign) members.unshift(`${t}__proto__:${_}null`);
 
 		let output = `{${n}${members.join(`,${n}`)}${n}}`;
-		if (hasExternalReexports || this.syntheticNamedExports) {
-			const assignmentArgs = members.length > 0 ? [output] : [];
-			if (hasExternalReexports) {
-				assignmentArgs.unshift(
-					'/*#__PURE__*/Object.create(null)',
-					...this.reexportedExternalNamespaces.map(variable => variable.getName())
-				);
+		if (needsObjectAssign) {
+			const assignmentArgs: string[] = ['/*#__PURE__*/Object.create(null)'];
+			if (this.mergedNamespaces.length > 0) {
+				assignmentArgs.push(...this.mergedNamespaces.map(variable => variable.getName()));
 			}
 			if (this.syntheticNamedExports) {
 				assignmentArgs.push(this.module.getDefaultExport().getName());
+			}
+			if (members.length > 0) {
+				assignmentArgs.push(output);
 			}
 			output = `/*#__PURE__*/Object.assign(${assignmentArgs.join(`,${_}`)})`;
 		}
