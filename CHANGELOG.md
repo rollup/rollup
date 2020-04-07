@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 2.3.4
+*2020-04-07*
+
+### Bug Fixes
+* Handle re-exporting synthetic exports from entry-points (#3319)
+* Fix cross-chunk imports of synthetic exports (#3319)
+* Handle namespace objects that contain re-exported synthetic namespaces (#3319)
+
+### Pull Requests
+* [#3319](https://github.com/rollup/rollup/pull/3319): Handle re-exports of synthetic named exports (@manucorporat and @lukastaegert)
+
 ## 2.3.3
 *2020-04-04*
 
@@ -7,7 +18,7 @@
 * Add external namespaces to dynamic namespace objects (#3474)
 
 ### Pull Requests
-* [#3474](https://github.com/rollup/rollup/pull/3475): Support external star exports on namespace objects (@guybedford)
+* [#3474](https://github.com/rollup/rollup/pull/3474): Support external star exports on namespace objects (@guybedford)
 
 ## 2.3.2
 *2020-03-31*
