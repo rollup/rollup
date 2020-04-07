@@ -143,5 +143,8 @@
       "default": "./dist/rollup.js"
     },
     "./dist/": "./dist/"
+  },
+  "dependencies": {
+    "acorn-class-fields": "github:guybedford/acorn-class-fields#acorn-update"
   }
 }

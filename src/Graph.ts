@@ -1,4 +1,5 @@
 import * as acorn from 'acorn';
+import injectClassFields from 'acorn-class-fields';
 import injectExportNsFrom from 'acorn-export-ns-from';
 import injectImportMeta from 'acorn-import-meta';
 import GlobalScope from './ast/scopes/GlobalScope';
@@ -156,7 +157,7 @@ export default class Graph {
 		this.acornOptions = options.acorn ? { ...options.acorn } : {};
 		const acornPluginsToInject = [];
 
-		acornPluginsToInject.push(injectImportMeta, injectExportNsFrom);
+		acornPluginsToInject.push(injectImportMeta, injectExportNsFrom, injectClassFields);
 
 		(this.acornOptions as any).allowAwaitOutsideFunction = true;
 
