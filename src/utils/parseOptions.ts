@@ -12,7 +12,7 @@ export interface GenericConfigObject {
 }
 
 export interface CommandConfigObject {
-	external: string[];
+	external: (string | RegExp)[];
 	globals: { [id: string]: string } | undefined;
 	[key: string]: unknown;
 }
@@ -82,6 +82,8 @@ const getExternal = (config: GenericConfigObject, overrides: CommandConfigObject
 		? (id: string, ...rest: string[]) =>
 				configExternal(id, ...rest) || overrides.external.indexOf(id) !== -1
 		: (typeof config.external === 'string'
+				? [configExternal]
+				: config.external instanceof RegExp
 				? [configExternal]
 				: Array.isArray(configExternal)
 				? configExternal

@@ -1,7 +1,7 @@
 module.exports = {
-	description: 'allows external option to be a function (#522)',
+	description: 'allows external option to be a regex',
 	options: {
-		external: [/external/]
+		external: /external/
 	},
 	context: {
 		require: id => {
