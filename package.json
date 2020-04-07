@@ -145,6 +145,7 @@
     "./dist/": "./dist/"
   },
   "dependencies": {
-    "acorn-class-fields": "github:guybedford/acorn-class-fields#acorn-update"
+    "acorn-class-fields": "github:guybedford/acorn-class-fields#acorn-update",
+    "acorn-static-class-features": "github:guybedford/acorn-static-class-features#patch-1"
   }
 }

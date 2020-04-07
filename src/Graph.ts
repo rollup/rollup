@@ -2,6 +2,7 @@ import * as acorn from 'acorn';
 import injectClassFields from 'acorn-class-fields';
 import injectExportNsFrom from 'acorn-export-ns-from';
 import injectImportMeta from 'acorn-import-meta';
+import injectStaticClassFeatures from 'acorn-static-class-features';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { PathTracker } from './ast/utils/PathTracker';
 import Chunk from './Chunk';
@@ -157,7 +158,12 @@ export default class Graph {
 		this.acornOptions = options.acorn ? { ...options.acorn } : {};
 		const acornPluginsToInject = [];
 
-		acornPluginsToInject.push(injectImportMeta, injectExportNsFrom, injectClassFields);
+		acornPluginsToInject.push(
+			injectImportMeta,
+			injectExportNsFrom,
+			injectClassFields,
+			injectStaticClassFeatures
+		);
 
 		(this.acornOptions as any).allowAwaitOutsideFunction = true;
 
