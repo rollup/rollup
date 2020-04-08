@@ -229,15 +229,6 @@ export class NodeBase implements ExpressionNode {
 		}
 	}
 
-	locate() {
-		// useful for debugging
-		const location = locate(this.context.code, this.start, { offsetLine: 1 });
-		(location as any).file = this.context.fileName;
-		location.toString = () => JSON.stringify(location);
-
-		return location;
-	}
-
 	parseNode(esTreeNode: GenericEsTreeNode) {
 		for (const key of Object.keys(esTreeNode)) {
 			// That way, we can override this function to add custom initialisation and then call super.parseNode
@@ -286,3 +277,12 @@ export class NodeBase implements ExpressionNode {
 }
 
 export { NodeBase as StatementBase };
+
+// useful for debugging
+export function locateNode(node: Node) {
+	const location = locate(node.context.code, node.start, { offsetLine: 1 });
+	(location as any).file = node.context.fileName;
+	location.toString = () => JSON.stringify(location);
+
+	return location;
+}

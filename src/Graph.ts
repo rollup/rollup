@@ -156,7 +156,7 @@ export default class Graph {
 		}
 
 		this.acornOptions = options.acorn ? { ...options.acorn } : {};
-		const acornPluginsToInject: ((BaseParser: typeof acorn.Parser) => typeof acorn.Parser)[] = [];
+		const acornPluginsToInject: Function[] = [];
 
 		acornPluginsToInject.push(
 			injectImportMeta,
@@ -175,7 +175,7 @@ export default class Graph {
 				? [acornInjectPlugins]
 				: [])
 		);
-		this.acornParser = acorn.Parser.extend(...acornPluginsToInject);
+		this.acornParser = acorn.Parser.extend(...(acornPluginsToInject as any));
 		this.moduleLoader = new ModuleLoader(
 			this,
 			this.moduleById,
