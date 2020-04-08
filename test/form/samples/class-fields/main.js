@@ -1,7 +1,9 @@
 class Example {
 	a = 1;
 	b = this.a + 1;
-	#p = 'private';
+	#p = () => {
+		const x = 'tree-shaken';
+	};
 
 	constructor() {
 		console.log(this.#p);

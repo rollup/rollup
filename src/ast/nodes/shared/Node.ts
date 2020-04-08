@@ -16,6 +16,7 @@ import { ObjectPath, PathTracker } from '../../utils/PathTracker';
 import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../../values';
 import LocalVariable from '../../variables/LocalVariable';
 import Variable from '../../variables/Variable';
+import * as NodeType from '../NodeType';
 import SpreadElement from '../SpreadElement';
 import { ExpressionEntity } from './Expression';
 
@@ -97,7 +98,7 @@ export class NodeBase implements ExpressionNode {
 	parent: Node | { context: AstContext; type: string };
 	scope!: ChildScope;
 	start!: number;
-	type!: string;
+	type!: keyof typeof NodeType;
 
 	constructor(
 		esTreeNode: GenericEsTreeNode,
