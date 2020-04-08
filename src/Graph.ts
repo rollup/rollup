@@ -156,7 +156,7 @@ export default class Graph {
 		}
 
 		this.acornOptions = options.acorn ? { ...options.acorn } : {};
-		const acornPluginsToInject = [];
+		const acornPluginsToInject: ((BaseParser: typeof acorn.Parser) => typeof acorn.Parser)[] = [];
 
 		acornPluginsToInject.push(
 			injectImportMeta,

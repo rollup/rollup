@@ -449,7 +449,7 @@ export type ModuleSideEffectsOption = boolean | 'no-external' | string[] | HasMo
 
 export interface InputOptions {
 	acorn?: any;
-	acornInjectPlugins?: Function[];
+	acornInjectPlugins?: ((BaseParser: typeof acorn.Parser) => typeof acorn.Parser)[];
 	cache?: false | RollupCache;
 	context?: string;
 	experimentalCacheExpiry?: number;

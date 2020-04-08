@@ -232,7 +232,7 @@ export class NodeBase implements ExpressionNode {
 	locate() {
 		// useful for debugging
 		const location = locate(this.context.code, this.start, { offsetLine: 1 });
-		location.file = this.context.fileName;
+		(location as any).file = this.context.fileName;
 		location.toString = () => JSON.stringify(location);
 
 		return location;
