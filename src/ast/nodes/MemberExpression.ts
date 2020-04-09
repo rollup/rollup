@@ -213,7 +213,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (!this.included) {
 			this.included = true;
 			if (this.variable !== null) {
-				this.context.includeVariable(context, this.variable);
+				this.context.includeVariable(this.variable);
 			}
 		}
 		this.object.include(context, includeChildrenRecursively);

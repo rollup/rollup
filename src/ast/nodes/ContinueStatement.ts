@@ -27,7 +27,7 @@ export default class ContinueStatement extends StatementBase {
 	include(context: InclusionContext) {
 		this.included = true;
 		if (this.label) {
-			this.label.include(context);
+			this.label.include();
 			context.includedLabels.add(this.label.name);
 		}
 		context.brokenFlow = this.label ? BROKEN_FLOW_ERROR_RETURN_LABEL : BROKEN_FLOW_BREAK_CONTINUE;

@@ -2,7 +2,7 @@ import Module, { AstContext } from '../../Module';
 import { markModuleAndImpureDependenciesAsExecuted } from '../../utils/traverseStaticDependencies';
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { createInclusionContext, HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import Identifier from '../nodes/Identifier';
 import * as NodeType from '../nodes/NodeType';
@@ -156,7 +156,7 @@ export default class LocalVariable extends Variable {
 		return (this.init && this.init.hasEffectsWhenCalledAtPath(path, callOptions, context))!;
 	}
 
-	include(context: InclusionContext) {
+	include() {
 		if (!this.included) {
 			this.included = true;
 			if (!this.module.isExecuted) {
@@ -164,7 +164,7 @@ export default class LocalVariable extends Variable {
 			}
 			for (const declaration of this.declarations) {
 				// If node is a default export, it can save a tree-shaking run to include the full declaration now
-				if (!declaration.included) declaration.include(context, false);
+				if (!declaration.included) declaration.include(createInclusionContext(), false);
 				let node = declaration.parent as Node;
 				while (!node.included) {
 					// We do not want to properly include parents in case they are part of a dead branch

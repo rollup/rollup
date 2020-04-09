@@ -1,6 +1,5 @@
 import MagicString, { Bundle as MagicStringBundle, SourceMap } from 'magic-string';
 import { relative } from '../browser/path';
-import { createInclusionContext } from './ast/ExecutionContext';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
 import { UNDEFINED_EXPRESSION } from './ast/values';
@@ -1051,10 +1050,9 @@ export default class Chunk {
 				}
 			}
 		}
-		const context = createInclusionContext();
 		for (const { node, resolution } of module.dynamicImports) {
 			if (node.included && resolution instanceof Module && resolution.chunk === this)
-				resolution.getOrCreateNamespace().include(context);
+				resolution.getOrCreateNamespace().include();
 		}
 	}
 }
