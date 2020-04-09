@@ -1,11 +1,35 @@
 class Example {
-	a = 1;
-	b = this.a + 1;
-	#p = () => {
-		const x = 'tree-shaken';
+	firstPublicField = 1;
+	secondPublicField = this.firstPublicField + 1;
+
+	#privateField = () => {
+		const foo = 'tree-shaken';
 	};
 
-	constructor() {
-		console.log(this.#p);
+	#uninitializedPrivateField;
+
+	// Those are apparently unsupported at the moment
+	// get #getter() {
+	// 	return this.#uninitializedPrivateField;
+	// }
+
+	// set #setter(value) {
+	// 	this.#uninitializedPrivateField = value;
+	// }
+
+	// #privateMethod() {
+	// 	const foo = 'tree-shaken';
+	// }
+
+	static publicStaticField = () => {
+		const foo = 'tree-shaken';
+	};
+
+	static #privateStaticField = () => {
+		const foo = 'tree-shaken';
+	};
+
+	static #privateStaticMethod(){
+		const foo = 'tree-shaken';
 	}
 }
