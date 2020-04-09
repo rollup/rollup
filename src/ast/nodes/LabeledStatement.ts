@@ -26,8 +26,8 @@ export default class LabeledStatement extends StatementBase {
 		this.included = true;
 		const brokenFlow = context.brokenFlow;
 		this.body.include(context, includeChildrenRecursively);
-		if (context.includedLabels.has(this.label.name)) {
-			this.label.include(context);
+		if (includeChildrenRecursively || context.includedLabels.has(this.label.name)) {
+			this.label.include();
 			context.includedLabels.delete(this.label.name);
 			context.brokenFlow = brokenFlow;
 		}

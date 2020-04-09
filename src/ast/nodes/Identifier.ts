@@ -123,11 +123,11 @@ export default class Identifier extends NodeBase implements PatternNode {
 		return !this.variable || this.variable.hasEffectsWhenCalledAtPath(path, callOptions, context);
 	}
 
-	include(context: InclusionContext) {
+	include() {
 		if (!this.included) {
 			this.included = true;
 			if (this.variable !== null) {
-				this.context.includeVariable(context, this.variable);
+				this.context.includeVariable(this.variable);
 			}
 		}
 	}

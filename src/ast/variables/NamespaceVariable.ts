@@ -1,7 +1,6 @@
 import Module, { AstContext } from '../../Module';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { RESERVED_NAMES } from '../../utils/reservedNames';
-import { InclusionContext } from '../ExecutionContext';
 import Identifier from '../nodes/Identifier';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from './Variable';
@@ -39,7 +38,7 @@ export default class NamespaceVariable extends Variable {
 		}
 	}
 
-	include(context: InclusionContext) {
+	include() {
 		if (!this.included) {
 			this.included = true;
 			for (const identifier of this.references) {
@@ -48,13 +47,13 @@ export default class NamespaceVariable extends Variable {
 					break;
 				}
 			}
-			this.mergedNamespaces = this.context.includeAndGetAdditionalMergedNamespaces(context);
+			this.mergedNamespaces = this.context.includeAndGetAdditionalMergedNamespaces();
 			if (this.context.preserveModules) {
 				for (const memberName of Object.keys(this.memberVariables))
-					this.memberVariables[memberName].include(context);
+					this.memberVariables[memberName].include();
 			} else {
 				for (const memberName of Object.keys(this.memberVariables))
-					this.context.includeVariable(context, this.memberVariables[memberName]);
+					this.context.includeVariable(this.memberVariables[memberName]);
 			}
 		}
 	}

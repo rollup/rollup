@@ -1,5 +1,4 @@
 import Module, { AstContext } from '../../Module';
-import { InclusionContext } from '../ExecutionContext';
 import ExportDefaultVariable from './ExportDefaultVariable';
 import Variable from './Variable';
 
@@ -25,10 +24,10 @@ export default class SyntheticNamedExportVariable extends Variable {
 		return this.defaultVariable.getOriginalVariable();
 	}
 
-	include(context: InclusionContext) {
+	include() {
 		if (!this.included) {
 			this.included = true;
-			this.context.includeVariable(context, this.defaultVariable);
+			this.context.includeVariable(this.defaultVariable);
 		}
 	}
 }

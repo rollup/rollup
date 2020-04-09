@@ -2,11 +2,7 @@ import * as acorn from 'acorn';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
 import extractAssignedNames from 'rollup-pluginutils/src/extractAssignedNames';
-import {
-	createHasEffectsContext,
-	createInclusionContext,
-	InclusionContext
-} from './ast/ExecutionContext';
+import { createHasEffectsContext, createInclusionContext } from './ast/ExecutionContext';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
 import ExportNamedDeclaration from './ast/nodes/ExportNamedDeclaration';
@@ -100,9 +96,9 @@ export interface AstContext {
 	getModuleName: () => string;
 	getReexports: () => string[];
 	importDescriptions: { [name: string]: ImportDescription };
-	includeAndGetAdditionalMergedNamespaces: (context: InclusionContext) => Variable[];
+	includeAndGetAdditionalMergedNamespaces: () => Variable[];
 	includeDynamicImport: (node: ImportExpression) => void;
-	includeVariable: (context: InclusionContext, variable: Variable) => void;
+	includeVariable: (variable: Variable) => void;
 	magicString: MagicString;
 	module: Module; // not to be used for tree-shaking
 	moduleContext: string;
@@ -565,12 +561,11 @@ export default class Module {
 			markModuleAndImpureDependenciesAsExecuted(this);
 		}
 
-		const context = createInclusionContext();
 		for (const exportName of this.getExports()) {
 			const variable = this.getVariableForExportName(exportName);
 			variable.deoptimizePath(UNKNOWN_PATH);
 			if (!variable.included) {
-				variable.include(context);
+				variable.include();
 				this.graph.needsTreeshakingPass = true;
 			}
 		}
@@ -579,7 +574,7 @@ export default class Module {
 			const variable = this.getVariableForExportName(name);
 			variable.deoptimizePath(UNKNOWN_PATH);
 			if (!variable.included) {
-				variable.include(context);
+				variable.include();
 				this.graph.needsTreeshakingPass = true;
 			}
 			if (variable instanceof ExternalVariable) {
@@ -905,7 +900,7 @@ export default class Module {
 		}
 	}
 
-	private includeAndGetAdditionalMergedNamespaces(context: InclusionContext): Variable[] {
+	private includeAndGetAdditionalMergedNamespaces(): Variable[] {
 		const mergedNamespaces: Variable[] = [];
 		for (const module of this.exportAllModules) {
 			if (module instanceof ExternalModule) {
@@ -915,7 +910,7 @@ export default class Module {
 				mergedNamespaces.push(externalVariable);
 			} else if (module.syntheticNamedExports) {
 				const syntheticNamespace = module.getDefaultExport();
-				syntheticNamespace.include(context);
+				syntheticNamespace.include();
 				this.imports.add(syntheticNamespace);
 				mergedNamespaces.push(syntheticNamespace);
 			}
@@ -933,10 +928,10 @@ export default class Module {
 		}
 	}
 
-	private includeVariable(context: InclusionContext, variable: Variable) {
+	private includeVariable(variable: Variable) {
 		const variableModule = variable.module;
 		if (!variable.included) {
-			variable.include(context);
+			variable.include();
 			this.graph.needsTreeshakingPass = true;
 		}
 		if (variableModule && variableModule !== this) {
