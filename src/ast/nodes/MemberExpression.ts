@@ -24,6 +24,7 @@ import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 import SpreadElement from './SpreadElement';
+import Super from './Super';
 
 function getResolvablePropertyKey(memberExpression: MemberExpression): string | null {
 	return memberExpression.computed
@@ -70,7 +71,7 @@ function getStringFromPath(path: PathWithPositions): string {
 
 export default class MemberExpression extends NodeBase implements DeoptimizableEntity, PatternNode {
 	computed!: boolean;
-	object!: ExpressionNode;
+	object!: ExpressionNode | Super;
 	property!: ExpressionNode;
 	propertyKey!: ObjectPathKey | null;
 	type!: NodeType.tMemberExpression;

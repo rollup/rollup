@@ -276,7 +276,7 @@ export default class Module {
 	error(props: RollupError, pos?: number): never {
 		if (typeof pos === 'number') {
 			props.pos = pos;
-			let location = locate(this.code, pos, { offsetLine: 1 });
+			let location: { column: number; line: number } = locate(this.code, pos, { offsetLine: 1 });
 			try {
 				location = getOriginalLocation(this.sourcemapChain, location);
 			} catch (e) {

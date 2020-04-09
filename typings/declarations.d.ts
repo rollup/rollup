@@ -6,11 +6,22 @@ declare module 'help.md' {
 }
 
 // external libs
-declare module 'pretty-bytes';
-declare module 'signal-exit';
-declare module 'date-time';
-declare module 'locate-character';
-declare module 'is-reference';
-declare module 'require-relative';
-declare module 'acorn-import-meta';
-declare module 'acorn-export-ns-from';
+declare module 'acorn-static-class-features' {
+	const plugin: (BaseParser: typeof acorn.Parser) => typeof acorn.Parser;
+	export default plugin;
+}
+
+declare module 'acorn-class-fields' {
+	const plugin: (BaseParser: typeof acorn.Parser) => typeof acorn.Parser;
+	export default plugin;
+}
+
+declare module 'acorn-import-meta' {
+	const plugin: (BaseParser: typeof acorn.Parser) => typeof acorn.Parser;
+	export default plugin;
+}
+
+declare module 'acorn-export-ns-from' {
+	const plugin: (BaseParser: typeof acorn.Parser) => typeof acorn.Parser;
+	export default plugin;
+}

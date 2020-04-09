@@ -35,7 +35,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 	bind() {
 		if (this.bound) return;
 		this.bound = true;
-		if (this.variable === null && isReference(this, this.parent)) {
+		if (this.variable === null && isReference(this, this.parent as any)) {
 			this.variable = this.scope.findVariable(this.name);
 			this.variable.addReference(this);
 		}
