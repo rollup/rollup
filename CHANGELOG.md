@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 2.4.0
+*2020-04-09*
+
+### Features
+* Add support for most private and public class field features (#3492)
+
+### Bug Fixes
+* Do not replace `this` with `undefined` in class field definitions (#3492)
+
+### Pull Requests
+* [#3488](https://github.com/rollup/rollup/pull/3488): Rollup class fields support (@guybedford and @lukastaegert)
+
 ## 2.3.5
 *2020-04-09*
 
