@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.3.5
+*2020-04-09*
+
+### Bug Fixes
+* Never remove labels when tree-shaking is disabled (#3492)
+
+### Pull Requests
+* [#3492](https://github.com/rollup/rollup/pull/3492): Always use a new inclusion context when including declarations of variables, always inlcude labels when not treeshaking (@lukastaegert)
+
 ## 2.3.4
 *2020-04-07*
 
