@@ -1,9 +1,8 @@
 import Module, { AstContext } from '../../Module';
-import { InclusionContext } from '../ExecutionContext';
 import ExportDefaultVariable from './ExportDefaultVariable';
 import Variable from './Variable';
 
-export default class SyntheticNamedExportVariableVariable extends Variable {
+export default class SyntheticNamedExportVariable extends Variable {
 	context: AstContext;
 	defaultVariable: ExportDefaultVariable;
 	module: Module;
@@ -13,13 +12,26 @@ export default class SyntheticNamedExportVariableVariable extends Variable {
 		this.context = context;
 		this.module = context.module;
 		this.defaultVariable = defaultVariable;
-		this.setRenderNames(defaultVariable.getName(), name);
 	}
 
-	include(context: InclusionContext) {
+	getName(): string {
+		const name = this.name;
+		const renderBaseName = this.defaultVariable.getName();
+		return `${renderBaseName}${getPropertyAccess(name)}`;
+	}
+
+	getOriginalVariable(): Variable {
+		return this.defaultVariable.getOriginalVariable();
+	}
+
+	include() {
 		if (!this.included) {
 			this.included = true;
-			this.context.includeVariable(context, this.defaultVariable);
+			this.context.includeVariable(this.defaultVariable);
 		}
 	}
 }
+
+const getPropertyAccess = (name: string) => {
+	return /^(?!\d)[\w$]+$/.test(name) ? `.${name}` : `[${JSON.stringify(name)}]`;
+};

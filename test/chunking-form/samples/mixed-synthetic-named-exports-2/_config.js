@@ -1,7 +1,7 @@
 module.exports = {
-	description: 'mixed synthetic named exports',
+	description: 'mixed synthetic named exports 2',
 	options: {
-		input: ['main.js'],
+		input: ['main.js', 'main2.js'],
 		plugins: [
 			{
 				transform(code, id) {

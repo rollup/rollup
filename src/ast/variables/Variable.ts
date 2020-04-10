@@ -49,7 +49,7 @@ export default class Variable implements ExpressionEntity {
 
 	getName(): string {
 		const name = this.renderName || this.name;
-		return this.renderBaseName ? `${this.renderBaseName}${getPropertyAccess(name)}` : name;
+		return this.renderBaseName ? `${this.renderBaseName}.${name}` : name;
 	}
 
 	getReturnExpressionWhenCalledAtPath(
@@ -82,7 +82,7 @@ export default class Variable implements ExpressionEntity {
 	 * previously.
 	 * Once a variable is included, it should take care all its declarations are included.
 	 */
-	include(_context: InclusionContext) {
+	include() {
 		this.included = true;
 	}
 
@@ -102,12 +102,4 @@ export default class Variable implements ExpressionEntity {
 	setSafeName(name: string | null) {
 		this.renderName = name;
 	}
-
-	toString() {
-		return this.name;
-	}
 }
-
-const getPropertyAccess = (name: string) => {
-	return /^(?!\d)[\w$]+$/.test(name) ? `.${name}` : `[${JSON.stringify(name)}]`;
-};

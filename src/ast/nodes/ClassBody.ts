@@ -1,5 +1,7 @@
 import { CallOptions } from '../CallOptions';
 import { HasEffectsContext } from '../ExecutionContext';
+import ClassBodyScope from '../scopes/ClassBodyScope';
+import Scope from '../scopes/Scope';
 import { EMPTY_PATH, ObjectPath } from '../utils/PathTracker';
 import MethodDefinition from './MethodDefinition';
 import * as NodeType from './NodeType';
@@ -10,6 +12,10 @@ export default class ClassBody extends NodeBase {
 	type!: NodeType.tClassBody;
 
 	private classConstructor!: MethodDefinition | null;
+
+	createScope(parentScope: Scope) {
+		this.scope = new ClassBodyScope(parentScope);
+	}
 
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,

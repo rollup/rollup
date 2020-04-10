@@ -3,7 +3,7 @@ import { BLANK } from '../../utils/blank';
 import {
 	findFirstOccurrenceOutsideComment,
 	NodeRenderOptions,
-	RenderOptions,
+	RenderOptions
 } from '../../utils/renderHelpers';
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
@@ -13,7 +13,7 @@ import {
 	ObjectPath,
 	PathTracker,
 	SHARED_RECURSION_TRACKER,
-	UNKNOWN_PATH,
+	UNKNOWN_PATH
 } from '../utils/PathTracker';
 import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../values';
 import Identifier from './Identifier';
@@ -22,11 +22,12 @@ import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
 import { ExpressionNode, IncludeChildren, INCLUDE_PARAMETERS, NodeBase } from './shared/Node';
 import SpreadElement from './SpreadElement';
+import Super from './Super';
 
 export default class CallExpression extends NodeBase implements DeoptimizableEntity {
 	annotatedPure?: boolean;
 	arguments!: (ExpressionNode | SpreadElement)[];
-	callee!: ExpressionNode;
+	callee!: ExpressionNode | Super;
 	type!: NodeType.tCallExpression;
 
 	private callOptions!: CallOptions;
@@ -43,7 +44,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 				this.context.warn(
 					{
 						code: 'CANNOT_CALL_NAMESPACE',
-						message: `Cannot call a namespace ('${this.callee.name}')`,
+						message: `Cannot call a namespace ('${this.callee.name}')`
 					},
 					this.start
 				);
@@ -54,7 +55,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 					{
 						code: 'EVAL',
 						message: `Use of eval is strongly discouraged, as it poses security risks and may cause issues with minification`,
-						url: 'https://rollupjs.org/guide/en/#avoiding-eval',
+						url: 'https://rollupjs.org/guide/en/#avoiding-eval'
 					},
 					this.start
 				);
@@ -212,7 +213,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 	initialise() {
 		this.callOptions = {
 			args: this.arguments,
-			withNew: false,
+			withNew: false
 		};
 	}
 

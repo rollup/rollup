@@ -1,7 +1,6 @@
 import Module, { AstContext } from '../../Module';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { RESERVED_NAMES } from '../../utils/reservedNames';
-import { InclusionContext } from '../ExecutionContext';
 import Identifier from '../nodes/Identifier';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from './Variable';
@@ -12,7 +11,7 @@ export default class NamespaceVariable extends Variable {
 	memberVariables: { [name: string]: Variable } = Object.create(null);
 	module: Module;
 
-	private containsExternalNamespace = false;
+	private mergedNamespaces: Variable[] = [];
 	private referencedEarly = false;
 	private references: Identifier[] = [];
 	private syntheticNamedExports: boolean;
@@ -39,15 +38,8 @@ export default class NamespaceVariable extends Variable {
 		}
 	}
 
-	include(context: InclusionContext) {
+	include() {
 		if (!this.included) {
-			if (this.containsExternalNamespace) {
-				return this.context.error({
-					code: 'NAMESPACE_CANNOT_CONTAIN_EXTERNAL',
-					id: this.module.id,
-					message: `Cannot create an explicit namespace object for module "${this.context.getModuleName()}" because it contains a reexported external namespace`
-				});
-			}
 			this.included = true;
 			for (const identifier of this.references) {
 				if (identifier.context.getModuleExecIndex() <= this.context.getModuleExecIndex()) {
@@ -55,20 +47,22 @@ export default class NamespaceVariable extends Variable {
 					break;
 				}
 			}
+			this.mergedNamespaces = this.context.includeAndGetAdditionalMergedNamespaces();
 			if (this.context.preserveModules) {
 				for (const memberName of Object.keys(this.memberVariables))
-					this.memberVariables[memberName].include(context);
+					this.memberVariables[memberName].include();
 			} else {
 				for (const memberName of Object.keys(this.memberVariables))
-					this.context.includeVariable(context, this.memberVariables[memberName]);
+					this.context.includeVariable(this.memberVariables[memberName]);
 			}
 		}
 	}
 
 	initialise() {
 		for (const name of this.context.getExports().concat(this.context.getReexports())) {
-			if (name[0] === '*' && name.length > 1) this.containsExternalNamespace = true;
-			this.memberVariables[name] = this.context.traceExport(name);
+			if (name[0] !== '*') {
+				this.memberVariables[name] = this.context.traceExport(name);
+			}
 		}
 	}
 
@@ -91,21 +85,32 @@ export default class NamespaceVariable extends Variable {
 			return `${t}${safeName}: ${original.getName()}`;
 		});
 
-		members.unshift(`${t}__proto__:${_}null`);
-
 		if (options.namespaceToStringTag) {
 			members.unshift(`${t}[Symbol.toStringTag]:${_}'Module'`);
 		}
 
-		const name = this.getName();
+		const needsObjectAssign = this.mergedNamespaces.length > 0 || this.syntheticNamedExports;
+		if (!needsObjectAssign) members.unshift(`${t}__proto__:${_}null`);
+
 		let output = `{${n}${members.join(`,${n}`)}${n}}`;
-		if (this.syntheticNamedExports) {
-			output = `/*#__PURE__*/Object.assign(${output}, ${this.module.getDefaultExport().getName()})`;
+		if (needsObjectAssign) {
+			const assignmentArgs: string[] = ['/*#__PURE__*/Object.create(null)'];
+			if (this.mergedNamespaces.length > 0) {
+				assignmentArgs.push(...this.mergedNamespaces.map(variable => variable.getName()));
+			}
+			if (this.syntheticNamedExports) {
+				assignmentArgs.push(this.module.getDefaultExport().getName());
+			}
+			if (members.length > 0) {
+				assignmentArgs.push(output);
+			}
+			output = `/*#__PURE__*/Object.assign(${assignmentArgs.join(`,${_}`)})`;
 		}
 		if (options.freeze) {
 			output = `/*#__PURE__*/Object.freeze(${output})`;
 		}
 
+		const name = this.getName();
 		output = `${options.varOrConst} ${name}${_}=${_}${output};`;
 
 		if (options.format === 'system' && this.exportName) {

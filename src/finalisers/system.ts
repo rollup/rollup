@@ -78,6 +78,16 @@ const getMissingExportsBlock = (exports: ChunkExports, _: string, t: string, n: 
 		n
 	);
 
+const getSyntheticExportsBlock = (exports: ChunkExports, _: string, t: string, n: string): string =>
+	getExportsBlock(
+		exports
+			.filter(expt => expt.expression)
+			.map(expt => ({ name: expt.exported, value: expt.local })),
+		_,
+		t,
+		n
+	);
+
 export default function system(
 	magicString: MagicStringBundle,
 	{
@@ -194,13 +204,11 @@ export default function system(
 
 	const wrapperEnd =
 		`${n}${n}` +
+		getSyntheticExportsBlock(exports, _, t, n) +
 		getMissingExportsBlock(exports, _, t, n) +
 		`${t}${t}}${n}${t}}${options.compact ? '' : ';'}${n}});`;
 
 	if (intro) magicString.prepend(intro);
 	if (outro) magicString.append(outro);
-	return magicString
-		.indent(`${t}${t}${t}`)
-		.append(wrapperEnd)
-		.prepend(wrapperStart);
+	return magicString.indent(`${t}${t}${t}`).append(wrapperEnd).prepend(wrapperStart);
 }

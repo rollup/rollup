@@ -1,8 +1,8 @@
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
-import { Node } from './shared/Node';
+import { NodeBase } from './shared/Node';
 
-export default interface ImportNamespaceSpecifier extends Node {
-	local: Identifier;
-	type: NodeType.tImportNamespaceSpecifier;
+export default class ImportNamespaceSpecifier extends NodeBase {
+	local!: Identifier;
+	type!: NodeType.tImportNamespaceSpecifier;
 }

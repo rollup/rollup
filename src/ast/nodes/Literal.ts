@@ -12,11 +12,15 @@ import {
 	UNKNOWN_EXPRESSION
 } from '../values';
 import * as NodeType from './NodeType';
-import { NodeBase } from './shared/Node';
+import { GenericEsTreeNode, NodeBase } from './shared/Node';
 
 export type LiteralValue = string | boolean | null | number | RegExp | undefined;
 
 export default class Literal<T extends LiteralValue = LiteralValue> extends NodeBase {
+	regex?: {
+		flags: string;
+		pattern: string;
+	};
 	type!: NodeType.tLiteral;
 	value!: T;
 
@@ -65,6 +69,12 @@ export default class Literal<T extends LiteralValue = LiteralValue> extends Node
 
 	initialise() {
 		this.members = getLiteralMembersForValue(this.value);
+	}
+
+	parseNode(esTreeNode: GenericEsTreeNode) {
+		this.value = esTreeNode.value;
+		this.regex = esTreeNode.regex;
+		super.parseNode(esTreeNode);
 	}
 
 	render(code: MagicString) {
