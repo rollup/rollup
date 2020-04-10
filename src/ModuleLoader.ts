@@ -3,7 +3,6 @@ import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import Module from './Module';
 import {
-	ExternalOption,
 	GetManualChunk,
 	IsExternal,
 	ModuleJSON,
@@ -50,11 +49,7 @@ function normalizeRelativeExternalId(source: string, importer: string | undefine
 }
 
 function getIdMatcher<T extends Array<any>>(
-	option:
-		| boolean
-		| RegExp
-		| (string | RegExp)[]
-		| ((id: string, ...args: T) => boolean | null | undefined)
+	option: boolean | (string | RegExp)[] | ((id: string, ...args: T) => boolean | null | undefined)
 ): (id: string, ...args: T) => boolean {
 	if (option === true) {
 		return () => true;
@@ -62,16 +57,20 @@ function getIdMatcher<T extends Array<any>>(
 	if (typeof option === 'function') {
 		return (id, ...args) => (!id.startsWith('\0') && option(id, ...args)) || false;
 	}
-	if (option instanceof RegExp) {
-		return (id => option.test(id)) as (id: string, ...args: T) => boolean;
-	}
 	if (option) {
-		const ids = new Set(Array.isArray(option) ? option : option ? [option] : []);
-		return (id =>
-			[...ids].some(option => {
-				if (option instanceof RegExp) return option.test(id);
-				return option === id;
-			})) as (id: string, ...args: T) => boolean;
+		const ids = new Set<string>();
+		const matchers: RegExp[] = [];
+		for (const value of option) {
+			if (value instanceof RegExp) {
+				matchers.push(value);
+			} else {
+				ids.add(value);
+			}
+		}
+		return (id => ids.has(id) || matchers.some(matcher => matcher.test(id))) as (
+			id: string,
+			...args: T
+		) => boolean;
 	}
 	return () => false;
 }
@@ -121,7 +120,7 @@ export class ModuleLoader {
 		private readonly modulesById: Map<string, Module | ExternalModule>,
 		private readonly pluginDriver: PluginDriver,
 		private readonly preserveSymlinks: boolean,
-		external: ExternalOption,
+		external: (string | RegExp)[] | IsExternal,
 		getManualChunk: GetManualChunk | null,
 		moduleSideEffects: ModuleSideEffectsOption,
 		pureExternalModules: PureModulesOption

@@ -81,10 +81,10 @@ const getExternal = (config: GenericConfigObject, overrides: CommandConfigObject
 	return typeof configExternal === 'function'
 		? (id: string, ...rest: string[]) =>
 				configExternal(id, ...rest) || overrides.external.indexOf(id) !== -1
-		: (typeof config.external === 'string' || config.external instanceof RegExp
-				? [configExternal]
-				: Array.isArray(configExternal)
+		: (Array.isArray(configExternal)
 				? configExternal
+				: configExternal
+				? [configExternal]
 				: []
 		  ).concat(overrides.external);
 };

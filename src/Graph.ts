@@ -12,6 +12,7 @@ import { ModuleLoader, UnresolvedModule } from './ModuleLoader';
 import {
 	GetManualChunk,
 	InputOptions,
+	IsExternal,
 	ManualChunksOption,
 	ModuleJSON,
 	RollupCache,
@@ -181,7 +182,7 @@ export default class Graph {
 			this.moduleById,
 			this.pluginDriver,
 			options.preserveSymlinks === true,
-			options.external!,
+			options.external as (string | RegExp)[] | IsExternal,
 			(typeof options.manualChunks === 'function' && options.manualChunks) as GetManualChunk | null,
 			(this.treeshakingOptions ? this.treeshakingOptions.moduleSideEffects : null)!,
 			(this.treeshakingOptions ? this.treeshakingOptions.pureExternalModules : false)!

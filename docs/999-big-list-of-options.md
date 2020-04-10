@@ -5,10 +5,10 @@ title: Big list of options
 ### Core functionality
 
 #### external
-Type: `string[] | (id: string, parentId: string, isResolved: boolean) => boolean`<br>
+Type: `(string | RegExp)[] | RegExp | string | (id: string, parentId: string, isResolved: boolean) => boolean`<br>
 CLI: `-e`/`--external <external-id,another-external-id,...>`
 
-Either a function that takes an `id` and returns `true` (external) or `false` (not external), or an `Array` of module IDs that should remain external to the bundle. The IDs should be either:
+Either a function that takes an `id` and returns `true` (external) or `false` (not external), or an `Array` of module IDs, or regular expressions to match module IDs, that should remain external to the bundle. Can also be just a single ID or regular expression. The matched IDs should be either:
 
 1. the name of an external dependency, exactly the way it is written in the import statement. I.e. to mark `import "dependency.js"` as external, use `"dependency.js"` while to mark `import "dependency"` as external, use `"dependency"`.
 2. a resolved ID (like an absolute path to a file).
@@ -21,10 +21,13 @@ export default {
   ...,
   external: [
     'some-externally-required-library',
-    path.resolve( __dirname, 'src/some-local-file-that-should-not-be-bundled.js' )
+    path.resolve( __dirname, 'src/some-local-file-that-should-not-be-bundled.js' ),
+    /node_modules/
   ]
 };
 ```
+
+Note that if you want to filter out package imports, e.g. `import {rollup} from 'rollup'`, via a `/node_modules/` regular expression, you need something like [@rollup/plugin-node-resolve](https://github.com/rollup/plugins/tree/master/packages/node-resolve) to resolve the imports to `node_modules` first.
 
 When given as a command line argument, it should be a comma-separated list of IDs:
 
