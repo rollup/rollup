@@ -29,6 +29,7 @@ export default async function watch(command: any) {
 	// only listen to stdin if it is a pipe
 	if (!process.stdin.isTTY) {
 		process.stdin.on('end', close);
+		process.stdin.resume();
 	}
 
 	if (configFile) {
