@@ -1,13 +1,25 @@
 # rollup changelog
 
+## 2.6.0
+*2020-04-10*
+
+### Features
+* Allow regular expressions to declare external modules (#3482)
+
+### Pull Requests
+* [#3482](https://github.com/rollup/rollup/pull/3488): Allow regular expressions in config.external (@johannes-z)
+
+## 2.5.0
+This version is identical to 2.4.0
+
 ## 2.4.0
 *2020-04-09*
 
 ### Features
-* Add support for most private and public class field features (#3492)
+* Add support for most private and public class field features (#3488)
 
 ### Bug Fixes
-* Do not replace `this` with `undefined` in class field definitions (#3492)
+* Do not replace `this` with `undefined` in class field definitions (#3488)
 
 ### Pull Requests
 * [#3488](https://github.com/rollup/rollup/pull/3488): Rollup class fields support (@guybedford and @lukastaegert)
