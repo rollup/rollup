@@ -26,9 +26,9 @@ export default async function watch(command: any) {
 
 	onExit(close);
 	process.on('uncaughtException' as any, close);
-	// only listen to stdin if it is a pipe
 	if (!process.stdin.isTTY) {
 		process.stdin.on('end', close);
+		process.stdin.resume();
 	}
 
 	if (configFile) {
