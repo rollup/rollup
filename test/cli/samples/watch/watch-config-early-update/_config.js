@@ -40,7 +40,7 @@ module.exports = {
 		  });
 		`
 		);
-		const watcher = fs.watch(messageFile, (event) => {
+		const watcher = fs.watch(messageFile, event => {
 			if (event === 'change') {
 				const content = fs.readFileSync(messageFile, 'utf8');
 				if (content === 'loading') {
@@ -69,5 +69,5 @@ module.exports = {
 			reloadTriggered = true;
 			return false;
 		}
-	},
+	}
 };
