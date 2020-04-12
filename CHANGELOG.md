@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.6.1
+*2020-04-12*
+
+### Bug Fixes
+* Close watch mode when stdin closes in a non-TTY environment (#3493)
+
+### Pull Requests
+* [#3493](https://github.com/rollup/rollup/pull/3493): Ensure --watch mode exits correctly when stdin is closed (@jakesgordon)
+
 ## 2.6.0
 *2020-04-10*
 
@@ -7,7 +16,7 @@
 * Allow regular expressions to declare external modules (#3482)
 
 ### Pull Requests
-* [#3482](https://github.com/rollup/rollup/pull/3488): Allow regular expressions in config.external (@johannes-z)
+* [#3482](https://github.com/rollup/rollup/pull/3482): Allow regular expressions in config.external (@johannes-z)
 
 ## 2.5.0
 This version is identical to 2.4.0
