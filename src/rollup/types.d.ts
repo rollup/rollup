@@ -446,6 +446,7 @@ export type GlobalsOption = { [name: string]: string } | ((name: string) => stri
 export type InputOption = string | string[] | { [entryAlias: string]: string };
 export type ManualChunksOption = { [chunkAlias: string]: string[] } | GetManualChunk;
 export type ModuleSideEffectsOption = boolean | 'no-external' | string[] | HasModuleSideEffects;
+export type PreserveEntrySignaturesOption = false | 'strict' | 'allow-extension';
 
 export interface InputOptions {
 	acorn?: any;
@@ -461,6 +462,7 @@ export interface InputOptions {
 	onwarn?: WarningHandlerWithDefault;
 	perf?: boolean;
 	plugins?: Plugin[];
+	preserveEntrySignatures?: PreserveEntrySignaturesOption;
 	preserveModules?: boolean;
 	preserveSymlinks?: boolean;
 	shimMissingExports?: boolean;
