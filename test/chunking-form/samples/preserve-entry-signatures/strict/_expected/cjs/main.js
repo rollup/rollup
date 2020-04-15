@@ -7,4 +7,4 @@ var main = require('./generated-main.js');
 
 
 exports.dynamic = main.dynamic;
-exports.nonEssential = main.nonEssential;
+exports.unused = main.unused;

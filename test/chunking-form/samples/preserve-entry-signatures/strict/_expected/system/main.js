@@ -4,7 +4,7 @@ System.register(['./generated-main.js'], function (exports) {
 		setters: [function (module) {
 			var _setter = {};
 			_setter.dynamic = module.d;
-			_setter.nonEssential = module.n;
+			_setter.unused = module.u;
 			exports(_setter);
 		}],
 		execute: function () {

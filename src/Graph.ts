@@ -31,6 +31,7 @@ import { resolve } from './utils/path';
 import { PluginDriver } from './utils/PluginDriver';
 import relativeId from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
+import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
 
 function normalizeEntryModules(
 	entryModules: string | string[] | Record<string, string>
@@ -311,11 +312,11 @@ export default class Graph {
 
 	private includeStatements(entryModules: Module[]) {
 		for (const module of entryModules) {
-			// if (this.preserveEntrySignatures) {
-			module.includeAllExports();
-			// } else {
-			// 	markModuleAndImpureDependenciesAsExecuted(module);
-			// }
+			if (this.preserveEntrySignatures) {
+				module.includeAllExports();
+			} else {
+				markModuleAndImpureDependenciesAsExecuted(module);
+			}
 		}
 		if (this.treeshakingOptions) {
 			let treeshakingPass = 1;

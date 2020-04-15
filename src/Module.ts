@@ -237,6 +237,7 @@ export default class Module {
 	private defaultExport: ExportDefaultVariable | null | undefined = null;
 	private esTreeAst!: acorn.Node;
 	private exportAllModules: (Module | ExternalModule)[] = [];
+	private exportNamesByVariable: Map<Variable, string[]> | null = null;
 	private exportShimVariable: ExportShimVariable = new ExportShimVariable(this);
 	private graph: Graph;
 	private magicString!: MagicString;
@@ -404,6 +405,9 @@ export default class Module {
 	}
 
 	getExportNamesByVariable(): Map<Variable, string[]> {
+		if (this.exportNamesByVariable) {
+			return this.exportNamesByVariable;
+		}
 		const exportNamesByVariable: Map<Variable, string[]> = new Map();
 		for (const exportName of this.getAllExportNames()) {
 			const tracedVariable = this.getVariableForExportName(exportName);
@@ -420,7 +424,7 @@ export default class Module {
 				exportNamesByVariable.set(tracedVariable, [exportName]);
 			}
 		}
-		return exportNamesByVariable;
+		return (this.exportNamesByVariable = exportNamesByVariable);
 	}
 
 	getExports() {
