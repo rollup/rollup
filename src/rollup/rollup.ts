@@ -95,6 +95,11 @@ function getInputOptions(rawInputOptions: GenericConfigObject): InputOptions {
 				code: 'INVALID_OPTION',
 				message: '"preserveModules" does not support the "manualChunks" option.'
 			});
+		if (inputOptions.preserveEntrySignatures === false)
+			return error({
+				code: 'INVALID_OPTION',
+				message: '"preserveModules" does not support setting "preserveEntrySignatures" to "false".'
+			});
 	}
 
 	return inputOptions;
