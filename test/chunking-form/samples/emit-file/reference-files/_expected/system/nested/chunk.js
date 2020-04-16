@@ -1,23 +1,15 @@
-System.register([], function (exports, module) {
+System.register(['../main.js'], function (exports, module) {
 	'use strict';
+	var showImage;
 	return {
+		setters: [function (module) {
+			showImage = module.s;
+		}],
 		execute: function () {
 
-			exports('s', showImage);
-
-			var logo = new URL('../assets/logo1-a5ec488b.svg', module.meta.url).href;
-
-			function showImage(url) {
-				console.log(url);
-				if (typeof document !== 'undefined') {
-					const image = document.createElement('img');
-					image.src = url;
-					document.body.appendChild(image);
-				}
-			}
+			var logo = new URL('../assets/logo2-6d5979e4.svg', module.meta.url).href;
 
 			showImage(logo);
-			module.import('./chunk2.js');
 
 		}
 	};

@@ -199,9 +199,24 @@ export default class Chunk {
 		}
 	}
 
-	canModuleBeFacade(moduleExportNamesByVariable: Map<Variable, string[]>): boolean {
+	canModuleBeFacade(module: Module): boolean {
+		const moduleExportNamesByVariable = module.getExportNamesByVariable();
 		for (const exposedVariable of this.exports) {
 			if (!moduleExportNamesByVariable.has(exposedVariable)) {
+				if (
+					moduleExportNamesByVariable.size === 0 &&
+					module.isUserDefinedEntryPoint &&
+					this.graph.preserveEntrySignatures === undefined
+				) {
+					this.graph.warn({
+						code: 'EMPTY_FACADE',
+						id: module.id,
+						message: `To preserve the export signature of the entry module "${relativeId(
+							module.id
+						)}", an empty facade chunk was created. This often happens when creating a bundle for a web app where chunks are placed in script tags and exports are ignored. In this case it is recommended to set "preserveEntrySignatures: false" to avoid this and reduce the number of chunks. Otherwise if this is intentional, set "preserveEntrySignatures: 'strict'" explicitly to silence this warning.`,
+						url: 'https://rollupjs.org/guide/en/#preserveentrysignatures'
+					});
+				}
 				return false;
 			}
 		}
@@ -214,7 +229,7 @@ export default class Chunk {
 		const remainingExports = new Set(this.exports);
 		if (
 			this.facadeModule !== null &&
-			(this.graph.preserveEntrySignatures ||
+			(this.graph.preserveEntrySignatures !== false ||
 				this.facadeModule.dynamicallyImportedBy.some(importer => importer.chunk !== this))
 		) {
 			const exportNamesByVariable = this.facadeModule.getExportNamesByVariable();
@@ -248,10 +263,10 @@ export default class Chunk {
 			if (!this.facadeModule) {
 				if (
 					this.graph.preserveModules ||
-					!(
-						this.graph.preserveEntrySignatures === 'strict' || module.dynamicallyImportedBy.length
-					) ||
-					this.canModuleBeFacade(module.getExportNamesByVariable())
+					((this.graph.preserveEntrySignatures === 'allow-extension' ||
+						this.graph.preserveEntrySignatures === false) &&
+						!module.dynamicallyImportedBy.length) ||
+					this.canModuleBeFacade(module)
 				) {
 					this.facadeModule = module;
 					module.facadeChunk = this;
@@ -1002,7 +1017,7 @@ export default class Chunk {
 			}
 		}
 		if (
-			(module.isEntryPoint && this.graph.preserveEntrySignatures) ||
+			(module.isEntryPoint && this.graph.preserveEntrySignatures !== false) ||
 			module.dynamicallyImportedBy.some(importer => importer.chunk !== this)
 		) {
 			const map = module.getExportNamesByVariable();

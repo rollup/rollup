@@ -312,7 +312,7 @@ export default class Graph {
 
 	private includeStatements(entryModules: Module[]) {
 		for (const module of entryModules) {
-			if (this.preserveEntrySignatures) {
+			if (this.preserveEntrySignatures !== false) {
 				module.includeAllExports();
 			} else {
 				markModuleAndImpureDependenciesAsExecuted(module);

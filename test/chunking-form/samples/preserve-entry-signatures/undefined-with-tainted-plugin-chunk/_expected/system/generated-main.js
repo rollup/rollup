@@ -5,8 +5,8 @@ System.register([], function (exports, module) {
 
 			const shared = exports('s', 'shared');
 
-			module.import('./generated-dynamic1.js');
-			console.log('main', shared);
+			module.import('./generated-dynamic.js');
+			globalThis.sharedStatic = shared;
 
 		}
 	};

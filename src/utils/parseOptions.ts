@@ -109,7 +109,7 @@ export function parseInputOptions(
 		onwarn: getOnWarn(config, defaultOnWarnHandler),
 		perf: getOption('perf', false),
 		plugins: ensureArray(config.plugins as any),
-		preserveEntrySignatures: getOption('preserveEntrySignatures', 'strict'),
+		preserveEntrySignatures: getOption('preserveEntrySignatures'),
 		preserveModules: getOption('preserveModules'),
 		preserveSymlinks: getOption('preserveSymlinks'),
 		shimMissingExports: getOption('shimMissingExports'),

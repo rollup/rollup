@@ -37,7 +37,6 @@ describe('loadConfigFile', () => {
 						name: 'stdin'
 					}
 				],
-				preserveEntrySignatures: 'strict',
 				strictDeprecations: false
 			}
 		]);
