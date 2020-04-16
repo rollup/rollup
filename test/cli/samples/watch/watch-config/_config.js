@@ -4,8 +4,7 @@ const path = require('path');
 let configFile;
 let currentlyBundling;
 
-const updateConfigDelayed = (content) =>
-	setTimeout(() => fs.writeFileSync(configFile, content), 100);
+const updateConfigDelayed = content => setTimeout(() => fs.writeFileSync(configFile, content), 200);
 
 module.exports = {
 	description: 'watches the config file',
@@ -13,6 +12,9 @@ module.exports = {
 	before() {
 		configFile = path.resolve(__dirname, 'rollup.config.js');
 		fs.writeFileSync(configFile, 'throw new Error("Config contains initial errors");');
+	},
+	after() {
+		fs.unlinkSync(configFile);
 	},
 	abortOnStderr(data) {
 		if (data.includes('→ _actual')) {
@@ -63,5 +65,5 @@ module.exports = {
 					return true;
 			}
 		}
-	},
+	}
 };

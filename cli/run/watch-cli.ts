@@ -1,3 +1,4 @@
+import chokidar from 'chokidar';
 import color from 'colorette';
 import dateTime from 'date-time';
 import fs from 'fs';
@@ -14,7 +15,7 @@ import loadConfigFromCommand from './loadConfigFromCommand';
 import { getResetScreen } from './resetScreen';
 import { printTimings } from './timings';
 
-export default async function watch(command: any) {
+export async function watch(command: any) {
 	process.env.ROLLUP_WATCH = 'true';
 	const isTTY = process.stderr.isTTY;
 	const silent = command.silent;
@@ -36,10 +37,7 @@ export default async function watch(command: any) {
 		let aborted = false;
 		let configFileData: string | null = null;
 
-		configWatcher = fs.watch(configFile, (event: string) => {
-			if (event === 'change') reloadConfigFile();
-		});
-
+		configWatcher = chokidar.watch(configFile).on('change', () => reloadConfigFile());
 		await reloadConfigFile();
 
 		async function reloadConfigFile() {
@@ -85,7 +83,7 @@ export default async function watch(command: any) {
 	function start(configs: MergedRollupOptions[]) {
 		watcher = rollup.watch(configs as any);
 
-		watcher.on('event', (event) => {
+		watcher.on('event', event => {
 			switch (event.code) {
 				case 'ERROR':
 					warnings.flush();
@@ -105,7 +103,7 @@ export default async function watch(command: any) {
 							input = Array.isArray(input)
 								? input.join(', ')
 								: Object.keys(input as Record<string, string>)
-										.map((key) => (input as Record<string, string>)[key])
+										.map(key => (input as Record<string, string>)[key])
 										.join(', ');
 						}
 						stderr(

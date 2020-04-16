@@ -74,7 +74,7 @@ export default command => {
 	const commonJSBuild = {
 		input: {
 			'rollup.js': 'src/node-entry.ts',
-			'bin/rollup': 'cli/index.ts',
+			'bin/rollup': 'cli/cli.ts',
 			'loadConfigFile.js': 'cli/run/loadConfigFile.ts'
 		},
 		onwarn,

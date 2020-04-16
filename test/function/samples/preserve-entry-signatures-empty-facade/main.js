@@ -1,3 +1,3 @@
 import { shared } from './lib.js';
-globalThis.shared = shared;
+global.shared = shared;
 import('./dynamic.js');
