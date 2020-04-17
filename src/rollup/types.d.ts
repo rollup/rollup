@@ -674,6 +674,7 @@ export interface RollupWatcher
 		event: (event: RollupWatcherEvent) => void;
 		restart: () => void;
 	}> {
+	delay?: number;
 	close(): void;
 }
 
