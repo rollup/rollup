@@ -15,7 +15,7 @@ module.exports = {
 	},
 	abortOnStderr(data) {
 		if (data.includes('Error: Unexpected token')) {
-			fs.writeFileSync(mainFile, 'export default 42;');
+			setTimeout(() => fs.writeFileSync(mainFile, 'export default 42;'), 200);
 			return false;
 		}
 		if (data.includes('created _actual')) {

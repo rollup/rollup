@@ -306,7 +306,7 @@ export class ModuleLoader {
 
 		timeStart('load modules', 3);
 		return Promise.resolve(this.pluginDriver.hookFirst('load', [id]))
-			.then(source => (source != null ? source : readFile(id)))
+			.then(source => source ?? readFile(id))
 			.catch((err: Error) => {
 				timeEnd('load modules', 3);
 				let msg = `Could not load ${id}`;

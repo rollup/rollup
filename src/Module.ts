@@ -35,6 +35,7 @@ import {
 	EmittedFile,
 	ExistingDecodedSourceMap,
 	ModuleJSON,
+	PreserveEntrySignaturesOption,
 	ResolvedIdMap,
 	RollupError,
 	RollupWarning,
@@ -207,23 +208,20 @@ export default class Module {
 	exports: { [name: string]: ExportDescription } = Object.create(null);
 	exportsAll: { [name: string]: string } = Object.create(null);
 	facadeChunk: Chunk | null = null;
-	id: string;
 	importDescriptions: { [name: string]: ImportDescription } = Object.create(null);
 	importMetas: MetaProperty[] = [];
 	imports = new Set<Variable>();
-	isEntryPoint: boolean;
 	isExecuted = false;
 	isUserDefinedEntryPoint = false;
 	manualChunkAlias: string = null as any;
-	moduleSideEffects: boolean;
 	originalCode!: string;
 	originalSourcemap!: ExistingDecodedSourceMap | null;
+	preserveSignature: PreserveEntrySignaturesOption = this.graph.preserveEntrySignatures ?? 'strict';
 	reexportDescriptions: { [name: string]: ReexportDescription } = Object.create(null);
 	resolvedIds!: ResolvedIdMap;
 	scope!: ModuleScope;
 	sourcemapChain!: DecodedSourceMapOrMissing[];
 	sources = new Set<string>();
-	syntheticNamedExports: boolean;
 	transformFiles?: EmittedFile[];
 	userChunkNames = new Set<string>();
 	usesTopLevelAwait = false;
@@ -239,7 +237,6 @@ export default class Module {
 	private exportAllModules: (Module | ExternalModule)[] = [];
 	private exportNamesByVariable: Map<Variable, string[]> | null = null;
 	private exportShimVariable: ExportShimVariable = new ExportShimVariable(this);
-	private graph: Graph;
 	private magicString!: MagicString;
 	private namespaceVariable: NamespaceVariable | null = null;
 	private relevantDependencies: Set<Module | ExternalModule> | null = null;
@@ -248,19 +245,14 @@ export default class Module {
 	private transitiveReexports: string[] | null = null;
 
 	constructor(
-		graph: Graph,
-		id: string,
-		moduleSideEffects: boolean,
-		syntheticNamedExports: boolean,
-		isEntry: boolean
+		private readonly graph: Graph,
+		public readonly id: string,
+		public moduleSideEffects: boolean,
+		public syntheticNamedExports: boolean,
+		public isEntryPoint: boolean
 	) {
-		this.id = id;
-		this.graph = graph;
 		this.excludeFromSourcemap = /\0/.test(id);
 		this.context = graph.getModuleContext(id);
-		this.moduleSideEffects = moduleSideEffects;
-		this.syntheticNamedExports = syntheticNamedExports;
-		this.isEntryPoint = isEntry;
 	}
 
 	basename() {

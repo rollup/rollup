@@ -62,7 +62,7 @@ export default class Graph {
 	needsTreeshakingPass = false;
 	phase: BuildPhase = BuildPhase.LOAD_AND_PARSE;
 	pluginDriver: PluginDriver;
-	preserveEntrySignatures: PreserveEntrySignaturesOption;
+	preserveEntrySignatures: PreserveEntrySignaturesOption | undefined;
 	preserveModules: boolean;
 	scope: GlobalScope;
 	shimMissingExports: boolean;
@@ -312,7 +312,7 @@ export default class Graph {
 
 	private includeStatements(entryModules: Module[]) {
 		for (const module of entryModules) {
-			if (this.preserveEntrySignatures !== false) {
+			if (module.preserveSignature !== false) {
 				module.includeAllExports();
 			} else {
 				markModuleAndImpureDependenciesAsExecuted(module);

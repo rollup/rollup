@@ -206,6 +206,7 @@ export default class Chunk {
 				if (
 					moduleExportNamesByVariable.size === 0 &&
 					module.isUserDefinedEntryPoint &&
+					module.preserveSignature === 'strict' &&
 					this.graph.preserveEntrySignatures === undefined
 				) {
 					this.graph.warn({
@@ -229,7 +230,7 @@ export default class Chunk {
 		const remainingExports = new Set(this.exports);
 		if (
 			this.facadeModule !== null &&
-			(this.graph.preserveEntrySignatures !== false ||
+			(this.facadeModule.preserveSignature !== false ||
 				this.facadeModule.dynamicallyImportedBy.some(importer => importer.chunk !== this))
 		) {
 			const exportNamesByVariable = this.facadeModule.getExportNamesByVariable();
@@ -263,9 +264,7 @@ export default class Chunk {
 			if (!this.facadeModule) {
 				if (
 					this.graph.preserveModules ||
-					((this.graph.preserveEntrySignatures === 'allow-extension' ||
-						this.graph.preserveEntrySignatures === false) &&
-						!module.dynamicallyImportedBy.length) ||
+					(module.preserveSignature !== 'strict' && !module.dynamicallyImportedBy.length) ||
 					this.canModuleBeFacade(module)
 				) {
 					this.facadeModule = module;
@@ -1017,7 +1016,7 @@ export default class Chunk {
 			}
 		}
 		if (
-			(module.isEntryPoint && this.graph.preserveEntrySignatures !== false) ||
+			(module.isEntryPoint && module.preserveSignature !== false) ||
 			module.dynamicallyImportedBy.some(importer => importer.chunk !== this)
 		) {
 			const map = module.getExportNamesByVariable();

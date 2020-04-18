@@ -138,6 +138,7 @@ export interface EmittedChunk {
 	id: string;
 	importer?: string;
 	name?: string;
+	preserveSignature?: PreserveEntrySignaturesOption;
 	type: 'chunk';
 }
 
