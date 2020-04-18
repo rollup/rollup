@@ -652,6 +652,8 @@ const shared = 'shared';
 console.log(shared);
 ```
 
+At the moment, the only way to override this setting for individual entry chunks is to use the plugin API and emit those chunks via [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string) instead of using the [`input`](guide/en/#input) option.
+
 #### preserveModules
 Type: `boolean`<br>
 CLI: `--preserveModules`/`--no-preserveModules`<br>

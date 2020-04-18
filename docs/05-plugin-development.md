@@ -501,6 +501,7 @@ Emits a new file that is included in the build output and returns a `referenceId
   type: 'chunk',
   id: string,
   importer?: string,
+  preserveSignature?: 'strict' | 'allow-extension' | false,
   name?: string,
   fileName?: string
 }
@@ -520,7 +521,7 @@ You can reference the URL of an emitted file in any code returned by a [`load`](
 
 The generated code that replaces `import.meta.ROLLUP_FILE_URL_referenceId` can be customized via the [`resolveFileUrl`](guide/en/#resolvefileurl) plugin hook. You can also use [`this.getFileName(referenceId)`](guide/en/#thisgetfilenamereferenceid-string--string) to determine the file name as soon as it is available
 
-If the `type` is *`chunk`*, then this emits a new chunk with the given module `id` as entry point. To resolve it, the `id` will be passed through build hooks just like regular entry points, starting with [`resolveId`](guide/en/#resolveid). If an `importer` is provided, this acts as the second parameter of `resolveId` and is important to properly resolve relative paths. If it is not provided, paths will be resolved relative to the current working directory.
+If the `type` is *`chunk`*, then this emits a new chunk with the given module `id` as entry point. To resolve it, the `id` will be passed through build hooks just like regular entry points, starting with [`resolveId`](guide/en/#resolveid). If an `importer` is provided, this acts as the second parameter of `resolveId` and is important to properly resolve relative paths. If it is not provided, paths will be resolved relative to the current working directory. If a value for `preserveSignature` is provided, this will override [`preserveEntrySignatures`](guide/en/#preserveentrysignatures) for this particular chunk.
 
 This will not result in duplicate modules in the graph, instead if necessary, existing chunks will be split or a facade chunk with reexports will be created. Chunks with a specified `fileName` will always generate separate chunks while other emitted chunks may be deduplicated with existing chunks even if the `name` does not match. If such a chunk is not deduplicated, the [`output.chunkFileNames`](guide/en/#outputchunkfilenames) name pattern will be used.
 
@@ -536,7 +537,7 @@ Get the combined source maps of all previous plugins. This context function can 
 
 #### `this.getFileName(referenceId: string) => string`
 
-Get the file name of a chunk or asset that has been emitted via [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string) . The file name will be relative to `outputOptions.dir`.
+Get the file name of a chunk or asset that has been emitted via [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string). The file name will be relative to `outputOptions.dir`.
 
 #### `this.getModuleInfo(moduleId: string) => ModuleInfo`
 
