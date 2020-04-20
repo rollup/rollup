@@ -36,7 +36,7 @@ module.exports = {
 		              format: "es"
 		            }
 		          });
-		        }, 200);
+		        }, 400);
 		      }
 		    });
 		  });
@@ -60,7 +60,7 @@ module.exports = {
 		        `
 					);
 					fs.writeFileSync(messageFile, 'loaded');
-				}, 200);
+				}, 400);
 			}
 		});
 	},

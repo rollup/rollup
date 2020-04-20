@@ -1,3 +1,3 @@
-const foo = 45;
+const foo = 42;
 
 export { foo };

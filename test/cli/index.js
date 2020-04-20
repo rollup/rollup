@@ -120,9 +120,16 @@ runTestSuiteWithSamples(
 					}
 				);
 
-				childProcess.stderr.on('data', data => {
-					if (config.abortOnStderr && config.abortOnStderr(data)) {
-						setTimeout(() => childProcess.kill('SIGINT'), 50);
+				childProcess.stderr.on('data', async data => {
+					if (config.abortOnStderr) {
+						try {
+							if (await config.abortOnStderr(data)) {
+								childProcess.kill('SIGINT');
+							}
+						} catch (err) {
+							childProcess.kill('SIGINT');
+							done(err);
+						}
 					}
 				});
 			}
