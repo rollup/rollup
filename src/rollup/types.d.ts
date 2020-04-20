@@ -506,6 +506,7 @@ export interface OutputOptions {
 	indent?: boolean;
 	interop?: boolean;
 	intro?: string | (() => string | Promise<string>);
+	minifyInternalExports?: boolean;
 	name?: string;
 	namespaceToStringTag?: boolean;
 	noConflict?: boolean;

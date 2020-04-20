@@ -160,6 +160,7 @@ export function parseOutputOptions(
 		indent: getOption('indent', true),
 		interop: getOption('interop', true),
 		intro: getOption('intro'),
+		minifyInternalExports: getOption('minifyInternalExports'),
 		name: getOption('name'),
 		namespaceToStringTag: getOption('namespaceToStringTag', false),
 		noConflict: getOption('noConflict'),

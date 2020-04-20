@@ -12,7 +12,7 @@ Rollup is a module bundler for JavaScript which compiles small pieces of code in
 npm install --global rollup
 ```
 
-⚠️ If you are using TypeScript, we recommend you explicitly list the `@types` packages you want to use using the [`types` property in the "tsconfig.json" file](https://www.typescriptlang.org/docs/handbook/tsconfig-json.html#types-typeroots-and-types), or set it to `[]`. Rollup has a dependency on `@types/node`, which means (without this change) these types will automatically be available in your app even when some of them should not be available based on the `target` you are using.
+This will make Rollup available as a global command line tool. You can also install it locally, see [Installing Rollup locally](guide/en/#installing-rollup-locally).
 
 ### Quick start
 

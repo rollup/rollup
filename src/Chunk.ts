@@ -241,7 +241,11 @@ export default class Chunk {
 				remainingExports.delete(variable);
 			}
 		}
-		if (options.format === 'system' || options.format === 'es' || options.compact) {
+		if (
+			options.minifyInternalExports === true ||
+			(typeof options.minifyInternalExports !== 'boolean' &&
+				(options.format === 'system' || options.format === 'es' || options.compact))
+		) {
 			assignExportsToMangledNames(remainingExports, this.exportsByName);
 		} else {
 			assignExportsToNames(remainingExports, this.exportsByName);

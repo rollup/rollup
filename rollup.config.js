@@ -94,6 +94,7 @@ export default command => {
 		],
 		treeshake,
 		manualChunks: { rollup: ['src/node-entry.ts'] },
+		strictDeprecations: true,
 		output: {
 			banner,
 			chunkFileNames: 'shared/[name].js',
@@ -139,6 +140,7 @@ export default command => {
 			writeLicense()
 		],
 		treeshake,
+		strictDeprecations: true,
 		output: [
 			{ file: 'dist/rollup.browser.js', format: 'umd', name: 'rollup', banner },
 			{ file: 'dist/es/rollup.browser.js', format: 'es', banner }

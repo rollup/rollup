@@ -499,6 +499,69 @@ export default {
 };
 ```
 
+#### output.minifyInternalExports
+Type: `boolean`<br>
+CLI: `--minifyInternalExports`/`--no-minifyInternalExports`<br>
+Default: `true` for formats `es` and `system` or if `output.compact` is `true`, `false` otherwise
+
+By default for formats `es` and `system` or if `output.compact` is `true`, Rollup will try to export internal variables as single letter variables to allow for better minification.
+
+**Example**<br>
+Input:
+
+```js
+// main.js
+import './lib.js';
+
+// lib.js
+import('./dynamic.js');
+export const value = 42;
+
+// dynamic.js
+import {value} from './lib.js';
+console.log(value);
+```
+
+Output with `output.minifyInternalExports: true`:
+
+
+```js
+// main.js
+import './main-5532def0.js';
+
+// main-5532def0.js
+import('./dynamic-402de2f0.js');
+const importantValue = 42;
+
+export { importantValue as i };
+
+// dynamic-402de2f0.js
+import { i as importantValue } from './main-5532def0.js';
+
+console.log(importantValue);
+```
+
+Output with `output.minifyInternalExports: false`:
+
+
+```js
+// main.js
+import './main-5532def0.js';
+
+// main-5532def0.js
+import('./dynamic-402de2f0.js');
+const importantValue = 42;
+
+export { importantValue };
+
+// dynamic-402de2f0.js
+import { importantValue } from './main-5532def0.js';
+
+console.log(importantValue);
+```
+
+Even though it appears that setting this option to `true` makes the output larger, it actually makes it smaller if a minifier is used. In this case, `export { importantValue as i }` can become e.g. `export{a as i}` or even `export{i}`, while otherwise it would produce `export{ a as importantValue }` because a minifier usually will not change export signatures.
+
 #### output.paths
 Type: `{ [id: string]: string } | ((id: string) => string)`
 
@@ -577,7 +640,7 @@ export default ({
 
 #### preserveEntrySignatures
 Type: `"strict" | "allow-extension" | false`<br>
-CLI: `--preserveEntrySignatures`/`--no-preserveEntrySignatures`<br>
+CLI: `--preserveEntrySignatures <strict|allow-extension>`/`--no-preserveEntrySignatures`<br>
 Default: `"strict"`
 
 Controls if Rollup tries to ensure that entry chunks have the same exports as the underlying entry module.
