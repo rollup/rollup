@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.7.1
+*2020-04-21*
+
+### Bug Fixes
+* Use correct path for dynamic imports if `output.paths` is used (#3508)
+
+### Pull Requests
+* [#3508](https://github.com/rollup/rollup/pull/3508): Respect output.paths in dynamic imports (@lukastaegert)
+
 ## 2.7.0
 *2020-04-21*
 
