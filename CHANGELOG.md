@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 2.7.0
+*2020-04-21*
+
+### Features
+* Add `preserveEntrySignatures` option to control how exports of entry points are handled (#3498)
+* Add `preserveSignature` flag to `this.emitFile` to control exports of emitted chunks (#3498)
+* Add `output.minifyInternalExports` option to control if internal exports are minified (#3498)
+
+### Pull Requests
+* [#3498](https://github.com/rollup/rollup/pull/3498): Add option to configure if entry signatures are preserved (@lukastaegert)
+
 ## 2.6.1
 *2020-04-12*
 
