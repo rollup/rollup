@@ -711,7 +711,7 @@ export default class Chunk {
 						? `'${
 								resolution.renormalizeRenderPath
 									? this.getRelativePath(resolution.renderPath, stripKnownJsExtensions)
-									: resolution.id
+									: resolution.renderPath
 						  }'`
 						: resolution;
 				node.renderFinalResolution(code, renderedResolution);
