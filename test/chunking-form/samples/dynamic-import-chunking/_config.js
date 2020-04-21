@@ -1,6 +1,7 @@
 module.exports = {
 	description: 'Code splitting with dynamic import',
 	options: {
-		input: ['main.js']
+		input: ['main.js'],
+		preserveEntrySignatures: 'strict'
 	}
 };

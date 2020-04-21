@@ -86,6 +86,7 @@ const inputOptions = {
   inlineDynamicImports,
   manualChunks,
   onwarn,
+  preserveEntrySignatures,
   preserveModules,
   strictDeprecations,
 
@@ -130,6 +131,7 @@ const outputOptions = {
   hoistTransitiveImports,
   interop,
   intro,
+  minifyInternalExports,
   outro,
   paths,
   sourcemap,

@@ -1,12 +1,12 @@
 import { MergedRollupOptions } from '../../src/rollup/types';
 import { getAliasName } from '../../src/utils/relativeId';
+import { loadFsEvents } from '../../src/watch/fsevents-importer';
 import { handleError } from '../logging';
 import { BatchWarnings } from './batchWarnings';
 import build from './build';
 import { getConfigPath } from './getConfigPath';
 import loadAndParseConfigFile from './loadConfigFile';
 import loadConfigFromCommand from './loadConfigFromCommand';
-import watch from './watch';
 
 export default async function runRollup(command: any) {
 	let inputSource;
@@ -14,7 +14,7 @@ export default async function runRollup(command: any) {
 		if (command.input) {
 			handleError({
 				code: 'DUPLICATE_IMPORT_OPTIONS',
-				message: 'Either use --input, or pass input path as argument',
+				message: 'Either use --input, or pass input path as argument'
 			});
 		}
 		inputSource = command._;
@@ -57,6 +57,8 @@ export default async function runRollup(command: any) {
 	}
 
 	if (command.watch) {
+		await loadFsEvents();
+		const { watch } = await import('./watch-cli');
 		watch(command);
 	} else {
 		try {

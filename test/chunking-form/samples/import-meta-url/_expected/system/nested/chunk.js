@@ -1,20 +1,13 @@
-System.register([], function (exports, module) {
+System.register(['../main.js'], function (exports, module) {
 	'use strict';
+	var log;
 	return {
+		setters: [function (module) {
+			log = module.l;
+		}],
 		execute: function () {
 
-			exports('l', log);
-
-			function log(url) {
-				if (typeof document === 'undefined') {
-					console.log(url);
-				} else {
-					document.body.innerHTML += url + '<br>';
-				}
-			}
-
-			log('main: ' + module.meta.url);
-			module.import('./chunk2.js');
+			log('nested: ' + module.meta.url);
 
 		}
 	};

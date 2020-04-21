@@ -39,11 +39,12 @@ Basic options:
 --no-interop                Do not include interop block
 --inlineDynamicImports      Create single bundle when using dynamic imports
 --intro <text>              Code to insert at top of bundle (inside wrapper)
+--minifyInternalExports     Force or disable minification of internal exports
 --namespaceToStringTag      Create proper `.toString` methods for namespaces
 --noConflict                Generate a noConflict method for UMD globals
---no-strict                 Don't emit `"use strict";` in the generated modules
 --outro <text>              Code to insert at end of bundle (inside wrapper)
 --preferConst               Use `const` instead of `var` for exports
+--no-preserveEntrySignatures Avoid facade chunks for entry points
 --preserveModules           Preserve module structure
 --preserveSymlinks          Do not follow symlinks when resolving files
 --shimMissingExports        Create shim variables for missing exports
@@ -51,10 +52,14 @@ Basic options:
 --sourcemapExcludeSources   Do not include source code in source maps
 --sourcemapFile <file>      Specify bundle position for source maps
 --no-stdin                  do not read "-" from stdin
+--no-strict                 Don't emit `"use strict";` in the generated modules
 --strictDeprecations        Throw errors for deprecated features
 --no-treeshake              Disable tree-shaking optimisations
 --no-treeshake.annotations  Ignore pure call annotations
---no-treeshake.propertyReadSideEffects Ignore property access side-effects
+--no-treeshake.no-moduleSideEffects Assume modules have no side-effects
+--no-treeshake.no-propertyReadSideEffects Ignore property access side-effects
+--no-treeshake.no-tryCatchDeoptimization Do not turn off try-catch-tree-shaking
+--no-treeshake.no-unknownGlobalSideEffects Assume unknown globals do not throw
 
 Examples:
 

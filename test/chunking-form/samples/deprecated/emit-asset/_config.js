@@ -7,6 +7,7 @@ module.exports = {
 	options: {
 		strictDeprecations: false,
 		input: ['main.js'],
+		preserveEntrySignatures: false,
 		output: {
 			chunkFileNames: 'nested/chunk.js'
 		},

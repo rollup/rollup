@@ -6,7 +6,10 @@ function runTestCode(code, thisValue, globals) {
 	const globalsWithAssert = Object.assign({}, globals, { assert });
 	const globalKeys = Object.keys(globalsWithAssert);
 	const fn = new Function(globalKeys, code);
-	fn.apply(thisValue, globalKeys.map(key => globalsWithAssert[key]));
+	fn.apply(
+		thisValue,
+		globalKeys.map(key => globalsWithAssert[key])
+	);
 }
 
 function runNodeTest(code) {
@@ -103,23 +106,27 @@ function getIifeExports(global, outputOptions) {
 	return {};
 }
 
-function getUmdCode(inputCode, outputOptions) {
-	return rollup
-		.rollup({
-			input: 'input',
-			external: ['external'],
-			plugins: [loader({ input: inputCode })]
-		})
-		.then(bundle =>
-			bundle.generate(
-				Object.assign({ format: 'umd', globals: { external: 'external' } }, outputOptions)
-			)
-		)
-		.then(({ output }) => output[0].code);
+async function getUmdCode(inputCode, outputOptions) {
+	const bundle = await rollup.rollup({
+		input: 'input',
+		external: ['external'],
+		plugins: [loader({ input: inputCode })]
+	});
+	const { output } = await bundle.generate(
+		Object.assign({ format: 'umd', globals: { external: 'external' } }, outputOptions)
+	);
+	return output[0].code;
 }
 
 function runTestsWithCode(code, outputOptions, expectedExports) {
-	const umdCodePromise = getUmdCode(code, outputOptions);
+	let umdCodePromise;
+
+	function getUmdCodePromise() {
+		if (umdCodePromise) {
+			return umdCodePromise;
+		}
+		return (umdCodePromise = getUmdCode(code, outputOptions));
+	}
 
 	[
 		{
@@ -143,14 +150,13 @@ function runTestsWithCode(code, outputOptions, expectedExports) {
 			runTest: runIifeWithExistingValuesTest
 		}
 	].forEach(({ environmentName, runTest }) =>
-		it(`works in ${environmentName} environment`, () =>
-			umdCodePromise.then(code => {
-				assert.deepEqual(
-					runTest(code, outputOptions),
-					expectedExports,
-					'expected exports are returned'
-				);
-			}))
+		it(`works in ${environmentName} environment`, async () => {
+			assert.deepEqual(
+				runTest(await getUmdCodePromise(), outputOptions),
+				expectedExports,
+				'expected exports are returned'
+			);
+		})
 	);
 }
 

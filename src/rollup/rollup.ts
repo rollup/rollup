@@ -95,6 +95,11 @@ function getInputOptions(rawInputOptions: GenericConfigObject): InputOptions {
 				code: 'INVALID_OPTION',
 				message: '"preserveModules" does not support the "manualChunks" option.'
 			});
+		if (inputOptions.preserveEntrySignatures === false)
+			return error({
+				code: 'INVALID_OPTION',
+				message: '"preserveModules" does not support setting "preserveEntrySignatures" to "false".'
+			});
 	}
 
 	return inputOptions;
@@ -213,7 +218,7 @@ export async function rollupInternal(
 			await outputPluginDriver.hookParallel('renderStart', [outputOptions, inputOptions]);
 			const addons = await createAddons(outputOptions, outputPluginDriver);
 			for (const chunk of chunks) {
-				if (!inputOptions.preserveModules) chunk.generateInternalExports(outputOptions);
+				chunk.generateExports(outputOptions);
 				if (inputOptions.preserveModules || (chunk.facadeModule && chunk.facadeModule.isEntryPoint))
 					chunk.exportMode = getExportMode(chunk, outputOptions, chunk.facadeModule!.id);
 			}

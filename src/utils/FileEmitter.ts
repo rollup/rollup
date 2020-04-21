@@ -1,6 +1,10 @@
 import Graph from '../Graph';
 import Module from '../Module';
-import { FilePlaceholder, OutputBundleWithPlaceholders } from '../rollup/types';
+import {
+	FilePlaceholder,
+	OutputBundleWithPlaceholders,
+	PreserveEntrySignaturesOption
+} from '../rollup/types';
 import { BuildPhase } from './buildPhase';
 import { createHash } from './crypto';
 import {
@@ -159,16 +163,18 @@ export class FileEmitter {
 		if (!hasValidType(emittedFile)) {
 			return error(
 				errFailedValidation(
-					`Emitted files must be of type "asset" or "chunk", received "${emittedFile &&
-						(emittedFile as any).type}".`
+					`Emitted files must be of type "asset" or "chunk", received "${
+						emittedFile && (emittedFile as any).type
+					}".`
 				)
 			);
 		}
 		if (!hasValidName(emittedFile)) {
 			return error(
 				errFailedValidation(
-					`The "fileName" or "name" properties of emitted files must be strings that are neither absolute nor relative paths and do not contain invalid characters, received "${emittedFile.fileName ||
-						emittedFile.name}".`
+					`The "fileName" or "name" properties of emitted files must be strings that are neither absolute nor relative paths and do not contain invalid characters, received "${
+						emittedFile.fileName || emittedFile.name
+					}".`
 				)
 			);
 		}
@@ -302,6 +308,10 @@ export class FileEmitter {
 			)
 			.then(({ newEntryModules: [module] }) => {
 				consumedChunk.module = module;
+				const preserveSignature = emittedChunk.preserveSignature;
+				if (preserveSignature || preserveSignature === false) {
+					module.preserveSignature = preserveSignature as PreserveEntrySignaturesOption;
+				}
 			})
 			.catch(() => {
 				// Avoid unhandled Promise rejection as the error will be thrown later

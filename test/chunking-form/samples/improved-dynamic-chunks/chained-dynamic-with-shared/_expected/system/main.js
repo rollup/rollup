@@ -1,10 +1,11 @@
-System.register(['./generated-main.js'], function () {
+System.register([], function (exports, module) {
 	'use strict';
 	return {
-		setters: [function () {}],
 		execute: function () {
 
+			const shared = exports('shared', 'shared');
 
+			module.import('./generated-dynamic1.js');
 
 		}
 	};

@@ -28,17 +28,17 @@ describe('loadConfigFile', () => {
 						interop: true,
 						namespaceToStringTag: false,
 						plugins: [],
-						strict: true,
-					},
+						strict: true
+					}
 				],
 				perf: false,
 				plugins: [
 					{
-						name: 'stdin',
-					},
+						name: 'stdin'
+					}
 				],
-				strictDeprecations: false,
-			},
+				strictDeprecations: false
+			}
 		]);
 	});
 });

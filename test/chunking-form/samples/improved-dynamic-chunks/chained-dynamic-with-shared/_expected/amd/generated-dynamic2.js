@@ -1,5 +1,7 @@
-define(['./generated-main'], function (main) { 'use strict';
+define(['exports', './main'], function (exports, main) { 'use strict';
 
-	console.log('dynamic2', main.shared);
+
+
+	exports.shared = main.shared;
 
 });

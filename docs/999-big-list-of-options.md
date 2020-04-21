@@ -499,6 +499,69 @@ export default {
 };
 ```
 
+#### output.minifyInternalExports
+Type: `boolean`<br>
+CLI: `--minifyInternalExports`/`--no-minifyInternalExports`<br>
+Default: `true` for formats `es` and `system` or if `output.compact` is `true`, `false` otherwise
+
+By default for formats `es` and `system` or if `output.compact` is `true`, Rollup will try to export internal variables as single letter variables to allow for better minification.
+
+**Example**<br>
+Input:
+
+```js
+// main.js
+import './lib.js';
+
+// lib.js
+import('./dynamic.js');
+export const value = 42;
+
+// dynamic.js
+import {value} from './lib.js';
+console.log(value);
+```
+
+Output with `output.minifyInternalExports: true`:
+
+
+```js
+// main.js
+import './main-5532def0.js';
+
+// main-5532def0.js
+import('./dynamic-402de2f0.js');
+const importantValue = 42;
+
+export { importantValue as i };
+
+// dynamic-402de2f0.js
+import { i as importantValue } from './main-5532def0.js';
+
+console.log(importantValue);
+```
+
+Output with `output.minifyInternalExports: false`:
+
+
+```js
+// main.js
+import './main-5532def0.js';
+
+// main-5532def0.js
+import('./dynamic-402de2f0.js');
+const importantValue = 42;
+
+export { importantValue };
+
+// dynamic-402de2f0.js
+import { importantValue } from './main-5532def0.js';
+
+console.log(importantValue);
+```
+
+Even though it appears that setting this option to `true` makes the output larger, it actually makes it smaller if a minifier is used. In this case, `export { importantValue as i }` can become e.g. `export{a as i}` or even `export{i}`, while otherwise it would produce `export{ a as importantValue }` because a minifier usually will not change export signatures.
+
 #### output.paths
 Type: `{ [id: string]: string } | ((id: string) => string)`
 
@@ -574,6 +637,85 @@ export default ({
   }]
 });
 ```
+
+#### preserveEntrySignatures
+Type: `"strict" | "allow-extension" | false`<br>
+CLI: `--preserveEntrySignatures <strict|allow-extension>`/`--no-preserveEntrySignatures`<br>
+Default: `"strict"`
+
+Controls if Rollup tries to ensure that entry chunks have the same exports as the underlying entry module.
+
+- If set to `"strict"`, Rollup will create exactly the same exports in the entry chunk as there are in the corresponding entry module. If this is not possible because additional internal exports need to be added to a chunk, Rollup will instead create a "facade" entry chunk that reexports just the necessary bindings from other chunks but contains no code otherwise. This is the recommended setting for libraries.
+- `"allow-extension"` will create all exports of the entry module in the entry chunk but may also add additional exports if necessary, avoiding a "facade" entry chunk. This setting makes sense for libraries where a strict signature is not required.
+- `false` will not add any exports of an entry module to the corresponding chunk and does not even include the corresponding code unless those exports are used elsewhere in the bundle. Internal exports may be added to entry chunks, though. This is the recommended setting for web apps where the entry chunks are to be placed in script tags as it may reduce both the number of chunks and possibly the bundle size.
+
+**Example**<br>
+Input:
+
+```js
+// main.js
+import { shared } from './lib.js';
+export const value = `value: ${shared}`;
+import('./dynamic.js');
+
+// lib.js
+export const shared = 'shared';
+
+// dynamic.js
+import { shared } from './lib.js';
+console.log(shared);
+```
+
+Output for `preserveEntrySignatures: "strict"`:
+
+```js
+// main.js
+export { v as value } from './main-50a71bb6.js';
+
+// main-50a71bb6.js
+const shared = 'shared';
+
+const value = `value: ${shared}`;
+import('./dynamic-cd23645f.js');
+
+export { shared as s, value as v };
+
+// dynamic-cd23645f.js
+import { s as shared } from './main-50a71bb6.js';
+
+console.log(shared);
+```
+
+Output for `preserveEntrySignatures: "allow-extension"`:
+
+```js
+// main.js
+const shared = 'shared';
+
+const value = `value: ${shared}`;
+import('./dynamic-298476ec.js');
+
+export { shared as s, value };
+
+// dynamic-298476ec.js
+import { s as shared } from './main.js';
+
+console.log(shared);
+```
+
+Output for `preserveEntrySignatures: false`:
+
+```js
+// main.js
+import('./dynamic-39821cef.js');
+
+// dynamic-39821cef.js
+const shared = 'shared';
+
+console.log(shared);
+```
+
+At the moment, the only way to override this setting for individual entry chunks is to use the plugin API and emit those chunks via [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string) instead of using the [`input`](guide/en/#input) option.
 
 #### preserveModules
 Type: `boolean`<br>

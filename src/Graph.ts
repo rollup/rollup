@@ -15,6 +15,7 @@ import {
 	IsExternal,
 	ManualChunksOption,
 	ModuleJSON,
+	PreserveEntrySignaturesOption,
 	RollupCache,
 	RollupWarning,
 	RollupWatcher,
@@ -30,6 +31,7 @@ import { resolve } from './utils/path';
 import { PluginDriver } from './utils/PluginDriver';
 import relativeId from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
+import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
 
 function normalizeEntryModules(
 	entryModules: string | string[] | Record<string, string>
@@ -60,6 +62,7 @@ export default class Graph {
 	needsTreeshakingPass = false;
 	phase: BuildPhase = BuildPhase.LOAD_AND_PARSE;
 	pluginDriver: PluginDriver;
+	preserveEntrySignatures: PreserveEntrySignaturesOption | undefined;
 	preserveModules: boolean;
 	scope: GlobalScope;
 	shimMissingExports: boolean;
@@ -92,6 +95,7 @@ export default class Graph {
 			}
 		}
 		this.preserveModules = options.preserveModules!;
+		this.preserveEntrySignatures = options.preserveEntrySignatures!;
 		this.strictDeprecations = options.strictDeprecations!;
 
 		this.cacheExpiry = options.experimentalCacheExpiry!;
@@ -189,101 +193,45 @@ export default class Graph {
 		);
 	}
 
-	build(
-		entryModules: string | string[] | Record<string, string>,
+	async build(
+		entryModuleIds: string | string[] | Record<string, string>,
 		manualChunks: ManualChunksOption | void,
 		inlineDynamicImports: boolean
 	): Promise<Chunk[]> {
 		// Phase 1 – discovery. We load the entry module and find which
 		// modules it imports, and import those, until we have all
 		// of the entry module's dependencies
-
 		timeStart('parse modules', 2);
+		const { entryModules, manualChunkModulesByAlias } = await this.parseModules(
+			entryModuleIds,
+			manualChunks
+		);
+		timeEnd('parse modules', 2);
 
-		return Promise.all([
-			this.moduleLoader.addEntryModules(normalizeEntryModules(entryModules), true),
-			(manualChunks &&
-				typeof manualChunks === 'object' &&
-				this.moduleLoader.addManualChunks(manualChunks)) as Promise<void>
-		]).then(([{ entryModules, manualChunkModulesByAlias }]) => {
-			if (entryModules.length === 0) {
-				throw new Error('You must supply options.input to rollup');
-			}
-			for (const module of this.moduleById.values()) {
-				if (module instanceof Module) {
-					this.modules.push(module);
-				} else {
-					this.externalModules.push(module);
-				}
-			}
-			timeEnd('parse modules', 2);
+		// Phase 2 - linking. We populate the module dependency links and
+		// determine the topological execution order for the bundle
+		timeStart('analyse dependency graph', 2);
+		this.phase = BuildPhase.ANALYSE;
+		this.link(entryModules);
+		timeEnd('analyse dependency graph', 2);
 
-			this.phase = BuildPhase.ANALYSE;
+		// Phase 3 – marking. We include all statements that should be included
+		timeStart('mark included statements', 2);
+		this.includeStatements(entryModules);
+		timeEnd('mark included statements', 2);
 
-			// Phase 2 - linking. We populate the module dependency links and
-			// determine the topological execution order for the bundle
-			timeStart('analyse dependency graph', 2);
+		// Phase 4 – we construct the chunks, working out the optimal chunking using
+		// entry point graph colouring, before generating the import and export facades
+		timeStart('generate chunks', 2);
+		const chunks = this.generateChunks(
+			entryModules,
+			manualChunkModulesByAlias,
+			inlineDynamicImports
+		);
+		this.phase = BuildPhase.GENERATE;
+		timeEnd('generate chunks', 2);
 
-			this.link(entryModules);
-
-			timeEnd('analyse dependency graph', 2);
-
-			// Phase 3 – marking. We include all statements that should be included
-			timeStart('mark included statements', 2);
-
-			for (const module of entryModules) {
-				module.includeAllExports();
-			}
-			this.includeMarked(this.modules);
-
-			// check for unused external imports
-			for (const externalModule of this.externalModules) externalModule.warnUnusedImports();
-
-			timeEnd('mark included statements', 2);
-
-			// Phase 4 – we construct the chunks, working out the optimal chunking using
-			// entry point graph colouring, before generating the import and export facades
-			timeStart('generate chunks', 2);
-
-			// TODO: there is one special edge case unhandled here and that is that any module
-			//       exposed as an unresolvable export * (to a graph external export *,
-			//       either as a namespace import reexported or top-level export *)
-			//       should be made to be its own entry point module before chunking
-			const chunks: Chunk[] = [];
-			if (this.preserveModules) {
-				for (const module of this.modules) {
-					if (
-						module.isIncluded() ||
-						module.isEntryPoint ||
-						module.dynamicallyImportedBy.length > 0
-					) {
-						const chunk = new Chunk(this, [module]);
-						chunk.entryModules = [module];
-						chunks.push(chunk);
-					}
-				}
-			} else {
-				for (const chunkModules of inlineDynamicImports
-					? [this.modules]
-					: getChunkAssignments(entryModules, manualChunkModulesByAlias)) {
-					sortByExecutionOrder(chunkModules);
-					chunks.push(new Chunk(this, chunkModules));
-				}
-			}
-
-			for (const chunk of chunks) {
-				chunk.link();
-			}
-			const facades: Chunk[] = [];
-			for (const chunk of chunks) {
-				facades.push(...chunk.generateFacades());
-			}
-
-			timeEnd('generate chunks', 2);
-
-			this.phase = BuildPhase.GENERATE;
-			return [...chunks, ...facades];
-		});
+		return chunks;
 	}
 
 	getCache(): RollupCache {
@@ -302,23 +250,6 @@ export default class Graph {
 			modules: this.modules.map(module => module.toJSON()),
 			plugins: this.pluginCache
 		};
-	}
-
-	includeMarked(modules: Module[]) {
-		if (this.treeshakingOptions) {
-			let treeshakingPass = 1;
-			do {
-				timeStart(`treeshaking pass ${treeshakingPass}`, 3);
-				this.needsTreeshakingPass = false;
-				for (const module of modules) {
-					if (module.isExecuted) module.include();
-				}
-				timeEnd(`treeshaking pass ${treeshakingPass++}`, 3);
-			} while (this.needsTreeshakingPass);
-		} else {
-			// Necessary to properly replace namespace imports
-			for (const module of modules) module.includeAllInBundle();
-		}
 	}
 
 	warn(warning: RollupWarning) {
@@ -346,6 +277,65 @@ export default class Graph {
 		}
 	}
 
+	private generateChunks(
+		entryModules: Module[],
+		manualChunkModulesByAlias: Record<string, Module[]>,
+		inlineDynamicImports: boolean
+	): Chunk[] {
+		const chunks: Chunk[] = [];
+		if (this.preserveModules) {
+			for (const module of this.modules) {
+				if (module.isIncluded() || module.isEntryPoint || module.dynamicallyImportedBy.length > 0) {
+					const chunk = new Chunk(this, [module]);
+					chunk.entryModules = [module];
+					chunks.push(chunk);
+				}
+			}
+		} else {
+			for (const chunkModules of inlineDynamicImports
+				? [this.modules]
+				: getChunkAssignments(entryModules, manualChunkModulesByAlias)) {
+				sortByExecutionOrder(chunkModules);
+				chunks.push(new Chunk(this, chunkModules));
+			}
+		}
+
+		for (const chunk of chunks) {
+			chunk.link();
+		}
+		const facades: Chunk[] = [];
+		for (const chunk of chunks) {
+			facades.push(...chunk.generateFacades());
+		}
+		return [...chunks, ...facades];
+	}
+
+	private includeStatements(entryModules: Module[]) {
+		for (const module of entryModules) {
+			if (module.preserveSignature !== false) {
+				module.includeAllExports();
+			} else {
+				markModuleAndImpureDependenciesAsExecuted(module);
+			}
+		}
+		if (this.treeshakingOptions) {
+			let treeshakingPass = 1;
+			do {
+				timeStart(`treeshaking pass ${treeshakingPass}`, 3);
+				this.needsTreeshakingPass = false;
+				for (const module of this.modules) {
+					if (module.isExecuted) module.include();
+				}
+				timeEnd(`treeshaking pass ${treeshakingPass++}`, 3);
+			} while (this.needsTreeshakingPass);
+		} else {
+			// Necessary to properly replace namespace imports
+			for (const module of this.modules) module.includeAllInBundle();
+		}
+		// check for unused external imports
+		for (const externalModule of this.externalModules) externalModule.warnUnusedImports();
+	}
+
 	private link(entryModules: Module[]) {
 		for (const module of this.modules) {
 			module.linkDependencies();
@@ -364,6 +354,29 @@ export default class Graph {
 			module.bindReferences();
 		}
 		this.warnForMissingExports();
+	}
+
+	private async parseModules(
+		entryModuleIds: string | string[] | Record<string, string>,
+		manualChunks: ManualChunksOption | void
+	): Promise<{ entryModules: Module[]; manualChunkModulesByAlias: Record<string, Module[]> }> {
+		const [{ entryModules, manualChunkModulesByAlias }] = await Promise.all([
+			this.moduleLoader.addEntryModules(normalizeEntryModules(entryModuleIds), true),
+			manualChunks &&
+				typeof manualChunks === 'object' &&
+				this.moduleLoader.addManualChunks(manualChunks)
+		]);
+		if (entryModules.length === 0) {
+			throw new Error('You must supply options.input to rollup');
+		}
+		for (const module of this.moduleById.values()) {
+			if (module instanceof Module) {
+				this.modules.push(module);
+			} else {
+				this.externalModules.push(module);
+			}
+		}
+		return { entryModules, manualChunkModulesByAlias };
 	}
 
 	private warnForMissingExports() {

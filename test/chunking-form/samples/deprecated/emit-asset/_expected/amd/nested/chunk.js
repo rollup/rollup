@@ -1,19 +1,7 @@
-define(['require', 'exports'], function (require, exports) { 'use strict';
+define(['require', '../main'], function (require, main) { 'use strict';
 
-	var logo = new URL(require.toUrl('../assets/logo1-a5ec488b.svg'), document.baseURI).href;
+	var logo = new URL(require.toUrl('../assets/logo2-6d5979e4.svg'), document.baseURI).href;
 
-	function showImage(url) {
-		console.log(url);
-		if (typeof document !== 'undefined') {
-			const image = document.createElement('img');
-			image.src = url;
-			document.body.appendChild(image);
-		}
-	}
-
-	showImage(logo);
-	new Promise(function (resolve, reject) { require(['./chunk2'], resolve, reject) });
-
-	exports.showImage = showImage;
+	main.showImage(logo);
 
 });

@@ -58,7 +58,7 @@ Repository: https://github.com/acornjs/acorn.git
 ## acorn-class-fields
 License: MIT
 By: Adrian Heine
-Repository: https://github.com/acornjs/acorn-class-fields
+Repository: git+https://github.com/acornjs/acorn-class-fields.git
 
 > Copyright (C) 2017-2018 by Adrian Heine
 > 
@@ -166,7 +166,7 @@ Repository: https://github.com/acornjs/acorn-private-class-elements
 ## acorn-static-class-features
 License: MIT
 By: Adrian Heine
-Repository: https://github.com/acornjs/acorn-static-class-features
+Repository: git+https://github.com/acornjs/acorn-static-class-features.git
 
 > Copyright (C) 2017-2018 by Adrian Heine
 > 

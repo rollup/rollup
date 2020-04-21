@@ -1,13 +1,12 @@
-System.register(['./generated-main.js'], function () {
+System.register(['./main.js'], function (exports) {
 	'use strict';
-	var shared;
 	return {
 		setters: [function (module) {
-			shared = module.s;
+			exports('shared', module.shared);
 		}],
 		execute: function () {
 
-			console.log('dynamic2', shared);
+
 
 		}
 	};
