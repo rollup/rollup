@@ -914,6 +914,7 @@ export default class Chunk {
 
 	private inlineChunkDependencies(chunk: Chunk) {
 		for (const dep of chunk.dependencies) {
+			if (this.dependencies.has(dep)) continue;
 			if (dep instanceof ExternalModule) {
 				this.dependencies.add(dep);
 			} else {

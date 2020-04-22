@@ -14,7 +14,7 @@ import esmDynamicImport from './build-plugins/esm-dynamic-import.js';
 import getLicenseHandler from './build-plugins/generate-license-file';
 import pkg from './package.json';
 
-const commitHash = (function() {
+const commitHash = (function () {
 	try {
 		return fs.readFileSync('.commithash', 'utf-8');
 	} catch (err) {
@@ -77,7 +77,12 @@ export default command => {
 			'loadConfigFile.js': 'cli/run/loadConfigFile.ts'
 		},
 		onwarn,
-		plugins: [...nodePlugins, addCliEntry(), esmDynamicImport(), !command.configTest && collectLicenses()],
+		plugins: [
+			...nodePlugins,
+			addCliEntry(),
+			esmDynamicImport(),
+			!command.configTest && collectLicenses()
+		],
 		// fsevents is a dependency of chokidar that cannot be bundled as it contains binary code
 		external: [
 			'assert',
@@ -116,7 +121,13 @@ export default command => {
 		...commonJSBuild,
 		input: { 'rollup.js': 'src/node-entry.ts' },
 		plugins: [...nodePlugins, emitModulePackageFile(), collectLicenses()],
-		output: { ...commonJSBuild.output, dir: 'dist/es', format: 'es', sourcemap: false }
+		output: {
+			...commonJSBuild.output,
+			dir: 'dist/es',
+			format: 'es',
+			sourcemap: false,
+			minifyInternalExports: false
+		}
 	};
 
 	const browserBuilds = {

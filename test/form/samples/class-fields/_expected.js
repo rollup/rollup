@@ -1,6 +1,6 @@
-class Example {
+class Example extends SomeClass {
 	firstPublicField = 1;
-	secondPublicField = this.firstPublicField + 1;
+	secondPublicField = this.firstPublicField + super.someField;
 
 	#privateField = () => {
 	};
