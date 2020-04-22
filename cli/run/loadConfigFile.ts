@@ -83,7 +83,7 @@ async function getDefaultFromTranspiledConfigFile(
 
 async function loadConfigFromBundledFile(fileName: string, bundledCode: string) {
 	const extension = path.extname(fileName);
-	const defaultLoader = require.extensions[extension];
+	const defaultLoader = require.extensions[extension]!;
 	require.extensions[extension] = (module: NodeModule, filename: string) => {
 		if (filename === fileName) {
 			(module as NodeModuleWithCompile)._compile(bundledCode, filename);
