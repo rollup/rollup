@@ -5,9 +5,13 @@
 
 ### Bug Fixes
 * Prevent an infinite loop when creating separate manual chunks with circular dependencies (#3510)
+* Do not fail if "super" is used in the definition of a class field (#3511)
+* Throw if a plugin tries to emit a file with an absolute Windows path (#3509)
 
 ### Pull Requests
+* [#3509](https://github.com/rollup/rollup/pull/3509): Ban emitFile via absolute paths on Windows OS (@SASUKE40)
 * [#3510](https://github.com/rollup/rollup/pull/3510): Do not fail for circular imports between manual chunks (@lukastaegert)
+* [#3511](https://github.com/rollup/rollup/pull/3511): Support "super" in class fields (@lukastaegert)
 
 ## 2.7.1
 *2020-04-21*
