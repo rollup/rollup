@@ -16,6 +16,7 @@ export function isPlainPathFragment(name: string) {
 	return (
 		name[0] !== '/' &&
 		!(name[0] === '.' && (name[1] === '/' || name[1] === '.')) &&
-		sanitizeFileName(name) === name
+		sanitizeFileName(name) === name &&
+		!isAbsolute(name)
 	);
 }
