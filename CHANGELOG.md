@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.7.2
+*2020-04-22*
+
+### Bug Fixes
+* Prevent an infinite loop when creating separate manual chunks with circular dependencies (#3510)
+
+### Pull Requests
+* [#3510](https://github.com/rollup/rollup/pull/3510): Do not fail for circular imports between manual chunks (@lukastaegert)
+
 ## 2.7.1
 *2020-04-21*
 
