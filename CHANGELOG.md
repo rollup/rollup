@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.7.3
+*2020-04-27*
+
+### Bug Fixes
+* Do not access `__proto__` when running Rollup (#3518)
+
+### Pull Requests
+* [#3518](https://github.com/rollup/rollup/pull/3518): use acorn-class-fields and acorn-static-class-features from npm (@nitsky)
+
 ## 2.7.2
 *2020-04-22*
 
