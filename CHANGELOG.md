@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.7.4
+*2020-04-29*
+
+### Bug Fixes
+* Fix an issue where wrong variable names were used when preserving modules (#3521)
+
+### Pull Requests
+* [#3521](https://github.com/rollup/rollup/pull/3521): Fix and improve default export alias logic (@lukastaegert)
+
 ## 2.7.3
 *2020-04-27*
 
