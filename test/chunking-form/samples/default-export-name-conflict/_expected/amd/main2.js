@@ -1,5 +1,5 @@
-define(['./generated-module3'], function (module3) { 'use strict';
+define(['./generated-module1'], function (module1) { 'use strict';
 
-	console.log(module3.b, module3.b);
+	console.log(module1.firebase, module1.firebase);
 
 });

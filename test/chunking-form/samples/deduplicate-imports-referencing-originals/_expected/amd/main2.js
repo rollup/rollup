@@ -1,5 +1,5 @@
-define(['./generated-proxy'], function (proxy) { 'use strict';
+define(['./generated-foo'], function (foo) { 'use strict';
 
-	console.log(proxy.bar, proxy.bar);
+	console.log(foo.foo, foo.foo);
 
 });

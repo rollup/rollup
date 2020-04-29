@@ -1,5 +1,2 @@
 import path$1 from 'external';
-
-
-
-export default path$1;
+export { default } from 'external';

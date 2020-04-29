@@ -1,13 +1,13 @@
 System.register(['./generated-shared.js'], function (exports) {
 	'use strict';
-	var d;
+	var data;
 	return {
 		setters: [function (module) {
-			d = module.d;
+			data = module.d;
 		}],
 		execute: function () {
 
-			var main1 = exports('default', d.map(d => d + 1));
+			var main1 = exports('default', data.map(d => d + 1));
 
 		}
 	};

@@ -4,4 +4,4 @@ var other = require('../other.js');
 
 
 
-module.exports = other.__moduleExports;
+module.exports = other;

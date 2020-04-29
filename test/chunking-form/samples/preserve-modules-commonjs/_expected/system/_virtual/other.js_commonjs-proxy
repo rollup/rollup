@@ -3,11 +3,12 @@ System.register(['../other.js'], function (exports) {
 	var other;
 	return {
 		setters: [function (module) {
-			other = module.__moduleExports;
+			other = module.default;
+			exports('default', module.default);
 		}],
 		execute: function () {
 
-			exports('default', other);
+
 
 		}
 	};

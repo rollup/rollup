@@ -6,4 +6,4 @@ commonjsGlobal.data = [4, 5, 6];
 var shared = commonjsGlobal.data;
 
 exports.commonjsGlobal = commonjsGlobal;
-exports.d = shared;
+exports.shared = shared;

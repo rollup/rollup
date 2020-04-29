@@ -232,7 +232,7 @@ export default class Module {
 	private astContext!: AstContext;
 	private context: string;
 	private customTransformCache!: boolean;
-	private defaultExport: ExportDefaultVariable | null | undefined = null;
+	private defaultExport: Variable | null | undefined = null;
 	private esTreeAst!: acorn.Node;
 	private exportAllModules: (Module | ExternalModule)[] = [];
 	private exportNamesByVariable: Map<Variable, string[]> | null = null;
@@ -324,7 +324,7 @@ export default class Module {
 	getDefaultExport() {
 		if (this.defaultExport === null) {
 			this.defaultExport = undefined;
-			this.defaultExport = this.getVariableForExportName('default') as ExportDefaultVariable;
+			this.defaultExport = this.getVariableForExportName('default');
 		}
 		if (!this.defaultExport) {
 			return error({
@@ -341,7 +341,8 @@ export default class Module {
 		const relevantDependencies = new Set<Module | ExternalModule>();
 		for (const variable of this.imports) {
 			relevantDependencies.add(
-				variable instanceof SyntheticNamedExportVariable
+				variable instanceof SyntheticNamedExportVariable ||
+					variable instanceof ExportDefaultVariable
 					? variable.getOriginalVariable().module!
 					: variable.module!
 			);
@@ -350,7 +351,8 @@ export default class Module {
 			for (const exportName of [...this.getReexports(), ...this.getExports()]) {
 				const variable = this.getVariableForExportName(exportName);
 				relevantDependencies.add(
-					variable instanceof SyntheticNamedExportVariable
+					variable instanceof SyntheticNamedExportVariable ||
+						variable instanceof ExportDefaultVariable
 						? variable.getOriginalVariable().module!
 						: variable.module!
 				);
@@ -402,7 +404,10 @@ export default class Module {
 		}
 		const exportNamesByVariable: Map<Variable, string[]> = new Map();
 		for (const exportName of this.getAllExportNames()) {
-			const tracedVariable = this.getVariableForExportName(exportName);
+			let tracedVariable = this.getVariableForExportName(exportName);
+			if (tracedVariable instanceof ExportDefaultVariable) {
+				tracedVariable = tracedVariable.getOriginalVariable();
+			}
 			if (
 				!tracedVariable ||
 				!(tracedVariable.included || tracedVariable instanceof ExternalVariable)

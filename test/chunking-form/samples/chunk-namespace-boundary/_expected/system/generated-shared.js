@@ -6,8 +6,7 @@ System.register([], function (exports) {
                         var commonjsGlobal = exports('c', typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {});
 
                         commonjsGlobal.data = [4, 5, 6];
-                        var shared = commonjsGlobal.data;
-                        exports('d', shared);
+                        var shared = exports('s', commonjsGlobal.data);
 
                 }
         };

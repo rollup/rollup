@@ -4,4 +4,5 @@ var other = {
 	value: value
 };
 
+export default other;
 export { other as __moduleExports, value };

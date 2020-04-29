@@ -4,10 +4,11 @@ System.register(['external'], function (exports) {
 	return {
 		setters: [function (module) {
 			path = module.default;
+			exports('default', module.default);
 		}],
 		execute: function () {
 
-			exports('default', path);
+
 
 		}
 	};

@@ -3,9 +3,7 @@ System.register([], function (exports) {
 	return {
 		execute: function () {
 
-			const foo = exports('f', {});
-
-			exports('b', foo);
+			const firebase = exports('f', {});
 
 		}
 	};

@@ -3,8 +3,8 @@ System.register([], function (exports) {
 	return {
 		execute: function () {
 
-			var x = 43;
-			exports('x', x);console.log('dep2');
+			var x = exports('x', 43);
+			console.log('dep2');
 
 		}
 	};

@@ -1,15 +1,15 @@
 System.register(['external', './commonjs.js'], function () {
 	'use strict';
-	var external, value;
+	var external, commonjs;
 	return {
 		setters: [function (module) {
 			external = module.default;
 		}, function (module) {
-			value = module.default;
+			commonjs = module.default;
 		}],
 		execute: function () {
 
-			console.log(value, external);
+			console.log(commonjs, external);
 
 		}
 	};

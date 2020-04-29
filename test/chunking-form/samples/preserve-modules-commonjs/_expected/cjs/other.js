@@ -9,4 +9,5 @@ var other = {
 };
 
 exports.__moduleExports = other;
+exports.default = other;
 exports.value = value;

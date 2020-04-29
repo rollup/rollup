@@ -1,5 +1,5 @@
-import { d } from './generated-shared.js';
+import { s as shared } from './generated-shared.js';
 
-var main2 = d.map(d => d + 2);
+var main2 = shared.map(d => d + 2);
 
 export default main2;

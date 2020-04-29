@@ -1,5 +1,4 @@
-import proxyPath from 'external';
-import './proxy.js';
+import path$1 from 'external';
 
-console.log(proxyPath.normalize('foo\\bar'));
-console.log(proxyPath.normalize('foo\\bar'));
+console.log(path$1.normalize('foo\\bar'));
+console.log(path$1.normalize('foo\\bar'));

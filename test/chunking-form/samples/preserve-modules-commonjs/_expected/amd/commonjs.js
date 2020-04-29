@@ -1,10 +1,10 @@
-define(['exports', 'external', './_virtual/_external_commonjs-external', './_virtual/other.js_commonjs-proxy'], function (exports, external, _external_commonjsExternal, other) { 'use strict';
+define(['exports', 'external', './other'], function (exports, external, other) { 'use strict';
 
 	external = external && Object.prototype.hasOwnProperty.call(external, 'default') ? external['default'] : external;
 
-	const { value } = other;
+	const { value } = other.default;
 
-	console.log(_external_commonjsExternal, value);
+	console.log(external, value);
 
 	var commonjs = 42;
 

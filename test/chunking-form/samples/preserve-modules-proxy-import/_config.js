@@ -1,5 +1,4 @@
 module.exports = {
-	solo: true,
 	description:
 		'correctly resolves imports via a proxy module as direct imports when preserving modules',
 	options: {

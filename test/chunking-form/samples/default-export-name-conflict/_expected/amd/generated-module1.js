@@ -2,7 +2,6 @@ define(['exports'], function (exports) { 'use strict';
 
 	const firebase = {};
 
-	exports.a = firebase;
-	exports.b = firebase;
+	exports.firebase = firebase;
 
 });

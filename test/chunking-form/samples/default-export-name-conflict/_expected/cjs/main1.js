@@ -1,5 +1,5 @@
 'use strict';
 
-var module3 = require('./generated-module3.js');
+var module1 = require('./generated-module1.js');
 
-console.log(module3.b, module3.b);
+console.log(module1.firebase, module1.firebase);

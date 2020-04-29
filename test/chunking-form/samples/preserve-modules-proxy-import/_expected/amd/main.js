@@ -1,4 +1,4 @@
-define(['external', './proxy'], function (path, proxy) { 'use strict';
+define(['external'], function (path) { 'use strict';
 
 	path = path && Object.prototype.hasOwnProperty.call(path, 'default') ? path['default'] : path;
 
