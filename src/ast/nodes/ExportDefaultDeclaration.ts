@@ -23,10 +23,18 @@ function getDeclarationStart(code: string, start: number) {
 	return start;
 }
 
-function getIdInsertPosition(code: string, declarationKeyword: string, start: number) {
+function getIdInsertPosition(
+	code: string,
+	declarationKeyword: string,
+	endMarker: string,
+	start: number
+) {
 	const declarationEnd =
 		findFirstOccurrenceOutsideComment(code, declarationKeyword, start) + declarationKeyword.length;
-	code = code.slice(declarationEnd, findFirstOccurrenceOutsideComment(code, '{', declarationEnd));
+	code = code.slice(
+		declarationEnd,
+		findFirstOccurrenceOutsideComment(code, endMarker, declarationEnd)
+	);
 	const generatorStarPos = findFirstOccurrenceOutsideComment(code, '*');
 	if (generatorStarPos === -1) {
 		return declarationEnd;
@@ -71,6 +79,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 				code,
 				declarationStart,
 				'function',
+				'(',
 				this.declaration.id === null,
 				options
 			);
@@ -79,6 +88,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 				code,
 				declarationStart,
 				'class',
+				'{',
 				this.declaration.id === null,
 				options
 			);
@@ -106,6 +116,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		code: MagicString,
 		declarationStart: number,
 		declarationKeyword: string,
+		endMarker: string,
 		needsId: boolean,
 		options: RenderOptions
 	) {
@@ -115,7 +126,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 
 		if (needsId) {
 			code.appendLeft(
-				getIdInsertPosition(code.original, declarationKeyword, declarationStart),
+				getIdInsertPosition(code.original, declarationKeyword, endMarker, declarationStart),
 				` ${name}`
 			);
 		}
