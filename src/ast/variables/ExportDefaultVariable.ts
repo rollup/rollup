@@ -73,22 +73,4 @@ export default class ExportDefaultVariable extends LocalVariable {
 		}
 		return this.originalVariable;
 	}
-
-	setRenderNames(baseName: string | null, name: string | null) {
-		const original = this.getOriginalVariable();
-		if (original === this) {
-			super.setRenderNames(baseName, name);
-		} else {
-			original.setRenderNames(baseName, name);
-		}
-	}
-
-	setSafeName(name: string | null) {
-		const original = this.getOriginalVariable();
-		if (original === this) {
-			super.setSafeName(name);
-		} else {
-			original.setSafeName(name);
-		}
-	}
 }
