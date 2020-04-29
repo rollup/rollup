@@ -339,23 +339,23 @@ export default class Module {
 	getDependenciesToBeIncluded(): Set<Module | ExternalModule> {
 		if (this.relevantDependencies) return this.relevantDependencies;
 		const relevantDependencies = new Set<Module | ExternalModule>();
-		for (const variable of this.imports) {
-			relevantDependencies.add(
-				variable instanceof SyntheticNamedExportVariable ||
-					variable instanceof ExportDefaultVariable
-					? variable.getOriginalVariable().module!
-					: variable.module!
-			);
+		for (let variable of this.imports) {
+			if (variable instanceof SyntheticNamedExportVariable) {
+				variable = variable.getBaseVariable();
+			} else if (variable instanceof ExportDefaultVariable) {
+				variable = variable.getOriginalVariable();
+			}
+			relevantDependencies.add(variable.module!);
 		}
 		if (this.isEntryPoint || this.dynamicallyImportedBy.length > 0 || this.graph.preserveModules) {
 			for (const exportName of [...this.getReexports(), ...this.getExports()]) {
-				const variable = this.getVariableForExportName(exportName);
-				relevantDependencies.add(
-					variable instanceof SyntheticNamedExportVariable ||
-						variable instanceof ExportDefaultVariable
-						? variable.getOriginalVariable().module!
-						: variable.module!
-				);
+				let variable = this.getVariableForExportName(exportName);
+				if (variable instanceof SyntheticNamedExportVariable) {
+					variable = variable.getBaseVariable();
+				} else if (variable instanceof ExportDefaultVariable) {
+					variable = variable.getOriginalVariable();
+				}
+				relevantDependencies.add(variable.module!);
 			}
 		}
 		if (this.graph.treeshakingOptions) {

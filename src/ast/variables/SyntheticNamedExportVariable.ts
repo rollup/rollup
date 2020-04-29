@@ -13,16 +13,16 @@ export default class SyntheticNamedExportVariable extends Variable {
 		this.defaultVariable = defaultVariable;
 	}
 
+	getBaseVariable(): Variable {
+		return this.defaultVariable instanceof SyntheticNamedExportVariable
+			? this.defaultVariable.getBaseVariable()
+			: this.defaultVariable;
+	}
+
 	getName(): string {
 		const name = this.name;
 		const renderBaseName = this.defaultVariable.getName();
 		return `${renderBaseName}${getPropertyAccess(name)}`;
-	}
-
-	getOriginalVariable(): Variable {
-		return this.defaultVariable instanceof SyntheticNamedExportVariable
-			? this.defaultVariable.getOriginalVariable()
-			: this.defaultVariable;
 	}
 
 	include() {

@@ -1005,10 +1005,9 @@ export default class Chunk {
 
 	private setUpChunkImportsAndExportsForModule(module: Module) {
 		for (let variable of module.imports) {
-			if (
-				variable instanceof SyntheticNamedExportVariable ||
-				variable instanceof ExportDefaultVariable
-			) {
+			if (variable instanceof SyntheticNamedExportVariable) {
+				variable = variable.getBaseVariable();
+			} else if (variable instanceof ExportDefaultVariable) {
 				variable = variable.getOriginalVariable();
 			}
 			if ((variable.module as Module).chunk !== this) {
@@ -1030,7 +1029,7 @@ export default class Chunk {
 				this.exports.add(exportedVariable);
 				const isSynthetic = exportedVariable instanceof SyntheticNamedExportVariable;
 				const importedVariable = isSynthetic
-					? (exportedVariable as SyntheticNamedExportVariable).getOriginalVariable()
+					? (exportedVariable as SyntheticNamedExportVariable).getBaseVariable()
 					: exportedVariable;
 				const exportingModule = importedVariable.module;
 				if (
