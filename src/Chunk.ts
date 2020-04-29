@@ -769,15 +769,13 @@ export default class Chunk {
 		for (const dep of this.dependencies) {
 			const imports: ImportSpecifier[] = [];
 			for (const variable of this.imports) {
-				const renderedVariable =
-					variable instanceof ExportDefaultVariable ? variable.getOriginalVariable() : variable;
 				if (
 					(variable.module instanceof Module
 						? variable.module.chunk === dep
 						: variable.module === dep) &&
-					!renderedImports.has(renderedVariable)
+					!renderedImports.has(variable)
 				) {
-					renderedImports.add(renderedVariable);
+					renderedImports.add(variable);
 					imports.push({
 						imported:
 							variable.module instanceof ExternalModule
@@ -1007,10 +1005,12 @@ export default class Chunk {
 
 	private setUpChunkImportsAndExportsForModule(module: Module) {
 		for (let variable of module.imports) {
+			if (variable instanceof SyntheticNamedExportVariable) {
+				variable = variable.getBaseVariable();
+			} else if (variable instanceof ExportDefaultVariable) {
+				variable = variable.getOriginalVariable();
+			}
 			if ((variable.module as Module).chunk !== this) {
-				if (variable instanceof SyntheticNamedExportVariable) {
-					variable = variable.getOriginalVariable();
-				}
 				this.imports.add(variable);
 				if (
 					!(variable instanceof NamespaceVariable && this.graph.preserveModules) &&
@@ -1029,7 +1029,7 @@ export default class Chunk {
 				this.exports.add(exportedVariable);
 				const isSynthetic = exportedVariable instanceof SyntheticNamedExportVariable;
 				const importedVariable = isSynthetic
-					? (exportedVariable as SyntheticNamedExportVariable).getOriginalVariable()
+					? (exportedVariable as SyntheticNamedExportVariable).getBaseVariable()
 					: exportedVariable;
 				const exportingModule = importedVariable.module;
 				if (

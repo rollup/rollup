@@ -2,6 +2,6 @@ define(['../other'], function (other) { 'use strict';
 
 
 
-	return other.__moduleExports;
+	return other;
 
 });

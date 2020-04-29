@@ -2,13 +2,14 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-require('external');
-var _external_commonjsExternal = require('./_virtual/_external_commonjs-external');
-var other = require('./_virtual/other.js_commonjs-proxy');
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-const { value } = other;
+var external = _interopDefault(require('external'));
+var other = require('./other.js');
 
-console.log(_external_commonjsExternal, value);
+const { value } = other.default;
+
+console.log(external, value);
 
 var commonjs = 42;
 

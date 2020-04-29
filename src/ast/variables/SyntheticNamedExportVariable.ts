@@ -1,27 +1,28 @@
 import Module, { AstContext } from '../../Module';
-import ExportDefaultVariable from './ExportDefaultVariable';
 import Variable from './Variable';
 
 export default class SyntheticNamedExportVariable extends Variable {
 	context: AstContext;
-	defaultVariable: ExportDefaultVariable;
+	defaultVariable: Variable;
 	module: Module;
 
-	constructor(context: AstContext, name: string, defaultVariable: ExportDefaultVariable) {
+	constructor(context: AstContext, name: string, defaultVariable: Variable) {
 		super(name);
 		this.context = context;
 		this.module = context.module;
 		this.defaultVariable = defaultVariable;
 	}
 
+	getBaseVariable(): Variable {
+		return this.defaultVariable instanceof SyntheticNamedExportVariable
+			? this.defaultVariable.getBaseVariable()
+			: this.defaultVariable;
+	}
+
 	getName(): string {
 		const name = this.name;
 		const renderBaseName = this.defaultVariable.getName();
 		return `${renderBaseName}${getPropertyAccess(name)}`;
-	}
-
-	getOriginalVariable(): Variable {
-		return this.defaultVariable.getOriginalVariable();
 	}
 
 	include() {

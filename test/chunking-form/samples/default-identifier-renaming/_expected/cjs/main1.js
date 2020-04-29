@@ -2,6 +2,6 @@
 
 var shared = require('./generated-shared.js');
 
-var main1 = shared.d.map(d => d + 1);
+var main1 = shared.data.map(d => d + 1);
 
 module.exports = main1;

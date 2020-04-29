@@ -17,13 +17,13 @@ import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 const WHITESPACE = /\s/;
 
 // The header ends at the first non-white-space after "default"
-function getDeclarationStart(code: string, start = 0) {
+function getDeclarationStart(code: string, start: number) {
 	start = findFirstOccurrenceOutsideComment(code, 'default', start) + 7;
 	while (WHITESPACE.test(code[start])) start++;
 	return start;
 }
 
-function getIdInsertPosition(code: string, declarationKeyword: string, start = 0) {
+function getIdInsertPosition(code: string, declarationKeyword: string, start: number) {
 	const declarationEnd =
 		findFirstOccurrenceOutsideComment(code, declarationKeyword, start) + declarationKeyword.length;
 	code = code.slice(declarationEnd, findFirstOccurrenceOutsideComment(code, '{', declarationEnd));
@@ -84,15 +84,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			);
 		} else if (this.variable.getOriginalVariable() !== this.variable) {
 			// Remove altogether to prevent re-declaring the same variable
-			if (options.format === 'system' && this.variable.exportName) {
-				code.overwrite(
-					start,
-					end,
-					`exports('${this.variable.exportName}', ${this.variable.getName()});`
-				);
-			} else {
-				treeshakeNode(this, code, start, end);
-			}
+			treeshakeNode(this, code, start, end);
 			return;
 		} else if (this.variable.included) {
 			this.renderVariableDeclaration(code, declarationStart, options);

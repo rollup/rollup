@@ -3,8 +3,7 @@ System.register('myBundle', [], function (exports) {
 	return {
 		execute: function () {
 
-			var bar = 1;
-			exports('default', bar);
+			var bar = exports('default', 1);
 
 		}
 	};

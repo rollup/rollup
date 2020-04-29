@@ -1,3 +1,3 @@
-import { f as bar } from './generated-proxy.js';
+import { f as foo } from './generated-foo.js';
 
-console.log(bar, bar);
+console.log(foo, foo);

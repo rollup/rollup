@@ -1,5 +1,5 @@
 'use strict';
 
-var proxy = require('./generated-proxy.js');
+var foo = require('./generated-foo.js');
 
-console.log(proxy.bar, proxy.bar);
+console.log(foo.foo, foo.foo);

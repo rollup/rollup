@@ -1,13 +1,13 @@
-System.register(['./generated-proxy.js'], function () {
+System.register(['./generated-foo.js'], function () {
 	'use strict';
-	var bar;
+	var foo;
 	return {
 		setters: [function (module) {
-			bar = module.f;
+			foo = module.f;
 		}],
 		execute: function () {
 
-			console.log(bar, bar);
+			console.log(foo, foo);
 
 		}
 	};

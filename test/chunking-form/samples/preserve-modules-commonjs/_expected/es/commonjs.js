@@ -1,8 +1,7 @@
-import 'external';
-import external$1 from './_virtual/_external_commonjs-external';
-import require$$0 from './_virtual/other.js_commonjs-proxy';
+import external$1 from 'external';
+import other$1 from './other.js';
 
-const { value } = require$$0;
+const { value } = other$1;
 
 console.log(external$1, value);
 

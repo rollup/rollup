@@ -1,3 +1,3 @@
-import { a as b } from './generated-module3.js';
+import { f as firebase } from './generated-module1.js';
 
-console.log(b, b);
+console.log(firebase, firebase);
