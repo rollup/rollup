@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.7.5
+*2020-04-29*
+
+### Bug Fixes
+* Prevent infinite loop when default values of function parameters in a default export contain a slash (#3522)
+
+### Pull Requests
+* [#3522](https://github.com/rollup/rollup/pull/3522): Avoid infinite loop when finding position for id insertion in default export (@lukastaegert)
+
 ## 2.7.4
 *2020-04-29*
 
