@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.7.6
+*2020-04-30*
+
+### Bug Fixes
+* Fix a type issue when a default export references a global variable (#3526)
+
+### Pull Requests
+* [#3526](https://github.com/rollup/rollup/pull/3526): Handles default exporting global variables (@lukastaegert)
+
 ## 2.7.5
 *2020-04-29*
 
