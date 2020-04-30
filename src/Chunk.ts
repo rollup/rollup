@@ -1010,7 +1010,7 @@ export default class Chunk {
 			} else if (variable instanceof ExportDefaultVariable) {
 				variable = variable.getOriginalVariable();
 			}
-			if ((variable.module as Module).chunk !== this) {
+			if (variable.module && (variable.module as Module).chunk !== this) {
 				this.imports.add(variable);
 				if (
 					!(variable instanceof NamespaceVariable && this.graph.preserveModules) &&
