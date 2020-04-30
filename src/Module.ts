@@ -345,7 +345,9 @@ export default class Module {
 			} else if (variable instanceof ExportDefaultVariable) {
 				variable = variable.getOriginalVariable();
 			}
-			relevantDependencies.add(variable.module!);
+			if (variable.module) {
+				relevantDependencies.add(variable.module);
+			}
 		}
 		if (this.isEntryPoint || this.dynamicallyImportedBy.length > 0 || this.graph.preserveModules) {
 			for (const exportName of [...this.getReexports(), ...this.getExports()]) {
@@ -355,7 +357,9 @@ export default class Module {
 				} else if (variable instanceof ExportDefaultVariable) {
 					variable = variable.getOriginalVariable();
 				}
-				relevantDependencies.add(variable.module!);
+				if (variable.module) {
+					relevantDependencies.add(variable.module);
+				}
 			}
 		}
 		if (this.graph.treeshakingOptions) {
