@@ -63,10 +63,15 @@ function loadAndRegisterPlugin(inputOptions: InputOptions, pluginText: string) {
 			}
 		}
 	}
-	if (typeof plugin === 'object' && pluginText in plugin) {
-		// some plugins do not use `export default` for their entry point.
-		// attempt to use the plugin name as the named import name.
-		plugin = plugin[pluginText];
+	if (typeof plugin === 'object') {
+		// some plugins do not use `module.exports` for their entry point.
+		if ('default' in plugin) {
+			// attempt to use the named default export.
+			plugin = plugin.default;
+		} else if (pluginText in plugin) {
+			// attempt to use the plugin name as the named import name.
+			plugin = plugin[pluginText];
+		}
 	}
 	inputOptions.plugins!.push(
 		typeof plugin === 'function' ? plugin.call(plugin, pluginArg) : plugin
