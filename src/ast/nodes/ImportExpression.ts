@@ -66,28 +66,27 @@ export default class Import extends NodeBase {
 		code.overwrite(this.source.start, this.source.end, resolution);
 	}
 
-	setResolution(
+	setExternalResolution(
 		exportMode: 'none' | 'named' | 'default' | 'auto',
-		resolution: Module | ExternalModule | string | null,
-		inlineNamespace: NamespaceVariable | false = false
+		resolution: Module | ExternalModule | string | null
 	): void {
 		this.exportMode = exportMode;
 		this.resolution = resolution;
-		if (inlineNamespace) {
-			this.inlineNamespace = inlineNamespace;
-		} else {
+		this.scope.addAccessedGlobalsByFormat({
+			amd: ['require'],
+			cjs: ['require'],
+			system: ['module']
+		});
+		if (exportMode === 'auto') {
 			this.scope.addAccessedGlobalsByFormat({
-				amd: ['require'],
-				cjs: ['require'],
-				system: ['module']
+				amd: [INTEROP_NAMESPACE_VARIABLE],
+				cjs: [INTEROP_NAMESPACE_VARIABLE]
 			});
-			if (exportMode === 'auto') {
-				this.scope.addAccessedGlobalsByFormat({
-					amd: [INTEROP_NAMESPACE_VARIABLE],
-					cjs: [INTEROP_NAMESPACE_VARIABLE]
-				});
-			}
 		}
+	}
+
+	setInternalResolution(inlineNamespace: NamespaceVariable) {
+		this.inlineNamespace = inlineNamespace;
 	}
 
 	private getDynamicImportMechanism(options: RenderOptions): DynamicImportMechanism | null {

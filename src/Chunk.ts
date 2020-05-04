@@ -913,14 +913,8 @@ export default class Chunk {
 	private inlineChunkDependencies(chunk: Chunk) {
 		for (const dep of chunk.dependencies) {
 			if (this.dependencies.has(dep)) continue;
-			if (dep instanceof ExternalModule) {
-				this.dependencies.add(dep);
-			} else {
-				// At the moment, circular dependencies between chunks are not possible; this will
-				// change if we ever add logic to ensure correct execution order or open up the
-				// chunking to plugins
-				// if (dep === this) continue;
-				this.dependencies.add(dep);
+			this.dependencies.add(dep);
+			if (dep instanceof Chunk) {
 				this.inlineChunkDependencies(dep);
 			}
 		}
@@ -932,13 +926,12 @@ export default class Chunk {
 				if (!node.included) continue;
 				if (resolution instanceof Module) {
 					if (resolution.chunk === this) {
-						// TODO Lukas this could be a boolean flag
-						node.setResolution('named', resolution, resolution.namespace);
+						node.setInternalResolution(resolution.namespace);
 					} else {
-						node.setResolution(resolution.chunk!.exportMode, resolution);
+						node.setExternalResolution(resolution.chunk!.exportMode, resolution);
 					}
 				} else {
-					node.setResolution('auto', resolution);
+					node.setExternalResolution('auto', resolution);
 				}
 			}
 		}
