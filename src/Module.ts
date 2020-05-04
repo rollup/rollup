@@ -214,6 +214,7 @@ export default class Module {
 	isExecuted = false;
 	isUserDefinedEntryPoint = false;
 	manualChunkAlias: string = null as any;
+	namespace!: NamespaceVariable;
 	originalCode!: string;
 	originalSourcemap!: ExistingDecodedSourceMap | null;
 	preserveSignature: PreserveEntrySignaturesOption = this.graph.preserveEntrySignatures ?? 'strict';
@@ -238,7 +239,6 @@ export default class Module {
 	private exportNamesByVariable: Map<Variable, string[]> | null = null;
 	private exportShimVariable: ExportShimVariable = new ExportShimVariable(this);
 	private magicString!: MagicString;
-	private namespaceVariable: NamespaceVariable | null = null;
 	private relevantDependencies: Set<Module | ExternalModule> | null = null;
 	private syntheticExports = new Map<string, SyntheticNamedExportVariable>();
 	private transformDependencies: string[] = [];
@@ -432,14 +432,6 @@ export default class Module {
 		return Object.keys(this.exports);
 	}
 
-	getOrCreateNamespace(): NamespaceVariable {
-		if (!this.namespaceVariable) {
-			this.namespaceVariable = new NamespaceVariable(this.astContext, this.syntheticNamedExports);
-			this.namespaceVariable.initialise();
-		}
-		return this.namespaceVariable;
-	}
-
 	getReexports(): string[] {
 		if (this.transitiveReexports) {
 			return this.transitiveReexports;
@@ -481,7 +473,7 @@ export default class Module {
 	): Variable {
 		if (name[0] === '*') {
 			if (name.length === 1) {
-				return this.getOrCreateNamespace();
+				return this.namespace;
 			} else {
 				// export * from 'external'
 				const module = this.graph.moduleById.get(name.slice(1)) as ExternalModule;
@@ -593,7 +585,7 @@ export default class Module {
 	}
 
 	isIncluded() {
-		return this.ast.included || (this.namespaceVariable && this.namespaceVariable.included);
+		return this.ast.included || this.namespace.included;
 	}
 
 	linkDependencies() {
@@ -734,6 +726,7 @@ export default class Module {
 		};
 
 		this.scope = new ModuleScope(this.graph.scope, this.astContext);
+		this.namespace = new NamespaceVariable(this.astContext, this.syntheticNamedExports);
 		this.ast = new Program(
 			this.esTreeAst,
 			{ type: 'Module', context: this.astContext },
@@ -773,7 +766,7 @@ export default class Module {
 			const otherModule = importDeclaration.module;
 
 			if (otherModule instanceof Module && importDeclaration.name === '*') {
-				return otherModule.getOrCreateNamespace();
+				return otherModule.namespace;
 			}
 
 			const declaration = otherModule.getVariableForExportName(importDeclaration.name);

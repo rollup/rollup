@@ -151,7 +151,7 @@ function deconflictTopLevelVariables(usedNames: Set<string>, modules: Module[]) 
 				variable.setRenderNames(null, getSafeName(variable.name, usedNames));
 			}
 		}
-		const namespace = module.getOrCreateNamespace();
+		const namespace = module.namespace;
 		if (namespace.included) {
 			namespace.setRenderNames(null, getSafeName(namespace.name, usedNames));
 		}

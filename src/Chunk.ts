@@ -465,7 +465,7 @@ export default class Chunk {
 					magicString.addSource(source);
 					this.usedModules.push(module);
 				}
-				const namespace = module.getOrCreateNamespace();
+				const namespace = module.namespace;
 				if (namespace.included && !this.graph.preserveModules) {
 					const rendered = namespace.renderBlock(renderOptions);
 					if (namespace.renderFirst()) hoistedSource += n + rendered;
@@ -932,8 +932,8 @@ export default class Chunk {
 				if (!node.included) continue;
 				if (resolution instanceof Module) {
 					if (resolution.chunk === this) {
-						const namespace = resolution.getOrCreateNamespace();
-						node.setResolution('named', resolution, namespace);
+						// TODO Lukas this could be a boolean flag
+						node.setResolution('named', resolution, resolution.namespace);
 					} else {
 						node.setResolution(resolution.chunk!.exportMode, resolution);
 					}
@@ -1045,7 +1045,7 @@ export default class Chunk {
 				}
 			}
 		}
-		if (module.getOrCreateNamespace().included) {
+		if (module.namespace.included) {
 			for (const reexportName of Object.keys(module.reexportDescriptions)) {
 				const reexport = module.reexportDescriptions[reexportName];
 				const variable = reexport.module.getVariableForExportName(reexport.localName);
@@ -1057,7 +1057,7 @@ export default class Chunk {
 		}
 		for (const { node, resolution } of module.dynamicImports) {
 			if (node.included && resolution instanceof Module && resolution.chunk === this)
-				resolution.getOrCreateNamespace().include();
+				resolution.namespace.include();
 		}
 	}
 }
