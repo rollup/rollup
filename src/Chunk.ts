@@ -128,6 +128,7 @@ export default class Chunk {
 		}
 		chunk.dependencies.add(facadedModule.chunk!);
 		chunk.facadeModule = facadedModule;
+		chunk.strictFacade = true;
 		return chunk;
 	}
 
@@ -166,6 +167,7 @@ export default class Chunk {
 	private renderedModuleSources = new Map<Module, MagicString>();
 	private renderedSource: MagicStringBundle | null = null;
 	private sortedExportNames: string[] | null = null;
+	private strictFacade = false;
 
 	constructor(graph: Graph, orderedModules: Module[]) {
 		this.graph = graph;
@@ -241,8 +243,7 @@ export default class Chunk {
 		const remainingExports = new Set(this.exports);
 		if (
 			this.facadeModule !== null &&
-			(this.facadeModule.preserveSignature !== false ||
-				this.facadeModule.dynamicallyImportedBy.some(importer => importer.chunk !== this))
+			(this.facadeModule.preserveSignature !== false || this.strictFacade)
 		) {
 			const exportNamesByVariable = this.facadeModule.getExportNamesByVariable();
 			for (const [variable, exportNames] of exportNamesByVariable) {
@@ -263,6 +264,8 @@ export default class Chunk {
 		}
 	}
 
+	// TODO Lukas for internal namespaces, we only need Promise.resolve if it is not hoisted but appears later
+	// TODO Lukas for external CJS namespaces, we should use Promise.resolve to maintain execution order, but test first
 	generateFacades(): Chunk[] {
 		const facades: Chunk[] = [];
 		const dynamicEntryModules = this.dynamicEntryModules.filter(module =>
@@ -281,17 +284,16 @@ export default class Chunk {
 			if (requiredFacades.length === 0) {
 				requiredFacades.push({});
 			}
-			// TODO Lukas merge ifs
-			if (!this.facadeModule) {
-				if (
-					this.graph.preserveModules ||
-					(module.preserveSignature !== 'strict' && !module.dynamicallyImportedBy.length) ||
-					this.canModuleBeFacade(module, exposedNamespaces)
-				) {
-					this.facadeModule = module;
-					module.facadeChunk = this;
-					this.assignFacadeName(requiredFacades.shift()!, module);
-				}
+			if (
+				!this.facadeModule &&
+				(this.graph.preserveModules ||
+					module.preserveSignature !== 'strict' ||
+					this.canModuleBeFacade(module, exposedNamespaces))
+			) {
+				this.facadeModule = module;
+				module.facadeChunk = this;
+				this.strictFacade = module.preserveSignature === 'strict';
+				this.assignFacadeName(requiredFacades.shift()!, module);
 			}
 
 			for (const facadeName of requiredFacades) {
@@ -302,9 +304,15 @@ export default class Chunk {
 			if (!this.facadeModule && this.canModuleBeFacade(module, exposedNamespaces)) {
 				this.facadeModule = module;
 				module.facadeChunk = this;
+				this.strictFacade = true;
 				this.assignFacadeName({}, module);
-			}
-			if (this.facadeModule !== module) {
+			} else if (
+				this.facadeModule === module &&
+				!this.strictFacade &&
+				this.canModuleBeFacade(module, exposedNamespaces)
+			) {
+				this.strictFacade = true;
+			} else if (!(module.facadeChunk && module.facadeChunk.strictFacade)) {
 				module.namespace.include();
 				this.exports.add(module.namespace);
 			}
@@ -750,7 +758,7 @@ export default class Chunk {
 					code,
 					renderedResolution,
 					resolution instanceof Module &&
-						!resolution.facadeChunk &&
+						!(resolution.facadeChunk && resolution.facadeChunk.strictFacade) &&
 						resolution.namespace.exportName!,
 					options
 				);
