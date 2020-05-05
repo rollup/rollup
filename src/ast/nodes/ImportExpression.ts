@@ -1,6 +1,7 @@
 import MagicString from 'magic-string';
 import ExternalModule from '../../ExternalModule';
 import Module from '../../Module';
+import { OutputOptions } from '../../rollup/types';
 import { findFirstOccurrenceOutsideComment, RenderOptions } from '../../utils/renderHelpers';
 import { INTEROP_NAMESPACE_VARIABLE } from '../../utils/variableNames';
 import { InclusionContext } from '../ExecutionContext';
@@ -65,12 +66,17 @@ export default class Import extends NodeBase {
 	renderFinalResolution(
 		code: MagicString,
 		resolution: string,
-		namespaceExportName: string | false
+		namespaceExportName: string | false,
+		options: OutputOptions
 	) {
 		code.overwrite(this.source.start, this.source.end, resolution);
 		if (namespaceExportName) {
-			// TODO Lukas consider compact mode
-			code.appendLeft(this.end, `.then(function (n) { return n.${namespaceExportName}; })`);
+			const _ = options.compact ? '' : ' ';
+			const s = options.compact ? '' : ';';
+			code.appendLeft(
+				this.end,
+				`.then(function${_}(n)${_}{${_}return n.${namespaceExportName}${s}${_}})`
+			);
 		}
 	}
 

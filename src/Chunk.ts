@@ -573,7 +573,7 @@ export default class Chunk {
 			renderedDependency.id = this.getRelativePath(depId, false);
 		}
 
-		this.finaliseDynamicImports(format === 'amd');
+		this.finaliseDynamicImports(options);
 		this.finaliseImportMetas(format, outputPluginDriver);
 
 		const hasExports =
@@ -722,7 +722,8 @@ export default class Chunk {
 		return hash.digest('hex').substr(0, 8);
 	}
 
-	private finaliseDynamicImports(stripKnownJsExtensions: boolean) {
+	private finaliseDynamicImports(options: OutputOptions) {
+		const stripKnownJsExtensions = options.format === 'amd';
 		for (const [module, code] of this.renderedModuleSources) {
 			for (const { node, resolution } of module.dynamicImports) {
 				if (
@@ -750,7 +751,8 @@ export default class Chunk {
 					renderedResolution,
 					resolution instanceof Module &&
 						!resolution.facadeChunk &&
-						resolution.namespace.exportName!
+						resolution.namespace.exportName!,
+					options
 				);
 			}
 		}
