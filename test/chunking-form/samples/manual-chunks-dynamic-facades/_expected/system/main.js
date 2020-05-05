@@ -1,13 +1,13 @@
-System.register(['./generated-dynamic1.js'], function (exports, module) {
+System.register(['./generated-dynamic.js'], function (exports, module) {
 	'use strict';
 	var DEP;
 	return {
 		setters: [function (module) {
-			DEP = module.DEP;
+			DEP = module.D;
 		}],
 		execute: function () {
 
-			Promise.all([module.import('./generated-dynamic1.js'), module.import('./generated-dynamic2.js'), module.import('./generated-dynamic3.js')]).then(
+			Promise.all([module.import('./generated-dynamic.js').then(function (n) { return n.b; }), module.import('./generated-dynamic.js').then(function (n) { return n.d; }), module.import('./generated-dynamic.js').then(function (n) { return n.a; })]).then(
 				results => console.log(results, DEP)
 			);
 

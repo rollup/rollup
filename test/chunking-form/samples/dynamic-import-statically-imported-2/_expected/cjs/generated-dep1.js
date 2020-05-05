@@ -16,4 +16,5 @@ var dep1 = /*#__PURE__*/Object.freeze({
 });
 
 exports.bar = bar;
+exports.dep1 = dep1;
 exports.foo = foo;

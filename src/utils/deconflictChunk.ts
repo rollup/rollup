@@ -125,6 +125,7 @@ function deconflictImportsOther(
 			}
 		} else {
 			const chunk = module!.chunk!;
+			// TODO Lukas remove isNamespace
 			if (chunk.exportMode === 'default' || (preserveModules && variable.isNamespace)) {
 				variable.setRenderNames(null, chunk.variableName);
 			} else {

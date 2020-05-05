@@ -62,8 +62,16 @@ export default class Import extends NodeBase {
 		this.source.render(code, options);
 	}
 
-	renderFinalResolution(code: MagicString, resolution: string) {
+	renderFinalResolution(
+		code: MagicString,
+		resolution: string,
+		namespaceExportName: string | false
+	) {
 		code.overwrite(this.source.start, this.source.end, resolution);
+		if (namespaceExportName) {
+			// TODO Lukas consider compact mode
+			code.appendLeft(this.end, `.then(function (n) { return n.${namespaceExportName}; })`);
+		}
 	}
 
 	setExternalResolution(
