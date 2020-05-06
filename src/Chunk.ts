@@ -264,8 +264,6 @@ export default class Chunk {
 		}
 	}
 
-	// TODO Lukas for internal namespaces, we only need Promise.resolve if it is not hoisted but appears later
-	// TODO Lukas for external CJS namespaces, we should use Promise.resolve to maintain execution order, but test first
 	generateFacades(): Chunk[] {
 		const facades: Chunk[] = [];
 		const dynamicEntryModules = this.dynamicEntryModules.filter(module =>
