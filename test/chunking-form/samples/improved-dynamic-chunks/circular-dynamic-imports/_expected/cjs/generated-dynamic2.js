@@ -1,4 +1,4 @@
 'use strict';
 
-new Promise(function (resolve) { resolve(require('./main.js')); });
+Promise.resolve().then(function () { return require('./main.js'); });
 console.log('dynamic2');

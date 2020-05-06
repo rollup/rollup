@@ -21,4 +21,4 @@ function _interopNamespace(e) {
 
 var dep = 'dep';
 
-new Promise(function (resolve) { resolve(_interopNamespace(require(dep))); });
+Promise.resolve().then(function () { return _interopNamespace(require(dep)); });

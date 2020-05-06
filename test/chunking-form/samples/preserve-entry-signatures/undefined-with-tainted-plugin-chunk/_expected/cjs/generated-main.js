@@ -2,7 +2,7 @@
 
 const shared = 'shared';
 
-new Promise(function (resolve) { resolve(require('./generated-dynamic.js')); });
+Promise.resolve().then(function () { return require('./generated-dynamic.js'); });
 globalThis.sharedStatic = shared;
 
 exports.shared = shared;

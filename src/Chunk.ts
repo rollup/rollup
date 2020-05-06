@@ -1065,10 +1065,7 @@ export default class Chunk {
 			module.dynamicallyImportedBy.some(importer => importer.chunk !== this)
 		) {
 			const map = module.getExportNamesByVariable();
-			// TODO Lukas maybe we can move this code to where the facade is assigned?
-			// for now, just copy it
 			for (const exportedVariable of map.keys()) {
-				// TODO Lukas maybe we should not run this for dynamic imports here but extract the shared logic and run it when a facade is created
 				if (module.isEntryPoint && module.preserveSignature !== false) {
 					this.exports.add(exportedVariable);
 				}

@@ -25,4 +25,4 @@ var foo = _interopDefault(require('https://unpkg.com/foo'));
 
 assert.equal(foo, 42);
 
-new Promise(function (resolve) { resolve(_interopNamespace(require('https://unpkg.com/foo'))); }).then(({ default: foo }) => assert.equal(foo, 42));
+Promise.resolve().then(function () { return _interopNamespace(require('https://unpkg.com/foo')); }).then(({ default: foo }) => assert.equal(foo, 42));

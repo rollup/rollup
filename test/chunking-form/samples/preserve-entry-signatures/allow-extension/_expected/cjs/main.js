@@ -5,7 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 const shared = 'shared';
 
 const unused = 'unused';
-const dynamic = new Promise(function (resolve) { resolve(require('./generated-dynamic.js')); });
+const dynamic = Promise.resolve().then(function () { return require('./generated-dynamic.js'); });
 
 globalThis.sharedStatic = shared;
 

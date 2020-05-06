@@ -119,22 +119,23 @@ export default class Import extends NodeBase {
 		switch (options.format) {
 			case 'cjs': {
 				const _ = options.compact ? '' : ' ';
-				const resolve = options.compact ? 'c' : 'resolve';
+				const s = options.compact ? '' : ';';
+				const leftStart = `Promise.resolve().then(function${_}()${_}{${_}return`;
 				switch (this.exportMode) {
 					case 'default':
 						return {
-							left: `new Promise(function${_}(${resolve})${_}{${_}${resolve}({${_}'default':${_}require(`,
-							right: `)${_}});${_}})`
+							left: `${leftStart}${_}{${_}'default':${_}require(`,
+							right: `)${_}}${s}${_}})`
 						};
 					case 'auto':
 						return {
-							left: `new Promise(function${_}(${resolve})${_}{${_}${resolve}(${INTEROP_NAMESPACE_VARIABLE}(require(`,
-							right: `)));${_}})`
+							left: `${leftStart} ${INTEROP_NAMESPACE_VARIABLE}(require(`,
+							right: `))${s}${_}})`
 						};
 					default:
 						return {
-							left: `new Promise(function${_}(${resolve})${_}{${_}${resolve}(require(`,
-							right: `));${_}})`
+							left: `${leftStart} require(`,
+							right: `)${s}${_}})`
 						};
 				}
 			}

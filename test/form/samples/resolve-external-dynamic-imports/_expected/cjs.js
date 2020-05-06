@@ -27,7 +27,7 @@ var myExternal = _interopDefault(require('external'));
 
 const test = () => myExternal;
 
-const someDynamicImport = () => new Promise(function (resolve) { resolve(_interopNamespace(require('external'))); });
+const someDynamicImport = () => Promise.resolve().then(function () { return _interopNamespace(require('external')); });
 
 exports.someDynamicImport = someDynamicImport;
 exports.test = test;

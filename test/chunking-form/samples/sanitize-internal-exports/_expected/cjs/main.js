@@ -275,7 +275,7 @@ var v1,
 	v271,
 	v272;
 
-const lazy = new Promise(function (resolve) { resolve(require('./generated-lazy.js')); });
+const lazy = Promise.resolve().then(function () { return require('./generated-lazy.js'); });
 
 exports.lazy = lazy;
 exports.v1 = v1;
