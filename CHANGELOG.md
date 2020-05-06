@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 2.8.0
+*2020-05-06*
+
+### Features
+* When a dynamically imported chunk contains more exports than the imported module namespace, do not create a facade chunk but an inline namespace (#3535)
+
+### Bug Fixes
+* Do not execute dynamically imported code before synchronous code in the importing module when generating CommonJS (#3535)
+
+### Pull Requests
+* [#3535](https://github.com/rollup/rollup/pull/3535): Avoid dynamic facade chunks (@lukastaegert)
+
 ## 2.7.6
 *2020-04-30*
 
