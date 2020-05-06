@@ -243,7 +243,7 @@ describe('The bundle object', () => {
 			});
 	});
 
-	it('handles dynamic entry facades as dynamic entries but not the facaded chunk', () => {
+	it('handles tainted dynamic entries', () => {
 		return rollup
 			.rollup({
 				input: ['input1', 'input2'],
@@ -267,27 +267,27 @@ describe('The bundle object', () => {
 			.then(({ output }) => {
 				assert.deepEqual(
 					output.map(chunk => chunk.fileName),
-					['input1.js', 'input2.js', 'generated-dynamic.js', 'generated-dynamic2.js'],
+					['input1.js', 'input2.js', 'generated-dynamic.js'],
 					'fileName'
 				);
 				assert.deepEqual(
 					output.map(chunk => Object.keys(chunk.modules)),
-					[['input1'], ['input2'], ['dep', 'dynamic'], []],
+					[['input1'], ['input2'], ['dep', 'dynamic']],
 					'modules'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.isDynamicEntry),
-					[false, false, false, true],
+					[false, false, true],
 					'isDynamicEntry'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.facadeModuleId),
-					['input1', 'input2', null, 'dynamic'],
+					['input1', 'input2', null],
 					'facadeModuleId'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.dynamicImports),
-					[['generated-dynamic.js'], [], [], []],
+					[['generated-dynamic.js'], [], []],
 					'dynamicImports'
 				);
 			});

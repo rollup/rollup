@@ -1,6 +1,7 @@
 import MagicString from 'magic-string';
 import ExternalModule from '../../ExternalModule';
 import Module from '../../Module';
+import { OutputOptions } from '../../rollup/types';
 import { findFirstOccurrenceOutsideComment, RenderOptions } from '../../utils/renderHelpers';
 import { INTEROP_NAMESPACE_VARIABLE } from '../../utils/variableNames';
 import { InclusionContext } from '../ExecutionContext';
@@ -62,32 +63,44 @@ export default class Import extends NodeBase {
 		this.source.render(code, options);
 	}
 
-	renderFinalResolution(code: MagicString, resolution: string) {
+	renderFinalResolution(
+		code: MagicString,
+		resolution: string,
+		namespaceExportName: string | false,
+		options: OutputOptions
+	) {
 		code.overwrite(this.source.start, this.source.end, resolution);
+		if (namespaceExportName) {
+			const _ = options.compact ? '' : ' ';
+			const s = options.compact ? '' : ';';
+			code.appendLeft(
+				this.end,
+				`.then(function${_}(n)${_}{${_}return n.${namespaceExportName}${s}${_}})`
+			);
+		}
 	}
 
-	setResolution(
+	setExternalResolution(
 		exportMode: 'none' | 'named' | 'default' | 'auto',
-		resolution: Module | ExternalModule | string | null,
-		inlineNamespace: NamespaceVariable | false = false
+		resolution: Module | ExternalModule | string | null
 	): void {
 		this.exportMode = exportMode;
 		this.resolution = resolution;
-		if (inlineNamespace) {
-			this.inlineNamespace = inlineNamespace;
-		} else {
+		this.scope.addAccessedGlobalsByFormat({
+			amd: ['require'],
+			cjs: ['require'],
+			system: ['module']
+		});
+		if (exportMode === 'auto') {
 			this.scope.addAccessedGlobalsByFormat({
-				amd: ['require'],
-				cjs: ['require'],
-				system: ['module']
+				amd: [INTEROP_NAMESPACE_VARIABLE],
+				cjs: [INTEROP_NAMESPACE_VARIABLE]
 			});
-			if (exportMode === 'auto') {
-				this.scope.addAccessedGlobalsByFormat({
-					amd: [INTEROP_NAMESPACE_VARIABLE],
-					cjs: [INTEROP_NAMESPACE_VARIABLE]
-				});
-			}
 		}
+	}
+
+	setInternalResolution(inlineNamespace: NamespaceVariable) {
+		this.inlineNamespace = inlineNamespace;
 	}
 
 	private getDynamicImportMechanism(options: RenderOptions): DynamicImportMechanism | null {
@@ -106,22 +119,23 @@ export default class Import extends NodeBase {
 		switch (options.format) {
 			case 'cjs': {
 				const _ = options.compact ? '' : ' ';
-				const resolve = options.compact ? 'c' : 'resolve';
+				const s = options.compact ? '' : ';';
+				const leftStart = `Promise.resolve().then(function${_}()${_}{${_}return`;
 				switch (this.exportMode) {
 					case 'default':
 						return {
-							left: `new Promise(function${_}(${resolve})${_}{${_}${resolve}({${_}'default':${_}require(`,
-							right: `)${_}});${_}})`
+							left: `${leftStart}${_}{${_}'default':${_}require(`,
+							right: `)${_}}${s}${_}})`
 						};
 					case 'auto':
 						return {
-							left: `new Promise(function${_}(${resolve})${_}{${_}${resolve}(${INTEROP_NAMESPACE_VARIABLE}(require(`,
-							right: `)));${_}})`
+							left: `${leftStart} ${INTEROP_NAMESPACE_VARIABLE}(require(`,
+							right: `))${s}${_}})`
 						};
 					default:
 						return {
-							left: `new Promise(function${_}(${resolve})${_}{${_}${resolve}(require(`,
-							right: `));${_}})`
+							left: `${leftStart} require(`,
+							right: `)${s}${_}})`
 						};
 				}
 			}

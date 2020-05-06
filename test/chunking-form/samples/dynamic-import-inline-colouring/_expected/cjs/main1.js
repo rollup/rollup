@@ -15,7 +15,7 @@ var inlined$1 = /*#__PURE__*/Object.freeze({
 });
 
 const inlined$2 = Promise.resolve().then(function () { return inlined$1; });
-const separate = new Promise(function (resolve) { resolve(require('./generated-separate.js')); });
+const separate = Promise.resolve().then(function () { return require('./generated-separate.js'); });
 
 exports.inlined = inlined$2;
 exports.separate = separate;

@@ -1,3 +1,3 @@
 'use strict';
 
-new Promise(function (resolve) { resolve(require('./generated-dep12.js')); }).then(({ bar }) => console.log(bar()));
+Promise.resolve().then(function () { return require('./generated-dep1.js'); }).then(function (n) { return n.dep1; }).then(({ bar }) => console.log(bar()));

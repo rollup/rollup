@@ -19,6 +19,6 @@ function _interopNamespace(e) {
 	}
 }
 
-new Promise(function (resolve) { resolve(_interopNamespace(require(
+Promise.resolve().then(function () { return _interopNamespace(require(
 /* webpackChunkName: "chunk-name" */
-'./foo.js'/*suffix*/))); });
+'./foo.js'/*suffix*/)); });

@@ -2,6 +2,6 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-const separate = new Promise(function (resolve) { resolve(require('./generated-separate.js')); });
+const separate = Promise.resolve().then(function () { return require('./generated-separate.js'); });
 
 exports.separate = separate;

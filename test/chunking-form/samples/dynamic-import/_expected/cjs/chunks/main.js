@@ -4,7 +4,7 @@ const sharedValue = 'shared';
 
 assert.equal(sharedValue, 'shared');
 
-const promise = new Promise(function (resolve) { resolve(require('./other.js')); }).then(result =>
+const promise = Promise.resolve().then(function () { return require('./other.js'); }).then(result =>
 	assert.deepEqual(result, { value: 'shared' })
 );
 

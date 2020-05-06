@@ -120,7 +120,7 @@ function assignChunksToBundle(
 			facadeModuleId: facadeModule && facadeModule.id,
 			fileName: chunk.id,
 			imports: chunk.getImportIds(),
-			isDynamicEntry: facadeModule !== null && facadeModule.dynamicallyImportedBy.length > 0,
+			isDynamicEntry: chunk.isDynamicEntry,
 			isEntry: facadeModule !== null && facadeModule.isEntryPoint,
 			map: undefined,
 			modules: chunk.renderedModules,

@@ -19,7 +19,7 @@ function _interopNamespace(e) {
 	}
 }
 
-new Promise(function (resolve) { resolve(_interopNamespace(require(`${globalThis.unknown}`))); });
-new Promise(function (resolve) { resolve(_interopNamespace(require(`My ${globalThis.unknown}`))); });
-new Promise(function (resolve) { resolve(_interopNamespace(require('./seven.js'))); });
-new Promise(function (resolve) { resolve(_interopNamespace(require('./seven.js'))); });
+Promise.resolve().then(function () { return _interopNamespace(require(`${globalThis.unknown}`)); });
+Promise.resolve().then(function () { return _interopNamespace(require(`My ${globalThis.unknown}`)); });
+Promise.resolve().then(function () { return _interopNamespace(require('./seven.js')); });
+Promise.resolve().then(function () { return _interopNamespace(require('./seven.js')); });

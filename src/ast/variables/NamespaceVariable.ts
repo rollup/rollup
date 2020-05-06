@@ -8,9 +8,9 @@ import Variable from './Variable';
 export default class NamespaceVariable extends Variable {
 	context: AstContext;
 	isNamespace!: true;
-	memberVariables: { [name: string]: Variable } = Object.create(null);
 	module: Module;
 
+	private memberVariables: { [name: string]: Variable } | null = null;
 	private mergedNamespaces: Variable[] = [];
 	private referencedEarly = false;
 	private references: Identifier[] = [];
@@ -33,14 +33,16 @@ export default class NamespaceVariable extends Variable {
 	// the reassignment to the right variable. This means we lost track of this variable and thus
 	// need to reassign all exports.
 	deoptimizePath() {
-		for (const key in this.memberVariables) {
-			this.memberVariables[key].deoptimizePath(UNKNOWN_PATH);
+		const memberVariables = this.getMemberVariables();
+		for (const key in memberVariables) {
+			memberVariables[key].deoptimizePath(UNKNOWN_PATH);
 		}
 	}
 
 	include() {
 		if (!this.included) {
 			this.included = true;
+			const memberVariables = this.getMemberVariables();
 			for (const identifier of this.references) {
 				if (identifier.context.getModuleExecIndex() <= this.context.getModuleExecIndex()) {
 					this.referencedEarly = true;
@@ -49,19 +51,10 @@ export default class NamespaceVariable extends Variable {
 			}
 			this.mergedNamespaces = this.context.includeAndGetAdditionalMergedNamespaces();
 			if (this.context.preserveModules) {
-				for (const memberName of Object.keys(this.memberVariables))
-					this.memberVariables[memberName].include();
+				for (const memberName in memberVariables) memberVariables[memberName].include();
 			} else {
-				for (const memberName of Object.keys(this.memberVariables))
-					this.context.includeVariable(this.memberVariables[memberName]);
-			}
-		}
-	}
-
-	initialise() {
-		for (const name of this.context.getExports().concat(this.context.getReexports())) {
-			if (name[0] !== '*') {
-				this.memberVariables[name] = this.context.traceExport(name);
+				for (const memberName in memberVariables)
+					this.context.includeVariable(memberVariables[memberName]);
 			}
 		}
 	}
@@ -71,8 +64,9 @@ export default class NamespaceVariable extends Variable {
 		const n = options.compact ? '' : '\n';
 		const t = options.indent;
 
-		const members = Object.keys(this.memberVariables).map(name => {
-			const original = this.memberVariables[name];
+		const memberVariables = this.getMemberVariables();
+		const members = Object.keys(memberVariables).map(name => {
+			const original = memberVariables[name];
 
 			if (this.referencedEarly || original.isReassigned) {
 				return `${t}get ${name}${_}()${_}{${_}return ${original.getName()}${
@@ -122,6 +116,20 @@ export default class NamespaceVariable extends Variable {
 
 	renderFirst() {
 		return this.referencedEarly;
+	}
+
+	private getMemberVariables(): { [name: string]: Variable } {
+		if (this.memberVariables) {
+			return this.memberVariables;
+		}
+		const memberVariables = Object.create(null);
+		for (const name of this.context.getExports().concat(this.context.getReexports())) {
+			if (name[0] !== '*') {
+				memberVariables[name] = this.context.traceExport(name);
+			}
+		}
+		this.memberVariables = memberVariables;
+		return (this.memberVariables = memberVariables);
 	}
 }
 

@@ -21,5 +21,5 @@ function _interopNamespace(e) {
 
 var external = require('external');
 
-new Promise(function (resolve) { resolve(_interopNamespace(require(external.join('a', 'b')))); });
+Promise.resolve().then(function () { return _interopNamespace(require(external.join('a', 'b'))); });
 console.log(external.join);

@@ -14,6 +14,6 @@ function showImage(url) {
 }
 
 showImage(logo);
-new Promise(function (resolve) { resolve(require('./nested/chunk.js')); });
+Promise.resolve().then(function () { return require('./nested/chunk.js'); });
 
 exports.showImage = showImage;

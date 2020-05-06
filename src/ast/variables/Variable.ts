@@ -15,6 +15,7 @@ export default class Variable implements ExpressionEntity {
 	exportName: string | null = null;
 	included = false;
 	isId = false;
+	// both NamespaceVariable and ExternalVariable can be namespaces
 	isNamespace?: boolean;
 	isReassigned = false;
 	module?: Module | ExternalModule;

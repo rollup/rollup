@@ -23,5 +23,5 @@ var dep = require('./generated-dep.js');
 
 console.log('main1', dep.value);
 
-new Promise(function (resolve) { resolve(require('./generated-dynamic.js')); }).then(result => console.log(result));
-new Promise(function (resolve) { resolve(_interopNamespace(require('./external.js'))); }).then(result => console.log(result));
+Promise.resolve().then(function () { return require('./generated-dynamic.js'); }).then(result => console.log(result));
+Promise.resolve().then(function () { return _interopNamespace(require('./external.js')); }).then(result => console.log(result));

@@ -1,3 +1,3 @@
 'use strict';
 
-new Promise(function (resolve) { resolve(require('./dynamic-included.js')); }).then(result => console.log(result));
+Promise.resolve().then(function () { return require('./dynamic-included.js'); }).then(result => console.log(result));
