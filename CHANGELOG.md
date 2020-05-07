@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 2.8.1
+*2020-05-07*
+
+### Bug Fixes
+* Allow using plugins on CLI that are exported as `exports.default` (#3529)
+* Do not fail side-effect detection in nested callbacks of builtins (#3539)
+
+### Pull Requests
+* [#3529](https://github.com/rollup/rollup/pull/3529): Use default named export with plugins (@NotWoods)
+* [#3539](https://github.com/rollup/rollup/pull/3539): Track call side-effects both by entity and CallExpression to avoid untracked side-effects in nested calls (@lukastaegert)
+
 ## 2.8.0
 *2020-05-06*
 
