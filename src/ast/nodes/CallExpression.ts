@@ -184,7 +184,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		const trackedExpressions = (callOptions.withNew
 			? context.instantiated
 			: context.called
-		).getEntities(path);
+		).getEntities(path, callOptions);
 		if (trackedExpressions.has(this)) return false;
 		trackedExpressions.add(this);
 		return this.returnExpression!.hasEffectsWhenCalledAtPath(path, callOptions, context);
