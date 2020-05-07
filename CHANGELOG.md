@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.8.2
+*2020-05-07*
+
+### Bug Fixes
+* Avoid invalid code when simplifying the body of a shorthand arrow function expression (#3540)
+
+### Pull Requests
+* [#3540](https://github.com/rollup/rollup/pull/3540): Wrap object expressions in parentheses if they become children of an arrow function expressi (@NotWoods)
+
 ## 2.8.1
 *2020-05-07*
 
