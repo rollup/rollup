@@ -272,7 +272,10 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		{ renderedParentType }: NodeRenderOptions = BLANK
 	) {
 		super.render(code, options);
-		if (renderedParentType === NodeType.ExpressionStatement) {
+		if (
+			renderedParentType === NodeType.ExpressionStatement ||
+			renderedParentType === NodeType.ArrowFunctionExpression
+		) {
 			code.appendRight(this.start, '(');
 			code.prependLeft(this.end, ')');
 		}
