@@ -33,7 +33,7 @@ function loadAndRegisterPlugin(inputOptions: InputOptions, pluginText: string) {
 		// -p "{transform(c,i){...}}"
 		plugin = new Function('return ' + pluginText);
 	} else {
-		const match = pluginText.match(/^([@.\/\\\w|^{}|-]+)(=(.*))?$/);
+		const match = pluginText.match(/^([@.\/\\\w|^{}-]+)(=(.*))?$/);
 		if (match) {
 			// -p plugin
 			// -p plugin=arg
@@ -63,15 +63,10 @@ function loadAndRegisterPlugin(inputOptions: InputOptions, pluginText: string) {
 			}
 		}
 	}
+	// some plugins do not use `module.exports` for their entry point,
+	// in which case we try the named default export and the plugin name
 	if (typeof plugin === 'object') {
-		// some plugins do not use `module.exports` for their entry point.
-		if ('default' in plugin) {
-			// attempt to use the named default export.
-			plugin = plugin.default;
-		} else if (pluginText in plugin) {
-			// attempt to use the plugin name as the named import name.
-			plugin = plugin[pluginText];
-		}
+		plugin = plugin.default || plugin[pluginText]
 	}
 	inputOptions.plugins!.push(
 		typeof plugin === 'function' ? plugin.call(plugin, pluginArg) : plugin
