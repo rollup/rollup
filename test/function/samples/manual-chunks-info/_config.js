@@ -9,14 +9,14 @@ module.exports = {
 	description: 'provides additional chunk information to a manualChunks function',
 	options: {
 		external: 'external',
-		manualChunks(id, { entryModuleIds, getModuleInfo, moduleIds }) {
-			assert.deepStrictEqual([...entryModuleIds()], [getId('main')]);
+		manualChunks(id, { getEntryModuleIds, getModuleIds, getModuleInfo }) {
+			assert.deepStrictEqual([...getEntryModuleIds()], [getId('main')]);
 			assert.deepStrictEqual(
-				[...moduleIds()],
+				[...getModuleIds()],
 				[getId('main'), 'external', getId('lib'), getId('dynamic')]
 			);
 			assert.deepStrictEqual(
-				[...moduleIds()].map(id => getModuleInfo(id)),
+				[...getModuleIds()].map(id => getModuleInfo(id)),
 				[
 					{
 						dynamicallyImportedIds: [getId('dynamic')],

@@ -206,10 +206,10 @@ export class ModuleLoader {
 
 	assignManualChunks(getManualChunk: GetManualChunk) {
 		const manualChunksApi = {
-			entryModuleIds: () =>
+			getEntryModuleIds: () =>
 				this.indexedEntryModules.map(({ module: { id } }) => id)[Symbol.iterator](),
-			getModuleInfo: this.graph.getModuleInfo,
-			moduleIds: () => this.modulesById.keys()
+			getModuleIds: () => this.modulesById.keys(),
+			getModuleInfo: this.graph.getModuleInfo
 		};
 		for (const module of this.modulesById.values()) {
 			if (module instanceof Module) {

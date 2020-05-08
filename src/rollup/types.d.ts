@@ -441,9 +441,9 @@ export interface TreeshakingOptions {
 	unknownGlobalSideEffects?: boolean;
 }
 interface GetManualChunkApi {
-	entryModuleIds: () => IterableIterator<string>;
+	getEntryModuleIds: () => IterableIterator<string>;
+	getModuleIds: () => IterableIterator<string>;
 	getModuleInfo: GetModuleInfo;
-	moduleIds: () => IterableIterator<string>;
 }
 export type GetManualChunk = (id: string, api: GetManualChunkApi) => string | null | undefined;
 
