@@ -108,7 +108,6 @@ function getHasModuleSideEffects(
 
 export class ModuleLoader {
 	readonly isExternal: IsExternal;
-	private readonly getManualChunk: GetManualChunk;
 	private readonly hasModuleSideEffects: (id: string, external: boolean) => boolean;
 	private readonly indexedEntryModules: { index: number; module: Module }[] = [];
 	private latestLoadModulesPromise: Promise<any> = Promise.resolve();
@@ -121,7 +120,6 @@ export class ModuleLoader {
 		private readonly pluginDriver: PluginDriver,
 		private readonly preserveSymlinks: boolean,
 		external: (string | RegExp)[] | IsExternal,
-		getManualChunk: GetManualChunk | null,
 		moduleSideEffects: ModuleSideEffectsOption,
 		pureExternalModules: PureModulesOption
 	) {
@@ -131,9 +129,9 @@ export class ModuleLoader {
 			pureExternalModules,
 			graph
 		);
-		this.getManualChunk = typeof getManualChunk === 'function' ? getManualChunk : () => null;
 	}
 
+	// TODO Lukas asyncify
 	addEntryModules(
 		unresolvedEntryModules: UnresolvedModule[],
 		isUserDefined: boolean
@@ -204,6 +202,23 @@ export class ModuleLoader {
 		});
 
 		return this.awaitLoadModulesPromise(loadNewManualChunkModulesPromise);
+	}
+
+	assignManualChunks(getManualChunk: GetManualChunk) {
+		const manualChunksApi = {
+			entryModuleIds: () =>
+				this.indexedEntryModules.map(({ module: { id } }) => id)[Symbol.iterator](),
+			getModuleInfo: this.graph.getModuleInfo,
+			moduleIds: () => this.modulesById.keys()
+		};
+		for (const module of this.modulesById.values()) {
+			if (module instanceof Module) {
+				const manualChunkAlias = getManualChunk(module.id, manualChunksApi);
+				if (typeof manualChunkAlias === 'string') {
+					this.addModuleToManualChunk(manualChunkAlias, module);
+				}
+			}
+		}
 	}
 
 	async resolveId(
@@ -277,6 +292,7 @@ export class ModuleLoader {
 		]);
 	}
 
+	// TODO Lukas asyncify
 	private async fetchModule(
 		id: string,
 		importer: string,
@@ -299,11 +315,6 @@ export class ModuleLoader {
 		);
 		this.modulesById.set(id, module);
 		this.graph.watchFiles[id] = true;
-		const manualChunkAlias = this.getManualChunk(id);
-		if (typeof manualChunkAlias === 'string') {
-			this.addModuleToManualChunk(manualChunkAlias, module);
-		}
-
 		timeStart('load modules', 3);
 		return Promise.resolve(this.pluginDriver.hookFirst('load', [id]))
 			.then(source => source ?? readFile(id))

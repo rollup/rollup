@@ -1,7 +1,5 @@
 import { version as rollupVersion } from 'package.json';
-import ExternalModule from '../ExternalModule';
 import Graph from '../Graph';
-import Module from '../Module';
 import {
 	Plugin,
 	PluginCache,
@@ -122,32 +120,7 @@ export function getPluginContexts(
 				graph
 			),
 			getFileName: fileEmitter.getFileName,
-			getModuleInfo(moduleId) {
-				const foundModule = graph.moduleById.get(moduleId);
-				if (foundModule == null) {
-					throw new Error(`Unable to find module ${moduleId}`);
-				}
-				const importedIds: string[] = [];
-				const dynamicallyImportedIds: string[] = [];
-				if (foundModule instanceof Module) {
-					for (const source of foundModule.sources) {
-						importedIds.push(foundModule.resolvedIds[source].id);
-					}
-					for (const { resolution } of foundModule.dynamicImports) {
-						if (resolution instanceof Module || resolution instanceof ExternalModule) {
-							dynamicallyImportedIds.push(resolution.id);
-						}
-					}
-				}
-				return {
-					dynamicallyImportedIds,
-					hasModuleSideEffects: foundModule.moduleSideEffects,
-					id: foundModule.id,
-					importedIds,
-					isEntry: foundModule instanceof Module && foundModule.isEntryPoint,
-					isExternal: foundModule instanceof ExternalModule
-				};
-			},
+			getModuleInfo: graph.getModuleInfo,
 			isExternal: getDeprecatedContextHandler(
 				(id: string, parentId: string | undefined, isResolved = false) =>
 					graph.moduleLoader.isExternal(id, parentId, isResolved),

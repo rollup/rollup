@@ -150,6 +150,17 @@ export type EmitChunk = (id: string, options?: { name?: string }) => string;
 
 export type EmitFile = (emittedFile: EmittedFile) => string;
 
+export type GetModuleInfo = (
+	moduleId: string
+) => {
+	dynamicallyImportedIds: string[];
+	hasModuleSideEffects: boolean;
+	id: string;
+	importedIds: string[];
+	isEntry: boolean;
+	isExternal: boolean;
+};
+
 export interface PluginContext extends MinimalPluginContext {
 	addWatchFile: (id: string) => void;
 	cache: PluginCache;
@@ -164,16 +175,7 @@ export interface PluginContext extends MinimalPluginContext {
 	/** @deprecated Use `this.getFileName` instead */
 	getChunkFileName: (chunkReferenceId: string) => string;
 	getFileName: (fileReferenceId: string) => string;
-	getModuleInfo: (
-		moduleId: string
-	) => {
-		dynamicallyImportedIds: string[];
-		hasModuleSideEffects: boolean;
-		id: string;
-		importedIds: string[];
-		isEntry: boolean;
-		isExternal: boolean;
-	};
+	getModuleInfo: GetModuleInfo;
 	/** @deprecated Use `this.resolve` instead */
 	isExternal: IsExternal;
 	moduleIds: IterableIterator<string>;
@@ -438,8 +440,12 @@ export interface TreeshakingOptions {
 	tryCatchDeoptimization?: boolean;
 	unknownGlobalSideEffects?: boolean;
 }
-
-export type GetManualChunk = (id: string) => string | null | undefined;
+interface GetManualChunkApi {
+	entryModuleIds: () => IterableIterator<string>;
+	getModuleInfo: GetModuleInfo;
+	moduleIds: () => IterableIterator<string>;
+}
+export type GetManualChunk = (id: string, api: GetManualChunkApi) => string | null | undefined;
 
 export type ExternalOption = (string | RegExp)[] | string | RegExp | IsExternal;
 export type PureModulesOption = boolean | string[] | IsPureModule;

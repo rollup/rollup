@@ -10,7 +10,6 @@ import ExternalModule from './ExternalModule';
 import Module, { defaultAcornOptions } from './Module';
 import { ModuleLoader, UnresolvedModule } from './ModuleLoader';
 import {
-	GetManualChunk,
 	InputOptions,
 	IsExternal,
 	ManualChunksOption,
@@ -187,7 +186,6 @@ export default class Graph {
 			this.pluginDriver,
 			options.preserveSymlinks === true,
 			options.external as (string | RegExp)[] | IsExternal,
-			(typeof options.manualChunks === 'function' && options.manualChunks) as GetManualChunk | null,
 			(this.treeshakingOptions ? this.treeshakingOptions.moduleSideEffects : null)!,
 			(this.treeshakingOptions ? this.treeshakingOptions.pureExternalModules : false)!
 		);
@@ -251,6 +249,33 @@ export default class Graph {
 			plugins: this.pluginCache
 		};
 	}
+
+	getModuleInfo = (moduleId: string) => {
+		const foundModule = this.moduleById.get(moduleId);
+		if (foundModule == null) {
+			throw new Error(`Unable to find module ${moduleId}`);
+		}
+		const importedIds: string[] = [];
+		const dynamicallyImportedIds: string[] = [];
+		if (foundModule instanceof Module) {
+			for (const source of foundModule.sources) {
+				importedIds.push(foundModule.resolvedIds[source].id);
+			}
+			for (const { resolution } of foundModule.dynamicImports) {
+				if (resolution instanceof Module || resolution instanceof ExternalModule) {
+					dynamicallyImportedIds.push(resolution.id);
+				}
+			}
+		}
+		return {
+			dynamicallyImportedIds,
+			hasModuleSideEffects: foundModule.moduleSideEffects,
+			id: foundModule.id,
+			importedIds,
+			isEntry: foundModule instanceof Module && foundModule.isEntryPoint,
+			isExternal: foundModule instanceof ExternalModule
+		};
+	};
 
 	warn(warning: RollupWarning) {
 		warning.toString = () => {
@@ -366,6 +391,9 @@ export default class Graph {
 				typeof manualChunks === 'object' &&
 				this.moduleLoader.addManualChunks(manualChunks)
 		]);
+		if (typeof manualChunks === 'function') {
+			this.moduleLoader.assignManualChunks(manualChunks);
+		}
 		if (entryModules.length === 0) {
 			throw new Error('You must supply options.input to rollup');
 		}
