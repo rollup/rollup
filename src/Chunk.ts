@@ -272,13 +272,13 @@ export default class Chunk {
 		this.isDynamicEntry = dynamicEntryModules.length > 0;
 		const exposedNamespaces = dynamicEntryModules.map(module => module.namespace);
 		for (const module of this.entryModules) {
-			const requiredFacades: FacadeName[] = Array.from(module.userChunkNames).map(name => ({
+			const requiredFacades: FacadeName[] = [...module.userChunkNames].map(name => ({
 				name
 			}));
 			if (requiredFacades.length === 0 && module.isUserDefinedEntryPoint) {
 				requiredFacades.push({});
 			}
-			requiredFacades.push(...Array.from(module.chunkFileNames).map(fileName => ({ fileName })));
+			requiredFacades.push(...[...module.chunkFileNames].map(fileName => ({ fileName })));
 			if (requiredFacades.length === 0) {
 				requiredFacades.push({});
 			}

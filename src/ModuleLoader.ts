@@ -131,8 +131,7 @@ export class ModuleLoader {
 		);
 	}
 
-	// TODO Lukas asyncify
-	addEntryModules(
+	async addEntryModules(
 		unresolvedEntryModules: UnresolvedModule[],
 		isUserDefined: boolean
 	): Promise<{
@@ -178,11 +177,12 @@ export class ModuleLoader {
 			);
 			return entryModules;
 		});
-		return this.awaitLoadModulesPromise(loadNewEntryModulesPromise).then(newEntryModules => ({
+		const newEntryModules = await this.awaitLoadModulesPromise(loadNewEntryModulesPromise);
+		return {
 			entryModules: this.indexedEntryModules.map(({ module }) => module),
 			manualChunkModulesByAlias: this.manualChunkModules,
 			newEntryModules
-		}));
+		};
 	}
 
 	addManualChunks(manualChunks: Record<string, string[]>): Promise<void> {
@@ -193,15 +193,18 @@ export class ModuleLoader {
 				unresolvedManualChunks.push({ id, alias });
 			}
 		}
-		const loadNewManualChunkModulesPromise = Promise.all(
-			unresolvedManualChunks.map(({ id }) => this.loadEntryModule(id, false, undefined))
-		).then(manualChunkModules => {
-			for (let index = 0; index < manualChunkModules.length; index++) {
-				this.addModuleToManualChunk(unresolvedManualChunks[index].alias, manualChunkModules[index]);
-			}
-		});
-
-		return this.awaitLoadModulesPromise(loadNewManualChunkModulesPromise);
+		return this.awaitLoadModulesPromise(
+			Promise.all(
+				unresolvedManualChunks.map(({ id }) => this.loadEntryModule(id, false, undefined))
+			).then(manualChunkModules => {
+				for (let index = 0; index < manualChunkModules.length; index++) {
+					this.addModuleToManualChunk(
+						unresolvedManualChunks[index].alias,
+						manualChunkModules[index]
+					);
+				}
+			})
+		);
 	}
 
 	assignManualChunks(getManualChunk: GetManualChunk) {
@@ -266,8 +269,7 @@ export class ModuleLoader {
 
 	private fetchAllDependencies(module: Module): Promise<unknown> {
 		return Promise.all([
-			// TODO Lukas replace all Array.from
-			...(Array.from(module.sources).map(async source => {
+			...[...module.sources].map(async source => {
 				const resolution = await this.fetchResolvedDependency(
 					source,
 					module.id,
@@ -276,7 +278,8 @@ export class ModuleLoader {
 						this.handleResolveId(await this.resolveId(source, module.id), source, module.id))
 				);
 				resolution.importers.push(module.id);
-			}) as Promise<unknown>[]),
+				resolution.importers.sort();
+			}),
 			...module.getDynamicImportExpressions().map(async (specifier, index) => {
 				const resolvedId = await this.resolveDynamicImport(module, specifier, module.id);
 				if (resolvedId === null) return;
@@ -285,18 +288,19 @@ export class ModuleLoader {
 					dynamicImport.resolution = resolvedId;
 					return;
 				}
-				dynamicImport.resolution = await this.fetchResolvedDependency(
+				const resolution = (dynamicImport.resolution = await this.fetchResolvedDependency(
 					relativeId(resolvedId.id),
 					module.id,
 					resolvedId
-				);
-				dynamicImport.resolution.dynamicImporters.push(module.id);
+				));
+				resolution.dynamicImporters.push(module.id);
+				resolution.dynamicImporters.sort();
 			})
 		]);
 	}
 
-	// TODO Lukas asyncify
-	private async fetchModule(
+	// TODO Lukas asyncify and break up
+	private fetchModule(
 		id: string,
 		importer: string,
 		moduleSideEffects: boolean,
@@ -438,6 +442,7 @@ export class ModuleLoader {
 		return resolvedId;
 	}
 
+	// TODO Lukas asyncify
 	private loadEntryModule = (
 		unresolvedId: string,
 		isEntry: boolean,

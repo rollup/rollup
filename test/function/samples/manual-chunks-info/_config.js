@@ -43,7 +43,7 @@ module.exports = {
 						dynamicallyImportedIds: [],
 						hasModuleSideEffects: true,
 						id: getId('lib'),
-						importers: [getId('main'), getId('dynamic')],
+						importers: [getId('dynamic'), getId('main')],
 						importedIds: [],
 						isEntry: false,
 						isExternal: false

@@ -213,7 +213,6 @@ export default class Module {
 	importers: string[] = [];
 	importMetas: MetaProperty[] = [];
 	imports = new Set<Variable>();
-	// TODO Lukas make this a Set
 	includedDynamicImporters: Module[] = [];
 	isExecuted = false;
 	isUserDefinedEntryPoint = false;
@@ -461,7 +460,7 @@ export default class Module {
 				}
 			}
 		}
-		return (this.transitiveReexports = Array.from(reexports));
+		return (this.transitiveReexports = [...reexports]);
 	}
 
 	getRenderedExports() {
@@ -751,7 +750,7 @@ export default class Module {
 			ast: this.esTreeAst,
 			code: this.code,
 			customTransformCache: this.customTransformCache,
-			dependencies: Array.from(this.dependencies).map(module => module.id),
+			dependencies: [...this.dependencies].map(module => module.id),
 			id: this.id,
 			moduleSideEffects: this.moduleSideEffects,
 			originalCode: this.originalCode,
