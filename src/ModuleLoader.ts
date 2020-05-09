@@ -5,12 +5,11 @@ import Module from './Module';
 import {
 	GetManualChunk,
 	IsExternal,
-	ModuleJSON,
 	ModuleSideEffectsOption,
 	PureModulesOption,
 	ResolvedId,
 	ResolveIdResult,
-	TransformModuleJSON
+	SourceDescription
 } from './rollup/types';
 import {
 	errBadLoader,
@@ -239,6 +238,48 @@ export class ModuleLoader {
 		);
 	}
 
+	private async addModuleSource(id: string, importer: string | undefined, module: Module) {
+		timeStart('load modules', 3);
+		let source: string | SourceDescription;
+		try {
+			source = (await this.pluginDriver.hookFirst('load', [id])) ?? (await readFile(id));
+		} catch (err) {
+			timeEnd('load modules', 3);
+			let msg = `Could not load ${id}`;
+			if (importer) msg += ` (imported by ${importer})`;
+			msg += `: ${err.message}`;
+			err.message = msg;
+			throw err;
+		}
+		timeEnd('load modules', 3);
+		const sourceDescription =
+			typeof source === 'string'
+				? { code: source }
+				: typeof source === 'object' && typeof source.code === 'string'
+				? source
+				: error(errBadLoader(id));
+		const cachedModule = this.graph.cachedModules.get(id);
+		if (
+			cachedModule &&
+			!cachedModule.customTransformCache &&
+			cachedModule.originalCode === sourceDescription.code
+		) {
+			if (cachedModule.transformFiles) {
+				for (const emittedFile of cachedModule.transformFiles)
+					this.pluginDriver.emitFile(emittedFile);
+			}
+			module.setSource(cachedModule);
+		} else {
+			if (typeof sourceDescription.moduleSideEffects === 'boolean') {
+				module.moduleSideEffects = sourceDescription.moduleSideEffects;
+			}
+			if (typeof sourceDescription.syntheticNamedExports === 'boolean') {
+				module.syntheticNamedExports = sourceDescription.syntheticNamedExports;
+			}
+			module.setSource(await transform(this.graph, sourceDescription, module));
+		}
+	}
+
 	private addModuleToManualChunk(alias: string, module: Module) {
 		if (module.manualChunkAlias !== null && module.manualChunkAlias !== alias) {
 			return error(errCannotAssignModuleToChunk(module.id, alias, module.manualChunkAlias));
@@ -299,10 +340,9 @@ export class ModuleLoader {
 		]);
 	}
 
-	// TODO Lukas asyncify and break up
-	private fetchModule(
+	private async fetchModule(
 		id: string,
-		importer: string,
+		importer: string | undefined,
 		moduleSideEffects: boolean,
 		syntheticNamedExports: boolean,
 		isEntry: boolean
@@ -322,71 +362,27 @@ export class ModuleLoader {
 		);
 		this.modulesById.set(id, module);
 		this.graph.watchFiles[id] = true;
-		timeStart('load modules', 3);
-		return Promise.resolve(this.pluginDriver.hookFirst('load', [id]))
-			.then(source => source ?? readFile(id))
-			.catch((err: Error) => {
-				timeEnd('load modules', 3);
-				let msg = `Could not load ${id}`;
-				if (importer) msg += ` (imported by ${importer})`;
-				msg += `: ${err.message}`;
-				err.message = msg;
-				throw err;
-			})
-			.then(source => {
-				timeEnd('load modules', 3);
-				if (typeof source === 'string') return { code: source };
-				if (source && typeof source === 'object' && typeof source.code === 'string') return source;
-				return error(errBadLoader(id));
-			})
-			.then(sourceDescription => {
-				const cachedModule = this.graph.cachedModules.get(id);
-				if (
-					cachedModule &&
-					!cachedModule.customTransformCache &&
-					cachedModule.originalCode === sourceDescription.code
-				) {
-					if (cachedModule.transformFiles) {
-						for (const emittedFile of cachedModule.transformFiles)
-							this.pluginDriver.emitFile(emittedFile);
-					}
-					return cachedModule;
-				}
+		await this.addModuleSource(id, importer, module);
+		await this.fetchAllDependencies(module);
 
-				if (typeof sourceDescription.moduleSideEffects === 'boolean') {
-					module.moduleSideEffects = sourceDescription.moduleSideEffects;
+		for (const name in module.exports) {
+			if (name !== 'default') {
+				module.exportsAll[name] = module.id;
+			}
+		}
+		for (const source of module.exportAllSources) {
+			const id = module.resolvedIds[source].id;
+			const exportAllModule = this.modulesById.get(id);
+			if (exportAllModule instanceof ExternalModule) continue;
+			for (const name in exportAllModule!.exportsAll) {
+				if (name in module.exportsAll) {
+					this.graph.warn(errNamespaceConflict(name, module, exportAllModule!));
+				} else {
+					module.exportsAll[name] = exportAllModule!.exportsAll[name];
 				}
-				if (typeof sourceDescription.syntheticNamedExports === 'boolean') {
-					module.syntheticNamedExports = sourceDescription.syntheticNamedExports;
-				}
-				return transform(this.graph, sourceDescription, module);
-			})
-			.then((source: TransformModuleJSON | ModuleJSON) => {
-				module.setSource(source);
-				this.modulesById.set(id, module);
-
-				return this.fetchAllDependencies(module).then(() => {
-					for (const name in module.exports) {
-						if (name !== 'default') {
-							module.exportsAll[name] = module.id;
-						}
-					}
-					for (const source of module.exportAllSources) {
-						const id = module.resolvedIds[source].id;
-						const exportAllModule = this.modulesById.get(id);
-						if (exportAllModule instanceof ExternalModule) continue;
-
-						for (const name in exportAllModule!.exportsAll) {
-							if (name in module.exportsAll) {
-								this.graph.warn(errNamespaceConflict(name, module, exportAllModule!));
-							} else {
-								module.exportsAll[name] = exportAllModule!.exportsAll[name];
-							}
-						}
-					}
-					return module;
-				});
-			});
+			}
+		}
+		return module;
 	}
 
 	private fetchResolvedDependency(
@@ -442,31 +438,32 @@ export class ModuleLoader {
 		return resolvedId;
 	}
 
-	// TODO Lukas asyncify
-	private loadEntryModule = (
+	private async loadEntryModule(
 		unresolvedId: string,
 		isEntry: boolean,
 		importer: string | undefined
-	): Promise<Module> =>
-		resolveId(unresolvedId, importer, this.preserveSymlinks, this.pluginDriver, null).then(
-			resolveIdResult => {
-				if (
-					resolveIdResult === false ||
-					(resolveIdResult && typeof resolveIdResult === 'object' && resolveIdResult.external)
-				) {
-					return error(errEntryCannotBeExternal(unresolvedId));
-				}
-				const id =
-					resolveIdResult && typeof resolveIdResult === 'object'
-						? resolveIdResult.id
-						: resolveIdResult;
-
-				if (typeof id === 'string') {
-					return this.fetchModule(id, undefined as any, true, false, isEntry);
-				}
-				return error(errUnresolvedEntry(unresolvedId));
-			}
+	): Promise<Module> {
+		const resolveIdResult = await resolveId(
+			unresolvedId,
+			importer,
+			this.preserveSymlinks,
+			this.pluginDriver,
+			null
 		);
+		if (
+			resolveIdResult === false ||
+			(resolveIdResult && typeof resolveIdResult === 'object' && resolveIdResult.external)
+		) {
+			return error(errEntryCannotBeExternal(unresolvedId));
+		}
+		const id =
+			resolveIdResult && typeof resolveIdResult === 'object' ? resolveIdResult.id : resolveIdResult;
+
+		if (typeof id === 'string') {
+			return this.fetchModule(id, undefined, true, false, isEntry);
+		}
+		return error(errUnresolvedEntry(unresolvedId));
+	}
 
 	private normalizeResolveIdResult(
 		resolveIdResult: ResolveIdResult,
