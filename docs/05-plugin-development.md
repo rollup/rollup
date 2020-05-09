@@ -559,7 +559,9 @@ Returns additional information about the module in question in the form
   isEntry: boolean, // is this a user- or plugin-defined entry point
   isExternal: boolean, // for external modules that are not included in the graph
   importedIds: string[], // the module ids statically imported by this module
+  importers: string[], // the ids of all modules that statically import this module
   dynamicallyImportedIds: string[], // the module ids imported by this module via dynamic import()
+  dynamicImporters: string[], // the ids of all modules that import this module via dynamic import()
   hasModuleSideEffects: boolean // are imports of this module included if nothing is imported from it
 }
 ```
