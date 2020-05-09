@@ -443,7 +443,6 @@ export interface TreeshakingOptions {
 	unknownGlobalSideEffects?: boolean;
 }
 interface GetManualChunkApi {
-	getEntryModuleIds: () => IterableIterator<string>;
 	getModuleIds: () => IterableIterator<string>;
 	getModuleInfo: GetModuleInfo;
 }

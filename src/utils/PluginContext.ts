@@ -133,6 +133,7 @@ export function getPluginContexts(
 			meta: {
 				rollupVersion
 			},
+			// TODO Lukas also add getmoduleids and soft-deprecate
 			get moduleIds() {
 				return graph.moduleById.keys();
 			},
