@@ -321,21 +321,24 @@ export class ModuleLoader {
 				resolution.importers.push(module.id);
 				resolution.importers.sort();
 			}),
-			...module.getDynamicImportExpressions().map(async (specifier, index) => {
-				const resolvedId = await this.resolveDynamicImport(module, specifier, module.id);
+			...module.dynamicImports.map(async dynamicImport => {
+				const resolvedId = await this.resolveDynamicImport(
+					module,
+					dynamicImport.argument,
+					module.id
+				);
 				if (resolvedId === null) return;
-				const dynamicImport = module.dynamicImports[index];
 				if (typeof resolvedId === 'string') {
 					dynamicImport.resolution = resolvedId;
-					return;
+				} else {
+					const resolution = (dynamicImport.resolution = await this.fetchResolvedDependency(
+						relativeId(resolvedId.id),
+						module.id,
+						resolvedId
+					));
+					resolution.dynamicImporters.push(module.id);
+					resolution.dynamicImporters.sort();
 				}
-				const resolution = (dynamicImport.resolution = await this.fetchResolvedDependency(
-					relativeId(resolvedId.id),
-					module.id,
-					resolvedId
-				));
-				resolution.dynamicImporters.push(module.id);
-				resolution.dynamicImporters.sort();
 			})
 		]);
 	}

@@ -16,7 +16,7 @@ import Literal from './ast/nodes/Literal';
 import MetaProperty from './ast/nodes/MetaProperty';
 import * as NodeType from './ast/nodes/NodeType';
 import Program from './ast/nodes/Program';
-import { Node, NodeBase } from './ast/nodes/shared/Node';
+import { ExpressionNode, NodeBase } from './ast/nodes/shared/Node';
 import TemplateLiteral from './ast/nodes/TemplateLiteral';
 import VariableDeclaration from './ast/nodes/VariableDeclaration';
 import ModuleScope from './ast/scopes/ModuleScope';
@@ -196,10 +196,10 @@ export default class Module {
 	code!: string;
 	comments: CommentDescription[] = [];
 	dependencies = new Set<Module | ExternalModule>();
-	// TODO Lukas what is this good for?
 	dynamicDependencies = new Set<Module | ExternalModule>();
 	dynamicImporters: string[] = [];
 	dynamicImports: {
+		argument: string | ExpressionNode;
 		node: ImportExpression;
 		resolution: Module | ExternalModule | string | null;
 	}[] = [];
@@ -390,24 +390,6 @@ export default class Module {
 			}
 		}
 		return (this.relevantDependencies = relevantDependencies);
-	}
-
-	// TODO Lukas could we do these transformations when pushing and then simplify ModuleLoaderL282?
-	getDynamicImportExpressions(): (string | Node)[] {
-		return this.dynamicImports.map(({ node }) => {
-			const importArgument = node.source;
-			if (
-				importArgument instanceof TemplateLiteral &&
-				importArgument.quasis.length === 1 &&
-				importArgument.quasis[0].value.cooked
-			) {
-				return importArgument.quasis[0].value.cooked;
-			}
-			if (importArgument instanceof Literal && typeof importArgument.value === 'string') {
-				return importArgument.value;
-			}
-			return importArgument;
-		});
 	}
 
 	getExportNamesByVariable(): Map<Variable, string[]> {
@@ -809,7 +791,15 @@ export default class Module {
 	}
 
 	private addDynamicImport(node: ImportExpression) {
-		this.dynamicImports.push({ node, resolution: null });
+		let argument: ExpressionNode | string = node.source;
+		if (argument instanceof TemplateLiteral) {
+			if (argument.quasis.length === 1 && argument.quasis[0].value.cooked) {
+				argument = argument.quasis[0].value.cooked;
+			}
+		} else if (argument instanceof Literal && typeof argument.value === 'string') {
+			argument = argument.value;
+		}
+		this.dynamicImports.push({ node, resolution: null, argument });
 	}
 
 	private addExport(
