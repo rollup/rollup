@@ -120,6 +120,7 @@ export function getPluginContexts(
 				graph
 			),
 			getFileName: fileEmitter.getFileName,
+			getModuleIds: () => graph.moduleById.keys(),
 			getModuleInfo: graph.getModuleInfo,
 			isExternal: getDeprecatedContextHandler(
 				(id: string, parentId: string | undefined, isResolved = false) =>
@@ -133,9 +134,20 @@ export function getPluginContexts(
 			meta: {
 				rollupVersion
 			},
-			// TODO Lukas also add getmoduleids and soft-deprecate
 			get moduleIds() {
-				return graph.moduleById.keys();
+				function* wrappedModuleIds() {
+					graph.warnDeprecation(
+						{
+							message: `Accessing "this.moduleIds" on the plugin context by plugin ${plugin.name} is deprecated. The "this.getModuleIds" plugin context function should be used instead.`,
+							plugin: plugin.name
+						},
+						false
+					);
+					yield* moduleIds;
+				}
+
+				const moduleIds = graph.moduleById.keys();
+				return wrappedModuleIds();
 			},
 			parse: graph.contextParse,
 			resolve(source, importer, options?: { skipSelf: boolean }) {

@@ -177,9 +177,11 @@ export interface PluginContext extends MinimalPluginContext {
 	/** @deprecated Use `this.getFileName` instead */
 	getChunkFileName: (chunkReferenceId: string) => string;
 	getFileName: (fileReferenceId: string) => string;
+	getModuleIds: () => IterableIterator<string>;
 	getModuleInfo: GetModuleInfo;
 	/** @deprecated Use `this.resolve` instead */
 	isExternal: IsExternal;
+	/** @deprecated Use `this.getModuleIds` instead */
 	moduleIds: IterableIterator<string>;
 	parse: (input: string, options: any) => AcornNode;
 	resolve: (

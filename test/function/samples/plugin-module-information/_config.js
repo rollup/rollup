@@ -27,7 +27,12 @@ module.exports = {
 			},
 			renderStart() {
 				rendered = true;
-				assert.deepStrictEqual(Array.from(this.moduleIds), [ID_MAIN, ID_FOO, ID_PATH, ID_NESTED]);
+				assert.deepStrictEqual(Array.from(this.getModuleIds()), [
+					ID_MAIN,
+					ID_FOO,
+					ID_PATH,
+					ID_NESTED
+				]);
 				assert.deepStrictEqual(this.getModuleInfo(ID_MAIN), {
 					dynamicImporters: [],
 					dynamicallyImportedIds: [ID_NESTED, ID_PATH],
