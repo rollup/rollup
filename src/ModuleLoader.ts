@@ -266,15 +266,17 @@ export class ModuleLoader {
 
 	private fetchAllDependencies(module: Module): Promise<unknown> {
 		return Promise.all([
-			...(Array.from(module.sources).map(async source =>
-				this.fetchResolvedDependency(
+			// TODO Lukas replace all Array.from
+			...(Array.from(module.sources).map(async source => {
+				const resolution = await this.fetchResolvedDependency(
 					source,
 					module.id,
 					(module.resolvedIds[source] =
 						module.resolvedIds[source] ||
 						this.handleResolveId(await this.resolveId(source, module.id), source, module.id))
-				)
-			) as Promise<unknown>[]),
+				);
+				resolution.importers.push(module.id);
+			}) as Promise<unknown>[]),
 			...module.getDynamicImportExpressions().map(async (specifier, index) => {
 				const resolvedId = await this.resolveDynamicImport(module, specifier, module.id);
 				if (resolvedId === null) return;
@@ -288,6 +290,7 @@ export class ModuleLoader {
 					module.id,
 					resolvedId
 				);
+				dynamicImport.resolution.dynamicImporters.push(module.id);
 			})
 		]);
 	}

@@ -19,33 +19,41 @@ module.exports = {
 				[...getModuleIds()].map(id => getModuleInfo(id)),
 				[
 					{
+						dynamicImporters: [],
 						dynamicallyImportedIds: [getId('dynamic')],
 						hasModuleSideEffects: true,
 						id: getId('main'),
+						importers: [],
 						importedIds: [getId('lib'), 'external'],
 						isEntry: true,
 						isExternal: false
 					},
 					{
+						dynamicImporters: [getId('dynamic')],
 						dynamicallyImportedIds: [],
 						hasModuleSideEffects: true,
 						id: 'external',
+						importers: [getId('main')],
 						importedIds: [],
 						isEntry: false,
 						isExternal: true
 					},
 					{
+						dynamicImporters: [],
 						dynamicallyImportedIds: [],
 						hasModuleSideEffects: true,
 						id: getId('lib'),
+						importers: [getId('main'), getId('dynamic')],
 						importedIds: [],
 						isEntry: false,
 						isExternal: false
 					},
 					{
-						dynamicallyImportedIds: [],
+						dynamicImporters: [getId('main')],
+						dynamicallyImportedIds: ['external'],
 						hasModuleSideEffects: true,
 						id: getId('dynamic'),
+						importers: [],
 						importedIds: [getId('lib')],
 						isEntry: false,
 						isExternal: false

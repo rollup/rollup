@@ -185,7 +185,7 @@ export default class Chunk {
 			if (module.isEntryPoint) {
 				this.entryModules.push(module);
 			}
-			if (module.dynamicallyImportedBy.length > 0) {
+			if (module.includedDynamicImporters.length > 0) {
 				this.dynamicEntryModules.push(module);
 			}
 		}
@@ -267,7 +267,7 @@ export default class Chunk {
 	generateFacades(): Chunk[] {
 		const facades: Chunk[] = [];
 		const dynamicEntryModules = this.dynamicEntryModules.filter(module =>
-			module.dynamicallyImportedBy.some(importingModule => importingModule.chunk !== this)
+			module.includedDynamicImporters.some(importingModule => importingModule.chunk !== this)
 		);
 		this.isDynamicEntry = dynamicEntryModules.length > 0;
 		const exposedNamespaces = dynamicEntryModules.map(module => module.namespace);
@@ -1060,7 +1060,7 @@ export default class Chunk {
 		}
 		if (
 			(module.isEntryPoint && module.preserveSignature !== false) ||
-			module.dynamicallyImportedBy.some(importer => importer.chunk !== this)
+			module.includedDynamicImporters.some(importer => importer.chunk !== this)
 		) {
 			const map = module.getExportNamesByVariable();
 			for (const exportedVariable of map.keys()) {

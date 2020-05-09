@@ -150,16 +150,18 @@ export type EmitChunk = (id: string, options?: { name?: string }) => string;
 
 export type EmitFile = (emittedFile: EmittedFile) => string;
 
-export type GetModuleInfo = (
-	moduleId: string
-) => {
+interface ModuleInfo {
 	dynamicallyImportedIds: string[];
+	dynamicImporters: string[];
 	hasModuleSideEffects: boolean;
 	id: string;
 	importedIds: string[];
+	importers: string[];
 	isEntry: boolean;
 	isExternal: boolean;
-};
+}
+
+export type GetModuleInfo = (moduleId: string) => ModuleInfo;
 
 export interface PluginContext extends MinimalPluginContext {
 	addWatchFile: (id: string) => void;

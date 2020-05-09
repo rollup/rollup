@@ -13,6 +13,7 @@ import {
 	InputOptions,
 	IsExternal,
 	ManualChunksOption,
+	ModuleInfo,
 	ModuleJSON,
 	PreserveEntrySignaturesOption,
 	RollupCache,
@@ -250,7 +251,7 @@ export default class Graph {
 		};
 	}
 
-	getModuleInfo = (moduleId: string) => {
+	getModuleInfo = (moduleId: string): ModuleInfo => {
 		const foundModule = this.moduleById.get(moduleId);
 		if (foundModule == null) {
 			throw new Error(`Unable to find module ${moduleId}`);
@@ -269,9 +270,11 @@ export default class Graph {
 		}
 		return {
 			dynamicallyImportedIds,
+			dynamicImporters: foundModule.dynamicImporters,
 			hasModuleSideEffects: foundModule.moduleSideEffects,
 			id: foundModule.id,
 			importedIds,
+			importers: foundModule.importers,
 			isEntry: foundModule instanceof Module && foundModule.isEntryPoint,
 			isExternal: foundModule instanceof ExternalModule
 		};
@@ -310,7 +313,11 @@ export default class Graph {
 		const chunks: Chunk[] = [];
 		if (this.preserveModules) {
 			for (const module of this.modules) {
-				if (module.isIncluded() || module.isEntryPoint || module.dynamicallyImportedBy.length > 0) {
+				if (
+					module.isIncluded() ||
+					module.isEntryPoint ||
+					module.includedDynamicImporters.length > 0
+				) {
 					const chunk = new Chunk(this, [module]);
 					chunk.entryModules = [module];
 					chunks.push(chunk);

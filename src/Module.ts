@@ -196,8 +196,9 @@ export default class Module {
 	code!: string;
 	comments: CommentDescription[] = [];
 	dependencies = new Set<Module | ExternalModule>();
-	dynamicallyImportedBy: Module[] = [];
+	// TODO Lukas what is this good for?
 	dynamicDependencies = new Set<Module | ExternalModule>();
+	dynamicImporters: string[] = [];
 	dynamicImports: {
 		node: ImportExpression;
 		resolution: Module | ExternalModule | string | null;
@@ -209,8 +210,11 @@ export default class Module {
 	exportsAll: { [name: string]: string } = Object.create(null);
 	facadeChunk: Chunk | null = null;
 	importDescriptions: { [name: string]: ImportDescription } = Object.create(null);
+	importers: string[] = [];
 	importMetas: MetaProperty[] = [];
 	imports = new Set<Variable>();
+	// TODO Lukas make this a Set
+	includedDynamicImporters: Module[] = [];
 	isExecuted = false;
 	isUserDefinedEntryPoint = false;
 	manualChunkAlias: string = null as any;
@@ -349,7 +353,11 @@ export default class Module {
 				relevantDependencies.add(variable.module);
 			}
 		}
-		if (this.isEntryPoint || this.dynamicallyImportedBy.length > 0 || this.graph.preserveModules) {
+		if (
+			this.isEntryPoint ||
+			this.includedDynamicImporters.length > 0 ||
+			this.graph.preserveModules
+		) {
 			for (const exportName of [...this.getReexports(), ...this.getExports()]) {
 				let variable = this.getVariableForExportName(exportName);
 				if (variable instanceof SyntheticNamedExportVariable) {
@@ -385,6 +393,7 @@ export default class Module {
 		return (this.relevantDependencies = relevantDependencies);
 	}
 
+	// TODO Lukas could we do these transformations when pushing and then simplify ModuleLoaderL282?
 	getDynamicImportExpressions(): (string | Node)[] {
 		return this.dynamicImports.map(({ node }) => {
 			const importArgument = node.source;
@@ -921,7 +930,7 @@ export default class Module {
 			resolution: string | Module | ExternalModule | undefined;
 		}).resolution;
 		if (resolution instanceof Module) {
-			resolution.dynamicallyImportedBy.push(this);
+			resolution.includedDynamicImporters.push(this);
 			resolution.includeAllExports();
 		}
 	}
