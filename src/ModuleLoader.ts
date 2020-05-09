@@ -244,7 +244,7 @@ export class ModuleLoader {
 		} catch (err) {
 			timeEnd('load modules', 3);
 			let msg = `Could not load ${id}`;
-			if (importer) msg += ` (imported by ${importer})`;
+			if (importer) msg += ` (imported by ${relativeId(importer)})`;
 			msg += `: ${err.message}`;
 			err.message = msg;
 			throw err;

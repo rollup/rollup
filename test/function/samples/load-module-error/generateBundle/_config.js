@@ -1,0 +1,19 @@
+module.exports = {
+	description: 'buildStart hooks can use this.error',
+	options: {
+		plugins: [
+			{
+				name: 'test',
+				generateBundle() {
+					this.error('nope');
+				}
+			}
+		]
+	},
+	generateError: {
+		code: 'PLUGIN_ERROR',
+		plugin: 'test',
+		message: 'nope',
+		hook: 'generateBundle'
+	}
+};
