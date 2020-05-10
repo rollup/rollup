@@ -19,7 +19,6 @@ import EmptyStatement from './EmptyStatement';
 import ExportAllDeclaration from './ExportAllDeclaration';
 import ExportDefaultDeclaration from './ExportDefaultDeclaration';
 import ExportNamedDeclaration from './ExportNamedDeclaration';
-import ExportNamespaceSpecifier from './ExportNamespaceSpecifier';
 import ExportSpecifier from './ExportSpecifier';
 import ExpressionStatement from './ExpressionStatement';
 import FieldDefinition from './FieldDefinition';
@@ -93,7 +92,6 @@ export const nodeConstructors: {
 	ExportAllDeclaration,
 	ExportDefaultDeclaration,
 	ExportNamedDeclaration,
-	ExportNamespaceSpecifier,
 	ExportSpecifier,
 	ExpressionStatement,
 	FieldDefinition,
