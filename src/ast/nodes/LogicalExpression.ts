@@ -24,7 +24,7 @@ import { ExpressionEntity } from './shared/Expression';
 import { MultiExpression } from './shared/MultiExpression';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 
-export type LogicalOperator = '||' | '&&';
+export type LogicalOperator = '||' | '&&' | '??';
 
 export default class LogicalExpression extends NodeBase implements DeoptimizableEntity {
 	left!: ExpressionNode;
@@ -194,7 +194,11 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 			if (leftValue === UnknownValue) {
 				return null;
 			} else {
-				if (this.operator === '||' ? leftValue : !leftValue) {
+				if (
+					(this.operator === '||' && leftValue) ||
+					(this.operator === '&&' && !leftValue) ||
+					(this.operator === '??' && leftValue != null)
+				) {
 					this.usedBranch = this.left;
 					this.unusedBranch = this.right;
 				} else {
