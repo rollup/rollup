@@ -6,7 +6,6 @@ import { createHasEffectsContext, createInclusionContext } from './ast/Execution
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
 import ExportNamedDeclaration from './ast/nodes/ExportNamedDeclaration';
-import ExportSpecifier from './ast/nodes/ExportSpecifier';
 import Identifier from './ast/nodes/Identifier';
 import ImportDeclaration from './ast/nodes/ImportDeclaration';
 import ImportExpression from './ast/nodes/ImportExpression';
@@ -815,11 +814,23 @@ export default class Module {
 				localName: 'default'
 			};
 		} else if (node instanceof ExportAllDeclaration) {
-			// export * from './other'
-
 			const source = node.source.value;
 			this.sources.add(source);
-			this.exportAllSources.add(source);
+			if (node.exported) {
+				// export * as name from './other'
+
+				const name = node.exported.name;
+				this.reexportDescriptions[name] = {
+					localName: '*',
+					module: null as any, // filled in later,
+					source,
+					start: node.start
+				};
+			} else {
+				// export * from './other'
+
+				this.exportAllSources.add(source);
+			}
 		} else if (node.source instanceof Literal) {
 			// export { name } from './other'
 
@@ -828,8 +839,7 @@ export default class Module {
 			for (const specifier of node.specifiers) {
 				const name = specifier.exported.name;
 				this.reexportDescriptions[name] = {
-					localName:
-						specifier.type === NodeType.ExportNamespaceSpecifier ? '*' : specifier.local.name,
+					localName: specifier.local.name,
 					module: null as any, // filled in later,
 					source,
 					start: specifier.start
@@ -856,7 +866,7 @@ export default class Module {
 			// export { foo, bar, baz }
 
 			for (const specifier of node.specifiers) {
-				const localName = (specifier as ExportSpecifier).local.name;
+				const localName = specifier.local.name;
 				const exportedName = specifier.exported.name;
 				this.exports[exportedName] = { identifier: null, localName };
 			}
