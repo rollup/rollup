@@ -1,5 +1,20 @@
 # rollup changelog
 
+## 2.9.0
+*2020-05-10*
+
+### Features
+* Add ids of static and dynamic imports to `this.getModuleInfo` (#3542)
+* Provide `getModuleInfo` and `getModuleIds` to `manualChunks` functions (#3542)
+* Add nullish coalescing support (#3548)
+* Make the rebuild delay in watch mode configurable and set the default to `0` for snappy rebuilds (#3502)
+* Add `this.getModuleIds` to the plugin context as future replacement for `this.moduleIds` (#3542)
+
+### Pull Requests
+* [#3502](https://github.com/rollup/rollup/pull/3502): Configurable build delay (@mattdesl)
+* [#3542](https://github.com/rollup/rollup/pull/3542): Extend manualChunks API (@lukastaegert)
+* [#3548](https://github.com/rollup/rollup/pull/3548): Support nullish coalescing with tree-shaking (@lukastaegert)
+
 ## 2.8.2
 *2020-05-07*
 
