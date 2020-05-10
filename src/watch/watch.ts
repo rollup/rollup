@@ -31,7 +31,7 @@ export class Watcher {
 		this.buildDelay = configArray.reduce(
 			(buildDelay, { watch }: any) =>
 				watch && typeof watch.buildDelay === 'number'
-					? Math.max(buildDelay, watch.buildDelay)
+					? Math.max(buildDelay, (watch as WatcherOptions).buildDelay!)
 					: buildDelay,
 			this.buildDelay
 		);
