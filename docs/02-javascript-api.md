@@ -184,6 +184,7 @@ const watchOptions = {
   ...inputOptions,
   output: [outputOptions],
   watch: {
+    buildDelay,
     chokidar,
     clearScreen,
     skipWrite,

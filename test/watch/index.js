@@ -66,6 +66,11 @@ describe('rollup.watch', () => {
 		});
 	}
 
+	function getTimeDiffInMs(previous) {
+		const [seconds, nanoseconds] = process.hrtime(previous);
+		return seconds * 1e3 + nanoseconds / 1e6;
+	}
+
 	it('watches a file and triggers reruns if necessary', () => {
 		let triggerRestart = false;
 
@@ -491,46 +496,6 @@ describe('rollup.watch', () => {
 			});
 	});
 
-	it('recovers from an error even when erroring dependency was "renamed" (#38)', () => {
-		return sander
-			.copydir('test/watch/samples/dependency')
-			.to('test/_tmp/input')
-			.then(() => {
-				watcher = rollup.watch({
-					input: 'test/_tmp/input/main.js',
-					output: {
-						file: 'test/_tmp/output/bundle.js',
-						format: 'cjs'
-					}
-				});
-
-				return sequence(watcher, [
-					'START',
-					'BUNDLE_START',
-					'BUNDLE_END',
-					'END',
-					() => {
-						assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
-						sander.unlinkSync('test/_tmp/input/dep.js');
-						sander.writeFileSync('test/_tmp/input/dep.js', 'export nope;');
-					},
-					'START',
-					'BUNDLE_START',
-					'ERROR',
-					() => {
-						sander.unlinkSync('test/_tmp/input/dep.js');
-						sander.writeFileSync('test/_tmp/input/dep.js', 'export const value = 43;');
-					},
-					'START',
-					'BUNDLE_START',
-					'BUNDLE_END',
-					'END',
-					() => {
-						assert.strictEqual(run('../_tmp/output/bundle.js'), 44);
-					}
-				]);
-			});
-	});
 	it('handles closing the watcher during a build', () => {
 		return sander
 			.copydir('test/watch/samples/basic')
@@ -1074,6 +1039,110 @@ describe('rollup.watch', () => {
 			});
 	});
 
+	it('rebuilds immediately by default', async () => {
+		await sander.copydir('test/watch/samples/basic').to('test/_tmp/input');
+		watcher = rollup.watch({
+			input: 'test/_tmp/input/main.js',
+			output: {
+				file: 'test/_tmp/output/bundle.js',
+				format: 'cjs'
+			}
+		});
+
+		let startTime;
+		return sequence(watcher, [
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+				sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+				startTime = process.hrtime();
+			},
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
+				const timeDiff = getTimeDiffInMs(startTime);
+				assert.ok(timeDiff < 400, `Time difference ${timeDiff} < 400`);
+			}
+		]);
+	});
+
+	it('observes configured build delays', async () => {
+		await sander.copydir('test/watch/samples/basic').to('test/_tmp/input');
+		watcher = rollup.watch([
+			{
+				input: 'test/_tmp/input/main.js',
+				output: {
+					file: 'test/_tmp/output/bundle.js',
+					format: 'cjs'
+				}
+			},
+			{
+				input: 'test/_tmp/input/main.js',
+				watch: { clearScreen: true },
+				output: {
+					file: 'test/_tmp/output/bundle.js',
+					format: 'cjs'
+				}
+			},
+			{
+				input: 'test/_tmp/input/main.js',
+				watch: { buildDelay: 1000 },
+				output: {
+					file: 'test/_tmp/output/bundle.js',
+					format: 'cjs'
+				}
+			},
+			{
+				input: 'test/_tmp/input/main.js',
+				watch: { buildDelay: 50 },
+				output: {
+					file: 'test/_tmp/output/bundle.js',
+					format: 'cjs'
+				}
+			}
+		]);
+
+		let startTime;
+		return sequence(watcher, [
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+				sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+				startTime = process.hrtime();
+			},
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
+				const timeDiff = getTimeDiffInMs(startTime);
+				assert.ok(timeDiff > 1000, `Time difference ${timeDiff} > 1000`);
+			}
+		]);
+	});
+
 	describe('addWatchFile', () => {
 		it('supports adding additional watch files in plugin hooks', () => {
 			const watchChangeIds = [];
@@ -1256,10 +1325,7 @@ describe('rollup.watch', () => {
 							transform(code, id) {
 								if (id.endsWith('dep1.js')) {
 									this.addWatchFile(path.resolve('test/_tmp/input/dep2.js'));
-									const text = sander
-										.readFileSync('test/_tmp/input/dep2.js')
-										.toString()
-										.trim();
+									const text = sander.readFileSync('test/_tmp/input/dep2.js').toString().trim();
 									return `export default ${JSON.stringify(text)}`;
 								}
 							}

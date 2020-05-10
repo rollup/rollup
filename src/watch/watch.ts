@@ -7,17 +7,16 @@ import {
 	RollupBuild,
 	RollupCache,
 	RollupWatcher,
-	WatcherOptions,
+	WatcherOptions
 } from '../rollup/types';
 import { mergeOptions } from '../utils/mergeOptions';
 import { ensureArray, GenericConfigObject } from '../utils/parseOptions';
 import { FileWatcher } from './fileWatcher';
 
-const DELAY = 200;
-
 export class Watcher {
 	emitter: RollupWatcher;
 
+	private buildDelay = 0;
 	private buildTimeout: NodeJS.Timer | null = null;
 	private invalidatedIds: Set<string> = new Set();
 	private rerun = false;
@@ -27,7 +26,15 @@ export class Watcher {
 	constructor(configs: GenericConfigObject[] | GenericConfigObject, emitter: RollupWatcher) {
 		this.emitter = emitter;
 		emitter.close = this.close.bind(this);
-		this.tasks = ensureArray(configs).map((config) => new Task(this, config));
+		const configArray = ensureArray(configs);
+		this.tasks = configArray.map(config => new Task(this, config));
+		this.buildDelay = configArray.reduce(
+			(buildDelay, { watch }: any) =>
+				watch && typeof watch.buildDelay === 'number'
+					? Math.max(buildDelay, (watch as WatcherOptions).buildDelay!)
+					: buildDelay,
+			this.buildDelay
+		);
 		this.running = true;
 		process.nextTick(() => this.run());
 	}
@@ -63,14 +70,14 @@ export class Watcher {
 			this.invalidatedIds.clear();
 			this.emit('restart');
 			this.run();
-		}, DELAY);
+		}, this.buildDelay);
 	}
 
 	private async run() {
 		this.running = true;
 
 		this.emit('event', {
-			code: 'START',
+			code: 'START'
 		});
 
 		try {
@@ -79,13 +86,13 @@ export class Watcher {
 			}
 			this.running = false;
 			this.emit('event', {
-				code: 'END',
+				code: 'END'
 			});
 		} catch (error) {
 			this.running = false;
 			this.emit('event', {
 				code: 'ERROR',
-				error,
+				error
 			});
 		}
 
@@ -119,7 +126,7 @@ export class Task {
 		this.skipWrite = config.watch && !!(config.watch as GenericConfigObject).skipWrite;
 		this.options = mergeOptions(config);
 		this.outputs = this.options.output;
-		this.outputFiles = this.outputs.map((output) => {
+		this.outputFiles = this.outputs.map(output => {
 			if (output.file || output.dir) return path.resolve(output.file || output.dir!);
 			return undefined as any;
 		});
@@ -129,7 +136,7 @@ export class Task {
 		this.fileWatcher = new FileWatcher(this, {
 			...watchOptions.chokidar,
 			disableGlobbing: true,
-			ignoreInitial: true,
+			ignoreInitial: true
 		});
 	}
 
@@ -156,7 +163,7 @@ export class Task {
 
 		const options = {
 			...this.options,
-			cache: this.cache,
+			cache: this.cache
 		};
 
 		const start = Date.now();
@@ -164,7 +171,7 @@ export class Task {
 		this.watcher.emit('event', {
 			code: 'BUNDLE_START',
 			input: this.options.input,
-			output: this.outputFiles,
+			output: this.outputFiles
 		});
 
 		try {
@@ -173,13 +180,13 @@ export class Task {
 				return;
 			}
 			this.updateWatchedFiles(result);
-			this.skipWrite || (await Promise.all(this.outputs.map((output) => result.write(output))));
+			this.skipWrite || (await Promise.all(this.outputs.map(output => result.write(output))));
 			this.watcher.emit('event', {
 				code: 'BUNDLE_END',
 				duration: Date.now() - start,
 				input: this.options.input,
 				output: this.outputFiles,
-				result,
+				result
 			});
 		} catch (error) {
 			if (this.closed) {
@@ -192,7 +199,7 @@ export class Task {
 				}
 			}
 			if (error.id) {
-				this.cache.modules = this.cache.modules.filter((module) => module.id !== error.id);
+				this.cache.modules = this.cache.modules.filter(module => module.id !== error.id);
 			}
 			throw error;
 		}
@@ -222,7 +229,7 @@ export class Task {
 		if (!this.filter(id)) return;
 		this.watched.add(id);
 
-		if (this.outputFiles.some((file) => file === id)) {
+		if (this.outputFiles.some(file => file === id)) {
 			throw new Error('Cannot import the generated bundle');
 		}
 

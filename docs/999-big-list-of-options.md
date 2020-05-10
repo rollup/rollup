@@ -1274,6 +1274,12 @@ For each key, the first number represents the elapsed time while the second repr
 
 These options only take effect when running Rollup with the `--watch` flag, or using `rollup.watch`.
 
+#### watch.buildDelay
+Type: `number`<br>
+Default: `0`
+
+Configures how long Rollup will wait for further changes until it triggers a rebuild in milliseconds. By default, Rollup does not wait but there is a small debounce timeout configured in the chokidar instance. Setting this to a value greater than `0` will mean that Rollup will only triger a rebuild if there was no change for the configured number of milliseconds. If several configurations are watched, Rollup will use the largest configured build delay.
+
 #### watch.chokidar
 Type: `ChokidarOptions`<br>
 
@@ -1281,21 +1287,18 @@ An optional object of watch options that will be passed to the bundled [chokidar
 
 #### watch.clearScreen
 Type: `boolean`<br>
-CLI: `--watch.clearScreen`/`--no-watch.clearScreen`<br>
 Default: `true`
 
 Whether to clear the screen when a rebuild is triggered.
 
 #### watch.skipWrite
 Type: `boolean`<br>
-<!-- CLI: `--watch.skipWrite`<br> -->
 Default: `false`
 
 Whether to skip the `bundle.write()` step when a rebuild is triggered.
 
 #### watch.exclude
-Type: `string`<br>
-CLI: `--watch.exclude <excludedPattern>`
+Type: `string`
 
 Prevent files from being watched:
 
@@ -1310,8 +1313,7 @@ export default {
 ```
 
 #### watch.include
-Type: `string`<br>
-CLI: `--watch.include <includedPattern>`
+Type: `string`
 
 Limit the file-watching to certain files:
 

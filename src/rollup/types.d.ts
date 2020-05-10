@@ -634,6 +634,7 @@ export interface ChokidarOptions {
 }
 
 export interface WatcherOptions {
+	buildDelay?: number;
 	chokidar?: ChokidarOptions;
 	clearScreen?: boolean;
 	exclude?: string[];
