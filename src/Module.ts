@@ -15,7 +15,7 @@ import Literal from './ast/nodes/Literal';
 import MetaProperty from './ast/nodes/MetaProperty';
 import * as NodeType from './ast/nodes/NodeType';
 import Program from './ast/nodes/Program';
-import { Node, NodeBase } from './ast/nodes/shared/Node';
+import { ExpressionNode, NodeBase } from './ast/nodes/shared/Node';
 import TemplateLiteral from './ast/nodes/TemplateLiteral';
 import VariableDeclaration from './ast/nodes/VariableDeclaration';
 import ModuleScope from './ast/scopes/ModuleScope';
@@ -195,9 +195,10 @@ export default class Module {
 	code!: string;
 	comments: CommentDescription[] = [];
 	dependencies = new Set<Module | ExternalModule>();
-	dynamicallyImportedBy: Module[] = [];
 	dynamicDependencies = new Set<Module | ExternalModule>();
+	dynamicImporters: string[] = [];
 	dynamicImports: {
+		argument: string | ExpressionNode;
 		node: ImportExpression;
 		resolution: Module | ExternalModule | string | null;
 	}[] = [];
@@ -208,8 +209,10 @@ export default class Module {
 	exportsAll: { [name: string]: string } = Object.create(null);
 	facadeChunk: Chunk | null = null;
 	importDescriptions: { [name: string]: ImportDescription } = Object.create(null);
+	importers: string[] = [];
 	importMetas: MetaProperty[] = [];
 	imports = new Set<Variable>();
+	includedDynamicImporters: Module[] = [];
 	isExecuted = false;
 	isUserDefinedEntryPoint = false;
 	manualChunkAlias: string = null as any;
@@ -348,7 +351,11 @@ export default class Module {
 				relevantDependencies.add(variable.module);
 			}
 		}
-		if (this.isEntryPoint || this.dynamicallyImportedBy.length > 0 || this.graph.preserveModules) {
+		if (
+			this.isEntryPoint ||
+			this.includedDynamicImporters.length > 0 ||
+			this.graph.preserveModules
+		) {
 			for (const exportName of [...this.getReexports(), ...this.getExports()]) {
 				let variable = this.getVariableForExportName(exportName);
 				if (variable instanceof SyntheticNamedExportVariable) {
@@ -382,23 +389,6 @@ export default class Module {
 			}
 		}
 		return (this.relevantDependencies = relevantDependencies);
-	}
-
-	getDynamicImportExpressions(): (string | Node)[] {
-		return this.dynamicImports.map(({ node }) => {
-			const importArgument = node.source;
-			if (
-				importArgument instanceof TemplateLiteral &&
-				importArgument.quasis.length === 1 &&
-				importArgument.quasis[0].value.cooked
-			) {
-				return importArgument.quasis[0].value.cooked;
-			}
-			if (importArgument instanceof Literal && typeof importArgument.value === 'string') {
-				return importArgument.value;
-			}
-			return importArgument;
-		});
 	}
 
 	getExportNamesByVariable(): Map<Variable, string[]> {
@@ -451,7 +441,7 @@ export default class Module {
 				}
 			}
 		}
-		return (this.transitiveReexports = Array.from(reexports));
+		return (this.transitiveReexports = [...reexports]);
 	}
 
 	getRenderedExports() {
@@ -741,7 +731,7 @@ export default class Module {
 			ast: this.esTreeAst,
 			code: this.code,
 			customTransformCache: this.customTransformCache,
-			dependencies: Array.from(this.dependencies).map(module => module.id),
+			dependencies: [...this.dependencies].map(module => module.id),
 			id: this.id,
 			moduleSideEffects: this.moduleSideEffects,
 			originalCode: this.originalCode,
@@ -800,7 +790,15 @@ export default class Module {
 	}
 
 	private addDynamicImport(node: ImportExpression) {
-		this.dynamicImports.push({ node, resolution: null });
+		let argument: ExpressionNode | string = node.source;
+		if (argument instanceof TemplateLiteral) {
+			if (argument.quasis.length === 1 && argument.quasis[0].value.cooked) {
+				argument = argument.quasis[0].value.cooked;
+			}
+		} else if (argument instanceof Literal && typeof argument.value === 'string') {
+			argument = argument.value;
+		}
+		this.dynamicImports.push({ node, resolution: null, argument });
 	}
 
 	private addExport(
@@ -931,7 +929,7 @@ export default class Module {
 			resolution: string | Module | ExternalModule | undefined;
 		}).resolution;
 		if (resolution instanceof Module) {
-			resolution.dynamicallyImportedBy.push(this);
+			resolution.includedDynamicImporters.push(this);
 			resolution.includeAllExports();
 		}
 	}

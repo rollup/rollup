@@ -9,10 +9,10 @@ import ExternalModule from './ExternalModule';
 import Module, { defaultAcornOptions } from './Module';
 import { ModuleLoader, UnresolvedModule } from './ModuleLoader';
 import {
-	GetManualChunk,
 	InputOptions,
 	IsExternal,
 	ManualChunksOption,
+	ModuleInfo,
 	ModuleJSON,
 	PreserveEntrySignaturesOption,
 	RollupCache,
@@ -181,7 +181,6 @@ export default class Graph {
 			this.pluginDriver,
 			options.preserveSymlinks === true,
 			options.external as (string | RegExp)[] | IsExternal,
-			(typeof options.manualChunks === 'function' && options.manualChunks) as GetManualChunk | null,
 			(this.treeshakingOptions ? this.treeshakingOptions.moduleSideEffects : null)!,
 			(this.treeshakingOptions ? this.treeshakingOptions.pureExternalModules : false)!
 		);
@@ -246,6 +245,35 @@ export default class Graph {
 		};
 	}
 
+	getModuleInfo = (moduleId: string): ModuleInfo => {
+		const foundModule = this.moduleById.get(moduleId);
+		if (foundModule == null) {
+			throw new Error(`Unable to find module ${moduleId}`);
+		}
+		const importedIds: string[] = [];
+		const dynamicallyImportedIds: string[] = [];
+		if (foundModule instanceof Module) {
+			for (const source of foundModule.sources) {
+				importedIds.push(foundModule.resolvedIds[source].id);
+			}
+			for (const { resolution } of foundModule.dynamicImports) {
+				if (resolution instanceof Module || resolution instanceof ExternalModule) {
+					dynamicallyImportedIds.push(resolution.id);
+				}
+			}
+		}
+		return {
+			dynamicallyImportedIds,
+			dynamicImporters: foundModule.dynamicImporters,
+			hasModuleSideEffects: foundModule.moduleSideEffects,
+			id: foundModule.id,
+			importedIds,
+			importers: foundModule.importers,
+			isEntry: foundModule instanceof Module && foundModule.isEntryPoint,
+			isExternal: foundModule instanceof ExternalModule
+		};
+	};
+
 	warn(warning: RollupWarning) {
 		warning.toString = () => {
 			let str = '';
@@ -279,7 +307,11 @@ export default class Graph {
 		const chunks: Chunk[] = [];
 		if (this.preserveModules) {
 			for (const module of this.modules) {
-				if (module.isIncluded() || module.isEntryPoint || module.dynamicallyImportedBy.length > 0) {
+				if (
+					module.isIncluded() ||
+					module.isEntryPoint ||
+					module.includedDynamicImporters.length > 0
+				) {
 					const chunk = new Chunk(this, [module]);
 					chunk.entryModules = [module];
 					chunks.push(chunk);
@@ -360,6 +392,9 @@ export default class Graph {
 				typeof manualChunks === 'object' &&
 				this.moduleLoader.addManualChunks(manualChunks)
 		]);
+		if (typeof manualChunks === 'function') {
+			this.moduleLoader.assignManualChunks(manualChunks);
+		}
 		if (entryModules.length === 0) {
 			throw new Error('You must supply options.input to rollup');
 		}

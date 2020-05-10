@@ -539,6 +539,16 @@ Get the combined source maps of all previous plugins. This context function can 
 
 Get the file name of a chunk or asset that has been emitted via [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string). The file name will be relative to `outputOptions.dir`.
 
+#### `this.getModuleIds() => IterableIterator<string>`
+
+Returns an `Iterator` that gives access to all module ids in the current graph. It can be iterated via
+
+```js
+for (const moduleId of this.getModuleIds()) { /* ... */ }
+```
+
+or converted into an Array via `Array.from(this.getModuleIds())`.
+
 #### `this.getModuleInfo(moduleId: string) => ModuleInfo`
 
 Returns additional information about the module in question in the form
@@ -549,7 +559,9 @@ Returns additional information about the module in question in the form
   isEntry: boolean, // is this a user- or plugin-defined entry point
   isExternal: boolean, // for external modules that are not included in the graph
   importedIds: string[], // the module ids statically imported by this module
+  importers: string[], // the ids of all modules that statically import this module
   dynamicallyImportedIds: string[], // the module ids imported by this module via dynamic import()
+  dynamicImporters: string[], // the ids of all modules that import this module via dynamic import()
   hasModuleSideEffects: boolean // are imports of this module included if nothing is imported from it
 }
 ```
@@ -559,16 +571,6 @@ If the module id cannot be found, an error is thrown.
 #### `this.meta: {rollupVersion: string}`
 
 An `Object` containing potentially useful Rollup metadata. `meta` is the only context property accessible from the [`options`](guide/en/#options) hook.
-
-#### `this.moduleIds: IterableIterator<string>`
-
-An `Iterator` that gives access to all module ids in the current graph. It can be iterated via
-
-```js
-for (const moduleId of this.moduleIds) { /* ... */ }
-```
-
-or converted into an Array via `Array.from(this.moduleIds)`.
 
 #### `this.parse(code: string, acornOptions?: AcornOptions) => ESTree.Program`
 
@@ -620,6 +622,15 @@ The `position` argument is a character index where the warning was raised. If pr
 - `this.getChunkFileName(chunkReferenceId: string) => string` - _**Use [`this.getFileName`](guide/en/#thisgetfilenamereferenceid-string--string)**_ - Get the file name of an emitted chunk. The file name will be relative to `outputOptions.dir`.
 
 - `this.isExternal(id: string, importer: string | undefined, isResolved: boolean) => boolean` - _**Use [`this.resolve`](guide/en/#thisresolvesource-string-importer-string-options-skipself-boolean--promiseid-string-external-boolean--null)**_ - Determine if a given module ID is external when imported by `importer`. When `isResolved` is false, Rollup will try to resolve the id before testing if it is external.
+
+- `this.moduleIds: IterableIterator<string>` - _**Use [`this.getModuleIds`](guide/en/#thisgetmoduleids--iterableiteratorstring)**_ - An `Iterator` that gives access to all module ids in the current graph. It can be iterated via
+
+  ```js
+  for (const moduleId of this.moduleIds) { /* ... */ }
+  ```
+
+  or converted into an Array via `Array.from(this.moduleIds)`.
+
 
 - `this.resolveId(source: string, importer?: string) => Promise<string | null>` - _**Use [`this.resolve`](guide/en/#thisresolvesource-string-importer-string-options-skipself-boolean--promiseid-string-external-boolean--null)**_ - Resolve imports to module ids (i.e. file names) using the same plugins that Rollup uses. Returns `null` if an id cannot be resolved.
 

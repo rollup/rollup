@@ -27,9 +27,9 @@ const getStarExcludesBlock = (
 	n: string
 ): string =>
 	starExcludes
-		? `${n}${t}${varOrConst} _starExcludes${_}=${_}{${_}${Array.from(starExcludes).join(
-				`:${_}1,${_}`
-		  )}${starExcludes.size ? `:${_}1` : ''}${_}};`
+		? `${n}${t}${varOrConst} _starExcludes${_}=${_}{${_}${[...starExcludes]
+				.map(prop => `${prop}:${_}1`)
+				.join(`,${_}`)}${_}};`
 		: '';
 
 const getImportBindingsBlock = (

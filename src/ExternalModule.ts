@@ -7,11 +7,13 @@ import { isAbsolute, normalize, relative } from './utils/path';
 export default class ExternalModule {
 	chunk: void;
 	declarations: { [name: string]: ExternalVariable };
+	dynamicImporters: string[] = [];
 	execIndex: number;
 	exportedVariables: Map<ExternalVariable, string>;
 	exportsNames = false;
 	exportsNamespace = false;
 	id: string;
+	importers: string[] = [];
 	moduleSideEffects: boolean;
 	mostCommonSuggestion = 0;
 	nameSuggestions: { [name: string]: number };
