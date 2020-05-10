@@ -13,11 +13,10 @@ import { mergeOptions } from '../utils/mergeOptions';
 import { ensureArray, GenericConfigObject } from '../utils/parseOptions';
 import { FileWatcher } from './fileWatcher';
 
-const DEFAULT_DELAY = 200;
-
 export class Watcher {
 	emitter: RollupWatcher;
 
+	private buildDelay = 0;
 	private buildTimeout: NodeJS.Timer | null = null;
 	private invalidatedIds: Set<string> = new Set();
 	private rerun = false;
@@ -27,7 +26,15 @@ export class Watcher {
 	constructor(configs: GenericConfigObject[] | GenericConfigObject, emitter: RollupWatcher) {
 		this.emitter = emitter;
 		emitter.close = this.close.bind(this);
-		this.tasks = ensureArray(configs).map(config => new Task(this, config));
+		const configArray = ensureArray(configs);
+		this.tasks = configArray.map(config => new Task(this, config));
+		this.buildDelay = configArray.reduce(
+			(buildDelay, { watch }: any) =>
+				watch && typeof watch.buildDelay === 'number'
+					? Math.max(buildDelay, watch.buildDelay)
+					: buildDelay,
+			this.buildDelay
+		);
 		this.running = true;
 		process.nextTick(() => this.run());
 	}
@@ -55,7 +62,6 @@ export class Watcher {
 
 		if (this.buildTimeout) clearTimeout(this.buildTimeout);
 
-		const delay: number = this.emitter.delay != null ? this.emitter.delay : DEFAULT_DELAY;
 		this.buildTimeout = setTimeout(() => {
 			this.buildTimeout = null;
 			for (const id of this.invalidatedIds) {
@@ -64,7 +70,7 @@ export class Watcher {
 			this.invalidatedIds.clear();
 			this.emit('restart');
 			this.run();
-		}, delay);
+		}, this.buildDelay);
 	}
 
 	private async run() {
