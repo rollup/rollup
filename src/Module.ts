@@ -842,7 +842,6 @@ export default class Module {
 					localName: specifier.local.name,
 					module: null as any, // filled in later,
 					source,
-					// TODO Lukas does anyone need this?
 					start: specifier.start
 				};
 			}

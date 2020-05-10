@@ -48,9 +48,9 @@ jobs:
       - run:
           name: Post REPL comment
           command: ./scripts/post-comment.js
-  node-v13-latest:
+  node-v14-latest:
     docker:
-      - image: lukastaegert/circleci-node-v13:latest
+      - image: rollupcabal/circleci-node-v14:latest
     steps:
       - checkout
       - restore_cache:
@@ -80,7 +80,7 @@ workflows:
           filters:
             tags:
               only: /.*/
-      - node-v13-latest:
+      - node-v14-latest:
           requires:
             - analysis
           filters:
