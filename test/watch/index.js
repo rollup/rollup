@@ -32,7 +32,7 @@ describe('rollup.watch', () => {
 		return require(resolved);
 	}
 
-	function sequence(watcher, events) {
+	function sequence(watcher, events, timeout = 300) {
 		return new Promise((fulfil, reject) => {
 			function go(event) {
 				const next = events.shift();
@@ -52,7 +52,7 @@ describe('rollup.watch', () => {
 					});
 				} else {
 					Promise.resolve()
-						.then(() => wait(100)) // gah, this appears to be necessary to fix random errors
+						.then(() => wait(timeout)) // gah, this appears to be necessary to fix random errors
 						.then(() => next(event))
 						.then(go)
 						.catch(error => {
@@ -196,8 +196,8 @@ describe('rollup.watch', () => {
 					'BUNDLE_END',
 					'END',
 					() => {
+						watchChangeCnt = 0;
 						assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-						assert.strictEqual(watchChangeCnt, 0);
 						sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
 					},
 					'START',
@@ -1003,8 +1003,8 @@ describe('rollup.watch', () => {
 					'BUNDLE_END',
 					'END',
 					() => {
+						watchChangeCnt = 0;
 						assert.strictEqual(sander.existsSync('../_tmp/output/bundle.js'), false);
-						assert.strictEqual(watchChangeCnt, 0);
 						sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
 					},
 					'START',
@@ -1050,63 +1050,70 @@ describe('rollup.watch', () => {
 		});
 
 		let startTime;
-		return sequence(watcher, [
-			'START',
-			'BUNDLE_START',
-			'BUNDLE_END',
-			'END',
-			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-				sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
-				startTime = process.hrtime();
-			},
-			'START',
-			'BUNDLE_START',
-			'BUNDLE_END',
-			'END',
-			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
-				const timeDiff = getTimeDiffInMs(startTime);
-				assert.ok(timeDiff < 400, `Time difference ${timeDiff} < 400`);
-			}
-		]);
+		return sequence(
+			watcher,
+			[
+				'START',
+				'BUNDLE_START',
+				'BUNDLE_END',
+				'END',
+				() => {
+					assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+					sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+					startTime = process.hrtime();
+				},
+				'START',
+				'BUNDLE_START',
+				'BUNDLE_END',
+				'END',
+				() => {
+					assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
+					const timeDiff = getTimeDiffInMs(startTime);
+					assert.ok(timeDiff < 400, `Time difference ${timeDiff} < 400`);
+				}
+			],
+			0
+		);
 	});
 
 	it('observes configured build delays', async () => {
 		await sander.copydir('test/watch/samples/basic').to('test/_tmp/input');
-		watcher = rollup.watch([
-			{
-				input: 'test/_tmp/input/main.js',
-				output: {
-					file: 'test/_tmp/output/bundle.js',
-					format: 'cjs'
+		watcher = rollup.watch(
+			[
+				{
+					input: 'test/_tmp/input/main.js',
+					output: {
+						file: 'test/_tmp/output/bundle.js',
+						format: 'cjs'
+					}
+				},
+				{
+					input: 'test/_tmp/input/main.js',
+					watch: { clearScreen: true },
+					output: {
+						file: 'test/_tmp/output/bundle.js',
+						format: 'cjs'
+					}
+				},
+				{
+					input: 'test/_tmp/input/main.js',
+					watch: { buildDelay: 1000 },
+					output: {
+						file: 'test/_tmp/output/bundle.js',
+						format: 'cjs'
+					}
+				},
+				{
+					input: 'test/_tmp/input/main.js',
+					watch: { buildDelay: 50 },
+					output: {
+						file: 'test/_tmp/output/bundle.js',
+						format: 'cjs'
+					}
 				}
-			},
-			{
-				input: 'test/_tmp/input/main.js',
-				watch: { clearScreen: true },
-				output: {
-					file: 'test/_tmp/output/bundle.js',
-					format: 'cjs'
-				}
-			},
-			{
-				input: 'test/_tmp/input/main.js',
-				watch: { buildDelay: 1000 },
-				output: {
-					file: 'test/_tmp/output/bundle.js',
-					format: 'cjs'
-				}
-			},
-			{
-				input: 'test/_tmp/input/main.js',
-				watch: { buildDelay: 50 },
-				output: {
-					file: 'test/_tmp/output/bundle.js',
-					format: 'cjs'
-				}
-			}
-		]);
+			],
+			0
+		);
 
 		let startTime;
 		return sequence(watcher, [
