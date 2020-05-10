@@ -193,9 +193,9 @@ export function warnUnknownOptions(
 	if (unknownOptions.length > 0) {
 		warn({
 			code: 'UNKNOWN_OPTION',
-			message: `Unknown ${optionType}: ${unknownOptions.join(', ')}. Allowed options: ${Array.from(
-				validOptionSet
-			)
+			message: `Unknown ${optionType}: ${unknownOptions.join(', ')}. Allowed options: ${[
+				...validOptionSet
+			]
 				.sort()
 				.join(', ')}`
 		});

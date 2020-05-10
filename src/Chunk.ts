@@ -185,7 +185,7 @@ export default class Chunk {
 			if (module.isEntryPoint) {
 				this.entryModules.push(module);
 			}
-			if (module.dynamicallyImportedBy.length > 0) {
+			if (module.includedDynamicImporters.length > 0) {
 				this.dynamicEntryModules.push(module);
 			}
 		}
@@ -267,18 +267,18 @@ export default class Chunk {
 	generateFacades(): Chunk[] {
 		const facades: Chunk[] = [];
 		const dynamicEntryModules = this.dynamicEntryModules.filter(module =>
-			module.dynamicallyImportedBy.some(importingModule => importingModule.chunk !== this)
+			module.includedDynamicImporters.some(importingModule => importingModule.chunk !== this)
 		);
 		this.isDynamicEntry = dynamicEntryModules.length > 0;
 		const exposedNamespaces = dynamicEntryModules.map(module => module.namespace);
 		for (const module of this.entryModules) {
-			const requiredFacades: FacadeName[] = Array.from(module.userChunkNames).map(name => ({
+			const requiredFacades: FacadeName[] = [...module.userChunkNames].map(name => ({
 				name
 			}));
 			if (requiredFacades.length === 0 && module.isUserDefinedEntryPoint) {
 				requiredFacades.push({});
 			}
-			requiredFacades.push(...Array.from(module.chunkFileNames).map(fileName => ({ fileName })));
+			requiredFacades.push(...[...module.chunkFileNames].map(fileName => ({ fileName })));
 			if (requiredFacades.length === 0) {
 				requiredFacades.push({});
 			}
@@ -1060,7 +1060,7 @@ export default class Chunk {
 		}
 		if (
 			(module.isEntryPoint && module.preserveSignature !== false) ||
-			module.dynamicallyImportedBy.some(importer => importer.chunk !== this)
+			module.includedDynamicImporters.some(importer => importer.chunk !== this)
 		) {
 			const map = module.getExportNamesByVariable();
 			for (const exportedVariable of map.keys()) {

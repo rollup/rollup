@@ -10,7 +10,7 @@ module.exports = {
 		plugins: [
 			{
 				buildStart() {
-					assert.deepEqual(Array.from(this.moduleIds), []);
+					assert.deepStrictEqual(Array.from(this.getModuleIds()), []);
 					// should throw "not found" error
 					this.getModuleInfo(ID_MAIN);
 				}

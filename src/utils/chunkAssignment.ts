@@ -113,7 +113,7 @@ function analyzeModuleGraph(
 			for (const { resolution } of module.dynamicImports) {
 				if (
 					resolution instanceof Module &&
-					resolution.dynamicallyImportedBy.length > 0 &&
+					resolution.includedDynamicImporters.length > 0 &&
 					!resolution.manualChunkAlias
 				) {
 					dynamicEntryModules.add(resolution);
@@ -141,7 +141,7 @@ function getDynamicDependentEntryPoints(
 			dynamicallyDependentEntryPointsByDynamicEntry,
 			dynamicEntry
 		);
-		for (const importer of dynamicEntry.dynamicallyImportedBy) {
+		for (const importer of dynamicEntry.includedDynamicImporters) {
 			for (const entryPoint of dependentEntryPointsByModule.get(importer)!) {
 				dynamicDependentEntryPoints.add(entryPoint);
 			}
