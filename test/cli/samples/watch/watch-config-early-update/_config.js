@@ -36,7 +36,7 @@ module.exports = {
 		              format: "es"
 		            }
 		          });
-		        }, 300);
+		        }, 500);
 		      }
 		    });
 		  });
