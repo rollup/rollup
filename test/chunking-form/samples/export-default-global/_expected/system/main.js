@@ -3,7 +3,9 @@ System.register([], function (exports) {
 	return {
 		execute: function () {
 
-			console.log(global);
+			var value = exports('default', global);
+
+			console.log(value);
 
 		}
 	};

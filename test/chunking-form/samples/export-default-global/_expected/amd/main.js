@@ -1,7 +1,9 @@
 define(function () { 'use strict';
 
-	console.log(global);
+	var value = global;
 
-	return global;
+	console.log(value);
+
+	return value;
 
 });

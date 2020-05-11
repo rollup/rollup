@@ -36,7 +36,7 @@ module.exports = {
 		              format: "es"
 		            }
 		          });
-		        }, 500);
+		        }, 300);
 		      }
 		    });
 		  });
@@ -60,7 +60,7 @@ module.exports = {
 		        `
 					);
 					fs.writeFileSync(messageFile, 'loaded');
-				}, 500);
+				}, 300);
 			}
 		});
 	},
@@ -69,7 +69,7 @@ module.exports = {
 	},
 	abortOnStderr(data) {
 		if (reloadTriggered && data.includes('created _actual')) {
-			return true;
+			return new Promise(resolve => setTimeout(() => resolve(true), 300));
 		} else if (data.includes('Reloading updated config')) {
 			reloadTriggered = true;
 			return false;

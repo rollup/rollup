@@ -1,5 +1,7 @@
 'use strict';
 
-console.log(global);
+var value = global;
 
-module.exports = global;
+console.log(value);
+
+module.exports = value;

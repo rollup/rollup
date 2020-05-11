@@ -11,11 +11,11 @@ module.exports = {
 		fs.writeFileSync(mainFile, '<=>');
 	},
 	after() {
-		fs.unlinkSync(mainFile);
+		setTimeout(() => fs.unlinkSync(mainFile), 300);
 	},
 	abortOnStderr(data) {
 		if (data.includes('Error: Unexpected token')) {
-			setTimeout(() => fs.writeFileSync(mainFile, 'export default 42;'), 200);
+			setTimeout(() => fs.writeFileSync(mainFile, 'export default 42;'), 300);
 			return false;
 		}
 		if (data.includes('created _actual')) {

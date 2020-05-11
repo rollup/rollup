@@ -1,3 +1,5 @@
-console.log(global);
+var value = global;
 
-export default global;
+console.log(value);
+
+export default value;
