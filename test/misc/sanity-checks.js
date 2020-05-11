@@ -156,48 +156,46 @@ describe('sanity checks', () => {
 			});
 	});
 
-	it('throws when using multiple inputs together with the "file" option', () => {
-		const warnings = [];
-
-		return rollup
-			.rollup({
-				input: ['x', 'y'],
-				plugins: [loader({ x: 'console.log( "x" );', y: 'console.log( "y" );' })],
-				onwarn: warning => warnings.push(warning)
-			})
-			.then(bundle => {
-				assert.throws(() => {
-					bundle.generate({ file: 'x', format: 'es' });
-				}, /When building multiple chunks, the "output\.dir" option must be used, not "output\.file"\. To inline dynamic imports, set the "inlineDynamicImports" option\./);
-			});
+	it('throws when using multiple inputs together with the "file" option', async () => {
+		let error = null;
+		const bundle = await rollup.rollup({
+			input: ['x', 'y'],
+			plugins: [loader({ x: 'console.log( "x" );', y: 'console.log( "y" );' })]
+		});
+		try {
+			await bundle.generate({ file: 'x', format: 'es' });
+		} catch (generateError) {
+			error = generateError;
+		}
+		assert.strictEqual(
+			error && error.message,
+			'When building multiple chunks, the "output.dir" option must be used, not "output.file". To inline dynamic imports, set the "inlineDynamicImports" option.'
+		);
 	});
 
-	it('does not throw when using a single element array of inputs together with the "file" option', () => {
-		const warnings = [];
-
-		return rollup
-			.rollup({
-				input: ['x'],
-				plugins: [loader({ x: 'console.log( "x" );' })],
-				onwarn: warning => warnings.push(warning)
-			})
-			.then(bundle => bundle.generate({ file: 'x', format: 'es' }));
+	it('does not throw when using a single element array of inputs together with the "file" option', async () => {
+		const bundle = await rollup.rollup({
+			input: ['x'],
+			plugins: [loader({ x: 'console.log( "x" );' })]
+		});
+		await bundle.generate({ file: 'x', format: 'es' });
 	});
 
-	it('throws when using dynamic imports with the "file" option', () => {
-		const warnings = [];
-
-		return rollup
-			.rollup({
-				input: 'x',
-				plugins: [loader({ x: 'console.log( "x" );import("y");', y: 'console.log( "y" );' })],
-				onwarn: warning => warnings.push(warning)
-			})
-			.then(bundle => {
-				assert.throws(() => {
-					bundle.generate({ file: 'x', format: 'es' });
-				}, /When building multiple chunks, the "output\.dir" option must be used, not "output\.file"\. To inline dynamic imports, set the "inlineDynamicImports" option\./);
-			});
+	it('throws when using dynamic imports with the "file" option', async () => {
+		let error = null;
+		const bundle = await rollup.rollup({
+			input: 'x',
+			plugins: [loader({ x: 'console.log( "x" );import("y");', y: 'console.log( "y" );' })]
+		});
+		try {
+			await bundle.generate({ file: 'x', format: 'es' });
+		} catch (generateError) {
+			error = generateError;
+		}
+		assert.strictEqual(
+			error && error.message,
+			'When building multiple chunks, the "output.dir" option must be used, not "output.file". To inline dynamic imports, set the "inlineDynamicImports" option.'
+		);
 	});
 
 	it('does not throw when using dynamic imports with the "file" option and "inlineDynamicImports"', () => {

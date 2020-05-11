@@ -32,6 +32,7 @@ import {
 	WarningHandler
 } from './types';
 
+// TODO Lukas move down
 function getAbsoluteEntryModulePaths(chunks: Chunk[]): string[] {
 	const absoluteEntryModulePaths: string[] = [];
 	for (const chunk of chunks) {
@@ -44,6 +45,7 @@ function getAbsoluteEntryModulePaths(chunks: Chunk[]): string[] {
 	return absoluteEntryModulePaths;
 }
 
+// TODO Lukas move down
 function applyOptionHook(inputOptions: InputOptions, plugin: Plugin) {
 	if (plugin.options)
 		return plugin.options.call({ meta: { rollupVersion } }, inputOptions) || inputOptions;
@@ -51,6 +53,7 @@ function applyOptionHook(inputOptions: InputOptions, plugin: Plugin) {
 	return inputOptions;
 }
 
+// TODO Lukas move down
 function normalizePlugins(rawPlugins: any, anonymousPrefix: string): Plugin[] {
 	const plugins = ensureArray(rawPlugins);
 	for (let pluginIndex = 0; pluginIndex < plugins.length; pluginIndex++) {
@@ -62,6 +65,7 @@ function normalizePlugins(rawPlugins: any, anonymousPrefix: string): Plugin[] {
 	return plugins;
 }
 
+// TODO Lukas move down
 function getInputOptions(rawInputOptions: GenericConfigObject): InputOptions {
 	if (!rawInputOptions) {
 		throw new Error('You must supply an options object to rollup');
@@ -105,6 +109,7 @@ function getInputOptions(rawInputOptions: GenericConfigObject): InputOptions {
 	return inputOptions;
 }
 
+// TODO Lukas move down
 function assignChunksToBundle(
 	chunks: Chunk[],
 	outputBundle: OutputBundleWithPlaceholders
@@ -153,6 +158,7 @@ export async function rollupInternal(
 
 	timeStart('BUILD', 1);
 
+	// TODO Lukas move this variable to generate
 	let chunks: Chunk[];
 	try {
 		await graph.pluginDriver.hookParallel('buildStart', [inputOptions]);
@@ -174,6 +180,7 @@ export async function rollupInternal(
 
 	timeEnd('BUILD', 1);
 
+	// TODO Lukas extract
 	function getOutputOptionsAndPluginDriver(
 		rawOutputOptions: GenericConfigObject
 	): { outputOptions: OutputOptions; outputPluginDriver: PluginDriver } {
@@ -188,13 +195,13 @@ export async function rollupInternal(
 			outputOptions: normalizeOutputOptions(
 				inputOptions as GenericConfigObject,
 				rawOutputOptions,
-				chunks.length > 1,
 				outputPluginDriver
 			),
 			outputPluginDriver
 		};
 	}
 
+	// TODO Lukas extract to different file?
 	async function generate(
 		outputOptions: OutputOptions,
 		isWrite: boolean,
@@ -216,6 +223,11 @@ export async function rollupInternal(
 
 		try {
 			await outputPluginDriver.hookParallel('renderStart', [outputOptions, inputOptions]);
+			// TODO Lukas createChunks here
+			if (chunks.length > 1) {
+				validateOptionsForMultiChunkOutput(outputOptions);
+			}
+
 			const addons = await createAddons(outputOptions, outputPluginDriver);
 			for (const chunk of chunks) {
 				chunk.generateExports(outputOptions);
@@ -366,7 +378,6 @@ function writeOutputFile(
 function normalizeOutputOptions(
 	inputOptions: GenericConfigObject,
 	rawOutputOptions: GenericConfigObject,
-	hasMultipleChunks: boolean,
 	outputPluginDriver: PluginDriver
 ): OutputOptions {
 	const outputOptions = parseOutputOptions(
@@ -407,25 +418,25 @@ function normalizeOutputOptions(
 			});
 	}
 
-	if (hasMultipleChunks) {
-		if (outputOptions.format === 'umd' || outputOptions.format === 'iife')
-			return error({
-				code: 'INVALID_OPTION',
-				message: 'UMD and IIFE output formats are not supported for code-splitting builds.'
-			});
-		if (typeof outputOptions.file === 'string')
-			return error({
-				code: 'INVALID_OPTION',
-				message:
-					'When building multiple chunks, the "output.dir" option must be used, not "output.file". ' +
-					'To inline dynamic imports, set the "inlineDynamicImports" option.'
-			});
-		if (outputOptions.sourcemapFile)
-			return error({
-				code: 'INVALID_OPTION',
-				message: '"output.sourcemapFile" is only supported for single-file builds.'
-			});
-	}
-
 	return outputOptions;
+}
+
+function validateOptionsForMultiChunkOutput(outputOptions: OutputOptions) {
+	if (outputOptions.format === 'umd' || outputOptions.format === 'iife')
+		return error({
+			code: 'INVALID_OPTION',
+			message: 'UMD and IIFE output formats are not supported for code-splitting builds.'
+		});
+	if (typeof outputOptions.file === 'string')
+		return error({
+			code: 'INVALID_OPTION',
+			message:
+				'When building multiple chunks, the "output.dir" option must be used, not "output.file". ' +
+				'To inline dynamic imports, set the "inlineDynamicImports" option.'
+		});
+	if (outputOptions.sourcemapFile)
+		return error({
+			code: 'INVALID_OPTION',
+			message: '"output.sourcemapFile" is only supported for single-file builds.'
+		});
 }
