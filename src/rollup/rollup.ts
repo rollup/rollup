@@ -32,112 +32,6 @@ import {
 	WarningHandler
 } from './types';
 
-// TODO Lukas move down
-function getAbsoluteEntryModulePaths(chunks: Chunk[]): string[] {
-	const absoluteEntryModulePaths: string[] = [];
-	for (const chunk of chunks) {
-		for (const entryModule of chunk.entryModules) {
-			if (isAbsolute(entryModule.id)) {
-				absoluteEntryModulePaths.push(entryModule.id);
-			}
-		}
-	}
-	return absoluteEntryModulePaths;
-}
-
-// TODO Lukas move down
-function applyOptionHook(inputOptions: InputOptions, plugin: Plugin) {
-	if (plugin.options)
-		return plugin.options.call({ meta: { rollupVersion } }, inputOptions) || inputOptions;
-
-	return inputOptions;
-}
-
-// TODO Lukas move down
-function normalizePlugins(rawPlugins: any, anonymousPrefix: string): Plugin[] {
-	const plugins = ensureArray(rawPlugins);
-	for (let pluginIndex = 0; pluginIndex < plugins.length; pluginIndex++) {
-		const plugin = plugins[pluginIndex];
-		if (!plugin.name) {
-			plugin.name = `${anonymousPrefix}${pluginIndex + 1}`;
-		}
-	}
-	return plugins;
-}
-
-// TODO Lukas move down
-function getInputOptions(rawInputOptions: GenericConfigObject): InputOptions {
-	if (!rawInputOptions) {
-		throw new Error('You must supply an options object to rollup');
-	}
-	let inputOptions = parseInputOptions(rawInputOptions);
-	inputOptions = inputOptions.plugins!.reduce(applyOptionHook, inputOptions);
-	inputOptions.plugins = normalizePlugins(inputOptions.plugins!, ANONYMOUS_PLUGIN_PREFIX);
-
-	if (inputOptions.inlineDynamicImports) {
-		if (inputOptions.preserveModules)
-			return error({
-				code: 'INVALID_OPTION',
-				message: `"preserveModules" does not support the "inlineDynamicImports" option.`
-			});
-		if (inputOptions.manualChunks)
-			return error({
-				code: 'INVALID_OPTION',
-				message: '"manualChunks" option is not supported for "inlineDynamicImports".'
-			});
-		if (
-			(inputOptions.input instanceof Array && inputOptions.input.length > 1) ||
-			(typeof inputOptions.input === 'object' && Object.keys(inputOptions.input).length > 1)
-		)
-			return error({
-				code: 'INVALID_OPTION',
-				message: 'Multiple inputs are not supported for "inlineDynamicImports".'
-			});
-	} else if (inputOptions.preserveModules) {
-		if (inputOptions.manualChunks)
-			return error({
-				code: 'INVALID_OPTION',
-				message: '"preserveModules" does not support the "manualChunks" option.'
-			});
-		if (inputOptions.preserveEntrySignatures === false)
-			return error({
-				code: 'INVALID_OPTION',
-				message: '"preserveModules" does not support setting "preserveEntrySignatures" to "false".'
-			});
-	}
-
-	return inputOptions;
-}
-
-// TODO Lukas move down
-function assignChunksToBundle(
-	chunks: Chunk[],
-	outputBundle: OutputBundleWithPlaceholders
-): OutputBundle {
-	for (let i = 0; i < chunks.length; i++) {
-		const chunk = chunks[i];
-		const facadeModule = chunk.facadeModule;
-
-		outputBundle[chunk.id!] = {
-			code: undefined as any,
-			dynamicImports: chunk.getDynamicImportIds(),
-			exports: chunk.getExportNames(),
-			facadeModuleId: facadeModule && facadeModule.id,
-			fileName: chunk.id,
-			imports: chunk.getImportIds(),
-			isDynamicEntry: chunk.isDynamicEntry,
-			isEntry: facadeModule !== null && facadeModule.isEntryPoint,
-			map: undefined,
-			modules: chunk.renderedModules,
-			get name() {
-				return chunk.getChunkName();
-			},
-			type: 'chunk'
-		} as OutputChunk;
-	}
-	return outputBundle as OutputBundle;
-}
-
 export default function rollup(rawInputOptions: GenericConfigObject): Promise<RollupBuild> {
 	return rollupInternal(rawInputOptions, null);
 }
@@ -179,27 +73,6 @@ export async function rollupInternal(
 	await graph.pluginDriver.hookParallel('buildEnd', []);
 
 	timeEnd('BUILD', 1);
-
-	// TODO Lukas extract
-	function getOutputOptionsAndPluginDriver(
-		rawOutputOptions: GenericConfigObject
-	): { outputOptions: OutputOptions; outputPluginDriver: PluginDriver } {
-		if (!rawOutputOptions) {
-			throw new Error('You must supply an options object');
-		}
-		const outputPluginDriver = graph.pluginDriver.createOutputPluginDriver(
-			normalizePlugins(rawOutputOptions.plugins, ANONYMOUS_OUTPUT_PLUGIN_PREFIX)
-		);
-
-		return {
-			outputOptions: normalizeOutputOptions(
-				inputOptions as GenericConfigObject,
-				rawOutputOptions,
-				outputPluginDriver
-			),
-			outputPluginDriver
-		};
-	}
 
 	// TODO Lukas extract to different file?
 	async function generate(
@@ -285,7 +158,9 @@ export async function rollupInternal(
 		cache: cache!,
 		generate: (rawOutputOptions: OutputOptions) => {
 			const { outputOptions, outputPluginDriver } = getOutputOptionsAndPluginDriver(
-				rawOutputOptions as GenericConfigObject
+				rawOutputOptions as GenericConfigObject,
+				graph.pluginDriver,
+				inputOptions as GenericConfigObject
 			);
 			return generate(outputOptions, false, outputPluginDriver).then(result =>
 				createOutput(result)
@@ -294,7 +169,9 @@ export async function rollupInternal(
 		watchFiles: Object.keys(graph.watchFiles),
 		write: (rawOutputOptions: OutputOptions) => {
 			const { outputOptions, outputPluginDriver } = getOutputOptionsAndPluginDriver(
-				rawOutputOptions as GenericConfigObject
+				rawOutputOptions as GenericConfigObject,
+				graph.pluginDriver,
+				inputOptions as GenericConfigObject
 			);
 			if (!outputOptions.dir && !outputOptions.file) {
 				return error({
@@ -315,64 +192,83 @@ export async function rollupInternal(
 	return result;
 }
 
-enum SortingFileType {
-	ENTRY_CHUNK = 0,
-	SECONDARY_CHUNK = 1,
-	ASSET = 2
-}
-
-function getSortingFileType(file: OutputAsset | OutputChunk): SortingFileType {
-	if (file.type === 'asset') {
-		return SortingFileType.ASSET;
+function getInputOptions(rawInputOptions: GenericConfigObject): InputOptions {
+	if (!rawInputOptions) {
+		throw new Error('You must supply an options object to rollup');
 	}
-	if (file.isEntry) {
-		return SortingFileType.ENTRY_CHUNK;
+	let inputOptions = parseInputOptions(rawInputOptions);
+	inputOptions = inputOptions.plugins!.reduce(applyOptionHook, inputOptions);
+	inputOptions.plugins = normalizePlugins(inputOptions.plugins!, ANONYMOUS_PLUGIN_PREFIX);
+
+	if (inputOptions.inlineDynamicImports) {
+		if (inputOptions.preserveModules)
+			return error({
+				code: 'INVALID_OPTION',
+				message: `"preserveModules" does not support the "inlineDynamicImports" option.`
+			});
+		if (inputOptions.manualChunks)
+			return error({
+				code: 'INVALID_OPTION',
+				message: '"manualChunks" option is not supported for "inlineDynamicImports".'
+			});
+		if (
+			(inputOptions.input instanceof Array && inputOptions.input.length > 1) ||
+			(typeof inputOptions.input === 'object' && Object.keys(inputOptions.input).length > 1)
+		)
+			return error({
+				code: 'INVALID_OPTION',
+				message: 'Multiple inputs are not supported for "inlineDynamicImports".'
+			});
+	} else if (inputOptions.preserveModules) {
+		if (inputOptions.manualChunks)
+			return error({
+				code: 'INVALID_OPTION',
+				message: '"preserveModules" does not support the "manualChunks" option.'
+			});
+		if (inputOptions.preserveEntrySignatures === false)
+			return error({
+				code: 'INVALID_OPTION',
+				message: '"preserveModules" does not support setting "preserveEntrySignatures" to "false".'
+			});
 	}
-	return SortingFileType.SECONDARY_CHUNK;
+
+	return inputOptions;
 }
 
-function createOutput(outputBundle: Record<string, OutputChunk | OutputAsset | {}>): RollupOutput {
-	return {
-		output: (Object.keys(outputBundle)
-			.map(fileName => outputBundle[fileName])
-			.filter(outputFile => Object.keys(outputFile).length > 0) as (
-			| OutputChunk
-			| OutputAsset
-		)[]).sort((outputFileA, outputFileB) => {
-			const fileTypeA = getSortingFileType(outputFileA);
-			const fileTypeB = getSortingFileType(outputFileB);
-			if (fileTypeA === fileTypeB) return 0;
-			return fileTypeA < fileTypeB ? -1 : 1;
-		}) as [OutputChunk, ...(OutputChunk | OutputAsset)[]]
-	};
+function applyOptionHook(inputOptions: InputOptions, plugin: Plugin) {
+	if (plugin.options)
+		return plugin.options.call({ meta: { rollupVersion } }, inputOptions) || inputOptions;
+
+	return inputOptions;
 }
 
-function writeOutputFile(
-	outputFile: OutputAsset | OutputChunk,
-	outputOptions: OutputOptions
-): Promise<unknown> {
-	const fileName = resolve(outputOptions.dir || dirname(outputOptions.file!), outputFile.fileName);
-	let writeSourceMapPromise: Promise<void> | undefined;
-	let source: string | Uint8Array;
-	if (outputFile.type === 'asset') {
-		source = outputFile.source;
-	} else {
-		source = outputFile.code;
-		if (outputOptions.sourcemap && outputFile.map) {
-			let url: string;
-			if (outputOptions.sourcemap === 'inline') {
-				url = outputFile.map.toUrl();
-			} else {
-				url = `${basename(outputFile.fileName)}.map`;
-				writeSourceMapPromise = writeFile(`${fileName}.map`, outputFile.map.toString());
-			}
-			if (outputOptions.sourcemap !== 'hidden') {
-				source += `//# ${SOURCEMAPPING_URL}=${url}\n`;
-			}
+function normalizePlugins(rawPlugins: any, anonymousPrefix: string): Plugin[] {
+	const plugins = ensureArray(rawPlugins);
+	for (let pluginIndex = 0; pluginIndex < plugins.length; pluginIndex++) {
+		const plugin = plugins[pluginIndex];
+		if (!plugin.name) {
+			plugin.name = `${anonymousPrefix}${pluginIndex + 1}`;
 		}
 	}
+	return plugins;
+}
 
-	return Promise.all([writeFile(fileName, source), writeSourceMapPromise]);
+function getOutputOptionsAndPluginDriver(
+	rawOutputOptions: GenericConfigObject,
+	inputPluginDriver: PluginDriver,
+	inputOptions: GenericConfigObject
+): { outputOptions: OutputOptions; outputPluginDriver: PluginDriver } {
+	if (!rawOutputOptions) {
+		throw new Error('You must supply an options object');
+	}
+	const outputPluginDriver = inputPluginDriver.createOutputPluginDriver(
+		normalizePlugins(rawOutputOptions.plugins, ANONYMOUS_OUTPUT_PLUGIN_PREFIX)
+	);
+
+	return {
+		outputOptions: normalizeOutputOptions(inputOptions, rawOutputOptions, outputPluginDriver),
+		outputPluginDriver
+	};
 }
 
 function normalizeOutputOptions(
@@ -421,6 +317,18 @@ function normalizeOutputOptions(
 	return outputOptions;
 }
 
+function getAbsoluteEntryModulePaths(chunks: Chunk[]): string[] {
+	const absoluteEntryModulePaths: string[] = [];
+	for (const chunk of chunks) {
+		for (const entryModule of chunk.entryModules) {
+			if (isAbsolute(entryModule.id)) {
+				absoluteEntryModulePaths.push(entryModule.id);
+			}
+		}
+	}
+	return absoluteEntryModulePaths;
+}
+
 function validateOptionsForMultiChunkOutput(outputOptions: OutputOptions) {
 	if (outputOptions.format === 'umd' || outputOptions.format === 'iife')
 		return error({
@@ -439,4 +347,92 @@ function validateOptionsForMultiChunkOutput(outputOptions: OutputOptions) {
 			code: 'INVALID_OPTION',
 			message: '"output.sourcemapFile" is only supported for single-file builds.'
 		});
+}
+
+function assignChunksToBundle(
+	chunks: Chunk[],
+	outputBundle: OutputBundleWithPlaceholders
+): OutputBundle {
+	for (let i = 0; i < chunks.length; i++) {
+		const chunk = chunks[i];
+		const facadeModule = chunk.facadeModule;
+
+		outputBundle[chunk.id!] = {
+			code: undefined as any,
+			dynamicImports: chunk.getDynamicImportIds(),
+			exports: chunk.getExportNames(),
+			facadeModuleId: facadeModule && facadeModule.id,
+			fileName: chunk.id,
+			imports: chunk.getImportIds(),
+			isDynamicEntry: chunk.isDynamicEntry,
+			isEntry: facadeModule !== null && facadeModule.isEntryPoint,
+			map: undefined,
+			modules: chunk.renderedModules,
+			get name() {
+				return chunk.getChunkName();
+			},
+			type: 'chunk'
+		} as OutputChunk;
+	}
+	return outputBundle as OutputBundle;
+}
+
+function createOutput(outputBundle: Record<string, OutputChunk | OutputAsset | {}>): RollupOutput {
+	return {
+		output: (Object.keys(outputBundle)
+			.map(fileName => outputBundle[fileName])
+			.filter(outputFile => Object.keys(outputFile).length > 0) as (
+			| OutputChunk
+			| OutputAsset
+		)[]).sort((outputFileA, outputFileB) => {
+			const fileTypeA = getSortingFileType(outputFileA);
+			const fileTypeB = getSortingFileType(outputFileB);
+			if (fileTypeA === fileTypeB) return 0;
+			return fileTypeA < fileTypeB ? -1 : 1;
+		}) as [OutputChunk, ...(OutputChunk | OutputAsset)[]]
+	};
+}
+
+enum SortingFileType {
+	ENTRY_CHUNK = 0,
+	SECONDARY_CHUNK = 1,
+	ASSET = 2
+}
+
+function getSortingFileType(file: OutputAsset | OutputChunk): SortingFileType {
+	if (file.type === 'asset') {
+		return SortingFileType.ASSET;
+	}
+	if (file.isEntry) {
+		return SortingFileType.ENTRY_CHUNK;
+	}
+	return SortingFileType.SECONDARY_CHUNK;
+}
+
+function writeOutputFile(
+	outputFile: OutputAsset | OutputChunk,
+	outputOptions: OutputOptions
+): Promise<unknown> {
+	const fileName = resolve(outputOptions.dir || dirname(outputOptions.file!), outputFile.fileName);
+	let writeSourceMapPromise: Promise<void> | undefined;
+	let source: string | Uint8Array;
+	if (outputFile.type === 'asset') {
+		source = outputFile.source;
+	} else {
+		source = outputFile.code;
+		if (outputOptions.sourcemap && outputFile.map) {
+			let url: string;
+			if (outputOptions.sourcemap === 'inline') {
+				url = outputFile.map.toUrl();
+			} else {
+				url = `${basename(outputFile.fileName)}.map`;
+				writeSourceMapPromise = writeFile(`${fileName}.map`, outputFile.map.toString());
+			}
+			if (outputOptions.sourcemap !== 'hidden') {
+				source += `//# ${SOURCEMAPPING_URL}=${url}\n`;
+			}
+		}
+	}
+
+	return Promise.all([writeFile(fileName, source), writeSourceMapPromise]);
 }
