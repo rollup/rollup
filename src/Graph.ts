@@ -70,7 +70,9 @@ export default class Graph {
 
 	private cacheExpiry: number;
 	private context: string;
+	private entryModules: Module[] = [];
 	private externalModules: ExternalModule[] = [];
+	private manualChunkModulesByAlias: Record<string, Module[]> = {};
 	private modules: Module[] = [];
 	private onwarn: WarningHandler;
 	private pluginCache?: Record<string, SerializablePluginCache>;
@@ -191,38 +193,23 @@ export default class Graph {
 		manualChunks: ManualChunksOption | void,
 		inlineDynamicImports: boolean
 	): Promise<Chunk[]> {
-		// Phase 1 – discovery. We load the entry module and find which
-		// modules it imports, and import those, until we have all
-		// of the entry module's dependencies
-		timeStart('parse modules', 2);
-		const { entryModules, manualChunkModulesByAlias } = await this.parseModules(
-			entryModuleIds,
-			manualChunks
-		);
-		timeEnd('parse modules', 2);
+		timeStart('generate module graph', 2);
+		await this.generateModuleGraph(entryModuleIds, manualChunks);
+		timeEnd('generate module graph', 2);
 
-		// Phase 2 - linking. We populate the module dependency links and
-		// determine the topological execution order for the bundle
-		timeStart('analyse dependency graph', 2);
+		timeStart('link and order modules', 2);
 		this.phase = BuildPhase.ANALYSE;
-		this.link(entryModules);
-		timeEnd('analyse dependency graph', 2);
+		this.linkAndOrderModules();
+		timeEnd('link and order modules', 2);
 
-		// Phase 3 – marking. We include all statements that should be included
 		timeStart('mark included statements', 2);
-		this.includeStatements(entryModules);
+		this.includeStatements();
 		timeEnd('mark included statements', 2);
 
-		// Phase 4 – we construct the chunks, working out the optimal chunking using
-		// entry point graph colouring, before generating the import and export facades
 		timeStart('generate chunks', 2);
-		const chunks = this.generateChunks(
-			entryModules,
-			manualChunkModulesByAlias,
-			inlineDynamicImports
-		);
-		this.phase = BuildPhase.GENERATE;
+		const chunks = this.generateChunks(inlineDynamicImports);
 		timeEnd('generate chunks', 2);
+		this.phase = BuildPhase.GENERATE;
 
 		return chunks;
 	}
@@ -299,11 +286,7 @@ export default class Graph {
 		}
 	}
 
-	private generateChunks(
-		entryModules: Module[],
-		manualChunkModulesByAlias: Record<string, Module[]>,
-		inlineDynamicImports: boolean
-	): Chunk[] {
+	private generateChunks(inlineDynamicImports: boolean): Chunk[] {
 		const chunks: Chunk[] = [];
 		if (this.preserveModules) {
 			for (const module of this.modules) {
@@ -320,7 +303,7 @@ export default class Graph {
 		} else {
 			for (const chunkModules of inlineDynamicImports
 				? [this.modules]
-				: getChunkAssignments(entryModules, manualChunkModulesByAlias)) {
+				: getChunkAssignments(this.entryModules, this.manualChunkModulesByAlias)) {
 				sortByExecutionOrder(chunkModules);
 				chunks.push(new Chunk(this, chunkModules));
 			}
@@ -336,8 +319,35 @@ export default class Graph {
 		return [...chunks, ...facades];
 	}
 
-	private includeStatements(entryModules: Module[]) {
-		for (const module of entryModules) {
+	private async generateModuleGraph(
+		entryModuleIds: string | string[] | Record<string, string>,
+		manualChunks: ManualChunksOption | void
+	): Promise<void> {
+		[
+			{ entryModules: this.entryModules, manualChunkModulesByAlias: this.manualChunkModulesByAlias }
+		] = await Promise.all([
+			this.moduleLoader.addEntryModules(normalizeEntryModules(entryModuleIds), true),
+			manualChunks &&
+				typeof manualChunks === 'object' &&
+				this.moduleLoader.addManualChunks(manualChunks)
+		]);
+		if (typeof manualChunks === 'function') {
+			this.moduleLoader.assignManualChunks(manualChunks);
+		}
+		if (this.entryModules.length === 0) {
+			throw new Error('You must supply options.input to rollup');
+		}
+		for (const module of this.moduleById.values()) {
+			if (module instanceof Module) {
+				this.modules.push(module);
+			} else {
+				this.externalModules.push(module);
+			}
+		}
+	}
+
+	private includeStatements() {
+		for (const module of this.entryModules) {
 			if (module.preserveSignature !== false) {
 				module.includeAllExports();
 			} else {
@@ -362,11 +372,11 @@ export default class Graph {
 		for (const externalModule of this.externalModules) externalModule.warnUnusedImports();
 	}
 
-	private link(entryModules: Module[]) {
+	private linkAndOrderModules() {
 		for (const module of this.modules) {
 			module.linkDependencies();
 		}
-		const { orderedModules, cyclePaths } = analyseModuleExecution(entryModules);
+		const { orderedModules, cyclePaths } = analyseModuleExecution(this.entryModules);
 		for (const cyclePath of cyclePaths) {
 			this.warn({
 				code: 'CIRCULAR_DEPENDENCY',
@@ -380,32 +390,6 @@ export default class Graph {
 			module.bindReferences();
 		}
 		this.warnForMissingExports();
-	}
-
-	private async parseModules(
-		entryModuleIds: string | string[] | Record<string, string>,
-		manualChunks: ManualChunksOption | void
-	): Promise<{ entryModules: Module[]; manualChunkModulesByAlias: Record<string, Module[]> }> {
-		const [{ entryModules, manualChunkModulesByAlias }] = await Promise.all([
-			this.moduleLoader.addEntryModules(normalizeEntryModules(entryModuleIds), true),
-			manualChunks &&
-				typeof manualChunks === 'object' &&
-				this.moduleLoader.addManualChunks(manualChunks)
-		]);
-		if (typeof manualChunks === 'function') {
-			this.moduleLoader.assignManualChunks(manualChunks);
-		}
-		if (entryModules.length === 0) {
-			throw new Error('You must supply options.input to rollup');
-		}
-		for (const module of this.moduleById.values()) {
-			if (module instanceof Module) {
-				this.modules.push(module);
-			} else {
-				this.externalModules.push(module);
-			}
-		}
-		return { entryModules, manualChunkModulesByAlias };
 	}
 
 	private warnForMissingExports() {

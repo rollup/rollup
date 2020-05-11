@@ -205,6 +205,10 @@ export class ModuleLoader {
 		);
 	}
 
+	// TODO Lukas this should only be called
+	// Each output should receive a separate module loader with a copy of the modules
+	// to generate manual chunks
+	// long term goal could be to have two separate classes that both use shared functionality
 	assignManualChunks(getManualChunk: GetManualChunk) {
 		const manualChunksApi = {
 			getModuleIds: () => this.modulesById.keys(),
