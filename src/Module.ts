@@ -347,9 +347,7 @@ export default class Module {
 			} else if (variable instanceof ExportDefaultVariable) {
 				variable = variable.getOriginalVariable();
 			}
-			if (variable.module) {
-				relevantDependencies.add(variable.module);
-			}
+			relevantDependencies.add(variable.module!);
 		}
 		if (
 			this.isEntryPoint ||
@@ -363,9 +361,7 @@ export default class Module {
 				} else if (variable instanceof ExportDefaultVariable) {
 					variable = variable.getOriginalVariable();
 				}
-				if (variable.module) {
-					relevantDependencies.add(variable.module);
-				}
+				relevantDependencies.add(variable.module!);
 			}
 		}
 		if (this.graph.treeshakingOptions) {

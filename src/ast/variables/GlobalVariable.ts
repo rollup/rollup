@@ -3,6 +3,8 @@ import { ObjectPath } from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class GlobalVariable extends Variable {
+	isReassigned = true;
+
 	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
 		return !isGlobalMember([this.name, ...path]);
 	}
