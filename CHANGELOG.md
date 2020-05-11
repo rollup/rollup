@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.9.1
+*2020-05-11*
+
+### Bug Fixes
+* Do not create unintended live-bindings or invalid reexports when reexporting global variables (#3550)
+
+### Pull Requests
+* [#3550](https://github.com/rollup/rollup/pull/3550): Track updates of globals that are exported as default (@lukastaegert)
+
 ## 2.9.0
 *2020-05-10*
 
