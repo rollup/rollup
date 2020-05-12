@@ -382,8 +382,8 @@ manualChunks(id, { getModuleInfo }) {
     const idsToHandle = new Set(getModuleInfo(id).dynamicImporters);
 
     for (const moduleId of idsToHandle) {
-      const { isEntry, isDynamicEntry, importers } = getModuleInfo(moduleId);
-      if (isEntry || isDynamicEntry) dependentEntryPoints.push(moduleId);
+      const { isEntry, dynamicImporters, importers } = getModuleInfo(moduleId);
+      if (isEntry || dynamicImporters.length > 0) dependentEntryPoints.push(moduleId);
 
       // The Set iterator is intelligent enough to iterate over elements that
       // are added during iteration
@@ -392,7 +392,7 @@ manualChunks(id, { getModuleInfo }) {
 
     // If there is a unique entry, we put it into into a chunk based on the entry name
     if (dependentEntryPoints.length === 1) {
-      return `${dependentEntryPoints[0].split('/').slice(-1)[0]}.strings.${language}`;
+      return `${dependentEntryPoints[0].split('/').slice(-1)[0].split('.')[0]}.strings.${language}`;
     }
     // For multiple entries, we put it into a "shared" chunk
     if (dependentEntryPoints.length > 1) {
