@@ -906,9 +906,6 @@ export default class Chunk {
 				}
 			}
 
-			// ensure that all referenced dependencies are dependencies
-			if (imports.length || (reexports && reexports.length)) this.dependencies.add(dep);
-
 			dependencies.set(dep, {
 				exportsDefault,
 				exportsNames,
