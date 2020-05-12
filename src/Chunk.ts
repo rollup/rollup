@@ -8,6 +8,7 @@ import ExportShimVariable from './ast/variables/ExportShimVariable';
 import LocalVariable from './ast/variables/LocalVariable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import SyntheticNamedExportVariable from './ast/variables/SyntheticNamedExportVariable';
+import ThisVariable from './ast/variables/ThisVariable';
 import Variable from './ast/variables/Variable';
 import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';
@@ -137,6 +138,7 @@ export default class Chunk {
 	exportMode: 'none' | 'named' | 'default' = 'named';
 	facadeModule: Module | null = null;
 	graph: Graph;
+	hasSideEffects = false;
 	id: string | null = null;
 	indentString: string = undefined as any;
 	isDynamicEntry = false;
@@ -147,6 +149,7 @@ export default class Chunk {
 	};
 	usedModules: Module[] = undefined as any;
 	variableName = 'chunk';
+	private allDependencies = new Set<ExternalModule | Chunk>();
 
 	private dependencies = new Set<ExternalModule | Chunk>();
 	private dynamicDependencies = new Set<ExternalModule | Chunk>();
@@ -468,19 +471,14 @@ export default class Chunk {
 			varOrConst: options.preferConst ? 'const' : 'var'
 		};
 
-		// for static and dynamic entry points, inline the execution list to avoid loading latency
-		if (
-			options.hoistTransitiveImports !== false &&
-			!this.graph.preserveModules &&
-			this.facadeModule !== null
-		) {
-			for (const dep of this.dependencies) {
-				if (dep instanceof Chunk) this.inlineChunkDependencies(dep);
-			}
-		}
-		const sortedDependencies = [...this.dependencies];
-		sortByExecutionOrder(sortedDependencies);
-		this.dependencies = new Set(sortedDependencies);
+		// because bindings are resolved to their exact chunk, we need all chunk dependencies directly
+		// available to the dependency analysis
+		this.allDependencies = new Set<Chunk | ExternalModule>();
+		this.gatherAllDependencies(this);
+		this.hasSideEffects = this.orderedModules.some(module => module.hasSideEffects);
+
+		// TODO: see if this sort can be removed
+		this.allDependencies = new Set(sortByExecutionOrder([...this.allDependencies]));
 
 		this.prepareDynamicImports();
 		this.setIdentifierRenderResolutions(options);
@@ -570,7 +568,7 @@ export default class Chunk {
 
 		// populate ids in the rendered declarations only here
 		// as chunk ids known only after prerender
-		for (const dependency of this.dependencies) {
+		for (const dependency of this.allDependencies) {
 			if (dependency instanceof ExternalModule && !dependency.renormalizeRenderPath) continue;
 			const renderedDependency = this.renderedDependencies!.get(dependency)!;
 			const depId = dependency instanceof ExternalModule ? renderedDependency.id : dependency.id!;
@@ -611,11 +609,22 @@ export default class Chunk {
 			});
 		}
 
+		// when using inlineDependencies, orphaned pure chunks can be excluded
+		const dependencies = new Set([]);
+		const inlineDependencies =
+			options.hoistTransitiveImports !== false &&
+			!this.graph.preserveModules &&
+			this.facadeModule !== null;
+		const pureExternalModules = Boolean(this.graph.treeshakingOptions?.pureExternalModules);
+		this.gatherUsedDependencies(this, pureExternalModules, inlineDependencies, dependencies);
+
 		const magicString = finalise(
 			this.renderedSource!,
 			{
 				accessedGlobals,
-				dependencies: [...this.renderedDependencies!.values()],
+				dependencies: sortByExecutionOrder([...dependencies]).map(
+					dep => this.renderedDependencies?.get(dep) as ModuleDeclarationDependency
+				),
 				exports: this.renderedExports!,
 				hasExports,
 				indentString: this.indentString,
@@ -775,6 +784,49 @@ export default class Chunk {
 		}
 	}
 
+	private gatherAllDependencies(chunk: Chunk) {
+		for (const dep of chunk.dependencies) {
+			if (this.allDependencies.has(dep)) continue;
+			this.allDependencies.add(dep);
+			if (dep instanceof Chunk) {
+				this.gatherAllDependencies(dep);
+			}
+		}
+	}
+
+	private gatherUsedDependencies(
+		chunk: Chunk,
+		pureExternalModules: boolean,
+		inlineDependencies: boolean,
+		dependencies: Set<Chunk | ExternalModule>,
+		seen = new Set<Chunk | ExternalModule>()
+	) {
+		const doInline = inlineDependencies || chunk === this;
+		for (const dep of chunk.dependencies) {
+			if (seen.has(dep)) return;
+			seen.add(dep);
+
+			const hasImportedBinding = this.hasImportedBindingTo(dep);
+
+			if (dep instanceof ExternalModule) {
+				if (
+					hasImportedBinding ||
+					(doInline && (!pureExternalModules || chunk.hasImportedBindingTo(dep)))
+				)
+					dependencies.add(dep);
+				continue;
+			}
+
+			if (
+				hasImportedBinding ||
+				(doInline && (dep.hasSideEffects || chunk.hasImportedBindingTo(dep)))
+			)
+				dependencies.add(dep);
+
+			this.gatherUsedDependencies(dep, pureExternalModules, inlineDependencies, dependencies, seen);
+		}
+	}
+
 	private getChunkDependencyDeclarations(
 		options: OutputOptions
 	): Map<Chunk | ExternalModule, ModuleDeclarationDependency> {
@@ -811,7 +863,7 @@ export default class Chunk {
 		const renderedImports = new Set<Variable>();
 		const dependencies = new Map<Chunk | ExternalModule, ModuleDeclarationDependency>();
 
-		for (const dep of this.dependencies) {
+		for (const dep of this.allDependencies) {
 			const imports: ImportSpecifier[] = [];
 			for (const variable of this.imports) {
 				if (
@@ -857,6 +909,9 @@ export default class Chunk {
 					)!;
 				}
 			}
+
+			// ensure that all referenced dependencies are dependencies
+			if (imports.length || (reexports && reexports.length)) this.dependencies.add(dep);
 
 			dependencies.set(dep, {
 				exportsDefault,
@@ -955,14 +1010,9 @@ export default class Chunk {
 		return relativePath.startsWith('../') ? relativePath : './' + relativePath;
 	}
 
-	private inlineChunkDependencies(chunk: Chunk) {
-		for (const dep of chunk.dependencies) {
-			if (this.dependencies.has(dep)) continue;
-			this.dependencies.add(dep);
-			if (dep instanceof Chunk) {
-				this.inlineChunkDependencies(dep);
-			}
-		}
+	private hasImportedBindingTo(dep: Chunk | ExternalModule) {
+		const renderedDeclaration = this.renderedDependencies?.get(dep)!;
+		return renderedDeclaration.imports?.length || renderedDeclaration.reexports?.length;
 	}
 
 	private prepareDynamicImports() {
@@ -983,7 +1033,7 @@ export default class Chunk {
 	}
 
 	private setExternalRenderPaths(options: OutputOptions, inputBase: string) {
-		for (const dependency of [...this.dependencies, ...this.dynamicDependencies]) {
+		for (const dependency of [...this.allDependencies, ...this.dynamicDependencies]) {
 			if (dependency instanceof ExternalModule) {
 				dependency.setRenderPath(options, inputBase);
 			}

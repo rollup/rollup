@@ -2,8 +2,8 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var m2 = require('./m2.js');
+var dep = require('./generated-dep.js');
 
 
 
-exports.m2 = m2;
+exports.name = dep.name;

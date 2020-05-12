@@ -208,6 +208,7 @@ export default class Module {
 	exports: { [name: string]: ExportDescription } = Object.create(null);
 	exportsAll: { [name: string]: string } = Object.create(null);
 	facadeChunk: Chunk | null = null;
+	hasSideEffects = false;
 	importDescriptions: { [name: string]: ImportDescription } = Object.create(null);
 	importers: string[] = [];
 	importMetas: MetaProperty[] = [];
@@ -370,7 +371,7 @@ export default class Module {
 				if (!dependency.moduleSideEffects || relevantDependencies.has(dependency)) continue;
 				if (
 					dependency instanceof ExternalModule ||
-					(dependency.ast.included && dependency.ast.hasEffects(createHasEffectsContext()))
+					(dependency.ast.included && dependency.hasSideEffects)
 				) {
 					relevantDependencies.add(dependency);
 				} else {
@@ -534,7 +535,8 @@ export default class Module {
 
 	include(): void {
 		const context = createInclusionContext();
-		if (this.ast.shouldBeIncluded(context)) this.ast.include(context, false);
+		this.hasSideEffects = this.ast.hasEffects(createHasEffectsContext());
+		if (this.hasSideEffects || this.ast.shouldBeIncluded(context)) this.ast.include(context, false);
 	}
 
 	includeAllExports() {

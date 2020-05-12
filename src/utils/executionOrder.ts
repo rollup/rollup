@@ -9,8 +9,9 @@ interface OrderedExecutionUnit {
 const compareExecIndex = <T extends OrderedExecutionUnit>(unitA: T, unitB: T) =>
 	unitA.execIndex > unitB.execIndex ? 1 : -1;
 
-export function sortByExecutionOrder(units: OrderedExecutionUnit[]) {
+export function sortByExecutionOrder<T extends OrderedExecutionUnit>(units: T[]): T[] {
 	units.sort(compareExecIndex);
+	return units;
 }
 
 export function analyseModuleExecution(entryModules: Module[]) {

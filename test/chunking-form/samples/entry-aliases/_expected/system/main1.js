@@ -1,8 +1,8 @@
-System.register(['./m2.js'], function (exports) {
+System.register(['./generated-dep.js'], function (exports) {
 	'use strict';
 	return {
 		setters: [function (module) {
-			exports('m2', module.default);
+			exports('name', module.n);
 		}],
 		execute: function () {
 
