@@ -1,2 +1,4 @@
 'use strict';
 
+require('other');
+

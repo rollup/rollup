@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define(['other'], function (other) { 'use strict';
 
 
 
