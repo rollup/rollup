@@ -476,9 +476,6 @@ export default class Chunk {
 		this.gatherAllDependencies(this);
 		this.hasSideEffects = this.orderedModules.some(module => module.hasSideEffects);
 
-		// TODO: see if this sort can be removed
-		this.allDependencies = new Set(sortByExecutionOrder([...this.allDependencies]));
-
 		this.prepareDynamicImports();
 		this.setIdentifierRenderResolutions(options);
 
