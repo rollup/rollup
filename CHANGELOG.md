@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 2.10.0
+*2020-05-13*
+
+### Features
+* Avoid unnecessary empty imports from a facade chunk to the original chunk (#3552)
+* Pin facade creation order so that if several user-defined chunks reference the same module, the first always becomes the "actual" chunk while the later ones become facades (#3552)
+
+### Bug Fixes
+* Do not omit reexports from secondary chunks when creating facades for entry points without hoisting transitive dependencies (#3552)
+
+### Pull Requests
+* [#3552](https://github.com/rollup/rollup/pull/3552): Avoid unnecessary facade dependency inlining (@guybedford)
+
 ## 2.9.1
 *2020-05-11*
 
