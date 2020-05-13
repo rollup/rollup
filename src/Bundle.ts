@@ -7,12 +7,11 @@ import {
 	OutputChunk,
 	OutputOptions
 } from './rollup/types';
-import { createAddons } from './utils/addons';
-import { assignChunkIds } from './utils/assignChunkIds';
+import { Addons, createAddons } from './utils/addons';
 import commondir from './utils/commondir';
 import { error } from './utils/error';
-import getExportMode from './utils/getExportMode';
-import { isAbsolute } from './utils/path';
+import { FILE_PLACEHOLDER } from './utils/FileEmitter';
+import { basename, isAbsolute } from './utils/path';
 import { PluginDriver } from './utils/PluginDriver';
 import { timeEnd, timeStart } from './utils/timers';
 
@@ -32,15 +31,14 @@ export default class Bundle {
 		}
 	}
 
-	// TODO Lukas extract options into constructor, extract stuff and make nicer
 	async generate(isWrite: boolean): Promise<OutputBundle> {
 		timeStart('GENERATE', 1);
-		const assetFileNames = this.outputOptions.assetFileNames || 'assets/[name]-[hash][extname]';
 		const inputBase = commondir(getAbsoluteEntryModulePaths(this.chunks));
-		const outputBundleWithPlaceholders: OutputBundleWithPlaceholders = Object.create(null);
-		this.pluginDriver.setOutputBundle(outputBundleWithPlaceholders, assetFileNames);
-		let outputBundle;
-
+		const outputBundle: OutputBundleWithPlaceholders = Object.create(null);
+		this.pluginDriver.setOutputBundle(
+			outputBundle,
+			this.outputOptions.assetFileNames || 'assets/[name]-[hash][extname]'
+		);
 		try {
 			await this.pluginDriver.hookParallel('renderStart', [this.outputOptions, this.inputOptions]);
 			// TODO Lukas createChunks here
@@ -51,29 +49,16 @@ export default class Bundle {
 			const addons = await createAddons(this.outputOptions, this.pluginDriver);
 			for (const chunk of this.chunks) {
 				chunk.generateExports(this.outputOptions);
-				if (
-					this.inputOptions.preserveModules ||
-					(chunk.facadeModule && chunk.facadeModule.isEntryPoint)
-				)
-					chunk.exportMode = getExportMode(chunk, this.outputOptions, chunk.facadeModule!.id);
 			}
 			for (const chunk of this.chunks) {
 				chunk.preRender(this.outputOptions, inputBase, this.pluginDriver);
 			}
-			assignChunkIds(
-				this.chunks,
-				this.inputOptions,
-				this.outputOptions,
-				inputBase,
-				addons,
-				outputBundleWithPlaceholders,
-				this.pluginDriver
-			);
-			outputBundle = assignChunksToBundle(this.chunks, outputBundleWithPlaceholders);
+			this.assignChunkIds(inputBase, addons, outputBundle);
+			assignChunksToBundle(this.chunks, outputBundle);
 
 			await Promise.all(
 				this.chunks.map(chunk => {
-					const outputChunk = outputBundleWithPlaceholders[chunk.id!] as OutputChunk;
+					const outputChunk = outputBundle[chunk.id!] as OutputChunk;
 					return chunk
 						.render(this.outputOptions, addons, outputChunk, this.pluginDriver)
 						.then(rendered => {
@@ -86,7 +71,11 @@ export default class Bundle {
 			await this.pluginDriver.hookParallel('renderError', [error]);
 			throw error;
 		}
-		await this.pluginDriver.hookSeq('generateBundle', [this.outputOptions, outputBundle, isWrite]);
+		await this.pluginDriver.hookSeq('generateBundle', [
+			this.outputOptions,
+			outputBundle as OutputBundle,
+			isWrite
+		]);
 		for (const key of Object.keys(outputBundle)) {
 			const file = outputBundle[key] as any;
 			if (!file.type) {
@@ -100,7 +89,31 @@ export default class Bundle {
 		this.pluginDriver.finaliseAssets();
 
 		timeEnd('GENERATE', 1);
-		return outputBundle;
+		return outputBundle as OutputBundle;
+	}
+
+	private assignChunkIds(inputBase: string, addons: Addons, bundle: OutputBundleWithPlaceholders) {
+		const entryChunks: Chunk[] = [];
+		const otherChunks: Chunk[] = [];
+		for (const chunk of this.chunks) {
+			(chunk.facadeModule && chunk.facadeModule.isUserDefinedEntryPoint
+				? entryChunks
+				: otherChunks
+			).push(chunk);
+		}
+
+		// make sure entry chunk names take precedence with regard to deconflicting
+		const chunksForNaming: Chunk[] = entryChunks.concat(otherChunks);
+		for (const chunk of chunksForNaming) {
+			if (this.outputOptions.file) {
+				chunk.id = basename(this.outputOptions.file);
+			} else if (this.inputOptions.preserveModules) {
+				chunk.id = chunk.generateIdPreserveModules(inputBase, this.outputOptions, bundle);
+			} else {
+				chunk.id = chunk.generateId(addons, this.outputOptions, bundle, true, this.pluginDriver);
+			}
+			bundle[chunk.id] = FILE_PLACEHOLDER;
+		}
 	}
 }
 

@@ -29,6 +29,7 @@ import { deconflictChunk } from './utils/deconflictChunk';
 import { errFailedValidation, error } from './utils/error';
 import { sortByExecutionOrder } from './utils/executionOrder';
 import { assignExportsToMangledNames, assignExportsToNames } from './utils/exportNames';
+import getExportMode from './utils/getExportMode';
 import getIndentString from './utils/getIndentString';
 import { makeLegal } from './utils/identifierHelpers';
 import { basename, dirname, extname, isAbsolute, normalize, resolve } from './utils/path';
@@ -272,6 +273,8 @@ export default class Chunk {
 		} else {
 			assignExportsToNames(remainingExports, this.exportsByName);
 		}
+		if (this.graph.preserveModules || (this.facadeModule && this.facadeModule.isEntryPoint))
+			this.exportMode = getExportMode(this, options, this.facadeModule!.id);
 	}
 
 	generateFacades(): Chunk[] {
