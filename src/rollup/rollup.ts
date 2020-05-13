@@ -1,19 +1,16 @@
 import { version as rollupVersion } from 'package.json';
+import Bundle from '../Bundle';
 import Chunk from '../Chunk';
 import Graph from '../Graph';
-import { createAddons } from '../utils/addons';
-import { assignChunkIds } from '../utils/assignChunkIds';
-import commondir from '../utils/commondir';
 import { errCannotEmitFromOptionsHook, error } from '../utils/error';
 import { writeFile } from '../utils/fs';
-import getExportMode from '../utils/getExportMode';
 import {
 	ensureArray,
 	GenericConfigObject,
 	parseInputOptions,
 	parseOutputOptions
 } from '../utils/parseOptions';
-import { basename, dirname, isAbsolute, resolve } from '../utils/path';
+import { basename, dirname, resolve } from '../utils/path';
 import { PluginDriver } from '../utils/PluginDriver';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from '../utils/pluginUtils';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
@@ -21,8 +18,6 @@ import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timer
 import {
 	InputOptions,
 	OutputAsset,
-	OutputBundle,
-	OutputBundleWithPlaceholders,
 	OutputChunk,
 	OutputOptions,
 	Plugin,
@@ -74,100 +69,20 @@ export async function rollupInternal(
 
 	timeEnd('BUILD', 1);
 
-	// TODO Lukas extract to different file?
-	async function generate(
-		outputOptions: OutputOptions,
-		isWrite: boolean,
-		outputPluginDriver: PluginDriver
-	): Promise<OutputBundle> {
-		timeStart('GENERATE', 1);
-
-		if (outputOptions.dynamicImportFunction) {
-			graph.warnDeprecation(
-				`The "output.dynamicImportFunction" option is deprecated. Use the "renderDynamicImport" plugin hook instead.`,
-				false
-			);
-		}
-		const assetFileNames = outputOptions.assetFileNames || 'assets/[name]-[hash][extname]';
-		const inputBase = commondir(getAbsoluteEntryModulePaths(chunks));
-		const outputBundleWithPlaceholders: OutputBundleWithPlaceholders = Object.create(null);
-		outputPluginDriver.setOutputBundle(outputBundleWithPlaceholders, assetFileNames);
-		let outputBundle;
-
-		try {
-			await outputPluginDriver.hookParallel('renderStart', [outputOptions, inputOptions]);
-			// TODO Lukas createChunks here
-			if (chunks.length > 1) {
-				validateOptionsForMultiChunkOutput(outputOptions);
-			}
-
-			const addons = await createAddons(outputOptions, outputPluginDriver);
-			for (const chunk of chunks) {
-				chunk.generateExports(outputOptions);
-				if (inputOptions.preserveModules || (chunk.facadeModule && chunk.facadeModule.isEntryPoint))
-					chunk.exportMode = getExportMode(chunk, outputOptions, chunk.facadeModule!.id);
-			}
-			for (const chunk of chunks) {
-				chunk.preRender(outputOptions, inputBase, outputPluginDriver);
-			}
-			assignChunkIds(
-				chunks,
-				inputOptions,
-				outputOptions,
-				inputBase,
-				addons,
-				outputBundleWithPlaceholders,
-				outputPluginDriver
-			);
-			outputBundle = assignChunksToBundle(chunks, outputBundleWithPlaceholders);
-
-			await Promise.all(
-				chunks.map(chunk => {
-					const outputChunk = outputBundleWithPlaceholders[chunk.id!] as OutputChunk;
-					return chunk
-						.render(outputOptions, addons, outputChunk, outputPluginDriver)
-						.then(rendered => {
-							outputChunk.code = rendered.code;
-							outputChunk.map = rendered.map;
-						});
-				})
-			);
-		} catch (error) {
-			await outputPluginDriver.hookParallel('renderError', [error]);
-			throw error;
-		}
-		await outputPluginDriver.hookSeq('generateBundle', [outputOptions, outputBundle, isWrite]);
-		for (const key of Object.keys(outputBundle)) {
-			const file = outputBundle[key] as any;
-			if (!file.type) {
-				graph.warnDeprecation(
-					'A plugin is directly adding properties to the bundle object in the "generateBundle" hook. This is deprecated and will be removed in a future Rollup version, please use "this.emitFile" instead.',
-					true
-				);
-				file.type = 'asset';
-			}
-		}
-		outputPluginDriver.finaliseAssets();
-
-		timeEnd('GENERATE', 1);
-		return outputBundle;
-	}
-
 	const cache = useCache ? graph.getCache() : undefined;
 	const result: RollupBuild = {
 		cache: cache!,
-		generate: (rawOutputOptions: OutputOptions) => {
+		async generate(rawOutputOptions: OutputOptions) {
 			const { outputOptions, outputPluginDriver } = getOutputOptionsAndPluginDriver(
 				rawOutputOptions as GenericConfigObject,
 				graph.pluginDriver,
 				inputOptions as GenericConfigObject
 			);
-			return generate(outputOptions, false, outputPluginDriver).then(result =>
-				createOutput(result)
-			);
+			const bundle = new Bundle(graph, outputOptions, inputOptions, outputPluginDriver, chunks);
+			return createOutput(await bundle.generate(false));
 		},
 		watchFiles: Object.keys(graph.watchFiles),
-		write: (rawOutputOptions: OutputOptions) => {
+		async write(rawOutputOptions: OutputOptions) {
 			const { outputOptions, outputPluginDriver } = getOutputOptionsAndPluginDriver(
 				rawOutputOptions as GenericConfigObject,
 				graph.pluginDriver,
@@ -179,13 +94,13 @@ export async function rollupInternal(
 					message: 'You must specify "output.file" or "output.dir" for the build.'
 				});
 			}
-			return generate(outputOptions, true, outputPluginDriver).then(async bundle => {
-				await Promise.all(
-					Object.keys(bundle).map(chunkId => writeOutputFile(bundle[chunkId], outputOptions))
-				);
-				await outputPluginDriver.hookParallel('writeBundle', [outputOptions, bundle]);
-				return createOutput(bundle);
-			});
+			const bundle = new Bundle(graph, outputOptions, inputOptions, outputPluginDriver, chunks);
+			const generated = await bundle.generate(true);
+			await Promise.all(
+				Object.keys(generated).map(chunkId => writeOutputFile(generated[chunkId], outputOptions))
+			);
+			await outputPluginDriver.hookParallel('writeBundle', [outputOptions, generated]);
+			return createOutput(generated);
 		}
 	};
 	if (inputOptions.perf === true) result.getTimings = getTimings;
@@ -315,66 +230,6 @@ function normalizeOutputOptions(
 	}
 
 	return outputOptions;
-}
-
-function getAbsoluteEntryModulePaths(chunks: Chunk[]): string[] {
-	const absoluteEntryModulePaths: string[] = [];
-	for (const chunk of chunks) {
-		for (const entryModule of chunk.entryModules) {
-			if (isAbsolute(entryModule.id)) {
-				absoluteEntryModulePaths.push(entryModule.id);
-			}
-		}
-	}
-	return absoluteEntryModulePaths;
-}
-
-function validateOptionsForMultiChunkOutput(outputOptions: OutputOptions) {
-	if (outputOptions.format === 'umd' || outputOptions.format === 'iife')
-		return error({
-			code: 'INVALID_OPTION',
-			message: 'UMD and IIFE output formats are not supported for code-splitting builds.'
-		});
-	if (typeof outputOptions.file === 'string')
-		return error({
-			code: 'INVALID_OPTION',
-			message:
-				'When building multiple chunks, the "output.dir" option must be used, not "output.file". ' +
-				'To inline dynamic imports, set the "inlineDynamicImports" option.'
-		});
-	if (outputOptions.sourcemapFile)
-		return error({
-			code: 'INVALID_OPTION',
-			message: '"output.sourcemapFile" is only supported for single-file builds.'
-		});
-}
-
-function assignChunksToBundle(
-	chunks: Chunk[],
-	outputBundle: OutputBundleWithPlaceholders
-): OutputBundle {
-	for (let i = 0; i < chunks.length; i++) {
-		const chunk = chunks[i];
-		const facadeModule = chunk.facadeModule;
-
-		outputBundle[chunk.id!] = {
-			code: undefined as any,
-			dynamicImports: chunk.getDynamicImportIds(),
-			exports: chunk.getExportNames(),
-			facadeModuleId: facadeModule && facadeModule.id,
-			fileName: chunk.id,
-			imports: chunk.getImportIds(),
-			isDynamicEntry: chunk.isDynamicEntry,
-			isEntry: facadeModule !== null && facadeModule.isEntryPoint,
-			map: undefined,
-			modules: chunk.renderedModules,
-			get name() {
-				return chunk.getChunkName();
-			},
-			type: 'chunk'
-		} as OutputChunk;
-	}
-	return outputBundle as OutputBundle;
 }
 
 function createOutput(outputBundle: Record<string, OutputChunk | OutputAsset | {}>): RollupOutput {

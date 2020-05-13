@@ -214,6 +214,40 @@ export default class Graph {
 		return chunks;
 	}
 
+	// TODO Lukas call this to create the chunks
+	generateChunks(inlineDynamicImports: boolean): Chunk[] {
+		const chunks: Chunk[] = [];
+		if (this.preserveModules) {
+			for (const module of this.modules) {
+				if (
+					module.isIncluded() ||
+					module.isEntryPoint ||
+					module.includedDynamicImporters.length > 0
+				) {
+					const chunk = new Chunk(this, [module]);
+					chunk.entryModules = [module];
+					chunks.push(chunk);
+				}
+			}
+		} else {
+			for (const chunkModules of inlineDynamicImports
+				? [this.modules]
+				: getChunkAssignments(this.entryModules, this.manualChunkModulesByAlias)) {
+				sortByExecutionOrder(chunkModules);
+				chunks.push(new Chunk(this, chunkModules));
+			}
+		}
+
+		for (const chunk of chunks) {
+			chunk.link();
+		}
+		const facades: Chunk[] = [];
+		for (const chunk of chunks) {
+			facades.push(...chunk.generateFacades());
+		}
+		return [...chunks, ...facades];
+	}
+
 	getCache(): RollupCache {
 		// handle plugin cache eviction
 		for (const name in this.pluginCache) {
@@ -284,39 +318,6 @@ export default class Graph {
 			}
 			this.warn(warning);
 		}
-	}
-
-	private generateChunks(inlineDynamicImports: boolean): Chunk[] {
-		const chunks: Chunk[] = [];
-		if (this.preserveModules) {
-			for (const module of this.modules) {
-				if (
-					module.isIncluded() ||
-					module.isEntryPoint ||
-					module.includedDynamicImporters.length > 0
-				) {
-					const chunk = new Chunk(this, [module]);
-					chunk.entryModules = [module];
-					chunks.push(chunk);
-				}
-			}
-		} else {
-			for (const chunkModules of inlineDynamicImports
-				? [this.modules]
-				: getChunkAssignments(this.entryModules, this.manualChunkModulesByAlias)) {
-				sortByExecutionOrder(chunkModules);
-				chunks.push(new Chunk(this, chunkModules));
-			}
-		}
-
-		for (const chunk of chunks) {
-			chunk.link();
-		}
-		const facades: Chunk[] = [];
-		for (const chunk of chunks) {
-			facades.push(...chunk.generateFacades());
-		}
-		return [...chunks, ...facades];
 	}
 
 	private async generateModuleGraph(
