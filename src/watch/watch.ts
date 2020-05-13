@@ -9,8 +9,9 @@ import {
 	RollupWatcher,
 	WatcherOptions
 } from '../rollup/types';
-import { mergeOptions } from '../utils/mergeOptions';
-import { ensureArray, GenericConfigObject } from '../utils/parseOptions';
+import { ensureArray } from '../utils/ensureArray';
+import { mergeOptions } from '../utils/options/mergeOptions';
+import { GenericConfigObject } from '../utils/options/parseOptions';
 import { FileWatcher } from './fileWatcher';
 
 export class Watcher {

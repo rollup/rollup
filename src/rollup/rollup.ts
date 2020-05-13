@@ -2,14 +2,12 @@ import { version as rollupVersion } from 'package.json';
 import Bundle from '../Bundle';
 import Chunk from '../Chunk';
 import Graph from '../Graph';
+import { ensureArray } from '../utils/ensureArray';
 import { errCannotEmitFromOptionsHook, error } from '../utils/error';
 import { writeFile } from '../utils/fs';
-import {
-	ensureArray,
-	GenericConfigObject,
-	parseInputOptions,
-	parseOutputOptions
-} from '../utils/parseOptions';
+import { parseInputOptions } from '../utils/options/parseInputOptions';
+import { GenericConfigObject } from '../utils/options/parseOptions';
+import { parseOutputOptions } from '../utils/options/parseOutputOptions';
 import { basename, dirname, resolve } from '../utils/path';
 import { PluginDriver } from '../utils/PluginDriver';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from '../utils/pluginUtils';

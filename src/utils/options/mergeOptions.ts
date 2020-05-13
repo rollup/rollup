@@ -1,12 +1,8 @@
-import { MergedRollupOptions, WarningHandler } from '../rollup/types';
-import {
-	CommandConfigObject,
-	ensureArray,
-	GenericConfigObject,
-	parseInputOptions,
-	parseOutputOptions,
-	warnUnknownOptions,
-} from './parseOptions';
+import { MergedRollupOptions, WarningHandler } from '../../rollup/types';
+import { ensureArray } from '../ensureArray';
+import { CommandConfigObject, parseInputOptions } from './parseInputOptions';
+import { GenericConfigObject, warnUnknownOptions } from './parseOptions';
+import { parseOutputOptions } from './parseOutputOptions';
 
 export const commandAliases: { [key: string]: string } = {
 	c: 'config',
@@ -21,7 +17,7 @@ export const commandAliases: { [key: string]: string } = {
 	o: 'file',
 	p: 'plugin',
 	v: 'version',
-	w: 'watch',
+	w: 'watch'
 };
 
 export function mergeOptions(
@@ -37,14 +33,14 @@ export function mergeOptions(
 	}
 	const outputOptionsArray = ensureArray(config.output) as GenericConfigObject[];
 	if (outputOptionsArray.length === 0) outputOptionsArray.push({});
-	const outputOptions = outputOptionsArray.map((singleOutputOptions) =>
+	const outputOptions = outputOptionsArray.map(singleOutputOptions =>
 		parseOutputOptions(singleOutputOptions, warn, command)
 	);
 
 	warnUnknownOptions(
 		command,
 		Object.keys(inputOptions).concat(
-			Object.keys(outputOptions[0]).filter((option) => option !== 'sourcemapPathTransform'),
+			Object.keys(outputOptions[0]).filter(option => option !== 'sourcemapPathTransform'),
 			Object.keys(commandAliases),
 			'config',
 			'environment',
@@ -78,6 +74,6 @@ function getCommandOptions(rawCommandOptions: GenericConfigObject): CommandConfi
 						}
 						return globals;
 				  }, Object.create(null))
-				: undefined,
+				: undefined
 	};
 }

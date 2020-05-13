@@ -1,5 +1,5 @@
 import { MergedRollupOptions } from '../../src/rollup/types';
-import { mergeOptions } from '../../src/utils/mergeOptions';
+import { mergeOptions } from '../../src/utils/options/mergeOptions';
 import batchWarnings, { BatchWarnings } from './batchWarnings';
 import { addCommandPluginsToInputOptions } from './commandPlugins';
 import { stdinName } from './stdin';
