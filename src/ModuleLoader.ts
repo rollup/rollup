@@ -142,32 +142,31 @@ export class ModuleLoader {
 		this.nextEntryModuleIndex += unresolvedEntryModules.length;
 		const loadNewEntryModulesPromise = Promise.all(
 			unresolvedEntryModules.map(
-				async ({ fileName, id, name, importer }): Promise<Module> => {
-					const module = await this.loadEntryModule(id, true, importer);
-					if (fileName !== null) {
-						module.chunkFileNames.add(fileName);
-					} else if (name !== null) {
-						if (module.chunkName === null) {
-							module.chunkName = name;
-						}
-						if (isUserDefined) {
-							module.userChunkNames.add(name);
-						}
-					}
-					return module;
-				}
+				({ id, importer }): Promise<Module> => this.loadEntryModule(id, true, importer)
 			)
 		).then(entryModules => {
 			let moduleIndex = firstEntryModuleIndex;
-			for (const entryModule of entryModules) {
+			for (let index = 0; index < entryModules.length; index++) {
+				const { fileName, name } = unresolvedEntryModules[index];
+				const entryModule = entryModules[index];
 				entryModule.isUserDefinedEntryPoint = entryModule.isUserDefinedEntryPoint || isUserDefined;
-				const existingIndexModule = this.indexedEntryModules.find(
+				if (fileName !== null) {
+					entryModule.chunkFileNames.add(fileName);
+				} else if (name !== null) {
+					if (entryModule.chunkName === null) {
+						entryModule.chunkName = name;
+					}
+					if (isUserDefined) {
+						entryModule.userChunkNames.add(name);
+					}
+				}
+				const existingIndexedModule = this.indexedEntryModules.find(
 					indexedModule => indexedModule.module.id === entryModule.id
 				);
-				if (!existingIndexModule) {
+				if (!existingIndexedModule) {
 					this.indexedEntryModules.push({ module: entryModule, index: moduleIndex });
 				} else {
-					existingIndexModule.index = Math.min(existingIndexModule.index, moduleIndex);
+					existingIndexedModule.index = Math.min(existingIndexedModule.index, moduleIndex);
 				}
 				moduleIndex++;
 			}

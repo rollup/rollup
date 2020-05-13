@@ -368,10 +368,7 @@ export default class Module {
 			const possibleDependencies = new Set(this.dependencies);
 			for (const dependency of possibleDependencies) {
 				if (!dependency.moduleSideEffects || relevantDependencies.has(dependency)) continue;
-				if (
-					dependency instanceof ExternalModule ||
-					(dependency.ast.included && dependency.ast.hasEffects(createHasEffectsContext()))
-				) {
+				if (dependency instanceof ExternalModule || dependency.hasEffects()) {
 					relevantDependencies.add(dependency);
 				} else {
 					for (const transitiveDependency of dependency.dependencies) {
@@ -530,6 +527,12 @@ export default class Module {
 			}
 		}
 		return null as any;
+	}
+
+	hasEffects() {
+		return (
+			this.moduleSideEffects && this.ast.included && this.ast.hasEffects(createHasEffectsContext())
+		);
 	}
 
 	include(): void {
