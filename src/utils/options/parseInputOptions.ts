@@ -1,6 +1,13 @@
-import { InputOptions, WarningHandler, WarningHandlerWithDefault } from '../../rollup/types';
+import { InputOptions, WarningHandler } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
-import { createGetOption, GenericConfigObject, warnUnknownOptions } from './parseOptions';
+import {
+	createGetOption,
+	defaultOnWarn,
+	GenericConfigObject,
+	getOnWarn,
+	normalizeObjectOptionValue,
+	warnUnknownOptions
+} from './parseOptions';
 
 export interface CommandConfigObject {
 	external: (string | RegExp)[];
@@ -8,6 +15,7 @@ export interface CommandConfigObject {
 	[key: string]: unknown;
 }
 
+// TODO Lukas "normalize" might be a better name
 export function parseInputOptions(
 	config: GenericConfigObject,
 	overrides: CommandConfigObject = { external: [], globals: undefined },
@@ -51,16 +59,6 @@ export function parseInputOptions(
 	return inputOptions;
 }
 
-const normalizeObjectOptionValue = (optionValue: any) => {
-	if (!optionValue) {
-		return optionValue;
-	}
-	if (typeof optionValue !== 'object') {
-		return {};
-	}
-	return optionValue;
-};
-
 const getObjectOption = (
 	config: GenericConfigObject,
 	overrides: GenericConfigObject,
@@ -74,22 +72,7 @@ const getObjectOption = (
 	return configOption;
 };
 
-const defaultOnWarn: WarningHandler = warning => {
-	if (typeof warning === 'string') {
-		console.warn(warning);
-	} else {
-		console.warn(warning.message);
-	}
-};
-
-const getOnWarn = (
-	config: GenericConfigObject,
-	defaultOnWarnHandler: WarningHandler
-): WarningHandler =>
-	config.onwarn
-		? warning => (config.onwarn as WarningHandlerWithDefault)(warning, defaultOnWarnHandler)
-		: defaultOnWarnHandler;
-
+// TODO Lukas remove
 const getExternal = (config: GenericConfigObject, overrides: CommandConfigObject) => {
 	const configExternal = config.external;
 	return typeof configExternal === 'function'
