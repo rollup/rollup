@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.10.1
+*2020-05-15*
+
+### Bug Fixes
+* Do not throw when "undefined" is used as a default export (#3558)
+
+### Pull Requests
+* [#3558](https://github.com/rollup/rollup/pull/3558): Properly handle default exporting undefined (@lukastaegert)
+
 ## 2.10.0
 *2020-05-13*
 
