@@ -4,6 +4,7 @@ import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from '../nodes/FunctionDeclaration';
 import Identifier, { IdentifierWithVariable } from '../nodes/Identifier';
 import LocalVariable from './LocalVariable';
+import UndefinedVariable from './UndefinedVariable';
 import Variable from './Variable';
 
 export default class ExportDefaultVariable extends LocalVariable {
@@ -61,7 +62,12 @@ export default class ExportDefaultVariable extends LocalVariable {
 
 	getOriginalVariable(): Variable {
 		if (this.originalVariable === null) {
-			if (!this.originalId || (!this.hasId && this.originalId.variable.isReassigned)) {
+			if (
+				!this.originalId ||
+				(!this.hasId &&
+					(this.originalId.variable.isReassigned ||
+						this.originalId.variable instanceof UndefinedVariable))
+			) {
 				this.originalVariable = this;
 			} else {
 				const assignedOriginal = this.originalId.variable;
