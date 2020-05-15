@@ -1,19 +1,16 @@
 import * as acorn from 'acorn';
-import injectClassFields from 'acorn-class-fields';
-import injectImportMeta from 'acorn-import-meta';
-import injectStaticClassFeatures from 'acorn-static-class-features';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { PathTracker } from './ast/utils/PathTracker';
 import Chunk from './Chunk';
 import ExternalModule from './ExternalModule';
-import Module, { defaultAcornOptions } from './Module';
+import Module from './Module';
 import { ModuleLoader, UnresolvedModule } from './ModuleLoader';
 import {
-	InputOptions,
 	IsExternal,
 	ManualChunksOption,
 	ModuleInfo,
 	ModuleJSON,
+	NormalizedInputOptions,
 	PreserveEntrySignaturesOption,
 	RollupCache,
 	RollupWarning,
@@ -50,7 +47,6 @@ function normalizeEntryModules(
 }
 
 export default class Graph {
-	acornOptions: acorn.Options;
 	acornParser: typeof acorn.Parser;
 	cachedModules: Map<string, ModuleJSON>;
 	contextParse: (code: string, acornOptions?: acorn.Options) => acorn.Node;
@@ -78,16 +74,15 @@ export default class Graph {
 	private pluginCache?: Record<string, SerializablePluginCache>;
 	private strictDeprecations: boolean;
 
-	constructor(options: InputOptions, watcher: RollupWatcher | null) {
+	constructor(readonly options: NormalizedInputOptions, watcher: RollupWatcher | null) {
 		this.onwarn = options.onwarn as WarningHandler;
 		this.deoptimizationTracker = new PathTracker();
 		this.cachedModules = new Map();
-		if (options.cache) {
-			if (options.cache.modules)
-				for (const module of options.cache.modules) this.cachedModules.set(module.id, module);
-		}
 		if (options.cache !== false) {
-			this.pluginCache = (options.cache && options.cache.plugins) || Object.create(null);
+			if (options.cache?.modules) {
+				for (const module of options.cache.modules) this.cachedModules.set(module.id, module);
+			}
+			this.pluginCache = options.cache?.plugins || Object.create(null);
 
 			// increment access counter
 			for (const name in this.pluginCache) {
@@ -129,12 +124,11 @@ export default class Graph {
 
 		this.contextParse = (code: string, options: acorn.Options = {}) =>
 			this.acornParser.parse(code, {
-				...defaultAcornOptions,
-				...options,
-				...this.acornOptions
+				...this.options.acorn,
+				...options
 			});
 
-		this.pluginDriver = new PluginDriver(this, options.plugins!, this.pluginCache);
+		this.pluginDriver = new PluginDriver(this, options.plugins, this.pluginCache);
 
 		if (watcher) {
 			const handleChange = (id: string) => this.pluginDriver.hookSeqSync('watchChange', [id]);
@@ -161,21 +155,7 @@ export default class Graph {
 			this.getModuleContext = () => this.context;
 		}
 
-		this.acornOptions = { allowAwaitOutsideFunction: true, ...options.acorn };
-		const acornPluginsToInject: Function[] = [
-			injectImportMeta,
-			injectClassFields,
-			injectStaticClassFeatures
-		];
-		const acornInjectPlugins = options.acornInjectPlugins;
-		acornPluginsToInject.push(
-			...(Array.isArray(acornInjectPlugins)
-				? acornInjectPlugins
-				: acornInjectPlugins
-				? [acornInjectPlugins]
-				: [])
-		);
-		this.acornParser = acorn.Parser.extend(...(acornPluginsToInject as any));
+		this.acornParser = acorn.Parser.extend(...(options.acornInjectPlugins as any));
 		this.moduleLoader = new ModuleLoader(
 			this,
 			this.moduleById,

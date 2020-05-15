@@ -136,7 +136,7 @@ function mergeInputOptions(
 }
 
 const getCache = (config: GenericConfigObject): false | RollupCache =>
-	(config.cache as RollupBuild)?.cache || config.cache;
+	(config.cache as RollupBuild)?.cache || (config.cache as any);
 
 const getExternal = (
 	config: GenericConfigObject,

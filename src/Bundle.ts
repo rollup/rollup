@@ -1,7 +1,7 @@
 import Chunk from './Chunk';
 import Graph from './Graph';
 import {
-	InputOptions,
+	NormalizedInputOptions,
 	OutputBundle,
 	OutputBundleWithPlaceholders,
 	OutputChunk,
@@ -19,7 +19,7 @@ export default class Bundle {
 	constructor(
 		private readonly graph: Graph,
 		private readonly outputOptions: OutputOptions,
-		private readonly inputOptions: InputOptions,
+		private readonly inputOptions: NormalizedInputOptions,
 		private readonly pluginDriver: PluginDriver,
 		private readonly chunks: Chunk[]
 	) {

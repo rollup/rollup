@@ -1,7 +1,9 @@
-import { InputOptions, WarningHandler } from '../../rollup/types';
+import injectClassFields from 'acorn-class-fields';
+import injectImportMeta from 'acorn-import-meta';
+import injectStaticClassFeatures from 'acorn-static-class-features';
+import { NormalizedInputOptions, RollupCache, WarningHandler } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
 import {
-	createGetOption,
 	defaultOnWarn,
 	GenericConfigObject,
 	getOnWarn,
@@ -16,32 +18,33 @@ export interface CommandConfigObject {
 }
 
 // TODO Lukas "normalize" might be a better name
-export function parseInputOptions(
-	config: GenericConfigObject,
-	overrides: CommandConfigObject = { external: [], globals: undefined },
-	defaultOnWarnHandler: WarningHandler = defaultOnWarn
-): InputOptions {
-	const getOption = createGetOption(config, overrides);
-	const inputOptions: InputOptions = {
-		acorn: config.acorn,
-		acornInjectPlugins: config.acornInjectPlugins as any,
-		cache: getOption('cache'),
-		context: getOption('context'),
+export function parseInputOptions(config: GenericConfigObject): NormalizedInputOptions {
+	// TODO Lukas inline trivial case, create helper for tracked defaults?
+	// TODO Lukas improve this together with type
+	const getOption = (name: string, defaultValue: any): any => config[name] ?? defaultValue;
+	const inputOptions: NormalizedInputOptions = {
+		acorn: getAcorn(config),
+		acornInjectPlugins: getAcornInjectPlugins(config),
+		cache: config.cache as false | undefined | RollupCache,
+		// TODO Lukas continue here
+		context: config.context as any,
 		experimentalCacheExpiry: getOption('experimentalCacheExpiry', 10),
-		external: getExternal(config, overrides) as any,
+		// TODO Lukas use real implementation
+		external: getExternal(config, { external: [] } as any) as any,
 		inlineDynamicImports: getOption('inlineDynamicImports', false),
 		input: getOption('input', []),
-		manualChunks: getOption('manualChunks'),
+		manualChunks: config.manualChunks as any,
 		moduleContext: config.moduleContext as any,
-		onwarn: getOnWarn(config, defaultOnWarnHandler),
+		onwarn: getOnWarn(config, defaultOnWarn),
 		perf: getOption('perf', false),
-		plugins: ensureArray(config.plugins as any),
-		preserveEntrySignatures: getOption('preserveEntrySignatures'),
-		preserveModules: getOption('preserveModules'),
-		preserveSymlinks: getOption('preserveSymlinks'),
-		shimMissingExports: getOption('shimMissingExports'),
+		plugins: ensureArray(config.plugins) as Plugin[],
+		preserveEntrySignatures: config.preserveEntrySignatures as any,
+		preserveModules: config.preserveModules as any,
+		preserveSymlinks: config.preserveSymlinks as any,
+		shimMissingExports: config.shimMissingExports as any,
 		strictDeprecations: getOption('strictDeprecations', false),
-		treeshake: getObjectOption(config, overrides, 'treeshake'),
+		// TODO Lukas create real getter
+		treeshake: normalizeObjectOptionValue(config.treeshake),
 		watch: config.watch as any
 	};
 
@@ -59,18 +62,20 @@ export function parseInputOptions(
 	return inputOptions;
 }
 
-const getObjectOption = (
-	config: GenericConfigObject,
-	overrides: GenericConfigObject,
-	name: string
-) => {
-	const commandOption = normalizeObjectOptionValue(overrides[name]);
-	const configOption = normalizeObjectOptionValue(config[name]);
-	if (commandOption !== undefined) {
-		return commandOption && { ...configOption, ...commandOption };
-	}
-	return configOption;
-};
+const getAcorn = (config: GenericConfigObject): acorn.Options => ({
+	allowAwaitOutsideFunction: true,
+	ecmaVersion: 2020,
+	preserveParens: false,
+	sourceType: 'module',
+	...(config.acorn as Object)
+});
+
+const getAcornInjectPlugins = (config: GenericConfigObject): Function[] => [
+	injectImportMeta,
+	injectClassFields,
+	injectStaticClassFeatures,
+	...(ensureArray(config.acornInjectPlugins) as any)
+];
 
 // TODO Lukas remove
 const getExternal = (config: GenericConfigObject, overrides: CommandConfigObject) => {

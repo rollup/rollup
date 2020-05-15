@@ -115,16 +115,9 @@ export interface AstContext {
 	warnDeprecation: (deprecation: string | RollupWarning, activeDeprecation: boolean) => void;
 }
 
-export const defaultAcornOptions: acorn.Options = {
-	ecmaVersion: 2020,
-	preserveParens: false,
-	sourceType: 'module'
-};
-
 function tryParse(module: Module, Parser: typeof acorn.Parser, acornOptions: acorn.Options) {
 	try {
 		return Parser.parse(module.code, {
-			...defaultAcornOptions,
 			...acornOptions,
 			onComment: (block: boolean, text: string, start: number, end: number) =>
 				module.comments.push({ block, text, start, end })
@@ -653,7 +646,7 @@ export default class Module {
 		if (ast) {
 			this.esTreeAst = ast;
 		} else {
-			this.esTreeAst = tryParse(this, this.graph.acornParser, this.graph.acornOptions);
+			this.esTreeAst = tryParse(this, this.graph.acornParser, this.graph.options.acorn);
 			for (const comment of this.comments) {
 				if (!comment.block && SOURCEMAPPING_URL_RE.test(comment.text)) {
 					this.alwaysRemovedCode.push([comment.start, comment.end]);

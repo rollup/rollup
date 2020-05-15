@@ -328,7 +328,7 @@ export interface OutputBundleWithPlaceholders {
 
 export interface PluginHooks extends OutputPluginHooks {
 	buildEnd: (this: PluginContext, err?: Error) => Promise<void> | void;
-	buildStart: (this: PluginContext, options: InputOptions) => Promise<void> | void;
+	buildStart: (this: PluginContext, options: NormalizedInputOptions) => Promise<void> | void;
 	load: LoadHook;
 	options: (this: MinimalPluginContext, options: InputOptions) => InputOptions | null | undefined;
 	resolveDynamicImport: ResolveDynamicImportHook;
@@ -360,7 +360,7 @@ interface OutputPluginHooks {
 	renderStart: (
 		this: PluginContext,
 		outputOptions: OutputOptions,
-		inputOptions: InputOptions
+		inputOptions: NormalizedInputOptions
 	) => Promise<void> | void;
 	/** @deprecated Use `resolveFileUrl` instead */
 	resolveAssetUrl: ResolveAssetUrlHook;
@@ -459,7 +459,7 @@ export type ModuleSideEffectsOption = boolean | 'no-external' | string[] | HasMo
 export type PreserveEntrySignaturesOption = false | 'strict' | 'allow-extension';
 
 export interface InputOptions {
-	acorn?: any;
+	acorn?: Object;
 	acornInjectPlugins?: Function | Function[];
 	cache?: false | RollupCache;
 	context?: string;
@@ -472,6 +472,29 @@ export interface InputOptions {
 	onwarn?: WarningHandlerWithDefault;
 	perf?: boolean;
 	plugins?: Plugin[];
+	preserveEntrySignatures?: PreserveEntrySignaturesOption;
+	preserveModules?: boolean;
+	preserveSymlinks?: boolean;
+	shimMissingExports?: boolean;
+	strictDeprecations?: boolean;
+	treeshake?: boolean | TreeshakingOptions;
+	watch?: WatcherOptions;
+}
+
+export interface NormalizedInputOptions {
+	acorn: Object;
+	acornInjectPlugins: Function[];
+	cache: false | undefined | RollupCache;
+	context?: string;
+	experimentalCacheExpiry?: number;
+	external?: ExternalOption;
+	inlineDynamicImports?: boolean;
+	input?: InputOption;
+	manualChunks?: ManualChunksOption;
+	moduleContext?: ((id: string) => string) | { [id: string]: string };
+	onwarn?: WarningHandlerWithDefault;
+	perf?: boolean;
+	plugins: Plugin[];
 	preserveEntrySignatures?: PreserveEntrySignaturesOption;
 	preserveModules?: boolean;
 	preserveSymlinks?: boolean;
@@ -592,7 +615,7 @@ export interface RollupOutput {
 }
 
 export interface RollupBuild {
-	cache: RollupCache;
+	cache: RollupCache | undefined;
 	generate: (outputOptions: OutputOptions) => Promise<RollupOutput>;
 	getTimings?: () => SerializedTimings;
 	watchFiles: string[];

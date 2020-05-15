@@ -14,7 +14,7 @@ import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from '../util
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
 import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timers';
 import {
-	InputOptions,
+	NormalizedInputOptions,
 	OutputAsset,
 	OutputChunk,
 	OutputOptions,
@@ -67,14 +67,13 @@ export async function rollupInternal(
 
 	timeEnd('BUILD', 1);
 
-	const cache = useCache ? graph.getCache() : undefined;
 	const result: RollupBuild = {
-		cache: cache!,
+		cache: useCache ? graph.getCache() : undefined,
 		async generate(rawOutputOptions: OutputOptions) {
 			const { outputOptions, outputPluginDriver } = getOutputOptionsAndPluginDriver(
 				rawOutputOptions as GenericConfigObject,
 				graph.pluginDriver,
-				inputOptions as GenericConfigObject
+				inputOptions
 			);
 			const bundle = new Bundle(graph, outputOptions, inputOptions, outputPluginDriver, chunks);
 			return createOutput(await bundle.generate(false));
@@ -84,7 +83,7 @@ export async function rollupInternal(
 			const { outputOptions, outputPluginDriver } = getOutputOptionsAndPluginDriver(
 				rawOutputOptions as GenericConfigObject,
 				graph.pluginDriver,
-				inputOptions as GenericConfigObject
+				inputOptions
 			);
 			if (!outputOptions.dir && !outputOptions.file) {
 				return error({
@@ -105,13 +104,13 @@ export async function rollupInternal(
 	return result;
 }
 
-function getInputOptions(rawInputOptions: GenericConfigObject): InputOptions {
+function getInputOptions(rawInputOptions: GenericConfigObject): NormalizedInputOptions {
 	if (!rawInputOptions) {
 		throw new Error('You must supply an options object to rollup');
 	}
-	let inputOptions = parseInputOptions(rawInputOptions);
-	inputOptions = inputOptions.plugins!.reduce(applyOptionHook, inputOptions);
-	inputOptions.plugins = normalizePlugins(inputOptions.plugins!, ANONYMOUS_PLUGIN_PREFIX);
+	const rawPlugins = ensureArray(rawInputOptions.plugins) as Plugin[];
+	const inputOptions = parseInputOptions(rawPlugins.reduce(applyOptionHook, rawInputOptions));
+	normalizePlugins(inputOptions.plugins, ANONYMOUS_PLUGIN_PREFIX);
 
 	if (inputOptions.inlineDynamicImports) {
 		if (inputOptions.preserveModules)
@@ -148,35 +147,36 @@ function getInputOptions(rawInputOptions: GenericConfigObject): InputOptions {
 	return inputOptions;
 }
 
-function applyOptionHook(inputOptions: InputOptions, plugin: Plugin) {
+function applyOptionHook(inputOptions: GenericConfigObject, plugin: Plugin): GenericConfigObject {
 	if (plugin.options)
-		return plugin.options.call({ meta: { rollupVersion } }, inputOptions) || inputOptions;
+		return (
+			(plugin.options.call({ meta: { rollupVersion } }, inputOptions) as GenericConfigObject) ||
+			inputOptions
+		);
 
 	return inputOptions;
 }
 
-function normalizePlugins(rawPlugins: any, anonymousPrefix: string): Plugin[] {
-	const plugins = ensureArray(rawPlugins);
+function normalizePlugins(plugins: Plugin[], anonymousPrefix: string): void {
 	for (let pluginIndex = 0; pluginIndex < plugins.length; pluginIndex++) {
 		const plugin = plugins[pluginIndex];
 		if (!plugin.name) {
 			plugin.name = `${anonymousPrefix}${pluginIndex + 1}`;
 		}
 	}
-	return plugins;
 }
 
 function getOutputOptionsAndPluginDriver(
 	rawOutputOptions: GenericConfigObject,
 	inputPluginDriver: PluginDriver,
-	inputOptions: GenericConfigObject
+	inputOptions: NormalizedInputOptions
 ): { outputOptions: OutputOptions; outputPluginDriver: PluginDriver } {
 	if (!rawOutputOptions) {
 		throw new Error('You must supply an options object');
 	}
-	const outputPluginDriver = inputPluginDriver.createOutputPluginDriver(
-		normalizePlugins(rawOutputOptions.plugins, ANONYMOUS_OUTPUT_PLUGIN_PREFIX)
-	);
+	const rawPlugins = ensureArray(rawOutputOptions.plugins) as Plugin[];
+	normalizePlugins(rawPlugins, ANONYMOUS_OUTPUT_PLUGIN_PREFIX);
+	const outputPluginDriver = inputPluginDriver.createOutputPluginDriver(rawPlugins);
 
 	return {
 		outputOptions: normalizeOutputOptions(inputOptions, rawOutputOptions, outputPluginDriver),
@@ -185,14 +185,14 @@ function getOutputOptionsAndPluginDriver(
 }
 
 function normalizeOutputOptions(
-	inputOptions: GenericConfigObject,
+	inputOptions: NormalizedInputOptions,
 	rawOutputOptions: GenericConfigObject,
 	outputPluginDriver: PluginDriver
 ): OutputOptions {
 	const outputOptions = parseOutputOptions(
 		outputPluginDriver.hookReduceArg0Sync(
 			'outputOptions',
-			[rawOutputOptions.output || inputOptions.output || rawOutputOptions] as [OutputOptions],
+			[rawOutputOptions.output || rawOutputOptions] as [OutputOptions],
 			(outputOptions, result) => result || outputOptions,
 			pluginContext => {
 				const emitError = () => pluginContext.error(errCannotEmitFromOptionsHook());

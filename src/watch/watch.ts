@@ -210,7 +210,7 @@ export class Task {
 		const previouslyWatched = this.watched;
 		this.watched = new Set();
 		this.watchFiles = result.watchFiles;
-		this.cache = result.cache;
+		this.cache = result.cache!;
 		for (const id of this.watchFiles) {
 			this.watchFile(id);
 		}
