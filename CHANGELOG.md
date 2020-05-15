@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.10.2
+*2020-05-15*
+
+### Bug Fixes
+* Properly include calls to mutating array methods in certain scenarios (#3559)
+
+### Pull Requests
+* [#3559](https://github.com/rollup/rollup/pull/3559): Make sure UnknownFooExpressions are included when referenced as return values in a MultiExpression (@lukastaegert)
+
 ## 2.10.1
 *2020-05-15*
 
