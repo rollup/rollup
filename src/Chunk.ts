@@ -669,11 +669,21 @@ export default class Chunk {
 				chunkSourcemapChain,
 				options.sourcemapExcludeSources!
 			);
-			map.sources = map.sources.map(sourcePath =>
-				normalize(
-					options.sourcemapPathTransform ? options.sourcemapPathTransform(sourcePath) : sourcePath
-				)
-			);
+			map.sources = map.sources.map(sourcePath => {
+				const { sourcemapPathTransform } = options;
+
+				if (sourcemapPathTransform) {
+					const newSourcePath = sourcemapPathTransform(sourcePath);
+
+					if (typeof newSourcePath !== 'string') {
+						throw new Error('sourcemapPathTransform function must return a string.');
+					}
+
+					return normalize(newSourcePath);
+				}
+
+				return normalize(sourcePath);
+			});
 
 			timeEnd('sourcemap', 3);
 		}
