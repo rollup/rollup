@@ -12,6 +12,7 @@ module.exports = {
 		}
 	},
 	generateError: {
+		code: 'VALIDATION_ERROR',
 		message: 'sourcemapPathTransform function must return a string.'
 	}
 };
