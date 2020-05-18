@@ -26,7 +26,7 @@ import { Addons } from './utils/addons';
 import { collapseSourcemaps } from './utils/collapseSourcemaps';
 import { createHash } from './utils/crypto';
 import { deconflictChunk } from './utils/deconflictChunk';
-import { error } from './utils/error';
+import { errFailedValidation, error } from './utils/error';
 import { sortByExecutionOrder } from './utils/executionOrder';
 import { assignExportsToMangledNames, assignExportsToNames } from './utils/exportNames';
 import getIndentString from './utils/getIndentString';
@@ -669,11 +669,23 @@ export default class Chunk {
 				chunkSourcemapChain,
 				options.sourcemapExcludeSources!
 			);
-			map.sources = map.sources.map(sourcePath =>
-				normalize(
-					options.sourcemapPathTransform ? options.sourcemapPathTransform(sourcePath) : sourcePath
-				)
-			);
+			map.sources = map.sources
+				.map(sourcePath => {
+					const { sourcemapPathTransform } = options;
+
+					if (sourcemapPathTransform) {
+						const newSourcePath = sourcemapPathTransform(sourcePath);
+
+						if (typeof newSourcePath !== 'string') {
+							error(errFailedValidation(`sourcemapPathTransform function must return a string.`));
+						}
+
+						return newSourcePath;
+					}
+
+					return sourcePath;
+				})
+				.map(normalize);
 
 			timeEnd('sourcemap', 3);
 		}
