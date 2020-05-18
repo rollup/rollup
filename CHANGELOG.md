@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.10.3
+*2020-05-18*
+
+### Bug Fixes
+* Validate return value of sourcemapPathTransform option (#3561)
+
+### Pull Requests
+* [#3561](https://github.com/rollup/rollup/pull/3561): Throw error if sourcemapPathTransform-option does not return a string (@Simonwep)
+
 ## 2.10.2
 *2020-05-15*
 
