@@ -171,7 +171,9 @@ Before Babel will actually compile your code, it needs to be configured. Create 
 }
 ```
 
-See the [Babel documentation](https://babeljs.io/docs/en/config-files#project-wide-configuration) for more information on both project wide and file relative configuration. 
+There are a few unusual elements to this setup. First, we're setting "modules": false, otherwise Babel will convert our modules to CommonJS before Rollup gets a chance to do its thing, causing it to fail.
+
+Secondly, we're putting our `.babelrc` file in `src`, rather than the project root. This allows us to have a different `.babelrc` for things like tests, if we need that later – See the [Babel documentation](https://babeljs.io/docs/en/config-files#project-wide-configuration) for more information on both project wide and file relative configuration. 
 
 Now, before we run rollup, we need to install
 [`babel-core`](https://babeljs.io/docs/en/babel-core)
