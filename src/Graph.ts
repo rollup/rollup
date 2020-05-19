@@ -159,13 +159,12 @@ export default class Graph {
 			this.getModuleContext = () => this.context;
 		}
 
-		this.acornOptions = options.acorn ? { ...options.acorn } : {};
-		const acornPluginsToInject: Function[] = [];
-
-		acornPluginsToInject.push(injectImportMeta, injectClassFields, injectStaticClassFeatures);
-
-		(this.acornOptions as any).allowAwaitOutsideFunction = true;
-
+		this.acornOptions = { allowAwaitOutsideFunction: true, ...options.acorn };
+		const acornPluginsToInject: Function[] = [
+			injectImportMeta,
+			injectClassFields,
+			injectStaticClassFeatures
+		];
 		const acornInjectPlugins = options.acornInjectPlugins;
 		acornPluginsToInject.push(
 			...(Array.isArray(acornInjectPlugins)
