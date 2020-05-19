@@ -129,7 +129,11 @@ export default class Chunk {
 		for (const dependency of facadedModule.getDependenciesToBeIncluded()) {
 			chunk.dependencies.add(dependency instanceof Module ? dependency.chunk! : dependency);
 		}
-		if (!chunk.dependencies.has(facadedModule.chunk!) && facadedModule.hasEffects()) {
+		if (
+			!chunk.dependencies.has(facadedModule.chunk!) &&
+			facadedModule.moduleSideEffects &&
+			facadedModule.hasEffects()
+		) {
 			chunk.dependencies.add(facadedModule.chunk!);
 		}
 		chunk.facadeModule = facadedModule;
