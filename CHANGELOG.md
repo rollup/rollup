@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.10.4
+*2020-05-19*
+
+### Bug Fixes
+* Tree-shake unused classes with fields unless there are side-effects in the field declaration (#3569)
+
+### Pull Requests
+* [#3569](https://github.com/rollup/rollup/pull/3569): Make sure unused classes with fields are tree-shaken if possible (@lukastaegert)
+
 ## 2.10.3
 *2020-05-18*
 
