@@ -3,12 +3,13 @@ import { HasEffectsContext } from '../ExecutionContext';
 import ClassBodyScope from '../scopes/ClassBodyScope';
 import Scope from '../scopes/Scope';
 import { EMPTY_PATH, ObjectPath } from '../utils/PathTracker';
+import FieldDefinition from './FieldDefinition';
 import MethodDefinition from './MethodDefinition';
 import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
 export default class ClassBody extends NodeBase {
-	body!: MethodDefinition[];
+	body!: (MethodDefinition | FieldDefinition)[];
 	type!: NodeType.tClassBody;
 
 	private classConstructor!: MethodDefinition | null;
@@ -31,7 +32,7 @@ export default class ClassBody extends NodeBase {
 
 	initialise() {
 		for (const method of this.body) {
-			if (method.kind === 'constructor') {
+			if (method instanceof MethodDefinition && method.kind === 'constructor') {
 				this.classConstructor = method;
 				return;
 			}

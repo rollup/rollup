@@ -96,7 +96,7 @@
     "fixturify": "^2.1.0",
     "hash.js": "^1.1.7",
     "husky": "^4.2.5",
-    "is-reference": "^1.1.4",
+    "is-reference": "github:lukastaegert/is-reference#master",
     "lint-staged": "^10.2.2",
     "locate-character": "^2.0.5",
     "magic-string": "^0.25.7",
