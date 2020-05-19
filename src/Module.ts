@@ -341,33 +341,39 @@ export default class Module {
 	getDependenciesToBeIncluded(): Set<Module | ExternalModule> {
 		if (this.relevantDependencies) return this.relevantDependencies;
 		const relevantDependencies = new Set<Module | ExternalModule>();
-		for (let variable of this.imports) {
-			if (variable instanceof SyntheticNamedExportVariable) {
-				variable = variable.getBaseVariable();
-			} else if (variable instanceof ExportDefaultVariable) {
-				variable = variable.getOriginalVariable();
-			}
-			relevantDependencies.add(variable.module!);
-		}
+		const additionalSideEffectModules = new Set();
+		let dependencyVariables = this.imports;
 		if (
 			this.isEntryPoint ||
 			this.includedDynamicImporters.length > 0 ||
 			this.graph.preserveModules
 		) {
+			dependencyVariables = new Set(dependencyVariables);
 			for (const exportName of [...this.getReexports(), ...this.getExports()]) {
-				let variable = this.getVariableForExportName(exportName);
-				if (variable instanceof SyntheticNamedExportVariable) {
-					variable = variable.getBaseVariable();
-				} else if (variable instanceof ExportDefaultVariable) {
-					variable = variable.getOriginalVariable();
-				}
-				relevantDependencies.add(variable.module!);
+				dependencyVariables.add(this.getVariableForExportName(exportName));
 			}
+		}
+		for (let variable of dependencyVariables) {
+			if (variable instanceof SyntheticNamedExportVariable) {
+				variable = variable.getBaseVariable();
+			} else if (variable instanceof ExportDefaultVariable) {
+				const { modules, original } = variable.getOriginalVariableAndDeclarationModules();
+				variable = original;
+				for (const module of modules) {
+					additionalSideEffectModules.add(module);
+				}
+			}
+			relevantDependencies.add(variable.module!);
 		}
 		if (this.graph.treeshakingOptions) {
 			const possibleDependencies = new Set(this.dependencies);
 			for (const dependency of possibleDependencies) {
-				if (!dependency.moduleSideEffects || relevantDependencies.has(dependency)) continue;
+				if (
+					!(dependency.moduleSideEffects || additionalSideEffectModules.has(dependency)) ||
+					relevantDependencies.has(dependency)
+				) {
+					continue;
+				}
 				if (dependency instanceof ExternalModule || dependency.hasEffects()) {
 					relevantDependencies.add(dependency);
 				} else {
@@ -530,9 +536,7 @@ export default class Module {
 	}
 
 	hasEffects() {
-		return (
-			this.moduleSideEffects && this.ast.included && this.ast.hasEffects(createHasEffectsContext())
-		);
+		return this.ast.included && this.ast.hasEffects(createHasEffectsContext());
 	}
 
 	include(): void {
