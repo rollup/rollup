@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.10.5
+*2020-05-19*
+
+### Bug Fixes
+* Do not remove side-effects that may influence an included default export declaration when side-effects are disabled (#3572)
+
+### Pull Requests
+* [#3572](https://github.com/rollup/rollup/pull/3572): Observe side-effects in files containing a default export declaration that reexports a variable (@lukastaegert)
+
 ## 2.10.4
 *2020-05-19*
 
