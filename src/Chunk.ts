@@ -106,7 +106,7 @@ function getGlobalName(
 	}
 
 	if (hasExports) {
-		graph.warn({
+		graph.options.onwarn({
 			code: 'MISSING_GLOBAL_NAME',
 			guess: module.variableName,
 			message: `No name was provided for external module '${module.id}' in output.globals – guessing '${module.variableName}'`,
@@ -226,7 +226,7 @@ export default class Chunk {
 					module.preserveSignature === 'strict' &&
 					this.graph.preserveEntrySignatures === undefined
 				) {
-					this.graph.warn({
+					this.graph.options.onwarn({
 						code: 'EMPTY_FACADE',
 						id: module.id,
 						message: `To preserve the export signature of the entry module "${relativeId(
@@ -555,7 +555,7 @@ export default class Chunk {
 
 		if (this.isEmpty && this.getExportNames().length === 0 && this.dependencies.size === 0) {
 			const chunkName = this.getChunkName();
-			this.graph.warn({
+			this.graph.options.onwarn({
 				chunkName,
 				code: 'EMPTY_BUNDLE',
 				message: `Generated an empty chunk: "${chunkName}"`
@@ -585,7 +585,7 @@ export default class Chunk {
 		const format = options.format as InternalModuleFormat;
 		const finalise = finalisers[format];
 		if (options.dynamicImportFunction && format !== 'es') {
-			this.graph.warn({
+			this.graph.options.onwarn({
 				code: 'INVALID_OPTION',
 				message: '"output.dynamicImportFunction" is ignored for formats other than "es".'
 			});
@@ -650,7 +650,7 @@ export default class Chunk {
 				outro: addons.outro!,
 				usesTopLevelAwait,
 				varOrConst: options.preferConst ? 'const' : 'var',
-				warn: this.graph.warn.bind(this.graph)
+				warn: this.graph.options.onwarn.bind(this.graph)
 			},
 			options
 		);

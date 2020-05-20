@@ -96,7 +96,7 @@ export class PluginDriver {
 			for (const plugin of userPlugins) {
 				for (const hook of inputHooks) {
 					if (hook in plugin) {
-						graph.warn(errInputHookInOutputPlugin(plugin.name, hook));
+						graph.options.onwarn(errInputHookInOutputPlugin(plugin.name, hook));
 					}
 				}
 			}

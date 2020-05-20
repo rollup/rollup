@@ -1,14 +1,15 @@
 import { ModuleFormat, OutputOptions, WarningHandler } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
 import { errInvalidExportOptionValue, error } from '../error';
-import { createGetOption, GenericConfigObject, warnUnknownOptions } from './parseOptions';
+import { GenericConfigObject, warnUnknownOptions } from './parseOptions';
 
 export function parseOutputOptions(
 	config: GenericConfigObject,
 	warn: WarningHandler,
 	overrides: GenericConfigObject = {}
 ): OutputOptions {
-	const getOption = createGetOption(config, overrides);
+	const getOption = (name: string, defaultValue?: unknown): any =>
+		overrides[name] ?? config[name] ?? defaultValue;
 	const outputOptions = {
 		amd: { ...(config.amd as object), ...(overrides.amd as object) } as any,
 		assetFileNames: getOption('assetFileNames'),

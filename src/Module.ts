@@ -34,6 +34,7 @@ import {
 	EmittedFile,
 	ExistingDecodedSourceMap,
 	ModuleJSON,
+	NormalizedInputOptions,
 	PreserveEntrySignaturesOption,
 	ResolvedIdMap,
 	RollupError,
@@ -86,7 +87,6 @@ export interface AstContext {
 	) => void;
 	addImport: (node: ImportDeclaration) => void;
 	addImportMeta: (node: MetaProperty) => void;
-	annotations: boolean;
 	code: string;
 	deoptimizationTracker: PathTracker;
 	error: (props: RollupError, pos?: number) => never;
@@ -103,16 +103,12 @@ export interface AstContext {
 	module: Module; // not to be used for tree-shaking
 	moduleContext: string;
 	nodeConstructors: { [name: string]: typeof NodeBase };
+	options: NormalizedInputOptions;
 	preserveModules: boolean;
-	propertyReadSideEffects: boolean;
 	traceExport: (name: string) => Variable;
 	traceVariable: (name: string) => Variable | null;
-	treeshake: boolean;
-	tryCatchDeoptimization: boolean;
-	unknownGlobalSideEffects: boolean;
 	usesTopLevelAwait: boolean;
 	warn: (warning: RollupWarning, pos?: number) => void;
-	warnDeprecation: (deprecation: string | RollupWarning, activeDeprecation: boolean) => void;
 }
 
 function tryParse(module: Module, Parser: typeof acorn.Parser, acornOptions: acorn.Options) {
@@ -181,6 +177,7 @@ function getVariableForExportNameRecursive(
 	return target.getVariableForExportName(name, isExportAllSearch, searchedNamesAndModules);
 }
 
+// TODO Lukas put the options on the Module
 export default class Module {
 	// TODO Lukas we must get rid of chunk and facadeChunk here
 	// Instead we have a new class
@@ -249,7 +246,7 @@ export default class Module {
 		public isEntryPoint: boolean
 	) {
 		this.excludeFromSourcemap = /\0/.test(id);
-		this.context = graph.getModuleContext(id);
+		this.context = graph.options.moduleContext(id);
 	}
 
 	basename() {
@@ -360,7 +357,7 @@ export default class Module {
 			}
 			relevantDependencies.add(variable.module!);
 		}
-		if (this.graph.treeshakingOptions) {
+		if (this.graph.options.treeshake) {
 			const possibleDependencies = new Set(this.dependencies);
 			for (const dependency of possibleDependencies) {
 				if (
@@ -678,7 +675,6 @@ export default class Module {
 			addExport: this.addExport.bind(this),
 			addImport: this.addImport.bind(this),
 			addImportMeta: this.addImportMeta.bind(this),
-			annotations: (this.graph.treeshakingOptions && this.graph.treeshakingOptions.annotations)!,
 			code, // Only needed for debugging
 			deoptimizationTracker: this.graph.deoptimizationTracker,
 			error: this.error.bind(this),
@@ -697,19 +693,12 @@ export default class Module {
 			module: this,
 			moduleContext: this.context,
 			nodeConstructors,
+			options: this.graph.options,
 			preserveModules: this.graph.preserveModules,
-			propertyReadSideEffects: (!this.graph.treeshakingOptions ||
-				this.graph.treeshakingOptions.propertyReadSideEffects)!,
 			traceExport: this.getVariableForExportName.bind(this),
 			traceVariable: this.traceVariable.bind(this),
-			treeshake: !!this.graph.treeshakingOptions,
-			tryCatchDeoptimization: (!this.graph.treeshakingOptions ||
-				this.graph.treeshakingOptions.tryCatchDeoptimization)!,
-			unknownGlobalSideEffects: (!this.graph.treeshakingOptions ||
-				this.graph.treeshakingOptions.unknownGlobalSideEffects)!,
 			usesTopLevelAwait: false,
-			warn: this.warn.bind(this),
-			warnDeprecation: this.graph.warnDeprecation.bind(this.graph)
+			warn: this.warn.bind(this)
 		};
 
 		this.scope = new ModuleScope(this.graph.scope, this.astContext);
@@ -784,7 +773,7 @@ export default class Module {
 		}
 
 		warning.id = this.id;
-		this.graph.warn(warning);
+		this.graph.options.onwarn(warning);
 	}
 
 	private addDynamicImport(node: ImportExpression) {
@@ -944,7 +933,7 @@ export default class Module {
 	}
 
 	private shimMissingExport(name: string): void {
-		this.graph.warn({
+		this.graph.options.onwarn({
 			code: 'SHIMMED_EXPORT',
 			exporter: relativeId(this.id),
 			exportName: name,

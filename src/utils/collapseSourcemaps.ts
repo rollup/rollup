@@ -151,7 +151,7 @@ function getLinkMap(graph: Graph) {
 			return new Link(map, [source]);
 		}
 
-		graph.warn({
+		graph.options.onwarn({
 			code: 'SOURCEMAP_BROKEN',
 			message:
 				`Sourcemap is likely to be incorrect: a plugin (${map.plugin}) was used to transform ` +

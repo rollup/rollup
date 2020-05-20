@@ -9,13 +9,7 @@ import {
 } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
 import { CommandConfigObject } from './parseInputOptions';
-import {
-	defaultOnWarn,
-	GenericConfigObject,
-	getOnWarn,
-	normalizeObjectOptionValue,
-	warnUnknownOptions
-} from './parseOptions';
+import { defaultOnWarn, GenericConfigObject, getOnWarn, warnUnknownOptions } from './parseOptions';
 
 export const commandAliases: { [key: string]: string } = {
 	c: 'config',
@@ -112,6 +106,7 @@ function mergeInputOptions(
 		input: getOption('input') || [],
 		manualChunks: getOption('manualChunks'),
 		moduleContext: getOption('moduleContext'),
+		// TODO Lukas do we need the default here?
 		onwarn: getOnWarn(config, defaultOnWarnHandler),
 		perf: getOption('perf'),
 		plugins: ensureArray(config.plugins) as Plugin[],
@@ -160,6 +155,16 @@ const getObjectOption = (
 		return commandOption && { ...configOption, ...commandOption };
 	}
 	return configOption;
+};
+
+export const normalizeObjectOptionValue = (optionValue: any) => {
+	if (!optionValue) {
+		return optionValue;
+	}
+	if (typeof optionValue !== 'object') {
+		return {};
+	}
+	return optionValue;
 };
 
 type CompleteOutputOptions<U extends keyof OutputOptions> = {

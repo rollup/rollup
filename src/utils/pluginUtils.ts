@@ -1,6 +1,6 @@
 import Graph from '../Graph';
 import { Plugin, RollupError } from '../rollup/types';
-import { error, Errors } from './error';
+import { error, Errors, warnDeprecation } from './error';
 
 export const ANONYMOUS_PLUGIN_PREFIX = 'at position ';
 export const ANONYMOUS_OUTPUT_PLUGIN_PREFIX = 'at output position ';
@@ -33,12 +33,13 @@ export function warnDeprecatedHooks(plugins: Plugin[], graph: Graph) {
 	for (const { active, deprecated, replacement } of deprecatedHooks) {
 		for (const plugin of plugins) {
 			if (deprecated in plugin) {
-				graph.warnDeprecation(
+				warnDeprecation(
 					{
 						message: `The "${deprecated}" hook used by plugin ${plugin.name} is deprecated. The "${replacement}" hook should be used instead.`,
 						plugin: plugin.name
 					},
-					active
+					active,
+					graph.options
 				);
 			}
 		}

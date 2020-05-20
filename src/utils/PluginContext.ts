@@ -8,7 +8,7 @@ import {
 	SerializablePluginCache
 } from '../rollup/types';
 import { BuildPhase } from './buildPhase';
-import { errInvalidRollupPhaseForAddWatchFile } from './error';
+import { errInvalidRollupPhaseForAddWatchFile, warnDeprecation } from './error';
 import { FileEmitter } from './FileEmitter';
 import { createPluginCache, getCacheForUncacheablePlugin, NO_CACHE } from './PluginCache';
 import {
@@ -17,6 +17,7 @@ import {
 	throwPluginError
 } from './pluginUtils';
 
+// TODO Lukas there may be many places where we no longer need the graph, search for graph.
 function getDeprecatedContextHandler<H extends Function>(
 	handler: H,
 	handlerName: string,
@@ -29,12 +30,13 @@ function getDeprecatedContextHandler<H extends Function>(
 	return (((...args: any[]) => {
 		if (!deprecationWarningShown) {
 			deprecationWarningShown = true;
-			graph.warnDeprecation(
+			warnDeprecation(
 				{
 					message: `The "this.${handlerName}" plugin context function used by plugin ${pluginName} is deprecated. The "this.${newHandlerName}" plugin context function should be used instead.`,
 					plugin: pluginName
 				},
-				activeDeprecation
+				activeDeprecation,
+				graph.options
 			);
 		}
 		return handler(...args);
@@ -124,7 +126,7 @@ export function getPluginContexts(
 			getModuleInfo: graph.getModuleInfo,
 			isExternal: getDeprecatedContextHandler(
 				(id: string, parentId: string | undefined, isResolved = false) =>
-					graph.moduleLoader.isExternal(id, parentId, isResolved),
+					graph.options.external(id, parentId, isResolved),
 				'isExternal',
 				'resolve',
 				plugin.name,
@@ -136,12 +138,13 @@ export function getPluginContexts(
 			},
 			get moduleIds() {
 				function* wrappedModuleIds() {
-					graph.warnDeprecation(
+					warnDeprecation(
 						{
 							message: `Accessing "this.moduleIds" on the plugin context by plugin ${plugin.name} is deprecated. The "this.getModuleIds" plugin context function should be used instead.`,
 							plugin: plugin.name
 						},
-						false
+						false,
+						graph.options
 					);
 					yield* moduleIds;
 				}
@@ -174,7 +177,7 @@ export function getPluginContexts(
 				if (warning.code) warning.pluginCode = warning.code;
 				warning.code = 'PLUGIN_WARNING';
 				warning.plugin = plugin.name;
-				graph.warn(warning);
+				graph.options.onwarn(warning);
 			}
 		};
 		return context;

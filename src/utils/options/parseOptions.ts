@@ -4,22 +4,7 @@ export interface GenericConfigObject {
 	[key: string]: unknown;
 }
 
-// TODO Lukas inline
-export const createGetOption = (config: GenericConfigObject, overrides: GenericConfigObject) => (
-	name: string,
-	defaultValue?: unknown
-): any => overrides[name] ?? config[name] ?? defaultValue;
-
-export const normalizeObjectOptionValue = (optionValue: any) => {
-	if (!optionValue) {
-		return optionValue;
-	}
-	if (typeof optionValue !== 'object') {
-		return {};
-	}
-	return optionValue;
-};
-
+// TODO Lukas needed?
 export const defaultOnWarn: WarningHandler = warning => {
 	if (typeof warning === 'string') {
 		console.warn(warning);

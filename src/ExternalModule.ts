@@ -98,7 +98,7 @@ export default class ExternalModule {
 						.map(name => `'${name}'`)
 						.join(', ')} and '${unused.slice(-1)}' are`;
 
-		this.graph.warn({
+		this.graph.options.onwarn({
 			code: 'UNUSED_EXTERNAL_IMPORT',
 			message: `${names} imported from external module '${this.id}' but never used`,
 			names: unused,

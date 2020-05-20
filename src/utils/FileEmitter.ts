@@ -17,7 +17,8 @@ import {
 	errFileReferenceIdNotFoundForFilename,
 	errInvalidRollupPhaseForChunkEmission,
 	errNoAssetSourceSet,
-	error
+	error,
+	warnDeprecation
 } from './error';
 import { extname } from './path';
 import { isPlainPathFragment } from './relativeId';
@@ -57,7 +58,7 @@ function reserveFileNameInBundle(
 	graph: Graph
 ) {
 	if (fileName in bundle) {
-		graph.warn(errFileNameConflict(fileName));
+		graph.options.onwarn(errFileNameConflict(fileName));
 	}
 	bundle[fileName] = FILE_PLACEHOLDER;
 }
@@ -339,9 +340,10 @@ export class FileEmitter {
 		output.bundle[fileName] = {
 			fileName,
 			get isAsset(): true {
-				graph.warnDeprecation(
+				warnDeprecation(
 					'Accessing "isAsset" on files in the bundle is deprecated, please use "type === \'asset\'" instead',
-					true
+					true,
+					graph.options
 				);
 
 				return true;

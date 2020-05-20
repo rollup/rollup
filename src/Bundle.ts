@@ -9,7 +9,7 @@ import {
 } from './rollup/types';
 import { Addons, createAddons } from './utils/addons';
 import commondir from './utils/commondir';
-import { error } from './utils/error';
+import { error, warnDeprecation } from './utils/error';
 import { FILE_PLACEHOLDER } from './utils/FileEmitter';
 import { basename, isAbsolute } from './utils/path';
 import { PluginDriver } from './utils/PluginDriver';
@@ -24,9 +24,10 @@ export default class Bundle {
 		private readonly chunks: Chunk[]
 	) {
 		if (outputOptions.dynamicImportFunction) {
-			graph.warnDeprecation(
+			warnDeprecation(
 				`The "output.dynamicImportFunction" option is deprecated. Use the "renderDynamicImport" plugin hook instead.`,
-				false
+				false,
+				graph.options
 			);
 		}
 	}
@@ -79,9 +80,10 @@ export default class Bundle {
 		for (const key of Object.keys(outputBundle)) {
 			const file = outputBundle[key] as any;
 			if (!file.type) {
-				this.graph.warnDeprecation(
+				warnDeprecation(
 					'A plugin is directly adding properties to the bundle object in the "generateBundle" hook. This is deprecated and will be removed in a future Rollup version, please use "this.emitFile" instead.',
-					true
+					true,
+					this.graph.options
 				);
 				file.type = 'asset';
 			}

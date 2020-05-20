@@ -24,7 +24,7 @@ export default function getExportMode(
 			exportMode = 'default';
 		} else {
 			if (format !== 'es' && exportKeys.indexOf('default') !== -1) {
-				chunk.graph.warn(errMixedExport(facadeModuleId, name));
+				chunk.graph.options.onwarn(errMixedExport(facadeModuleId, name));
 			}
 			exportMode = 'named';
 		}

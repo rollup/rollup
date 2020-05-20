@@ -229,7 +229,7 @@ export type IsExternal = (
 	source: string,
 	importer: string | undefined,
 	isResolved: boolean
-) => boolean | null | undefined;
+) => boolean;
 
 export type IsPureModule = (id: string) => boolean | null | undefined;
 
@@ -444,13 +444,30 @@ export interface TreeshakingOptions {
 	tryCatchDeoptimization?: boolean;
 	unknownGlobalSideEffects?: boolean;
 }
+
+export interface NormalizedTreeshakingOptions {
+	annotations: boolean;
+	moduleSideEffects: HasModuleSideEffects;
+	propertyReadSideEffects: boolean;
+	tryCatchDeoptimization: boolean;
+	unknownGlobalSideEffects: boolean;
+}
+
 interface GetManualChunkApi {
 	getModuleIds: () => IterableIterator<string>;
 	getModuleInfo: GetModuleInfo;
 }
 export type GetManualChunk = (id: string, api: GetManualChunkApi) => string | null | undefined;
 
-export type ExternalOption = (string | RegExp)[] | string | RegExp | IsExternal;
+export type ExternalOption =
+	| (string | RegExp)[]
+	| string
+	| RegExp
+	| ((
+			source: string,
+			importer: string | undefined,
+			isResolved: boolean
+	  ) => boolean | null | undefined);
 export type PureModulesOption = boolean | string[] | IsPureModule;
 export type GlobalsOption = { [name: string]: string } | ((name: string) => string);
 export type InputOption = string | string[] | { [entryAlias: string]: string };
@@ -468,7 +485,7 @@ export interface InputOptions {
 	inlineDynamicImports?: boolean;
 	input?: InputOption;
 	manualChunks?: ManualChunksOption;
-	moduleContext?: ((id: string) => string) | { [id: string]: string };
+	moduleContext?: ((id: string) => string | null | undefined) | { [id: string]: string };
 	onwarn?: WarningHandlerWithDefault;
 	perf?: boolean;
 	plugins?: Plugin[];
@@ -485,22 +502,22 @@ export interface NormalizedInputOptions {
 	acorn: Object;
 	acornInjectPlugins: Function[];
 	cache: false | undefined | RollupCache;
-	context?: string;
-	experimentalCacheExpiry?: number;
-	external?: ExternalOption;
+	context: string;
+	experimentalCacheExpiry: number;
+	external: IsExternal;
 	inlineDynamicImports?: boolean;
 	input?: InputOption;
 	manualChunks?: ManualChunksOption;
-	moduleContext?: ((id: string) => string) | { [id: string]: string };
-	onwarn?: WarningHandlerWithDefault;
+	moduleContext: (id: string) => string;
+	onwarn: WarningHandler;
 	perf?: boolean;
 	plugins: Plugin[];
 	preserveEntrySignatures?: PreserveEntrySignaturesOption;
 	preserveModules?: boolean;
 	preserveSymlinks?: boolean;
 	shimMissingExports?: boolean;
-	strictDeprecations?: boolean;
-	treeshake?: boolean | TreeshakingOptions;
+	strictDeprecations: boolean;
+	treeshake: false | NormalizedTreeshakingOptions;
 	watch?: WatcherOptions;
 }
 

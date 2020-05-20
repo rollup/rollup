@@ -4,9 +4,8 @@ import Graph from './Graph';
 import Module from './Module';
 import {
 	GetManualChunk,
+	HasModuleSideEffects,
 	IsExternal,
-	ModuleSideEffectsOption,
-	PureModulesOption,
 	ResolvedId,
 	ResolveIdResult,
 	SourceDescription
@@ -17,7 +16,6 @@ import {
 	errEntryCannotBeExternal,
 	errExternalSyntheticExports,
 	errInternalIdCannotBeExternal,
-	errInvalidOption,
 	errNamespaceConflict,
 	error,
 	errUnresolvedEntry,
@@ -39,75 +37,7 @@ export interface UnresolvedModule {
 	name: string | null;
 }
 
-function normalizeRelativeExternalId(source: string, importer: string | undefined) {
-	return isRelative(source)
-		? importer
-			? resolve(importer, '..', source)
-			: resolve(source)
-		: source;
-}
-
-function getIdMatcher<T extends Array<any>>(
-	option: boolean | (string | RegExp)[] | ((id: string, ...args: T) => boolean | null | undefined)
-): (id: string, ...args: T) => boolean {
-	if (option === true) {
-		return () => true;
-	}
-	if (typeof option === 'function') {
-		return (id, ...args) => (!id.startsWith('\0') && option(id, ...args)) || false;
-	}
-	if (option) {
-		const ids = new Set<string>();
-		const matchers: RegExp[] = [];
-		for (const value of option) {
-			if (value instanceof RegExp) {
-				matchers.push(value);
-			} else {
-				ids.add(value);
-			}
-		}
-		return (id => ids.has(id) || matchers.some(matcher => matcher.test(id))) as (
-			id: string,
-			...args: T
-		) => boolean;
-	}
-	return () => false;
-}
-
-function getHasModuleSideEffects(
-	moduleSideEffectsOption: ModuleSideEffectsOption,
-	pureExternalModules: PureModulesOption,
-	graph: Graph
-): (id: string, external: boolean) => boolean {
-	if (typeof moduleSideEffectsOption === 'boolean') {
-		return () => moduleSideEffectsOption;
-	}
-	if (moduleSideEffectsOption === 'no-external') {
-		return (_id, external) => !external;
-	}
-	if (typeof moduleSideEffectsOption === 'function') {
-		return (id, external) =>
-			!id.startsWith('\0') ? moduleSideEffectsOption(id, external) !== false : true;
-	}
-	if (Array.isArray(moduleSideEffectsOption)) {
-		const ids = new Set(moduleSideEffectsOption);
-		return id => ids.has(id);
-	}
-	if (moduleSideEffectsOption) {
-		graph.warn(
-			errInvalidOption(
-				'treeshake.moduleSideEffects',
-				'please use one of false, "no-external", a function or an array'
-			)
-		);
-	}
-	const isPureExternalModule = getIdMatcher(pureExternalModules);
-	return (id, external) => !(external && isPureExternalModule(id));
-}
-
 export class ModuleLoader {
-	readonly isExternal: IsExternal;
-	private readonly hasModuleSideEffects: (id: string, external: boolean) => boolean;
 	private readonly indexedEntryModules: { index: number; module: Module }[] = [];
 	private latestLoadModulesPromise: Promise<any> = Promise.resolve();
 	private readonly manualChunkModules: Record<string, Module[]> = {};
@@ -118,17 +48,9 @@ export class ModuleLoader {
 		private readonly modulesById: Map<string, Module | ExternalModule>,
 		private readonly pluginDriver: PluginDriver,
 		private readonly preserveSymlinks: boolean,
-		external: (string | RegExp)[] | IsExternal,
-		moduleSideEffects: ModuleSideEffectsOption,
-		pureExternalModules: PureModulesOption
-	) {
-		this.isExternal = getIdMatcher(external);
-		this.hasModuleSideEffects = getHasModuleSideEffects(
-			moduleSideEffects,
-			pureExternalModules,
-			graph
-		);
-	}
+		private readonly isExternal: IsExternal,
+		private readonly hasModuleSideEffects: HasModuleSideEffects
+	) {}
 
 	async addEntryModules(
 		unresolvedEntryModules: UnresolvedModule[],
@@ -380,7 +302,7 @@ export class ModuleLoader {
 			if (exportAllModule instanceof ExternalModule) continue;
 			for (const name in exportAllModule!.exportsAll) {
 				if (name in module.exportsAll) {
-					this.graph.warn(errNamespaceConflict(name, module, exportAllModule!));
+					this.graph.options.onwarn(errNamespaceConflict(name, module, exportAllModule!));
 				} else {
 					module.exportsAll[name] = exportAllModule!.exportsAll[name];
 				}
@@ -427,7 +349,7 @@ export class ModuleLoader {
 			if (isRelative(source)) {
 				return error(errUnresolvedImport(source, importer));
 			}
-			this.graph.warn(errUnresolvedImportTreatedAsExternal(source, importer));
+			this.graph.options.onwarn(errUnresolvedImportTreatedAsExternal(source, importer));
 			return {
 				external: true,
 				id: source,
@@ -436,7 +358,7 @@ export class ModuleLoader {
 			};
 		} else {
 			if (resolvedId.external && resolvedId.syntheticNamedExports) {
-				this.graph.warn(errExternalSyntheticExports(source, importer));
+				this.graph.options.onwarn(errExternalSyntheticExports(source, importer));
 			}
 		}
 		return resolvedId;
@@ -548,4 +470,12 @@ export class ModuleLoader {
 			importer
 		);
 	}
+}
+
+function normalizeRelativeExternalId(source: string, importer: string | undefined): string {
+	return isRelative(source)
+		? importer
+			? resolve(importer, '..', source)
+			: resolve(source)
+		: source;
 }
