@@ -3,6 +3,7 @@ import { ensureArray } from '../ensureArray';
 import { errInvalidExportOptionValue, error } from '../error';
 import { GenericConfigObject, warnUnknownOptions } from './parseOptions';
 
+// TODO Lukas normalize is a better name
 export function parseOutputOptions(
 	config: GenericConfigObject,
 	warn: WarningHandler,

@@ -8,7 +8,7 @@ import {
 	WarningHandler
 } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
-import { CommandConfigObject } from './parseInputOptions';
+import { CommandConfigObject } from './normalizeInputOptions';
 import { defaultOnWarn, GenericConfigObject, getOnWarn, warnUnknownOptions } from './parseOptions';
 
 export const commandAliases: { [key: string]: string } = {

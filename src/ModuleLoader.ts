@@ -43,6 +43,7 @@ export class ModuleLoader {
 	private readonly manualChunkModules: Record<string, Module[]> = {};
 	private nextEntryModuleIndex = 0;
 
+	// TODO Lukas would it make more sense to pass down options?
 	constructor(
 		private readonly graph: Graph,
 		private readonly modulesById: Map<string, Module | ExternalModule>,

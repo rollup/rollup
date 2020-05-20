@@ -9,6 +9,7 @@ import {
 	NormalizedInputOptions,
 	PreserveEntrySignaturesOption,
 	PureModulesOption,
+	RollupBuild,
 	RollupCache,
 	TreeshakingOptions,
 	WarningHandler,
@@ -26,14 +27,10 @@ export interface CommandConfigObject {
 	[key: string]: unknown;
 }
 
-// TODO Lukas "normalize" might be a better name
-export function parseInputOptions(
+export function normalizeInputOptions(
 	config: GenericConfigObject
 ): { options: NormalizedInputOptions; unsetOptions: Set<string> } {
-	// TODO Lukas inline trivial case, create helper for tracked defaults?
-	// TODO Lukas improve this together with type
-	// TODO Lukas do not access graph.options but pass it down
-	const getOption = (name: string, defaultValue: any): any => config[name] ?? defaultValue;
+	// TODO Lukas do not access graph.options and unsetOptions but pass it down
 
 	// These are options that may trigger special warnings later if the user did not select an
 	// explicit value
@@ -47,7 +44,7 @@ export function parseInputOptions(
 	const options: NormalizedInputOptions = {
 		acorn: getAcorn(config),
 		acornInjectPlugins: getAcornInjectPlugins(config),
-		cache: config.cache as false | undefined | RollupCache,
+		cache: getCache(config),
 		context,
 		experimentalCacheExpiry: (config.experimentalCacheExpiry as number | undefined) ?? 10,
 		external: getIdMatcher(config.external as ExternalOption),
@@ -56,21 +53,23 @@ export function parseInputOptions(
 		manualChunks: getManualChunks(config, inlineDynamicImports, preserveModules),
 		moduleContext: getModuleContext(config, context),
 		onwarn,
-		perf: getOption('perf', false),
+		perf: (config.perf as boolean | undefined) || false,
 		plugins: ensureArray(config.plugins) as Plugin[],
 		preserveEntrySignatures: getPreserveEntrySignatures(config, unsetOptions, preserveModules),
 		preserveModules,
-		preserveSymlinks: config.preserveSymlinks as any,
-		shimMissingExports: config.shimMissingExports as any,
+		preserveSymlinks: (config.preserveSymlinks as boolean | undefined) || false,
+		shimMissingExports: (config.shimMissingExports as boolean | undefined) || false,
 		strictDeprecations,
-		treeshake: getTreeshake(config, onwarn, strictDeprecations),
-		watch: config.watch as any
+		treeshake: getTreeshake(config, onwarn, strictDeprecations)
 	};
 
-	// support rollup({ cache: prevBuildObject })
-	if (options.cache && (options.cache as any).cache) options.cache = (options.cache as any).cache;
-
-	warnUnknownOptions(config, Object.keys(options), 'input options', options.onwarn, /^output$/);
+	warnUnknownOptions(
+		config,
+		[...Object.keys(options), 'watch'],
+		'input options',
+		options.onwarn,
+		/^(output)$/
+	);
 	return { options, unsetOptions };
 }
 
@@ -122,7 +121,11 @@ const getAcornInjectPlugins = (config: GenericConfigObject): Function[] => [
 	...(ensureArray(config.acornInjectPlugins) as any)
 ];
 
-function getIdMatcher<T extends Array<any>>(
+const getCache = (config: GenericConfigObject): false | undefined | RollupCache => {
+	return (config.cache as RollupBuild)?.cache || (config.cache as false | undefined | RollupCache);
+};
+
+const getIdMatcher = <T extends Array<any>>(
 	option:
 		| undefined
 		| boolean
@@ -130,7 +133,7 @@ function getIdMatcher<T extends Array<any>>(
 		| RegExp
 		| (string | RegExp)[]
 		| ((id: string, ...args: T) => boolean | null | undefined)
-): (id: string, ...args: T) => boolean {
+): ((id: string, ...args: T) => boolean) => {
 	if (option === true) {
 		return () => true;
 	}
@@ -153,7 +156,7 @@ function getIdMatcher<T extends Array<any>>(
 		) => boolean;
 	}
 	return () => false;
-}
+};
 
 const getInput = (
 	config: GenericConfigObject,

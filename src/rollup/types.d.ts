@@ -510,16 +510,14 @@ export interface NormalizedInputOptions {
 	manualChunks: ManualChunksOption;
 	moduleContext: (id: string) => string;
 	onwarn: WarningHandler;
-	perf?: boolean;
+	perf: boolean;
 	plugins: Plugin[];
 	preserveEntrySignatures: PreserveEntrySignaturesOption;
 	preserveModules: boolean;
-	preserveSymlinks?: boolean;
-	shimMissingExports?: boolean;
+	preserveSymlinks: boolean;
+	shimMissingExports: boolean;
 	strictDeprecations: boolean;
 	treeshake: false | NormalizedTreeshakingOptions;
-	// TODO Lukas remove
-	watch?: WatcherOptions;
 }
 
 export type InternalModuleFormat = 'amd' | 'cjs' | 'es' | 'iife' | 'system' | 'umd';

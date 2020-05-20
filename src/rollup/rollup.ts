@@ -5,7 +5,7 @@ import Graph from '../Graph';
 import { ensureArray } from '../utils/ensureArray';
 import { errCannotEmitFromOptionsHook, error } from '../utils/error';
 import { writeFile } from '../utils/fs';
-import { parseInputOptions } from '../utils/options/parseInputOptions';
+import { normalizeInputOptions } from '../utils/options/normalizeInputOptions';
 import { GenericConfigObject } from '../utils/options/parseOptions';
 import { parseOutputOptions } from '../utils/options/parseOutputOptions';
 import { basename, dirname, resolve } from '../utils/path';
@@ -21,8 +21,7 @@ import {
 	Plugin,
 	RollupBuild,
 	RollupOutput,
-	RollupWatcher,
-	WarningHandler
+	RollupWatcher
 } from './types';
 
 export default function rollup(rawInputOptions: GenericConfigObject): Promise<RollupBuild> {
@@ -108,11 +107,10 @@ function getInputOptions(
 		throw new Error('You must supply an options object to rollup');
 	}
 	const rawPlugins = ensureArray(rawInputOptions.plugins) as Plugin[];
-	const { options, unsetOptions } = parseInputOptions(
+	const { options, unsetOptions } = normalizeInputOptions(
 		rawPlugins.reduce(applyOptionHook, rawInputOptions)
 	);
 	normalizePlugins(options.plugins, ANONYMOUS_PLUGIN_PREFIX);
-	// TODO Lukas unsetOptions must somehow get to the chunks
 	return { options, unsetOptions };
 }
 

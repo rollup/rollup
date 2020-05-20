@@ -519,7 +519,7 @@ export default class Module {
 				return syntheticExport;
 			}
 
-			if (this.graph.shimMissingExports) {
+			if (this.graph.options.shimMissingExports) {
 				this.shimMissingExport(name);
 				return this.exportShimVariable;
 			}

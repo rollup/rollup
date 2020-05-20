@@ -47,7 +47,6 @@ export default class Graph {
 	phase: BuildPhase = BuildPhase.LOAD_AND_PARSE;
 	pluginDriver: PluginDriver;
 	scope: GlobalScope;
-	shimMissingExports: boolean;
 	watchFiles: Record<string, true> = Object.create(null);
 
 	private entryModules: Module[] = [];
@@ -91,14 +90,13 @@ export default class Graph {
 			});
 		}
 
-		this.shimMissingExports = options.shimMissingExports as boolean;
 		this.scope = new GlobalScope();
 		this.acornParser = acorn.Parser.extend(...(options.acornInjectPlugins as any));
 		this.moduleLoader = new ModuleLoader(
 			this,
 			this.moduleById,
 			this.pluginDriver,
-			options.preserveSymlinks === true,
+			options.preserveSymlinks,
 			options.external,
 			(options.treeshake as NormalizedTreeshakingOptions)?.moduleSideEffects || (() => true)
 		);
