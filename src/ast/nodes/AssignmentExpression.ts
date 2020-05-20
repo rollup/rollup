@@ -53,28 +53,32 @@ export default class AssignmentExpression extends NodeBase {
 		this.right.render(code, options);
 		if (options.format === 'system') {
 			if (this.left.variable && this.left.variable.exportName) {
-				const operatorPos = findFirstOccurrenceOutsideComment(
-					code.original,
-					this.operator,
-					this.left.end
-				);
-				const operation =
-					this.operator.length > 1
-						? ` ${this.left.variable.exportName} ${this.operator.slice(0, -1)}`
-						: '';
-				code.overwrite(
-					operatorPos,
-					operatorPos + this.operator.length,
-					`= exports('${this.left.variable.exportName}',${operation}`
-				);
-				code.appendLeft(this.right.end, `)`);
+				if (this.left.variable.exportName.length === 1) {
+					const operatorPos = findFirstOccurrenceOutsideComment(
+						code.original,
+						this.operator,
+						this.left.end
+					);
+					const operation =
+						this.operator.length > 1
+							? ` ${this.left.variable.exportName[0]} ${this.operator.slice(0, -1)}`
+							: '';
+					code.overwrite(
+						operatorPos,
+						operatorPos + this.operator.length,
+						`= exports('${this.left.variable.exportName[0]}',${operation}`
+					);
+					code.appendLeft(this.right.end, `)`);
+				} else {
+					code.appendLeft(this.right.end, `, ${getSystemExportStatement([this.left.variable])}`);
+				}
 			} else if ('addExportedVariables' in this.left) {
 				const systemPatternExports: Variable[] = [];
 				this.left.addExportedVariables(systemPatternExports);
 				if (systemPatternExports.length > 0) {
 					code.prependRight(
 						this.start,
-						`function (v) {${getSystemExportStatement(systemPatternExports)} return v;} (`
+						`function (v) {${getSystemExportStatement(systemPatternExports)}; return v;} (`
 					);
 					code.appendLeft(this.end, ')');
 				}

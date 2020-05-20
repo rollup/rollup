@@ -5,6 +5,7 @@ import { EMPTY_PATH, ObjectPath } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
+import { getSystemExportStatement } from '../../utils/systemJsRendering';
 
 export default class UpdateExpression extends NodeBase {
 	argument!: ExpressionNode;
@@ -36,28 +37,33 @@ export default class UpdateExpression extends NodeBase {
 		this.argument.render(code, options);
 		const variable = this.argument.variable;
 		if (options.format === 'system' && variable && variable.exportName) {
-			const name = variable.getName();
-			if (this.prefix) {
-				code.overwrite(
-					this.start,
-					this.end,
-					`exports('${variable.exportName}', ${this.operator}${name})`
-				);
-			} else {
-				let op;
-				switch (this.operator) {
-					case '++':
-						op = `${name} + 1`;
-						break;
-					case '--':
-						op = `${name} - 1`;
-						break;
+			if (variable.exportName.length === 1) {
+				const name = variable.getName();
+				if (this.prefix) {
+					code.overwrite(
+						this.start,
+						this.end,
+						`exports('${variable.exportName[0]}', ${this.operator}${name})`
+					);
+				} else {
+					let op;
+					switch (this.operator) {
+						case '++':
+							op = `${name} + 1`;
+							break;
+						case '--':
+							op = `${name} - 1`;
+							break;
+					}
+					code.overwrite(
+						this.start,
+						this.end,
+						`(exports('${variable.exportName[0]}', ${op}), ${name}${this.operator})`
+					);
 				}
-				code.overwrite(
-					this.start,
-					this.end,
-					`(exports('${variable.exportName}', ${op}), ${name}${this.operator})`
-				);
+			} else {
+				// Regardless of prefix, we render the export as part of a sequence expression after the update
+				code.appendLeft(this.end, `, ${getSystemExportStatement([variable])}`);
 			}
 		}
 	}

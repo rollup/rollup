@@ -12,7 +12,7 @@ import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../valu
 
 export default class Variable implements ExpressionEntity {
 	alwaysRendered = false;
-	exportName: string | null = null;
+	exportName: string[] | null = null;
 	included = false;
 	isId = false;
 	// both NamespaceVariable and ExternalVariable can be namespaces

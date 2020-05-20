@@ -4,6 +4,7 @@ import { RESERVED_NAMES } from '../../utils/reservedNames';
 import Identifier from '../nodes/Identifier';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from './Variable';
+import { getSystemExportStatement } from '../../utils/systemJsRendering';
 
 export default class NamespaceVariable extends Variable {
 	context: AstContext;
@@ -108,7 +109,7 @@ export default class NamespaceVariable extends Variable {
 		output = `${options.varOrConst} ${name}${_}=${_}${output};`;
 
 		if (options.format === 'system' && this.exportName) {
-			output += `${n}exports('${this.exportName}',${_}${name});`;
+			output += `${n}${getSystemExportStatement([this])};`;
 		}
 
 		return output;

@@ -123,7 +123,7 @@ export default class VariableDeclaration extends NodeBase {
 			code.appendLeft(renderedContentEnd, separatorString);
 		}
 		if (systemPatternExports.length > 0) {
-			code.appendLeft(renderedContentEnd, ' ' + getSystemExportStatement(systemPatternExports));
+			code.appendLeft(renderedContentEnd, ` ${getSystemExportStatement(systemPatternExports)};`);
 		}
 	}
 
@@ -177,9 +177,13 @@ export default class VariableDeclaration extends NodeBase {
 					if (node.id.type !== NodeType.Identifier) {
 						node.id.addExportedVariables(systemPatternExports);
 					} else if (node.id.variable!.exportName) {
+						// TODO: how to handle this case
+						// It might not be semantically correct to move the exports() after the declaration
+						// as other declarations may occur later but we don't have great a great for inlining the
+						//
 						code.prependLeft(
 							code.original.indexOf('=', node.id.end) + 1,
-							` exports('${node.id.variable!.safeExportName || node.id.variable!.exportName}',`
+							` exports('${node.id.variable!.safeExportName || node.id.variable!.exportName[0]}',`
 						);
 						nextSeparatorString += ')';
 					}

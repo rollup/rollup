@@ -13,6 +13,7 @@ import FunctionDeclaration from './FunctionDeclaration';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
+import { getSystemExportStatement } from '../../utils/systemJsRendering';
 
 const WHITESPACE = /\s/;
 
@@ -135,7 +136,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			this.declaration instanceof ClassDeclaration &&
 			this.variable.exportName
 		) {
-			code.appendLeft(this.end, ` exports('${this.variable.exportName}', ${name});`);
+			code.appendLeft(this.end, ` ${getSystemExportStatement([this.variable])};`);
 		}
 	}
 
@@ -144,23 +145,31 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		declarationStart: number,
 		options: RenderOptions
 	) {
-		const systemBinding =
-			options.format === 'system' && this.variable.exportName
-				? `exports('${this.variable.exportName}', `
-				: '';
-		code.overwrite(
-			this.start,
-			declarationStart,
-			`${options.varOrConst} ${this.variable.getName()} = ${systemBinding}`
-		);
 		const hasTrailingSemicolon = code.original.charCodeAt(this.end - 1) === 59; /*";"*/
-		if (systemBinding) {
+
+		if (options.format === 'system' && this.variable.exportName && this.variable.exportName.length === 1) {
+			code.overwrite(
+				this.start,
+				declarationStart,
+				`${options.varOrConst} ${this.variable.getName()} = exports('${this.variable.exportName[0]}', `
+			);
 			code.appendRight(
 				hasTrailingSemicolon ? this.end - 1 : this.end,
 				')' + (hasTrailingSemicolon ? '' : ';')
 			);
-		} else if (!hasTrailingSemicolon) {
-			code.appendLeft(this.end, ';');
+		} else {
+			code.overwrite(
+				this.start,
+				declarationStart,
+				`${options.varOrConst} ${this.variable.getName()} = `
+			);
+			if (!hasTrailingSemicolon) {
+				code.appendLeft(this.end, ';');
+			}
+		}
+
+		if (options.format === 'system' && this.variable.exportName && this.variable.exportName.length > 1) {
+			code.appendLeft(this.end, ` ${getSystemExportStatement([this.variable])};`);
 		}
 	}
 }

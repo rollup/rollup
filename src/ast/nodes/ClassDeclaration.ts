@@ -5,6 +5,7 @@ import { IdentifierWithVariable } from './Identifier';
 import * as NodeType from './NodeType';
 import ClassNode from './shared/ClassNode';
 import { GenericEsTreeNode } from './shared/Node';
+import { getSystemExportStatement } from '../../utils/systemJsRendering';
 
 export default class ClassDeclaration extends ClassNode {
 	id!: IdentifierWithVariable | null;
@@ -27,10 +28,7 @@ export default class ClassDeclaration extends ClassNode {
 
 	render(code: MagicString, options: RenderOptions) {
 		if (options.format === 'system' && this.id && this.id.variable.exportName) {
-			code.appendLeft(
-				this.end,
-				` exports('${this.id.variable.exportName}', ${this.id.variable.getName()});`
-			);
+			code.appendLeft(this.end, ` ${getSystemExportStatement([this.id.variable])};`);
 		}
 		super.render(code, options);
 	}
