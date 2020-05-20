@@ -4,8 +4,10 @@ import injectStaticClassFeatures from 'acorn-static-class-features';
 import {
 	ExternalOption,
 	HasModuleSideEffects,
+	ManualChunksOption,
 	ModuleSideEffectsOption,
 	NormalizedInputOptions,
+	PreserveEntrySignaturesOption,
 	PureModulesOption,
 	RollupCache,
 	TreeshakingOptions,
@@ -13,7 +15,7 @@ import {
 	WarningHandlerWithDefault
 } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
-import { errInvalidOption, warnDeprecationWithOptions } from '../error';
+import { errInvalidOption, error, warnDeprecationWithOptions } from '../error';
 import { resolve } from '../path';
 import relativeId from '../relativeId';
 import { GenericConfigObject, warnUnknownOptions } from './parseOptions';
@@ -25,31 +27,39 @@ export interface CommandConfigObject {
 }
 
 // TODO Lukas "normalize" might be a better name
-export function parseInputOptions(config: GenericConfigObject): NormalizedInputOptions {
+export function parseInputOptions(
+	config: GenericConfigObject
+): { options: NormalizedInputOptions; unsetOptions: Set<string> } {
 	// TODO Lukas inline trivial case, create helper for tracked defaults?
 	// TODO Lukas improve this together with type
 	// TODO Lukas do not access graph.options but pass it down
 	const getOption = (name: string, defaultValue: any): any => config[name] ?? defaultValue;
 
+	// These are options that may trigger special warnings later if the user did not select an
+	// explicit value
+	const unsetOptions = new Set<string>();
+
 	const context = (config.context as string | undefined) ?? 'undefined';
+	const inlineDynamicImports = (config.inlineDynamicImports as boolean | undefined) || false;
 	const onwarn = getOnwarn(config);
+	const preserveModules = getPreserveModules(config, inlineDynamicImports);
 	const strictDeprecations = (config.strictDeprecations as boolean | undefined) || false;
-	const inputOptions: NormalizedInputOptions = {
+	const options: NormalizedInputOptions = {
 		acorn: getAcorn(config),
 		acornInjectPlugins: getAcornInjectPlugins(config),
 		cache: config.cache as false | undefined | RollupCache,
 		context,
 		experimentalCacheExpiry: (config.experimentalCacheExpiry as number | undefined) ?? 10,
 		external: getIdMatcher(config.external as ExternalOption),
-		inlineDynamicImports: getOption('inlineDynamicImports', false),
-		input: getOption('input', []),
-		manualChunks: config.manualChunks as any,
+		inlineDynamicImports,
+		input: getInput(config, inlineDynamicImports),
+		manualChunks: getManualChunks(config, inlineDynamicImports, preserveModules),
 		moduleContext: getModuleContext(config, context),
 		onwarn,
 		perf: getOption('perf', false),
 		plugins: ensureArray(config.plugins) as Plugin[],
-		preserveEntrySignatures: config.preserveEntrySignatures as any,
-		preserveModules: config.preserveModules as any,
+		preserveEntrySignatures: getPreserveEntrySignatures(config, unsetOptions, preserveModules),
+		preserveModules,
 		preserveSymlinks: config.preserveSymlinks as any,
 		shimMissingExports: config.shimMissingExports as any,
 		strictDeprecations,
@@ -58,18 +68,44 @@ export function parseInputOptions(config: GenericConfigObject): NormalizedInputO
 	};
 
 	// support rollup({ cache: prevBuildObject })
-	if (inputOptions.cache && (inputOptions.cache as any).cache)
-		inputOptions.cache = (inputOptions.cache as any).cache;
+	if (options.cache && (options.cache as any).cache) options.cache = (options.cache as any).cache;
 
-	warnUnknownOptions(
-		config,
-		Object.keys(inputOptions),
-		'input options',
-		inputOptions.onwarn,
-		/^output$/
-	);
-	return inputOptions;
+	warnUnknownOptions(config, Object.keys(options), 'input options', options.onwarn, /^output$/);
+	return { options, unsetOptions };
 }
+
+const getOnwarn = (config: GenericConfigObject): WarningHandler => {
+	const defaultHandler: WarningHandler = warning => console.warn(warning.message || warning);
+	return config.onwarn
+		? warning => {
+				warning.toString = () => {
+					let str = '';
+
+					if (warning.plugin) str += `(${warning.plugin} plugin) `;
+					if (warning.loc)
+						str += `${relativeId(warning.loc.file!)} (${warning.loc.line}:${warning.loc.column}) `;
+					str += warning.message;
+
+					return str;
+				};
+				(config.onwarn as WarningHandlerWithDefault)(warning, defaultHandler);
+		  }
+		: defaultHandler;
+};
+
+const getPreserveModules = (
+	config: GenericConfigObject,
+	inlineDynamicImports: boolean
+): boolean => {
+	const preserveModules = (config.preserveModules as boolean | undefined) || false;
+	if (preserveModules && inlineDynamicImports) {
+		return error({
+			code: 'INVALID_OPTION',
+			message: `"preserveModules" does not support the "inlineDynamicImports" option.`
+		});
+	}
+	return preserveModules;
+};
 
 const getAcorn = (config: GenericConfigObject): acorn.Options => ({
 	allowAwaitOutsideFunction: true,
@@ -119,41 +155,82 @@ function getIdMatcher<T extends Array<any>>(
 	return () => false;
 }
 
+const getInput = (
+	config: GenericConfigObject,
+	inlineDynamicImports: boolean
+): string[] | { [entryAlias: string]: string } => {
+	const configInput = config.input;
+	const input =
+		configInput == null
+			? []
+			: typeof configInput === 'string'
+			? [configInput]
+			: (configInput as any);
+	if (inlineDynamicImports && (Array.isArray(input) ? input : Object.keys(input)).length > 1) {
+		return error({
+			code: 'INVALID_OPTION',
+			message: 'Multiple inputs are not supported for "inlineDynamicImports".'
+		});
+	}
+	return input;
+};
+
+const getManualChunks = (
+	config: GenericConfigObject,
+	inlineDynamicImports: boolean,
+	preserveModules: boolean
+): ManualChunksOption => {
+	const configManualChunks = config.manualChunks as ManualChunksOption;
+	if (configManualChunks) {
+		if (inlineDynamicImports) {
+			return error({
+				code: 'INVALID_OPTION',
+				message: '"manualChunks" option is not supported for "inlineDynamicImports".'
+			});
+		}
+		if (preserveModules) {
+			return error({
+				code: 'INVALID_OPTION',
+				message: '"preserveModules" does not support the "manualChunks" option.'
+			});
+		}
+	}
+	return configManualChunks || {};
+};
+
 const getModuleContext = (
 	config: GenericConfigObject,
 	context: string
 ): ((id: string) => string) => {
-	const moduleContext = config.moduleContext;
-	if (typeof moduleContext === 'function') {
-		return id => moduleContext(id) ?? context;
+	const configModuleContext = config.moduleContext;
+	if (typeof configModuleContext === 'function') {
+		return id => configModuleContext(id) ?? context;
 	}
-	if (moduleContext) {
+	if (configModuleContext) {
 		const contextByModuleId = Object.create(null);
-		for (const key of Object.keys(moduleContext as { [key: string]: string })) {
-			contextByModuleId[resolve(key)] = (moduleContext as { [key: string]: string })[key];
+		for (const key of Object.keys(configModuleContext as { [key: string]: string })) {
+			contextByModuleId[resolve(key)] = (configModuleContext as { [key: string]: string })[key];
 		}
 		return id => contextByModuleId[id] || context;
 	}
 	return () => context;
 };
 
-const getOnwarn = (config: GenericConfigObject): WarningHandler => {
-	const defaultHandler: WarningHandler = warning => console.warn(warning.message || warning);
-	return config.onwarn
-		? warning => {
-				warning.toString = () => {
-					let str = '';
-
-					if (warning.plugin) str += `(${warning.plugin} plugin) `;
-					if (warning.loc)
-						str += `${relativeId(warning.loc.file!)} (${warning.loc.line}:${warning.loc.column}) `;
-					str += warning.message;
-
-					return str;
-				};
-				(config.onwarn as WarningHandlerWithDefault)(warning, defaultHandler);
-		  }
-		: defaultHandler;
+const getPreserveEntrySignatures = (
+	config: GenericConfigObject,
+	unsetOptions: Set<string>,
+	preserveModules: boolean
+): PreserveEntrySignaturesOption => {
+	const configPreserveEntrySignatures = config.preserveEntrySignatures;
+	if (configPreserveEntrySignatures == null) {
+		unsetOptions.add('preserveEntrySignatures');
+	} else if (configPreserveEntrySignatures === false && preserveModules) {
+		return error({
+			code: 'INVALID_OPTION',
+			message: '"preserveModules" does not support setting "preserveEntrySignatures" to "false".'
+		});
+	}
+	return (configPreserveEntrySignatures as PreserveEntrySignaturesOption | undefined) ?? 'strict';
 };
 
 const getTreeshake = (

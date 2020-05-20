@@ -33,10 +33,10 @@ export async function rollupInternal(
 	rawInputOptions: GenericConfigObject,
 	watcher: RollupWatcher | null
 ): Promise<RollupBuild> {
-	const inputOptions = getInputOptions(rawInputOptions);
+	const { options: inputOptions, unsetOptions } = getInputOptions(rawInputOptions);
 	initialiseTimers(inputOptions);
 
-	const graph = new Graph(inputOptions, watcher);
+	const graph = new Graph(inputOptions, unsetOptions, watcher);
 
 	// remove the cache option from the memory after graph creation (cache is not used anymore)
 	const useCache = rawInputOptions.cache !== false;
@@ -49,11 +49,7 @@ export async function rollupInternal(
 	let chunks: Chunk[];
 	try {
 		await graph.pluginDriver.hookParallel('buildStart', [inputOptions]);
-		chunks = await graph.build(
-			inputOptions.input as string | string[] | Record<string, string>,
-			inputOptions.manualChunks,
-			inputOptions.inlineDynamicImports!
-		);
+		chunks = await graph.build();
 	} catch (err) {
 		const watchFiles = Object.keys(graph.watchFiles);
 		if (watchFiles.length > 0) {
@@ -104,47 +100,20 @@ export async function rollupInternal(
 	return result;
 }
 
-function getInputOptions(rawInputOptions: GenericConfigObject): NormalizedInputOptions {
+// TODO Lukas inline option validation
+function getInputOptions(
+	rawInputOptions: GenericConfigObject
+): { options: NormalizedInputOptions; unsetOptions: Set<string> } {
 	if (!rawInputOptions) {
 		throw new Error('You must supply an options object to rollup');
 	}
 	const rawPlugins = ensureArray(rawInputOptions.plugins) as Plugin[];
-	const inputOptions = parseInputOptions(rawPlugins.reduce(applyOptionHook, rawInputOptions));
-	normalizePlugins(inputOptions.plugins, ANONYMOUS_PLUGIN_PREFIX);
-
-	if (inputOptions.inlineDynamicImports) {
-		if (inputOptions.preserveModules)
-			return error({
-				code: 'INVALID_OPTION',
-				message: `"preserveModules" does not support the "inlineDynamicImports" option.`
-			});
-		if (inputOptions.manualChunks)
-			return error({
-				code: 'INVALID_OPTION',
-				message: '"manualChunks" option is not supported for "inlineDynamicImports".'
-			});
-		if (
-			(inputOptions.input instanceof Array && inputOptions.input.length > 1) ||
-			(typeof inputOptions.input === 'object' && Object.keys(inputOptions.input).length > 1)
-		)
-			return error({
-				code: 'INVALID_OPTION',
-				message: 'Multiple inputs are not supported for "inlineDynamicImports".'
-			});
-	} else if (inputOptions.preserveModules) {
-		if (inputOptions.manualChunks)
-			return error({
-				code: 'INVALID_OPTION',
-				message: '"preserveModules" does not support the "manualChunks" option.'
-			});
-		if (inputOptions.preserveEntrySignatures === false)
-			return error({
-				code: 'INVALID_OPTION',
-				message: '"preserveModules" does not support setting "preserveEntrySignatures" to "false".'
-			});
-	}
-
-	return inputOptions;
+	const { options, unsetOptions } = parseInputOptions(
+		rawPlugins.reduce(applyOptionHook, rawInputOptions)
+	);
+	normalizePlugins(options.plugins, ANONYMOUS_PLUGIN_PREFIX);
+	// TODO Lukas unsetOptions must somehow get to the chunks
+	return { options, unsetOptions };
 }
 
 function applyOptionHook(inputOptions: GenericConfigObject, plugin: Plugin): GenericConfigObject {
@@ -203,7 +172,7 @@ function normalizeOutputOptions(
 				};
 			}
 		) as GenericConfigObject,
-		inputOptions.onwarn as WarningHandler
+		inputOptions.onwarn
 	);
 
 	if (typeof outputOptions.file === 'string') {

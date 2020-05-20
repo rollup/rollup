@@ -16,11 +16,11 @@ describe('hooks', () => {
 					loader({ newInput: `alert('hello')` }),
 					{
 						buildStart(options) {
-							assert.strictEqual(options.input, 'newInput');
+							assert.deepStrictEqual(options.input, ['newInput']);
 							assert.strictEqual(options.treeshake, false);
 						},
 						options(options) {
-							assert.strictEqual(options.input, 'input');
+							assert.deepStrictEqual(options.input, 'input');
 							assert.strictEqual(options.treeshake, false);
 							assert.ok(/^\d+\.\d+\.\d+/.test(this.meta.rollupVersion));
 							return Object.assign({}, options, { input: 'newInput' });

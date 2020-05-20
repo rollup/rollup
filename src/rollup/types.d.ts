@@ -505,19 +505,20 @@ export interface NormalizedInputOptions {
 	context: string;
 	experimentalCacheExpiry: number;
 	external: IsExternal;
-	inlineDynamicImports?: boolean;
-	input?: InputOption;
-	manualChunks?: ManualChunksOption;
+	inlineDynamicImports: boolean;
+	input: string[] | { [entryAlias: string]: string };
+	manualChunks: ManualChunksOption;
 	moduleContext: (id: string) => string;
 	onwarn: WarningHandler;
 	perf?: boolean;
 	plugins: Plugin[];
-	preserveEntrySignatures?: PreserveEntrySignaturesOption;
-	preserveModules?: boolean;
+	preserveEntrySignatures: PreserveEntrySignaturesOption;
+	preserveModules: boolean;
 	preserveSymlinks?: boolean;
 	shimMissingExports?: boolean;
 	strictDeprecations: boolean;
 	treeshake: false | NormalizedTreeshakingOptions;
+	// TODO Lukas remove
 	watch?: WatcherOptions;
 }
 

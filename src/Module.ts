@@ -211,7 +211,7 @@ export default class Module {
 	namespace!: NamespaceVariable;
 	originalCode!: string;
 	originalSourcemap!: ExistingDecodedSourceMap | null;
-	preserveSignature: PreserveEntrySignaturesOption = this.graph.preserveEntrySignatures ?? 'strict';
+	preserveSignature: PreserveEntrySignaturesOption = this.graph.options.preserveEntrySignatures;
 	reexportDescriptions: { [name: string]: ReexportDescription } = Object.create(null);
 	resolvedIds!: ResolvedIdMap;
 	scope!: ModuleScope;
@@ -338,7 +338,7 @@ export default class Module {
 		if (
 			this.isEntryPoint ||
 			this.includedDynamicImporters.length > 0 ||
-			this.graph.preserveModules
+			this.graph.options.preserveModules
 		) {
 			dependencyVariables = new Set(dependencyVariables);
 			for (const exportName of [...this.getReexports(), ...this.getExports()]) {
@@ -694,7 +694,7 @@ export default class Module {
 			moduleContext: this.context,
 			nodeConstructors,
 			options: this.graph.options,
-			preserveModules: this.graph.preserveModules,
+			preserveModules: this.graph.options.preserveModules,
 			traceExport: this.getVariableForExportName.bind(this),
 			traceVariable: this.traceVariable.bind(this),
 			usesTopLevelAwait: false,

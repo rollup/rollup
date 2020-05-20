@@ -6,12 +6,10 @@ import ExternalModule from './ExternalModule';
 import Module from './Module';
 import { ModuleLoader, UnresolvedModule } from './ModuleLoader';
 import {
-	ManualChunksOption,
 	ModuleInfo,
 	ModuleJSON,
 	NormalizedInputOptions,
 	NormalizedTreeshakingOptions,
-	PreserveEntrySignaturesOption,
 	RollupCache,
 	RollupWatcher,
 	SerializablePluginCache
@@ -25,11 +23,8 @@ import { timeEnd, timeStart } from './utils/timers';
 import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
 
 function normalizeEntryModules(
-	entryModules: string | string[] | Record<string, string>
+	entryModules: string[] | Record<string, string>
 ): UnresolvedModule[] {
-	if (typeof entryModules === 'string') {
-		return [{ fileName: null, name: null, id: entryModules, importer: undefined }];
-	}
 	if (Array.isArray(entryModules)) {
 		return entryModules.map(id => ({ fileName: null, name: null, id, importer: undefined }));
 	}
@@ -51,8 +46,6 @@ export default class Graph {
 	needsTreeshakingPass = false;
 	phase: BuildPhase = BuildPhase.LOAD_AND_PARSE;
 	pluginDriver: PluginDriver;
-	preserveEntrySignatures: PreserveEntrySignaturesOption | undefined;
-	preserveModules: boolean;
 	scope: GlobalScope;
 	shimMissingExports: boolean;
 	watchFiles: Record<string, true> = Object.create(null);
@@ -63,7 +56,11 @@ export default class Graph {
 	private modules: Module[] = [];
 	private pluginCache?: Record<string, SerializablePluginCache>;
 
-	constructor(readonly options: NormalizedInputOptions, watcher: RollupWatcher | null) {
+	constructor(
+		readonly options: NormalizedInputOptions,
+		readonly unsetOptions: Set<string>,
+		watcher: RollupWatcher | null
+	) {
 		this.deoptimizationTracker = new PathTracker();
 		this.cachedModules = new Map();
 		if (options.cache !== false) {
@@ -78,9 +75,6 @@ export default class Graph {
 				for (const key of Object.keys(cache)) cache[key][0]++;
 			}
 		}
-		this.preserveModules = options.preserveModules!;
-		this.preserveEntrySignatures = options.preserveEntrySignatures!;
-
 		this.contextParse = (code: string, options: acorn.Options = {}) =>
 			this.acornParser.parse(code, {
 				...this.options.acorn,
@@ -111,13 +105,9 @@ export default class Graph {
 	}
 
 	// TODO Lukas no return value
-	async build(
-		entryModuleIds: string | string[] | Record<string, string>,
-		manualChunks: ManualChunksOption | void,
-		inlineDynamicImports: boolean
-	): Promise<Chunk[]> {
+	async build(): Promise<Chunk[]> {
 		timeStart('generate module graph', 2);
-		await this.generateModuleGraph(entryModuleIds, manualChunks);
+		await this.generateModuleGraph();
 		timeEnd('generate module graph', 2);
 
 		timeStart('link and order modules', 2);
@@ -130,7 +120,7 @@ export default class Graph {
 		timeEnd('mark included statements', 2);
 
 		timeStart('generate chunks', 2);
-		const chunks = this.generateChunks(inlineDynamicImports);
+		const chunks = this.generateChunks();
 		timeEnd('generate chunks', 2);
 		this.phase = BuildPhase.GENERATE;
 
@@ -138,9 +128,9 @@ export default class Graph {
 	}
 
 	// TODO Lukas call this to create the chunks
-	generateChunks(inlineDynamicImports: boolean): Chunk[] {
+	generateChunks(): Chunk[] {
 		const chunks: Chunk[] = [];
-		if (this.preserveModules) {
+		if (this.options.preserveModules) {
 			for (const module of this.modules) {
 				if (
 					module.isIncluded() ||
@@ -153,7 +143,7 @@ export default class Graph {
 				}
 			}
 		} else {
-			for (const chunkModules of inlineDynamicImports
+			for (const chunkModules of this.options.inlineDynamicImports
 				? [this.modules]
 				: getChunkAssignments(this.entryModules, this.manualChunkModulesByAlias)) {
 				sortByExecutionOrder(chunkModules);
@@ -218,17 +208,13 @@ export default class Graph {
 		};
 	};
 
-	private async generateModuleGraph(
-		entryModuleIds: string | string[] | Record<string, string>,
-		manualChunks: ManualChunksOption | void
-	): Promise<void> {
+	private async generateModuleGraph(): Promise<void> {
+		const { manualChunks } = this.options;
 		[
 			{ entryModules: this.entryModules, manualChunkModulesByAlias: this.manualChunkModulesByAlias }
 		] = await Promise.all([
-			this.moduleLoader.addEntryModules(normalizeEntryModules(entryModuleIds), true),
-			manualChunks &&
-				typeof manualChunks === 'object' &&
-				this.moduleLoader.addManualChunks(manualChunks)
+			this.moduleLoader.addEntryModules(normalizeEntryModules(this.options.input), true),
+			typeof manualChunks === 'object' ? this.moduleLoader.addManualChunks(manualChunks) : null
 		]);
 		if (typeof manualChunks === 'function') {
 			this.moduleLoader.assignManualChunks(manualChunks);
