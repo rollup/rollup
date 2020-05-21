@@ -4,6 +4,7 @@ import injectStaticClassFeatures from 'acorn-static-class-features';
 import {
 	ExternalOption,
 	HasModuleSideEffects,
+	InputOptions,
 	ManualChunksOption,
 	ModuleSideEffectsOption,
 	NormalizedInputOptions,
@@ -41,7 +42,7 @@ export function normalizeInputOptions(
 	const onwarn = getOnwarn(config);
 	const preserveModules = getPreserveModules(config, inlineDynamicImports);
 	const strictDeprecations = (config.strictDeprecations as boolean | undefined) || false;
-	const options: NormalizedInputOptions = {
+	const options: NormalizedInputOptions & InputOptions = {
 		acorn: getAcorn(config),
 		acornInjectPlugins: getAcornInjectPlugins(config),
 		cache: getCache(config),

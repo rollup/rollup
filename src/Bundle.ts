@@ -2,10 +2,10 @@ import Chunk from './Chunk';
 import Graph from './Graph';
 import {
 	NormalizedInputOptions,
+	NormalizedOutputOptions,
 	OutputBundle,
 	OutputBundleWithPlaceholders,
-	OutputChunk,
-	OutputOptions
+	OutputChunk
 } from './rollup/types';
 import { Addons, createAddons } from './utils/addons';
 import commondir from './utils/commondir';
@@ -18,7 +18,7 @@ import { timeEnd, timeStart } from './utils/timers';
 export default class Bundle {
 	constructor(
 		private readonly graph: Graph,
-		private readonly outputOptions: OutputOptions,
+		private readonly outputOptions: NormalizedOutputOptions,
 		private readonly inputOptions: NormalizedInputOptions,
 		private readonly pluginDriver: PluginDriver,
 		private readonly chunks: Chunk[]
@@ -131,7 +131,7 @@ function getAbsoluteEntryModulePaths(chunks: Chunk[]): string[] {
 	return absoluteEntryModulePaths;
 }
 
-function validateOptionsForMultiChunkOutput(outputOptions: OutputOptions) {
+function validateOptionsForMultiChunkOutput(outputOptions: NormalizedOutputOptions) {
 	if (outputOptions.format === 'umd' || outputOptions.format === 'iife')
 		return error({
 			code: 'INVALID_OPTION',

@@ -165,10 +165,7 @@ export const normalizeObjectOptionValue = (optionValue: any) => {
 		return optionValue;
 	}
 	if (Array.isArray(optionValue)) {
-		return optionValue.reduce(
-			(treeshake, value) => value && treeshake && { ...treeshake, ...value },
-			{}
-		);
+		return optionValue.reduce((result, value) => value && result && { ...result, ...value }, {});
 	}
 	if (typeof optionValue !== 'object') {
 		return {};

@@ -775,7 +775,7 @@ export default class Chunk {
 				exportingModule &&
 				exportingModule.chunk &&
 				exportingModule.chunk !== this &&
-				!(importedVariable instanceof NamespaceVariable && this.graph.preserveModules)
+				!(importedVariable instanceof NamespaceVariable && this.graph.options.preserveModules)
 			) {
 				exportingModule.chunk.exports.add(importedVariable);
 				if (isSynthetic) {

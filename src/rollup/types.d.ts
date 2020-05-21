@@ -569,6 +569,47 @@ export interface OutputOptions {
 	strict?: boolean;
 }
 
+export interface NormalizedOutputOptions {
+	amd?: {
+		define?: string;
+		id?: string;
+	};
+	assetFileNames?: string;
+	banner?: string | (() => string | Promise<string>);
+	chunkFileNames?: string;
+	compact?: boolean;
+	dir: string | undefined;
+	/** @deprecated Use the "renderDynamicImport" plugin hook instead. */
+	dynamicImportFunction?: string;
+	entryFileNames?: string;
+	esModule?: boolean;
+	exports?: 'default' | 'named' | 'none' | 'auto';
+	extend?: boolean;
+	externalLiveBindings?: boolean;
+	file: string | undefined;
+	footer?: string | (() => string | Promise<string>);
+	format?: ModuleFormat;
+	freeze?: boolean;
+	globals?: GlobalsOption;
+	hoistTransitiveImports?: boolean;
+	indent?: boolean;
+	interop?: boolean;
+	intro?: string | (() => string | Promise<string>);
+	minifyInternalExports?: boolean;
+	name?: string;
+	namespaceToStringTag?: boolean;
+	noConflict?: boolean;
+	outro?: string | (() => string | Promise<string>);
+	paths?: OptionsPaths;
+	plugins?: OutputPlugin[];
+	preferConst?: boolean;
+	sourcemap?: boolean | 'inline' | 'hidden';
+	sourcemapExcludeSources?: boolean;
+	sourcemapFile?: string;
+	sourcemapPathTransform?: (sourcePath: string) => string;
+	strict?: boolean;
+}
+
 export type WarningHandlerWithDefault = (
 	warning: RollupWarning,
 	defaultHandler: WarningHandler

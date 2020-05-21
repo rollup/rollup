@@ -6,8 +6,8 @@ import { ensureArray } from '../utils/ensureArray';
 import { errCannotEmitFromOptionsHook, error } from '../utils/error';
 import { writeFile } from '../utils/fs';
 import { normalizeInputOptions } from '../utils/options/normalizeInputOptions';
+import { normalizeOutputOptions } from '../utils/options/normalizeOutputOptions';
 import { GenericConfigObject } from '../utils/options/options';
-import { parseOutputOptions } from '../utils/options/parseOutputOptions';
 import { basename, dirname, resolve } from '../utils/path';
 import { PluginDriver } from '../utils/PluginDriver';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from '../utils/pluginUtils';
@@ -15,6 +15,7 @@ import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
 import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timers';
 import {
 	NormalizedInputOptions,
+	NormalizedOutputOptions,
 	OutputAsset,
 	OutputChunk,
 	OutputOptions,
@@ -136,7 +137,7 @@ function getOutputOptionsAndPluginDriver(
 	rawOutputOptions: GenericConfigObject,
 	inputPluginDriver: PluginDriver,
 	inputOptions: NormalizedInputOptions
-): { outputOptions: OutputOptions; outputPluginDriver: PluginDriver } {
+): { outputOptions: NormalizedOutputOptions; outputPluginDriver: PluginDriver } {
 	if (!rawOutputOptions) {
 		throw new Error('You must supply an options object');
 	}
@@ -145,17 +146,17 @@ function getOutputOptionsAndPluginDriver(
 	const outputPluginDriver = inputPluginDriver.createOutputPluginDriver(rawPlugins);
 
 	return {
-		outputOptions: normalizeOutputOptions(inputOptions, rawOutputOptions, outputPluginDriver),
+		outputOptions: getOutputOptions(inputOptions, rawOutputOptions, outputPluginDriver),
 		outputPluginDriver
 	};
 }
 
-function normalizeOutputOptions(
+function getOutputOptions(
 	inputOptions: NormalizedInputOptions,
 	rawOutputOptions: GenericConfigObject,
 	outputPluginDriver: PluginDriver
-): OutputOptions {
-	const outputOptions = parseOutputOptions(
+): NormalizedOutputOptions {
+	return normalizeOutputOptions(
 		outputPluginDriver.hookReduceArg0Sync(
 			'outputOptions',
 			[rawOutputOptions.output || rawOutputOptions] as [OutputOptions],
@@ -169,31 +170,8 @@ function normalizeOutputOptions(
 				};
 			}
 		) as GenericConfigObject,
-		inputOptions.onwarn
+		inputOptions
 	);
-
-	if (typeof outputOptions.file === 'string') {
-		if (typeof outputOptions.dir === 'string')
-			return error({
-				code: 'INVALID_OPTION',
-				message:
-					'You must set either "output.file" for a single-file build or "output.dir" when generating multiple chunks.'
-			});
-		if (inputOptions.preserveModules) {
-			return error({
-				code: 'INVALID_OPTION',
-				message:
-					'You must set "output.dir" instead of "output.file" when using the "preserveModules" option.'
-			});
-		}
-		if (typeof inputOptions.input === 'object' && !Array.isArray(inputOptions.input))
-			return error({
-				code: 'INVALID_OPTION',
-				message: 'You must set "output.dir" instead of "output.file" when providing named inputs.'
-			});
-	}
-
-	return outputOptions;
 }
 
 function createOutput(outputBundle: Record<string, OutputChunk | OutputAsset | {}>): RollupOutput {
