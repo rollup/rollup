@@ -1110,7 +1110,7 @@ export default class Chunk {
 			for (const reexportName of Object.keys(module.reexportDescriptions)) {
 				const reexport = module.reexportDescriptions[reexportName];
 				const variable = reexport.module.getVariableForExportName(reexport.localName);
-				if ((variable.module as Module).chunk !== this) {
+				if ((variable.module as Module).chunk && (variable.module as Module).chunk !== this) {
 					this.imports.add(variable);
 					(variable.module as Module).chunk!.exports.add(variable);
 				}
