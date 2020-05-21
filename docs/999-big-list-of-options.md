@@ -1108,7 +1108,7 @@ class Impure {
 
 **treeshake.moduleSideEffects**<br>
 Type: `boolean | "no-external" | string[] | (id: string, external: boolean) => boolean`<br>
-CLI: `--treeshake.moduleSideEffects`/`--no-treeshake.moduleSideEffects`<br>
+CLI: `--treeshake.moduleSideEffects`/`--no-treeshake.moduleSideEffects`/`--treeshake.moduleSideEffects no-external`<br>
 Default: `true`
 
 If `false`, assume modules and external dependencies from which nothing is imported do not have other side-effects like mutating global variables or logging without checking. For external dependencies, this will suppress empty imports:
@@ -1276,6 +1276,7 @@ These options only take effect when running Rollup with the `--watch` flag, or u
 
 #### watch.buildDelay
 Type: `number`<br>
+CLI: `--watch.buildDelay <number>`<br>
 Default: `0`
 
 Configures how long Rollup will wait for further changes until it triggers a rebuild in milliseconds. By default, Rollup does not wait but there is a small debounce timeout configured in the chokidar instance. Setting this to a value greater than `0` will mean that Rollup will only triger a rebuild if there was no change for the configured number of milliseconds. If several configurations are watched, Rollup will use the largest configured build delay.
@@ -1287,18 +1288,21 @@ An optional object of watch options that will be passed to the bundled [chokidar
 
 #### watch.clearScreen
 Type: `boolean`<br>
+CLI: `--watch.clearScreen`/`--no-watch.clearScreen`<br>
 Default: `true`
 
 Whether to clear the screen when a rebuild is triggered.
 
 #### watch.skipWrite
 Type: `boolean`<br>
+CLI: `--watch.skipWrite`/`--no-watch.skipWrite`<br>
 Default: `false`
 
 Whether to skip the `bundle.write()` step when a rebuild is triggered.
 
 #### watch.exclude
-Type: `string`
+Type: `string`<br>
+CLI: `--watch.exclude <files>`
 
 Prevent files from being watched:
 
@@ -1313,9 +1317,10 @@ export default {
 ```
 
 #### watch.include
-Type: `string`
+Type: `string`<br>
+CLI: `--watch.include <files>`
 
-Limit the file-watching to certain files:
+Limit the file-watching to certain files. Note that this only filters the module graph but does not allow to add additional watch files:
 
 ```js
 // rollup.config.js

@@ -1,7 +1,7 @@
 import { ModuleFormat, OutputOptions, WarningHandler } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
 import { errInvalidExportOptionValue, error } from '../error';
-import { GenericConfigObject, warnUnknownOptions } from './parseOptions';
+import { GenericConfigObject, warnUnknownOptions } from './options';
 
 // TODO Lukas normalize is a better name
 export function parseOutputOptions(

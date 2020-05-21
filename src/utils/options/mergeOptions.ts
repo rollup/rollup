@@ -3,13 +3,13 @@ import {
 	InputOptions,
 	MergedRollupOptions,
 	OutputOptions,
-	RollupBuild,
 	RollupCache,
-	WarningHandler
+	WarningHandler,
+	WarningHandlerWithDefault
 } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
 import { CommandConfigObject } from './normalizeInputOptions';
-import { defaultOnWarn, GenericConfigObject, getOnWarn, warnUnknownOptions } from './parseOptions';
+import { defaultOnWarn, GenericConfigObject, warnUnknownOptions } from './options';
 
 export const commandAliases: { [key: string]: string } = {
 	c: 'config',
@@ -30,7 +30,7 @@ export const commandAliases: { [key: string]: string } = {
 export function mergeOptions(
 	config: GenericConfigObject,
 	rawCommandOptions: GenericConfigObject = { external: [], globals: undefined },
-	defaultOnWarnHandler?: WarningHandler
+	defaultOnWarnHandler: WarningHandler = defaultOnWarn
 ): MergedRollupOptions {
 	const command = getCommandOptions(rawCommandOptions);
 	const inputOptions = mergeInputOptions(config, command, defaultOnWarnHandler);
@@ -92,13 +92,13 @@ type CompleteInputOptions<U extends keyof InputOptions> = {
 function mergeInputOptions(
 	config: GenericConfigObject,
 	overrides: CommandConfigObject = { external: [], globals: undefined },
-	defaultOnWarnHandler: WarningHandler = defaultOnWarn
+	defaultOnWarnHandler: WarningHandler
 ): InputOptions {
 	const getOption = (name: string): any => overrides[name] ?? config[name];
 	const inputOptions: CompleteInputOptions<keyof InputOptions> = {
 		acorn: getOption('acorn'),
-		acornInjectPlugins: getOption('acornInjectPlugins'),
-		cache: getCache(config),
+		acornInjectPlugins: config.acornInjectPlugins as Function | Function[] | undefined,
+		cache: config.cache as false | RollupCache | undefined,
 		context: getOption('context'),
 		experimentalCacheExpiry: getOption('experimentalCacheExpiry'),
 		external: getExternal(config, overrides),
@@ -106,7 +106,6 @@ function mergeInputOptions(
 		input: getOption('input') || [],
 		manualChunks: getOption('manualChunks'),
 		moduleContext: getOption('moduleContext'),
-		// TODO Lukas do we need the default here?
 		onwarn: getOnWarn(config, defaultOnWarnHandler),
 		perf: getOption('perf'),
 		plugins: ensureArray(config.plugins) as Plugin[],
@@ -116,7 +115,6 @@ function mergeInputOptions(
 		shimMissingExports: getOption('shimMissingExports'),
 		strictDeprecations: getOption('strictDeprecations'),
 		treeshake: getObjectOption(config, overrides, 'treeshake'),
-		// TODO Lukas see how --watch --watch.something works on the CLI, also test treeshake
 		watch: getObjectOption(config, overrides, 'watch')
 	};
 
@@ -130,9 +128,6 @@ function mergeInputOptions(
 	return inputOptions;
 }
 
-const getCache = (config: GenericConfigObject): false | RollupCache =>
-	(config.cache as RollupBuild)?.cache || (config.cache as any);
-
 const getExternal = (
 	config: GenericConfigObject,
 	overrides: CommandConfigObject
@@ -143,6 +138,14 @@ const getExternal = (
 				configExternal(source, importer, isResolved) || overrides.external.indexOf(source) !== -1
 		: ensureArray(configExternal).concat(overrides.external);
 };
+
+const getOnWarn = (
+	config: GenericConfigObject,
+	defaultOnWarnHandler: WarningHandler
+): WarningHandler =>
+	config.onwarn
+		? warning => (config.onwarn as WarningHandlerWithDefault)(warning, defaultOnWarnHandler)
+		: defaultOnWarnHandler;
 
 const getObjectOption = (
 	config: GenericConfigObject,
@@ -160,6 +163,12 @@ const getObjectOption = (
 export const normalizeObjectOptionValue = (optionValue: any) => {
 	if (!optionValue) {
 		return optionValue;
+	}
+	if (Array.isArray(optionValue)) {
+		return optionValue.reduce(
+			(treeshake, value) => value && treeshake && { ...treeshake, ...value },
+			{}
+		);
 	}
 	if (typeof optionValue !== 'object') {
 		return {};

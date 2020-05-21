@@ -19,7 +19,7 @@ import { ensureArray } from '../ensureArray';
 import { errInvalidOption, error, warnDeprecationWithOptions } from '../error';
 import { resolve } from '../path';
 import relativeId from '../relativeId';
-import { GenericConfigObject, warnUnknownOptions } from './parseOptions';
+import { defaultOnWarn, GenericConfigObject, warnUnknownOptions } from './options';
 
 export interface CommandConfigObject {
 	external: (string | RegExp)[];
@@ -74,7 +74,6 @@ export function normalizeInputOptions(
 }
 
 const getOnwarn = (config: GenericConfigObject): WarningHandler => {
-	const defaultHandler: WarningHandler = warning => console.warn(warning.message || warning);
 	return config.onwarn
 		? warning => {
 				warning.toString = () => {
@@ -87,9 +86,9 @@ const getOnwarn = (config: GenericConfigObject): WarningHandler => {
 
 					return str;
 				};
-				(config.onwarn as WarningHandlerWithDefault)(warning, defaultHandler);
+				(config.onwarn as WarningHandlerWithDefault)(warning, defaultOnWarn);
 		  }
-		: defaultHandler;
+		: defaultOnWarn;
 };
 
 const getPreserveModules = (

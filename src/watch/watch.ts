@@ -11,7 +11,7 @@ import {
 } from '../rollup/types';
 import { ensureArray } from '../utils/ensureArray';
 import { mergeOptions } from '../utils/options/mergeOptions';
-import { GenericConfigObject } from '../utils/options/parseOptions';
+import { GenericConfigObject } from '../utils/options/options';
 import { FileWatcher } from './fileWatcher';
 
 export class Watcher {

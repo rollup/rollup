@@ -6,7 +6,7 @@ import { ensureArray } from '../utils/ensureArray';
 import { errCannotEmitFromOptionsHook, error } from '../utils/error';
 import { writeFile } from '../utils/fs';
 import { normalizeInputOptions } from '../utils/options/normalizeInputOptions';
-import { GenericConfigObject } from '../utils/options/parseOptions';
+import { GenericConfigObject } from '../utils/options/options';
 import { parseOutputOptions } from '../utils/options/parseOutputOptions';
 import { basename, dirname, resolve } from '../utils/path';
 import { PluginDriver } from '../utils/PluginDriver';
@@ -95,11 +95,10 @@ export async function rollupInternal(
 			return createOutput(generated);
 		}
 	};
-	if (inputOptions.perf === true) result.getTimings = getTimings;
+	if (inputOptions.perf) result.getTimings = getTimings;
 	return result;
 }
 
-// TODO Lukas inline option validation
 function getInputOptions(
 	rawInputOptions: GenericConfigObject
 ): { options: NormalizedInputOptions; unsetOptions: Set<string> } {

@@ -1,25 +1,10 @@
-import { WarningHandler, WarningHandlerWithDefault } from '../../rollup/types';
+import { WarningHandler } from '../../rollup/types';
 
 export interface GenericConfigObject {
 	[key: string]: unknown;
 }
 
-// TODO Lukas needed?
-export const defaultOnWarn: WarningHandler = warning => {
-	if (typeof warning === 'string') {
-		console.warn(warning);
-	} else {
-		console.warn(warning.message);
-	}
-};
-
-export const getOnWarn = (
-	config: GenericConfigObject,
-	defaultOnWarnHandler: WarningHandler
-): WarningHandler =>
-	config.onwarn
-		? warning => (config.onwarn as WarningHandlerWithDefault)(warning, defaultOnWarnHandler)
-		: defaultOnWarnHandler;
+export const defaultOnWarn: WarningHandler = warning => console.warn(warning.message || warning);
 
 export function warnUnknownOptions(
 	passedOptions: GenericConfigObject,
