@@ -5,12 +5,12 @@ export function getSystemExportStatement(exportedVariables: Variable[]): string 
 		return `exports('${exportedVariables[0].safeExportName ||
 			exportedVariables[0].exportName[0]}', ${exportedVariables[0].getName()})`;
 	} else {
-		return `exports({ ${exportedVariables
+		return `exports({${exportedVariables
 			.map(variable =>
 				// TODO: do we always have export names at this point?
 				variable.exportName!.map(exportName => `${exportName}: ${variable.getName()}`)
 				.join(', ')
 			)
-			.join(', ')} })`;
+			.join(', ')}})`;
 	}
 }
