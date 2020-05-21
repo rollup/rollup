@@ -28,7 +28,12 @@ export default async function build(
 				.map((name) => (inputOptions.input as Record<string, string>)[name])
 				.join(', ');
 		}
+
 		stderr(color.cyan(`\n${color.bold(inputFiles!)} → ${color.bold(files.join(', '))}...`));
+
+		if (inputOptions.waitForBundleInput) {
+			stderr(`waiting for bundle input ${color.bold(inputFiles!)}`);
+		}
 	}
 
 	const bundle = await rollup.rollup(inputOptions as any);

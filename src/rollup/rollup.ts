@@ -159,7 +159,8 @@ export async function rollupInternal(
 		chunks = await graph.build(
 			inputOptions.input as string | string[] | Record<string, string>,
 			inputOptions.manualChunks,
-			inputOptions.inlineDynamicImports!
+			inputOptions.inlineDynamicImports!,
+			inputOptions.waitForBundleInput!
 		);
 	} catch (err) {
 		const watchFiles = Object.keys(graph.watchFiles);

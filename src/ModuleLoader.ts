@@ -132,7 +132,8 @@ export class ModuleLoader {
 
 	async addEntryModules(
 		unresolvedEntryModules: UnresolvedModule[],
-		isUserDefined: boolean
+		isUserDefined: boolean,
+		waitForBundleInput: boolean
 	): Promise<{
 		entryModules: Module[];
 		manualChunkModulesByAlias: Record<string, Module[]>;
@@ -142,7 +143,8 @@ export class ModuleLoader {
 		this.nextEntryModuleIndex += unresolvedEntryModules.length;
 		const loadNewEntryModulesPromise = Promise.all(
 			unresolvedEntryModules.map(
-				({ id, importer }): Promise<Module> => this.loadEntryModule(id, true, importer)
+				({ id, importer }): Promise<Module> =>
+					this.loadEntryModule(id, true, importer, waitForBundleInput)
 			)
 		).then(entryModules => {
 			let moduleIndex = firstEntryModuleIndex;
@@ -183,7 +185,10 @@ export class ModuleLoader {
 		};
 	}
 
-	addManualChunks(manualChunks: Record<string, string[]>): Promise<void> {
+	addManualChunks(
+		manualChunks: Record<string, string[]>,
+		waitForBundleInput: boolean
+	): Promise<void> {
 		const unresolvedManualChunks: { alias: string; id: string }[] = [];
 		for (const alias of Object.keys(manualChunks)) {
 			const manualChunkIds = manualChunks[alias];
@@ -193,7 +198,9 @@ export class ModuleLoader {
 		}
 		return this.awaitLoadModulesPromise(
 			Promise.all(
-				unresolvedManualChunks.map(({ id }) => this.loadEntryModule(id, false, undefined))
+				unresolvedManualChunks.map(({ id }) =>
+					this.loadEntryModule(id, false, undefined, waitForBundleInput)
+				)
 			).then(manualChunkModules => {
 				for (let index = 0; index < manualChunkModules.length; index++) {
 					this.addModuleToManualChunk(
@@ -441,15 +448,36 @@ export class ModuleLoader {
 	private async loadEntryModule(
 		unresolvedId: string,
 		isEntry: boolean,
-		importer: string | undefined
+		importer: string | undefined,
+		waitForBundleInput: boolean
 	): Promise<Module> {
-		const resolveIdResult = await resolveId(
-			unresolvedId,
-			importer,
-			this.preserveSymlinks,
-			this.pluginDriver,
-			null
-		);
+		let resolveIdResult: ResolveIdResult;
+		const unresolvedFiles = new Set<string>();
+
+		while (
+			(resolveIdResult = await resolveId(
+				unresolvedId,
+				importer,
+				this.preserveSymlinks,
+				this.pluginDriver,
+				null
+			)) === undefined &&
+			waitForBundleInput
+		) {
+			if (this.graph.watcher && !unresolvedFiles.has(unresolvedId)) {
+				this.graph.watcher.emit('event', {
+					code: 'INPUT_WAIT',
+					input: unresolvedId
+				});
+
+				unresolvedFiles.add(unresolvedId);
+			}
+
+			await new Promise<void>(resolve => {
+				setTimeout(resolve, 500);
+			});
+		}
+
 		if (
 			resolveIdResult === false ||
 			(resolveIdResult && typeof resolveIdResult === 'object' && resolveIdResult.external)

@@ -478,6 +478,7 @@ export interface InputOptions {
 	shimMissingExports?: boolean;
 	strictDeprecations?: boolean;
 	treeshake?: boolean | TreeshakingOptions;
+	waitForBundleInput?: boolean;
 	watch?: WatcherOptions;
 }
 
@@ -667,6 +668,7 @@ interface TypedEventEmitter<T> {
 
 export type RollupWatcherEvent =
 	| { code: 'START' }
+	| { code: 'INPUT_WAIT'; input: string }
 	| { code: 'BUNDLE_START'; input: InputOption; output: readonly string[] }
 	| {
 			code: 'BUNDLE_END';

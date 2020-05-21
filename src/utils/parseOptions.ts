@@ -115,6 +115,7 @@ export function parseInputOptions(
 		shimMissingExports: getOption('shimMissingExports'),
 		strictDeprecations: getOption('strictDeprecations', false),
 		treeshake: getObjectOption(config, overrides, 'treeshake'),
+		waitForBundleInput: getOption('waitForBundleInput', false),
 		watch: config.watch as any
 	};
 

@@ -304,6 +304,7 @@ export class FileEmitter {
 						name: emittedChunk.name || null
 					}
 				],
+				false,
 				false
 			)
 			.then(({ newEntryModules: [module] }) => {

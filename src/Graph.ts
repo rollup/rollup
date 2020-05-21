@@ -76,7 +76,7 @@ export default class Graph {
 	private pluginCache?: Record<string, SerializablePluginCache>;
 	private strictDeprecations: boolean;
 
-	constructor(options: InputOptions, watcher: RollupWatcher | null) {
+	constructor(options: InputOptions, public watcher: RollupWatcher | null) {
 		this.onwarn = options.onwarn as WarningHandler;
 		this.deoptimizationTracker = new PathTracker();
 		this.cachedModules = new Map();
@@ -188,7 +188,8 @@ export default class Graph {
 	async build(
 		entryModuleIds: string | string[] | Record<string, string>,
 		manualChunks: ManualChunksOption | void,
-		inlineDynamicImports: boolean
+		inlineDynamicImports: boolean,
+		waitForBundleInput: boolean
 	): Promise<Chunk[]> {
 		// Phase 1 – discovery. We load the entry module and find which
 		// modules it imports, and import those, until we have all
@@ -196,7 +197,8 @@ export default class Graph {
 		timeStart('parse modules', 2);
 		const { entryModules, manualChunkModulesByAlias } = await this.parseModules(
 			entryModuleIds,
-			manualChunks
+			manualChunks,
+			waitForBundleInput
 		);
 		timeEnd('parse modules', 2);
 
@@ -383,13 +385,18 @@ export default class Graph {
 
 	private async parseModules(
 		entryModuleIds: string | string[] | Record<string, string>,
-		manualChunks: ManualChunksOption | void
+		manualChunks: ManualChunksOption | void,
+		waitForBundleInput: boolean
 	): Promise<{ entryModules: Module[]; manualChunkModulesByAlias: Record<string, Module[]> }> {
 		const [{ entryModules, manualChunkModulesByAlias }] = await Promise.all([
-			this.moduleLoader.addEntryModules(normalizeEntryModules(entryModuleIds), true),
+			this.moduleLoader.addEntryModules(
+				normalizeEntryModules(entryModuleIds),
+				true,
+				waitForBundleInput
+			),
 			manualChunks &&
 				typeof manualChunks === 'object' &&
-				this.moduleLoader.addManualChunks(manualChunks)
+				this.moduleLoader.addManualChunks(manualChunks, waitForBundleInput)
 		]);
 		if (typeof manualChunks === 'function') {
 			this.moduleLoader.assignManualChunks(manualChunks);
