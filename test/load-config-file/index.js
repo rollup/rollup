@@ -37,7 +37,8 @@ describe('loadConfigFile', () => {
 						name: 'stdin'
 					}
 				],
-				strictDeprecations: false
+				strictDeprecations: false,
+				waitForBundleInput: false
 			}
 		]);
 	});
