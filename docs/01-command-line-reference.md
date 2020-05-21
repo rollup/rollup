@@ -275,6 +275,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 -p, --plugin <plugin>       Use the plugin specified (may be repeated)
 -v, --version               Show version number
 -w, --watch                 Watch files in bundle and rebuild on changes
+--waitForBundleInput        Wait for bundle input files
 --amd.id <id>               ID for AMD module (default is anonymous)
 --amd.define <name>         Function to use in place of `define`
 --assetFileNames <pattern>  Name pattern for emitted assets
