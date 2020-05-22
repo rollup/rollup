@@ -1,3 +1,4 @@
+import { Entity } from './Entity';
 import { ExpressionEntity } from './nodes/shared/Expression';
 import { DiscriminatedPathTracker, PathTracker } from './utils/PathTracker';
 import ThisVariable from './variables/ThisVariable';
@@ -13,12 +14,16 @@ export const BROKEN_FLOW_NONE = 0;
 export const BROKEN_FLOW_BREAK_CONTINUE = 1;
 export const BROKEN_FLOW_ERROR_RETURN_LABEL = 2;
 
-export interface InclusionContext {
+interface ControlFlowContext {
 	brokenFlow: number;
 	includedLabels: Set<string>;
 }
 
-export interface HasEffectsContext extends InclusionContext {
+export interface InclusionContext extends ControlFlowContext {
+	includedCallArguments: Set<Entity>;
+}
+
+export interface HasEffectsContext extends ControlFlowContext {
 	accessed: PathTracker;
 	assigned: PathTracker;
 	brokenFlow: number;
@@ -31,6 +36,7 @@ export interface HasEffectsContext extends InclusionContext {
 export function createInclusionContext(): InclusionContext {
 	return {
 		brokenFlow: BROKEN_FLOW_NONE,
+		includedCallArguments: new Set(),
 		includedLabels: new Set()
 	};
 }
