@@ -1,6 +1,6 @@
-import * as acorn from 'acorn';
 // @ts-ignore
 import { base as basicWalker } from 'acorn-walk';
+import * as acorn from 'fork-acorn-optional-chaining';
 import { CommentDescription } from '../Module';
 
 // patch up acorn-walk until class-fields are officially supported

@@ -1,4 +1,4 @@
-import * as acorn from 'acorn';
+import * as acorn from 'fork-acorn-optional-chaining';
 import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import Module from './Module';
