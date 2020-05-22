@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 2.10.6
+*2020-05-22*
+
+### Bug Fixes
+* Fix some issues around class fields (#3580)
+* Prevent a maximum call stack error when a called entity references itself in its declaration (#3581)
+
+### Pull Requests
+* [#3580](https://github.com/rollup/rollup/pull/3580): Update acorn class features (@guybedford)
+* [#3581](https://github.com/rollup/rollup/pull/3581): Do not fail when including call arguments of recursively defined variables (@lukastaegert)
+
 ## 2.10.5
 *2020-05-19*
 
