@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.10.7
+*2020-05-22*
+
+### Bug Fixes
+* Handle modules re-exporting namespaces without further own code (#3576)
+
+### Pull Requests
+* [#3576](https://github.com/rollup/rollup/pull/3576): Fix "cannot read exports of undefined" error (@guybedford)
+
 ## 2.10.6
 *2020-05-22*
 
