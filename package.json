@@ -93,6 +93,7 @@
     "eslint-plugin-import": "^2.20.2",
     "execa": "^4.0.1",
     "fixturify": "^2.1.0",
+    "fork-acorn-optional-chaining": "^7.2.0",
     "hash.js": "^1.1.7",
     "husky": "^4.2.5",
     "is-reference": "github:lukastaegert/is-reference#master",
@@ -145,8 +146,5 @@
       "default": "./dist/rollup.js"
     },
     "./dist/": "./dist/"
-  },
-  "dependencies": {
-    "fork-acorn-optional-chaining": "^7.2.0"
   }
 }
