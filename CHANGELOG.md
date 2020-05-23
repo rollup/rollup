@@ -1,11 +1,15 @@
 # rollup changelog
 
 ## 2.10.8
-*unreleased*
+*2020-05-23*
+
+### Bug Fixes
+* Fix issues when synthetic named exports are reexported as default exports (#3586)
 
 ### Pull Requests
 * [#3584](https://github.com/rollup/rollup/pull/3584): Clarify documentation for `output.paths` (@jacksteamdev)
 * [#3585](https://github.com/rollup/rollup/pull/3585): Target Node.js v14 instead of v13 in Windows tests (@mangs)
+* [#3586](https://github.com/rollup/rollup/pull/3586): Handle default reexports of synthetic named exports over several stages (@lukastaegert)
 
 ## 2.10.7
 *2020-05-22*
