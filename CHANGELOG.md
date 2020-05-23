@@ -1,5 +1,12 @@
 # rollup changelog
 
+## 2.10.8
+*unreleased*
+
+### Pull Requests
+* [#3584](https://github.com/rollup/rollup/pull/3584): Clarify documentation for `output.paths` (@jacksteamdev)
+* [#3585](https://github.com/rollup/rollup/pull/3585): Target Node.js v14 instead of v13 in Windows tests (@mangs)
+
 ## 2.10.7
 *2020-05-22*
 
