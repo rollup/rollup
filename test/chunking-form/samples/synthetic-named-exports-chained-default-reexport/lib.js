@@ -1,1 +1,2 @@
-export default { named: { named: 42 } };
+const lib = { named: { named: 42 } };
+export { lib as default };

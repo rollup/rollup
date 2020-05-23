@@ -1,6 +1,6 @@
 'use strict';
 
-var lib = { named: { named: 42 } };
+const lib = { named: { named: 42 } };
 
 console.log('side-effect', lib.named);
 
