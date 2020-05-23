@@ -617,7 +617,7 @@ Even though it appears that setting this option to `true` makes the output large
 #### output.paths
 Type: `{ [id: string]: string } | ((id: string) => string)`
 
-Maps ids to paths. Where supplied, these paths will be used in the generated bundle instead of the module ID, allowing you to, for example, load dependencies from a CDN:
+Maps external module IDs to paths. External ids are ids that [cannot be resolved](guide/en/#warning-treating-module-as-external-dependency) or ids explicitly provided by the [`external`](guide/en/#external) option. Paths supplied by `output.paths` will be used in the generated bundle instead of the module ID, allowing you to, for example, load dependencies from a CDN:
 
 ```js
 // app.js
