@@ -1064,10 +1064,14 @@ export default class Chunk {
 
 	private setUpChunkImportsAndExportsForModule(module: Module) {
 		for (let variable of module.imports) {
-			if (variable instanceof SyntheticNamedExportVariable) {
-				variable = variable.getBaseVariable();
-			} else if (variable instanceof ExportDefaultVariable) {
+			if (variable instanceof ExportDefaultVariable) {
 				variable = variable.getOriginalVariable();
+			}
+			while (variable instanceof SyntheticNamedExportVariable) {
+				variable = variable.getBaseVariable();
+				if (variable instanceof ExportDefaultVariable) {
+					variable = variable.getOriginalVariable();
+				}
 			}
 			if (variable.module && (variable.module as Module).chunk !== this) {
 				this.imports.add(variable);
