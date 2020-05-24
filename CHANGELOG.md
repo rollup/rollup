@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.10.9
+*2020-05-24*
+
+### Bug Fixes
+* Prevent invalid exports when facades are created (#3590)
+
+### Pull Requests
+* [#3590](https://github.com/rollup/rollup/pull/3590): Prevent unneeded exports when entry facades are created and ensure all exported variables in facades are imported (@lukastaegert)
+
 ## 2.10.8
 *2020-05-23*
 
