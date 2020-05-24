@@ -57,12 +57,6 @@ export default class AssignmentExpression extends NodeBase {
 				: this.left.variable?.exportName;
 			const _ = options.compact ? '' : ' ';
 			if (exportNames) {
-				let rhsParens = '';
-				let lhsSystemExports = '';
-				for (const exportName of exportNames) {
-					lhsSystemExports += `${lhsSystemExports.length ? _ : ''}exports('${exportName}',`;
-					rhsParens += ')';
-				}
 				const operatorPos = findFirstOccurrenceOutsideComment(
 					code.original,
 					this.operator,
@@ -70,12 +64,24 @@ export default class AssignmentExpression extends NodeBase {
 				);
 				const operation =
 					this.operator.length > 1 ? ` ${exportNames[0]} ${this.operator.slice(0, -1)}` : '';
-				code.overwrite(
-					operatorPos,
-					operatorPos + this.operator.length,
-					`=${_}${lhsSystemExports}${operation}`
-				);
-				code.appendLeft(this.right.end, rhsParens);
+				if (exportNames.length === 1) {
+					code.overwrite(
+						operatorPos,
+						operatorPos + this.operator.length,
+						`=${_}exports('${exportNames[0]}',${operation}`
+					);
+					code.appendLeft(this.right.end, ')');
+				} else {
+					code.overwrite(
+						operatorPos,
+						operatorPos + this.operator.length,
+						`=${_}function${_}(v)${_}{${getSystemExportStatement(
+							[this.left.variable!],
+							options
+						)};${_}return v;}${_}(${operation}`
+					);
+					code.appendLeft(this.right.end, ')');
+				}
 			} else if ('addExportedVariables' in this.left) {
 				const systemPatternExports: Variable[] = [];
 				this.left.addExportedVariables(systemPatternExports);

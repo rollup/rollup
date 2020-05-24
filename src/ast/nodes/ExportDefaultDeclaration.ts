@@ -179,7 +179,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			this.variable.exportName &&
 			this.variable.exportName.length > 1
 		) {
-			code.appendLeft(this.end, ` ${getSystemExportStatement([this.variable])};`);
+			code.appendLeft(this.end, ` ${getSystemExportStatement([this.variable], options)};`);
 		}
 	}
 }

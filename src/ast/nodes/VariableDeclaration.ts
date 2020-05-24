@@ -178,6 +178,7 @@ export default class VariableDeclaration extends NodeBase {
 				isInDeclaration = false;
 			} else {
 				if (options.format === 'system' && node.init !== null) {
+					const _ = options.compact ? '' : ' ';
 					if (node.id.type !== NodeType.Identifier) {
 						node.id.addExportedVariables(systemPatternExports);
 					} else if (node.id.variable!.safeExportName) {
@@ -187,10 +188,19 @@ export default class VariableDeclaration extends NodeBase {
 						);
 						nextSeparatorString += ')';
 					} else if (node.id.variable!.exportName) {
-						for (const exportName of node.id.variable!.exportName) {
+						if (node.id.variable!.exportName.length === 1) {
 							code.prependLeft(
 								code.original.indexOf('=', node.id.end) + 1,
-								` exports('${exportName}',`
+								` exports('${node.id.variable!.exportName[0]}',`
+							);
+							nextSeparatorString += ')';
+						} else {
+							code.prependLeft(
+								code.original.indexOf('=', node.id.end) + 1,
+								` function${_}(v)${_}{${getSystemExportStatement(
+									[node.id.variable!],
+									options
+								)};${_}return v;}${_}(`
 							);
 							nextSeparatorString += ')';
 						}
