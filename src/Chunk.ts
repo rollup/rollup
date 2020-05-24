@@ -845,7 +845,7 @@ export default class Chunk {
 						!(resolution.facadeChunk && resolution.facadeChunk.strictFacade) &&
 						!!resolution.namespace.exportName &&
 						// We only need one of the export names to bind to
-						resolution.namespace.exportName[1],
+						resolution.namespace.exportName[0],
 					options
 				);
 			}
