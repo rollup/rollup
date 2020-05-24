@@ -4,7 +4,6 @@ System.register(['./hsl2hsv.js'], function (exports) {
 	return {
 		setters: [function (module) {
 			hsl2hsv$1 = module.default;
-			exports('h', module.default);
 		}],
 		execute: function () {
 

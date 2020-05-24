@@ -10,6 +10,5 @@ define(['require', 'exports'], function (require, exports) { 'use strict';
 
 	exports.component = component;
 	exports.lib = lib;
-	exports.named = lib.named.named;
 
 });

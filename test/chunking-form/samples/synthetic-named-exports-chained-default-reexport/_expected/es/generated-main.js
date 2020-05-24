@@ -6,5 +6,4 @@ console.log('side-effect', lib.named.named);
 
 const component = import('./generated-component.js');
 
-var named = lib.named.named;
-export { component as c, lib as l, named as n };
+export { component as c, lib as l };
