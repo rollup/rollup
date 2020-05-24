@@ -52,33 +52,40 @@ export default class AssignmentExpression extends NodeBase {
 		this.left.render(code, options);
 		this.right.render(code, options);
 		if (options.format === 'system') {
-			if (this.left.variable && this.left.variable.exportName) {
-				if (this.left.variable.exportName.length === 1) {
-					const operatorPos = findFirstOccurrenceOutsideComment(
-						code.original,
-						this.operator,
-						this.left.end
-					);
-					const operation =
-						this.operator.length > 1
-							? ` ${this.left.variable.exportName[0]} ${this.operator.slice(0, -1)}`
-							: '';
-					code.overwrite(
-						operatorPos,
-						operatorPos + this.operator.length,
-						`= exports('${this.left.variable.exportName[0]}',${operation}`
-					);
-					code.appendLeft(this.right.end, `)`);
-				} else {
-					code.appendLeft(this.right.end, `, ${getSystemExportStatement([this.left.variable])}`);
+			const exportNames = this.left.variable?.safeExportName
+				? [this.left.variable?.safeExportName]
+				: this.left.variable?.exportName;
+			const _ = options.compact ? '' : ' ';
+			if (exportNames) {
+				let rhsParens = '';
+				let lhsSystemExports = '';
+				for (const exportName of exportNames) {
+					lhsSystemExports += `${lhsSystemExports.length ? _ : ''}exports('${exportName}',`;
+					rhsParens += ')';
 				}
+				const operatorPos = findFirstOccurrenceOutsideComment(
+					code.original,
+					this.operator,
+					this.left.end
+				);
+				const operation =
+					this.operator.length > 1 ? ` ${exportNames[0]} ${this.operator.slice(0, -1)}` : '';
+				code.overwrite(
+					operatorPos,
+					operatorPos + this.operator.length,
+					`=${_}${lhsSystemExports}${operation}`
+				);
+				code.appendLeft(this.right.end, rhsParens);
 			} else if ('addExportedVariables' in this.left) {
 				const systemPatternExports: Variable[] = [];
 				this.left.addExportedVariables(systemPatternExports);
 				if (systemPatternExports.length > 0) {
 					code.prependRight(
 						this.start,
-						`function (v) {${getSystemExportStatement(systemPatternExports)}; return v;} (`
+						`function${_}(v)${_}{${getSystemExportStatement(
+							systemPatternExports,
+							options
+						)};${_}return v;}${_}(`
 					);
 					code.appendLeft(this.end, ')');
 				}

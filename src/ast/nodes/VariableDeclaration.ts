@@ -94,7 +94,8 @@ export default class VariableDeclaration extends NodeBase {
 		actualContentEnd: number,
 		renderedContentEnd: number,
 		addSemicolon: boolean,
-		systemPatternExports: Variable[]
+		systemPatternExports: Variable[],
+		options: RenderOptions
 	): void {
 		if (code.original.charCodeAt(this.end - 1) === 59 /*";"*/) {
 			code.remove(this.end - 1, this.end);
@@ -123,7 +124,10 @@ export default class VariableDeclaration extends NodeBase {
 			code.appendLeft(renderedContentEnd, separatorString);
 		}
 		if (systemPatternExports.length > 0) {
-			code.appendLeft(renderedContentEnd, ` ${getSystemExportStatement(systemPatternExports)};`);
+			code.appendLeft(
+				renderedContentEnd,
+				` ${getSystemExportStatement(systemPatternExports, options)};`
+			);
 		}
 	}
 
@@ -176,16 +180,20 @@ export default class VariableDeclaration extends NodeBase {
 				if (options.format === 'system' && node.init !== null) {
 					if (node.id.type !== NodeType.Identifier) {
 						node.id.addExportedVariables(systemPatternExports);
-					} else if (node.id.variable!.exportName) {
-						// TODO: how to handle this case
-						// It might not be semantically correct to move the exports() after the declaration
-						// as other declarations may occur later but we don't have great a great for inlining the
-						//
+					} else if (node.id.variable!.safeExportName) {
 						code.prependLeft(
 							code.original.indexOf('=', node.id.end) + 1,
-							` exports('${node.id.variable!.safeExportName || node.id.variable!.exportName[0]}',`
+							` exports('${node.id.variable!.safeExportName}',`
 						);
 						nextSeparatorString += ')';
+					} else if (node.id.variable!.exportName) {
+						for (const exportName of node.id.variable!.exportName) {
+							code.prependLeft(
+								code.original.indexOf('=', node.id.end) + 1,
+								` exports('${exportName}',`
+							);
+							nextSeparatorString += ')';
+						}
 					}
 				}
 				if (isInDeclaration) {
@@ -219,7 +227,8 @@ export default class VariableDeclaration extends NodeBase {
 				actualContentEnd!,
 				renderedContentEnd,
 				!isNoStatement,
-				systemPatternExports
+				systemPatternExports,
+				options
 			);
 		} else {
 			code.remove(start, end);

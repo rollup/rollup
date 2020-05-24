@@ -845,7 +845,7 @@ export default class Chunk {
 						!(resolution.facadeChunk && resolution.facadeChunk.strictFacade) &&
 						!!resolution.namespace.exportName &&
 						// We only need one of the export names to bind to
-						resolution.namespace.exportName[0],
+						resolution.namespace.exportName[1],
 					options
 				);
 			}
@@ -1071,8 +1071,9 @@ export default class Chunk {
 			if (exportVariable instanceof ExportShimVariable) {
 				this.needsExportsShim = true;
 			}
-			exportVariable.exportName = exportVariable.exportName || [];
-			exportVariable.exportName.push(exportName);
+			if (!exportVariable.exportName || exportVariable.exportName.includes(exportName))
+				exportVariable.exportName = [exportName];
+			else exportVariable.exportName.push(exportName);
 			if (
 				options.format !== 'es' &&
 				options.format !== 'system' &&
