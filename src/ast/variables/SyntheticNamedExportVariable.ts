@@ -1,4 +1,5 @@
 import Module, { AstContext } from '../../Module';
+import ExportDefaultVariable from './ExportDefaultVariable';
 import Variable from './Variable';
 
 export default class SyntheticNamedExportVariable extends Variable {
@@ -14,9 +15,14 @@ export default class SyntheticNamedExportVariable extends Variable {
 	}
 
 	getBaseVariable(): Variable {
-		return this.defaultVariable instanceof SyntheticNamedExportVariable
-			? this.defaultVariable.getBaseVariable()
-			: this.defaultVariable;
+		let baseVariable = this.defaultVariable;
+		if (baseVariable instanceof ExportDefaultVariable) {
+			baseVariable = baseVariable.getOriginalVariable();
+		}
+		if (baseVariable instanceof SyntheticNamedExportVariable) {
+			baseVariable = baseVariable.getBaseVariable();
+		}
+		return baseVariable;
 	}
 
 	getName(): string {

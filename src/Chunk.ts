@@ -136,6 +136,7 @@ export default class Chunk {
 		) {
 			chunk.dependencies.add(facadedModule.chunk!);
 		}
+		chunk.ensureReexportsAreAvailableForModule(facadedModule);
 		chunk.facadeModule = facadedModule;
 		chunk.strictFacade = true;
 		return chunk;
@@ -214,7 +215,7 @@ export default class Chunk {
 		}
 	}
 
-	canModuleBeFacade(module: Module, exposedNamespaces: NamespaceVariable[]): boolean {
+	canModuleBeFacade(module: Module, exposedVariables: Set<Variable>): boolean {
 		const moduleExportNamesByVariable = module.getExportNamesByVariable();
 		for (const exposedVariable of this.exports) {
 			if (!moduleExportNamesByVariable.has(exposedVariable)) {
@@ -236,7 +237,7 @@ export default class Chunk {
 				return false;
 			}
 		}
-		for (const exposedVariable of exposedNamespaces) {
+		for (const exposedVariable of exposedVariables) {
 			if (
 				!(moduleExportNamesByVariable.has(exposedVariable) || exposedVariable.module === module)
 			) {
@@ -279,7 +280,14 @@ export default class Chunk {
 			module.includedDynamicImporters.some(importingModule => importingModule.chunk !== this)
 		);
 		this.isDynamicEntry = dynamicEntryModules.length > 0;
-		const exposedNamespaces = dynamicEntryModules.map(module => module.namespace);
+		const exposedVariables = new Set<Variable>(dynamicEntryModules.map(module => module.namespace));
+		for (const module of this.entryModules) {
+			if (module.preserveSignature) {
+				for (const exportedVariable of module.getExportNamesByVariable().keys()) {
+					exposedVariables.add(exportedVariable);
+				}
+			}
+		}
 		for (const module of this.entryModules) {
 			const requiredFacades: FacadeName[] = [...module.userChunkNames].map(name => ({
 				name
@@ -295,11 +303,14 @@ export default class Chunk {
 				!this.facadeModule &&
 				(this.graph.preserveModules ||
 					module.preserveSignature !== 'strict' ||
-					this.canModuleBeFacade(module, exposedNamespaces))
+					this.canModuleBeFacade(module, exposedVariables))
 			) {
 				this.facadeModule = module;
 				module.facadeChunk = this;
-				this.strictFacade = module.preserveSignature === 'strict';
+				if (module.preserveSignature) {
+					this.strictFacade = module.preserveSignature === 'strict';
+					this.ensureReexportsAreAvailableForModule(module);
+				}
 				this.assignFacadeName(requiredFacades.shift()!, module);
 			}
 
@@ -308,7 +319,7 @@ export default class Chunk {
 			}
 		}
 		for (const module of dynamicEntryModules) {
-			if (!this.facadeModule && this.canModuleBeFacade(module, exposedNamespaces)) {
+			if (!this.facadeModule && this.canModuleBeFacade(module, exposedVariables)) {
 				this.facadeModule = module;
 				module.facadeChunk = this;
 				this.strictFacade = true;
@@ -316,7 +327,7 @@ export default class Chunk {
 			} else if (
 				this.facadeModule === module &&
 				!this.strictFacade &&
-				this.canModuleBeFacade(module, exposedNamespaces)
+				this.canModuleBeFacade(module, exposedVariables)
 			) {
 				this.strictFacade = true;
 			} else if (!(module.facadeChunk && module.facadeChunk.strictFacade)) {
@@ -749,6 +760,28 @@ export default class Chunk {
 		return hash.digest('hex').substr(0, 8);
 	}
 
+	private ensureReexportsAreAvailableForModule(module: Module) {
+		const map = module.getExportNamesByVariable();
+		for (const exportedVariable of map.keys()) {
+			const isSynthetic = exportedVariable instanceof SyntheticNamedExportVariable;
+			const importedVariable = isSynthetic
+				? (exportedVariable as SyntheticNamedExportVariable).getBaseVariable()
+				: exportedVariable;
+			const exportingModule = importedVariable.module;
+			if (
+				exportingModule &&
+				exportingModule.chunk &&
+				exportingModule.chunk !== this &&
+				!(importedVariable instanceof NamespaceVariable && this.graph.preserveModules)
+			) {
+				exportingModule.chunk.exports.add(importedVariable);
+				if (isSynthetic) {
+					this.imports.add(importedVariable);
+				}
+			}
+		}
+	}
+
 	private finaliseDynamicImports(options: OutputOptions) {
 		const stripKnownJsExtensions = options.format === 'amd';
 		for (const [module, code] of this.renderedModuleSources) {
@@ -1067,11 +1100,8 @@ export default class Chunk {
 			if (variable instanceof ExportDefaultVariable) {
 				variable = variable.getOriginalVariable();
 			}
-			while (variable instanceof SyntheticNamedExportVariable) {
+			if (variable instanceof SyntheticNamedExportVariable) {
 				variable = variable.getBaseVariable();
-				if (variable instanceof ExportDefaultVariable) {
-					variable = variable.getOriginalVariable();
-				}
 			}
 			if (variable.module && (variable.module as Module).chunk !== this) {
 				this.imports.add(variable);
@@ -1085,44 +1115,21 @@ export default class Chunk {
 		}
 		if (
 			(module.isEntryPoint && module.preserveSignature !== false) ||
-			module.includedDynamicImporters.some(importer => importer.chunk !== this)
+			module.includedDynamicImporters.some(importer => importer.chunk !== this) ||
+			module.namespace.included
 		) {
-			const map = module.getExportNamesByVariable();
-			for (const exportedVariable of map.keys()) {
-				if (module.isEntryPoint && module.preserveSignature !== false) {
-					this.exports.add(exportedVariable);
-				}
-				const isSynthetic = exportedVariable instanceof SyntheticNamedExportVariable;
-				const importedVariable = isSynthetic
-					? (exportedVariable as SyntheticNamedExportVariable).getBaseVariable()
-					: exportedVariable;
-				const exportingModule = importedVariable.module;
-				if (
-					exportingModule &&
-					exportingModule.chunk &&
-					exportingModule.chunk !== this &&
-					!(importedVariable instanceof NamespaceVariable && this.graph.preserveModules)
-				) {
-					exportingModule.chunk.exports.add(importedVariable);
-					if (isSynthetic) {
-						this.imports.add(importedVariable);
-					}
-				}
-			}
-		}
-		if (module.namespace.included) {
-			for (const reexportName of Object.keys(module.reexportDescriptions)) {
-				const reexport = module.reexportDescriptions[reexportName];
-				const variable = reexport.module.getVariableForExportName(reexport.localName);
-				if ((variable.module as Module).chunk && (variable.module as Module).chunk !== this) {
-					this.imports.add(variable);
-					(variable.module as Module).chunk!.exports.add(variable);
-				}
-			}
+			this.ensureReexportsAreAvailableForModule(module);
 		}
 		for (const { node, resolution } of module.dynamicImports) {
-			if (node.included && resolution instanceof Module && resolution.chunk === this)
+			if (
+				node.included &&
+				resolution instanceof Module &&
+				resolution.chunk === this &&
+				!resolution.namespace.included
+			) {
 				resolution.namespace.include();
+				this.ensureReexportsAreAvailableForModule(resolution);
+			}
 		}
 	}
 }

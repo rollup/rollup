@@ -11,8 +11,6 @@ System.register([], function (exports, module) {
 
 			const component = exports('c', module.import('./generated-component.js'));
 
-			exports('n', lib.named.named);
-
 		}
 	};
 });

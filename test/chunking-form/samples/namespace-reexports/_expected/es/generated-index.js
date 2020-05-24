@@ -1,5 +1,4 @@
 import hsl2hsv$1 from './hsl2hsv.js';
-export { default as h } from './hsl2hsv.js';
 
 var hsl2hsv = 'asdf';
 

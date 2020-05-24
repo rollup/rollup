@@ -10,4 +10,3 @@ const component = Promise.resolve().then(function () { return require('./generat
 
 exports.component = component;
 exports.lib = lib;
-exports.named = lib.named.named;
