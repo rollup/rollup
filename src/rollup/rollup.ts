@@ -66,17 +66,32 @@ export async function rollupInternal(
 	const result: RollupBuild = {
 		cache: useCache ? graph.getCache() : undefined,
 		async generate(rawOutputOptions: OutputOptions) {
-			const { outputOptions, outputPluginDriver } = getOutputOptionsAndPluginDriver(
+			const {
+				options: outputOptions,
+				outputPluginDriver,
+				unsetOptions
+			} = getOutputOptionsAndPluginDriver(
 				rawOutputOptions as GenericConfigObject,
 				graph.pluginDriver,
 				inputOptions
 			);
-			const bundle = new Bundle(graph, outputOptions, inputOptions, outputPluginDriver, chunks);
+			const bundle = new Bundle(
+				graph,
+				outputOptions,
+				unsetOptions,
+				inputOptions,
+				outputPluginDriver,
+				chunks
+			);
 			return createOutput(await bundle.generate(false));
 		},
 		watchFiles: Object.keys(graph.watchFiles),
 		async write(rawOutputOptions: OutputOptions) {
-			const { outputOptions, outputPluginDriver } = getOutputOptionsAndPluginDriver(
+			const {
+				options: outputOptions,
+				outputPluginDriver,
+				unsetOptions
+			} = getOutputOptionsAndPluginDriver(
 				rawOutputOptions as GenericConfigObject,
 				graph.pluginDriver,
 				inputOptions
@@ -87,7 +102,14 @@ export async function rollupInternal(
 					message: 'You must specify "output.file" or "output.dir" for the build.'
 				});
 			}
-			const bundle = new Bundle(graph, outputOptions, inputOptions, outputPluginDriver, chunks);
+			const bundle = new Bundle(
+				graph,
+				outputOptions,
+				unsetOptions,
+				inputOptions,
+				outputPluginDriver,
+				chunks
+			);
 			const generated = await bundle.generate(true);
 			await Promise.all(
 				Object.keys(generated).map(chunkId => writeOutputFile(generated[chunkId], outputOptions))
@@ -137,7 +159,11 @@ function getOutputOptionsAndPluginDriver(
 	rawOutputOptions: GenericConfigObject,
 	inputPluginDriver: PluginDriver,
 	inputOptions: NormalizedInputOptions
-): { outputOptions: NormalizedOutputOptions; outputPluginDriver: PluginDriver } {
+): {
+	options: NormalizedOutputOptions;
+	outputPluginDriver: PluginDriver;
+	unsetOptions: Set<string>;
+} {
 	if (!rawOutputOptions) {
 		throw new Error('You must supply an options object');
 	}
@@ -146,7 +172,7 @@ function getOutputOptionsAndPluginDriver(
 	const outputPluginDriver = inputPluginDriver.createOutputPluginDriver(rawPlugins);
 
 	return {
-		outputOptions: getOutputOptions(inputOptions, rawOutputOptions, outputPluginDriver),
+		...getOutputOptions(inputOptions, rawOutputOptions, outputPluginDriver),
 		outputPluginDriver
 	};
 }
@@ -155,7 +181,7 @@ function getOutputOptions(
 	inputOptions: NormalizedInputOptions,
 	rawOutputOptions: GenericConfigObject,
 	outputPluginDriver: PluginDriver
-): NormalizedOutputOptions {
+): { options: NormalizedOutputOptions; unsetOptions: Set<string> } {
 	return normalizeOutputOptions(
 		outputPluginDriver.hookReduceArg0Sync(
 			'outputOptions',
@@ -208,7 +234,7 @@ function getSortingFileType(file: OutputAsset | OutputChunk): SortingFileType {
 
 function writeOutputFile(
 	outputFile: OutputAsset | OutputChunk,
-	outputOptions: OutputOptions
+	outputOptions: NormalizedOutputOptions
 ): Promise<unknown> {
 	const fileName = resolve(outputOptions.dir || dirname(outputOptions.file!), outputFile.fileName);
 	let writeSourceMapPromise: Promise<void> | undefined;

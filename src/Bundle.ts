@@ -19,6 +19,7 @@ export default class Bundle {
 	constructor(
 		private readonly graph: Graph,
 		private readonly outputOptions: NormalizedOutputOptions,
+		private readonly unsetOptions: Set<string>,
 		private readonly inputOptions: NormalizedInputOptions,
 		private readonly pluginDriver: PluginDriver,
 		private readonly chunks: Chunk[]
@@ -36,10 +37,7 @@ export default class Bundle {
 		timeStart('GENERATE', 1);
 		const inputBase = commondir(getAbsoluteEntryModulePaths(this.chunks));
 		const outputBundle: OutputBundleWithPlaceholders = Object.create(null);
-		this.pluginDriver.setOutputBundle(
-			outputBundle,
-			this.outputOptions.assetFileNames || 'assets/[name]-[hash][extname]'
-		);
+		this.pluginDriver.setOutputBundle(outputBundle, this.outputOptions.assetFileNames);
 		try {
 			await this.pluginDriver.hookParallel('renderStart', [this.outputOptions, this.inputOptions]);
 			// TODO Lukas createChunks here
@@ -110,7 +108,12 @@ export default class Bundle {
 			if (this.outputOptions.file) {
 				chunk.id = basename(this.outputOptions.file);
 			} else if (this.inputOptions.preserveModules) {
-				chunk.id = chunk.generateIdPreserveModules(inputBase, this.outputOptions, bundle);
+				chunk.id = chunk.generateIdPreserveModules(
+					inputBase,
+					this.outputOptions,
+					bundle,
+					this.unsetOptions
+				);
 			} else {
 				chunk.id = chunk.generateId(addons, this.outputOptions, bundle, true, this.pluginDriver);
 			}

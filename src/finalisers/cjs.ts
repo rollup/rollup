@@ -1,5 +1,5 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
-import { OutputOptions } from '../rollup/types';
+import { NormalizedOutputOptions } from '../rollup/types';
 import { INTEROP_DEFAULT_VARIABLE, INTEROP_NAMESPACE_VARIABLE } from '../utils/variableNames';
 import { FinaliserOptions } from './index';
 import { compactEsModuleExport, esModuleExport } from './shared/esModuleExport';
@@ -20,7 +20,7 @@ export default function cjs(
 		outro,
 		varOrConst
 	}: FinaliserOptions,
-	options: OutputOptions
+	options: NormalizedOutputOptions
 ) {
 	const n = options.compact ? '' : '\n';
 	const _ = options.compact ? '' : ' ';

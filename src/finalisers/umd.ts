@@ -1,5 +1,5 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
-import { GlobalsOption, OutputOptions } from '../rollup/types';
+import { GlobalsOption, NormalizedOutputOptions } from '../rollup/types';
 import { error } from '../utils/error';
 import { FinaliserOptions } from './index';
 import { compactEsModuleExport, esModuleExport } from './shared/esModuleExport';
@@ -35,7 +35,7 @@ export default function umd(
 		varOrConst,
 		warn
 	}: FinaliserOptions,
-	options: OutputOptions
+	options: NormalizedOutputOptions
 ) {
 	const _ = options.compact ? '' : ' ';
 	const n = options.compact ? '' : '\n';
@@ -81,7 +81,7 @@ export default function umd(
 		(amdOptions.id ? `'${amdOptions.id}',${_}` : ``) +
 		(amdDeps.length ? `[${amdDeps.join(`,${_}`)}],${_}` : ``);
 
-	const define = amdOptions.define || 'define';
+	const define = amdOptions.define;
 	const cjsExport = !namedExportsMode && hasExports ? `module.exports${_}=${_}` : ``;
 	const useStrict = options.strict !== false ? `${_}'use strict';${n}` : ``;
 
@@ -167,9 +167,5 @@ export default function umd(
 		magicString.append(n + n + (options.compact ? compactEsModuleExport : esModuleExport));
 	if (outro) magicString.append(outro);
 
-	return magicString
-		.trim()
-		.indent(t)
-		.append(wrapperOutro)
-		.prepend(wrapperIntro);
+	return magicString.trim().indent(t).append(wrapperOutro).prepend(wrapperIntro);
 }

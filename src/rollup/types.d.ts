@@ -255,7 +255,7 @@ export type RenderChunkHook = (
 	this: PluginContext,
 	code: string,
 	chunk: RenderedChunk,
-	options: OutputOptions
+	options: NormalizedOutputOptions
 ) =>
 	| Promise<{ code: string; map?: SourceMapInput } | null>
 	| { code: string; map?: SourceMapInput }
@@ -341,7 +341,7 @@ interface OutputPluginHooks {
 	augmentChunkHash: (this: PluginContext, chunk: PreRenderedChunk) => string | void;
 	generateBundle: (
 		this: PluginContext,
-		options: OutputOptions,
+		options: NormalizedOutputOptions,
 		bundle: OutputBundle,
 		isWrite: boolean
 	) => void | Promise<void>;
@@ -359,7 +359,7 @@ interface OutputPluginHooks {
 	renderError: (this: PluginContext, err?: Error) => Promise<void> | void;
 	renderStart: (
 		this: PluginContext,
-		outputOptions: OutputOptions,
+		outputOptions: NormalizedOutputOptions,
 		inputOptions: NormalizedInputOptions
 	) => Promise<void> | void;
 	/** @deprecated Use `resolveFileUrl` instead */
@@ -368,7 +368,7 @@ interface OutputPluginHooks {
 	resolveImportMeta: ResolveImportMetaHook;
 	writeBundle: (
 		this: PluginContext,
-		options: OutputOptions,
+		options: NormalizedOutputOptions,
 		bundle: OutputBundle
 	) => void | Promise<void>;
 }
@@ -570,18 +570,18 @@ export interface OutputOptions {
 }
 
 export interface NormalizedOutputOptions {
-	amd?: {
-		define?: string;
+	amd: {
+		define: string;
 		id?: string;
 	};
-	assetFileNames?: string;
+	assetFileNames: string;
 	banner?: string | (() => string | Promise<string>);
-	chunkFileNames?: string;
+	chunkFileNames: string;
 	compact?: boolean;
 	dir: string | undefined;
 	/** @deprecated Use the "renderDynamicImport" plugin hook instead. */
 	dynamicImportFunction?: string;
-	entryFileNames?: string;
+	entryFileNames: string;
 	esModule?: boolean;
 	exports?: 'default' | 'named' | 'none' | 'auto';
 	extend?: boolean;

@@ -13,19 +13,25 @@ import { GenericConfigObject, warnUnknownOptions } from './options';
 export function normalizeOutputOptions(
 	config: GenericConfigObject,
 	inputOptions: NormalizedInputOptions
-): NormalizedOutputOptions {
+): { options: NormalizedOutputOptions; unsetOptions: Set<string> } {
+	// These are options that may trigger special warnings or behaviour later
+	// if the user did not select an explicit value
+	const unsetOptions = new Set<string>();
+
 	// TODO Lukas inline
 	const getOption = (name: string, defaultValue?: unknown): any => config[name] ?? defaultValue;
+
 	const file = getFile(config, inputOptions);
 	const outputOptions: NormalizedOutputOptions & OutputOptions = {
-		amd: config.amd as any,
-		assetFileNames: getOption('assetFileNames'),
+		amd: getAmd(config),
+		assetFileNames:
+			(config.assetFileNames as string | undefined) ?? 'assets/[name]-[hash][extname]',
 		banner: getOption('banner'),
-		chunkFileNames: getOption('chunkFileNames'),
+		chunkFileNames: (config.chunkFileNames as string | undefined) ?? '[name]-[hash].js',
 		compact: getOption('compact', false),
 		dir: getDir(config, file),
 		dynamicImportFunction: getOption('dynamicImportFunction'),
-		entryFileNames: getOption('entryFileNames'),
+		entryFileNames: getEntryFileNames(config, unsetOptions),
 		esModule: getOption('esModule', true),
 		exports: normalizeExports(getOption('exports')),
 		extend: getOption('extend'),
@@ -55,7 +61,7 @@ export function normalizeOutputOptions(
 	};
 
 	warnUnknownOptions(config, Object.keys(outputOptions), 'output options', inputOptions.onwarn);
-	return outputOptions;
+	return { options: outputOptions, unsetOptions };
 }
 
 const getFile = (
@@ -80,6 +86,19 @@ const getFile = (
 	return file;
 };
 
+const getAmd = (
+	config: GenericConfigObject
+): {
+	define: string;
+	id?: string;
+} => ({
+	define: 'define',
+	...(config.amd as {
+		define?: string;
+		id?: string;
+	})
+});
+
 const getDir = (config: GenericConfigObject, file: string | undefined): string | undefined => {
 	const dir = config.dir as string | undefined;
 	if (typeof dir === 'string' && typeof file === 'string') {
@@ -90,6 +109,14 @@ const getDir = (config: GenericConfigObject, file: string | undefined): string |
 		});
 	}
 	return dir;
+};
+
+const getEntryFileNames = (config: GenericConfigObject, unsetOptions: Set<string>): string => {
+	const configEntryFileNames = config.entryFileNames as string | undefined;
+	if (configEntryFileNames == null) {
+		unsetOptions.add('entryFileNames');
+	}
+	return configEntryFileNames ?? '[name].js';
 };
 
 function normalizeFormat(format: string): ModuleFormat {

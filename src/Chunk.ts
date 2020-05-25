@@ -17,7 +17,7 @@ import {
 	DecodedSourceMapOrMissing,
 	GlobalsOption,
 	InternalModuleFormat,
-	OutputOptions,
+	NormalizedOutputOptions,
 	PreRenderedChunk,
 	RenderedChunk,
 	RenderedModule
@@ -248,7 +248,7 @@ export default class Chunk {
 		return true;
 	}
 
-	generateExports(options: OutputOptions) {
+	generateExports(options: NormalizedOutputOptions) {
 		this.sortedExportNames = null;
 		this.exportsByName = Object.create(null);
 		const remainingExports = new Set(this.exports);
@@ -343,7 +343,7 @@ export default class Chunk {
 
 	generateId(
 		addons: Addons,
-		options: OutputOptions,
+		options: NormalizedOutputOptions,
 		existingNames: Record<string, any>,
 		includeHash: boolean,
 		outputPluginDriver: PluginDriver
@@ -353,8 +353,8 @@ export default class Chunk {
 		}
 		const [pattern, patternName] =
 			this.facadeModule && this.facadeModule.isUserDefinedEntryPoint
-				? [options.entryFileNames || '[name].js', 'output.entryFileNames']
-				: [options.chunkFileNames || '[name]-[hash].js', 'output.chunkFileNames'];
+				? [options.entryFileNames, 'output.entryFileNames']
+				: [options.chunkFileNames, 'output.chunkFileNames'];
 		return makeUnique(
 			renderNamePattern(pattern, patternName, {
 				format: () => options.format as string,
@@ -375,29 +375,29 @@ export default class Chunk {
 
 	generateIdPreserveModules(
 		preserveModulesRelativeDir: string,
-		options: OutputOptions,
-		existingNames: Record<string, any>
+		options: NormalizedOutputOptions,
+		existingNames: Record<string, any>,
+		unsetOptions: Set<string>
 	): string {
 		const id = this.orderedModules[0].id;
 		const sanitizedId = sanitizeFileName(id);
-
 		let path: string;
 		if (isAbsolute(id)) {
 			const extension = extname(id);
-
-			const name = renderNamePattern(
-				options.entryFileNames ||
-					(NON_ASSET_EXTENSIONS.includes(extension) ? '[name].js' : '[name][extname].js'),
-				'output.entryFileNames',
-				{
+			const pattern = unsetOptions.has('entryFileNames')
+				? NON_ASSET_EXTENSIONS.includes(extension)
+					? '[name].js'
+					: '[name][extname].js'
+				: options.entryFileNames;
+			path = relative(
+				preserveModulesRelativeDir,
+				`${dirname(sanitizedId)}/${renderNamePattern(pattern, 'output.entryFileNames', {
 					ext: () => extension.substr(1),
 					extname: () => extension,
 					format: () => options.format as string,
 					name: () => this.getChunkName()
-				}
+				})}`
 			);
-
-			path = relative(preserveModulesRelativeDir, `${dirname(sanitizedId)}/${name}`);
 		} else {
 			path = `_virtual/${basename(sanitizedId)}`;
 		}
@@ -470,7 +470,7 @@ export default class Chunk {
 	}
 
 	// prerender allows chunk hashes and names to be generated before finalizing
-	preRender(options: OutputOptions, inputBase: string, outputPluginDriver: PluginDriver) {
+	preRender(options: NormalizedOutputOptions, inputBase: string, outputPluginDriver: PluginDriver) {
 		timeStart('render modules', 3);
 
 		const magicString = new MagicStringBundle({ separator: options.compact ? '' : '\n\n' });
@@ -574,7 +574,7 @@ export default class Chunk {
 	}
 
 	async render(
-		options: OutputOptions,
+		options: NormalizedOutputOptions,
 		addons: Addons,
 		outputChunk: RenderedChunk,
 		outputPluginDriver: PluginDriver
@@ -738,7 +738,7 @@ export default class Chunk {
 
 	private computeContentHashWithDependencies(
 		addons: Addons,
-		options: OutputOptions,
+		options: NormalizedOutputOptions,
 		existingNames: Record<string, any>,
 		outputPluginDriver: PluginDriver
 	): string {
@@ -785,7 +785,7 @@ export default class Chunk {
 		}
 	}
 
-	private finaliseDynamicImports(options: OutputOptions) {
+	private finaliseDynamicImports(options: NormalizedOutputOptions) {
 		const stripKnownJsExtensions = options.format === 'amd';
 		for (const [module, code] of this.renderedModuleSources) {
 			for (const { node, resolution } of module.dynamicImports) {
@@ -833,7 +833,7 @@ export default class Chunk {
 	}
 
 	private getChunkDependencyDeclarations(
-		options: OutputOptions
+		options: NormalizedOutputOptions
 	): Map<Chunk | ExternalModule, ModuleDeclarationDependency> {
 		const reexportDeclarations = new Map<Chunk | ExternalModule, ReexportSpecifier[]>();
 
@@ -1039,7 +1039,7 @@ export default class Chunk {
 		}
 	}
 
-	private setExternalRenderPaths(options: OutputOptions, inputBase: string) {
+	private setExternalRenderPaths(options: NormalizedOutputOptions, inputBase: string) {
 		for (const dependency of [...this.dependencies, ...this.dynamicDependencies]) {
 			if (dependency instanceof ExternalModule) {
 				dependency.setRenderPath(options, inputBase);
@@ -1047,7 +1047,7 @@ export default class Chunk {
 		}
 	}
 
-	private setIdentifierRenderResolutions(options: OutputOptions) {
+	private setIdentifierRenderResolutions(options: NormalizedOutputOptions) {
 		const syntheticExports = new Set<SyntheticNamedExportVariable>();
 
 		for (const exportName of this.getExportNames()) {

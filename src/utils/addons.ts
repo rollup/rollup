@@ -1,4 +1,4 @@
-import { OutputOptions } from '../rollup/types';
+import { NormalizedOutputOptions } from '../rollup/types';
 import { error } from './error';
 import { PluginDriver } from './PluginDriver';
 
@@ -26,7 +26,7 @@ const concatSep = (out: string, next: string) => (next ? `${out}\n${next}` : out
 const concatDblSep = (out: string, next: string) => (next ? `${out}\n\n${next}` : out);
 
 export async function createAddons(
-	options: OutputOptions,
+	options: NormalizedOutputOptions,
 	outputPluginDriver: PluginDriver
 ): Promise<Addons> {
 	try {

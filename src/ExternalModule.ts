@@ -1,6 +1,6 @@
 import ExternalVariable from './ast/variables/ExternalVariable';
 import Graph from './Graph';
-import { OutputOptions } from './rollup/types';
+import { NormalizedOutputOptions } from './rollup/types';
 import { makeLegal } from './utils/identifierHelpers';
 import { isAbsolute, normalize, relative } from './utils/path';
 
@@ -54,7 +54,7 @@ export default class ExternalModule {
 		return declaration;
 	}
 
-	setRenderPath(options: OutputOptions, inputBase: string) {
+	setRenderPath(options: NormalizedOutputOptions, inputBase: string) {
 		this.renderPath = '';
 		if (options.paths) {
 			this.renderPath =

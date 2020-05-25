@@ -1,5 +1,5 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
-import { OutputOptions } from '../rollup/types';
+import { NormalizedOutputOptions } from '../rollup/types';
 import { error } from '../utils/error';
 import { isLegal } from '../utils/identifierHelpers';
 import { FinaliserOptions } from './index';
@@ -25,7 +25,7 @@ export default function iife(
 		varOrConst,
 		warn
 	}: FinaliserOptions,
-	options: OutputOptions
+	options: NormalizedOutputOptions
 ) {
 	const _ = options.compact ? '' : ' ';
 	const n = options.compact ? '' : '\n';
@@ -101,8 +101,5 @@ export default function iife(
 	if (exportBlock) magicString.append(n + n + exportBlock);
 	if (outro) magicString.append(outro);
 
-	return magicString
-		.indent(t)
-		.prepend(wrapperIntro)
-		.append(wrapperOutro);
+	return magicString.indent(t).prepend(wrapperIntro).append(wrapperOutro);
 }

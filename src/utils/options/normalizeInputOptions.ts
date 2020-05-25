@@ -4,6 +4,7 @@ import injectStaticClassFeatures from 'acorn-static-class-features';
 import {
 	ExternalOption,
 	HasModuleSideEffects,
+	InputOption,
 	InputOptions,
 	ManualChunksOption,
 	ModuleSideEffectsOption,
@@ -33,8 +34,8 @@ export function normalizeInputOptions(
 ): { options: NormalizedInputOptions; unsetOptions: Set<string> } {
 	// TODO Lukas do not access graph.options and unsetOptions but pass it down
 
-	// These are options that may trigger special warnings later if the user did not select an
-	// explicit value
+	// These are options that may trigger special warnings or behaviour later
+	// if the user did not select an explicit value
 	const unsetOptions = new Set<string>();
 
 	const context = (config.context as string | undefined) ?? 'undefined';
@@ -162,13 +163,9 @@ const getInput = (
 	config: GenericConfigObject,
 	inlineDynamicImports: boolean
 ): string[] | { [entryAlias: string]: string } => {
-	const configInput = config.input;
+	const configInput = config.input as InputOption | undefined;
 	const input =
-		configInput == null
-			? []
-			: typeof configInput === 'string'
-			? [configInput]
-			: (configInput as any);
+		configInput == null ? [] : typeof configInput === 'string' ? [configInput] : configInput;
 	if (inlineDynamicImports && (Array.isArray(input) ? input : Object.keys(input)).length > 1) {
 		return error({
 			code: 'INVALID_OPTION',
@@ -205,14 +202,17 @@ const getModuleContext = (
 	config: GenericConfigObject,
 	context: string
 ): ((id: string) => string) => {
-	const configModuleContext = config.moduleContext;
+	const configModuleContext = config.moduleContext as
+		| ((id: string) => string | null | undefined)
+		| { [id: string]: string }
+		| undefined;
 	if (typeof configModuleContext === 'function') {
 		return id => configModuleContext(id) ?? context;
 	}
 	if (configModuleContext) {
 		const contextByModuleId = Object.create(null);
-		for (const key of Object.keys(configModuleContext as { [key: string]: string })) {
-			contextByModuleId[resolve(key)] = (configModuleContext as { [key: string]: string })[key];
+		for (const key of Object.keys(configModuleContext)) {
+			contextByModuleId[resolve(key)] = configModuleContext[key];
 		}
 		return id => contextByModuleId[id] || context;
 	}
@@ -224,7 +224,9 @@ const getPreserveEntrySignatures = (
 	unsetOptions: Set<string>,
 	preserveModules: boolean
 ): PreserveEntrySignaturesOption => {
-	const configPreserveEntrySignatures = config.preserveEntrySignatures;
+	const configPreserveEntrySignatures = config.preserveEntrySignatures as
+		| PreserveEntrySignaturesOption
+		| undefined;
 	if (configPreserveEntrySignatures == null) {
 		unsetOptions.add('preserveEntrySignatures');
 	} else if (configPreserveEntrySignatures === false && preserveModules) {
@@ -233,7 +235,7 @@ const getPreserveEntrySignatures = (
 			message: '"preserveModules" does not support setting "preserveEntrySignatures" to "false".'
 		});
 	}
-	return (configPreserveEntrySignatures as PreserveEntrySignaturesOption | undefined) ?? 'strict';
+	return configPreserveEntrySignatures ?? 'strict';
 };
 
 const getTreeshake = (

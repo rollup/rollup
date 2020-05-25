@@ -1,10 +1,10 @@
 import Chunk from '../Chunk';
-import { OutputOptions } from '../rollup/types';
+import { NormalizedOutputOptions } from '../rollup/types';
 import { errIncompatibleExportOptionValue, errMixedExport, error } from './error';
 
 export default function getExportMode(
 	chunk: Chunk,
-	{ exports: exportMode, name, format }: OutputOptions,
+	{ exports: exportMode, name, format }: NormalizedOutputOptions,
 	facadeModuleId: string
 ) {
 	const exportKeys = chunk.getExportNames();
