@@ -17,7 +17,7 @@ export default function getExportMode(
 		return error(errIncompatibleExportOptionValue('none', exportKeys, facadeModuleId));
 	}
 
-	if (!exportMode || exportMode === 'auto') {
+	if (exportMode === 'auto') {
 		if (exportKeys.length === 0) {
 			exportMode = 'none';
 		} else if (exportKeys.length === 1 && exportKeys[0] === 'default') {

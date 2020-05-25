@@ -580,10 +580,10 @@ export interface NormalizedOutputOptions {
 	compact: boolean;
 	dir: string | undefined;
 	/** @deprecated Use the "renderDynamicImport" plugin hook instead. */
-	dynamicImportFunction?: string;
+	dynamicImportFunction: string | undefined;
 	entryFileNames: string;
 	esModule: boolean;
-	exports?: 'default' | 'named' | 'none' | 'auto';
+	exports: 'default' | 'named' | 'none' | 'auto';
 	extend: boolean;
 	externalLiveBindings: boolean;
 	file: string | undefined;

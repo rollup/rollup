@@ -33,10 +33,10 @@ export function normalizeOutputOptions(
 		chunkFileNames: (config.chunkFileNames as string | undefined) ?? '[name]-[hash].js',
 		compact,
 		dir: getDir(config, file),
-		dynamicImportFunction: getOption('dynamicImportFunction'),
+		dynamicImportFunction: config.dynamicImportFunction as string | undefined,
 		entryFileNames: getEntryFileNames(config, unsetOptions),
 		esModule: (config.esModule as boolean | undefined) ?? true,
-		exports: normalizeExports(getOption('exports')),
+		exports: getExports(config),
 		extend: (config.extend as boolean | undefined) || false,
 		externalLiveBindings: (config.externalLiveBindings as boolean | undefined) ?? true,
 		file,
@@ -156,11 +156,12 @@ const getEntryFileNames = (config: GenericConfigObject, unsetOptions: Set<string
 	return configEntryFileNames ?? '[name].js';
 };
 
-function normalizeExports(exports: string | undefined): 'default' | 'named' | 'none' | 'auto' {
-	if (exports && !['default', 'named', 'none', 'auto'].includes(exports)) {
-		return error(errInvalidExportOptionValue(exports));
+function getExports(config: GenericConfigObject): 'default' | 'named' | 'none' | 'auto' {
+	const configExports = config.exports as string | undefined;
+	if (configExports && !['default', 'named', 'none', 'auto'].includes(configExports)) {
+		return error(errInvalidExportOptionValue(configExports));
 	}
-	return exports as 'default' | 'named' | 'none' | 'auto';
+	return (configExports as 'default' | 'named' | 'none' | 'auto') || 'auto';
 }
 
 const getIndent = (config: GenericConfigObject, compact: boolean): string | true => {

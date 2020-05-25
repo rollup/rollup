@@ -48,6 +48,7 @@ describe('hooks', () => {
 								compact: false,
 								entryFileNames: '[name].js',
 								esModule: true,
+								exports: 'auto',
 								extend: false,
 								externalLiveBindings: true,
 								format: 'cjs',

@@ -478,7 +478,7 @@ export default class Chunk {
 
 		const renderOptions: RenderOptions = {
 			compact: options.compact,
-			dynamicImportFunction: options.dynamicImportFunction as string,
+			dynamicImportFunction: options.dynamicImportFunction,
 			format: options.format,
 			freeze: options.freeze,
 			indent: this.indentString,
