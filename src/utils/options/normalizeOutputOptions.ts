@@ -26,7 +26,7 @@ export function normalizeOutputOptions(
 		amd: getAmd(config),
 		assetFileNames:
 			(config.assetFileNames as string | undefined) ?? 'assets/[name]-[hash][extname]',
-		banner: getOption('banner'),
+		banner: getAddon(config, 'banner'),
 		chunkFileNames: (config.chunkFileNames as string | undefined) ?? '[name]-[hash].js',
 		compact: getOption('compact', false),
 		dir: getDir(config, file),
@@ -37,19 +37,19 @@ export function normalizeOutputOptions(
 		extend: getOption('extend'),
 		externalLiveBindings: getOption('externalLiveBindings', true),
 		file,
-		footer: getOption('footer'),
+		footer: getAddon(config, 'footer'),
 		format: normalizeFormat(getOption('format')),
 		freeze: getOption('freeze', true),
 		globals: getOption('globals'),
 		hoistTransitiveImports: getOption('hoistTransitiveImports', true),
 		indent: getOption('indent', true),
 		interop: getOption('interop', true),
-		intro: getOption('intro'),
+		intro: getAddon(config, 'intro'),
 		minifyInternalExports: getOption('minifyInternalExports'),
 		name: getOption('name'),
 		namespaceToStringTag: getOption('namespaceToStringTag', false),
 		noConflict: getOption('noConflict'),
-		outro: getOption('outro'),
+		outro: getAddon(config, 'outro'),
 		paths: getOption('paths'),
 		plugins: ensureArray(config.plugins as any),
 		preferConst: getOption('preferConst'),
@@ -98,6 +98,14 @@ const getAmd = (
 		id?: string;
 	})
 });
+
+const getAddon = (config: GenericConfigObject, name: string): (() => string | Promise<string>) => {
+	const configAddon = config[name] as string | (() => string | Promise<string>);
+	if (typeof configAddon === 'function') {
+		return configAddon;
+	}
+	return () => configAddon || '';
+};
 
 const getDir = (config: GenericConfigObject, file: string | undefined): string | undefined => {
 	const dir = config.dir as string | undefined;

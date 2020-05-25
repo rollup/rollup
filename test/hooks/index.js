@@ -39,12 +39,32 @@ describe('hooks', () => {
 					loader({ input: `alert('hello')` }),
 					{
 						renderChunk(code, chunk, options) {
-							assert.strictEqual(options.banner, 'new banner');
-							assert.strictEqual(options.format, 'cjs');
+							assert.deepStrictEqual(JSON.parse(JSON.stringify(options)), {
+								amd: {
+									define: 'define'
+								},
+								assetFileNames: 'assets/[name]-[hash][extname]',
+								chunkFileNames: '[name]-[hash].js',
+								compact: false,
+								entryFileNames: '[name].js',
+								esModule: true,
+								externalLiveBindings: true,
+								format: 'cjs',
+								freeze: true,
+								hoistTransitiveImports: true,
+								indent: true,
+								interop: true,
+								namespaceToStringTag: false,
+								plugins: [],
+								strict: true
+							});
+							assert.strictEqual(options.banner(), 'new banner');
 						},
 						outputOptions(options) {
-							assert.strictEqual(options.banner, 'banner');
-							assert.strictEqual(options.format, 'cjs');
+							assert.deepStrictEqual(JSON.parse(JSON.stringify(options)), {
+								banner: 'banner',
+								format: 'cjs'
+							});
 							assert.ok(/^\d+\.\d+\.\d+/.test(this.meta.rollupVersion));
 							return Object.assign({}, options, { banner: 'new banner' });
 						}
