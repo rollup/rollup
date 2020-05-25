@@ -551,7 +551,7 @@ export interface OutputOptions {
 	freeze?: boolean;
 	globals?: GlobalsOption;
 	hoistTransitiveImports?: boolean;
-	indent?: boolean;
+	indent?: string | boolean;
 	interop?: boolean;
 	intro?: string | (() => string | Promise<string>);
 	minifyInternalExports?: boolean;
@@ -577,37 +577,37 @@ export interface NormalizedOutputOptions {
 	assetFileNames: string;
 	banner: () => string | Promise<string>;
 	chunkFileNames: string;
-	compact?: boolean;
+	compact: boolean;
 	dir: string | undefined;
 	/** @deprecated Use the "renderDynamicImport" plugin hook instead. */
 	dynamicImportFunction?: string;
 	entryFileNames: string;
-	esModule?: boolean;
+	esModule: boolean;
 	exports?: 'default' | 'named' | 'none' | 'auto';
-	extend?: boolean;
-	externalLiveBindings?: boolean;
+	extend: boolean;
+	externalLiveBindings: boolean;
 	file: string | undefined;
 	footer: () => string | Promise<string>;
-	format?: ModuleFormat;
-	freeze?: boolean;
+	format: InternalModuleFormat;
+	freeze: boolean;
 	globals?: GlobalsOption;
-	hoistTransitiveImports?: boolean;
-	indent?: boolean;
-	interop?: boolean;
+	hoistTransitiveImports: boolean;
+	indent: true | string;
+	interop: boolean;
 	intro: () => string | Promise<string>;
-	minifyInternalExports?: boolean;
+	minifyInternalExports: boolean;
 	name?: string;
-	namespaceToStringTag?: boolean;
-	noConflict?: boolean;
+	namespaceToStringTag: boolean;
+	noConflict: boolean;
 	outro: () => string | Promise<string>;
 	paths?: OptionsPaths;
 	plugins?: OutputPlugin[];
-	preferConst?: boolean;
+	preferConst: boolean;
 	sourcemap?: boolean | 'inline' | 'hidden';
-	sourcemapExcludeSources?: boolean;
+	sourcemapExcludeSources: boolean;
 	sourcemapFile?: string;
 	sourcemapPathTransform?: (sourcePath: string) => string;
-	strict?: boolean;
+	strict: boolean;
 }
 
 export type WarningHandlerWithDefault = (

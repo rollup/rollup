@@ -264,11 +264,7 @@ export default class Chunk {
 				remainingExports.delete(variable);
 			}
 		}
-		if (
-			options.minifyInternalExports === true ||
-			(typeof options.minifyInternalExports !== 'boolean' &&
-				(options.format === 'system' || options.format === 'es' || options.compact))
-		) {
+		if (options.minifyInternalExports) {
 			assignExportsToMangledNames(remainingExports, this.exportsByName);
 		} else {
 			assignExportsToNames(remainingExports, this.exportsByName);
@@ -357,7 +353,7 @@ export default class Chunk {
 				: [options.chunkFileNames, 'output.chunkFileNames'];
 		return makeUnique(
 			renderNamePattern(pattern, patternName, {
-				format: () => options.format as string,
+				format: () => options.format,
 				hash: () =>
 					includeHash
 						? this.computeContentHashWithDependencies(
@@ -475,25 +471,25 @@ export default class Chunk {
 
 		const magicString = new MagicStringBundle({ separator: options.compact ? '' : '\n\n' });
 		this.usedModules = [];
-		this.indentString = options.compact ? '' : getIndentString(this.orderedModules, options);
+		this.indentString = getIndentString(this.orderedModules, options);
 
 		const n = options.compact ? '' : '\n';
 		const _ = options.compact ? '' : ' ';
 
 		const renderOptions: RenderOptions = {
-			compact: options.compact as boolean,
+			compact: options.compact,
 			dynamicImportFunction: options.dynamicImportFunction as string,
-			format: options.format as InternalModuleFormat,
-			freeze: options.freeze !== false,
+			format: options.format,
+			freeze: options.freeze,
 			indent: this.indentString,
-			namespaceToStringTag: options.namespaceToStringTag === true,
+			namespaceToStringTag: options.namespaceToStringTag,
 			outputPluginDriver,
 			varOrConst: options.preferConst ? 'const' : 'var'
 		};
 
 		// for static and dynamic entry points, inline the execution list to avoid loading latency
 		if (
-			options.hoistTransitiveImports !== false &&
+			options.hoistTransitiveImports &&
 			!this.graph.options.preserveModules &&
 			this.facadeModule !== null
 		) {
@@ -566,9 +562,7 @@ export default class Chunk {
 
 		this.renderedDependencies = this.getChunkDependencyDeclarations(options);
 		this.renderedExports =
-			this.exportMode === 'none'
-				? []
-				: this.getChunkExportDeclarations(options.format as InternalModuleFormat);
+			this.exportMode === 'none' ? [] : this.getChunkExportDeclarations(options.format);
 
 		timeEnd('render modules', 3);
 	}
@@ -582,7 +576,7 @@ export default class Chunk {
 		timeStart('render format', 3);
 
 		const chunkId = this.id!;
-		const format = options.format as InternalModuleFormat;
+		const format = options.format;
 		const finalise = finalisers[format];
 		if (options.dynamicImportFunction && format !== 'es') {
 			this.graph.options.onwarn({
@@ -685,7 +679,7 @@ export default class Chunk {
 				decodedMap,
 				this.usedModules,
 				chunkSourcemapChain,
-				options.sourcemapExcludeSources!
+				options.sourcemapExcludeSources
 			);
 			map.sources = map.sources
 				.map(sourcePath => {
@@ -842,7 +836,7 @@ export default class Chunk {
 			let importName: string;
 			let needsLiveBinding = false;
 			if (exportName[0] === '*') {
-				needsLiveBinding = options.externalLiveBindings !== false;
+				needsLiveBinding = options.externalLiveBindings;
 				exportChunk = this.graph.moduleById.get(exportName.substr(1)) as ExternalModule;
 				importName = exportName = '*';
 			} else {
@@ -857,7 +851,7 @@ export default class Chunk {
 				} else {
 					exportChunk = module;
 					importName = variable.name;
-					needsLiveBinding = options.externalLiveBindings !== false;
+					needsLiveBinding = options.externalLiveBindings;
 				}
 			}
 			let reexportDeclaration = reexportDeclarations.get(exportChunk);
@@ -1092,7 +1086,7 @@ export default class Chunk {
 			this.imports,
 			usedNames,
 			options.format as string,
-			options.interop !== false,
+			options.interop,
 			this.graph.options.preserveModules,
 			syntheticExports
 		);

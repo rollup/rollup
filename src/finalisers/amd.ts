@@ -63,7 +63,7 @@ export default function amd(
 		(amdOptions.id ? `'${amdOptions.id}',${_}` : ``) +
 		(deps.length ? `[${deps.join(`,${_}`)}],${_}` : ``);
 
-	const useStrict = options.strict !== false ? `${_}'use strict';` : ``;
+	const useStrict = options.strict ? `${_}'use strict';` : ``;
 	const wrapperStart = `${amdOptions.define}(${params}function${_}(${args.join(
 		`,${_}`
 	)})${_}{${useStrict}${n}${n}`;
@@ -74,7 +74,7 @@ export default function amd(
 		magicString.prepend(interopBlock + n + n);
 	}
 	if (accessedGlobals.has(INTEROP_NAMESPACE_VARIABLE)) {
-		magicString.prepend(getInteropNamespace(_, n, t, options.externalLiveBindings !== false));
+		magicString.prepend(getInteropNamespace(_, n, t, options.externalLiveBindings));
 	}
 
 	if (intro) magicString.prepend(intro);

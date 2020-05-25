@@ -59,7 +59,7 @@ export default function umd(
 	const globalDeps = trimmedImports.map(module => globalProp(module.globalName, globalVar));
 	const factoryArgs = trimmedImports.map(m => m.name);
 
-	if (namedExportsMode && (hasExports || options.noConflict === true)) {
+	if (namedExportsMode && (hasExports || options.noConflict)) {
 		amdDeps.unshift(`'exports'`);
 		cjsDeps.unshift(`exports`);
 		globalDeps.unshift(
@@ -67,7 +67,7 @@ export default function umd(
 				options.name!,
 				globalVar,
 				options.globals as GlobalsOption,
-				options.compact!,
+				options.compact,
 				`${options.extend ? `${globalProp(options.name!, globalVar)}${_}||${_}` : ''}{}`
 			)
 		);
@@ -83,11 +83,11 @@ export default function umd(
 
 	const define = amdOptions.define;
 	const cjsExport = !namedExportsMode && hasExports ? `module.exports${_}=${_}` : ``;
-	const useStrict = options.strict !== false ? `${_}'use strict';${n}` : ``;
+	const useStrict = options.strict ? `${_}'use strict';${n}` : ``;
 
 	let iifeExport;
 
-	if (options.noConflict === true) {
+	if (options.noConflict) {
 		const noConflictExportsVar = options.compact ? 'e' : 'exports';
 		let factory;
 
@@ -121,7 +121,7 @@ export default function umd(
 				options.name!,
 				globalVar,
 				options.globals as GlobalsOption,
-				options.compact!,
+				options.compact,
 				iifeExport
 			);
 		}

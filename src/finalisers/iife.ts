@@ -64,7 +64,7 @@ export default function iife(
 		}
 	}
 
-	const useStrict = options.strict !== false ? `${t}'use strict';${n}${n}` : ``;
+	const useStrict = options.strict ? `${t}'use strict';${n}${n}` : ``;
 
 	let wrapperIntro = `(function${_}(${args.join(`,${_}`)})${_}{${n}${useStrict}`;
 

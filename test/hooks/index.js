@@ -48,14 +48,19 @@ describe('hooks', () => {
 								compact: false,
 								entryFileNames: '[name].js',
 								esModule: true,
+								extend: false,
 								externalLiveBindings: true,
 								format: 'cjs',
 								freeze: true,
 								hoistTransitiveImports: true,
 								indent: true,
 								interop: true,
+								minifyInternalExports: false,
 								namespaceToStringTag: false,
+								noConflict: false,
 								plugins: [],
+								preferConst: false,
+								sourcemapExcludeSources: false,
 								strict: true
 							});
 							assert.strictEqual(options.banner(), 'new banner');

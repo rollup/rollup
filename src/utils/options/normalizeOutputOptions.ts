@@ -1,4 +1,5 @@
 import {
+	InternalModuleFormat,
 	ModuleFormat,
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
@@ -21,43 +22,45 @@ export function normalizeOutputOptions(
 	// TODO Lukas inline
 	const getOption = (name: string, defaultValue?: unknown): any => config[name] ?? defaultValue;
 
+	const compact = (config.compact as boolean | undefined) || false;
 	const file = getFile(config, inputOptions);
+	const format = getFormat(config);
 	const outputOptions: NormalizedOutputOptions & OutputOptions = {
 		amd: getAmd(config),
 		assetFileNames:
 			(config.assetFileNames as string | undefined) ?? 'assets/[name]-[hash][extname]',
 		banner: getAddon(config, 'banner'),
 		chunkFileNames: (config.chunkFileNames as string | undefined) ?? '[name]-[hash].js',
-		compact: getOption('compact', false),
+		compact,
 		dir: getDir(config, file),
 		dynamicImportFunction: getOption('dynamicImportFunction'),
 		entryFileNames: getEntryFileNames(config, unsetOptions),
-		esModule: getOption('esModule', true),
+		esModule: (config.esModule as boolean | undefined) ?? true,
 		exports: normalizeExports(getOption('exports')),
-		extend: getOption('extend'),
-		externalLiveBindings: getOption('externalLiveBindings', true),
+		extend: (config.extend as boolean | undefined) || false,
+		externalLiveBindings: (config.externalLiveBindings as boolean | undefined) ?? true,
 		file,
 		footer: getAddon(config, 'footer'),
-		format: normalizeFormat(getOption('format')),
-		freeze: getOption('freeze', true),
+		format,
+		freeze: (config.freeze as boolean | undefined) ?? true,
 		globals: getOption('globals'),
-		hoistTransitiveImports: getOption('hoistTransitiveImports', true),
-		indent: getOption('indent', true),
-		interop: getOption('interop', true),
+		hoistTransitiveImports: (config.hoistTransitiveImports as boolean | undefined) ?? true,
+		indent: getIndent(config, compact),
+		interop: (config.interop as boolean | undefined) ?? true,
 		intro: getAddon(config, 'intro'),
-		minifyInternalExports: getOption('minifyInternalExports'),
+		minifyInternalExports: getMinifyInternalExports(config, format, compact),
 		name: getOption('name'),
-		namespaceToStringTag: getOption('namespaceToStringTag', false),
-		noConflict: getOption('noConflict'),
+		namespaceToStringTag: (config.namespaceToStringTag as boolean | undefined) || false,
+		noConflict: (config.noConflict as boolean | undefined) || false,
 		outro: getAddon(config, 'outro'),
 		paths: getOption('paths'),
 		plugins: ensureArray(config.plugins as any),
-		preferConst: getOption('preferConst'),
+		preferConst: (config.preferConst as boolean | undefined) || false,
 		sourcemap: getOption('sourcemap'),
-		sourcemapExcludeSources: getOption('sourcemapExcludeSources'),
+		sourcemapExcludeSources: (config.sourcemapExcludeSources as boolean | undefined) || false,
 		sourcemapFile: getOption('sourcemapFile'),
 		sourcemapPathTransform: getOption('sourcemapPathTransform'),
-		strict: getOption('strict', true)
+		strict: (config.strict as boolean | undefined) ?? true
 	};
 
 	warnUnknownOptions(config, Object.keys(outputOptions), 'output options', inputOptions.onwarn);
@@ -84,6 +87,32 @@ const getFile = (
 			});
 	}
 	return file;
+};
+
+const getFormat = (config: GenericConfigObject): InternalModuleFormat => {
+	const configFormat = config.format as ModuleFormat | undefined;
+	switch (configFormat) {
+		case undefined:
+		case 'es':
+		case 'esm':
+		case 'module':
+			return 'es';
+		case 'cjs':
+		case 'commonjs':
+			return 'cjs';
+		case 'system':
+		case 'systemjs':
+			return 'system';
+		case 'amd':
+		case 'iife':
+		case 'umd':
+			return configFormat;
+		default:
+			return error({
+				message: `You must specify "output.format", which can be one of "amd", "cjs", "system", "es", "iife" or "umd".`,
+				url: `https://rollupjs.org/guide/en/#output-format`
+			});
+	}
 };
 
 const getAmd = (
@@ -127,34 +156,25 @@ const getEntryFileNames = (config: GenericConfigObject, unsetOptions: Set<string
 	return configEntryFileNames ?? '[name].js';
 };
 
-function normalizeFormat(format: string): ModuleFormat {
-	switch (format) {
-		case undefined:
-		case 'es':
-		case 'esm':
-		case 'module':
-			return 'es';
-		case 'cjs':
-		case 'commonjs':
-			return 'cjs';
-		case 'system':
-		case 'systemjs':
-			return 'system';
-		case 'amd':
-		case 'iife':
-		case 'umd':
-			return format;
-		default:
-			return error({
-				message: `You must specify "output.format", which can be one of "amd", "cjs", "system", "es", "iife" or "umd".`,
-				url: `https://rollupjs.org/guide/en/#output-format`
-			});
-	}
-}
-
 function normalizeExports(exports: string | undefined): 'default' | 'named' | 'none' | 'auto' {
 	if (exports && !['default', 'named', 'none', 'auto'].includes(exports)) {
 		return error(errInvalidExportOptionValue(exports));
 	}
 	return exports as 'default' | 'named' | 'none' | 'auto';
 }
+
+const getIndent = (config: GenericConfigObject, compact: boolean): string | true => {
+	if (compact) {
+		return '';
+	}
+	const configIndent = config.indent as string | boolean | undefined;
+	return configIndent === false ? '' : configIndent ?? true;
+};
+
+const getMinifyInternalExports = (
+	config: GenericConfigObject,
+	format: InternalModuleFormat,
+	compact: boolean
+): boolean =>
+	(config.minifyInternalExports as boolean | undefined) ??
+	(compact || format === 'es' || format === 'system');
