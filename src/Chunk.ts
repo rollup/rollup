@@ -90,17 +90,11 @@ const NON_ASSET_EXTENSIONS = ['.js', '.jsx', '.ts', '.tsx'];
 
 function getGlobalName(
 	module: ExternalModule,
-	globals: GlobalsOption | undefined,
+	globals: GlobalsOption,
 	graph: Graph,
 	hasExports: boolean
 ) {
-	let globalName: string | undefined;
-	if (typeof globals === 'function') {
-		globalName = globals(module.id);
-	} else if (globals) {
-		globalName = globals[module.id];
-	}
-
+	const globalName = typeof globals === 'function' ? globals(module.id) : globals[module.id];
 	if (globalName) {
 		return globalName;
 	}

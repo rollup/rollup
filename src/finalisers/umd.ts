@@ -1,5 +1,5 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
-import { GlobalsOption, NormalizedOutputOptions } from '../rollup/types';
+import { NormalizedOutputOptions } from '../rollup/types';
 import { error } from '../utils/error';
 import { FinaliserOptions } from './index';
 import { compactEsModuleExport, esModuleExport } from './shared/esModuleExport';
@@ -66,7 +66,7 @@ export default function umd(
 			assignToDeepVariable(
 				options.name!,
 				globalVar,
-				options.globals as GlobalsOption,
+				options.globals,
 				options.compact,
 				`${options.extend ? `${globalProp(options.name!, globalVar)}${_}||${_}` : ''}{}`
 			)
@@ -120,7 +120,7 @@ export default function umd(
 			iifeExport = assignToDeepVariable(
 				options.name!,
 				globalVar,
-				options.globals as GlobalsOption,
+				options.globals,
 				options.compact,
 				iifeExport
 			);

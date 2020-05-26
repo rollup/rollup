@@ -30,6 +30,7 @@ describe('hooks', () => {
 			})
 			.then(bundle => {}));
 
+	// TODO Lukas check defaults in docs, e.g. globals
 	it('allows to read and modify output options in the outputOptions hook', () =>
 		rollup
 			.rollup({
@@ -53,12 +54,14 @@ describe('hooks', () => {
 								externalLiveBindings: true,
 								format: 'cjs',
 								freeze: true,
+								globals: {},
 								hoistTransitiveImports: true,
 								indent: true,
 								interop: true,
 								minifyInternalExports: false,
 								namespaceToStringTag: false,
 								noConflict: false,
+								paths: {},
 								plugins: [],
 								preferConst: false,
 								sourcemapExcludeSources: false,

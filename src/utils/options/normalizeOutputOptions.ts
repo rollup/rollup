@@ -1,8 +1,10 @@
 import {
+	GlobalsOption,
 	InternalModuleFormat,
 	ModuleFormat,
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
+	OptionsPaths,
 	OutputOptions
 } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
@@ -43,18 +45,18 @@ export function normalizeOutputOptions(
 		footer: getAddon(config, 'footer'),
 		format,
 		freeze: (config.freeze as boolean | undefined) ?? true,
-		globals: getOption('globals'),
+		globals: (config.globals as GlobalsOption | undefined) || {},
 		hoistTransitiveImports: (config.hoistTransitiveImports as boolean | undefined) ?? true,
 		indent: getIndent(config, compact),
 		interop: (config.interop as boolean | undefined) ?? true,
 		intro: getAddon(config, 'intro'),
 		minifyInternalExports: getMinifyInternalExports(config, format, compact),
-		name: getOption('name'),
+		name: config.name as string | undefined,
 		namespaceToStringTag: (config.namespaceToStringTag as boolean | undefined) || false,
 		noConflict: (config.noConflict as boolean | undefined) || false,
 		outro: getAddon(config, 'outro'),
-		paths: getOption('paths'),
-		plugins: ensureArray(config.plugins as any),
+		paths: (config.paths as OptionsPaths | undefined) || {},
+		plugins: ensureArray(config.plugins) as Plugin[],
 		preferConst: (config.preferConst as boolean | undefined) || false,
 		sourcemap: getOption('sourcemap'),
 		sourcemapExcludeSources: (config.sourcemapExcludeSources as boolean | undefined) || false,
