@@ -49,7 +49,7 @@ describe('misc', () => {
 				assert.equal(relevantWarnings.length, 1);
 				assert.equal(
 					relevantWarnings[0].message,
-					`Creating a browser bundle that depends on Node.js built-in module ('util'). You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins`
+					`Creating a browser bundle that depends on Node.js built-in module ('util'). You might need to include https://github.com/ionic-team/rollup-plugin-node-polyfills`
 				);
 			});
 	});
