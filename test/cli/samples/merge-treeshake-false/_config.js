@@ -3,4 +3,3 @@ module.exports = {
 	command:
 		'rollup main.js --format es --external external --treeshake.moduleSideEffects no-external --no-treeshake --no-treeshake.unknownGlobalSideEffects'
 };
-// TODO Lukas document treeshake and watch CLI options if missing

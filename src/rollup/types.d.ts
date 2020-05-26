@@ -601,12 +601,12 @@ export interface NormalizedOutputOptions {
 	noConflict: boolean;
 	outro: () => string | Promise<string>;
 	paths: OptionsPaths;
-	plugins?: OutputPlugin[];
+	plugins: OutputPlugin[];
 	preferConst: boolean;
-	sourcemap?: boolean | 'inline' | 'hidden';
+	sourcemap: boolean | 'inline' | 'hidden';
 	sourcemapExcludeSources: boolean;
-	sourcemapFile?: string;
-	sourcemapPathTransform?: (sourcePath: string) => string;
+	sourcemapFile: string | undefined;
+	sourcemapPathTransform: ((sourcePath: string) => string) | undefined;
 	strict: boolean;
 }
 

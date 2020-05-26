@@ -76,7 +76,6 @@ export async function rollupInternal(
 				inputOptions
 			);
 			const bundle = new Bundle(
-				graph,
 				outputOptions,
 				unsetOptions,
 				inputOptions,
@@ -103,7 +102,6 @@ export async function rollupInternal(
 				});
 			}
 			const bundle = new Bundle(
-				graph,
 				outputOptions,
 				unsetOptions,
 				inputOptions,

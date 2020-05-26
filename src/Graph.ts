@@ -56,7 +56,7 @@ export default class Graph {
 	private pluginCache?: Record<string, SerializablePluginCache>;
 
 	constructor(
-		readonly options: NormalizedInputOptions,
+		private readonly options: NormalizedInputOptions,
 		readonly unsetOptions: Set<string>,
 		watcher: RollupWatcher | null
 	) {
@@ -80,7 +80,7 @@ export default class Graph {
 				...options
 			});
 
-		this.pluginDriver = new PluginDriver(this, options.plugins, this.pluginCache);
+		this.pluginDriver = new PluginDriver(this, options, options.plugins, this.pluginCache);
 
 		if (watcher) {
 			const handleChange = (id: string) => this.pluginDriver.hookSeqSync('watchChange', [id]);
@@ -95,6 +95,7 @@ export default class Graph {
 		this.moduleLoader = new ModuleLoader(
 			this,
 			this.moduleById,
+			this.options,
 			this.pluginDriver,
 			options.preserveSymlinks,
 			options.external,
@@ -135,7 +136,7 @@ export default class Graph {
 					module.isEntryPoint ||
 					module.includedDynamicImporters.length > 0
 				) {
-					const chunk = new Chunk(this, [module]);
+					const chunk = new Chunk(this, [module], this.options);
 					chunk.entryModules = [module];
 					chunks.push(chunk);
 				}
@@ -145,7 +146,7 @@ export default class Graph {
 				? [this.modules]
 				: getChunkAssignments(this.entryModules, this.manualChunkModulesByAlias)) {
 				sortByExecutionOrder(chunkModules);
-				chunks.push(new Chunk(this, chunkModules));
+				chunks.push(new Chunk(this, chunkModules, this.options));
 			}
 		}
 

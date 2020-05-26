@@ -6,6 +6,7 @@ import {
 	GetManualChunk,
 	HasModuleSideEffects,
 	IsExternal,
+	NormalizedInputOptions,
 	ResolvedId,
 	ResolveIdResult,
 	SourceDescription
@@ -47,7 +48,9 @@ export class ModuleLoader {
 	constructor(
 		private readonly graph: Graph,
 		private readonly modulesById: Map<string, Module | ExternalModule>,
+		private readonly options: NormalizedInputOptions,
 		private readonly pluginDriver: PluginDriver,
+		// TODO Lukas pick from options
 		private readonly preserveSymlinks: boolean,
 		private readonly isExternal: IsExternal,
 		private readonly hasModuleSideEffects: HasModuleSideEffects
@@ -128,7 +131,7 @@ export class ModuleLoader {
 		);
 	}
 
-	// TODO Lukas this should only be called
+	// TODO Lukas only this should only be called to assign manual chunks
 	// Each output should receive a separate module loader with a copy of the modules
 	// to generate manual chunks
 	// long term goal could be to have two separate classes that both use shared functionality
@@ -200,7 +203,9 @@ export class ModuleLoader {
 			if (typeof sourceDescription.syntheticNamedExports === 'boolean') {
 				module.syntheticNamedExports = sourceDescription.syntheticNamedExports;
 			}
-			module.setSource(await transform(this.graph, sourceDescription, module));
+			module.setSource(
+				await transform(sourceDescription, module, this.pluginDriver, this.options.onwarn)
+			);
 		}
 	}
 
@@ -283,6 +288,7 @@ export class ModuleLoader {
 		const module: Module = new Module(
 			this.graph,
 			id,
+			this.options,
 			moduleSideEffects,
 			syntheticNamedExports,
 			isEntry
@@ -303,7 +309,7 @@ export class ModuleLoader {
 			if (exportAllModule instanceof ExternalModule) continue;
 			for (const name in exportAllModule!.exportsAll) {
 				if (name in module.exportsAll) {
-					this.graph.options.onwarn(errNamespaceConflict(name, module, exportAllModule!));
+					this.options.onwarn(errNamespaceConflict(name, module, exportAllModule!));
 				} else {
 					module.exportsAll[name] = exportAllModule!.exportsAll[name];
 				}
@@ -321,7 +327,7 @@ export class ModuleLoader {
 			if (!this.modulesById.has(resolvedId.id)) {
 				this.modulesById.set(
 					resolvedId.id,
-					new ExternalModule(this.graph, resolvedId.id, resolvedId.moduleSideEffects)
+					new ExternalModule(this.options, resolvedId.id, resolvedId.moduleSideEffects)
 				);
 			}
 
@@ -350,7 +356,7 @@ export class ModuleLoader {
 			if (isRelative(source)) {
 				return error(errUnresolvedImport(source, importer));
 			}
-			this.graph.options.onwarn(errUnresolvedImportTreatedAsExternal(source, importer));
+			this.options.onwarn(errUnresolvedImportTreatedAsExternal(source, importer));
 			return {
 				external: true,
 				id: source,
@@ -359,7 +365,7 @@ export class ModuleLoader {
 			};
 		} else {
 			if (resolvedId.external && resolvedId.syntheticNamedExports) {
-				this.graph.options.onwarn(errExternalSyntheticExports(source, importer));
+				this.options.onwarn(errExternalSyntheticExports(source, importer));
 			}
 		}
 		return resolvedId;

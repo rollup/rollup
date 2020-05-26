@@ -8,7 +8,7 @@ import {
 	OutputOptions
 } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
-import { errInvalidExportOptionValue, error } from '../error';
+import { errInvalidExportOptionValue, error, warnDeprecation } from '../error';
 import { GenericConfigObject, warnUnknownOptions } from './options';
 
 // TODO Lukas is it possible to connect these options with the regular options
@@ -21,9 +21,6 @@ export function normalizeOutputOptions(
 	// if the user did not select an explicit value
 	const unsetOptions = new Set<string>();
 
-	// TODO Lukas inline
-	const getOption = (name: string, defaultValue?: unknown): any => config[name] ?? defaultValue;
-
 	const compact = (config.compact as boolean | undefined) || false;
 	const file = getFile(config, inputOptions);
 	const format = getFormat(config);
@@ -35,7 +32,7 @@ export function normalizeOutputOptions(
 		chunkFileNames: (config.chunkFileNames as string | undefined) ?? '[name]-[hash].js',
 		compact,
 		dir: getDir(config, file),
-		dynamicImportFunction: config.dynamicImportFunction as string | undefined,
+		dynamicImportFunction: getDynamicImportFunction(config, inputOptions),
 		entryFileNames: getEntryFileNames(config, unsetOptions),
 		esModule: (config.esModule as boolean | undefined) ?? true,
 		exports: getExports(config),
@@ -58,10 +55,12 @@ export function normalizeOutputOptions(
 		paths: (config.paths as OptionsPaths | undefined) || {},
 		plugins: ensureArray(config.plugins) as Plugin[],
 		preferConst: (config.preferConst as boolean | undefined) || false,
-		sourcemap: getOption('sourcemap'),
+		sourcemap: (config.sourcemap as boolean | 'inline' | 'hidden' | undefined) || false,
 		sourcemapExcludeSources: (config.sourcemapExcludeSources as boolean | undefined) || false,
-		sourcemapFile: getOption('sourcemapFile'),
-		sourcemapPathTransform: getOption('sourcemapPathTransform'),
+		sourcemapFile: config.sourcemapFile as string | undefined,
+		sourcemapPathTransform: config.sourcemapPathTransform as
+			| ((sourcePath: string) => string)
+			| undefined,
 		strict: (config.strict as boolean | undefined) ?? true
 	};
 
@@ -148,6 +147,21 @@ const getDir = (config: GenericConfigObject, file: string | undefined): string |
 		});
 	}
 	return dir;
+};
+
+const getDynamicImportFunction = (
+	config: GenericConfigObject,
+	inputOptions: NormalizedInputOptions
+): string | undefined => {
+	const configDynamicImportFunction = config.dynamicImportFunction as string | undefined;
+	if (configDynamicImportFunction) {
+		warnDeprecation(
+			`The "output.dynamicImportFunction" option is deprecated. Use the "renderDynamicImport" plugin hook instead.`,
+			false,
+			inputOptions
+		);
+	}
+	return configDynamicImportFunction;
 };
 
 const getEntryFileNames = (config: GenericConfigObject, unsetOptions: Set<string>): string => {

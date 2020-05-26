@@ -1,5 +1,4 @@
 import Chunk from './Chunk';
-import Graph from './Graph';
 import {
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
@@ -17,21 +16,12 @@ import { timeEnd, timeStart } from './utils/timers';
 
 export default class Bundle {
 	constructor(
-		private readonly graph: Graph,
 		private readonly outputOptions: NormalizedOutputOptions,
 		private readonly unsetOptions: Set<string>,
 		private readonly inputOptions: NormalizedInputOptions,
 		private readonly pluginDriver: PluginDriver,
 		private readonly chunks: Chunk[]
-	) {
-		if (outputOptions.dynamicImportFunction) {
-			warnDeprecation(
-				`The "output.dynamicImportFunction" option is deprecated. Use the "renderDynamicImport" plugin hook instead.`,
-				false,
-				graph.options
-			);
-		}
-	}
+	) {}
 
 	async generate(isWrite: boolean): Promise<OutputBundle> {
 		timeStart('GENERATE', 1);
@@ -81,7 +71,7 @@ export default class Bundle {
 				warnDeprecation(
 					'A plugin is directly adding properties to the bundle object in the "generateBundle" hook. This is deprecated and will be removed in a future Rollup version, please use "this.emitFile" instead.',
 					true,
-					this.graph.options
+					this.inputOptions
 				);
 				file.type = 'asset';
 			}

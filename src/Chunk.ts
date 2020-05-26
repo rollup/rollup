@@ -17,10 +17,12 @@ import {
 	DecodedSourceMapOrMissing,
 	GlobalsOption,
 	InternalModuleFormat,
+	NormalizedInputOptions,
 	NormalizedOutputOptions,
 	PreRenderedChunk,
 	RenderedChunk,
-	RenderedModule
+	RenderedModule,
+	WarningHandler
 } from './rollup/types';
 import { Addons } from './utils/addons';
 import { collapseSourcemaps } from './utils/collapseSourcemaps';
@@ -91,8 +93,8 @@ const NON_ASSET_EXTENSIONS = ['.js', '.jsx', '.ts', '.tsx'];
 function getGlobalName(
 	module: ExternalModule,
 	globals: GlobalsOption,
-	graph: Graph,
-	hasExports: boolean
+	hasExports: boolean,
+	warn: WarningHandler
 ) {
 	const globalName = typeof globals === 'function' ? globals(module.id) : globals[module.id];
 	if (globalName) {
@@ -100,7 +102,7 @@ function getGlobalName(
 	}
 
 	if (hasExports) {
-		graph.options.onwarn({
+		warn({
 			code: 'MISSING_GLOBAL_NAME',
 			guess: module.variableName,
 			message: `No name was provided for external module '${module.id}' in output.globals – guessing '${module.variableName}'`,
@@ -113,10 +115,11 @@ function getGlobalName(
 export default class Chunk {
 	private static generateFacade(
 		graph: Graph,
+		inputOptions: NormalizedInputOptions,
 		facadedModule: Module,
 		facadeName: FacadeName
 	): Chunk {
-		const chunk = new Chunk(graph, []);
+		const chunk = new Chunk(graph, [], inputOptions);
 		chunk.assignFacadeName(facadeName, facadedModule);
 		if (!facadedModule.facadeChunk) {
 			facadedModule.facadeChunk = chunk;
@@ -141,12 +144,10 @@ export default class Chunk {
 	execIndex: number;
 	exportMode: 'none' | 'named' | 'default' = 'named';
 	facadeModule: Module | null = null;
-	graph: Graph;
 	id: string | null = null;
 	indentString: string = undefined as any;
 	isDynamicEntry = false;
 	manualChunkAlias: string | null = null;
-	orderedModules: Module[];
 	renderedModules?: {
 		[moduleId: string]: RenderedModule;
 	};
@@ -174,9 +175,11 @@ export default class Chunk {
 	private sortedExportNames: string[] | null = null;
 	private strictFacade = false;
 
-	constructor(graph: Graph, orderedModules: Module[]) {
-		this.graph = graph;
-		this.orderedModules = orderedModules;
+	constructor(
+		private readonly graph: Graph,
+		private readonly orderedModules: Module[],
+		private readonly inputOptions: NormalizedInputOptions
+	) {
 		this.execIndex = orderedModules.length > 0 ? orderedModules[0].execIndex : Infinity;
 
 		for (const module of orderedModules) {
@@ -218,9 +221,10 @@ export default class Chunk {
 					moduleExportNamesByVariable.size === 0 &&
 					module.isUserDefinedEntryPoint &&
 					module.preserveSignature === 'strict' &&
+					// TODO Lukas pass unsetOptions directly
 					this.graph.unsetOptions.has('preserveEntrySignatures')
 				) {
-					this.graph.options.onwarn({
+					this.inputOptions.onwarn({
 						code: 'EMPTY_FACADE',
 						id: module.id,
 						message: `To preserve the export signature of the entry module "${relativeId(
@@ -263,8 +267,13 @@ export default class Chunk {
 		} else {
 			assignExportsToNames(remainingExports, this.exportsByName);
 		}
-		if (this.graph.options.preserveModules || (this.facadeModule && this.facadeModule.isEntryPoint))
-			this.exportMode = getExportMode(this, options, this.facadeModule!.id);
+		if (this.inputOptions.preserveModules || (this.facadeModule && this.facadeModule.isEntryPoint))
+			this.exportMode = getExportMode(
+				this,
+				options,
+				this.facadeModule!.id,
+				this.inputOptions.onwarn
+			);
 	}
 
 	generateFacades(): Chunk[] {
@@ -294,7 +303,7 @@ export default class Chunk {
 			}
 			if (
 				!this.facadeModule &&
-				(this.graph.options.preserveModules ||
+				(this.inputOptions.preserveModules ||
 					module.preserveSignature !== 'strict' ||
 					this.canModuleBeFacade(module, exposedVariables))
 			) {
@@ -308,7 +317,7 @@ export default class Chunk {
 			}
 
 			for (const facadeName of requiredFacades) {
-				facades.push(Chunk.generateFacade(this.graph, module, facadeName));
+				facades.push(Chunk.generateFacade(this.graph, this.inputOptions, module, facadeName));
 			}
 		}
 		for (const module of dynamicEntryModules) {
@@ -442,7 +451,7 @@ export default class Chunk {
 	}
 
 	getVariableExportName(variable: Variable): string {
-		if (this.graph.options.preserveModules && variable instanceof NamespaceVariable) {
+		if (this.inputOptions.preserveModules && variable instanceof NamespaceVariable) {
 			return '*';
 		}
 		for (const exportName of Object.keys(this.exportsByName)) {
@@ -484,7 +493,7 @@ export default class Chunk {
 		// for static and dynamic entry points, inline the execution list to avoid loading latency
 		if (
 			options.hoistTransitiveImports &&
-			!this.graph.options.preserveModules &&
+			!this.inputOptions.preserveModules &&
 			this.facadeModule !== null
 		) {
 			for (const dep of this.dependencies) {
@@ -513,7 +522,7 @@ export default class Chunk {
 					this.usedModules.push(module);
 				}
 				const namespace = module.namespace;
-				if (namespace.included && !this.graph.options.preserveModules) {
+				if (namespace.included && !this.inputOptions.preserveModules) {
 					const rendered = namespace.renderBlock(renderOptions);
 					if (namespace.renderFirst()) hoistedSource += n + rendered;
 					else magicString.addSource(new MagicString(rendered));
@@ -545,7 +554,7 @@ export default class Chunk {
 
 		if (this.isEmpty && this.getExportNames().length === 0 && this.dependencies.size === 0) {
 			const chunkName = this.getChunkName();
-			this.graph.options.onwarn({
+			this.inputOptions.onwarn({
 				chunkName,
 				code: 'EMPTY_BUNDLE',
 				message: `Generated an empty chunk: "${chunkName}"`
@@ -573,7 +582,7 @@ export default class Chunk {
 		const format = options.format;
 		const finalise = finalisers[format];
 		if (options.dynamicImportFunction && format !== 'es') {
-			this.graph.options.onwarn({
+			this.inputOptions.onwarn({
 				code: 'INVALID_OPTION',
 				message: '"output.dynamicImportFunction" is ignored for formats other than "es".'
 			});
@@ -632,13 +641,13 @@ export default class Chunk {
 				indentString: this.indentString,
 				intro: addons.intro!,
 				isEntryModuleFacade:
-					this.graph.options.preserveModules ||
+					this.inputOptions.preserveModules ||
 					(this.facadeModule !== null && this.facadeModule.isEntryPoint),
 				namedExportsMode: this.exportMode !== 'default',
 				outro: addons.outro!,
 				usesTopLevelAwait,
 				varOrConst: options.preferConst ? 'const' : 'var',
-				warn: this.graph.options.onwarn.bind(this.graph)
+				warn: this.inputOptions.onwarn.bind(this.graph)
 			},
 			options
 		);
@@ -668,12 +677,12 @@ export default class Chunk {
 
 			const decodedMap = magicString.generateDecodedMap({});
 			map = collapseSourcemaps(
-				this.graph,
 				file,
 				decodedMap,
 				this.usedModules,
 				chunkSourcemapChain,
-				options.sourcemapExcludeSources
+				options.sourcemapExcludeSources,
+				this.inputOptions.onwarn
 			);
 			map.sources = map.sources
 				.map(sourcePath => {
@@ -763,7 +772,7 @@ export default class Chunk {
 				exportingModule &&
 				exportingModule.chunk &&
 				exportingModule.chunk !== this &&
-				!(importedVariable instanceof NamespaceVariable && this.graph.options.preserveModules)
+				!(importedVariable instanceof NamespaceVariable && this.inputOptions.preserveModules)
 			) {
 				exportingModule.chunk.exports.add(importedVariable);
 				if (isSynthetic) {
@@ -831,6 +840,7 @@ export default class Chunk {
 			let needsLiveBinding = false;
 			if (exportName[0] === '*') {
 				needsLiveBinding = options.externalLiveBindings;
+				// TODO Lukas pass moduleById directly
 				exportChunk = this.graph.moduleById.get(exportName.substr(1)) as ExternalModule;
 				importName = exportName = '*';
 			} else {
@@ -897,8 +907,8 @@ export default class Chunk {
 					globalName = getGlobalName(
 						dep,
 						options.globals,
-						this.graph,
-						exportsNames || exportsDefault
+						exportsNames || exportsDefault,
+						this.inputOptions.onwarn
 					)!;
 				}
 			}
@@ -1081,7 +1091,7 @@ export default class Chunk {
 			usedNames,
 			options.format as string,
 			options.interop,
-			this.graph.options.preserveModules,
+			this.inputOptions.preserveModules,
 			syntheticExports
 		);
 	}
@@ -1097,7 +1107,7 @@ export default class Chunk {
 			if (variable.module && (variable.module as Module).chunk !== this) {
 				this.imports.add(variable);
 				if (
-					!(variable instanceof NamespaceVariable && this.graph.options.preserveModules) &&
+					!(variable instanceof NamespaceVariable && this.inputOptions.preserveModules) &&
 					variable.module instanceof Module
 				) {
 					variable.module.chunk!.exports.add(variable);

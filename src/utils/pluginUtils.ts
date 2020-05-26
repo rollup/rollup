@@ -1,5 +1,4 @@
-import Graph from '../Graph';
-import { Plugin, RollupError } from '../rollup/types';
+import { NormalizedInputOptions, Plugin, RollupError } from '../rollup/types';
 import { error, Errors, warnDeprecation } from './error';
 
 export const ANONYMOUS_PLUGIN_PREFIX = 'at position ';
@@ -29,7 +28,7 @@ export const deprecatedHooks: { active: boolean; deprecated: string; replacement
 	{ active: true, deprecated: 'resolveAssetUrl', replacement: 'resolveFileUrl' }
 ];
 
-export function warnDeprecatedHooks(plugins: Plugin[], graph: Graph) {
+export function warnDeprecatedHooks(plugins: Plugin[], options: NormalizedInputOptions) {
 	for (const { active, deprecated, replacement } of deprecatedHooks) {
 		for (const plugin of plugins) {
 			if (deprecated in plugin) {
@@ -39,7 +38,7 @@ export function warnDeprecatedHooks(plugins: Plugin[], graph: Graph) {
 						plugin: plugin.name
 					},
 					active,
-					graph.options
+					options
 				);
 			}
 		}

@@ -104,7 +104,6 @@ export interface AstContext {
 	moduleContext: string;
 	nodeConstructors: { [name: string]: typeof NodeBase };
 	options: NormalizedInputOptions;
-	preserveModules: boolean;
 	traceExport: (name: string) => Variable;
 	traceVariable: (name: string) => Variable | null;
 	usesTopLevelAwait: boolean;
@@ -211,7 +210,8 @@ export default class Module {
 	namespace!: NamespaceVariable;
 	originalCode!: string;
 	originalSourcemap!: ExistingDecodedSourceMap | null;
-	preserveSignature: PreserveEntrySignaturesOption = this.graph.options.preserveEntrySignatures;
+	// TODO Lukas does this work or do we need to set it manually later?
+	preserveSignature: PreserveEntrySignaturesOption = this.options.preserveEntrySignatures;
 	reexportDescriptions: { [name: string]: ReexportDescription } = Object.create(null);
 	resolvedIds!: ResolvedIdMap;
 	scope!: ModuleScope;
@@ -241,12 +241,13 @@ export default class Module {
 	constructor(
 		private readonly graph: Graph,
 		public readonly id: string,
+		private readonly options: NormalizedInputOptions,
 		public moduleSideEffects: boolean,
 		public syntheticNamedExports: boolean,
 		public isEntryPoint: boolean
 	) {
 		this.excludeFromSourcemap = /\0/.test(id);
-		this.context = graph.options.moduleContext(id);
+		this.context = options.moduleContext(id);
 	}
 
 	basename() {
@@ -338,7 +339,7 @@ export default class Module {
 		if (
 			this.isEntryPoint ||
 			this.includedDynamicImporters.length > 0 ||
-			this.graph.options.preserveModules
+			this.options.preserveModules
 		) {
 			dependencyVariables = new Set(dependencyVariables);
 			for (const exportName of [...this.getReexports(), ...this.getExports()]) {
@@ -357,7 +358,7 @@ export default class Module {
 			}
 			relevantDependencies.add(variable.module!);
 		}
-		if (this.graph.options.treeshake) {
+		if (this.options.treeshake) {
 			const possibleDependencies = new Set(this.dependencies);
 			for (const dependency of possibleDependencies) {
 				if (
@@ -519,7 +520,7 @@ export default class Module {
 				return syntheticExport;
 			}
 
-			if (this.graph.options.shimMissingExports) {
+			if (this.options.shimMissingExports) {
 				this.shimMissingExport(name);
 				return this.exportShimVariable;
 			}
@@ -643,7 +644,7 @@ export default class Module {
 		if (ast) {
 			this.esTreeAst = ast;
 		} else {
-			this.esTreeAst = tryParse(this, this.graph.acornParser, this.graph.options.acorn);
+			this.esTreeAst = tryParse(this, this.graph.acornParser, this.options.acorn);
 			for (const comment of this.comments) {
 				if (!comment.block && SOURCEMAPPING_URL_RE.test(comment.text)) {
 					this.alwaysRemovedCode.push([comment.start, comment.end]);
@@ -693,8 +694,7 @@ export default class Module {
 			module: this,
 			moduleContext: this.context,
 			nodeConstructors,
-			options: this.graph.options,
-			preserveModules: this.graph.options.preserveModules,
+			options: this.options,
 			traceExport: this.getVariableForExportName.bind(this),
 			traceVariable: this.traceVariable.bind(this),
 			usesTopLevelAwait: false,
@@ -773,7 +773,7 @@ export default class Module {
 		}
 
 		warning.id = this.id;
-		this.graph.options.onwarn(warning);
+		this.options.onwarn(warning);
 	}
 
 	private addDynamicImport(node: ImportExpression) {
@@ -933,7 +933,7 @@ export default class Module {
 	}
 
 	private shimMissingExport(name: string): void {
-		this.graph.options.onwarn({
+		this.options.onwarn({
 			code: 'SHIMMED_EXPORT',
 			exporter: relativeId(this.id),
 			exportName: name,

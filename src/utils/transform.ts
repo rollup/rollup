@@ -1,5 +1,4 @@
 import MagicString, { SourceMap } from 'magic-string';
-import Graph from '../Graph';
 import Module from '../Module';
 import {
 	DecodedSourceMapOrMissing,
@@ -11,18 +10,21 @@ import {
 	SourceDescription,
 	TransformModuleJSON,
 	TransformPluginContext,
-	TransformResult
+	TransformResult,
+	WarningHandler
 } from '../rollup/types';
 import { collapseSourcemap } from './collapseSourcemaps';
 import { decodedSourcemap } from './decodedSourcemap';
 import { augmentCodeLocation } from './error';
 import { getTrackedPluginCache } from './PluginCache';
+import { PluginDriver } from './PluginDriver';
 import { throwPluginError } from './pluginUtils';
 
 export default function transform(
-	graph: Graph,
 	source: SourceDescription,
-	module: Module
+	module: Module,
+	pluginDriver: PluginDriver,
+	warn: WarningHandler
 ): Promise<TransformModuleJSON> {
 	const id = module.id;
 	const sourcemapChain: DecodedSourceMapOrMissing[] = [];
@@ -77,7 +79,7 @@ export default function transform(
 		return result.code;
 	}
 
-	return graph.pluginDriver
+	return pluginDriver
 		.hookReduceArg0(
 			'transform',
 			[curSource, id],
@@ -106,16 +108,16 @@ export default function transform(
 					emitAsset(name: string, source?: string | Uint8Array) {
 						const emittedFile = { type: 'asset' as const, name, source };
 						emittedFiles.push({ ...emittedFile });
-						return graph.pluginDriver.emitFile(emittedFile);
+						return pluginDriver.emitFile(emittedFile);
 					},
 					emitChunk(id, options) {
 						const emittedFile = { type: 'chunk' as const, id, name: options && options.name };
 						emittedFiles.push({ ...emittedFile });
-						return graph.pluginDriver.emitFile(emittedFile);
+						return pluginDriver.emitFile(emittedFile);
 					},
 					emitFile(emittedFile: EmittedFile) {
 						emittedFiles.push(emittedFile);
-						return graph.pluginDriver.emitFile(emittedFile);
+						return pluginDriver.emitFile(emittedFile);
 					},
 					addWatchFile(id: string) {
 						transformDependencies.push(id);
@@ -129,11 +131,11 @@ export default function transform(
 					},
 					getCombinedSourcemap() {
 						const combinedMap = collapseSourcemap(
-							graph,
 							id,
 							originalCode,
 							originalSourcemap,
-							sourcemapChain
+							sourcemapChain,
+							warn
 						);
 						if (!combinedMap) {
 							const magicString = new MagicString(originalCode);
