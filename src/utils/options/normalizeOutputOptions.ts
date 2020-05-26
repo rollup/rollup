@@ -11,8 +11,6 @@ import { ensureArray } from '../ensureArray';
 import { errInvalidExportOptionValue, error, warnDeprecation } from '../error';
 import { GenericConfigObject, warnUnknownOptions } from './options';
 
-// TODO Lukas is it possible to connect these options with the regular options
-// so that new parameters are not forgot?
 export function normalizeOutputOptions(
 	config: GenericConfigObject,
 	inputOptions: NormalizedInputOptions

@@ -5,8 +5,8 @@ import Module from './Module';
 import {
 	GetManualChunk,
 	HasModuleSideEffects,
-	IsExternal,
 	NormalizedInputOptions,
+	NormalizedTreeshakingOptions,
 	ResolvedId,
 	ResolveIdResult,
 	SourceDescription
@@ -39,22 +39,21 @@ export interface UnresolvedModule {
 }
 
 export class ModuleLoader {
+	private readonly hasModuleSideEffects: HasModuleSideEffects;
 	private readonly indexedEntryModules: { index: number; module: Module }[] = [];
 	private latestLoadModulesPromise: Promise<any> = Promise.resolve();
 	private readonly manualChunkModules: Record<string, Module[]> = {};
 	private nextEntryModuleIndex = 0;
 
-	// TODO Lukas would it make more sense to pass down options?
 	constructor(
 		private readonly graph: Graph,
 		private readonly modulesById: Map<string, Module | ExternalModule>,
 		private readonly options: NormalizedInputOptions,
-		private readonly pluginDriver: PluginDriver,
-		// TODO Lukas pick from options
-		private readonly preserveSymlinks: boolean,
-		private readonly isExternal: IsExternal,
-		private readonly hasModuleSideEffects: HasModuleSideEffects
-	) {}
+		private readonly pluginDriver: PluginDriver
+	) {
+		this.hasModuleSideEffects =
+			(options.treeshake as NormalizedTreeshakingOptions)?.moduleSideEffects || (() => true);
+	}
 
 	async addEntryModules(
 		unresolvedEntryModules: UnresolvedModule[],
@@ -156,9 +155,9 @@ export class ModuleLoader {
 		skip: number | null = null
 	): Promise<ResolvedId | null> {
 		return this.normalizeResolveIdResult(
-			this.isExternal(source, importer, false)
+			this.options.external(source, importer, false)
 				? false
-				: await resolveId(source, importer, this.preserveSymlinks, this.pluginDriver, skip),
+				: await resolveId(source, importer, this.options.preserveSymlinks, this.pluginDriver, skip),
 
 			importer,
 			source
@@ -379,7 +378,7 @@ export class ModuleLoader {
 		const resolveIdResult = await resolveId(
 			unresolvedId,
 			importer,
-			this.preserveSymlinks,
+			this.options.preserveSymlinks,
 			this.pluginDriver,
 			null
 		);
@@ -420,14 +419,14 @@ export class ModuleLoader {
 					syntheticNamedExports = resolveIdResult.syntheticNamedExports;
 				}
 			} else {
-				if (this.isExternal(resolveIdResult, importer, true)) {
+				if (this.options.external(resolveIdResult, importer, true)) {
 					external = true;
 				}
 				id = external ? normalizeRelativeExternalId(resolveIdResult, importer) : resolveIdResult;
 			}
 		} else {
 			id = normalizeRelativeExternalId(source, importer);
-			if (resolveIdResult !== false && !this.isExternal(id, importer, true)) {
+			if (resolveIdResult !== false && !this.options.external(id, importer, true)) {
 				return null;
 			}
 			external = true;

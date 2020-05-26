@@ -176,7 +176,6 @@ function getVariableForExportNameRecursive(
 	return target.getVariableForExportName(name, isExportAllSearch, searchedNamesAndModules);
 }
 
-// TODO Lukas put the options on the Module
 export default class Module {
 	// TODO Lukas we must get rid of chunk and facadeChunk here
 	// Instead we have a new class
@@ -210,7 +209,6 @@ export default class Module {
 	namespace!: NamespaceVariable;
 	originalCode!: string;
 	originalSourcemap!: ExistingDecodedSourceMap | null;
-	// TODO Lukas does this work or do we need to set it manually later?
 	preserveSignature: PreserveEntrySignaturesOption = this.options.preserveEntrySignatures;
 	reexportDescriptions: { [name: string]: ReexportDescription } = Object.create(null);
 	resolvedIds!: ResolvedIdMap;
@@ -457,7 +455,7 @@ export default class Module {
 				return this.namespace;
 			} else {
 				// export * from 'external'
-				const module = this.graph.moduleById.get(name.slice(1)) as ExternalModule;
+				const module = this.graph.modulesById.get(name.slice(1)) as ExternalModule;
 				return module.getVariableForExportName('*');
 			}
 		}
@@ -575,7 +573,7 @@ export default class Module {
 
 	linkDependencies() {
 		for (const source of this.sources) {
-			this.dependencies.add(this.graph.moduleById.get(this.resolvedIds[source].id)!);
+			this.dependencies.add(this.graph.modulesById.get(this.resolvedIds[source].id)!);
 		}
 		for (const { resolution } of this.dynamicImports) {
 			if (resolution instanceof Module || resolution instanceof ExternalModule) {
@@ -588,7 +586,7 @@ export default class Module {
 
 		const externalExportAllModules: ExternalModule[] = [];
 		for (const source of this.exportAllSources) {
-			const module = this.graph.moduleById.get(this.resolvedIds[source].id) as
+			const module = this.graph.modulesById.get(this.resolvedIds[source].id) as
 				| Module
 				| ExternalModule;
 			(module instanceof ExternalModule ? externalExportAllModules : this.exportAllModules).push(
@@ -889,7 +887,7 @@ export default class Module {
 		for (const name of Object.keys(importDescription)) {
 			const specifier = importDescription[name];
 			const id = this.resolvedIds[specifier.source].id;
-			specifier.module = this.graph.moduleById.get(id) as Module | ExternalModule;
+			specifier.module = this.graph.modulesById.get(id) as Module | ExternalModule;
 		}
 	}
 

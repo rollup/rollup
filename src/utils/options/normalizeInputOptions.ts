@@ -32,8 +32,6 @@ export interface CommandConfigObject {
 export function normalizeInputOptions(
 	config: GenericConfigObject
 ): { options: NormalizedInputOptions; unsetOptions: Set<string> } {
-	// TODO Lukas do not access graph.options and unsetOptions but pass it down
-
 	// These are options that may trigger special warnings or behaviour later
 	// if the user did not select an explicit value
 	const unsetOptions = new Set<string>();

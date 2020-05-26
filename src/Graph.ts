@@ -9,7 +9,6 @@ import {
 	ModuleInfo,
 	ModuleJSON,
 	NormalizedInputOptions,
-	NormalizedTreeshakingOptions,
 	RollupCache,
 	RollupWatcher,
 	SerializablePluginCache
@@ -41,8 +40,8 @@ export default class Graph {
 	cachedModules: Map<string, ModuleJSON>;
 	contextParse: (code: string, acornOptions?: acorn.Options) => acorn.Node;
 	deoptimizationTracker: PathTracker;
-	moduleById = new Map<string, Module | ExternalModule>();
 	moduleLoader: ModuleLoader;
+	modulesById = new Map<string, Module | ExternalModule>();
 	needsTreeshakingPass = false;
 	phase: BuildPhase = BuildPhase.LOAD_AND_PARSE;
 	pluginDriver: PluginDriver;
@@ -57,7 +56,7 @@ export default class Graph {
 
 	constructor(
 		private readonly options: NormalizedInputOptions,
-		readonly unsetOptions: Set<string>,
+		private readonly unsetOptions: Set<string>,
 		watcher: RollupWatcher | null
 	) {
 		this.deoptimizationTracker = new PathTracker();
@@ -92,15 +91,7 @@ export default class Graph {
 
 		this.scope = new GlobalScope();
 		this.acornParser = acorn.Parser.extend(...(options.acornInjectPlugins as any));
-		this.moduleLoader = new ModuleLoader(
-			this,
-			this.moduleById,
-			this.options,
-			this.pluginDriver,
-			options.preserveSymlinks,
-			options.external,
-			(options.treeshake as NormalizedTreeshakingOptions)?.moduleSideEffects || (() => true)
-		);
+		this.moduleLoader = new ModuleLoader(this, this.modulesById, this.options, this.pluginDriver);
 	}
 
 	// TODO Lukas no return value
@@ -136,7 +127,7 @@ export default class Graph {
 					module.isEntryPoint ||
 					module.includedDynamicImporters.length > 0
 				) {
-					const chunk = new Chunk(this, [module], this.options);
+					const chunk = new Chunk([module], this.options, this.unsetOptions, this.modulesById);
 					chunk.entryModules = [module];
 					chunks.push(chunk);
 				}
@@ -146,7 +137,7 @@ export default class Graph {
 				? [this.modules]
 				: getChunkAssignments(this.entryModules, this.manualChunkModulesByAlias)) {
 				sortByExecutionOrder(chunkModules);
-				chunks.push(new Chunk(this, chunkModules, this.options));
+				chunks.push(new Chunk(chunkModules, this.options, this.unsetOptions, this.modulesById));
 			}
 		}
 
@@ -179,7 +170,7 @@ export default class Graph {
 	}
 
 	getModuleInfo = (moduleId: string): ModuleInfo => {
-		const foundModule = this.moduleById.get(moduleId);
+		const foundModule = this.modulesById.get(moduleId);
 		if (foundModule == null) {
 			throw new Error(`Unable to find module ${moduleId}`);
 		}
@@ -221,7 +212,7 @@ export default class Graph {
 		if (this.entryModules.length === 0) {
 			throw new Error('You must supply options.input to rollup');
 		}
-		for (const module of this.moduleById.values()) {
+		for (const module of this.modulesById.values()) {
 			if (module instanceof Module) {
 				this.modules.push(module);
 			} else {

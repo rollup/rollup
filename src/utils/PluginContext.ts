@@ -18,7 +18,6 @@ import {
 	throwPluginError
 } from './pluginUtils';
 
-// TODO Lukas there may be many places where we no longer need the graph, search for graph.
 function getDeprecatedContextHandler<H extends Function>(
 	handler: H,
 	handlerName: string,
@@ -124,7 +123,7 @@ export function getPluginContexts(
 				options
 			),
 			getFileName: fileEmitter.getFileName,
-			getModuleIds: () => graph.moduleById.keys(),
+			getModuleIds: () => graph.modulesById.keys(),
 			getModuleInfo: graph.getModuleInfo,
 			isExternal: getDeprecatedContextHandler(
 				(id: string, parentId: string | undefined, isResolved = false) =>
@@ -151,7 +150,7 @@ export function getPluginContexts(
 					yield* moduleIds;
 				}
 
-				const moduleIds = graph.moduleById.keys();
+				const moduleIds = graph.modulesById.keys();
 				return wrappedModuleIds();
 			},
 			parse: graph.contextParse,

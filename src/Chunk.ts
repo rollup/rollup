@@ -11,7 +11,6 @@ import SyntheticNamedExportVariable from './ast/variables/SyntheticNamedExportVa
 import Variable from './ast/variables/Variable';
 import ExternalModule from './ExternalModule';
 import finalisers from './finalisers/index';
-import Graph from './Graph';
 import Module from './Module';
 import {
 	DecodedSourceMapOrMissing,
@@ -114,12 +113,13 @@ function getGlobalName(
 
 export default class Chunk {
 	private static generateFacade(
-		graph: Graph,
 		inputOptions: NormalizedInputOptions,
+		unsetOptions: Set<string>,
+		modulesById: Map<string, Module | ExternalModule>,
 		facadedModule: Module,
 		facadeName: FacadeName
 	): Chunk {
-		const chunk = new Chunk(graph, [], inputOptions);
+		const chunk = new Chunk([], inputOptions, unsetOptions, modulesById);
 		chunk.assignFacadeName(facadeName, facadedModule);
 		if (!facadedModule.facadeChunk) {
 			facadedModule.facadeChunk = chunk;
@@ -176,9 +176,10 @@ export default class Chunk {
 	private strictFacade = false;
 
 	constructor(
-		private readonly graph: Graph,
 		private readonly orderedModules: Module[],
-		private readonly inputOptions: NormalizedInputOptions
+		private readonly inputOptions: NormalizedInputOptions,
+		private readonly unsetOptions: Set<string>,
+		private readonly modulesById: Map<string, Module | ExternalModule>
 	) {
 		this.execIndex = orderedModules.length > 0 ? orderedModules[0].execIndex : Infinity;
 
@@ -221,8 +222,7 @@ export default class Chunk {
 					moduleExportNamesByVariable.size === 0 &&
 					module.isUserDefinedEntryPoint &&
 					module.preserveSignature === 'strict' &&
-					// TODO Lukas pass unsetOptions directly
-					this.graph.unsetOptions.has('preserveEntrySignatures')
+					this.unsetOptions.has('preserveEntrySignatures')
 				) {
 					this.inputOptions.onwarn({
 						code: 'EMPTY_FACADE',
@@ -317,7 +317,15 @@ export default class Chunk {
 			}
 
 			for (const facadeName of requiredFacades) {
-				facades.push(Chunk.generateFacade(this.graph, this.inputOptions, module, facadeName));
+				facades.push(
+					Chunk.generateFacade(
+						this.inputOptions,
+						this.unsetOptions,
+						this.modulesById,
+						module,
+						facadeName
+					)
+				);
 			}
 		}
 		for (const module of dynamicEntryModules) {
@@ -647,7 +655,7 @@ export default class Chunk {
 				outro: addons.outro!,
 				usesTopLevelAwait,
 				varOrConst: options.preferConst ? 'const' : 'var',
-				warn: this.inputOptions.onwarn.bind(this.graph)
+				warn: this.inputOptions.onwarn
 			},
 			options
 		);
@@ -840,8 +848,7 @@ export default class Chunk {
 			let needsLiveBinding = false;
 			if (exportName[0] === '*') {
 				needsLiveBinding = options.externalLiveBindings;
-				// TODO Lukas pass moduleById directly
-				exportChunk = this.graph.moduleById.get(exportName.substr(1)) as ExternalModule;
+				exportChunk = this.modulesById.get(exportName.substr(1)) as ExternalModule;
 				importName = exportName = '*';
 			} else {
 				const variable = this.exportsByName[exportName];
