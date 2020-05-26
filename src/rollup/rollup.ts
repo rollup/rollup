@@ -45,7 +45,6 @@ export async function rollupInternal(
 
 	timeStart('BUILD', 1);
 
-	// TODO Lukas move this variable to generate
 	let chunks: Chunk[];
 	try {
 		await graph.pluginDriver.hookParallel('buildStart', [inputOptions]);

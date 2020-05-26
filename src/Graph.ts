@@ -94,7 +94,6 @@ export default class Graph {
 		this.moduleLoader = new ModuleLoader(this, this.modulesById, this.options, this.pluginDriver);
 	}
 
-	// TODO Lukas no return value
 	async build(): Promise<Chunk[]> {
 		timeStart('generate module graph', 2);
 		await this.generateModuleGraph();
@@ -117,7 +116,6 @@ export default class Graph {
 		return chunks;
 	}
 
-	// TODO Lukas call this to create the chunks
 	generateChunks(): Chunk[] {
 		const chunks: Chunk[] = [];
 		if (this.options.preserveModules) {

@@ -177,8 +177,6 @@ function getVariableForExportNameRecursive(
 }
 
 export default class Module {
-	// TODO Lukas we must get rid of chunk and facadeChunk here
-	// Instead we have a new class
 	chunk: Chunk | null = null;
 	chunkFileNames = new Set<string>();
 	chunkName: string | null = null;

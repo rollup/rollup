@@ -30,7 +30,6 @@ export default class Bundle {
 		this.pluginDriver.setOutputBundle(outputBundle, this.outputOptions.assetFileNames);
 		try {
 			await this.pluginDriver.hookParallel('renderStart', [this.outputOptions, this.inputOptions]);
-			// TODO Lukas createChunks here
 			if (this.chunks.length > 1) {
 				validateOptionsForMultiChunkOutput(this.outputOptions);
 			}
