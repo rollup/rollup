@@ -91,7 +91,7 @@ type CompleteInputOptions<U extends keyof InputOptions> = {
 
 function mergeInputOptions(
 	config: GenericConfigObject,
-	overrides: CommandConfigObject = { external: [], globals: undefined },
+	overrides: CommandConfigObject,
 	defaultOnWarnHandler: WarningHandler
 ): InputOptions {
 	const getOption = (name: string): any => overrides[name] ?? config[name];
@@ -179,7 +179,7 @@ type CompleteOutputOptions<U extends keyof OutputOptions> = {
 
 function mergeOutputOptions(
 	config: GenericConfigObject,
-	overrides: GenericConfigObject = {},
+	overrides: GenericConfigObject,
 	warn: WarningHandler
 ): OutputOptions {
 	const getOption = (name: string): any => overrides[name] ?? config[name];

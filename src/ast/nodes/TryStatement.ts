@@ -15,7 +15,7 @@ export default class TryStatement extends StatementBase {
 
 	hasEffects(context: HasEffectsContext): boolean {
 		return (
-			((this.context.options.treeshake as NormalizedTreeshakingOptions)?.tryCatchDeoptimization
+			((this.context.options.treeshake as NormalizedTreeshakingOptions).tryCatchDeoptimization
 				? this.block.body.length > 0
 				: this.block.hasEffects(context)) ||
 			(this.finalizer !== null && this.finalizer.hasEffects(context))

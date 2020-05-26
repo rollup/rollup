@@ -102,7 +102,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 	hasEffects(): boolean {
 		return (
-			(this.context.options.treeshake as NormalizedTreeshakingOptions)?.unknownGlobalSideEffects &&
+			(this.context.options.treeshake as NormalizedTreeshakingOptions).unknownGlobalSideEffects &&
 			this.variable instanceof GlobalVariable &&
 			this.variable.hasEffectsWhenAccessedAtPath(EMPTY_PATH)
 		);

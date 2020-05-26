@@ -155,7 +155,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 			if (argument.hasEffects(context)) return true;
 		}
 		if (
-			(this.context.options.treeshake as NormalizedTreeshakingOptions)?.annotations &&
+			(this.context.options.treeshake as NormalizedTreeshakingOptions).annotations &&
 			this.annotatedPure
 		)
 			return false;

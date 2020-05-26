@@ -6,7 +6,6 @@ import {
 	GetManualChunk,
 	HasModuleSideEffects,
 	NormalizedInputOptions,
-	NormalizedTreeshakingOptions,
 	ResolvedId,
 	ResolveIdResult,
 	SourceDescription
@@ -51,8 +50,9 @@ export class ModuleLoader {
 		private readonly options: NormalizedInputOptions,
 		private readonly pluginDriver: PluginDriver
 	) {
-		this.hasModuleSideEffects =
-			(options.treeshake as NormalizedTreeshakingOptions)?.moduleSideEffects || (() => true);
+		this.hasModuleSideEffects = options.treeshake
+			? options.treeshake.moduleSideEffects
+			: () => true;
 	}
 
 	async addEntryModules(

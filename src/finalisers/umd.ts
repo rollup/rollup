@@ -75,13 +75,11 @@ export default function umd(
 		factoryArgs.unshift('exports');
 	}
 
-	const amdOptions = options.amd || {};
-
 	const amdParams =
-		(amdOptions.id ? `'${amdOptions.id}',${_}` : ``) +
+		(options.amd.id ? `'${options.amd.id}',${_}` : ``) +
 		(amdDeps.length ? `[${amdDeps.join(`,${_}`)}],${_}` : ``);
 
-	const define = amdOptions.define;
+	const define = options.amd.define;
 	const cjsExport = !namedExportsMode && hasExports ? `module.exports${_}=${_}` : ``;
 	const useStrict = options.strict ? `${_}'use strict';${n}` : ``;
 
