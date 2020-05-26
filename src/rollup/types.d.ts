@@ -475,13 +475,25 @@ export type ManualChunksOption = { [chunkAlias: string]: string[] } | GetManualC
 export type ModuleSideEffectsOption = boolean | 'no-external' | string[] | HasModuleSideEffects;
 export type PreserveEntrySignaturesOption = false | 'strict' | 'allow-extension';
 
-export interface InputOptions extends Partial<NormalizedInputOptions> {
+export interface InputOptions {
+	acorn?: Object;
 	acornInjectPlugins?: Function | Function[];
 	cache?: false | RollupCache;
+	context?: string;
+	experimentalCacheExpiry?: number;
 	external?: ExternalOption;
+	inlineDynamicImports?: boolean;
 	input?: InputOption;
+	manualChunks?: ManualChunksOption;
 	moduleContext?: ((id: string) => string | null | undefined) | { [id: string]: string };
 	onwarn?: WarningHandlerWithDefault;
+	perf?: boolean;
+	plugins?: Plugin[];
+	preserveEntrySignatures?: PreserveEntrySignaturesOption;
+	preserveModules?: boolean;
+	preserveSymlinks?: boolean;
+	shimMissingExports?: boolean;
+	strictDeprecations?: boolean;
 	treeshake?: boolean | TreeshakingOptions;
 	watch?: WatcherOptions;
 }
@@ -514,26 +526,47 @@ export type ModuleFormat = InternalModuleFormat | 'commonjs' | 'esm' | 'module' 
 
 export type OptionsPaths = Record<string, string> | ((id: string) => string);
 
-export interface OutputOptions extends Partial<NormalizedOutputOptions> {
+export interface OutputOptions {
 	amd?: {
 		define?: string;
 		id?: string;
 	};
+	assetFileNames?: string;
 	banner?: string | (() => string | Promise<string>);
+	chunkFileNames?: string;
+	compact?: boolean;
 	// only required for bundle.write
 	dir?: string;
 	/** @deprecated Use the "renderDynamicImport" plugin hook instead. */
 	dynamicImportFunction?: string;
+	entryFileNames?: string;
+	esModule?: boolean;
+	exports?: 'default' | 'named' | 'none' | 'auto';
+	extend?: boolean;
+	externalLiveBindings?: boolean;
 	// only required for bundle.write
 	file?: string;
 	footer?: string | (() => string | Promise<string>);
 	format?: ModuleFormat;
+	freeze?: boolean;
+	globals?: GlobalsOption;
+	hoistTransitiveImports?: boolean;
 	indent?: string | boolean;
+	interop?: boolean;
 	intro?: string | (() => string | Promise<string>);
+	minifyInternalExports?: boolean;
 	name?: string;
+	namespaceToStringTag?: boolean;
+	noConflict?: boolean;
 	outro?: string | (() => string | Promise<string>);
+	paths?: OptionsPaths;
+	plugins?: OutputPlugin[];
+	preferConst?: boolean;
+	sourcemap?: boolean | 'inline' | 'hidden';
+	sourcemapExcludeSources?: boolean;
 	sourcemapFile?: string;
 	sourcemapPathTransform?: (sourcePath: string) => string;
+	strict?: boolean;
 }
 
 export interface NormalizedOutputOptions {
