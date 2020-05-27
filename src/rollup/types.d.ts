@@ -567,6 +567,7 @@ export interface OutputOptions {
 	sourcemapFile?: string;
 	sourcemapPathTransform?: (sourcePath: string) => string;
 	strict?: boolean;
+	systemNullSetters?: boolean;
 }
 
 export interface NormalizedOutputOptions {
@@ -608,6 +609,7 @@ export interface NormalizedOutputOptions {
 	sourcemapFile: string | undefined;
 	sourcemapPathTransform: ((sourcePath: string) => string) | undefined;
 	strict: boolean;
+	systemNullSetters: boolean;
 }
 
 export type WarningHandlerWithDefault = (

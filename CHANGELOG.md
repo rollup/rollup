@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 2.11.0
+*2020-05-27*
+
+### Features
+* Provide a normalized set of options with proper default values to `buildStart` and `renderStart` (#3597)
+* Do not count adding properties to the prototype of an unused class as a side-effect (#3598)
+
+### Bug Fixes
+* Do not fail when using a `/*#__PURE__*/` annotation inside a class field (#3599)
+* Allow using `--watch` and `--treeshake` together with sub-options such as `--watch.clearScreen` on the command line (#3597)
+
+### Pull Requests
+* [#3597](https://github.com/rollup/rollup/pull/3597): Provide normalized options (@lukastaegert)
+* [#3598](https://github.com/rollup/rollup/pull/3598): Treeshake prototype modifications in classes (@lukastaegert)
+* [#3599](https://github.com/rollup/rollup/pull/3599): Retain pure annotations in class fields (@lukastaegert)
+* [#3601](https://github.com/rollup/rollup/pull/3601): Fix white-space in docs (@tu4mo)
+
 ## 2.10.9
 *2020-05-24*
 

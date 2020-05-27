@@ -65,7 +65,8 @@ describe('hooks', () => {
 								preferConst: false,
 								sourcemap: false,
 								sourcemapExcludeSources: false,
-								strict: true
+								strict: true,
+								systemNullSetters: false
 							});
 							assert.strictEqual(options.banner(), 'new banner');
 						},

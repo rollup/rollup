@@ -148,7 +148,8 @@ const outputOptions = {
   namespaceToStringTag,
   noConflict,
   preferConst,
-  strict
+  strict,
+  systemNullSetters
 };
 ```
 

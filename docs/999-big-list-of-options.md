@@ -1045,6 +1045,13 @@ Default: `true`
 
 Whether to include the 'use strict' pragma at the top of generated non-ES bundles. Strictly speaking, ES modules are *always* in strict mode, so you shouldn't disable this without good reason.
 
+#### output.systemNullSetters
+Type: `boolean`<br>
+CLI: `--systemNullSetters`/`--no-systemNullSetters`<br>
+Default: `false`
+
+When outputting the `system` module format, this will replace empty setter functions with `null` as an output simplification. This is *only supported in SystemJS 6.3.3 and above*.
+
 #### preserveSymlinks
 Type: `boolean`<br>
 CLI: `--preserveSymlinks`<br>

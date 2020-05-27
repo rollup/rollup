@@ -193,6 +193,8 @@ export default function system(
 						.map(s =>
 							s
 								? `function${_}(module)${_}{${n}${t}${t}${t}${s}${n}${t}${t}}`
+								: options.systemNullSetters
+								? `null`
 								: `function${_}()${_}{}`
 						)
 						.join(`,${_}`)}],`

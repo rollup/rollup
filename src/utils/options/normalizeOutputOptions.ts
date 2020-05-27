@@ -59,7 +59,8 @@ export function normalizeOutputOptions(
 		sourcemapPathTransform: config.sourcemapPathTransform as
 			| ((sourcePath: string) => string)
 			| undefined,
-		strict: (config.strict as boolean | undefined) ?? true
+		strict: (config.strict as boolean | undefined) ?? true,
+		systemNullSetters: (config.systemNullSetters as boolean | undefined) || false
 	};
 
 	warnUnknownOptions(config, Object.keys(outputOptions), 'output options', inputOptions.onwarn);

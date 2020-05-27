@@ -93,7 +93,8 @@ export default { // can be an array (for multiple inputs)
     namespaceToStringTag,
     noConflict,
     preferConst,
-    strict
+    strict,
+    systemNullSetters
   },
 
   watch: {
@@ -310,6 +311,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --no-stdin                  do not read "-" from stdin
 --no-strict                 Don't emit `"use strict";` in the generated modules
 --strictDeprecations        Throw errors for deprecated features
+--systemNullSetters         Replace empty SystemJS setters with `null`
 --no-treeshake              Disable tree-shaking optimisations
 --no-treeshake.annotations  Ignore pure call annotations
 --no-treeshake.moduleSideEffects Assume modules have no side-effects
