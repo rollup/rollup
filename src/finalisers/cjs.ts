@@ -1,5 +1,5 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
-import { OutputOptions } from '../rollup/types';
+import { NormalizedOutputOptions } from '../rollup/types';
 import { INTEROP_DEFAULT_VARIABLE, INTEROP_NAMESPACE_VARIABLE } from '../utils/variableNames';
 import { FinaliserOptions } from './index';
 import { compactEsModuleExport, esModuleExport } from './shared/esModuleExport';
@@ -20,7 +20,7 @@ export default function cjs(
 		outro,
 		varOrConst
 	}: FinaliserOptions,
-	options: OutputOptions
+	options: NormalizedOutputOptions
 ) {
 	const n = options.compact ? '' : '\n';
 	const _ = options.compact ? '' : ' ';
@@ -32,7 +32,6 @@ export default function cjs(
 			: '');
 
 	let needsInterop = false;
-	const interop = options.interop !== false;
 	let importBlock: string;
 
 	let definingVariable = false;
@@ -58,7 +57,7 @@ export default function cjs(
 				options.compact && definingVariable ? ',' : `${importBlock ? `;${n}` : ''}${varOrConst} `;
 			definingVariable = true;
 
-			if (!interop || isChunk || !exportsDefault || !namedExportsMode) {
+			if (!options.interop || isChunk || !exportsDefault || !namedExportsMode) {
 				importBlock += `${name}${_}=${_}require('${id}')`;
 			} else {
 				needsInterop = true;
@@ -80,7 +79,7 @@ export default function cjs(
 			`?${_}${ex}['default']${_}:${_}${ex}${options.compact ? '' : '; '}}${n}${n}`;
 	}
 	if (accessedGlobals.has(INTEROP_NAMESPACE_VARIABLE)) {
-		intro += getInteropNamespace(_, n, t, options.externalLiveBindings !== false);
+		intro += getInteropNamespace(_, n, t, options.externalLiveBindings);
 	}
 
 	if (importBlock) intro += importBlock + n + n;

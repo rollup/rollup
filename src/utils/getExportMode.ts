@@ -1,11 +1,12 @@
 import Chunk from '../Chunk';
-import { OutputOptions } from '../rollup/types';
+import { NormalizedOutputOptions, WarningHandler } from '../rollup/types';
 import { errIncompatibleExportOptionValue, errMixedExport, error } from './error';
 
 export default function getExportMode(
 	chunk: Chunk,
-	{ exports: exportMode, name, format }: OutputOptions,
-	facadeModuleId: string
+	{ exports: exportMode, name, format }: NormalizedOutputOptions,
+	facadeModuleId: string,
+	warn: WarningHandler
 ) {
 	const exportKeys = chunk.getExportNames();
 
@@ -17,14 +18,14 @@ export default function getExportMode(
 		return error(errIncompatibleExportOptionValue('none', exportKeys, facadeModuleId));
 	}
 
-	if (!exportMode || exportMode === 'auto') {
+	if (exportMode === 'auto') {
 		if (exportKeys.length === 0) {
 			exportMode = 'none';
 		} else if (exportKeys.length === 1 && exportKeys[0] === 'default') {
 			exportMode = 'default';
 		} else {
 			if (format !== 'es' && exportKeys.indexOf('default') !== -1) {
-				chunk.graph.warn(errMixedExport(facadeModuleId, name));
+				warn(errMixedExport(facadeModuleId, name));
 			}
 			exportMode = 'named';
 		}

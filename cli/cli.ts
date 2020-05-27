@@ -1,7 +1,7 @@
 import help from 'help.md';
 import { version } from 'package.json';
 import argParser from 'yargs-parser';
-import { commandAliases } from '../src/utils/mergeOptions';
+import { commandAliases } from '../src/utils/options/mergeOptions';
 import run from './run/index';
 
 const command = argParser(process.argv.slice(2), {

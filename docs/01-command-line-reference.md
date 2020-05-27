@@ -312,10 +312,15 @@ Many options have command line equivalents. In those cases, any arguments passed
 --strictDeprecations        Throw errors for deprecated features
 --no-treeshake              Disable tree-shaking optimisations
 --no-treeshake.annotations  Ignore pure call annotations
---no-treeshake.no-moduleSideEffects Assume modules have no side-effects
---no-treeshake.no-propertyReadSideEffects Ignore property access side-effects
---no-treeshake.no-tryCatchDeoptimization Do not turn off try-catch-tree-shaking
---no-treeshake.no-unknownGlobalSideEffects Assume unknown globals do not throw
+--no-treeshake.moduleSideEffects Assume modules have no side-effects
+--no-treeshake.propertyReadSideEffects Ignore property access side-effects
+--no-treeshake.tryCatchDeoptimization Do not turn off try-catch-tree-shaking
+--no-treeshake.unknownGlobalSideEffects Assume unknown globals do not throw
+--watch.buildDelay <number> Throttle watch rebuilds
+--no-watch.clearScreen      Do not clear the screen when rebuilding
+--watch.skipWrite           Do not write files to disk when watching
+--watch.exclude <files>     Exclude files from being watched
+--watch.include <files>     Limit watching to specified files
 ```
 
 The flags listed below are only available via the command line interface. All other flags correspond to and override their config file equivalents, see the [big list of options](guide/en/#big-list-of-options) for details.

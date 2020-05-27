@@ -10,34 +10,20 @@ describe('loadConfigFile', () => {
 		assert.strictEqual(warnings.count, 0);
 		assert.deepStrictEqual(JSON.parse(JSON.stringify(options)), [
 			{
-				experimentalCacheExpiry: 10,
 				external: [],
-				inlineDynamicImports: false,
 				input: 'my-input',
 				output: [
 					{
-						amd: {},
-						compact: false,
-						esModule: true,
-						externalLiveBindings: true,
 						file: 'my-file',
 						format: 'es',
-						freeze: true,
-						hoistTransitiveImports: true,
-						indent: true,
-						interop: true,
-						namespaceToStringTag: false,
-						plugins: [],
-						strict: true
+						plugins: []
 					}
 				],
-				perf: false,
 				plugins: [
 					{
 						name: 'stdin'
 					}
-				],
-				strictDeprecations: false
+				]
 			}
 		]);
 	});

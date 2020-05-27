@@ -6,7 +6,7 @@ import { treeshakeNode } from './treeshakeNode';
 
 export interface RenderOptions {
 	compact: boolean;
-	dynamicImportFunction: string;
+	dynamicImportFunction: string | undefined;
 	format: InternalModuleFormat;
 	freeze: boolean;
 	indent: string;

@@ -4,6 +4,7 @@ import {
 	AsyncPluginHooks,
 	EmitFile,
 	FirstPluginHooks,
+	NormalizedInputOptions,
 	OutputBundleWithPlaceholders,
 	OutputPluginHooks,
 	ParallelPluginHooks,
@@ -71,32 +72,37 @@ export class PluginDriver {
 	) => void;
 
 	private fileEmitter: FileEmitter;
-	private graph: Graph;
 	private pluginCache: Record<string, SerializablePluginCache> | undefined;
 	private pluginContexts: PluginContext[];
 	private plugins: Plugin[];
 
 	constructor(
-		graph: Graph,
+		private readonly graph: Graph,
+		private readonly options: NormalizedInputOptions,
 		userPlugins: Plugin[],
 		pluginCache: Record<string, SerializablePluginCache> | undefined,
 		basePluginDriver?: PluginDriver
 	) {
-		warnDeprecatedHooks(userPlugins, graph);
-		this.graph = graph;
+		warnDeprecatedHooks(userPlugins, options);
 		this.pluginCache = pluginCache;
-		this.fileEmitter = new FileEmitter(graph, basePluginDriver && basePluginDriver.fileEmitter);
+		this.fileEmitter = new FileEmitter(
+			graph,
+			options,
+			basePluginDriver && basePluginDriver.fileEmitter
+		);
 		this.emitFile = this.fileEmitter.emitFile;
 		this.getFileName = this.fileEmitter.getFileName;
 		this.finaliseAssets = this.fileEmitter.assertAssetsFinalized;
 		this.setOutputBundle = this.fileEmitter.setOutputBundle;
 		this.plugins = userPlugins.concat(basePluginDriver ? basePluginDriver.plugins : []);
-		this.pluginContexts = this.plugins.map(getPluginContexts(pluginCache, graph, this.fileEmitter));
+		this.pluginContexts = this.plugins.map(
+			getPluginContexts(pluginCache, graph, options, this.fileEmitter)
+		);
 		if (basePluginDriver) {
 			for (const plugin of userPlugins) {
 				for (const hook of inputHooks) {
 					if (hook in plugin) {
-						graph.warn(errInputHookInOutputPlugin(plugin.name, hook));
+						options.onwarn(errInputHookInOutputPlugin(plugin.name, hook));
 					}
 				}
 			}
@@ -104,7 +110,7 @@ export class PluginDriver {
 	}
 
 	public createOutputPluginDriver(plugins: Plugin[]): PluginDriver {
-		return new PluginDriver(this.graph, plugins, this.pluginCache, this);
+		return new PluginDriver(this.graph, this.options, plugins, this.pluginCache, this);
 	}
 
 	// chains, first non-null result stops and returns

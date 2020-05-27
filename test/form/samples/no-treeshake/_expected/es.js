@@ -45,4 +45,8 @@ test({
 	}
 });
 
+try {
+	const x = 1;
+} catch {}
+
 export { create, getPrototypeOf, quux, quux as strange };

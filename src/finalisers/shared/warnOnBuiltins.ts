@@ -25,8 +25,6 @@ const builtins = {
 	zlib: true
 };
 
-// Creating a browser chunk that depends on Node.js built-in modules ('util'). You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins
-
 export default function warnOnBuiltins(
 	warn: (warning: RollupWarning) => void,
 	dependencies: ChunkDependencies
@@ -45,7 +43,7 @@ export default function warnOnBuiltins(
 
 	warn({
 		code: 'MISSING_NODE_BUILTINS',
-		message: `Creating a browser bundle that depends on Node.js built-in ${detail}. You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins`,
+		message: `Creating a browser bundle that depends on Node.js built-in ${detail}. You might need to include https://github.com/ionic-team/rollup-plugin-node-polyfills`,
 		modules: externalBuiltins
 	});
 }

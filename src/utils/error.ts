@@ -1,6 +1,11 @@
 import { locate } from 'locate-character';
 import Module from '../Module';
-import { RollupError, RollupWarning } from '../rollup/types';
+import {
+	NormalizedInputOptions,
+	RollupError,
+	RollupWarning,
+	WarningHandler
+} from '../rollup/types';
 import getCodeFrame from './getCodeFrame';
 import relativeId from './relativeId';
 
@@ -207,8 +212,9 @@ export function errMixedExport(facadeModuleId: string, name?: string) {
 		id: facadeModuleId,
 		message: `Entry module "${relativeId(
 			facadeModuleId
-		)}" is using named and default exports together. Consumers of your bundle will have to use \`${name ||
-			'chunk'}["default"]\` to access the default export, which may not be what you want. Use \`output.exports: "named"\` to disable this warning`,
+		)}" is using named and default exports together. Consumers of your bundle will have to use \`${
+			name || 'chunk'
+		}["default"]\` to access the default export, which may not be what you want. Use \`output.exports: "named"\` to disable this warning`,
 		url: `https://rollupjs.org/guide/en/#output-exports`
 	};
 }
@@ -278,4 +284,32 @@ export function errFailedValidation(message: string) {
 		code: Errors.VALIDATION_ERROR,
 		message
 	};
+}
+
+export function warnDeprecation(
+	deprecation: string | RollupWarning,
+	activeDeprecation: boolean,
+	options: NormalizedInputOptions
+): void {
+	warnDeprecationWithOptions(
+		deprecation,
+		activeDeprecation,
+		options.onwarn,
+		options.strictDeprecations
+	);
+}
+
+export function warnDeprecationWithOptions(
+	deprecation: string | RollupWarning,
+	activeDeprecation: boolean,
+	warn: WarningHandler,
+	strictDeprecations: boolean
+): void {
+	if (activeDeprecation || strictDeprecations) {
+		const warning = errDeprecation(deprecation);
+		if (strictDeprecations) {
+			return error(warning);
+		}
+		warn(warning);
+	}
 }

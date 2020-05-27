@@ -1,5 +1,5 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
-import { OutputOptions } from '../rollup/types';
+import { NormalizedOutputOptions } from '../rollup/types';
 import { INTEROP_NAMESPACE_VARIABLE } from '../utils/variableNames';
 import { FinaliserOptions } from './index';
 import { compactEsModuleExport, esModuleExport } from './shared/esModuleExport';
@@ -33,7 +33,7 @@ export default function amd(
 		varOrConst,
 		warn
 	}: FinaliserOptions,
-	options: OutputOptions
+	options: NormalizedOutputOptions
 ) {
 	warnOnBuiltins(warn, dependencies);
 
@@ -63,9 +63,8 @@ export default function amd(
 		(amdOptions.id ? `'${amdOptions.id}',${_}` : ``) +
 		(deps.length ? `[${deps.join(`,${_}`)}],${_}` : ``);
 
-	const useStrict = options.strict !== false ? `${_}'use strict';` : ``;
-	const define = amdOptions.define || 'define';
-	const wrapperStart = `${define}(${params}function${_}(${args.join(
+	const useStrict = options.strict ? `${_}'use strict';` : ``;
+	const wrapperStart = `${amdOptions.define}(${params}function${_}(${args.join(
 		`,${_}`
 	)})${_}{${useStrict}${n}${n}`;
 
@@ -75,7 +74,7 @@ export default function amd(
 		magicString.prepend(interopBlock + n + n);
 	}
 	if (accessedGlobals.has(INTEROP_NAMESPACE_VARIABLE)) {
-		magicString.prepend(getInteropNamespace(_, n, t, options.externalLiveBindings !== false));
+		magicString.prepend(getInteropNamespace(_, n, t, options.externalLiveBindings));
 	}
 
 	if (intro) magicString.prepend(intro);

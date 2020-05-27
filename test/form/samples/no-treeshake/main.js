@@ -42,3 +42,7 @@ test({
 		var unused = 1;
 	}
 });
+
+try {
+	const x = 1;
+} catch {}

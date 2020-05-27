@@ -1,6 +1,6 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { ChunkExports, ModuleDeclarations } from '../Chunk';
-import { OutputOptions } from '../rollup/types';
+import { NormalizedOutputOptions } from '../rollup/types';
 import { MISSING_EXPORT_SHIM_VARIABLE } from '../utils/variableNames';
 import { FinaliserOptions } from './index';
 
@@ -101,7 +101,7 @@ export default function system(
 		usesTopLevelAwait,
 		varOrConst
 	}: FinaliserOptions,
-	options: OutputOptions
+	options: NormalizedOutputOptions
 ) {
 	const n = options.compact ? '' : '\n';
 	const _ = options.compact ? '' : ' ';

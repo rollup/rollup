@@ -1,6 +1,5 @@
 import ExternalVariable from './ast/variables/ExternalVariable';
-import Graph from './Graph';
-import { OutputOptions } from './rollup/types';
+import { NormalizedInputOptions, NormalizedOutputOptions } from './rollup/types';
 import { makeLegal } from './utils/identifierHelpers';
 import { isAbsolute, normalize, relative } from './utils/path';
 
@@ -23,10 +22,11 @@ export default class ExternalModule {
 	used = false;
 	variableName: string;
 
-	private graph: Graph;
-
-	constructor(graph: Graph, id: string, moduleSideEffects: boolean) {
-		this.graph = graph;
+	constructor(
+		private readonly options: NormalizedInputOptions,
+		id: string,
+		moduleSideEffects: boolean
+	) {
 		this.id = id;
 		this.execIndex = Infinity;
 		this.moduleSideEffects = moduleSideEffects;
@@ -54,12 +54,9 @@ export default class ExternalModule {
 		return declaration;
 	}
 
-	setRenderPath(options: OutputOptions, inputBase: string) {
-		this.renderPath = '';
-		if (options.paths) {
-			this.renderPath =
-				typeof options.paths === 'function' ? options.paths(this.id) : options.paths[this.id];
-		}
+	setRenderPath(options: NormalizedOutputOptions, inputBase: string) {
+		this.renderPath =
+			typeof options.paths === 'function' ? options.paths(this.id) : options.paths[this.id];
 		if (!this.renderPath) {
 			if (!isAbsolute(this.id)) {
 				this.renderPath = this.id;
@@ -98,7 +95,7 @@ export default class ExternalModule {
 						.map(name => `'${name}'`)
 						.join(', ')} and '${unused.slice(-1)}' are`;
 
-		this.graph.warn({
+		this.options.onwarn({
 			code: 'UNUSED_EXTERNAL_IMPORT',
 			message: `${names} imported from external module '${this.id}' but never used`,
 			names: unused,

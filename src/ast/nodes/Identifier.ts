@@ -1,5 +1,6 @@
 import isReference from 'is-reference';
 import MagicString from 'magic-string';
+import { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { CallOptions } from '../CallOptions';
@@ -101,7 +102,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 	hasEffects(): boolean {
 		return (
-			this.context.unknownGlobalSideEffects &&
+			(this.context.options.treeshake as NormalizedTreeshakingOptions).unknownGlobalSideEffects &&
 			this.variable instanceof GlobalVariable &&
 			this.variable.hasEffectsWhenAccessedAtPath(EMPTY_PATH)
 		);

@@ -52,6 +52,10 @@ System.register('stirred', ['external'], function (exports) {
 				}
 			});
 
+			try {
+				const x = 1;
+			} catch {}
+
 		}
 	};
 });
