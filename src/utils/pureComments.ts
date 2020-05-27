@@ -3,6 +3,16 @@ import * as acorn from 'acorn';
 import { base as basicWalker } from 'acorn-walk';
 import { CommentDescription } from '../Module';
 
+// patch up acorn-walk until class-fields are officially supported
+basicWalker.FieldDefinition = function (node: any, st: any, c: any) {
+	if (node.computed) {
+		c(node.key, st, 'Expression');
+	}
+	if (node.value) {
+		c(node.value, st, 'Expression');
+	}
+};
+
 function handlePureAnnotationsOfNode(
 	node: acorn.Node,
 	state: { commentIndex: number; commentNodes: CommentDescription[] },
