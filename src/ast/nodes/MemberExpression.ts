@@ -73,6 +73,7 @@ function getStringFromPath(path: PathWithPositions): string {
 export default class MemberExpression extends NodeBase implements DeoptimizableEntity, PatternNode {
 	computed!: boolean;
 	object!: ExpressionNode | Super;
+	optional?: boolean;
 	property!: ExpressionNode;
 	propertyKey!: ObjectPathKey | null;
 	type!: NodeType.tMemberExpression;

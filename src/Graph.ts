@@ -1,4 +1,4 @@
-import * as acorn from 'acorn';
+import * as acorn from 'fork-acorn-optional-chaining';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { PathTracker } from './ast/utils/PathTracker';
 import Chunk from './Chunk';

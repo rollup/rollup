@@ -61,11 +61,7 @@ function compareWarnings(actual, expected) {
 }
 
 function deindent(str) {
-	return str
-		.slice(1)
-		.replace(/^\t+/gm, '')
-		.replace(/\s+$/gm, '')
-		.trim();
+	return str.slice(1).replace(/^\t+/gm, '').replace(/\s+$/gm, '').trim();
 }
 
 function executeBundle(bundle, require) {
@@ -102,7 +98,7 @@ function loadConfig(configFile) {
 			const dir = path.dirname(configFile);
 			removeOldTest(dir);
 		} else {
-			throw new Error(`Failed to load ${path}: ${err.message}`);
+			throw new Error(`Failed to load ${configFile}: ${err.message}`);
 		}
 	}
 }
@@ -139,10 +135,7 @@ function loader(modules) {
 }
 
 function normaliseOutput(code) {
-	return code
-		.toString()
-		.trim()
-		.replace(/\r\n/g, '\n');
+	return code.toString().trim().replace(/\r\n/g, '\n');
 }
 
 function runTestSuiteWithSamples(suiteName, samplesDir, runTest, onTeardown) {
@@ -150,11 +143,11 @@ function runTestSuiteWithSamples(suiteName, samplesDir, runTest, onTeardown) {
 }
 
 // You can run only or skip certain kinds of tests be appending .only or .skip
-runTestSuiteWithSamples.only = function(suiteName, samplesDir, runTest, onTeardown) {
+runTestSuiteWithSamples.only = function (suiteName, samplesDir, runTest, onTeardown) {
 	describe.only(suiteName, () => runSamples(samplesDir, runTest, onTeardown));
 };
 
-runTestSuiteWithSamples.skip = function(suiteName) {
+runTestSuiteWithSamples.skip = function (suiteName) {
 	describe.skip(suiteName, () => {});
 };
 
