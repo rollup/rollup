@@ -217,7 +217,8 @@ function mergeOutputOptions(
 		sourcemapExcludeSources: getOption('sourcemapExcludeSources'),
 		sourcemapFile: getOption('sourcemapFile'),
 		sourcemapPathTransform: getOption('sourcemapPathTransform'),
-		strict: getOption('strict')
+		strict: getOption('strict'),
+		systemNullSetters: getOption('systemNullSetters')
 	};
 
 	warnUnknownOptions(config, Object.keys(outputOptions), 'output options', warn);
