@@ -97,7 +97,7 @@ export default { // can be an array (for multiple inputs)
   },
 
   watch: {
-  	buildDelay,
+    buildDelay,
     chokidar,
     clearScreen,
     skipWrite,
