@@ -34,6 +34,7 @@ import {
 	EmittedFile,
 	ExistingDecodedSourceMap,
 	ModuleJSON,
+	NormalizedInputOptions,
 	PreserveEntrySignaturesOption,
 	ResolvedIdMap,
 	RollupError,
@@ -86,7 +87,6 @@ export interface AstContext {
 	) => void;
 	addImport: (node: ImportDeclaration) => void;
 	addImportMeta: (node: MetaProperty) => void;
-	annotations: boolean;
 	code: string;
 	deoptimizationTracker: PathTracker;
 	error: (props: RollupError, pos?: number) => never;
@@ -103,28 +103,16 @@ export interface AstContext {
 	module: Module; // not to be used for tree-shaking
 	moduleContext: string;
 	nodeConstructors: { [name: string]: typeof NodeBase };
-	preserveModules: boolean;
-	propertyReadSideEffects: boolean;
+	options: NormalizedInputOptions;
 	traceExport: (name: string) => Variable;
 	traceVariable: (name: string) => Variable | null;
-	treeshake: boolean;
-	tryCatchDeoptimization: boolean;
-	unknownGlobalSideEffects: boolean;
 	usesTopLevelAwait: boolean;
 	warn: (warning: RollupWarning, pos?: number) => void;
-	warnDeprecation: (deprecation: string | RollupWarning, activeDeprecation: boolean) => void;
 }
-
-export const defaultAcornOptions: acorn.Options = {
-	ecmaVersion: 2020,
-	preserveParens: false,
-	sourceType: 'module'
-};
 
 function tryParse(module: Module, Parser: typeof acorn.Parser, acornOptions: acorn.Options) {
 	try {
 		return Parser.parse(module.code, {
-			...defaultAcornOptions,
 			...acornOptions,
 			onComment: (block: boolean, text: string, start: number, end: number) =>
 				module.comments.push({ block, text, start, end })
@@ -219,7 +207,7 @@ export default class Module {
 	namespace!: NamespaceVariable;
 	originalCode!: string;
 	originalSourcemap!: ExistingDecodedSourceMap | null;
-	preserveSignature: PreserveEntrySignaturesOption = this.graph.preserveEntrySignatures ?? 'strict';
+	preserveSignature: PreserveEntrySignaturesOption = this.options.preserveEntrySignatures;
 	reexportDescriptions: { [name: string]: ReexportDescription } = Object.create(null);
 	resolvedIds!: ResolvedIdMap;
 	scope!: ModuleScope;
@@ -249,12 +237,13 @@ export default class Module {
 	constructor(
 		private readonly graph: Graph,
 		public readonly id: string,
+		private readonly options: NormalizedInputOptions,
 		public moduleSideEffects: boolean,
 		public syntheticNamedExports: boolean,
 		public isEntryPoint: boolean
 	) {
 		this.excludeFromSourcemap = /\0/.test(id);
-		this.context = graph.getModuleContext(id);
+		this.context = options.moduleContext(id);
 	}
 
 	basename() {
@@ -346,7 +335,7 @@ export default class Module {
 		if (
 			this.isEntryPoint ||
 			this.includedDynamicImporters.length > 0 ||
-			this.graph.preserveModules
+			this.options.preserveModules
 		) {
 			dependencyVariables = new Set(dependencyVariables);
 			for (const exportName of [...this.getReexports(), ...this.getExports()]) {
@@ -365,7 +354,7 @@ export default class Module {
 			}
 			relevantDependencies.add(variable.module!);
 		}
-		if (this.graph.treeshakingOptions) {
+		if (this.options.treeshake) {
 			const possibleDependencies = new Set(this.dependencies);
 			for (const dependency of possibleDependencies) {
 				if (
@@ -464,7 +453,7 @@ export default class Module {
 				return this.namespace;
 			} else {
 				// export * from 'external'
-				const module = this.graph.moduleById.get(name.slice(1)) as ExternalModule;
+				const module = this.graph.modulesById.get(name.slice(1)) as ExternalModule;
 				return module.getVariableForExportName('*');
 			}
 		}
@@ -527,7 +516,7 @@ export default class Module {
 				return syntheticExport;
 			}
 
-			if (this.graph.shimMissingExports) {
+			if (this.options.shimMissingExports) {
 				this.shimMissingExport(name);
 				return this.exportShimVariable;
 			}
@@ -582,7 +571,7 @@ export default class Module {
 
 	linkDependencies() {
 		for (const source of this.sources) {
-			this.dependencies.add(this.graph.moduleById.get(this.resolvedIds[source].id)!);
+			this.dependencies.add(this.graph.modulesById.get(this.resolvedIds[source].id)!);
 		}
 		for (const { resolution } of this.dynamicImports) {
 			if (resolution instanceof Module || resolution instanceof ExternalModule) {
@@ -595,7 +584,7 @@ export default class Module {
 
 		const externalExportAllModules: ExternalModule[] = [];
 		for (const source of this.exportAllSources) {
-			const module = this.graph.moduleById.get(this.resolvedIds[source].id) as
+			const module = this.graph.modulesById.get(this.resolvedIds[source].id) as
 				| Module
 				| ExternalModule;
 			(module instanceof ExternalModule ? externalExportAllModules : this.exportAllModules).push(
@@ -651,7 +640,7 @@ export default class Module {
 		if (ast) {
 			this.esTreeAst = ast;
 		} else {
-			this.esTreeAst = tryParse(this, this.graph.acornParser, this.graph.acornOptions);
+			this.esTreeAst = tryParse(this, this.graph.acornParser, this.options.acorn);
 			for (const comment of this.comments) {
 				if (!comment.block && SOURCEMAPPING_URL_RE.test(comment.text)) {
 					this.alwaysRemovedCode.push([comment.start, comment.end]);
@@ -683,7 +672,6 @@ export default class Module {
 			addExport: this.addExport.bind(this),
 			addImport: this.addImport.bind(this),
 			addImportMeta: this.addImportMeta.bind(this),
-			annotations: (this.graph.treeshakingOptions && this.graph.treeshakingOptions.annotations)!,
 			code, // Only needed for debugging
 			deoptimizationTracker: this.graph.deoptimizationTracker,
 			error: this.error.bind(this),
@@ -702,19 +690,11 @@ export default class Module {
 			module: this,
 			moduleContext: this.context,
 			nodeConstructors,
-			preserveModules: this.graph.preserveModules,
-			propertyReadSideEffects: (!this.graph.treeshakingOptions ||
-				this.graph.treeshakingOptions.propertyReadSideEffects)!,
+			options: this.options,
 			traceExport: this.getVariableForExportName.bind(this),
 			traceVariable: this.traceVariable.bind(this),
-			treeshake: !!this.graph.treeshakingOptions,
-			tryCatchDeoptimization: (!this.graph.treeshakingOptions ||
-				this.graph.treeshakingOptions.tryCatchDeoptimization)!,
-			unknownGlobalSideEffects: (!this.graph.treeshakingOptions ||
-				this.graph.treeshakingOptions.unknownGlobalSideEffects)!,
 			usesTopLevelAwait: false,
-			warn: this.warn.bind(this),
-			warnDeprecation: this.graph.warnDeprecation.bind(this.graph)
+			warn: this.warn.bind(this)
 		};
 
 		this.scope = new ModuleScope(this.graph.scope, this.astContext);
@@ -789,7 +769,7 @@ export default class Module {
 		}
 
 		warning.id = this.id;
-		this.graph.warn(warning);
+		this.options.onwarn(warning);
 	}
 
 	private addDynamicImport(node: ImportExpression) {
@@ -905,7 +885,7 @@ export default class Module {
 		for (const name of Object.keys(importDescription)) {
 			const specifier = importDescription[name];
 			const id = this.resolvedIds[specifier.source].id;
-			specifier.module = this.graph.moduleById.get(id) as Module | ExternalModule;
+			specifier.module = this.graph.modulesById.get(id) as Module | ExternalModule;
 		}
 	}
 
@@ -949,7 +929,7 @@ export default class Module {
 	}
 
 	private shimMissingExport(name: string): void {
-		this.graph.warn({
+		this.options.onwarn({
 			code: 'SHIMMED_EXPORT',
 			exporter: relativeId(this.id),
 			exportName: name,

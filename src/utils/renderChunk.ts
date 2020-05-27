@@ -1,6 +1,6 @@
 import {
 	DecodedSourceMapOrMissing,
-	OutputOptions,
+	NormalizedOutputOptions,
 	Plugin,
 	RenderedChunk,
 	SourceMapInput
@@ -16,7 +16,7 @@ export default function renderChunk({
 	sourcemapChain
 }: {
 	code: string;
-	options: OutputOptions;
+	options: NormalizedOutputOptions;
 	outputPluginDriver: PluginDriver;
 	renderChunk: RenderedChunk;
 	sourcemapChain: DecodedSourceMapOrMissing[];

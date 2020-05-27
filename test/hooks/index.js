@@ -16,11 +16,11 @@ describe('hooks', () => {
 					loader({ newInput: `alert('hello')` }),
 					{
 						buildStart(options) {
-							assert.strictEqual(options.input, 'newInput');
+							assert.deepStrictEqual(options.input, ['newInput']);
 							assert.strictEqual(options.treeshake, false);
 						},
 						options(options) {
-							assert.strictEqual(options.input, 'input');
+							assert.deepStrictEqual(options.input, 'input');
 							assert.strictEqual(options.treeshake, false);
 							assert.ok(/^\d+\.\d+\.\d+/.test(this.meta.rollupVersion));
 							return Object.assign({}, options, { input: 'newInput' });
@@ -39,12 +39,41 @@ describe('hooks', () => {
 					loader({ input: `alert('hello')` }),
 					{
 						renderChunk(code, chunk, options) {
-							assert.strictEqual(options.banner, 'new banner');
-							assert.strictEqual(options.format, 'cjs');
+							assert.deepStrictEqual(JSON.parse(JSON.stringify(options)), {
+								amd: {
+									define: 'define'
+								},
+								assetFileNames: 'assets/[name]-[hash][extname]',
+								chunkFileNames: '[name]-[hash].js',
+								compact: false,
+								entryFileNames: '[name].js',
+								esModule: true,
+								exports: 'auto',
+								extend: false,
+								externalLiveBindings: true,
+								format: 'cjs',
+								freeze: true,
+								globals: {},
+								hoistTransitiveImports: true,
+								indent: true,
+								interop: true,
+								minifyInternalExports: false,
+								namespaceToStringTag: false,
+								noConflict: false,
+								paths: {},
+								plugins: [],
+								preferConst: false,
+								sourcemap: false,
+								sourcemapExcludeSources: false,
+								strict: true
+							});
+							assert.strictEqual(options.banner(), 'new banner');
 						},
 						outputOptions(options) {
-							assert.strictEqual(options.banner, 'banner');
-							assert.strictEqual(options.format, 'cjs');
+							assert.deepStrictEqual(JSON.parse(JSON.stringify(options)), {
+								banner: 'banner',
+								format: 'cjs'
+							});
 							assert.ok(/^\d+\.\d+\.\d+/.test(this.meta.rollupVersion));
 							return Object.assign({}, options, { banner: 'new banner' });
 						}

@@ -1,4 +1,5 @@
 import MagicString from 'magic-string';
+import { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import {
 	findFirstOccurrenceOutsideComment,
@@ -153,7 +154,11 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		for (const argument of this.arguments) {
 			if (argument.hasEffects(context)) return true;
 		}
-		if (this.context.annotations && this.annotatedPure) return false;
+		if (
+			(this.context.options.treeshake as NormalizedTreeshakingOptions).annotations &&
+			this.annotatedPure
+		)
+			return false;
 		return (
 			this.callee.hasEffects(context) ||
 			this.callee.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.callOptions, context)

@@ -1,4 +1,5 @@
 import MagicString from 'magic-string';
+import { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import relativeId from '../../utils/relativeId';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
@@ -175,7 +176,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		return (
 			this.property.hasEffects(context) ||
 			this.object.hasEffects(context) ||
-			(this.context.propertyReadSideEffects &&
+			((this.context.options.treeshake as NormalizedTreeshakingOptions).propertyReadSideEffects &&
 				this.object.hasEffectsWhenAccessedAtPath([this.propertyKey!], context))
 		);
 	}

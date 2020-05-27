@@ -80,7 +80,7 @@ const immediateHandlers: {
 						.map((name: string) => `'${name}'`)
 						.join(', ')} and '${warning.modules!.slice(-1)}'`;
 		stderr(
-			`Creating a browser bundle that depends on ${detail}. You might need to include https://www.npmjs.com/package/rollup-plugin-node-builtins`
+			`Creating a browser bundle that depends on ${detail}. You might need to include https://github.com/ionic-team/rollup-plugin-node-polyfills`
 		);
 	}
 };

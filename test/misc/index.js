@@ -6,4 +6,3 @@ require('./in-memory-sourcemaps');
 require('./misc');
 require('./sanity-checks');
 require('./umd');
-require('./write-bundle');

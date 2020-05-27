@@ -2,8 +2,10 @@ import Graph from '../Graph';
 import Module from '../Module';
 import {
 	FilePlaceholder,
+	NormalizedInputOptions,
 	OutputBundleWithPlaceholders,
-	PreserveEntrySignaturesOption
+	PreserveEntrySignaturesOption,
+	WarningHandler
 } from '../rollup/types';
 import { BuildPhase } from './buildPhase';
 import { createHash } from './crypto';
@@ -17,7 +19,8 @@ import {
 	errFileReferenceIdNotFoundForFilename,
 	errInvalidRollupPhaseForChunkEmission,
 	errNoAssetSourceSet,
-	error
+	error,
+	warnDeprecation
 } from './error';
 import { extname } from './path';
 import { isPlainPathFragment } from './relativeId';
@@ -54,10 +57,10 @@ function generateAssetFileName(
 function reserveFileNameInBundle(
 	fileName: string,
 	bundle: OutputBundleWithPlaceholders,
-	graph: Graph
+	warn: WarningHandler
 ) {
 	if (fileName in bundle) {
-		graph.warn(errFileNameConflict(fileName));
+		warn(errFileNameConflict(fileName));
 	}
 	bundle[fileName] = FILE_PLACEHOLDER;
 }
@@ -142,11 +145,13 @@ function getChunkFileName(file: ConsumedChunk): string {
 
 export class FileEmitter {
 	private filesByReferenceId: Map<string, ConsumedFile>;
-	private graph: Graph;
 	private output: OutputSpecificFileData | null = null;
 
-	constructor(graph: Graph, baseFileEmitter?: FileEmitter) {
-		this.graph = graph;
+	constructor(
+		private readonly graph: Graph,
+		private readonly options: NormalizedInputOptions,
+		baseFileEmitter?: FileEmitter
+	) {
 		this.filesByReferenceId = baseFileEmitter
 			? new Map(baseFileEmitter.filesByReferenceId)
 			: new Map();
@@ -226,7 +231,7 @@ export class FileEmitter {
 		};
 		for (const emittedFile of this.filesByReferenceId.values()) {
 			if (emittedFile.fileName) {
-				reserveFileNameInBundle(emittedFile.fileName, this.output.bundle, this.graph);
+				reserveFileNameInBundle(emittedFile.fileName, this.output.bundle, this.options.onwarn);
 			}
 		}
 		for (const [referenceId, consumedFile] of this.filesByReferenceId.entries()) {
@@ -268,7 +273,7 @@ export class FileEmitter {
 		);
 		if (this.output) {
 			if (emittedAsset.fileName) {
-				reserveFileNameInBundle(emittedAsset.fileName, this.output.bundle, this.graph);
+				reserveFileNameInBundle(emittedAsset.fileName, this.output.bundle, this.options.onwarn);
 			}
 			if (source !== undefined) {
 				this.finalizeAsset(consumedAsset, source, referenceId, this.output);
@@ -335,13 +340,14 @@ export class FileEmitter {
 		// We must not modify the original assets to avoid interaction between outputs
 		const assetWithFileName = { ...consumedFile, source, fileName };
 		this.filesByReferenceId.set(referenceId, assetWithFileName);
-		const graph = this.graph;
+		const options = this.options;
 		output.bundle[fileName] = {
 			fileName,
 			get isAsset(): true {
-				graph.warnDeprecation(
+				warnDeprecation(
 					'Accessing "isAsset" on files in the bundle is deprecated, please use "type === \'asset\'" instead',
-					true
+					true,
+					options
 				);
 
 				return true;

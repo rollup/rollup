@@ -229,7 +229,7 @@ export type IsExternal = (
 	source: string,
 	importer: string | undefined,
 	isResolved: boolean
-) => boolean | null | undefined;
+) => boolean;
 
 export type IsPureModule = (id: string) => boolean | null | undefined;
 
@@ -255,7 +255,7 @@ export type RenderChunkHook = (
 	this: PluginContext,
 	code: string,
 	chunk: RenderedChunk,
-	options: OutputOptions
+	options: NormalizedOutputOptions
 ) =>
 	| Promise<{ code: string; map?: SourceMapInput } | null>
 	| { code: string; map?: SourceMapInput }
@@ -328,7 +328,7 @@ export interface OutputBundleWithPlaceholders {
 
 export interface PluginHooks extends OutputPluginHooks {
 	buildEnd: (this: PluginContext, err?: Error) => Promise<void> | void;
-	buildStart: (this: PluginContext, options: InputOptions) => Promise<void> | void;
+	buildStart: (this: PluginContext, options: NormalizedInputOptions) => Promise<void> | void;
 	load: LoadHook;
 	options: (this: MinimalPluginContext, options: InputOptions) => InputOptions | null | undefined;
 	resolveDynamicImport: ResolveDynamicImportHook;
@@ -341,7 +341,7 @@ interface OutputPluginHooks {
 	augmentChunkHash: (this: PluginContext, chunk: PreRenderedChunk) => string | void;
 	generateBundle: (
 		this: PluginContext,
-		options: OutputOptions,
+		options: NormalizedOutputOptions,
 		bundle: OutputBundle,
 		isWrite: boolean
 	) => void | Promise<void>;
@@ -359,8 +359,8 @@ interface OutputPluginHooks {
 	renderError: (this: PluginContext, err?: Error) => Promise<void> | void;
 	renderStart: (
 		this: PluginContext,
-		outputOptions: OutputOptions,
-		inputOptions: InputOptions
+		outputOptions: NormalizedOutputOptions,
+		inputOptions: NormalizedInputOptions
 	) => Promise<void> | void;
 	/** @deprecated Use `resolveFileUrl` instead */
 	resolveAssetUrl: ResolveAssetUrlHook;
@@ -368,7 +368,7 @@ interface OutputPluginHooks {
 	resolveImportMeta: ResolveImportMetaHook;
 	writeBundle: (
 		this: PluginContext,
-		options: OutputOptions,
+		options: NormalizedOutputOptions,
 		bundle: OutputBundle
 	) => void | Promise<void>;
 }
@@ -444,13 +444,30 @@ export interface TreeshakingOptions {
 	tryCatchDeoptimization?: boolean;
 	unknownGlobalSideEffects?: boolean;
 }
+
+export interface NormalizedTreeshakingOptions {
+	annotations: boolean;
+	moduleSideEffects: HasModuleSideEffects;
+	propertyReadSideEffects: boolean;
+	tryCatchDeoptimization: boolean;
+	unknownGlobalSideEffects: boolean;
+}
+
 interface GetManualChunkApi {
 	getModuleIds: () => IterableIterator<string>;
 	getModuleInfo: GetModuleInfo;
 }
 export type GetManualChunk = (id: string, api: GetManualChunkApi) => string | null | undefined;
 
-export type ExternalOption = (string | RegExp)[] | string | RegExp | IsExternal;
+export type ExternalOption =
+	| (string | RegExp)[]
+	| string
+	| RegExp
+	| ((
+			source: string,
+			importer: string | undefined,
+			isResolved: boolean
+	  ) => boolean | null | undefined);
 export type PureModulesOption = boolean | string[] | IsPureModule;
 export type GlobalsOption = { [name: string]: string } | ((name: string) => string);
 export type InputOption = string | string[] | { [entryAlias: string]: string };
@@ -459,7 +476,7 @@ export type ModuleSideEffectsOption = boolean | 'no-external' | string[] | HasMo
 export type PreserveEntrySignaturesOption = false | 'strict' | 'allow-extension';
 
 export interface InputOptions {
-	acorn?: any;
+	acorn?: Object;
 	acornInjectPlugins?: Function | Function[];
 	cache?: false | RollupCache;
 	context?: string;
@@ -468,7 +485,7 @@ export interface InputOptions {
 	inlineDynamicImports?: boolean;
 	input?: InputOption;
 	manualChunks?: ManualChunksOption;
-	moduleContext?: ((id: string) => string) | { [id: string]: string };
+	moduleContext?: ((id: string) => string | null | undefined) | { [id: string]: string };
 	onwarn?: WarningHandlerWithDefault;
 	perf?: boolean;
 	plugins?: Plugin[];
@@ -479,6 +496,28 @@ export interface InputOptions {
 	strictDeprecations?: boolean;
 	treeshake?: boolean | TreeshakingOptions;
 	watch?: WatcherOptions;
+}
+
+export interface NormalizedInputOptions {
+	acorn: Object;
+	acornInjectPlugins: Function[];
+	cache: false | undefined | RollupCache;
+	context: string;
+	experimentalCacheExpiry: number;
+	external: IsExternal;
+	inlineDynamicImports: boolean;
+	input: string[] | { [entryAlias: string]: string };
+	manualChunks: ManualChunksOption;
+	moduleContext: (id: string) => string;
+	onwarn: WarningHandler;
+	perf: boolean;
+	plugins: Plugin[];
+	preserveEntrySignatures: PreserveEntrySignaturesOption;
+	preserveModules: boolean;
+	preserveSymlinks: boolean;
+	shimMissingExports: boolean;
+	strictDeprecations: boolean;
+	treeshake: false | NormalizedTreeshakingOptions;
 }
 
 export type InternalModuleFormat = 'amd' | 'cjs' | 'es' | 'iife' | 'system' | 'umd';
@@ -512,7 +551,7 @@ export interface OutputOptions {
 	freeze?: boolean;
 	globals?: GlobalsOption;
 	hoistTransitiveImports?: boolean;
-	indent?: boolean;
+	indent?: string | boolean;
 	interop?: boolean;
 	intro?: string | (() => string | Promise<string>);
 	minifyInternalExports?: boolean;
@@ -528,6 +567,47 @@ export interface OutputOptions {
 	sourcemapFile?: string;
 	sourcemapPathTransform?: (sourcePath: string) => string;
 	strict?: boolean;
+}
+
+export interface NormalizedOutputOptions {
+	amd: {
+		define: string;
+		id?: string;
+	};
+	assetFileNames: string;
+	banner: () => string | Promise<string>;
+	chunkFileNames: string;
+	compact: boolean;
+	dir: string | undefined;
+	/** @deprecated Use the "renderDynamicImport" plugin hook instead. */
+	dynamicImportFunction: string | undefined;
+	entryFileNames: string;
+	esModule: boolean;
+	exports: 'default' | 'named' | 'none' | 'auto';
+	extend: boolean;
+	externalLiveBindings: boolean;
+	file: string | undefined;
+	footer: () => string | Promise<string>;
+	format: InternalModuleFormat;
+	freeze: boolean;
+	globals: GlobalsOption;
+	hoistTransitiveImports: boolean;
+	indent: true | string;
+	interop: boolean;
+	intro: () => string | Promise<string>;
+	minifyInternalExports: boolean;
+	name: string | undefined;
+	namespaceToStringTag: boolean;
+	noConflict: boolean;
+	outro: () => string | Promise<string>;
+	paths: OptionsPaths;
+	plugins: OutputPlugin[];
+	preferConst: boolean;
+	sourcemap: boolean | 'inline' | 'hidden';
+	sourcemapExcludeSources: boolean;
+	sourcemapFile: string | undefined;
+	sourcemapPathTransform: ((sourcePath: string) => string) | undefined;
+	strict: boolean;
 }
 
 export type WarningHandlerWithDefault = (
@@ -592,7 +672,7 @@ export interface RollupOutput {
 }
 
 export interface RollupBuild {
-	cache: RollupCache;
+	cache: RollupCache | undefined;
 	generate: (outputOptions: OutputOptions) => Promise<RollupOutput>;
 	getTimings?: () => SerializedTimings;
 	watchFiles: string[];

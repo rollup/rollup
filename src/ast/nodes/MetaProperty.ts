@@ -1,5 +1,6 @@
 import MagicString from 'magic-string';
 import { InternalModuleFormat } from '../../rollup/types';
+import { warnDeprecation } from '../../utils/error';
 import { dirname, normalize, relative } from '../../utils/path';
 import { PluginDriver } from '../../utils/PluginDriver';
 import { ObjectPathKey } from '../utils/PathTracker';
@@ -78,16 +79,18 @@ export default class MetaProperty extends NodeBase {
 				referenceId = metaProperty.substr(FILE_PREFIX.length);
 				fileName = outputPluginDriver.getFileName(referenceId);
 			} else if (metaProperty.startsWith(ASSET_PREFIX)) {
-				this.context.warnDeprecation(
+				warnDeprecation(
 					`Using the "${ASSET_PREFIX}" prefix to reference files is deprecated. Use the "${FILE_PREFIX}" prefix instead.`,
-					true
+					true,
+					this.context.options
 				);
 				assetReferenceId = metaProperty.substr(ASSET_PREFIX.length);
 				fileName = outputPluginDriver.getFileName(assetReferenceId);
 			} else {
-				this.context.warnDeprecation(
+				warnDeprecation(
 					`Using the "${CHUNK_PREFIX}" prefix to reference files is deprecated. Use the "${FILE_PREFIX}" prefix instead.`,
-					true
+					true,
+					this.context.options
 				);
 				chunkReferenceId = metaProperty.substr(CHUNK_PREFIX.length);
 				fileName = outputPluginDriver.getFileName(chunkReferenceId);

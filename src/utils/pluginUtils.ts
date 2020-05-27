@@ -1,6 +1,5 @@
-import Graph from '../Graph';
-import { Plugin, RollupError } from '../rollup/types';
-import { error, Errors } from './error';
+import { NormalizedInputOptions, Plugin, RollupError } from '../rollup/types';
+import { error, Errors, warnDeprecation } from './error';
 
 export const ANONYMOUS_PLUGIN_PREFIX = 'at position ';
 export const ANONYMOUS_OUTPUT_PLUGIN_PREFIX = 'at output position ';
@@ -29,16 +28,17 @@ export const deprecatedHooks: { active: boolean; deprecated: string; replacement
 	{ active: true, deprecated: 'resolveAssetUrl', replacement: 'resolveFileUrl' }
 ];
 
-export function warnDeprecatedHooks(plugins: Plugin[], graph: Graph) {
+export function warnDeprecatedHooks(plugins: Plugin[], options: NormalizedInputOptions) {
 	for (const { active, deprecated, replacement } of deprecatedHooks) {
 		for (const plugin of plugins) {
 			if (deprecated in plugin) {
-				graph.warnDeprecation(
+				warnDeprecation(
 					{
 						message: `The "${deprecated}" hook used by plugin ${plugin.name} is deprecated. The "${replacement}" hook should be used instead.`,
 						plugin: plugin.name
 					},
-					active
+					active,
+					options
 				);
 			}
 		}
