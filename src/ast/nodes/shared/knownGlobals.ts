@@ -76,7 +76,7 @@ const knownGlobals: GlobalDescription = {
 		// @ts-ignore
 		__proto__: null,
 		[ValueProperties]: IMPURE,
-		from: PF,
+		from: O,
 		isArray: PF,
 		of: PF,
 		prototype: O

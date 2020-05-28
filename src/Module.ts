@@ -717,7 +717,7 @@ export default class Module {
 			ast: this.esTreeAst,
 			code: this.code,
 			customTransformCache: this.customTransformCache,
-			dependencies: [...this.dependencies].map(module => module.id),
+			dependencies: Array.from(this.dependencies, module => module.id),
 			id: this.id,
 			moduleSideEffects: this.moduleSideEffects,
 			originalCode: this.originalCode,

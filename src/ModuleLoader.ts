@@ -234,7 +234,7 @@ export class ModuleLoader {
 
 	private fetchAllDependencies(module: Module): Promise<unknown> {
 		return Promise.all([
-			...[...module.sources].map(async source => {
+			...Array.from(module.sources, async source => {
 				const resolution = await this.fetchResolvedDependency(
 					source,
 					module.id,
