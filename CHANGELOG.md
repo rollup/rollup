@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.11.1
+*2020-05-28*
+
+### Bug Fixes
+* Also include side-effects in files that are marked as side-effect-free if they contain an included default export that is reexported (#3602)
+
+### Pull Requests
+* [#3602](https://github.com/rollup/rollup/pull/3602): Handle side-effects next to side-effect-free default exports in case the default export is reexported (@lukastaegert)
+
 ## 2.11.0
 *2020-05-27*
 
