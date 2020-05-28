@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.11.2
+*2020-05-28*
+
+### Bug Fixes
+* Include side-effects in the second argument of `Array.from` (#3604)
+
+### Pull Requests
+* [#3604](https://github.com/rollup/rollup/pull/3604): Mark `Array.from` as side-effectful, use two-argument Array.from when mapping Sets (@lukastaegert)
+
 ## 2.11.1
 *2020-05-28*
 
