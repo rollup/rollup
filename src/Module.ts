@@ -330,7 +330,8 @@ export default class Module {
 	getDependenciesToBeIncluded(): Set<Module | ExternalModule> {
 		if (this.relevantDependencies) return this.relevantDependencies;
 		const relevantDependencies = new Set<Module | ExternalModule>();
-		const additionalSideEffectModules = new Set();
+		const additionalSideEffectModules = new Set<Module>();
+		const possibleDependencies = new Set(this.dependencies);
 		let dependencyVariables = this.imports;
 		if (
 			this.isEntryPoint ||
@@ -350,15 +351,17 @@ export default class Module {
 				variable = original;
 				for (const module of modules) {
 					additionalSideEffectModules.add(module);
+					possibleDependencies.add(module);
 				}
 			}
 			relevantDependencies.add(variable.module!);
 		}
 		if (this.options.treeshake) {
-			const possibleDependencies = new Set(this.dependencies);
 			for (const dependency of possibleDependencies) {
 				if (
-					!(dependency.moduleSideEffects || additionalSideEffectModules.has(dependency)) ||
+					!(
+						dependency.moduleSideEffects || additionalSideEffectModules.has(dependency as Module)
+					) ||
 					relevantDependencies.has(dependency)
 				) {
 					continue;
