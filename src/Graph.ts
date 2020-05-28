@@ -189,6 +189,9 @@ export default class Graph {
 			dynamicImporters: foundModule.dynamicImporters,
 			hasModuleSideEffects: foundModule.moduleSideEffects,
 			id: foundModule.id,
+			// TODO Lukas provide real information
+			implicitDependants: [],
+			implicitDependencies: [],
 			importedIds,
 			importers: foundModule.importers,
 			isEntry: foundModule instanceof Module && foundModule.isEntryPoint,

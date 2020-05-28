@@ -999,9 +999,13 @@ export default class Chunk {
 			dynamicImports: this.getDynamicImportIds(),
 			exports: this.getExportNames(),
 			facadeModuleId: facadeModule && facadeModule.id,
+			// TODO Lukas provide real information
+			implicitDependencies: [],
 			imports: this.getImportIds(),
 			isDynamicEntry: this.isDynamicEntry,
 			isEntry: facadeModule !== null && facadeModule.isEntryPoint,
+			// TODO Lukas provide real information
+			isImplicitEntry: false,
 			modules: this.renderedModules!,
 			get name() {
 				return getChunkName();
