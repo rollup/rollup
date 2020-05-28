@@ -291,13 +291,13 @@ export default class Chunk {
 			}
 		}
 		for (const module of this.entryModules) {
-			const requiredFacades: FacadeName[] = [...module.userChunkNames].map(name => ({
+			const requiredFacades: FacadeName[] = Array.from(module.userChunkNames, name => ({
 				name
 			}));
 			if (requiredFacades.length === 0 && module.isUserDefinedEntryPoint) {
 				requiredFacades.push({});
 			}
-			requiredFacades.push(...[...module.chunkFileNames].map(fileName => ({ fileName })));
+			requiredFacades.push(...Array.from(module.chunkFileNames, fileName => ({ fileName })));
 			if (requiredFacades.length === 0) {
 				requiredFacades.push({});
 			}
@@ -416,7 +416,7 @@ export default class Chunk {
 	}
 
 	getDynamicImportIds(): string[] {
-		return [...this.dynamicDependencies].map(chunk => chunk.id as string);
+		return Array.from(this.dynamicDependencies, chunk => chunk.id as string);
 	}
 
 	getExportNames(): string[] {
@@ -426,7 +426,7 @@ export default class Chunk {
 	}
 
 	getImportIds(): string[] {
-		return [...this.dependencies].map(chunk => chunk.id as string);
+		return Array.from(this.dependencies, chunk => chunk.id as string);
 	}
 
 	getRenderedHash(outputPluginDriver: PluginDriver): string {
