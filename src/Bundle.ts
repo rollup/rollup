@@ -147,26 +147,11 @@ function assignChunksToBundle(
 	chunks: Chunk[],
 	outputBundle: OutputBundleWithPlaceholders
 ): OutputBundle {
-	for (let i = 0; i < chunks.length; i++) {
-		const chunk = chunks[i];
-		const facadeModule = chunk.facadeModule;
-
-		outputBundle[chunk.id!] = {
-			code: undefined as any,
-			dynamicImports: chunk.getDynamicImportIds(),
-			exports: chunk.getExportNames(),
-			facadeModuleId: facadeModule && facadeModule.id,
-			fileName: chunk.id,
-			imports: chunk.getImportIds(),
-			isDynamicEntry: chunk.isDynamicEntry,
-			isEntry: facadeModule !== null && facadeModule.isEntryPoint,
-			map: undefined,
-			modules: chunk.renderedModules,
-			get name() {
-				return chunk.getChunkName();
-			},
-			type: 'chunk'
-		} as OutputChunk;
+	for (const chunk of chunks) {
+		const chunkdDescription = (outputBundle[
+			chunk.id!
+		] = chunk.getPrerenderedChunk() as OutputChunk);
+		chunkdDescription.fileName = chunk.id!;
 	}
 	return outputBundle as OutputBundle;
 }

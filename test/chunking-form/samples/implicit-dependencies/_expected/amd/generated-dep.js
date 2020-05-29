@@ -1,5 +1,5 @@
-define(['./generated-lib'], function (lib) { 'use strict';
+define(['./main'], function (main) { 'use strict';
 
-	console.log(lib.value);
+	console.log(main.value);
 
 });

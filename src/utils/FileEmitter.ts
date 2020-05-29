@@ -305,6 +305,7 @@ export class FileEmitter {
 					{
 						fileName: emittedChunk.fileName || null,
 						id: emittedChunk.id,
+						implicitDependants: (emittedChunk.implicitDependants as string[]) || [],
 						importer: emittedChunk.importer as string | undefined,
 						name: emittedChunk.name || null
 					}

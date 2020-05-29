@@ -15,6 +15,7 @@ import {
 } from './rollup/types';
 import { BuildPhase } from './utils/buildPhase';
 import { getChunkAssignments } from './utils/chunkAssignment';
+import { error } from './utils/error';
 import { analyseModuleExecution, sortByExecutionOrder } from './utils/executionOrder';
 import { PluginDriver } from './utils/PluginDriver';
 import relativeId from './utils/relativeId';
@@ -25,11 +26,18 @@ function normalizeEntryModules(
 	entryModules: string[] | Record<string, string>
 ): UnresolvedModule[] {
 	if (Array.isArray(entryModules)) {
-		return entryModules.map(id => ({ fileName: null, name: null, id, importer: undefined }));
+		return entryModules.map(id => ({
+			fileName: null,
+			id,
+			implicitDependants: [],
+			importer: undefined,
+			name: null
+		}));
 	}
 	return Object.keys(entryModules).map(name => ({
 		fileName: null,
 		id: entryModules[name],
+		implicitDependants: [],
 		importer: undefined,
 		name
 	}));
@@ -189,9 +197,12 @@ export default class Graph {
 			dynamicImporters: foundModule.dynamicImporters,
 			hasModuleSideEffects: foundModule.moduleSideEffects,
 			id: foundModule.id,
-			// TODO Lukas provide real information
-			implicitDependants: [],
-			implicitDependencies: [],
+			implicitDependants:
+				foundModule instanceof Module ? [...foundModule.implicitDependantIds] : [],
+			implicitDependencies:
+				foundModule instanceof Module
+					? Array.from(foundModule.implicitDependencies, module => module.id)
+					: [],
 			importedIds,
 			importers: foundModule.importers,
 			isEntry: foundModule instanceof Module && foundModule.isEntryPoint,
@@ -216,6 +227,16 @@ export default class Graph {
 		for (const module of this.modulesById.values()) {
 			if (module instanceof Module) {
 				this.modules.push(module);
+				for (const dependantId of module.implicitDependantIds) {
+					const dependant = this.modulesById.get(dependantId) as Module;
+					if (!dependant) {
+						return error({
+							message: `A plugin has specified that "${dependantId}" is an implicit dependant of "${module.id}" but the dependant does not correspond to a known module id.`
+						});
+					}
+					module.implicitDependants.push(dependant);
+					dependant.implicitDependencies.add(module);
+				}
 			} else {
 				this.externalModules.push(module);
 			}

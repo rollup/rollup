@@ -5,11 +5,13 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_LIB = path.join(__dirname, 'lib.js');
 const ID_DEP = path.join(__dirname, 'dep.js');
 
-// TODO Lukas what about multiple emits of the same module with different dependants? -> Extend array
+// TODO Lukas what about multiple emits of the same module with different dependants?
+// TODO Lukas what about multiple dependants in a single emit
+// TODO Lukas what if the original module is not included (empty)/executed (behind a missing dynamic import)?
 module.exports = {
-	solo: true,
 	description: 'supports implicit dependencies when emitting files',
 	options: {
+		preserveEntrySignatures: 'allow-extension',
 		plugins: {
 			name: 'test-plugin',
 			buildStart() {
@@ -46,7 +48,20 @@ module.exports = {
 				});
 			},
 			generateBundle(options, bundle) {
-				// TODO Lukas check bundle interface
+				const main = bundle['main.js'];
+				assert.deepStrictEqual(
+					main.implicitDependencies,
+					['generated-dep.js'],
+					'main.implicitDependencies'
+				);
+				assert.strictEqual(main.isEntry, true, 'main.isEntry');
+				assert.strictEqual(main.isDynamicEntry, false, 'main.isDynamicEntry');
+				assert.strictEqual(main.isImplicitEntry, false, 'main.isImplicitEntry');
+				const dep = bundle['generated-dep.js'];
+				assert.deepStrictEqual(dep.implicitDependencies, [], 'dep.implicitDependencies');
+				assert.strictEqual(dep.isEntry, false, 'dep.isEntry');
+				assert.strictEqual(dep.isDynamicEntry, false, 'dep.isDynamicEntry');
+				assert.strictEqual(dep.isImplicitEntry, true, 'dep.isImplicitEntry');
 			}
 		}
 	}

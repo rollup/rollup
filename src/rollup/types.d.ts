@@ -641,18 +641,22 @@ export interface RenderedModule {
 }
 
 export interface PreRenderedChunk {
+	code?: string;
 	dynamicImports: string[];
 	exports: string[];
 	facadeModuleId: string | null;
+	fileName?: string;
 	implicitDependencies: string[];
 	imports: string[];
 	isDynamicEntry: boolean;
 	isEntry: boolean;
 	isImplicitEntry: boolean;
+	map?: SourceMap;
 	modules: {
 		[id: string]: RenderedModule;
 	};
 	name: string;
+	type: 'chunk';
 }
 
 export interface RenderedChunk extends PreRenderedChunk {

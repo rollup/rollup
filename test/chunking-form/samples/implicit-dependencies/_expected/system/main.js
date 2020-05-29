@@ -1,11 +1,9 @@
-System.register(['./generated-lib.js'], function () {
+System.register([], function (exports) {
 	'use strict';
-	var value;
 	return {
-		setters: [function (module) {
-			value = module.v;
-		}],
 		execute: function () {
+
+			const value = exports('v', 42);
 
 			console.log(value);
 

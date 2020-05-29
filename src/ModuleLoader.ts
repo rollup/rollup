@@ -33,6 +33,7 @@ import transform from './utils/transform';
 export interface UnresolvedModule {
 	fileName: string | null;
 	id: string;
+	implicitDependants: string[];
 	importer: string | undefined;
 	name: string | null;
 }
@@ -55,6 +56,7 @@ export class ModuleLoader {
 			: () => true;
 	}
 
+	// TODO Lukas do not use this for non-entry chunks but rather just extract file name logic
 	async addEntryModules(
 		unresolvedEntryModules: UnresolvedModule[],
 		isUserDefined: boolean
@@ -67,14 +69,14 @@ export class ModuleLoader {
 		this.nextEntryModuleIndex += unresolvedEntryModules.length;
 		const loadNewEntryModulesPromise = Promise.all(
 			unresolvedEntryModules.map(
-				({ id, importer }): Promise<Module> => this.loadEntryModule(id, true, importer)
+				({ id, importer, implicitDependants }): Promise<Module> =>
+					this.loadEntryModule(id, implicitDependants.length === 0, importer)
 			)
 		).then(entryModules => {
 			let moduleIndex = firstEntryModuleIndex;
 			for (let index = 0; index < entryModules.length; index++) {
-				const { fileName, name } = unresolvedEntryModules[index];
+				const { fileName, implicitDependants, name } = unresolvedEntryModules[index];
 				const entryModule = entryModules[index];
-				entryModule.isUserDefinedEntryPoint = entryModule.isUserDefinedEntryPoint || isUserDefined;
 				if (fileName !== null) {
 					entryModule.chunkFileNames.add(fileName);
 				} else if (name !== null) {
@@ -85,15 +87,23 @@ export class ModuleLoader {
 						entryModule.userChunkNames.add(name);
 					}
 				}
-				const existingIndexedModule = this.indexedEntryModules.find(
-					indexedModule => indexedModule.module.id === entryModule.id
-				);
-				if (!existingIndexedModule) {
-					this.indexedEntryModules.push({ module: entryModule, index: moduleIndex });
+				if (implicitDependants.length > 0) {
+					for (const dependant of implicitDependants) {
+						entryModule.implicitDependantIds.add(dependant);
+					}
 				} else {
-					existingIndexedModule.index = Math.min(existingIndexedModule.index, moduleIndex);
+					entryModule.isUserDefinedEntryPoint =
+						entryModule.isUserDefinedEntryPoint || isUserDefined;
+					const existingIndexedModule = this.indexedEntryModules.find(
+						indexedModule => indexedModule.module === entryModule
+					);
+					if (!existingIndexedModule) {
+						this.indexedEntryModules.push({ module: entryModule, index: moduleIndex });
+					} else {
+						existingIndexedModule.index = Math.min(existingIndexedModule.index, moduleIndex);
+					}
+					moduleIndex++;
 				}
-				moduleIndex++;
 			}
 			this.indexedEntryModules.sort(({ index: indexA }, { index: indexB }) =>
 				indexA > indexB ? 1 : -1

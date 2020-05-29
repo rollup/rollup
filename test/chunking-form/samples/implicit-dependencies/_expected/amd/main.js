@@ -1,5 +1,11 @@
-define(['./generated-lib'], function (lib) { 'use strict';
+define(['exports'], function (exports) { 'use strict';
 
-	console.log(lib.value);
+	const value = 42;
+
+	console.log(value);
+
+	exports.value = value;
+
+	Object.defineProperty(exports, '__esModule', { value: true });
 
 });

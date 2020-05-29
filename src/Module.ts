@@ -196,6 +196,9 @@ export default class Module {
 	exports: { [name: string]: ExportDescription } = Object.create(null);
 	exportsAll: { [name: string]: string } = Object.create(null);
 	facadeChunk: Chunk | null = null;
+	implicitDependantIds = new Set<string>();
+	implicitDependants: Module[] = [];
+	implicitDependencies = new Set<Module>();
 	importDescriptions: { [name: string]: ImportDescription } = Object.create(null);
 	importers: string[] = [];
 	importMetas: MetaProperty[] = [];

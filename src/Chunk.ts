@@ -145,13 +145,6 @@ export default class Chunk {
 	exportMode: 'none' | 'named' | 'default' = 'named';
 	facadeModule: Module | null = null;
 	id: string | null = null;
-	indentString: string = undefined as any;
-	isDynamicEntry = false;
-	manualChunkAlias: string | null = null;
-	renderedModules?: {
-		[moduleId: string]: RenderedModule;
-	};
-	usedModules: Module[] = undefined as any;
 	variableName = 'chunk';
 
 	private dependencies = new Set<ExternalModule | Chunk>();
@@ -160,8 +153,12 @@ export default class Chunk {
 	private exports = new Set<Variable>();
 	private exportsByName: Record<string, Variable> = Object.create(null);
 	private fileName: string | null = null;
+	private implicitDependencies = new Set<Chunk>();
 	private imports = new Set<Variable>();
+	private indentString: string = undefined as any;
 	private isEmpty = true;
+	private isImplicitEntry = false;
+	private manualChunkAlias: string | null = null;
 	private name: string | null = null;
 	private needsExportsShim = false;
 	private renderedDependencies: Map<
@@ -170,10 +167,14 @@ export default class Chunk {
 	> | null = null;
 	private renderedExports: ChunkExports | null = null;
 	private renderedHash: string = undefined as any;
+	private renderedModules?: {
+		[moduleId: string]: RenderedModule;
+	};
 	private renderedModuleSources = new Map<Module, MagicString>();
 	private renderedSource: MagicStringBundle | null = null;
 	private sortedExportNames: string[] | null = null;
 	private strictFacade = false;
+	private usedModules: Module[] = undefined as any;
 
 	constructor(
 		private readonly orderedModules: Module[],
@@ -196,6 +197,9 @@ export default class Chunk {
 			}
 			if (module.includedDynamicImporters.length > 0) {
 				this.dynamicEntryModules.push(module);
+			}
+			if (module.implicitDependants.length > 0) {
+				this.isImplicitEntry = true;
 			}
 		}
 
@@ -281,7 +285,6 @@ export default class Chunk {
 		const dynamicEntryModules = this.dynamicEntryModules.filter(module =>
 			module.includedDynamicImporters.some(importingModule => importingModule.chunk !== this)
 		);
-		this.isDynamicEntry = dynamicEntryModules.length > 0;
 		const exposedVariables = new Set<Variable>(dynamicEntryModules.map(module => module.namespace));
 		for (const module of this.entryModules) {
 			if (module.preserveSignature) {
@@ -415,18 +418,33 @@ export default class Chunk {
 		return this.name || (this.name = sanitizeFileName(this.getFallbackChunkName()));
 	}
 
-	getDynamicImportIds(): string[] {
-		return Array.from(this.dynamicDependencies, chunk => chunk.id as string);
-	}
-
 	getExportNames(): string[] {
 		return (
 			this.sortedExportNames || (this.sortedExportNames = Object.keys(this.exportsByName).sort())
 		);
 	}
 
-	getImportIds(): string[] {
-		return Array.from(this.dependencies, chunk => chunk.id as string);
+	getPrerenderedChunk(): PreRenderedChunk {
+		const facadeModule = this.facadeModule;
+		const getChunkName = this.getChunkName.bind(this);
+		return {
+			code: undefined,
+			dynamicImports: Array.from(this.dynamicDependencies, getId),
+			exports: this.getExportNames(),
+			facadeModuleId: facadeModule && facadeModule.id,
+			fileName: undefined,
+			implicitDependencies: Array.from(this.implicitDependencies, getId),
+			imports: Array.from(this.dependencies, getId),
+			isDynamicEntry: this.dynamicEntryModules.length > 0,
+			isEntry: facadeModule !== null && facadeModule.isEntryPoint,
+			isImplicitEntry: this.isImplicitEntry,
+			map: undefined,
+			modules: this.renderedModules!,
+			get name() {
+				return getChunkName();
+			},
+			type: 'chunk'
+		};
 	}
 
 	getRenderedHash(outputPluginDriver: PluginDriver): string {
@@ -472,6 +490,7 @@ export default class Chunk {
 		for (const module of this.orderedModules) {
 			this.addDependenciesToChunk(module.getDependenciesToBeIncluded(), this.dependencies);
 			this.addDependenciesToChunk(module.dynamicDependencies, this.dynamicDependencies);
+			this.addDependenciesToChunk(module.implicitDependencies, this.implicitDependencies);
 			this.setUpChunkImportsAndExportsForModule(module);
 		}
 	}
@@ -992,27 +1011,6 @@ export default class Chunk {
 		return getAliasName(this.orderedModules[this.orderedModules.length - 1].id);
 	}
 
-	private getPrerenderedChunk(): PreRenderedChunk {
-		const facadeModule = this.facadeModule;
-		const getChunkName = this.getChunkName.bind(this);
-		return {
-			dynamicImports: this.getDynamicImportIds(),
-			exports: this.getExportNames(),
-			facadeModuleId: facadeModule && facadeModule.id,
-			// TODO Lukas provide real information
-			implicitDependencies: [],
-			imports: this.getImportIds(),
-			isDynamicEntry: this.isDynamicEntry,
-			isEntry: facadeModule !== null && facadeModule.isEntryPoint,
-			// TODO Lukas provide real information
-			isImplicitEntry: false,
-			modules: this.renderedModules!,
-			get name() {
-				return getChunkName();
-			}
-		};
-	}
-
 	private getRelativePath(targetPath: string, stripJsExtension: boolean): string {
 		let relativePath = normalize(relative(dirname(this.id!), targetPath));
 		if (stripJsExtension && relativePath.endsWith('.js')) {
@@ -1146,4 +1144,8 @@ export default class Chunk {
 			}
 		}
 	}
+}
+
+function getId(dependency: Chunk | ExternalModule): string {
+	return dependency.id!;
 }

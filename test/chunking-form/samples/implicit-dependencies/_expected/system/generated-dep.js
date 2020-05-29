@@ -1,4 +1,4 @@
-System.register(['./generated-lib.js'], function () {
+System.register(['./main.js'], function () {
 	'use strict';
 	var value;
 	return {

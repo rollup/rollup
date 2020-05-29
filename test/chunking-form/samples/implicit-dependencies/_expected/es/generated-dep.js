@@ -1,3 +1,3 @@
-import { v as value } from './generated-lib.js';
+import { v as value } from './main.js';
 
 console.log(value);

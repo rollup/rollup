@@ -1,5 +1,9 @@
 'use strict';
 
-var lib = require('./generated-lib.js');
+Object.defineProperty(exports, '__esModule', { value: true });
 
-console.log(lib.value);
+const value = 42;
+
+console.log(value);
+
+exports.value = value;

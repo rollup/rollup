@@ -120,6 +120,10 @@ function analyzeModuleGraph(
 					entriesToHandle.add(resolution);
 				}
 			}
+			for (const dependency of module.implicitDependencies) {
+				dynamicEntryModules.add(dependency);
+				entriesToHandle.add(dependency);
+			}
 		}
 	}
 	return { dependentEntryPointsByModule, dynamicEntryModules };
@@ -141,7 +145,9 @@ function getDynamicDependentEntryPoints(
 			dynamicallyDependentEntryPointsByDynamicEntry,
 			dynamicEntry
 		);
-		for (const importer of dynamicEntry.includedDynamicImporters) {
+		for (const importer of dynamicEntry.includedDynamicImporters.concat(
+			dynamicEntry.implicitDependants
+		)) {
 			for (const entryPoint of dependentEntryPointsByModule.get(importer)!) {
 				dynamicDependentEntryPoints.add(entryPoint);
 			}

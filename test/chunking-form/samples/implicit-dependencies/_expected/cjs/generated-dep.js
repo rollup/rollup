@@ -1,5 +1,5 @@
 'use strict';
 
-var lib = require('./generated-lib.js');
+var main = require('./main.js');
 
-console.log(lib.value);
+console.log(main.value);
