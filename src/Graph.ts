@@ -29,7 +29,7 @@ function normalizeEntryModules(
 		return entryModules.map(id => ({
 			fileName: null,
 			id,
-			implicitDependants: [],
+			implicitlyLoadedAfter: [],
 			importer: undefined,
 			name: null
 		}));
@@ -37,7 +37,7 @@ function normalizeEntryModules(
 	return Object.keys(entryModules).map(name => ({
 		fileName: null,
 		id: entryModules[name],
-		implicitDependants: [],
+		implicitlyLoadedAfter: [],
 		importer: undefined,
 		name
 	}));
@@ -197,11 +197,11 @@ export default class Graph {
 			dynamicImporters: foundModule.dynamicImporters,
 			hasModuleSideEffects: foundModule.moduleSideEffects,
 			id: foundModule.id,
-			implicitDependants:
-				foundModule instanceof Module ? [...foundModule.implicitDependantIds] : [],
-			implicitDependencies:
+			implicitlyLoadedAfterOneOf:
+				foundModule instanceof Module ? [...foundModule.implicitlyLoadedAfterIds] : [],
+			implicitlyLoadedBefore:
 				foundModule instanceof Module
-					? Array.from(foundModule.implicitDependencies, module => module.id)
+					? Array.from(foundModule.implicitlyLoadedBefore, module => module.id)
 					: [],
 			importedIds,
 			importers: foundModule.importers,
@@ -227,15 +227,15 @@ export default class Graph {
 		for (const module of this.modulesById.values()) {
 			if (module instanceof Module) {
 				this.modules.push(module);
-				for (const dependantId of module.implicitDependantIds) {
+				for (const dependantId of module.implicitlyLoadedAfterIds) {
 					const dependant = this.modulesById.get(dependantId) as Module;
 					if (!dependant) {
 						return error({
 							message: `A plugin has specified that "${dependantId}" is an implicit dependant of "${module.id}" but the dependant does not correspond to a known module id.`
 						});
 					}
-					module.implicitDependants.push(dependant);
-					dependant.implicitDependencies.add(module);
+					module.implicitlyLoadedAfter.push(dependant);
+					dependant.implicitlyLoadedBefore.add(module);
 				}
 			} else {
 				this.externalModules.push(module);

@@ -153,7 +153,7 @@ export default class Chunk {
 	private exports = new Set<Variable>();
 	private exportsByName: Record<string, Variable> = Object.create(null);
 	private fileName: string | null = null;
-	private implicitDependencies = new Set<Chunk>();
+	private implicitlyLoadedBefore = new Set<Chunk>();
 	private imports = new Set<Variable>();
 	private indentString: string = undefined as any;
 	private isEmpty = true;
@@ -198,7 +198,7 @@ export default class Chunk {
 			if (module.includedDynamicImporters.length > 0) {
 				this.dynamicEntryModules.push(module);
 			}
-			if (module.implicitDependants.length > 0) {
+			if (module.implicitlyLoadedAfter.length > 0) {
 				this.isImplicitEntry = true;
 			}
 		}
@@ -433,7 +433,7 @@ export default class Chunk {
 			exports: this.getExportNames(),
 			facadeModuleId: facadeModule && facadeModule.id,
 			fileName: undefined,
-			implicitDependencies: Array.from(this.implicitDependencies, getId),
+			implicitlyLoadedBefore: Array.from(this.implicitlyLoadedBefore, getId),
 			imports: Array.from(this.dependencies, getId),
 			isDynamicEntry: this.dynamicEntryModules.length > 0,
 			isEntry: facadeModule !== null && facadeModule.isEntryPoint,
@@ -490,7 +490,7 @@ export default class Chunk {
 		for (const module of this.orderedModules) {
 			this.addDependenciesToChunk(module.getDependenciesToBeIncluded(), this.dependencies);
 			this.addDependenciesToChunk(module.dynamicDependencies, this.dynamicDependencies);
-			this.addDependenciesToChunk(module.implicitDependencies, this.implicitDependencies);
+			this.addDependenciesToChunk(module.implicitlyLoadedBefore, this.implicitlyLoadedBefore);
 			this.setUpChunkImportsAndExportsForModule(module);
 		}
 	}

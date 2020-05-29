@@ -120,7 +120,7 @@ function analyzeModuleGraph(
 					entriesToHandle.add(resolution);
 				}
 			}
-			for (const dependency of module.implicitDependencies) {
+			for (const dependency of module.implicitlyLoadedBefore) {
 				dynamicEntryModules.add(dependency);
 				entriesToHandle.add(dependency);
 			}
@@ -146,7 +146,7 @@ function getDynamicDependentEntryPoints(
 			dynamicEntry
 		);
 		for (const importer of dynamicEntry.includedDynamicImporters.concat(
-			dynamicEntry.implicitDependants
+			dynamicEntry.implicitlyLoadedAfter
 		)) {
 			for (const entryPoint of dependentEntryPointsByModule.get(importer)!) {
 				dynamicDependentEntryPoints.add(entryPoint);

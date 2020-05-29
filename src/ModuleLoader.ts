@@ -33,7 +33,7 @@ import transform from './utils/transform';
 export interface UnresolvedModule {
 	fileName: string | null;
 	id: string;
-	implicitDependants: string[];
+	implicitlyLoadedAfter: string[];
 	importer: string | undefined;
 	name: string | null;
 }
@@ -69,13 +69,13 @@ export class ModuleLoader {
 		this.nextEntryModuleIndex += unresolvedEntryModules.length;
 		const loadNewEntryModulesPromise = Promise.all(
 			unresolvedEntryModules.map(
-				({ id, importer, implicitDependants }): Promise<Module> =>
-					this.loadEntryModule(id, implicitDependants.length === 0, importer)
+				({ id, importer, implicitlyLoadedAfter }): Promise<Module> =>
+					this.loadEntryModule(id, implicitlyLoadedAfter.length === 0, importer)
 			)
 		).then(entryModules => {
 			let moduleIndex = firstEntryModuleIndex;
 			for (let index = 0; index < entryModules.length; index++) {
-				const { fileName, implicitDependants, name } = unresolvedEntryModules[index];
+				const { fileName, implicitlyLoadedAfter, name } = unresolvedEntryModules[index];
 				const entryModule = entryModules[index];
 				if (fileName !== null) {
 					entryModule.chunkFileNames.add(fileName);
@@ -87,9 +87,9 @@ export class ModuleLoader {
 						entryModule.userChunkNames.add(name);
 					}
 				}
-				if (implicitDependants.length > 0) {
-					for (const dependant of implicitDependants) {
-						entryModule.implicitDependantIds.add(dependant);
+				if (implicitlyLoadedAfter.length > 0) {
+					for (const dependant of implicitlyLoadedAfter) {
+						entryModule.implicitlyLoadedAfterIds.add(dependant);
 					}
 				} else {
 					entryModule.isUserDefinedEntryPoint =

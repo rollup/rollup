@@ -18,7 +18,7 @@ module.exports = {
 				this.emitFile({
 					type: 'chunk',
 					id: 'dep.js',
-					implicitDependants: [ID_MAIN]
+					implicitlyLoadedAfterOneOf: [ID_MAIN]
 				});
 			},
 			buildEnd() {
@@ -27,8 +27,8 @@ module.exports = {
 					dynamicImporters: [],
 					hasModuleSideEffects: true,
 					id: ID_MAIN,
-					implicitDependants: [],
-					implicitDependencies: [ID_DEP],
+					implicitlyLoadedAfterOneOf: [],
+					implicitlyLoadedBefore: [ID_DEP],
 					importedIds: [ID_LIB],
 					importers: [],
 					isEntry: true,
@@ -39,8 +39,8 @@ module.exports = {
 					dynamicImporters: [],
 					hasModuleSideEffects: true,
 					id: ID_DEP,
-					implicitDependants: [ID_MAIN],
-					implicitDependencies: [],
+					implicitlyLoadedAfterOneOf: [ID_MAIN],
+					implicitlyLoadedBefore: [],
 					importedIds: [ID_LIB],
 					importers: [],
 					isEntry: false,
@@ -50,15 +50,15 @@ module.exports = {
 			generateBundle(options, bundle) {
 				const main = bundle['main.js'];
 				assert.deepStrictEqual(
-					main.implicitDependencies,
+					main.implicitlyLoadedBefore,
 					['generated-dep.js'],
-					'main.implicitDependencies'
+					'main.implicitlyLoadedBefore'
 				);
 				assert.strictEqual(main.isEntry, true, 'main.isEntry');
 				assert.strictEqual(main.isDynamicEntry, false, 'main.isDynamicEntry');
 				assert.strictEqual(main.isImplicitEntry, false, 'main.isImplicitEntry');
 				const dep = bundle['generated-dep.js'];
-				assert.deepStrictEqual(dep.implicitDependencies, [], 'dep.implicitDependencies');
+				assert.deepStrictEqual(dep.implicitlyLoadedBefore, [], 'dep.implicitlyLoadedBefore');
 				assert.strictEqual(dep.isEntry, false, 'dep.isEntry');
 				assert.strictEqual(dep.isDynamicEntry, false, 'dep.isDynamicEntry');
 				assert.strictEqual(dep.isImplicitEntry, true, 'dep.isImplicitEntry');

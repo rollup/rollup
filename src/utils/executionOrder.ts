@@ -34,7 +34,7 @@ export function analyseModuleExecution(entryModules: Module[]) {
 				analyseModule(dependency);
 			}
 
-			for (const dependency of module.implicitDependencies) {
+			for (const dependency of module.implicitlyLoadedBefore) {
 				dynamicImports.add(dependency);
 			}
 			for (const { resolution } of module.dynamicImports) {
