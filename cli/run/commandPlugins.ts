@@ -10,11 +10,9 @@ export function addCommandPluginsToInputOptions(
 	if (command.stdin !== false) {
 		inputOptions.plugins!.push(stdinPlugin());
 	}
-
 	if (command.waitForBundleInput === true) {
 		inputOptions.plugins!.push(waitForInputPlugin());
 	}
-
 	const commandPlugin = command.plugin;
 	if (commandPlugin) {
 		const plugins = Array.isArray(commandPlugin) ? commandPlugin : [commandPlugin];
