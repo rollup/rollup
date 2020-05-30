@@ -1,3 +1,4 @@
+import { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockStatement from './BlockStatement';
 import CatchClause from './CatchClause';
@@ -14,7 +15,7 @@ export default class TryStatement extends StatementBase {
 
 	hasEffects(context: HasEffectsContext): boolean {
 		return (
-			(this.context.tryCatchDeoptimization
+			((this.context.options.treeshake as NormalizedTreeshakingOptions).tryCatchDeoptimization
 				? this.block.body.length > 0
 				: this.block.hasEffects(context)) ||
 			(this.finalizer !== null && this.finalizer.hasEffects(context))
@@ -22,13 +23,15 @@ export default class TryStatement extends StatementBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+		const tryCatchDeoptimization = (this.context.options.treeshake as NormalizedTreeshakingOptions)
+			?.tryCatchDeoptimization;
 		const { brokenFlow } = context;
-		if (!this.directlyIncluded || !this.context.tryCatchDeoptimization) {
+		if (!this.directlyIncluded || !tryCatchDeoptimization) {
 			this.included = true;
 			this.directlyIncluded = true;
 			this.block.include(
 				context,
-				this.context.tryCatchDeoptimization ? INCLUDE_PARAMETERS : includeChildrenRecursively
+				tryCatchDeoptimization ? INCLUDE_PARAMETERS : includeChildrenRecursively
 			);
 			context.brokenFlow = brokenFlow;
 		}

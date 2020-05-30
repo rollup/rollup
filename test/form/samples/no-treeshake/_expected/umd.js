@@ -49,6 +49,10 @@
 		}
 	});
 
+	try {
+		const x = 1;
+	} catch {}
+
 	exports.create = create;
 	exports.getPrototypeOf = getPrototypeOf;
 	exports.quux = quux;

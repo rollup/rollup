@@ -11,5 +11,4 @@ var lib = /*#__PURE__*/Object.freeze({
 	hsl2hsv: hsl2hsv$1.default
 });
 
-exports.hsl2hsv = hsl2hsv$1.default;
 exports.lib = lib;

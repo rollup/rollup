@@ -5,7 +5,6 @@ define(['exports', './m2'], function (exports, m2) { 'use strict';
 		m2: m2
 	});
 
-	exports.m2 = m2;
 	exports.ms = ms;
 
 });

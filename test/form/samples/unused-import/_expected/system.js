@@ -1,7 +1,7 @@
 System.register(['external'], function () {
 	'use strict';
 	return {
-		setters: [function () {}],
+		setters: [null],
 		execute: function () {
 
 

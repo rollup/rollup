@@ -11,121 +11,118 @@ describe('sanity checks', () => {
 		assert.equal(typeof rollup.rollup, 'function');
 	});
 
-	it('fails without options', () => {
-		return rollup
-			.rollup()
-			.then(() => {
-				throw new Error('Missing expected error');
-			})
-			.catch(err => {
-				assert.equal(err.message, 'You must supply an options object to rollup');
-			});
+	it('fails without options', async () => {
+		let error = null;
+		try {
+			await rollup.rollup();
+		} catch (buildError) {
+			error = buildError;
+		}
+		assert.strictEqual(error && error.message, 'You must supply an options object to rollup');
 	});
 
-	it('node API passes warning and default handler to custom onwarn function', () => {
+	it('node API passes warning and default handler to custom onwarn function', async () => {
 		let args;
-		return rollup
-			.rollup({
-				input: 'x',
-				plugins: [loader({ x: `eval(42);` })],
-				onwarn(warning, onwarn) {
-					args = [warning, onwarn];
-				}
-			})
-			.then(bundle => {
-				return bundle.generate({ format: 'es' });
-			})
-			.then(() => {
-				assert.equal(args[0].code, 'EVAL');
-				assert.equal(
-					args[0].message,
-					'Use of eval is strongly discouraged, as it poses security risks and may cause issues with minification'
-				);
-				assert.equal(typeof args[1], 'function');
-			});
-	});
-
-	it('fails without options.input', () => {
-		return rollup
-			.rollup({})
-			.then(() => {
-				throw new Error('Missing expected error');
-			})
-			.catch(err => {
-				assert.equal(err.message, 'You must supply options.input to rollup');
-			});
-	});
-
-	it('treats Literals as leaf nodes, even if first literal encountered is null', () => {
-		// this test has to be up here, otherwise the bug doesn't have
-		// an opportunity to present itself
-		return rollup.rollup({
+		await rollup.rollup({
 			input: 'x',
-			plugins: [loader({ x: `var a = null; a = 'a string';` })]
+			plugins: [loader({ x: `eval(42);` })],
+			onwarn(warning, onwarn) {
+				args = [warning, onwarn];
+			}
 		});
+		assert.equal(args[0].code, 'EVAL');
+		assert.equal(
+			args[0].message,
+			'Use of eval is strongly discouraged, as it poses security risks and may cause issues with minification'
+		);
+		assert.equal(typeof args[1], 'function');
 	});
 
-	it('includes a newline at the end of the bundle', () => {
-		return rollup
-			.rollup({
-				input: 'x',
-				plugins: [loader({ x: `console.log( 42 );` })]
-			})
-			.then(bundle => {
-				return bundle.generate({ format: 'iife' });
-			})
-			.then(({ output: [{ code }] }) => {
-				assert.ok(code[code.length - 1] === '\n');
-			});
+	it('fails without options.input', async () => {
+		let error = null;
+		try {
+			await rollup.rollup({});
+		} catch (buildError) {
+			error = buildError;
+		}
+		assert.strictEqual(error && error.message, 'You must supply options.input to rollup');
 	});
 
-	it('throws on missing output options', () => {
-		const warnings = [];
-
-		return rollup
-			.rollup({
-				input: 'x',
-				plugins: [loader({ x: `console.log( 42 );` })],
-				onwarn: warning => warnings.push(warning)
-			})
-			.then(bundle => {
-				assert.throws(() => {
-					bundle.generate();
-				}, /You must supply an options object/);
-			});
+	it('includes a newline at the end of the bundle', async () => {
+		const bundle = await rollup.rollup({
+			input: 'x',
+			plugins: [loader({ x: `console.log( 42 );` })]
+		});
+		const {
+			output: [{ code }]
+		} = await bundle.generate({ format: 'iife' });
+		assert.ok(code[code.length - 1] === '\n');
 	});
 
-	it('throws on incorrect bundle.generate format option', () => {
-		const warnings = [];
-
-		return rollup
-			.rollup({
-				input: 'x',
-				plugins: [loader({ x: `console.log( 42 );` })],
-				onwarn: warning => warnings.push(warning)
-			})
-			.then(bundle => {
-				assert.throws(() => {
-					bundle.generate({ file: 'x', format: 'vanilla' });
-				}, /You must specify "output\.format", which can be one of "amd", "cjs", "system", "es", "iife" or "umd"./);
-			});
+	it('throws on missing output options when generating a bundle', async () => {
+		let error = null;
+		const bundle = await rollup.rollup({
+			input: 'x',
+			plugins: [loader({ x: `console.log( 42 );` })]
+		});
+		try {
+			await bundle.generate();
+		} catch (generateError) {
+			error = generateError;
+		}
+		assert.strictEqual(error && error.message, 'You must supply an options object');
 	});
 
-	it('defaults to output format `es` if not specified', () => {
-		const warnings = [];
+	it('throws on missing output options when writing a bundle', async () => {
+		let error = null;
+		const bundle = await rollup.rollup({
+			input: 'x',
+			plugins: [loader({ x: `console.log( 42 );` })]
+		});
+		try {
+			await bundle.write();
+		} catch (writeError) {
+			error = writeError;
+		}
+		assert.strictEqual(error && error.message, 'You must supply an options object');
+		try {
+			await bundle.write({ format: 'es' });
+		} catch (writeError) {
+			error = writeError;
+		}
+		assert.strictEqual(
+			error && error.message,
+			'You must specify "output.file" or "output.dir" for the build.'
+		);
+	});
 
-		return rollup
-			.rollup({
-				input: 'x',
-				plugins: [loader({ x: `export function foo(x){ console.log(x); }` })],
-				onwarn: warning => warnings.push(warning)
-			})
-			.then(bundle => {
-				return bundle.generate({});
-			})
-			.then(({ output: [{ code }] }) => {
-				assert.equal(code, `function foo(x){ console.log(x); }\n\nexport { foo };\n`);
-			});
+
+	it('throws on incorrect bundle.generate format option', async () => {
+		let error = null;
+		const bundle = await rollup.rollup({
+			input: 'x',
+			plugins: [loader({ x: `console.log( 42 );` })]
+		});
+		try {
+			await bundle.generate({ file: 'x', format: 'vanilla' });
+		} catch (generateError) {
+			error = generateError;
+		}
+		assert.strictEqual(
+			error && error.message,
+			'You must specify "output.format", which can be one of "amd", "cjs", "system", "es", "iife" or "umd".'
+		);
+	});
+
+	it('defaults to output format `es` if not specified', async () => {
+		const bundle = await rollup.rollup({
+			input: 'x',
+			plugins: [loader({ x: `export function foo(x){ console.log(x); }` })]
+		});
+		const {
+			output: [{ code }]
+		} = await bundle.generate({});
+		assert.equal(code, `function foo(x){ console.log(x); }\n\nexport { foo };\n`);
 	});
 
 	it('reuses existing error object', () => {
@@ -156,93 +153,89 @@ describe('sanity checks', () => {
 			});
 	});
 
-	it('throws when using multiple inputs together with the "file" option', () => {
-		const warnings = [];
-
-		return rollup
-			.rollup({
-				input: ['x', 'y'],
-				plugins: [loader({ x: 'console.log( "x" );', y: 'console.log( "y" );' })],
-				onwarn: warning => warnings.push(warning)
-			})
-			.then(bundle => {
-				assert.throws(() => {
-					bundle.generate({ file: 'x', format: 'es' });
-				}, /When building multiple chunks, the "output\.dir" option must be used, not "output\.file"\. To inline dynamic imports, set the "inlineDynamicImports" option\./);
-			});
+	it('throws when using multiple inputs together with the "file" option', async () => {
+		let error = null;
+		const bundle = await rollup.rollup({
+			input: ['x', 'y'],
+			plugins: [loader({ x: 'console.log( "x" );', y: 'console.log( "y" );' })]
+		});
+		try {
+			await bundle.generate({ file: 'x', format: 'es' });
+		} catch (generateError) {
+			error = generateError;
+		}
+		assert.strictEqual(
+			error && error.message,
+			'When building multiple chunks, the "output.dir" option must be used, not "output.file". To inline dynamic imports, set the "inlineDynamicImports" option.'
+		);
 	});
 
-	it('does not throw when using a single element array of inputs together with the "file" option', () => {
-		const warnings = [];
-
-		return rollup
-			.rollup({
-				input: ['x'],
-				plugins: [loader({ x: 'console.log( "x" );' })],
-				onwarn: warning => warnings.push(warning)
-			})
-			.then(bundle => bundle.generate({ file: 'x', format: 'es' }));
+	it('does not throw when using a single element array of inputs together with the "file" option', async () => {
+		const bundle = await rollup.rollup({
+			input: ['x'],
+			plugins: [loader({ x: 'console.log( "x" );' })]
+		});
+		await bundle.generate({ file: 'x', format: 'es' });
 	});
 
-	it('throws when using dynamic imports with the "file" option', () => {
-		const warnings = [];
-
-		return rollup
-			.rollup({
-				input: 'x',
-				plugins: [loader({ x: 'console.log( "x" );import("y");', y: 'console.log( "y" );' })],
-				onwarn: warning => warnings.push(warning)
-			})
-			.then(bundle => {
-				assert.throws(() => {
-					bundle.generate({ file: 'x', format: 'es' });
-				}, /When building multiple chunks, the "output\.dir" option must be used, not "output\.file"\. To inline dynamic imports, set the "inlineDynamicImports" option\./);
-			});
+	it('throws when using dynamic imports with the "file" option', async () => {
+		let error = null;
+		const bundle = await rollup.rollup({
+			input: 'x',
+			plugins: [loader({ x: 'console.log( "x" );import("y");', y: 'console.log( "y" );' })]
+		});
+		try {
+			await bundle.generate({ file: 'x', format: 'es' });
+		} catch (generateError) {
+			error = generateError;
+		}
+		assert.strictEqual(
+			error && error.message,
+			'When building multiple chunks, the "output.dir" option must be used, not "output.file". To inline dynamic imports, set the "inlineDynamicImports" option.'
+		);
 	});
 
-	it('does not throw when using dynamic imports with the "file" option and "inlineDynamicImports"', () => {
-		const warnings = [];
-
-		return rollup
-			.rollup({
-				input: 'x',
-				inlineDynamicImports: true,
-				plugins: [loader({ x: 'console.log( "x" );import("y");', y: 'console.log( "y" );' })],
-				onwarn: warning => warnings.push(warning)
-			})
-			.then(bundle => bundle.generate({ file: 'x', format: 'es' }));
+	it('does not throw when using dynamic imports with the "file" option and "inlineDynamicImports"', async () => {
+		const bundle = await rollup.rollup({
+			input: 'x',
+			inlineDynamicImports: true,
+			plugins: [loader({ x: 'console.log( "x" );import("y");', y: 'console.log( "y" );' })]
+		});
+		await bundle.generate({ file: 'x', format: 'es' });
 	});
 
-	it('throws when using the object form of "input" together with the "file" option', () => {
-		const warnings = [];
-
-		return rollup
-			.rollup({
-				input: { main: 'x' },
-				plugins: [loader({ x: 'console.log( "x" );' })],
-				onwarn: warning => warnings.push(warning)
-			})
-			.then(bundle => {
-				assert.throws(() => {
-					bundle.generate({ file: 'x', format: 'es' });
-				}, /You must set "output\.dir" instead of "output\.file" when providing named inputs\./);
-			});
+	it('throws when using the object form of "input" together with the "file" option', async () => {
+		let error = null;
+		const bundle = await rollup.rollup({
+			input: { main: 'x' },
+			plugins: [loader({ x: 'console.log( "x" );' })]
+		});
+		try {
+			await bundle.generate({ file: 'x', format: 'es' });
+		} catch (generateError) {
+			error = generateError;
+		}
+		assert.strictEqual(
+			error && error.message,
+			'You must set "output.dir" instead of "output.file" when providing named inputs.'
+		);
 	});
 
-	it('throws when using preserveModules together with the "file" option', () => {
-		const warnings = [];
-
-		return rollup
-			.rollup({
-				input: 'x',
-				preserveModules: true,
-				plugins: [loader({ x: 'console.log( "x" );' })],
-				onwarn: warning => warnings.push(warning)
-			})
-			.then(bundle => {
-				assert.throws(() => {
-					bundle.generate({ file: 'x', format: 'es' });
-				}, /You must set "output\.dir" instead of "output\.file" when using the "preserveModules" option\./);
-			});
+	it('throws when using preserveModules together with the "file" option', async () => {
+		let error = null;
+		const bundle = await rollup.rollup({
+			input: 'x',
+			preserveModules: true,
+			plugins: [loader({ x: 'console.log( "x" );' })]
+		});
+		try {
+			await bundle.generate({ file: 'x', format: 'es' });
+		} catch (generateError) {
+			error = generateError;
+		}
+		assert.strictEqual(
+			error && error.message,
+			'You must set "output.dir" instead of "output.file" when using the "preserveModules" option.'
+		);
 	});
 });

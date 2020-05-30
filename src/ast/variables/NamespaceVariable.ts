@@ -50,7 +50,7 @@ export default class NamespaceVariable extends Variable {
 				}
 			}
 			this.mergedNamespaces = this.context.includeAndGetAdditionalMergedNamespaces();
-			if (this.context.preserveModules) {
+			if (this.context.options.preserveModules) {
 				for (const memberName in memberVariables) memberVariables[memberName].include();
 			} else {
 				for (const memberName in memberVariables)

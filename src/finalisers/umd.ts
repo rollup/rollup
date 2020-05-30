@@ -1,5 +1,5 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
-import { GlobalsOption, OutputOptions } from '../rollup/types';
+import { NormalizedOutputOptions } from '../rollup/types';
 import { error } from '../utils/error';
 import { FinaliserOptions } from './index';
 import { compactEsModuleExport, esModuleExport } from './shared/esModuleExport';
@@ -35,7 +35,7 @@ export default function umd(
 		varOrConst,
 		warn
 	}: FinaliserOptions,
-	options: OutputOptions
+	options: NormalizedOutputOptions
 ) {
 	const _ = options.compact ? '' : ' ';
 	const n = options.compact ? '' : '\n';
@@ -59,15 +59,15 @@ export default function umd(
 	const globalDeps = trimmedImports.map(module => globalProp(module.globalName, globalVar));
 	const factoryArgs = trimmedImports.map(m => m.name);
 
-	if (namedExportsMode && (hasExports || options.noConflict === true)) {
+	if (namedExportsMode && (hasExports || options.noConflict)) {
 		amdDeps.unshift(`'exports'`);
 		cjsDeps.unshift(`exports`);
 		globalDeps.unshift(
 			assignToDeepVariable(
 				options.name!,
 				globalVar,
-				options.globals as GlobalsOption,
-				options.compact!,
+				options.globals,
+				options.compact,
 				`${options.extend ? `${globalProp(options.name!, globalVar)}${_}||${_}` : ''}{}`
 			)
 		);
@@ -75,19 +75,17 @@ export default function umd(
 		factoryArgs.unshift('exports');
 	}
 
-	const amdOptions = options.amd || {};
-
 	const amdParams =
-		(amdOptions.id ? `'${amdOptions.id}',${_}` : ``) +
+		(options.amd.id ? `'${options.amd.id}',${_}` : ``) +
 		(amdDeps.length ? `[${amdDeps.join(`,${_}`)}],${_}` : ``);
 
-	const define = amdOptions.define || 'define';
+	const define = options.amd.define;
 	const cjsExport = !namedExportsMode && hasExports ? `module.exports${_}=${_}` : ``;
-	const useStrict = options.strict !== false ? `${_}'use strict';${n}` : ``;
+	const useStrict = options.strict ? `${_}'use strict';${n}` : ``;
 
 	let iifeExport;
 
-	if (options.noConflict === true) {
+	if (options.noConflict) {
 		const noConflictExportsVar = options.compact ? 'e' : 'exports';
 		let factory;
 
@@ -120,8 +118,8 @@ export default function umd(
 			iifeExport = assignToDeepVariable(
 				options.name!,
 				globalVar,
-				options.globals as GlobalsOption,
-				options.compact!,
+				options.globals,
+				options.compact,
 				iifeExport
 			);
 		}
@@ -167,9 +165,5 @@ export default function umd(
 		magicString.append(n + n + (options.compact ? compactEsModuleExport : esModuleExport));
 	if (outro) magicString.append(outro);
 
-	return magicString
-		.trim()
-		.indent(t)
-		.append(wrapperOutro)
-		.prepend(wrapperIntro);
+	return magicString.trim().indent(t).append(wrapperOutro).prepend(wrapperIntro);
 }

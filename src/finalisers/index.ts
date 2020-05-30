@@ -1,6 +1,6 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { ChunkDependencies, ChunkExports } from '../Chunk';
-import { OutputOptions, RollupWarning } from '../rollup/types';
+import { NormalizedOutputOptions, RollupWarning } from '../rollup/types';
 import amd from './amd';
 import cjs from './cjs';
 import es from './es';
@@ -26,7 +26,7 @@ export interface FinaliserOptions {
 export type Finaliser = (
 	magicString: MagicStringBundle,
 	finaliserOptions: FinaliserOptions,
-	options: OutputOptions
+	options: NormalizedOutputOptions
 ) => MagicStringBundle;
 
 export default { system, amd, cjs, es, iife, umd } as {

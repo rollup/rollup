@@ -9,7 +9,6 @@ define(['exports', './hsl2hsv'], function (exports, hsl2hsv$1) { 'use strict';
 		hsl2hsv: hsl2hsv$1.default
 	});
 
-	exports.hsl2hsv = hsl2hsv$1.default;
 	exports.lib = lib;
 
 });

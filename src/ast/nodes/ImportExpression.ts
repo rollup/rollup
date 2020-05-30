@@ -1,7 +1,7 @@
 import MagicString from 'magic-string';
 import ExternalModule from '../../ExternalModule';
 import Module from '../../Module';
-import { OutputOptions } from '../../rollup/types';
+import { NormalizedOutputOptions } from '../../rollup/types';
 import { findFirstOccurrenceOutsideComment, RenderOptions } from '../../utils/renderHelpers';
 import { INTEROP_NAMESPACE_VARIABLE } from '../../utils/variableNames';
 import { InclusionContext } from '../ExecutionContext';
@@ -67,7 +67,7 @@ export default class Import extends NodeBase {
 		code: MagicString,
 		resolution: string,
 		namespaceExportName: string | false,
-		options: OutputOptions
+		options: NormalizedOutputOptions
 	) {
 		code.overwrite(this.source.start, this.source.end, resolution);
 		if (namespaceExportName) {

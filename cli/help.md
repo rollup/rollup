@@ -55,12 +55,18 @@ Basic options:
 --no-stdin                  do not read "-" from stdin
 --no-strict                 Don't emit `"use strict";` in the generated modules
 --strictDeprecations        Throw errors for deprecated features
+--systemNullSetters         Replace empty SystemJS setters with `null`
 --no-treeshake              Disable tree-shaking optimisations
 --no-treeshake.annotations  Ignore pure call annotations
---no-treeshake.no-moduleSideEffects Assume modules have no side-effects
---no-treeshake.no-propertyReadSideEffects Ignore property access side-effects
---no-treeshake.no-tryCatchDeoptimization Do not turn off try-catch-tree-shaking
---no-treeshake.no-unknownGlobalSideEffects Assume unknown globals do not throw
+--no-treeshake.moduleSideEffects Assume modules have no side-effects
+--no-treeshake.propertyReadSideEffects Ignore property access side-effects
+--no-treeshake.tryCatchDeoptimization Do not turn off try-catch-tree-shaking
+--no-treeshake.unknownGlobalSideEffects Assume unknown globals do not throw
+--watch.buildDelay <number> Throttle watch rebuilds
+--no-watch.clearScreen      Do not clear the screen when rebuilding
+--watch.skipWrite           Do not write files to disk when watching
+--watch.exclude <files>     Exclude files from being watched
+--watch.include <files>     Limit watching to specified files
 
 Examples:
 

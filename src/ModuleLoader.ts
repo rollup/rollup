@@ -1,12 +1,11 @@
-import * as acorn from 'acorn';
+import * as acorn from 'fork-acorn-optional-chaining';
 import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import Module from './Module';
 import {
 	GetManualChunk,
-	IsExternal,
-	ModuleSideEffectsOption,
-	PureModulesOption,
+	HasModuleSideEffects,
+	NormalizedInputOptions,
 	ResolvedId,
 	ResolveIdResult,
 	SourceDescription
@@ -17,7 +16,6 @@ import {
 	errEntryCannotBeExternal,
 	errExternalSyntheticExports,
 	errInternalIdCannotBeExternal,
-	errInvalidOption,
 	errNamespaceConflict,
 	error,
 	errUnresolvedEntry,
@@ -39,75 +37,8 @@ export interface UnresolvedModule {
 	name: string | null;
 }
 
-function normalizeRelativeExternalId(source: string, importer: string | undefined) {
-	return isRelative(source)
-		? importer
-			? resolve(importer, '..', source)
-			: resolve(source)
-		: source;
-}
-
-function getIdMatcher<T extends Array<any>>(
-	option: boolean | (string | RegExp)[] | ((id: string, ...args: T) => boolean | null | undefined)
-): (id: string, ...args: T) => boolean {
-	if (option === true) {
-		return () => true;
-	}
-	if (typeof option === 'function') {
-		return (id, ...args) => (!id.startsWith('\0') && option(id, ...args)) || false;
-	}
-	if (option) {
-		const ids = new Set<string>();
-		const matchers: RegExp[] = [];
-		for (const value of option) {
-			if (value instanceof RegExp) {
-				matchers.push(value);
-			} else {
-				ids.add(value);
-			}
-		}
-		return (id => ids.has(id) || matchers.some(matcher => matcher.test(id))) as (
-			id: string,
-			...args: T
-		) => boolean;
-	}
-	return () => false;
-}
-
-function getHasModuleSideEffects(
-	moduleSideEffectsOption: ModuleSideEffectsOption,
-	pureExternalModules: PureModulesOption,
-	graph: Graph
-): (id: string, external: boolean) => boolean {
-	if (typeof moduleSideEffectsOption === 'boolean') {
-		return () => moduleSideEffectsOption;
-	}
-	if (moduleSideEffectsOption === 'no-external') {
-		return (_id, external) => !external;
-	}
-	if (typeof moduleSideEffectsOption === 'function') {
-		return (id, external) =>
-			!id.startsWith('\0') ? moduleSideEffectsOption(id, external) !== false : true;
-	}
-	if (Array.isArray(moduleSideEffectsOption)) {
-		const ids = new Set(moduleSideEffectsOption);
-		return id => ids.has(id);
-	}
-	if (moduleSideEffectsOption) {
-		graph.warn(
-			errInvalidOption(
-				'treeshake.moduleSideEffects',
-				'please use one of false, "no-external", a function or an array'
-			)
-		);
-	}
-	const isPureExternalModule = getIdMatcher(pureExternalModules);
-	return (id, external) => !(external && isPureExternalModule(id));
-}
-
 export class ModuleLoader {
-	readonly isExternal: IsExternal;
-	private readonly hasModuleSideEffects: (id: string, external: boolean) => boolean;
+	private readonly hasModuleSideEffects: HasModuleSideEffects;
 	private readonly indexedEntryModules: { index: number; module: Module }[] = [];
 	private latestLoadModulesPromise: Promise<any> = Promise.resolve();
 	private readonly manualChunkModules: Record<string, Module[]> = {};
@@ -116,18 +47,12 @@ export class ModuleLoader {
 	constructor(
 		private readonly graph: Graph,
 		private readonly modulesById: Map<string, Module | ExternalModule>,
-		private readonly pluginDriver: PluginDriver,
-		private readonly preserveSymlinks: boolean,
-		external: (string | RegExp)[] | IsExternal,
-		moduleSideEffects: ModuleSideEffectsOption,
-		pureExternalModules: PureModulesOption
+		private readonly options: NormalizedInputOptions,
+		private readonly pluginDriver: PluginDriver
 	) {
-		this.isExternal = getIdMatcher(external);
-		this.hasModuleSideEffects = getHasModuleSideEffects(
-			moduleSideEffects,
-			pureExternalModules,
-			graph
-		);
+		this.hasModuleSideEffects = options.treeshake
+			? options.treeshake.moduleSideEffects
+			: () => true;
 	}
 
 	async addEntryModules(
@@ -233,9 +158,9 @@ export class ModuleLoader {
 		skip: number | null = null
 	): Promise<ResolvedId | null> {
 		return this.normalizeResolveIdResult(
-			this.isExternal(source, importer, false)
+			this.options.external(source, importer, false)
 				? false
-				: await resolveId(source, importer, this.preserveSymlinks, this.pluginDriver, skip),
+				: await resolveId(source, importer, this.options.preserveSymlinks, this.pluginDriver, skip),
 
 			importer,
 			source
@@ -280,7 +205,9 @@ export class ModuleLoader {
 			if (typeof sourceDescription.syntheticNamedExports === 'boolean') {
 				module.syntheticNamedExports = sourceDescription.syntheticNamedExports;
 			}
-			module.setSource(await transform(this.graph, sourceDescription, module));
+			module.setSource(
+				await transform(sourceDescription, module, this.pluginDriver, this.options.onwarn)
+			);
 		}
 	}
 
@@ -314,7 +241,7 @@ export class ModuleLoader {
 
 	private fetchAllDependencies(module: Module): Promise<unknown> {
 		return Promise.all([
-			...[...module.sources].map(async source => {
+			...Array.from(module.sources, async source => {
 				const resolution = await this.fetchResolvedDependency(
 					source,
 					module.id,
@@ -363,6 +290,7 @@ export class ModuleLoader {
 		const module: Module = new Module(
 			this.graph,
 			id,
+			this.options,
 			moduleSideEffects,
 			syntheticNamedExports,
 			isEntry
@@ -383,7 +311,7 @@ export class ModuleLoader {
 			if (exportAllModule instanceof ExternalModule) continue;
 			for (const name in exportAllModule!.exportsAll) {
 				if (name in module.exportsAll) {
-					this.graph.warn(errNamespaceConflict(name, module, exportAllModule!));
+					this.options.onwarn(errNamespaceConflict(name, module, exportAllModule!));
 				} else {
 					module.exportsAll[name] = exportAllModule!.exportsAll[name];
 				}
@@ -401,7 +329,7 @@ export class ModuleLoader {
 			if (!this.modulesById.has(resolvedId.id)) {
 				this.modulesById.set(
 					resolvedId.id,
-					new ExternalModule(this.graph, resolvedId.id, resolvedId.moduleSideEffects)
+					new ExternalModule(this.options, resolvedId.id, resolvedId.moduleSideEffects)
 				);
 			}
 
@@ -430,7 +358,7 @@ export class ModuleLoader {
 			if (isRelative(source)) {
 				return error(errUnresolvedImport(source, importer));
 			}
-			this.graph.warn(errUnresolvedImportTreatedAsExternal(source, importer));
+			this.options.onwarn(errUnresolvedImportTreatedAsExternal(source, importer));
 			return {
 				external: true,
 				id: source,
@@ -439,7 +367,7 @@ export class ModuleLoader {
 			};
 		} else {
 			if (resolvedId.external && resolvedId.syntheticNamedExports) {
-				this.graph.warn(errExternalSyntheticExports(source, importer));
+				this.options.onwarn(errExternalSyntheticExports(source, importer));
 			}
 		}
 		return resolvedId;
@@ -451,33 +379,13 @@ export class ModuleLoader {
 		importer: string | undefined,
 		waitForBundleInput: boolean
 	): Promise<Module> {
-		let resolveIdResult: ResolveIdResult;
-		const unresolvedFiles = new Set<string>();
-
-		while (
-			(resolveIdResult = await resolveId(
-				unresolvedId,
-				importer,
-				this.preserveSymlinks,
-				this.pluginDriver,
-				null
-			)) === undefined &&
-			waitForBundleInput
-		) {
-			if (this.graph.watcher && !unresolvedFiles.has(unresolvedId)) {
-				this.graph.watcher.emit('event', {
-					code: 'INPUT_WAIT',
-					input: unresolvedId
-				});
-
-				unresolvedFiles.add(unresolvedId);
-			}
-
-			await new Promise<void>(resolve => {
-				setTimeout(resolve, 500);
-			});
-		}
-
+		const resolveIdResult = await resolveId(
+			unresolvedId,
+			importer,
+			this.options.preserveSymlinks,
+			this.pluginDriver,
+			null
+		);
 		if (
 			resolveIdResult === false ||
 			(resolveIdResult && typeof resolveIdResult === 'object' && resolveIdResult.external)
@@ -515,14 +423,14 @@ export class ModuleLoader {
 					syntheticNamedExports = resolveIdResult.syntheticNamedExports;
 				}
 			} else {
-				if (this.isExternal(resolveIdResult, importer, true)) {
+				if (this.options.external(resolveIdResult, importer, true)) {
 					external = true;
 				}
 				id = external ? normalizeRelativeExternalId(resolveIdResult, importer) : resolveIdResult;
 			}
 		} else {
 			id = normalizeRelativeExternalId(source, importer);
-			if (resolveIdResult !== false && !this.isExternal(id, importer, true)) {
+			if (resolveIdResult !== false && !this.options.external(id, importer, true)) {
 				return null;
 			}
 			external = true;
@@ -572,4 +480,12 @@ export class ModuleLoader {
 			importer
 		);
 	}
+}
+
+function normalizeRelativeExternalId(source: string, importer: string | undefined): string {
+	return isRelative(source)
+		? importer
+			? resolve(importer, '..', source)
+			: resolve(source)
+		: source;
 }

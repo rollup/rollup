@@ -9,8 +9,9 @@ import {
 	RollupWatcher,
 	WatcherOptions
 } from '../rollup/types';
-import { mergeOptions } from '../utils/mergeOptions';
-import { ensureArray, GenericConfigObject } from '../utils/parseOptions';
+import { ensureArray } from '../utils/ensureArray';
+import { mergeOptions } from '../utils/options/mergeOptions';
+import { GenericConfigObject } from '../utils/options/options';
 import { FileWatcher } from './fileWatcher';
 
 export class Watcher {
@@ -209,7 +210,7 @@ export class Task {
 		const previouslyWatched = this.watched;
 		this.watched = new Set();
 		this.watchFiles = result.watchFiles;
-		this.cache = result.cache;
+		this.cache = result.cache!;
 		for (const id of this.watchFiles) {
 			this.watchFile(id);
 		}

@@ -1,3 +1,4 @@
+import { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { CallOptions } from '../CallOptions';
 import { HasEffectsContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
@@ -24,7 +25,11 @@ export default class NewExpression extends NodeBase {
 		for (const argument of this.arguments) {
 			if (argument.hasEffects(context)) return true;
 		}
-		if (this.context.annotations && this.annotatedPure) return false;
+		if (
+			(this.context.options.treeshake as NormalizedTreeshakingOptions).annotations &&
+			this.annotatedPure
+		)
+			return false;
 		return (
 			this.callee.hasEffects(context) ||
 			this.callee.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.callOptions, context)

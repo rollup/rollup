@@ -178,12 +178,14 @@ export default class LocalVariable extends Variable {
 	}
 
 	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
-		if (this.isReassigned) {
+		if (this.isReassigned || (this.init && context.includedCallArguments.has(this.init))) {
 			for (const arg of args) {
 				arg.include(context, false);
 			}
 		} else if (this.init) {
+			context.includedCallArguments.add(this.init);
 			this.init.includeCallArguments(context, args);
+			context.includedCallArguments.delete(this.init);
 		}
 	}
 

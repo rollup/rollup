@@ -17,11 +17,13 @@ export default class ClassNode extends NodeBase {
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
-		return path.length > 1;
+		if (path.length <= 1) return false;
+		return path.length > 2 || path[0] !== 'prototype';
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath) {
-		return path.length > 1;
+		if (path.length <= 1) return false;
+		return path.length > 2 || path[0] !== 'prototype';
 	}
 
 	hasEffectsWhenCalledAtPath(
