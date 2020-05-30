@@ -19,7 +19,6 @@ Basic options:
 -p, --plugin <plugin>       Use the plugin specified (may be repeated)
 -v, --version               Show version number
 -w, --watch                 Watch files in bundle and rebuild on changes
---waitForBundleInput        Wait for bundle input files
 --amd.id <id>               ID for AMD module (default is anonymous)
 --amd.define <name>         Function to use in place of `define`
 --assetFileNames <pattern>  Name pattern for emitted assets
@@ -62,6 +61,7 @@ Basic options:
 --no-treeshake.propertyReadSideEffects Ignore property access side-effects
 --no-treeshake.tryCatchDeoptimization Do not turn off try-catch-tree-shaking
 --no-treeshake.unknownGlobalSideEffects Assume unknown globals do not throw
+--waitForBundleInput        Wait for bundle input files
 --watch.buildDelay <number> Throttle watch rebuilds
 --no-watch.clearScreen      Do not clear the screen when rebuilding
 --watch.skipWrite           Do not write files to disk when watching
