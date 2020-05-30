@@ -16,9 +16,9 @@ module.exports = {
 		fs.unlinkSync(third);
 	},
 	abortOnStderr(data) {
-		if (data.includes('Waiting for input "second"')) {
+		if (data.includes('waiting for input second')) {
 			fs.writeFileSync(second, "export default 'second'");
-		} else if (data.includes('Waiting for input "third"')) {
+		} else if (data.includes('waiting for input third')) {
 			fs.writeFileSync(third, "export default 'third'");
 		}
 	}

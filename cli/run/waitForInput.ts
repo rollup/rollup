@@ -1,3 +1,4 @@
+import color from 'colorette';
 import { NormalizedInputOptions, PluginContext } from '../../src/rollup/types';
 import { stderr } from '../logging';
 
@@ -14,7 +15,7 @@ export function waitForInputPlugin() {
 				for (const specifier of inputSpecifiers) {
 					if ((await this.resolve(specifier)) === null) {
 						if (lastAwaitedSpecifier !== specifier) {
-							stderr(`Waiting for input "${specifier}"...`);
+							stderr(`waiting for input ${color.bold(specifier)}...`);
 							lastAwaitedSpecifier = specifier;
 						}
 						await new Promise(resolve => setTimeout(resolve, 500));

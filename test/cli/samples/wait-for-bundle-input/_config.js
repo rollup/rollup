@@ -13,7 +13,7 @@ module.exports = {
 		fs.unlinkSync(mainFile);
 	},
 	abortOnStderr(data) {
-		if (data.includes('Waiting for input "main.js"')) {
+		if (data.includes('waiting for input main.js')) {
 			// wait longer than one polling interval
 			setTimeout(() => fs.writeFileSync(mainFile, 'export default 42;'), 600);
 		}
