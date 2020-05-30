@@ -38,10 +38,10 @@ function markPureNode(
 		node.annotations = [comment];
 	}
 	if (node.type === 'ExpressionStatement') {
-		node = (node).expression;
+		node = (node as any).expression;
 	}
 	if (node.type === 'CallExpression' || node.type === 'NewExpression') {
-		(node).annotatedPure = true;
+		(node as any).annotatedPure = true;
 	}
 }
 

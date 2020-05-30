@@ -57,8 +57,7 @@ export class ModuleLoader {
 
 	async addEntryModules(
 		unresolvedEntryModules: UnresolvedModule[],
-		isUserDefined: boolean,
-		waitForBundleInput: boolean
+		isUserDefined: boolean
 	): Promise<{
 		entryModules: Module[];
 		manualChunkModulesByAlias: Record<string, Module[]>;
@@ -68,8 +67,7 @@ export class ModuleLoader {
 		this.nextEntryModuleIndex += unresolvedEntryModules.length;
 		const loadNewEntryModulesPromise = Promise.all(
 			unresolvedEntryModules.map(
-				({ id, importer }): Promise<Module> =>
-					this.loadEntryModule(id, true, importer, waitForBundleInput)
+				({ id, importer }): Promise<Module> => this.loadEntryModule(id, true, importer)
 			)
 		).then(entryModules => {
 			let moduleIndex = firstEntryModuleIndex;
@@ -110,10 +108,7 @@ export class ModuleLoader {
 		};
 	}
 
-	addManualChunks(
-		manualChunks: Record<string, string[]>,
-		waitForBundleInput: boolean
-	): Promise<void> {
+	addManualChunks(manualChunks: Record<string, string[]>): Promise<void> {
 		const unresolvedManualChunks: { alias: string; id: string }[] = [];
 		for (const alias of Object.keys(manualChunks)) {
 			const manualChunkIds = manualChunks[alias];
@@ -123,9 +118,7 @@ export class ModuleLoader {
 		}
 		return this.awaitLoadModulesPromise(
 			Promise.all(
-				unresolvedManualChunks.map(({ id }) =>
-					this.loadEntryModule(id, false, undefined, waitForBundleInput)
-				)
+				unresolvedManualChunks.map(({ id }) => this.loadEntryModule(id, false, undefined))
 			).then(manualChunkModules => {
 				for (let index = 0; index < manualChunkModules.length; index++) {
 					this.addModuleToManualChunk(
@@ -376,8 +369,7 @@ export class ModuleLoader {
 	private async loadEntryModule(
 		unresolvedId: string,
 		isEntry: boolean,
-		importer: string | undefined,
-		waitForBundleInput: boolean
+		importer: string | undefined
 	): Promise<Module> {
 		const resolveIdResult = await resolveId(
 			unresolvedId,

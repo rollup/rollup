@@ -96,9 +96,6 @@ export async function watch(command: any) {
 					}
 					break;
 
-				case 'INPUT_WAIT':
-					stderr(`\n[${dateTime()}] waiting for bundle input ${color.bold(event.input)}`);
-					break;
 				case 'BUNDLE_START':
 					if (!silent) {
 						let input = event.input;
