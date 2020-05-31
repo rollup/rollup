@@ -1,4 +1,5 @@
 module.exports = {
+	// solo: true,
 	description: 'deduplicates named chunks emitted more than once',
 	options: {
 		// For the second entry, a facade is created

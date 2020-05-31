@@ -2,6 +2,7 @@ const assert = require('assert');
 let referenceId;
 
 module.exports = {
+	// solo: true,
 	description: 'retrieves the correct name of an emitted chunk in case a facade is created',
 	options: {
 		input: 'main',

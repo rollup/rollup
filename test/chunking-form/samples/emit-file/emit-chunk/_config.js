@@ -2,6 +2,7 @@ const assert = require('assert');
 let referenceId;
 
 module.exports = {
+	// solo: true,
 	description: 'allows adding additional chunks and retrieving their file name',
 	options: {
 		input: 'main',

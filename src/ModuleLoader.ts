@@ -3,6 +3,7 @@ import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import Module from './Module';
 import {
+	EmittedChunk,
 	GetManualChunk,
 	HasModuleSideEffects,
 	NormalizedInputOptions,
@@ -15,10 +16,12 @@ import {
 	errCannotAssignModuleToChunk,
 	errEntryCannotBeExternal,
 	errExternalSyntheticExports,
+	errImplicitDependantCannotBeExternal,
 	errInternalIdCannotBeExternal,
 	errNamespaceConflict,
 	error,
 	errUnresolvedEntry,
+	errUnresolvedImplicitDependant,
 	errUnresolvedImport,
 	errUnresolvedImportTreatedAsExternal
 } from './utils/error';
@@ -33,7 +36,6 @@ import transform from './utils/transform';
 export interface UnresolvedModule {
 	fileName: string | null;
 	id: string;
-	implicitlyLoadedAfter: string[];
 	importer: string | undefined;
 	name: string | null;
 }
@@ -56,7 +58,6 @@ export class ModuleLoader {
 			: () => true;
 	}
 
-	// TODO Lukas do not use this for non-entry chunks but rather just extract file name logic
 	async addEntryModules(
 		unresolvedEntryModules: UnresolvedModule[],
 		isUserDefined: boolean
@@ -69,41 +70,23 @@ export class ModuleLoader {
 		this.nextEntryModuleIndex += unresolvedEntryModules.length;
 		const loadNewEntryModulesPromise = Promise.all(
 			unresolvedEntryModules.map(
-				({ id, importer, implicitlyLoadedAfter }): Promise<Module> =>
-					this.loadEntryModule(id, implicitlyLoadedAfter.length === 0, importer)
+				({ id, importer }): Promise<Module> => this.loadEntryModule(id, true, importer, null)
 			)
 		).then(entryModules => {
 			let moduleIndex = firstEntryModuleIndex;
 			for (let index = 0; index < entryModules.length; index++) {
-				const { fileName, implicitlyLoadedAfter, name } = unresolvedEntryModules[index];
 				const entryModule = entryModules[index];
-				if (fileName !== null) {
-					entryModule.chunkFileNames.add(fileName);
-				} else if (name !== null) {
-					if (entryModule.chunkName === null) {
-						entryModule.chunkName = name;
-					}
-					if (isUserDefined) {
-						entryModule.userChunkNames.add(name);
-					}
-				}
-				if (implicitlyLoadedAfter.length > 0) {
-					for (const dependant of implicitlyLoadedAfter) {
-						entryModule.implicitlyLoadedAfterIds.add(dependant);
-					}
+				entryModule.isUserDefinedEntryPoint = entryModule.isUserDefinedEntryPoint || isUserDefined;
+				addChunkNamesToModule(entryModule, unresolvedEntryModules[index], isUserDefined);
+				const existingIndexedModule = this.indexedEntryModules.find(
+					indexedModule => indexedModule.module === entryModule
+				);
+				if (!existingIndexedModule) {
+					this.indexedEntryModules.push({ module: entryModule, index: moduleIndex });
 				} else {
-					entryModule.isUserDefinedEntryPoint =
-						entryModule.isUserDefinedEntryPoint || isUserDefined;
-					const existingIndexedModule = this.indexedEntryModules.find(
-						indexedModule => indexedModule.module === entryModule
-					);
-					if (!existingIndexedModule) {
-						this.indexedEntryModules.push({ module: entryModule, index: moduleIndex });
-					} else {
-						existingIndexedModule.index = Math.min(existingIndexedModule.index, moduleIndex);
-					}
-					moduleIndex++;
+					existingIndexedModule.index = Math.min(existingIndexedModule.index, moduleIndex);
 				}
+				moduleIndex++;
 			}
 			this.indexedEntryModules.sort(({ index: indexA }, { index: indexB }) =>
 				indexA > indexB ? 1 : -1
@@ -128,7 +111,7 @@ export class ModuleLoader {
 		}
 		return this.awaitLoadModulesPromise(
 			Promise.all(
-				unresolvedManualChunks.map(({ id }) => this.loadEntryModule(id, false, undefined))
+				unresolvedManualChunks.map(({ id }) => this.loadEntryModule(id, false, undefined, null))
 			).then(manualChunkModules => {
 				for (let index = 0; index < manualChunkModules.length; index++) {
 					this.addModuleToManualChunk(
@@ -155,6 +138,29 @@ export class ModuleLoader {
 		}
 	}
 
+	async emitChunk({
+		fileName,
+		id,
+		importer,
+		name,
+		implicitlyLoadedAfterOneOf,
+		preserveSignature
+	}: EmittedChunk): Promise<Module> {
+		const unresolvedModule: UnresolvedModule = {
+			fileName: fileName || null,
+			id,
+			importer,
+			name: name || null
+		};
+		const module = implicitlyLoadedAfterOneOf
+			? await this.addEntryWithImplicitDependants(unresolvedModule, implicitlyLoadedAfterOneOf)
+			: (await this.addEntryModules([unresolvedModule], false)).newEntryModules[0];
+		if (preserveSignature != null) {
+			module.preserveSignature = preserveSignature;
+		}
+		return module;
+	}
+
 	async resolveId(
 		source: string,
 		importer: string | undefined,
@@ -168,6 +174,32 @@ export class ModuleLoader {
 			importer,
 			source
 		);
+	}
+
+	private addEntryWithImplicitDependants(
+		unresolvedModule: UnresolvedModule,
+		implicitlyLoadedAfter: string[]
+	): Promise<Module> {
+		// TODO Lukas do everything in parallel?
+		const loadModulePromise = this.loadEntryModule(
+			unresolvedModule.id,
+			false,
+			unresolvedModule.importer,
+			null
+		).then(async entryModule => {
+			addChunkNamesToModule(entryModule, unresolvedModule, false);
+			entryModule.implicitlyLoadedAfter = await Promise.all(
+				implicitlyLoadedAfter.map(id =>
+					this.loadEntryModule(id, false, unresolvedModule.importer, entryModule.id)
+				)
+			);
+			for (const dependant of entryModule.implicitlyLoadedAfter) {
+				dependant.implicitlyLoadedBefore.add(entryModule);
+			}
+			return entryModule;
+		});
+		this.extendLoadModulesPromise(loadModulePromise);
+		return loadModulePromise;
 	}
 
 	private async addModuleSource(id: string, importer: string | undefined, module: Module) {
@@ -225,12 +257,8 @@ export class ModuleLoader {
 		this.manualChunkModules[alias].push(module);
 	}
 
+	// TODO Lukas remove parameter but rather replace this with getCombinedPromise and use this together with extendLoadModulesPromise
 	private async awaitLoadModulesPromise<T>(loadNewModulesPromise: Promise<T>): Promise<T> {
-		this.latestLoadModulesPromise = Promise.all([
-			loadNewModulesPromise,
-			this.latestLoadModulesPromise
-		]);
-
 		const getCombinedPromise = async (): Promise<void> => {
 			const startingPromise = this.latestLoadModulesPromise;
 			await startingPromise;
@@ -238,8 +266,17 @@ export class ModuleLoader {
 				return getCombinedPromise();
 			}
 		};
+
+		this.extendLoadModulesPromise(loadNewModulesPromise);
 		await getCombinedPromise();
 		return await loadNewModulesPromise;
+	}
+
+	private extendLoadModulesPromise(loadNewModulesPromise: Promise<any>): void {
+		this.latestLoadModulesPromise = Promise.all([
+			loadNewModulesPromise,
+			this.latestLoadModulesPromise
+		]);
 	}
 
 	private fetchAllDependencies(module: Module): Promise<unknown> {
@@ -277,6 +314,8 @@ export class ModuleLoader {
 		]);
 	}
 
+	// TODO Lukas check usages: How do we add the flags if a module is already part of the graph?
+	// TODO Lukas do we want to resolve implicit dependants, possibly using the importer if it exists?
 	private async fetchModule(
 		id: string,
 		importer: string | undefined,
@@ -379,7 +418,8 @@ export class ModuleLoader {
 	private async loadEntryModule(
 		unresolvedId: string,
 		isEntry: boolean,
-		importer: string | undefined
+		importer: string | undefined,
+		implicitlyLoadedBefore: string | null
 	): Promise<Module> {
 		const resolveIdResult = await resolveId(
 			unresolvedId,
@@ -392,7 +432,11 @@ export class ModuleLoader {
 			resolveIdResult === false ||
 			(resolveIdResult && typeof resolveIdResult === 'object' && resolveIdResult.external)
 		) {
-			return error(errEntryCannotBeExternal(unresolvedId));
+			return error(
+				implicitlyLoadedBefore === null
+					? errEntryCannotBeExternal(unresolvedId)
+					: errImplicitDependantCannotBeExternal(unresolvedId, implicitlyLoadedBefore)
+			);
 		}
 		const id =
 			resolveIdResult && typeof resolveIdResult === 'object' ? resolveIdResult.id : resolveIdResult;
@@ -400,7 +444,11 @@ export class ModuleLoader {
 		if (typeof id === 'string') {
 			return this.fetchModule(id, undefined, true, false, isEntry);
 		}
-		return error(errUnresolvedEntry(unresolvedId));
+		return error(
+			implicitlyLoadedBefore === null
+				? errUnresolvedEntry(unresolvedId)
+				: errUnresolvedImplicitDependant(unresolvedId, implicitlyLoadedBefore)
+		);
 	}
 
 	private normalizeResolveIdResult(
@@ -490,4 +538,21 @@ function normalizeRelativeExternalId(source: string, importer: string | undefine
 			? resolve(importer, '..', source)
 			: resolve(source)
 		: source;
+}
+
+function addChunkNamesToModule(
+	module: Module,
+	{ fileName, name }: UnresolvedModule,
+	isUserDefined: boolean
+) {
+	if (fileName !== null) {
+		module.chunkFileNames.add(fileName);
+	} else if (name !== null) {
+		if (module.chunkName === null) {
+			module.chunkName = name;
+		}
+		if (isUserDefined) {
+			module.userChunkNames.add(name);
+		}
+	}
 }

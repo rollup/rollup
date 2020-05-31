@@ -1,4 +1,5 @@
 module.exports = {
+	// solo: true,
 	description:
 		'Does not warn if preserveEntrySignatures is not set and an empty facade is created for a plugin chunk',
 	options: {

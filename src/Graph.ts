@@ -15,7 +15,6 @@ import {
 } from './rollup/types';
 import { BuildPhase } from './utils/buildPhase';
 import { getChunkAssignments } from './utils/chunkAssignment';
-import { error } from './utils/error';
 import { analyseModuleExecution, sortByExecutionOrder } from './utils/executionOrder';
 import { PluginDriver } from './utils/PluginDriver';
 import relativeId from './utils/relativeId';
@@ -198,7 +197,9 @@ export default class Graph {
 			hasModuleSideEffects: foundModule.moduleSideEffects,
 			id: foundModule.id,
 			implicitlyLoadedAfterOneOf:
-				foundModule instanceof Module ? [...foundModule.implicitlyLoadedAfterIds] : [],
+				foundModule instanceof Module
+					? Array.from(foundModule.implicitlyLoadedAfter, module => module.id)
+					: [],
 			implicitlyLoadedBefore:
 				foundModule instanceof Module
 					? Array.from(foundModule.implicitlyLoadedBefore, module => module.id)
@@ -227,16 +228,6 @@ export default class Graph {
 		for (const module of this.modulesById.values()) {
 			if (module instanceof Module) {
 				this.modules.push(module);
-				for (const dependantId of module.implicitlyLoadedAfterIds) {
-					const dependant = this.modulesById.get(dependantId) as Module;
-					if (!dependant) {
-						return error({
-							message: `A plugin has specified that "${dependantId}" is an implicit dependant of "${module.id}" but the dependant does not correspond to a known module id.`
-						});
-					}
-					module.implicitlyLoadedAfter.push(dependant);
-					dependant.implicitlyLoadedBefore.add(module);
-				}
 			} else {
 				this.externalModules.push(module);
 			}

@@ -251,6 +251,35 @@ export function errUnresolvedEntry(unresolvedId: string) {
 	};
 }
 
+// TODO Lukas test
+export function errImplicitDependantCannotBeExternal(
+	unresolvedId: string,
+	implicitlyLoadedBefore: string
+) {
+	return {
+		code: Errors.UNRESOLVED_ENTRY,
+		message: `Module "${relativeId(
+			unresolvedId
+		)}" that should be implicitly loaded before "${relativeId(
+			implicitlyLoadedBefore
+		)}" cannot be external.`
+	};
+}
+
+export function errUnresolvedImplicitDependant(
+	unresolvedId: string,
+	implicitlyLoadedBefore: string
+) {
+	return {
+		code: Errors.UNRESOLVED_ENTRY,
+		message: `Module "${relativeId(
+			unresolvedId
+		)}" that should be implicitly loaded before "${relativeId(
+			implicitlyLoadedBefore
+		)}" could not be resolved.`
+	};
+}
+
 export function errUnresolvedImport(source: string, importer: string) {
 	return {
 		code: Errors.UNRESOLVED_IMPORT,

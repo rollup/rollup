@@ -1,4 +1,5 @@
 module.exports = {
+	// solo: true,
 	description: 'allows adding modules already in the graph as entry points',
 	options: {
 		input: {

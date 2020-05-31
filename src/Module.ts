@@ -197,7 +197,6 @@ export default class Module {
 	exportsAll: { [name: string]: string } = Object.create(null);
 	facadeChunk: Chunk | null = null;
 	implicitlyLoadedAfter: Module[] = [];
-	implicitlyLoadedAfterIds = new Set<string>();
 	implicitlyLoadedBefore = new Set<Module>();
 	importDescriptions: { [name: string]: ImportDescription } = Object.create(null);
 	importers: string[] = [];

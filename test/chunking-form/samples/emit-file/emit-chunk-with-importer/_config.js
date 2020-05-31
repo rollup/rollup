@@ -4,6 +4,7 @@ let mainReferenceId;
 let nestedReferenceId;
 
 module.exports = {
+	// solo: true,
 	description: 'allows specifying an importer when resolving ids',
 	options: {
 		input: 'main',
