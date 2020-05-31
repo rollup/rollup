@@ -318,6 +318,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --no-treeshake.propertyReadSideEffects Ignore property access side-effects
 --no-treeshake.tryCatchDeoptimization Do not turn off try-catch-tree-shaking
 --no-treeshake.unknownGlobalSideEffects Assume unknown globals do not throw
+--waitForBundleInput        Wait for bundle input files
 --watch.buildDelay <number> Throttle watch rebuilds
 --no-watch.clearScreen      Do not clear the screen when rebuilding
 --watch.skipWrite           Do not write files to disk when watching
@@ -412,6 +413,10 @@ npm run build -- --environment BUILD:development
 ```
 
 then the config file will receive `process.env.INCLUDE_DEPS === 'true'` and `process.env.BUILD === 'development'`.
+
+#### `--waitForBundleInput`
+
+This will not throw an error if one of the entry point files is not available. Instead, it will wait until all files are present before starting the build. This is useful, especially in watch mode, when Rollup is consuming the output of another process.
 
 #### `--no-stdin`
 

@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { InputOptions } from '../../src/rollup/types';
 import { stdinPlugin } from './stdin';
+import { waitForInputPlugin } from './waitForInput';
 
 export function addCommandPluginsToInputOptions(
 	inputOptions: InputOptions,
@@ -8,6 +9,9 @@ export function addCommandPluginsToInputOptions(
 ) {
 	if (command.stdin !== false) {
 		inputOptions.plugins!.push(stdinPlugin());
+	}
+	if (command.waitForBundleInput === true) {
+		inputOptions.plugins!.push(waitForInputPlugin());
 	}
 	const commandPlugin = command.plugin;
 	if (commandPlugin) {

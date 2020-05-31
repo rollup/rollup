@@ -53,7 +53,8 @@ export function mergeOptions(
 			'environment',
 			'plugin',
 			'silent',
-			'stdin'
+			'stdin',
+			'waitForBundleInput'
 		),
 		'CLI flags',
 		warn,
