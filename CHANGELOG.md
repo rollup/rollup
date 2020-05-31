@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.12.0
+*2020-05-31*
+
+### Features
+* Add an option `--waitForBundleInput` to let the build wait until all entry point files are available before starting (#3577)
+
+### Pull Requests
+* [#3577](https://github.com/rollup/rollup/pull/3577): Wait for bundle input option (@Heerschop)
+
 ## 2.11.2
 *2020-05-28*
 
