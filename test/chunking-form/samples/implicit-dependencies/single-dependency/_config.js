@@ -5,10 +5,6 @@ const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_LIB = path.join(__dirname, 'lib.js');
 const ID_DEP = path.join(__dirname, 'dep.js');
 
-// TODO Lukas what about multiple emits of the same module with different dependants?
-// TODO Lukas what about multiple dependants in a single emit
-// TODO Lukas what if the original module is not included (empty)/executed (behind a missing dynamic import)?
-// TODO Lukas what about signatures? Even though we have the implicit dependency, signatures should probably still reflect what entry chunks do
 module.exports = {
 	solo: true,
 	description: 'supports implicit dependencies when emitting files',

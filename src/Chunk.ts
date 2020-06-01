@@ -198,7 +198,7 @@ export default class Chunk {
 			if (module.includedDynamicImporters.length > 0) {
 				this.dynamicEntryModules.push(module);
 			}
-			if (module.implicitlyLoadedAfter.length > 0) {
+			if (module.implicitlyLoadedAfter.size > 0) {
 				this.isImplicitEntry = true;
 			}
 		}

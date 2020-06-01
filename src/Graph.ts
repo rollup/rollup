@@ -15,6 +15,7 @@ import {
 } from './rollup/types';
 import { BuildPhase } from './utils/buildPhase';
 import { getChunkAssignments } from './utils/chunkAssignment';
+import { errImplicitDependantIsNotIncluded, error } from './utils/error';
 import { analyseModuleExecution, sortByExecutionOrder } from './utils/executionOrder';
 import { PluginDriver } from './utils/PluginDriver';
 import relativeId from './utils/relativeId';
@@ -258,6 +259,17 @@ export default class Graph {
 		}
 		// check for unused external imports
 		for (const externalModule of this.externalModules) externalModule.warnUnusedImports();
+		// check for missing implicit dependants
+		for (const module of this.modulesById.values()) {
+			if (
+				module instanceof Module &&
+				!module.isEntryPoint &&
+				module.implicitlyLoadedBefore.size > 0 &&
+				!module.isIncluded()
+			) {
+				error(errImplicitDependantIsNotIncluded(module));
+			}
+		}
 	}
 
 	private linkAndOrderModules() {

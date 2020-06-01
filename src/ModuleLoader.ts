@@ -188,11 +188,14 @@ export class ModuleLoader {
 			null
 		).then(async entryModule => {
 			addChunkNamesToModule(entryModule, unresolvedModule, false);
-			entryModule.implicitlyLoadedAfter = await Promise.all(
+			const implicitlyLoadedAfterModules = await Promise.all(
 				implicitlyLoadedAfter.map(id =>
 					this.loadEntryModule(id, false, unresolvedModule.importer, entryModule.id)
 				)
 			);
+			for (const module of implicitlyLoadedAfterModules) {
+				entryModule.implicitlyLoadedAfter.add(module);
+			}
 			for (const dependant of entryModule.implicitlyLoadedAfter) {
 				dependant.implicitlyLoadedBefore.add(entryModule);
 			}

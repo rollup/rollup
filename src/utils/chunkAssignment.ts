@@ -145,9 +145,10 @@ function getDynamicDependentEntryPoints(
 			dynamicallyDependentEntryPointsByDynamicEntry,
 			dynamicEntry
 		);
-		for (const importer of dynamicEntry.includedDynamicImporters.concat(
-			dynamicEntry.implicitlyLoadedAfter
-		)) {
+		for (const importer of [
+			...dynamicEntry.includedDynamicImporters,
+			...dynamicEntry.implicitlyLoadedAfter
+		]) {
 			for (const entryPoint of dependentEntryPointsByModule.get(importer)!) {
 				dynamicDependentEntryPoints.add(entryPoint);
 			}

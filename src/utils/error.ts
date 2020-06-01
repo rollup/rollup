@@ -251,7 +251,6 @@ export function errUnresolvedEntry(unresolvedId: string) {
 	};
 }
 
-// TODO Lukas test
 export function errImplicitDependantCannotBeExternal(
 	unresolvedId: string,
 	implicitlyLoadedBefore: string
@@ -277,6 +276,23 @@ export function errUnresolvedImplicitDependant(
 		)}" that should be implicitly loaded before "${relativeId(
 			implicitlyLoadedBefore
 		)}" could not be resolved.`
+	};
+}
+
+export function errImplicitDependantIsNotIncluded(module: Module) {
+	const implicitDependencies = Array.from(module.implicitlyLoadedBefore, dependency =>
+		relativeId(dependency.id)
+	).sort();
+	return {
+		// TODO Lukas think about error codes
+		code: Errors.UNRESOLVED_ENTRY,
+		message: `Module "${relativeId(module.id)}" that should be implicitly loaded before "${
+			implicitDependencies.length === 1
+				? implicitDependencies[0]
+				: `${implicitDependencies.slice(0, -1).join('", "')}" and "${
+						implicitDependencies.slice(-1)[0]
+				  }`
+		}" is not included in the module graph. Either it was not imported by an included module or only via a tree-shaken dynamic import, or no imported bindings were used and it had otherwise no side-effects.`
 	};
 }
 
