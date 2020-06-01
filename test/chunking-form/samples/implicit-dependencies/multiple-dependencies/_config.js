@@ -10,7 +10,6 @@ const ID_LIB3 = path.join(__dirname, 'lib3.js');
 const ID_DEP = path.join(__dirname, 'dep.js');
 
 module.exports = {
-	solo: true,
 	description: 'supports emitting the same chunk with different and multiple dependencies',
 	options: {
 		input: ['main1', 'main2'],

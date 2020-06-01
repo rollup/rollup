@@ -1,5 +1,4 @@
 module.exports = {
-	solo: true,
 	description: 'properly emits a chunk when it is implicitly loaded after an empty entry module',
 	expectedWarnings: ['EMPTY_BUNDLE'],
 	options: {

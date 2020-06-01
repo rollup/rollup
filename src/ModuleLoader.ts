@@ -68,32 +68,35 @@ export class ModuleLoader {
 	}> {
 		const firstEntryModuleIndex = this.nextEntryModuleIndex;
 		this.nextEntryModuleIndex += unresolvedEntryModules.length;
-		const loadNewEntryModulesPromise = Promise.all(
-			unresolvedEntryModules.map(
-				({ id, importer }): Promise<Module> => this.loadEntryModule(id, true, importer, null)
-			)
-		).then(entryModules => {
-			let moduleIndex = firstEntryModuleIndex;
-			for (let index = 0; index < entryModules.length; index++) {
-				const entryModule = entryModules[index];
-				entryModule.isUserDefinedEntryPoint = entryModule.isUserDefinedEntryPoint || isUserDefined;
-				addChunkNamesToModule(entryModule, unresolvedEntryModules[index], isUserDefined);
-				const existingIndexedModule = this.indexedEntryModules.find(
-					indexedModule => indexedModule.module === entryModule
-				);
-				if (!existingIndexedModule) {
-					this.indexedEntryModules.push({ module: entryModule, index: moduleIndex });
-				} else {
-					existingIndexedModule.index = Math.min(existingIndexedModule.index, moduleIndex);
+		const newEntryModules = await this.extendLoadModulesPromise(
+			Promise.all(
+				unresolvedEntryModules.map(
+					({ id, importer }): Promise<Module> => this.loadEntryModule(id, true, importer, null)
+				)
+			).then(entryModules => {
+				let moduleIndex = firstEntryModuleIndex;
+				for (let index = 0; index < entryModules.length; index++) {
+					const entryModule = entryModules[index];
+					entryModule.isUserDefinedEntryPoint =
+						entryModule.isUserDefinedEntryPoint || isUserDefined;
+					addChunkNamesToModule(entryModule, unresolvedEntryModules[index], isUserDefined);
+					const existingIndexedModule = this.indexedEntryModules.find(
+						indexedModule => indexedModule.module === entryModule
+					);
+					if (!existingIndexedModule) {
+						this.indexedEntryModules.push({ module: entryModule, index: moduleIndex });
+					} else {
+						existingIndexedModule.index = Math.min(existingIndexedModule.index, moduleIndex);
+					}
+					moduleIndex++;
 				}
-				moduleIndex++;
-			}
-			this.indexedEntryModules.sort(({ index: indexA }, { index: indexB }) =>
-				indexA > indexB ? 1 : -1
-			);
-			return entryModules;
-		});
-		const newEntryModules = await this.awaitLoadModulesPromise(loadNewEntryModulesPromise);
+				this.indexedEntryModules.sort(({ index: indexA }, { index: indexB }) =>
+					indexA > indexB ? 1 : -1
+				);
+				return entryModules;
+			})
+		);
+		await this.awaitLoadModulesPromise();
 		return {
 			entryModules: this.indexedEntryModules.map(({ module }) => module),
 			manualChunkModulesByAlias: this.manualChunkModules,
@@ -101,7 +104,7 @@ export class ModuleLoader {
 		};
 	}
 
-	addManualChunks(manualChunks: Record<string, string[]>): Promise<void> {
+	async addManualChunks(manualChunks: Record<string, string[]>): Promise<void> {
 		const unresolvedManualChunks: { alias: string; id: string }[] = [];
 		for (const alias of Object.keys(manualChunks)) {
 			const manualChunkIds = manualChunks[alias];
@@ -109,7 +112,7 @@ export class ModuleLoader {
 				unresolvedManualChunks.push({ id, alias });
 			}
 		}
-		return this.awaitLoadModulesPromise(
+		const result = this.extendLoadModulesPromise(
 			Promise.all(
 				unresolvedManualChunks.map(({ id }) => this.loadEntryModule(id, false, undefined, null))
 			).then(manualChunkModules => {
@@ -121,6 +124,8 @@ export class ModuleLoader {
 				}
 			})
 		);
+		await this.awaitLoadModulesPromise();
+		return result;
 	}
 
 	assignManualChunks(getManualChunk: GetManualChunk) {
@@ -180,29 +185,25 @@ export class ModuleLoader {
 		unresolvedModule: UnresolvedModule,
 		implicitlyLoadedAfter: string[]
 	): Promise<Module> {
-		// TODO Lukas do everything in parallel?
-		const loadModulePromise = this.loadEntryModule(
-			unresolvedModule.id,
-			false,
-			unresolvedModule.importer,
-			null
-		).then(async entryModule => {
-			addChunkNamesToModule(entryModule, unresolvedModule, false);
-			const implicitlyLoadedAfterModules = await Promise.all(
-				implicitlyLoadedAfter.map(id =>
-					this.loadEntryModule(id, false, unresolvedModule.importer, entryModule.id)
-				)
-			);
-			for (const module of implicitlyLoadedAfterModules) {
-				entryModule.implicitlyLoadedAfter.add(module);
-			}
-			for (const dependant of entryModule.implicitlyLoadedAfter) {
-				dependant.implicitlyLoadedBefore.add(entryModule);
-			}
-			return entryModule;
-		});
-		this.extendLoadModulesPromise(loadModulePromise);
-		return loadModulePromise;
+		return this.extendLoadModulesPromise(
+			this.loadEntryModule(unresolvedModule.id, false, unresolvedModule.importer, null).then(
+				async entryModule => {
+					addChunkNamesToModule(entryModule, unresolvedModule, false);
+					const implicitlyLoadedAfterModules = await Promise.all(
+						implicitlyLoadedAfter.map(id =>
+							this.loadEntryModule(id, false, unresolvedModule.importer, entryModule.id)
+						)
+					);
+					for (const module of implicitlyLoadedAfterModules) {
+						entryModule.implicitlyLoadedAfter.add(module);
+					}
+					for (const dependant of entryModule.implicitlyLoadedAfter) {
+						dependant.implicitlyLoadedBefore.add(entryModule);
+					}
+					return entryModule;
+				}
+			)
+		);
 	}
 
 	private async addModuleSource(id: string, importer: string | undefined, module: Module) {
@@ -260,26 +261,20 @@ export class ModuleLoader {
 		this.manualChunkModules[alias].push(module);
 	}
 
-	// TODO Lukas remove parameter but rather replace this with getCombinedPromise and use this together with extendLoadModulesPromise
-	private async awaitLoadModulesPromise<T>(loadNewModulesPromise: Promise<T>): Promise<T> {
-		const getCombinedPromise = async (): Promise<void> => {
-			const startingPromise = this.latestLoadModulesPromise;
+	private async awaitLoadModulesPromise(): Promise<void> {
+		let startingPromise;
+		do {
+			startingPromise = this.latestLoadModulesPromise;
 			await startingPromise;
-			if (this.latestLoadModulesPromise !== startingPromise) {
-				return getCombinedPromise();
-			}
-		};
-
-		this.extendLoadModulesPromise(loadNewModulesPromise);
-		await getCombinedPromise();
-		return await loadNewModulesPromise;
+		} while (startingPromise !== this.latestLoadModulesPromise);
 	}
 
-	private extendLoadModulesPromise(loadNewModulesPromise: Promise<any>): void {
+	private extendLoadModulesPromise<T>(loadNewModulesPromise: Promise<T>): Promise<T> {
 		this.latestLoadModulesPromise = Promise.all([
 			loadNewModulesPromise,
 			this.latestLoadModulesPromise
 		]);
+		return loadNewModulesPromise;
 	}
 
 	private fetchAllDependencies(module: Module): Promise<unknown> {
@@ -317,8 +312,6 @@ export class ModuleLoader {
 		]);
 	}
 
-	// TODO Lukas check usages: How do we add the flags if a module is already part of the graph?
-	// TODO Lukas do we want to resolve implicit dependants, possibly using the importer if it exists?
 	private async fetchModule(
 		id: string,
 		importer: string | undefined,

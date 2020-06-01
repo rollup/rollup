@@ -1,7 +1,6 @@
 const path = require('path');
 
 module.exports = {
-	solo: true,
 	description: 'throws when trying to set the asset source of a chunk',
 	options: {
 		plugins: {

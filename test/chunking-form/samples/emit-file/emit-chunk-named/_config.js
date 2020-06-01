@@ -2,7 +2,6 @@ const assert = require('assert');
 let referenceId;
 
 module.exports = {
-	solo: true,
 	description: 'allows naming emitted chunks',
 	options: {
 		input: 'main',

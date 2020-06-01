@@ -5,7 +5,6 @@ let referenceIdFileName1;
 let referenceIdFileName2;
 
 module.exports = {
-	solo: true,
 	description: 'deduplicates with named chunks defined by the user',
 	options: {
 		input: { mainChunk: 'main', mainChunkFacade: 'main' },

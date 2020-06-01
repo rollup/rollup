@@ -1,7 +1,6 @@
 const path = require('path');
 
 module.exports = {
-	solo: true,
 	description:
 		'throws when a module that is loaded before an emitted chunk is only linked to the module graph via a tree-shaken dynamic import',
 	options: {

@@ -1,7 +1,6 @@
 const path = require('path');
 
 module.exports = {
-	solo: true,
 	description: 'Throws when accessing the filename before it has been generated',
 	options: {
 		input: 'main.js',
