@@ -2,7 +2,7 @@ const assert = require('assert');
 let referenceId;
 
 module.exports = {
-	// solo: true,
+	solo: true,
 	description: 'supports specifying a file name when emitting a chunk',
 	options: {
 		input: 'main',

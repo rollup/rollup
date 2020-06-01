@@ -1,5 +1,5 @@
 module.exports = {
-	// solo: true,
+	solo: true,
 	description: 'Allows overriding behaviour for emitted chunks',
 	options: {
 		input: [],

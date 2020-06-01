@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = {
-	// solo: true,
+	solo: true,
 	description: 'Throws if an emitted entry chunk cannot be resolved',
 	options: {
 		input: 'main.js',

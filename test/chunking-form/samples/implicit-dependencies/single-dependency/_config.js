@@ -10,7 +10,7 @@ const ID_DEP = path.join(__dirname, 'dep.js');
 // TODO Lukas what if the original module is not included (empty)/executed (behind a missing dynamic import)?
 // TODO Lukas what about signatures? Even though we have the implicit dependency, signatures should probably still reflect what entry chunks do
 module.exports = {
-	// solo: true,
+	solo: true,
 	description: 'supports implicit dependencies when emitting files',
 	options: {
 		preserveEntrySignatures: 'allow-extension',

@@ -1,5 +1,5 @@
 module.exports = {
-	// solo: true,
+	solo: true,
 	description: 'It is not necessary to provide an input if a dynamic entry is emitted',
 	options: {
 		input: undefined,

@@ -1,5 +1,5 @@
 module.exports = {
-	// solo: true,
+	solo: true,
 	description: 'throws for invalid chunk ids',
 	options: {
 		plugins: {

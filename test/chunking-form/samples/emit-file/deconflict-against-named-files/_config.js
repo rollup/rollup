@@ -1,7 +1,7 @@
 const { loader } = require('../../../../utils.js');
 
 module.exports = {
-	// solo: true,
+	solo: true,
 	description: 'deconflicts files against named files',
 	options: {
 		input: 'main',

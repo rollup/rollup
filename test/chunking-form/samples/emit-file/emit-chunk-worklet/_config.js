@@ -1,7 +1,7 @@
 const REGISTER_WORKLET = 'register-paint-worklet:';
 
 module.exports = {
-	// solo: true,
+	solo: true,
 	description: 'allows adding additional chunks to be used in worklets',
 	options: {
 		input: 'main',

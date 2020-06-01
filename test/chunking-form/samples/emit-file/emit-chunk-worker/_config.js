@@ -4,7 +4,7 @@ let workerId;
 let proxyId;
 
 module.exports = {
-	// solo: true,
+	solo: true,
 	description: 'allows adding additional chunks to be used in workers',
 	options: {
 		input: 'main',
