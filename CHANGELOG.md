@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.12.1
+*2020-06-02*
+
+### Bug Fixes
+* Render valid imports when chunk names correspond to directory names in virtual setups (#3609)
+
+### Pull Requests
+* [#3609](https://github.com/rollup/rollup/pull/3609): Handle imports from chunks with names that correspond to parent directory names of other chunks (@guybedford)
+
 ## 2.12.0
 *2020-05-31*
 
