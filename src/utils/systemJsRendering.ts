@@ -6,19 +6,15 @@ export function getSystemExportStatement(
 	options: RenderOptions
 ): string {
 	const _ = options.compact ? '' : ' ';
-	if (
-		exportedVariables.length === 1 &&
-		(exportedVariables[0].safeExportName || exportedVariables[0].exportName?.length === 1)
-	) {
+	if (exportedVariables.length === 1 && exportedVariables[0].exportNames?.length === 1) {
 		return `exports('${
-			exportedVariables[0].safeExportName || exportedVariables[0].exportName![0]
+			exportedVariables[0].exportNames[0]
 		}',${_}${exportedVariables[0].getName()})`;
 	} else {
 		return `exports({${exportedVariables
 			.map(variable => {
-				if (variable.safeExportName) return `${variable.safeExportName}:${_}${variable.getName()}`;
 				return variable
-					.exportName!.map(exportName => `${exportName}:${_}${variable.getName()}`)
+					.exportNames!.map(exportName => `${exportName}:${_}${variable.getName()}`)
 					.join(`,${_}`);
 			})
 			.join(`,${_}`)}})`;

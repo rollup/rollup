@@ -108,7 +108,7 @@ export default class NamespaceVariable extends Variable {
 		const name = this.getName();
 		output = `${options.varOrConst} ${name}${_}=${_}${output};`;
 
-		if (options.format === 'system' && this.exportName) {
+		if (options.format === 'system' && this.exportNames) {
 			output += `${n}${getSystemExportStatement([this], options)};`;
 		}
 

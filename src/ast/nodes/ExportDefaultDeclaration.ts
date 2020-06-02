@@ -134,7 +134,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		if (
 			options.format === 'system' &&
 			this.declaration instanceof ClassDeclaration &&
-			this.variable.exportName
+			this.variable.exportNames
 		) {
 			code.appendLeft(this.end, ` ${getSystemExportStatement([this.variable], options)};`);
 		}
@@ -149,14 +149,14 @@ export default class ExportDefaultDeclaration extends NodeBase {
 
 		if (
 			options.format === 'system' &&
-			this.variable.exportName &&
-			this.variable.exportName.length === 1
+			this.variable.exportNames &&
+			this.variable.exportNames.length === 1
 		) {
 			code.overwrite(
 				this.start,
 				declarationStart,
 				`${options.varOrConst} ${this.variable.getName()} = exports('${
-					this.variable.exportName[0]
+					this.variable.exportNames[0]
 				}', `
 			);
 			code.appendRight(
@@ -176,8 +176,8 @@ export default class ExportDefaultDeclaration extends NodeBase {
 
 		if (
 			options.format === 'system' &&
-			this.variable.exportName &&
-			this.variable.exportName.length > 1
+			this.variable.exportNames &&
+			this.variable.exportNames.length > 1
 		) {
 			code.appendLeft(this.end, ` ${getSystemExportStatement([this.variable], options)};`);
 		}

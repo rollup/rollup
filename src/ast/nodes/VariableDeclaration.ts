@@ -15,14 +15,14 @@ import { IncludeChildren, NodeBase } from './shared/Node';
 import VariableDeclarator from './VariableDeclarator';
 
 function isReassignedExportsMember(variable: Variable): boolean {
-	return variable.renderBaseName !== null && variable.exportName !== null && variable.isReassigned;
+	return variable.renderBaseName !== null && variable.exportNames !== null && variable.isReassigned;
 }
 
 function areAllDeclarationsIncludedAndNotExported(declarations: VariableDeclarator[]): boolean {
 	for (const declarator of declarations) {
 		if (!declarator.included) return false;
 		if (declarator.id.type === NodeType.Identifier) {
-			if (declarator.id.variable!.exportName) return false;
+			if (declarator.id.variable!.exportNames) return false;
 		} else {
 			const exportedVariables: Variable[] = [];
 			declarator.id.addExportedVariables(exportedVariables);
@@ -181,17 +181,11 @@ export default class VariableDeclaration extends NodeBase {
 					const _ = options.compact ? '' : ' ';
 					if (node.id.type !== NodeType.Identifier) {
 						node.id.addExportedVariables(systemPatternExports);
-					} else if (node.id.variable!.safeExportName) {
-						code.prependLeft(
-							code.original.indexOf('=', node.id.end) + 1,
-							` exports('${node.id.variable!.safeExportName}',`
-						);
-						nextSeparatorString += ')';
-					} else if (node.id.variable!.exportName) {
-						if (node.id.variable!.exportName.length === 1) {
+					} else if (node.id.variable!.exportNames) {
+						if (node.id.variable!.exportNames.length === 1) {
 							code.prependLeft(
 								code.original.indexOf('=', node.id.end) + 1,
-								` exports('${node.id.variable!.exportName[0]}',`
+								` exports('${node.id.variable!.exportNames[0]}',`
 							);
 							nextSeparatorString += ')';
 						} else {

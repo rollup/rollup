@@ -52,9 +52,7 @@ export default class AssignmentExpression extends NodeBase {
 		this.left.render(code, options);
 		this.right.render(code, options);
 		if (options.format === 'system') {
-			const exportNames = this.left.variable?.safeExportName
-				? [this.left.variable?.safeExportName]
-				: this.left.variable?.exportName;
+			const exportNames = this.left.variable?.exportNames;
 			const _ = options.compact ? '' : ' ';
 			if (exportNames) {
 				const operatorPos = findFirstOccurrenceOutsideComment(
