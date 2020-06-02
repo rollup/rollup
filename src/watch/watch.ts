@@ -28,7 +28,10 @@ export class Watcher {
 		this.emitter = emitter;
 		emitter.close = this.close.bind(this);
 		const configArray = ensureArray(configs);
-		this.tasks = configArray.map(config => new Task(this, config));
+		this.tasks = configArray.reduce((tasks, config) => {
+			if (config.watch) tasks.push(new Task(this, config));
+			return tasks;
+		}, [] as Task[]);
 		this.buildDelay = configArray.reduce(
 			(buildDelay, { watch }: any) =>
 				watch && typeof watch.buildDelay === 'number'
