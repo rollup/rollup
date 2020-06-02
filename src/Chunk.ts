@@ -1015,7 +1015,7 @@ export default class Chunk {
 			relativePath = relativePath.slice(0, -3);
 		}
 		if (relativePath === '..') relativePath = '../../' + basename(targetPath);
-		else if (relativePath === '.') relativePath = '../' + basename(targetPath);
+		else if (relativePath === '') relativePath = '../' + basename(targetPath);
 		return relativePath.startsWith('../') ? relativePath : './' + relativePath;
 	}
 
