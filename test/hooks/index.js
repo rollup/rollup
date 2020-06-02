@@ -1382,5 +1382,38 @@ describe('hooks', () => {
 					assert.strictEqual(output.source, 'hello world');
 				});
 		});
+
+		it('handles relative pathing for chunks directory URLs', () => {
+			return rollup
+				.rollup({
+					input: {
+						main: 'main.js',
+						'main/chunk': 'chunk.js'
+					},
+					plugins: [
+						loader({
+							'main.js': 'import { fn } from "chunk.js"; fn();',
+							'chunk.js': 'export function fn () { console.log("chunk") }'
+						}),
+						{
+							resolveId(id) {
+								return id;
+							}
+						}
+					]
+				})
+				.then(bundle =>
+					bundle.generate({
+						entryFileNames: `[name]`,
+						chunkFileNames: `[name]`,
+						format: 'es'
+					})
+				)
+				.then(({ output: [main, chunk] }) => {
+					assert.strictEqual(main.fileName, 'main');
+					assert.ok(main.code.startsWith("import { fn } from './main/chunk'"));
+					assert.strictEqual(chunk.fileName, 'main/chunk');
+				});
+		});
 	});
 });
