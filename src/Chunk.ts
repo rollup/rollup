@@ -201,10 +201,8 @@ export default class Chunk {
 					this.dynamicEntryModules.push(module);
 				}
 			}
-			for (const dependant of module.implicitlyLoadedAfter) {
-				if (!chunkModules.has(dependant)) {
-					this.implicitEntryModules.push(module);
-				}
+			if (module.implicitlyLoadedAfter.size > 0) {
+				this.implicitEntryModules.push(module);
 			}
 		}
 
