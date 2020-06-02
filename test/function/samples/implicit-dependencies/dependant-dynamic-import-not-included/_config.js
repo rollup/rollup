@@ -21,7 +21,7 @@ module.exports = {
 		}
 	},
 	error: {
-		code: 'UNRESOLVED_ENTRY',
+		code: 'MISSING_IMPLICIT_DEPENDANT',
 		message:
 			'Module "dependant.js" that should be implicitly loaded before "dep1.js" and "dep2.js" is not included in the module graph. Either it was not imported by an included module or only via a tree-shaken dynamic import, or no imported bindings were used and it had otherwise no side-effects.',
 		watchFiles: [

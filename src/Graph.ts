@@ -58,6 +58,7 @@ export default class Graph {
 
 	private entryModules: Module[] = [];
 	private externalModules: ExternalModule[] = [];
+	private implicitEntryModules: Module[] = [];
 	private manualChunkModulesByAlias: Record<string, Module[]> = {};
 	private modules: Module[] = [];
 	private pluginCache?: Record<string, SerializablePluginCache>;
@@ -215,7 +216,11 @@ export default class Graph {
 	private async generateModuleGraph(): Promise<void> {
 		const { manualChunks } = this.options;
 		[
-			{ entryModules: this.entryModules, manualChunkModulesByAlias: this.manualChunkModulesByAlias }
+			{
+				entryModules: this.entryModules,
+				implicitEntryModules: this.implicitEntryModules,
+				manualChunkModulesByAlias: this.manualChunkModulesByAlias
+			}
 		] = await Promise.all([
 			this.moduleLoader.addEntryModules(normalizeEntryModules(this.options.input), true),
 			typeof manualChunks === 'object' ? this.moduleLoader.addManualChunks(manualChunks) : null
@@ -236,7 +241,7 @@ export default class Graph {
 	}
 
 	private includeStatements() {
-		for (const module of this.entryModules) {
+		for (const module of [...this.entryModules, ...this.implicitEntryModules]) {
 			if (module.preserveSignature !== false) {
 				module.includeAllExports();
 			} else {
@@ -260,14 +265,11 @@ export default class Graph {
 		// check for unused external imports
 		for (const externalModule of this.externalModules) externalModule.warnUnusedImports();
 		// check for missing implicit dependants
-		for (const module of this.modulesById.values()) {
-			if (
-				module instanceof Module &&
-				!module.isEntryPoint &&
-				module.implicitlyLoadedBefore.size > 0 &&
-				!module.isIncluded()
-			) {
-				error(errImplicitDependantIsNotIncluded(module));
+		for (const module of this.implicitEntryModules) {
+			for (const dependant of module.implicitlyLoadedAfter) {
+				if (!(dependant.isEntryPoint || dependant.isIncluded())) {
+					error(errImplicitDependantIsNotIncluded(dependant));
+				}
 			}
 		}
 	}

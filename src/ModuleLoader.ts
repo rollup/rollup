@@ -42,6 +42,7 @@ export interface UnresolvedModule {
 
 export class ModuleLoader {
 	private readonly hasModuleSideEffects: HasModuleSideEffects;
+	private readonly implicitEntryModules = new Set<Module>();
 	private readonly indexedEntryModules: { index: number; module: Module }[] = [];
 	private latestLoadModulesPromise: Promise<any> = Promise.resolve();
 	private readonly manualChunkModules: Record<string, Module[]> = {};
@@ -63,6 +64,7 @@ export class ModuleLoader {
 		isUserDefined: boolean
 	): Promise<{
 		entryModules: Module[];
+		implicitEntryModules: Module[];
 		manualChunkModulesByAlias: Record<string, Module[]>;
 		newEntryModules: Module[];
 	}> {
@@ -99,6 +101,7 @@ export class ModuleLoader {
 		await this.awaitLoadModulesPromise();
 		return {
 			entryModules: this.indexedEntryModules.map(({ module }) => module),
+			implicitEntryModules: [...this.implicitEntryModules],
 			manualChunkModulesByAlias: this.manualChunkModules,
 			newEntryModules
 		};
@@ -188,6 +191,7 @@ export class ModuleLoader {
 		return this.extendLoadModulesPromise(
 			this.loadEntryModule(unresolvedModule.id, false, unresolvedModule.importer, null).then(
 				async entryModule => {
+					this.implicitEntryModules.add(entryModule);
 					addChunkNamesToModule(entryModule, unresolvedModule, false);
 					const implicitlyLoadedAfterModules = await Promise.all(
 						implicitlyLoadedAfter.map(id =>

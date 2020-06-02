@@ -153,11 +153,11 @@ export default class Chunk {
 	private exports = new Set<Variable>();
 	private exportsByName: Record<string, Variable> = Object.create(null);
 	private fileName: string | null = null;
+	private implicitEntryModules: Module[] = [];
 	private implicitlyLoadedBefore = new Set<Chunk>();
 	private imports = new Set<Variable>();
 	private indentString: string = undefined as any;
 	private isEmpty = true;
-	private isImplicitEntry = false;
 	private manualChunkAlias: string | null = null;
 	private name: string | null = null;
 	private needsExportsShim = false;
@@ -183,6 +183,7 @@ export default class Chunk {
 		private readonly modulesById: Map<string, Module | ExternalModule>
 	) {
 		this.execIndex = orderedModules.length > 0 ? orderedModules[0].execIndex : Infinity;
+		const chunkModules = new Set(orderedModules);
 
 		for (const module of orderedModules) {
 			if (this.isEmpty && module.isIncluded()) {
@@ -195,16 +196,21 @@ export default class Chunk {
 			if (module.isEntryPoint) {
 				this.entryModules.push(module);
 			}
-			if (module.includedDynamicImporters.length > 0) {
-				this.dynamicEntryModules.push(module);
+			for (const importer of module.includedDynamicImporters) {
+				if (!chunkModules.has(importer)) {
+					this.dynamicEntryModules.push(module);
+				}
 			}
-			if (module.implicitlyLoadedAfter.size > 0) {
-				this.isImplicitEntry = true;
+			for (const dependant of module.implicitlyLoadedAfter) {
+				if (!chunkModules.has(dependant)) {
+					this.implicitEntryModules.push(module);
+				}
 			}
 		}
 
 		const moduleForNaming =
 			this.entryModules[0] ||
+			this.implicitEntryModules[0] ||
 			this.dynamicEntryModules[0] ||
 			this.orderedModules[this.orderedModules.length - 1];
 		if (moduleForNaming) {
@@ -282,18 +288,18 @@ export default class Chunk {
 
 	generateFacades(): Chunk[] {
 		const facades: Chunk[] = [];
-		const dynamicEntryModules = this.dynamicEntryModules.filter(module =>
-			module.includedDynamicImporters.some(importingModule => importingModule.chunk !== this)
+		const entryModules = new Set([...this.entryModules, ...this.implicitEntryModules]);
+		const exposedVariables = new Set<Variable>(
+			this.dynamicEntryModules.map(module => module.namespace)
 		);
-		const exposedVariables = new Set<Variable>(dynamicEntryModules.map(module => module.namespace));
-		for (const module of this.entryModules) {
+		for (const module of entryModules) {
 			if (module.preserveSignature) {
 				for (const exportedVariable of module.getExportNamesByVariable().keys()) {
 					exposedVariables.add(exportedVariable);
 				}
 			}
 		}
-		for (const module of this.entryModules) {
+		for (const module of entryModules) {
 			const requiredFacades: FacadeName[] = Array.from(module.userChunkNames, name => ({
 				name
 			}));
@@ -331,7 +337,7 @@ export default class Chunk {
 				);
 			}
 		}
-		for (const module of dynamicEntryModules) {
+		for (const module of this.dynamicEntryModules) {
 			if (!this.facadeModule && this.canModuleBeFacade(module, exposedVariables)) {
 				this.facadeModule = module;
 				module.facadeChunk = this;
@@ -437,7 +443,7 @@ export default class Chunk {
 			imports: Array.from(this.dependencies, getId),
 			isDynamicEntry: this.dynamicEntryModules.length > 0,
 			isEntry: facadeModule !== null && facadeModule.isEntryPoint,
-			isImplicitEntry: this.isImplicitEntry,
+			isImplicitEntry: this.implicitEntryModules.length > 0,
 			map: undefined,
 			modules: this.renderedModules!,
 			get name() {
