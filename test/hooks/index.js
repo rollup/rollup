@@ -1118,44 +1118,6 @@ describe('hooks', () => {
 			})
 			.then(bundle => bundle.generate({ format: 'es' })));
 
-	it('handles relative pathing for chunks directory URLs', () => {
-		return rollup
-			.rollup({
-				input: {
-					'base/main': 'main.js',
-					'base/main/feature': 'feature.js',
-					'base/main/feature/sub': 'subfeature.js'
-				},
-				plugins: [
-					loader({
-						'main.js': 'export function fn () { return "main"; } console.log(fn());',
-						'feature.js': 'import { fn } from "main.js"; console.log(fn() + " feature");',
-						'subfeature.js': 'import { fn } from "main.js"; console.log(fn() + " subfeature");'
-					}),
-					{
-						resolveId(id) {
-							return id;
-						}
-					}
-				]
-			})
-			.then(bundle =>
-				bundle.generate({
-					entryFileNames: `[name]`,
-					chunkFileNames: `[name]`,
-					format: 'es'
-				})
-			)
-			.then(({ output: [main, feature, subfeature] }) => {
-				assert.strictEqual(main.fileName, 'base/main');
-				assert.ok(main.code.startsWith('function fn'));
-				assert.strictEqual(feature.fileName, 'base/main/feature');
-				assert.ok(feature.code.startsWith("import { fn } from '../main'"));
-				assert.strictEqual(subfeature.fileName, 'base/main/feature/sub');
-				assert.ok(subfeature.code.startsWith("import { fn } from '../../main'"));
-			});
-	});
-
 	describe('deprecated', () => {
 		it('caches chunk emission in transform hook', () => {
 			let cache;
