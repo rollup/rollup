@@ -1014,9 +1014,8 @@ export default class Chunk {
 		if (stripJsExtension && relativePath.endsWith('.js')) {
 			relativePath = relativePath.slice(0, -3);
 		}
-		if (relativePath.endsWith('..') && relativePath.length === 2)
-			relativePath = relativePath.slice(0, -2) + '../../' + basename(targetPath);
-		else if (relativePath.length === 0) relativePath = '../' + basename(targetPath);
+		if (relativePath === '..') relativePath = '../../' + basename(targetPath);
+		else if (relativePath === '.') relativePath = '../' + basename(targetPath);
 		return relativePath.startsWith('../') ? relativePath : './' + relativePath;
 	}
 
