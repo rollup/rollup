@@ -207,4 +207,34 @@ console.log(x);
 			'second'
 		);
 	});
+
+	it('handles imports from chunks with names that correspond to parent directory names of other chunks', async () => {
+		const bundle = await rollup.rollup({
+			input: {
+				'base/main': 'main.js',
+				'base/main/feature': 'feature.js',
+				'base/main/feature/sub': 'subfeature.js'
+			},
+			plugins: [
+				loader({
+					'main.js': 'export function fn () { return "main"; } console.log(fn());',
+					'feature.js': 'import { fn } from "main.js"; console.log(fn() + " feature");',
+					'subfeature.js': 'import { fn } from "main.js"; console.log(fn() + " subfeature");'
+				})
+			]
+		});
+		const {
+			output: [main, feature, subfeature]
+		} = await bundle.generate({
+			entryFileNames: `[name]`,
+			chunkFileNames: `[name]`,
+			format: 'es'
+		});
+		assert.strictEqual(main.fileName, 'base/main');
+		assert.ok(main.code.startsWith('function fn'));
+		assert.strictEqual(feature.fileName, 'base/main/feature');
+		assert.ok(feature.code.startsWith("import { fn } from '../main'"));
+		assert.strictEqual(subfeature.fileName, 'base/main/feature/sub');
+		assert.ok(subfeature.code.startsWith("import { fn } from '../../main'"));
+	});
 });
