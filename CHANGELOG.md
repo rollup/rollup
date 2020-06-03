@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.13.0
+*2020-06-03*
+
+### Features
+* Allow to specify that an emitted chunk is only loaded after a given module has loaded to improve chunking (#3606)
+
+### Pull Requests
+* [#3606](https://github.com/rollup/rollup/pull/3606): Enable specifying implicit dependencies when emitting chunks (@lukastaegert)
+
 ## 2.12.1
 *2020-06-02*
 
