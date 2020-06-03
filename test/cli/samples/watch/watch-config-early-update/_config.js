@@ -2,7 +2,6 @@ const fs = require('fs');
 const path = require('path');
 
 let configFile;
-let reloadTriggered = false;
 
 module.exports = {
 	description: 'immediately reloads the config file if a change happens while it is parsed',
@@ -13,6 +12,7 @@ module.exports = {
 		fs.writeFileSync(
 			configFile,
 			`
+			console.error('initial');
       export default new Promise(resolve => {
         setTimeout(
           () =>
@@ -23,35 +23,34 @@ module.exports = {
                 format: 'es'
               }
             }),
-          600
+          500
         );
       });
   		`
 		);
-		setTimeout(() => {
-			fs.writeFileSync(
-				configFile,
-				`
-		          export default {
-		            input: {output2: "main.js"},
-		            output: {
-		              dir: "_actual",
-		              format: "es"
-		            }
-		          };
-		        `
-			);
-		}, 300);
 	},
 	after() {
 		fs.unlinkSync(configFile);
 	},
 	abortOnStderr(data) {
-		if (reloadTriggered && data.includes('created _actual')) {
-			return new Promise(resolve => setTimeout(() => resolve(true), 500));
-		} else if (data.includes('Reloading updated config')) {
-			reloadTriggered = true;
+		if (data === 'initial\n') {
+			fs.writeFileSync(
+				configFile,
+				`
+				console.error('updated');
+		    export default {
+		      input: {output2: "main.js"},
+		      output: {
+		        dir: "_actual",
+		        format: "es"
+		      }
+		    };
+		    `
+			);
 			return false;
+		}
+		if (data === 'updated\n') {
+			return new Promise(resolve => setTimeout(() => resolve(true), 500));
 		}
 	}
 };
