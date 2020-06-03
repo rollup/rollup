@@ -191,18 +191,20 @@ export class ModuleLoader {
 		return this.extendLoadModulesPromise(
 			this.loadEntryModule(unresolvedModule.id, false, unresolvedModule.importer, null).then(
 				async entryModule => {
-					this.implicitEntryModules.add(entryModule);
 					addChunkNamesToModule(entryModule, unresolvedModule, false);
-					const implicitlyLoadedAfterModules = await Promise.all(
-						implicitlyLoadedAfter.map(id =>
-							this.loadEntryModule(id, false, unresolvedModule.importer, entryModule.id)
-						)
-					);
-					for (const module of implicitlyLoadedAfterModules) {
-						entryModule.implicitlyLoadedAfter.add(module);
-					}
-					for (const dependant of entryModule.implicitlyLoadedAfter) {
-						dependant.implicitlyLoadedBefore.add(entryModule);
+					if (!entryModule.isEntryPoint) {
+						this.implicitEntryModules.add(entryModule);
+						const implicitlyLoadedAfterModules = await Promise.all(
+							implicitlyLoadedAfter.map(id =>
+								this.loadEntryModule(id, false, unresolvedModule.importer, entryModule.id)
+							)
+						);
+						for (const module of implicitlyLoadedAfterModules) {
+							entryModule.implicitlyLoadedAfter.add(module);
+						}
+						for (const dependant of entryModule.implicitlyLoadedAfter) {
+							dependant.implicitlyLoadedBefore.add(entryModule);
+						}
 					}
 					return entryModule;
 				}
@@ -325,8 +327,15 @@ export class ModuleLoader {
 	): Promise<Module> {
 		const existingModule = this.modulesById.get(id);
 		if (existingModule instanceof Module) {
-			existingModule.isEntryPoint = existingModule.isEntryPoint || isEntry;
-			return Promise.resolve(existingModule);
+			if (isEntry) {
+				existingModule.isEntryPoint = true;
+				this.implicitEntryModules.delete(existingModule);
+				for (const dependant of existingModule.implicitlyLoadedAfter) {
+					dependant.implicitlyLoadedBefore.delete(existingModule);
+				}
+				existingModule.implicitlyLoadedAfter.clear();
+			}
+			return existingModule;
 		}
 
 		const module: Module = new Module(
