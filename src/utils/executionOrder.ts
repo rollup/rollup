@@ -34,8 +34,11 @@ export function analyseModuleExecution(entryModules: Module[]) {
 				analyseModule(dependency);
 			}
 
+			for (const dependency of module.implicitlyLoadedBefore) {
+				dynamicImports.add(dependency);
+			}
 			for (const { resolution } of module.dynamicImports) {
-				if (resolution instanceof Module && !dynamicImports.has(resolution)) {
+				if (resolution instanceof Module) {
 					dynamicImports.add(resolution);
 				}
 			}

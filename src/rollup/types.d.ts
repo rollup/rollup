@@ -136,6 +136,7 @@ export interface EmittedAsset {
 export interface EmittedChunk {
 	fileName?: string;
 	id: string;
+	implicitlyLoadedAfterOneOf?: string[];
 	importer?: string;
 	name?: string;
 	preserveSignature?: PreserveEntrySignaturesOption;
@@ -155,6 +156,8 @@ interface ModuleInfo {
 	dynamicImporters: string[];
 	hasModuleSideEffects: boolean;
 	id: string;
+	implicitlyLoadedAfterOneOf: string[];
+	implicitlyLoadedBefore: string[];
 	importedIds: string[];
 	importers: string[];
 	isEntry: boolean;
@@ -638,16 +641,22 @@ export interface RenderedModule {
 }
 
 export interface PreRenderedChunk {
+	code?: string;
 	dynamicImports: string[];
 	exports: string[];
 	facadeModuleId: string | null;
+	fileName?: string;
+	implicitlyLoadedBefore: string[];
 	imports: string[];
 	isDynamicEntry: boolean;
 	isEntry: boolean;
+	isImplicitEntry: boolean;
+	map?: SourceMap;
 	modules: {
 		[id: string]: RenderedModule;
 	};
 	name: string;
+	type: 'chunk';
 }
 
 export interface RenderedChunk extends PreRenderedChunk {

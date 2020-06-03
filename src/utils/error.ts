@@ -53,6 +53,7 @@ export enum Errors {
 	INVALID_OPTION = 'INVALID_OPTION',
 	INVALID_PLUGIN_HOOK = 'INVALID_PLUGIN_HOOK',
 	INVALID_ROLLUP_PHASE = 'INVALID_ROLLUP_PHASE',
+	MISSING_IMPLICIT_DEPENDANT = 'MISSING_IMPLICIT_DEPENDANT',
 	MIXED_EXPORTS = 'MIXED_EXPORTS',
 	NAMESPACE_CONFLICT = 'NAMESPACE_CONFLICT',
 	PLUGIN_ERROR = 'PLUGIN_ERROR',
@@ -203,6 +204,50 @@ export function errInvalidRollupPhaseForChunkEmission() {
 	return {
 		code: Errors.INVALID_ROLLUP_PHASE,
 		message: `Cannot emit chunks after module loading has finished.`
+	};
+}
+
+export function errImplicitDependantCannotBeExternal(
+	unresolvedId: string,
+	implicitlyLoadedBefore: string
+) {
+	return {
+		code: Errors.MISSING_IMPLICIT_DEPENDANT,
+		message: `Module "${relativeId(
+			unresolvedId
+		)}" that should be implicitly loaded before "${relativeId(
+			implicitlyLoadedBefore
+		)}" cannot be external.`
+	};
+}
+
+export function errUnresolvedImplicitDependant(
+	unresolvedId: string,
+	implicitlyLoadedBefore: string
+) {
+	return {
+		code: Errors.MISSING_IMPLICIT_DEPENDANT,
+		message: `Module "${relativeId(
+			unresolvedId
+		)}" that should be implicitly loaded before "${relativeId(
+			implicitlyLoadedBefore
+		)}" could not be resolved.`
+	};
+}
+
+export function errImplicitDependantIsNotIncluded(module: Module) {
+	const implicitDependencies = Array.from(module.implicitlyLoadedBefore, dependency =>
+		relativeId(dependency.id)
+	).sort();
+	return {
+		code: Errors.MISSING_IMPLICIT_DEPENDANT,
+		message: `Module "${relativeId(module.id)}" that should be implicitly loaded before "${
+			implicitDependencies.length === 1
+				? implicitDependencies[0]
+				: `${implicitDependencies.slice(0, -1).join('", "')}" and "${
+						implicitDependencies.slice(-1)[0]
+				  }`
+		}" is not included in the module graph. Either it was not imported by an included module or only via a tree-shaken dynamic import, or no imported bindings were used and it had otherwise no side-effects.`
 	};
 }
 

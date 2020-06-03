@@ -293,9 +293,11 @@ Called at the end of `bundle.generate()` or immediately before the files are wri
   exports: string[],
   facadeModuleId: string | null,
   fileName: string,
+  implicitlyLoadedBefore: string[],
   imports: string[],
   isDynamicEntry: boolean,
   isEntry: boolean,
+  isImplicitEntry: boolean,
   map: SourceMap | null,
   modules: {
     [id: string]: {
@@ -500,18 +502,19 @@ Emits a new file that is included in the build output and returns a `referenceId
 {
   type: 'chunk',
   id: string,
+  name?: string,
+  fileName?: string,
+  implicitlyLoadedAfterOneOf?: string[],
   importer?: string,
   preserveSignature?: 'strict' | 'allow-extension' | false,
-  name?: string,
-  fileName?: string
 }
 
 // EmittedAsset
 {
   type: 'asset',
-  source?: string | Uint8Array,
   name?: string,
-  fileName?: string
+  fileName?: string,
+  source?: string | Uint8Array
 }
 ```
 
@@ -524,6 +527,65 @@ The generated code that replaces `import.meta.ROLLUP_FILE_URL_referenceId` can b
 If the `type` is *`chunk`*, then this emits a new chunk with the given module `id` as entry point. To resolve it, the `id` will be passed through build hooks just like regular entry points, starting with [`resolveId`](guide/en/#resolveid). If an `importer` is provided, this acts as the second parameter of `resolveId` and is important to properly resolve relative paths. If it is not provided, paths will be resolved relative to the current working directory. If a value for `preserveSignature` is provided, this will override [`preserveEntrySignatures`](guide/en/#preserveentrysignatures) for this particular chunk.
 
 This will not result in duplicate modules in the graph, instead if necessary, existing chunks will be split or a facade chunk with reexports will be created. Chunks with a specified `fileName` will always generate separate chunks while other emitted chunks may be deduplicated with existing chunks even if the `name` does not match. If such a chunk is not deduplicated, the [`output.chunkFileNames`](guide/en/#outputchunkfilenames) name pattern will be used.
+
+By default, Rollup assumes that emitted chunks are executed independent of other entry points, possibly even before any other code is executed. This means that if an emitted chunk shares a dependency with an existing entry point, Rollup will create an additional chunk for dependencies that are shared between those entry points. Providing a non-empty array of module ids for `implicitlyLoadedAfterOneOf` will change that behaviour by giving Rollup additional information to prevent this in some cases. Those ids will be resolved the same way as the `id` property, respecting the `importer` property if it is provided. Rollup will now assume that the emitted chunk is only executed if at least one of the entry points that lead to one of the ids in `implicitlyLoadedAfterOneOf` being loaded has already been executed, creating the same chunks as if the newly emitted chunk was only reachable via dynamic import from the modules in `implicitlyLoadedAfterOneOf`. Here is an example that uses this to create a simple HTML file with several scripts, creating optimized chunks to respect their execution order:
+
+```js
+// rollup.config.js
+function generateHtml() {
+  let ref1, ref2, ref3;
+  return {
+    buildStart() {
+      ref1 = this.emitFile({
+        type: 'chunk',
+        id: 'src/entry1'
+      });
+      ref2 = this.emitFile({
+        type: 'chunk',
+        id: 'src/entry2',
+        implicitlyLoadedAfterOneOf: ['src/entry1']
+      });
+      ref3 = this.emitFile({
+        type: 'chunk',
+        id: 'src/entry3',
+        implicitlyLoadedAfterOneOf: ['src/entry2']
+      });
+    },
+    generateBundle() {
+      this.emitFile({type: 'asset', fileName: 'index.html', source: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Title</title>
+       </head>
+      <body>
+        <script src="${this.getFileName(ref1)}" type="module"></script>
+        <script src="${this.getFileName(ref2)}" type="module"></script>
+        <script src="${this.getFileName(ref3)}" type="module"></script>
+      </body>
+      </html>
+      `})
+    }
+  };
+}
+
+export default {
+  input: [],
+  preserveEntrySignatures: false,
+  plugins: [
+    generateHtml(),
+  ],
+  output: {
+    format: 'es',
+    dir: 'dist'
+  }
+};
+```
+
+If there are no dynamic imports, this will create exactly three chunks where the first chunk contains all dependencies of `src/entry1`, the second chunk contains only the dependencies of `src/entry2` that are not contained in the first chunk, importing those from the first chunk, and again the same for the third chunk.
+
+Note that even though any module id can be used in `implicitlyLoadedAfterOneOf`, Rollup will throw an error if such an id cannot be uniquely associated with a chunk, e.g. because the `id` cannot be reached implicitly or explicitly from the existing static entry points, or because the file is completely tree-shaken. Using only entry points, either defined by the user or of previously emitted chunks, will always work, though.
 
 If the `type` is *`asset`*, then this emits an arbitrary new file with the given `source` as content. It is possible to defer setting the `source` via [`this.setAssetSource(assetReferenceId, source)`](guide/en/#thissetassetsourceassetreferenceid-string-source-string--uint8array--void) to a later time to be able to reference a file during the build phase while setting the source separately for each output during the generate phase. Assets with a specified `fileName` will always generate separate files while other emitted assets may be deduplicated with existing assets if they have the same source even if the `name` does not match. If such an asset is not deduplicated, the [`output.assetFileNames`](guide/en/#outputassetfilenames) name pattern will be used.
 
@@ -557,11 +619,13 @@ Returns additional information about the module in question in the form
 {
   id: string, // the id of the module, for convenience
   isEntry: boolean, // is this a user- or plugin-defined entry point
-  isExternal: boolean, // for external modules that are not included in the graph
+  isExternal: boolean, // for external modules that are referenced but not included in the graph
   importedIds: string[], // the module ids statically imported by this module
   importers: string[], // the ids of all modules that statically import this module
   dynamicallyImportedIds: string[], // the module ids imported by this module via dynamic import()
   dynamicImporters: string[], // the ids of all modules that import this module via dynamic import()
+  implicitlyLoadedAfterOneOf: string[], // implicit relationships, declared via this.emitChunk
+  implicitlyLoadedBefore: string[], // implicit relationships, declared via this.emitChunk
   hasModuleSideEffects: boolean // are imports of this module included if nothing is imported from it
 }
 ```

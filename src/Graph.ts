@@ -15,7 +15,9 @@ import {
 } from './rollup/types';
 import { BuildPhase } from './utils/buildPhase';
 import { getChunkAssignments } from './utils/chunkAssignment';
+import { errImplicitDependantIsNotIncluded, error } from './utils/error';
 import { analyseModuleExecution, sortByExecutionOrder } from './utils/executionOrder';
+import { getId } from './utils/getId';
 import { PluginDriver } from './utils/PluginDriver';
 import relativeId from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
@@ -25,11 +27,18 @@ function normalizeEntryModules(
 	entryModules: string[] | Record<string, string>
 ): UnresolvedModule[] {
 	if (Array.isArray(entryModules)) {
-		return entryModules.map(id => ({ fileName: null, name: null, id, importer: undefined }));
+		return entryModules.map(id => ({
+			fileName: null,
+			id,
+			implicitlyLoadedAfter: [],
+			importer: undefined,
+			name: null
+		}));
 	}
 	return Object.keys(entryModules).map(name => ({
 		fileName: null,
 		id: entryModules[name],
+		implicitlyLoadedAfter: [],
 		importer: undefined,
 		name
 	}));
@@ -50,6 +59,7 @@ export default class Graph {
 
 	private entryModules: Module[] = [];
 	private externalModules: ExternalModule[] = [];
+	private implicitEntryModules: Module[] = [];
 	private manualChunkModulesByAlias: Record<string, Module[]> = {};
 	private modules: Module[] = [];
 	private pluginCache?: Record<string, SerializablePluginCache>;
@@ -189,6 +199,10 @@ export default class Graph {
 			dynamicImporters: foundModule.dynamicImporters,
 			hasModuleSideEffects: foundModule.moduleSideEffects,
 			id: foundModule.id,
+			implicitlyLoadedAfterOneOf:
+				foundModule instanceof Module ? Array.from(foundModule.implicitlyLoadedAfter, getId) : [],
+			implicitlyLoadedBefore:
+				foundModule instanceof Module ? Array.from(foundModule.implicitlyLoadedBefore, getId) : [],
 			importedIds,
 			importers: foundModule.importers,
 			isEntry: foundModule instanceof Module && foundModule.isEntryPoint,
@@ -199,7 +213,11 @@ export default class Graph {
 	private async generateModuleGraph(): Promise<void> {
 		const { manualChunks } = this.options;
 		[
-			{ entryModules: this.entryModules, manualChunkModulesByAlias: this.manualChunkModulesByAlias }
+			{
+				entryModules: this.entryModules,
+				implicitEntryModules: this.implicitEntryModules,
+				manualChunkModulesByAlias: this.manualChunkModulesByAlias
+			}
 		] = await Promise.all([
 			this.moduleLoader.addEntryModules(normalizeEntryModules(this.options.input), true),
 			typeof manualChunks === 'object' ? this.moduleLoader.addManualChunks(manualChunks) : null
@@ -220,7 +238,7 @@ export default class Graph {
 	}
 
 	private includeStatements() {
-		for (const module of this.entryModules) {
+		for (const module of [...this.entryModules, ...this.implicitEntryModules]) {
 			if (module.preserveSignature !== false) {
 				module.includeAllExports();
 			} else {
@@ -243,6 +261,14 @@ export default class Graph {
 		}
 		// check for unused external imports
 		for (const externalModule of this.externalModules) externalModule.warnUnusedImports();
+		// check for missing implicit dependants
+		for (const module of this.implicitEntryModules) {
+			for (const dependant of module.implicitlyLoadedAfter) {
+				if (!(dependant.isEntryPoint || dependant.isIncluded())) {
+					error(errImplicitDependantIsNotIncluded(dependant));
+				}
+			}
+		}
 	}
 
 	private linkAndOrderModules() {

@@ -1,10 +1,10 @@
 import Graph from '../Graph';
 import Module from '../Module';
 import {
+	EmittedChunk,
 	FilePlaceholder,
 	NormalizedInputOptions,
 	OutputBundleWithPlaceholders,
-	PreserveEntrySignaturesOption,
 	WarningHandler
 } from '../rollup/types';
 import { BuildPhase } from './buildPhase';
@@ -300,24 +300,8 @@ export class FileEmitter {
 			type: 'chunk'
 		};
 		this.graph.moduleLoader
-			.addEntryModules(
-				[
-					{
-						fileName: emittedChunk.fileName || null,
-						id: emittedChunk.id,
-						importer: emittedChunk.importer as string | undefined,
-						name: emittedChunk.name || null
-					}
-				],
-				false
-			)
-			.then(({ newEntryModules: [module] }) => {
-				consumedChunk.module = module;
-				const preserveSignature = emittedChunk.preserveSignature;
-				if (preserveSignature || preserveSignature === false) {
-					module.preserveSignature = preserveSignature as PreserveEntrySignaturesOption;
-				}
-			})
+			.emitChunk((emittedChunk as unknown) as EmittedChunk)
+			.then(module => (consumedChunk.module = module))
 			.catch(() => {
 				// Avoid unhandled Promise rejection as the error will be thrown later
 				// once module loading has finished
