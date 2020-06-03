@@ -17,6 +17,7 @@ import { BuildPhase } from './utils/buildPhase';
 import { getChunkAssignments } from './utils/chunkAssignment';
 import { errImplicitDependantIsNotIncluded, error } from './utils/error';
 import { analyseModuleExecution, sortByExecutionOrder } from './utils/executionOrder';
+import { getId } from './utils/getId';
 import { PluginDriver } from './utils/PluginDriver';
 import relativeId from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
@@ -199,13 +200,9 @@ export default class Graph {
 			hasModuleSideEffects: foundModule.moduleSideEffects,
 			id: foundModule.id,
 			implicitlyLoadedAfterOneOf:
-				foundModule instanceof Module
-					? Array.from(foundModule.implicitlyLoadedAfter, module => module.id)
-					: [],
+				foundModule instanceof Module ? Array.from(foundModule.implicitlyLoadedAfter, getId) : [],
 			implicitlyLoadedBefore:
-				foundModule instanceof Module
-					? Array.from(foundModule.implicitlyLoadedBefore, module => module.id)
-					: [],
+				foundModule instanceof Module ? Array.from(foundModule.implicitlyLoadedBefore, getId) : [],
 			importedIds,
 			importers: foundModule.importers,
 			isEntry: foundModule instanceof Module && foundModule.isEntryPoint,

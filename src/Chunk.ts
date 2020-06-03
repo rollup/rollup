@@ -31,6 +31,7 @@ import { errFailedValidation, error } from './utils/error';
 import { sortByExecutionOrder } from './utils/executionOrder';
 import { assignExportsToMangledNames, assignExportsToNames } from './utils/exportNames';
 import getExportMode from './utils/getExportMode';
+import { getId } from './utils/getId';
 import getIndentString from './utils/getIndentString';
 import { makeLegal } from './utils/identifierHelpers';
 import { basename, dirname, extname, isAbsolute, normalize, resolve } from './utils/path';
@@ -1148,8 +1149,4 @@ export default class Chunk {
 			}
 		}
 	}
-}
-
-function getId(dependency: Chunk | ExternalModule): string {
-	return dependency.id!;
 }

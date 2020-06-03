@@ -528,7 +528,7 @@ If the `type` is *`chunk`*, then this emits a new chunk with the given module `i
 
 This will not result in duplicate modules in the graph, instead if necessary, existing chunks will be split or a facade chunk with reexports will be created. Chunks with a specified `fileName` will always generate separate chunks while other emitted chunks may be deduplicated with existing chunks even if the `name` does not match. If such a chunk is not deduplicated, the [`output.chunkFileNames`](guide/en/#outputchunkfilenames) name pattern will be used.
 
-By default, Rollup assumes that emitted chunks are executed independent of other entry points, possibly even before any other code is executed. This means that if an emitted chunk shares a dependency with an existing entry point, Rollup will create an additional chunk for dependencies that are shared between those entry points. Providing a non-empty array of modules ids for `implicitlyLoadedAfterOneOf` will change that behaviour by giving Rollup additional information to improve the chunking. Those ids will be resolved the same way as the `id` property, respecting the `importer` property if it is provided. Rollup will now assume that the emitted chunk is only executed if at least one of the entry points that lead to one of the ids in `implicitlyLoadedAfterOneOf` being loaded has already been executed, creating the same chunks as if the newly emitted chunk was only reachable via dynamic import from the modules in `implicitlyLoadedAfterOneOf`. Here is an example that uses this to create a simple HTML file with several scripts, creating optimized chunks to respect their execution order:
+By default, Rollup assumes that emitted chunks are executed independent of other entry points, possibly even before any other code is executed. This means that if an emitted chunk shares a dependency with an existing entry point, Rollup will create an additional chunk for dependencies that are shared between those entry points. Providing a non-empty array of module ids for `implicitlyLoadedAfterOneOf` will change that behaviour by giving Rollup additional information to prevent this in some cases. Those ids will be resolved the same way as the `id` property, respecting the `importer` property if it is provided. Rollup will now assume that the emitted chunk is only executed if at least one of the entry points that lead to one of the ids in `implicitlyLoadedAfterOneOf` being loaded has already been executed, creating the same chunks as if the newly emitted chunk was only reachable via dynamic import from the modules in `implicitlyLoadedAfterOneOf`. Here is an example that uses this to create a simple HTML file with several scripts, creating optimized chunks to respect their execution order:
 
 ```js
 // rollup.config.js
@@ -554,7 +554,7 @@ function generateHtml() {
     generateBundle() {
       this.emitFile({type: 'asset', fileName: 'index.html', source: `
       <!DOCTYPE html>
-      <html lang="en">
+      <html>
       <head>
         <meta charset="UTF-8">
         <title>Title</title>
@@ -582,6 +582,8 @@ export default {
   }
 };
 ```
+
+If there are no dynamic imports, this will create exactly three chunks where the first chunk contains all dependencies of `src/entry1`, the second chunk contains only the dependencies of `src/entry2` that are not contained in the first chunk, importing those from the first chunk, and again the same for the third chunk.
 
 Note that even though any module id can be used in `implicitlyLoadedAfterOneOf`, Rollup will throw an error if such an id cannot be uniquely associated with a chunk, e.g. because the `id` cannot be reached implicitly or explicitly from the existing static entry points, or because the file is completely tree-shaken. Using only entry points, either defined by the user or of previously emitted chunks, will always work, though.
 
