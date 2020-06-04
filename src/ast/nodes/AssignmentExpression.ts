@@ -52,7 +52,8 @@ export default class AssignmentExpression extends NodeBase {
 		this.left.render(code, options);
 		this.right.render(code, options);
 		if (options.format === 'system') {
-			const exportNames = this.left.variable?.exportNames;
+			const exportNames =
+				this.left.variable && options.exportNamesByVariable.get(this.left.variable);
 			const _ = options.compact ? '' : ' ';
 			if (exportNames && exportNames.length > 0) {
 				const operatorPos = findFirstOccurrenceOutsideComment(
@@ -82,7 +83,7 @@ export default class AssignmentExpression extends NodeBase {
 				}
 			} else if ('addExportedVariables' in this.left) {
 				const systemPatternExports: Variable[] = [];
-				this.left.addExportedVariables(systemPatternExports);
+				this.left.addExportedVariables(systemPatternExports, options.exportNamesByVariable);
 				if (systemPatternExports.length > 0) {
 					code.prependRight(
 						this.start,

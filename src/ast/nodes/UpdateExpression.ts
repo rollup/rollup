@@ -36,15 +36,17 @@ export default class UpdateExpression extends NodeBase {
 	render(code: MagicString, options: RenderOptions) {
 		this.argument.render(code, options);
 		const variable = this.argument.variable;
-		if (options.format === 'system' && variable && variable.exportNames.length > 0) {
+		const systemExportNames =
+			options.format === 'system' && variable && options.exportNamesByVariable.get(variable);
+		if (systemExportNames && systemExportNames.length > 0) {
 			const _ = options.compact ? '' : ' ';
-			if (variable.exportNames.length === 1) {
-				const name = variable.getName();
+			if (systemExportNames.length === 1) {
+				const name = variable!.getName();
 				if (this.prefix) {
 					code.overwrite(
 						this.start,
 						this.end,
-						`exports('${variable.exportNames[0]}',${_}${this.operator}${name})`
+						`exports('${systemExportNames[0]}',${_}${this.operator}${name})`
 					);
 				} else {
 					let op;
@@ -59,12 +61,12 @@ export default class UpdateExpression extends NodeBase {
 					code.overwrite(
 						this.start,
 						this.end,
-						`(exports('${variable.exportNames[0]}',${_}${op}),${_}${name}${this.operator})`
+						`(exports('${systemExportNames[0]}',${_}${op}),${_}${name}${this.operator})`
 					);
 				}
 			} else {
 				// Regardless of prefix, we render the export as part of a sequence expression after the update
-				code.appendLeft(this.end, `,${_}${getSystemExportStatement([variable], options)}`);
+				code.appendLeft(this.end, `,${_}${getSystemExportStatement([variable!], options)}`);
 			}
 		}
 	}

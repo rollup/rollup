@@ -14,20 +14,26 @@ import * as NodeType from './NodeType';
 import { IncludeChildren, NodeBase } from './shared/Node';
 import VariableDeclarator from './VariableDeclarator';
 
-function isReassignedExportsMember(variable: Variable): boolean {
+function isReassignedExportsMember(
+	variable: Variable,
+	exportNamesByVariable: Map<Variable, string[]>
+): boolean {
 	return (
-		variable.renderBaseName !== null && variable.exportNames.length > 0 && variable.isReassigned
+		variable.renderBaseName !== null && exportNamesByVariable.has(variable) && variable.isReassigned
 	);
 }
 
-function areAllDeclarationsIncludedAndNotExported(declarations: VariableDeclarator[]): boolean {
+function areAllDeclarationsIncludedAndNotExported(
+	declarations: VariableDeclarator[],
+	exportNamesByVariable: Map<Variable, string[]>
+): boolean {
 	for (const declarator of declarations) {
 		if (!declarator.included) return false;
 		if (declarator.id.type === NodeType.Identifier) {
-			if (declarator.id.variable!.exportNames.length > 0) return false;
+			if (exportNamesByVariable.has(declarator.id.variable!)) return false;
 		} else {
 			const exportedVariables: Variable[] = [];
-			declarator.id.addExportedVariables(exportedVariables);
+			declarator.id.addExportedVariables(exportedVariables, exportNamesByVariable);
 			if (exportedVariables.length > 0) return false;
 		}
 	}
@@ -74,7 +80,9 @@ export default class VariableDeclaration extends NodeBase {
 	}
 
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions: NodeRenderOptions = BLANK) {
-		if (areAllDeclarationsIncludedAndNotExported(this.declarations)) {
+		if (
+			areAllDeclarationsIncludedAndNotExported(this.declarations, options.exportNamesByVariable)
+		) {
 			for (const declarator of this.declarations) {
 				declarator.render(code, options);
 			}
@@ -162,7 +170,10 @@ export default class VariableDeclaration extends NodeBase {
 			if (
 				!node.included ||
 				(node.id instanceof Identifier &&
-					isReassignedExportsMember((node.id as IdentifierWithVariable).variable) &&
+					isReassignedExportsMember(
+						(node.id as IdentifierWithVariable).variable,
+						options.exportNamesByVariable
+					) &&
 					node.init === null)
 			) {
 				code.remove(start, end);
@@ -172,7 +183,10 @@ export default class VariableDeclaration extends NodeBase {
 			nextSeparatorString = '';
 			if (
 				node.id instanceof Identifier &&
-				isReassignedExportsMember((node.id as IdentifierWithVariable).variable)
+				isReassignedExportsMember(
+					(node.id as IdentifierWithVariable).variable,
+					options.exportNamesByVariable
+				)
 			) {
 				if (hasRenderedContent) {
 					separatorString += ';';
@@ -182,22 +196,27 @@ export default class VariableDeclaration extends NodeBase {
 				if (options.format === 'system' && node.init !== null) {
 					const _ = options.compact ? '' : ' ';
 					if (node.id.type !== NodeType.Identifier) {
-						node.id.addExportedVariables(systemPatternExports);
-					} else if (node.id.variable!.exportNames.length === 1) {
-						code.prependLeft(
-							code.original.indexOf('=', node.id.end) + 1,
-							` exports('${node.id.variable!.exportNames[0]}',`
-						);
-						nextSeparatorString += ')';
-					} else if (node.id.variable!.exportNames.length > 1) {
-						code.prependLeft(
-							code.original.indexOf('=', node.id.end) + 1,
-							` function${_}(v)${_}{${getSystemExportStatement(
-								[node.id.variable!],
-								options
-							)};${_}return v;}${_}(`
-						);
-						nextSeparatorString += ')';
+						node.id.addExportedVariables(systemPatternExports, options.exportNamesByVariable);
+					} else {
+						const exportNames = options.exportNamesByVariable.get(node.id.variable!);
+						if (exportNames) {
+							if (exportNames.length === 1) {
+								code.prependLeft(
+									code.original.indexOf('=', node.id.end) + 1,
+									` exports('${exportNames[0]}',`
+								);
+								nextSeparatorString += ')';
+							} else {
+								code.prependLeft(
+									code.original.indexOf('=', node.id.end) + 1,
+									` function${_}(v)${_}{${getSystemExportStatement(
+										[node.id.variable!],
+										options
+									)};${_}return v;}${_}(`
+								);
+								nextSeparatorString += ')';
+							}
+						}
 					}
 				}
 				if (isInDeclaration) {

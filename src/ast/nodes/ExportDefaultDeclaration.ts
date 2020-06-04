@@ -134,7 +134,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		if (
 			options.format === 'system' &&
 			this.declaration instanceof ClassDeclaration &&
-			this.variable.exportNames.length > 0
+			options.exportNamesByVariable.has(this.variable)
 		) {
 			code.appendLeft(this.end, ` ${getSystemExportStatement([this.variable], options)};`);
 		}
@@ -146,14 +146,14 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		options: RenderOptions
 	) {
 		const hasTrailingSemicolon = code.original.charCodeAt(this.end - 1) === 59; /*";"*/
+		const systemExportNames =
+			options.format === 'system' && options.exportNamesByVariable.get(this.variable);
 
-		if (options.format === 'system' && this.variable.exportNames.length === 1) {
+		if (systemExportNames && systemExportNames.length === 1) {
 			code.overwrite(
 				this.start,
 				declarationStart,
-				`${options.varOrConst} ${this.variable.getName()} = exports('${
-					this.variable.exportNames[0]
-				}', `
+				`${options.varOrConst} ${this.variable.getName()} = exports('${systemExportNames[0]}', `
 			);
 			code.appendRight(
 				hasTrailingSemicolon ? this.end - 1 : this.end,
@@ -170,7 +170,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			}
 		}
 
-		if (options.format === 'system' && this.variable.exportNames.length > 1) {
+		if (systemExportNames && systemExportNames.length > 1) {
 			code.appendLeft(this.end, ` ${getSystemExportStatement([this.variable], options)};`);
 		}
 	}

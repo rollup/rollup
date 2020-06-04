@@ -4,38 +4,39 @@ import { RESERVED_NAMES } from './reservedNames';
 
 export function assignExportsToMangledNames(
 	exports: Set<Variable>,
-	exportsByName: Record<string, Variable>
+	exportsByName: Record<string, Variable>,
+	exportNamesByVariable: Map<Variable, string[]>
 ) {
 	let nameIndex = 0;
 	for (const variable of exports) {
-		const suggestedName = variable.name[0];
-		if (!exportsByName[suggestedName]) {
-			exportsByName[suggestedName] = variable;
-		} else {
-			let safeExportName: string;
+		let exportName = variable.name[0];
+		if (exportsByName[exportName]) {
 			do {
-				safeExportName = toBase64(++nameIndex);
+				exportName = toBase64(++nameIndex);
 				// skip past leading number identifiers
-				if (safeExportName.charCodeAt(0) === 49 /* '1' */) {
-					nameIndex += 9 * 64 ** (safeExportName.length - 1);
-					safeExportName = toBase64(nameIndex);
+				if (exportName.charCodeAt(0) === 49 /* '1' */) {
+					nameIndex += 9 * 64 ** (exportName.length - 1);
+					exportName = toBase64(nameIndex);
 				}
-			} while (RESERVED_NAMES[safeExportName] || exportsByName[safeExportName]);
-			exportsByName[safeExportName] = variable;
+			} while (RESERVED_NAMES[exportName] || exportsByName[exportName]);
 		}
+		exportsByName[exportName] = variable;
+		exportNamesByVariable.set(variable, [exportName]);
 	}
 }
 
 export function assignExportsToNames(
 	exports: Set<Variable>,
-	exportsByName: Record<string, Variable>
+	exportsByName: Record<string, Variable>,
+	exportNamesByVariable: Map<Variable, string[]>
 ) {
 	for (const variable of exports) {
 		let nameIndex = 0;
-		let safeExportName = variable.name;
-		while (exportsByName[safeExportName]) {
-			safeExportName = variable.name + '$' + ++nameIndex;
+		let exportName = variable.name;
+		while (exportsByName[exportName]) {
+			exportName = variable.name + '$' + ++nameIndex;
 		}
-		exportsByName[safeExportName] = variable;
+		exportsByName[exportName] = variable;
+		exportNamesByVariable.set(variable, [exportName]);
 	}
 }
