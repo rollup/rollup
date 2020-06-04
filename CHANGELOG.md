@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.13.1
+*2020-06-04*
+
+### Bug Fixes
+* Prevent conflicts in SystemJS when `module` is used as a top-level variable (#3614)
+
+### Pull Requests
+* [#3614](https://github.com/rollup/rollup/pull/3614): Handle system reserved identifier dedupes (@guybedford)
+
 ## 2.13.0
 *2020-06-03*
 
