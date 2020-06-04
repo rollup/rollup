@@ -36,7 +36,7 @@ export default class UpdateExpression extends NodeBase {
 	render(code: MagicString, options: RenderOptions) {
 		this.argument.render(code, options);
 		const variable = this.argument.variable;
-		if (options.format === 'system' && variable && variable.exportNames) {
+		if (options.format === 'system' && variable && variable.exportNames.length > 0) {
 			const _ = options.compact ? '' : ' ';
 			if (variable.exportNames.length === 1) {
 				const name = variable.getName();

@@ -56,7 +56,7 @@ export default class ChildScope extends Scope {
 		for (const variable of this.accessedOutsideVariables.values()) {
 			if (variable.included) {
 				usedNames.add(variable.getBaseVariableName());
-				if (variable.exportNames && format === 'system') {
+				if (variable.exportNames.length > 0 && format === 'system') {
 					usedNames.add('exports');
 				}
 			}

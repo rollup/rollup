@@ -843,8 +843,6 @@ export default class Chunk {
 					renderedResolution,
 					resolution instanceof Module &&
 						!(resolution.facadeChunk && resolution.facadeChunk.strictFacade) &&
-						!!resolution.namespace.exportNames &&
-						// We only need one of the export names to bind to
 						resolution.namespace.exportNames[0],
 					options
 				);
@@ -1065,15 +1063,17 @@ export default class Chunk {
 
 	private setIdentifierRenderResolutions(options: NormalizedOutputOptions) {
 		const syntheticExports = new Set<SyntheticNamedExportVariable>();
-
+		for (const exportVariable of this.exports) {
+			exportVariable.exportNames = [];
+		}
 		for (const exportName of this.getExportNames()) {
 			const exportVariable = this.exportsByName[exportName];
 			if (exportVariable instanceof ExportShimVariable) {
 				this.needsExportsShim = true;
 			}
-			if (!exportVariable.exportNames || exportVariable.exportNames.includes(exportName))
-				exportVariable.exportNames = [exportName];
-			else exportVariable.exportNames.push(exportName);
+			if (!exportVariable.exportNames.includes(exportName)) {
+				exportVariable.exportNames.push(exportName);
+			}
 			if (
 				options.format !== 'es' &&
 				options.format !== 'system' &&
