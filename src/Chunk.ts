@@ -1088,16 +1088,17 @@ export default class Chunk {
 		if (this.needsExportsShim) {
 			usedNames.add(MISSING_EXPORT_SHIM_VARIABLE);
 		}
-		if (options.format !== 'es') {
-			usedNames.add('exports');
-			if (options.format === 'cjs') {
-				usedNames
-					.add(INTEROP_DEFAULT_VARIABLE)
-					.add('require')
-					.add('module')
-					.add('__filename')
-					.add('__dirname');
-			}
+		switch (options.format) {
+			case 'es':
+				break;
+			case 'cjs':
+				usedNames.add(INTEROP_DEFAULT_VARIABLE).add('require').add('__filename').add('__dirname');
+			// fallthrough
+			case 'system':
+				usedNames.add('module');
+			// fallthrough
+			default:
+				usedNames.add('exports');
 		}
 
 		deconflictChunk(
