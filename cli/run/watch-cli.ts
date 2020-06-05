@@ -81,7 +81,11 @@ export async function watch(command: any) {
 	const resetScreen = getResetScreen(configs!, isTTY);
 
 	function start(configs: MergedRollupOptions[]) {
-		watcher = rollup.watch(configs as any);
+		try {
+			watcher = rollup.watch(configs as any);
+		} catch (err) {
+			return handleError(err);
+		}
 
 		watcher.on('event', event => {
 			switch (event.code) {
