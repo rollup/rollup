@@ -8,7 +8,7 @@ module.exports = {
 			name: 'myModule',
 			sourcemap: true,
 			file: path.resolve(__dirname, 'main.js'),
-			sourcemapPathTransform: (relativePath, sourcemapPath) => path.resolve(sourcemapPath, relativePath)
+			sourcemapPathTransform: (relativePath, sourcemapPath) => path.resolve(path.dirname(sourcemapPath), relativePath)
 		}
 	},
 	generateError: {
