@@ -721,7 +721,7 @@ export default class Chunk {
 					const { sourcemapPathTransform } = options;
 
 					if (sourcemapPathTransform) {
-						const newSourcePath = sourcemapPathTransform(sourcePath);
+						const newSourcePath = sourcemapPathTransform(sourcePath, file + ".map");
 
 						if (typeof newSourcePath !== 'string') {
 							error(errFailedValidation(`sourcemapPathTransform function must return a string.`));
