@@ -1282,7 +1282,22 @@ For each key, the first number represents the elapsed time while the second repr
 Type: `boolean | object`<br>
 Default: `true`<br>
 
-Specify options for watch mode or prevent this configuration from being watched. Specifying `false` is only really useful when an array of configurations is used. In that case, this configuration will not be built or rebuilt on change in watch mode, but it will be built when running Rollup regularly.
+Specify options for watch mode or prevent this configuration from being watched. Specifying `false` is only really useful when an array of configurations is used. In that case, this configuration will not be built or rebuilt on change in watch mode, but it will be built when running Rollup regularly:
+
+```js
+// rollup.config.js
+export default [
+  {
+    input: 'main.js',
+    output: { file: 'bundle.cjs.js', format: 'cjs' }
+  },
+  {
+    input: 'main.js',
+    watch: false,
+    output: { file: 'bundle.es.js', format: 'es' }
+  }
+]
+```
 
 These options only take effect when running Rollup with the `--watch` flag, or using `rollup.watch`.
 
