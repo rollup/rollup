@@ -670,7 +670,7 @@ The location of the generated bundle. If this is an absolute path, all the `sour
 `sourcemapFile` is not required if `output` is specified, in which case an output filename will be inferred by adding ".map"  to the output filename for the bundle.
 
 #### output.sourcemapPathTransform
-Type: `(sourcePath: string) => string`
+Type: `(sourcePath: string, sourcemapPath: string) => string`
 
 A transformation to apply to each path in a sourcemap. For instance the following will change all paths to be relative to the `src` directory.
 
