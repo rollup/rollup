@@ -7,9 +7,7 @@ import {
 	RenderOptions
 } from '../../utils/renderHelpers';
 import {
-	getSystemExportExpressionLeft,
 	getSystemExportFunctionLeft,
-	getSystemExportSingleLeft,
 	getSystemExportStatement
 } from '../../utils/systemJsRendering';
 import { InclusionContext } from '../ExecutionContext';

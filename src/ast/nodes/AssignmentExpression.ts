@@ -1,10 +1,6 @@
 import MagicString from 'magic-string';
 import { findFirstOccurrenceOutsideComment, RenderOptions } from '../../utils/renderHelpers';
-import {
-	getSystemExportExpressionLeft,
-	getSystemExportFunctionLeft,
-	getSystemExportSingleLeft
-} from '../../utils/systemJsRendering';
+import { getSystemExportFunctionLeft } from '../../utils/systemJsRendering';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from '../variables/Variable';
