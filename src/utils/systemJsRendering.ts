@@ -26,7 +26,6 @@ export function getSystemExportStatement(
 
 export function getSystemExportExpressionLeft(
 	exportedVariables: Variable[],
-	exportsExpressionValue: boolean,
 	spaceForParamComma: boolean,
 	options: RenderOptions
 ): string {
@@ -39,7 +38,7 @@ export function getSystemExportExpressionLeft(
 		return `exports('${options.exportNamesByVariable.get(exportedVariables[0])}',${
 			spaceForParamComma ? _ : ''
 		}`;
-	} else if (exportsExpressionValue) {
+	} else {
 		return `function${_}(v)${_}{${_}return exports({${_}${exportedVariables
 			.map(variable => {
 				return options.exportNamesByVariable
@@ -47,15 +46,6 @@ export function getSystemExportExpressionLeft(
 					.map(exportName => `${exportName}:${_}v`)
 					.join(`,${_}`);
 			})
-			.join(`,${_}`)}${_}})${s}${_}}(`;
-	} else {
-		return `function${_}(v)${_}{${_}return exports({ ${exportedVariables
-			.map(variable => {
-				return options.exportNamesByVariable
-					.get(variable)!
-					.map(exportName => `${exportName}:${_}${variable.getName()}`)
-					.join(`,${_}`);
-			})
-			.join(`,${_}`)} }),${_}v${s}${_}}(`;
+			.join(`,${_}`)}${_}}),${_}v${s}${_}}(`;
 	}
 }

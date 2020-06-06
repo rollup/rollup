@@ -4,8 +4,7 @@ import {
 	findFirstOccurrenceOutsideComment,
 	getCommaSeparatedNodesWithBoundaries,
 	NodeRenderOptions,
-	RenderOptions,
-	WHITESPACE
+	RenderOptions
 } from '../../utils/renderHelpers';
 import {
 	getSystemExportExpressionLeft,
@@ -212,15 +211,11 @@ export default class VariableDeclaration extends NodeBase {
 							);
 							const nextIsSpace = code.original[operatorPos + 1] === ' ';
 							const prependPos = operatorPos + 1 + (nextIsSpace ? 1 : 0);
+							const nextIsNl = code.original[prependPos] === '\n';
 							code.prependLeft(
 								prependPos,
 								(nextIsSpace ? '' : _) +
-									getSystemExportExpressionLeft(
-										[node.id.variable!],
-										true,
-										!code.original[prependPos].match(WHITESPACE),
-										options
-									)
+									getSystemExportExpressionLeft([node.id.variable!], !nextIsNl, options)
 							);
 							nextSeparatorString += ')';
 						}
