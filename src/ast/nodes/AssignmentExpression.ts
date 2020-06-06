@@ -1,5 +1,9 @@
 import MagicString from 'magic-string';
-import { findFirstOccurrenceOutsideComment, RenderOptions, WHITESPACE } from '../../utils/renderHelpers';
+import {
+	findFirstOccurrenceOutsideComment,
+	RenderOptions,
+	WHITESPACE
+} from '../../utils/renderHelpers';
 import { getSystemExportExpressionLeft } from '../../utils/systemJsRendering';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
@@ -9,7 +13,7 @@ import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
 export default class AssignmentExpression extends NodeBase {
-	left!: PatternNode | ExpressionNode;
+	left!: PatternNode;
 	operator!:
 		| '='
 		| '+='
@@ -55,7 +59,7 @@ export default class AssignmentExpression extends NodeBase {
 			const exportNames =
 				this.left.variable && options.exportNamesByVariable.get(this.left.variable);
 			const _ = options.compact ? '' : ' ';
-			if (exportNames && exportNames.length > 0) {
+			if (exportNames) {
 				const operatorPos = findFirstOccurrenceOutsideComment(
 					code.original,
 					this.operator,
@@ -74,7 +78,7 @@ export default class AssignmentExpression extends NodeBase {
 					)}${operation}`
 				);
 				code.appendLeft(this.right.end, ')');
-			} else if ('addExportedVariables' in this.left) {
+			} else {
 				const systemPatternExports: Variable[] = [];
 				this.left.addExportedVariables(systemPatternExports, options.exportNamesByVariable);
 				if (systemPatternExports.length > 0) {
