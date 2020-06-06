@@ -148,7 +148,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		const systemExportNames =
 			options.format === 'system' && options.exportNamesByVariable.get(this.variable);
 
-		if (systemExportNames && systemExportNames.length === 1) {
+		if (systemExportNames) {
 			code.overwrite(
 				this.start,
 				declarationStart,
@@ -167,10 +167,6 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			if (!hasTrailingSemicolon) {
 				code.appendLeft(this.end, ';');
 			}
-		}
-
-		if (systemExportNames && systemExportNames.length > 1) {
-			code.appendLeft(this.end, ` ${getSystemExportStatement([this.variable], options)};`);
 		}
 	}
 }

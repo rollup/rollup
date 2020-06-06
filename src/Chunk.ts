@@ -848,7 +848,7 @@ export default class Chunk {
 					renderedResolution,
 					resolution instanceof Module &&
 						!(resolution.facadeChunk && resolution.facadeChunk.strictFacade) &&
-						resolution.chunk!.exportNamesByVariable!.get(resolution.namespace)?.[0],
+						resolution.chunk!.exportNamesByVariable!.get(resolution.namespace)![0],
 					options
 				);
 			}

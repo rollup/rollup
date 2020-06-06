@@ -31,13 +31,14 @@ export function getSystemExportExpressionLeft(
 	options: RenderOptions
 ): string {
 	const _ = options.compact ? '' : ' ';
+	const s = options.compact ? '' : ';';
 	if (
 		exportedVariables.length === 1 &&
 		options.exportNamesByVariable.get(exportedVariables[0])!.length === 1
 	) {
-		return `exports('${options.exportNamesByVariable.get(
-			exportedVariables[0]
-		)}',${spaceForParamComma ? _ : ''}`;
+		return `exports('${options.exportNamesByVariable.get(exportedVariables[0])}',${
+			spaceForParamComma ? _ : ''
+		}`;
 	} else if (exportsExpressionValue) {
 		return `function${_}(v)${_}{${_}return exports({${_}${exportedVariables
 			.map(variable => {
@@ -46,7 +47,7 @@ export function getSystemExportExpressionLeft(
 					.map(exportName => `${exportName}:${_}v`)
 					.join(`,${_}`);
 			})
-			.join(`,${_}`)}${_}})${options.compact ? '' : ';'}${_}}(`;
+			.join(`,${_}`)}${_}})${s}${_}}(`;
 	} else {
 		return `function${_}(v)${_}{${_}return exports({ ${exportedVariables
 			.map(variable => {
@@ -55,6 +56,6 @@ export function getSystemExportExpressionLeft(
 					.map(exportName => `${exportName}:${_}${variable.getName()}`)
 					.join(`,${_}`);
 			})
-			.join(`,${_}`)} }),${_}v${options.compact ? '' : ';'}${_}}(`;
+			.join(`,${_}`)} }),${_}v${s}${_}}(`;
 	}
 }
