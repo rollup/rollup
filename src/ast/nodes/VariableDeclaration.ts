@@ -8,6 +8,8 @@ import {
 } from '../../utils/renderHelpers';
 import {
 	getSystemExportExpressionLeft,
+	getSystemExportFunctionLeft,
+	getSystemExportSingleLeft,
 	getSystemExportStatement
 } from '../../utils/systemJsRendering';
 import { InclusionContext } from '../ExecutionContext';
@@ -215,7 +217,9 @@ export default class VariableDeclaration extends NodeBase {
 							code.prependLeft(
 								prependPos,
 								(nextIsSpace ? '' : _) +
-									getSystemExportExpressionLeft([node.id.variable!], !nextIsNl, options)
+									(exportNames.length === 1
+										? `exports('${exportNames[0]}',${nextIsNl ? '' : _}`
+										: getSystemExportFunctionLeft([node.id.variable!], false, options))
 							);
 							nextSeparatorString += ')';
 						}

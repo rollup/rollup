@@ -24,28 +24,19 @@ export function getSystemExportStatement(
 	}
 }
 
-export function getSystemExportExpressionLeft(
+export function getSystemExportFunctionLeft(
 	exportedVariables: Variable[],
-	spaceForParamComma: boolean,
+	setFromExpression: boolean,
 	options: RenderOptions
 ): string {
 	const _ = options.compact ? '' : ' ';
 	const s = options.compact ? '' : ';';
-	if (
-		exportedVariables.length === 1 &&
-		options.exportNamesByVariable.get(exportedVariables[0])!.length === 1
-	) {
-		return `exports('${options.exportNamesByVariable.get(exportedVariables[0])}',${
-			spaceForParamComma ? _ : ''
-		}`;
-	} else {
-		return `function${_}(v)${_}{${_}return exports({${_}${exportedVariables
-			.map(variable => {
-				return options.exportNamesByVariable
-					.get(variable)!
-					.map(exportName => `${exportName}:${_}v`)
-					.join(`,${_}`);
-			})
-			.join(`,${_}`)}${_}}),${_}v${s}${_}}(`;
-	}
+	return `function${_}(v)${_}{${_}return exports({${_}${exportedVariables
+		.map(variable => {
+			return options.exportNamesByVariable
+				.get(variable)!
+				.map(exportName => `${exportName}:${_}${setFromExpression ? variable.getName() : 'v'}`)
+				.join(`,${_}`);
+		})
+		.join(`,${_}`)}${_}}),${_}v${s}${_}}(`;
 }

@@ -1,6 +1,10 @@
 import MagicString from 'magic-string';
 import { findFirstOccurrenceOutsideComment, RenderOptions } from '../../utils/renderHelpers';
-import { getSystemExportExpressionLeft } from '../../utils/systemJsRendering';
+import {
+	getSystemExportExpressionLeft,
+	getSystemExportFunctionLeft,
+	getSystemExportSingleLeft
+} from '../../utils/systemJsRendering';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from '../variables/Variable';
@@ -54,8 +58,8 @@ export default class AssignmentExpression extends NodeBase {
 		if (options.format === 'system') {
 			const exportNames =
 				this.left.variable && options.exportNamesByVariable.get(this.left.variable);
-			const _ = options.compact ? '' : ' ';
-			if (exportNames) {
+			if (this.left.type === 'Identifier' && exportNames) {
+				const _ = options.compact ? '' : ' ';
 				const operatorPos = findFirstOccurrenceOutsideComment(
 					code.original,
 					this.operator,
@@ -65,27 +69,25 @@ export default class AssignmentExpression extends NodeBase {
 					this.operator.length > 1 ? `${exportNames[0]}${_}${this.operator.slice(0, -1)}` : '';
 				const nextIsSpace =
 					operation.length === 0 && code.original[operatorPos + this.operator.length] === ' ';
-				const nextISNewline =
+				const nextIsNewline =
 					code.original[operatorPos + this.operator.length + (nextIsSpace ? 1 : 0)] === '\n';
 				code.overwrite(
 					operatorPos,
 					operatorPos + this.operator.length + (nextIsSpace ? 1 : 0),
-					`=${_}${getSystemExportExpressionLeft(
-						[this.left.variable!],
-						!nextISNewline,
-						options
-					)}${operation}`
+					`=${_}${
+						exportNames.length === 1
+							? `exports('${exportNames[0]}',${nextIsNewline ? '' : _}`
+							: getSystemExportFunctionLeft([this.left.variable!], false, options)
+					}${operation}`
 				);
 				code.appendLeft(this.right.end, ')');
 			} else {
 				const systemPatternExports: Variable[] = [];
 				this.left.addExportedVariables(systemPatternExports, options.exportNamesByVariable);
 				if (systemPatternExports.length > 0) {
-					const nextIsSpace = code.original[this.start] === ' ';
-					const nextIsNewline = code.original[this.start + (nextIsSpace ? 1 : 0)] === '\n';
 					code.prependRight(
-						this.start + (nextIsSpace ? 1 : 0),
-						getSystemExportExpressionLeft(systemPatternExports, !nextIsNewline, options)
+						this.start,
+						getSystemExportFunctionLeft(systemPatternExports, true, options)
 					);
 					code.appendLeft(this.end, ')');
 				}

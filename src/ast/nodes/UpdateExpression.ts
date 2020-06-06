@@ -1,6 +1,11 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
-import { getSystemExportStatement } from '../../utils/systemJsRendering';
+import {
+	getSystemExportExpressionLeft,
+	getSystemExportFunctionLeft,
+	getSystemExportSingleLeft,
+	getSystemExportStatement
+} from '../../utils/systemJsRendering';
 import { HasEffectsContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath } from '../utils/PathTracker';
 import Identifier from './Identifier';
@@ -35,18 +40,34 @@ export default class UpdateExpression extends NodeBase {
 
 	render(code: MagicString, options: RenderOptions) {
 		this.argument.render(code, options);
-		const variable = this.argument.variable;
-		const systemExportNames =
-			options.format === 'system' && variable && options.exportNamesByVariable.get(variable);
-		if (systemExportNames && systemExportNames.length > 0) {
-			const _ = options.compact ? '' : ' ';
-			if (systemExportNames.length === 1) {
+		if (options.format === 'system') {
+			const variable = this.argument.variable;
+			const exportNames = options.exportNamesByVariable.get(variable!);
+			if (exportNames && exportNames.length) {
+				const _ = options.compact ? '' : ' ';
 				const name = variable!.getName();
 				if (this.prefix) {
+					if (exportNames.length === 1) {
+						code.overwrite(
+							this.start,
+							this.end,
+							`exports('${exportNames[0]}',${_}${this.operator}${name})`
+						);
+					} else {
+						code.overwrite(
+							this.start,
+							this.end,
+							`(${this.operator}${name},${_}${getSystemExportStatement(
+								[variable!],
+								options
+							)},${_}${name})`
+						);
+					}
+				} else if (exportNames.length > 1) {
 					code.overwrite(
 						this.start,
 						this.end,
-						`exports('${systemExportNames[0]}',${_}${this.operator}${name})`
+						`${getSystemExportFunctionLeft([variable!], false, options)}${this.operator}${name})`
 					);
 				} else {
 					let op;
@@ -61,12 +82,9 @@ export default class UpdateExpression extends NodeBase {
 					code.overwrite(
 						this.start,
 						this.end,
-						`(exports('${systemExportNames[0]}',${_}${op}),${_}${name}${this.operator})`
+						`(exports('${exportNames[0]}',${_}${op}),${_}${name}${this.operator})`
 					);
 				}
-			} else {
-				// Regardless of prefix, we render the export as part of a sequence expression after the update
-				code.appendLeft(this.end, `,${_}${getSystemExportStatement([variable!], options)}`);
 			}
 		}
 	}
