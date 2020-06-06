@@ -1,5 +1,9 @@
 import MagicString from 'magic-string';
-import { findFirstOccurrenceOutsideComment, RenderOptions } from '../../utils/renderHelpers';
+import {
+	findFirstOccurrenceOutsideComment,
+	RenderOptions,
+	scanWs
+} from '../../utils/renderHelpers';
 import { getSystemExportFunctionLeft } from '../../utils/systemJsRendering';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
@@ -62,17 +66,13 @@ export default class AssignmentExpression extends NodeBase {
 					this.left.end
 				);
 				const operation =
-					this.operator.length > 1 ? `${exportNames[0]}${_}${this.operator.slice(0, -1)}` : '';
-				const nextIsSpace =
-					operation.length === 0 && code.original[operatorPos + this.operator.length] === ' ';
-				const nextIsNewline =
-					code.original[operatorPos + this.operator.length + (nextIsSpace ? 1 : 0)] === '\n';
+					this.operator.length > 1 ? `${exportNames[0]}${_}${this.operator.slice(0, -1)}${_}` : '';
 				code.overwrite(
 					operatorPos,
-					operatorPos + this.operator.length + (nextIsSpace ? 1 : 0),
+					scanWs(code.original, operatorPos + this.operator.length),
 					`=${_}${
 						exportNames.length === 1
-							? `exports('${exportNames[0]}',${nextIsNewline ? '' : _}`
+							? `exports('${exportNames[0]}',${_}`
 							: getSystemExportFunctionLeft([this.left.variable!], false, options)
 					}${operation}`
 				);

@@ -2,7 +2,8 @@ import MagicString from 'magic-string';
 import {
 	findFirstOccurrenceOutsideComment,
 	NodeRenderOptions,
-	RenderOptions
+	RenderOptions,
+	WHITESPACE
 } from '../../utils/renderHelpers';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
 import { treeshakeNode } from '../../utils/treeshakeNode';
@@ -14,8 +15,6 @@ import FunctionDeclaration from './FunctionDeclaration';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
-
-const WHITESPACE = /\s/;
 
 // The header ends at the first non-white-space after "default"
 function getDeclarationStart(code: string, start: number) {

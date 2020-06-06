@@ -50,6 +50,13 @@ export function findFirstOccurrenceOutsideComment(code: string, searchString: st
 	}
 }
 
+export const WHITESPACE = /\s/g;
+
+export function scanWs(code: string, index: number) {
+	while (index < code.length && code[index++].match(WHITESPACE));
+	return index - 1;
+}
+
 // This assumes "code" only contains white-space and comments
 function findFirstLineBreakOutsideComment(code: string) {
 	let lineBreakPos,
