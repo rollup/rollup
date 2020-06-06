@@ -1,5 +1,5 @@
 import MagicString from 'magic-string';
-import { findFirstOccurrenceOutsideComment, RenderOptions } from '../../utils/renderHelpers';
+import { findFirstOccurrenceOutsideComment, RenderOptions, WHITESPACE } from '../../utils/renderHelpers';
 import { getSystemExportExpressionLeft } from '../../utils/systemJsRendering';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
@@ -63,14 +63,13 @@ export default class AssignmentExpression extends NodeBase {
 				);
 				const operation =
 					this.operator.length > 1 ? `${_}${exportNames[0]}${_}${this.operator.slice(0, -1)}` : '';
-				const nextIsWs = code.original[operatorPos + this.operator.length] === ' ' || code.original[operatorPos + this.operator.length] === '\n';
 				code.overwrite(
 					operatorPos,
 					operatorPos + this.operator.length,
 					`=${_}${getSystemExportExpressionLeft(
 						[this.left.variable!],
 						false,
-						!nextIsWs,
+						!code.original[operatorPos + this.operator.length].match(WHITESPACE),
 						options
 					)}${operation}`
 				);
@@ -84,7 +83,7 @@ export default class AssignmentExpression extends NodeBase {
 						getSystemExportExpressionLeft(
 							systemPatternExports,
 							false,
-							code.original[this.start + 1] !== ' ',
+							!code.original[this.start + 1].match(WHITESPACE),
 							options
 						)
 					);

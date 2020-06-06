@@ -29,6 +29,8 @@ export interface NodeRenderOptions {
 
 export const NO_SEMICOLON: NodeRenderOptions = { isNoStatement: true };
 
+export const WHITESPACE = /\s/;
+
 // This assumes there are only white-space and comments between start and the string we are looking for
 export function findFirstOccurrenceOutsideComment(code: string, searchString: string, start = 0) {
 	let searchPos, charCodeAfterSlash;
