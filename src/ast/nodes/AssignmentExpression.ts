@@ -1,6 +1,6 @@
 import MagicString from 'magic-string';
 import { findFirstOccurrenceOutsideComment, RenderOptions } from '../../utils/renderHelpers';
-import { getSystemExportStatement, getSystemExportExpressionLeft } from '../../utils/systemJsRendering';
+import { getSystemExportExpressionLeft } from '../../utils/systemJsRendering';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from '../variables/Variable';
@@ -8,7 +8,6 @@ import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
-const eqRegex = /=\s*/g;
 export default class AssignmentExpression extends NodeBase {
 	left!: PatternNode | ExpressionNode;
 	operator!:
