@@ -203,11 +203,11 @@ export default class VariableDeclaration extends NodeBase {
 						if (exportNames) {
 							const _ = options.compact ? '' : ' ';
 							const operatorPos = findFirstOccurrenceOutsideComment(code.original, '=', node.id.end);
-							const nextIsWs = code.original[operatorPos + 1].match(WHITESPACE);
-							const prependPos = operatorPos + 1 + (nextIsWs ? 1 : 0);
+							const nextIsSpace = code.original[operatorPos + 1] === ' ';
+							const prependPos = operatorPos + 1 + (nextIsSpace ? 1 : 0);
 							code.prependLeft(
 								prependPos,
-								(nextIsWs ? '' : _) + getSystemExportExpressionLeft(
+								(nextIsSpace ? '' : _) + getSystemExportExpressionLeft(
 									[node.id.variable!],
 									true,
 									!code.original[prependPos].match(WHITESPACE),
