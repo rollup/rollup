@@ -50,11 +50,11 @@ export function findFirstOccurrenceOutsideComment(code: string, searchString: st
 	}
 }
 
-export const WHITESPACE = /\s/g;
+const WHITESPACE = /\s/;
 
 export function scanWs(code: string, index: number) {
-	while (index < code.length && code[index++].match(WHITESPACE));
-	return index - 1;
+	while (index < code.length && WHITESPACE.test(code[index])) index++;
+	return index;
 }
 
 // This assumes "code" only contains white-space and comments
