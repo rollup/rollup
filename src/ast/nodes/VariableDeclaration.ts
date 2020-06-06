@@ -210,9 +210,8 @@ export default class VariableDeclaration extends NodeBase {
 								'=',
 								node.id.end
 							);
-							const prependPos = scanWs(code.original, operatorPos + 1);
 							code.prependLeft(
-								prependPos,
+								scanWs(code.original, operatorPos + 1),
 								exportNames.length === 1
 									? `exports('${exportNames[0]}',${_}`
 									: getSystemExportFunctionLeft([node.id.variable!], false, options)
