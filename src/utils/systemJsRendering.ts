@@ -10,17 +10,51 @@ export function getSystemExportStatement(
 		exportedVariables.length === 1 &&
 		options.exportNamesByVariable.get(exportedVariables[0])!.length === 1
 	) {
-		return `exports('${options.exportNamesByVariable.get(
-			exportedVariables[0]
-		)}',${_}${exportedVariables[0].getName()})`;
+		const variable = exportedVariables[0];
+		return `exports('${options.exportNamesByVariable.get(variable)}',${_}${variable.getName()})`;
 	} else {
-		return `exports({${exportedVariables
+		return `exports({${_}${exportedVariables
 			.map(variable => {
 				return options.exportNamesByVariable
 					.get(variable)!
 					.map(exportName => `${exportName}:${_}${variable.getName()}`)
 					.join(`,${_}`);
 			})
-			.join(`,${_}`)}})`;
+			.join(`,${_}`)}${_}})`;
+	}
+}
+
+export function getSystemExportExpressionLeft(
+	exportedVariables: Variable[],
+	exportsExpressionValue: boolean,
+	spaceForParamComma: boolean,
+	options: RenderOptions
+): string {
+	const _ = options.compact ? '' : ' ';
+	if (
+		exportedVariables.length === 1 &&
+		options.exportNamesByVariable.get(exportedVariables[0])!.length === 1
+	) {
+		return `exports('${options.exportNamesByVariable.get(
+			exportedVariables[0]
+		)}',${spaceForParamComma ? _ : ''}`;
+	} else if (exportsExpressionValue) {
+		return `function${_}(v)${_}{${_}return exports({${_}${exportedVariables
+			.map(variable => {
+				return options.exportNamesByVariable
+					.get(variable)!
+					.map(exportName => `${exportName}:${_}v`)
+					.join(`,${_}`);
+			})
+			.join(`,${_}`)}${_}})${options.compact ? '' : ';'}${_}}(`;
+	} else {
+		return `function${_}(v)${_}{${_}return exports({ ${exportedVariables
+			.map(variable => {
+				return options.exportNamesByVariable
+					.get(variable)!
+					.map(exportName => `${exportName}:${_}${variable.getName()}`)
+					.join(`,${_}`);
+			})
+			.join(`,${_}`)} }),${_}v${options.compact ? '' : ';'}${_}}(`;
 	}
 }

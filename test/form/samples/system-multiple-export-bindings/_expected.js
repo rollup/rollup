@@ -16,38 +16,38 @@ System.register([], function (exports) {
 				x: x,
 				y: y
 			});
-			exports({namespace: namespace, namespace2: namespace});
+			exports({ namespace: namespace, namespace2: namespace });
 
 			// Namespace variable
 
 			// Variable Declaration
-			let a = function (v) {exports({a: a, a2: a}); return v;} ( 1), b = exports('b', 2), c = function (v) {exports({c: c, c2: c}); return v;} ( 3);
+			let a = function (v) { return exports({ a: v, a2: v }); }(1), b = exports('b', 2), c = function (v) { return exports({ c: v, c2: v }); }(3);
 
 			// Export default expression
 			var a$1 = exports('default', a);
 
 			// Assignment Expression
-			a = function (v) {exports({a: a, a2: a}); return v;} ( b = exports('b', c = function (v) {exports({c: c, c2: c}); return v;} ( 0)));
+			a = function (v) { return exports({ a: a, a2: a }), v; }( b = exports('b', c = function (v) { return exports({ c: c, c2: c }), v; }( 0)));
 
 			// Destructing Assignment Expression
-			(function (v) {exports({a: a, a2: a, b: b, c: c, c2: c}); return v;} ({ a, b, c } = { c: 4, b: 5, a: 6 }));
+			(function (v) { return exports({ a: a, a2: a, b: b, c: c, c2: c }), v; }({ a, b, c } = { c: 4, b: 5, a: 6 }));
 
 			// Destructuring Defaults
-			var p = function (v) {exports({p: p, pp: p}); return v;} ( 5);
-			var q = function (v) {exports({q: q, qq: q}); return v;} ( 10);
-			(function (v) {exports({p: p, pp: p}); return v;} ({ p = q = function (v) {exports({q: q, qq: q}); return v;} ( 20) } = {}));
+			var p = function (v) { return exports({ p: v, pp: v }); }(5);
+			var q = function (v) { return exports({ q: v, qq: v }); }(10);
+			(function (v) { return exports({ p: p, pp: p }), v; }({ p = q = function (v) { return exports({ q: q, qq: q }), v; }( 20) } = {}));
 
 			// Function Assignment
 			function fn () {
 
 			}
-			fn = function (v) {exports({fn: fn, fn2: fn}); return v;} ( 5);
+			fn = function (v) { return exports({ fn: fn, fn2: fn }), v; }( 5);
 
 			// Update Expression
-			a++, exports({a: a, a2: a}), (exports('b', b + 1), b++), ++c, exports({c: c, c2: c});
+			a++, exports({ a: a, a2: a }), (exports('b', b + 1), b++), ++c, exports({ c: c, c2: c });
 
 			// Class Declaration
-			class A {} exports({A: A, B: A});
+			class A {} exports({ A: A, B: A });
 
 		}
 	};

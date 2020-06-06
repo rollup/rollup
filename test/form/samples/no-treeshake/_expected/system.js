@@ -9,7 +9,7 @@ System.register('stirred', ['external'], function (exports) {
 
 			var foo = 13;
 
-			const quux = function (v) {exports({strange: quux, quux: quux}); return v;} ( 1);
+			const quux = function (v) { return exports({ strange: v, quux: v }); }(1);
 
 			const other = () => quux;
 

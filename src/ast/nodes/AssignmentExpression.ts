@@ -1,6 +1,6 @@
 import MagicString from 'magic-string';
 import { findFirstOccurrenceOutsideComment, RenderOptions } from '../../utils/renderHelpers';
-import { getSystemExportStatement } from '../../utils/systemJsRendering';
+import { getSystemExportStatement, getSystemExportExpressionLeft } from '../../utils/systemJsRendering';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from '../variables/Variable';
@@ -8,6 +8,7 @@ import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
+const eqRegex = /=\s*/g;
 export default class AssignmentExpression extends NodeBase {
 	left!: PatternNode | ExpressionNode;
 	operator!:
@@ -62,35 +63,31 @@ export default class AssignmentExpression extends NodeBase {
 					this.left.end
 				);
 				const operation =
-					this.operator.length > 1 ? ` ${exportNames[0]} ${this.operator.slice(0, -1)}` : '';
-				if (exportNames.length === 1) {
-					code.overwrite(
-						operatorPos,
-						operatorPos + this.operator.length,
-						`=${_}exports('${exportNames[0]}',${operation}`
-					);
-					code.appendLeft(this.right.end, ')');
-				} else {
-					code.overwrite(
-						operatorPos,
-						operatorPos + this.operator.length,
-						`=${_}function${_}(v)${_}{${getSystemExportStatement(
-							[this.left.variable!],
-							options
-						)};${_}return v;}${_}(${operation}`
-					);
-					code.appendLeft(this.right.end, ')');
-				}
+					this.operator.length > 1 ? `${_}${exportNames[0]}${_}${this.operator.slice(0, -1)}` : '';
+				const nextIsWs = code.original[operatorPos + this.operator.length] === ' ' || code.original[operatorPos + this.operator.length] === '\n';
+				code.overwrite(
+					operatorPos,
+					operatorPos + this.operator.length,
+					`=${_}${getSystemExportExpressionLeft(
+						[this.left.variable!],
+						false,
+						!nextIsWs,
+						options
+					)}${operation}`
+				);
+				code.appendLeft(this.right.end, ')');
 			} else if ('addExportedVariables' in this.left) {
 				const systemPatternExports: Variable[] = [];
 				this.left.addExportedVariables(systemPatternExports, options.exportNamesByVariable);
 				if (systemPatternExports.length > 0) {
 					code.prependRight(
 						this.start,
-						`function${_}(v)${_}{${getSystemExportStatement(
+						getSystemExportExpressionLeft(
 							systemPatternExports,
+							false,
+							code.original[this.start + 1] !== ' ',
 							options
-						)};${_}return v;}${_}(`
+						)
 					);
 					code.appendLeft(this.end, ')');
 				}

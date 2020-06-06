@@ -3,9 +3,10 @@ import { BLANK } from '../../utils/blank';
 import {
 	getCommaSeparatedNodesWithBoundaries,
 	NodeRenderOptions,
-	RenderOptions
+	RenderOptions,
+	findFirstOccurrenceOutsideComment
 } from '../../utils/renderHelpers';
-import { getSystemExportStatement } from '../../utils/systemJsRendering';
+import { getSystemExportStatement, getSystemExportExpressionLeft } from '../../utils/systemJsRendering';
 import { InclusionContext } from '../ExecutionContext';
 import { EMPTY_PATH } from '../utils/PathTracker';
 import Variable from '../variables/Variable';
@@ -194,28 +195,26 @@ export default class VariableDeclaration extends NodeBase {
 				isInDeclaration = false;
 			} else {
 				if (options.format === 'system' && node.init !== null) {
-					const _ = options.compact ? '' : ' ';
 					if (node.id.type !== NodeType.Identifier) {
 						node.id.addExportedVariables(systemPatternExports, options.exportNamesByVariable);
 					} else {
 						const exportNames = options.exportNamesByVariable.get(node.id.variable!);
 						if (exportNames) {
-							if (exportNames.length === 1) {
-								code.prependLeft(
-									code.original.indexOf('=', node.id.end) + 1,
-									` exports('${exportNames[0]}',`
-								);
-								nextSeparatorString += ')';
-							} else {
-								code.prependLeft(
-									code.original.indexOf('=', node.id.end) + 1,
-									` function${_}(v)${_}{${getSystemExportStatement(
-										[node.id.variable!],
-										options
-									)};${_}return v;}${_}(`
-								);
-								nextSeparatorString += ')';
-							}
+							const _ = options.compact ? '' : ' ';
+							const operatorPos = findFirstOccurrenceOutsideComment(code.original, '=', node.id.end);
+							const nextIsSpace = code.original[operatorPos + 1] === ' ';
+							const prependPos = operatorPos + 1 + (nextIsSpace ? 1 : 0);
+							const nextIsBr = code.original[prependPos] === '\n';
+							code.prependLeft(
+								prependPos,
+								(nextIsSpace ? '' : _) + getSystemExportExpressionLeft(
+									[node.id.variable!],
+									true,
+									!nextIsBr,
+									options
+								)
+							);
+							nextSeparatorString += ')';
 						}
 					}
 				}

@@ -5,7 +5,7 @@ System.register([], function (exports) {
 
 			var value = exports('value', 43);
 
-			var other = function (v) {exports({default: other, __moduleExports: other}); return v;} ( {
+			var other = function (v) { return exports({ default: v, __moduleExports: v }); }({
 				value: value
 			});
 
