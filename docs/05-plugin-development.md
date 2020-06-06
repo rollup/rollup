@@ -632,9 +632,14 @@ Returns additional information about the module in question in the form
 
 If the module id cannot be found, an error is thrown.
 
-#### `this.meta: {rollupVersion: string}`
+#### `this.meta: {rollupVersion: string, watchMode: boolean}`
 
-An `Object` containing potentially useful Rollup metadata. `meta` is the only context property accessible from the [`options`](guide/en/#options) hook.
+An object containing potentially useful Rollup metadata:
+
+- `rollupVersion`: The currently running version of Rollup as define in `package.json`.
+- `watchMode`: `true` if Rollup was started via `rollup.watch(...)` or from the command line with `--watch`, `false` otherwise.
+
+`meta` is the only context property accessible from the [`options`](guide/en/#options) hook.
 
 #### `this.parse(code: string, acornOptions?: AcornOptions) => ESTree.Program`
 
