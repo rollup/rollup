@@ -1,5 +1,5 @@
 module.exports = {
-	description: 'compact output with compact: true',
+	description: 'supports compact output with compact: true',
 	expectedWarnings: ['CIRCULAR_DEPENDENCY'],
 	options: {
 		external: ['external'],
