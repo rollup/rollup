@@ -1,13 +1,16 @@
 import MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import {
+	findFirstOccurrenceOutsideComment,
 	getCommaSeparatedNodesWithBoundaries,
 	NodeRenderOptions,
 	RenderOptions,
-	findFirstOccurrenceOutsideComment,
 	WHITESPACE
 } from '../../utils/renderHelpers';
-import { getSystemExportStatement, getSystemExportExpressionLeft } from '../../utils/systemJsRendering';
+import {
+	getSystemExportExpressionLeft,
+	getSystemExportStatement
+} from '../../utils/systemJsRendering';
 import { InclusionContext } from '../ExecutionContext';
 import { EMPTY_PATH } from '../utils/PathTracker';
 import Variable from '../variables/Variable';
@@ -202,17 +205,22 @@ export default class VariableDeclaration extends NodeBase {
 						const exportNames = options.exportNamesByVariable.get(node.id.variable!);
 						if (exportNames) {
 							const _ = options.compact ? '' : ' ';
-							const operatorPos = findFirstOccurrenceOutsideComment(code.original, '=', node.id.end);
+							const operatorPos = findFirstOccurrenceOutsideComment(
+								code.original,
+								'=',
+								node.id.end
+							);
 							const nextIsSpace = code.original[operatorPos + 1] === ' ';
 							const prependPos = operatorPos + 1 + (nextIsSpace ? 1 : 0);
 							code.prependLeft(
 								prependPos,
-								(nextIsSpace ? '' : _) + getSystemExportExpressionLeft(
-									[node.id.variable!],
-									true,
-									!code.original[prependPos].match(WHITESPACE),
-									options
-								)
+								(nextIsSpace ? '' : _) +
+									getSystemExportExpressionLeft(
+										[node.id.variable!],
+										true,
+										!code.original[prependPos].match(WHITESPACE),
+										options
+									)
 							);
 							nextSeparatorString += ')';
 						}
