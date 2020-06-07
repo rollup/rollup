@@ -1279,8 +1279,8 @@ For each key, the first number represents the elapsed time while the second repr
 
 ### Watch options
 
-Type: `boolean | object`<br>
-Default: `true`<br>
+Type: `{ buildDelay?: number, chokidar?: ChokidarOptions, clearScreen?: boolean, exclude?: string, include?: string, skipWrite?: boolean } | false`<br>
+Default: `{}`<br>
 
 Specify options for watch mode or prevent this configuration from being watched. Specifying `false` is only really useful when an array of configurations is used. In that case, this configuration will not be built or rebuilt on change in watch mode, but it will be built when running Rollup regularly:
 
@@ -1320,13 +1320,6 @@ Default: `true`
 
 Whether to clear the screen when a rebuild is triggered.
 
-#### watch.skipWrite
-Type: `boolean`<br>
-CLI: `--watch.skipWrite`/`--no-watch.skipWrite`<br>
-Default: `false`
-
-Whether to skip the `bundle.write()` step when a rebuild is triggered.
-
 #### watch.exclude
 Type: `string`<br>
 CLI: `--watch.exclude <files>`
@@ -1358,6 +1351,13 @@ export default {
   }
 };
 ```
+
+#### watch.skipWrite
+Type: `boolean`<br>
+CLI: `--watch.skipWrite`/`--no-watch.skipWrite`<br>
+Default: `false`
+
+Whether to skip the `bundle.write()` step when a rebuild is triggered.
 
 ### Deprecated options
 
