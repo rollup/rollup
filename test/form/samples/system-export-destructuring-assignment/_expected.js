@@ -11,8 +11,8 @@ System.register([], function (exports) {
 
 			let a, b, c;
 
-			console.log(function (v) {exports('a', a); return v;} ({a} = someObject));
-			(function (v) {exports({b: b, c: c}); return v;} ({b, c} = someObject));
+			console.log(function (v) { return exports({ a: a }), v; }({a} = someObject));
+			(function (v) { return exports({ b: b, c: c }), v; }({b, c} = someObject));
 
 		}
 	};

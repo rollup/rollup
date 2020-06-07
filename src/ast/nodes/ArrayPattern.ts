@@ -10,10 +10,13 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 	elements!: (PatternNode | null)[];
 	type!: NodeType.tArrayPattern;
 
-	addExportedVariables(variables: Variable[]): void {
+	addExportedVariables(
+		variables: Variable[],
+		exportNamesByVariable: Map<Variable, string[]>
+	): void {
 		for (const element of this.elements) {
 			if (element !== null) {
-				element.addExportedVariables(variables);
+				element.addExportedVariables(variables, exportNamesByVariable);
 			}
 		}
 	}

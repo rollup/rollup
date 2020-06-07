@@ -3,6 +3,7 @@ import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import Module from './Module';
 import {
+	EmittedChunk,
 	GetManualChunk,
 	HasModuleSideEffects,
 	NormalizedInputOptions,
@@ -15,10 +16,12 @@ import {
 	errCannotAssignModuleToChunk,
 	errEntryCannotBeExternal,
 	errExternalSyntheticExports,
+	errImplicitDependantCannotBeExternal,
 	errInternalIdCannotBeExternal,
 	errNamespaceConflict,
 	error,
 	errUnresolvedEntry,
+	errUnresolvedImplicitDependant,
 	errUnresolvedImport,
 	errUnresolvedImportTreatedAsExternal
 } from './utils/error';
@@ -39,6 +42,7 @@ export interface UnresolvedModule {
 
 export class ModuleLoader {
 	private readonly hasModuleSideEffects: HasModuleSideEffects;
+	private readonly implicitEntryModules = new Set<Module>();
 	private readonly indexedEntryModules: { index: number; module: Module }[] = [];
 	private latestLoadModulesPromise: Promise<any> = Promise.resolve();
 	private readonly manualChunkModules: Record<string, Module[]> = {};
@@ -60,55 +64,50 @@ export class ModuleLoader {
 		isUserDefined: boolean
 	): Promise<{
 		entryModules: Module[];
+		implicitEntryModules: Module[];
 		manualChunkModulesByAlias: Record<string, Module[]>;
 		newEntryModules: Module[];
 	}> {
 		const firstEntryModuleIndex = this.nextEntryModuleIndex;
 		this.nextEntryModuleIndex += unresolvedEntryModules.length;
-		const loadNewEntryModulesPromise = Promise.all(
-			unresolvedEntryModules.map(
-				({ id, importer }): Promise<Module> => this.loadEntryModule(id, true, importer)
-			)
-		).then(entryModules => {
-			let moduleIndex = firstEntryModuleIndex;
-			for (let index = 0; index < entryModules.length; index++) {
-				const { fileName, name } = unresolvedEntryModules[index];
-				const entryModule = entryModules[index];
-				entryModule.isUserDefinedEntryPoint = entryModule.isUserDefinedEntryPoint || isUserDefined;
-				if (fileName !== null) {
-					entryModule.chunkFileNames.add(fileName);
-				} else if (name !== null) {
-					if (entryModule.chunkName === null) {
-						entryModule.chunkName = name;
+		const newEntryModules = await this.extendLoadModulesPromise(
+			Promise.all(
+				unresolvedEntryModules.map(
+					({ id, importer }): Promise<Module> => this.loadEntryModule(id, true, importer, null)
+				)
+			).then(entryModules => {
+				let moduleIndex = firstEntryModuleIndex;
+				for (let index = 0; index < entryModules.length; index++) {
+					const entryModule = entryModules[index];
+					entryModule.isUserDefinedEntryPoint =
+						entryModule.isUserDefinedEntryPoint || isUserDefined;
+					addChunkNamesToModule(entryModule, unresolvedEntryModules[index], isUserDefined);
+					const existingIndexedModule = this.indexedEntryModules.find(
+						indexedModule => indexedModule.module === entryModule
+					);
+					if (!existingIndexedModule) {
+						this.indexedEntryModules.push({ module: entryModule, index: moduleIndex });
+					} else {
+						existingIndexedModule.index = Math.min(existingIndexedModule.index, moduleIndex);
 					}
-					if (isUserDefined) {
-						entryModule.userChunkNames.add(name);
-					}
+					moduleIndex++;
 				}
-				const existingIndexedModule = this.indexedEntryModules.find(
-					indexedModule => indexedModule.module.id === entryModule.id
+				this.indexedEntryModules.sort(({ index: indexA }, { index: indexB }) =>
+					indexA > indexB ? 1 : -1
 				);
-				if (!existingIndexedModule) {
-					this.indexedEntryModules.push({ module: entryModule, index: moduleIndex });
-				} else {
-					existingIndexedModule.index = Math.min(existingIndexedModule.index, moduleIndex);
-				}
-				moduleIndex++;
-			}
-			this.indexedEntryModules.sort(({ index: indexA }, { index: indexB }) =>
-				indexA > indexB ? 1 : -1
-			);
-			return entryModules;
-		});
-		const newEntryModules = await this.awaitLoadModulesPromise(loadNewEntryModulesPromise);
+				return entryModules;
+			})
+		);
+		await this.awaitLoadModulesPromise();
 		return {
 			entryModules: this.indexedEntryModules.map(({ module }) => module),
+			implicitEntryModules: [...this.implicitEntryModules],
 			manualChunkModulesByAlias: this.manualChunkModules,
 			newEntryModules
 		};
 	}
 
-	addManualChunks(manualChunks: Record<string, string[]>): Promise<void> {
+	async addManualChunks(manualChunks: Record<string, string[]>): Promise<void> {
 		const unresolvedManualChunks: { alias: string; id: string }[] = [];
 		for (const alias of Object.keys(manualChunks)) {
 			const manualChunkIds = manualChunks[alias];
@@ -116,9 +115,9 @@ export class ModuleLoader {
 				unresolvedManualChunks.push({ id, alias });
 			}
 		}
-		return this.awaitLoadModulesPromise(
+		const result = this.extendLoadModulesPromise(
 			Promise.all(
-				unresolvedManualChunks.map(({ id }) => this.loadEntryModule(id, false, undefined))
+				unresolvedManualChunks.map(({ id }) => this.loadEntryModule(id, false, undefined, null))
 			).then(manualChunkModules => {
 				for (let index = 0; index < manualChunkModules.length; index++) {
 					this.addModuleToManualChunk(
@@ -128,6 +127,8 @@ export class ModuleLoader {
 				}
 			})
 		);
+		await this.awaitLoadModulesPromise();
+		return result;
 	}
 
 	assignManualChunks(getManualChunk: GetManualChunk) {
@@ -145,6 +146,29 @@ export class ModuleLoader {
 		}
 	}
 
+	async emitChunk({
+		fileName,
+		id,
+		importer,
+		name,
+		implicitlyLoadedAfterOneOf,
+		preserveSignature
+	}: EmittedChunk): Promise<Module> {
+		const unresolvedModule: UnresolvedModule = {
+			fileName: fileName || null,
+			id,
+			importer,
+			name: name || null
+		};
+		const module = implicitlyLoadedAfterOneOf
+			? await this.addEntryWithImplicitDependants(unresolvedModule, implicitlyLoadedAfterOneOf)
+			: (await this.addEntryModules([unresolvedModule], false)).newEntryModules[0];
+		if (preserveSignature != null) {
+			module.preserveSignature = preserveSignature;
+		}
+		return module;
+	}
+
 	async resolveId(
 		source: string,
 		importer: string | undefined,
@@ -157,6 +181,34 @@ export class ModuleLoader {
 
 			importer,
 			source
+		);
+	}
+
+	private addEntryWithImplicitDependants(
+		unresolvedModule: UnresolvedModule,
+		implicitlyLoadedAfter: string[]
+	): Promise<Module> {
+		return this.extendLoadModulesPromise(
+			this.loadEntryModule(unresolvedModule.id, false, unresolvedModule.importer, null).then(
+				async entryModule => {
+					addChunkNamesToModule(entryModule, unresolvedModule, false);
+					if (!entryModule.isEntryPoint) {
+						this.implicitEntryModules.add(entryModule);
+						const implicitlyLoadedAfterModules = await Promise.all(
+							implicitlyLoadedAfter.map(id =>
+								this.loadEntryModule(id, false, unresolvedModule.importer, entryModule.id)
+							)
+						);
+						for (const module of implicitlyLoadedAfterModules) {
+							entryModule.implicitlyLoadedAfter.add(module);
+						}
+						for (const dependant of entryModule.implicitlyLoadedAfter) {
+							dependant.implicitlyLoadedBefore.add(entryModule);
+						}
+					}
+					return entryModule;
+				}
+			)
 		);
 	}
 
@@ -215,21 +267,20 @@ export class ModuleLoader {
 		this.manualChunkModules[alias].push(module);
 	}
 
-	private async awaitLoadModulesPromise<T>(loadNewModulesPromise: Promise<T>): Promise<T> {
+	private async awaitLoadModulesPromise(): Promise<void> {
+		let startingPromise;
+		do {
+			startingPromise = this.latestLoadModulesPromise;
+			await startingPromise;
+		} while (startingPromise !== this.latestLoadModulesPromise);
+	}
+
+	private extendLoadModulesPromise<T>(loadNewModulesPromise: Promise<T>): Promise<T> {
 		this.latestLoadModulesPromise = Promise.all([
 			loadNewModulesPromise,
 			this.latestLoadModulesPromise
 		]);
-
-		const getCombinedPromise = async (): Promise<void> => {
-			const startingPromise = this.latestLoadModulesPromise;
-			await startingPromise;
-			if (this.latestLoadModulesPromise !== startingPromise) {
-				return getCombinedPromise();
-			}
-		};
-		await getCombinedPromise();
-		return await loadNewModulesPromise;
+		return loadNewModulesPromise;
 	}
 
 	private fetchAllDependencies(module: Module): Promise<unknown> {
@@ -276,8 +327,15 @@ export class ModuleLoader {
 	): Promise<Module> {
 		const existingModule = this.modulesById.get(id);
 		if (existingModule instanceof Module) {
-			existingModule.isEntryPoint = existingModule.isEntryPoint || isEntry;
-			return Promise.resolve(existingModule);
+			if (isEntry) {
+				existingModule.isEntryPoint = true;
+				this.implicitEntryModules.delete(existingModule);
+				for (const dependant of existingModule.implicitlyLoadedAfter) {
+					dependant.implicitlyLoadedBefore.delete(existingModule);
+				}
+				existingModule.implicitlyLoadedAfter.clear();
+			}
+			return existingModule;
 		}
 
 		const module: Module = new Module(
@@ -369,7 +427,8 @@ export class ModuleLoader {
 	private async loadEntryModule(
 		unresolvedId: string,
 		isEntry: boolean,
-		importer: string | undefined
+		importer: string | undefined,
+		implicitlyLoadedBefore: string | null
 	): Promise<Module> {
 		const resolveIdResult = await resolveId(
 			unresolvedId,
@@ -382,7 +441,11 @@ export class ModuleLoader {
 			resolveIdResult === false ||
 			(resolveIdResult && typeof resolveIdResult === 'object' && resolveIdResult.external)
 		) {
-			return error(errEntryCannotBeExternal(unresolvedId));
+			return error(
+				implicitlyLoadedBefore === null
+					? errEntryCannotBeExternal(unresolvedId)
+					: errImplicitDependantCannotBeExternal(unresolvedId, implicitlyLoadedBefore)
+			);
 		}
 		const id =
 			resolveIdResult && typeof resolveIdResult === 'object' ? resolveIdResult.id : resolveIdResult;
@@ -390,7 +453,11 @@ export class ModuleLoader {
 		if (typeof id === 'string') {
 			return this.fetchModule(id, undefined, true, false, isEntry);
 		}
-		return error(errUnresolvedEntry(unresolvedId));
+		return error(
+			implicitlyLoadedBefore === null
+				? errUnresolvedEntry(unresolvedId)
+				: errUnresolvedImplicitDependant(unresolvedId, implicitlyLoadedBefore)
+		);
 	}
 
 	private normalizeResolveIdResult(
@@ -480,4 +547,21 @@ function normalizeRelativeExternalId(source: string, importer: string | undefine
 			? resolve(importer, '..', source)
 			: resolve(source)
 		: source;
+}
+
+function addChunkNamesToModule(
+	module: Module,
+	{ fileName, name }: UnresolvedModule,
+	isUserDefined: boolean
+) {
+	if (fileName !== null) {
+		module.chunkFileNames.add(fileName);
+	} else if (name !== null) {
+		if (module.chunkName === null) {
+			module.chunkName = name;
+		}
+		if (isUserDefined) {
+			module.userChunkNames.add(name);
+		}
+	}
 }

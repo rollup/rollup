@@ -12,12 +12,18 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 	properties!: (Property | RestElement)[];
 	type!: NodeType.tObjectPattern;
 
-	addExportedVariables(variables: Variable[]): void {
+	addExportedVariables(
+		variables: Variable[],
+		exportNamesByVariable: Map<Variable, string[]>
+	): void {
 		for (const property of this.properties) {
 			if (property.type === NodeType.Property) {
-				((property.value as unknown) as PatternNode).addExportedVariables(variables);
+				((property.value as unknown) as PatternNode).addExportedVariables(
+					variables,
+					exportNamesByVariable
+				);
 			} else {
-				property.argument.addExportedVariables(variables);
+				property.argument.addExportedVariables(variables, exportNamesByVariable);
 			}
 		}
 	}

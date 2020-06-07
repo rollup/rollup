@@ -1,5 +1,54 @@
 # rollup changelog
 
+## 2.14.0
+*2020-06-07*
+
+### Features
+* Make `this.meta.watchMode` available for plugins to detect watch mode (#3616)
+
+### Bug Fixes
+* Handle exporting the same binding with different names in SystemJS (#3575)
+
+### Pull Requests
+* [#3575](https://github.com/rollup/rollup/pull/3575): Handle some cases of duplicate export bindings (@joeljeske)
+* [#3616](https://github.com/rollup/rollup/pull/3616): Make watch mode available in plugins (@lukastaegert)
+
+## 2.13.1
+*2020-06-04*
+
+### Bug Fixes
+* Prevent conflicts in SystemJS when `module` is used as a top-level variable (#3614)
+
+### Pull Requests
+* [#3614](https://github.com/rollup/rollup/pull/3614): Handle system reserved identifier dedupes (@guybedford)
+
+## 2.13.0
+*2020-06-03*
+
+### Features
+* Allow to specify that an emitted chunk is only loaded after a given module has loaded to improve chunking (#3606)
+
+### Pull Requests
+* [#3606](https://github.com/rollup/rollup/pull/3606): Enable specifying implicit dependencies when emitting chunks (@lukastaegert)
+
+## 2.12.1
+*2020-06-02*
+
+### Bug Fixes
+* Render valid imports when chunk names correspond to directory names in virtual setups (#3609)
+
+### Pull Requests
+* [#3609](https://github.com/rollup/rollup/pull/3609): Handle imports from chunks with names that correspond to parent directory names of other chunks (@guybedford)
+
+## 2.12.0
+*2020-05-31*
+
+### Features
+* Add an option `--waitForBundleInput` to let the build wait until all entry point files are available before starting (#3577)
+
+### Pull Requests
+* [#3577](https://github.com/rollup/rollup/pull/3577): Wait for bundle input option (@Heerschop)
+
 ## 2.11.2
 *2020-05-28*
 

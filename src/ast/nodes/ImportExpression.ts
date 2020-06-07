@@ -66,7 +66,7 @@ export default class Import extends NodeBase {
 	renderFinalResolution(
 		code: MagicString,
 		resolution: string,
-		namespaceExportName: string | false,
+		namespaceExportName: string | false | undefined,
 		options: NormalizedOutputOptions
 	) {
 		code.overwrite(this.source.start, this.source.end, resolution);

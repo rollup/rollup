@@ -1,6 +1,7 @@
 import Module, { AstContext } from '../../Module';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { RESERVED_NAMES } from '../../utils/reservedNames';
+import { getSystemExportStatement } from '../../utils/systemJsRendering';
 import Identifier from '../nodes/Identifier';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from './Variable';
@@ -107,8 +108,8 @@ export default class NamespaceVariable extends Variable {
 		const name = this.getName();
 		output = `${options.varOrConst} ${name}${_}=${_}${output};`;
 
-		if (options.format === 'system' && this.exportName) {
-			output += `${n}exports('${this.exportName}',${_}${name});`;
+		if (options.format === 'system' && options.exportNamesByVariable.has(this)) {
+			output += `${n}${getSystemExportStatement([this], options)};`;
 		}
 
 		return output;

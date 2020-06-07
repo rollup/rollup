@@ -135,7 +135,8 @@ export function getPluginContexts(
 				options
 			),
 			meta: {
-				rollupVersion
+				rollupVersion,
+				watchMode: graph.watchMode
 			},
 			get moduleIds() {
 				function* wrappedModuleIds() {

@@ -6,11 +6,11 @@ export function markModuleAndImpureDependenciesAsExecuted(baseModule: Module) {
 	const modules = [baseModule];
 	const visitedModules = new Set<string>();
 	for (const module of modules) {
-		for (const dependency of module.dependencies) {
+		for (const dependency of [...module.dependencies, ...module.implicitlyLoadedBefore]) {
 			if (
 				!(dependency instanceof ExternalModule) &&
 				!dependency.isExecuted &&
-				dependency.moduleSideEffects &&
+				(dependency.moduleSideEffects || module.implicitlyLoadedBefore.has(dependency)) &&
 				!visitedModules.has(dependency.id)
 			) {
 				dependency.isExecuted = true;

@@ -43,6 +43,7 @@ import {
 } from './rollup/types';
 import { error, Errors } from './utils/error';
 import getCodeFrame from './utils/getCodeFrame';
+import { getId } from './utils/getId';
 import { getOriginalLocation } from './utils/getOriginalLocation';
 import { makeLegal } from './utils/identifierHelpers';
 import { basename, extname } from './utils/path';
@@ -196,6 +197,8 @@ export default class Module {
 	exports: { [name: string]: ExportDescription } = Object.create(null);
 	exportsAll: { [name: string]: string } = Object.create(null);
 	facadeChunk: Chunk | null = null;
+	implicitlyLoadedAfter = new Set<Module>();
+	implicitlyLoadedBefore = new Set<Module>();
 	importDescriptions: { [name: string]: ImportDescription } = Object.create(null);
 	importers: string[] = [];
 	importMetas: MetaProperty[] = [];
@@ -717,7 +720,7 @@ export default class Module {
 			ast: this.esTreeAst,
 			code: this.code,
 			customTransformCache: this.customTransformCache,
-			dependencies: Array.from(this.dependencies, module => module.id),
+			dependencies: Array.from(this.dependencies, getId),
 			id: this.id,
 			moduleSideEffects: this.moduleSideEffects,
 			originalCode: this.originalCode,

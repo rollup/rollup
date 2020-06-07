@@ -81,7 +81,11 @@ describe('rollup.watch', () => {
 				watcher = rollup.watch({
 					input: 'test/_tmp/input/main.js',
 					plugins: {
+						options(options) {
+							assert.strictEqual(this.meta.watchMode, true, 'watchMode in options');
+						},
 						transform(code) {
+							assert.strictEqual(this.meta.watchMode, true, 'watchMode in transform');
 							if (triggerRestart) {
 								triggerRestart = false;
 								return wait(100)
