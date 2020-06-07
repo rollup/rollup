@@ -33,7 +33,10 @@ export async function rollupInternal(
 	rawInputOptions: GenericConfigObject,
 	watcher: RollupWatcher | null
 ): Promise<RollupBuild> {
-	const { options: inputOptions, unsetOptions } = getInputOptions(rawInputOptions);
+	const { options: inputOptions, unsetOptions } = getInputOptions(
+		rawInputOptions,
+		watcher !== null
+	);
 	initialiseTimers(inputOptions);
 
 	const graph = new Graph(inputOptions, unsetOptions, watcher);
@@ -120,27 +123,32 @@ export async function rollupInternal(
 }
 
 function getInputOptions(
-	rawInputOptions: GenericConfigObject
+	rawInputOptions: GenericConfigObject,
+	watchMode: boolean
 ): { options: NormalizedInputOptions; unsetOptions: Set<string> } {
 	if (!rawInputOptions) {
 		throw new Error('You must supply an options object to rollup');
 	}
 	const rawPlugins = ensureArray(rawInputOptions.plugins) as Plugin[];
 	const { options, unsetOptions } = normalizeInputOptions(
-		rawPlugins.reduce(applyOptionHook, rawInputOptions)
+		rawPlugins.reduce(applyOptionHook(watchMode), rawInputOptions)
 	);
 	normalizePlugins(options.plugins, ANONYMOUS_PLUGIN_PREFIX);
 	return { options, unsetOptions };
 }
 
-function applyOptionHook(inputOptions: GenericConfigObject, plugin: Plugin): GenericConfigObject {
-	if (plugin.options)
-		return (
-			(plugin.options.call({ meta: { rollupVersion } }, inputOptions) as GenericConfigObject) ||
-			inputOptions
-		);
+function applyOptionHook(watchMode: boolean) {
+	return (inputOptions: GenericConfigObject, plugin: Plugin): GenericConfigObject => {
+		if (plugin.options)
+			return (
+				(plugin.options.call(
+					{ meta: { rollupVersion, watchMode } },
+					inputOptions
+				) as GenericConfigObject) || inputOptions
+			);
 
-	return inputOptions;
+		return inputOptions;
+	};
 }
 
 function normalizePlugins(plugins: Plugin[], anonymousPrefix: string): void {

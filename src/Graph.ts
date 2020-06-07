@@ -56,6 +56,7 @@ export default class Graph {
 	pluginDriver: PluginDriver;
 	scope: GlobalScope;
 	watchFiles: Record<string, true> = Object.create(null);
+	watchMode = false;
 
 	private entryModules: Module[] = [];
 	private externalModules: ExternalModule[] = [];
@@ -89,16 +90,15 @@ export default class Graph {
 				...options
 			});
 
-		this.pluginDriver = new PluginDriver(this, options, options.plugins, this.pluginCache);
-
 		if (watcher) {
+			this.watchMode = true;
 			const handleChange = (id: string) => this.pluginDriver.hookSeqSync('watchChange', [id]);
 			watcher.on('change', handleChange);
 			watcher.once('restart', () => {
 				watcher.removeListener('change', handleChange);
 			});
 		}
-
+		this.pluginDriver = new PluginDriver(this, options, options.plugins, this.pluginCache);
 		this.scope = new GlobalScope();
 		this.acornParser = acorn.Parser.extend(...(options.acornInjectPlugins as any));
 		this.moduleLoader = new ModuleLoader(this, this.modulesById, this.options, this.pluginDriver);
