@@ -796,6 +796,50 @@ describe('rollup.watch', () => {
 			});
 	});
 
+	it('allows watching only some configs', () => {
+		return sander
+			.copydir('test/watch/samples/multiple')
+			.to('test/_tmp/input')
+			.then(() => wait(100))
+			.then(() => {
+				watcher = rollup.watch([
+					{
+						input: 'test/_tmp/input/main1.js',
+						watch: false,
+						output: {
+							file: 'test/_tmp/output/bundle1.js',
+							format: 'cjs'
+						}
+					},
+					{
+						input: 'test/_tmp/input/main2.js',
+						output: {
+							file: 'test/_tmp/output/bundle2.js',
+							format: 'cjs'
+						}
+					}
+				]);
+
+				return sequence(watcher, [
+					'START',
+					'BUNDLE_START',
+					'BUNDLE_END',
+					'END',
+					() => {
+						assert.strictEqual(
+							sander.existsSync(path.resolve(__dirname, '../_tmp/output/bundle1.js')),
+							false
+						);
+						assert.strictEqual(
+							sander.existsSync(path.resolve(__dirname, '../_tmp/output/bundle2.js')),
+							true
+						);
+						assert.deepStrictEqual(run('../_tmp/output/bundle2.js'), 43);
+					}
+				]);
+			});
+	});
+
 	it('respects output.globals', () => {
 		return sander
 			.copydir('test/watch/samples/globals')
