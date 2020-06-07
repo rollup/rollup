@@ -52,11 +52,15 @@ export default class ChildScope extends Scope {
 		this.parent instanceof ChildScope && this.parent.addReturnExpression(expression);
 	}
 
-	addUsedOutsideNames(usedNames: Set<string>, format: string): void {
+	addUsedOutsideNames(
+		usedNames: Set<string>,
+		format: string,
+		exportNamesByVariable: Map<Variable, string[]>
+	): void {
 		for (const variable of this.accessedOutsideVariables.values()) {
 			if (variable.included) {
 				usedNames.add(variable.getBaseVariableName());
-				if (variable.exportName && format === 'system') {
+				if (format === 'system' && exportNamesByVariable.has(variable)) {
 					usedNames.add('exports');
 				}
 			}
@@ -74,9 +78,9 @@ export default class ChildScope extends Scope {
 		return this.variables.has(name) || this.parent.contains(name);
 	}
 
-	deconflict(format: string) {
+	deconflict(format: string, exportNamesByVariable: Map<Variable, string[]>) {
 		const usedNames = new Set<string>();
-		this.addUsedOutsideNames(usedNames, format);
+		this.addUsedOutsideNames(usedNames, format, exportNamesByVariable);
 		if (this.accessedDynamicImports) {
 			for (const importExpression of this.accessedDynamicImports) {
 				if (importExpression.inlineNamespace) {
@@ -90,7 +94,7 @@ export default class ChildScope extends Scope {
 			}
 		}
 		for (const scope of this.children) {
-			scope.deconflict(format);
+			scope.deconflict(format, exportNamesByVariable);
 		}
 	}
 

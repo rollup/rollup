@@ -32,10 +32,11 @@ export function deconflictChunk(
 	format: string,
 	interop: boolean,
 	preserveModules: boolean,
-	syntheticExports: Set<SyntheticNamedExportVariable>
+	syntheticExports: Set<SyntheticNamedExportVariable>,
+	exportNamesByVariable: Map<Variable, string[]>
 ) {
 	for (const module of modules) {
-		module.scope.addUsedOutsideNames(usedNames, format);
+		module.scope.addUsedOutsideNames(usedNames, format, exportNamesByVariable);
 	}
 	deconflictTopLevelVariables(usedNames, modules);
 	DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT[format](
@@ -48,7 +49,7 @@ export function deconflictChunk(
 	);
 
 	for (const module of modules) {
-		module.scope.deconflict(format);
+		module.scope.deconflict(format, exportNamesByVariable);
 	}
 }
 
