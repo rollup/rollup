@@ -1,9 +1,9 @@
 import MagicString from 'magic-string';
 import {
 	findFirstOccurrenceOutsideComment,
+	findNonWhiteSpace,
 	NodeRenderOptions,
-	RenderOptions,
-	scanWs
+	RenderOptions
 } from '../../utils/renderHelpers';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
 import { treeshakeNode } from '../../utils/treeshakeNode';
@@ -18,7 +18,7 @@ import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 
 // The header ends at the first non-white-space after "default"
 function getDeclarationStart(code: string, start: number) {
-	return scanWs(code, findFirstOccurrenceOutsideComment(code, 'default', start) + 7);
+	return findNonWhiteSpace(code, findFirstOccurrenceOutsideComment(code, 'default', start) + 7);
 }
 
 function getIdInsertPosition(

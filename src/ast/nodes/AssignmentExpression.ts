@@ -1,8 +1,8 @@
 import MagicString from 'magic-string';
 import {
 	findFirstOccurrenceOutsideComment,
-	RenderOptions,
-	scanWs
+	findNonWhiteSpace,
+	RenderOptions
 } from '../../utils/renderHelpers';
 import { getSystemExportFunctionLeft } from '../../utils/systemJsRendering';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
@@ -69,7 +69,7 @@ export default class AssignmentExpression extends NodeBase {
 					this.operator.length > 1 ? `${exportNames[0]}${_}${this.operator.slice(0, -1)}${_}` : '';
 				code.overwrite(
 					operatorPos,
-					scanWs(code.original, operatorPos + this.operator.length),
+					findNonWhiteSpace(code.original, operatorPos + this.operator.length),
 					`=${_}${
 						exportNames.length === 1
 							? `exports('${exportNames[0]}',${_}`

@@ -52,7 +52,7 @@ export function findFirstOccurrenceOutsideComment(code: string, searchString: st
 
 const WHITESPACE = /\s/;
 
-export function scanWs(code: string, index: number) {
+export function findNonWhiteSpace(code: string, index: number) {
 	while (index < code.length && WHITESPACE.test(code[index])) index++;
 	return index;
 }

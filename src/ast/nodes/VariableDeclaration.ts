@@ -2,10 +2,10 @@ import MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import {
 	findFirstOccurrenceOutsideComment,
+	findNonWhiteSpace,
 	getCommaSeparatedNodesWithBoundaries,
 	NodeRenderOptions,
-	RenderOptions,
-	scanWs
+	RenderOptions
 } from '../../utils/renderHelpers';
 import {
 	getSystemExportFunctionLeft,
@@ -211,7 +211,7 @@ export default class VariableDeclaration extends NodeBase {
 								node.id.end
 							);
 							code.prependLeft(
-								scanWs(code.original, operatorPos + 1),
+								findNonWhiteSpace(code.original, operatorPos + 1),
 								exportNames.length === 1
 									? `exports('${exportNames[0]}',${_}`
 									: getSystemExportFunctionLeft([node.id.variable!], false, options)
