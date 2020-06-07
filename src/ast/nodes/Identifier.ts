@@ -27,8 +27,11 @@ export default class Identifier extends NodeBase implements PatternNode {
 	variable: Variable | null = null;
 	private bound = false;
 
-	addExportedVariables(variables: Variable[]): void {
-		if (this.variable !== null && this.variable.exportName) {
+	addExportedVariables(
+		variables: Variable[],
+		exportNamesByVariable: Map<Variable, string[]>
+	): void {
+		if (this.variable !== null && exportNamesByVariable.has(this.variable)) {
 			variables.push(this.variable);
 		}
 	}

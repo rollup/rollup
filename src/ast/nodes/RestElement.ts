@@ -13,8 +13,11 @@ export default class RestElement extends NodeBase implements PatternNode {
 
 	private declarationInit: ExpressionEntity | null = null;
 
-	addExportedVariables(variables: Variable[]): void {
-		this.argument.addExportedVariables(variables);
+	addExportedVariables(
+		variables: Variable[],
+		exportNamesByVariable: Map<Variable, string[]>
+	): void {
+		this.argument.addExportedVariables(variables, exportNamesByVariable);
 	}
 
 	bind() {

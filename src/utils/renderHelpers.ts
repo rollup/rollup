@@ -1,5 +1,6 @@
 import MagicString from 'magic-string';
 import { Node, StatementNode } from '../ast/nodes/shared/Node';
+import Variable from '../ast/variables/Variable';
 import { InternalModuleFormat } from '../rollup/types';
 import { PluginDriver } from './PluginDriver';
 import { treeshakeNode } from './treeshakeNode';
@@ -7,6 +8,7 @@ import { treeshakeNode } from './treeshakeNode';
 export interface RenderOptions {
 	compact: boolean;
 	dynamicImportFunction: string | undefined;
+	exportNamesByVariable: Map<Variable, string[]>;
 	format: InternalModuleFormat;
 	freeze: boolean;
 	indent: string;
@@ -46,6 +48,13 @@ export function findFirstOccurrenceOutsideComment(code: string, searchString: st
 			searchPos = code.indexOf(searchString, start);
 		}
 	}
+}
+
+const WHITESPACE = /\s/;
+
+export function findNonWhiteSpace(code: string, index: number) {
+	while (index < code.length && WHITESPACE.test(code[index])) index++;
+	return index;
 }
 
 // This assumes "code" only contains white-space and comments
