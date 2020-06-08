@@ -9,7 +9,6 @@ import {
 	RollupWatcher,
 	WatcherOptions
 } from '../rollup/types';
-import { ensureArray } from '../utils/ensureArray';
 import { mergeOptions } from '../utils/options/mergeOptions';
 import { GenericConfigObject } from '../utils/options/options';
 import { FileWatcher } from './fileWatcher';
@@ -24,12 +23,11 @@ export class Watcher {
 	private running: boolean;
 	private tasks: Task[];
 
-	constructor(configs: GenericConfigObject[] | GenericConfigObject, emitter: RollupWatcher) {
+	constructor(configs: GenericConfigObject[], emitter: RollupWatcher) {
 		this.emitter = emitter;
 		emitter.close = this.close.bind(this);
-		const configArray = ensureArray(configs);
-		this.tasks = configArray.map(config => new Task(this, config));
-		this.buildDelay = configArray.reduce(
+		this.tasks = configs.map(config => new Task(this, config));
+		this.buildDelay = configs.reduce(
 			(buildDelay, { watch }: any) =>
 				watch && typeof watch.buildDelay === 'number'
 					? Math.max(buildDelay, (watch as WatcherOptions).buildDelay!)

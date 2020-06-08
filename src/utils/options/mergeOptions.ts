@@ -116,7 +116,7 @@ function mergeInputOptions(
 		shimMissingExports: getOption('shimMissingExports'),
 		strictDeprecations: getOption('strictDeprecations'),
 		treeshake: getObjectOption(config, overrides, 'treeshake'),
-		watch: getObjectOption(config, overrides, 'watch')
+		watch: getWatch(config, overrides, 'watch')
 	};
 
 	warnUnknownOptions(
@@ -160,6 +160,9 @@ const getObjectOption = (
 	}
 	return configOption;
 };
+
+const getWatch = (config: GenericConfigObject, overrides: GenericConfigObject, name: string) =>
+	config.watch !== false && getObjectOption(config, overrides, name);
 
 export const normalizeObjectOptionValue = (optionValue: any) => {
 	if (!optionValue) {

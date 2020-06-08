@@ -503,7 +503,7 @@ export interface InputOptions {
 	shimMissingExports?: boolean;
 	strictDeprecations?: boolean;
 	treeshake?: boolean | TreeshakingOptions;
-	watch?: WatcherOptions;
+	watch?: WatcherOptions | false;
 }
 
 export interface NormalizedInputOptions {
@@ -740,7 +740,7 @@ export interface WatcherOptions {
 
 export interface RollupWatchOptions extends InputOptions {
 	output?: OutputOptions | OutputOptions[];
-	watch?: WatcherOptions;
+	watch?: WatcherOptions | false;
 }
 
 interface TypedEventEmitter<T> {
