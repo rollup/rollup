@@ -12,6 +12,6 @@ module.exports = {
 		}
 	},
 	test(code, map) {
-		assert.deepEqual(map.sources, [path.resolve(__dirname, 'main.js')]);
+		assert.deepEqual(map.sources, [path.resolve(__dirname, 'main.js').repalce('\\', '/')]);
 	}
 };

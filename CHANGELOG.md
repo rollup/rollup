@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 2.15.0
+*2020-06-08*
+
+### Features
+* Allow to skip watching some configs via `watch: false` (#3620)
+* Provide the resolved sourcemap path to `sourcemapPathTransform` (#3617)
+
+### Pull Requests
+* [#3617](https://github.com/rollup/rollup/pull/3617): Update sourcemapPathTransform to also take the path to the sourcemap file as a second argument (@dgoldstein0)
+* [#3620](https://github.com/rollup/rollup/pull/3620): Rollup watch only one config in exported array (@luwol03)
+
 ## 2.14.0
 *2020-06-07*
 
