@@ -477,6 +477,10 @@ export type InputOption = string | string[] | { [entryAlias: string]: string };
 export type ManualChunksOption = { [chunkAlias: string]: string[] } | GetManualChunk;
 export type ModuleSideEffectsOption = boolean | 'no-external' | string[] | HasModuleSideEffects;
 export type PreserveEntrySignaturesOption = false | 'strict' | 'allow-extension';
+export type SourcemapPathTransformOption = (
+	relativeSourcePath: string,
+	sourcemapPath: string
+) => string;
 
 export interface InputOptions {
 	acorn?: Object;
@@ -568,7 +572,7 @@ export interface OutputOptions {
 	sourcemap?: boolean | 'inline' | 'hidden';
 	sourcemapExcludeSources?: boolean;
 	sourcemapFile?: string;
-	sourcemapPathTransform?: (sourcePath: string) => string;
+	sourcemapPathTransform?: SourcemapPathTransformOption;
 	strict?: boolean;
 	systemNullSetters?: boolean;
 }
@@ -610,7 +614,7 @@ export interface NormalizedOutputOptions {
 	sourcemap: boolean | 'inline' | 'hidden';
 	sourcemapExcludeSources: boolean;
 	sourcemapFile: string | undefined;
-	sourcemapPathTransform: ((sourcePath: string) => string) | undefined;
+	sourcemapPathTransform: SourcemapPathTransformOption;
 	strict: boolean;
 	systemNullSetters: boolean;
 }
