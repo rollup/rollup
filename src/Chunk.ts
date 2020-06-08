@@ -151,8 +151,9 @@ export default class Chunk {
 	private dependencies = new Set<ExternalModule | Chunk>();
 	private dynamicDependencies = new Set<ExternalModule | Chunk>();
 	private dynamicEntryModules: Module[] = [];
+	private exportNamesByVariable: Map<Variable, string[]> | null = null;
 	private exports = new Set<Variable>();
-	private exportsByName: Record<string, Variable> = Object.create(null);
+	private exportsByName: Record<string, Variable> | null = null;
 	private fileName: string | null = null;
 	private implicitEntryModules: Module[] = [];
 	private implicitlyLoadedBefore = new Set<Chunk>();
@@ -258,6 +259,7 @@ export default class Chunk {
 	generateExports(options: NormalizedOutputOptions) {
 		this.sortedExportNames = null;
 		this.exportsByName = Object.create(null);
+		this.exportNamesByVariable = new Map();
 		const remainingExports = new Set(this.exports);
 		if (
 			this.facadeModule !== null &&
@@ -265,16 +267,21 @@ export default class Chunk {
 		) {
 			const exportNamesByVariable = this.facadeModule.getExportNamesByVariable();
 			for (const [variable, exportNames] of exportNamesByVariable) {
+				this.exportNamesByVariable.set(variable, [...exportNames]);
 				for (const exportName of exportNames) {
-					this.exportsByName[exportName] = variable;
+					this.exportsByName![exportName] = variable;
 				}
 				remainingExports.delete(variable);
 			}
 		}
 		if (options.minifyInternalExports) {
-			assignExportsToMangledNames(remainingExports, this.exportsByName);
+			assignExportsToMangledNames(
+				remainingExports,
+				this.exportsByName!,
+				this.exportNamesByVariable
+			);
 		} else {
-			assignExportsToNames(remainingExports, this.exportsByName);
+			assignExportsToNames(remainingExports, this.exportsByName!, this.exportNamesByVariable);
 		}
 		if (this.inputOptions.preserveModules || (this.facadeModule && this.facadeModule.isEntryPoint))
 			this.exportMode = getExportMode(
@@ -425,7 +432,7 @@ export default class Chunk {
 
 	getExportNames(): string[] {
 		return (
-			this.sortedExportNames || (this.sortedExportNames = Object.keys(this.exportsByName).sort())
+			this.sortedExportNames || (this.sortedExportNames = Object.keys(this.exportsByName!).sort())
 		);
 	}
 
@@ -471,7 +478,7 @@ export default class Chunk {
 		hash.update(
 			this.getExportNames()
 				.map(exportName => {
-					const variable = this.exportsByName[exportName];
+					const variable = this.exportsByName![exportName];
 					return `${relativeId((variable.module as Module).id).replace(/\\/g, '/')}:${
 						variable.name
 					}:${exportName}`;
@@ -485,10 +492,7 @@ export default class Chunk {
 		if (this.inputOptions.preserveModules && variable instanceof NamespaceVariable) {
 			return '*';
 		}
-		for (const exportName of Object.keys(this.exportsByName)) {
-			if (this.exportsByName[exportName] === variable) return exportName;
-		}
-		throw new Error(`Internal Error: Could not find export name for variable ${variable.name}.`);
+		return this.exportNamesByVariable!.get(variable)![0];
 	}
 
 	link() {
@@ -514,6 +518,7 @@ export default class Chunk {
 		const renderOptions: RenderOptions = {
 			compact: options.compact,
 			dynamicImportFunction: options.dynamicImportFunction,
+			exportNamesByVariable: this.exportNamesByVariable!,
 			format: options.format,
 			freeze: options.freeze,
 			indent: this.indentString,
@@ -843,7 +848,7 @@ export default class Chunk {
 					renderedResolution,
 					resolution instanceof Module &&
 						!(resolution.facadeChunk && resolution.facadeChunk.strictFacade) &&
-						resolution.namespace.exportName!,
+						resolution.chunk!.exportNamesByVariable!.get(resolution.namespace)![0],
 					options
 				);
 			}
@@ -875,7 +880,7 @@ export default class Chunk {
 				exportChunk = this.modulesById.get(exportName.substr(1)) as ExternalModule;
 				importName = exportName = '*';
 			} else {
-				const variable = this.exportsByName[exportName];
+				const variable = this.exportsByName![exportName];
 				if (variable instanceof SyntheticNamedExportVariable) continue;
 				const module = variable.module;
 				if (!module || module.chunk === this) continue;
@@ -965,7 +970,7 @@ export default class Chunk {
 		for (const exportName of this.getExportNames()) {
 			if (exportName[0] === '*') continue;
 
-			const variable = this.exportsByName[exportName];
+			const variable = this.exportsByName![exportName];
 			if (!(variable instanceof SyntheticNamedExportVariable)) {
 				const module = variable.module;
 				if (module && module.chunk !== this) continue;
@@ -1063,13 +1068,11 @@ export default class Chunk {
 
 	private setIdentifierRenderResolutions(options: NormalizedOutputOptions) {
 		const syntheticExports = new Set<SyntheticNamedExportVariable>();
-
 		for (const exportName of this.getExportNames()) {
-			const exportVariable = this.exportsByName[exportName];
+			const exportVariable = this.exportsByName![exportName];
 			if (exportVariable instanceof ExportShimVariable) {
 				this.needsExportsShim = true;
 			}
-			exportVariable.exportName = exportName;
 			if (
 				options.format !== 'es' &&
 				options.format !== 'system' &&
@@ -1109,7 +1112,8 @@ export default class Chunk {
 			options.format as string,
 			options.interop,
 			this.inputOptions.preserveModules,
-			syntheticExports
+			syntheticExports,
+			this.exportNamesByVariable!
 		);
 	}
 

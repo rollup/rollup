@@ -3,5 +3,5 @@ import Variable from '../../variables/Variable';
 import { Node } from './Node';
 
 export interface PatternNode extends WritableEntity, Node {
-	addExportedVariables(variables: Variable[]): void;
+	addExportedVariables(variables: Variable[], exportNamesByVariable: Map<Variable, string[]>): void;
 }

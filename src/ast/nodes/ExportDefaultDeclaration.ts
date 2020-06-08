@@ -1,9 +1,11 @@
 import MagicString from 'magic-string';
 import {
 	findFirstOccurrenceOutsideComment,
+	findNonWhiteSpace,
 	NodeRenderOptions,
 	RenderOptions
 } from '../../utils/renderHelpers';
+import { getSystemExportStatement } from '../../utils/systemJsRendering';
 import { treeshakeNode } from '../../utils/treeshakeNode';
 import { InclusionContext } from '../ExecutionContext';
 import ModuleScope from '../scopes/ModuleScope';
@@ -14,13 +16,9 @@ import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 
-const WHITESPACE = /\s/;
-
 // The header ends at the first non-white-space after "default"
 function getDeclarationStart(code: string, start: number) {
-	start = findFirstOccurrenceOutsideComment(code, 'default', start) + 7;
-	while (WHITESPACE.test(code[start])) start++;
-	return start;
+	return findNonWhiteSpace(code, findFirstOccurrenceOutsideComment(code, 'default', start) + 7);
 }
 
 function getIdInsertPosition(
@@ -133,9 +131,9 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		if (
 			options.format === 'system' &&
 			this.declaration instanceof ClassDeclaration &&
-			this.variable.exportName
+			options.exportNamesByVariable.has(this.variable)
 		) {
-			code.appendLeft(this.end, ` exports('${this.variable.exportName}', ${name});`);
+			code.appendLeft(this.end, ` ${getSystemExportStatement([this.variable], options)};`);
 		}
 	}
 
@@ -144,23 +142,29 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		declarationStart: number,
 		options: RenderOptions
 	) {
-		const systemBinding =
-			options.format === 'system' && this.variable.exportName
-				? `exports('${this.variable.exportName}', `
-				: '';
-		code.overwrite(
-			this.start,
-			declarationStart,
-			`${options.varOrConst} ${this.variable.getName()} = ${systemBinding}`
-		);
 		const hasTrailingSemicolon = code.original.charCodeAt(this.end - 1) === 59; /*";"*/
-		if (systemBinding) {
+		const systemExportNames =
+			options.format === 'system' && options.exportNamesByVariable.get(this.variable);
+
+		if (systemExportNames) {
+			code.overwrite(
+				this.start,
+				declarationStart,
+				`${options.varOrConst} ${this.variable.getName()} = exports('${systemExportNames[0]}', `
+			);
 			code.appendRight(
 				hasTrailingSemicolon ? this.end - 1 : this.end,
 				')' + (hasTrailingSemicolon ? '' : ';')
 			);
-		} else if (!hasTrailingSemicolon) {
-			code.appendLeft(this.end, ';');
+		} else {
+			code.overwrite(
+				this.start,
+				declarationStart,
+				`${options.varOrConst} ${this.variable.getName()} = `
+			);
+			if (!hasTrailingSemicolon) {
+				code.appendLeft(this.end, ';');
+			}
 		}
 	}
 }

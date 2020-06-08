@@ -1,5 +1,9 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
+import {
+	getSystemExportFunctionLeft,
+	getSystemExportStatement
+} from '../../utils/systemJsRendering';
 import { HasEffectsContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath } from '../utils/PathTracker';
 import Identifier from './Identifier';
@@ -34,30 +38,51 @@ export default class UpdateExpression extends NodeBase {
 
 	render(code: MagicString, options: RenderOptions) {
 		this.argument.render(code, options);
-		const variable = this.argument.variable;
-		if (options.format === 'system' && variable && variable.exportName) {
-			const name = variable.getName();
-			if (this.prefix) {
-				code.overwrite(
-					this.start,
-					this.end,
-					`exports('${variable.exportName}', ${this.operator}${name})`
-				);
-			} else {
-				let op;
-				switch (this.operator) {
-					case '++':
-						op = `${name} + 1`;
-						break;
-					case '--':
-						op = `${name} - 1`;
-						break;
+		if (options.format === 'system') {
+			const variable = this.argument.variable;
+			const exportNames = options.exportNamesByVariable.get(variable!);
+			if (exportNames && exportNames.length) {
+				const _ = options.compact ? '' : ' ';
+				const name = variable!.getName();
+				if (this.prefix) {
+					if (exportNames.length === 1) {
+						code.overwrite(
+							this.start,
+							this.end,
+							`exports('${exportNames[0]}',${_}${this.operator}${name})`
+						);
+					} else {
+						code.overwrite(
+							this.start,
+							this.end,
+							`(${this.operator}${name},${_}${getSystemExportStatement(
+								[variable!],
+								options
+							)},${_}${name})`
+						);
+					}
+				} else if (exportNames.length > 1) {
+					code.overwrite(
+						this.start,
+						this.end,
+						`${getSystemExportFunctionLeft([variable!], false, options)}${this.operator}${name})`
+					);
+				} else {
+					let op;
+					switch (this.operator) {
+						case '++':
+							op = `${name}${_}+${_}1`;
+							break;
+						case '--':
+							op = `${name}${_}-${_}1`;
+							break;
+					}
+					code.overwrite(
+						this.start,
+						this.end,
+						`(exports('${exportNames[0]}',${_}${op}),${_}${name}${this.operator})`
+					);
 				}
-				code.overwrite(
-					this.start,
-					this.end,
-					`(exports('${variable.exportName}', ${op}), ${name}${this.operator})`
-				);
 			}
 		}
 	}

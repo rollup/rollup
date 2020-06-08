@@ -200,6 +200,7 @@ export interface PluginContext extends MinimalPluginContext {
 
 export interface PluginContextMeta {
 	rollupVersion: string;
+	watchMode: boolean;
 }
 
 export interface ResolvedId {

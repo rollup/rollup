@@ -1,5 +1,6 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
+import { getSystemExportStatement } from '../../utils/systemJsRendering';
 import ChildScope from '../scopes/ChildScope';
 import { IdentifierWithVariable } from './Identifier';
 import * as NodeType from './NodeType';
@@ -19,18 +20,22 @@ export default class ClassDeclaration extends ClassNode {
 
 	parseNode(esTreeNode: GenericEsTreeNode) {
 		if (esTreeNode.id !== null) {
-			this.id = new this.context.nodeConstructors.Identifier(esTreeNode.id, this, this.scope
-				.parent as ChildScope) as IdentifierWithVariable;
+			this.id = new this.context.nodeConstructors.Identifier(
+				esTreeNode.id,
+				this,
+				this.scope.parent as ChildScope
+			) as IdentifierWithVariable;
 		}
 		super.parseNode(esTreeNode);
 	}
 
 	render(code: MagicString, options: RenderOptions) {
-		if (options.format === 'system' && this.id && this.id.variable.exportName) {
-			code.appendLeft(
-				this.end,
-				` exports('${this.id.variable.exportName}', ${this.id.variable.getName()});`
-			);
+		if (
+			options.format === 'system' &&
+			this.id &&
+			options.exportNamesByVariable.has(this.id.variable)
+		) {
+			code.appendLeft(this.end, `${options.compact ? '' : ' '}${getSystemExportStatement([this.id.variable], options)};`);
 		}
 		super.render(code, options);
 	}

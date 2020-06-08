@@ -13,7 +13,7 @@ System.register(['external', './other.js'], function (exports) {
 
 			console.log(external, value);
 
-			var commonjs = exports('default', 42);
+			var commonjs = function (v) { return exports({ default: v, __moduleExports: v }), v; }(42);
 
 		}
 	};

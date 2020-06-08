@@ -9,4 +9,4 @@ System.register(['./generated-dep2.js','external'],function(exports){'use strict
     fn$1();
     fn$3();
   }
-} exports('default', Main2);}}});
+}exports('default',Main2);}}});

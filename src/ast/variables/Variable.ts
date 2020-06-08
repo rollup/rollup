@@ -12,7 +12,6 @@ import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../valu
 
 export default class Variable implements ExpressionEntity {
 	alwaysRendered = false;
-	exportName: string | null = null;
 	included = false;
 	isId = false;
 	// both NamespaceVariable and ExternalVariable can be namespaces
@@ -22,7 +21,6 @@ export default class Variable implements ExpressionEntity {
 	name: string;
 	renderBaseName: string | null = null;
 	renderName: string | null = null;
-	safeExportName: string | null = null;
 
 	constructor(name: string) {
 		this.name = name;

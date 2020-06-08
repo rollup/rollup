@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 2.14.0
+*2020-06-07*
+
+### Features
+* Make `this.meta.watchMode` available for plugins to detect watch mode (#3616)
+
+### Bug Fixes
+* Handle exporting the same binding with different names in SystemJS (#3575)
+
+### Pull Requests
+* [#3575](https://github.com/rollup/rollup/pull/3575): Handle some cases of duplicate export bindings (@joeljeske)
+* [#3616](https://github.com/rollup/rollup/pull/3616): Make watch mode available in plugins (@lukastaegert)
+
 ## 2.13.1
 *2020-06-04*
 
