@@ -1357,10 +1357,6 @@ var meta = module.exports = {
 
 hiddenKeys[METADATA] = true;
 });
-var internalMetadata_1 = internalMetadata.REQUIRED;
-var internalMetadata_2 = internalMetadata.fastKey;
-var internalMetadata_3 = internalMetadata.getWeakData;
-var internalMetadata_4 = internalMetadata.onFreeze;
 
 var onFreeze = internalMetadata.onFreeze;
 

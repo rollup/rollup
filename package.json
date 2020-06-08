@@ -29,7 +29,7 @@
     "pretest": "npm run build:test",
     "pretest:coverage": "npm run build:test && shx rm -rf coverage/*",
     "pretest:typescript": "shx rm -rf test/typescript/dist && shx cp -r dist test/typescript/",
-    "security": "# npm audit disabled until is-reference is no longer a Github install",
+    "security": "npm audit",
     "test": "npm run test:all",
     "test:all": "npm run test:only && npm run test:typescript && npm run test:leak && npm run test:package",
     "test:coverage": "nyc --reporter html mocha",
