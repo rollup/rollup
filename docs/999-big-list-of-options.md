@@ -670,9 +670,9 @@ The location of the generated bundle. If this is an absolute path, all the `sour
 `sourcemapFile` is not required if `output` is specified, in which case an output filename will be inferred by adding ".map"  to the output filename for the bundle.
 
 #### output.sourcemapPathTransform
-Type: `(sourcePath: string) => string`
+Type: `(relativeSourcePath: string, sourcemapPath: string) => string`
 
-A transformation to apply to each path in a sourcemap. For instance the following will change all paths to be relative to the `src` directory.
+A transformation to apply to each path in a sourcemap. `relativeSourcePath` is a relative path from the generated `.map` file to the corresponding source file while `sourcemapPath` is the fully resolved path of the generated sourcemap file.
 
 ```js
 import path from 'path';
@@ -680,9 +680,9 @@ export default ({
   input: 'src/main',
   output: [{
     file: 'bundle.js',
-    sourcemapPathTransform: relativePath => {
-      // will transform e.g. "src/main.js" -> "main.js"
-      return path.relative('src', relativePath)
+    sourcemapPathTransform: (relativeSourcePath, sourcemapPath) => {
+      // will replace relative paths with absolute paths
+      return path.resolve(path.dirname(sourcemapPath), relativeSourcePath)
     },
     format: 'es',
     sourcemap: true
