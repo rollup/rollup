@@ -5,7 +5,8 @@ import {
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
 	OptionsPaths,
-	OutputOptions
+	OutputOptions,
+	SourcemapPathTransformOption
 } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
 import { errInvalidExportOptionValue, error, warnDeprecation } from '../error';
@@ -57,7 +58,7 @@ export function normalizeOutputOptions(
 		sourcemapExcludeSources: (config.sourcemapExcludeSources as boolean | undefined) || false,
 		sourcemapFile: config.sourcemapFile as string | undefined,
 		sourcemapPathTransform: config.sourcemapPathTransform as
-			| ((sourcePath: string) => string)
+			| SourcemapPathTransformOption
 			| undefined,
 		strict: (config.strict as boolean | undefined) ?? true,
 		systemNullSetters: (config.systemNullSetters as boolean | undefined) || false
