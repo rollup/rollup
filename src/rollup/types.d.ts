@@ -615,7 +615,7 @@ export interface NormalizedOutputOptions {
 	sourcemap: boolean | 'inline' | 'hidden';
 	sourcemapExcludeSources: boolean;
 	sourcemapFile: string | undefined;
-	sourcemapPathTransform: SourcemapPathTransformOption;
+	sourcemapPathTransform: SourcemapPathTransformOption | undefined;
 	strict: boolean;
 	systemNullSetters: boolean;
 }
