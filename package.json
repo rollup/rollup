@@ -75,7 +75,7 @@
     "@types/require-relative": "^0.8.0",
     "@types/signal-exit": "^3.0.0",
     "@types/yargs-parser": "^15.0.0",
-    "acorn": "^7.3.0",
+    "acorn": "^7.3.1",
     "acorn-class-fields": "^0.3.4",
     "acorn-import-meta": "^1.1.0",
     "acorn-jsx": "^5.2.0",
