@@ -29,7 +29,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 	annotatedPure?: boolean;
 	arguments!: (ExpressionNode | SpreadElement)[];
 	callee!: ExpressionNode | Super;
-	optional?: boolean;
+	optional!: boolean;
 	type!: NodeType.tCallExpression;
 
 	private callOptions!: CallOptions;
