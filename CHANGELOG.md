@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 2.16.0
+*2020-06-12*
+
+### Features
+* Add support for numeric separators (#3626)
+* Switch to finalized ESTree optional chaining AST (#3628)
+
+### Pull Requests
+* [#3626](https://github.com/rollup/rollup/pull/3626): Support numeric separator (@TrySound)
+* [#3628](https://github.com/rollup/rollup/pull/3628): Acorn 7.3.0 upgrade (@guybedford)
+* [#3631](https://github.com/rollup/rollup/pull/3631): Improve discoverability of `manualChunks` for code splitting (@zlamma)
+
 ## 2.15.0
 *2020-06-08*
 
