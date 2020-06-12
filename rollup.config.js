@@ -49,8 +49,7 @@ const moduleAliases = {
 	resolve: ['.js', '.json', '.md'],
 	entries: [
 		{ find: 'help.md', replacement: path.resolve('cli/help.md') },
-		{ find: 'package.json', replacement: path.resolve('package.json') },
-		{find: 'acorn', replacement: 'fork-acorn-optional-chaining'}
+		{ find: 'package.json', replacement: path.resolve('package.json') }
 	]
 };
 

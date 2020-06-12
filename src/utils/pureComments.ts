@@ -1,12 +1,10 @@
-// @ts-ignore
 import * as acorn from 'acorn';
-import * as acornWalk from 'acorn-walk';
+// @ts-ignore
+import { base as basicWalker } from 'acorn-walk';
 import { CommentDescription } from '../Module';
 
-const base = (acornWalk as any).base;
-
 // patch up acorn-walk until class-fields are officially supported
-base.FieldDefinition = function (node: any, st: any, c: any) {
+basicWalker.FieldDefinition = function (node: any, st: any, c: any) {
 	if (node.computed) {
 		c(node.key, st, 'Expression');
 	}
@@ -26,7 +24,7 @@ function handlePureAnnotationsOfNode(
 		commentNode = state.commentNodes[++state.commentIndex];
 	}
 	if (commentNode && commentNode.end <= node.end) {
-		base[type](node, state, handlePureAnnotationsOfNode);
+		basicWalker[type](node, state, handlePureAnnotationsOfNode);
 	}
 }
 

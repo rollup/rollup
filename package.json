@@ -93,7 +93,6 @@
     "eslint-plugin-import": "^2.21.1",
     "execa": "^4.0.2",
     "fixturify": "^2.1.0",
-    "fork-acorn-optional-chaining": "^7.2.0",
     "hash.js": "^1.1.7",
     "husky": "^4.2.5",
     "is-reference": "^1.2.0",

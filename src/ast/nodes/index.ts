@@ -9,6 +9,7 @@ import BlockStatement from './BlockStatement';
 import BreakStatement from './BreakStatement';
 import CallExpression from './CallExpression';
 import CatchClause from './CatchClause';
+import ChainExpression from './ChainExpression';
 import ClassBody from './ClassBody';
 import ClassDeclaration from './ClassDeclaration';
 import ClassExpression from './ClassExpression';
@@ -82,6 +83,7 @@ export const nodeConstructors: {
 	BreakStatement,
 	CallExpression,
 	CatchClause,
+	ChainExpression,
 	ClassBody,
 	ClassDeclaration,
 	ClassExpression,
