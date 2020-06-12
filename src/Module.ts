@@ -1,4 +1,4 @@
-import * as acorn from 'fork-acorn-optional-chaining';
+import * as acorn from 'acorn';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
 import extractAssignedNames from 'rollup-pluginutils/src/extractAssignedNames';
