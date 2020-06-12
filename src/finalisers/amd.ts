@@ -2,6 +2,7 @@ import { Bundle as MagicStringBundle } from 'magic-string';
 import { NormalizedOutputOptions } from '../rollup/types';
 import { INTEROP_NAMESPACE_VARIABLE } from '../utils/variableNames';
 import { FinaliserOptions } from './index';
+import { escapeId } from './shared/escapeId';
 import { compactEsModuleExport, esModuleExport } from './shared/esModuleExport';
 import getExportBlock from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
@@ -37,7 +38,7 @@ export default function amd(
 ) {
 	warnOnBuiltins(warn, dependencies);
 
-	const deps = dependencies.map(m => `'${removeExtensionFromRelativeAmdId(m.id)}'`);
+	const deps = dependencies.map(m => `'${removeExtensionFromRelativeAmdId(escapeId(m.id))}'`);
 	const args = dependencies.map(m => m.name);
 	const n = options.compact ? '' : '\n';
 	const _ = options.compact ? '' : ' ';

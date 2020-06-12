@@ -3,6 +3,7 @@ import { ChunkExports, ModuleDeclarations } from '../Chunk';
 import { NormalizedOutputOptions } from '../rollup/types';
 import { MISSING_EXPORT_SHIM_VARIABLE } from '../utils/variableNames';
 import { FinaliserOptions } from './index';
+import { escapeId } from './shared/escapeId';
 
 function getStarExcludes({ dependencies, exports }: ModuleDeclarations): Set<string> {
 	const starExcludes = new Set(exports.map(expt => expt.exported));
@@ -106,7 +107,7 @@ export default function system(
 	const n = options.compact ? '' : '\n';
 	const _ = options.compact ? '' : ' ';
 
-	const dependencyIds = dependencies.map(m => `'${m.id}'`);
+	const dependencyIds = dependencies.map(m => `'${escapeId(m.id)}'`);
 
 	const importBindings: string[] = [];
 	let starExcludes: Set<string> | undefined;

@@ -2,6 +2,7 @@ import { Bundle as MagicStringBundle } from 'magic-string';
 import { NormalizedOutputOptions } from '../rollup/types';
 import { INTEROP_DEFAULT_VARIABLE, INTEROP_NAMESPACE_VARIABLE } from '../utils/variableNames';
 import { FinaliserOptions } from './index';
+import { escapeId } from './shared/escapeId';
 import { compactEsModuleExport, esModuleExport } from './shared/esModuleExport';
 import getExportBlock from './shared/getExportBlock';
 import { getInteropNamespace } from './shared/getInteropNamespace';
@@ -51,21 +52,22 @@ export default function cjs(
 				importBlock += !options.compact || definingVariable ? `;${n}` : ',';
 			}
 			definingVariable = false;
-			importBlock += `require('${id}')`;
+			importBlock += `require('${escapeId(id)}')`;
 		} else {
 			importBlock +=
 				options.compact && definingVariable ? ',' : `${importBlock ? `;${n}` : ''}${varOrConst} `;
 			definingVariable = true;
 
 			if (!options.interop || isChunk || !exportsDefault || !namedExportsMode) {
-				importBlock += `${name}${_}=${_}require('${id}')`;
+				importBlock += `${name}${_}=${_}require('${escapeId(id)}')`;
 			} else {
 				needsInterop = true;
 				if (exportsNames)
-					importBlock += `${name}${_}=${_}require('${id}')${
+					importBlock += `${name}${_}=${_}require('${escapeId(id)}')${
 						options.compact ? ',' : `;\n${varOrConst} `
 					}${name}__default${_}=${_}${INTEROP_DEFAULT_VARIABLE}(${name})`;
-				else importBlock += `${name}${_}=${_}${INTEROP_DEFAULT_VARIABLE}(require('${id}'))`;
+				else
+					importBlock += `${name}${_}=${_}${INTEROP_DEFAULT_VARIABLE}(require('${escapeId(id)}'))`;
 			}
 		}
 	}
