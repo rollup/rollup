@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 2.16.1
+*2020-06-13*
+
+### Bug Fixes
+* Do not produce invalid code when an external or chunk id contain quotes or line-breaks (#3632)
+* Do not fail but emit a warning when mutating a namespace object (#3633)
+
+### Pull Requests
+* [#3632](https://github.com/rollup/rollup/pull/3632): Handle single quote escaping in ids (@guybedford)
+* [#3633](https://github.com/rollup/rollup/pull/3633): Turn namespace assignment error into a warning (@guybedford)
+
 ## 2.16.0
 *2020-06-12*
 
