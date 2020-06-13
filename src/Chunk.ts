@@ -28,6 +28,7 @@ import { collapseSourcemaps } from './utils/collapseSourcemaps';
 import { createHash } from './utils/crypto';
 import { deconflictChunk } from './utils/deconflictChunk';
 import { errFailedValidation, error } from './utils/error';
+import { escapeId } from './utils/escapeId';
 import { sortByExecutionOrder } from './utils/executionOrder';
 import { assignExportsToMangledNames, assignExportsToNames } from './utils/exportNames';
 import getExportMode from './utils/getExportMode';
@@ -633,7 +634,7 @@ export default class Chunk {
 			const depId = dependency instanceof ExternalModule ? renderedDependency.id : dependency.id!;
 			if (dependency instanceof Chunk)
 				renderedDependency.namedExportsMode = dependency.exportMode !== 'default';
-			renderedDependency.id = this.getRelativePath(depId, false);
+			renderedDependency.id = escapeId(this.getRelativePath(depId, false));
 		}
 
 		this.finaliseDynamicImports(options);
@@ -938,7 +939,7 @@ export default class Chunk {
 			let id: string = undefined as any;
 			let globalName: string = undefined as any;
 			if (dep instanceof ExternalModule) {
-				id = dep.renderPath;
+				id = escapeId(dep.renderPath);
 				if (options.format === 'umd' || options.format === 'iife') {
 					globalName = getGlobalName(
 						dep,
