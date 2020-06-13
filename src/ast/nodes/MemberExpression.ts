@@ -262,7 +262,8 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			this.object instanceof Identifier &&
 			this.scope.findVariable(this.object.name).isNamespace
 		) {
-			return this.context.error(
+			this.scope.findVariable(this.object.name).include();
+			this.context.warn(
 				{
 					code: 'ILLEGAL_NAMESPACE_REASSIGNMENT',
 					message: `Illegal reassignment to import '${this.object.name}'`
