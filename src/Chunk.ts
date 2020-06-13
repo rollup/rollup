@@ -28,6 +28,7 @@ import { collapseSourcemaps } from './utils/collapseSourcemaps';
 import { createHash } from './utils/crypto';
 import { deconflictChunk } from './utils/deconflictChunk';
 import { errFailedValidation, error } from './utils/error';
+import { escapeId } from './utils/escapeId';
 import { sortByExecutionOrder } from './utils/executionOrder';
 import { assignExportsToMangledNames, assignExportsToNames } from './utils/exportNames';
 import getExportMode from './utils/getExportMode';
@@ -628,12 +629,16 @@ export default class Chunk {
 		// populate ids in the rendered declarations only here
 		// as chunk ids known only after prerender
 		for (const dependency of this.dependencies) {
-			if (dependency instanceof ExternalModule && !dependency.renormalizeRenderPath) continue;
 			const renderedDependency = this.renderedDependencies!.get(dependency)!;
-			const depId = dependency instanceof ExternalModule ? renderedDependency.id : dependency.id!;
-			if (dependency instanceof Chunk)
+			if (dependency instanceof ExternalModule) {
+				const originalId = dependency.renderPath;
+				renderedDependency.id = escapeId(
+					dependency.renormalizeRenderPath ? this.getRelativePath(originalId, false) : originalId
+				);
+			} else {
 				renderedDependency.namedExportsMode = dependency.exportMode !== 'default';
-			renderedDependency.id = this.getRelativePath(depId, false);
+				renderedDependency.id = escapeId(this.getRelativePath(dependency.id!, false));
+			}
 		}
 
 		this.finaliseDynamicImports(options);
@@ -935,25 +940,18 @@ export default class Chunk {
 				namedExportsMode = dep.exportMode !== 'default';
 			}
 
-			let id: string = undefined as any;
-			let globalName: string = undefined as any;
-			if (dep instanceof ExternalModule) {
-				id = dep.renderPath;
-				if (options.format === 'umd' || options.format === 'iife') {
-					globalName = getGlobalName(
+			dependencies.set(dep, {
+				exportsDefault,
+				exportsNames,
+				globalName: (dep instanceof ExternalModule &&
+					(options.format === 'umd' || options.format === 'iife') &&
+					getGlobalName(
 						dep,
 						options.globals,
 						exportsNames || exportsDefault,
 						this.inputOptions.onwarn
-					)!;
-				}
-			}
-
-			dependencies.set(dep, {
-				exportsDefault,
-				exportsNames,
-				globalName,
-				id, // chunk id updated on render
+					)) as string,
+				id: undefined as any, // chunk id updated on render
 				imports: imports.length > 0 ? imports : (null as any),
 				isChunk: dep instanceof Chunk,
 				name: dep.variableName,
