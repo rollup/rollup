@@ -1,17 +1,15 @@
-System.register('Q', ['quoted\'external'], function (exports) {
+System.register('Q', ['quoted\'\r\n\u2028\u2029external1', './quoted\'\r\n\u2028\u2029external2'], function () {
 	'use strict';
-	var _starExcludes = { default: 1 };
+	var foo, bar;
 	return {
 		setters: [function (module) {
-			var _setter = {};
-			for (var _$p in module) {
-				if (!_starExcludes[_$p]) _setter[_$p] = module[_$p];
-			}
-			exports(_setter);
+			foo = module.foo;
+		}, function (module) {
+			bar = module.bar;
 		}],
 		execute: function () {
 
-
+			console.log(foo, bar);
 
 		}
 	};

@@ -1,16 +1,5 @@
-define(['exports', 'quoted\'external'], function (exports, quoted_external) { 'use strict';
+define(['quoted\'\r\n\u2028\u2029external1', './quoted\'\r\n\u2028\u2029external2'], function (quoted_____external1, quoted_____external2) { 'use strict';
 
-
-
-	Object.keys(quoted_external).forEach(function (k) {
-		if (k !== 'default') Object.defineProperty(exports, k, {
-			enumerable: true,
-			get: function () {
-				return quoted_external[k];
-			}
-		});
-	});
-
-	Object.defineProperty(exports, '__esModule', { value: true });
+	console.log(quoted_____external1.foo, quoted_____external2.bar);
 
 });

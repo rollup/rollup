@@ -1,17 +1,6 @@
-var Q = (function (exports, quoted_external) {
+(function (quoted_____external1, quoted_____external2) {
 	'use strict';
 
+	console.log(quoted_____external1.foo, quoted_____external2.bar);
 
-
-	Object.keys(quoted_external).forEach(function (k) {
-		if (k !== 'default') Object.defineProperty(exports, k, {
-			enumerable: true,
-			get: function () {
-				return quoted_external[k];
-			}
-		});
-	});
-
-	return exports;
-
-}({}, quotedExternal));
+}(quotedExternal1, quotedExternal2));
