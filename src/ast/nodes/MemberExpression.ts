@@ -258,17 +258,18 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	}
 
 	private disallowNamespaceReassignment() {
-		if (
-			this.object instanceof Identifier &&
-			this.scope.findVariable(this.object.name).isNamespace
-		) {
-			return this.context.error(
-				{
-					code: 'ILLEGAL_NAMESPACE_REASSIGNMENT',
-					message: `Illegal reassignment to import '${this.object.name}'`
-				},
-				this.start
-			);
+		if (this.object instanceof Identifier) {
+			const variable = this.scope.findVariable(this.object.name);
+			if (variable.isNamespace) {
+				variable.include();
+				this.context.warn(
+					{
+						code: 'ILLEGAL_NAMESPACE_REASSIGNMENT',
+						message: `Illegal reassignment to import '${this.object.name}'`
+					},
+					this.start
+				);
+			}
 		}
 	}
 
