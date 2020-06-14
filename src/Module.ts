@@ -178,7 +178,6 @@ function getVariableForExportNameRecursive(
 }
 
 export default class Module {
-	chunk: Chunk | null = null;
 	chunkFileNames = new Set<string>();
 	chunkName: string | null = null;
 	code!: string;
@@ -196,6 +195,7 @@ export default class Module {
 	exportAllSources = new Set<string>();
 	exports: { [name: string]: ExportDescription } = Object.create(null);
 	exportsAll: { [name: string]: string } = Object.create(null);
+	// TODO Lukas get rid of this as well
 	facadeChunk: Chunk | null = null;
 	implicitlyLoadedAfter = new Set<Module>();
 	implicitlyLoadedBefore = new Set<Module>();

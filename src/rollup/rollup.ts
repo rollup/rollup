@@ -1,6 +1,5 @@
 import { version as rollupVersion } from 'package.json';
 import Bundle from '../Bundle';
-import Chunk from '../Chunk';
 import Graph from '../Graph';
 import { ensureArray } from '../utils/ensureArray';
 import { errCannotEmitFromOptionsHook, error } from '../utils/error';
@@ -48,10 +47,9 @@ export async function rollupInternal(
 
 	timeStart('BUILD', 1);
 
-	let chunks: Chunk[];
 	try {
 		await graph.pluginDriver.hookParallel('buildStart', [inputOptions]);
-		chunks = await graph.build();
+		await graph.build();
 	} catch (err) {
 		const watchFiles = Object.keys(graph.watchFiles);
 		if (watchFiles.length > 0) {
@@ -60,6 +58,10 @@ export async function rollupInternal(
 		await graph.pluginDriver.hookParallel('buildEnd', [err]);
 		throw err;
 	}
+
+	timeStart('generate chunks', 2);
+	const chunks = graph.generateChunks();
+	timeEnd('generate chunks', 2);
 
 	await graph.pluginDriver.hookParallel('buildEnd', []);
 

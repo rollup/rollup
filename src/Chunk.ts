@@ -118,23 +118,26 @@ export default class Chunk {
 		inputOptions: NormalizedInputOptions,
 		unsetOptions: Set<string>,
 		modulesById: Map<string, Module | ExternalModule>,
+		chunkByModule: Map<Module, Chunk>,
 		facadedModule: Module,
 		facadeName: FacadeName
 	): Chunk {
-		const chunk = new Chunk([], inputOptions, unsetOptions, modulesById);
+		const chunk = new Chunk([], inputOptions, unsetOptions, modulesById, chunkByModule);
 		chunk.assignFacadeName(facadeName, facadedModule);
 		if (!facadedModule.facadeChunk) {
 			facadedModule.facadeChunk = chunk;
 		}
 		for (const dependency of facadedModule.getDependenciesToBeIncluded()) {
-			chunk.dependencies.add(dependency instanceof Module ? dependency.chunk! : dependency);
+			chunk.dependencies.add(
+				dependency instanceof Module ? chunkByModule.get(dependency)! : dependency
+			);
 		}
 		if (
-			!chunk.dependencies.has(facadedModule.chunk!) &&
+			!chunk.dependencies.has(chunkByModule.get(facadedModule)!) &&
 			facadedModule.moduleSideEffects &&
 			facadedModule.hasEffects()
 		) {
-			chunk.dependencies.add(facadedModule.chunk!);
+			chunk.dependencies.add(chunkByModule.get(facadedModule)!);
 		}
 		chunk.ensureReexportsAreAvailableForModule(facadedModule);
 		chunk.facadeModule = facadedModule;
@@ -183,7 +186,8 @@ export default class Chunk {
 		private readonly orderedModules: Module[],
 		private readonly inputOptions: NormalizedInputOptions,
 		private readonly unsetOptions: Set<string>,
-		private readonly modulesById: Map<string, Module | ExternalModule>
+		private readonly modulesById: Map<string, Module | ExternalModule>,
+		private readonly chunkByModule: Map<Module, Chunk>
 	) {
 		this.execIndex = orderedModules.length > 0 ? orderedModules[0].execIndex : Infinity;
 		const chunkModules = new Set(orderedModules);
@@ -195,7 +199,6 @@ export default class Chunk {
 			if (module.manualChunkAlias) {
 				this.manualChunkAlias = module.manualChunkAlias;
 			}
-			module.chunk = this;
 			if (module.isEntryPoint) {
 				this.entryModules.push(module);
 			}
@@ -338,6 +341,7 @@ export default class Chunk {
 						this.inputOptions,
 						this.unsetOptions,
 						this.modulesById,
+						this.chunkByModule,
 						module,
 						facadeName
 					)
@@ -754,13 +758,14 @@ export default class Chunk {
 		moduleDependencies: Set<Module | ExternalModule>,
 		chunkDependencies: Set<Chunk | ExternalModule>
 	) {
-		for (const depModule of moduleDependencies) {
-			if (depModule instanceof Module) {
-				if (depModule.chunk && depModule.chunk !== this) {
-					chunkDependencies.add(depModule.chunk);
+		for (const module of moduleDependencies) {
+			if (module instanceof Module) {
+				const chunk = this.chunkByModule.get(module);
+				if (chunk && chunk !== this) {
+					chunkDependencies.add(chunk);
 				}
 			} else {
-				chunkDependencies.add(depModule);
+				chunkDependencies.add(module);
 			}
 		}
 	}
@@ -809,16 +814,16 @@ export default class Chunk {
 			const importedVariable = isSynthetic
 				? (exportedVariable as SyntheticNamedExportVariable).getBaseVariable()
 				: exportedVariable;
-			const exportingModule = importedVariable.module;
-			if (
-				exportingModule &&
-				exportingModule.chunk &&
-				exportingModule.chunk !== this &&
-				!(importedVariable instanceof NamespaceVariable && this.inputOptions.preserveModules)
-			) {
-				exportingModule.chunk.exports.add(importedVariable);
-				if (isSynthetic) {
-					this.imports.add(importedVariable);
+			if (!(importedVariable instanceof NamespaceVariable && this.inputOptions.preserveModules)) {
+				const exportingModule = importedVariable.module;
+				if (exportingModule instanceof Module) {
+					const chunk = this.chunkByModule.get(exportingModule);
+					if (chunk && chunk !== this) {
+						chunk.exports.add(importedVariable);
+						if (isSynthetic) {
+							this.imports.add(importedVariable);
+						}
+					}
 				}
 			}
 		}
@@ -828,17 +833,14 @@ export default class Chunk {
 		const stripKnownJsExtensions = options.format === 'amd';
 		for (const [module, code] of this.renderedModuleSources) {
 			for (const { node, resolution } of module.dynamicImports) {
-				if (
-					!resolution ||
-					!node.included ||
-					(resolution instanceof Module && resolution.chunk === this)
-				) {
+				const chunk = this.chunkByModule.get(resolution as Module);
+				if (!resolution || !node.included || chunk === this) {
 					continue;
 				}
 				const renderedResolution =
 					resolution instanceof Module
 						? `'${this.getRelativePath(
-								(resolution.facadeChunk || resolution.chunk!).id!,
+								(resolution.facadeChunk || chunk!).id!,
 								stripKnownJsExtensions
 						  )}'`
 						: resolution instanceof ExternalModule
@@ -853,7 +855,7 @@ export default class Chunk {
 					renderedResolution,
 					resolution instanceof Module &&
 						!(resolution.facadeChunk && resolution.facadeChunk.strictFacade) &&
-						resolution.chunk!.exportNamesByVariable!.get(resolution.namespace)![0],
+						chunk!.exportNamesByVariable!.get(resolution.namespace)![0],
 					options
 				);
 			}
@@ -888,9 +890,10 @@ export default class Chunk {
 				const variable = this.exportsByName![exportName];
 				if (variable instanceof SyntheticNamedExportVariable) continue;
 				const module = variable.module;
-				if (!module || module.chunk === this) continue;
+				if (!module) continue;
 				if (module instanceof Module) {
-					exportChunk = module.chunk!;
+					exportChunk = this.chunkByModule.get(module)!;
+					if (exportChunk === this) continue;
 					importName = exportChunk.getVariableExportName(variable);
 					needsLiveBinding = variable.isReassigned;
 				} else {
@@ -912,7 +915,7 @@ export default class Chunk {
 			for (const variable of this.imports) {
 				if (
 					(variable.module instanceof Module
-						? variable.module.chunk === dep
+						? this.chunkByModule.get(variable.module) === dep
 						: variable.module === dep) &&
 					!renderedImports.has(variable)
 				) {
@@ -921,7 +924,7 @@ export default class Chunk {
 						imported:
 							variable.module instanceof ExternalModule
 								? variable.name
-								: variable.module!.chunk!.getVariableExportName(variable),
+								: this.chunkByModule.get(variable.module!)!.getVariableExportName(variable),
 						local: variable.getName()
 					});
 				}
@@ -971,7 +974,7 @@ export default class Chunk {
 			const variable = this.exportsByName![exportName];
 			if (!(variable instanceof SyntheticNamedExportVariable)) {
 				const module = variable.module;
-				if (module && module.chunk !== this) continue;
+				if (module && this.chunkByModule.get(module as Module) !== this) continue;
 			}
 			let expression = null;
 			let hoisted = false;
@@ -1044,10 +1047,11 @@ export default class Chunk {
 			for (const { node, resolution } of module.dynamicImports) {
 				if (!node.included) continue;
 				if (resolution instanceof Module) {
-					if (resolution.chunk === this) {
+					const chunk = this.chunkByModule.get(resolution);
+					if (chunk === this) {
 						node.setInternalResolution(resolution.namespace);
 					} else {
-						node.setExternalResolution(resolution.chunk!.exportMode, resolution);
+						node.setExternalResolution(chunk!.exportMode, resolution);
 					}
 				} else {
 					node.setExternalResolution('auto', resolution);
@@ -1110,6 +1114,7 @@ export default class Chunk {
 			options.format as string,
 			options.interop,
 			this.inputOptions.preserveModules,
+			this.chunkByModule,
 			syntheticExports,
 			this.exportNamesByVariable!
 		);
@@ -1123,19 +1128,22 @@ export default class Chunk {
 			if (variable instanceof SyntheticNamedExportVariable) {
 				variable = variable.getBaseVariable();
 			}
-			if (variable.module && (variable.module as Module).chunk !== this) {
-				this.imports.add(variable);
-				if (
-					!(variable instanceof NamespaceVariable && this.inputOptions.preserveModules) &&
-					variable.module instanceof Module
-				) {
-					variable.module.chunk!.exports.add(variable);
+			if (variable.module) {
+				const chunk = this.chunkByModule.get(variable.module as Module);
+				if (chunk !== this) {
+					this.imports.add(variable);
+					if (
+						!(variable instanceof NamespaceVariable && this.inputOptions.preserveModules) &&
+						variable.module instanceof Module
+					) {
+						chunk!.exports.add(variable);
+					}
 				}
 			}
 		}
 		if (
 			(module.isEntryPoint && module.preserveSignature !== false) ||
-			module.includedDynamicImporters.some(importer => importer.chunk !== this) ||
+			module.includedDynamicImporters.some(importer => this.chunkByModule.get(importer) !== this) ||
 			module.namespace.included
 		) {
 			this.ensureReexportsAreAvailableForModule(module);
@@ -1144,7 +1152,7 @@ export default class Chunk {
 			if (
 				node.included &&
 				resolution instanceof Module &&
-				resolution.chunk === this &&
+				this.chunkByModule.get(resolution) === this &&
 				!resolution.namespace.included
 			) {
 				resolution.namespace.include();

@@ -104,7 +104,7 @@ export default class Graph {
 		this.moduleLoader = new ModuleLoader(this, this.modulesById, this.options, this.pluginDriver);
 	}
 
-	async build(): Promise<Chunk[]> {
+	async build(): Promise<void> {
 		timeStart('generate module graph', 2);
 		await this.generateModuleGraph();
 		timeEnd('generate module graph', 2);
@@ -118,16 +118,12 @@ export default class Graph {
 		this.includeStatements();
 		timeEnd('mark included statements', 2);
 
-		timeStart('generate chunks', 2);
-		const chunks = this.generateChunks();
-		timeEnd('generate chunks', 2);
 		this.phase = BuildPhase.GENERATE;
-
-		return chunks;
 	}
 
 	generateChunks(): Chunk[] {
 		const chunks: Chunk[] = [];
+		const chunkByModule = new Map<Module, Chunk>();
 		if (this.options.preserveModules) {
 			for (const module of this.modules) {
 				if (
@@ -135,9 +131,16 @@ export default class Graph {
 					module.isEntryPoint ||
 					module.includedDynamicImporters.length > 0
 				) {
-					const chunk = new Chunk([module], this.options, this.unsetOptions, this.modulesById);
+					const chunk = new Chunk(
+						[module],
+						this.options,
+						this.unsetOptions,
+						this.modulesById,
+						chunkByModule
+					);
 					chunk.entryModules = [module];
 					chunks.push(chunk);
+					chunkByModule.set(module, chunk);
 				}
 			}
 		} else {
@@ -145,7 +148,17 @@ export default class Graph {
 				? [this.modules]
 				: getChunkAssignments(this.entryModules, this.manualChunkModulesByAlias)) {
 				sortByExecutionOrder(chunkModules);
-				chunks.push(new Chunk(chunkModules, this.options, this.unsetOptions, this.modulesById));
+				const chunk = new Chunk(
+					chunkModules,
+					this.options,
+					this.unsetOptions,
+					this.modulesById,
+					chunkByModule
+				);
+				chunks.push(chunk);
+				for (const module of chunkModules) {
+					chunkByModule.set(module, chunk);
+				}
 			}
 		}
 
@@ -256,12 +269,9 @@ export default class Graph {
 				timeEnd(`treeshaking pass ${treeshakingPass++}`, 3);
 			} while (this.needsTreeshakingPass);
 		} else {
-			// Necessary to properly replace namespace imports
 			for (const module of this.modules) module.includeAllInBundle();
 		}
-		// check for unused external imports
 		for (const externalModule of this.externalModules) externalModule.warnUnusedImports();
-		// check for missing implicit dependants
 		for (const module of this.implicitEntryModules) {
 			for (const dependant of module.implicitlyLoadedAfter) {
 				if (!(dependant.isEntryPoint || dependant.isIncluded())) {
