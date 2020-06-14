@@ -12,7 +12,7 @@ exports.loader = loader;
 exports.normaliseOutput = normaliseOutput;
 exports.runTestSuiteWithSamples = runTestSuiteWithSamples;
 exports.assertDirectoriesAreEqual = assertDirectoriesAreEqual;
-exports.assertStderrIncludes = assertStderrIncludes;
+exports.assertIncludes = assertIncludes;
 
 function normaliseError(error) {
 	delete error.stack;
@@ -219,14 +219,14 @@ function assertFilesAreEqual(actualFiles, expectedFiles, dirs = []) {
 	});
 }
 
-function assertStderrIncludes(stderr, expected) {
+function assertIncludes(actual, expected) {
 	try {
 		assert.ok(
-			stderr.includes(expected),
-			`Could not find ${JSON.stringify(expected)} in ${JSON.stringify(stderr)}`
+			actual.includes(expected),
+			`${JSON.stringify(actual)}\nincludes\n${JSON.stringify(expected)}`
 		);
 	} catch (err) {
-		err.actual = stderr;
+		err.actual = actual;
 		err.expected = expected;
 		throw err;
 	}
