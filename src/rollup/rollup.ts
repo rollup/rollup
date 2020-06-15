@@ -60,7 +60,7 @@ export async function rollupInternal(
 	}
 
 	timeStart('generate chunks', 2);
-	const chunks = graph.generateChunks();
+	const { chunks, facadeChunkByModule } = graph.generateChunks();
 	timeEnd('generate chunks', 2);
 
 	await graph.pluginDriver.hookParallel('buildEnd', []);
@@ -84,7 +84,8 @@ export async function rollupInternal(
 				unsetOptions,
 				inputOptions,
 				outputPluginDriver,
-				chunks
+				chunks,
+				facadeChunkByModule
 			);
 			return createOutput(await bundle.generate(false));
 		},
@@ -110,7 +111,8 @@ export async function rollupInternal(
 				unsetOptions,
 				inputOptions,
 				outputPluginDriver,
-				chunks
+				chunks,
+				facadeChunkByModule
 			);
 			const generated = await bundle.generate(true);
 			await Promise.all(

@@ -121,9 +121,10 @@ export default class Graph {
 		this.phase = BuildPhase.GENERATE;
 	}
 
-	generateChunks(): Chunk[] {
+	generateChunks(): { chunks: Chunk[]; facadeChunkByModule: Map<Module, Chunk> } {
 		const chunks: Chunk[] = [];
 		const chunkByModule = new Map<Module, Chunk>();
+		const facadeChunkByModule = new Map<Module, Chunk>();
 		if (this.options.preserveModules) {
 			for (const module of this.modules) {
 				if (
@@ -136,7 +137,8 @@ export default class Graph {
 						this.options,
 						this.unsetOptions,
 						this.modulesById,
-						chunkByModule
+						chunkByModule,
+						facadeChunkByModule
 					);
 					chunk.entryModules = [module];
 					chunks.push(chunk);
@@ -153,7 +155,8 @@ export default class Graph {
 					this.options,
 					this.unsetOptions,
 					this.modulesById,
-					chunkByModule
+					chunkByModule,
+					facadeChunkByModule
 				);
 				chunks.push(chunk);
 				for (const module of chunkModules) {
@@ -169,7 +172,7 @@ export default class Graph {
 		for (const chunk of chunks) {
 			facades.push(...chunk.generateFacades());
 		}
-		return [...chunks, ...facades];
+		return { chunks: [...chunks, ...facades], facadeChunkByModule };
 	}
 
 	getCache(): RollupCache {

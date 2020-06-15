@@ -26,7 +26,6 @@ import ExternalVariable from './ast/variables/ExternalVariable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import SyntheticNamedExportVariable from './ast/variables/SyntheticNamedExportVariable';
 import Variable from './ast/variables/Variable';
-import Chunk from './Chunk';
 import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import {
@@ -195,8 +194,6 @@ export default class Module {
 	exportAllSources = new Set<string>();
 	exports: { [name: string]: ExportDescription } = Object.create(null);
 	exportsAll: { [name: string]: string } = Object.create(null);
-	// TODO Lukas get rid of this as well
-	facadeChunk: Chunk | null = null;
 	implicitlyLoadedAfter = new Set<Module>();
 	implicitlyLoadedBefore = new Set<Module>();
 	importDescriptions: { [name: string]: ImportDescription } = Object.create(null);

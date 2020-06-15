@@ -1,4 +1,5 @@
 import Chunk from './Chunk';
+import Module from './Module';
 import {
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
@@ -20,14 +21,21 @@ export default class Bundle {
 		private readonly unsetOptions: Set<string>,
 		private readonly inputOptions: NormalizedInputOptions,
 		private readonly pluginDriver: PluginDriver,
-		private readonly chunks: Chunk[]
+		private readonly chunks: Chunk[],
+		private readonly facadeChunkByModule: Map<Module, Chunk>
 	) {}
 
 	async generate(isWrite: boolean): Promise<OutputBundle> {
 		timeStart('GENERATE', 1);
 		const inputBase = commondir(getAbsoluteEntryModulePaths(this.chunks));
 		const outputBundle: OutputBundleWithPlaceholders = Object.create(null);
-		this.pluginDriver.setOutputBundle(outputBundle, this.outputOptions.assetFileNames);
+		// TODO Lukas this can only be done once we have chunks due to facadeChunkByModule at the moment
+		// Better: test not getting the file name in renderStart and put a ?.id in getChunkFileName
+		this.pluginDriver.setOutputBundle(
+			outputBundle,
+			this.outputOptions.assetFileNames,
+			this.facadeChunkByModule
+		);
 		try {
 			await this.pluginDriver.hookParallel('renderStart', [this.outputOptions, this.inputOptions]);
 			if (this.chunks.length > 1) {
