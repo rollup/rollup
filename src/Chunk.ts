@@ -614,7 +614,6 @@ export default class Chunk {
 	) {
 		timeStart('render format', 3);
 
-		const chunkId = this.id!;
 		const format = options.format;
 		const finalise = finalisers[format];
 		if (options.dynamicImportFunction && format !== 'es') {
@@ -712,8 +711,8 @@ export default class Chunk {
 
 			let file: string;
 			if (options.file) file = resolve(options.sourcemapFile || options.file);
-			else if (options.dir) file = resolve(options.dir, chunkId);
-			else file = resolve(chunkId);
+			else if (options.dir) file = resolve(options.dir, this.id!);
+			else file = resolve(this.id!);
 
 			const decodedMap = magicString.generateDecodedMap({});
 			map = collapseSourcemaps(

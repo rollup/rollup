@@ -25,6 +25,7 @@ export default class Bundle {
 		private readonly graph: Graph // TODO Lukas replace with used properties
 	) {}
 
+	// TODO Lukas make this one nicer by structuring it
 	async generate(isWrite: boolean): Promise<OutputBundle> {
 		timeStart('GENERATE', 1);
 		const outputBundle: OutputBundleWithPlaceholders = Object.create(null);

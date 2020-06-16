@@ -62,7 +62,6 @@ export default class Graph {
 	private externalModules: ExternalModule[] = [];
 	private implicitEntryModules: Module[] = [];
 	private manualChunkAliasByEntry = new Map<Module, string>();
-	private manualChunkEntriesByAlias: Record<string, Module[]> = {};
 	private modules: Module[] = [];
 	private pluginCache?: Record<string, SerializablePluginCache>;
 
@@ -122,6 +121,7 @@ export default class Graph {
 		this.phase = BuildPhase.GENERATE;
 	}
 
+	// TODO Lukas note that this is both returning a value and mutating its argument
 	generateChunks(facadeChunkByModule: Map<Module, Chunk>): Chunk[] {
 		const chunks: Chunk[] = [];
 		const chunkByModule = new Map<Module, Chunk>();
@@ -149,11 +149,7 @@ export default class Graph {
 		} else {
 			const chunkDefinitions = this.options.inlineDynamicImports
 				? [{ alias: null, modules: this.modules }]
-				: getChunkAssignments(
-						this.entryModules,
-						this.manualChunkEntriesByAlias,
-						this.manualChunkAliasByEntry
-				  );
+				: getChunkAssignments(this.entryModules, this.manualChunkAliasByEntry);
 			for (const { alias, modules } of chunkDefinitions) {
 				sortByExecutionOrder(modules);
 				const chunk = new Chunk(
@@ -239,8 +235,7 @@ export default class Graph {
 			{
 				entryModules: this.entryModules,
 				implicitEntryModules: this.implicitEntryModules,
-				manualChunkAliasByEntry: this.manualChunkAliasByEntry,
-				manualChunkEntriesByAlias: this.manualChunkEntriesByAlias
+				manualChunkAliasByEntry: this.manualChunkAliasByEntry
 			}
 		] = await Promise.all([
 			this.moduleLoader.addEntryModules(normalizeEntryModules(this.options.input), true),

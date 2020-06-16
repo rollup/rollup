@@ -6,17 +6,18 @@ type ChunkDefinitions = { alias: string | null; modules: Module[] }[];
 
 export function getChunkAssignments(
 	entryModules: Module[],
-	manualChunkEntriesByAlias: Record<string, Module[]>,
 	manualChunkAliasByEntry: Map<Module, string>
 ): ChunkDefinitions {
-	const modulesInManualChunks = new Set<Module>(manualChunkAliasByEntry.keys());
 	const chunkDefinitions: ChunkDefinitions = [];
-	for (const alias of Object.keys(manualChunkEntriesByAlias)) {
-		const chunkModules: Module[] = [];
-		for (const entry of manualChunkEntriesByAlias[alias]) {
-			addStaticDependenciesToManualChunk(entry, chunkModules, modulesInManualChunks);
-		}
-		chunkDefinitions.push({ alias, modules: chunkModules });
+	const modulesInManualChunks = new Set<Module>(manualChunkAliasByEntry.keys());
+	const manualChunkModulesByAlias: Record<string, Module[]> = Object.create(null);
+	for (const [entry, alias] of manualChunkAliasByEntry) {
+		const chunkModules = (manualChunkModulesByAlias[alias] =
+			manualChunkModulesByAlias[alias] || []);
+		addStaticDependenciesToManualChunk(entry, chunkModules, modulesInManualChunks);
+	}
+	for (const [alias, modules] of Object.entries(manualChunkModulesByAlias)) {
+		chunkDefinitions.push({ alias, modules });
 	}
 
 	const assignedEntryPointsByModule: DependentModuleMap = new Map();

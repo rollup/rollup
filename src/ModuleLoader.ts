@@ -40,13 +40,15 @@ export interface UnresolvedModule {
 	name: string | null;
 }
 
+// TODO Lukas can we remove the manual chunk logic entirely except for adding non-entry modules?
+// Then we could even do that during generate. Add a function that receives an array of entry ids
+// and returns an array of modules, which we call once for each alias in a Promise.all.
 export class ModuleLoader {
 	private readonly hasModuleSideEffects: HasModuleSideEffects;
 	private readonly implicitEntryModules = new Set<Module>();
 	private readonly indexedEntryModules: { index: number; module: Module }[] = [];
 	private latestLoadModulesPromise: Promise<any> = Promise.resolve();
 	private readonly manualChunkAliasByEntry = new Map<Module, string>();
-	private readonly manualChunkEntriesByAlias: Record<string, Module[]> = {};
 	private nextEntryModuleIndex = 0;
 
 	constructor(
@@ -67,7 +69,6 @@ export class ModuleLoader {
 		entryModules: Module[];
 		implicitEntryModules: Module[];
 		manualChunkAliasByEntry: Map<Module, string>;
-		manualChunkEntriesByAlias: Record<string, Module[]>;
 		newEntryModules: Module[];
 	}> {
 		const firstEntryModuleIndex = this.nextEntryModuleIndex;
@@ -105,7 +106,6 @@ export class ModuleLoader {
 			entryModules: this.indexedEntryModules.map(({ module }) => module),
 			implicitEntryModules: [...this.implicitEntryModules],
 			manualChunkAliasByEntry: this.manualChunkAliasByEntry,
-			manualChunkEntriesByAlias: this.manualChunkEntriesByAlias,
 			newEntryModules
 		};
 	}
@@ -265,10 +265,6 @@ export class ModuleLoader {
 			return error(errCannotAssignModuleToChunk(module.id, alias, existingAlias));
 		}
 		this.manualChunkAliasByEntry.set(module, alias);
-		if (!this.manualChunkEntriesByAlias[alias]) {
-			this.manualChunkEntriesByAlias[alias] = [];
-		}
-		this.manualChunkEntriesByAlias[alias].push(module);
 	}
 
 	private async awaitLoadModulesPromise(): Promise<void> {
