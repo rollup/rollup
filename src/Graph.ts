@@ -147,36 +147,17 @@ export default class Graph {
 				}
 			}
 		} else {
-			// TODO Lukas even better, the chunks could be objects with optional aliases
-			const { chunks: chunkedModules, manualChunks: modulesByManualChunk } = this.options
-				.inlineDynamicImports
-				? { chunks: [this.modules], manualChunks: {} }
+			const chunkDefinitions = this.options.inlineDynamicImports
+				? [{ alias: null, modules: this.modules }]
 				: getChunkAssignments(
 						this.entryModules,
 						this.manualChunkEntriesByAlias,
 						this.manualChunkAliasByEntry
 				  );
-			for (const chunkModules of chunkedModules) {
-				sortByExecutionOrder(chunkModules);
+			for (const { alias, modules } of chunkDefinitions) {
+				sortByExecutionOrder(modules);
 				const chunk = new Chunk(
-					chunkModules,
-					this.options,
-					this.unsetOptions,
-					this.modulesById,
-					chunkByModule,
-					facadeChunkByModule,
-					null
-				);
-				chunks.push(chunk);
-				for (const module of chunkModules) {
-					chunkByModule.set(module, chunk);
-				}
-			}
-			for (const alias of Object.keys(modulesByManualChunk)) {
-				const chunkModules = modulesByManualChunk[alias];
-				sortByExecutionOrder(chunkModules);
-				const chunk = new Chunk(
-					chunkModules,
+					modules,
 					this.options,
 					this.unsetOptions,
 					this.modulesById,
@@ -185,7 +166,7 @@ export default class Graph {
 					alias
 				);
 				chunks.push(chunk);
-				for (const module of chunkModules) {
+				for (const module of modules) {
 					chunkByModule.set(module, chunk);
 				}
 			}
