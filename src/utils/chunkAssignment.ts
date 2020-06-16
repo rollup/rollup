@@ -5,10 +5,29 @@ type DependentModuleMap<T = Module> = Map<Module, Set<T>>;
 
 export function getChunkAssignments(
 	entryModules: Module[],
-	manualChunkModules: Record<string, Module[]>
-): Module[][] {
+	manualChunkEntries: Record<string, Module[]>,
+	manualChunkAliasByEntry: Map<Module, string>
+): { chunks: Module[][]; manualChunks: Record<string, Module[]> } {
+	// TODO Lukas would it be enough to just have a Set of which modules have an alias?
+	const manualChunkAliasByModule = new Map<Module, string>(manualChunkAliasByEntry);
+	const manualChunks = Object.create(null);
+	for (const chunkName of Object.keys(manualChunkEntries)) {
+		const manualChunkModules = (manualChunks[chunkName] = []);
+		for (const entry of manualChunkEntries[chunkName]) {
+			addStaticDependenciesToManualChunk(
+				entry,
+				chunkName,
+				manualChunkModules,
+				manualChunkAliasByModule
+			);
+		}
+	}
+
 	const assignedEntryPointsByModule: DependentModuleMap<Module | string> = new Map();
-	const { dependentEntryPointsByModule, dynamicEntryModules } = analyzeModuleGraph(entryModules);
+	const { dependentEntryPointsByModule, dynamicEntryModules } = analyzeModuleGraph(
+		entryModules,
+		manualChunkAliasByModule
+	);
 	const dynamicallyDependentEntryPointsByDynamicEntry: DependentModuleMap = getDynamicDependentEntryPoints(
 		dependentEntryPointsByModule,
 		dynamicEntryModules
@@ -20,14 +39,10 @@ export function getChunkAssignments(
 		dynamicDependentEntryPoints: Set<Module> | null,
 		assignedEntry: Module | string = entry
 	) {
-		const manualChunkAlias = entry.manualChunkAlias;
 		const modulesToHandle = new Set([entry]);
 		for (const module of modulesToHandle) {
 			const assignedEntryPoints = getDependentModules(assignedEntryPointsByModule, module);
-			if (manualChunkAlias) {
-				module.manualChunkAlias = manualChunkAlias;
-				assignedEntryPoints.add(assignedEntry);
-			} else if (
+			if (
 				dynamicDependentEntryPoints &&
 				areEntryPointsContainedOrDynamicallyDependent(
 					dynamicDependentEntryPoints,
@@ -39,7 +54,7 @@ export function getChunkAssignments(
 				assignedEntryPoints.add(assignedEntry);
 			}
 			for (const dependency of module.getDependenciesToBeIncluded()) {
-				if (!(dependency instanceof ExternalModule || dependency.manualChunkAlias)) {
+				if (!(dependency instanceof ExternalModule || manualChunkAliasByModule.has(dependency))) {
 					modulesToHandle.add(dependency);
 				}
 			}
@@ -65,20 +80,14 @@ export function getChunkAssignments(
 		return true;
 	}
 
-	for (const chunkName of Object.keys(manualChunkModules)) {
-		for (const entry of manualChunkModules[chunkName]) {
-			assignEntryToStaticDependencies(entry, null, chunkName);
-		}
-	}
-
 	for (const entry of entryModules) {
-		if (!entry.manualChunkAlias) {
+		if (!manualChunkAliasByModule.has(entry)) {
 			assignEntryToStaticDependencies(entry, null);
 		}
 	}
 
 	for (const entry of dynamicEntryModules) {
-		if (!entry.manualChunkAlias) {
+		if (!manualChunkAliasByModule.has(entry)) {
 			assignEntryToStaticDependencies(
 				entry,
 				dynamicallyDependentEntryPointsByDynamicEntry.get(entry)!
@@ -86,14 +95,36 @@ export function getChunkAssignments(
 		}
 	}
 
-	return createChunks(
-		[...Object.keys(manualChunkModules), ...entryModules, ...dynamicEntryModules],
-		assignedEntryPointsByModule
-	);
+	return {
+		chunks: createChunks(
+			[...Object.keys(manualChunkEntries), ...entryModules, ...dynamicEntryModules],
+			assignedEntryPointsByModule
+		),
+		manualChunks
+	};
+}
+
+function addStaticDependenciesToManualChunk(
+	entry: Module,
+	manualChunkAlias: string,
+	manualChunkModules: Module[],
+	manualChunkAliasByModule: Map<Module, string>
+) {
+	const modulesToHandle = new Set([entry]);
+	for (const module of modulesToHandle) {
+		manualChunkAliasByModule.set(module, manualChunkAlias);
+		manualChunkModules.push(module);
+		for (const dependency of module.getDependenciesToBeIncluded()) {
+			if (!(dependency instanceof ExternalModule || manualChunkAliasByModule.has(dependency))) {
+				modulesToHandle.add(dependency);
+			}
+		}
+	}
 }
 
 function analyzeModuleGraph(
-	entryModules: Module[]
+	entryModules: Module[],
+	manualChunkAliasByModule: Map<Module, string>
 ): {
 	dependentEntryPointsByModule: DependentModuleMap;
 	dynamicEntryModules: Set<Module>;
@@ -114,15 +145,17 @@ function analyzeModuleGraph(
 				if (
 					resolution instanceof Module &&
 					resolution.includedDynamicImporters.length > 0 &&
-					!resolution.manualChunkAlias
+					!manualChunkAliasByModule.has(resolution)
 				) {
 					dynamicEntryModules.add(resolution);
 					entriesToHandle.add(resolution);
 				}
 			}
 			for (const dependency of module.implicitlyLoadedBefore) {
-				dynamicEntryModules.add(dependency);
-				entriesToHandle.add(dependency);
+				if (!manualChunkAliasByModule.has(dependency)) {
+					dynamicEntryModules.add(dependency);
+					entriesToHandle.add(dependency);
+				}
 			}
 		}
 	}

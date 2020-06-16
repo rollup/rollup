@@ -1,4 +1,4 @@
-define(['./main'], function (main) { 'use strict';
+define(['./main'], function (outer) { 'use strict';
 
 
 

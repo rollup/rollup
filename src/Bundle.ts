@@ -1,4 +1,5 @@
 import Chunk from './Chunk';
+import Graph from './Graph';
 import Module from './Module';
 import {
 	NormalizedInputOptions,
@@ -21,39 +22,45 @@ export default class Bundle {
 		private readonly unsetOptions: Set<string>,
 		private readonly inputOptions: NormalizedInputOptions,
 		private readonly pluginDriver: PluginDriver,
-		private readonly chunks: Chunk[],
-		private readonly facadeChunkByModule: Map<Module, Chunk>
+		private readonly graph: Graph // TODO Lukas replace with used properties
 	) {}
 
 	async generate(isWrite: boolean): Promise<OutputBundle> {
 		timeStart('GENERATE', 1);
-		const inputBase = commondir(getAbsoluteEntryModulePaths(this.chunks));
 		const outputBundle: OutputBundleWithPlaceholders = Object.create(null);
+		const facadeChunkByModule = new Map<Module, Chunk>();
 		// TODO Lukas this can only be done once we have chunks due to facadeChunkByModule at the moment
 		// Better: test not getting the file name in renderStart and put a ?.id in getChunkFileName
 		this.pluginDriver.setOutputBundle(
 			outputBundle,
 			this.outputOptions.assetFileNames,
-			this.facadeChunkByModule
+			facadeChunkByModule
 		);
 		try {
 			await this.pluginDriver.hookParallel('renderStart', [this.outputOptions, this.inputOptions]);
-			if (this.chunks.length > 1) {
+
+			timeStart('generate chunks', 2);
+			// TODO Lukas move to this class
+			const chunks = this.graph.generateChunks(facadeChunkByModule);
+			timeEnd('generate chunks', 2);
+
+			if (chunks.length > 1) {
 				validateOptionsForMultiChunkOutput(this.outputOptions);
 			}
 
 			const addons = await createAddons(this.outputOptions, this.pluginDriver);
-			for (const chunk of this.chunks) {
+			for (const chunk of chunks) {
 				chunk.generateExports(this.outputOptions);
 			}
-			for (const chunk of this.chunks) {
+			const inputBase = commondir(getAbsoluteEntryModulePaths(chunks));
+			for (const chunk of chunks) {
 				chunk.preRender(this.outputOptions, inputBase, this.pluginDriver);
 			}
-			this.assignChunkIds(inputBase, addons, outputBundle);
-			assignChunksToBundle(this.chunks, outputBundle);
+			this.assignChunkIds(chunks, inputBase, addons, outputBundle);
+			assignChunksToBundle(chunks, outputBundle);
 
 			await Promise.all(
-				this.chunks.map(chunk => {
+				chunks.map(chunk => {
 					const outputChunk = outputBundle[chunk.id!] as OutputChunk;
 					return chunk
 						.render(this.outputOptions, addons, outputChunk, this.pluginDriver)
@@ -89,10 +96,15 @@ export default class Bundle {
 		return outputBundle as OutputBundle;
 	}
 
-	private assignChunkIds(inputBase: string, addons: Addons, bundle: OutputBundleWithPlaceholders) {
+	private assignChunkIds(
+		chunks: Chunk[],
+		inputBase: string,
+		addons: Addons,
+		bundle: OutputBundleWithPlaceholders
+	) {
 		const entryChunks: Chunk[] = [];
 		const otherChunks: Chunk[] = [];
-		for (const chunk of this.chunks) {
+		for (const chunk of chunks) {
 			(chunk.facadeModule && chunk.facadeModule.isUserDefinedEntryPoint
 				? entryChunks
 				: otherChunks

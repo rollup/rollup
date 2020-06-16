@@ -45,7 +45,8 @@ export class ModuleLoader {
 	private readonly implicitEntryModules = new Set<Module>();
 	private readonly indexedEntryModules: { index: number; module: Module }[] = [];
 	private latestLoadModulesPromise: Promise<any> = Promise.resolve();
-	private readonly manualChunkModules: Record<string, Module[]> = {};
+	private readonly manualChunkAliasByModule = new Map<Module, string>();
+	private readonly manualChunkModulesByAlias: Record<string, Module[]> = {};
 	private nextEntryModuleIndex = 0;
 
 	constructor(
@@ -65,6 +66,7 @@ export class ModuleLoader {
 	): Promise<{
 		entryModules: Module[];
 		implicitEntryModules: Module[];
+		manualChunkAliasByModule: Map<Module, string>;
 		manualChunkModulesByAlias: Record<string, Module[]>;
 		newEntryModules: Module[];
 	}> {
@@ -102,7 +104,8 @@ export class ModuleLoader {
 		return {
 			entryModules: this.indexedEntryModules.map(({ module }) => module),
 			implicitEntryModules: [...this.implicitEntryModules],
-			manualChunkModulesByAlias: this.manualChunkModules,
+			manualChunkAliasByModule: this.manualChunkAliasByModule,
+			manualChunkModulesByAlias: this.manualChunkModulesByAlias,
 			newEntryModules
 		};
 	}
@@ -257,14 +260,15 @@ export class ModuleLoader {
 	}
 
 	private addModuleToManualChunk(alias: string, module: Module) {
-		if (module.manualChunkAlias !== null && module.manualChunkAlias !== alias) {
-			return error(errCannotAssignModuleToChunk(module.id, alias, module.manualChunkAlias));
+		const existingAlias = this.manualChunkAliasByModule.get(module);
+		if (typeof existingAlias === 'string' && existingAlias !== alias) {
+			return error(errCannotAssignModuleToChunk(module.id, alias, existingAlias));
 		}
-		module.manualChunkAlias = alias;
-		if (!this.manualChunkModules[alias]) {
-			this.manualChunkModules[alias] = [];
+		this.manualChunkAliasByModule.set(module, alias);
+		if (!this.manualChunkModulesByAlias[alias]) {
+			this.manualChunkModulesByAlias[alias] = [];
 		}
-		this.manualChunkModules[alias].push(module);
+		this.manualChunkModulesByAlias[alias].push(module);
 	}
 
 	private async awaitLoadModulesPromise(): Promise<void> {

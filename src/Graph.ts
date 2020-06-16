@@ -61,6 +61,7 @@ export default class Graph {
 	private entryModules: Module[] = [];
 	private externalModules: ExternalModule[] = [];
 	private implicitEntryModules: Module[] = [];
+	private manualChunkAliasByModule = new Map<Module, string>();
 	private manualChunkModulesByAlias: Record<string, Module[]> = {};
 	private modules: Module[] = [];
 	private pluginCache?: Record<string, SerializablePluginCache>;
@@ -121,10 +122,9 @@ export default class Graph {
 		this.phase = BuildPhase.GENERATE;
 	}
 
-	generateChunks(): { chunks: Chunk[]; facadeChunkByModule: Map<Module, Chunk> } {
+	generateChunks(facadeChunkByModule: Map<Module, Chunk>): Chunk[] {
 		const chunks: Chunk[] = [];
 		const chunkByModule = new Map<Module, Chunk>();
-		const facadeChunkByModule = new Map<Module, Chunk>();
 		if (this.options.preserveModules) {
 			for (const module of this.modules) {
 				if (
@@ -138,7 +138,8 @@ export default class Graph {
 						this.unsetOptions,
 						this.modulesById,
 						chunkByModule,
-						facadeChunkByModule
+						facadeChunkByModule,
+						null
 					);
 					chunk.entryModules = [module];
 					chunks.push(chunk);
@@ -146,9 +147,16 @@ export default class Graph {
 				}
 			}
 		} else {
-			for (const chunkModules of this.options.inlineDynamicImports
-				? [this.modules]
-				: getChunkAssignments(this.entryModules, this.manualChunkModulesByAlias)) {
+			// TODO Lukas even better, the chunks could be objects with optional aliases
+			const { chunks: chunkedModules, manualChunks: modulesByManualChunk } = this.options
+				.inlineDynamicImports
+				? { chunks: [this.modules], manualChunks: {} }
+				: getChunkAssignments(
+						this.entryModules,
+						this.manualChunkModulesByAlias,
+						this.manualChunkAliasByModule
+				  );
+			for (const chunkModules of chunkedModules) {
 				sortByExecutionOrder(chunkModules);
 				const chunk = new Chunk(
 					chunkModules,
@@ -156,7 +164,25 @@ export default class Graph {
 					this.unsetOptions,
 					this.modulesById,
 					chunkByModule,
-					facadeChunkByModule
+					facadeChunkByModule,
+					null
+				);
+				chunks.push(chunk);
+				for (const module of chunkModules) {
+					chunkByModule.set(module, chunk);
+				}
+			}
+			for (const alias of Object.keys(modulesByManualChunk)) {
+				const chunkModules = modulesByManualChunk[alias];
+				sortByExecutionOrder(chunkModules);
+				const chunk = new Chunk(
+					chunkModules,
+					this.options,
+					this.unsetOptions,
+					this.modulesById,
+					chunkByModule,
+					facadeChunkByModule,
+					alias
 				);
 				chunks.push(chunk);
 				for (const module of chunkModules) {
@@ -172,7 +198,7 @@ export default class Graph {
 		for (const chunk of chunks) {
 			facades.push(...chunk.generateFacades());
 		}
-		return { chunks: [...chunks, ...facades], facadeChunkByModule };
+		return [...chunks, ...facades];
 	}
 
 	getCache(): RollupCache {
@@ -232,6 +258,7 @@ export default class Graph {
 			{
 				entryModules: this.entryModules,
 				implicitEntryModules: this.implicitEntryModules,
+				manualChunkAliasByModule: this.manualChunkAliasByModule,
 				manualChunkModulesByAlias: this.manualChunkModulesByAlias
 			}
 		] = await Promise.all([

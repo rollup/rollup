@@ -129,7 +129,8 @@ export default class Chunk {
 			unsetOptions,
 			modulesById,
 			chunkByModule,
-			facadeChunkByModule
+			facadeChunkByModule,
+			null
 		);
 		chunk.assignFacadeName(facadeName, facadedModule);
 		if (!facadeChunkByModule.has(facadedModule)) {
@@ -158,7 +159,7 @@ export default class Chunk {
 	exportMode: 'none' | 'named' | 'default' = 'named';
 	facadeModule: Module | null = null;
 	id: string | null = null;
-	variableName = 'chunk';
+	variableName: string;
 
 	private dependencies = new Set<ExternalModule | Chunk>();
 	private dynamicDependencies = new Set<ExternalModule | Chunk>();
@@ -172,7 +173,6 @@ export default class Chunk {
 	private imports = new Set<Variable>();
 	private indentString: string = undefined as any;
 	private isEmpty = true;
-	private manualChunkAlias: string | null = null;
 	private name: string | null = null;
 	private needsExportsShim = false;
 	private renderedDependencies: Map<
@@ -196,7 +196,8 @@ export default class Chunk {
 		private readonly unsetOptions: Set<string>,
 		private readonly modulesById: Map<string, Module | ExternalModule>,
 		private readonly chunkByModule: Map<Module, Chunk>,
-		private readonly facadeChunkByModule: Map<Module, Chunk>
+		private readonly facadeChunkByModule: Map<Module, Chunk>,
+		private readonly manualChunkAlias: string | null
 	) {
 		this.execIndex = orderedModules.length > 0 ? orderedModules[0].execIndex : Infinity;
 		const chunkModules = new Set(orderedModules);
@@ -204,9 +205,6 @@ export default class Chunk {
 		for (const module of orderedModules) {
 			if (this.isEmpty && module.isIncluded()) {
 				this.isEmpty = false;
-			}
-			if (module.manualChunkAlias) {
-				this.manualChunkAlias = module.manualChunkAlias;
 			}
 			if (module.isEntryPoint) {
 				this.entryModules.push(module);
@@ -220,21 +218,7 @@ export default class Chunk {
 				this.implicitEntryModules.push(module);
 			}
 		}
-
-		const moduleForNaming =
-			this.entryModules[0] ||
-			this.implicitEntryModules[0] ||
-			this.dynamicEntryModules[0] ||
-			this.orderedModules[this.orderedModules.length - 1];
-		if (moduleForNaming) {
-			this.variableName = makeLegal(
-				basename(
-					moduleForNaming.chunkName ||
-						moduleForNaming.manualChunkAlias ||
-						getAliasName(moduleForNaming.id)
-				)
-			);
-		}
+		this.variableName = makeLegal(this.generateVariableName());
 	}
 
 	canModuleBeFacade(module: Module, exposedVariables: Set<Variable>): boolean {
@@ -879,6 +863,21 @@ export default class Chunk {
 				importMeta.renderFinalMechanism(code, this.id!, format, outputPluginDriver);
 			}
 		}
+	}
+
+	private generateVariableName(): string {
+		if (this.manualChunkAlias) {
+			return this.manualChunkAlias;
+		}
+		const moduleForNaming =
+			this.entryModules[0] ||
+			this.implicitEntryModules[0] ||
+			this.dynamicEntryModules[0] ||
+			this.orderedModules[this.orderedModules.length - 1];
+		if (moduleForNaming) {
+			return moduleForNaming.chunkName || getAliasName(moduleForNaming.id);
+		}
+		return 'chunk';
 	}
 
 	private getChunkDependencyDeclarations(

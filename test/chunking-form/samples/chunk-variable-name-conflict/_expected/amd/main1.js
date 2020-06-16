@@ -1,5 +1,5 @@
-define(['./generated-dep'], function (dep$1) { 'use strict';
+define(['./generated-dep'], function (dep) { 'use strict';
 
-	[43].map(dep => console.log(dep, dep$1.value, dep$1.x));
+	[43].map(dep$1 => console.log(dep$1, dep.value, dep.x));
 
 });

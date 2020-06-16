@@ -203,7 +203,6 @@ export default class Module {
 	includedDynamicImporters: Module[] = [];
 	isExecuted = false;
 	isUserDefinedEntryPoint = false;
-	manualChunkAlias: string = null as any;
 	namespace!: NamespaceVariable;
 	originalCode!: string;
 	originalSourcemap!: ExistingDecodedSourceMap | null;
