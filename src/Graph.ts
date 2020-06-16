@@ -196,7 +196,7 @@ export default class Graph {
 		}
 		return {
 			dynamicallyImportedIds,
-			dynamicImporters: foundModule.dynamicImporters,
+			dynamicImporters: foundModule.dynamicImporters.sort(),
 			hasModuleSideEffects: foundModule.moduleSideEffects,
 			id: foundModule.id,
 			implicitlyLoadedAfterOneOf:
@@ -204,7 +204,7 @@ export default class Graph {
 			implicitlyLoadedBefore:
 				foundModule instanceof Module ? Array.from(foundModule.implicitlyLoadedBefore, getId) : [],
 			importedIds,
-			importers: foundModule.importers,
+			importers: foundModule.importers.sort(),
 			isEntry: foundModule instanceof Module && foundModule.isEntryPoint,
 			isExternal: foundModule instanceof ExternalModule
 		};
