@@ -61,8 +61,8 @@ export default class Graph {
 	private entryModules: Module[] = [];
 	private externalModules: ExternalModule[] = [];
 	private implicitEntryModules: Module[] = [];
-	private manualChunkAliasByModule = new Map<Module, string>();
-	private manualChunkModulesByAlias: Record<string, Module[]> = {};
+	private manualChunkAliasByEntry = new Map<Module, string>();
+	private manualChunkEntriesByAlias: Record<string, Module[]> = {};
 	private modules: Module[] = [];
 	private pluginCache?: Record<string, SerializablePluginCache>;
 
@@ -153,8 +153,8 @@ export default class Graph {
 				? { chunks: [this.modules], manualChunks: {} }
 				: getChunkAssignments(
 						this.entryModules,
-						this.manualChunkModulesByAlias,
-						this.manualChunkAliasByModule
+						this.manualChunkEntriesByAlias,
+						this.manualChunkAliasByEntry
 				  );
 			for (const chunkModules of chunkedModules) {
 				sortByExecutionOrder(chunkModules);
@@ -258,8 +258,8 @@ export default class Graph {
 			{
 				entryModules: this.entryModules,
 				implicitEntryModules: this.implicitEntryModules,
-				manualChunkAliasByModule: this.manualChunkAliasByModule,
-				manualChunkModulesByAlias: this.manualChunkModulesByAlias
+				manualChunkAliasByEntry: this.manualChunkAliasByEntry,
+				manualChunkEntriesByAlias: this.manualChunkEntriesByAlias
 			}
 		] = await Promise.all([
 			this.moduleLoader.addEntryModules(normalizeEntryModules(this.options.input), true),

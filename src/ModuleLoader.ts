@@ -45,8 +45,8 @@ export class ModuleLoader {
 	private readonly implicitEntryModules = new Set<Module>();
 	private readonly indexedEntryModules: { index: number; module: Module }[] = [];
 	private latestLoadModulesPromise: Promise<any> = Promise.resolve();
-	private readonly manualChunkAliasByModule = new Map<Module, string>();
-	private readonly manualChunkModulesByAlias: Record<string, Module[]> = {};
+	private readonly manualChunkAliasByEntry = new Map<Module, string>();
+	private readonly manualChunkEntriesByAlias: Record<string, Module[]> = {};
 	private nextEntryModuleIndex = 0;
 
 	constructor(
@@ -66,8 +66,8 @@ export class ModuleLoader {
 	): Promise<{
 		entryModules: Module[];
 		implicitEntryModules: Module[];
-		manualChunkAliasByModule: Map<Module, string>;
-		manualChunkModulesByAlias: Record<string, Module[]>;
+		manualChunkAliasByEntry: Map<Module, string>;
+		manualChunkEntriesByAlias: Record<string, Module[]>;
 		newEntryModules: Module[];
 	}> {
 		const firstEntryModuleIndex = this.nextEntryModuleIndex;
@@ -104,8 +104,8 @@ export class ModuleLoader {
 		return {
 			entryModules: this.indexedEntryModules.map(({ module }) => module),
 			implicitEntryModules: [...this.implicitEntryModules],
-			manualChunkAliasByModule: this.manualChunkAliasByModule,
-			manualChunkModulesByAlias: this.manualChunkModulesByAlias,
+			manualChunkAliasByEntry: this.manualChunkAliasByEntry,
+			manualChunkEntriesByAlias: this.manualChunkEntriesByAlias,
 			newEntryModules
 		};
 	}
@@ -121,11 +121,11 @@ export class ModuleLoader {
 		const result = this.extendLoadModulesPromise(
 			Promise.all(
 				unresolvedManualChunks.map(({ id }) => this.loadEntryModule(id, false, undefined, null))
-			).then(manualChunkModules => {
-				for (let index = 0; index < manualChunkModules.length; index++) {
+			).then(manualChunkEntries => {
+				for (let index = 0; index < manualChunkEntries.length; index++) {
 					this.addModuleToManualChunk(
 						unresolvedManualChunks[index].alias,
-						manualChunkModules[index]
+						manualChunkEntries[index]
 					);
 				}
 			})
@@ -260,15 +260,15 @@ export class ModuleLoader {
 	}
 
 	private addModuleToManualChunk(alias: string, module: Module) {
-		const existingAlias = this.manualChunkAliasByModule.get(module);
+		const existingAlias = this.manualChunkAliasByEntry.get(module);
 		if (typeof existingAlias === 'string' && existingAlias !== alias) {
 			return error(errCannotAssignModuleToChunk(module.id, alias, existingAlias));
 		}
-		this.manualChunkAliasByModule.set(module, alias);
-		if (!this.manualChunkModulesByAlias[alias]) {
-			this.manualChunkModulesByAlias[alias] = [];
+		this.manualChunkAliasByEntry.set(module, alias);
+		if (!this.manualChunkEntriesByAlias[alias]) {
+			this.manualChunkEntriesByAlias[alias] = [];
 		}
-		this.manualChunkModulesByAlias[alias].push(module);
+		this.manualChunkEntriesByAlias[alias].push(module);
 	}
 
 	private async awaitLoadModulesPromise(): Promise<void> {
