@@ -1,10 +1,10 @@
-const { assertStderrIncludes } = require('../../../utils.js');
+const { assertIncludes } = require('../../../utils.js');
 
 module.exports = {
 	description: 'warns when there are multiple missing globals',
 	command: 'rollup -c',
 	stderr: stderr =>
-		assertStderrIncludes(
+		assertIncludes(
 			stderr,
 			'(!) Missing global variable names\n' +
 				'Use output.globals to specify browser global variable names corresponding to external modules\n' +

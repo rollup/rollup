@@ -1,10 +1,10 @@
-const { assertStderrIncludes } = require('../../../utils.js');
+const { assertIncludes } = require('../../../utils.js');
 
 module.exports = {
 	description: 'warns when mixed exports are used',
 	command: 'rollup -c',
 	stderr: stderr => {
-		assertStderrIncludes(
+		assertIncludes(
 			stderr,
 			'(!) Mixing named and default exports\n' +
 				'https://rollupjs.org/guide/en/#output-exports\n' +

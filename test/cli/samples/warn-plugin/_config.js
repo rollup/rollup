@@ -1,10 +1,10 @@
-const { assertStderrIncludes } = require('../../../utils.js');
+const { assertIncludes } = require('../../../utils.js');
 
 module.exports = {
 	description: 'displays warnings from plugins',
 	command: 'rollup -c',
 	stderr: stderr =>
-		assertStderrIncludes(
+		assertIncludes(
 			stderr,
 			'(!) Plugin test-plugin: First\n' +
 				'(!) Plugin test-plugin: Second\n' +

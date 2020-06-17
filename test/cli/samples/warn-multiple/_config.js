@@ -1,15 +1,15 @@
-const { assertStderrIncludes } = require('../../../utils.js');
+const { assertIncludes } = require('../../../utils.js');
 
 module.exports = {
 	description: 'aggregates warnings of different types',
 	command: 'rollup -c',
 	stderr: stderr => {
-		assertStderrIncludes(
+		assertIncludes(
 			stderr,
 			'(!) Missing shims for Node.js built-ins\n' +
 				"Creating a browser bundle that depends on 'url', 'assert' and 'path'. You might need to include https://github.com/ionic-team/rollup-plugin-node-polyfills\n"
 		);
-		assertStderrIncludes(
+		assertIncludes(
 			stderr,
 			'(!) Import of non-existent exports\n' +
 				'main.js\n' +
@@ -21,7 +21,7 @@ module.exports = {
 				'8: export {url, assert, path};\n' +
 				'...and 1 other occurrence\n'
 		);
-		assertStderrIncludes(
+		assertIncludes(
 			stderr,
 
 			"(!) Module level directives cause errors when bundled, 'use stuff' was ignored.\n" +
