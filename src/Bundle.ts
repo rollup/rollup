@@ -19,6 +19,8 @@ import { PluginDriver } from './utils/PluginDriver';
 import { timeEnd, timeStart } from './utils/timers';
 
 export default class Bundle {
+	private facadeChunkByModule = new Map<Module, Chunk>();
+
 	constructor(
 		private readonly outputOptions: NormalizedOutputOptions,
 		private readonly unsetOptions: Set<string>,
@@ -33,25 +35,22 @@ export default class Bundle {
 	async generate(isWrite: boolean): Promise<OutputBundle> {
 		timeStart('GENERATE', 1);
 		const outputBundle: OutputBundleWithPlaceholders = Object.create(null);
-		const facadeChunkByModule = new Map<Module, Chunk>();
-		// TODO Lukas this can only be done once we have chunks due to facadeChunkByModule at the moment
-		// Better: test not getting the file name in renderStart and put a ?.id in getChunkFileName
 		this.pluginDriver.setOutputBundle(
 			outputBundle,
 			this.outputOptions.assetFileNames,
-			facadeChunkByModule
+			this.facadeChunkByModule
 		);
 		try {
 			await this.pluginDriver.hookParallel('renderStart', [this.outputOptions, this.inputOptions]);
 
 			timeStart('generate chunks', 2);
-			const chunks = this.generateChunks(facadeChunkByModule);
+			const chunks = this.generateChunks();
 			timeEnd('generate chunks', 2);
 
+			timeStart('render modules', 2);
 			if (chunks.length > 1) {
 				validateOptionsForMultiChunkOutput(this.outputOptions);
 			}
-
 			const addons = await createAddons(this.outputOptions, this.pluginDriver);
 			for (const chunk of chunks) {
 				chunk.generateExports(this.outputOptions);
@@ -60,6 +59,8 @@ export default class Bundle {
 			for (const chunk of chunks) {
 				chunk.preRender(this.outputOptions, inputBase, this.pluginDriver);
 			}
+			timeEnd('render modules', 2);
+
 			this.assignChunkIds(chunks, inputBase, addons, outputBundle);
 			assignChunksToBundle(chunks, outputBundle);
 
@@ -134,8 +135,7 @@ export default class Bundle {
 		}
 	}
 
-	// TODO Lukas note that this is both returning a value and mutating its argument
-	private generateChunks(facadeChunkByModule: Map<Module, Chunk>): Chunk[] {
+	private generateChunks(): Chunk[] {
 		const chunks: Chunk[] = [];
 		const chunkByModule = new Map<Module, Chunk>();
 		for (const { alias, modules } of this.inputOptions.inlineDynamicImports
@@ -150,7 +150,7 @@ export default class Bundle {
 				this.unsetOptions,
 				this.modulesById,
 				chunkByModule,
-				facadeChunkByModule,
+				this.facadeChunkByModule,
 				alias
 			);
 			chunks.push(chunk);

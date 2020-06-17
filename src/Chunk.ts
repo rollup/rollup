@@ -505,8 +505,6 @@ export default class Chunk {
 
 	// prerender allows chunk hashes and names to be generated before finalizing
 	preRender(options: NormalizedOutputOptions, inputBase: string, outputPluginDriver: PluginDriver) {
-		timeStart('render modules', 3);
-
 		const magicString = new MagicStringBundle({ separator: options.compact ? '' : '\n\n' });
 		this.usedModules = [];
 		this.indentString = getIndentString(this.orderedModules, options);
@@ -602,8 +600,6 @@ export default class Chunk {
 		this.renderedDependencies = this.getChunkDependencyDeclarations(options);
 		this.renderedExports =
 			this.exportMode === 'none' ? [] : this.getChunkExportDeclarations(options.format);
-
-		timeEnd('render modules', 3);
 	}
 
 	async render(
@@ -612,7 +608,7 @@ export default class Chunk {
 		outputChunk: RenderedChunk,
 		outputPluginDriver: PluginDriver
 	) {
-		timeStart('render format', 3);
+		timeStart('render format', 2);
 
 		const format = options.format;
 		const finalise = finalisers[format];
@@ -694,7 +690,7 @@ export default class Chunk {
 		if (addons.footer) magicString.append(addons.footer);
 		const prevCode = magicString.toString();
 
-		timeEnd('render format', 3);
+		timeEnd('render format', 2);
 
 		let map: SourceMap = null as any;
 		const chunkSourcemapChain: DecodedSourceMapOrMissing[] = [];
@@ -707,7 +703,7 @@ export default class Chunk {
 			sourcemapChain: chunkSourcemapChain
 		});
 		if (options.sourcemap) {
-			timeStart('sourcemap', 3);
+			timeStart('sourcemap', 2);
 
 			let file: string;
 			if (options.file) file = resolve(options.sourcemapFile || options.file);
@@ -741,7 +737,7 @@ export default class Chunk {
 				})
 				.map(normalize);
 
-			timeEnd('sourcemap', 3);
+			timeEnd('sourcemap', 2);
 		}
 		if (options.compact !== true && code[code.length - 1] !== '\n') code += '\n';
 		return { code, map };

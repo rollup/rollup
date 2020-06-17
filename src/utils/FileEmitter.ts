@@ -142,7 +142,7 @@ function getChunkFileName(
 	file: ConsumedChunk,
 	facadeChunkByModule: Map<Module, Chunk> | null
 ): string {
-	const fileName = file.fileName || (file.module && facadeChunkByModule?.get(file.module)!.id);
+	const fileName = file.fileName || (file.module && facadeChunkByModule?.get(file.module)?.id);
 	if (!fileName) return error(errChunkNotGeneratedForFileName(file.fileName || file.name));
 	return fileName;
 }
