@@ -206,7 +206,7 @@ export default class Chunk {
 			if (this.isEmpty && module.isIncluded()) {
 				this.isEmpty = false;
 			}
-			if (module.isEntryPoint) {
+			if (module.isEntryPoint || inputOptions.preserveModules) {
 				this.entryModules.push(module);
 			}
 			for (const importer of module.includedDynamicImporters) {

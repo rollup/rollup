@@ -125,49 +125,26 @@ export default class Graph {
 	generateChunks(facadeChunkByModule: Map<Module, Chunk>): Chunk[] {
 		const chunks: Chunk[] = [];
 		const chunkByModule = new Map<Module, Chunk>();
-		if (this.options.preserveModules) {
-			for (const module of this.modules) {
-				if (
-					module.isIncluded() ||
-					module.isEntryPoint ||
-					module.includedDynamicImporters.length > 0
-				) {
-					const chunk = new Chunk(
-						[module],
-						this.options,
-						this.unsetOptions,
-						this.modulesById,
-						chunkByModule,
-						facadeChunkByModule,
-						null
-					);
-					chunk.entryModules = [module];
-					chunks.push(chunk);
-					chunkByModule.set(module, chunk);
-				}
-			}
-		} else {
-			const chunkDefinitions = this.options.inlineDynamicImports
-				? [{ alias: null, modules: this.modules }]
-				: getChunkAssignments(this.entryModules, this.manualChunkAliasByEntry);
-			for (const { alias, modules } of chunkDefinitions) {
-				sortByExecutionOrder(modules);
-				const chunk = new Chunk(
-					modules,
-					this.options,
-					this.unsetOptions,
-					this.modulesById,
-					chunkByModule,
-					facadeChunkByModule,
-					alias
-				);
-				chunks.push(chunk);
-				for (const module of modules) {
-					chunkByModule.set(module, chunk);
-				}
+		for (const { alias, modules } of this.options.inlineDynamicImports
+			? [{ alias: null, modules: getIncludedModules(this.modulesById) }]
+			: this.options.preserveModules
+			? getIncludedModules(this.modulesById).map(module => ({ alias: null, modules: [module] }))
+			: getChunkAssignments(this.entryModules, this.manualChunkAliasByEntry)) {
+			sortByExecutionOrder(modules);
+			const chunk = new Chunk(
+				modules,
+				this.options,
+				this.unsetOptions,
+				this.modulesById,
+				chunkByModule,
+				facadeChunkByModule,
+				alias
+			);
+			chunks.push(chunk);
+			for (const module of modules) {
+				chunkByModule.set(module, chunk);
 			}
 		}
-
 		for (const chunk of chunks) {
 			chunk.link();
 		}
@@ -330,4 +307,12 @@ export default class Graph {
 			}
 		}
 	}
+}
+
+function getIncludedModules(modulesById: Map<string, Module | ExternalModule>): Module[] {
+	return [...modulesById.values()].filter(
+		module =>
+			module instanceof Module &&
+			(module.isIncluded() || module.isEntryPoint || module.includedDynamicImporters.length > 0)
+	) as Module[];
 }
