@@ -294,7 +294,6 @@ export class ModuleLoader {
 						this.handleResolveId(await this.resolveId(source, module.id), source, module.id))
 				);
 				resolution.importers.push(module.id);
-				resolution.importers.sort();
 			}),
 			...module.dynamicImports.map(async dynamicImport => {
 				const resolvedId = await this.resolveDynamicImport(
@@ -312,7 +311,6 @@ export class ModuleLoader {
 						resolvedId
 					));
 					resolution.dynamicImporters.push(module.id);
-					resolution.dynamicImporters.sort();
 				}
 			})
 		]);
