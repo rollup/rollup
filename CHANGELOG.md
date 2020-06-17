@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 2.17.0
+*2020-06-17*
+
+### Features
+* When importing Rollup via package.exports, always fall back to the browser ESM build for non-Node environments (#3634)
+* Create more efficient code when handling namespace mutations (#3637)
+
+### Bug Fixes
+* Fix a severe performance regression when the same module is imported by a lot of modules (#3641)
+* Properly escape special characters in imports (#3638)
+
+### Pull Requests
+* [#3634](https://github.com/rollup/rollup/pull/3634): Set browser build in exports (@guybedford)
+* [#3637](https://github.com/rollup/rollup/pull/3637): Do not include the whole namespace when illegally mutating a namespace (@lukastaegert)
+* [#3638](https://github.com/rollup/rollup/pull/3638): Support backslash escaping, retain exact newline escaping (@guybedford)
+* [#3641](https://github.com/rollup/rollup/pull/3641): Fix performance regression when a file is imported by many importers (@lukastaegert)
+
 ## 2.16.1
 *2020-06-13*
 
