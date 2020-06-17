@@ -1,10 +1,10 @@
-const { assertStderrIncludes } = require('../../../utils.js');
+const { assertIncludes } = require('../../../utils.js');
 
 module.exports = {
 	description: 'warns for multiple circular dependencies',
 	command: 'rollup -c',
 	stderr: stderr =>
-		assertStderrIncludes(
+		assertIncludes(
 			stderr,
 			'(!) Circular dependencies\n' +
 				'main.js -> dep1.js -> main.js\n' +

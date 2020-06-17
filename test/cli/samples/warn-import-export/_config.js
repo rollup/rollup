@@ -1,10 +1,10 @@
-const { assertStderrIncludes } = require('../../../utils.js');
+const { assertIncludes } = require('../../../utils.js');
 
 module.exports = {
 	description: 'warns about import and export related issues',
 	command: 'rollup -c',
 	stderr: stderr => {
-		assertStderrIncludes(
+		assertIncludes(
 			stderr,
 			'(!) Mixing named and default exports\n' +
 				'https://rollupjs.org/guide/en/#output-exports\n' +
@@ -13,12 +13,12 @@ module.exports = {
 				'\n' +
 				"Consumers of your bundle will have to use chunk['default'] to access their default export, which may not be what you want. Use `output.exports: 'named'` to disable this warning\n"
 		);
-		assertStderrIncludes(
+		assertIncludes(
 			stderr,
 			'(!) Unused external imports\n' +
 				"default imported from external module 'external' but never used\n"
 		);
-		assertStderrIncludes(
+		assertIncludes(
 			stderr,
 			'(!) Import of non-existent export\n' +
 				'main.js\n' +
@@ -28,7 +28,7 @@ module.exports = {
 				'          ^\n' +
 				"4: import 'unresolvedExternal';\n"
 		);
-		assertStderrIncludes(
+		assertIncludes(
 			stderr,
 			'(!) Missing exports\n' +
 				'https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module\n' +
@@ -40,13 +40,13 @@ module.exports = {
 				'                              ^\n' +
 				'7: export default 42;\n'
 		);
-		assertStderrIncludes(
+		assertIncludes(
 			stderr,
 			'(!) Conflicting re-exports\n' +
 				"main.js re-exports 'foo' from both dep.js and dep2.js (will be ignored)\n" +
 				"main.js re-exports 'bar' from both dep.js and dep2.js (will be ignored)\n"
 		);
-		assertStderrIncludes(
+		assertIncludes(
 			stderr,
 			'(!) Unresolved dependencies\n' +
 				'https://rollupjs.org/guide/en/#warning-treating-module-as-external-dependency\n' +

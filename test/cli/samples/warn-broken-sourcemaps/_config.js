@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { assertStderrIncludes } = require('../../../utils.js');
+const { assertIncludes } = require('../../../utils.js');
 
 module.exports = {
 	description: 'displays warnings for broken sourcemaps',
@@ -8,7 +8,7 @@ module.exports = {
 	stderr: stderr => {
 		fs.unlinkSync(path.resolve(__dirname, 'bundle'));
 		fs.unlinkSync(path.resolve(__dirname, 'bundle.map'));
-		assertStderrIncludes(
+		assertIncludes(
 			stderr,
 			'(!) Broken sourcemap\n' +
 				'https://rollupjs.org/guide/en/#warning-sourcemap-is-likely-to-be-incorrect\n' +

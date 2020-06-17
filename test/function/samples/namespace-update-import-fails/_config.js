@@ -1,7 +1,12 @@
+const assert = require('assert');
 const path = require('path');
+const { assertIncludes } = require('../../../utils.js');
 
 module.exports = {
 	description: 'disallows updates to namespace exports',
+	code(code) {
+		assertIncludes(code, 'foo++');
+	},
 	warnings: [
 		{
 			code: 'ILLEGAL_NAMESPACE_REASSIGNMENT',
@@ -20,7 +25,10 @@ module.exports = {
 			   ^
 		`
 		}
-	]
+	],
+	runtimeError(error) {
+		assert.strictEqual(error.message, 'Assignment to constant variable.');
+	}
 };
 
 // test copied from https://github.com/esnext/es6-module-transpiler/tree/master/test/examples/namespace-update-import-fails
