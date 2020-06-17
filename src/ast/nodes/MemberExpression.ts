@@ -93,16 +93,16 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		const baseVariable = path && this.scope.findVariable(path[0].key);
 		if (baseVariable && baseVariable.isNamespace) {
 			const resolvedVariable = this.resolveNamespaceVariables(baseVariable, path!.slice(1));
-			if (!resolvedVariable) {
-				super.bind();
-			} else if (typeof resolvedVariable === 'string') {
-				this.replacement = resolvedVariable;
-			} else {
-				if (resolvedVariable instanceof ExternalVariable && resolvedVariable.module) {
-					resolvedVariable.module.suggestName(path![0].key);
+			if (resolvedVariable) {
+				if (typeof resolvedVariable === 'string') {
+					this.replacement = resolvedVariable;
+				} else {
+					if (resolvedVariable instanceof ExternalVariable && resolvedVariable.module) {
+						resolvedVariable.module.suggestName(path![0].key);
+					}
+					this.variable = resolvedVariable;
+					this.scope.addNamespaceMemberAccess(getStringFromPath(path!), resolvedVariable);
 				}
-				this.variable = resolvedVariable;
-				this.scope.addNamespaceMemberAccess(getStringFromPath(path!), resolvedVariable);
 			}
 		} else {
 			super.bind();
@@ -261,7 +261,9 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.object instanceof Identifier) {
 			const variable = this.scope.findVariable(this.object.name);
 			if (variable.isNamespace) {
-				variable.include();
+				if (this.variable) {
+					this.context.includeVariable(this.variable);
+				}
 				this.context.warn(
 					{
 						code: 'ILLEGAL_NAMESPACE_REASSIGNMENT',
