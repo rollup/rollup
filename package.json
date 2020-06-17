@@ -141,9 +141,11 @@
   },
   "exports": {
     ".": {
-      "require": "./dist/rollup.js",
-      "import": "./dist/es/rollup.js",
-      "default": "./dist/rollup.js"
+      "node": {
+        "require": "./dist/rollup.js",
+        "import": "./dist/es/rollup.js"
+      },
+      "default": "./dist/es/rollup.browser.js"
     },
     "./dist/": "./dist/"
   }
