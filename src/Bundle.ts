@@ -1,5 +1,5 @@
 import Chunk from './Chunk';
-import Graph from './Graph';
+import ExternalModule from './ExternalModule';
 import Module from './Module';
 import {
 	NormalizedInputOptions,
@@ -9,8 +9,10 @@ import {
 	OutputChunk
 } from './rollup/types';
 import { Addons, createAddons } from './utils/addons';
+import { getChunkAssignments } from './utils/chunkAssignment';
 import commondir from './utils/commondir';
 import { error, warnDeprecation } from './utils/error';
+import { sortByExecutionOrder } from './utils/executionOrder';
 import { FILE_PLACEHOLDER } from './utils/FileEmitter';
 import { basename, isAbsolute } from './utils/path';
 import { PluginDriver } from './utils/PluginDriver';
@@ -22,7 +24,9 @@ export default class Bundle {
 		private readonly unsetOptions: Set<string>,
 		private readonly inputOptions: NormalizedInputOptions,
 		private readonly pluginDriver: PluginDriver,
-		private readonly graph: Graph // TODO Lukas replace with used properties
+		private readonly modulesById: Map<string, Module | ExternalModule>,
+		private readonly entryModules: Module[],
+		private readonly manualChunkAliasByEntry: Map<Module, string>
 	) {}
 
 	// TODO Lukas make this one nicer by structuring it
@@ -41,8 +45,7 @@ export default class Bundle {
 			await this.pluginDriver.hookParallel('renderStart', [this.outputOptions, this.inputOptions]);
 
 			timeStart('generate chunks', 2);
-			// TODO Lukas move to this class
-			const chunks = this.graph.generateChunks(facadeChunkByModule);
+			const chunks = this.generateChunks(facadeChunkByModule);
 			timeEnd('generate chunks', 2);
 
 			if (chunks.length > 1) {
@@ -130,6 +133,40 @@ export default class Bundle {
 			bundle[chunk.id] = FILE_PLACEHOLDER;
 		}
 	}
+
+	// TODO Lukas note that this is both returning a value and mutating its argument
+	private generateChunks(facadeChunkByModule: Map<Module, Chunk>): Chunk[] {
+		const chunks: Chunk[] = [];
+		const chunkByModule = new Map<Module, Chunk>();
+		for (const { alias, modules } of this.inputOptions.inlineDynamicImports
+			? [{ alias: null, modules: getIncludedModules(this.modulesById) }]
+			: this.inputOptions.preserveModules
+			? getIncludedModules(this.modulesById).map(module => ({ alias: null, modules: [module] }))
+			: getChunkAssignments(this.entryModules, this.manualChunkAliasByEntry)) {
+			sortByExecutionOrder(modules);
+			const chunk = new Chunk(
+				modules,
+				this.inputOptions,
+				this.unsetOptions,
+				this.modulesById,
+				chunkByModule,
+				facadeChunkByModule,
+				alias
+			);
+			chunks.push(chunk);
+			for (const module of modules) {
+				chunkByModule.set(module, chunk);
+			}
+		}
+		for (const chunk of chunks) {
+			chunk.link();
+		}
+		const facades: Chunk[] = [];
+		for (const chunk of chunks) {
+			facades.push(...chunk.generateFacades());
+		}
+		return [...chunks, ...facades];
+	}
 }
 
 function getAbsoluteEntryModulePaths(chunks: Chunk[]): string[] {
@@ -175,4 +212,12 @@ function assignChunksToBundle(
 		chunkdDescription.fileName = chunk.id!;
 	}
 	return outputBundle as OutputBundle;
+}
+
+function getIncludedModules(modulesById: Map<string, Module | ExternalModule>): Module[] {
+	return [...modulesById.values()].filter(
+		module =>
+			module instanceof Module &&
+			(module.isIncluded() || module.isEntryPoint || module.includedDynamicImporters.length > 0)
+	) as Module[];
 }

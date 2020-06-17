@@ -1,7 +1,6 @@
 import * as acorn from 'acorn';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { PathTracker } from './ast/utils/PathTracker';
-import Chunk from './Chunk';
 import ExternalModule from './ExternalModule';
 import Module from './Module';
 import { ModuleLoader, UnresolvedModule } from './ModuleLoader';
@@ -14,9 +13,8 @@ import {
 	SerializablePluginCache
 } from './rollup/types';
 import { BuildPhase } from './utils/buildPhase';
-import { getChunkAssignments } from './utils/chunkAssignment';
 import { errImplicitDependantIsNotIncluded, error } from './utils/error';
-import { analyseModuleExecution, sortByExecutionOrder } from './utils/executionOrder';
+import { analyseModuleExecution } from './utils/executionOrder';
 import { getId } from './utils/getId';
 import { PluginDriver } from './utils/PluginDriver';
 import relativeId from './utils/relativeId';
@@ -44,11 +42,14 @@ function normalizeEntryModules(
 	}));
 }
 
+// TODO Lukas in the end get rid of manual chunks logic here as well
 export default class Graph {
 	acornParser: typeof acorn.Parser;
 	cachedModules: Map<string, ModuleJSON>;
 	contextParse: (code: string, acornOptions?: acorn.Options) => acorn.Node;
 	deoptimizationTracker: PathTracker;
+	entryModules: Module[] = [];
+	manualChunkAliasByEntry = new Map<Module, string>();
 	moduleLoader: ModuleLoader;
 	modulesById = new Map<string, Module | ExternalModule>();
 	needsTreeshakingPass = false;
@@ -58,18 +59,12 @@ export default class Graph {
 	watchFiles: Record<string, true> = Object.create(null);
 	watchMode = false;
 
-	private entryModules: Module[] = [];
 	private externalModules: ExternalModule[] = [];
 	private implicitEntryModules: Module[] = [];
-	private manualChunkAliasByEntry = new Map<Module, string>();
 	private modules: Module[] = [];
 	private pluginCache?: Record<string, SerializablePluginCache>;
 
-	constructor(
-		private readonly options: NormalizedInputOptions,
-		private readonly unsetOptions: Set<string>,
-		watcher: RollupWatcher | null
-	) {
+	constructor(private readonly options: NormalizedInputOptions, watcher: RollupWatcher | null) {
 		this.deoptimizationTracker = new PathTracker();
 		this.cachedModules = new Map();
 		if (options.cache !== false) {
@@ -119,40 +114,6 @@ export default class Graph {
 		timeEnd('mark included statements', 2);
 
 		this.phase = BuildPhase.GENERATE;
-	}
-
-	// TODO Lukas note that this is both returning a value and mutating its argument
-	generateChunks(facadeChunkByModule: Map<Module, Chunk>): Chunk[] {
-		const chunks: Chunk[] = [];
-		const chunkByModule = new Map<Module, Chunk>();
-		for (const { alias, modules } of this.options.inlineDynamicImports
-			? [{ alias: null, modules: getIncludedModules(this.modulesById) }]
-			: this.options.preserveModules
-			? getIncludedModules(this.modulesById).map(module => ({ alias: null, modules: [module] }))
-			: getChunkAssignments(this.entryModules, this.manualChunkAliasByEntry)) {
-			sortByExecutionOrder(modules);
-			const chunk = new Chunk(
-				modules,
-				this.options,
-				this.unsetOptions,
-				this.modulesById,
-				chunkByModule,
-				facadeChunkByModule,
-				alias
-			);
-			chunks.push(chunk);
-			for (const module of modules) {
-				chunkByModule.set(module, chunk);
-			}
-		}
-		for (const chunk of chunks) {
-			chunk.link();
-		}
-		const facades: Chunk[] = [];
-		for (const chunk of chunks) {
-			facades.push(...chunk.generateFacades());
-		}
-		return [...chunks, ...facades];
 	}
 
 	getCache(): RollupCache {
@@ -307,12 +268,4 @@ export default class Graph {
 			}
 		}
 	}
-}
-
-function getIncludedModules(modulesById: Map<string, Module | ExternalModule>): Module[] {
-	return [...modulesById.values()].filter(
-		module =>
-			module instanceof Module &&
-			(module.isIncluded() || module.isEntryPoint || module.includedDynamicImporters.length > 0)
-	) as Module[];
 }

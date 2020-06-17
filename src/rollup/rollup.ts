@@ -32,13 +32,13 @@ export async function rollupInternal(
 	rawInputOptions: GenericConfigObject,
 	watcher: RollupWatcher | null
 ): Promise<RollupBuild> {
-	const { options: inputOptions, unsetOptions } = getInputOptions(
+	const { options: inputOptions, unsetOptions: unsetInputOptions } = getInputOptions(
 		rawInputOptions,
 		watcher !== null
 	);
 	initialiseTimers(inputOptions);
 
-	const graph = new Graph(inputOptions, unsetOptions, watcher);
+	const graph = new Graph(inputOptions, watcher);
 
 	// remove the cache option from the memory after graph creation (cache is not used anymore)
 	const useCache = rawInputOptions.cache !== false;
@@ -65,6 +65,7 @@ export async function rollupInternal(
 
 	const result: RollupBuild = {
 		cache: useCache ? graph.getCache() : undefined,
+		// TODO Lukas merge generate and write here
 		async generate(rawOutputOptions: OutputOptions) {
 			const {
 				options: outputOptions,
@@ -73,14 +74,17 @@ export async function rollupInternal(
 			} = getOutputOptionsAndPluginDriver(
 				rawOutputOptions as GenericConfigObject,
 				graph.pluginDriver,
-				inputOptions
+				inputOptions,
+				unsetInputOptions
 			);
 			const bundle = new Bundle(
 				outputOptions,
 				unsetOptions,
 				inputOptions,
 				outputPluginDriver,
-				graph
+				graph.modulesById,
+				graph.entryModules,
+				graph.manualChunkAliasByEntry
 			);
 			return createOutput(await bundle.generate(false));
 		},
@@ -93,7 +97,8 @@ export async function rollupInternal(
 			} = getOutputOptionsAndPluginDriver(
 				rawOutputOptions as GenericConfigObject,
 				graph.pluginDriver,
-				inputOptions
+				inputOptions,
+				unsetInputOptions
 			);
 			if (!outputOptions.dir && !outputOptions.file) {
 				return error({
@@ -106,7 +111,9 @@ export async function rollupInternal(
 				unsetOptions,
 				inputOptions,
 				outputPluginDriver,
-				graph
+				graph.modulesById,
+				graph.entryModules,
+				graph.manualChunkAliasByEntry
 			);
 			const generated = await bundle.generate(true);
 			await Promise.all(
@@ -161,7 +168,8 @@ function normalizePlugins(plugins: Plugin[], anonymousPrefix: string): void {
 function getOutputOptionsAndPluginDriver(
 	rawOutputOptions: GenericConfigObject,
 	inputPluginDriver: PluginDriver,
-	inputOptions: NormalizedInputOptions
+	inputOptions: NormalizedInputOptions,
+	unsetInputOptions: Set<string>
 ): {
 	options: NormalizedOutputOptions;
 	outputPluginDriver: PluginDriver;
@@ -175,13 +183,14 @@ function getOutputOptionsAndPluginDriver(
 	const outputPluginDriver = inputPluginDriver.createOutputPluginDriver(rawPlugins);
 
 	return {
-		...getOutputOptions(inputOptions, rawOutputOptions, outputPluginDriver),
+		...getOutputOptions(inputOptions, unsetInputOptions, rawOutputOptions, outputPluginDriver),
 		outputPluginDriver
 	};
 }
 
 function getOutputOptions(
 	inputOptions: NormalizedInputOptions,
+	unsetInputOptions: Set<string>,
 	rawOutputOptions: GenericConfigObject,
 	outputPluginDriver: PluginDriver
 ): { options: NormalizedOutputOptions; unsetOptions: Set<string> } {
@@ -199,7 +208,8 @@ function getOutputOptions(
 				};
 			}
 		) as GenericConfigObject,
-		inputOptions
+		inputOptions,
+		unsetInputOptions
 	);
 }
 

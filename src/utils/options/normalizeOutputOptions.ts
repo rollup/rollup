@@ -14,11 +14,12 @@ import { GenericConfigObject, warnUnknownOptions } from './options';
 
 export function normalizeOutputOptions(
 	config: GenericConfigObject,
-	inputOptions: NormalizedInputOptions
+	inputOptions: NormalizedInputOptions,
+	unsetInputOptions: Set<string>
 ): { options: NormalizedOutputOptions; unsetOptions: Set<string> } {
 	// These are options that may trigger special warnings or behaviour later
 	// if the user did not select an explicit value
-	const unsetOptions = new Set<string>();
+	const unsetOptions = new Set(unsetInputOptions);
 
 	const compact = (config.compact as boolean | undefined) || false;
 	const file = getFile(config, inputOptions);
