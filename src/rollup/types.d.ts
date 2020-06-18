@@ -492,6 +492,7 @@ export interface InputOptions {
 	external?: ExternalOption;
 	inlineDynamicImports?: boolean;
 	input?: InputOption;
+	/** @deprecated Use the "manualChunks" output option instead. */
 	manualChunks?: ManualChunksOption;
 	moduleContext?: ((id: string) => string | null | undefined) | { [id: string]: string };
 	onwarn?: WarningHandlerWithDefault;
@@ -515,7 +516,8 @@ export interface NormalizedInputOptions {
 	external: IsExternal;
 	inlineDynamicImports: boolean;
 	input: string[] | { [entryAlias: string]: string };
-	manualChunks: ManualChunksOption;
+	/** @deprecated Use the "manualChunks" output option instead. */
+	manualChunks: ManualChunksOption | undefined;
 	moduleContext: (id: string) => string;
 	onwarn: WarningHandler;
 	perf: boolean;
@@ -562,6 +564,7 @@ export interface OutputOptions {
 	indent?: string | boolean;
 	interop?: boolean;
 	intro?: string | (() => string | Promise<string>);
+	manualChunks?: ManualChunksOption;
 	minifyInternalExports?: boolean;
 	name?: string;
 	namespaceToStringTag?: boolean;
@@ -604,6 +607,7 @@ export interface NormalizedOutputOptions {
 	indent: true | string;
 	interop: boolean;
 	intro: () => string | Promise<string>;
+	manualChunks: ManualChunksOption;
 	minifyInternalExports: boolean;
 	name: string | undefined;
 	namespaceToStringTag: boolean;

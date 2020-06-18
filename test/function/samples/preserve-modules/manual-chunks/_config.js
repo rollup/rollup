@@ -3,11 +3,13 @@ module.exports = {
 	options: {
 		input: ['main.js'],
 		preserveModules: true,
-		manualChunks: {
-			lib: ['lib.js']
+		output: {
+			manualChunks: {
+				lib: ['lib.js']
+			}
 		}
 	},
-	error: {
+	generateError: {
 		code: 'INVALID_OPTION',
 		message: '"preserveModules" does not support the "manualChunks" option.'
 	}

@@ -20,7 +20,6 @@ module.exports = {
 					experimentalCacheExpiry: 10,
 					inlineDynamicImports: false,
 					input: ['used'],
-					manualChunks: {},
 					perf: false,
 					plugins: [
 						{

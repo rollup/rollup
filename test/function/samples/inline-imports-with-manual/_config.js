@@ -3,11 +3,13 @@ module.exports = {
 	options: {
 		input: ['main.js'],
 		inlineDynamicImports: true,
-		manualChunks: {
-			lib: ['lib.js']
+		output: {
+			manualChunks: {
+				lib: ['lib.js']
+			}
 		}
 	},
-	error: {
+	generateError: {
 		code: 'INVALID_OPTION',
 		message: '"manualChunks" option is not supported for "inlineDynamicImports".'
 	}

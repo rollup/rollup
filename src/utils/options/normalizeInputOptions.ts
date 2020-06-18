@@ -50,7 +50,7 @@ export function normalizeInputOptions(
 		external: getIdMatcher(config.external as ExternalOption),
 		inlineDynamicImports,
 		input: getInput(config, inlineDynamicImports),
-		manualChunks: getManualChunks(config, inlineDynamicImports, preserveModules),
+		manualChunks: getManualChunks(config, onwarn, strictDeprecations),
 		moduleContext: getModuleContext(config, context),
 		onwarn,
 		perf: (config.perf as boolean | undefined) || false,
@@ -175,25 +175,19 @@ const getInput = (
 
 const getManualChunks = (
 	config: GenericConfigObject,
-	inlineDynamicImports: boolean,
-	preserveModules: boolean
-): ManualChunksOption => {
-	const configManualChunks = config.manualChunks as ManualChunksOption;
+	warn: WarningHandler,
+	strictDeprecations: boolean
+): ManualChunksOption | undefined => {
+	const configManualChunks = config.manualChunks as ManualChunksOption | undefined;
 	if (configManualChunks) {
-		if (inlineDynamicImports) {
-			return error({
-				code: 'INVALID_OPTION',
-				message: '"manualChunks" option is not supported for "inlineDynamicImports".'
-			});
-		}
-		if (preserveModules) {
-			return error({
-				code: 'INVALID_OPTION',
-				message: '"preserveModules" does not support the "manualChunks" option.'
-			});
-		}
+		warnDeprecationWithOptions(
+			'The "manualChunks" option is deprecated. Use the "output.manualChunks" option instead.',
+			false,
+			warn,
+			strictDeprecations
+		);
 	}
-	return configManualChunks || {};
+	return configManualChunks;
 };
 
 const getModuleContext = (

@@ -82,9 +82,7 @@ export async function rollupInternal(
 				unsetOptions,
 				inputOptions,
 				outputPluginDriver,
-				graph.modulesById,
-				graph.entryModules,
-				graph.manualChunkAliasByEntry
+				graph
 			);
 			return createOutput(await bundle.generate(false));
 		},
@@ -111,9 +109,7 @@ export async function rollupInternal(
 				unsetOptions,
 				inputOptions,
 				outputPluginDriver,
-				graph.modulesById,
-				graph.entryModules,
-				graph.manualChunkAliasByEntry
+				graph
 			);
 			const generated = await bundle.generate(true);
 			await Promise.all(

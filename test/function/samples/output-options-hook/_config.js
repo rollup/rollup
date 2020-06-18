@@ -33,6 +33,7 @@ module.exports = {
 					hoistTransitiveImports: true,
 					indent: true,
 					interop: true,
+					manualChunks: {},
 					minifyInternalExports: false,
 					namespaceToStringTag: false,
 					noConflict: false,

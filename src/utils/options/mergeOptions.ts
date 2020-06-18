@@ -209,6 +209,7 @@ function mergeOutputOptions(
 		indent: getOption('indent'),
 		interop: getOption('interop'),
 		intro: getOption('intro'),
+		manualChunks: getOption('manualChunks'),
 		minifyInternalExports: getOption('minifyInternalExports'),
 		name: getOption('name'),
 		namespaceToStringTag: getOption('namespaceToStringTag'),

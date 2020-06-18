@@ -5,8 +5,10 @@ module.exports = {
 		input: {
 			main: 'main.js'
 		},
-		manualChunks: {
-			main: ['outer']
+		output: {
+			manualChunks: {
+				main: ['outer']
+			}
 		}
 	}
 };

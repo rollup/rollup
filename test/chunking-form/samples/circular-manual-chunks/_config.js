@@ -3,6 +3,6 @@ module.exports = {
 	expectedWarnings: ['CIRCULAR_DEPENDENCY'],
 	options: {
 		input: 'main',
-		manualChunks: { lib1: ['lib1'], lib2: ['lib2'] }
+		output: { manualChunks: { lib1: ['lib1'], lib2: ['lib2'] } }
 	}
 };

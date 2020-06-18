@@ -1,7 +1,9 @@
 import Chunk from './Chunk';
 import ExternalModule from './ExternalModule';
+import Graph from './Graph';
 import Module from './Module';
 import {
+	GetManualChunk,
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
 	OutputBundle,
@@ -11,7 +13,7 @@ import {
 import { Addons, createAddons } from './utils/addons';
 import { getChunkAssignments } from './utils/chunkAssignment';
 import commondir from './utils/commondir';
-import { error, warnDeprecation } from './utils/error';
+import { errCannotAssignModuleToChunk, error, warnDeprecation } from './utils/error';
 import { sortByExecutionOrder } from './utils/executionOrder';
 import { FILE_PLACEHOLDER } from './utils/FileEmitter';
 import { basename, isAbsolute } from './utils/path';
@@ -26,9 +28,7 @@ export default class Bundle {
 		private readonly unsetOptions: Set<string>,
 		private readonly inputOptions: NormalizedInputOptions,
 		private readonly pluginDriver: PluginDriver,
-		private readonly modulesById: Map<string, Module | ExternalModule>,
-		private readonly entryModules: Module[],
-		private readonly manualChunkAliasByEntry: Map<Module, string>
+		private readonly graph: Graph
 	) {}
 
 	// TODO Lukas make this one nicer by structuring it
@@ -44,7 +44,7 @@ export default class Bundle {
 			await this.pluginDriver.hookParallel('renderStart', [this.outputOptions, this.inputOptions]);
 
 			timeStart('generate chunks', 2);
-			const chunks = this.generateChunks();
+			const chunks = await this.generateChunks();
 			timeEnd('generate chunks', 2);
 
 			timeStart('render modules', 2);
@@ -101,6 +101,24 @@ export default class Bundle {
 		return outputBundle as OutputBundle;
 	}
 
+	private async addManualChunks(
+		manualChunks: Record<string, string[]>
+	): Promise<Map<Module, string>> {
+		const manualChunkAliasByEntry = new Map<Module, string>();
+		const chunkEntries = await Promise.all(
+			Object.keys(manualChunks).map(async alias => ({
+				alias,
+				entries: await this.graph.moduleLoader.addAdditionalModules(manualChunks[alias])
+			}))
+		);
+		for (const { alias, entries } of chunkEntries) {
+			for (const entry of entries) {
+				addModuleToManualChunk(alias, entry, manualChunkAliasByEntry);
+			}
+		}
+		return manualChunkAliasByEntry;
+	}
+
 	private assignChunkIds(
 		chunks: Chunk[],
 		inputBase: string,
@@ -135,20 +153,45 @@ export default class Bundle {
 		}
 	}
 
-	private generateChunks(): Chunk[] {
+	private assignManualChunks(getManualChunk: GetManualChunk): Map<Module, string> {
+		const manualChunkAliasByEntry = new Map<Module, string>();
+		const manualChunksApi = {
+			getModuleIds: () => this.graph.modulesById.keys(),
+			getModuleInfo: this.graph.getModuleInfo
+		};
+		for (const module of this.graph.modulesById.values()) {
+			if (module instanceof Module) {
+				const manualChunkAlias = getManualChunk(module.id, manualChunksApi);
+				if (typeof manualChunkAlias === 'string') {
+					addModuleToManualChunk(manualChunkAlias, module, manualChunkAliasByEntry);
+				}
+			}
+		}
+		return manualChunkAliasByEntry;
+	}
+
+	private async generateChunks(): Promise<Chunk[]> {
+		const { manualChunks } = this.outputOptions;
+		const manualChunkAliasByEntry =
+			typeof manualChunks === 'object'
+				? await this.addManualChunks(manualChunks)
+				: this.assignManualChunks(manualChunks);
 		const chunks: Chunk[] = [];
 		const chunkByModule = new Map<Module, Chunk>();
 		for (const { alias, modules } of this.inputOptions.inlineDynamicImports
-			? [{ alias: null, modules: getIncludedModules(this.modulesById) }]
+			? [{ alias: null, modules: getIncludedModules(this.graph.modulesById) }]
 			: this.inputOptions.preserveModules
-			? getIncludedModules(this.modulesById).map(module => ({ alias: null, modules: [module] }))
-			: getChunkAssignments(this.entryModules, this.manualChunkAliasByEntry)) {
+			? getIncludedModules(this.graph.modulesById).map(module => ({
+					alias: null,
+					modules: [module]
+			  }))
+			: getChunkAssignments(this.graph.entryModules, manualChunkAliasByEntry)) {
 			sortByExecutionOrder(modules);
 			const chunk = new Chunk(
 				modules,
 				this.inputOptions,
 				this.unsetOptions,
-				this.modulesById,
+				this.graph.modulesById,
 				chunkByModule,
 				this.facadeChunkByModule,
 				alias
@@ -220,4 +263,16 @@ function getIncludedModules(modulesById: Map<string, Module | ExternalModule>): 
 			module instanceof Module &&
 			(module.isIncluded() || module.isEntryPoint || module.includedDynamicImporters.length > 0)
 	) as Module[];
+}
+
+function addModuleToManualChunk(
+	alias: string,
+	module: Module,
+	manualChunkAliasByEntry: Map<Module, string>
+) {
+	const existingAlias = manualChunkAliasByEntry.get(module);
+	if (typeof existingAlias === 'string' && existingAlias !== alias) {
+		return error(errCannotAssignModuleToChunk(module.id, alias, existingAlias));
+	}
+	manualChunkAliasByEntry.set(module, alias);
 }

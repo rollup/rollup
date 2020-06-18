@@ -1,6 +1,7 @@
 import {
 	GlobalsOption,
 	InternalModuleFormat,
+	ManualChunksOption,
 	ModuleFormat,
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
@@ -47,6 +48,7 @@ export function normalizeOutputOptions(
 		indent: getIndent(config, compact),
 		interop: (config.interop as boolean | undefined) ?? true,
 		intro: getAddon(config, 'intro'),
+		manualChunks: getManualChunks(config, inputOptions),
 		minifyInternalExports: getMinifyInternalExports(config, format, compact),
 		name: config.name as string | undefined,
 		namespaceToStringTag: (config.namespaceToStringTag as boolean | undefined) || false,
@@ -187,6 +189,29 @@ const getIndent = (config: GenericConfigObject, compact: boolean): string | true
 	}
 	const configIndent = config.indent as string | boolean | undefined;
 	return configIndent === false ? '' : configIndent ?? true;
+};
+
+const getManualChunks = (
+	config: GenericConfigObject,
+	inputOptions: NormalizedInputOptions
+): ManualChunksOption => {
+	const configManualChunks =
+		(config.manualChunks as ManualChunksOption | undefined) || inputOptions.manualChunks;
+	if (configManualChunks) {
+		if (inputOptions.inlineDynamicImports) {
+			return error({
+				code: 'INVALID_OPTION',
+				message: '"manualChunks" option is not supported for "inlineDynamicImports".'
+			});
+		}
+		if (inputOptions.preserveModules) {
+			return error({
+				code: 'INVALID_OPTION',
+				message: '"preserveModules" does not support the "manualChunks" option.'
+			});
+		}
+	}
+	return configManualChunks || {};
 };
 
 const getMinifyInternalExports = (

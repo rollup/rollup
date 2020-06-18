@@ -322,6 +322,7 @@ export class ModuleLoader {
 				}
 			}
 		}
+		module.linkDependencies();
 		return module;
 	}
 

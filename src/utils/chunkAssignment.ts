@@ -106,7 +106,7 @@ function addStaticDependenciesToManualChunk(
 	for (const module of modulesToHandle) {
 		modulesInManualChunks.add(module);
 		manualChunkModules.push(module);
-		for (const dependency of module.getDependenciesToBeIncluded()) {
+		for (const dependency of module.dependencies) {
 			if (!(dependency instanceof ExternalModule || modulesInManualChunks.has(dependency))) {
 				modulesToHandle.add(dependency);
 			}
