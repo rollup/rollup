@@ -96,7 +96,6 @@ describe('sanity checks', () => {
 		);
 	});
 
-
 	it('throws on incorrect bundle.generate format option', async () => {
 		let error = null;
 		const bundle = await rollup.rollup({
@@ -125,9 +124,7 @@ describe('sanity checks', () => {
 		assert.equal(code, `function foo(x){ console.log(x); }\n\nexport { foo };\n`);
 	});
 
-	it('reuses existing error object', () => {
-		let error;
-
+	it('reuses existing error object', async () => {
 		class CustomError extends Error {
 			constructor(message, x) {
 				super(message);
@@ -135,22 +132,24 @@ describe('sanity checks', () => {
 			}
 		}
 
-		return rollup
-			.rollup({
+		let error = null;
+		const customError = new CustomError('foo', 'bar');
+		try {
+			await rollup.rollup({
 				input: 'x',
 				plugins: [
 					loader({ x: `console.log( 42 );` }),
 					{
-						transform(code) {
-							error = new CustomError('foo', 'bar');
-							this.error(error);
+						transform() {
+							this.error(customError);
 						}
 					}
 				]
-			})
-			.catch(e => {
-				assert.equal(e, error);
 			});
+		} catch (buildError) {
+			error = buildError;
+		}
+		assert.strictEqual(error, customError);
 	});
 
 	it('throws when using multiple inputs together with the "file" option', async () => {

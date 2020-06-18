@@ -4,7 +4,6 @@ import Graph from './Graph';
 import Module from './Module';
 import {
 	EmittedChunk,
-	GetManualChunk,
 	HasModuleSideEffects,
 	NormalizedInputOptions,
 	ResolvedId,
@@ -13,7 +12,6 @@ import {
 } from './rollup/types';
 import {
 	errBadLoader,
-	errCannotAssignModuleToChunk,
 	errEntryCannotBeExternal,
 	errExternalSyntheticExports,
 	errImplicitDependantCannotBeExternal,
@@ -40,15 +38,11 @@ export interface UnresolvedModule {
 	name: string | null;
 }
 
-// TODO Lukas can we remove the manual chunk logic entirely except for adding non-entry modules?
-// Then we could even do that during generate. Add a function that receives an array of entry ids
-// and returns an array of modules, which we call once for each alias in a Promise.all.
 export class ModuleLoader {
 	private readonly hasModuleSideEffects: HasModuleSideEffects;
 	private readonly implicitEntryModules = new Set<Module>();
 	private readonly indexedEntryModules: { index: number; module: Module }[] = [];
 	private latestLoadModulesPromise: Promise<any> = Promise.resolve();
-	private readonly manualChunkAliasByEntry = new Map<Module, string>();
 	private nextEntryModuleIndex = 0;
 
 	constructor(
@@ -62,13 +56,20 @@ export class ModuleLoader {
 			: () => true;
 	}
 
+	async addAdditionalModules(unresolvedModules: string[]): Promise<Module[]> {
+		const result = this.extendLoadModulesPromise(
+			Promise.all(unresolvedModules.map(id => this.loadEntryModule(id, false, undefined, null)))
+		);
+		await this.awaitLoadModulesPromise();
+		return result;
+	}
+
 	async addEntryModules(
 		unresolvedEntryModules: UnresolvedModule[],
 		isUserDefined: boolean
 	): Promise<{
 		entryModules: Module[];
 		implicitEntryModules: Module[];
-		manualChunkAliasByEntry: Map<Module, string>;
 		newEntryModules: Module[];
 	}> {
 		const firstEntryModuleIndex = this.nextEntryModuleIndex;
@@ -105,48 +106,8 @@ export class ModuleLoader {
 		return {
 			entryModules: this.indexedEntryModules.map(({ module }) => module),
 			implicitEntryModules: [...this.implicitEntryModules],
-			manualChunkAliasByEntry: this.manualChunkAliasByEntry,
 			newEntryModules
 		};
-	}
-
-	async addManualChunks(manualChunks: Record<string, string[]>): Promise<void> {
-		const unresolvedManualChunks: { alias: string; id: string }[] = [];
-		for (const alias of Object.keys(manualChunks)) {
-			const manualChunkIds = manualChunks[alias];
-			for (const id of manualChunkIds) {
-				unresolvedManualChunks.push({ id, alias });
-			}
-		}
-		const result = this.extendLoadModulesPromise(
-			Promise.all(
-				unresolvedManualChunks.map(({ id }) => this.loadEntryModule(id, false, undefined, null))
-			).then(manualChunkEntries => {
-				for (let index = 0; index < manualChunkEntries.length; index++) {
-					this.addModuleToManualChunk(
-						unresolvedManualChunks[index].alias,
-						manualChunkEntries[index]
-					);
-				}
-			})
-		);
-		await this.awaitLoadModulesPromise();
-		return result;
-	}
-
-	assignManualChunks(getManualChunk: GetManualChunk) {
-		const manualChunksApi = {
-			getModuleIds: () => this.modulesById.keys(),
-			getModuleInfo: this.graph.getModuleInfo
-		};
-		for (const module of this.modulesById.values()) {
-			if (module instanceof Module) {
-				const manualChunkAlias = getManualChunk(module.id, manualChunksApi);
-				if (typeof manualChunkAlias === 'string') {
-					this.addModuleToManualChunk(manualChunkAlias, module);
-				}
-			}
-		}
 	}
 
 	async emitChunk({
@@ -259,14 +220,6 @@ export class ModuleLoader {
 		}
 	}
 
-	private addModuleToManualChunk(alias: string, module: Module) {
-		const existingAlias = this.manualChunkAliasByEntry.get(module);
-		if (typeof existingAlias === 'string' && existingAlias !== alias) {
-			return error(errCannotAssignModuleToChunk(module.id, alias, existingAlias));
-		}
-		this.manualChunkAliasByEntry.set(module, alias);
-	}
-
 	private async awaitLoadModulesPromise(): Promise<void> {
 		let startingPromise;
 		do {
@@ -280,6 +233,9 @@ export class ModuleLoader {
 			loadNewModulesPromise,
 			this.latestLoadModulesPromise
 		]);
+		this.latestLoadModulesPromise.catch(() => {
+			/* Avoid unhandled Promise rejections */
+		});
 		return loadNewModulesPromise;
 	}
 

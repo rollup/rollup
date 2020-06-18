@@ -5,6 +5,7 @@ import ExternalModule from './ExternalModule';
 import Module from './Module';
 import { ModuleLoader, UnresolvedModule } from './ModuleLoader';
 import {
+	GetManualChunk,
 	ModuleInfo,
 	ModuleJSON,
 	NormalizedInputOptions,
@@ -13,7 +14,11 @@ import {
 	SerializablePluginCache
 } from './rollup/types';
 import { BuildPhase } from './utils/buildPhase';
-import { errImplicitDependantIsNotIncluded, error } from './utils/error';
+import {
+	errCannotAssignModuleToChunk,
+	errImplicitDependantIsNotIncluded,
+	error
+} from './utils/error';
 import { analyseModuleExecution } from './utils/executionOrder';
 import { getId } from './utils/getId';
 import { PluginDriver } from './utils/PluginDriver';
@@ -167,20 +172,57 @@ export default class Graph {
 		};
 	};
 
+	private async addManualChunks(manualChunks: Record<string, string[]>): Promise<void> {
+		const chunkEntries = await Promise.all(
+			Object.keys(manualChunks).map(async alias => ({
+				alias,
+				entries: await this.moduleLoader.addAdditionalModules(manualChunks[alias]).catch(error => {
+					console.log(error);
+					console.error(error);
+					return [];
+				})
+			}))
+		);
+		for (const { alias, entries } of chunkEntries) {
+			for (const entry of entries) {
+				this.addModuleToManualChunk(alias, entry);
+			}
+		}
+	}
+
+	private addModuleToManualChunk(alias: string, module: Module) {
+		const existingAlias = this.manualChunkAliasByEntry.get(module);
+		if (typeof existingAlias === 'string' && existingAlias !== alias) {
+			return error(errCannotAssignModuleToChunk(module.id, alias, existingAlias));
+		}
+		this.manualChunkAliasByEntry.set(module, alias);
+	}
+
+	private assignManualChunks(getManualChunk: GetManualChunk) {
+		const manualChunksApi = {
+			getModuleIds: () => this.modulesById.keys(),
+			getModuleInfo: this.getModuleInfo
+		};
+		for (const module of this.modulesById.values()) {
+			if (module instanceof Module) {
+				const manualChunkAlias = getManualChunk(module.id, manualChunksApi);
+				if (typeof manualChunkAlias === 'string') {
+					this.addModuleToManualChunk(manualChunkAlias, module);
+				}
+			}
+		}
+	}
+
 	private async generateModuleGraph(): Promise<void> {
 		const { manualChunks } = this.options;
 		[
-			{
-				entryModules: this.entryModules,
-				implicitEntryModules: this.implicitEntryModules,
-				manualChunkAliasByEntry: this.manualChunkAliasByEntry
-			}
+			{ entryModules: this.entryModules, implicitEntryModules: this.implicitEntryModules }
 		] = await Promise.all([
 			this.moduleLoader.addEntryModules(normalizeEntryModules(this.options.input), true),
-			typeof manualChunks === 'object' ? this.moduleLoader.addManualChunks(manualChunks) : null
+			typeof manualChunks === 'object' ? this.addManualChunks(manualChunks) : null
 		]);
 		if (typeof manualChunks === 'function') {
-			this.moduleLoader.assignManualChunks(manualChunks);
+			this.assignManualChunks(manualChunks);
 		}
 		if (this.entryModules.length === 0) {
 			throw new Error('You must supply options.input to rollup');
