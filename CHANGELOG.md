@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.17.1
+*2020-06-19*
+
+### Bug Fixes
+* Properly resolve accessing properties of namespace members again (#3643)
+
+### Pull Requests
+* [#3643](https://github.com/rollup/rollup/pull/3643): Fix accessing nested properties of namespaces (@lukastaegert)
+
 ## 2.17.0
 *2020-06-17*
 
