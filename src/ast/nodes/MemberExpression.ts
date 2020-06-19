@@ -93,16 +93,16 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		const baseVariable = path && this.scope.findVariable(path[0].key);
 		if (baseVariable && baseVariable.isNamespace) {
 			const resolvedVariable = this.resolveNamespaceVariables(baseVariable, path!.slice(1));
-			if (resolvedVariable) {
-				if (typeof resolvedVariable === 'string') {
-					this.replacement = resolvedVariable;
-				} else {
-					if (resolvedVariable instanceof ExternalVariable && resolvedVariable.module) {
-						resolvedVariable.module.suggestName(path![0].key);
-					}
-					this.variable = resolvedVariable;
-					this.scope.addNamespaceMemberAccess(getStringFromPath(path!), resolvedVariable);
+			if (!resolvedVariable) {
+				super.bind();
+			} else if (typeof resolvedVariable === 'string') {
+				this.replacement = resolvedVariable;
+			} else {
+				if (resolvedVariable instanceof ExternalVariable && resolvedVariable.module) {
+					resolvedVariable.module.suggestName(path![0].key);
 				}
+				this.variable = resolvedVariable;
+				this.scope.addNamespaceMemberAccess(getStringFromPath(path!), resolvedVariable);
 			}
 		} else {
 			super.bind();
