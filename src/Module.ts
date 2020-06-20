@@ -37,11 +37,11 @@ import {
 	PreserveEntrySignaturesOption,
 	ResolvedIdMap,
 	RollupError,
+	RollupLogProps,
 	RollupWarning,
 	TransformModuleJSON
 } from './rollup/types';
-import { error, Errors } from './utils/error';
-import getCodeFrame from './utils/getCodeFrame';
+import { augmentCodeLocation, error, Errors } from './utils/error';
 import { getId } from './utils/getId';
 import { getOriginalLocation } from './utils/getOriginalLocation';
 import { makeLegal } from './utils/identifierHelpers';
@@ -89,7 +89,7 @@ export interface AstContext {
 	addImportMeta: (node: MetaProperty) => void;
 	code: string;
 	deoptimizationTracker: PathTracker;
-	error: (props: RollupError, pos?: number) => never;
+	error: (props: RollupError, pos: number) => never;
 	fileName: string;
 	getExports: () => string[];
 	getModuleExecIndex: () => number;
@@ -107,7 +107,7 @@ export interface AstContext {
 	traceExport: (name: string) => Variable;
 	traceVariable: (name: string) => Variable | null;
 	usesTopLevelAwait: boolean;
-	warn: (warning: RollupWarning, pos?: number) => void;
+	warn: (warning: RollupWarning, pos: number) => void;
 }
 
 function tryParse(module: Module, Parser: typeof acorn.Parser, acornOptions: acorn.Options) {
@@ -256,33 +256,8 @@ export default class Module {
 		this.ast.bind();
 	}
 
-	error(props: RollupError, pos?: number): never {
-		if (typeof pos === 'number') {
-			props.pos = pos;
-			let location: { column: number; line: number } = locate(this.code, pos, { offsetLine: 1 });
-			try {
-				location = getOriginalLocation(this.sourcemapChain, location);
-			} catch (e) {
-				this.warn({
-					code: 'SOURCEMAP_ERROR',
-					loc: {
-						column: location.column,
-						file: this.id,
-						line: location.line
-					},
-					message: `Error when using sourcemap for reporting an error: ${e.message}`,
-					pos
-				});
-			}
-
-			props.loc = {
-				column: location.column,
-				file: this.id,
-				line: location.line
-			};
-			props.frame = getCodeFrame(this.originalCode, location.line, location.column);
-		}
-
+	error(props: RollupError, pos: number): never {
+		this.addLocationToLogProps(props, pos);
 		return error(props);
 	}
 
@@ -484,7 +459,7 @@ export default class Module {
 				return this.exportShimVariable;
 			}
 			const name = exportDeclaration.localName;
-			return this.traceVariable(name) || this.graph.scope.findVariable(name);
+			return this.traceVariable(name)!;
 		}
 
 		if (name !== 'default') {
@@ -756,18 +731,9 @@ export default class Module {
 		return null;
 	}
 
-	warn(warning: RollupWarning, pos?: number) {
-		if (typeof pos === 'number') {
-			warning.pos = pos;
-
-			const { line, column } = locate(this.code, pos, { offsetLine: 1 }); // TODO trace sourcemaps, cf. error()
-
-			warning.loc = { file: this.id, line, column };
-			warning.frame = getCodeFrame(this.code, line, column);
-		}
-
-		warning.id = this.id;
-		this.options.onwarn(warning);
+	warn(props: RollupWarning, pos: number) {
+		this.addLocationToLogProps(props, pos);
+		this.options.onwarn(props);
 	}
 
 	private addDynamicImport(node: ImportExpression) {
@@ -875,6 +841,28 @@ export default class Module {
 
 	private addImportMeta(node: MetaProperty) {
 		this.importMetas.push(node);
+	}
+
+	private addLocationToLogProps(props: RollupLogProps, pos: number): void {
+		props.id = this.id;
+		props.pos = pos;
+		let { column, line } = locate(this.code, pos, { offsetLine: 1 });
+		try {
+			({ column, line } = getOriginalLocation(this.sourcemapChain, { column, line }));
+		} catch (e) {
+			this.options.onwarn({
+				code: 'SOURCEMAP_ERROR',
+				id: this.id,
+				loc: {
+					column,
+					file: this.id,
+					line
+				},
+				message: `Error when using sourcemap for reporting an error: ${e.message}`,
+				pos
+			});
+		}
+		augmentCodeLocation(props, { column, line }, this.originalCode, this.id);
 	}
 
 	private addModulesToImportDescriptions(importDescription: {

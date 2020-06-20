@@ -6,6 +6,7 @@ module.exports = {
 	error: {
 		code: 'PARSE_ERROR',
 		message: 'Unexpected token (Note that you need @rollup/plugin-json to import JSON files)',
+		id: path.resolve(__dirname, 'file.json'),
 		parserError: {
 			loc: {
 				column: 8,

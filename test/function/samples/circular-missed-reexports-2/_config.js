@@ -8,6 +8,7 @@ module.exports = {
 	},
 	error: {
 		code: 'MISSING_EXPORT',
+		id: path.resolve(__dirname, 'dep2.js'),
 		frame: `
 1: export { doesNotExist } from './dep1.js';
             ^`,

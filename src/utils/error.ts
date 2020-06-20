@@ -3,6 +3,7 @@ import Module from '../Module';
 import {
 	NormalizedInputOptions,
 	RollupError,
+	RollupLogProps,
 	RollupWarning,
 	WarningHandler
 } from '../rollup/types';
@@ -15,23 +16,23 @@ export function error(base: Error | RollupError): never {
 }
 
 export function augmentCodeLocation(
-	object: RollupError | RollupWarning,
+	props: RollupLogProps,
 	pos: number | { column: number; line: number },
 	source: string,
 	id: string
 ): void {
 	if (typeof pos === 'object') {
 		const { line, column } = pos;
-		object.loc = { file: id, line, column };
+		props.loc = { file: id, line, column };
 	} else {
-		object.pos = pos;
+		props.pos = pos;
 		const { line, column } = locate(source, pos, { offsetLine: 1 });
-		object.loc = { file: id, line, column };
+		props.loc = { file: id, line, column };
 	}
 
-	if (object.frame === undefined) {
-		const { line, column } = object.loc;
-		object.frame = getCodeFrame(source, line, column);
+	if (props.frame === undefined) {
+		const { line, column } = props.loc;
+		props.frame = getCodeFrame(source, line, column);
 	}
 }
 
