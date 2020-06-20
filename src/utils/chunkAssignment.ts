@@ -21,10 +21,7 @@ export function getChunkAssignments(
 	}
 
 	const assignedEntryPointsByModule: DependentModuleMap = new Map();
-	const { dependentEntryPointsByModule, dynamicEntryModules } = analyzeModuleGraph(
-		entryModules,
-		modulesInManualChunks
-	);
+	const { dependentEntryPointsByModule, dynamicEntryModules } = analyzeModuleGraph(entryModules);
 	const dynamicallyDependentEntryPointsByDynamicEntry: DependentModuleMap = getDynamicDependentEntryPoints(
 		dependentEntryPointsByModule,
 		dynamicEntryModules
@@ -59,16 +56,16 @@ export function getChunkAssignments(
 
 	function areEntryPointsContainedOrDynamicallyDependent(
 		entryPoints: Set<Module>,
-		superSet: Set<Module>
+		containedIn: Set<Module>
 	): boolean {
 		const entriesToCheck = new Set(entryPoints);
 		for (const entry of entriesToCheck) {
-			if (!superSet.has(entry)) {
+			if (!containedIn.has(entry)) {
 				if (staticEntries.has(entry)) return false;
-				const dynamicDependentEntryPoints = dynamicallyDependentEntryPointsByDynamicEntry.get(
+				const dynamicallyDependentEntryPoints = dynamicallyDependentEntryPointsByDynamicEntry.get(
 					entry
 				)!;
-				for (const dependentEntry of dynamicDependentEntryPoints) {
+				for (const dependentEntry of dynamicallyDependentEntryPoints) {
 					entriesToCheck.add(dependentEntry);
 				}
 			}
@@ -115,8 +112,7 @@ function addStaticDependenciesToManualChunk(
 }
 
 function analyzeModuleGraph(
-	entryModules: Module[],
-	modulesInManualChunks: Set<Module>
+	entryModules: Module[]
 ): {
 	dependentEntryPointsByModule: DependentModuleMap;
 	dynamicEntryModules: Set<Module>;
@@ -134,20 +130,14 @@ function analyzeModuleGraph(
 				}
 			}
 			for (const { resolution } of module.dynamicImports) {
-				if (
-					resolution instanceof Module &&
-					resolution.includedDynamicImporters.length > 0 &&
-					!modulesInManualChunks.has(resolution)
-				) {
+				if (resolution instanceof Module && resolution.includedDynamicImporters.length > 0) {
 					dynamicEntryModules.add(resolution);
 					entriesToHandle.add(resolution);
 				}
 			}
 			for (const dependency of module.implicitlyLoadedBefore) {
-				if (!modulesInManualChunks.has(dependency)) {
-					dynamicEntryModules.add(dependency);
-					entriesToHandle.add(dependency);
-				}
+				dynamicEntryModules.add(dependency);
+				entriesToHandle.add(dependency);
 			}
 		}
 	}

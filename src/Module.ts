@@ -846,9 +846,11 @@ export default class Module {
 	private addLocationToLogProps(props: RollupLogProps, pos: number): void {
 		props.id = this.id;
 		props.pos = pos;
-		let { column, line } = locate(this.code, pos, { offsetLine: 1 });
+		let code = this.code;
+		let { column, line } = locate(code, pos, { offsetLine: 1 });
 		try {
 			({ column, line } = getOriginalLocation(this.sourcemapChain, { column, line }));
+			code = this.originalCode;
 		} catch (e) {
 			this.options.onwarn({
 				code: 'SOURCEMAP_ERROR',
@@ -862,7 +864,7 @@ export default class Module {
 				pos
 			});
 		}
-		augmentCodeLocation(props, { column, line }, this.originalCode, this.id);
+		augmentCodeLocation(props, { column, line }, code, this.id);
 	}
 
 	private addModulesToImportDescriptions(importDescription: {

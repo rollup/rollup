@@ -895,8 +895,7 @@ export default class Chunk {
 			} else {
 				const variable = this.exportsByName![exportName];
 				if (variable instanceof SyntheticNamedExportVariable) continue;
-				const module = variable.module;
-				if (!module) continue;
+				const module = variable.module!;
 				if (module instanceof Module) {
 					exportChunk = this.chunkByModule.get(module)!;
 					if (exportChunk === this) continue;
@@ -1146,16 +1145,14 @@ export default class Chunk {
 			if (variable instanceof SyntheticNamedExportVariable) {
 				variable = variable.getBaseVariable();
 			}
-			if (variable.module) {
-				const chunk = this.chunkByModule.get(variable.module as Module);
-				if (chunk !== this) {
-					this.imports.add(variable);
-					if (
-						!(variable instanceof NamespaceVariable && this.outputOptions.preserveModules) &&
-						variable.module instanceof Module
-					) {
-						chunk!.exports.add(variable);
-					}
+			const chunk = this.chunkByModule.get(variable.module as Module);
+			if (chunk !== this) {
+				this.imports.add(variable);
+				if (
+					!(variable instanceof NamespaceVariable && this.outputOptions.preserveModules) &&
+					variable.module instanceof Module
+				) {
+					chunk!.exports.add(variable);
 				}
 			}
 		}
