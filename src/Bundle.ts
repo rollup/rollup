@@ -53,7 +53,7 @@ export default class Bundle {
 			}
 			const addons = await createAddons(this.outputOptions, this.pluginDriver);
 			for (const chunk of chunks) {
-				chunk.generateExports(this.outputOptions);
+				chunk.generateExports();
 			}
 			const inputBase = commondir(getAbsoluteEntryModulePaths(chunks));
 			for (const chunk of chunks) {
@@ -139,7 +139,7 @@ export default class Bundle {
 		for (const chunk of chunksForNaming) {
 			if (this.outputOptions.file) {
 				chunk.id = basename(this.outputOptions.file);
-			} else if (this.inputOptions.preserveModules) {
+			} else if (this.outputOptions.preserveModules) {
 				chunk.id = chunk.generateIdPreserveModules(
 					inputBase,
 					this.outputOptions,
@@ -178,9 +178,9 @@ export default class Bundle {
 				: this.assignManualChunks(manualChunks);
 		const chunks: Chunk[] = [];
 		const chunkByModule = new Map<Module, Chunk>();
-		for (const { alias, modules } of this.inputOptions.inlineDynamicImports
+		for (const { alias, modules } of this.outputOptions.inlineDynamicImports
 			? [{ alias: null, modules: getIncludedModules(this.graph.modulesById) }]
-			: this.inputOptions.preserveModules
+			: this.outputOptions.preserveModules
 			? getIncludedModules(this.graph.modulesById).map(module => ({
 					alias: null,
 					modules: [module]
@@ -190,6 +190,7 @@ export default class Bundle {
 			const chunk = new Chunk(
 				modules,
 				this.inputOptions,
+				this.outputOptions,
 				this.unsetOptions,
 				this.graph.modulesById,
 				chunkByModule,

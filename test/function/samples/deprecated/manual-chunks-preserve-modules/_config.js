@@ -10,6 +10,6 @@ module.exports = {
 	},
 	generateError: {
 		code: 'INVALID_OPTION',
-		message: '"preserveModules" does not support the "manualChunks" option.'
+		message: 'The "output.manualChunks" option is not supported for "output.preserveModules".'
 	}
 };

@@ -35,15 +35,28 @@ export default class NamespaceVariable extends Variable {
 	// need to reassign all exports.
 	deoptimizePath() {
 		const memberVariables = this.getMemberVariables();
-		for (const key in memberVariables) {
+		for (const key of Object.keys(memberVariables)) {
 			memberVariables[key].deoptimizePath(UNKNOWN_PATH);
 		}
+	}
+
+	getMemberVariables(): { [name: string]: Variable } {
+		if (this.memberVariables) {
+			return this.memberVariables;
+		}
+		const memberVariables = Object.create(null);
+		for (const name of this.context.getExports().concat(this.context.getReexports())) {
+			if (name[0] !== '*') {
+				memberVariables[name] = this.context.traceExport(name);
+			}
+		}
+		this.memberVariables = memberVariables;
+		return (this.memberVariables = memberVariables);
 	}
 
 	include() {
 		if (!this.included) {
 			this.included = true;
-			const memberVariables = this.getMemberVariables();
 			for (const identifier of this.references) {
 				if (identifier.context.getModuleExecIndex() <= this.context.getModuleExecIndex()) {
 					this.referencedEarly = true;
@@ -51,12 +64,10 @@ export default class NamespaceVariable extends Variable {
 				}
 			}
 			this.mergedNamespaces = this.context.includeAndGetAdditionalMergedNamespaces();
-			if (this.context.options.preserveModules) {
-				for (const memberName in memberVariables) memberVariables[memberName].include();
-			} else {
-				for (const memberName in memberVariables)
-					this.context.includeVariable(memberVariables[memberName]);
-			}
+			const memberVariables = this.getMemberVariables();
+			// We directly include the variables instead of context.include to not automatically
+			// generate imports for members from other modules
+			for (const memberName of Object.keys(memberVariables)) memberVariables[memberName].include();
 		}
 	}
 
@@ -117,20 +128,6 @@ export default class NamespaceVariable extends Variable {
 
 	renderFirst() {
 		return this.referencedEarly;
-	}
-
-	private getMemberVariables(): { [name: string]: Variable } {
-		if (this.memberVariables) {
-			return this.memberVariables;
-		}
-		const memberVariables = Object.create(null);
-		for (const name of this.context.getExports().concat(this.context.getReexports())) {
-			if (name[0] !== '*') {
-				memberVariables[name] = this.context.traceExport(name);
-			}
-		}
-		this.memberVariables = memberVariables;
-		return (this.memberVariables = memberVariables);
 	}
 }
 

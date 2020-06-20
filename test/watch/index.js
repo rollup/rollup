@@ -1199,7 +1199,7 @@ describe('rollup.watch', () => {
 	});
 
 	describe('addWatchFile', () => {
-		it.only('supports adding additional watch files in plugin hooks', () => {
+		it('supports adding additional watch files in plugin hooks', () => {
 			const watchChangeIds = new Set();
 			const buildStartFile = path.resolve('test/_tmp/input/buildStart');
 			const loadFile = path.resolve('test/_tmp/input/load');

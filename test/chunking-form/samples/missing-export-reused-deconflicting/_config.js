@@ -3,7 +3,7 @@ module.exports = {
 	expectedWarnings: ['SHIMMED_EXPORT'],
 	options: {
 		input: ['main.js'],
-		preserveModules: true,
-		shimMissingExports: true
+		shimMissingExports: true,
+		output: { preserveModules: true }
 	}
 };

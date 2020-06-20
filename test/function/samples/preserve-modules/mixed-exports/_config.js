@@ -4,7 +4,7 @@ module.exports = {
 	description: 'warns for mixed exports in all chunks when preserving modules',
 	options: {
 		input: ['main.js'],
-		preserveModules: true
+		output: { preserveModules: true }
 	},
 	warnings: [
 		{

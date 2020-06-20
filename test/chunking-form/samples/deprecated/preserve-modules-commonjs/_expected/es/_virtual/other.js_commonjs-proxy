@@ -1,0 +1,2 @@
+import other$1 from '../other.js';
+export { default } from '../other.js';

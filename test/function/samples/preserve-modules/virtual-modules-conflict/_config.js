@@ -3,8 +3,6 @@ const assert = require('assert');
 module.exports = {
 	description: 'Generates actual files for virtual modules when preserving modules',
 	options: {
-		input: ['main.js'],
-		preserveModules: true,
 		plugins: [
 			{
 				resolveId(id) {
@@ -22,7 +20,7 @@ module.exports = {
 		]
 	},
 	bundle(bundle) {
-		return bundle.generate({ format: 'es' }).then(generated =>
+		return bundle.generate({ format: 'es', preserveModules: true }).then(generated =>
 			assert.deepEqual(
 				generated.output.map(chunk => chunk.fileName),
 				['main.js', '_virtual/_virtualModule.js', '_virtual/_virtualModule2.js']

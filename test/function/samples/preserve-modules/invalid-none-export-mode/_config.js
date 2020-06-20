@@ -2,9 +2,9 @@ module.exports = {
 	description: 'throws when using none export mode with named exports',
 	options: {
 		input: ['main.js'],
-		preserveModules: true,
 		output: {
-			exports: 'none'
+			exports: 'none',
+			preserveModules: true
 		}
 	},
 	generateError: {

@@ -3,8 +3,8 @@ module.exports = {
 	options: {
 		input: 'src/main.ts',
 		output: {
-			entryFileNames: 'entry-[name]-[format]-[ext][extname].js'
-		},
-		preserveModules: true
+			entryFileNames: 'entry-[name]-[format]-[ext][extname].js',
+			preserveModules: true
+		}
 	}
 };

@@ -2,11 +2,14 @@ module.exports = {
 	description: 'Inlining dynamic imports is not supported when preserving modules',
 	options: {
 		input: ['main.js'],
-		preserveModules: true,
-		inlineDynamicImports: true
+		output: {
+			preserveModules: true,
+			inlineDynamicImports: true
+		}
 	},
-	error: {
+	generateError: {
 		code: 'INVALID_OPTION',
-		message: '"preserveModules" does not support the "inlineDynamicImports" option.'
+		message:
+			'The "output.inlineDynamicImports" option is not supported for "output.preserveModules".'
 	}
 };

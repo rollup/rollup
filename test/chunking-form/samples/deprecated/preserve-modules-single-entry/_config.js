@@ -1,0 +1,8 @@
+module.exports = {
+	description: 'single entry names file correctly',
+	options: {
+		strictDeprecations: false,
+		input: 'main.js',
+		preserveModules: true
+	}
+};

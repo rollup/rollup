@@ -3,7 +3,7 @@
     "prettier --write",
     "tslint --project . --fix"
   ],
-  "test/**/*.ts": [
+  "test/typescript/**/*.ts": [
     "prettier --write",
     "tslint --project test/typescript --fix"
   ],

@@ -4,7 +4,7 @@ const path = require('path');
 module.exports = {
 	description: 'ignores non-bundled modules when inlining dynamic imports',
 	options: {
-		inlineDynamicImports: true,
+		output: { inlineDynamicImports: true },
 		plugins: {
 			generateBundle(options, bundle) {
 				assert.deepStrictEqual(Object.keys(bundle['main.js'].modules), [

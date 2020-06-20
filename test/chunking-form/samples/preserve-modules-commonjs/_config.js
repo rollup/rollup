@@ -5,8 +5,8 @@ module.exports = {
 	expectedWarnings: ['MIXED_EXPORTS'],
 	options: {
 		input: 'main.js',
-		preserveModules: true,
 		external: ['external'],
-		plugins: [commonjs()]
+		plugins: [commonjs()],
+		output: { preserveModules: true }
 	}
 };

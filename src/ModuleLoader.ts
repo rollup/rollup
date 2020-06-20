@@ -303,6 +303,7 @@ export class ModuleLoader {
 		this.modulesById.set(id, module);
 		this.graph.watchFiles[id] = true;
 		await this.addModuleSource(id, importer, module);
+		// TODO Lukas maybe get dependencies from here so that we do not fiddle with sources?
 		await this.fetchAllDependencies(module);
 
 		for (const name in module.exports) {
@@ -322,6 +323,7 @@ export class ModuleLoader {
 				}
 			}
 		}
+		// TODO Lukas can this be merged with the previous and simplified, remove some properties etc.?
 		module.linkDependencies();
 		return module;
 	}

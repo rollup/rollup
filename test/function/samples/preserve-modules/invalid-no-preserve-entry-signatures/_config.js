@@ -2,11 +2,12 @@ module.exports = {
 	description: 'throws when setting preserveEntrySignatures to false',
 	options: {
 		input: ['main.js'],
-		preserveModules: true,
-		preserveEntrySignatures: false
+		preserveEntrySignatures: false,
+		output: { preserveModules: true }
 	},
-	error: {
+	generateError: {
 		code: 'INVALID_OPTION',
-		message: '"preserveModules" does not support setting "preserveEntrySignatures" to "false".'
+		message:
+			'Setting "preserveEntrySignatures" to "false" is not supported for "output.preserveModules".'
 	}
 };

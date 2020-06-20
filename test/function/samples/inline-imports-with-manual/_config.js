@@ -2,8 +2,8 @@ module.exports = {
 	description: 'Manual chunks are not supported when inlining dynamic imports',
 	options: {
 		input: ['main.js'],
-		inlineDynamicImports: true,
 		output: {
+			inlineDynamicImports: true,
 			manualChunks: {
 				lib: ['lib.js']
 			}
@@ -11,6 +11,6 @@ module.exports = {
 	},
 	generateError: {
 		code: 'INVALID_OPTION',
-		message: '"manualChunks" option is not supported for "inlineDynamicImports".'
+		message: 'The "output.manualChunks" option is not supported for "output.inlineDynamicImports".'
 	}
 };

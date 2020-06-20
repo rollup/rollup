@@ -332,11 +332,7 @@ export default class Module {
 		const additionalSideEffectModules = new Set<Module>();
 		const possibleDependencies = new Set(this.dependencies);
 		let dependencyVariables = this.imports;
-		if (
-			this.isEntryPoint ||
-			this.includedDynamicImporters.length > 0 ||
-			this.options.preserveModules
-		) {
+		if (this.isEntryPoint || this.includedDynamicImporters.length > 0 || this.namespace.included) {
 			dependencyVariables = new Set(dependencyVariables);
 			for (const exportName of [...this.getReexports(), ...this.getExports()]) {
 				dependencyVariables.add(this.getVariableForExportName(exportName));

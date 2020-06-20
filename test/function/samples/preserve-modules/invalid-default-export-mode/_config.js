@@ -2,9 +2,9 @@ module.exports = {
 	description: 'throws when using default export mode with named exports',
 	options: {
 		input: ['main.js'],
-		preserveModules: true,
 		output: {
-			exports: 'default'
+			exports: 'default',
+			preserveModules: true
 		}
 	},
 	generateError: {

@@ -4,7 +4,7 @@ module.exports = {
 	description: 'scriptified assets have extension in preserveModules output filename',
 	options: {
 		input: 'src/main.js',
-		preserveModules: true,
+		output: { preserveModules: true },
 		plugins: [
 			{
 				name: 'str-num-plugin',

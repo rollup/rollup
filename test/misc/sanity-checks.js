@@ -224,17 +224,16 @@ describe('sanity checks', () => {
 		let error = null;
 		const bundle = await rollup.rollup({
 			input: 'x',
-			preserveModules: true,
 			plugins: [loader({ x: 'console.log( "x" );' })]
 		});
 		try {
-			await bundle.generate({ file: 'x', format: 'es' });
+			await bundle.generate({ file: 'x', format: 'es', preserveModules: true });
 		} catch (generateError) {
 			error = generateError;
 		}
 		assert.strictEqual(
 			error && error.message,
-			'You must set "output.dir" instead of "output.file" when using the "preserveModules" option.'
+			'You must set "output.dir" instead of "output.file" when using the "output.preserveModules" option.'
 		);
 	});
 });

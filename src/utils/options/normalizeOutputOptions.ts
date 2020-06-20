@@ -23,8 +23,11 @@ export function normalizeOutputOptions(
 	const unsetOptions = new Set(unsetInputOptions);
 
 	const compact = (config.compact as boolean | undefined) || false;
-	const file = getFile(config, inputOptions);
 	const format = getFormat(config);
+	const inlineDynamicImports = getInlineDynamicImports(config, inputOptions);
+	const preserveModules = getPreserveModules(config, inlineDynamicImports, inputOptions);
+	const file = getFile(config, preserveModules, inputOptions);
+
 	const outputOptions: NormalizedOutputOptions & OutputOptions = {
 		amd: getAmd(config),
 		assetFileNames:
@@ -46,9 +49,10 @@ export function normalizeOutputOptions(
 		globals: (config.globals as GlobalsOption | undefined) || {},
 		hoistTransitiveImports: (config.hoistTransitiveImports as boolean | undefined) ?? true,
 		indent: getIndent(config, compact),
+		inlineDynamicImports,
 		interop: (config.interop as boolean | undefined) ?? true,
 		intro: getAddon(config, 'intro'),
-		manualChunks: getManualChunks(config, inputOptions),
+		manualChunks: getManualChunks(config, inlineDynamicImports, preserveModules, inputOptions),
 		minifyInternalExports: getMinifyInternalExports(config, format, compact),
 		name: config.name as string | undefined,
 		namespaceToStringTag: (config.namespaceToStringTag as boolean | undefined) || false,
@@ -57,6 +61,7 @@ export function normalizeOutputOptions(
 		paths: (config.paths as OptionsPaths | undefined) || {},
 		plugins: ensureArray(config.plugins) as Plugin[],
 		preferConst: (config.preferConst as boolean | undefined) || false,
+		preserveModules,
 		sourcemap: (config.sourcemap as boolean | 'inline' | 'hidden' | undefined) || false,
 		sourcemapExcludeSources: (config.sourcemapExcludeSources as boolean | undefined) || false,
 		sourcemapFile: config.sourcemapFile as string | undefined,
@@ -73,15 +78,16 @@ export function normalizeOutputOptions(
 
 const getFile = (
 	config: GenericConfigObject,
+	preserveModules: boolean,
 	inputOptions: NormalizedInputOptions
 ): string | undefined => {
 	const file = config.file as string | undefined;
 	if (typeof file === 'string') {
-		if (inputOptions.preserveModules) {
+		if (preserveModules) {
 			return error({
 				code: 'INVALID_OPTION',
 				message:
-					'You must set "output.dir" instead of "output.file" when using the "preserveModules" option.'
+					'You must set "output.dir" instead of "output.file" when using the "output.preserveModules" option.'
 			});
 		}
 		if (!Array.isArray(inputOptions.input))
@@ -117,6 +123,48 @@ const getFormat = (config: GenericConfigObject): InternalModuleFormat => {
 				url: `https://rollupjs.org/guide/en/#output-format`
 			});
 	}
+};
+
+const getInlineDynamicImports = (
+	config: GenericConfigObject,
+	inputOptions: NormalizedInputOptions
+): boolean => {
+	const inlineDynamicImports =
+		((config.inlineDynamicImports as boolean | undefined) ?? inputOptions.inlineDynamicImports) ||
+		false;
+	const { input } = inputOptions;
+	if (inlineDynamicImports && (Array.isArray(input) ? input : Object.keys(input)).length > 1) {
+		return error({
+			code: 'INVALID_OPTION',
+			message: 'Multiple inputs are not supported for "output.inlineDynamicImports".'
+		});
+	}
+	return inlineDynamicImports;
+};
+
+const getPreserveModules = (
+	config: GenericConfigObject,
+	inlineDynamicImports: boolean,
+	inputOptions: NormalizedInputOptions
+): boolean => {
+	const preserveModules =
+		((config.preserveModules as boolean | undefined) ?? inputOptions.preserveModules) || false;
+	if (preserveModules) {
+		if (inlineDynamicImports) {
+			return error({
+				code: 'INVALID_OPTION',
+				message: `The "output.inlineDynamicImports" option is not supported for "output.preserveModules".`
+			});
+		}
+		if (inputOptions.preserveEntrySignatures === false) {
+			return error({
+				code: 'INVALID_OPTION',
+				message:
+					'Setting "preserveEntrySignatures" to "false" is not supported for "output.preserveModules".'
+			});
+		}
+	}
+	return preserveModules;
 };
 
 const getAmd = (
@@ -193,21 +241,24 @@ const getIndent = (config: GenericConfigObject, compact: boolean): string | true
 
 const getManualChunks = (
 	config: GenericConfigObject,
+	inlineDynamicImports: boolean,
+	preserveModules: boolean,
 	inputOptions: NormalizedInputOptions
 ): ManualChunksOption => {
 	const configManualChunks =
 		(config.manualChunks as ManualChunksOption | undefined) || inputOptions.manualChunks;
 	if (configManualChunks) {
-		if (inputOptions.inlineDynamicImports) {
+		if (inlineDynamicImports) {
 			return error({
 				code: 'INVALID_OPTION',
-				message: '"manualChunks" option is not supported for "inlineDynamicImports".'
+				message:
+					'The "output.manualChunks" option is not supported for "output.inlineDynamicImports".'
 			});
 		}
-		if (inputOptions.preserveModules) {
+		if (preserveModules) {
 			return error({
 				code: 'INVALID_OPTION',
-				message: '"preserveModules" does not support the "manualChunks" option.'
+				message: 'The "output.manualChunks" option is not supported for "output.preserveModules".'
 			});
 		}
 	}

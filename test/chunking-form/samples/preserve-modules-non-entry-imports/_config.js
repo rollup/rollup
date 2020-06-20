@@ -2,6 +2,6 @@ module.exports = {
 	description: 'imports and exports of non-entry points are tracked',
 	options: {
 		input: 'main.js',
-		preserveModules: true
+		output: { preserveModules: true }
 	}
 };
