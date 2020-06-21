@@ -83,11 +83,8 @@ const inputOptions = {
 
   // advanced input options
   cache,
-  inlineDynamicImports,
-  manualChunks,
   onwarn,
   preserveEntrySignatures,
-  preserveModules,
   strictDeprecations,
 
   // danger zone
@@ -129,11 +126,14 @@ const outputOptions = {
   externalLiveBindings,
   footer,
   hoistTransitiveImports,
+  inlineDynamicImports,
   interop,
   intro,
+  manualChunks,
   minifyInternalExports,
   outro,
   paths,
+  preserveModules,
   sourcemap,
   sourcemapExcludeSources,
   sourcemapFile,

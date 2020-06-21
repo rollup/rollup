@@ -35,11 +35,8 @@ export default { // can be an array (for multiple inputs)
 
   // advanced input options
   cache,
-  inlineDynamicImports,
-  manualChunks,
   onwarn,
   preserveEntrySignatures,
-  preserveModules,
   strictDeprecations,
 
   // danger zone
@@ -73,11 +70,14 @@ export default { // can be an array (for multiple inputs)
     extend,
     footer,
     hoistTransitiveImports,
+    inlineDynamicImports,
     interop,
     intro,
+    manualChunks,
     minifyInternalExports,
     outro,
     paths,
+    preserveModules,
     sourcemap,
     sourcemapExcludeSources,
     sourcemapFile,

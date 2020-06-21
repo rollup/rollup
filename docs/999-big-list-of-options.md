@@ -316,92 +316,6 @@ buildWithCache()
   })
 ```
 
-#### inlineDynamicImports
-Type: `boolean`<br>
-CLI: `--inlineDynamicImports`/`--no-inlineDynamicImports`
-Default: `false`
-
-This will inline dynamic imports instead of creating new chunks to create a single bundle. Only possible if a single input is provided.
-
-#### manualChunks
-Type: `{ [chunkAlias: string]: string[] } | ((id: string, {getModuleInfo, getModuleIds}) => string | void)`
-
-Allows the creation of custom shared common chunks. When using the object form, each property represents a chunk that contains the listed modules and all their dependencies if they are part of the module graph unless they are already in another manual chunk. The name of the chunk will be determined by the property key.
-
-Note that it is not necessary for the listed modules themselves to be be part of the module graph, which is useful if you are working with `@rollup/plugin-node-resolve` and use deep imports from packages. For instance
-
-```
-manualChunks: {
-  lodash: ['lodash']
-}
-```
-
-will put all lodash modules into a manual chunk even if you are only using imports of the form `import get from 'lodash/get'`.
-
-When using the function form, each resolved module id will be passed to the function. If a string is returned, the module and all its dependency will be added to the manual chunk with the given name. For instance this will create a `vendor` chunk containing all dependencies inside `node_modules`:
-
-```javascript
-manualChunks(id) {
-  if (id.includes('node_modules')) {
-    return 'vendor';
-  }
-}
-```
-
-Be aware that manual chunks can change the behaviour of the application if side-effects are triggered before the corresponding modules are actually used.
-
-When using the function form, `manualChunks` will be passed an object as second parameter containing the functions `getModuleInfo` and `getModuleIds` that work the same way as [`this.getModuleInfo`](guide/en/#thisgetmoduleinfomoduleid-string--moduleinfo) and [`this.getModuleIds`](guide/en/#thisgetmoduleids--iterableiteratorstring) on the plugin context.
-
-This can be used to dynamically determine into which manual chunk a module should be placed depending on its position in the module graph. For instance consider a scenario where you have a set of components, each of which dynamically imports a set of translated strings, i.e.
-
-```js
-// Inside the "foo" component
-
-function getTranslatedStrings(currentLanguage) {
-  switch (currentLanguage) {
-    case 'en': return import('./foo.strings.en.js');
-    case 'de': return import('./foo.strings.de.js');
-    // ...
-  }
-}
-```
-
-If a lot of such components are used together, this will result in a lot of dynamic imports of very small chunks: Even though we known that all language files of the same language that are imported by the same chunk will always be used together, Rollup does not have this information.
-
-The following code will merge all files of the same language that are only used by a single entry point:
-
-```js
-manualChunks(id, { getModuleInfo }) {
-  const match = /.*\.strings\.(\w+)\.js/.exec(id);
-  if (match) {
-    const language = match[1]; // e.g. "en"
-    const dependentEntryPoints = [];
-
-    // we use a Set here so we handle each module at most once. This
-    // prevents infinite loops in case of circular dependencies
-    const idsToHandle = new Set(getModuleInfo(id).dynamicImporters);
-
-    for (const moduleId of idsToHandle) {
-      const { isEntry, dynamicImporters, importers } = getModuleInfo(moduleId);
-      if (isEntry || dynamicImporters.length > 0) dependentEntryPoints.push(moduleId);
-
-      // The Set iterator is intelligent enough to iterate over elements that
-      // are added during iteration
-      for (const importerId of importers) idsToHandle.add(importerId);
-    }
-
-    // If there is a unique entry, we put it into into a chunk based on the entry name
-    if (dependentEntryPoints.length === 1) {
-      return `${dependentEntryPoints[0].split('/').slice(-1)[0].split('.')[0]}.strings.${language}`;
-    }
-    // For multiple entries, we put it into a "shared" chunk
-    if (dependentEntryPoints.length > 1) {
-      return `shared.strings.${language}`;
-    }
-  }
-}
-```
-
 #### onwarn
 Type: `(warning: RollupWarning, defaultHandler: (warning: string | RollupWarning) => void) => void;`
 
@@ -485,7 +399,7 @@ Default: `"[name]-[hash].js"`
 The pattern to use for naming shared chunks created when code-splitting. Pattern supports the following placeholders:
  * `[format]`: The rendering format defined in the output options, e.g. `es` or `cjs`.
  * `[hash]`: A hash based on the content of the chunk and the content of all its dependencies.
- * `[name]`: The name of the chunk. This can be explicitly set via the [`manualChunks`](guide/en/#manualchunks) option or when the chunk is created by a plugin via [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string). Otherwise it will be derived from the chunk contents.
+ * `[name]`: The name of the chunk. This can be explicitly set via the [`output.manualChunks`](guide/en/#outputmanualchunks) option or when the chunk is created by a plugin via [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string). Otherwise it will be derived from the chunk contents.
 
 Forward slashes `/` can be used to place files in sub-directories. See also [`output.assetFileNames`](guide/en/#outputassetfilenames), [`output.entryFileNames`](guide/en/#outputentryfilenames).
 
@@ -508,7 +422,7 @@ The pattern to use for chunks created from entry points. Pattern supports the fo
 
 Forward slashes `/` can be used to place files in sub-directories. See also [`output.assetFileNames`](guide/en/#outputassetfilenames), [`output.chunkFileNames`](guide/en/#outputchunkfilenames).
 
-This pattern will also be used when using the [`preserveModules`](guide/en/#preservemodules) option. Here there is a different set of placeholders available, though:
+This pattern will also be used when using the [`output.preserveModules`](guide/en/#outputpreservemodules) option. Here there is a different set of placeholders available, though:
 * `[format]`: The rendering format defined in the output options.
 * `[name]`: The file name (without extension) of the file.
 * `[ext]`: The extension of the file.
@@ -526,7 +440,14 @@ Type: `boolean`<br>
 CLI: `--hoistTransitiveImports`/`--no-hoistTransitiveImports`<br>
 Default: `true`
 
-By default when creating multiple chunks, transitive imports of entry chunks will be added as empty imports to the entry chunks. See ["Why do additional imports turn up in my entry chunks when code-splitting?"](guide/en/#why-do-additional-imports-turn-up-in-my-entry-chunks-when-code-splitting) for details and background. Setting this option to `false` will disable this behaviour. This option is ignored when using the [`preserveModules`](guide/en/#preservemodules) option as here, imports will never be hoisted.
+By default when creating multiple chunks, transitive imports of entry chunks will be added as empty imports to the entry chunks. See ["Why do additional imports turn up in my entry chunks when code-splitting?"](guide/en/#why-do-additional-imports-turn-up-in-my-entry-chunks-when-code-splitting) for details and background. Setting this option to `false` will disable this behaviour. This option is ignored when using the [`output.preserveModules`](guide/en/#outputpreservemodules) option as here, imports will never be hoisted.
+
+#### output.inlineDynamicImports
+Type: `boolean`<br>
+CLI: `--inlineDynamicImports`/`--no-inlineDynamicImports`
+Default: `false`
+
+This will inline dynamic imports instead of creating new chunks to create a single bundle. Only possible if a single input is provided. Note that this will change the execution order: A module that is only imported dynamically will be executed immediately if the dynamic import is inlined.
 
 #### output.interop
 Type: `boolean`<br>
@@ -549,6 +470,85 @@ export default {
     intro: 'const ENVIRONMENT = "production";'
   }
 };
+```
+
+#### output.manualChunks
+Type: `{ [chunkAlias: string]: string[] } | ((id: string, {getModuleInfo, getModuleIds}) => string | void)`
+
+Allows the creation of custom shared common chunks. When using the object form, each property represents a chunk that contains the listed modules and all their dependencies if they are part of the module graph unless they are already in another manual chunk. The name of the chunk will be determined by the property key.
+
+Note that it is not necessary for the listed modules themselves to be be part of the module graph, which is useful if you are working with `@rollup/plugin-node-resolve` and use deep imports from packages. For instance
+
+```
+manualChunks: {
+  lodash: ['lodash']
+}
+```
+
+will put all lodash modules into a manual chunk even if you are only using imports of the form `import get from 'lodash/get'`.
+
+When using the function form, each resolved module id will be passed to the function. If a string is returned, the module and all its dependency will be added to the manual chunk with the given name. For instance this will create a `vendor` chunk containing all dependencies inside `node_modules`:
+
+```javascript
+manualChunks(id) {
+  if (id.includes('node_modules')) {
+    return 'vendor';
+  }
+}
+```
+
+Be aware that manual chunks can change the behaviour of the application if side-effects are triggered before the corresponding modules are actually used.
+
+When using the function form, `manualChunks` will be passed an object as second parameter containing the functions `getModuleInfo` and `getModuleIds` that work the same way as [`this.getModuleInfo`](guide/en/#thisgetmoduleinfomoduleid-string--moduleinfo) and [`this.getModuleIds`](guide/en/#thisgetmoduleids--iterableiteratorstring) on the plugin context.
+
+This can be used to dynamically determine into which manual chunk a module should be placed depending on its position in the module graph. For instance consider a scenario where you have a set of components, each of which dynamically imports a set of translated strings, i.e.
+
+```js
+// Inside the "foo" component
+
+function getTranslatedStrings(currentLanguage) {
+  switch (currentLanguage) {
+    case 'en': return import('./foo.strings.en.js');
+    case 'de': return import('./foo.strings.de.js');
+    // ...
+  }
+}
+```
+
+If a lot of such components are used together, this will result in a lot of dynamic imports of very small chunks: Even though we known that all language files of the same language that are imported by the same chunk will always be used together, Rollup does not have this information.
+
+The following code will merge all files of the same language that are only used by a single entry point:
+
+```js
+manualChunks(id, { getModuleInfo }) {
+  const match = /.*\.strings\.(\w+)\.js/.exec(id);
+  if (match) {
+    const language = match[1]; // e.g. "en"
+    const dependentEntryPoints = [];
+
+    // we use a Set here so we handle each module at most once. This
+    // prevents infinite loops in case of circular dependencies
+    const idsToHandle = new Set(getModuleInfo(id).dynamicImporters);
+
+    for (const moduleId of idsToHandle) {
+      const { isEntry, dynamicImporters, importers } = getModuleInfo(moduleId);
+      if (isEntry || dynamicImporters.length > 0) dependentEntryPoints.push(moduleId);
+
+      // The Set iterator is intelligent enough to iterate over elements that
+      // are added during iteration
+      for (const importerId of importers) idsToHandle.add(importerId);
+    }
+
+    // If there is a unique entry, we put it into into a chunk based on the entry name
+    if (dependentEntryPoints.length === 1) {
+      return `${dependentEntryPoints[0].split('/').slice(-1)[0].split('.')[0]}.strings.${language}`;
+    }
+    // For multiple entries, we put it into a "shared" chunk
+    if (dependentEntryPoints.length > 1) {
+      return `shared.strings.${language}`;
+    }
+  }
+}
 ```
 
 #### output.minifyInternalExports
@@ -645,6 +645,54 @@ define(['https://d3js.org/d3.v4.min'], function (d3) {
   // ...
 
 });
+```
+
+#### output.preserveModules
+Type: `boolean`<br>
+CLI: `--preserveModules`/`--no-preserveModules`<br>
+Default: `false`
+
+Instead of creating as few chunks as possible, this mode will create separate chunks for all modules using the original module names as file names. Requires the [`output.dir`](guide/en/#outputdir) option. Tree-shaking will still be applied, suppressing files that are not used by the provided entry points or do not have side-effects when executed. This mode can be used to transform a file structure to a different module format.
+
+Note that when transforming to `cjs` or `amd` format, each file will by default be treated as an entry point with [`output.exports`](guide/en/#outputexports) set to `auto`. This means that e.g. for `cjs`, a file that only contains a default export will be rendered as
+
+```js
+// input main.js
+export default 42;
+
+// output main.js
+'use strict';
+
+var main = 42;
+
+module.exports = main;
+```
+
+assigning the value directly to `module.exports`. If someone imports this file, they will get access to the default export via
+
+```js
+const main = require('./main.js');
+console.log(main); // 42
+```
+
+As with regular entry points, files that mix default and named exports will produce warnings. You can avoid the warnings by forcing all files to use named export mode via `output.exports: "named"`. In that case, the default export needs to be accessed via the `.default` property of the export:
+
+```js
+// input main.js
+export default 42;
+
+// output main.js
+'use strict';
+
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var main = 42;
+
+exports.default = main;
+
+// consuming file
+const main = require('./main.js');
+console.log(main.default); // 42
 ```
 
 #### output.sourcemap
@@ -768,55 +816,6 @@ console.log(shared);
 ```
 
 At the moment, the only way to override this setting for individual entry chunks is to use the plugin API and emit those chunks via [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string) instead of using the [`input`](guide/en/#input) option.
-
-#### preserveModules
-Type: `boolean`<br>
-CLI: `--preserveModules`/`--no-preserveModules`<br>
-Default: `false`
-
-Instead of creating as few chunks as possible, this mode will create separate chunks for all modules using the original module names as file names. Requires the [`output.dir`](guide/en/#outputdir) option. Tree-shaking will still be applied, suppressing files that are not used by the provided entry points or do not have side-effects when executed. This mode can be used to transform a file structure to a different module format.
-
-Note that when transforming to `cjs` or `amd` format, each file will by default be treated as an entry point with [`output.exports`](guide/en/#outputexports) set to `auto`. This means that e.g. for `cjs`, a file that only contains a default export will be rendered as
-
-```js
-// input main.js
-export default 42;
-
-// output main.js
-'use strict';
-
-var main = 42;
-
-module.exports = main;
-```
-
-assigning the value directly to `module.exports`. If someone imports this file, they will get access to the default export via
-
-```js
-const main = require('./main.js');
-console.log(main); // 42
-```
-
-As with regular entry points, files that mix default and named exports will produce warnings. You can avoid the warnings by forcing all files to use named export mode via `output.exports: "named"`. In that case, the default export needs to be accessed via the `.default` property of the export:
-
-```js
-// input main.js
-export default 42;
-
-// output main.js
-'use strict';
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
-var main = 42;
-
-exports.default = main;
-
-// consuming file
-const main = require('./main.js');
-console.log(main.default); // 42
-```
-
 
 #### strictDeprecations
 Type: `boolean`<br>
@@ -1363,6 +1362,23 @@ Whether to skip the `bundle.write()` step when a rebuild is triggered.
 
 ☢️ These options have been deprecated and may be removed in a future Rollup version.
 
+#### inlineDynamicImports
+_Use the [`output.inlineDynamicImports`](guide/en/#outputinlinedynamicimports) output option instead, which has the same signature._
+
+#### manualChunks
+_Use the [`output.manualChunks`](guide/en/#outputmanualchunks) output option instead, which has the same signature._
+
+#### preserveModules
+_Use the [`output.preserveModules`](guide/en/#outputpreservemodules) output option instead, which has the same signature._
+
+#### output.dynamicImportFunction
+_Use the [`renderDynamicImport`](guide/en/#renderdynamicimport) plugin hook instead._<br>
+Type: `string`<br>
+CLI: `--dynamicImportFunction <name>`<br>
+Default: `import`
+
+This will rename the dynamic import function to the chosen name when outputting ES bundles. This is useful for generating code that uses a dynamic import polyfill such as [this one](https://github.com/uupaa/dynamic-import-polyfill).
+
 #### treeshake.pureExternalModules
 _Use [`treeshake.moduleSideEffects: 'no-external'`](guide/en/#treeshake) instead._<br>
 Type: `boolean | string[] | (id: string) => boolean | null`<br>
@@ -1391,11 +1407,3 @@ console.log(42);
 ```
 
 You can also supply a list of external ids to be considered pure or a function that is called whenever an external import could be removed.
-
-#### output.dynamicImportFunction
-_Use the [`renderDynamicImport`](guide/en/#renderdynamicimport) plugin hook instead._<br>
-Type: `string`<br>
-CLI: `--dynamicImportFunction <name>`<br>
-Default: `import`
-
-This will rename the dynamic import function to the chosen name when outputting ES bundles. This is useful for generating code that uses a dynamic import polyfill such as [this one](https://github.com/uupaa/dynamic-import-polyfill).

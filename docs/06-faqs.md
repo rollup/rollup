@@ -61,7 +61,7 @@ With this optimization, a JavaScript engine will discover all transitive depende
 2. Load and parse `other-entry.js` and `external`. The import of `other-entry.js` is already loaded and parsed.
 3. Execute `main.js`.
 
-There may be situations where this optimization is not desired, in which case you can turn it off via the [`output.hoistTransitiveImports`](guide/en/#outputhoisttransitiveimports) option. This optimization is also never applied when using the [`preserveModules`](guide/en/#preservemodules) option.
+There may be situations where this optimization is not desired, in which case you can turn it off via the [`output.hoistTransitiveImports`](guide/en/#outputhoisttransitiveimports) option. This optimization is also never applied when using the [`output.preserveModules`](guide/en/#outputpreservemodules) option.
 
 #### How do I add polyfills to a Rollup bundle?
 
@@ -94,7 +94,7 @@ For most code this is not a problem, because Rollup can guarantee:
 This is however a problem for polyfills, as those usually need to be executed first but it is usually not desired to place an import of the polyfill in every single module. Luckily, this is not needed:
 
 1. If there are no external dependencies that depend on the polyfill, it is enough to add an import of the polyfill as first statement to each static entry point.
-2. Otherwise, additionally making the polyfill a separate entry or [manual chunk](guide/en/#manualchunks) will always make sure it is executed first.
+2. Otherwise, additionally making the polyfill a separate entry or [manual chunk](guide/en/#outputmanualchunks) will always make sure it is executed first.
 
 #### Is Rollup meant for building libraries or applications?
 
