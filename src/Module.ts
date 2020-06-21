@@ -41,7 +41,7 @@ import {
 	RollupWarning,
 	TransformModuleJSON
 } from './rollup/types';
-import { augmentCodeLocation, error, Errors } from './utils/error';
+import { augmentCodeLocation, errNamespaceConflict, error, Errors } from './utils/error';
 import { getId } from './utils/getId';
 import { getOriginalLocation } from './utils/getOriginalLocation';
 import { makeLegal } from './utils/identifierHelpers';
@@ -542,29 +542,31 @@ export default class Module {
 		return this.ast.included || this.namespace.included;
 	}
 
-	linkDependencies() {
-		for (const source of this.sources) {
-			this.dependencies.add(this.graph.modulesById.get(this.resolvedIds[source].id)!);
-		}
-		for (const { resolution } of this.dynamicImports) {
-			if (resolution instanceof Module || resolution instanceof ExternalModule) {
-				this.dynamicDependencies.add(resolution);
-			}
-		}
-
+	linkImports() {
 		this.addModulesToImportDescriptions(this.importDescriptions);
 		this.addModulesToImportDescriptions(this.reexportDescriptions);
-
+		for (const name in this.exports) {
+			if (name !== 'default') {
+				this.exportsAll[name] = this.id;
+			}
+		}
 		const externalExportAllModules: ExternalModule[] = [];
 		for (const source of this.exportAllSources) {
-			const module = this.graph.modulesById.get(this.resolvedIds[source].id) as
-				| Module
-				| ExternalModule;
-			(module instanceof ExternalModule ? externalExportAllModules : this.exportAllModules).push(
-				module
-			);
+			const module = this.graph.modulesById.get(this.resolvedIds[source].id)!;
+			if (module instanceof ExternalModule) {
+				externalExportAllModules.push(module);
+				continue;
+			}
+			this.exportAllModules.push(module);
+			for (const name in module.exportsAll) {
+				if (name in this.exportsAll) {
+					this.options.onwarn(errNamespaceConflict(name, this, module));
+				} else {
+					this.exportsAll[name] = module.exportsAll[name];
+				}
+			}
 		}
-		this.exportAllModules = [...this.exportAllModules, ...externalExportAllModules];
+		this.exportAllModules.push(...externalExportAllModules);
 	}
 
 	render(options: RenderOptions): MagicString {
@@ -873,7 +875,7 @@ export default class Module {
 		for (const name of Object.keys(importDescription)) {
 			const specifier = importDescription[name];
 			const id = this.resolvedIds[specifier.source].id;
-			specifier.module = this.graph.modulesById.get(id) as Module | ExternalModule;
+			specifier.module = this.graph.modulesById.get(id)!;
 		}
 	}
 

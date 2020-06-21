@@ -16,7 +16,6 @@ import {
 	errExternalSyntheticExports,
 	errImplicitDependantCannotBeExternal,
 	errInternalIdCannotBeExternal,
-	errNamespaceConflict,
 	error,
 	errUnresolvedEntry,
 	errUnresolvedImplicitDependant,
@@ -239,37 +238,32 @@ export class ModuleLoader {
 		return loadNewModulesPromise;
 	}
 
-	private fetchAllDependencies(module: Module): Promise<unknown> {
-		return Promise.all([
-			...Array.from(module.sources, async source => {
-				const resolution = await this.fetchResolvedDependency(
-					source,
-					module.id,
-					(module.resolvedIds[source] =
-						module.resolvedIds[source] ||
-						this.handleResolveId(await this.resolveId(source, module.id), source, module.id))
-				);
-				resolution.importers.push(module.id);
-			}),
-			...module.dynamicImports.map(async dynamicImport => {
+	private async fetchDynamicDependencies(module: Module): Promise<void> {
+		const dependencies = await Promise.all(
+			module.dynamicImports.map(async dynamicImport => {
 				const resolvedId = await this.resolveDynamicImport(
 					module,
 					dynamicImport.argument,
 					module.id
 				);
-				if (resolvedId === null) return;
+				if (resolvedId === null) return null;
 				if (typeof resolvedId === 'string') {
 					dynamicImport.resolution = resolvedId;
-				} else {
-					const resolution = (dynamicImport.resolution = await this.fetchResolvedDependency(
-						relativeId(resolvedId.id),
-						module.id,
-						resolvedId
-					));
-					resolution.dynamicImporters.push(module.id);
+					return null;
 				}
+				return (dynamicImport.resolution = await this.fetchResolvedDependency(
+					relativeId(resolvedId.id),
+					module.id,
+					resolvedId
+				));
 			})
-		]);
+		);
+		for (const dependency of dependencies) {
+			if (dependency) {
+				module.dynamicDependencies.add(dependency);
+				dependency.dynamicImporters.push(module.id);
+			}
+		}
 	}
 
 	private async fetchModule(
@@ -303,28 +297,11 @@ export class ModuleLoader {
 		this.modulesById.set(id, module);
 		this.graph.watchFiles[id] = true;
 		await this.addModuleSource(id, importer, module);
-		// TODO Lukas maybe get dependencies from here so that we do not fiddle with sources?
-		await this.fetchAllDependencies(module);
-
-		for (const name in module.exports) {
-			if (name !== 'default') {
-				module.exportsAll[name] = module.id;
-			}
-		}
-		for (const source of module.exportAllSources) {
-			const id = module.resolvedIds[source].id;
-			const exportAllModule = this.modulesById.get(id);
-			if (exportAllModule instanceof ExternalModule) continue;
-			for (const name in exportAllModule!.exportsAll) {
-				if (name in module.exportsAll) {
-					this.options.onwarn(errNamespaceConflict(name, module, exportAllModule!));
-				} else {
-					module.exportsAll[name] = exportAllModule!.exportsAll[name];
-				}
-			}
-		}
-		// TODO Lukas can this be merged with the previous and simplified, remove some properties etc.?
-		module.linkDependencies();
+		await Promise.all([
+			this.fetchStaticDependencies(module),
+			this.fetchDynamicDependencies(module)
+		]);
+		module.linkImports();
 		return module;
 	}
 
@@ -354,6 +331,23 @@ export class ModuleLoader {
 				resolvedId.syntheticNamedExports,
 				false
 			);
+		}
+	}
+
+	private async fetchStaticDependencies(module: Module): Promise<void> {
+		for (const dependency of await Promise.all(
+			Array.from(module.sources, async source =>
+				this.fetchResolvedDependency(
+					source,
+					module.id,
+					(module.resolvedIds[source] =
+						module.resolvedIds[source] ||
+						this.handleResolveId(await this.resolveId(source, module.id), source, module.id))
+				)
+			)
+		)) {
+			module.dependencies.add(dependency);
+			dependency.importers.push(module.id);
 		}
 	}
 
