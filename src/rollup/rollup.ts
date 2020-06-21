@@ -65,58 +65,24 @@ export async function rollupInternal(
 
 	const result: RollupBuild = {
 		cache: useCache ? graph.getCache() : undefined,
-		// TODO Lukas merge generate and write here
 		async generate(rawOutputOptions: OutputOptions) {
-			const {
-				options: outputOptions,
-				outputPluginDriver,
-				unsetOptions
-			} = getOutputOptionsAndPluginDriver(
+			return handleGenerateWrite(
+				false,
+				inputOptions,
+				unsetInputOptions,
 				rawOutputOptions as GenericConfigObject,
-				graph.pluginDriver,
-				inputOptions,
-				unsetInputOptions
-			);
-			const bundle = new Bundle(
-				outputOptions,
-				unsetOptions,
-				inputOptions,
-				outputPluginDriver,
 				graph
 			);
-			return createOutput(await bundle.generate(false));
 		},
 		watchFiles: Object.keys(graph.watchFiles),
 		async write(rawOutputOptions: OutputOptions) {
-			const {
-				options: outputOptions,
-				outputPluginDriver,
-				unsetOptions
-			} = getOutputOptionsAndPluginDriver(
+			return handleGenerateWrite(
+				true,
+				inputOptions,
+				unsetInputOptions,
 				rawOutputOptions as GenericConfigObject,
-				graph.pluginDriver,
-				inputOptions,
-				unsetInputOptions
-			);
-			if (!outputOptions.dir && !outputOptions.file) {
-				return error({
-					code: 'MISSING_OPTION',
-					message: 'You must specify "output.file" or "output.dir" for the build.'
-				});
-			}
-			const bundle = new Bundle(
-				outputOptions,
-				unsetOptions,
-				inputOptions,
-				outputPluginDriver,
 				graph
 			);
-			const generated = await bundle.generate(true);
-			await Promise.all(
-				Object.keys(generated).map(chunkId => writeOutputFile(generated[chunkId], outputOptions))
-			);
-			await outputPluginDriver.hookParallel('writeBundle', [outputOptions, generated]);
-			return createOutput(generated);
 		}
 	};
 	if (inputOptions.perf) result.getTimings = getTimings;
@@ -159,6 +125,40 @@ function normalizePlugins(plugins: Plugin[], anonymousPrefix: string): void {
 			plugin.name = `${anonymousPrefix}${pluginIndex + 1}`;
 		}
 	}
+}
+
+async function handleGenerateWrite(
+	isWrite: boolean,
+	inputOptions: NormalizedInputOptions,
+	unsetInputOptions: Set<string>,
+	rawOutputOptions: GenericConfigObject,
+	graph: Graph
+): Promise<RollupOutput> {
+	const {
+		options: outputOptions,
+		outputPluginDriver,
+		unsetOptions
+	} = getOutputOptionsAndPluginDriver(
+		rawOutputOptions,
+		graph.pluginDriver,
+		inputOptions,
+		unsetInputOptions
+	);
+	const bundle = new Bundle(outputOptions, unsetOptions, inputOptions, outputPluginDriver, graph);
+	const generated = await bundle.generate(isWrite);
+	if (isWrite) {
+		if (!outputOptions.dir && !outputOptions.file) {
+			return error({
+				code: 'MISSING_OPTION',
+				message: 'You must specify "output.file" or "output.dir" for the build.'
+			});
+		}
+		await Promise.all(
+			Object.keys(generated).map(chunkId => writeOutputFile(generated[chunkId], outputOptions))
+		);
+		await outputPluginDriver.hookParallel('writeBundle', [outputOptions, generated]);
+	}
+	return createOutput(generated);
 }
 
 function getOutputOptionsAndPluginDriver(
