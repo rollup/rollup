@@ -31,7 +31,6 @@ export default class Bundle {
 		private readonly graph: Graph
 	) {}
 
-	// TODO Lukas make this one nicer by structuring it
 	async generate(isWrite: boolean): Promise<OutputBundle> {
 		timeStart('GENERATE', 1);
 		const outputBundle: OutputBundleWithPlaceholders = Object.create(null);
@@ -45,36 +44,21 @@ export default class Bundle {
 
 			timeStart('generate chunks', 2);
 			const chunks = await this.generateChunks();
-			timeEnd('generate chunks', 2);
-
-			timeStart('render modules', 2);
 			if (chunks.length > 1) {
 				validateOptionsForMultiChunkOutput(this.outputOptions);
 			}
-			const addons = await createAddons(this.outputOptions, this.pluginDriver);
-			for (const chunk of chunks) {
-				chunk.generateExports();
-			}
 			const inputBase = commondir(getAbsoluteEntryModulePaths(chunks));
-			for (const chunk of chunks) {
-				chunk.preRender(this.outputOptions, inputBase, this.pluginDriver);
-			}
+			timeEnd('generate chunks', 2);
+
+			timeStart('render modules', 2);
+
+			// We need to create addons before prerender because at the moment, there
+			// can be no async code between prerender and render due to internal state
+			const addons = await createAddons(this.outputOptions, this.pluginDriver);
+			this.prerenderChunks(chunks, inputBase);
 			timeEnd('render modules', 2);
 
-			this.assignChunkIds(chunks, inputBase, addons, outputBundle);
-			assignChunksToBundle(chunks, outputBundle);
-
-			await Promise.all(
-				chunks.map(chunk => {
-					const outputChunk = outputBundle[chunk.id!] as OutputChunk;
-					return chunk
-						.render(this.outputOptions, addons, outputChunk, this.pluginDriver)
-						.then(rendered => {
-							outputChunk.code = rendered.code;
-							outputChunk.map = rendered.map;
-						});
-				})
-			);
+			await this.addFinalizedChunksToBundle(chunks, inputBase, addons, outputBundle);
 		} catch (error) {
 			await this.pluginDriver.hookParallel('renderError', [error]);
 			throw error;
@@ -84,21 +68,36 @@ export default class Bundle {
 			outputBundle as OutputBundle,
 			isWrite
 		]);
-		for (const key of Object.keys(outputBundle)) {
-			const file = outputBundle[key] as any;
-			if (!file.type) {
-				warnDeprecation(
-					'A plugin is directly adding properties to the bundle object in the "generateBundle" hook. This is deprecated and will be removed in a future Rollup version, please use "this.emitFile" instead.',
-					true,
-					this.inputOptions
-				);
-				file.type = 'asset';
-			}
-		}
-		this.pluginDriver.finaliseAssets();
+		this.finaliseAssets(outputBundle);
 
 		timeEnd('GENERATE', 1);
 		return outputBundle as OutputBundle;
+	}
+
+	private async addFinalizedChunksToBundle(
+		chunks: Chunk[],
+		inputBase: string,
+		addons: Addons,
+		outputBundle: OutputBundleWithPlaceholders
+	): Promise<void> {
+		this.assignChunkIds(chunks, inputBase, addons, outputBundle);
+		for (const chunk of chunks) {
+			const chunkDescription = (outputBundle[
+				chunk.id!
+			] = chunk.getPrerenderedChunk() as OutputChunk);
+			chunkDescription.fileName = chunk.id!;
+		}
+		await Promise.all(
+			chunks.map(chunk => {
+				const outputChunk = outputBundle[chunk.id!] as OutputChunk;
+				return chunk
+					.render(this.outputOptions, addons, outputChunk, this.pluginDriver)
+					.then(rendered => {
+						outputChunk.code = rendered.code;
+						outputChunk.map = rendered.map;
+					});
+			})
+		);
 	}
 
 	private async addManualChunks(
@@ -170,6 +169,21 @@ export default class Bundle {
 		return manualChunkAliasByEntry;
 	}
 
+	private finaliseAssets(outputBundle: OutputBundleWithPlaceholders): void {
+		for (const key of Object.keys(outputBundle)) {
+			const file = outputBundle[key] as any;
+			if (!file.type) {
+				warnDeprecation(
+					'A plugin is directly adding properties to the bundle object in the "generateBundle" hook. This is deprecated and will be removed in a future Rollup version, please use "this.emitFile" instead.',
+					true,
+					this.inputOptions
+				);
+				file.type = 'asset';
+			}
+		}
+		this.pluginDriver.finaliseAssets();
+	}
+
 	private async generateChunks(): Promise<Chunk[]> {
 		const { manualChunks } = this.outputOptions;
 		const manualChunkAliasByEntry =
@@ -211,6 +225,15 @@ export default class Bundle {
 		}
 		return [...chunks, ...facades];
 	}
+
+	private prerenderChunks(chunks: Chunk[], inputBase: string): void {
+		for (const chunk of chunks) {
+			chunk.generateExports();
+		}
+		for (const chunk of chunks) {
+			chunk.preRender(this.outputOptions, inputBase, this.pluginDriver);
+		}
+	}
 }
 
 function getAbsoluteEntryModulePaths(chunks: Chunk[]): string[] {
@@ -243,19 +266,6 @@ function validateOptionsForMultiChunkOutput(outputOptions: NormalizedOutputOptio
 			code: 'INVALID_OPTION',
 			message: '"output.sourcemapFile" is only supported for single-file builds.'
 		});
-}
-
-function assignChunksToBundle(
-	chunks: Chunk[],
-	outputBundle: OutputBundleWithPlaceholders
-): OutputBundle {
-	for (const chunk of chunks) {
-		const chunkdDescription = (outputBundle[
-			chunk.id!
-		] = chunk.getPrerenderedChunk() as OutputChunk);
-		chunkdDescription.fileName = chunk.id!;
-	}
-	return outputBundle as OutputBundle;
 }
 
 function getIncludedModules(modulesById: Map<string, Module | ExternalModule>): Module[] {
