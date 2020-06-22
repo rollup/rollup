@@ -86,6 +86,7 @@ function getCamelizedPluginBaseName(pluginText: string): string {
 		.match(/^(@rollup\/plugin-|rollup-plugin-)?(.*)$/)![2]
 		.split(/[\\/]/)
 		.slice(-1)[0]
+		.split('.')[0]
 		.split('-')
 		.map((part, index) => (index === 0 || !part ? part : part[0].toUpperCase() + part.slice(1)))
 		.join('');
