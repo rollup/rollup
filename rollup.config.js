@@ -99,7 +99,8 @@ export default command => {
 		],
 		treeshake,
 		manualChunks: { rollup: ['src/node-entry.ts'] },
-		strictDeprecations: true,
+		// TODO set this to `true` again once manualChunks has been moved to the output
+		strictDeprecations: false,
 		output: {
 			banner,
 			chunkFileNames: 'shared/[name].js',

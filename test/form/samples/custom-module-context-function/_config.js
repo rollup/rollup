@@ -3,7 +3,12 @@ module.exports = {
 	expectedWarnings: ['THIS_IS_UNDEFINED'],
 	options: {
 		moduleContext(id) {
-			return /main\.js$/.test(id) ? 'lolwut' : 'undefined';
+			if (id.endsWith('main.js')) {
+				return 'window';
+			}
+			if (id.endsWith('foo.js')) {
+				return 'global';
+			}
 		}
 	}
 };

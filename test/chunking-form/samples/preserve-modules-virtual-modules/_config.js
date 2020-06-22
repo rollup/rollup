@@ -2,7 +2,7 @@ module.exports = {
 	description: 'Generates actual files for virtual modules when preserving modules',
 	options: {
 		input: 'main.js',
-		preserveModules: true,
+		output: { preserveModules: true },
 		plugins: [
 			{
 				resolveId(id) {

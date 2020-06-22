@@ -7,6 +7,7 @@ module.exports = {
 		code: 'PARSE_ERROR',
 		message:
 			'Unexpected token (Note that you need plugins to import files that are not JavaScript)',
+		id: path.resolve(__dirname, 'file.css'),
 		parserError: {
 			loc: {
 				column: 0,

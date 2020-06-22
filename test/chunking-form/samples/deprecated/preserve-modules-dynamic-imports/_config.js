@@ -1,0 +1,8 @@
+module.exports = {
+	description: 'dynamic imports are handled correctly when preserving modules',
+	options: {
+		strictDeprecations: false,
+		input: ['main.js'],
+		preserveModules: true
+	}
+};

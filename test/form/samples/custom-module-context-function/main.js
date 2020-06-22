@@ -1,2 +1,3 @@
 import './foo.js';
-this.prop = '???';
+import './bar.js';
+this.prop = 'main';

@@ -1,6 +1,5 @@
 import { version as rollupVersion } from 'package.json';
 import Bundle from '../Bundle';
-import Chunk from '../Chunk';
 import Graph from '../Graph';
 import { ensureArray } from '../utils/ensureArray';
 import { errCannotEmitFromOptionsHook, error } from '../utils/error';
@@ -33,13 +32,13 @@ export async function rollupInternal(
 	rawInputOptions: GenericConfigObject,
 	watcher: RollupWatcher | null
 ): Promise<RollupBuild> {
-	const { options: inputOptions, unsetOptions } = getInputOptions(
+	const { options: inputOptions, unsetOptions: unsetInputOptions } = getInputOptions(
 		rawInputOptions,
 		watcher !== null
 	);
 	initialiseTimers(inputOptions);
 
-	const graph = new Graph(inputOptions, unsetOptions, watcher);
+	const graph = new Graph(inputOptions, watcher);
 
 	// remove the cache option from the memory after graph creation (cache is not used anymore)
 	const useCache = rawInputOptions.cache !== false;
@@ -48,10 +47,9 @@ export async function rollupInternal(
 
 	timeStart('BUILD', 1);
 
-	let chunks: Chunk[];
 	try {
 		await graph.pluginDriver.hookParallel('buildStart', [inputOptions]);
-		chunks = await graph.build();
+		await graph.build();
 	} catch (err) {
 		const watchFiles = Object.keys(graph.watchFiles);
 		if (watchFiles.length > 0) {
@@ -68,54 +66,23 @@ export async function rollupInternal(
 	const result: RollupBuild = {
 		cache: useCache ? graph.getCache() : undefined,
 		async generate(rawOutputOptions: OutputOptions) {
-			const {
-				options: outputOptions,
-				outputPluginDriver,
-				unsetOptions
-			} = getOutputOptionsAndPluginDriver(
-				rawOutputOptions as GenericConfigObject,
-				graph.pluginDriver,
-				inputOptions
-			);
-			const bundle = new Bundle(
-				outputOptions,
-				unsetOptions,
+			return handleGenerateWrite(
+				false,
 				inputOptions,
-				outputPluginDriver,
-				chunks
+				unsetInputOptions,
+				rawOutputOptions as GenericConfigObject,
+				graph
 			);
-			return createOutput(await bundle.generate(false));
 		},
 		watchFiles: Object.keys(graph.watchFiles),
 		async write(rawOutputOptions: OutputOptions) {
-			const {
-				options: outputOptions,
-				outputPluginDriver,
-				unsetOptions
-			} = getOutputOptionsAndPluginDriver(
-				rawOutputOptions as GenericConfigObject,
-				graph.pluginDriver,
-				inputOptions
-			);
-			if (!outputOptions.dir && !outputOptions.file) {
-				return error({
-					code: 'MISSING_OPTION',
-					message: 'You must specify "output.file" or "output.dir" for the build.'
-				});
-			}
-			const bundle = new Bundle(
-				outputOptions,
-				unsetOptions,
+			return handleGenerateWrite(
+				true,
 				inputOptions,
-				outputPluginDriver,
-				chunks
+				unsetInputOptions,
+				rawOutputOptions as GenericConfigObject,
+				graph
 			);
-			const generated = await bundle.generate(true);
-			await Promise.all(
-				Object.keys(generated).map(chunkId => writeOutputFile(generated[chunkId], outputOptions))
-			);
-			await outputPluginDriver.hookParallel('writeBundle', [outputOptions, generated]);
-			return createOutput(generated);
 		}
 	};
 	if (inputOptions.perf) result.getTimings = getTimings;
@@ -160,10 +127,45 @@ function normalizePlugins(plugins: Plugin[], anonymousPrefix: string): void {
 	}
 }
 
+async function handleGenerateWrite(
+	isWrite: boolean,
+	inputOptions: NormalizedInputOptions,
+	unsetInputOptions: Set<string>,
+	rawOutputOptions: GenericConfigObject,
+	graph: Graph
+): Promise<RollupOutput> {
+	const {
+		options: outputOptions,
+		outputPluginDriver,
+		unsetOptions
+	} = getOutputOptionsAndPluginDriver(
+		rawOutputOptions,
+		graph.pluginDriver,
+		inputOptions,
+		unsetInputOptions
+	);
+	const bundle = new Bundle(outputOptions, unsetOptions, inputOptions, outputPluginDriver, graph);
+	const generated = await bundle.generate(isWrite);
+	if (isWrite) {
+		if (!outputOptions.dir && !outputOptions.file) {
+			return error({
+				code: 'MISSING_OPTION',
+				message: 'You must specify "output.file" or "output.dir" for the build.'
+			});
+		}
+		await Promise.all(
+			Object.keys(generated).map(chunkId => writeOutputFile(generated[chunkId], outputOptions))
+		);
+		await outputPluginDriver.hookParallel('writeBundle', [outputOptions, generated]);
+	}
+	return createOutput(generated);
+}
+
 function getOutputOptionsAndPluginDriver(
 	rawOutputOptions: GenericConfigObject,
 	inputPluginDriver: PluginDriver,
-	inputOptions: NormalizedInputOptions
+	inputOptions: NormalizedInputOptions,
+	unsetInputOptions: Set<string>
 ): {
 	options: NormalizedOutputOptions;
 	outputPluginDriver: PluginDriver;
@@ -177,13 +179,14 @@ function getOutputOptionsAndPluginDriver(
 	const outputPluginDriver = inputPluginDriver.createOutputPluginDriver(rawPlugins);
 
 	return {
-		...getOutputOptions(inputOptions, rawOutputOptions, outputPluginDriver),
+		...getOutputOptions(inputOptions, unsetInputOptions, rawOutputOptions, outputPluginDriver),
 		outputPluginDriver
 	};
 }
 
 function getOutputOptions(
 	inputOptions: NormalizedInputOptions,
+	unsetInputOptions: Set<string>,
 	rawOutputOptions: GenericConfigObject,
 	outputPluginDriver: PluginDriver
 ): { options: NormalizedOutputOptions; unsetOptions: Set<string> } {
@@ -201,7 +204,8 @@ function getOutputOptions(
 				};
 			}
 		) as GenericConfigObject,
-		inputOptions
+		inputOptions,
+		unsetInputOptions
 	);
 }
 

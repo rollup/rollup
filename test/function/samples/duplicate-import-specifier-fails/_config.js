@@ -5,6 +5,7 @@ module.exports = {
 	error: {
 		code: 'PARSE_ERROR',
 		message: `Identifier 'a' has already been declared`,
+		id: path.resolve(__dirname, 'main.js'),
 		parserError: {
 			loc: {
 				column: 12,

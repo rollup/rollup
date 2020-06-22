@@ -1,4 +1,6 @@
+import Chunk from '../Chunk';
 import Graph from '../Graph';
+import Module from '../Module';
 import {
 	AddonHookFunction,
 	AsyncPluginHooks,
@@ -68,7 +70,8 @@ export class PluginDriver {
 	public getFileName: (fileReferenceId: string) => string;
 	public setOutputBundle: (
 		outputBundle: OutputBundleWithPlaceholders,
-		assetFileNames: string
+		assetFileNames: string,
+		facadeChunkByModule: Map<Module, Chunk>
 	) => void;
 
 	private fileEmitter: FileEmitter;

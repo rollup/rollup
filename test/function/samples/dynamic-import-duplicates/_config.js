@@ -3,7 +3,7 @@ const assert = require('assert');
 module.exports = {
 	description: 'Dynamic import inlining',
 	options: {
-		inlineDynamicImports: true
+		output: { inlineDynamicImports: true }
 	},
 	exports(exports) {
 		assert.equal(exports.x, 41);

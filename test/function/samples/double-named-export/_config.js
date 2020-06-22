@@ -5,6 +5,7 @@ module.exports = {
 	error: {
 		code: 'PARSE_ERROR',
 		message: `Duplicate export 'foo'`,
+		id: path.resolve(__dirname, 'foo.js'),
 		parserError: {
 			loc: {
 				column: 9,

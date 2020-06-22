@@ -5,6 +5,7 @@ module.exports = {
 	error: {
 		code: 'PARSE_ERROR',
 		message: `'import' and 'export' may only appear at the top level`,
+		id: path.resolve(__dirname, 'main.js'),
 		parserError: {
 			loc: {
 				column: 2,

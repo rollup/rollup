@@ -1,6 +1,6 @@
-define(['exports', './hsl2hsv', './generated-index'], function (exports, hsl2hsv$1, index) { 'use strict';
+define(['exports', './hsl2hsv', './generated-index'], function (exports, hsl2hsv, index) { 'use strict';
 
-	console.log(hsl2hsv$1.p);
+	console.log(hsl2hsv.p);
 	var main = new Map(Object.entries(index.lib));
 
 	exports.default = main;

@@ -1,3 +1,4 @@
+import Chunk from '../Chunk';
 import Graph from '../Graph';
 import Module from '../Module';
 import {
@@ -137,13 +138,17 @@ function getAssetFileName(file: ConsumedAsset, referenceId: string): string {
 	return file.fileName;
 }
 
-function getChunkFileName(file: ConsumedChunk): string {
-	const fileName = file.fileName || (file.module && file.module.facadeChunk!.id);
+function getChunkFileName(
+	file: ConsumedChunk,
+	facadeChunkByModule: Map<Module, Chunk> | null
+): string {
+	const fileName = file.fileName || (file.module && facadeChunkByModule?.get(file.module)?.id);
 	if (!fileName) return error(errChunkNotGeneratedForFileName(file.fileName || file.name));
 	return fileName;
 }
 
 export class FileEmitter {
+	private facadeChunkByModule: Map<Module, Chunk> | null = null;
 	private filesByReferenceId: Map<string, ConsumedFile>;
 	private output: OutputSpecificFileData | null = null;
 
@@ -194,7 +199,7 @@ export class FileEmitter {
 		const emittedFile = this.filesByReferenceId.get(fileReferenceId);
 		if (!emittedFile) return error(errFileReferenceIdNotFoundForFilename(fileReferenceId));
 		if (emittedFile.type === 'chunk') {
-			return getChunkFileName(emittedFile);
+			return getChunkFileName(emittedFile, this.facadeChunkByModule);
 		} else {
 			return getAssetFileName(emittedFile, fileReferenceId);
 		}
@@ -223,12 +228,14 @@ export class FileEmitter {
 
 	public setOutputBundle = (
 		outputBundle: OutputBundleWithPlaceholders,
-		assetFileNames: string
+		assetFileNames: string,
+		facadeChunkByModule: Map<Module, Chunk>
 	): void => {
 		this.output = {
 			assetFileNames,
 			bundle: outputBundle
 		};
+		this.facadeChunkByModule = facadeChunkByModule;
 		for (const emittedFile of this.filesByReferenceId.values()) {
 			if (emittedFile.fileName) {
 				reserveFileNameInBundle(emittedFile.fileName, this.output.bundle, this.options.onwarn);

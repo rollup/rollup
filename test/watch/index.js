@@ -1200,7 +1200,7 @@ describe('rollup.watch', () => {
 
 	describe('addWatchFile', () => {
 		it('supports adding additional watch files in plugin hooks', () => {
-			const watchChangeIds = [];
+			const watchChangeIds = new Set();
 			const buildStartFile = path.resolve('test/_tmp/input/buildStart');
 			const loadFile = path.resolve('test/_tmp/input/load');
 			const resolveIdFile = path.resolve('test/_tmp/input/resolveId');
@@ -1231,7 +1231,7 @@ describe('rollup.watch', () => {
 								this.addWatchFile(transformFile);
 							},
 							watchChange(id) {
-								watchChangeIds.push(id);
+								watchChangeIds.add(id);
 							}
 						}
 					});
@@ -1243,7 +1243,7 @@ describe('rollup.watch', () => {
 						'END',
 						() => {
 							assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-							assert.deepStrictEqual(watchChangeIds, []);
+							assert.strictEqual(watchChangeIds.size, 0);
 							for (const file of watchFiles) sander.writeFileSync(file, 'changed');
 						},
 						'START',
@@ -1252,7 +1252,7 @@ describe('rollup.watch', () => {
 						'END',
 						() => {
 							assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-							assert.deepStrictEqual(watchChangeIds.sort(), watchFiles.sort());
+							assert.deepStrictEqual([...watchChangeIds].sort(), watchFiles.sort());
 						}
 					]);
 				});

@@ -18,7 +18,7 @@ import {
 	WarningHandlerWithDefault
 } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
-import { errInvalidOption, error, warnDeprecationWithOptions } from '../error';
+import { errInvalidOption, warnDeprecationWithOptions } from '../error';
 import { resolve } from '../path';
 import relativeId from '../relativeId';
 import { defaultOnWarn, GenericConfigObject, warnUnknownOptions } from './options';
@@ -37,9 +37,7 @@ export function normalizeInputOptions(
 	const unsetOptions = new Set<string>();
 
 	const context = (config.context as string | undefined) ?? 'undefined';
-	const inlineDynamicImports = (config.inlineDynamicImports as boolean | undefined) || false;
 	const onwarn = getOnwarn(config);
-	const preserveModules = getPreserveModules(config, inlineDynamicImports);
 	const strictDeprecations = (config.strictDeprecations as boolean | undefined) || false;
 	const options: NormalizedInputOptions & InputOptions = {
 		acorn: getAcorn(config),
@@ -48,15 +46,15 @@ export function normalizeInputOptions(
 		context,
 		experimentalCacheExpiry: (config.experimentalCacheExpiry as number | undefined) ?? 10,
 		external: getIdMatcher(config.external as ExternalOption),
-		inlineDynamicImports,
-		input: getInput(config, inlineDynamicImports),
-		manualChunks: getManualChunks(config, inlineDynamicImports, preserveModules),
+		inlineDynamicImports: getInlineDynamicImports(config, onwarn, strictDeprecations),
+		input: getInput(config),
+		manualChunks: getManualChunks(config, onwarn, strictDeprecations),
 		moduleContext: getModuleContext(config, context),
 		onwarn,
 		perf: (config.perf as boolean | undefined) || false,
 		plugins: ensureArray(config.plugins) as Plugin[],
-		preserveEntrySignatures: getPreserveEntrySignatures(config, unsetOptions, preserveModules),
-		preserveModules,
+		preserveEntrySignatures: getPreserveEntrySignatures(config, unsetOptions),
+		preserveModules: getPreserveModules(config, onwarn, strictDeprecations),
 		preserveSymlinks: (config.preserveSymlinks as boolean | undefined) || false,
 		shimMissingExports: (config.shimMissingExports as boolean | undefined) || false,
 		strictDeprecations,
@@ -89,20 +87,6 @@ const getOnwarn = (config: GenericConfigObject): WarningHandler => {
 				(config.onwarn as WarningHandlerWithDefault)(warning, defaultOnWarn);
 		  }
 		: defaultOnWarn;
-};
-
-const getPreserveModules = (
-	config: GenericConfigObject,
-	inlineDynamicImports: boolean
-): boolean => {
-	const preserveModules = (config.preserveModules as boolean | undefined) || false;
-	if (preserveModules && inlineDynamicImports) {
-		return error({
-			code: 'INVALID_OPTION',
-			message: `"preserveModules" does not support the "inlineDynamicImports" option.`
-		});
-	}
-	return preserveModules;
 };
 
 const getAcorn = (config: GenericConfigObject): acorn.Options => ({
@@ -157,43 +141,43 @@ const getIdMatcher = <T extends Array<any>>(
 	return () => false;
 };
 
-const getInput = (
+const getInlineDynamicImports = (
 	config: GenericConfigObject,
-	inlineDynamicImports: boolean
-): string[] | { [entryAlias: string]: string } => {
-	const configInput = config.input as InputOption | undefined;
-	const input =
-		configInput == null ? [] : typeof configInput === 'string' ? [configInput] : configInput;
-	if (inlineDynamicImports && (Array.isArray(input) ? input : Object.keys(input)).length > 1) {
-		return error({
-			code: 'INVALID_OPTION',
-			message: 'Multiple inputs are not supported for "inlineDynamicImports".'
-		});
+	warn: WarningHandler,
+	strictDeprecations: boolean
+): boolean | undefined => {
+	const configInlineDynamicImports = config.inlineDynamicImports as boolean | undefined;
+	if (configInlineDynamicImports) {
+		warnDeprecationWithOptions(
+			'The "inlineDynamicImports" option is deprecated. Use the "output.inlineDynamicImports" option instead.',
+			false,
+			warn,
+			strictDeprecations
+		);
 	}
-	return input;
+	return configInlineDynamicImports;
+};
+
+const getInput = (config: GenericConfigObject): string[] | { [entryAlias: string]: string } => {
+	const configInput = config.input as InputOption | undefined;
+	return configInput == null ? [] : typeof configInput === 'string' ? [configInput] : configInput;
 };
 
 const getManualChunks = (
 	config: GenericConfigObject,
-	inlineDynamicImports: boolean,
-	preserveModules: boolean
-): ManualChunksOption => {
-	const configManualChunks = config.manualChunks as ManualChunksOption;
+	warn: WarningHandler,
+	strictDeprecations: boolean
+): ManualChunksOption | undefined => {
+	const configManualChunks = config.manualChunks as ManualChunksOption | undefined;
 	if (configManualChunks) {
-		if (inlineDynamicImports) {
-			return error({
-				code: 'INVALID_OPTION',
-				message: '"manualChunks" option is not supported for "inlineDynamicImports".'
-			});
-		}
-		if (preserveModules) {
-			return error({
-				code: 'INVALID_OPTION',
-				message: '"preserveModules" does not support the "manualChunks" option.'
-			});
-		}
+		warnDeprecationWithOptions(
+			'The "manualChunks" option is deprecated. Use the "output.manualChunks" option instead.',
+			false,
+			warn,
+			strictDeprecations
+		);
 	}
-	return configManualChunks || {};
+	return configManualChunks;
 };
 
 const getModuleContext = (
@@ -219,21 +203,32 @@ const getModuleContext = (
 
 const getPreserveEntrySignatures = (
 	config: GenericConfigObject,
-	unsetOptions: Set<string>,
-	preserveModules: boolean
+	unsetOptions: Set<string>
 ): PreserveEntrySignaturesOption => {
 	const configPreserveEntrySignatures = config.preserveEntrySignatures as
 		| PreserveEntrySignaturesOption
 		| undefined;
 	if (configPreserveEntrySignatures == null) {
 		unsetOptions.add('preserveEntrySignatures');
-	} else if (configPreserveEntrySignatures === false && preserveModules) {
-		return error({
-			code: 'INVALID_OPTION',
-			message: '"preserveModules" does not support setting "preserveEntrySignatures" to "false".'
-		});
 	}
 	return configPreserveEntrySignatures ?? 'strict';
+};
+
+const getPreserveModules = (
+	config: GenericConfigObject,
+	warn: WarningHandler,
+	strictDeprecations: boolean
+): boolean | undefined => {
+	const configPreserveModules = config.preserveModules as boolean | undefined;
+	if (configPreserveModules) {
+		warnDeprecationWithOptions(
+			'The "preserveModules" option is deprecated. Use the "output.preserveModules" option instead.',
+			false,
+			warn,
+			strictDeprecations
+		);
+	}
+	return configPreserveModules;
 };
 
 const getTreeshake = (

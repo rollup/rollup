@@ -282,7 +282,7 @@ var version=function(){"use strict";var n="1.0.0";return function(){console.log(
 
 ### Code Splitting
 
-For code splitting, there are cases where Rollup splits code into chunks automatically, like dynamic loading or multiple entry points, and there is a way to explicitly tell Rollup which modules to split into separate chunks via the [`manualChunks`](guide/en/#manualchunks) option.
+For code splitting, there are cases where Rollup splits code into chunks automatically, like dynamic loading or multiple entry points, and there is a way to explicitly tell Rollup which modules to split into separate chunks via the [`output.manualChunks`](guide/en/#outputmanualchunks) option.
 
 To use the code splitting feature to achieve the lazy dynamic loading (where some imported module(s) is only loaded after executing a function), we go back to the original example and modify `src/main.js` to load `src/foo.js` dynamically instead of statically:
 

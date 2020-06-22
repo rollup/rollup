@@ -490,14 +490,17 @@ export interface InputOptions {
 	context?: string;
 	experimentalCacheExpiry?: number;
 	external?: ExternalOption;
+	/** @deprecated Use the "inlineDynamicImports" output option instead. */
 	inlineDynamicImports?: boolean;
 	input?: InputOption;
+	/** @deprecated Use the "manualChunks" output option instead. */
 	manualChunks?: ManualChunksOption;
 	moduleContext?: ((id: string) => string | null | undefined) | { [id: string]: string };
 	onwarn?: WarningHandlerWithDefault;
 	perf?: boolean;
 	plugins?: Plugin[];
 	preserveEntrySignatures?: PreserveEntrySignaturesOption;
+	/** @deprecated Use the "preserveModules" output option instead. */
 	preserveModules?: boolean;
 	preserveSymlinks?: boolean;
 	shimMissingExports?: boolean;
@@ -513,15 +516,18 @@ export interface NormalizedInputOptions {
 	context: string;
 	experimentalCacheExpiry: number;
 	external: IsExternal;
-	inlineDynamicImports: boolean;
+	/** @deprecated Use the "inlineDynamicImports" output option instead. */
+	inlineDynamicImports: boolean | undefined;
 	input: string[] | { [entryAlias: string]: string };
-	manualChunks: ManualChunksOption;
+	/** @deprecated Use the "manualChunks" output option instead. */
+	manualChunks: ManualChunksOption | undefined;
 	moduleContext: (id: string) => string;
 	onwarn: WarningHandler;
 	perf: boolean;
 	plugins: Plugin[];
 	preserveEntrySignatures: PreserveEntrySignaturesOption;
-	preserveModules: boolean;
+	/** @deprecated Use the "preserveModules" output option instead. */
+	preserveModules: boolean | undefined;
 	preserveSymlinks: boolean;
 	shimMissingExports: boolean;
 	strictDeprecations: boolean;
@@ -560,8 +566,10 @@ export interface OutputOptions {
 	globals?: GlobalsOption;
 	hoistTransitiveImports?: boolean;
 	indent?: string | boolean;
+	inlineDynamicImports?: boolean;
 	interop?: boolean;
 	intro?: string | (() => string | Promise<string>);
+	manualChunks?: ManualChunksOption;
 	minifyInternalExports?: boolean;
 	name?: string;
 	namespaceToStringTag?: boolean;
@@ -570,6 +578,7 @@ export interface OutputOptions {
 	paths?: OptionsPaths;
 	plugins?: OutputPlugin[];
 	preferConst?: boolean;
+	preserveModules?: boolean;
 	sourcemap?: boolean | 'inline' | 'hidden';
 	sourcemapExcludeSources?: boolean;
 	sourcemapFile?: string;
@@ -602,8 +611,10 @@ export interface NormalizedOutputOptions {
 	globals: GlobalsOption;
 	hoistTransitiveImports: boolean;
 	indent: true | string;
+	inlineDynamicImports: boolean;
 	interop: boolean;
 	intro: () => string | Promise<string>;
+	manualChunks: ManualChunksOption;
 	minifyInternalExports: boolean;
 	name: string | undefined;
 	namespaceToStringTag: boolean;
@@ -612,6 +623,7 @@ export interface NormalizedOutputOptions {
 	paths: OptionsPaths;
 	plugins: OutputPlugin[];
 	preferConst: boolean;
+	preserveModules: boolean;
 	sourcemap: boolean | 'inline' | 'hidden';
 	sourcemapExcludeSources: boolean;
 	sourcemapFile: string | undefined;

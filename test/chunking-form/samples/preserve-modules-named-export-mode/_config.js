@@ -2,9 +2,9 @@ module.exports = {
 	description: 'respects "named" export mode in all chunks when preserving modules',
 	options: {
 		input: 'main.js',
-		preserveModules: true,
 		output: {
-			exports: 'named'
+			exports: 'named',
+			preserveModules: true
 		}
 	}
 };

@@ -1,1 +1,1 @@
-this.prop = 'nope';
+this.prop = 'foo';

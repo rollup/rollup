@@ -2,7 +2,7 @@ module.exports = {
 	description: 'Preserve modules id case sensitive',
 	options: {
 		input: 'main.js',
-		preserveModules: true,
+		output: { preserveModules: true },
 		plugins: [
 			{
 				resolveId(id) {

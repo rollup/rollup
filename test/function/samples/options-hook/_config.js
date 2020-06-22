@@ -18,9 +18,7 @@ module.exports = {
 					acornInjectPlugins: [null, null, null],
 					context: 'undefined',
 					experimentalCacheExpiry: 10,
-					inlineDynamicImports: false,
 					input: ['used'],
-					manualChunks: {},
 					perf: false,
 					plugins: [
 						{
@@ -28,7 +26,6 @@ module.exports = {
 						}
 					],
 					preserveEntrySignatures: 'strict',
-					preserveModules: false,
 					preserveSymlinks: false,
 					shimMissingExports: false,
 					strictDeprecations: true,
