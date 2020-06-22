@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 2.18.0
+*2020-06-22*
+
+### Features
+* `inlineDynamicImports`, `manualChunks` and `preserveModules` can now be used as output options (#3645)
+* Use sourcemaps for certain warnings that reference source code locations (#3645)
+
+### Bug Fixes
+* `this.getFileName` will now always return the correct file name for chunks when multiple outputs are created (#3645)
+
+### Pull Requests
+* [#3645](https://github.com/rollup/rollup/pull/3645): Per output chunking (@lukastaegert)
+
 ## 2.17.1
 *2020-06-19*
 
