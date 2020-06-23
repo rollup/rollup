@@ -82,8 +82,7 @@ function loadAndRegisterPlugin(inputOptions: InputOptions, pluginText: string) {
 }
 
 function getCamelizedPluginBaseName(pluginText: string): string {
-	return pluginText
-		.match(/^(@rollup\/plugin-|rollup-plugin-)?(.*)$/)![2]
+	return (pluginText.match(/(@rollup\/plugin-|rollup-plugin-)(.+)$/)?.[2] || pluginText)
 		.split(/[\\/]/)
 		.slice(-1)[0]
 		.split('.')[0]
