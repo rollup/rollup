@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 2.18.1
+*2020-06-26*
+
+### Bug Fixes
+* Make sure synthetic exports are present when a module is imported dynamically (#3648)
+* Strip the `rollup-plugin-` prefix off the plugin name when looking for the plugin export in a CLI plugin without a default export (#3647)
+* Convert plugin names with dashes to camel case when looking for the plugin export in a CLI plugin without a default export (#3647)
+
+### Pull Requests
+* [#3647](https://github.com/rollup/rollup/pull/3647): Strip rollup-plugin prefix to find named plugin exports, throw when export cannot be found (@lukastaegert)
+* [#3648](https://github.com/rollup/rollup/pull/3648): Always create a dynamic namespace object when a module with synthetic named exports is imported dynamically (@lukastaegert)
+
 ## 2.18.0
 *2020-06-22*
 
