@@ -1,0 +1,5 @@
+exports.rollupPlugin = () => ({
+	transform(code) {
+		return `${code}console.log("plugin3");\n`;
+	}
+});

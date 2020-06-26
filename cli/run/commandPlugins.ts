@@ -3,10 +3,7 @@ import { InputOptions } from '../../src/rollup/types';
 import { stdinPlugin } from './stdin';
 import { waitForInputPlugin } from './waitForInput';
 
-export function addCommandPluginsToInputOptions(
-	inputOptions: InputOptions,
-	command: any
-) {
+export function addCommandPluginsToInputOptions(inputOptions: InputOptions, command: any) {
 	if (command.stdin !== false) {
 		inputOptions.plugins!.push(stdinPlugin());
 	}
@@ -63,16 +60,33 @@ function loadAndRegisterPlugin(inputOptions: InputOptions, pluginText: string) {
 				if (pluginText[0] == '.') pluginText = path.resolve(pluginText);
 				plugin = require(pluginText);
 			} catch (ex) {
-				throw new Error(`Cannot load plugin "${pluginText}"`);
+				throw new Error(`Cannot load plugin "${pluginText}": ${ex.message}.`);
 			}
 		}
 	}
 	// some plugins do not use `module.exports` for their entry point,
 	// in which case we try the named default export and the plugin name
 	if (typeof plugin === 'object') {
-		plugin = plugin.default || plugin[pluginText]
+		plugin = plugin.default || plugin[getCamelizedPluginBaseName(pluginText)];
+	}
+	if (!plugin) {
+		throw new Error(
+			`Cannot find entry for plugin "${pluginText}". The plugin needs to export a function either as "default" or "${getCamelizedPluginBaseName(
+				pluginText
+			)}" for Rollup to recognize it.`
+		);
 	}
 	inputOptions.plugins!.push(
 		typeof plugin === 'function' ? plugin.call(plugin, pluginArg) : plugin
 	);
+}
+
+function getCamelizedPluginBaseName(pluginText: string): string {
+	return (pluginText.match(/(@rollup\/plugin-|rollup-plugin-)(.+)$/)?.[2] || pluginText)
+		.split(/[\\/]/)
+		.slice(-1)[0]
+		.split('.')[0]
+		.split('-')
+		.map((part, index) => (index === 0 || !part ? part : part[0].toUpperCase() + part.slice(1)))
+		.join('');
 }

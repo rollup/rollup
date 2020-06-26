@@ -342,7 +342,7 @@ Use the specified plugin. There are several ways to specify plugins here:
   rollup -i input.js -f es -p ./my-plugin.js
   ```
 
-  The file should export a plugin object or a function returning such an object.
+  The file should export a function returning a plugin object.
 - Via the name of a plugin that is installed in a local or global `node_modules` folder:
 
   ```
@@ -367,7 +367,7 @@ If you want to load more than one plugin, you can repeat the option or supply a 
 rollup -i input.js -f es -p node-resolve -p commonjs,json
 ```
 
-By default, plugins that export functions will be called with no argument to create the plugin. You can however pass a custom argument as well:
+By default, plugin functions be called with no argument to create the plugin. You can however pass a custom argument as well:
 
 ```
 rollup -i input.js -f es -p 'terser={output: {beautify: true, indent_level: 2}}'
