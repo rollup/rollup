@@ -19,7 +19,8 @@ module.exports = {
 	error: {
 		code: 'SYNTHETIC_NAMED_EXPORTS_NEED_DEFAULT',
 		id: './dep.js',
-		message: "Modules with 'syntheticNamedExports' need a default export.",
+		message:
+			'Module "./dep.js" that is marked to have "syntheticNamedExports" needs a default export.',
 		watchFiles: [path.resolve(__dirname, 'main.js'), './dep.js']
 	}
 };
