@@ -295,7 +295,9 @@ export default class Module {
 			return error({
 				code: Errors.SYNTHETIC_NAMED_EXPORTS_NEED_DEFAULT,
 				id: this.id,
-				message: `Modules with 'syntheticNamedExports' need a default export.`
+				message: `Module "${relativeId(
+					this.id
+				)}" that is marked to have "syntheticNamedExports" needs a default export.`
 			});
 		}
 		return this.defaultExport;
