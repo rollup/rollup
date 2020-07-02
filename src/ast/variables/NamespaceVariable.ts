@@ -15,9 +15,9 @@ export default class NamespaceVariable extends Variable {
 	private mergedNamespaces: Variable[] = [];
 	private referencedEarly = false;
 	private references: Identifier[] = [];
-	private syntheticNamedExports: boolean;
+	private syntheticNamedExports: boolean | string;
 
-	constructor(context: AstContext, syntheticNamedExports: boolean) {
+	constructor(context: AstContext, syntheticNamedExports: boolean | string) {
 		super(context.getModuleName());
 		this.context = context;
 		this.module = context.module;
@@ -105,7 +105,7 @@ export default class NamespaceVariable extends Variable {
 				assignmentArgs.push(...this.mergedNamespaces.map(variable => variable.getName()));
 			}
 			if (this.syntheticNamedExports) {
-				assignmentArgs.push(this.module.getDefaultExport().getName());
+				assignmentArgs.push(this.module.getSyntheticNamespace().getName());
 			}
 			if (members.length > 0) {
 				assignmentArgs.push(output);

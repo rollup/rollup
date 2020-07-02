@@ -4,18 +4,18 @@ import Variable from './Variable';
 
 export default class SyntheticNamedExportVariable extends Variable {
 	context: AstContext;
-	defaultVariable: Variable;
 	module: Module;
+	syntheticNamespace: Variable;
 
-	constructor(context: AstContext, name: string, defaultVariable: Variable) {
+	constructor(context: AstContext, name: string, syntheticNamespace: Variable) {
 		super(name);
 		this.context = context;
 		this.module = context.module;
-		this.defaultVariable = defaultVariable;
+		this.syntheticNamespace = syntheticNamespace;
 	}
 
 	getBaseVariable(): Variable {
-		let baseVariable = this.defaultVariable;
+		let baseVariable = this.syntheticNamespace;
 		if (baseVariable instanceof ExportDefaultVariable) {
 			baseVariable = baseVariable.getOriginalVariable();
 		}
@@ -27,14 +27,14 @@ export default class SyntheticNamedExportVariable extends Variable {
 
 	getName(): string {
 		const name = this.name;
-		const renderBaseName = this.defaultVariable.getName();
+		const renderBaseName = this.syntheticNamespace.getName();
 		return `${renderBaseName}${getPropertyAccess(name)}`;
 	}
 
 	include() {
 		if (!this.included) {
 			this.included = true;
-			this.context.includeVariable(this.defaultVariable);
+			this.context.includeVariable(this.syntheticNamespace);
 		}
 	}
 }
