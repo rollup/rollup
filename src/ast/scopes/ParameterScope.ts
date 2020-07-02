@@ -51,6 +51,14 @@ export default class ParameterScope extends ChildScope {
 		let calledFromTryStatement = false;
 		let argIncluded = false;
 		const restParam = this.hasRest && this.parameters[this.parameters.length - 1];
+		for (const checkedArg of args) {
+			if (checkedArg instanceof SpreadElement) {
+				for (const arg of args) {
+					arg.include(context, false);
+				}
+				break;
+			}
+		}
 		for (let index = args.length - 1; index >= 0; index--) {
 			const paramVars = this.parameters[index] || restParam;
 			const arg = args[index];
