@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.18.2
+*2020-07-02*
+
+### Bug Fixes
+* Do not remove spread element args when the corresponding positional parameter is unused (#3652)
+
+### Pull Requests
+* [#3652](https://github.com/rollup/rollup/pull/3652): Do not tree-shake arguments that contain a spread element (@lukastaegert)
+
 ## 2.18.1
 *2020-06-26*
 
