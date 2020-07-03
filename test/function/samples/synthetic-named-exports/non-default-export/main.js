@@ -1,1 +1,1 @@
-export { exists, synthetic, doesNotExist } from './dep';
+export { exists, synthetic, doesNotExist, default as dep } from './dep';

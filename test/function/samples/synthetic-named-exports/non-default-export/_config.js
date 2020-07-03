@@ -14,8 +14,11 @@ module.exports = {
 		]
 	},
 	exports(exports) {
-		assert.strictEqual(exports.exists, 'exists');
-		assert.strictEqual(exports.synthetic, 'synthetic');
-		assert.strictEqual(exports.doesNotExist, undefined);
+		assert.deepStrictEqual(exports, {
+			dep: 'default',
+			doesNotExist: undefined,
+			exists: 'exists',
+			synthetic: 'synthetic'
+		});
 	}
 };
