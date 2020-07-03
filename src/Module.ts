@@ -173,7 +173,7 @@ function getVariableForExportNameRecursive(
 	} else {
 		searchedNamesAndModules.set(name, new Set([target]));
 	}
-	return target.getVariableForExportName(name, isExportAllSearch, false, searchedNamesAndModules);
+	return target.getVariableForExportName(name, isExportAllSearch, searchedNamesAndModules);
 }
 
 export default class Module {
@@ -343,6 +343,7 @@ export default class Module {
 		}
 		const exportNamesByVariable: Map<Variable, string[]> = new Map();
 		for (const exportName of this.getAllExportNames()) {
+			if (exportName === this.syntheticNamedExports) continue;
 			let tracedVariable = this.getVariableForExportName(exportName);
 			if (tracedVariable instanceof ExportDefaultVariable) {
 				tracedVariable = tracedVariable.getOriginalVariable();
@@ -405,9 +406,7 @@ export default class Module {
 		if (this.syntheticNamespace === null) {
 			this.syntheticNamespace = undefined;
 			this.syntheticNamespace = this.getVariableForExportName(
-				typeof this.syntheticNamedExports === 'string' ? this.syntheticNamedExports : 'default',
-				false,
-				true
+				typeof this.syntheticNamedExports === 'string' ? this.syntheticNamedExports : 'default'
 			);
 		}
 		if (!this.syntheticNamespace) {
@@ -431,7 +430,6 @@ export default class Module {
 	getVariableForExportName(
 		name: string,
 		isExportAllSearch?: boolean,
-		isSyntheticNamespaceSearch?: boolean,
 		searchedNamesAndModules?: Map<string, Set<Module | ExternalModule>>
 	): Variable {
 		if (name[0] === '*') {
@@ -466,15 +464,13 @@ export default class Module {
 			return declaration;
 		}
 
-		if (isSyntheticNamespaceSearch || name !== this.syntheticNamedExports) {
-			const exportDeclaration = this.exports[name];
-			if (exportDeclaration) {
-				if (exportDeclaration === MISSING_EXPORT_SHIM_DESCRIPTION) {
-					return this.exportShimVariable;
-				}
-				const name = exportDeclaration.localName;
-				return this.traceVariable(name)!;
+		const exportDeclaration = this.exports[name];
+		if (exportDeclaration) {
+			if (exportDeclaration === MISSING_EXPORT_SHIM_DESCRIPTION) {
+				return this.exportShimVariable;
 			}
+			const name = exportDeclaration.localName;
+			return this.traceVariable(name)!;
 		}
 
 		if (name !== 'default') {
