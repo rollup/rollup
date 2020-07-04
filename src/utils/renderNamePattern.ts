@@ -3,10 +3,14 @@ import { extname } from './path';
 import { isPlainPathFragment } from './relativeId';
 
 export function renderNamePattern(
-	pattern: string,
+	pattern: ((name: string) => string) | string,
 	patternName: string,
 	replacements: { [name: string]: () => string }
 ) {
+	if (typeof pattern === 'function') {
+		pattern = pattern(replacements.name());
+	}
+
 	if (!isPlainPathFragment(pattern))
 		return error(
 			errFailedValidation(

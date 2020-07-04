@@ -386,6 +386,7 @@ export default class Chunk {
 			this.facadeModule && this.facadeModule.isUserDefinedEntryPoint
 				? [options.entryFileNames, 'output.entryFileNames']
 				: [options.chunkFileNames, 'output.chunkFileNames'];
+		//TODO return pattern()
 		return makeUnique(
 			renderNamePattern(pattern, patternName, {
 				format: () => options.format,
