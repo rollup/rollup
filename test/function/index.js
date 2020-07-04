@@ -76,15 +76,14 @@ runTestSuiteWithSamples('function', path.resolve(__dirname, 'samples'), (dir, co
 
 					let result;
 
-					return Promise.resolve()
-						.then(() =>
-							bundle.generate(
-								Object.assign(
-									{
-										format: 'cjs'
-									},
-									(config.options || {}).output || {}
-								)
+					return bundle
+						.generate(
+							Object.assign(
+								{
+									exports: 'auto',
+									format: 'cjs'
+								},
+								(config.options || {}).output || {}
 							)
 						)
 						.then(({ output }) => {

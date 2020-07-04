@@ -58,6 +58,7 @@ export enum Errors {
 	MIXED_EXPORTS = 'MIXED_EXPORTS',
 	NAMESPACE_CONFLICT = 'NAMESPACE_CONFLICT',
 	PLUGIN_ERROR = 'PLUGIN_ERROR',
+	PREFER_NAMED_EXPORTS = 'PREFER_NAMED_EXPORTS',
 	UNRESOLVED_ENTRY = 'UNRESOLVED_ENTRY',
 	UNRESOLVED_IMPORT = 'UNRESOLVED_IMPORT',
 	VALIDATION_ERROR = 'VALIDATION_ERROR',
@@ -280,6 +281,16 @@ export function errNamespaceConflict(
 		name,
 		reexporter: reexportingModule.id,
 		sources: [reexportingModule.exportsAll[name], additionalExportAllModule.exportsAll[name]]
+	};
+}
+
+export function errPreferNamedExports(facadeModuleId: string) {
+	const file = relativeId(facadeModuleId);
+	return {
+		code: Errors.PREFER_NAMED_EXPORTS,
+		id: facadeModuleId,
+		message: `Entry module "${file}" is implicitly using "default" export mode, which means for CommonJS output that its default export is assigned to "module.exports". For many tools, such CommonJS output will not be interchangeable with the original ES module. If this is intended, explicitly set "output.exports" to either "auto" or "default", otherwise you might want to consider changing the signature of "${file}" to use named exports only.`,
+		url: `https://rollupjs.org/guide/en/#output-exports`
 	};
 }
 

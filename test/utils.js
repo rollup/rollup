@@ -67,6 +67,7 @@ function deindent(str) {
 function executeBundle(bundle, require) {
 	return bundle
 		.generate({
+			exports: 'auto',
 			format: 'cjs'
 		})
 		.then(({ output: [cjs] }) => {

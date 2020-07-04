@@ -22,6 +22,7 @@ runTestSuiteWithSamples('sourcemaps', path.resolve(__dirname, 'samples'), (dir, 
 					);
 					const outputOptions = Object.assign(
 						{
+							exports: 'auto',
 							file: dir + '/_actual/bundle.' + format + '.js',
 							format,
 							sourcemap: true

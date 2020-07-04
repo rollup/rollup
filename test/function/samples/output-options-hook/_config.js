@@ -54,6 +54,7 @@ module.exports = {
 			outputOptions(options) {
 				assert.deepStrictEqual(JSON.parse(JSON.stringify(options)), {
 					banner: "throw new Error('unused')",
+					exports: 'auto',
 					format: 'cjs'
 				});
 				assert.ok(/^\d+\.\d+\.\d+/.test(this.meta.rollupVersion));

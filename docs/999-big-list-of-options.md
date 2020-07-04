@@ -922,7 +922,7 @@ Default: `'auto'`
 
 What export mode to use. Defaults to `auto`, which guesses your intentions based on what the `input` module exports:
 
-* `default` – suitable if you are only exporting one thing using `export default ...`
+* `default` – suitable if you are only exporting one thing using `export default ...`; note that this can cause issues when generating CommonJS output that is meant to be interchangeable with ESM output, see below
 * `named` – suitable if you are exporting more than one thing
 * `none` – suitable if you are not exporting anything (e.g. you are building an app, not a library)
 
@@ -944,6 +944,10 @@ The wrinkle is that if you use `named` exports but *also* have a `default` expor
 const yourMethod = require( 'your-lib' ).yourMethod;
 const yourLib = require( 'your-lib' ).default;
 ```
+
+Note: There are some tools such as Babel, TypeScript, Webpack, and `@rollup/plugin-commonjs` that are capable of resolving a CommonJS `require(...)` call with an ES module. If you are generating CommonJS output that is meant to be interchangeable with ESM output for those tools, you should always use `named` export mode. The reason is that most of those tools will by default return the namespace of an ES module on `require` where the default export is the `.default` property.
+
+To notify you about this, Rollup will generate a warning when such a situation is encountered and no explicit value for `output.exports` has been selected.
 
 #### output.externalLiveBindings
 Type: `boolean`<br>

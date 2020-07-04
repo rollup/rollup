@@ -7,6 +7,6 @@ import plugin from './plugin.mjs';
 
 export default {
 	input: 'main.js',
-	output: { format: 'cjs' },
+	output: { format: 'cjs', exports: 'auto' },
 	plugins: [shebang(), replace({ ANSWER: 42 }), plugin(), nestedPlugin()]
 };
