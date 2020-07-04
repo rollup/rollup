@@ -124,7 +124,7 @@ You can use [`this.getModuleInfo`](guide/en/#thisgetmoduleinfomoduleid-string--m
 
 #### `options`
 Type: `(options: InputOptions) => InputOptions | null`<br>
-Kind: `sync, sequential`<br>
+Kind: `async, sequential`<br>
 Previous Hook: This is the first hook of the build phase.<br>
 Next Hook: [`buildStart`](guide/en/#buildstart)
 
