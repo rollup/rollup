@@ -39,18 +39,25 @@ function generateAssetFileName(
 ): string {
 	const emittedName = name || 'asset';
 	return makeUnique(
-		renderNamePattern(output.assetFileNames, 'output.assetFileNames', {
-			hash() {
-				const hash = createHash();
-				hash.update(emittedName);
-				hash.update(':');
-				hash.update(source);
-				return hash.digest('hex').substr(0, 8);
+		renderNamePattern(
+			output.assetFileNames,
+			'output.assetFileNames',
+			{
+				hash() {
+					const hash = createHash();
+					hash.update(emittedName);
+					hash.update(':');
+					hash.update(source);
+					return hash.digest('hex').substr(0, 8);
+				},
+				ext: () => extname(emittedName).substr(1),
+				extname: () => extname(emittedName),
+				name: () => emittedName.substr(0, emittedName.length - extname(emittedName).length)
 			},
-			ext: () => extname(emittedName).substr(1),
-			extname: () => extname(emittedName),
-			name: () => emittedName.substr(0, emittedName.length - extname(emittedName).length)
-		}),
+			() => {
+				return { name, source, output };
+			}
+		),
 		output.bundle
 	);
 }

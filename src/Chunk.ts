@@ -386,21 +386,25 @@ export default class Chunk {
 			this.facadeModule && this.facadeModule.isUserDefinedEntryPoint
 				? [options.entryFileNames, 'output.entryFileNames']
 				: [options.chunkFileNames, 'output.chunkFileNames'];
-		//TODO return pattern()
 		return makeUnique(
-			renderNamePattern(pattern, patternName, {
-				format: () => options.format,
-				hash: () =>
-					includeHash
-						? this.computeContentHashWithDependencies(
-								addons,
-								options,
-								existingNames,
-								outputPluginDriver
-						  )
-						: '[hash]',
-				name: () => this.getChunkName()
-			}),
+			renderNamePattern(
+				pattern,
+				patternName,
+				{
+					format: () => options.format,
+					hash: () =>
+						includeHash
+							? this.computeContentHashWithDependencies(
+									addons,
+									options,
+									existingNames,
+									outputPluginDriver
+							  )
+							: '[hash]',
+					name: () => this.getChunkName()
+				},
+				this.getPrerenderedChunk.bind(this)
+			),
 			existingNames
 		);
 	}

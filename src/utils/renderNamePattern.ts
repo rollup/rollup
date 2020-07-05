@@ -3,12 +3,13 @@ import { extname } from './path';
 import { isPlainPathFragment } from './relativeId';
 
 export function renderNamePattern(
-	pattern: ((name: string) => string) | string,
+	pattern: (({}) => string) | string,
 	patternName: string,
-	replacements: { [name: string]: () => string }
+	replacements: { [name: string]: () => string },
+	getFileInfo: Any
 ) {
 	if (typeof pattern === 'function') {
-		pattern = pattern(replacements.name());
+		pattern = pattern({ replacements, getFileInfo });
 	}
 
 	if (!isPlainPathFragment(pattern))
