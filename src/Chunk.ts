@@ -427,12 +427,17 @@ export default class Chunk {
 				: options.entryFileNames;
 			path = relative(
 				preserveModulesRelativeDir,
-				`${dirname(sanitizedId)}/${renderNamePattern(pattern, 'output.entryFileNames', {
-					ext: () => extension.substr(1),
-					extname: () => extension,
-					format: () => options.format as string,
-					name: () => this.getChunkName()
-				})}`
+				`${dirname(sanitizedId)}/${renderNamePattern(
+					pattern,
+					'output.entryFileNames',
+					{
+						ext: () => extension.substr(1),
+						extname: () => extension,
+						format: () => options.format as string,
+						name: () => this.getChunkName()
+					},
+					this.getPrerenderedChunk.bind(this)
+				)}`
 			);
 		} else {
 			path = `_virtual/${basename(sanitizedId)}`;

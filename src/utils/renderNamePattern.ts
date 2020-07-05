@@ -6,7 +6,7 @@ export function renderNamePattern(
 	pattern: (({}) => string) | string,
 	patternName: string,
 	replacements: { [name: string]: () => string },
-	getFileInfo: Any
+	getFileInfo: () => {}
 ) {
 	if (typeof pattern === 'function') {
 		pattern = pattern({ replacements, getFileInfo });
