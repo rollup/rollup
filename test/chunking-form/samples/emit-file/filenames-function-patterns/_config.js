@@ -1,5 +1,4 @@
 module.exports = {
-	solo: true,
 	description: 'supports using a function that returns a pattern for FileNames',
 	options: {
 		input: ['main.js'],
