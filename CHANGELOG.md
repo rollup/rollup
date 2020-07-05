@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.19.0
+*2020-07-05*
+
+### Features
+* Allow plugins to return a Promise in the options hook (#3660)
+
+### Pull Requests
+* [#3660](https://github.com/rollup/rollup/pull/3660): Make options hooks async (@TomerAberbach)
+
 ## 2.18.2
 *2020-07-02*
 
