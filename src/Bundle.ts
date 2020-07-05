@@ -82,10 +82,7 @@ export default class Bundle {
 	): Promise<void> {
 		this.assignChunkIds(chunks, inputBase, addons, outputBundle);
 		for (const chunk of chunks) {
-			const chunkDescription = (outputBundle[
-				chunk.id!
-			] = chunk.getChunkInfoWithFileNames() as OutputChunk);
-			chunkDescription.fileName = chunk.id!;
+			outputBundle[chunk.id!] = chunk.getChunkInfoWithFileNames(this.pluginDriver) as OutputChunk;
 		}
 		await Promise.all(
 			chunks.map(chunk => {

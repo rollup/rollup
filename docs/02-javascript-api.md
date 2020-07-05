@@ -44,9 +44,11 @@ async function build() {
       //   exports: string[],             // exported variable names
       //   facadeModuleId: string | null, // the id of a module that this chunk corresponds to
       //   fileName: string,              // the chunk file name
+      //   implicitlyLoadedBefore: string[]; // entries that should only be loaded after this chunk
       //   imports: string[],             // external modules imported statically by the chunk
       //   isDynamicEntry: boolean,       // is this chunk a dynamic entry point
       //   isEntry: boolean,              // is this chunk a static entry point
+      //   isImplicitEntry: boolean,      // should this chunk only be loaded after other chunks
       //   map: string | null,            // sourcemaps if present
       //   modules: {                     // information about the modules in this chunk
       //     [id: string]: {
@@ -57,6 +59,7 @@ async function build() {
       //     };
       //   },
       //   name: string                   // the name of this chunk as used in naming patterns
+      //   referencedFiles: string[]      // files referenced via import.meta.ROLLUP_FILE_URL_<id>
       //   type: 'chunk',                 // signifies that this is a chunk
       // }
       console.log('Chunk', chunkOrAsset.modules);

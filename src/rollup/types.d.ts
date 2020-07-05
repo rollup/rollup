@@ -681,6 +681,7 @@ export interface RenderedChunk extends PreRenderedChunk {
 	implicitlyLoadedBefore: string[];
 	imports: string[];
 	map?: SourceMap;
+	referencedFiles: string[];
 }
 
 export interface OutputChunk extends RenderedChunk {

@@ -462,14 +462,15 @@ export default class Chunk {
 		};
 	}
 
-	getChunkInfoWithFileNames(): RenderedChunk {
+	getChunkInfoWithFileNames(outputPluginDriver: PluginDriver): RenderedChunk {
 		return Object.assign(this.getChunkInfo(), {
 			code: undefined,
 			dynamicImports: Array.from(this.dynamicDependencies, getId),
 			fileName: this.id!,
 			implicitlyLoadedBefore: Array.from(this.implicitlyLoadedBefore, getId),
 			imports: Array.from(this.dependencies, getId),
-			map: undefined
+			map: undefined,
+			referencedFiles: this.getReferencedFiles(outputPluginDriver)
 		});
 	}
 
@@ -481,6 +482,21 @@ export default class Chunk {
 		return (
 			this.sortedExportNames || (this.sortedExportNames = Object.keys(this.exportsByName!).sort())
 		);
+	}
+
+	// TODO Lukas private?
+	// TODO Lukas move plugin driver to class?
+	getReferencedFiles(outputPluginDriver: PluginDriver): string[] {
+		const referencedFiles: string[] = [];
+		for (const module of this.orderedModules) {
+			for (const meta of module.importMetas) {
+				const fileName = meta.getReferencedFileName(outputPluginDriver);
+				if (fileName) {
+					referencedFiles.push(fileName);
+				}
+			}
+		}
+		return referencedFiles;
 	}
 
 	getRenderedHash(outputPluginDriver: PluginDriver): string {
