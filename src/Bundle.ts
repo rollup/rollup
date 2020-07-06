@@ -82,20 +82,12 @@ export default class Bundle {
 	): Promise<void> {
 		this.assignChunkIds(chunks, inputBase, addons, outputBundle);
 		for (const chunk of chunks) {
-			const chunkDescription = (outputBundle[
-				chunk.id!
-			] = chunk.getChunkInfoWithFileNames() as OutputChunk);
-			chunkDescription.fileName = chunk.id!;
+			outputBundle[chunk.id!] = chunk.getChunkInfoWithFileNames() as OutputChunk;
 		}
 		await Promise.all(
-			chunks.map(chunk => {
+			chunks.map(async chunk => {
 				const outputChunk = outputBundle[chunk.id!] as OutputChunk;
-				return chunk
-					.render(this.outputOptions, addons, outputChunk, this.pluginDriver)
-					.then(rendered => {
-						outputChunk.code = rendered.code;
-						outputChunk.map = rendered.map;
-					});
+				Object.assign(outputChunk, await chunk.render(this.outputOptions, addons, outputChunk));
 			})
 		);
 	}
@@ -146,7 +138,7 @@ export default class Bundle {
 					this.unsetOptions
 				);
 			} else {
-				chunk.id = chunk.generateId(addons, this.outputOptions, bundle, true, this.pluginDriver);
+				chunk.id = chunk.generateId(addons, this.outputOptions, bundle, true);
 			}
 			bundle[chunk.id] = FILE_PLACEHOLDER;
 		}
@@ -206,6 +198,7 @@ export default class Bundle {
 				this.inputOptions,
 				this.outputOptions,
 				this.unsetOptions,
+				this.pluginDriver,
 				this.graph.modulesById,
 				chunkByModule,
 				this.facadeChunkByModule,
@@ -231,7 +224,7 @@ export default class Bundle {
 			chunk.generateExports();
 		}
 		for (const chunk of chunks) {
-			chunk.preRender(this.outputOptions, inputBase, this.pluginDriver);
+			chunk.preRender(this.outputOptions, inputBase);
 		}
 	}
 }

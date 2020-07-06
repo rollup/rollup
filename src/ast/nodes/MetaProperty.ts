@@ -20,6 +20,14 @@ export default class MetaProperty extends NodeBase {
 
 	private metaProperty?: string | null;
 
+	getReferencedFileName(outputPluginDriver: PluginDriver): string | null {
+		const metaProperty = this.metaProperty as string | null;
+		if (metaProperty && metaProperty.startsWith(FILE_PREFIX)) {
+			return outputPluginDriver.getFileName(metaProperty.substr(FILE_PREFIX.length));
+		}
+		return null;
+	}
+
 	hasEffects(): boolean {
 		return false;
 	}
@@ -31,27 +39,24 @@ export default class MetaProperty extends NodeBase {
 	include() {
 		if (!this.included) {
 			this.included = true;
-			const parent = this.parent;
-			const metaProperty = (this.metaProperty =
-				parent instanceof MemberExpression && typeof parent.propertyKey === 'string'
-					? parent.propertyKey
-					: null);
-			if (
-				metaProperty &&
-				(metaProperty.startsWith(FILE_PREFIX) ||
-					metaProperty.startsWith(ASSET_PREFIX) ||
-					metaProperty.startsWith(CHUNK_PREFIX))
-			) {
-				this.scope.addAccessedGlobalsByFormat(accessedFileUrlGlobals);
-			} else {
-				this.scope.addAccessedGlobalsByFormat(accessedMetaUrlGlobals);
+			if (this.meta.name === 'import') {
+				this.context.addImportMeta(this);
+				const parent = this.parent;
+				const metaProperty = (this.metaProperty =
+					parent instanceof MemberExpression && typeof parent.propertyKey === 'string'
+						? parent.propertyKey
+						: null);
+				if (
+					metaProperty &&
+					(metaProperty.startsWith(FILE_PREFIX) ||
+						metaProperty.startsWith(ASSET_PREFIX) ||
+						metaProperty.startsWith(CHUNK_PREFIX))
+				) {
+					this.scope.addAccessedGlobalsByFormat(accessedFileUrlGlobals);
+				} else {
+					this.scope.addAccessedGlobalsByFormat(accessedMetaUrlGlobals);
+				}
 			}
-		}
-	}
-
-	initialise() {
-		if (this.meta.name === 'import') {
-			this.context.addImportMeta(this);
 		}
 	}
 
@@ -61,7 +66,6 @@ export default class MetaProperty extends NodeBase {
 		format: InternalModuleFormat,
 		outputPluginDriver: PluginDriver
 	): void {
-		if (!this.included) return;
 		const parent = this.parent;
 		const metaProperty = this.metaProperty as string | null;
 

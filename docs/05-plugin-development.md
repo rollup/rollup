@@ -309,6 +309,7 @@ Called at the end of `bundle.generate()` or immediately before the files are wri
     },
   },
   name: string,
+  referencedFiles: string[],
   type: 'chunk',
 }
 ```

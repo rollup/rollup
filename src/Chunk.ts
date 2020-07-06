@@ -118,6 +118,7 @@ export default class Chunk {
 		inputOptions: NormalizedInputOptions,
 		outputOptions: NormalizedOutputOptions,
 		unsetOptions: Set<string>,
+		pluginDriver: PluginDriver,
 		modulesById: Map<string, Module | ExternalModule>,
 		chunkByModule: Map<Module, Chunk>,
 		facadeChunkByModule: Map<Module, Chunk>,
@@ -129,6 +130,7 @@ export default class Chunk {
 			inputOptions,
 			outputOptions,
 			unsetOptions,
+			pluginDriver,
 			modulesById,
 			chunkByModule,
 			facadeChunkByModule,
@@ -197,6 +199,7 @@ export default class Chunk {
 		private readonly inputOptions: NormalizedInputOptions,
 		private readonly outputOptions: NormalizedOutputOptions,
 		private readonly unsetOptions: Set<string>,
+		private readonly pluginDriver: PluginDriver,
 		private readonly modulesById: Map<string, Module | ExternalModule>,
 		private readonly chunkByModule: Map<Module, Chunk>,
 		private readonly facadeChunkByModule: Map<Module, Chunk>,
@@ -342,6 +345,7 @@ export default class Chunk {
 						this.inputOptions,
 						this.outputOptions,
 						this.unsetOptions,
+						this.pluginDriver,
 						this.modulesById,
 						this.chunkByModule,
 						this.facadeChunkByModule,
@@ -376,8 +380,7 @@ export default class Chunk {
 		addons: Addons,
 		options: NormalizedOutputOptions,
 		existingNames: Record<string, any>,
-		includeHash: boolean,
-		outputPluginDriver: PluginDriver
+		includeHash: boolean
 	): string {
 		if (this.fileName !== null) {
 			return this.fileName;
@@ -394,12 +397,7 @@ export default class Chunk {
 					format: () => options.format,
 					hash: () =>
 						includeHash
-							? this.computeContentHashWithDependencies(
-									addons,
-									options,
-									existingNames,
-									outputPluginDriver
-							  )
+							? this.computeContentHashWithDependencies(addons, options, existingNames)
 							: '[hash]',
 					name: () => this.getChunkName()
 				},
@@ -469,7 +467,8 @@ export default class Chunk {
 			fileName: this.id!,
 			implicitlyLoadedBefore: Array.from(this.implicitlyLoadedBefore, getId),
 			imports: Array.from(this.dependencies, getId),
-			map: undefined
+			map: undefined,
+			referencedFiles: this.getReferencedFiles()
 		});
 	}
 
@@ -483,10 +482,10 @@ export default class Chunk {
 		);
 	}
 
-	getRenderedHash(outputPluginDriver: PluginDriver): string {
+	getRenderedHash(): string {
 		if (this.renderedHash) return this.renderedHash;
 		const hash = createHash();
-		const hashAugmentation = outputPluginDriver.hookReduceValueSync(
+		const hashAugmentation = this.pluginDriver.hookReduceValueSync(
 			'augmentChunkHash',
 			'',
 			[this.getChunkInfo()],
@@ -529,7 +528,7 @@ export default class Chunk {
 	}
 
 	// prerender allows chunk hashes and names to be generated before finalizing
-	preRender(options: NormalizedOutputOptions, inputBase: string, outputPluginDriver: PluginDriver) {
+	preRender(options: NormalizedOutputOptions, inputBase: string) {
 		const magicString = new MagicStringBundle({ separator: options.compact ? '' : '\n\n' });
 		this.usedModules = [];
 		this.indentString = getIndentString(this.orderedModules, options);
@@ -545,7 +544,7 @@ export default class Chunk {
 			freeze: options.freeze,
 			indent: this.indentString,
 			namespaceToStringTag: options.namespaceToStringTag,
-			outputPluginDriver,
+			outputPluginDriver: this.pluginDriver,
 			varOrConst: options.preferConst ? 'const' : 'var'
 		};
 
@@ -627,12 +626,7 @@ export default class Chunk {
 			this.exportMode === 'none' ? [] : this.getChunkExportDeclarations(options.format);
 	}
 
-	async render(
-		options: NormalizedOutputOptions,
-		addons: Addons,
-		outputChunk: RenderedChunk,
-		outputPluginDriver: PluginDriver
-	) {
+	async render(options: NormalizedOutputOptions, addons: Addons, outputChunk: RenderedChunk) {
 		timeStart('render format', 2);
 
 		const format = options.format;
@@ -660,7 +654,7 @@ export default class Chunk {
 		}
 
 		this.finaliseDynamicImports(options);
-		this.finaliseImportMetas(format, outputPluginDriver);
+		this.finaliseImportMetas(format);
 
 		const hasExports =
 			this.renderedExports!.length !== 0 ||
@@ -723,7 +717,7 @@ export default class Chunk {
 		let code = await renderChunk({
 			code: prevCode,
 			options,
-			outputPluginDriver,
+			outputPluginDriver: this.pluginDriver,
 			renderChunk: outputChunk,
 			sourcemapChain: chunkSourcemapChain
 		});
@@ -797,8 +791,7 @@ export default class Chunk {
 	private computeContentHashWithDependencies(
 		addons: Addons,
 		options: NormalizedOutputOptions,
-		existingNames: Record<string, any>,
-		outputPluginDriver: PluginDriver
+		existingNames: Record<string, any>
 	): string {
 		const hash = createHash();
 		hash.update(
@@ -810,8 +803,8 @@ export default class Chunk {
 			if (current instanceof ExternalModule) {
 				hash.update(':' + current.renderPath);
 			} else {
-				hash.update(current.getRenderedHash(outputPluginDriver));
-				hash.update(current.generateId(addons, options, existingNames, false, outputPluginDriver));
+				hash.update(current.getRenderedHash());
+				hash.update(current.generateId(addons, options, existingNames, false));
 			}
 			if (current instanceof ExternalModule) continue;
 			for (const dependency of [...current.dependencies, ...current.dynamicDependencies]) {
@@ -874,13 +867,10 @@ export default class Chunk {
 		}
 	}
 
-	private finaliseImportMetas(
-		format: InternalModuleFormat,
-		outputPluginDriver: PluginDriver
-	): void {
+	private finaliseImportMetas(format: InternalModuleFormat): void {
 		for (const [module, code] of this.renderedModuleSources) {
 			for (const importMeta of module.importMetas) {
-				importMeta.renderFinalMechanism(code, this.id!, format, outputPluginDriver);
+				importMeta.renderFinalMechanism(code, this.id!, format, this.pluginDriver);
 			}
 		}
 	}
@@ -1046,6 +1036,19 @@ export default class Chunk {
 			return getAliasName(this.fileName);
 		}
 		return getAliasName(this.orderedModules[this.orderedModules.length - 1].id);
+	}
+
+	private getReferencedFiles(): string[] {
+		const referencedFiles: string[] = [];
+		for (const module of this.orderedModules) {
+			for (const meta of module.importMetas) {
+				const fileName = meta.getReferencedFileName(this.pluginDriver);
+				if (fileName) {
+					referencedFiles.push(fileName);
+				}
+			}
+		}
+		return referencedFiles;
 	}
 
 	private getRelativePath(targetPath: string, stripJsExtension: boolean): string {
