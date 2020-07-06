@@ -6,6 +6,7 @@ import {
 	FilePlaceholder,
 	NormalizedInputOptions,
 	OutputBundleWithPlaceholders,
+	PreRenderedAsset,
 	WarningHandler
 } from '../rollup/types';
 import { BuildPhase } from './buildPhase';
@@ -28,7 +29,7 @@ import { isPlainPathFragment } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';
 
 interface OutputSpecificFileData {
-	assetFileNames: string;
+	assetFileNames: string | ((assetInfo: PreRenderedAsset) => string);
 	bundle: OutputBundleWithPlaceholders;
 }
 
@@ -39,18 +40,23 @@ function generateAssetFileName(
 ): string {
 	const emittedName = name || 'asset';
 	return makeUnique(
-		renderNamePattern(output.assetFileNames, 'output.assetFileNames', {
-			hash() {
-				const hash = createHash();
-				hash.update(emittedName);
-				hash.update(':');
-				hash.update(source);
-				return hash.digest('hex').substr(0, 8);
+		renderNamePattern(
+			output.assetFileNames,
+			'output.assetFileNames',
+			{
+				hash() {
+					const hash = createHash();
+					hash.update(emittedName);
+					hash.update(':');
+					hash.update(source);
+					return hash.digest('hex').substr(0, 8);
+				},
+				ext: () => extname(emittedName).substr(1),
+				extname: () => extname(emittedName),
+				name: () => emittedName.substr(0, emittedName.length - extname(emittedName).length)
 			},
-			ext: () => extname(emittedName).substr(1),
-			extname: () => extname(emittedName),
-			name: () => emittedName.substr(0, emittedName.length - extname(emittedName).length)
-		}),
+			() => ({ name, source, type: 'asset' })
+		),
 		output.bundle
 	);
 }
@@ -228,7 +234,7 @@ export class FileEmitter {
 
 	public setOutputBundle = (
 		outputBundle: OutputBundleWithPlaceholders,
-		assetFileNames: string,
+		assetFileNames: string | ((assetInfo: PreRenderedAsset) => string),
 		facadeChunkByModule: Map<Module, Chunk>
 	): void => {
 		this.output = {
@@ -334,6 +340,7 @@ export class FileEmitter {
 		const options = this.options;
 		output.bundle[fileName] = {
 			fileName,
+			name: consumedFile.name,
 			get isAsset(): true {
 				warnDeprecation(
 					'Accessing "isAsset" on files in the bundle is deprecated, please use "type === \'asset\'" instead',
