@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 2.20.0
+*2020-07-06*
+
+### Features
+* Support using a function to generate different chunk and asset naming patterns per chunk or asset (#3658)
+* Add `referencedFiles` property to the chunk info in generateBundle to list referenced assets (#3661)
+
+### Pull Requests
+* [#3658](https://github.com/rollup/rollup/pull/3658): Add ability to use a function that returns a pattern string in all places where you could use a pattern string before (@frank-dspeed)
+* [#3661](https://github.com/rollup/rollup/pull/3661): Add referenced files to bundle (@lukastaegert)
+
 ## 2.19.0
 *2020-07-05*
 
