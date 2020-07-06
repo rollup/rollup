@@ -363,7 +363,7 @@ Type: `string | ((assetInfo: AssetInfo) => string)`<br>
 CLI: `--assetFileNames <pattern>`<br>
 Default: `"assets/[name]-[hash][extname]"`
 
-The pattern to use for naming custom emitted assets to include in the build output. Pattern supports the following placeholders:
+The pattern to use for naming custom emitted assets to include in the build output, or a function that is called per asset to return such a pattern. Patterns support the following placeholders:
  * `[extname]`: The file extension of the asset including a leading dot, e.g. `.css`.
  * `[ext]`: The file extension without a leading dot, e.g. `css`.
  * `[hash]`: A hash based on the name and content of the asset.
@@ -398,7 +398,7 @@ Type: `string | ((chunkInfo: ChunkInfo) => string)`<br>
 CLI: `--chunkFileNames <pattern>`<br>
 Default: `"[name]-[hash].js"`
 
-The pattern to use for naming shared chunks created when code-splitting. Pattern supports the following placeholders:
+The pattern to use for naming shared chunks created when code-splitting, or a function that is called per chunk to return such a pattern. Patterns support the following placeholders:
  * `[format]`: The rendering format defined in the output options, e.g. `es` or `cjs`.
  * `[hash]`: A hash based on the content of the chunk and the content of all its dependencies.
  * `[name]`: The name of the chunk. This can be explicitly set via the [`output.manualChunks`](guide/en/#outputmanualchunks) option or when the chunk is created by a plugin via [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string). Otherwise it will be derived from the chunk contents.
@@ -419,7 +419,7 @@ Type: `string | ((chunkInfo: ChunkInfo) => string)`<br>
 CLI: `--entryFileNames <pattern>`<br>
 Default: `"[name].js"`
 
-The pattern to use for chunks created from entry points. Pattern supports the following placeholders:
+The pattern to use for chunks created from entry points, or a function that is called per entry chunk to return such a pattern. Patterns support the following placeholders:
 * `[format]`: The rendering format defined in the output options, e.g. `es` or `cjs`.
 * `[hash]`: A hash based on the content of the entry point and the content of all its dependencies.
 * `[name]`: The file name (without extension) of the entry point, unless the object form of input was used to define a different name.
