@@ -84,7 +84,7 @@ export default class Bundle {
 		for (const chunk of chunks) {
 			const chunkDescription = (outputBundle[
 				chunk.id!
-			] = chunk.getPrerenderedChunk() as OutputChunk);
+			] = chunk.getChunkInfoWithFileNames() as OutputChunk);
 			chunkDescription.fileName = chunk.id!;
 		}
 		await Promise.all(

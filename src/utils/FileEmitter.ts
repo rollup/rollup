@@ -6,6 +6,7 @@ import {
 	FilePlaceholder,
 	NormalizedInputOptions,
 	OutputBundleWithPlaceholders,
+	PreRenderedAsset,
 	WarningHandler
 } from '../rollup/types';
 import { BuildPhase } from './buildPhase';
@@ -28,7 +29,7 @@ import { isPlainPathFragment } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';
 
 interface OutputSpecificFileData {
-	assetFileNames: string;
+	assetFileNames: string | ((assetInfo: PreRenderedAsset) => string);
 	bundle: OutputBundleWithPlaceholders;
 }
 
@@ -54,9 +55,7 @@ function generateAssetFileName(
 				extname: () => extname(emittedName),
 				name: () => emittedName.substr(0, emittedName.length - extname(emittedName).length)
 			},
-			() => {
-				return { name, source, output };
-			}
+			() => ({ name, source, type: 'asset' })
 		),
 		output.bundle
 	);
@@ -235,7 +234,7 @@ export class FileEmitter {
 
 	public setOutputBundle = (
 		outputBundle: OutputBundleWithPlaceholders,
-		assetFileNames: string,
+		assetFileNames: string | ((assetInfo: PreRenderedAsset) => string),
 		facadeChunkByModule: Map<Module, Chunk>
 	): void => {
 		this.output = {
@@ -341,6 +340,7 @@ export class FileEmitter {
 		const options = this.options;
 		output.bundle[fileName] = {
 			fileName,
+			name: consumedFile.name,
 			get isAsset(): true {
 				warnDeprecation(
 					'Accessing "isAsset" on files in the bundle is deprecated, please use "type === \'asset\'" instead',

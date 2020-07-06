@@ -545,15 +545,15 @@ export interface OutputOptions {
 		define?: string;
 		id?: string;
 	};
-	assetFileNames?: string;
+	assetFileNames?: string | ((chunkInfo: PreRenderedAsset) => string);
 	banner?: string | (() => string | Promise<string>);
-	chunkFileNames?: string;
+	chunkFileNames?: string | ((chunkInfo: PreRenderedChunk) => string);
 	compact?: boolean;
 	// only required for bundle.write
 	dir?: string;
 	/** @deprecated Use the "renderDynamicImport" plugin hook instead. */
 	dynamicImportFunction?: string;
-	entryFileNames?: string;
+	entryFileNames?: string | ((chunkInfo: PreRenderedChunk) => string);
 	esModule?: boolean;
 	exports?: 'default' | 'named' | 'none' | 'auto';
 	extend?: boolean;
@@ -592,14 +592,14 @@ export interface NormalizedOutputOptions {
 		define: string;
 		id?: string;
 	};
-	assetFileNames: string;
+	assetFileNames: string | ((chunkInfo: PreRenderedAsset) => string);
 	banner: () => string | Promise<string>;
-	chunkFileNames: string;
+	chunkFileNames: string | ((chunkInfo: PreRenderedChunk) => string);
 	compact: boolean;
 	dir: string | undefined;
 	/** @deprecated Use the "renderDynamicImport" plugin hook instead. */
 	dynamicImportFunction: string | undefined;
-	entryFileNames: string;
+	entryFileNames: string | ((chunkInfo: PreRenderedChunk) => string);
 	esModule: boolean;
 	exports: 'default' | 'named' | 'none' | 'auto';
 	extend: boolean;
@@ -642,12 +642,16 @@ export interface SerializedTimings {
 	[label: string]: [number, number, number];
 }
 
-export interface OutputAsset {
+export interface PreRenderedAsset {
+	name: string | undefined;
+	source: string | Uint8Array;
+	type: 'asset';
+}
+
+export interface OutputAsset extends PreRenderedAsset {
 	fileName: string;
 	/** @deprecated Accessing "isAsset" on files in the bundle is deprecated, please use "type === \'asset\'" instead */
 	isAsset: true;
-	source: string | Uint8Array;
-	type: 'asset';
 }
 
 export interface RenderedModule {
@@ -658,17 +662,11 @@ export interface RenderedModule {
 }
 
 export interface PreRenderedChunk {
-	code?: string;
-	dynamicImports: string[];
 	exports: string[];
 	facadeModuleId: string | null;
-	fileName?: string;
-	implicitlyLoadedBefore: string[];
-	imports: string[];
 	isDynamicEntry: boolean;
 	isEntry: boolean;
 	isImplicitEntry: boolean;
-	map?: SourceMap;
 	modules: {
 		[id: string]: RenderedModule;
 	};
@@ -677,13 +675,16 @@ export interface PreRenderedChunk {
 }
 
 export interface RenderedChunk extends PreRenderedChunk {
+	code?: string;
+	dynamicImports: string[];
 	fileName: string;
+	implicitlyLoadedBefore: string[];
+	imports: string[];
+	map?: SourceMap;
 }
 
 export interface OutputChunk extends RenderedChunk {
 	code: string;
-	map?: SourceMap;
-	type: 'chunk';
 }
 
 export interface SerializablePluginCache {

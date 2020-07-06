@@ -236,12 +236,12 @@ Output generation hooks can provide information about a generated bundle and mod
 The first hook of the output generation phase is [outputOptions](guide/en/#outputoptions), the last one is either [generateBundle](guide/en/#generatebundle) if the output was successfully generated via `bundle.generate(...)`, [writeBundle](guide/en/#writebundle) if the output was successfully generated via `bundle.write(...)`, or [renderError](guide/en/#rendererror) if an error occurred at any time during the output generation.
 
 #### `augmentChunkHash`
-Type: `(preRenderedChunk: PreRenderedChunk) => string`<br>
+Type: `(chunkInfo: ChunkInfo) => string`<br>
 Kind: `sync, sequential`<br>
 Previous Hook: [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression.<br>
 Next Hook: [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta`.
 
-Can be used to augment the hash of individual chunks. Called for each Rollup output chunk. Returning a falsy value will not modify the hash. Truthy values will be passed to [`hash.update`](https://nodejs.org/dist/latest-v12.x/docs/api/crypto.html#crypto_hash_update_data_inputencoding).
+Can be used to augment the hash of individual chunks. Called for each Rollup output chunk. Returning a falsy value will not modify the hash. Truthy values will be passed to [`hash.update`](https://nodejs.org/dist/latest-v12.x/docs/api/crypto.html#crypto_hash_update_data_inputencoding). The `chunkInfo` is a reduced version of the one in [`generateBundle`](guide/en/#generatebundle) without properties that rely on file names.
 
 The following plugin will invalidate the hash of chunk `foo` with the timestamp of the last build:
 
@@ -282,6 +282,7 @@ Called at the end of `bundle.generate()` or immediately before the files are wri
 // AssetInfo
 {
   fileName: string,
+  name?: string,
   source: string | Uint8Array,
   type: 'asset',
 }

@@ -1,15 +1,16 @@
+import { PreRenderedAsset, PreRenderedChunk } from '../rollup/types';
 import { errFailedValidation, error } from './error';
 import { extname } from './path';
 import { isPlainPathFragment } from './relativeId';
 
-export function renderNamePattern(
-	pattern: (({}) => string) | string,
+export function renderNamePattern<T extends PreRenderedChunk | PreRenderedAsset>(
+	pattern: string | ((fileInfo: T) => string),
 	patternName: string,
 	replacements: { [name: string]: () => string },
-	getFileInfo: () => {}
+	getFileInfo: () => T
 ) {
 	if (typeof pattern === 'function') {
-		pattern = pattern({ replacements, getFileInfo });
+		pattern = pattern(getFileInfo());
 	}
 
 	if (!isPlainPathFragment(pattern))

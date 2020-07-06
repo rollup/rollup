@@ -403,7 +403,7 @@ export default class Chunk {
 							: '[hash]',
 					name: () => this.getChunkName()
 				},
-				this.getPrerenderedChunk.bind(this)
+				this.getChunkInfo.bind(this)
 			),
 			existingNames
 		);
@@ -436,13 +436,41 @@ export default class Chunk {
 						format: () => options.format as string,
 						name: () => this.getChunkName()
 					},
-					this.getPrerenderedChunk.bind(this)
+					this.getChunkInfo.bind(this)
 				)}`
 			);
 		} else {
 			path = `_virtual/${basename(sanitizedId)}`;
 		}
 		return makeUnique(normalize(path), existingNames);
+	}
+
+	getChunkInfo(): PreRenderedChunk {
+		const facadeModule = this.facadeModule;
+		const getChunkName = this.getChunkName.bind(this);
+		return {
+			exports: this.getExportNames(),
+			facadeModuleId: facadeModule && facadeModule.id,
+			isDynamicEntry: this.dynamicEntryModules.length > 0,
+			isEntry: facadeModule !== null && facadeModule.isEntryPoint,
+			isImplicitEntry: this.implicitEntryModules.length > 0,
+			modules: this.renderedModules!,
+			get name() {
+				return getChunkName();
+			},
+			type: 'chunk'
+		};
+	}
+
+	getChunkInfoWithFileNames(): RenderedChunk {
+		return Object.assign(this.getChunkInfo(), {
+			code: undefined,
+			dynamicImports: Array.from(this.dynamicDependencies, getId),
+			fileName: this.id!,
+			implicitlyLoadedBefore: Array.from(this.implicitlyLoadedBefore, getId),
+			imports: Array.from(this.dependencies, getId),
+			map: undefined
+		});
 	}
 
 	getChunkName(): string {
@@ -455,36 +483,13 @@ export default class Chunk {
 		);
 	}
 
-	getPrerenderedChunk(): PreRenderedChunk {
-		const facadeModule = this.facadeModule;
-		const getChunkName = this.getChunkName.bind(this);
-		return {
-			code: undefined,
-			dynamicImports: Array.from(this.dynamicDependencies, getId),
-			exports: this.getExportNames(),
-			facadeModuleId: facadeModule && facadeModule.id,
-			fileName: undefined,
-			implicitlyLoadedBefore: Array.from(this.implicitlyLoadedBefore, getId),
-			imports: Array.from(this.dependencies, getId),
-			isDynamicEntry: this.dynamicEntryModules.length > 0,
-			isEntry: facadeModule !== null && facadeModule.isEntryPoint,
-			isImplicitEntry: this.implicitEntryModules.length > 0,
-			map: undefined,
-			modules: this.renderedModules!,
-			get name() {
-				return getChunkName();
-			},
-			type: 'chunk'
-		};
-	}
-
 	getRenderedHash(outputPluginDriver: PluginDriver): string {
 		if (this.renderedHash) return this.renderedHash;
 		const hash = createHash();
 		const hashAugmentation = outputPluginDriver.hookReduceValueSync(
 			'augmentChunkHash',
 			'',
-			[this.getPrerenderedChunk()],
+			[this.getChunkInfo()],
 			(hashAugmentation, pluginHash) => {
 				if (pluginHash) {
 					hashAugmentation += pluginHash;
