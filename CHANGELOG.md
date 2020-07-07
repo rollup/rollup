@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.21.0
+*2020-07-07*
+
+### Features
+* Allow plugins to disable tree-shaking for individual modules to ensure even empty modules are associated with chunks (#3663)
+
+### Pull Requests
+* [#3663](https://github.com/rollup/rollup/pull/3663): Disable treeshaking per module (@lukastaegert)
+
 ## 2.20.0
 *2020-07-06*
 
