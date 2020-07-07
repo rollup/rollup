@@ -371,8 +371,6 @@ The pattern to use for naming custom emitted assets to include in the build outp
 
 Forward slashes `/` can be used to place files in sub-directories. When using a function, `assetInfo` is a reduced version of the one in [`generateBundle`](guide/en/#generatebundle) without the `fileName`. See also [`output.chunkFileNames`](guide/en/#outputchunkfilenames), [`output.entryFileNames`](guide/en/#outputentryfilenames). 
 
-You can also supply a function that returns a pattern as string.
-
 #### output.banner/output.footer
 Type: `string | (() => string | Promise<string>)`<br>
 CLI: `--banner`/`--footer <text>`
@@ -405,8 +403,6 @@ The pattern to use for naming shared chunks created when code-splitting, or a fu
 
 Forward slashes `/` can be used to place files in sub-directories. When using a function, `chunkInfo` is a reduced version of the one in [`generateBundle`](guide/en/#generatebundle) without properties that depend on file names. See also [`output.assetFileNames`](guide/en/#outputassetfilenames), [`output.entryFileNames`](guide/en/#outputentryfilenames).
 
-You can also supply a function that returns a pattern as string.
-
 #### output.compact
 Type: `boolean`<br>
 CLI: `--compact`/`--no-compact`<br>
@@ -426,20 +422,18 @@ The pattern to use for chunks created from entry points, or a function that is c
 
 Forward slashes `/` can be used to place files in sub-directories. When using a function, `chunkInfo` is a reduced version of the one in [`generateBundle`](guide/en/#generatebundle) without properties that depend on file names. See also [`output.assetFileNames`](guide/en/#outputassetfilenames), [`output.chunkFileNames`](guide/en/#outputchunkfilenames).
 
-This pattern will also be used when using the [`output.preserveModules`](guide/en/#outputpreservemodules) option. Here there is a different set of placeholders available, though:
+This pattern will also be used when setting the [`output.preserveModules`](guide/en/#outputpreservemodules) option. Here a different set of placeholders is available, though:
 * `[format]`: The rendering format defined in the output options.
 * `[name]`: The file name (without extension) of the file.
 * `[ext]`: The extension of the file.
 * `[extname]`: The extension of the file, prefixed by `.` if it is not empty.
-
-You can also supply a function that returns a pattern as string.
 
 #### output.extend
 Type: `boolean`<br>
 CLI: `--extend`/`--no-extend`<br>
 Default: `false`
 
-Whether or not to extend the global variable defined by the `name` option in `umd` or `iife` formats. When `true`, the global variable will be defined as `(global.name = global.name || {})`. When false, the global defined by `name` will be overwritten like `(global.name = {})`.
+Whether to extend the global variable defined by the `name` option in `umd` or `iife` formats. When `true`, the global variable will be defined as `(global.name = global.name || {})`. When false, the global defined by `name` will be overwritten like `(global.name = {})`.
 
 #### output.hoistTransitiveImports
 Type: `boolean`<br>
@@ -460,7 +454,7 @@ Type: `boolean`<br>
 CLI: `--interop`/`--no-interop`<br>
 Default: `true`
 
-Whether or not to add an 'interop block'. By default (`interop: true`), for safety's sake, Rollup will assign any external dependencies' `default` exports to a separate variable if it is necessary to distinguish between default and named exports. This generally only applies if your external dependencies were transpiled (for example with Babel) – if you are sure you do not need it, you can save a few bytes with `interop: false`.
+Whether to add an 'interop block'. By default (`interop: true`), for safety's sake, Rollup will assign any external dependencies' `default` exports to a separate variable if it is necessary to distinguish between default and named exports. This generally only applies if your external dependencies were transpiled (for example with Babel) – if you are sure you do not need it, you can save a few bytes with `interop: false`.
 
 #### output.intro/output.outro
 Type: `string | (() => string | Promise<string>)`<br>
@@ -919,7 +913,7 @@ Type: `boolean`<br>
 CLI: `--esModule`/`--no-esModule`<br>
 Default: `true`
 
-Whether or not to add a `__esModule: true` property when generating exports for non-ES formats.
+Whether to add a `__esModule: true` property when generating exports for non-ES formats.
 
 #### output.exports
 Type: `string`<br>
@@ -1096,7 +1090,7 @@ Type: `boolean | { annotations?: boolean, moduleSideEffects?: ModuleSideEffectsO
 CLI: `--treeshake`/`--no-treeshake`<br>
 Default: `true`
 
-Whether or not to apply tree-shaking and to fine-tune the tree-shaking process. Setting this option to `false` will produce bigger bundles but may improve build performance. If you discover a bug caused by the tree-shaking algorithm, please file an issue!
+Whether to apply tree-shaking and to fine-tune the tree-shaking process. Setting this option to `false` will produce bigger bundles but may improve build performance. If you discover a bug caused by the tree-shaking algorithm, please file an issue!
 Setting this option to an object implies tree-shaking is enabled and grants the following additional options:
 
 **treeshake.annotations**<br>

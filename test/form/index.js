@@ -2,7 +2,7 @@ const path = require('path');
 const assert = require('assert');
 const sander = require('sander');
 const rollup = require('../../dist/rollup');
-const { extend, normaliseOutput, runTestSuiteWithSamples } = require('../utils.js');
+const { normaliseOutput, runTestSuiteWithSamples } = require('../utils.js');
 
 const FORMATS = ['amd', 'cjs', 'system', 'es', 'iife', 'umd'];
 
@@ -19,7 +19,7 @@ runTestSuiteWithSamples('form', path.resolve(__dirname, 'samples'), (dir, config
 				bundle =
 					bundle ||
 					(await rollup.rollup(
-						extend(
+						Object.assign(
 							{
 								input: dir + '/main.js',
 								onwarn: warning => {
@@ -39,7 +39,7 @@ runTestSuiteWithSamples('form', path.resolve(__dirname, 'samples'), (dir, config
 					));
 				await generateAndTestBundle(
 					bundle,
-					extend(
+					Object.assign(
 						{
 							file: inputFile,
 							format: defaultFormat

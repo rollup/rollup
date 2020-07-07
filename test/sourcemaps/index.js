@@ -1,6 +1,6 @@
 const path = require('path');
 const rollup = require('../../dist/rollup');
-const { compareWarnings, extend, runTestSuiteWithSamples } = require('../utils.js');
+const { compareWarnings, runTestSuiteWithSamples } = require('../utils.js');
 
 const FORMATS = ['amd', 'cjs', 'system', 'es', 'iife', 'umd'];
 
@@ -12,7 +12,7 @@ runTestSuiteWithSamples('sourcemaps', path.resolve(__dirname, 'samples'), (dir, 
 				it('generates ' + format, async () => {
 					process.chdir(dir);
 					const warnings = [];
-					const inputOptions = extend(
+					const inputOptions = Object.assign(
 						{
 							input: dir + '/main.js',
 							onwarn: warning => warnings.push(warning),
@@ -20,7 +20,7 @@ runTestSuiteWithSamples('sourcemaps', path.resolve(__dirname, 'samples'), (dir, 
 						},
 						config.options || {}
 					);
-					const outputOptions = extend(
+					const outputOptions = Object.assign(
 						{
 							file: dir + '/_actual/bundle.' + format + '.js',
 							format,
@@ -36,7 +36,7 @@ runTestSuiteWithSamples('sourcemaps', path.resolve(__dirname, 'samples'), (dir, 
 						return;
 					}
 					// test cache noop rebuild
-					bundle = await rollup.rollup(extend({ cache: bundle }, inputOptions));
+					bundle = await rollup.rollup(Object.assign({ cache: bundle }, inputOptions));
 					await generateAndTestBundle(bundle, outputOptions, config, format, warnings);
 				});
 			}

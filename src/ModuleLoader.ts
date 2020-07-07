@@ -207,10 +207,10 @@ export class ModuleLoader {
 			}
 			module.setSource(cachedModule);
 		} else {
-			if (typeof sourceDescription.moduleSideEffects === 'boolean') {
+			if (sourceDescription.moduleSideEffects != null) {
 				module.moduleSideEffects = sourceDescription.moduleSideEffects;
 			}
-			if (typeof sourceDescription.syntheticNamedExports === 'boolean') {
+			if (sourceDescription.syntheticNamedExports != null) {
 				module.syntheticNamedExports = sourceDescription.syntheticNamedExports;
 			}
 			module.setSource(
@@ -269,7 +269,7 @@ export class ModuleLoader {
 	private async fetchModule(
 		id: string,
 		importer: string | undefined,
-		moduleSideEffects: boolean,
+		moduleSideEffects: boolean | 'no-treeshake',
 		syntheticNamedExports: boolean,
 		isEntry: boolean
 	): Promise<Module> {
@@ -418,7 +418,7 @@ export class ModuleLoader {
 	): ResolvedId | null {
 		let id = '';
 		let external = false;
-		let moduleSideEffects = null;
+		let moduleSideEffects: boolean | 'no-treeshake' | null = null;
 		let syntheticNamedExports = false;
 		if (resolveIdResult) {
 			if (typeof resolveIdResult === 'object') {
@@ -426,10 +426,10 @@ export class ModuleLoader {
 				if (resolveIdResult.external) {
 					external = true;
 				}
-				if (typeof resolveIdResult.moduleSideEffects === 'boolean') {
+				if (resolveIdResult.moduleSideEffects != null) {
 					moduleSideEffects = resolveIdResult.moduleSideEffects;
 				}
-				if (typeof resolveIdResult.syntheticNamedExports === 'boolean') {
+				if (resolveIdResult.syntheticNamedExports != null) {
 					syntheticNamedExports = resolveIdResult.syntheticNamedExports;
 				}
 			} else {
@@ -448,10 +448,7 @@ export class ModuleLoader {
 		return {
 			external,
 			id,
-			moduleSideEffects:
-				typeof moduleSideEffects === 'boolean'
-					? moduleSideEffects
-					: this.hasModuleSideEffects(id, external),
+			moduleSideEffects: moduleSideEffects ?? this.hasModuleSideEffects(id, external),
 			syntheticNamedExports
 		};
 	}
