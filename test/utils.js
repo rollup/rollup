@@ -7,7 +7,7 @@ exports.compareError = compareError;
 exports.compareWarnings = compareWarnings;
 exports.deindent = deindent;
 exports.executeBundle = executeBundle;
-exports.extend = extend;
+exports.getObject = getObject;
 exports.loader = loader;
 exports.normaliseOutput = normaliseOutput;
 exports.runTestSuiteWithSamples = runTestSuiteWithSamples;
@@ -79,15 +79,12 @@ function executeBundle(bundle, require) {
 		});
 }
 
-function extend(target) {
-	[].slice.call(arguments, 1).forEach(source => {
-		source &&
-			Object.keys(source).forEach(key => {
-				target[key] = source[key];
-			});
-	});
-
-	return target;
+function getObject(entries) {
+	const object = {};
+	for (const [key, value] of entries) {
+		object[key] = value;
+	}
+	return object;
 }
 
 function loadConfig(configFile) {

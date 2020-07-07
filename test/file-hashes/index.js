@@ -1,6 +1,6 @@
 const path = require('path');
 const rollup = require('../../dist/rollup');
-const { extend, runTestSuiteWithSamples } = require('../utils.js');
+const { runTestSuiteWithSamples } = require('../utils.js');
 
 runTestSuiteWithSamples('file hashes', path.resolve(__dirname, 'samples'), (dir, config) => {
 	(config.skip ? describe.skip : config.solo ? describe.only : describe)(
@@ -14,7 +14,7 @@ runTestSuiteWithSamples('file hashes', path.resolve(__dirname, 'samples'), (dir,
 							.rollup(options)
 							.then(bundle =>
 								bundle.generate(
-									extend(
+									Object.assign(
 										{ format: 'es', chunkFileNames: '[hash]', entryFileNames: '[hash]' },
 										options.output
 									)

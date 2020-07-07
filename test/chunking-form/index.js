@@ -1,6 +1,6 @@
 const path = require('path');
 const rollup = require('../../dist/rollup');
-const { extend, runTestSuiteWithSamples, assertDirectoriesAreEqual } = require('../utils.js');
+const { runTestSuiteWithSamples, assertDirectoriesAreEqual } = require('../utils.js');
 
 const FORMATS = ['es', 'cjs', 'amd', 'system'];
 
@@ -16,7 +16,7 @@ runTestSuiteWithSamples('chunking form', path.resolve(__dirname, 'samples'), (di
 					return (
 						rollupPromise ||
 						(rollupPromise = rollup.rollup(
-							extend(
+							Object.assign(
 								{
 									input: [dir + '/main.js'],
 									onwarn: warning => {
@@ -40,7 +40,7 @@ runTestSuiteWithSamples('chunking form', path.resolve(__dirname, 'samples'), (di
 					).then(bundle =>
 						generateAndTestBundle(
 							bundle,
-							extend(
+							Object.assign(
 								{
 									dir: dir + '/_actual/' + format,
 									format,
