@@ -13,7 +13,7 @@ export default class ExternalModule {
 	exportsNamespace = false;
 	id: string;
 	importers: string[] = [];
-	moduleSideEffects: boolean;
+	moduleSideEffects: boolean | 'no-treeshake';
 	mostCommonSuggestion = 0;
 	nameSuggestions: { [name: string]: number };
 	reexported = false;
@@ -25,7 +25,7 @@ export default class ExternalModule {
 	constructor(
 		private readonly options: NormalizedInputOptions,
 		id: string,
-		moduleSideEffects: boolean
+		moduleSideEffects: boolean | 'no-treeshake'
 	) {
 		this.id = id;
 		this.execIndex = Infinity;

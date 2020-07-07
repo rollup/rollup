@@ -237,7 +237,7 @@ export default class Module {
 		private readonly graph: Graph,
 		public readonly id: string,
 		private readonly options: NormalizedInputOptions,
-		public moduleSideEffects: boolean,
+		public moduleSideEffects: boolean | 'no-treeshake',
 		public syntheticNamedExports: boolean,
 		public isEntryPoint: boolean
 	) {
@@ -328,7 +328,7 @@ export default class Module {
 			}
 			relevantDependencies.add(variable.module!);
 		}
-		if (this.options.treeshake) {
+		if (this.options.treeshake && this.moduleSideEffects !== 'no-treeshake') {
 			for (const dependency of possibleDependencies) {
 				if (
 					!(
@@ -500,7 +500,10 @@ export default class Module {
 	}
 
 	hasEffects() {
-		return this.ast.included && this.ast.hasEffects(createHasEffectsContext());
+		return (
+			this.moduleSideEffects === 'no-treeshake' ||
+			(this.ast.included && this.ast.hasEffects(createHasEffectsContext()))
+		);
 	}
 
 	include(): void {
@@ -604,10 +607,10 @@ export default class Module {
 		}
 		this.transformDependencies = transformDependencies;
 		this.customTransformCache = customTransformCache;
-		if (typeof moduleSideEffects === 'boolean') {
+		if (moduleSideEffects != null) {
 			this.moduleSideEffects = moduleSideEffects;
 		}
-		if (typeof syntheticNamedExports === 'boolean') {
+		if (syntheticNamedExports != null) {
 			this.syntheticNamedExports = syntheticNamedExports;
 		}
 

@@ -89,7 +89,7 @@ export interface SourceDescription {
 	ast?: AcornNode;
 	code: string;
 	map?: SourceMapInput;
-	moduleSideEffects?: boolean | null;
+	moduleSideEffects?: boolean | 'no-treeshake' | null;
 	syntheticNamedExports?: boolean;
 }
 
@@ -98,7 +98,7 @@ export interface TransformModuleJSON {
 	code: string;
 	// note if plugins use new this.cache to opt-out auto transform cache
 	customTransformCache: boolean;
-	moduleSideEffects: boolean | null;
+	moduleSideEffects: boolean | 'no-treeshake' | null;
 	originalCode: string;
 	originalSourcemap: ExistingDecodedSourceMap | null;
 	resolvedIds?: ResolvedIdMap;
@@ -154,7 +154,7 @@ export type EmitFile = (emittedFile: EmittedFile) => string;
 interface ModuleInfo {
 	dynamicallyImportedIds: string[];
 	dynamicImporters: string[];
-	hasModuleSideEffects: boolean;
+	hasModuleSideEffects: boolean | 'no-treeshake';
 	id: string;
 	implicitlyLoadedAfterOneOf: string[];
 	implicitlyLoadedBefore: string[];
@@ -206,7 +206,7 @@ export interface PluginContextMeta {
 export interface ResolvedId {
 	external: boolean;
 	id: string;
-	moduleSideEffects: boolean;
+	moduleSideEffects: boolean | 'no-treeshake';
 	syntheticNamedExports: boolean;
 }
 
@@ -217,7 +217,7 @@ export interface ResolvedIdMap {
 interface PartialResolvedId {
 	external?: boolean;
 	id: string;
-	moduleSideEffects?: boolean | null;
+	moduleSideEffects?: boolean | 'no-treeshake' | null;
 	syntheticNamedExports?: boolean;
 }
 

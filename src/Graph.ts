@@ -196,7 +196,13 @@ export default class Graph {
 				timeStart(`treeshaking pass ${treeshakingPass}`, 3);
 				this.needsTreeshakingPass = false;
 				for (const module of this.modules) {
-					if (module.isExecuted) module.include();
+					if (module.isExecuted) {
+						if (module.moduleSideEffects === 'no-treeshake') {
+							module.includeAllInBundle();
+						} else {
+							module.include();
+						}
+					}
 				}
 				timeEnd(`treeshaking pass ${treeshakingPass++}`, 3);
 			} while (this.needsTreeshakingPass);
