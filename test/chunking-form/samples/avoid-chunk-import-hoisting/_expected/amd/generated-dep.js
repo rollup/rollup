@@ -1,6 +1,8 @@
 define(['exports', 'lib'], function (exports, value) { 'use strict';
 
-	value = value && Object.prototype.hasOwnProperty.call(value, 'default') ? value['default'] : value;
+	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+	value = _interopDefault(value);
 
 	var dep = 2 * value;
 

@@ -27,10 +27,10 @@ export default function iife(
 	}: FinaliserOptions,
 	options: NormalizedOutputOptions
 ) {
-	const _ = options.compact ? '' : ' ';
-	const n = options.compact ? '' : '\n';
+	const { compact, extend, globals, interop, name, strict } = options;
+	const _ = compact ? '' : ' ';
+	const n = compact ? '' : '\n';
 
-	const { extend, name } = options;
 	const isNamespaced = name && name.indexOf('.') !== -1;
 	const useVariableAssignment = !extend && !isNamespaced;
 
@@ -64,42 +64,28 @@ export default function iife(
 		}
 	}
 
-	const useStrict = options.strict ? `${t}'use strict';${n}${n}` : ``;
+	const useStrict = strict ? `${t}'use strict';${n}` : '';
+	const interopBlock = getInteropBlock(dependencies, varOrConst, compact, interop, _, n);
+	magicString.prepend(`${intro}${interopBlock}`);
 
-	let wrapperIntro = `(function${_}(${args.join(`,${_}`)})${_}{${n}${useStrict}`;
-
-	if (hasExports && (!extend || !namedExportsMode) && name) {
-		wrapperIntro =
-			(useVariableAssignment ? `${varOrConst} ${name}` : thisProp(name)) +
-			`${_}=${_}${wrapperIntro}`;
-	}
-
-	if (isNamespaced && hasExports) {
-		wrapperIntro = setupNamespace(name!, 'this', options.globals, options.compact) + wrapperIntro;
+	let wrapperIntro = `(function${_}(${args.join(`,${_}`)})${_}{${n}${useStrict}${n}`;
+	if (hasExports) {
+		if (name && !(extend && namedExportsMode)) {
+			wrapperIntro =
+				(useVariableAssignment ? `${varOrConst} ${name}` : thisProp(name)) +
+				`${_}=${_}${wrapperIntro}`;
+		}
+		if (isNamespaced) {
+			wrapperIntro = setupNamespace(name!, 'this', globals, compact) + wrapperIntro;
+		}
 	}
 
 	let wrapperOutro = `${n}${n}}(${deps.join(`,${_}`)}));`;
-
-	if (!extend && namedExportsMode && hasExports) {
+	if (hasExports && !extend && namedExportsMode) {
 		wrapperOutro = `${n}${n}${t}return exports;${wrapperOutro}`;
 	}
 
-	// var foo__default = 'default' in foo ? foo['default'] : foo;
-	const interopBlock = getInteropBlock(dependencies, options, varOrConst);
-	if (interopBlock) magicString.prepend(interopBlock + n + n);
-
-	if (intro) magicString.prepend(intro);
-
-	const exportBlock = getExportBlock(
-		exports,
-		dependencies,
-		namedExportsMode,
-		options.interop,
-		options.compact,
-		t
-	);
-	if (exportBlock) magicString.append(n + n + exportBlock);
-	if (outro) magicString.append(outro);
-
+	const exportBlock = getExportBlock(exports, dependencies, namedExportsMode, interop, compact, t);
+	magicString.append(`${exportBlock}${outro}`);
 	return magicString.indent(t).prepend(wrapperIntro).append(wrapperOutro);
 }

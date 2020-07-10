@@ -1,7 +1,9 @@
 'use strict';
 
+var foo = require('https://unpkg.com/foo');
+
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var foo = _interopDefault(require('https://unpkg.com/foo'));
+foo = _interopDefault(foo);
 
 assert.equal( foo, 42 );

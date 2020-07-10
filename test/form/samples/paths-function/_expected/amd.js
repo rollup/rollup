@@ -1,5 +1,9 @@
 define(['require', 'https://unpkg.com/foo'], function (require, foo) { 'use strict';
 
+	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+	foo = _interopDefault(foo);
+
 	function _interopNamespace(e) {
 		if (e && e.__esModule) { return e; } else {
 			var n = {};
@@ -18,8 +22,6 @@ define(['require', 'https://unpkg.com/foo'], function (require, foo) { 'use stri
 			return n;
 		}
 	}
-
-	foo = foo && Object.prototype.hasOwnProperty.call(foo, 'default') ? foo['default'] : foo;
 
 	assert.equal(foo, 42);
 

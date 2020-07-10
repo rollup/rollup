@@ -1,5 +1,10 @@
 'use strict';
 
+require('./direct-relative-external');
+require('to-indirect-relative-external');
+require('direct-absolute-external');
+require('to-indirect-absolute-external');
+
 function _interopNamespace(e) {
 	if (e && e.__esModule) { return e; } else {
 		var n = {};
@@ -18,11 +23,6 @@ function _interopNamespace(e) {
 		return n;
 	}
 }
-
-require('./direct-relative-external');
-require('to-indirect-relative-external');
-require('direct-absolute-external');
-require('to-indirect-absolute-external');
 
 // nested
 Promise.resolve().then(function () { return existing; });

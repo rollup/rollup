@@ -1,5 +1,9 @@
 define(['module', 'require', 'external'], function (module, require, external) { 'use strict';
 
+	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+	external = _interopDefault(external);
+
 	function _interopNamespace(e) {
 		if (e && e.__esModule) { return e; } else {
 			var n = {};
@@ -19,18 +23,16 @@ define(['module', 'require', 'external'], function (module, require, external) {
 		}
 	}
 
-	external = external && Object.prototype.hasOwnProperty.call(external, 'default') ? external['default'] : external;
-
 	console.log(external);
 
-	const _interopDefault = 1;
+	const _interopDefault$1 = 1;
 	const _interopNamespace$1 = 1;
 	const module$1 = 1;
 	const require$1 = 1;
 	const exports$1 = 1;
 	const document$1 = 1;
 	const URL$1 = 1;
-	console.log(_interopDefault, _interopNamespace$1, module$1, require$1, exports$1, document$1, URL$1);
+	console.log(_interopDefault$1, _interopNamespace$1, module$1, require$1, exports$1, document$1, URL$1);
 
 	new Promise(function (resolve, reject) { require(['external'], function (m) { resolve(_interopNamespace(m)); }, reject) });
 	exports.default = 0;

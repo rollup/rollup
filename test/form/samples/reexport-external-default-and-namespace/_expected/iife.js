@@ -1,7 +1,9 @@
 var bundle = (function (exports, external) {
 	'use strict';
 
-	var external__default = 'default' in external ? external['default'] : external;
+	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+	var external__default = _interopDefault(external);
 
 
 

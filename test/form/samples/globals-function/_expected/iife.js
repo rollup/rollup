@@ -1,8 +1,10 @@
 (function (a, b) {
 	'use strict';
 
-	a = a && Object.prototype.hasOwnProperty.call(a, 'default') ? a['default'] : a;
-	b = b && Object.prototype.hasOwnProperty.call(b, 'default') ? b['default'] : b;
+	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+	a = _interopDefault(a);
+	b = _interopDefault(b);
 
 	console.log(a, b);
 

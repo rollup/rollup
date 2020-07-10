@@ -1,8 +1,10 @@
 'use strict';
 
+var L = require('leaflet');
+
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var L = _interopDefault(require('leaflet'));
+L = _interopDefault(L);
 
 L.terminator = function(options) {
 };

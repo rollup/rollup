@@ -1,5 +1,7 @@
 'use strict';
 
+var external = require('external');
+
 function _interopNamespace(e) {
 	if (e && e.__esModule) { return e; } else {
 		var n = {};
@@ -18,8 +20,6 @@ function _interopNamespace(e) {
 		return n;
 	}
 }
-
-var external = require('external');
 
 Promise.resolve().then(function () { return _interopNamespace(require(external.join('a', 'b'))); });
 console.log(external.join);

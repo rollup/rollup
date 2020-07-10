@@ -11,7 +11,9 @@ var foo = (function (a) {
 
 	// intro 4
 
-	var a__default = 'default' in a ? a['default'] : a;
+	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+	var a__default = _interopDefault(a);
 
 	console.log( a__default );
 	console.log( a.b );

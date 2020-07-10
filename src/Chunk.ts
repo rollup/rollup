@@ -1127,16 +1127,16 @@ export default class Chunk {
 			usedNames.add(MISSING_EXPORT_SHIM_VARIABLE);
 		}
 		switch (options.format) {
+			case 'system':
+				usedNames.add('module').add('exports');
+				break;
 			case 'es':
 				break;
 			case 'cjs':
-				usedNames.add(INTEROP_DEFAULT_VARIABLE).add('require').add('__filename').add('__dirname');
-			// fallthrough
-			case 'system':
-				usedNames.add('module');
+				usedNames.add('module').add('require').add('__filename').add('__dirname');
 			// fallthrough
 			default:
-				usedNames.add('exports');
+				usedNames.add('exports').add(INTEROP_DEFAULT_VARIABLE);
 		}
 
 		deconflictChunk(

@@ -7,7 +7,10 @@ function runTestCode(code, globals) {
 	const globalsWithAssert = Object.assign({}, globals, { assert });
 	const globalKeys = Object.keys(globalsWithAssert);
 	const fn = new Function(globalKeys, code);
-	fn.apply(globals, globalKeys.map(key => globalsWithAssert[key]));
+	fn.apply(
+		globals,
+		globalKeys.map(key => globalsWithAssert[key])
+	);
 }
 
 function runIifeTest(code, outputOptions) {

@@ -1,11 +1,13 @@
 'use strict';
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
-
-var factory = _interopDefault(require('factory'));
+var factory = require('factory');
 var baz = require('baz');
 var containers = require('shipping-port');
 var alphabet = require('alphabet');
+
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+factory = _interopDefault(factory);
 var alphabet__default = _interopDefault(alphabet);
 
 factory( null );

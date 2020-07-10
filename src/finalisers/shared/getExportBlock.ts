@@ -27,7 +27,7 @@ export default function getExportBlock(
 				}
 			}
 		}
-		return `${mechanism}${local};`;
+		return `${n}${n}${mechanism}${local};`;
 	}
 
 	let exportBlock = '';
@@ -112,5 +112,9 @@ export default function getExportBlock(
 		}
 	}
 
-	return exportBlock;
+	if (exportBlock) {
+		return `${n}${n}${exportBlock}`;
+	}
+
+	return '';
 }

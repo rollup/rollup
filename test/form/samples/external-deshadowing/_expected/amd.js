@@ -1,6 +1,8 @@
 define(['exports', 'a', 'b'], function (exports, a, Test$1) { 'use strict';
 
-  Test$1 = Test$1 && Object.prototype.hasOwnProperty.call(Test$1, 'default') ? Test$1['default'] : Test$1;
+  function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+  Test$1 = _interopDefault(Test$1);
 
   const Test = () => {
     console.log(a.Test);

@@ -1,5 +1,7 @@
 'use strict';
 
+var dep = require('./generated-dep.js');
+
 function _interopNamespace(e) {
 	if (e && e.__esModule) { return e; } else {
 		var n = {};
@@ -18,8 +20,6 @@ function _interopNamespace(e) {
 		return n;
 	}
 }
-
-var dep = require('./generated-dep.js');
 
 console.log('main1', dep.value);
 

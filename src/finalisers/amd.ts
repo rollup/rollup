@@ -35,12 +35,20 @@ export default function amd(
 	}: FinaliserOptions,
 	options: NormalizedOutputOptions
 ) {
-	warnOnBuiltins(warn, dependencies);
+	const {
+		amd: { define: amdDefine, id: amdId },
+		compact,
+		esModule,
+		externalLiveBindings,
+		interop,
+		strict
+	} = options;
 
+	warnOnBuiltins(warn, dependencies);
 	const deps = dependencies.map(m => `'${removeExtensionFromRelativeAmdId(m.id)}'`);
 	const args = dependencies.map(m => m.name);
-	const n = options.compact ? '' : '\n';
-	const _ = options.compact ? '' : ' ';
+	const n = compact ? '' : '\n';
+	const _ = compact ? '' : ' ';
 
 	if (namedExportsMode && hasExports) {
 		args.unshift(`exports`);
@@ -57,43 +65,33 @@ export default function amd(
 		deps.unshift(`'module'`);
 	}
 
-	const amdOptions = options.amd || {};
-
 	const params =
-		(amdOptions.id ? `'${amdOptions.id}',${_}` : ``) +
-		(deps.length ? `[${deps.join(`,${_}`)}],${_}` : ``);
+		(amdId ? `'${amdId}',${_}` : ``) + (deps.length ? `[${deps.join(`,${_}`)}],${_}` : ``);
 
-	const useStrict = options.strict ? `${_}'use strict';` : ``;
-	const wrapperStart = `${amdOptions.define}(${params}function${_}(${args.join(
-		`,${_}`
-	)})${_}{${useStrict}${n}${n}`;
+	const useStrict = strict ? `${_}'use strict';` : '';
+	const interopNamespace = accessedGlobals.has(INTEROP_NAMESPACE_VARIABLE)
+		? getInteropNamespace(_, n, t, externalLiveBindings)
+		: '';
 
-	// var foo__default = 'default' in foo ? foo['default'] : foo;
-	const interopBlock = getInteropBlock(dependencies, options, varOrConst);
-	if (interopBlock) {
-		magicString.prepend(interopBlock + n + n);
-	}
-	if (accessedGlobals.has(INTEROP_NAMESPACE_VARIABLE)) {
-		magicString.prepend(getInteropNamespace(_, n, t, options.externalLiveBindings));
-	}
-
-	if (intro) magicString.prepend(intro);
-
-	const exportBlock = getExportBlock(
-		exports,
-		dependencies,
-		namedExportsMode,
-		options.interop,
-		options.compact,
-		t
+	magicString.prepend(
+		`${intro}${getInteropBlock(
+			dependencies,
+			varOrConst,
+			compact,
+			interop,
+			_,
+			n
+		)}${interopNamespace}`
 	);
-	if (exportBlock) magicString.append(n + n + exportBlock);
-	if (namedExportsMode && hasExports && isEntryModuleFacade && options.esModule)
-		magicString.append(`${n}${n}${options.compact ? compactEsModuleExport : esModuleExport}`);
+
+	const exportBlock = getExportBlock(exports, dependencies, namedExportsMode, interop, compact, t);
+	if (exportBlock) magicString.append(exportBlock);
+	if (namedExportsMode && hasExports && isEntryModuleFacade && esModule)
+		magicString.append(`${n}${n}${compact ? compactEsModuleExport : esModuleExport}`);
 	if (outro) magicString.append(outro);
 
 	return magicString
 		.indent(t)
-		.append(n + n + '});')
-		.prepend(wrapperStart);
+		.prepend(`${amdDefine}(${params}function${_}(${args.join(`,${_}`)})${_}{${useStrict}${n}${n}`)
+		.append(`${n}${n}});`);
 }

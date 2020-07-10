@@ -1,5 +1,9 @@
 define(['require', 'exports', 'external'], function (require, exports, myExternal) { 'use strict';
 
+	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+	myExternal = _interopDefault(myExternal);
+
 	function _interopNamespace(e) {
 		if (e && e.__esModule) { return e; } else {
 			var n = {};
@@ -18,8 +22,6 @@ define(['require', 'exports', 'external'], function (require, exports, myExterna
 			return n;
 		}
 	}
-
-	myExternal = myExternal && Object.prototype.hasOwnProperty.call(myExternal, 'default') ? myExternal['default'] : myExternal;
 
 	const test = () => myExternal;
 

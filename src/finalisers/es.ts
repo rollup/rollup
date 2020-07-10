@@ -8,8 +8,9 @@ export default function es(
 	{ intro, outro, dependencies, exports, varOrConst }: FinaliserOptions,
 	options: NormalizedOutputOptions
 ) {
-	const _ = options.compact ? '' : ' ';
-	const n = options.compact ? '' : '\n';
+	const { compact } = options;
+	const _ = compact ? '' : ' ';
+	const n = compact ? '' : '\n';
 
 	const importBlock = getImportBlock(dependencies, _);
 	if (importBlock.length > 0) intro += importBlock.join(n) + n + n;

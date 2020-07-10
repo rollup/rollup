@@ -11,7 +11,8 @@ module.exports = {
 		fs.writeFileSync(mainFile, '<=>');
 	},
 	after() {
-		setTimeout(() => fs.unlinkSync(mainFile), 100);
+		// synchronous sometimes does not seem to work, probably because the watch is not yet removed properly
+		setTimeout(() => fs.unlinkSync(mainFile), 300);
 	},
 	abortOnStderr(data) {
 		if (data.includes('Error: Unexpected token')) {

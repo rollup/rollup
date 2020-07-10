@@ -4,7 +4,9 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.L));
 }(this, (function (L) { 'use strict';
 
-	L = L && Object.prototype.hasOwnProperty.call(L, 'default') ? L['default'] : L;
+	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+	L = _interopDefault(L);
 
 	L.terminator = function(options) {
 	};

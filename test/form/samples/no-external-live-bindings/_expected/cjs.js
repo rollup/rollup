@@ -2,6 +2,9 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var external1 = require('external1');
+var external2 = require('external2');
+
 function _interopNamespace(e) {
 	if (e && e.__esModule) { return e; } else {
 		var n = {};
@@ -14,9 +17,6 @@ function _interopNamespace(e) {
 		return n;
 	}
 }
-
-var external1 = require('external1');
-var external2 = require('external2');
 
 const dynamic = Promise.resolve().then(function () { return _interopNamespace(require('external3')); });
 

@@ -1,6 +1,10 @@
 'use strict';
 
+var external = require('external');
+
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+external = _interopDefault(external);
 
 function _interopNamespace(e) {
 	if (e && e.__esModule) { return e; } else {
@@ -20,8 +24,6 @@ function _interopNamespace(e) {
 		return n;
 	}
 }
-
-var external = _interopDefault(require('external'));
 
 console.log(external);
 

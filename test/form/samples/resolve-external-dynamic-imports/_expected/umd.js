@@ -4,7 +4,9 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.bundle = {}, global.myExternal));
 }(this, (function (exports, myExternal) { 'use strict';
 
-	myExternal = myExternal && Object.prototype.hasOwnProperty.call(myExternal, 'default') ? myExternal['default'] : myExternal;
+	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+	myExternal = _interopDefault(myExternal);
 
 	const test = () => myExternal;
 

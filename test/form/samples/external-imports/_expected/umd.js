@@ -4,8 +4,10 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.factory, global.baz, global.containers, global.alphabet));
 }(this, (function (factory, baz, containers, alphabet) { 'use strict';
 
-	factory = factory && Object.prototype.hasOwnProperty.call(factory, 'default') ? factory['default'] : factory;
-	var alphabet__default = 'default' in alphabet ? alphabet['default'] : alphabet;
+	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+	factory = _interopDefault(factory);
+	var alphabet__default = _interopDefault(alphabet);
 
 	factory( null );
 	baz.foo( baz.bar, containers.port );

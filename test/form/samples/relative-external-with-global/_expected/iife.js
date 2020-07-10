@@ -1,7 +1,9 @@
 (function (throttle) {
 	'use strict';
 
-	throttle = throttle && Object.prototype.hasOwnProperty.call(throttle, 'default') ? throttle['default'] : throttle;
+	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+	throttle = _interopDefault(throttle);
 
 	const fn = throttle( () => {
 		console.log( '.' );

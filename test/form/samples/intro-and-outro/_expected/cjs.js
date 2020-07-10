@@ -10,9 +10,10 @@
 
 // intro 4
 
+var a = require('external');
+
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
 
-var a = require('external');
 var a__default = _interopDefault(a);
 
 console.log( a__default );

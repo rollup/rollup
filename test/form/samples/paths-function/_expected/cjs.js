@@ -1,6 +1,10 @@
 'use strict';
 
+var foo = require('https://unpkg.com/foo');
+
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+foo = _interopDefault(foo);
 
 function _interopNamespace(e) {
 	if (e && e.__esModule) { return e; } else {
@@ -20,8 +24,6 @@ function _interopNamespace(e) {
 		return n;
 	}
 }
-
-var foo = _interopDefault(require('https://unpkg.com/foo'));
 
 assert.equal(foo, 42);
 

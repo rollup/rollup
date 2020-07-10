@@ -2,7 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var myExternal = require('external');
+
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+myExternal = _interopDefault(myExternal);
 
 function _interopNamespace(e) {
 	if (e && e.__esModule) { return e; } else {
@@ -22,8 +26,6 @@ function _interopNamespace(e) {
 		return n;
 	}
 }
-
-var myExternal = _interopDefault(require('external'));
 
 const test = () => myExternal;
 
