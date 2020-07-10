@@ -92,3 +92,20 @@ export default {
 If you *do* want to include the module in your bundle, you need to tell Rollup how to find it. In most cases, this is a question of using [@rollup/plugin-node-resolve](https://github.com/rollup/plugins/tree/master/packages/node-resolve).
 
 Some modules, like `events` or `util`, are built in to Node.js. If you want to include those (for example, so that your bundle runs in the browser), you may need to include [rollup-plugin-node-polyfills](https://github.com/ionic-team/rollup-plugin-node-polyfills).
+
+### Error: "EMFILE: too many open files"
+
+For large projects, you may run into an EMFILE error when running Rollup in watch mode on macOS. If you experience this, disabling FSEvents may eliminate the problem:
+
+
+```js
+// rollup.config.js
+export default {
+  ...,
+  watch: {
+    chokidar: {
+      useFsEvents: false
+    }
+  }
+};
+```
