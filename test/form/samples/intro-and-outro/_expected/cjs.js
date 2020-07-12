@@ -12,11 +12,11 @@
 
 var a = require('external');
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex : { 'default': ex }; }
 
 var a__default = _interopDefault(a);
 
-console.log( a__default );
+console.log( a__default.default );
 console.log( a.b );
 
 var main = 42;

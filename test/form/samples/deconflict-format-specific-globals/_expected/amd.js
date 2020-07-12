@@ -1,8 +1,8 @@
 define(['module', 'require', 'external'], function (module, require, external) { 'use strict';
 
-	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex : { 'default': ex }; }
 
-	external = _interopDefault(external);
+	var external__default = _interopDefault(external);
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) { return e; } else {
@@ -23,7 +23,7 @@ define(['module', 'require', 'external'], function (module, require, external) {
 		}
 	}
 
-	console.log(external);
+	console.log(external__default.default);
 
 	const _interopDefault$1 = 1;
 	const _interopNamespace$1 = 1;

@@ -2,9 +2,9 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var index = require('./sub/index.js');
+var index$1 = require('./sub/index.js');
 
-const baz = { bar: index.default };
+const baz = { bar: index$1.default };
 
-exports.foo = index.foo;
+exports.foo = index$1.foo;
 exports.baz = baz;

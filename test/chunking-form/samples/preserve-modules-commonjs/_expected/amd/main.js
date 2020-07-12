@@ -1,9 +1,9 @@
 define(['external', './commonjs'], function (external, commonjs) { 'use strict';
 
-	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex : { 'default': ex }; }
 
-	external = _interopDefault(external);
+	var external__default = _interopDefault(external);
 
-	console.log(commonjs, external);
+	console.log(commonjs, external__default.default);
 
 });

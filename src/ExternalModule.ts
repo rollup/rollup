@@ -6,6 +6,7 @@ import { isAbsolute, normalize, relative } from './utils/path';
 export default class ExternalModule {
 	chunk: void;
 	declarations: { [name: string]: ExternalVariable };
+	defaultVariableName = '';
 	dynamicImporters: string[] = [];
 	execIndex: number;
 	exportedVariables: Map<ExternalVariable, string>;

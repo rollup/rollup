@@ -51,7 +51,8 @@ export interface ModuleDeclarations {
 }
 
 export interface ModuleDeclarationDependency {
-	// these used as interop signifiers
+	defaultVariableName: string | undefined;
+	// TODO Lukas check which ones of these are still needed
 	exportsDefault: boolean;
 	exportsNames: boolean;
 	globalName: string;
@@ -961,6 +962,7 @@ export default class Chunk {
 			}
 
 			dependencies.set(dep, {
+				defaultVariableName: (dep as ExternalModule).defaultVariableName,
 				exportsDefault,
 				exportsNames,
 				globalName: (dep instanceof ExternalModule &&
@@ -1027,6 +1029,32 @@ export default class Chunk {
 			});
 		}
 		return exports;
+	}
+
+	private getDependenciesWithImportedVariables(): {
+		imported: Set<Chunk | ExternalModule>;
+		importedDefault: Set<ExternalModule>;
+	} {
+		const imported = new Set<Chunk | ExternalModule>();
+		const importedDefault = new Set<ExternalModule>();
+		for (const variable of [...this.exportNamesByVariable!.keys(), ...this.imports]) {
+			const module = variable.module;
+			// TODO Lukas check neccessary?
+			if (module) {
+				if (module instanceof ExternalModule) {
+					imported.add(module);
+					if (variable.name === 'default') {
+						importedDefault.add(module);
+					}
+				} else {
+					const chunk = this.chunkByModule.get(module)!;
+					if (chunk !== this) {
+						imported.add(chunk);
+					}
+				}
+			}
+		}
+		return { imported, importedDefault };
 	}
 
 	private getFallbackChunkName(): string {
@@ -1103,6 +1131,7 @@ export default class Chunk {
 
 	private setIdentifierRenderResolutions(options: NormalizedOutputOptions) {
 		const syntheticExports = new Set<SyntheticNamedExportVariable>();
+		// TODO Lukas use this.exportNamesByVariable!.keys() instead
 		for (const exportName of this.getExportNames()) {
 			const exportVariable = this.exportsByName![exportName];
 			if (exportVariable instanceof ExportShimVariable) {
@@ -1142,6 +1171,7 @@ export default class Chunk {
 		deconflictChunk(
 			this.orderedModules,
 			this.dependencies,
+			this.getDependenciesWithImportedVariables(),
 			this.imports,
 			usedNames,
 			options.format as string,

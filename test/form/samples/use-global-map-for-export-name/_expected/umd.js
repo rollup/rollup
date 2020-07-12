@@ -4,11 +4,11 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.L));
 }(this, (function (L) { 'use strict';
 
-	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex : { 'default': ex }; }
 
-	L = _interopDefault(L);
+	var L__default = _interopDefault(L);
 
-	L.terminator = function(options) {
+	L__default.default.terminator = function(options) {
 	};
 
 })));

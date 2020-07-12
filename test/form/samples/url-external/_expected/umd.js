@@ -4,10 +4,10 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.external));
 }(this, (function (external) { 'use strict';
 
-	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex : { 'default': ex }; }
 
-	external = _interopDefault(external);
+	var external__default = _interopDefault(external);
 
-	console.log(external);
+	console.log(external__default.default);
 
 })));

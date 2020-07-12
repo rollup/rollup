@@ -4,7 +4,12 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.foo = {}, global.external));
 }(this, (function (exports, external) { 'use strict';
 
-	exports.p = external.default;
+	Object.defineProperty(exports, 'p', {
+		enumerable: true,
+		get: function () {
+			return external.default;
+		}
+	});
 	Object.defineProperty(exports, 'q', {
 		enumerable: true,
 		get: function () {

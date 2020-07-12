@@ -4,10 +4,15 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var x = require('x');
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex : { 'default': ex }; }
 
-x = _interopDefault(x);
+var x__default = _interopDefault(x);
 
 
 
-exports.x = x;
+Object.defineProperty(exports, 'x', {
+	enumerable: true,
+	get: function () {
+		return x__default['default'];
+	}
+});

@@ -4,13 +4,18 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.bundle = {}, global.external));
 }(this, (function (exports, external) { 'use strict';
 
-	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex : { 'default': ex }; }
 
-	external = _interopDefault(external);
+	var external__default = _interopDefault(external);
 
 	const value = 42;
 
-	exports.default = external;
+	Object.defineProperty(exports, 'default', {
+		enumerable: true,
+		get: function () {
+			return external__default['default'];
+		}
+	});
 	exports.value = value;
 
 	Object.defineProperty(exports, '__esModule', { value: true });

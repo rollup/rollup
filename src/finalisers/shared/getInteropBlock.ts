@@ -9,18 +9,20 @@ export default function getInteropBlock(
 	_: string,
 	n: string
 ): string {
-	// TODO Lukas will this ever result in unneeded interop handlers?
-	// Maybe we do not need the check for imports if we do not assign exportsDefault if the variable is not used
-	// And what about dependencies in code-splitting mode where the default is not used in this chunk?
+	if (!interop) {
+		return '';
+	}
 	// TODO Lukas when a namespace is imported and we lose track, shouldn't we use the interop helper for namespaces?
+	// TODO Lukas define interop per module and add a function way to define interop per output on first default import; test double default imports; make sure different outputs do not interact
 	const interopBlock = dependencies
-		.map(({ name, exportsNames, exportsDefault, imports, namedExportsMode, reexports }) => {
-			if (!((imports || reexports) && namedExportsMode && exportsDefault && interop)) return null;
-
-			// TODO Lukas reassigning the existing variable defeats the goal of making this easily inlineable
-			return `${
-				exportsNames ? `${varOrConst} ${name}__default` : name
-			}${_}=${_}${INTEROP_DEFAULT_VARIABLE}(${name});`;
+		.map(({ defaultVariableName, name, imports, reexports, isChunk }) => {
+			if (!isChunk) {
+				for (const { imported } of [...(imports || []), ...(reexports || [])]) {
+					if (imported === 'default') {
+						return `${varOrConst} ${defaultVariableName}${_}=${_}${INTEROP_DEFAULT_VARIABLE}(${name});`;
+					}
+				}
+			}
 		})
 		.filter(Boolean)
 		.join(n);
@@ -29,7 +31,7 @@ export default function getInteropBlock(
 		return (
 			`function ${INTEROP_DEFAULT_VARIABLE}${_}(${ex})${_}{${_}return${_}` +
 			`(${ex}${_}&&${_}(typeof ${ex}${_}===${_}'object')${_}&&${_}'default'${_}in ${ex})${_}` +
-			`?${_}${ex}['default']${_}:${_}${ex}${compact ? '' : '; '}}${n}${n}` +
+			`?${_}${ex}${_}:${_}{${_}'default':${_}${ex}${_}}${compact ? '' : '; '}}${n}${n}` +
 			`${interopBlock}${n}${n}`
 		);
 	}

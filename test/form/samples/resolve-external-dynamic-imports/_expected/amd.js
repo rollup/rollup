@@ -1,8 +1,8 @@
 define(['require', 'exports', 'external'], function (require, exports, myExternal) { 'use strict';
 
-	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex : { 'default': ex }; }
 
-	myExternal = _interopDefault(myExternal);
+	var myExternal__default = _interopDefault(myExternal);
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) { return e; } else {
@@ -23,7 +23,7 @@ define(['require', 'exports', 'external'], function (require, exports, myExterna
 		}
 	}
 
-	const test = () => myExternal;
+	const test = () => myExternal__default.default;
 
 	const someDynamicImport = () => new Promise(function (resolve, reject) { require(['external'], function (m) { resolve(_interopNamespace(m)); }, reject) });
 

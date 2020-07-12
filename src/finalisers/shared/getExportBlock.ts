@@ -16,13 +16,22 @@ export default function getExportBlock(
 		if (exports.length > 0) {
 			local = exports[0].local;
 		} else {
-			for (const dep of dependencies) {
-				if (dep.reexports) {
-					const expt = dep.reexports[0];
-					local =
-						dep.namedExportsMode && expt.imported !== '*' && expt.imported !== 'default'
-							? `${dep.name}.${expt.imported}`
-							: dep.name;
+			for (const {
+				name,
+				namedExportsMode,
+				reexports,
+				defaultVariableName,
+				isChunk
+			} of dependencies) {
+				if (reexports) {
+					const expt = reexports[0];
+					if (interop && !isChunk && expt.imported === 'default') {
+						local = `${defaultVariableName}['default']`;
+					} else if (namedExportsMode && expt.imported !== '*') {
+						local = `${name}.${expt.imported}`;
+					} else {
+						local = name;
+					}
 					break;
 				}
 			}
@@ -56,38 +65,23 @@ export default function getExportBlock(
 		}
 	}
 
+	// TODO Lukas test everything with interop turned off
 	for (const {
 		name,
-		imports,
 		reexports,
 		isChunk,
 		namedExportsMode: depNamedExportsMode,
-		exportsNames
+		defaultVariableName
 	} of dependencies) {
 		if (reexports && namedExportsMode) {
 			for (const specifier of reexports) {
-				if (specifier.imported === 'default' && !isChunk) {
-					if (exportBlock) exportBlock += n;
-					if (
-						exportsNames &&
-						(reexports.some(specifier =>
-							specifier.imported === 'default'
-								? specifier.reexported === 'default'
-								: specifier.imported !== '*'
-						) ||
-							(imports && imports.some(specifier => specifier.imported !== 'default')))
-					) {
-						exportBlock += `exports.${specifier.reexported}${_}=${_}${name}${
-							interop !== false ? '__default' : '.default'
-						};`;
-					} else {
-						exportBlock += `exports.${specifier.reexported}${_}=${_}${name};`;
-					}
-				} else if (specifier.imported !== '*') {
+				if (specifier.imported !== '*') {
 					if (exportBlock) exportBlock += n;
 					const importName =
 						specifier.imported === 'default' && !depNamedExportsMode
 							? name
+							: interop && specifier.imported === 'default' && !isChunk
+							? `${defaultVariableName}['default']`
 							: `${name}.${specifier.imported}`;
 					exportBlock += specifier.needsLiveBinding
 						? `Object.defineProperty(exports,${_}'${specifier.reexported}',${_}{${n}` +
@@ -96,6 +90,7 @@ export default function getExportBlock(
 						  `${t}${t}return ${importName};${n}${t}}${n}});`
 						: `exports.${specifier.reexported}${_}=${_}${importName};`;
 				} else if (specifier.reexported !== '*') {
+					// TODO Lukas we may need getters here as well
 					if (exportBlock) exportBlock += n;
 					exportBlock += `exports.${specifier.reexported}${_}=${_}${name};`;
 				}
