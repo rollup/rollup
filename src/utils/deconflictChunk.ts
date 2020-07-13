@@ -12,8 +12,8 @@ const DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT: {
 		usedNames: Set<string>,
 		imports: Set<Variable>,
 		dependenciesToBeDeconflicted: {
-			imported: Set<ExternalModule | Chunk>;
-			importedDefault: Set<ExternalModule>;
+			deconflictedDefault: Set<ExternalModule>;
+			dependencies: Set<ExternalModule | Chunk>;
 		},
 		interop: boolean,
 		preserveModules: boolean,
@@ -32,8 +32,8 @@ const DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT: {
 export function deconflictChunk(
 	modules: Module[],
 	dependenciesToBeDeconflicted: {
-		imported: Set<ExternalModule | Chunk>;
-		importedDefault: Set<ExternalModule>;
+		deconflictedDefault: Set<ExternalModule>;
+		dependencies: Set<ExternalModule | Chunk>;
 	},
 	imports: Set<Variable>,
 	usedNames: Set<string>,
@@ -67,15 +67,15 @@ function deconflictImportsEsm(
 	usedNames: Set<string>,
 	imports: Set<Variable>,
 	dependenciesToBeDeconflicted: {
-		imported: Set<ExternalModule | Chunk>;
-		importedDefault: Set<ExternalModule>;
+		deconflictedDefault: Set<ExternalModule>;
+		dependencies: Set<ExternalModule | Chunk>;
 	},
 	interop: boolean,
 	_preserveModules: boolean,
 	_chunkByModule: Map<Module, Chunk>,
 	syntheticExports: Set<SyntheticNamedExportVariable>
 ) {
-	for (const dependency of dependenciesToBeDeconflicted.imported) {
+	for (const dependency of dependenciesToBeDeconflicted.dependencies) {
 		dependency.variableName = getSafeName(dependency.variableName, usedNames);
 	}
 	deconflictImportsEsmOrSystem(usedNames, imports, dependenciesToBeDeconflicted, interop);
@@ -88,8 +88,8 @@ function deconflictImportsEsmOrSystem(
 	usedNames: Set<string>,
 	imports: Set<Variable>,
 	_dependenciesToBeDeconflicted: {
-		imported: Set<ExternalModule | Chunk>;
-		importedDefault: Set<ExternalModule>;
+		deconflictedDefault: Set<ExternalModule>;
+		dependencies: Set<ExternalModule | Chunk>;
 	},
 	interop: boolean
 ) {
@@ -114,22 +114,21 @@ function deconflictImportsOther(
 	usedNames: Set<string>,
 	imports: Set<Variable>,
 	{
-		imported,
-		importedDefault
-	}: { imported: Set<ExternalModule | Chunk>; importedDefault: Set<ExternalModule> },
+		dependencies,
+		deconflictedDefault
+	}: { deconflictedDefault: Set<ExternalModule>; dependencies: Set<ExternalModule | Chunk> },
 	interop: boolean,
 	preserveModules: boolean,
 	chunkByModule: Map<Module, Chunk>
 ) {
-	// TODO Lukas not necessary if there is no interop
-	for (const externalModule of importedDefault) {
+	for (const externalModule of deconflictedDefault) {
 		externalModule.defaultVariableName = getSafeName(
 			`${externalModule.variableName}__default`,
 			usedNames
 		);
 	}
 	// TODO Lukas this overwrites the actual variable name, use a different variable
-	for (const chunkOrExternalModule of imported) {
+	for (const chunkOrExternalModule of dependencies) {
 		chunkOrExternalModule.variableName = getSafeName(chunkOrExternalModule.variableName, usedNames);
 	}
 	for (const variable of imports) {

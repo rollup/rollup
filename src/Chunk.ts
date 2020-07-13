@@ -1031,35 +1031,35 @@ export default class Chunk {
 		return exports;
 	}
 
-	// TODO Lukas only count namespace imports for ESM or System
-	private getDependenciesWithImportedVariables(
-		onlyNamespaces: boolean
+	private getDependenciesToBeDeconflicted(
+		addDependencies: boolean,
+		addNonNamespaces: boolean,
+		addDefaults: boolean
 	): {
-		imported: Set<Chunk | ExternalModule>;
-		importedDefault: Set<ExternalModule>;
+		deconflictedDefault: Set<ExternalModule>;
+		dependencies: Set<Chunk | ExternalModule>;
 	} {
-		const imported = new Set<Chunk | ExternalModule>();
-		const importedDefault = new Set<ExternalModule>();
-		for (const variable of [...this.exportNamesByVariable!.keys(), ...this.imports]) {
-			if (!onlyNamespaces || variable instanceof NamespaceVariable) {
-				const module = variable.module;
-				// TODO Lukas check neccessary?
-				if (module) {
+		const dependencies = new Set<Chunk | ExternalModule>();
+		const deconflictedDefault = new Set<ExternalModule>();
+		if (addDependencies) {
+			for (const variable of [...this.exportNamesByVariable!.keys(), ...this.imports]) {
+				if (addNonNamespaces || variable instanceof NamespaceVariable) {
+					const module = variable.module!;
 					if (module instanceof ExternalModule) {
-						imported.add(module);
-						if (variable.name === 'default') {
-							importedDefault.add(module);
+						dependencies.add(module);
+						if (addDefaults && variable.name === 'default') {
+							deconflictedDefault.add(module);
 						}
 					} else {
 						const chunk = this.chunkByModule.get(module)!;
 						if (chunk !== this) {
-							imported.add(chunk);
+							dependencies.add(chunk);
 						}
 					}
 				}
 			}
 		}
-		return { imported, importedDefault };
+		return { dependencies, deconflictedDefault };
 	}
 
 	private getFallbackChunkName(): string {
@@ -1177,16 +1177,14 @@ export default class Chunk {
 				usedNames.add('exports').add(INTEROP_DEFAULT_VARIABLE);
 		}
 
+		const alwaysDeconflict = format !== 'es' && format !== 'system';
 		deconflictChunk(
 			this.orderedModules,
-			format === 'es' || format === 'system'
-				? preserveModules
-					? this.getDependenciesWithImportedVariables(true)
-					: {
-							imported: new Set<Chunk | ExternalModule>(),
-							importedDefault: new Set<ExternalModule>()
-					  }
-				: this.getDependenciesWithImportedVariables(false),
+			this.getDependenciesToBeDeconflicted(
+				alwaysDeconflict || preserveModules,
+				alwaysDeconflict,
+				interop
+			),
 			this.imports,
 			usedNames,
 			format,
