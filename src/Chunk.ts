@@ -1031,25 +1031,30 @@ export default class Chunk {
 		return exports;
 	}
 
-	private getDependenciesWithImportedVariables(): {
+	// TODO Lukas only count namespace imports for ESM or System
+	private getDependenciesWithImportedVariables(
+		onlyNamespaces: boolean
+	): {
 		imported: Set<Chunk | ExternalModule>;
 		importedDefault: Set<ExternalModule>;
 	} {
 		const imported = new Set<Chunk | ExternalModule>();
 		const importedDefault = new Set<ExternalModule>();
 		for (const variable of [...this.exportNamesByVariable!.keys(), ...this.imports]) {
-			const module = variable.module;
-			// TODO Lukas check neccessary?
-			if (module) {
-				if (module instanceof ExternalModule) {
-					imported.add(module);
-					if (variable.name === 'default') {
-						importedDefault.add(module);
-					}
-				} else {
-					const chunk = this.chunkByModule.get(module)!;
-					if (chunk !== this) {
-						imported.add(chunk);
+			if (!onlyNamespaces || variable instanceof NamespaceVariable) {
+				const module = variable.module;
+				// TODO Lukas check neccessary?
+				if (module) {
+					if (module instanceof ExternalModule) {
+						imported.add(module);
+						if (variable.name === 'default') {
+							importedDefault.add(module);
+						}
+					} else {
+						const chunk = this.chunkByModule.get(module)!;
+						if (chunk !== this) {
+							imported.add(chunk);
+						}
 					}
 				}
 			}
@@ -1129,7 +1134,11 @@ export default class Chunk {
 		}
 	}
 
-	private setIdentifierRenderResolutions(options: NormalizedOutputOptions) {
+	private setIdentifierRenderResolutions({
+		format,
+		interop,
+		preserveModules
+	}: NormalizedOutputOptions) {
 		const syntheticExports = new Set<SyntheticNamedExportVariable>();
 		// TODO Lukas use this.exportNamesByVariable!.keys() instead
 		for (const exportName of this.getExportNames()) {
@@ -1138,8 +1147,8 @@ export default class Chunk {
 				this.needsExportsShim = true;
 			}
 			if (
-				options.format !== 'es' &&
-				options.format !== 'system' &&
+				format !== 'es' &&
+				format !== 'system' &&
 				exportVariable.isReassigned &&
 				!exportVariable.isId
 			) {
@@ -1155,7 +1164,7 @@ export default class Chunk {
 		if (this.needsExportsShim) {
 			usedNames.add(MISSING_EXPORT_SHIM_VARIABLE);
 		}
-		switch (options.format) {
+		switch (format) {
 			case 'system':
 				usedNames.add('module').add('exports');
 				break;
@@ -1170,12 +1179,18 @@ export default class Chunk {
 
 		deconflictChunk(
 			this.orderedModules,
-			this.dependencies,
-			this.getDependenciesWithImportedVariables(),
+			format === 'es' || format === 'system'
+				? preserveModules
+					? this.getDependenciesWithImportedVariables(true)
+					: {
+							imported: new Set<Chunk | ExternalModule>(),
+							importedDefault: new Set<ExternalModule>()
+					  }
+				: this.getDependenciesWithImportedVariables(false),
 			this.imports,
 			usedNames,
-			options.format as string,
-			options.interop,
+			format,
+			interop,
 			this.outputOptions.preserveModules,
 			this.chunkByModule,
 			syntheticExports,

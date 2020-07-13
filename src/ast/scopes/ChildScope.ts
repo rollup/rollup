@@ -1,3 +1,4 @@
+import { InternalModuleFormat } from '../../rollup/types';
 import { getSafeName } from '../../utils/safeName';
 import ImportExpression from '../nodes/ImportExpression';
 import { ExpressionEntity } from '../nodes/shared/Expression';
@@ -54,7 +55,7 @@ export default class ChildScope extends Scope {
 
 	addUsedOutsideNames(
 		usedNames: Set<string>,
-		format: string,
+		format: InternalModuleFormat,
 		exportNamesByVariable: Map<Variable, string[]>
 	): void {
 		for (const variable of this.accessedOutsideVariables.values()) {
@@ -78,7 +79,7 @@ export default class ChildScope extends Scope {
 		return this.variables.has(name) || this.parent.contains(name);
 	}
 
-	deconflict(format: string, exportNamesByVariable: Map<Variable, string[]>) {
+	deconflict(format: InternalModuleFormat, exportNamesByVariable: Map<Variable, string[]>) {
 		const usedNames = new Set<string>();
 		this.addUsedOutsideNames(usedNames, format, exportNamesByVariable);
 		if (this.accessedDynamicImports) {

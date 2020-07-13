@@ -1,4 +1,5 @@
 import { AstContext } from '../../Module';
+import { InternalModuleFormat } from '../../rollup/types';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import { UNDEFINED_EXPRESSION } from '../values';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
@@ -34,7 +35,7 @@ export default class ModuleScope extends ChildScope {
 		}
 	}
 
-	deconflict(format: string, exportNamesByVariable: Map<Variable, string[]>) {
+	deconflict(format: InternalModuleFormat, exportNamesByVariable: Map<Variable, string[]>) {
 		// all module level variables are already deconflicted when deconflicting the chunk
 		for (const scope of this.children) scope.deconflict(format, exportNamesByVariable);
 	}

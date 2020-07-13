@@ -1,9 +1,9 @@
-import external$1 from 'external';
-import other$1 from './other.js';
+import external from 'external';
+import other from './other.js';
 
-const { value } = other$1;
+const { value } = other;
 
-console.log(external$1, value);
+console.log(external, value);
 
 var commonjs = 42;
 

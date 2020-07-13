@@ -1,4 +1,4 @@
-import external$1 from 'external';
-import commonjs$1 from './commonjs.js';
+import external from 'external';
+import commonjs from './commonjs.js';
 
-console.log(commonjs$1, external$1);
+console.log(commonjs, external);

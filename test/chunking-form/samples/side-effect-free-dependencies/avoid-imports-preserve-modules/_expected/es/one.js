@@ -1,5 +1,5 @@
-import { b as b$1 } from './b.js';
+import { b } from './b.js';
 
-const d = b$1 + 4;
+const d = b + 4;
 
 export { d };

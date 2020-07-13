@@ -4,14 +4,14 @@ import Variable from '../ast/variables/Variable';
 import Chunk from '../Chunk';
 import ExternalModule from '../ExternalModule';
 import Module from '../Module';
+import { InternalModuleFormat } from '../rollup/types';
 import { getSafeName } from './safeName';
 
 const DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT: {
-	[format: string]: (
+	[format in InternalModuleFormat]: (
 		usedNames: Set<string>,
 		imports: Set<Variable>,
-		dependencies: Set<ExternalModule | Chunk>,
-		dependenciesWithImportedVariables: {
+		dependenciesToBeDeconflicted: {
 			imported: Set<ExternalModule | Chunk>;
 			importedDefault: Set<ExternalModule>;
 		},
@@ -31,15 +31,13 @@ const DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT: {
 
 export function deconflictChunk(
 	modules: Module[],
-	// TODO Lukas: replace dependencies with the latter; for ESM/System, only add releveant dependencies here
-	dependencies: Set<ExternalModule | Chunk>,
-	dependenciesWithImportedVariables: {
+	dependenciesToBeDeconflicted: {
 		imported: Set<ExternalModule | Chunk>;
 		importedDefault: Set<ExternalModule>;
 	},
 	imports: Set<Variable>,
 	usedNames: Set<string>,
-	format: string,
+	format: InternalModuleFormat,
 	interop: boolean,
 	preserveModules: boolean,
 	chunkByModule: Map<Module, Chunk>,
@@ -53,8 +51,7 @@ export function deconflictChunk(
 	DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT[format](
 		usedNames,
 		imports,
-		dependencies,
-		dependenciesWithImportedVariables,
+		dependenciesToBeDeconflicted,
 		interop,
 		preserveModules,
 		chunkByModule,
@@ -69,36 +66,19 @@ export function deconflictChunk(
 function deconflictImportsEsm(
 	usedNames: Set<string>,
 	imports: Set<Variable>,
-	dependencies: Set<ExternalModule | Chunk>,
-	dependenciesWithImportedVariables: {
+	dependenciesToBeDeconflicted: {
 		imported: Set<ExternalModule | Chunk>;
 		importedDefault: Set<ExternalModule>;
 	},
 	interop: boolean,
-	preserveModules: boolean,
+	_preserveModules: boolean,
 	_chunkByModule: Map<Module, Chunk>,
 	syntheticExports: Set<SyntheticNamedExportVariable>
 ) {
-	// Deconflict re-exported variables of dependencies when preserveModules is true.
-	// However, this implementation will result in unnecessary variable renaming without
-	// a deeper, wider fix.
-	//
-	// TODO: https://github.com/rollup/rollup/pull/3435#discussion_r390792792
-	if (preserveModules) {
-		for (const chunkOrExternalModule of dependencies) {
-			chunkOrExternalModule.variableName = getSafeName(
-				chunkOrExternalModule.variableName,
-				usedNames
-			);
-		}
+	for (const dependency of dependenciesToBeDeconflicted.imported) {
+		dependency.variableName = getSafeName(dependency.variableName, usedNames);
 	}
-	deconflictImportsEsmOrSystem(
-		usedNames,
-		imports,
-		dependencies,
-		dependenciesWithImportedVariables,
-		interop
-	);
+	deconflictImportsEsmOrSystem(usedNames, imports, dependenciesToBeDeconflicted, interop);
 	for (const variable of syntheticExports) {
 		variable.setSafeName(getSafeName(variable.name, usedNames));
 	}
@@ -107,8 +87,7 @@ function deconflictImportsEsm(
 function deconflictImportsEsmOrSystem(
 	usedNames: Set<string>,
 	imports: Set<Variable>,
-	_dependencies: Set<ExternalModule | Chunk>,
-	_dependenciesWithImportedVariables: {
+	_dependenciesToBeDeconflicted: {
 		imported: Set<ExternalModule | Chunk>;
 		importedDefault: Set<ExternalModule>;
 	},
@@ -134,7 +113,6 @@ function deconflictImportsEsmOrSystem(
 function deconflictImportsOther(
 	usedNames: Set<string>,
 	imports: Set<Variable>,
-	_dependencies: Set<ExternalModule | Chunk>,
 	{
 		imported,
 		importedDefault
