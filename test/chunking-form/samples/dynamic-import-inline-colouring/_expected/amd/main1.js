@@ -1,4 +1,4 @@
-define(['require', 'exports', './generated-separate'], function (require, exports, separate) { 'use strict';
+define(['require', 'exports', './generated-separate'], function (require, exports, separate$1) { 'use strict';
 
 	var inlined = 'inlined';
 	const x = 1;

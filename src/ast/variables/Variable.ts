@@ -102,8 +102,4 @@ export default class Variable implements ExpressionEntity {
 		this.renderBaseName = baseName;
 		this.renderName = name;
 	}
-
-	setSafeName(name: string | null) {
-		this.renderName = name;
-	}
 }

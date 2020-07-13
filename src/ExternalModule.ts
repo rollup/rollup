@@ -18,8 +18,9 @@ export default class ExternalModule {
 	reexported = false;
 	renderPath: string = undefined as any;
 	renormalizeRenderPath = false;
+	suggestedVariableName: string;
 	used = false;
-	variableName: string;
+	variableName = '';
 
 	constructor(
 		private readonly options: NormalizedInputOptions,
@@ -31,7 +32,7 @@ export default class ExternalModule {
 		this.moduleSideEffects = moduleSideEffects;
 
 		const parts = id.split(/[\\/]/);
-		this.variableName = makeLegal(parts.pop()!);
+		this.suggestedVariableName = makeLegal(parts.pop()!);
 
 		this.nameSuggestions = Object.create(null);
 		this.declarations = Object.create(null);
@@ -67,7 +68,7 @@ export default class ExternalModule {
 
 		if (this.nameSuggestions[name] > this.mostCommonSuggestion) {
 			this.mostCommonSuggestion = this.nameSuggestions[name];
-			this.variableName = name;
+			this.suggestedVariableName = name;
 		}
 	}
 

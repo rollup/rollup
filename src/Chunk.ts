@@ -161,7 +161,8 @@ export default class Chunk {
 	exportMode: 'none' | 'named' | 'default' = 'named';
 	facadeModule: Module | null = null;
 	id: string | null = null;
-	variableName: string;
+	suggestedVariableName: string;
+	variableName = '';
 
 	private dependencies = new Set<ExternalModule | Chunk>();
 	private dynamicDependencies = new Set<ExternalModule | Chunk>();
@@ -227,7 +228,7 @@ export default class Chunk {
 				this.implicitEntryModules.push(module);
 			}
 		}
-		this.variableName = makeLegal(this.generateVariableName());
+		this.suggestedVariableName = makeLegal(this.generateVariableName());
 	}
 
 	canModuleBeFacade(module: Module, exposedVariables: Set<Variable>): boolean {
@@ -1020,7 +1021,8 @@ export default class Chunk {
 	private getDependenciesToBeDeconflicted(
 		addDependencies: boolean,
 		addNonNamespaces: boolean,
-		addDefaults: boolean
+		addDefaults: boolean,
+		addDependenciesWithoutBindings: boolean
 	): {
 		deconflictedDefault: Set<ExternalModule>;
 		dependencies: Set<Chunk | ExternalModule>;
@@ -1029,7 +1031,7 @@ export default class Chunk {
 		const deconflictedDefault = new Set<ExternalModule>();
 		if (addDependencies) {
 			for (const variable of [...this.exportNamesByVariable!.keys(), ...this.imports]) {
-				if (addNonNamespaces || variable instanceof NamespaceVariable) {
+				if (addNonNamespaces || variable.isNamespace) {
 					const module = variable.module!;
 					if (module instanceof ExternalModule) {
 						dependencies.add(module);
@@ -1043,6 +1045,11 @@ export default class Chunk {
 						}
 					}
 				}
+			}
+		}
+		if (addDependenciesWithoutBindings) {
+			for (const dependency of this.dependencies) {
+				dependencies.add(dependency);
 			}
 		}
 		return { dependencies, deconflictedDefault };
@@ -1120,11 +1127,7 @@ export default class Chunk {
 		}
 	}
 
-	private setIdentifierRenderResolutions({
-		format,
-		interop,
-		preserveModules
-	}: NormalizedOutputOptions) {
+	private setIdentifierRenderResolutions({ format, interop }: NormalizedOutputOptions) {
 		const syntheticExports = new Set<SyntheticNamedExportVariable>();
 		for (const exportName of this.getExportNames()) {
 			const exportVariable = this.exportsByName![exportName];
@@ -1162,13 +1165,13 @@ export default class Chunk {
 				usedNames.add('exports').add(INTEROP_DEFAULT_VARIABLE);
 		}
 
-		const alwaysDeconflict = format !== 'es' && format !== 'system';
 		deconflictChunk(
 			this.orderedModules,
 			this.getDependenciesToBeDeconflicted(
-				alwaysDeconflict || preserveModules,
-				alwaysDeconflict,
-				interop
+				format !== 'system',
+				format !== 'es' && format !== 'system',
+				interop,
+				format === 'amd'
 			),
 			this.imports,
 			usedNames,

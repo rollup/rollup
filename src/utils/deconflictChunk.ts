@@ -23,7 +23,7 @@ const DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT: {
 } = {
 	amd: deconflictImportsOther,
 	cjs: deconflictImportsOther,
-	es: deconflictImportsEsm,
+	es: deconflictImportsEsmOrSystem,
 	iife: deconflictImportsOther,
 	system: deconflictImportsEsmOrSystem,
 	umd: deconflictImportsOther
@@ -63,54 +63,46 @@ export function deconflictChunk(
 	}
 }
 
-function deconflictImportsEsm(
+function deconflictImportsEsmOrSystem(
 	usedNames: Set<string>,
 	imports: Set<Variable>,
 	dependenciesToBeDeconflicted: {
 		deconflictedDefault: Set<ExternalModule>;
 		dependencies: Set<ExternalModule | Chunk>;
 	},
-	interop: boolean,
+	_interop: boolean,
 	_preserveModules: boolean,
 	_chunkByModule: Map<Module, Chunk>,
 	syntheticExports: Set<SyntheticNamedExportVariable>
 ) {
+	// All namespace imports are contained here;
+	// this is needed for synthetic exports and namespace reexports
 	for (const dependency of dependenciesToBeDeconflicted.dependencies) {
-		dependency.variableName = getSafeName(dependency.variableName, usedNames);
+		dependency.variableName = getSafeName(dependency.suggestedVariableName, usedNames);
 	}
-	deconflictImportsEsmOrSystem(usedNames, imports, dependenciesToBeDeconflicted, interop);
-	for (const variable of syntheticExports) {
-		variable.setSafeName(getSafeName(variable.name, usedNames));
-	}
-}
-
-function deconflictImportsEsmOrSystem(
-	usedNames: Set<string>,
-	imports: Set<Variable>,
-	_dependenciesToBeDeconflicted: {
-		deconflictedDefault: Set<ExternalModule>;
-		dependencies: Set<ExternalModule | Chunk>;
-	},
-	interop: boolean
-) {
 	for (const variable of imports) {
 		const module = variable.module;
 		const name = variable.name;
-		let proposedName: string;
-		if (module instanceof ExternalModule && (name === '*' || name === 'default')) {
-			if (
-				name === 'default' &&
-				interop &&
-				[...module.exportedVariables].some(([variable, name]) => name === '*' && variable.included)
-			) {
-				proposedName = module.variableName + '__default';
-			} else {
-				proposedName = module.variableName;
-			}
+		if (module instanceof ExternalModule && name === '*') {
+			variable.setRenderNames(null, module.variableName);
+		} else if (module instanceof ExternalModule && name === 'default') {
+			variable.setRenderNames(
+				null,
+				getSafeName(
+					[...module.exportedVariables].some(
+						([variable, name]) => name === '*' && variable.included
+					)
+						? module.suggestedVariableName + '__default'
+						: module.suggestedVariableName,
+					usedNames
+				)
+			);
 		} else {
-			proposedName = name;
+			variable.setRenderNames(null, getSafeName(name, usedNames));
 		}
-		variable.setRenderNames(null, getSafeName(proposedName, usedNames));
+	}
+	for (const variable of syntheticExports) {
+		variable.setRenderNames(null, getSafeName(variable.name, usedNames));
 	}
 }
 
@@ -127,13 +119,15 @@ function deconflictImportsOther(
 ) {
 	for (const externalModule of deconflictedDefault) {
 		externalModule.defaultVariableName = getSafeName(
-			`${externalModule.variableName}__default`,
+			`${externalModule.suggestedVariableName}__default`,
 			usedNames
 		);
 	}
-	// TODO Lukas this overwrites the actual variable name, use a different variable
 	for (const chunkOrExternalModule of dependencies) {
-		chunkOrExternalModule.variableName = getSafeName(chunkOrExternalModule.variableName, usedNames);
+		chunkOrExternalModule.variableName = getSafeName(
+			chunkOrExternalModule.suggestedVariableName,
+			usedNames
+		);
 	}
 	for (const variable of imports) {
 		const module = variable.module;

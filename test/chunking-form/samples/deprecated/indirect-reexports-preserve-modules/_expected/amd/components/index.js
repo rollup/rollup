@@ -1,8 +1,8 @@
-define(['exports', './sub/index'], function (exports, index$1) { 'use strict';
+define(['exports', './sub/index'], function (exports, index) { 'use strict';
 
-	const baz = { bar: index$1.default };
+	const baz = { bar: index.default };
 
-	exports.foo = index$1.foo;
+	exports.foo = index.foo;
 	exports.baz = baz;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
