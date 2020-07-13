@@ -89,7 +89,7 @@ interface FacadeName {
 	name?: string;
 }
 
-const NON_ASSET_EXTENSIONS = ['.js', '.jsx', '.ts', '.tsx'];
+const NON_ASSET_EXTENSIONS = ['.mjs', '.js', '.jsx', '.ts', '.tsx'];
 
 function getGlobalName(
 	module: ExternalModule,
