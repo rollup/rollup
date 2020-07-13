@@ -5,6 +5,6 @@
 
 	var foo__default = _interopDefault(foo);
 
-	assert.equal( foo__default.default, 42 );
+	assert.equal( foo__default['default'], 42 );
 
 }(foo));

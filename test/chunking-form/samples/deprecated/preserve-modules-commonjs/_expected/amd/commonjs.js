@@ -6,7 +6,7 @@ define(['external', './other'], function (external, other) { 'use strict';
 
 	const { value } = other.default;
 
-	console.log(external__default.default, value);
+	console.log(external__default['default'], value);
 
 	var commonjs = 42;
 

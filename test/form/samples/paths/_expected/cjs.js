@@ -6,4 +6,4 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 
 var foo__default = _interopDefault(foo);
 
-assert.equal( foo__default.default, 42 );
+assert.equal( foo__default['default'], 42 );

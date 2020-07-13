@@ -66,6 +66,7 @@ export default function getExportBlock(
 	}
 
 	// TODO Lukas test everything with interop turned off
+	// TODO Lukas use old interop if externalLiveBindings are false
 	for (const {
 		name,
 		reexports,
@@ -78,10 +79,10 @@ export default function getExportBlock(
 				if (specifier.imported !== '*') {
 					if (exportBlock) exportBlock += n;
 					const importName =
-						specifier.imported === 'default' && !depNamedExportsMode
-							? name
-							: interop && specifier.imported === 'default' && !isChunk
-							? `${defaultVariableName}['default']`
+						specifier.imported === 'default'
+							? depNamedExportsMode
+								? `${interop && !isChunk ? defaultVariableName : name}['default']`
+								: name
 							: `${name}.${specifier.imported}`;
 					exportBlock += specifier.needsLiveBinding
 						? `Object.defineProperty(exports,${_}'${specifier.reexported}',${_}{${n}` +

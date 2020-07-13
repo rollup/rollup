@@ -27,7 +27,7 @@ function _interopNamespace(e) {
 	}
 }
 
-const test = () => myExternal__default.default;
+const test = () => myExternal__default['default'];
 
 const someDynamicImport = () => Promise.resolve().then(function () { return _interopNamespace(require('external')); });
 

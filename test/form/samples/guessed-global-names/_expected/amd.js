@@ -4,6 +4,6 @@ define(['unchanged', 'changed', 'special-character', 'with/slash', './relative']
 
 	var changedName__default = _interopDefault(changedName);
 
-	console.log(unchanged.foo, changedName__default.default, specialCharacter.bar, slash.baz, relative_js.quux);
+	console.log(unchanged.foo, changedName__default['default'], specialCharacter.bar, slash.baz, relative_js.quux);
 
 });

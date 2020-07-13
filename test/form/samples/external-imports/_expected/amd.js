@@ -5,10 +5,10 @@ define(['factory', 'baz', 'shipping-port', 'alphabet'], function (factory, baz, 
 	var factory__default = _interopDefault(factory);
 	var alphabet__default = _interopDefault(alphabet);
 
-	factory__default.default( null );
+	factory__default['default']( null );
 	baz.foo( baz.bar, containers.port );
 	containers.forEach( console.log, console );
 	console.log( alphabet.a );
-	console.log( alphabet__default.default.length );
+	console.log( alphabet__default['default'].length );
 
 });

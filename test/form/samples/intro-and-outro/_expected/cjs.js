@@ -16,7 +16,7 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 
 var a__default = _interopDefault(a);
 
-console.log( a__default.default );
+console.log( a__default['default'] );
 console.log( a.b );
 
 var main = 42;

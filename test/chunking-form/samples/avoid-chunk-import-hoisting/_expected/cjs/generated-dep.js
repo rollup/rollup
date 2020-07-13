@@ -6,6 +6,6 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 
 var value__default = _interopDefault(value);
 
-var dep = 2 * value__default.default;
+var dep = 2 * value__default['default'];
 
 exports.dep = dep;

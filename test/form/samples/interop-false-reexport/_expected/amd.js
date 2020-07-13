@@ -5,7 +5,7 @@ define(['exports', 'external'], function (exports, external) { 'use strict';
 	Object.defineProperty(exports, 'p', {
 		enumerable: true,
 		get: function () {
-			return external.default;
+			return external['default'];
 		}
 	});
 	Object.defineProperty(exports, 'q', {

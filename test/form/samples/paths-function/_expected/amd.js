@@ -23,7 +23,7 @@ define(['require', 'https://unpkg.com/foo'], function (require, foo) { 'use stri
 		}
 	}
 
-	assert.equal(foo__default.default, 42);
+	assert.equal(foo__default['default'], 42);
 
 	new Promise(function (resolve, reject) { require(['https://unpkg.com/foo'], function (m) { resolve(_interopNamespace(m)); }, reject) }).then(({ default: foo }) => assert.equal(foo, 42));
 

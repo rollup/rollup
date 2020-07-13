@@ -5,7 +5,7 @@ define(['require', 'exports', './default', './named'], function (require, export
 	new Promise(function (resolve, reject) { require(['./default'], resolve, reject) }).then(result => console.log(result.default));
 	new Promise(function (resolve, reject) { require(['./named'], resolve, reject) }).then(result => console.log(result.value));
 
-	exports.default = _default.default;
+	exports.default = _default['default'];
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

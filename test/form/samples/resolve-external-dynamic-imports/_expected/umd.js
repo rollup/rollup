@@ -8,7 +8,7 @@
 
 	var myExternal__default = _interopDefault(myExternal);
 
-	const test = () => myExternal__default.default;
+	const test = () => myExternal__default['default'];
 
 	const someDynamicImport = () => import('external');
 

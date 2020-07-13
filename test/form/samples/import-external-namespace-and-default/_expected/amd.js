@@ -6,6 +6,6 @@ define(['foo'], function (foo) { 'use strict';
 
 	console.log( foo.bar );
 
-	console.log( foo__default.default );
+	console.log( foo__default['default'] );
 
 });

@@ -10,6 +10,6 @@
 
 	console.log( foo.bar );
 
-	console.log( foo__default.default );
+	console.log( foo__default['default'] );
 
 })));

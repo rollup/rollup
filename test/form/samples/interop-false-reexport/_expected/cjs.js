@@ -9,7 +9,7 @@ var external = require('external');
 Object.defineProperty(exports, 'p', {
 	enumerable: true,
 	get: function () {
-		return external.default;
+		return external['default'];
 	}
 });
 Object.defineProperty(exports, 'q', {

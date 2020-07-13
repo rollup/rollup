@@ -6,5 +6,5 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 
 var L__default = _interopDefault(L);
 
-L__default.default.terminator = function(options) {
+L__default['default'].terminator = function(options) {
 };

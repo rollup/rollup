@@ -10,7 +10,7 @@ var myBundle = (function (exports, a, Test$1) {
   };
 
   const Test1 = () => {
-    console.log(Test$1__default.default);
+    console.log(Test$1__default['default']);
   };
 
   exports.Test = Test;

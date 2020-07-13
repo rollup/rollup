@@ -8,6 +8,6 @@
 
 	var external__default = _interopDefault(external);
 
-	console.log(external__default.default);
+	console.log(external__default['default']);
 
 })));

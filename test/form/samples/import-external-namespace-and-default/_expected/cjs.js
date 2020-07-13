@@ -8,4 +8,4 @@ var foo__default = _interopDefault(foo);
 
 console.log( foo.bar );
 
-console.log( foo__default.default );
+console.log( foo__default['default'] );

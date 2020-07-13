@@ -2,12 +2,9 @@ export interface NameCollection {
 	[name: string]: true;
 }
 
-// Verified on IE 6/7 that these keywords can't be used for object properties without escaping:
-//   break case catch class const continue debugger default delete do
-//   else enum export extends false finally for function if import
-//   in instanceof new null return super switch this throw true
-//   try typeof var void while with
-export const RESERVED_NAMES: NameCollection = Object.assign(Object.create(null), {
+export const RESERVED_NAMES: NameCollection = {
+	// @ts-ignore
+	__proto__: null,
 	await: true,
 	break: true,
 	case: true,
@@ -56,4 +53,4 @@ export const RESERVED_NAMES: NameCollection = Object.assign(Object.create(null),
 	while: true,
 	with: true,
 	yield: true
-});
+};

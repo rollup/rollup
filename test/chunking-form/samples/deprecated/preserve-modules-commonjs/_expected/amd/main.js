@@ -4,6 +4,6 @@ define(['external', './commonjs'], function (external, commonjs) { 'use strict';
 
 	var external__default = _interopDefault(external);
 
-	console.log(commonjs, external__default.default);
+	console.log(commonjs, external__default['default']);
 
 });

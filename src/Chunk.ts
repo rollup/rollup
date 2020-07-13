@@ -52,16 +52,13 @@ export interface ModuleDeclarations {
 
 export interface ModuleDeclarationDependency {
 	defaultVariableName: string | undefined;
-	// TODO Lukas check which ones of these are still needed
-	exportsDefault: boolean;
-	exportsNames: boolean;
 	globalName: string;
 	id: string;
-	imports?: ImportSpecifier[];
+	imports: ImportSpecifier[] | null;
 	isChunk: boolean;
 	name: string;
 	namedExportsMode: boolean;
-	reexports?: ReexportSpecifier[];
+	reexports: ReexportSpecifier[] | null;
 }
 
 export type ChunkDependencies = ModuleDeclarationDependency[];
@@ -929,7 +926,7 @@ export default class Chunk {
 		const dependencies = new Map<Chunk | ExternalModule, ModuleDeclarationDependency>();
 
 		for (const dep of this.dependencies) {
-			const imports: ImportSpecifier[] = [];
+			const importSpecifiers: ImportSpecifier[] = [];
 			for (const variable of this.imports) {
 				if (
 					(variable.module instanceof Module
@@ -938,7 +935,7 @@ export default class Chunk {
 					!renderedImports.has(variable)
 				) {
 					renderedImports.add(variable);
-					imports.push({
+					importSpecifiers.push({
 						imported:
 							variable.module instanceof ExternalModule
 								? variable.name
@@ -948,33 +945,22 @@ export default class Chunk {
 				}
 			}
 
-			const reexports = reexportDeclarations.get(dep);
-			let exportsNames: boolean, exportsDefault: boolean;
-			let namedExportsMode = true;
-			if (dep instanceof ExternalModule) {
-				exportsNames = dep.exportsNames || dep.exportsNamespace;
-				exportsDefault = 'default' in dep.declarations;
-			} else {
-				exportsNames = true;
-				// we don't want any interop patterns to trigger
-				exportsDefault = false;
-				namedExportsMode = dep.exportMode !== 'default';
-			}
+			const imports = importSpecifiers.length > 0 ? importSpecifiers : null;
+			const reexports = reexportDeclarations.get(dep) || null;
+			const namedExportsMode = dep instanceof ExternalModule || dep.exportMode !== 'default';
 
 			dependencies.set(dep, {
 				defaultVariableName: (dep as ExternalModule).defaultVariableName,
-				exportsDefault,
-				exportsNames,
 				globalName: (dep instanceof ExternalModule &&
 					(options.format === 'umd' || options.format === 'iife') &&
 					getGlobalName(
 						dep,
 						options.globals,
-						exportsNames || exportsDefault,
+						(imports || reexports) !== null,
 						this.inputOptions.onwarn
 					)) as string,
 				id: undefined as any, // chunk id updated on render
-				imports: imports.length > 0 ? imports : (null as any),
+				imports,
 				isChunk: dep instanceof Chunk,
 				name: dep.variableName,
 				namedExportsMode,
@@ -1140,7 +1126,6 @@ export default class Chunk {
 		preserveModules
 	}: NormalizedOutputOptions) {
 		const syntheticExports = new Set<SyntheticNamedExportVariable>();
-		// TODO Lukas use this.exportNamesByVariable!.keys() instead
 		for (const exportName of this.getExportNames()) {
 			const exportVariable = this.exportsByName![exportName];
 			if (exportVariable instanceof ExportShimVariable) {

@@ -8,4 +8,4 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 var a__default = _interopDefault(a);
 var b__default = _interopDefault(b);
 
-console.log(a__default.default, b__default.default);
+console.log(a__default['default'], b__default['default']);

@@ -8,8 +8,8 @@
 
 	var $__default = _interopDefault($);
 
-	$__default.default( function () {
-		$__default.default( 'body' ).html( '<h1>hello world!</h1>' );
+	$__default['default']( function () {
+		$__default['default']( 'body' ).html( '<h1>hello world!</h1>' );
 	});
 
 })));

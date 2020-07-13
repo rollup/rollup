@@ -98,7 +98,11 @@ function deconflictImportsEsmOrSystem(
 		const name = variable.name;
 		let proposedName: string;
 		if (module instanceof ExternalModule && (name === '*' || name === 'default')) {
-			if (name === 'default' && interop && module.exportsNamespace) {
+			if (
+				name === 'default' &&
+				interop &&
+				[...module.exportedVariables].some(([variable, name]) => name === '*' && variable.included)
+			) {
 				proposedName = module.variableName + '__default';
 			} else {
 				proposedName = module.variableName;
@@ -136,7 +140,6 @@ function deconflictImportsOther(
 		if (module instanceof ExternalModule) {
 			const name = variable.name;
 			if (name === 'default' && interop) {
-				// TODO Lukas if the name is default, we need to use square brackets
 				variable.setRenderNames(module.defaultVariableName, 'default');
 			} else if (name === '*' || name === 'default') {
 				variable.setRenderNames(null, module.variableName);

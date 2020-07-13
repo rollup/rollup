@@ -10,8 +10,6 @@ export default class ExternalModule {
 	dynamicImporters: string[] = [];
 	execIndex: number;
 	exportedVariables: Map<ExternalVariable, string>;
-	exportsNames = false;
-	exportsNamespace = false;
 	id: string;
 	importers: string[] = [];
 	moduleSideEffects: boolean | 'no-treeshake';
@@ -41,12 +39,6 @@ export default class ExternalModule {
 	}
 
 	getVariableForExportName(name: string): ExternalVariable {
-		if (name === '*') {
-			this.exportsNamespace = true;
-		} else if (name !== 'default') {
-			this.exportsNames = true;
-		}
-
 		let declaration = this.declarations[name];
 		if (declaration) return declaration;
 
