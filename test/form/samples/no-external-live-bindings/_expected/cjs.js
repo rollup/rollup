@@ -7,14 +7,14 @@ var external2 = require('external2');
 
 function _interopNamespace(e) {
 	if (e && e.__esModule) { return e; } else {
-		var n = {};
+		var n = Object.create(null);
 		if (e) {
 			Object.keys(e).forEach(function (k) {
 				n[k] =e [k];
 			});
 		}
 		n['default'] = e;
-		return n;
+		return Object.freeze(n);
 	}
 }
 

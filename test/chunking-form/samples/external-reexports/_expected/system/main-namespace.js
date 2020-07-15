@@ -12,8 +12,9 @@ System.register(['external-all', 'external-default-namespace', 'external-named-n
 		}],
 		execute: function () {
 
-			const externalNamespace = 42;
-			console.log(externalNamespace);
+			const externalNamespace = 1;
+			const externalNamespace__ns = 1;
+			console.log(externalNamespace, externalNamespace__ns);
 
 		}
 	};

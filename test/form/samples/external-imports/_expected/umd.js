@@ -6,8 +6,8 @@
 
 	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex : { 'default': ex }; }
 
-	var factory__default = _interopDefault(factory);
-	var alphabet__default = _interopDefault(alphabet);
+	var factory__default = /*#__PURE__*/_interopDefault(factory);
+	var alphabet__default = /*#__PURE__*/_interopDefault(alphabet);
 
 	factory__default['default']( null );
 	baz.foo( baz.bar, containers.port );

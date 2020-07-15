@@ -147,7 +147,7 @@ export default class Import extends NodeBase {
 					this.exportMode === 'default'
 						? `function${_}(m)${_}{${_}${resolve}({${_}'default':${_}m${_}});${_}}`
 						: this.exportMode === 'auto'
-						? `function${_}(m)${_}{${_}${resolve}(${INTEROP_NAMESPACE_VARIABLE}(m));${_}}`
+						? `function${_}(m)${_}{${_}${resolve}(/*#__PURE__*/${INTEROP_NAMESPACE_VARIABLE}(m));${_}}`
 						: resolve;
 				return {
 					left: `new Promise(function${_}(${resolve},${_}${reject})${_}{${_}require([`,

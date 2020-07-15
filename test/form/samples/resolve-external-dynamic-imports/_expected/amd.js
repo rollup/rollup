@@ -2,11 +2,9 @@ define(['require', 'exports', 'external'], function (require, exports, myExterna
 
 	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex : { 'default': ex }; }
 
-	var myExternal__default = _interopDefault(myExternal);
-
 	function _interopNamespace(e) {
 		if (e && e.__esModule) { return e; } else {
-			var n = {};
+			var n = Object.create(null);
 			if (e) {
 				Object.keys(e).forEach(function (k) {
 					var d = Object.getOwnPropertyDescriptor(e, k);
@@ -19,13 +17,15 @@ define(['require', 'exports', 'external'], function (require, exports, myExterna
 				});
 			}
 			n['default'] = e;
-			return n;
+			return Object.freeze(n);
 		}
 	}
 
+	var myExternal__default = /*#__PURE__*/_interopDefault(myExternal);
+
 	const test = () => myExternal__default['default'];
 
-	const someDynamicImport = () => new Promise(function (resolve, reject) { require(['external'], function (m) { resolve(_interopNamespace(m)); }, reject) });
+	const someDynamicImport = () => new Promise(function (resolve, reject) { require(['external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) });
 
 	exports.someDynamicImport = someDynamicImport;
 	exports.test = test;

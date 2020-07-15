@@ -5,7 +5,6 @@ import { FinaliserOptions } from './index';
 import { compactEsModuleExport, esModuleExport } from './shared/esModuleExport';
 import getExportBlock from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
-import { getInteropNamespace } from './shared/getInteropNamespace';
 import warnOnBuiltins from './shared/warnOnBuiltins';
 
 // AMD resolution will only respect the AMD baseUrl if the .js extension is omitted.
@@ -33,17 +32,16 @@ export default function amd(
 		varOrConst,
 		warn
 	}: FinaliserOptions,
-	options: NormalizedOutputOptions
-) {
-	const {
+	{
 		amd: { define: amdDefine, id: amdId },
 		compact,
 		esModule,
 		externalLiveBindings,
+		freeze,
 		interop,
 		strict
-	} = options;
-
+	}: NormalizedOutputOptions
+) {
 	warnOnBuiltins(warn, dependencies);
 	const deps = dependencies.map(m => `'${removeExtensionFromRelativeAmdId(m.id)}'`);
 	const args = dependencies.map(m => m.name);
@@ -67,11 +65,7 @@ export default function amd(
 
 	const params =
 		(amdId ? `'${amdId}',${_}` : ``) + (deps.length ? `[${deps.join(`,${_}`)}],${_}` : ``);
-
 	const useStrict = strict ? `${_}'use strict';` : '';
-	const interopNamespace = accessedGlobals.has(INTEROP_NAMESPACE_VARIABLE)
-		? getInteropNamespace(_, n, t, externalLiveBindings)
-		: '';
 
 	magicString.prepend(
 		`${intro}${getInteropBlock(
@@ -79,9 +73,13 @@ export default function amd(
 			varOrConst,
 			compact,
 			interop,
+			externalLiveBindings,
+			freeze,
+			accessedGlobals.has(INTEROP_NAMESPACE_VARIABLE),
 			_,
-			n
-		)}${interopNamespace}`
+			n,
+			t
+		)}`
 	);
 
 	const exportBlock = getExportBlock(exports, dependencies, namedExportsMode, interop, compact, t);

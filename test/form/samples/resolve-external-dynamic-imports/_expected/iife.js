@@ -3,7 +3,7 @@ var bundle = (function (exports, myExternal) {
 
 	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex : { 'default': ex }; }
 
-	var myExternal__default = _interopDefault(myExternal);
+	var myExternal__default = /*#__PURE__*/_interopDefault(myExternal);
 
 	const test = () => myExternal__default['default'];
 

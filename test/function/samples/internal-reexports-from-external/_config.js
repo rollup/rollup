@@ -3,6 +3,8 @@ const fs = require('fs');
 const path = require('path');
 
 module.exports = {
+	// TODO Lukas we should not have a default export when this is a reexported namespace reexport
+	// TODO Lukas we should have a helper to create merged namespaces
 	description: 'supports namespaces with external star reexports',
 	options: {
 		external: ['fs', 'path'],
@@ -20,7 +22,7 @@ module.exports = {
 	},
 	exports(exports) {
 		assert.strictEqual(exports.fs.readFile, fs.readFile);
-		assert.deepStrictEqual(Object.keys(exports.fs), Object.keys(fs));
+		assert.deepStrictEqual(Object.keys(exports.fs), Object.keys(fs).concat(['default']));
 		assert.notStrictEqual(exports.fsOverride.readFile, fs.readFile);
 		assert.strictEqual(exports.fsOverride.readFile, 'override');
 		assert.strictEqual(exports.fsOverride.extra, 'extra');

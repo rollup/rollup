@@ -14,6 +14,7 @@ export default class ExternalModule {
 	importers: string[] = [];
 	moduleSideEffects: boolean | 'no-treeshake';
 	mostCommonSuggestion = 0;
+	namespaceVariableName = '';
 	nameSuggestions: { [name: string]: number };
 	reexported = false;
 	renderPath: string = undefined as any;

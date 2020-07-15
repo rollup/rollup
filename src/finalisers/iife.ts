@@ -25,9 +25,17 @@ export default function iife(
 		varOrConst,
 		warn
 	}: FinaliserOptions,
-	options: NormalizedOutputOptions
+	{
+		compact,
+		extend,
+		freeze,
+		externalLiveBindings,
+		globals,
+		interop,
+		name,
+		strict
+	}: NormalizedOutputOptions
 ) {
-	const { compact, extend, globals, interop, name, strict } = options;
 	const _ = compact ? '' : ' ';
 	const n = compact ? '' : '\n';
 
@@ -65,7 +73,18 @@ export default function iife(
 	}
 
 	const useStrict = strict ? `${t}'use strict';${n}` : '';
-	const interopBlock = getInteropBlock(dependencies, varOrConst, compact, interop, _, n);
+	const interopBlock = getInteropBlock(
+		dependencies,
+		varOrConst,
+		compact,
+		interop,
+		externalLiveBindings,
+		freeze,
+		false,
+		_,
+		n,
+		t
+	);
 	magicString.prepend(`${intro}${interopBlock}`);
 
 	let wrapperIntro = `(function${_}(${args.join(`,${_}`)})${_}{${n}${useStrict}${n}`;

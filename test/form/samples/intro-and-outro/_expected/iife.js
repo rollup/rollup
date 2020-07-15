@@ -13,7 +13,7 @@ var foo = (function (a) {
 
 	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex : { 'default': ex }; }
 
-	var a__default = _interopDefault(a);
+	var a__default = /*#__PURE__*/_interopDefault(a);
 
 	console.log( a__default['default'] );
 	console.log( a.b );

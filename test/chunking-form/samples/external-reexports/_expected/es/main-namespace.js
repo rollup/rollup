@@ -7,5 +7,6 @@ export { externalNamedNamespace as quux };
 import * as externalNamespace$1 from 'external-namespace';
 export { externalNamespace$1 as bar };
 
-const externalNamespace = 42;
-console.log(externalNamespace);
+const externalNamespace = 1;
+const externalNamespace__ns = 1;
+console.log(externalNamespace, externalNamespace__ns);

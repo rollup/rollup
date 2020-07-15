@@ -6,7 +6,6 @@ import { FinaliserOptions } from './index';
 import { compactEsModuleExport, esModuleExport } from './shared/esModuleExport';
 import getExportBlock from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
-import { getInteropNamespace } from './shared/getInteropNamespace';
 
 export default function cjs(
 	magicString: MagicStringBundle,
@@ -22,9 +21,8 @@ export default function cjs(
 		outro,
 		varOrConst
 	}: FinaliserOptions,
-	options: NormalizedOutputOptions
+	{ compact, esModule, externalLiveBindings, freeze, interop, strict }: NormalizedOutputOptions
 ) {
-	const { compact, esModule, externalLiveBindings, interop, strict } = options;
 	const n = compact ? '' : '\n';
 	const _ = compact ? '' : ' ';
 
@@ -34,14 +32,20 @@ export default function cjs(
 			? `${compact ? compactEsModuleExport : esModuleExport}${n}${n}`
 			: '';
 	const importBlock = getImportBlock(dependencies, compact, varOrConst, n, _);
-	const interopBlock = getInteropBlock(dependencies, varOrConst, compact, interop, _, n);
-	const interopNamespace = accessedGlobals.has(INTEROP_NAMESPACE_VARIABLE)
-		? getInteropNamespace(_, n, t, externalLiveBindings)
-		: '';
-
-	magicString.prepend(
-		`${useStrict}${intro}${esModuleProp}${importBlock}${interopBlock}${interopNamespace}`
+	const interopBlock = getInteropBlock(
+		dependencies,
+		varOrConst,
+		compact,
+		interop,
+		externalLiveBindings,
+		freeze,
+		accessedGlobals.has(INTEROP_NAMESPACE_VARIABLE),
+		_,
+		n,
+		t
 	);
+
+	magicString.prepend(`${useStrict}${intro}${esModuleProp}${importBlock}${interopBlock}`);
 
 	const exportBlock = getExportBlock(
 		exports,

@@ -2,7 +2,7 @@ define(['require'], function (require) { 'use strict';
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) { return e; } else {
-			var n = {};
+			var n = Object.create(null);
 			if (e) {
 				Object.keys(e).forEach(function (k) {
 					var d = Object.getOwnPropertyDescriptor(e, k);
@@ -15,7 +15,7 @@ define(['require'], function (require) { 'use strict';
 				});
 			}
 			n['default'] = e;
-			return n;
+			return Object.freeze(n);
 		}
 	}
 

@@ -7,14 +7,17 @@ import Module from '../Module';
 import { InternalModuleFormat } from '../rollup/types';
 import { getSafeName } from './safeName';
 
+export interface DependenciesToBeDeconflicted {
+	deconflictedDefault: Set<ExternalModule>;
+	deconflictedNamespace: Set<ExternalModule>;
+	dependencies: Set<ExternalModule | Chunk>;
+}
+
 const DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT: {
 	[format in InternalModuleFormat]: (
 		usedNames: Set<string>,
 		imports: Set<Variable>,
-		dependenciesToBeDeconflicted: {
-			deconflictedDefault: Set<ExternalModule>;
-			dependencies: Set<ExternalModule | Chunk>;
-		},
+		dependenciesToBeDeconflicted: DependenciesToBeDeconflicted,
 		interop: boolean,
 		preserveModules: boolean,
 		chunkByModule: Map<Module, Chunk>,
@@ -31,10 +34,7 @@ const DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT: {
 
 export function deconflictChunk(
 	modules: Module[],
-	dependenciesToBeDeconflicted: {
-		deconflictedDefault: Set<ExternalModule>;
-		dependencies: Set<ExternalModule | Chunk>;
-	},
+	dependenciesToBeDeconflicted: DependenciesToBeDeconflicted,
 	imports: Set<Variable>,
 	usedNames: Set<string>,
 	format: InternalModuleFormat,
@@ -66,10 +66,7 @@ export function deconflictChunk(
 function deconflictImportsEsmOrSystem(
 	usedNames: Set<string>,
 	imports: Set<Variable>,
-	dependenciesToBeDeconflicted: {
-		deconflictedDefault: Set<ExternalModule>;
-		dependencies: Set<ExternalModule | Chunk>;
-	},
+	dependenciesToBeDeconflicted: DependenciesToBeDeconflicted,
 	_interop: boolean,
 	_preserveModules: boolean,
 	_chunkByModule: Map<Module, Chunk>,
@@ -109,23 +106,26 @@ function deconflictImportsEsmOrSystem(
 function deconflictImportsOther(
 	usedNames: Set<string>,
 	imports: Set<Variable>,
-	{
-		dependencies,
-		deconflictedDefault
-	}: { deconflictedDefault: Set<ExternalModule>; dependencies: Set<ExternalModule | Chunk> },
+	{ deconflictedDefault, deconflictedNamespace, dependencies }: DependenciesToBeDeconflicted,
 	interop: boolean,
 	preserveModules: boolean,
 	chunkByModule: Map<Module, Chunk>
 ) {
+	for (const chunkOrExternalModule of dependencies) {
+		chunkOrExternalModule.variableName = getSafeName(
+			chunkOrExternalModule.suggestedVariableName,
+			usedNames
+		);
+	}
 	for (const externalModule of deconflictedDefault) {
 		externalModule.defaultVariableName = getSafeName(
 			`${externalModule.suggestedVariableName}__default`,
 			usedNames
 		);
 	}
-	for (const chunkOrExternalModule of dependencies) {
-		chunkOrExternalModule.variableName = getSafeName(
-			chunkOrExternalModule.suggestedVariableName,
+	for (const externalModule of deconflictedNamespace) {
+		externalModule.namespaceVariableName = getSafeName(
+			`${externalModule.suggestedVariableName}__ns`,
 			usedNames
 		);
 	}
@@ -135,6 +135,8 @@ function deconflictImportsOther(
 			const name = variable.name;
 			if (name === 'default' && interop) {
 				variable.setRenderNames(module.defaultVariableName, 'default');
+			} else if (name === '*' && interop) {
+				variable.setRenderNames(null, module.namespaceVariableName);
 			} else if (name === '*' || name === 'default') {
 				variable.setRenderNames(null, module.variableName);
 			} else {

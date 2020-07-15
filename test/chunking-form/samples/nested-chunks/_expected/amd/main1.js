@@ -2,7 +2,7 @@ define(['require', './generated-dep'], function (require, dep) { 'use strict';
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) { return e; } else {
-			var n = {};
+			var n = Object.create(null);
 			if (e) {
 				Object.keys(e).forEach(function (k) {
 					var d = Object.getOwnPropertyDescriptor(e, k);
@@ -15,13 +15,13 @@ define(['require', './generated-dep'], function (require, dep) { 'use strict';
 				});
 			}
 			n['default'] = e;
-			return n;
+			return Object.freeze(n);
 		}
 	}
 
 	console.log('main1', dep.value);
 
 	new Promise(function (resolve, reject) { require(['./generated-dynamic'], resolve, reject) }).then(result => console.log(result));
-	new Promise(function (resolve, reject) { require(['./external'], function (m) { resolve(_interopNamespace(m)); }, reject) }).then(result => console.log(result));
+	new Promise(function (resolve, reject) { require(['./external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) }).then(result => console.log(result));
 
 });

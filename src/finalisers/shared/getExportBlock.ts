@@ -17,16 +17,20 @@ export default function getExportBlock(
 			local = exports[0].local;
 		} else {
 			for (const {
+				defaultVariableName,
+				isChunk,
 				name,
 				namedExportsMode,
-				reexports,
-				defaultVariableName,
-				isChunk
+				namespaceVariableName,
+				reexports
 			} of dependencies) {
 				if (reexports) {
 					const expt = reexports[0];
+					// TODO Lukas test
 					if (interop && !isChunk && expt.imported === 'default') {
 						local = `${defaultVariableName}['default']`;
+					} else if (interop && !isChunk && expt.imported === '*') {
+						local = namespaceVariableName;
 					} else if (namedExportsMode && expt.imported !== '*') {
 						local = `${name}.${expt.imported}`;
 					} else {
@@ -68,11 +72,12 @@ export default function getExportBlock(
 	// TODO Lukas test everything with interop turned off
 	// TODO Lukas use old interop if externalLiveBindings are false
 	for (const {
-		name,
-		reexports,
+		defaultVariableName,
 		isChunk,
+		name,
 		namedExportsMode: depNamedExportsMode,
-		defaultVariableName
+		namespaceVariableName,
+		reexports
 	} of dependencies) {
 		if (reexports && namedExportsMode) {
 			for (const specifier of reexports) {
@@ -91,9 +96,10 @@ export default function getExportBlock(
 						  `${t}${t}return ${importName};${n}${t}}${n}});`
 						: `exports.${specifier.reexported}${_}=${_}${importName};`;
 				} else if (specifier.reexported !== '*') {
-					// TODO Lukas we may need getters here as well
 					if (exportBlock) exportBlock += n;
-					exportBlock += `exports.${specifier.reexported}${_}=${_}${name};`;
+					exportBlock += `exports.${specifier.reexported}${_}=${_}${
+						interop && !isChunk ? namespaceVariableName : name
+					};`;
 				}
 			}
 		}

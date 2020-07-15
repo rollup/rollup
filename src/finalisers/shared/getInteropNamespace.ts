@@ -16,18 +16,24 @@ function copyPropertyStatic(_: string, n: string, _t: string, i: string) {
 	return `${i}n[k]${_}=e${_}[k];${n}`;
 }
 
-export function getInteropNamespace(_: string, n: string, t: string, liveBindings: boolean) {
+export function getInteropNamespace(
+	_: string,
+	n: string,
+	t: string,
+	liveBindings: boolean,
+	freeze: boolean
+) {
 	return (
 		`function ${INTEROP_NAMESPACE_VARIABLE}(e)${_}{${n}` +
 		`${t}if${_}(e${_}&&${_}e.__esModule)${_}{${_}return e;${_}}${_}else${_}{${n}` +
-		`${t}${t}var n${_}=${_}{};${n}` +
+		`${t}${t}var n${_}=${_}Object.create(null);${n}` +
 		`${t}${t}if${_}(e)${_}{${n}` +
 		`${t}${t}${t}Object.keys(e).forEach(function${_}(k)${_}{${n}` +
 		(liveBindings ? copyPropertyLiveBinding : copyPropertyStatic)(_, n, t, t + t + t + t) +
 		`${t}${t}${t}});${n}` +
 		`${t}${t}}${n}` +
 		`${t}${t}n['default']${_}=${_}e;${n}` +
-		`${t}${t}return n;${n}` +
+		`${t}${t}return ${freeze ? 'Object.freeze(n)' : 'n'};${n}` +
 		`${t}}${n}` +
 		`}${n}${n}`
 	);

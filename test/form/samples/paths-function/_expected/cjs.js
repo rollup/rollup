@@ -4,11 +4,9 @@ var foo = require('https://unpkg.com/foo');
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex : { 'default': ex }; }
 
-var foo__default = _interopDefault(foo);
-
 function _interopNamespace(e) {
 	if (e && e.__esModule) { return e; } else {
-		var n = {};
+		var n = Object.create(null);
 		if (e) {
 			Object.keys(e).forEach(function (k) {
 				var d = Object.getOwnPropertyDescriptor(e, k);
@@ -21,9 +19,11 @@ function _interopNamespace(e) {
 			});
 		}
 		n['default'] = e;
-		return n;
+		return Object.freeze(n);
 	}
 }
+
+var foo__default = /*#__PURE__*/_interopDefault(foo);
 
 assert.equal(foo__default['default'], 42);
 

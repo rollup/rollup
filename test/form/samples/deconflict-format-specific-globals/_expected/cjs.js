@@ -4,11 +4,9 @@ var external = require('external');
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex : { 'default': ex }; }
 
-var external__default = _interopDefault(external);
-
 function _interopNamespace(e) {
 	if (e && e.__esModule) { return e; } else {
-		var n = {};
+		var n = Object.create(null);
 		if (e) {
 			Object.keys(e).forEach(function (k) {
 				var d = Object.getOwnPropertyDescriptor(e, k);
@@ -21,9 +19,11 @@ function _interopNamespace(e) {
 			});
 		}
 		n['default'] = e;
-		return n;
+		return Object.freeze(n);
 	}
 }
+
+var external__default = /*#__PURE__*/_interopDefault(external);
 
 console.log(external__default['default']);
 

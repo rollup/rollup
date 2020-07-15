@@ -26,7 +26,7 @@ import {
 import { Addons } from './utils/addons';
 import { collapseSourcemaps } from './utils/collapseSourcemaps';
 import { createHash } from './utils/crypto';
-import { deconflictChunk } from './utils/deconflictChunk';
+import { deconflictChunk, DependenciesToBeDeconflicted } from './utils/deconflictChunk';
 import { errFailedValidation, error } from './utils/error';
 import { escapeId } from './utils/escapeId';
 import { sortByExecutionOrder } from './utils/executionOrder';
@@ -58,6 +58,7 @@ export interface ModuleDeclarationDependency {
 	isChunk: boolean;
 	name: string;
 	namedExportsMode: boolean;
+	namespaceVariableName: string | undefined;
 	reexports: ReexportSpecifier[] | null;
 }
 
@@ -965,6 +966,7 @@ export default class Chunk {
 				isChunk: dep instanceof Chunk,
 				name: dep.variableName,
 				namedExportsMode,
+				namespaceVariableName: (dep as ExternalModule).namespaceVariableName,
 				reexports
 			});
 		}
@@ -1021,22 +1023,24 @@ export default class Chunk {
 	private getDependenciesToBeDeconflicted(
 		addDependencies: boolean,
 		addNonNamespaces: boolean,
-		addDefaults: boolean,
+		addDefaultsAndNamespaces: boolean,
 		addDependenciesWithoutBindings: boolean
-	): {
-		deconflictedDefault: Set<ExternalModule>;
-		dependencies: Set<Chunk | ExternalModule>;
-	} {
+	): DependenciesToBeDeconflicted {
 		const dependencies = new Set<Chunk | ExternalModule>();
 		const deconflictedDefault = new Set<ExternalModule>();
+		const deconflictedNamespace = new Set<ExternalModule>();
 		if (addDependencies) {
 			for (const variable of [...this.exportNamesByVariable!.keys(), ...this.imports]) {
 				if (addNonNamespaces || variable.isNamespace) {
 					const module = variable.module!;
 					if (module instanceof ExternalModule) {
 						dependencies.add(module);
-						if (addDefaults && variable.name === 'default') {
-							deconflictedDefault.add(module);
+						if (addDefaultsAndNamespaces) {
+							if (variable.name === 'default') {
+								deconflictedDefault.add(module);
+							} else if (variable.name === '*') {
+								deconflictedNamespace.add(module);
+							}
 						}
 					} else {
 						const chunk = this.chunkByModule.get(module)!;
@@ -1052,7 +1056,7 @@ export default class Chunk {
 				dependencies.add(dependency);
 			}
 		}
-		return { dependencies, deconflictedDefault };
+		return { deconflictedDefault, deconflictedNamespace, dependencies };
 	}
 
 	private getFallbackChunkName(): string {

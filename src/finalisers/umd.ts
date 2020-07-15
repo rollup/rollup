@@ -35,19 +35,20 @@ export default function umd(
 		varOrConst,
 		warn
 	}: FinaliserOptions,
-	options: NormalizedOutputOptions
-) {
-	const {
+	{
 		amd: { define: amdDefine, id: amdId },
 		compact,
 		esModule,
 		extend,
+		externalLiveBindings,
+		freeze,
 		interop,
 		name,
 		globals,
 		noConflict,
 		strict
-	} = options;
+	}: NormalizedOutputOptions
+) {
 	const _ = compact ? '' : ' ';
 	const n = compact ? '' : '\n';
 	const factoryVar = compact ? 'f' : 'factory';
@@ -153,7 +154,18 @@ export default function umd(
 	const wrapperOutro = n + n + '})));';
 
 	magicString.prepend(
-		`${intro}${getInteropBlock(dependencies, varOrConst, compact, interop, _, n)}`
+		`${intro}${getInteropBlock(
+			dependencies,
+			varOrConst,
+			compact,
+			interop,
+			externalLiveBindings,
+			freeze,
+			false,
+			_,
+			n,
+			t
+		)}`
 	);
 
 	const exportBlock = getExportBlock(exports, dependencies, namedExportsMode, interop, compact, t);

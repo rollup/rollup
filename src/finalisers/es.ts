@@ -6,9 +6,8 @@ import { FinaliserOptions } from './index';
 export default function es(
 	magicString: MagicStringBundle,
 	{ intro, outro, dependencies, exports, varOrConst }: FinaliserOptions,
-	options: NormalizedOutputOptions
+	{ compact }: NormalizedOutputOptions
 ) {
-	const { compact } = options;
 	const _ = compact ? '' : ' ';
 	const n = compact ? '' : '\n';
 

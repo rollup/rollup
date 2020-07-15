@@ -6,7 +6,7 @@ var x = require('x');
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex : { 'default': ex }; }
 
-var x__default = _interopDefault(x);
+var x__default = /*#__PURE__*/_interopDefault(x);
 
 
 

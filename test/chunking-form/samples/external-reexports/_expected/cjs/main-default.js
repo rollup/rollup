@@ -9,10 +9,10 @@ var externalDefaultNamespace = require('external-default-namespace');
 
 function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex : { 'default': ex }; }
 
-var externalAll__default = _interopDefault(externalAll);
-var externalDefault__default = _interopDefault(externalDefault);
-var externalDefaultNamed__default = _interopDefault(externalDefaultNamed);
-var externalDefaultNamespace__default = _interopDefault(externalDefaultNamespace);
+var externalAll__default = /*#__PURE__*/_interopDefault(externalAll);
+var externalDefault__default = /*#__PURE__*/_interopDefault(externalDefault);
+var externalDefaultNamed__default = /*#__PURE__*/_interopDefault(externalDefaultNamed);
+var externalDefaultNamespace__default = /*#__PURE__*/_interopDefault(externalDefaultNamespace);
 
 
 

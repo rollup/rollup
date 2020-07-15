@@ -3,7 +3,7 @@ var myBundle = (function (exports, a, Test$1) {
 
   function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex : { 'default': ex }; }
 
-  var Test__default = _interopDefault(Test$1);
+  var Test__default = /*#__PURE__*/_interopDefault(Test$1);
 
   const Test = () => {
     console.log(a.Test);

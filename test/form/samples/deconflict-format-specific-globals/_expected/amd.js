@@ -2,11 +2,9 @@ define(['module', 'require', 'external'], function (module, require, external) {
 
 	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex : { 'default': ex }; }
 
-	var external__default = _interopDefault(external);
-
 	function _interopNamespace(e) {
 		if (e && e.__esModule) { return e; } else {
-			var n = {};
+			var n = Object.create(null);
 			if (e) {
 				Object.keys(e).forEach(function (k) {
 					var d = Object.getOwnPropertyDescriptor(e, k);
@@ -19,9 +17,11 @@ define(['module', 'require', 'external'], function (module, require, external) {
 				});
 			}
 			n['default'] = e;
-			return n;
+			return Object.freeze(n);
 		}
 	}
+
+	var external__default = /*#__PURE__*/_interopDefault(external);
 
 	console.log(external__default['default']);
 
@@ -34,7 +34,7 @@ define(['module', 'require', 'external'], function (module, require, external) {
 	const URL$1 = 1;
 	console.log(_interopDefault$1, _interopNamespace$1, module$1, require$1, exports$1, document$1, URL$1);
 
-	new Promise(function (resolve, reject) { require(['external'], function (m) { resolve(_interopNamespace(m)); }, reject) });
+	new Promise(function (resolve, reject) { require(['external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) });
 	exports.default = 0;
 	console.log(new URL(module.uri, document.baseURI).href);
 
@@ -48,7 +48,7 @@ define(['module', 'require', 'external'], function (module, require, external) {
 		const URL$1 = 1;
 		console.log(_interopDefault, _interopNamespace$1, module$1, require$1, exports$1, document$1, URL$1);
 
-		new Promise(function (resolve, reject) { require(['external'], function (m) { resolve(_interopNamespace(m)); }, reject) });
+		new Promise(function (resolve, reject) { require(['external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) });
 		exports.default = 1;
 		console.log(new URL(module.uri, document.baseURI).href);
 	}
