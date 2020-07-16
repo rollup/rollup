@@ -1,10 +1,8 @@
 const assert = require('assert');
 
 module.exports = {
-	description:
-		'supports re-exported synthetic exports in namespace objects with correct export precedence',
+	description: 'does not include named synthetic namespaces in namespace objects',
 	options: {
-		input: ['main', 'main2'],
 		plugins: [
 			{
 				name: 'test-plugin',
@@ -12,7 +10,7 @@ module.exports = {
 					if (id.endsWith('synthetic.js')) {
 						return {
 							code,
-							syntheticNamedExports: true
+							syntheticNamedExports: '__moduleExports'
 						};
 					}
 				}
@@ -20,19 +18,11 @@ module.exports = {
 		]
 	},
 	exports(exports) {
-		const synthetic = {
-			__proto__: null,
-			foo: 'foo',
-			bar: 'synthetic-bar',
-			baz: 'synthetic-baz',
-			default: 'ignored'
-		};
-		synthetic.default = synthetic;
 		assert.deepStrictEqual(exports, {
 			synthetic: {
 				__proto__: null,
-				foo: 'synthetic-foo',
-				bar: 'bar'
+				default: 'default',
+				foo: 'synthetic-foo'
 			}
 		});
 	}

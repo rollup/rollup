@@ -19,14 +19,6 @@ module.exports = {
 		]
 	},
 	exports(exports) {
-		const synthetic = {
-			__proto__: null,
-			foo: 'foo',
-			bar: 'synthetic-bar',
-			baz: 'synthetic-baz',
-			default: 'ignored'
-		};
-		synthetic.default = synthetic;
 		assert.deepStrictEqual(exports, {
 			dep: {
 				__proto__: null,

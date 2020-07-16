@@ -46,7 +46,7 @@ export default class NamespaceVariable extends Variable {
 		}
 		const memberVariables = Object.create(null);
 		for (const name of this.context.getExports().concat(this.context.getReexports())) {
-			if (name[0] !== '*') {
+			if (name[0] !== '*' && name !== this.module.syntheticNamedExports) {
 				memberVariables[name] = this.context.traceExport(name);
 			}
 		}
@@ -68,6 +68,9 @@ export default class NamespaceVariable extends Variable {
 			// We directly include the variables instead of context.include to not automatically
 			// generate imports for members from other modules
 			for (const memberName of Object.keys(memberVariables)) memberVariables[memberName].include();
+			if (typeof this.syntheticNamedExports === 'string') {
+				this.context.traceExport(this.syntheticNamedExports).include();
+			}
 		}
 	}
 

@@ -411,7 +411,7 @@ export default class Module {
 		}
 		if (!this.syntheticNamespace) {
 			return error({
-				code: Errors.SYNTHETIC_NAMED_EXPORTS_NEED_DEFAULT,
+				code: Errors.SYNTHETIC_NAMED_EXPORTS_NEED_NAMESPACE_EXPORT,
 				id: this.id,
 				message: `Module "${relativeId(
 					this.id

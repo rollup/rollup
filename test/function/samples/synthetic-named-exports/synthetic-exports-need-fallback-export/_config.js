@@ -15,7 +15,7 @@ module.exports = {
 		]
 	},
 	error: {
-		code: 'SYNTHETIC_NAMED_EXPORTS_NEED_DEFAULT',
+		code: 'SYNTHETIC_NAMED_EXPORTS_NEED_NAMESPACE_EXPORT',
 		id: DEP_ID,
 		message:
 			'Module "dep.js" that is marked with \'syntheticNamedExports: "__synthetic"\' needs an export named "__synthetic".',

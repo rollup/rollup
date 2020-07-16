@@ -1,1 +1,1 @@
-export * as synthetic from './dep.js';
+export * as synthetic from './synthetic.js';
