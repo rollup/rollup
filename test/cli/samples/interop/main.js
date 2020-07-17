@@ -1,3 +1,3 @@
-import color from 'colorette';
+import data from 'test';
 
-assert.ok( color );
+assert.ok( data );

@@ -1,11 +1,11 @@
-import color from 'colorette';
+import { bold, cyan, dim, options, red } from 'colorette';
 import { RollupError } from '../src/rollup/types';
 import relativeId from '../src/utils/relativeId';
 
 // @see https://no-color.org
 // @see https://www.npmjs.com/package/chalk
 if (process.env.FORCE_COLOR === '0' || process.env.NO_COLOR) {
-  color.options.enabled = false;
+	options.enabled = false;
 }
 
 // log to stderr to keep `rollup main.js > bundle.js` from breaking
@@ -14,15 +14,12 @@ export const stderr = console.error.bind(console);
 export function handleError(err: RollupError, recover = false) {
 	let description = err.message || err;
 	if (err.name) description = `${err.name}: ${description}`;
-	const message =
-		(err.plugin
-			? `(plugin ${(err).plugin}) ${description}`
-			: description) || err;
+	const message = (err.plugin ? `(plugin ${err.plugin}) ${description}` : description) || err;
 
-	stderr(color.bold(color.red(`[!] ${color.bold(message.toString())}`)));
+	stderr(bold(red(`[!] ${bold(message.toString())}`)));
 
 	if (err.url) {
-		stderr(color.cyan(err.url));
+		stderr(cyan(err.url));
 	}
 
 	if (err.loc) {
@@ -32,11 +29,11 @@ export function handleError(err: RollupError, recover = false) {
 	}
 
 	if (err.frame) {
-		stderr(color.dim(err.frame));
+		stderr(dim(err.frame));
 	}
 
 	if (err.stack) {
-		stderr(color.dim(err.stack));
+		stderr(dim(err.stack));
 	}
 
 	stderr('');

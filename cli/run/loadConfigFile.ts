@@ -1,4 +1,4 @@
-import color from 'colorette';
+import { bold } from 'colorette';
 import * as path from 'path';
 import { pathToFileURL } from 'url';
 import * as rollup from '../../src/node-entry';
@@ -26,7 +26,7 @@ export default async function loadAndParseConfigFile(
 	const configs = await loadConfigFile(fileName, commandOptions);
 	const warnings = batchWarnings();
 	try {
-		const normalizedConfigs = configs.map((config) => {
+		const normalizedConfigs = configs.map(config => {
 			const options = mergeOptions(config, commandOptions, warnings.add);
 			addCommandPluginsToInputOptions(options, commandOptions);
 			return options;
@@ -66,17 +66,17 @@ async function getDefaultFromTranspiledConfigFile(
 			(id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5, id.length) === '.json',
 		input: fileName,
 		onwarn: warnings.add,
-		treeshake: false,
+		treeshake: false
 	});
 	if (!silent && warnings.count > 0) {
-		stderr(color.bold(`loaded ${relativeId(fileName)} with warnings`));
+		stderr(bold(`loaded ${relativeId(fileName)} with warnings`));
 		warnings.flush();
 	}
 	const {
-		output: [{ code }],
+		output: [{ code }]
 	} = await bundle.generate({
 		exports: 'named',
-		format: 'cjs',
+		format: 'cjs'
 	});
 	return loadConfigFromBundledFile(fileName, code);
 }
@@ -103,7 +103,7 @@ async function loadConfigFromBundledFile(fileName: string, bundledCode: string) 
 				message: `While loading the Rollup configuration from "${relativeId(
 					fileName
 				)}", Node tried to require an ES module from a CommonJS file, which is not supported. A common cause is if there is a package.json file with "type": "module" in the same folder. You can try to fix this by changing the extension of your configuration file to ".cjs" or ".mjs" depending on the content, which will prevent Rollup from trying to preprocess the file but rather hand it to Node directly.`,
-				url: 'https://rollupjs.org/guide/en/#using-untranspiled-config-files',
+				url: 'https://rollupjs.org/guide/en/#using-untranspiled-config-files'
 			});
 		}
 		throw err;
@@ -118,7 +118,7 @@ async function getConfigList(configFileExport: any, commandOptions: any) {
 		return error({
 			code: 'MISSING_CONFIG',
 			message: 'Config file must export an options object, or an array of options objects',
-			url: 'https://rollupjs.org/guide/en/#configuration-files',
+			url: 'https://rollupjs.org/guide/en/#configuration-files'
 		});
 	}
 	return Array.isArray(config) ? config : [config];
