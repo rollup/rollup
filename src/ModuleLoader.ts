@@ -270,7 +270,7 @@ export class ModuleLoader {
 		id: string,
 		importer: string | undefined,
 		moduleSideEffects: boolean | 'no-treeshake',
-		syntheticNamedExports: boolean,
+		syntheticNamedExports: boolean | string,
 		isEntry: boolean
 	): Promise<Module> {
 		const existingModule = this.modulesById.get(id);
@@ -419,7 +419,7 @@ export class ModuleLoader {
 		let id = '';
 		let external = false;
 		let moduleSideEffects: boolean | 'no-treeshake' | null = null;
-		let syntheticNamedExports = false;
+		let syntheticNamedExports: boolean | string = false;
 		if (resolveIdResult) {
 			if (typeof resolveIdResult === 'object') {
 				id = resolveIdResult.id;

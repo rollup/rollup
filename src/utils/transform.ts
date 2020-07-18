@@ -37,7 +37,7 @@ export default function transform(
 	let customTransformCache = false;
 	const useCustomTransformCache = () => (customTransformCache = true);
 	let moduleSideEffects: boolean | 'no-treeshake' | null = null;
-	let syntheticNamedExports: boolean | null = null;
+	let syntheticNamedExports: boolean | string | null = null;
 	let curPlugin: Plugin;
 	const curSource: string = source.code;
 

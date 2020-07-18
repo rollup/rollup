@@ -222,7 +222,6 @@ export default class Module {
 	private astContext!: AstContext;
 	private context: string;
 	private customTransformCache!: boolean;
-	private defaultExport: Variable | null | undefined = null;
 	private esTreeAst!: acorn.Node;
 	private exportAllModules: (Module | ExternalModule)[] = [];
 	private exportNamesByVariable: Map<Variable, string[]> | null = null;
@@ -230,6 +229,7 @@ export default class Module {
 	private magicString!: MagicString;
 	private relevantDependencies: Set<Module | ExternalModule> | null = null;
 	private syntheticExports = new Map<string, SyntheticNamedExportVariable>();
+	private syntheticNamespace: Variable | null | undefined = null;
 	private transformDependencies: string[] = [];
 	private transitiveReexports: string[] | null = null;
 
@@ -238,7 +238,7 @@ export default class Module {
 		public readonly id: string,
 		private readonly options: NormalizedInputOptions,
 		public moduleSideEffects: boolean | 'no-treeshake',
-		public syntheticNamedExports: boolean,
+		public syntheticNamedExports: boolean | string,
 		public isEntryPoint: boolean
 	) {
 		this.excludeFromSourcemap = /\0/.test(id);
@@ -284,23 +284,6 @@ export default class Module {
 		}
 
 		return allExportNames;
-	}
-
-	getDefaultExport() {
-		if (this.defaultExport === null) {
-			this.defaultExport = undefined;
-			this.defaultExport = this.getVariableForExportName('default');
-		}
-		if (!this.defaultExport) {
-			return error({
-				code: Errors.SYNTHETIC_NAMED_EXPORTS_NEED_DEFAULT,
-				id: this.id,
-				message: `Module "${relativeId(
-					this.id
-				)}" that is marked to have "syntheticNamedExports" needs a default export.`
-			});
-		}
-		return this.defaultExport;
 	}
 
 	getDependenciesToBeIncluded(): Set<Module | ExternalModule> {
@@ -360,6 +343,7 @@ export default class Module {
 		}
 		const exportNamesByVariable: Map<Variable, string[]> = new Map();
 		for (const exportName of this.getAllExportNames()) {
+			if (exportName === this.syntheticNamedExports) continue;
 			let tracedVariable = this.getVariableForExportName(exportName);
 			if (tracedVariable instanceof ExportDefaultVariable) {
 				tracedVariable = tracedVariable.getOriginalVariable();
@@ -416,6 +400,31 @@ export default class Module {
 			(variable && variable.included ? renderedExports : removedExports).push(exportName);
 		}
 		return { renderedExports, removedExports };
+	}
+
+	getSyntheticNamespace() {
+		if (this.syntheticNamespace === null) {
+			this.syntheticNamespace = undefined;
+			this.syntheticNamespace = this.getVariableForExportName(
+				typeof this.syntheticNamedExports === 'string' ? this.syntheticNamedExports : 'default'
+			);
+		}
+		if (!this.syntheticNamespace) {
+			return error({
+				code: Errors.SYNTHETIC_NAMED_EXPORTS_NEED_NAMESPACE_EXPORT,
+				id: this.id,
+				message: `Module "${relativeId(
+					this.id
+				)}" that is marked with 'syntheticNamedExports: ${JSON.stringify(
+					this.syntheticNamedExports
+				)}' needs ${
+					typeof this.syntheticNamedExports === 'string' && this.syntheticNamedExports !== 'default'
+						? `an export named "${this.syntheticNamedExports}"`
+						: 'a default export'
+				}.`
+			});
+		}
+		return this.syntheticNamespace;
 	}
 
 	getVariableForExportName(
@@ -483,8 +492,12 @@ export default class Module {
 			if (this.syntheticNamedExports) {
 				let syntheticExport = this.syntheticExports.get(name);
 				if (!syntheticExport) {
-					const defaultExport = this.getDefaultExport();
-					syntheticExport = new SyntheticNamedExportVariable(this.astContext, name, defaultExport);
+					const syntheticNamespace = this.getSyntheticNamespace();
+					syntheticExport = new SyntheticNamedExportVariable(
+						this.astContext,
+						name,
+						syntheticNamespace
+					);
 					this.syntheticExports.set(name, syntheticExport);
 					return syntheticExport;
 				}
@@ -893,7 +906,7 @@ export default class Module {
 				this.imports.add(externalVariable);
 				mergedNamespaces.push(externalVariable);
 			} else if (module.syntheticNamedExports) {
-				const syntheticNamespace = module.getDefaultExport();
+				const syntheticNamespace = module.getSyntheticNamespace();
 				syntheticNamespace.include();
 				this.imports.add(syntheticNamespace);
 				mergedNamespaces.push(syntheticNamespace);

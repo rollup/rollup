@@ -1,5 +1,5 @@
 'use strict';
 
-var color = require('colorette');
+var data = require('test');
 
-assert.ok( color );
+assert.ok( data );

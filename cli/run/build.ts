@@ -1,4 +1,4 @@
-import color from 'colorette';
+import { bold, cyan, green } from 'colorette';
 import ms from 'pretty-ms';
 import * as rollup from '../../src/node-entry';
 import { MergedRollupOptions } from '../../src/rollup/types';
@@ -16,7 +16,7 @@ export default async function build(
 	const outputOptions = inputOptions.output;
 	const useStdout = !outputOptions[0].file && !outputOptions[0].dir;
 	const start = Date.now();
-	const files = useStdout ? ['stdout'] : outputOptions.map((t) => relativeId(t.file || t.dir!));
+	const files = useStdout ? ['stdout'] : outputOptions.map(t => relativeId(t.file || t.dir!));
 	if (!silent) {
 		let inputFiles: string | undefined;
 		if (typeof inputOptions.input === 'string') {
@@ -25,10 +25,10 @@ export default async function build(
 			inputFiles = inputOptions.input.join(', ');
 		} else if (typeof inputOptions.input === 'object' && inputOptions.input !== null) {
 			inputFiles = Object.keys(inputOptions.input)
-				.map((name) => (inputOptions.input as Record<string, string>)[name])
+				.map(name => (inputOptions.input as Record<string, string>)[name])
 				.join(', ');
 		}
-		stderr(color.cyan(`\n${color.bold(inputFiles!)} → ${color.bold(files.join(', '))}...`));
+		stderr(cyan(`\n${bold(inputFiles!)} → ${bold(files.join(', '))}...`));
 	}
 
 	const bundle = await rollup.rollup(inputOptions as any);
@@ -37,7 +37,7 @@ export default async function build(
 		if (output.sourcemap && output.sourcemap !== 'inline') {
 			handleError({
 				code: 'ONLY_INLINE_SOURCEMAPS',
-				message: 'Only inline sourcemaps are supported when bundling to stdout.',
+				message: 'Only inline sourcemaps are supported when bundling to stdout.'
 			});
 		}
 
@@ -52,8 +52,7 @@ export default async function build(
 					source += `\n//# ${SOURCEMAPPING_URL}=${file.map!.toUrl()}\n`;
 				}
 			}
-			if (outputs.length > 1)
-				process.stdout.write(`\n${color.cyan(color.bold(`//→ ${file.fileName}:`))}\n`);
+			if (outputs.length > 1) process.stdout.write(`\n${cyan(bold(`//→ ${file.fileName}:`))}\n`);
 			process.stdout.write(source);
 		}
 		if (!silent) {
@@ -65,11 +64,7 @@ export default async function build(
 	await Promise.all(outputOptions.map(bundle.write));
 	if (!silent) {
 		warnings.flush();
-		stderr(
-			color.green(
-				`created ${color.bold(files.join(', '))} in ${color.bold(ms(Date.now() - start))}`
-			)
-		);
+		stderr(green(`created ${bold(files.join(', '))} in ${bold(ms(Date.now() - start))}`));
 		if (bundle && bundle.getTimings) {
 			printTimings(bundle.getTimings());
 		}

@@ -4,7 +4,6 @@ module.exports = {
 	description:
 		'supports re-exported synthetic exports in namespace objects with correct export precedence',
 	options: {
-		input: ['main', 'main2'],
 		plugins: [
 			{
 				name: 'test-plugin',
@@ -20,19 +19,25 @@ module.exports = {
 		]
 	},
 	exports(exports) {
-		const synthetic = {
-			__proto__: null,
-			foo: 'foo',
-			bar: 'synthetic-bar',
-			baz: 'synthetic-baz',
-			default: 'ignored'
-		};
-		synthetic.default = synthetic;
 		assert.deepStrictEqual(exports, {
-			synthetic: {
+			dep: {
 				__proto__: null,
-				foo: 'synthetic-foo',
-				bar: 'bar'
+				foo: 'foo',
+				bar: 'bar',
+				baz: 'synthetic-baz',
+				default: 'not-overwritten',
+				synthetic: {
+					__proto__: null,
+					foo: 'foo',
+					bar: 'synthetic-bar',
+					baz: 'synthetic-baz',
+					default: {
+						foo: 'synthetic-foo',
+						bar: 'synthetic-bar',
+						baz: 'synthetic-baz',
+						default: 'not-in-namespace'
+					}
+				}
 			}
 		});
 	}
