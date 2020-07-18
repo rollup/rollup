@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.22.1
+*2020-07-18*
+
+### Bug Fixes
+* Remove unused arguments when calling a conditional expression (#3680)
+
+### Pull Requests
+* [#3680](https://github.com/rollup/rollup/pull/3680): Allow tree-shaking of arguments of functions that are returned by conditional expressions (@lukastaegert)
+
 ## 2.22.0
 *2020-07-18*
 
