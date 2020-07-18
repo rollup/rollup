@@ -23,6 +23,7 @@ import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
 import { MultiExpression } from './shared/MultiExpression';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
+import SpreadElement from './SpreadElement';
 
 export default class ConditionalExpression extends NodeBase implements DeoptimizableEntity {
 	alternate!: ExpressionNode;
@@ -151,6 +152,15 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 			this.alternate.include(context, includeChildrenRecursively);
 		} else {
 			this.usedBranch.include(context, includeChildrenRecursively);
+		}
+	}
+
+	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
+		if (this.usedBranch === null) {
+			this.consequent.includeCallArguments(context, args);
+			this.alternate.includeCallArguments(context, args);
+		} else {
+			this.usedBranch.includeCallArguments(context, args);
 		}
 	}
 
