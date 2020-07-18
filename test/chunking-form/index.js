@@ -8,14 +8,14 @@ runTestSuiteWithSamples('chunking form', path.resolve(__dirname, 'samples'), (di
 	(config.skip ? describe.skip : config.solo ? describe.only : describe)(
 		path.basename(dir) + ': ' + config.description,
 		() => {
-			let rollupPromise;
+			let bundle;
 
-			FORMATS.forEach(format =>
-				it('generates ' + format, () => {
+			for (const format of FORMATS) {
+				it('generates ' + format, async () => {
 					process.chdir(dir);
-					return (
-						rollupPromise ||
-						(rollupPromise = rollup.rollup(
+					bundle =
+						bundle ||
+						(await rollup.rollup(
 							Object.assign(
 								{
 									input: [dir + '/main.js'],
@@ -36,42 +36,38 @@ runTestSuiteWithSamples('chunking form', path.resolve(__dirname, 'samples'), (di
 								},
 								config.options || {}
 							)
-						))
-					).then(bundle =>
-						generateAndTestBundle(
-							bundle,
-							Object.assign(
-								{
-									dir: dir + '/_actual/' + format,
-									format,
-									chunkFileNames: 'generated-[name].js'
-								},
-								(config.options || {}).output || {}
-							),
-							dir + '/_expected/' + format,
-							config
-						)
+						));
+					await generateAndTestBundle(
+						bundle,
+						Object.assign(
+							{
+								dir: dir + '/_actual/' + format,
+								exports: 'auto',
+								format,
+								chunkFileNames: 'generated-[name].js'
+							},
+							(config.options || {}).output || {}
+						),
+						dir + '/_expected/' + format,
+						config
 					);
-				})
-			);
+				});
+			}
 		}
 	);
 });
 
-function generateAndTestBundle(bundle, outputOptions, expectedDir, config) {
-	return bundle
-		.write(outputOptions)
-		.then(() => {
-			if (outputOptions.format === 'amd' && config.runAmd) {
-				return new Promise(resolve => {
-					global.assert = require('assert');
-					const requirejs = require('requirejs');
-					requirejs.config({ baseUrl: outputOptions.dir });
-					requirejs(['main'], main => {
-						Promise.resolve(config.runAmd.exports && config.runAmd.exports(main)).then(resolve);
-					});
-				});
-			}
-		})
-		.then(() => assertDirectoriesAreEqual(outputOptions.dir, expectedDir));
+async function generateAndTestBundle(bundle, outputOptions, expectedDir, config) {
+	await bundle.write(outputOptions);
+	if (outputOptions.format === 'amd' && config.runAmd) {
+		await new Promise(resolve => {
+			global.assert = require('assert');
+			const requirejs = require('requirejs');
+			requirejs.config({ baseUrl: outputOptions.dir });
+			requirejs(['main'], main => {
+				Promise.resolve(config.runAmd.exports && config.runAmd.exports(main)).then(resolve);
+			});
+		});
+	}
+	assertDirectoriesAreEqual(outputOptions.dir, expectedDir);
 }

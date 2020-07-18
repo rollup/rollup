@@ -39,7 +39,7 @@ export function normalizeOutputOptions(
 		dynamicImportFunction: getDynamicImportFunction(config, inputOptions),
 		entryFileNames: getEntryFileNames(config, unsetOptions),
 		esModule: (config.esModule as boolean | undefined) ?? true,
-		exports: getExports(config),
+		exports: getExports(config, unsetOptions),
 		extend: (config.extend as boolean | undefined) || false,
 		externalLiveBindings: (config.externalLiveBindings as boolean | undefined) ?? true,
 		file,
@@ -120,7 +120,7 @@ const getFormat = (config: GenericConfigObject): InternalModuleFormat => {
 		default:
 			return error({
 				message: `You must specify "output.format", which can be one of "amd", "cjs", "system", "es", "iife" or "umd".`,
-				url: `https://rollupjs.org/guide/en/#output-format`
+				url: `https://rollupjs.org/guide/en/#outputformat`
 			});
 	}
 };
@@ -223,9 +223,14 @@ const getEntryFileNames = (config: GenericConfigObject, unsetOptions: Set<string
 	return configEntryFileNames ?? '[name].js';
 };
 
-function getExports(config: GenericConfigObject): 'default' | 'named' | 'none' | 'auto' {
+function getExports(
+	config: GenericConfigObject,
+	unsetOptions: Set<string>
+): 'default' | 'named' | 'none' | 'auto' {
 	const configExports = config.exports as string | undefined;
-	if (configExports && !['default', 'named', 'none', 'auto'].includes(configExports)) {
+	if (configExports == null) {
+		unsetOptions.add('exports');
+	} else if (!['default', 'named', 'none', 'auto'].includes(configExports)) {
 		return error(errInvalidExportOptionValue(configExports));
 	}
 	return (configExports as 'default' | 'named' | 'none' | 'auto') || 'auto';

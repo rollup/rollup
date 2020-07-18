@@ -3,7 +3,8 @@ export default {
 	output: [
 		{
 			format: 'cjs',
-			file: '_actual/cjs.js'
+			file: '_actual/cjs.js',
+			exports: 'auto'
 		},
 		{
 			format: 'es',

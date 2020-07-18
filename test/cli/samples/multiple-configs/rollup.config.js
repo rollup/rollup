@@ -2,7 +2,8 @@ export default [{
 	input: 'main.js',
 	output: {
 		file: '_actual/bundle1.js',
-		format: 'cjs'
+		format: 'cjs',
+		exports: 'auto'
 	}
 }, {
 	input: 'main.js',
@@ -13,6 +14,7 @@ export default [{
 	}],
 	output: {
 		file: '_actual/bundle2.js',
-		format: 'cjs'
+		format: 'cjs',
+		exports: 'auto'
 	}
 }];

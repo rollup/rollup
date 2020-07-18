@@ -41,6 +41,7 @@ runTestSuiteWithSamples('form', path.resolve(__dirname, 'samples'), (dir, config
 					bundle,
 					Object.assign(
 						{
+							exports: 'auto',
 							file: inputFile,
 							format: defaultFormat
 						},
@@ -88,7 +89,7 @@ async function generateAndTestBundle(bundle, outputOptions, expectedFile, { show
 			? actualMap.sourcesContent.map(normaliseOutput)
 			: null;
 	} catch (err) {
-		assert.equal(err.code, 'ENOENT');
+		assert.strictEqual(err.code, 'ENOENT');
 	}
 
 	try {
@@ -104,6 +105,6 @@ async function generateAndTestBundle(bundle, outputOptions, expectedFile, { show
 		console.log(actualCode + '\n\n\n');
 	}
 
-	assert.equal(actualCode, expectedCode);
-	assert.deepEqual(actualMap, expectedMap);
+	assert.strictEqual(actualCode, expectedCode);
+	assert.deepStrictEqual(actualMap, expectedMap);
 }

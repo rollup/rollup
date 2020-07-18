@@ -4,6 +4,7 @@ export default {
 		{
 			format: 'cjs',
 			file: '_actual/cjs.js',
+			exports: 'auto',
 			sourcemap: true
 		},
 		{

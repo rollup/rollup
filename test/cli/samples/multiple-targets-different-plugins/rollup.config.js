@@ -5,11 +5,13 @@ export default {
 	output: [
 		{
 			format: 'cjs',
-			file: '_actual/main.js'
+			file: '_actual/main.js',
+			exports: 'auto'
 		},
 		{
 			format: 'cjs',
 			file: '_actual/minified.js',
+			exports: 'auto',
 			plugins: [terser()]
 		}
 	]

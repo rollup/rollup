@@ -284,7 +284,7 @@ describe('hooks', () => {
 			.then(bundle =>
 				Promise.all([
 					bundle.generate({ format: 'es', assetFileNames: 'asset' }),
-					bundle.generate({ format: 'cjs', assetFileNames: 'asset' })
+					bundle.generate({ format: 'cjs', assetFileNames: 'asset', exports: 'auto' })
 				])
 			)
 			.then(([{ output: output1 }, { output: output2 }]) => {

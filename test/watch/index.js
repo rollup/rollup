@@ -97,7 +97,8 @@ describe('rollup.watch', () => {
 					},
 					output: {
 						file: 'test/_tmp/output/bundle.js',
-						format: 'cjs'
+						format: 'cjs',
+						exports: 'auto'
 					}
 				});
 
@@ -147,7 +148,8 @@ describe('rollup.watch', () => {
 					},
 					output: {
 						file: 'test/_tmp/output/bundle.js',
-						format: 'cjs'
+						format: 'cjs',
+						exports: 'auto'
 					}
 				});
 
@@ -184,7 +186,8 @@ describe('rollup.watch', () => {
 					input: 'test/_tmp/input/main.js',
 					output: {
 						file: 'test/_tmp/output/bundle.js',
-						format: 'cjs'
+						format: 'cjs',
+						exports: 'auto'
 					},
 					plugins: {
 						watchChange(id) {
@@ -243,7 +246,8 @@ describe('rollup.watch', () => {
 					input: ['test/_tmp/input/main1.js', 'test/_tmp/input/main2.js'],
 					output: {
 						dir: 'test/_tmp/output',
-						format: 'cjs'
+						format: 'cjs',
+						exports: 'auto'
 					}
 				});
 
@@ -281,7 +285,8 @@ describe('rollup.watch', () => {
 					},
 					output: {
 						dir: 'test/_tmp/output',
-						format: 'cjs'
+						format: 'cjs',
+						exports: 'auto'
 					}
 				});
 
@@ -316,7 +321,8 @@ describe('rollup.watch', () => {
 					input: 'test/_tmp/input/main.js',
 					output: {
 						file: 'test/_tmp/output/bundle.js',
-						format: 'cjs'
+						format: 'cjs',
+						exports: 'auto'
 					}
 				});
 
@@ -355,7 +361,8 @@ describe('rollup.watch', () => {
 					input: 'test/_tmp/input/main.js',
 					output: {
 						file: 'test/_tmp/output/bundle.js',
-						format: 'cjs'
+						format: 'cjs',
+						exports: 'auto'
 					}
 				});
 
@@ -395,7 +402,8 @@ describe('rollup.watch', () => {
 					},
 					output: {
 						file: 'test/_tmp/output/bundle.js',
-						format: 'cjs'
+						format: 'cjs',
+						exports: 'auto'
 					}
 				});
 
@@ -427,7 +435,8 @@ describe('rollup.watch', () => {
 					input: 'test/_tmp/input/main.js',
 					output: {
 						file: 'test/_tmp/output/bundle.js',
-						format: 'cjs'
+						format: 'cjs',
+						exports: 'auto'
 					}
 				});
 
@@ -468,7 +477,8 @@ describe('rollup.watch', () => {
 					input: 'test/_tmp/input/main.js',
 					output: {
 						file: 'test/_tmp/output/bundle.js',
-						format: 'cjs'
+						format: 'cjs',
+						exports: 'auto'
 					}
 				});
 
@@ -514,7 +524,8 @@ describe('rollup.watch', () => {
 					},
 					output: {
 						file: 'test/_tmp/output/bundle.js',
-						format: 'cjs'
+						format: 'cjs',
+						exports: 'auto'
 					}
 				});
 				const events = [];
@@ -545,7 +556,8 @@ describe('rollup.watch', () => {
 					},
 					output: {
 						file: 'test/_tmp/output/bundle.js',
-						format: 'cjs'
+						format: 'cjs',
+						exports: 'auto'
 					}
 				});
 				const events = [];
@@ -571,7 +583,8 @@ describe('rollup.watch', () => {
 					input: 'test/_tmp/input/main.js',
 					output: {
 						file: 'test/_tmp/output/bundle.js',
-						format: 'cjs'
+						format: 'cjs',
+						exports: 'auto'
 					}
 				});
 
@@ -610,7 +623,8 @@ describe('rollup.watch', () => {
 					input: 'test/_tmp/input/main.js',
 					output: {
 						file: 'test/_tmp/output/bundle.js',
-						format: 'cjs'
+						format: 'cjs',
+						exports: 'auto'
 					}
 				});
 
@@ -650,7 +664,8 @@ describe('rollup.watch', () => {
 					input: 'test/_tmp/input/main.js',
 					output: {
 						file: 'test/_tmp/output/bundle.js',
-						format: 'cjs'
+						format: 'cjs',
+						exports: 'auto'
 					},
 					watch: {
 						include: ['test/_tmp/input/+(main|foo).js']
@@ -704,7 +719,8 @@ describe('rollup.watch', () => {
 					input: 'test/_tmp/input/main.js',
 					output: {
 						file: 'test/_tmp/output/bundle.js',
-						format: 'cjs'
+						format: 'cjs',
+						exports: 'auto'
 					},
 					watch: {
 						exclude: ['test/_tmp/input/bar.js']
@@ -760,14 +776,16 @@ describe('rollup.watch', () => {
 						input: 'test/_tmp/input/main1.js',
 						output: {
 							file: 'test/_tmp/output/bundle1.js',
-							format: 'cjs'
+							format: 'cjs',
+							exports: 'auto'
 						}
 					},
 					{
 						input: 'test/_tmp/input/main2.js',
 						output: {
 							file: 'test/_tmp/output/bundle2.js',
-							format: 'cjs'
+							format: 'cjs',
+							exports: 'auto'
 						}
 					}
 				]);
@@ -808,14 +826,16 @@ describe('rollup.watch', () => {
 						watch: false,
 						output: {
 							file: 'test/_tmp/output/bundle1.js',
-							format: 'cjs'
+							format: 'cjs',
+							exports: 'auto'
 						}
 					},
 					{
 						input: 'test/_tmp/input/main2.js',
 						output: {
 							file: 'test/_tmp/output/bundle2.js',
-							format: 'cjs'
+							format: 'cjs',
+							exports: 'auto'
 						}
 					}
 				]);
@@ -881,7 +901,8 @@ describe('rollup.watch', () => {
 					input: 'test/_tmp/input/main.js',
 					output: {
 						file: 'test/_tmp/output/bundle.js',
-						format: 'cjs'
+						format: 'cjs',
+						exports: 'auto'
 					}
 				});
 
@@ -918,6 +939,7 @@ describe('rollup.watch', () => {
 					output: {
 						dir: 'test/_tmp/output',
 						format: 'cjs',
+						exports: 'auto',
 						entryFileNames: '[name].[hash].js',
 						chunkFileNames: '[name].[hash].js'
 					}
@@ -994,7 +1016,8 @@ describe('rollup.watch', () => {
 			},
 			output: {
 				file: 'test/_tmp/output/bundle.js',
-				format: 'cjs'
+				format: 'cjs',
+				exports: 'auto'
 			}
 		});
 		return sequence(watcher, [
@@ -1032,7 +1055,8 @@ describe('rollup.watch', () => {
 					input: 'test/_tmp/input/main.js',
 					output: {
 						file: 'test/_tmp/output/bundle.js',
-						format: 'cjs'
+						format: 'cjs',
+						exports: 'auto'
 					},
 					watch: {
 						skipWrite: true
@@ -1093,7 +1117,8 @@ describe('rollup.watch', () => {
 			input: 'test/_tmp/input/main.js',
 			output: {
 				file: 'test/_tmp/output/bundle.js',
-				format: 'cjs'
+				format: 'cjs',
+				exports: 'auto'
 			}
 		});
 
@@ -1132,7 +1157,8 @@ describe('rollup.watch', () => {
 					input: 'test/_tmp/input/main.js',
 					output: {
 						file: 'test/_tmp/output/bundle.js',
-						format: 'cjs'
+						format: 'cjs',
+						exports: 'auto'
 					}
 				},
 				{
@@ -1140,7 +1166,8 @@ describe('rollup.watch', () => {
 					watch: { clearScreen: true },
 					output: {
 						file: 'test/_tmp/output/bundle.js',
-						format: 'cjs'
+						format: 'cjs',
+						exports: 'auto'
 					}
 				},
 				{
@@ -1148,7 +1175,8 @@ describe('rollup.watch', () => {
 					watch: { buildDelay: 1000 },
 					output: {
 						file: 'test/_tmp/output/bundle.js',
-						format: 'cjs'
+						format: 'cjs',
+						exports: 'auto'
 					}
 				},
 				{
@@ -1156,7 +1184,8 @@ describe('rollup.watch', () => {
 					watch: { buildDelay: 50 },
 					output: {
 						file: 'test/_tmp/output/bundle.js',
-						format: 'cjs'
+						format: 'cjs',
+						exports: 'auto'
 					}
 				}
 			],
@@ -1215,7 +1244,8 @@ describe('rollup.watch', () => {
 						input: 'test/_tmp/input/main.js',
 						output: {
 							file: 'test/_tmp/output/bundle.js',
-							format: 'cjs'
+							format: 'cjs',
+							exports: 'auto'
 						},
 						plugins: {
 							buildStart() {
@@ -1267,7 +1297,8 @@ describe('rollup.watch', () => {
 						input: 'test/_tmp/input/main.js',
 						output: {
 							file: 'test/_tmp/output/bundle.js',
-							format: 'cjs'
+							format: 'cjs',
+							exports: 'auto'
 						},
 						plugins: {
 							load() {
@@ -1310,7 +1341,8 @@ describe('rollup.watch', () => {
 						input: 'test/_tmp/input/main.js',
 						output: {
 							file: 'test/_tmp/output/bundle.js',
-							format: 'cjs'
+							format: 'cjs',
+							exports: 'auto'
 						},
 						plugins: {
 							resolveId(id) {
@@ -1374,7 +1406,8 @@ describe('rollup.watch', () => {
 						input: 'test/_tmp/input/main.js',
 						output: {
 							file: 'test/_tmp/output/bundle.js',
-							format: 'cjs'
+							format: 'cjs',
+							exports: 'auto'
 						},
 						plugins: {
 							transform(code, id) {
@@ -1422,7 +1455,8 @@ describe('rollup.watch', () => {
 						input: 'test/_tmp/input/main.js',
 						output: {
 							file: 'test/_tmp/output/bundle.js',
-							format: 'cjs'
+							format: 'cjs',
+							exports: 'auto'
 						},
 						plugins: {
 							transform() {
@@ -1465,7 +1499,8 @@ describe('rollup.watch', () => {
 						input: 'test/_tmp/input/main.js',
 						output: {
 							file: 'test/_tmp/output/bundle.js',
-							format: 'cjs'
+							format: 'cjs',
+							exports: 'auto'
 						},
 						plugins: {
 							buildStart() {

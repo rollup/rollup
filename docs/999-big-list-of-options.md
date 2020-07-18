@@ -922,28 +922,56 @@ Default: `'auto'`
 
 What export mode to use. Defaults to `auto`, which guesses your intentions based on what the `input` module exports:
 
-* `default` – suitable if you are only exporting one thing using `export default ...`
-* `named` – suitable if you are exporting more than one thing
-* `none` – suitable if you are not exporting anything (e.g. you are building an app, not a library)
+* `default` – if you are only exporting one thing using `export default ...`; note that this can cause issues when generating CommonJS output that is meant to be interchangeable with ESM output, see below
+* `named` – if you are using named exports
+* `none` – if you are not exporting anything (e.g. you are building an app, not a library)
+
+As this is only an output transformation, you can only choose `default` if there a default export is the only export for all entry chunks. Likewise, you can only choose `none` if there are no exports, otherwise Rollup will error.
 
 The difference between `default` and `named` affects how other people can consume your bundle. If you use `default`, a CommonJS user could do this, for example:
 
 ```js
-const yourLib = require( 'your-lib' );
+// your-lib package entry
+export default "Hello world";
+
+// a CommonJS consumer
+/* require( "your-lib" ) returns "Hello World" */
+const hello = require( "your-lib" );
 ```
 
 With `named`, a user would do this instead:
 
 ```js
-const yourMethod = require( 'your-lib' ).yourMethod;
+// your-lib package entry
+export const hello = "Hello world";
+
+// a CommonJS consumer
+/* require( "your-lib" ) returns {hello: "Hello World"} */
+const hello = require( "your-lib" ).hello;
+/* or using destructuring */
+const {hello} = require( "your-lib" );
 ```
 
 The wrinkle is that if you use `named` exports but *also* have a `default` export, a user would have to do something like this to use the default export:
 
 ```js
-const yourMethod = require( 'your-lib' ).yourMethod;
-const yourLib = require( 'your-lib' ).default;
+// your-lib package entry
+export default "foo";
+export const bar = "bar";
+
+// a CommonJS consumer
+/* require( "your-lib" ) returns {default: "foo", bar: "bar"} */
+const foo = require( "your-lib" ).default;
+const bar = require( "your-lib" ).bar;
+/* or using destructuring */
+const {default: foo, bar} = require( "your-lib" );
 ```
+
+Note: There are some tools such as Babel, TypeScript, Webpack, and `@rollup/plugin-commonjs` that are capable of resolving a CommonJS `require(...)` call with an ES module. If you are generating CommonJS output that is meant to be interchangeable with ESM output for those tools, you should always use `named` export mode. The reason is that most of those tools will by default return the namespace of an ES module on `require` where the default export is the `.default` property.
+
+In other words for those tools, you cannot create a package interface where `const lib = require("your-lib")` yields the same as `import lib from "your-lib"`. With named export mode however, `const {lib} = require("your-lib")` will be equivalent to `import {lib} from "your-lib"`.
+
+To alert you to this, Rollup will generate a warning when you encounter such a situation and did not select an explicit value for `output.exports`.
 
 #### output.externalLiveBindings
 Type: `boolean`<br>

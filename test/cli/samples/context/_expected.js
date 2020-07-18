@@ -1,6 +1,8 @@
 'use strict';
 
-console.log(window);
-var main = 42;
+Object.defineProperty(exports, '__esModule', { value: true });
 
-module.exports = main;
+console.log(window);
+const foo = 42;
+
+exports.foo = foo;

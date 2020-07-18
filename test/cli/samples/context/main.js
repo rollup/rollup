@@ -1,2 +1,2 @@
 console.log(this);
-export default 42;
+export const foo = 42;

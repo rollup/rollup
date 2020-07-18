@@ -25,6 +25,7 @@ export default {
 			format: 'cjs',
 			dir: '_actual',
 			entryFileNames: 'cjs-[name].js',
+			exports: 'auto'
 		},
 	],
 };

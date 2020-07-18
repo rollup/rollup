@@ -7,7 +7,7 @@ module.exports = {
 		assertIncludes(
 			stderr,
 			'(!) Mixing named and default exports\n' +
-				'https://rollupjs.org/guide/en/#output-exports\n' +
+				'https://rollupjs.org/guide/en/#outputexports\n' +
 				'The following entry modules are using named and default exports together:\n' +
 				'main.js\n' +
 				'lib1.js\n' +
