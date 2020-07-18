@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 2.22.0
+*2020-07-18*
+
+### Features
+* Allow resolving snythetic named exports via an arbitrary export name (#3657)
+* Display a warning when the user does not explicitly select an export mode and would generate a chunk with default export mode when targeting CommonJS (#3657)
+
+### Pull Requests
+* [#3657](https://github.com/rollup/rollup/pull/3657): Add basic support for using a non-default export for syntheticNamedExports (@lukastaegert)
+* [#3659](https://github.com/rollup/rollup/pull/3659): Warn when implicitly using default export mode (@lukastaegert)
+
 ## 2.21.0
 *2020-07-07*
 
