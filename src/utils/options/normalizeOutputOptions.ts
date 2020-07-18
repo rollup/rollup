@@ -120,7 +120,7 @@ const getFormat = (config: GenericConfigObject): InternalModuleFormat => {
 		default:
 			return error({
 				message: `You must specify "output.format", which can be one of "amd", "cjs", "system", "es", "iife" or "umd".`,
-				url: `https://rollupjs.org/guide/en/#output-format`
+				url: `https://rollupjs.org/guide/en/#outputformat`
 			});
 	}
 };

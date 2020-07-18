@@ -162,7 +162,7 @@ export function errInvalidExportOptionValue(optionValue: string) {
 	return {
 		code: Errors.INVALID_EXPORT_OPTION,
 		message: `"output.exports" must be "default", "named", "none", "auto", or left unspecified (defaults to "auto"), received "${optionValue}"`,
-		url: `https://rollupjs.org/guide/en/#output-exports`
+		url: `https://rollupjs.org/guide/en/#outputexports`
 	};
 }
 
@@ -262,7 +262,7 @@ export function errMixedExport(facadeModuleId: string, name?: string) {
 		)}" is using named and default exports together. Consumers of your bundle will have to use \`${
 			name || 'chunk'
 		}["default"]\` to access the default export, which may not be what you want. Use \`output.exports: "named"\` to disable this warning`,
-		url: `https://rollupjs.org/guide/en/#output-exports`
+		url: `https://rollupjs.org/guide/en/#outputexports`
 	};
 }
 
@@ -290,7 +290,7 @@ export function errPreferNamedExports(facadeModuleId: string) {
 		code: Errors.PREFER_NAMED_EXPORTS,
 		id: facadeModuleId,
 		message: `Entry module "${file}" is implicitly using "default" export mode, which means for CommonJS output that its default export is assigned to "module.exports". For many tools, such CommonJS output will not be interchangeable with the original ES module. If this is intended, explicitly set "output.exports" to either "auto" or "default", otherwise you might want to consider changing the signature of "${file}" to use named exports only.`,
-		url: `https://rollupjs.org/guide/en/#output-exports`
+		url: `https://rollupjs.org/guide/en/#outputexports`
 	};
 }
 

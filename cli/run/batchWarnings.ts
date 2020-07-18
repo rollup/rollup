@@ -137,7 +137,7 @@ const deferredHandlers: {
 
 	MIXED_EXPORTS: warnings => {
 		title('Mixing named and default exports');
-		info(`https://rollupjs.org/guide/en/#output-exports`);
+		info(`https://rollupjs.org/guide/en/#outputexports`);
 		stderr(bold('The following entry modules are using named and default exports together:'));
 		const displayedWarnings = warnings.length > 5 ? warnings.slice(0, 3) : warnings;
 		for (const warning of displayedWarnings) {
