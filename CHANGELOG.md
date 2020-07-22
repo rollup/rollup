@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.22.2
+*2020-07-18*
+
+### Bug Fixes
+* Always generate correct exports when an implicit entry is reexporting from another module (#3688)
+
+### Pull Requests
+* [#3688](https://github.com/rollup/rollup/pull/3688): Include all relevant modules to generate reexports for implicit dependencies (@lukastaegert)
+
 ## 2.22.1
 *2020-07-18*
 
