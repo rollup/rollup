@@ -97,7 +97,7 @@ export default function umd(
 				options.compact,
 				`${factoryVar}(${globalDeps.join(`,${_}`)})`
 			)};`;
-		} else if (namedExportsMode) {
+		} else {
 			const module = globalDeps.shift();
 			factory =
 				`var ${noConflictExportsVar}${_}=${_}${module};${n}` +
