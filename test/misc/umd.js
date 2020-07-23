@@ -3,6 +3,9 @@ const assert = require('assert');
 const { loader } = require('../utils.js');
 
 function runTestCode(code, thisValue, globals) {
+	const globalThisDesc = Object.getOwnPropertyDescriptor(global, 'globalThis');
+	delete global.globalThis;
+
 	const globalsWithAssert = Object.assign({}, globals, { assert });
 	const globalKeys = Object.keys(globalsWithAssert);
 	const fn = new Function(globalKeys, code);
@@ -10,6 +13,9 @@ function runTestCode(code, thisValue, globals) {
 		thisValue,
 		globalKeys.map(key => globalsWithAssert[key])
 	);
+	if (globalThisDesc) {
+		Object.defineProperty(global, 'globalThis', globalThisDesc);
+	}
 }
 
 function runNodeTest(code) {
@@ -57,15 +63,21 @@ function runAmdTest(code, outputOptions) {
 	return defineArgs[0].indexOf('exports') === -1 ? result : module.exports;
 }
 
-function runIifeTest(code, outputOptions) {
+function runIifeTestWithThis(code, outputOptions) {
 	const global = { external: 'external' };
 	runTestCode(code, global, {});
 	return getAndCheckIifeExports(global, outputOptions);
 }
 
-function runStrictIifeTest(code, outputOptions) {
+function runStrictIifeTestWithSelf(code, outputOptions) {
 	const global = { external: 'external' };
 	runTestCode('"use strict";' + code, undefined, { self: global });
+	return getAndCheckIifeExports(global, outputOptions);
+}
+
+function runStrictIifeTestWithGlobalThis(code, outputOptions) {
+	const global = { external: 'external' };
+	runTestCode('"use strict";' + code, undefined, { globalThis: global });
 	return getAndCheckIifeExports(global, outputOptions);
 }
 
@@ -138,12 +150,16 @@ function runTestsWithCode(code, outputOptions, expectedExports) {
 			runTest: runAmdTest
 		},
 		{
-			environmentName: 'iife',
-			runTest: runIifeTest
+			environmentName: 'iife with this',
+			runTest: runIifeTestWithThis
 		},
 		{
-			environmentName: 'strict mode iife',
-			runTest: runStrictIifeTest
+			environmentName: 'strict mode iife with self',
+			runTest: runStrictIifeTestWithSelf
+		},
+		{
+			environmentName: 'strict mode iife with globalThis',
+			runTest: runStrictIifeTestWithGlobalThis
 		},
 		{
 			environmentName: 'iife with existing globals',

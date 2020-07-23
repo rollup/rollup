@@ -1,8 +1,8 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(global = global || self, factory(global.myModule = {}));
-}(this, (function (exports) { 'use strict';
+	factory(global.myModule = {});
+}(typeof globalThis !== 'undefined' ? globalThis : this || self, (function (exports) { 'use strict';
 
 	exports.Foo = class Foo {};
 	exports.Foo = lol( exports.Foo );

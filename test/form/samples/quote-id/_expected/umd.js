@@ -5,8 +5,8 @@
 	typeof define === 'function' && define.amd ? define(['quoted\'\\
 \ \ external1', 'quoted\'\\
 \ \ external2', 'C:\\File\\Path.js'], factory) :
-	(global = global || self, factory(global.quotedExternal1, global.quotedExternal2, global.quotedExternal3));
-}(this, (function (quoted_____external1, quoted_____external2, Path_js) { 'use strict';
+	factory(global.quotedExternal1, global.quotedExternal2, global.quotedExternal3);
+}(typeof globalThis !== 'undefined' ? globalThis : this || self, (function (quoted_____external1, quoted_____external2, Path_js) { 'use strict';
 
 	console.log(quoted_____external1.foo, quoted_____external2.bar, Path_js.baz);
 
