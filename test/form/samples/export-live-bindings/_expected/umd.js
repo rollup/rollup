@@ -1,8 +1,8 @@
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
-  factory(global.iife = {});
-}(typeof globalThis !== 'undefined' ? globalThis : this || self, (function (exports) { 'use strict';
+  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.iife = {}));
+}(this, (function (exports) { 'use strict';
 
   function update () {
     exports.foo += 10;

@@ -1,8 +1,8 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	factory(global.libraryName = {});
-}(typeof globalThis !== 'undefined' ? globalThis : this || self, (function (exports) { 'use strict';
+	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.libraryName = {}));
+}(this, (function (exports) { 'use strict';
 
 	const valueOnLib = 42;
 

@@ -128,9 +128,11 @@ export default function umd(
 	const iifeNeedsGlobal =
 		hasExports || (options.noConflict === true && namedExportsMode) || globalDeps.length > 0;
 	const globalParam = iifeNeedsGlobal ? `${globalVar},${_}` : '';
-	const globalArg = iifeNeedsGlobal
-		? `typeof globalThis${_}!==${_}'undefined'${_}?${_}globalThis${_}:${_}this${_}||${_}self,${_}`
+	const globalArg = iifeNeedsGlobal ? `this,${_}` : '';
+	const iifeStart = iifeNeedsGlobal
+		? `(${globalVar}${_}=${_}typeof globalThis${_}!==${_}'undefined'${_}?${_}globalThis${_}:${_}${globalVar}${_}||${_}self,${_}`
 		: '';
+	const iifeEnd = iifeNeedsGlobal ? ')' : '';
 	const cjsIntro = iifeNeedsGlobal
 		? `${t}typeof exports${_}===${_}'object'${_}&&${_}typeof module${_}!==${_}'undefined'${_}?` +
 		  `${_}${cjsExport}${factoryVar}(${cjsDeps.join(`,${_}`)})${_}:${n}`
@@ -141,7 +143,7 @@ export default function umd(
 		`(function${_}(${globalParam}${factoryVar})${_}{${n}` +
 		cjsIntro +
 		`${t}typeof ${define}${_}===${_}'function'${_}&&${_}${define}.amd${_}?${_}${define}(${amdParams}${factoryVar})${_}:${n}` +
-		`${t}${iifeExport};${n}` +
+		`${t}${iifeStart}${iifeExport}${iifeEnd};${n}` +
 		`}(${globalArg}(function${_}(${factoryArgs.join(', ')})${_}{${useStrict}${n}`;
 
 	const wrapperOutro = n + n + '})));';
