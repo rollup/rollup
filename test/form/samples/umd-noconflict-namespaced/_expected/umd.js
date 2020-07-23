@@ -1,7 +1,7 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
-	(global = global || self, (function () {
+	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, (function () {
 		var current = global.my && global.my.name && global.my.name.spaced && global.my.name.spaced.module;
 		var exports = (global.my = global.my || {}, global.my.name = global.my.name || {}, global.my.name.spaced = global.my.name.spaced || {}, global.my.name.spaced.module = {});
 		factory(exports);

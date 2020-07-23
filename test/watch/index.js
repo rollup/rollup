@@ -1273,7 +1273,8 @@ describe('rollup.watch', () => {
 						'END',
 						() => {
 							assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-							assert.deepStrictEqual([...watchChangeIds], []);
+							// sometimes the watcher is triggered during the initial run
+							watchChangeIds.clear();
 							for (const file of watchFiles) sander.writeFileSync(file, 'changed');
 						},
 						'START',

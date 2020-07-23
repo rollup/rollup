@@ -19,7 +19,7 @@ function safeAccess(name: string, globalVar: string, _: string) {
 	const parts = name.split('.');
 
 	let acc = globalVar;
-	return parts.map(part => ((acc += property(part)), acc)).join(`${_}&&${_}`);
+	return parts.map(part => (acc += property(part))).join(`${_}&&${_}`);
 }
 
 export default function umd(
@@ -97,7 +97,7 @@ export default function umd(
 				options.compact,
 				`${factoryVar}(${globalDeps.join(`,${_}`)})`
 			)};`;
-		} else if (namedExportsMode) {
+		} else {
 			const module = globalDeps.shift();
 			factory =
 				`var ${noConflictExportsVar}${_}=${_}${module};${n}` +
@@ -129,7 +129,9 @@ export default function umd(
 		hasExports || (options.noConflict === true && namedExportsMode) || globalDeps.length > 0;
 	const globalParam = iifeNeedsGlobal ? `${globalVar},${_}` : '';
 	const globalArg = iifeNeedsGlobal ? `this,${_}` : '';
-	const iifeStart = iifeNeedsGlobal ? `(${globalVar}${_}=${_}${globalVar}${_}||${_}self,${_}` : '';
+	const iifeStart = iifeNeedsGlobal
+		? `(${globalVar}${_}=${_}typeof globalThis${_}!==${_}'undefined'${_}?${_}globalThis${_}:${_}${globalVar}${_}||${_}self,${_}`
+		: '';
 	const iifeEnd = iifeNeedsGlobal ? ')' : '';
 	const cjsIntro = iifeNeedsGlobal
 		? `${t}typeof exports${_}===${_}'object'${_}&&${_}typeof module${_}!==${_}'undefined'${_}?` +
