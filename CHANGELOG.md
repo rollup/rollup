@@ -1,7 +1,16 @@
 # rollup changelog
 
+## 2.23.0
+*2020-07-23*
+
+### Features
+* Handle environments with only globalThis in UMD output (#3691)
+
+### Pull Requests
+* [#3691](https://github.com/rollup/rollup/pull/3691): Check for globalThis in UMD wrapper (@lukastaegert)
+
 ## 2.22.2
-*2020-07-18*
+*2020-07-21*
 
 ### Bug Fixes
 * Always generate correct exports when an implicit entry is reexporting from another module (#3688)
