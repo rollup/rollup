@@ -81,7 +81,7 @@ The `inputOptions` object can contain the following properties (see the [big lis
 const inputOptions = {
   // core input options
   external,
-  input, // required
+  input, // condtionally required
   plugins,
 
   // advanced input options
