@@ -91,6 +91,8 @@ export default {
 };
 ```
 
+The option can be omitted if some plugin emits at least one chunk (using [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string)) by the end of the [`buildStart`](guide/en/#buildstart) hook.
+
 When using the command line interface, multiple inputs can be provided by using the option multiple times. When provided as the first options, it is equivalent to not prefix them with `--input`:
 
 ```sh

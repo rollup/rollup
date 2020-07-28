@@ -30,7 +30,7 @@ Config files support the options listed below. Consult the [big list of options]
 export default { // can be an array (for multiple inputs)
   // core input options
   external,
-  input, // required
+  input, // conditionally required
   plugins,
 
   // advanced input options
