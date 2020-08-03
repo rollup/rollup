@@ -1,10 +1,11 @@
 import MagicString from 'magic-string';
 import ExternalModule from '../../ExternalModule';
 import Module from '../../Module';
-import { NormalizedOutputOptions } from '../../rollup/types';
+import { InternalModuleFormat, NormalizedOutputOptions } from '../../rollup/types';
 import { findFirstOccurrenceOutsideComment, RenderOptions } from '../../utils/renderHelpers';
 import { INTEROP_NAMESPACE_VARIABLE } from '../../utils/variableNames';
 import { InclusionContext } from '../ExecutionContext';
+import ChildScope from '../scopes/ChildScope';
 import NamespaceVariable from '../variables/NamespaceVariable';
 import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
@@ -14,7 +15,7 @@ interface DynamicImportMechanism {
 	right: string;
 }
 
-export default class Import extends NodeBase {
+export default class ImportExpression extends NodeBase {
 	inlineNamespace: NamespaceVariable | null = null;
 	source!: ExpressionNode;
 	type!: NodeType.tImportExpression;
@@ -82,20 +83,18 @@ export default class Import extends NodeBase {
 
 	setExternalResolution(
 		exportMode: 'none' | 'named' | 'default' | 'auto',
-		resolution: Module | ExternalModule | string | null
+		resolution: Module | ExternalModule | string | null,
+		format: InternalModuleFormat,
+		accessedGlobalsByScope: Map<ChildScope, Set<string>>
 	): void {
 		this.exportMode = exportMode;
 		this.resolution = resolution;
-		this.scope.addAccessedGlobalsByFormat({
-			amd: ['require'],
-			cjs: ['require'],
-			system: ['module']
-		});
+		const accessedGlobals = [...(accessedImportGlobals[format] || [])];
 		if (exportMode === 'auto') {
-			this.scope.addAccessedGlobalsByFormat({
-				amd: [INTEROP_NAMESPACE_VARIABLE],
-				cjs: [INTEROP_NAMESPACE_VARIABLE]
-			});
+			accessedGlobals.push(...(accessedInteropGlobals[format] || []));
+		}
+		if (accessedGlobals.length > 0) {
+			this.scope.addAccessedGlobals(accessedGlobals, accessedGlobalsByScope);
 		}
 	}
 
@@ -170,3 +169,14 @@ export default class Import extends NodeBase {
 		return null;
 	}
 }
+
+const accessedImportGlobals: Record<string, string[]> = {
+	amd: ['require'],
+	cjs: ['require'],
+	system: ['module']
+};
+
+const accessedInteropGlobals: Record<string, string[]> = {
+	amd: [INTEROP_NAMESPACE_VARIABLE],
+	cjs: [INTEROP_NAMESPACE_VARIABLE]
+};

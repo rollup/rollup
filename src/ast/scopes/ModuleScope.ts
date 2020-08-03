@@ -35,9 +35,14 @@ export default class ModuleScope extends ChildScope {
 		}
 	}
 
-	deconflict(format: InternalModuleFormat, exportNamesByVariable: Map<Variable, string[]>) {
+	deconflict(
+		format: InternalModuleFormat,
+		exportNamesByVariable: Map<Variable, string[]>,
+		accessedGlobalsByScope: Map<ChildScope, Set<string>>
+	) {
 		// all module level variables are already deconflicted when deconflicting the chunk
-		for (const scope of this.children) scope.deconflict(format, exportNamesByVariable);
+		for (const scope of this.children)
+			scope.deconflict(format, exportNamesByVariable, accessedGlobalsByScope);
 	}
 
 	findLexicalBoundary() {

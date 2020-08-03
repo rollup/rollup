@@ -6,8 +6,8 @@ import Variable from '../variables/Variable';
 import Scope from './Scope';
 
 export default class ChildScope extends Scope {
+	// TODO Lukas which need to be public?
 	accessedDynamicImports?: Set<ImportExpression>;
-	accessedGlobalVariablesByFormat?: Map<string, Set<string>>;
 	accessedOutsideVariables = new Map<string, Variable>();
 	parent: Scope;
 
@@ -26,21 +26,14 @@ export default class ChildScope extends Scope {
 		}
 	}
 
-	addAccessedGlobalsByFormat(globalsByFormat: { [format: string]: string[] }) {
-		const accessedGlobalVariablesByFormat =
-			this.accessedGlobalVariablesByFormat || (this.accessedGlobalVariablesByFormat = new Map());
-		for (const format of Object.keys(globalsByFormat)) {
-			let accessedGlobalVariables = accessedGlobalVariablesByFormat.get(format);
-			if (!accessedGlobalVariables) {
-				accessedGlobalVariables = new Set();
-				accessedGlobalVariablesByFormat.set(format, accessedGlobalVariables);
-			}
-			for (const name of globalsByFormat[format]) {
-				accessedGlobalVariables.add(name);
-			}
+	addAccessedGlobals(globals: string[], accessedGlobalsByScope: Map<ChildScope, Set<string>>) {
+		const accessedGlobals = accessedGlobalsByScope.get(this) || new Set();
+		for (const name of globals) {
+			accessedGlobals.add(name);
 		}
+		accessedGlobalsByScope.set(this, accessedGlobals);
 		if (this.parent instanceof ChildScope) {
-			this.parent.addAccessedGlobalsByFormat(globalsByFormat);
+			this.parent.addAccessedGlobals(globals, accessedGlobalsByScope);
 		}
 	}
 
@@ -56,7 +49,8 @@ export default class ChildScope extends Scope {
 	addUsedOutsideNames(
 		usedNames: Set<string>,
 		format: InternalModuleFormat,
-		exportNamesByVariable: Map<Variable, string[]>
+		exportNamesByVariable: Map<Variable, string[]>,
+		accessedGlobalsByScope: Map<ChildScope, Set<string>>
 	): void {
 		for (const variable of this.accessedOutsideVariables.values()) {
 			if (variable.included) {
@@ -66,10 +60,9 @@ export default class ChildScope extends Scope {
 				}
 			}
 		}
-		const accessedGlobalVariables =
-			this.accessedGlobalVariablesByFormat && this.accessedGlobalVariablesByFormat.get(format);
-		if (accessedGlobalVariables) {
-			for (const name of accessedGlobalVariables) {
+		const accessedGlobals = accessedGlobalsByScope.get(this);
+		if (accessedGlobals) {
+			for (const name of accessedGlobals) {
 				usedNames.add(name);
 			}
 		}
@@ -79,9 +72,13 @@ export default class ChildScope extends Scope {
 		return this.variables.has(name) || this.parent.contains(name);
 	}
 
-	deconflict(format: InternalModuleFormat, exportNamesByVariable: Map<Variable, string[]>) {
+	deconflict(
+		format: InternalModuleFormat,
+		exportNamesByVariable: Map<Variable, string[]>,
+		accessedGlobalsByScope: Map<ChildScope, Set<string>>
+	) {
 		const usedNames = new Set<string>();
-		this.addUsedOutsideNames(usedNames, format, exportNamesByVariable);
+		this.addUsedOutsideNames(usedNames, format, exportNamesByVariable, accessedGlobalsByScope);
 		if (this.accessedDynamicImports) {
 			for (const importExpression of this.accessedDynamicImports) {
 				if (importExpression.inlineNamespace) {
@@ -95,7 +92,7 @@ export default class ChildScope extends Scope {
 			}
 		}
 		for (const scope of this.children) {
-			scope.deconflict(format, exportNamesByVariable);
+			scope.deconflict(format, exportNamesByVariable, accessedGlobalsByScope);
 		}
 	}
 

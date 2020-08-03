@@ -2,6 +2,7 @@ import MagicString, { Bundle as MagicStringBundle, SourceMap } from 'magic-strin
 import { relative } from '../browser/path';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
+import ChildScope from './ast/scopes/ChildScope';
 import { UNDEFINED_EXPRESSION } from './ast/values';
 import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
 import ExportShimVariable from './ast/variables/ExportShimVariable';
@@ -165,12 +166,13 @@ export default class Chunk {
 	suggestedVariableName: string;
 	variableName = '';
 
+	private accessedGlobalsByScope = new Map<ChildScope, Set<string>>();
 	private dependencies = new Set<ExternalModule | Chunk>();
 	private dynamicDependencies = new Set<ExternalModule | Chunk>();
 	private dynamicEntryModules: Module[] = [];
-	private exportNamesByVariable: Map<Variable, string[]> | null = null;
+	private exportNamesByVariable = new Map<Variable, string[]>();
 	private exports = new Set<Variable>();
-	private exportsByName: Record<string, Variable> | null = null;
+	private exportsByName: Record<string, Variable> = Object.create(null);
 	private fileName: string | null = null;
 	private implicitEntryModules: Module[] = [];
 	private implicitlyLoadedBefore = new Set<Chunk>();
@@ -185,9 +187,9 @@ export default class Chunk {
 	> | null = null;
 	private renderedExports: ChunkExports | null = null;
 	private renderedHash: string = undefined as any;
-	private renderedModules?: {
+	private renderedModules: {
 		[moduleId: string]: RenderedModule;
-	};
+	} = Object.create(null);
 	private renderedModuleSources = new Map<Module, MagicString>();
 	private renderedSource: MagicStringBundle | null = null;
 	private sortedExportNames: string[] | null = null;
@@ -266,8 +268,6 @@ export default class Chunk {
 
 	generateExports() {
 		this.sortedExportNames = null;
-		this.exportsByName = Object.create(null);
-		this.exportNamesByVariable = new Map();
 		const remainingExports = new Set(this.exports);
 		if (
 			this.facadeModule !== null &&
@@ -277,19 +277,15 @@ export default class Chunk {
 			for (const [variable, exportNames] of exportNamesByVariable) {
 				this.exportNamesByVariable.set(variable, [...exportNames]);
 				for (const exportName of exportNames) {
-					this.exportsByName![exportName] = variable;
+					this.exportsByName[exportName] = variable;
 				}
 				remainingExports.delete(variable);
 			}
 		}
 		if (this.outputOptions.minifyInternalExports) {
-			assignExportsToMangledNames(
-				remainingExports,
-				this.exportsByName!,
-				this.exportNamesByVariable
-			);
+			assignExportsToMangledNames(remainingExports, this.exportsByName, this.exportNamesByVariable);
 		} else {
-			assignExportsToNames(remainingExports, this.exportsByName!, this.exportNamesByVariable);
+			assignExportsToNames(remainingExports, this.exportsByName, this.exportNamesByVariable);
 		}
 		if (this.outputOptions.preserveModules || (this.facadeModule && this.facadeModule.isEntryPoint))
 			this.exportMode = getExportMode(
@@ -453,7 +449,7 @@ export default class Chunk {
 			isDynamicEntry: this.dynamicEntryModules.length > 0,
 			isEntry: facadeModule !== null && facadeModule.isEntryPoint,
 			isImplicitEntry: this.implicitEntryModules.length > 0,
-			modules: this.renderedModules!,
+			modules: this.renderedModules,
 			get name() {
 				return getChunkName();
 			},
@@ -479,7 +475,7 @@ export default class Chunk {
 
 	getExportNames(): string[] {
 		return (
-			this.sortedExportNames || (this.sortedExportNames = Object.keys(this.exportsByName!).sort())
+			this.sortedExportNames || (this.sortedExportNames = Object.keys(this.exportsByName).sort())
 		);
 	}
 
@@ -502,7 +498,7 @@ export default class Chunk {
 		hash.update(
 			this.getExportNames()
 				.map(exportName => {
-					const variable = this.exportsByName![exportName];
+					const variable = this.exportsByName[exportName];
 					return `${relativeId((variable.module as Module).id).replace(/\\/g, '/')}:${
 						variable.name
 					}:${exportName}`;
@@ -516,7 +512,7 @@ export default class Chunk {
 		if (this.outputOptions.preserveModules && variable instanceof NamespaceVariable) {
 			return '*';
 		}
-		return this.exportNamesByVariable!.get(variable)![0];
+		return this.exportNamesByVariable.get(variable)![0];
 	}
 
 	link() {
@@ -540,7 +536,7 @@ export default class Chunk {
 		const renderOptions: RenderOptions = {
 			compact: options.compact,
 			dynamicImportFunction: options.dynamicImportFunction,
-			exportNamesByVariable: this.exportNamesByVariable!,
+			exportNamesByVariable: this.exportNamesByVariable,
 			format: options.format,
 			freeze: options.freeze,
 			indent: this.indentString,
@@ -563,11 +559,11 @@ export default class Chunk {
 		sortByExecutionOrder(sortedDependencies);
 		this.dependencies = new Set(sortedDependencies);
 
-		this.prepareDynamicImports();
+		this.prepareDynamicImportsAndImportMetas();
 		this.setIdentifierRenderResolutions(options);
 
 		let hoistedSource = '';
-		const renderedModules = (this.renderedModules = Object.create(null));
+		const renderedModules = this.renderedModules;
 
 		for (const module of this.orderedModules) {
 			let renderedLength = 0;
@@ -669,9 +665,7 @@ export default class Chunk {
 			if (module.usesTopLevelAwait) {
 				usesTopLevelAwait = true;
 			}
-			const accessedGlobalVariablesByFormat = module.scope.accessedGlobalVariablesByFormat;
-			const accessedGlobalVariables =
-				accessedGlobalVariablesByFormat && accessedGlobalVariablesByFormat.get(format);
+			const accessedGlobalVariables = this.accessedGlobalsByScope.get(module.scope);
 			if (accessedGlobalVariables) {
 				for (const name of accessedGlobalVariables) {
 					accessedGlobals.add(name);
@@ -861,7 +855,7 @@ export default class Chunk {
 					renderedResolution,
 					resolution instanceof Module &&
 						!facadeChunk?.strictFacade &&
-						chunk!.exportNamesByVariable!.get(resolution.namespace)![0],
+						chunk!.exportNamesByVariable.get(resolution.namespace)![0],
 					options
 				);
 			}
@@ -905,7 +899,7 @@ export default class Chunk {
 				exportChunk = this.modulesById.get(exportName.substr(1)) as ExternalModule;
 				importName = exportName = '*';
 			} else {
-				const variable = this.exportsByName![exportName];
+				const variable = this.exportsByName[exportName];
 				if (variable instanceof SyntheticNamedExportVariable) continue;
 				const module = variable.module!;
 				if (module instanceof Module) {
@@ -979,7 +973,7 @@ export default class Chunk {
 		for (const exportName of this.getExportNames()) {
 			if (exportName[0] === '*') continue;
 
-			const variable = this.exportsByName![exportName];
+			const variable = this.exportsByName[exportName];
 			if (!(variable instanceof SyntheticNamedExportVariable)) {
 				const module = variable.module;
 				if (module && this.chunkByModule.get(module as Module) !== this) continue;
@@ -1030,7 +1024,7 @@ export default class Chunk {
 		const deconflictedDefault = new Set<ExternalModule>();
 		const deconflictedNamespace = new Set<ExternalModule>();
 		if (addDependencies) {
-			for (const variable of [...this.exportNamesByVariable!.keys(), ...this.imports]) {
+			for (const variable of [...this.exportNamesByVariable.keys(), ...this.imports]) {
 				if (addNonNamespaces || variable.isNamespace) {
 					const module = variable.module!;
 					if (module instanceof ExternalModule) {
@@ -1102,22 +1096,32 @@ export default class Chunk {
 		}
 	}
 
-	private prepareDynamicImports() {
+	private prepareDynamicImportsAndImportMetas() {
+		const { format } = this.outputOptions;
+		const accessedGlobalsByScope = this.accessedGlobalsByScope;
 		for (const module of this.orderedModules) {
 			for (const { node, resolution } of module.dynamicImports) {
-				if (!node.included) continue;
-				if (resolution instanceof Module) {
-					const chunk = this.chunkByModule.get(resolution);
-					if (chunk === this) {
-						node.setInternalResolution(resolution.namespace);
+				if (node.included) {
+					if (resolution instanceof Module) {
+						const chunk = this.chunkByModule.get(resolution);
+						if (chunk === this) {
+							node.setInternalResolution(resolution.namespace);
+						} else {
+							node.setExternalResolution(
+								this.facadeChunkByModule.get(resolution)?.exportMode || chunk!.exportMode,
+								resolution,
+								format,
+								accessedGlobalsByScope
+							);
+						}
 					} else {
-						node.setExternalResolution(
-							this.facadeChunkByModule.get(resolution)?.exportMode || chunk!.exportMode,
-							resolution
-						);
+						node.setExternalResolution('auto', resolution, format, accessedGlobalsByScope);
 					}
-				} else {
-					node.setExternalResolution('auto', resolution);
+				}
+			}
+			for (const importMeta of module.importMetas) {
+				if (importMeta.included) {
+					importMeta.addAccessedGlobals(format, accessedGlobalsByScope);
 				}
 			}
 		}
@@ -1134,7 +1138,7 @@ export default class Chunk {
 	private setIdentifierRenderResolutions({ format, interop }: NormalizedOutputOptions) {
 		const syntheticExports = new Set<SyntheticNamedExportVariable>();
 		for (const exportName of this.getExportNames()) {
-			const exportVariable = this.exportsByName![exportName];
+			const exportVariable = this.exportsByName[exportName];
 			if (exportVariable instanceof ExportShimVariable) {
 				this.needsExportsShim = true;
 			}
@@ -1184,7 +1188,8 @@ export default class Chunk {
 			this.outputOptions.preserveModules,
 			this.chunkByModule,
 			syntheticExports,
-			this.exportNamesByVariable!
+			this.exportNamesByVariable,
+			this.accessedGlobalsByScope
 		);
 	}
 

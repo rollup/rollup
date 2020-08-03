@@ -1,3 +1,4 @@
+import ChildScope from '../ast/scopes/ChildScope';
 import ExportDefaultVariable from '../ast/variables/ExportDefaultVariable';
 import SyntheticNamedExportVariable from '../ast/variables/SyntheticNamedExportVariable';
 import Variable from '../ast/variables/Variable';
@@ -42,10 +43,16 @@ export function deconflictChunk(
 	preserveModules: boolean,
 	chunkByModule: Map<Module, Chunk>,
 	syntheticExports: Set<SyntheticNamedExportVariable>,
-	exportNamesByVariable: Map<Variable, string[]>
+	exportNamesByVariable: Map<Variable, string[]>,
+	accessedGlobalsByScope: Map<ChildScope, Set<string>>
 ) {
 	for (const module of modules) {
-		module.scope.addUsedOutsideNames(usedNames, format, exportNamesByVariable);
+		module.scope.addUsedOutsideNames(
+			usedNames,
+			format,
+			exportNamesByVariable,
+			accessedGlobalsByScope
+		);
 	}
 	deconflictTopLevelVariables(usedNames, modules);
 	DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT[format](
@@ -59,7 +66,7 @@ export function deconflictChunk(
 	);
 
 	for (const module of modules) {
-		module.scope.deconflict(format, exportNamesByVariable);
+		module.scope.deconflict(format, exportNamesByVariable, accessedGlobalsByScope);
 	}
 }
 
