@@ -26,16 +26,16 @@ function _interopNamespace(e) {
 	}
 }
 
-var externalAll__ns = /*#__PURE__*/_interopNamespace(externalAll);
-var externalDefaultNamespace__ns = /*#__PURE__*/_interopNamespace(externalDefaultNamespace);
-var externalNamedNamespace__ns = /*#__PURE__*/_interopNamespace(externalNamedNamespace);
-var externalNamespace__ns$1 = /*#__PURE__*/_interopNamespace(externalNamespace$1);
+var externalAll__namespace = /*#__PURE__*/_interopNamespace(externalAll);
+var externalDefaultNamespace__namespace = /*#__PURE__*/_interopNamespace(externalDefaultNamespace);
+var externalNamedNamespace__namespace = /*#__PURE__*/_interopNamespace(externalNamedNamespace);
+var externalNamespace__namespace = /*#__PURE__*/_interopNamespace(externalNamespace$1);
 
 const externalNamespace = 1;
 const externalNamespace__ns = 1;
 console.log(externalNamespace, externalNamespace__ns);
 
-exports.foo = externalAll__ns;
-exports.baz = externalDefaultNamespace__ns;
-exports.quux = externalNamedNamespace__ns;
-exports.bar = externalNamespace__ns$1;
+exports.foo = externalAll__namespace;
+exports.baz = externalDefaultNamespace__namespace;
+exports.quux = externalNamedNamespace__namespace;
+exports.bar = externalNamespace__namespace;

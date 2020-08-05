@@ -23,8 +23,8 @@ function _interopNamespace(e) {
 	}
 }
 
-var highcharts__ns = /*#__PURE__*/_interopNamespace(highcharts);
+var highcharts__namespace = /*#__PURE__*/_interopNamespace(highcharts);
 
 
 
-exports.Highcharts = highcharts__ns;
+exports.Highcharts = highcharts__namespace;

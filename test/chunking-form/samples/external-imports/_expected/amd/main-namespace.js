@@ -19,11 +19,11 @@ define(['external-all', 'external-default-namespace', 'external-named-namespace'
 		}
 	}
 
-	var foo__ns = /*#__PURE__*/_interopNamespace(foo);
-	var quux__ns = /*#__PURE__*/_interopNamespace(quux);
-	var quux__ns$1 = /*#__PURE__*/_interopNamespace(quux$1);
-	var bar__ns = /*#__PURE__*/_interopNamespace(bar);
+	var foo__namespace = /*#__PURE__*/_interopNamespace(foo);
+	var quux__namespace = /*#__PURE__*/_interopNamespace(quux);
+	var quux__namespace$1 = /*#__PURE__*/_interopNamespace(quux$1);
+	var bar__namespace = /*#__PURE__*/_interopNamespace(bar);
 
-	console.log(foo__ns, bar__ns, quux__ns, quux__ns$1);
+	console.log(foo__namespace, bar__namespace, quux__namespace, quux__namespace$1);
 
 });

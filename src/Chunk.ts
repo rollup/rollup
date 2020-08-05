@@ -15,6 +15,7 @@ import finalisers from './finalisers/index';
 import Module from './Module';
 import {
 	DecodedSourceMapOrMissing,
+	GetInterop,
 	GlobalsOption,
 	InternalModuleFormat,
 	NormalizedInputOptions,
@@ -36,6 +37,11 @@ import getExportMode from './utils/getExportMode';
 import { getId } from './utils/getId';
 import getIndentString from './utils/getIndentString';
 import { makeLegal } from './utils/identifierHelpers';
+import {
+	defaultInteropHelpersByInteropType,
+	defaultIsPropertyByInteropType,
+	namespaceInteropHelpersByInteropType
+} from './utils/interopHelpers';
 import { basename, dirname, extname, isAbsolute, normalize, resolve } from './utils/path';
 import { PluginDriver } from './utils/PluginDriver';
 import relativeId, { getAliasName } from './utils/relativeId';
@@ -910,7 +916,10 @@ export default class Chunk {
 				} else {
 					exportChunk = module;
 					importName = variable.name;
-					needsLiveBinding = options.externalLiveBindings;
+					needsLiveBinding =
+						importName === 'default'
+							? defaultIsPropertyByInteropType[String(this.outputOptions.interop(module.id))]
+							: options.externalLiveBindings;
 				}
 			}
 			let reexportDeclaration = reexportDeclarations.get(exportChunk);
@@ -1017,7 +1026,7 @@ export default class Chunk {
 	private getDependenciesToBeDeconflicted(
 		addDependencies: boolean,
 		addNonNamespaces: boolean,
-		addDefaultsAndNamespaces: boolean,
+		interop: GetInterop,
 		addDependenciesWithoutBindings: boolean
 	): DependenciesToBeDeconflicted {
 		const dependencies = new Set<Chunk | ExternalModule>();
@@ -1029,10 +1038,12 @@ export default class Chunk {
 					const module = variable.module!;
 					if (module instanceof ExternalModule) {
 						dependencies.add(module);
-						if (addDefaultsAndNamespaces) {
-							if (variable.name === 'default') {
+						if (variable.name === 'default') {
+							if (defaultInteropHelpersByInteropType[String(interop(module.id))]) {
 								deconflictedDefault.add(module);
-							} else if (variable.name === '*') {
+							}
+						} else if (variable.name === '*') {
+							if (namespaceInteropHelpersByInteropType[String(interop(module.id))]) {
 								deconflictedNamespace.add(module);
 							}
 						}
@@ -1097,7 +1108,6 @@ export default class Chunk {
 	}
 
 	private prepareDynamicImportsAndImportMetas() {
-		const { format } = this.outputOptions;
 		const accessedGlobalsByScope = this.accessedGlobalsByScope;
 		for (const module of this.orderedModules) {
 			for (const { node, resolution } of module.dynamicImports) {
@@ -1110,18 +1120,23 @@ export default class Chunk {
 							node.setExternalResolution(
 								this.facadeChunkByModule.get(resolution)?.exportMode || chunk!.exportMode,
 								resolution,
-								format,
+								this.outputOptions,
 								accessedGlobalsByScope
 							);
 						}
 					} else {
-						node.setExternalResolution('auto', resolution, format, accessedGlobalsByScope);
+						node.setExternalResolution(
+							'auto',
+							resolution,
+							this.outputOptions,
+							accessedGlobalsByScope
+						);
 					}
 				}
 			}
 			for (const importMeta of module.importMetas) {
 				if (importMeta.included) {
-					importMeta.addAccessedGlobals(format, accessedGlobalsByScope);
+					importMeta.addAccessedGlobals(this.outputOptions.format, accessedGlobalsByScope);
 				}
 			}
 		}

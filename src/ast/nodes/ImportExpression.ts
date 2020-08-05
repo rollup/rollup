@@ -1,9 +1,9 @@
 import MagicString from 'magic-string';
 import ExternalModule from '../../ExternalModule';
 import Module from '../../Module';
-import { InternalModuleFormat, NormalizedOutputOptions } from '../../rollup/types';
+import { NormalizedOutputOptions } from '../../rollup/types';
+import { namespaceInteropHelpersByInteropType } from '../../utils/interopHelpers';
 import { findFirstOccurrenceOutsideComment, RenderOptions } from '../../utils/renderHelpers';
-import { INTEROP_NAMESPACE_VARIABLE } from '../../utils/variableNames';
 import { InclusionContext } from '../ExecutionContext';
 import ChildScope from '../scopes/ChildScope';
 import NamespaceVariable from '../variables/NamespaceVariable';
@@ -21,6 +21,7 @@ export default class ImportExpression extends NodeBase {
 	type!: NodeType.tImportExpression;
 
 	private exportMode: 'none' | 'named' | 'default' | 'auto' = 'auto';
+	private interopHelper: string | null = null;
 	private resolution: Module | ExternalModule | string | null = null;
 
 	hasEffects(): boolean {
@@ -52,6 +53,7 @@ export default class ImportExpression extends NodeBase {
 			return;
 		}
 
+		// TODO Lukas if we can move this before the deconflicting, we might allow the user to add additional globals
 		const importMechanism = this.getDynamicImportMechanism(options);
 		if (importMechanism) {
 			code.overwrite(
@@ -84,14 +86,21 @@ export default class ImportExpression extends NodeBase {
 	setExternalResolution(
 		exportMode: 'none' | 'named' | 'default' | 'auto',
 		resolution: Module | ExternalModule | string | null,
-		format: InternalModuleFormat,
+		options: NormalizedOutputOptions,
 		accessedGlobalsByScope: Map<ChildScope, Set<string>>
 	): void {
+		const { format, interop } = options;
 		this.exportMode = exportMode;
 		this.resolution = resolution;
 		const accessedGlobals = [...(accessedImportGlobals[format] || [])];
-		if (exportMode === 'auto') {
-			accessedGlobals.push(...(accessedInteropGlobals[format] || []));
+		if (exportMode === 'auto' && (format === 'cjs' || format === 'amd')) {
+			const helper = (this.interopHelper =
+				namespaceInteropHelpersByInteropType[
+					String(interop(resolution instanceof ExternalModule ? resolution.id : null))
+				]);
+			if (helper) {
+				accessedGlobals.push(helper);
+			}
 		}
 		if (accessedGlobals.length > 0) {
 			this.scope.addAccessedGlobals(accessedGlobals, accessedGlobalsByScope);
@@ -120,23 +129,20 @@ export default class ImportExpression extends NodeBase {
 				const _ = options.compact ? '' : ' ';
 				const s = options.compact ? '' : ';';
 				const leftStart = `Promise.resolve().then(function${_}()${_}{${_}return`;
-				switch (this.exportMode) {
-					case 'default':
-						return {
+				return this.exportMode === 'default'
+					? {
 							left: `${leftStart}${_}{${_}'default':${_}require(`,
 							right: `)${_}}${s}${_}})`
-						};
-					case 'auto':
-						return {
-							left: `${leftStart} ${INTEROP_NAMESPACE_VARIABLE}(require(`,
+					  }
+					: this.exportMode === 'auto' && this.interopHelper
+					? {
+							left: `${leftStart} ${this.interopHelper}(require(`,
 							right: `))${s}${_}})`
-						};
-					default:
-						return {
+					  }
+					: {
 							left: `${leftStart} require(`,
 							right: `)${s}${_}})`
-						};
-				}
+					  };
 			}
 			case 'amd': {
 				const _ = options.compact ? '' : ' ';
@@ -145,8 +151,8 @@ export default class ImportExpression extends NodeBase {
 				const resolveNamespace =
 					this.exportMode === 'default'
 						? `function${_}(m)${_}{${_}${resolve}({${_}'default':${_}m${_}});${_}}`
-						: this.exportMode === 'auto'
-						? `function${_}(m)${_}{${_}${resolve}(/*#__PURE__*/${INTEROP_NAMESPACE_VARIABLE}(m));${_}}`
+						: this.exportMode === 'auto' && this.interopHelper
+						? `function${_}(m)${_}{${_}${resolve}(/*#__PURE__*/${this.interopHelper}(m));${_}}`
 						: resolve;
 				return {
 					left: `new Promise(function${_}(${resolve},${_}${reject})${_}{${_}require([`,
@@ -174,9 +180,4 @@ const accessedImportGlobals: Record<string, string[]> = {
 	amd: ['require'],
 	cjs: ['require'],
 	system: ['module']
-};
-
-const accessedInteropGlobals: Record<string, string[]> = {
-	amd: [INTEROP_NAMESPACE_VARIABLE],
-	cjs: [INTEROP_NAMESPACE_VARIABLE]
 };

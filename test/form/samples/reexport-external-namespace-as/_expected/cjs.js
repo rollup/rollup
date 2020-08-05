@@ -23,9 +23,9 @@ function _interopNamespace(e) {
 	}
 }
 
-var external__ns = /*#__PURE__*/_interopNamespace(external);
+var external__namespace = /*#__PURE__*/_interopNamespace(external);
 
 
 
-exports.external = external__ns;
-exports.indirect = external__ns;
+exports.external = external__namespace;
+exports.indirect = external__namespace;

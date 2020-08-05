@@ -19,7 +19,7 @@
 	const URL$1 = 1;
 	console.log(_interopDefault$1, _interopNamespace, module, require$1, exports$1, document$1, URL$1);
 
-	import('external');
+	import('external').then(console.log);
 	exports.default = 0;
 	console.log((typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __filename).href : (document.currentScript && document.currentScript.src || new URL('umd.js', document.baseURI).href)));
 
@@ -33,7 +33,7 @@
 		const URL$1 = 1;
 		console.log(_interopDefault, _interopNamespace, module, require$1, exports$1, document$1, URL$1);
 
-		import('external');
+		import('external').then(console.log);
 		exports.default = 1;
 		console.log((typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __filename).href : (document.currentScript && document.currentScript.src || new URL('umd.js', document.baseURI).href)));
 	}

@@ -23,9 +23,9 @@
 		}
 	}
 
-	var foo__ns = /*#__PURE__*/_interopNamespace(foo);
+	var foo__namespace = /*#__PURE__*/_interopNamespace(foo);
 
-	console.log(foo__ns);
+	console.log(foo__namespace);
 	console.log(foo.blah);
 	console.log(foo.bar);
 

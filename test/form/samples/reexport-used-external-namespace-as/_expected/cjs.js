@@ -24,10 +24,10 @@ function _interopNamespace(e) {
 	}
 }
 
-var imported1__ns = /*#__PURE__*/_interopNamespace(imported1);
-var external2__ns = /*#__PURE__*/_interopNamespace(external2);
+var imported1__namespace = /*#__PURE__*/_interopNamespace(imported1);
+var external2__namespace = /*#__PURE__*/_interopNamespace(external2);
 
-console.log(imported1__ns, external2.imported2);
+console.log(imported1__namespace, external2.imported2);
 
-exports.external1 = imported1__ns;
-exports.external2 = external2__ns;
+exports.external1 = imported1__namespace;
+exports.external2 = external2__namespace;

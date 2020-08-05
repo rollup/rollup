@@ -19,11 +19,11 @@ define(['exports', 'external-package'], function (exports, externalPackage) { 'u
 		}
 	}
 
-	var externalPackage__ns = /*#__PURE__*/_interopNamespace(externalPackage);
+	var externalPackage__namespace = /*#__PURE__*/_interopNamespace(externalPackage);
 
 
 
-	exports.ext = externalPackage__ns;
+	exports.ext = externalPackage__namespace;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

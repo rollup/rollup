@@ -2,12 +2,7 @@ define(['exports', 'external'], function (exports, external) { 'use strict';
 
 
 
-	Object.defineProperty(exports, 'p', {
-		enumerable: true,
-		get: function () {
-			return external['default'];
-		}
-	});
+	exports.p = external;
 	Object.defineProperty(exports, 'q', {
 		enumerable: true,
 		get: function () {

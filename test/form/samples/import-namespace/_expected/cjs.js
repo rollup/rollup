@@ -22,7 +22,7 @@ function _interopNamespace(e) {
 	}
 }
 
-var bar__ns = /*#__PURE__*/_interopNamespace(bar);
+var bar__namespace = /*#__PURE__*/_interopNamespace(bar);
 
 foo.x();
-console.log(bar__ns);
+console.log(bar__namespace);

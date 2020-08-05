@@ -19,17 +19,17 @@ define(['exports', 'external1', 'external2'], function (exports, external1, exte
 		}
 	}
 
-	var external1__ns = /*#__PURE__*/_interopNamespace(external1);
-	var external2__ns = /*#__PURE__*/_interopNamespace(external2);
+	var external1__namespace = /*#__PURE__*/_interopNamespace(external1);
+	var external2__namespace = /*#__PURE__*/_interopNamespace(external2);
 
-	var reexportExternal = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), external1__ns));
+	var reexportExternal = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), external1__namespace));
 
 	const extra = 'extra';
 
 	const override = 'override';
 	var reexportExternalsWithOverride = { synthetic: 'synthetic' };
 
-	var reexportExternalsWithOverride$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), external1__ns, external2__ns, reexportExternalsWithOverride, {
+	var reexportExternalsWithOverride$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), external1__namespace, external2__namespace, reexportExternalsWithOverride, {
 		override: override,
 		'default': reexportExternalsWithOverride,
 		extra: extra

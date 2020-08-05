@@ -19,7 +19,7 @@ define(['exports', 'external1', 'external2'], function (exports, external1, exte
 		}
 	}
 
-	var external2__ns = /*#__PURE__*/_interopNamespace(external2);
+	var external2__namespace = /*#__PURE__*/_interopNamespace(external2);
 
 
 
@@ -29,7 +29,7 @@ define(['exports', 'external1', 'external2'], function (exports, external1, exte
 			return external1.x;
 		}
 	});
-	exports.ext = external2__ns;
+	exports.ext = external2__namespace;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

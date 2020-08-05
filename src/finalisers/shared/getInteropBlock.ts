@@ -1,12 +1,20 @@
 import { ModuleDeclarationDependency, ReexportSpecifier } from '../../Chunk';
+import { GetInterop } from '../../rollup/types';
+import {
+	defaultInteropHelpersByInteropType,
+	getInteropDefault,
+	getInteropNamespace,
+	namespaceInteropHelpersByInteropType
+} from '../../utils/interopHelpers';
 import { INTEROP_DEFAULT_VARIABLE, INTEROP_NAMESPACE_VARIABLE } from '../../utils/variableNames';
-import { getInteropNamespace } from './getInteropNamespace';
 
+// TODO Lukas we should have different namespace interop for the "default" case without esModule detection.
+//  TODO Lukas If both namespace helpers are used, one could call the other
 export default function getInteropBlock(
 	dependencies: ModuleDeclarationDependency[],
 	varOrConst: string,
 	compact: boolean,
-	interop: boolean,
+	interop: GetInterop,
 	externalLiveBindings: boolean,
 	freeze: boolean,
 	needsNamespaceInterop: boolean,
@@ -14,41 +22,59 @@ export default function getInteropBlock(
 	n: string,
 	t: string
 ): string {
-	if (!interop) {
-		return '';
+	// TODO Lukas maybe we could actually pass a list of strings as used helpers here?
+	const neededInteropHelpers = new Set<string>();
+	if (needsNamespaceInterop) {
+		neededInteropHelpers.add(INTEROP_NAMESPACE_VARIABLE);
 	}
-	// TODO Lukas define interop per module and add a function way to define interop per output on first default import; test double default imports; make sure different outputs do not interact
-	let needsDefaultInterop = false;
-	const interopBlock = dependencies
-		.map(({ defaultVariableName, imports, isChunk, name, namespaceVariableName, reexports }) => {
-			if (!isChunk) {
-				for (const { imported, reexported } of [
-					...(imports || []),
-					...(reexports || [])
-				] as ReexportSpecifier[]) {
-					if (imported === 'default') {
-						needsDefaultInterop = true;
-						return `${varOrConst} ${defaultVariableName}${_}=${_}/*#__PURE__*/${INTEROP_DEFAULT_VARIABLE}(${name});`;
-					} else if (imported === '*' && reexported !== '*') {
-						needsNamespaceInterop = true;
-						return `${varOrConst} ${namespaceVariableName}${_}=${_}/*#__PURE__*/${INTEROP_NAMESPACE_VARIABLE}(${name});`;
+	// TODO Lukas if we already have the namespace, we could use this instead of the default
+	const interopStatements = [];
+	for (const {
+		defaultVariableName,
+		imports,
+		id,
+		isChunk,
+		name,
+		namespaceVariableName,
+		reexports
+	} of dependencies) {
+		if (!isChunk) {
+			const moduleInterop = String(interop(id));
+			let hasDefault = false;
+			let hasNamespace = false;
+			for (const { imported, reexported } of [
+				...(imports || []),
+				...(reexports || [])
+			] as ReexportSpecifier[]) {
+				let helper: string | null = null;
+				let variableName;
+				if (imported === 'default') {
+					if (!hasDefault) {
+						hasDefault = true;
+						helper = defaultInteropHelpersByInteropType[moduleInterop];
+						variableName = defaultVariableName;
+					}
+				} else if (imported === '*' && reexported !== '*') {
+					if (!hasNamespace) {
+						hasNamespace = true;
+						helper = namespaceInteropHelpersByInteropType[moduleInterop];
+						variableName = namespaceVariableName;
 					}
 				}
+				if (helper) {
+					neededInteropHelpers.add(helper);
+					interopStatements.push(
+						`${varOrConst} ${variableName}${_}=${_}/*#__PURE__*/${helper}(${name});`
+					);
+				}
 			}
-		})
-		.filter(Boolean)
-		.join(n);
-	return `${needsDefaultInterop ? getInteropDefault(_, n, compact) : ''}${
-		needsNamespaceInterop ? getInteropNamespace(_, n, t, externalLiveBindings, freeze) : ''
-	}${interopBlock ? `${interopBlock}${n}${n}` : ''}`;
-}
-
-function getInteropDefault(_: string, n: string, compact: boolean) {
-	const ex = compact ? 'e' : 'ex';
-	const s = compact ? '' : ';';
-	return (
-		`function ${INTEROP_DEFAULT_VARIABLE}${_}(${ex})${_}{${_}return${_}` +
-		`(${ex}${_}&&${_}(typeof ${ex}${_}===${_}'object')${_}&&${_}'default'${_}in ${ex})${_}` +
-		`?${_}${ex}${_}:${_}{${_}'default':${_}${ex}${_}}${s}${_}}${n}${n}`
-	);
+		}
+	}
+	return `${
+		neededInteropHelpers.has(INTEROP_DEFAULT_VARIABLE) ? getInteropDefault(_, n, compact) : ''
+	}${
+		neededInteropHelpers.has(INTEROP_NAMESPACE_VARIABLE)
+			? getInteropNamespace(_, n, t, externalLiveBindings, freeze)
+			: ''
+	}${interopStatements.length > 0 ? `${interopStatements.join(n)}${n}${n}` : ''}`;
 }

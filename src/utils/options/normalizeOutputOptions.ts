@@ -1,6 +1,8 @@
 import {
+	GetInterop,
 	GlobalsOption,
 	InternalModuleFormat,
+	InteropType,
 	ManualChunksOption,
 	ModuleFormat,
 	NormalizedInputOptions,
@@ -50,7 +52,7 @@ export function normalizeOutputOptions(
 		hoistTransitiveImports: (config.hoistTransitiveImports as boolean | undefined) ?? true,
 		indent: getIndent(config, compact),
 		inlineDynamicImports,
-		interop: (config.interop as boolean | undefined) ?? true,
+		interop: getInterop(config),
 		intro: getAddon(config, 'intro'),
 		manualChunks: getManualChunks(config, inlineDynamicImports, preserveModules, inputOptions),
 		minifyInternalExports: getMinifyInternalExports(config, format, compact),
@@ -242,6 +244,21 @@ const getIndent = (config: GenericConfigObject, compact: boolean): string | true
 	}
 	const configIndent = config.indent as string | boolean | undefined;
 	return configIndent === false ? '' : configIndent ?? true;
+};
+
+const getInterop = (config: GenericConfigObject): GetInterop => {
+	const configInterop = (config.interop as InteropType | GetInterop | undefined) ?? true;
+	if (typeof configInterop === 'function') {
+		const interopPerId: { [id: string]: InteropType } = Object.create(null);
+		let defaultInterop: InteropType | null = null;
+		return id =>
+			id === null
+				? defaultInterop || (defaultInterop = configInterop(id))
+				: id in interopPerId
+				? interopPerId[id]
+				: (interopPerId[id] = configInterop(id));
+	}
+	return () => configInterop;
 };
 
 const getManualChunks = (

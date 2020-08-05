@@ -20,7 +20,7 @@ var iife = (function (exports, external1, external2) {
 		}
 	}
 
-	var external2__ns = /*#__PURE__*/_interopNamespace(external2);
+	var external2__namespace = /*#__PURE__*/_interopNamespace(external2);
 
 
 
@@ -30,7 +30,7 @@ var iife = (function (exports, external1, external2) {
 			return external1.x;
 		}
 	});
-	exports.ext = external2__ns;
+	exports.ext = external2__namespace;
 
 	return exports;
 

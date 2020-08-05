@@ -6,10 +6,9 @@ import Variable from '../variables/Variable';
 import Scope from './Scope';
 
 export default class ChildScope extends Scope {
-	// TODO Lukas which need to be public?
-	accessedDynamicImports?: Set<ImportExpression>;
 	accessedOutsideVariables = new Map<string, Variable>();
 	parent: Scope;
+	private accessedDynamicImports?: Set<ImportExpression>;
 
 	constructor(parent: Scope) {
 		super();

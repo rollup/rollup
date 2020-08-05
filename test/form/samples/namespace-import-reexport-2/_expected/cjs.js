@@ -24,7 +24,7 @@ function _interopNamespace(e) {
 	}
 }
 
-var external2__ns = /*#__PURE__*/_interopNamespace(external2);
+var external2__namespace = /*#__PURE__*/_interopNamespace(external2);
 
 
 
@@ -34,4 +34,4 @@ Object.defineProperty(exports, 'x', {
 		return external1.x;
 	}
 });
-exports.ext = external2__ns;
+exports.ext = external2__namespace;

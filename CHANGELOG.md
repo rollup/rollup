@@ -40,7 +40,7 @@
 *2020-07-18*
 
 ### Features
-* Allow resolving snythetic named exports via an arbitrary export name (#3657)
+* Allow resolving synthetic named exports via an arbitrary export name (#3657)
 * Display a warning when the user does not explicitly select an export mode and would generate a chunk with default export mode when targeting CommonJS (#3657)
 
 ### Pull Requests
