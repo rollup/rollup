@@ -4,4 +4,4 @@ var other = require('../other.js');
 
 
 
-module.exports = other.default;
+module.exports = other['default'];

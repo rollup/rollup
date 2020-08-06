@@ -18,49 +18,7 @@ export default function getExportBlock(
 	const _ = compact ? '' : ' ';
 	const n = compact ? '' : '\n';
 	if (!namedExportsMode) {
-		let local;
-		if (exports.length > 0) {
-			local = exports[0].local;
-		} else {
-			for (const {
-				defaultVariableName,
-				id,
-				isChunk,
-				name,
-				namedExportsMode: depNamedExportsMode,
-				namespaceVariableName,
-				reexports
-			} of dependencies) {
-				if (reexports) {
-					const reexport = reexports[0];
-					if (!isChunk) {
-						const moduleInterop = String(interop(id));
-						if (reexport.imported === 'default') {
-							const variableName = defaultInteropHelpersByInteropType[moduleInterop]
-								? defaultVariableName
-								: name;
-							local = defaultIsPropertyByInteropType[moduleInterop]
-								? `${variableName}['default']`
-								: variableName;
-							break;
-						}
-						if (reexport.imported === '*') {
-							local = defaultInteropHelpersByInteropType[moduleInterop]
-								? namespaceVariableName
-								: name;
-							break;
-						}
-					}
-					if (depNamedExportsMode && reexport.imported !== '*') {
-						local = `${name}.${reexport.imported}`;
-					} else {
-						local = name;
-					}
-					break;
-				}
-			}
-		}
-		return `${n}${n}${mechanism}${local};`;
+		return `${n}${n}${mechanism}${getSingleDefaultExport(exports, dependencies, interop)};`;
 	}
 
 	let exportBlock = '';
@@ -101,32 +59,25 @@ export default function getExportBlock(
 	} of dependencies) {
 		if (reexports && namedExportsMode) {
 			for (const specifier of reexports) {
-				if (specifier.imported !== '*') {
-					if (exportBlock) exportBlock += n;
+				if (specifier.reexported !== '*') {
 					const importName = getReexportedImportName(
 						name,
 						specifier.imported,
 						depNamedExportsMode,
 						isChunk,
 						defaultVariableName!,
-						interop,
-						id
-					);
-					exportBlock += specifier.needsLiveBinding
-						? `Object.defineProperty(exports,${_}'${specifier.reexported}',${_}{${n}` +
-						  `${t}enumerable:${_}true,${n}` +
-						  `${t}get:${_}function${_}()${_}{${n}` +
-						  `${t}${t}return ${importName};${n}${t}}${n}});`
-						: `exports.${specifier.reexported}${_}=${_}${importName};`;
-				} else if (specifier.reexported !== '*') {
-					if (exportBlock) exportBlock += n;
-					exportBlock += `exports.${specifier.reexported}${_}=${_}${getReexportedNamespaceName(
-						name,
-						isChunk,
 						namespaceVariableName!,
 						interop,
 						id
-					)};`;
+					);
+					if (exportBlock) exportBlock += n;
+					exportBlock +=
+						specifier.imported !== '*' && specifier.needsLiveBinding
+							? `Object.defineProperty(exports,${_}'${specifier.reexported}',${_}{${n}` +
+							  `${t}enumerable:${_}true,${n}` +
+							  `${t}get:${_}function${_}()${_}{${n}` +
+							  `${t}${t}return ${importName};${n}${t}}${n}});`
+							: `exports.${specifier.reexported}${_}=${_}${importName};`;
 				}
 			}
 		}
@@ -148,12 +99,46 @@ export default function getExportBlock(
 	return '';
 }
 
+function getSingleDefaultExport(
+	exports: ChunkExports,
+	dependencies: ChunkDependencies,
+	interop: GetInterop
+) {
+	if (exports.length > 0) {
+		return exports[0].local;
+	} else {
+		for (const {
+			defaultVariableName,
+			id,
+			isChunk,
+			name,
+			namedExportsMode: depNamedExportsMode,
+			namespaceVariableName,
+			reexports
+		} of dependencies) {
+			if (reexports) {
+				return getReexportedImportName(
+					name,
+					reexports[0].imported,
+					depNamedExportsMode,
+					isChunk,
+					defaultVariableName!,
+					namespaceVariableName!,
+					interop,
+					id
+				);
+			}
+		}
+	}
+}
+
 function getReexportedImportName(
-	name: string,
+	moduleVariableName: string,
 	imported: string,
-	namedExportsModule: boolean,
+	depNamedExportsMode: boolean,
 	isChunk: boolean,
 	defaultVariableName: string,
+	namespaceVariableName: string,
 	interop: GetInterop,
 	moduleId: string
 ) {
@@ -162,26 +147,17 @@ function getReexportedImportName(
 			const moduleInterop = String(interop(moduleId));
 			const variableName = defaultInteropHelpersByInteropType[moduleInterop]
 				? defaultVariableName
-				: name;
+				: moduleVariableName;
 			return defaultIsPropertyByInteropType[moduleInterop]
 				? `${variableName}['default']`
 				: variableName;
 		}
-		return namedExportsModule ? `${name}['default']` : name;
+		return depNamedExportsMode ? `${moduleVariableName}['default']` : moduleVariableName;
 	}
-	return `${name}.${imported}`;
-}
-
-// TODO Lukas handle chunks with default export mode
-function getReexportedNamespaceName(
-	name: string,
-	isChunk: boolean,
-	namespaceVariableName: string,
-	interop: GetInterop,
-	moduleId: string
-) {
-	if (!isChunk && namespaceInteropHelpersByInteropType[String(interop(moduleId))]) {
-		return namespaceVariableName;
+	if (imported === '*') {
+		return !isChunk && namespaceInteropHelpersByInteropType[String(interop(moduleId))]
+			? namespaceVariableName
+			: moduleVariableName;
 	}
-	return name;
+	return `${moduleVariableName}.${imported}`;
 }

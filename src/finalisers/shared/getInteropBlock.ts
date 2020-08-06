@@ -7,7 +7,7 @@ import {
 } from '../../utils/interopHelpers';
 
 // TODO Lukas we should have different namespace interop for the "default" case without esModule detection.
-//  TODO Lukas If both namespace helpers are used, one could call the other
+// TODO Lukas If both namespace helpers are used, one could call the other
 export default function getInteropBlock(
 	dependencies: ModuleDeclarationDependency[],
 	varOrConst: string,
