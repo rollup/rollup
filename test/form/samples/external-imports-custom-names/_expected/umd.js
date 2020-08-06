@@ -4,9 +4,9 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.jQuery));
 }(this, (function ($) { 'use strict';
 
-	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex : { 'default': ex }; }
+	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-	var $__default = /*#__PURE__*/_interopDefault($);
+	var $__default = /*#__PURE__*/_interopDefaultLegacy($);
 
 	$__default['default']( function () {
 		$__default['default']( 'body' ).html( '<h1>hello world!</h1>' );

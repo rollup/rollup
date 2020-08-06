@@ -40,6 +40,7 @@ import { makeLegal } from './utils/identifierHelpers';
 import {
 	defaultInteropHelpersByInteropType,
 	defaultIsPropertyByInteropType,
+	HELPER_NAMES,
 	namespaceInteropHelpersByInteropType
 } from './utils/interopHelpers';
 import { basename, dirname, extname, isAbsolute, normalize, resolve } from './utils/path';
@@ -50,7 +51,7 @@ import { RenderOptions } from './utils/renderHelpers';
 import { makeUnique, renderNamePattern } from './utils/renderNamePattern';
 import { sanitizeFileName } from './utils/sanitizeFileName';
 import { timeEnd, timeStart } from './utils/timers';
-import { INTEROP_DEFAULT_VARIABLE, MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
+import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
 
 export interface ModuleDeclarations {
 	dependencies: ModuleDeclarationDependency[];
@@ -1185,7 +1186,10 @@ export default class Chunk {
 				usedNames.add('module').add('require').add('__filename').add('__dirname');
 			// fallthrough
 			default:
-				usedNames.add('exports').add(INTEROP_DEFAULT_VARIABLE);
+				usedNames.add('exports');
+				for (const helper of HELPER_NAMES) {
+					usedNames.add(helper);
+				}
 		}
 
 		deconflictChunk(

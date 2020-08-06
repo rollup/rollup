@@ -2,9 +2,9 @@
 
 var throttle = require('./lib/throttle.js');
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex : { 'default': ex }; }
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-var throttle__default = /*#__PURE__*/_interopDefault(throttle);
+var throttle__default = /*#__PURE__*/_interopDefaultLegacy(throttle);
 
 const fn = throttle__default['default']( () => {
 	console.log( '.' );

@@ -25,6 +25,7 @@ function safeAccess(name: string, globalVar: string, _: string) {
 export default function umd(
 	magicString: MagicStringBundle,
 	{
+		accessedGlobals,
 		dependencies,
 		exports,
 		hasExports,
@@ -51,6 +52,7 @@ export default function umd(
 ) {
 	const _ = compact ? '' : ' ';
 	const n = compact ? '' : '\n';
+	const s = compact ? '' : ';';
 	const factoryVar = compact ? 'f' : 'factory';
 	const globalVar = compact ? 'g' : 'global';
 
@@ -157,13 +159,13 @@ export default function umd(
 		`${intro}${getInteropBlock(
 			dependencies,
 			varOrConst,
-			compact,
 			interop,
 			externalLiveBindings,
 			freeze,
-			false,
+			accessedGlobals,
 			_,
 			n,
+			s,
 			t
 		)}`
 	);

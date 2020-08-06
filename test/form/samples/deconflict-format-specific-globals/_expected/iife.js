@@ -1,20 +1,20 @@
 var bundle = (function (external) {
 	'use strict';
 
-	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex : { 'default': ex }; }
+	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-	var external__default = /*#__PURE__*/_interopDefault(external);
+	var external__default = /*#__PURE__*/_interopDefaultLegacy(external);
 
 	console.log(external__default['default']);
 
 	const _interopDefault$1 = 1;
-	const _interopNamespace = 1;
+	const _interopNamespace$1 = 1;
 	const module = 1;
 	const require = 1;
 	const exports$1 = 1;
 	const document$1 = 1;
 	const URL$1 = 1;
-	console.log(_interopDefault$1, _interopNamespace, module, require, exports$1, document$1, URL$1);
+	console.log(_interopDefault$1, _interopNamespace$1, module, require, exports$1, document$1, URL$1);
 
 	import('external').then(console.log);
 	exports.default = 0;

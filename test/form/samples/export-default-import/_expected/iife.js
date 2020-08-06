@@ -1,9 +1,9 @@
 var myBundle = (function (exports, x) {
 	'use strict';
 
-	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex : { 'default': ex }; }
+	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-	var x__default = /*#__PURE__*/_interopDefault(x);
+	var x__default = /*#__PURE__*/_interopDefaultLegacy(x);
 
 
 

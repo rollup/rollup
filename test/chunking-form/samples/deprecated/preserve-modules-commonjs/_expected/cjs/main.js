@@ -3,8 +3,8 @@
 var external = require('external');
 var commonjs = require('./commonjs.js');
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex : { 'default': ex }; }
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-var external__default = /*#__PURE__*/_interopDefault(external);
+var external__default = /*#__PURE__*/_interopDefaultLegacy(external);
 
 console.log(commonjs, external__default['default']);

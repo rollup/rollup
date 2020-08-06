@@ -1,6 +1,5 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { NormalizedOutputOptions } from '../rollup/types';
-import { INTEROP_NAMESPACE_VARIABLE } from '../utils/variableNames';
 import { FinaliserOptions } from './index';
 import { compactEsModuleExport, esModuleExport } from './shared/esModuleExport';
 import getExportBlock from './shared/getExportBlock';
@@ -46,6 +45,7 @@ export default function amd(
 	const deps = dependencies.map(m => `'${removeExtensionFromRelativeAmdId(m.id)}'`);
 	const args = dependencies.map(m => m.name);
 	const n = compact ? '' : '\n';
+	const s = compact ? '' : ';';
 	const _ = compact ? '' : ' ';
 
 	if (namedExportsMode && hasExports) {
@@ -71,13 +71,13 @@ export default function amd(
 		`${intro}${getInteropBlock(
 			dependencies,
 			varOrConst,
-			compact,
 			interop,
 			externalLiveBindings,
 			freeze,
-			accessedGlobals.has(INTEROP_NAMESPACE_VARIABLE),
+			accessedGlobals,
 			_,
 			n,
+			s,
 			t
 		)}`
 	);

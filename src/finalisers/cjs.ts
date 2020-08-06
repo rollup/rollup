@@ -1,7 +1,6 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { ChunkDependencies } from '../Chunk';
 import { NormalizedOutputOptions } from '../rollup/types';
-import { INTEROP_NAMESPACE_VARIABLE } from '../utils/variableNames';
 import { FinaliserOptions } from './index';
 import { compactEsModuleExport, esModuleExport } from './shared/esModuleExport';
 import getExportBlock from './shared/getExportBlock';
@@ -24,6 +23,7 @@ export default function cjs(
 	{ compact, esModule, externalLiveBindings, freeze, interop, strict }: NormalizedOutputOptions
 ) {
 	const n = compact ? '' : '\n';
+	const s = compact ? '' : ';';
 	const _ = compact ? '' : ' ';
 
 	const useStrict = strict ? `'use strict';${n}${n}` : '';
@@ -35,13 +35,13 @@ export default function cjs(
 	const interopBlock = getInteropBlock(
 		dependencies,
 		varOrConst,
-		compact,
 		interop,
 		externalLiveBindings,
 		freeze,
-		accessedGlobals.has(INTEROP_NAMESPACE_VARIABLE),
+		accessedGlobals,
 		_,
 		n,
+		s,
 		t
 	);
 

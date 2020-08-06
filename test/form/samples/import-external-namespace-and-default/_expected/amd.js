@@ -1,8 +1,8 @@
 define(['foo'], function (foo) { 'use strict';
 
-	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex : { 'default': ex }; }
+	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-	var foo__default = /*#__PURE__*/_interopDefault(foo);
+	var foo__default = /*#__PURE__*/_interopDefaultLegacy(foo);
 
 	console.log( foo.bar );
 

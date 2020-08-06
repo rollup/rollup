@@ -15,6 +15,7 @@ const thisProp = (name: string) => `this${keypath(name)}`;
 export default function iife(
 	magicString: MagicStringBundle,
 	{
+		accessedGlobals,
 		dependencies,
 		exports,
 		hasExports,
@@ -37,6 +38,7 @@ export default function iife(
 	}: NormalizedOutputOptions
 ) {
 	const _ = compact ? '' : ' ';
+	const s = compact ? '' : ';';
 	const n = compact ? '' : '\n';
 
 	const isNamespaced = name && name.indexOf('.') !== -1;
@@ -76,13 +78,13 @@ export default function iife(
 	const interopBlock = getInteropBlock(
 		dependencies,
 		varOrConst,
-		compact,
 		interop,
 		externalLiveBindings,
 		freeze,
-		false,
+		accessedGlobals,
 		_,
 		n,
+		s,
 		t
 	);
 	magicString.prepend(`${intro}${interopBlock}`);

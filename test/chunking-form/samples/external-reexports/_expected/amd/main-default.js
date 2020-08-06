@@ -1,11 +1,11 @@
 define(['exports', 'external-all', 'external-default', 'external-default-named', 'external-default-namespace'], function (exports, externalAll, externalDefault, externalDefaultNamed, externalDefaultNamespace) { 'use strict';
 
-	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex : { 'default': ex }; }
+	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-	var externalAll__default = /*#__PURE__*/_interopDefault(externalAll);
-	var externalDefault__default = /*#__PURE__*/_interopDefault(externalDefault);
-	var externalDefaultNamed__default = /*#__PURE__*/_interopDefault(externalDefaultNamed);
-	var externalDefaultNamespace__default = /*#__PURE__*/_interopDefault(externalDefaultNamespace);
+	var externalAll__default = /*#__PURE__*/_interopDefaultLegacy(externalAll);
+	var externalDefault__default = /*#__PURE__*/_interopDefaultLegacy(externalDefault);
+	var externalDefaultNamed__default = /*#__PURE__*/_interopDefaultLegacy(externalDefaultNamed);
+	var externalDefaultNamespace__default = /*#__PURE__*/_interopDefaultLegacy(externalDefaultNamespace);
 
 
 

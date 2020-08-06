@@ -4,10 +4,10 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.factory, global.baz, global.containers, global.alphabet));
 }(this, (function (factory, baz, containers, alphabet) { 'use strict';
 
-	function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex : { 'default': ex }; }
+	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-	var factory__default = /*#__PURE__*/_interopDefault(factory);
-	var alphabet__default = /*#__PURE__*/_interopDefault(alphabet);
+	var factory__default = /*#__PURE__*/_interopDefaultLegacy(factory);
+	var alphabet__default = /*#__PURE__*/_interopDefaultLegacy(alphabet);
 
 	factory__default['default']( null );
 	baz.foo( baz.bar, containers.port );

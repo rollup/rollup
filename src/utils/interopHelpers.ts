@@ -1,11 +1,13 @@
-import { INTEROP_DEFAULT_VARIABLE, INTEROP_NAMESPACE_VARIABLE } from './variableNames';
+const INTEROP_DEFAULT_VARIABLE = '_interopDefault';
+const INTEROP_DEFAULT_LEGACY_VARIABLE = '_interopDefaultLegacy';
+const INTEROP_NAMESPACE_VARIABLE = '_interopNamespace';
 
 export const defaultInteropHelpersByInteropType: { [interopType: string]: string | null } = {
 	auto: INTEROP_DEFAULT_VARIABLE,
 	default: null,
 	esModule: null,
 	false: null,
-	true: INTEROP_DEFAULT_VARIABLE
+	true: INTEROP_DEFAULT_LEGACY_VARIABLE
 };
 
 export const defaultIsPropertyByInteropType: { [interopType: string]: boolean } = {
@@ -24,24 +26,42 @@ export const namespaceInteropHelpersByInteropType: { [interopType: string]: stri
 	true: INTEROP_NAMESPACE_VARIABLE
 };
 
-export function getInteropDefault(_: string, n: string, compact: boolean) {
-	const ex = compact ? 'e' : 'ex';
-	const s = compact ? '' : ';';
-	return (
-		`function ${INTEROP_DEFAULT_VARIABLE}${_}(${ex})${_}{${_}return${_}` +
-		`(${ex}${_}&&${_}(typeof ${ex}${_}===${_}'object')${_}&&${_}'default'${_}in ${ex})${_}` +
-		`?${_}${ex}${_}:${_}{${_}'default':${_}${ex}${_}}${s}${_}}${n}${n}`
-	);
-}
-
-export function getInteropNamespace(
+export function getHelpersBlock(
+	usedHelpers: Set<string>,
+	accessedGlobals: Set<string>,
 	_: string,
 	n: string,
+	s: string,
 	t: string,
 	liveBindings: boolean,
 	freeze: boolean
-) {
-	return (
+): string {
+	return HELPER_NAMES.map(variable =>
+		usedHelpers.has(variable) || accessedGlobals.has(variable)
+			? HELPER_GENERATORS[variable](_, n, s, t, liveBindings, freeze)
+			: ''
+	).join('');
+}
+
+const HELPER_GENERATORS: {
+	[variable: string]: (
+		_: string,
+		n: string,
+		s: string,
+		t: string,
+		liveBindings: boolean,
+		freeze: boolean
+	) => string;
+} = {
+	[INTEROP_DEFAULT_VARIABLE]: (_, n, s) =>
+		`function ${INTEROP_DEFAULT_VARIABLE}${_}(e)${_}{${_}return ` +
+		`e${_}&&${_}e.__esModule${_}?${_}` +
+		`e${_}:${_}{${_}'default':${_}e${_}}${s}${_}}${n}${n}`,
+	[INTEROP_DEFAULT_LEGACY_VARIABLE]: (_, n, s) =>
+		`function ${INTEROP_DEFAULT_LEGACY_VARIABLE}${_}(e)${_}{${_}return ` +
+		`e${_}&&${_}typeof e${_}===${_}'object'${_}&&${_}'default'${_}in e${_}?${_}` +
+		`e${_}:${_}{${_}'default':${_}e${_}}${s}${_}}${n}${n}`,
+	[INTEROP_NAMESPACE_VARIABLE]: (_, n, _s, t, liveBindings, freeze) =>
 		`function ${INTEROP_NAMESPACE_VARIABLE}(e)${_}{${n}` +
 		`${t}if${_}(e${_}&&${_}e.__esModule)${_}{${_}return e;${_}}${_}else${_}{${n}` +
 		`${t}${t}var n${_}=${_}Object.create(null);${n}` +
@@ -54,21 +74,24 @@ export function getInteropNamespace(
 		`${t}${t}return ${freeze ? 'Object.freeze(n)' : 'n'};${n}` +
 		`${t}}${n}` +
 		`}${n}${n}`
-	);
-}
+};
 
 function copyPropertyLiveBinding(_: string, n: string, t: string, i: string) {
 	return (
-		`${i}var d${_}=${_}Object.getOwnPropertyDescriptor(e,${_}k);${n}` +
-		`${i}Object.defineProperty(n,${_}k,${_}d.get${_}?${_}d${_}:${_}{${n}` +
-		`${i}${t}enumerable:${_}true,${n}` +
-		`${i}${t}get:${_}function${_}()${_}{${n}` +
-		`${i}${t}${t}return e[k];${n}` +
-		`${i}${t}}${n}` +
-		`${i}});${n}`
+		`${i}if${_}(k${_}!==${_}'default')${_}{${n}` +
+		`${i}${t}var d${_}=${_}Object.getOwnPropertyDescriptor(e,${_}k);${n}` +
+		`${i}${t}Object.defineProperty(n,${_}k,${_}d.get${_}?${_}d${_}:${_}{${n}` +
+		`${i}${t}${t}enumerable:${_}true,${n}` +
+		`${i}${t}${t}get:${_}function${_}()${_}{${n}` +
+		`${i}${t}${t}${t}return e[k];${n}` +
+		`${i}${t}${t}}${n}` +
+		`${i}${t}});${n}` +
+		`${i}}${n}`
 	);
 }
 
 function copyPropertyStatic(_: string, n: string, _t: string, i: string) {
 	return `${i}n[k]${_}=e${_}[k];${n}`;
 }
+
+export const HELPER_NAMES = Object.keys(HELPER_GENERATORS);
