@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.23.1
+*2020-08-07*
+
+### Bug Fixes
+* Fix an issue where dynamically importing an entry point could return a malformed namespace for CJS and AMD formats (#3709)
+
+### Pull Requests
+* [#3709](https://github.com/rollup/rollup/pull/3709): Properly construct namespace when dynamically importing chunks with facades in default export mode (@lukastaegert)
+
 ## 2.23.0
 *2020-07-23*
 
