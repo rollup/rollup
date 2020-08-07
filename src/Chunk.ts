@@ -1081,7 +1081,10 @@ export default class Chunk {
 					if (chunk === this) {
 						node.setInternalResolution(resolution.namespace);
 					} else {
-						node.setExternalResolution(chunk!.exportMode, resolution);
+						node.setExternalResolution(
+							this.facadeChunkByModule.get(resolution)?.exportMode || chunk!.exportMode,
+							resolution
+						);
 					}
 				} else {
 					node.setExternalResolution('auto', resolution);
