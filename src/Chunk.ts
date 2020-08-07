@@ -39,8 +39,8 @@ import getIndentString from './utils/getIndentString';
 import { makeLegal } from './utils/identifierHelpers';
 import {
 	defaultInteropHelpersByInteropType,
-	defaultIsPropertyByInteropType,
 	HELPER_NAMES,
+	isDefaultProperty,
 	namespaceInteropHelpersByInteropType
 } from './utils/interopHelpers';
 import { basename, dirname, extname, isAbsolute, normalize, resolve } from './utils/path';
@@ -185,7 +185,7 @@ export default class Chunk {
 	private implicitlyLoadedBefore = new Set<Chunk>();
 	private imports = new Set<Variable>();
 	private indentString: string = undefined as any;
-	private isEmpty = true;
+	private readonly isEmpty: boolean = true;
 	private name: string | null = null;
 	private needsExportsShim = false;
 	private renderedDependencies: Map<
@@ -227,7 +227,7 @@ export default class Chunk {
 			for (const importer of module.includedDynamicImporters) {
 				if (!chunkModules.has(importer)) {
 					this.dynamicEntryModules.push(module);
-					// Modules with synthetic exports need an artifical namespace for dynamic imports
+					// Modules with synthetic exports need an artificial namespace for dynamic imports
 					if (module.syntheticNamedExports) {
 						module.namespace.include();
 						this.exports.add(module.namespace);
@@ -493,11 +493,11 @@ export default class Chunk {
 			'augmentChunkHash',
 			'',
 			[this.getChunkInfo()],
-			(hashAugmentation, pluginHash) => {
+			(augmentation, pluginHash) => {
 				if (pluginHash) {
-					hashAugmentation += pluginHash;
+					augmentation += pluginHash;
 				}
-				return hashAugmentation;
+				return augmentation;
 			}
 		);
 		hash.update(hashAugmentation);
@@ -745,7 +745,7 @@ export default class Chunk {
 					const { sourcemapPathTransform } = options;
 
 					if (sourcemapPathTransform) {
-						const newSourcePath = sourcemapPathTransform(sourcePath, `${file}.map`);
+						const newSourcePath = sourcemapPathTransform(sourcePath, `${file}.map`) as unknown;
 
 						if (typeof newSourcePath !== 'string') {
 							error(errFailedValidation(`sourcemapPathTransform function must return a string.`));
@@ -760,7 +760,7 @@ export default class Chunk {
 
 			timeEnd('sourcemap', 2);
 		}
-		if (options.compact !== true && code[code.length - 1] !== '\n') code += '\n';
+		if (!options.compact && code[code.length - 1] !== '\n') code += '\n';
 		return { code, map };
 	}
 
@@ -919,7 +919,10 @@ export default class Chunk {
 					importName = variable.name;
 					needsLiveBinding =
 						importName === 'default'
-							? defaultIsPropertyByInteropType[String(this.outputOptions.interop(module.id))]
+							? isDefaultProperty(
+									String(this.outputOptions.interop(module.id)),
+									this.outputOptions.externalLiveBindings
+							  )
 							: options.externalLiveBindings;
 				}
 			}
@@ -1205,6 +1208,7 @@ export default class Chunk {
 			format,
 			interop,
 			this.outputOptions.preserveModules,
+			this.outputOptions.externalLiveBindings,
 			this.chunkByModule,
 			syntheticExports,
 			this.exportNamesByVariable,

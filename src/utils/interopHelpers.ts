@@ -10,13 +10,12 @@ export const defaultInteropHelpersByInteropType: { [interopType: string]: string
 	true: INTEROP_DEFAULT_LEGACY_VARIABLE
 };
 
-export const defaultIsPropertyByInteropType: { [interopType: string]: boolean } = {
-	auto: true,
-	default: false,
-	esModule: true,
-	false: false,
-	true: true
-};
+export function isDefaultProperty(interopType: string, externalLiveBindings: boolean) {
+	return (
+		interopType === 'esModule' ||
+		(externalLiveBindings && (interopType === 'auto' || interopType === 'true'))
+	);
+}
 
 export const namespaceInteropHelpersByInteropType: { [interopType: string]: string | null } = {
 	auto: INTEROP_NAMESPACE_VARIABLE,
@@ -26,9 +25,9 @@ export const namespaceInteropHelpersByInteropType: { [interopType: string]: stri
 	true: INTEROP_NAMESPACE_VARIABLE
 };
 
-export function canDefaultBeTakenFromNamespace(interopType: string) {
+export function canDefaultBeTakenFromNamespace(interopType: string, externalLiveBindings: boolean) {
 	return (
-		defaultIsPropertyByInteropType[interopType] &&
+		isDefaultProperty(interopType, externalLiveBindings) &&
 		defaultInteropHelpersByInteropType[interopType] === INTEROP_DEFAULT_VARIABLE
 	);
 }
@@ -60,14 +59,14 @@ const HELPER_GENERATORS: {
 		freeze: boolean
 	) => string;
 } = {
-	[INTEROP_DEFAULT_VARIABLE]: (_, n, s) =>
+	[INTEROP_DEFAULT_VARIABLE]: (_, n, s, _t, liveBindings) =>
 		`function ${INTEROP_DEFAULT_VARIABLE}${_}(e)${_}{${_}return ` +
 		`e${_}&&${_}e.__esModule${_}?${_}` +
-		`e${_}:${_}{${_}'default':${_}e${_}}${s}${_}}${n}${n}`,
-	[INTEROP_DEFAULT_LEGACY_VARIABLE]: (_, n, s) =>
+		`${liveBindings ? getDefaultLiveBinding(_) : getDefaultStatic(_)}${s}${_}}${n}${n}`,
+	[INTEROP_DEFAULT_LEGACY_VARIABLE]: (_, n, s, _t, liveBindings) =>
 		`function ${INTEROP_DEFAULT_LEGACY_VARIABLE}${_}(e)${_}{${_}return ` +
 		`e${_}&&${_}typeof e${_}===${_}'object'${_}&&${_}'default'${_}in e${_}?${_}` +
-		`e${_}:${_}{${_}'default':${_}e${_}}${s}${_}}${n}${n}`,
+		`${liveBindings ? getDefaultLiveBinding(_) : getDefaultStatic(_)}${s}${_}}${n}${n}`,
 	[INTEROP_NAMESPACE_VARIABLE]: (_, n, _s, t, liveBindings, freeze) =>
 		`function ${INTEROP_NAMESPACE_VARIABLE}(e)${_}{${n}` +
 		`${t}if${_}(e${_}&&${_}e.__esModule)${_}{${_}return e;${_}}${_}else${_}{${n}` +
@@ -82,6 +81,14 @@ const HELPER_GENERATORS: {
 		`${t}}${n}` +
 		`}${n}${n}`
 };
+
+function getDefaultLiveBinding(_: string) {
+	return `e${_}:${_}{${_}'default':${_}e${_}}`;
+}
+
+function getDefaultStatic(_: string) {
+	return `e['default']${_}:${_}e`;
+}
 
 function copyPropertyLiveBinding(_: string, n: string, t: string, i: string) {
 	return (
@@ -98,7 +105,7 @@ function copyPropertyLiveBinding(_: string, n: string, t: string, i: string) {
 }
 
 function copyPropertyStatic(_: string, n: string, _t: string, i: string) {
-	return `${i}n[k]${_}=e${_}[k];${n}`;
+	return `${i}n[k]${_}=${_}e[k];${n}`;
 }
 
 export const HELPER_NAMES = Object.keys(HELPER_GENERATORS);

@@ -106,7 +106,15 @@ export default function iife(
 		wrapperOutro = `${n}${n}${t}return exports;${wrapperOutro}`;
 	}
 
-	const exportBlock = getExportBlock(exports, dependencies, namedExportsMode, interop, compact, t);
+	const exportBlock = getExportBlock(
+		exports,
+		dependencies,
+		namedExportsMode,
+		interop,
+		compact,
+		t,
+		externalLiveBindings
+	);
 	magicString.append(`${exportBlock}${outro}`);
 	return magicString.indent(t).prepend(wrapperIntro).append(wrapperOutro);
 }

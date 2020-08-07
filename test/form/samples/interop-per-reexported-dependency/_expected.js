@@ -8,8 +8,6 @@ var externalAuto = require('external-auto');
 var externalDefault = require('external-default');
 var externalEsModule = require('external-esModule');
 
-function _interopDefault (e) { return e && e.__esModule ? e : { 'default': e }; }
-
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
 function _interopNamespace(e) {
@@ -36,7 +34,6 @@ function _interopNamespace(e) {
 var externalTrue__namespace = /*#__PURE__*/_interopNamespace(externalTrue);
 var externalTrue__default = /*#__PURE__*/_interopDefaultLegacy(externalTrue);
 var externalAuto__namespace = /*#__PURE__*/_interopNamespace(externalAuto);
-var externalAuto__default = /*#__PURE__*/_interopDefault(externalAuto);
 var externalDefault__namespace = /*#__PURE__*/_interopNamespace(externalDefault);
 
 
@@ -72,7 +69,7 @@ exports.externalAuto = externalAuto__namespace;
 Object.defineProperty(exports, 'fooAuto', {
 	enumerable: true,
 	get: function () {
-		return externalAuto__default['default'];
+		return externalAuto__namespace['default'];
 	}
 });
 Object.defineProperty(exports, 'barDefault', {

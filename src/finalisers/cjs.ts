@@ -54,6 +54,7 @@ export default function cjs(
 		interop,
 		compact,
 		t,
+		externalLiveBindings,
 		`module.exports${_}=${_}`
 	);
 

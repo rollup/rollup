@@ -9,7 +9,7 @@ import { GetInterop, InternalModuleFormat } from '../rollup/types';
 import {
 	canDefaultBeTakenFromNamespace,
 	defaultInteropHelpersByInteropType,
-	defaultIsPropertyByInteropType,
+	isDefaultProperty,
 	namespaceInteropHelpersByInteropType
 } from './interopHelpers';
 import { getSafeName } from './safeName';
@@ -27,6 +27,7 @@ const DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT: {
 		dependenciesToBeDeconflicted: DependenciesToBeDeconflicted,
 		interop: GetInterop,
 		preserveModules: boolean,
+		externalLiveBindings: boolean,
 		chunkByModule: Map<Module, Chunk>,
 		syntheticExports: Set<SyntheticNamedExportVariable>
 	) => void;
@@ -47,6 +48,7 @@ export function deconflictChunk(
 	format: InternalModuleFormat,
 	interop: GetInterop,
 	preserveModules: boolean,
+	externalLiveBindings: boolean,
 	chunkByModule: Map<Module, Chunk>,
 	syntheticExports: Set<SyntheticNamedExportVariable>,
 	exportNamesByVariable: Map<Variable, string[]>,
@@ -67,6 +69,7 @@ export function deconflictChunk(
 		dependenciesToBeDeconflicted,
 		interop,
 		preserveModules,
+		externalLiveBindings,
 		chunkByModule,
 		syntheticExports
 	);
@@ -82,6 +85,7 @@ function deconflictImportsEsmOrSystem(
 	dependenciesToBeDeconflicted: DependenciesToBeDeconflicted,
 	_interop: GetInterop,
 	_preserveModules: boolean,
+	_externalLiveBindings: boolean,
 	_chunkByModule: Map<Module, Chunk>,
 	syntheticExports: Set<SyntheticNamedExportVariable>
 ) {
@@ -100,7 +104,7 @@ function deconflictImportsEsmOrSystem(
 				null,
 				getSafeName(
 					[...module.exportedVariables].some(
-						([variable, name]) => name === '*' && variable.included
+						([exportedVariable, exportedName]) => exportedName === '*' && exportedVariable.included
 					)
 						? module.suggestedVariableName + '__default'
 						: module.suggestedVariableName,
@@ -122,6 +126,7 @@ function deconflictImportsOther(
 	{ deconflictedDefault, deconflictedNamespace, dependencies }: DependenciesToBeDeconflicted,
 	interop: GetInterop,
 	preserveModules: boolean,
+	externalLiveBindings: boolean,
 	chunkByModule: Map<Module, Chunk>
 ) {
 	for (const chunkOrExternalModule of dependencies) {
@@ -139,7 +144,7 @@ function deconflictImportsOther(
 	for (const externalModule of deconflictedDefault) {
 		if (
 			deconflictedNamespace.has(externalModule) &&
-			canDefaultBeTakenFromNamespace(String(interop(externalModule.id)))
+			canDefaultBeTakenFromNamespace(String(interop(externalModule.id)), externalLiveBindings)
 		) {
 			externalModule.defaultVariableName = externalModule.namespaceVariableName;
 		} else {
@@ -158,7 +163,7 @@ function deconflictImportsOther(
 				const variableName = defaultInteropHelpersByInteropType[moduleInterop]
 					? module.defaultVariableName
 					: module.variableName;
-				if (defaultIsPropertyByInteropType[moduleInterop]) {
+				if (isDefaultProperty(moduleInterop, externalLiveBindings)) {
 					variable.setRenderNames(variableName, 'default');
 				} else {
 					variable.setRenderNames(null, variableName);

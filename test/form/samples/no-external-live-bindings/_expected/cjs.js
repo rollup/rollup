@@ -10,7 +10,7 @@ function _interopNamespace(e) {
 		var n = Object.create(null);
 		if (e) {
 			Object.keys(e).forEach(function (k) {
-				n[k] =e [k];
+				n[k] = e[k];
 			});
 		}
 		n['default'] = e;

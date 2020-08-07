@@ -2,7 +2,7 @@ import { ChunkDependencies, ChunkExports } from '../../Chunk';
 import { GetInterop } from '../../rollup/types';
 import {
 	defaultInteropHelpersByInteropType,
-	defaultIsPropertyByInteropType,
+	isDefaultProperty,
 	namespaceInteropHelpersByInteropType
 } from '../../utils/interopHelpers';
 
@@ -13,12 +13,18 @@ export default function getExportBlock(
 	interop: GetInterop,
 	compact: boolean | undefined,
 	t: string,
+	externalLiveBindings: boolean,
 	mechanism = 'return '
 ) {
 	const _ = compact ? '' : ' ';
 	const n = compact ? '' : '\n';
 	if (!namedExportsMode) {
-		return `${n}${n}${mechanism}${getSingleDefaultExport(exports, dependencies, interop)};`;
+		return `${n}${n}${mechanism}${getSingleDefaultExport(
+			exports,
+			dependencies,
+			interop,
+			externalLiveBindings
+		)};`;
 	}
 
 	let exportBlock = '';
@@ -47,7 +53,6 @@ export default function getExportBlock(
 		}
 	}
 
-	// TODO Lukas use old interop if externalLiveBindings are false
 	for (const {
 		defaultVariableName,
 		id,
@@ -68,7 +73,8 @@ export default function getExportBlock(
 						defaultVariableName!,
 						namespaceVariableName!,
 						interop,
-						id
+						id,
+						externalLiveBindings
 					);
 					if (exportBlock) exportBlock += n;
 					exportBlock +=
@@ -83,9 +89,9 @@ export default function getExportBlock(
 		}
 	}
 
-	for (const expt of exports) {
-		const lhs = `exports.${expt.exported}`;
-		const rhs = expt.local;
+	for (const chunkExport of exports) {
+		const lhs = `exports.${chunkExport.exported}`;
+		const rhs = chunkExport.local;
 		if (lhs !== rhs) {
 			if (exportBlock) exportBlock += n;
 			exportBlock += `${lhs}${_}=${_}${rhs};`;
@@ -102,7 +108,8 @@ export default function getExportBlock(
 function getSingleDefaultExport(
 	exports: ChunkExports,
 	dependencies: ChunkDependencies,
-	interop: GetInterop
+	interop: GetInterop,
+	externalLiveBindings: boolean
 ) {
 	if (exports.length > 0) {
 		return exports[0].local;
@@ -125,7 +132,8 @@ function getSingleDefaultExport(
 					defaultVariableName!,
 					namespaceVariableName!,
 					interop,
-					id
+					id,
+					externalLiveBindings
 				);
 			}
 		}
@@ -140,7 +148,8 @@ function getReexportedImportName(
 	defaultVariableName: string,
 	namespaceVariableName: string,
 	interop: GetInterop,
-	moduleId: string
+	moduleId: string,
+	externalLiveBindings: boolean
 ) {
 	if (imported === 'default') {
 		if (!isChunk) {
@@ -148,7 +157,7 @@ function getReexportedImportName(
 			const variableName = defaultInteropHelpersByInteropType[moduleInterop]
 				? defaultVariableName
 				: moduleVariableName;
-			return defaultIsPropertyByInteropType[moduleInterop]
+			return isDefaultProperty(moduleInterop, externalLiveBindings)
 				? `${variableName}['default']`
 				: variableName;
 		}

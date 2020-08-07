@@ -5,7 +5,7 @@ define(['require', 'exports', 'external1', 'external2'], function (require, expo
 			var n = Object.create(null);
 			if (e) {
 				Object.keys(e).forEach(function (k) {
-					n[k] =e [k];
+					n[k] = e[k];
 				});
 			}
 			n['default'] = e;

@@ -82,7 +82,15 @@ export default function amd(
 		)}`
 	);
 
-	const exportBlock = getExportBlock(exports, dependencies, namedExportsMode, interop, compact, t);
+	const exportBlock = getExportBlock(
+		exports,
+		dependencies,
+		namedExportsMode,
+		interop,
+		compact,
+		t,
+		externalLiveBindings
+	);
 	if (exportBlock) magicString.append(exportBlock);
 	if (namedExportsMode && hasExports && isEntryModuleFacade && esModule)
 		magicString.append(`${n}${n}${compact ? compactEsModuleExport : esModuleExport}`);

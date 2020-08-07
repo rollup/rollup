@@ -132,8 +132,7 @@ export default function umd(
 		}
 	}
 
-	const iifeNeedsGlobal =
-		hasExports || (noConflict === true && namedExportsMode) || globalDeps.length > 0;
+	const iifeNeedsGlobal = hasExports || (noConflict && namedExportsMode) || globalDeps.length > 0;
 	const globalParam = iifeNeedsGlobal ? `${globalVar},${_}` : '';
 	const globalArg = iifeNeedsGlobal ? `this,${_}` : '';
 	const iifeStart = iifeNeedsGlobal
@@ -170,7 +169,15 @@ export default function umd(
 		)}`
 	);
 
-	const exportBlock = getExportBlock(exports, dependencies, namedExportsMode, interop, compact, t);
+	const exportBlock = getExportBlock(
+		exports,
+		dependencies,
+		namedExportsMode,
+		interop,
+		compact,
+		t,
+		externalLiveBindings
+	);
 	if (exportBlock) magicString.append(exportBlock);
 	if (namedExportsMode && hasExports && esModule)
 		magicString.append(n + n + (compact ? compactEsModuleExport : esModuleExport));
