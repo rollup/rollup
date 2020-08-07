@@ -8,7 +8,11 @@ import update from 'update';
 
 assert.deepStrictEqual(fooModule, { barModule: 'bar', default: 'foo' }, 'module');
 assert.strictEqual(barModule, 'bar', 'module');
-assert.deepStrictEqual(bazModule, { barModule: 'bar', default: 'foo' }, 'module');
+assert.deepStrictEqual(
+	bazModule,
+	{ __proto__: null, barModule: 'bar', default: { barModule: 'bar', default: 'foo' } },
+	'module'
+);
 assert.deepStrictEqual(fooCjs, { barCjs: 'bar' }, 'cjs');
 assert.strictEqual(barCjs, 'bar', 'cjs');
 assert.deepStrictEqual(
@@ -28,7 +32,11 @@ update();
 
 assert.deepStrictEqual(fooModule, { barModule: 'bar2', default: 'foo2' }, 'module');
 assert.strictEqual(barModule, 'bar2', 'module');
-assert.deepStrictEqual(bazModule, { barModule: 'bar2', default: 'foo2' }, 'module');
+assert.deepStrictEqual(
+	bazModule,
+	{ __proto__: null, barModule: 'bar2', default: { barModule: 'bar2', default: 'foo2' } },
+	'module'
+);
 assert.deepStrictEqual(fooCjs, { barCjs: 'bar2' }, 'cjs');
 assert.strictEqual(barCjs, 'bar2', 'cjs');
 assert.deepStrictEqual(

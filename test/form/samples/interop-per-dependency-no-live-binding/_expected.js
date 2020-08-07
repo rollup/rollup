@@ -11,23 +11,25 @@ function _interopDefault (e) { return e && e.__esModule ? e['default'] : e; }
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e['default'] : e; }
 
 function _interopNamespace(e) {
-	if (e && e.__esModule) { return e; } else {
-		var n = Object.create(null);
-		if (e) {
-			Object.keys(e).forEach(function (k) {
-				n[k] = e[k];
-			});
-		}
-		n['default'] = e;
-		return Object.freeze(n);
+	return e && e.__esModule ? e : _interopNamespaceDefault(e);
+}
+
+function _interopNamespaceDefault(e) {
+	var n = Object.create(null);
+	if (e) {
+		Object.keys(e).forEach(function (k) {
+			n[k] = e[k];
+		});
 	}
+	n['default'] = e;
+	return Object.freeze(n);
 }
 
 var fooTrue__default = /*#__PURE__*/_interopDefaultLegacy(fooTrue);
 var fooTrue__namespace = /*#__PURE__*/_interopNamespace(fooTrue);
 var fooAuto__default = /*#__PURE__*/_interopDefault(fooAuto);
 var fooAuto__namespace = /*#__PURE__*/_interopNamespace(fooAuto);
-var fooDefault__namespace = /*#__PURE__*/_interopNamespace(fooDefault);
+var fooDefault__namespace = /*#__PURE__*/_interopNamespaceDefault(fooDefault);
 
 console.log(fooFalse, fooFalse.barFalse, fooFalse);
 console.log(fooTrue__default, fooTrue.barTrue, fooTrue__namespace);
@@ -38,5 +40,5 @@ console.log(fooEsModule['default'], fooEsModule.barEsModule, fooEsModule);
 Promise.resolve().then(function () { return require('external-false'); }).then(console.log);
 Promise.resolve().then(function () { return _interopNamespace(require('external-true')); }).then(console.log);
 Promise.resolve().then(function () { return _interopNamespace(require('external-auto')); }).then(console.log);
-Promise.resolve().then(function () { return _interopNamespace(require('external-default')); }).then(console.log);
+Promise.resolve().then(function () { return _interopNamespaceDefault(require('external-default')); }).then(console.log);
 Promise.resolve().then(function () { return require('external-esModule'); }).then(console.log);
