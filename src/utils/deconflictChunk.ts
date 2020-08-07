@@ -7,6 +7,7 @@ import ExternalModule from '../ExternalModule';
 import Module from '../Module';
 import { GetInterop, InternalModuleFormat } from '../rollup/types';
 import {
+	canDefaultBeTakenFromNamespace,
 	defaultInteropHelpersByInteropType,
 	defaultIsPropertyByInteropType,
 	namespaceInteropHelpersByInteropType
@@ -129,17 +130,24 @@ function deconflictImportsOther(
 			usedNames
 		);
 	}
-	for (const externalModule of deconflictedDefault) {
-		externalModule.defaultVariableName = getSafeName(
-			`${externalModule.suggestedVariableName}__default`,
-			usedNames
-		);
-	}
 	for (const externalModule of deconflictedNamespace) {
 		externalModule.namespaceVariableName = getSafeName(
 			`${externalModule.suggestedVariableName}__namespace`,
 			usedNames
 		);
+	}
+	for (const externalModule of deconflictedDefault) {
+		if (
+			deconflictedNamespace.has(externalModule) &&
+			canDefaultBeTakenFromNamespace(String(interop(externalModule.id)))
+		) {
+			externalModule.defaultVariableName = externalModule.namespaceVariableName;
+		} else {
+			externalModule.defaultVariableName = getSafeName(
+				`${externalModule.suggestedVariableName}__default`,
+				usedNames
+			);
+		}
 	}
 	for (const variable of imports) {
 		const module = variable.module;

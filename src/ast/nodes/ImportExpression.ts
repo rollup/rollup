@@ -53,7 +53,6 @@ export default class ImportExpression extends NodeBase {
 			return;
 		}
 
-		// TODO Lukas if we can move this before the deconflicting, we might allow the user to add additional globals
 		const importMechanism = this.getDynamicImportMechanism(options);
 		if (importMechanism) {
 			code.overwrite(

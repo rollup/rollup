@@ -67,9 +67,6 @@ export default class MetaProperty extends NodeBase {
 		}
 	}
 
-	// TODO Lukas idea: Once we have the new hashing solution, this could be moved
-	// before the deconflicting and also take care of deconflicting user-defined
-	// accessed globals
 	renderFinalMechanism(
 		code: MagicString,
 		chunkId: string,

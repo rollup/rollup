@@ -21,7 +21,6 @@ export default function getInteropBlock(
 	t: string
 ): string {
 	const neededInteropHelpers = new Set<string>();
-	// TODO Lukas if we already have the namespace, we could use this instead of the default
 	const interopStatements = [];
 	for (const {
 		defaultVariableName,
@@ -45,8 +44,10 @@ export default function getInteropBlock(
 				if (imported === 'default') {
 					if (!hasDefault) {
 						hasDefault = true;
-						helper = defaultInteropHelpersByInteropType[moduleInterop];
-						variableName = defaultVariableName;
+						if (defaultVariableName !== namespaceVariableName) {
+							variableName = defaultVariableName;
+							helper = defaultInteropHelpersByInteropType[moduleInterop];
+						}
 					}
 				} else if (imported === '*' && reexported !== '*') {
 					if (!hasNamespace) {

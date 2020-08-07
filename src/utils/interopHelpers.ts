@@ -26,6 +26,13 @@ export const namespaceInteropHelpersByInteropType: { [interopType: string]: stri
 	true: INTEROP_NAMESPACE_VARIABLE
 };
 
+export function canDefaultBeTakenFromNamespace(interopType: string) {
+	return (
+		defaultIsPropertyByInteropType[interopType] &&
+		defaultInteropHelpersByInteropType[interopType] === INTEROP_DEFAULT_VARIABLE
+	);
+}
+
 export function getHelpersBlock(
 	usedHelpers: Set<string>,
 	accessedGlobals: Set<string>,
