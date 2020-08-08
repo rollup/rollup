@@ -1,22 +1,30 @@
 module.exports = {
 	description: 'deconflicts the interop function',
 	options: {
-		external: ['external1', 'external2', 'external3'],
+		external(id) {
+			return id.startsWith('external');
+		},
 		output: {
 			interop(id) {
-				if (id === 'external1') {
-					return true;
+				switch (id) {
+					case 'external1':
+						return true;
+					case 'external2':
+					case 'external3':
+						return 'auto';
+					case 'external4':
+						return 'default';
+					case 'external5':
+						return 'defaultOnly';
+					default:
+						throw new Error(`Unexpected require "${id}"`);
 				}
-				return 'auto';
 			}
 		}
 	},
 	context: {
 		require: id => {
-			if (id === 'external1') return 1;
-			if (id === 'external2') return 2;
-			if (id === 'external3') return 3;
-			throw new Error(`Unexpected require "${id}"`);
+			return Object.defineProperty({ foo: 'foo', default: 'bar' }, '__esModule', { value: true });
 		}
 	}
 };

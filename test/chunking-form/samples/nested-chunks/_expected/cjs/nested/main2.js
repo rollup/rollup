@@ -26,4 +26,4 @@ function _interopNamespace(e) {
 console.log('main2', dep.value);
 
 Promise.resolve().then(function () { return require('../generated-dynamic.js'); }).then(result => console.log(result));
-Promise.resolve().then(function () { return _interopNamespace(require('../external.js')); }).then(result => console.log(result));
+Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('../external.js')); }).then(result => console.log(result));

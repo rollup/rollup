@@ -2,10 +2,12 @@ const INTEROP_DEFAULT_VARIABLE = '_interopDefault';
 const INTEROP_DEFAULT_LEGACY_VARIABLE = '_interopDefaultLegacy';
 const INTEROP_NAMESPACE_VARIABLE = '_interopNamespace';
 const INTEROP_NAMESPACE_DEFAULT_VARIABLE = '_interopNamespaceDefault';
+const INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE = '_interopNamespaceDefaultOnly';
 
 export const defaultInteropHelpersByInteropType: { [interopType: string]: string | null } = {
 	auto: INTEROP_DEFAULT_VARIABLE,
 	default: null,
+	defaultOnly: null,
 	esModule: null,
 	false: null,
 	true: INTEROP_DEFAULT_LEGACY_VARIABLE
@@ -21,6 +23,7 @@ export function isDefaultProperty(interopType: string, externalLiveBindings: boo
 export const namespaceInteropHelpersByInteropType: { [interopType: string]: string | null } = {
 	auto: INTEROP_NAMESPACE_VARIABLE,
 	default: INTEROP_NAMESPACE_DEFAULT_VARIABLE,
+	defaultOnly: INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE,
 	esModule: null,
 	false: null,
 	true: INTEROP_NAMESPACE_VARIABLE
@@ -31,6 +34,10 @@ export function canDefaultBeTakenFromNamespace(interopType: string, externalLive
 		isDefaultProperty(interopType, externalLiveBindings) &&
 		defaultInteropHelpersByInteropType[interopType] === INTEROP_DEFAULT_VARIABLE
 	);
+}
+
+export function getDefaultOnlyHelper(): string {
+	return INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE;
 }
 
 export function getHelpersBlock(
@@ -80,6 +87,17 @@ const HELPER_GENERATORS: {
 	[INTEROP_NAMESPACE_DEFAULT_VARIABLE]: (_, n, _s, t, liveBindings, freeze) =>
 		`function ${INTEROP_NAMESPACE_DEFAULT_VARIABLE}(e)${_}{${n}` +
 		createNamespaceObject(_, n, t, t, liveBindings, freeze) +
+		`}${n}${n}`,
+	[INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE]: (
+		_: string,
+		n: string,
+		_s: string,
+		t: string,
+		_liveBindings: boolean,
+		freeze: boolean
+	) =>
+		`function ${INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE}(e)${_}{${n}` +
+		`${t}return ${getFrozen(`{__proto__: null,${_}'default':${_}e}`, freeze)};${n}` +
 		`}${n}${n}`
 };
 
@@ -107,7 +125,7 @@ function createNamespaceObject(
 		`${i}${t}});${n}` +
 		`${i}}${n}` +
 		`${i}n['default']${_}=${_}e;${n}` +
-		`${i}return ${freeze ? 'Object.freeze(n)' : 'n'};${n}`
+		`${i}return ${getFrozen('n', freeze)};${n}`
 	);
 }
 
@@ -127,6 +145,10 @@ function copyPropertyLiveBinding(_: string, n: string, t: string, i: string) {
 
 function copyPropertyStatic(_: string, n: string, _t: string, i: string) {
 	return `${i}n[k]${_}=${_}e[k];${n}`;
+}
+
+function getFrozen(fragment: string, freeze: boolean) {
+	return freeze ? `Object.freeze(${fragment})` : fragment;
 }
 
 export const HELPER_NAMES = Object.keys(HELPER_GENERATORS);

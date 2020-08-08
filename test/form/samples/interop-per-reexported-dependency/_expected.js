@@ -6,6 +6,7 @@ var externalFalse = require('external-false');
 var externalTrue = require('external-true');
 var externalAuto = require('external-auto');
 var externalDefault = require('external-default');
+var externalDefaultOnly = require('external-defaultOnly');
 var externalEsModule = require('external-esModule');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
@@ -82,6 +83,7 @@ Object.defineProperty(exports, 'barDefault', {
 });
 exports.externalDefault = externalDefault__namespace;
 exports.fooDefault = externalDefault;
+exports.fooDefaultOnly = externalDefaultOnly;
 Object.defineProperty(exports, 'barEsModule', {
 	enumerable: true,
 	get: function () {

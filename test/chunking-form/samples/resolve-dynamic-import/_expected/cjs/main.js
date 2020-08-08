@@ -28,10 +28,10 @@ function _interopNamespace(e) {
 
 // nested
 Promise.resolve().then(function () { return existing; });
-Promise.resolve().then(function () { return _interopNamespace(require('./direct-relative-external')); });
-Promise.resolve().then(function () { return _interopNamespace(require('to-indirect-relative-external')); });
-Promise.resolve().then(function () { return _interopNamespace(require('direct-absolute-external')); });
-Promise.resolve().then(function () { return _interopNamespace(require('to-indirect-absolute-external')); });
+Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('./direct-relative-external')); });
+Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('to-indirect-relative-external')); });
+Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('direct-absolute-external')); });
+Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('to-indirect-absolute-external')); });
 
 const value = 'existing';
 console.log('existing');
@@ -43,12 +43,12 @@ var existing = /*#__PURE__*/Object.freeze({
 
 //main
 Promise.resolve().then(function () { return existing; });
-Promise.resolve().then(function () { return _interopNamespace(require('./direct-relative-external')); });
-Promise.resolve().then(function () { return _interopNamespace(require('to-indirect-relative-external')); });
-Promise.resolve().then(function () { return _interopNamespace(require('direct-absolute-external')); });
-Promise.resolve().then(function () { return _interopNamespace(require('to-indirect-absolute-external')); });
+Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('./direct-relative-external')); });
+Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('to-indirect-relative-external')); });
+Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('direct-absolute-external')); });
+Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('to-indirect-absolute-external')); });
 
-Promise.resolve().then(function () { return _interopNamespace(require('dynamic-direct-external' + unknown)); });
-Promise.resolve().then(function () { return _interopNamespace(require('to-dynamic-indirect-external')); });
+Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('dynamic-direct-external' + unknown)); });
+Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('to-dynamic-indirect-external')); });
 Promise.resolve().then(function () { return existing; });
-Promise.resolve().then(function () { return _interopNamespace(require('my' + 'replacement')); });
+Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('my' + 'replacement')); });

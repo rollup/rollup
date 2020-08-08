@@ -2,7 +2,7 @@ module.exports = {
 	description:
 		'allows to configure the interop type per reexported default from an external dependency',
 	options: {
-		input: ['false', 'true', 'default', 'esModule', 'auto'],
+		input: ['false', 'true', 'default', 'defaultOnly', 'esModule', 'auto'],
 		external: id => id.startsWith('external'),
 		output: {
 			interop(id) {

@@ -8,7 +8,7 @@ module.exports = {
 	},
 	exports(exports) {
 		return exports.then(result =>
-			assert.deepStrictEqual(result, [{ default: 42 }, { default: 42 }])
+			assert.deepStrictEqual(result, [{ __proto__: null, default: 42 }, { default: 42 }])
 		);
 	}
 };

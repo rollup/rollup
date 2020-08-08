@@ -31,7 +31,7 @@ var myExternal__default = /*#__PURE__*/_interopDefaultLegacy(myExternal);
 
 const test = () => myExternal__default['default'];
 
-const someDynamicImport = () => Promise.resolve().then(function () { return _interopNamespace(require('external')); });
+const someDynamicImport = () => Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('external')); });
 
 exports.someDynamicImport = someDynamicImport;
 exports.test = test;

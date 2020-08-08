@@ -2,7 +2,10 @@ import MagicString from 'magic-string';
 import ExternalModule from '../../ExternalModule';
 import Module from '../../Module';
 import { NormalizedOutputOptions } from '../../rollup/types';
-import { namespaceInteropHelpersByInteropType } from '../../utils/interopHelpers';
+import {
+	getDefaultOnlyHelper,
+	namespaceInteropHelpersByInteropType
+} from '../../utils/interopHelpers';
 import { findFirstOccurrenceOutsideComment, RenderOptions } from '../../utils/renderHelpers';
 import { InclusionContext } from '../ExecutionContext';
 import ChildScope from '../scopes/ChildScope';
@@ -20,7 +23,6 @@ export default class ImportExpression extends NodeBase {
 	source!: ExpressionNode;
 	type!: NodeType.tImportExpression;
 
-	private exportMode: 'none' | 'named' | 'default' | 'auto' = 'auto';
 	private interopHelper: string | null = null;
 	private resolution: Module | ExternalModule | string | null = null;
 
@@ -83,20 +85,23 @@ export default class ImportExpression extends NodeBase {
 	}
 
 	setExternalResolution(
-		exportMode: 'none' | 'named' | 'default' | 'auto',
+		exportMode: 'none' | 'named' | 'default' | 'external',
 		resolution: Module | ExternalModule | string | null,
 		options: NormalizedOutputOptions,
 		accessedGlobalsByScope: Map<ChildScope, Set<string>>
 	): void {
 		const { format, interop } = options;
-		this.exportMode = exportMode;
 		this.resolution = resolution;
 		const accessedGlobals = [...(accessedImportGlobals[format] || [])];
-		if (exportMode === 'auto' && (format === 'cjs' || format === 'amd')) {
+		if (format === 'cjs' || format === 'amd') {
 			const helper = (this.interopHelper =
-				namespaceInteropHelpersByInteropType[
-					String(interop(resolution instanceof ExternalModule ? resolution.id : null))
-				]);
+				exportMode === 'external'
+					? namespaceInteropHelpersByInteropType[
+							String(interop(resolution instanceof ExternalModule ? resolution.id : null))
+					  ]
+					: exportMode === 'default'
+					? getDefaultOnlyHelper()
+					: null);
 			if (helper) {
 				accessedGlobals.push(helper);
 			}
@@ -128,14 +133,9 @@ export default class ImportExpression extends NodeBase {
 				const _ = options.compact ? '' : ' ';
 				const s = options.compact ? '' : ';';
 				const leftStart = `Promise.resolve().then(function${_}()${_}{${_}return`;
-				return this.exportMode === 'default'
+				return this.interopHelper
 					? {
-							left: `${leftStart}${_}{${_}'default':${_}require(`,
-							right: `)${_}}${s}${_}})`
-					  }
-					: this.exportMode === 'auto' && this.interopHelper
-					? {
-							left: `${leftStart} ${this.interopHelper}(require(`,
+							left: `${leftStart} /*#__PURE__*/${this.interopHelper}(require(`,
 							right: `))${s}${_}})`
 					  }
 					: {
@@ -147,12 +147,9 @@ export default class ImportExpression extends NodeBase {
 				const _ = options.compact ? '' : ' ';
 				const resolve = options.compact ? 'c' : 'resolve';
 				const reject = options.compact ? 'e' : 'reject';
-				const resolveNamespace =
-					this.exportMode === 'default'
-						? `function${_}(m)${_}{${_}${resolve}({${_}'default':${_}m${_}});${_}}`
-						: this.exportMode === 'auto' && this.interopHelper
-						? `function${_}(m)${_}{${_}${resolve}(/*#__PURE__*/${this.interopHelper}(m));${_}}`
-						: resolve;
+				const resolveNamespace = this.interopHelper
+					? `function${_}(m)${_}{${_}${resolve}(/*#__PURE__*/${this.interopHelper}(m));${_}}`
+					: resolve;
 				return {
 					left: `new Promise(function${_}(${resolve},${_}${reject})${_}{${_}require([`,
 					right: `],${_}${resolveNamespace},${_}${reject})${_}})`

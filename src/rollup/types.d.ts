@@ -540,8 +540,9 @@ export type ModuleFormat = InternalModuleFormat | 'commonjs' | 'esm' | 'module' 
 
 export type OptionsPaths = Record<string, string> | ((id: string) => string);
 
-// TODO Lukas a defaultOnly could provide much simpler interop for namespaces, see "ImportExpression"
-export type InteropType = boolean | 'auto' | 'esModule' | 'default';
+// TODO Lukas deprecate boolean values
+// TODO Lukas throw for all formats when "defaultOnly" encounters a named import, reexport, or warn for namespace reexport as namespace
+export type InteropType = boolean | 'auto' | 'esModule' | 'default' | 'defaultOnly';
 
 export type GetInterop = (id: string | null) => InteropType;
 

@@ -1130,7 +1130,7 @@ export default class Chunk {
 						}
 					} else {
 						node.setExternalResolution(
-							'auto',
+							'external',
 							resolution,
 							this.outputOptions,
 							accessedGlobalsByScope
