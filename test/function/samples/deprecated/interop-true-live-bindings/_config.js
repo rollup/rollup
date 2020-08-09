@@ -7,6 +7,7 @@ let barDefault = 'bar';
 module.exports = {
 	description: 'handles interop "true" with live-bindings support',
 	options: {
+		strictDeprecations: false,
 		external: id => id.startsWith('external') || id === 'update',
 		output: {
 			interop: true,

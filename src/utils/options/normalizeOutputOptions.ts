@@ -52,7 +52,7 @@ export function normalizeOutputOptions(
 		hoistTransitiveImports: (config.hoistTransitiveImports as boolean | undefined) ?? true,
 		indent: getIndent(config, compact),
 		inlineDynamicImports,
-		interop: getInterop(config),
+		interop: getInterop(config, inputOptions),
 		intro: getAddon(config, 'intro'),
 		manualChunks: getManualChunks(config, inlineDynamicImports, preserveModules, inputOptions),
 		minifyInternalExports: getMinifyInternalExports(config, format, compact),
@@ -246,19 +246,40 @@ const getIndent = (config: GenericConfigObject, compact: boolean): string | true
 	return configIndent === false ? '' : configIndent ?? true;
 };
 
-const getInterop = (config: GenericConfigObject): GetInterop => {
-	const configInterop = (config.interop as InteropType | GetInterop | undefined) ?? true;
+const getInterop = (
+	config: GenericConfigObject,
+	inputOptions: NormalizedInputOptions
+): GetInterop => {
+	const configInterop = config.interop as InteropType | GetInterop | undefined;
+	const warnedInteropTypes = new Set<boolean>();
+	const handleDeprecatedInterop = (interop: InteropType): InteropType => {
+		if (typeof interop === 'boolean' && !warnedInteropTypes.has(interop)) {
+			warnedInteropTypes.add(interop);
+			warnDeprecation(
+				{
+					message: `The boolean value "${interop}" for the "output.interop" option is deprecated. Use ${
+						interop ? '"auto"' : '"esModule", "default" or "defaultOnly"'
+					} instead.`,
+					url: 'https://rollupjs.org/guide/en/#outputinterop'
+				},
+				false,
+				inputOptions
+			);
+		}
+		return interop;
+	};
+
 	if (typeof configInterop === 'function') {
 		const interopPerId: { [id: string]: InteropType } = Object.create(null);
 		let defaultInterop: InteropType | null = null;
 		return id =>
 			id === null
-				? defaultInterop || (defaultInterop = configInterop(id))
+				? defaultInterop || handleDeprecatedInterop((defaultInterop = configInterop(id)))
 				: id in interopPerId
 				? interopPerId[id]
-				: (interopPerId[id] = configInterop(id));
+				: handleDeprecatedInterop((interopPerId[id] = configInterop(id)));
 	}
-	return () => configInterop;
+	return configInterop === undefined ? () => true : () => handleDeprecatedInterop(configInterop);
 };
 
 const getManualChunks = (

@@ -1,11 +1,7 @@
-export {default as fooFalse, barFalse} from 'external-false';
-export {default as fooTrue, barTrue} from 'external-true';
-export {default as fooAuto, barAuto} from 'external-auto';
-export {default as fooDefault, barDefault} from 'external-default';
-export {default as fooDefaultOnly} from 'external-defaultOnly';
-export {default as fooEsModule, barEsModule} from 'external-esModule';
-export * as externalFalse from 'external-false';
-export * as externalTrue from 'external-true';
+export { default as fooAuto, barAuto } from 'external-auto';
+export { default as fooDefault, barDefault } from 'external-default';
+export { default as fooDefaultOnly } from 'external-defaultOnly';
+export { default as fooEsModule, barEsModule } from 'external-esModule';
 export * as externalAuto from 'external-auto';
 export * as externalDefault from 'external-default';
 export * as externalEsModule from 'external-esModule';
