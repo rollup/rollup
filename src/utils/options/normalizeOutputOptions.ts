@@ -246,25 +246,40 @@ const getIndent = (config: GenericConfigObject, compact: boolean): string | true
 	return configIndent === false ? '' : configIndent ?? true;
 };
 
+const ALLOWED_INTEROP_TYPES = new Set(['auto', 'esModule', 'default', 'defaultOnly', true, false]);
 const getInterop = (
 	config: GenericConfigObject,
 	inputOptions: NormalizedInputOptions
 ): GetInterop => {
 	const configInterop = config.interop as InteropType | GetInterop | undefined;
-	const warnedInteropTypes = new Set<boolean>();
-	const handleDeprecatedInterop = (interop: InteropType): InteropType => {
-		if (typeof interop === 'boolean' && !warnedInteropTypes.has(interop)) {
-			warnedInteropTypes.add(interop);
-			warnDeprecation(
-				{
-					message: `The boolean value "${interop}" for the "output.interop" option is deprecated. Use ${
-						interop ? '"auto"' : '"esModule", "default" or "defaultOnly"'
-					} instead.`,
+	const validatedInteropTypes = new Set<InteropType>();
+	const validateInterop = (interop: InteropType): InteropType => {
+		if (!validatedInteropTypes.has(interop)) {
+			validatedInteropTypes.add(interop);
+			if (!ALLOWED_INTEROP_TYPES.has(interop)) {
+				return error({
+					code: 'INVALID_OPTION',
+					message: `The value ${JSON.stringify(
+						interop
+					)} is not supported for "output.interop". Use one of ${Array.from(
+						ALLOWED_INTEROP_TYPES.values(),
+						value => JSON.stringify(value)
+					).join(', ')} instead.`,
 					url: 'https://rollupjs.org/guide/en/#outputinterop'
-				},
-				false,
-				inputOptions
-			);
+				});
+			}
+			if (typeof interop === 'boolean') {
+				warnDeprecation(
+					{
+						message: `The boolean value "${interop}" for the "output.interop" option is deprecated. Use ${
+							interop ? '"auto"' : '"esModule", "default" or "defaultOnly"'
+						} instead.`,
+						url: 'https://rollupjs.org/guide/en/#outputinterop'
+					},
+					false,
+					inputOptions
+				);
+			}
 		}
 		return interop;
 	};
@@ -274,12 +289,12 @@ const getInterop = (
 		let defaultInterop: InteropType | null = null;
 		return id =>
 			id === null
-				? defaultInterop || handleDeprecatedInterop((defaultInterop = configInterop(id)))
+				? defaultInterop || validateInterop((defaultInterop = configInterop(id)))
 				: id in interopPerId
 				? interopPerId[id]
-				: handleDeprecatedInterop((interopPerId[id] = configInterop(id)));
+				: validateInterop((interopPerId[id] = configInterop(id)));
 	}
-	return configInterop === undefined ? () => true : () => handleDeprecatedInterop(configInterop);
+	return configInterop === undefined ? () => true : () => validateInterop(configInterop);
 };
 
 const getManualChunks = (
