@@ -5,9 +5,9 @@ import { stderr } from '../logging';
 
 export interface BatchWarnings {
 	add: (warning: RollupWarning) => void;
-	readonly total: number;
 	readonly count: number;
 	flush: () => void;
+	readonly total: number;
 }
 
 export default function batchWarnings() {
