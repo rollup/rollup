@@ -5,20 +5,27 @@ import { stderr } from '../logging';
 
 export interface BatchWarnings {
 	add: (warning: RollupWarning) => void;
+	readonly total: number;
 	readonly count: number;
 	flush: () => void;
 }
 
 export default function batchWarnings() {
 	let deferredWarnings = new Map<keyof typeof deferredHandlers, RollupWarning[]>();
+	let total = 0;
 	let count = 0;
 
 	return {
+		get total() {
+			return total;
+		},
+
 		get count() {
 			return count;
 		},
 
 		add: (warning: RollupWarning) => {
+			total += 1;
 			count += 1;
 
 			if (warning.code! in deferredHandlers) {

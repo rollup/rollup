@@ -53,6 +53,7 @@ export function mergeOptions(
 			'environment',
 			'plugin',
 			'silent',
+			'failAfterWarnings',
 			'stdin',
 			'waitForBundleInput'
 		),
