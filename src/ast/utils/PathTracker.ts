@@ -1,3 +1,4 @@
+import { getOrCreate } from '../../utils/getOrCreate';
 import { Entity } from '../Entity';
 
 export const UnknownKey = Symbol('Unknown Key');
@@ -48,9 +49,6 @@ export class DiscriminatedPathTracker {
 				currentPaths[pathSegment] ||
 				Object.create(null, { [EntitiesKey]: { value: new Map<object, Set<Entity>>() } });
 		}
-		const entities = currentPaths[EntitiesKey];
-		const result = entities.get(discriminator) || new Set();
-		entities.set(discriminator, result);
-		return result;
+		return getOrCreate(currentPaths[EntitiesKey], discriminator, () => new Set());
 	}
 }

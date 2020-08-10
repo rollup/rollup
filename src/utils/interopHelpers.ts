@@ -13,7 +13,7 @@ export const defaultInteropHelpersByInteropType: { [interopType: string]: string
 	true: INTEROP_DEFAULT_LEGACY_VARIABLE
 };
 
-export function isDefaultProperty(interopType: string, externalLiveBindings: boolean) {
+export function isDefaultAProperty(interopType: string, externalLiveBindings: boolean) {
 	return (
 		interopType === 'esModule' ||
 		(externalLiveBindings && (interopType === 'auto' || interopType === 'true'))
@@ -31,7 +31,7 @@ export const namespaceInteropHelpersByInteropType: { [interopType: string]: stri
 
 export function canDefaultBeTakenFromNamespace(interopType: string, externalLiveBindings: boolean) {
 	return (
-		isDefaultProperty(interopType, externalLiveBindings) &&
+		isDefaultAProperty(interopType, externalLiveBindings) &&
 		defaultInteropHelpersByInteropType[interopType] === INTEROP_DEFAULT_VARIABLE
 	);
 }

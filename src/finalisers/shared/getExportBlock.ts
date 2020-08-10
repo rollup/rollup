@@ -2,7 +2,7 @@ import { ChunkDependencies, ChunkExports } from '../../Chunk';
 import { GetInterop } from '../../rollup/types';
 import {
 	defaultInteropHelpersByInteropType,
-	isDefaultProperty,
+	isDefaultAProperty,
 	namespaceInteropHelpersByInteropType
 } from '../../utils/interopHelpers';
 
@@ -157,7 +157,7 @@ function getReexportedImportName(
 			const variableName = defaultInteropHelpersByInteropType[moduleInterop]
 				? defaultVariableName
 				: moduleVariableName;
-			return isDefaultProperty(moduleInterop, externalLiveBindings)
+			return isDefaultAProperty(moduleInterop, externalLiveBindings)
 				? `${variableName}['default']`
 				: variableName;
 		}

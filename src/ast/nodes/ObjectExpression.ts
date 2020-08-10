@@ -1,5 +1,6 @@
 import MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
+import { getOrCreate } from '../../utils/getOrCreate';
 import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
@@ -105,8 +106,9 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 			this.hasUnknownDeoptimizedProperty ||
 			typeof key !== 'string' ||
 			this.deoptimizedPaths.has(key)
-		)
+		) {
 			return UnknownValue;
+		}
 
 		if (
 			path.length === 1 &&
@@ -114,12 +116,7 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 			!objectMembers[key] &&
 			this.unmatchablePropertiesRead.length === 0
 		) {
-			const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized.get(key);
-			if (expressionsToBeDeoptimized) {
-				expressionsToBeDeoptimized.push(origin);
-			} else {
-				this.expressionsToBeDeoptimized.set(key, [origin]);
-			}
+			getOrCreate(this.expressionsToBeDeoptimized, key, () => []).push(origin);
 			return undefined;
 		}
 
@@ -131,12 +128,7 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 			return UnknownValue;
 		}
 
-		const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized.get(key);
-		if (expressionsToBeDeoptimized) {
-			expressionsToBeDeoptimized.push(origin);
-		} else {
-			this.expressionsToBeDeoptimized.set(key, [origin]);
-		}
+		getOrCreate(this.expressionsToBeDeoptimized, key, () => []).push(origin);
 		return propertyMap[key].exactMatchRead!.getLiteralValueAtPath(
 			path.slice(1),
 			recursionTracker,
@@ -157,30 +149,28 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 			this.hasUnknownDeoptimizedProperty ||
 			typeof key !== 'string' ||
 			this.deoptimizedPaths.has(key)
-		)
+		) {
 			return UNKNOWN_EXPRESSION;
+		}
 
 		if (
 			path.length === 1 &&
 			objectMembers[key] &&
 			this.unmatchablePropertiesRead.length === 0 &&
 			(!propertyMap[key] || propertyMap[key].exactMatchRead === null)
-		)
+		) {
 			return getMemberReturnExpressionWhenCalled(objectMembers, key);
+		}
 
 		if (
 			!propertyMap[key] ||
 			propertyMap[key].exactMatchRead === null ||
 			propertyMap[key].propertiesRead.length > 1
-		)
+		) {
 			return UNKNOWN_EXPRESSION;
-
-		const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized.get(key);
-		if (expressionsToBeDeoptimized) {
-			expressionsToBeDeoptimized.push(origin);
-		} else {
-			this.expressionsToBeDeoptimized.set(key, [origin]);
 		}
+
+		getOrCreate(this.expressionsToBeDeoptimized, key, () => []).push(origin);
 		return propertyMap[key].exactMatchRead!.getReturnExpressionWhenCalledAtPath(
 			path.slice(1),
 			recursionTracker,

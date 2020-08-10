@@ -9,7 +9,7 @@ import { GetInterop, InternalModuleFormat } from '../rollup/types';
 import {
 	canDefaultBeTakenFromNamespace,
 	defaultInteropHelpersByInteropType,
-	isDefaultProperty,
+	isDefaultAProperty,
 	namespaceInteropHelpersByInteropType
 } from './interopHelpers';
 import { getSafeName } from './safeName';
@@ -163,7 +163,7 @@ function deconflictImportsOther(
 				const variableName = defaultInteropHelpersByInteropType[moduleInterop]
 					? module.defaultVariableName
 					: module.variableName;
-				if (isDefaultProperty(moduleInterop, externalLiveBindings)) {
+				if (isDefaultAProperty(moduleInterop, externalLiveBindings)) {
 					variable.setRenderNames(variableName, 'default');
 				} else {
 					variable.setRenderNames(null, variableName);

@@ -59,6 +59,7 @@ export enum Errors {
 	NAMESPACE_CONFLICT = 'NAMESPACE_CONFLICT',
 	PLUGIN_ERROR = 'PLUGIN_ERROR',
 	PREFER_NAMED_EXPORTS = 'PREFER_NAMED_EXPORTS',
+	UNEXPECTED_NAMED_IMPORT = 'UNEXPECTED_NAMED_IMPORT',
 	UNRESOLVED_ENTRY = 'UNRESOLVED_ENTRY',
 	UNRESOLVED_IMPORT = 'UNRESOLVED_IMPORT',
 	VALIDATION_ERROR = 'VALIDATION_ERROR',
@@ -291,6 +292,29 @@ export function errPreferNamedExports(facadeModuleId: string) {
 		id: facadeModuleId,
 		message: `Entry module "${file}" is implicitly using "default" export mode, which means for CommonJS output that its default export is assigned to "module.exports". For many tools, such CommonJS output will not be interchangeable with the original ES module. If this is intended, explicitly set "output.exports" to either "auto" or "default", otherwise you might want to consider changing the signature of "${file}" to use named exports only.`,
 		url: `https://rollupjs.org/guide/en/#outputexports`
+	};
+}
+
+export function errUnexpectedNamedImport(id: string, imported: string, isReexport: boolean) {
+	const importType = isReexport ? 'reexport' : 'import';
+	return {
+		code: Errors.UNEXPECTED_NAMED_IMPORT,
+		id,
+		message: `The named export "${imported}" was ${importType}ed from the external module ${relativeId(
+			id
+		)} even though its interop type is "defaultOnly". Either remove or change this ${importType} or change the value of the "output.interop" option.`,
+		url: 'https://rollupjs.org/guide/en/#outputinterop'
+	};
+}
+
+export function errUnexpectedNamespaceReexport(id: string) {
+	return {
+		code: Errors.UNEXPECTED_NAMED_IMPORT,
+		id,
+		message: `There was a namespace "*" reexport from the external module ${relativeId(
+			id
+		)} even though its interop type is "defaultOnly". This will be ignored as namespace reexports only reexport named exports. If this is not intended, either remove or change this reexport or change the value of the "output.interop" option.`,
+		url: 'https://rollupjs.org/guide/en/#outputinterop'
 	};
 }
 

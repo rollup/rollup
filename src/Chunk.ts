@@ -29,18 +29,24 @@ import { Addons } from './utils/addons';
 import { collapseSourcemaps } from './utils/collapseSourcemaps';
 import { createHash } from './utils/crypto';
 import { deconflictChunk, DependenciesToBeDeconflicted } from './utils/deconflictChunk';
-import { errFailedValidation, error } from './utils/error';
+import {
+	errFailedValidation,
+	error,
+	errUnexpectedNamedImport,
+	errUnexpectedNamespaceReexport
+} from './utils/error';
 import { escapeId } from './utils/escapeId';
 import { sortByExecutionOrder } from './utils/executionOrder';
 import { assignExportsToMangledNames, assignExportsToNames } from './utils/exportNames';
 import getExportMode from './utils/getExportMode';
 import { getId } from './utils/getId';
 import getIndentString from './utils/getIndentString';
+import { getOrCreate } from './utils/getOrCreate';
 import { makeLegal } from './utils/identifierHelpers';
 import {
 	defaultInteropHelpersByInteropType,
 	HELPER_NAMES,
-	isDefaultProperty,
+	isDefaultAProperty,
 	namespaceInteropHelpersByInteropType
 } from './utils/interopHelpers';
 import { basename, dirname, extname, isAbsolute, normalize, resolve } from './utils/path';
@@ -895,70 +901,15 @@ export default class Chunk {
 	private getChunkDependencyDeclarations(
 		options: NormalizedOutputOptions
 	): Map<Chunk | ExternalModule, ModuleDeclarationDependency> {
-		const reexportDeclarations = new Map<Chunk | ExternalModule, ReexportSpecifier[]>();
-
-		for (let exportName of this.getExportNames()) {
-			let exportChunk: Chunk | ExternalModule;
-			let importName: string;
-			let needsLiveBinding = false;
-			if (exportName[0] === '*') {
-				needsLiveBinding = options.externalLiveBindings;
-				exportChunk = this.modulesById.get(exportName.substr(1)) as ExternalModule;
-				importName = exportName = '*';
-			} else {
-				const variable = this.exportsByName[exportName];
-				if (variable instanceof SyntheticNamedExportVariable) continue;
-				const module = variable.module!;
-				if (module instanceof Module) {
-					exportChunk = this.chunkByModule.get(module)!;
-					if (exportChunk === this) continue;
-					importName = exportChunk.getVariableExportName(variable);
-					needsLiveBinding = variable.isReassigned;
-				} else {
-					exportChunk = module;
-					importName = variable.name;
-					needsLiveBinding =
-						importName === 'default'
-							? isDefaultProperty(
-									String(this.outputOptions.interop(module.id)),
-									this.outputOptions.externalLiveBindings
-							  )
-							: options.externalLiveBindings;
-				}
-			}
-			let reexportDeclaration = reexportDeclarations.get(exportChunk);
-			if (!reexportDeclaration) reexportDeclarations.set(exportChunk, (reexportDeclaration = []));
-			reexportDeclaration.push({ imported: importName, reexported: exportName, needsLiveBinding });
-		}
-
-		const renderedImports = new Set<Variable>();
-		const dependencies = new Map<Chunk | ExternalModule, ModuleDeclarationDependency>();
-
+		const importSpecifiers = this.getImportSpecifiers();
+		const reexportSpecifiers = this.getReexportSpecifiers();
+		const dependencyDeclaration = new Map<Chunk | ExternalModule, ModuleDeclarationDependency>();
 		for (const dep of this.dependencies) {
-			const importSpecifiers: ImportSpecifier[] = [];
-			for (const variable of this.imports) {
-				if (
-					(variable.module instanceof Module
-						? this.chunkByModule.get(variable.module) === dep
-						: variable.module === dep) &&
-					!renderedImports.has(variable)
-				) {
-					renderedImports.add(variable);
-					importSpecifiers.push({
-						imported:
-							variable.module instanceof ExternalModule
-								? variable.name
-								: this.chunkByModule.get(variable.module!)!.getVariableExportName(variable),
-						local: variable.getName()
-					});
-				}
-			}
-
-			const imports = importSpecifiers.length > 0 ? importSpecifiers : null;
-			const reexports = reexportDeclarations.get(dep) || null;
+			const imports = importSpecifiers.get(dep) || null;
+			const reexports = reexportSpecifiers.get(dep) || null;
 			const namedExportsMode = dep instanceof ExternalModule || dep.exportMode !== 'default';
 
-			dependencies.set(dep, {
+			dependencyDeclaration.set(dep, {
 				defaultVariableName: (dep as ExternalModule).defaultVariableName,
 				globalName: (dep instanceof ExternalModule &&
 					(options.format === 'umd' || options.format === 'iife') &&
@@ -978,7 +929,7 @@ export default class Chunk {
 			});
 		}
 
-		return dependencies;
+		return dependencyDeclaration;
 	}
 
 	private getChunkExportDeclarations(format: InternalModuleFormat): ChunkExports {
@@ -1076,6 +1027,75 @@ export default class Chunk {
 			return getAliasName(this.fileName);
 		}
 		return getAliasName(this.orderedModules[this.orderedModules.length - 1].id);
+	}
+
+	private getImportSpecifiers(): Map<Chunk | ExternalModule, ImportSpecifier[]> {
+		const { interop } = this.outputOptions;
+		const importsByDependency = new Map<Chunk | ExternalModule, ImportSpecifier[]>();
+		for (const variable of this.imports) {
+			const module = variable.module!;
+			let dependency: Chunk | ExternalModule;
+			let imported: string;
+			if (module instanceof ExternalModule) {
+				dependency = module;
+				imported = variable.name;
+				if (imported !== 'default' && imported !== '*' && interop(module.id) === 'defaultOnly') {
+					return error(errUnexpectedNamedImport(module.id, imported, false));
+				}
+			} else {
+				dependency = this.chunkByModule.get(module)!;
+				imported = dependency.getVariableExportName(variable);
+			}
+			getOrCreate(importsByDependency, dependency, () => []).push({
+				imported,
+				local: variable.getName()
+			});
+		}
+		return importsByDependency;
+	}
+
+	private getReexportSpecifiers(): Map<Chunk | ExternalModule, ReexportSpecifier[]> {
+		const { externalLiveBindings, interop } = this.outputOptions;
+		const reexportSpecifiers = new Map<Chunk | ExternalModule, ReexportSpecifier[]>();
+		for (let exportName of this.getExportNames()) {
+			let dependency: Chunk | ExternalModule;
+			let imported: string;
+			let needsLiveBinding = false;
+			if (exportName[0] === '*') {
+				const id = exportName.substr(1);
+				if (interop(id) === 'defaultOnly') {
+					this.inputOptions.onwarn(errUnexpectedNamespaceReexport(id));
+				}
+				needsLiveBinding = externalLiveBindings;
+				dependency = this.modulesById.get(id) as ExternalModule;
+				imported = exportName = '*';
+			} else {
+				const variable = this.exportsByName[exportName];
+				if (variable instanceof SyntheticNamedExportVariable) continue;
+				const module = variable.module!;
+				if (module instanceof Module) {
+					dependency = this.chunkByModule.get(module)!;
+					if (dependency === this) continue;
+					imported = dependency.getVariableExportName(variable);
+					needsLiveBinding = variable.isReassigned;
+				} else {
+					dependency = module;
+					imported = variable.name;
+					if (imported !== 'default' && imported !== '*' && interop(module.id) === 'defaultOnly') {
+						return error(errUnexpectedNamedImport(module.id, imported, true));
+					}
+					needsLiveBinding =
+						externalLiveBindings &&
+						(imported !== 'default' || isDefaultAProperty(String(interop(module.id)), true));
+				}
+			}
+			getOrCreate(reexportSpecifiers, dependency, () => []).push({
+				imported,
+				needsLiveBinding,
+				reexported: exportName
+			});
+		}
+		return reexportSpecifiers;
 	}
 
 	private getReferencedFiles(): string[] {
