@@ -1145,6 +1145,7 @@ export default class Chunk {
 								this.facadeChunkByModule.get(resolution)?.exportMode || chunk!.exportMode,
 								resolution,
 								this.outputOptions,
+								this.pluginDriver,
 								accessedGlobalsByScope
 							);
 						}
@@ -1153,6 +1154,7 @@ export default class Chunk {
 							'external',
 							resolution,
 							this.outputOptions,
+							this.pluginDriver,
 							accessedGlobalsByScope
 						);
 					}

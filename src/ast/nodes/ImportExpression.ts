@@ -1,11 +1,12 @@
 import MagicString from 'magic-string';
 import ExternalModule from '../../ExternalModule';
 import Module from '../../Module';
-import { NormalizedOutputOptions } from '../../rollup/types';
+import { GetInterop, NormalizedOutputOptions } from '../../rollup/types';
 import {
 	getDefaultOnlyHelper,
 	namespaceInteropHelpersByInteropType
 } from '../../utils/interopHelpers';
+import { PluginDriver } from '../../utils/PluginDriver';
 import { findFirstOccurrenceOutsideComment, RenderOptions } from '../../utils/renderHelpers';
 import { InclusionContext } from '../ExecutionContext';
 import ChildScope from '../scopes/ChildScope';
@@ -23,7 +24,7 @@ export default class ImportExpression extends NodeBase {
 	source!: ExpressionNode;
 	type!: NodeType.tImportExpression;
 
-	private interopHelper: string | null = null;
+	private mechanism: DynamicImportMechanism | null = null;
 	private resolution: Module | ExternalModule | string | null = null;
 
 	hasEffects(): boolean {
@@ -55,14 +56,13 @@ export default class ImportExpression extends NodeBase {
 			return;
 		}
 
-		const importMechanism = this.getDynamicImportMechanism(options);
-		if (importMechanism) {
+		if (this.mechanism) {
 			code.overwrite(
 				this.start,
 				findFirstOccurrenceOutsideComment(code.original, '(', this.start + 6) + 1,
-				importMechanism.left
+				this.mechanism.left
 			);
-			code.overwrite(this.end - 1, this.end, importMechanism.right);
+			code.overwrite(this.end - 1, this.end, this.mechanism.right);
 		}
 		this.source.render(code, options);
 	}
@@ -84,27 +84,25 @@ export default class ImportExpression extends NodeBase {
 		}
 	}
 
+	// TODO Lukas add note about custom mechanism
 	setExternalResolution(
 		exportMode: 'none' | 'named' | 'default' | 'external',
 		resolution: Module | ExternalModule | string | null,
 		options: NormalizedOutputOptions,
+		pluginDriver: PluginDriver,
 		accessedGlobalsByScope: Map<ChildScope, Set<string>>
 	): void {
-		const { format, interop } = options;
 		this.resolution = resolution;
-		const accessedGlobals = [...(accessedImportGlobals[format] || [])];
-		if (format === 'cjs' || format === 'amd') {
-			const helper = (this.interopHelper =
-				exportMode === 'external'
-					? namespaceInteropHelpersByInteropType[
-							String(interop(resolution instanceof ExternalModule ? resolution.id : null))
-					  ]
-					: exportMode === 'default'
-					? getDefaultOnlyHelper()
-					: null);
-			if (helper) {
-				accessedGlobals.push(helper);
-			}
+		const accessedGlobals = [...(accessedImportGlobals[options.format] || [])];
+		let helper: string | null;
+		({ helper, mechanism: this.mechanism } = this.getDynamicImportMechanismAndHelper(
+			resolution,
+			exportMode,
+			options,
+			pluginDriver
+		));
+		if (helper) {
+			accessedGlobals.push(helper);
 		}
 		if (accessedGlobals.length > 0) {
 			this.scope.addAccessedGlobals(accessedGlobals, accessedGlobalsByScope);
@@ -115,8 +113,13 @@ export default class ImportExpression extends NodeBase {
 		this.inlineNamespace = inlineNamespace;
 	}
 
-	private getDynamicImportMechanism(options: RenderOptions): DynamicImportMechanism | null {
-		const mechanism = options.outputPluginDriver.hookFirstSync('renderDynamicImport', [
+	private getDynamicImportMechanismAndHelper(
+		resolution: Module | ExternalModule | string | null,
+		exportMode: 'none' | 'named' | 'default' | 'external',
+		options: NormalizedOutputOptions,
+		pluginDriver: PluginDriver
+	): { helper: string | null; mechanism: DynamicImportMechanism | null } {
+		const mechanism = pluginDriver.hookFirstSync('renderDynamicImport', [
 			{
 				customResolution: typeof this.resolution === 'string' ? this.resolution : null,
 				format: options.format,
@@ -126,49 +129,77 @@ export default class ImportExpression extends NodeBase {
 			}
 		]);
 		if (mechanism) {
-			return mechanism;
+			return { helper: null, mechanism };
 		}
 		switch (options.format) {
 			case 'cjs': {
 				const _ = options.compact ? '' : ' ';
 				const s = options.compact ? '' : ';';
 				const leftStart = `Promise.resolve().then(function${_}()${_}{${_}return`;
-				return this.interopHelper
-					? {
-							left: `${leftStart} /*#__PURE__*/${this.interopHelper}(require(`,
-							right: `))${s}${_}})`
-					  }
-					: {
-							left: `${leftStart} require(`,
-							right: `)${s}${_}})`
-					  };
+				const helper = this.getInteropHelper(resolution, exportMode, options.interop);
+				return {
+					helper,
+					mechanism: helper
+						? {
+								left: `${leftStart} /*#__PURE__*/${helper}(require(`,
+								right: `))${s}${_}})`
+						  }
+						: {
+								left: `${leftStart} require(`,
+								right: `)${s}${_}})`
+						  }
+				};
 			}
 			case 'amd': {
 				const _ = options.compact ? '' : ' ';
 				const resolve = options.compact ? 'c' : 'resolve';
 				const reject = options.compact ? 'e' : 'reject';
-				const resolveNamespace = this.interopHelper
-					? `function${_}(m)${_}{${_}${resolve}(/*#__PURE__*/${this.interopHelper}(m));${_}}`
+				const helper = this.getInteropHelper(resolution, exportMode, options.interop);
+				const resolveNamespace = helper
+					? `function${_}(m)${_}{${_}${resolve}(/*#__PURE__*/${helper}(m));${_}}`
 					: resolve;
 				return {
-					left: `new Promise(function${_}(${resolve},${_}${reject})${_}{${_}require([`,
-					right: `],${_}${resolveNamespace},${_}${reject})${_}})`
+					helper,
+					mechanism: {
+						left: `new Promise(function${_}(${resolve},${_}${reject})${_}{${_}require([`,
+						right: `],${_}${resolveNamespace},${_}${reject})${_}})`
+					}
 				};
 			}
 			case 'system':
 				return {
-					left: 'module.import(',
-					right: ')'
+					helper: null,
+					mechanism: {
+						left: 'module.import(',
+						right: ')'
+					}
 				};
 			case 'es':
 				if (options.dynamicImportFunction) {
 					return {
-						left: `${options.dynamicImportFunction}(`,
-						right: ')'
+						helper: null,
+						mechanism: {
+							left: `${options.dynamicImportFunction}(`,
+							right: ')'
+						}
 					};
 				}
 		}
-		return null;
+		return { helper: null, mechanism: null };
+	}
+
+	private getInteropHelper(
+		resolution: Module | ExternalModule | string | null,
+		exportMode: 'none' | 'named' | 'default' | 'external',
+		interop: GetInterop
+	): string | null {
+		return exportMode === 'external'
+			? namespaceInteropHelpersByInteropType[
+					String(interop(resolution instanceof ExternalModule ? resolution.id : null))
+			  ]
+			: exportMode === 'default'
+			? getDefaultOnlyHelper()
+			: null;
 	}
 }
 
