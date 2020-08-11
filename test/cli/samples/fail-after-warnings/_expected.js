@@ -1,5 +1,3 @@
-'use strict';
-
-require('unknown');
+import 'unknown';
 
 console.log(42);
