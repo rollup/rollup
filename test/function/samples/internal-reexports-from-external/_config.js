@@ -3,8 +3,6 @@ const fs = require('fs');
 const path = require('path');
 
 module.exports = {
-	// TODO Lukas we should not have a default export when this is a reexported namespace reexport
-	// TODO Lukas we should have a helper to create merged namespaces
 	description: 'supports namespaces with external star reexports',
 	options: {
 		external: ['fs', 'path'],

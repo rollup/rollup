@@ -85,6 +85,8 @@ export default class ImportExpression extends NodeBase {
 	}
 
 	// TODO Lukas add note about custom mechanism
+	// TODO add note about live-bindings
+	// TODO Lukas gather fixed issues
 	setExternalResolution(
 		exportMode: 'none' | 'named' | 'default' | 'external',
 		resolution: Module | ExternalModule | string | null,
