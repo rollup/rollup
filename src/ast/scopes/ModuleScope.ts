@@ -29,11 +29,7 @@ export default class ModuleScope extends ChildScope {
 		return variable;
 	}
 
-	addNamespaceMemberAccess(_name: string, variable: Variable) {
-		if (variable instanceof GlobalVariable) {
-			this.accessedOutsideVariables.set(variable.name, variable);
-		}
-	}
+	addNamespaceMemberAccess() {}
 
 	deconflict(
 		format: InternalModuleFormat,

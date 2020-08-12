@@ -1161,9 +1161,7 @@ export default class Chunk {
 				}
 			}
 			for (const importMeta of module.importMetas) {
-				if (importMeta.included) {
-					importMeta.addAccessedGlobals(this.outputOptions.format, accessedGlobalsByScope);
-				}
+				importMeta.addAccessedGlobals(this.outputOptions.format, accessedGlobalsByScope);
 			}
 		}
 	}

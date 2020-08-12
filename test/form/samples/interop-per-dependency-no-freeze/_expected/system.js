@@ -29,8 +29,6 @@ System.register(['external-auto', 'external-default', 'external-defaultOnly', 'e
 			module.import('external-default').then(console.log);
 			module.import('external-defaultOnly').then(console.log);
 			module.import('external-esModule').then(console.log);
-			module.import(globalThis.external1).then(console.log);
-			module.import(globalThis.external2).then(console.log);
 
 		}
 	};

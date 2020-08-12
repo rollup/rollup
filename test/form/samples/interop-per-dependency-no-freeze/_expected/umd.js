@@ -24,11 +24,11 @@
 			});
 		}
 		n['default'] = e;
-		return Object.freeze(n);
+		return n;
 	}
 
 	function _interopNamespaceDefaultOnly(e) {
-		return Object.freeze({__proto__: null, 'default': e});
+		return {__proto__: null, 'default': e};
 	}
 
 	var fooAuto__namespace = /*#__PURE__*/_interopNamespace(fooAuto);
@@ -44,7 +44,5 @@
 	import('external-default').then(console.log);
 	import('external-defaultOnly').then(console.log);
 	import('external-esModule').then(console.log);
-	import(globalThis.external1).then(console.log);
-	import(globalThis.external2).then(console.log);
 
 })));

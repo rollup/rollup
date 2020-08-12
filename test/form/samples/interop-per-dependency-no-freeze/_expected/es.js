@@ -16,5 +16,3 @@ import('external-auto').then(console.log);
 import('external-default').then(console.log);
 import('external-defaultOnly').then(console.log);
 import('external-esModule').then(console.log);
-import(globalThis.external1).then(console.log);
-import(globalThis.external2).then(console.log);

@@ -1,8 +1,5 @@
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('external-auto'), require('external-default'), require('external-defaultOnly'), require('external-esModule')) :
-	typeof define === 'function' && define.amd ? define(['external-auto', 'external-default', 'external-defaultOnly', 'external-esModule'], factory) :
-	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.externalauto, global.externaldefault, global.externaldefaultOnly, global.externalesModule));
-}(this, (function (fooAuto, fooDefault, fooDefaultOnly, fooEsModule) { 'use strict';
+(function (fooAuto, fooDefault, fooDefaultOnly, fooEsModule) {
+	'use strict';
 
 	function _interopNamespace(e) {
 		return e && e.__esModule ? e : _interopNamespaceDefault(e);
@@ -24,11 +21,11 @@
 			});
 		}
 		n['default'] = e;
-		return Object.freeze(n);
+		return n;
 	}
 
 	function _interopNamespaceDefaultOnly(e) {
-		return Object.freeze({__proto__: null, 'default': e});
+		return {__proto__: null, 'default': e};
 	}
 
 	var fooAuto__namespace = /*#__PURE__*/_interopNamespace(fooAuto);
@@ -44,7 +41,5 @@
 	import('external-default').then(console.log);
 	import('external-defaultOnly').then(console.log);
 	import('external-esModule').then(console.log);
-	import(globalThis.external1).then(console.log);
-	import(globalThis.external2).then(console.log);
 
-})));
+}(externalauto, externaldefault, externaldefaultOnly, externalesModule));

@@ -25,11 +25,11 @@ function _interopNamespaceDefault(e) {
 		});
 	}
 	n['default'] = e;
-	return Object.freeze(n);
+	return n;
 }
 
 function _interopNamespaceDefaultOnly(e) {
-	return Object.freeze({__proto__: null, 'default': e});
+	return {__proto__: null, 'default': e};
 }
 
 var fooAuto__namespace = /*#__PURE__*/_interopNamespace(fooAuto);
@@ -45,5 +45,3 @@ Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(requi
 Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefault(require('external-default')); }).then(console.log);
 Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefaultOnly(require('external-defaultOnly')); }).then(console.log);
 Promise.resolve().then(function () { return require('external-esModule'); }).then(console.log);
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(globalThis.external1)); }).then(console.log);
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(globalThis.external2)); }).then(console.log);

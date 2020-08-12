@@ -1,12 +1,10 @@
 module.exports = {
-	description: 'allows to configure the interop type per external dependency',
+	description: 'respects the freeze option',
 	options: {
 		external: id => id.startsWith('external'),
 		output: {
+			freeze: false,
 			interop(id) {
-				if (id === null) {
-					return 'auto';
-				}
 				return id.split('-')[1];
 			},
 			globals(id) {
