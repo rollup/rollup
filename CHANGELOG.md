@@ -8,6 +8,7 @@
 * Support interop "auto" as a more compatible version of "true" (#3710)
 * Support interop "default" and "esModule" to avoid unnecessary interop helpers (#3710)
 * Support interop "defaultOnly" for simplified helpers and Node ESM interop compatible output (#3710)
+* Respect interop option for external dynamic imports (#3710)
 * Support live-bindings for external default imports in non-ES formats unless "externalLiveBindings" is "false" (#3710)
 * Use shared default interop helpers for AMD, UMD and IIFE formats (#3710)
 * Avoid unnecessarily deconflicted module variables in non-ES formats (#3710)
