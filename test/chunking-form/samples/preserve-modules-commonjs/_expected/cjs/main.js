@@ -5,4 +5,4 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
 var external = _interopDefault(require('external'));
 var commonjs = require('./commonjs.js');
 
-console.log(commonjs.default, external);
+console.log(commonjs, external);

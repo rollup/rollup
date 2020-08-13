@@ -1,8 +1,9 @@
 class Example extends SomeClass {
 	firstPublicField = 1;
 	secondPublicField = this.firstPublicField + super.someField;
-	static firstPublicStaticField = 2;
-	static secondPublicStaticField = this.firstPublicStaticField + super.someStaticField;
+
+	publicField = () => {
+	};
 
 	#privateField = () => {};
 
@@ -20,6 +21,12 @@ class Example extends SomeClass {
 	// #privateMethod() {
 	// 	const foo = 'tree-shaken';
 	// }
+
+	static firstPublicStaticField = 2;
+	static secondPublicStaticField = this.firstPublicStaticField + super.someStaticField;
+
+	static publicStaticField = () => {
+	};
 
 	static #privateStaticField = () => {};
 
