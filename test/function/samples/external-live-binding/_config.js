@@ -24,6 +24,7 @@ module.exports = {
 						// "export * from" does not forward default exports
 						default: 'star-ignored'
 					};
+					Object.defineProperty(star, '__esModule', { value: true });
 					return star;
 				}
 				case 'defaulted': {
@@ -47,12 +48,12 @@ module.exports = {
 		assert.equal(exports.star, 1, 'star');
 		star.star++;
 		assert.equal(exports.star, 2, 'star');
+
+		assert.equal(exports.defaulted, 1, 'default');
+		defaulted.default++;
+		assert.equal(exports.defaulted, 2, 'default');
+
 		// make sure the default is not reexported
 		assert.equal(exports.default, undefined);
-
-		// TODO default exports can have live bindings as well
-		// assert.equal(exports.defaulted, 1, 'default');
-		// defaulted.default++;
-		// assert.equal(exports.defaulted, 2, 'default');
 	}
 };

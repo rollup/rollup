@@ -1,8 +1,10 @@
 (function (unchanged, changedName, specialCharacter, slash, relative_js) {
 	'use strict';
 
-	changedName = changedName && Object.prototype.hasOwnProperty.call(changedName, 'default') ? changedName['default'] : changedName;
+	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-	console.log(unchanged.foo, changedName, specialCharacter.bar, slash.baz, relative_js.quux);
+	var changedName__default = /*#__PURE__*/_interopDefaultLegacy(changedName);
+
+	console.log(unchanged.foo, changedName__default['default'], specialCharacter.bar, slash.baz, relative_js.quux);
 
 }(unchanged, changedName, specialCharacter, slash, relative_js));

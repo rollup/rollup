@@ -6,6 +6,8 @@ module.exports = {
 		input: ['main', 'foo', 'bar']
 	},
 	exports(exports) {
-		return exports.then(exported => assert.deepStrictEqual(exported, { default: 4 }));
+		return exports.then(exported =>
+			assert.deepStrictEqual(exported, { __proto__: null, default: 4 })
+		);
 	}
 };

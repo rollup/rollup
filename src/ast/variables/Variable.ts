@@ -1,5 +1,6 @@
 import ExternalModule from '../../ExternalModule';
 import Module from '../../Module';
+import { RESERVED_NAMES } from '../../utils/reservedNames';
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
@@ -48,7 +49,11 @@ export default class Variable implements ExpressionEntity {
 
 	getName(): string {
 		const name = this.renderName || this.name;
-		return this.renderBaseName ? `${this.renderBaseName}.${name}` : name;
+		return this.renderBaseName
+			? RESERVED_NAMES[this.name]
+				? `${this.renderBaseName}['${name}']`
+				: `${this.renderBaseName}.${name}`
+			: name;
 	}
 
 	getReturnExpressionWhenCalledAtPath(
@@ -95,10 +100,6 @@ export default class Variable implements ExpressionEntity {
 
 	setRenderNames(baseName: string | null, name: string | null) {
 		this.renderBaseName = baseName;
-		this.renderName = name;
-	}
-
-	setSafeName(name: string | null) {
 		this.renderName = name;
 	}
 }

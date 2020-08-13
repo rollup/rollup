@@ -1,5 +1,30 @@
 # rollup changelog
 
+## 2.24.0
+*unreleased*
+
+### Features
+* Allow defining interop per dependency via a function (#3710)
+* Support interop "auto" as a more compatible version of "true" (#3710)
+* Support interop "default" and "esModule" to avoid unnecessary interop helpers (#3710)
+* Support interop "defaultOnly" for simplified helpers and Node ESM interop compatible output (#3710)
+* Respect interop option for external dynamic imports (#3710)
+* Support live-bindings for external default imports in non-ES formats unless "externalLiveBindings" is "false" (#3710)
+* Use shared default interop helpers for AMD, UMD and IIFE formats (#3710)
+* Avoid unnecessarily deconflicted module variables in non-ES formats (#3710)
+* Freeze generated interop namespace objects (#3710)
+* Always mark interop helpers as pure (#3710)
+* Avoid default export interop if there is already an interop namespace object (#3710)
+* Sort all `require` statements to the top in CommonJS output for easier back-transpilation to ES modules by other tools (#3710)
+
+### Bug Fixes
+* Deconflict the names of helper variables introduced for interop (#3710)
+* Generate proper namespace objects for static namespace imports in non-ES formats (#3710)
+* Do not add unused interop helpers when using the renderDynamicImport hook (#3710)
+
+### Pull Requests
+* [#3710](https://github.com/rollup/rollup/pull/3710): Rework interop handling (@lukastaegert)
+
 ## 2.23.1
 *2020-08-07*
 
@@ -40,7 +65,7 @@
 *2020-07-18*
 
 ### Features
-* Allow resolving snythetic named exports via an arbitrary export name (#3657)
+* Allow resolving synthetic named exports via an arbitrary export name (#3657)
 * Display a warning when the user does not explicitly select an export mode and would generate a chunk with default export mode when targeting CommonJS (#3657)
 
 ### Pull Requests

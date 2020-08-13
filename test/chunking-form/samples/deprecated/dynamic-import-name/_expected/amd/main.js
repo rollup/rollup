@@ -2,23 +2,25 @@ define(['require'], function (require) { 'use strict';
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) { return e; } else {
-			var n = {};
+			var n = Object.create(null);
 			if (e) {
 				Object.keys(e).forEach(function (k) {
-					var d = Object.getOwnPropertyDescriptor(e, k);
-					Object.defineProperty(n, k, d.get ? d : {
-						enumerable: true,
-						get: function () {
-							return e[k];
-						}
-					});
+					if (k !== 'default') {
+						var d = Object.getOwnPropertyDescriptor(e, k);
+						Object.defineProperty(n, k, d.get ? d : {
+							enumerable: true,
+							get: function () {
+								return e[k];
+							}
+						});
+					}
 				});
 			}
 			n['default'] = e;
-			return n;
+			return Object.freeze(n);
 		}
 	}
 
-	new Promise(function (resolve, reject) { require(['./foo'], function (m) { resolve(_interopNamespace(m)); }, reject) }).then(result => console.log(result));
+	new Promise(function (resolve, reject) { require(['./foo'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) }).then(result => console.log(result));
 
 });

@@ -3,6 +3,7 @@ import { InternalModuleFormat } from '../../rollup/types';
 import { warnDeprecation } from '../../utils/error';
 import { dirname, normalize, relative } from '../../utils/path';
 import { PluginDriver } from '../../utils/PluginDriver';
+import ChildScope from '../scopes/ChildScope';
 import { ObjectPathKey } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
@@ -19,6 +20,22 @@ export default class MetaProperty extends NodeBase {
 	type!: NodeType.tMetaProperty;
 
 	private metaProperty?: string | null;
+
+	addAccessedGlobals(
+		format: InternalModuleFormat,
+		accessedGlobalsByScope: Map<ChildScope, Set<string>>
+	) {
+		const metaProperty = this.metaProperty;
+		const accessedGlobals = (metaProperty &&
+		(metaProperty.startsWith(FILE_PREFIX) ||
+			metaProperty.startsWith(ASSET_PREFIX) ||
+			metaProperty.startsWith(CHUNK_PREFIX))
+			? accessedFileUrlGlobals
+			: accessedMetaUrlGlobals)[format];
+		if (accessedGlobals.length > 0) {
+			this.scope.addAccessedGlobals(accessedGlobals, accessedGlobalsByScope);
+		}
+	}
 
 	getReferencedFileName(outputPluginDriver: PluginDriver): string | null {
 		const metaProperty = this.metaProperty as string | null;
@@ -42,20 +59,10 @@ export default class MetaProperty extends NodeBase {
 			if (this.meta.name === 'import') {
 				this.context.addImportMeta(this);
 				const parent = this.parent;
-				const metaProperty = (this.metaProperty =
+				this.metaProperty =
 					parent instanceof MemberExpression && typeof parent.propertyKey === 'string'
 						? parent.propertyKey
-						: null);
-				if (
-					metaProperty &&
-					(metaProperty.startsWith(FILE_PREFIX) ||
-						metaProperty.startsWith(ASSET_PREFIX) ||
-						metaProperty.startsWith(CHUNK_PREFIX))
-				) {
-					this.scope.addAccessedGlobalsByFormat(accessedFileUrlGlobals);
-				} else {
-					this.scope.addAccessedGlobalsByFormat(accessedMetaUrlGlobals);
-				}
+						: null;
 			}
 		}
 	}
@@ -145,8 +152,7 @@ export default class MetaProperty extends NodeBase {
 					format,
 					moduleId: this.context.module.id
 				}
-			]) ||
-			(importMetaMechanisms[format] && importMetaMechanisms[format](metaProperty, chunkId));
+			]) || importMetaMechanisms[format]?.(metaProperty, chunkId);
 		if (typeof replacement === 'string') {
 			if (parent instanceof MemberExpression) {
 				code.overwrite(parent.start, parent.end, replacement, { contentOnly: true });
@@ -160,6 +166,7 @@ export default class MetaProperty extends NodeBase {
 const accessedMetaUrlGlobals = {
 	amd: ['document', 'module', 'URL'],
 	cjs: ['document', 'require', 'URL'],
+	es: [],
 	iife: ['document', 'URL'],
 	system: ['module'],
 	umd: ['document', 'require', 'URL']
@@ -168,6 +175,7 @@ const accessedMetaUrlGlobals = {
 const accessedFileUrlGlobals = {
 	amd: ['document', 'require', 'URL'],
 	cjs: ['document', 'require', 'URL'],
+	es: [],
 	iife: ['document', 'URL'],
 	system: ['module', 'URL'],
 	umd: ['document', 'require', 'URL']
@@ -191,7 +199,7 @@ const getGenericImportMetaMechanism = (getUrl: (chunkId: string) => string) => (
 const getUrlFromDocument = (chunkId: string) =>
 	`(document.currentScript && document.currentScript.src || new URL('${chunkId}', document.baseURI).href)`;
 
-const relativeUrlMechanisms: Record<string, (relativePath: string) => string> = {
+const relativeUrlMechanisms: Record<InternalModuleFormat, (relativePath: string) => string> = {
 	amd: relativePath => {
 		if (relativePath[0] !== '.') relativePath = './' + relativePath;
 		return getResolveUrl(`require.toUrl('${relativePath}'), document.baseURI`);

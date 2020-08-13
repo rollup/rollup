@@ -1,12 +1,14 @@
 define(['factory', 'baz', 'shipping-port', 'alphabet'], function (factory, baz, containers, alphabet) { 'use strict';
 
-	factory = factory && Object.prototype.hasOwnProperty.call(factory, 'default') ? factory['default'] : factory;
-	var alphabet__default = 'default' in alphabet ? alphabet['default'] : alphabet;
+	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-	factory( null );
+	var factory__default = /*#__PURE__*/_interopDefaultLegacy(factory);
+	var alphabet__default = /*#__PURE__*/_interopDefaultLegacy(alphabet);
+
+	factory__default['default']( null );
 	baz.foo( baz.bar, containers.port );
 	containers.forEach( console.log, console );
 	console.log( alphabet.a );
-	console.log( alphabet__default.length );
+	console.log( alphabet__default['default'].length );
 
 });

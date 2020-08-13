@@ -116,7 +116,12 @@ export default command => {
 			externalLiveBindings: false,
 			format: 'cjs',
 			freeze: false,
-			interop: false,
+			interop: id => {
+				if (id === 'fsevents') {
+					return 'defaultOnly';
+				}
+				return 'default';
+			},
 			manualChunks: { rollup: ['src/node-entry.ts'] },
 			sourcemap: true
 		}

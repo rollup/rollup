@@ -1,6 +1,8 @@
 import {
+	GetInterop,
 	GlobalsOption,
 	InternalModuleFormat,
+	InteropType,
 	ManualChunksOption,
 	ModuleFormat,
 	NormalizedInputOptions,
@@ -50,7 +52,7 @@ export function normalizeOutputOptions(
 		hoistTransitiveImports: (config.hoistTransitiveImports as boolean | undefined) ?? true,
 		indent: getIndent(config, compact),
 		inlineDynamicImports,
-		interop: (config.interop as boolean | undefined) ?? true,
+		interop: getInterop(config, inputOptions),
 		intro: getAddon(config, 'intro'),
 		manualChunks: getManualChunks(config, inlineDynamicImports, preserveModules, inputOptions),
 		minifyInternalExports: getMinifyInternalExports(config, format, compact),
@@ -242,6 +244,57 @@ const getIndent = (config: GenericConfigObject, compact: boolean): string | true
 	}
 	const configIndent = config.indent as string | boolean | undefined;
 	return configIndent === false ? '' : configIndent ?? true;
+};
+
+const ALLOWED_INTEROP_TYPES = new Set(['auto', 'esModule', 'default', 'defaultOnly', true, false]);
+const getInterop = (
+	config: GenericConfigObject,
+	inputOptions: NormalizedInputOptions
+): GetInterop => {
+	const configInterop = config.interop as InteropType | GetInterop | undefined;
+	const validatedInteropTypes = new Set<InteropType>();
+	const validateInterop = (interop: InteropType): InteropType => {
+		if (!validatedInteropTypes.has(interop)) {
+			validatedInteropTypes.add(interop);
+			if (!ALLOWED_INTEROP_TYPES.has(interop)) {
+				return error({
+					code: 'INVALID_OPTION',
+					message: `The value ${JSON.stringify(
+						interop
+					)} is not supported for "output.interop". Use one of ${Array.from(
+						ALLOWED_INTEROP_TYPES.values(),
+						value => JSON.stringify(value)
+					).join(', ')} instead.`,
+					url: 'https://rollupjs.org/guide/en/#outputinterop'
+				});
+			}
+			if (typeof interop === 'boolean') {
+				warnDeprecation(
+					{
+						message: `The boolean value "${interop}" for the "output.interop" option is deprecated. Use ${
+							interop ? '"auto"' : '"esModule", "default" or "defaultOnly"'
+						} instead.`,
+						url: 'https://rollupjs.org/guide/en/#outputinterop'
+					},
+					false,
+					inputOptions
+				);
+			}
+		}
+		return interop;
+	};
+
+	if (typeof configInterop === 'function') {
+		const interopPerId: { [id: string]: InteropType } = Object.create(null);
+		let defaultInterop: InteropType | null = null;
+		return id =>
+			id === null
+				? defaultInterop || validateInterop((defaultInterop = configInterop(id)))
+				: id in interopPerId
+				? interopPerId[id]
+				: validateInterop((interopPerId[id] = configInterop(id)));
+	}
+	return configInterop === undefined ? () => true : () => validateInterop(configInterop);
 };
 
 const getManualChunks = (

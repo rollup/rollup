@@ -1,4 +1,5 @@
 (function () {
+
     const localVariable = 'local';
 
     try {

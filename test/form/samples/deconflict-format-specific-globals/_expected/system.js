@@ -18,7 +18,7 @@ System.register('bundle', ['external'], function (exports, module) {
 			const URL = 1;
 			console.log(_interopDefault, _interopNamespace, module$1, require, exports$1, document, URL);
 
-			module.import('external');
+			module.import('external').then(console.log);
 			let value = exports('default', 0);
 			console.log(module.meta.url);
 
@@ -32,7 +32,7 @@ System.register('bundle', ['external'], function (exports, module) {
 				const URL = 1;
 				console.log(_interopDefault, _interopNamespace, module$1, require, exports$1, document, URL);
 
-				module.import('external');
+				module.import('external').then(console.log);
 				value = exports('default', 1);
 				console.log(module.meta.url);
 			}

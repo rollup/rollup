@@ -1,8 +1,10 @@
 'use strict';
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+var L = require('leaflet');
 
-var L = _interopDefault(require('leaflet'));
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-L.terminator = function(options) {
+var L__default = /*#__PURE__*/_interopDefaultLegacy(L);
+
+L__default['default'].terminator = function(options) {
 };

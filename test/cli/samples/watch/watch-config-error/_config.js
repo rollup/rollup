@@ -21,7 +21,7 @@ module.exports = {
 	},
 	after() {
 		// synchronous sometimes does not seem to work, probably because the watch is not yet removed properly
-		setTimeout(() => fs.unlinkSync(configFile), 100);
+		setTimeout(() => fs.unlinkSync(configFile), 300);
 	},
 	abortOnStderr(data) {
 		if (data.includes(`created _actual${path.sep}main1.js`)) {

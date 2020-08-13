@@ -1,0 +1,10 @@
+import * as externalAuto from 'external-auto';
+export { externalAuto };
+export { barAuto, default as fooAuto } from 'external-auto';
+import * as externalDefault from 'external-default';
+export { externalDefault };
+export { barDefault, default as fooDefault } from 'external-default';
+export { default as fooDefaultOnly } from 'external-defaultOnly';
+import * as externalEsModule from 'external-esModule';
+export { externalEsModule };
+export { barEsModule, default as fooEsModule } from 'external-esModule';

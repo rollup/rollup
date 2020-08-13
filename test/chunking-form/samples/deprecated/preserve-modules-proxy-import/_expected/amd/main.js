@@ -1,8 +1,10 @@
 define(['external'], function (path) { 'use strict';
 
-	path = path && Object.prototype.hasOwnProperty.call(path, 'default') ? path['default'] : path;
+	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-	console.log(path.normalize('foo\\bar'));
-	console.log(path.normalize('foo\\bar'));
+	var path__default = /*#__PURE__*/_interopDefaultLegacy(path);
+
+	console.log(path__default['default'].normalize('foo\\bar'));
+	console.log(path__default['default'].normalize('foo\\bar'));
 
 });

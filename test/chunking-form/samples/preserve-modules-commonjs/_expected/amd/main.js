@@ -1,7 +1,9 @@
 define(['external', './commonjs'], function (external, commonjs) { 'use strict';
 
-	external = external && Object.prototype.hasOwnProperty.call(external, 'default') ? external['default'] : external;
+	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-	console.log(commonjs, external);
+	var external__default = /*#__PURE__*/_interopDefaultLegacy(external);
+
+	console.log(commonjs, external__default['default']);
 
 });

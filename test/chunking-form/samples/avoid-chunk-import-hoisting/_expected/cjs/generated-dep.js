@@ -1,9 +1,11 @@
 'use strict';
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+var value = require('lib');
 
-var value = _interopDefault(require('lib'));
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-var dep = 2 * value;
+var value__default = /*#__PURE__*/_interopDefaultLegacy(value);
+
+var dep = 2 * value__default['default'];
 
 exports.dep = dep;

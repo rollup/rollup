@@ -4,8 +4,10 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.external));
 }(this, (function (external) { 'use strict';
 
-	external = external && Object.prototype.hasOwnProperty.call(external, 'default') ? external['default'] : external;
+	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-	console.log(external);
+	var external__default = /*#__PURE__*/_interopDefaultLegacy(external);
+
+	console.log(external__default['default']);
 
 })));

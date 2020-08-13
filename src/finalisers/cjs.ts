@@ -1,10 +1,10 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
+import { ChunkDependencies } from '../Chunk';
 import { NormalizedOutputOptions } from '../rollup/types';
-import { INTEROP_DEFAULT_VARIABLE, INTEROP_NAMESPACE_VARIABLE } from '../utils/variableNames';
 import { FinaliserOptions } from './index';
 import { compactEsModuleExport, esModuleExport } from './shared/esModuleExport';
 import getExportBlock from './shared/getExportBlock';
-import { getInteropNamespace } from './shared/getInteropNamespace';
+import getInteropBlock from './shared/getInteropBlock';
 
 export default function cjs(
 	magicString: MagicStringBundle,
@@ -20,84 +20,72 @@ export default function cjs(
 		outro,
 		varOrConst
 	}: FinaliserOptions,
-	options: NormalizedOutputOptions
+	{ compact, esModule, externalLiveBindings, freeze, interop, strict }: NormalizedOutputOptions
 ) {
-	const n = options.compact ? '' : '\n';
-	const _ = options.compact ? '' : ' ';
+	const n = compact ? '' : '\n';
+	const s = compact ? '' : ';';
+	const _ = compact ? '' : ' ';
 
-	intro =
-		(options.strict === false ? intro : `'use strict';${n}${n}${intro}`) +
-		(namedExportsMode && hasExports && isEntryModuleFacade && options.esModule
-			? `${options.compact ? compactEsModuleExport : esModuleExport}${n}${n}`
-			: '');
+	const useStrict = strict ? `'use strict';${n}${n}` : '';
+	const esModuleProp =
+		namedExportsMode && hasExports && isEntryModuleFacade && esModule
+			? `${compact ? compactEsModuleExport : esModuleExport}${n}${n}`
+			: '';
+	const importBlock = getImportBlock(dependencies, compact, varOrConst, n, _);
+	const interopBlock = getInteropBlock(
+		dependencies,
+		varOrConst,
+		interop,
+		externalLiveBindings,
+		freeze,
+		accessedGlobals,
+		_,
+		n,
+		s,
+		t
+	);
 
-	let needsInterop = false;
-	let importBlock: string;
-
-	let definingVariable = false;
-	importBlock = '';
-	for (const {
-		id,
-		namedExportsMode,
-		isChunk,
-		name,
-		reexports,
-		imports,
-		exportsNames,
-		exportsDefault
-	} of dependencies) {
-		if (!reexports && !imports) {
-			if (importBlock) {
-				importBlock += !options.compact || definingVariable ? `;${n}` : ',';
-			}
-			definingVariable = false;
-			importBlock += `require('${id}')`;
-		} else {
-			importBlock +=
-				options.compact && definingVariable ? ',' : `${importBlock ? `;${n}` : ''}${varOrConst} `;
-			definingVariable = true;
-
-			if (!options.interop || isChunk || !exportsDefault || !namedExportsMode) {
-				importBlock += `${name}${_}=${_}require('${id}')`;
-			} else {
-				needsInterop = true;
-				if (exportsNames)
-					importBlock += `${name}${_}=${_}require('${id}')${
-						options.compact ? ',' : `;\n${varOrConst} `
-					}${name}__default${_}=${_}${INTEROP_DEFAULT_VARIABLE}(${name})`;
-				else importBlock += `${name}${_}=${_}${INTEROP_DEFAULT_VARIABLE}(require('${id}'))`;
-			}
-		}
-	}
-	if (importBlock) importBlock += ';';
-
-	if (needsInterop) {
-		const ex = options.compact ? 'e' : 'ex';
-		intro +=
-			`function ${INTEROP_DEFAULT_VARIABLE}${_}(${ex})${_}{${_}return${_}` +
-			`(${ex}${_}&&${_}(typeof ${ex}${_}===${_}'object')${_}&&${_}'default'${_}in ${ex})${_}` +
-			`?${_}${ex}['default']${_}:${_}${ex}${options.compact ? '' : '; '}}${n}${n}`;
-	}
-	if (accessedGlobals.has(INTEROP_NAMESPACE_VARIABLE)) {
-		intro += getInteropNamespace(_, n, t, options.externalLiveBindings);
-	}
-
-	if (importBlock) intro += importBlock + n + n;
+	magicString.prepend(`${useStrict}${intro}${esModuleProp}${importBlock}${interopBlock}`);
 
 	const exportBlock = getExportBlock(
 		exports,
 		dependencies,
 		namedExportsMode,
-		options.interop,
-		options.compact,
+		interop,
+		compact,
 		t,
+		externalLiveBindings,
 		`module.exports${_}=${_}`
 	);
 
-	magicString.prepend(intro);
+	return magicString.append(`${exportBlock}${outro}`);
+}
 
-	if (exportBlock) magicString.append(n + n + exportBlock);
-	if (outro) magicString.append(outro);
-
-	return magicString;
+function getImportBlock(
+	dependencies: ChunkDependencies,
+	compact: boolean,
+	varOrConst: string,
+	n: string,
+	_: string
+): string {
+	let importBlock = '';
+	let definingVariable = false;
+	for (const { id, name, reexports, imports } of dependencies) {
+		if (!reexports && !imports) {
+			if (importBlock) {
+				importBlock += !compact || definingVariable ? `;${n}` : ',';
+			}
+			definingVariable = false;
+			importBlock += `require('${id}')`;
+		} else {
+			importBlock +=
+				compact && definingVariable ? ',' : `${importBlock ? `;${n}` : ''}${varOrConst} `;
+			definingVariable = true;
+			importBlock += `${name}${_}=${_}require('${id}')`;
+		}
+	}
+	if (importBlock) {
+		return `${importBlock};${n}${n}`;
+	}
+	return '';
 }

@@ -1,5 +1,6 @@
 import { bold, gray, yellow } from 'colorette';
 import { RollupWarning } from '../../src/rollup/types';
+import { getOrCreate } from '../../src/utils/getOrCreate';
 import relativeId from '../../src/utils/relativeId';
 import { stderr } from '../logging';
 
@@ -22,8 +23,7 @@ export default function batchWarnings() {
 			count += 1;
 
 			if (warning.code! in deferredHandlers) {
-				if (!deferredWarnings.has(warning.code!)) deferredWarnings.set(warning.code!, []);
-				deferredWarnings.get(warning.code!)!.push(warning);
+				getOrCreate(deferredWarnings, warning.code!, () => []).push(warning);
 			} else if (warning.code! in immediateHandlers) {
 				immediateHandlers[warning.code!](warning);
 			} else {
@@ -223,8 +223,7 @@ const deferredHandlers: {
 
 		const dependencies = new Map();
 		for (const warning of warnings) {
-			if (!dependencies.has(warning.source)) dependencies.set(warning.source, []);
-			dependencies.get(warning.source).push(warning.importer);
+			getOrCreate(dependencies, warning.source, () => []).push(warning.importer);
 		}
 
 		for (const dependency of dependencies.keys()) {
@@ -255,16 +254,14 @@ function nest<T>(array: T[], prop: string) {
 
 	for (const item of array) {
 		const key = (item as any)[prop];
-		if (!lookup.has(key)) {
-			lookup.set(key, {
+		getOrCreate(lookup, key, () => {
+			const items = {
 				items: [],
 				key
-			});
-
-			nested.push(lookup.get(key)!);
-		}
-
-		lookup.get(key)!.items.push(item);
+			};
+			nested.push(items);
+			return items;
+		}).items.push(item);
 	}
 
 	return nested;
