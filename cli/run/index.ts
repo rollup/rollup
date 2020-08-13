@@ -67,7 +67,7 @@ export default async function runRollup(command: any) {
 				for (const inputOptions of options) {
 					await build(inputOptions, warnings, command.silent);
 				}
-				if (command.failAfterWarnings && warnings.total) {
+				if (command.failAfterWarnings && warnings.warningOccurred) {
 					warnings.flush();
 					handleError({
 						code: 'FAIL_AFTER_WARNINGS',
