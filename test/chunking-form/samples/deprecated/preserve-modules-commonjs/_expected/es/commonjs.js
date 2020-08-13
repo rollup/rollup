@@ -8,4 +8,3 @@ console.log(external$1, value);
 var commonjs = 42;
 
 export default commonjs;
-export { commonjs as __moduleExports };

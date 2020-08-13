@@ -1,4 +1,4 @@
-define(['exports', 'external', './other'], function (exports, external, other) { 'use strict';
+define(['external', './other'], function (external, other) { 'use strict';
 
 	external = external && Object.prototype.hasOwnProperty.call(external, 'default') ? external['default'] : external;
 
@@ -8,9 +8,6 @@ define(['exports', 'external', './other'], function (exports, external, other) {
 
 	var commonjs = 42;
 
-	exports.__moduleExports = commonjs;
-	exports.default = commonjs;
-
-	Object.defineProperty(exports, '__esModule', { value: true });
+	return commonjs;
 
 });
