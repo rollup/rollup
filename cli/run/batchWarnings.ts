@@ -25,7 +25,7 @@ export default function batchWarnings() {
 		},
 
 		add: (warning: RollupWarning) => {
-			total += 1;
+			count += 1;
 			warningOccurred = true;
 
 			if (warning.code! in deferredHandlers) {
