@@ -1,7 +1,9 @@
 'use strict';
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+var external = require('https://external.com/external.js');
 
-var external = _interopDefault(require('https://external.com/external.js'));
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-console.log(external);
+var external__default = /*#__PURE__*/_interopDefaultLegacy(external);
+
+console.log(external__default['default']);

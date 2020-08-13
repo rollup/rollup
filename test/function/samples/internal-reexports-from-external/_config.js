@@ -20,7 +20,7 @@ module.exports = {
 	},
 	exports(exports) {
 		assert.strictEqual(exports.fs.readFile, fs.readFile);
-		assert.deepStrictEqual(Object.keys(exports.fs), Object.keys(fs));
+		assert.deepStrictEqual(Object.keys(exports.fs), Object.keys(fs).concat(['default']));
 		assert.notStrictEqual(exports.fsOverride.readFile, fs.readFile);
 		assert.strictEqual(exports.fsOverride.readFile, 'override');
 		assert.strictEqual(exports.fsOverride.extra, 'extra');

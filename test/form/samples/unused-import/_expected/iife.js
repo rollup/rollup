@@ -1,6 +1,6 @@
-(function (external) {
+(function () {
 	'use strict';
 
 
 
-}(external));
+}());

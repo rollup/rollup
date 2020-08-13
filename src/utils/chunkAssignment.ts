@@ -1,5 +1,6 @@
 import ExternalModule from '../ExternalModule';
 import Module from '../Module';
+import { getOrCreate } from './getOrCreate';
 
 type DependentModuleMap = Map<Module, Set<Module>>;
 type ChunkDefinitions = { alias: string | null; modules: Module[] }[];
@@ -34,7 +35,7 @@ export function getChunkAssignments(
 	) {
 		const modulesToHandle = new Set([entry]);
 		for (const module of modulesToHandle) {
-			const assignedEntryPoints = getDependentModules(assignedEntryPointsByModule, module);
+			const assignedEntryPoints = getOrCreate(assignedEntryPointsByModule, module, () => new Set());
 			if (
 				dynamicDependentEntryPoints &&
 				areEntryPointsContainedOrDynamicallyDependent(
@@ -123,7 +124,7 @@ function analyzeModuleGraph(
 	for (const currentEntry of entriesToHandle) {
 		const modulesToHandle = new Set<Module>([currentEntry]);
 		for (const module of modulesToHandle) {
-			getDependentModules(dependentEntryPointsByModule, module).add(currentEntry);
+			getOrCreate(dependentEntryPointsByModule, module, () => new Set()).add(currentEntry);
 			for (const dependency of module.getDependenciesToBeIncluded()) {
 				if (!(dependency instanceof ExternalModule)) {
 					modulesToHandle.add(dependency);
@@ -144,21 +145,16 @@ function analyzeModuleGraph(
 	return { dependentEntryPointsByModule, dynamicEntryModules };
 }
 
-function getDependentModules(moduleMap: DependentModuleMap, module: Module): Set<Module> {
-	const dependentModules = moduleMap.get(module) || new Set();
-	moduleMap.set(module, dependentModules);
-	return dependentModules;
-}
-
 function getDynamicDependentEntryPoints(
 	dependentEntryPointsByModule: DependentModuleMap,
 	dynamicEntryModules: Set<Module>
 ): DependentModuleMap {
 	const dynamicallyDependentEntryPointsByDynamicEntry: DependentModuleMap = new Map();
 	for (const dynamicEntry of dynamicEntryModules) {
-		const dynamicDependentEntryPoints = getDependentModules(
+		const dynamicDependentEntryPoints = getOrCreate(
 			dynamicallyDependentEntryPointsByDynamicEntry,
-			dynamicEntry
+			dynamicEntry,
+			() => new Set()
 		);
 		for (const importer of [
 			...dynamicEntry.includedDynamicImporters,

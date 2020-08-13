@@ -21,6 +21,7 @@ module.exports = {
 		assert.strictEqual(exports.value, 'external2');
 		return exports.dynamic.then(dynamic =>
 			assert.deepStrictEqual(dynamic, {
+				__proto__: null,
 				external3: true,
 				value: 'external3',
 				default: { external3: true, value: 'external3' }

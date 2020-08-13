@@ -1,4 +1,4 @@
-import dep__default, { await as await$1, break as break$1, case as case$1, catch as catch$1, class as class$1, const as const$1, continue as continue$1, debugger as debugger$1, delete as delete$1, do as do$1, else as else$1, enum as enum$1, eval as eval$1, export as export$1, extends as extends$1, finally as finally$1, for as for$1, function as function$1, if as if$1, implements as implements$1, import as import$1, in as in$1, instanceof as instanceof$1, interface as interface$1, let as let$1, new as new$1, null as null$1, package as package$1, private as private$1, protected as protected$1, public as public$1, return as return$1, static as static$1, super as super$1, switch as switch$1, throw as throw$1, try as try$1, typeof as typeof$1, undefined as undefined$1, var as var$1, void as void$1, while as while$1, with as with$1, yield as yield$1 } from 'dep';
+import dep, { await as await$1, break as break$1, case as case$1, catch as catch$1, class as class$1, const as const$1, continue as continue$1, debugger as debugger$1, delete as delete$1, do as do$1, else as else$1, enum as enum$1, eval as eval$1, export as export$1, extends as extends$1, finally as finally$1, for as for$1, function as function$1, if as if$1, implements as implements$1, import as import$1, in as in$1, instanceof as instanceof$1, interface as interface$1, let as let$1, new as new$1, null as null$1, package as package$1, private as private$1, protected as protected$1, public as public$1, return as return$1, static as static$1, super as super$1, switch as switch$1, throw as throw$1, try as try$1, typeof as typeof$1, undefined as undefined$1, var as var$1, void as void$1, while as while$1, with as with$1, yield as yield$1 } from 'dep';
 
 console.log(await$1);
 console.log(break$1);
@@ -8,7 +8,7 @@ console.log(class$1);
 console.log(const$1);
 console.log(continue$1);
 console.log(debugger$1);
-console.log(dep__default);
+console.log(dep);
 console.log(delete$1);
 console.log(do$1);
 console.log(else$1);

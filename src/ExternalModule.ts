@@ -6,21 +6,22 @@ import { isAbsolute, normalize, relative } from './utils/path';
 export default class ExternalModule {
 	chunk: void;
 	declarations: { [name: string]: ExternalVariable };
+	defaultVariableName = '';
 	dynamicImporters: string[] = [];
 	execIndex: number;
 	exportedVariables: Map<ExternalVariable, string>;
-	exportsNames = false;
-	exportsNamespace = false;
 	id: string;
 	importers: string[] = [];
 	moduleSideEffects: boolean | 'no-treeshake';
 	mostCommonSuggestion = 0;
+	namespaceVariableName = '';
 	nameSuggestions: { [name: string]: number };
 	reexported = false;
 	renderPath: string = undefined as any;
 	renormalizeRenderPath = false;
+	suggestedVariableName: string;
 	used = false;
-	variableName: string;
+	variableName = '';
 
 	constructor(
 		private readonly options: NormalizedInputOptions,
@@ -32,7 +33,7 @@ export default class ExternalModule {
 		this.moduleSideEffects = moduleSideEffects;
 
 		const parts = id.split(/[\\/]/);
-		this.variableName = makeLegal(parts.pop()!);
+		this.suggestedVariableName = makeLegal(parts.pop()!);
 
 		this.nameSuggestions = Object.create(null);
 		this.declarations = Object.create(null);
@@ -40,12 +41,6 @@ export default class ExternalModule {
 	}
 
 	getVariableForExportName(name: string): ExternalVariable {
-		if (name === '*') {
-			this.exportsNamespace = true;
-		} else if (name !== 'default') {
-			this.exportsNames = true;
-		}
-
 		let declaration = this.declarations[name];
 		if (declaration) return declaration;
 
@@ -74,7 +69,7 @@ export default class ExternalModule {
 
 		if (this.nameSuggestions[name] > this.mostCommonSuggestion) {
 			this.mostCommonSuggestion = this.nameSuggestions[name];
-			this.variableName = name;
+			this.suggestedVariableName = name;
 		}
 	}
 

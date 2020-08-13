@@ -6,7 +6,6 @@ define(['exports'], function (exports) { 'use strict';
 		value: value
 	};
 
-	exports.__moduleExports = other;
 	exports.default = other;
 	exports.value = value;
 

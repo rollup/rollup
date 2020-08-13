@@ -4,8 +4,10 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.foo));
 }(this, (function (foo) { 'use strict';
 
-	foo = foo && Object.prototype.hasOwnProperty.call(foo, 'default') ? foo['default'] : foo;
+	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-	assert.equal( foo, 42 );
+	var foo__default = /*#__PURE__*/_interopDefaultLegacy(foo);
+
+	assert.equal( foo__default['default'], 42 );
 
 })));

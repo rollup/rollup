@@ -1,12 +1,14 @@
 (function (throttle) {
 	'use strict';
 
-	throttle = throttle && Object.prototype.hasOwnProperty.call(throttle, 'default') ? throttle['default'] : throttle;
+	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-	const fn = throttle( () => {
+	var throttle__default = /*#__PURE__*/_interopDefaultLegacy(throttle);
+
+	const fn = throttle__default['default']( () => {
 		console.log( '.' );
 	}, 500 );
 
-	window.addEventListener( 'mousemove', throttle );
+	window.addEventListener( 'mousemove', throttle__default['default'] );
 
 }(Lib.throttle));

@@ -33,6 +33,8 @@ License: MIT
 By: Marijn Haverbeke, Ingvar Stepanyan, Adrian Heine
 Repository: https://github.com/acornjs/acorn.git
 
+> MIT License
+> 
 > Copyright (C) 2012-2018 by various contributors (see AUTHORS)
 > 
 > Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -168,6 +170,8 @@ License: MIT
 By: Marijn Haverbeke, Ingvar Stepanyan, Adrian Heine
 Repository: https://github.com/acornjs/acorn.git
 
+> MIT License
+> 
 > Copyright (C) 2012-2018 by various contributors (see AUTHORS)
 > 
 > Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -249,13 +253,6 @@ Repository: micromatch/braces
 
 ---------------------------------------
 
-## camelcase
-License: MIT
-By: Sindre Sorhus
-Repository: sindresorhus/camelcase
-
----------------------------------------
-
 ## chokidar
 License: MIT
 By: Paul Miller, Elan Shanker
@@ -304,13 +301,6 @@ Repository: jorgebucaran/colorette
 License: MIT
 By: Sindre Sorhus
 Repository: sindresorhus/date-time
-
----------------------------------------
-
-## decamelize
-License: MIT
-By: Sindre Sorhus
-Repository: sindresorhus/decamelize
 
 ---------------------------------------
 

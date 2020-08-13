@@ -2,17 +2,19 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
-
 var a = require('a');
-var Test$1 = _interopDefault(require('b'));
+var Test$1 = require('b');
+
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+
+var Test__default = /*#__PURE__*/_interopDefaultLegacy(Test$1);
 
 const Test = () => {
   console.log(a.Test);
 };
 
 const Test1 = () => {
-  console.log(Test$1);
+  console.log(Test__default['default']);
 };
 
 exports.Test = Test;

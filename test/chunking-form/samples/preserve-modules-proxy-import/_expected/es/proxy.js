@@ -1,2 +1,2 @@
-import path$1 from 'external';
+import path from 'external';
 export { default } from 'external';

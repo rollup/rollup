@@ -351,6 +351,8 @@ const plugin = {
 };
 ```
 
+Note that when this hook rewrites dynamic imports in non-ES formats, no interop code to make sure that e.g. the default export is available as `.default` is generated. It is the responsibility of the plugin to make sure the rewritten dynamic import returns a Promise that resolves to a proper namespace object.
+
 #### `renderError`
 Type: `(error: Error) => void`<br>
 Kind: `async, parallel`<br>

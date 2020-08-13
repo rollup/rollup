@@ -1,8 +1,10 @@
 define(['leaflet'], function (L) { 'use strict';
 
-	L = L && Object.prototype.hasOwnProperty.call(L, 'default') ? L['default'] : L;
+	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-	L.terminator = function(options) {
+	var L__default = /*#__PURE__*/_interopDefaultLegacy(L);
+
+	L__default['default'].terminator = function(options) {
 	};
 
 });

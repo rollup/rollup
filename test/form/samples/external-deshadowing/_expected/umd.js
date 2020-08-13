@@ -4,14 +4,16 @@
   (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.myBundle = {}, global.a, global.b));
 }(this, (function (exports, a, Test$1) { 'use strict';
 
-  Test$1 = Test$1 && Object.prototype.hasOwnProperty.call(Test$1, 'default') ? Test$1['default'] : Test$1;
+  function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+
+  var Test__default = /*#__PURE__*/_interopDefaultLegacy(Test$1);
 
   const Test = () => {
     console.log(a.Test);
   };
 
   const Test1 = () => {
-    console.log(Test$1);
+    console.log(Test__default['default']);
   };
 
   exports.Test = Test;

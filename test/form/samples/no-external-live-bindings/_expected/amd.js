@@ -2,18 +2,18 @@ define(['require', 'exports', 'external1', 'external2'], function (require, expo
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) { return e; } else {
-			var n = {};
+			var n = Object.create(null);
 			if (e) {
 				Object.keys(e).forEach(function (k) {
-					n[k] =e [k];
+					n[k] = e[k];
 				});
 			}
 			n['default'] = e;
-			return n;
+			return Object.freeze(n);
 		}
 	}
 
-	const dynamic = new Promise(function (resolve, reject) { require(['external3'], function (m) { resolve(_interopNamespace(m)); }, reject) });
+	const dynamic = new Promise(function (resolve, reject) { require(['external3'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) });
 
 	Object.keys(external2).forEach(function (k) {
 		if (k !== 'default') exports[k] = external2[k];

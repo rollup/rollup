@@ -6,10 +6,10 @@ import { FinaliserOptions } from './index';
 export default function es(
 	magicString: MagicStringBundle,
 	{ intro, outro, dependencies, exports, varOrConst }: FinaliserOptions,
-	options: NormalizedOutputOptions
+	{ compact }: NormalizedOutputOptions
 ) {
-	const _ = options.compact ? '' : ' ';
-	const n = options.compact ? '' : '\n';
+	const _ = compact ? '' : ' ';
+	const n = compact ? '' : '\n';
 
 	const importBlock = getImportBlock(dependencies, _);
 	if (importBlock.length > 0) intro += importBlock.join(n) + n + n;

@@ -5,4 +5,4 @@ var other = {
 };
 
 export default other;
-export { other as __moduleExports, value };
+export { value };

@@ -1,4 +1,4 @@
-import path$1 from 'external';
+import path from 'external';
 
-console.log(path$1.normalize('foo\\bar'));
-console.log(path$1.normalize('foo\\bar'));
+console.log(path.normalize('foo\\bar'));
+console.log(path.normalize('foo\\bar'));

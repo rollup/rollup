@@ -8,6 +8,5 @@ var other = {
 	value: value
 };
 
-exports.__moduleExports = other;
 exports.default = other;
 exports.value = value;

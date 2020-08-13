@@ -1,15 +1,17 @@
 'use strict';
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
-
-var factory = _interopDefault(require('factory'));
+var factory = require('factory');
 var baz = require('baz');
 var containers = require('shipping-port');
 var alphabet = require('alphabet');
-var alphabet__default = _interopDefault(alphabet);
 
-factory( null );
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+
+var factory__default = /*#__PURE__*/_interopDefaultLegacy(factory);
+var alphabet__default = /*#__PURE__*/_interopDefaultLegacy(alphabet);
+
+factory__default['default']( null );
 baz.foo( baz.bar, containers.port );
 containers.forEach( console.log, console );
 console.log( alphabet.a );
-console.log( alphabet__default.length );
+console.log( alphabet__default['default'].length );

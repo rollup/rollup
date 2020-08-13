@@ -1,8 +1,11 @@
 'use strict';
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+var a = require('a');
+var b = require('b');
 
-var a = _interopDefault(require('a'));
-var b = _interopDefault(require('b'));
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-console.log(a, b);
+var a__default = /*#__PURE__*/_interopDefaultLegacy(a);
+var b__default = /*#__PURE__*/_interopDefaultLegacy(b);
+
+console.log(a__default['default'], b__default['default']);

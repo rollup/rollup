@@ -11,9 +11,11 @@ var foo = (function (a) {
 
 	// intro 4
 
-	var a__default = 'default' in a ? a['default'] : a;
+	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-	console.log( a__default );
+	var a__default = /*#__PURE__*/_interopDefaultLegacy(a);
+
+	console.log( a__default['default'] );
 	console.log( a.b );
 
 	var main = 42;

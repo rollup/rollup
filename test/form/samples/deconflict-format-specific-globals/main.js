@@ -11,7 +11,7 @@ const document = 1;
 const URL = 1;
 console.log(_interopDefault, _interopNamespace, module, require, exports, document, URL);
 
-import('external');
+import('external').then(console.log);
 let value = 0;
 export { value as default };
 console.log(import.meta.url);
@@ -26,7 +26,7 @@ function nested1() {
 	const URL = 1;
 	console.log(_interopDefault, _interopNamespace, module, require, exports, document, URL);
 
-	import('external');
+	import('external').then(console.log);
 	value = 1;
 	console.log(import.meta.url);
 }

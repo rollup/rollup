@@ -25,6 +25,7 @@ function safeAccess(name: string, globalVar: string, _: string) {
 export default function umd(
 	magicString: MagicStringBundle,
 	{
+		accessedGlobals,
 		dependencies,
 		exports,
 		hasExports,
@@ -35,14 +36,27 @@ export default function umd(
 		varOrConst,
 		warn
 	}: FinaliserOptions,
-	options: NormalizedOutputOptions
+	{
+		amd: { define: amdDefine, id: amdId },
+		compact,
+		esModule,
+		extend,
+		externalLiveBindings,
+		freeze,
+		interop,
+		name,
+		globals,
+		noConflict,
+		strict
+	}: NormalizedOutputOptions
 ) {
-	const _ = options.compact ? '' : ' ';
-	const n = options.compact ? '' : '\n';
-	const factoryVar = options.compact ? 'f' : 'factory';
-	const globalVar = options.compact ? 'g' : 'global';
+	const _ = compact ? '' : ' ';
+	const n = compact ? '' : '\n';
+	const s = compact ? '' : ';';
+	const factoryVar = compact ? 'f' : 'factory';
+	const globalVar = compact ? 'g' : 'global';
 
-	if (hasExports && !options.name) {
+	if (hasExports && !name) {
 		return error({
 			code: 'MISSING_NAME_OPTION_FOR_IIFE_EXPORT',
 			message:
@@ -59,16 +73,16 @@ export default function umd(
 	const globalDeps = trimmedImports.map(module => globalProp(module.globalName, globalVar));
 	const factoryArgs = trimmedImports.map(m => m.name);
 
-	if (namedExportsMode && (hasExports || options.noConflict)) {
+	if (namedExportsMode && (hasExports || noConflict)) {
 		amdDeps.unshift(`'exports'`);
 		cjsDeps.unshift(`exports`);
 		globalDeps.unshift(
 			assignToDeepVariable(
-				options.name!,
+				name!,
 				globalVar,
-				options.globals,
-				options.compact,
-				`${options.extend ? `${globalProp(options.name!, globalVar)}${_}||${_}` : ''}{}`
+				globals,
+				compact,
+				`${extend ? `${globalProp(name!, globalVar)}${_}||${_}` : ''}{}`
 			)
 		);
 
@@ -76,25 +90,24 @@ export default function umd(
 	}
 
 	const amdParams =
-		(options.amd.id ? `'${options.amd.id}',${_}` : ``) +
-		(amdDeps.length ? `[${amdDeps.join(`,${_}`)}],${_}` : ``);
+		(amdId ? `'${amdId}',${_}` : ``) + (amdDeps.length ? `[${amdDeps.join(`,${_}`)}],${_}` : ``);
 
-	const define = options.amd.define;
+	const define = amdDefine;
 	const cjsExport = !namedExportsMode && hasExports ? `module.exports${_}=${_}` : ``;
-	const useStrict = options.strict ? `${_}'use strict';${n}` : ``;
+	const useStrict = strict ? `${_}'use strict';${n}` : ``;
 
 	let iifeExport;
 
-	if (options.noConflict) {
-		const noConflictExportsVar = options.compact ? 'e' : 'exports';
+	if (noConflict) {
+		const noConflictExportsVar = compact ? 'e' : 'exports';
 		let factory;
 
 		if (!namedExportsMode && hasExports) {
 			factory = `var ${noConflictExportsVar}${_}=${_}${assignToDeepVariable(
-				options.name!,
+				name!,
 				globalVar,
-				options.globals,
-				options.compact,
+				globals,
+				compact,
 				`${factoryVar}(${globalDeps.join(`,${_}`)})`
 			)};`;
 		} else {
@@ -105,28 +118,21 @@ export default function umd(
 		}
 		iifeExport =
 			`(function${_}()${_}{${n}` +
-			`${t}${t}var current${_}=${_}${safeAccess(options.name!, globalVar, _)};${n}` +
+			`${t}${t}var current${_}=${_}${safeAccess(name!, globalVar, _)};${n}` +
 			`${t}${t}${factory}${n}` +
 			`${t}${t}${noConflictExportsVar}.noConflict${_}=${_}function${_}()${_}{${_}` +
-			`${globalProp(options.name!, globalVar)}${_}=${_}current;${_}return ${noConflictExportsVar}${
-				options.compact ? '' : '; '
+			`${globalProp(name!, globalVar)}${_}=${_}current;${_}return ${noConflictExportsVar}${
+				compact ? '' : '; '
 			}};${n}` +
 			`${t}}())`;
 	} else {
 		iifeExport = `${factoryVar}(${globalDeps.join(`,${_}`)})`;
 		if (!namedExportsMode && hasExports) {
-			iifeExport = assignToDeepVariable(
-				options.name!,
-				globalVar,
-				options.globals,
-				options.compact,
-				iifeExport
-			);
+			iifeExport = assignToDeepVariable(name!, globalVar, globals, compact, iifeExport);
 		}
 	}
 
-	const iifeNeedsGlobal =
-		hasExports || (options.noConflict === true && namedExportsMode) || globalDeps.length > 0;
+	const iifeNeedsGlobal = hasExports || (noConflict && namedExportsMode) || globalDeps.length > 0;
 	const globalParam = iifeNeedsGlobal ? `${globalVar},${_}` : '';
 	const globalArg = iifeNeedsGlobal ? `this,${_}` : '';
 	const iifeStart = iifeNeedsGlobal
@@ -148,23 +154,33 @@ export default function umd(
 
 	const wrapperOutro = n + n + '})));';
 
-	// var foo__default = 'default' in foo ? foo['default'] : foo;
-	const interopBlock = getInteropBlock(dependencies, options, varOrConst);
-	if (interopBlock) magicString.prepend(interopBlock + n + n);
-
-	if (intro) magicString.prepend(intro);
+	magicString.prepend(
+		`${intro}${getInteropBlock(
+			dependencies,
+			varOrConst,
+			interop,
+			externalLiveBindings,
+			freeze,
+			accessedGlobals,
+			_,
+			n,
+			s,
+			t
+		)}`
+	);
 
 	const exportBlock = getExportBlock(
 		exports,
 		dependencies,
 		namedExportsMode,
-		options.interop,
-		options.compact,
-		t
+		interop,
+		compact,
+		t,
+		externalLiveBindings
 	);
-	if (exportBlock) magicString.append(n + n + exportBlock);
-	if (namedExportsMode && hasExports && options.esModule)
-		magicString.append(n + n + (options.compact ? compactEsModuleExport : esModuleExport));
+	if (exportBlock) magicString.append(exportBlock);
+	if (namedExportsMode && hasExports && esModule)
+		magicString.append(n + n + (compact ? compactEsModuleExport : esModuleExport));
 	if (outro) magicString.append(outro);
 
 	return magicString.trim().indent(t).append(wrapperOutro).prepend(wrapperIntro);

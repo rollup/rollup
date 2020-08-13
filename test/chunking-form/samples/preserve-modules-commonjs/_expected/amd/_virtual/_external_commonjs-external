@@ -1,9 +1,0 @@
-define(['external'], function (external) { 'use strict';
-
-	external = external && Object.prototype.hasOwnProperty.call(external, 'default') ? external['default'] : external;
-
-
-
-	return external;
-
-});

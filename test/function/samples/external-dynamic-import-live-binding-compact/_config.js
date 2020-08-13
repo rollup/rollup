@@ -50,7 +50,7 @@ module.exports = {
 	},
 	exports(exports) {
 		return exports.then(results => {
-			assert.deepStrictEqual(results[0], { default: undefined });
+			assert.deepStrictEqual(results[0], { __proto__: null, default: undefined });
 			assert.strictEqual(results[1].default(), 42);
 
 			assert.strictEqual(results[2].value, 1);

@@ -1,4 +1,5 @@
 import { AstContext } from '../../Module';
+import { InternalModuleFormat } from '../../rollup/types';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import { UNDEFINED_EXPRESSION } from '../values';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
@@ -28,15 +29,16 @@ export default class ModuleScope extends ChildScope {
 		return variable;
 	}
 
-	addNamespaceMemberAccess(_name: string, variable: Variable) {
-		if (variable instanceof GlobalVariable) {
-			this.accessedOutsideVariables.set(variable.name, variable);
-		}
-	}
+	addNamespaceMemberAccess() {}
 
-	deconflict(format: string, exportNamesByVariable: Map<Variable, string[]>) {
+	deconflict(
+		format: InternalModuleFormat,
+		exportNamesByVariable: Map<Variable, string[]>,
+		accessedGlobalsByScope: Map<ChildScope, Set<string>>
+	) {
 		// all module level variables are already deconflicted when deconflicting the chunk
-		for (const scope of this.children) scope.deconflict(format, exportNamesByVariable);
+		for (const scope of this.children)
+			scope.deconflict(format, exportNamesByVariable, accessedGlobalsByScope);
 	}
 
 	findLexicalBoundary() {

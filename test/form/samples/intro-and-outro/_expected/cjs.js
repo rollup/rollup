@@ -10,12 +10,13 @@
 
 // intro 4
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
-
 var a = require('external');
-var a__default = _interopDefault(a);
 
-console.log( a__default );
+function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+
+var a__default = /*#__PURE__*/_interopDefaultLegacy(a);
+
+console.log( a__default['default'] );
 console.log( a.b );
 
 var main = 42;

@@ -1,6 +1,8 @@
 define(['exports', 'external'], function (exports, external) { 'use strict';
 
-	var external__default = 'default' in external ? external['default'] : external;
+	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+
+	var external__default = /*#__PURE__*/_interopDefaultLegacy(external);
 
 
 
@@ -12,7 +14,12 @@ define(['exports', 'external'], function (exports, external) { 'use strict';
 			}
 		});
 	});
-	exports.default = external__default;
+	Object.defineProperty(exports, 'default', {
+		enumerable: true,
+		get: function () {
+			return external__default['default'];
+		}
+	});
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

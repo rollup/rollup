@@ -1,2 +1,0 @@
-import external$1 from 'external';
-export { default } from 'external';

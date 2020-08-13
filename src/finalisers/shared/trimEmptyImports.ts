@@ -4,8 +4,8 @@ export default function trimEmptyImports(dependencies: ModuleDeclarationDependen
 	let i = dependencies.length;
 
 	while (i--) {
-		const dependency = dependencies[i];
-		if (dependency.exportsDefault || dependency.exportsNames) {
+		const { imports, reexports } = dependencies[i];
+		if (imports || reexports) {
 			return dependencies.slice(0, i + 1);
 		}
 	}

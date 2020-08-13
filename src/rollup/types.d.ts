@@ -540,6 +540,10 @@ export type ModuleFormat = InternalModuleFormat | 'commonjs' | 'esm' | 'module' 
 
 export type OptionsPaths = Record<string, string> | ((id: string) => string);
 
+export type InteropType = boolean | 'auto' | 'esModule' | 'default' | 'defaultOnly';
+
+export type GetInterop = (id: string | null) => InteropType;
+
 export interface OutputOptions {
 	amd?: {
 		define?: string;
@@ -567,7 +571,7 @@ export interface OutputOptions {
 	hoistTransitiveImports?: boolean;
 	indent?: string | boolean;
 	inlineDynamicImports?: boolean;
-	interop?: boolean;
+	interop?: InteropType | GetInterop;
 	intro?: string | (() => string | Promise<string>);
 	manualChunks?: ManualChunksOption;
 	minifyInternalExports?: boolean;
@@ -612,7 +616,7 @@ export interface NormalizedOutputOptions {
 	hoistTransitiveImports: boolean;
 	indent: true | string;
 	inlineDynamicImports: boolean;
-	interop: boolean;
+	interop: GetInterop;
 	intro: () => string | Promise<string>;
 	manualChunks: ManualChunksOption;
 	minifyInternalExports: boolean;
