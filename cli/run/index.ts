@@ -68,10 +68,11 @@ export default async function runRollup(command: any) {
 					await build(inputOptions, warnings, command.silent);
 				}
 				if (command.failAfterWarnings && warnings.total) {
-					throw {
+					warnings.flush();
+					handleError({
 						code: 'FAIL_AFTER_WARNINGS',
 						message: 'Warnings occurred and --failAfterWarnings flag present'
-					};
+					});
 				}
 			} catch (err) {
 				warnings.flush();
