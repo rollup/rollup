@@ -15,6 +15,7 @@
 * Freeze generated interop namespace objects (#3710)
 * Always mark interop helpers as pure (#3710)
 * Avoid default export interop if there is already an interop namespace object (#3710)
+* Sort all `require` statements to the top in CommonJS output for easier back-transpilation to ES modules by other tools (#3710)
 
 ### Bug Fixes
 * Deconflict the names of helper variables introduced for interop (#3710)

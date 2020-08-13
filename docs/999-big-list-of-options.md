@@ -461,8 +461,9 @@ Controls how Rollup handles default, namespace and dynamic imports from external
 To understand the different values, assume we are bundling the following code for a `cjs` target:
 
 ```js
-import ext_default, * as external from 'external';
+import ext_default, * as external from 'external1';
 console.log(ext_default, external.bar, external);
+import('external2').then(console.log);
 ```
 
 Keep in mind that for Rollup, `import * as ext_namespace from 'external'; console.log(ext_namespace.bar);` is completely equivalent to `import {bar} from 'external'; console.log(bar);` and will produce the same code. In the example above however, the namespace object itself is passed to a global function as well, which means we need it as a properly formed object.
@@ -470,8 +471,11 @@ Keep in mind that for Rollup, `import * as ext_namespace from 'external'; consol
 - `"esModule"` assumes that required modules are transpiled ES modules where the required value corresponds to the module namespace and the default export is the `.default` property of the exported object:
 
   ```js
-  var external = require('external');
+  var external = require('external1');
   console.log(external['default'], external.bar, external);
+  Promise.resolve().then(function () {
+    return require('external2');
+  }).then(console.log);
   ```
   
   When `esModule` is used, Rollup adds no additional interop helpers and also supports live-bindings for default exports.
@@ -479,59 +483,65 @@ Keep in mind that for Rollup, `import * as ext_namespace from 'external'; consol
 - `"default"` assumes that the required value should be treated as the default export of the imported module, just like when importing CommonJS from an ES module context in Node. In contrast to Node, though, named imports are supported as well which are treated as properties of the default import. To create the namespace object, Rollup injects helpers:
   
   ```js
-  var external = require('external');
+  var external = require('external1');
   
   function _interopNamespaceDefault(e) {
-  	var n = Object.create(null);
-  	if (e) {
-  		Object.keys(e).forEach(function (k) {
-  			if (k !== 'default') {
-  				var d = Object.getOwnPropertyDescriptor(e, k);
-  				Object.defineProperty(n, k, d.get ? d : {
-  					enumerable: true,
-  					get: function () {
-  						return e[k];
-  					}
-  				});
-  			}
-  		});
-  	}
-  	n['default'] = e;
-  	return Object.freeze(n);
+    var n = Object.create(null);
+    if (e) {
+      Object.keys(e).forEach(function (k) {
+        if (k !== 'default') {
+          var d = Object.getOwnPropertyDescriptor(e, k);
+          Object.defineProperty(n, k, d.get ? d : {
+            enumerable: true,
+            get: function () {
+              return e[k];
+            }
+          });
+        }
+      });
+    }
+    n['default'] = e;
+    return Object.freeze(n);
   }
   
   var external__namespace = /*#__PURE__*/_interopNamespaceDefault(external);
   console.log(external, external.bar, external__namespace);
+  Promise.resolve().then(function () {
+    return /*#__PURE__*/_interopNamespaceDefault(require('external2'));
+  }).then(console.log);
   ```
   
 - `"auto"` combines both `"esModule"` and `"default"` by injecting helpers that contain code that detects at runtime if the required value contains the [`__esModule` property](guide/en/#outputesmodule). Adding this property is a standard implemented by Rollup, Babel and many other tools to signify that the required value is the namespace of a transpiled ES module:
 
   ```js
-  var external = require('external');
+  var external = require('external1');
   
   function _interopNamespace(e) {
-  	if (e && e.__esModule) { return e; } else {
-  		var n = Object.create(null);
-  		if (e) {
-  			Object.keys(e).forEach(function (k) {
-  				if (k !== 'default') {
-  					var d = Object.getOwnPropertyDescriptor(e, k);
-  					Object.defineProperty(n, k, d.get ? d : {
-  						enumerable: true,
-  						get: function () {
-  							return e[k];
-  						}
-  					});
-  				}
-  			});
-  		}
-  		n['default'] = e;
-  		return Object.freeze(n);
-  	}
+    if (e && e.__esModule) { return e; } else {
+      var n = Object.create(null);
+      if (e) {
+        Object.keys(e).forEach(function (k) {
+          if (k !== 'default') {
+            var d = Object.getOwnPropertyDescriptor(e, k);
+            Object.defineProperty(n, k, d.get ? d : {
+              enumerable: true,
+              get: function () {
+                return e[k];
+              }
+            });
+          }
+        });
+      }
+      n['default'] = e;
+      return Object.freeze(n);
+    }
   }
   
   var external__namespace = /*#__PURE__*/_interopNamespace(external);
   console.log(external__namespace['default'], external.bar, external__namespace);
+  Promise.resolve().then(function () {
+    return /*#__PURE__*/_interopNamespace(require('external2'));
+  }).then(console.log);
   ```
   
   Note how Rollup is reusing the created namespace object to get the `default` export. If the namespace object is not needed, Rollup will use a simpler helper:
@@ -558,14 +568,17 @@ Keep in mind that for Rollup, `import * as ext_namespace from 'external'; consol
   Here is what Rollup will create from the example code.  Note that we removed `external.bar` from the code as otherwise, Rollup would have thrown an error because, as stated before, this is equivalent to a named import.
   
   ```js
-  var ext_default = require('external');
+  var ext_default = require('external1');
   
   function _interopNamespaceDefaultOnly(e) {
-  	return Object.freeze({__proto__: null, 'default': e});
+    return Object.freeze({__proto__: null, 'default': e});
   }
   
   var ext_default__namespace = /*#__PURE__*/_interopNamespaceDefaultOnly(ext_default);
   console.log(ext_default, ext_default__namespace);
+  Promise.resolve().then(function () {
+    return /*#__PURE__*/_interopNamespaceDefaultOnly(require('external2'));
+  }).then(console.log);
   ```
   
 - When a function is supplied, Rollup will pass each external id to this function once to control the interop type per dependency.
