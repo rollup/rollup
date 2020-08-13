@@ -306,6 +306,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --preserveSymlinks          Do not follow symlinks when resolving files
 --shimMissingExports        Create shim variables for missing exports
 --silent                    Don't print warnings
+--failAfterWarnings         Exit with an error code if there was a warning during the build
 --sourcemapExcludeSources   Do not include source code in source maps
 --sourcemapFile <file>      Specify bundle position for source maps
 --no-stdin                  do not read "-" from stdin
@@ -386,6 +387,10 @@ _Note: While in watch mode, the `ROLLUP_WATCH` environment variable will be set 
 #### `--silent`
 
 Don't print warnings to the console. If your configuration file contains an `onwarn` handler, this handler will still be called. To manually prevent that, you can access the command line options in your configuration file as described at the end of [Configuration Files](guide/en/#configuration-files).
+
+#### `--failAfterWarnings`
+
+Exit the build with an error if any warnings occurred, once the build is complete.
 
 #### `--environment <values>`
 
