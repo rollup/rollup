@@ -1,7 +1,7 @@
 # rollup changelog
 
 ## 2.24.0
-*unreleased*
+*2020-08-13*
 
 ### Features
 * Allow defining interop per dependency via a function (#3710)
@@ -18,12 +18,14 @@
 * Sort all `require` statements to the top in CommonJS output for easier back-transpilation to ES modules by other tools (#3710)
 
 ### Bug Fixes
+* Handle accessing `super` in static class fields (#3720)
 * Deconflict the names of helper variables introduced for interop (#3710)
 * Generate proper namespace objects for static namespace imports in non-ES formats (#3710)
 * Do not add unused interop helpers when using the renderDynamicImport hook (#3710)
 
 ### Pull Requests
 * [#3710](https://github.com/rollup/rollup/pull/3710): Rework interop handling (@lukastaegert)
+* [#3720](https://github.com/rollup/rollup/pull/3720): Handle super in static class fields (@lukastaegert)
 
 ## 2.23.1
 *2020-08-07*
