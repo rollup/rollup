@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.25.0
+*2020-08-14*
+
+### Features
+* Add `--failAfterWarnings` CLI flag that will complete builds with warnings but return an error at the end (#3712)
+
+### Pull Requests
+* [#3712](https://github.com/rollup/rollup/pull/3712): Implement `--failAfterWarnings` flag (@tjenkinson)
+
 ## 2.24.0
 *2020-08-13*
 
