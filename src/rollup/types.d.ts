@@ -684,6 +684,9 @@ export interface RenderedChunk extends PreRenderedChunk {
 	fileName: string;
 	implicitlyLoadedBefore: string[];
 	imports: string[];
+	importSpecifiers: {
+		[imported: string]: string[];
+	};
 	map?: SourceMap;
 	referencedFiles: string[];
 }
