@@ -49,6 +49,7 @@ Basic options:
 --preserveSymlinks          Do not follow symlinks when resolving files
 --shimMissingExports        Create shim variables for missing exports
 --silent                    Don't print warnings
+--failAfterWarnings         Exit with an error code if there was a warning during the build
 --sourcemapExcludeSources   Do not include source code in source maps
 --sourcemapFile <file>      Specify bundle position for source maps
 --no-stdin                  do not read "-" from stdin

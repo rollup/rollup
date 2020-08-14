@@ -8,19 +8,26 @@ export interface BatchWarnings {
 	add: (warning: RollupWarning) => void;
 	readonly count: number;
 	flush: () => void;
+	readonly warningOccurred: boolean;
 }
 
 export default function batchWarnings() {
-	let deferredWarnings = new Map<keyof typeof deferredHandlers, RollupWarning[]>();
 	let count = 0;
+	let deferredWarnings = new Map<keyof typeof deferredHandlers, RollupWarning[]>();
+	let warningOccurred = false;
 
 	return {
 		get count() {
 			return count;
 		},
 
+		get warningOccurred() {
+			return warningOccurred;
+		},
+
 		add: (warning: RollupWarning) => {
 			count += 1;
+			warningOccurred = true;
 
 			if (warning.code! in deferredHandlers) {
 				getOrCreate(deferredWarnings, warning.code!, () => []).push(warning);
