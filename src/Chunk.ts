@@ -1221,7 +1221,7 @@ export default class Chunk {
 				format !== 'system',
 				format !== 'es' && format !== 'system',
 				interop,
-				format === 'amd'
+				format === 'amd' || format === 'umd' || format === 'iife'
 			),
 			this.imports,
 			usedNames,
