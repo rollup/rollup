@@ -5,6 +5,7 @@ import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { BROKEN_FLOW_NONE, HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
 import { LiteralValueOrUnknown, UnknownValue } from '../values';
+import BlockStatement from './BlockStatement';
 import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from './shared/Node';
 
@@ -86,6 +87,8 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 						code.prependLeft(this.alternate.start, ' ');
 					}
 					this.alternate.render(code, options);
+				} else if (this.shouldKeepAlternateBranch()) {
+					code.overwrite(this.alternate.start, this.alternate.end, ';');
 				} else {
 					code.remove(this.consequent.end, this.alternate.end);
 				}
@@ -141,5 +144,19 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			context.brokenFlow =
 				context.brokenFlow < consequentBrokenFlow ? context.brokenFlow : consequentBrokenFlow;
 		}
+	}
+
+	private shouldKeepAlternateBranch() {
+		let currentParent = this.parent;
+		do {
+			if (currentParent instanceof IfStatement && currentParent.alternate) {
+				return true;
+			}
+			if (currentParent instanceof BlockStatement) {
+				return false;
+			}
+			currentParent = (currentParent as any).parent;
+		} while (currentParent);
+		return false;
 	}
 }
