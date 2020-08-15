@@ -46,7 +46,7 @@ async function build() {
       //   fileName: string,              // the chunk file name
       //   implicitlyLoadedBefore: string[]; // entries that should only be loaded after this chunk
       //   imports: string[],             // external modules imported statically by the chunk
-      //   importSpecifiers: {[imported: string]: string[]} // list of imported bindings per dependency
+      //   importedBindings: {[imported: string]: string[]} // imported bindings per dependency
       //   isDynamicEntry: boolean,       // is this chunk a dynamic entry point
       //   isEntry: boolean,              // is this chunk a static entry point
       //   isImplicitEntry: boolean,      // should this chunk only be loaded after other chunks

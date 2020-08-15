@@ -66,13 +66,13 @@ describe('The bundle object', () => {
 					'imports'
 				);
 				assert.deepEqual(
-					output.map(chunk => chunk.importSpecifiers),
+					output.map(chunk => chunk.importedBindings),
 					[
 						{ 'generated-shared-c4fdd061.js': ['u', 's'] },
 						{ 'generated-shared-c4fdd061.js': [] },
 						{}
 					],
-					'importSpecifiers'
+					'importedBindings'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.dynamicImports),
@@ -175,9 +175,9 @@ describe('The bundle object', () => {
 					'imports'
 				);
 				assert.deepEqual(
-					output.map(chunk => chunk.importSpecifiers),
+					output.map(chunk => chunk.importedBindings),
 					[{ external1: ['bar', 'default'], external2: ['*'], external3: ['*'] }],
-					'importSpecifiers'
+					'importedBindings'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.dynamicImports),
@@ -424,9 +424,9 @@ describe('The bundle object', () => {
 					'imports'
 				);
 				assert.deepEqual(
-					output.map(chunk => chunk.importSpecifiers),
+					output.map(chunk => chunk.importedBindings),
 					[{}],
-					'importSpecifiers'
+					'importedBindings'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.dynamicImports),
@@ -506,9 +506,9 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 					'imports'
 				);
 				assert.deepEqual(
-					output.map(chunk => chunk.importSpecifiers),
+					output.map(chunk => chunk.importedBindings),
 					[{ '_virtual/other': ['other'] }, {}, {}, {}],
-					'importSpecifiers'
+					'importedBindings'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.exports),

@@ -476,8 +476,8 @@ export default class Chunk {
 			dynamicImports: Array.from(this.dynamicDependencies, getId),
 			fileName: this.id!,
 			implicitlyLoadedBefore: Array.from(this.implicitlyLoadedBefore, getId),
+			importedBindings: this.getImportedBindingsPerDependency(),
 			imports: Array.from(this.dependencies, getId),
-			importSpecifiers: this.getDependencyImportSpecifiers(),
 			map: undefined,
 			referencedFiles: this.getReferencedFiles()
 		});
@@ -1020,7 +1020,17 @@ export default class Chunk {
 		return { deconflictedDefault, deconflictedNamespace, dependencies };
 	}
 
-	private getDependencyImportSpecifiers(): { [imported: string]: string[] } {
+	private getFallbackChunkName(): string {
+		if (this.manualChunkAlias) {
+			return this.manualChunkAlias;
+		}
+		if (this.fileName) {
+			return getAliasName(this.fileName);
+		}
+		return getAliasName(this.orderedModules[this.orderedModules.length - 1].id);
+	}
+
+	private getImportedBindingsPerDependency(): { [imported: string]: string[] } {
 		const importSpecifiers: { [imported: string]: string[] } = {};
 		for (const [dependency, declaration] of this.renderedDependencies!) {
 			const specifiers = new Set<string>();
@@ -1037,16 +1047,6 @@ export default class Chunk {
 			importSpecifiers[dependency.id!] = [...specifiers];
 		}
 		return importSpecifiers;
-	}
-
-	private getFallbackChunkName(): string {
-		if (this.manualChunkAlias) {
-			return this.manualChunkAlias;
-		}
-		if (this.fileName) {
-			return getAliasName(this.fileName);
-		}
-		return getAliasName(this.orderedModules[this.orderedModules.length - 1].id);
 	}
 
 	private getImportSpecifiers(): Map<Chunk | ExternalModule, ImportSpecifier[]> {

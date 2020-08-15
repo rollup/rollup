@@ -683,10 +683,10 @@ export interface RenderedChunk extends PreRenderedChunk {
 	dynamicImports: string[];
 	fileName: string;
 	implicitlyLoadedBefore: string[];
-	imports: string[];
-	importSpecifiers: {
+	importedBindings: {
 		[imported: string]: string[];
 	};
+	imports: string[];
 	map?: SourceMap;
 	referencedFiles: string[];
 }
