@@ -1,5 +1,20 @@
 # rollup changelog
 
+## 2.26.0
+*2020-08-15*
+
+### Features
+* Add a new entry `importedBindings` to the bundle information to list bindings per dependency (#3722)
+
+### Bug Fixes
+* Do not render an invalid UMD wrapper when no bindings are imported from a dependency (#3724)
+* Avoid situations where removing the `else` branch from an `if` statement might catch the `else` branch from another one (#3725)
+
+### Pull Requests
+* [#3722](https://github.com/rollup/rollup/pull/3722): Add import specifiers to bundle information (@lukastaegert)
+* [#3724](https://github.com/rollup/rollup/pull/3724): Fix missing variables for UMD and IIFE builds (@lukastaegert)
+* [#3725](https://github.com/rollup/rollup/pull/3725): Do not entirely remove else branch if another else branch might accidentally be referenced (@lukastaegert)
+
 ## 2.25.0
 *2020-08-14*
 
