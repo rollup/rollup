@@ -476,6 +476,7 @@ export default class Chunk {
 			dynamicImports: Array.from(this.dynamicDependencies, getId),
 			fileName: this.id!,
 			implicitlyLoadedBefore: Array.from(this.implicitlyLoadedBefore, getId),
+			importedBindings: this.getImportedBindingsPerDependency(),
 			imports: Array.from(this.dependencies, getId),
 			map: undefined,
 			referencedFiles: this.getReferencedFiles()
@@ -1027,6 +1028,25 @@ export default class Chunk {
 			return getAliasName(this.fileName);
 		}
 		return getAliasName(this.orderedModules[this.orderedModules.length - 1].id);
+	}
+
+	private getImportedBindingsPerDependency(): { [imported: string]: string[] } {
+		const importSpecifiers: { [imported: string]: string[] } = {};
+		for (const [dependency, declaration] of this.renderedDependencies!) {
+			const specifiers = new Set<string>();
+			if (declaration.imports) {
+				for (const { imported } of declaration.imports) {
+					specifiers.add(imported);
+				}
+			}
+			if (declaration.reexports) {
+				for (const { imported } of declaration.reexports) {
+					specifiers.add(imported);
+				}
+			}
+			importSpecifiers[dependency.id!] = [...specifiers];
+		}
+		return importSpecifiers;
 	}
 
 	private getImportSpecifiers(): Map<Chunk | ExternalModule, ImportSpecifier[]> {

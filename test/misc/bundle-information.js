@@ -9,9 +9,11 @@ describe('The bundle object', () => {
 				input: ['input1', 'input2'],
 				plugins: [
 					loader({
-						input1: 'import "shared";console.log("input1");export const out = true;',
+						input1:
+							'import shared, {used} from "shared";console.log("input1", used, shared);export const out = true;',
 						input2: 'import "shared";console.log("input2");export default 42',
-						shared: 'console.log("shared");export const unused = null;'
+						shared:
+							'console.log("shared");export const unused = null;export const used = "used"; export default "stuff";'
 					})
 				]
 			})
@@ -26,15 +28,15 @@ describe('The bundle object', () => {
 			.then(({ output }) => {
 				assert.deepEqual(
 					output.map(chunk => chunk.fileName),
-					['input1-3810e839.js', 'input2-14354d1f.js', 'generated-shared-f6027271.js'],
+					['input1-ff0de9c1.js', 'input2-28dc81ee.js', 'generated-shared-c4fdd061.js'],
 					'fileName'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.code),
 					[
-						`import './generated-shared-f6027271.js';\n\nconsole.log("input1");const out = true;\n\nexport { out };\n`,
-						`import './generated-shared-f6027271.js';\n\nconsole.log("input2");var input2 = 42;\n\nexport default input2;\n`,
-						'console.log("shared");\n'
+						`import { u as used, s as shared } from './generated-shared-c4fdd061.js';\n\nconsole.log("input1", used, shared);const out = true;\n\nexport { out };\n`,
+						`import './generated-shared-c4fdd061.js';\n\nconsole.log("input2");var input2 = 42;\n\nexport default input2;\n`,
+						`console.log("shared");const used = "used"; var shared = "stuff";\n\nexport { shared as s, used as u };\n`
 					],
 					'code'
 				);
@@ -60,8 +62,17 @@ describe('The bundle object', () => {
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.imports),
-					[['generated-shared-f6027271.js'], ['generated-shared-f6027271.js'], []],
+					[['generated-shared-c4fdd061.js'], ['generated-shared-c4fdd061.js'], []],
 					'imports'
+				);
+				assert.deepEqual(
+					output.map(chunk => chunk.importedBindings),
+					[
+						{ 'generated-shared-c4fdd061.js': ['u', 's'] },
+						{ 'generated-shared-c4fdd061.js': [] },
+						{}
+					],
+					'importedBindings'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.dynamicImports),
@@ -70,7 +81,7 @@ describe('The bundle object', () => {
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.exports),
-					[['out'], ['default'], []],
+					[['out'], ['default'], ['s', 'u']],
 					'exports'
 				);
 				assert.deepEqual(
@@ -78,10 +89,10 @@ describe('The bundle object', () => {
 					[
 						{
 							input1: {
-								originalLength: 62,
+								originalLength: 96,
 								removedExports: [],
 								renderedExports: ['out'],
-								renderedLength: 39
+								renderedLength: 53
 							}
 						},
 						{
@@ -94,10 +105,99 @@ describe('The bundle object', () => {
 						},
 						{
 							shared: {
-								originalLength: 49,
+								originalLength: 100,
 								removedExports: ['unused'],
+								renderedExports: ['used', 'default'],
+								renderedLength: 64
+							}
+						}
+					],
+					'modules'
+				);
+			});
+	});
+
+	it('contains information about external imports and reexports', () => {
+		return rollup
+			.rollup({
+				input: ['input'],
+				external: ['external1', 'external2', 'external3'],
+				plugins: [
+					loader({
+						input:
+							'export {default as foo, bar} from "external1"; import * as external2 from "external2"; export * from "external3"; console.log(external2);'
+					})
+				]
+			})
+			.then(bundle =>
+				bundle.generate({
+					format: 'es',
+					dir: 'dist',
+					entryFileNames: '[name].js'
+				})
+			)
+			.then(({ output }) => {
+				assert.deepEqual(
+					output.map(chunk => chunk.fileName),
+					['input.js'],
+					'fileName'
+				);
+				assert.deepEqual(
+					output.map(chunk => chunk.code),
+					[
+						`export { bar, default as foo } from 'external1';\nimport * as external2 from 'external2';\nexport * from 'external3';\n\nconsole.log(external2);\n`
+					],
+					'code'
+				);
+				assert.deepEqual(
+					output.map(chunk => chunk.map),
+					[null],
+					'map'
+				);
+				assert.deepEqual(
+					output.map(chunk => chunk.isEntry),
+					[true],
+					'isEntry'
+				);
+				assert.deepEqual(
+					output.map(chunk => chunk.name),
+					['input'],
+					'name'
+				);
+				assert.deepEqual(
+					output.map(chunk => chunk.facadeModuleId),
+					['input'],
+					'facadeModuleId'
+				);
+				assert.deepEqual(
+					output.map(chunk => chunk.imports),
+					[['external1', 'external2', 'external3']],
+					'imports'
+				);
+				assert.deepEqual(
+					output.map(chunk => chunk.importedBindings),
+					[{ external1: ['bar', 'default'], external2: ['*'], external3: ['*'] }],
+					'importedBindings'
+				);
+				assert.deepEqual(
+					output.map(chunk => chunk.dynamicImports),
+					[[]],
+					'dynamicImports'
+				);
+				assert.deepEqual(
+					output.map(chunk => chunk.exports),
+					[['*external3', 'bar', 'foo']],
+					'exports'
+				);
+				assert.deepEqual(
+					output.map(chunk => chunk.modules),
+					[
+						{
+							input: {
+								originalLength: 137,
+								removedExports: [],
 								renderedExports: [],
-								renderedLength: 22
+								renderedLength: 23
 							}
 						}
 					],
@@ -324,6 +424,11 @@ describe('The bundle object', () => {
 					'imports'
 				);
 				assert.deepEqual(
+					output.map(chunk => chunk.importedBindings),
+					[{}],
+					'importedBindings'
+				);
+				assert.deepEqual(
 					output.map(chunk => chunk.dynamicImports),
 					[[]],
 					'dynamicImports'
@@ -399,6 +504,11 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 					output.map(chunk => chunk.imports),
 					[['_virtual/other'], [], [], []],
 					'imports'
+				);
+				assert.deepEqual(
+					output.map(chunk => chunk.importedBindings),
+					[{ '_virtual/other': ['other'] }, {}, {}, {}],
+					'importedBindings'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.exports),

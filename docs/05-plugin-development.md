@@ -248,6 +248,7 @@ Called at the end of `bundle.generate()` or immediately before the files are wri
   fileName: string,
   implicitlyLoadedBefore: string[],
   imports: string[],
+  importedBindings: {[imported: string]: string[]},
   isDynamicEntry: boolean,
   isEntry: boolean,
   isImplicitEntry: boolean,
