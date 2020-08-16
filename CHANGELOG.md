@@ -1,6 +1,6 @@
 # rollup changelog
 
-## 2.26.1
+## 2.26.2
 *2020-08-16*
 
 ### Bug Fixes
