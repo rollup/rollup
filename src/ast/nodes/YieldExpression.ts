@@ -26,7 +26,7 @@ export default class YieldExpression extends NodeBase {
 
 	render(code: MagicString, options: RenderOptions) {
 		if (this.argument) {
-			this.argument.render(code, options);
+			this.argument.render(code, options, { preventASI: true });
 			if (this.argument.start === this.start + 5 /* 'yield'.length */) {
 				code.prependLeft(this.start + 5, ' ');
 			}
