@@ -184,7 +184,8 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 				renderedParentType: renderedParentType || this.parent.type
 			});
 		} else {
-			super.render(code, options);
+			this.left.render(code, options, { preventASI });
+			this.right.render(code, options);
 		}
 	}
 
