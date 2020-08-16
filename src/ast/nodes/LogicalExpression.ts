@@ -180,6 +180,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 				isCalleeOfRenderedParent: renderedParentType
 					? isCalleeOfRenderedParent
 					: (this.parent as CallExpression).callee === this,
+				preventASI,
 				renderedParentType: renderedParentType || this.parent.type
 			});
 		} else {

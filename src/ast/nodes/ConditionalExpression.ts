@@ -187,6 +187,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 				isCalleeOfRenderedParent: renderedParentType
 					? isCalleeOfRenderedParent
 					: (this.parent as CallExpression).callee === this,
+				preventASI: true,
 				renderedParentType: renderedParentType || this.parent.type
 			});
 		} else {
