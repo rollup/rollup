@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.26.3
+*2020-08-16*
+
+### Bug Fixes
+* Fix a situation where line-breaks in a nested simplified conditional expression could result in broken code (#3734)
+
+### Pull Requests
+* [#3734](https://github.com/rollup/rollup/pull/3734): Prevent ASI when simplifying a nested logical expression (@lukastaegert)
+
 ## 2.26.2
 *2020-08-16*
 
