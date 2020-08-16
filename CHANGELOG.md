@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.26.1
+*2020-08-16*
+
+### Bug Fixes
+* Correctly render external namespace imports when only generating SystemJS output (#3731)
+
+### Pull Requests
+* [#3731](https://github.com/rollup/rollup/pull/3731): Render system namespace import (@sastan and @lukastaegert)
+
 ## 2.26.0
 *2020-08-15*
 
