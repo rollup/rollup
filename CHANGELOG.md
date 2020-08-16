@@ -4,6 +4,15 @@
 *2020-08-16*
 
 ### Bug Fixes
+* Fix a situation where line-breaks in a simplified conditional expression could result in broken code (#3732)
+
+### Pull Requests
+* [#3732](https://github.com/rollup/rollup/pull/3732): Prevent unintended ASI for nested conditionals (@lukastaegert)
+
+## 2.26.1
+*2020-08-16*
+
+### Bug Fixes
 * Correctly render external namespace imports when only generating SystemJS output (#3731)
 
 ### Pull Requests
