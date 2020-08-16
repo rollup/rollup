@@ -980,20 +980,20 @@ export default class Chunk {
 	}
 
 	private getDependenciesToBeDeconflicted(
-		addDependencies: boolean,
-		addNonNamespaces: boolean,
-		interop: GetInterop,
-		addDependenciesWithoutBindings: boolean
+		addNonNamespacesAndInteropHelpers: boolean,
+		addInternalDependencies: boolean,
+		addDependenciesWithoutBindings: boolean,
+		interop: GetInterop
 	): DependenciesToBeDeconflicted {
 		const dependencies = new Set<Chunk | ExternalModule>();
 		const deconflictedDefault = new Set<ExternalModule>();
 		const deconflictedNamespace = new Set<ExternalModule>();
-		if (addDependencies) {
-			for (const variable of [...this.exportNamesByVariable.keys(), ...this.imports]) {
-				if (addNonNamespaces || variable.isNamespace) {
-					const module = variable.module!;
-					if (module instanceof ExternalModule) {
-						dependencies.add(module);
+		for (const variable of [...this.exportNamesByVariable.keys(), ...this.imports]) {
+			if (addNonNamespacesAndInteropHelpers || variable.isNamespace) {
+				const module = variable.module!;
+				if (module instanceof ExternalModule) {
+					dependencies.add(module);
+					if (addNonNamespacesAndInteropHelpers) {
 						if (variable.name === 'default') {
 							if (defaultInteropHelpersByInteropType[String(interop(module.id))]) {
 								deconflictedDefault.add(module);
@@ -1003,11 +1003,11 @@ export default class Chunk {
 								deconflictedNamespace.add(module);
 							}
 						}
-					} else {
-						const chunk = this.chunkByModule.get(module)!;
-						if (chunk !== this) {
-							dependencies.add(chunk);
-						}
+					}
+				} else if (addInternalDependencies) {
+					const chunk = this.chunkByModule.get(module)!;
+					if (chunk !== this) {
+						dependencies.add(chunk);
 					}
 				}
 			}
@@ -1238,10 +1238,10 @@ export default class Chunk {
 		deconflictChunk(
 			this.orderedModules,
 			this.getDependenciesToBeDeconflicted(
-				format !== 'system',
 				format !== 'es' && format !== 'system',
-				interop,
-				format === 'amd' || format === 'umd' || format === 'iife'
+				format !== 'system',
+				format === 'amd' || format === 'umd' || format === 'iife',
+				interop
 			),
 			this.imports,
 			usedNames,
