@@ -176,6 +176,7 @@ export default class Chunk {
 	exportMode: 'none' | 'named' | 'default' = 'named';
 	facadeModule: Module | null = null;
 	id: string | null = null;
+	namespaceVariableName = '';
 	suggestedVariableName: string;
 	variableName = '';
 
@@ -987,7 +988,7 @@ export default class Chunk {
 	): DependenciesToBeDeconflicted {
 		const dependencies = new Set<Chunk | ExternalModule>();
 		const deconflictedDefault = new Set<ExternalModule>();
-		const deconflictedNamespace = new Set<ExternalModule>();
+		const deconflictedNamespace = new Set<Chunk | ExternalModule>();
 		for (const variable of [...this.exportNamesByVariable.keys(), ...this.imports]) {
 			if (addNonNamespacesAndInteropHelpers || variable.isNamespace) {
 				const module = variable.module!;
@@ -1008,6 +1009,13 @@ export default class Chunk {
 					const chunk = this.chunkByModule.get(module)!;
 					if (chunk !== this) {
 						dependencies.add(chunk);
+						if (
+							addNonNamespacesAndInteropHelpers &&
+							chunk.exportMode === 'default' &&
+							variable.isNamespace
+						) {
+							deconflictedNamespace.add(chunk);
+						}
 					}
 				}
 			}

@@ -16,7 +16,7 @@ import { getSafeName } from './safeName';
 
 export interface DependenciesToBeDeconflicted {
 	deconflictedDefault: Set<ExternalModule>;
-	deconflictedNamespace: Set<ExternalModule>;
+	deconflictedNamespace: Set<ExternalModule | Chunk>;
 	dependencies: Set<ExternalModule | Chunk>;
 }
 
@@ -135,9 +135,9 @@ function deconflictImportsOther(
 			usedNames
 		);
 	}
-	for (const externalModule of deconflictedNamespace) {
-		externalModule.namespaceVariableName = getSafeName(
-			`${externalModule.suggestedVariableName}__namespace`,
+	for (const externalModuleOrChunk of deconflictedNamespace) {
+		externalModuleOrChunk.namespaceVariableName = getSafeName(
+			`${externalModuleOrChunk.suggestedVariableName}__namespace`,
 			usedNames
 		);
 	}
@@ -181,7 +181,12 @@ function deconflictImportsOther(
 			}
 		} else {
 			const chunk = chunkByModule.get(module!)!;
-			if (chunk.exportMode === 'default' || (preserveModules && variable.isNamespace)) {
+			if (preserveModules && variable.isNamespace) {
+				variable.setRenderNames(
+					null,
+					chunk.exportMode === 'default' ? chunk.namespaceVariableName : chunk.variableName
+				);
+			} else if (chunk.exportMode === 'default') {
 				variable.setRenderNames(null, chunk.variableName);
 			} else {
 				variable.setRenderNames(
