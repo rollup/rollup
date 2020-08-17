@@ -536,11 +536,13 @@ export default class Module {
 		}
 
 		for (const exportName of this.getExports()) {
-			const variable = this.getVariableForExportName(exportName);
-			variable.deoptimizePath(UNKNOWN_PATH);
-			if (!variable.included) {
-				variable.include();
-				this.graph.needsTreeshakingPass = true;
+			if (exportName !== this.syntheticNamedExports) {
+				const variable = this.getVariableForExportName(exportName);
+				variable.deoptimizePath(UNKNOWN_PATH);
+				if (!variable.included) {
+					variable.include();
+					this.graph.needsTreeshakingPass = true;
+				}
 			}
 		}
 
