@@ -50,26 +50,21 @@ export default class NamespaceVariable extends Variable {
 				memberVariables[name] = this.context.traceExport(name);
 			}
 		}
-		this.memberVariables = memberVariables;
 		return (this.memberVariables = memberVariables);
 	}
 
 	include() {
-		if (!this.included) {
-			this.included = true;
-			for (const identifier of this.references) {
-				if (identifier.context.getModuleExecIndex() <= this.context.getModuleExecIndex()) {
-					this.referencedEarly = true;
-					break;
-				}
-			}
-			this.mergedNamespaces = this.context.includeAndGetAdditionalMergedNamespaces();
-			const memberVariables = this.getMemberVariables();
-			// We directly include the variables instead of context.include to not automatically
-			// generate imports for members from other modules
-			for (const memberName of Object.keys(memberVariables)) memberVariables[memberName].include();
-			if (typeof this.syntheticNamedExports === 'string') {
-				this.context.traceExport(this.syntheticNamedExports).include();
+		this.included = true;
+		this.context.includeAllExports();
+	}
+
+	prepareNamespace(mergedNamespaces: Variable[]) {
+		this.mergedNamespaces = mergedNamespaces;
+		const moduleExecIndex = this.context.getModuleExecIndex();
+		for (const identifier of this.references) {
+			if (identifier.context.getModuleExecIndex() <= moduleExecIndex) {
+				this.referencedEarly = true;
+				break;
 			}
 		}
 	}

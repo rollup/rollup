@@ -61,8 +61,8 @@ export default function getInteropBlock(
 				...(imports || []),
 				...(reexports || [])
 			] as ReexportSpecifier[]) {
-				let helper: string | null = null;
-				let variableName: string;
+				let helper: string | undefined | null;
+				let variableName: string | undefined;
 				if (imported === 'default') {
 					if (!hasDefault) {
 						hasDefault = true;
@@ -79,7 +79,7 @@ export default function getInteropBlock(
 					}
 				}
 				if (helper) {
-					addInteropStatement(variableName, helper, name);
+					addInteropStatement(variableName!, helper, name);
 				}
 			}
 		}

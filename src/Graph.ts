@@ -185,7 +185,7 @@ export default class Graph {
 	private includeStatements() {
 		for (const module of [...this.entryModules, ...this.implicitEntryModules]) {
 			if (module.preserveSignature !== false) {
-				module.includeAllExports();
+				module.includeAllExports(false);
 			} else {
 				markModuleAndImpureDependenciesAsExecuted(module);
 			}

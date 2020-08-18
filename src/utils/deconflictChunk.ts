@@ -52,7 +52,8 @@ export function deconflictChunk(
 	chunkByModule: Map<Module, Chunk>,
 	syntheticExports: Set<SyntheticNamedExportVariable>,
 	exportNamesByVariable: Map<Variable, string[]>,
-	accessedGlobalsByScope: Map<ChildScope, Set<string>>
+	accessedGlobalsByScope: Map<ChildScope, Set<string>>,
+	includedNamespaces: Set<Module>
 ) {
 	for (const module of modules) {
 		module.scope.addUsedOutsideNames(
@@ -62,7 +63,7 @@ export function deconflictChunk(
 			accessedGlobalsByScope
 		);
 	}
-	deconflictTopLevelVariables(usedNames, modules);
+	deconflictTopLevelVariables(usedNames, modules, includedNamespaces);
 	DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT[format](
 		usedNames,
 		imports,
@@ -201,7 +202,11 @@ function deconflictImportsOther(
 	}
 }
 
-function deconflictTopLevelVariables(usedNames: Set<string>, modules: Module[]) {
+function deconflictTopLevelVariables(
+	usedNames: Set<string>,
+	modules: Module[],
+	includedNamespaces: Set<Module>
+) {
 	for (const module of modules) {
 		for (const variable of module.scope.variables.values()) {
 			if (
@@ -215,8 +220,8 @@ function deconflictTopLevelVariables(usedNames: Set<string>, modules: Module[]) 
 				variable.setRenderNames(null, getSafeName(variable.name, usedNames));
 			}
 		}
-		const namespace = module.namespace;
-		if (namespace.included) {
+		if (includedNamespaces.has(module)) {
+			const namespace = module.namespace;
 			namespace.setRenderNames(null, getSafeName(namespace.name, usedNames));
 		}
 	}

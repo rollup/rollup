@@ -96,7 +96,7 @@ export interface AstContext {
 	getModuleName: () => string;
 	getReexports: () => string[];
 	importDescriptions: { [name: string]: ImportDescription };
-	includeAndGetAdditionalMergedNamespaces: () => Variable[];
+	includeAllExports: () => void;
 	includeDynamicImport: (node: ImportExpression) => void;
 	includeVariable: (variable: Variable) => void;
 	magicString: MagicString;
@@ -529,14 +529,14 @@ export default class Module {
 		if (this.ast.shouldBeIncluded(context)) this.ast.include(context, false);
 	}
 
-	includeAllExports() {
+	includeAllExports(includeNamespaceMembers: boolean) {
 		if (!this.isExecuted) {
 			this.graph.needsTreeshakingPass = true;
 			markModuleAndImpureDependenciesAsExecuted(this);
 		}
 
 		for (const exportName of this.getExports()) {
-			if (exportName !== this.syntheticNamedExports) {
+			if (includeNamespaceMembers || exportName !== this.syntheticNamedExports) {
 				const variable = this.getVariableForExportName(exportName);
 				variable.deoptimizePath(UNKNOWN_PATH);
 				if (!variable.included) {
@@ -556,6 +556,10 @@ export default class Module {
 			if (variable instanceof ExternalVariable) {
 				variable.module.reexported = true;
 			}
+		}
+
+		if (includeNamespaceMembers) {
+			this.namespace.prepareNamespace(this.includeAndGetAdditionalMergedNamespaces());
 		}
 	}
 
@@ -681,9 +685,7 @@ export default class Module {
 			getModuleName: this.basename.bind(this),
 			getReexports: this.getReexports.bind(this),
 			importDescriptions: this.importDescriptions,
-			includeAndGetAdditionalMergedNamespaces: this.includeAndGetAdditionalMergedNamespaces.bind(
-				this
-			),
+			includeAllExports: () => this.includeAllExports(true),
 			includeDynamicImport: this.includeDynamicImport.bind(this),
 			includeVariable: this.includeVariable.bind(this),
 			magicString: this.magicString,
@@ -928,7 +930,7 @@ export default class Module {
 		}).resolution;
 		if (resolution instanceof Module) {
 			resolution.includedDynamicImporters.push(this);
-			resolution.includeAllExports();
+			resolution.includeAllExports(true);
 		}
 	}
 
