@@ -86,7 +86,7 @@ function deconflictImportsEsmOrSystem(
 	_interop: GetInterop,
 	_preserveModules: boolean,
 	_externalLiveBindings: boolean,
-	_chunkByModule: Map<Module, Chunk>,
+	chunkByModule: Map<Module, Chunk>,
 	syntheticExports: Set<SyntheticNamedExportVariable>
 ) {
 	// All namespace imports are contained here;
@@ -95,10 +95,13 @@ function deconflictImportsEsmOrSystem(
 		dependency.variableName = getSafeName(dependency.suggestedVariableName, usedNames);
 	}
 	for (const variable of imports) {
-		const module = variable.module;
+		const module = variable.module!;
 		const name = variable.name;
-		if (module instanceof ExternalModule && name === '*') {
-			variable.setRenderNames(null, module.variableName);
+		if (variable.isNamespace) {
+			variable.setRenderNames(
+				null,
+				(module instanceof ExternalModule ? module : chunkByModule.get(module)!).variableName
+			);
 		} else if (module instanceof ExternalModule && name === 'default') {
 			variable.setRenderNames(
 				null,

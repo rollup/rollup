@@ -1,3 +1,3 @@
-import * as ms from './m1.js';
+import * as m1 from './m1.js';
 
-console.log(ms);
+console.log(m1);
