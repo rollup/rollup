@@ -42,14 +42,15 @@ export default function getInteropBlock(
 		reexports
 	} of dependencies) {
 		if (isChunk) {
-			if (reexports) {
-				for (const { imported, reexported } of reexports) {
-					if (imported === '*' && reexported !== '*') {
-						if (!namedExportsMode) {
-							addInteropStatement(namespaceVariableName!, getDefaultOnlyHelper(), name);
-						}
-						break;
+			for (const { imported, reexported } of [
+				...(imports || []),
+				...(reexports || [])
+			] as ReexportSpecifier[]) {
+				if (imported === '*' && reexported !== '*') {
+					if (!namedExportsMode) {
+						addInteropStatement(namespaceVariableName!, getDefaultOnlyHelper(), name);
 					}
+					break;
 				}
 			}
 		} else {
