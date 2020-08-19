@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 2.26.4
+*2020-08-19*
+
+### Bug Fixes
+* Fix a situation where invalid code was rendered when dynamically importing a module with synthetic named exports when preserving modules (#3738)
+* Create a proper namespace object when in a non-es format, a namespace is imported from a chunk with `default` export mode (#3738)
+* Use the same variable when in a chunk, a namespace is both imported and reexported as a binding (#3738)
+* Do not include the synthetic namespace in static entry points unless it is actually used (#3738)
+* Make sure the chunking of one output does not interfere with the namespace objects of another output (#3738)
+
+### Pull Requests
+* [#3738](https://github.com/rollup/rollup/pull/3738): Improve synthetic entry handling (@lukastaegert)
+
 ## 2.26.3
 *2020-08-16*
 
