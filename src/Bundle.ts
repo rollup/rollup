@@ -22,6 +22,7 @@ import { timeEnd, timeStart } from './utils/timers';
 
 export default class Bundle {
 	private facadeChunkByModule = new Map<Module, Chunk>();
+	private includedNamespaces = new Set<Module>();
 
 	constructor(
 		private readonly outputOptions: NormalizedOutputOptions,
@@ -202,6 +203,7 @@ export default class Bundle {
 				this.graph.modulesById,
 				chunkByModule,
 				this.facadeChunkByModule,
+				this.includedNamespaces,
 				alias
 			);
 			chunks.push(chunk);

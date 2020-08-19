@@ -1,4 +1,4 @@
 import './m2.js';
-import { m as ms } from './generated-m1.js';
+import { m as m1 } from './generated-m1.js';
 
-console.log(ms);
+console.log(m1);

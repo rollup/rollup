@@ -164,7 +164,11 @@ function getReexportedImportName(
 		return depNamedExportsMode ? `${moduleVariableName}['default']` : moduleVariableName;
 	}
 	if (imported === '*') {
-		return !isChunk && namespaceInteropHelpersByInteropType[String(interop(moduleId))]
+		return (
+			isChunk
+				? !depNamedExportsMode
+				: namespaceInteropHelpersByInteropType[String(interop(moduleId))]
+		)
 			? namespaceVariableName
 			: moduleVariableName;
 	}

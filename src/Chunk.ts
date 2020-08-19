@@ -135,6 +135,7 @@ export default class Chunk {
 		modulesById: Map<string, Module | ExternalModule>,
 		chunkByModule: Map<Module, Chunk>,
 		facadeChunkByModule: Map<Module, Chunk>,
+		includedNamespaces: Set<Module>,
 		facadedModule: Module,
 		facadeName: FacadeName
 	): Chunk {
@@ -147,6 +148,7 @@ export default class Chunk {
 			modulesById,
 			chunkByModule,
 			facadeChunkByModule,
+			includedNamespaces,
 			null
 		);
 		chunk.assignFacadeName(facadeName, facadedModule);
@@ -176,6 +178,7 @@ export default class Chunk {
 	exportMode: 'none' | 'named' | 'default' = 'named';
 	facadeModule: Module | null = null;
 	id: string | null = null;
+	namespaceVariableName = '';
 	suggestedVariableName: string;
 	variableName = '';
 
@@ -218,12 +221,16 @@ export default class Chunk {
 		private readonly modulesById: Map<string, Module | ExternalModule>,
 		private readonly chunkByModule: Map<Module, Chunk>,
 		private readonly facadeChunkByModule: Map<Module, Chunk>,
+		private readonly includedNamespaces: Set<Module>,
 		private readonly manualChunkAlias: string | null
 	) {
 		this.execIndex = orderedModules.length > 0 ? orderedModules[0].execIndex : Infinity;
 		const chunkModules = new Set(orderedModules);
 
 		for (const module of orderedModules) {
+			if (module.namespace.included) {
+				includedNamespaces.add(module);
+			}
 			if (this.isEmpty && module.isIncluded()) {
 				this.isEmpty = false;
 			}
@@ -234,8 +241,8 @@ export default class Chunk {
 				if (!chunkModules.has(importer)) {
 					this.dynamicEntryModules.push(module);
 					// Modules with synthetic exports need an artificial namespace for dynamic imports
-					if (module.syntheticNamedExports) {
-						module.namespace.include();
+					if (module.syntheticNamedExports && !outputOptions.preserveModules) {
+						includedNamespaces.add(module);
 						this.exports.add(module.namespace);
 					}
 				}
@@ -359,6 +366,7 @@ export default class Chunk {
 						this.modulesById,
 						this.chunkByModule,
 						this.facadeChunkByModule,
+						this.includedNamespaces,
 						module,
 						facadeName
 					)
@@ -379,7 +387,7 @@ export default class Chunk {
 			) {
 				this.strictFacade = true;
 			} else if (!this.facadeChunkByModule.get(module)?.strictFacade) {
-				module.namespace.include();
+				this.includedNamespaces.add(module);
 				this.exports.add(module.namespace);
 			}
 		}
@@ -581,7 +589,7 @@ export default class Chunk {
 
 		for (const module of this.orderedModules) {
 			let renderedLength = 0;
-			if (module.isIncluded()) {
+			if (module.isIncluded() || this.includedNamespaces.has(module)) {
 				const source = module.render(renderOptions).trim();
 				renderedLength = source.length();
 				if (renderedLength) {
@@ -591,7 +599,7 @@ export default class Chunk {
 					this.usedModules.push(module);
 				}
 				const namespace = module.namespace;
-				if (namespace.included && !this.outputOptions.preserveModules) {
+				if (this.includedNamespaces.has(module) && !this.outputOptions.preserveModules) {
 					const rendered = namespace.renderBlock(renderOptions);
 					if (namespace.renderFirst()) hoistedSource += n + rendered;
 					else magicString.addSource(new MagicString(rendered));
@@ -987,7 +995,7 @@ export default class Chunk {
 	): DependenciesToBeDeconflicted {
 		const dependencies = new Set<Chunk | ExternalModule>();
 		const deconflictedDefault = new Set<ExternalModule>();
-		const deconflictedNamespace = new Set<ExternalModule>();
+		const deconflictedNamespace = new Set<Chunk | ExternalModule>();
 		for (const variable of [...this.exportNamesByVariable.keys(), ...this.imports]) {
 			if (addNonNamespacesAndInteropHelpers || variable.isNamespace) {
 				const module = variable.module!;
@@ -1008,6 +1016,13 @@ export default class Chunk {
 					const chunk = this.chunkByModule.get(module)!;
 					if (chunk !== this) {
 						dependencies.add(chunk);
+						if (
+							addNonNamespacesAndInteropHelpers &&
+							chunk.exportMode === 'default' &&
+							variable.isNamespace
+						) {
+							deconflictedNamespace.add(chunk);
+						}
 					}
 				}
 			}
@@ -1252,7 +1267,8 @@ export default class Chunk {
 			this.chunkByModule,
 			syntheticExports,
 			this.exportNamesByVariable,
-			this.accessedGlobalsByScope
+			this.accessedGlobalsByScope,
+			this.includedNamespaces
 		);
 	}
 
@@ -1261,9 +1277,8 @@ export default class Chunk {
 		// when we are not preserving modules, we need to make all namespace variables available for
 		// rendering the namespace object
 		if (!this.outputOptions.preserveModules) {
-			const namespace = module.namespace;
-			if (namespace.included) {
-				const memberVariables = namespace.getMemberVariables();
+			if (this.includedNamespaces.has(module)) {
+				const memberVariables = module.namespace.getMemberVariables();
 				for (const name of Object.keys(memberVariables)) {
 					moduleImports.add(memberVariables[name]);
 				}
@@ -1288,7 +1303,7 @@ export default class Chunk {
 			}
 		}
 		if (
-			module.namespace.included ||
+			this.includedNamespaces.has(module) ||
 			(module.isEntryPoint && module.preserveSignature !== false) ||
 			module.includedDynamicImporters.some(importer => this.chunkByModule.get(importer) !== this)
 		) {
@@ -1299,9 +1314,9 @@ export default class Chunk {
 				node.included &&
 				resolution instanceof Module &&
 				this.chunkByModule.get(resolution) === this &&
-				!resolution.namespace.included
+				!this.includedNamespaces.has(resolution)
 			) {
-				resolution.namespace.include();
+				this.includedNamespaces.add(resolution);
 				this.ensureReexportsAreAvailableForModule(resolution);
 			}
 		}
