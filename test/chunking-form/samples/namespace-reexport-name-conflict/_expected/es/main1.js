@@ -1,5 +1,5 @@
 import './generated-dep.js';
 import 'external';
-import { l as index } from './generated-index.js';
+import { l as lib } from './generated-index.js';
 
-console.log(index);
+console.log(lib);
