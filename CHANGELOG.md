@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.26.5
+*2020-08-22*
+
+### Bug Fixes
+* Use correctly deconflicted variable names for reexported namespaces in ES formats (#3742)
+
+### Pull Requests
+* [#3742](https://github.com/rollup/rollup/pull/3742): Avoid variable name conflict when reexporting several namespaces from a chunk (@lukastaegert)
+
 ## 2.26.4
 *2020-08-19*
 
