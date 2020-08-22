@@ -85,20 +85,21 @@ function deconflictImportsEsmOrSystem(
 	imports: Set<Variable>,
 	dependenciesToBeDeconflicted: DependenciesToBeDeconflicted,
 	_interop: GetInterop,
-	_preserveModules: boolean,
+	preserveModules: boolean,
 	_externalLiveBindings: boolean,
 	chunkByModule: Map<Module, Chunk>,
 	syntheticExports: Set<SyntheticNamedExportVariable>
 ) {
-	// All namespace imports are contained here;
-	// this is needed for synthetic exports and namespace reexports
+	// This is needed for namespace reexports
 	for (const dependency of dependenciesToBeDeconflicted.dependencies) {
-		dependency.variableName = getSafeName(dependency.suggestedVariableName, usedNames);
+		if (preserveModules || dependency instanceof ExternalModule) {
+			dependency.variableName = getSafeName(dependency.suggestedVariableName, usedNames);
+		}
 	}
 	for (const variable of imports) {
 		const module = variable.module!;
 		const name = variable.name;
-		if (variable.isNamespace) {
+		if (variable.isNamespace && (preserveModules || module instanceof ExternalModule)) {
 			variable.setRenderNames(
 				null,
 				(module instanceof ExternalModule ? module : chunkByModule.get(module)!).variableName
