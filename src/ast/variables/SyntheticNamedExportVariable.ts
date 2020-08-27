@@ -1,4 +1,5 @@
 import Module, { AstContext } from '../../Module';
+import { RESERVED_NAMES } from '../../utils/reservedNames';
 import ExportDefaultVariable from './ExportDefaultVariable';
 import Variable from './Variable';
 
@@ -25,10 +26,13 @@ export default class SyntheticNamedExportVariable extends Variable {
 		return baseVariable;
 	}
 
+	getBaseVariableName(): string {
+		return this.syntheticNamespace.getBaseVariableName();
+	}
+
 	getName(): string {
 		const name = this.name;
-		const renderBaseName = this.syntheticNamespace.getName();
-		return `${renderBaseName}${getPropertyAccess(name)}`;
+		return `${this.syntheticNamespace.getName()}${getPropertyAccess(name)}`;
 	}
 
 	include() {
@@ -37,8 +41,14 @@ export default class SyntheticNamedExportVariable extends Variable {
 			this.context.includeVariable(this.syntheticNamespace);
 		}
 	}
+
+	setRenderNames(baseName: string | null, name: string | null) {
+		super.setRenderNames(baseName, name);
+	}
 }
 
 const getPropertyAccess = (name: string) => {
-	return /^(?!\d)[\w$]+$/.test(name) ? `.${name}` : `[${JSON.stringify(name)}]`;
+	return !RESERVED_NAMES[name] && /^(?!\d)[\w$]+$/.test(name)
+		? `.${name}`
+		: `[${JSON.stringify(name)}]`;
 };

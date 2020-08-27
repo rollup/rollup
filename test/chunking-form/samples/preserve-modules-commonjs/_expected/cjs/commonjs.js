@@ -7,7 +7,7 @@ function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'defau
 
 var external__default = /*#__PURE__*/_interopDefaultLegacy(external);
 
-const { value } = other.default;
+const { value } = other['default'];
 
 console.log(external__default['default'], value);
 

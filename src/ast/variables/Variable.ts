@@ -50,9 +50,7 @@ export default class Variable implements ExpressionEntity {
 	getName(): string {
 		const name = this.renderName || this.name;
 		return this.renderBaseName
-			? RESERVED_NAMES[this.name]
-				? `${this.renderBaseName}['${name}']`
-				: `${this.renderBaseName}.${name}`
+			? `${this.renderBaseName}${RESERVED_NAMES[name] ? `['${name}']` : `.${name}`}`
 			: name;
 	}
 

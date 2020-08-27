@@ -20,7 +20,7 @@
 	console.log(_interopDefault$1, _interopNamespace$1, module, require$1, exports$1, document$1, URL$1);
 
 	import('external').then(console.log);
-	exports.default = 0;
+	exports['default'] = 0;
 	console.log((typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __filename).href : (document.currentScript && document.currentScript.src || new URL('umd.js', document.baseURI).href)));
 
 	function nested1() {
@@ -34,7 +34,7 @@
 		console.log(_interopDefault, _interopNamespace, module, require$1, exports$1, document$1, URL$1);
 
 		import('external').then(console.log);
-		exports.default = 1;
+		exports['default'] = 1;
 		console.log((typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __filename).href : (document.currentScript && document.currentScript.src || new URL('umd.js', document.baseURI).href)));
 	}
 
@@ -53,6 +53,6 @@
 
 	nested2();
 
-	return exports.default;
+	return exports['default'];
 
 })));
