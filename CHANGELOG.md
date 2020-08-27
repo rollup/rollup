@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.26.6
+*2020-08-27*
+
+### Bug Fixes
+* Avoid conflicts between the namespace of synthetic named exports and local variables (#3747)
+
+### Pull Requests
+* [#3747](https://github.com/rollup/rollup/pull/3747): Properly deconflict synthetic named exports (@lukastaegert)
+
 ## 2.26.5
 *2020-08-22*
 
