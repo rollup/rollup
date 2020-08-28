@@ -1,5 +1,3 @@
-'use strict';
-
 if (console.log(1) || unknown) ;
 
 {
@@ -10,21 +8,15 @@ if (console.log(1) || unknown) ;
 	console.log('kept');
 }
 
-if (true) {
+var a; {
 	console.log('kept');
-} else {
-	var a;
-	function b() {}
 }
-console.log(typeof a, typeof b);
+console.log(a);
 
-if (true) {
+var b; {
 	console.log('kept');
-} else {
-	var a;
-	function b() {}
 }
-console.log(typeof a, typeof b);
+console.log(b);
 
 if (console.log('effect'), true) {
 	console.log('kept');
@@ -38,19 +30,13 @@ if (console.log('effect'), true) {
 	console.log('kept');
 }
 
-if (false) {
-	var c;
-	function d() {}
-}
-console.log(typeof c, typeof d);
+var c; 
+console.log(c);
 
-if (false) {
-	var e;
-	function f() {}
-} else {
+var d; {
 	console.log('kept');
 }
-console.log(typeof e, typeof f);
+console.log(d);
 
 if (console.log('effect'), false) ;
 

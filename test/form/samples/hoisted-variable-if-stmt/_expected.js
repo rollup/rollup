@@ -1,6 +1,4 @@
-if (false) {
-    var foo;
-}
+var foo; 
 
 if (foo) {
     console.log("nope");

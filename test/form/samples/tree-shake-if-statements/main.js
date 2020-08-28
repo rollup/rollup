@@ -19,9 +19,8 @@ if (true) {
 } else {
 	console.log('removed');
 	var a;
-	function b() {}
 }
-console.log(typeof a, typeof b);
+console.log(a);
 
 function noEffect(){}
 
@@ -29,10 +28,9 @@ if (noEffect(), true) {
 	console.log('kept');
 } else {
 	console.log('removed');
-	var a;
-	function b() {}
+	var b;
 }
-console.log(typeof a, typeof b);
+console.log(b);
 
 if (console.log('effect'), true) {
 	console.log('kept');
@@ -58,18 +56,16 @@ if (false) {
 if (false) {
 	console.log('removed');
 	var c;
-	function d() {}
 }
-console.log(typeof c, typeof d);
+console.log(c);
 
 if (false) {
 	console.log('removed');
-	var e;
-	function f() {}
+	var d;
 } else {
 	console.log('kept');
 }
-console.log(typeof e, typeof f);
+console.log(d);
 
 if (console.log('effect'), false) {
 	console.log('removed');

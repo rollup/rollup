@@ -59,7 +59,8 @@ export default class Identifier extends NodeBase implements PatternNode {
 				variable = this.scope.addDeclaration(this, this.context, init, true);
 				break;
 			case 'function':
-				variable = this.scope.addDeclaration(this, this.context, init, 'function');
+				// in strict mode, functions are only hoisted within a scope but not across block scopes
+				variable = this.scope.addDeclaration(this, this.context, init, false);
 				break;
 			case 'let':
 			case 'const':

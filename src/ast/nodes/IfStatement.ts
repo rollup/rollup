@@ -3,11 +3,19 @@ import { RenderOptions } from '../../utils/renderHelpers';
 import { removeAnnotations } from '../../utils/treeshakeNode';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { BROKEN_FLOW_NONE, HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import TrackingScope from '../scopes/TrackingScope';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
 import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import BlockStatement from './BlockStatement';
+import Identifier from './Identifier';
 import * as NodeType from './NodeType';
-import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from './shared/Node';
+import {
+	ExpressionNode,
+	GenericEsTreeNode,
+	IncludeChildren,
+	StatementBase,
+	StatementNode
+} from './shared/Node';
 
 const unset = Symbol('unset');
 
@@ -17,6 +25,8 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	test!: ExpressionNode;
 	type!: NodeType.tIfStatement;
 
+	private alternateScope?: TrackingScope;
+	private consequentScope!: TrackingScope;
 	private testValue: LiteralValueOrUnknown | typeof unset = unset;
 
 	deoptimizeCache() {
@@ -58,42 +68,62 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		}
 	}
 
+	parseNode(esTreeNode: GenericEsTreeNode) {
+		this.consequentScope = new TrackingScope(this.scope);
+		this.consequent = new this.context.nodeConstructors[esTreeNode.consequent.type](
+			esTreeNode.consequent,
+			this,
+			this.consequentScope
+		);
+		if (esTreeNode.alternate) {
+			this.alternateScope = new TrackingScope(this.scope);
+			this.alternate = new this.context.nodeConstructors[esTreeNode.alternate.type](
+				esTreeNode.alternate,
+				this,
+				this.alternateScope
+			);
+		}
+		super.parseNode(esTreeNode);
+	}
+
 	render(code: MagicString, options: RenderOptions) {
 		// Note that unknown test values are always included
 		const testValue = this.getTestValue();
-		if (
-			!this.test.included &&
-			(testValue ? this.alternate === null || !this.alternate.included : !this.consequent.included)
-		) {
-			const singleRetainedBranch = (testValue ? this.consequent : this.alternate)!;
-			code.remove(this.start, singleRetainedBranch.start);
-			code.remove(singleRetainedBranch.end, this.end);
-			removeAnnotations(this, code);
-			singleRetainedBranch.render(code, options);
+		const hoistedDeclarations: Identifier[] = [];
+		const includesIfElse = this.test.included;
+		const noTreeshake = !this.context.options.treeshake;
+		if (includesIfElse) {
+			this.test.render(code, options);
 		} else {
-			if (this.test.included) {
-				this.test.render(code, options);
-			} else {
-				code.overwrite(this.test.start, this.test.end, testValue ? 'true' : 'false');
-			}
-			if (this.consequent.included) {
-				this.consequent.render(code, options);
-			} else {
-				code.overwrite(this.consequent.start, this.consequent.end, ';');
-			}
-			if (this.alternate !== null) {
-				if (this.alternate.included) {
-					if (code.original.charCodeAt(this.alternate.start - 1) === 101 /* e */) {
+			removeAnnotations(this, code);
+			code.remove(this.start, this.consequent.start);
+		}
+		if (this.consequent.included && (noTreeshake || testValue === UnknownValue || testValue)) {
+			this.consequent.render(code, options);
+		} else {
+			code.overwrite(this.consequent.start, this.consequent.end, includesIfElse ? ';' : '');
+			hoistedDeclarations.push(...this.consequentScope.hoistedDeclarations);
+		}
+		if (this.alternate) {
+			if (this.alternate.included && (noTreeshake || testValue === UnknownValue || !testValue)) {
+				if (includesIfElse) {
+					if (code.original.charCodeAt(this.alternate.start - 1) === 101) {
 						code.prependLeft(this.alternate.start, ' ');
 					}
-					this.alternate.render(code, options);
-				} else if (this.shouldKeepAlternateBranch()) {
-					code.overwrite(this.alternate.start, this.alternate.end, ';');
 				} else {
-					code.remove(this.consequent.end, this.alternate.end);
+					code.remove(this.consequent.end, this.alternate.start);
 				}
+				this.alternate.render(code, options);
+			} else {
+				if (includesIfElse && this.shouldKeepAlternateBranch()) {
+					code.overwrite(this.alternate.start, this.end, ';');
+				} else {
+					code.remove(this.consequent.end, this.end);
+				}
+				hoistedDeclarations.push(...this.alternateScope!.hoistedDeclarations);
 			}
 		}
+		renderHoistedDeclarations(hoistedDeclarations, this.start, code);
 	}
 
 	private getTestValue(): LiteralValueOrUnknown {
@@ -158,5 +188,18 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			currentParent = (currentParent as any).parent;
 		} while (currentParent);
 		return false;
+	}
+}
+
+function renderHoistedDeclarations(
+	hoistedDeclarations: Identifier[],
+	prependPosition: number,
+	code: MagicString
+) {
+	const hoistedVars = [
+		...new Set(hoistedDeclarations.map(identifier => identifier.variable!.getName()))
+	].join(', ');
+	if (hoistedVars) {
+		code.prependRight(prependPosition, `var ${hoistedVars}; `);
 	}
 }

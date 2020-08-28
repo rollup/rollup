@@ -1,5 +1,3 @@
-if (false) {
-	var deadVariable, otherDeadVariable;
-}
+var deadVariable, otherDeadVariable; 
 
 console.log(deadVariable, otherDeadVariable);
