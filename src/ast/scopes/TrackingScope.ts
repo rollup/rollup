@@ -10,12 +10,10 @@ export default class TrackingScope extends BlockScope {
 	addDeclaration(
 		identifier: Identifier,
 		context: AstContext,
-		init: ExpressionEntity | null = null,
+		init: ExpressionEntity | null,
 		isHoisted: boolean
 	): LocalVariable {
-		if (isHoisted) {
-			this.hoistedDeclarations.push(identifier);
-		}
+		this.hoistedDeclarations.push(identifier);
 		return this.parent.addDeclaration(identifier, context, init, isHoisted);
 	}
 }
