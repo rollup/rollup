@@ -186,7 +186,7 @@ export interface PluginContext extends MinimalPluginContext {
 	isExternal: IsExternal;
 	/** @deprecated Use `this.getModuleIds` instead */
 	moduleIds: IterableIterator<string>;
-	parse: (input: string, options: any) => AcornNode;
+	parse: (input: string, options?: any) => AcornNode;
 	resolve: (
 		source: string,
 		importer?: string,
