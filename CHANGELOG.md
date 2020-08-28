@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 2.26.7
+*2020-08-28*
+
+### Bug Fixes
+* Avoid invalid code when rendering hoisted variable declarations from dead branches (#3752)
+* Mark the `options` parameter of `this.parse` as optional for TypeScript plugins (#3750)
+
+### Pull Requests
+* [#3750](https://github.com/rollup/rollup/pull/3750): Make `options` of `PluginContext#parse` optional (@intrnl)
+* [#3752](https://github.com/rollup/rollup/pull/3752): Extract hoisted variables from dead branches (@lukastaegert)
+
 ## 2.26.6
 *2020-08-27*
 
