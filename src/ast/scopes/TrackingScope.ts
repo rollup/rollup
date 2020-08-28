@@ -1,11 +1,12 @@
 import { AstContext } from '../../Module';
 import Identifier from '../nodes/Identifier';
 import { ExpressionEntity } from '../nodes/shared/Expression';
-import { UNKNOWN_EXPRESSION } from '../values';
 import LocalVariable from '../variables/LocalVariable';
-import ChildScope from './ChildScope';
+import BlockScope from './BlockScope';
 
-export default class BlockScope extends ChildScope {
+export default class TrackingScope extends BlockScope {
+	public hoistedDeclarations: Identifier[] = [];
+
 	addDeclaration(
 		identifier: Identifier,
 		context: AstContext,
@@ -13,9 +14,8 @@ export default class BlockScope extends ChildScope {
 		isHoisted: boolean
 	): LocalVariable {
 		if (isHoisted) {
-			return this.parent.addDeclaration(identifier, context, UNKNOWN_EXPRESSION, isHoisted);
-		} else {
-			return super.addDeclaration(identifier, context, init, false);
+			this.hoistedDeclarations.push(identifier);
 		}
+		return this.parent.addDeclaration(identifier, context, init, isHoisted);
 	}
 }

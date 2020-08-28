@@ -1,8 +1,4 @@
-'use strict';
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
-var external = require('external');
+import { value } from 'external';
 
 var foo = 13;
 
@@ -11,7 +7,7 @@ const quux = 1;
 const other = () => quux;
 
 function baz() {
-	return foo + external.value;
+	return foo + value;
 }
 
 var create = Object.create,
@@ -23,6 +19,11 @@ function unusedButIncluded() {
 		true ? 'first' : 'second';
 	} else {
 		(true && 'first') || 'second';
+	}
+	if (false) {
+		'first';
+	} else {
+		'second';
 	}
 	'sequence', 'expression';
 	switch ('test') {
@@ -53,7 +54,4 @@ try {
 	const x = 1;
 } catch {}
 
-exports.create = create;
-exports.getPrototypeOf = getPrototypeOf;
-exports.quux = quux;
-exports.strange = quux;
+export { create, getPrototypeOf, quux, quux as strange };

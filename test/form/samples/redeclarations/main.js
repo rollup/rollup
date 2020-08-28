@@ -19,6 +19,7 @@ bar();
 function baz () {}
 
 while ( true ) {
+	// in strict mode, this is not a redeclaration
 	function baz () {
 		console.log( 'effect' );
 	}
