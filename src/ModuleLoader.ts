@@ -423,7 +423,7 @@ export class ModuleLoader {
 		if (resolveIdResult) {
 			if (typeof resolveIdResult === 'object') {
 				id = resolveIdResult.id;
-				if (resolveIdResult.external) {
+				if (resolveIdResult.external || this.options.external(resolveIdResult.id, importer, true)) {
 					external = true;
 				}
 				if (resolveIdResult.moduleSideEffects != null) {
