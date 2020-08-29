@@ -754,8 +754,8 @@ export interface WatcherOptions {
 	buildDelay?: number;
 	chokidar?: ChokidarOptions;
 	clearScreen?: boolean;
-	exclude?: string[];
-	include?: string[];
+	exclude?: (string | RegExp)[];
+	include?: (string | RegExp)[];
 	skipWrite?: boolean;
 }
 
