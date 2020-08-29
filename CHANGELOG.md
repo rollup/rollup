@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.26.8
+*2020-08-29*
+
+### Bug Fixes
+* Make sure that both unresolved and resolved ids are passed to the `external` option in all cases (#3753)
+
+### Pull Requests
+* [#3753](https://github.com/rollup/rollup/pull/3753): Also pass resolved ids to external if they use the object for (@lukastaegert)
+
 ## 2.26.7
 *2020-08-28*
 
