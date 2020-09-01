@@ -1,6 +1,5 @@
 # rollup changelog
 
-## 2.26.9
 *unreleased*
 
 ### Pull Requests
