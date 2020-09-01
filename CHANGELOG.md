@@ -1,8 +1,13 @@
 # rollup changelog
 
-*unreleased*
+## 2.26.9
+*2020-09-01*
+
+### Bug Fixes
+* Add regular expression support to watch include/exclude types (#3754)
 
 ### Pull Requests
+* [#3754](https://github.com/rollup/rollup/pull/3754): Add RegExp to the include and exclude fields of the WatcherOptions type (@dagda1)
 * [#3756](https://github.com/rollup/rollup/pull/3756): Update FAQ: I think it was meant "external" instead of "other-entry.js" (@madacol)
 
 ## 2.26.8
