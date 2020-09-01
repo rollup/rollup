@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 2.26.9
+*unreleased*
+
+### Pull Requests
+* [#3756](https://github.com/rollup/rollup/pull/3756): Update FAQ: I think it was meant "external" instead of "other-entry.js" (@madacol)
+
 ## 2.26.8
 *2020-08-29*
 
