@@ -58,7 +58,7 @@ This does not affect code execution order or behaviour, but it will speed up how
 
 With this optimization, a JavaScript engine will discover all transitive dependencies after parsing an entry module, avoiding the waterfall:
 1. Load and parse `main.js`. At the end, imports to `other-entry.js` and `external` will be discovered.
-2. Load and parse `other-entry.js` and `external`. The import of `other-entry.js` is already loaded and parsed.
+2. Load and parse `other-entry.js` and `external`. The import of `external` from `other-entry.js` is already loaded and parsed.
 3. Execute `main.js`.
 
 There may be situations where this optimization is not desired, in which case you can turn it off via the [`output.hoistTransitiveImports`](guide/en/#outputhoisttransitiveimports) option. This optimization is also never applied when using the [`output.preserveModules`](guide/en/#outputpreservemodules) option.
