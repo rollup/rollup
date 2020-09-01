@@ -1509,7 +1509,7 @@ Default: `true`
 Whether to clear the screen when a rebuild is triggered.
 
 #### watch.exclude
-Type: `string`<br>
+Type: `string | RegExp | (string | RegExp)[]`<br>
 CLI: `--watch.exclude <files>`
 
 Prevent files from being watched:
@@ -1525,7 +1525,7 @@ export default {
 ```
 
 #### watch.include
-Type: `string`<br>
+Type: `string | RegExp | (string | RegExp)[]`<br>
 CLI: `--watch.include <files>`
 
 Limit the file-watching to certain files. Note that this only filters the module graph but does not allow to add additional watch files:
