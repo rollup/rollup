@@ -222,7 +222,7 @@ loadConfigFile(path.resolve(__dirname, 'rollup.config.js'), { format: 'es' }).th
 		// This prints all deferred warnings
 		warnings.flush();
 
-		// options is an array of "inputOptions" object with an additional "output"
+		// options is an array of "inputOptions" objects with an additional "output"
 		// property that contains an array of "outputOptions".
 		// The following will generate all outputs for all inputs, and write them to disk the same
 		// way the CLI does it:
