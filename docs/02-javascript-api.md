@@ -80,29 +80,29 @@ The `inputOptions` object can contain the following properties (see the [big lis
 
 ```js
 const inputOptions = {
-	// core input options
-	external,
-	input, // condtionally required
-	plugins,
+  // core input options
+  external,
+  input, // condtionally required
+  plugins,
 
-	// advanced input options
-	cache,
-	onwarn,
-	preserveEntrySignatures,
-	strictDeprecations,
+  // advanced input options
+  cache,
+  onwarn,
+  preserveEntrySignatures,
+  strictDeprecations,
 
-	// danger zone
-	acorn,
-	acornInjectPlugins,
-	context,
-	moduleContext,
-	preserveSymlinks,
-	shimMissingExports,
-	treeshake,
+  // danger zone
+  acorn,
+  acornInjectPlugins,
+  context,
+  moduleContext,
+  preserveSymlinks,
+  shimMissingExports,
+  treeshake,
 
-	// experimental
-	experimentalCacheExpiry,
-	perf
+  // experimental
+  experimentalCacheExpiry,
+  perf
 };
 ```
 
@@ -112,48 +112,48 @@ The `outputOptions` object can contain the following properties (see the [big li
 
 ```js
 const outputOptions = {
-	// core output options
-	dir,
-	file,
-	format, // required
-	globals,
-	name,
-	plugins,
+  // core output options
+  dir,
+  file,
+  format, // required
+  globals,
+  name,
+  plugins,
 
-	// advanced output options
-	assetFileNames,
-	banner,
-	chunkFileNames,
-	compact,
-	entryFileNames,
-	extend,
-	externalLiveBindings,
-	footer,
-	hoistTransitiveImports,
-	inlineDynamicImports,
-	interop,
-	intro,
-	manualChunks,
-	minifyInternalExports,
-	outro,
-	paths,
-	preserveModules,
-	sourcemap,
-	sourcemapExcludeSources,
-	sourcemapFile,
-	sourcemapPathTransform,
+  // advanced output options
+  assetFileNames,
+  banner,
+  chunkFileNames,
+  compact,
+  entryFileNames,
+  extend,
+  externalLiveBindings,
+  footer,
+  hoistTransitiveImports,
+  inlineDynamicImports,
+  interop,
+  intro,
+  manualChunks,
+  minifyInternalExports,
+  outro,
+  paths,
+  preserveModules,
+  sourcemap,
+  sourcemapExcludeSources,
+  sourcemapFile,
+  sourcemapPathTransform,
 
-	// danger zone
-	amd,
-	esModule,
-	exports,
-	freeze,
-	indent,
-	namespaceToStringTag,
-	noConflict,
-	preferConst,
-	strict,
-	systemNullSetters
+  // danger zone
+  amd,
+  esModule,
+  exports,
+  freeze,
+  indent,
+  namespaceToStringTag,
+  noConflict,
+  preferConst,
+  strict,
+  systemNullSetters
 };
 ```
 
@@ -186,16 +186,16 @@ The `watchOptions` argument is a config (or an array of configs) that you would 
 
 ```js
 const watchOptions = {
-	...inputOptions,
-	output: [outputOptions],
-	watch: {
-		buildDelay,
-		chokidar,
-		clearScreen,
-		skipWrite,
-		exclude,
-		include
-	}
+  ...inputOptions,
+  output: [outputOptions],
+  watch: {
+    buildDelay,
+    chokidar,
+    clearScreen,
+    skipWrite,
+    exclude,
+    include
+  }
 };
 ```
 
