@@ -58,19 +58,20 @@ export function findNonWhiteSpace(code: string, index: number) {
 }
 
 // This assumes "code" only contains white-space and comments
-function findFirstLineBreakOutsideComment(code: string) {
+// Returns position of line-comment if applicable
+function findFirstLineBreakOutsideComment(code: string): [number, number] {
 	let lineBreakPos,
 		charCodeAfterSlash,
 		start = 0;
 	lineBreakPos = code.indexOf('\n', start);
 	while (true) {
 		start = code.indexOf('/', start);
-		if (start === -1 || start > lineBreakPos) return lineBreakPos;
+		if (start === -1 || start > lineBreakPos) return [lineBreakPos, lineBreakPos + 1];
 
 		// With our assumption, '/' always starts a comment. Determine comment type:
-		charCodeAfterSlash = code.charCodeAt(++start);
-		if (charCodeAfterSlash === 47 /*"/"*/) return lineBreakPos;
-		start = code.indexOf('*/', start + 2) + 2;
+		charCodeAfterSlash = code.charCodeAt(start + 1);
+		if (charCodeAfterSlash === 47 /*"/"*/) return [start, lineBreakPos + 1];
+		start = code.indexOf('*/', start + 3) + 2;
 		if (start > lineBreakPos) {
 			lineBreakPos = code.indexOf('\n', start);
 		}
@@ -89,7 +90,7 @@ export function renderStatementList(
 	let nextNodeNeedsBoundaries = !nextNode.included || nextNode.needsBoundaries;
 	if (nextNodeNeedsBoundaries) {
 		nextNodeStart =
-			start + findFirstLineBreakOutsideComment(code.original.slice(start, nextNode.start)) + 1;
+			start + findFirstLineBreakOutsideComment(code.original.slice(start, nextNode.start))[1];
 	}
 
 	for (let nextIndex = 1; nextIndex <= statements.length; nextIndex++) {
@@ -104,8 +105,7 @@ export function renderStatementList(
 				currentNode.end +
 				findFirstLineBreakOutsideComment(
 					code.original.slice(currentNode.end, nextNode === undefined ? end : nextNode.start)
-				) +
-				1;
+				)[1];
 			if (currentNode.included) {
 				currentNodeNeedsBoundaries
 					? currentNode.render(code, options, {
@@ -148,8 +148,8 @@ export function getCommaSeparatedNodesWithBoundaries<N extends Node>(
 		}
 		nextNodeStart = contentEnd =
 			separator +
-			2 +
-			findFirstLineBreakOutsideComment(code.original.slice(separator + 1, nextNode.start));
+			1 +
+			findFirstLineBreakOutsideComment(code.original.slice(separator + 1, nextNode.start))[1];
 		while (
 			((char = code.original.charCodeAt(nextNodeStart)),
 			char === 32 /*" "*/ || char === 9 /*"\t"*/ || char === 10 /*"\n"*/ || char === 13) /*"\r"*/
@@ -180,11 +180,12 @@ export function getCommaSeparatedNodesWithBoundaries<N extends Node>(
 // This assumes there are only white-space and comments between start and end
 export function removeLineBreaks(code: MagicString, start: number, end: number) {
 	while (true) {
-		const lineBreakPos = findFirstLineBreakOutsideComment(code.original.slice(start, end));
-		if (lineBreakPos === -1) {
+		const [removeStart, removeEnd] = findFirstLineBreakOutsideComment(
+			code.original.slice(start, end)
+		);
+		if (removeStart === -1) {
 			break;
 		}
-		start = start + lineBreakPos + 1;
-		code.remove(start - 1, start);
+		code.remove(start + removeStart, (start += removeEnd));
 	}
 }
