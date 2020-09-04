@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.26.10
+*2020-09-04*
+
+### Bug Fixes
+* Do not create invalid code when simplifying expressions in return statements that contain line comments (#3762)
+
+### Pull Requests
+* [#3762](https://github.com/rollup/rollup/pull/3762): Handle line-comments when removing line-breaks to prevent ASI (@lukastaegert)
+
 ## 2.26.9
 *2020-09-01*
 
