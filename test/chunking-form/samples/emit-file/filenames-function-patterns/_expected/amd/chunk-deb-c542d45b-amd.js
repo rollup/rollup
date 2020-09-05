@@ -4,4 +4,6 @@ define(['exports'], function (exports) { 'use strict';
 
 	exports.default = deb;
 
+	Object.defineProperty(exports, '__esModule', { value: true });
+
 });

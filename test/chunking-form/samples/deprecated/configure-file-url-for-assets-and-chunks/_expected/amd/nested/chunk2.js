@@ -6,4 +6,6 @@ define(['require', 'exports'], function (require, exports) { 'use strict';
 	exports.asset = asset;
 	exports.chunk = chunk;
 
+	Object.defineProperty(exports, '__esModule', { value: true });
+
 });

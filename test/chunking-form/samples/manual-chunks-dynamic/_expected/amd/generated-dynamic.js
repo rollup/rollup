@@ -4,4 +4,6 @@ define(['exports'], function (exports) { 'use strict';
 
 	exports.DYNAMIC_USED_BY_A = DYNAMIC_USED_BY_A;
 
+	Object.defineProperty(exports, '__esModule', { value: true });
+
 });

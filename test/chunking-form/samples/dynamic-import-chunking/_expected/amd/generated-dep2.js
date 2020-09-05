@@ -6,4 +6,6 @@ define(['exports', './generated-main'], function (exports, main) { 'use strict';
 
   exports.mult = mult;
 
+  Object.defineProperty(exports, '__esModule', { value: true });
+
 });

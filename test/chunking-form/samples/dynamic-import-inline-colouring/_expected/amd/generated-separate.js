@@ -7,4 +7,6 @@ define(['exports'], function (exports) { 'use strict';
 	exports.default = separate;
 	exports.x = x;
 
+	Object.defineProperty(exports, '__esModule', { value: true });
+
 });

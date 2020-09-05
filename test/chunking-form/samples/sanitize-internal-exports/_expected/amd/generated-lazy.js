@@ -4,4 +4,6 @@ define(['exports', './main'], function (exports, main) { 'use strict';
 
 	exports.default = lazy;
 
+	Object.defineProperty(exports, '__esModule', { value: true });
+
 });

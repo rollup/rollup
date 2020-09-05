@@ -5,4 +5,6 @@ define(['exports', './generated-from-main-1-and-dynamic', './generated-from-main
 	exports.value1 = fromMain1AndDynamic.value1;
 	exports.value2 = fromMain1And2.value2;
 
+	Object.defineProperty(exports, '__esModule', { value: true });
+
 });

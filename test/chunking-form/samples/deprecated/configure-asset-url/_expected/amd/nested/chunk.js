@@ -4,4 +4,6 @@ define(['require', 'exports'], function (require, exports) { 'use strict';
 
 	exports.default = solved;
 
+	Object.defineProperty(exports, '__esModule', { value: true });
+
 });

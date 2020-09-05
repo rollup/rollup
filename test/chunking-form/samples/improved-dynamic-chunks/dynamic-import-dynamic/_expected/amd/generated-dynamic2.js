@@ -4,4 +4,6 @@ define(['exports', './generated-dynamic1'], function (exports, dynamic1) { 'use 
 
 	exports.value = dynamic1.value;
 
+	Object.defineProperty(exports, '__esModule', { value: true });
+
 });

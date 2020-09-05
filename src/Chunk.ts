@@ -711,9 +711,11 @@ export default class Chunk {
 				hasExports,
 				indentString: this.indentString,
 				intro: addons.intro!,
-				isEntryModuleFacade:
-					this.outputOptions.preserveModules ||
-					(this.facadeModule !== null && this.facadeModule.isEntryPoint),
+				// TODO This controls if the __esModule marker is added for certain formats.
+				// Once we have tree-shaking based on dynamic import usage, this should only be set for
+				// modules without this.facadeModule.isEntryPoint if the whole namespace or the __esModule
+				// marker is queried
+				isEntryModuleFacade: this.outputOptions.preserveModules || this.facadeModule !== null,
 				namedExportsMode: this.exportMode !== 'default',
 				outro: addons.outro!,
 				usesTopLevelAwait,
