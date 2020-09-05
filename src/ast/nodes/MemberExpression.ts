@@ -128,7 +128,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (path.length === 0) this.disallowNamespaceReassignment();
 		if (this.variable) {
 			this.variable.deoptimizePath(path);
-		} else {
+		} else if (!this.replacement) {
 			const propertyKey = this.getPropertyKey();
 			if (propertyKey === UnknownKey) {
 				this.object.deoptimizePath(UNKNOWN_PATH);
@@ -291,6 +291,9 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (path.length === 0) return baseVariable;
 		if (!baseVariable.isNamespace) return null;
 		const exportName = path[0].key;
+		if (exportName === '__esModule') {
+			return 'true';
+		}
 		const variable =
 			baseVariable instanceof ExternalVariable
 				? baseVariable.module.getVariableForExportName(exportName)
