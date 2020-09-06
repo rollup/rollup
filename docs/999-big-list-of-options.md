@@ -1076,6 +1076,14 @@ Default: `true`
 
 Whether to add a `__esModule: true` property when generating exports for non-ES formats. This property signifies that the exported value is the namespace of an ES module and that the default export of this module corresponds to the `.default` property of the exported object. By default, Rollup adds this property when using [named exports mode](guide/en/#outputexports) for a chunk. See also [`output.interop`](https://rollupjs.org/guide/en/#outputinterop).
 
+For improved interoperability with bundled CommonJS modules when this option is `true`, Rollup will also add the `__esModule` property to
+
+- external namespaces unless `output.interop` is `esModule` for this dependency,
+- namespaces imported via dynamic import,
+- namespaces that are handled as objects.
+
+The last two points will also apply to ES module output if the namespaces need to be rendered as objects.
+ 
 #### output.exports
 Type: `string`<br>
 CLI: `--exports <exportMode>`<br>
