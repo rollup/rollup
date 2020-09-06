@@ -8,6 +8,7 @@ import { treeshakeNode } from './treeshakeNode';
 export interface RenderOptions {
 	compact: boolean;
 	dynamicImportFunction: string | undefined;
+	esModule: boolean;
 	exportNamesByVariable: Map<Variable, string[]>;
 	format: InternalModuleFormat;
 	freeze: boolean;

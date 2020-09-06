@@ -38,6 +38,7 @@ export default function cjs(
 		interop,
 		externalLiveBindings,
 		freeze,
+		esModule,
 		accessedGlobals,
 		_,
 		n,

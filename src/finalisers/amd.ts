@@ -74,6 +74,7 @@ export default function amd(
 			interop,
 			externalLiveBindings,
 			freeze,
+			esModule,
 			accessedGlobals,
 			_,
 			n,

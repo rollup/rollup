@@ -14,10 +14,10 @@ System.register(['./direct-relative-external', 'to-indirect-relative-external', 
 			const value = 'existing';
 			console.log('existing');
 
-			var existing = /*#__PURE__*/Object.freeze({
+			var existing = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
 				__proto__: null,
 				value: value
-			});
+			}, '__esModule', { value: true }));
 
 			//main
 			Promise.resolve().then(function () { return existing; });

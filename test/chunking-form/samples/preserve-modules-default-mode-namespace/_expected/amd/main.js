@@ -1,7 +1,7 @@
 define(['require', 'exports', './lib'], function (require, exports, lib) { 'use strict';
 
 	function _interopNamespaceDefaultOnly(e) {
-		return Object.freeze({__proto__: null, 'default': e});
+		return Object.freeze(Object.defineProperty({__proto__: null, 'default': e}, '__esModule', { value: true }));
 	}
 
 	var lib__namespace = /*#__PURE__*/_interopNamespaceDefaultOnly(lib);

@@ -12,7 +12,7 @@ function _interopNamespace(e) {
 }
 
 function _interopNamespaceDefault(e) {
-	var n = Object.create(null);
+	var n = Object.defineProperty(Object.create(null), '__esModule', { value: true });
 	if (e) {
 		Object.keys(e).forEach(function (k) {
 			if (k !== 'default') {

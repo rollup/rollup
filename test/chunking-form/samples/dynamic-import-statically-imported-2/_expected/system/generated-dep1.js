@@ -18,10 +18,10 @@ System.register([], function (exports) {
 				return foo();
 			}
 
-			var dep1 = /*#__PURE__*/Object.freeze({
+			var dep1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
 				__proto__: null,
 				bar: bar
-			});
+			}, '__esModule', { value: true }));
 			exports('d', dep1);
 
 		}

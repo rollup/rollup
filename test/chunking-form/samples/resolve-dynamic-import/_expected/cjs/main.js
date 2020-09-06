@@ -7,7 +7,7 @@ require('to-indirect-absolute-external');
 
 function _interopNamespace(e) {
 	if (e && e.__esModule) { return e; } else {
-		var n = Object.create(null);
+		var n = Object.defineProperty(Object.create(null), '__esModule', { value: true });
 		if (e) {
 			Object.keys(e).forEach(function (k) {
 				if (k !== 'default') {
@@ -36,10 +36,10 @@ Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(requi
 const value = 'existing';
 console.log('existing');
 
-var existing = /*#__PURE__*/Object.freeze({
+var existing = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
 	__proto__: null,
 	value: value
-});
+}, '__esModule', { value: true }));
 
 //main
 Promise.resolve().then(function () { return existing; });

@@ -8,11 +8,11 @@ System.register(['./generated-geometry.js'], function () {
 		}],
 		execute: function () {
 
-			var mod = /*#__PURE__*/Object.freeze({
+			var mod = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
 				__proto__: null,
 				volume: volume,
 				geometry: geometry
-			});
+			}, '__esModule', { value: true }));
 
 			console.log(mod);
 

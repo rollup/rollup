@@ -11,11 +11,11 @@ System.register([], function (exports) {
 			const x = exports('x', 123);
 			const y = exports('y', 456);
 
-			var namespace = /*#__PURE__*/Object.freeze({
+			var namespace = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
 				__proto__: null,
 				x: x,
 				y: y
-			});
+			}, '__esModule', { value: true }));
 			exports({ namespace: namespace, namespace2: namespace });
 
 			// Namespace variable

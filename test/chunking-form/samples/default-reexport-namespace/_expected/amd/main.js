@@ -2,11 +2,11 @@ define(['exports', './one'], function (exports, one) { 'use strict';
 
 	const __icon__ = {};
 
-	var icons = /*#__PURE__*/Object.freeze({
+	var icons = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
 		__proto__: null,
 		one: one,
 		two: __icon__
-	});
+	}, '__esModule', { value: true }));
 
 	const __component__ = { icons };
 

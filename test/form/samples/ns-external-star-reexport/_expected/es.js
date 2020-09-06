@@ -1,17 +1,17 @@
 import * as external1 from 'external1';
 import * as external2 from 'external2';
 
-var reexportExternal = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), external1));
+var reexportExternal = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), external1), '__esModule', { value: true }));
 
 const extra = 'extra';
 
 const override = 'override';
 var reexportExternalsWithOverride = { synthetic: 'synthetic' };
 
-var reexportExternalsWithOverride$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), external1, external2, reexportExternalsWithOverride, {
+var reexportExternalsWithOverride$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), external1, external2, reexportExternalsWithOverride, {
 	override: override,
 	'default': reexportExternalsWithOverride,
 	extra: extra
-}));
+}), '__esModule', { value: true }));
 
 export { reexportExternal as external, reexportExternalsWithOverride$1 as externalOverride };

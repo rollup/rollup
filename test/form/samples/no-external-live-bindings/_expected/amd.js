@@ -2,7 +2,7 @@ define(['require', 'exports', 'external1', 'external2'], function (require, expo
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) { return e; } else {
-			var n = Object.create(null);
+			var n = Object.defineProperty(Object.create(null), '__esModule', { value: true });
 			if (e) {
 				Object.keys(e).forEach(function (k) {
 					n[k] = e[k];

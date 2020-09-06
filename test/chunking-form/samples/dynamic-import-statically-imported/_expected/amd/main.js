@@ -10,10 +10,10 @@ define(function () { 'use strict';
 		return foo();
 	}
 
-	var dep1 = /*#__PURE__*/Object.freeze({
+	var dep1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
 		__proto__: null,
 		bar: bar
-	});
+	}, '__esModule', { value: true }));
 
 	console.log(foo(), bar());
 

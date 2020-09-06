@@ -9,11 +9,11 @@ System.register(['./one.js'], function (exports) {
 
 			const __icon__ = {};
 
-			var icons = /*#__PURE__*/Object.freeze({
+			var icons = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
 				__proto__: null,
 				one: __icon__$1,
 				two: __icon__
-			});
+			}, '__esModule', { value: true }));
 
 			const __component__ = exports('Component_one', { icons });
 

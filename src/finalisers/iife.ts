@@ -28,6 +28,7 @@ export default function iife(
 	}: FinaliserOptions,
 	{
 		compact,
+		esModule,
 		extend,
 		freeze,
 		externalLiveBindings,
@@ -81,6 +82,7 @@ export default function iife(
 		interop,
 		externalLiveBindings,
 		freeze,
+		esModule,
 		accessedGlobals,
 		_,
 		n,

@@ -7,9 +7,9 @@ System.register([], function (exports) {
 
 			console.log('lib', dep);
 
-			var lib = /*#__PURE__*/Object.freeze({
+			var lib = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
 				__proto__: null
-			});
+			}, '__esModule', { value: true }));
 			exports('l', lib);
 
 		}

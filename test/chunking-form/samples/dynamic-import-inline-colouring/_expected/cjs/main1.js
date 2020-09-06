@@ -8,11 +8,11 @@ var inlined = 'inlined';
 const x = 1;
 console.log('inlined');
 
-var inlined$1 = /*#__PURE__*/Object.freeze({
+var inlined$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
 	__proto__: null,
 	'default': inlined,
 	x: x
-});
+}, '__esModule', { value: true }));
 
 const inlined$2 = Promise.resolve().then(function () { return inlined$1; });
 const separate = Promise.resolve().then(function () { return require('./generated-separate.js'); });

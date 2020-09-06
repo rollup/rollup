@@ -4,7 +4,7 @@ var _default = require('./default.js');
 var named = require('./named.js');
 
 function _interopNamespaceDefaultOnly(e) {
-	return Object.freeze({__proto__: null, 'default': e});
+	return Object.freeze(Object.defineProperty({__proto__: null, 'default': e}, '__esModule', { value: true }));
 }
 
 console.log(_default, named.value);

@@ -6,19 +6,19 @@ var synthetic = {
 };
 const foo = 'foo';
 
-var synthetic$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), synthetic, {
+var synthetic$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), synthetic, {
 	'default': synthetic,
 	foo: foo
-}));
+}), '__esModule', { value: true }));
 
 const bar = 'bar';
 var dep = 'not-overwritten';
 
-var dep$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), synthetic, {
+var dep$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), synthetic, {
 	bar: bar,
 	'default': dep,
 	synthetic: synthetic$1,
 	foo: foo
-}));
+}), '__esModule', { value: true }));
 
 export { dep$1 as dep };

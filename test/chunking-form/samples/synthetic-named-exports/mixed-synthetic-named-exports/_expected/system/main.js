@@ -9,10 +9,10 @@ System.register([], function (exports) {
       };
       const foo = exports('foo', 100);
 
-      var ns = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), d, {
+      var ns = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), d, {
         foo: foo,
         'default': d
-      }));
+      }), '__esModule', { value: true }));
 
       const stuff = 12;
       console.log(stuff);

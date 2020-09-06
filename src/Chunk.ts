@@ -558,6 +558,7 @@ export default class Chunk {
 		const renderOptions: RenderOptions = {
 			compact: options.compact,
 			dynamicImportFunction: options.dynamicImportFunction,
+			esModule: options.esModule,
 			exportNamesByVariable: this.exportNamesByVariable,
 			format: options.format,
 			freeze: options.freeze,

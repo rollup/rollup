@@ -10,7 +10,7 @@ function _interopNamespace(e) {
 }
 
 function _interopNamespaceDefault(e) {
-	var n = Object.create(null);
+	var n = Object.defineProperty(Object.create(null), '__esModule', { value: true });
 	if (e) {
 		Object.keys(e).forEach(function (k) {
 			if (k !== 'default') {
@@ -29,7 +29,7 @@ function _interopNamespaceDefault(e) {
 }
 
 function _interopNamespaceDefaultOnly(e) {
-	return Object.freeze({__proto__: null, 'default': e});
+	return Object.freeze(Object.defineProperty({__proto__: null, 'default': e}, '__esModule', { value: true }));
 }
 
 var fooAuto__namespace = /*#__PURE__*/_interopNamespace(fooAuto);

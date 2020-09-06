@@ -13,9 +13,9 @@
 
 	const value = 42;
 
-	var foo = /*#__PURE__*/Object.freeze({
+	var foo = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
 		__proto__: null,
 		value: value
-	});
+	}, '__esModule', { value: true }));
 
 })));

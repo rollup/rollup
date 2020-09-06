@@ -48,11 +48,12 @@ export function getHelpersBlock(
 	s: string,
 	t: string,
 	liveBindings: boolean,
-	freeze: boolean
+	freeze: boolean,
+	esModule: boolean
 ): string {
 	return HELPER_NAMES.map(variable =>
 		usedHelpers.has(variable) || accessedGlobals.has(variable)
-			? HELPER_GENERATORS[variable](_, n, s, t, liveBindings, freeze, usedHelpers)
+			? HELPER_GENERATORS[variable](_, n, s, t, liveBindings, freeze, esModule, usedHelpers)
 			: ''
 	).join('');
 }
@@ -65,6 +66,7 @@ const HELPER_GENERATORS: {
 		t: string,
 		liveBindings: boolean,
 		freeze: boolean,
+		esModule: boolean,
 		usedHelpers: Set<string>
 	) => string;
 } = {
@@ -76,28 +78,24 @@ const HELPER_GENERATORS: {
 		`function ${INTEROP_DEFAULT_LEGACY_VARIABLE}${_}(e)${_}{${_}return ` +
 		`e${_}&&${_}typeof e${_}===${_}'object'${_}&&${_}'default'${_}in e${_}?${_}` +
 		`${liveBindings ? getDefaultLiveBinding(_) : getDefaultStatic(_)}${s}${_}}${n}${n}`,
-	[INTEROP_NAMESPACE_VARIABLE]: (_, n, s, t, liveBindings, freeze, usedHelpers) =>
+	[INTEROP_NAMESPACE_VARIABLE]: (_, n, s, t, liveBindings, freeze, esModule, usedHelpers) =>
 		`function ${INTEROP_NAMESPACE_VARIABLE}(e)${_}{${n}` +
 		(usedHelpers.has(INTEROP_NAMESPACE_DEFAULT_VARIABLE)
 			? `${t}return e${_}&&${_}e.__esModule${_}?${_}e${_}:${_}${INTEROP_NAMESPACE_DEFAULT_VARIABLE}(e)${s}${n}`
 			: `${t}if${_}(e${_}&&${_}e.__esModule)${_}{${_}return e${s}${_}}${_}else${_}{${n}` +
-			  createNamespaceObject(_, n, t, t + t, liveBindings, freeze) +
+			  createNamespaceObject(_, n, t, t + t, liveBindings, freeze, esModule) +
 			  `${t}}${n}`) +
 		`}${n}${n}`,
-	[INTEROP_NAMESPACE_DEFAULT_VARIABLE]: (_, n, _s, t, liveBindings, freeze) =>
+	[INTEROP_NAMESPACE_DEFAULT_VARIABLE]: (_, n, _s, t, liveBindings, freeze, esModule) =>
 		`function ${INTEROP_NAMESPACE_DEFAULT_VARIABLE}(e)${_}{${n}` +
-		createNamespaceObject(_, n, t, t, liveBindings, freeze) +
+		createNamespaceObject(_, n, t, t, liveBindings, freeze, esModule) +
 		`}${n}${n}`,
-	[INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE]: (
-		_: string,
-		n: string,
-		_s: string,
-		t: string,
-		_liveBindings: boolean,
-		freeze: boolean
-	) =>
+	[INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE]: (_, n, _s, t, _liveBindings, freeze, esModule) =>
 		`function ${INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE}(e)${_}{${n}` +
-		`${t}return ${getFrozen(`{__proto__: null,${_}'default':${_}e}`, freeze)};${n}` +
+		`${t}return ${getFrozen(
+			addEsModule(`{__proto__: null,${_}'default':${_}e}`, _, esModule),
+			freeze
+		)};${n}` +
 		`}${n}${n}`
 };
 
@@ -115,13 +113,14 @@ function createNamespaceObject(
 	t: string,
 	i: string,
 	liveBindings: boolean,
-	freeze: boolean
+	freeze: boolean,
+	esModule: boolean
 ) {
 	return (
-		`${i}var n${_}=${_}Object.create(null);${n}` +
+		`${i}var n${_}=${_}${addEsModule('Object.create(null)', _, esModule)};${n}` +
 		`${i}if${_}(e)${_}{${n}` +
 		`${i}${t}Object.keys(e).forEach(function${_}(k)${_}{${n}` +
-		(liveBindings ? copyPropertyLiveBinding : copyPropertyStatic)(_, n, t, i + t + t) +
+		copyProperty(_, n, t, i + t + t, liveBindings) +
 		`${i}${t}});${n}` +
 		`${i}}${n}` +
 		`${i}n['default']${_}=${_}e;${n}` +
@@ -129,26 +128,28 @@ function createNamespaceObject(
 	);
 }
 
-function copyPropertyLiveBinding(_: string, n: string, t: string, i: string) {
-	return (
-		`${i}if${_}(k${_}!==${_}'default')${_}{${n}` +
-		`${i}${t}var d${_}=${_}Object.getOwnPropertyDescriptor(e,${_}k);${n}` +
-		`${i}${t}Object.defineProperty(n,${_}k,${_}d.get${_}?${_}d${_}:${_}{${n}` +
-		`${i}${t}${t}enumerable:${_}true,${n}` +
-		`${i}${t}${t}get:${_}function${_}()${_}{${n}` +
-		`${i}${t}${t}${t}return e[k];${n}` +
-		`${i}${t}${t}}${n}` +
-		`${i}${t}});${n}` +
-		`${i}}${n}`
-	);
+function copyProperty(_: string, n: string, t: string, i: string, liveBindings: boolean) {
+	return liveBindings
+		? `${i}if${_}(k${_}!==${_}'default')${_}{${n}` +
+				`${i}${t}var d${_}=${_}Object.getOwnPropertyDescriptor(e,${_}k);${n}` +
+				`${i}${t}Object.defineProperty(n,${_}k,${_}d.get${_}?${_}d${_}:${_}{${n}` +
+				`${i}${t}${t}enumerable:${_}true,${n}` +
+				`${i}${t}${t}get:${_}function${_}()${_}{${n}` +
+				`${i}${t}${t}${t}return e[k];${n}` +
+				`${i}${t}${t}}${n}` +
+				`${i}${t}});${n}` +
+				`${i}}${n}`
+		: `${i}n[k]${_}=${_}e[k];${n}`;
 }
 
-function copyPropertyStatic(_: string, n: string, _t: string, i: string) {
-	return `${i}n[k]${_}=${_}e[k];${n}`;
-}
-
-function getFrozen(fragment: string, freeze: boolean) {
+function getFrozen(fragment: string, freeze: boolean): string {
 	return freeze ? `Object.freeze(${fragment})` : fragment;
+}
+
+function addEsModule(fragment: string, _: string, esModule: boolean): string {
+	return esModule
+		? `Object.defineProperty(${fragment},${_}'__esModule',${_}{${_}value:${_}true${_}})`
+		: fragment;
 }
 
 export const HELPER_NAMES = Object.keys(HELPER_GENERATORS);

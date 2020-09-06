@@ -73,47 +73,15 @@ export default class NamespaceVariable extends Variable {
 		const _ = options.compact ? '' : ' ';
 		const n = options.compact ? '' : '\n';
 		const t = options.indent;
+		const s = options.compact ? '' : ';';
 
-		const memberVariables = this.getMemberVariables();
-		const members = Object.keys(memberVariables).map(name => {
-			const original = memberVariables[name];
-
-			if (this.referencedEarly || original.isReassigned) {
-				return `${t}get ${name}${_}()${_}{${_}return ${original.getName()}${
-					options.compact ? '' : ';'
-				}${_}}`;
-			}
-
-			const safeName = RESERVED_NAMES[name] ? `'${name}'` : name;
-
-			return `${t}${safeName}: ${original.getName()}`;
-		});
-
-		if (options.namespaceToStringTag) {
-			members.unshift(`${t}[Symbol.toStringTag]:${_}'Module'`);
-		}
-
-		const needsObjectAssign = this.mergedNamespaces.length > 0 || this.syntheticNamedExports;
-		if (!needsObjectAssign) members.unshift(`${t}__proto__:${_}null`);
-
-		let output = `{${n}${members.join(`,${n}`)}${n}}`;
-		if (needsObjectAssign) {
-			const assignmentArgs: string[] = ['/*#__PURE__*/Object.create(null)'];
-			if (this.mergedNamespaces.length > 0) {
-				assignmentArgs.push(...this.mergedNamespaces.map(variable => variable.getName()));
-			}
-			if (this.syntheticNamedExports) {
-				assignmentArgs.push(this.module.getSyntheticNamespace().getName());
-			}
-			if (members.length > 0) {
-				assignmentArgs.push(output);
-			}
-			output = `/*#__PURE__*/Object.assign(${assignmentArgs.join(`,${_}`)})`;
+		let output = this.getCombinedNamespaceObject(options.namespaceToStringTag, _, n, t, s);
+		if (options.esModule) {
+			output = `/*#__PURE__*/Object.defineProperty(${output},${_}'__esModule',${_}{${_}value:${_}true${_}})`;
 		}
 		if (options.freeze) {
 			output = `/*#__PURE__*/Object.freeze(${output})`;
 		}
-
 		const name = this.getName();
 		output = `${options.varOrConst} ${name}${_}=${_}${output};`;
 
@@ -127,6 +95,54 @@ export default class NamespaceVariable extends Variable {
 	renderFirst() {
 		return this.referencedEarly;
 	}
+
+	private getCombinedNamespaceObject(
+		namespaceToStringTag: boolean,
+		_: string,
+		n: string,
+		t: string,
+		s: string
+	): string {
+		const members = this.getRenderedNamespaceMembers(_, t, s);
+		if (namespaceToStringTag) {
+			members.unshift(`${t}[Symbol.toStringTag]:${_}'Module'`);
+		}
+		if (this.mergedNamespaces.length > 0 || this.syntheticNamedExports) {
+			const assignmentArgs: string[] = ['/*#__PURE__*/Object.create(null)'];
+			if (this.mergedNamespaces.length > 0) {
+				assignmentArgs.push(...this.mergedNamespaces.map(variable => variable.getName()));
+			}
+			if (this.syntheticNamedExports) {
+				assignmentArgs.push(this.module.getSyntheticNamespace().getName());
+			}
+			if (members.length > 0) {
+				assignmentArgs.push(joinMembersToObject(members, n));
+			}
+			return `/*#__PURE__*/Object.assign(${assignmentArgs.join(`,${_}`)})`;
+		} else {
+			members.unshift(`${t}__proto__:${_}null`);
+			return joinMembersToObject(members, n);
+		}
+	}
+
+	private getRenderedNamespaceMembers(_: string, t: string, s: string): string[] {
+		const memberVariables = this.getMemberVariables();
+		return Object.keys(memberVariables).map(name => {
+			const original = memberVariables[name];
+
+			if (this.referencedEarly || original.isReassigned) {
+				return `${t}get ${name}${_}()${_}{${_}return ${original.getName()}${s}${_}}`;
+			}
+
+			const safeName = RESERVED_NAMES[name] ? `'${name}'` : name;
+
+			return `${t}${safeName}: ${original.getName()}`;
+		});
+	}
 }
 
 NamespaceVariable.prototype.isNamespace = true;
+
+function joinMembersToObject(members: string[], n: string): string {
+	return `{${n}${members.join(`,${n}`)}${n}}`;
+}

@@ -5,7 +5,7 @@ define(['exports', 'external-auto', 'external-default', 'external-defaultOnly', 
 	}
 
 	function _interopNamespaceDefault(e) {
-		var n = Object.create(null);
+		var n = Object.defineProperty(Object.create(null), '__esModule', { value: true });
 		if (e) {
 			Object.keys(e).forEach(function (k) {
 				if (k !== 'default') {

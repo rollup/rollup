@@ -6,11 +6,11 @@ System.register('myBundle', [], function (exports) {
 			const foo = 1;
 			const bar = 2;
 
-			var namespace = {
+			var namespace = /*#__PURE__*/Object.defineProperty({
 				__proto__: null,
 				foo: foo,
 				bar: bar
-			};
+			}, '__esModule', { value: true });
 
 			console.log( Object.keys( namespace ) );
 

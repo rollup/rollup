@@ -161,6 +161,7 @@ export default function umd(
 			interop,
 			externalLiveBindings,
 			freeze,
+			esModule,
 			accessedGlobals,
 			_,
 			n,
