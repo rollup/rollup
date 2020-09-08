@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.26.11
+*2020-09-08*
+
+### Bug Fixes
+* Do not fail for unknown nodes as if statement branches (#3769)
+
+### Pull Requests
+* [#3769](https://github.com/rollup/rollup/pull/3769): Handle debugger statements as if-statement branches (@lukastaegert)
+
 ## 2.26.10
 *2020-09-04*
 
