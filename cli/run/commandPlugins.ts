@@ -5,7 +5,7 @@ import { waitForInputPlugin } from './waitForInput';
 
 export function addCommandPluginsToInputOptions(inputOptions: InputOptions, command: any) {
 	if (command.stdin !== false) {
-		inputOptions.plugins!.push(stdinPlugin());
+		inputOptions.plugins!.push(stdinPlugin(command.stdin));
 	}
 	if (command.waitForBundleInput === true) {
 		inputOptions.plugins!.push(waitForInputPlugin());

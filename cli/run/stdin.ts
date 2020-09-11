@@ -4,16 +4,17 @@ export const stdinName = '-';
 
 let stdinResult: Promise<string> | null = null;
 
-export function stdinPlugin(): Plugin {
+export function stdinPlugin(arg: any): Plugin {
+	const suffix = typeof arg == 'string' && arg.length ? '.' + arg : '';
 	return {
 		name: 'stdin',
 		resolveId(id) {
 			if (id === stdinName) {
-				return id;
+				return id + suffix;
 			}
 		},
 		load(id) {
-			if (id === stdinName) {
+			if (id === stdinName || id.startsWith(stdinName + '.')) {
 				return stdinResult || (stdinResult = readStdin());
 			}
 		}
