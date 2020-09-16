@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 2.27.0
+*2020-09-16*
+
+### Features
+* Support specifying a file extension when reading from stdin (#3775)
+
+### Bug Fixes
+* Do not break logic if a branch with hoisted variables is tree-shaken in an else-if statement (#3782)
+
+### Pull Requests
+* [#3770](https://github.com/rollup/rollup/pull/3770): Docs: Exception for babel plugin and commonjs plugin (@jsk7)
+* [#3775](https://github.com/rollup/rollup/pull/3775): add ability to specify stdin file extension via --stdin=ext (@kzc)
+* [#3782](https://github.com/rollup/rollup/pull/3782): Handle hoisted variables in dead branches of nested if statements (@lukastaegert)
+
 ## 2.26.11
 *2020-09-08*
 
@@ -16,6 +30,7 @@
 * Do not create invalid code when simplifying expressions in return statements that contain line comments (#3762)
 
 ### Pull Requests
+* [#3757](https://github.com/rollup/rollup/pull/3757): Fix api docs loadconfigfile (@maxwell8888)
 * [#3762](https://github.com/rollup/rollup/pull/3762): Handle line-comments when removing line-breaks to prevent ASI (@lukastaegert)
 
 ## 2.26.9
