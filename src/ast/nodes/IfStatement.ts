@@ -117,7 +117,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 				hoistedDeclarations.push(...this.alternateScope!.hoistedDeclarations);
 			}
 		}
-		renderHoistedDeclarations(hoistedDeclarations, this.start, code);
+		this.renderHoistedDeclarations(hoistedDeclarations, code);
 	}
 
 	private getTestValue(): LiteralValueOrUnknown {
@@ -170,6 +170,27 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		}
 	}
 
+	private renderHoistedDeclarations(hoistedDeclarations: Identifier[], code: MagicString) {
+		const hoistedVars = [
+			...new Set(
+				hoistedDeclarations.map(identifier => {
+					const variable = identifier.variable!;
+					return variable.included ? variable.getName() : '';
+				})
+			)
+		]
+			.filter(Boolean)
+			.join(', ');
+		if (hoistedVars) {
+			const parentType = this.parent.type;
+			const needsBraces = parentType !== NodeType.Program && parentType !== NodeType.BlockStatement;
+			code.prependRight(this.start, `${needsBraces ? '{ ' : ''}var ${hoistedVars}; `);
+			if (needsBraces) {
+				code.appendLeft(this.end, ` }`);
+			}
+		}
+	}
+
 	private shouldKeepAlternateBranch() {
 		let currentParent = this.parent;
 		do {
@@ -182,18 +203,5 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			currentParent = (currentParent as any).parent;
 		} while (currentParent);
 		return false;
-	}
-}
-
-function renderHoistedDeclarations(
-	hoistedDeclarations: Identifier[],
-	prependPosition: number,
-	code: MagicString
-) {
-	const hoistedVars = [
-		...new Set(hoistedDeclarations.map(identifier => identifier.variable!.getName()))
-	].join(', ');
-	if (hoistedVars) {
-		code.prependRight(prependPosition, `var ${hoistedVars}; `);
 	}
 }
