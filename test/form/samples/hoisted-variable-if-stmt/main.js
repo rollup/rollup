@@ -1,5 +1,6 @@
 if (false) {
     var foo = true;
+    var unused;
 }
 
 if (foo) {
@@ -7,7 +8,11 @@ if (foo) {
 }
 
 if (true) {
-    var bar = true;
+    if (false) {
+        var bar = false;
+    } else {
+        bar = true;
+    }
 }
 
 if (bar) {
