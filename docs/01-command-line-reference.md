@@ -309,7 +309,8 @@ Many options have command line equivalents. In those cases, any arguments passed
 --failAfterWarnings         Exit with an error code if there was a warning during the build
 --sourcemapExcludeSources   Do not include source code in source maps
 --sourcemapFile <file>      Specify bundle position for source maps
---no-stdin                  do not read "-" from stdin
+--stdin=ext                 Specify file extension used for stdin input - default is none
+--no-stdin                  Do not read "-" from stdin
 --no-strict                 Don't emit `"use strict";` in the generated modules
 --strictDeprecations        Throw errors for deprecated features
 --systemNullSetters         Replace empty SystemJS setters with `null`
@@ -423,9 +424,13 @@ then the config file will receive `process.env.INCLUDE_DEPS === 'true'` and `pro
 
 This will not throw an error if one of the entry point files is not available. Instead, it will wait until all files are present before starting the build. This is useful, especially in watch mode, when Rollup is consuming the output of another process.
 
+#### `--stdin=ext`
+
+Specify a virtual file extension when reading content from stdin. By default, Rollup will use the virtual file name `-` without an extension for content read from stdin. Some plugins, however, rely on file extensions to determine if they should process a file. See also [Reading a file from stdin](guide/en/#reading-a-file-from-stdin).
+
 #### `--no-stdin`
 
-Do not read files from `stdin`. Setting this flag will prevent piping content to Rollup and make sure Rollup interprets `-` as a regular file name instead of interpreting this as the name of `stdin`. See also [Reading a file from stdin](guide/en/#reading-a-file-from-stdin).
+Do not read files from `stdin`. Setting this flag will prevent piping content to Rollup and make sure Rollup interprets `-` and `-.[ext]` as a regular file names instead of interpreting these as the name of `stdin`. See also [Reading a file from stdin](guide/en/#reading-a-file-from-stdin).
 
 ### Reading a file from stdin
 
@@ -443,4 +448,10 @@ import foo from "-";
 
 in any file will prompt Rollup to try to read the imported file from `stdin` and assign the default export to `foo`. You can pass the [`--no-stdin`](guide/en/#--no-stdin) CLI flag to Rollup to treat `-` as a regular file name instead.
 
-The JavaScript API will always treat `-` as a regular file name.
+As some plugins rely on file extensions to process files, you can specify a file extension for stdin via `--stdin=ext` where `ext` is the desired extension. In that case, the virtual file name will be `-.ext`:
+
+```
+echo '{"foo": 42, "bar": "ok"}' | rollup --stdin=json -p json
+```
+
+The JavaScript API will always treat `-` and `-.ext` as regular file names.

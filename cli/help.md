@@ -52,7 +52,8 @@ Basic options:
 --failAfterWarnings         Exit with an error code if there was a warning during the build
 --sourcemapExcludeSources   Do not include source code in source maps
 --sourcemapFile <file>      Specify bundle position for source maps
---no-stdin                  do not read "-" from stdin
+--stdin=ext                 Specify file extension used for stdin input - default is none
+--no-stdin                  Do not read "-" from stdin
 --no-strict                 Don't emit `"use strict";` in the generated modules
 --strictDeprecations        Throw errors for deprecated features
 --systemNullSetters         Replace empty SystemJS setters with `null`
