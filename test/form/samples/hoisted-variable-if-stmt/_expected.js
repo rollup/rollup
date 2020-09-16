@@ -5,7 +5,9 @@ if (foo) {
 }
 
 {
-    var bar = true;
+    var bar; {
+        bar = true;
+    }
 }
 
 if (bar) {
