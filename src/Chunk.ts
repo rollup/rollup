@@ -49,7 +49,7 @@ import {
 	isDefaultAProperty,
 	namespaceInteropHelpersByInteropType
 } from './utils/interopHelpers';
-import { basename, dirname, extname, isAbsolute, normalize, resolve } from './utils/path';
+import { basename, dirname, extname, isAbsolute, join, normalize, resolve } from './utils/path';
 import { PluginDriver } from './utils/PluginDriver';
 import relativeId, { getAliasName } from './utils/relativeId';
 import renderChunk from './utils/renderChunk';
@@ -441,20 +441,30 @@ export default class Chunk {
 					? '[name].js'
 					: '[name][extname].js'
 				: options.entryFileNames;
-			path = relative(
-				preserveModulesRelativeDir,
-				`${dirname(sanitizedId)}/${renderNamePattern(
-					pattern,
-					'output.entryFileNames',
-					{
-						ext: () => extension.substr(1),
-						extname: () => extension,
-						format: () => options.format as string,
-						name: () => this.getChunkName()
-					},
-					this.getChunkInfo.bind(this)
-				)}`
+			let currentDir = dirname(sanitizedId);
+			const fileName = renderNamePattern(
+				pattern,
+				'output.entryFileNames',
+				{
+					ext: () => extension.substr(1),
+					extname: () => extension,
+					format: () => options.format as string,
+					name: () => this.getChunkName()
+				},
+				this.getChunkInfo.bind(this)
 			);
+			if (options.moduleRootDir) {
+				const moduleRootDir = resolve(options.moduleRootDir);
+				const moduleRootDirRegExp = new RegExp(`^${moduleRootDir}`);
+				if (currentDir.match(moduleRootDirRegExp)) {
+					currentDir = join(
+						preserveModulesRelativeDir,
+						currentDir.replace(moduleRootDirRegExp, '')
+					);
+				}
+			}
+			const currentPath = `${currentDir}/${fileName}`;
+			path = relative(preserveModulesRelativeDir, currentPath);
 		} else {
 			path = `_virtual/${basename(sanitizedId)}`;
 		}

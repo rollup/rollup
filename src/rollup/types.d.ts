@@ -575,6 +575,7 @@ export interface OutputOptions {
 	intro?: string | (() => string | Promise<string>);
 	manualChunks?: ManualChunksOption;
 	minifyInternalExports?: boolean;
+	moduleRootDir?: string;
 	name?: string;
 	namespaceToStringTag?: boolean;
 	noConflict?: boolean;
@@ -620,6 +621,7 @@ export interface NormalizedOutputOptions {
 	intro: () => string | Promise<string>;
 	manualChunks: ManualChunksOption;
 	minifyInternalExports: boolean;
+	moduleRootDir: string | undefined;
 	name: string | undefined;
 	namespaceToStringTag: boolean;
 	noConflict: boolean;

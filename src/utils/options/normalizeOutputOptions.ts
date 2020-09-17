@@ -56,6 +56,7 @@ export function normalizeOutputOptions(
 		intro: getAddon(config, 'intro'),
 		manualChunks: getManualChunks(config, inlineDynamicImports, preserveModules, inputOptions),
 		minifyInternalExports: getMinifyInternalExports(config, format, compact),
+		moduleRootDir: config.moduleRootDir as string | undefined,
 		name: config.name as string | undefined,
 		namespaceToStringTag: (config.namespaceToStringTag as boolean | undefined) || false,
 		noConflict: (config.noConflict as boolean | undefined) || false,

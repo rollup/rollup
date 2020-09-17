@@ -213,6 +213,7 @@ function mergeOutputOptions(
 		intro: getOption('intro'),
 		manualChunks: getOption('manualChunks'),
 		minifyInternalExports: getOption('minifyInternalExports'),
+		moduleRootDir: getOption('moduleRootDir'),
 		name: getOption('name'),
 		namespaceToStringTag: getOption('namespaceToStringTag'),
 		noConflict: getOption('noConflict'),
