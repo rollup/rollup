@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.27.1
+*2020-09-17*
+
+### Bug Fixes
+* Do not fail when using ES module imports in symlinked config files (#3783)
+
+### Pull Requests
+* [#3783](https://github.com/rollup/rollup/pull/3783): Handle loading symlinked config files (@lukastaegert)
+
 ## 2.27.0
 *2020-09-16*
 

@@ -1,4 +1,5 @@
 import { bold } from 'colorette';
+import * as fs from 'fs';
 import * as path from 'path';
 import { pathToFileURL } from 'url';
 import * as rollup from '../../src/node-entry';
@@ -82,16 +83,17 @@ async function getDefaultFromTranspiledConfigFile(
 }
 
 async function loadConfigFromBundledFile(fileName: string, bundledCode: string) {
-	const extension = path.extname(fileName);
+	const resolvedFileName = fs.realpathSync(fileName);
+	const extension = path.extname(resolvedFileName);
 	const defaultLoader = require.extensions[extension]!;
-	require.extensions[extension] = (module: NodeModule, filename: string) => {
-		if (filename === fileName) {
-			(module as NodeModuleWithCompile)._compile(bundledCode, filename);
+	require.extensions[extension] = (module: NodeModule, requiredFileName: string) => {
+		if (requiredFileName === resolvedFileName) {
+			(module as NodeModuleWithCompile)._compile(bundledCode, requiredFileName);
 		} else {
-			defaultLoader(module, filename);
+			defaultLoader(module, requiredFileName);
 		}
 	};
-	delete require.cache[fileName];
+	delete require.cache[resolvedFileName];
 	try {
 		const config = getDefaultFromCjs(require(fileName));
 		require.extensions[extension] = defaultLoader;
