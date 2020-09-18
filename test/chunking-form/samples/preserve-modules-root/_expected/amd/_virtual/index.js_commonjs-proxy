@@ -1,0 +1,7 @@
+define(['../custom_modules/@my-scope/my-base-pkg/index'], function (index) { 'use strict';
+
+
+
+	return index.myBasePkg;
+
+});
