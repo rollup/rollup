@@ -49,7 +49,7 @@ import {
 	isDefaultAProperty,
 	namespaceInteropHelpersByInteropType
 } from './utils/interopHelpers';
-import { basename, dirname, extname, isAbsolute, join, normalize, resolve } from './utils/path';
+import { basename, dirname, extname, isAbsolute, normalize, resolve } from './utils/path';
 import { PluginDriver } from './utils/PluginDriver';
 import relativeId, { getAliasName } from './utils/relativeId';
 import renderChunk from './utils/renderChunk';
@@ -453,13 +453,12 @@ export default class Chunk {
 				},
 				this.getChunkInfo.bind(this)
 			);
-			if (options.moduleRootDir) {
-				const moduleRootDir = resolve(options.moduleRootDir);
-				const moduleRootDirRegExp = new RegExp(`^${moduleRootDir}`);
-				if (currentDir.match(moduleRootDirRegExp)) {
-					currentDir = join(
+			if (options.preserveModulesRoot) {
+				const preserveModulesRoot = resolve(options.preserveModulesRoot);
+				if (currentDir.startsWith(preserveModulesRoot)) {
+					currentDir = resolve(
 						preserveModulesRelativeDir,
-						currentDir.replace(moduleRootDirRegExp, '')
+						currentDir.slice(preserveModulesRoot.length).replace(/^\//, '')
 					);
 				}
 			}

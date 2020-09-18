@@ -14,4 +14,4 @@ export function normalize(path: string) {
 	return path.replace(/\\/g, '/');
 }
 
-export { basename, dirname, extname, relative, resolve, join } from 'path';
+export { basename, dirname, extname, relative, resolve } from 'path';

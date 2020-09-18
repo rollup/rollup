@@ -575,7 +575,6 @@ export interface OutputOptions {
 	intro?: string | (() => string | Promise<string>);
 	manualChunks?: ManualChunksOption;
 	minifyInternalExports?: boolean;
-	moduleRootDir?: string;
 	name?: string;
 	namespaceToStringTag?: boolean;
 	noConflict?: boolean;
@@ -584,6 +583,7 @@ export interface OutputOptions {
 	plugins?: OutputPlugin[];
 	preferConst?: boolean;
 	preserveModules?: boolean;
+	preserveModulesRoot?: string;
 	sourcemap?: boolean | 'inline' | 'hidden';
 	sourcemapExcludeSources?: boolean;
 	sourcemapFile?: string;
@@ -621,7 +621,6 @@ export interface NormalizedOutputOptions {
 	intro: () => string | Promise<string>;
 	manualChunks: ManualChunksOption;
 	minifyInternalExports: boolean;
-	moduleRootDir: string | undefined;
 	name: string | undefined;
 	namespaceToStringTag: boolean;
 	noConflict: boolean;
@@ -630,6 +629,7 @@ export interface NormalizedOutputOptions {
 	plugins: OutputPlugin[];
 	preferConst: boolean;
 	preserveModules: boolean;
+	preserveModulesRoot: string | undefined;
 	sourcemap: boolean | 'inline' | 'hidden';
 	sourcemapExcludeSources: boolean;
 	sourcemapFile: string | undefined;
