@@ -80,9 +80,8 @@ const HELPER_GENERATORS: {
 		`function ${INTEROP_NAMESPACE_VARIABLE}(e)${_}{${n}` +
 		(usedHelpers.has(INTEROP_NAMESPACE_DEFAULT_VARIABLE)
 			? `${t}return e${_}&&${_}e.__esModule${_}?${_}e${_}:${_}${INTEROP_NAMESPACE_DEFAULT_VARIABLE}(e)${s}${n}`
-			: `${t}if${_}(e${_}&&${_}e.__esModule)${_}{${_}return e${s}${_}}${_}else${_}{${n}` +
-			  createNamespaceObject(_, n, t, t + t, liveBindings, freeze) +
-			  `${t}}${n}`) +
+			: `${t}if${_}(e${_}&&${_}e.__esModule)${_}return e;${n}` +
+			  createNamespaceObject(_, n, t, t, liveBindings, freeze)) +
 		`}${n}${n}`,
 	[INTEROP_NAMESPACE_DEFAULT_VARIABLE]: (_, n, _s, t, liveBindings, freeze) =>
 		`function ${INTEROP_NAMESPACE_DEFAULT_VARIABLE}(e)${_}{${n}` +
