@@ -6,16 +6,15 @@ var external1 = require('external1');
 var external2 = require('external2');
 
 function _interopNamespace(e) {
-	if (e && e.__esModule) { return e; } else {
-		var n = Object.create(null);
-		if (e) {
-			Object.keys(e).forEach(function (k) {
-				n[k] = e[k];
-			});
-		}
-		n['default'] = e;
-		return Object.freeze(n);
+	if (e && e.__esModule) return e;
+	var n = Object.create(null);
+	if (e) {
+		Object.keys(e).forEach(function (k) {
+			n[k] = e[k];
+		});
 	}
+	n['default'] = e;
+	return Object.freeze(n);
 }
 
 const dynamic = Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('external3')); });
