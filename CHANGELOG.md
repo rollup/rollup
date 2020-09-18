@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 2.27.2
+*unreleased*
+
+### Pull Requests
+* [#3787](https://github.com/rollup/rollup/pull/3787): Slightly simplify namespace interop helpers (@lukastaegert)
+
 ## 2.27.1
 *2020-09-17*
 
