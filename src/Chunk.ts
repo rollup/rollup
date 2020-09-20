@@ -441,7 +441,7 @@ export default class Chunk {
 					? '[name].js'
 					: '[name][extname].js'
 				: options.entryFileNames;
-			let currentDir = dirname(sanitizedId);
+			const currentDir = dirname(sanitizedId);
 			const fileName = renderNamePattern(
 				pattern,
 				'output.entryFileNames',
@@ -453,17 +453,13 @@ export default class Chunk {
 				},
 				this.getChunkInfo.bind(this)
 			);
-			if (options.preserveModulesRoot) {
-				const preserveModulesRoot = resolve(options.preserveModulesRoot);
-				if (currentDir.startsWith(preserveModulesRoot)) {
-					currentDir = resolve(
-						preserveModulesRelativeDir,
-						currentDir.slice(preserveModulesRoot.length).replace(/^\//, '')
-					);
-				}
-			}
 			const currentPath = `${currentDir}/${fileName}`;
-			path = relative(preserveModulesRelativeDir, currentPath);
+			const { preserveModulesRoot } = options;
+			if (preserveModulesRoot && currentPath.startsWith(preserveModulesRoot)) {
+				return currentPath.slice(preserveModulesRoot.length).replace(/^\//, '');
+			} else {
+				return relative(preserveModulesRelativeDir, currentPath);
+			}
 		} else {
 			path = `_virtual/${basename(sanitizedId)}`;
 		}
