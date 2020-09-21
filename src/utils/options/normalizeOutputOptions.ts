@@ -13,6 +13,7 @@ import {
 } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
 import { errInvalidExportOptionValue, error, warnDeprecation } from '../error';
+import { resolve } from '../path';
 import { GenericConfigObject, warnUnknownOptions } from './options';
 
 export function normalizeOutputOptions(
@@ -64,6 +65,7 @@ export function normalizeOutputOptions(
 		plugins: ensureArray(config.plugins) as Plugin[],
 		preferConst: (config.preferConst as boolean | undefined) || false,
 		preserveModules,
+		preserveModulesRoot: getPreserveModulesRoot(config),
 		sourcemap: (config.sourcemap as boolean | 'inline' | 'hidden' | undefined) || false,
 		sourcemapExcludeSources: (config.sourcemapExcludeSources as boolean | undefined) || false,
 		sourcemapFile: config.sourcemapFile as string | undefined,
@@ -167,6 +169,14 @@ const getPreserveModules = (
 		}
 	}
 	return preserveModules;
+};
+
+const getPreserveModulesRoot = (config: GenericConfigObject): string | undefined => {
+	const preserveModulesRoot = config.preserveModulesRoot as string | null | undefined;
+	if (preserveModulesRoot === null || preserveModulesRoot === undefined) {
+		return undefined;
+	}
+	return resolve(preserveModulesRoot);
 };
 
 const getAmd = (

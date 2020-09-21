@@ -221,6 +221,7 @@ function mergeOutputOptions(
 		plugins: ensureArray(config.plugins) as Plugin[],
 		preferConst: getOption('preferConst'),
 		preserveModules: getOption('preserveModules'),
+		preserveModulesRoot: getOption('preserveModulesRoot'),
 		sourcemap: getOption('sourcemap'),
 		sourcemapExcludeSources: getOption('sourcemapExcludeSources'),
 		sourcemapFile: getOption('sourcemapFile'),

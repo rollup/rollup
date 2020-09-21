@@ -78,6 +78,7 @@ export default { // can be an array (for multiple inputs)
     outro,
     paths,
     preserveModules,
+    preserveModulesRoot,
     sourcemap,
     sourcemapExcludeSources,
     sourcemapFile,
@@ -303,6 +304,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --preferConst               Use `const` instead of `var` for exports
 --no-preserveEntrySignatures Avoid facade chunks for entry points
 --preserveModules           Preserve module structure
+--preserveModulesRoot       Preserved modules under this path are rooted in output `dir`
 --preserveSymlinks          Do not follow symlinks when resolving files
 --shimMissingExports        Create shim variables for missing exports
 --silent                    Don't print warnings

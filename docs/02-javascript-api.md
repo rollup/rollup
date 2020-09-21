@@ -138,6 +138,7 @@ const outputOptions = {
   outro,
   paths,
   preserveModules,
+  preserveModulesRoot,
   sourcemap,
   sourcemapExcludeSources,
   sourcemapFile,

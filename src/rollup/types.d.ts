@@ -583,6 +583,7 @@ export interface OutputOptions {
 	plugins?: OutputPlugin[];
 	preferConst?: boolean;
 	preserveModules?: boolean;
+	preserveModulesRoot?: string;
 	sourcemap?: boolean | 'inline' | 'hidden';
 	sourcemapExcludeSources?: boolean;
 	sourcemapFile?: string;
@@ -628,6 +629,7 @@ export interface NormalizedOutputOptions {
 	plugins: OutputPlugin[];
 	preferConst: boolean;
 	preserveModules: boolean;
+	preserveModulesRoot: string | undefined;
 	sourcemap: boolean | 'inline' | 'hidden';
 	sourcemapExcludeSources: boolean;
 	sourcemapFile: string | undefined;
