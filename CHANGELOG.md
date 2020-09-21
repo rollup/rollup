@@ -1,10 +1,13 @@
 # rollup changelog
 
-## 2.27.2
-*unreleased*
+## 2.28.0
+*2020-09-21*
+
+### Features
+* Add an option to treat modules at a given path as located at root when preserving modules (#3786)
 
 ### Pull Requests
-* [#3787](https://github.com/rollup/rollup/pull/3787): Slightly simplify namespace interop helpers (@lukastaegert)
+* [#3786](https://github.com/rollup/rollup/pull/3786): Add preserveModulesRoot config option (@davidroeca)
 
 ## 2.27.1
 *2020-09-17*
