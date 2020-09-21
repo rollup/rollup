@@ -456,7 +456,7 @@ export default class Chunk {
 			const currentPath = `${currentDir}/${fileName}`;
 			const { preserveModulesRoot } = options;
 			if (preserveModulesRoot && currentPath.startsWith(preserveModulesRoot)) {
-				path = currentPath.slice(preserveModulesRoot.length).replace(/^\//, '');
+				path = currentPath.slice(preserveModulesRoot.length).replace(/^[\\/]/, '');
 			} else {
 				path = relative(preserveModulesRelativeDir, currentPath);
 			}
