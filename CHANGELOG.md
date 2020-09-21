@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.28.1
+*2020-09-21*
+
+### Bug Fixes
+* Fix a path slash issue when using the preserveModulesRoot option on Windows (#3791)
+
+### Pull Requests
+* [#3791](https://github.com/rollup/rollup/pull/3791): Fix preserveModulesRoot path on Windows (@lukastaegert)
+
 ## 2.28.0
 *2020-09-21*
 
