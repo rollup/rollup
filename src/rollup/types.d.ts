@@ -221,7 +221,7 @@ interface PartialResolvedId {
 	syntheticNamedExports?: boolean | string;
 }
 
-export type ResolveIdResult = string | false | null | undefined | PartialResolvedId;
+export type ResolveIdResult = string | false | EmptyValue | PartialResolvedId;
 
 export type ResolveIdHook = (
 	this: PluginContext,
@@ -235,11 +235,11 @@ export type IsExternal = (
 	isResolved: boolean
 ) => boolean;
 
-export type IsPureModule = (id: string) => boolean | null | undefined;
+export type IsPureModule = (id: string) => boolean | EmptyValue;
 
 export type HasModuleSideEffects = (id: string, external: boolean) => boolean;
 
-type LoadResult = SourceDescription | string | null | undefined;
+type LoadResult = SourceDescription | string | EmptyValue;
 
 export type LoadHook = (this: PluginContext, id: string) => Promise<LoadResult> | LoadResult;
 
@@ -247,7 +247,7 @@ export interface TransformPluginContext extends PluginContext {
 	getCombinedSourcemap: () => SourceMap;
 }
 
-export type TransformResult = string | null | undefined | SourceDescription;
+export type TransformResult = string | EmptyValue | SourceDescription;
 
 export type TransformHook = (
 	this: TransformPluginContext,
@@ -276,7 +276,7 @@ export type ResolveImportMetaHook = (
 	this: PluginContext,
 	prop: string | null,
 	options: { chunkId: string; format: InternalModuleFormat; moduleId: string }
-) => string | null | undefined;
+) => string | EmptyValue;
 
 export type ResolveAssetUrlHook = (
 	this: PluginContext,
@@ -287,7 +287,7 @@ export type ResolveAssetUrlHook = (
 		moduleId: string;
 		relativeAssetPath: string;
 	}
-) => string | null | undefined;
+) => string | EmptyValue;
 
 export type ResolveFileUrlHook = (
 	this: PluginContext,
@@ -301,7 +301,7 @@ export type ResolveFileUrlHook = (
 		referenceId: string;
 		relativePath: string;
 	}
-) => string | null | undefined;
+) => string | EmptyValue;
 
 export type AddonHookFunction = (this: PluginContext) => string | Promise<string>;
 export type AddonHook = string | AddonHookFunction;
@@ -334,7 +334,7 @@ export interface PluginHooks extends OutputPluginHooks {
 	buildEnd: (this: PluginContext, err?: Error) => Promise<void> | void;
 	buildStart: (this: PluginContext, options: NormalizedInputOptions) => Promise<void> | void;
 	load: LoadHook;
-	options: (this: MinimalPluginContext, options: InputOptions) => InputOptions | null | undefined;
+	options: (this: MinimalPluginContext, options: InputOptions) => InputOptions | EmptyValue;
 	resolveDynamicImport: ResolveDynamicImportHook;
 	resolveId: ResolveIdHook;
 	transform: TransformHook;
@@ -349,7 +349,7 @@ interface OutputPluginHooks {
 		bundle: OutputBundle,
 		isWrite: boolean
 	) => void | Promise<void>;
-	outputOptions: (this: PluginContext, options: OutputOptions) => OutputOptions | null | undefined;
+	outputOptions: (this: PluginContext, options: OutputOptions) => OutputOptions | EmptyValue;
 	renderChunk: RenderChunkHook;
 	renderDynamicImport: (
 		this: PluginContext,
@@ -359,7 +359,7 @@ interface OutputPluginHooks {
 			moduleId: string;
 			targetModuleId: string | null;
 		}
-	) => { left: string; right: string } | null | undefined;
+	) => { left: string; right: string } | EmptyValue;
 	renderError: (this: PluginContext, err?: Error) => Promise<void> | void;
 	renderStart: (
 		this: PluginContext,
@@ -461,17 +461,13 @@ interface GetManualChunkApi {
 	getModuleIds: () => IterableIterator<string>;
 	getModuleInfo: GetModuleInfo;
 }
-export type GetManualChunk = (id: string, api: GetManualChunkApi) => string | null | undefined;
+export type GetManualChunk = (id: string, api: GetManualChunkApi) => string | EmptyValue;
 
 export type ExternalOption =
 	| (string | RegExp)[]
 	| string
 	| RegExp
-	| ((
-			source: string,
-			importer: string | undefined,
-			isResolved: boolean
-	  ) => boolean | null | undefined);
+	| ((source: string, importer: string | undefined, isResolved: boolean) => boolean | EmptyValue);
 export type PureModulesOption = boolean | string[] | IsPureModule;
 export type GlobalsOption = { [name: string]: string } | ((name: string) => string);
 export type InputOption = string | string[] | { [entryAlias: string]: string };
@@ -495,7 +491,7 @@ export interface InputOptions {
 	input?: InputOption;
 	/** @deprecated Use the "manualChunks" output option instead. */
 	manualChunks?: ManualChunksOption;
-	moduleContext?: ((id: string) => string | null | undefined) | { [id: string]: string };
+	moduleContext?: ((id: string) => string | EmptyValue) | { [id: string]: string };
 	onwarn?: WarningHandlerWithDefault;
 	perf?: boolean;
 	plugins?: Plugin[];
@@ -813,3 +809,5 @@ interface AcornNode {
 	start: number;
 	type: string;
 }
+
+type EmptyValue = null | void | undefined;
