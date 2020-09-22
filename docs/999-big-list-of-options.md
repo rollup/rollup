@@ -856,6 +856,30 @@ const main = require('./main.js');
 console.log(main.default); // 42
 ```
 
+#### output.preserveModulesRoot
+Type: `string`<br>
+CLI: `--preserveModulesRoot <directory-name>`
+
+A directory path to input modules that should be stripped away from [`output.dir`](guide/en/#outputdir) path while [`output.preserveModules`](guide/en#outputpreservemodules) is `true`.
+
+For example, given the following configuration:
+
+```javascript
+export default ({
+  input: [ 'src/module.js', `src/another/module.js` ],
+  output: [{
+    format: 'es',
+    dir: 'dist',
+    preserveModules: true,
+    preserveModulesRoot: 'src'
+  }]
+});
+```
+
+The `preserveModulesRoot` setting ensures that the input modules will be output to the paths `dist/module.js` and `dist/another/module.js`.
+
+This option is particularly useful while using plugins such as `@rollup/plugin-node-resolve`, which may cause changes in the output directory structure. This can happen when third-party modules are not marked [`external`](guide/en/#external), or while developing in a monorepo of multiple packages that rely on one another and are not marked [`external`](guide/en/#external).
+
 #### output.sourcemap
 Type: `boolean | 'inline' | 'hidden'`<br>
 CLI: `-m`/`--sourcemap`/`--no-sourcemap`<br>
