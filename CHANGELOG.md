@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.28.2
+*2020-09-24*
+
+### Bug Fixes
+* Fix a source of possible variable name conflicts when using preserveModules with SystemJS (#3796)
+
+### Pull Requests
+* [#3796](https://github.com/rollup/rollup/pull/3796): Fix SystemJS default variable conflict (@lukastaegert)
+
 ## 2.28.1
 *2020-09-21*
 
