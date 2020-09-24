@@ -1,13 +1,13 @@
 System.register(['./m1.js'], function () {
 	'use strict';
-	var ms;
+	var m1;
 	return {
 		setters: [function (module) {
-			ms = module;
+			m1 = module;
 		}],
 		execute: function () {
 
-			console.log(ms);
+			console.log(m1);
 
 		}
 	};
