@@ -994,7 +994,6 @@ export default class Chunk {
 
 	private getDependenciesToBeDeconflicted(
 		addNonNamespacesAndInteropHelpers: boolean,
-		addInternalDependencies: boolean,
 		addDependenciesWithoutBindings: boolean,
 		interop: GetInterop
 	): DependenciesToBeDeconflicted {
@@ -1017,7 +1016,7 @@ export default class Chunk {
 							}
 						}
 					}
-				} else if (addInternalDependencies) {
+				} else {
 					const chunk = this.chunkByModule.get(module)!;
 					if (chunk !== this) {
 						dependencies.add(chunk);
@@ -1259,7 +1258,6 @@ export default class Chunk {
 			this.orderedModules,
 			this.getDependenciesToBeDeconflicted(
 				format !== 'es' && format !== 'system',
-				format !== 'system',
 				format === 'amd' || format === 'umd' || format === 'iife',
 				interop
 			),
