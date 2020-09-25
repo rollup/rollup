@@ -266,7 +266,9 @@ export class ModuleLoader {
 			module.dynamicImports.map(async dynamicImport => {
 				const resolvedId = await this.resolveDynamicImport(
 					module,
-					dynamicImport.argument,
+					typeof dynamicImport.argument === 'string'
+						? dynamicImport.argument
+						: dynamicImport.argument.esTreeNode,
 					module.id
 				);
 				if (resolvedId === null) return null;
@@ -475,7 +477,6 @@ export class ModuleLoader {
 		specifier: string | acorn.Node,
 		importer: string
 	): Promise<ResolvedId | string | null> {
-		// TODO we only should expose the acorn AST here
 		const resolution = await this.pluginDriver.hookFirst('resolveDynamicImport', [
 			specifier,
 			importer

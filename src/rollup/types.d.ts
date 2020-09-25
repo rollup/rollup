@@ -177,6 +177,10 @@ export interface CustomPluginOptions {
 	[plugin: string]: any;
 }
 
+export interface CustomPluginOptions {
+	[plugin: string]: any;
+}
+
 export interface PluginContext extends MinimalPluginContext {
 	addWatchFile: (id: string) => void;
 	cache: PluginCache;

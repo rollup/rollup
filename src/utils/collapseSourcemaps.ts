@@ -185,8 +185,6 @@ function getCollapsedSourcemap(
 	} else {
 		const sources = originalSourcemap.sources;
 		const sourcesContent = originalSourcemap.sourcesContent || [];
-
-		// TODO indiscriminately treating IDs and sources as normal paths is probably bad.
 		const directory = dirname(id) || '.';
 		const sourceRoot = originalSourcemap.sourceRoot || '.';
 

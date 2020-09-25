@@ -113,7 +113,11 @@ export interface AstContext {
 	warn: (warning: RollupWarning, pos: number) => void;
 }
 
-function tryParse(module: Module, Parser: typeof acorn.Parser, acornOptions: acorn.Options) {
+function tryParse(
+	module: Module,
+	Parser: typeof acorn.Parser,
+	acornOptions: acorn.Options
+): acorn.Node {
 	try {
 		return Parser.parse(module.code, {
 			...acornOptions,
@@ -225,7 +229,6 @@ export default class Module {
 	private astContext!: AstContext;
 	private readonly context: string;
 	private customTransformCache!: boolean;
-	private esTreeAst!: acorn.Node;
 	private exportAllModules: (Module | ExternalModule)[] = [];
 	private exportNamesByVariable: Map<Variable, string[]> | null = null;
 	private exportShimVariable: ExportShimVariable = new ExportShimVariable(this);
@@ -639,16 +642,14 @@ export default class Module {
 		timeStart('generate ast', 3);
 
 		this.alwaysRemovedCode = alwaysRemovedCode || [];
-		if (ast) {
-			this.esTreeAst = ast;
-		} else {
-			this.esTreeAst = tryParse(this, this.graph.acornParser, this.options.acorn as acorn.Options);
+		if (!ast) {
+			ast = tryParse(this, this.graph.acornParser, this.options.acorn as acorn.Options);
 			for (const comment of this.comments) {
 				if (!comment.block && SOURCEMAPPING_URL_RE.test(comment.text)) {
 					this.alwaysRemovedCode.push([comment.start, comment.end]);
 				}
 			}
-			markPureCallExpressions(this.comments, this.esTreeAst);
+			markPureCallExpressions(this.comments, ast);
 		}
 
 		timeEnd('generate ast', 3);
@@ -699,11 +700,7 @@ export default class Module {
 
 		this.scope = new ModuleScope(this.graph.scope, this.astContext);
 		this.namespace = new NamespaceVariable(this.astContext, this.syntheticNamedExports);
-		this.ast = new Program(
-			this.esTreeAst,
-			{ type: 'Module', context: this.astContext },
-			this.scope
-		);
+		this.ast = new Program(ast, { type: 'Module', context: this.astContext }, this.scope);
 
 		timeEnd('analyse ast', 3);
 	}
@@ -711,7 +708,7 @@ export default class Module {
 	toJSON(): ModuleJSON {
 		return {
 			alwaysRemovedCode: this.alwaysRemovedCode,
-			ast: this.esTreeAst,
+			ast: this.ast.esTreeNode,
 			code: this.code,
 			customTransformCache: this.customTransformCache,
 			dependencies: Array.from(this.dependencies, getId),
