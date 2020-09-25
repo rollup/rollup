@@ -3,6 +3,7 @@ import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import Module from './Module';
 import {
+	CustomPluginOptions,
 	EmittedChunk,
 	HasModuleSideEffects,
 	NormalizedInputOptions,
@@ -10,6 +11,7 @@ import {
 	ResolveIdResult,
 	SourceDescription
 } from './rollup/types';
+import { BLANK } from './utils/blank';
 import {
 	errBadLoader,
 	errEntryCannotBeExternal,
@@ -135,12 +137,20 @@ export class ModuleLoader {
 	async resolveId(
 		source: string,
 		importer: string | undefined,
+		customOptions: CustomPluginOptions | undefined,
 		skip: number | null = null
 	): Promise<ResolvedId | null> {
 		return this.normalizeResolveIdResult(
 			this.options.external(source, importer, false)
 				? false
-				: await resolveId(source, importer, this.options.preserveSymlinks, this.pluginDriver, skip),
+				: await resolveId(
+						source,
+						importer,
+						this.options.preserveSymlinks,
+						this.pluginDriver,
+						skip,
+						customOptions
+				  ),
 
 			importer,
 			source
@@ -342,7 +352,7 @@ export class ModuleLoader {
 					module.id,
 					(module.resolvedIds[source] =
 						module.resolvedIds[source] ||
-						this.handleResolveId(await this.resolveId(source, module.id), source, module.id))
+						this.handleResolveId(await this.resolveId(source, module.id, BLANK), source, module.id))
 				)
 			)
 		)) {
@@ -386,7 +396,8 @@ export class ModuleLoader {
 			importer,
 			this.options.preserveSymlinks,
 			this.pluginDriver,
-			null
+			null,
+			BLANK
 		);
 		if (
 			resolveIdResult === false ||
@@ -416,7 +427,7 @@ export class ModuleLoader {
 		importer: string | undefined,
 		source: string
 	): ResolvedId | null {
-		let id = '';
+		let id: string;
 		let external = false;
 		let moduleSideEffects: boolean | 'no-treeshake' | null = null;
 		let syntheticNamedExports: boolean | string = false;
@@ -479,7 +490,11 @@ export class ModuleLoader {
 		if (resolution == null) {
 			return (module.resolvedIds[specifier] =
 				module.resolvedIds[specifier] ||
-				this.handleResolveId(await this.resolveId(specifier, module.id), specifier, module.id));
+				this.handleResolveId(
+					await this.resolveId(specifier, module.id, BLANK),
+					specifier,
+					module.id
+				));
 		}
 		return this.handleResolveId(
 			this.normalizeResolveIdResult(resolution, importer, specifier),

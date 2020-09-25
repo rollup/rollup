@@ -166,6 +166,10 @@ interface ModuleInfo {
 
 export type GetModuleInfo = (moduleId: string) => ModuleInfo;
 
+export interface CustomPluginOptions {
+	[plugin: string]: unknown;
+}
+
 export interface PluginContext extends MinimalPluginContext {
 	addWatchFile: (id: string) => void;
 	cache: PluginCache;
@@ -190,7 +194,7 @@ export interface PluginContext extends MinimalPluginContext {
 	resolve: (
 		source: string,
 		importer?: string,
-		options?: { skipSelf: boolean }
+		options?: { custom?: CustomPluginOptions; skipSelf?: boolean }
 	) => Promise<ResolvedId | null>;
 	/** @deprecated Use `this.resolve` instead */
 	resolveId: (source: string, importer?: string) => Promise<string | null>;
@@ -226,7 +230,8 @@ export type ResolveIdResult = string | false | null | undefined | PartialResolve
 export type ResolveIdHook = (
 	this: PluginContext,
 	source: string,
-	importer: string | undefined
+	importer: string | undefined,
+	options: { custom?: CustomPluginOptions }
 ) => Promise<ResolveIdResult> | ResolveIdResult;
 
 export type IsExternal = (
