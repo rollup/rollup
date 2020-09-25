@@ -7,6 +7,7 @@
 * Fix a source of possible variable name conflicts when using preserveModules with SystemJS (#3796)
 
 ### Pull Requests
+* [#3792](https://github.com/rollup/rollup/pull/3792): add documentation for output.PreserveModulesRoot (@davidroeca)
 * [#3796](https://github.com/rollup/rollup/pull/3796): Fix SystemJS default variable conflict (@lukastaegert)
 
 ## 2.28.1
