@@ -1,4 +1,5 @@
 const assert = require('assert');
+const path = require('path');
 
 module.exports = {
 	description: 'supports custom resolve options',
@@ -29,8 +30,7 @@ module.exports = {
 	},
 	exports(exports) {
 		assert.deepStrictEqual(exports, {
-			first:
-				'/Users/lukastaegert/Github/rollup/test/function/samples/custom-resolve-options/main.js',
+			first: path.join(__dirname, 'main.js'),
 			second: 'the-actual-id'
 		});
 	}

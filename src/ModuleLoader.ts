@@ -440,7 +440,6 @@ export class ModuleLoader {
 				if (resolveIdResult.external || this.options.external(resolveIdResult.id, importer, true)) {
 					external = true;
 				}
-				// TODO Lukas refactor to use helper?
 				if (resolveIdResult.moduleSideEffects != null) {
 					moduleSideEffects = resolveIdResult.moduleSideEffects;
 				}

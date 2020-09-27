@@ -608,7 +608,7 @@ export default class Module {
 		return magicString;
 	}
 
-	// TODO Lukas do not forget to restore and test "custom" here
+	// TODO Lukas do not forget to restore and test "meta" here
 	setSource({
 		alwaysRemovedCode,
 		ast,

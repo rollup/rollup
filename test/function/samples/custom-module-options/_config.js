@@ -1,6 +1,5 @@
 const assert = require('assert');
 
-// TODO Lukas include external modules
 function getTestPlugin(index) {
 	const pluginName = `test-${index}`;
 	return {
