@@ -28,7 +28,8 @@ module.exports = {
 							importers: [],
 							importedIds: [getId('lib'), 'external'],
 							isEntry: true,
-							isExternal: false
+							isExternal: false,
+							meta: {}
 						},
 						{
 							dynamicImporters: [getId('dynamic')],
@@ -40,7 +41,8 @@ module.exports = {
 							importers: [getId('main')],
 							importedIds: [],
 							isEntry: false,
-							isExternal: true
+							isExternal: true,
+							meta: {}
 						},
 						{
 							dynamicImporters: [],
@@ -52,7 +54,8 @@ module.exports = {
 							importers: [getId('dynamic'), getId('main')],
 							importedIds: [],
 							isEntry: false,
-							isExternal: false
+							isExternal: false,
+							meta: {}
 						},
 						{
 							dynamicImporters: [getId('main')],
@@ -64,7 +67,8 @@ module.exports = {
 							importers: [],
 							importedIds: [getId('lib')],
 							isEntry: false,
-							isExternal: false
+							isExternal: false,
+							meta: {}
 						}
 					]
 				);

@@ -7,6 +7,7 @@ const tests = [
 		expected: {
 			id: path.resolve(__dirname, 'existing.js'),
 			external: false,
+			meta: {},
 			moduleSideEffects: true,
 			syntheticNamedExports: false
 		}
@@ -24,6 +25,7 @@ const tests = [
 		expected: {
 			id: path.resolve(__dirname, 'marked-directly-external-relative'),
 			external: true,
+			meta: {},
 			moduleSideEffects: true,
 			syntheticNamedExports: false
 		}
@@ -33,6 +35,7 @@ const tests = [
 		expected: {
 			id: path.resolve(__dirname, 'marked-external-relative'),
 			external: true,
+			meta: {},
 			moduleSideEffects: true,
 			syntheticNamedExports: false
 		}
@@ -42,6 +45,7 @@ const tests = [
 		expected: {
 			id: 'marked-external-absolute',
 			external: true,
+			meta: {},
 			moduleSideEffects: true,
 			syntheticNamedExports: false
 		}
@@ -51,6 +55,7 @@ const tests = [
 		expected: {
 			id: 'resolved:resolved-name',
 			external: false,
+			meta: {},
 			moduleSideEffects: true,
 			syntheticNamedExports: false
 		}
@@ -60,6 +65,7 @@ const tests = [
 		expected: {
 			id: 'resolved-false',
 			external: true,
+			meta: {},
 			moduleSideEffects: true,
 			syntheticNamedExports: false
 		}
@@ -69,6 +75,7 @@ const tests = [
 		expected: {
 			id: 'resolved:resolved-object',
 			external: false,
+			meta: {},
 			moduleSideEffects: true,
 			syntheticNamedExports: false
 		}
@@ -78,6 +85,7 @@ const tests = [
 		expected: {
 			id: 'resolved:resolved-object-non-external',
 			external: false,
+			meta: {},
 			moduleSideEffects: true,
 			syntheticNamedExports: false
 		}
@@ -87,6 +95,7 @@ const tests = [
 		expected: {
 			id: 'resolved:resolved-object-external',
 			external: true,
+			meta: {},
 			moduleSideEffects: true,
 			syntheticNamedExports: false
 		}

@@ -29,7 +29,8 @@ module.exports = {
 					importedIds: [ID_LIB],
 					importers: [],
 					isEntry: true,
-					isExternal: false
+					isExternal: false,
+					meta: {}
 				});
 				assert.deepStrictEqual(this.getModuleInfo(ID_DEP), {
 					dynamicallyImportedIds: [],
@@ -41,7 +42,8 @@ module.exports = {
 					importedIds: [ID_LIB],
 					importers: [],
 					isEntry: false,
-					isExternal: false
+					isExternal: false,
+					meta: {}
 				});
 			},
 			generateBundle(options, bundle) {

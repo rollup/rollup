@@ -274,12 +274,14 @@ describe('incremental', () => {
 					foo: {
 						id: 'foo',
 						external: false,
+						meta: {},
 						moduleSideEffects: true,
 						syntheticNamedExports: false
 					},
 					external: {
 						id: 'external',
 						external: true,
+						meta: {},
 						moduleSideEffects: true,
 						syntheticNamedExports: false
 					}

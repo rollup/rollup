@@ -43,7 +43,8 @@ module.exports = {
 					importedIds: [ID_LIB1, ID_LIB1B, ID_LIB2],
 					importers: [],
 					isEntry: true,
-					isExternal: false
+					isExternal: false,
+					meta: {}
 				});
 				assert.deepStrictEqual(this.getModuleInfo(ID_MAIN2), {
 					dynamicallyImportedIds: [],
@@ -55,7 +56,8 @@ module.exports = {
 					importedIds: [ID_LIB1, ID_LIB1B, ID_LIB3],
 					importers: [],
 					isEntry: true,
-					isExternal: false
+					isExternal: false,
+					meta: {}
 				});
 				assert.deepStrictEqual(this.getModuleInfo(ID_DEP), {
 					dynamicallyImportedIds: [],
@@ -67,7 +69,8 @@ module.exports = {
 					importedIds: [ID_LIB1, ID_LIB2, ID_LIB3],
 					importers: [],
 					isEntry: false,
-					isExternal: false
+					isExternal: false,
+					meta: {}
 				});
 			}
 		}

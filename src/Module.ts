@@ -29,6 +29,7 @@ import Variable from './ast/variables/Variable';
 import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import {
+	CustomPluginOptions,
 	DecodedSourceMapOrMissing,
 	EmittedFile,
 	ExistingDecodedSourceMap,
@@ -45,6 +46,7 @@ import { augmentCodeLocation, errNamespaceConflict, error, Errors } from './util
 import { getId } from './utils/getId';
 import { getOriginalLocation } from './utils/getOriginalLocation';
 import { makeLegal } from './utils/identifierHelpers';
+import { updateModuleOptions } from './utils/moduleOptions';
 import { basename, extname } from './utils/path';
 import { markPureCallExpressions } from './utils/pureComments';
 import relativeId from './utils/relativeId';
@@ -220,7 +222,7 @@ export default class Module {
 	private alwaysRemovedCode!: [number, number][];
 	private ast!: Program;
 	private astContext!: AstContext;
-	private context: string;
+	private readonly context: string;
 	private customTransformCache!: boolean;
 	private esTreeAst!: acorn.Node;
 	private exportAllModules: (Module | ExternalModule)[] = [];
@@ -237,9 +239,10 @@ export default class Module {
 		private readonly graph: Graph,
 		public readonly id: string,
 		private readonly options: NormalizedInputOptions,
+		public isEntryPoint: boolean,
 		public moduleSideEffects: boolean | 'no-treeshake',
 		public syntheticNamedExports: boolean | string,
-		public isEntryPoint: boolean
+		public custom: CustomPluginOptions
 	) {
 		this.excludeFromSourcemap = /\0/.test(id);
 		this.context = options.moduleContext(id);
@@ -605,19 +608,19 @@ export default class Module {
 		return magicString;
 	}
 
+	// TODO Lukas do not forget to restore and test "custom" here
 	setSource({
 		alwaysRemovedCode,
 		ast,
 		code,
 		customTransformCache,
-		moduleSideEffects,
 		originalCode,
 		originalSourcemap,
 		resolvedIds,
 		sourcemapChain,
-		syntheticNamedExports,
 		transformDependencies,
-		transformFiles
+		transformFiles,
+		...moduleOptions
 	}: TransformModuleJSON & {
 		alwaysRemovedCode?: [number, number][];
 		transformFiles?: EmittedFile[] | undefined;
@@ -631,12 +634,7 @@ export default class Module {
 		}
 		this.transformDependencies = transformDependencies;
 		this.customTransformCache = customTransformCache;
-		if (moduleSideEffects != null) {
-			this.moduleSideEffects = moduleSideEffects;
-		}
-		if (syntheticNamedExports != null) {
-			this.syntheticNamedExports = syntheticNamedExports;
-		}
+		updateModuleOptions(this, moduleOptions);
 
 		timeStart('generate ast', 3);
 

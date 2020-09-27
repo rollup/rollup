@@ -25,12 +25,15 @@ import {
 	errUnresolvedImportTreatedAsExternal
 } from './utils/error';
 import { readFile } from './utils/fs';
+import { updateModuleOptions } from './utils/moduleOptions';
 import { isRelative, resolve } from './utils/path';
 import { PluginDriver } from './utils/PluginDriver';
 import relativeId from './utils/relativeId';
 import { resolveId } from './utils/resolveId';
 import { timeEnd, timeStart } from './utils/timers';
 import transform from './utils/transform';
+
+const EMPTY_OBJECT = {};
 
 export interface UnresolvedModule {
 	fileName: string | null;
@@ -217,12 +220,7 @@ export class ModuleLoader {
 			}
 			module.setSource(cachedModule);
 		} else {
-			if (sourceDescription.moduleSideEffects != null) {
-				module.moduleSideEffects = sourceDescription.moduleSideEffects;
-			}
-			if (sourceDescription.syntheticNamedExports != null) {
-				module.syntheticNamedExports = sourceDescription.syntheticNamedExports;
-			}
+			updateModuleOptions(module, sourceDescription);
 			module.setSource(
 				await transform(sourceDescription, module, this.pluginDriver, this.options.onwarn)
 			);
@@ -277,10 +275,8 @@ export class ModuleLoader {
 	}
 
 	private async fetchModule(
-		id: string,
+		{ id, meta, moduleSideEffects, syntheticNamedExports }: ResolvedId,
 		importer: string | undefined,
-		moduleSideEffects: boolean | 'no-treeshake',
-		syntheticNamedExports: boolean | string,
 		isEntry: boolean
 	): Promise<Module> {
 		const existingModule = this.modulesById.get(id);
@@ -300,9 +296,10 @@ export class ModuleLoader {
 			this.graph,
 			id,
 			this.options,
+			isEntry,
 			moduleSideEffects,
 			syntheticNamedExports,
-			isEntry
+			meta
 		);
 		this.modulesById.set(id, module);
 		this.graph.watchFiles[id] = true;
@@ -334,13 +331,7 @@ export class ModuleLoader {
 			}
 			return Promise.resolve(externalModule);
 		} else {
-			return this.fetchModule(
-				resolvedId.id,
-				importer,
-				resolvedId.moduleSideEffects,
-				resolvedId.syntheticNamedExports,
-				false
-			);
+			return this.fetchModule(resolvedId, importer, false);
 		}
 	}
 
@@ -374,6 +365,7 @@ export class ModuleLoader {
 			return {
 				external: true,
 				id: source,
+				meta: EMPTY_OBJECT,
 				moduleSideEffects: this.hasModuleSideEffects(source, true),
 				syntheticNamedExports: false
 			};
@@ -413,7 +405,17 @@ export class ModuleLoader {
 			resolveIdResult && typeof resolveIdResult === 'object' ? resolveIdResult.id : resolveIdResult;
 
 		if (typeof id === 'string') {
-			return this.fetchModule(id, undefined, true, false, isEntry);
+			return this.fetchModule(
+				{
+					external: false,
+					id,
+					meta: EMPTY_OBJECT,
+					moduleSideEffects: true,
+					syntheticNamedExports: false
+				},
+				undefined,
+				isEntry
+			);
 		}
 		return error(
 			implicitlyLoadedBefore === null
@@ -431,17 +433,22 @@ export class ModuleLoader {
 		let external = false;
 		let moduleSideEffects: boolean | 'no-treeshake' | null = null;
 		let syntheticNamedExports: boolean | string = false;
+		let meta: CustomPluginOptions = EMPTY_OBJECT;
 		if (resolveIdResult) {
 			if (typeof resolveIdResult === 'object') {
 				id = resolveIdResult.id;
 				if (resolveIdResult.external || this.options.external(resolveIdResult.id, importer, true)) {
 					external = true;
 				}
+				// TODO Lukas refactor to use helper?
 				if (resolveIdResult.moduleSideEffects != null) {
 					moduleSideEffects = resolveIdResult.moduleSideEffects;
 				}
 				if (resolveIdResult.syntheticNamedExports != null) {
 					syntheticNamedExports = resolveIdResult.syntheticNamedExports;
+				}
+				if (resolveIdResult.meta != null) {
+					meta = resolveIdResult.meta;
 				}
 			} else {
 				if (this.options.external(resolveIdResult, importer, true)) {
@@ -459,6 +466,7 @@ export class ModuleLoader {
 		return {
 			external,
 			id,
+			meta,
 			moduleSideEffects: moduleSideEffects ?? this.hasModuleSideEffects(id, external),
 			syntheticNamedExports
 		};

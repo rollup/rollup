@@ -85,25 +85,31 @@ export interface SourceMap {
 
 export type SourceMapInput = ExistingRawSourceMap | string | null | { mappings: '' };
 
-export interface SourceDescription {
+type PartialNull<T> = {
+	[P in keyof T]?: T[P] | null;
+};
+
+interface ModuleOptions {
+	meta: CustomPluginOptions;
+	moduleSideEffects: boolean | 'no-treeshake';
+	syntheticNamedExports: boolean | string;
+}
+
+export interface SourceDescription extends Partial<PartialNull<ModuleOptions>> {
 	ast?: AcornNode;
 	code: string;
 	map?: SourceMapInput;
-	moduleSideEffects?: boolean | 'no-treeshake' | null;
-	syntheticNamedExports?: boolean | string;
 }
 
-export interface TransformModuleJSON {
+export interface TransformModuleJSON extends PartialNull<ModuleOptions> {
 	ast?: AcornNode;
 	code: string;
 	// note if plugins use new this.cache to opt-out auto transform cache
 	customTransformCache: boolean;
-	moduleSideEffects: boolean | 'no-treeshake' | null;
 	originalCode: string;
 	originalSourcemap: ExistingDecodedSourceMap | null;
 	resolvedIds?: ResolvedIdMap;
 	sourcemapChain: DecodedSourceMapOrMissing[];
-	syntheticNamedExports: boolean | string | null;
 	transformDependencies: string[];
 }
 
@@ -162,6 +168,7 @@ interface ModuleInfo {
 	importers: string[];
 	isEntry: boolean;
 	isExternal: boolean;
+	meta: CustomPluginOptions;
 }
 
 export type GetModuleInfo = (moduleId: string) => ModuleInfo;
@@ -207,22 +214,18 @@ export interface PluginContextMeta {
 	watchMode: boolean;
 }
 
-export interface ResolvedId {
+export interface ResolvedId extends ModuleOptions {
 	external: boolean;
 	id: string;
-	moduleSideEffects: boolean | 'no-treeshake';
-	syntheticNamedExports: boolean | string;
 }
 
 export interface ResolvedIdMap {
 	[key: string]: ResolvedId;
 }
 
-interface PartialResolvedId {
+interface PartialResolvedId extends Partial<PartialNull<ModuleOptions>> {
 	external?: boolean;
 	id: string;
-	moduleSideEffects?: boolean | 'no-treeshake' | null;
-	syntheticNamedExports?: boolean | string;
 }
 
 export type ResolveIdResult = string | false | null | undefined | PartialResolvedId;
@@ -437,6 +440,8 @@ interface OutputPluginValueHooks {
 }
 
 export interface Plugin extends Partial<PluginHooks>, Partial<OutputPluginValueHooks> {
+	// TODO Lukas document
+	api?: any;
 	name: string;
 }
 

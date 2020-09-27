@@ -1,10 +1,16 @@
 import ExternalVariable from './ast/variables/ExternalVariable';
-import { NormalizedInputOptions, NormalizedOutputOptions } from './rollup/types';
+import {
+	CustomPluginOptions,
+	NormalizedInputOptions,
+	NormalizedOutputOptions
+} from './rollup/types';
 import { makeLegal } from './utils/identifierHelpers';
 import { isAbsolute, normalize, relative } from './utils/path';
 
 export default class ExternalModule {
 	chunk: void;
+	// TODO Lukas get from resolution
+	custom: CustomPluginOptions = {};
 	declarations: { [name: string]: ExternalVariable };
 	defaultVariableName = '';
 	dynamicImporters: string[] = [];

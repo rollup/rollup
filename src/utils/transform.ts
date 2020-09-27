@@ -16,6 +16,7 @@ import {
 import { collapseSourcemap } from './collapseSourcemaps';
 import { decodedSourcemap } from './decodedSourcemap';
 import { augmentCodeLocation } from './error';
+import { updateModuleOptions } from './moduleOptions';
 import { getTrackedPluginCache } from './PluginCache';
 import { PluginDriver } from './PluginDriver';
 import { throwPluginError } from './pluginUtils';
@@ -36,8 +37,6 @@ export default function transform(
 	const emittedFiles: EmittedFile[] = [];
 	let customTransformCache = false;
 	const useCustomTransformCache = () => (customTransformCache = true);
-	let moduleSideEffects: boolean | 'no-treeshake' | null = null;
-	let syntheticNamedExports: boolean | string | null = null;
 	let curPlugin: Plugin;
 	const curSource: string = source.code;
 
@@ -57,12 +56,7 @@ export default function transform(
 			if (typeof result.map === 'string') {
 				result.map = JSON.parse(result.map);
 			}
-			if (result.moduleSideEffects != null) {
-				moduleSideEffects = result.moduleSideEffects;
-			}
-			if (result.syntheticNamedExports != null) {
-				syntheticNamedExports = result.syntheticNamedExports;
-			}
+			updateModuleOptions(module, result);
 		} else {
 			return code;
 		}
@@ -164,12 +158,11 @@ export default function transform(
 			return {
 				ast,
 				code,
+				custom: module.custom,
 				customTransformCache,
-				moduleSideEffects,
 				originalCode,
 				originalSourcemap,
 				sourcemapChain,
-				syntheticNamedExports,
 				transformDependencies
 			};
 		});
