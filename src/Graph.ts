@@ -162,7 +162,7 @@ export default class Graph {
 			importers: foundModule.importers.sort(),
 			isEntry: foundModule instanceof Module && foundModule.isEntryPoint,
 			isExternal: foundModule instanceof ExternalModule,
-			meta: foundModule.custom
+			meta: foundModule.meta
 		};
 	};
 

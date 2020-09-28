@@ -9,8 +9,6 @@ import { isAbsolute, normalize, relative } from './utils/path';
 
 export default class ExternalModule {
 	chunk: void;
-	// TODO Lukas get from resolution
-	custom: CustomPluginOptions = {};
 	declarations: { [name: string]: ExternalVariable };
 	defaultVariableName = '';
 	dynamicImporters: string[] = [];
@@ -18,6 +16,8 @@ export default class ExternalModule {
 	exportedVariables: Map<ExternalVariable, string>;
 	id: string;
 	importers: string[] = [];
+	// TODO Lukas get from resolution; why is this working? How about Module.ts?
+	meta: CustomPluginOptions = {};
 	moduleSideEffects: boolean | 'no-treeshake';
 	mostCommonSuggestion = 0;
 	namespaceVariableName = '';

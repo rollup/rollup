@@ -7,6 +7,7 @@ import {
 	EmittedChunk,
 	HasModuleSideEffects,
 	NormalizedInputOptions,
+	PartialResolvedId,
 	ResolvedId,
 	ResolveIdResult,
 	SourceDescription
@@ -401,17 +402,20 @@ export class ModuleLoader {
 					: errImplicitDependantCannotBeExternal(unresolvedId, implicitlyLoadedBefore)
 			);
 		}
-		const id =
-			resolveIdResult && typeof resolveIdResult === 'object' ? resolveIdResult.id : resolveIdResult;
+		// TODO Lukas unify with other modules below
+		const { id, meta, moduleSideEffects, syntheticNamedExports }: PartialResolvedId =
+			resolveIdResult && typeof resolveIdResult === 'object'
+				? resolveIdResult
+				: { id: resolveIdResult! };
 
 		if (typeof id === 'string') {
 			return this.fetchModule(
 				{
 					external: false,
 					id,
-					meta: EMPTY_OBJECT,
-					moduleSideEffects: true,
-					syntheticNamedExports: false
+					meta: meta ?? EMPTY_OBJECT,
+					moduleSideEffects: moduleSideEffects ?? this.hasModuleSideEffects(id, false),
+					syntheticNamedExports: syntheticNamedExports ?? false
 				},
 				undefined,
 				isEntry

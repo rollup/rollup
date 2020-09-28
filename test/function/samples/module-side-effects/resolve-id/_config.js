@@ -26,6 +26,7 @@ module.exports = {
 	options: {
 		treeshake: {
 			moduleSideEffects(id) {
+				if (id.includes('main')) return true;
 				return JSON.parse(id.split('-')[3]);
 			}
 		},

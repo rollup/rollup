@@ -1,6 +1,7 @@
 import Module from '../Module';
 import { ModuleOptions, PartialNull } from '../rollup/types';
 
+// TODO Lukas put into module and make properties private?
 export function updateModuleOptions(
 	module: Module,
 	{ meta, moduleSideEffects, syntheticNamedExports }: Partial<PartialNull<ModuleOptions>>
@@ -12,6 +13,6 @@ export function updateModuleOptions(
 		module.syntheticNamedExports = syntheticNamedExports;
 	}
 	if (meta != null) {
-		module.custom = { ...module.custom, ...meta };
+		module.meta = { ...module.meta, ...meta };
 	}
 }

@@ -242,7 +242,7 @@ export default class Module {
 		public isEntryPoint: boolean,
 		public moduleSideEffects: boolean | 'no-treeshake',
 		public syntheticNamedExports: boolean | string,
-		public custom: CustomPluginOptions
+		public meta: CustomPluginOptions
 	) {
 		this.excludeFromSourcemap = /\0/.test(id);
 		this.context = options.moduleContext(id);
@@ -608,7 +608,6 @@ export default class Module {
 		return magicString;
 	}
 
-	// TODO Lukas do not forget to restore and test "meta" here
 	setSource({
 		alwaysRemovedCode,
 		ast,
@@ -716,6 +715,7 @@ export default class Module {
 			customTransformCache: this.customTransformCache,
 			dependencies: Array.from(this.dependencies, getId),
 			id: this.id,
+			meta: this.meta,
 			moduleSideEffects: this.moduleSideEffects,
 			originalCode: this.originalCode,
 			originalSourcemap: this.originalSourcemap,

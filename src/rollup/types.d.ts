@@ -86,7 +86,7 @@ export interface SourceMap {
 export type SourceMapInput = ExistingRawSourceMap | string | null | { mappings: '' };
 
 type PartialNull<T> = {
-	[P in keyof T]?: T[P] | null;
+	[P in keyof T]: T[P] | null;
 };
 
 interface ModuleOptions {
@@ -101,7 +101,7 @@ export interface SourceDescription extends Partial<PartialNull<ModuleOptions>> {
 	map?: SourceMapInput;
 }
 
-export interface TransformModuleJSON extends PartialNull<ModuleOptions> {
+export interface TransformModuleJSON extends Partial<PartialNull<ModuleOptions>> {
 	ast?: AcornNode;
 	code: string;
 	// note if plugins use new this.cache to opt-out auto transform cache

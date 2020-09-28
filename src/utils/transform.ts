@@ -158,8 +158,8 @@ export default function transform(
 			return {
 				ast,
 				code,
-				custom: module.custom,
 				customTransformCache,
+				meta: module.meta,
 				originalCode,
 				originalSourcemap,
 				sourcemapChain,
