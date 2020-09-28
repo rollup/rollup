@@ -14,11 +14,7 @@ export default class ExternalModule {
 	dynamicImporters: string[] = [];
 	execIndex: number;
 	exportedVariables: Map<ExternalVariable, string>;
-	id: string;
 	importers: string[] = [];
-	// TODO Lukas get from resolution; why is this working? How about Module.ts?
-	meta: CustomPluginOptions = {};
-	moduleSideEffects: boolean | 'no-treeshake';
 	mostCommonSuggestion = 0;
 	namespaceVariableName = '';
 	nameSuggestions: { [name: string]: number };
@@ -31,8 +27,9 @@ export default class ExternalModule {
 
 	constructor(
 		private readonly options: NormalizedInputOptions,
-		id: string,
-		moduleSideEffects: boolean | 'no-treeshake'
+		public readonly id: string,
+		public moduleSideEffects: boolean | 'no-treeshake',
+		public meta: CustomPluginOptions
 	) {
 		this.id = id;
 		this.execIndex = Infinity;

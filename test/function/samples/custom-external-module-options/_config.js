@@ -1,5 +1,4 @@
 const assert = require('assert');
-const path = require('path');
 
 module.exports = {
 	description: 'supports adding custom options to external modules',
@@ -16,18 +15,8 @@ module.exports = {
 			{
 				name: 'wrap-up',
 				buildEnd() {
-					assert.deepStrictEqual(this.getModuleInfo('external'), {
-						dynamicallyImportedIds: [],
-						dynamicImporters: [],
-						hasModuleSideEffects: true,
-						id: 'external',
-						implicitlyLoadedAfterOneOf: [],
-						implicitlyLoadedBefore: [],
-						importedIds: [],
-						importers: [path.join(__dirname, 'main.js')],
-						isEntry: false,
-						isExternal: true,
-						meta: {}
+					assert.deepStrictEqual(this.getModuleInfo('external').meta, {
+						'test-plugin': { resolved: true }
 					});
 				}
 			}

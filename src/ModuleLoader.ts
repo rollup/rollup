@@ -322,7 +322,12 @@ export class ModuleLoader {
 			if (!this.modulesById.has(resolvedId.id)) {
 				this.modulesById.set(
 					resolvedId.id,
-					new ExternalModule(this.options, resolvedId.id, resolvedId.moduleSideEffects)
+					new ExternalModule(
+						this.options,
+						resolvedId.id,
+						resolvedId.moduleSideEffects,
+						resolvedId.meta
+					)
 				);
 			}
 
