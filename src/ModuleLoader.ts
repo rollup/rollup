@@ -26,7 +26,6 @@ import {
 	errUnresolvedImportTreatedAsExternal
 } from './utils/error';
 import { readFile } from './utils/fs';
-import { updateModuleOptions } from './utils/moduleOptions';
 import { isRelative, resolve } from './utils/path';
 import { PluginDriver } from './utils/PluginDriver';
 import relativeId from './utils/relativeId';
@@ -144,21 +143,38 @@ export class ModuleLoader {
 		customOptions: CustomPluginOptions | undefined,
 		skip: number | null = null
 	): Promise<ResolvedId | null> {
-		return this.normalizeResolveIdResult(
-			this.options.external(source, importer, false)
-				? false
-				: await resolveId(
-						source,
-						importer,
-						this.options.preserveSymlinks,
-						this.pluginDriver,
-						skip,
-						customOptions
-				  ),
+		return this.addDefaultsToResolvedId(
+			this.getNormalizedResolvedIdWithoutDefaults(
+				this.options.external(source, importer, false)
+					? false
+					: await resolveId(
+							source,
+							importer,
+							this.options.preserveSymlinks,
+							this.pluginDriver,
+							skip,
+							customOptions
+					  ),
 
-			importer,
-			source
+				importer,
+				source
+			)
 		);
+	}
+
+	private addDefaultsToResolvedId(resolvedId: PartialResolvedId | null): ResolvedId | null {
+		if (!resolvedId) {
+			return null;
+		}
+		const external = resolvedId.external || false;
+		return {
+			external,
+			id: resolvedId.id,
+			meta: resolvedId.meta || EMPTY_OBJECT,
+			moduleSideEffects:
+				resolvedId.moduleSideEffects ?? this.hasModuleSideEffects(resolvedId.id, external),
+			syntheticNamedExports: resolvedId.syntheticNamedExports ?? false
+		};
 	}
 
 	private addEntryWithImplicitDependants(
@@ -221,7 +237,7 @@ export class ModuleLoader {
 			}
 			module.setSource(cachedModule);
 		} else {
-			updateModuleOptions(module, sourceDescription);
+			module.updateOptions(sourceDescription);
 			module.setSource(
 				await transform(sourceDescription, module, this.pluginDriver, this.options.onwarn)
 			);
@@ -358,6 +374,35 @@ export class ModuleLoader {
 		}
 	}
 
+	private getNormalizedResolvedIdWithoutDefaults(
+		resolveIdResult: ResolveIdResult,
+		importer: string | undefined,
+		source: string
+	): (PartialResolvedId & { external: boolean }) | null {
+		if (resolveIdResult) {
+			if (typeof resolveIdResult === 'object') {
+				return {
+					...resolveIdResult,
+					external:
+						resolveIdResult.external || this.options.external(resolveIdResult.id, importer, true)
+				};
+			}
+			const external = this.options.external(resolveIdResult, importer, true);
+			return {
+				external,
+				id: external ? normalizeRelativeExternalId(resolveIdResult, importer) : resolveIdResult
+			};
+		}
+		const id = normalizeRelativeExternalId(source, importer);
+		if (resolveIdResult !== false && !this.options.external(id, importer, true)) {
+			return null;
+		}
+		return {
+			external: true,
+			id
+		};
+	}
+
 	private handleResolveId(
 		resolvedId: ResolvedId | null,
 		source: string,
@@ -397,9 +442,16 @@ export class ModuleLoader {
 			null,
 			BLANK
 		);
+		if (resolveIdResult == null) {
+			return error(
+				implicitlyLoadedBefore === null
+					? errUnresolvedEntry(unresolvedId)
+					: errUnresolvedImplicitDependant(unresolvedId, implicitlyLoadedBefore)
+			);
+		}
 		if (
 			resolveIdResult === false ||
-			(resolveIdResult && typeof resolveIdResult === 'object' && resolveIdResult.external)
+			(typeof resolveIdResult === 'object' && resolveIdResult.external)
 		) {
 			return error(
 				implicitlyLoadedBefore === null
@@ -407,77 +459,13 @@ export class ModuleLoader {
 					: errImplicitDependantCannotBeExternal(unresolvedId, implicitlyLoadedBefore)
 			);
 		}
-		// TODO Lukas unify with other modules below
-		const { id, meta, moduleSideEffects, syntheticNamedExports }: PartialResolvedId =
-			resolveIdResult && typeof resolveIdResult === 'object'
-				? resolveIdResult
-				: { id: resolveIdResult! };
-
-		if (typeof id === 'string') {
-			return this.fetchModule(
-				{
-					external: false,
-					id,
-					meta: meta ?? EMPTY_OBJECT,
-					moduleSideEffects: moduleSideEffects ?? this.hasModuleSideEffects(id, false),
-					syntheticNamedExports: syntheticNamedExports ?? false
-				},
-				undefined,
-				isEntry
-			);
-		}
-		return error(
-			implicitlyLoadedBefore === null
-				? errUnresolvedEntry(unresolvedId)
-				: errUnresolvedImplicitDependant(unresolvedId, implicitlyLoadedBefore)
+		return this.fetchModule(
+			this.addDefaultsToResolvedId(
+				typeof resolveIdResult === 'object' ? resolveIdResult : { id: resolveIdResult }
+			)!,
+			undefined,
+			isEntry
 		);
-	}
-
-	private normalizeResolveIdResult(
-		resolveIdResult: ResolveIdResult,
-		importer: string | undefined,
-		source: string
-	): ResolvedId | null {
-		let id: string;
-		let external = false;
-		let moduleSideEffects: boolean | 'no-treeshake' | null = null;
-		let syntheticNamedExports: boolean | string = false;
-		let meta: CustomPluginOptions = EMPTY_OBJECT;
-		if (resolveIdResult) {
-			if (typeof resolveIdResult === 'object') {
-				id = resolveIdResult.id;
-				if (resolveIdResult.external || this.options.external(resolveIdResult.id, importer, true)) {
-					external = true;
-				}
-				if (resolveIdResult.moduleSideEffects != null) {
-					moduleSideEffects = resolveIdResult.moduleSideEffects;
-				}
-				if (resolveIdResult.syntheticNamedExports != null) {
-					syntheticNamedExports = resolveIdResult.syntheticNamedExports;
-				}
-				if (resolveIdResult.meta != null) {
-					meta = resolveIdResult.meta;
-				}
-			} else {
-				if (this.options.external(resolveIdResult, importer, true)) {
-					external = true;
-				}
-				id = external ? normalizeRelativeExternalId(resolveIdResult, importer) : resolveIdResult;
-			}
-		} else {
-			id = normalizeRelativeExternalId(source, importer);
-			if (resolveIdResult !== false && !this.options.external(id, importer, true)) {
-				return null;
-			}
-			external = true;
-		}
-		return {
-			external,
-			id,
-			meta,
-			moduleSideEffects: moduleSideEffects ?? this.hasModuleSideEffects(id, external),
-			syntheticNamedExports
-		};
 	}
 
 	private async resolveDynamicImport(
@@ -513,7 +501,9 @@ export class ModuleLoader {
 				));
 		}
 		return this.handleResolveId(
-			this.normalizeResolveIdResult(resolution, importer, specifier),
+			this.addDefaultsToResolvedId(
+				this.getNormalizedResolvedIdWithoutDefaults(resolution, importer, specifier)
+			),
 			specifier,
 			importer
 		);

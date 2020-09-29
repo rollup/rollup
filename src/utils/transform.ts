@@ -16,7 +16,6 @@ import {
 import { collapseSourcemap } from './collapseSourcemaps';
 import { decodedSourcemap } from './decodedSourcemap';
 import { augmentCodeLocation } from './error';
-import { updateModuleOptions } from './moduleOptions';
 import { getTrackedPluginCache } from './PluginCache';
 import { PluginDriver } from './PluginDriver';
 import { throwPluginError } from './pluginUtils';
@@ -56,7 +55,7 @@ export default function transform(
 			if (typeof result.map === 'string') {
 				result.map = JSON.parse(result.map);
 			}
-			updateModuleOptions(module, result);
+			module.updateOptions(result);
 		} else {
 			return code;
 		}

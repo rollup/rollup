@@ -34,7 +34,9 @@ import {
 	EmittedFile,
 	ExistingDecodedSourceMap,
 	ModuleJSON,
+	ModuleOptions,
 	NormalizedInputOptions,
+	PartialNull,
 	PreserveEntrySignaturesOption,
 	ResolvedIdMap,
 	RollupError,
@@ -46,7 +48,6 @@ import { augmentCodeLocation, errNamespaceConflict, error, Errors } from './util
 import { getId } from './utils/getId';
 import { getOriginalLocation } from './utils/getOriginalLocation';
 import { makeLegal } from './utils/identifierHelpers';
-import { updateModuleOptions } from './utils/moduleOptions';
 import { basename, extname } from './utils/path';
 import { markPureCallExpressions } from './utils/pureComments';
 import relativeId from './utils/relativeId';
@@ -633,7 +634,7 @@ export default class Module {
 		}
 		this.transformDependencies = transformDependencies;
 		this.customTransformCache = customTransformCache;
-		updateModuleOptions(this, moduleOptions);
+		this.updateOptions(moduleOptions);
 
 		timeStart('generate ast', 3);
 
@@ -756,6 +757,22 @@ export default class Module {
 		}
 
 		return null;
+	}
+
+	updateOptions({
+		meta,
+		moduleSideEffects,
+		syntheticNamedExports
+	}: Partial<PartialNull<ModuleOptions>>) {
+		if (moduleSideEffects != null) {
+			this.moduleSideEffects = moduleSideEffects;
+		}
+		if (syntheticNamedExports != null) {
+			this.syntheticNamedExports = syntheticNamedExports;
+		}
+		if (meta != null) {
+			this.meta = { ...this.meta, ...meta };
+		}
 	}
 
 	warn(props: RollupWarning, pos: number) {
