@@ -174,7 +174,7 @@ interface ModuleInfo {
 export type GetModuleInfo = (moduleId: string) => ModuleInfo;
 
 export interface CustomPluginOptions {
-	[plugin: string]: unknown;
+	[plugin: string]: any;
 }
 
 export interface PluginContext extends MinimalPluginContext {
@@ -255,7 +255,7 @@ export interface TransformPluginContext extends PluginContext {
 	getCombinedSourcemap: () => SourceMap;
 }
 
-export type TransformResult = string | null | undefined | SourceDescription;
+export type TransformResult = string | null | undefined | Partial<SourceDescription>;
 
 export type TransformHook = (
 	this: TransformPluginContext,
@@ -440,7 +440,7 @@ interface OutputPluginValueHooks {
 }
 
 export interface Plugin extends Partial<PluginHooks>, Partial<OutputPluginValueHooks> {
-	// TODO Lukas document
+	// for inter-plugin communication
 	api?: any;
 	name: string;
 }

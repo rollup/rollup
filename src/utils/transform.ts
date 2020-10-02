@@ -3,6 +3,7 @@ import Module from '../Module';
 import {
 	DecodedSourceMapOrMissing,
 	EmittedFile,
+	ExistingRawSourceMap,
 	Plugin,
 	PluginContext,
 	RollupError,
@@ -15,7 +16,7 @@ import {
 } from '../rollup/types';
 import { collapseSourcemap } from './collapseSourcemaps';
 import { decodedSourcemap } from './decodedSourcemap';
-import { augmentCodeLocation } from './error';
+import { augmentCodeLocation, errNoTransformMapOrAstWithoutCode } from './error';
 import { getTrackedPluginCache } from './PluginCache';
 import { PluginDriver } from './PluginDriver';
 import { throwPluginError } from './pluginUtils';
@@ -41,35 +42,39 @@ export default function transform(
 
 	function transformReducer(
 		this: PluginContext,
-		code: string,
+		previousCode: string,
 		result: TransformResult,
 		plugin: Plugin
-	) {
+	): string {
+		let code: string;
+		let map: string | ExistingRawSourceMap | { mappings: '' } | null | undefined;
 		if (typeof result === 'string') {
-			result = {
-				ast: undefined,
-				code: result,
-				map: undefined
-			};
+			code = result;
 		} else if (result && typeof result === 'object') {
-			if (typeof result.map === 'string') {
-				result.map = JSON.parse(result.map);
-			}
 			module.updateOptions(result);
+			if (result.code == null) {
+				if (result.map || result.ast) {
+					warn(errNoTransformMapOrAstWithoutCode(plugin.name));
+				}
+				return previousCode;
+			}
+			({ code, map, ast } = result);
 		} else {
-			return code;
+			return previousCode;
 		}
 
 		// strict null check allows 'null' maps to not be pushed to the chain,
 		// while 'undefined' gets the missing map warning
-		if (result.map !== null) {
-			const map = decodedSourcemap(result.map);
-			sourcemapChain.push(map || { missing: true, plugin: plugin.name });
+		if (map !== null) {
+			sourcemapChain.push(
+				decodedSourcemap(typeof map === 'string' ? JSON.parse(map) : map) || {
+					missing: true,
+					plugin: plugin.name
+				}
+			);
 		}
 
-		ast = result.ast;
-
-		return result.code;
+		return code;
 	}
 
 	return pluginDriver

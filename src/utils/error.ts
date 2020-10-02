@@ -57,6 +57,7 @@ export enum Errors {
 	MISSING_IMPLICIT_DEPENDANT = 'MISSING_IMPLICIT_DEPENDANT',
 	MIXED_EXPORTS = 'MIXED_EXPORTS',
 	NAMESPACE_CONFLICT = 'NAMESPACE_CONFLICT',
+	NO_TRANSFORM_MAP_OR_AST_WITHOUT_CODE = 'NO_TRANSFORM_MAP_OR_AST_WITHOUT_CODE',
 	PLUGIN_ERROR = 'PLUGIN_ERROR',
 	PREFER_NAMED_EXPORTS = 'PREFER_NAMED_EXPORTS',
 	UNEXPECTED_NAMED_IMPORT = 'UNEXPECTED_NAMED_IMPORT',
@@ -282,6 +283,15 @@ export function errNamespaceConflict(
 		name,
 		reexporter: reexportingModule.id,
 		sources: [reexportingModule.exportsAll[name], additionalExportAllModule.exportsAll[name]]
+	};
+}
+
+export function errNoTransformMapOrAstWithoutCode(pluginName: string) {
+	return {
+		code: Errors.NO_TRANSFORM_MAP_OR_AST_WITHOUT_CODE,
+		message:
+			`The plugin "${pluginName}" returned a "map" or "ast" without returning ` +
+			'a "code". This will be ignored.'
 	};
 }
 
