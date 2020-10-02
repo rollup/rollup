@@ -12,7 +12,7 @@ import {
 	ResolveIdResult,
 	SourceDescription
 } from './rollup/types';
-import { BLANK } from './utils/blank';
+import { EMPTY_OBJECT } from './utils/blank';
 import {
 	errBadLoader,
 	errEntryCannotBeExternal,
@@ -32,8 +32,6 @@ import relativeId from './utils/relativeId';
 import { resolveId } from './utils/resolveId';
 import { timeEnd, timeStart } from './utils/timers';
 import transform from './utils/transform';
-
-const EMPTY_OBJECT = {};
 
 export interface UnresolvedModule {
 	fileName: string | null;
@@ -365,7 +363,11 @@ export class ModuleLoader {
 					module.id,
 					(module.resolvedIds[source] =
 						module.resolvedIds[source] ||
-						this.handleResolveId(await this.resolveId(source, module.id, BLANK), source, module.id))
+						this.handleResolveId(
+							await this.resolveId(source, module.id, EMPTY_OBJECT),
+							source,
+							module.id
+						))
 				)
 			)
 		)) {
@@ -440,7 +442,7 @@ export class ModuleLoader {
 			this.options.preserveSymlinks,
 			this.pluginDriver,
 			null,
-			BLANK
+			EMPTY_OBJECT
 		);
 		if (resolveIdResult == null) {
 			return error(
@@ -495,7 +497,7 @@ export class ModuleLoader {
 			return (module.resolvedIds[specifier] =
 				module.resolvedIds[specifier] ||
 				this.handleResolveId(
-					await this.resolveId(specifier, module.id, BLANK),
+					await this.resolveId(specifier, module.id, EMPTY_OBJECT),
 					specifier,
 					module.id
 				));
