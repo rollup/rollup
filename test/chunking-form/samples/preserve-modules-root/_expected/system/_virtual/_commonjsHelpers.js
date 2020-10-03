@@ -10,11 +10,11 @@ System.register([], function (exports) {
 
 			function createCommonjsModule(fn, basedir, module) {
 				return module = {
-				  path: basedir,
-				  exports: {},
-				  require: function (path, base) {
-			      return commonjsRequire(path, (base === undefined || base === null) ? module.path : base);
-			    }
+					path: basedir,
+					exports: {},
+					require: function (path, base) {
+						return commonjsRequire(path, (base === undefined || base === null) ? module.path : base);
+					}
 				}, fn(module, module.exports), module.exports;
 			}
 

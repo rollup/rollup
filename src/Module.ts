@@ -642,7 +642,7 @@ export default class Module {
 		if (ast) {
 			this.esTreeAst = ast;
 		} else {
-			this.esTreeAst = tryParse(this, this.graph.acornParser, this.options.acorn);
+			this.esTreeAst = tryParse(this, this.graph.acornParser, this.options.acorn as acorn.Options);
 			for (const comment of this.comments) {
 				if (!comment.block && SOURCEMAPPING_URL_RE.test(comment.text)) {
 					this.alwaysRemovedCode.push([comment.start, comment.end]);

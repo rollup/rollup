@@ -77,9 +77,9 @@ export default class Graph {
 				for (const key of Object.keys(cache)) cache[key][0]++;
 			}
 		}
-		this.contextParse = (code: string, options: acorn.Options = {}) =>
+		this.contextParse = (code: string, options: Partial<acorn.Options> = {}) =>
 			this.acornParser.parse(code, {
-				...this.options.acorn,
+				...(this.options.acorn as acorn.Options),
 				...options
 			});
 
