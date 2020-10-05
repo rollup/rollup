@@ -158,20 +158,21 @@ export type EmitChunk = (id: string, options?: { name?: string }) => string;
 export type EmitFile = (emittedFile: EmittedFile) => string;
 
 interface ModuleInfo {
-	dynamicallyImportedIds: string[];
-	dynamicImporters: string[];
+	dynamicallyImportedIds: readonly string[];
+	dynamicImporters: readonly string[];
 	hasModuleSideEffects: boolean | 'no-treeshake';
 	id: string;
-	implicitlyLoadedAfterOneOf: string[];
-	implicitlyLoadedBefore: string[];
-	importedIds: string[];
-	importers: string[];
+	implicitlyLoadedAfterOneOf: readonly string[];
+	implicitlyLoadedBefore: readonly string[];
+	importedIds: readonly string[];
+	importers: readonly string[];
 	isEntry: boolean;
 	isExternal: boolean;
 	meta: CustomPluginOptions;
 }
 
-export type GetModuleInfo = (moduleId: string) => ModuleInfo;
+// TODO Lukas we need a "parsed" hook
+export type GetModuleInfo = (moduleId: string) => ModuleInfo | null;
 
 export interface CustomPluginOptions {
 	[plugin: string]: any;

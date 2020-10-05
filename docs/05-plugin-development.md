@@ -617,7 +617,7 @@ for (const moduleId of this.getModuleIds()) { /* ... */ }
 
 or converted into an Array via `Array.from(this.getModuleIds())`.
 
-#### `this.getModuleInfo(moduleId: string) => ModuleInfo`
+#### `this.getModuleInfo(moduleId: string) => (ModuleInfo | null)`
 
 Returns additional information about the module in question in the form
 
@@ -636,7 +636,7 @@ Returns additional information about the module in question in the form
 }
 ```
 
-If the module id cannot be found, an error is thrown.
+This utility function returns `null` if the module id cannot be found.
 
 #### `this.meta: {rollupVersion: string, watchMode: boolean}`
 
