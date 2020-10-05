@@ -104,14 +104,12 @@ export default function transform(
 						return pluginContext.error(err);
 					},
 					emitAsset(name: string, source?: string | Uint8Array) {
-						const emittedFile = { type: 'asset' as const, name, source };
-						emittedFiles.push({ ...emittedFile });
-						return pluginDriver.emitFile(emittedFile);
+						emittedFiles.push({ type: 'asset' as const, name, source });
+						return pluginContext.emitAsset(name, source);
 					},
 					emitChunk(id, options) {
-						const emittedFile = { type: 'chunk' as const, id, name: options && options.name };
-						emittedFiles.push({ ...emittedFile });
-						return pluginDriver.emitFile(emittedFile);
+						emittedFiles.push({ type: 'chunk' as const, id, name: options && options.name });
+						return pluginContext.emitChunk(id, options);
 					},
 					emitFile(emittedFile: EmittedFile) {
 						emittedFiles.push(emittedFile);

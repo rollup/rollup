@@ -1,5 +1,6 @@
 const assert = require('assert');
-let referenceId;
+let referenceIdBuildStart;
+let referenceIdTransform;
 
 module.exports = {
 	description: 'allows naming emitted chunks',
@@ -9,10 +10,22 @@ module.exports = {
 		input: 'main',
 		plugins: {
 			buildStart() {
-				referenceId = this.emitChunk('buildStart', { name: 'nested/my-chunk' });
+				referenceIdBuildStart = this.emitChunk('buildStart', { name: 'nested/build-start' });
+			},
+			transform(code, id) {
+				if (id.endsWith('main.js')) {
+					referenceIdTransform = this.emitChunk('transform', { name: 'nested/transform' });
+				}
 			},
 			renderChunk() {
-				assert.strictEqual(this.getChunkFileName(referenceId), 'generated-nested/my-chunk.js');
+				assert.strictEqual(
+					this.getChunkFileName(referenceIdBuildStart),
+					'generated-nested/build-start.js'
+				);
+				assert.strictEqual(
+					this.getChunkFileName(referenceIdTransform),
+					'generated-nested/transform.js'
+				);
 			}
 		}
 	}

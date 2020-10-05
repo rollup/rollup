@@ -171,7 +171,6 @@ interface ModuleInfo {
 	meta: CustomPluginOptions;
 }
 
-// TODO Lukas we need a "parsed" hook
 export type GetModuleInfo = (moduleId: string) => ModuleInfo | null;
 
 export interface CustomPluginOptions {
