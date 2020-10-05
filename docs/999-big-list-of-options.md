@@ -127,7 +127,8 @@ The file to write to. Will also be used to generate sourcemaps, if applicable. C
 
 #### output.format
 Type: `string`<br>
-CLI: `-f`/`--format <formatspecifier>`
+CLI: `-f`/`--format <formatspecifier>`<br>
+Default: `"es"`
 
 Specifies the format of the generated bundle. One of the following:
 
