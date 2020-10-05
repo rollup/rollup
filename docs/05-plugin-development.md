@@ -147,7 +147,11 @@ Defines a custom resolver. A resolver can be useful for e.g. locating third-part
 import { foo } from '../bar,js';
 ```
 
-the source will be `"../bar.js""`. The `importer` is the full id of the importing module. When resolving entry points, importer will be `undefined`. You can use this for instance as a mechanism to define custom proxy modules for entry points. The following plugin will only expose the default export from entry points while still keeping named exports available for internal usage:
+the source will be `"../bar.js""`. 
+
+The `importer` is the fully resolved id of the importing module. When resolving entry points, importer will be `undefined`. You can use this for instance as a mechanism to define custom proxy modules for entry points. 
+
+The following plugin will only expose the default export from entry points while still keeping named exports available for internal usage:
 
 ```js
 async resolveId(source,importer) {
