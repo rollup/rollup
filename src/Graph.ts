@@ -137,6 +137,8 @@ export default class Graph {
 		const foundModule = this.modulesById.get(moduleId);
 		if (!foundModule) return null;
 		return {
+			ast: (foundModule as Module).ast?.esTreeNode || null,
+			code: foundModule instanceof Module ? foundModule.code : null,
 			get dynamicallyImportedIds() {
 				if (foundModule instanceof Module) {
 					const dynamicallyImportedIds: string[] = [];

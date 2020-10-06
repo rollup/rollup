@@ -19,7 +19,52 @@ module.exports = {
 				});
 			},
 			buildEnd() {
-				assert.deepStrictEqual(this.getModuleInfo(ID_MAIN), {
+				assert.deepStrictEqual(JSON.parse(JSON.stringify(this.getModuleInfo(ID_MAIN))), {
+					ast: {
+						type: 'Program',
+						start: 0,
+						end: 51,
+						body: [
+							{
+								type: 'ImportDeclaration',
+								start: 0,
+								end: 30,
+								specifiers: [
+									{
+										type: 'ImportSpecifier',
+										start: 9,
+										end: 14,
+										imported: { type: 'Identifier', start: 9, end: 14, name: 'value' },
+										local: { type: 'Identifier', start: 9, end: 14, name: 'value' }
+									}
+								],
+								source: { type: 'Literal', start: 22, end: 29, value: './lib', raw: "'./lib'" }
+							},
+							{
+								type: 'ExpressionStatement',
+								start: 31,
+								end: 50,
+								expression: {
+									type: 'CallExpression',
+									start: 31,
+									end: 49,
+									callee: {
+										type: 'MemberExpression',
+										start: 31,
+										end: 42,
+										object: { type: 'Identifier', start: 31, end: 38, name: 'console' },
+										property: { type: 'Identifier', start: 39, end: 42, name: 'log' },
+										computed: false,
+										optional: false
+									},
+									arguments: [{ type: 'Identifier', start: 43, end: 48, name: 'value' }],
+									optional: false
+								}
+							}
+						],
+						sourceType: 'module'
+					},
+					code: "import { value } from './lib';\nconsole.log(value);\n",
 					dynamicallyImportedIds: [],
 					dynamicImporters: [],
 					hasModuleSideEffects: true,
@@ -32,7 +77,52 @@ module.exports = {
 					isExternal: false,
 					meta: {}
 				});
-				assert.deepStrictEqual(this.getModuleInfo(ID_DEP), {
+				assert.deepStrictEqual(JSON.parse(JSON.stringify(this.getModuleInfo(ID_DEP))), {
+					ast: {
+						type: 'Program',
+						start: 0,
+						end: 51,
+						body: [
+							{
+								type: 'ImportDeclaration',
+								start: 0,
+								end: 30,
+								specifiers: [
+									{
+										type: 'ImportSpecifier',
+										start: 9,
+										end: 14,
+										imported: { type: 'Identifier', start: 9, end: 14, name: 'value' },
+										local: { type: 'Identifier', start: 9, end: 14, name: 'value' }
+									}
+								],
+								source: { type: 'Literal', start: 22, end: 29, value: './lib', raw: "'./lib'" }
+							},
+							{
+								type: 'ExpressionStatement',
+								start: 31,
+								end: 50,
+								expression: {
+									type: 'CallExpression',
+									start: 31,
+									end: 49,
+									callee: {
+										type: 'MemberExpression',
+										start: 31,
+										end: 42,
+										object: { type: 'Identifier', start: 31, end: 38, name: 'console' },
+										property: { type: 'Identifier', start: 39, end: 42, name: 'log' },
+										computed: false,
+										optional: false
+									},
+									arguments: [{ type: 'Identifier', start: 43, end: 48, name: 'value' }],
+									optional: false
+								}
+							}
+						],
+						sourceType: 'module'
+					},
+					code: "import { value } from './lib';\nconsole.log(value);\n",
 					dynamicallyImportedIds: [],
 					dynamicImporters: [],
 					hasModuleSideEffects: true,

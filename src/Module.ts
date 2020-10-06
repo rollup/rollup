@@ -119,7 +119,7 @@ function tryParse(
 	acornOptions: acorn.Options
 ): acorn.Node {
 	try {
-		return Parser.parse(module.code, {
+		return Parser.parse(module.code!, {
 			...acornOptions,
 			onComment: (block: boolean, text: string, start: number, end: number) =>
 				module.comments.push({ block, text, start, end })
@@ -184,9 +184,10 @@ function getVariableForExportNameRecursive(
 }
 
 export default class Module {
+	ast: Program | null = null;
 	chunkFileNames = new Set<string>();
 	chunkName: string | null = null;
-	code!: string;
+	code: string | null = null;
 	comments: CommentDescription[] = [];
 	dependencies = new Set<Module | ExternalModule>();
 	dynamicDependencies = new Set<Module | ExternalModule>();
@@ -225,7 +226,6 @@ export default class Module {
 
 	private allExportNames: Set<string> | null = null;
 	private alwaysRemovedCode!: [number, number][];
-	private ast!: Program;
 	private astContext!: AstContext;
 	private readonly context: string;
 	private customTransformCache!: boolean;
@@ -260,7 +260,7 @@ export default class Module {
 	}
 
 	bindReferences() {
-		this.ast.bind();
+		this.ast!.bind();
 	}
 
 	error(props: RollupError, pos: number): never {
@@ -527,13 +527,13 @@ export default class Module {
 	hasEffects() {
 		return (
 			this.moduleSideEffects === 'no-treeshake' ||
-			(this.ast.included && this.ast.hasEffects(createHasEffectsContext()))
+			(this.ast!.included && this.ast!.hasEffects(createHasEffectsContext()))
 		);
 	}
 
 	include(): void {
 		const context = createInclusionContext();
-		if (this.ast.shouldBeIncluded(context)) this.ast.include(context, false);
+		if (this.ast!.shouldBeIncluded(context)) this.ast!.include(context, false);
 	}
 
 	includeAllExports(includeNamespaceMembers: boolean) {
@@ -571,11 +571,11 @@ export default class Module {
 	}
 
 	includeAllInBundle() {
-		this.ast.include(createInclusionContext(), true);
+		this.ast!.include(createInclusionContext(), true);
 	}
 
 	isIncluded() {
-		return this.ast.included || this.namespace.included;
+		return this.ast!.included || this.namespace.included;
 	}
 
 	linkImports() {
@@ -607,7 +607,7 @@ export default class Module {
 
 	render(options: RenderOptions): MagicString {
 		const magicString = this.magicString.clone();
-		this.ast.render(magicString, options);
+		this.ast!.render(magicString, options);
 		this.usesTopLevelAwait = this.astContext.usesTopLevelAwait;
 		return magicString;
 	}
@@ -708,8 +708,8 @@ export default class Module {
 	toJSON(): ModuleJSON {
 		return {
 			alwaysRemovedCode: this.alwaysRemovedCode,
-			ast: this.ast.esTreeNode,
-			code: this.code,
+			ast: this.ast!.esTreeNode,
+			code: this.code!,
 			customTransformCache: this.customTransformCache,
 			dependencies: Array.from(this.dependencies, getId),
 			id: this.id,
@@ -888,7 +888,7 @@ export default class Module {
 		props.id = this.id;
 		props.pos = pos;
 		let code = this.code;
-		let { column, line } = locate(code, pos, { offsetLine: 1 });
+		let { column, line } = locate(code!, pos, { offsetLine: 1 });
 		try {
 			({ column, line } = getOriginalLocation(this.sourcemapChain, { column, line }));
 			code = this.originalCode;
@@ -905,7 +905,7 @@ export default class Module {
 				pos
 			});
 		}
-		augmentCodeLocation(props, { column, line }, code, this.id);
+		augmentCodeLocation(props, { column, line }, code!, this.id);
 	}
 
 	private addModulesToImportDescriptions(importDescription: {
