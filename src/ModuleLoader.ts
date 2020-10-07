@@ -183,7 +183,7 @@ export class ModuleLoader {
 			this.loadEntryModule(unresolvedModule.id, false, unresolvedModule.importer, null).then(
 				async entryModule => {
 					addChunkNamesToModule(entryModule, unresolvedModule, false);
-					if (!entryModule.isEntryPoint) {
+					if (!entryModule.info.isEntry) {
 						this.implicitEntryModules.add(entryModule);
 						const implicitlyLoadedAfterModules = await Promise.all(
 							implicitlyLoadedAfter.map(id =>
@@ -299,7 +299,7 @@ export class ModuleLoader {
 		const existingModule = this.modulesById.get(id);
 		if (existingModule instanceof Module) {
 			if (isEntry) {
-				existingModule.isEntryPoint = true;
+				existingModule.info.isEntry = true;
 				this.implicitEntryModules.delete(existingModule);
 				for (const dependant of existingModule.implicitlyLoadedAfter) {
 					dependant.implicitlyLoadedBefore.delete(existingModule);
@@ -321,6 +321,7 @@ export class ModuleLoader {
 		this.modulesById.set(id, module);
 		this.graph.watchFiles[id] = true;
 		await this.addModuleSource(id, importer, module);
+		await this.pluginDriver.hookParallel('moduleParsed', [module.info]);
 		await Promise.all([
 			this.fetchStaticDependencies(module),
 			this.fetchDynamicDependencies(module)

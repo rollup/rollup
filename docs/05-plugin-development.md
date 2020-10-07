@@ -624,6 +624,8 @@ Returns additional information about the module in question in the form
 ```
 {
   id: string, // the id of the module, for convenience
+  code: string | null, // the source code of the module, `null` if external or not yet available
+  ast: ESTree.Program, // the parsed abstract syntax tree if available
   isEntry: boolean, // is this a user- or plugin-defined entry point
   isExternal: boolean, // for external modules that are referenced but not included in the graph
   importedIds: string[], // the module ids statically imported by this module
@@ -636,7 +638,10 @@ Returns additional information about the module in question in the form
 }
 ```
 
-This utility function returns `null` if the module id cannot be found.
+During the build, this object represents currently available information about the module. Before the [`buildEnd`](guide/en/#buildend) hook, this information may be incomplete as e.g.
+ the `importedIds` are not yet resolved or additional `importers` are discovered.
+ 
+Returns `null` if the module id cannot be found.
 
 #### `this.meta: {rollupVersion: string, watchMode: boolean}`
 

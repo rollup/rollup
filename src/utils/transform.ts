@@ -161,7 +161,7 @@ export default function transform(
 				ast,
 				code,
 				customTransformCache,
-				meta: module.meta,
+				meta: module.info.meta,
 				originalCode,
 				originalSourcemap,
 				sourcemapChain,

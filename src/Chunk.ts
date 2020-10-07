@@ -162,7 +162,7 @@ export default class Chunk {
 		}
 		if (
 			!chunk.dependencies.has(chunkByModule.get(facadedModule)!) &&
-			facadedModule.moduleSideEffects &&
+			facadedModule.info.hasModuleSideEffects &&
 			facadedModule.hasEffects()
 		) {
 			chunk.dependencies.add(chunkByModule.get(facadedModule)!);
@@ -234,7 +234,7 @@ export default class Chunk {
 			if (this.isEmpty && module.isIncluded()) {
 				this.isEmpty = false;
 			}
-			if (module.isEntryPoint || outputOptions.preserveModules) {
+			if (module.info.isEntry || outputOptions.preserveModules) {
 				this.entryModules.push(module);
 			}
 			for (const importer of module.includedDynamicImporters) {
@@ -307,7 +307,7 @@ export default class Chunk {
 		} else {
 			assignExportsToNames(remainingExports, this.exportsByName, this.exportNamesByVariable);
 		}
-		if (this.outputOptions.preserveModules || (this.facadeModule && this.facadeModule.isEntryPoint))
+		if (this.outputOptions.preserveModules || (this.facadeModule && this.facadeModule.info.isEntry))
 			this.exportMode = getExportMode(
 				this,
 				this.outputOptions,
@@ -473,7 +473,7 @@ export default class Chunk {
 			exports: this.getExportNames(),
 			facadeModuleId: facadeModule && facadeModule.id,
 			isDynamicEntry: this.dynamicEntryModules.length > 0,
-			isEntry: facadeModule !== null && facadeModule.isEntryPoint,
+			isEntry: facadeModule !== null && facadeModule.info.isEntry,
 			isImplicitEntry: this.implicitEntryModules.length > 0,
 			modules: this.renderedModules,
 			get name() {
@@ -718,7 +718,7 @@ export default class Chunk {
 				intro: addons.intro!,
 				isEntryModuleFacade:
 					this.outputOptions.preserveModules ||
-					(this.facadeModule !== null && this.facadeModule.isEntryPoint),
+					(this.facadeModule !== null && this.facadeModule.info.isEntry),
 				namedExportsMode: this.exportMode !== 'default',
 				outro: addons.outro!,
 				usesTopLevelAwait,
@@ -1307,7 +1307,7 @@ export default class Chunk {
 		}
 		if (
 			this.includedNamespaces.has(module) ||
-			(module.isEntryPoint && module.preserveSignature !== false) ||
+			(module.info.isEntry && module.preserveSignature !== false) ||
 			module.includedDynamicImporters.some(importer => this.chunkByModule.get(importer) !== this)
 		) {
 			this.ensureReexportsAreAvailableForModule(module);

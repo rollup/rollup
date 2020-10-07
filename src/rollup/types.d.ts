@@ -179,10 +179,6 @@ export interface CustomPluginOptions {
 	[plugin: string]: any;
 }
 
-export interface CustomPluginOptions {
-	[plugin: string]: any;
-}
-
 export interface PluginContext extends MinimalPluginContext {
 	addWatchFile: (id: string) => void;
 	cache: PluginCache;
@@ -269,6 +265,8 @@ export type TransformHook = (
 	id: string
 ) => Promise<TransformResult> | TransformResult;
 
+export type ModuleParsedHook = (this: PluginContext, info: ModuleInfo) => Promise<void> | void;
+
 export type RenderChunkHook = (
 	this: PluginContext,
 	code: string,
@@ -348,8 +346,8 @@ export interface PluginHooks extends OutputPluginHooks {
 	buildEnd: (this: PluginContext, err?: Error) => Promise<void> | void;
 	buildStart: (this: PluginContext, options: NormalizedInputOptions) => Promise<void> | void;
 	load: LoadHook;
+	moduleParsed: ModuleParsedHook;
 	options: (this: MinimalPluginContext, options: InputOptions) => InputOptions | null | undefined;
-	// TODO Lukas parsedModule hook
 	resolveDynamicImport: ResolveDynamicImportHook;
 	resolveId: ResolveIdHook;
 	transform: TransformHook;
@@ -397,6 +395,7 @@ export type AsyncPluginHooks =
 	| 'buildStart'
 	| 'generateBundle'
 	| 'load'
+	| 'moduleParsed'
 	| 'renderChunk'
 	| 'renderError'
 	| 'renderStart'
@@ -433,6 +432,7 @@ export type ParallelPluginHooks =
 	| 'buildStart'
 	| 'footer'
 	| 'intro'
+	| 'moduleParsed'
 	| 'outro'
 	| 'renderError'
 	| 'renderStart'

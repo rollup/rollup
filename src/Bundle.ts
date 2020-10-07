@@ -267,7 +267,7 @@ function getIncludedModules(modulesById: Map<string, Module | ExternalModule>): 
 	return [...modulesById.values()].filter(
 		module =>
 			module instanceof Module &&
-			(module.isIncluded() || module.isEntryPoint || module.includedDynamicImporters.length > 0)
+			(module.isIncluded() || module.info.isEntry || module.includedDynamicImporters.length > 0)
 	) as Module[];
 }
 

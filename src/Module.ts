@@ -33,6 +33,7 @@ import {
 	DecodedSourceMapOrMissing,
 	EmittedFile,
 	ExistingDecodedSourceMap,
+	ModuleInfo,
 	ModuleJSON,
 	ModuleOptions,
 	NormalizedInputOptions,
@@ -119,7 +120,7 @@ function tryParse(
 	acornOptions: acorn.Options
 ): acorn.Node {
 	try {
-		return Parser.parse(module.code!, {
+		return Parser.parse(module.info.code!, {
 			...acornOptions,
 			onComment: (block: boolean, text: string, start: number, end: number) =>
 				module.comments.push({ block, text, start, end })
@@ -187,7 +188,6 @@ export default class Module {
 	ast: Program | null = null;
 	chunkFileNames = new Set<string>();
 	chunkName: string | null = null;
-	code: string | null = null;
 	comments: CommentDescription[] = [];
 	dependencies = new Set<Module | ExternalModule>();
 	dynamicDependencies = new Set<Module | ExternalModule>();
@@ -209,6 +209,7 @@ export default class Module {
 	importMetas: MetaProperty[] = [];
 	imports = new Set<Variable>();
 	includedDynamicImporters: Module[] = [];
+	info: ModuleInfo;
 	isExecuted = false;
 	isUserDefinedEntryPoint = false;
 	namespace!: NamespaceVariable;
@@ -243,13 +244,48 @@ export default class Module {
 		private readonly graph: Graph,
 		public readonly id: string,
 		private readonly options: NormalizedInputOptions,
-		public isEntryPoint: boolean,
-		public moduleSideEffects: boolean | 'no-treeshake',
+		isEntry: boolean,
+		hasModuleSideEffects: boolean | 'no-treeshake',
 		public syntheticNamedExports: boolean | string,
-		public meta: CustomPluginOptions
+		meta: CustomPluginOptions
 	) {
 		this.excludeFromSourcemap = /\0/.test(id);
 		this.context = options.moduleContext(id);
+
+		const module = this;
+		this.info = {
+			ast: null,
+			code: null,
+			get dynamicallyImportedIds() {
+				const dynamicallyImportedIds: string[] = [];
+				for (const { resolution } of module.dynamicImports) {
+					if (resolution instanceof Module || resolution instanceof ExternalModule) {
+						dynamicallyImportedIds.push(resolution.id);
+					}
+				}
+				return dynamicallyImportedIds;
+			},
+			get dynamicImporters() {
+				return module.dynamicImporters.sort();
+			},
+			hasModuleSideEffects,
+			id,
+			get implicitlyLoadedAfterOneOf() {
+				return Array.from(module.implicitlyLoadedAfter, getId);
+			},
+			get implicitlyLoadedBefore() {
+				return Array.from(module.implicitlyLoadedBefore, getId);
+			},
+			get importedIds() {
+				return Array.from(module.sources, source => module.resolvedIds[source].id);
+			},
+			get importers() {
+				return module.importers.sort();
+			},
+			isEntry,
+			isExternal: false,
+			meta
+		};
 	}
 
 	basename() {
@@ -300,7 +336,7 @@ export default class Module {
 		const possibleDependencies = new Set(this.dependencies);
 		let dependencyVariables = this.imports;
 		if (
-			this.isEntryPoint ||
+			this.info.isEntry ||
 			this.includedDynamicImporters.length > 0 ||
 			this.namespace.included ||
 			this.implicitlyLoadedAfter.size > 0
@@ -323,11 +359,12 @@ export default class Module {
 			}
 			relevantDependencies.add(variable.module!);
 		}
-		if (this.options.treeshake && this.moduleSideEffects !== 'no-treeshake') {
+		if (this.options.treeshake && this.info.hasModuleSideEffects !== 'no-treeshake') {
 			for (const dependency of possibleDependencies) {
 				if (
 					!(
-						dependency.moduleSideEffects || additionalSideEffectModules.has(dependency as Module)
+						dependency.info.hasModuleSideEffects ||
+						additionalSideEffectModules.has(dependency as Module)
 					) ||
 					relevantDependencies.has(dependency)
 				) {
@@ -526,7 +563,7 @@ export default class Module {
 
 	hasEffects() {
 		return (
-			this.moduleSideEffects === 'no-treeshake' ||
+			this.info.hasModuleSideEffects === 'no-treeshake' ||
 			(this.ast!.included && this.ast!.hasEffects(createHasEffectsContext()))
 		);
 	}
@@ -628,7 +665,7 @@ export default class Module {
 		alwaysRemovedCode?: [number, number][];
 		transformFiles?: EmittedFile[] | undefined;
 	}) {
-		this.code = code;
+		this.info.code = code;
 		this.originalCode = originalCode;
 		this.originalSourcemap = originalSourcemap;
 		this.sourcemapChain = sourcemapChain;
@@ -701,6 +738,7 @@ export default class Module {
 		this.scope = new ModuleScope(this.graph.scope, this.astContext);
 		this.namespace = new NamespaceVariable(this.astContext, this.syntheticNamedExports);
 		this.ast = new Program(ast, { type: 'Module', context: this.astContext }, this.scope);
+		this.info.ast = ast;
 
 		timeEnd('analyse ast', 3);
 	}
@@ -709,12 +747,12 @@ export default class Module {
 		return {
 			alwaysRemovedCode: this.alwaysRemovedCode,
 			ast: this.ast!.esTreeNode,
-			code: this.code!,
+			code: this.info.code!,
 			customTransformCache: this.customTransformCache,
 			dependencies: Array.from(this.dependencies, getId),
 			id: this.id,
-			meta: this.meta,
-			moduleSideEffects: this.moduleSideEffects,
+			meta: this.info.meta,
+			moduleSideEffects: this.info.hasModuleSideEffects,
 			originalCode: this.originalCode,
 			originalSourcemap: this.originalSourcemap,
 			resolvedIds: this.resolvedIds,
@@ -762,13 +800,13 @@ export default class Module {
 		syntheticNamedExports
 	}: Partial<PartialNull<ModuleOptions>>) {
 		if (moduleSideEffects != null) {
-			this.moduleSideEffects = moduleSideEffects;
+			this.info.hasModuleSideEffects = moduleSideEffects;
 		}
 		if (syntheticNamedExports != null) {
 			this.syntheticNamedExports = syntheticNamedExports;
 		}
 		if (meta != null) {
-			this.meta = { ...this.meta, ...meta };
+			this.info.meta = { ...this.info.meta, ...meta };
 		}
 	}
 
@@ -887,7 +925,7 @@ export default class Module {
 	private addLocationToLogProps(props: RollupLogProps, pos: number): void {
 		props.id = this.id;
 		props.pos = pos;
-		let code = this.code;
+		let code = this.info.code;
 		let { column, line } = locate(code!, pos, { offsetLine: 1 });
 		try {
 			({ column, line } = getOriginalLocation(this.sourcemapChain, { column, line }));
