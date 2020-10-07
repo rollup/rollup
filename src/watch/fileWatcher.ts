@@ -58,6 +58,7 @@ export class FileWatcher {
 		};
 		const watcher = chokidar
 			.watch([], this.chokidarOptions)
+			.on('add', handleChange)
 			.on('change', handleChange)
 			.on('unlink', handleChange);
 		return watcher;
