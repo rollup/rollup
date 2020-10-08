@@ -1488,6 +1488,95 @@ describe('rollup.watch', () => {
 				});
 		});
 
+		it('respects initially missing added watched files', () => {
+			return sander
+				.copydir('test/watch/samples/basic')
+				.to('test/_tmp/input')
+				.then(() => {
+					watcher = rollup.watch({
+						input: 'test/_tmp/input/main.js',
+						output: {
+							file: 'test/_tmp/output/bundle.js',
+							format: 'cjs',
+							exports: 'auto'
+						},
+						plugins: {
+							transform() {
+								this.addWatchFile('test/_tmp/input/dep');
+								return `export default ${sander.existsSync('test/_tmp/input/dep')}`;
+							}
+						}
+					});
+
+					return sequence(watcher, [
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.strictEqual(run('../_tmp/output/bundle.js'), false);
+							sander.writeFileSync('test/_tmp/input/dep', '');
+						},
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.strictEqual(run('../_tmp/output/bundle.js'), true);
+						}
+					]);
+				});
+		});
+
+		it('respects unlinked and re-added watched files', () => {
+			return sander
+				.copydir('test/watch/samples/basic')
+				.to('test/_tmp/input')
+				.then(() => {
+					sander.writeFileSync('test/_tmp/input/dep', '');
+					watcher = rollup.watch({
+						input: 'test/_tmp/input/main.js',
+						output: {
+							file: 'test/_tmp/output/bundle.js',
+							format: 'cjs',
+							exports: 'auto'
+						},
+						plugins: {
+							transform() {
+								this.addWatchFile('test/_tmp/input/dep');
+								return `export default ${sander.existsSync('test/_tmp/input/dep')}`;
+							}
+						}
+					});
+
+					return sequence(watcher, [
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.strictEqual(run('../_tmp/output/bundle.js'), true);
+							sander.unlinkSync('test/_tmp/input/dep');
+						},
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.strictEqual(run('../_tmp/output/bundle.js'), false);
+							sander.writeFileSync('test/_tmp/input/dep', '');
+						},
+						'START',
+						'BUNDLE_START',
+						'BUNDLE_END',
+						'END',
+						() => {
+							assert.strictEqual(run('../_tmp/output/bundle.js'), true);
+						}
+					]);
+				});
+		});
+
 		it('does not rerun the transform hook if a non-watched change triggered the re-run', () => {
 			let transformRuns = 0;
 			return sander
