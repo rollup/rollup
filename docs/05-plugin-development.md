@@ -972,7 +972,7 @@ function readingPlugin() {
 
 Note the convention that plugins that add or modify data should use a property corresponding to the plugin name, in this case `annotating`. On the other hand, any plugin can read all meta-data from other plugins via `this.getModuleInfo`.
 
-If several plugins add meta-data or meta-data is added in different hooks, then these `meta` objects will be merged shallowly. That means if plugin `first` adds `{meta: {first: {resolved: "first"}}}` in the resolveId hook and `{meta: {first: {loaded: "first"}}}` in the load hook wile plugin `second` adds `{meta: {second: {transformed: "second"}}}` in the `transform` hook, then the resulting `meta` object will be `{first: {loaded: "first"}, second: {transformed: "second"}}`. Here the result of the `resolveId` hook will be overwritten by the result of the `load` hook as the plugin was both storing them under its `first` top-level property. The `transform` data of the other plugin on the other hand will be placed next to it.
+If several plugins add meta-data or meta-data is added in different hooks, then these `meta` objects will be merged shallowly. That means if plugin `first` adds `{meta: {first: {resolved: "first"}}}` in the resolveId hook and `{meta: {first: {loaded: "first"}}}` in the load hook while plugin `second` adds `{meta: {second: {transformed: "second"}}}` in the `transform` hook, then the resulting `meta` object will be `{first: {loaded: "first"}, second: {transformed: "second"}}`. Here the result of the `resolveId` hook will be overwritten by the result of the `load` hook as the plugin was both storing them under its `first` top-level property. The `transform` data of the other plugin on the other hand will be placed next to it.
 
 #### Direct plugin communication
 
