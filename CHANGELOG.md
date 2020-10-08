@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 2.29.0
+*2020-10-08*
+
+### Features
+* Allow passing custom options to other plugins via `this.resolve` (#3807)
+* Allow attaching custom meta information to modules when resolving, loading or transforming (#3807)
+* Do not throw but return `null` when using `this.getModuleInfo` for an unknown id (#3807)
+
+### Bug Fixes
+* Trigger build in watch mode when files are added to a watched directory (#3812)
+* Make `code` optional when transforming modules (#3807)
+
+### Pull Requests
+* [#3807](https://github.com/rollup/rollup/pull/3807): Implement new APIs for inter-plugin communication (@lukastaegert)
+* [#3808](https://github.com/rollup/rollup/pull/3808): Document that the default value of --format is 'es' (@jameshfisher)
+* [#3812](https://github.com/rollup/rollup/pull/3812): Watch: listen for new files added to a directory (@dmitrage)
+
 ## 2.28.2
 *2020-09-24*
 
