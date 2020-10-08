@@ -1,5 +1,9 @@
 import ExternalVariable from './ast/variables/ExternalVariable';
-import { NormalizedInputOptions, NormalizedOutputOptions } from './rollup/types';
+import {
+	CustomPluginOptions,
+	NormalizedInputOptions,
+	NormalizedOutputOptions
+} from './rollup/types';
 import { makeLegal } from './utils/identifierHelpers';
 import { isAbsolute, normalize, relative } from './utils/path';
 
@@ -10,9 +14,7 @@ export default class ExternalModule {
 	dynamicImporters: string[] = [];
 	execIndex: number;
 	exportedVariables: Map<ExternalVariable, string>;
-	id: string;
 	importers: string[] = [];
-	moduleSideEffects: boolean | 'no-treeshake';
 	mostCommonSuggestion = 0;
 	namespaceVariableName = '';
 	nameSuggestions: { [name: string]: number };
@@ -25,8 +27,9 @@ export default class ExternalModule {
 
 	constructor(
 		private readonly options: NormalizedInputOptions,
-		id: string,
-		moduleSideEffects: boolean | 'no-treeshake'
+		public readonly id: string,
+		public moduleSideEffects: boolean | 'no-treeshake',
+		public meta: CustomPluginOptions
 	) {
 		this.id = id;
 		this.execIndex = Infinity;

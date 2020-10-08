@@ -1,3 +1,4 @@
+import { CustomPluginOptions } from '../rollup/types';
 import { lstatSync, readdirSync, realpathSync } from './fs';
 import { basename, dirname, isAbsolute, resolve } from './path';
 import { PluginDriver } from './PluginDriver';
@@ -7,9 +8,15 @@ export async function resolveId(
 	importer: string | undefined,
 	preserveSymlinks: boolean,
 	pluginDriver: PluginDriver,
-	skip: number | null
+	skip: number | null,
+	customOptions: CustomPluginOptions | undefined
 ) {
-	const pluginResult = await pluginDriver.hookFirst('resolveId', [source, importer], null, skip);
+	const pluginResult = await pluginDriver.hookFirst(
+		'resolveId',
+		[source, importer, { custom: customOptions }],
+		null,
+		skip
+	);
 	if (pluginResult != null) return pluginResult;
 
 	// external modules (non-entry modules that start with neither '.' or '/')

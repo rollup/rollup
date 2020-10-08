@@ -3,6 +3,7 @@ import Module from '../Module';
 import {
 	DecodedSourceMapOrMissing,
 	EmittedFile,
+	ExistingRawSourceMap,
 	Plugin,
 	PluginContext,
 	RollupError,
@@ -15,7 +16,7 @@ import {
 } from '../rollup/types';
 import { collapseSourcemap } from './collapseSourcemaps';
 import { decodedSourcemap } from './decodedSourcemap';
-import { augmentCodeLocation } from './error';
+import { augmentCodeLocation, errNoTransformMapOrAstWithoutCode } from './error';
 import { getTrackedPluginCache } from './PluginCache';
 import { PluginDriver } from './PluginDriver';
 import { throwPluginError } from './pluginUtils';
@@ -36,47 +37,44 @@ export default function transform(
 	const emittedFiles: EmittedFile[] = [];
 	let customTransformCache = false;
 	const useCustomTransformCache = () => (customTransformCache = true);
-	let moduleSideEffects: boolean | 'no-treeshake' | null = null;
-	let syntheticNamedExports: boolean | string | null = null;
 	let curPlugin: Plugin;
 	const curSource: string = source.code;
 
 	function transformReducer(
 		this: PluginContext,
-		code: string,
+		previousCode: string,
 		result: TransformResult,
 		plugin: Plugin
-	) {
+	): string {
+		let code: string;
+		let map: string | ExistingRawSourceMap | { mappings: '' } | null | undefined;
 		if (typeof result === 'string') {
-			result = {
-				ast: undefined,
-				code: result,
-				map: undefined
-			};
+			code = result;
 		} else if (result && typeof result === 'object') {
-			if (typeof result.map === 'string') {
-				result.map = JSON.parse(result.map);
+			module.updateOptions(result);
+			if (result.code == null) {
+				if (result.map || result.ast) {
+					warn(errNoTransformMapOrAstWithoutCode(plugin.name));
+				}
+				return previousCode;
 			}
-			if (result.moduleSideEffects != null) {
-				moduleSideEffects = result.moduleSideEffects;
-			}
-			if (result.syntheticNamedExports != null) {
-				syntheticNamedExports = result.syntheticNamedExports;
-			}
+			({ code, map, ast } = result);
 		} else {
-			return code;
+			return previousCode;
 		}
 
 		// strict null check allows 'null' maps to not be pushed to the chain,
 		// while 'undefined' gets the missing map warning
-		if (result.map !== null) {
-			const map = decodedSourcemap(result.map);
-			sourcemapChain.push(map || { missing: true, plugin: plugin.name });
+		if (map !== null) {
+			sourcemapChain.push(
+				decodedSourcemap(typeof map === 'string' ? JSON.parse(map) : map) || {
+					missing: true,
+					plugin: plugin.name
+				}
+			);
 		}
 
-		ast = result.ast;
-
-		return result.code;
+		return code;
 	}
 
 	return pluginDriver
@@ -106,14 +104,12 @@ export default function transform(
 						return pluginContext.error(err);
 					},
 					emitAsset(name: string, source?: string | Uint8Array) {
-						const emittedFile = { type: 'asset' as const, name, source };
-						emittedFiles.push({ ...emittedFile });
-						return pluginDriver.emitFile(emittedFile);
+						emittedFiles.push({ type: 'asset' as const, name, source });
+						return pluginContext.emitAsset(name, source);
 					},
 					emitChunk(id, options) {
-						const emittedFile = { type: 'chunk' as const, id, name: options && options.name };
-						emittedFiles.push({ ...emittedFile });
-						return pluginDriver.emitFile(emittedFile);
+						emittedFiles.push({ type: 'chunk' as const, id, name: options && options.name });
+						return pluginContext.emitChunk(id, options);
 					},
 					emitFile(emittedFile: EmittedFile) {
 						emittedFiles.push(emittedFile);
@@ -165,11 +161,10 @@ export default function transform(
 				ast,
 				code,
 				customTransformCache,
-				moduleSideEffects,
+				meta: module.meta,
 				originalCode,
 				originalSourcemap,
 				sourcemapChain,
-				syntheticNamedExports,
 				transformDependencies
 			};
 		});

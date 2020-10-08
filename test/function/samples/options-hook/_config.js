@@ -11,7 +11,7 @@ module.exports = {
 				assert.deepStrictEqual(JSON.parse(JSON.stringify(options)), {
 					acorn: {
 						allowAwaitOutsideFunction: true,
-						ecmaVersion: 2020,
+						ecmaVersion: 'latest',
 						preserveParens: false,
 						sourceType: 'module'
 					},

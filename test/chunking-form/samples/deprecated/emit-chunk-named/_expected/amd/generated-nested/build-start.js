@@ -1,5 +1,5 @@
 define(['../generated-dep'], function (dep) { 'use strict';
 
-	console.log('startBuild', dep.value);
+	console.log('buildStart', dep.value);
 
 });

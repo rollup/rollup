@@ -93,18 +93,20 @@ Next Hook: [`resolveId`](guide/en/#resolveid) to resolve each entry point in par
 Called on each `rollup.rollup` build. This is the recommended hook to use when you need access to the options passed to `rollup.rollup()` as it takes the transformations by all [`options`](guide/en/#options) hooks into account and also contains the right default values for unset options.
 
 #### `load`
-Type: `(id: string) => string | null | { code: string, map?: string | SourceMap, ast? : ESTree.Program, moduleSideEffects?: boolean | "no-treeshake" | null, syntheticNamedExports?: boolean | string | null }`<br>
+Type: `(id: string) => string | null | {code: string, map?: string | SourceMap, ast? : ESTree.Program, moduleSideEffects?: boolean | "no-treeshake" | null, syntheticNamedExports?: boolean | string | null, meta?: {[plugin: string]: any} | null}`<br>
 Kind: `async, first`<br>
 Previous Hook: [`resolveId`](guide/en/#resolveid) or [`resolveDynamicImport`](guide/en/#resolvedynamicimport) where the loaded id was resolved.<br>
 Next Hook: [`transform`](guide/en/#transform) to transform the loaded file.
 
 Defines a custom loader. Returning `null` defers to other `load` functions (and eventually the default behavior of loading from the file system). To prevent additional parsing overhead in case e.g. this hook already used `this.parse` to generate an AST for some reason, this hook can optionally return a `{ code, ast, map }` object. The `ast` must be a standard ESTree AST with `start` and `end` properties for each node. If the transformation does not move code, you can preserve existing sourcemaps by setting `map` to `null`. Otherwise you might need to generate the source map. See [the section on source code transformations](#source-code-transformations).
 
-If `false` is returned for `moduleSideEffects` and no other module imports anything from this module, then this module will not be included in the bundle without checking for actual side-effects inside the module. If `true` is returned, Rollup will use its default algorithm to include all statements in the module that have side-effects (such as modifying a global or exported variable). If `"no-treeshake"` is returned, treeshaking will be turned off for this module and it will also be included in one of the generated chunks even if it is empty. If `null` is returned or the flag is omitted, then `moduleSideEffects` will be determined by the first `resolveId` hook that resolved this module, the `treeshake.moduleSideEffects` option, or eventually default to `true`. The `transform` hook can override this.
+If `false` is returned for `moduleSideEffects` and no other module imports anything from this module, then this module will not be included in the bundle even if the module would have side-effects. If `true` is returned, Rollup will use its default algorithm to include all statements in the module that have side-effects (such as modifying a global or exported variable). If `"no-treeshake"` is returned, treeshaking will be turned off for this module and it will also be included in one of the generated chunks even if it is empty. If `null` is returned or the flag is omitted, then `moduleSideEffects` will be determined by the first `resolveId` hook that resolved this module, the `treeshake.moduleSideEffects` option, or eventually default to `true`. The `transform` hook can override this.
 
 See [synthetic named exports](guide/en/#synthetic-named-exports) for the effect of the `syntheticNamedExports` option. If `null` is returned or the flag is omitted, then `syntheticNamedExports` will be determined by the first `resolveId` hook that resolved this module or eventually default to `false`. The `transform` hook can override this.
 
-You can use [`this.getModuleInfo`](guide/en/#thisgetmoduleinfomoduleid-string--moduleinfo) to find out the previous values of `moduleSideEffects` and `syntheticNamedExports` inside this hook.
+See [custom module meta-data](guide/en/#custom-module-meta-data) for how to use the `meta` option. If a `meta` object is returned by this hook, it will be merged shallowly with any `meta` object returned by the resolveId hook. If no hook returns a `meta` object it will default to an empty object. The `transform` hook can further add or replace properties of this object.
+
+You can use [`this.getModuleInfo`](guide/en/#thisgetmoduleinfomoduleid-string--moduleinfo--null) to find out the previous values of `moduleSideEffects`, `syntheticNamedExports` and `meta` inside this hook.
 
 #### `options`
 Type: `(options: InputOptions) => InputOptions | null`<br>
@@ -131,15 +133,48 @@ In case a dynamic import is not passed a string as argument, this hook gets acce
 - If a string is returned, this string is *not* interpreted as a module id but is instead used as a replacement for the import argument. It is the responsibility of the plugin to make sure the generated code is valid.
 - To resolve such an import to an existing module, you can still return an object `{id, external}`.
 
-Note that the return value of this hook will not be passed to `resolveId` afterwards; if you need access to the static resolution algorithm, you can use [`this.resolve(source, importer)`](guide/en/#thisresolvesource-string-importer-string-options-skipself-boolean--promiseid-string-external-boolean--null) on the plugin context.
+Note that the return value of this hook will not be passed to `resolveId` afterwards; if you need access to the static resolution algorithm, you can use [`this.resolve(source, importer)`](guide/en/#thisresolvesource-string-importer-string-options-skipself-boolean-custom-plugin-string-any--promiseid-string-external-boolean-modulesideeffects-boolean--no-treeshake-syntheticnamedexports-boolean--string-custom-plugin-string-any--null) on the plugin context.
 
 #### `resolveId`
-Type: `(source: string, importer: string | undefined) => string | false | null | {id: string, external?: boolean, moduleSideEffects?: boolean | "no-treeshake" | null, syntheticNamedExports?: boolean | string | null}`<br>
+Type: `(source: string, importer: string | undefined, options: {custom?: {[plugin: string]: any}) => string | false | null | {id: string, external?: boolean, moduleSideEffects?: boolean | "no-treeshake" | null, syntheticNamedExports?: boolean | string | null, meta?: {[plugin: string]: any} | null}`<br>
 Kind: `async, first`<br>
-Previous Hook: [`buildStart`](guide/en/#buildstart) if we are resolving an entry point, [`transform`](guide/en/#transform) if we are resolving an import, or as fallback for [`resolveDynamicImport`](guide/en/#resolvedynamicimport). Additionally this hook can be triggered during the build phase from plugin hooks by calling [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string) to emit an entry point or at any time by calling [`this.resolve`](guide/en/#thisresolvesource-string-importer-string-options-skipself-boolean--promiseid-string-external-boolean--null) to manually resolve an id.<br>
+Previous Hook: [`buildStart`](guide/en/#buildstart) if we are resolving an entry point, [`transform`](guide/en/#transform) if we are resolving an import, or as fallback for [`resolveDynamicImport`](guide/en/#resolvedynamicimport). Additionally this hook can be triggered during the build phase from plugin hooks by calling [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string) to emit an entry point or at any time by calling [`this.resolve`](guide/en/#thisresolvesource-string-importer-string-options-skipself-boolean-custom-plugin-string-any--promiseid-string-external-boolean-modulesideeffects-boolean--no-treeshake-syntheticnamedexports-boolean--string-custom-plugin-string-any--null) to manually resolve an id.<br>
 Next Hook: [`load`](guide/en/#load) if the resolved id that has not yet been loaded, otherwise [`buildEnd`](guide/en/#buildend).
 
-Defines a custom resolver. A resolver can be useful for e.g. locating third-party dependencies. Returning `null` defers to other `resolveId` functions and eventually the default resolution behavior; returning `false` signals that `source` should be treated as an external module and not included in the bundle. If this happens for a relative import, the id will be renormalized the same way as when the `external` option is used.
+Defines a custom resolver. A resolver can be useful for e.g. locating third-party dependencies. Here `source` is the importee exactly as it is written in the import statement, i.e. for
+
+```js
+import { foo } from '../bar,js';
+```
+
+the source will be `"../bar.js""`. 
+
+The `importer` is the fully resolved id of the importing module. When resolving entry points, importer will be `undefined`. You can use this for instance as a mechanism to define custom proxy modules for entry points. 
+
+The following plugin will only expose the default export from entry points while still keeping named exports available for internal usage:
+
+```js
+async resolveId(source,importer) {
+  if (!importer) {
+    // We need to skip this plugin to avoid an infinite loop
+    const resolution = await this.resolve(source, undefined, { skipSelf: true });
+    // If it cannot be resolved, return `null` so that Rollup displays an error
+    if (!resolution) return null;
+    return `${resolution.id}?entry-proxy`;
+  }
+  return null;
+},
+load(id) {
+  if (id.endsWith('?entry-proxy')) {
+    const importee = id.slice(0, -'?entry-proxy'.length);
+    // Note that this will throw if there is no default export
+    return `export {default} from '${importee}';`;
+  }
+  return null;
+}
+```
+
+Returning `null` defers to other `resolveId` functions and eventually the default resolution behavior. Returning `false` signals that `source` should be treated as an external module and not included in the bundle. If this happens for a relative import, the id will be renormalized the same way as when the `external` option is used.
 
 If you return an object, then it is possible to resolve an import to a different id while excluding it from the bundle at the same time. This allows you to replace dependencies with external dependencies without the need for the user to mark them as "external" manually via the `external` option:
 
@@ -154,12 +189,16 @@ resolveId(source) {
 
 Relative ids, i.e. starting with `./` or `../`, will **not** be renormalized when returning an object. If you want this behaviour, return an absolute file system location as `id` instead.
 
-If `false` is returned for `moduleSideEffects` in the first hook that resolves a module id and no other module imports anything from this module, then this module will not be included without checking for actual side-effects inside the module. If `true` is returned, Rollup will use its default algorithm to include all statements in the module that have side-effects (such as modifying a global or exported variable). If `"no-treeshake"` is returned, treeshaking will be turned off for this module and it will also be included in one of the generated chunks even if it is empty. If `null` is returned or the flag is omitted, then `moduleSideEffects` will be determined by the `treeshake.moduleSideEffects` option or default to `true`. The `load` and `transform` hooks can override this.
+If `false` is returned for `moduleSideEffects` in the first hook that resolves a module id and no other module imports anything from this module, then this module will not be included even if the module would have side-effects. If `true` is returned, Rollup will use its default algorithm to include all statements in the module that have side-effects (such as modifying a global or exported variable). If `"no-treeshake"` is returned, treeshaking will be turned off for this module and it will also be included in one of the generated chunks even if it is empty. If `null` is returned or the flag is omitted, then `moduleSideEffects` will be determined by the `treeshake.moduleSideEffects` option or default to `true`. The `load` and `transform` hooks can override this.
 
 See [synthetic named exports](guide/en/#synthetic-named-exports) for the effect of the `syntheticNamedExports` option. If `null` is returned or the flag is omitted, then `syntheticNamedExports` will default to `false`. The `load` and `transform` hooks can override this.
 
+See [custom module meta-data](guide/en/#custom-module-meta-data) for how to use the `meta` option. If `null` is returned or the option is omitted, then `meta` will default to an empty object. The `load` and `transform` hooks can add or replace properties of this object.
+
+When triggering this hook from a plugin via [`this.resolve(source, importer, options)`](guide/en/#thisresolvesource-string-importer-string-options-skipself-boolean-custom-plugin-string-any--promiseid-string-external-boolean-modulesideeffects-boolean--no-treeshake-syntheticnamedexports-boolean--string-custom-plugin-string-any--null), it is possible to pass a custom options object to this hook. While this object will be passed unmodified, plugins should follow the convention of adding a `custom` property with an object where the keys correspond to the names of the plugins that the options are intended for. For details see [custom resolver options](guide/en/#custom-resolver-options).
+
 #### `transform`
-Type: `(code: string, id: string) => string | null | { code: string, map?: string | SourceMap, ast? : ESTree.Program, moduleSideEffects?: boolean | "no-treeshake" | null, syntheticNamedExports?: boolean | string | null }`<br>
+Type: `(code: string, id: string) => string | null | {code?: string, map?: string | SourceMap, ast? : ESTree.Program, moduleSideEffects?: boolean | "no-treeshake" | null, syntheticNamedExports?: boolean | string | null, meta?: {[plugin: string]: any} | null}`<br>
 Kind: `async, sequential`<br>
 Previous Hook: [`load`](guide/en/#load) where the currently handled file was loaded.<br>
 NextHook: [`resolveId`](guide/en/#resolveid) and [`resolveDynamicImport`](guide/en/#resolvedynamicimport) to resolve all discovered static and dynamic imports in parallel if present, otherwise [`buildEnd`](guide/en/#buildend).
@@ -168,11 +207,21 @@ Can be used to transform individual modules. To prevent additional parsing overh
 
 Note that in watch mode, the result of this hook is cached when rebuilding and the hook is only triggered again for a module `id` if either the `code` of the module has changed or a file has changed that was added via `this.addWatchFile` the last time the hook was triggered for this module.
 
-If `false` is returned for `moduleSideEffects` and no other module imports anything from this module, then this module will not be included without checking for actual side-effects inside the module. If `true` is returned, Rollup will use its default algorithm to include all statements in the module that have side-effects (such as modifying a global or exported variable). If `"no-treeshake"` is returned, treeshaking will be turned off for this module and it will also be included in one of the generated chunks even if it is empty. If `null` is returned or the flag is omitted, then `moduleSideEffects` will be determined by the `load` hook that loaded this module, the first `resolveId` hook that resolved this module, the `treeshake.moduleSideEffects` option, or eventually default to `true`.
+You can also use the object form of the return value to configure additional properties of the module. Note that it's possible to return only properties and no code transformations.
+
+If `false` is returned for `moduleSideEffects` and no other module imports anything from this module, then this module will not be included even if the module would have side-effects. 
+
+If `true` is returned, Rollup will use its default algorithm to include all statements in the module that have side-effects (such as modifying a global or exported variable). 
+
+If `"no-treeshake"` is returned, treeshaking will be turned off for this module and it will also be included in one of the generated chunks even if it is empty. 
+
+If `null` is returned or the flag is omitted, then `moduleSideEffects` will be determined by the `load` hook that loaded this module, the first `resolveId` hook that resolved this module, the `treeshake.moduleSideEffects` option, or eventually default to `true`.
 
 See [synthetic named exports](guide/en/#synthetic-named-exports) for the effect of the `syntheticNamedExports` option. If `null` is returned or the flag is omitted, then `syntheticNamedExports` will be determined by the `load` hook that loaded this module, the first `resolveId` hook that resolved this module, the `treeshake.moduleSideEffects` option, or eventually default to `false`.
 
-You can use [`this.getModuleInfo`](guide/en/#thisgetmoduleinfomoduleid-string--moduleinfo) to find out the previous values of `moduleSideEffects` and `syntheticNamedExports` inside this hook.
+See [custom module meta-data](guide/en/#custom-module-meta-data) for how to use the `meta` option. If `null` is returned or the option is omitted, then `meta` will be determined by the `load` hook that loaded this module, the first `resolveId` hook that resolved this module or eventually default to an empty object.
+
+You can use [`this.getModuleInfo`](guide/en/#thisgetmoduleinfomoduleid-string--moduleinfo--null) to find out the previous values of `moduleSideEffects`, `syntheticNamedExports` and `meta` inside this hook.
 
 #### `watchChange`
 Type: `(id: string) => void`<br>
@@ -568,7 +617,7 @@ for (const moduleId of this.getModuleIds()) { /* ... */ }
 
 or converted into an Array via `Array.from(this.getModuleIds())`.
 
-#### `this.getModuleInfo(moduleId: string) => ModuleInfo`
+#### `this.getModuleInfo(moduleId: string) => (ModuleInfo | null)`
 
 Returns additional information about the module in question in the form
 
@@ -587,7 +636,7 @@ Returns additional information about the module in question in the form
 }
 ```
 
-If the module id cannot be found, an error is thrown.
+This utility function returns `null` if the module id cannot be found.
 
 #### `this.meta: {rollupVersion: string, watchMode: boolean}`
 
@@ -602,10 +651,12 @@ An object containing potentially useful Rollup metadata:
 
 Use Rollup's internal acorn instance to parse code to an AST.
 
-#### `this.resolve(source: string, importer?: string, options?: {skipSelf: boolean}) => Promise<{id: string, external: boolean} | null>`
+#### `this.resolve(source: string, importer?: string, options?: {skipSelf?: boolean, custom?: {[plugin: string]: any}}) => Promise<{id: string, external: boolean, moduleSideEffects: boolean | 'no-treeshake', syntheticNamedExports: boolean | string, custom: {[plugin: string]: any}} | null>`
 Resolve imports to module ids (i.e. file names) using the same plugins that Rollup uses, and determine if an import should be external. If `null` is returned, the import could not be resolved by Rollup or any plugin but was not explicitly marked as external by the user.
 
 If you pass `skipSelf: true`, then the `resolveId` hook of the plugin from which `this.resolve` is called will be skipped when resolving.
+
+You can also pass an object of plugin-specific options via the `custom` option, see [custom resolver options](guide/en/#custom-resolver-options) for details.
 
 #### `this.setAssetSource(assetReferenceId: string, source: string | Uint8Array) => void`
 
@@ -647,7 +698,7 @@ The `position` argument is a character index where the warning was raised. If pr
 
 - `this.getChunkFileName(chunkReferenceId: string) => string` - _**Use [`this.getFileName`](guide/en/#thisgetfilenamereferenceid-string--string)**_ - Get the file name of an emitted chunk. The file name will be relative to `outputOptions.dir`.
 
-- `this.isExternal(id: string, importer: string | undefined, isResolved: boolean) => boolean` - _**Use [`this.resolve`](guide/en/#thisresolvesource-string-importer-string-options-skipself-boolean--promiseid-string-external-boolean--null)**_ - Determine if a given module ID is external when imported by `importer`. When `isResolved` is false, Rollup will try to resolve the id before testing if it is external.
+- `this.isExternal(id: string, importer: string | undefined, isResolved: boolean) => boolean` - _**Use [`this.resolve`](guide/en/#thisresolvesource-string-importer-string-options-skipself-boolean-custom-plugin-string-any--promiseid-string-external-boolean-modulesideeffects-boolean--no-treeshake-syntheticnamedexports-boolean--string-custom-plugin-string-any--null)**_ - Determine if a given module ID is external when imported by `importer`. When `isResolved` is false, Rollup will try to resolve the id before testing if it is external.
 
 - `this.moduleIds: IterableIterator<string>` - _**Use [`this.getModuleIds`](guide/en/#thisgetmoduleids--iterableiteratorstring)**_ - An `Iterator` that gives access to all module ids in the current graph. It can be iterated via
 
@@ -658,7 +709,7 @@ The `position` argument is a character index where the warning was raised. If pr
   or converted into an Array via `Array.from(this.moduleIds)`.
 
 
-- `this.resolveId(source: string, importer?: string) => Promise<string | null>` - _**Use [`this.resolve`](guide/en/#thisresolvesource-string-importer-string-options-skipself-boolean--promiseid-string-external-boolean--null)**_ - Resolve imports to module ids (i.e. file names) using the same plugins that Rollup uses. Returns `null` if an id cannot be resolved.
+- `this.resolveId(source: string, importer?: string) => Promise<string | null>` - _**Use [`this.resolve`](guide/en/#thisresolvesource-string-importer-string-options-skipself-boolean-custom-plugin-string-any--promiseid-string-external-boolean-modulesideeffects-boolean--no-treeshake-syntheticnamedexports-boolean--string-custom-plugin-string-any--null)**_ - Resolve imports to module ids (i.e. file names) using the same plugins that Rollup uses. Returns `null` if an id cannot be resolved.
 
 ### File URLs
 
@@ -848,3 +899,119 @@ console.log(__synthetic);
 ```
 
 When used as an entry point, only explicit exports will be exposed. The synthetic fallback export, i.e. `__synthetic` in the example, will not be exposed for string values of `syntheticNamedExports`. However if the value is `true`, the default export will be exposed. This is the only notable difference between `syntheticNamedExports: true` and `syntheticNamedExports: 'default'`.
+
+### Inter-plugin communication
+
+At some point when using many dedicated plugins, there may be the need for unrelated plugins to be able to exchange information during the build. There are several mechanisms through which Rollup makes this possible.
+
+#### Custom resolver options
+
+Assume you have a plugin that should resolve a module to different ids depending on how it is imported. One way to achieve this would be to use special proxy ids when importing this module, e.g. a transpiled import via `require("foo")` could be denoted with an id `foo?require=true` so that a resolver plugin knows this.
+
+The problem here, however, is that this proxy id may or may not cause unintended side-effects when passed to other resolvers. Moreover, if the id is created by plugin `A` and the resolution happens in plugin `B`, it creates a dependency between these plugins so that one `A` is not usable without `B`.
+
+Custom resolver option offer a solution here by allowing to pass additional options for plugins when manually resolving a module. This happens without changing the id and thus without impairing the ability for other plugins to resolve the module correctly if the intended target plugin is not present.
+
+
+```js
+function requestingPlugin() {
+  return {
+    name: 'requesting',
+    async buildStart() {
+      const resolution = await this.resolve('foo', undefined, {
+        custom: {resolving: {specialResolution: true}}
+      });
+      console.log(resolution.id); // "special"
+    }
+  }
+}
+
+function resolvingPlugin() {
+  return {
+    name: 'resolving',
+    resolveId(id, importer, { custom }) {
+      if (custom.resolving?.specialResolution) {
+        return 'special';
+      }
+      return null;
+    }
+  }
+}
+```
+
+Note the convention that custom options should be added using a property corresponding to the plugin name of the resolving plugin. It is responsibility of the resolving plugin to specify which options it respects.
+
+#### Custom module meta-data
+
+Plugins can annotate modules with custom meta-data which can be accessed by themselves and other plugins via the [`resolveId`](guide/en/#resolveid), [`load`](guide/en/#load), and [`transform`](guide/en/#transform) hooks. This meta-data should always be JSON.stringifyable and will be persisted in the cache e.g. in watch mode.
+
+```js
+function annotatingPlugin() {
+  return {
+    name: 'annotating',
+    transform(code, id) {
+      if (thisModuleIsSpecial(code, id)) {
+        return {meta: {annotating: {special: true}}}
+      }
+    }
+  }
+}
+
+function readingPlugin() {
+  let parentApi;
+  return {
+    name: 'reading',
+    buildEnd() {
+      const specialModules = Array.from(this.getModuleIds())
+        .filter(id => this.getModuleInfo(id).meta.annotating?.special);
+      // do something with this list
+    }
+  }
+}
+```
+
+Note the convention that plugins that add or modify data should use a property corresponding to the plugin name, in this case `annotating`. On the other hand, any plugin can read all meta-data from other plugins via `this.getModuleInfo`.
+
+If several plugins add meta-data or meta-data is added in different hooks, then these `meta` objects will be merged shallowly. That means if plugin `first` adds `{meta: {first: {resolved: "first"}}}` in the resolveId hook and `{meta: {first: {loaded: "first"}}}` in the load hook wile plugin `second` adds `{meta: {second: {transformed: "second"}}}` in the `transform` hook, then the resulting `meta` object will be `{first: {loaded: "first"}, second: {transformed: "second"}}`. Here the result of the `resolveId` hook will be overwritten by the result of the `load` hook as the plugin was both storing them under its `first` top-level property. The `transform` data of the other plugin on the other hand will be placed next to it.
+
+#### Direct plugin communication
+
+For any other kind of inter-plugin communication, we recommend the pattern below. Note that `api` will never conflict with any upcoming plugin hooks.
+
+```js
+function parentPlugin() {
+  return {
+    name: 'parent',
+    api: {
+      //...methods and properties exposed for other plugins
+      doSomething(...args) {
+        // do something interesting
+      }
+    }
+    // ...plugin hooks
+  }
+}
+
+function dependentPlugin() {
+  let parentApi;
+  return {
+    name: 'dependent',
+    buildStart({ plugins }) {
+      const parentName = 'parent';
+      const parentPlugin = options.plugins
+        .find(plugin => plugin.name === parentName);
+      if (!parentPlugin) {
+        // or handle this silently if it is optional
+        throw new Error(`This plugin depends on the "${parentName}" plugin.`);
+      }
+      // now you can access the API methods in subsequent hooks
+      parentApi = parentPlugin.api;
+    }
+    transform(code, id) {
+      if (thereIsAReasonToDoSomething(id)) {
+        parentApi.doSomething(id);
+      }
+    }
+  }
+}
+```

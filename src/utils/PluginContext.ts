@@ -8,6 +8,7 @@ import {
 	RollupWarning,
 	SerializablePluginCache
 } from '../rollup/types';
+import { BLANK } from './blank';
 import { BuildPhase } from './buildPhase';
 import { errInvalidRollupPhaseForAddWatchFile, warnDeprecation } from './error';
 import { FileEmitter } from './FileEmitter';
@@ -155,17 +156,13 @@ export function getPluginContexts(
 				return wrappedModuleIds();
 			},
 			parse: graph.contextParse,
-			resolve(source, importer, options?: { skipSelf: boolean }) {
-				return graph.moduleLoader.resolveId(
-					source,
-					importer,
-					options && options.skipSelf ? pidx : null
-				);
+			resolve(source, importer, { custom, skipSelf } = BLANK) {
+				return graph.moduleLoader.resolveId(source, importer, custom, skipSelf ? pidx : null);
 			},
 			resolveId: getDeprecatedContextHandler(
 				(source: string, importer: string | undefined) =>
 					graph.moduleLoader
-						.resolveId(source, importer)
+						.resolveId(source, importer, BLANK)
 						.then(resolveId => resolveId && resolveId.id),
 				'resolveId',
 				'resolve',

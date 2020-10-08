@@ -13,6 +13,7 @@ module.exports = {
 				assert.deepStrictEqual(await this.resolve('./external.js'), {
 					external: true,
 					id: path.resolve(__dirname, 'external.js'),
+					meta: {},
 					moduleSideEffects: true,
 					syntheticNamedExports: false
 				});
@@ -21,6 +22,7 @@ module.exports = {
 					{
 						external: true,
 						id: path.resolve(__dirname, 'nested', 'external.js'),
+						meta: {},
 						moduleSideEffects: true,
 						syntheticNamedExports: false
 					}

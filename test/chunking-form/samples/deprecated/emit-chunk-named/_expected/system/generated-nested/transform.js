@@ -7,7 +7,7 @@ System.register(['../generated-dep.js'], function () {
 		}],
 		execute: function () {
 
-			console.log('startBuild', value);
+			console.log('transform', value);
 
 		}
 	};

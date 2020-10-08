@@ -85,25 +85,31 @@ export interface SourceMap {
 
 export type SourceMapInput = ExistingRawSourceMap | string | null | { mappings: '' };
 
-export interface SourceDescription {
+type PartialNull<T> = {
+	[P in keyof T]: T[P] | null;
+};
+
+interface ModuleOptions {
+	meta: CustomPluginOptions;
+	moduleSideEffects: boolean | 'no-treeshake';
+	syntheticNamedExports: boolean | string;
+}
+
+export interface SourceDescription extends Partial<PartialNull<ModuleOptions>> {
 	ast?: AcornNode;
 	code: string;
 	map?: SourceMapInput;
-	moduleSideEffects?: boolean | 'no-treeshake' | null;
-	syntheticNamedExports?: boolean | string;
 }
 
-export interface TransformModuleJSON {
+export interface TransformModuleJSON extends Partial<PartialNull<ModuleOptions>> {
 	ast?: AcornNode;
 	code: string;
 	// note if plugins use new this.cache to opt-out auto transform cache
 	customTransformCache: boolean;
-	moduleSideEffects: boolean | 'no-treeshake' | null;
 	originalCode: string;
 	originalSourcemap: ExistingDecodedSourceMap | null;
 	resolvedIds?: ResolvedIdMap;
 	sourcemapChain: DecodedSourceMapOrMissing[];
-	syntheticNamedExports: boolean | string | null;
 	transformDependencies: string[];
 }
 
@@ -152,19 +158,24 @@ export type EmitChunk = (id: string, options?: { name?: string }) => string;
 export type EmitFile = (emittedFile: EmittedFile) => string;
 
 interface ModuleInfo {
-	dynamicallyImportedIds: string[];
-	dynamicImporters: string[];
+	dynamicallyImportedIds: readonly string[];
+	dynamicImporters: readonly string[];
 	hasModuleSideEffects: boolean | 'no-treeshake';
 	id: string;
-	implicitlyLoadedAfterOneOf: string[];
-	implicitlyLoadedBefore: string[];
-	importedIds: string[];
-	importers: string[];
+	implicitlyLoadedAfterOneOf: readonly string[];
+	implicitlyLoadedBefore: readonly string[];
+	importedIds: readonly string[];
+	importers: readonly string[];
 	isEntry: boolean;
 	isExternal: boolean;
+	meta: CustomPluginOptions;
 }
 
-export type GetModuleInfo = (moduleId: string) => ModuleInfo;
+export type GetModuleInfo = (moduleId: string) => ModuleInfo | null;
+
+export interface CustomPluginOptions {
+	[plugin: string]: any;
+}
 
 export interface PluginContext extends MinimalPluginContext {
 	addWatchFile: (id: string) => void;
@@ -190,7 +201,7 @@ export interface PluginContext extends MinimalPluginContext {
 	resolve: (
 		source: string,
 		importer?: string,
-		options?: { skipSelf: boolean }
+		options?: { custom?: CustomPluginOptions; skipSelf?: boolean }
 	) => Promise<ResolvedId | null>;
 	/** @deprecated Use `this.resolve` instead */
 	resolveId: (source: string, importer?: string) => Promise<string | null>;
@@ -203,22 +214,18 @@ export interface PluginContextMeta {
 	watchMode: boolean;
 }
 
-export interface ResolvedId {
+export interface ResolvedId extends ModuleOptions {
 	external: boolean;
 	id: string;
-	moduleSideEffects: boolean | 'no-treeshake';
-	syntheticNamedExports: boolean | string;
 }
 
 export interface ResolvedIdMap {
 	[key: string]: ResolvedId;
 }
 
-interface PartialResolvedId {
+interface PartialResolvedId extends Partial<PartialNull<ModuleOptions>> {
 	external?: boolean;
 	id: string;
-	moduleSideEffects?: boolean | 'no-treeshake' | null;
-	syntheticNamedExports?: boolean | string;
 }
 
 export type ResolveIdResult = string | false | null | undefined | PartialResolvedId;
@@ -226,7 +233,8 @@ export type ResolveIdResult = string | false | null | undefined | PartialResolve
 export type ResolveIdHook = (
 	this: PluginContext,
 	source: string,
-	importer: string | undefined
+	importer: string | undefined,
+	options: { custom?: CustomPluginOptions }
 ) => Promise<ResolveIdResult> | ResolveIdResult;
 
 export type IsExternal = (
@@ -247,7 +255,7 @@ export interface TransformPluginContext extends PluginContext {
 	getCombinedSourcemap: () => SourceMap;
 }
 
-export type TransformResult = string | null | undefined | SourceDescription;
+export type TransformResult = string | null | undefined | Partial<SourceDescription>;
 
 export type TransformHook = (
 	this: TransformPluginContext,
@@ -432,6 +440,8 @@ interface OutputPluginValueHooks {
 }
 
 export interface Plugin extends Partial<PluginHooks>, Partial<OutputPluginValueHooks> {
+	// for inter-plugin communication
+	api?: any;
 	name: string;
 }
 

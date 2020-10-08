@@ -3,13 +3,16 @@ import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import Module from './Module';
 import {
+	CustomPluginOptions,
 	EmittedChunk,
 	HasModuleSideEffects,
 	NormalizedInputOptions,
+	PartialResolvedId,
 	ResolvedId,
 	ResolveIdResult,
 	SourceDescription
 } from './rollup/types';
+import { EMPTY_OBJECT } from './utils/blank';
 import {
 	errBadLoader,
 	errEntryCannotBeExternal,
@@ -135,16 +138,41 @@ export class ModuleLoader {
 	async resolveId(
 		source: string,
 		importer: string | undefined,
+		customOptions: CustomPluginOptions | undefined,
 		skip: number | null = null
 	): Promise<ResolvedId | null> {
-		return this.normalizeResolveIdResult(
-			this.options.external(source, importer, false)
-				? false
-				: await resolveId(source, importer, this.options.preserveSymlinks, this.pluginDriver, skip),
+		return this.addDefaultsToResolvedId(
+			this.getNormalizedResolvedIdWithoutDefaults(
+				this.options.external(source, importer, false)
+					? false
+					: await resolveId(
+							source,
+							importer,
+							this.options.preserveSymlinks,
+							this.pluginDriver,
+							skip,
+							customOptions
+					  ),
 
-			importer,
-			source
+				importer,
+				source
+			)
 		);
+	}
+
+	private addDefaultsToResolvedId(resolvedId: PartialResolvedId | null): ResolvedId | null {
+		if (!resolvedId) {
+			return null;
+		}
+		const external = resolvedId.external || false;
+		return {
+			external,
+			id: resolvedId.id,
+			meta: resolvedId.meta || EMPTY_OBJECT,
+			moduleSideEffects:
+				resolvedId.moduleSideEffects ?? this.hasModuleSideEffects(resolvedId.id, external),
+			syntheticNamedExports: resolvedId.syntheticNamedExports ?? false
+		};
 	}
 
 	private addEntryWithImplicitDependants(
@@ -207,12 +235,7 @@ export class ModuleLoader {
 			}
 			module.setSource(cachedModule);
 		} else {
-			if (sourceDescription.moduleSideEffects != null) {
-				module.moduleSideEffects = sourceDescription.moduleSideEffects;
-			}
-			if (sourceDescription.syntheticNamedExports != null) {
-				module.syntheticNamedExports = sourceDescription.syntheticNamedExports;
-			}
+			module.updateOptions(sourceDescription);
 			module.setSource(
 				await transform(sourceDescription, module, this.pluginDriver, this.options.onwarn)
 			);
@@ -267,10 +290,8 @@ export class ModuleLoader {
 	}
 
 	private async fetchModule(
-		id: string,
+		{ id, meta, moduleSideEffects, syntheticNamedExports }: ResolvedId,
 		importer: string | undefined,
-		moduleSideEffects: boolean | 'no-treeshake',
-		syntheticNamedExports: boolean | string,
 		isEntry: boolean
 	): Promise<Module> {
 		const existingModule = this.modulesById.get(id);
@@ -290,9 +311,10 @@ export class ModuleLoader {
 			this.graph,
 			id,
 			this.options,
+			isEntry,
 			moduleSideEffects,
 			syntheticNamedExports,
-			isEntry
+			meta
 		);
 		this.modulesById.set(id, module);
 		this.graph.watchFiles[id] = true;
@@ -314,7 +336,12 @@ export class ModuleLoader {
 			if (!this.modulesById.has(resolvedId.id)) {
 				this.modulesById.set(
 					resolvedId.id,
-					new ExternalModule(this.options, resolvedId.id, resolvedId.moduleSideEffects)
+					new ExternalModule(
+						this.options,
+						resolvedId.id,
+						resolvedId.moduleSideEffects,
+						resolvedId.meta
+					)
 				);
 			}
 
@@ -324,13 +351,7 @@ export class ModuleLoader {
 			}
 			return Promise.resolve(externalModule);
 		} else {
-			return this.fetchModule(
-				resolvedId.id,
-				importer,
-				resolvedId.moduleSideEffects,
-				resolvedId.syntheticNamedExports,
-				false
-			);
+			return this.fetchModule(resolvedId, importer, false);
 		}
 	}
 
@@ -342,13 +363,46 @@ export class ModuleLoader {
 					module.id,
 					(module.resolvedIds[source] =
 						module.resolvedIds[source] ||
-						this.handleResolveId(await this.resolveId(source, module.id), source, module.id))
+						this.handleResolveId(
+							await this.resolveId(source, module.id, EMPTY_OBJECT),
+							source,
+							module.id
+						))
 				)
 			)
 		)) {
 			module.dependencies.add(dependency);
 			dependency.importers.push(module.id);
 		}
+	}
+
+	private getNormalizedResolvedIdWithoutDefaults(
+		resolveIdResult: ResolveIdResult,
+		importer: string | undefined,
+		source: string
+	): (PartialResolvedId & { external: boolean }) | null {
+		if (resolveIdResult) {
+			if (typeof resolveIdResult === 'object') {
+				return {
+					...resolveIdResult,
+					external:
+						resolveIdResult.external || this.options.external(resolveIdResult.id, importer, true)
+				};
+			}
+			const external = this.options.external(resolveIdResult, importer, true);
+			return {
+				external,
+				id: external ? normalizeRelativeExternalId(resolveIdResult, importer) : resolveIdResult
+			};
+		}
+		const id = normalizeRelativeExternalId(source, importer);
+		if (resolveIdResult !== false && !this.options.external(id, importer, true)) {
+			return null;
+		}
+		return {
+			external: true,
+			id
+		};
 	}
 
 	private handleResolveId(
@@ -364,6 +418,7 @@ export class ModuleLoader {
 			return {
 				external: true,
 				id: source,
+				meta: EMPTY_OBJECT,
 				moduleSideEffects: this.hasModuleSideEffects(source, true),
 				syntheticNamedExports: false
 			};
@@ -386,11 +441,19 @@ export class ModuleLoader {
 			importer,
 			this.options.preserveSymlinks,
 			this.pluginDriver,
-			null
+			null,
+			EMPTY_OBJECT
 		);
+		if (resolveIdResult == null) {
+			return error(
+				implicitlyLoadedBefore === null
+					? errUnresolvedEntry(unresolvedId)
+					: errUnresolvedImplicitDependant(unresolvedId, implicitlyLoadedBefore)
+			);
+		}
 		if (
 			resolveIdResult === false ||
-			(resolveIdResult && typeof resolveIdResult === 'object' && resolveIdResult.external)
+			(typeof resolveIdResult === 'object' && resolveIdResult.external)
 		) {
 			return error(
 				implicitlyLoadedBefore === null
@@ -398,59 +461,13 @@ export class ModuleLoader {
 					: errImplicitDependantCannotBeExternal(unresolvedId, implicitlyLoadedBefore)
 			);
 		}
-		const id =
-			resolveIdResult && typeof resolveIdResult === 'object' ? resolveIdResult.id : resolveIdResult;
-
-		if (typeof id === 'string') {
-			return this.fetchModule(id, undefined, true, false, isEntry);
-		}
-		return error(
-			implicitlyLoadedBefore === null
-				? errUnresolvedEntry(unresolvedId)
-				: errUnresolvedImplicitDependant(unresolvedId, implicitlyLoadedBefore)
+		return this.fetchModule(
+			this.addDefaultsToResolvedId(
+				typeof resolveIdResult === 'object' ? resolveIdResult : { id: resolveIdResult }
+			)!,
+			undefined,
+			isEntry
 		);
-	}
-
-	private normalizeResolveIdResult(
-		resolveIdResult: ResolveIdResult,
-		importer: string | undefined,
-		source: string
-	): ResolvedId | null {
-		let id = '';
-		let external = false;
-		let moduleSideEffects: boolean | 'no-treeshake' | null = null;
-		let syntheticNamedExports: boolean | string = false;
-		if (resolveIdResult) {
-			if (typeof resolveIdResult === 'object') {
-				id = resolveIdResult.id;
-				if (resolveIdResult.external || this.options.external(resolveIdResult.id, importer, true)) {
-					external = true;
-				}
-				if (resolveIdResult.moduleSideEffects != null) {
-					moduleSideEffects = resolveIdResult.moduleSideEffects;
-				}
-				if (resolveIdResult.syntheticNamedExports != null) {
-					syntheticNamedExports = resolveIdResult.syntheticNamedExports;
-				}
-			} else {
-				if (this.options.external(resolveIdResult, importer, true)) {
-					external = true;
-				}
-				id = external ? normalizeRelativeExternalId(resolveIdResult, importer) : resolveIdResult;
-			}
-		} else {
-			id = normalizeRelativeExternalId(source, importer);
-			if (resolveIdResult !== false && !this.options.external(id, importer, true)) {
-				return null;
-			}
-			external = true;
-		}
-		return {
-			external,
-			id,
-			moduleSideEffects: moduleSideEffects ?? this.hasModuleSideEffects(id, external),
-			syntheticNamedExports
-		};
 	}
 
 	private async resolveDynamicImport(
@@ -479,10 +496,16 @@ export class ModuleLoader {
 		if (resolution == null) {
 			return (module.resolvedIds[specifier] =
 				module.resolvedIds[specifier] ||
-				this.handleResolveId(await this.resolveId(specifier, module.id), specifier, module.id));
+				this.handleResolveId(
+					await this.resolveId(specifier, module.id, EMPTY_OBJECT),
+					specifier,
+					module.id
+				));
 		}
 		return this.handleResolveId(
-			this.normalizeResolveIdResult(resolution, importer, specifier),
+			this.addDefaultsToResolvedId(
+				this.getNormalizedResolvedIdWithoutDefaults(resolution, importer, specifier)
+			),
 			specifier,
 			importer
 		);

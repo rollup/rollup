@@ -64,20 +64,17 @@ function deindent(str) {
 	return str.slice(1).replace(/^\t+/gm, '').replace(/\s+$/gm, '').trim();
 }
 
-function executeBundle(bundle, require) {
-	return bundle
-		.generate({
-			exports: 'auto',
-			format: 'cjs'
-		})
-		.then(({ output: [cjs] }) => {
-			const m = new Function('module', 'exports', 'require', cjs.code);
-
-			const module = { exports: {} };
-			m(module, module.exports, require);
-
-			return module.exports;
-		});
+async function executeBundle(bundle, require) {
+	const {
+		output: [cjs]
+	} = await bundle.generate({
+		exports: 'auto',
+		format: 'cjs'
+	});
+	const wrapper = new Function('module', 'exports', 'require', cjs.code);
+	const module = { exports: {} };
+	wrapper(module, module.exports, require);
+	return module.exports;
 }
 
 function getObject(entries) {

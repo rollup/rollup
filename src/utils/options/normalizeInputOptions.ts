@@ -92,7 +92,7 @@ const getOnwarn = (config: GenericConfigObject): WarningHandler => {
 
 const getAcorn = (config: GenericConfigObject): acorn.Options => ({
 	allowAwaitOutsideFunction: true,
-	ecmaVersion: 2020,
+	ecmaVersion: 'latest',
 	preserveParens: false,
 	sourceType: 'module',
 	...(config.acorn as Object)

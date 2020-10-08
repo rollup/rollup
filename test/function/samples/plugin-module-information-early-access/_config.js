@@ -11,16 +11,9 @@ module.exports = {
 			{
 				buildStart() {
 					assert.deepStrictEqual(Array.from(this.getModuleIds()), []);
-					// should throw "not found" error
-					this.getModuleInfo(ID_MAIN);
+					assert.strictEqual(this.getModuleInfo(ID_MAIN), null);
 				}
 			}
 		]
-	},
-	error: {
-		code: 'PLUGIN_ERROR',
-		hook: 'buildStart',
-		message: `Unable to find module ${ID_MAIN}`,
-		plugin: 'at position 1'
 	}
 };

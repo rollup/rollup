@@ -24,7 +24,8 @@ module.exports = {
 					importedIds: [],
 					importers: [],
 					isEntry: id === ID_MAIN,
-					isExternal: false
+					isExternal: false,
+					meta: {}
 				});
 			},
 			renderStart() {
@@ -45,7 +46,8 @@ module.exports = {
 					importedIds: [ID_FOO],
 					importers: [],
 					isEntry: true,
-					isExternal: false
+					isExternal: false,
+					meta: {}
 				});
 				assert.deepStrictEqual(this.getModuleInfo(ID_FOO), {
 					dynamicImporters: [],
@@ -57,7 +59,8 @@ module.exports = {
 					importedIds: [ID_PATH],
 					importers: [ID_MAIN, ID_NESTED],
 					isEntry: false,
-					isExternal: false
+					isExternal: false,
+					meta: {}
 				});
 				assert.deepStrictEqual(this.getModuleInfo(ID_NESTED), {
 					dynamicImporters: [ID_MAIN],
@@ -69,7 +72,8 @@ module.exports = {
 					importedIds: [ID_FOO],
 					importers: [],
 					isEntry: false,
-					isExternal: false
+					isExternal: false,
+					meta: {}
 				});
 				assert.deepStrictEqual(this.getModuleInfo(ID_PATH), {
 					dynamicImporters: [ID_MAIN],
@@ -81,7 +85,8 @@ module.exports = {
 					importedIds: [],
 					importers: [ID_FOO],
 					isEntry: false,
-					isExternal: true
+					isExternal: true,
+					meta: {}
 				});
 			}
 		}

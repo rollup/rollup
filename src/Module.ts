@@ -29,11 +29,14 @@ import Variable from './ast/variables/Variable';
 import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import {
+	CustomPluginOptions,
 	DecodedSourceMapOrMissing,
 	EmittedFile,
 	ExistingDecodedSourceMap,
 	ModuleJSON,
+	ModuleOptions,
 	NormalizedInputOptions,
+	PartialNull,
 	PreserveEntrySignaturesOption,
 	ResolvedIdMap,
 	RollupError,
@@ -220,7 +223,7 @@ export default class Module {
 	private alwaysRemovedCode!: [number, number][];
 	private ast!: Program;
 	private astContext!: AstContext;
-	private context: string;
+	private readonly context: string;
 	private customTransformCache!: boolean;
 	private esTreeAst!: acorn.Node;
 	private exportAllModules: (Module | ExternalModule)[] = [];
@@ -237,9 +240,10 @@ export default class Module {
 		private readonly graph: Graph,
 		public readonly id: string,
 		private readonly options: NormalizedInputOptions,
+		public isEntryPoint: boolean,
 		public moduleSideEffects: boolean | 'no-treeshake',
 		public syntheticNamedExports: boolean | string,
-		public isEntryPoint: boolean
+		public meta: CustomPluginOptions
 	) {
 		this.excludeFromSourcemap = /\0/.test(id);
 		this.context = options.moduleContext(id);
@@ -610,14 +614,13 @@ export default class Module {
 		ast,
 		code,
 		customTransformCache,
-		moduleSideEffects,
 		originalCode,
 		originalSourcemap,
 		resolvedIds,
 		sourcemapChain,
-		syntheticNamedExports,
 		transformDependencies,
-		transformFiles
+		transformFiles,
+		...moduleOptions
 	}: TransformModuleJSON & {
 		alwaysRemovedCode?: [number, number][];
 		transformFiles?: EmittedFile[] | undefined;
@@ -631,12 +634,7 @@ export default class Module {
 		}
 		this.transformDependencies = transformDependencies;
 		this.customTransformCache = customTransformCache;
-		if (moduleSideEffects != null) {
-			this.moduleSideEffects = moduleSideEffects;
-		}
-		if (syntheticNamedExports != null) {
-			this.syntheticNamedExports = syntheticNamedExports;
-		}
+		this.updateOptions(moduleOptions);
 
 		timeStart('generate ast', 3);
 
@@ -644,7 +642,7 @@ export default class Module {
 		if (ast) {
 			this.esTreeAst = ast;
 		} else {
-			this.esTreeAst = tryParse(this, this.graph.acornParser, this.options.acorn);
+			this.esTreeAst = tryParse(this, this.graph.acornParser, this.options.acorn as acorn.Options);
 			for (const comment of this.comments) {
 				if (!comment.block && SOURCEMAPPING_URL_RE.test(comment.text)) {
 					this.alwaysRemovedCode.push([comment.start, comment.end]);
@@ -718,6 +716,7 @@ export default class Module {
 			customTransformCache: this.customTransformCache,
 			dependencies: Array.from(this.dependencies, getId),
 			id: this.id,
+			meta: this.meta,
 			moduleSideEffects: this.moduleSideEffects,
 			originalCode: this.originalCode,
 			originalSourcemap: this.originalSourcemap,
@@ -758,6 +757,22 @@ export default class Module {
 		}
 
 		return null;
+	}
+
+	updateOptions({
+		meta,
+		moduleSideEffects,
+		syntheticNamedExports
+	}: Partial<PartialNull<ModuleOptions>>) {
+		if (moduleSideEffects != null) {
+			this.moduleSideEffects = moduleSideEffects;
+		}
+		if (syntheticNamedExports != null) {
+			this.syntheticNamedExports = syntheticNamedExports;
+		}
+		if (meta != null) {
+			this.meta = { ...this.meta, ...meta };
+		}
 	}
 
 	warn(props: RollupWarning, pos: number) {

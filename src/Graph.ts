@@ -12,6 +12,7 @@ import {
 	RollupWatcher,
 	SerializablePluginCache
 } from './rollup/types';
+import { EMPTY_ARRAY } from './utils/blank';
 import { BuildPhase } from './utils/buildPhase';
 import { errImplicitDependantIsNotIncluded, error } from './utils/error';
 import { analyseModuleExecution } from './utils/executionOrder';
@@ -77,9 +78,9 @@ export default class Graph {
 				for (const key of Object.keys(cache)) cache[key][0]++;
 			}
 		}
-		this.contextParse = (code: string, options: acorn.Options = {}) =>
+		this.contextParse = (code: string, options: Partial<acorn.Options> = {}) =>
 			this.acornParser.parse(code, {
-				...this.options.acorn,
+				...(this.options.acorn as acorn.Options),
 				...options
 			});
 
@@ -132,36 +133,49 @@ export default class Graph {
 		};
 	}
 
-	getModuleInfo = (moduleId: string): ModuleInfo => {
+	getModuleInfo = (moduleId: string): ModuleInfo | null => {
 		const foundModule = this.modulesById.get(moduleId);
-		if (foundModule == null) {
-			throw new Error(`Unable to find module ${moduleId}`);
-		}
-		const importedIds: string[] = [];
-		const dynamicallyImportedIds: string[] = [];
-		if (foundModule instanceof Module) {
-			for (const source of foundModule.sources) {
-				importedIds.push(foundModule.resolvedIds[source].id);
-			}
-			for (const { resolution } of foundModule.dynamicImports) {
-				if (resolution instanceof Module || resolution instanceof ExternalModule) {
-					dynamicallyImportedIds.push(resolution.id);
-				}
-			}
-		}
+		if (!foundModule) return null;
 		return {
-			dynamicallyImportedIds,
-			dynamicImporters: foundModule.dynamicImporters.sort(),
+			get dynamicallyImportedIds() {
+				if (foundModule instanceof Module) {
+					const dynamicallyImportedIds: string[] = [];
+					for (const { resolution } of foundModule.dynamicImports) {
+						if (resolution instanceof Module || resolution instanceof ExternalModule) {
+							dynamicallyImportedIds.push(resolution.id);
+						}
+					}
+					return dynamicallyImportedIds;
+				}
+				return EMPTY_ARRAY;
+			},
+			get dynamicImporters() {
+				return foundModule!.dynamicImporters.sort();
+			},
 			hasModuleSideEffects: foundModule.moduleSideEffects,
 			id: foundModule.id,
-			implicitlyLoadedAfterOneOf:
-				foundModule instanceof Module ? Array.from(foundModule.implicitlyLoadedAfter, getId) : [],
-			implicitlyLoadedBefore:
-				foundModule instanceof Module ? Array.from(foundModule.implicitlyLoadedBefore, getId) : [],
-			importedIds,
-			importers: foundModule.importers.sort(),
+			get implicitlyLoadedAfterOneOf() {
+				return foundModule instanceof Module
+					? Array.from(foundModule.implicitlyLoadedAfter, getId)
+					: EMPTY_ARRAY;
+			},
+			get implicitlyLoadedBefore() {
+				return foundModule instanceof Module
+					? Array.from(foundModule.implicitlyLoadedBefore, getId)
+					: [];
+			},
+			get importedIds() {
+				if (foundModule instanceof Module) {
+					return Array.from(foundModule.sources, source => foundModule.resolvedIds[source].id);
+				}
+				return EMPTY_ARRAY;
+			},
+			get importers() {
+				return foundModule!.importers.sort();
+			},
 			isEntry: foundModule instanceof Module && foundModule.isEntryPoint,
-			isExternal: foundModule instanceof ExternalModule
+			isExternal: foundModule instanceof ExternalModule,
+			meta: foundModule.meta
 		};
 	};
 

@@ -156,6 +156,11 @@ describe('misc', () => {
 	it('allows passing the same object to `rollup` and `generate`', () => {
 		const options = {
 			input: 'input',
+			onwarn(warning, handler) {
+				if (warning.code !== 'INPUT_HOOK_IN_OUTPUT_PLUGIN') {
+					handler(warning);
+				}
+			},
 			plugins: [
 				loader({
 					input: 'export default 42;'
