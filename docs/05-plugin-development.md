@@ -144,7 +144,7 @@ Next Hook: [`load`](guide/en/#load) if the resolved id that has not yet been loa
 Defines a custom resolver. A resolver can be useful for e.g. locating third-party dependencies. Here `source` is the importee exactly as it is written in the import statement, i.e. for
 
 ```js
-import { foo } from '../bar,js';
+import { foo } from '../bar.js';
 ```
 
 the source will be `"../bar.js""`. 
