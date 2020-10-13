@@ -79,7 +79,7 @@ See [Output Generation Hooks](guide/en/#output-generation-hooks) for hooks that 
 #### `buildEnd`
 Type: `(error?: Error) => void`<br>
 Kind: `async, parallel`<br>
-Previous Hook: [`transform`](guide/en/#transform), [`resolveId`](guide/en/#resolveid) or [`resolveDynamicImport`](guide/en/#resolvedynamicimport).<br>
+Previous Hook: [`moduleParsed`](guide/en/#moduleparsed), [`resolveId`](guide/en/#resolveid) or [`resolveDynamicImport`](guide/en/#resolvedynamicimport).<br>
 Next Hook: [`outputOptions`](guide/en/#outputoptions) in the output generation phase as this is the last hook of the build phase.
 
 Called when rollup has finished bundling, but before `generate` or `write` is called; you can also return a Promise. If an error occurred during the build, it is passed on to this hook.
@@ -108,6 +108,18 @@ See [custom module meta-data](guide/en/#custom-module-meta-data) for how to use 
 
 You can use [`this.getModuleInfo`](guide/en/#thisgetmoduleinfomoduleid-string--moduleinfo--null) to find out the previous values of `moduleSideEffects`, `syntheticNamedExports` and `meta` inside this hook.
 
+#### `moduleParsed`
+Type: `(moduleInfo: ModuleInfo) => void`<br>
+Kind: `async, parallel`<br>
+Previous Hook: [`transform`](guide/en/#transform) where the currently handled file was transformed.<br>
+NextHook: [`resolveId`](guide/en/#resolveid) and [`resolveDynamicImport`](guide/en/#resolvedynamicimport) to resolve all discovered static and dynamic imports in parallel if present, otherwise [`buildEnd`](guide/en/#buildend).
+
+This hook is called each time a module has been fully parsed by Rollup. See [`this.getModuleInfo`](guide/en/#thisgetmoduleinfomoduleid-string--moduleinfo--null) for what information is passed to this hook.
+
+In contrast to the [`transform`](guide/en/#transform) hook, this hook is never cached and can be used to get information about both cached and other modules, including the final shape of the `meta` property, the `code` and the `ast`.
+
+Note that information about imported modules is not yet available in this hook, and information about importing modules may be incomplete as additional importers could be discovered later. If you need this information, use the [`buildEnd`](guide/en/#buildend) hook.
+
 #### `options`
 Type: `(options: InputOptions) => InputOptions | null`<br>
 Kind: `async, sequential`<br>
@@ -121,7 +133,7 @@ This is the only hook that does not have access to most [plugin context](guide/e
 #### `resolveDynamicImport`
 Type: `(specifier: string | ESTree.Node, importer: string) => string | false | null | {id: string, external?: boolean}`<br>
 Kind: `async, first`<br>
-Previous Hook: [`transform`](guide/en/#transform) where the importing file was transformed.<br>
+Previous Hook: [`moduleParsed`](guide/en/#moduleparsed) for the importing file.<br>
 Next Hook: [`load`](guide/en/#load) if the hook resolved with an id that has not yet been loaded, [`resolveId`](guide/en/#resolveid) if the dynamic import contains a string and was not resolved by the hook, otherwise [`buildEnd`](guide/en/#buildend).
 
 Defines a custom resolver for dynamic imports. Returning `false` signals that the import should be kept as it is and not be passed to other resolvers thus making it external. Similar to the [`resolveId`](guide/en/#resolveid) hook, you can also return an object to resolve the import to a different id while marking it as external at the same time.
@@ -138,7 +150,7 @@ Note that the return value of this hook will not be passed to `resolveId` afterw
 #### `resolveId`
 Type: `(source: string, importer: string | undefined, options: {custom?: {[plugin: string]: any}) => string | false | null | {id: string, external?: boolean, moduleSideEffects?: boolean | "no-treeshake" | null, syntheticNamedExports?: boolean | string | null, meta?: {[plugin: string]: any} | null}`<br>
 Kind: `async, first`<br>
-Previous Hook: [`buildStart`](guide/en/#buildstart) if we are resolving an entry point, [`transform`](guide/en/#transform) if we are resolving an import, or as fallback for [`resolveDynamicImport`](guide/en/#resolvedynamicimport). Additionally this hook can be triggered during the build phase from plugin hooks by calling [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string) to emit an entry point or at any time by calling [`this.resolve`](guide/en/#thisresolvesource-string-importer-string-options-skipself-boolean-custom-plugin-string-any--promiseid-string-external-boolean-modulesideeffects-boolean--no-treeshake-syntheticnamedexports-boolean--string-custom-plugin-string-any--null) to manually resolve an id.<br>
+Previous Hook: [`buildStart`](guide/en/#buildstart) if we are resolving an entry point, [`moduleParsed`](guide/en/#moduleparsed) if we are resolving an import, or as fallback for [`resolveDynamicImport`](guide/en/#resolvedynamicimport). Additionally this hook can be triggered during the build phase from plugin hooks by calling [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string) to emit an entry point or at any time by calling [`this.resolve`](guide/en/#thisresolvesource-string-importer-string-options-skipself-boolean-custom-plugin-string-any--promiseid-string-external-boolean-modulesideeffects-boolean--no-treeshake-syntheticnamedexports-boolean--string-custom-plugin-string-any--null) to manually resolve an id.<br>
 Next Hook: [`load`](guide/en/#load) if the resolved id that has not yet been loaded, otherwise [`buildEnd`](guide/en/#buildend).
 
 Defines a custom resolver. A resolver can be useful for e.g. locating third-party dependencies. Here `source` is the importee exactly as it is written in the import statement, i.e. for
@@ -201,7 +213,7 @@ When triggering this hook from a plugin via [`this.resolve(source, importer, opt
 Type: `(code: string, id: string) => string | null | {code?: string, map?: string | SourceMap, ast? : ESTree.Program, moduleSideEffects?: boolean | "no-treeshake" | null, syntheticNamedExports?: boolean | string | null, meta?: {[plugin: string]: any} | null}`<br>
 Kind: `async, sequential`<br>
 Previous Hook: [`load`](guide/en/#load) where the currently handled file was loaded.<br>
-NextHook: [`resolveId`](guide/en/#resolveid) and [`resolveDynamicImport`](guide/en/#resolvedynamicimport) to resolve all discovered static and dynamic imports in parallel if present, otherwise [`buildEnd`](guide/en/#buildend).
+NextHook: [`moduleParsed`](guide/en/#moduleparsed) once the file has been processed and parsed.
 
 Can be used to transform individual modules. To prevent additional parsing overhead in case e.g. this hook already used `this.parse` to generate an AST for some reason, this hook can optionally return a `{ code, ast, map }` object. The `ast` must be a standard ESTree AST with `start` and `end` properties for each node. If the transformation does not move code, you can preserve existing sourcemaps by setting `map` to `null`. Otherwise you might need to generate the source map. See [the section on source code transformations](#source-code-transformations).
 
@@ -624,6 +636,8 @@ Returns additional information about the module in question in the form
 ```
 {
   id: string, // the id of the module, for convenience
+  code: string | null, // the source code of the module, `null` if external or not yet available
+  ast: ESTree.Program, // the parsed abstract syntax tree if available
   isEntry: boolean, // is this a user- or plugin-defined entry point
   isExternal: boolean, // for external modules that are referenced but not included in the graph
   importedIds: string[], // the module ids statically imported by this module
@@ -636,7 +650,10 @@ Returns additional information about the module in question in the form
 }
 ```
 
-This utility function returns `null` if the module id cannot be found.
+During the build, this object represents currently available information about the module. Before the [`buildEnd`](guide/en/#buildend) hook, this information may be incomplete as e.g.
+ the `importedIds` are not yet resolved or additional `importers` are discovered.
+ 
+Returns `null` if the module id cannot be found.
 
 #### `this.meta: {rollupVersion: string, watchMode: boolean}`
 

@@ -48,6 +48,7 @@ const inputHookNames: {
 	buildEnd: 1,
 	buildStart: 1,
 	load: 1,
+	moduleParsed: 1,
 	options: 1,
 	resolveDynamicImport: 1,
 	resolveId: 1,

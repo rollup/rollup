@@ -12,11 +12,9 @@ import {
 	RollupWatcher,
 	SerializablePluginCache
 } from './rollup/types';
-import { EMPTY_ARRAY } from './utils/blank';
 import { BuildPhase } from './utils/buildPhase';
 import { errImplicitDependantIsNotIncluded, error } from './utils/error';
 import { analyseModuleExecution } from './utils/executionOrder';
-import { getId } from './utils/getId';
 import { PluginDriver } from './utils/PluginDriver';
 import relativeId from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
@@ -136,47 +134,7 @@ export default class Graph {
 	getModuleInfo = (moduleId: string): ModuleInfo | null => {
 		const foundModule = this.modulesById.get(moduleId);
 		if (!foundModule) return null;
-		return {
-			get dynamicallyImportedIds() {
-				if (foundModule instanceof Module) {
-					const dynamicallyImportedIds: string[] = [];
-					for (const { resolution } of foundModule.dynamicImports) {
-						if (resolution instanceof Module || resolution instanceof ExternalModule) {
-							dynamicallyImportedIds.push(resolution.id);
-						}
-					}
-					return dynamicallyImportedIds;
-				}
-				return EMPTY_ARRAY;
-			},
-			get dynamicImporters() {
-				return foundModule!.dynamicImporters.sort();
-			},
-			hasModuleSideEffects: foundModule.moduleSideEffects,
-			id: foundModule.id,
-			get implicitlyLoadedAfterOneOf() {
-				return foundModule instanceof Module
-					? Array.from(foundModule.implicitlyLoadedAfter, getId)
-					: EMPTY_ARRAY;
-			},
-			get implicitlyLoadedBefore() {
-				return foundModule instanceof Module
-					? Array.from(foundModule.implicitlyLoadedBefore, getId)
-					: [];
-			},
-			get importedIds() {
-				if (foundModule instanceof Module) {
-					return Array.from(foundModule.sources, source => foundModule.resolvedIds[source].id);
-				}
-				return EMPTY_ARRAY;
-			},
-			get importers() {
-				return foundModule!.importers.sort();
-			},
-			isEntry: foundModule instanceof Module && foundModule.isEntryPoint,
-			isExternal: foundModule instanceof ExternalModule,
-			meta: foundModule.meta
-		};
+		return foundModule.info;
 	};
 
 	private async generateModuleGraph(): Promise<void> {
@@ -211,7 +169,7 @@ export default class Graph {
 				this.needsTreeshakingPass = false;
 				for (const module of this.modules) {
 					if (module.isExecuted) {
-						if (module.moduleSideEffects === 'no-treeshake') {
+						if (module.info.hasModuleSideEffects === 'no-treeshake') {
 							module.includeAllInBundle();
 						} else {
 							module.include();
@@ -226,7 +184,7 @@ export default class Graph {
 		for (const externalModule of this.externalModules) externalModule.warnUnusedImports();
 		for (const module of this.implicitEntryModules) {
 			for (const dependant of module.implicitlyLoadedAfter) {
-				if (!(dependant.isEntryPoint || dependant.isIncluded())) {
+				if (!(dependant.info.isEntry || dependant.isIncluded())) {
 					error(errImplicitDependantIsNotIncluded(dependant));
 				}
 			}

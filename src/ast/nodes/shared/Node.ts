@@ -1,3 +1,4 @@
+import * as acorn from 'acorn';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
 import { AstContext, CommentDescription } from '../../../Module';
@@ -20,8 +21,7 @@ import * as NodeType from '../NodeType';
 import SpreadElement from '../SpreadElement';
 import { ExpressionEntity } from './Expression';
 
-export interface GenericEsTreeNode {
-	type: string;
+export interface GenericEsTreeNode extends acorn.Node {
 	[key: string]: any;
 }
 
@@ -32,6 +32,7 @@ export interface Node extends Entity {
 	annotations?: CommentDescription[];
 	context: AstContext;
 	end: number;
+	esTreeNode: GenericEsTreeNode;
 	included: boolean;
 	keys: string[];
 	needsBoundaries?: boolean;
@@ -93,6 +94,7 @@ export interface ExpressionNode extends ExpressionEntity, Node {}
 export class NodeBase implements ExpressionNode {
 	context: AstContext;
 	end!: number;
+	esTreeNode: acorn.Node;
 	included = false;
 	keys: string[];
 	parent: Node | { context: AstContext; type: string };
@@ -105,6 +107,7 @@ export class NodeBase implements ExpressionNode {
 		parent: Node | { context: AstContext; type: string },
 		parentScope: ChildScope
 	) {
+		this.esTreeNode = esTreeNode;
 		this.keys = keys[esTreeNode.type] || getAndCreateKeys(esTreeNode);
 		this.parent = parent;
 		this.context = parent.context;

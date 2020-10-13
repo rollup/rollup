@@ -32,6 +32,7 @@ Basic options:
 --exports <mode>            Specify export mode (auto, default, named, none)
 --extend                    Extend global variable defined by --name
 --no-externalLiveBindings   Do not generate code to support live bindings
+--failAfterWarnings         Exit with an error if the build produced warnings
 --footer <text>             Code to insert at end of bundle (outside wrapper)
 --no-freeze                 Do not freeze namespace objects
 --no-hoistTransitiveImports Do not hoist transitive imports into entry chunks
@@ -46,14 +47,13 @@ Basic options:
 --preferConst               Use `const` instead of `var` for exports
 --no-preserveEntrySignatures Avoid facade chunks for entry points
 --preserveModules           Preserve module structure
---preserveModulesRoot       Preserved modules under this path are rooted in output `dir`
+--preserveModulesRoot       Put preserved modules under this path at root level
 --preserveSymlinks          Do not follow symlinks when resolving files
 --shimMissingExports        Create shim variables for missing exports
 --silent                    Don't print warnings
---failAfterWarnings         Exit with an error code if there was a warning during the build
 --sourcemapExcludeSources   Do not include source code in source maps
 --sourcemapFile <file>      Specify bundle position for source maps
---stdin=ext                 Specify file extension used for stdin input - default is none
+--stdin=ext                 Specify file extension used for stdin input
 --no-stdin                  Do not read "-" from stdin
 --no-strict                 Don't emit `"use strict";` in the generated modules
 --strictDeprecations        Throw errors for deprecated features
