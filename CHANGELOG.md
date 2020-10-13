@@ -1,5 +1,21 @@
 # rollup changelog
 
+## 2.30.0
+*2020-10-13*
+
+### Features
+* Add `moduleParsed` hook that is called for each module once code and AST are available (#3813)
+* Include code and AST in `this.getModuleInfo` (#3813)
+
+### Bug Fixes
+* Provide the original Acorn AST instead of the internal one when resolving dynamic imports that contain non-trivial expressions (#3813)
+
+### Pull Requests
+* [#3813](https://github.com/rollup/rollup/pull/3813): Add moduleParsed plugin hook (@lukastaegert)
+* [#3815](https://github.com/rollup/rollup/pull/3815): Docs: wile => while (@tjenkinson)
+* [#3817](https://github.com/rollup/rollup/pull/3817): Docs: fix code snippet (@codefrau)
+* [#3818](https://github.com/rollup/rollup/pull/3818): Update documentation on configuring Babel, removing the section on passing '{"modules": false}' as that is no longer needed since Babel 7 (@Robin-Hoodie)
+
 ## 2.29.0
 *2020-10-08*
 
