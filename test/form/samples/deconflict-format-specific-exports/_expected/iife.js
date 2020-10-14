@@ -25,6 +25,8 @@ var bundle = (function (exports) {
 	nestedConflict();
 	nestedNoConflict();
 
+	Object.defineProperty(exports, '__esModule', { value: true });
+
 	return exports;
 
 }({}));

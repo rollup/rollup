@@ -13,6 +13,8 @@ var FooBar = (function (exports) {
 	exports.number = number;
 	exports.setting = setting;
 
+	Object.defineProperty(exports, '__esModule', { value: true });
+
 	return exports;
 
 }({}));

@@ -28,6 +28,8 @@ var bundle = (function (exports, external) {
 	exports.external = external__namespace;
 	exports.indirect = external__namespace;
 
+	Object.defineProperty(exports, '__esModule', { value: true });
+
 	return exports;
 
 }({}, external));

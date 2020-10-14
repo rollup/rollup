@@ -50,6 +50,8 @@ var bundle = (function (exports, externalFalse, externalTrue) {
 		}
 	});
 
+	Object.defineProperty(exports, '__esModule', { value: true });
+
 	return exports;
 
 }({}, externalfalse, externaltrue));

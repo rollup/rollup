@@ -15,6 +15,8 @@ var exposedInternals = (function (exports, external) {
 	});
 	exports.internalFn = internalFn;
 
+	Object.defineProperty(exports, '__esModule', { value: true });
+
 	return exports;
 
 }({}, external));

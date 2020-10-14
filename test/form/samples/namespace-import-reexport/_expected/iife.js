@@ -27,6 +27,8 @@ var iife = (function (exports, externalPackage) {
 
 	exports.ext = externalPackage__namespace;
 
+	Object.defineProperty(exports, '__esModule', { value: true });
+
 	return exports;
 
 }({}, externalPackage));

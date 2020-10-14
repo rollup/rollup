@@ -17,6 +17,8 @@ var bundle = (function (exports) {
 
 	exports.allExported = allExported;
 
+	Object.defineProperty(exports, '__esModule', { value: true });
+
 	return exports;
 
 }({}));

@@ -1,5 +1,5 @@
 module.exports = {
-	description: 'creates Symbol.toStringTag property',
+	description: 'adds Symbol.toStringTag property to inlined namespaces',
 	options: {
 		output: {
 			namespaceToStringTag: true

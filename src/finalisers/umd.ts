@@ -2,8 +2,7 @@ import { Bundle as MagicStringBundle } from 'magic-string';
 import { NormalizedOutputOptions } from '../rollup/types';
 import { error } from '../utils/error';
 import { FinaliserOptions } from './index';
-import { compactEsModuleExport, esModuleExport } from './shared/esModuleExport';
-import getExportBlock from './shared/getExportBlock';
+import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
 import { keypath, property } from './shared/sanitize';
 import { assignToDeepVariable } from './shared/setupNamespace';
@@ -45,6 +44,7 @@ export default function umd(
 		freeze,
 		interop,
 		name,
+		namespaceToStringTag,
 		globals,
 		noConflict,
 		strict
@@ -178,10 +178,13 @@ export default function umd(
 		t,
 		externalLiveBindings
 	);
-	if (exportBlock) magicString.append(exportBlock);
-	if (namedExportsMode && hasExports && esModule)
-		magicString.append(n + n + (compact ? compactEsModuleExport : esModuleExport));
-	if (outro) magicString.append(outro);
+	magicString.append(
+		`${exportBlock}${
+			namedExportsMode && hasExports && esModule
+				? `${n}${n}${getNamespaceMarkers(namespaceToStringTag, _, n)}`
+				: ''
+		}${outro}`
+	);
 
 	return magicString.trim().indent(t).append(wrapperOutro).prepend(wrapperIntro);
 }
