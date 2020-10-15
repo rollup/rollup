@@ -13,4 +13,6 @@
 	exports.number = number;
 	exports.setting = setting;
 
+	Object.defineProperty(exports, '__esModule', { value: true });
+
 }(this.FooBar = this.FooBar || {}));

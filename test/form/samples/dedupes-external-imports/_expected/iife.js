@@ -30,6 +30,8 @@ var myBundle = (function (exports, external) {
 	exports.baz = baz;
 	exports.foo = foo;
 
+	Object.defineProperty(exports, '__esModule', { value: true });
+
 	return exports;
 
 }({}, external));

@@ -13,6 +13,8 @@ var bundle = (function (exports) {
 	exports.module = module;
 	exports.require = require;
 
+	Object.defineProperty(exports, '__esModule', { value: true });
+
 	return exports;
 
 }({}));

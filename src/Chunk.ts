@@ -716,9 +716,10 @@ export default class Chunk {
 				hasExports,
 				indentString: this.indentString,
 				intro: addons.intro!,
-				isEntryModuleFacade:
+				isEntryFacade:
 					this.outputOptions.preserveModules ||
 					(this.facadeModule !== null && this.facadeModule.info.isEntry),
+				isModuleFacade: this.facadeModule !== null,
 				namedExportsMode: this.exportMode !== 'default',
 				outro: addons.outro!,
 				usesTopLevelAwait,

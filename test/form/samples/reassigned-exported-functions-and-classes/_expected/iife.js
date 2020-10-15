@@ -10,6 +10,8 @@ var bundle = (function (exports) {
 	exports.bar = bar;
 	exports.foo = foo;
 
+	Object.defineProperty(exports, '__esModule', { value: true });
+
 	return exports;
 
 }({}));

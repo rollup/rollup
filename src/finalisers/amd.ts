@@ -1,8 +1,7 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { NormalizedOutputOptions } from '../rollup/types';
 import { FinaliserOptions } from './index';
-import { compactEsModuleExport, esModuleExport } from './shared/esModuleExport';
-import getExportBlock from './shared/getExportBlock';
+import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
 import warnOnBuiltins from './shared/warnOnBuiltins';
 
@@ -25,7 +24,8 @@ export default function amd(
 		hasExports,
 		indentString: t,
 		intro,
-		isEntryModuleFacade,
+		isEntryFacade,
+		isModuleFacade,
 		namedExportsMode,
 		outro,
 		varOrConst,
@@ -38,6 +38,7 @@ export default function amd(
 		externalLiveBindings,
 		freeze,
 		interop,
+		namespaceToStringTag,
 		strict
 	}: NormalizedOutputOptions
 ) {
@@ -74,6 +75,7 @@ export default function amd(
 			interop,
 			externalLiveBindings,
 			freeze,
+			namespaceToStringTag,
 			accessedGlobals,
 			_,
 			n,
@@ -91,11 +93,17 @@ export default function amd(
 		t,
 		externalLiveBindings
 	);
-	if (exportBlock) magicString.append(exportBlock);
-	if (namedExportsMode && hasExports && isEntryModuleFacade && esModule)
-		magicString.append(`${n}${n}${compact ? compactEsModuleExport : esModuleExport}`);
-	if (outro) magicString.append(outro);
-
+	let namespaceMarkers = getNamespaceMarkers(
+		namedExportsMode && hasExports,
+		isEntryFacade && esModule,
+		isModuleFacade && namespaceToStringTag,
+		_,
+		n
+	);
+	if (namespaceMarkers) {
+		namespaceMarkers = n + n + namespaceMarkers;
+	}
+	magicString.append(`${exportBlock}${namespaceMarkers}${outro}`);
 	return magicString
 		.indent(t)
 		.prepend(`${amdDefine}(${params}function${_}(${args.join(`,${_}`)})${_}{${useStrict}${n}${n}`)

@@ -1,0 +1,16 @@
+const assert = require('assert');
+
+module.exports = {
+	description: 'does not add Symbol.toStringTag property to entry chunks with default export mode',
+	options: {
+		output: {
+			namespaceToStringTag: true,
+			exports: 'default'
+		}
+	},
+	exports(exports) {
+		assert.strictEqual(exports[Symbol.toStringTag], undefined);
+		assert.strictEqual(Object.prototype.toString.call(exports), '[object Object]');
+		assert.strictEqual(exports.foo, 42);
+	}
+};

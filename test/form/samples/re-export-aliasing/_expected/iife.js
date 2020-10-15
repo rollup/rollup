@@ -10,6 +10,8 @@ var reexportsAliasingExternal = (function (exports, d) {
 		}
 	});
 
+	Object.defineProperty(exports, '__esModule', { value: true });
+
 	return exports;
 
 }({}, d));

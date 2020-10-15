@@ -2,8 +2,7 @@ import { Bundle as MagicStringBundle } from 'magic-string';
 import { ChunkDependencies } from '../Chunk';
 import { NormalizedOutputOptions } from '../rollup/types';
 import { FinaliserOptions } from './index';
-import { compactEsModuleExport, esModuleExport } from './shared/esModuleExport';
-import getExportBlock from './shared/getExportBlock';
+import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
 
 export default function cjs(
@@ -15,22 +14,37 @@ export default function cjs(
 		hasExports,
 		indentString: t,
 		intro,
-		isEntryModuleFacade,
+		isEntryFacade,
+		isModuleFacade,
 		namedExportsMode,
 		outro,
 		varOrConst
 	}: FinaliserOptions,
-	{ compact, esModule, externalLiveBindings, freeze, interop, strict }: NormalizedOutputOptions
+	{
+		compact,
+		esModule,
+		externalLiveBindings,
+		freeze,
+		interop,
+		namespaceToStringTag,
+		strict
+	}: NormalizedOutputOptions
 ) {
 	const n = compact ? '' : '\n';
 	const s = compact ? '' : ';';
 	const _ = compact ? '' : ' ';
 
 	const useStrict = strict ? `'use strict';${n}${n}` : '';
-	const esModuleProp =
-		namedExportsMode && hasExports && isEntryModuleFacade && esModule
-			? `${compact ? compactEsModuleExport : esModuleExport}${n}${n}`
-			: '';
+	let namespaceMarkers = getNamespaceMarkers(
+		namedExportsMode && hasExports,
+		isEntryFacade && esModule,
+		isModuleFacade && namespaceToStringTag,
+		_,
+		n
+	);
+	if (namespaceMarkers) {
+		namespaceMarkers += n + n;
+	}
 	const importBlock = getImportBlock(dependencies, compact, varOrConst, n, _);
 	const interopBlock = getInteropBlock(
 		dependencies,
@@ -38,6 +52,7 @@ export default function cjs(
 		interop,
 		externalLiveBindings,
 		freeze,
+		namespaceToStringTag,
 		accessedGlobals,
 		_,
 		n,
@@ -45,7 +60,7 @@ export default function cjs(
 		t
 	);
 
-	magicString.prepend(`${useStrict}${intro}${esModuleProp}${importBlock}${interopBlock}`);
+	magicString.prepend(`${useStrict}${intro}${namespaceMarkers}${importBlock}${interopBlock}`);
 
 	const exportBlock = getExportBlock(
 		exports,

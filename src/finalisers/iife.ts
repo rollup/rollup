@@ -3,7 +3,7 @@ import { NormalizedOutputOptions } from '../rollup/types';
 import { error } from '../utils/error';
 import { isLegal } from '../utils/identifierHelpers';
 import { FinaliserOptions } from './index';
-import getExportBlock from './shared/getExportBlock';
+import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
 import { keypath } from './shared/sanitize';
 import setupNamespace from './shared/setupNamespace';
@@ -28,12 +28,14 @@ export default function iife(
 	}: FinaliserOptions,
 	{
 		compact,
+		esModule,
 		extend,
 		freeze,
 		externalLiveBindings,
 		globals,
 		interop,
 		name,
+		namespaceToStringTag,
 		strict
 	}: NormalizedOutputOptions
 ) {
@@ -81,6 +83,7 @@ export default function iife(
 		interop,
 		externalLiveBindings,
 		freeze,
+		namespaceToStringTag,
 		accessedGlobals,
 		_,
 		n,
@@ -115,6 +118,16 @@ export default function iife(
 		t,
 		externalLiveBindings
 	);
-	magicString.append(`${exportBlock}${outro}`);
+	let namespaceMarkers = getNamespaceMarkers(
+		namedExportsMode && hasExports,
+		esModule,
+		namespaceToStringTag,
+		_,
+		n
+	);
+	if (namespaceMarkers) {
+		namespaceMarkers = n + n + namespaceMarkers;
+	}
+	magicString.append(`${exportBlock}${namespaceMarkers}${outro}`);
 	return magicString.indent(t).prepend(wrapperIntro).append(wrapperOutro);
 }

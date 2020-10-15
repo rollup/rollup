@@ -15,7 +15,8 @@ export interface FinaliserOptions {
 	hasExports: boolean;
 	indentString: string;
 	intro: string;
-	isEntryModuleFacade: boolean;
+	isEntryFacade: boolean;
+	isModuleFacade: boolean;
 	namedExportsMode: boolean;
 	outro: string;
 	usesTopLevelAwait: boolean;

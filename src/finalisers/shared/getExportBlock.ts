@@ -6,7 +6,7 @@ import {
 	namespaceInteropHelpersByInteropType
 } from '../../utils/interopHelpers';
 
-export default function getExportBlock(
+export function getExportBlock(
 	exports: ChunkExports,
 	dependencies: ChunkDependencies,
 	namedExportsMode: boolean,
@@ -173,4 +173,34 @@ function getReexportedImportName(
 			: moduleVariableName;
 	}
 	return `${moduleVariableName}.${imported}`;
+}
+
+function getEsModuleExport(_: string): string {
+	return `Object.defineProperty(exports,${_}'__esModule',${_}{${_}value:${_}true${_}});`;
+}
+
+function getNamespaceToStringExport(_: string): string {
+	return `exports[Symbol.toStringTag]${_}=${_}'Module';`;
+}
+
+export function getNamespaceMarkers(
+	hasNamedExports: boolean,
+	addEsModule: boolean,
+	addNamespaceToStringTag: boolean,
+	_: string,
+	n: string
+): string {
+	let namespaceMarkers = '';
+	if (hasNamedExports) {
+		if (addEsModule) {
+			namespaceMarkers += getEsModuleExport(_);
+		}
+		if (addNamespaceToStringTag) {
+			if (namespaceMarkers) {
+				namespaceMarkers += n;
+			}
+			namespaceMarkers += getNamespaceToStringExport(_);
+		}
+	}
+	return namespaceMarkers;
 }

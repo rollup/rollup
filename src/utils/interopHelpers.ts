@@ -48,11 +48,21 @@ export function getHelpersBlock(
 	s: string,
 	t: string,
 	liveBindings: boolean,
-	freeze: boolean
+	freeze: boolean,
+	namespaceToStringTag: boolean
 ): string {
 	return HELPER_NAMES.map(variable =>
 		usedHelpers.has(variable) || accessedGlobals.has(variable)
-			? HELPER_GENERATORS[variable](_, n, s, t, liveBindings, freeze, usedHelpers)
+			? HELPER_GENERATORS[variable](
+					_,
+					n,
+					s,
+					t,
+					liveBindings,
+					freeze,
+					namespaceToStringTag,
+					usedHelpers
+			  )
 			: ''
 	).join('');
 }
@@ -65,6 +75,7 @@ const HELPER_GENERATORS: {
 		t: string,
 		liveBindings: boolean,
 		freeze: boolean,
+		namespaceToStringTag: boolean,
 		usedHelpers: Set<string>
 	) => string;
 } = {
@@ -76,16 +87,25 @@ const HELPER_GENERATORS: {
 		`function ${INTEROP_DEFAULT_LEGACY_VARIABLE}${_}(e)${_}{${_}return ` +
 		`e${_}&&${_}typeof e${_}===${_}'object'${_}&&${_}'default'${_}in e${_}?${_}` +
 		`${liveBindings ? getDefaultLiveBinding(_) : getDefaultStatic(_)}${s}${_}}${n}${n}`,
-	[INTEROP_NAMESPACE_VARIABLE]: (_, n, s, t, liveBindings, freeze, usedHelpers) =>
+	[INTEROP_NAMESPACE_VARIABLE]: (
+		_,
+		n,
+		s,
+		t,
+		liveBindings,
+		freeze,
+		namespaceToStringTag,
+		usedHelpers
+	) =>
 		`function ${INTEROP_NAMESPACE_VARIABLE}(e)${_}{${n}` +
 		(usedHelpers.has(INTEROP_NAMESPACE_DEFAULT_VARIABLE)
 			? `${t}return e${_}&&${_}e.__esModule${_}?${_}e${_}:${_}${INTEROP_NAMESPACE_DEFAULT_VARIABLE}(e)${s}${n}`
 			: `${t}if${_}(e${_}&&${_}e.__esModule)${_}return e;${n}` +
-			  createNamespaceObject(_, n, t, t, liveBindings, freeze)) +
+			  createNamespaceObject(_, n, t, t, liveBindings, freeze, namespaceToStringTag)) +
 		`}${n}${n}`,
-	[INTEROP_NAMESPACE_DEFAULT_VARIABLE]: (_, n, _s, t, liveBindings, freeze) =>
+	[INTEROP_NAMESPACE_DEFAULT_VARIABLE]: (_, n, _s, t, liveBindings, freeze, namespaceToStringTag) =>
 		`function ${INTEROP_NAMESPACE_DEFAULT_VARIABLE}(e)${_}{${n}` +
-		createNamespaceObject(_, n, t, t, liveBindings, freeze) +
+		createNamespaceObject(_, n, t, t, liveBindings, freeze, namespaceToStringTag) +
 		`}${n}${n}`,
 	[INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE]: (
 		_: string,
@@ -93,10 +113,16 @@ const HELPER_GENERATORS: {
 		_s: string,
 		t: string,
 		_liveBindings: boolean,
-		freeze: boolean
+		freeze: boolean,
+		namespaceToStringTag: boolean
 	) =>
 		`function ${INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE}(e)${_}{${n}` +
-		`${t}return ${getFrozen(`{__proto__: null,${_}'default':${_}e}`, freeze)};${n}` +
+		`${t}return ${getFrozen(
+			`{__proto__: null,${
+				namespaceToStringTag ? `${_}[Symbol.toStringTag]:${_}'Module',` : ''
+			}${_}'default':${_}e}`,
+			freeze
+		)};${n}` +
 		`}${n}${n}`
 };
 
@@ -114,10 +140,15 @@ function createNamespaceObject(
 	t: string,
 	i: string,
 	liveBindings: boolean,
-	freeze: boolean
+	freeze: boolean,
+	namespaceToStringTag: boolean
 ) {
 	return (
-		`${i}var n${_}=${_}Object.create(null);${n}` +
+		`${i}var n${_}=${_}${
+			namespaceToStringTag
+				? `{__proto__:${_}null,${_}[Symbol.toStringTag]:${_}'Module'}`
+				: 'Object.create(null)'
+		};${n}` +
 		`${i}if${_}(e)${_}{${n}` +
 		`${i}${t}Object.keys(e).forEach(function${_}(k)${_}{${n}` +
 		(liveBindings ? copyPropertyLiveBinding : copyPropertyStatic)(_, n, t, i + t + t) +
