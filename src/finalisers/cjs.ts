@@ -14,7 +14,8 @@ export default function cjs(
 		hasExports,
 		indentString: t,
 		intro,
-		isEntryModuleFacade,
+		isEntryFacade,
+		isModuleFacade,
 		namedExportsMode,
 		outro,
 		varOrConst
@@ -34,10 +35,16 @@ export default function cjs(
 	const _ = compact ? '' : ' ';
 
 	const useStrict = strict ? `'use strict';${n}${n}` : '';
-	const namespaceMarkers =
-		namedExportsMode && hasExports && isEntryModuleFacade && esModule
-			? `${getNamespaceMarkers(namespaceToStringTag, _, n)}${n}${n}`
-			: '';
+	let namespaceMarkers = getNamespaceMarkers(
+		namedExportsMode && hasExports,
+		isEntryFacade && esModule,
+		isModuleFacade && namespaceToStringTag,
+		_,
+		n
+	);
+	if (namespaceMarkers) {
+		namespaceMarkers += n + n;
+	}
 	const importBlock = getImportBlock(dependencies, compact, varOrConst, n, _);
 	const interopBlock = getInteropBlock(
 		dependencies,
@@ -45,6 +52,7 @@ export default function cjs(
 		interop,
 		externalLiveBindings,
 		freeze,
+		namespaceToStringTag,
 		accessedGlobals,
 		_,
 		n,

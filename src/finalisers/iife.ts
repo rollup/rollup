@@ -83,6 +83,7 @@ export default function iife(
 		interop,
 		externalLiveBindings,
 		freeze,
+		namespaceToStringTag,
 		accessedGlobals,
 		_,
 		n,
@@ -117,12 +118,16 @@ export default function iife(
 		t,
 		externalLiveBindings
 	);
-	magicString.append(
-		`${exportBlock}${
-			namedExportsMode && hasExports && esModule
-				? `${n}${n}${getNamespaceMarkers(namespaceToStringTag, _, n)}`
-				: ''
-		}${outro}`
+	let namespaceMarkers = getNamespaceMarkers(
+		namedExportsMode && hasExports,
+		esModule,
+		namespaceToStringTag,
+		_,
+		n
 	);
+	if (namespaceMarkers) {
+		namespaceMarkers = n + n + namespaceMarkers;
+	}
+	magicString.append(`${exportBlock}${namespaceMarkers}${outro}`);
 	return magicString.indent(t).prepend(wrapperIntro).append(wrapperOutro);
 }

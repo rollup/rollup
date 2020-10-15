@@ -13,6 +13,7 @@ export default function getInteropBlock(
 	interop: GetInterop,
 	externalLiveBindings: boolean,
 	freeze: boolean,
+	namespaceToStringTag: boolean,
 	accessedGlobals: Set<string>,
 	_: string,
 	n: string,
@@ -92,6 +93,7 @@ export default function getInteropBlock(
 		s,
 		t,
 		externalLiveBindings,
-		freeze
+		freeze,
+		namespaceToStringTag
 	)}${interopStatements.length > 0 ? `${interopStatements.join(n)}${n}${n}` : ''}`;
 }

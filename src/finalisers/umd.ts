@@ -161,6 +161,7 @@ export default function umd(
 			interop,
 			externalLiveBindings,
 			freeze,
+			namespaceToStringTag,
 			accessedGlobals,
 			_,
 			n,
@@ -178,13 +179,16 @@ export default function umd(
 		t,
 		externalLiveBindings
 	);
-	magicString.append(
-		`${exportBlock}${
-			namedExportsMode && hasExports && esModule
-				? `${n}${n}${getNamespaceMarkers(namespaceToStringTag, _, n)}`
-				: ''
-		}${outro}`
+	let namespaceMarkers = getNamespaceMarkers(
+		namedExportsMode && hasExports,
+		esModule,
+		namespaceToStringTag,
+		_,
+		n
 	);
-
+	if (namespaceMarkers) {
+		namespaceMarkers = n + n + namespaceMarkers;
+	}
+	magicString.append(`${exportBlock}${namespaceMarkers}${outro}`);
 	return magicString.trim().indent(t).append(wrapperOutro).prepend(wrapperIntro);
 }

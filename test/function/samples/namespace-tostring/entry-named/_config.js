@@ -1,7 +1,5 @@
 const assert = require('assert');
 
-// TODO Lukas also validate for other formats
-// TODO Lukas also handle dynamic imports
 module.exports = {
 	description: 'adds Symbol.toStringTag property to entry chunks with named exports',
 	options: {

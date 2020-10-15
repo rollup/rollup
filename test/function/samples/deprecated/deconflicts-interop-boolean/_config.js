@@ -6,9 +6,7 @@ module.exports = {
 			return id.startsWith('external');
 		},
 		output: {
-			interop(id) {
-				return true;
-			}
+			interop: true
 		}
 	},
 	context: {

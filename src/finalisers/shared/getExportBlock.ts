@@ -175,8 +175,32 @@ function getReexportedImportName(
 	return `${moduleVariableName}.${imported}`;
 }
 
-export function getNamespaceMarkers(namespaceToStringTag: boolean, _: string, n: string): string {
-	return `Object.defineProperty(exports,${_}'__esModule',${_}{${_}value:${_}true${_}});${
-		namespaceToStringTag ? `${n}exports[Symbol.toStringTag]${_}=${_}'Module';` : ''
-	}`;
+function getEsModuleExport(_: string): string {
+	return `Object.defineProperty(exports,${_}'__esModule',${_}{${_}value:${_}true${_}});`;
+}
+
+function getNamespaceToStringExport(_: string): string {
+	return `exports[Symbol.toStringTag]${_}=${_}'Module';`;
+}
+
+export function getNamespaceMarkers(
+	hasNamedExports: boolean,
+	addEsModule: boolean,
+	addNamespaceToStringTag: boolean,
+	_: string,
+	n: string
+): string {
+	let namespaceMarkers = '';
+	if (hasNamedExports) {
+		if (addEsModule) {
+			namespaceMarkers += getEsModuleExport(_);
+		}
+		if (addNamespaceToStringTag) {
+			if (namespaceMarkers) {
+				namespaceMarkers += n;
+			}
+			namespaceMarkers += getNamespaceToStringExport(_);
+		}
+	}
+	return namespaceMarkers;
 }
