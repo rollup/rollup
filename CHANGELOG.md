@@ -1,5 +1,15 @@
 # rollup changelog
 
+## 2.31.0
+*2020-10-15*
+
+### Features
+* When using the `output.moduleToStringTag` option, also add the tag to entries with exports and simulated external namespaces (#3822)
+* Add the `__esModule` interop marker to IIFE global variables unless `output.esModule` is turned off (#3822)
+
+### Pull Requests
+* [#3822](https://github.com/rollup/rollup/pull/3822): Add module toStringTag to entries and interop namespaces (@lukastaegert)
+
 ## 2.30.0
 *2020-10-13*
 
