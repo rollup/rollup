@@ -196,6 +196,9 @@ const deferredHandlers: {
 						}
 						stderr(bold(loc));
 					}
+					else if (warning.loc) {
+							info(yellow(`${rollup.relativeId(warning.loc.file)}:${warning.loc.line}:${warning.loc.column}`)+' error '+message);
+					}
 					if (warning.frame) info(warning.frame);
 				}
 			}
