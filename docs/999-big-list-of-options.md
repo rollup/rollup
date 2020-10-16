@@ -925,7 +925,7 @@ export default ({
 ```
 
 #### preserveEntrySignatures
-Type: `"strict" | "allow-extension" | false`<br>
+Type: `"strict" | "allow-extension" | "exports-only" | false`<br>
 CLI: `--preserveEntrySignatures <strict|allow-extension>`/`--no-preserveEntrySignatures`<br>
 Default: `"strict"`
 
@@ -933,6 +933,7 @@ Controls if Rollup tries to ensure that entry chunks have the same exports as th
 
 - If set to `"strict"`, Rollup will create exactly the same exports in the entry chunk as there are in the corresponding entry module. If this is not possible because additional internal exports need to be added to a chunk, Rollup will instead create a "facade" entry chunk that reexports just the necessary bindings from other chunks but contains no code otherwise. This is the recommended setting for libraries.
 - `"allow-extension"` will create all exports of the entry module in the entry chunk but may also add additional exports if necessary, avoiding a "facade" entry chunk. This setting makes sense for libraries where a strict signature is not required.
+- `"exports-only"` behaves like `"strict"` if the entry module has exports, otherwise it behaves like `"allow-extension"`.
 - `false` will not add any exports of an entry module to the corresponding chunk and does not even include the corresponding code unless those exports are used elsewhere in the bundle. Internal exports may be added to entry chunks, though. This is the recommended setting for web apps where the entry chunks are to be placed in script tags as it may reduce both the number of chunks and possibly the bundle size.
 
 **Example**<br>

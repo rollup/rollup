@@ -494,7 +494,7 @@ export type GlobalsOption = { [name: string]: string } | ((name: string) => stri
 export type InputOption = string | string[] | { [entryAlias: string]: string };
 export type ManualChunksOption = { [chunkAlias: string]: string[] } | GetManualChunk;
 export type ModuleSideEffectsOption = boolean | 'no-external' | string[] | HasModuleSideEffects;
-export type PreserveEntrySignaturesOption = false | 'strict' | 'allow-extension';
+export type PreserveEntrySignaturesOption = false | 'strict' | 'allow-extension' | 'exports-only';
 export type SourcemapPathTransformOption = (
 	relativeSourcePath: string,
 	sourcemapPath: string

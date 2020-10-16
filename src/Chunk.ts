@@ -341,19 +341,24 @@ export default class Chunk {
 			if (requiredFacades.length === 0) {
 				requiredFacades.push({});
 			}
-			if (
-				!this.facadeModule &&
-				(this.outputOptions.preserveModules ||
-					module.preserveSignature !== 'strict' ||
-					this.canModuleBeFacade(module, exposedVariables))
-			) {
-				this.facadeModule = module;
-				this.facadeChunkByModule.set(module, this);
-				if (module.preserveSignature) {
-					this.strictFacade = module.preserveSignature === 'strict';
-					this.ensureReexportsAreAvailableForModule(module);
+			if (!this.facadeModule) {
+				const needsStrictFacade =
+					module.preserveSignature === 'strict' ||
+					(module.preserveSignature === 'exports-only' &&
+						module.getExportNamesByVariable().size !== 0);
+				if (
+					!needsStrictFacade ||
+					this.outputOptions.preserveModules ||
+					this.canModuleBeFacade(module, exposedVariables)
+				) {
+					this.facadeModule = module;
+					this.facadeChunkByModule.set(module, this);
+					if (module.preserveSignature) {
+						this.strictFacade = needsStrictFacade;
+						this.ensureReexportsAreAvailableForModule(module);
+					}
+					this.assignFacadeName(requiredFacades.shift()!, module);
 				}
-				this.assignFacadeName(requiredFacades.shift()!, module);
 			}
 
 			for (const facadeName of requiredFacades) {

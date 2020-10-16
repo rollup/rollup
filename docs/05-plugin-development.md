@@ -524,7 +524,7 @@ Emits a new file that is included in the build output and returns a `referenceId
   fileName?: string,
   implicitlyLoadedAfterOneOf?: string[],
   importer?: string,
-  preserveSignature?: 'strict' | 'allow-extension' | false,
+  preserveSignature?: 'strict' | 'allow-extension' | 'exports-only' | false,
 }
 
 // EmittedAsset

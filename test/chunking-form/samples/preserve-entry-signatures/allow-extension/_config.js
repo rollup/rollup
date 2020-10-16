@@ -1,5 +1,5 @@
 module.exports = {
-	description: 'Creates a facade if necessary for strict entry signatures',
+	description: 'Never creates facades for allow-extension',
 	options: {
 		preserveEntrySignatures: 'allow-extension'
 	}
