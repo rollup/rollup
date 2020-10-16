@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.32.0
+*2020-10-16*
+
+### Features
+* Extend `preserveEntrySignatures` with a value `"exports-only"` to allow extension only if an entry does not have exports (#3823)
+
+### Pull Requests
+* [#3823](https://github.com/rollup/rollup/pull/3823): Add "exports-only" option to preserveSignature (@lukastaegert)
+
 ## 2.31.0
 *2020-10-15*
 
