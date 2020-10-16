@@ -1,12 +1,12 @@
 {
   "name": "rollup",
-  "version": "2.31.0",
+  "version": "2.32.0",
   "description": "Next-generation ES module bundler",
   "main": "dist/rollup.js",
   "module": "dist/es/rollup.js",
   "typings": "dist/rollup.d.ts",
   "bin": {
-    "rollup": "./dist/bin/rollup"
+    "rollup": "dist/bin/rollup"
   },
   "scripts": {
     "build": "shx rm -rf dist && git rev-parse HEAD > .commithash && rollup -c && shx cp src/rollup/types.d.ts dist/rollup.d.ts && shx chmod a+x dist/bin/rollup",
@@ -35,11 +35,6 @@
     "test:coverage": "nyc --reporter html mocha",
     "test:leak": "cross-os test:leak:os",
     "test:package": "node scripts/test-package.js",
-    "test:leak:os": {
-      "darwin": "npm run test:leak:nix",
-      "linux": "npm run test:leak:nix",
-      "win32": "echo 'Skipping test:leak on Windows'"
-    },
     "test:leak:nix": "npm i --silent --no-save weak@1 && node --expose-gc test/leak/index.js",
     "test:only": "mocha",
     "test:quick": "mocha -b",
@@ -148,5 +143,8 @@
       "default": "./dist/es/rollup.browser.js"
     },
     "./dist/": "./dist/"
+  },
+  "dependencies": {
+    "fsevents": "~2.1.2"
   }
 }
