@@ -189,15 +189,13 @@ const deferredHandlers: {
 				for (const warning of items) {
 					if (warning.url && warning.url !== lastUrl) info((lastUrl = warning.url));
 
-					if (warning.id) {
-						let loc = relativeId(warning.id);
+					const id = warning.id || warning.loc?.file;
+					if (id) {
+						let loc = relativeId(id);
 						if (warning.loc) {
 							loc += `: (${warning.loc.line}:${warning.loc.column})`;
 						}
 						stderr(bold(loc));
-					}
-					else if (warning.loc) {
-							info(yellow(`${rollup.relativeId(warning.loc.file)}:${warning.loc.line}:${warning.loc.column}`)+' error '+message);
 					}
 					if (warning.frame) info(warning.frame);
 				}
