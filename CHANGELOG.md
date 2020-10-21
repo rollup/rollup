@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.32.1
+*2020-10-21*
+
+### Bug Fixes
+* Print warning location for plugin warnings if only `loc` is supplied (#3824)
+
+### Pull Requests
+* [#3824](https://github.com/rollup/rollup/pull/3824): plugin warnings not showing warning.loc (@luciotato)
+
 ## 2.32.0
 *2020-10-16*
 
