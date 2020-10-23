@@ -11,6 +11,7 @@ import relativeId from '../../src/utils/relativeId';
 import { stderr } from '../logging';
 import batchWarnings, { BatchWarnings } from './batchWarnings';
 import { addCommandPluginsToInputOptions } from './commandPlugins';
+const typescript = require('rollup-plugin-typescript');
 
 function supportsNativeESM() {
 	return Number(/^v(\d+)/.exec(process.version)![1]) >= 13;
@@ -67,6 +68,7 @@ async function getDefaultFromTranspiledConfigFile(
 			(id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5, id.length) === '.json',
 		input: fileName,
 		onwarn: warnings.add,
+		plugins: [typescript()],
 		treeshake: false
 	});
 	if (!silent && warnings.count > 0) {
