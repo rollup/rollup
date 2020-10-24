@@ -45,25 +45,17 @@ async function loadConfigFile(
 	commandOptions: any
 ): Promise<GenericConfigObject[]> {
 	const extension = path.extname(fileName);
-	let configFileExport;
 
-	switch (extension) {
-		case '.mjs':
-			if (supportsNativeESM()) {
-				configFileExport = (await import(pathToFileURL(fileName).href)).default;
-				break;
-			}
-		case '.cjs':
-			configFileExport = getDefaultFromCjs(require(fileName));
-			break;
-		default:
-			configFileExport = await getDefaultFromTranspiledConfigFile(
-				fileName,
-				commandOptions.silent,
-				extension === '.ts'
-			);
-			break;
-	}
+	const configFileExport =
+		extension === '.mjs' && supportsNativeESM()
+			? (await import(pathToFileURL(fileName).href)).default
+			: extension === '.cjs'
+			? getDefaultFromCjs(require(fileName))
+			: await getDefaultFromTranspiledConfigFile(
+					fileName,
+					commandOptions.silent,
+					extension === '.ts'
+			  );
 
 	return getConfigList(configFileExport, commandOptions);
 }
