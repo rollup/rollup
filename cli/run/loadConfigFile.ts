@@ -11,7 +11,7 @@ import relativeId from '../../src/utils/relativeId';
 import { stderr } from '../logging';
 import batchWarnings, { BatchWarnings } from './batchWarnings';
 import { addCommandPluginsToInputOptions } from './commandPlugins';
-const typescript = require('rollup-plugin-typescript');
+import importTypescriptPlugin from './import-ts-plugin';
 
 function supportsNativeESM() {
 	return Number(/^v(\d+)/.exec(process.version)![1]) >= 13;
@@ -45,12 +45,26 @@ async function loadConfigFile(
 	commandOptions: any
 ): Promise<GenericConfigObject[]> {
 	const extension = path.extname(fileName);
-	const configFileExport =
-		extension === '.mjs' && supportsNativeESM()
-			? (await import(pathToFileURL(fileName).href)).default
-			: extension === '.cjs'
-			? getDefaultFromCjs(require(fileName))
-			: await getDefaultFromTranspiledConfigFile(fileName, commandOptions.silent);
+	let configFileExport;
+
+	switch (extension) {
+		case '.mjs':
+			if (supportsNativeESM()) {
+				configFileExport = (await import(pathToFileURL(fileName).href)).default;
+				break;
+			}
+		case '.cjs':
+			configFileExport = getDefaultFromCjs(require(fileName));
+			break;
+		default:
+			configFileExport = await getDefaultFromTranspiledConfigFile(
+				fileName,
+				commandOptions.silent,
+				extension === '.ts'
+			);
+			break;
+	}
+
 	return getConfigList(configFileExport, commandOptions);
 }
 
@@ -60,7 +74,8 @@ function getDefaultFromCjs(namespace: GenericConfigObject) {
 
 async function getDefaultFromTranspiledConfigFile(
 	fileName: string,
-	silent: boolean
+	silent: boolean,
+	typescript: boolean
 ): Promise<unknown> {
 	const warnings = batchWarnings();
 	const bundle = await rollup.rollup({
@@ -68,7 +83,7 @@ async function getDefaultFromTranspiledConfigFile(
 			(id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5, id.length) === '.json',
 		input: fileName,
 		onwarn: warnings.add,
-		plugins: [typescript()],
+		plugins: typescript ? [await importTypescriptPlugin(fileName)] : [],
 		treeshake: false
 	});
 	if (!silent && warnings.count > 0) {
