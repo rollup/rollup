@@ -13,7 +13,6 @@ import emitModulePackageFile from './build-plugins/emit-module-package-file.js';
 import esmDynamicImport from './build-plugins/esm-dynamic-import.js';
 import getLicenseHandler from './build-plugins/generate-license-file';
 import replaceBrowserModules from './build-plugins/replace-browser-modules.js';
-import transformTsPluginConfigImport from './build-plugins/transform-ts-plugin-config-import';
 import pkg from './package.json';
 
 const commitHash = (function () {
@@ -70,7 +69,6 @@ const nodePlugins = [
 	string({ include: '**/*.md' }),
 	commonjs({ include: 'node_modules/**' }),
 	typescript(),
-	transformTsPluginConfigImport(),
 ];
 
 export default command => {
@@ -78,6 +76,8 @@ export default command => {
 	const commonJSBuild = {
 		// fsevents is a dependency of chokidar that cannot be bundled as it contains binary code
 		external: [
+			'buffer',
+			'@rollup/plugin-typescript',
 			'assert',
 			'crypto',
 			'events',

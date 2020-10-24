@@ -75,7 +75,7 @@ async function getDefaultFromTranspiledConfigFile(
 			(id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5, id.length) === '.json',
 		input: fileName,
 		onwarn: warnings.add,
-		plugins: typescript ? [await importTypescriptPlugin(fileName)] : [],
+		plugins: typescript ? [await importTypescriptPlugin()] : [],
 		treeshake: false
 	});
 	if (!silent && warnings.count > 0) {
