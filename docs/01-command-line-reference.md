@@ -2,7 +2,7 @@
 title: Command Line Interface
 ---
 
-Rollup should typically be used from the command line. You can provide an optional Rollup configuration file to simplify command line usage and enable advanced Rollup functionality.
+Rollup should typically be used from the command line. You can provide an  optional Rollup configuration file to simplify command line usage and enable advanced Rollup functionality.
 
 ### Configuration Files
 
@@ -10,11 +10,11 @@ Rollup configuration files are optional, but they are powerful and convenient an
 
 ```javascript
 export default {
-	input: 'src/main.js',
-	output: {
-		file: 'bundle.js',
-		format: 'cjs'
-	}
+  input: 'src/main.js',
+  output: {
+    file: 'bundle.js',
+    format: 'cjs'
+  }
 };
 ```
 
@@ -29,89 +29,86 @@ Config files support the options listed below. Consult the [big list of options]
 ```javascript
 // rollup.config.js
 
-export default {
-	// can be an array (for multiple inputs)
-	// core input options
-	external,
-	input, // conditionally required
-	plugins,
+export default { // can be an array (for multiple inputs)
+  // core input options
+  external,
+  input, // conditionally required
+  plugins,
 
-	// advanced input options
-	cache,
-	onwarn,
-	preserveEntrySignatures,
-	strictDeprecations,
+  // advanced input options
+  cache,
+  onwarn,
+  preserveEntrySignatures,
+  strictDeprecations,
 
-	// danger zone
-	acorn,
-	acornInjectPlugins,
-	context,
-	moduleContext,
-	preserveSymlinks,
-	shimMissingExports,
-	treeshake,
+  // danger zone
+  acorn,
+  acornInjectPlugins,
+  context,
+  moduleContext,
+  preserveSymlinks,
+  shimMissingExports,
+  treeshake,
 
-	// experimental
-	experimentalCacheExpiry,
-	perf,
+  // experimental
+  experimentalCacheExpiry,
+  perf,
 
-	output: {
-		// required (can be an array, for multiple outputs)
-		// core output options
-		dir,
-		file,
-		format, // required
-		globals,
-		name,
-		plugins,
+  output: { // required (can be an array, for multiple outputs)
+    // core output options
+    dir,
+    file,
+    format, // required
+    globals,
+    name,
+    plugins,
 
-		// advanced output options
-		assetFileNames,
-		banner,
-		chunkFileNames,
-		compact,
-		entryFileNames,
-		extend,
-		footer,
-		hoistTransitiveImports,
-		inlineDynamicImports,
-		interop,
-		intro,
-		manualChunks,
-		minifyInternalExports,
-		outro,
-		paths,
-		preserveModules,
-		preserveModulesRoot,
-		sourcemap,
-		sourcemapExcludeSources,
-		sourcemapFile,
-		sourcemapPathTransform,
+    // advanced output options
+    assetFileNames,
+    banner,
+    chunkFileNames,
+    compact,
+    entryFileNames,
+    extend,
+    footer,
+    hoistTransitiveImports,
+    inlineDynamicImports,
+    interop,
+    intro,
+    manualChunks,
+    minifyInternalExports,
+    outro,
+    paths,
+    preserveModules,
+    preserveModulesRoot,
+    sourcemap,
+    sourcemapExcludeSources,
+    sourcemapFile,
+    sourcemapPathTransform,
     validate,
 
-		// danger zone
-		amd,
-		esModule,
-		exports,
-		externalLiveBindings,
-		freeze,
-		indent,
-		namespaceToStringTag,
-		noConflict,
-		preferConst,
-		sanitizeFileName,strict,
-		systemNullSetters
-	},
+    // danger zone
+    amd,
+    esModule,
+    exports,
+    externalLiveBindings,
+    freeze,
+    indent,
+    namespaceToStringTag,
+    noConflict,
+    preferConst,
+    sanitizeFileName,strict,
+    systemNullSetters
+  },
 
-	watch:
-		{
-			buildDelay,
-			chokidar,
-			clearScreen,
-			skipWrite,
-			exclude,
-			include
-		} | false
+  watch: {
+    buildDelay,
+    chokidar,
+    clearScreen,
+    skipWrite,
+    exclude,
+    include
+  } | false
 };
 ```
 
@@ -120,28 +117,25 @@ You can export an **array** from your config file to build bundles from several 
 ```javascript
 // rollup.config.js (building more than one bundle)
 
-export default [
-	{
-		input: 'main-a.js',
-		output: {
-			file: 'dist/bundle-a.js',
-			format: 'cjs'
-		}
-	},
-	{
-		input: 'main-b.js',
-		output: [
-			{
-				file: 'dist/bundle-b1.js',
-				format: 'cjs'
-			},
-			{
-				file: 'dist/bundle-b2.js',
-				format: 'es'
-			}
-		]
-	}
-];
+export default [{
+  input: 'main-a.js',
+  output: {
+    file: 'dist/bundle-a.js',
+    format: 'cjs'
+  }
+}, {
+  input: 'main-b.js',
+  output: [
+    {
+      file: 'dist/bundle-b1.js',
+      format: 'cjs'
+    },
+    {
+      file: 'dist/bundle-b2.js',
+      format: 'es'
+    }
+  ]
+}];
 ```
 
 If you want to create your config asynchronously, Rollup can also handle a `Promise` which resolves to an object or an array.
@@ -156,7 +150,10 @@ Similarly, you can do this as well:
 
 ```javascript
 // rollup.config.js (Promise resolving an array)
-export default Promise.all([fetch('get-config-1'), fetch('get-config-2')]);
+export default Promise.all([
+  fetch('get-config-1'),
+  fetch('get-config-2')
+])
 ```
 
 To use Rollup with a configuration file, pass the `--config` or `-c` flags:
@@ -179,11 +176,11 @@ import defaultConfig from './rollup.default.config.js';
 import debugConfig from './rollup.debug.config.js';
 
 export default commandLineArgs => {
-	if (commandLineArgs.configDebug === true) {
-		return debugConfig;
-	}
-	return defaultConfig;
-};
+  if (commandLineArgs.configDebug === true) {
+    return debugConfig;
+  }
+  return defaultConfig;
+}
 ```
 
 If you now run `rollup --config --configDebug`, the debug configuration will be used.
@@ -258,11 +255,11 @@ By default, Rollup will expect config files to be ES modules and bundle and tran
 ```javascript
 // rollup.config.cjs
 module.exports = {
-	input: 'src/main.js',
-	output: {
-		file: 'bundle.js',
-		format: 'cjs'
-	}
+  input: 'src/main.js',
+  output: {
+    file: 'bundle.js',
+    format: 'cjs'
+  }
 };
 ```
 
@@ -274,19 +271,18 @@ There are some potential gotchas when using `.mjs` on Node 13+:
 
 - You will only get a default export from CommonJS plugins
 - You may not be able to import JSON files such as your `package.json file`. There are two ways to go around this:
-
   - run Rollup CLI via
 
     ```
     node --experimental-json-modules ./node_modules/.bin/rollup --config
     ```
-
+    
   - create a CommonJS wrapper that requires the JSON file:
-
+  
     ```js
     // load-package.cjs
     module.exports = require('./package.json');
-
+    
     // rollup.config.mjs
     import pkg from './load-package.cjs';
     ...
@@ -385,7 +381,6 @@ Use the specified plugin. There are several ways to specify plugins here:
   ```
 
   The file should export a function returning a plugin object.
-
 - Via the name of a plugin that is installed in a local or global `node_modules` folder:
 
   ```
@@ -447,9 +442,9 @@ will set `process.env.INCLUDE_DEPS === 'true'` and `process.env.BUILD === 'produ
 ```json
 // in package.json
 {
-	"scripts": {
-		"build": "rollup -c --environment INCLUDE_DEPS,BUILD:production"
-	}
+  "scripts": {
+    "build": "rollup -c --environment INCLUDE_DEPS,BUILD:production"
+  }
 }
 ```
 
@@ -484,7 +479,7 @@ echo "export const foo = 42;" | rollup --format cjs --file out.js
 When this file contains imports, Rollup will try to resolve them relative to the current working directory. When a config file is used, Rollup will only use `stdin` as an entry point if the file name of the entry point is `-`. To read a non-entry-point file from stdin, just call it `-`, which is the file name that is used internally to reference `stdin`. I.e.
 
 ```js
-import foo from '-';
+import foo from "-";
 ```
 
 in any file will prompt Rollup to try to read the imported file from `stdin` and assign the default export to `foo`. You can pass the [`--no-stdin`](guide/en/#--no-stdin) CLI flag to Rollup to treat `-` as a regular file name instead.
