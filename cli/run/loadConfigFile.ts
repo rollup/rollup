@@ -11,7 +11,8 @@ import relativeId from '../../src/utils/relativeId';
 import { stderr } from '../logging';
 import batchWarnings, { BatchWarnings } from './batchWarnings';
 import { addCommandPluginsToInputOptions } from './commandPlugins';
-import importTypescriptPlugin from './import-ts-plugin';
+
+import importCustomConfigPlugin from './importConfigPlugin';
 
 function supportsNativeESM() {
 	return Number(/^v(\d+)/.exec(process.version)![1]) >= 13;
@@ -55,7 +56,7 @@ async function loadConfigFile(
 					fileName,
 					commandOptions.configPlugin,
 					commandOptions.silent,
-					extension === '.ts'
+					extension
 			  );
 
 	return getConfigList(configFileExport, commandOptions);
@@ -67,9 +68,9 @@ function getDefaultFromCjs(namespace: GenericConfigObject) {
 
 async function getDefaultFromTranspiledConfigFile(
 	fileName: string,
-	tsConfigPlugin: boolean,
+	configPlugin: boolean,
 	silent: boolean,
-	typescript: boolean
+	extension: string
 ): Promise<unknown> {
 	const warnings = batchWarnings();
 	const bundle = await rollup.rollup({
@@ -77,7 +78,10 @@ async function getDefaultFromTranspiledConfigFile(
 			(id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5, id.length) === '.json',
 		input: fileName,
 		onwarn: warnings.add,
-		plugins: typescript ? [await importTypescriptPlugin(fileName, tsConfigPlugin)] : [],
+		plugins:
+			extension !== '.js'
+				? [await importCustomConfigPlugin(fileName, configPlugin, extension)]
+				: [],
 		treeshake: false
 	});
 	if (!silent && warnings.count > 0) {
