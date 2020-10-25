@@ -53,6 +53,7 @@ async function loadConfigFile(
 			? getDefaultFromCjs(require(fileName))
 			: await getDefaultFromTranspiledConfigFile(
 					fileName,
+					commandOptions.ts,
 					commandOptions.silent,
 					extension === '.ts'
 			  );
@@ -66,6 +67,7 @@ function getDefaultFromCjs(namespace: GenericConfigObject) {
 
 async function getDefaultFromTranspiledConfigFile(
 	fileName: string,
+	tsConfigPlugin: boolean,
 	silent: boolean,
 	typescript: boolean
 ): Promise<unknown> {
@@ -75,7 +77,7 @@ async function getDefaultFromTranspiledConfigFile(
 			(id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5, id.length) === '.json',
 		input: fileName,
 		onwarn: warnings.add,
-		plugins: typescript ? [await importTypescriptPlugin(fileName)] : [],
+		plugins: typescript ? [await importTypescriptPlugin(fileName, tsConfigPlugin)] : [],
 		treeshake: false
 	});
 	if (!silent && warnings.count > 0) {
