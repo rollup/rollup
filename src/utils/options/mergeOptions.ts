@@ -23,7 +23,6 @@ export const commandAliases: { [key: string]: string } = {
 	n: 'name',
 	o: 'file',
 	p: 'plugin',
-	t: 'ts',
 	v: 'version',
 	w: 'watch'
 };
@@ -57,7 +56,7 @@ export function mergeOptions(
 			'failAfterWarnings',
 			'stdin',
 			'waitForBundleInput',
-			'ts'
+			'configPlugin'
 		),
 		'CLI flags',
 		warn,

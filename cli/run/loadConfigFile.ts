@@ -53,7 +53,7 @@ async function loadConfigFile(
 			? getDefaultFromCjs(require(fileName))
 			: await getDefaultFromTranspiledConfigFile(
 					fileName,
-					commandOptions.ts,
+					commandOptions.configPlugin,
 					commandOptions.silent,
 					extension === '.ts'
 			  );
