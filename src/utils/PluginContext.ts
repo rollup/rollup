@@ -126,6 +126,7 @@ export function getPluginContexts(
 			getFileName: fileEmitter.getFileName,
 			getModuleIds: () => graph.modulesById.keys(),
 			getModuleInfo: graph.getModuleInfo,
+			getWatchFiles: () => Object.keys(graph.watchFiles),
 			isExternal: getDeprecatedContextHandler(
 				(id: string, parentId: string | undefined, isResolved = false) =>
 					options.external(id, parentId, isResolved),

@@ -45,7 +45,7 @@ export class FileWatcher {
 		const task = this.task;
 		const isLinux = platform() === 'linux';
 		const isTransformDependency = transformWatcherId !== null;
-		const handleChange = (id: string) => {
+		const handleChange = (id: string, _: unknown, isDeleted = false) => {
 			const changedId = transformWatcherId || id;
 			if (isLinux) {
 				// unwatching and watching fixes an issue with chokidar where on certain systems,
@@ -54,13 +54,13 @@ export class FileWatcher {
 				watcher.unwatch(changedId);
 				watcher.add(changedId);
 			}
-			task.invalidate(changedId, isTransformDependency);
+			task.invalidate(changedId, isTransformDependency, isDeleted);
 		};
 		const watcher = chokidar
 			.watch([], this.chokidarOptions)
 			.on('add', handleChange)
 			.on('change', handleChange)
-			.on('unlink', handleChange);
+			.on('unlink', id => handleChange(id, null, true));
 		return watcher;
 	}
 }

@@ -18,6 +18,7 @@ export class Watcher {
 
 	private buildDelay = 0;
 	private buildTimeout: NodeJS.Timer | null = null;
+	private deletedIds: Set<string> = new Set();
 	private invalidatedIds: Set<string> = new Set();
 	private rerun = false;
 	private running: boolean;
@@ -43,16 +44,21 @@ export class Watcher {
 		for (const task of this.tasks) {
 			task.close();
 		}
+		this.emit('close')
 		this.emitter.removeAllListeners();
 	}
 
-	emit(event: string, value?: any) {
-		this.emitter.emit(event as any, value);
+	emit(event: string, ...args: unknown[]) {
+		this.emitter.emit(event as any, ...args);
 	}
 
-	invalidate(id?: string) {
+	invalidate(id?: string, isDeleted?: boolean) {
 		if (id) {
 			this.invalidatedIds.add(id);
+			if (isDeleted)
+				this.deletedIds.add(id);
+			else
+				this.deletedIds.delete(id)
 		}
 		if (this.running) {
 			this.rerun = true;
@@ -64,9 +70,10 @@ export class Watcher {
 		this.buildTimeout = setTimeout(() => {
 			this.buildTimeout = null;
 			for (const id of this.invalidatedIds) {
-				this.emit('change', id);
+				this.emit('change', id, this.deletedIds.has(id));
 			}
 			this.invalidatedIds.clear();
+			this.deletedIds.clear();
 			this.emit('restart');
 			this.run();
 		}, this.buildDelay);
@@ -144,7 +151,7 @@ export class Task {
 		this.fileWatcher.close();
 	}
 
-	invalidate(id: string, isTransformDependency: boolean | undefined) {
+	invalidate(id: string, isTransformDependency: boolean | undefined, isDeleted: boolean) {
 		this.invalidated = true;
 		if (isTransformDependency) {
 			for (const module of this.cache.modules) {
@@ -153,7 +160,7 @@ export class Task {
 				module.originalCode = null as any;
 			}
 		}
-		this.watcher.invalidate(id);
+		this.watcher.invalidate(id, isDeleted);
 	}
 
 	async run() {

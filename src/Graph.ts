@@ -84,10 +84,13 @@ export default class Graph {
 
 		if (watcher) {
 			this.watchMode = true;
-			const handleChange = (id: string) => this.pluginDriver.hookSeqSync('watchChange', [id]);
+			const handleChange = (id: string, del: boolean) => this.pluginDriver.hookSeqSync('watchChange', [id, del]);
+			const handleClose = () => this.pluginDriver.hookSeqSync('closeWatcher', []);
 			watcher.on('change', handleChange);
+			watcher.on('close', handleClose);
 			watcher.once('restart', () => {
 				watcher.removeListener('change', handleChange);
+				watcher.removeListener('close', handleClose);
 			});
 		}
 		this.pluginDriver = new PluginDriver(this, options, options.plugins, this.pluginCache);

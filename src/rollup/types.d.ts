@@ -195,6 +195,7 @@ export interface PluginContext extends MinimalPluginContext {
 	getFileName: (fileReferenceId: string) => string;
 	getModuleIds: () => IterableIterator<string>;
 	getModuleInfo: GetModuleInfo;
+	getWatchFiles: () => string[];
 	/** @deprecated Use `this.resolve` instead */
 	isExternal: IsExternal;
 	/** @deprecated Use `this.getModuleIds` instead */
@@ -345,13 +346,14 @@ export interface OutputBundleWithPlaceholders {
 export interface PluginHooks extends OutputPluginHooks {
 	buildEnd: (this: PluginContext, err?: Error) => Promise<void> | void;
 	buildStart: (this: PluginContext, options: NormalizedInputOptions) => Promise<void> | void;
+	closeWatcher: (this: PluginContext) => void;
 	load: LoadHook;
 	moduleParsed: ModuleParsedHook;
 	options: (this: MinimalPluginContext, options: InputOptions) => InputOptions | null | undefined;
 	resolveDynamicImport: ResolveDynamicImportHook;
 	resolveId: ResolveIdHook;
 	transform: TransformHook;
-	watchChange: (id: string) => void;
+	watchChange: (this: PluginContext, id: string, isDeleted: boolean) => void;
 }
 
 interface OutputPluginHooks {
@@ -419,6 +421,7 @@ export type FirstPluginHooks =
 
 export type SequentialPluginHooks =
 	| 'augmentChunkHash'
+	| 'closeWatcher'
 	| 'generateBundle'
 	| 'options'
 	| 'outputOptions'
@@ -816,7 +819,8 @@ export type RollupWatcherEvent =
 
 export interface RollupWatcher
 	extends TypedEventEmitter<{
-		change: (id: string) => void;
+		change: (id: string, isDeleted: boolean) => void;
+		close: () => void;
 		event: (event: RollupWatcherEvent) => void;
 		restart: () => void;
 	}> {
