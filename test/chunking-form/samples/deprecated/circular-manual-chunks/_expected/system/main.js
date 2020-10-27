@@ -1,9 +1,9 @@
-System.register(['./generated-lib2.js', './generated-lib1.js'], function (exports) {
+System.register(['./generated-lib1.js', './generated-lib2.js'], function (exports) {
 	'use strict';
 	return {
-		setters: [function () {}, function (module) {
+		setters: [function (module) {
 			exports('lib1', module.l);
-		}],
+		}, function () {}],
 		execute: function () {
 
 

@@ -36,12 +36,12 @@ import {
 	errUnexpectedNamespaceReexport
 } from './utils/error';
 import { escapeId } from './utils/escapeId';
-import { sortByExecutionOrder } from './utils/executionOrder';
 import { assignExportsToMangledNames, assignExportsToNames } from './utils/exportNames';
 import getExportMode from './utils/getExportMode';
 import { getId } from './utils/getId';
 import getIndentString from './utils/getIndentString';
 import { getOrCreate } from './utils/getOrCreate';
+import { getStaticDependencies } from './utils/getStaticDependencies';
 import { makeLegal } from './utils/identifierHelpers';
 import {
 	defaultInteropHelpersByInteropType,
@@ -546,8 +546,8 @@ export default class Chunk {
 	}
 
 	link() {
+		this.dependencies = getStaticDependencies(this, this.orderedModules, this.chunkByModule);
 		for (const module of this.orderedModules) {
-			this.addDependenciesToChunk(module.getDependenciesToBeIncluded(), this.dependencies);
 			this.addDependenciesToChunk(module.dynamicDependencies, this.dynamicDependencies);
 			this.addDependenciesToChunk(module.implicitlyLoadedBefore, this.implicitlyLoadedBefore);
 			this.setUpChunkImportsAndExportsForModule(module);
@@ -585,9 +585,6 @@ export default class Chunk {
 				if (dep instanceof Chunk) this.inlineChunkDependencies(dep);
 			}
 		}
-		const sortedDependencies = [...this.dependencies];
-		sortByExecutionOrder(sortedDependencies);
-		this.dependencies = new Set(sortedDependencies);
 
 		this.prepareDynamicImportsAndImportMetas();
 		this.setIdentifierRenderResolutions(options);

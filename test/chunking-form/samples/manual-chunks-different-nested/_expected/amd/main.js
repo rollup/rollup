@@ -1,4 +1,4 @@
-define(['./generated-manual-inner', './generated-manual-middle', './generated-manual-outer'], function (manualInner, manualMiddle, manualOuter) { 'use strict';
+define(['./generated-manual-outer', './generated-manual-middle', './generated-manual-inner'], function (manualOuter, manualMiddle, manualInner) { 'use strict';
 
 	console.log('main');
 

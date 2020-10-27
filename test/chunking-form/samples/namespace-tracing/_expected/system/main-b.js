@@ -1,13 +1,13 @@
-System.register(['./generated-broken.js', './generated-foo.js', './generated-bar.js'], function () {
+System.register(['./generated-foo.js', './generated-bar.js', './generated-broken.js'], function () {
 	'use strict';
-	var broken, foo, bar;
+	var foo, bar, broken;
 	return {
 		setters: [function (module) {
-			broken = module.b;
-		}, function (module) {
 			foo = module.f;
 		}, function (module) {
 			bar = module.b;
+		}, function (module) {
+			broken = module.b;
 		}],
 		execute: function () {
 

@@ -3,8 +3,9 @@ const assert = require('assert');
 const rollup = require('../../dist/rollup');
 const { compareError, compareWarnings, runTestSuiteWithSamples } = require('../utils.js');
 
-function requireWithContext(code, context, module) {
-	const contextWithExports = Object.assign({}, context, { module, exports: module.exports });
+function requireWithContext(code, context, exports) {
+	const module = { exports };
+	const contextWithExports = Object.assign({}, context, { module, exports });
 	const contextKeys = Object.keys(contextWithExports);
 	const contextValues = contextKeys.map(key => contextWithExports[key]);
 	try {
@@ -30,7 +31,7 @@ function runCodeSplitTest(codeMap, entryId, configContext) {
 			return (exportsMap[outputId] = requireWithContext(
 				code,
 				Object.assign({ require: requireFromOutputVia(outputId) }, context),
-				(exportsMap[outputId] = { exports: {} })
+				(exportsMap[outputId] = {})
 			));
 		} else {
 			return require(importee);

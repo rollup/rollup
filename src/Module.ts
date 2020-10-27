@@ -333,8 +333,9 @@ export default class Module {
 	getDependenciesToBeIncluded(): Set<Module | ExternalModule> {
 		if (this.relevantDependencies) return this.relevantDependencies;
 		const relevantDependencies = new Set<Module | ExternalModule>();
-		const additionalSideEffectModules = new Set<Module>();
-		const possibleDependencies = new Set(this.dependencies);
+		const necessaryDependencies = new Set<Module | ExternalModule>();
+		const alwaysCheckedDependencies = new Set<Module>();
+
 		let dependencyVariables = this.imports;
 		if (
 			this.info.isEntry ||
@@ -354,35 +355,24 @@ export default class Module {
 				const { modules, original } = variable.getOriginalVariableAndDeclarationModules();
 				variable = original;
 				for (const module of modules) {
-					additionalSideEffectModules.add(module);
-					possibleDependencies.add(module);
+					alwaysCheckedDependencies.add(module);
 				}
 			}
-			relevantDependencies.add(variable.module!);
+			necessaryDependencies.add(variable.module!);
 		}
 		if (this.options.treeshake && this.info.hasModuleSideEffects !== 'no-treeshake') {
-			for (const dependency of possibleDependencies) {
-				if (
-					!(
-						dependency.info.hasModuleSideEffects ||
-						additionalSideEffectModules.has(dependency as Module)
-					) ||
-					relevantDependencies.has(dependency)
-				) {
-					continue;
-				}
-				if (dependency instanceof ExternalModule || dependency.hasEffects()) {
-					relevantDependencies.add(dependency);
-				} else {
-					for (const transitiveDependency of dependency.dependencies) {
-						possibleDependencies.add(transitiveDependency);
-					}
-				}
-			}
+			this.addRelevantSideEffectDependencies(
+				relevantDependencies,
+				necessaryDependencies,
+				alwaysCheckedDependencies
+			);
 		} else {
 			for (const dependency of this.dependencies) {
 				relevantDependencies.add(dependency);
 			}
+		}
+		for (const dependency of necessaryDependencies) {
+			relevantDependencies.add(dependency);
 		}
 		return (this.relevantDependencies = relevantDependencies);
 	}
@@ -958,6 +948,38 @@ export default class Module {
 			const id = this.resolvedIds[specifier.source].id;
 			specifier.module = this.graph.modulesById.get(id)!;
 		}
+	}
+
+	private addRelevantSideEffectDependencies(
+		relevantDependencies: Set<Module | ExternalModule>,
+		necessaryDependencies: Set<Module | ExternalModule>,
+		alwaysCheckedDependencies: Set<Module | ExternalModule>
+	) {
+		const handledDependencies = new Set<Module | ExternalModule>();
+
+		function addSideEffectDependencies(possibleDependencies: Set<Module | ExternalModule>) {
+			for (const dependency of possibleDependencies) {
+				if (handledDependencies.has(dependency)) {
+					continue;
+				}
+				handledDependencies.add(dependency);
+				if (necessaryDependencies.has(dependency)) {
+					relevantDependencies.add(dependency);
+					continue;
+				}
+				if (!(dependency.info.hasModuleSideEffects || alwaysCheckedDependencies.has(dependency))) {
+					continue;
+				}
+				if (dependency instanceof ExternalModule || dependency.hasEffects()) {
+					relevantDependencies.add(dependency);
+					continue;
+				}
+				addSideEffectDependencies(dependency.dependencies);
+			}
+		}
+
+		addSideEffectDependencies(this.dependencies);
+		addSideEffectDependencies(alwaysCheckedDependencies);
 	}
 
 	private includeAndGetAdditionalMergedNamespaces(): Variable[] {

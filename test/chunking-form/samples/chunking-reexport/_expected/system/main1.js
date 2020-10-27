@@ -1,9 +1,9 @@
-System.register(['external', './generated-dep.js'], function (exports) {
+System.register(['./generated-dep.js', 'external'], function (exports) {
 	'use strict';
 	return {
-		setters: [function (module) {
+		setters: [function () {}, function (module) {
 			exports('dep', module.asdf);
-		}, function () {}],
+		}],
 		execute: function () {
 
 

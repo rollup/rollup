@@ -1,6 +1,6 @@
 'use strict';
 
-require('./generated-dep.js');
 require('./generated-shared.js');
+require('./generated-dep.js');
 
 console.log('main2');

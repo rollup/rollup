@@ -1,4 +1,4 @@
-define(['exports', 'external-all', 'external-default-namespace', 'external-named-namespace', 'external-namespace'], function (exports, externalAll, externalDefaultNamespace, externalNamedNamespace, externalNamespace$1) { 'use strict';
+define(['exports', 'external-all', 'external-namespace', 'external-default-namespace', 'external-named-namespace'], function (exports, externalAll, externalNamespace$1, externalDefaultNamespace, externalNamedNamespace) { 'use strict';
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -21,18 +21,18 @@ define(['exports', 'external-all', 'external-default-namespace', 'external-named
 	}
 
 	var externalAll__namespace = /*#__PURE__*/_interopNamespace(externalAll);
+	var externalNamespace__namespace = /*#__PURE__*/_interopNamespace(externalNamespace$1);
 	var externalDefaultNamespace__namespace = /*#__PURE__*/_interopNamespace(externalDefaultNamespace);
 	var externalNamedNamespace__namespace = /*#__PURE__*/_interopNamespace(externalNamedNamespace);
-	var externalNamespace__namespace = /*#__PURE__*/_interopNamespace(externalNamespace$1);
 
 	const externalNamespace = 1;
 	const externalNamespace__ns = 1;
 	console.log(externalNamespace, externalNamespace__ns);
 
 	exports.foo = externalAll__namespace;
+	exports.bar = externalNamespace__namespace;
 	exports.baz = externalDefaultNamespace__namespace;
 	exports.quux = externalNamedNamespace__namespace;
-	exports.bar = externalNamespace__namespace;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

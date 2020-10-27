@@ -1,9 +1,9 @@
-define(['exports', './components/sub/index', './components/index'], function (exports, index$1, index) { 'use strict';
+define(['exports', './components/index', './components/sub/index'], function (exports, index, index$1) { 'use strict';
 
 
 
-	exports.foo = index$1.foo;
 	exports.baz = index.baz;
+	exports.foo = index$1.foo;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

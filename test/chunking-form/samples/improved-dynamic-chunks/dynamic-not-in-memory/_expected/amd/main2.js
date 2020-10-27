@@ -1,4 +1,4 @@
-define(['./generated-dep', './generated-shared'], function (dep, shared) { 'use strict';
+define(['./generated-shared', './generated-dep'], function (shared, dep) { 'use strict';
 
 	console.log('main2');
 

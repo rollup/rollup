@@ -1,4 +1,4 @@
-define(['./generated-broken', './generated-foo', './generated-bar'], function (broken, foo, bar) { 'use strict';
+define(['./generated-foo', './generated-bar', './generated-broken'], function (foo, bar, broken) { 'use strict';
 
 	foo.foo();
 	broken.broken();

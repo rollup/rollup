@@ -1,4 +1,4 @@
-define(['exports', './generated-lib2', './generated-lib1'], function (exports, lib2, lib1) { 'use strict';
+define(['exports', './generated-lib1', './generated-lib2'], function (exports, lib1, lib2) { 'use strict';
 
 
 

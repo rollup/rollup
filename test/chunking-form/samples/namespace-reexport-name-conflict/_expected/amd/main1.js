@@ -1,4 +1,4 @@
-define(['./generated-dep', 'external', './generated-index'], function (dep, external, index) { 'use strict';
+define(['./generated-index', './generated-dep', 'external'], function (index, dep, external) { 'use strict';
 
 	console.log(index.lib);
 

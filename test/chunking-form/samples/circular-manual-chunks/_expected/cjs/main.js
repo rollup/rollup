@@ -2,8 +2,8 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-require('./generated-lib2.js');
 var lib1 = require('./generated-lib1.js');
+require('./generated-lib2.js');
 
 
 

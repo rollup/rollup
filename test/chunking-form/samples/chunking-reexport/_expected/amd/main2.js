@@ -1,4 +1,4 @@
-define(['exports', 'external', './generated-dep'], function (exports, external, dep) { 'use strict';
+define(['exports', './generated-dep', 'external'], function (exports, dep, external) { 'use strict';
 
 
 

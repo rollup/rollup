@@ -1,10 +1,10 @@
-System.register(['./generated-dep.js', 'external', './generated-index.js'], function () {
+System.register(['./generated-index.js', './generated-dep.js', 'external'], function () {
 	'use strict';
 	var reexported;
 	return {
-		setters: [function (module) {
+		setters: [function () {}, function (module) {
 			reexported = module.r;
-		}, function () {}, function () {}],
+		}, function () {}],
 		execute: function () {
 
 			console.log(reexported);

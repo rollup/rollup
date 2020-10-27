@@ -4,9 +4,9 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var starexternal1 = require('starexternal1');
 var external1 = require('external1');
+var dep = require('./generated-dep.js');
 require('starexternal2');
 require('external2');
-var dep = require('./generated-dep.js');
 
 var main = '1';
 
