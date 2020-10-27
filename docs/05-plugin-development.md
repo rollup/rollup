@@ -92,6 +92,13 @@ Next Hook: [`resolveId`](guide/en/#resolveid) to resolve each entry point in par
 
 Called on each `rollup.rollup` build. This is the recommended hook to use when you need access to the options passed to `rollup.rollup()` as it takes the transformations by all [`options`](guide/en/#options) hooks into account and also contains the right default values for unset options.
 
+#### `closeWatcher`
+Type: `() => void`<br>
+Kind: `sync, sequential`<br>
+Previous/Next Hook: This hook can be triggered at any time both during the build and the output generation phases. If that is the case, the current build will still proceed but no new [`watchChange`](guide/en/#watchChange) events will be triggered ever.
+
+Notifies a plugin when watcher process closes and all open resources should be closed too. This hook cannot be used by output plugins.
+
 #### `load`
 Type: `(id: string) => string | null | {code: string, map?: string | SourceMap, ast? : ESTree.Program, moduleSideEffects?: boolean | "no-treeshake" | null, syntheticNamedExports?: boolean | string | null, meta?: {[plugin: string]: any} | null}`<br>
 Kind: `async, first`<br>
@@ -236,11 +243,12 @@ See [custom module meta-data](guide/en/#custom-module-meta-data) for how to use 
 You can use [`this.getModuleInfo`](guide/en/#thisgetmoduleinfomoduleid-string--moduleinfo--null) to find out the previous values of `moduleSideEffects`, `syntheticNamedExports` and `meta` inside this hook.
 
 #### `watchChange`
-Type: `(id: string) => void`<br>
+Type: `(id: string, isDeleted: boolean) => void`<br>
 Kind: `sync, sequential`<br>
 Previous/Next Hook: This hook can be triggered at any time both during the build and the output generation phases. If that is the case, the current build will still proceed but a new build will be scheduled to start once the current build has completed, starting again with [`options`](guide/en/#options).
 
 Notifies a plugin whenever rollup has detected a change to a monitored file in `--watch` mode. This hook cannot be used by output plugins.
+Second argument will be `true` if file deleted.  
 
 ### Output Generation Hooks
 
@@ -654,6 +662,11 @@ During the build, this object represents currently available information about t
  the `importedIds` are not yet resolved or additional `importers` are discovered.
  
 Returns `null` if the module id cannot be found.
+
+#### `this.getWatchFiles() => string[]`
+
+Get ids of the files which has been watched previously. Include both files added by plugins with `this.addWatchFile`
+ and files added implicitly by rollup during the build.
 
 #### `this.meta: {rollupVersion: string, watchMode: boolean}`
 
