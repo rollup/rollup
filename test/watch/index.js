@@ -310,7 +310,8 @@ describe('rollup.watch', () => {
 			});
 	});
 
-	it('correctly rewrites change event during build delay', () => {
+	it('correctly rewrites change event during build delay', function() {
+		this.timeout(3000);
 		let e;
 		return sander
 			.copydir('test/watch/samples/watch-files')
@@ -324,9 +325,9 @@ describe('rollup.watch', () => {
 						exports: 'auto'
 					},
 					watch: {
-						buildDelay: 100,
+						buildDelay: 150,
 						chokidar: {
-							atomic: true,
+							atomic: 30,
 						}
 					},
 					plugins: {
@@ -349,7 +350,7 @@ describe('rollup.watch', () => {
 						assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
 						assert.strictEqual(e, undefined);
 						sander.writeFileSync('test/_tmp/input/watched', 'another');
-						setTimeout(() => sander.rimrafSync('test/_tmp/input/watched'), 10);
+						setTimeout(() => sander.rimrafSync('test/_tmp/input/watched'), 50);
 					},
 					'START',
 					'BUNDLE_START',
@@ -357,8 +358,18 @@ describe('rollup.watch', () => {
 					'END',
 					() => {
 						assert.strictEqual(e, 'delete');
+						e = undefined;
 						sander.writeFileSync('test/_tmp/input/watched', '123');
-						setTimeout(() => sander.writeFileSync('test/_tmp/input/watched', 'asd'), 10);
+						setTimeout(() => sander.rimrafSync('test/_tmp/input/watched'), 50);
+					},
+					'START',
+					'BUNDLE_START',
+					'BUNDLE_END',
+					'END',
+					() => {
+						assert.strictEqual(e, undefined);
+						sander.writeFileSync('test/_tmp/input/watched', '123');
+						setTimeout(() => sander.writeFileSync('test/_tmp/input/watched', 'asd'), 50);
 					},
 					'START',
 					'BUNDLE_START',
