@@ -310,8 +310,7 @@ describe('rollup.watch', () => {
 			});
 	});
 
-	it('correctly rewrites change event during build delay', function() {
-		this.timeout(3000);
+	it('correctly rewrites change event during build delay', () => {
 		let e;
 		return sander
 			.copydir('test/watch/samples/watch-files')
@@ -325,7 +324,10 @@ describe('rollup.watch', () => {
 						exports: 'auto'
 					},
 					watch: {
-						buildDelay: 300,
+						buildDelay: 100,
+						chokidar: {
+							atomic: true,
+						}
 					},
 					plugins: {
 						buildStart() {
@@ -347,8 +349,7 @@ describe('rollup.watch', () => {
 						assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
 						assert.strictEqual(e, undefined);
 						sander.writeFileSync('test/_tmp/input/watched', 'another');
-						//default chokidar timeout for waiting is 100, so we waiting 150
-						setTimeout(() => sander.rimrafSync('test/_tmp/input/watched'), 150);
+						setTimeout(() => sander.rimrafSync('test/_tmp/input/watched'), 10);
 					},
 					'START',
 					'BUNDLE_START',
@@ -357,7 +358,7 @@ describe('rollup.watch', () => {
 					() => {
 						assert.strictEqual(e, 'delete');
 						sander.writeFileSync('test/_tmp/input/watched', '123');
-						setTimeout(() => sander.writeFileSync('test/_tmp/input/watched', 'asd'), 150);
+						setTimeout(() => sander.writeFileSync('test/_tmp/input/watched', 'asd'), 10);
 					},
 					'START',
 					'BUNDLE_START',
