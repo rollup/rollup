@@ -243,12 +243,12 @@ See [custom module meta-data](guide/en/#custom-module-meta-data) for how to use 
 You can use [`this.getModuleInfo`](guide/en/#thisgetmoduleinfomoduleid-string--moduleinfo--null) to find out the previous values of `moduleSideEffects`, `syntheticNamedExports` and `meta` inside this hook.
 
 #### `watchChange`
-Type: `(id: string, isDeleted: boolean) => void`<br>
+Type: `watchChange: (id: string, change: {event: 'create' | 'update' | 'delete'}) => void`<br>
 Kind: `sync, sequential`<br>
 Previous/Next Hook: This hook can be triggered at any time both during the build and the output generation phases. If that is the case, the current build will still proceed but a new build will be scheduled to start once the current build has completed, starting again with [`options`](guide/en/#options).
 
 Notifies a plugin whenever rollup has detected a change to a monitored file in `--watch` mode. This hook cannot be used by output plugins.
-Second argument will be `true` if file deleted.  
+Second argument contains additional details of change event.  
 
 ### Output Generation Hooks
 

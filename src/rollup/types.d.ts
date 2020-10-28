@@ -319,6 +319,9 @@ export type ResolveFileUrlHook = (
 export type AddonHookFunction = (this: PluginContext) => string | Promise<string>;
 export type AddonHook = string | AddonHookFunction;
 
+export type ChangeEvent = 'create' | 'update' | 'delete'
+export type WatchChangeHook = (this: PluginContext, id: string, change: {event: ChangeEvent}) => void
+
 /**
  * use this type for plugin annotation
  * @example
@@ -353,7 +356,7 @@ export interface PluginHooks extends OutputPluginHooks {
 	resolveDynamicImport: ResolveDynamicImportHook;
 	resolveId: ResolveIdHook;
 	transform: TransformHook;
-	watchChange: (this: PluginContext, id: string, isDeleted: boolean) => void;
+	watchChange: WatchChangeHook;
 }
 
 interface OutputPluginHooks {
@@ -786,9 +789,9 @@ export interface RollupWatchOptions extends InputOptions {
 	watch?: WatcherOptions | false;
 }
 
-interface TypedEventEmitter<T> {
+interface TypedEventEmitter<T extends {[event: string]: (...args: any) => any}> {
 	addListener<K extends keyof T>(event: K, listener: T[K]): this;
-	emit<K extends keyof T>(event: K, ...args: any[]): boolean;
+	emit<K extends keyof T>(event: K, ...args: Parameters<T[K]>): boolean;
 	eventNames(): Array<keyof T>;
 	getMaxListeners(): number;
 	listenerCount(type: keyof T): number;
@@ -806,11 +809,11 @@ interface TypedEventEmitter<T> {
 
 export type RollupWatcherEvent =
 	| { code: 'START' }
-	| { code: 'BUNDLE_START'; input: InputOption; output: readonly string[] }
+	| { code: 'BUNDLE_START'; input?: InputOption; output: readonly string[] }
 	| {
 			code: 'BUNDLE_END';
 			duration: number;
-			input: InputOption;
+			input?: InputOption;
 			output: readonly string[];
 			result: RollupBuild;
 	  }
@@ -819,7 +822,7 @@ export type RollupWatcherEvent =
 
 export interface RollupWatcher
 	extends TypedEventEmitter<{
-		change: (id: string, isDeleted: boolean) => void;
+		change: WatchChangeHook;
 		close: () => void;
 		event: (event: RollupWatcherEvent) => void;
 		restart: () => void;

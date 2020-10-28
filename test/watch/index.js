@@ -237,8 +237,8 @@ describe('rollup.watch', () => {
 			});
 	});
 
-	it('passes isDeleted parameter to the watchChange plugin hook', () => {
-		const deleted = [];
+	it('passes change parameter to the watchChange plugin hook', () => {
+		const events = [];
 		let ids;
 		const expectedIds = ['test/_tmp/input/watched', path.resolve('test/_tmp/input/main.js')];
 		return sander
@@ -256,9 +256,9 @@ describe('rollup.watch', () => {
 						buildStart() {
 							this.addWatchFile('test/_tmp/input/watched');
 						},
-						watchChange(id, isDeleted) {
+						watchChange(id, {event}) {
 							assert.strictEqual(id, 'test/_tmp/input/watched');
-							deleted.push(isDeleted);
+							events.push(event);
 						},
 						buildEnd() {
 							ids = this.getWatchFiles();
@@ -273,7 +273,7 @@ describe('rollup.watch', () => {
 					'END',
 					() => {
 						assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-						assert.deepStrictEqual(deleted, []);
+						assert.deepStrictEqual(events, []);
 						assert.deepStrictEqual(ids, expectedIds);
 						sander.writeFileSync('test/_tmp/input/watched', 'another');
 					},
@@ -283,7 +283,7 @@ describe('rollup.watch', () => {
 					'END',
 					() => {
 						assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-						assert.deepStrictEqual(deleted, [false]);
+						assert.deepStrictEqual(events, ['update']);
 						assert.deepStrictEqual(ids, expectedIds);
 						sander.rimrafSync('test/_tmp/input/watched');
 					},
@@ -293,7 +293,7 @@ describe('rollup.watch', () => {
 					'END',
 					() => {
 						assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-						assert.deepStrictEqual(deleted, [false, true]);
+						assert.deepStrictEqual(events, ['update', 'delete']);
 						assert.deepStrictEqual(ids, expectedIds);
 						sander.writeFileSync('test/_tmp/input/watched', 'third');
 					},
@@ -303,8 +303,68 @@ describe('rollup.watch', () => {
 					'END',
 					() => {
 						assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-						assert.deepStrictEqual(deleted, [false, true, false]);
+						assert.deepStrictEqual(events, ['update', 'delete', 'create']);
 						assert.deepStrictEqual(ids, expectedIds);
+					}
+				]);
+			});
+	});
+
+	it('correctly rewrites change event during build delay', function() {
+		this.timeout(3000);
+		let e;
+		return sander
+			.copydir('test/watch/samples/watch-files')
+			.to('test/_tmp/input')
+			.then(() => {
+				watcher = rollup.watch({
+					input: 'test/_tmp/input/main.js',
+					output: {
+						file: 'test/_tmp/output/bundle.js',
+						format: 'cjs',
+						exports: 'auto'
+					},
+					watch: {
+						buildDelay: 300,
+					},
+					plugins: {
+						buildStart() {
+							this.addWatchFile('test/_tmp/input/watched');
+						},
+						watchChange(id, {event}) {
+							assert.strictEqual(id, 'test/_tmp/input/watched');
+							e = event;
+						}
+					}
+				});
+
+				return sequence(watcher, [
+					'START',
+					'BUNDLE_START',
+					'BUNDLE_END',
+					'END',
+					() => {
+						assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+						assert.strictEqual(e, undefined);
+						sander.writeFileSync('test/_tmp/input/watched', 'another');
+						//default chokidar timeout for waiting is 100, so we waiting 150
+						setTimeout(() => sander.rimrafSync('test/_tmp/input/watched'), 150);
+					},
+					'START',
+					'BUNDLE_START',
+					'BUNDLE_END',
+					'END',
+					() => {
+						assert.strictEqual(e, 'delete');
+						sander.writeFileSync('test/_tmp/input/watched', '123');
+						setTimeout(() => sander.writeFileSync('test/_tmp/input/watched', 'asd'), 150);
+					},
+					'START',
+					'BUNDLE_START',
+					'BUNDLE_END',
+					'END',
+					() => {
+						assert.strictEqual(e, 'create');
 					}
 				]);
 			});
