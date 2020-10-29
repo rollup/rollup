@@ -6,7 +6,8 @@ import { waitForInputPlugin } from './waitForInput';
 export function addCommandPluginsToInputOptions(
 	inputOptions: InputOptions,
 	command: Record<string, unknown>,
-	pluginOption = 'plugin'
+	pluginOption = 'plugin',
+	extension = ''
 ) {
 	if (command.stdin !== false) {
 		inputOptions.plugins!.push(stdinPlugin(command.stdin));
@@ -15,7 +16,7 @@ export function addCommandPluginsToInputOptions(
 		inputOptions.plugins!.push(waitForInputPlugin());
 	}
 
-	const commandPlugin = command[pluginOption];
+	const commandPlugin = resolveCommandPlugin(command, pluginOption, extension);
 	if (commandPlugin) {
 		const plugins = Array.isArray(commandPlugin) ? commandPlugin : [commandPlugin];
 		for (const plugin of plugins) {
@@ -30,6 +31,19 @@ export function addCommandPluginsToInputOptions(
 			}
 		}
 	}
+}
+
+function resolveCommandPlugin(command: any, pluginOption: string, extension: string) {
+	if (
+		(pluginOption === 'configPlugin' && !command[pluginOption]) ||
+		command[pluginOption] === true
+	) {
+		switch (extension) {
+			case '.ts':
+				return 'typescript';
+		}
+	}
+	return command[pluginOption];
 }
 
 function loadAndRegisterPlugin(inputOptions: InputOptions, pluginText: string) {

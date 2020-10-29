@@ -50,7 +50,7 @@ async function loadConfigFile(
 			? (await import(pathToFileURL(fileName).href)).default
 			: extension === '.cjs'
 			? getDefaultFromCjs(require(fileName))
-			: await getDefaultFromTranspiledConfigFile(fileName, commandOptions);
+			: await getDefaultFromTranspiledConfigFile(fileName, commandOptions, extension);
 
 	return getConfigList(configFileExport, commandOptions);
 }
@@ -61,7 +61,8 @@ function getDefaultFromCjs(namespace: GenericConfigObject) {
 
 async function getDefaultFromTranspiledConfigFile(
 	fileName: string,
-	commandOptions: any
+	commandOptions: any,
+	extension: string
 ): Promise<unknown> {
 	const warnings = batchWarnings();
 	const inputOptions = {
@@ -72,7 +73,7 @@ async function getDefaultFromTranspiledConfigFile(
 		plugins: [],
 		treeshake: false
 	};
-	addCommandPluginsToInputOptions(inputOptions, commandOptions, 'configPlugin');
+	addCommandPluginsToInputOptions(inputOptions, commandOptions, 'configPlugin', extension);
 	const bundle = await rollup.rollup(inputOptions);
 	if (!commandOptions.silent && warnings.count > 0) {
 		stderr(bold(`loaded ${relativeId(fileName)} with warnings`));
