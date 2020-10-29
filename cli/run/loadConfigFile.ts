@@ -12,8 +12,6 @@ import { stderr } from '../logging';
 import batchWarnings, { BatchWarnings } from './batchWarnings';
 import { addCommandPluginsToInputOptions } from './commandPlugins';
 
-import importCustomConfigPlugin from './importConfigPlugin';
-
 function supportsNativeESM() {
 	return Number(/^v(\d+)/.exec(process.version)![1]) >= 13;
 }
@@ -52,12 +50,7 @@ async function loadConfigFile(
 			? (await import(pathToFileURL(fileName).href)).default
 			: extension === '.cjs'
 			? getDefaultFromCjs(require(fileName))
-			: await getDefaultFromTranspiledConfigFile(
-					fileName,
-					commandOptions.configPlugin,
-					commandOptions.silent,
-					extension
-			  );
+			: await getDefaultFromTranspiledConfigFile(fileName, commandOptions);
 
 	return getConfigList(configFileExport, commandOptions);
 }
@@ -68,23 +61,20 @@ function getDefaultFromCjs(namespace: GenericConfigObject) {
 
 async function getDefaultFromTranspiledConfigFile(
 	fileName: string,
-	configPlugin: boolean,
-	silent: boolean,
-	extension: string
+	commandOptions: any
 ): Promise<unknown> {
 	const warnings = batchWarnings();
-	const bundle = await rollup.rollup({
+	const inputOptions = {
 		external: (id: string) =>
 			(id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5, id.length) === '.json',
 		input: fileName,
 		onwarn: warnings.add,
-		plugins:
-			extension !== '.js'
-				? [await importCustomConfigPlugin(fileName, configPlugin, extension)]
-				: [],
+		plugins: [],
 		treeshake: false
-	});
-	if (!silent && warnings.count > 0) {
+	};
+	addCommandPluginsToInputOptions(inputOptions, commandOptions, 'configPlugin');
+	const bundle = await rollup.rollup(inputOptions);
+	if (!commandOptions.silent && warnings.count > 0) {
 		stderr(bold(`loaded ${relativeId(fileName)} with warnings`));
 		warnings.flush();
 	}

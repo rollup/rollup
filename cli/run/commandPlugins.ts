@@ -5,15 +5,17 @@ import { waitForInputPlugin } from './waitForInput';
 
 export function addCommandPluginsToInputOptions(
 	inputOptions: InputOptions,
-	command: Record<string, unknown>
-): void {
+	command: Record<string, unknown>,
+	pluginOption = 'plugin'
+) {
 	if (command.stdin !== false) {
 		inputOptions.plugins!.push(stdinPlugin(command.stdin));
 	}
 	if (command.waitForBundleInput === true) {
 		inputOptions.plugins!.push(waitForInputPlugin());
 	}
-	const commandPlugin = command.plugin;
+
+	const commandPlugin = command[pluginOption];
 	if (commandPlugin) {
 		const plugins = Array.isArray(commandPlugin) ? commandPlugin : [commandPlugin];
 		for (const plugin of plugins) {
