@@ -285,7 +285,10 @@ export default class Module {
 			isEntry,
 			isExternal: false,
 			meta,
-			syntheticNamedExports
+			get syntheticNamedExports() {
+				//since it's public and not readonly, we should use getter to ensure value is always actual
+				return module.syntheticNamedExports;
+			}
 		};
 	}
 
@@ -805,7 +808,6 @@ export default class Module {
 		}
 		if (syntheticNamedExports != null) {
 			this.syntheticNamedExports = syntheticNamedExports;
-			this.info.syntheticNamedExports = syntheticNamedExports;
 		}
 		if (meta != null) {
 			this.info.meta = { ...this.info.meta, ...meta };
