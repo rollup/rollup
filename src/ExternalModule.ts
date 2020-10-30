@@ -58,7 +58,8 @@ export default class ExternalModule {
 			},
 			isEntry: false,
 			isExternal: true,
-			meta
+			meta,
+			syntheticNamedExports: false
 		};
 	}
 

@@ -805,6 +805,7 @@ export default class Module {
 		}
 		if (syntheticNamedExports != null) {
 			this.syntheticNamedExports = syntheticNamedExports;
+			this.info.syntheticNamedExports = syntheticNamedExports;
 		}
 		if (meta != null) {
 			this.info.meta = { ...this.info.meta, ...meta };

@@ -27,7 +27,8 @@ module.exports = {
 					importers: [],
 					isEntry: id === ID_MAIN,
 					isExternal: false,
-					meta: {}
+					meta: {},
+					syntheticNamedExports: false
 				});
 			},
 			renderStart() {
@@ -172,7 +173,8 @@ module.exports = {
 							importers: [],
 							isEntry: true,
 							isExternal: false,
-							meta: {}
+							meta: {},
+							syntheticNamedExports: false
 						},
 						{
 							ast: {
@@ -247,7 +249,8 @@ module.exports = {
 							importers: [ID_MAIN, ID_NESTED],
 							isEntry: false,
 							isExternal: false,
-							meta: {}
+							meta: {},
+							syntheticNamedExports: false
 						},
 						{
 							ast: null,
@@ -262,7 +265,8 @@ module.exports = {
 							importers: [ID_FOO],
 							isEntry: false,
 							isExternal: true,
-							meta: {}
+							meta: {},
+							syntheticNamedExports: false
 						},
 						{
 							ast: {
@@ -340,7 +344,8 @@ module.exports = {
 							importers: [],
 							isEntry: false,
 							isExternal: false,
-							meta: {}
+							meta: {},
+							syntheticNamedExports: false
 						}
 					]
 				);

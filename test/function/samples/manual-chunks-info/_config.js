@@ -110,7 +110,8 @@ module.exports = {
 							importers: [],
 							isEntry: true,
 							isExternal: false,
-							meta: {}
+							meta: {},
+							syntheticNamedExports: false
 						},
 						{
 							ast: null,
@@ -125,7 +126,8 @@ module.exports = {
 							importers: [getId('main')],
 							isEntry: false,
 							isExternal: true,
-							meta: {}
+							meta: {},
+							syntheticNamedExports: false
 						},
 						{
 							ast: {
@@ -153,7 +155,8 @@ module.exports = {
 							importers: [getId('dynamic'), getId('main')],
 							isEntry: false,
 							isExternal: false,
-							meta: {}
+							meta: {},
+							syntheticNamedExports: false
 						},
 						{
 							ast: {
@@ -225,7 +228,8 @@ module.exports = {
 							importers: [],
 							isEntry: false,
 							isExternal: false,
-							meta: {}
+							meta: {},
+							syntheticNamedExports: false
 						}
 					]
 				);
