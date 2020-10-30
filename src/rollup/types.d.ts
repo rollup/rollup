@@ -171,6 +171,7 @@ interface ModuleInfo {
 	isEntry: boolean;
 	isExternal: boolean;
 	meta: CustomPluginOptions;
+	syntheticNamedExports: boolean | string;
 }
 
 export type GetModuleInfo = (moduleId: string) => ModuleInfo | null;

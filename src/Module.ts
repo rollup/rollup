@@ -284,7 +284,8 @@ export default class Module {
 			},
 			isEntry,
 			isExternal: false,
-			meta
+			meta,
+			syntheticNamedExports
 		};
 	}
 
