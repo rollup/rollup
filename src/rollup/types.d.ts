@@ -822,7 +822,7 @@ export type RollupWatcherEvent =
 
 export interface RollupWatcher
 	extends TypedEventEmitter<{
-		change: WatchChangeHook;
+		change: (id: string, change: {event: ChangeEvent}) => void;
 		close: () => void;
 		event: (event: RollupWatcherEvent) => void;
 		restart: () => void;

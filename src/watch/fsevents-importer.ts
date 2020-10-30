@@ -2,7 +2,6 @@ let fsEvents: any;
 let fsEventsImportError: any;
 
 export function loadFsEvents() {
-	// @ts-ignore
 	return import('fsevents')
 		.then(namespace => {
 			fsEvents = namespace.default;

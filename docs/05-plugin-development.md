@@ -247,8 +247,7 @@ Type: `watchChange: (id: string, change: {event: 'create' | 'update' | 'delete'}
 Kind: `sync, sequential`<br>
 Previous/Next Hook: This hook can be triggered at any time both during the build and the output generation phases. If that is the case, the current build will still proceed but a new build will be scheduled to start once the current build has completed, starting again with [`options`](guide/en/#options).
 
-Notifies a plugin whenever rollup has detected a change to a monitored file in `--watch` mode. This hook cannot be used by output plugins.
-Second argument contains additional details of change event.  
+Notifies a plugin whenever rollup has detected a change to a monitored file in `--watch` mode. This hook cannot be used by output plugins. Second argument contains additional details of change event.  
 
 ### Output Generation Hooks
 
@@ -665,8 +664,7 @@ Returns `null` if the module id cannot be found.
 
 #### `this.getWatchFiles() => string[]`
 
-Get ids of the files which has been watched previously. Include both files added by plugins with `this.addWatchFile`
- and files added implicitly by rollup during the build.
+Get ids of the files which has been watched previously. Include both files added by plugins with `this.addWatchFile` and files added implicitly by rollup during the build.
 
 #### `this.meta: {rollupVersion: string, watchMode: boolean}`
 
