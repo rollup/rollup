@@ -237,6 +237,206 @@ describe('rollup.watch', () => {
 			});
 	});
 
+	it('passes change parameter to the watchChange plugin hook', () => {
+		const events = [];
+		let ids;
+		const expectedIds = ['test/_tmp/input/watched', path.resolve('test/_tmp/input/main.js')];
+		return sander
+			.copydir('test/watch/samples/watch-files')
+			.to('test/_tmp/input')
+			.then(() => {
+				watcher = rollup.watch({
+					input: 'test/_tmp/input/main.js',
+					output: {
+						file: 'test/_tmp/output/bundle.js',
+						format: 'cjs',
+						exports: 'auto'
+					},
+					plugins: {
+						buildStart() {
+							this.addWatchFile('test/_tmp/input/watched');
+						},
+						watchChange(id, {event}) {
+							assert.strictEqual(id, 'test/_tmp/input/watched');
+							events.push(event);
+						},
+						buildEnd() {
+							ids = this.getWatchFiles();
+						}
+					}
+				});
+
+				return sequence(watcher, [
+					'START',
+					'BUNDLE_START',
+					'BUNDLE_END',
+					'END',
+					() => {
+						assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+						assert.deepStrictEqual(events, []);
+						assert.deepStrictEqual(ids, expectedIds);
+						sander.writeFileSync('test/_tmp/input/watched', 'another');
+					},
+					'START',
+					'BUNDLE_START',
+					'BUNDLE_END',
+					'END',
+					() => {
+						assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+						assert.deepStrictEqual(events, ['update']);
+						assert.deepStrictEqual(ids, expectedIds);
+						sander.rimrafSync('test/_tmp/input/watched');
+					},
+					'START',
+					'BUNDLE_START',
+					'BUNDLE_END',
+					'END',
+					() => {
+						assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+						assert.deepStrictEqual(events, ['update', 'delete']);
+						assert.deepStrictEqual(ids, expectedIds);
+						sander.writeFileSync('test/_tmp/input/watched', 'third');
+					},
+					'START',
+					'BUNDLE_START',
+					'BUNDLE_END',
+					'END',
+					() => {
+						assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+						assert.deepStrictEqual(events, ['update', 'delete', 'create']);
+						assert.deepStrictEqual(ids, expectedIds);
+					}
+				]);
+			});
+	});
+
+	it('correctly rewrites change event during build delay', function() {
+		this.timeout(3000);
+		let e;
+		return sander
+			.copydir('test/watch/samples/watch-files')
+			.to('test/_tmp/input')
+			.then(() => {
+				watcher = rollup.watch({
+					input: 'test/_tmp/input/main.js',
+					output: {
+						file: 'test/_tmp/output/bundle.js',
+						format: 'cjs',
+						exports: 'auto'
+					},
+					watch: {
+						buildDelay: 150,
+						chokidar: {
+							atomic: 30,
+						}
+					},
+					plugins: {
+						buildStart() {
+							this.addWatchFile('test/_tmp/input/watched');
+						},
+						watchChange(id, {event}) {
+							assert.strictEqual(id, 'test/_tmp/input/watched');
+							e = event;
+						}
+					}
+				});
+
+				return sequence(watcher, [
+					'START',
+					'BUNDLE_START',
+					'BUNDLE_END',
+					'END',
+					() => {
+						assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+						assert.strictEqual(e, undefined);
+						sander.writeFileSync('test/_tmp/input/watched', 'another');
+						setTimeout(() => sander.rimrafSync('test/_tmp/input/watched'), 50);
+					},
+					'START',
+					'BUNDLE_START',
+					'BUNDLE_END',
+					'END',
+					() => {
+						assert.strictEqual(e, 'delete');
+						e = undefined;
+						sander.writeFileSync('test/_tmp/input/watched', '123');
+						setTimeout(() => sander.rimrafSync('test/_tmp/input/watched'), 50);
+					},
+					'START',
+					'BUNDLE_START',
+					'BUNDLE_END',
+					'END',
+					() => {
+						assert.strictEqual(e, undefined);
+						sander.writeFileSync('test/_tmp/input/watched', '123');
+						setTimeout(() => sander.writeFileSync('test/_tmp/input/watched', 'asd'), 50);
+					},
+					'START',
+					'BUNDLE_START',
+					'BUNDLE_END',
+					'END',
+					() => {
+						assert.strictEqual(e, 'create');
+					}
+				]);
+			});
+	});
+
+	it('calls closeWatcher plugin hook', () => {
+		let calls = 0;
+		let ctx1;
+		let ctx2;
+		return sander
+			.copydir('test/watch/samples/basic')
+			.to('test/_tmp/input')
+			.then(() => {
+				watcher = rollup.watch({
+					input: 'test/_tmp/input/main.js',
+					output: {
+						file: 'test/_tmp/output/bundle.js',
+						format: 'cjs',
+						exports: 'auto'
+					},
+					plugins: [
+						{
+							buildStart() {
+								ctx1 = this;
+							},
+							closeWatcher() {
+								assert.strictEqual(ctx1, this);
+								calls++;
+							}
+						},
+						{
+							buildStart() {
+								ctx2 = this;
+							},
+							closeWatcher() {
+								assert.strictEqual(ctx2, this);
+								calls++;
+							}
+						},
+					]
+				});
+
+				return sequence(watcher, [
+					'START',
+					'BUNDLE_START',
+					'BUNDLE_END',
+					'END',
+					() => {
+						assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+						assert.ok(ctx1);
+						assert.ok(ctx2);
+						watcher.once('close', () => {
+							assert.strictEqual(calls, 2);
+						});
+						watcher.close();
+					},
+				]);
+			});
+	});
+
 	it('watches a file in code-splitting mode', () => {
 		return sander
 			.copydir('test/watch/samples/code-splitting')

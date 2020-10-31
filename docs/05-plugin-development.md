@@ -72,7 +72,9 @@ To interact with the build process, your plugin object includes 'hooks'. Hooks a
 * `sequential`: If several plugins implement this hook, all of them will be run in the specified plugin order. If a hook is async, subsequent hooks of this kind will wait until the current hook is resolved.
 * `parallel`: If several plugins implement this hook, all of them will be run in the specified plugin order. If a hook is async, subsequent hooks of this kind will be run in parallel and not wait for the current hook.
 
-Build hooks are run during the build phase, which is triggered by `rollup.rollup(inputOptions)`. They are mainly concerned with locating, providing and transforming input files before they are processed by Rollup. The first hook of the build phase is [options](guide/en/#options), the last one is always [buildEnd](guide/en/#buildend). Additionally in watch mode, the [watchChange](guide/en/#watchchange) hook can be triggered at any time to notify a new run will be triggered once the current run has generated its outputs.
+Build hooks are run during the build phase, which is triggered by `rollup.rollup(inputOptions)`. They are mainly concerned with locating, providing and transforming input files before they are processed by Rollup. The first hook of the build phase is [options](guide/en/#options), the last one is always [buildEnd](guide/en/#buildend).
+
+Additionally, in watch mode the [watchChange](guide/en/#watchchange) hook can be triggered at any time to notify a new run will be triggered once the current run has generated its outputs. Also, when watcher closes, the [closeWatcher](guide/en/#closewatcher) hook will be triggered.
 
 See [Output Generation Hooks](guide/en/#output-generation-hooks) for hooks that run during the output generation phase to modify the generated output.
 
@@ -91,6 +93,13 @@ Previous Hook: [`options`](guide/en/#options)<br>
 Next Hook: [`resolveId`](guide/en/#resolveid) to resolve each entry point in parallel.
 
 Called on each `rollup.rollup` build. This is the recommended hook to use when you need access to the options passed to `rollup.rollup()` as it takes the transformations by all [`options`](guide/en/#options) hooks into account and also contains the right default values for unset options.
+
+#### `closeWatcher`
+Type: `() => void`<br>
+Kind: `sync, sequential`<br>
+Previous/Next Hook: This hook can be triggered at any time both during the build and the output generation phases. If that is the case, the current build will still proceed but no new [`watchChange`](guide/en/#watchChange) events will be triggered ever.
+
+Notifies a plugin when watcher process closes and all open resources should be closed too. This hook cannot be used by output plugins.
 
 #### `load`
 Type: `(id: string) => string | null | {code: string, map?: string | SourceMap, ast? : ESTree.Program, moduleSideEffects?: boolean | "no-treeshake" | null, syntheticNamedExports?: boolean | string | null, meta?: {[plugin: string]: any} | null}`<br>
@@ -236,11 +245,11 @@ See [custom module meta-data](guide/en/#custom-module-meta-data) for how to use 
 You can use [`this.getModuleInfo`](guide/en/#thisgetmoduleinfomoduleid-string--moduleinfo--null) to find out the previous values of `moduleSideEffects`, `syntheticNamedExports` and `meta` inside this hook.
 
 #### `watchChange`
-Type: `(id: string) => void`<br>
+Type: `watchChange: (id: string, change: {event: 'create' | 'update' | 'delete'}) => void`<br>
 Kind: `sync, sequential`<br>
 Previous/Next Hook: This hook can be triggered at any time both during the build and the output generation phases. If that is the case, the current build will still proceed but a new build will be scheduled to start once the current build has completed, starting again with [`options`](guide/en/#options).
 
-Notifies a plugin whenever rollup has detected a change to a monitored file in `--watch` mode. This hook cannot be used by output plugins.
+Notifies a plugin whenever rollup has detected a change to a monitored file in `--watch` mode. This hook cannot be used by output plugins. Second argument contains additional details of change event.  
 
 ### Output Generation Hooks
 
@@ -654,6 +663,10 @@ During the build, this object represents currently available information about t
  the `importedIds` are not yet resolved or additional `importers` are discovered.
  
 Returns `null` if the module id cannot be found.
+
+#### `this.getWatchFiles() => string[]`
+
+Get ids of the files which has been watched previously. Include both files added by plugins with `this.addWatchFile` and files added implicitly by rollup during the build.
 
 #### `this.meta: {rollupVersion: string, watchMode: boolean}`
 
