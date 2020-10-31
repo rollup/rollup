@@ -347,7 +347,10 @@ export interface PluginHooks extends OutputPluginHooks {
 	buildStart: (this: PluginContext, options: NormalizedInputOptions) => Promise<void> | void;
 	load: LoadHook;
 	moduleParsed: ModuleParsedHook;
-	options: (this: MinimalPluginContext, options: InputOptions) => InputOptions | null | undefined;
+	options: (
+		this: MinimalPluginContext,
+		options: InputOptions
+	) => Promise<InputOptions | null | undefined> | InputOptions | null | undefined;
 	resolveDynamicImport: ResolveDynamicImportHook;
 	resolveId: ResolveIdHook;
 	transform: TransformHook;
@@ -391,6 +394,7 @@ interface OutputPluginHooks {
 }
 
 export type AsyncPluginHooks =
+	| 'options'
 	| 'buildEnd'
 	| 'buildStart'
 	| 'generateBundle'
