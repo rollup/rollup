@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 2.33.0
+*2020-10-31*
+
+### Features
+* Add parameter to "watchChange" hook to denote if a change was an addition, update or deletion (#3841)
+* Add "closeWatcher" hook to allow plugins to clean up resources when the watcher is closed (#3841)
+* Add "this.getWatchFiles" function to plugin context to get the current set of watched files (#3841)
+
+### Pull Requests
+* [#3841](https://github.com/rollup/rollup/pull/3841): Improved watcher hooks (@Amareis)
+* [#3848](https://github.com/rollup/rollup/pull/3848): Add options hook to asyncpluginhooks (@intrnl)
+
 ## 2.32.1
 *2020-10-21*
 
