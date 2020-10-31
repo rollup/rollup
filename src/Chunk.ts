@@ -241,7 +241,7 @@ export default class Chunk {
 				if (!chunkModules.has(importer)) {
 					this.dynamicEntryModules.push(module);
 					// Modules with synthetic exports need an artificial namespace for dynamic imports
-					if (module.syntheticNamedExports && !outputOptions.preserveModules) {
+					if (module.info.syntheticNamedExports && !outputOptions.preserveModules) {
 						includedNamespaces.add(module);
 						this.exports.add(module.namespace);
 					}
@@ -379,7 +379,7 @@ export default class Chunk {
 			}
 		}
 		for (const module of this.dynamicEntryModules) {
-			if (module.syntheticNamedExports) continue;
+			if (module.info.syntheticNamedExports) continue;
 			if (!this.facadeModule && this.canModuleBeFacade(module, exposedVariables)) {
 				this.facadeModule = module;
 				this.facadeChunkByModule.set(module, this);
