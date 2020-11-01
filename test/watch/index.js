@@ -240,6 +240,7 @@ describe('rollup.watch', () => {
 		let ids;
 		const expectedIds = [WATCHED_ID, path.resolve('test/_tmp/input/main.js')];
 		await sander.copydir('test/watch/samples/watch-files').to('test/_tmp/input');
+		await sander.unlink(WATCHED_ID);
 		await wait(100);
 		watcher = rollup.watch({
 			input: 'test/_tmp/input/main.js',
@@ -247,11 +248,6 @@ describe('rollup.watch', () => {
 				file: 'test/_tmp/output/bundle.js',
 				format: 'cjs',
 				exports: 'auto'
-			},
-			watch: {
-				chokidar: {
-					atomic: false
-				}
 			},
 			plugins: {
 				buildStart() {
@@ -276,7 +272,7 @@ describe('rollup.watch', () => {
 				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
 				assert.deepStrictEqual(events, []);
 				assert.deepStrictEqual(ids, expectedIds);
-				sander.writeFileSync(WATCHED_ID, 'another');
+				sander.writeFileSync(WATCHED_ID, 'first');
 			},
 			'START',
 			'BUNDLE_START',
@@ -284,7 +280,17 @@ describe('rollup.watch', () => {
 			'END',
 			() => {
 				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-				assert.deepStrictEqual(events, ['update']);
+				assert.deepStrictEqual(events, ['create']);
+				assert.deepStrictEqual(ids, expectedIds);
+				sander.writeFileSync(WATCHED_ID, 'first');
+			},
+			'START',
+			'BUNDLE_START',
+			'BUNDLE_END',
+			'END',
+			() => {
+				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+				assert.deepStrictEqual(events, ['create', 'update']);
 				assert.deepStrictEqual(ids, expectedIds);
 				sander.rimrafSync(WATCHED_ID);
 			},
@@ -294,17 +300,7 @@ describe('rollup.watch', () => {
 			'END',
 			() => {
 				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-				assert.deepStrictEqual(events, ['update', 'delete']);
-				assert.deepStrictEqual(ids, expectedIds);
-				sander.writeFileSync(WATCHED_ID, 'third');
-			},
-			'START',
-			'BUNDLE_START',
-			'BUNDLE_END',
-			'END',
-			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-				assert.deepStrictEqual(events, ['update', 'delete', 'create']);
+				assert.deepStrictEqual(events, ['create', 'update', 'delete']);
 				assert.deepStrictEqual(ids, expectedIds);
 			}
 		]);
