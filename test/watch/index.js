@@ -1822,4 +1822,4 @@ describe('rollup.watch', () => {
 				});
 		});
 	});
-});
+}).timeout(20000);
