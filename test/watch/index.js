@@ -248,6 +248,11 @@ describe('rollup.watch', () => {
 				format: 'cjs',
 				exports: 'auto'
 			},
+			watch: {
+				chokidar: {
+					atomic: false
+				}
+			},
 			plugins: {
 				buildStart() {
 					this.addWatchFile(WATCHED_ID);
