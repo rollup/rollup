@@ -235,9 +235,10 @@ describe('rollup.watch', () => {
 	});
 
 	it('passes change parameter to the watchChange plugin hook', async () => {
+		const WATCHED_ID = path.resolve('test/_tmp/input/watched');
 		const events = [];
 		let ids;
-		const expectedIds = ['test/_tmp/input/watched', path.resolve('test/_tmp/input/main.js')];
+		const expectedIds = [WATCHED_ID, path.resolve('test/_tmp/input/main.js')];
 		await sander.copydir('test/watch/samples/watch-files').to('test/_tmp/input');
 		await wait(100);
 		watcher = rollup.watch({
@@ -249,10 +250,10 @@ describe('rollup.watch', () => {
 			},
 			plugins: {
 				buildStart() {
-					this.addWatchFile('test/_tmp/input/watched');
+					this.addWatchFile(WATCHED_ID);
 				},
 				watchChange(id, { event }) {
-					assert.strictEqual(id, 'test/_tmp/input/watched');
+					assert.strictEqual(id, WATCHED_ID);
 					events.push(event);
 				},
 				buildEnd() {
@@ -270,7 +271,7 @@ describe('rollup.watch', () => {
 				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
 				assert.deepStrictEqual(events, []);
 				assert.deepStrictEqual(ids, expectedIds);
-				sander.writeFileSync('test/_tmp/input/watched', 'another');
+				sander.writeFileSync(WATCHED_ID, 'another');
 			},
 			'START',
 			'BUNDLE_START',
@@ -280,7 +281,7 @@ describe('rollup.watch', () => {
 				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
 				assert.deepStrictEqual(events, ['update']);
 				assert.deepStrictEqual(ids, expectedIds);
-				sander.rimrafSync('test/_tmp/input/watched');
+				sander.rimrafSync(WATCHED_ID);
 			},
 			'START',
 			'BUNDLE_START',
@@ -290,7 +291,7 @@ describe('rollup.watch', () => {
 				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
 				assert.deepStrictEqual(events, ['update', 'delete']);
 				assert.deepStrictEqual(ids, expectedIds);
-				sander.writeFileSync('test/_tmp/input/watched', 'third');
+				sander.writeFileSync(WATCHED_ID, 'third');
 			},
 			'START',
 			'BUNDLE_START',
@@ -305,6 +306,7 @@ describe('rollup.watch', () => {
 	});
 
 	it('correctly rewrites change event during build delay', async () => {
+		const WATCHED_ID = path.resolve('test/_tmp/input/watched');
 		let lastEvent = null;
 		await sander.copydir('test/watch/samples/watch-files').to('test/_tmp/input');
 		await wait(100);
@@ -323,11 +325,11 @@ describe('rollup.watch', () => {
 			},
 			plugins: {
 				buildStart() {
-					this.addWatchFile('test/_tmp/input/watched');
+					this.addWatchFile(WATCHED_ID);
 				},
 				watchChange(id, { event }) {
 					assert.strictEqual(lastEvent, null);
-					assert.strictEqual(id, 'test/_tmp/input/watched');
+					assert.strictEqual(id, WATCHED_ID);
 					lastEvent = event;
 				}
 			}
@@ -341,9 +343,9 @@ describe('rollup.watch', () => {
 			async () => {
 				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
 				assert.strictEqual(lastEvent, null);
-				sander.writeFileSync('test/_tmp/input/watched', 'another');
+				sander.writeFileSync(WATCHED_ID, 'another');
 				await wait(100);
-				sander.rimrafSync('test/_tmp/input/watched');
+				sander.rimrafSync(WATCHED_ID);
 			},
 			'START',
 			'BUNDLE_START',
@@ -352,9 +354,9 @@ describe('rollup.watch', () => {
 			async () => {
 				assert.strictEqual(lastEvent, 'delete');
 				lastEvent = null;
-				sander.writeFileSync('test/_tmp/input/watched', '123');
+				sander.writeFileSync(WATCHED_ID, '123');
 				await wait(100);
-				sander.rimrafSync('test/_tmp/input/watched');
+				sander.rimrafSync(WATCHED_ID);
 			},
 			'START',
 			'BUNDLE_START',
@@ -362,9 +364,9 @@ describe('rollup.watch', () => {
 			'END',
 			async () => {
 				assert.strictEqual(lastEvent, null);
-				sander.writeFileSync('test/_tmp/input/watched', '123');
+				sander.writeFileSync(WATCHED_ID, '123');
 				await wait(100);
-				sander.writeFileSync('test/_tmp/input/watched', 'asd');
+				sander.writeFileSync(WATCHED_ID, 'asd');
 			},
 			'START',
 			'BUNDLE_START',
@@ -1484,6 +1486,7 @@ describe('rollup.watch', () => {
 		});
 
 		it('respects changed watched files in the load hook', () => {
+			const WATCHED_ID = path.resolve('test/_tmp/input/watched');
 			return sander
 				.copydir('test/watch/samples/watch-files')
 				.to('test/_tmp/input')
@@ -1497,11 +1500,8 @@ describe('rollup.watch', () => {
 						},
 						plugins: {
 							load() {
-								this.addWatchFile('test/_tmp/input/watched');
-								return `export default "${sander
-									.readFileSync('test/_tmp/input/watched')
-									.toString()
-									.trim()}"`;
+								this.addWatchFile(WATCHED_ID);
+								return `export default "${sander.readFileSync(WATCHED_ID).toString().trim()}"`;
 							}
 						}
 					});
@@ -1513,7 +1513,7 @@ describe('rollup.watch', () => {
 						'END',
 						() => {
 							assert.strictEqual(run('../_tmp/output/bundle.js'), 'initial');
-							sander.writeFileSync('test/_tmp/input/watched', 'next');
+							sander.writeFileSync(WATCHED_ID, 'next');
 						},
 						'START',
 						'BUNDLE_START',
@@ -1527,6 +1527,7 @@ describe('rollup.watch', () => {
 		});
 
 		it('respects changed watched files in the transform hook and removes them if they are no longer watched', () => {
+			const WATCHED_ID = path.resolve('test/_tmp/input/watched');
 			let addWatchFile = true;
 			return sander
 				.copydir('test/watch/samples/watch-files')
@@ -1555,10 +1556,10 @@ describe('rollup.watch', () => {
 									return `export { value as default } from 'dep';`;
 								} else {
 									if (addWatchFile) {
-										this.addWatchFile('test/_tmp/input/watched');
+										this.addWatchFile(WATCHED_ID);
 									}
 									return `export const value = "${sander
-										.readFileSync('test/_tmp/input/watched')
+										.readFileSync(WATCHED_ID)
 										.toString()
 										.trim()}"`;
 								}
@@ -1576,7 +1577,7 @@ describe('rollup.watch', () => {
 						() => {
 							assert.strictEqual(run('../_tmp/output/bundle.js'), 'initial');
 							addWatchFile = false;
-							sander.writeFileSync('test/_tmp/input/watched', 'next');
+							sander.writeFileSync(WATCHED_ID, 'next');
 						},
 						'START',
 						'BUNDLE_START',
@@ -1584,7 +1585,7 @@ describe('rollup.watch', () => {
 						'END',
 						() => {
 							assert.strictEqual(run('../_tmp/output/bundle.js'), 'next');
-							sander.writeFileSync('test/_tmp/input/watched', 'other');
+							sander.writeFileSync(WATCHED_ID, 'other');
 							events.length = 0;
 							return wait(400).then(() => assert.deepStrictEqual(events, []));
 						}
@@ -1642,6 +1643,7 @@ describe('rollup.watch', () => {
 		});
 
 		it('respects changed watched directories in the transform hook', () => {
+			const WATCHED_ID = path.resolve('test/_tmp/input/watched');
 			return sander
 				.copydir('test/watch/samples/watch-files')
 				.to('test/_tmp/input')
@@ -1656,7 +1658,7 @@ describe('rollup.watch', () => {
 						plugins: {
 							transform() {
 								this.addWatchFile('test/_tmp/input');
-								return `export default ${sander.existsSync('test/_tmp/input/watched')}`;
+								return `export default ${sander.existsSync(WATCHED_ID)}`;
 							}
 						}
 					});
@@ -1668,7 +1670,7 @@ describe('rollup.watch', () => {
 						'END',
 						() => {
 							assert.strictEqual(run('../_tmp/output/bundle.js'), true);
-							sander.unlinkSync('test/_tmp/input/watched');
+							sander.unlinkSync(WATCHED_ID);
 						},
 						'START',
 						'BUNDLE_START',
@@ -1772,6 +1774,7 @@ describe('rollup.watch', () => {
 		});
 
 		it('does not rerun the transform hook if a non-watched change triggered the re-run', () => {
+			const WATCHED_ID = path.resolve('test/_tmp/input/watched');
 			let transformRuns = 0;
 			return sander
 				.copydir('test/watch/samples/watch-files')
@@ -1792,11 +1795,8 @@ describe('rollup.watch', () => {
 							},
 							transform() {
 								transformRuns++;
-								this.addWatchFile('test/_tmp/input/watched');
-								return `export default "${sander
-									.readFileSync('test/_tmp/input/watched')
-									.toString()
-									.trim()}"`;
+								this.addWatchFile(WATCHED_ID);
+								return `export default "${sander.readFileSync(WATCHED_ID).toString().trim()}"`;
 							}
 						}
 					});
