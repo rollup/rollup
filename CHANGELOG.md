@@ -1,7 +1,7 @@
 # rollup changelog
 
 ## 2.33.0
-*2020-10-31*
+*2020-11-01*
 
 ### Features
 * Add parameter to "watchChange" hook to denote if a change was an addition, update or deletion (#3841)
