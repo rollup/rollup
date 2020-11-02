@@ -1,5 +1,15 @@
 # rollup changelog
 
+## 2.33.1
+*2020-11-02*
+
+### Bug Fixes
+* Add `syntheticNamedExports` to `this.getModuleInfo` to align with documentation (#3841)
+
+### Pull Requests
+* [#3847](https://github.com/rollup/rollup/pull/3847): Expose syntheticNamedExports to ModuleInfo (@Amareis)
+* [#3852](https://github.com/rollup/rollup/pull/3852): Fix typo on docs (@jpsc)
+
 ## 2.33.0
 *2020-11-01*
 
