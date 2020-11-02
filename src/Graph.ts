@@ -10,7 +10,8 @@ import {
 	NormalizedInputOptions,
 	RollupCache,
 	RollupWatcher,
-	SerializablePluginCache
+	SerializablePluginCache,
+	WatchChangeHook
 } from './rollup/types';
 import { BuildPhase } from './utils/buildPhase';
 import { errImplicitDependantIsNotIncluded, error } from './utils/error';
@@ -84,10 +85,13 @@ export default class Graph {
 
 		if (watcher) {
 			this.watchMode = true;
-			const handleChange = (id: string) => this.pluginDriver.hookSeqSync('watchChange', [id]);
+			const handleChange: WatchChangeHook = (...args) => this.pluginDriver.hookSeqSync('watchChange', args);
+			const handleClose = () => this.pluginDriver.hookSeqSync('closeWatcher', []);
 			watcher.on('change', handleChange);
+			watcher.on('close', handleClose);
 			watcher.once('restart', () => {
 				watcher.removeListener('change', handleChange);
+				watcher.removeListener('close', handleClose);
 			});
 		}
 		this.pluginDriver = new PluginDriver(this, options, options.plugins, this.pluginCache);

@@ -1,6 +1,6 @@
 import chokidar, { FSWatcher } from 'chokidar';
 import { platform } from 'os';
-import { ChokidarOptions } from '../rollup/types';
+import { ChangeEvent, ChokidarOptions } from '../rollup/types';
 import { Task } from './watch';
 
 export class FileWatcher {
@@ -45,7 +45,7 @@ export class FileWatcher {
 		const task = this.task;
 		const isLinux = platform() === 'linux';
 		const isTransformDependency = transformWatcherId !== null;
-		const handleChange = (id: string) => {
+		const handleChange = (id: string, event: ChangeEvent) => {
 			const changedId = transformWatcherId || id;
 			if (isLinux) {
 				// unwatching and watching fixes an issue with chokidar where on certain systems,
@@ -54,13 +54,13 @@ export class FileWatcher {
 				watcher.unwatch(changedId);
 				watcher.add(changedId);
 			}
-			task.invalidate(changedId, isTransformDependency);
+			task.invalidate(changedId, {isTransformDependency, event});
 		};
 		const watcher = chokidar
 			.watch([], this.chokidarOptions)
-			.on('add', handleChange)
-			.on('change', handleChange)
-			.on('unlink', handleChange);
+			.on('add', id => handleChange(id, 'create'))
+			.on('change', id => handleChange(id, 'update'))
+			.on('unlink', id => handleChange(id, 'delete'));
 		return watcher;
 	}
 }
