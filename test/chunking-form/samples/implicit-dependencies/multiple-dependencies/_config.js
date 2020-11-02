@@ -125,7 +125,8 @@ module.exports = {
 					importers: [],
 					isEntry: true,
 					isExternal: false,
-					meta: {}
+					meta: {},
+					syntheticNamedExports: false
 				});
 				assert.deepStrictEqual(JSON.parse(JSON.stringify(this.getModuleInfo(ID_MAIN2))), {
 					ast: {
@@ -219,7 +220,8 @@ module.exports = {
 					importers: [],
 					isEntry: true,
 					isExternal: false,
-					meta: {}
+					meta: {},
+					syntheticNamedExports: false
 				});
 				assert.deepStrictEqual(JSON.parse(JSON.stringify(this.getModuleInfo(ID_DEP))), {
 					ast: {
@@ -312,7 +314,8 @@ module.exports = {
 					importers: [],
 					isEntry: false,
 					isExternal: false,
-					meta: {}
+					meta: {},
+					syntheticNamedExports: false
 				});
 			}
 		}

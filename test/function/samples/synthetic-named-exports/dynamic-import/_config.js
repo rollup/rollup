@@ -9,6 +9,11 @@ module.exports = {
 					if (id.endsWith('dep.js')) {
 						return { code, syntheticNamedExports: true };
 					}
+				},
+				moduleParsed({id, syntheticNamedExports}) {
+					if (id.endsWith('dep.js')) {
+						assert.strictEqual(syntheticNamedExports, true);
+					}
 				}
 			}
 		]

@@ -246,7 +246,7 @@ export default class Module {
 		private readonly options: NormalizedInputOptions,
 		isEntry: boolean,
 		hasModuleSideEffects: boolean | 'no-treeshake',
-		public syntheticNamedExports: boolean | string,
+		syntheticNamedExports: boolean | string,
 		meta: CustomPluginOptions
 	) {
 		this.excludeFromSourcemap = /\0/.test(id);
@@ -284,7 +284,8 @@ export default class Module {
 			},
 			isEntry,
 			isExternal: false,
-			meta
+			meta,
+			syntheticNamedExports
 		};
 	}
 
@@ -392,7 +393,7 @@ export default class Module {
 		}
 		const exportNamesByVariable: Map<Variable, string[]> = new Map();
 		for (const exportName of this.getAllExportNames()) {
-			if (exportName === this.syntheticNamedExports) continue;
+			if (exportName === this.info.syntheticNamedExports) continue;
 			let tracedVariable = this.getVariableForExportName(exportName);
 			if (tracedVariable instanceof ExportDefaultVariable) {
 				tracedVariable = tracedVariable.getOriginalVariable();
@@ -455,7 +456,9 @@ export default class Module {
 		if (this.syntheticNamespace === null) {
 			this.syntheticNamespace = undefined;
 			this.syntheticNamespace = this.getVariableForExportName(
-				typeof this.syntheticNamedExports === 'string' ? this.syntheticNamedExports : 'default'
+				typeof this.info.syntheticNamedExports === 'string'
+					? this.info.syntheticNamedExports
+					: 'default'
 			);
 		}
 		if (!this.syntheticNamespace) {
@@ -465,10 +468,11 @@ export default class Module {
 				message: `Module "${relativeId(
 					this.id
 				)}" that is marked with 'syntheticNamedExports: ${JSON.stringify(
-					this.syntheticNamedExports
+					this.info.syntheticNamedExports
 				)}' needs ${
-					typeof this.syntheticNamedExports === 'string' && this.syntheticNamedExports !== 'default'
-						? `an export named "${this.syntheticNamedExports}"`
+					typeof this.info.syntheticNamedExports === 'string' &&
+					this.info.syntheticNamedExports !== 'default'
+						? `an export named "${this.info.syntheticNamedExports}"`
 						: 'a default export'
 				}.`
 			});
@@ -538,7 +542,7 @@ export default class Module {
 		// we don't want to create shims when we are just
 		// probing export * modules for exports
 		if (!isExportAllSearch) {
-			if (this.syntheticNamedExports) {
+			if (this.info.syntheticNamedExports) {
 				let syntheticExport = this.syntheticExports.get(name);
 				if (!syntheticExport) {
 					const syntheticNamespace = this.getSyntheticNamespace();
@@ -580,7 +584,7 @@ export default class Module {
 		}
 
 		for (const exportName of this.getExports()) {
-			if (includeNamespaceMembers || exportName !== this.syntheticNamedExports) {
+			if (includeNamespaceMembers || exportName !== this.info.syntheticNamedExports) {
 				const variable = this.getVariableForExportName(exportName);
 				variable.deoptimizePath(UNKNOWN_PATH);
 				if (!variable.included) {
@@ -736,7 +740,7 @@ export default class Module {
 		};
 
 		this.scope = new ModuleScope(this.graph.scope, this.astContext);
-		this.namespace = new NamespaceVariable(this.astContext, this.syntheticNamedExports);
+		this.namespace = new NamespaceVariable(this.astContext, this.info.syntheticNamedExports);
 		this.ast = new Program(ast, { type: 'Module', context: this.astContext }, this.scope);
 		this.info.ast = ast;
 
@@ -757,7 +761,7 @@ export default class Module {
 			originalSourcemap: this.originalSourcemap,
 			resolvedIds: this.resolvedIds,
 			sourcemapChain: this.sourcemapChain,
-			syntheticNamedExports: this.syntheticNamedExports,
+			syntheticNamedExports: this.info.syntheticNamedExports,
 			transformDependencies: this.transformDependencies,
 			transformFiles: this.transformFiles
 		};
@@ -803,7 +807,7 @@ export default class Module {
 			this.info.hasModuleSideEffects = moduleSideEffects;
 		}
 		if (syntheticNamedExports != null) {
-			this.syntheticNamedExports = syntheticNamedExports;
+			this.info.syntheticNamedExports = syntheticNamedExports;
 		}
 		if (meta != null) {
 			this.info.meta = { ...this.info.meta, ...meta };
@@ -964,7 +968,7 @@ export default class Module {
 				externalVariable.include();
 				this.imports.add(externalVariable);
 				mergedNamespaces.push(externalVariable);
-			} else if (module.syntheticNamedExports) {
+			} else if (module.info.syntheticNamedExports) {
 				const syntheticNamespace = module.getSyntheticNamespace();
 				syntheticNamespace.include();
 				this.imports.add(syntheticNamespace);

@@ -58,7 +58,8 @@ module.exports = {
 						importers: [],
 						isEntry: true,
 						isExternal: false,
-						meta: {}
+						meta: {},
+						syntheticNamedExports: false
 					},
 					{
 						ast: {
@@ -102,7 +103,8 @@ module.exports = {
 						importers: [ID_MAIN],
 						isEntry: false,
 						isExternal: false,
-						meta: {}
+						meta: {},
+						syntheticNamedExports: false
 					}
 				]);
 			}

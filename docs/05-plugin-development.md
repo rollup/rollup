@@ -656,6 +656,8 @@ Returns additional information about the module in question in the form
   implicitlyLoadedAfterOneOf: string[], // implicit relationships, declared via this.emitChunk
   implicitlyLoadedBefore: string[], // implicit relationships, declared via this.emitChunk
   hasModuleSideEffects: boolean | "no-treeshake" // are imports of this module included if nothing is imported from it
+  meta: {[plugin: string]: any} // custom module meta-data
+  syntheticNamedExports: boolean | string // final value of synthetic named exports
 }
 ```
 
