@@ -377,7 +377,7 @@ describe('rollup.watch', () => {
 				assert.strictEqual(lastEvent, 'create');
 			}
 		]);
-	});
+	}).timeout(20000);
 
 	it('calls closeWatcher plugin hook', () => {
 		let calls = 0;
