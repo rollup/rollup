@@ -320,8 +320,12 @@ export type ResolveFileUrlHook = (
 export type AddonHookFunction = (this: PluginContext) => string | Promise<string>;
 export type AddonHook = string | AddonHookFunction;
 
-export type ChangeEvent = 'create' | 'update' | 'delete'
-export type WatchChangeHook = (this: PluginContext, id: string, change: {event: ChangeEvent}) => void
+export type ChangeEvent = 'create' | 'update' | 'delete';
+export type WatchChangeHook = (
+	this: PluginContext,
+	id: string,
+	change: { event: ChangeEvent }
+) => void;
 
 /**
  * use this type for plugin annotation
@@ -755,8 +759,6 @@ export interface MergedRollupOptions extends InputOptions {
 	output: OutputOptions[];
 }
 
-export function rollup(options: RollupOptions): Promise<RollupBuild>;
-
 export interface ChokidarOptions {
 	alwaysStat?: boolean;
 	atomic?: boolean | number;
@@ -789,12 +791,9 @@ export interface WatcherOptions {
 	skipWrite?: boolean;
 }
 
-export interface RollupWatchOptions extends InputOptions {
-	output?: OutputOptions | OutputOptions[];
-	watch?: WatcherOptions | false;
-}
+export function rollup(options: RollupOptions): Promise<RollupBuild>;
 
-interface TypedEventEmitter<T extends {[event: string]: (...args: any) => any}> {
+interface TypedEventEmitter<T extends { [event: string]: (...args: any) => any }> {
 	addListener<K extends keyof T>(event: K, listener: T[K]): this;
 	emit<K extends keyof T>(event: K, ...args: Parameters<T[K]>): boolean;
 	eventNames(): Array<keyof T>;
@@ -811,31 +810,6 @@ interface TypedEventEmitter<T extends {[event: string]: (...args: any) => any}> 
 	removeListener<K extends keyof T>(event: K, listener: T[K]): this;
 	setMaxListeners(n: number): this;
 }
-
-export type RollupWatcherEvent =
-	| { code: 'START' }
-	| { code: 'BUNDLE_START'; input?: InputOption; output: readonly string[] }
-	| {
-			code: 'BUNDLE_END';
-			duration: number;
-			input?: InputOption;
-			output: readonly string[];
-			result: RollupBuild;
-	  }
-	| { code: 'END' }
-	| { code: 'ERROR'; error: RollupError };
-
-export interface RollupWatcher
-	extends TypedEventEmitter<{
-		change: (id: string, change: {event: ChangeEvent}) => void;
-		close: () => void;
-		event: (event: RollupWatcherEvent) => void;
-		restart: () => void;
-	}> {
-	close(): void;
-}
-
-export function watch(config: RollupWatchOptions | RollupWatchOptions[]): RollupWatcher;
 
 interface AcornNode {
 	end: number;

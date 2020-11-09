@@ -4,14 +4,14 @@
   "description": "Next-generation ES module bundler",
   "main": "dist/rollup.js",
   "module": "dist/es/rollup.js",
-  "typings": "dist/rollup.d.ts",
+  "types": "dist/rollup.d.ts",
   "bin": {
     "rollup": "dist/bin/rollup"
   },
   "scripts": {
-    "build": "shx rm -rf dist && git rev-parse HEAD > .commithash && rollup -c && shx cp src/rollup/types.d.ts dist/rollup.d.ts && shx chmod a+x dist/bin/rollup",
-    "build:test": "shx rm -rf dist && rollup -c --configTest && shx cp src/rollup/types.d.ts dist/rollup.d.ts && shx chmod a+x dist/bin/rollup",
-    "build:bootstrap": "dist/bin/rollup -c && shx cp src/rollup/types.d.ts dist/rollup.d.ts && shx chmod a+x dist/bin/rollup",
+    "build": "shx rm -rf dist && git rev-parse HEAD > .commithash && rollup -c && shx cp src/rollup/node.d.ts dist/rollup.d.ts && shx cp src/rollup/browser.d.ts dist/rollup.browser.d.ts && shx chmod a+x dist/bin/rollup",
+    "build:test": "shx rm -rf dist && rollup -c --configTest && shx cp src/rollup/node.d.ts dist/rollup.d.ts && shx cp src/rollup/browser.d.ts dist/rollup.browser.d.ts && shx chmod a+x dist/bin/rollup",
+    "build:bootstrap": "dist/bin/rollup -c && shx cp src/rollup/node.d.ts dist/rollup.d.ts && shx cp src/rollup/browser.d.ts dist/rollup.browser.d.ts && shx chmod a+x dist/bin/rollup",
     "ci:lint": "npm run lint:nofix",
     "ci:test": "npm run build:test && npm run build:bootstrap && npm run test:all",
     "ci:test:only": "npm run build:test && npm run build:bootstrap && npm run test:only",
