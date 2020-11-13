@@ -629,7 +629,7 @@ export interface NormalizedOutputOptions {
 	amd: {
 		define: string;
 		id?: string;
-		idFromChunkName?: boolean;
+		idFromChunkName: boolean;
 	};
 	assetFileNames: string | ((chunkInfo: PreRenderedAsset) => string);
 	banner: () => string | Promise<string>;
