@@ -6,20 +6,14 @@ import getInteropBlock from './shared/getInteropBlock';
 import warnOnBuiltins from './shared/warnOnBuiltins';
 
 function removeExtension(name: string) {
-	if (name.endsWith('.js')) {
-		return name.slice(0, -3);
-	}
-	return name;
+	return name.endsWith('.js') ? name.slice(0, -3) : name;
 }
 
 // AMD resolution will only respect the AMD baseUrl if the .js extension is omitted.
 // The assumption is that this makes sense for all relative ids:
 // https://requirejs.org/docs/api.html#jsfiles
 function removeExtensionFromRelativeAmdId(id: string) {
-	if (id[0] === '.') {
-		return removeExtension(id);
-	}
-	return id;
+	return id[0] === '.' ? removeExtension(id) : id;
 }
 
 export default function amd(
