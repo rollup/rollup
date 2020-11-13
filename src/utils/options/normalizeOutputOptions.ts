@@ -179,19 +179,10 @@ const getPreserveModulesRoot = (config: GenericConfigObject): string | undefined
 	return resolve(preserveModulesRoot);
 };
 
-const getAmd = (
-	config: GenericConfigObject
-): {
-	define: string;
-	id?: string;
-} => ({
+const getAmd = (config: GenericConfigObject): NormalizedOutputOptions['amd'] => ({
 	define: 'define',
 	idFromChunkName: false,
-	...(config.amd as {
-		define?: string;
-		id?: string;
-		idFromChunkName?: boolean;
-	})
+	...(config.amd as OutputOptions['amd'])
 });
 
 const getAddon = (config: GenericConfigObject, name: string): (() => string | Promise<string>) => {
