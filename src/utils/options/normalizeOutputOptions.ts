@@ -186,9 +186,11 @@ const getAmd = (
 	id?: string;
 } => ({
 	define: 'define',
+	idFromChunkName: false,
 	...(config.amd as {
 		define?: string;
 		id?: string;
+		idFromChunkName?: boolean;
 	})
 });
 

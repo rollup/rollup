@@ -13,6 +13,7 @@ export interface FinaliserOptions {
 	dependencies: ChunkDependencies;
 	exports: ChunkExports;
 	hasExports: boolean;
+	id: string;
 	indentString: string;
 	intro: string;
 	isEntryFacade: boolean;

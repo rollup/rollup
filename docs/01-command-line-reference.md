@@ -278,6 +278,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 -v, --version               Show version number
 -w, --watch                 Watch files in bundle and rebuild on changes
 --amd.id <id>               ID for AMD module (default is anonymous)
+--amd.idFromChunkName       Make the ID the chunk file name (appended to `amd.id` if present)
 --amd.define <name>         Function to use in place of `define`
 --assetFileNames <pattern>  Name pattern for emitted assets
 --banner <text>             Code to insert at top of bundle (outside wrapper)

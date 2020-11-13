@@ -1053,7 +1053,7 @@ Type: `((id: string) => string) | { [id: string]: string }`<br>
 Same as [`context`](guide/en/#context), but per-module – can either be an object of `id: context` pairs, or an `id => context` function.
 
 #### output.amd
-Type: `{ id?: string, define?: string}`
+Type: `{ id?: string, idFromChunkName?: boolean, define?: string}`
 
 An object that can contain the following properties:
 
@@ -1074,6 +1074,27 @@ export default {
 };
 
 // -> define('my-bundle', ['dependency'], ...
+```
+
+**output.amd.idFromChunkName**<br>
+Type: `boolean`<br>
+CLI: `--amd.idFromChunkName`
+
+Make the ID the chunk file name (appended to `amd.id` if present). This is useful with the `output.dir` option when code splitting occurs.
+
+```js
+// rollup.config.js
+export default {
+  ...,
+  format: 'amd',
+  amd: {
+    id: 'somewhere/',
+    idFromChunkName: true
+  }
+};
+
+// -> define('somewhere/main', ['dependency'], ...
+// -> define('somewhere/chunk1-44b1f428', ['dependency'], ...
 ```
 
 **output.amd.define**<br>

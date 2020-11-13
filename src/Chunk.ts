@@ -719,6 +719,7 @@ export default class Chunk {
 				dependencies: [...this.renderedDependencies!.values()],
 				exports: this.renderedExports!,
 				hasExports,
+				id: this.id as string,
 				indentString: this.indentString,
 				intro: addons.intro!,
 				isEntryFacade:

@@ -5,12 +5,19 @@ import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
 import warnOnBuiltins from './shared/warnOnBuiltins';
 
+function removeExtension(name: string) {
+	if (name.endsWith('.js')) {
+		return name.slice(0, -3);
+	}
+	return name;
+}
+
 // AMD resolution will only respect the AMD baseUrl if the .js extension is omitted.
 // The assumption is that this makes sense for all relative ids:
 // https://requirejs.org/docs/api.html#jsfiles
 function removeExtensionFromRelativeAmdId(id: string) {
-	if (id[0] === '.' && id.endsWith('.js')) {
-		return id.slice(0, -3);
+	if (id[0] === '.') {
+		return removeExtension(id);
 	}
 	return id;
 }
@@ -22,6 +29,7 @@ export default function amd(
 		dependencies,
 		exports,
 		hasExports,
+		id,
 		indentString: t,
 		intro,
 		isEntryFacade,
@@ -32,7 +40,7 @@ export default function amd(
 		warn
 	}: FinaliserOptions,
 	{
-		amd: { define: amdDefine, id: amdId },
+		amd: { define: amdDefine, id: amdId, idFromChunkName: amdIdFromChunkName },
 		compact,
 		esModule,
 		externalLiveBindings,
@@ -64,8 +72,18 @@ export default function amd(
 		deps.unshift(`'module'`);
 	}
 
+	let completeAmdId = '';
+	if (amdId) {
+		completeAmdId += amdId;
+	}
+
+	if (amdIdFromChunkName) {
+		completeAmdId += removeExtension(id);
+	}
+
 	const params =
-		(amdId ? `'${amdId}',${_}` : ``) + (deps.length ? `[${deps.join(`,${_}`)}],${_}` : ``);
+		(completeAmdId ? `'${completeAmdId}',${_}` : ``) +
+		(deps.length ? `[${deps.join(`,${_}`)}],${_}` : ``);
 	const useStrict = strict ? `${_}'use strict';` : '';
 
 	magicString.prepend(
