@@ -1061,7 +1061,8 @@ An object that can contain the following properties:
 Type: `string`<br>
 CLI: `--amd.id <amdId>`
 
-An ID to use for AMD/UMD bundles:
+The pattern to use for the id for UMD/AMD bundles, or a function that is called per chunk return such a pattern. Patterns support the following placeholders:
+ * `[id]`: The id of the chunk (without extension).
 
 ```js
 // rollup.config.js
@@ -1069,32 +1070,11 @@ export default {
   ...,
   format: 'amd',
   amd: {
-    id: 'my-bundle'
+    id: 'my-bundle/[id]'
   }
 };
 
-// -> define('my-bundle', ['dependency'], ...
-```
-
-**output.amd.idFromChunkName**<br>
-Type: `boolean`<br>
-CLI: `--amd.idFromChunkName`
-
-Make the ID the chunk file name (appended to `amd.id` if present). This is useful with the `output.dir` option when code splitting occurs.
-
-```js
-// rollup.config.js
-export default {
-  ...,
-  format: 'amd',
-  amd: {
-    id: 'somewhere/',
-    idFromChunkName: true
-  }
-};
-
-// -> define('somewhere/main', ['dependency'], ...
-// -> define('somewhere/chunk1-44b1f428', ['dependency'], ...
+// -> define('my-bundle/main', ['dependency'], ...
 ```
 
 **output.amd.define**<br>

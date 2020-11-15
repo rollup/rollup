@@ -1,11 +1,12 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { NormalizedOutputOptions } from '../rollup/types';
+import { renderNamePattern } from '../utils/renderNamePattern';
 import { FinaliserOptions } from './index';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
 import warnOnBuiltins from './shared/warnOnBuiltins';
 
-function removeExtension(name: string) {
+function removeJsExtension(name: string) {
 	return name.endsWith('.js') ? name.slice(0, -3) : name;
 }
 
@@ -13,7 +14,7 @@ function removeExtension(name: string) {
 // The assumption is that this makes sense for all relative ids:
 // https://requirejs.org/docs/api.html#jsfiles
 function removeExtensionFromRelativeAmdId(id: string) {
-	return id[0] === '.' ? removeExtension(id) : id;
+	return id[0] === '.' ? removeJsExtension(id) : id;
 }
 
 export default function amd(
@@ -34,7 +35,7 @@ export default function amd(
 		warn
 	}: FinaliserOptions,
 	{
-		amd: { define: amdDefine, id: amdId, idFromChunkName: amdIdFromChunkName },
+		amd: { define: amdDefine, id: amdId = '' },
 		compact,
 		esModule,
 		externalLiveBindings,
@@ -66,14 +67,9 @@ export default function amd(
 		deps.unshift(`'module'`);
 	}
 
-	let completeAmdId = '';
-	if (amdId) {
-		completeAmdId += amdId;
-	}
-
-	if (amdIdFromChunkName) {
-		completeAmdId += removeExtension(id);
-	}
+	const completeAmdId = renderNamePattern(amdId, 'output.amd.id', {
+		id: () => removeJsExtension(id)
+	});
 
 	const params =
 		(completeAmdId ? `'${completeAmdId}',${_}` : ``) +
