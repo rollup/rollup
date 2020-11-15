@@ -1053,7 +1053,7 @@ Type: `((id: string) => string) | { [id: string]: string }`<br>
 Same as [`context`](guide/en/#context), but per-module – can either be an object of `id: context` pairs, or an `id => context` function.
 
 #### output.amd
-Type: `{ id?: string, idFromChunkName?: boolean, define?: string}`
+Type: `{ id?: string, define?: string }`
 
 An object that can contain the following properties:
 

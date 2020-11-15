@@ -17,8 +17,7 @@ module.exports = {
 			renderChunk(code, chunk, options) {
 				assert.deepStrictEqual(JSON.parse(JSON.stringify(options)), {
 					amd: {
-						define: 'define',
-						idFromChunkName: false
+						define: 'define'
 					},
 					assetFileNames: 'assets/[name]-[hash][extname]',
 					chunkFileNames: '[name]-[hash].js',

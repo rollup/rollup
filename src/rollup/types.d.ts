@@ -580,7 +580,6 @@ export interface OutputOptions {
 	amd?: {
 		define?: string;
 		id?: string;
-		idFromChunkName?: boolean;
 	};
 	assetFileNames?: string | ((chunkInfo: PreRenderedAsset) => string);
 	banner?: string | (() => string | Promise<string>);

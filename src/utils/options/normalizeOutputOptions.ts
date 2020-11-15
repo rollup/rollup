@@ -181,7 +181,6 @@ const getPreserveModulesRoot = (config: GenericConfigObject): string | undefined
 
 const getAmd = (config: GenericConfigObject): NormalizedOutputOptions['amd'] => ({
 	define: 'define',
-	idFromChunkName: false,
 	...(config.amd as OutputOptions['amd'])
 });
 
