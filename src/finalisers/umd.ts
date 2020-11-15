@@ -1,10 +1,12 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { NormalizedOutputOptions } from '../rollup/types';
 import { error } from '../utils/error';
+import { renderNamePattern } from '../utils/renderNamePattern';
 import { FinaliserOptions } from './index';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
 import removeExtensionFromRelativeAmdId from './shared/removeExtensionFromRelativeAmdId';
+import removeJsExtension from './shared/removeJsExtension';
 import { keypath, property } from './shared/sanitize';
 import { assignToDeepVariable } from './shared/setupNamespace';
 import trimEmptyImports from './shared/trimEmptyImports';
@@ -29,6 +31,7 @@ export default function umd(
 		dependencies,
 		exports,
 		hasExports,
+		id,
 		indentString: t,
 		intro,
 		namedExportsMode,
@@ -37,7 +40,7 @@ export default function umd(
 		warn
 	}: FinaliserOptions,
 	{
-		amd: { define: amdDefine, id: amdId },
+		amd: { define: amdDefine, id: amdId = '' },
 		compact,
 		esModule,
 		extend,
@@ -90,8 +93,13 @@ export default function umd(
 		factoryArgs.unshift('exports');
 	}
 
+	const completeAmdId = renderNamePattern(amdId, 'output.amd.id', {
+		id: () => removeJsExtension(id)
+	});
+
 	const amdParams =
-		(amdId ? `'${amdId}',${_}` : ``) + (amdDeps.length ? `[${amdDeps.join(`,${_}`)}],${_}` : ``);
+		(completeAmdId ? `'${completeAmdId}',${_}` : ``) +
+		(amdDeps.length ? `[${amdDeps.join(`,${_}`)}],${_}` : ``);
 
 	const define = amdDefine;
 	const cjsExport = !namedExportsMode && hasExports ? `module.exports${_}=${_}` : ``;
