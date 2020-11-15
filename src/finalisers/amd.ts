@@ -4,18 +4,9 @@ import { renderNamePattern } from '../utils/renderNamePattern';
 import { FinaliserOptions } from './index';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
+import removeExtensionFromRelativeAmdId from './shared/removeExtensionFromRelativeAmdId';
+import removeJsExtension from './shared/removeJsExtension';
 import warnOnBuiltins from './shared/warnOnBuiltins';
-
-function removeJsExtension(name: string) {
-	return name.endsWith('.js') ? name.slice(0, -3) : name;
-}
-
-// AMD resolution will only respect the AMD baseUrl if the .js extension is omitted.
-// The assumption is that this makes sense for all relative ids:
-// https://requirejs.org/docs/api.html#jsfiles
-function removeExtensionFromRelativeAmdId(id: string) {
-	return id[0] === '.' ? removeJsExtension(id) : id;
-}
 
 export default function amd(
 	magicString: MagicStringBundle,

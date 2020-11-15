@@ -4,6 +4,7 @@ import { error } from '../utils/error';
 import { FinaliserOptions } from './index';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
+import removeExtensionFromRelativeAmdId from './shared/removeExtensionFromRelativeAmdId';
 import { keypath, property } from './shared/sanitize';
 import { assignToDeepVariable } from './shared/setupNamespace';
 import trimEmptyImports from './shared/trimEmptyImports';
@@ -66,7 +67,7 @@ export default function umd(
 
 	warnOnBuiltins(warn, dependencies);
 
-	const amdDeps = dependencies.map(m => `'${m.id}'`);
+	const amdDeps = dependencies.map(m => `'${removeExtensionFromRelativeAmdId(m.id)}'`);
 	const cjsDeps = dependencies.map(m => `require('${m.id}')`);
 
 	const trimmedImports = trimEmptyImports(dependencies);

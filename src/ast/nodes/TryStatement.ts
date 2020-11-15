@@ -12,6 +12,7 @@ export default class TryStatement extends StatementBase {
 	type!: NodeType.tTryStatement;
 
 	private directlyIncluded = false;
+	private includedLabelsAfterBlock: string[] | null = null;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		return (
@@ -33,7 +34,14 @@ export default class TryStatement extends StatementBase {
 				context,
 				tryCatchDeoptimization ? INCLUDE_PARAMETERS : includeChildrenRecursively
 			);
+			if (context.includedLabels.size > 0) {
+				this.includedLabelsAfterBlock = [...context.includedLabels];
+			}
 			context.brokenFlow = brokenFlow;
+		} else if (this.includedLabelsAfterBlock) {
+			for (const label of this.includedLabelsAfterBlock) {
+				context.includedLabels.add(label);
+			}
 		}
 		if (this.handler !== null) {
 			this.handler.include(context, includeChildrenRecursively);
