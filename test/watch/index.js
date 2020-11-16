@@ -292,7 +292,7 @@ describe('rollup.watch', () => {
 				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
 				assert.deepStrictEqual(events, ['create', 'update']);
 				assert.deepStrictEqual(ids, expectedIds);
-				sander.rimrafSync(WATCHED_ID);
+				sander.unlinkSync(WATCHED_ID);
 			},
 			'START',
 			'BUNDLE_START',
@@ -308,6 +308,7 @@ describe('rollup.watch', () => {
 
 	it('correctly rewrites change event during build delay', async () => {
 		const WATCHED_ID = path.resolve('test/_tmp/input/watched');
+		const MAIN_ID = path.resolve('test/_tmp/input/main.js');
 		let lastEvent = null;
 		await sander.copydir('test/watch/samples/watch-files').to('test/_tmp/input');
 		await wait(100);
@@ -329,9 +330,10 @@ describe('rollup.watch', () => {
 					this.addWatchFile(WATCHED_ID);
 				},
 				watchChange(id, { event }) {
-					assert.strictEqual(lastEvent, null);
-					assert.strictEqual(id, WATCHED_ID);
-					lastEvent = event;
+					if (id === WATCHED_ID) {
+						assert.strictEqual(lastEvent, null);
+						lastEvent = event;
+					}
 				}
 			}
 		});
@@ -342,11 +344,10 @@ describe('rollup.watch', () => {
 			'BUNDLE_END',
 			'END',
 			async () => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
 				assert.strictEqual(lastEvent, null);
 				sander.writeFileSync(WATCHED_ID, 'another');
 				await wait(100);
-				sander.rimrafSync(WATCHED_ID);
+				sander.unlinkSync(WATCHED_ID);
 			},
 			'START',
 			'BUNDLE_START',
@@ -357,7 +358,9 @@ describe('rollup.watch', () => {
 				lastEvent = null;
 				sander.writeFileSync(WATCHED_ID, '123');
 				await wait(100);
-				sander.rimrafSync(WATCHED_ID);
+				sander.unlinkSync(WATCHED_ID);
+				// To ensure there is always another change to trigger a rebuild
+				sander.writeFileSync(MAIN_ID, 'export default 43;');
 			},
 			'START',
 			'BUNDLE_START',

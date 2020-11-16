@@ -1,10 +1,19 @@
 # rollup changelog
 
+## 2.33.2
+*2020-11-14*
+
+### Bug Fixes
+* Fix an issue where statements were ignored after a conditional return in a labeled statement (#3871)
+
+### Pull Requests
+* [#3871](https://github.com/rollup/rollup/pull/3871): Correctly track label usage in try statements (@Amareis)
+
 ## 2.33.1
 *2020-11-02*
 
 ### Bug Fixes
-* Add `syntheticNamedExports` to `this.getModuleInfo` to align with documentation (#3841)
+* Add `syntheticNamedExports` to `this.getModuleInfo` to align with documentation (#3847)
 
 ### Pull Requests
 * [#3847](https://github.com/rollup/rollup/pull/3847): Expose syntheticNamedExports to ModuleInfo (@Amareis)
