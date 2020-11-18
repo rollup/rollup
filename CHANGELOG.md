@@ -1,5 +1,15 @@
 # rollup changelog
 
+## 2.33.3
+*2020-11-18*
+
+### Bug Fixes
+* Do not use `.js` extension when importing AMD files from a UMD bundle (#3872)
+
+### Pull Requests
+* [#3861](https://github.com/rollup/rollup/pull/3861): Update chat/support links (@shellscape)
+* [#3872](https://github.com/rollup/rollup/pull/3872): Also removeExtensionFromRelativeAmdId in UMD finaliser (@tjenkinson)
+
 ## 2.33.2
 *2020-11-14*
 
