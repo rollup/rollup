@@ -2,7 +2,7 @@
 title: Troubleshooting
 ---
 
-If you get stuck, please try discussing the issue on [the Rollup Gitter](https://gitter.im/rollup/rollup) or posting a question to https://stackoverflow.com/questions/tagged/rollupjs. If you've found a bug, or Rollup can't meet your needs, please try [raising an issue](https://github.com/rollup/rollup/issues). Lastly, you may try contacting [@RollupJS](https://twitter.com/RollupJS) on Twitter.
+If you get stuck, please try discussing the issue on the [Rollup Discord](https://is.gd/rollup_chat) or posting a question to https://stackoverflow.com/questions/tagged/rollupjs. If you've found a bug, or Rollup can't meet your needs, please try [raising an issue](https://github.com/rollup/rollup/issues). Lastly, you may try contacting [@RollupJS](https://twitter.com/RollupJS) on Twitter.
 
 ### Avoiding `eval`
 

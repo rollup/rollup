@@ -12,7 +12,7 @@ about: Something went awry and you'd like to tell us about it.
   Or your issue may be closed.
 
   👉🏽 Need help or tech support? Please don't open an issue!
-  Head to https://gitter.im/rollup/rollup or https://stackoverflow.com/questions/tagged/rollupjs
+  Head to https://is.gd/rollup_chat or https://stackoverflow.com/questions/tagged/rollupjs
   
   👉🏽 Is this issue related to an official plugin? Please do not open an issue here, go to the plugins repository instead: https://github.com/rollup/plugins/issues
 

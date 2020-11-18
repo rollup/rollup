@@ -1,6 +1,6 @@
 <!--
   👉🏽 Need help or tech support? Please don't open an issue!
-  Head to https://gitter.im/rollup/rollup or https://stackoverflow.com/questions/tagged/rollupjs
+  Head to https://is.gd/rollup_chat or https://stackoverflow.com/questions/tagged/rollupjs
 
   ❤️ Rollup? Please consider supporting our collective:
   👉 https://opencollective.com/rollup/donate
