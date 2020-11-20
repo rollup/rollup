@@ -10,7 +10,7 @@ runTestSuiteWithSamples('chunking form', path.resolve(__dirname, 'samples'), (di
 		() => {
 			let bundle;
 
-			for (const format of [...FORMATS, ...(config.additionalFormats || [])]) {
+			for (const format of FORMATS) {
 				it('generates ' + format, async () => {
 					process.chdir(dir);
 					bundle =
@@ -59,7 +59,7 @@ runTestSuiteWithSamples('chunking form', path.resolve(__dirname, 'samples'), (di
 
 async function generateAndTestBundle(bundle, outputOptions, expectedDir, config) {
 	await bundle.write(outputOptions);
-	if (['amd', 'umd'].includes(outputOptions.format) && config.runAmd) {
+	if (config.runAmd) {
 		await new Promise(resolve => {
 			global.assert = require('assert');
 			const requirejs = require('requirejs');
