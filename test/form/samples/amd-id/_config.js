@@ -1,4 +1,4 @@
 module.exports = {
-	description: 'allows to declare an AMD id',
+	description: 'allows to use amd.id',
 	options: { output: { amd: { id: 'my-id' } } }
 };

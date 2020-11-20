@@ -578,6 +578,8 @@ export type GetInterop = (id: string | null) => InteropType;
 
 export interface OutputOptions {
 	amd?: {
+		autoId?: boolean;
+		basePath?: string;
 		define?: string;
 		id?: string;
 	};
@@ -626,6 +628,8 @@ export interface OutputOptions {
 
 export interface NormalizedOutputOptions {
 	amd: {
+		autoId: boolean;
+		basePath: string;
 		define: string;
 		id?: string;
 	};

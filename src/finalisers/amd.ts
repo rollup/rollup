@@ -1,11 +1,10 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { NormalizedOutputOptions } from '../rollup/types';
-import { renderNamePattern } from '../utils/renderNamePattern';
 import { FinaliserOptions } from './index';
+import getCompleteAmdId from './shared/getCompleteAmdId';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
 import removeExtensionFromRelativeAmdId from './shared/removeExtensionFromRelativeAmdId';
-import removeJsExtension from './shared/removeJsExtension';
 import warnOnBuiltins from './shared/warnOnBuiltins';
 
 export default function amd(
@@ -26,7 +25,7 @@ export default function amd(
 		warn
 	}: FinaliserOptions,
 	{
-		amd: { define: amdDefine, id: amdId = '' },
+		amd,
 		compact,
 		esModule,
 		externalLiveBindings,
@@ -58,10 +57,7 @@ export default function amd(
 		deps.unshift(`'module'`);
 	}
 
-	const completeAmdId = renderNamePattern(amdId, 'output.amd.id', {
-		id: () => removeJsExtension(id)
-	});
-
+	const completeAmdId = getCompleteAmdId(amd, id);
 	const params =
 		(completeAmdId ? `'${completeAmdId}',${_}` : ``) +
 		(deps.length ? `[${deps.join(`,${_}`)}],${_}` : ``);
@@ -105,6 +101,6 @@ export default function amd(
 	magicString.append(`${exportBlock}${namespaceMarkers}${outro}`);
 	return magicString
 		.indent(t)
-		.prepend(`${amdDefine}(${params}function${_}(${args.join(`,${_}`)})${_}{${useStrict}${n}${n}`)
+		.prepend(`${amd.define}(${params}function${_}(${args.join(`,${_}`)})${_}{${useStrict}${n}${n}`)
 		.append(`${n}${n}});`);
 }
