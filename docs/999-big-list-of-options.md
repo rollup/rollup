@@ -1061,7 +1061,7 @@ An object that can contain the following properties:
 Type: `string`<br>
 CLI: `--amd.id <amdId>`
 
-An ID to use for AMD/UMD bundles.
+An ID to use for AMD/UMD bundles:
 
 ```js
 // rollup.config.js
