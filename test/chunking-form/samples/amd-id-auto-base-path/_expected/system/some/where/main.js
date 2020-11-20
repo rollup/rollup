@@ -6,7 +6,7 @@ System.register([], function (exports, module) {
 			exports('getA', getA);
 
 			function getA() {
-				return module.import('./generated-a.js');
+				return module.import('./chunks/generated-a.js');
 			}
 
 		}

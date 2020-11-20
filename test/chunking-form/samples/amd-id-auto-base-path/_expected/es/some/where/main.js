@@ -1,5 +1,5 @@
 function getA() {
-	return import('./generated-a.js');
+	return import('./chunks/generated-a.js');
 }
 
 export { getA };
