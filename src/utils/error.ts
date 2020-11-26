@@ -65,7 +65,8 @@ export enum Errors {
 	UNRESOLVED_IMPORT = 'UNRESOLVED_IMPORT',
 	VALIDATION_ERROR = 'VALIDATION_ERROR',
 	EXTERNAL_SYNTHETIC_EXPORTS = 'EXTERNAL_SYNTHETIC_EXPORTS',
-	SYNTHETIC_NAMED_EXPORTS_NEED_NAMESPACE_EXPORT = 'SYNTHETIC_NAMED_EXPORTS_NEED_NAMESPACE_EXPORT'
+	SYNTHETIC_NAMED_EXPORTS_NEED_NAMESPACE_EXPORT = 'SYNTHETIC_NAMED_EXPORTS_NEED_NAMESPACE_EXPORT',
+	ALREADY_CLOSED = 'ALREADY_CLOSED'
 }
 
 export function errAssetNotFinalisedForFileName(name: string) {
@@ -374,6 +375,13 @@ export function errFailedValidation(message: string) {
 	return {
 		code: Errors.VALIDATION_ERROR,
 		message
+	};
+}
+
+export function errAlreadyClosed() {
+	return {
+		code: Errors.ALREADY_CLOSED,
+		message: "Bundle is already closed, no more calls to 'generate' or 'write' is allowed."
 	};
 }
 

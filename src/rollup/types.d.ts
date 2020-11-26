@@ -320,8 +320,12 @@ export type ResolveFileUrlHook = (
 export type AddonHookFunction = (this: PluginContext) => string | Promise<string>;
 export type AddonHook = string | AddonHookFunction;
 
-export type ChangeEvent = 'create' | 'update' | 'delete'
-export type WatchChangeHook = (this: PluginContext, id: string, change: {event: ChangeEvent}) => void
+export type ChangeEvent = 'create' | 'update' | 'delete';
+export type WatchChangeHook = (
+	this: PluginContext,
+	id: string,
+	change: { event: ChangeEvent }
+) => void;
 
 /**
  * use this type for plugin annotation
@@ -350,6 +354,7 @@ export interface OutputBundleWithPlaceholders {
 export interface PluginHooks extends OutputPluginHooks {
 	buildEnd: (this: PluginContext, err?: Error) => Promise<void> | void;
 	buildStart: (this: PluginContext, options: NormalizedInputOptions) => Promise<void> | void;
+	closeBundle: (this: PluginContext) => void;
 	closeWatcher: (this: PluginContext) => void;
 	load: LoadHook;
 	moduleParsed: ModuleParsedHook;
@@ -412,7 +417,8 @@ export type AsyncPluginHooks =
 	| 'resolveDynamicImport'
 	| 'resolveId'
 	| 'transform'
-	| 'writeBundle';
+	| 'writeBundle'
+	| 'closeBundle';
 
 export type PluginValueHooks = 'banner' | 'footer' | 'intro' | 'outro';
 
@@ -447,7 +453,8 @@ export type ParallelPluginHooks =
 	| 'outro'
 	| 'renderError'
 	| 'renderStart'
-	| 'writeBundle';
+	| 'writeBundle'
+	| 'closeBundle';
 
 interface OutputPluginValueHooks {
 	banner: AddonHook;
@@ -740,6 +747,8 @@ export interface RollupOutput {
 
 export interface RollupBuild {
 	cache: RollupCache | undefined;
+	close: () => void;
+	closed: boolean;
 	generate: (outputOptions: OutputOptions) => Promise<RollupOutput>;
 	getTimings?: () => SerializedTimings;
 	watchFiles: string[];
@@ -794,7 +803,7 @@ export interface RollupWatchOptions extends InputOptions {
 	watch?: WatcherOptions | false;
 }
 
-interface TypedEventEmitter<T extends {[event: string]: (...args: any) => any}> {
+interface TypedEventEmitter<T extends { [event: string]: (...args: any) => any }> {
 	addListener<K extends keyof T>(event: K, listener: T[K]): this;
 	emit<K extends keyof T>(event: K, ...args: Parameters<T[K]>): boolean;
 	eventNames(): Array<keyof T>;
@@ -827,7 +836,7 @@ export type RollupWatcherEvent =
 
 export interface RollupWatcher
 	extends TypedEventEmitter<{
-		change: (id: string, change: {event: ChangeEvent}) => void;
+		change: (id: string, change: { event: ChangeEvent }) => void;
 		close: () => void;
 		event: (event: RollupWatcherEvent) => void;
 		restart: () => void;
