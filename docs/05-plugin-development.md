@@ -251,6 +251,13 @@ Previous/Next Hook: This hook can be triggered at any time both during the build
 
 Notifies a plugin whenever rollup has detected a change to a monitored file in `--watch` mode. This hook cannot be used by output plugins. Second argument contains additional details of change event.  
 
+#### `closeBundle`
+Type: `closeBundle: () => Promise<void> | void`<br>
+Kind: `async, parallel`<br>
+Previous/Next Hook: This hook can be triggered at any time, during build errors or when `bundle.close()` is called, in which case this would be the last hook to be triggered.
+
+Can be used to clean up any external service that may be running, this hook is never run during watch mode.
+
 ### Output Generation Hooks
 
 Output generation hooks can provide information about a generated bundle and modify a build once complete. They work the same way and have the same types as [Build Hooks](guide/en/#build-hooks) but are called separately for each call to `bundle.generate(outputOptions)` or `bundle.write(outputOptions)`. Plugins that only use output generation hooks can also be passed in via the output options and therefore run only for certain outputs.
