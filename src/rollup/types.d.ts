@@ -747,7 +747,7 @@ export interface RollupOutput {
 
 export interface RollupBuild {
 	cache: RollupCache | undefined;
-	close: () => void;
+	close: () => Promise<void>;
 	closed: boolean;
 	generate: (outputOptions: OutputOptions) => Promise<RollupOutput>;
 	getTimings?: () => SerializedTimings;
