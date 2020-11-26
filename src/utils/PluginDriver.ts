@@ -47,6 +47,7 @@ const inputHookNames: {
 } = {
 	buildEnd: 1,
 	buildStart: 1,
+	closeBundle: 1,
 	closeWatcher: 1,
 	load: 1,
 	moduleParsed: 1,
