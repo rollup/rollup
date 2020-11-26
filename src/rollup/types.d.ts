@@ -354,7 +354,7 @@ export interface OutputBundleWithPlaceholders {
 export interface PluginHooks extends OutputPluginHooks {
 	buildEnd: (this: PluginContext, err?: Error) => Promise<void> | void;
 	buildStart: (this: PluginContext, options: NormalizedInputOptions) => Promise<void> | void;
-	closeBundle: (this: PluginContext) => void;
+	closeBundle: (this: PluginContext) => Promise<void> | void;
 	closeWatcher: (this: PluginContext) => void;
 	load: LoadHook;
 	moduleParsed: ModuleParsedHook;
