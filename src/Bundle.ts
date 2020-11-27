@@ -261,7 +261,7 @@ function validateOptionsForMultiChunkOutput(outputOptions: NormalizedOutputOptio
 			code: 'INVALID_OPTION',
 			message: '"output.sourcemapFile" is only supported for single-file builds.'
 		});
-	if (outputOptions.amd.id)
+	if (!outputOptions.amd.autoId && outputOptions.amd.id)
 		return error({
 			code: 'INVALID_OPTION',
 			message:

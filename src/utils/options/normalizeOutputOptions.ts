@@ -180,24 +180,41 @@ const getPreserveModulesRoot = (config: GenericConfigObject): string | undefined
 };
 
 const getAmd = (config: GenericConfigObject): NormalizedOutputOptions['amd'] => {
-	const normalized = {
+	const collection: OutputOptions['amd'] & { autoId: boolean; basePath: string; define: string } = {
 		autoId: false,
 		basePath: '',
 		define: 'define',
 		...(config.amd as OutputOptions['amd'])
 	};
-	if ((normalized.autoId || normalized.basePath) && normalized.id) {
+
+	if ((collection.autoId || collection.basePath) && collection.id) {
 		return error({
 			code: 'INVALID_OPTION',
 			message:
 				'"output.amd.autoId"/"output.amd.basePath" and "output.amd.id" cannot be used together.'
 		});
 	}
-	if (normalized.basePath && !normalized.autoId) {
+	if (collection.basePath && !collection.autoId) {
 		return error({
 			code: 'INVALID_OPTION',
 			message: '"output.amd.basePath" only works with "output.amd.autoId".'
 		});
+	}
+
+	let normalized: NormalizedOutputOptions['amd'];
+	if (collection.autoId) {
+		normalized = {
+			autoId: true,
+			basePath: collection.basePath,
+			define: collection.define
+		};
+	} else {
+		normalized = {
+			autoId: false,
+			basePath: '',
+			define: collection.define,
+			id: collection.id
+		};
 	}
 	return normalized;
 };

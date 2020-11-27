@@ -12,3 +12,34 @@ const plugin: rollup.PluginImpl<Options> = (options = {}) => {
 
 plugin();
 plugin({ extensions: ['.js', 'json'] });
+
+const amdOutputOptions: rollup.OutputOptions['amd'][] = [
+	{},
+	{
+		id: 'a'
+	},
+	{
+		autoId: false,
+		basePath: '',
+		id: 'a'
+	},
+	{
+		autoId: true,
+		basePath: 'a'
+	},
+	{
+		autoId: true
+	},
+	{
+		// @ts-expect-error
+		autoId: true,
+		// @ts-expect-error
+		id: 'a'
+	},
+	{
+		// @ts-expect-error
+		basePath: 'a',
+		// @ts-expect-error
+		id: 'a'
+	}
+];

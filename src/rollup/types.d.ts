@@ -576,13 +576,37 @@ export type InteropType = boolean | 'auto' | 'esModule' | 'default' | 'defaultOn
 
 export type GetInterop = (id: string | null) => InteropType;
 
+export type AmdOptions = (
+	| {
+			autoId?: false;
+			basePath?: '';
+			id?: string;
+	  }
+	| {
+			autoId: true;
+			basePath?: string;
+			id?: undefined;
+	  }
+) & {
+	define?: string;
+};
+
+export type NormalizedAmdOptions = (
+	| {
+			autoId: false;
+			basePath: '';
+			id?: string;
+	  }
+	| {
+			autoId: true;
+			basePath: string;
+	  }
+) & {
+	define: string;
+};
+
 export interface OutputOptions {
-	amd?: {
-		autoId?: boolean;
-		basePath?: string;
-		define?: string;
-		id?: string;
-	};
+	amd?: AmdOptions;
 	assetFileNames?: string | ((chunkInfo: PreRenderedAsset) => string);
 	banner?: string | (() => string | Promise<string>);
 	chunkFileNames?: string | ((chunkInfo: PreRenderedChunk) => string);
@@ -627,12 +651,7 @@ export interface OutputOptions {
 }
 
 export interface NormalizedOutputOptions {
-	amd: {
-		autoId: boolean;
-		basePath: string;
-		define: string;
-		id?: string;
-	};
+	amd: NormalizedAmdOptions;
 	assetFileNames: string | ((chunkInfo: PreRenderedAsset) => string);
 	banner: () => string | Promise<string>;
 	chunkFileNames: string | ((chunkInfo: PreRenderedChunk) => string);
