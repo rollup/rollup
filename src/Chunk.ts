@@ -710,6 +710,7 @@ export default class Chunk {
 			});
 		}
 
+		/* istanbul ignore next */
 		if (!this.id) {
 			throw new Error('Internal Error: expecting chunk id');
 		}
