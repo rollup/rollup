@@ -579,13 +579,11 @@ export type GetInterop = (id: string | null) => InteropType;
 export type AmdOptions = (
 	| {
 			autoId?: false;
-			basePath?: '';
 			id?: string;
 	  }
 	| {
 			autoId: true;
 			basePath?: string;
-			id?: undefined;
 	  }
 ) & {
 	define?: string;
@@ -594,7 +592,6 @@ export type AmdOptions = (
 export type NormalizedAmdOptions = (
 	| {
 			autoId: false;
-			basePath: '';
 			id?: string;
 	  }
 	| {

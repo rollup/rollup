@@ -180,7 +180,7 @@ const getPreserveModulesRoot = (config: GenericConfigObject): string | undefined
 };
 
 const getAmd = (config: GenericConfigObject): NormalizedOutputOptions['amd'] => {
-	const collection: OutputOptions['amd'] & { autoId: boolean; basePath: string; define: string } = {
+	const collection: { autoId: boolean; basePath: string; define: string; id?: string } = {
 		autoId: false,
 		basePath: '',
 		define: 'define',
@@ -211,7 +211,6 @@ const getAmd = (config: GenericConfigObject): NormalizedOutputOptions['amd'] => 
 	} else {
 		normalized = {
 			autoId: false,
-			basePath: '',
 			define: collection.define,
 			id: collection.id
 		};

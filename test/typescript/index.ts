@@ -20,6 +20,10 @@ const amdOutputOptions: rollup.OutputOptions['amd'][] = [
 	},
 	{
 		autoId: false,
+		id: 'a'
+	},
+	{
+		autoId: false,
 		basePath: '',
 		id: 'a'
 	},
