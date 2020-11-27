@@ -261,6 +261,12 @@ function validateOptionsForMultiChunkOutput(outputOptions: NormalizedOutputOptio
 			code: 'INVALID_OPTION',
 			message: '"output.sourcemapFile" is only supported for single-file builds.'
 		});
+	if (outputOptions.amd.id)
+		return error({
+			code: 'INVALID_OPTION',
+			message:
+				'"output.amd.id" is only supported for single-file builds. Use "output.amd.autoId" and "output.amd.basePath".'
+		});
 }
 
 function getIncludedModules(modulesById: Map<string, Module | ExternalModule>): Module[] {

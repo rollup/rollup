@@ -236,4 +236,27 @@ describe('sanity checks', () => {
 			'You must set "output.dir" instead of "output.file" when using the "output.preserveModules" option.'
 		);
 	});
+
+	it('throws when using output.amd.id together with the "dir" option', async () => {
+		let error = null;
+		const bundle = await rollup.rollup({
+			input: 'input',
+			plugins: [loader({ input: `import('dep')`, dep: `console.log('dep')` })]
+		});
+		try {
+			await bundle.generate({
+				dir: 'x',
+				format: 'amd',
+				amd: {
+					id: 'something'
+				}
+			});
+		} catch (generateError) {
+			error = generateError;
+		}
+		assert.strictEqual(
+			error && error.message,
+			'"output.amd.id" is only supported for single-file builds. Use "output.amd.autoId" and "output.amd.basePath".'
+		);
+	});
 });

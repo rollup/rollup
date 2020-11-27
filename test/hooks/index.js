@@ -924,6 +924,32 @@ describe('hooks', () => {
 			.then(() => watcher.close());
 	});
 
+	it('Throws when using the "amd.id" option for multiple chunks', () => {
+		const watcher = rollup.watch({
+			input: 'input',
+			output: {
+				format: 'amd',
+				amd: { id: 'something' },
+				dir: 'ignored'
+			},
+			plugins: [loader({ input: `import('dep')`, dep: `console.log('dep')` })]
+		});
+		return new Promise((resolve, reject) => {
+			watcher.on('event', event => {
+				if (event.code === 'BUNDLE_END') reject(new Error('Expected an error'));
+				else if (event.code === 'ERROR') reject(event.error);
+			});
+		})
+			.catch(err => {
+				watcher.close();
+				assert.strictEqual(
+					err.message,
+					'"output.amd.id" is only supported for single-file builds. Use "output.amd.autoId" and "output.amd.basePath".'
+				);
+			})
+			.then(() => watcher.close());
+	});
+
 	it('assigns chunk IDs before creating outputBundle chunks', () => {
 		const chunks = [];
 		return rollup
