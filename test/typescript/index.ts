@@ -30,14 +30,28 @@ const amdOutputOptions: rollup.OutputOptions['amd'][] = [
 		autoId: true
 	},
 	{
+		autoId: false
+	},
+	{
 		// @ts-expect-error
 		autoId: false,
 		basePath: '',
+		// @ts-expect-error
 		id: 'a'
 	},
 	{
 		// @ts-expect-error
 		autoId: true,
+		// @ts-expect-error
 		id: 'a'
+	},
+	{
+		basePath: '',
+		// @ts-expect-error
+		id: 'a'
+	},
+	// @ts-expect-error
+	{
+		basePath: ''
 	}
 ];
