@@ -1055,7 +1055,7 @@ Same as [`context`](guide/en/#context), but per-module – can either be an obje
 #### output.amd
 Type: `{ id?: string, autoId?: boolean, basePath?: string, define?: string }`
 
-An object that can contain the following properties:
+Note `id` can only be used for single-file builds, and cannot be combined with `autoId`/`basePath`.
 
 **output.amd.id**<br>
 Type: `string`<br>
