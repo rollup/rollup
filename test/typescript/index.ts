@@ -23,11 +23,6 @@ const amdOutputOptions: rollup.OutputOptions['amd'][] = [
 		id: 'a'
 	},
 	{
-		autoId: false,
-		basePath: '',
-		id: 'a'
-	},
-	{
 		autoId: true,
 		basePath: 'a'
 	},
@@ -35,13 +30,14 @@ const amdOutputOptions: rollup.OutputOptions['amd'][] = [
 		autoId: true
 	},
 	{
-		autoId: true,
 		// @ts-expect-error
+		autoId: false,
+		basePath: '',
 		id: 'a'
 	},
 	{
-		basePath: 'a',
 		// @ts-expect-error
+		autoId: true,
 		id: 'a'
 	}
 ];
