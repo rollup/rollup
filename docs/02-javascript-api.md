@@ -10,7 +10,7 @@ The `rollup.rollup` function receives an input options object as parameter and r
 
 On a `bundle` object, you can call `bundle.generate` multiple times with different output options objects to generate different bundles in-memory. If you directly want to write them to disk, use `bundle.write` instead.
 
-Once you're finished with the `bundle` object, you can call `bundle.close`, which will let plugins clean up their external processes or services.
+Once you're finished with the `bundle` object, you should call `bundle.close`, which will let plugins clean up their external processes or services.
 
 ```javascript
 const rollup = require('rollup');
