@@ -40,6 +40,7 @@ run()
 	.then(run)
 	.then(() => {
 		console.log('Success: Previous bundle was correctly garbage collected.');
+		process.exit(0);
 	})
 	.catch(err => {
 		console.error(err.message);
