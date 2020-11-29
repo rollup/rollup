@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 2.34.1
+*unreleased*
+
+### Pull Requests
+* [#3887](https://github.com/rollup/rollup/pull/3887): Run memory leak test on all systems (@lukastaegert)
+
 ## 2.34.0
 *2020-11-29*
 
