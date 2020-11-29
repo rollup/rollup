@@ -30,7 +30,7 @@
     "pretest:coverage": "npm run build:test && shx rm -rf coverage/*",
     "pretest:typescript": "shx rm -rf test/typescript/dist && shx cp -r dist test/typescript/",
     "security": "# npm audit # deactivated until there is a solution for the lodash issue",
-    "test": "npm run test:all",
+    "test": "npm run test:leak",
     "test:all": "npm run test:only && npm run test:typescript && npm run test:leak && npm run test:package",
     "test:coverage": "nyc --reporter html mocha",
     "test:leak": "node --expose-gc test/leak/index.js",
