@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 2.34.0
+*2020-11-29*
+
+### Features
+* Support RequireJS comaptible AMD ids in code-splitting builds via amd.autoId (#3867)
+* Allow adding an AMD id base path (#3867)
+
+### Bug Fixes
+* Warn when using an constant AMD id in a code-splitting build (#3867)
+
+### Pull Requests
+* [#3867](https://github.com/rollup/rollup/pull/3867): Implement amd.autoId/amd.basePath options (@tjenkinson)
+
 ## 2.33.3
 *2020-11-18*
 
