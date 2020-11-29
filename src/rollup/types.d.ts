@@ -320,8 +320,12 @@ export type ResolveFileUrlHook = (
 export type AddonHookFunction = (this: PluginContext) => string | Promise<string>;
 export type AddonHook = string | AddonHookFunction;
 
-export type ChangeEvent = 'create' | 'update' | 'delete'
-export type WatchChangeHook = (this: PluginContext, id: string, change: {event: ChangeEvent}) => void
+export type ChangeEvent = 'create' | 'update' | 'delete';
+export type WatchChangeHook = (
+	this: PluginContext,
+	id: string,
+	change: { event: ChangeEvent }
+) => void;
 
 /**
  * use this type for plugin annotation
@@ -572,11 +576,39 @@ export type InteropType = boolean | 'auto' | 'esModule' | 'default' | 'defaultOn
 
 export type GetInterop = (id: string | null) => InteropType;
 
+export type AmdOptions = (
+	| {
+			autoId?: false;
+			id: string;
+	  }
+	| {
+			autoId: true;
+			basePath?: string;
+			id?: undefined;
+	  }
+	| {
+			autoId?: false;
+			id?: undefined;
+	  }
+) & {
+	define?: string;
+};
+
+export type NormalizedAmdOptions = (
+	| {
+			autoId: false;
+			id?: string;
+	  }
+	| {
+			autoId: true;
+			basePath: string;
+	  }
+) & {
+	define: string;
+};
+
 export interface OutputOptions {
-	amd?: {
-		define?: string;
-		id?: string;
-	};
+	amd?: AmdOptions;
 	assetFileNames?: string | ((chunkInfo: PreRenderedAsset) => string);
 	banner?: string | (() => string | Promise<string>);
 	chunkFileNames?: string | ((chunkInfo: PreRenderedChunk) => string);
@@ -621,10 +653,7 @@ export interface OutputOptions {
 }
 
 export interface NormalizedOutputOptions {
-	amd: {
-		define: string;
-		id?: string;
-	};
+	amd: NormalizedAmdOptions;
 	assetFileNames: string | ((chunkInfo: PreRenderedAsset) => string);
 	banner: () => string | Promise<string>;
 	chunkFileNames: string | ((chunkInfo: PreRenderedChunk) => string);
@@ -794,7 +823,7 @@ export interface RollupWatchOptions extends InputOptions {
 	watch?: WatcherOptions | false;
 }
 
-interface TypedEventEmitter<T extends {[event: string]: (...args: any) => any}> {
+interface TypedEventEmitter<T extends { [event: string]: (...args: any) => any }> {
 	addListener<K extends keyof T>(event: K, listener: T[K]): this;
 	emit<K extends keyof T>(event: K, ...args: Parameters<T[K]>): boolean;
 	eventNames(): Array<keyof T>;
@@ -827,7 +856,7 @@ export type RollupWatcherEvent =
 
 export interface RollupWatcher
 	extends TypedEventEmitter<{
-		change: (id: string, change: {event: ChangeEvent}) => void;
+		change: (id: string, change: { event: ChangeEvent }) => void;
 		close: () => void;
 		event: (event: RollupWatcherEvent) => void;
 		restart: () => void;

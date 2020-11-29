@@ -2,6 +2,7 @@ import { Bundle as MagicStringBundle } from 'magic-string';
 import { NormalizedOutputOptions } from '../rollup/types';
 import { error } from '../utils/error';
 import { FinaliserOptions } from './index';
+import getCompleteAmdId from './shared/getCompleteAmdId';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
 import removeExtensionFromRelativeAmdId from './shared/removeExtensionFromRelativeAmdId';
@@ -29,6 +30,7 @@ export default function umd(
 		dependencies,
 		exports,
 		hasExports,
+		id,
 		indentString: t,
 		intro,
 		namedExportsMode,
@@ -37,7 +39,7 @@ export default function umd(
 		warn
 	}: FinaliserOptions,
 	{
-		amd: { define: amdDefine, id: amdId },
+		amd,
 		compact,
 		esModule,
 		extend,
@@ -90,10 +92,12 @@ export default function umd(
 		factoryArgs.unshift('exports');
 	}
 
+	const completeAmdId = getCompleteAmdId(amd, id);
 	const amdParams =
-		(amdId ? `'${amdId}',${_}` : ``) + (amdDeps.length ? `[${amdDeps.join(`,${_}`)}],${_}` : ``);
+		(completeAmdId ? `'${completeAmdId}',${_}` : ``) +
+		(amdDeps.length ? `[${amdDeps.join(`,${_}`)}],${_}` : ``);
 
-	const define = amdDefine;
+	const define = amd.define;
 	const cjsExport = !namedExportsMode && hasExports ? `module.exports${_}=${_}` : ``;
 	const useStrict = strict ? `${_}'use strict';${n}` : ``;
 

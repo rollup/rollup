@@ -41,7 +41,9 @@ function generateAssetFileName(
 	const emittedName = name || 'asset';
 	return makeUnique(
 		renderNamePattern(
-			output.assetFileNames,
+			typeof output.assetFileNames === 'function'
+				? output.assetFileNames({ name, source, type: 'asset' })
+				: output.assetFileNames,
 			'output.assetFileNames',
 			{
 				hash() {
@@ -54,8 +56,7 @@ function generateAssetFileName(
 				ext: () => extname(emittedName).substr(1),
 				extname: () => extname(emittedName),
 				name: () => emittedName.substr(0, emittedName.length - extname(emittedName).length)
-			},
-			() => ({ name, source, type: 'asset' })
+			}
 		),
 		output.bundle
 	);

@@ -414,7 +414,7 @@ export default class Chunk {
 				: [options.chunkFileNames, 'output.chunkFileNames'];
 		return makeUnique(
 			renderNamePattern(
-				pattern,
+				typeof pattern === 'function' ? pattern(this.getChunkInfo()) : pattern,
 				patternName,
 				{
 					format: () => options.format,
@@ -423,8 +423,7 @@ export default class Chunk {
 							? this.computeContentHashWithDependencies(addons, options, existingNames)
 							: '[hash]',
 					name: () => this.getChunkName()
-				},
-				this.getChunkInfo.bind(this)
+				}
 			),
 			existingNames
 		);
@@ -448,15 +447,14 @@ export default class Chunk {
 				: options.entryFileNames;
 			const currentDir = dirname(sanitizedId);
 			const fileName = renderNamePattern(
-				pattern,
+				typeof pattern === 'function' ? pattern(this.getChunkInfo()) : pattern,
 				'output.entryFileNames',
 				{
 					ext: () => extension.substr(1),
 					extname: () => extension,
 					format: () => options.format as string,
 					name: () => this.getChunkName()
-				},
-				this.getChunkInfo.bind(this)
+				}
 			);
 			const currentPath = `${currentDir}/${fileName}`;
 			const { preserveModulesRoot } = options;
@@ -712,6 +710,11 @@ export default class Chunk {
 			});
 		}
 
+		/* istanbul ignore next */
+		if (!this.id) {
+			throw new Error('Internal Error: expecting chunk id');
+		}
+
 		const magicString = finalise(
 			this.renderedSource!,
 			{
@@ -719,6 +722,7 @@ export default class Chunk {
 				dependencies: [...this.renderedDependencies!.values()],
 				exports: this.renderedExports!,
 				hasExports,
+				id: this.id,
 				indentString: this.indentString,
 				intro: addons.intro!,
 				isEntryFacade:
@@ -754,8 +758,8 @@ export default class Chunk {
 
 			let file: string;
 			if (options.file) file = resolve(options.sourcemapFile || options.file);
-			else if (options.dir) file = resolve(options.dir, this.id!);
-			else file = resolve(this.id!);
+			else if (options.dir) file = resolve(options.dir, this.id);
+			else file = resolve(this.id);
 
 			const decodedMap = magicString.generateDecodedMap({});
 			map = collapseSourcemaps(

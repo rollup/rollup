@@ -1053,9 +1053,9 @@ Type: `((id: string) => string) | { [id: string]: string }`<br>
 Same as [`context`](guide/en/#context), but per-module – can either be an object of `id: context` pairs, or an `id => context` function.
 
 #### output.amd
-Type: `{ id?: string, define?: string}`
+Type: `{ id?: string, autoId?: boolean, basePath?: string, define?: string }`
 
-An object that can contain the following properties:
+Note `id` can only be used for single-file builds, and cannot be combined with `autoId`/`basePath`.
 
 **output.amd.id**<br>
 Type: `string`<br>
@@ -1074,6 +1074,49 @@ export default {
 };
 
 // -> define('my-bundle', ['dependency'], ...
+```
+
+**output.amd.autoId**<br>
+Type: `boolean`<br>
+CLI: `--amd.autoId`
+
+Set the ID to the chunk ID (with the '.js' extension removed).
+
+```js
+// rollup.config.js
+export default {
+  ...,
+  format: 'amd',
+  amd: {
+    autoId: true
+  }
+};
+
+// -> define('main', ['dependency'], ...
+// -> define('dynamic-chunk', ['dependency'], ...
+```
+
+**output.amd.basePath**<br>
+Type: `string`<br>
+CLI: `--amd.basePath`
+
+The path that will be prepended to the auto generated ID. This is useful if the build is going to be placed inside another AMD project, and is not at the root.
+
+Only valid with `output.amd.autoId`.
+
+```js
+// rollup.config.js
+export default {
+  ...,
+  format: 'amd',
+  amd: {
+    autoId: true
+    basePath: 'some/where'
+  }
+};
+
+// -> define('some/where/main', ['dependency'], ...
+// -> define('some/where/dynamic-chunk', ['dependency'], ...
 ```
 
 **output.amd.define**<br>
