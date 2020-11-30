@@ -1,4 +1,7 @@
-version: 2
+version: 2.1
+
+orbs:
+  win: circleci/windows@2.2.0
 
 jobs:
   analysis:
@@ -58,7 +61,15 @@ jobs:
       - run:
           name: Running tests with coverage
           command: npm run ci:coverage
-
+  windows-v14-latest:
+    executor: win/default
+    steps:
+      - checkout
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package-lock.json" }}
+      - run:
+          name: Running tests
+          command: npm run test
 
 workflows:
   version: 2
@@ -81,6 +92,12 @@ workflows:
             tags:
               only: /.*/
       - node-v14-latest:
+          requires:
+            - analysis
+          filters:
+            tags:
+              only: /.*/
+      - windows-v14-latest:
           requires:
             - analysis
           filters:
