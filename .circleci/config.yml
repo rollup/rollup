@@ -64,7 +64,6 @@ jobs:
   windows-v10-latest:
     executor:
       name: win/default
-      shell: bash.exe
     steps:
       - run:
           name: Configure git line breaks
@@ -82,7 +81,6 @@ jobs:
   windows-v14-latest:
     executor:
       name: win/default
-      shell: bash.exe
     steps:
       - run:
           name: Configure git line breaks
