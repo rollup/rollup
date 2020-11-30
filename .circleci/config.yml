@@ -70,8 +70,11 @@ jobs:
           command: git config --global core.autocrlf false
       - checkout
       - run:
+          name: Install Node 10
+          command: nvm install 10.23.0
+      - run:
           name: Select Node 10
-          command: nvm install 10.23.0 && nvm use 10.23.0
+          command: nvm use 10.23.0
       - run:
           name: Installing Dependencies
           command: npm ci
@@ -87,8 +90,11 @@ jobs:
           command: git config --global core.autocrlf false
       - checkout
       - run:
+          name: Install Node 14
+          command: nvm install v14.15.1
+      - run:
           name: Select Node 14
-          command: nvm install v14.15.1 && nvm use v14.15.1
+          command: nvm use v14.15.1
       - run:
           name: Installing Dependencies
           command: npm ci
