@@ -66,10 +66,13 @@ jobs:
       name: win/default
       shell: bash.exe
     steps:
+      - run:
+          name: Configure git line breaks
+          command: git config --global core.autocrlf false
       - checkout
       - run:
           name: Select Node 10
-          command: nvm install 10
+          command: nvm install 10 && nvm use 10
       - run:
           name: Installing Dependencies
           command: npm ci
@@ -87,7 +90,7 @@ jobs:
       - checkout
       - run:
           name: Select Node 14
-          command: nvm install 14
+          command: nvm install 14 && nvm use 14
       - run:
           name: Installing Dependencies
           command: npm ci
