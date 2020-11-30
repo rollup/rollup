@@ -69,7 +69,7 @@ jobs:
       - checkout
       - run:
           name: Select Node 10
-          command: nvm use 10
+          command: nvm install 10
       - run:
           name: Installing Dependencies
           command: npm ci
@@ -87,7 +87,7 @@ jobs:
       - checkout
       - run:
           name: Select Node 14
-          command: nvm use 14
+          command: nvm install 14
       - run:
           name: Installing Dependencies
           command: npm ci
