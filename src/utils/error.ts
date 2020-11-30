@@ -381,7 +381,7 @@ export function errFailedValidation(message: string) {
 export function errAlreadyClosed() {
 	return {
 		code: Errors.ALREADY_CLOSED,
-		message: "Bundle is already closed, no more calls to 'generate' or 'write' is allowed."
+		message: 'Bundle is already closed, no more calls to "generate" or "write" are allowed.'
 	};
 }
 
