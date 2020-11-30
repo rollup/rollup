@@ -61,20 +61,39 @@ jobs:
       - run:
           name: Running tests with coverage
           command: npm run ci:coverage
-  windows-v14-latest:
+  windows-v10-latest:
     executor:
       name: win/default
       shell: bash.exe
     steps:
       - checkout
-      - restore_cache:
-          key: dependency-cache-{{ checksum "package-lock.json" }}
       - run:
-          name: Install deps again
+          name: Select Node 10
+          command: nvm use 10
+      - run:
+          name: Installing Dependencies
           command: npm ci
       - run:
           name: Running tests
-          command: npm run test
+          command: npm test
+  windows-v14-latest:
+    executor:
+      name: win/default
+      shell: bash.exe
+    steps:
+      - run:
+          name: Configure git line breaks
+          command: git config --global core.autocrlf false
+      - checkout
+      - run:
+          name: Select Node 14
+          command: nvm use 14
+      - run:
+          name: Installing Dependencies
+          command: npm ci
+      - run:
+          name: Running tests
+          command: npm test
 
 workflows:
   version: 2
@@ -102,9 +121,11 @@ workflows:
           filters:
             tags:
               only: /.*/
+      - windows-v10-latest:
+          filters:
+            tags:
+              only: /.*/
       - windows-v14-latest:
-          requires:
-            - analysis
           filters:
             tags:
               only: /.*/
