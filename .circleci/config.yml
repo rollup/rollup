@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  win: circleci/windows@2.2.0
+  win: circleci/windows@2.4.0
 
 jobs:
   analysis:
@@ -62,11 +62,16 @@ jobs:
           name: Running tests with coverage
           command: npm run ci:coverage
   windows-v14-latest:
-    executor: win/default
+    executor:
+      name: win/default
+      shell: bash.exe
     steps:
       - checkout
       - restore_cache:
           key: dependency-cache-{{ checksum "package-lock.json" }}
+      - run:
+          name: Install deps again
+          command: npm ci
       - run:
           name: Running tests
           command: npm run test
