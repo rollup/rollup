@@ -179,18 +179,44 @@ const getPreserveModulesRoot = (config: GenericConfigObject): string | undefined
 	return resolve(preserveModulesRoot);
 };
 
-const getAmd = (
-	config: GenericConfigObject
-): {
-	define: string;
-	id?: string;
-} => ({
-	define: 'define',
-	...(config.amd as {
-		define?: string;
-		id?: string;
-	})
-});
+const getAmd = (config: GenericConfigObject): NormalizedOutputOptions['amd'] => {
+	const collection: { autoId: boolean; basePath: string; define: string; id?: string } = {
+		autoId: false,
+		basePath: '',
+		define: 'define',
+		...(config.amd as OutputOptions['amd'])
+	};
+
+	if ((collection.autoId || collection.basePath) && collection.id) {
+		return error({
+			code: 'INVALID_OPTION',
+			message:
+				'"output.amd.autoId"/"output.amd.basePath" and "output.amd.id" cannot be used together.'
+		});
+	}
+	if (collection.basePath && !collection.autoId) {
+		return error({
+			code: 'INVALID_OPTION',
+			message: '"output.amd.basePath" only works with "output.amd.autoId".'
+		});
+	}
+
+	let normalized: NormalizedOutputOptions['amd'];
+	if (collection.autoId) {
+		normalized = {
+			autoId: true,
+			basePath: collection.basePath,
+			define: collection.define
+		};
+	} else {
+		normalized = {
+			autoId: false,
+			define: collection.define,
+			id: collection.id
+		};
+	}
+	return normalized;
+};
 
 const getAddon = (config: GenericConfigObject, name: string): (() => string | Promise<string>) => {
 	const configAddon = config[name] as string | (() => string | Promise<string>);

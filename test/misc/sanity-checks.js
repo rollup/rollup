@@ -269,4 +269,25 @@ describe('sanity checks', () => {
 		});
 		error = null;
 	});
+
+  it('triggers a warning when using output.amd.id together with the "dir" option', async () => {
+		let warning = null;
+		const bundle = await rollup.rollup({
+			input: 'input',
+			plugins: [loader({ input: `import('dep')`, dep: `console.log('dep')` })],
+			onwarn: w => (warning = w)
+		});
+		await bundle.generate({
+			dir: 'x',
+			format: 'amd',
+			amd: {
+				id: 'something'
+			}
+		});
+
+		assert.strictEqual(
+			warning && warning.message,
+			'"output.amd.id" is only properly supported for single-file builds. Use "output.amd.autoId" and "output.amd.basePath".'
+		);
+	});
 });

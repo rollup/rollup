@@ -8,7 +8,8 @@ import {
 	NormalizedOutputOptions,
 	OutputBundle,
 	OutputBundleWithPlaceholders,
-	OutputChunk
+	OutputChunk,
+	WarningHandler
 } from './rollup/types';
 import { Addons, createAddons } from './utils/addons';
 import { getChunkAssignments } from './utils/chunkAssignment';
@@ -46,7 +47,7 @@ export default class Bundle {
 			timeStart('generate chunks', 2);
 			const chunks = await this.generateChunks();
 			if (chunks.length > 1) {
-				validateOptionsForMultiChunkOutput(this.outputOptions);
+				validateOptionsForMultiChunkOutput(this.outputOptions, this.inputOptions.onwarn);
 			}
 			const inputBase = commondir(getAbsoluteEntryModulePaths(chunks));
 			timeEnd('generate chunks', 2);
@@ -243,7 +244,10 @@ function getAbsoluteEntryModulePaths(chunks: Chunk[]): string[] {
 	return absoluteEntryModulePaths;
 }
 
-function validateOptionsForMultiChunkOutput(outputOptions: NormalizedOutputOptions) {
+function validateOptionsForMultiChunkOutput(
+	outputOptions: NormalizedOutputOptions,
+	onWarn: WarningHandler
+) {
 	if (outputOptions.format === 'umd' || outputOptions.format === 'iife')
 		return error({
 			code: 'INVALID_OPTION',
@@ -260,6 +264,12 @@ function validateOptionsForMultiChunkOutput(outputOptions: NormalizedOutputOptio
 		return error({
 			code: 'INVALID_OPTION',
 			message: '"output.sourcemapFile" is only supported for single-file builds.'
+		});
+	if (!outputOptions.amd.autoId && outputOptions.amd.id)
+		onWarn({
+			code: 'INVALID_OPTION',
+			message:
+				'"output.amd.id" is only properly supported for single-file builds. Use "output.amd.autoId" and "output.amd.basePath".'
 		});
 }
 

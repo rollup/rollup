@@ -41,14 +41,14 @@ runTestSuiteWithSamples('chunking form', path.resolve(__dirname, 'samples'), (di
 						bundle,
 						Object.assign(
 							{
-								dir: dir + '/_actual/' + format,
+								dir: `${dir}/_actual/${format}`,
 								exports: 'auto',
 								format,
 								chunkFileNames: 'generated-[name].js'
 							},
 							(config.options || {}).output || {}
 						),
-						dir + '/_expected/' + format,
+						`${dir}/_expected/${format}`,
 						config
 					);
 				});
@@ -58,16 +58,26 @@ runTestSuiteWithSamples('chunking form', path.resolve(__dirname, 'samples'), (di
 });
 
 async function generateAndTestBundle(bundle, outputOptions, expectedDir, config) {
-	await bundle.write(outputOptions);
+	await bundle.write({
+		...outputOptions,
+		dir: `${outputOptions.dir}${config.nestedDir ? '/' + config.nestedDir : ''}`
+	});
 	if (outputOptions.format === 'amd' && config.runAmd) {
-		await new Promise(resolve => {
-			global.assert = require('assert');
-			const requirejs = require('requirejs');
-			requirejs.config({ baseUrl: outputOptions.dir });
-			requirejs(['main'], main => {
-				Promise.resolve(config.runAmd.exports && config.runAmd.exports(main)).then(resolve);
+		try {
+			const exports = await new Promise((resolve, reject) => {
+				global.assert = require('assert');
+				const requirejs = require('requirejs');
+				requirejs.config({ baseUrl: outputOptions.dir });
+				requirejs([config.nestedDir ? `${config.nestedDir}/main` : 'main'], resolve, reject);
 			});
-		});
+			if (config.runAmd.exports) {
+				await config.runAmd.exports(exports);
+			}
+		} finally {
+			delete require.cache[require.resolve('requirejs')];
+			delete global.requirejsVars;
+			delete global.assert;
+		}
 	}
 	assertDirectoriesAreEqual(outputOptions.dir, expectedDir);
 }

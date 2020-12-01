@@ -1,6 +1,7 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { NormalizedOutputOptions } from '../rollup/types';
 import { FinaliserOptions } from './index';
+import getCompleteAmdId from './shared/getCompleteAmdId';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
 import removeExtensionFromRelativeAmdId from './shared/removeExtensionFromRelativeAmdId';
@@ -13,6 +14,7 @@ export default function amd(
 		dependencies,
 		exports,
 		hasExports,
+		id,
 		indentString: t,
 		intro,
 		isEntryFacade,
@@ -23,7 +25,7 @@ export default function amd(
 		warn
 	}: FinaliserOptions,
 	{
-		amd: { define: amdDefine, id: amdId },
+		amd,
 		compact,
 		esModule,
 		externalLiveBindings,
@@ -55,8 +57,10 @@ export default function amd(
 		deps.unshift(`'module'`);
 	}
 
+	const completeAmdId = getCompleteAmdId(amd, id);
 	const params =
-		(amdId ? `'${amdId}',${_}` : ``) + (deps.length ? `[${deps.join(`,${_}`)}],${_}` : ``);
+		(completeAmdId ? `'${completeAmdId}',${_}` : ``) +
+		(deps.length ? `[${deps.join(`,${_}`)}],${_}` : ``);
 	const useStrict = strict ? `${_}'use strict';` : '';
 
 	magicString.prepend(
@@ -97,6 +101,6 @@ export default function amd(
 	magicString.append(`${exportBlock}${namespaceMarkers}${outro}`);
 	return magicString
 		.indent(t)
-		.prepend(`${amdDefine}(${params}function${_}(${args.join(`,${_}`)})${_}{${useStrict}${n}${n}`)
+		.prepend(`${amd.define}(${params}function${_}(${args.join(`,${_}`)})${_}{${useStrict}${n}${n}`)
 		.append(`${n}${n}});`);
 }
