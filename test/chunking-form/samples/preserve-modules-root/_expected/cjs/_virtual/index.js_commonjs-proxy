@@ -4,4 +4,4 @@ var index = require('../custom_modules/@my-scope/my-base-pkg/index.js');
 
 
 
-module.exports = index.myBasePkg;
+module.exports = index['default'];

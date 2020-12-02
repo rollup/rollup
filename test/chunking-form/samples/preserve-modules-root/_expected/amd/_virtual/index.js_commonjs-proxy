@@ -2,6 +2,6 @@ define(['../custom_modules/@my-scope/my-base-pkg/index'], function (index) { 'us
 
 
 
-	return index.myBasePkg;
+	return index['default'];
 
 });

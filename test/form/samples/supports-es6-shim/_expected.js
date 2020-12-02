@@ -1,20 +1,10 @@
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
-function createCommonjsModule(fn, basedir, module) {
-	return module = {
-		path: basedir,
-		exports: {},
-		require: function (path, base) {
-			return commonjsRequire(path, (base === undefined || base === null) ? module.path : base);
-		}
-	}, fn(module, module.exports), module.exports;
+function createCommonjsModule(fn) {
+  var module = { exports: {} };
+	return fn(module, module.exports), module.exports;
 }
 
-function commonjsRequire () {
-	throw new Error('Dynamic requires are not currently supported by @rollup/plugin-commonjs');
-}
-
-var es6Shim = createCommonjsModule(function (module, exports) {
 /*!
  * https://github.com/paulmillr/es6-shim
  * @license es6-shim Copyright 2013-2016 by Paul Miller (http://paulmillr.com)
@@ -25,10 +15,11 @@ var es6Shim = createCommonjsModule(function (module, exports) {
  * https://github.com/paulmillr/es6-shim/
  */
 
+var es6Shim = createCommonjsModule(function (module, exports) {
 // UMD (Universal Module Definition)
 // see https://github.com/umdjs/umd/blob/master/returnExports.js
 (function (root, factory) {
-  /*global define, module, exports */
+  /*global define */
   {
     // Node. Does not work with strict CommonJS, but
     // only CommonJS-like environments that support module.exports,
@@ -184,7 +175,7 @@ var es6Shim = createCommonjsModule(function (module, exports) {
   };
 
   var getGlobal = function () {
-    /* global self, window, global */
+    /* global self, window */
     // the only reliable means to get the global object is
     // `Function('return this')()`
     // However, this causes CSP violations in Chrome apps.
@@ -203,6 +194,7 @@ var es6Shim = createCommonjsModule(function (module, exports) {
   var _strSlice = Function.call.bind(String.prototype.slice);
   var _push = Function.call.bind(Array.prototype.push);
   var _pushApply = Function.apply.bind(Array.prototype.push);
+  var _join = Function.call.bind(Array.prototype.join);
   var _shift = Function.call.bind(Array.prototype.shift);
   var _max = Math.max;
   var _min = Math.min;
@@ -365,7 +357,7 @@ var es6Shim = createCommonjsModule(function (module, exports) {
     },
 
     ToNumber: function (value) {
-      if (_toString(value) === '[object Symbol]') {
+      if (hasSymbols && _toString(value) === '[object Symbol]') {
         throw new TypeError('Cannot convert a Symbol value to a number');
       }
       return +value;
@@ -536,6 +528,9 @@ var es6Shim = createCommonjsModule(function (module, exports) {
     },
 
     ToString: function ToString(string) {
+      if (hasSymbols && _toString(string) === '[object Symbol]') {
+        throw new TypeError('Cannot convert a Symbol value to a number');
+      }
       return $String(string);
     }
   };
@@ -751,26 +746,26 @@ var es6Shim = createCommonjsModule(function (module, exports) {
           _push(result, String.fromCharCode((next % 0x400) + 0xDC00));
         }
       }
-      return result.join('');
+      return _join(result, '');
     },
 
-    raw: function raw(callSite) {
-      var cooked = ES.ToObject(callSite, 'bad callSite');
-      var rawString = ES.ToObject(cooked.raw, 'bad raw value');
-      var len = rawString.length;
-      var literalsegments = ES.ToLength(len);
-      if (literalsegments <= 0) {
+    raw: function raw(template) {
+      var cooked = ES.ToObject(template, 'bad template');
+      var raw = ES.ToObject(cooked.raw, 'bad raw value');
+      var len = raw.length;
+      var literalSegments = ES.ToLength(len);
+      if (literalSegments <= 0) {
         return '';
       }
 
       var stringElements = [];
       var nextIndex = 0;
       var nextKey, next, nextSeg, nextSub;
-      while (nextIndex < literalsegments) {
+      while (nextIndex < literalSegments) {
         nextKey = ES.ToString(nextIndex);
-        nextSeg = ES.ToString(rawString[nextKey]);
+        nextSeg = ES.ToString(raw[nextKey]);
         _push(stringElements, nextSeg);
-        if (nextIndex + 1 >= literalsegments) {
+        if (nextIndex + 1 >= literalSegments) {
           break;
         }
         next = nextIndex + 1 < arguments.length ? arguments[nextIndex + 1] : '';
@@ -778,7 +773,7 @@ var es6Shim = createCommonjsModule(function (module, exports) {
         _push(stringElements, nextSub);
         nextIndex += 1;
       }
-      return stringElements.join('');
+      return _join(stringElements, '');
     }
   };
   if (String.raw && String.raw({ raw: { 0: 'x', 1: 'y', length: 2 } }) !== 'xy') {
@@ -1062,7 +1057,8 @@ var es6Shim = createCommonjsModule(function (module, exports) {
       }
       if (typeof array !== 'undefined') {
         var len = ES.ToLength(array.length);
-        for (; i < len; i++) {
+        if (i < len) {
+        //for (; i < len; i++) {
           var kind = this.kind;
           var retval;
           if (kind === 'key') {
@@ -1377,7 +1373,7 @@ var es6Shim = createCommonjsModule(function (module, exports) {
     // Note that in IE 8, RegExp.prototype.test doesn't seem to exist: ie, "test" is an own property of regexes. wtf.
     var isBinary = binaryRegex.test.bind(binaryRegex);
     var isOctal = octalRegex.test.bind(octalRegex);
-    var toPrimitive = function (O) { // need to replace this with `es-to-primitive/es6`
+    var toPrimitive = function (O, hint) { // need to replace this with `es-to-primitive/es6`
       var result;
       if (typeof O.valueOf === 'function') {
         result = O.valueOf();
@@ -1435,12 +1431,10 @@ var es6Shim = createCommonjsModule(function (module, exports) {
       NEGATIVE_INFINITY: OrigNumber.NEGATIVE_INFINITY,
       POSITIVE_INFINITY: OrigNumber.POSITIVE_INFINITY
     });
-    /* globals Number: true */
     /* eslint-disable no-undef, no-global-assign */
     Number = NumberShim;
     Value.redefine(globals, 'Number', NumberShim);
     /* eslint-enable no-undef, no-global-assign */
-    /* globals Number: false */
   }
 
   var maxSafeInteger = Math.pow(2, 53) - 1;
@@ -1839,12 +1833,10 @@ var es6Shim = createCommonjsModule(function (module, exports) {
     wrapConstructor(OrigRegExp, RegExpShim, {
       $input: true // Chrome < v39 & Opera < 26 have a nonstandard "$input" property
     });
-    /* globals RegExp: true */
     /* eslint-disable no-undef, no-global-assign */
     RegExp = RegExpShim;
     Value.redefine(globals, 'RegExp', RegExpShim);
     /* eslint-enable no-undef, no-global-assign */
-    /* globals RegExp: false */
   }
 
   if (supportsDescriptors) {
@@ -2098,6 +2090,8 @@ var es6Shim = createCommonjsModule(function (module, exports) {
   // FF 35 on Linux reports 22025.465794806725 for Math.expm1(10)
   var expm1OfTen = Math.expm1(10);
   defineProperty(Math, 'expm1', MathShims.expm1, expm1OfTen > 22025.465794806719 || expm1OfTen < 22025.4657948067165168);
+  // node v12.11 - v12.15 report NaN
+  defineProperty(Math, 'hypot', MathShims.hypot, Math.hypot(Infinity, NaN) !== Infinity);
 
   var origMathRound = Math.round;
   // breaks in e.g. Safari 8, Internet Explorer 11, Opera 12
@@ -2180,7 +2174,6 @@ var es6Shim = createCommonjsModule(function (module, exports) {
 
     // find an appropriate setImmediate-alike
     var makeZeroTimeout;
-    /*global window */
     if (typeof window !== 'undefined' && ES.IsCallable(window.postMessage)) {
       makeZeroTimeout = function () {
         // from http://dbaron.org/log/20100309-faster-timeouts
@@ -2213,7 +2206,6 @@ var es6Shim = createCommonjsModule(function (module, exports) {
         return pr.then(task);
       };
     };
-    /*global process */
     var enqueue = ES.IsCallable(globals.setImmediate) ?
       globals.setImmediate :
       typeof process === 'object' && process.nextTick ? process.nextTick : makePromiseAsap() ||
@@ -2697,7 +2689,6 @@ var es6Shim = createCommonjsModule(function (module, exports) {
       /* eslint-disable no-undef, no-global-assign */
       Promise = PromiseShim;
       /* eslint-enable no-undef, no-global-assign */
-      /* globals Promise: false */
       overrideNative(globals, 'Promise', PromiseShim);
     }
     if (Promise.all.length !== 1) {

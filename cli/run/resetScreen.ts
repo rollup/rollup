@@ -3,7 +3,10 @@ import { stderr } from '../logging';
 
 const CLEAR_SCREEN = '\u001Bc';
 
-export function getResetScreen(configs: MergedRollupOptions[], allowClearScreen: boolean) {
+export function getResetScreen(
+	configs: MergedRollupOptions[],
+	allowClearScreen: boolean | undefined
+) {
 	let clearScreen = allowClearScreen;
 	for (const config of configs) {
 		if (config.watch && config.watch.clearScreen === false) {

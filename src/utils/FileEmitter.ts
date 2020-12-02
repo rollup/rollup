@@ -103,11 +103,10 @@ export const FILE_PLACEHOLDER: FilePlaceholder = {
 function hasValidType(
 	emittedFile: unknown
 ): emittedFile is { type: 'asset' | 'chunk'; [key: string]: unknown } {
-	return (
-		emittedFile &&
-		((emittedFile as { [key: string]: unknown }).type === 'asset' ||
-			(emittedFile as { [key: string]: unknown }).type === 'chunk')
-	);
+	return emittedFile
+		? (emittedFile as { [key: string]: unknown }).type === 'asset' ||
+				(emittedFile as { [key: string]: unknown }).type === 'chunk'
+		: false;
 }
 
 function hasValidName(emittedFile: {
