@@ -53,7 +53,7 @@ export default async function build(
 				}
 			}
 			if (outputs.length > 1) process.stdout.write(`\n${cyan(bold(`//→ ${file.fileName}:`))}\n`);
-			process.stdout.write(source);
+			process.stdout.write(source as Buffer);
 		}
 		if (!silent) {
 			warnings.flush();

@@ -1,6 +1,10 @@
 name: Node
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
 
 jobs:
   build:
@@ -8,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        node: ['14', '12', '10']
+        node: [ '14', '12', '10' ]
 
     name: ${{ matrix.node }} (Windows)
     steps:
@@ -20,7 +24,7 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node }}
-      - name:  Install dependencies
+      - name: Install dependencies
         run: npm ci --ignore-scripts
       - name: Run tests
         run: npm test

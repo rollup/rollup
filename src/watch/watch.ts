@@ -17,20 +17,20 @@ import { FileWatcher } from './fileWatcher';
 const eventsRewrites: Record<ChangeEvent, Record<ChangeEvent, ChangeEvent | 'buggy' | null>> = {
 	create: {
 		create: 'buggy',
-		delete: null,			//delete file from map
-		update: 'create',
+		delete: null, //delete file from map
+		update: 'create'
 	},
 	delete: {
 		create: 'update',
 		delete: 'buggy',
-		update: 'buggy',
+		update: 'buggy'
 	},
 	update: {
 		create: 'buggy',
 		delete: 'delete',
-		update: 'update',
+		update: 'update'
 	}
-}
+};
 
 export class Watcher {
 	emitter: RollupWatcher;
@@ -66,12 +66,10 @@ export class Watcher {
 		this.emitter.removeAllListeners();
 	}
 
-	invalidate(file?: {event: ChangeEvent, id: string}) {
+	invalidate(file?: { event: ChangeEvent; id: string }) {
 		if (file) {
 			const prevEvent = this.invalidatedIds.get(file.id);
-			const event = prevEvent
-				? eventsRewrites[prevEvent][file.event]
-				: file.event;
+			const event = prevEvent ? eventsRewrites[prevEvent][file.event] : file.event;
 
 			if (event === 'buggy') {
 				//TODO: throws or warn? Currently just ignore, uses new event
@@ -92,7 +90,7 @@ export class Watcher {
 		this.buildTimeout = setTimeout(() => {
 			this.buildTimeout = null;
 			for (const [id, event] of this.invalidatedIds.entries()) {
-				this.emitter.emit('change', id, {event});
+				this.emitter.emit('change', id, { event });
 			}
 			this.invalidatedIds.clear();
 			this.emitter.emit('restart');
@@ -150,7 +148,7 @@ export class Task {
 		this.closed = false;
 		this.watched = new Set();
 
-		this.skipWrite = config.watch && !!(config.watch as GenericConfigObject).skipWrite;
+		this.skipWrite = Boolean(config.watch && (config.watch as GenericConfigObject).skipWrite);
 		this.options = mergeOptions(config);
 		this.outputs = this.options.output;
 		this.outputFiles = this.outputs.map(output => {
@@ -172,7 +170,7 @@ export class Task {
 		this.fileWatcher.close();
 	}
 
-	invalidate(id: string, details: {event: ChangeEvent, isTransformDependency?: boolean}) {
+	invalidate(id: string, details: { event: ChangeEvent; isTransformDependency?: boolean }) {
 		this.invalidated = true;
 		if (details.isTransformDependency) {
 			for (const module of this.cache.modules) {
@@ -181,7 +179,7 @@ export class Task {
 				module.originalCode = null as any;
 			}
 		}
-		this.watcher.invalidate({id, event: details.event});
+		this.watcher.invalidate({ id, event: details.event });
 	}
 
 	async run() {

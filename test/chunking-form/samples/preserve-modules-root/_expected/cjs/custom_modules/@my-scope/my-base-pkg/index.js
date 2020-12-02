@@ -2,15 +2,13 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var _commonjsHelpers = require('../../../_virtual/_commonjsHelpers.js');
-
-var myBasePkg = _commonjsHelpers.createCommonjsModule(function (module, exports) {
-
-Object.defineProperty(exports, '__esModule', { value: true });
-
 var hello = 'world';
 
-exports.hello = hello;
-});
+var hello_1 = hello;
 
-exports.myBasePkg = myBasePkg;
+var myBasePkg = /*#__PURE__*/Object.defineProperty({
+	hello: hello_1
+}, '__esModule', {value: true});
+
+exports.default = myBasePkg;
+exports.hello = hello_1;

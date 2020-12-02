@@ -1,15 +1,15 @@
-define(['exports', '../../../_virtual/_commonjsHelpers'], function (exports, _commonjsHelpers) { 'use strict';
-
-	var myBasePkg = _commonjsHelpers.createCommonjsModule(function (module, exports) {
-
-	Object.defineProperty(exports, '__esModule', { value: true });
+define(['exports'], function (exports) { 'use strict';
 
 	var hello = 'world';
 
-	exports.hello = hello;
-	});
+	var hello_1 = hello;
 
-	exports.myBasePkg = myBasePkg;
+	var myBasePkg = /*#__PURE__*/Object.defineProperty({
+		hello: hello_1
+	}, '__esModule', {value: true});
+
+	exports.default = myBasePkg;
+	exports.hello = hello_1;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
