@@ -539,24 +539,24 @@ export default class Module {
 			}
 		}
 
+		if (this.info.syntheticNamedExports) {
+			let syntheticExport = this.syntheticExports.get(name);
+			if (!syntheticExport) {
+				const syntheticNamespace = this.getSyntheticNamespace();
+				syntheticExport = new SyntheticNamedExportVariable(
+					this.astContext,
+					name,
+					syntheticNamespace
+				);
+				this.syntheticExports.set(name, syntheticExport);
+				return syntheticExport;
+			}
+			return syntheticExport;
+		}
+
 		// we don't want to create shims when we are just
 		// probing export * modules for exports
 		if (!isExportAllSearch) {
-			if (this.info.syntheticNamedExports) {
-				let syntheticExport = this.syntheticExports.get(name);
-				if (!syntheticExport) {
-					const syntheticNamespace = this.getSyntheticNamespace();
-					syntheticExport = new SyntheticNamedExportVariable(
-						this.astContext,
-						name,
-						syntheticNamespace
-					);
-					this.syntheticExports.set(name, syntheticExport);
-					return syntheticExport;
-				}
-				return syntheticExport;
-			}
-
 			if (this.options.shimMissingExports) {
 				this.shimMissingExport(name);
 				return this.exportShimVariable;
