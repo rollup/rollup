@@ -130,7 +130,7 @@ export async function watch(command: any) {
 						printTimings(event.result.getTimings());
 					}
 					event.result.close()
-						.catch(error => handleError(error));
+						.catch(error => handleError(error, true));
 					break;
 
 				case 'END':
