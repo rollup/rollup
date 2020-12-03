@@ -5,6 +5,8 @@
 
 ### Pull Requests
 * [#3887](https://github.com/rollup/rollup/pull/3887): Run memory leak test on all systems (@lukastaegert)
+* [#3892](https://github.com/rollup/rollup/pull/3892): Add pull_request to windows github actions (@shellscape)
+* [#3893](https://github.com/rollup/rollup/pull/3893): Update dependencies (@lukastaegert)
 
 ## 2.34.0
 *2020-11-29*

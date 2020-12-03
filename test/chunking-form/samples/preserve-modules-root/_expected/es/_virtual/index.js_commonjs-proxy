@@ -1,2 +1,2 @@
-import { m as myBasePkg } from '../custom_modules/@my-scope/my-base-pkg/index.js';
-export { m as default } from '../custom_modules/@my-scope/my-base-pkg/index.js';
+import myBasePkg from '../custom_modules/@my-scope/my-base-pkg/index.js';
+export { default } from '../custom_modules/@my-scope/my-base-pkg/index.js';

@@ -1,20 +1,15 @@
-System.register(['../../../_virtual/_commonjsHelpers.js'], function (exports) {
+System.register([], function (exports) {
 	'use strict';
-	var createCommonjsModule;
 	return {
-		setters: [function (module) {
-			createCommonjsModule = module.createCommonjsModule;
-		}],
 		execute: function () {
-
-			var myBasePkg = exports('m', createCommonjsModule(function (module, exports) {
-
-			Object.defineProperty(exports, '__esModule', { value: true });
 
 			var hello = 'world';
 
-			exports.hello = hello;
-			}));
+			var hello_1 = exports('hello', hello);
+
+			var myBasePkg = exports('default', /*#__PURE__*/Object.defineProperty({
+				hello: hello_1
+			}, '__esModule', {value: true}));
 
 		}
 	};
