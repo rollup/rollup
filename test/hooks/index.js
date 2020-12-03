@@ -1076,6 +1076,30 @@ describe('hooks', () => {
 			});
 	});
 
+	it('passes errors from closeBundle hook', () => {
+		let handledError = false;
+		return rollup
+			.rollup({
+				input: 'input',
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						closeBundle() {
+							this.error('close bundle error');
+						}
+					}
+				]
+			})
+			.then(bundle => bundle.close())
+			.catch(error => {
+				assert.strictEqual(error.message, 'close bundle error');
+				handledError = true;
+			})
+			.then(() => {
+				assert.ok(handledError);
+			});
+	});
+
 	describe('deprecated', () => {
 		it('caches chunk emission in transform hook', () => {
 			let cache;
