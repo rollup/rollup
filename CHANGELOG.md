@@ -1,12 +1,16 @@
 # rollup changelog
 
 ## 2.34.1
-*unreleased*
+*2020-12-03*
+
+### Bug Fixes
+* Avoid Node deprecation warning by using a pattern export for nested Rollup files (#3896)
 
 ### Pull Requests
 * [#3887](https://github.com/rollup/rollup/pull/3887): Run memory leak test on all systems (@lukastaegert)
 * [#3892](https://github.com/rollup/rollup/pull/3892): Add pull_request to windows github actions (@shellscape)
 * [#3893](https://github.com/rollup/rollup/pull/3893): Update dependencies (@lukastaegert)
+* [#3896](https://github.com/rollup/rollup/pull/3896): Replace deprecated folder package export with pattern export (@lukastaegert)
 
 ## 2.34.0
 *2020-11-29*
