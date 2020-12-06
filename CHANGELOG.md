@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.34.2
+*2020-12-06*
+
+### Bug Fixes
+* Revert pattern export change (#3898)
+
+### Pull Requests
+* [#3898](https://github.com/rollup/rollup/pull/3898): Revert pattern to folder export (@lukastaegert)
+
 ## 2.34.1
 *2020-12-03*
 
