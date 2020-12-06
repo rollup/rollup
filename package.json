@@ -141,7 +141,7 @@
       },
       "default": "./dist/es/rollup.browser.js"
     },
-    "./dist/*": "./dist/*"
+    "./dist/": "./dist/"
   },
   "dependencies": {
     "fsevents": "~2.1.2"
