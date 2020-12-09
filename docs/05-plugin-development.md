@@ -258,7 +258,7 @@ Output generation hooks can provide information about a generated bundle and mod
 The first hook of the output generation phase is [outputOptions](guide/en/#outputoptions), the last one is either [generateBundle](guide/en/#generatebundle) if the output was successfully generated via `bundle.generate(...)`, [writeBundle](guide/en/#writebundle) if the output was successfully generated via `bundle.write(...)`, or [renderError](guide/en/#rendererror) if an error occurred at any time during the output generation.
 
 #### `augmentChunkHash`
-Type: `(chunkInfo: ChunkInfo) => string`<br>
+Type: `(chunkInfo: PreRenderedChunk) => string | void`<br>
 Kind: `sync, sequential`<br>
 Previous Hook: [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression.<br>
 Next Hook: [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta`.
@@ -293,7 +293,7 @@ Next Hook: [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynam
 Cf. [`output.banner/output.footer`](guide/en/#outputbanneroutputfooter).
 
 #### `generateBundle`
-Type: `(options: OutputOptions, bundle: { [fileName: string]: AssetInfo | ChunkInfo }, isWrite: boolean) => void`<br>
+Type: `(options: NormalizedOutputOptions, bundle: OutputBundle, isWrite: boolean) => Promise<void> | void`<br>
 Kind: `async, sequential`<br>
 Previous Hook: [`renderChunk`](guide/en/#renderchunk) for each chunk.<br>
 Next Hook: [`writeBundle`](guide/en/#writebundle) if the output was generated via `bundle.write(...)`, otherwise this is the last hook of the output generation phase and may again be followed by [`outputOptions`](guide/en/#outputoptions) if another output is generated.
@@ -301,39 +301,50 @@ Next Hook: [`writeBundle`](guide/en/#writebundle) if the output was generated vi
 Called at the end of `bundle.generate()` or immediately before the files are written in `bundle.write()`. To modify the files after they have been written, use the [`writeBundle`](guide/en/#writebundle) hook. `bundle` provides the full list of files being written or generated along with their details:
 
 ```
-// AssetInfo
-{
-  fileName: string,
-  name?: string,
-  source: string | Uint8Array,
-  type: 'asset',
+interface OutputBundle {
+	[fileName: string]: OutputAsset | OutputChunk;
 }
 
-// ChunkInfo
-{
-  code: string,
-  dynamicImports: string[],
-  exports: string[],
-  facadeModuleId: string | null,
-  fileName: string,
-  implicitlyLoadedBefore: string[],
-  imports: string[],
-  importedBindings: {[imported: string]: string[]},
-  isDynamicEntry: boolean,
-  isEntry: boolean,
-  isImplicitEntry: boolean,
-  map: SourceMap | null,
-  modules: {
-    [id: string]: {
-      renderedExports: string[],
-      removedExports: string[],
-      renderedLength: number,
-      originalLength: number
-    },
-  },
-  name: string,
-  referencedFiles: string[],
-  type: 'chunk',
+interface OutputAsset extends PreRenderedAsset {
+	fileName: string;
+	/** @deprecated Accessing "isAsset" on files in the bundle is deprecated, please use "type === \'asset\'" instead */
+	isAsset: true;
+}
+
+interface PreRenderedAsset {
+	name: string | undefined;
+	source: string | Uint8Array;
+	type: 'asset';
+}
+
+interface OutputChunk extends RenderedChunk {
+	code: string;
+}
+
+interface RenderedChunk extends PreRenderedChunk {
+	code?: string;
+	dynamicImports: string[];
+	fileName: string;
+	implicitlyLoadedBefore: string[];
+	importedBindings: {
+		[imported: string]: string[];
+	};
+	imports: string[];
+	map?: SourceMap;
+	referencedFiles: string[];
+}
+
+interface PreRenderedChunk {
+	exports: string[];
+	facadeModuleId: string | null;
+	isDynamicEntry: boolean;
+	isEntry: boolean;
+	isImplicitEntry: boolean;
+	modules: {
+		[id: string]: RenderedModule;
+	};
+	name: string;
+	type: 'chunk';
 }
 ```
 
@@ -348,7 +359,7 @@ Next Hook: [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynam
 Cf. [`output.intro/output.outro`](guide/en/#outputintrooutputoutro).
 
 #### `outputOptions`
-Type: `(outputOptions: OutputOptions) => OutputOptions | null`<br>
+Type: `(options: OutputOptions) => OutputOptions | null | undefined`<br>
 Kind: `sync, sequential`<br>
 Previous Hook: [`buildEnd`](guide/en/#buildend) if this is the first time an output is generated, otherwise either [`generateBundle`](guide/en/#generatebundle), [`writeBundle`](guide/en/#writebundle) or [`renderError`](guide/en/#rendererror) depending on the previously generated output. This is the first hook of the output generation phase.<br>
 Next Hook: [`renderStart`](guide/en/#renderstart).
@@ -364,7 +375,7 @@ Next Hook: [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynam
 Cf. [`output.intro/output.outro`](guide/en/#outputintrooutputoutro).
 
 #### `renderChunk`
-Type: `(code: string, chunk: ChunkInfo, options: OutputOptions) => string | { code: string, map: SourceMap } | null`<br>
+Type: `(code: string, chunk: RenderedChunk, options: NormalizedOutputOptions) => Promise<{ code: string, map?: SourceMapInput } | null> | { code: string, map?: SourceMapInput } | string	| null`<br>
 Kind: `async, sequential`<br>
 Previous Hook: [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta`.<br>
 Next Hook: [`generateBundle`](guide/en/#generatebundle).
@@ -372,7 +383,8 @@ Next Hook: [`generateBundle`](guide/en/#generatebundle).
 Can be used to transform individual chunks. Called for each Rollup output chunk file. Returning `null` will apply no transformations.
 
 #### `renderDynamicImport`
-Type: `({format: string, moduleId: string, targetModuleId: string | null, customResolution: string | null}) => {left: string, right: string} | null`<br>
+Type: `(options: {customResolution: string | null, format: InternalModuleFormat, moduleId: string, targetModuleId: string | null,
+}) => { left: string, right: string } | null | undefined`<br>
 Kind: `sync, first`<br>
 Previous Hook: [`banner`](guide/en/#banner), [`footer`](guide/en/#footer), [`intro`](guide/en/#intro), [`outro`](guide/en/#outro).<br>
 Next Hook: [`augmentChunkHash`](guide/en/#augmentchunkhash) for each chunk that would contain a hash in the file name.
@@ -425,7 +437,7 @@ const plugin = {
 Note that when this hook rewrites dynamic imports in non-ES formats, no interop code to make sure that e.g. the default export is available as `.default` is generated. It is the responsibility of the plugin to make sure the rewritten dynamic import returns a Promise that resolves to a proper namespace object.
 
 #### `renderError`
-Type: `(error: Error) => void`<br>
+Type: `(error: Error) => Promise<void> | void`<br>
 Kind: `async, parallel`<br>
 Previous Hook: Any hook from [`renderStart`](guide/en/#renderstart) to [`renderChunk`](guide/en/#renderchunk).<br>
 Next Hook: If it is called, this is the last hook of the output generation phase and may again be followed by [`outputOptions`](guide/en/#outputoptions) if another output is generated.
@@ -433,7 +445,7 @@ Next Hook: If it is called, this is the last hook of the output generation phase
 Called when rollup encounters an error during `bundle.generate()` or `bundle.write()`. The error is passed to this hook. To get notified when generation completes successfully, use the `generateBundle` hook.
 
 #### `renderStart`
-Type: `(outputOptions: OutputOptions, inputOptions: InputOptions) => void`<br>
+Type: `(outputOptions: NormalizedOutputOptions, inputOptions: NormalizedInputOptions) => Promise<void> | void`<br>
 Kind: `async, parallel`<br>
 Previous Hook: [`outputOptions`](guide/en/#outputoptions)<br>
 Next Hook: [`banner`](guide/en/#banner), [`footer`](guide/en/#footer), [`intro`](guide/en/#intro) and [`outro`](guide/en/#outro) run in parallel.
@@ -441,7 +453,8 @@ Next Hook: [`banner`](guide/en/#banner), [`footer`](guide/en/#footer), [`intro`]
 Called initially each time `bundle.generate()` or `bundle.write()` is called. To get notified when generation has completed, use the `generateBundle` and `renderError` hooks. This is the recommended hook to use when you need access to the output options passed to `bundle.generate()` or `bundle.write()` as it takes the transformations by all [`outputOptions`](guide/en/#outputoptions) hooks into account and also contains the right default values for unset options. It also receives the input options passed to `rollup.rollup()` so that plugins that can be used as output plugins, i.e. plugins that only use `generate` phase hooks, can get access to them.
 
 #### `resolveFileUrl`
-Type: `({chunkId: string, fileName: string, format: string, moduleId: string, referenceId: string, relativePath: string}) => string | null`<br>
+Type: `(options: {assetReferenceId: string | null, chunkId: string, chunkReferenceId: string | null, fileName: string, format: InternalModuleFormat, moduleId: string, referenceId: string,	relativePath: string}
+) => string | null | undefined`<br>
 Kind: `sync, first`<br>
 Previous Hook: [`augmentChunkHash`](guide/en/#augmentchunkhash) for each chunk that would contain a hash in the file name.<br>
 Next Hook: [`renderChunk`](guide/en/#renderchunk) for each chunk.
@@ -469,7 +482,7 @@ resolveFileUrl({fileName}) {
 ```
 
 #### `resolveImportMeta`
-Type: `(property: string | null, {chunkId: string, moduleId: string, format: string}) => string | null`<br>
+Type: `(property: string | null, options: { chunkId: string, format: InternalModuleFormat, moduleId: string }) => string | null | undefined`<br>
 Kind: `sync, first`<br>
 Previous Hook: [`augmentChunkHash`](guide/en/#augmentchunkhash) for each chunk that would contain a hash in the file name.<br>
 Next Hook: [`renderChunk`](guide/en/#renderchunk) for each chunk.
@@ -493,7 +506,7 @@ resolveImportMeta(property, {moduleId}) {
 Note that since this hook has access to the filename of the current chunk, its return value will not be considered when generating the hash of this chunk.
 
 #### `writeBundle`
-Type: `(options: OutputOptions, bundle: { [fileName: string]: AssetInfo | ChunkInfo }) => void`<br>
+Type: `(options: NormalizedOutputOptions, bundle: OutputBundle) => void | Promise<void>`<br>
 Kind: `async, parallel`<br>
 Previous Hook: [`generateBundle`](guide/en/#generatebundle)<br>
 Next Hook: If it is called, this is the last hook of the output generation phase and may again be followed by [`outputOptions`](guide/en/#outputoptions) if another output is generated.
