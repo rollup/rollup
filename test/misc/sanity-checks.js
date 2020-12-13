@@ -270,7 +270,7 @@ describe('sanity checks', () => {
 		error = null;
 	});
 
-  it('triggers a warning when using output.amd.id together with the "dir" option', async () => {
+	it('triggers a warning when using output.amd.id together with the "dir" option', async () => {
 		let warning = null;
 		const bundle = await rollup.rollup({
 			input: 'input',
