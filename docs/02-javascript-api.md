@@ -198,6 +198,13 @@ watcher.on('event', event => {
   //                  * event.error contains the error that was thrown
 });
 
+// This will make sure that bundles are properly closed after each run
+watcher.on('event', ({ code, result }) => {
+  if (code === 'BUNDLE_END') {
+  	result.close();
+  }
+});
+
 // stop watching
 watcher.close();
 ```
