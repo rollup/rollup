@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 2.35.1
+*2020-12-14*
+
+### Bug Fixes
+* Allow closing the bundle when watching in case of generate errors by adding the bundle to the error event (#3909)
+* Automatically close all bundles on generate errors when watching and using the CLI (#3909)
+* Try to create remaining bundles when watching and one of them throws (#3909)
+
+### Pull Requests
+* [#3909](https://github.com/rollup/rollup/pull/3909): Forward bundle through watch error events (@lukastaegert)
+
 ## 2.35.0
 *2020-12-14*
 
