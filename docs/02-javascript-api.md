@@ -196,11 +196,15 @@ watcher.on('event', event => {
   //   END          — finished building all bundles
   //   ERROR        — encountered an error while bundling
   //                  * event.error contains the error that was thrown
+  //                  * event.result is null for build errors and contains the
+  //                    bundle object for output generation errors. As with
+  //                    "BUNDLE_END", you should call "event.result.close()" if
+  //                    present once you are done.
 });
 
 // This will make sure that bundles are properly closed after each run
-watcher.on('event', ({ code, result }) => {
-  if (code === 'BUNDLE_END') {
+watcher.on('event', ({ result }) => {
+  if (result) {
   	result.close();
   }
 });

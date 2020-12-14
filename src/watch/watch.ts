@@ -100,27 +100,18 @@ export class Watcher {
 
 	private async run() {
 		this.running = true;
-
 		this.emitter.emit('event', {
 			code: 'START'
 		});
 
-		try {
-			for (const task of this.tasks) {
-				await task.run();
-			}
-			this.running = false;
-			this.emitter.emit('event', {
-				code: 'END'
-			});
-		} catch (error) {
-			this.running = false;
-			this.emitter.emit('event', {
-				code: 'ERROR',
-				error
-			});
+		for (const task of this.tasks) {
+			await task.run();
 		}
 
+		this.running = false;
+		this.emitter.emit('event', {
+			code: 'END'
+		});
 		if (this.rerun) {
 			this.rerun = false;
 			this.invalidate();
@@ -182,7 +173,7 @@ export class Task {
 		this.watcher.invalidate({ id, event: details.event });
 	}
 
-	async run() {
+	async run(): Promise<void> {
 		if (!this.invalidated) return;
 		this.invalidated = false;
 
@@ -198,14 +189,15 @@ export class Task {
 			input: this.options.input,
 			output: this.outputFiles
 		});
+		let result: RollupBuild | null = null;
 
 		try {
-			const result = await rollupInternal(options, this.watcher.emitter);
+			result = await rollupInternal(options, this.watcher.emitter);
 			if (this.closed) {
 				return;
 			}
 			this.updateWatchedFiles(result);
-			this.skipWrite || (await Promise.all(this.outputs.map(output => result.write(output))));
+			this.skipWrite || (await Promise.all(this.outputs.map(output => result!.write(output))));
 			this.watcher.emitter.emit('event', {
 				code: 'BUNDLE_END',
 				duration: Date.now() - start,
@@ -214,19 +206,21 @@ export class Task {
 				result
 			});
 		} catch (error) {
-			if (this.closed) {
-				return;
-			}
-
-			if (Array.isArray(error.watchFiles)) {
-				for (const id of error.watchFiles) {
-					this.watchFile(id);
+			if (!this.closed) {
+				if (Array.isArray(error.watchFiles)) {
+					for (const id of error.watchFiles) {
+						this.watchFile(id);
+					}
+				}
+				if (error.id) {
+					this.cache.modules = this.cache.modules.filter(module => module.id !== error.id);
 				}
 			}
-			if (error.id) {
-				this.cache.modules = this.cache.modules.filter(module => module.id !== error.id);
-			}
-			throw error;
+			this.watcher.emitter.emit('event', {
+				code: 'ERROR',
+				error,
+				result
+			});
 		}
 	}
 

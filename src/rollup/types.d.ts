@@ -857,7 +857,7 @@ export type RollupWatcherEvent =
 			result: RollupBuild;
 	  }
 	| { code: 'END' }
-	| { code: 'ERROR'; error: RollupError };
+	| { code: 'ERROR'; error: RollupError; result: RollupBuild | null };
 
 export interface RollupWatcher
 	extends TypedEventEmitter<{

@@ -129,13 +129,16 @@ export async function watch(command: any) {
 					if (event.result && event.result.getTimings) {
 						printTimings(event.result.getTimings());
 					}
-					event.result.close().catch(error => handleError(error, true));
 					break;
 
 				case 'END':
 					if (!silent && isTTY) {
 						stderr(`\n[${dateTime()}] waiting for changes...`);
 					}
+			}
+
+			if ('result' in event && event.result) {
+				event.result.close().catch(error => handleError(error, true));
 			}
 		});
 	}
