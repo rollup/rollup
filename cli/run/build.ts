@@ -62,6 +62,7 @@ export default async function build(
 	}
 
 	await Promise.all(outputOptions.map(bundle.write));
+	await bundle.close();
 	if (!silent) {
 		warnings.flush();
 		stderr(green(`created ${bold(files.join(', '))} in ${bold(ms(Date.now() - start))}`));

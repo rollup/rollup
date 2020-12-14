@@ -1034,6 +1034,72 @@ describe('hooks', () => {
 			})
 			.then(bundle => bundle.generate({ format: 'es' })));
 
+	it('supports closeBundle hook', () => {
+		let closeBundleCalls = 0;
+		return rollup
+			.rollup({
+				input: 'input',
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						closeBundle() {
+							closeBundleCalls++;
+						}
+					}
+				]
+			})
+			.then(bundle => bundle.close())
+			.then(() => {
+				assert.strictEqual(closeBundleCalls, 1);
+			});
+	});
+
+	it('calls closeBundle hook on build error', () => {
+		let closeBundleCalls = 0;
+		return rollup
+			.rollup({
+				input: 'input',
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						buildStart() {
+							this.error('build start error');
+						},
+						closeBundle() {
+							closeBundleCalls++;
+						}
+					}
+				]
+			})
+			.catch(() => {
+				assert.strictEqual(closeBundleCalls, 1);
+			});
+	});
+
+	it('passes errors from closeBundle hook', () => {
+		let handledError = false;
+		return rollup
+			.rollup({
+				input: 'input',
+				plugins: [
+					loader({ input: `alert('hello')` }),
+					{
+						closeBundle() {
+							this.error('close bundle error');
+						}
+					}
+				]
+			})
+			.then(bundle => bundle.close())
+			.catch(error => {
+				assert.strictEqual(error.message, 'close bundle error');
+				handledError = true;
+			})
+			.then(() => {
+				assert.ok(handledError);
+			});
+	});
+
 	describe('deprecated', () => {
 		it('caches chunk emission in transform hook', () => {
 			let cache;

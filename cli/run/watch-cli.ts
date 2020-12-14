@@ -129,6 +129,7 @@ export async function watch(command: any) {
 					if (event.result && event.result.getTimings) {
 						printTimings(event.result.getTimings());
 					}
+					event.result.close().catch(error => handleError(error, true));
 					break;
 
 				case 'END':

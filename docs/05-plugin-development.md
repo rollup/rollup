@@ -72,9 +72,9 @@ To interact with the build process, your plugin object includes 'hooks'. Hooks a
 * `sequential`: If several plugins implement this hook, all of them will be run in the specified plugin order. If a hook is async, subsequent hooks of this kind will wait until the current hook is resolved.
 * `parallel`: If several plugins implement this hook, all of them will be run in the specified plugin order. If a hook is async, subsequent hooks of this kind will be run in parallel and not wait for the current hook.
 
-Build hooks are run during the build phase, which is triggered by `rollup.rollup(inputOptions)`. They are mainly concerned with locating, providing and transforming input files before they are processed by Rollup. The first hook of the build phase is [options](guide/en/#options), the last one is always [buildEnd](guide/en/#buildend).
+Build hooks are run during the build phase, which is triggered by `rollup.rollup(inputOptions)`. They are mainly concerned with locating, providing and transforming input files before they are processed by Rollup. The first hook of the build phase is [`options`](guide/en/#options), the last one is always [`buildEnd`](guide/en/#buildend), unless there is a build error in which case [`closeBundle`](guide/en/#closebundle) will be called after that.
 
-Additionally, in watch mode the [watchChange](guide/en/#watchchange) hook can be triggered at any time to notify a new run will be triggered once the current run has generated its outputs. Also, when watcher closes, the [closeWatcher](guide/en/#closewatcher) hook will be triggered.
+Additionally, in watch mode the [`watchChange`](guide/en/#watchchange) hook can be triggered at any time to notify a new run will be triggered once the current run has generated its outputs. Also, when watcher closes, the [`closeWatcher`](guide/en/#closewatcher) hook will be triggered.
 
 See [Output Generation Hooks](guide/en/#output-generation-hooks) for hooks that run during the output generation phase to modify the generated output.
 
@@ -255,7 +255,9 @@ Notifies a plugin whenever rollup has detected a change to a monitored file in `
 
 Output generation hooks can provide information about a generated bundle and modify a build once complete. They work the same way and have the same types as [Build Hooks](guide/en/#build-hooks) but are called separately for each call to `bundle.generate(outputOptions)` or `bundle.write(outputOptions)`. Plugins that only use output generation hooks can also be passed in via the output options and therefore run only for certain outputs.
 
-The first hook of the output generation phase is [outputOptions](guide/en/#outputoptions), the last one is either [generateBundle](guide/en/#generatebundle) if the output was successfully generated via `bundle.generate(...)`, [writeBundle](guide/en/#writebundle) if the output was successfully generated via `bundle.write(...)`, or [renderError](guide/en/#rendererror) if an error occurred at any time during the output generation.
+The first hook of the output generation phase is [`outputOptions`](guide/en/#outputoptions), the last one is either [`generateBundle`](guide/en/#generatebundle) if the output was successfully generated via `bundle.generate(...)`, [`writeBundle`](guide/en/#writebundle) if the output was successfully generated via `bundle.write(...)`, or [`renderError`](guide/en/#rendererror) if an error occurred at any time during the output generation.
+
+Additionally, [`closeBundle`](guide/en/#closebundle) can be called as the very last hook, but it is the responsibility of the User to manually call [`bundle.close()`](guide/en/#rolluprollup) to trigger this. The CLI will always make sure this is the case.
 
 #### `augmentChunkHash`
 Type: `(chunkInfo: ChunkInfo) => string`<br>
@@ -283,6 +285,15 @@ Previous Hook: [`renderStart`](guide/en/#renderstart)<br>
 Next Hook: [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression.
 
 Cf. [`output.banner/output.footer`](guide/en/#outputbanneroutputfooter).
+
+#### `closeBundle`
+Type: `closeBundle: () => Promise<void> | void`<br>
+Kind: `async, parallel`<br>
+Previous Hook: [`buildEnd`](guide/en/#buildend) if there was a build error, otherwise when [`bundle.close()`](guide/en/#rolluprollup) is called, in which case this would be the last hook to be triggered.
+
+Can be used to clean up any external service that may be running. Rollup's CLI will make sure this hook is called after each run, but it is the responsibility of users of the JavaScript API to manually call `bundle.close()` once they are done generating bundles. For that reason, any plugin relying on this feature should carefully mention this in its documentation.
+
+If a plugin wants to retain resources across builds in watch mode, they can check for [`this.meta.watchMode`](guide/en/#thismeta-rollupversion-string-watchmode-boolean) in this hook and perform the necessary cleanup for watch mode in [`closeWatcher`](guide/en/#closewatcher).
 
 #### `footer`
 Type: `string | (() => string)`<br>

@@ -354,6 +354,7 @@ export interface OutputBundleWithPlaceholders {
 export interface PluginHooks extends OutputPluginHooks {
 	buildEnd: (this: PluginContext, err?: Error) => Promise<void> | void;
 	buildStart: (this: PluginContext, options: NormalizedInputOptions) => Promise<void> | void;
+	closeBundle: (this: PluginContext) => Promise<void> | void;
 	closeWatcher: (this: PluginContext) => void;
 	load: LoadHook;
 	moduleParsed: ModuleParsedHook;
@@ -416,7 +417,8 @@ export type AsyncPluginHooks =
 	| 'resolveDynamicImport'
 	| 'resolveId'
 	| 'transform'
-	| 'writeBundle';
+	| 'writeBundle'
+	| 'closeBundle';
 
 export type PluginValueHooks = 'banner' | 'footer' | 'intro' | 'outro';
 
@@ -451,7 +453,8 @@ export type ParallelPluginHooks =
 	| 'outro'
 	| 'renderError'
 	| 'renderStart'
-	| 'writeBundle';
+	| 'writeBundle'
+	| 'closeBundle';
 
 interface OutputPluginValueHooks {
 	banner: AddonHook;
@@ -769,6 +772,8 @@ export interface RollupOutput {
 
 export interface RollupBuild {
 	cache: RollupCache | undefined;
+	close: () => Promise<void>;
+	closed: boolean;
 	generate: (outputOptions: OutputOptions) => Promise<RollupOutput>;
 	getTimings?: () => SerializedTimings;
 	watchFiles: string[];

@@ -2,7 +2,7 @@ import { version as rollupVersion } from 'package.json';
 import Bundle from '../Bundle';
 import Graph from '../Graph';
 import { ensureArray } from '../utils/ensureArray';
-import { errCannotEmitFromOptionsHook, error } from '../utils/error';
+import { errAlreadyClosed, errCannotEmitFromOptionsHook, error } from '../utils/error';
 import { writeFile } from '../utils/fs';
 import { normalizeInputOptions } from '../utils/options/normalizeInputOptions';
 import { normalizeOutputOptions } from '../utils/options/normalizeOutputOptions';
@@ -56,6 +56,7 @@ export async function rollupInternal(
 			err.watchFiles = watchFiles;
 		}
 		await graph.pluginDriver.hookParallel('buildEnd', [err]);
+		await graph.pluginDriver.hookParallel('closeBundle', []);
 		throw err;
 	}
 
@@ -65,7 +66,17 @@ export async function rollupInternal(
 
 	const result: RollupBuild = {
 		cache: useCache ? graph.getCache() : undefined,
+		closed: false,
+		async close() {
+			if (result.closed) return;
+
+			result.closed = true;
+
+			await graph.pluginDriver.hookParallel('closeBundle', []);
+		},
 		async generate(rawOutputOptions: OutputOptions) {
+			if (result.closed) return error(errAlreadyClosed());
+
 			return handleGenerateWrite(
 				false,
 				inputOptions,
@@ -76,6 +87,8 @@ export async function rollupInternal(
 		},
 		watchFiles: Object.keys(graph.watchFiles),
 		async write(rawOutputOptions: OutputOptions) {
+			if (result.closed) return error(errAlreadyClosed());
+
 			return handleGenerateWrite(
 				true,
 				inputOptions,

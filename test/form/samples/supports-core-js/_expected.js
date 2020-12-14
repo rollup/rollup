@@ -212,7 +212,7 @@ var shared = createCommonjsModule(function (module) {
 (module.exports = function (key, value) {
   return sharedStore[key] || (sharedStore[key] = value !== undefined ? value : {});
 })('versions', []).push({
-  version: '3.8.0',
+  version: '3.8.1',
   mode:  'global',
   copyright: '© 2020 Denis Pushkarev (zloirock.ru)'
 });
@@ -4363,7 +4363,9 @@ if (isForced_1(NUMBER, !NativeNumber(' 0o1') || !NativeNumber('0b1') || NativeNu
     'MAX_VALUE,MIN_VALUE,NaN,NEGATIVE_INFINITY,POSITIVE_INFINITY,' +
     // ES2015 (in case, if modules with ES2015 Number statics required before):
     'EPSILON,isFinite,isInteger,isNaN,isSafeInteger,MAX_SAFE_INTEGER,' +
-    'MIN_SAFE_INTEGER,parseFloat,parseInt,isInteger'
+    'MIN_SAFE_INTEGER,parseFloat,parseInt,isInteger,' +
+    // ESNext
+    'fromString,range'
   ).split(','), j = 0, key; keys$2.length > j; j++) {
     if (has(NativeNumber, key = keys$2[j]) && !has(NumberWrapper, key)) {
       defineProperty$8(NumberWrapper, key, getOwnPropertyDescriptor$6(NativeNumber, key));
@@ -6539,13 +6541,24 @@ var TypedArrayConstructorsList = {
   Float64Array: 8
 };
 
+var BigIntArrayConstructorsList = {
+  BigInt64Array: 8,
+  BigUint64Array: 8
+};
+
 var isView = function isView(it) {
+  if (!isObject(it)) return false;
   var klass = classof(it);
-  return klass === 'DataView' || has(TypedArrayConstructorsList, klass);
+  return klass === 'DataView'
+    || has(TypedArrayConstructorsList, klass)
+    || has(BigIntArrayConstructorsList, klass);
 };
 
 var isTypedArray = function (it) {
-  return isObject(it) && has(TypedArrayConstructorsList, classof(it));
+  if (!isObject(it)) return false;
+  var klass = classof(it);
+  return has(TypedArrayConstructorsList, klass)
+    || has(BigIntArrayConstructorsList, klass);
 };
 
 var aTypedArray = function (it) {

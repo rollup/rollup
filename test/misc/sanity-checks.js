@@ -1,6 +1,6 @@
 const assert = require('assert');
 const rollup = require('../../dist/rollup');
-const { loader } = require('../utils.js');
+const { loader, compareError } = require('../utils.js');
 
 describe('sanity checks', () => {
 	it('exists', () => {
@@ -235,6 +235,39 @@ describe('sanity checks', () => {
 			error && error.message,
 			'You must set "output.dir" instead of "output.file" when using the "output.preserveModules" option.'
 		);
+	});
+
+	it('prevents generating and writing from a closed bundle', async () => {
+		let error = null;
+		const bundle = await rollup.rollup({
+			input: 'x',
+			plugins: [loader({ x: 'console.log( "x" );' })]
+		});
+		bundle.close();
+		// Can be safely called multiple times
+		bundle.close();
+
+		try {
+			await bundle.generate({ file: 'x', format: 'es' });
+		} catch (generateError) {
+			error = generateError;
+		}
+		compareError(error, {
+			code: 'ALREADY_CLOSED',
+			message: 'Bundle is already closed, no more calls to "generate" or "write" are allowed.'
+		});
+		error = null;
+
+		try {
+			await bundle.write({ file: 'x', format: 'es' });
+		} catch (writeError) {
+			error = writeError;
+		}
+		compareError(error, {
+			code: 'ALREADY_CLOSED',
+			message: 'Bundle is already closed, no more calls to "generate" or "write" are allowed.'
+		});
+		error = null;
 	});
 
 	it('triggers a warning when using output.amd.id together with the "dir" option', async () => {

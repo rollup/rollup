@@ -10,6 +10,8 @@ The `rollup.rollup` function receives an input options object as parameter and r
 
 On a `bundle` object, you can call `bundle.generate` multiple times with different output options objects to generate different bundles in-memory. If you directly want to write them to disk, use `bundle.write` instead.
 
+Once you're finished with the `bundle` object, you should call `bundle.close()`, which will let plugins clean up their external processes or services via the [`closeBundle`](guide/en/#closebundle) hook.
+
 ```javascript
 const rollup = require('rollup');
 
@@ -69,6 +71,9 @@ async function build() {
 
   // or write the bundle to disk
   await bundle.write(outputOptions);
+
+  // closes the bundle
+  await bundle.close();
 }
 
 build();
@@ -160,7 +165,7 @@ const outputOptions = {
 
 ### rollup.watch
 
-Rollup also provides a `rollup.watch` function that rebuilds your bundle when it detects that the individual modules have changed on disk. It is used internally when you run Rollup from the command line with the `--watch` flag.
+Rollup also provides a `rollup.watch` function that rebuilds your bundle when it detects that the individual modules have changed on disk. It is used internally when you run Rollup from the command line with the `--watch` flag. Note that when using watch mode via the JavaScript API, it is your responsibility to call `event.result.close()` in response to the `BUNDLE_END` event to allow plugins to clean up resources in the [`closeBundle`](guide/en/#closebundle) hook, see below.
 
 ```js
 const rollup = require('rollup');
@@ -172,9 +177,25 @@ watcher.on('event', event => {
   // event.code can be one of:
   //   START        — the watcher is (re)starting
   //   BUNDLE_START — building an individual bundle
+  //                  * event.input will be the input options object if present
+  //                  * event.outputFiles cantains an array of the "file" or
+  //                    "dir" option values of the generated outputs
   //   BUNDLE_END   — finished building a bundle
+  //                  * event.input will be the input options object if present
+  //                  * event.outputFiles cantains an array of the "file" or
+  //                    "dir" option values of the generated outputs
+  //                  * event.duration is the build duration in milliseconds
+  //                  * event.result contains the bundle object that can be
+  //                    used to generate additional outputs by calling
+  //                    bundle.generate or bundle.write. This is especially
+  //                    important when the watch.skipWrite option is used.
+  //                  You should call "event.result.close()" once you are done
+  //                  generating outputs, or if you do not generate outputs.
+  //                  This will allow plugins to clean up resources via the
+  //                  "closeBundle" hook.
   //   END          — finished building all bundles
   //   ERROR        — encountered an error while bundling
+  //                  * event.error contains the error that was thrown
 });
 
 // stop watching
