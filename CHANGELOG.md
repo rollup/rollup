@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.35.0
+*2020-12-14*
+
+### Features
+* Add `closeBundle` hook that is triggered by `bundle.close()` in the JS API (#3883)
+
+### Pull Requests
+* [#3883](https://github.com/rollup/rollup/pull/3883): Revert pattern to folder export (@intrnl)
+
 ## 2.34.2
 *2020-12-06*
 
