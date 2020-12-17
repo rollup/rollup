@@ -47,6 +47,7 @@ import {
 } from './rollup/types';
 import { augmentCodeLocation, errNamespaceConflict, error, Errors } from './utils/error';
 import { getId } from './utils/getId';
+import { getOrCreate } from './utils/getOrCreate';
 import { getOriginalLocation } from './utils/getOriginalLocation';
 import { makeLegal } from './utils/identifierHelpers';
 import { basename, extname } from './utils/path';
@@ -169,6 +170,7 @@ const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
 function getVariableForExportNameRecursive(
 	target: Module | ExternalModule,
 	name: string,
+	importer: Module | undefined,
 	isExportAllSearch: boolean,
 	searchedNamesAndModules = new Map<string, Set<Module | ExternalModule>>()
 ): Variable | null {
@@ -181,7 +183,12 @@ function getVariableForExportNameRecursive(
 	} else {
 		searchedNamesAndModules.set(name, new Set([target]));
 	}
-	return target.getVariableForExportName(name, isExportAllSearch, searchedNamesAndModules);
+	return target.getVariableForExportName(
+		name,
+		importer,
+		isExportAllSearch,
+		searchedNamesAndModules
+	);
 }
 
 export default class Module {
@@ -348,9 +355,18 @@ export default class Module {
 				dependencyVariables.add(this.getVariableForExportName(exportName));
 			}
 		}
+		// TODO Lukas can we include the default export logic here?
 		for (let variable of dependencyVariables) {
+			const sideEffectModules = variable.sideEffectModulesByImporter.get(this);
+			if (sideEffectModules) {
+				for (const module of sideEffectModules) {
+					alwaysCheckedDependencies.add(module);
+				}
+			}
+			// TODO Lukas for synthetic ones, where are we putting the chain?
 			if (variable instanceof SyntheticNamedExportVariable) {
 				variable = variable.getBaseVariable();
+				// TODO Lukas for default exports, where are we putting the chain?
 			} else if (variable instanceof ExportDefaultVariable) {
 				const { modules, original } = variable.getOriginalVariableAndDeclarationModules();
 				variable = original;
@@ -472,6 +488,7 @@ export default class Module {
 
 	getVariableForExportName(
 		name: string,
+		importer?: Module,
 		isExportAllSearch?: boolean,
 		searchedNamesAndModules?: Map<string, Set<Module | ExternalModule>>
 	): Variable {
@@ -491,6 +508,7 @@ export default class Module {
 			const declaration = getVariableForExportNameRecursive(
 				reexportDeclaration.module,
 				reexportDeclaration.localName,
+				importer,
 				false,
 				searchedNamesAndModules
 			);
@@ -513,7 +531,11 @@ export default class Module {
 				return this.exportShimVariable;
 			}
 			const name = exportDeclaration.localName;
-			return this.traceVariable(name)!;
+			const variable = this.traceVariable(name, importer)!;
+			if (importer) {
+				getOrCreate(variable.sideEffectModulesByImporter, importer, () => new Set()).add(this);
+			}
+			return variable;
 		}
 
 		if (name !== 'default') {
@@ -521,6 +543,7 @@ export default class Module {
 				const declaration = getVariableForExportNameRecursive(
 					module,
 					name,
+					importer,
 					true,
 					searchedNamesAndModules
 				);
@@ -757,7 +780,9 @@ export default class Module {
 		};
 	}
 
-	traceVariable(name: string): Variable | null {
+	// TODO Lukas can we ensure that tracing short-circuits at some point?
+	// e.g. instead of local variables, we have traced variables as a copy? or build this into the module scope?
+	traceVariable(name: string, importer?: Module): Variable | null {
 		const localVariable = this.scope.variables.get(name);
 		if (localVariable) {
 			return localVariable;
@@ -771,7 +796,10 @@ export default class Module {
 				return otherModule.namespace;
 			}
 
-			const declaration = otherModule.getVariableForExportName(importDeclaration.name);
+			const declaration = otherModule.getVariableForExportName(
+				importDeclaration.name,
+				importer || this
+			);
 
 			if (!declaration) {
 				return handleMissingExport(
@@ -1014,6 +1042,14 @@ export default class Module {
 		const variableModule = variable.module;
 		if (!variable.included) {
 			variable.include();
+			const sideEffectModules = variable.sideEffectModulesByImporter.get(this);
+			if (sideEffectModules) {
+				for (const module of sideEffectModules) {
+					if (!module.isExecuted) {
+						markModuleAndImpureDependenciesAsExecuted(module);
+					}
+				}
+			}
 			this.graph.needsTreeshakingPass = true;
 		}
 		if (variableModule && variableModule !== this) {

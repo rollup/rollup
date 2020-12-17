@@ -160,6 +160,7 @@ export default class LocalVariable extends Variable {
 		if (!this.included) {
 			this.included = true;
 			if (!this.module.isExecuted) {
+				// TODO Lukas can we move this to where variables are included in Module?
 				markModuleAndImpureDependenciesAsExecuted(this.module);
 			}
 			for (const declaration of this.declarations) {
