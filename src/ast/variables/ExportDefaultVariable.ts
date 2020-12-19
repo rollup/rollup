@@ -1,4 +1,5 @@
 import Module, { AstContext } from '../../Module';
+import { getOrCreate } from '../../utils/getOrCreate';
 import ClassDeclaration from '../nodes/ClassDeclaration';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from '../nodes/FunctionDeclaration';
@@ -12,10 +13,7 @@ export default class ExportDefaultVariable extends LocalVariable {
 
 	// Not initialised during construction
 	private originalId: IdentifierWithVariable | null = null;
-	private originalVariableAndDeclarationModules: {
-		modules: Module[];
-		original: Variable;
-	} | null = null;
+	private originalVariable: Variable | null = null;
 
 	constructor(
 		name: string,
@@ -63,35 +61,38 @@ export default class ExportDefaultVariable extends LocalVariable {
 		}
 	}
 
-	getOriginalVariable(): Variable {
-		return this.getOriginalVariableAndDeclarationModules().original;
-	}
-
-	getOriginalVariableAndDeclarationModules(): { modules: Module[]; original: Variable } {
-		if (this.originalVariableAndDeclarationModules === null) {
-			if (
-				!this.originalId ||
-				(!this.hasId &&
-					(this.originalId.variable.isReassigned ||
-						this.originalId.variable instanceof UndefinedVariable))
-			) {
-				this.originalVariableAndDeclarationModules = { modules: [], original: this };
-			} else {
-				const assignedOriginal = this.originalId.variable;
-				if (assignedOriginal instanceof ExportDefaultVariable) {
-					const { modules, original } = assignedOriginal.getOriginalVariableAndDeclarationModules();
-					this.originalVariableAndDeclarationModules = {
-						modules: modules.concat(this.module),
-						original
-					};
-				} else {
-					this.originalVariableAndDeclarationModules = {
-						modules: [this.module],
-						original: assignedOriginal
-					};
+	// TODO Lukas test and fix infinite loop: Export default import from same module as default
+	getOriginalVariable(importer?: Module): Variable {
+		if (!importer && this.originalVariable) {
+			return this.originalVariable;
+		}
+		if (
+			!this.originalId ||
+			(!this.hasId &&
+				(this.originalId.variable.isReassigned ||
+					this.originalId.variable instanceof UndefinedVariable))
+		) {
+			return (this.originalVariable = this);
+		} else {
+			let originalVariable = this.originalId.variable;
+			if (originalVariable instanceof ExportDefaultVariable) {
+				originalVariable = originalVariable.getOriginalVariable(importer);
+			}
+			if (importer) {
+				const sideEffectModules = getOrCreate(
+					originalVariable.sideEffectModulesByImporter,
+					importer,
+					() => new Set()
+				);
+				sideEffectModules.add(this.module);
+				const currentSideEffectModules = this.sideEffectModulesByImporter.get(importer);
+				if (currentSideEffectModules) {
+					for (const module of currentSideEffectModules) {
+						sideEffectModules.add(module);
+					}
 				}
 			}
+			return (this.originalVariable = originalVariable);
 		}
-		return this.originalVariableAndDeclarationModules;
 	}
 }

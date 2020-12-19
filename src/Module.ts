@@ -355,22 +355,16 @@ export default class Module {
 				dependencyVariables.add(this.getVariableForExportName(exportName));
 			}
 		}
-		// TODO Lukas can we include the default export logic here?
 		for (let variable of dependencyVariables) {
-			const sideEffectModules = variable.sideEffectModulesByImporter.get(this);
-			if (sideEffectModules) {
-				for (const module of sideEffectModules) {
-					alwaysCheckedDependencies.add(module);
-				}
-			}
 			// TODO Lukas for synthetic ones, where are we putting the chain?
 			if (variable instanceof SyntheticNamedExportVariable) {
 				variable = variable.getBaseVariable();
-				// TODO Lukas for default exports, where are we putting the chain?
 			} else if (variable instanceof ExportDefaultVariable) {
-				const { modules, original } = variable.getOriginalVariableAndDeclarationModules();
-				variable = original;
-				for (const module of modules) {
+				variable = variable.getOriginalVariable(this);
+			}
+			const sideEffectModules = variable.sideEffectModulesByImporter.get(this);
+			if (sideEffectModules) {
+				for (const module of sideEffectModules) {
 					alwaysCheckedDependencies.add(module);
 				}
 			}
@@ -781,7 +775,7 @@ export default class Module {
 	}
 
 	// TODO Lukas can we ensure that tracing short-circuits at some point?
-	// e.g. instead of local variables, we have traced variables as a copy? or build this into the module scope?
+	//  e.g. instead of local variables, we have traced variables as a copy? or build this into the module scope?
 	traceVariable(name: string, importer?: Module): Variable | null {
 		const localVariable = this.scope.variables.get(name);
 		if (localVariable) {
