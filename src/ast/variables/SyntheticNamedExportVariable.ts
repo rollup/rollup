@@ -1,8 +1,12 @@
 import Module, { AstContext } from '../../Module';
+import { getOrCreate } from '../../utils/getOrCreate';
 import { RESERVED_NAMES } from '../../utils/reservedNames';
 import ExportDefaultVariable from './ExportDefaultVariable';
 import Variable from './Variable';
 
+// TODO Lukas for circular dependency-aware imports, we need to put
+//  a property not on the base/original variable but the used variable,
+//  indicating from where the base variable should be imported
 export default class SyntheticNamedExportVariable extends Variable {
 	context: AstContext;
 	module: Module;
@@ -15,13 +19,27 @@ export default class SyntheticNamedExportVariable extends Variable {
 		this.syntheticNamespace = syntheticNamespace;
 	}
 
-	getBaseVariable(): Variable {
+	getBaseVariable(importer?: Module): Variable {
 		let baseVariable = this.syntheticNamespace;
 		if (baseVariable instanceof ExportDefaultVariable) {
-			baseVariable = baseVariable.getOriginalVariable();
+			baseVariable = baseVariable.getOriginalVariable(importer);
 		}
 		if (baseVariable instanceof SyntheticNamedExportVariable) {
-			baseVariable = baseVariable.getBaseVariable();
+			baseVariable = baseVariable.getBaseVariable(importer);
+		}
+		if (importer) {
+			const sideEffectModules = getOrCreate(
+				baseVariable.sideEffectModulesByImporter,
+				importer,
+				() => new Set()
+			);
+			sideEffectModules.add(this.module);
+			const currentSideEffectModules = this.sideEffectModulesByImporter.get(importer);
+			if (currentSideEffectModules) {
+				for (const module of currentSideEffectModules) {
+					sideEffectModules.add(module);
+				}
+			}
 		}
 		return baseVariable;
 	}

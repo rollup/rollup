@@ -356,10 +356,11 @@ export default class Module {
 			}
 		}
 		for (let variable of dependencyVariables) {
-			// TODO Lukas for synthetic ones, where are we putting the chain?
 			if (variable instanceof SyntheticNamedExportVariable) {
-				variable = variable.getBaseVariable();
+				variable = variable.getBaseVariable(this);
 			} else if (variable instanceof ExportDefaultVariable) {
+				// TODO Lukas why do we need "this" here? Aren't the
+				//  originals included? Can we remove this if directly collect checked dependencies on the module?
 				variable = variable.getOriginalVariable(this);
 			}
 			const sideEffectModules = variable.sideEffectModulesByImporter.get(this);
@@ -452,6 +453,8 @@ export default class Module {
 		return { renderedExports, removedExports };
 	}
 
+	// TODO Lukas handle circular synthetic export, e.g. a better
+	//  warning for the undefined case
 	getSyntheticNamespace() {
 		if (this.syntheticNamespace === null) {
 			this.syntheticNamespace = undefined;
@@ -1032,11 +1035,18 @@ export default class Module {
 		}
 	}
 
+	// TODO Lukas instead of collecting these on the variables, can we collect them on the importer module and directly mark them as executed when an includedImporter is provided?
 	private includeVariable(variable: Variable) {
 		const variableModule = variable.module;
 		if (!variable.included) {
 			variable.include();
-			const sideEffectModules = variable.sideEffectModulesByImporter.get(this);
+			const importedVariable =
+				variable instanceof SyntheticNamedExportVariable
+					? variable.getBaseVariable(this)
+					: variable instanceof ExportDefaultVariable
+					? variable.getOriginalVariable(this)
+					: variable;
+			const sideEffectModules = importedVariable.sideEffectModulesByImporter.get(this);
 			if (sideEffectModules) {
 				for (const module of sideEffectModules) {
 					if (!module.isExecuted) {
