@@ -103,7 +103,7 @@ export interface AstContext {
 	importDescriptions: { [name: string]: ImportDescription };
 	includeAllExports: () => void;
 	includeDynamicImport: (node: ImportExpression) => void;
-	includeVariable: (variable: Variable) => void;
+	includeVariableInModule: (variable: Variable) => void;
 	magicString: MagicString;
 	module: Module; // not to be used for tree-shaking
 	moduleContext: string;
@@ -170,7 +170,7 @@ const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
 function getVariableForExportNameRecursive(
 	target: Module | ExternalModule,
 	name: string,
-	importer: Module | undefined,
+	importerForSideEffects: Module | undefined,
 	isExportAllSearch: boolean,
 	searchedNamesAndModules = new Map<string, Set<Module | ExternalModule>>()
 ): Variable | null {
@@ -185,10 +185,42 @@ function getVariableForExportNameRecursive(
 	}
 	return target.getVariableForExportName(
 		name,
-		importer,
+		importerForSideEffects,
 		isExportAllSearch,
 		searchedNamesAndModules
 	);
+}
+
+function getAndExtendSideEffectModules(variable: Variable, module: Module): Set<Module> {
+	const sideEffectModules = getOrCreate(
+		module.sideEffectDependenciesByVariable,
+		variable,
+		() => new Set()
+	);
+	let currentVariable: Variable | null = variable;
+	// TODO Lukas prevent infinite loop
+	while (true) {
+		const importingModule = currentVariable.module! as Module;
+		currentVariable =
+			currentVariable instanceof ExportDefaultVariable
+				? currentVariable.getDirectOriginalVariable()
+				: currentVariable instanceof SyntheticNamedExportVariable
+				? currentVariable.syntheticNamespace
+				: null;
+		if (!currentVariable) {
+			break;
+		}
+		sideEffectModules.add(importingModule);
+		const originalSideEffects = importingModule.sideEffectDependenciesByVariable.get(
+			currentVariable
+		);
+		if (originalSideEffects) {
+			for (const module of originalSideEffects) {
+				sideEffectModules.add(module);
+			}
+		}
+	}
+	return sideEffectModules;
 }
 
 export default class Module {
@@ -226,6 +258,7 @@ export default class Module {
 	reexportDescriptions: { [name: string]: ReexportDescription } = Object.create(null);
 	resolvedIds!: ResolvedIdMap;
 	scope!: ModuleScope;
+	sideEffectDependenciesByVariable = new Map<Variable, Set<Module>>();
 	sourcemapChain!: DecodedSourceMapOrMissing[];
 	sources = new Set<string>();
 	transformFiles?: EmittedFile[];
@@ -356,18 +389,16 @@ export default class Module {
 			}
 		}
 		for (let variable of dependencyVariables) {
-			if (variable instanceof SyntheticNamedExportVariable) {
-				variable = variable.getBaseVariable(this);
-			} else if (variable instanceof ExportDefaultVariable) {
-				// TODO Lukas why do we need "this" here? Aren't the
-				//  originals included? Can we remove this if directly collect checked dependencies on the module?
-				variable = variable.getOriginalVariable(this);
-			}
-			const sideEffectModules = variable.sideEffectModulesByImporter.get(this);
-			if (sideEffectModules) {
-				for (const module of sideEffectModules) {
+			const sideEffectDependencies = this.sideEffectDependenciesByVariable.get(variable);
+			if (sideEffectDependencies) {
+				for (const module of sideEffectDependencies) {
 					alwaysCheckedDependencies.add(module);
 				}
+			}
+			if (variable instanceof SyntheticNamedExportVariable) {
+				variable = variable.getBaseVariable();
+			} else if (variable instanceof ExportDefaultVariable) {
+				variable = variable.getOriginalVariable();
 			}
 			necessaryDependencies.add(variable.module!);
 		}
@@ -485,12 +516,13 @@ export default class Module {
 
 	getVariableForExportName(
 		name: string,
-		importer?: Module,
+		importerForSideEffects?: Module,
 		isExportAllSearch?: boolean,
 		searchedNamesAndModules?: Map<string, Set<Module | ExternalModule>>
 	): Variable {
 		if (name[0] === '*') {
 			if (name.length === 1) {
+				// export * from './other'
 				return this.namespace;
 			} else {
 				// export * from 'external'
@@ -505,7 +537,7 @@ export default class Module {
 			const declaration = getVariableForExportNameRecursive(
 				reexportDeclaration.module,
 				reexportDeclaration.localName,
-				importer,
+				importerForSideEffects,
 				false,
 				searchedNamesAndModules
 			);
@@ -528,9 +560,13 @@ export default class Module {
 				return this.exportShimVariable;
 			}
 			const name = exportDeclaration.localName;
-			const variable = this.traceVariable(name, importer)!;
-			if (importer) {
-				getOrCreate(variable.sideEffectModulesByImporter, importer, () => new Set()).add(this);
+			const variable = this.traceVariable(name, importerForSideEffects)!;
+			if (importerForSideEffects) {
+				getOrCreate(
+					importerForSideEffects.sideEffectDependenciesByVariable,
+					variable,
+					() => new Set()
+				).add(this);
 			}
 			return variable;
 		}
@@ -540,7 +576,7 @@ export default class Module {
 				const declaration = getVariableForExportNameRecursive(
 					module,
 					name,
-					importer,
+					importerForSideEffects,
 					true,
 					searchedNamesAndModules
 				);
@@ -598,8 +634,7 @@ export default class Module {
 				const variable = this.getVariableForExportName(exportName);
 				variable.deoptimizePath(UNKNOWN_PATH);
 				if (!variable.included) {
-					variable.include();
-					this.graph.needsTreeshakingPass = true;
+					this.includeVariable(variable);
 				}
 			}
 		}
@@ -608,8 +643,7 @@ export default class Module {
 			const variable = this.getVariableForExportName(name);
 			variable.deoptimizePath(UNKNOWN_PATH);
 			if (!variable.included) {
-				variable.include();
-				this.graph.needsTreeshakingPass = true;
+				this.includeVariable(variable);
 			}
 			if (variable instanceof ExternalVariable) {
 				variable.module.reexported = true;
@@ -737,7 +771,7 @@ export default class Module {
 			importDescriptions: this.importDescriptions,
 			includeAllExports: () => this.includeAllExports(true),
 			includeDynamicImport: this.includeDynamicImport.bind(this),
-			includeVariable: this.includeVariable.bind(this),
+			includeVariableInModule: this.includeVariableInModule.bind(this),
 			magicString: this.magicString,
 			module: this,
 			moduleContext: this.context,
@@ -779,7 +813,7 @@ export default class Module {
 
 	// TODO Lukas can we ensure that tracing short-circuits at some point?
 	//  e.g. instead of local variables, we have traced variables as a copy? or build this into the module scope?
-	traceVariable(name: string, importer?: Module): Variable | null {
+	traceVariable(name: string, importerForSideEffects?: Module): Variable | null {
 		const localVariable = this.scope.variables.get(name);
 		if (localVariable) {
 			return localVariable;
@@ -795,7 +829,7 @@ export default class Module {
 
 			const declaration = otherModule.getVariableForExportName(
 				importDeclaration.name,
-				importer || this
+				importerForSideEffects || this
 			);
 
 			if (!declaration) {
@@ -982,7 +1016,7 @@ export default class Module {
 	) {
 		const handledDependencies = new Set<Module | ExternalModule>();
 
-		function addSideEffectDependencies(possibleDependencies: Set<Module | ExternalModule>) {
+		const addSideEffectDependencies = (possibleDependencies: Set<Module | ExternalModule>) => {
 			for (const dependency of possibleDependencies) {
 				if (handledDependencies.has(dependency)) {
 					continue;
@@ -1001,12 +1035,13 @@ export default class Module {
 				}
 				addSideEffectDependencies(dependency.dependencies);
 			}
-		}
+		};
 
 		addSideEffectDependencies(this.dependencies);
 		addSideEffectDependencies(alwaysCheckedDependencies);
 	}
 
+	// TODO Lukas check if include() calls should instead use .includeVariable
 	private includeAndGetAdditionalMergedNamespaces(): Variable[] {
 		const mergedNamespaces: Variable[] = [];
 		for (const module of this.exportAllModules) {
@@ -1035,27 +1070,25 @@ export default class Module {
 		}
 	}
 
-	// TODO Lukas instead of collecting these on the variables, can we collect them on the importer module and directly mark them as executed when an includedImporter is provided?
 	private includeVariable(variable: Variable) {
-		const variableModule = variable.module;
 		if (!variable.included) {
 			variable.include();
-			const importedVariable =
-				variable instanceof SyntheticNamedExportVariable
-					? variable.getBaseVariable(this)
-					: variable instanceof ExportDefaultVariable
-					? variable.getOriginalVariable(this)
-					: variable;
-			const sideEffectModules = importedVariable.sideEffectModulesByImporter.get(this);
-			if (sideEffectModules) {
+			this.graph.needsTreeshakingPass = true;
+			const variableModule = variable.module;
+			if (variableModule && variableModule !== this) {
+				const sideEffectModules = getAndExtendSideEffectModules(variable, this);
 				for (const module of sideEffectModules) {
 					if (!module.isExecuted) {
 						markModuleAndImpureDependenciesAsExecuted(module);
 					}
 				}
 			}
-			this.graph.needsTreeshakingPass = true;
 		}
+	}
+
+	private includeVariableInModule(variable: Variable) {
+		this.includeVariable(variable);
+		const variableModule = variable.module;
 		if (variableModule && variableModule !== this) {
 			this.imports.add(variable);
 		}

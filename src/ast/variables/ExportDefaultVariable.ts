@@ -1,5 +1,4 @@
-import Module, { AstContext } from '../../Module';
-import { getOrCreate } from '../../utils/getOrCreate';
+import { AstContext } from '../../Module';
 import ClassDeclaration from '../nodes/ClassDeclaration';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from '../nodes/FunctionDeclaration';
@@ -13,7 +12,6 @@ export default class ExportDefaultVariable extends LocalVariable {
 
 	// Not initialised during construction
 	private originalId: IdentifierWithVariable | null = null;
-	private originalVariable: Variable | null = null;
 
 	constructor(
 		name: string,
@@ -52,6 +50,17 @@ export default class ExportDefaultVariable extends LocalVariable {
 		}
 	}
 
+	getDirectOriginalVariable(): Variable | null {
+		return this.originalId &&
+			(this.hasId ||
+				!(
+					this.originalId.variable.isReassigned ||
+					this.originalId.variable instanceof UndefinedVariable
+				))
+			? this.originalId.variable
+			: null;
+	}
+
 	getName() {
 		const original = this.getOriginalVariable();
 		if (original === this) {
@@ -62,37 +71,14 @@ export default class ExportDefaultVariable extends LocalVariable {
 	}
 
 	// TODO Lukas test and fix infinite loop: Export default import from same module as default
-	getOriginalVariable(importer?: Module): Variable {
-		if (!importer && this.originalVariable) {
-			return this.originalVariable;
-		}
-		if (
-			!this.originalId ||
-			(!this.hasId &&
-				(this.originalId.variable.isReassigned ||
-					this.originalId.variable instanceof UndefinedVariable))
-		) {
-			return (this.originalVariable = this);
-		} else {
-			let originalVariable = this.originalId.variable;
-			if (originalVariable instanceof ExportDefaultVariable) {
-				originalVariable = originalVariable.getOriginalVariable(importer);
-			}
-			if (importer) {
-				const sideEffectModules = getOrCreate(
-					originalVariable.sideEffectModulesByImporter,
-					importer,
-					() => new Set()
-				);
-				sideEffectModules.add(this.module);
-				const currentSideEffectModules = this.sideEffectModulesByImporter.get(importer);
-				if (currentSideEffectModules) {
-					for (const module of currentSideEffectModules) {
-						sideEffectModules.add(module);
-					}
-				}
-			}
-			return (this.originalVariable = originalVariable);
-		}
+	// TODO Lukas what about synthetic exports here?
+	getOriginalVariable(): Variable {
+		let original: Variable | null = this;
+		let currentVariable: Variable;
+		do {
+			currentVariable = original;
+			original = (currentVariable as ExportDefaultVariable).getDirectOriginalVariable();
+		} while (original instanceof ExportDefaultVariable);
+		return original || currentVariable;
 	}
 }

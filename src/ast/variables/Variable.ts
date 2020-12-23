@@ -22,7 +22,6 @@ export default class Variable implements ExpressionEntity {
 	name: string;
 	renderBaseName: string | null = null;
 	renderName: string | null = null;
-	sideEffectModulesByImporter = new Map<Module, Set<Module>>();
 
 	constructor(name: string) {
 		this.name = name;

@@ -216,7 +216,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (!this.included) {
 			this.included = true;
 			if (this.variable !== null) {
-				this.context.includeVariable(this.variable);
+				this.context.includeVariableInModule(this.variable);
 			}
 		}
 		this.object.include(context, includeChildrenRecursively);
@@ -262,7 +262,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			const variable = this.scope.findVariable(this.object.name);
 			if (variable.isNamespace) {
 				if (this.variable) {
-					this.context.includeVariable(this.variable);
+					this.context.includeVariableInModule(this.variable);
 				}
 				this.context.warn(
 					{

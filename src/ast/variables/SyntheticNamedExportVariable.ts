@@ -1,5 +1,4 @@
 import Module, { AstContext } from '../../Module';
-import { getOrCreate } from '../../utils/getOrCreate';
 import { RESERVED_NAMES } from '../../utils/reservedNames';
 import ExportDefaultVariable from './ExportDefaultVariable';
 import Variable from './Variable';
@@ -19,27 +18,13 @@ export default class SyntheticNamedExportVariable extends Variable {
 		this.syntheticNamespace = syntheticNamespace;
 	}
 
-	getBaseVariable(importer?: Module): Variable {
+	getBaseVariable(): Variable {
 		let baseVariable = this.syntheticNamespace;
 		if (baseVariable instanceof ExportDefaultVariable) {
-			baseVariable = baseVariable.getOriginalVariable(importer);
+			baseVariable = baseVariable.getOriginalVariable();
 		}
 		if (baseVariable instanceof SyntheticNamedExportVariable) {
-			baseVariable = baseVariable.getBaseVariable(importer);
-		}
-		if (importer) {
-			const sideEffectModules = getOrCreate(
-				baseVariable.sideEffectModulesByImporter,
-				importer,
-				() => new Set()
-			);
-			sideEffectModules.add(this.module);
-			const currentSideEffectModules = this.sideEffectModulesByImporter.get(importer);
-			if (currentSideEffectModules) {
-				for (const module of currentSideEffectModules) {
-					sideEffectModules.add(module);
-				}
-			}
+			baseVariable = baseVariable.getBaseVariable();
 		}
 		return baseVariable;
 	}
@@ -56,7 +41,7 @@ export default class SyntheticNamedExportVariable extends Variable {
 	include() {
 		if (!this.included) {
 			this.included = true;
-			this.context.includeVariable(this.syntheticNamespace);
+			this.context.includeVariableInModule(this.syntheticNamespace);
 		}
 	}
 
