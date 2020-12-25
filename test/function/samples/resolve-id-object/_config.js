@@ -5,7 +5,7 @@ module.exports = {
 	options: {
 		plugins: {
 			resolveId(importee) {
-				const fooId = path.resolve(__dirname, 'foo.js');
+				const fooId = path.join(__dirname, 'foo.js');
 				switch (importee) {
 					case 'internal1':
 						return { id: fooId };

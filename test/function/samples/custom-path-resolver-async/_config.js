@@ -9,10 +9,10 @@ module.exports = {
 				resolveId(importee, importer) {
 					let resolved;
 
-					if (path.normalize(importee) === path.resolve(__dirname, 'main.js')) return importee;
+					if (path.normalize(importee) === path.join(__dirname, 'main.js')) return importee;
 
 					if (importee === 'foo') {
-						resolved = path.resolve(__dirname, 'bar.js');
+						resolved = path.join(__dirname, 'bar.js');
 					} else {
 						resolved = false;
 					}

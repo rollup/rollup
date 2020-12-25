@@ -6,11 +6,11 @@ module.exports = {
 	warnings: [
 		{
 			code: 'THIS_IS_UNDEFINED',
-			id: path.resolve(__dirname, 'main.js'),
+			id: path.join(__dirname, 'main.js'),
 			message: `The 'this' keyword is equivalent to 'undefined' at the top level of an ES module, and has been rewritten`,
 			pos: 81,
 			loc: {
-				file: require('path').resolve(__dirname, 'main.js'),
+				file: path.join(__dirname, 'main.js'),
 				line: 3,
 				column: 0
 			},

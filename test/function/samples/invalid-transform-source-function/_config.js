@@ -7,7 +7,7 @@ module.exports = {
 		output: {
 			name: 'myModule',
 			sourcemap: true,
-			file: path.resolve(__dirname, 'main.js'),
+			file: path.join(__dirname, 'main.js'),
 			sourcemapPathTransform: () => {}
 		}
 	},

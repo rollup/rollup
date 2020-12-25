@@ -25,16 +25,16 @@ module.exports = {
 1: import { exists, doesNotExist } from './dep1.js';
                     ^
 2: export { exists };`,
-			id: path.resolve(__dirname, 'main.js'),
+			id: path.join(__dirname, 'main.js'),
 			loc: {
 				column: 17,
-				file: path.resolve(__dirname, 'main.js'),
+				file: path.join(__dirname, 'main.js'),
 				line: 1
 			},
 			message: "Non-existent export 'doesNotExist' is imported from dep1.js",
 			name: 'doesNotExist',
 			pos: 17,
-			source: path.resolve(__dirname, 'dep1.js')
+			source: path.join(__dirname, 'dep1.js')
 		}
 	]
 };

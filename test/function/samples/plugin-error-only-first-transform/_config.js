@@ -23,7 +23,7 @@ module.exports = {
 		message: `Something happened 1`,
 		plugin: 'plugin1',
 		hook: 'transform',
-		id: path.resolve(__dirname, 'main.js'),
-		watchFiles: [path.resolve(__dirname, 'main.js')]
+		id: path.join(__dirname, 'main.js'),
+		watchFiles: [path.join(__dirname, 'main.js')]
 	}
 };

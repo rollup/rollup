@@ -5,5 +5,8 @@ assert.deepStrictEqual(foo, {
 	chain3: 'modified',
 	chain4: 'modified',
 	chain5: 'modified',
-	chain6: 'modified'
+	chain7: 'modified',
+	chain8: 'modified',
+	chain10: 'modified',
+	chain11: 'modified',
 });

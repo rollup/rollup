@@ -8,7 +8,7 @@ module.exports = {
 			{
 				resolveId(id, importer) {
 					if (importer && id[0] !== '.')
-						return Promise.resolve(path.resolve(__dirname, 'js_modules', id + '.js'));
+						return Promise.resolve(path.join(__dirname, 'js_modules', id + '.js'));
 				}
 			}
 		]

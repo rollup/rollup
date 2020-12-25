@@ -5,7 +5,7 @@ module.exports = {
 	error: {
 		code: 'PARSE_ERROR',
 		message: `Identifier 'a' has already been declared`,
-		id: path.resolve(__dirname, 'main.js'),
+		id: path.join(__dirname, 'main.js'),
 		parserError: {
 			loc: {
 				column: 12,
@@ -16,9 +16,9 @@ module.exports = {
 			raisedAt: 15
 		},
 		pos: 12,
-		watchFiles: [path.resolve(__dirname, 'main.js')],
+		watchFiles: [path.join(__dirname, 'main.js')],
 		loc: {
-			file: path.resolve(__dirname, 'main.js'),
+			file: path.join(__dirname, 'main.js'),
 			line: 1,
 			column: 12
 		},

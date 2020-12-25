@@ -5,9 +5,9 @@ const URL = require('url').URL;
 module.exports = {
 	description: 'resolves import.meta.url',
 	context: {
-		__filename: path.resolve(__dirname, 'main.js')
+		__filename: path.join(__dirname, 'main.js')
 	},
 	exports(exports) {
-		assert.strictEqual(exports, new URL('file:' + path.resolve(__dirname, 'main.js')).href);
+		assert.strictEqual(exports, new URL('file:' + path.join(__dirname, 'main.js')).href);
 	}
 };

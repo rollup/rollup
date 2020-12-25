@@ -23,6 +23,6 @@ module.exports = {
 		code: 'MISSING_IMPLICIT_DEPENDANT',
 		message:
 			'Module "external" that should be implicitly loaded before "dep.js" cannot be external.',
-		watchFiles: [path.resolve(__dirname, 'dep.js'), path.resolve(__dirname, 'main.js')]
+		watchFiles: [path.join(__dirname, 'dep.js'), path.join(__dirname, 'main.js')]
 	}
 };

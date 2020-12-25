@@ -5,6 +5,6 @@ module.exports = {
 	error: {
 		code: 'UNRESOLVED_IMPORT',
 		message: `Could not resolve './foo.js' from main.js`,
-		watchFiles: [path.resolve(__dirname, 'main.js')]
+		watchFiles: [path.join(__dirname, 'main.js')]
 	}
 };

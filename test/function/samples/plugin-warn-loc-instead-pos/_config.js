@@ -16,12 +16,12 @@ module.exports = {
 	warnings: [
 		{
 			code: 'PLUGIN_WARNING',
-			id: path.resolve(__dirname, 'main.js'),
+			id: path.join(__dirname, 'main.js'),
 			plugin: 'test',
 			hook: 'transform',
 			message: 'foo',
 			loc: {
-				file: path.resolve(__dirname, 'main.js'),
+				file: path.join(__dirname, 'main.js'),
 				line: 1,
 				column: 22
 			},

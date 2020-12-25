@@ -7,7 +7,7 @@ module.exports = {
 		code: 'PARSE_ERROR',
 		message:
 			'Unexpected token (Note that you need plugins to import files that are not JavaScript)',
-		id: path.resolve(__dirname, 'file.css'),
+		id: path.join(__dirname, 'file.css'),
 		parserError: {
 			loc: {
 				column: 0,
@@ -18,9 +18,9 @@ module.exports = {
 			raisedAt: 1
 		},
 		pos: 0,
-		watchFiles: [path.resolve(__dirname, 'main.js'), path.resolve(__dirname, 'file.css')],
+		watchFiles: [path.join(__dirname, 'main.js'), path.join(__dirname, 'file.css')],
 		loc: {
-			file: path.resolve(__dirname, 'file.css'),
+			file: path.join(__dirname, 'file.css'),
 			line: 1,
 			column: 0
 		},

@@ -7,23 +7,14 @@ module.exports = {
 		assert.strictEqual(exports.exists, 42);
 	},
 	error: {
-		code: 'MISSING_EXPORT',
-		id: path.resolve(__dirname, 'dep2.js'),
-		frame: `
-1: export { doesNotExist } from './dep1.js';
-            ^`,
-		loc: {
-			column: 9,
-			file: path.resolve(__dirname, 'dep2.js'),
-			line: 1
-		},
-		message: "'doesNotExist' is not exported by dep1.js, imported by dep2.js",
-		pos: 9,
-		url: 'https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module',
+		code: 'CIRCULAR_REEXPORT',
+		id: path.join(__dirname, 'dep1.js'),
+		message:
+			'"doesNotExist" cannot be exported from dep1.js as it is a reexport that references itself.',
 		watchFiles: [
-			path.resolve(__dirname, 'main.js'),
-			path.resolve(__dirname, 'dep1.js'),
-			path.resolve(__dirname, 'dep2.js')
+			path.join(__dirname, 'main.js'),
+			path.join(__dirname, 'dep1.js'),
+			path.join(__dirname, 'dep2.js')
 		]
 	}
 };

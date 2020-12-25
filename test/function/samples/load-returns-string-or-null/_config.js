@@ -15,6 +15,6 @@ module.exports = {
 	error: {
 		code: 'BAD_LOADER',
 		message: `Error loading main.js: plugin load hook should return a string, a { code, map } object, or nothing/null`,
-		watchFiles: [path.resolve(__dirname, 'main.js')]
+		watchFiles: [path.join(__dirname, 'main.js')]
 	}
 };

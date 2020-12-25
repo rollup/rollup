@@ -1,3 +1,3 @@
-import { baz } from './baz.js';
-baz.bar.foo.chain6 = 'modified';
-export { baz };
+import { bar } from './reexporter-chain-7.js';
+bar.foo.chain6 = 'should not be modified';
+export { bar } from './reexporter-chain-7.js';

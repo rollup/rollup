@@ -5,15 +5,15 @@ module.exports = {
 	error: {
 		code: 'MISSING_EXPORT',
 		message: `'default' is not exported by foo.js, imported by main.js`,
-		id: path.resolve(__dirname, 'main.js'),
+		id: path.join(__dirname, 'main.js'),
 		pos: 7,
 		watchFiles: [
-			path.resolve(__dirname, 'main.js'),
-			path.resolve(__dirname, 'foo.js'),
-			path.resolve(__dirname, 'bar.js')
+			path.join(__dirname, 'main.js'),
+			path.join(__dirname, 'foo.js'),
+			path.join(__dirname, 'bar.js')
 		],
 		loc: {
-			file: path.resolve(__dirname, 'main.js'),
+			file: path.join(__dirname, 'main.js'),
 			line: 1,
 			column: 7
 		},

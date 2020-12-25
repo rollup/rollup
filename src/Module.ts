@@ -45,7 +45,14 @@ import {
 	RollupWarning,
 	TransformModuleJSON
 } from './rollup/types';
-import { augmentCodeLocation, errNamespaceConflict, error, Errors } from './utils/error';
+import {
+	augmentCodeLocation,
+	errCircularReexport,
+	errMissingExport,
+	errNamespaceConflict,
+	error,
+	Errors
+} from './utils/error';
 import { getId } from './utils/getId';
 import { getOrCreate } from './utils/getOrCreate';
 import { getOriginalLocation } from './utils/getOriginalLocation';
@@ -109,7 +116,7 @@ export interface AstContext {
 	moduleContext: string;
 	nodeConstructors: { [name: string]: typeof NodeBase };
 	options: NormalizedInputOptions;
-	traceExport: (name: string) => Variable;
+	traceExport: (name: string) => Variable | null;
 	traceVariable: (name: string) => Variable | null;
 	usesTopLevelAwait: boolean;
 	warn: (warning: RollupWarning, pos: number) => void;
@@ -144,24 +151,6 @@ function tryParse(
 	}
 }
 
-function handleMissingExport(
-	exportName: string,
-	importingModule: Module,
-	importedModule: string,
-	importerStart?: number
-): never {
-	return importingModule.error(
-		{
-			code: 'MISSING_EXPORT',
-			message: `'${exportName}' is not exported by ${relativeId(
-				importedModule
-			)}, imported by ${relativeId(importingModule.id)}`,
-			url: `https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module`
-		},
-		importerStart!
-	);
-}
-
 const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
 	identifier: null,
 	localName: MISSING_EXPORT_SHIM_VARIABLE
@@ -177,7 +166,7 @@ function getVariableForExportNameRecursive(
 	const searchedModules = searchedNamesAndModules.get(name);
 	if (searchedModules) {
 		if (searchedModules.has(target)) {
-			return null;
+			return isExportAllSearch ? null : error(errCircularReexport(name, target.id));
 		}
 		searchedModules.add(target);
 	} else {
@@ -385,7 +374,7 @@ export default class Module {
 		) {
 			dependencyVariables = new Set(dependencyVariables);
 			for (const exportName of [...this.getReexports(), ...this.getExports()]) {
-				dependencyVariables.add(this.getVariableForExportName(exportName));
+				dependencyVariables.add(this.getVariableForExportName(exportName)!);
 			}
 		}
 		for (let variable of dependencyVariables) {
@@ -514,12 +503,13 @@ export default class Module {
 		return this.syntheticNamespace;
 	}
 
+	// TODO Lukas Variable | null
 	getVariableForExportName(
 		name: string,
 		importerForSideEffects?: Module,
 		isExportAllSearch?: boolean,
 		searchedNamesAndModules?: Map<string, Set<Module | ExternalModule>>
-	): Variable {
+	): Variable | null {
 		if (name[0] === '*') {
 			if (name.length === 1) {
 				// export * from './other'
@@ -543,10 +533,8 @@ export default class Module {
 			);
 
 			if (!declaration) {
-				return handleMissingExport(
-					reexportDeclaration.localName,
-					this,
-					reexportDeclaration.module.id,
+				return this.error(
+					errMissingExport(reexportDeclaration.localName, this.id, reexportDeclaration.module.id),
 					reexportDeclaration.start
 				);
 			}
@@ -608,7 +596,7 @@ export default class Module {
 				return this.exportShimVariable;
 			}
 		}
-		return null as any;
+		return null;
 	}
 
 	hasEffects() {
@@ -631,7 +619,7 @@ export default class Module {
 
 		for (const exportName of this.getExports()) {
 			if (includeNamespaceMembers || exportName !== this.info.syntheticNamedExports) {
-				const variable = this.getVariableForExportName(exportName);
+				const variable = this.getVariableForExportName(exportName)!;
 				variable.deoptimizePath(UNKNOWN_PATH);
 				if (!variable.included) {
 					this.includeVariable(variable);
@@ -640,7 +628,7 @@ export default class Module {
 		}
 
 		for (const name of this.getReexports()) {
-			const variable = this.getVariableForExportName(name);
+			const variable = this.getVariableForExportName(name)!;
 			variable.deoptimizePath(UNKNOWN_PATH);
 			if (!variable.included) {
 				this.includeVariable(variable);
@@ -833,10 +821,8 @@ export default class Module {
 			);
 
 			if (!declaration) {
-				return handleMissingExport(
-					importDeclaration.name,
-					this,
-					otherModule.id,
+				return this.error(
+					errMissingExport(importDeclaration.name, this.id, otherModule.id),
 					importDeclaration.start
 				);
 			}

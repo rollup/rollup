@@ -7,7 +7,7 @@ module.exports = {
 		plugins: [
 			{
 				resolveId(id, importer) {
-					if (importer && id[0] !== '.') return path.resolve(__dirname, 'js_modules', id + '.js');
+					if (importer && id[0] !== '.') return path.join(__dirname, 'js_modules', id + '.js');
 				}
 			}
 		]

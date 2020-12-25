@@ -6,7 +6,7 @@ module.exports = {
 		plugins: {
 			name: 'test-plugin',
 			renderStart() {
-				this.addWatchFile(path.resolve(__dirname, 'watched.js'));
+				this.addWatchFile(path.join(__dirname, 'watched.js'));
 			}
 		}
 	},

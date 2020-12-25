@@ -18,6 +18,6 @@ module.exports = {
 		code: 'MISSING_IMPLICIT_DEPENDANT',
 		message:
 			'Module "does-not-exist" that should be implicitly loaded before "dep.js" could not be resolved.',
-		watchFiles: [path.resolve(__dirname, 'dep.js'), path.resolve(__dirname, 'main.js')]
+		watchFiles: [path.join(__dirname, 'dep.js'), path.join(__dirname, 'main.js')]
 	}
 };

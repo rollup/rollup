@@ -19,6 +19,6 @@ module.exports = {
 		code: 'INVALID_EXTERNAL_ID',
 		message:
 			"'dep' is imported as an external by dep, but is already an existing non-external module id.",
-		watchFiles: [path.resolve(__dirname, 'main.js'), 'dep']
+		watchFiles: [path.join(__dirname, 'main.js'), 'dep']
 	}
 };

@@ -66,7 +66,7 @@ module.exports = {
 					switch (id) {
 						case 'object':
 							return {
-								id: path.resolve(__dirname, 'existing-object.js'),
+								id: path.join(__dirname, 'existing-object.js'),
 								external: false
 							};
 						case 'external-object':
@@ -75,7 +75,7 @@ module.exports = {
 								external: true
 							};
 						case 'name':
-							return path.resolve(__dirname, 'existing-name.js');
+							return path.join(__dirname, 'existing-name.js');
 						case 'external-name':
 							return false;
 					}

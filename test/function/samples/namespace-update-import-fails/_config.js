@@ -11,10 +11,10 @@ module.exports = {
 		{
 			code: 'ILLEGAL_NAMESPACE_REASSIGNMENT',
 			message: `Illegal reassignment to import 'exp'`,
-			id: path.resolve(__dirname, 'main.js'),
+			id: path.join(__dirname, 'main.js'),
 			pos: 31,
 			loc: {
-				file: path.resolve(__dirname, 'main.js'),
+				file: path.join(__dirname, 'main.js'),
 				line: 3,
 				column: 0
 			},
