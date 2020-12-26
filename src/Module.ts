@@ -51,7 +51,7 @@ import {
 	errMissingExport,
 	errNamespaceConflict,
 	error,
-	Errors
+	errSyntheticNamedExportsNeedNamespaceExport
 } from './utils/error';
 import { getId } from './utils/getId';
 import { getOrCreate } from './utils/getOrCreate';
@@ -473,8 +473,6 @@ export default class Module {
 		return { renderedExports, removedExports };
 	}
 
-	// TODO Lukas handle circular synthetic export, e.g. a better
-	//  warning for the undefined case
 	getSyntheticNamespace() {
 		if (this.syntheticNamespace === null) {
 			this.syntheticNamespace = undefined;
@@ -485,25 +483,13 @@ export default class Module {
 			);
 		}
 		if (!this.syntheticNamespace) {
-			return error({
-				code: Errors.SYNTHETIC_NAMED_EXPORTS_NEED_NAMESPACE_EXPORT,
-				id: this.id,
-				message: `Module "${relativeId(
-					this.id
-				)}" that is marked with 'syntheticNamedExports: ${JSON.stringify(
-					this.info.syntheticNamedExports
-				)}' needs ${
-					typeof this.info.syntheticNamedExports === 'string' &&
-					this.info.syntheticNamedExports !== 'default'
-						? `an export named "${this.info.syntheticNamedExports}"`
-						: 'a default export'
-				}.`
-			});
+			return error(
+				errSyntheticNamedExportsNeedNamespaceExport(this.id, this.info.syntheticNamedExports)
+			);
 		}
 		return this.syntheticNamespace;
 	}
 
-	// TODO Lukas Variable | null
 	getVariableForExportName(
 		name: string,
 		importerForSideEffects?: Module,

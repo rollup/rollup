@@ -333,6 +333,25 @@ export function errPreferNamedExports(facadeModuleId: string) {
 	};
 }
 
+export function errSyntheticNamedExportsNeedNamespaceExport(
+	id: string,
+	syntheticNamedExportsOption: boolean | string
+) {
+	return {
+		code: Errors.SYNTHETIC_NAMED_EXPORTS_NEED_NAMESPACE_EXPORT,
+		id,
+		message: `Module "${relativeId(
+			id
+		)}" that is marked with 'syntheticNamedExports: ${JSON.stringify(
+			syntheticNamedExportsOption
+		)}' needs ${
+			typeof syntheticNamedExportsOption === 'string' && syntheticNamedExportsOption !== 'default'
+				? `an export named "${syntheticNamedExportsOption}"`
+				: 'a default export'
+		} that does not reexport an unresolved named export of the same module.`
+	};
+}
+
 export function errUnexpectedNamedImport(id: string, imported: string, isReexport: boolean) {
 	const importType = isReexport ? 'reexport' : 'import';
 	return {

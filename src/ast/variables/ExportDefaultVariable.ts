@@ -70,15 +70,15 @@ export default class ExportDefaultVariable extends LocalVariable {
 		}
 	}
 
-	// TODO Lukas test and fix infinite loop: Export default import from same module as default
-	// TODO Lukas what about synthetic exports here?
 	getOriginalVariable(): Variable {
 		let original: Variable | null = this;
 		let currentVariable: Variable;
+		const checkedVariables = new Set<Variable>();
 		do {
+			checkedVariables.add(original);
 			currentVariable = original;
 			original = (currentVariable as ExportDefaultVariable).getDirectOriginalVariable();
-		} while (original instanceof ExportDefaultVariable);
+		} while (original instanceof ExportDefaultVariable && !checkedVariables.has(original));
 		return original || currentVariable;
 	}
 }
