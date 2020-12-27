@@ -1,5 +1,4 @@
 import Module, { AstContext } from '../../Module';
-import { markModuleAndImpureDependenciesAsExecuted } from '../../utils/traverseStaticDependencies';
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { createInclusionContext, HasEffectsContext, InclusionContext } from '../ExecutionContext';
@@ -159,10 +158,6 @@ export default class LocalVariable extends Variable {
 	include() {
 		if (!this.included) {
 			this.included = true;
-			if (!this.module.isExecuted) {
-				// TODO Lukas can we move this to where variables are included in Module?
-				markModuleAndImpureDependenciesAsExecuted(this.module);
-			}
 			for (const declaration of this.declarations) {
 				// If node is a default export, it can save a tree-shaking run to include the full declaration now
 				if (!declaration.included) declaration.include(createInclusionContext(), false);

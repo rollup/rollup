@@ -2,6 +2,7 @@
 	"compilerOptions": {
 		"allowSyntheticDefaultImports": true,
 		"diagnostics": true,
+		"isolatedModules": true,
 		"module": "commonjs",
 		"noEmitOnError": true,
 		"noUnusedLocals": true,

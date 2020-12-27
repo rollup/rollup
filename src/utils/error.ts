@@ -36,8 +36,7 @@ export function augmentCodeLocation(
 	}
 }
 
-// TODO Lukas use isolatedModules and const enum
-export enum Errors {
+export const enum Errors {
 	ALREADY_CLOSED = 'ALREADY_CLOSED',
 	ASSET_NOT_FINALISED = 'ASSET_NOT_FINALISED',
 	ASSET_NOT_FOUND = 'ASSET_NOT_FOUND',

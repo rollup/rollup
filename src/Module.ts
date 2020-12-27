@@ -786,8 +786,6 @@ export default class Module {
 		};
 	}
 
-	// TODO Lukas can we ensure that tracing short-circuits at some point?
-	//  e.g. instead of local variables, we have traced variables as a copy? or build this into the module scope?
 	traceVariable(name: string, importerForSideEffects?: Module): Variable | null {
 		const localVariable = this.scope.variables.get(name);
 		if (localVariable) {
@@ -1014,7 +1012,6 @@ export default class Module {
 		addSideEffectDependencies(alwaysCheckedDependencies);
 	}
 
-	// TODO Lukas check if include() calls should instead use .includeVariable
 	private includeAndGetAdditionalMergedNamespaces(): Variable[] {
 		const mergedNamespaces: Variable[] = [];
 		for (const module of this.exportAllModules) {
@@ -1048,7 +1045,10 @@ export default class Module {
 			variable.include();
 			this.graph.needsTreeshakingPass = true;
 			const variableModule = variable.module;
-			if (variableModule && variableModule !== this) {
+			if (variableModule && variableModule !== this && variableModule instanceof Module) {
+				if (!variableModule.isExecuted) {
+					markModuleAndImpureDependenciesAsExecuted(variableModule);
+				}
 				const sideEffectModules = getAndExtendSideEffectModules(variable, this);
 				for (const module of sideEffectModules) {
 					if (!module.isExecuted) {
