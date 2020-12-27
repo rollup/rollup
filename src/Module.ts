@@ -187,7 +187,7 @@ function getAndExtendSideEffectModules(variable: Variable, module: Module): Set<
 		() => new Set()
 	);
 	let currentVariable: Variable | null = variable;
-	// TODO Lukas prevent infinite loop
+	const referencedVariables = new Set([currentVariable]);
 	while (true) {
 		const importingModule = currentVariable.module! as Module;
 		currentVariable =
@@ -196,9 +196,10 @@ function getAndExtendSideEffectModules(variable: Variable, module: Module): Set<
 				: currentVariable instanceof SyntheticNamedExportVariable
 				? currentVariable.syntheticNamespace
 				: null;
-		if (!currentVariable) {
+		if (!currentVariable || referencedVariables.has(currentVariable)) {
 			break;
 		}
+		referencedVariables.add(variable);
 		sideEffectModules.add(importingModule);
 		const originalSideEffects = importingModule.sideEffectDependenciesByVariable.get(
 			currentVariable

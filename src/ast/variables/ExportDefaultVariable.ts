@@ -10,8 +10,8 @@ import Variable from './Variable';
 export default class ExportDefaultVariable extends LocalVariable {
 	hasId = false;
 
-	// Not initialised during construction
 	private originalId: IdentifierWithVariable | null = null;
+	private originalVariable: Variable | null = null;
 
 	constructor(
 		name: string,
@@ -71,6 +71,7 @@ export default class ExportDefaultVariable extends LocalVariable {
 	}
 
 	getOriginalVariable(): Variable {
+		if (this.originalVariable) return this.originalVariable;
 		let original: Variable | null = this;
 		let currentVariable: Variable;
 		const checkedVariables = new Set<Variable>();
@@ -79,6 +80,6 @@ export default class ExportDefaultVariable extends LocalVariable {
 			currentVariable = original;
 			original = (currentVariable as ExportDefaultVariable).getDirectOriginalVariable();
 		} while (original instanceof ExportDefaultVariable && !checkedVariables.has(original));
-		return original || currentVariable;
+		return (this.originalVariable = original || currentVariable);
 	}
 }
