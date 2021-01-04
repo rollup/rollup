@@ -4,9 +4,6 @@ import { RESERVED_NAMES } from '../../utils/reservedNames';
 import ExportDefaultVariable from './ExportDefaultVariable';
 import Variable from './Variable';
 
-// TODO Lukas for circular dependency-aware imports, we need to put
-//  a property not on the base/original variable but the used variable,
-//  indicating from where the base variable should be imported
 export default class SyntheticNamedExportVariable extends Variable {
 	context: AstContext;
 	module: Module;

@@ -214,10 +214,12 @@ function getAndExtendSideEffectModules(variable: Variable, module: Module): Set<
 }
 
 export default class Module {
+	alternativeReexportModules = new Map<Variable, Module>();
 	ast: Program | null = null;
 	chunkFileNames = new Set<string>();
 	chunkName: string | null = null;
 	comments: CommentDescription[] = [];
+	cycles = new Set<Symbol>();
 	dependencies = new Set<Module | ExternalModule>();
 	dynamicDependencies = new Set<Module | ExternalModule>();
 	dynamicImporters: string[] = [];
@@ -366,7 +368,7 @@ export default class Module {
 		const necessaryDependencies = new Set<Module | ExternalModule>();
 		const alwaysCheckedDependencies = new Set<Module>();
 
-		let dependencyVariables = this.imports;
+		let dependencyVariables: Set<Variable> | IterableIterator<Variable> = this.imports.keys();
 		if (
 			this.info.isEntry ||
 			this.includedDynamicImporters.length > 0 ||
@@ -511,7 +513,7 @@ export default class Module {
 		// export { foo } from './other'
 		const reexportDeclaration = this.reexportDescriptions[name];
 		if (reexportDeclaration) {
-			const declaration = getVariableForExportNameRecursive(
+			const variable = getVariableForExportNameRecursive(
 				reexportDeclaration.module,
 				reexportDeclaration.localName,
 				importerForSideEffects,
@@ -519,14 +521,16 @@ export default class Module {
 				searchedNamesAndModules
 			);
 
-			if (!declaration) {
+			if (!variable) {
 				return this.error(
 					errMissingExport(reexportDeclaration.localName, this.id, reexportDeclaration.module.id),
 					reexportDeclaration.start
 				);
 			}
-
-			return declaration;
+			if (importerForSideEffects) {
+				setAlternativeExporterIfCyclic(variable, importerForSideEffects, this);
+			}
+			return variable;
 		}
 
 		const exportDeclaration = this.exports[name];
@@ -542,6 +546,7 @@ export default class Module {
 					variable,
 					() => new Set()
 				).add(this);
+				setAlternativeExporterIfCyclic(variable, importerForSideEffects, this);
 			}
 			return variable;
 		}
@@ -1075,5 +1080,23 @@ export default class Module {
 			message: `Missing export "${name}" has been shimmed in module ${relativeId(this.id)}.`
 		});
 		this.exports[name] = MISSING_EXPORT_SHIM_DESCRIPTION;
+	}
+}
+
+// if there is a cyclic import in the reexport chain, we should not
+// import from the original module but from the cyclic module to not
+// mess up execution order.
+function setAlternativeExporterIfCyclic(variable: Variable, importer: Module, reexporter: Module) {
+	if (variable.module instanceof Module && variable.module !== reexporter) {
+		const exporterCycles = variable.module.cycles;
+		if (exporterCycles.size > 0) {
+			const importerCycles = reexporter.cycles;
+			for (const cycleSymbol of importerCycles) {
+				if (exporterCycles.has(cycleSymbol)) {
+					importer.alternativeReexportModules.set(variable, reexporter);
+					break;
+				}
+			}
+		}
 	}
 }

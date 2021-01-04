@@ -30,6 +30,7 @@ import { collapseSourcemaps } from './utils/collapseSourcemaps';
 import { createHash } from './utils/crypto';
 import { deconflictChunk, DependenciesToBeDeconflicted } from './utils/deconflictChunk';
 import {
+	errCyclicCrossChunkReexport,
 	errFailedValidation,
 	error,
 	errUnexpectedNamedImport,
@@ -355,7 +356,6 @@ export default class Chunk {
 					this.facadeChunkByModule.set(module, this);
 					if (module.preserveSignature) {
 						this.strictFacade = needsStrictFacade;
-						this.ensureReexportsAreAvailableForModule(module);
 					}
 					this.assignFacadeName(requiredFacades.shift()!, module);
 				}
@@ -817,6 +817,31 @@ export default class Chunk {
 		}
 	}
 
+	private checkCircularDependencyImport(variable: Variable, importingModule: Module) {
+		const variableModule = variable.module;
+		if (variableModule instanceof Module) {
+			const exportChunk = this.chunkByModule.get(variableModule);
+			let alternativeReexportModule;
+			do {
+				alternativeReexportModule = importingModule.alternativeReexportModules.get(variable);
+				if (alternativeReexportModule) {
+					const exportingChunk = this.chunkByModule.get(alternativeReexportModule);
+					if (exportingChunk && exportingChunk !== exportChunk) {
+						this.inputOptions.onwarn(
+							errCyclicCrossChunkReexport(
+								variableModule.getExportNamesByVariable().get(variable)![0],
+								variableModule.id,
+								alternativeReexportModule.id,
+								importingModule.id
+							)
+						);
+					}
+					importingModule = alternativeReexportModule;
+				}
+			} while (alternativeReexportModule);
+		}
+	}
+
 	private computeContentHashWithDependencies(
 		addons: Addons,
 		options: NormalizedOutputOptions,
@@ -851,6 +876,7 @@ export default class Chunk {
 				? (exportedVariable as SyntheticNamedExportVariable).getBaseVariable()
 				: exportedVariable;
 			if (!(importedVariable instanceof NamespaceVariable && this.outputOptions.preserveModules)) {
+				this.checkCircularDependencyImport(importedVariable, module);
 				const exportingModule = importedVariable.module;
 				if (exportingModule instanceof Module) {
 					const chunk = this.chunkByModule.get(exportingModule);
@@ -1309,6 +1335,7 @@ export default class Chunk {
 					variable.module instanceof Module
 				) {
 					chunk!.exports.add(variable);
+					this.checkCircularDependencyImport(variable, module);
 				}
 			}
 		}

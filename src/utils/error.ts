@@ -46,6 +46,7 @@ export const enum Errors {
 	CANNOT_EMIT_FROM_OPTIONS_HOOK = 'CANNOT_EMIT_FROM_OPTIONS_HOOK',
 	CHUNK_NOT_GENERATED = 'CHUNK_NOT_GENERATED',
 	CIRCULAR_REEXPORT = 'CIRCULAR_REEXPORT',
+	CYCLIC_CROSS_CHUNK_REEXPORT = 'CYCLIC_CROSS_CHUNK_REEXPORT',
 	DEPRECATED_FEATURE = 'DEPRECATED_FEATURE',
 	EXTERNAL_SYNTHETIC_EXPORTS = 'EXTERNAL_SYNTHETIC_EXPORTS',
 	FILE_NAME_CONFLICT = 'FILE_NAME_CONFLICT',
@@ -99,6 +100,27 @@ export function errCircularReexport(exportName: string, importedModule: string) 
 		message: `"${exportName}" cannot be exported from ${relativeId(
 			importedModule
 		)} as it is a reexport that references itself.`
+	};
+}
+
+export function errCyclicCrossChunkReexport(
+	exportName: string,
+	exporter: string,
+	reexporter: string,
+	importer: string
+): RollupWarning {
+	return {
+		code: Errors.CYCLIC_CROSS_CHUNK_REEXPORT,
+		exporter,
+		importer,
+		message: `Export "${exportName}" of module ${relativeId(
+			exporter
+		)} was reexported through module ${relativeId(
+			reexporter
+		)} while both modules are dependencies of each other and will end up in different chunks by current Rollup settings. This scenario is not well supported at the moment as it will produce a circular dependency between chunks and will likely lead to broken execution order.\nEither change the import in ${relativeId(
+			importer
+		)} to point directly to the exporting module or do not use "preserveModules" to ensure these modules end up in the same chunk.`,
+		reexporter
 	};
 }
 
