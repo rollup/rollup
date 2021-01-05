@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.36.0
+*2021-01-05*
+
+### Features
+* Support partial tree-shaking of chained assignments and unused assignment targets (#3919)
+
+### Pull Requests
+* [#3919](https://github.com/rollup/rollup/pull/3919): Treeshake chained assignment expressions (@lukastaegert)
+
 ## 2.35.1
 *2020-12-14*
 
