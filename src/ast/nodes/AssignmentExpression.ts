@@ -5,7 +5,7 @@ import {
 	RenderOptions
 } from '../../utils/renderHelpers';
 import { getSystemExportFunctionLeft } from '../../utils/systemJsRendering';
-import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { createHasEffectsContext, HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
@@ -48,13 +48,27 @@ export default class AssignmentExpression extends NodeBase {
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
-		this.left.include(context, includeChildrenRecursively);
+		let hasEffectsContext;
+		if (
+			includeChildrenRecursively ||
+			this.operator !== '=' ||
+			this.left.included ||
+			((hasEffectsContext = createHasEffectsContext()),
+			this.left.hasEffects(hasEffectsContext) ||
+				this.left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, hasEffectsContext))
+		) {
+			this.left.include(context, includeChildrenRecursively);
+		}
 		this.right.include(context, includeChildrenRecursively);
 	}
 
 	render(code: MagicString, options: RenderOptions) {
-		this.left.render(code, options);
 		this.right.render(code, options);
+		if (this.left.included) {
+			this.left.render(code, options);
+		} else {
+			code.remove(this.start, this.right.start);
+		}
 		if (options.format === 'system') {
 			const exportNames =
 				this.left.variable && options.exportNamesByVariable.get(this.left.variable);

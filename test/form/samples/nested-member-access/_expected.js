@@ -6,9 +6,7 @@ const retainedResult2 = retained2.foo.bar;
 
 const retained3 = void {};
 const retainedResult3 = retained3.foo;
-
-let retained4a;
-const retained4b = retained4a = undefined;
+const retained4b = undefined;
 const retainedResult4 = retained4b.foo;
 
 const retained5 = 1 + 2;
