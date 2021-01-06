@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.36.1
+*2021-01-06*
+
+### Bug Fixes
+* Solve issues that result in invalid code when partially removing assignments (#3921)
+
+### Pull Requests
+* [#3921](https://github.com/rollup/rollup/pull/3921): Prevent invalid code when removing assignment target of side-effectful object expression (@lukastaegert)
+
 ## 2.36.0
 *2021-01-05*
 
