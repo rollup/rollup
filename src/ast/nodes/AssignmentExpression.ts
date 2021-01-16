@@ -76,7 +76,8 @@ export default class AssignmentExpression extends NodeBase {
 			this.right.render(code, options, {
 				renderedParentType: renderedParentType || this.parent.type
 			});
-			code.remove(this.start, this.right.start);
+			const operatorPos = findFirstOccurrenceOutsideComment(code.original, '=', this.left.end);
+			code.remove(this.start, findNonWhiteSpace(code.original, operatorPos + 1));
 		}
 		if (options.format === 'system') {
 			const exportNames =
