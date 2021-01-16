@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.36.2
+*2021-01-16*
+
+### Bug Fixes
+* Fix an issue where invalid code was generated for unused assignments with side effects (#3926)
+
+### Pull Requests
+* [#3926](https://github.com/rollup/rollup/pull/3926): Correctly simplify assignments with parentheses (@lukastaegert)
+
 ## 2.36.1
 *2021-01-06*
 
