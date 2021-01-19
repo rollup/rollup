@@ -1422,7 +1422,7 @@ console.log(42);
 
 You can also supply a list of modules with side effects or a function to determine it for each module individually. The value `"no-external"` will only remove external imports if possible and is equivalent to the function `(id, external) => !external`;
 
-If a module reexports a variable from another module, whether this module is scanned for side effects depends on how the variable is reexported:
+If a module that has this flag set to `false` reexports a variable from another module and this variable is used, the question if the reexporting module is scanned for side effects depends on how the variable is reexported:
 
 ```javascript
 // input file a.js
@@ -1438,6 +1438,7 @@ console.log('this side-effect is ignored');
 // indirect reexports will include side effects
 import {foo} from './d.js';
 foo.mutated = true;
+console.log('this side-effect and the mutation are retained');
 export {foo};
 
 // input file d.js
@@ -1449,6 +1450,7 @@ export const foo = 42;
 const foo = 42;
 
 foo.mutated = true;
+console.log('this side-effect and the mutation are retained');
 
 console.log(foo);
 ```
