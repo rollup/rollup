@@ -49,14 +49,7 @@ const moduleAliases = {
 	resolve: ['.js', '.json', '.md'],
 	entries: [
 		{ find: 'help.md', replacement: path.resolve('cli/help.md') },
-		{ find: 'package.json', replacement: path.resolve('package.json') },
-		{
-			find: 'acorn-numeric-separator',
-			replacement: path.join(
-				__dirname,
-				'node_modules/acorn-numeric-separator/dist/acorn-numeric-separator.js'
-			)
-		}
+		{ find: 'package.json', replacement: path.resolve('package.json') }
 	]
 };
 

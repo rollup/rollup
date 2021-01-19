@@ -8,9 +8,7 @@ module.exports = {
 		input: ['src/under-build.js', 'src/below/module.js'],
 		plugins: [
 			resolve({
-				customResolveOptions: {
-					moduleDirectory: ['custom_modules']
-				}
+				moduleDirectories: ['custom_modules']
 			}),
 			commonjs()
 		],
