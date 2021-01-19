@@ -1,7 +1,9 @@
 import MagicString from 'magic-string';
+import { BLANK } from '../../utils/blank';
 import {
 	findFirstOccurrenceOutsideComment,
 	findNonWhiteSpace,
+	NodeRenderOptions,
 	RenderOptions
 } from '../../utils/renderHelpers';
 import { getSystemExportFunctionLeft } from '../../utils/systemJsRendering';
@@ -62,12 +64,20 @@ export default class AssignmentExpression extends NodeBase {
 		this.right.include(context, includeChildrenRecursively);
 	}
 
-	render(code: MagicString, options: RenderOptions) {
-		this.right.render(code, options);
+	render(
+		code: MagicString,
+		options: RenderOptions,
+		{ renderedParentType }: NodeRenderOptions = BLANK
+	) {
 		if (this.left.included) {
 			this.left.render(code, options);
+			this.right.render(code, options);
 		} else {
-			code.remove(this.start, this.right.start);
+			this.right.render(code, options, {
+				renderedParentType: renderedParentType || this.parent.type
+			});
+			const operatorPos = findFirstOccurrenceOutsideComment(code.original, '=', this.left.end);
+			code.remove(this.start, findNonWhiteSpace(code.original, operatorPos + 1));
 		}
 		if (options.format === 'system') {
 			const exportNames =

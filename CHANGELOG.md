@@ -1,5 +1,23 @@
 # rollup changelog
 
+## 2.36.2
+*2021-01-16*
+
+### Bug Fixes
+* Fix an issue where invalid code was generated for unused assignments with side effects (#3926)
+
+### Pull Requests
+* [#3926](https://github.com/rollup/rollup/pull/3926): Correctly simplify assignments with parentheses (@lukastaegert)
+
+## 2.36.1
+*2021-01-06*
+
+### Bug Fixes
+* Solve issues that result in invalid code when partially removing assignments (#3921)
+
+### Pull Requests
+* [#3921](https://github.com/rollup/rollup/pull/3921): Prevent invalid code when removing assignment target of side-effectful object expression (@lukastaegert)
+
 ## 2.36.0
 *2021-01-05*
 
