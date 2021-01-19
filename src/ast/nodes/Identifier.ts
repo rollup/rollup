@@ -132,7 +132,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		if (!this.included) {
 			this.included = true;
 			if (this.variable !== null) {
-				this.context.includeVariable(this.variable);
+				this.context.includeVariableInModule(this.variable);
 			}
 		}
 	}

@@ -1,7 +1,7 @@
 'use strict';
 
-require('./generated-chunk-b.js');
 require('./generated-chunk-c.js');
+require('./generated-chunk-b.js');
 
 console.log('dep1');
 

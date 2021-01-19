@@ -1,4 +1,4 @@
-define(['external', './commonjs'], function (external, commonjs) { 'use strict';
+define(['./commonjs', 'external'], function (commonjs, external) { 'use strict';
 
 	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 

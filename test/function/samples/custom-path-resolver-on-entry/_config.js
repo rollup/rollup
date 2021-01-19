@@ -17,7 +17,7 @@ module.exports = {
 					}
 
 					if (importer[0] === '@') {
-						return path.resolve(__dirname, importee) + '.js';
+						return path.join(__dirname, importee) + '.js';
 					}
 				},
 				load(moduleId) {

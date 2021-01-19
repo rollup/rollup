@@ -7,8 +7,8 @@ module.exports = {
 		plugins: [
 			{
 				resolveId(importee, importer) {
-					if (path.normalize(importee) === path.resolve(__dirname, 'main.js')) return importee;
-					if (importee === 'foo') return path.resolve(__dirname, 'bar.js');
+					if (path.normalize(importee) === path.join(__dirname, 'main.js')) return importee;
+					if (importee === 'foo') return path.join(__dirname, 'bar.js');
 
 					return false;
 				}

@@ -1,4 +1,4 @@
-import Module, { AstContext } from '../../Module';
+import { AstContext } from '../../Module';
 import ClassDeclaration from '../nodes/ClassDeclaration';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from '../nodes/FunctionDeclaration';
@@ -10,12 +10,8 @@ import Variable from './Variable';
 export default class ExportDefaultVariable extends LocalVariable {
 	hasId = false;
 
-	// Not initialised during construction
 	private originalId: IdentifierWithVariable | null = null;
-	private originalVariableAndDeclarationModules: {
-		modules: Module[];
-		original: Variable;
-	} | null = null;
+	private originalVariable: Variable | null = null;
 
 	constructor(
 		name: string,
@@ -54,6 +50,17 @@ export default class ExportDefaultVariable extends LocalVariable {
 		}
 	}
 
+	getDirectOriginalVariable(): Variable | null {
+		return this.originalId &&
+			(this.hasId ||
+				!(
+					this.originalId.variable.isReassigned ||
+					this.originalId.variable instanceof UndefinedVariable
+				))
+			? this.originalId.variable
+			: null;
+	}
+
 	getName() {
 		const original = this.getOriginalVariable();
 		if (original === this) {
@@ -64,34 +71,15 @@ export default class ExportDefaultVariable extends LocalVariable {
 	}
 
 	getOriginalVariable(): Variable {
-		return this.getOriginalVariableAndDeclarationModules().original;
-	}
-
-	getOriginalVariableAndDeclarationModules(): { modules: Module[]; original: Variable } {
-		if (this.originalVariableAndDeclarationModules === null) {
-			if (
-				!this.originalId ||
-				(!this.hasId &&
-					(this.originalId.variable.isReassigned ||
-						this.originalId.variable instanceof UndefinedVariable))
-			) {
-				this.originalVariableAndDeclarationModules = { modules: [], original: this };
-			} else {
-				const assignedOriginal = this.originalId.variable;
-				if (assignedOriginal instanceof ExportDefaultVariable) {
-					const { modules, original } = assignedOriginal.getOriginalVariableAndDeclarationModules();
-					this.originalVariableAndDeclarationModules = {
-						modules: modules.concat(this.module),
-						original
-					};
-				} else {
-					this.originalVariableAndDeclarationModules = {
-						modules: [this.module],
-						original: assignedOriginal
-					};
-				}
-			}
-		}
-		return this.originalVariableAndDeclarationModules;
+		if (this.originalVariable) return this.originalVariable;
+		let original: Variable | null = this;
+		let currentVariable: Variable;
+		const checkedVariables = new Set<Variable>();
+		do {
+			checkedVariables.add(original);
+			currentVariable = original;
+			original = (currentVariable as ExportDefaultVariable).getDirectOriginalVariable();
+		} while (original instanceof ExportDefaultVariable && !checkedVariables.has(original));
+		return (this.originalVariable = original || currentVariable);
 	}
 }

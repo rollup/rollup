@@ -45,8 +45,16 @@ import {
 	RollupWarning,
 	TransformModuleJSON
 } from './rollup/types';
-import { augmentCodeLocation, errNamespaceConflict, error, Errors } from './utils/error';
+import {
+	augmentCodeLocation,
+	errCircularReexport,
+	errMissingExport,
+	errNamespaceConflict,
+	error,
+	errSyntheticNamedExportsNeedNamespaceExport
+} from './utils/error';
 import { getId } from './utils/getId';
+import { getOrCreate } from './utils/getOrCreate';
 import { getOriginalLocation } from './utils/getOriginalLocation';
 import { makeLegal } from './utils/identifierHelpers';
 import { basename, extname } from './utils/path';
@@ -102,13 +110,13 @@ export interface AstContext {
 	importDescriptions: { [name: string]: ImportDescription };
 	includeAllExports: () => void;
 	includeDynamicImport: (node: ImportExpression) => void;
-	includeVariable: (variable: Variable) => void;
+	includeVariableInModule: (variable: Variable) => void;
 	magicString: MagicString;
 	module: Module; // not to be used for tree-shaking
 	moduleContext: string;
 	nodeConstructors: { [name: string]: typeof NodeBase };
 	options: NormalizedInputOptions;
-	traceExport: (name: string) => Variable;
+	traceExport: (name: string) => Variable | null;
 	traceVariable: (name: string) => Variable | null;
 	usesTopLevelAwait: boolean;
 	warn: (warning: RollupWarning, pos: number) => void;
@@ -143,24 +151,6 @@ function tryParse(
 	}
 }
 
-function handleMissingExport(
-	exportName: string,
-	importingModule: Module,
-	importedModule: string,
-	importerStart?: number
-): never {
-	return importingModule.error(
-		{
-			code: 'MISSING_EXPORT',
-			message: `'${exportName}' is not exported by ${relativeId(
-				importedModule
-			)}, imported by ${relativeId(importingModule.id)}`,
-			url: `https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module`
-		},
-		importerStart!
-	);
-}
-
 const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
 	identifier: null,
 	localName: MISSING_EXPORT_SHIM_VARIABLE
@@ -169,26 +159,67 @@ const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
 function getVariableForExportNameRecursive(
 	target: Module | ExternalModule,
 	name: string,
+	importerForSideEffects: Module | undefined,
 	isExportAllSearch: boolean,
 	searchedNamesAndModules = new Map<string, Set<Module | ExternalModule>>()
 ): Variable | null {
 	const searchedModules = searchedNamesAndModules.get(name);
 	if (searchedModules) {
 		if (searchedModules.has(target)) {
-			return null;
+			return isExportAllSearch ? null : error(errCircularReexport(name, target.id));
 		}
 		searchedModules.add(target);
 	} else {
 		searchedNamesAndModules.set(name, new Set([target]));
 	}
-	return target.getVariableForExportName(name, isExportAllSearch, searchedNamesAndModules);
+	return target.getVariableForExportName(
+		name,
+		importerForSideEffects,
+		isExportAllSearch,
+		searchedNamesAndModules
+	);
+}
+
+function getAndExtendSideEffectModules(variable: Variable, module: Module): Set<Module> {
+	const sideEffectModules = getOrCreate(
+		module.sideEffectDependenciesByVariable,
+		variable,
+		() => new Set()
+	);
+	let currentVariable: Variable | null = variable;
+	const referencedVariables = new Set([currentVariable]);
+	while (true) {
+		const importingModule = currentVariable.module! as Module;
+		currentVariable =
+			currentVariable instanceof ExportDefaultVariable
+				? currentVariable.getDirectOriginalVariable()
+				: currentVariable instanceof SyntheticNamedExportVariable
+				? currentVariable.syntheticNamespace
+				: null;
+		if (!currentVariable || referencedVariables.has(currentVariable)) {
+			break;
+		}
+		referencedVariables.add(variable);
+		sideEffectModules.add(importingModule);
+		const originalSideEffects = importingModule.sideEffectDependenciesByVariable.get(
+			currentVariable
+		);
+		if (originalSideEffects) {
+			for (const module of originalSideEffects) {
+				sideEffectModules.add(module);
+			}
+		}
+	}
+	return sideEffectModules;
 }
 
 export default class Module {
+	alternativeReexportModules = new Map<Variable, Module>();
 	ast: Program | null = null;
 	chunkFileNames = new Set<string>();
 	chunkName: string | null = null;
 	comments: CommentDescription[] = [];
+	cycles = new Set<Symbol>();
 	dependencies = new Set<Module | ExternalModule>();
 	dynamicDependencies = new Set<Module | ExternalModule>();
 	dynamicImporters: string[] = [];
@@ -219,6 +250,7 @@ export default class Module {
 	reexportDescriptions: { [name: string]: ReexportDescription } = Object.create(null);
 	resolvedIds!: ResolvedIdMap;
 	scope!: ModuleScope;
+	sideEffectDependenciesByVariable = new Map<Variable, Set<Module>>();
 	sourcemapChain!: DecodedSourceMapOrMissing[];
 	sources = new Set<string>();
 	transformFiles?: EmittedFile[];
@@ -333,9 +365,10 @@ export default class Module {
 	getDependenciesToBeIncluded(): Set<Module | ExternalModule> {
 		if (this.relevantDependencies) return this.relevantDependencies;
 		const relevantDependencies = new Set<Module | ExternalModule>();
-		const additionalSideEffectModules = new Set<Module>();
-		const possibleDependencies = new Set(this.dependencies);
-		let dependencyVariables = this.imports;
+		const necessaryDependencies = new Set<Module | ExternalModule>();
+		const alwaysCheckedDependencies = new Set<Module>();
+
+		let dependencyVariables: Set<Variable> | IterableIterator<Variable> = this.imports.keys();
 		if (
 			this.info.isEntry ||
 			this.includedDynamicImporters.length > 0 ||
@@ -344,45 +377,36 @@ export default class Module {
 		) {
 			dependencyVariables = new Set(dependencyVariables);
 			for (const exportName of [...this.getReexports(), ...this.getExports()]) {
-				dependencyVariables.add(this.getVariableForExportName(exportName));
+				dependencyVariables.add(this.getVariableForExportName(exportName)!);
 			}
 		}
 		for (let variable of dependencyVariables) {
+			const sideEffectDependencies = this.sideEffectDependenciesByVariable.get(variable);
+			if (sideEffectDependencies) {
+				for (const module of sideEffectDependencies) {
+					alwaysCheckedDependencies.add(module);
+				}
+			}
 			if (variable instanceof SyntheticNamedExportVariable) {
 				variable = variable.getBaseVariable();
 			} else if (variable instanceof ExportDefaultVariable) {
-				const { modules, original } = variable.getOriginalVariableAndDeclarationModules();
-				variable = original;
-				for (const module of modules) {
-					additionalSideEffectModules.add(module);
-					possibleDependencies.add(module);
-				}
+				variable = variable.getOriginalVariable();
 			}
-			relevantDependencies.add(variable.module!);
+			necessaryDependencies.add(variable.module!);
 		}
 		if (this.options.treeshake && this.info.hasModuleSideEffects !== 'no-treeshake') {
-			for (const dependency of possibleDependencies) {
-				if (
-					!(
-						dependency.info.hasModuleSideEffects ||
-						additionalSideEffectModules.has(dependency as Module)
-					) ||
-					relevantDependencies.has(dependency)
-				) {
-					continue;
-				}
-				if (dependency instanceof ExternalModule || dependency.hasEffects()) {
-					relevantDependencies.add(dependency);
-				} else {
-					for (const transitiveDependency of dependency.dependencies) {
-						possibleDependencies.add(transitiveDependency);
-					}
-				}
-			}
+			this.addRelevantSideEffectDependencies(
+				relevantDependencies,
+				necessaryDependencies,
+				alwaysCheckedDependencies
+			);
 		} else {
 			for (const dependency of this.dependencies) {
 				relevantDependencies.add(dependency);
 			}
+		}
+		for (const dependency of necessaryDependencies) {
+			relevantDependencies.add(dependency);
 		}
 		return (this.relevantDependencies = relevantDependencies);
 	}
@@ -462,31 +486,22 @@ export default class Module {
 			);
 		}
 		if (!this.syntheticNamespace) {
-			return error({
-				code: Errors.SYNTHETIC_NAMED_EXPORTS_NEED_NAMESPACE_EXPORT,
-				id: this.id,
-				message: `Module "${relativeId(
-					this.id
-				)}" that is marked with 'syntheticNamedExports: ${JSON.stringify(
-					this.info.syntheticNamedExports
-				)}' needs ${
-					typeof this.info.syntheticNamedExports === 'string' &&
-					this.info.syntheticNamedExports !== 'default'
-						? `an export named "${this.info.syntheticNamedExports}"`
-						: 'a default export'
-				}.`
-			});
+			return error(
+				errSyntheticNamedExportsNeedNamespaceExport(this.id, this.info.syntheticNamedExports)
+			);
 		}
 		return this.syntheticNamespace;
 	}
 
 	getVariableForExportName(
 		name: string,
+		importerForSideEffects?: Module,
 		isExportAllSearch?: boolean,
 		searchedNamesAndModules?: Map<string, Set<Module | ExternalModule>>
-	): Variable {
+	): Variable | null {
 		if (name[0] === '*') {
 			if (name.length === 1) {
+				// export * from './other'
 				return this.namespace;
 			} else {
 				// export * from 'external'
@@ -498,23 +513,24 @@ export default class Module {
 		// export { foo } from './other'
 		const reexportDeclaration = this.reexportDescriptions[name];
 		if (reexportDeclaration) {
-			const declaration = getVariableForExportNameRecursive(
+			const variable = getVariableForExportNameRecursive(
 				reexportDeclaration.module,
 				reexportDeclaration.localName,
+				importerForSideEffects,
 				false,
 				searchedNamesAndModules
 			);
 
-			if (!declaration) {
-				return handleMissingExport(
-					reexportDeclaration.localName,
-					this,
-					reexportDeclaration.module.id,
+			if (!variable) {
+				return this.error(
+					errMissingExport(reexportDeclaration.localName, this.id, reexportDeclaration.module.id),
 					reexportDeclaration.start
 				);
 			}
-
-			return declaration;
+			if (importerForSideEffects) {
+				setAlternativeExporterIfCyclic(variable, importerForSideEffects, this);
+			}
+			return variable;
 		}
 
 		const exportDeclaration = this.exports[name];
@@ -523,7 +539,16 @@ export default class Module {
 				return this.exportShimVariable;
 			}
 			const name = exportDeclaration.localName;
-			return this.traceVariable(name)!;
+			const variable = this.traceVariable(name, importerForSideEffects)!;
+			if (importerForSideEffects) {
+				getOrCreate(
+					importerForSideEffects.sideEffectDependenciesByVariable,
+					variable,
+					() => new Set()
+				).add(this);
+				setAlternativeExporterIfCyclic(variable, importerForSideEffects, this);
+			}
+			return variable;
 		}
 
 		if (name !== 'default') {
@@ -532,6 +557,7 @@ export default class Module {
 				const declaration = getVariableForExportNameRecursive(
 					module,
 					name,
+					importerForSideEffects,
 					true,
 					searchedNamesAndModules
 				);
@@ -573,7 +599,7 @@ export default class Module {
 				return this.exportShimVariable;
 			}
 		}
-		return null as any;
+		return null;
 	}
 
 	hasEffects() {
@@ -596,21 +622,19 @@ export default class Module {
 
 		for (const exportName of this.getExports()) {
 			if (includeNamespaceMembers || exportName !== this.info.syntheticNamedExports) {
-				const variable = this.getVariableForExportName(exportName);
+				const variable = this.getVariableForExportName(exportName)!;
 				variable.deoptimizePath(UNKNOWN_PATH);
 				if (!variable.included) {
-					variable.include();
-					this.graph.needsTreeshakingPass = true;
+					this.includeVariable(variable);
 				}
 			}
 		}
 
 		for (const name of this.getReexports()) {
-			const variable = this.getVariableForExportName(name);
+			const variable = this.getVariableForExportName(name)!;
 			variable.deoptimizePath(UNKNOWN_PATH);
 			if (!variable.included) {
-				variable.include();
-				this.graph.needsTreeshakingPass = true;
+				this.includeVariable(variable);
 			}
 			if (variable instanceof ExternalVariable) {
 				variable.module.reexported = true;
@@ -738,7 +762,7 @@ export default class Module {
 			importDescriptions: this.importDescriptions,
 			includeAllExports: () => this.includeAllExports(true),
 			includeDynamicImport: this.includeDynamicImport.bind(this),
-			includeVariable: this.includeVariable.bind(this),
+			includeVariableInModule: this.includeVariableInModule.bind(this),
 			magicString: this.magicString,
 			module: this,
 			moduleContext: this.context,
@@ -778,7 +802,7 @@ export default class Module {
 		};
 	}
 
-	traceVariable(name: string): Variable | null {
+	traceVariable(name: string, importerForSideEffects?: Module): Variable | null {
 		const localVariable = this.scope.variables.get(name);
 		if (localVariable) {
 			return localVariable;
@@ -792,13 +816,14 @@ export default class Module {
 				return otherModule.namespace;
 			}
 
-			const declaration = otherModule.getVariableForExportName(importDeclaration.name);
+			const declaration = otherModule.getVariableForExportName(
+				importDeclaration.name,
+				importerForSideEffects || this
+			);
 
 			if (!declaration) {
-				return handleMissingExport(
-					importDeclaration.name,
-					this,
-					otherModule.id,
+				return this.error(
+					errMissingExport(importDeclaration.name, this.id, otherModule.id),
 					importDeclaration.start
 				);
 			}
@@ -971,6 +996,38 @@ export default class Module {
 		}
 	}
 
+	private addRelevantSideEffectDependencies(
+		relevantDependencies: Set<Module | ExternalModule>,
+		necessaryDependencies: Set<Module | ExternalModule>,
+		alwaysCheckedDependencies: Set<Module | ExternalModule>
+	) {
+		const handledDependencies = new Set<Module | ExternalModule>();
+
+		const addSideEffectDependencies = (possibleDependencies: Set<Module | ExternalModule>) => {
+			for (const dependency of possibleDependencies) {
+				if (handledDependencies.has(dependency)) {
+					continue;
+				}
+				handledDependencies.add(dependency);
+				if (necessaryDependencies.has(dependency)) {
+					relevantDependencies.add(dependency);
+					continue;
+				}
+				if (!(dependency.info.hasModuleSideEffects || alwaysCheckedDependencies.has(dependency))) {
+					continue;
+				}
+				if (dependency instanceof ExternalModule || dependency.hasEffects()) {
+					relevantDependencies.add(dependency);
+					continue;
+				}
+				addSideEffectDependencies(dependency.dependencies);
+			}
+		};
+
+		addSideEffectDependencies(this.dependencies);
+		addSideEffectDependencies(alwaysCheckedDependencies);
+	}
+
 	private includeAndGetAdditionalMergedNamespaces(): Variable[] {
 		const mergedNamespaces: Variable[] = [];
 		for (const module of this.exportAllModules) {
@@ -1000,11 +1057,27 @@ export default class Module {
 	}
 
 	private includeVariable(variable: Variable) {
-		const variableModule = variable.module;
 		if (!variable.included) {
 			variable.include();
 			this.graph.needsTreeshakingPass = true;
+			const variableModule = variable.module;
+			if (variableModule && variableModule !== this && variableModule instanceof Module) {
+				if (!variableModule.isExecuted) {
+					markModuleAndImpureDependenciesAsExecuted(variableModule);
+				}
+				const sideEffectModules = getAndExtendSideEffectModules(variable, this);
+				for (const module of sideEffectModules) {
+					if (!module.isExecuted) {
+						markModuleAndImpureDependenciesAsExecuted(module);
+					}
+				}
+			}
 		}
+	}
+
+	private includeVariableInModule(variable: Variable) {
+		this.includeVariable(variable);
+		const variableModule = variable.module;
 		if (variableModule && variableModule !== this) {
 			this.imports.add(variable);
 		}
@@ -1018,5 +1091,23 @@ export default class Module {
 			message: `Missing export "${name}" has been shimmed in module ${relativeId(this.id)}.`
 		});
 		this.exports[name] = MISSING_EXPORT_SHIM_DESCRIPTION;
+	}
+}
+
+// if there is a cyclic import in the reexport chain, we should not
+// import from the original module but from the cyclic module to not
+// mess up execution order.
+function setAlternativeExporterIfCyclic(variable: Variable, importer: Module, reexporter: Module) {
+	if (variable.module instanceof Module && variable.module !== reexporter) {
+		const exporterCycles = variable.module.cycles;
+		if (exporterCycles.size > 0) {
+			const importerCycles = reexporter.cycles;
+			for (const cycleSymbol of importerCycles) {
+				if (exporterCycles.has(cycleSymbol)) {
+					importer.alternativeReexportModules.set(variable, reexporter);
+					break;
+				}
+			}
+		}
 	}
 }

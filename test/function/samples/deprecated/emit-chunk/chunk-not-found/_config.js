@@ -14,6 +14,6 @@ module.exports = {
 	error: {
 		code: 'UNRESOLVED_ENTRY',
 		message: 'Could not resolve entry module (not-found.js).',
-		watchFiles: [path.resolve(__dirname, 'main.js')]
+		watchFiles: [path.join(__dirname, 'main.js')]
 	}
 };

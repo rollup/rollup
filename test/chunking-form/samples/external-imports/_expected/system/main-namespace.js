@@ -1,15 +1,15 @@
-System.register(['external-all', 'external-default-namespace', 'external-named-namespace', 'external-namespace'], function () {
+System.register(['external-all', 'external-namespace', 'external-default-namespace', 'external-named-namespace'], function () {
 	'use strict';
-	var foo, quux, quux$1, bar;
+	var foo, bar, quux, quux$1;
 	return {
 		setters: [function (module) {
 			foo = module;
 		}, function (module) {
+			bar = module;
+		}, function (module) {
 			quux = module;
 		}, function (module) {
 			quux$1 = module;
-		}, function (module) {
-			bar = module;
 		}],
 		execute: function () {
 

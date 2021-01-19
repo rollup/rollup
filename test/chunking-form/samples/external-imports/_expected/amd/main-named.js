@@ -1,4 +1,4 @@
-define(['external-all', 'external-default-named', 'external-named', 'external-named-namespace'], function (foo, baz, externalNamed, quux) { 'use strict';
+define(['external-all', 'external-named', 'external-default-named', 'external-named-namespace'], function (foo, externalNamed, baz, quux) { 'use strict';
 
 	console.log(foo.foo, externalNamed.bar, baz.baz, quux.quux);
 

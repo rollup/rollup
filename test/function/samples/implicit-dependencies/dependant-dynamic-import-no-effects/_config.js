@@ -19,9 +19,9 @@ module.exports = {
 		message:
 			'Module "dependant.js" that should be implicitly loaded before "dep.js" is not included in the module graph. Either it was not imported by an included module or only via a tree-shaken dynamic import, or no imported bindings were used and it had otherwise no side-effects.',
 		watchFiles: [
-			path.resolve(__dirname, 'dep.js'),
-			path.resolve(__dirname, 'main.js'),
-			path.resolve(__dirname, 'dependant.js')
+			path.join(__dirname, 'dep.js'),
+			path.join(__dirname, 'main.js'),
+			path.join(__dirname, 'dependant.js')
 		]
 	}
 };

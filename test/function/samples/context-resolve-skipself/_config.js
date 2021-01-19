@@ -15,7 +15,7 @@ module.exports = {
 				},
 				load(id) {
 					if (id === 'resolutions') {
-						const importer = path.resolve(__dirname, 'main.js');
+						const importer = path.join(__dirname, 'main.js');
 						return Promise.all([
 							this.resolve('test', importer).then(result => ({ id: result.id, text: 'all' })),
 							this.resolve('test', importer, { skipSelf: false }).then(result => ({

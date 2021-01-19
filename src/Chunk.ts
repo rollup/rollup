@@ -30,18 +30,19 @@ import { collapseSourcemaps } from './utils/collapseSourcemaps';
 import { createHash } from './utils/crypto';
 import { deconflictChunk, DependenciesToBeDeconflicted } from './utils/deconflictChunk';
 import {
+	errCyclicCrossChunkReexport,
 	errFailedValidation,
 	error,
 	errUnexpectedNamedImport,
 	errUnexpectedNamespaceReexport
 } from './utils/error';
 import { escapeId } from './utils/escapeId';
-import { sortByExecutionOrder } from './utils/executionOrder';
 import { assignExportsToMangledNames, assignExportsToNames } from './utils/exportNames';
 import getExportMode from './utils/getExportMode';
 import { getId } from './utils/getId';
 import getIndentString from './utils/getIndentString';
 import { getOrCreate } from './utils/getOrCreate';
+import { getStaticDependencies } from './utils/getStaticDependencies';
 import { makeLegal } from './utils/identifierHelpers';
 import {
 	defaultInteropHelpersByInteropType,
@@ -355,7 +356,6 @@ export default class Chunk {
 					this.facadeChunkByModule.set(module, this);
 					if (module.preserveSignature) {
 						this.strictFacade = needsStrictFacade;
-						this.ensureReexportsAreAvailableForModule(module);
 					}
 					this.assignFacadeName(requiredFacades.shift()!, module);
 				}
@@ -546,8 +546,8 @@ export default class Chunk {
 	}
 
 	link() {
+		this.dependencies = getStaticDependencies(this, this.orderedModules, this.chunkByModule);
 		for (const module of this.orderedModules) {
-			this.addDependenciesToChunk(module.getDependenciesToBeIncluded(), this.dependencies);
 			this.addDependenciesToChunk(module.dynamicDependencies, this.dynamicDependencies);
 			this.addDependenciesToChunk(module.implicitlyLoadedBefore, this.implicitlyLoadedBefore);
 			this.setUpChunkImportsAndExportsForModule(module);
@@ -585,9 +585,6 @@ export default class Chunk {
 				if (dep instanceof Chunk) this.inlineChunkDependencies(dep);
 			}
 		}
-		const sortedDependencies = [...this.dependencies];
-		sortByExecutionOrder(sortedDependencies);
-		this.dependencies = new Set(sortedDependencies);
 
 		this.prepareDynamicImportsAndImportMetas();
 		this.setIdentifierRenderResolutions(options);
@@ -820,6 +817,31 @@ export default class Chunk {
 		}
 	}
 
+	private checkCircularDependencyImport(variable: Variable, importingModule: Module) {
+		const variableModule = variable.module;
+		if (variableModule instanceof Module) {
+			const exportChunk = this.chunkByModule.get(variableModule);
+			let alternativeReexportModule;
+			do {
+				alternativeReexportModule = importingModule.alternativeReexportModules.get(variable);
+				if (alternativeReexportModule) {
+					const exportingChunk = this.chunkByModule.get(alternativeReexportModule);
+					if (exportingChunk && exportingChunk !== exportChunk) {
+						this.inputOptions.onwarn(
+							errCyclicCrossChunkReexport(
+								variableModule.getExportNamesByVariable().get(variable)![0],
+								variableModule.id,
+								alternativeReexportModule.id,
+								importingModule.id
+							)
+						);
+					}
+					importingModule = alternativeReexportModule;
+				}
+			} while (alternativeReexportModule);
+		}
+	}
+
 	private computeContentHashWithDependencies(
 		addons: Addons,
 		options: NormalizedOutputOptions,
@@ -854,6 +876,7 @@ export default class Chunk {
 				? (exportedVariable as SyntheticNamedExportVariable).getBaseVariable()
 				: exportedVariable;
 			if (!(importedVariable instanceof NamespaceVariable && this.outputOptions.preserveModules)) {
+				this.checkCircularDependencyImport(importedVariable, module);
 				const exportingModule = importedVariable.module;
 				if (exportingModule instanceof Module) {
 					const chunk = this.chunkByModule.get(exportingModule);
@@ -1312,6 +1335,7 @@ export default class Chunk {
 					variable.module instanceof Module
 				) {
 					chunk!.exports.add(variable);
+					this.checkCircularDependencyImport(variable, module);
 				}
 			}
 		}

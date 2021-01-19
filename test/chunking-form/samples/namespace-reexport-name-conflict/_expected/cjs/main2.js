@@ -1,7 +1,7 @@
 'use strict';
 
+require('./generated-index.js');
 var dep = require('./generated-dep.js');
 require('external');
-require('./generated-index.js');
 
 console.log(dep.reexported);

@@ -1,7 +1,7 @@
 'use strict';
 
-var external = require('external');
 var commonjs = require('./commonjs.js');
+var external = require('external');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 

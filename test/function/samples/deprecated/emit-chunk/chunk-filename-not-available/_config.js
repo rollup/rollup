@@ -20,6 +20,6 @@ module.exports = {
 			'Plugin error - Unable to get file name for chunk "chunk.js". Ensure that generate is called first.',
 		plugin: 'test-plugin',
 		pluginCode: 'CHUNK_NOT_GENERATED',
-		watchFiles: [path.resolve(__dirname, 'chunk.js')]
+		watchFiles: [path.join(__dirname, 'chunk.js')]
 	}
 };

@@ -5,7 +5,7 @@ const tests = [
 	{
 		source: './existing',
 		expected: {
-			id: path.resolve(__dirname, 'existing.js'),
+			id: path.join(__dirname, 'existing.js'),
 			external: false,
 			meta: {},
 			moduleSideEffects: true,
@@ -23,7 +23,7 @@ const tests = [
 	{
 		source: './marked-directly-external-relative',
 		expected: {
-			id: path.resolve(__dirname, 'marked-directly-external-relative'),
+			id: path.join(__dirname, 'marked-directly-external-relative'),
 			external: true,
 			meta: {},
 			moduleSideEffects: true,
@@ -33,7 +33,7 @@ const tests = [
 	{
 		source: './marked-external-relative',
 		expected: {
-			id: path.resolve(__dirname, 'marked-external-relative'),
+			id: path.join(__dirname, 'marked-external-relative'),
 			external: true,
 			meta: {},
 			moduleSideEffects: true,
@@ -108,7 +108,7 @@ module.exports = {
 		external: [
 			'marked-external-absolute',
 			'./marked-directly-external-relative',
-			path.resolve(__dirname, 'marked-external-relative')
+			path.join(__dirname, 'marked-external-relative')
 		],
 		plugins: [
 			{
@@ -121,7 +121,7 @@ module.exports = {
 					if (id === 'resolutions') {
 						return Promise.all(
 							tests.map(({ source, expected }) =>
-								this.resolve(source, path.resolve(__dirname, 'main.js')).then(resolution =>
+								this.resolve(source, path.join(__dirname, 'main.js')).then(resolution =>
 									assert.deepStrictEqual(resolution, expected)
 								)
 							)

@@ -1,4 +1,4 @@
-define(['./m2', './generated-m1'], function (m2, m1) { 'use strict';
+define(['./generated-m1', './m2'], function (m1, m2) { 'use strict';
 
 	console.log(m1.ms);
 

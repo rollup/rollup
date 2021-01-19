@@ -17,6 +17,6 @@ module.exports = {
 		message: 'Asset sources can only be set for emitted assets but "6c87f683" is an emitted chunk.',
 		plugin: 'test-plugin',
 		pluginCode: 'VALIDATION_ERROR',
-		watchFiles: [path.resolve(__dirname, 'chunk.js')]
+		watchFiles: [path.join(__dirname, 'chunk.js')]
 	}
 };

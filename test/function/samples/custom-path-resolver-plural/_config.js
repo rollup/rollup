@@ -8,7 +8,7 @@ module.exports = {
 			{
 				resolveId(importee) {
 					if (importee[0] === '@')
-						return path.resolve(__dirname, 'globals-' + importee.slice(1).toLowerCase() + '.js');
+						return path.join(__dirname, 'globals-' + importee.slice(1).toLowerCase() + '.js');
 				},
 				load(id) {
 					if (id === '<empty>') return '';

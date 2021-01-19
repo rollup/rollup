@@ -5,11 +5,11 @@ module.exports = {
 	error: {
 		code: 'ILLEGAL_REASSIGNMENT',
 		message: `Illegal reassignment to import 'a'`,
-		id: path.resolve(__dirname, 'main.js'),
+		id: path.join(__dirname, 'main.js'),
 		pos: 28,
-		watchFiles: [path.resolve(__dirname, 'main.js'), path.resolve(__dirname, 'foo.js')],
+		watchFiles: [path.join(__dirname, 'main.js'), path.join(__dirname, 'foo.js')],
 		loc: {
-			file: path.resolve(__dirname, 'main.js'),
+			file: path.join(__dirname, 'main.js'),
 			line: 3,
 			column: 0
 		},

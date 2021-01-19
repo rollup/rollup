@@ -5,7 +5,7 @@ module.exports = {
 	error: {
 		code: 'PARSE_ERROR',
 		message: `Duplicate export 'foo'`,
-		id: path.resolve(__dirname, 'foo.js'),
+		id: path.join(__dirname, 'foo.js'),
 		parserError: {
 			loc: {
 				column: 9,
@@ -16,9 +16,9 @@ module.exports = {
 			raisedAt: 43
 		},
 		pos: 38,
-		watchFiles: [path.resolve(__dirname, 'main.js'), path.resolve(__dirname, 'foo.js')],
+		watchFiles: [path.join(__dirname, 'main.js'), path.join(__dirname, 'foo.js')],
 		loc: {
-			file: path.resolve(__dirname, 'foo.js'),
+			file: path.join(__dirname, 'foo.js'),
 			line: 3,
 			column: 9
 		},

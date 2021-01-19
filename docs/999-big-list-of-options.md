@@ -402,7 +402,7 @@ Default: `"[name]-[hash].js"`
 The pattern to use for naming shared chunks created when code-splitting, or a function that is called per chunk to return such a pattern. Patterns support the following placeholders:
  * `[format]`: The rendering format defined in the output options, e.g. `es` or `cjs`.
  * `[hash]`: A hash based on the content of the chunk and the content of all its dependencies.
- * `[name]`: The name of the chunk. This can be explicitly set via the [`output.manualChunks`](guide/en/#outputmanualchunks) option or when the chunk is created by a plugin via [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string). Otherwise it will be derived from the chunk contents.
+ * `[name]`: The name of the chunk. This can be explicitly set via the [`output.manualChunks`](guide/en/#outputmanualchunks) option or when the chunk is created by a plugin via [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string). Otherwise, it will be derived from the chunk contents.
 
 Forward slashes `/` can be used to place files in sub-directories. When using a function, `chunkInfo` is a reduced version of the one in [`generateBundle`](guide/en/#generatebundle) without properties that depend on file names. See also [`output.assetFileNames`](guide/en/#outputassetfilenames), [`output.entryFileNames`](guide/en/#outputentryfilenames).
 
@@ -469,7 +469,7 @@ import('external2').then(console.log);
 
 Keep in mind that for Rollup, `import * as ext_namespace from 'external'; console.log(ext_namespace.bar);` is completely equivalent to `import {bar} from 'external'; console.log(bar);` and will produce the same code. In the example above however, the namespace object itself is passed to a global function as well, which means we need it as a properly formed object.
 
-- `"esModule"` assumes that required modules are transpiled ES modules where the required value corresponds to the module namespace and the default export is the `.default` property of the exported object:
+- `"esModule"` assumes that required modules are transpiled ES modules where the required value corresponds to the module namespace, and the default export is the `.default` property of the exported object:
 
   ```js
   var external = require('external1');
@@ -562,7 +562,7 @@ Keep in mind that for Rollup, `import * as ext_namespace from 'external'; consol
   ```
 
 - `"defaultOnly"` is similar to `"default"` except for the following:
-  * Named imports are forbidden. If such an import is encountered, Rollup throws an error even in `es` and `system` formats. That way it is ensure that the `es` version of the code is able to import non-builtin CommonJS modules in Node correctly.
+  * Named imports are forbidden. If such an import is encountered, Rollup throws an error even in `es` and `system` formats. That way it is ensures that the `es` version of the code is able to import non-builtin CommonJS modules in Node correctly.
   * While namespace reexports `export * from 'external';` are not prohibited, they are ignored and will cause Rollup to display a warning because they would not have an effect if there are no named exports.
   * When a namespace object is generated, Rollup uses a much simpler helper.
   
@@ -639,7 +639,7 @@ Type: `{ [chunkAlias: string]: string[] } | ((id: string, {getModuleInfo, getMod
 
 Allows the creation of custom shared common chunks. When using the object form, each property represents a chunk that contains the listed modules and all their dependencies if they are part of the module graph unless they are already in another manual chunk. The name of the chunk will be determined by the property key.
 
-Note that it is not necessary for the listed modules themselves to be be part of the module graph, which is useful if you are working with `@rollup/plugin-node-resolve` and use deep imports from packages. For instance
+Note that it is not necessary for the listed modules themselves to be part of the module graph, which is useful if you are working with `@rollup/plugin-node-resolve` and use deep imports from packages. For instance
 
 ```
 manualChunks: {
@@ -659,7 +659,7 @@ manualChunks(id) {
 }
 ```
 
-Be aware that manual chunks can change the behaviour of the application if side-effects are triggered before the corresponding modules are actually used.
+Be aware that manual chunks can change the behaviour of the application if side effects are triggered before the corresponding modules are actually used.
 
 When using the function form, `manualChunks` will be passed an object as second parameter containing the functions `getModuleInfo` and `getModuleIds` that work the same way as [`this.getModuleInfo`](guide/en/#thisgetmoduleinfomoduleid-string--moduleinfo--null) and [`this.getModuleIds`](guide/en/#thisgetmoduleids--iterableiteratorstring) on the plugin context.
 
@@ -814,7 +814,7 @@ Type: `boolean`<br>
 CLI: `--preserveModules`/`--no-preserveModules`<br>
 Default: `false`
 
-Instead of creating as few chunks as possible, this mode will create separate chunks for all modules using the original module names as file names. Requires the [`output.dir`](guide/en/#outputdir) option. Tree-shaking will still be applied, suppressing files that are not used by the provided entry points or do not have side-effects when executed. This mode can be used to transform a file structure to a different module format.
+Instead of creating as few chunks as possible, this mode will create separate chunks for all modules using the original module names as file names. Requires the [`output.dir`](guide/en/#outputdir) option. Tree-shaking will still be applied, suppressing files that are not used by the provided entry points or do not have side effects when executed. This mode can be used to transform a file structure to a different module format.
 
 Note that when transforming to `cjs` or `amd` format, each file will by default be treated as an entry point with [`output.exports`](guide/en/#outputexports) set to `auto`. This means that e.g. for `cjs`, a file that only contains a default export will be rendered as
 
@@ -1156,7 +1156,7 @@ What export mode to use. Defaults to `auto`, which guesses your intentions based
 * `named` – if you are using named exports
 * `none` – if you are not exporting anything (e.g. you are building an app, not a library)
 
-As this is only an output transformation, you can only choose `default` if there a default export is the only export for all entry chunks. Likewise, you can only choose `none` if there are no exports, otherwise Rollup will error.
+As this is only an output transformation, you can only choose `default` if a default export is the only export for all entry chunks. Likewise, you can only choose `none` if there are no exports, otherwise Rollup will throw an error.
 
 The difference between `default` and `named` affects how other people can consume your bundle. If you use `default`, a CommonJS user could do this, for example:
 
@@ -1356,7 +1356,7 @@ Type: `boolean`<br>
 CLI: `--treeshake.annotations`/`--no-treeshake.annotations`<br>
 Default: `true`
 
-If `false`, ignore hints from pure annotations, i.e. comments containing `@__PURE__` or `#__PURE__`, when determining side-effects of function calls and constructor invocations. These annotations need to immediately precede the call invocation to take effect. The following code will be completely removed unless this option is set to `false`, in which case it will remain unchanged.
+If `false`, ignore hints from pure annotations, i.e. comments containing `@__PURE__` or `#__PURE__`, when determining side effects of function calls and constructor invocations. These annotations need to immediately precede the call invocation to take effect. The following code will be completely removed unless this option is set to `false`, in which case it will remain unchanged.
 
 ```javascript
 /*@__PURE__*/console.log('side-effect');
@@ -1375,7 +1375,7 @@ Type: `boolean | "no-external" | string[] | (id: string, external: boolean) => b
 CLI: `--treeshake.moduleSideEffects`/`--no-treeshake.moduleSideEffects`/`--treeshake.moduleSideEffects no-external`<br>
 Default: `true`
 
-If `false`, assume modules and external dependencies from which nothing is imported do not have other side-effects like mutating global variables or logging without checking. For external dependencies, this will suppress empty imports:
+If `false`, assume modules and external dependencies from which nothing is imported do not have other side effects like mutating global variables or logging without checking. For external dependencies, this will suppress empty imports:
 
 ```javascript
 // input file
@@ -1405,6 +1405,7 @@ console.log(42);
 
 // input file b.js
 console.log('side-effect');
+const ignored = 'will still be removed';
 ```
 
 ```javascript
@@ -1419,14 +1420,49 @@ console.log(42);
 console.log(42);
 ```
 
-You can also supply a list of modules with side-effects or a function to determine it for each module individually. The value `"no-external"` will only remove external imports if possible and is equivalent to the function `(id, external) => !external`;
+You can also supply a list of modules with side effects or a function to determine it for each module individually. The value `"no-external"` will only remove external imports if possible and is equivalent to the function `(id, external) => !external`;
+
+If a module that has this flag set to `false` reexports a variable from another module and this variable is used, the question if the reexporting module is scanned for side effects depends on how the variable is reexported:
+
+```javascript
+// input file a.js
+import {foo} from './b.js';
+console.log(foo);
+
+// input file b.js
+// direct reexports will ignore side effects
+export {foo} from './c.js';
+console.log('this side-effect is ignored');
+
+// input file c.js
+// indirect reexports will include side effects
+import {foo} from './d.js';
+foo.mutated = true;
+console.log('this side-effect and the mutation are retained');
+export {foo};
+
+// input file d.js
+export const foo = 42;
+```
+
+```javascript
+// output with treeshake.moduleSideEffects === false
+const foo = 42;
+
+foo.mutated = true;
+console.log('this side-effect and the mutation are retained');
+
+console.log(foo);
+```
+
+Note that despite the name, this option does not "add" side effects to modules that do not have side effects. If it is important that e.g. an empty module is "included" in the bundle because you need this for dependency tracking, the plugin interface allows you to designate modules as being excluded from tree-shaking via the [`resolveId`](guide/en/#resolveid), [`load`](guide/en/#load) or [`transform`](guide/en/#transform) hook.
 
 **treeshake.propertyReadSideEffects**
 Type: `boolean`<br>
 CLI: `--treeshake.propertyReadSideEffects`/`--no-treeshake.propertyReadSideEffects`<br>
 Default: `true`
 
-If `false`, assume reading a property of an object never has side-effects. Depending on your code, disabling this option can significantly reduce bundle size but can potentially break functionality if you rely on getters or errors from illegal property access.
+If `false`, assume reading a property of an object never has side effects. Depending on your code, disabling this option can significantly reduce bundle size but can potentially break functionality if you rely on getters or errors from illegal property access.
 
 ```javascript
 // Will be removed if treeshake.propertyReadSideEffects === false
@@ -1532,7 +1568,7 @@ Whether to collect performance timings. When used from the command line or a con
 }
 ```
 
-For each key, the first number represents the elapsed time while the second represents the change in memory consumption and the third represents the total memory consumption after this step. The order of these steps is the order used by `Object.keys`. Top level keys start with `#` and contain the timings of nested steps, i.e. in the example above, the 698ms of the `# BUILD` step include the 538ms of the `## parse modules` step.
+For each key, the first number represents the elapsed time while the second represents the change in memory consumption, and the third represents the total memory consumption after this step. The order of these steps is the order used by `Object.keys`. Top level keys start with `#` and contain the timings of nested steps, i.e. in the example above, the 698ms of the `# BUILD` step include the 538ms of the `## parse modules` step.
 
 ### Watch options
 
@@ -1563,7 +1599,7 @@ Type: `number`<br>
 CLI: `--watch.buildDelay <number>`<br>
 Default: `0`
 
-Configures how long Rollup will wait for further changes until it triggers a rebuild in milliseconds. By default, Rollup does not wait but there is a small debounce timeout configured in the chokidar instance. Setting this to a value greater than `0` will mean that Rollup will only triger a rebuild if there was no change for the configured number of milliseconds. If several configurations are watched, Rollup will use the largest configured build delay.
+Configures how long Rollup will wait for further changes until it triggers a rebuild in milliseconds. By default, Rollup does not wait but there is a small debounce timeout configured in the chokidar instance. Setting this to a value greater than `0` will mean that Rollup will only trigger a rebuild if there was no change for the configured number of milliseconds. If several configurations are watched, Rollup will use the largest configured build delay.
 
 #### watch.chokidar
 Type: `ChokidarOptions`<br>
@@ -1597,7 +1633,7 @@ export default {
 Type: `string | RegExp | (string | RegExp)[]`<br>
 CLI: `--watch.include <files>`
 
-Limit the file-watching to certain files. Note that this only filters the module graph but does not allow to add additional watch files:
+Limit the file-watching to certain files. Note that this only filters the module graph but does not allow adding additional watch files:
 
 ```js
 // rollup.config.js
@@ -1643,7 +1679,7 @@ Type: `boolean | string[] | (id: string) => boolean | null`<br>
 CLI: `--treeshake.pureExternalModules`/`--no-treeshake.pureExternalModules`<br>
 Default: `false`
 
-If `true`, assume external dependencies from which nothing is imported do not have other side-effects like mutating global variables or logging.
+If `true`, assume external dependencies from which nothing is imported do not have other side effects like mutating global variables or logging.
 
 ```javascript
 // input file

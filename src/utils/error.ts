@@ -36,7 +36,7 @@ export function augmentCodeLocation(
 	}
 }
 
-export enum Errors {
+export const enum Errors {
 	ALREADY_CLOSED = 'ALREADY_CLOSED',
 	ASSET_NOT_FINALISED = 'ASSET_NOT_FINALISED',
 	ASSET_NOT_FOUND = 'ASSET_NOT_FOUND',
@@ -45,6 +45,8 @@ export enum Errors {
 	BAD_LOADER = 'BAD_LOADER',
 	CANNOT_EMIT_FROM_OPTIONS_HOOK = 'CANNOT_EMIT_FROM_OPTIONS_HOOK',
 	CHUNK_NOT_GENERATED = 'CHUNK_NOT_GENERATED',
+	CIRCULAR_REEXPORT = 'CIRCULAR_REEXPORT',
+	CYCLIC_CROSS_CHUNK_REEXPORT = 'CYCLIC_CROSS_CHUNK_REEXPORT',
 	DEPRECATED_FEATURE = 'DEPRECATED_FEATURE',
 	EXTERNAL_SYNTHETIC_EXPORTS = 'EXTERNAL_SYNTHETIC_EXPORTS',
 	FILE_NAME_CONFLICT = 'FILE_NAME_CONFLICT',
@@ -56,6 +58,7 @@ export enum Errors {
 	INVALID_OPTION = 'INVALID_OPTION',
 	INVALID_PLUGIN_HOOK = 'INVALID_PLUGIN_HOOK',
 	INVALID_ROLLUP_PHASE = 'INVALID_ROLLUP_PHASE',
+	MISSING_EXPORT = 'MISSING_EXPORT',
 	MISSING_IMPLICIT_DEPENDANT = 'MISSING_IMPLICIT_DEPENDANT',
 	MIXED_EXPORTS = 'MIXED_EXPORTS',
 	NAMESPACE_CONFLICT = 'NAMESPACE_CONFLICT',
@@ -87,6 +90,37 @@ export function errChunkNotGeneratedForFileName(name: string) {
 	return {
 		code: Errors.CHUNK_NOT_GENERATED,
 		message: `Plugin error - Unable to get file name for chunk "${name}". Ensure that generate is called first.`
+	};
+}
+
+export function errCircularReexport(exportName: string, importedModule: string) {
+	return {
+		code: Errors.CIRCULAR_REEXPORT,
+		id: importedModule,
+		message: `"${exportName}" cannot be exported from ${relativeId(
+			importedModule
+		)} as it is a reexport that references itself.`
+	};
+}
+
+export function errCyclicCrossChunkReexport(
+	exportName: string,
+	exporter: string,
+	reexporter: string,
+	importer: string
+): RollupWarning {
+	return {
+		code: Errors.CYCLIC_CROSS_CHUNK_REEXPORT,
+		exporter,
+		importer,
+		message: `Export "${exportName}" of module ${relativeId(
+			exporter
+		)} was reexported through module ${relativeId(
+			reexporter
+		)} while both modules are dependencies of each other and will end up in different chunks by current Rollup settings. This scenario is not well supported at the moment as it will produce a circular dependency between chunks and will likely lead to broken execution order.\nEither change the import in ${relativeId(
+			importer
+		)} to point directly to the exporting module or do not use "preserveModules" to ensure these modules end up in the same chunk.`,
+		reexporter
 	};
 }
 
@@ -212,6 +246,20 @@ export function errInvalidRollupPhaseForChunkEmission() {
 	};
 }
 
+export function errMissingExport(
+	exportName: string,
+	importingModule: string,
+	importedModule: string
+) {
+	return {
+		code: Errors.MISSING_EXPORT,
+		message: `'${exportName}' is not exported by ${relativeId(
+			importedModule
+		)}, imported by ${relativeId(importingModule)}`,
+		url: `https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module`
+	};
+}
+
 export function errImplicitDependantCannotBeExternal(
 	unresolvedId: string,
 	implicitlyLoadedBefore: string
@@ -303,6 +351,25 @@ export function errPreferNamedExports(facadeModuleId: string) {
 		id: facadeModuleId,
 		message: `Entry module "${file}" is implicitly using "default" export mode, which means for CommonJS output that its default export is assigned to "module.exports". For many tools, such CommonJS output will not be interchangeable with the original ES module. If this is intended, explicitly set "output.exports" to either "auto" or "default", otherwise you might want to consider changing the signature of "${file}" to use named exports only.`,
 		url: `https://rollupjs.org/guide/en/#outputexports`
+	};
+}
+
+export function errSyntheticNamedExportsNeedNamespaceExport(
+	id: string,
+	syntheticNamedExportsOption: boolean | string
+) {
+	return {
+		code: Errors.SYNTHETIC_NAMED_EXPORTS_NEED_NAMESPACE_EXPORT,
+		id,
+		message: `Module "${relativeId(
+			id
+		)}" that is marked with 'syntheticNamedExports: ${JSON.stringify(
+			syntheticNamedExportsOption
+		)}' needs ${
+			typeof syntheticNamedExportsOption === 'string' && syntheticNamedExportsOption !== 'default'
+				? `an export named "${syntheticNamedExportsOption}"`
+				: 'a default export'
+		} that does not reexport an unresolved named export of the same module.`
 	};
 }
 

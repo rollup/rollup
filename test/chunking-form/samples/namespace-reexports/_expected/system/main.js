@@ -1,11 +1,11 @@
-System.register(['./hsl2hsv.js', './generated-index.js'], function (exports) {
+System.register(['./generated-index.js', './hsl2hsv.js'], function (exports) {
 	'use strict';
-	var p, lib;
+	var lib, p;
 	return {
 		setters: [function (module) {
-			p = module.p;
-		}, function (module) {
 			lib = module.l;
+		}, function (module) {
+			p = module.p;
 		}],
 		execute: function () {
 

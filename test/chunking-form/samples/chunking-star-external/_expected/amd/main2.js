@@ -1,4 +1,4 @@
-define(['exports', 'starexternal2', 'external2', './generated-dep'], function (exports, starexternal2, external2, dep) { 'use strict';
+define(['exports', './generated-dep', 'external2', 'starexternal2'], function (exports, dep, external2, starexternal2) { 'use strict';
 
 	var main = '2';
 
@@ -10,13 +10,13 @@ define(['exports', 'starexternal2', 'external2', './generated-dep'], function (e
 			}
 		});
 	});
+	exports.dep = dep.dep;
 	Object.defineProperty(exports, 'e', {
 		enumerable: true,
 		get: function () {
 			return external2.e;
 		}
 	});
-	exports.dep = dep.dep;
 	exports.main = main;
 
 	Object.defineProperty(exports, '__esModule', { value: true });

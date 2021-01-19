@@ -1,6 +1,9 @@
 const assert = require('assert');
 const path = require('path');
 
+const ID_MAIN = path.join(__dirname, 'main.js');
+const ID_DEP1 = path.join(__dirname, 'dep1.js');
+
 module.exports = {
 	description: 'handles circular reexports',
 	exports(exports) {
@@ -21,20 +24,20 @@ module.exports = {
 		},
 		{
 			code: 'NON_EXISTENT_EXPORT',
+			message: "Non-existent export 'doesNotExist' is imported from dep1.js",
+			name: 'doesNotExist',
+			source: ID_DEP1,
+			id: ID_MAIN,
+			pos: 17,
+			loc: {
+				file: ID_MAIN,
+				line: 1,
+				column: 17
+			},
 			frame: `
 1: import { exists, doesNotExist } from './dep1.js';
                     ^
-2: export { exists };`,
-			id: path.resolve(__dirname, 'main.js'),
-			loc: {
-				column: 17,
-				file: path.resolve(__dirname, 'main.js'),
-				line: 1
-			},
-			message: "Non-existent export 'doesNotExist' is imported from dep1.js",
-			name: 'doesNotExist',
-			pos: 17,
-			source: path.resolve(__dirname, 'dep1.js')
+2: export { exists };`
 		}
 	]
 };

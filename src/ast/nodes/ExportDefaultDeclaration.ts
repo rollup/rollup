@@ -52,7 +52,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		super.include(context, includeChildrenRecursively);
 		if (includeChildrenRecursively) {
-			this.context.includeVariable(this.variable);
+			this.context.includeVariableInModule(this.variable);
 		}
 	}
 

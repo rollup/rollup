@@ -1,5 +1,5 @@
-import './generated-chunk-b.js';
 import './generated-chunk-c.js';
+import './generated-chunk-b.js';
 
 console.log('dep1');
 

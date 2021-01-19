@@ -2,7 +2,7 @@ const assert = require('assert');
 const path = require('path');
 const { assertIncludes } = require('../../../utils.js');
 
-const ID_MAIN = path.resolve(__dirname, 'main.js');
+const ID_MAIN = path.join(__dirname, 'main.js');
 
 module.exports = {
 	description: 'warns for reassignments to namespace exports',

@@ -2,7 +2,7 @@ const assert = require('assert');
 const path = require('path');
 
 function getId(name) {
-	return path.resolve(__dirname, `${name}.js`);
+	return path.join(__dirname, `${name}.js`);
 }
 
 module.exports = {

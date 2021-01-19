@@ -5,21 +5,16 @@ module.exports = {
 	options: {
 		plugins: [
 			{
-				resolveId(id) {
-					if (id === './dep.js') {
-						return {
-							id,
-							syntheticNamedExports: true
-						};
-					}
+				transform() {
+					return { syntheticNamedExports: true };
 				}
 			}
 		]
 	},
 	error: {
 		code: 'SYNTHETIC_NAMED_EXPORTS_NEED_NAMESPACE_EXPORT',
-		id: './dep.js',
-		message: `Module "./dep.js" that is marked with 'syntheticNamedExports: true' needs a default export.`,
-		watchFiles: [path.resolve(__dirname, 'main.js'), './dep.js']
+		id: path.join(__dirname, 'dep.js'),
+		message: `Module "dep.js" that is marked with 'syntheticNamedExports: true' needs a default export that does not reexport an unresolved named export of the same module.`,
+		watchFiles: [path.join(__dirname, 'main.js'), path.join(__dirname, 'dep.js')]
 	}
 };

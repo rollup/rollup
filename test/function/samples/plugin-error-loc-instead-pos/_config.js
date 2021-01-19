@@ -17,10 +17,10 @@ module.exports = {
 		plugin: 'test',
 		message: 'nope',
 		hook: 'transform',
-		id: path.resolve(__dirname, 'main.js'),
-		watchFiles: [path.resolve(__dirname, 'main.js')],
+		id: path.join(__dirname, 'main.js'),
+		watchFiles: [path.join(__dirname, 'main.js')],
 		loc: {
-			file: path.resolve(__dirname, 'main.js'),
+			file: path.join(__dirname, 'main.js'),
 			line: 1,
 			column: 22
 		},

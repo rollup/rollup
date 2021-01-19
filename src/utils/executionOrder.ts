@@ -26,7 +26,7 @@ export function analyseModuleExecution(entryModules: Module[]) {
 			for (const dependency of module.dependencies) {
 				if (parents.has(dependency)) {
 					if (!analysedModules.has(dependency)) {
-						cyclePaths.push(getCyclePath(dependency, module, parents));
+						cyclePaths.push(getCyclePath(dependency as Module, module, parents));
 					}
 					continue;
 				}
@@ -66,13 +66,16 @@ export function analyseModuleExecution(entryModules: Module[]) {
 }
 
 function getCyclePath(
-	module: Module | ExternalModule,
+	module: Module,
 	parent: Module,
 	parents: Map<Module | ExternalModule, Module | null>
 ) {
+	const cycleSymbol = Symbol(module.id);
 	const path = [relativeId(module.id)];
 	let nextModule = parent;
+	module.cycles.add(cycleSymbol);
 	while (nextModule !== module) {
+		nextModule.cycles.add(cycleSymbol);
 		path.push(relativeId(nextModule.id));
 		nextModule = parents.get(nextModule)!;
 	}

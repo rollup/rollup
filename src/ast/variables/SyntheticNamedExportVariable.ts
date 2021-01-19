@@ -1,4 +1,5 @@
 import Module, { AstContext } from '../../Module';
+import { error, errSyntheticNamedExportsNeedNamespaceExport } from '../../utils/error';
 import { RESERVED_NAMES } from '../../utils/reservedNames';
 import ExportDefaultVariable from './ExportDefaultVariable';
 import Variable from './Variable';
@@ -8,6 +9,8 @@ export default class SyntheticNamedExportVariable extends Variable {
 	module: Module;
 	syntheticNamespace: Variable;
 
+	private baseVariable: Variable | null = null;
+
 	constructor(context: AstContext, name: string, syntheticNamespace: Variable) {
 		super(name);
 		this.context = context;
@@ -16,14 +19,32 @@ export default class SyntheticNamedExportVariable extends Variable {
 	}
 
 	getBaseVariable(): Variable {
+		if (this.baseVariable) return this.baseVariable;
 		let baseVariable = this.syntheticNamespace;
-		if (baseVariable instanceof ExportDefaultVariable) {
-			baseVariable = baseVariable.getOriginalVariable();
+		const checkedVariables = new Set<Variable>();
+		while (
+			baseVariable instanceof ExportDefaultVariable ||
+			baseVariable instanceof SyntheticNamedExportVariable
+		) {
+			checkedVariables.add(baseVariable);
+			if (baseVariable instanceof ExportDefaultVariable) {
+				const original = baseVariable.getOriginalVariable();
+				if (original === baseVariable) break;
+				baseVariable = original;
+			}
+			if (baseVariable instanceof SyntheticNamedExportVariable) {
+				baseVariable = baseVariable.syntheticNamespace;
+			}
+			if (checkedVariables.has(baseVariable)) {
+				return error(
+					errSyntheticNamedExportsNeedNamespaceExport(
+						this.module.id,
+						this.module.info.syntheticNamedExports
+					)
+				);
+			}
 		}
-		if (baseVariable instanceof SyntheticNamedExportVariable) {
-			baseVariable = baseVariable.getBaseVariable();
-		}
-		return baseVariable;
+		return (this.baseVariable = baseVariable);
 	}
 
 	getBaseVariableName(): string {
@@ -38,7 +59,7 @@ export default class SyntheticNamedExportVariable extends Variable {
 	include() {
 		if (!this.included) {
 			this.included = true;
-			this.context.includeVariable(this.syntheticNamespace);
+			this.context.includeVariableInModule(this.syntheticNamespace);
 		}
 	}
 
