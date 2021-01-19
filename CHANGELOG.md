@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 2.37.0
+*2021-01-19*
+
+### Features
+* Always check modules for side-effects that only indirectly reexport a used variable (#3840)
+* Warn if a circular dependency would cause wrong execution order when preserving modules (#3840)
+
+### Bug Fixes
+* Allow consuming synthetic exports via modules that reexport a namespace (#3894)
+* Do not crash for circular default reexports (#3840)
+* Do not crash for circular synthetic namespaces (#3840)
+* Improve circular dependency execution order in certain scenarios (#3840)
+
+### Pull Requests
+* [#3840](https://github.com/rollup/rollup/pull/3840): Improve circular dependency execution order (@lukastaegert)
+* [#3894](https://github.com/rollup/rollup/pull/3894): Always respect synthetic namespaces in namespace reexport (@lukastaegert)
+
 ## 2.36.2
 *2021-01-16*
 
