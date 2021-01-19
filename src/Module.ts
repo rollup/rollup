@@ -527,6 +527,7 @@ export default class Module {
 		}
 
 		if (name !== 'default') {
+			let foundSyntheticDeclaration: SyntheticNamedExportVariable | null = null;
 			for (const module of this.exportAllModules) {
 				const declaration = getVariableForExportNameRecursive(
 					module,
@@ -535,7 +536,17 @@ export default class Module {
 					searchedNamesAndModules
 				);
 
-				if (declaration) return declaration;
+				if (declaration) {
+					if (!(declaration instanceof SyntheticNamedExportVariable)) {
+						return declaration;
+					}
+					if (!foundSyntheticDeclaration) {
+						foundSyntheticDeclaration = declaration;
+					}
+				}
+			}
+			if (foundSyntheticDeclaration) {
+				return foundSyntheticDeclaration;
 			}
 		}
 
@@ -623,7 +634,7 @@ export default class Module {
 		this.addModulesToImportDescriptions(this.importDescriptions);
 		this.addModulesToImportDescriptions(this.reexportDescriptions);
 		for (const name in this.exports) {
-			if (name !== 'default') {
+			if (name !== 'default' && name !== this.info.syntheticNamedExports) {
 				this.exportsAll[name] = this.id;
 			}
 		}

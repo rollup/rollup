@@ -3,10 +3,8 @@ module.exports = {
 	options: {
 		plugins: [
 			{
-				transform(code, id) {
-					if (id.endsWith('synthetic.js')) {
-						return { syntheticNamedExports: '__synth' };
-					}
+				transform() {
+					return { syntheticNamedExports: '__synth' };
 				}
 			}
 		]
