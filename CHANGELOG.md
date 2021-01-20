@@ -1,10 +1,16 @@
 # rollup changelog
 
+## 2.37.1
+*2021-01-20*
+
+### Pull Requests
+* [#3929](https://github.com/rollup/rollup/pull/3929): Deduplicate acorn import (@lukastaegert)
+
 ## 2.37.0
 *2021-01-19*
 
 ### Features
-* Always check modules for side-effects that only indirectly reexport a used variable (#3840)
+* Always check modules for side effects that only indirectly reexport a used variable (#3840)
 * Warn if a circular dependency would cause wrong execution order when preserving modules (#3840)
 
 ### Bug Fixes
