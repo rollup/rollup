@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.38.0
+*2021-01-22*
+
+### Features
+* Entirely remove declared variables that only have an initializer side effect (#3933)
+
+### Pull Requests
+* [#3933](https://github.com/rollup/rollup/pull/3933): Tree-shake unused declarations while keeping initializer side-effects (@lukastaegert)
+
 ## 2.37.1
 *2021-01-20*
 
