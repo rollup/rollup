@@ -39,15 +39,12 @@ export default class VariableDeclarator extends NodeBase {
 		}
 	}
 
-	includeWithAllDeclaredVariables(
+	includeAllDeclaredVariables(
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren
 	): void {
 		this.included = true;
 		this.id.include(context, includeChildrenRecursively);
-		if (this.init) {
-			this.init.include(context, includeChildrenRecursively);
-		}
 	}
 
 	render(code: MagicString, options: RenderOptions) {

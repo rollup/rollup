@@ -68,14 +68,14 @@ export default class VariableDeclaration extends NodeBase {
 		}
 	}
 
-	includeWithAllDeclaredVariables(
+	includeAllDeclaredVariables(
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren
 	): void {
 		this.included = true;
 		for (const declarator of this.declarations) {
 			declarator.id.included = true;
-			declarator.includeWithAllDeclaredVariables(context, includeChildrenRecursively);
+			declarator.includeAllDeclaredVariables(context, includeChildrenRecursively);
 		}
 	}
 
@@ -109,16 +109,13 @@ export default class VariableDeclaration extends NodeBase {
 		lastSeparatorPos: number | null,
 		actualContentEnd: number,
 		renderedContentEnd: number,
-		addSemicolon: boolean,
 		systemPatternExports: Variable[],
 		options: RenderOptions
 	): void {
 		if (code.original.charCodeAt(this.end - 1) === 59 /*";"*/) {
 			code.remove(this.end - 1, this.end);
 		}
-		if (addSemicolon) {
-			separatorString += ';';
-		}
+		separatorString += ';';
 		if (lastSeparatorPos !== null) {
 			if (
 				code.original.charCodeAt(actualContentEnd - 1) === 10 /*"\n"*/ &&
@@ -150,7 +147,7 @@ export default class VariableDeclaration extends NodeBase {
 	private renderReplacedDeclarations(
 		code: MagicString,
 		options: RenderOptions,
-		{ start = this.start, end = this.end, isNoStatement }: NodeRenderOptions
+		{ start = this.start, end = this.end }: NodeRenderOptions
 	): void {
 		const separatedNodes = getCommaSeparatedNodesWithBoundaries(
 			this.declarations,
@@ -248,7 +245,6 @@ export default class VariableDeclaration extends NodeBase {
 				lastSeparatorPos,
 				actualContentEnd!,
 				renderedContentEnd,
-				!isNoStatement,
 				systemPatternExports,
 				options
 			);

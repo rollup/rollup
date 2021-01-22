@@ -14,15 +14,16 @@ import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION } from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
+import { PatternNode } from './shared/Pattern';
 
-export default class Property extends NodeBase implements DeoptimizableEntity {
+export default class Property extends NodeBase implements DeoptimizableEntity, PatternNode {
 	computed!: boolean;
 	key!: ExpressionNode;
 	kind!: 'init' | 'get' | 'set';
 	method!: boolean;
 	shorthand!: boolean;
 	type!: NodeType.tProperty;
-	value!: ExpressionNode;
+	value!: ExpressionNode | (ExpressionNode & PatternNode);
 
 	private accessorCallOptions!: CallOptions;
 	private declarationInit: ExpressionEntity | null = null;
@@ -41,7 +42,7 @@ export default class Property extends NodeBase implements DeoptimizableEntity {
 
 	declare(kind: string, init: ExpressionEntity) {
 		this.declarationInit = init;
-		return this.value.declare(kind, UNKNOWN_EXPRESSION);
+		return (this.value as PatternNode).declare(kind, UNKNOWN_EXPRESSION);
 	}
 
 	// As getter properties directly receive their values from function expressions that always

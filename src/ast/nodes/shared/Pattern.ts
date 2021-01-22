@@ -1,7 +1,8 @@
 import { WritableEntity } from '../../Entity';
-import Variable from '../../variables/Variable';
+import LocalVariable from '../../variables/LocalVariable';
+import { ExpressionEntity } from './Expression';
 import { Node } from './Node';
 
 export interface PatternNode extends WritableEntity, Node {
-	addExportedVariables(variables: Variable[], exportNamesByVariable: Map<Variable, string[]>): void;
+	declare(kind: string, init: ExpressionEntity | null): LocalVariable[];
 }
