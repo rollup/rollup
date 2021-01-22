@@ -46,7 +46,9 @@ runTestSuiteWithSamples('sourcemaps', path.resolve(__dirname, 'samples'), (dir, 
 });
 
 async function generateAndTestBundle(bundle, outputOptions, config, format, warnings) {
-	await bundle.write(outputOptions);
+	if (outputOptions.file) {
+		await bundle.write(outputOptions);
+	}
 	if (config.warnings) {
 		compareWarnings(warnings, config.warnings);
 	} else if (warnings.length) {

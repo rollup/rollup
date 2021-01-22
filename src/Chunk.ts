@@ -754,7 +754,8 @@ export default class Chunk {
 			timeStart('sourcemap', 2);
 
 			let file: string;
-			if (options.file) file = resolve(options.sourcemapFile || options.file);
+			if (options.sourcemapFile) file = resolve(options.sourcemapFile);
+			else if (options.file) file = resolve(options.file);
 			else if (options.dir) file = resolve(options.dir, this.id);
 			else file = resolve(this.id);
 
