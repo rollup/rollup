@@ -11354,7 +11354,7 @@ _export({ target: 'AsyncIterator', proto: true, real: true }, {
 var IteratorPrototype$3 = iteratorsCore.IteratorPrototype;
 
 
-var ITERATOR$8 = wellKnownSymbol('iterator');
+wellKnownSymbol('iterator');
 var TO_STRING_TAG$6 = wellKnownSymbol('toStringTag');
 
 var NativeIterator = global$1.Iterator;
@@ -11999,7 +11999,7 @@ for (var COLLECTION_NAME in domIterables) {
   }
 }
 
-var ITERATOR$9 = wellKnownSymbol('iterator');
+var ITERATOR$8 = wellKnownSymbol('iterator');
 var TO_STRING_TAG$8 = wellKnownSymbol('toStringTag');
 var ArrayValues = es_array_iterator.values;
 
@@ -12008,10 +12008,10 @@ for (var COLLECTION_NAME$1 in domIterables) {
   var CollectionPrototype$1 = Collection$1 && Collection$1.prototype;
   if (CollectionPrototype$1) {
     // some Chrome versions have non-configurable methods on DOMTokenList
-    if (CollectionPrototype$1[ITERATOR$9] !== ArrayValues) try {
-      createNonEnumerableProperty(CollectionPrototype$1, ITERATOR$9, ArrayValues);
+    if (CollectionPrototype$1[ITERATOR$8] !== ArrayValues) try {
+      createNonEnumerableProperty(CollectionPrototype$1, ITERATOR$8, ArrayValues);
     } catch (error) {
-      CollectionPrototype$1[ITERATOR$9] = ArrayValues;
+      CollectionPrototype$1[ITERATOR$8] = ArrayValues;
     }
     if (!CollectionPrototype$1[TO_STRING_TAG$8]) {
       createNonEnumerableProperty(CollectionPrototype$1, TO_STRING_TAG$8, COLLECTION_NAME$1);

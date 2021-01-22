@@ -73,8 +73,8 @@ export interface Node extends Entity {
 	 * for for-loops that do not use a declared loop variable.
 	 */
 	includeWithAllDeclaredVariables(
-		includeChildrenRecursively: IncludeChildren,
-		context: InclusionContext
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
 	): void;
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void;
 
@@ -216,9 +216,9 @@ export class NodeBase implements ExpressionNode {
 	}
 
 	includeWithAllDeclaredVariables(
-		includeChildrenRecursively: IncludeChildren,
-		context: InclusionContext
-	) {
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		this.include(context, includeChildrenRecursively);
 	}
 

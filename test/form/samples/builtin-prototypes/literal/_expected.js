@@ -1,9 +1,9 @@
-const _replaceEffect = 'ab'.replace( 'a', () => console.log( 1 ) || 'b' );
+'ab'.replace( 'a', () => console.log( 1 ) || 'b' );
 
 // deep property access is forbidden
-const deepBoolean = true.x.y;
-const deepNumber = (1).x.y;
-const deepString = 'ab'.x.y;
+true.x.y;
+(1).x.y;
+'ab'.x.y;
 
 // due to strict mode, extension is forbidden
 true.x = 1;

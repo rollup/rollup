@@ -3,7 +3,7 @@ System.register('bundle', [], function (exports) {
 	return {
 		execute: function () {
 
-			const p1 = new Promise( () => {
+			new Promise( () => {
 				console.log( 'fire & forget' );
 			} );
 
@@ -14,7 +14,7 @@ System.register('bundle', [], function (exports) {
 			const p3 = new Promise( () => {
 				console.info( 'and me too' );
 			} );
-			const p5 = Promise.reject('should be kept for uncaught rejections');
+			Promise.reject('should be kept for uncaught rejections');
 			const allExported = exports('allExported', Promise.all([p2, p3]));
 
 		}

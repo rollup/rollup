@@ -11,7 +11,7 @@ function createCommonjsModule(fn) {
  * see https://github.com/es-shims/es5-shim/blob/master/LICENSE
  */
 
-var es5Shim = createCommonjsModule(function (module, exports) {
+createCommonjsModule(function (module, exports) {
 
 // UMD (Universal Module Definition)
 // see https://github.com/umdjs/umd/blob/master/templates/returnExports.js

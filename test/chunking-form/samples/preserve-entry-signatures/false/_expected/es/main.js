@@ -1,6 +1,6 @@
 const shared = 'shared';
 
-const dynamic = import('./generated-dynamic.js');
+import('./generated-dynamic.js');
 
 globalThis.sharedStatic = shared;
 

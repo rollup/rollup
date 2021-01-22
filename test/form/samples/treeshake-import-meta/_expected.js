@@ -1,1 +1,1 @@
-const retained = import.meta.a.b;
+import.meta.a.b;

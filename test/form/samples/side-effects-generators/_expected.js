@@ -3,7 +3,7 @@ function* sideEffectYield() {
 	yield 'no side-effect but must be included to ensure proper control flow';
 }
 
-const iterator2 = sideEffectYield();
+sideEffectYield();
 
 function* effectCallYield() {
 	const yieldedValue = yield;
@@ -21,4 +21,4 @@ function* sideEffectNestedYield() {
 	yield* sideEffectYield2();
 }
 
-const iterator4 = sideEffectNestedYield();
+sideEffectNestedYield();

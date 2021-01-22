@@ -1,5 +1,5 @@
 class GlobalSuper extends globalThis.UnknownClass {}
-const globalSuper = new GlobalSuper();
+new GlobalSuper();
 
 class SideEffectSuper extends (() => {
 	console.log( 'effect' );
@@ -13,14 +13,14 @@ class SuperConstructorEffect {
 	}
 }
 class SideEffectsSuperConstructor1 extends SuperConstructorEffect {}
-const sideEffectsSuperConstructor1 = new SideEffectsSuperConstructor1();
+new SideEffectsSuperConstructor1();
 
 class SideEffectsSuperConstructor2 extends SuperConstructorEffect {
 	constructor () {
 		super();
 	}
 }
-const sideEffectsSuperConstructor2 = new SideEffectsSuperConstructor2();
+new SideEffectsSuperConstructor2();
 
 class SuperMethodEffect {
 	effect () {
@@ -33,4 +33,4 @@ class SideEffectsSuperMethod extends SuperMethodEffect {
 		super.effect();
 	}
 }
-const sideEffectsSuperMethod = new SideEffectsSuperMethod();
+new SideEffectsSuperMethod();

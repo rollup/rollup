@@ -6,7 +6,7 @@ function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'defau
 
 var throttle__default = /*#__PURE__*/_interopDefaultLegacy(throttle);
 
-const fn = throttle__default['default']( () => {
+throttle__default['default']( () => {
 	console.log( '.' );
 }, 500 );
 

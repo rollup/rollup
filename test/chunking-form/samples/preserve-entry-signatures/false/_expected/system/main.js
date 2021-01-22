@@ -5,7 +5,7 @@ System.register([], function (exports, module) {
 
 			const shared = exports('s', 'shared');
 
-			const dynamic = module.import('./generated-dynamic.js');
+			module.import('./generated-dynamic.js');
 
 			globalThis.sharedStatic = shared;
 

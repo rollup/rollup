@@ -5,7 +5,7 @@ console.log(result1);
 
 let isSecondReassigned = false;
 
-const result2 = (foo(), reassign2() || foo());
+(foo(), reassign2() || foo());
 console.log(result1);
 
 function reassign2() {

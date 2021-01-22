@@ -22,4 +22,4 @@ function CallSelfWithoutNew () {
 		CallSelfWithoutNew();
 	}
 }
-const c = new CallSelfWithoutNew();
+new CallSelfWithoutNew();

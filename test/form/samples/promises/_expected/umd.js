@@ -4,7 +4,7 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.bundle = {}));
 }(this, (function (exports) { 'use strict';
 
-	const p1 = new Promise( () => {
+	new Promise( () => {
 		console.log( 'fire & forget' );
 	} );
 
@@ -15,7 +15,7 @@
 	const p3 = new Promise( () => {
 		console.info( 'and me too' );
 	} );
-	const p5 = Promise.reject('should be kept for uncaught rejections');
+	Promise.reject('should be kept for uncaught rejections');
 	const allExported = Promise.all([p2, p3]);
 
 	exports.allExported = allExported;
