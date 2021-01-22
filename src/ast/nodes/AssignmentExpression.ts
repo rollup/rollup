@@ -15,7 +15,7 @@ import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
 export default class AssignmentExpression extends NodeBase {
-	left!: PatternNode;
+	left!: ExpressionNode | PatternNode;
 	operator!:
 		| '='
 		| '+='

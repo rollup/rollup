@@ -15,7 +15,6 @@ import { getAndCreateKeys, keys } from '../../keys';
 import ChildScope from '../../scopes/ChildScope';
 import { ObjectPath, PathTracker } from '../../utils/PathTracker';
 import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../../values';
-import LocalVariable from '../../variables/LocalVariable';
 import Variable from '../../variables/Variable';
 import * as NodeType from '../NodeType';
 import SpreadElement from '../SpreadElement';
@@ -42,15 +41,12 @@ export interface Node extends Entity {
 	type: string;
 	variable?: Variable | null;
 
+	addExportedVariables(variables: Variable[], exportNamesByVariable: Map<Variable, string[]>): void;
+
 	/**
 	 * Called once all nodes have been initialised and the scopes have been populated.
 	 */
 	bind(): void;
-
-	/**
-	 * Declare a new variable with the optional initialisation.
-	 */
-	declare(kind: string, init: ExpressionEntity | null): LocalVariable[];
 
 	/**
 	 * Determine if this Node would have an effect on the bundle.
@@ -72,10 +68,11 @@ export interface Node extends Entity {
 	 * declarations to only include nodes for declarators that have an effect. Necessary
 	 * for for-loops that do not use a declared loop variable.
 	 */
-	includeWithAllDeclaredVariables(
-		includeChildrenRecursively: IncludeChildren,
-		context: InclusionContext
+	includeAllDeclaredVariables(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
 	): void;
+
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void;
 
 	/**
@@ -118,6 +115,11 @@ export class NodeBase implements ExpressionNode {
 		this.context.magicString.addSourcemapLocation(this.end);
 	}
 
+	addExportedVariables(
+		_variables: Variable[],
+		_exportNamesByVariable: Map<Variable, string[]>
+	): void {}
+
 	/**
 	 * Override this to bind assignments to variables and do any initialisations that
 	 * require the scopes to be populated with variables.
@@ -141,10 +143,6 @@ export class NodeBase implements ExpressionNode {
 	 */
 	createScope(parentScope: ChildScope) {
 		this.scope = parentScope;
-	}
-
-	declare(_kind: string, _init: ExpressionEntity | null): LocalVariable[] {
-		return [];
 	}
 
 	deoptimizePath(_path: ObjectPath) {}
@@ -209,17 +207,17 @@ export class NodeBase implements ExpressionNode {
 		}
 	}
 
+	includeAllDeclaredVariables(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
+		this.include(context, includeChildrenRecursively);
+	}
+
 	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
 			arg.include(context, false);
 		}
-	}
-
-	includeWithAllDeclaredVariables(
-		includeChildrenRecursively: IncludeChildren,
-		context: InclusionContext
-	) {
-		this.include(context, includeChildrenRecursively);
 	}
 
 	/**
@@ -274,10 +272,6 @@ export class NodeBase implements ExpressionNode {
 	shouldBeIncluded(context: InclusionContext): boolean {
 		return this.included || (!context.brokenFlow && this.hasEffects(createHasEffectsContext()));
 	}
-
-	toString() {
-		return this.context.code.slice(this.start, this.end);
-	}
 }
 
 export { NodeBase as StatementBase };
@@ -289,4 +283,8 @@ export function locateNode(node: Node) {
 	location.toString = () => JSON.stringify(location);
 
 	return location;
+}
+
+export function logNode(node: Node) {
+	console.log(node.context.code.slice(node.start, node.end));
 }

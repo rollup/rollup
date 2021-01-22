@@ -15,7 +15,7 @@ function createCommonjsModule(fn) {
  * https://github.com/paulmillr/es6-shim/
  */
 
-var es6Shim = createCommonjsModule(function (module, exports) {
+createCommonjsModule(function (module, exports) {
 // UMD (Universal Module Definition)
 // see https://github.com/umdjs/umd/blob/master/returnExports.js
 (function (root, factory) {
@@ -2665,7 +2665,7 @@ var es6Shim = createCommonjsModule(function (module, exports) {
     var getsThenSynchronously = supportsDescriptors && (function () {
       var count = 0;
       // eslint-disable-next-line getter-return
-      var thenable = Object.defineProperty({}, 'then', { get: function () { count += 1; } });
+      Object.defineProperty({}, 'then', { get: function () { count += 1; } });
       return count === 1;
     }());
 

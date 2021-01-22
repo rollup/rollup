@@ -23,7 +23,6 @@ import Identifier from './Identifier';
 import Literal from './Literal';
 import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
-import { PatternNode } from './shared/Pattern';
 import SpreadElement from './SpreadElement';
 import Super from './Super';
 
@@ -70,7 +69,7 @@ function getStringFromPath(path: PathWithPositions): string {
 	return pathString;
 }
 
-export default class MemberExpression extends NodeBase implements DeoptimizableEntity, PatternNode {
+export default class MemberExpression extends NodeBase implements DeoptimizableEntity {
 	computed!: boolean;
 	object!: ExpressionNode | Super;
 	optional!: boolean;
@@ -83,8 +82,6 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 	private replacement: string | null = null;
 	private wasPathDeoptimizedWhileOptimized = false;
-
-	addExportedVariables(): void {}
 
 	bind() {
 		if (this.bound) return;

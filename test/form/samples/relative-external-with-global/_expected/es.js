@@ -1,6 +1,6 @@
 import throttle from './lib/throttle.js';
 
-const fn = throttle( () => {
+throttle( () => {
 	console.log( '.' );
 }, 500 );
 

@@ -3,14 +3,14 @@ const getter = {
 		console.log( 'effect' );
 	}
 };
-const foo1 = getter.foo;
+getter.foo;
 
 const empty = {};
-const foo2 = empty.foo.tooDeep;
+empty.foo.tooDeep;
 
 function accessArg(arg) {
-	const foo3 = arg.tooDeep;
+	arg.tooDeep;
 }
 accessArg(null);
 
-const foo4 = globalThis.unknown.unknownProperty;
+globalThis.unknown.unknownProperty;

@@ -7,5 +7,7 @@ module.exports = {
 		assert.strictEqual(exports.result, 'first');
 		exports.test(false);
 		assert.strictEqual(exports.result, 'third');
+		exports.test('loop');
+		assert.strictEqual(exports.result, 'fourth');
 	}
 };

@@ -7,7 +7,7 @@ System.register(['./lib/throttle.js'], function () {
 		}],
 		execute: function () {
 
-			const fn = throttle( () => {
+			throttle( () => {
 				console.log( '.' );
 			}, 500 );
 

@@ -33,7 +33,7 @@ function areAllDeclarationsIncludedAndNotExported(
 	exportNamesByVariable: Map<Variable, string[]>
 ): boolean {
 	for (const declarator of declarations) {
-		if (!declarator.included) return false;
+		if (!declarator.id.included) return false;
 		if (declarator.id.type === NodeType.Identifier) {
 			if (exportNamesByVariable.has(declarator.id.variable!)) return false;
 		} else {
@@ -68,13 +68,14 @@ export default class VariableDeclaration extends NodeBase {
 		}
 	}
 
-	includeWithAllDeclaredVariables(
-		includeChildrenRecursively: IncludeChildren,
-		context: InclusionContext
-	) {
+	includeAllDeclaredVariables(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		this.included = true;
 		for (const declarator of this.declarations) {
-			declarator.include(context, includeChildrenRecursively);
+			declarator.id.included = true;
+			declarator.includeAllDeclaredVariables(context, includeChildrenRecursively);
 		}
 	}
 
@@ -108,16 +109,13 @@ export default class VariableDeclaration extends NodeBase {
 		lastSeparatorPos: number | null,
 		actualContentEnd: number,
 		renderedContentEnd: number,
-		addSemicolon: boolean,
 		systemPatternExports: Variable[],
 		options: RenderOptions
 	): void {
 		if (code.original.charCodeAt(this.end - 1) === 59 /*";"*/) {
 			code.remove(this.end - 1, this.end);
 		}
-		if (addSemicolon) {
-			separatorString += ';';
-		}
+		separatorString += ';';
 		if (lastSeparatorPos !== null) {
 			if (
 				code.original.charCodeAt(actualContentEnd - 1) === 10 /*"\n"*/ &&
@@ -149,7 +147,7 @@ export default class VariableDeclaration extends NodeBase {
 	private renderReplacedDeclarations(
 		code: MagicString,
 		options: RenderOptions,
-		{ start = this.start, end = this.end, isNoStatement }: NodeRenderOptions
+		{ start = this.start, end = this.end }: NodeRenderOptions
 	): void {
 		const separatedNodes = getCommaSeparatedNodesWithBoundaries(
 			this.declarations,
@@ -158,11 +156,7 @@ export default class VariableDeclaration extends NodeBase {
 			this.end - (code.original.charCodeAt(this.end - 1) === 59 /*";"*/ ? 1 : 0)
 		);
 		let actualContentEnd: number | undefined, renderedContentEnd: number;
-		if (/\n\s*$/.test(code.slice(this.start, separatedNodes[0].start))) {
-			renderedContentEnd = this.start + this.kind.length;
-		} else {
-			renderedContentEnd = separatedNodes[0].start;
-		}
+		renderedContentEnd = findNonWhiteSpace(code.original, this.start + this.kind.length);
 		let lastSeparatorPos = renderedContentEnd - 1;
 		code.remove(this.start, lastSeparatorPos);
 		let isInDeclaration = false;
@@ -187,11 +181,12 @@ export default class VariableDeclaration extends NodeBase {
 			leadingString = '';
 			nextSeparatorString = '';
 			if (
-				node.id instanceof Identifier &&
-				isReassignedExportsMember(
-					(node.id as IdentifierWithVariable).variable,
-					options.exportNamesByVariable
-				)
+				!node.id.included ||
+				(node.id instanceof Identifier &&
+					isReassignedExportsMember(
+						(node.id as IdentifierWithVariable).variable,
+						options.exportNamesByVariable
+					))
 			) {
 				if (hasRenderedContent) {
 					separatorString += ';';
@@ -250,7 +245,6 @@ export default class VariableDeclaration extends NodeBase {
 				lastSeparatorPos,
 				actualContentEnd!,
 				renderedContentEnd,
-				!isNoStatement,
 				systemPatternExports,
 				options
 			);

@@ -49,7 +49,7 @@ export default class ForInStatement extends StatementBase {
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
-		this.left.includeWithAllDeclaredVariables(includeChildrenRecursively, context);
+		this.left.includeAllDeclaredVariables(context, includeChildrenRecursively);
 		this.left.deoptimizePath(EMPTY_PATH);
 		this.right.include(context, includeChildrenRecursively);
 		const { brokenFlow } = context;
