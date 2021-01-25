@@ -15,42 +15,48 @@ runTestSuiteWithSamples('form', path.resolve(__dirname, 'samples'), (dir, config
 			let bundle;
 			const runRollupTest = async (inputFile, bundleFile, defaultFormat) => {
 				if (config.before) config.before();
-				process.chdir(dir);
-				bundle =
-					bundle ||
-					(await rollup.rollup(
+				try {
+					process.chdir(dir);
+					bundle =
+						bundle ||
+						(await rollup.rollup(
+							Object.assign(
+								{
+									input: dir + '/main.js',
+									onwarn: warning => {
+										if (
+											!(
+												config.expectedWarnings &&
+												config.expectedWarnings.indexOf(warning.code) >= 0
+											)
+										) {
+											throw new Error(
+												`Unexpected warnings (${warning.code}): ${warning.message}\n` +
+													'If you expect warnings, list their codes in config.expectedWarnings'
+											);
+										}
+									},
+									strictDeprecations: true
+								},
+								config.options || {}
+							)
+						));
+					await generateAndTestBundle(
+						bundle,
 						Object.assign(
 							{
-								input: dir + '/main.js',
-								onwarn: warning => {
-									if (
-										!(config.expectedWarnings && config.expectedWarnings.indexOf(warning.code) >= 0)
-									) {
-										throw new Error(
-											`Unexpected warnings (${warning.code}): ${warning.message}\n` +
-												'If you expect warnings, list their codes in config.expectedWarnings'
-										);
-									}
-								},
-								strictDeprecations: true
+								exports: 'auto',
+								file: inputFile,
+								format: defaultFormat
 							},
-							config.options || {}
-						)
-					));
-				await generateAndTestBundle(
-					bundle,
-					Object.assign(
-						{
-							exports: 'auto',
-							file: inputFile,
-							format: defaultFormat
-						},
-						(config.options || {}).output || {}
-					),
-					bundleFile,
-					config
-				);
-				if (config.after) config.after();
+							(config.options || {}).output || {}
+						),
+						bundleFile,
+						config
+					);
+				} finally {
+					if (config.after) config.after();
+				}
 			};
 
 			if (isSingleFormatTest) {
