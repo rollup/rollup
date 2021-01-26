@@ -1,5 +1,12 @@
 # rollup changelog
 
+## 2.38.1
+*unreleased*
+
+### Pull Requests
+* [#3936](https://github.com/rollup/rollup/pull/3936): Ensure test after() callback is always executed (@Benjamin-Dobell)
+* [#3937](https://github.com/rollup/rollup/pull/3937): Modernize references to other software (@ludofischer)
+
 ## 2.38.0
 *2021-01-22*
 
