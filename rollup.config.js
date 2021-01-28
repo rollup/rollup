@@ -156,7 +156,7 @@ export default command => {
 		treeshake,
 		strictDeprecations: true,
 		output: [
-			{ file: 'dist/rollup.browser.js', format: 'umd', name: 'rollup', banner },
+			{ file: 'dist/rollup.browser.js', format: 'umd', name: 'rollup', banner, sourcemap: true },
 			{ file: 'dist/es/rollup.browser.js', format: 'es', banner }
 		]
 	};

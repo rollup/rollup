@@ -1,4 +1,4 @@
-import { basename, extname, isAbsolute, relative } from './path';
+import { basename, extname, isAbsolute, relative, resolve } from './path';
 import { sanitizeFileName } from './sanitizeFileName';
 
 export function getAliasName(id: string) {
@@ -7,8 +7,8 @@ export function getAliasName(id: string) {
 }
 
 export default function relativeId(id: string) {
-	if (typeof process === 'undefined' || !isAbsolute(id)) return id;
-	return relative(process.cwd(), id);
+	if (!isAbsolute(id)) return id;
+	return relative(resolve(), id);
 }
 
 export function isPlainPathFragment(name: string) {
