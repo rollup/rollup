@@ -1,9 +1,13 @@
 # rollup changelog
 
 ## 2.38.1
-*unreleased*
+*2021-01-28*
+
+### Bug Fixes
+* Fix internal error when resolving a missing entry point in the browser build (#3935)
 
 ### Pull Requests
+* [#3935](https://github.com/rollup/rollup/pull/3935): fix: remove isolated resolve() for compat with browser distribution (@cmorten and @lukastaegert)
 * [#3936](https://github.com/rollup/rollup/pull/3936): Ensure test after() callback is always executed (@Benjamin-Dobell)
 * [#3937](https://github.com/rollup/rollup/pull/3937): Modernize references to other software (@ludofischer)
 
