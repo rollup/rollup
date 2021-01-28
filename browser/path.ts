@@ -58,9 +58,13 @@ export function relative(from: string, to: string) {
 }
 
 export function resolve(...paths: string[]) {
-	let resolvedParts = paths.shift()!.split(/[/\\]/);
+	const firstPathSegment = paths.shift();
+	if (!firstPathSegment) {
+		return '/';
+	}
+	let resolvedParts = firstPathSegment.split(/[/\\]/);
 
-	paths.forEach(path => {
+	for (const path of paths) {
 		if (isAbsolute(path)) {
 			resolvedParts = path.split(/[/\\]/);
 		} else {
@@ -75,7 +79,7 @@ export function resolve(...paths: string[]) {
 
 			resolvedParts.push.apply(resolvedParts, parts);
 		}
-	});
+	}
 
 	return resolvedParts.join('/');
 }

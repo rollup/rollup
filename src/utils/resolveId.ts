@@ -28,7 +28,7 @@ export async function resolveId(
 	// resolve call and require no special handing on our part.
 	// See https://nodejs.org/api/path.html#path_path_resolve_paths
 	return addJsExtensionIfNecessary(
-		resolve(importer ? dirname(importer) : resolve(), source),
+		importer ? resolve(dirname(importer), source) : resolve(source),
 		preserveSymlinks
 	);
 }

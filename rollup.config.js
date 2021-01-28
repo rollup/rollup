@@ -12,6 +12,7 @@ import conditionalFsEventsImport from './build-plugins/conditional-fsevents-impo
 import emitModulePackageFile from './build-plugins/emit-module-package-file.js';
 import esmDynamicImport from './build-plugins/esm-dynamic-import.js';
 import getLicenseHandler from './build-plugins/generate-license-file';
+import replaceBrowserModules from './build-plugins/replace-browser-modules.js';
 import pkg from './package.json';
 
 const commitHash = (function () {
@@ -142,16 +143,10 @@ export default command => {
 		input: 'src/browser-entry.ts',
 		onwarn,
 		plugins: [
+			replaceBrowserModules(),
 			alias(moduleAliases),
 			resolve({ browser: true }),
 			json(),
-			{
-				load: id => {
-					if (~id.indexOf('crypto.ts')) return fs.readFileSync('browser/crypto.ts', 'utf-8');
-					if (~id.indexOf('fs.ts')) return fs.readFileSync('browser/fs.ts', 'utf-8');
-					if (~id.indexOf('path.ts')) return fs.readFileSync('browser/path.ts', 'utf-8');
-				}
-			},
 			commonjs(),
 			typescript(),
 			terser({ module: true, output: { comments: 'some' } }),
@@ -161,7 +156,7 @@ export default command => {
 		treeshake,
 		strictDeprecations: true,
 		output: [
-			{ file: 'dist/rollup.browser.js', format: 'umd', name: 'rollup', banner },
+			{ file: 'dist/rollup.browser.js', format: 'umd', name: 'rollup', banner, sourcemap: true },
 			{ file: 'dist/es/rollup.browser.js', format: 'es', banner }
 		]
 	};
