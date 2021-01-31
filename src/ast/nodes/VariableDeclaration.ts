@@ -87,6 +87,7 @@ export default class VariableDeclaration extends NodeBase {
 
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions: NodeRenderOptions = BLANK) {
 		if (
+			nodeRenderOptions.isNoStatement ||
 			areAllDeclarationsIncludedAndNotExported(this.declarations, options.exportNamesByVariable)
 		) {
 			for (const declarator of this.declarations) {
