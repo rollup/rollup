@@ -1061,14 +1061,16 @@ export default class Module {
 			variable.include();
 			this.graph.needsTreeshakingPass = true;
 			const variableModule = variable.module;
-			if (variableModule && variableModule !== this && variableModule instanceof Module) {
+			if (variableModule && variableModule instanceof Module) {
 				if (!variableModule.isExecuted) {
 					markModuleAndImpureDependenciesAsExecuted(variableModule);
 				}
-				const sideEffectModules = getAndExtendSideEffectModules(variable, this);
-				for (const module of sideEffectModules) {
-					if (!module.isExecuted) {
-						markModuleAndImpureDependenciesAsExecuted(module);
+				if (variableModule !== this) {
+					const sideEffectModules = getAndExtendSideEffectModules(variable, this);
+					for (const module of sideEffectModules) {
+						if (!module.isExecuted) {
+							markModuleAndImpureDependenciesAsExecuted(module);
+						}
 					}
 				}
 			}
