@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 2.38.2
+*2021-01-31*
+
+### Bug Fixes
+* Do not generate invalid code for partially tree-shaken declarations in for loops (#3943)
+* Always include function bodies of functions in side-effect-free modules (#3944)
+
+### Pull Requests
+* [#3943](https://github.com/rollup/rollup/pull/3943): Do not partially tree-shake unused declarations in for loops (@lukastaegert)
+* [#3944](https://github.com/rollup/rollup/pull/3944): Correctly include functions with side effects from side-effect-free modules (@lukastaegert)
+
 ## 2.38.1
 *2021-01-28*
 
