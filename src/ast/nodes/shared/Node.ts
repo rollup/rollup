@@ -286,5 +286,5 @@ export function locateNode(node: Node) {
 }
 
 export function logNode(node: Node) {
-	console.log(node.context.code.slice(node.start, node.end));
+	return node.context.code.slice(node.start, node.end);
 }
