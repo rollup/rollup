@@ -1,2 +1,1 @@
-import { foo } from './main.js';
-export default foo;
+export { foo as default } from './main.js';
