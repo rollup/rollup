@@ -55,7 +55,9 @@ export default class ExportDefaultVariable extends LocalVariable {
 			(this.hasId ||
 				!(
 					this.originalId.variable.isReassigned ||
-					this.originalId.variable instanceof UndefinedVariable
+					this.originalId.variable instanceof UndefinedVariable ||
+					// this avoids a circular dependency
+					'syntheticNamespace' in this.originalId.variable
 				))
 			? this.originalId.variable
 			: null;

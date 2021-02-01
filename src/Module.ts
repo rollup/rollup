@@ -199,7 +199,7 @@ function getAndExtendSideEffectModules(variable: Variable, module: Module): Set<
 		if (!currentVariable || referencedVariables.has(currentVariable)) {
 			break;
 		}
-		referencedVariables.add(variable);
+		referencedVariables.add(currentVariable);
 		sideEffectModules.add(importingModule);
 		const originalSideEffects = importingModule.sideEffectDependenciesByVariable.get(
 			currentVariable

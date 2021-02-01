@@ -1,5 +1,4 @@
 import Module, { AstContext } from '../../Module';
-import { error, errSyntheticNamedExportsNeedNamespaceExport } from '../../utils/error';
 import { RESERVED_NAMES } from '../../utils/reservedNames';
 import ExportDefaultVariable from './ExportDefaultVariable';
 import Variable from './Variable';
@@ -21,12 +20,10 @@ export default class SyntheticNamedExportVariable extends Variable {
 	getBaseVariable(): Variable {
 		if (this.baseVariable) return this.baseVariable;
 		let baseVariable = this.syntheticNamespace;
-		const checkedVariables = new Set<Variable>();
 		while (
 			baseVariable instanceof ExportDefaultVariable ||
 			baseVariable instanceof SyntheticNamedExportVariable
 		) {
-			checkedVariables.add(baseVariable);
 			if (baseVariable instanceof ExportDefaultVariable) {
 				const original = baseVariable.getOriginalVariable();
 				if (original === baseVariable) break;
@@ -34,14 +31,6 @@ export default class SyntheticNamedExportVariable extends Variable {
 			}
 			if (baseVariable instanceof SyntheticNamedExportVariable) {
 				baseVariable = baseVariable.syntheticNamespace;
-			}
-			if (checkedVariables.has(baseVariable)) {
-				return error(
-					errSyntheticNamedExportsNeedNamespaceExport(
-						this.module.id,
-						this.module.info.syntheticNamedExports
-					)
-				);
 			}
 		}
 		return (this.baseVariable = baseVariable);
