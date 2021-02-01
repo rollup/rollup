@@ -1,5 +1,15 @@
 # rollup changelog
 
+## 2.38.3
+*2021-02-01*
+
+### Bug Fixes
+* Prevent an unexpected live-binding when default exporting a synthetic named export (#3946)
+
+### Pull Requests
+* [#3945](https://github.com/rollup/rollup/pull/3945): Upgrade chokidar and fsevents for Apple M1 compatibility (@threepointone)
+* [#3946](https://github.com/rollup/rollup/pull/3946): Make sure default exports snapshot synthetic named exports (@lukastaegert)
+
 ## 2.38.2
 *2021-01-31*
 
