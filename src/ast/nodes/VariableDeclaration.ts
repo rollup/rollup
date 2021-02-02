@@ -68,14 +68,13 @@ export default class VariableDeclaration extends NodeBase {
 		}
 	}
 
-	includeAllDeclaredVariables(
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
+	includeAsSingleStatement(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		for (const declarator of this.declarations) {
-			declarator.id.included = true;
-			declarator.includeAllDeclaredVariables(context, includeChildrenRecursively);
+			if (includeChildrenRecursively || declarator.shouldBeIncluded(context)) {
+				declarator.include(context, includeChildrenRecursively);
+				declarator.id.include(context, includeChildrenRecursively);
+			}
 		}
 	}
 
@@ -87,7 +86,6 @@ export default class VariableDeclaration extends NodeBase {
 
 	render(code: MagicString, options: RenderOptions, nodeRenderOptions: NodeRenderOptions = BLANK) {
 		if (
-			nodeRenderOptions.isNoStatement ||
 			areAllDeclarationsIncludedAndNotExported(this.declarations, options.exportNamesByVariable)
 		) {
 			for (const declarator of this.declarations) {
@@ -111,12 +109,15 @@ export default class VariableDeclaration extends NodeBase {
 		actualContentEnd: number,
 		renderedContentEnd: number,
 		systemPatternExports: Variable[],
-		options: RenderOptions
+		options: RenderOptions,
+		isNoStatement: boolean | undefined
 	): void {
 		if (code.original.charCodeAt(this.end - 1) === 59 /*";"*/) {
 			code.remove(this.end - 1, this.end);
 		}
-		separatorString += ';';
+		if (!isNoStatement) {
+			separatorString += ';';
+		}
 		if (lastSeparatorPos !== null) {
 			if (
 				code.original.charCodeAt(actualContentEnd - 1) === 10 /*"\n"*/ &&
@@ -148,7 +149,7 @@ export default class VariableDeclaration extends NodeBase {
 	private renderReplacedDeclarations(
 		code: MagicString,
 		options: RenderOptions,
-		{ start = this.start, end = this.end }: NodeRenderOptions
+		{ start = this.start, end = this.end, isNoStatement }: NodeRenderOptions
 	): void {
 		const separatedNodes = getCommaSeparatedNodesWithBoundaries(
 			this.declarations,
@@ -247,7 +248,8 @@ export default class VariableDeclaration extends NodeBase {
 				actualContentEnd!,
 				renderedContentEnd,
 				systemPatternExports,
-				options
+				options,
+				isNoStatement
 			);
 		} else {
 			code.remove(start, end);

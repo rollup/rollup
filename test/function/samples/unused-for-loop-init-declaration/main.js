@@ -1,7 +1,7 @@
 let result;
 let reassigned;
 
-for (var a = (reassigned = 'reassigned'), b = 0; b < 2; b++) {
+for (var a = (reassigned = 'reassigned'), b = 0, unused = 3; b < 2; b++) {
 	result = b;
 }
 
