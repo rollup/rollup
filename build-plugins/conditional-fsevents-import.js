@@ -23,8 +23,8 @@ export default function conditionalFsEventsImport() {
 				return { code: magicString.toString(), map: magicString.generateMap({ hires: true }) };
 			}
 		},
-		buildEnd() {
-			if (!transformed) {
+		buildEnd(error) {
+			if (!(error || transformed)) {
 				throw new Error('Could not find "fsevents-handler.js", was the file renamed?');
 			}
 		}

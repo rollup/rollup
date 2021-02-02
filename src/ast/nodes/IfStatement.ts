@@ -136,10 +136,10 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			this.test.include(context, false);
 		}
 		if (testValue && this.consequent.shouldBeIncluded(context)) {
-			this.consequent.include(context, false);
+			this.consequent.includeAsSingleStatement(context, false);
 		}
 		if (this.alternate !== null && !testValue && this.alternate.shouldBeIncluded(context)) {
-			this.alternate.include(context, false);
+			this.alternate.includeAsSingleStatement(context, false);
 		}
 	}
 
@@ -159,12 +159,12 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		const { brokenFlow } = context;
 		let consequentBrokenFlow = BROKEN_FLOW_NONE;
 		if (this.consequent.shouldBeIncluded(context)) {
-			this.consequent.include(context, false);
+			this.consequent.includeAsSingleStatement(context, false);
 			consequentBrokenFlow = context.brokenFlow;
 			context.brokenFlow = brokenFlow;
 		}
 		if (this.alternate !== null && this.alternate.shouldBeIncluded(context)) {
-			this.alternate.include(context, false);
+			this.alternate.includeAsSingleStatement(context, false);
 			context.brokenFlow =
 				context.brokenFlow < consequentBrokenFlow ? context.brokenFlow : consequentBrokenFlow;
 		}

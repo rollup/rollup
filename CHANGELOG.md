@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.38.4
+*2021-02-02*
+
+### Bug Fixes
+* Do not change logic when tree-shaking declarations in if statements or loops (#3947)
+
+### Pull Requests
+* [#3947](https://github.com/rollup/rollup/pull/3947): Do not tear apart declarations in loop or if bodies (@lukastaegert)
+
 ## 2.38.3
 *2021-02-01*
 

@@ -65,10 +65,9 @@ export interface Node extends Entity {
 
 	/**
 	 * Alternative version of include to override the default behaviour of
-	 * declarations to only include nodes for declarators that have an effect. Necessary
-	 * for for-loops that do not use a declared loop variable.
+	 * declarations to not include the id by default if the declarator has an effect.
 	 */
-	includeAllDeclaredVariables(
+	includeAsSingleStatement(
 		context: InclusionContext,
 		includeChildrenRecursively: IncludeChildren
 	): void;
@@ -207,10 +206,7 @@ export class NodeBase implements ExpressionNode {
 		}
 	}
 
-	includeAllDeclaredVariables(
-		context: InclusionContext,
-		includeChildrenRecursively: IncludeChildren
-	): void {
+	includeAsSingleStatement(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.include(context, includeChildrenRecursively);
 	}
 
