@@ -4,7 +4,7 @@ define(function () { 'use strict';
 		return 'A';
 	}
 
-	console.log( getStringA());
+	console.log(getStringA());
 
 	console.log(false );
 
@@ -14,6 +14,6 @@ define(function () { 'use strict';
 		return 'D';
 	}
 
-	console.log( getStringD());
+	console.log(getStringD());
 
 });

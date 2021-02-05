@@ -2,7 +2,7 @@ function getStringA() {
 	return 'A';
 }
 
-console.log( getStringA());
+console.log(getStringA());
 
 console.log(false );
 
@@ -12,4 +12,4 @@ function getStringD() {
 	return 'D';
 }
 
-console.log( getStringD());
+console.log(getStringD());

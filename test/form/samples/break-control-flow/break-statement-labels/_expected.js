@@ -32,15 +32,15 @@ outer: {
 }
 
 function withConsequentReturn() {
-	 {
+	{
 		inner: {
 			if (globalThis.unknown) return;
 			else break inner;
 		}
 		console.log('retained');
 	}
-	 {
-		 {
+	{
+		{
 			return;
 		}
 	}
@@ -49,7 +49,7 @@ function withConsequentReturn() {
 withConsequentReturn();
 
 function withAlternateReturn() {
-	 {
+	{
 		inner: {
 			if (globalThis.unknown) break inner;
 			else return;

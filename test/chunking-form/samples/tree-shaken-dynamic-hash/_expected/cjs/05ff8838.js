@@ -1,5 +1,5 @@
 'use strict';
 
-var main =  null;
+var main = null;
 
 module.exports = main;

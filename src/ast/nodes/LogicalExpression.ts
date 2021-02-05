@@ -2,6 +2,7 @@ import MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import {
 	findFirstOccurrenceOutsideComment,
+	findNonWhiteSpace,
 	NodeRenderOptions,
 	removeLineBreaks,
 	RenderOptions
@@ -168,9 +169,10 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 				this.left.end
 			);
 			if (this.right.included) {
-				code.remove(this.start, operatorPos + 2);
+				const removePos = findNonWhiteSpace(code.original, operatorPos + 2);
+				code.remove(this.start, removePos);
 				if (preventASI) {
-					removeLineBreaks(code, operatorPos + 2, this.right.start);
+					removeLineBreaks(code, removePos, this.right.start);
 				}
 			} else {
 				code.remove(operatorPos, this.end);

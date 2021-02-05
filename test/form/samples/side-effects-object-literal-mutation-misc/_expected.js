@@ -6,18 +6,18 @@
 	};
 	obj.modify();
 	console.log(obj.modified ? "PASS1" : "FAIL1");
-})());
+}))();
 
- ((function() {
+((function() {
 	const obj = {};
 	function modify() {
 		this.modified = true;
 	}
 	modify.call(obj);
 	console.log(obj.modified ? "PASS2" : "FAIL2");
-})());
+}))();
 
- ((function() {
+((function() {
 	const obj = {};
 	obj.modify = modify;
 	function modify() {
@@ -25,7 +25,7 @@
 	}
 	obj.modify();
 	console.log(obj.modified ? "PASS3" : "FAIL3");
-})());
+}))();
 
 {
 	const axis = {};

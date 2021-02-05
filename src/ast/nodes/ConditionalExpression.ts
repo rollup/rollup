@@ -2,6 +2,7 @@ import MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import {
 	findFirstOccurrenceOutsideComment,
+	findNonWhiteSpace,
 	NodeRenderOptions,
 	removeLineBreaks,
 	RenderOptions
@@ -171,10 +172,12 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	) {
 		if (!this.test.included) {
 			const colonPos = findFirstOccurrenceOutsideComment(code.original, ':', this.consequent.end);
-			const inclusionStart =
+			const inclusionStart = findNonWhiteSpace(
+				code.original,
 				(this.consequent.included
 					? findFirstOccurrenceOutsideComment(code.original, '?', this.test.end)
-					: colonPos) + 1;
+					: colonPos) + 1
+			);
 			if (preventASI) {
 				removeLineBreaks(code, inclusionStart, this.usedBranch!.start);
 			}

@@ -1,6 +1,6 @@
 define(function () { 'use strict';
 
-	var main =  null;
+	var main = null;
 
 	return main;
 

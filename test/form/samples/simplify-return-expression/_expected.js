@@ -4,11 +4,11 @@ const test = () => {
 };
 
 const foo = () => {
-	return  A ;
+	return A ;
 };
 
 const bar = () => {
-	return  A ;
+	return A ;
 };
 
 export { test };
