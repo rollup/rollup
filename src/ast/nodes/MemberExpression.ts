@@ -235,7 +235,11 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ renderedParentType, isCalleeOfRenderedParent }: NodeRenderOptions = BLANK
+		{
+			renderedParentType,
+			isCalleeOfRenderedParent,
+			renderedSurroundingElement
+		}: NodeRenderOptions = BLANK
 	) {
 		const isCalleeOfDifferentParent =
 			renderedParentType === NodeType.CallExpression && isCalleeOfRenderedParent;
@@ -250,7 +254,13 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			if (isCalleeOfDifferentParent) {
 				code.appendRight(this.start, '0, ');
 			}
-			super.render(code, options);
+			const surroundingElement = renderedParentType || renderedSurroundingElement;
+			this.object.render(
+				code,
+				options,
+				surroundingElement ? { renderedSurroundingElement: surroundingElement } : BLANK
+			);
+			this.property.render(code, options);
 		}
 	}
 

@@ -7,7 +7,7 @@ System.register([], function () {
 				return 'A';
 			}
 
-			console.log( getStringA());
+			console.log(getStringA());
 
 			console.log(false );
 
@@ -17,7 +17,7 @@ System.register([], function () {
 				return 'D';
 			}
 
-			console.log( getStringD());
+			console.log(getStringD());
 
 		}
 	};

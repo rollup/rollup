@@ -226,9 +226,14 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ renderedParentType }: NodeRenderOptions = BLANK
+		{ renderedParentType, renderedSurroundingElement }: NodeRenderOptions = BLANK
 	) {
-		this.callee.render(code, options);
+		const surroundingELement = renderedParentType || renderedSurroundingElement;
+		this.callee.render(
+			code,
+			options,
+			surroundingELement ? { renderedSurroundingElement: surroundingELement } : BLANK
+		);
 		if (this.arguments.length > 0) {
 			if (this.arguments[this.arguments.length - 1].included) {
 				for (const arg of this.arguments) {
@@ -258,13 +263,6 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 					);
 				}
 			}
-		}
-		if (
-			renderedParentType === NodeType.ExpressionStatement &&
-			this.callee.type === NodeType.FunctionExpression
-		) {
-			code.appendRight(this.start, '(');
-			code.prependLeft(this.end, ')');
 		}
 	}
 

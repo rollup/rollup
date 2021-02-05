@@ -24,6 +24,7 @@ export interface NodeRenderOptions {
 	isShorthandProperty?: boolean;
 	preventASI?: boolean;
 	renderedParentType?: string; // also serves as a flag if the rendered parent is different from the actual parent
+	renderedSurroundingElement?: string; // same as parent type, but for changed non-direct parents that directly preceed elements
 	start?: number;
 }
 

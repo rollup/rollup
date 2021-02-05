@@ -7,7 +7,7 @@
 		return 'A';
 	}
 
-	console.log( getStringA());
+	console.log(getStringA());
 
 	console.log(false );
 
@@ -17,6 +17,6 @@
 		return 'D';
 	}
 
-	console.log( getStringD());
+	console.log(getStringD());
 
 })));

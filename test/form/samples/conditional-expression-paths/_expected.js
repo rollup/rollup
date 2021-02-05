@@ -12,16 +12,16 @@ var baz = { x: () => console.log('effect') };
 (unknownValue ? foo : baz).x();
 
 // known branch without side-effects
-( foo ).y.z;
-( foo).y.z;
-( foo ).x();
-( foo).x();
+(foo ).y.z;
+(foo).y.z;
+(foo ).x();
+(foo).x();
 
 // known branch with side-effect
-( baz ).y.z;
-( baz).y.z;
-( baz ).x();
-( baz).x();
+(baz ).y.z;
+(baz).y.z;
+(baz ).x();
+(baz).x();
 var baz3 = {};
-( baz3 ).y.z = 1;
-( baz3).y.z = 1;
+(baz3 ).y.z = 1;
+(baz3).y.z = 1;

@@ -4,6 +4,7 @@ import {
 	findFirstOccurrenceOutsideComment,
 	findNonWhiteSpace,
 	NodeRenderOptions,
+	removeLineBreaks,
 	RenderOptions
 } from '../../utils/renderHelpers';
 import { getSystemExportFunctionLeft } from '../../utils/systemJsRendering';
@@ -67,17 +68,23 @@ export default class AssignmentExpression extends NodeBase {
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ renderedParentType }: NodeRenderOptions = BLANK
+		{ preventASI, renderedParentType }: NodeRenderOptions = BLANK
 	) {
 		if (this.left.included) {
 			this.left.render(code, options);
 			this.right.render(code, options);
 		} else {
+			const inclusionStart = findNonWhiteSpace(
+				code.original,
+				findFirstOccurrenceOutsideComment(code.original, '=', this.left.end) + 1
+			);
+			code.remove(this.start, inclusionStart);
+			if (preventASI) {
+				removeLineBreaks(code, inclusionStart, this.right.start);
+			}
 			this.right.render(code, options, {
 				renderedParentType: renderedParentType || this.parent.type
 			});
-			const operatorPos = findFirstOccurrenceOutsideComment(code.original, '=', this.left.end);
-			code.remove(this.start, findNonWhiteSpace(code.original, operatorPos + 1));
 		}
 		if (options.format === 'system') {
 			const exportNames =

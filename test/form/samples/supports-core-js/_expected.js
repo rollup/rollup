@@ -213,7 +213,7 @@ var shared = createCommonjsModule(function (module) {
   return sharedStore[key] || (sharedStore[key] = value !== undefined ? value : {});
 })('versions', []).push({
   version: '3.8.2',
-  mode:  'global',
+  mode: 'global',
   copyright: '© 2021 Denis Pushkarev (zloirock.ru)'
 });
 });
@@ -2218,7 +2218,7 @@ if ([].keys) {
 if (IteratorPrototype == undefined) IteratorPrototype = {};
 
 // 25.1.2.1.1 %IteratorPrototype%[@@iterator]()
-if ( !has(IteratorPrototype, ITERATOR$3)) {
+if (!has(IteratorPrototype, ITERATOR$3)) {
   createNonEnumerableProperty(IteratorPrototype, ITERATOR$3, returnThis);
 }
 
@@ -2279,7 +2279,7 @@ var defineIterator = function (Iterable, NAME, IteratorConstructor, next, DEFAUL
   if (anyNativeIterator) {
     CurrentIteratorPrototype = objectGetPrototypeOf(anyNativeIterator.call(new Iterable()));
     if (IteratorPrototype$2 !== Object.prototype && CurrentIteratorPrototype.next) {
-      if ( objectGetPrototypeOf(CurrentIteratorPrototype) !== IteratorPrototype$2) {
+      if (objectGetPrototypeOf(CurrentIteratorPrototype) !== IteratorPrototype$2) {
         if (objectSetPrototypeOf) {
           objectSetPrototypeOf(CurrentIteratorPrototype, IteratorPrototype$2);
         } else if (typeof CurrentIteratorPrototype[ITERATOR$4] != 'function') {
@@ -2298,7 +2298,7 @@ var defineIterator = function (Iterable, NAME, IteratorConstructor, next, DEFAUL
   }
 
   // define iterator
-  if ( IterablePrototype[ITERATOR$4] !== defaultIterator) {
+  if (IterablePrototype[ITERATOR$4] !== defaultIterator) {
     createNonEnumerableProperty(IterablePrototype, ITERATOR$4, defaultIterator);
   }
   iterators[NAME] = defaultIterator;
@@ -2805,7 +2805,7 @@ if (!toStringTagSupport) {
 }
 
 // Forced replacement object prototype accessors methods
-var objectPrototypeAccessorsForced =  !fails(function () {
+var objectPrototypeAccessorsForced = !fails(function () {
   var key = Math.random();
   // In FF throws only define methods
   // eslint-disable-next-line no-undef, no-useless-call
@@ -2984,7 +2984,7 @@ var min$5 = Math.min;
 
 var CORRECT_IS_REGEXP_LOGIC = correctIsRegexpLogic('endsWith');
 // https://github.com/zloirock/core-js/pull/702
-var MDN_POLYFILL_BUG =  !CORRECT_IS_REGEXP_LOGIC && !!function () {
+var MDN_POLYFILL_BUG = !CORRECT_IS_REGEXP_LOGIC && !!function () {
   var descriptor = getOwnPropertyDescriptor$4(String.prototype, 'endsWith');
   return descriptor && !descriptor.writable;
 }();
@@ -3428,11 +3428,11 @@ _export({ target: 'String', proto: true, forced: WORKS_WITH_NON_GLOBAL_REGEX }, 
     } else if (WORKS_WITH_NON_GLOBAL_REGEX) return nativeMatchAll.apply(O, arguments);
     S = String(O);
     rx = new RegExp(regexp, 'g');
-    return  rx[MATCH_ALL](S);
+    return rx[MATCH_ALL](S);
   }
 });
 
- MATCH_ALL in RegExpPrototype || createNonEnumerableProperty(RegExpPrototype, MATCH_ALL, $matchAll);
+MATCH_ALL in RegExpPrototype || createNonEnumerableProperty(RegExpPrototype, MATCH_ALL, $matchAll);
 
 // `String.prototype.repeat` method implementation
 // https://tc39.es/ecma262/#sec-string.prototype.repeat
@@ -3802,7 +3802,7 @@ var min$8 = Math.min;
 
 var CORRECT_IS_REGEXP_LOGIC$1 = correctIsRegexpLogic('startsWith');
 // https://github.com/zloirock/core-js/pull/702
-var MDN_POLYFILL_BUG$1 =  !CORRECT_IS_REGEXP_LOGIC$1 && !!function () {
+var MDN_POLYFILL_BUG$1 = !CORRECT_IS_REGEXP_LOGIC$1 && !!function () {
   var descriptor = getOwnPropertyDescriptor$5(String.prototype, 'startsWith');
   return descriptor && !descriptor.writable;
 }();
@@ -5539,7 +5539,7 @@ if (FORCED$g) {
       : newGenericPromiseCapability(C);
   };
 
-  if ( typeof nativePromiseConstructor == 'function') {
+  if (typeof nativePromiseConstructor == 'function') {
     nativeThen = nativePromiseConstructor.prototype.then;
 
     // wrap native Promise#then for native async functions
@@ -5581,11 +5581,11 @@ _export({ target: PROMISE, stat: true, forced: FORCED$g }, {
   }
 });
 
-_export({ target: PROMISE, stat: true, forced:  FORCED$g }, {
+_export({ target: PROMISE, stat: true, forced: FORCED$g }, {
   // `Promise.resolve` method
   // https://tc39.es/ecma262/#sec-promise.resolve
   resolve: function resolve(x) {
-    return promiseResolve( this, x);
+    return promiseResolve(this, x);
   }
 });
 
@@ -5735,7 +5735,7 @@ _export({ target: 'Promise', proto: true, real: true, forced: NON_GENERIC }, {
 });
 
 // patch native Promise.prototype for native async functions
-if ( typeof nativePromiseConstructor == 'function' && !nativePromiseConstructor.prototype['finally']) {
+if (typeof nativePromiseConstructor == 'function' && !nativePromiseConstructor.prototype['finally']) {
   redefine(nativePromiseConstructor.prototype, 'finally', getBuiltIn('Promise').prototype['finally']);
 }
 
@@ -9698,7 +9698,7 @@ _export({ target: 'Map', proto: true, real: true, forced: isPure }, {
   }
 });
 
-var getMapIterator =  function (it) {
+var getMapIterator = function (it) {
   // eslint-disable-next-line no-undef
   return Map.prototype.entries.call(it);
 };
@@ -9910,7 +9910,7 @@ _export({ target: 'Set', proto: true, real: true, forced: isPure }, {
   }
 });
 
-var getSetIterator =  function (it) {
+var getSetIterator = function (it) {
   // eslint-disable-next-line no-undef
   return Set.prototype.values.call(it);
 };
@@ -11360,7 +11360,7 @@ var TO_STRING_TAG$6 = wellKnownSymbol('toStringTag');
 var NativeIterator = global$1.Iterator;
 
 // FF56- have non-standard global helper `Iterator`
-var FORCED$m =  typeof NativeIterator != 'function'
+var FORCED$m = typeof NativeIterator != 'function'
   || NativeIterator.prototype !== IteratorPrototype$3
   // FF44- non-standard `Iterator` passes previous tests
   || !fails(function () { NativeIterator({}); });

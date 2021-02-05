@@ -1,5 +1,9 @@
 import MagicString from 'magic-string';
-import { findFirstOccurrenceOutsideComment, RenderOptions } from '../../utils/renderHelpers';
+import {
+	findFirstOccurrenceOutsideComment,
+	findNonWhiteSpace,
+	RenderOptions
+} from '../../utils/renderHelpers';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
@@ -39,7 +43,10 @@ export default class LabeledStatement extends StatementBase {
 		} else {
 			code.remove(
 				this.start,
-				findFirstOccurrenceOutsideComment(code.original, ':', this.label.end) + 1
+				findNonWhiteSpace(
+					code.original,
+					findFirstOccurrenceOutsideComment(code.original, ':', this.label.end) + 1
+				)
 			);
 		}
 		this.body.render(code, options);

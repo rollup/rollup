@@ -56,3 +56,10 @@ function* test6() {
 	'expected'
 }
 assert.strictEqual(test6().next().value, 'expected');
+
+function test7() {
+	var x;
+	return x = /* kept */
+		'expected';
+}
+assert.strictEqual(test7(), 'expected');

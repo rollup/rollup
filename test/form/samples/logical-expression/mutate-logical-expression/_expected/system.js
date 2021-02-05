@@ -8,11 +8,11 @@ System.register('bundle', [], function (exports) {
 			logicalAExp.bar = 1;
 
 			var bExp = exports('bExp', {});
-			var logicalBExp =  bExp;
+			var logicalBExp = bExp;
 			logicalBExp.bar = 1;
 
 			var cExp = exports('cExp', {});
-			var logicalCExp =  cExp;
+			var logicalCExp = cExp;
 			logicalCExp.bar = 1;
 
 		}

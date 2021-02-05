@@ -9,9 +9,9 @@ unknownValue ? 1 : foo();
 (unknownValue ? function () {} : function () {this.x = 1;})();
 
 // known side-effect
- foo() ;
-( function () {this.x = 1;} )();
-( () => () => console.log( 'effect' ) )()();
- foo();
-( function () {this.x = 1;})();
-( () => () => console.log( 'effect' ))()();
+foo() ;
+(function () {this.x = 1;} )();
+(() => () => console.log( 'effect' ) )()();
+foo();
+(function () {this.x = 1;})();
+(() => () => console.log( 'effect' ))()();
