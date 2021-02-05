@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 2.38.5
+*2021-02-05*
+
+### Bug Fixes
+* Prevent invalid code when simplifying assignments and delcarations (#3951)
+* Prevent behaviour-changing line-breaks when simplifying assignments in return statements (#3951)
+* Slightly improve white-space rendering when simplifying certain expressions (#3951)
+
+### Pull Requests
+* [#3951](https://github.com/rollup/rollup/pull/3951): Wrap simplified assignments if necessary (@lukastaegert)
+
 ## 2.38.4
 *2021-02-02*
 
