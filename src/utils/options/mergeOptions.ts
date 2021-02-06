@@ -55,7 +55,8 @@ export function mergeOptions(
 			'silent',
 			'failAfterWarnings',
 			'stdin',
-			'waitForBundleInput'
+			'waitForBundleInput',
+			'validate'
 		),
 		'CLI flags',
 		warn,
@@ -227,7 +228,8 @@ function mergeOutputOptions(
 		sourcemapFile: getOption('sourcemapFile'),
 		sourcemapPathTransform: getOption('sourcemapPathTransform'),
 		strict: getOption('strict'),
-		systemNullSetters: getOption('systemNullSetters')
+		systemNullSetters: getOption('systemNullSetters'),
+		validate: getOption('validate')
 	};
 
 	warnUnknownOptions(config, Object.keys(outputOptions), 'output options', warn);

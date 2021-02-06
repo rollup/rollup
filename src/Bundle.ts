@@ -17,6 +17,7 @@ import commondir from './utils/commondir';
 import { errCannotAssignModuleToChunk, error, warnDeprecation } from './utils/error';
 import { sortByExecutionOrder } from './utils/executionOrder';
 import { FILE_PLACEHOLDER } from './utils/FileEmitter';
+import getCodeFrame from './utils/getCodeFrame';
 import { basename, isAbsolute } from './utils/path';
 import { PluginDriver } from './utils/PluginDriver';
 import { timeEnd, timeStart } from './utils/timers';
@@ -173,6 +174,17 @@ export default class Bundle {
 					this.inputOptions
 				);
 				file.type = 'asset';
+			}
+			if (this.outputOptions.validate && typeof file.code == 'string') {
+				try {
+					this.graph.contextParse(file.code, {
+						allowHashBang: true,
+						ecmaVersion: 'latest'
+					});
+				} catch (ex) {
+					const frame = getCodeFrame(file.code, ex.loc.line, ex.loc.column);
+					throw new Error(`validate failed for output '${key}': ${ex}\n${frame}`);
+				}
 			}
 		}
 		this.pluginDriver.finaliseAssets();

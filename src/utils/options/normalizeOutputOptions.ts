@@ -26,6 +26,7 @@ export function normalizeOutputOptions(
 	const unsetOptions = new Set(unsetInputOptions);
 
 	const compact = (config.compact as boolean | undefined) || false;
+	const validate = (config.validate as boolean | undefined) || false;
 	const format = getFormat(config);
 	const inlineDynamicImports = getInlineDynamicImports(config, inputOptions);
 	const preserveModules = getPreserveModules(config, inlineDynamicImports, inputOptions);
@@ -73,7 +74,8 @@ export function normalizeOutputOptions(
 			| SourcemapPathTransformOption
 			| undefined,
 		strict: (config.strict as boolean | undefined) ?? true,
-		systemNullSetters: (config.systemNullSetters as boolean | undefined) || false
+		systemNullSetters: (config.systemNullSetters as boolean | undefined) || false,
+		validate
 	};
 
 	warnUnknownOptions(config, Object.keys(outputOptions), 'output options', inputOptions.onwarn);
