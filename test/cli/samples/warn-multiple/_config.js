@@ -25,7 +25,7 @@ module.exports = {
 			stderr,
 
 			"(!) Module level directives cause errors when bundled, 'use stuff' was ignored.\n" +
-				'main.js: (1:0)\n' +
+				'main.js (1:0)\n' +
 				"1: 'use stuff';\n" +
 				'   ^\n' +
 				'2: \n' +

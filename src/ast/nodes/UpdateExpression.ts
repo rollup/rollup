@@ -1,9 +1,6 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
-import {
-	getSystemExportFunctionLeft,
-	getSystemExportStatement
-} from '../../utils/systemJsRendering';
+import { getSystemExportFunctionLeft, getSystemExportStatement } from '../../utils/systemJsRendering';
 import { HasEffectsContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath } from '../utils/PathTracker';
 import Identifier from './Identifier';
@@ -65,7 +62,7 @@ export default class UpdateExpression extends NodeBase {
 					code.overwrite(
 						this.start,
 						this.end,
-						`${getSystemExportFunctionLeft([variable!], false, options)}${this.operator}${name})`
+						`(${getSystemExportFunctionLeft([variable!], false, options)}${this.operator}${name}))`
 					);
 				} else {
 					let op;

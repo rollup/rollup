@@ -31,6 +31,7 @@ export { fn as fn2 }
 
 // Update Expression
 a++, b++, ++c;
+true && a++;
 
 // Class Declaration
 export class A {} 

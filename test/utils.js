@@ -17,6 +17,7 @@ exports.assertIncludes = assertIncludes;
 
 function normaliseError(error) {
 	delete error.stack;
+	delete error.toString;
 	return Object.assign({}, error, {
 		message: error.message
 	});

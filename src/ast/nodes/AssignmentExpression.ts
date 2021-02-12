@@ -114,9 +114,9 @@ export default class AssignmentExpression extends NodeBase {
 				if (systemPatternExports.length > 0) {
 					code.prependRight(
 						this.start,
-						getSystemExportFunctionLeft(systemPatternExports, true, options)
+						`(${getSystemExportFunctionLeft(systemPatternExports, true, options)}`
 					);
-					code.appendLeft(this.end, ')');
+					code.appendLeft(this.end, '))');
 				}
 			}
 		}

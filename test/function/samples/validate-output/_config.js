@@ -1,6 +1,9 @@
 module.exports = {
 	description: 'handles validate failure',
 	options: {
+		onwarn(warning) {
+			throw warning;
+		},
 		output: {
 			outro: '/*',
 			validate: true

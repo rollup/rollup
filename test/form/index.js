@@ -14,6 +14,7 @@ runTestSuiteWithSamples('form', path.resolve(__dirname, 'samples'), (dir, config
 		() => {
 			let bundle;
 			const runRollupTest = async (inputFile, bundleFile, defaultFormat) => {
+				const warnings = [];
 				if (config.before) config.before();
 				try {
 					process.chdir(dir);
@@ -30,10 +31,7 @@ runTestSuiteWithSamples('form', path.resolve(__dirname, 'samples'), (dir, config
 												config.expectedWarnings.indexOf(warning.code) >= 0
 											)
 										) {
-											throw new Error(
-												`Unexpected warnings (${warning.code}): ${warning.message}\n` +
-													'If you expect warnings, list their codes in config.expectedWarnings'
-											);
+											warnings.push(warning);
 										}
 									},
 									strictDeprecations: true
@@ -48,7 +46,7 @@ runTestSuiteWithSamples('form', path.resolve(__dirname, 'samples'), (dir, config
 								exports: 'auto',
 								file: inputFile,
 								format: defaultFormat,
-								// validate: true // add when systemjs bugs fixed
+								validate: true
 							},
 							(config.options || {}).output || {}
 						),
@@ -57,6 +55,17 @@ runTestSuiteWithSamples('form', path.resolve(__dirname, 'samples'), (dir, config
 					);
 				} finally {
 					if (config.after) config.after();
+				}
+				if (warnings.length > 0) {
+					const codes = new Set();
+					for (const { code } of warnings) {
+						codes.add(code);
+					}
+					throw new Error(
+						`Unexpected warnings (${[...codes].join(', ')}): \n${warnings
+							.map(({ message }) => `${message}\n\n`)
+							.join('')}` + 'If you expect warnings, list their codes in config.expectedWarnings'
+					);
 				}
 			};
 
