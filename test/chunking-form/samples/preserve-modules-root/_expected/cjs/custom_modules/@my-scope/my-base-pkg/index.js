@@ -1,14 +1,11 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
+var index = require('../../../_virtual/index.js_commonjs-exports');
+
+Object.defineProperty(index.__exports, '__esModule', { value: true });
 
 var hello = 'world';
 
-var hello_1 = hello;
+index.__exports.hello = hello;
 
-var myBasePkg = /*#__PURE__*/Object.defineProperty({
-	hello: hello_1
-}, '__esModule', {value: true});
-
-exports.default = myBasePkg;
-exports.hello = hello_1;
+module.exports = index.__exports;

@@ -1,14 +1,15 @@
-System.register(['external', './other.js'], function (exports) {
+System.register(['external', './other.js', './_virtual/other.js_commonjs-exports'], function (exports) {
 	'use strict';
-	var external, other;
+	var require$$0, other;
 	return {
 		setters: [function (module) {
-			external = module.default;
-		}, function (module) {
-			other = module.default;
+			require$$0 = module.default;
+		}, function () {}, function (module) {
+			other = module.__exports;
 		}],
 		execute: function () {
 
+			const external = require$$0;
 			const { value } = other;
 
 			console.log(external, value);

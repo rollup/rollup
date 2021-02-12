@@ -3,11 +3,12 @@ import { HasEffectsContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath } from '../utils/PathTracker';
 import FunctionExpression from './FunctionExpression';
 import * as NodeType from './NodeType';
+import PrivateIdentifier from './PrivateIdentifier';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class MethodDefinition extends NodeBase {
 	computed!: boolean;
-	key!: ExpressionNode;
+	key!: ExpressionNode | PrivateIdentifier;
 	kind!: 'constructor' | 'method' | 'get' | 'set';
 	static!: boolean;
 	type!: NodeType.tMethodDefinition;

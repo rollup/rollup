@@ -1,8 +1,4 @@
-var value = 43;
+import { __exports as other } from './_virtual/other.js_commonjs-exports';
+export { __exports as default } from './_virtual/other.js_commonjs-exports';
 
-var other = {
-	value: value
-};
-
-export default other;
-export { value };
+other.value = 43;

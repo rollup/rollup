@@ -1,9 +1,12 @@
 'use strict';
 
-var index = require('./custom_modules/@my-scope/my-base-pkg/index.js');
+require('./custom_modules/@my-scope/my-base-pkg/index.js');
+var index = require('./_virtual/index.js_commonjs-exports');
+
+const base = index.__exports;
 
 var underBuild = {
-	base: index['default']
+	base
 };
 
 module.exports = underBuild;

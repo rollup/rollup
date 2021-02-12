@@ -1,15 +1,18 @@
-System.register([], function (exports) {
+System.register(['../../../_virtual/index.js_commonjs-exports'], function (exports) {
 	'use strict';
+	var myBasePkg;
 	return {
+		setters: [function (module) {
+			myBasePkg = module.__exports;
+			exports('default', module.__exports);
+		}],
 		execute: function () {
+
+			Object.defineProperty(myBasePkg, '__esModule', { value: true });
 
 			var hello = 'world';
 
-			var hello_1 = exports('hello', hello);
-
-			var myBasePkg = exports('default', /*#__PURE__*/Object.defineProperty({
-				hello: hello_1
-			}, '__esModule', {value: true}));
+			myBasePkg.hello = hello;
 
 		}
 	};

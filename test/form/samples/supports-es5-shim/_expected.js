@@ -1,9 +1,6 @@
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
-function createCommonjsModule(fn) {
-  var module = { exports: {} };
-	return fn(module, module.exports), module.exports;
-}
+var es5Shim = {exports: {}};
 
 /*!
  * https://github.com/es-shims/es5-shim
@@ -11,7 +8,7 @@ function createCommonjsModule(fn) {
  * see https://github.com/es-shims/es5-shim/blob/master/LICENSE
  */
 
-createCommonjsModule(function (module, exports) {
+(function (module, exports) {
 
 // UMD (Universal Module Definition)
 // see https://github.com/umdjs/umd/blob/master/templates/returnExports.js
@@ -2110,4 +2107,4 @@ createCommonjsModule(function (module, exports) {
         RegExp.prototype.toString = regexToString;
     }
 }));
-});
+}(es5Shim));

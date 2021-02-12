@@ -1,14 +1,7 @@
-define(['exports'], function (exports) { 'use strict';
+define(['./_virtual/other.js_commonjs-exports'], function (other) { 'use strict';
 
-	var value = 43;
+	other.__exports.value = 43;
 
-	var other = {
-		value: value
-	};
-
-	exports.default = other;
-	exports.value = value;
-
-	Object.defineProperty(exports, '__esModule', { value: true });
+	return other.__exports;
 
 });
