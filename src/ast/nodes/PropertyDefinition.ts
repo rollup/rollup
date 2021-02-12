@@ -1,13 +1,13 @@
 import { HasEffectsContext } from '../ExecutionContext';
 import * as NodeType from './NodeType';
-import PrivateName from './PrivateName';
+import PrivateIdentifier from './PrivateIdentifier';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
-export default class FieldDefinition extends NodeBase {
+export default class PropertyDefinition extends NodeBase {
 	computed!: boolean;
-	key!: ExpressionNode | PrivateName;
+	key!: ExpressionNode | PrivateIdentifier;
 	static!: boolean;
-	type!: NodeType.tFieldDefinition;
+	type!: NodeType.tPropertyDefinition;
 	value!: ExpressionNode | null;
 
 	hasEffects(context: HasEffectsContext): boolean {

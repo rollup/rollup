@@ -1,5 +1,6 @@
 import MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
+import { isReassignedExportsMember } from '../../utils/reassignedExportsMember';
 import {
 	findFirstOccurrenceOutsideComment,
 	findNonWhiteSpace,
@@ -8,6 +9,7 @@ import {
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { ObjectPath } from '../utils/PathTracker';
 import { UNDEFINED_EXPRESSION } from '../values';
+import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
@@ -53,6 +55,12 @@ export default class VariableDeclarator extends NodeBase {
 				options,
 				renderId ? BLANK : { renderedParentType: NodeType.ExpressionStatement }
 			);
+		} else if (
+			this.id instanceof Identifier &&
+			isReassignedExportsMember(this.id.variable!, options.exportNamesByVariable)
+		) {
+			const _ = options.compact ? '' : ' ';
+			code.appendLeft(this.end, `${_}=${_}void 0`);
 		}
 	}
 }

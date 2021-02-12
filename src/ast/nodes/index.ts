@@ -22,7 +22,6 @@ import ExportDefaultDeclaration from './ExportDefaultDeclaration';
 import ExportNamedDeclaration from './ExportNamedDeclaration';
 import ExportSpecifier from './ExportSpecifier';
 import ExpressionStatement from './ExpressionStatement';
-import FieldDefinition from './FieldDefinition';
 import ForInStatement from './ForInStatement';
 import ForOfStatement from './ForOfStatement';
 import ForStatement from './ForStatement';
@@ -44,9 +43,10 @@ import MethodDefinition from './MethodDefinition';
 import NewExpression from './NewExpression';
 import ObjectExpression from './ObjectExpression';
 import ObjectPattern from './ObjectPattern';
-import PrivateName from './PrivateName';
+import PrivateIdentifier from './PrivateIdentifier';
 import Program from './Program';
 import Property from './Property';
+import PropertyDefinition from './PropertyDefinition';
 import RestElement from './RestElement';
 import ReturnStatement from './ReturnStatement';
 import SequenceExpression from './SequenceExpression';
@@ -96,7 +96,6 @@ export const nodeConstructors: {
 	ExportNamedDeclaration,
 	ExportSpecifier,
 	ExpressionStatement,
-	FieldDefinition,
 	ForInStatement,
 	ForOfStatement,
 	ForStatement,
@@ -118,9 +117,10 @@ export const nodeConstructors: {
 	NewExpression,
 	ObjectExpression,
 	ObjectPattern,
-	PrivateName,
+	PrivateIdentifier,
 	Program,
 	Property,
+	PropertyDefinition,
 	RestElement,
 	ReturnStatement,
 	SequenceExpression,

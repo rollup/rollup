@@ -1,12 +1,7 @@
 'use strict';
 
-Object.defineProperty(exports, '__esModule', { value: true });
+var other = require('./_virtual/other.js_commonjs-exports');
 
-var value = 43;
+other.__exports.value = 43;
 
-var other = {
-	value: value
-};
-
-exports.default = other;
-exports.value = value;
+module.exports = other.__exports;

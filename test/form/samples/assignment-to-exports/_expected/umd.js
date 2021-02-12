@@ -9,6 +9,7 @@
 
 	// Reassigned uninitialised export
 	exports.bar1 = 1;
+	exports.bar1 = void 0;
 
 	// Reassigned initialised export
 	exports.baz1 = 1;
@@ -18,7 +19,7 @@
 	var kept1, foo2, kept2;
 
 	// Reassigned uninitialised export
-	var kept1, kept2;
+	var kept1; exports.bar2 = void 0; var kept2;
 	exports.bar2 = 1;
 
 	// Reassigned initialised export

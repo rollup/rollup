@@ -1,9 +1,6 @@
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
-function createCommonjsModule(fn) {
-  var module = { exports: {} };
-	return fn(module, module.exports), module.exports;
-}
+var es6Shim = {exports: {}};
 
 /*!
  * https://github.com/paulmillr/es6-shim
@@ -15,7 +12,7 @@ function createCommonjsModule(fn) {
  * https://github.com/paulmillr/es6-shim/
  */
 
-createCommonjsModule(function (module, exports) {
+(function (module, exports) {
 // UMD (Universal Module Definition)
 // see https://github.com/umdjs/umd/blob/master/returnExports.js
 (function (root, factory) {
@@ -3888,4 +3885,4 @@ createCommonjsModule(function (module, exports) {
 
   return globals;
 }));
-});
+}(es6Shim));

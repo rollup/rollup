@@ -1,7 +1,0 @@
-define(['../other'], function (other) { 'use strict';
-
-
-
-	return other['default'];
-
-});
