@@ -14,10 +14,14 @@ import {
 import { Addons, createAddons } from './utils/addons';
 import { getChunkAssignments } from './utils/chunkAssignment';
 import commondir from './utils/commondir';
-import { errCannotAssignModuleToChunk, error, warnDeprecation } from './utils/error';
+import {
+	errCannotAssignModuleToChunk,
+	errChunkInvalid,
+	error,
+	warnDeprecation
+} from './utils/error';
 import { sortByExecutionOrder } from './utils/executionOrder';
 import { FILE_PLACEHOLDER } from './utils/FileEmitter';
-import getCodeFrame from './utils/getCodeFrame';
 import { basename, isAbsolute } from './utils/path';
 import { PluginDriver } from './utils/PluginDriver';
 import { timeEnd, timeStart } from './utils/timers';
@@ -181,9 +185,8 @@ export default class Bundle {
 						allowHashBang: true,
 						ecmaVersion: 'latest'
 					});
-				} catch (ex) {
-					const frame = getCodeFrame(file.code, ex.loc.line, ex.loc.column);
-					throw new Error(`validate failed for output '${key}': ${ex}\n${frame}`);
+				} catch (exception) {
+					return error(errChunkInvalid(file, exception));
 				}
 			}
 		}

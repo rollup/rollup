@@ -45,6 +45,7 @@ export const enum Errors {
 	BAD_LOADER = 'BAD_LOADER',
 	CANNOT_EMIT_FROM_OPTIONS_HOOK = 'CANNOT_EMIT_FROM_OPTIONS_HOOK',
 	CHUNK_NOT_GENERATED = 'CHUNK_NOT_GENERATED',
+	CHUNK_INVALID = 'CHUNK_INVALID',
 	CIRCULAR_REEXPORT = 'CIRCULAR_REEXPORT',
 	CYCLIC_CROSS_CHUNK_REEXPORT = 'CYCLIC_CROSS_CHUNK_REEXPORT',
 	DEPRECATED_FEATURE = 'DEPRECATED_FEATURE',
@@ -91,6 +92,18 @@ export function errChunkNotGeneratedForFileName(name: string) {
 		code: Errors.CHUNK_NOT_GENERATED,
 		message: `Plugin error - Unable to get file name for chunk "${name}". Ensure that generate is called first.`
 	};
+}
+
+export function errChunkInvalid(
+	{ fileName, code }: { code: string; fileName: string },
+	exception: { loc: { column: number; line: number }; message: string }
+) {
+	const errorProps = {
+		code: Errors.CHUNK_INVALID,
+		message: `Chunk "${fileName}" is not valid JavaScript: ${exception.message}.`
+	};
+	augmentCodeLocation(errorProps, exception.loc, code, fileName);
+	return errorProps;
 }
 
 export function errCircularReexport(exportName: string, importedModule: string) {

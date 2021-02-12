@@ -242,23 +242,4 @@ console.log(x);
 		assert.strictEqual(subfeature.fileName, 'base/main/feature/sub');
 		assert.ok(subfeature.code.startsWith("import { fn } from '../../main'"));
 	});
-
-	it('handles validate failure', () => {
-		return rollup
-			.rollup({
-				input: 'x',
-				plugins: [loader({ x: `console.log(1 ? 2 : 3);` })]
-			})
-			.then(bundle => bundle.generate({
-					format: 'es',
-					outro: '/*', // introduce bad syntax in output
-					validate: true
-				})
-				.then(generated => should_not_be_reached)
-				.catch(error => {
-					assertIncludes(error.message, `validate failed for output 'x.js'`);
-					assertIncludes(error.message, 'SyntaxError: Unterminated comment (3:0)');
-				})
-			);
-	});
 });

@@ -46,7 +46,7 @@ module.exports = {
 					sourcemapExcludeSources: false,
 					strict: true,
 					systemNullSetters: false,
-					validate: true
+					validate: false
 				});
 				assert.strictEqual(options.banner(), 'exports.bar = 43;');
 				assert.ok(/^\d+\.\d+\.\d+/.test(this.meta.rollupVersion));
@@ -56,8 +56,7 @@ module.exports = {
 				assert.deepStrictEqual(JSON.parse(JSON.stringify(options)), {
 					banner: "throw new Error('unused')",
 					exports: 'auto',
-					format: 'cjs',
-					validate: true
+					format: 'cjs'
 				});
 				assert.ok(/^\d+\.\d+\.\d+/.test(this.meta.rollupVersion));
 				assert.strictEqual(this.meta.watchMode, false);

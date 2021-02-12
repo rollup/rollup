@@ -55,8 +55,7 @@ export function mergeOptions(
 			'silent',
 			'failAfterWarnings',
 			'stdin',
-			'waitForBundleInput',
-			'validate'
+			'waitForBundleInput'
 		),
 		'CLI flags',
 		warn,

@@ -82,8 +82,7 @@ runTestSuiteWithSamples('function', path.resolve(__dirname, 'samples'), (dir, co
 							Object.assign(
 								{
 									exports: 'auto',
-									format: 'cjs',
-									validate: true
+									format: 'cjs'
 								},
 								(config.options || {}).output || {}
 							)
