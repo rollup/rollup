@@ -19,8 +19,8 @@ function _interopNamespace(e) {
 
 const dynamic = Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('external3')); });
 
-Object.keys(external2).forEach(function (k) {
-	if (k !== 'default') exports[k] = external2[k];
-});
 exports.external1 = external1.external1;
 exports.dynamic = dynamic;
+Object.keys(external2).forEach(function (k) {
+	if (k !== 'default' && !exports.hasOwnProperty(k)) exports[k] = external2[k];
+});
