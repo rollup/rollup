@@ -14,7 +14,12 @@ import {
 import { Addons, createAddons } from './utils/addons';
 import { getChunkAssignments } from './utils/chunkAssignment';
 import commondir from './utils/commondir';
-import { errCannotAssignModuleToChunk, error, warnDeprecation } from './utils/error';
+import {
+	errCannotAssignModuleToChunk,
+	errChunkInvalid,
+	error,
+	warnDeprecation
+} from './utils/error';
 import { sortByExecutionOrder } from './utils/executionOrder';
 import { FILE_PLACEHOLDER } from './utils/FileEmitter';
 import { basename, isAbsolute } from './utils/path';
@@ -173,6 +178,16 @@ export default class Bundle {
 					this.inputOptions
 				);
 				file.type = 'asset';
+			}
+			if (this.outputOptions.validate && typeof file.code == 'string') {
+				try {
+					this.graph.contextParse(file.code, {
+						allowHashBang: true,
+						ecmaVersion: 'latest'
+					});
+				} catch (exception) {
+					return error(errChunkInvalid(file, exception));
+				}
 			}
 		}
 		this.pluginDriver.finaliseAssets();

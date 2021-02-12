@@ -73,7 +73,8 @@ export function normalizeOutputOptions(
 			| SourcemapPathTransformOption
 			| undefined,
 		strict: (config.strict as boolean | undefined) ?? true,
-		systemNullSetters: (config.systemNullSetters as boolean | undefined) || false
+		systemNullSetters: (config.systemNullSetters as boolean | undefined) || false,
+		validate: (config.validate as boolean | undefined) || false
 	};
 
 	warnUnknownOptions(config, Object.keys(outputOptions), 'output options', inputOptions.onwarn);

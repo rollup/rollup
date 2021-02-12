@@ -1,6 +1,6 @@
 const assert = require('assert');
 const rollup = require('../../dist/rollup');
-const { loader } = require('../utils.js');
+const { assertIncludes, loader } = require('../utils.js');
 
 describe('misc', () => {
 	it('avoids modification of options or their properties', () => {

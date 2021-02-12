@@ -45,7 +45,8 @@ module.exports = {
 					sourcemap: false,
 					sourcemapExcludeSources: false,
 					strict: true,
-					systemNullSetters: false
+					systemNullSetters: false,
+					validate: false
 				});
 				assert.strictEqual(options.banner(), 'exports.bar = 43;');
 				assert.ok(/^\d+\.\d+\.\d+/.test(this.meta.rollupVersion));

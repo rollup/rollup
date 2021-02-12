@@ -47,7 +47,8 @@ runTestSuiteWithSamples('form', path.resolve(__dirname, 'samples'), (dir, config
 							{
 								exports: 'auto',
 								file: inputFile,
-								format: defaultFormat
+								format: defaultFormat,
+								// validate: true // add when systemjs bugs fixed
 							},
 							(config.options || {}).output || {}
 						),

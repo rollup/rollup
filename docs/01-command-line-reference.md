@@ -83,6 +83,7 @@ export default { // can be an array (for multiple inputs)
     sourcemapExcludeSources,
     sourcemapFile,
     sourcemapPathTransform,
+    validate,
 
     // danger zone
     amd,
@@ -330,6 +331,7 @@ Many options have command line equivalents. In those cases, any arguments passed
 --watch.skipWrite           Do not write files to disk when watching
 --watch.exclude <files>     Exclude files from being watched
 --watch.include <files>     Limit watching to specified files
+--validate                  Validate output
 ```
 
 The flags listed below are only available via the command line interface. All other flags correspond to and override their config file equivalents, see the [big list of options](guide/en/#big-list-of-options) for details.

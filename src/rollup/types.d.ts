@@ -653,6 +653,7 @@ export interface OutputOptions {
 	sourcemapPathTransform?: SourcemapPathTransformOption;
 	strict?: boolean;
 	systemNullSetters?: boolean;
+	validate?: boolean;
 }
 
 export interface NormalizedOutputOptions {
@@ -696,6 +697,7 @@ export interface NormalizedOutputOptions {
 	sourcemapPathTransform: SourcemapPathTransformOption | undefined;
 	strict: boolean;
 	systemNullSetters: boolean;
+	validate: boolean;
 }
 
 export type WarningHandlerWithDefault = (
