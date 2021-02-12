@@ -1,5 +1,24 @@
 # rollup changelog
 
+## 2.39.0
+*2021-02-12*
+
+### Features
+* Add "validate" option to verify generated chunks are valid JavaScript (#3952)
+
+### Bug Fixes
+* Always add exports properties for uninitialized named exports (#3957)
+* Allow using an external namespace reexport together with named exports (#3959)
+* Avoid invalid generated code in certain scenarios with SystemJS exports (#3960)
+
+### Pull Requests
+* [#3952](https://github.com/rollup/rollup/pull/3952): implement `validate` output option and `--validate` CLI option (@kzc)
+* [#3956](https://github.com/rollup/rollup/pull/3956): Update dependencies, fix fsevents issue (@lukastaegert)
+* [#3957](https://github.com/rollup/rollup/pull/3957): Make sure uninitialised exports turn up via .hasOwnProperty for non-ES formats (@lukastaegert)
+* [#3959](https://github.com/rollup/rollup/pull/3959): Allow overriding individual exports of reexported external namespaces (@lukastaegert)
+* [#3960](https://github.com/rollup/rollup/pull/3960): Make sure system exports are valid JavaScript
+  (@lukastaegert)
+
 ## 2.38.5
 *2021-02-05*
 
