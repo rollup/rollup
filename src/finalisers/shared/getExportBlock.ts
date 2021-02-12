@@ -29,30 +29,6 @@ export function getExportBlock(
 
 	let exportBlock = '';
 
-	// star exports must always output first for precedence
-	for (const { name, reexports } of dependencies) {
-		if (reexports && namedExportsMode) {
-			for (const specifier of reexports) {
-				if (specifier.reexported === '*') {
-					if (exportBlock) exportBlock += n;
-					if (specifier.needsLiveBinding) {
-						exportBlock +=
-							`Object.keys(${name}).forEach(function${_}(k)${_}{${n}` +
-							`${t}if${_}(k${_}!==${_}'default')${_}Object.defineProperty(exports,${_}k,${_}{${n}` +
-							`${t}${t}enumerable:${_}true,${n}` +
-							`${t}${t}get:${_}function${_}()${_}{${n}` +
-							`${t}${t}${t}return ${name}[k];${n}` +
-							`${t}${t}}${n}${t}});${n}});`;
-					} else {
-						exportBlock +=
-							`Object.keys(${name}).forEach(function${_}(k)${_}{${n}` +
-							`${t}if${_}(k${_}!==${_}'default')${_}exports[k]${_}=${_}${name}[k];${n}});`;
-					}
-				}
-			}
-		}
-	}
-
 	for (const {
 		defaultVariableName,
 		id,
@@ -95,6 +71,29 @@ export function getExportBlock(
 		if (lhs !== rhs) {
 			if (exportBlock) exportBlock += n;
 			exportBlock += `${lhs}${_}=${_}${rhs};`;
+		}
+	}
+
+	for (const { name, reexports } of dependencies) {
+		if (reexports && namedExportsMode) {
+			for (const specifier of reexports) {
+				if (specifier.reexported === '*') {
+					if (exportBlock) exportBlock += n;
+					if (specifier.needsLiveBinding) {
+						exportBlock +=
+							`Object.keys(${name}).forEach(function${_}(k)${_}{${n}` +
+							`${t}if${_}(k${_}!==${_}'default'${_}&&${_}!exports.hasOwnProperty(k))${_}Object.defineProperty(exports,${_}k,${_}{${n}` +
+							`${t}${t}enumerable:${_}true,${n}` +
+							`${t}${t}get:${_}function${_}()${_}{${n}` +
+							`${t}${t}${t}return ${name}[k];${n}` +
+							`${t}${t}}${n}${t}});${n}});`;
+					} else {
+						exportBlock +=
+							`Object.keys(${name}).forEach(function${_}(k)${_}{${n}` +
+							`${t}if${_}(k${_}!==${_}'default'${_}&&${_}!exports.hasOwnProperty(k))${_}exports[k]${_}=${_}${name}[k];${n}});`;
+					}
+				}
+			}
 		}
 	}
 

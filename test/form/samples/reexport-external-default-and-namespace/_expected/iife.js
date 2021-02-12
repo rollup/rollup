@@ -7,19 +7,19 @@ var bundle = (function (exports, external) {
 
 
 
-	Object.keys(external).forEach(function (k) {
-		if (k !== 'default') Object.defineProperty(exports, k, {
-			enumerable: true,
-			get: function () {
-				return external[k];
-			}
-		});
-	});
 	Object.defineProperty(exports, 'default', {
 		enumerable: true,
 		get: function () {
 			return external__default['default'];
 		}
+	});
+	Object.keys(external).forEach(function (k) {
+		if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
+			enumerable: true,
+			get: function () {
+				return external[k];
+			}
+		});
 	});
 
 	Object.defineProperty(exports, '__esModule', { value: true });

@@ -8,14 +8,6 @@ var starexternal2 = require('starexternal2');
 
 var main = '2';
 
-Object.keys(starexternal2).forEach(function (k) {
-	if (k !== 'default') Object.defineProperty(exports, k, {
-		enumerable: true,
-		get: function () {
-			return starexternal2[k];
-		}
-	});
-});
 exports.dep = dep.dep;
 Object.defineProperty(exports, 'e', {
 	enumerable: true,
@@ -24,3 +16,11 @@ Object.defineProperty(exports, 'e', {
 	}
 });
 exports.main = main;
+Object.keys(starexternal2).forEach(function (k) {
+	if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
+		enumerable: true,
+		get: function () {
+			return starexternal2[k];
+		}
+	});
+});

@@ -4,18 +4,14 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 var external = require('external');
 
-function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+const a = 'defined';
+exports.b = void 0;
+var c;
+const reassign = () => (exports.b = 'defined');
 
-var external__default = /*#__PURE__*/_interopDefaultLegacy(external);
-
-
-
-Object.defineProperty(exports, 'default', {
-	enumerable: true,
-	get: function () {
-		return external__default['default'];
-	}
-});
+exports.a = a;
+exports.c = c;
+exports.reassign = reassign;
 Object.keys(external).forEach(function (k) {
 	if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
 		enumerable: true,

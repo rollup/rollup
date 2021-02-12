@@ -4,7 +4,7 @@ var myBundle = (function (exports, foo, bar, baz) {
 
 
 	Object.keys(foo).forEach(function (k) {
-		if (k !== 'default') Object.defineProperty(exports, k, {
+		if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
 			enumerable: true,
 			get: function () {
 				return foo[k];
@@ -12,7 +12,7 @@ var myBundle = (function (exports, foo, bar, baz) {
 		});
 	});
 	Object.keys(bar).forEach(function (k) {
-		if (k !== 'default') Object.defineProperty(exports, k, {
+		if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
 			enumerable: true,
 			get: function () {
 				return bar[k];
@@ -20,7 +20,7 @@ var myBundle = (function (exports, foo, bar, baz) {
 		});
 	});
 	Object.keys(baz).forEach(function (k) {
-		if (k !== 'default') Object.defineProperty(exports, k, {
+		if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
 			enumerable: true,
 			get: function () {
 				return baz[k];
