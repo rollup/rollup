@@ -1,16 +1,11 @@
-define(['exports'], function (exports) { 'use strict';
+define(['../../../_virtual/index.js_commonjs-exports'], function (index) { 'use strict';
+
+	Object.defineProperty(index.__exports, '__esModule', { value: true });
 
 	var hello = 'world';
 
-	var hello_1 = hello;
+	index.__exports.hello = hello;
 
-	var myBasePkg = /*#__PURE__*/Object.defineProperty({
-		hello: hello_1
-	}, '__esModule', {value: true});
-
-	exports.default = myBasePkg;
-	exports.hello = hello_1;
-
-	Object.defineProperty(exports, '__esModule', { value: true });
+	return index.__exports;
 
 });

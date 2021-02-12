@@ -22,6 +22,7 @@ import Variable from '../variables/Variable';
 import Identifier from './Identifier';
 import Literal from './Literal';
 import * as NodeType from './NodeType';
+import PrivateIdentifier from './PrivateIdentifier';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 import SpreadElement from './SpreadElement';
 import Super from './Super';
@@ -73,7 +74,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	computed!: boolean;
 	object!: ExpressionNode | Super;
 	optional!: boolean;
-	property!: ExpressionNode;
+	property!: ExpressionNode | PrivateIdentifier;
 	propertyKey!: ObjectPathKey | null;
 	type!: NodeType.tMemberExpression;
 	variable: Variable | null = null;

@@ -1,10 +1,9 @@
 import * as acorn from 'acorn';
-// @ts-ignore
-import { base as basicWalker } from 'acorn-walk';
+import { base as basicWalker, BaseWalker } from 'acorn-walk';
 import { CommentDescription } from '../Module';
 
 // patch up acorn-walk until class-fields are officially supported
-basicWalker.FieldDefinition = function (node: any, st: any, c: any) {
+basicWalker.PropertyDefinition = function (node: any, st: any, c: any) {
 	if (node.computed) {
 		c(node.key, st, 'Expression');
 	}
@@ -13,9 +12,13 @@ basicWalker.FieldDefinition = function (node: any, st: any, c: any) {
 	}
 };
 
+interface CommentState {
+	commentIndex: number; commentNodes: CommentDescription[]
+}
+
 function handlePureAnnotationsOfNode(
 	node: acorn.Node,
-	state: { commentIndex: number; commentNodes: CommentDescription[] },
+	state: CommentState,
 	type: string = node.type
 ) {
 	let commentNode = state.commentNodes[state.commentIndex];
@@ -24,7 +27,7 @@ function handlePureAnnotationsOfNode(
 		commentNode = state.commentNodes[++state.commentIndex];
 	}
 	if (commentNode && commentNode.end <= node.end) {
-		basicWalker[type](node, state, handlePureAnnotationsOfNode);
+		(basicWalker as BaseWalker<CommentState>)[type](node, state, handlePureAnnotationsOfNode);
 	}
 }
 

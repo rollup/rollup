@@ -4,14 +4,15 @@ Object.defineProperty(exports, "__esModule", {
   value: !0
 });
 
-var t = function() {
-  function t(t) {
+var t = function(t) {
+  console.log(t);
+}, o = function() {
+  function o(t) {
     this.x = t;
   }
-  return t.prototype.output = function() {
-    var t;
-    t = this.x, console.log(t);
-  }, t;
+  return o.prototype.output = function() {
+    t(this.x);
+  }, o;
 }();
 
-new t(123).output(), exports.Bar = t;
+new o(123).output(), exports.Bar = o;

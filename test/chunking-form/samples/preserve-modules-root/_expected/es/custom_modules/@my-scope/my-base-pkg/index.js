@@ -1,10 +1,8 @@
+import { __exports as myBasePkg } from '../../../_virtual/index.js_commonjs-exports';
+export { __exports as default } from '../../../_virtual/index.js_commonjs-exports';
+
+Object.defineProperty(myBasePkg, '__esModule', { value: true });
+
 var hello = 'world';
 
-var hello_1 = hello;
-
-var myBasePkg = /*#__PURE__*/Object.defineProperty({
-	hello: hello_1
-}, '__esModule', {value: true});
-
-export default myBasePkg;
-export { hello_1 as hello };
+myBasePkg.hello = hello;

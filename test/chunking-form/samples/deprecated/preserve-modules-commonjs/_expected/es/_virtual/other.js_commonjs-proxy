@@ -1,2 +1,0 @@
-import other from '../other.js';
-export { default } from '../other.js';

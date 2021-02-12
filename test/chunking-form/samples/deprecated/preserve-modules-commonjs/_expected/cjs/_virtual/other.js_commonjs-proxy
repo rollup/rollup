@@ -1,7 +1,0 @@
-'use strict';
-
-var other = require('../other.js');
-
-
-
-module.exports = other['default'];
