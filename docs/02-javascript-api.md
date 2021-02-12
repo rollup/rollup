@@ -148,6 +148,7 @@ const outputOptions = {
   sourcemapExcludeSources,
   sourcemapFile,
   sourcemapPathTransform,
+  validate,
 
   // danger zone
   amd,

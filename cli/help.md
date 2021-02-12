@@ -72,7 +72,7 @@ Basic options:
 --watch.skipWrite           Do not write files to disk when watching
 --watch.exclude <files>     Exclude files from being watched
 --watch.include <files>     Limit watching to specified files
---validate                  Validate output (default false)
+--validate                  Validate output
 
 Examples:
 
