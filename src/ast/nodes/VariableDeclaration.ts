@@ -1,5 +1,6 @@
 import MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
+import { isReassignedExportsMember } from '../../utils/reassignedExportsMember';
 import {
 	findFirstOccurrenceOutsideComment,
 	findNonWhiteSpace,
@@ -18,15 +19,6 @@ import Identifier, { IdentifierWithVariable } from './Identifier';
 import * as NodeType from './NodeType';
 import { IncludeChildren, NodeBase } from './shared/Node';
 import VariableDeclarator from './VariableDeclarator';
-
-function isReassignedExportsMember(
-	variable: Variable,
-	exportNamesByVariable: Map<Variable, string[]>
-): boolean {
-	return (
-		variable.renderBaseName !== null && exportNamesByVariable.has(variable) && variable.isReassigned
-	);
-}
 
 function areAllDeclarationsIncludedAndNotExported(
 	declarations: VariableDeclarator[],
@@ -149,7 +141,7 @@ export default class VariableDeclaration extends NodeBase {
 	private renderReplacedDeclarations(
 		code: MagicString,
 		options: RenderOptions,
-		{ start = this.start, end = this.end, isNoStatement }: NodeRenderOptions
+		{ isNoStatement }: NodeRenderOptions
 	): void {
 		const separatedNodes = getCommaSeparatedNodesWithBoundaries(
 			this.declarations,
@@ -168,15 +160,7 @@ export default class VariableDeclaration extends NodeBase {
 			nextSeparatorString;
 		const systemPatternExports: Variable[] = [];
 		for (const { node, start, separator, contentEnd, end } of separatedNodes) {
-			if (
-				!node.included ||
-				(node.id instanceof Identifier &&
-					isReassignedExportsMember(
-						(node.id as IdentifierWithVariable).variable,
-						options.exportNamesByVariable
-					) &&
-					node.init === null)
-			) {
+			if (!node.included) {
 				code.remove(start, end);
 				continue;
 			}
@@ -240,19 +224,15 @@ export default class VariableDeclaration extends NodeBase {
 			lastSeparatorPos = separator!;
 			separatorString = nextSeparatorString;
 		}
-		if (hasRenderedContent) {
-			this.renderDeclarationEnd(
-				code,
-				separatorString,
-				lastSeparatorPos,
-				actualContentEnd!,
-				renderedContentEnd,
-				systemPatternExports,
-				options,
-				isNoStatement
-			);
-		} else {
-			code.remove(start, end);
-		}
+		this.renderDeclarationEnd(
+			code,
+			separatorString,
+			lastSeparatorPos,
+			actualContentEnd!,
+			renderedContentEnd,
+			systemPatternExports,
+			options,
+			isNoStatement
+		);
 	}
 }

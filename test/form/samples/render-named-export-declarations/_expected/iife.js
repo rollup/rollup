@@ -1,10 +1,10 @@
 var bundle = (function (exports) {
 	'use strict';
 
-	var aFoo;
+	var aFoo; exports.aBar = void 0;
 	exports.aBar = 2;
 
-	var bBar;
+	exports.bFoo = void 0; var bBar;
 	exports.bFoo = 2;
 
 	var cFoo; exports.cBar = 1;
