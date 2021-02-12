@@ -15,7 +15,7 @@ System.register('bundle', [], function (exports) {
 
 			// Reassigned uninitialised export
 			bar1 = exports('bar1', 1);
-			var bar1; // this will be removed for non ES6 bundles
+			var bar1;
 
 			// Reassigned initialised export
 			var baz1 = exports('baz1', 1);

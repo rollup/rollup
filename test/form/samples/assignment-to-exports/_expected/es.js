@@ -3,7 +3,7 @@ var foo1;
 
 // Reassigned uninitialised export
 bar1 = 1;
-var bar1; // this will be removed for non ES6 bundles
+var bar1;
 
 // Reassigned initialised export
 var baz1 = 1;
