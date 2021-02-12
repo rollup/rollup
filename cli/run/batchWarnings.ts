@@ -41,7 +41,7 @@ export default function batchWarnings() {
 				const id = (warning.loc && warning.loc.file) || warning.id;
 				if (id) {
 					const loc = warning.loc
-						? `${relativeId(id)}: (${warning.loc.line}:${warning.loc.column})`
+						? `${relativeId(id)} (${warning.loc.line}:${warning.loc.column})`
 						: relativeId(id);
 
 					stderr(bold(relativeId(loc)));

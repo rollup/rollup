@@ -8,7 +8,7 @@ module.exports = {
 	stderr: stderr =>
 		assertIncludes(
 			stderr,
-			`[!] Error: Chunk "out.js" is not valid JavaScript: Unterminated comment (3:20).
+			`(!) Chunk "out.js" is not valid JavaScript: Unterminated comment (3:20).
 out.js (3:20)
 1: console.log(2 );
 2: 

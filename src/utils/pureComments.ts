@@ -1,5 +1,6 @@
 import * as acorn from 'acorn';
 import { base as basicWalker, BaseWalker } from 'acorn-walk';
+import { CallExpression, ExpressionStatement, NewExpression } from '../ast/nodes/NodeType';
 import { CommentDescription } from '../Module';
 
 // patch up acorn-walk until class-fields are officially supported
@@ -13,7 +14,8 @@ basicWalker.PropertyDefinition = function (node: any, st: any, c: any) {
 };
 
 interface CommentState {
-	commentIndex: number; commentNodes: CommentDescription[]
+	commentIndex: number;
+	commentNodes: CommentDescription[];
 }
 
 function handlePureAnnotationsOfNode(
@@ -40,10 +42,10 @@ function markPureNode(
 	} else {
 		node.annotations = [comment];
 	}
-	if (node.type === 'ExpressionStatement') {
+	if (node.type === ExpressionStatement) {
 		node = (node as any).expression;
 	}
-	if (node.type === 'CallExpression' || node.type === 'NewExpression') {
+	if (node.type === CallExpression || node.type === NewExpression) {
 		(node as any).annotatedPure = true;
 	}
 }

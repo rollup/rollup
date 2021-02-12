@@ -186,7 +186,7 @@ export default class Bundle {
 						ecmaVersion: 'latest'
 					});
 				} catch (exception) {
-					return error(errChunkInvalid(file, exception));
+					this.inputOptions.onwarn(errChunkInvalid(file, exception));
 				}
 			}
 		}
