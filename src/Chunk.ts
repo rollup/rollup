@@ -1246,7 +1246,7 @@ export default class Chunk {
 		}
 	}
 
-	private setIdentifierRenderResolutions({ format, interop }: NormalizedOutputOptions) {
+	private setIdentifierRenderResolutions({ format, interop, namespaceToStringTag }: NormalizedOutputOptions) {
 		const syntheticExports = new Set<SyntheticNamedExportVariable>();
 		for (const exportName of this.getExportNames()) {
 			const exportVariable = this.exportsByName[exportName];
@@ -1267,9 +1267,12 @@ export default class Chunk {
 			}
 		}
 
-		const usedNames = new Set<string>();
+		const usedNames = new Set<string>(['Object', 'Promise']);
 		if (this.needsExportsShim) {
 			usedNames.add(MISSING_EXPORT_SHIM_VARIABLE);
+		}
+		if (namespaceToStringTag) {
+			usedNames.add('Symbol');
 		}
 		switch (format) {
 			case 'system':

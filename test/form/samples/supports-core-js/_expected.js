@@ -6060,7 +6060,7 @@ var IS_NODE$3 = engineIsNode;
 var MutationObserver = global$q.MutationObserver || global$q.WebKitMutationObserver;
 var document$2 = global$q.document;
 var process$2 = global$q.process;
-var Promise = global$q.Promise;
+var Promise$1 = global$q.Promise;
 // Node.js 11 shows ExperimentalWarning on getting `queueMicrotask`
 var queueMicrotaskDescriptor = getOwnPropertyDescriptor$7(global$q, 'queueMicrotask');
 var queueMicrotask = queueMicrotaskDescriptor && queueMicrotaskDescriptor.value;
@@ -6096,9 +6096,9 @@ if (!queueMicrotask) {
       node.data = toggle = !toggle;
     };
   // environments with maybe non-completely correct, but existent Promise
-  } else if (Promise && Promise.resolve) {
+  } else if (Promise$1 && Promise$1.resolve) {
     // Promise.resolve without an argument throws an error in LG WebOS 2
-    promise = Promise.resolve(undefined);
+    promise = Promise$1.resolve(undefined);
     then = promise.then;
     notify = function () {
       then.call(promise, flush);
@@ -12383,7 +12383,7 @@ var wellKnownSymbol$y = wellKnownSymbol;
 var InternalStateModule$h = internalState;
 var getBuiltIn$m = getBuiltIn;
 
-var Promise$1 = getBuiltIn$m('Promise');
+var Promise$2 = getBuiltIn$m('Promise');
 
 var setInternalState$h = InternalStateModule$h.set;
 var getInternalState$e = InternalStateModule$h.get;
@@ -12394,7 +12394,7 @@ var $return = function (value) {
   var iterator = getInternalState$e(this).iterator;
   var $$return = iterator['return'];
   return $$return === undefined
-    ? Promise$1.resolve({ done: true, value: value })
+    ? Promise$2.resolve({ done: true, value: value })
     : anObject$13($$return.call(iterator, value));
 };
 
@@ -12402,7 +12402,7 @@ var $throw = function (value) {
   var iterator = getInternalState$e(this).iterator;
   var $$throw = iterator['throw'];
   return $$throw === undefined
-    ? Promise$1.reject(value)
+    ? Promise$2.reject(value)
     : $$throw.call(iterator, value);
 };
 
@@ -12416,11 +12416,11 @@ var asyncIteratorCreateProxy = function (nextHandler, IS_ITERATOR) {
   AsyncIteratorProxy.prototype = redefineAll$8(create$b(path$3.AsyncIterator.prototype), {
     next: function next(arg) {
       var state = getInternalState$e(this);
-      if (state.done) return Promise$1.resolve({ done: true, value: undefined });
+      if (state.done) return Promise$2.resolve({ done: true, value: undefined });
       try {
-        return Promise$1.resolve(anObject$13(nextHandler.call(state, arg, Promise$1)));
+        return Promise$2.resolve(anObject$13(nextHandler.call(state, arg, Promise$2)));
       } catch (error) {
-        return Promise$1.reject(error);
+        return Promise$2.reject(error);
       }
     },
     'return': $return,
@@ -12507,7 +12507,7 @@ var aFunction$x = aFunction$1;
 var anObject$16 = anObject;
 var getBuiltIn$n = getBuiltIn;
 
-var Promise$2 = getBuiltIn$n('Promise');
+var Promise$3 = getBuiltIn$n('Promise');
 var push$2 = [].push;
 
 var createMethod$7 = function (TYPE) {
@@ -12521,12 +12521,12 @@ var createMethod$7 = function (TYPE) {
     var array = IS_TO_ARRAY ? [] : undefined;
     if (!IS_TO_ARRAY) aFunction$x(fn);
 
-    return new Promise$2(function (resolve, reject) {
+    return new Promise$3(function (resolve, reject) {
       var closeIteration = function (method, argument) {
         try {
           var returnMethod = iterator['return'];
           if (returnMethod !== undefined) {
-            return Promise$2.resolve(returnMethod.call(iterator)).then(function () {
+            return Promise$3.resolve(returnMethod.call(iterator)).then(function () {
               method(argument);
             }, function (error) {
               reject(error);
@@ -12543,7 +12543,7 @@ var createMethod$7 = function (TYPE) {
 
       var loop = function () {
         try {
-          Promise$2.resolve(anObject$16(next.call(iterator))).then(function (step) {
+          Promise$3.resolve(anObject$16(next.call(iterator))).then(function (step) {
             try {
               if (anObject$16(step).done) {
                 resolve(IS_TO_ARRAY ? array : IS_SOME ? false : IS_EVERY || undefined);
@@ -12553,7 +12553,7 @@ var createMethod$7 = function (TYPE) {
                   push$2.call(array, value);
                   loop();
                 } else {
-                  Promise$2.resolve(fn(value)).then(function (result) {
+                  Promise$3.resolve(fn(value)).then(function (result) {
                     if (IS_FOR_EACH) {
                       loop();
                     } else if (IS_EVERY) {
@@ -12798,7 +12798,7 @@ var aFunction$C = aFunction$1;
 var anObject$1b = anObject;
 var getBuiltIn$o = getBuiltIn;
 
-var Promise$3 = getBuiltIn$o('Promise');
+var Promise$4 = getBuiltIn$o('Promise');
 
 $$3z({ target: 'AsyncIterator', proto: true, real: true }, {
   reduce: function reduce(reducer /* , initialValue */) {
@@ -12808,10 +12808,10 @@ $$3z({ target: 'AsyncIterator', proto: true, real: true }, {
     var accumulator = noInitial ? undefined : arguments[1];
     aFunction$C(reducer);
 
-    return new Promise$3(function (resolve, reject) {
+    return new Promise$4(function (resolve, reject) {
       var loop = function () {
         try {
-          Promise$3.resolve(anObject$1b(next.call(iterator))).then(function (step) {
+          Promise$4.resolve(anObject$1b(next.call(iterator))).then(function (step) {
             try {
               if (anObject$1b(step).done) {
                 noInitial ? reject(TypeError('Reduce of empty iterator with no initial value')) : resolve(accumulator);
@@ -12822,7 +12822,7 @@ $$3z({ target: 'AsyncIterator', proto: true, real: true }, {
                   accumulator = value;
                   loop();
                 } else {
-                  Promise$3.resolve(reducer(accumulator, value)).then(function (result) {
+                  Promise$4.resolve(reducer(accumulator, value)).then(function (result) {
                     accumulator = result;
                     loop();
                   }, reject);
