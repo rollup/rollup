@@ -35,7 +35,7 @@ When given as a command line argument, it should be a comma-separated list of ID
 rollup -i src/main.js ... -e foo,bar,baz
 ```
 
-When providing a function, it is actually called with three parameters `(id, parent, isResolved)` that can give you more fine-grained control:
+When providing a function, it is called with three parameters `(id, parent, isResolved)` that can give you more fine-grained control:
 
 * `id` is the id of the module in question
 * `parent` is the id of the module doing the import
