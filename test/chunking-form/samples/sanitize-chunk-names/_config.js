@@ -5,7 +5,7 @@ module.exports = {
 		plugins: [
 			{
 				options(options) {
-					options.input = ['\0virtual-entry-1', '\0virtual-entry-2'];
+					options.input = ['\0virtual:entry-1', '\0virtual:entry-2'];
 					return options;
 				},
 				resolveId(id) {
