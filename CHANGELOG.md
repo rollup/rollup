@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 2.40.0
+*2021-02-26*
+
+### Features
+* Make sure that entry point variable names take precedence over variable names in dependencies when deconflicting (#3977)
+
+### Bug Fixes
+* Replace `:` in generated file names to prevent invalid files on Windows (#3972)
+
+### Pull Requests
+* [#3972](https://github.com/rollup/rollup/pull/3972): Don't allow `:` in file names (@lukastaegert)
+* [#3976](https://github.com/rollup/rollup/pull/3976): Add soft breaks to guide to improve mobile experience (@lukastaegert)
+* [#3977](https://github.com/rollup/rollup/pull/3977): Reverse module deconflicting order (@lukastaegert)
+
 ## 2.39.1
 *2021-02-23*
 
