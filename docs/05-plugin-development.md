@@ -8,7 +8,7 @@ A Rollup plugin is an object with one or more of the [properties](guide/en/#prop
 
 Plugins allow you to customise Rollup's behaviour by, for example, transpiling code before bundling, or finding third-party modules in your `node_modules` folder. For an example on how to use them, see [Using plugins](guide/en/#using-plugins).
 
-A List of Plugins may be found at https://github.com/rollup/awesome. If you would like to make a suggestion for a plugin, please submit a Pull Request.
+A List of Plugins may be found at [github.com/<wbr>rollup/<wbr>awesome](https://github.com/rollup/awesome). If you would like to make a suggestion for a plugin, please submit a Pull Request.
 
 ### A Simple Example
 
@@ -72,7 +72,7 @@ To interact with the build process, your plugin object includes 'hooks'. Hooks a
 * `sequential`: If several plugins implement this hook, all of them will be run in the specified plugin order. If a hook is async, subsequent hooks of this kind will wait until the current hook is resolved.
 * `parallel`: If several plugins implement this hook, all of them will be run in the specified plugin order. If a hook is async, subsequent hooks of this kind will be run in parallel and not wait for the current hook.
 
-Build hooks are run during the build phase, which is triggered by `rollup.rollup(inputOptions)`. They are mainly concerned with locating, providing and transforming input files before they are processed by Rollup. The first hook of the build phase is [`options`](guide/en/#options), the last one is always [`buildEnd`](guide/en/#buildend), unless there is a build error in which case [`closeBundle`](guide/en/#closebundle) will be called after that.
+Build hooks are run during the build phase, which is triggered by `rollup`<wbr>`.rollup(`<wbr>`inputOptions)`. They are mainly concerned with locating, providing and transforming input files before they are processed by Rollup. The first hook of the build phase is [`options`](guide/en/#options), the last one is always [`buildEnd`](guide/en/#buildend), unless there is a build error in which case [`closeBundle`](guide/en/#closebundle) will be called after that.
 
 Additionally, in watch mode the [`watchChange`](guide/en/#watchchange) hook can be triggered at any time to notify a new run will be triggered once the current run has generated its outputs. Also, when watcher closes, the [`closeWatcher`](guide/en/#closewatcher) hook will be triggered.
 
@@ -109,7 +109,7 @@ Next Hook: [`transform`](guide/en/#transform) to transform the loaded file.
 
 Defines a custom loader. Returning `null` defers to other `load` functions (and eventually the default behavior of loading from the file system). To prevent additional parsing overhead in case e.g. this hook already used `this.parse` to generate an AST for some reason, this hook can optionally return a `{ code, ast, map }` object. The `ast` must be a standard ESTree AST with `start` and `end` properties for each node. If the transformation does not move code, you can preserve existing sourcemaps by setting `map` to `null`. Otherwise you might need to generate the source map. See [the section on source code transformations](#source-code-transformations).
 
-If `false` is returned for `moduleSideEffects` and no other module imports anything from this module, then this module will not be included in the bundle even if the module would have side-effects. If `true` is returned, Rollup will use its default algorithm to include all statements in the module that have side-effects (such as modifying a global or exported variable). If `"no-treeshake"` is returned, treeshaking will be turned off for this module and it will also be included in one of the generated chunks even if it is empty. If `null` is returned or the flag is omitted, then `moduleSideEffects` will be determined by the first `resolveId` hook that resolved this module, the `treeshake.moduleSideEffects` option, or eventually default to `true`. The `transform` hook can override this.
+If `false` is returned for `moduleSideEffects` and no other module imports anything from this module, then this module will not be included in the bundle even if the module would have side-effects. If `true` is returned, Rollup will use its default algorithm to include all statements in the module that have side-effects (such as modifying a global or exported variable). If `"no-treeshake"` is returned, treeshaking will be turned off for this module and it will also be included in one of the generated chunks even if it is empty. If `null` is returned or the flag is omitted, then `moduleSideEffects` will be determined by the first `resolveId` hook that resolved this module, the `treeshake`<wbr>`.moduleSideEffects` option, or eventually default to `true`. The `transform` hook can override this.
 
 See [synthetic named exports](guide/en/#synthetic-named-exports) for the effect of the `syntheticNamedExports` option. If `null` is returned or the flag is omitted, then `syntheticNamedExports` will be determined by the first `resolveId` hook that resolved this module or eventually default to `false`. The `transform` hook can override this.
 
@@ -210,7 +210,7 @@ resolveId(source) {
 
 Relative ids, i.e. starting with `./` or `../`, will **not** be renormalized when returning an object. If you want this behaviour, return an absolute file system location as `id` instead.
 
-If `false` is returned for `moduleSideEffects` in the first hook that resolves a module id and no other module imports anything from this module, then this module will not be included even if the module would have side-effects. If `true` is returned, Rollup will use its default algorithm to include all statements in the module that have side-effects (such as modifying a global or exported variable). If `"no-treeshake"` is returned, treeshaking will be turned off for this module and it will also be included in one of the generated chunks even if it is empty. If `null` is returned or the flag is omitted, then `moduleSideEffects` will be determined by the `treeshake.moduleSideEffects` option or default to `true`. The `load` and `transform` hooks can override this.
+If `false` is returned for `moduleSideEffects` in the first hook that resolves a module id and no other module imports anything from this module, then this module will not be included even if the module would have side-effects. If `true` is returned, Rollup will use its default algorithm to include all statements in the module that have side-effects (such as modifying a global or exported variable). If `"no-treeshake"` is returned, treeshaking will be turned off for this module and it will also be included in one of the generated chunks even if it is empty. If `null` is returned or the flag is omitted, then `moduleSideEffects` will be determined by the `treeshake`<wbr>`.moduleSideEffects` option or default to `true`. The `load` and `transform` hooks can override this.
 
 See [synthetic named exports](guide/en/#synthetic-named-exports) for the effect of the `syntheticNamedExports` option. If `null` is returned or the flag is omitted, then `syntheticNamedExports` will default to `false`. The `load` and `transform` hooks can override this.
 
@@ -236,9 +236,9 @@ If `true` is returned, Rollup will use its default algorithm to include all stat
 
 If `"no-treeshake"` is returned, treeshaking will be turned off for this module and it will also be included in one of the generated chunks even if it is empty. 
 
-If `null` is returned or the flag is omitted, then `moduleSideEffects` will be determined by the `load` hook that loaded this module, the first `resolveId` hook that resolved this module, the `treeshake.moduleSideEffects` option, or eventually default to `true`.
+If `null` is returned or the flag is omitted, then `moduleSideEffects` will be determined by the `load` hook that loaded this module, the first `resolveId` hook that resolved this module, the `treeshake`<wbr>`.moduleSideEffects` option, or eventually default to `true`.
 
-See [synthetic named exports](guide/en/#synthetic-named-exports) for the effect of the `syntheticNamedExports` option. If `null` is returned or the flag is omitted, then `syntheticNamedExports` will be determined by the `load` hook that loaded this module, the first `resolveId` hook that resolved this module, the `treeshake.moduleSideEffects` option, or eventually default to `false`.
+See [synthetic named exports](guide/en/#synthetic-named-exports) for the effect of the `syntheticNamedExports` option. If `null` is returned or the flag is omitted, then `syntheticNamedExports` will be determined by the `load` hook that loaded this module, the first `resolveId` hook that resolved this module, the `treeshake`<wbr>`.moduleSideEffects` option, or eventually default to `false`.
 
 See [custom module meta-data](guide/en/#custom-module-meta-data) for how to use the `meta` option. If `null` is returned or the option is omitted, then `meta` will be determined by the `load` hook that loaded this module, the first `resolveId` hook that resolved this module or eventually default to an empty object.
 
@@ -263,7 +263,7 @@ Additionally, [`closeBundle`](guide/en/#closebundle) can be called as the very l
 Type: `(chunkInfo: ChunkInfo) => string`<br>
 Kind: `sync, sequential`<br>
 Previous Hook: [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression.<br>
-Next Hook: [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta`.
+Next Hook: [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import`<wbr>`.meta`<wbr>`.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta`.
 
 Can be used to augment the hash of individual chunks. Called for each Rollup output chunk. Returning a falsy value will not modify the hash. Truthy values will be passed to [`hash.update`](https://nodejs.org/dist/latest-v12.x/docs/api/crypto.html#crypto_hash_update_data_inputencoding). The `chunkInfo` is a reduced version of the one in [`generateBundle`](guide/en/#generatebundle) without properties that rely on file names.
 
@@ -377,7 +377,7 @@ Cf. [`output.intro/output.outro`](guide/en/#outputintrooutputoutro).
 #### `renderChunk`
 Type: `(code: string, chunk: ChunkInfo, options: OutputOptions) => string | { code: string, map: SourceMap } | null`<br>
 Kind: `async, sequential`<br>
-Previous Hook: [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta`.<br>
+Previous Hook: [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import`<wbr>`.meta`<wbr>`.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta`.<br>
 Next Hook: [`generateBundle`](guide/en/#generatebundle).
 
 Can be used to transform individual chunks. Called for each Rollup output chunk file. Returning `null` will apply no transformations.
@@ -457,7 +457,7 @@ Kind: `sync, first`<br>
 Previous Hook: [`augmentChunkHash`](guide/en/#augmentchunkhash) for each chunk that would contain a hash in the file name.<br>
 Next Hook: [`renderChunk`](guide/en/#renderchunk) for each chunk.
 
-Allows to customize how Rollup resolves URLs of files that were emitted by plugins via `this.emitFile`. By default, Rollup will generate code for `import.meta.ROLLUP_FILE_URL_referenceId` that should correctly generate absolute URLs of emitted files independent of the output format and the host system where the code is deployed.
+Allows to customize how Rollup resolves URLs of files that were emitted by plugins via `this.emitFile`. By default, Rollup will generate code for `import`<wbr>`.meta`<wbr>`.ROLLUP_FILE_URL_referenceId` that should correctly generate absolute URLs of emitted files independent of the output format and the host system where the code is deployed.
 
 For that, all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available. In case that fails or to generate more optimized code, this hook can be used to customize this behaviour. To do that, the following information is available:
 
@@ -558,9 +558,9 @@ Emits a new file that is included in the build output and returns a `referenceId
 
 In both cases, either a `name` or a `fileName` can be supplied. If a `fileName` is provided, it will be used unmodified as the name of the generated file, throwing an error if this causes a conflict. Otherwise if a `name` is supplied, this will be used as substitution for `[name]` in the corresponding [`output.chunkFileNames`](guide/en/#outputchunkfilenames) or [`output.assetFileNames`](guide/en/#outputassetfilenames) pattern, possibly adding a unique number to the end of the file name to avoid conflicts. If neither a `name` nor `fileName` is supplied, a default name will be used.
 
-You can reference the URL of an emitted file in any code returned by a [`load`](guide/en/#load) or [`transform`](guide/en/#transform) plugin hook via `import.meta.ROLLUP_FILE_URL_referenceId`. See [File URLs](guide/en/#file-urls) for more details and an example.
+You can reference the URL of an emitted file in any code returned by a [`load`](guide/en/#load) or [`transform`](guide/en/#transform) plugin hook via `import`<wbr>`.meta`<wbr>`.ROLLUP_FILE_URL_referenceId`. See [File URLs](guide/en/#file-urls) for more details and an example.
 
-The generated code that replaces `import.meta.ROLLUP_FILE_URL_referenceId` can be customized via the [`resolveFileUrl`](guide/en/#resolvefileurl) plugin hook. You can also use [`this.getFileName(referenceId)`](guide/en/#thisgetfilenamereferenceid-string--string) to determine the file name as soon as it is available
+The generated code that replaces `import`<wbr>`.meta`<wbr>`.ROLLUP_FILE_URL_referenceId` can be customized via the [`resolveFileUrl`](guide/en/#resolvefileurl) plugin hook. You can also use [`this.getFileName(referenceId)`](guide/en/#thisgetfilenamereferenceid-string--string) to determine the file name as soon as it is available
 
 If the `type` is *`chunk`*, then this emits a new chunk with the given module `id` as entry point. To resolve it, the `id` will be passed through build hooks just like regular entry points, starting with [`resolveId`](guide/en/#resolveid). If an `importer` is provided, this acts as the second parameter of `resolveId` and is important to properly resolve relative paths. If it is not provided, paths will be resolved relative to the current working directory. If a value for `preserveSignature` is provided, this will override [`preserveEntrySignatures`](guide/en/#preserveentrysignatures) for this particular chunk.
 
@@ -625,7 +625,7 @@ If there are no dynamic imports, this will create exactly three chunks where the
 
 Note that even though any module id can be used in `implicitlyLoadedAfterOneOf`, Rollup will throw an error if such an id cannot be uniquely associated with a chunk, e.g. because the `id` cannot be reached implicitly or explicitly from the existing static entry points, or because the file is completely tree-shaken. Using only entry points, either defined by the user or of previously emitted chunks, will always work, though.
 
-If the `type` is *`asset`*, then this emits an arbitrary new file with the given `source` as content. It is possible to defer setting the `source` via [`this.setAssetSource(assetReferenceId, source)`](guide/en/#thissetassetsourceassetreferenceid-string-source-string--uint8array--void) to a later time to be able to reference a file during the build phase while setting the source separately for each output during the generate phase. Assets with a specified `fileName` will always generate separate files while other emitted assets may be deduplicated with existing assets if they have the same source even if the `name` does not match. If such an asset is not deduplicated, the [`output.assetFileNames`](guide/en/#outputassetfilenames) name pattern will be used.
+If the `type` is *`asset`*, then this emits an arbitrary new file with the given `source` as content. It is possible to defer setting the `source` via [`this`<wbr>`.setAssetSource(`<wbr>`referenceId, source)`](guide/en/#thissetassetsourcereferenceid-string-source-string--uint8array--void) to a later time to be able to reference a file during the build phase while setting the source separately for each output during the generate phase. Assets with a specified `fileName` will always generate separate files while other emitted assets may be deduplicated with existing assets if they have the same source even if the `name` does not match. If such an asset is not deduplicated, the [`output.assetFileNames`](guide/en/#outputassetfilenames) name pattern will be used.
 
 #### `this.error(error: string | Error, position?: number | { column: number; line: number }) => never`
 
@@ -647,7 +647,7 @@ Returns an `Iterator` that gives access to all module ids in the current graph. 
 for (const moduleId of this.getModuleIds()) { /* ... */ }
 ```
 
-or converted into an Array via `Array.from(this.getModuleIds())`.
+or converted into an Array via `Array`<wbr>`.from(`<wbr>`this`<wbr>`.getModuleIds())`.
 
 #### `this.getModuleInfo(moduleId: string) => (ModuleInfo | null)`
 
@@ -701,7 +701,7 @@ If you pass `skipSelf: true`, then the `resolveId` hook of the plugin from which
 
 You can also pass an object of plugin-specific options via the `custom` option, see [custom resolver options](guide/en/#custom-resolver-options) for details.
 
-#### `this.setAssetSource(assetReferenceId: string, source: string | Uint8Array) => void`
+#### `this.setAssetSource(`<wbr>`referenceId: string, source: string | Uint8Array) => void`
 
 Set the deferred source of an asset. Note that you can also pass a Node `Buffer` as `source` as it is a sub-class of `Uint8Array`.
 
@@ -725,21 +725,21 @@ The `position` argument is a character index where the warning was raised. If pr
 
 ☢️ These context utility functions have been deprecated and may be removed in a future Rollup version.
 
-- `this.emitAsset(assetName: string, source: string) => string` - _**Use [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string)**_ - Emits a custom file that is included in the build output, returning an `assetReferenceId` that can be used to reference the emitted file. You can defer setting the source if you provide it later via [`this.setAssetSource(assetReferenceId, source)`](guide/en/#thissetassetsourceassetreferenceid-string-source-string--uint8array--void). A string or `Uint8Array`/`Buffer` source must be set for each asset through either method or an error will be thrown on generate completion.
+- `this`<wbr>`.emitAsset(`<wbr>`assetName: string, source: string) => string` - _**Use [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string)**_ - Emits a custom file that is included in the build output, returning a `referenceId` that can be used to reference the emitted file. You can defer setting the source if you provide it later via [`this`<wbr>`.setAssetSource(`<wbr>`referenceId, source)`](guide/en/#thissetassetsourcereferenceid-string-source-string--uint8array--void). A string or `Uint8Array`/`Buffer` source must be set for each asset through either method or an error will be thrown on generate completion.
 
-  Emitted assets will follow the [`output.assetFileNames`](guide/en/#outputassetfilenames) naming scheme. You can reference the URL of the file in any code returned by a [`load`](guide/en/#load) or [`transform`](guide/en/#transform) plugin hook via `import.meta.ROLLUP_ASSET_URL_assetReferenceId`.
+  Emitted assets will follow the [`output.assetFileNames`](guide/en/#outputassetfilenames) naming scheme. You can reference the URL of the file in any code returned by a [`load`](guide/en/#load) or [`transform`](guide/en/#transform) plugin hook via `import`<wbr>`.meta`<wbr>`.ROLLUP_ASSET_URL_referenceId`.
 
-  The generated code that replaces `import.meta.ROLLUP_ASSET_URL_assetReferenceId` can be customized via the [`resolveFileUrl`](guide/en/#resolvefileurl) plugin hook. Once the asset has been finalized during `generate`, you can also use [`this.getFileName(assetReferenceId)`](guide/en/#thisgetfilenamereferenceid-string--string) to determine the file name.
+  The generated code that replaces `import`<wbr>`.meta`<wbr>`.ROLLUP_ASSET_URL_referenceId` can be customized via the [`resolveFileUrl`](guide/en/#resolvefileurl) plugin hook. Once the asset has been finalized during `generate`, you can also use [`this`<wbr>`.getFileName(`<wbr>`referenceId)`](guide/en/#thisgetfilenamereferenceid-string--string) to determine the file name.
 
-- `this.emitChunk(moduleId: string, options?: {name?: string}) => string` - _**Use [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string)**_ - Emits a new chunk with the given module as entry point. This will not result in duplicate modules in the graph, instead if necessary, existing chunks will be split. It returns a `chunkReferenceId` that can be used to later access the generated file name of the chunk.
+- `this.emitChunk(moduleId: string, options?: {name?: string}) => string` - _**Use [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string)**_ - Emits a new chunk with the given module as entry point. This will not result in duplicate modules in the graph, instead if necessary, existing chunks will be split. It returns a `referenceId` that can be used to later access the generated file name of the chunk.
 
-  Emitted chunks will follow the [`output.chunkFileNames`](guide/en/#outputchunkfilenames), [`output.entryFileNames`](guide/en/#outputentryfilenames) naming scheme. If a `name` is provided, this will be used for the `[name]` file name placeholder, otherwise the name will be derived from the file name. If a `name` is provided, this name must not conflict with any other entry point names unless the entry points reference the same entry module. You can reference the URL of the emitted chunk in any code returned by a [`load`](guide/en/#load) or [`transform`](guide/en/#transform) plugin hook via `import.meta.ROLLUP_CHUNK_URL_chunkReferenceId`.
+  Emitted chunks will follow the [`output.chunkFileNames`](guide/en/#outputchunkfilenames), [`output.entryFileNames`](guide/en/#outputentryfilenames) naming scheme. If a `name` is provided, this will be used for the `[name]` file name placeholder, otherwise the name will be derived from the file name. If a `name` is provided, this name must not conflict with any other entry point names unless the entry points reference the same entry module. You can reference the URL of the emitted chunk in any code returned by a [`load`](guide/en/#load) or [`transform`](guide/en/#transform) plugin hook via `import`<wbr>`.meta`<wbr>`.ROLLUP_CHUNK_URL_referenceId`.
 
-  The generated code that replaces `import.meta.ROLLUP_CHUNK_URL_chunkReferenceId` can be customized via the [`resolveFileUrl`](guide/en/#resolvefileurl) plugin hook. Once the chunk has been rendered during `generate`, you can also use [`this.getFileName(chunkReferenceId)`](guide/en/#thisgetfilenamereferenceid-string--string) to determine the file name.
+  The generated code that replaces `import`<wbr>`.meta`<wbr>`.ROLLUP_CHUNK_URL_referenceId` can be customized via the [`resolveFileUrl`](guide/en/#resolvefileurl) plugin hook. Once the chunk has been rendered during `generate`, you can also use [`this`<wbr>`.getFileName(`<wbr>`referenceId)`](guide/en/#thisgetfilenamereferenceid-string--string) to determine the file name.
 
-- `this.getAssetFileName(assetReferenceId: string) => string` - _**Use [`this.getFileName`](guide/en/#thisgetfilenamereferenceid-string--string)**_ - Get the file name of an asset, according to the `assetFileNames` output option pattern. The file name will be relative to `outputOptions.dir`.
+- `this`<wbr>`.getAssetFileName(`<wbr>`referenceId: string) => string` - _**Use [`this.getFileName`](guide/en/#thisgetfilenamereferenceid-string--string)**_ - Get the file name of an asset, according to the `assetFileNames` output option pattern. The file name will be relative to `outputOptions.dir`.
 
-- `this.getChunkFileName(chunkReferenceId: string) => string` - _**Use [`this.getFileName`](guide/en/#thisgetfilenamereferenceid-string--string)**_ - Get the file name of an emitted chunk. The file name will be relative to `outputOptions.dir`.
+- `this`<wbr>`.getChunkFileName(`<wbr>`referenceId: string) => string` - _**Use [`this.getFileName`](guide/en/#thisgetfilenamereferenceid-string--string)**_ - Get the file name of an emitted chunk. The file name will be relative to `outputOptions.dir`.
 
 - `this.isExternal(id: string, importer: string | undefined, isResolved: boolean) => boolean` - _**Use [`this.resolve`](guide/en/#thisresolvesource-string-importer-string-options-skipself-boolean-custom-plugin-string-any--promiseid-string-external-boolean-modulesideeffects-boolean--no-treeshake-syntheticnamedexports-boolean--string-meta-plugin-string-any--null)**_ - Determine if a given module ID is external when imported by `importer`. When `isResolved` is false, Rollup will try to resolve the id before testing if it is external.
 
@@ -749,14 +749,14 @@ The `position` argument is a character index where the warning was raised. If pr
   for (const moduleId of this.moduleIds) { /* ... */ }
   ```
 
-  or converted into an Array via `Array.from(this.moduleIds)`.
+  or converted into an Array via `Array`<wbr>`.from(`<wbr>`this`<wbr>`.moduleIds)`.
 
 
 - `this.resolveId(source: string, importer?: string) => Promise<string | null>` - _**Use [`this.resolve`](guide/en/#thisresolvesource-string-importer-string-options-skipself-boolean-custom-plugin-string-any--promiseid-string-external-boolean-modulesideeffects-boolean--no-treeshake-syntheticnamedexports-boolean--string-meta-plugin-string-any--null)**_ - Resolve imports to module ids (i.e. file names) using the same plugins that Rollup uses. Returns `null` if an id cannot be resolved.
 
 ### File URLs
 
-To reference a file URL reference from within JS code, use the `import.meta.ROLLUP_FILE_URL_referenceId` replacement. This will generate code that depends on the output format and generates a URL that points to the emitted file in the target environment. Note that all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available.
+To reference a file URL reference from within JS code, use the `import`<wbr>`.meta`<wbr>`.ROLLUP_FILE_URL_referenceId` replacement. This will generate code that depends on the output format and generates a URL that points to the emitted file in the target environment. Note that all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available.
 
 The following example will detect imports of `.svg` files, emit the imported files as assets, and return their URLs to be used e.g. as the `src` attribute of an `img` tag:
 
@@ -792,7 +792,7 @@ image.src = logo;
 document.body.appendChild(image);
 ```
 
-Similar to assets, emitted chunks can be referenced from within JS code via `import.meta.ROLLUP_FILE_URL_referenceId` as well.
+Similar to assets, emitted chunks can be referenced from within JS code via `import`<wbr>`.meta`<wbr>`.ROLLUP_FILE_URL_referenceId` as well.
 
 The following example will detect imports prefixed with `register-paint-worklet:` and generate the necessary code and separate chunk to generate a CSS paint worklet. Note that this will only work in modern browsers and will only work if the output format is set to `es`.
 
@@ -908,7 +908,7 @@ return {
 ```
 
 If you create a plugin that you think would be useful to others, please publish
-it to NPM and add submit it to https://github.com/rollup/awesome!
+it to NPM and add submit it to [github.com/rollup/awesome](https://github.com/rollup/awesome)!
 
 ### Synthetic named exports
 It is possible to designate a fallback export for missing exports by setting the `syntheticNamedExports` option for a module in the [`resolveId`](guide/en/#resolveid), [`load`](guide/en/#load) or [`transform`](guide/en/#transform) hook. If a string value is used for `syntheticNamedExports`, this module will fallback the resolution of any missing named exports to properties of the named export of the given name:
