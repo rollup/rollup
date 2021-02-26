@@ -1,21 +1,21 @@
-class C {
-  fn (num) {
-    console.log(num - p$1);
-  }
-}
-
-var p = 43;
-
-new C().fn(p);
-
 class C$1 {
   fn (num) {
     console.log(num - p);
   }
 }
 
-var p$1 = 42;
+var p$1 = 43;
 
 new C$1().fn(p$1);
 
-export { C, p$1 as a, p };
+class C {
+  fn (num) {
+    console.log(num - p$1);
+  }
+}
+
+var p = 42;
+
+new C().fn(p);
+
+export { C$1 as C, p as a, p$1 as p };

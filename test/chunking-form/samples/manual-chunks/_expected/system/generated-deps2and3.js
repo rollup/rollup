@@ -8,20 +8,20 @@ System.register(['./generated-lib1.js'], function (exports) {
     execute: function () {
 
       exports({
-        a: fn$2,
+        a: fn,
         f: fn$1
       });
 
-      function fn () {
+      function fn$2 () {
         console.log('lib2 fn');
       }
 
       function fn$1 () {
-        fn();
+        fn$2();
         console.log('dep2 fn');
       }
 
-      function fn$2 () {
+      function fn () {
         fn$3();
         console.log('dep3 fn');
       }

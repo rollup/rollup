@@ -5,25 +5,25 @@ System.register([], function (exports) {
 
       exports({
         a: fn$1,
-        f: fn$2
+        f: fn
       });
 
-      function fn () {
+      function fn$2 () {
         console.log('lib fn');
       }
 
       function fn$1 () {
-        fn();
-        console.log(text$1);
-      }
-
-      var text = 'dep1 fn';
-
-      function fn$2 () {
+        fn$2();
         console.log(text);
       }
 
-      var text$1 = 'dep2 fn';
+      var text$1 = 'dep1 fn';
+
+      function fn () {
+        console.log(text$1);
+      }
+
+      var text = 'dep2 fn';
 
     }
   };

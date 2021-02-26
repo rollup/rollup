@@ -3,11 +3,11 @@ System.register('stirred', [], function () {
 	return {
 		execute: function () {
 
-			const other = {
+			const other$1 = {
 				something: 'here'
 			};
 
-			const other$1 = {
+			const other = {
 				somethingElse: 'here'
 			};
 

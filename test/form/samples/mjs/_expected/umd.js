@@ -4,12 +4,12 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.myBundle = {}));
 }(this, (function (exports) { 'use strict';
 
-	var dep = 'js';
+	var dep$1 = 'js';
 
-	var dep$1 = 'mjs';
+	var dep = 'mjs';
 
-	exports.depJs = dep;
-	exports.depMjs = dep$1;
+	exports.depJs = dep$1;
+	exports.depMjs = dep;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

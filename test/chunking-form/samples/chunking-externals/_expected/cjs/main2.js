@@ -3,19 +3,19 @@
 var dep2 = require('./generated-dep2.js');
 var external = require('external');
 
-function fn () {
+function fn$1 () {
   console.log('lib1 fn');
   external.fn();
 }
 
-function fn$1 () {
-  fn();
+function fn () {
+  fn$1();
   console.log('dep3 fn');
 }
 
 class Main2 {
   constructor () {
-    fn$1();
+    fn();
     dep2.fn();
   }
 }

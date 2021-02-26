@@ -1,11 +1,11 @@
-var bar = 42;
+var bar$1 = 42;
 
 function foo () {
-	return bar;
+	return bar$1;
 }
 
-function bar$1 () {
+function bar () {
 	alert( foo() );
 }
 
-bar$1();
+bar();
