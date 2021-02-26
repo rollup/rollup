@@ -207,7 +207,7 @@ If you want to switch from config files to using the [JavaScript API](guide/en/#
 
 - When using the JavaScript API, the configuration passed to `rollup.rollup` must be an object and cannot be wrapped in a Promise or a function.
 - You can no longer use an array of configurations. Instead, you should run `rollup.rollup` once for each set of `inputOptions`.
-- The `output` option will be ignored. Instead, you should run `bundle.generate(outputOptions)` or `bundle.write(outputOptions)` once for each set of `outputOptions`.
+- The `output` option will be ignored. Instead, you should run `bundle`<wbr>`.generate(`<wbr>`outputOptions)` or `bundle`<wbr>`.write(`<wbr>`outputOptions)` once for each set of `outputOptions`.
 
 ### Loading a configuration from a Node package
 
@@ -407,7 +407,7 @@ Pass additional settings to the config file via `process.ENV`.
 rollup -c --environment INCLUDE_DEPS,BUILD:production
 ```
 
-will set `process.env.INCLUDE_DEPS === 'true'` and `process.env.BUILD === 'production'`. You can use this option several times. In that case, subsequently set variables will overwrite previous definitions. This enables you for instance to overwrite environment variables in `package.json` scripts:
+will set `process`<wbr>`.env`<wbr>`.INCLUDE_DEPS === 'true'` and `process.env.BUILD === 'production'`. You can use this option several times. In that case, subsequently set variables will overwrite previous definitions. This enables you for instance to overwrite environment variables in `package.json` scripts:
 
 ```json
 // in package.json
