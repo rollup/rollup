@@ -3,14 +3,14 @@ System.register([], function (exports) {
   return {
     execute: function () {
 
-      exports('f', fn$1);
+      exports('f', fn);
 
-      function fn () {
+      function fn$1 () {
         console.log('lib2 fn');
       }
 
-      function fn$1 () {
-        fn();
+      function fn () {
+        fn$1();
         console.log('dep2 fn');
       }
 

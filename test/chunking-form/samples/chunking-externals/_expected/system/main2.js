@@ -9,19 +9,19 @@ System.register(['./generated-dep2.js', 'external'], function (exports) {
     }],
     execute: function () {
 
-      function fn () {
+      function fn$1 () {
         console.log('lib1 fn');
         fn$2();
       }
 
-      function fn$1 () {
-        fn();
+      function fn () {
+        fn$1();
         console.log('dep3 fn');
       }
 
       class Main2 {
         constructor () {
-          fn$1();
+          fn();
           fn$3();
         }
       } exports('default', Main2);

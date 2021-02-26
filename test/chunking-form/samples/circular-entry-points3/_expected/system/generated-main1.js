@@ -3,25 +3,25 @@ System.register([], function (exports) {
   return {
     execute: function () {
 
-      class C {
-        fn (num) {
-          console.log(num - p$1);
-        }
-      } exports('C', C);
-
-      var p = exports('p', 43);
-
-      new C().fn(p);
-
       class C$1 {
         fn (num) {
           console.log(num - p);
         }
-      }
+      } exports('C', C$1);
 
-      var p$1 = exports('a', 42);
+      var p$1 = exports('p', 43);
 
       new C$1().fn(p$1);
+
+      class C {
+        fn (num) {
+          console.log(num - p$1);
+        }
+      }
+
+      var p = exports('a', 42);
+
+      new C().fn(p);
 
     }
   };

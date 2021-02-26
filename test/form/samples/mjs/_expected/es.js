@@ -1,5 +1,5 @@
-var dep = 'js';
+var dep$1 = 'js';
 
-var dep$1 = 'mjs';
+var dep = 'mjs';
 
-export { dep as depJs, dep$1 as depMjs };
+export { dep$1 as depJs, dep as depMjs };

@@ -1,16 +1,16 @@
 import './generated-separate.js';
 
-var inlined = 'inlined';
+var inlined$1 = 'inlined';
 const x = 1;
 console.log('inlined');
 
-var inlined$1 = /*#__PURE__*/Object.freeze({
+var inlined$2 = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	'default': inlined,
+	'default': inlined$1,
 	x: x
 });
 
-const inlined$2 = Promise.resolve().then(function () { return inlined$1; });
+const inlined = Promise.resolve().then(function () { return inlined$2; });
 const separate = import('./generated-separate.js');
 
-export { inlined$2 as inlined, separate };
+export { inlined, separate };

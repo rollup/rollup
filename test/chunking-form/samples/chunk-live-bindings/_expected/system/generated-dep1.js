@@ -5,27 +5,27 @@ System.register([], function (exports) {
 
       exports({
         a: fn$1,
-        f: fn$2
+        f: fn
       });
 
-      function fn () {
+      function fn$2 () {
         console.log('lib fn');
       }
 
       function fn$1 () {
-        fn();
-        console.log(text$1);
-        text = exports('b', 'dep1 fn after dep2');
-      }
-
-      var text = exports('b', 'dep1 fn');
-
-      function fn$2 () {
+        fn$2();
         console.log(text);
-        text$1 = exports('t', 'dep2 fn after dep1');
+        text$1 = exports('b', 'dep1 fn after dep2');
       }
 
-      var text$1 = exports('t', 'dep2 fn');
+      var text$1 = exports('b', 'dep1 fn');
+
+      function fn () {
+        console.log(text$1);
+        text = exports('t', 'dep2 fn after dep1');
+      }
+
+      var text = exports('t', 'dep2 fn');
 
     }
   };

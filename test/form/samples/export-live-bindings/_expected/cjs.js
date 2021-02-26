@@ -2,7 +2,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-function update () {
+function update$2 () {
   exports.foo += 10;
 }
 
@@ -14,22 +14,22 @@ function update$1 () {
 
 exports.bar = 10;
 
-function update$2 () {
+function update () {
   ++exports.baz;
 }
 
 exports.baz = 10;
 
 console.log(exports.foo);
-update();
+update$2();
 console.log(exports.foo);
 console.log(exports.bar);
 update$1();
 console.log(exports.bar);
 console.log(exports.baz);
-update$2();
+update();
 console.log(exports.baz);
 
 exports.updateBar = update$1;
-exports.updateBaz = update$2;
-exports.updateFoo = update;
+exports.updateBaz = update;
+exports.updateFoo = update$2;

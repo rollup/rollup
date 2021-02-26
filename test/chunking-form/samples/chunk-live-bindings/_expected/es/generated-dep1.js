@@ -1,20 +1,20 @@
-function fn () {
+function fn$2 () {
   console.log('lib fn');
 }
 
 function fn$1 () {
-  fn();
-  console.log(text$1);
-  text = 'dep1 fn after dep2';
-}
-
-var text = 'dep1 fn';
-
-function fn$2 () {
+  fn$2();
   console.log(text);
-  text$1 = 'dep2 fn after dep1';
+  text$1 = 'dep1 fn after dep2';
 }
 
-var text$1 = 'dep2 fn';
+var text$1 = 'dep1 fn';
 
-export { fn$1 as a, text as b, fn$2 as f, text$1 as t };
+function fn () {
+  console.log(text$1);
+  text = 'dep2 fn after dep1';
+}
+
+var text = 'dep2 fn';
+
+export { fn$1 as a, text$1 as b, fn as f, text as t };

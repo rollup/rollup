@@ -55,7 +55,8 @@ export function deconflictChunk(
 	accessedGlobalsByScope: Map<ChildScope, Set<string>>,
 	includedNamespaces: Set<Module>
 ) {
-	for (const module of modules) {
+	const reversedModules = modules.slice().reverse();
+	for (const module of reversedModules) {
 		module.scope.addUsedOutsideNames(
 			usedNames,
 			format,
@@ -63,7 +64,7 @@ export function deconflictChunk(
 			accessedGlobalsByScope
 		);
 	}
-	deconflictTopLevelVariables(usedNames, modules, includedNamespaces);
+	deconflictTopLevelVariables(usedNames, reversedModules, includedNamespaces);
 	DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT[format](
 		usedNames,
 		imports,
@@ -75,7 +76,7 @@ export function deconflictChunk(
 		syntheticExports
 	);
 
-	for (const module of modules) {
+	for (const module of reversedModules) {
 		module.scope.deconflict(format, exportNamesByVariable, accessedGlobalsByScope);
 	}
 }

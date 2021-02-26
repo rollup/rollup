@@ -4,17 +4,17 @@ System.register(['./generated-separate.js'], function (exports, module) {
 		setters: [function () {}],
 		execute: function () {
 
-			var inlined = 'inlined';
+			var inlined$1 = 'inlined';
 			const x = 1;
 			console.log('inlined');
 
-			var inlined$1 = /*#__PURE__*/Object.freeze({
+			var inlined$2 = /*#__PURE__*/Object.freeze({
 				__proto__: null,
-				'default': inlined,
+				'default': inlined$1,
 				x: x
 			});
 
-			const inlined$2 = exports('inlined', Promise.resolve().then(function () { return inlined$1; }));
+			const inlined = exports('inlined', Promise.resolve().then(function () { return inlined$2; }));
 			const separate = exports('separate', module.import('./generated-separate.js'));
 
 		}

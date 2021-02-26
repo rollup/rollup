@@ -1,21 +1,21 @@
 'use strict';
 
-function fn () {
+function fn$2 () {
   console.log('lib fn');
 }
 
 function fn$1 () {
-  fn();
-  console.log(text$1);
-}
-
-var text = 'dep1 fn';
-
-function fn$2 () {
+  fn$2();
   console.log(text);
 }
 
-var text$1 = 'dep2 fn';
+var text$1 = 'dep1 fn';
 
-exports.fn = fn$2;
+function fn () {
+  console.log(text$1);
+}
+
+var text = 'dep2 fn';
+
+exports.fn = fn;
 exports.fn$1 = fn$1;

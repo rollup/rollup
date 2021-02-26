@@ -4,18 +4,18 @@ Object.defineProperty(exports, '__esModule', { value: true });
 
 require('./generated-separate.js');
 
-var inlined = 'inlined';
+var inlined$1 = 'inlined';
 const x = 1;
 console.log('inlined');
 
-var inlined$1 = /*#__PURE__*/Object.freeze({
+var inlined$2 = /*#__PURE__*/Object.freeze({
 	__proto__: null,
-	'default': inlined,
+	'default': inlined$1,
 	x: x
 });
 
-const inlined$2 = Promise.resolve().then(function () { return inlined$1; });
+const inlined = Promise.resolve().then(function () { return inlined$2; });
 const separate = Promise.resolve().then(function () { return require('./generated-separate.js'); });
 
-exports.inlined = inlined$2;
+exports.inlined = inlined;
 exports.separate = separate;
