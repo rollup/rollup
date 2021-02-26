@@ -467,7 +467,7 @@ console.log(ext_default, external.bar, external);
 import('external2').then(console.log);
 ```
 
-Keep in mind that for Rollup, `import * as ext_namespace from 'external'; console`<wbr>`.log(`<wbr>`ext_namespace`<wbr>`.bar);` is completely equivalent to `import {bar} from 'external'; console.log(bar);` and will produce the same code. In the example above however, the namespace object itself is passed to a global function as well, which means we need it as a properly formed object.
+Keep in mind that for Rollup, `import * as ext_namespace from 'external'; console.log(ext_namespace.bar);` is completely equivalent to `import {bar} from 'external'; console.log(bar);` and will produce the same code. In the example above however, the namespace object itself is passed to a global function as well, which means we need it as a properly formed object.
 
 - `"esModule"` assumes that required modules are transpiled ES modules where the required value corresponds to the module namespace, and the default export is the `.default` property of the exported object:
 
@@ -888,7 +888,7 @@ Default: `false`
 
 If `true`, a separate sourcemap file will be created. If `"inline"`, the sourcemap will be appended to the resulting `output` file as a data URI. `"hidden"` works like `true` except that the corresponding sourcemap comments in the bundled files are suppressed.
 
-#### output<wbr>.sourcemapExcludeSources
+#### output.sourcemapExcludeSources
 Type: `boolean`<br>
 CLI: `--sourcemapExcludeSources`/`--no-sourcemapExcludeSources`<br>
 Default: `false`
@@ -903,7 +903,7 @@ The location of the generated bundle. If this is an absolute path, all the `sour
 
 `sourcemapFile` is not required if `output` is specified, in which case an output filename will be inferred by adding ".map"  to the output filename for the bundle.
 
-#### output<wbr>.sourcemapPathTransform
+#### output.sourcemapPathTransform
 Type: `(relativeSourcePath: string, sourcemapPath: string) => string`
 
 A transformation to apply to each path in a sourcemap. `relativeSourcePath` is a relative path from the generated `.map` file to the corresponding source file while `sourcemapPath` is the fully resolved path of the generated sourcemap file.
@@ -1276,7 +1276,7 @@ export default {
 };
 ```
 
-#### output<wbr>.namespaceToStringTag
+#### output.namespaceToStringTag
 Type: `boolean`<br>
 CLI: `--namespaceToStringTag`/`--no-namespaceToStringTag`<br>
 Default: `false`
@@ -1466,9 +1466,9 @@ console.log(foo);
 
 Note that despite the name, this option does not "add" side effects to modules that do not have side effects. If it is important that e.g. an empty module is "included" in the bundle because you need this for dependency tracking, the plugin interface allows you to designate modules as being excluded from tree-shaking via the [`resolveId`](guide/en/#resolveid), [`load`](guide/en/#load) or [`transform`](guide/en/#transform) hook.
 
-**treeshake<wbr>.propertyReadSideEffects**
+**treeshake.propertyReadSideEffects**<br>
 Type: `boolean`<br>
-CLI: `--treeshake`<wbr>`.propertyReadSideEffects`/`--no-treeshake`<wbr>`.propertyReadSideEffects`<br>
+CLI: `--treeshake.propertyReadSideEffects`/`--no-treeshake.propertyReadSideEffects`<br>
 Default: `true`
 
 If `false`, assume reading a property of an object never has side effects. Depending on your code, disabling this option can significantly reduce bundle size but can potentially break functionality if you rely on getters or errors from illegal property access.
@@ -1485,12 +1485,12 @@ const result = foo.bar;
 const illegalAccess = foo.quux.tooDeep;
 ```
 
-**treeshake<wbr>.tryCatchDeoptimization**
+**treeshake.tryCatchDeoptimization**<br>
 Type: `boolean`<br>
-CLI: `--treeshake`<wbr>`.tryCatchDeoptimization`/`--no-treeshake`<wbr>`.tryCatchDeoptimization`<br>
+CLI: `--treeshake.tryCatchDeoptimization`/`--no-treeshake.tryCatchDeoptimization`<br>
 Default: `true`
 
-By default, Rollup assumes that many builtin globals of the runtime behave according to the latest specs when tree-shaking and do not throw unexpected errors. In order to support e.g. feature detection workflows that rely on those errors being thrown, Rollup will by default deactivate tree-shaking inside try-statements. If a function parameter is called from within a try-statement, this parameter will be deoptimized as well. Set `treeshake`<wbr>`.tryCatchDeoptimization` to `false` if you do not need this feature and want to have tree-shaking inside try-statements.
+By default, Rollup assumes that many builtin globals of the runtime behave according to the latest specs when tree-shaking and do not throw unexpected errors. In order to support e.g. feature detection workflows that rely on those errors being thrown, Rollup will by default deactivate tree-shaking inside try-statements. If a function parameter is called from within a try-statement, this parameter will be deoptimized as well. Set `treeshake.tryCatchDeoptimization` to `false` if you do not need this feature and want to have tree-shaking inside try-statements.
 
 ```js
 function otherFn() {
@@ -1525,9 +1525,9 @@ test(otherFn);
 
 ```
 
-**treeshake<wbr>.unknownGlobalSideEffects**
+**treeshake.unknownGlobalSideEffects**<br>
 Type: `boolean`<br>
-CLI: `--treeshake`<wbr>`.unknownGlobalSideEffects`/`--no-treeshake`<wbr>`.unknownGlobalSideEffects`<br>
+CLI: `--treeshake.unknownGlobalSideEffects`/`--no-treeshake.unknownGlobalSideEffects`<br>
 Default: `true`
 
 Since accessing a non-existing global variable will throw an error, Rollup does by default retain any accesses to non-builtin global variables. Set this option to `false` to avoid this check. This is probably safe for most code-bases.
@@ -1546,7 +1546,7 @@ const element = angular.element;
 const element = angular.element;
 ```
 
-In the example, the last line is always retained as accessing the `element` property could also throw an error if `angular` is e.g. `null`. To avoid this check, set `treeshake`<wbr>`.propertyReadSideEffects` to `false` as well.
+In the example, the last line is always retained as accessing the `element` property could also throw an error if `angular` is e.g. `null`. To avoid this check, set `treeshake.propertyReadSideEffects` to `false` as well.
 
 ### Experimental options
 
@@ -1674,7 +1674,7 @@ _Use the [`output.manualChunks`](guide/en/#outputmanualchunks) output option ins
 #### preserveModules
 _Use the [`output.preserveModules`](guide/en/#outputpreservemodules) output option instead, which has the same signature._
 
-#### output<wbr>.dynamicImportFunction
+#### output.dynamicImportFunction
 _Use the [`renderDynamicImport`](guide/en/#renderdynamicimport) plugin hook instead._<br>
 Type: `string`<br>
 CLI: `--dynamicImportFunction <name>`<br>
@@ -1682,10 +1682,10 @@ Default: `import`
 
 This will rename the dynamic import function to the chosen name when outputting ES bundles. This is useful for generating code that uses a dynamic import polyfill such as [this one](https://github.com/uupaa/dynamic-import-polyfill).
 
-#### treeshake<wbr>.pureExternalModules
-_Use [`treeshake`<wbr>`.moduleSideEffects: 'no-external'`](guide/en/#treeshake) instead._<br>
+#### treeshake.pureExternalModules
+_Use [`treeshake.moduleSideEffects: 'no-external'`](guide/en/#treeshake) instead._<br>
 Type: `boolean | string[] | (id: string) => boolean | null`<br>
-CLI: `--treeshake`<wbr>`.pureExternalModules`/`--no-treeshake`<wbr>`.pureExternalModules`<br>
+CLI: `--treeshake.pureExternalModules`/`--no-treeshake.pureExternalModules`<br>
 Default: `false`
 
 If `true`, assume external dependencies from which nothing is imported do not have other side effects like mutating global variables or logging.
