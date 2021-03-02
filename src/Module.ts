@@ -122,35 +122,6 @@ export interface AstContext {
 	warn: (warning: RollupWarning, pos: number) => void;
 }
 
-function tryParse(
-	module: Module,
-	Parser: typeof acorn.Parser,
-	acornOptions: acorn.Options
-): acorn.Node {
-	try {
-		return Parser.parse(module.info.code!, {
-			...acornOptions,
-			onComment: (block: boolean, text: string, start: number, end: number) =>
-				module.comments.push({ block, text, start, end })
-		});
-	} catch (err) {
-		let message = err.message.replace(/ \(\d+:\d+\)$/, '');
-		if (module.id.endsWith('.json')) {
-			message += ' (Note that you need @rollup/plugin-json to import JSON files)';
-		} else if (!module.id.endsWith('.js')) {
-			message += ' (Note that you need plugins to import files that are not JavaScript)';
-		}
-		return module.error(
-			{
-				code: 'PARSE_ERROR',
-				message,
-				parserError: err
-			},
-			err.pos
-		);
-	}
-}
-
 const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
 	identifier: null,
 	localName: MISSING_EXPORT_SHIM_VARIABLE
@@ -719,13 +690,12 @@ export default class Module {
 
 		this.alwaysRemovedCode = alwaysRemovedCode || [];
 		if (!ast) {
-			ast = tryParse(this, this.graph.acornParser, this.options.acorn as acorn.Options);
+			ast = this.tryParse();
 			for (const comment of this.comments) {
 				if (!comment.block && SOURCEMAPPING_URL_RE.test(comment.text)) {
 					this.alwaysRemovedCode.push([comment.start, comment.end]);
 				}
 			}
-			markPureCallExpressions(this.comments, ast);
 		}
 
 		timeEnd('generate ast', 3);
@@ -833,6 +803,32 @@ export default class Module {
 
 		return null;
 	}
+
+	tryParse(): acorn.Node {
+		try {
+			return this.graph.contextParse(this.info.code!, {
+				onComment: (block: boolean, text: string, start: number, end: number) =>
+					this.comments.push({ block, text, start, end })
+			});
+		} catch (err) {
+			let message = err.message.replace(/ \(\d+:\d+\)$/, '');
+			if (this.id.endsWith('.json')) {
+				message += ' (Note that you need @rollup/plugin-json to import JSON files)';
+			} else if (!this.id.endsWith('.js')) {
+				message += ' (Note that you need plugins to import files that are not JavaScript)';
+			}
+			console.log(err);
+			return this.error(
+				{
+					code: 'PARSE_ERROR',
+					message,
+					parserError: err
+				},
+				err.pos
+			);
+		}
+	}
+	
 
 	updateOptions({
 		meta,

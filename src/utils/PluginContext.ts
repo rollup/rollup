@@ -156,7 +156,7 @@ export function getPluginContexts(
 				const moduleIds = graph.modulesById.keys();
 				return wrappedModuleIds();
 			},
-			parse: graph.contextParse,
+			parse: graph.contextParse.bind(graph),
 			resolve(source, importer, { custom, skipSelf } = BLANK) {
 				return graph.moduleLoader.resolveId(source, importer, custom, skipSelf ? pidx : null);
 			},
