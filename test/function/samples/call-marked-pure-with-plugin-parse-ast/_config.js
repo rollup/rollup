@@ -6,7 +6,11 @@ module.exports = {
 		external: ['socks'],
 		plugins:[{
 			transform(code, _id) {
-				const ast = this.parse(code);
+				const comments = [];
+				const ast = this.parse(code, {onComment: comments});
+				if (comments.length != 5 || comments.some(({value}) => !value.includes('PURE'))) {
+					throw new Error('failed to get comments');
+				}
 				return {ast, code, map: null};
 			},
 		}],
