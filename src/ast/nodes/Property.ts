@@ -1,4 +1,5 @@
 import MagicString from 'magic-string';
+import { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { CallOptions, NO_ARGS } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
@@ -84,7 +85,10 @@ export default class Property extends NodeBase implements DeoptimizableEntity, P
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
-		return this.key.hasEffects(context) || this.value.hasEffects(context);
+		const propertyReadSideEffects = (this.context.options.treeshake as NormalizedTreeshakingOptions).propertyReadSideEffects;
+		return this.parent.type === 'ObjectPattern' && propertyReadSideEffects === 'always' ||
+			this.key.hasEffects(context) ||
+			this.value.hasEffects(context);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {

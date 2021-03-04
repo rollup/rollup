@@ -172,11 +172,12 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
+		const propertyReadSideEffects = (this.context.options.treeshake as NormalizedTreeshakingOptions).propertyReadSideEffects;
 		return (
+			propertyReadSideEffects === 'always' ||
 			this.property.hasEffects(context) ||
 			this.object.hasEffects(context) ||
-			((this.context.options.treeshake as NormalizedTreeshakingOptions).propertyReadSideEffects &&
-				this.object.hasEffectsWhenAccessedAtPath([this.propertyKey!], context))
+			(propertyReadSideEffects && this.object.hasEffectsWhenAccessedAtPath([this.propertyKey!], context))
 		);
 	}
 

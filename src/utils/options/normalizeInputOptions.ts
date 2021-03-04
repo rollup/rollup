@@ -237,7 +237,7 @@ const getTreeshake = (
 	| {
 			annotations: boolean;
 			moduleSideEffects: HasModuleSideEffects;
-			propertyReadSideEffects: boolean;
+			propertyReadSideEffects: boolean | 'always';
 			tryCatchDeoptimization: boolean;
 			unknownGlobalSideEffects: boolean;
 	  } => {
@@ -261,7 +261,9 @@ const getTreeshake = (
 				configTreeshake.pureExternalModules,
 				warn
 			),
-			propertyReadSideEffects: configTreeshake.propertyReadSideEffects !== false,
+			propertyReadSideEffects:
+				configTreeshake.propertyReadSideEffects === 'always' && 'always' ||
+				configTreeshake.propertyReadSideEffects !== false,
 			tryCatchDeoptimization: configTreeshake.tryCatchDeoptimization !== false,
 			unknownGlobalSideEffects: configTreeshake.unknownGlobalSideEffects !== false
 		};
