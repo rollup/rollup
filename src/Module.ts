@@ -65,13 +65,6 @@ import { timeEnd, timeStart } from './utils/timers';
 import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
 import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
 
-export interface CommentDescription {
-	block: boolean;
-	end: number;
-	start: number;
-	text: string;
-}
-
 interface ImportDescription {
 	module: Module | ExternalModule;
 	name: string;
@@ -188,7 +181,7 @@ export default class Module {
 	ast: Program | null = null;
 	chunkFileNames = new Set<string>();
 	chunkName: string | null = null;
-	comments: CommentDescription[] = [];
+	comments: acorn.Comment[] = [];
 	cycles = new Set<Symbol>();
 	dependencies = new Set<Module | ExternalModule>();
 	dynamicDependencies = new Set<Module | ExternalModule>();
@@ -691,7 +684,7 @@ export default class Module {
 		if (!ast) {
 			ast = this.tryParse();
 			for (const comment of this.comments) {
-				if (!comment.block && SOURCEMAPPING_URL_RE.test(comment.text)) {
+				if (comment.type != "Block" && SOURCEMAPPING_URL_RE.test(comment.value)) {
 					this.alwaysRemovedCode.push([comment.start, comment.end]);
 				}
 			}
@@ -807,7 +800,7 @@ export default class Module {
 		try {
 			return this.graph.contextParse(this.info.code!, {
 				onComment: (block: boolean, text: string, start: number, end: number) =>
-					this.comments.push({ block, text, start, end })
+					this.comments.push({ type: block ? "Block" : "Line", value: text, start, end })
 			});
 		} catch (err) {
 			let message = err.message.replace(/ \(\d+:\d+\)$/, '');

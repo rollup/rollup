@@ -136,9 +136,7 @@ export default class Graph {
 
 		options.onComment = onCommentOrig;
 
-		markPureCallExpressions(comments.map((cmt) => {
-			return {...cmt, block: cmt.type == "Block", text: cmt.value};
-		}), ast);
+		markPureCallExpressions(comments, ast);
 
 		return ast;
 	}

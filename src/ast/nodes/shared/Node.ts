@@ -1,7 +1,7 @@
 import * as acorn from 'acorn';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
-import { AstContext, CommentDescription } from '../../../Module';
+import { AstContext } from '../../../Module';
 import { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
 import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
@@ -28,7 +28,7 @@ export const INCLUDE_PARAMETERS: 'variables' = 'variables';
 export type IncludeChildren = boolean | typeof INCLUDE_PARAMETERS;
 
 export interface Node extends Entity {
-	annotations?: CommentDescription[];
+	annotations?: acorn.Comment[];
 	context: AstContext;
 	end: number;
 	esTreeNode: GenericEsTreeNode;
