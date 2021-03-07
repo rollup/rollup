@@ -26,9 +26,10 @@ export interface GenericEsTreeNode extends acorn.Node {
 
 export const INCLUDE_PARAMETERS: 'variables' = 'variables';
 export type IncludeChildren = boolean | typeof INCLUDE_PARAMETERS;
+export interface Annotation {comment?: acorn.Comment, pure?: boolean}
 
 export interface Node extends Entity {
-	annotations?: acorn.Comment[];
+	annotations?: Annotation[];
 	context: AstContext;
 	end: number;
 	esTreeNode: GenericEsTreeNode;
@@ -88,6 +89,7 @@ export interface StatementNode extends Node {}
 export interface ExpressionNode extends ExpressionEntity, Node {}
 
 export class NodeBase implements ExpressionNode {
+	annotations?: Annotation[];
 	context: AstContext;
 	end!: number;
 	esTreeNode: acorn.Node;
@@ -232,7 +234,13 @@ export class NodeBase implements ExpressionNode {
 			// That way, we can override this function to add custom initialisation and then call super.parseNode
 			if (this.hasOwnProperty(key)) continue;
 			const value = esTreeNode[key];
-			if (typeof value !== 'object' || value === null || key === 'annotations') {
+			if (key === '_rollupAnnotations') {
+				if (this.annotations) {
+					this.annotations.push(...value);
+				} else {
+					this.annotations = value;
+				}
+			} else if (typeof value !== 'object' || value === null) {
 				(this as GenericEsTreeNode)[key] = value;
 			} else if (Array.isArray(value)) {
 				(this as GenericEsTreeNode)[key] = [];
