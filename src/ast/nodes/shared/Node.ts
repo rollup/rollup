@@ -235,11 +235,7 @@ export class NodeBase implements ExpressionNode {
 			if (this.hasOwnProperty(key)) continue;
 			const value = esTreeNode[key];
 			if (key === '_rollupAnnotations') {
-				if (this.annotations) {
-					this.annotations.push(...value);
-				} else {
-					this.annotations = value;
-				}
+				this.annotations = value;
 			} else if (typeof value !== 'object' || value === null) {
 				(this as GenericEsTreeNode)[key] = value;
 			} else if (Array.isArray(value)) {
