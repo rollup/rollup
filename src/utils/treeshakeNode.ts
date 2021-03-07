@@ -23,11 +23,8 @@ export function removeAnnotations(node: Node, code: MagicString) {
 		node = node.parent as Node;
 	}
 	if (node.annotations) {
-		for (const annotation of node.annotations) {
-			if (!annotation.comment) {
-				continue;
-			}
-			code.remove(annotation.comment.start, annotation.comment.end);
+		for (const annotation of node.annotations.filter((a) => a.comment)) {
+			code.remove(annotation.comment!.start, annotation.comment!.end);
 		}
 	}
 }
