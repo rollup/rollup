@@ -1,4 +1,5 @@
 import * as acorn from 'acorn';
+import { findNodeAround } from 'acorn-walk';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
 import extractAssignedNames from 'rollup-pluginutils/src/extractAssignedNames';
@@ -15,7 +16,7 @@ import Literal from './ast/nodes/Literal';
 import MetaProperty from './ast/nodes/MetaProperty';
 import * as NodeType from './ast/nodes/NodeType';
 import Program from './ast/nodes/Program';
-import { ExpressionNode, NodeBase } from './ast/nodes/shared/Node';
+import { ExpressionNode, GenericEsTreeNode, NodeBase } from './ast/nodes/shared/Node';
 import TemplateLiteral from './ast/nodes/TemplateLiteral';
 import VariableDeclaration from './ast/nodes/VariableDeclaration';
 import ModuleScope from './ast/scopes/ModuleScope';
@@ -60,7 +61,7 @@ import { makeLegal } from './utils/identifierHelpers';
 import { basename, extname } from './utils/path';
 import relativeId from './utils/relativeId';
 import { RenderOptions } from './utils/renderHelpers';
-import { SOURCEMAPPING_URL_RE } from './utils/sourceMappingURL';
+import { SOURCEMAPPING_URL_COMMENT_RE } from './utils/sourceMappingURL';
 import { timeEnd, timeStart } from './utils/timers';
 import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
 import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
@@ -683,11 +684,23 @@ export default class Module {
 		this.alwaysRemovedCode = alwaysRemovedCode || [];
 		if (!ast) {
 			ast = this.tryParse();
-			for (const comment of this.comments) {
-				if (comment.type != "Block" && SOURCEMAPPING_URL_RE.test(comment.value)) {
-					this.alwaysRemovedCode.push([comment.start, comment.end]);
-				}
+		}
+
+		let sourcemappingUrlMatch;
+		while (sourcemappingUrlMatch = SOURCEMAPPING_URL_COMMENT_RE.exec(this.info.code)) {
+			const found = findNodeAround(ast, sourcemappingUrlMatch.index);
+
+			// if no node contains this string - it's surely a comment
+			if (!found || !found.node) {
+				continue;
 			}
+
+			// if this regex is part of a literal or expression
+			if (!(found?.node as GenericEsTreeNode).body) {
+				continue;
+			}
+
+			this.alwaysRemovedCode.push([sourcemappingUrlMatch.index, SOURCEMAPPING_URL_COMMENT_RE.lastIndex]);
 		}
 
 		timeEnd('generate ast', 3);
