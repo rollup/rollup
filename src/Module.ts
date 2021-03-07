@@ -688,15 +688,12 @@ export default class Module {
 
 		let sourcemappingUrlMatch;
 		while (sourcemappingUrlMatch = SOURCEMAPPING_URL_COMMENT_RE.exec(this.info.code)) {
-			const found = findNodeAround(ast, sourcemappingUrlMatch.index);
+			const foundState = findNodeAround(ast, sourcemappingUrlMatch.index);
 
-			// if no node contains this string - it's surely a comment
-			if (!found || !found.node) {
-				continue;
-			}
-
-			// if this regex is part of a literal or expression
-			if (!(found?.node as GenericEsTreeNode).body) {
+			/* the AST matches the code therefore there must be a node that
+			 * encloses the position within the code.
+			 */
+			if (!(foundState!.node as GenericEsTreeNode).body) {
 				continue;
 			}
 
