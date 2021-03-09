@@ -123,7 +123,7 @@ function findSourceMappingURLComments(ast: acorn.Node, code: string): [number, n
 	let lastStmtEnd = 0;
 	const ranges = [];
 
-	for (let stmt of (ast as GenericEsTreeNode).body) {
+	for (const stmt of (ast as GenericEsTreeNode).body) {
 		if (lastStmtEnd != stmt.start) {
 			ranges.push([lastStmtEnd, stmt.start]);
 		}
@@ -134,7 +134,7 @@ function findSourceMappingURLComments(ast: acorn.Node, code: string): [number, n
 	}
 
 	const ret: [number, number][] = [];
-	for (let [start, end] of ranges) {
+	for (const [start, end] of ranges) {
 		let sourcemappingUrlMatch;
 		while (sourcemappingUrlMatch = SOURCEMAPPING_URL_COMMENT_RE.exec(code.slice(start, end))) {
 			ret.push([start + sourcemappingUrlMatch.index, start + SOURCEMAPPING_URL_COMMENT_RE.lastIndex]);
