@@ -1,7 +1,7 @@
 import * as acorn from 'acorn';
 import { base as basicWalker, BaseWalker } from 'acorn-walk';
 import { CallExpression, ExpressionStatement, NewExpression } from '../ast/nodes/NodeType';
-import { CommentDescription } from '../Module';
+import { Annotation } from '../ast/nodes/shared/Node';
 
 // patch up acorn-walk until class-fields are officially supported
 basicWalker.PropertyDefinition = function (node: any, st: any, c: any) {
@@ -15,7 +15,7 @@ basicWalker.PropertyDefinition = function (node: any, st: any, c: any) {
 
 interface CommentState {
 	commentIndex: number;
-	commentNodes: CommentDescription[];
+	commentNodes: acorn.Comment[];
 }
 
 function handlePureAnnotationsOfNode(
@@ -34,26 +34,30 @@ function handlePureAnnotationsOfNode(
 }
 
 function markPureNode(
-	node: acorn.Node & { annotations?: CommentDescription[] },
-	comment: CommentDescription
+	node: acorn.Node & { _rollupAnnotations?: Annotation[] },
+	comment: acorn.Comment
 ) {
-	if (node.annotations) {
-		node.annotations.push(comment);
+	if (node._rollupAnnotations) {
+		node._rollupAnnotations.push({comment});
 	} else {
-		node.annotations = [comment];
+		node._rollupAnnotations = [{comment}];
 	}
 	if (node.type === ExpressionStatement) {
 		node = (node as any).expression;
 	}
 	if (node.type === CallExpression || node.type === NewExpression) {
-		(node as any).annotatedPure = true;
+		if (node._rollupAnnotations) {
+			node._rollupAnnotations.push({pure: true});
+		} else {
+			node._rollupAnnotations = [{pure: true}];
+		}
 	}
 }
 
 const pureCommentRegex = /[@#]__PURE__/;
-const isPureComment = (comment: CommentDescription) => pureCommentRegex.test(comment.text);
+const isPureComment = (comment: acorn.Comment) => pureCommentRegex.test(comment.value);
 
-export function markPureCallExpressions(comments: CommentDescription[], esTreeAst: acorn.Node) {
+export function markPureCallExpressions(comments: acorn.Comment[], esTreeAst: acorn.Node) {
 	handlePureAnnotationsOfNode(esTreeAst, {
 		commentIndex: 0,
 		commentNodes: comments.filter(isPureComment)

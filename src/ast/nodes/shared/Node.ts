@@ -1,7 +1,7 @@
 import * as acorn from 'acorn';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
-import { AstContext, CommentDescription } from '../../../Module';
+import { AstContext } from '../../../Module';
 import { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
 import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
@@ -26,9 +26,10 @@ export interface GenericEsTreeNode extends acorn.Node {
 
 export const INCLUDE_PARAMETERS: 'variables' = 'variables';
 export type IncludeChildren = boolean | typeof INCLUDE_PARAMETERS;
+export interface Annotation {comment?: acorn.Comment, pure?: boolean}
 
 export interface Node extends Entity {
-	annotations?: CommentDescription[];
+	annotations?: Annotation[];
 	context: AstContext;
 	end: number;
 	esTreeNode: GenericEsTreeNode;
@@ -88,6 +89,7 @@ export interface StatementNode extends Node {}
 export interface ExpressionNode extends ExpressionEntity, Node {}
 
 export class NodeBase implements ExpressionNode {
+	annotations?: Annotation[];
 	context: AstContext;
 	end!: number;
 	esTreeNode: acorn.Node;
@@ -126,7 +128,7 @@ export class NodeBase implements ExpressionNode {
 	bind() {
 		for (const key of this.keys) {
 			const value = (this as GenericEsTreeNode)[key];
-			if (value === null || key === 'annotations') continue;
+			if (value === null) continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
 					if (child !== null) child.bind();
@@ -165,7 +167,7 @@ export class NodeBase implements ExpressionNode {
 	hasEffects(context: HasEffectsContext): boolean {
 		for (const key of this.keys) {
 			const value = (this as GenericEsTreeNode)[key];
-			if (value === null || key === 'annotations') continue;
+			if (value === null) continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
 					if (child !== null && child.hasEffects(context)) return true;
@@ -195,7 +197,7 @@ export class NodeBase implements ExpressionNode {
 		this.included = true;
 		for (const key of this.keys) {
 			const value = (this as GenericEsTreeNode)[key];
-			if (value === null || key === 'annotations') continue;
+			if (value === null) continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
 					if (child !== null) child.include(context, includeChildrenRecursively);
@@ -232,7 +234,9 @@ export class NodeBase implements ExpressionNode {
 			// That way, we can override this function to add custom initialisation and then call super.parseNode
 			if (this.hasOwnProperty(key)) continue;
 			const value = esTreeNode[key];
-			if (typeof value !== 'object' || value === null || key === 'annotations') {
+			if (key === '_rollupAnnotations') {
+				this.annotations = value;
+			} else if (typeof value !== 'object' || value === null) {
 				(this as GenericEsTreeNode)[key] = value;
 			} else if (Array.isArray(value)) {
 				(this as GenericEsTreeNode)[key] = [];
@@ -254,7 +258,7 @@ export class NodeBase implements ExpressionNode {
 	render(code: MagicString, options: RenderOptions) {
 		for (const key of this.keys) {
 			const value = (this as GenericEsTreeNode)[key];
-			if (value === null || key === 'annotations') continue;
+			if (value === null) continue;
 			if (Array.isArray(value)) {
 				for (const child of value) {
 					if (child !== null) child.render(code, options);

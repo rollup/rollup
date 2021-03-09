@@ -17,6 +17,7 @@ import { BuildPhase } from './utils/buildPhase';
 import { errImplicitDependantIsNotIncluded, error } from './utils/error';
 import { analyseModuleExecution } from './utils/executionOrder';
 import { PluginDriver } from './utils/PluginDriver';
+import { markPureCallExpressions } from './utils/pureComments';
 import relativeId from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
 import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
@@ -45,7 +46,6 @@ function normalizeEntryModules(
 export default class Graph {
 	acornParser: typeof acorn.Parser;
 	cachedModules: Map<string, ModuleJSON>;
-	contextParse: (code: string, acornOptions?: acorn.Options) => acorn.Node;
 	deoptimizationTracker: PathTracker;
 	entryModules: Module[] = [];
 	moduleLoader: ModuleLoader;
@@ -77,11 +77,6 @@ export default class Graph {
 				for (const key of Object.keys(cache)) cache[key][0]++;
 			}
 		}
-		this.contextParse = (code: string, options: Partial<acorn.Options> = {}) =>
-			this.acornParser.parse(code, {
-				...(this.options.acorn as acorn.Options),
-				...options
-			});
 
 		if (watcher) {
 			this.watchMode = true;
@@ -115,6 +110,35 @@ export default class Graph {
 		timeEnd('mark included statements', 2);
 
 		this.phase = BuildPhase.GENERATE;
+	}
+
+	contextParse(code: string, options: Partial<acorn.Options> = {}) {
+		const onCommentOrig = options.onComment;
+		const comments: acorn.Comment[] = [];
+
+		if (onCommentOrig && typeof onCommentOrig == 'function') {
+			options.onComment = (block, text, start, end, ...args) => {
+				comments.push({type: block ? "Block" : "Line", value: text, start, end});
+				return onCommentOrig.call(options, block, text, start, end, ...args);
+			}
+		} else {
+			options.onComment = comments;
+		}
+
+		const ast = this.acornParser.parse(code, {
+			...(this.options.acorn as acorn.Options),
+			...options
+		});
+
+		if (typeof onCommentOrig == 'object') {
+			onCommentOrig.push(...comments);
+		}
+
+		options.onComment = onCommentOrig;
+
+		markPureCallExpressions(comments, ast);
+
+		return ast;
 	}
 
 	getCache(): RollupCache {

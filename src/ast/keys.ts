@@ -9,7 +9,7 @@ export const keys: {
 
 export function getAndCreateKeys(esTreeNode: GenericEsTreeNode) {
 	keys[esTreeNode.type] = Object.keys(esTreeNode).filter(
-		key => typeof esTreeNode[key] === 'object'
+		key => key !== '_rollupAnnotations' && typeof esTreeNode[key] === 'object'
 	);
 	return keys[esTreeNode.type];
 }

@@ -58,20 +58,12 @@ import { getOrCreate } from './utils/getOrCreate';
 import { getOriginalLocation } from './utils/getOriginalLocation';
 import { makeLegal } from './utils/identifierHelpers';
 import { basename, extname } from './utils/path';
-import { markPureCallExpressions } from './utils/pureComments';
 import relativeId from './utils/relativeId';
 import { RenderOptions } from './utils/renderHelpers';
 import { SOURCEMAPPING_URL_RE } from './utils/sourceMappingURL';
 import { timeEnd, timeStart } from './utils/timers';
 import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
 import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
-
-export interface CommentDescription {
-	block: boolean;
-	end: number;
-	start: number;
-	text: string;
-}
 
 interface ImportDescription {
 	module: Module | ExternalModule;
@@ -120,35 +112,6 @@ export interface AstContext {
 	traceVariable: (name: string) => Variable | null;
 	usesTopLevelAwait: boolean;
 	warn: (warning: RollupWarning, pos: number) => void;
-}
-
-function tryParse(
-	module: Module,
-	Parser: typeof acorn.Parser,
-	acornOptions: acorn.Options
-): acorn.Node {
-	try {
-		return Parser.parse(module.info.code!, {
-			...acornOptions,
-			onComment: (block: boolean, text: string, start: number, end: number) =>
-				module.comments.push({ block, text, start, end })
-		});
-	} catch (err) {
-		let message = err.message.replace(/ \(\d+:\d+\)$/, '');
-		if (module.id.endsWith('.json')) {
-			message += ' (Note that you need @rollup/plugin-json to import JSON files)';
-		} else if (!module.id.endsWith('.js')) {
-			message += ' (Note that you need plugins to import files that are not JavaScript)';
-		}
-		return module.error(
-			{
-				code: 'PARSE_ERROR',
-				message,
-				parserError: err
-			},
-			err.pos
-		);
-	}
 }
 
 const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
@@ -218,7 +181,7 @@ export default class Module {
 	ast: Program | null = null;
 	chunkFileNames = new Set<string>();
 	chunkName: string | null = null;
-	comments: CommentDescription[] = [];
+	comments: acorn.Comment[] = [];
 	cycles = new Set<Symbol>();
 	dependencies = new Set<Module | ExternalModule>();
 	dynamicDependencies = new Set<Module | ExternalModule>();
@@ -719,13 +682,12 @@ export default class Module {
 
 		this.alwaysRemovedCode = alwaysRemovedCode || [];
 		if (!ast) {
-			ast = tryParse(this, this.graph.acornParser, this.options.acorn as acorn.Options);
+			ast = this.tryParse();
 			for (const comment of this.comments) {
-				if (!comment.block && SOURCEMAPPING_URL_RE.test(comment.text)) {
+				if (comment.type != "Block" && SOURCEMAPPING_URL_RE.test(comment.value)) {
 					this.alwaysRemovedCode.push([comment.start, comment.end]);
 				}
 			}
-			markPureCallExpressions(this.comments, ast);
 		}
 
 		timeEnd('generate ast', 3);
@@ -833,6 +795,32 @@ export default class Module {
 
 		return null;
 	}
+
+	tryParse(): acorn.Node {
+		try {
+			return this.graph.contextParse(this.info.code!, {
+				onComment: (block: boolean, text: string, start: number, end: number) =>
+					this.comments.push({ type: block ? "Block" : "Line", value: text, start, end })
+			});
+		} catch (err) {
+			let message = err.message.replace(/ \(\d+:\d+\)$/, '');
+			if (this.id.endsWith('.json')) {
+				message += ' (Note that you need @rollup/plugin-json to import JSON files)';
+			} else if (!this.id.endsWith('.js')) {
+				message += ' (Note that you need plugins to import files that are not JavaScript)';
+			}
+			console.log(err);
+			return this.error(
+				{
+					code: 'PARSE_ERROR',
+					message,
+					parserError: err
+				},
+				err.pos
+			);
+		}
+	}
+	
 
 	updateOptions({
 		meta,

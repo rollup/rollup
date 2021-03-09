@@ -3,10 +3,9 @@ import { CallOptions } from '../CallOptions';
 import { HasEffectsContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import * as NodeType from './NodeType';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import { Annotation, ExpressionNode, NodeBase } from './shared/Node';
 
 export default class NewExpression extends NodeBase {
-	annotatedPure?: boolean;
 	arguments!: ExpressionNode[];
 	callee!: ExpressionNode;
 	type!: NodeType.tNewExpression;
@@ -27,7 +26,7 @@ export default class NewExpression extends NodeBase {
 		}
 		if (
 			(this.context.options.treeshake as NormalizedTreeshakingOptions).annotations &&
-			this.annotatedPure
+			this.annotations?.some((a: Annotation) => a.pure)
 		)
 			return false;
 		return (
