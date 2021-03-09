@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 2.41.0
+*2021-03-09*
+
+### Features
+* Add option to `treeshake.propertyReadSideEffects` to keep all property accesses (#3985)
+
+### Bug Fixes
+* Also respect pure comment annotations when a plugin provides an AST in the transform hook provided they use this.parse (#3981)
+
+### Pull Requests
+* [#3981](https://github.com/rollup/rollup/pull/3981): Move pure comment annotation to Graph.contextParse (@yannayl)
+* [#3985](https://github.com/rollup/rollup/pull/3985): implement --treeshake.propertyReadSideEffects=always to handle getters with side effects (@kzc)
+
 ## 2.40.0
 *2021-02-26*
 
