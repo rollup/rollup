@@ -477,7 +477,7 @@ export interface OutputPlugin extends Partial<OutputPluginHooks>, Partial<Output
 export interface TreeshakingOptions {
 	annotations?: boolean;
 	moduleSideEffects?: ModuleSideEffectsOption;
-	propertyReadSideEffects?: boolean;
+	propertyReadSideEffects?: boolean | 'always';
 	/** @deprecated Use `moduleSideEffects` instead */
 	pureExternalModules?: PureModulesOption;
 	tryCatchDeoptimization?: boolean;
@@ -487,7 +487,7 @@ export interface TreeshakingOptions {
 export interface NormalizedTreeshakingOptions {
 	annotations: boolean;
 	moduleSideEffects: HasModuleSideEffects;
-	propertyReadSideEffects: boolean;
+	propertyReadSideEffects: boolean | 'always';
 	tryCatchDeoptimization: boolean;
 	unknownGlobalSideEffects: boolean;
 }
