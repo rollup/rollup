@@ -1,5 +1,4 @@
 import * as acorn from 'acorn';
-import { findNodeAround } from 'acorn-walk';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
 import extractAssignedNames from 'rollup-pluginutils/src/extractAssignedNames';
@@ -119,6 +118,31 @@ const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
 	identifier: null,
 	localName: MISSING_EXPORT_SHIM_VARIABLE
 };
+
+function findSourceMappingURLComments(ast: acorn.Node, code: string): [number, number][] {
+	let lastStmtEnd = 0;
+	const ranges = [];
+
+	for (let stmt of (ast as GenericEsTreeNode).body) {
+		if (lastStmtEnd != stmt.start) {
+			ranges.push([lastStmtEnd, stmt.start]);
+		}
+		lastStmtEnd = stmt.end;
+	}
+	if (lastStmtEnd != code.length) {
+		ranges.push([lastStmtEnd, code.length]);
+	}
+
+	const ret: [number, number][] = [];
+	for (let [start, end] of ranges) {
+		let sourcemappingUrlMatch;
+		while (sourcemappingUrlMatch = SOURCEMAPPING_URL_COMMENT_RE.exec(code.slice(start, end))) {
+			ret.push([start + sourcemappingUrlMatch.index, start + SOURCEMAPPING_URL_COMMENT_RE.lastIndex]);
+		}
+	}
+
+	return ret;
+}
 
 function getVariableForExportNameRecursive(
 	target: Module | ExternalModule,
@@ -684,20 +708,7 @@ export default class Module {
 		if (!ast) {
 			ast = this.tryParse();
 		}
-
-		let sourcemappingUrlMatch;
-		while (sourcemappingUrlMatch = SOURCEMAPPING_URL_COMMENT_RE.exec(this.info.code)) {
-			const foundState = findNodeAround(ast, sourcemappingUrlMatch.index);
-
-			/* the AST matches the code therefore there must be a node that
-			 * encloses the position within the code.
-			 */
-			if (!(foundState!.node as GenericEsTreeNode).body) {
-				continue;
-			}
-
-			this.alwaysRemovedCode.push([sourcemappingUrlMatch.index, SOURCEMAPPING_URL_COMMENT_RE.lastIndex]);
-		}
+		this.alwaysRemovedCode.push(...findSourceMappingURLComments(ast, this.info.code));
 
 		timeEnd('generate ast', 3);
 
