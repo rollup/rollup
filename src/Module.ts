@@ -182,7 +182,6 @@ export default class Module {
 	ast: Program | null = null;
 	chunkFileNames = new Set<string>();
 	chunkName: string | null = null;
-	comments: acorn.Comment[] = [];
 	cycles = new Set<Symbol>();
 	dependencies = new Set<Module | ExternalModule>();
 	dynamicDependencies = new Set<Module | ExternalModule>();
@@ -808,10 +807,7 @@ export default class Module {
 
 	tryParse(): acorn.Node {
 		try {
-			return this.graph.contextParse(this.info.code!, {
-				onComment: (block: boolean, text: string, start: number, end: number) =>
-					this.comments.push({ type: block ? "Block" : "Line", value: text, start, end })
-			});
+			return this.graph.contextParse(this.info.code!);
 		} catch (err) {
 			let message = err.message.replace(/ \(\d+:\d+\)$/, '');
 			if (this.id.endsWith('.json')) {
