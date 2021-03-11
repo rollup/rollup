@@ -809,7 +809,6 @@ export default class Module {
 			} else if (!this.id.endsWith('.js')) {
 				message += ' (Note that you need plugins to import files that are not JavaScript)';
 			}
-			console.log(err);
 			return this.error(
 				{
 					code: 'PARSE_ERROR',
@@ -820,7 +819,7 @@ export default class Module {
 			);
 		}
 	}
-	
+
 
 	updateOptions({
 		meta,
