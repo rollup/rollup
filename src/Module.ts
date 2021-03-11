@@ -120,26 +120,26 @@ const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
 };
 
 function findSourceMappingURLComments(ast: acorn.Node, code: string): [number, number][] {
-	let lastStmtEnd = 0;
-	const ranges = [];
-
-	for (const stmt of (ast as GenericEsTreeNode).body) {
-		if (lastStmtEnd != stmt.start) {
-			ranges.push([lastStmtEnd, stmt.start]);
-		}
-		lastStmtEnd = stmt.end;
-	}
-	if (lastStmtEnd != code.length) {
-		ranges.push([lastStmtEnd, code.length]);
-	}
-
 	const ret: [number, number][] = [];
-	for (const [start, end] of ranges) {
+
+	const addCommentsPos = (start: number, end: number): void => {
+		if (start == end) {
+			return;
+		}
+
 		let sourcemappingUrlMatch;
-		while (sourcemappingUrlMatch = SOURCEMAPPING_URL_COMMENT_RE.exec(code.slice(start, end))) {
+		const interStatmentCode = code.slice(start, end);
+		while (sourcemappingUrlMatch = SOURCEMAPPING_URL_COMMENT_RE.exec(interStatmentCode)) {
 			ret.push([start + sourcemappingUrlMatch.index, start + SOURCEMAPPING_URL_COMMENT_RE.lastIndex]);
 		}
+	};
+
+	let prevStmtEnd = 0;
+	for (const stmt of (ast as GenericEsTreeNode).body) {
+		addCommentsPos(prevStmtEnd, stmt.start);
+		prevStmtEnd = stmt.end;
 	}
+	addCommentsPos(prevStmtEnd, code.length);
 
 	return ret;
 }
