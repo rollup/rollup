@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.41.2
+*2021-03-12*
+
+### Bug Fixes
+* Also remove sourcemaps comments if plugins return a pre-made ast (#3987)
+
+### Pull Requests
+* [#3987](https://github.com/rollup/rollup/pull/3987): Change removal of sourcemap comment (@yannayl)
+
 ## 2.41.1
 *2021-03-11*
 
