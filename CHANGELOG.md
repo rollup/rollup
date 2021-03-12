@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 2.41.1
+*2021-03-11*
+
+### Pull Requests
+* [#3990](https://github.com/rollup/rollup/pull/3990): Add browser sourcemap and remove log (@lukastaegert)
+
 ## 2.41.0
 *2021-03-09*
 
