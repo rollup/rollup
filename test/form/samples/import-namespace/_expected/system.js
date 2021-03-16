@@ -1,15 +1,15 @@
 System.register(['foo', 'bar'], function () {
 	'use strict';
-	var x, bar;
+	var foo, bar;
 	return {
 		setters: [function (module) {
-			x = module.x;
+			foo = module;
 		}, function (module) {
 			bar = module;
 		}],
 		execute: function () {
 
-			x();
+			foo.x();
 			console.log(bar);
 
 		}

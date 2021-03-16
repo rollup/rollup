@@ -96,9 +96,6 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			} else if (typeof resolvedVariable === 'string') {
 				this.replacement = resolvedVariable;
 			} else {
-				if (resolvedVariable instanceof ExternalVariable && resolvedVariable.module) {
-					resolvedVariable.module.suggestName(path![0].key);
-				}
 				this.variable = resolvedVariable;
 				this.scope.addNamespaceMemberAccess(getStringFromPath(path!), resolvedVariable);
 			}
@@ -172,12 +169,14 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
-		const propertyReadSideEffects = (this.context.options.treeshake as NormalizedTreeshakingOptions).propertyReadSideEffects;
+		const propertyReadSideEffects = (this.context.options.treeshake as NormalizedTreeshakingOptions)
+			.propertyReadSideEffects;
 		return (
 			propertyReadSideEffects === 'always' ||
 			this.property.hasEffects(context) ||
 			this.object.hasEffects(context) ||
-			(propertyReadSideEffects && this.object.hasEffectsWhenAccessedAtPath([this.propertyKey!], context))
+			(propertyReadSideEffects &&
+				this.object.hasEffectsWhenAccessedAtPath([this.propertyKey!], context))
 		);
 	}
 
@@ -298,17 +297,11 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		path: PathWithPositions
 	): Variable | string | null {
 		if (path.length === 0) return baseVariable;
-		if (!baseVariable.isNamespace) return null;
+		if (!baseVariable.isNamespace || baseVariable instanceof ExternalVariable) return null;
 		const exportName = path[0].key;
-		const variable =
-			baseVariable instanceof ExternalVariable
-				? baseVariable.module.getVariableForExportName(exportName)
-				: (baseVariable as NamespaceVariable).context.traceExport(exportName);
+		const variable = (baseVariable as NamespaceVariable).context.traceExport(exportName);
 		if (!variable) {
-			const fileName =
-				baseVariable instanceof ExternalVariable
-					? baseVariable.module.id
-					: (baseVariable as NamespaceVariable).context.fileName;
+			const fileName = (baseVariable as NamespaceVariable).context.fileName;
 			this.context.warn(
 				{
 					code: 'MISSING_EXPORT',

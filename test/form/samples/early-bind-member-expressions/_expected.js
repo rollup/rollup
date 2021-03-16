@@ -1,3 +1,3 @@
-import { y } from 'external';
+import * as stuff from 'external';
 
-y();
+stuff.y();

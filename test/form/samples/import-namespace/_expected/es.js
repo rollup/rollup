@@ -1,5 +1,5 @@
-import { x } from 'foo';
+import * as foo from 'foo';
 import * as bar from 'bar';
 
-x();
+foo.x();
 console.log(bar);

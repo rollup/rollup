@@ -1,7 +1,6 @@
 'use strict';
 
-var foo = require('foo');
-var bar = require('bar');
+var external = require('external');
 
 function _interopNamespace(e) {
 	if (e && e.__esModule) return e;
@@ -23,8 +22,6 @@ function _interopNamespace(e) {
 	return Object.freeze(n);
 }
 
-var foo__namespace = /*#__PURE__*/_interopNamespace(foo);
-var bar__namespace = /*#__PURE__*/_interopNamespace(bar);
+var external__namespace = /*#__PURE__*/_interopNamespace(external);
 
-foo__namespace.x();
-console.log(bar__namespace);
+console.log(external__namespace.default, external__namespace.foo);

@@ -33,14 +33,14 @@ define(['external-auto', 'external-default', 'external-defaultOnly'], function (
 
 	assert.strictEqual(externalAuto__namespace[Symbol.toStringTag], 'Module');
 	assert.strictEqual(Object.prototype.toString.call(externalAuto__namespace), '[object Module]');
-	assert.strictEqual(externalAuto.foo, 42);
+	assert.strictEqual(externalAuto__namespace.foo, 42);
 
 	assert.strictEqual(externalDefault__namespace[Symbol.toStringTag], 'Module');
 	assert.strictEqual(Object.prototype.toString.call(externalDefault__namespace), '[object Module]');
-	assert.strictEqual(externalDefault.foo, 42);
+	assert.strictEqual(externalDefault__namespace.foo, 42);
 
 	assert.strictEqual(externalDefaultOnly__namespace[Symbol.toStringTag], 'Module');
 	assert.strictEqual(Object.prototype.toString.call(externalDefaultOnly__namespace), '[object Module]');
-	assert.deepStrictEqual(externalDefaultOnly, { foo: 42 });
+	assert.deepStrictEqual(externalDefaultOnly__namespace.default, { foo: 42 });
 
 });

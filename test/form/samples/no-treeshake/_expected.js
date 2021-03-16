@@ -1,4 +1,4 @@
-import { value } from 'external';
+import * as external from 'external';
 
 var foo = 13;
 
@@ -7,7 +7,7 @@ const quux = 1;
 const other = () => quux;
 
 function baz() {
-	return foo + value;
+	return foo + external.value;
 }
 
 var create = Object.create,

@@ -1,4 +1,5 @@
-define(['foo', 'bar'], function (foo, bar) { 'use strict';
+(function (external) {
+	'use strict';
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -20,10 +21,8 @@ define(['foo', 'bar'], function (foo, bar) { 'use strict';
 		return Object.freeze(n);
 	}
 
-	var foo__namespace = /*#__PURE__*/_interopNamespace(foo);
-	var bar__namespace = /*#__PURE__*/_interopNamespace(bar);
+	var external__namespace = /*#__PURE__*/_interopNamespace(external);
 
-	foo__namespace.x();
-	console.log(bar__namespace);
+	console.log(external__namespace.default, external__namespace.foo);
 
-});
+}(external));
