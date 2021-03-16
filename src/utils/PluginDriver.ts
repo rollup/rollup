@@ -101,7 +101,7 @@ export class PluginDriver {
 		this.getFileName = this.fileEmitter.getFileName;
 		this.finaliseAssets = this.fileEmitter.assertAssetsFinalized;
 		this.setOutputBundle = this.fileEmitter.setOutputBundle;
-		this.plugins = userPlugins.concat(basePluginDriver ? basePluginDriver.plugins : []);
+		this.plugins = (basePluginDriver ? basePluginDriver.plugins : []).concat(userPlugins);
 		this.pluginContexts = this.plugins.map(
 			getPluginContexts(pluginCache, graph, options, this.fileEmitter)
 		);
