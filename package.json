@@ -25,7 +25,7 @@
     "perf:debug": "node --inspect-brk scripts/perf-debug.js",
     "perf:init": "node scripts/perf-init.js",
     "postinstall": "husky install",
-    "postpublish": "pinst --enable",
+    "postpublish": "pinst --enable && git push && git push --tags",
     "prepare": "npm run build",
     "prepublishOnly": "pinst --disable && npm ci && npm run lint:nofix && npm run security && npm run build:bootstrap && npm run test:all",
     "security": "npm audit",
