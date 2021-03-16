@@ -1,5 +1,23 @@
 # rollup changelog
 
+## 2.41.4
+*2021-03-16*
+
+### Bug Fixes
+* Do not replace external namespace imports with individual named imports to avoid changing behaviour with regard to missing exports (#3999)
+
+### Pull Requests
+* [#3999](https://github.com/rollup/rollup/pull/3999): Allow to safely probe external namespaces (@lukastaegert)
+
+## 2.41.3
+*2021-03-16*
+
+### Bug Fixes
+* Always retain arguments passed to empty object pattern parameters (#3998)
+
+### Pull Requests
+* [#3998](https://github.com/rollup/rollup/pull/3998): Do not create invalid code if a function argument is an empty object pattern (@lukastaegert)
+
 ## 2.41.3
 *2021-03-16*
 
