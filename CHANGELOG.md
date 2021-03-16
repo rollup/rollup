@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.41.3
+*2021-03-16*
+
+### Bug Fixes
+* Always retain arguments passed to empty object pattern parameters (#3998)
+
+### Pull Requests
+* [#3998](https://github.com/rollup/rollup/pull/3998): Do not create invalid code if a function argument is an empty object pattern (@lukastaegert)
+
 ## 2.41.2
 *2021-03-12*
 
