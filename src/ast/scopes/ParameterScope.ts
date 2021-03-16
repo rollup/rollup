@@ -64,12 +64,17 @@ export default class ParameterScope extends ChildScope {
 			const arg = args[index];
 			if (paramVars) {
 				calledFromTryStatement = false;
-				for (const variable of paramVars) {
-					if (variable.included) {
-						argIncluded = true;
-					}
-					if (variable.calledFromTryStatement) {
-						calledFromTryStatement = true;
+				if (paramVars.length === 0) {
+					// handle empty destructuring
+					argIncluded = true;
+				} else {
+					for (const variable of paramVars) {
+						if (variable.included) {
+							argIncluded = true;
+						}
+						if (variable.calledFromTryStatement) {
+							calledFromTryStatement = true;
+						}
 					}
 				}
 			}
