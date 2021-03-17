@@ -153,32 +153,37 @@ export function getPluginContext(
 				yield* moduleIds;
 			}
 
-			const moduleIds = graph.modulesById.keys();
-			return wrappedModuleIds();
-		},
-		parse: graph.contextParse.bind(graph),
-		resolve(source, importer, { custom, skipSelf } = BLANK) {
-			return graph.moduleLoader.resolveId(source, importer, custom, skipSelf ? plugin : null);
-		},
-		resolveId: getDeprecatedContextHandler(
-			(source: string, importer: string | undefined) =>
-				graph.moduleLoader
-					.resolveId(source, importer, BLANK)
-					.then(resolveId => resolveId && resolveId.id),
-			'resolveId',
-			'resolve',
-			plugin.name,
-			true,
-			options
-		),
-		setAssetSource: fileEmitter.setAssetSource,
-		warn(warning) {
-			if (typeof warning === 'string') warning = { message: warning } as RollupWarning;
-			if (warning.code) warning.pluginCode = warning.code;
-			warning.code = 'PLUGIN_WARNING';
-			warning.plugin = plugin.name;
-			options.onwarn(warning);
-		}
-	};
-	return context;
+				const moduleIds = graph.modulesById.keys();
+				return wrappedModuleIds();
+			},
+			parse: graph.contextParse.bind(graph),
+			resolve(source, importer, { custom, skipSelf } = BLANK) {
+				return graph.moduleLoader.resolveId(
+					source,
+					importer,
+					custom,
+					skipSelf ? [{ importer, plugin, source }] : null
+				);
+			},
+			resolveId: getDeprecatedContextHandler(
+				(source: string, importer: string | undefined) =>
+					graph.moduleLoader
+						.resolveId(source, importer, BLANK)
+						.then(resolveId => resolveId && resolveId.id),
+				'resolveId',
+				'resolve',
+				plugin.name,
+				true,
+				options
+			),
+			setAssetSource: fileEmitter.setAssetSource,
+			warn(warning) {
+				if (typeof warning === 'string') warning = { message: warning } as RollupWarning;
+				if (warning.code) warning.pluginCode = warning.code;
+				warning.code = 'PLUGIN_WARNING';
+				warning.plugin = plugin.name;
+				options.onwarn(warning);
+			}
+		};
+		return context;
 }

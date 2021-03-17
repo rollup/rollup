@@ -136,12 +136,12 @@ export class ModuleLoader {
 		return module;
 	}
 
-	async resolveId(
+	resolveId = async (
 		source: string,
 		importer: string | undefined,
 		customOptions: CustomPluginOptions | undefined,
-		skip: Plugin | null = null
-	): Promise<ResolvedId | null> {
+		skip: { importer: string | undefined; plugin: Plugin; source: string }[] | null = null
+	): Promise<ResolvedId | null> => {
 		return this.addDefaultsToResolvedId(
 			this.getNormalizedResolvedIdWithoutDefaults(
 				this.options.external(source, importer, false)
@@ -151,6 +151,7 @@ export class ModuleLoader {
 							importer,
 							this.options.preserveSymlinks,
 							this.pluginDriver,
+							this.resolveId,
 							skip,
 							customOptions
 					  ),
@@ -445,6 +446,7 @@ export class ModuleLoader {
 			importer,
 			this.options.preserveSymlinks,
 			this.pluginDriver,
+			this.resolveId,
 			null,
 			EMPTY_OBJECT
 		);

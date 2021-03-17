@@ -59,7 +59,7 @@ const inputHookNames: {
 };
 const inputHooks = Object.keys(inputHookNames);
 
-type ReplaceContext = (context: PluginContext, plugin: Plugin) => PluginContext;
+export type ReplaceContext = (context: PluginContext, plugin: Plugin) => PluginContext;
 
 function throwInvalidHookError(hookName: string, pluginName: string) {
 	return error({
@@ -129,11 +129,11 @@ export class PluginDriver {
 		hookName: H,
 		args: Parameters<PluginHooks[H]>,
 		replaceContext?: ReplaceContext | null,
-		skip?: Plugin | null
+		skipped?: Set<Plugin> | null
 	): EnsurePromise<ReturnType<PluginHooks[H]>> {
 		let promise: EnsurePromise<ReturnType<PluginHooks[H]>> = Promise.resolve(undefined as any);
 		for (const plugin of this.plugins) {
-			if (skip === plugin) continue;
+			if (skipped && skipped.has(plugin)) continue;
 			promise = promise.then(result => {
 				if (result != null) return result;
 				return this.runHook(hookName, args, plugin, false, replaceContext);
