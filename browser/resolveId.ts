@@ -1,4 +1,4 @@
-import { CustomPluginOptions } from '../src/rollup/types';
+import { CustomPluginOptions, Plugin } from '../src/rollup/types';
 import { PluginDriver } from '../src/utils/PluginDriver';
 import { throwNoFileSystem } from './error';
 
@@ -7,7 +7,7 @@ export async function resolveId(
 	importer: string | undefined,
 	_preserveSymlinks: boolean,
 	pluginDriver: PluginDriver,
-	skip: number | null,
+	skip: Plugin | null,
 	customOptions: CustomPluginOptions | undefined
 ) {
 	const pluginResult = await pluginDriver.hookFirst(

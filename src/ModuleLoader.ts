@@ -8,6 +8,7 @@ import {
 	HasModuleSideEffects,
 	NormalizedInputOptions,
 	PartialResolvedId,
+	Plugin,
 	ResolvedId,
 	ResolveIdResult,
 	SourceDescription
@@ -139,7 +140,7 @@ export class ModuleLoader {
 		source: string,
 		importer: string | undefined,
 		customOptions: CustomPluginOptions | undefined,
-		skip: number | null = null
+		skip: Plugin | null = null
 	): Promise<ResolvedId | null> {
 		return this.addDefaultsToResolvedId(
 			this.getNormalizedResolvedIdWithoutDefaults(
