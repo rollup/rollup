@@ -1,5 +1,6 @@
 import ExternalModule from '../../ExternalModule';
 import Identifier from '../nodes/Identifier';
+import { ObjectPath } from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class ExternalVariable extends Variable {
@@ -19,6 +20,10 @@ export default class ExternalVariable extends Variable {
 		if (this.name === 'default' || this.name === '*') {
 			this.module.suggestName(identifier.name);
 		}
+	}
+
+	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
+		return path.length > (this.isNamespace ? 1 : 0);
 	}
 
 	include() {
