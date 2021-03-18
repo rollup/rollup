@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.41.5
+*2021-03-18*
+
+### Bug Fixes
+* Make sure unused property accesses of external namespaces can be tree-shaken (#4001)
+
+### Pull Requests
+* [#4001](https://github.com/rollup/rollup/pull/4001): Do not count accessing members of an external namespace as side-effects (@lukastaegert)
+
 ## 2.41.4
 *2021-03-16*
 
