@@ -1,21 +1,30 @@
-import { CustomPluginOptions } from '../rollup/types';
+import { CustomPluginOptions, Plugin, ResolvedId } from '../rollup/types';
 import { lstatSync, readdirSync, realpathSync } from './fs';
 import { basename, dirname, isAbsolute, resolve } from './path';
 import { PluginDriver } from './PluginDriver';
+import { resolveIdViaPlugins } from './resolveIdViaPlugins';
 
 export async function resolveId(
 	source: string,
 	importer: string | undefined,
 	preserveSymlinks: boolean,
 	pluginDriver: PluginDriver,
-	skip: number | null,
+	moduleLoaderResolveId: (
+		source: string,
+		importer: string | undefined,
+		customOptions: CustomPluginOptions | undefined,
+		skip: { importer: string | undefined; plugin: Plugin; source: string }[] | null
+	) => Promise<ResolvedId | null>,
+	skip: { importer: string | undefined; plugin: Plugin; source: string }[] | null,
 	customOptions: CustomPluginOptions | undefined
 ) {
-	const pluginResult = await pluginDriver.hookFirst(
-		'resolveId',
-		[source, importer, { custom: customOptions }],
-		null,
-		skip
+	const pluginResult = await resolveIdViaPlugins(
+		source,
+		importer,
+		pluginDriver,
+		moduleLoaderResolveId,
+		skip,
+		customOptions
 	);
 	if (pluginResult != null) return pluginResult;
 

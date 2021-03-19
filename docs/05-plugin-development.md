@@ -697,7 +697,7 @@ Use Rollup's internal acorn instance to parse code to an AST.
 #### `this.resolve(source: string, importer?: string, options?: {skipSelf?: boolean, custom?: {[plugin: string]: any}}) => Promise<{id: string, external: boolean, moduleSideEffects: boolean | 'no-treeshake', syntheticNamedExports: boolean | string, meta: {[plugin: string]: any}} | null>`
 Resolve imports to module ids (i.e. file names) using the same plugins that Rollup uses, and determine if an import should be external. If `null` is returned, the import could not be resolved by Rollup or any plugin but was not explicitly marked as external by the user.
 
-If you pass `skipSelf: true`, then the `resolveId` hook of the plugin from which `this.resolve` is called will be skipped when resolving.
+If you pass `skipSelf: true`, then the `resolveId` hook of the plugin from which `this.resolve` is called will be skipped when resolving. When other plugins themselves also call `this.resolve` in their `resolveId` hooks with the *exact same `source` and `importer`* while handling the original `this.resolve` call, then the `resolveId` hook of the original plugin will be skipped for those calls as well. The rationale here is that the plugin already stated that it "does not know" how to resolve this particular combination of `source` and `importer` at this point in time. If you do not want this behaviour, do not use `skipSelf` but implement your own infinite loop prevention mechanism if necessary.
 
 You can also pass an object of plugin-specific options via the `custom` option, see [custom resolver options](guide/en/#custom-resolver-options) for details.
 

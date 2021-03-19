@@ -44,121 +44,126 @@ function getDeprecatedContextHandler<H extends Function>(
 	}) as unknown) as H;
 }
 
-export function getPluginContexts(
+export function getPluginContext(
+	plugin: Plugin,
 	pluginCache: Record<string, SerializablePluginCache> | void,
 	graph: Graph,
 	options: NormalizedInputOptions,
-	fileEmitter: FileEmitter
-): (plugin: Plugin, pluginIndex: number) => PluginContext {
-	const existingPluginNames = new Set<string>();
-	return (plugin, pidx) => {
-		let cacheable = true;
-		if (typeof plugin.cacheKey !== 'string') {
-			if (
-				plugin.name.startsWith(ANONYMOUS_PLUGIN_PREFIX) ||
-				plugin.name.startsWith(ANONYMOUS_OUTPUT_PLUGIN_PREFIX) ||
-				existingPluginNames.has(plugin.name)
-			) {
-				cacheable = false;
-			} else {
-				existingPluginNames.add(plugin.name);
-			}
-		}
-
-		let cacheInstance: PluginCache;
-		if (!pluginCache) {
-			cacheInstance = NO_CACHE;
-		} else if (cacheable) {
-			const cacheKey = plugin.cacheKey || plugin.name;
-			cacheInstance = createPluginCache(
-				pluginCache[cacheKey] || (pluginCache[cacheKey] = Object.create(null))
-			);
+	fileEmitter: FileEmitter,
+	existingPluginNames: Set<string>
+): PluginContext {
+	let cacheable = true;
+	if (typeof plugin.cacheKey !== 'string') {
+		if (
+			plugin.name.startsWith(ANONYMOUS_PLUGIN_PREFIX) ||
+			plugin.name.startsWith(ANONYMOUS_OUTPUT_PLUGIN_PREFIX) ||
+			existingPluginNames.has(plugin.name)
+		) {
+			cacheable = false;
 		} else {
-			cacheInstance = getCacheForUncacheablePlugin(plugin.name);
+			existingPluginNames.add(plugin.name);
 		}
+	}
 
-		const context: PluginContext = {
-			addWatchFile(id) {
-				if (graph.phase >= BuildPhase.GENERATE) {
-					return this.error(errInvalidRollupPhaseForAddWatchFile());
-				}
-				graph.watchFiles[id] = true;
-			},
-			cache: cacheInstance,
-			emitAsset: getDeprecatedContextHandler(
-				(name: string, source?: string | Uint8Array) =>
-					fileEmitter.emitFile({ type: 'asset', name, source }),
-				'emitAsset',
-				'emitFile',
-				plugin.name,
-				true,
-				options
-			),
-			emitChunk: getDeprecatedContextHandler(
-				(id: string, options?: { name?: string }) =>
-					fileEmitter.emitFile({ type: 'chunk', id, name: options && options.name }),
-				'emitChunk',
-				'emitFile',
-				plugin.name,
-				true,
-				options
-			),
-			emitFile: fileEmitter.emitFile,
-			error(err): never {
-				return throwPluginError(err, plugin.name);
-			},
-			getAssetFileName: getDeprecatedContextHandler(
-				fileEmitter.getFileName,
-				'getAssetFileName',
-				'getFileName',
-				plugin.name,
-				true,
-				options
-			),
-			getChunkFileName: getDeprecatedContextHandler(
-				fileEmitter.getFileName,
-				'getChunkFileName',
-				'getFileName',
-				plugin.name,
-				true,
-				options
-			),
-			getFileName: fileEmitter.getFileName,
-			getModuleIds: () => graph.modulesById.keys(),
-			getModuleInfo: graph.getModuleInfo,
-			getWatchFiles: () => Object.keys(graph.watchFiles),
-			isExternal: getDeprecatedContextHandler(
-				(id: string, parentId: string | undefined, isResolved = false) =>
-					options.external(id, parentId, isResolved),
-				'isExternal',
-				'resolve',
-				plugin.name,
-				true,
-				options
-			),
-			meta: {
-				rollupVersion,
-				watchMode: graph.watchMode
-			},
-			get moduleIds() {
-				function* wrappedModuleIds() {
-					warnDeprecation(
-						{
-							message: `Accessing "this.moduleIds" on the plugin context by plugin ${plugin.name} is deprecated. The "this.getModuleIds" plugin context function should be used instead.`,
-							plugin: plugin.name
-						},
-						false,
-						options
-					);
-					yield* moduleIds;
-				}
+	let cacheInstance: PluginCache;
+	if (!pluginCache) {
+		cacheInstance = NO_CACHE;
+	} else if (cacheable) {
+		const cacheKey = plugin.cacheKey || plugin.name;
+		cacheInstance = createPluginCache(
+			pluginCache[cacheKey] || (pluginCache[cacheKey] = Object.create(null))
+		);
+	} else {
+		cacheInstance = getCacheForUncacheablePlugin(plugin.name);
+	}
+
+	const context: PluginContext = {
+		addWatchFile(id) {
+			if (graph.phase >= BuildPhase.GENERATE) {
+				return this.error(errInvalidRollupPhaseForAddWatchFile());
+			}
+			graph.watchFiles[id] = true;
+		},
+		cache: cacheInstance,
+		emitAsset: getDeprecatedContextHandler(
+			(name: string, source?: string | Uint8Array) =>
+				fileEmitter.emitFile({ type: 'asset', name, source }),
+			'emitAsset',
+			'emitFile',
+			plugin.name,
+			true,
+			options
+		),
+		emitChunk: getDeprecatedContextHandler(
+			(id: string, options?: { name?: string }) =>
+				fileEmitter.emitFile({ type: 'chunk', id, name: options && options.name }),
+			'emitChunk',
+			'emitFile',
+			plugin.name,
+			true,
+			options
+		),
+		emitFile: fileEmitter.emitFile,
+		error(err): never {
+			return throwPluginError(err, plugin.name);
+		},
+		getAssetFileName: getDeprecatedContextHandler(
+			fileEmitter.getFileName,
+			'getAssetFileName',
+			'getFileName',
+			plugin.name,
+			true,
+			options
+		),
+		getChunkFileName: getDeprecatedContextHandler(
+			fileEmitter.getFileName,
+			'getChunkFileName',
+			'getFileName',
+			plugin.name,
+			true,
+			options
+		),
+		getFileName: fileEmitter.getFileName,
+		getModuleIds: () => graph.modulesById.keys(),
+		getModuleInfo: graph.getModuleInfo,
+		getWatchFiles: () => Object.keys(graph.watchFiles),
+		isExternal: getDeprecatedContextHandler(
+			(id: string, parentId: string | undefined, isResolved = false) =>
+				options.external(id, parentId, isResolved),
+			'isExternal',
+			'resolve',
+			plugin.name,
+			true,
+			options
+		),
+		meta: {
+			rollupVersion,
+			watchMode: graph.watchMode
+		},
+		get moduleIds() {
+			function* wrappedModuleIds() {
+				warnDeprecation(
+					{
+						message: `Accessing "this.moduleIds" on the plugin context by plugin ${plugin.name} is deprecated. The "this.getModuleIds" plugin context function should be used instead.`,
+						plugin: plugin.name
+					},
+					false,
+					options
+				);
+				yield* moduleIds;
+			}
 
 				const moduleIds = graph.modulesById.keys();
 				return wrappedModuleIds();
 			},
 			parse: graph.contextParse.bind(graph),
 			resolve(source, importer, { custom, skipSelf } = BLANK) {
-				return graph.moduleLoader.resolveId(source, importer, custom, skipSelf ? pidx : null);
+				return graph.moduleLoader.resolveId(
+					source,
+					importer,
+					custom,
+					skipSelf ? [{ importer, plugin, source }] : null
+				);
 			},
 			resolveId: getDeprecatedContextHandler(
 				(source: string, importer: string | undefined) =>
@@ -181,5 +186,4 @@ export function getPluginContexts(
 			}
 		};
 		return context;
-	};
 }
