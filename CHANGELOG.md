@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.42.0
+*2021-03-19*
+
+### Features
+* Prevent infinite loops when several plugins are using `this.resolve` in their resolveId hook (#4000)
+
+### Pull Requests
+* [#4000](https://github.com/rollup/rollup/pull/4000): Break infinite loops in this.resolve (@lukastaegert)
+
 ## 2.41.5
 *2021-03-18*
 
