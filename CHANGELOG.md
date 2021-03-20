@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.42.1
+*2021-03-20*
+
+### Bug Fixes
+* Do not produce unhandled Promise rejections when plugins throw while using the `perf` option (#4004)
+
+### Pull Requests
+* [#4004](https://github.com/rollup/rollup/pull/4004): Fixed unhandled promise rejections (@gluck)
+
 ## 2.42.0
 *2021-03-19*
 
