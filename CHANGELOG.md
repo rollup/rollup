@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.42.3
+*2021-03-22*
+
+### Bug Fixes
+* Do not ignore `#__PURE__` comments in front of optional chaining expressions (#4007)
+
+### Pull Requests
+* [#4007](https://github.com/rollup/rollup/pull/4007): Tree-shake pure call expressions with optional chaining (@lukastaegert)
+
 ## 2.42.2
 *2021-03-22*
 
