@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.42.2
+*2021-03-22*
+
+### Bug Fixes
+* Use correct import.meta.url in relative imports from transpiled config files (#4005)
+
+### Pull Requests
+* [#4005](https://github.com/rollup/rollup/pull/4005): Use correct import.meta.url in config files (@lukastaegert)
+
 ## 2.42.1
 *2021-03-20*
 
