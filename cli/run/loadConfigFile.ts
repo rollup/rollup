@@ -77,7 +77,20 @@ async function getDefaultFromTranspiledConfigFile(
 		output: [{ code }]
 	} = await bundle.generate({
 		exports: 'named',
-		format: 'cjs'
+		format: 'cjs',
+		plugins: [
+			{
+				name: 'transpile-import-meta',
+				resolveImportMeta(property, { moduleId }) {
+					if (property === 'url') {
+						return `'${pathToFileURL(moduleId).href}'`;
+					}
+					if (property == null) {
+						return `{url:'${pathToFileURL(moduleId).href}'}`
+					}
+				}
+			}
+		]
 	});
 	return loadConfigFromBundledFile(fileName, code);
 }
