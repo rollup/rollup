@@ -1,6 +1,11 @@
 import * as acorn from 'acorn';
 import { base as basicWalker, BaseWalker } from 'acorn-walk';
-import { CallExpression, ExpressionStatement, NewExpression } from '../ast/nodes/NodeType';
+import {
+	CallExpression,
+	ChainExpression,
+	ExpressionStatement,
+	NewExpression
+} from '../ast/nodes/NodeType';
 import { Annotation } from '../ast/nodes/shared/Node';
 
 // patch up acorn-walk until class-fields are officially supported
@@ -38,18 +43,18 @@ function markPureNode(
 	comment: acorn.Comment
 ) {
 	if (node._rollupAnnotations) {
-		node._rollupAnnotations.push({comment});
+		node._rollupAnnotations.push({ comment });
 	} else {
-		node._rollupAnnotations = [{comment}];
+		node._rollupAnnotations = [{ comment }];
 	}
-	if (node.type === ExpressionStatement) {
+	while (node.type === ExpressionStatement || node.type === ChainExpression) {
 		node = (node as any).expression;
 	}
 	if (node.type === CallExpression || node.type === NewExpression) {
 		if (node._rollupAnnotations) {
-			node._rollupAnnotations.push({pure: true});
+			node._rollupAnnotations.push({ pure: true });
 		} else {
-			node._rollupAnnotations = [{pure: true}];
+			node._rollupAnnotations = [{ pure: true }];
 		}
 	}
 }
