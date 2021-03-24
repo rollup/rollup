@@ -45,6 +45,7 @@ export const UNKNOWN_EXPRESSION: ExpressionEntity = {
 		}
 	},
 	included: true,
+	mayModifyThisWhenCalledAtPath: () => true,
 	toString: () => '[[UNKNOWN]]'
 };
 
@@ -58,6 +59,7 @@ export const UNDEFINED_EXPRESSION: ExpressionEntity = {
 	include: () => {},
 	includeCallArguments(): void {},
 	included: true,
+	mayModifyThisWhenCalledAtPath: () => true,
 	toString: () => 'undefined'
 };
 
@@ -119,6 +121,10 @@ export class UnknownArrayExpression implements ExpressionEntity {
 		for (const arg of args) {
 			arg.include(context, false);
 		}
+	}
+
+	mayModifyThisWhenCalledAtPath(_path: ObjectPath) {
+		return true;
 	}
 
 	toString() {
@@ -184,6 +190,7 @@ const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = {
 		}
 	},
 	included: true,
+	mayModifyThisWhenCalledAtPath: () => true,
 	toString: () => '[[UNKNOWN BOOLEAN]]'
 };
 
@@ -229,6 +236,7 @@ const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = {
 		}
 	},
 	included: true,
+	mayModifyThisWhenCalledAtPath: () => true,
 	toString: () => '[[UNKNOWN NUMBER]]'
 };
 
@@ -281,6 +289,7 @@ const UNKNOWN_LITERAL_STRING: ExpressionEntity = {
 		}
 	},
 	included: true,
+	mayModifyThisWhenCalledAtPath: () => true,
 	toString: () => '[[UNKNOWN STRING]]'
 };
 
@@ -336,6 +345,10 @@ export class UnknownObjectExpression implements ExpressionEntity {
 		for (const arg of args) {
 			arg.include(context, false);
 		}
+	}
+
+	mayModifyThisWhenCalledAtPath(_path: ObjectPath) {
+		return true;
 	}
 
 	toString() {

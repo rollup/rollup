@@ -96,6 +96,12 @@ export default class Variable implements ExpressionEntity {
 
 	markCalledFromTryStatement() {}
 
+	mayModifyThisWhenCalledAtPath(
+		_path: ObjectPath
+	) {
+		return true
+	}
+
 	setRenderNames(baseName: string | null, name: string | null) {
 		this.renderBaseName = baseName;
 		this.renderName = name;

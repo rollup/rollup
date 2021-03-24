@@ -1,13 +1,6 @@
 const removed4 = () => globalThis.unknown ? removed4() : { x: () => {} };
 removed4().x();
 
-const removed6 = {
-	get x () {
-		return globalThis.unknown ? removed6.x : () => {};
-	}
-};
-removed6.x();
-
 const removed8 = {
 	get x () {
 		return globalThis.unknown ? removed8.x : { y: () => {} };

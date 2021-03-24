@@ -229,6 +229,12 @@ export class NodeBase implements ExpressionNode {
 		}
 	}
 
+	mayModifyThisWhenCalledAtPath(
+		_path: ObjectPath
+	) {
+		return true
+	}
+
 	parseNode(esTreeNode: GenericEsTreeNode) {
 		for (const key of Object.keys(esTreeNode)) {
 			// That way, we can override this function to add custom initialisation and then call super.parseNode

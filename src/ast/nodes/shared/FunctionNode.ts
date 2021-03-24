@@ -16,12 +16,16 @@ export default class FunctionNode extends NodeBase {
 	id!: IdentifierWithVariable | null;
 	params!: PatternNode[];
 	preventChildBlockScope!: true;
+	referencesThis!: boolean;
 	scope!: FunctionScope;
 
 	private isPrototypeDeoptimized = false;
 
 	createScope(parentScope: FunctionScope) {
 		this.scope = new FunctionScope(parentScope, this.context);
+		// Initialized here because child nodes will update it before
+		// `this.initialize` even runs.
+		this.referencesThis = false;
 	}
 
 	deoptimizePath(path: ObjectPath) {
@@ -118,6 +122,12 @@ export default class FunctionNode extends NodeBase {
 			this.params[this.params.length - 1] instanceof RestElement
 		);
 		this.body.addImplicitReturnExpressionToScope();
+	}
+
+	mayModifyThisWhenCalledAtPath(
+		path: ObjectPath
+	) {
+		return path.length ? true : this.referencesThis
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode) {
