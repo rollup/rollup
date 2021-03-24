@@ -108,7 +108,10 @@ function getPluginWithTimers(plugin: any, index: number): Plugin {
 				timeEnd(timerLabel, 4);
 				if (result && typeof result.then === 'function') {
 					timeStart(`${timerLabel} (async)`, 4);
-					result = result.then(() => timeEnd(`${timerLabel} (async)`, 4));
+					result = result.then((hookResult: any) => {
+						timeEnd(`${timerLabel} (async)`, 4);
+						return hookResult;
+					});
 				}
 				return result;
 			};
