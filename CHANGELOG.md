@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.42.4
+*2021-03-24*
+
+### Bug Fixes
+* Do not discard plugin return values when using perf option (#4010)
+
+### Pull Requests
+* [#4010](https://github.com/rollup/rollup/pull/4010): Return hook result inside promise with async timer end (@SuperOleg39)
+
 ## 2.42.3
 *2021-03-22*
 
