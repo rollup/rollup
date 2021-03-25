@@ -108,6 +108,7 @@ function mergeInputOptions(
 		input: getOption('input') || [],
 		manualChunks: getOption('manualChunks'),
 		moduleContext: getOption('moduleContext'),
+		normalizeExternalPaths: getOption('normalizeExternalPaths'),
 		onwarn: getOnWarn(config, defaultOnWarnHandler),
 		perf: getOption('perf'),
 		plugins: ensureArray(config.plugins) as Plugin[],

@@ -219,7 +219,7 @@ export interface PluginContextMeta {
 }
 
 export interface ResolvedId extends ModuleOptions {
-	external: boolean;
+	external: boolean | 'absolute';
 	id: string;
 }
 
@@ -228,7 +228,7 @@ export interface ResolvedIdMap {
 }
 
 interface PartialResolvedId extends Partial<PartialNull<ModuleOptions>> {
-	external?: boolean;
+	external?: boolean | 'absolute' | 'normalize';
 	id: string;
 }
 
@@ -531,6 +531,7 @@ export interface InputOptions {
 	/** @deprecated Use the "manualChunks" output option instead. */
 	manualChunks?: ManualChunksOption;
 	moduleContext?: ((id: string) => string | null | undefined) | { [id: string]: string };
+	normalizeExternalPaths?: boolean | 'relative';
 	onwarn?: WarningHandlerWithDefault;
 	perf?: boolean;
 	plugins?: Plugin[];
@@ -557,6 +558,7 @@ export interface NormalizedInputOptions {
 	/** @deprecated Use the "manualChunks" output option instead. */
 	manualChunks: ManualChunksOption | undefined;
 	moduleContext: (id: string) => string;
+	normalizeExternalPaths: boolean | 'relative';
 	onwarn: WarningHandler;
 	perf: boolean;
 	plugins: Plugin[];

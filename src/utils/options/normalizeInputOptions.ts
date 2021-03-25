@@ -51,6 +51,8 @@ export function normalizeInputOptions(
 		input: getInput(config),
 		manualChunks: getManualChunks(config, onwarn, strictDeprecations),
 		moduleContext: getModuleContext(config, context),
+		normalizeExternalPaths:
+			(config.normalizeExternalPaths as boolean | 'relative' | undefined) ?? true,
 		onwarn,
 		perf: (config.perf as boolean | undefined) || false,
 		plugins: ensureArray(config.plugins) as Plugin[],
@@ -262,7 +264,7 @@ const getTreeshake = (
 				warn
 			),
 			propertyReadSideEffects:
-				configTreeshake.propertyReadSideEffects === 'always' && 'always' ||
+				(configTreeshake.propertyReadSideEffects === 'always' && 'always') ||
 				configTreeshake.propertyReadSideEffects !== false,
 			tryCatchDeoptimization: configTreeshake.tryCatchDeoptimization !== false,
 			unknownGlobalSideEffects: configTreeshake.unknownGlobalSideEffects !== false
