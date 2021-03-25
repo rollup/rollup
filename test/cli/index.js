@@ -124,10 +124,10 @@ runTestSuiteWithSamples(
 					if (config.abortOnStderr) {
 						try {
 							if (await config.abortOnStderr(data)) {
-								childProcess.kill('SIGINT');
+								childProcess.kill('SIGTERM');
 							}
 						} catch (err) {
-							childProcess.kill('SIGINT');
+							childProcess.kill('SIGTERM');
 							done(err);
 						}
 					}
