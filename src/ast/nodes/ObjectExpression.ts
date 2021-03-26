@@ -54,6 +54,16 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		super.bind();
 		// ensure the propertyMap is set for the tree-shaking passes
 		this.getPropertyMap();
+		if (
+			!this.hasUnknownDeoptimizedProperty &&
+			this.properties.some(prop => {
+				if (prop instanceof SpreadElement || prop.computed) return false;
+				if (prop.key instanceof Identifier) return prop.key.name == "__proto__";
+				return String((prop.key as Literal).value) == "__proto__";
+			})
+		) {
+			this.deoptimizeAllProperties();
+		}
 	}
 
 	// We could also track this per-property but this would quickly become much more complex
