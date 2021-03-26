@@ -64,9 +64,9 @@ There are occasional valid reasons for `this` to mean something else. If you're 
 
 ### Warning: "Sourcemap is likely to be incorrect"
 
-You'll see this warning if you generate a sourcemap with your bundle (`sourceMap: true` or `sourceMap: 'inline'`) but you're using one or more plugins that transformed code without generating a sourcemap for the transformation.
+You'll see this warning if you generate a sourcemap with your bundle (`sourcemap: true` or `sourcemap: 'inline'`) but you're using one or more plugins that transformed code without generating a sourcemap for the transformation.
 
-Usually, a plugin will only omit the sourcemap if it (the plugin, not the bundle) was configured with `sourceMap: false` – so all you need to do is change that. If the plugin doesn't generate a sourcemap, consider raising an issue with the plugin author.
+Usually, a plugin will only omit the sourcemap if it (the plugin, not the bundle) was configured with `sourcemap: false` – so all you need to do is change that. If the plugin doesn't generate a sourcemap, consider raising an issue with the plugin author.
 
 
 ### Warning: "Treating [module] as external dependency"
