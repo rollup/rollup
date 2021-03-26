@@ -16,6 +16,7 @@ export default class FunctionNode extends NodeBase {
 	id!: IdentifierWithVariable | null;
 	params!: PatternNode[];
 	preventChildBlockScope!: true;
+	referencesThis!: boolean;
 	scope!: FunctionScope;
 
 	private isPrototypeDeoptimized = false;
@@ -120,7 +121,14 @@ export default class FunctionNode extends NodeBase {
 		this.body.addImplicitReturnExpressionToScope();
 	}
 
+	mayModifyThisWhenCalledAtPath(
+		path: ObjectPath
+	) {
+		return path.length ? true : this.referencesThis
+	}
+
 	parseNode(esTreeNode: GenericEsTreeNode) {
+		this.referencesThis = false;
 		this.body = new this.context.nodeConstructors.BlockStatement(
 			esTreeNode.body,
 			this,

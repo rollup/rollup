@@ -141,6 +141,12 @@ export default class Identifier extends NodeBase implements PatternNode {
 		this.variable!.includeCallArguments(context, args);
 	}
 
+	mayModifyThisWhenCalledAtPath(
+		path: ObjectPath
+	) {
+		return this.variable ? this.variable.mayModifyThisWhenCalledAtPath(path) : true
+	}
+
 	render(
 		code: MagicString,
 		_options: RenderOptions,

@@ -188,4 +188,13 @@ export default class LocalVariable extends Variable {
 	markCalledFromTryStatement() {
 		this.calledFromTryStatement = true;
 	}
+
+	mayModifyThisWhenCalledAtPath(
+		path: ObjectPath
+	) {
+		if (this.isReassigned || !this.init || path.length > MAX_PATH_DEPTH) {
+			return true;
+		}
+		return this.init.mayModifyThisWhenCalledAtPath(path);
+	}
 }

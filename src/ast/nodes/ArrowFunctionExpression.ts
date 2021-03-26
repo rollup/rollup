@@ -98,6 +98,10 @@ export default class ArrowFunctionExpression extends NodeBase {
 		}
 	}
 
+	mayModifyThisWhenCalledAtPath() {
+		return false;
+	}
+
 	parseNode(esTreeNode: GenericEsTreeNode) {
 		if (esTreeNode.body.type === NodeType.BlockStatement) {
 			this.body = new this.context.nodeConstructors.BlockStatement(
