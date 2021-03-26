@@ -68,8 +68,6 @@ abstract class ValueBase implements ExpressionEntity {
 	includeCallArguments(_context: InclusionContext, _args: (ExpressionNode | SpreadElement)[]) {}
 
 	mayModifyThisWhenCalledAtPath() { return true; }
-
-	abstract toString(): string
 }
 
 function includeAll(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]) {
@@ -82,16 +80,11 @@ export const UNKNOWN_EXPRESSION: ExpressionEntity = new class extends ValueBase 
 	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
 		includeAll(context, args);
 	}
-	toString() { return '[[UNKNOWN]]' }
 };
 
 export const UNDEFINED_EXPRESSION: ExpressionEntity = new class extends ValueBase {
 	getLiteralValueAtPath() {
 		return undefined;
-	}
-
-	toString() {
-		return 'undefined'
 	}
 };
 
@@ -145,10 +138,6 @@ export class UnknownArrayExpression extends ValueBase {
 
 	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
 		includeAll(context, args);
-	}
-
-	toString() {
-		return '[[UNKNOWN ARRAY]]';
 	}
 }
 
@@ -205,7 +194,6 @@ const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = new class extends ValueBase {
 	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
 		includeAll(context, args);
 	}
-	toString() { return '[[UNKNOWN BOOLEAN]]' }
 };
 
 const returnsBoolean: RawMemberDescription = {
@@ -243,7 +231,6 @@ const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = new class extends ValueBase {
 	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
 		includeAll(context, args);
 	}
-	toString() { return '[[UNKNOWN NUMBER]]'; }
 };
 
 const returnsNumber: RawMemberDescription = {
@@ -292,7 +279,6 @@ const UNKNOWN_LITERAL_STRING: ExpressionEntity = new class extends ValueBase {
 	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
 		includeAll(context, args);
 	}
-	toString() { return '[[UNKNOWN STRING]]' }
 };
 
 const returnsString: RawMemberDescription = {
@@ -339,10 +325,6 @@ export class UnknownObjectExpression extends ValueBase {
 
 	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
 		includeAll(context, args);
-	}
-
-	toString() {
-		return '[[UNKNOWN OBJECT]]';
 	}
 }
 
