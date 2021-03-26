@@ -23,9 +23,6 @@ export default class FunctionNode extends NodeBase {
 
 	createScope(parentScope: FunctionScope) {
 		this.scope = new FunctionScope(parentScope, this.context);
-		// Initialized here because child nodes will update it before
-		// `this.initialize` even runs.
-		this.referencesThis = false;
 	}
 
 	deoptimizePath(path: ObjectPath) {
@@ -131,6 +128,7 @@ export default class FunctionNode extends NodeBase {
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode) {
+		this.referencesThis = false;
 		this.body = new this.context.nodeConstructors.BlockStatement(
 			esTreeNode.body,
 			this,
