@@ -910,7 +910,7 @@ return {
 If you create a plugin that you think would be useful to others, please publish
 it to NPM and add submit it to [github.com/rollup/awesome](https://github.com/rollup/awesome)!
 
-### Synthetic named exports
+### Synthetic Named Exports
 It is possible to designate a fallback export for missing exports by setting the `syntheticNamedExports` option for a module in the [`resolveId`](guide/en/#resolveid), [`load`](guide/en/#load) or [`transform`](guide/en/#transform) hook. If a string value is used for `syntheticNamedExports`, this module will fallback the resolution of any missing named exports to properties of the named export of the given name:
 
 **dep.js: (`{syntheticNamedExports: '__synthetic'}`)**
