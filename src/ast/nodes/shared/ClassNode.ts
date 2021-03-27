@@ -7,6 +7,7 @@ import Scope from '../../scopes/Scope';
 import { EMPTY_PATH, ObjectPath, PathTracker } from '../../utils/PathTracker';
 import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../../values';
 import ClassBody from '../ClassBody';
+import FunctionExpression from '../FunctionExpression';
 import Identifier from '../Identifier';
 import MethodDefinition from '../MethodDefinition';
 import { ExpressionEntity } from './Expression';
@@ -21,6 +22,7 @@ export default class ClassNode extends NodeBase {
 	private deoptimizedStatic = false;
 	// Collect deoptimization information if we can resolve a property access, by property name
 	private expressionsToBeDeoptimized = new Map<string, DeoptimizableEntity[]>();
+	private propEffectTables: DynamicPropEffectsTable[] = []
 	// Known, simple, non-deoptimized static properties are kept in here. They are removed when deoptimized.
 	private staticPropertyMap: {[name: string]: ExpressionNode} | null = null;
 
@@ -117,11 +119,11 @@ export default class ClassNode extends NodeBase {
 			if (this.deoptimizedPrototype) return true;
 			const key2 = path[1];
 			if (path.length === 2 && typeof key2 === 'string') {
-				return mayHaveGetterSetterEffect(this.body, 'get', false, key2, context);
+				return this.mayHaveGetterSetterEffects('get', false, key2, context);
 			}
 			return true;
 		} else if (typeof key === 'string' && path.length === 1) {
-			return mayHaveGetterSetterEffect(this.body, 'get', true, key, context);
+			return this.mayHaveGetterSetterEffects('get', true, key, context);
 		} else {
 			return true;
 		}
@@ -136,11 +138,11 @@ export default class ClassNode extends NodeBase {
 			if (this.deoptimizedPrototype) return true;
 			const key2 = path[1];
 			if (path.length === 2 && typeof key2 === 'string') {
-				return mayHaveGetterSetterEffect(this.body, 'set', false, key2, context);
+				return this.mayHaveGetterSetterEffects('set', false, key2, context);
 			}
 			return true;
 		} else if (typeof key === 'string' && path.length === 1) {
-			return mayHaveGetterSetterEffect(this.body, 'set', true, key, context);
+			return this.mayHaveGetterSetterEffects('set', true, key, context);
 		} else {
 			return true;
 		}
@@ -177,6 +179,13 @@ export default class ClassNode extends NodeBase {
 			}
 		}
 		this.classConstructor = null;
+	}
+
+	mayHaveGetterSetterEffects(kind: 'get' | 'set', isStatic: boolean, name: string, context: HasEffectsContext) {
+		const key =  (isStatic ? 1 : 0) + (kind == 'get' ? 2 : 0)
+		let table = this.propEffectTables[key]
+		if (!table) table = this.propEffectTables[key] = new DynamicPropEffectsTable(this.body, kind, isStatic)
+		return table.hasEffects(name, context)
 	}
 
 	mayModifyThisWhenCalledAtPath(
@@ -218,21 +227,30 @@ export default class ClassNode extends NodeBase {
 	}
 }
 
-function mayHaveGetterSetterEffect(
-	body: ClassBody,
-	kind: 'get' | 'set', isStatic: boolean, name: string,
-	context: HasEffectsContext
-) {
-	for (const definition of body.body) {
-		if (definition instanceof MethodDefinition && definition.static === isStatic && definition.kind === kind) {
-			if (definition.computed || !(definition.key instanceof Identifier)) {
-				return true;
-			}
-			if (definition.key.name === name &&
-			    definition.value.hasEffectsWhenCalledAtPath([], {args: [], withNew: false}, context)) {
-				return true;
+const defaultCallOptions = {args: [], withNew: false}
+
+class DynamicPropEffectsTable {
+	// Null means we should always assume effects
+	methods: {[name: string]: FunctionExpression[]} | null = Object.create(null)
+
+	constructor(body: ClassBody, kind: 'get' | 'set', isStatic: boolean) {
+		for (const definition of body.body) {
+			if (definition instanceof MethodDefinition &&
+			    definition.static === isStatic &&
+			    definition.kind === kind) {
+				if (definition.computed || !(definition.key instanceof Identifier)) {
+					this.methods = null;
+					return
+				}
+				const name = definition.key.name;
+				(this.methods![name] || (this.methods![name] = [])).push(definition.value);
 			}
 		}
 	}
-	return false;
+
+	hasEffects(name: string, context: HasEffectsContext) {
+		if (!this.methods) return true;
+		const methods = this.methods[name];
+		return methods && methods.some(m => m.hasEffectsWhenCalledAtPath([], defaultCallOptions, context))
+	}
 }
