@@ -39,10 +39,6 @@ export default class ClassNode extends NodeBase {
 		this.deoptimizedStatic = this.deoptimizedPrototype = true;
 	}
 
-	deoptimizeCache() {
-		this.deoptimizeAllStatics();
-	}
-
 	deoptimizePath(path: ObjectPath) {
 		const propertyMap = this.getStaticPropertyMap();
 		const key = path[0];
