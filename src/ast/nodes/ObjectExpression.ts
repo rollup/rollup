@@ -54,16 +54,6 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		super.bind();
 		// ensure the propertyMap is set for the tree-shaking passes
 		this.getPropertyMap();
-		if (
-			!this.hasUnknownDeoptimizedProperty &&
-			this.properties.some(prop => {
-				if (prop instanceof SpreadElement || prop.computed) return false;
-				if (prop.key instanceof Identifier) return prop.key.name == "__proto__";
-				return String((prop.key as Literal).value) == "__proto__";
-			})
-		) {
-			this.deoptimizeAllProperties();
-		}
 	}
 
 	// We could also track this per-property but this would quickly become much more complex
@@ -308,25 +298,27 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 			const isWrite = property.kind !== 'get';
 			const isRead = property.kind !== 'set';
 			let key;
+			let unmatchable = false;
 			if (property.computed) {
 				const keyValue = property.key.getLiteralValueAtPath(
 					EMPTY_PATH,
 					SHARED_RECURSION_TRACKER,
 					this
 				);
-				if (keyValue === UnknownValue) {
+				if (keyValue === UnknownValue) unmatchable = true;
+				key = String(keyValue);
+			} else if (property.key instanceof Identifier) {
+				key = property.key.name;
+			} else {
+				key = String((property.key as Literal).value);
+			}
+            if (key === '__proto__' && !property.computed || unmatchable) {
 					if (isRead) {
 						this.unmatchablePropertiesRead.push(property);
 					} else {
 						this.unmatchablePropertiesWrite.push(property);
 					}
 					continue;
-				}
-				key = String(keyValue);
-			} else if (property.key instanceof Identifier) {
-				key = property.key.name;
-			} else {
-				key = String((property.key as Literal).value);
 			}
 			const propertyMapProperty = propertyMap[key];
 			if (!propertyMapProperty) {
