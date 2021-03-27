@@ -209,7 +209,7 @@ If you want to switch from config files to using the [JavaScript API](guide/en/#
 - You can no longer use an array of configurations. Instead, you should run `rollup.rollup` once for each set of `inputOptions`.
 - The `output` option will be ignored. Instead, you should run `bundle.generate(outputOptions)` or `bundle.write(outputOptions)` once for each set of `outputOptions`.
 
-### Loading a configuration from a Node package
+### Loading a Configuration From a Node Package
 
 For interoperability, Rollup also supports loading configuration files from packages installed into `node_modules`:
 
@@ -219,7 +219,7 @@ For interoperability, Rollup also supports loading configuration files from pack
 rollup --config node:my-special-config
 ```
 
-### Using untranspiled config files
+### Using Untranspiled Config Files
 
 By default, Rollup will expect config files to be ES modules and bundle and transpile them and their relative imports to CommonJS before requiring them. This is a fast process and has the advantage that it is easy to share code between your configuration and an ES module code base. If you want to write your configuration as CommonJS instead, you can skip this process by using the `.cjs` extension:
 
@@ -259,7 +259,7 @@ There are some potential gotchas when using `.mjs` on Node 13+:
     ...
     ```
 
-### Command line flags
+### Command Line Flags
 
 Many options have command line equivalents. In those cases, any arguments passed here will override the config file, if you're using one. This is a list of all supported options:
 
