@@ -2,9 +2,9 @@
 title: Big list of options
 ---
 
-### Core functionality
+### Core Functionality
 
-#### external
+#### External
 Type: `(string | RegExp)[] | RegExp | string | (id: string, parentId: string, isResolved: boolean) => boolean`<br>
 CLI: `-e`/`--external <external-id,another-external-id,...>`
 
@@ -68,7 +68,7 @@ console.log(x);
 
 The conversion back to a relative import is done as if `output.file` or `output.dir` were in the same location as the entry point or the common base directory of all entry points if there is more than one.
 
-#### input
+#### Input
 Type: `string | string [] | { [entryName: string]: string }`<br>
 CLI: `-i`/`--input <filename>`
 
