@@ -79,7 +79,7 @@ async function build() {
 build();
 ```
 
-#### inputOptions object
+#### inputOptions Object
 
 The `inputOptions` object can contain the following properties (see the [big list of options](guide/en/#big-list-of-options) for full details on these):
 
@@ -111,7 +111,7 @@ const inputOptions = {
 };
 ```
 
-#### outputOptions object
+#### outputOptions Object
 
 The `outputOptions` object can contain the following properties (see the [big list of options](guide/en/#big-list-of-options) for full details on these):
 
@@ -235,7 +235,7 @@ const watchOptions = {
 
 See above for details on `inputOptions` and `outputOptions`, or consult the [big list of options](guide/en/#big-list-of-options) for info on `chokidar`, `include` and `exclude`.
 
-#### Programmatically loading a config file
+#### Programmatically Loading a Config File
 
 In order to aid in generating such a config, rollup exposes the helper it uses to load config files in its command line interface via a separate entry-point. This helper receives a resolved `fileName` and optionally an object containing command line parameters:
 
