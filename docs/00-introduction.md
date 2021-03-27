@@ -14,7 +14,7 @@ npm install --global rollup
 
 This will make Rollup available as a global command line tool. You can also install it locally, see [Installing Rollup locally](guide/en/#installing-rollup-locally).
 
-### Quick start
+### Quick Start
 
  Rollup can be used either through a [command line interface](guide/en/#command-line-reference) with an optional configuration file, or else through its [JavaScript API](guide/en/#javascript-api). Run `rollup --help` to see the available options and parameters.
 
