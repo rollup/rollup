@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 2.43.0
+*2021-03-27*
+
+### Features
+* Track side effects of function properties in objects for better tree-shaking (#4011)
+
+### Pull Requests
+* [#4011](https://github.com/rollup/rollup/pull/4011): isable pessimistic object deoptimization for calls when the called function doesn't ref this (@marijnh)
+* [#4012](https://github.com/rollup/rollup/pull/4012): fix `sourcemap` reference in docs (@tjenkinson)
+* [#4015](https://github.com/rollup/rollup/pull/4015): Use SIGTERM instead of SIGINT to kill test child processes in tests (@marijnh)
+
 ## 2.42.4
 *2021-03-24*
 
