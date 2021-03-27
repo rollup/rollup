@@ -49,10 +49,10 @@ export function normalizeInputOptions(
 		external: getIdMatcher(config.external as ExternalOption),
 		inlineDynamicImports: getInlineDynamicImports(config, onwarn, strictDeprecations),
 		input: getInput(config),
+		makeAbsoluteExternalsRelative:
+			(config.makeAbsoluteExternalsRelative as boolean | 'ifRelativeSource' | undefined) ?? true,
 		manualChunks: getManualChunks(config, onwarn, strictDeprecations),
 		moduleContext: getModuleContext(config, context),
-		normalizeExternalPaths:
-			(config.normalizeExternalPaths as boolean | 'relative' | undefined) ?? true,
 		onwarn,
 		perf: (config.perf as boolean | undefined) || false,
 		plugins: ensureArray(config.plugins) as Plugin[],

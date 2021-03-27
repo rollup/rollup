@@ -228,7 +228,7 @@ export interface ResolvedIdMap {
 }
 
 interface PartialResolvedId extends Partial<PartialNull<ModuleOptions>> {
-	external?: boolean | 'absolute' | 'normalize';
+	external?: boolean | 'absolute' | 'relative';
 	id: string;
 }
 
@@ -528,10 +528,10 @@ export interface InputOptions {
 	/** @deprecated Use the "inlineDynamicImports" output option instead. */
 	inlineDynamicImports?: boolean;
 	input?: InputOption;
+	makeAbsoluteExternalsRelative?: boolean | 'ifRelativeSource';
 	/** @deprecated Use the "manualChunks" output option instead. */
 	manualChunks?: ManualChunksOption;
 	moduleContext?: ((id: string) => string | null | undefined) | { [id: string]: string };
-	normalizeExternalPaths?: boolean | 'relative';
 	onwarn?: WarningHandlerWithDefault;
 	perf?: boolean;
 	plugins?: Plugin[];
@@ -555,10 +555,10 @@ export interface NormalizedInputOptions {
 	/** @deprecated Use the "inlineDynamicImports" output option instead. */
 	inlineDynamicImports: boolean | undefined;
 	input: string[] | { [entryAlias: string]: string };
+	makeAbsoluteExternalsRelative: boolean | 'ifRelativeSource';
 	/** @deprecated Use the "manualChunks" output option instead. */
 	manualChunks: ManualChunksOption | undefined;
 	moduleContext: (id: string) => string;
-	normalizeExternalPaths: boolean | 'relative';
 	onwarn: WarningHandler;
 	perf: boolean;
 	plugins: Plugin[];

@@ -391,24 +391,12 @@ export class ModuleLoader {
 		}
 	}
 
-	/* For plugins when resolveIdResult.id is absolute (otherwise external is true)
-	   external    | normalizeExternalPaths | result
-	   true        | true                   | true
-	   true        | 'relative'             | 'absolute'
-	   true        | false                  | 'absolute'
-	   'normalize' | true                   | true
-	   'normalize' | 'relative'             | true
-	   'normalize' | false                  | true
-	   'absolute'  | true                   | 'absolute'
-	   'absolute'  | 'relative'             | 'absolute'
-	   'absolute'  | false                  | 'absolute'
-	*/
 	private getNormalizedResolvedIdWithoutDefaults(
 		resolveIdResult: ResolveIdResult,
 		importer: string | undefined,
 		source: string
 	): NormalizedResolveIdWithoutDefaults | null {
-		const { normalizeExternalPaths } = this.options;
+		const { makeAbsoluteExternalsRelative } = this.options;
 		if (resolveIdResult) {
 			if (typeof resolveIdResult === 'object') {
 				const external =
@@ -417,10 +405,10 @@ export class ModuleLoader {
 					...resolveIdResult,
 					external:
 						external &&
-						(external === 'normalize' ||
+						(external === 'relative' ||
 							!isAbsolute(resolveIdResult.id) ||
 							(external === true &&
-								isNotAbsoluteExternal(resolveIdResult.id, source, normalizeExternalPaths)) ||
+								isNotAbsoluteExternal(resolveIdResult.id, source, makeAbsoluteExternalsRelative)) ||
 							'absolute')
 				};
 			}
@@ -429,20 +417,23 @@ export class ModuleLoader {
 			return {
 				external:
 					external &&
-					(isNotAbsoluteExternal(resolveIdResult, source, normalizeExternalPaths) || 'absolute'),
+					(isNotAbsoluteExternal(resolveIdResult, source, makeAbsoluteExternalsRelative) ||
+						'absolute'),
 				id:
-					external && normalizeExternalPaths
+					external && makeAbsoluteExternalsRelative
 						? normalizeRelativeExternalId(resolveIdResult, importer)
 						: resolveIdResult
 			};
 		}
 
-		const id = normalizeExternalPaths ? normalizeRelativeExternalId(source, importer) : source;
+		const id = makeAbsoluteExternalsRelative
+			? normalizeRelativeExternalId(source, importer)
+			: source;
 		if (resolveIdResult !== false && !this.options.external(id, importer, true)) {
 			return null;
 		}
 		return {
-			external: isNotAbsoluteExternal(id, source, normalizeExternalPaths) || 'absolute',
+			external: isNotAbsoluteExternal(id, source, makeAbsoluteExternalsRelative) || 'absolute',
 			id
 		};
 	}
@@ -584,11 +575,11 @@ function addChunkNamesToModule(
 function isNotAbsoluteExternal(
 	id: string,
 	source: string,
-	normalizeExternalPaths: boolean | 'relative'
+	makeAbsoluteExternalsRelative: boolean | 'ifRelativeSource'
 ) {
 	return (
-		normalizeExternalPaths === true ||
-		(normalizeExternalPaths === 'relative' && isRelative(source)) ||
+		makeAbsoluteExternalsRelative === true ||
+		(makeAbsoluteExternalsRelative === 'ifRelativeSource' && isRelative(source)) ||
 		!isAbsolute(id)
 	);
 }
