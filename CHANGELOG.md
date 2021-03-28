@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.43.1
+*2021-03-28*
+
+### Bug Fixes
+* Prevent infinite recursions in certain scenarios when calling object properties (#4025)
+
+### Pull Requests
+* [#4025](https://github.com/rollup/rollup/pull/4025): Handle recursive this mutation detection (@lukastaegert)
+
 ## 2.43.0
 *2021-03-27*
 
@@ -7,7 +16,7 @@
 * Track side effects of function properties in objects for better tree-shaking (#4011)
 
 ### Pull Requests
-* [#4011](https://github.com/rollup/rollup/pull/4011): isable pessimistic object deoptimization for calls when the called function doesn't ref this (@marijnh)
+* [#4011](https://github.com/rollup/rollup/pull/4011): Disable pessimistic object deoptimization for calls when the called function doesn't ref this (@marijnh)
 * [#4012](https://github.com/rollup/rollup/pull/4012): fix `sourcemap` reference in docs (@tjenkinson)
 * [#4015](https://github.com/rollup/rollup/pull/4015): Use SIGTERM instead of SIGINT to kill test child processes in tests (@marijnh)
 
