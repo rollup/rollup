@@ -96,10 +96,8 @@ export default class Variable implements ExpressionEntity {
 
 	markCalledFromTryStatement() {}
 
-	mayModifyThisWhenCalledAtPath(
-		_path: ObjectPath
-	) {
-		return true
+	mayModifyThisWhenCalledAtPath(_path: ObjectPath, _recursionTracker: PathTracker) {
+		return true;
 	}
 
 	setRenderNames(baseName: string | null, name: string | null) {

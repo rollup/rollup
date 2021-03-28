@@ -256,14 +256,14 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		return false;
 	}
 
-	mayModifyThisWhenCalledAtPath(
-		path: ObjectPath
-	) {
-		if (!path.length || typeof path[0] !== "string") {
+	mayModifyThisWhenCalledAtPath(path: ObjectPath, recursionTracker: PathTracker) {
+		if (!path.length || typeof path[0] !== 'string') {
 			return true;
 		}
 		const property = this.getPropertyMap()[path[0]]?.exactMatchRead;
-		return property ? property.value.mayModifyThisWhenCalledAtPath(path.slice(1)) : true;
+		return property
+			? property.value.mayModifyThisWhenCalledAtPath(path.slice(1), recursionTracker)
+			: true;
 	}
 
 	render(
