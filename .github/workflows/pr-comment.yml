@@ -1,7 +1,7 @@
 name: PR Comment
 
 on:
-  pull_request:
+  pull_request_target:
 
 jobs:
   comment:
@@ -24,10 +24,12 @@ jobs:
 
             You can try out this pull request locally by installing Rollup via
 
-            ```
+            ```bash
             npm install ${{ github.event.pull_request.head.repo.full_name }}#${{ github.event.pull_request.head.ref }}
             ```
 
-            Once a build has completed, you can try out the pull request in the REPL by inserting the CircleCI build number in the link below:
-            `https://rollupjs.org/repl/?circleci==<build_number>`
+            Once a build has completed, you can load it into the REPL by inserting its CircleCI build number in the link below:
+            ```
+            https://rollupjs.org/repl/?circleci=<build_number>
+            ```
 
