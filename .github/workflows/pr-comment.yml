@@ -1,0 +1,35 @@
+name: PR Comment
+
+on:
+  pull_request_target:
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Find Comment
+        uses: peter-evans/find-comment@v1
+        id: fc
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: 'Thank you for your contribution!'
+      - name: Create comment
+        if: steps.fc.outputs.comment-id == ''
+        uses: peter-evans/create-or-update-comment@v1
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ### Thank you for your contribution! ❤️
+
+            You can try out this pull request locally by installing Rollup via
+
+            ```bash
+            npm install ${{ github.event.pull_request.head.repo.full_name }}#${{ github.event.pull_request.head.ref }}
+            ```
+
+            Once a build has completed, you can load it into the REPL by inserting the CircleCI build number of the **ci/circleci: node-v12-latest** build into the link below (unfortunately, we cannot auto-update this comment for PRs from forks at this time):
+            ```
+            https://rollupjs.org/repl/?circleci=<build_number>
+            ```
+
