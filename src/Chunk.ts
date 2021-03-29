@@ -1250,7 +1250,11 @@ export default class Chunk {
 		}
 	}
 
-	private setIdentifierRenderResolutions({ format, interop, namespaceToStringTag }: NormalizedOutputOptions) {
+	private setIdentifierRenderResolutions({
+		format,
+		interop,
+		namespaceToStringTag
+	}: NormalizedOutputOptions) {
 		const syntheticExports = new Set<SyntheticNamedExportVariable>();
 		for (const exportName of this.getExportNames()) {
 			const exportVariable = this.exportsByName[exportName];

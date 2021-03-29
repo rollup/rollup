@@ -19,6 +19,7 @@ module.exports = {
 					context: 'undefined',
 					experimentalCacheExpiry: 10,
 					input: ['used'],
+					makeAbsoluteExternalsRelative: true,
 					perf: false,
 					plugins: [
 						{

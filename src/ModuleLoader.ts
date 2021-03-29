@@ -6,8 +6,9 @@ import {
 	CustomPluginOptions,
 	EmittedChunk,
 	HasModuleSideEffects,
+	ModuleOptions,
 	NormalizedInputOptions,
-	PartialResolvedId,
+	PartialNull,
 	Plugin,
 	ResolvedId,
 	ResolveIdResult,
@@ -27,7 +28,7 @@ import {
 	errUnresolvedImportTreatedAsExternal
 } from './utils/error';
 import { readFile } from './utils/fs';
-import { isRelative, resolve } from './utils/path';
+import { isAbsolute, isRelative, resolve } from './utils/path';
 import { PluginDriver } from './utils/PluginDriver';
 import relativeId from './utils/relativeId';
 import { resolveId } from './utils/resolveId';
@@ -40,6 +41,11 @@ export interface UnresolvedModule {
 	importer: string | undefined;
 	name: string | null;
 }
+
+type NormalizedResolveIdWithoutDefaults = Partial<PartialNull<ModuleOptions>> & {
+	external?: boolean | 'absolute';
+	id: string;
+};
 
 export class ModuleLoader {
 	private readonly hasModuleSideEffects: HasModuleSideEffects;
@@ -160,9 +166,11 @@ export class ModuleLoader {
 				source
 			)
 		);
-	}
+	};
 
-	private addDefaultsToResolvedId(resolvedId: PartialResolvedId | null): ResolvedId | null {
+	private addDefaultsToResolvedId(
+		resolvedId: NormalizedResolveIdWithoutDefaults | null
+	): ResolvedId | null {
 		if (!resolvedId) {
 			return null;
 		}
@@ -172,7 +180,7 @@ export class ModuleLoader {
 			id: resolvedId.id,
 			meta: resolvedId.meta || EMPTY_OBJECT,
 			moduleSideEffects:
-				resolvedId.moduleSideEffects ?? this.hasModuleSideEffects(resolvedId.id, external),
+				resolvedId.moduleSideEffects ?? this.hasModuleSideEffects(resolvedId.id, !!external),
 			syntheticNamedExports: resolvedId.syntheticNamedExports ?? false
 		};
 	}
@@ -338,19 +346,21 @@ export class ModuleLoader {
 		resolvedId: ResolvedId
 	): Promise<Module | ExternalModule> {
 		if (resolvedId.external) {
-			if (!this.modulesById.has(resolvedId.id)) {
+			const { external, id, moduleSideEffects, meta } = resolvedId;
+			if (!this.modulesById.has(id)) {
 				this.modulesById.set(
-					resolvedId.id,
+					id,
 					new ExternalModule(
 						this.options,
-						resolvedId.id,
-						resolvedId.moduleSideEffects,
-						resolvedId.meta
+						id,
+						moduleSideEffects,
+						meta,
+						external !== 'absolute' && isAbsolute(id)
 					)
 				);
 			}
 
-			const externalModule = this.modulesById.get(resolvedId.id);
+			const externalModule = this.modulesById.get(id);
 			if (!(externalModule instanceof ExternalModule)) {
 				return error(errInternalIdCannotBeExternal(source, importer));
 			}
@@ -385,27 +395,45 @@ export class ModuleLoader {
 		resolveIdResult: ResolveIdResult,
 		importer: string | undefined,
 		source: string
-	): (PartialResolvedId & { external: boolean }) | null {
+	): NormalizedResolveIdWithoutDefaults | null {
+		const { makeAbsoluteExternalsRelative } = this.options;
 		if (resolveIdResult) {
 			if (typeof resolveIdResult === 'object') {
+				const external =
+					resolveIdResult.external || this.options.external(resolveIdResult.id, importer, true);
 				return {
 					...resolveIdResult,
 					external:
-						resolveIdResult.external || this.options.external(resolveIdResult.id, importer, true)
+						external &&
+						(external === 'relative' ||
+							!isAbsolute(resolveIdResult.id) ||
+							(external === true &&
+								isNotAbsoluteExternal(resolveIdResult.id, source, makeAbsoluteExternalsRelative)) ||
+							'absolute')
 				};
 			}
+
 			const external = this.options.external(resolveIdResult, importer, true);
 			return {
-				external,
-				id: external ? normalizeRelativeExternalId(resolveIdResult, importer) : resolveIdResult
+				external:
+					external &&
+					(isNotAbsoluteExternal(resolveIdResult, source, makeAbsoluteExternalsRelative) ||
+						'absolute'),
+				id:
+					external && makeAbsoluteExternalsRelative
+						? normalizeRelativeExternalId(resolveIdResult, importer)
+						: resolveIdResult
 			};
 		}
-		const id = normalizeRelativeExternalId(source, importer);
+
+		const id = makeAbsoluteExternalsRelative
+			? normalizeRelativeExternalId(source, importer)
+			: source;
 		if (resolveIdResult !== false && !this.options.external(id, importer, true)) {
 			return null;
 		}
 		return {
-			external: true,
+			external: isNotAbsoluteExternal(id, source, makeAbsoluteExternalsRelative) || 'absolute',
 			id
 		};
 	}
@@ -469,7 +497,9 @@ export class ModuleLoader {
 		}
 		return this.fetchModule(
 			this.addDefaultsToResolvedId(
-				typeof resolveIdResult === 'object' ? resolveIdResult : { id: resolveIdResult }
+				typeof resolveIdResult === 'object'
+					? (resolveIdResult as NormalizedResolveIdWithoutDefaults)
+					: { id: resolveIdResult }
 			)!,
 			undefined,
 			isEntry
@@ -540,4 +570,16 @@ function addChunkNamesToModule(
 			module.userChunkNames.add(name);
 		}
 	}
+}
+
+function isNotAbsoluteExternal(
+	id: string,
+	source: string,
+	makeAbsoluteExternalsRelative: boolean | 'ifRelativeSource'
+) {
+	return (
+		makeAbsoluteExternalsRelative === true ||
+		(makeAbsoluteExternalsRelative === 'ifRelativeSource' && isRelative(source)) ||
+		!isAbsolute(id)
+	);
 }

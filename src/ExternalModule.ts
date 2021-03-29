@@ -7,7 +7,7 @@ import {
 } from './rollup/types';
 import { EMPTY_ARRAY } from './utils/blank';
 import { makeLegal } from './utils/identifierHelpers';
-import { isAbsolute, normalize, relative } from './utils/path';
+import { normalize, relative } from './utils/path';
 
 export default class ExternalModule {
 	chunk: void;
@@ -23,7 +23,6 @@ export default class ExternalModule {
 	nameSuggestions: { [name: string]: number };
 	reexported = false;
 	renderPath: string = undefined as any;
-	renormalizeRenderPath = false;
 	suggestedVariableName: string;
 	used = false;
 	variableName = '';
@@ -32,7 +31,8 @@ export default class ExternalModule {
 		private readonly options: NormalizedInputOptions,
 		public readonly id: string,
 		hasModuleSideEffects: boolean | 'no-treeshake',
-		meta: CustomPluginOptions
+		meta: CustomPluginOptions,
+		public renormalizeRenderPath: boolean
 	) {
 		this.execIndex = Infinity;
 		this.suggestedVariableName = makeLegal(id.split(/[\\/]/).pop()!);
@@ -76,12 +76,9 @@ export default class ExternalModule {
 		this.renderPath =
 			typeof options.paths === 'function' ? options.paths(this.id) : options.paths[this.id];
 		if (!this.renderPath) {
-			if (!isAbsolute(this.id)) {
-				this.renderPath = this.id;
-			} else {
-				this.renderPath = normalize(relative(inputBase, this.id));
-				this.renormalizeRenderPath = true;
-			}
+			this.renderPath = this.renormalizeRenderPath
+				? normalize(relative(inputBase, this.id))
+				: this.id;
 		}
 		return this.renderPath;
 	}
