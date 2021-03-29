@@ -307,7 +307,7 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 			}
 			const isWrite = property.kind !== 'get';
 			const isRead = property.kind !== 'set';
-			let key;
+			let key: string;
 			let unmatchable = false;
 			if (property.computed) {
 				const keyValue = property.key.getLiteralValueAtPath(
@@ -322,13 +322,13 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 			} else {
 				key = String((property.key as Literal).value);
 			}
-            if (key === '__proto__' && !property.computed || unmatchable) {
-					if (isRead) {
-						this.unmatchablePropertiesRead.push(property);
-					} else {
-						this.unmatchablePropertiesWrite.push(property);
-					}
-					continue;
+			if (unmatchable || (key === '__proto__' && !property.computed)) {
+				if (isRead) {
+					this.unmatchablePropertiesRead.push(property);
+				} else {
+					this.unmatchablePropertiesWrite.push(property);
+				}
+				continue;
 			}
 			const propertyMapProperty = propertyMap[key];
 			if (!propertyMapProperty) {
