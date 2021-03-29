@@ -5,6 +5,8 @@ on:
     branches:
       - master
   pull_request:
+    types:
+      - synchronize
 
 jobs:
   windows:
@@ -28,8 +30,6 @@ jobs:
         run: npm ci --ignore-scripts
       - name: Run tests
         run: npm test
-        env:
-          CI: true
 
   linux-10:
     runs-on: ubuntu-latest
@@ -46,8 +46,6 @@ jobs:
         run: npm ci --ignore-scripts
       - name: Run tests
         run: npm run ci:test
-        env:
-          CI: true
 
   linux-12:
     runs-on: ubuntu-latest
@@ -56,6 +54,8 @@ jobs:
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v1
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
       - name: Setup Node
         uses: actions/setup-node@v1
         with:
@@ -64,8 +64,11 @@ jobs:
         run: npm ci --ignore-scripts
       - name: Run tests
         run: npm run ci:test:only
-        env:
-          CI: true
+      - name: Archive browser build
+        uses: actions/upload-artifact@v2
+        with:
+          name: browser-build
+          path: dist/rollup.browser.js
 
   linux-14-coverage:
     runs-on: ubuntu-latest
@@ -82,5 +85,3 @@ jobs:
         run: npm ci --ignore-scripts
       - name: Run tests
         run: npm run ci:coverage
-        env:
-          CI: true

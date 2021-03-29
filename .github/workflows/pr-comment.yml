@@ -22,13 +22,12 @@ jobs:
           body: |
             ### Thank you for your contribution! ❤️
 
-            repository: ${{ github.event.repository }}
-            action: ${{ github.event.action }}
-            number: ${{ github.event.pull_request.number }}
-            repository: ${{ github.event.pull_request.repository }}
             You can try out this pull request locally by installing Rollup via
 
             ```
             npm install ${{ github.event.pull_request.head.repo.full_name }}#${{ github.event.pull_request.head.ref }}
             ```
+
+            Once a build has completed, you can try out the pull request in the REPL:
+            https://rollupjs.org/repl/?pr=${{ github.event.pull_request.number }}
 
