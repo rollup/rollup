@@ -622,7 +622,7 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 							renderedLength: 72
 						},
 						input: {
-							code: undefined,
+							code: null,
 							originalLength: 84,
 							removedExports: [],
 							renderedExports: [],
@@ -676,7 +676,7 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 							renderedLength: 72
 						},
 						input: {
-							code: undefined,
+							code: null,
 							originalLength: 63,
 							removedExports: [],
 							renderedExports: [],

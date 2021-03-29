@@ -727,7 +727,7 @@ export interface RenderedModule {
 	removedExports: string[];
 	renderedExports: string[];
 	renderedLength: number;
-	code?: string;
+	code: string | null;
 }
 
 export interface PreRenderedChunk {

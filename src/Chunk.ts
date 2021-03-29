@@ -618,7 +618,7 @@ export default class Chunk {
 				renderedExports,
 				renderedLength,
 				get code() {
-					return chunk.renderedModuleSources.get(module)?.toString();
+					return chunk.renderedModuleSources.get(module)?.toString() ?? null;
 				}
 			};
 		}
