@@ -22,6 +22,8 @@ jobs:
         run: git config --global core.autocrlf false
       - name: Checkout Commit
         uses: actions/checkout@v1
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
       - name: Setup Node
         uses: actions/setup-node@v1
         with:
@@ -38,6 +40,8 @@ jobs:
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v1
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
       - name: Setup Node
         uses: actions/setup-node@v1
         with:
@@ -67,7 +71,7 @@ jobs:
       - name: Archive browser build
         uses: actions/upload-artifact@v2
         with:
-          name: browser-build
+          name: ${{ github.event.pull_request.number }}-browser-build
           path: dist/rollup.browser.js
 
   linux-14-coverage:
@@ -77,6 +81,8 @@ jobs:
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v1
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
       - name: Setup Node
         uses: actions/setup-node@v1
         with:
