@@ -31,34 +31,61 @@ function assembleMemberDescriptions(
 export const UnknownValue = Symbol('Unknown Value');
 export type LiteralValueOrUnknown = LiteralValue | typeof UnknownValue;
 
-export const UNKNOWN_EXPRESSION: ExpressionEntity = {
-	deoptimizePath: () => {},
-	getLiteralValueAtPath: () => UnknownValue,
-	getReturnExpressionWhenCalledAtPath: () => UNKNOWN_EXPRESSION,
-	hasEffectsWhenAccessedAtPath: path => path.length > 0,
-	hasEffectsWhenAssignedAtPath: path => path.length > 0,
-	hasEffectsWhenCalledAtPath: () => true,
-	include: () => {},
+abstract class ValueBase implements ExpressionEntity {
+	included = true;
+
+	deoptimizePath() {}
+
+	getLiteralValueAtPath(): LiteralValueOrUnknown {
+		return UnknownValue;
+	}
+
+	getReturnExpressionWhenCalledAtPath(_path: ObjectPath) {
+		return UNKNOWN_EXPRESSION;
+	}
+
+	hasEffectsWhenAccessedAtPath(
+		path: ObjectPath,
+		_context: HasEffectsContext
+	) {
+		return path.length > 0
+	}
+
+	hasEffectsWhenAssignedAtPath(path: ObjectPath) {
+		return path.length > 0
+	}
+
+	hasEffectsWhenCalledAtPath(
+		_path: ObjectPath,
+		_callOptions: CallOptions,
+		_context: HasEffectsContext
+	) {
+		return true;
+	}
+
+	include() {}
+
+	includeCallArguments(_context: InclusionContext, _args: (ExpressionNode | SpreadElement)[]) {}
+
+	mayModifyThisWhenCalledAtPath() { return true; }
+}
+
+function includeAll(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]) {
+	for (const arg of args) {
+		arg.include(context, false);
+	}
+}
+
+export const UNKNOWN_EXPRESSION: ExpressionEntity = new class extends ValueBase {
 	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
-		for (const arg of args) {
-			arg.include(context, false);
-		}
-	},
-	included: true,
-	toString: () => '[[UNKNOWN]]'
+		includeAll(context, args);
+	}
 };
 
-export const UNDEFINED_EXPRESSION: ExpressionEntity = {
-	deoptimizePath: () => {},
-	getLiteralValueAtPath: () => undefined,
-	getReturnExpressionWhenCalledAtPath: () => UNKNOWN_EXPRESSION,
-	hasEffectsWhenAccessedAtPath: path => path.length > 0,
-	hasEffectsWhenAssignedAtPath: path => path.length > 0,
-	hasEffectsWhenCalledAtPath: () => true,
-	include: () => {},
-	includeCallArguments(): void {},
-	included: true,
-	toString: () => 'undefined'
+export const UNDEFINED_EXPRESSION: ExpressionEntity = new class extends ValueBase {
+	getLiteralValueAtPath() {
+		return undefined;
+	}
 };
 
 const returnsUnknown: RawMemberDescription = {
@@ -76,14 +103,8 @@ const callsArgReturnsUnknown: RawMemberDescription = {
 	value: { returns: null, returnsPrimitive: UNKNOWN_EXPRESSION, callsArgs: [0], mutatesSelf: false }
 };
 
-export class UnknownArrayExpression implements ExpressionEntity {
+export class UnknownArrayExpression extends ValueBase {
 	included = false;
-
-	deoptimizePath() {}
-
-	getLiteralValueAtPath(): LiteralValueOrUnknown {
-		return UnknownValue;
-	}
 
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
 		if (path.length === 1) {
@@ -116,13 +137,7 @@ export class UnknownArrayExpression implements ExpressionEntity {
 	}
 
 	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
-		for (const arg of args) {
-			arg.include(context, false);
-		}
-	}
-
-	toString() {
-		return '[[UNKNOWN ARRAY]]';
+		includeAll(context, args);
 	}
 }
 
@@ -159,32 +174,26 @@ const callsArgMutatesSelfReturnsArray: RawMemberDescription = {
 	}
 };
 
-const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = {
-	deoptimizePath: () => {},
-	getLiteralValueAtPath: () => UnknownValue,
-	getReturnExpressionWhenCalledAtPath: path => {
+const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = new class extends ValueBase {
+	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
 		if (path.length === 1) {
 			return getMemberReturnExpressionWhenCalled(literalBooleanMembers, path[0]);
 		}
 		return UNKNOWN_EXPRESSION;
-	},
-	hasEffectsWhenAccessedAtPath: path => path.length > 1,
-	hasEffectsWhenAssignedAtPath: path => path.length > 0,
-	hasEffectsWhenCalledAtPath: path => {
+	}
+	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
+		return path.length > 1
+	}
+	hasEffectsWhenCalledAtPath(path: ObjectPath) {
 		if (path.length === 1) {
 			const subPath = path[0];
 			return typeof subPath !== 'string' || !literalBooleanMembers[subPath];
 		}
 		return true;
-	},
-	include: () => {},
+	}
 	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
-		for (const arg of args) {
-			arg.include(context, false);
-		}
-	},
-	included: true,
-	toString: () => '[[UNKNOWN BOOLEAN]]'
+		includeAll(context, args);
+	}
 };
 
 const returnsBoolean: RawMemberDescription = {
@@ -204,32 +213,24 @@ const callsArgReturnsBoolean: RawMemberDescription = {
 	}
 };
 
-const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = {
-	deoptimizePath: () => {},
-	getLiteralValueAtPath: () => UnknownValue,
-	getReturnExpressionWhenCalledAtPath: path => {
+const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = new class extends ValueBase {
+	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
 		if (path.length === 1) {
 			return getMemberReturnExpressionWhenCalled(literalNumberMembers, path[0]);
 		}
 		return UNKNOWN_EXPRESSION;
-	},
-	hasEffectsWhenAccessedAtPath: path => path.length > 1,
-	hasEffectsWhenAssignedAtPath: path => path.length > 0,
-	hasEffectsWhenCalledAtPath: path => {
+	}
+	hasEffectsWhenAccessedAtPath(path: ObjectPath) { return path.length > 1; }
+	hasEffectsWhenCalledAtPath(path: ObjectPath) {
 		if (path.length === 1) {
 			const subPath = path[0];
 			return typeof subPath !== 'string' || !literalNumberMembers[subPath];
 		}
 		return true;
-	},
-	include: () => {},
+	}
 	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
-		for (const arg of args) {
-			arg.include(context, false);
-		}
-	},
-	included: true,
-	toString: () => '[[UNKNOWN NUMBER]]'
+		includeAll(context, args);
+	}
 };
 
 const returnsNumber: RawMemberDescription = {
@@ -257,31 +258,27 @@ const callsArgReturnsNumber: RawMemberDescription = {
 	}
 };
 
-const UNKNOWN_LITERAL_STRING: ExpressionEntity = {
-	deoptimizePath: () => {},
-	getLiteralValueAtPath: () => UnknownValue,
-	getReturnExpressionWhenCalledAtPath: path => {
+const UNKNOWN_LITERAL_STRING: ExpressionEntity = new class extends ValueBase {
+	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
 		if (path.length === 1) {
 			return getMemberReturnExpressionWhenCalled(literalStringMembers, path[0]);
 		}
 		return UNKNOWN_EXPRESSION;
-	},
-	hasEffectsWhenAccessedAtPath: path => path.length > 1,
-	hasEffectsWhenAssignedAtPath: path => path.length > 0,
-	hasEffectsWhenCalledAtPath: (path, callOptions, context) => {
+	}
+	hasEffectsWhenAccessedAtPath(path: ObjectPath) { return path.length > 1 }
+	hasEffectsWhenCalledAtPath(
+		path: ObjectPath,
+		callOptions: CallOptions,
+		context: HasEffectsContext
+	) {
 		if (path.length === 1) {
 			return hasMemberEffectWhenCalled(literalStringMembers, path[0], true, callOptions, context);
 		}
 		return true;
-	},
-	include: () => {},
+	}
 	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
-		for (const arg of args) {
-			arg.include(context, false);
-		}
-	},
-	included: true,
-	toString: () => '[[UNKNOWN STRING]]'
+		includeAll(context, args);
+	}
 };
 
 const returnsString: RawMemberDescription = {
@@ -293,14 +290,8 @@ const returnsString: RawMemberDescription = {
 	}
 };
 
-export class UnknownObjectExpression implements ExpressionEntity {
+export class UnknownObjectExpression extends ValueBase {
 	included = false;
-
-	deoptimizePath() {}
-
-	getLiteralValueAtPath(): LiteralValueOrUnknown {
-		return UnknownValue;
-	}
 
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
 		if (path.length === 1) {
@@ -333,13 +324,7 @@ export class UnknownObjectExpression implements ExpressionEntity {
 	}
 
 	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
-		for (const arg of args) {
-			arg.include(context, false);
-		}
-	}
-
-	toString() {
-		return '[[UNKNOWN OBJECT]]';
+		includeAll(context, args);
 	}
 }
 

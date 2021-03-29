@@ -1,10 +1,3 @@
-const x = {
-	[globalThis.unknown]: () => () => console.log('effect'),
-	a: () => () => {}
-};
-
-x.a()();
-
 const y = {
 	a: () => () => {},
 	[globalThis.unknown]: () => () => console.log('effect')

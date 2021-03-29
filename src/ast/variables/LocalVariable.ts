@@ -188,4 +188,18 @@ export default class LocalVariable extends Variable {
 	markCalledFromTryStatement() {
 		this.calledFromTryStatement = true;
 	}
+
+	mayModifyThisWhenCalledAtPath(path: ObjectPath, recursionTracker: PathTracker) {
+		if (this.isReassigned || !this.init || path.length > MAX_PATH_DEPTH) {
+			return true;
+		}
+		const trackedEntities = recursionTracker.getEntities(path);
+		if (trackedEntities.has(this.init)) {
+			return true;
+		}
+		trackedEntities.add(this.init);
+		const result = this.init.mayModifyThisWhenCalledAtPath(path, recursionTracker);
+		trackedEntities.delete(this.init);
+		return result;
+	}
 }

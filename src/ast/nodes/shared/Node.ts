@@ -26,7 +26,10 @@ export interface GenericEsTreeNode extends acorn.Node {
 
 export const INCLUDE_PARAMETERS: 'variables' = 'variables';
 export type IncludeChildren = boolean | typeof INCLUDE_PARAMETERS;
-export interface Annotation {comment?: acorn.Comment, pure?: boolean}
+export interface Annotation {
+	comment?: acorn.Comment;
+	pure?: boolean;
+}
 
 export interface Node extends Entity {
 	annotations?: Annotation[];
@@ -227,6 +230,10 @@ export class NodeBase implements ExpressionNode {
 		if (code.original[this.end - 1] !== ';') {
 			code.appendLeft(this.end, ';');
 		}
+	}
+
+	mayModifyThisWhenCalledAtPath(_path: ObjectPath, _recursionTracker: PathTracker) {
+		return true;
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode) {

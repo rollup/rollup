@@ -233,6 +233,16 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		this.propertyKey = getResolvablePropertyKey(this);
 	}
 
+	mayModifyThisWhenCalledAtPath(path: ObjectPath, recursionTracker: PathTracker) {
+		if (this.variable) {
+			return this.variable.mayModifyThisWhenCalledAtPath(path, recursionTracker);
+		}
+		return this.object.mayModifyThisWhenCalledAtPath(
+			[this.propertyKey as ObjectPathKey].concat(path),
+			recursionTracker
+		);
+	}
+
 	render(
 		code: MagicString,
 		options: RenderOptions,
