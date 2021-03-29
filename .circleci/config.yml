@@ -1,1 +1,7 @@
 version: 2
+
+jobs:
+  noop:
+
+workflows:
+  version: 2

@@ -22,13 +22,13 @@ jobs:
           body: |
             ### Thank you for your contribution! ❤️
 
-            repository: ${{ github.event.pull_request.repository }}
-            action: ${{ github.event.pull_request.action }}
+            repository: ${{ github.event.repository }}
+            action: ${{ github.event.action }}
             number: ${{ github.event.pull_request.number }}
-            repository: ${{ github.event.pull_request.pull_request.repository }}
+            repository: ${{ github.event.pull_request.repository }}
             You can try out this pull request locally by installing Rollup via
 
-            \`\`\`
-            npm install ${{ github.event.pull_request.pull_request.head.repo.full_name }}#${{ github.event.pull_request.pull_request.head.ref }}
-            \`\`\`
+            ```
+            npm install ${{ github.event.pull_request.head.repo.full_name }}#${{ github.event.pull_request.head.ref }}
+            ```
 
