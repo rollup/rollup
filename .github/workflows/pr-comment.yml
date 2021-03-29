@@ -21,11 +21,14 @@ jobs:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
             ### Thank you for your contribution! ❤️
-      - name: Update comment
-        if: steps.fc.outputs.comment-id != ''
-        uses: peter-evans/create-or-update-comment@v1
-        with:
-          comment-id: ${{ steps.fc.outputs.comment-id }}
-          edit-mode: replace
-          body: |
-            ### Thank you for your contribution! ❤️ (updated)
+
+            repository: ${{ github.event.pull_request.repository }}
+            action: ${{ github.event.pull_request.action }}
+            number: ${{ github.event.pull_request.number }}
+            repository: ${{ github.event.pull_request.pull_request.repository }}
+            You can try out this pull request locally by installing Rollup via
+
+            \`\`\`
+            npm install ${{ github.event.pull_request.pull_request.head.repo.full_name }}#${{ github.event.pull_request.pull_request.head.ref }}
+            \`\`\`
+
