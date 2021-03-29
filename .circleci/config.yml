@@ -32,7 +32,6 @@ jobs:
           name: Post REPL comment
           command: ./scripts/post-comment.js
 
-
 workflows:
   version: 2
   validate-test:
