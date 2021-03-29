@@ -339,7 +339,8 @@ Called at the end of `bundle.generate()` or immediately before the files are wri
       renderedExports: string[],
       removedExports: string[],
       renderedLength: number,
-      originalLength: number
+      originalLength: number,
+      code: string | null
     },
   },
   name: string,
