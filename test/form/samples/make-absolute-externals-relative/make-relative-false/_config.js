@@ -8,7 +8,14 @@ module.exports = {
 	options: {
 		makeAbsoluteExternalsRelative: false,
 		external(id) {
-			if (['./relativeUnresolved.js', '../relativeUnresolved.js', '/absolute.js'].includes(id))
+			if (
+				[
+					'./relativeUnresolved.js',
+					'../relativeUnresolved.js',
+					'/absolute.js',
+					'/pluginAbsolute.js'
+				].includes(id)
+			)
 				return true;
 		},
 		plugins: {
@@ -19,17 +26,19 @@ module.exports = {
 				await testExternal('./relativeUnresolved.js', true);
 				await testExternal('/absolute.js', 'absolute');
 				await testExternal('./pluginDirect.js', true);
+				await testExternal('/pluginDifferentAbsolute.js', 'absolute');
 				await testExternal('./pluginTrue.js', 'absolute');
-				await testExternal('./pluginAbsolute.js', 'absolute');
-				await testExternal('./pluginNormalize.js', true);
+				await testExternal('./pluginForceAbsolute.js', 'absolute');
+				await testExternal('./pluginForceRelative.js', true);
 			},
 			resolveId(source) {
 				if (source.endsWith('/pluginDirect.js')) return false;
+				if (source.endsWith('/pluginDifferentAbsolute.js')) return '/pluginAbsolute.js';
 				if (source.endsWith('/pluginTrue.js')) return { id: '/pluginTrue.js', external: true };
-				if (source.endsWith('/pluginAbsolute.js'))
-					return { id: '/pluginAbsolute.js', external: 'absolute' };
-				if (source.endsWith('/pluginNormalize.js'))
-					return { id: path.join(__dirname, 'pluginNormalize.js'), external: 'relative' };
+				if (source.endsWith('/pluginForceAbsolute.js'))
+					return { id: '/pluginForceAbsolute.js', external: 'absolute' };
+				if (source.endsWith('/pluginForceRelative.js'))
+					return { id: path.join(__dirname, 'pluginForceRelative.js'), external: 'relative' };
 			}
 		}
 	}

@@ -1,9 +1,10 @@
 import { relativeUnresolved as relativeUnresolved$1 } from './relativeUnresolved.js';
 import { absolute } from '/absolute.js';
 import { pluginDirect as pluginDirect$1 } from './pluginDirect.js';
+import { pluginDifferentAbsolute } from '/pluginAbsolute.js';
 import { pluginTrue } from '/pluginTrue.js';
-import { pluginAbsolute } from '/pluginAbsolute.js';
-import { pluginNormalize } from './pluginNormalize.js';
+import { pluginForceAbsolute } from '/pluginForceAbsolute.js';
+import { pluginForceRelative } from './pluginForceRelative.js';
 import { relativeUnresolved } from '../relativeUnresolved.js';
 import { pluginDirect } from '../pluginDirect.js';
 
@@ -14,9 +15,10 @@ console.log(
 	relativeExisting,
 	absolute,
 	pluginDirect,
+	pluginDifferentAbsolute,
 	pluginTrue,
-	pluginAbsolute,
-	pluginNormalize
+	pluginForceAbsolute,
+	pluginForceRelative
 );
 
 console.log(
@@ -26,7 +28,8 @@ console.log(
 	relativeExisting,
 	absolute,
 	pluginDirect$1,
+	pluginDifferentAbsolute,
 	pluginTrue,
-	pluginAbsolute,
-	pluginNormalize
+	pluginForceAbsolute,
+	pluginForceRelative
 );
