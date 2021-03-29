@@ -28,7 +28,7 @@ jobs:
             npm install ${{ github.event.pull_request.head.repo.full_name }}#${{ github.event.pull_request.head.ref }}
             ```
 
-            Once a build has completed, you can load it into the REPL by inserting its CircleCI build number in the link below:
+            Once a build has completed, you can load it into the REPL by inserting the CircleCI build number of the **ci/circleci: node-v12-latest** build into the link below (unfortunately, we cannot auto-update this comment for PRs from forks at this time):
             ```
             https://rollupjs.org/repl/?circleci=<build_number>
             ```

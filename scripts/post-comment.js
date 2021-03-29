@@ -27,10 +27,11 @@ async function postComment() {
 	const installPath = await getInstallPath();
 	const path = existingId ? `issues/comments/${existingId}` : `issues/${prNumber}/comments`;
 	const method = existingId ? 'PATCH' : 'POST';
-	await fetch(getApiUrl(path), {
-		method,
-		body: JSON.stringify({
-			body: `${headline}
+	try {
+		const response = await fetch(getApiUrl(path), {
+			method,
+			body: JSON.stringify({
+				body: `${headline}
 
 You can try out this pull request locally by installing Rollup via
 
@@ -41,8 +42,13 @@ npm install ${installPath}
 or load it into the REPL:
 https://rollupjs.org/repl/?circleci=${process.env.CIRCLE_BUILD_NUM}
 `
-		})
-	});
+			})
+		});
+		console.log('response', response);
+		console.log('result', await response.text());
+	} catch (e) {
+		console.log('error', e);
+	}
 }
 
 async function findExistingComment() {
