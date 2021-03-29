@@ -611,11 +611,15 @@ export default class Chunk {
 				}
 			}
 			const { renderedExports, removedExports } = module.getRenderedExports();
+			const chunk = this;
 			renderedModules[module.id] = {
 				originalLength: module.originalCode.length,
 				removedExports,
 				renderedExports,
-				renderedLength
+				renderedLength,
+				get code() {
+					return chunk.renderedModuleSources.get(module)?.toString() ?? null;
+				}
 			};
 		}
 
