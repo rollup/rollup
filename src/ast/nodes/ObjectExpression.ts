@@ -28,6 +28,41 @@ import { ExpressionEntity } from './shared/Expression';
 import { NodeBase } from './shared/Node';
 import SpreadElement from './SpreadElement';
 
+/**
+ * This is a map of all properties of an object to allow quick lookups of relevant properties. These
+ * are the meanings of the properties:
+ * - exactMatchRead: If we know that there is at least one property with a given key, then this will
+ *     contain the last property of that name in the object definition. "Read" means for reading
+ *     access, i.e. this is the last regular property or getter for that name. Setters are ignored.
+ *     Only if an "exactMatchRead" exists do we have a chance to e.g. get a literal value for that
+ *     property. However, there is also a second property that is important here:
+ * - propertiesRead: This is an array that contains the "exactMatchRead", but also all computed
+ *     properties that cannot be resolved and are define after the exactMatchRead in the object.
+ *     Note that this value only has meaning if an "exactMatchRead" exists as otherwise there
+ *     was no known readable property of that given name but only a setter.
+ *     If it does not exist, then the instance property "unmatchablePropertiesRead" will contain all
+ *     unresolved properties that might resolve to a given key.
+ *     This property is important for deoptimization: If a property is mutated, all "possible
+ *     matches" need to be deoptimized.
+ * - exactMatchWrite/propertiesWrite: Equivalent to exactMatchRead/propertiesRead except they only
+ *     look at regular properties and setters but ignore getters
+ *
+ * Example:
+ * {
+ *   foo: 'first',
+ *   foo: 'second',
+ *   [unknown]: 'third';
+ *   [otherUnknown]: 'fourth';
+ * }
+ *
+ * In this case you get:
+ * {
+ *   exactMatchRead: <foo: 'second'>,
+ *   propertiesRead: [<foo: 'second'>, <[unknown]: 'third'>, <[otherUnknown]: 'fourth'>]
+ *   exactMatchWrite: <foo: 'second'>,
+ *   propertiesWrite: [<foo: 'second'>, <[unknown]: 'third'>, <[otherUnknown]: 'fourth'>]
+ * }
+ */
 interface PropertyMap {
 	[key: string]: {
 		exactMatchRead: Property | null;
