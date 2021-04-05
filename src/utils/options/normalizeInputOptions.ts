@@ -1,5 +1,6 @@
 import * as acorn from 'acorn';
 import injectClassFields from 'acorn-class-fields';
+import injectPrivateMethods from 'acorn-private-methods';
 import injectStaticClassFeatures from 'acorn-static-class-features';
 import {
 	ExternalOption,
@@ -102,6 +103,7 @@ const getAcorn = (config: GenericConfigObject): acorn.Options => ({
 
 const getAcornInjectPlugins = (config: GenericConfigObject): Function[] => [
 	injectClassFields,
+	injectPrivateMethods,
 	injectStaticClassFeatures,
 	...(ensureArray(config.acornInjectPlugins) as any)
 ];

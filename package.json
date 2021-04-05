@@ -74,6 +74,7 @@
     "acorn": "^8.0.5",
     "acorn-class-fields": "^1.0.0",
     "acorn-jsx": "^5.3.1",
+    "acorn-private-methods": "^1.0.0",
     "acorn-static-class-features": "^1.0.0",
     "acorn-walk": "^8.0.2",
     "buble": "^0.20.0",
