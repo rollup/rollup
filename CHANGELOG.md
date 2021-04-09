@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.45.0
+*2021-04-09*
+
+### Features
+* Support private class instance methods and accessors (#4034)
+
+### Pull Requests
+* [#4034](https://github.com/rollup/rollup/pull/4034): feat: add support for private class methods (@dnalborczyk)
+
 ## 2.44.0
 *2021-03-29*
 
