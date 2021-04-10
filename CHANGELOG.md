@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.45.1
+*2021-04-10*
+
+### Bug Fixes
+* Handle falsy return values from async plugin options hooks (#4039)
+
+### Pull Requests
+* [#4039](https://github.com/rollup/rollup/pull/4039): Do not fail when returning null or undefined from an async options hook (@lukastaegert)
+
 ## 2.45.0
 *2021-04-09*
 
