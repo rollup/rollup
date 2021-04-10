@@ -122,13 +122,14 @@ function applyOptionHook(watchMode: boolean) {
 		inputOptions: Promise<GenericConfigObject>,
 		plugin: Plugin
 	): Promise<GenericConfigObject> => {
-		if (plugin.options)
+		if (plugin.options) {
 			return (
-				(plugin.options.call(
+				((await plugin.options.call(
 					{ meta: { rollupVersion, watchMode } },
 					await inputOptions
-				) as GenericConfigObject) || inputOptions
+				)) as GenericConfigObject) || inputOptions
 			);
+		}
 
 		return inputOptions;
 	};
