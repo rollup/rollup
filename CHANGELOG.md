@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.45.2
+*2021-04-13*
+
+### Bug Fixes
+* Do not user a dynamic entry file name for naming a manual chunk (#4040)
+
+### Pull Requests
+* [#4040](https://github.com/rollup/rollup/pull/4040): Prioritize manual chunk name over dynamic entry id (@lukastaegert)
+
 ## 2.45.1
 *2021-04-10*
 
