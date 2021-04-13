@@ -18,10 +18,8 @@ jobs:
         run: npm ci --ignore-scripts
       - name: Build artefacts
         run: npm run build:cjs && npm run build:bootstrap
-      - name: List
-        run: ls
       - name: Upload file to bucket
-        uses: zdurham/s3-upload-github-action@master
+        uses: zdurham/s3-upload-github-action@1.0.1
         with:
           args: --acl public-read
         env:
