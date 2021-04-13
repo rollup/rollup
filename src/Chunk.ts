@@ -187,6 +187,7 @@ export default class Chunk {
 	private dependencies = new Set<ExternalModule | Chunk>();
 	private dynamicDependencies = new Set<ExternalModule | Chunk>();
 	private dynamicEntryModules: Module[] = [];
+	private dynamicName: string | null = null;
 	private exportNamesByVariable = new Map<Variable, string[]>();
 	private exports = new Set<Variable>();
 	private exportsByName: Record<string, Variable> = Object.create(null);
@@ -384,7 +385,7 @@ export default class Chunk {
 				this.facadeModule = module;
 				this.facadeChunkByModule.set(module, this);
 				this.strictFacade = true;
-				this.assignFacadeName({}, module);
+				this.dynamicName = getChunkNameFromModule(module);
 			} else if (
 				this.facadeModule === module &&
 				!this.strictFacade &&
@@ -815,9 +816,7 @@ export default class Chunk {
 		if (fileName) {
 			this.fileName = fileName;
 		} else {
-			this.name = sanitizeFileName(
-				name || facadedModule.chunkName || getAliasName(facadedModule.id)
-			);
+			this.name = sanitizeFileName(name || getChunkNameFromModule(facadedModule));
 		}
 	}
 
@@ -1079,6 +1078,9 @@ export default class Chunk {
 	private getFallbackChunkName(): string {
 		if (this.manualChunkAlias) {
 			return this.manualChunkAlias;
+		}
+		if (this.dynamicName) {
+			return this.dynamicName;
 		}
 		if (this.fileName) {
 			return getAliasName(this.fileName);
@@ -1369,4 +1371,8 @@ export default class Chunk {
 			}
 		}
 	}
+}
+
+function getChunkNameFromModule(module: Module): string {
+	return module.chunkName || getAliasName(module.id);
 }
