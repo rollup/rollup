@@ -5,7 +5,6 @@ on:
 jobs:
   upload:
     runs-on: ubuntu-latest
-
     name: Upload
     steps:
       - name: Checkout Commit
