@@ -1,12 +1,11 @@
-name: Create REPL build
-
+name: Upload
 on:
   pull_request:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: Upload REPL build (Linux)
+    name: REPL build
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v2
