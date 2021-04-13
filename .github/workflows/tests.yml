@@ -16,6 +16,8 @@ jobs:
           node-version: 14
       - name: Install dependencies
         run: npm ci --ignore-scripts
+      - name: Build artefacts
+        run: npm run build:cjs && npm run build:bootstrap
       - name: List
         run: ls
       - name: Upload file to bucket
@@ -26,6 +28,6 @@ jobs:
           FILE: dist/rollup.browser.js
           AWS_REGION: us-east-1
           S3_BUCKET: rollup-ci-artefacts
-          S3_KEY: /${{ github.event.number }}/rollup.browser.js
+          S3_KEY: ${{ github.event.number }}/rollup.browser.js
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
