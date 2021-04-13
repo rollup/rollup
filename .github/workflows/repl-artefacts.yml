@@ -1,11 +1,11 @@
-name: Upload
+name: Upload REPL artefacts
 on:
   pull_request:
 
 jobs:
-  build:
+  upload:
     runs-on: ubuntu-latest
-    name: REPL build
+    name: Upload
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v2
@@ -18,7 +18,7 @@ jobs:
       - name: Build artefacts
         run: npm run build:cjs && npm run build:bootstrap
       - name: Upload ${{ github.event.number }}/rollup.browser.js to bucket
-        uses: zdurham/s3-upload-github-action@1.0.1
+        uses: zdurham/s3-upload-github-action@master
         with:
           args: --acl public-read
         env:
