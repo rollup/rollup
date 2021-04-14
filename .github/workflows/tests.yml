@@ -13,6 +13,9 @@ jobs:
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v2
+        # Coverage needs to run on the PR head instead of the merge commit
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Setup Node
         uses: actions/setup-node@v2
         with:
