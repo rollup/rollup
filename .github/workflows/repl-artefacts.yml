@@ -1,6 +1,7 @@
 name: Upload REPL artefacts
+
 on:
-  pull_request:
+  pull_request_target:
 
 jobs:
   upload:
@@ -63,4 +64,3 @@ jobs:
 
             or load it into the REPL:
             https://rollupjs.org/repl/?pr=${{ github.event.pull_request.number }}
-
