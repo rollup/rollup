@@ -1,0 +1,93 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  linux14:
+    runs-on: ubuntu-latest
+    name: Node 14 + Coverage (Linux)
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+      - name: Run tests with coverage
+        run: npm run ci:coverage
+        env:
+          CI: true
+
+  linux12:
+    runs-on: ubuntu-latest
+    name: Node 12 + Extra Tests (Linux)
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '12'
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+      - name: Lint
+        run: npm run ci:lint
+      - name: Vulnerabilities
+        run: npm run security
+      - name: Run all tests
+        run: npm run ci:test
+        env:
+          CI: true
+
+  linux10:
+    runs-on: ubuntu-latest
+    name: Node 10 (Linux)
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: '10'
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+      - name: Run tests
+        run: npm run ci:test:only
+        env:
+          CI: true
+
+  windows:
+    runs-on: windows-2019
+    strategy:
+      matrix:
+        node: ['14', '12', '10']
+    name: Node ${{ matrix.node }} (Windows)
+    steps:
+      - name: Configure git line-breaks
+        run: git config --global core.autocrlf false
+      - name: Checkout Commit
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+      - name: Run tests
+        run: npm test
+        env:
+          CI: true
