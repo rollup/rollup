@@ -10,6 +10,8 @@ jobs:
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v2
+        with:
+          ref: refs/pull/${{ github.event.number }}/merge
       - name: Setup Node
         uses: actions/setup-node@v2
         with:
@@ -18,7 +20,7 @@ jobs:
         run: npm ci --ignore-scripts
       - name: Build artefacts
         run: npm run build:cjs && npm run build:bootstrap
-      - name: Upload "${{ github.event.pull_request.number }}/rollup.browser.js" to bucket
+      - name: Upload "${{ github.event.number }}/rollup.browser.js" to bucket
         uses: zdurham/s3-upload-github-action@master
         with:
           args: --cache-control max-age=300,public
@@ -26,10 +28,10 @@ jobs:
           FILE: dist/rollup.browser.js
           AWS_REGION: ${{ secrets.AWS_REGION }}
           S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
-          S3_KEY: ${{ github.event.pull_request.number }}/rollup.browser.js
+          S3_KEY: ${{ github.event.number }}/rollup.browser.js
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      - name: Upload "${{ github.event.pull_request.number }}/rollup.browser.js.map" to bucket
+      - name: Upload "${{ github.event.number }}/rollup.browser.js.map" to bucket
         uses: zdurham/s3-upload-github-action@master
         with:
           args: --cache-control max-age=300,public
@@ -37,21 +39,21 @@ jobs:
           FILE: dist/rollup.browser.js.map
           AWS_REGION: ${{ secrets.AWS_REGION }}
           S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
-          S3_KEY: ${{ github.event.pull_request.number }}/rollup.browser.js.map
+          S3_KEY: ${{ github.event.number }}/rollup.browser.js.map
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       - name: Find Comment
         uses: peter-evans/find-comment@v1
         id: fc
         with:
-          issue-number: ${{ github.event.pull_request.number }}
+          issue-number: ${{ github.event.number }}
           comment-author: 'github-actions[bot]'
           body-includes: 'Thank you for your contribution!'
       - name: Create or update comment
         uses: peter-evans/create-or-update-comment@v1
         with:
           comment-id: ${{ steps.fc.outputs.comment-id }}
-          issue-number: ${{ github.event.pull_request.number }}
+          issue-number: ${{ github.event.number }}
           edit-mode: replace
           body: |
             ### Thank you for your contribution! ❤️
@@ -63,4 +65,4 @@ jobs:
             ```
 
             or load it into the REPL:
-            https://rollupjs.org/repl/?pr=${{ github.event.pull_request.number }}
+            https://rollupjs.org/repl/?pr=${{ github.event.number }}
