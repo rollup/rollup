@@ -15,6 +15,7 @@ module.exports = {
 	},
 	async abortOnStderr(data) {
 		if (data.includes('Config contains initial errors')) {
+			await new Promise(resolve => setTimeout(resolve, 100));
 			fs.writeFileSync(
 				configFile,
 				'export default {\n' +
@@ -28,15 +29,6 @@ module.exports = {
 			return false;
 		}
 		if (data.includes('created _actual')) {
-			// Handle a race condition where the output cannot be accessed on disk yet
-			for (let i = 0; i < 5; i++) {
-				try {
-					fs.accessSync(path.join(__dirname, '_actual'));
-					break;
-				} catch (e) {
-					await new Promise(fulfil => setTimeout(fulfil, 50));
-				}
-			}
 			return true;
 		}
 	}

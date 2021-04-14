@@ -106,6 +106,7 @@ function mergeInputOptions(
 		external: getExternal(config, overrides),
 		inlineDynamicImports: getOption('inlineDynamicImports'),
 		input: getOption('input') || [],
+		makeAbsoluteExternalsRelative: getOption('makeAbsoluteExternalsRelative'),
 		manualChunks: getOption('manualChunks'),
 		moduleContext: getOption('moduleContext'),
 		onwarn: getOnWarn(config, defaultOnWarnHandler),

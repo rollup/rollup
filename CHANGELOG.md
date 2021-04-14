@@ -1,5 +1,70 @@
 # rollup changelog
 
+## 2.45.2
+*2021-04-13*
+
+### Bug Fixes
+* Do not user a dynamic entry file name for naming a manual chunk (#4040)
+
+### Pull Requests
+* [#4040](https://github.com/rollup/rollup/pull/4040): Prioritize manual chunk name over dynamic entry id (@lukastaegert)
+
+## 2.45.1
+*2021-04-10*
+
+### Bug Fixes
+* Handle falsy return values from async plugin options hooks (#4039)
+
+### Pull Requests
+* [#4039](https://github.com/rollup/rollup/pull/4039): Do not fail when returning null or undefined from an async options hook (@lukastaegert)
+
+## 2.45.0
+*2021-04-09*
+
+### Features
+* Support private class instance methods and accessors (#4034)
+
+### Pull Requests
+* [#4034](https://github.com/rollup/rollup/pull/4034): feat: add support for private class methods (@dnalborczyk)
+
+## 2.44.0
+*2021-03-29*
+
+### Features
+* Add a new option `makeAbsoluteExternalsRelative` to opt out of renormalizing absolute external ids to relative ids (#4021)
+* Extend the `resolveId` plugin hook to allow forcing or preventing renormalization of absolute external ids (#4021)
+* Make the rendered code of individual modules available in the generated bundle (#4028)
+
+### Bug Fixes
+* Handle objects with `__proto__` properties correctly (#4019)
+
+### Pull Requests
+* [#4019](https://github.com/rollup/rollup/pull/4019): Deoptimize ObjectExpression when a `__proto__` property is present (@marijnh)
+* [#4021](https://github.com/rollup/rollup/pull/4021): Improve absolute path handling (@lukastaegert)
+* [#4026](https://github.com/rollup/rollup/pull/4026): chore: fix vscode launch config (change tdd to bdd) (@jameslahm)
+* [#4027](https://github.com/rollup/rollup/pull/4027): Post comment for PRs from forks (@lukastaegert)
+* [#4028](https://github.com/rollup/rollup/pull/4028): Expose rendered module code to generateBundle hook (@btd)
+
+## 2.43.1
+*2021-03-28*
+
+### Bug Fixes
+* Prevent infinite recursions in certain scenarios when calling object properties (#4025)
+
+### Pull Requests
+* [#4025](https://github.com/rollup/rollup/pull/4025): Handle recursive this mutation detection (@lukastaegert)
+
+## 2.43.0
+*2021-03-27*
+
+### Features
+* Track side effects of function properties in objects for better tree-shaking (#4011)
+
+### Pull Requests
+* [#4011](https://github.com/rollup/rollup/pull/4011): Disable pessimistic object deoptimization for calls when the called function doesn't ref this (@marijnh)
+* [#4012](https://github.com/rollup/rollup/pull/4012): fix `sourcemap` reference in docs (@tjenkinson)
+* [#4015](https://github.com/rollup/rollup/pull/4015): Use SIGTERM instead of SIGINT to kill test child processes in tests (@marijnh)
+
 ## 2.42.4
 *2021-03-24*
 

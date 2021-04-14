@@ -10,18 +10,17 @@ class Example extends SomeClass {
 
 	#uninitializedPrivateField;
 
-	// Those are apparently unsupported at the moment
-	// get #getter() {
-	// 	return this.#uninitializedPrivateField;
-	// }
+	get #getter() {
+		return this.#uninitializedPrivateField;
+	}
 
-	// set #setter(value) {
-	// 	this.#uninitializedPrivateField = value;
-	// }
+	set #setter(value) {
+		this.#uninitializedPrivateField = value;
+	}
 
-	// #privateMethod() {
-	// 	const foo = 'tree-shaken';
-	// }
+	#privateMethod() {
+		const foo = 'tree-shaken';
+	}
 
 	static firstPublicStaticField = 2;
 	static secondPublicStaticField = this.firstPublicStaticField + super.someStaticField;
