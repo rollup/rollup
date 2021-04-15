@@ -1,3 +1,4 @@
+
 ---
 title: JavaScript API
 ---
@@ -59,6 +60,7 @@ async function build() {
       //       removedExports: string[];  // exported variable names that were removed
       //       renderedLength: number;    // the length of the remaining code in this module
       //       originalLength: number;    // the original length of the code in this module
+      //       code: string | null;       // remaining code in this module
       //     };
       //   },
       //   name: string                   // the name of this chunk as used in naming patterns

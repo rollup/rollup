@@ -1,5 +1,6 @@
 import * as acorn from 'acorn';
 import injectClassFields from 'acorn-class-fields';
+import injectPrivateMethods from 'acorn-private-methods';
 import injectStaticClassFeatures from 'acorn-static-class-features';
 import {
 	ExternalOption,
@@ -49,6 +50,8 @@ export function normalizeInputOptions(
 		external: getIdMatcher(config.external as ExternalOption),
 		inlineDynamicImports: getInlineDynamicImports(config, onwarn, strictDeprecations),
 		input: getInput(config),
+		makeAbsoluteExternalsRelative:
+			(config.makeAbsoluteExternalsRelative as boolean | 'ifRelativeSource' | undefined) ?? true,
 		manualChunks: getManualChunks(config, onwarn, strictDeprecations),
 		moduleContext: getModuleContext(config, context),
 		onwarn,
@@ -100,6 +103,7 @@ const getAcorn = (config: GenericConfigObject): acorn.Options => ({
 
 const getAcornInjectPlugins = (config: GenericConfigObject): Function[] => [
 	injectClassFields,
+	injectPrivateMethods,
 	injectStaticClassFeatures,
 	...(ensureArray(config.acornInjectPlugins) as any)
 ];
@@ -262,7 +266,7 @@ const getTreeshake = (
 				warn
 			),
 			propertyReadSideEffects:
-				configTreeshake.propertyReadSideEffects === 'always' && 'always' ||
+				(configTreeshake.propertyReadSideEffects === 'always' && 'always') ||
 				configTreeshake.propertyReadSideEffects !== false,
 			tryCatchDeoptimization: configTreeshake.tryCatchDeoptimization !== false,
 			unknownGlobalSideEffects: configTreeshake.unknownGlobalSideEffects !== false

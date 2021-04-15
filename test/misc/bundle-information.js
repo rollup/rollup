@@ -89,6 +89,7 @@ describe('The bundle object', () => {
 					[
 						{
 							input1: {
+								code: 'console.log("input1", used, shared);const out = true;',
 								originalLength: 96,
 								removedExports: [],
 								renderedExports: ['out'],
@@ -97,6 +98,7 @@ describe('The bundle object', () => {
 						},
 						{
 							input2: {
+								code: 'console.log("input2");var input2 = 42;',
 								originalLength: 55,
 								removedExports: [],
 								renderedExports: ['default'],
@@ -105,6 +107,7 @@ describe('The bundle object', () => {
 						},
 						{
 							shared: {
+								code: 'console.log("shared");const used = "used"; var shared = "stuff";',
 								originalLength: 100,
 								removedExports: ['unused'],
 								renderedExports: ['used', 'default'],
@@ -194,6 +197,7 @@ describe('The bundle object', () => {
 					[
 						{
 							input: {
+								code: 'console.log(external2);',
 								originalLength: 137,
 								removedExports: [],
 								renderedExports: [],
@@ -438,6 +442,7 @@ describe('The bundle object', () => {
 					[
 						{
 							input: {
+								code: 'var input = null;',
 								originalLength: 47,
 								removedExports: [],
 								renderedExports: ['default'],
@@ -525,6 +530,7 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 					[
 						{
 							input: {
+								code: 'console.log(other);Promise.all([import(\'./dynamic1\'), import(\'./dynamic2\')]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));',
 								originalLength: 169,
 								removedExports: [],
 								renderedExports: [],
@@ -533,6 +539,7 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 						},
 						{
 							dynamic1: {
+								code: 'const dynamic1 = "dynamic1";',
 								originalLength: 34,
 								removedExports: [],
 								renderedExports: ['dynamic1'],
@@ -541,6 +548,7 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 						},
 						{
 							other: {
+								code: 'const other = "other";',
 								originalLength: 28,
 								removedExports: [],
 								renderedExports: ['other'],
@@ -549,6 +557,7 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 						},
 						{
 							dynamic2: {
+								code: 'const dynamic2 = "dynamic2";',
 								originalLength: 34,
 								removedExports: [],
 								renderedExports: ['dynamic2'],
@@ -606,12 +615,14 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 					output.modules,
 					{
 						code: {
+							code: 'function renderedFn() {}\nclass renderedClass {}\nconst renderedConst = 1;',
 							originalLength: 184,
 							removedExports: ['removedFn', 'removedClass', 'removedConst'],
 							renderedExports: ['renderedFn', 'renderedClass', 'renderedConst'],
 							renderedLength: 72
 						},
 						input: {
+							code: null,
 							originalLength: 84,
 							removedExports: [],
 							renderedExports: [],
@@ -658,12 +669,14 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 					output.modules,
 					{
 						code: {
+							code: 'function renderedFn() {}\nclass renderedClass {}\nconst renderedConst = 1;',
 							originalLength: 233,
 							removedExports: ['removedFn', 'removedClass', 'removedConst'],
 							renderedExports: ['renderedFn', 'renderedClass', 'renderedConst'],
 							renderedLength: 72
 						},
 						input: {
+							code: null,
 							originalLength: 63,
 							removedExports: [],
 							renderedExports: [],
