@@ -25,6 +25,9 @@ jobs:
         run: npm run ci:coverage
         env:
           CI: true
+      - uses: codecov/codecov-action@v1
+        with:
+          commit_parent: ${{ github.event.pull_request.head.sha }}
 
   linux12:
     runs-on: ubuntu-latest
@@ -32,8 +35,6 @@ jobs:
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
       - name: Setup Node
         uses: actions/setup-node@v2
         with:
@@ -55,8 +56,6 @@ jobs:
     steps:
       - name: Checkout Commit
         uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
       - name: Setup Node
         uses: actions/setup-node@v2
         with:
@@ -79,8 +78,6 @@ jobs:
         run: git config --global core.autocrlf false
       - name: Checkout Commit
         uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
       - name: Setup Node
         uses: actions/setup-node@v2
         with:
