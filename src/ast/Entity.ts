@@ -1,9 +1,7 @@
 import { HasEffectsContext } from './ExecutionContext';
 import { ObjectPath } from './utils/PathTracker';
 
-export interface Entity {
-	toString: () => string;
-}
+export interface Entity {}
 
 export interface WritableEntity extends Entity {
 	/**
