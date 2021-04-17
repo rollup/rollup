@@ -89,7 +89,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 			const returnExpression = this.getReturnExpression(SHARED_RECURSION_TRACKER);
 			const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized;
 			if (returnExpression !== UNKNOWN_EXPRESSION) {
-				// We need to replace here because is possible new expressions are added
+				// We need to replace here because it is possible new expressions are added
 				// while we are deoptimizing the old ones
 				this.expressionsToBeDeoptimized = [];
 				if (this.wasPathDeoptmizedWhileOptimized) {

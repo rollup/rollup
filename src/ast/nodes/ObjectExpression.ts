@@ -8,6 +8,7 @@ import { HasEffectsContext } from '../ExecutionContext';
 import {
 	EMPTY_PATH,
 	ObjectPath,
+	ObjectPathKey,
 	PathTracker,
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH
@@ -134,41 +135,24 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		this.buildPropertyMap();
-		const propertyMap = this.propertyMap!;
+		if (path.length === 0) {
+			return UnknownValue;
+		}
+
 		const key = path[0];
-
-		if (
-			path.length === 0 ||
-			this.hasUnknownDeoptimizedProperty ||
-			typeof key !== 'string' ||
-			this.deoptimizedPaths.has(key)
-		) {
-			return UnknownValue;
-		}
-
-		if (
-			propertyMap[key] &&
-			propertyMap[key].exactMatchRead &&
-			propertyMap[key].propertiesRead.length === 1
-		) {
+		const expressionAtPath = this.getMemberExpression(key);
+		if (expressionAtPath) {
+			if (expressionAtPath === UNKNOWN_EXPRESSION) {
+				return UnknownValue;
+			}
 			getOrCreate(this.expressionsToBeDeoptimized, key, () => []).push(origin);
-			return propertyMap[key].exactMatchRead!.getLiteralValueAtPath(
-				path.slice(1),
-				recursionTracker,
-				origin
-			);
+			return expressionAtPath.getLiteralValueAtPath(path.slice(1), recursionTracker, origin);
 		}
 
-		if (propertyMap[key] || this.unmatchablePropertiesRead.length > 0) {
-			return UnknownValue;
-		}
-
-		if (path.length === 1 && !objectMembers[key]) {
+		if (path.length === 1 && !objectMembers[key as string]) {
 			getOrCreate(this.expressionsToBeDeoptimized, key, () => []).push(origin);
 			return undefined;
 		}
-
 		return UnknownValue;
 	}
 
@@ -177,40 +161,27 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
-		this.buildPropertyMap();
-		const propertyMap = this.propertyMap!;
-		const key = path[0];
-
-		if (
-			path.length === 0 ||
-			this.hasUnknownDeoptimizedProperty ||
-			typeof key !== 'string' ||
-			this.deoptimizedPaths.has(key)
-		) {
+		if (path.length === 0) {
 			return UNKNOWN_EXPRESSION;
 		}
 
-		if (
-			propertyMap[key] &&
-			propertyMap[key].exactMatchRead &&
-			propertyMap[key].propertiesRead.length === 1
-		) {
+		const key = path[0];
+		const expressionAtPath = this.getMemberExpression(key);
+		if (expressionAtPath) {
+			if (expressionAtPath === UNKNOWN_EXPRESSION) {
+				return UNKNOWN_EXPRESSION;
+			}
 			getOrCreate(this.expressionsToBeDeoptimized, key, () => []).push(origin);
-			return propertyMap[key].exactMatchRead!.getReturnExpressionWhenCalledAtPath(
+			return expressionAtPath.getReturnExpressionWhenCalledAtPath(
 				path.slice(1),
 				recursionTracker,
 				origin
 			);
 		}
 
-		if (propertyMap[key] || this.unmatchablePropertiesRead.length > 0) {
-			return UNKNOWN_EXPRESSION;
-		}
-
 		if (path.length === 1) {
 			return getMemberReturnExpressionWhenCalled(objectMembers, key);
 		}
-
 		return UNKNOWN_EXPRESSION;
 	}
 
@@ -385,5 +356,31 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 				expression.deoptimizeCache();
 			}
 		}
+	}
+
+	private getMemberExpression(key: ObjectPathKey): ExpressionEntity | null {
+		if (
+			this.hasUnknownDeoptimizedProperty ||
+			typeof key !== 'string' ||
+			this.deoptimizedPaths.has(key)
+		) {
+			return UNKNOWN_EXPRESSION;
+		}
+
+		this.buildPropertyMap();
+		const propertyMap = this.propertyMap!;
+		if (
+			propertyMap[key] &&
+			propertyMap[key].exactMatchRead &&
+			propertyMap[key].propertiesRead.length === 1
+		) {
+			return propertyMap[key].exactMatchRead!;
+		}
+
+		if (propertyMap[key] || this.unmatchablePropertiesRead.length > 0) {
+			return UNKNOWN_EXPRESSION;
+		}
+
+		return null;
 	}
 }
