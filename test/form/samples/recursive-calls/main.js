@@ -17,13 +17,6 @@ const removed5 = {
 };
 removed5.x;
 
-const removed6 = {
-	get x () {
-		return globalThis.unknown ? removed6.x : () => {};
-	}
-};
-removed6.x();
-
 const removed7 = {
 	get x () {
 		return globalThis.unknown ? removed7.x : {};

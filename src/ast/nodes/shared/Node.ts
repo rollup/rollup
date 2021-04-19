@@ -232,7 +232,11 @@ export class NodeBase implements ExpressionNode {
 		}
 	}
 
-	mayModifyThisWhenCalledAtPath(_path: ObjectPath, _recursionTracker: PathTracker) {
+	mayModifyThisWhenCalledAtPath(
+		_path: ObjectPath,
+		_recursionTracker: PathTracker,
+		_origin: DeoptimizableEntity
+	) {
 		return true;
 	}
 

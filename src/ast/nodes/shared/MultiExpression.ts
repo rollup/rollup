@@ -74,7 +74,13 @@ export class MultiExpression implements ExpressionEntity {
 
 	includeCallArguments(): void {}
 
-	mayModifyThisWhenCalledAtPath(path: ObjectPath, recursionTracker: PathTracker) {
-		return this.expressions.some(e => e.mayModifyThisWhenCalledAtPath(path, recursionTracker));
+	mayModifyThisWhenCalledAtPath(
+		path: ObjectPath,
+		recursionTracker: PathTracker,
+		origin: DeoptimizableEntity
+	) {
+		return this.expressions.some(e =>
+			e.mayModifyThisWhenCalledAtPath(path, recursionTracker, origin)
+		);
 	}
 }

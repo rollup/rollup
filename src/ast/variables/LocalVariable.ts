@@ -189,7 +189,11 @@ export default class LocalVariable extends Variable {
 		this.calledFromTryStatement = true;
 	}
 
-	mayModifyThisWhenCalledAtPath(path: ObjectPath, recursionTracker: PathTracker) {
+	mayModifyThisWhenCalledAtPath(
+		path: ObjectPath,
+		recursionTracker: PathTracker,
+		origin: DeoptimizableEntity
+	) {
 		if (this.isReassigned || !this.init || path.length > MAX_PATH_DEPTH) {
 			return true;
 		}
@@ -198,7 +202,7 @@ export default class LocalVariable extends Variable {
 			return true;
 		}
 		trackedEntities.add(this.init);
-		const result = this.init.mayModifyThisWhenCalledAtPath(path, recursionTracker);
+		const result = this.init.mayModifyThisWhenCalledAtPath(path, recursionTracker, origin);
 		trackedEntities.delete(this.init);
 		return result;
 	}

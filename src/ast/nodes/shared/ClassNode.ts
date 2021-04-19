@@ -190,12 +190,13 @@ export default class ClassNode extends NodeBase {
 
 	mayModifyThisWhenCalledAtPath(
 		path: ObjectPath,
-		recursionTracker: PathTracker
+		recursionTracker: PathTracker,
+		origin: DeoptimizableEntity
 	) {
 		const key = path[0];
 		const definition = typeof key === 'string' && this.getStaticPropertyMap()[key];
 		if (!definition || this.deoptimizedStatic) return true;
-		return definition.mayModifyThisWhenCalledAtPath(path.slice(1), recursionTracker);
+		return definition.mayModifyThisWhenCalledAtPath(path.slice(1), recursionTracker, origin);
 	}
 
 	private getStaticPropertyMap(): {[name: string]: ExpressionNode} {

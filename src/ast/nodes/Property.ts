@@ -144,6 +144,17 @@ export default class Property extends NodeBase implements DeoptimizableEntity, P
 		};
 	}
 
+	mayModifyThisWhenCalledAtPath(path: ObjectPath, recursionTracker: PathTracker, origin: DeoptimizableEntity): boolean {
+		if (this.kind === 'get') {
+			return this.getReturnExpression().mayModifyThisWhenCalledAtPath(
+				path,
+				recursionTracker,
+				origin
+			);
+		}
+		return this.value.mayModifyThisWhenCalledAtPath(path, recursionTracker, origin);
+	}
+
 	render(code: MagicString, options: RenderOptions) {
 		if (!this.shorthand) {
 			this.key.render(code, options);

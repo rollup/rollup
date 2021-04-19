@@ -73,7 +73,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		if (
 			this.callee instanceof MemberExpression &&
 			!this.callee.variable &&
-			this.callee.mayModifyThisWhenCalledAtPath([], SHARED_RECURSION_TRACKER)
+			this.callee.mayModifyThisWhenCalledAtPath([], SHARED_RECURSION_TRACKER, this)
 		) {
 			this.callee.object.deoptimizePath(UNKNOWN_PATH);
 		}
@@ -100,6 +100,12 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 			for (const expression of expressionsToBeDeoptimized) {
 				expression.deoptimizeCache();
 			}
+		}
+		if (
+			this.callee instanceof MemberExpression &&
+			!this.callee.variable
+		) {
+			this.callee.object.deoptimizePath(UNKNOWN_PATH);
 		}
 	}
 

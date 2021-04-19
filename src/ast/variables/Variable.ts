@@ -96,7 +96,11 @@ export default class Variable implements ExpressionEntity {
 
 	markCalledFromTryStatement() {}
 
-	mayModifyThisWhenCalledAtPath(_path: ObjectPath, _recursionTracker: PathTracker) {
+	mayModifyThisWhenCalledAtPath(
+		_path: ObjectPath,
+		_recursionTracker: PathTracker,
+		_origin: DeoptimizableEntity
+	) {
 		return true;
 	}
 

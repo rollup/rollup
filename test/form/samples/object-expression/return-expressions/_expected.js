@@ -12,8 +12,6 @@ const z = {
 z.a()();
 
 const v = {};
-
-v.toString().charCodeAt(0); // removed
 v.toString().doesNotExist(0); // retained
 
 const w = {
