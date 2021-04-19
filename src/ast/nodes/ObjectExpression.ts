@@ -31,7 +31,6 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 	properties!: (Property | SpreadElement)[];
 	type!: NodeType.tObjectExpression;
 
-	private expressionsToBeDeoptimizedByKey = new Map<string, DeoptimizableEntity[]>();
 	private objectPathHandler: ObjectPathHandler | null = null;
 
 	deoptimizeCache() {
@@ -224,8 +223,7 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 			propertyMap,
 			unmatchablePropertiesRead,
 			unmatchablePropertiesWrite,
-			this.properties,
-			this.expressionsToBeDeoptimizedByKey
+			this.properties
 		));
 	}
 }

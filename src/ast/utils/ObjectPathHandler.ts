@@ -1,9 +1,8 @@
-import { getOrCreate } from '../../utils/getOrCreate';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext } from '../ExecutionContext';
 import { ExpressionEntity } from '../nodes/shared/Expression';
 import { UNKNOWN_EXPRESSION } from '../values';
-import { ObjectPath, ObjectPathKey, UNKNOWN_PATH } from './PathTracker';
+import { ObjectPath, ObjectPathKey, UnknownKey, UNKNOWN_PATH } from './PathTracker';
 
 // TODO Lukas simplify
 // TODO Lukas maybe an "intermediate format" that just contains objects {kind, key, prop}[], __proto__ could be an unshift {kind: "prop", key: UnknownKey, prop: UNKNOWN_EXPRESSION}?
@@ -19,17 +18,17 @@ export interface PropertyMap {
 
 export type ObjectPathHandler = ReturnType<typeof getObjectPathHandler>;
 
-// TODO Lukas use an object for expressionsToBeDeoptimizedByKey for better performance
 export function getObjectPathHandler(
 	propertyMap: PropertyMap,
-	// TODO Lukas unify naming: ..forAssignment?
 	unmatchablePropertiesRead: ExpressionEntity[],
 	unmatchablePropertiesWrite: ExpressionEntity[],
-	allProperties: ExpressionEntity[],
-	expressionsToBeDeoptimizedByKey: Map<string, DeoptimizableEntity[]>
+	allProperties: ExpressionEntity[]
 ) {
 	let hasUnknownDeoptimizedProperty = false;
 	const deoptimizedPaths = new Set<string>();
+	const expressionsToBeDeoptimizedByKey: Record<string, DeoptimizableEntity[]> = Object.create(
+		null
+	);
 
 	function getMemberExpression(key: ObjectPathKey): ExpressionEntity | null {
 		if (hasUnknownDeoptimizedProperty || typeof key !== 'string' || deoptimizedPaths.has(key)) {
@@ -55,9 +54,14 @@ export function getObjectPathHandler(
 		key: ObjectPathKey,
 		origin: DeoptimizableEntity
 	): ExpressionEntity | null {
+		if (key === UnknownKey) {
+			return UNKNOWN_EXPRESSION;
+		}
 		const expression = getMemberExpression(key);
 		if (expression !== UNKNOWN_EXPRESSION) {
-			getOrCreate(expressionsToBeDeoptimizedByKey, key, () => []).push(origin);
+			const expressionsToBeDeoptimized = (expressionsToBeDeoptimizedByKey[key] =
+				expressionsToBeDeoptimizedByKey[key] || []);
+			expressionsToBeDeoptimized.push(origin);
 		}
 		return expression;
 	}
@@ -93,7 +97,7 @@ export function getObjectPathHandler(
 
 				// we only deoptimizeCache exact matches as in all other cases,
 				// we do not return a literal value or return expression
-				const expressionsToBeDeoptimized = expressionsToBeDeoptimizedByKey.get(key);
+				const expressionsToBeDeoptimized = expressionsToBeDeoptimizedByKey[key];
 				if (expressionsToBeDeoptimized) {
 					for (const expression of expressionsToBeDeoptimized) {
 						expression.deoptimizeCache();
@@ -116,7 +120,7 @@ export function getObjectPathHandler(
 		for (const property of allProperties) {
 			property.deoptimizePath(UNKNOWN_PATH);
 		}
-		for (const expressionsToBeDeoptimized of expressionsToBeDeoptimizedByKey.values()) {
+		for (const expressionsToBeDeoptimized of Object.values(expressionsToBeDeoptimizedByKey)) {
 			for (const expression of expressionsToBeDeoptimized) {
 				expression.deoptimizeCache();
 			}
