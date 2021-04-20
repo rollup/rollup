@@ -18,6 +18,7 @@ interface EntityPaths {
 export class PathTracker {
 	entityPaths: EntityPaths = Object.create(null, { [EntitiesKey]: { value: new Set<Entity>() } });
 
+	// TODO Lukas can we incorporate the usual usage patterns here?
 	getEntities(path: ObjectPath): Set<Entity> {
 		let currentPaths = this.entityPaths;
 		for (const pathSegment of path) {

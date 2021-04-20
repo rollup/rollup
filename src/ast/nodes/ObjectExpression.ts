@@ -4,12 +4,17 @@ import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext } from '../ExecutionContext';
-import { getObjectPathHandler, ObjectPathHandler, PropertyMap } from '../utils/ObjectPathHandler';
+import {
+	getObjectPathHandler,
+	ObjectPathHandler,
+	ObjectProperty
+} from '../utils/ObjectPathHandler';
 import {
 	EMPTY_PATH,
 	ObjectPath,
 	PathTracker,
-	SHARED_RECURSION_TRACKER
+	SHARED_RECURSION_TRACKER,
+	UnknownKey
 } from '../utils/PathTracker';
 import {
 	getMemberReturnExpressionWhenCalled,
@@ -160,70 +165,43 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		}
 	}
 
+	// TODO Lukas Instead of resolved keys, push expressions as keys to further move logic out of here
 	private getObjectPathHandler(): ObjectPathHandler {
 		if (this.objectPathHandler !== null) {
 			return this.objectPathHandler;
 		}
-		const propertyMap: PropertyMap = Object.create(null);
-		const unmatchablePropertiesRead: ExpressionEntity[] = [];
-		const unmatchablePropertiesWrite: ExpressionEntity[] = [];
-		for (let index = this.properties.length - 1; index >= 0; index--) {
-			const property = this.properties[index];
+		const properties: ObjectProperty[] = [];
+		for (const property of this.properties) {
 			if (property instanceof SpreadElement) {
-				unmatchablePropertiesRead.push(property);
+				properties.push({ kind: 'init', key: UnknownKey, property });
 				continue;
 			}
-			const isWrite = property.kind !== 'get';
-			const isRead = property.kind !== 'set';
 			let key: string;
-			let unmatchable = false;
 			if (property.computed) {
 				const keyValue = property.key.getLiteralValueAtPath(
 					EMPTY_PATH,
 					SHARED_RECURSION_TRACKER,
 					this
 				);
-				if (keyValue === UnknownValue) unmatchable = true;
-				key = String(keyValue);
-			} else if (property.key instanceof Identifier) {
-				key = property.key.name;
-			} else {
-				key = String((property.key as Literal).value);
-			}
-			if (unmatchable || (key === '__proto__' && !property.computed)) {
-				if (isRead) {
-					unmatchablePropertiesRead.push(property);
+				if (keyValue === UnknownValue) {
+					properties.push({ kind: property.kind, key: UnknownKey, property });
+					continue;
 				} else {
-					unmatchablePropertiesWrite.push(property);
+					key = String(keyValue);
 				}
-				continue;
-			}
-			const propertyMapProperty = propertyMap[key];
-			if (!propertyMapProperty) {
-				propertyMap[key] = {
-					exactMatchRead: isRead ? property : null,
-					exactMatchWrite: isWrite ? property : null,
-					propertiesRead: isRead ? [property, ...unmatchablePropertiesRead] : [],
-					propertiesWrite: isWrite && !isRead ? [property, ...unmatchablePropertiesWrite] : []
-				};
-				continue;
-			}
-			if (isRead && propertyMapProperty.exactMatchRead === null) {
-				propertyMapProperty.exactMatchRead = property;
-				propertyMapProperty.propertiesRead.push(property, ...unmatchablePropertiesRead);
-			}
-			if (isWrite && propertyMapProperty.exactMatchWrite === null) {
-				propertyMapProperty.exactMatchWrite = property;
-				if (!isRead) {
-					propertyMapProperty.propertiesWrite.push(property, ...unmatchablePropertiesWrite);
+			} else {
+				key =
+					property.key instanceof Identifier
+						? property.key.name
+						: String((property.key as Literal).value);
+				// TODO Lukas how would setters and getters for __proto__ behave, ok to ignore them?
+				if (key === '__proto__' && property.kind === 'init') {
+					properties.unshift({ kind: 'init', key: UnknownKey, property: UNKNOWN_EXPRESSION });
+					continue;
 				}
 			}
+			properties.push({ kind: property.kind, key, property });
 		}
-		return (this.objectPathHandler = getObjectPathHandler(
-			propertyMap,
-			unmatchablePropertiesRead,
-			unmatchablePropertiesWrite,
-			this.properties
-		));
+		return (this.objectPathHandler = getObjectPathHandler(properties));
 	}
 }

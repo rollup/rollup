@@ -4,26 +4,25 @@ import { ExpressionEntity } from '../nodes/shared/Expression';
 import { UNKNOWN_EXPRESSION } from '../values';
 import { ObjectPath, ObjectPathKey, UnknownKey, UNKNOWN_PATH } from './PathTracker';
 
-// TODO Lukas simplify
-// TODO Lukas maybe an "intermediate format" that just contains objects {kind, key, prop}[], __proto__ could be an unshift {kind: "prop", key: UnknownKey, prop: UNKNOWN_EXPRESSION}?
-// TODO Lukas propertiesWrite is currently actually "setters"; maybe it makes sense to also distinguish "getters" for easier access checking?
-export interface PropertyMap {
-	[key: string]: {
-		exactMatchRead: ExpressionEntity | null;
-		exactMatchWrite: ExpressionEntity | null;
-		propertiesRead: ExpressionEntity[];
-		propertiesWrite: ExpressionEntity[];
-	};
+export interface ObjectProperty {
+	key: ObjectPathKey;
+	kind: 'init' | 'set' | 'get';
+	property: ExpressionEntity;
 }
+
+type PropertyMap = Record<string, ExpressionEntity[]>;
 
 export type ObjectPathHandler = ReturnType<typeof getObjectPathHandler>;
 
-export function getObjectPathHandler(
-	propertyMap: PropertyMap,
-	unmatchablePropertiesRead: ExpressionEntity[],
-	unmatchablePropertiesWrite: ExpressionEntity[],
-	allProperties: ExpressionEntity[]
-) {
+export function getObjectPathHandler(properties: ObjectProperty[]) {
+	const {
+		allProperties,
+		propertiesByKey,
+		settersByKey,
+		unmatchableProperties,
+		unmatchableSetters
+	} = getPropertyMaps(properties);
+
 	let hasUnknownDeoptimizedProperty = false;
 	const deoptimizedPaths = new Set<string>();
 	const expressionsToBeDeoptimizedByKey: Record<string, DeoptimizableEntity[]> = Object.create(
@@ -34,19 +33,12 @@ export function getObjectPathHandler(
 		if (hasUnknownDeoptimizedProperty || typeof key !== 'string' || deoptimizedPaths.has(key)) {
 			return UNKNOWN_EXPRESSION;
 		}
-
-		if (
-			propertyMap[key] &&
-			propertyMap[key].exactMatchRead &&
-			propertyMap[key].propertiesRead.length === 1
-		) {
-			return propertyMap[key].exactMatchRead!;
+		if (propertiesByKey[key]?.length === 1) {
+			return propertiesByKey[key][0];
 		}
-
-		if (propertyMap[key] || unmatchablePropertiesRead.length > 0) {
+		if (propertiesByKey[key] || unmatchableProperties.length > 0) {
 			return UNKNOWN_EXPRESSION;
 		}
-
 		return null;
 	}
 
@@ -75,9 +67,7 @@ export function getObjectPathHandler(
 
 		if (typeof key !== 'string') return true;
 
-		const properties = propertyMap[key]?.exactMatchWrite
-			? propertyMap[key].propertiesWrite
-			: unmatchablePropertiesWrite;
+		const properties = settersByKey[key] || unmatchableSetters;
 		for (const property of properties) {
 			if (property.hasEffectsWhenAssignedAtPath(subPath, context)) return true;
 		}
@@ -106,10 +96,11 @@ export function getObjectPathHandler(
 			}
 		}
 		const subPath = path.length === 1 ? UNKNOWN_PATH : path.slice(1);
+
 		for (const property of typeof key === 'string'
-			? propertyMap[key]
-				? propertyMap[key].propertiesRead.concat(propertyMap[key].propertiesWrite)
-				: []
+			? (propertiesByKey[key] || unmatchableProperties).concat(
+					settersByKey[key] || unmatchableSetters
+			  )
 			: allProperties) {
 			property.deoptimizePath(subPath);
 		}
@@ -138,5 +129,45 @@ export function getObjectPathHandler(
 		getMemberExpression,
 		getMemberExpressionAndTrackDeopt,
 		hasEffectsWhenAssignedAtPath
+	};
+}
+
+function getPropertyMaps(
+	properties: ObjectProperty[]
+): {
+	allProperties: ExpressionEntity[];
+	propertiesByKey: Record<string, ExpressionEntity[]>;
+	settersByKey: Record<string, ExpressionEntity[]>;
+	unmatchableProperties: ExpressionEntity[];
+	unmatchableSetters: ExpressionEntity[];
+} {
+	const allProperties = [];
+	const propertiesByKey: PropertyMap = Object.create(null);
+	const settersByKey: PropertyMap = Object.create(null);
+	const unmatchableProperties: ExpressionEntity[] = [];
+	const unmatchableSetters: ExpressionEntity[] = [];
+	for (let index = properties.length - 1; index >= 0; index--) {
+		const { key, kind, property } = properties[index];
+		allProperties.push(property);
+		if (kind === 'set') {
+			if (typeof key !== 'string') {
+				unmatchableSetters.push(property);
+			} else if (!settersByKey[key]) {
+				settersByKey[key] = [property, ...unmatchableSetters];
+			}
+		} else {
+			if (typeof key !== 'string') {
+				unmatchableProperties.push(property);
+			} else if (!propertiesByKey[key]) {
+				propertiesByKey[key] = [property, ...unmatchableProperties];
+			}
+		}
+	}
+	return {
+		allProperties,
+		propertiesByKey,
+		settersByKey,
+		unmatchableProperties,
+		unmatchableSetters
 	};
 }

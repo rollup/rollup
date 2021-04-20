@@ -52,16 +52,6 @@ const removed5 = {
 
 removed5.noEffect = 'removed';
 
-const removed6 = {
-	set shadowedEffect(value) {
-		console.log(value);
-	},
-	shadowedEffect: true
-};
-
-removed6.shadowedEffect = true;
-removed6.missingProp = true;
-
 const retained7 = {
 	foo: () => {},
 	get foo() {
