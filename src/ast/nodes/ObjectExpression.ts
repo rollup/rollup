@@ -39,7 +39,7 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 	private objectPathHandler: ObjectPathHandler | null = null;
 
 	deoptimizeCache() {
-		this.getObjectPathHandler().deoptimizeCache();
+		this.getObjectPathHandler().deoptimizeAllProperties();
 	}
 
 	deoptimizePath(path: ObjectPath) {
@@ -165,7 +165,6 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		}
 	}
 
-	// TODO Lukas Instead of resolved keys, push expressions as keys to further move logic out of here
 	private getObjectPathHandler(): ObjectPathHandler {
 		if (this.objectPathHandler !== null) {
 			return this.objectPathHandler;
@@ -194,7 +193,6 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 					property.key instanceof Identifier
 						? property.key.name
 						: String((property.key as Literal).value);
-				// TODO Lukas how would setters and getters for __proto__ behave, ok to ignore them?
 				if (key === '__proto__' && property.kind === 'init') {
 					properties.unshift({ kind: 'init', key: UnknownKey, property: UNKNOWN_EXPRESSION });
 					continue;

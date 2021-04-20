@@ -107,6 +107,7 @@ export function getObjectPathHandler(properties: ObjectProperty[]) {
 	}
 
 	function deoptimizeAllProperties() {
+		if (hasUnknownDeoptimizedProperty) return;
 		hasUnknownDeoptimizedProperty = true;
 		for (const property of allProperties) {
 			property.deoptimizePath(UNKNOWN_PATH);
@@ -118,13 +119,8 @@ export function getObjectPathHandler(properties: ObjectProperty[]) {
 		}
 	}
 
-	function deoptimizeCache() {
-		if (hasUnknownDeoptimizedProperty) return;
-		deoptimizeAllProperties();
-	}
-
 	return {
-		deoptimizeCache,
+		deoptimizeAllProperties,
 		deoptimizePath,
 		getMemberExpression,
 		getMemberExpressionAndTrackDeopt,
