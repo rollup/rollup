@@ -5,7 +5,7 @@ import {
 	HasEffectsContext,
 	InclusionContext
 } from '../ExecutionContext';
-import { UNKNOWN_EXPRESSION } from '../values';
+import { UNKNOWN_EXPRESSION } from '../unknownValues';
 import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, StatementBase } from './shared/Node';
 

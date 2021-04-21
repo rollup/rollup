@@ -6,6 +6,7 @@ import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { LiteralValueOrUnknown, UnknownValue } from '../unknownValues';
 import {
 	EMPTY_PATH,
 	ObjectPath,
@@ -15,7 +16,6 @@ import {
 	UnknownKey,
 	UNKNOWN_PATH
 } from '../utils/PathTracker';
-import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import ExternalVariable from '../variables/ExternalVariable';
 import NamespaceVariable from '../variables/NamespaceVariable';
 import Variable from '../variables/Variable';

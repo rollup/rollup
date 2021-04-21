@@ -8,8 +8,8 @@ import * as NodeType from '../nodes/NodeType';
 import { ExpressionEntity } from '../nodes/shared/Expression';
 import { ExpressionNode, Node } from '../nodes/shared/Node';
 import SpreadElement from '../nodes/SpreadElement';
+import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UnknownValue } from '../unknownValues';
 import { ObjectPath, PathTracker, UNKNOWN_PATH } from '../utils/PathTracker';
-import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../values';
 import Variable from './Variable';
 
 // To avoid infinite recursions

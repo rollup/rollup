@@ -1,8 +1,9 @@
 import { CallOptions } from '../../CallOptions';
 import { BROKEN_FLOW_NONE, HasEffectsContext, InclusionContext } from '../../ExecutionContext';
 import FunctionScope from '../../scopes/FunctionScope';
+import { UNKNOWN_EXPRESSION } from '../../unknownValues';
 import { ObjectPath, UnknownKey, UNKNOWN_PATH } from '../../utils/PathTracker';
-import { UnknownObjectExpression, UNKNOWN_EXPRESSION } from '../../values';
+import { UnknownObjectExpression } from '../../values';
 import BlockStatement from '../BlockStatement';
 import Identifier, { IdentifierWithVariable } from '../Identifier';
 import RestElement from '../RestElement';

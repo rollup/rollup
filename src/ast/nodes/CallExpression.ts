@@ -9,6 +9,7 @@ import {
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UnknownValue } from '../unknownValues';
 import {
 	EMPTY_PATH,
 	ObjectPath,
@@ -16,7 +17,6 @@ import {
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH
 } from '../utils/PathTracker';
-import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../values';
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';

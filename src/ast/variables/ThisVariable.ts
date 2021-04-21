@@ -2,8 +2,8 @@ import { AstContext } from '../../Module';
 import { CallOptions } from '../CallOptions';
 import { HasEffectsContext } from '../ExecutionContext';
 import { ExpressionEntity } from '../nodes/shared/Expression';
+import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UnknownValue } from '../unknownValues';
 import { ObjectPath } from '../utils/PathTracker';
-import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../values';
 import LocalVariable from './LocalVariable';
 
 export default class ThisVariable extends LocalVariable {

@@ -1,7 +1,7 @@
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext } from '../ExecutionContext';
+import { LiteralValueOrUnknown, UnknownValue } from '../unknownValues';
 import { EMPTY_PATH, ObjectPath, PathTracker } from '../utils/PathTracker';
-import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import Identifier from './Identifier';
 import { LiteralValue } from './Literal';
 import * as NodeType from './NodeType';

@@ -1,6 +1,7 @@
 import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
+import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../../unknownValues';
 import {
 	ObjectPath,
 	ObjectPathKey,
@@ -11,10 +12,7 @@ import {
 import {
 	getMemberReturnExpressionWhenCalled,
 	hasMemberEffectWhenCalled,
-	LiteralValueOrUnknown,
-	objectMembers,
-	UnknownValue,
-	UNKNOWN_EXPRESSION
+	objectMembers
 } from '../../values';
 import SpreadElement from '../SpreadElement';
 import { ExpressionEntity } from './Expression';

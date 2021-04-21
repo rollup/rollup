@@ -1,15 +1,13 @@
 import MagicString from 'magic-string';
 import { CallOptions } from '../CallOptions';
 import { HasEffectsContext } from '../ExecutionContext';
+import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../unknownValues';
 import { ObjectPath } from '../utils/PathTracker';
 import {
 	getLiteralMembersForValue,
 	getMemberReturnExpressionWhenCalled,
 	hasMemberEffectWhenCalled,
-	LiteralValueOrUnknown,
 	MemberDescription,
-	UnknownValue,
-	UNKNOWN_EXPRESSION
 } from '../values';
 import * as NodeType from './NodeType';
 import { GenericEsTreeNode, NodeBase } from './shared/Node';

@@ -1,8 +1,8 @@
 import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
+import { LiteralValueOrUnknown, UnknownValue } from '../../unknownValues';
 import { ObjectPath, PathTracker } from '../../utils/PathTracker';
-import { LiteralValueOrUnknown, UnknownValue } from '../../values';
 import { ExpressionEntity } from './Expression';
 import { IncludeChildren } from './Node';
 

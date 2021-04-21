@@ -11,6 +11,7 @@ import { removeAnnotations } from '../../utils/treeshakeNode';
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { LiteralValueOrUnknown, UnknownValue } from '../unknownValues';
 import {
 	EMPTY_PATH,
 	ObjectPath,
@@ -18,7 +19,6 @@ import {
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH
 } from '../utils/PathTracker';
-import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';

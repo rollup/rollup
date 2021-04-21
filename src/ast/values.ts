@@ -1,9 +1,8 @@
 import { CallOptions, NO_ARGS } from './CallOptions';
-import { HasEffectsContext, InclusionContext } from './ExecutionContext';
+import { HasEffectsContext } from './ExecutionContext';
 import { LiteralValue } from './nodes/Literal';
 import { ExpressionEntity } from './nodes/shared/Expression';
-import { ExpressionNode } from './nodes/shared/Node';
-import SpreadElement from './nodes/SpreadElement';
+import { UNKNOWN_EXPRESSION, UnknownExpression } from './unknownValues';
 import { EMPTY_PATH, ObjectPath, ObjectPathKey } from './utils/PathTracker';
 
 export interface MemberDescription {
@@ -28,59 +27,6 @@ function assembleMemberDescriptions(
 	return Object.create(inheritedDescriptions, memberDescriptions);
 }
 
-export const UnknownValue = Symbol('Unknown Value');
-export type LiteralValueOrUnknown = LiteralValue | typeof UnknownValue;
-
-class ValueBase implements ExpressionEntity {
-	included = true;
-
-	deoptimizePath() {}
-
-	getLiteralValueAtPath(): LiteralValueOrUnknown {
-		return UnknownValue;
-	}
-
-	getReturnExpressionWhenCalledAtPath(_path: ObjectPath) {
-		return UNKNOWN_EXPRESSION;
-	}
-
-	hasEffectsWhenAccessedAtPath(
-		path: ObjectPath,
-		_context: HasEffectsContext
-	) {
-		return path.length > 0
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath) {
-		return path.length > 0
-	}
-
-	hasEffectsWhenCalledAtPath(
-		_path: ObjectPath,
-		_callOptions: CallOptions,
-		_context: HasEffectsContext
-	) {
-		return true;
-	}
-
-	include() {}
-
-	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]) {
-		for (const arg of args) {
-			arg.include(context, false);
-		}
-	}
-
-	mayModifyThisWhenCalledAtPath() { return true; }
-}
-
-export const UNKNOWN_EXPRESSION: ExpressionEntity = new class UnknownExpression extends ValueBase {};
-
-export const UNDEFINED_EXPRESSION: ExpressionEntity = new class UndefinedExpression extends ValueBase {
-	getLiteralValueAtPath() {
-		return undefined;
-	}
-};
 
 const returnsUnknown: RawMemberDescription = {
 	value: {
@@ -97,7 +43,7 @@ const callsArgReturnsUnknown: RawMemberDescription = {
 	value: { returns: null, returnsPrimitive: UNKNOWN_EXPRESSION, callsArgs: [0], mutatesSelf: false }
 };
 
-export class UnknownArrayExpression extends ValueBase {
+export class UnknownArrayExpression extends UnknownExpression {
 	included = false;
 
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
@@ -164,7 +110,7 @@ const callsArgMutatesSelfReturnsArray: RawMemberDescription = {
 	}
 };
 
-const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = new class UnknownBoolean extends ValueBase {
+const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = new class UnknownBoolean extends UnknownExpression {
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
 		if (path.length === 1) {
 			return getMemberReturnExpressionWhenCalled(literalBooleanMembers, path[0]);
@@ -202,7 +148,7 @@ const callsArgReturnsBoolean: RawMemberDescription = {
 	}
 };
 
-const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = new class UnknownNumber extends ValueBase {
+const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = new class UnknownNumber extends UnknownExpression {
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
 		if (path.length === 1) {
 			return getMemberReturnExpressionWhenCalled(literalNumberMembers, path[0]);
@@ -246,7 +192,7 @@ const callsArgReturnsNumber: RawMemberDescription = {
 	}
 };
 
-const UNKNOWN_LITERAL_STRING: ExpressionEntity = new class UnknownString extends ValueBase {
+const UNKNOWN_LITERAL_STRING: ExpressionEntity = new class UnknownString extends UnknownExpression {
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
 		if (path.length === 1) {
 			return getMemberReturnExpressionWhenCalled(literalStringMembers, path[0]);
@@ -278,7 +224,7 @@ const returnsString: RawMemberDescription = {
 };
 
 // TODO Lukas instead use an object entity
-export class UnknownObjectExpression extends ValueBase {
+export class UnknownObjectExpression extends UnknownExpression {
 	included = false;
 
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {

@@ -3,6 +3,7 @@ import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { HasEffectsContext } from '../../ExecutionContext';
 import ChildScope from '../../scopes/ChildScope';
 import Scope from '../../scopes/Scope';
+import { LiteralValueOrUnknown, UnknownValue } from '../../unknownValues';
 import {
 	EMPTY_PATH,
 	ObjectPath,
@@ -10,7 +11,6 @@ import {
 	SHARED_RECURSION_TRACKER,
 	UnknownKey
 } from '../../utils/PathTracker';
-import { LiteralValueOrUnknown, UnknownValue } from '../../values';
 import ClassBody from '../ClassBody';
 import Identifier from '../Identifier';
 import Literal from '../Literal';

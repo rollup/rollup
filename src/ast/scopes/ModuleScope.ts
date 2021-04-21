@@ -1,7 +1,7 @@
 import { AstContext } from '../../Module';
 import { InternalModuleFormat } from '../../rollup/types';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
-import { UNDEFINED_EXPRESSION } from '../values';
+import { UNDEFINED_EXPRESSION } from '../unknownValues';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import GlobalVariable from '../variables/GlobalVariable';
 import LocalVariable from '../variables/LocalVariable';

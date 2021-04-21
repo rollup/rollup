@@ -13,8 +13,8 @@ import {
 } from '../../ExecutionContext';
 import { getAndCreateKeys, keys } from '../../keys';
 import ChildScope from '../../scopes/ChildScope';
+import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UnknownValue } from '../../unknownValues';
 import { ObjectPath, PathTracker } from '../../utils/PathTracker';
-import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../../values';
 import Variable from '../../variables/Variable';
 import * as NodeType from '../NodeType';
 import SpreadElement from '../SpreadElement';

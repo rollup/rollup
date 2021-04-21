@@ -1,4 +1,4 @@
-import { LiteralValueOrUnknown } from '../values';
+import { LiteralValueOrUnknown } from '../unknownValues';
 import Variable from './Variable';
 
 export default class UndefinedVariable extends Variable {

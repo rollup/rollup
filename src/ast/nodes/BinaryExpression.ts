@@ -1,12 +1,12 @@
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext } from '../ExecutionContext';
+import { LiteralValueOrUnknown, UnknownValue } from '../unknownValues';
 import {
 	EMPTY_PATH,
 	ObjectPath,
 	PathTracker,
 	SHARED_RECURSION_TRACKER
 } from '../utils/PathTracker';
-import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import ExpressionStatement from './ExpressionStatement';
 import { LiteralValue } from './Literal';
 import * as NodeType from './NodeType';

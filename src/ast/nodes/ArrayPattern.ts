@@ -1,6 +1,6 @@
 import { HasEffectsContext } from '../ExecutionContext';
+import { UNKNOWN_EXPRESSION } from '../unknownValues';
 import { EMPTY_PATH, ObjectPath } from '../utils/PathTracker';
-import { UNKNOWN_EXPRESSION } from '../values';
 import Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';

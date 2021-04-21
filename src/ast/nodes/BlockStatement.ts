@@ -4,7 +4,7 @@ import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import ChildScope from '../scopes/ChildScope';
 import Scope from '../scopes/Scope';
-import { UNKNOWN_EXPRESSION } from '../values';
+import { UNKNOWN_EXPRESSION } from '../unknownValues';
 import ExpressionStatement from './ExpressionStatement';
 import * as NodeType from './NodeType';
 import { IncludeChildren, Node, StatementBase, StatementNode } from './shared/Node';

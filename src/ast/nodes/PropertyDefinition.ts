@@ -1,8 +1,8 @@
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext } from '../ExecutionContext';
+import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UnknownValue } from '../unknownValues';
 import { ObjectPath, PathTracker } from '../utils/PathTracker';
-import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../values';
 import * as NodeType from './NodeType';
 import PrivateIdentifier from './PrivateIdentifier';
 import { ExpressionEntity } from './shared/Expression';

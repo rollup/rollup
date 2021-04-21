@@ -7,8 +7,8 @@ import {
 	RenderOptions
 } from '../../utils/renderHelpers';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { UNDEFINED_EXPRESSION } from '../unknownValues';
 import { ObjectPath } from '../utils/PathTracker';
-import { UNDEFINED_EXPRESSION } from '../values';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';

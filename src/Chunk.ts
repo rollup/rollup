@@ -3,7 +3,7 @@ import { relative } from '../browser/path';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
 import ChildScope from './ast/scopes/ChildScope';
-import { UNDEFINED_EXPRESSION } from './ast/values';
+import { UNDEFINED_EXPRESSION } from './ast/unknownValues';
 import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
 import ExportShimVariable from './ast/variables/ExportShimVariable';
 import LocalVariable from './ast/variables/LocalVariable';

@@ -1,11 +1,11 @@
 import { CallOptions } from '../CallOptions';
 import { HasEffectsContext } from '../ExecutionContext';
+import { UNKNOWN_EXPRESSION } from '../unknownValues';
 import { ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import {
 	arrayMembers,
 	getMemberReturnExpressionWhenCalled,
 	hasMemberEffectWhenCalled,
-	UNKNOWN_EXPRESSION
 } from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';

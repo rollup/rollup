@@ -1,8 +1,8 @@
 import { CallOptions, NO_ARGS } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext } from '../ExecutionContext';
+import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION } from '../unknownValues';
 import { EMPTY_PATH, ObjectPath, PathTracker } from '../utils/PathTracker';
-import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION } from '../values';
 import FunctionExpression from './FunctionExpression';
 import * as NodeType from './NodeType';
 import PrivateIdentifier from './PrivateIdentifier';
@@ -83,9 +83,9 @@ export default class MethodDefinition extends NodeBase {
 		if (this.accessedValue === null) {
 			if (this.kind === 'get') {
 				this.accessedValue = UNKNOWN_EXPRESSION;
-				this.accessedValue = this.value.getReturnExpressionWhenCalledAtPath(EMPTY_PATH);
+				return this.accessedValue = this.value.getReturnExpressionWhenCalledAtPath(EMPTY_PATH);
 			} else {
-				this.accessedValue = this.value;
+				return this.accessedValue = this.value;
 			}
 		}
 		return this.accessedValue;

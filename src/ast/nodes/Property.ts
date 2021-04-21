@@ -4,6 +4,7 @@ import { RenderOptions } from '../../utils/renderHelpers';
 import { CallOptions, NO_ARGS } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext } from '../ExecutionContext';
+import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION } from '../unknownValues';
 import {
 	EMPTY_PATH,
 	ObjectPath,
@@ -11,7 +12,6 @@ import {
 	SHARED_RECURSION_TRACKER,
 	UnknownKey
 } from '../utils/PathTracker';
-import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION } from '../values';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
