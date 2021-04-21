@@ -4,11 +4,7 @@ import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext } from '../ExecutionContext';
-import {
-	getObjectPathHandler,
-	ObjectPathHandler,
-	ObjectProperty
-} from '../utils/ObjectPathHandler';
+import { ObjectProperty } from '../utils/ObjectPathHandler';
 import {
 	EMPTY_PATH,
 	ObjectPath,
@@ -16,34 +12,28 @@ import {
 	SHARED_RECURSION_TRACKER,
 	UnknownKey
 } from '../utils/PathTracker';
-import {
-	getMemberReturnExpressionWhenCalled,
-	hasMemberEffectWhenCalled,
-	LiteralValueOrUnknown,
-	objectMembers,
-	UnknownValue,
-	UNKNOWN_EXPRESSION
-} from '../values';
+import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../values';
 import Identifier from './Identifier';
 import Literal from './Literal';
 import * as NodeType from './NodeType';
 import Property from './Property';
 import { ExpressionEntity } from './shared/Expression';
 import { NodeBase } from './shared/Node';
+import { ObjectEntity } from './shared/ObjectEntity';
 import SpreadElement from './SpreadElement';
 
 export default class ObjectExpression extends NodeBase implements DeoptimizableEntity {
 	properties!: (Property | SpreadElement)[];
 	type!: NodeType.tObjectExpression;
 
-	private objectPathHandler: ObjectPathHandler | null = null;
+	private objectEntity: ObjectEntity | null = null;
 
 	deoptimizeCache() {
-		this.getObjectPathHandler().deoptimizeAllProperties();
+		this.getObjectEntity().deoptimizeAllProperties();
 	}
 
 	deoptimizePath(path: ObjectPath) {
-		this.getObjectPathHandler().deoptimizePath(path);
+		this.getObjectEntity().deoptimizePath(path);
 	}
 
 	getLiteralValueAtPath(
@@ -51,21 +41,7 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		if (path.length === 0) {
-			return UnknownValue;
-		}
-		const key = path[0];
-		const expressionAtPath = this.getObjectPathHandler().getMemberExpressionAndTrackDeopt(
-			key,
-			origin
-		);
-		if (expressionAtPath) {
-			return expressionAtPath.getLiteralValueAtPath(path.slice(1), recursionTracker, origin);
-		}
-		if (path.length === 1 && !objectMembers[key as string]) {
-			return undefined;
-		}
-		return UnknownValue;
+		return this.getObjectEntity().getLiteralValueAtPath(path, recursionTracker, origin);
 	}
 
 	getReturnExpressionWhenCalledAtPath(
@@ -73,41 +49,19 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
-		if (path.length === 0) {
-			return UNKNOWN_EXPRESSION;
-		}
-		const key = path[0];
-		const expressionAtPath = this.getObjectPathHandler().getMemberExpressionAndTrackDeopt(
-			key,
+		return this.getObjectEntity().getReturnExpressionWhenCalledAtPath(
+			path,
+			recursionTracker,
 			origin
 		);
-		if (expressionAtPath) {
-			return expressionAtPath.getReturnExpressionWhenCalledAtPath(
-				path.slice(1),
-				recursionTracker,
-				origin
-			);
-		}
-		if (path.length === 1) {
-			return getMemberReturnExpressionWhenCalled(objectMembers, key);
-		}
-		return UNKNOWN_EXPRESSION;
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext) {
-		if (path.length === 0) {
-			return false;
-		}
-		const key = path[0];
-		const expressionAtPath = this.getObjectPathHandler().getMemberExpression(key);
-		if (expressionAtPath) {
-			return expressionAtPath.hasEffectsWhenAccessedAtPath(path.slice(1), context);
-		}
-		return path.length > 1;
+		return this.getObjectEntity().hasEffectsWhenAccessedAtPath(path, context);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext) {
-		return this.getObjectPathHandler().hasEffectsWhenAssignedAtPath(path, context);
+		return this.getObjectEntity().hasEffectsWhenAssignedAtPath(path, context);
 	}
 
 	hasEffectsWhenCalledAtPath(
@@ -115,15 +69,7 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		callOptions: CallOptions,
 		context: HasEffectsContext
 	): boolean {
-		const key = path[0];
-		const expressionAtPath = this.getObjectPathHandler().getMemberExpression(key);
-		if (expressionAtPath) {
-			return expressionAtPath.hasEffectsWhenCalledAtPath(path.slice(1), callOptions, context);
-		}
-		if (path.length > 1) {
-			return true;
-		}
-		return hasMemberEffectWhenCalled(objectMembers, key, this.included, callOptions, context);
+		return this.getObjectEntity().hasEffectsWhenCalledAtPath(path, callOptions, context);
 	}
 
 	mayModifyThisWhenCalledAtPath(
@@ -131,22 +77,7 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	) {
-		if (path.length === 0) {
-			return false;
-		}
-		const key = path[0];
-		const expressionAtPath = this.getObjectPathHandler().getMemberExpressionAndTrackDeopt(
-			key,
-			origin
-		);
-		if (expressionAtPath) {
-			return expressionAtPath.mayModifyThisWhenCalledAtPath(
-				path.slice(1),
-				recursionTracker,
-				origin
-			);
-		}
-		return false;
+		return this.getObjectEntity().mayModifyThisWhenCalledAtPath(path, recursionTracker, origin);
 	}
 
 	render(
@@ -165,9 +96,9 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		}
 	}
 
-	private getObjectPathHandler(): ObjectPathHandler {
-		if (this.objectPathHandler !== null) {
-			return this.objectPathHandler;
+	private getObjectEntity(): ObjectEntity {
+		if (this.objectEntity !== null) {
+			return this.objectEntity;
 		}
 		const properties: ObjectProperty[] = [];
 		for (const property of this.properties) {
@@ -200,6 +131,6 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 			}
 			properties.push({ kind: property.kind, key, property });
 		}
-		return (this.objectPathHandler = getObjectPathHandler(properties));
+		return (this.objectEntity = new ObjectEntity(properties));
 	}
 }

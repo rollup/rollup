@@ -290,6 +290,7 @@ const returnsString: RawMemberDescription = {
 	}
 };
 
+// TODO Lukas instead use an object entity
 export class UnknownObjectExpression extends ValueBase {
 	included = false;
 

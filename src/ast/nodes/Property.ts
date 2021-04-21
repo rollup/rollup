@@ -26,16 +26,15 @@ export default class Property extends NodeBase implements DeoptimizableEntity, P
 	type!: NodeType.tProperty;
 	value!: ExpressionNode | (ExpressionNode & PatternNode);
 
-	private accessorCallOptions!: CallOptions;
+	private accessorCallOptions: CallOptions = {
+		args: NO_ARGS,
+		withNew: false
+	};
 	private declarationInit: ExpressionEntity | null = null;
 	private returnExpression: ExpressionEntity | null = null;
 
 	bind() {
 		super.bind();
-		if (this.kind === 'get') {
-			// ensure the returnExpression is set for the tree-shaking passes
-			this.getReturnExpression();
-		}
 		if (this.declarationInit !== null) {
 			this.declarationInit.deoptimizePath([UnknownKey, UnknownKey]);
 		}
@@ -46,8 +45,8 @@ export default class Property extends NodeBase implements DeoptimizableEntity, P
 		return (this.value as PatternNode).declare(kind, UNKNOWN_EXPRESSION);
 	}
 
-	// As getter properties directly receive their values from function expressions that always
-	// have a fixed return value, there is no known situation where a getter is deoptimized.
+	// As getter properties directly receive their values from fixed function
+	// expressions, there is no known situation where a getter is deoptimized.
 	deoptimizeCache(): void {}
 
 	deoptimizePath(path: ObjectPath) {
@@ -91,6 +90,8 @@ export default class Property extends NodeBase implements DeoptimizableEntity, P
 			this.value.hasEffects(context);
 	}
 
+	// TODO Lukas why do we have recursion tracking here?
+	// TODO Lukas can we simplify things like with MethodDefinition?
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		if (this.kind === 'get') {
 			const trackedExpressions = context.accessed.getEntities(path);
@@ -98,7 +99,7 @@ export default class Property extends NodeBase implements DeoptimizableEntity, P
 			trackedExpressions.add(this);
 			return (
 				this.value.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.accessorCallOptions, context) ||
-				(path.length > 0 && this.returnExpression!.hasEffectsWhenAccessedAtPath(path, context))
+				(path.length > 0 && this.getReturnExpression().hasEffectsWhenAccessedAtPath(path, context))
 			);
 		}
 		return this.value.hasEffectsWhenAccessedAtPath(path, context);
@@ -109,7 +110,7 @@ export default class Property extends NodeBase implements DeoptimizableEntity, P
 			const trackedExpressions = context.assigned.getEntities(path);
 			if (trackedExpressions.has(this)) return false;
 			trackedExpressions.add(this);
-			return this.returnExpression!.hasEffectsWhenAssignedAtPath(path, context);
+			return this.getReturnExpression().hasEffectsWhenAssignedAtPath(path, context);
 		}
 		if (this.kind === 'set') {
 			const trackedExpressions = context.assigned.getEntities(path);
@@ -132,16 +133,9 @@ export default class Property extends NodeBase implements DeoptimizableEntity, P
 			).getEntities(path, callOptions);
 			if (trackedExpressions.has(this)) return false;
 			trackedExpressions.add(this);
-			return this.returnExpression!.hasEffectsWhenCalledAtPath(path, callOptions, context);
+			return this.getReturnExpression().hasEffectsWhenCalledAtPath(path, callOptions, context);
 		}
 		return this.value.hasEffectsWhenCalledAtPath(path, callOptions, context);
-	}
-
-	initialise() {
-		this.accessorCallOptions = {
-			args: NO_ARGS,
-			withNew: false
-		};
 	}
 
 	mayModifyThisWhenCalledAtPath(path: ObjectPath, recursionTracker: PathTracker, origin: DeoptimizableEntity): boolean {

@@ -18,7 +18,9 @@ export function getObjectPathHandler(properties: ObjectProperty[]) {
 	const {
 		allProperties,
 		propertiesByKey,
+		gettersByKey,
 		settersByKey,
+		unmatchableGetters,
 		unmatchableProperties,
 		unmatchableSetters
 	} = getPropertyMaps(properties);
@@ -29,6 +31,8 @@ export function getObjectPathHandler(properties: ObjectProperty[]) {
 		null
 	);
 
+	// TODO Lukas it would be really interesting to know if we have any getters here?
+	// -> Add a third table of getters here!
 	function getMemberExpression(key: ObjectPathKey): ExpressionEntity | null {
 		if (hasUnknownDeoptimizedProperty || typeof key !== 'string' || deoptimizedPaths.has(key)) {
 			return UNKNOWN_EXPRESSION;
@@ -56,6 +60,22 @@ export function getObjectPathHandler(properties: ObjectProperty[]) {
 			expressionsToBeDeoptimized.push(origin);
 		}
 		return expression;
+	}
+
+	function hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
+		const [key, ...subPath] = path;
+		if (path.length > 1) {
+			const expressionAtPath = getMemberExpression(key);
+			return !expressionAtPath || expressionAtPath.hasEffectsWhenAccessedAtPath(subPath, context);
+		}
+
+		if (typeof key !== 'string') return true;
+
+		const properties = gettersByKey[key] || unmatchableGetters;
+		for (const property of properties) {
+			if (property.hasEffectsWhenAccessedAtPath(subPath, context)) return true;
+		}
+		return false;
 	}
 
 	function hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
@@ -124,6 +144,7 @@ export function getObjectPathHandler(properties: ObjectProperty[]) {
 		deoptimizePath,
 		getMemberExpression,
 		getMemberExpressionAndTrackDeopt,
+		hasEffectsWhenAccessedAtPath,
 		hasEffectsWhenAssignedAtPath
 	};
 }
@@ -132,16 +153,20 @@ function getPropertyMaps(
 	properties: ObjectProperty[]
 ): {
 	allProperties: ExpressionEntity[];
+	gettersByKey: Record<string, ExpressionEntity[]>;
 	propertiesByKey: Record<string, ExpressionEntity[]>;
 	settersByKey: Record<string, ExpressionEntity[]>;
+	unmatchableGetters: ExpressionEntity[];
 	unmatchableProperties: ExpressionEntity[];
 	unmatchableSetters: ExpressionEntity[];
 } {
 	const allProperties = [];
 	const propertiesByKey: PropertyMap = Object.create(null);
 	const settersByKey: PropertyMap = Object.create(null);
+	const gettersByKey: PropertyMap = Object.create(null);
 	const unmatchableProperties: ExpressionEntity[] = [];
 	const unmatchableSetters: ExpressionEntity[] = [];
+	const unmatchableGetters: ExpressionEntity[] = [];
 	for (let index = properties.length - 1; index >= 0; index--) {
 		const { key, kind, property } = properties[index];
 		allProperties.push(property);
@@ -154,15 +179,24 @@ function getPropertyMaps(
 		} else {
 			if (typeof key !== 'string') {
 				unmatchableProperties.push(property);
+				if (kind === 'get') {
+					unmatchableGetters.push(property);
+				}
 			} else if (!propertiesByKey[key]) {
 				propertiesByKey[key] = [property, ...unmatchableProperties];
+				gettersByKey[key] = [...unmatchableGetters];
+				if (kind === 'get') {
+					gettersByKey[key].push(property);
+				}
 			}
 		}
 	}
 	return {
 		allProperties,
+		gettersByKey,
 		propertiesByKey,
 		settersByKey,
+		unmatchableGetters,
 		unmatchableProperties,
 		unmatchableSetters
 	};
