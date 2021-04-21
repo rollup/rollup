@@ -19,6 +19,12 @@ import { ExpressionEntity } from './Expression';
 import { ExpressionNode, NodeBase } from './Node';
 import { ObjectEntity, ObjectProperty } from './ObjectEntity';
 
+// TODO Lukas
+//  * Create an object entity for the object prototype
+//  * Introduce a prototype expression and use the entity
+//  * Use the object prototype also for unknown expressions
+//  * __proto__ assignment handling might be possible solely via the object prototype? But it would need to deoptimize the entire prototype chain: Bad. Better we always replace the prototype with "unknown" on assigment
+//  * __proto__: foo handling however is an ObjectExpression feature
 export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	body!: ClassBody;
 	id!: Identifier | null;

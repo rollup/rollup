@@ -31,7 +31,7 @@ function assembleMemberDescriptions(
 export const UnknownValue = Symbol('Unknown Value');
 export type LiteralValueOrUnknown = LiteralValue | typeof UnknownValue;
 
-abstract class ValueBase implements ExpressionEntity {
+class ValueBase implements ExpressionEntity {
 	included = true;
 
 	deoptimizePath() {}
@@ -65,24 +65,18 @@ abstract class ValueBase implements ExpressionEntity {
 
 	include() {}
 
-	includeCallArguments(_context: InclusionContext, _args: (ExpressionNode | SpreadElement)[]) {}
+	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]) {
+		for (const arg of args) {
+			arg.include(context, false);
+		}
+	}
 
 	mayModifyThisWhenCalledAtPath() { return true; }
 }
 
-function includeAll(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]) {
-	for (const arg of args) {
-		arg.include(context, false);
-	}
-}
+export const UNKNOWN_EXPRESSION: ExpressionEntity = new class UnknownExpression extends ValueBase {};
 
-export const UNKNOWN_EXPRESSION: ExpressionEntity = new class extends ValueBase {
-	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
-		includeAll(context, args);
-	}
-};
-
-export const UNDEFINED_EXPRESSION: ExpressionEntity = new class extends ValueBase {
+export const UNDEFINED_EXPRESSION: ExpressionEntity = new class UndefinedExpression extends ValueBase {
 	getLiteralValueAtPath() {
 		return undefined;
 	}
@@ -135,10 +129,6 @@ export class UnknownArrayExpression extends ValueBase {
 	include() {
 		this.included = true;
 	}
-
-	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
-		includeAll(context, args);
-	}
 }
 
 const returnsArray: RawMemberDescription = {
@@ -174,25 +164,24 @@ const callsArgMutatesSelfReturnsArray: RawMemberDescription = {
 	}
 };
 
-const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = new class extends ValueBase {
+const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = new class UnknownBoolean extends ValueBase {
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
 		if (path.length === 1) {
 			return getMemberReturnExpressionWhenCalled(literalBooleanMembers, path[0]);
 		}
 		return UNKNOWN_EXPRESSION;
 	}
+
 	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
 		return path.length > 1
 	}
+
 	hasEffectsWhenCalledAtPath(path: ObjectPath) {
 		if (path.length === 1) {
 			const subPath = path[0];
 			return typeof subPath !== 'string' || !literalBooleanMembers[subPath];
 		}
 		return true;
-	}
-	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
-		includeAll(context, args);
 	}
 };
 
@@ -213,23 +202,22 @@ const callsArgReturnsBoolean: RawMemberDescription = {
 	}
 };
 
-const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = new class extends ValueBase {
+const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = new class UnknownNumber extends ValueBase {
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
 		if (path.length === 1) {
 			return getMemberReturnExpressionWhenCalled(literalNumberMembers, path[0]);
 		}
 		return UNKNOWN_EXPRESSION;
 	}
+
 	hasEffectsWhenAccessedAtPath(path: ObjectPath) { return path.length > 1; }
+
 	hasEffectsWhenCalledAtPath(path: ObjectPath) {
 		if (path.length === 1) {
 			const subPath = path[0];
 			return typeof subPath !== 'string' || !literalNumberMembers[subPath];
 		}
 		return true;
-	}
-	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
-		includeAll(context, args);
 	}
 };
 
@@ -258,14 +246,16 @@ const callsArgReturnsNumber: RawMemberDescription = {
 	}
 };
 
-const UNKNOWN_LITERAL_STRING: ExpressionEntity = new class extends ValueBase {
+const UNKNOWN_LITERAL_STRING: ExpressionEntity = new class UnknownString extends ValueBase {
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
 		if (path.length === 1) {
 			return getMemberReturnExpressionWhenCalled(literalStringMembers, path[0]);
 		}
 		return UNKNOWN_EXPRESSION;
 	}
+
 	hasEffectsWhenAccessedAtPath(path: ObjectPath) { return path.length > 1 }
+
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
@@ -275,9 +265,6 @@ const UNKNOWN_LITERAL_STRING: ExpressionEntity = new class extends ValueBase {
 			return hasMemberEffectWhenCalled(literalStringMembers, path[0], true, callOptions, context);
 		}
 		return true;
-	}
-	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
-		includeAll(context, args);
 	}
 };
 
@@ -322,10 +309,6 @@ export class UnknownObjectExpression extends ValueBase {
 
 	include() {
 		this.included = true;
-	}
-
-	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
-		includeAll(context, args);
 	}
 }
 
