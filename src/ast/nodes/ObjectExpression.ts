@@ -4,7 +4,6 @@ import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext } from '../ExecutionContext';
-import { ObjectProperty } from '../utils/ObjectPathHandler';
 import {
 	EMPTY_PATH,
 	ObjectPath,
@@ -19,7 +18,7 @@ import * as NodeType from './NodeType';
 import Property from './Property';
 import { ExpressionEntity } from './shared/Expression';
 import { NodeBase } from './shared/Node';
-import { ObjectEntity } from './shared/ObjectEntity';
+import { ObjectEntity, ObjectProperty } from './shared/ObjectEntity';
 import SpreadElement from './SpreadElement';
 
 export default class ObjectExpression extends NodeBase implements DeoptimizableEntity {

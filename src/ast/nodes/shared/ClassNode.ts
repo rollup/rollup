@@ -3,7 +3,6 @@ import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { HasEffectsContext } from '../../ExecutionContext';
 import ChildScope from '../../scopes/ChildScope';
 import Scope from '../../scopes/Scope';
-import { ObjectProperty } from '../../utils/ObjectPathHandler';
 import {
 	EMPTY_PATH,
 	ObjectPath,
@@ -18,7 +17,7 @@ import Literal from '../Literal';
 import MethodDefinition from '../MethodDefinition';
 import { ExpressionEntity } from './Expression';
 import { ExpressionNode, NodeBase } from './Node';
-import { ObjectEntity } from './ObjectEntity';
+import { ObjectEntity, ObjectProperty } from './ObjectEntity';
 
 export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	body!: ClassBody;
