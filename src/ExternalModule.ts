@@ -120,10 +120,7 @@ export default class ExternalModule {
 
 		const importersArray = Array.from(importersSet)
 
-		let importerList = ''
-		if (importersArray.length > 0) {
-			importerList = ' in' + importersArray.map(s => `\n\t${s};`)
-		}
+		const importerList = ' in' + importersArray.map(s => `\n\t${s};`)
 
 		this.options.onwarn({
 			code: 'UNUSED_EXTERNAL_IMPORT',
