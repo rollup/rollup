@@ -18,11 +18,10 @@ import MethodDefinition from '../MethodDefinition';
 import { ExpressionEntity } from './Expression';
 import { ExpressionNode, NodeBase } from './Node';
 import { ObjectEntity, ObjectProperty } from './ObjectEntity';
+import { ObjectMember } from './ObjectMember';
+import { OBJECT_PROTOTYPE } from './ObjectPrototype';
 
 // TODO Lukas
-//  * Create an object entity for the object prototype
-//  * Introduce a prototype expression and use the entity
-//  * Use the object prototype also for unknown expressions
 //  * __proto__ assignment handling might be possible solely via the object prototype? But it would need to deoptimize the entire prototype chain: Bad. Better we always replace the prototype with "unknown" on assigment
 //  * __proto__: foo handling however is an ObjectExpression feature
 export default class ClassNode extends NodeBase implements DeoptimizableEntity {
@@ -38,14 +37,13 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	}
 
 	deoptimizeCache() {
-		this.getObjectEntity().deoptimizeAllProperties();
+		this.getObjectEntity().deoptimizeObject();
 	}
 
 	deoptimizePath(path: ObjectPath) {
 		this.getObjectEntity().deoptimizePath(path);
 	}
 
-	// TODO Lukas also check super class, prototype
 	getLiteralValueAtPath(
 		path: ObjectPath,
 		recursionTracker: PathTracker,
@@ -54,7 +52,6 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		return this.getObjectEntity().getLiteralValueAtPath(path, recursionTracker, origin);
 	}
 
-	// TODO Lukas also check super class
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		recursionTracker: PathTracker,
@@ -67,18 +64,14 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		);
 	}
 
-	// TODO Lukas also check super class
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext) {
-		// TODO Lukas if there is no direct match and no effect, also check superclass
 		return this.getObjectEntity().hasEffectsWhenAccessedAtPath(path, context);
 	}
 
-	// TODO Lukas prototype
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext) {
 		return this.getObjectEntity().hasEffectsWhenAssignedAtPath(path, context);
 	}
 
-	// TODO Lukas also check super class
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,
@@ -110,7 +103,6 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		this.classConstructor = null;
 	}
 
-	// TODO Lukas also check super class
 	mayModifyThisWhenCalledAtPath(
 		path: ObjectPath,
 		recursionTracker: PathTracker,
@@ -153,8 +145,14 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		staticProperties.unshift({
 			key: 'prototype',
 			kind: 'init',
-			property: new ObjectEntity(dynamicProperties)
+			property: new ObjectEntity(
+				dynamicProperties,
+				this.superClass ? new ObjectMember(this.superClass, 'prototype') : OBJECT_PROTOTYPE
+			)
 		});
-		return (this.objectEntity = new ObjectEntity(staticProperties));
+		return (this.objectEntity = new ObjectEntity(
+			staticProperties,
+			this.superClass || OBJECT_PROTOTYPE
+		));
 	}
 }

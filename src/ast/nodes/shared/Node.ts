@@ -13,7 +13,7 @@ import {
 } from '../../ExecutionContext';
 import { getAndCreateKeys, keys } from '../../keys';
 import ChildScope from '../../scopes/ChildScope';
-import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UnknownValue } from '../../unknownValues';
+import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../../unknownValues';
 import { ObjectPath, PathTracker } from '../../utils/PathTracker';
 import Variable from '../../variables/Variable';
 import * as NodeType from '../NodeType';
@@ -150,6 +150,8 @@ export class NodeBase implements ExpressionNode {
 	}
 
 	deoptimizePath(_path: ObjectPath) {}
+
+	deoptimizeProperties() {}
 
 	getLiteralValueAtPath(
 		_path: ObjectPath,

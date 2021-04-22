@@ -2,7 +2,7 @@ import { CallOptions, NO_ARGS } from './CallOptions';
 import { HasEffectsContext } from './ExecutionContext';
 import { LiteralValue } from './nodes/Literal';
 import { ExpressionEntity } from './nodes/shared/Expression';
-import { UNKNOWN_EXPRESSION, UnknownExpression } from './unknownValues';
+import { UnknownExpression, UNKNOWN_EXPRESSION } from './unknownValues';
 import { EMPTY_PATH, ObjectPath, ObjectPathKey } from './utils/PathTracker';
 
 export interface MemberDescription {
@@ -110,7 +110,7 @@ const callsArgMutatesSelfReturnsArray: RawMemberDescription = {
 	}
 };
 
-const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = new class UnknownBoolean extends UnknownExpression {
+export const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = new class UnknownBoolean extends UnknownExpression {
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
 		if (path.length === 1) {
 			return getMemberReturnExpressionWhenCalled(literalBooleanMembers, path[0]);
@@ -192,7 +192,7 @@ const callsArgReturnsNumber: RawMemberDescription = {
 	}
 };
 
-const UNKNOWN_LITERAL_STRING: ExpressionEntity = new class UnknownString extends UnknownExpression {
+export const UNKNOWN_LITERAL_STRING: ExpressionEntity = new class UnknownString extends UnknownExpression {
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
 		if (path.length === 1) {
 			return getMemberReturnExpressionWhenCalled(literalStringMembers, path[0]);
@@ -223,7 +223,9 @@ const returnsString: RawMemberDescription = {
 	}
 };
 
-// TODO Lukas instead use an object entity
+// TODO Lukas This could just be the constant and above, we use an ObjectEntity with OBJECT_PROTOTYPE as prototype
+// TODO Lukas Also, the name should reflect we assume neither getters nor setters and do not override builtins
+// or just remove?
 export class UnknownObjectExpression extends UnknownExpression {
 	included = false;
 

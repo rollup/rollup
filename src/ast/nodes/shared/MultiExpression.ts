@@ -21,6 +21,12 @@ export class MultiExpression implements ExpressionEntity {
 		}
 	}
 
+	deoptimizeProperties() {
+		for (const expression of this.expressions) {
+			expression.deoptimizeProperties();
+		}
+	}
+
 	getLiteralValueAtPath(): LiteralValueOrUnknown {
 		return UnknownValue;
 	}

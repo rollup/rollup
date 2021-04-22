@@ -4,7 +4,7 @@ import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext } from '../ExecutionContext';
-import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UnknownValue } from '../unknownValues';
+import { LiteralValueOrUnknown, UnknownValue,  UNKNOWN_EXPRESSION } from '../unknownValues';
 import {
 	EMPTY_PATH,
 	ObjectPath,
@@ -19,6 +19,7 @@ import Property from './Property';
 import { ExpressionEntity } from './shared/Expression';
 import { NodeBase } from './shared/Node';
 import { ObjectEntity, ObjectProperty } from './shared/ObjectEntity';
+import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';
 import SpreadElement from './SpreadElement';
 
 export default class ObjectExpression extends NodeBase implements DeoptimizableEntity {
@@ -28,7 +29,7 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 	private objectEntity: ObjectEntity | null = null;
 
 	deoptimizeCache() {
-		this.getObjectEntity().deoptimizeAllProperties();
+		this.getObjectEntity().deoptimizeObject();
 	}
 
 	deoptimizePath(path: ObjectPath) {
@@ -130,6 +131,6 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 			}
 			properties.push({ kind: property.kind, key, property });
 		}
-		return (this.objectEntity = new ObjectEntity(properties));
+		return (this.objectEntity = new ObjectEntity(properties, OBJECT_PROTOTYPE));
 	}
 }

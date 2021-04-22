@@ -242,7 +242,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			return this.variable.mayModifyThisWhenCalledAtPath(path, recursionTracker, origin);
 		}
 		return this.object.mayModifyThisWhenCalledAtPath(
-			[this.propertyKey as ObjectPathKey].concat(path),
+			[this.propertyKey!, ...path],
 			recursionTracker,
 			origin
 		);

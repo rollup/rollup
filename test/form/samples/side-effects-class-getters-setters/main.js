@@ -59,12 +59,19 @@ RetainedSub.a;
 class RemovedSub extends RetainedSuper {}
 RemovedSub.b;
 
-class DeoptProto {}
-unknown(DeoptProto.prototype);
-DeoptProto.prototype.a;
+class RemovedProtoValue {
+	a = true;
+}
+if (!RemovedProtoValue.prototype.a) log();
+
+class DeoptProto {
+	a = true;
+}
+globalThis.unknown(DeoptProto.prototype);
+if (!DeoptProto.prototype.a) log();
 
 class DeoptComputed {
 	static get a() {}
-	static get [unknown]() { log(); }
+	static get [globalThis.unknown]() { log(); }
 }
 DeoptComputed.a;

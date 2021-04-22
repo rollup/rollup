@@ -14,6 +14,8 @@ export class UnknownExpression implements ExpressionEntity {
 
 	deoptimizePath() {}
 
+	deoptimizeProperties() {}
+
 	getLiteralValueAtPath(): LiteralValueOrUnknown {
 		return UnknownValue;
 	}
@@ -22,15 +24,12 @@ export class UnknownExpression implements ExpressionEntity {
 		return UNKNOWN_EXPRESSION;
 	}
 
-	hasEffectsWhenAccessedAtPath(
-		path: ObjectPath,
-		_context: HasEffectsContext
-	) {
-		return path.length > 0
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, _context: HasEffectsContext) {
+		return path.length > 0;
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath) {
-		return path.length > 0
+		return path.length > 0;
 	}
 
 	hasEffectsWhenCalledAtPath(
@@ -49,13 +48,16 @@ export class UnknownExpression implements ExpressionEntity {
 		}
 	}
 
-	mayModifyThisWhenCalledAtPath() { return true; }
+	mayModifyThisWhenCalledAtPath() {
+		return true;
+	}
 }
 
 export const UNKNOWN_EXPRESSION: ExpressionEntity = new UnknownExpression();
 
-export const UNDEFINED_EXPRESSION: ExpressionEntity = new class UndefinedExpression extends UnknownExpression {
+// TODO Lukas maybe move this back to values
+export const UNDEFINED_EXPRESSION: ExpressionEntity = new (class UndefinedExpression extends UnknownExpression {
 	getLiteralValueAtPath() {
 		return undefined;
 	}
-};
+})();

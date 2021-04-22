@@ -55,8 +55,18 @@ export default class MethodDefinition extends NodeBase {
 		if (this.kind === 'get') {
 			return (
 				this.value.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.accessorCallOptions, context) ||
-				(path.length > 0 && this.getAccessedValue().hasEffectsWhenAccessedAtPath(path, context))
+				this.getAccessedValue().hasEffectsWhenAccessedAtPath(path, context)
 			);
+		}
+		return this.value.hasEffectsWhenAccessedAtPath(path);
+	}
+
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
+		if (this.kind === 'get') {
+			return this.getAccessedValue().hasEffectsWhenAssignedAtPath(path, context);
+		}
+		if (this.kind === 'set') {
+			return this.value.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.accessorCallOptions, context);
 		}
 		return this.value.hasEffectsWhenAccessedAtPath(path);
 	}
@@ -83,9 +93,9 @@ export default class MethodDefinition extends NodeBase {
 		if (this.accessedValue === null) {
 			if (this.kind === 'get') {
 				this.accessedValue = UNKNOWN_EXPRESSION;
-				return this.accessedValue = this.value.getReturnExpressionWhenCalledAtPath(EMPTY_PATH);
+				return (this.accessedValue = this.value.getReturnExpressionWhenCalledAtPath(EMPTY_PATH));
 			} else {
-				return this.accessedValue = this.value;
+				return (this.accessedValue = this.value);
 			}
 		}
 		return this.accessedValue;

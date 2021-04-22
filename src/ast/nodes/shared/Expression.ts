@@ -11,6 +11,10 @@ export interface ExpressionEntity extends WritableEntity {
 	included: boolean;
 
 	/**
+	 * Assume existing properties have been mutated but do not assume properties have been added/overwritten. Important for mutations of objects with prototypes.
+	 */
+	deoptimizeProperties():void
+	/**
 	 * If possible it returns a stringifyable literal value for this node that can be used
 	 * for inlining or comparing values.
 	 * Otherwise it should return UnknownValue.

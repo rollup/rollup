@@ -24,12 +24,14 @@ class RetainedSuper {
 class RetainedSub extends RetainedSuper {}
 RetainedSub.a;
 
-class DeoptProto {}
-unknown(DeoptProto.prototype);
-DeoptProto.prototype.a;
+class DeoptProto {
+	a = true;
+}
+globalThis.unknown(DeoptProto.prototype);
+if (!DeoptProto.prototype.a) log();
 
 class DeoptComputed {
 	static get a() {}
-	static get [unknown]() { log(); }
+	static get [globalThis.unknown]() { log(); }
 }
 DeoptComputed.a;

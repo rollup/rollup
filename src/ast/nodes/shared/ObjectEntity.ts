@@ -9,11 +9,6 @@ import {
 	UnknownKey,
 	UNKNOWN_PATH
 } from '../../utils/PathTracker';
-import {
-	getMemberReturnExpressionWhenCalled,
-	hasMemberEffectWhenCalled,
-	objectMembers
-} from '../../values';
 import SpreadElement from '../SpreadElement';
 import { ExpressionEntity } from './Expression';
 import { ExpressionNode } from './Node';
@@ -26,6 +21,7 @@ export interface ObjectProperty {
 
 type PropertyMap = Record<string, ExpressionEntity[]>;
 
+// TODO Lukas add a way to directly inject only propertiesByKey and create allProperties lazily/not
 export class ObjectEntity implements ExpressionEntity {
 	included = false;
 
@@ -43,16 +39,14 @@ export class ObjectEntity implements ExpressionEntity {
 	private readonly unmatchableProperties: ExpressionEntity[] = [];
 	private readonly unmatchableSetters: ExpressionEntity[] = [];
 
-	constructor(properties: ObjectProperty[]) {
+	constructor(properties: ObjectProperty[], private prototypeExpression: ExpressionEntity | null) {
 		this.buildPropertyMaps(properties);
 	}
 
-	deoptimizeAllProperties() {
+	deoptimizeObject(): void {
 		if (this.hasUnknownDeoptimizedProperty) return;
 		this.hasUnknownDeoptimizedProperty = true;
-		for (const property of this.allProperties) {
-			property.deoptimizePath(UNKNOWN_PATH);
-		}
+		this.deoptimizeProperties();
 		for (const expressionsToBeDeoptimized of Object.values(this.expressionsToBeDeoptimizedByKey)) {
 			for (const expression of expressionsToBeDeoptimized) {
 				expression.deoptimizeCache();
@@ -65,7 +59,7 @@ export class ObjectEntity implements ExpressionEntity {
 		const key = path[0];
 		if (path.length === 1) {
 			if (typeof key !== 'string') {
-				this.deoptimizeAllProperties();
+				this.deoptimizeObject();
 				return;
 			}
 			if (!this.deoptimizedPaths.has(key)) {
@@ -81,8 +75,9 @@ export class ObjectEntity implements ExpressionEntity {
 				}
 			}
 		}
-		const subPath = path.length === 1 ? UNKNOWN_PATH : path.slice(1);
 
+		// TODO Lukas verify again why we need to handle the path.length === 1 case here
+		const subPath = path.length === 1 ? UNKNOWN_PATH : path.slice(1);
 		for (const property of typeof key === 'string'
 			? (this.propertiesByKey[key] || this.unmatchableProperties).concat(
 					this.settersByKey[key] || this.unmatchableSetters
@@ -90,6 +85,13 @@ export class ObjectEntity implements ExpressionEntity {
 			: this.allProperties) {
 			property.deoptimizePath(subPath);
 		}
+	}
+
+	deoptimizeProperties(): void {
+		for (const property of this.allProperties) {
+			property.deoptimizePath(UNKNOWN_PATH);
+		}
+		this.prototypeExpression?.deoptimizeProperties();
 	}
 
 	getLiteralValueAtPath(
@@ -105,7 +107,10 @@ export class ObjectEntity implements ExpressionEntity {
 		if (expressionAtPath) {
 			return expressionAtPath.getLiteralValueAtPath(path.slice(1), recursionTracker, origin);
 		}
-		if (path.length === 1 && !objectMembers[key as string]) {
+		if (this.prototypeExpression) {
+			return this.prototypeExpression.getLiteralValueAtPath(path, recursionTracker, origin);
+		}
+		if (path.length === 1) {
 			return undefined;
 		}
 		return UnknownValue;
@@ -128,8 +133,12 @@ export class ObjectEntity implements ExpressionEntity {
 				origin
 			);
 		}
-		if (path.length === 1) {
-			return getMemberReturnExpressionWhenCalled(objectMembers, key);
+		if (this.prototypeExpression) {
+			return this.prototypeExpression.getReturnExpressionWhenCalledAtPath(
+				path,
+				recursionTracker,
+				origin
+			);
 		}
 		return UNKNOWN_EXPRESSION;
 	}
@@ -137,15 +146,23 @@ export class ObjectEntity implements ExpressionEntity {
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		const [key, ...subPath] = path;
 		if (path.length > 1) {
+			// TODO Lukas we can look at the prototype as well, but only if the property is known?
 			const expressionAtPath = this.getMemberExpression(key);
-			return !expressionAtPath || expressionAtPath.hasEffectsWhenAccessedAtPath(subPath, context);
+			if (expressionAtPath) {
+				return expressionAtPath.hasEffectsWhenAccessedAtPath(subPath, context);
+			}
+			return true;
 		}
 
+		// TODO Lukas we could match all getters here as well
 		if (typeof key !== 'string') return true;
 
 		const properties = this.gettersByKey[key] || this.unmatchableGetters;
 		for (const property of properties) {
 			if (property.hasEffectsWhenAccessedAtPath(subPath, context)) return true;
+		}
+		if (this.prototypeExpression && !this.propertiesByKey[key]) {
+			return this.prototypeExpression.hasEffectsWhenAccessedAtPath(path, context);
 		}
 		return false;
 	}
@@ -154,7 +171,10 @@ export class ObjectEntity implements ExpressionEntity {
 		const [key, ...subPath] = path;
 		if (path.length > 1) {
 			const expressionAtPath = this.getMemberExpression(key);
-			return !expressionAtPath || expressionAtPath.hasEffectsWhenAssignedAtPath(subPath, context);
+			if (expressionAtPath) {
+				return expressionAtPath.hasEffectsWhenAssignedAtPath(subPath, context);
+			}
+			return true;
 		}
 
 		if (typeof key !== 'string') return true;
@@ -162,6 +182,9 @@ export class ObjectEntity implements ExpressionEntity {
 		const properties = this.settersByKey[key] || this.unmatchableSetters;
 		for (const property of properties) {
 			if (property.hasEffectsWhenAssignedAtPath(subPath, context)) return true;
+		}
+		if (this.prototypeExpression && !this.settersByKey[key]) {
+			return this.prototypeExpression.hasEffectsWhenAssignedAtPath(path, context);
 		}
 		return false;
 	}
@@ -176,10 +199,10 @@ export class ObjectEntity implements ExpressionEntity {
 		if (expressionAtPath) {
 			return expressionAtPath.hasEffectsWhenCalledAtPath(path.slice(1), callOptions, context);
 		}
-		if (path.length > 1) {
-			return true;
+		if (this.prototypeExpression) {
+			return this.prototypeExpression.hasEffectsWhenCalledAtPath(path, callOptions, context);
 		}
-		return hasMemberEffectWhenCalled(objectMembers, key, this.included, callOptions, context);
+		return true;
 	}
 
 	include() {
@@ -208,6 +231,9 @@ export class ObjectEntity implements ExpressionEntity {
 				recursionTracker,
 				origin
 			);
+		}
+		if (this.prototypeExpression) {
+			return this.prototypeExpression.mayModifyThisWhenCalledAtPath(path, recursionTracker, origin);
 		}
 		return false;
 	}
