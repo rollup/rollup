@@ -110,17 +110,17 @@ export default class ExternalModule {
 						.map(name => `'${name}'`)
 						.join(', ')} and '${unused.slice(-1)}' are`;
 
-		const importersSet = new Set<string>()
+		const importersSet = new Set<string>();
 		for (const name of unused) {
-			const {importers, dynamicImporters} = this.declarations[name].module
+			const {importers, dynamicImporters} = this.declarations[name].module;
 
-			if (Array.isArray(importers)) importers.forEach(v => importersSet.add(v))
-			if (Array.isArray(dynamicImporters)) dynamicImporters.forEach(v => importersSet.add(v))
+			if (Array.isArray(importers)) importers.forEach(v => importersSet.add(v));
+			if (Array.isArray(dynamicImporters)) dynamicImporters.forEach(v => importersSet.add(v));
 		}
 
-		const importersArray = Array.from(importersSet)
+		const importersArray = Array.from(importersSet);
 
-		const importerList = ' in' + importersArray.map(s => `\n\t${s};`)
+		const importerList = ' in' + importersArray.map(s => `\n\t${s};`);
 
 		this.options.onwarn({
 			code: 'UNUSED_EXTERNAL_IMPORT',
