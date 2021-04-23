@@ -1,4 +1,3 @@
 module.exports = {
-	description: 'detects undefined properties',
-	expectedWarnings: ['EMPTY_BUNDLE']
+	description: 'detects undefined properties'
 };

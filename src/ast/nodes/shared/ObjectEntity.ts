@@ -1,6 +1,6 @@
 import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
+import { HasEffectsContext } from '../../ExecutionContext';
 import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../../unknownValues';
 import {
 	ObjectPath,
@@ -9,9 +9,7 @@ import {
 	UnknownKey,
 	UNKNOWN_PATH
 } from '../../utils/PathTracker';
-import SpreadElement from '../SpreadElement';
 import { ExpressionEntity } from './Expression';
-import { ExpressionNode } from './Node';
 
 export interface ObjectProperty {
 	key: ObjectPathKey;
@@ -23,7 +21,7 @@ type PropertyMap = Record<string, ExpressionEntity[]>;
 
 // TODO Lukas add a way to directly inject only propertiesByKey and create allProperties lazily/not
 export class ObjectEntity implements ExpressionEntity {
-	included = false;
+	included = true;
 
 	private readonly allProperties: ExpressionEntity[] = [];
 	private readonly deoptimizedPaths = new Set<string>();
@@ -44,7 +42,9 @@ export class ObjectEntity implements ExpressionEntity {
 	}
 
 	deoptimizeObject(): void {
-		if (this.hasUnknownDeoptimizedProperty) return;
+		if (this.hasUnknownDeoptimizedProperty) {
+			return;
+		}
 		this.hasUnknownDeoptimizedProperty = true;
 		this.deoptimizeProperties();
 		for (const expressionsToBeDeoptimized of Object.values(this.expressionsToBeDeoptimizedByKey)) {
@@ -205,15 +205,9 @@ export class ObjectEntity implements ExpressionEntity {
 		return true;
 	}
 
-	include() {
-		this.included = true;
-	}
+	include() {}
 
-	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]) {
-		for (const arg of args) {
-			arg.include(context, false);
-		}
-	}
+	includeCallArguments() {}
 
 	mayModifyThisWhenCalledAtPath(
 		path: ObjectPath,
