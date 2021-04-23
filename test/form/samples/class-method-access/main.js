@@ -28,3 +28,7 @@ Used.getter.foo.throws();
 
 Used.method.reassigned = 1;
 Used.getter.reassigned = 2;
+
+class ValueEffect {
+	static foo
+}

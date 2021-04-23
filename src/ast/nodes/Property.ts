@@ -1,37 +1,23 @@
 import MagicString from 'magic-string';
 import { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { RenderOptions } from '../../utils/renderHelpers';
-import { CallOptions, NO_ARGS } from '../CallOptions';
-import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext } from '../ExecutionContext';
-import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION } from '../unknownValues';
-import {
-	EMPTY_PATH,
-	ObjectPath,
-	PathTracker,
-	SHARED_RECURSION_TRACKER,
-	UnknownKey
-} from '../utils/PathTracker';
+import { UNKNOWN_EXPRESSION } from '../unknownValues';
+import { UnknownKey } from '../utils/PathTracker';
 import * as NodeType from './NodeType';
 import { ExpressionEntity } from './shared/Expression';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import MethodBase from './shared/MethodBase';
+import { ExpressionNode } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
-export default class Property extends NodeBase implements DeoptimizableEntity, PatternNode {
-	computed!: boolean;
+export default class Property extends MethodBase implements PatternNode {
 	key!: ExpressionNode;
 	kind!: 'init' | 'get' | 'set';
 	method!: boolean;
 	shorthand!: boolean;
 	type!: NodeType.tProperty;
-	value!: ExpressionNode | (ExpressionNode & PatternNode);
 
-	private accessorCallOptions: CallOptions = {
-		args: NO_ARGS,
-		withNew: false
-	};
 	private declarationInit: ExpressionEntity | null = null;
-	private returnExpression: ExpressionEntity | null = null;
 
 	bind() {
 		super.bind();
@@ -45,108 +31,14 @@ export default class Property extends NodeBase implements DeoptimizableEntity, P
 		return (this.value as PatternNode).declare(kind, UNKNOWN_EXPRESSION);
 	}
 
-	// As getter properties directly receive their values from fixed function
-	// expressions, there is no known situation where a getter is deoptimized.
-	deoptimizeCache(): void {}
-
-	deoptimizePath(path: ObjectPath) {
-		if (this.kind === 'get') {
-			this.getReturnExpression().deoptimizePath(path);
-		} else {
-			this.value.deoptimizePath(path);
-		}
-	}
-
-	getLiteralValueAtPath(
-		path: ObjectPath,
-		recursionTracker: PathTracker,
-		origin: DeoptimizableEntity
-	): LiteralValueOrUnknown {
-		if (this.kind === 'get') {
-			return this.getReturnExpression().getLiteralValueAtPath(path, recursionTracker, origin);
-		}
-		return this.value.getLiteralValueAtPath(path, recursionTracker, origin);
-	}
-
-	getReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		recursionTracker: PathTracker,
-		origin: DeoptimizableEntity
-	): ExpressionEntity {
-		if (this.kind === 'get') {
-			return this.getReturnExpression().getReturnExpressionWhenCalledAtPath(
-				path,
-				recursionTracker,
-				origin
-			);
-		}
-		return this.value.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
-	}
-
 	hasEffects(context: HasEffectsContext): boolean {
-		const propertyReadSideEffects = (this.context.options.treeshake as NormalizedTreeshakingOptions).propertyReadSideEffects;
-		return this.parent.type === 'ObjectPattern' && propertyReadSideEffects === 'always' ||
+		const propertyReadSideEffects = (this.context.options.treeshake as NormalizedTreeshakingOptions)
+			.propertyReadSideEffects;
+		return (
+			(this.parent.type === 'ObjectPattern' && propertyReadSideEffects === 'always') ||
 			this.key.hasEffects(context) ||
-			this.value.hasEffects(context);
-	}
-
-	// TODO Lukas why do we have recursion tracking here?
-	// TODO Lukas can we simplify things like with MethodDefinition?
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (this.kind === 'get') {
-			const trackedExpressions = context.accessed.getEntities(path);
-			if (trackedExpressions.has(this)) return false;
-			trackedExpressions.add(this);
-			return (
-				this.value.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.accessorCallOptions, context) ||
-				(path.length > 0 && this.getReturnExpression().hasEffectsWhenAccessedAtPath(path, context))
-			);
-		}
-		return this.value.hasEffectsWhenAccessedAtPath(path, context);
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (this.kind === 'get') {
-			const trackedExpressions = context.assigned.getEntities(path);
-			if (trackedExpressions.has(this)) return false;
-			trackedExpressions.add(this);
-			return this.getReturnExpression().hasEffectsWhenAssignedAtPath(path, context);
-		}
-		if (this.kind === 'set') {
-			const trackedExpressions = context.assigned.getEntities(path);
-			if (trackedExpressions.has(this)) return false;
-			trackedExpressions.add(this);
-			return this.value.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.accessorCallOptions, context);
-		}
-		return this.value.hasEffectsWhenAssignedAtPath(path, context);
-	}
-
-	hasEffectsWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		context: HasEffectsContext
-	) {
-		if (this.kind === 'get') {
-			const trackedExpressions = (callOptions.withNew
-				? context.instantiated
-				: context.called
-			).getEntities(path, callOptions);
-			if (trackedExpressions.has(this)) return false;
-			trackedExpressions.add(this);
-			return this.getReturnExpression().hasEffectsWhenCalledAtPath(path, callOptions, context);
-		}
-		return this.value.hasEffectsWhenCalledAtPath(path, callOptions, context);
-	}
-
-	mayModifyThisWhenCalledAtPath(path: ObjectPath, recursionTracker: PathTracker, origin: DeoptimizableEntity): boolean {
-		if (this.kind === 'get') {
-			return this.getReturnExpression().mayModifyThisWhenCalledAtPath(
-				path,
-				recursionTracker,
-				origin
-			);
-		}
-		return this.value.mayModifyThisWhenCalledAtPath(path, recursionTracker, origin);
+			this.value.hasEffects(context)
+		);
 	}
 
 	render(code: MagicString, options: RenderOptions) {
@@ -154,17 +46,5 @@ export default class Property extends NodeBase implements DeoptimizableEntity, P
 			this.key.render(code, options);
 		}
 		this.value.render(code, options, { isShorthandProperty: this.shorthand });
-	}
-
-	private getReturnExpression(): ExpressionEntity {
-		if (this.returnExpression === null) {
-			this.returnExpression = UNKNOWN_EXPRESSION;
-			return (this.returnExpression = this.value.getReturnExpressionWhenCalledAtPath(
-				EMPTY_PATH,
-				SHARED_RECURSION_TRACKER,
-				this
-			));
-		}
-		return this.returnExpression;
 	}
 }
