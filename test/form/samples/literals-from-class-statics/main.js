@@ -10,7 +10,7 @@ if (!Static.t()) log("!t");
 if (Static.x) log("x");
 
 class Undef {
-  static y;
+  static 'y';
 }
 if (Undef.y) log("y");
 

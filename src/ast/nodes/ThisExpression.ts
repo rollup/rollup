@@ -4,6 +4,7 @@ import ModuleScope from '../scopes/ModuleScope';
 import { ObjectPath } from '../utils/PathTracker';
 import ThisVariable from '../variables/ThisVariable';
 import * as NodeType from './NodeType';
+import ClassNode from './shared/ClassNode';
 import FunctionNode from './shared/FunctionNode';
 import { NodeBase } from './shared/Node';
 
@@ -12,10 +13,17 @@ export default class ThisExpression extends NodeBase {
 
 	variable!: ThisVariable;
 	private alias!: string | null;
+	private bound = false;
 
 	bind() {
-		super.bind();
+		if (this.bound) return;
+		this.bound = true;
 		this.variable = this.scope.findVariable('this') as ThisVariable;
+	}
+
+	deoptimizePath(path: ObjectPath) {
+		if (!this.bound) this.bind();
+		this.variable.deoptimizePath(path);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
@@ -24,6 +32,13 @@ export default class ThisExpression extends NodeBase {
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		return this.variable.hasEffectsWhenAssignedAtPath(path, context);
+	}
+
+	include() {
+		if (!this.included) {
+			this.included = true;
+			this.context.includeVariableInModule(this.variable);
+		}
 	}
 
 	initialise() {
@@ -40,6 +55,9 @@ export default class ThisExpression extends NodeBase {
 			);
 		}
 		for (let parent = this.parent; parent instanceof NodeBase; parent = parent.parent) {
+			if (parent instanceof ClassNode) {
+				break;
+			}
 			if (parent instanceof FunctionNode) {
 				parent.referencesThis = true;
 				break;

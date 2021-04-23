@@ -52,23 +52,17 @@ export default class MethodDefinition extends NodeBase {
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (this.kind === 'get') {
-			return (
-				this.value.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.accessorCallOptions, context) ||
-				this.getAccessedValue().hasEffectsWhenAccessedAtPath(path, context)
-			);
+		if (this.kind === 'get' && path.length === 0) {
+			return this.value.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.accessorCallOptions, context);
 		}
-		return this.value.hasEffectsWhenAccessedAtPath(path);
+		return this.getAccessedValue().hasEffectsWhenAccessedAtPath(path, context);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (this.kind === 'get') {
-			return this.getAccessedValue().hasEffectsWhenAssignedAtPath(path, context);
-		}
 		if (this.kind === 'set') {
 			return this.value.hasEffectsWhenCalledAtPath(EMPTY_PATH, this.accessorCallOptions, context);
 		}
-		return this.value.hasEffectsWhenAccessedAtPath(path);
+		return this.getAccessedValue().hasEffectsWhenAssignedAtPath(path, context);
 	}
 
 	hasEffectsWhenCalledAtPath(
@@ -76,9 +70,7 @@ export default class MethodDefinition extends NodeBase {
 		callOptions: CallOptions,
 		context: HasEffectsContext
 	) {
-		return (
-			path.length > 0 || this.value.hasEffectsWhenCalledAtPath(EMPTY_PATH, callOptions, context)
-		);
+		return this.getAccessedValue().hasEffectsWhenCalledAtPath(path, callOptions, context);
 	}
 
 	mayModifyThisWhenCalledAtPath(

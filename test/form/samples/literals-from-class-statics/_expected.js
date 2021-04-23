@@ -2,7 +2,7 @@ log("t");
 log("x");
 
 class Undef {
-  static y;
+  static 'y';
 }
 if (Undef.y) log("y");
 

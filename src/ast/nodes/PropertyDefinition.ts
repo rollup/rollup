@@ -1,7 +1,7 @@
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext } from '../ExecutionContext';
-import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UnknownValue } from '../unknownValues';
+import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../unknownValues';
 import { ObjectPath, PathTracker } from '../utils/PathTracker';
 import * as NodeType from './NodeType';
 import PrivateIdentifier from './PrivateIdentifier';
@@ -54,7 +54,6 @@ export default class PropertyDefinition extends NodeBase {
 		return !this.value || this.value.hasEffectsWhenCalledAtPath(path, callOptions, context);
 	}
 
-	// TODO Lukas verify this is modifying this
 	mayModifyThisWhenCalledAtPath(
 		path: ObjectPath,
 		recursionTracker: PathTracker,

@@ -2,7 +2,7 @@ import { AstContext } from '../../Module';
 import { CallOptions } from '../CallOptions';
 import { HasEffectsContext } from '../ExecutionContext';
 import { ExpressionEntity } from '../nodes/shared/Expression';
-import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION, UnknownValue } from '../unknownValues';
+import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../unknownValues';
 import { ObjectPath } from '../utils/PathTracker';
 import LocalVariable from './LocalVariable';
 
