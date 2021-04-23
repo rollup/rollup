@@ -16,7 +16,7 @@ export default class Super extends NodeBase {
 	}
 
 	deoptimizePath(path: ObjectPath) {
-		if (!this.bound) this.bind();
+		this.bind();
 		this.variable.deoptimizePath(path);
 	}
 

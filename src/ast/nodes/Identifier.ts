@@ -146,9 +146,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	) {
-		return this.variable
-			? this.variable.mayModifyThisWhenCalledAtPath(path, recursionTracker, origin)
-			: true;
+		return this.variable!.mayModifyThisWhenCalledAtPath(path, recursionTracker, origin);
 	}
 
 	render(
