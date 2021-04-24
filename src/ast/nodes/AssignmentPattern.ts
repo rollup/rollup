@@ -21,6 +21,7 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 		this.left.addExportedVariables(variables, exportNamesByVariable);
 	}
 
+	// TODO Lukas make all current bind deoptimizations lazy
 	bind() {
 		super.bind();
 		this.left.deoptimizePath(EMPTY_PATH);

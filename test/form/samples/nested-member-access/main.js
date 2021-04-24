@@ -10,10 +10,6 @@ const removedResult3 = removed3.foo;
 const removed4 = !{};
 const removedResult4 = removed4.foo;
 
-let removed5a;
-const removed5b = removed5a = {};
-const removedResult5 = removed5b.foo;
-
 const removed6 = 1 + 2;
 const removedResult6 = removed6.foo;
 

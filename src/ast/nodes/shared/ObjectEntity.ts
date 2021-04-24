@@ -18,7 +18,7 @@ export class ObjectEntity implements ExpressionEntity {
 	included = true;
 
 	private readonly allProperties: ExpressionEntity[] = [];
-	private readonly deoptimizedPaths = new Set<string>();
+	private readonly deoptimizedPaths: Record<string,boolean> = Object.create(null);
 	private readonly expressionsToBeDeoptimizedByKey: Record<
 		string,
 		DeoptimizableEntity[]
@@ -60,8 +60,8 @@ export class ObjectEntity implements ExpressionEntity {
 				this.deoptimizeAllProperties();
 				return;
 			}
-			if (!this.deoptimizedPaths.has(key)) {
-				this.deoptimizedPaths.add(key);
+			if (!this.deoptimizedPaths[key]) {
+				this.deoptimizedPaths[key] = true;
 
 				// we only deoptimizeCache exact matches as in all other cases,
 				// we do not return a literal value or return expression
@@ -144,8 +144,8 @@ export class ObjectEntity implements ExpressionEntity {
 			return true;
 		}
 
-		// TODO Lukas we could match all getters here as well
-		if (typeof key !== 'string') return true;
+		// TODO Lukas we could match all getters for unknown paths as well as well
+		if (typeof key !== 'string' || this.hasUnknownDeoptimizedProperty) return true;
 
 		const properties = this.gettersByKey[key] || this.unmatchableGetters;
 		for (const property of properties) {
@@ -262,7 +262,7 @@ export class ObjectEntity implements ExpressionEntity {
 		if (
 			this.hasUnknownDeoptimizedProperty ||
 			typeof key !== 'string' ||
-			this.deoptimizedPaths.has(key)
+			this.deoptimizedPaths[key]
 		) {
 			return UNKNOWN_EXPRESSION;
 		}

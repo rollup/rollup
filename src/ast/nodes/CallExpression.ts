@@ -31,6 +31,7 @@ import {
 import SpreadElement from './SpreadElement';
 import Super from './Super';
 
+// TODO Lukas see which deoptimizations could be applied lazily, just like assignments
 export default class CallExpression extends NodeBase implements DeoptimizableEntity {
 	arguments!: (ExpressionNode | SpreadElement)[];
 	callee!: ExpressionNode | Super;
@@ -38,6 +39,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 	type!: NodeType.tCallExpression;
 
 	private callOptions!: CallOptions;
+	private deoptimized = false;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 	private returnExpression: ExpressionEntity | null = null;
 	private wasPathDeoptmizedWhileOptimized = false;
@@ -68,25 +70,12 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 				);
 			}
 		}
-		// ensure the returnExpression is set for the tree-shaking passes
-		this.getReturnExpression(SHARED_RECURSION_TRACKER);
-		if (
-			this.callee instanceof MemberExpression &&
-			!this.callee.variable &&
-			this.callee.mayModifyThisWhenCalledAtPath([], SHARED_RECURSION_TRACKER, this)
-		) {
-			this.callee.object.deoptimizePath(UNKNOWN_PATH);
-		}
-		for (const argument of this.arguments) {
-			// This will make sure all properties of parameters behave as "unknown"
-			argument.deoptimizePath(UNKNOWN_PATH);
-		}
 	}
 
 	deoptimizeCache() {
 		if (this.returnExpression !== UNKNOWN_EXPRESSION) {
 			this.returnExpression = null;
-			const returnExpression = this.getReturnExpression(SHARED_RECURSION_TRACKER);
+			const returnExpression = this.getReturnExpression();
 			const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized;
 			if (returnExpression !== UNKNOWN_EXPRESSION) {
 				// We need to replace here because it is possible new expressions are added
@@ -101,10 +90,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 				expression.deoptimizeCache();
 			}
 		}
-		if (
-			this.callee instanceof MemberExpression &&
-			!this.callee.variable
-		) {
+		if (this.callee instanceof MemberExpression && !this.callee.variable) {
 			this.callee.object.deoptimizePath(UNKNOWN_PATH);
 		}
 	}
@@ -114,7 +100,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		const trackedEntities = this.context.deoptimizationTracker.getEntities(path);
 		if (trackedEntities.has(this)) return;
 		trackedEntities.add(this);
-		const returnExpression = this.getReturnExpression(SHARED_RECURSION_TRACKER);
+		const returnExpression = this.getReturnExpression();
 		if (returnExpression !== UNKNOWN_EXPRESSION) {
 			this.wasPathDeoptmizedWhileOptimized = true;
 			returnExpression.deoptimizePath(path);
@@ -166,6 +152,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
+		if (!this.deoptimized) this.applyDeoptimizations();
 		for (const argument of this.arguments) {
 			if (argument.hasEffects(context)) return true;
 		}
@@ -185,7 +172,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		const trackedExpressions = context.accessed.getEntities(path);
 		if (trackedExpressions.has(this)) return false;
 		trackedExpressions.add(this);
-		return this.returnExpression!.hasEffectsWhenAccessedAtPath(path, context);
+		return this.getReturnExpression().hasEffectsWhenAccessedAtPath(path, context);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
@@ -193,7 +180,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		const trackedExpressions = context.assigned.getEntities(path);
 		if (trackedExpressions.has(this)) return false;
 		trackedExpressions.add(this);
-		return this.returnExpression!.hasEffectsWhenAssignedAtPath(path, context);
+		return this.getReturnExpression().hasEffectsWhenAssignedAtPath(path, context);
 	}
 
 	hasEffectsWhenCalledAtPath(
@@ -207,10 +194,11 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		).getEntities(path, callOptions);
 		if (trackedExpressions.has(this)) return false;
 		trackedExpressions.add(this);
-		return this.returnExpression!.hasEffectsWhenCalledAtPath(path, callOptions, context);
+		return this.getReturnExpression().hasEffectsWhenCalledAtPath(path, callOptions, context);
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+		if (!this.deoptimized) this.applyDeoptimizations();
 		if (includeChildrenRecursively) {
 			super.include(context, includeChildrenRecursively);
 			if (
@@ -225,8 +213,9 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 			this.callee.include(context, false);
 		}
 		this.callee.includeCallArguments(context, this.arguments);
-		if (!this.returnExpression!.included) {
-			this.returnExpression!.include(context, false);
+		const returnExpression = this.getReturnExpression();
+		if (!returnExpression.included) {
+			returnExpression.include(context, false);
 		}
 	}
 
@@ -280,7 +269,24 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		}
 	}
 
-	private getReturnExpression(recursionTracker: PathTracker): ExpressionEntity {
+	private applyDeoptimizations() {
+		this.deoptimized = true;
+		if (
+			this.callee instanceof MemberExpression &&
+			!this.callee.variable &&
+			this.callee.mayModifyThisWhenCalledAtPath([], SHARED_RECURSION_TRACKER, this)
+		) {
+			this.callee.object.deoptimizePath(UNKNOWN_PATH);
+		}
+		for (const argument of this.arguments) {
+			// This will make sure all properties of parameters behave as "unknown"
+			argument.deoptimizePath(UNKNOWN_PATH);
+		}
+	}
+
+	private getReturnExpression(
+		recursionTracker: PathTracker = SHARED_RECURSION_TRACKER
+	): ExpressionEntity {
 		if (this.returnExpression === null) {
 			this.returnExpression = UNKNOWN_EXPRESSION;
 			return (this.returnExpression = this.callee.getReturnExpressionWhenCalledAtPath(
