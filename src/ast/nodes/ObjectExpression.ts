@@ -29,7 +29,7 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 	private objectEntity: ObjectEntity | null = null;
 
 	deoptimizeCache() {
-		this.getObjectEntity().deoptimizeObject();
+		this.getObjectEntity().deoptimizeAllProperties();
 	}
 
 	deoptimizePath(path: ObjectPath) {

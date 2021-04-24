@@ -14,8 +14,6 @@ export class UnknownExpression implements ExpressionEntity {
 
 	deoptimizePath() {}
 
-	deoptimizeProperties() {}
-
 	getLiteralValueAtPath(): LiteralValueOrUnknown {
 		return UnknownValue;
 	}

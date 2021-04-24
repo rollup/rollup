@@ -16,9 +16,6 @@ export class ObjectMember implements ExpressionEntity {
 		this.object.deoptimizePath([this.key, ...path]);
 	}
 
-	// TODO Lukas think about all places where this might need to be implemented
-	deoptimizeProperties(): void {}
-
 	getLiteralValueAtPath(
 		path: ObjectPath,
 		recursionTracker: PathTracker,

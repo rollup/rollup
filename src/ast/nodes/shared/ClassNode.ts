@@ -37,7 +37,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	}
 
 	deoptimizeCache() {
-		this.getObjectEntity().deoptimizeObject();
+		this.getObjectEntity().deoptimizeAllProperties();
 	}
 
 	deoptimizePath(path: ObjectPath) {

@@ -2,13 +2,7 @@ import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { HasEffectsContext } from '../../ExecutionContext';
 import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../../unknownValues';
-import {
-	ObjectPath,
-	ObjectPathKey,
-	PathTracker,
-	UnknownKey,
-	UNKNOWN_PATH
-} from '../../utils/PathTracker';
+import { ObjectPath, ObjectPathKey, PathTracker, UnknownKey, UNKNOWN_PATH } from '../../utils/PathTracker';
 import { ExpressionEntity } from './Expression';
 
 export interface ObjectProperty {
@@ -41,12 +35,16 @@ export class ObjectEntity implements ExpressionEntity {
 		this.buildPropertyMaps(properties);
 	}
 
-	deoptimizeObject(): void {
+	deoptimizeAllProperties(): void {
 		if (this.hasUnknownDeoptimizedProperty) {
 			return;
 		}
 		this.hasUnknownDeoptimizedProperty = true;
-		this.deoptimizeProperties();
+		for (const property of this.allProperties) {
+			property.deoptimizePath(UNKNOWN_PATH);
+		}
+		// While the prototype itself cannot be mutated, each property can
+		this.prototypeExpression?.deoptimizePath([UnknownKey, UnknownKey]);
 		for (const expressionsToBeDeoptimized of Object.values(this.expressionsToBeDeoptimizedByKey)) {
 			for (const expression of expressionsToBeDeoptimized) {
 				expression.deoptimizeCache();
@@ -59,7 +57,7 @@ export class ObjectEntity implements ExpressionEntity {
 		const key = path[0];
 		if (path.length === 1) {
 			if (typeof key !== 'string') {
-				this.deoptimizeObject();
+				this.deoptimizeAllProperties();
 				return;
 			}
 			if (!this.deoptimizedPaths.has(key)) {
@@ -76,7 +74,6 @@ export class ObjectEntity implements ExpressionEntity {
 			}
 		}
 
-		// TODO Lukas verify again why we need to handle the path.length === 1 case here
 		const subPath = path.length === 1 ? UNKNOWN_PATH : path.slice(1);
 		for (const property of typeof key === 'string'
 			? (this.propertiesByKey[key] || this.unmatchableProperties).concat(
@@ -85,13 +82,6 @@ export class ObjectEntity implements ExpressionEntity {
 			: this.allProperties) {
 			property.deoptimizePath(subPath);
 		}
-	}
-
-	deoptimizeProperties(): void {
-		for (const property of this.allProperties) {
-			property.deoptimizePath(UNKNOWN_PATH);
-		}
-		this.prototypeExpression?.deoptimizeProperties();
 	}
 
 	getLiteralValueAtPath(

@@ -151,8 +151,6 @@ export class NodeBase implements ExpressionNode {
 
 	deoptimizePath(_path: ObjectPath) {}
 
-	deoptimizeProperties() {}
-
 	getLiteralValueAtPath(
 		_path: ObjectPath,
 		_recursionTracker: PathTracker,

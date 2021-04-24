@@ -35,8 +35,6 @@ export default class Variable implements ExpressionEntity {
 
 	deoptimizePath(_path: ObjectPath) {}
 
-	deoptimizeProperties() {}
-
 	getBaseVariableName(): string {
 		return this.renderBaseName || this.renderName || this.name;
 	}

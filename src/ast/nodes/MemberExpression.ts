@@ -119,18 +119,14 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	}
 
 	deoptimizePath(path: ObjectPath) {
-		if (!this.bound) this.bind();
+		this.bind();
 		if (path.length === 0) this.disallowNamespaceReassignment();
 		if (this.variable) {
 			this.variable.deoptimizePath(path);
 		} else {
 			const propertyKey = this.getPropertyKey();
-			if (propertyKey === UnknownKey) {
-				this.object.deoptimizePath(UNKNOWN_PATH);
-			} else {
-				this.wasPathDeoptimizedWhileOptimized = true;
-				this.object.deoptimizePath([propertyKey, ...path]);
-			}
+			this.wasPathDeoptimizedWhileOptimized = true;
+			this.object.deoptimizePath([propertyKey, ...path]);
 		}
 	}
 
@@ -139,7 +135,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		if (!this.bound) this.bind();
+		this.bind();
 		if (this.variable !== null) {
 			return this.variable.getLiteralValueAtPath(path, recursionTracker, origin);
 		}
@@ -156,7 +152,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	) {
-		if (!this.bound) this.bind();
+		this.bind();
 		if (this.variable !== null) {
 			return this.variable.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
 		}
@@ -238,6 +234,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	) {
+		this.bind();
 		if (this.variable) {
 			return this.variable.mayModifyThisWhenCalledAtPath(path, recursionTracker, origin);
 		}

@@ -28,8 +28,6 @@ class Method implements ExpressionEntity {
 
 	deoptimizePath(): void {}
 
-	deoptimizeProperties(): void {}
-
 	getLiteralValueAtPath(): LiteralValueOrUnknown {
 		return UnknownValue;
 	}
