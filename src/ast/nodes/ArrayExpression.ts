@@ -1,6 +1,5 @@
 import { CallOptions } from '../CallOptions';
 import { HasEffectsContext } from '../ExecutionContext';
-import { UNKNOWN_EXPRESSION } from '../unknownValues';
 import { ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import {
 	arrayMembers,
@@ -8,6 +7,7 @@ import {
 	hasMemberEffectWhenCalled,
 } from '../values';
 import * as NodeType from './NodeType';
+import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import SpreadElement from './SpreadElement';
 

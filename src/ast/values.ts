@@ -1,8 +1,7 @@
 import { CallOptions, NO_ARGS } from './CallOptions';
 import { HasEffectsContext } from './ExecutionContext';
 import { LiteralValue } from './nodes/Literal';
-import { ExpressionEntity } from './nodes/shared/Expression';
-import { UnknownExpression, UNKNOWN_EXPRESSION } from './unknownValues';
+import { ExpressionEntity, UNKNOWN_EXPRESSION } from './nodes/shared/Expression';
 import { EMPTY_PATH, ObjectPath, ObjectPathKey } from './utils/PathTracker';
 
 export interface MemberDescription {
@@ -27,6 +26,11 @@ function assembleMemberDescriptions(
 	return Object.create(inheritedDescriptions, memberDescriptions);
 }
 
+export const UNDEFINED_EXPRESSION: ExpressionEntity = new (class UndefinedExpression extends ExpressionEntity {
+	getLiteralValueAtPath() {
+		return undefined;
+	}
+})();
 
 const returnsUnknown: RawMemberDescription = {
 	value: {
@@ -43,7 +47,7 @@ const callsArgReturnsUnknown: RawMemberDescription = {
 	value: { returns: null, returnsPrimitive: UNKNOWN_EXPRESSION, callsArgs: [0], mutatesSelf: false }
 };
 
-export class UnknownArrayExpression extends UnknownExpression {
+export class UnknownArrayExpression extends ExpressionEntity {
 	included = false;
 
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
@@ -110,7 +114,7 @@ const callsArgMutatesSelfReturnsArray: RawMemberDescription = {
 	}
 };
 
-export const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = new class UnknownBoolean extends UnknownExpression {
+export const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = new (class UnknownBoolean extends ExpressionEntity {
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
 		if (path.length === 1) {
 			return getMemberReturnExpressionWhenCalled(literalBooleanMembers, path[0]);
@@ -119,7 +123,7 @@ export const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = new class UnknownBoolea
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
-		return path.length > 1
+		return path.length > 1;
 	}
 
 	hasEffectsWhenCalledAtPath(path: ObjectPath) {
@@ -129,7 +133,7 @@ export const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = new class UnknownBoolea
 		}
 		return true;
 	}
-};
+})();
 
 const returnsBoolean: RawMemberDescription = {
 	value: {
@@ -148,7 +152,7 @@ const callsArgReturnsBoolean: RawMemberDescription = {
 	}
 };
 
-const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = new class UnknownNumber extends UnknownExpression {
+const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = new (class UnknownNumber extends ExpressionEntity {
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
 		if (path.length === 1) {
 			return getMemberReturnExpressionWhenCalled(literalNumberMembers, path[0]);
@@ -156,7 +160,9 @@ const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = new class UnknownNumber extends
 		return UNKNOWN_EXPRESSION;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath) { return path.length > 1; }
+	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
+		return path.length > 1;
+	}
 
 	hasEffectsWhenCalledAtPath(path: ObjectPath) {
 		if (path.length === 1) {
@@ -165,7 +171,7 @@ const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = new class UnknownNumber extends
 		}
 		return true;
 	}
-};
+})();
 
 const returnsNumber: RawMemberDescription = {
 	value: {
@@ -192,7 +198,7 @@ const callsArgReturnsNumber: RawMemberDescription = {
 	}
 };
 
-export const UNKNOWN_LITERAL_STRING: ExpressionEntity = new class UnknownString extends UnknownExpression {
+export const UNKNOWN_LITERAL_STRING: ExpressionEntity = new (class UnknownString extends ExpressionEntity {
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
 		if (path.length === 1) {
 			return getMemberReturnExpressionWhenCalled(literalStringMembers, path[0]);
@@ -200,7 +206,9 @@ export const UNKNOWN_LITERAL_STRING: ExpressionEntity = new class UnknownString 
 		return UNKNOWN_EXPRESSION;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath) { return path.length > 1 }
+	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
+		return path.length > 1;
+	}
 
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
@@ -212,7 +220,7 @@ export const UNKNOWN_LITERAL_STRING: ExpressionEntity = new class UnknownString 
 		}
 		return true;
 	}
-};
+})();
 
 const returnsString: RawMemberDescription = {
 	value: {
@@ -226,7 +234,7 @@ const returnsString: RawMemberDescription = {
 // TODO Lukas This could just be the constant and above, we use an ObjectEntity with OBJECT_PROTOTYPE as prototype
 // TODO Lukas Also, the name should reflect we assume neither getters nor setters and do not override builtins
 // or just remove?
-export class UnknownObjectExpression extends UnknownExpression {
+export class UnknownObjectExpression extends ExpressionEntity {
 	included = false;
 
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {

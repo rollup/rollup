@@ -1,14 +1,13 @@
 import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { HasEffectsContext } from '../../ExecutionContext';
-import { LiteralValueOrUnknown } from '../../unknownValues';
 import { ObjectPath, PathTracker } from '../../utils/PathTracker';
-import { ExpressionEntity } from './Expression';
+import { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
 
-export class ObjectMember implements ExpressionEntity {
-	included = true;
-
-	constructor(private readonly object: ExpressionEntity, private readonly key: string) {}
+export class ObjectMember extends ExpressionEntity {
+	constructor(private readonly object: ExpressionEntity, private readonly key: string) {
+		super();
+	}
 
 	deoptimizePath(path: ObjectPath): void {
 		this.object.deoptimizePath([this.key, ...path]);
@@ -50,10 +49,6 @@ export class ObjectMember implements ExpressionEntity {
 	): boolean {
 		return this.object.hasEffectsWhenCalledAtPath([this.key, ...path], callOptions, context);
 	}
-
-	include(): void {}
-
-	includeCallArguments(): void {}
 
 	mayModifyThisWhenCalledAtPath(
 		path: ObjectPath,

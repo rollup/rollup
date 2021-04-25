@@ -1,13 +1,13 @@
 import { CallOptions } from '../../CallOptions';
 import { BROKEN_FLOW_NONE, HasEffectsContext, InclusionContext } from '../../ExecutionContext';
 import FunctionScope from '../../scopes/FunctionScope';
-import { UNKNOWN_EXPRESSION } from '../../unknownValues';
 import { ObjectPath, UnknownKey, UNKNOWN_PATH } from '../../utils/PathTracker';
 import { UnknownObjectExpression } from '../../values';
 import BlockStatement from '../BlockStatement';
 import Identifier, { IdentifierWithVariable } from '../Identifier';
 import RestElement from '../RestElement';
 import SpreadElement from '../SpreadElement';
+import { UNKNOWN_EXPRESSION } from './Expression';
 import { ExpressionNode, GenericEsTreeNode, IncludeChildren, NodeBase } from './Node';
 import { PatternNode } from './Pattern';
 
@@ -123,10 +123,8 @@ export default class FunctionNode extends NodeBase {
 		this.body.addImplicitReturnExpressionToScope();
 	}
 
-	mayModifyThisWhenCalledAtPath(
-		path: ObjectPath
-	) {
-		return path.length ? true : this.referencesThis
+	mayModifyThisWhenCalledAtPath(path: ObjectPath) {
+		return path.length ? true : this.referencesThis;
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode) {

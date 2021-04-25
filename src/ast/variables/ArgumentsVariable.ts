@@ -1,5 +1,5 @@
 import { AstContext } from '../../Module';
-import { UNKNOWN_EXPRESSION } from '../unknownValues';
+import { UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
 import { ObjectPath } from '../utils/PathTracker';
 import LocalVariable from './LocalVariable';
 

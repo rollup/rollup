@@ -4,11 +4,11 @@ import { removeAnnotations } from '../../utils/treeshakeNode';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { BROKEN_FLOW_NONE, HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import TrackingScope from '../scopes/TrackingScope';
-import { LiteralValueOrUnknown, UnknownValue } from '../unknownValues';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
 import BlockStatement from './BlockStatement';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
+import { LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
 import {
 	ExpressionNode,
 	GenericEsTreeNode,

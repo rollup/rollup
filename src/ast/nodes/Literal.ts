@@ -1,7 +1,6 @@
 import MagicString from 'magic-string';
 import { CallOptions } from '../CallOptions';
 import { HasEffectsContext } from '../ExecutionContext';
-import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../unknownValues';
 import { ObjectPath } from '../utils/PathTracker';
 import {
 	getLiteralMembersForValue,
@@ -10,6 +9,7 @@ import {
 	MemberDescription,
 } from '../values';
 import * as NodeType from './NodeType';
+import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from './shared/Expression';
 import { GenericEsTreeNode, NodeBase } from './shared/Node';
 
 export type LiteralValue = string | boolean | null | number | RegExp | undefined;

@@ -4,7 +4,6 @@ import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext } from '../ExecutionContext';
-import { LiteralValueOrUnknown, UnknownValue,  UNKNOWN_EXPRESSION } from '../unknownValues';
 import {
 	EMPTY_PATH,
 	ObjectPath,
@@ -16,7 +15,7 @@ import Identifier from './Identifier';
 import Literal from './Literal';
 import * as NodeType from './NodeType';
 import Property from './Property';
-import { ExpressionEntity } from './shared/Expression';
+import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from './shared/Expression';
 import { NodeBase } from './shared/Node';
 import { ObjectEntity, ObjectProperty } from './shared/ObjectEntity';
 import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';

@@ -1,7 +1,7 @@
 import { AstContext } from '../../Module';
 import Identifier from '../nodes/Identifier';
 import { ExpressionEntity } from '../nodes/shared/Expression';
-import { UNDEFINED_EXPRESSION } from '../unknownValues';
+import { UNDEFINED_EXPRESSION } from '../values';
 import LocalVariable from '../variables/LocalVariable';
 import Variable from '../variables/Variable';
 import ChildScope from './ChildScope';

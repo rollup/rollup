@@ -1,8 +1,7 @@
 import { AstContext } from '../../Module';
 import { CallOptions } from '../CallOptions';
 import { HasEffectsContext } from '../ExecutionContext';
-import { ExpressionEntity } from '../nodes/shared/Expression';
-import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../unknownValues';
+import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
 import { ObjectPath } from '../utils/PathTracker';
 import LocalVariable from './LocalVariable';
 

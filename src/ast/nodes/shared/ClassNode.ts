@@ -3,7 +3,6 @@ import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { HasEffectsContext } from '../../ExecutionContext';
 import ChildScope from '../../scopes/ChildScope';
 import Scope from '../../scopes/Scope';
-import { LiteralValueOrUnknown, UnknownValue } from '../../unknownValues';
 import {
 	EMPTY_PATH,
 	ObjectPath,
@@ -15,7 +14,7 @@ import ClassBody from '../ClassBody';
 import Identifier from '../Identifier';
 import Literal from '../Literal';
 import MethodDefinition from '../MethodDefinition';
-import { ExpressionEntity } from './Expression';
+import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue } from './Expression';
 import { ExpressionNode, NodeBase } from './Node';
 import { ObjectEntity, ObjectProperty } from './ObjectEntity';
 import { ObjectMember } from './ObjectMember';

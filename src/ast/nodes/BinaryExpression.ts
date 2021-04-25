@@ -1,6 +1,5 @@
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext } from '../ExecutionContext';
-import { LiteralValueOrUnknown, UnknownValue } from '../unknownValues';
 import {
 	EMPTY_PATH,
 	ObjectPath,
@@ -10,6 +9,7 @@ import {
 import ExpressionStatement from './ExpressionStatement';
 import { LiteralValue } from './Literal';
 import * as NodeType from './NodeType';
+import { LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 const binaryOperators: {

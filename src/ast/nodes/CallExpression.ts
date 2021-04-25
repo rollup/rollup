@@ -9,7 +9,6 @@ import {
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../unknownValues';
 import {
 	EMPTY_PATH,
 	ObjectPath,
@@ -20,7 +19,7 @@ import {
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
-import { ExpressionEntity } from './shared/Expression';
+import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from './shared/Expression';
 import {
 	Annotation,
 	ExpressionNode,

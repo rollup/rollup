@@ -1,9 +1,19 @@
 import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { HasEffectsContext } from '../../ExecutionContext';
-import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../../unknownValues';
-import { ObjectPath, ObjectPathKey, PathTracker, UnknownKey, UNKNOWN_PATH } from '../../utils/PathTracker';
-import { ExpressionEntity } from './Expression';
+import {
+	ObjectPath,
+	ObjectPathKey,
+	PathTracker,
+	UnknownKey,
+	UNKNOWN_PATH
+} from '../../utils/PathTracker';
+import {
+	ExpressionEntity,
+	LiteralValueOrUnknown,
+	UnknownValue,
+	UNKNOWN_EXPRESSION
+} from './Expression';
 
 export interface ObjectProperty {
 	key: ObjectPathKey;
@@ -14,11 +24,9 @@ export interface ObjectProperty {
 type PropertyMap = Record<string, ExpressionEntity[]>;
 
 // TODO Lukas add a way to directly inject only propertiesByKey and create allProperties lazily/not
-export class ObjectEntity implements ExpressionEntity {
-	included = true;
-
+export class ObjectEntity extends ExpressionEntity {
 	private readonly allProperties: ExpressionEntity[] = [];
-	private readonly deoptimizedPaths: Record<string,boolean> = Object.create(null);
+	private readonly deoptimizedPaths: Record<string, boolean> = Object.create(null);
 	private readonly expressionsToBeDeoptimizedByKey: Record<
 		string,
 		DeoptimizableEntity[]
@@ -32,6 +40,7 @@ export class ObjectEntity implements ExpressionEntity {
 	private readonly unmatchableSetters: ExpressionEntity[] = [];
 
 	constructor(properties: ObjectProperty[], private prototypeExpression: ExpressionEntity | null) {
+		super();
 		this.buildPropertyMaps(properties);
 	}
 
@@ -207,10 +216,6 @@ export class ObjectEntity implements ExpressionEntity {
 		}
 		return true;
 	}
-
-	include() {}
-
-	includeCallArguments() {}
 
 	mayModifyThisWhenCalledAtPath(
 		path: ObjectPath,

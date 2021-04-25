@@ -2,13 +2,19 @@ import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { WritableEntity } from '../../Entity';
 import { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
-import { LiteralValueOrUnknown } from '../../unknownValues';
 import { ObjectPath, PathTracker } from '../../utils/PathTracker';
+import { LiteralValue } from '../Literal';
 import SpreadElement from '../SpreadElement';
 import { ExpressionNode, IncludeChildren } from './Node';
 
-export interface ExpressionEntity extends WritableEntity {
-	included: boolean;
+export const UnknownValue = Symbol('Unknown Value');
+
+export type LiteralValueOrUnknown = LiteralValue | typeof UnknownValue;
+
+export class ExpressionEntity implements WritableEntity {
+	included = false;
+
+	deoptimizePath(_path: ObjectPath): void {}
 
 	/**
 	 * If possible it returns a stringifyable literal value for this node that can be used
@@ -16,26 +22,54 @@ export interface ExpressionEntity extends WritableEntity {
 	 * Otherwise it should return UnknownValue.
 	 */
 	getLiteralValueAtPath(
-		path: ObjectPath,
-		recursionTracker: PathTracker,
-		origin: DeoptimizableEntity
-	): LiteralValueOrUnknown;
+		_path: ObjectPath,
+		_recursionTracker: PathTracker,
+		_origin: DeoptimizableEntity
+	): LiteralValueOrUnknown {
+		return UnknownValue;
+	}
+
 	getReturnExpressionWhenCalledAtPath(
-		path: ObjectPath,
-		recursionTracker: PathTracker,
-		origin: DeoptimizableEntity
-	): ExpressionEntity;
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean;
+		_path: ObjectPath,
+		_recursionTracker: PathTracker,
+		_origin: DeoptimizableEntity
+	): ExpressionEntity {
+		return UNKNOWN_EXPRESSION;
+	}
+
+	hasEffectsWhenAccessedAtPath(_path: ObjectPath, _context: HasEffectsContext): boolean {
+		return true;
+	}
+
+	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _context: HasEffectsContext): boolean {
+		return true;
+	}
+
 	hasEffectsWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		context: HasEffectsContext
-	): boolean;
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void;
-	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void;
+		_path: ObjectPath,
+		_callOptions: CallOptions,
+		_context: HasEffectsContext
+	): boolean {
+		return true;
+	}
+
+	include(_context: InclusionContext, _includeChildrenRecursively: IncludeChildren): void {
+		this.included = true;
+	}
+
+	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
+		for (const arg of args) {
+			arg.include(context, false);
+		}
+	}
+
 	mayModifyThisWhenCalledAtPath(
-		path: ObjectPath,
-		recursionTracker: PathTracker,
-		origin: DeoptimizableEntity
-	): boolean;
+		_path: ObjectPath,
+		_recursionTracker: PathTracker,
+		_origin: DeoptimizableEntity
+	): boolean {
+		return true;
+	}
 }
+
+export const UNKNOWN_EXPRESSION: ExpressionEntity = new (class UnknownExpression extends ExpressionEntity {})();

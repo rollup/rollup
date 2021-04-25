@@ -1,28 +1,21 @@
 import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
-import { LiteralValueOrUnknown, UnknownValue } from '../../unknownValues';
 import { ObjectPath, PathTracker } from '../../utils/PathTracker';
 import { ExpressionEntity } from './Expression';
 import { IncludeChildren } from './Node';
 
-export class MultiExpression implements ExpressionEntity {
+export class MultiExpression extends ExpressionEntity {
 	included = false;
 
-	private expressions: ExpressionEntity[];
-
-	constructor(expressions: ExpressionEntity[]) {
-		this.expressions = expressions;
+	constructor(private expressions: ExpressionEntity[]) {
+		super();
 	}
 
 	deoptimizePath(path: ObjectPath): void {
 		for (const expression of this.expressions) {
 			expression.deoptimizePath(path);
 		}
-	}
-
-	getLiteralValueAtPath(): LiteralValueOrUnknown {
-		return UnknownValue;
 	}
 
 	getReturnExpressionWhenCalledAtPath(
@@ -70,17 +63,5 @@ export class MultiExpression implements ExpressionEntity {
 				expression.include(context, includeChildrenRecursively);
 			}
 		}
-	}
-
-	includeCallArguments(): void {}
-
-	mayModifyThisWhenCalledAtPath(
-		path: ObjectPath,
-		recursionTracker: PathTracker,
-		origin: DeoptimizableEntity
-	) {
-		return this.expressions.some(e =>
-			e.mayModifyThisWhenCalledAtPath(path, recursionTracker, origin)
-		);
 	}
 }

@@ -1,10 +1,9 @@
 import { CallOptions, NO_ARGS } from '../../CallOptions';
 import { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
-import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../../unknownValues';
 import { EMPTY_PATH, ObjectPath } from '../../utils/PathTracker';
 import { UNKNOWN_LITERAL_BOOLEAN, UNKNOWN_LITERAL_STRING } from '../../values';
 import SpreadElement from '../SpreadElement';
-import { ExpressionEntity } from './Expression';
+import { ExpressionEntity, UNKNOWN_EXPRESSION } from './Expression';
 import { ExpressionNode } from './Node';
 
 type MethodDescription = {
@@ -21,15 +20,9 @@ type MethodDescription = {
 	  }
 );
 
-class Method implements ExpressionEntity {
-	public included = true;
-
-	constructor(private readonly description: MethodDescription) {}
-
-	deoptimizePath(): void {}
-
-	getLiteralValueAtPath(): LiteralValueOrUnknown {
-		return UnknownValue;
+class Method extends ExpressionEntity {
+	constructor(private readonly description: MethodDescription) {
+		super();
 	}
 
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath): ExpressionEntity {
@@ -75,8 +68,6 @@ class Method implements ExpressionEntity {
 		return false;
 	}
 
-	include(): void {}
-
 	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
 		for (const arg of args) {
 			arg.include(context, false);
@@ -93,18 +84,18 @@ export const METHOD_RETURNS_BOOLEAN = new Method({
 	mutatesSelf: false,
 	returns: null,
 	returnsPrimitive: UNKNOWN_LITERAL_BOOLEAN
-})
+});
 
 export const METHOD_RETURNS_STRING = new Method({
 	callsArgs: null,
 	mutatesSelf: false,
 	returns: null,
 	returnsPrimitive: UNKNOWN_LITERAL_STRING
-})
+});
 
 export const METHOD_RETURNS_UNKNOWN = new Method({
 	callsArgs: null,
 	mutatesSelf: false,
 	returns: null,
 	returnsPrimitive: UNKNOWN_EXPRESSION
-})
+});

@@ -1,10 +1,14 @@
 import { CallOptions, NO_ARGS } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { HasEffectsContext } from '../../ExecutionContext';
-import { LiteralValueOrUnknown, UNKNOWN_EXPRESSION } from '../../unknownValues';
-import { EMPTY_PATH, ObjectPath, PathTracker, SHARED_RECURSION_TRACKER } from '../../utils/PathTracker';
+import {
+	EMPTY_PATH,
+	ObjectPath,
+	PathTracker,
+	SHARED_RECURSION_TRACKER
+} from '../../utils/PathTracker';
 import PrivateIdentifier from '../PrivateIdentifier';
-import { ExpressionEntity } from './Expression';
+import { ExpressionEntity, LiteralValueOrUnknown, UNKNOWN_EXPRESSION } from './Expression';
 import { ExpressionNode, NodeBase } from './Node';
 import { PatternNode } from './Pattern';
 
@@ -86,9 +90,11 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 		if (this.accessedValue === null) {
 			if (this.kind === 'get') {
 				this.accessedValue = UNKNOWN_EXPRESSION;
-				return (this.accessedValue = this.value.getReturnExpressionWhenCalledAtPath(EMPTY_PATH,
+				return (this.accessedValue = this.value.getReturnExpressionWhenCalledAtPath(
+					EMPTY_PATH,
 					SHARED_RECURSION_TRACKER,
-					this));
+					this
+				));
 			} else {
 				return (this.accessedValue = this.value);
 			}

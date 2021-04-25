@@ -5,10 +5,9 @@ import { createInclusionContext, HasEffectsContext, InclusionContext } from '../
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import Identifier from '../nodes/Identifier';
 import * as NodeType from '../nodes/NodeType';
-import { ExpressionEntity } from '../nodes/shared/Expression';
+import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
 import { ExpressionNode, Node } from '../nodes/shared/Node';
 import SpreadElement from '../nodes/SpreadElement';
-import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../unknownValues';
 import { ObjectPath, PathTracker, UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from './Variable';
 

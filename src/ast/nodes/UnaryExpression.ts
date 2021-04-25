@@ -1,10 +1,10 @@
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext } from '../ExecutionContext';
-import { LiteralValueOrUnknown, UnknownValue } from '../unknownValues';
 import { EMPTY_PATH, ObjectPath, PathTracker } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import { LiteralValue } from './Literal';
 import * as NodeType from './NodeType';
+import { LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 const unaryOperators: {
