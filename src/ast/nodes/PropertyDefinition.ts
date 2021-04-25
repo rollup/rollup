@@ -46,6 +46,14 @@ export default class PropertyDefinition extends NodeBase {
 		);
 	}
 
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
+		return !this.value || this.value.hasEffectsWhenAccessedAtPath(path, context);
+	}
+
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
+		return !this.value || this.value.hasEffectsWhenAssignedAtPath(path, context);
+	}
+
 	hasEffectsWhenCalledAtPath(
 		path: ObjectPath,
 		callOptions: CallOptions,

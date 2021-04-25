@@ -31,7 +31,6 @@ import {
 import SpreadElement from './SpreadElement';
 import Super from './Super';
 
-// TODO Lukas see which deoptimizations could be applied lazily, just like assignments
 export default class CallExpression extends NodeBase implements DeoptimizableEntity {
 	arguments!: (ExpressionNode | SpreadElement)[];
 	callee!: ExpressionNode | Super;

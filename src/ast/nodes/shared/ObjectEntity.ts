@@ -82,6 +82,8 @@ export class ObjectEntity implements ExpressionEntity {
 			: this.allProperties) {
 			property.deoptimizePath(subPath);
 		}
+		// TODO Lukas only if we have no hit here, we need to continue with the prototype
+		this.prototypeExpression?.deoptimizePath(path.length === 1 ? [UnknownKey, UnknownKey] : path);
 	}
 
 	getLiteralValueAtPath(
@@ -136,15 +138,20 @@ export class ObjectEntity implements ExpressionEntity {
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		const [key, ...subPath] = path;
 		if (path.length > 1) {
-			// TODO Lukas we can look at the prototype as well, but only if the property is known?
+			if (typeof key !== 'string') {
+				return true;
+			}
 			const expressionAtPath = this.getMemberExpression(key);
 			if (expressionAtPath) {
 				return expressionAtPath.hasEffectsWhenAccessedAtPath(subPath, context);
 			}
+			if (this.prototypeExpression) {
+				return this.prototypeExpression.hasEffectsWhenAccessedAtPath(path, context);
+			}
 			return true;
 		}
 
-		// TODO Lukas we could match all getters for unknown paths as well as well
+		// TODO Lukas we could match all getters for unknown paths as well
 		if (typeof key !== 'string' || this.hasUnknownDeoptimizedProperty) return true;
 
 		const properties = this.gettersByKey[key] || this.unmatchableGetters;
@@ -160,9 +167,15 @@ export class ObjectEntity implements ExpressionEntity {
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		const [key, ...subPath] = path;
 		if (path.length > 1) {
+			if (typeof key !== 'string') {
+				return true;
+			}
 			const expressionAtPath = this.getMemberExpression(key);
 			if (expressionAtPath) {
 				return expressionAtPath.hasEffectsWhenAssignedAtPath(subPath, context);
+			}
+			if (this.prototypeExpression) {
+				return this.prototypeExpression.hasEffectsWhenAssignedAtPath(path, context);
 			}
 			return true;
 		}

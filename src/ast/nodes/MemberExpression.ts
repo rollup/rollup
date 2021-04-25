@@ -19,6 +19,7 @@ import {
 import ExternalVariable from '../variables/ExternalVariable';
 import NamespaceVariable from '../variables/NamespaceVariable';
 import Variable from '../variables/Variable';
+import AssignmentExpression from './AssignmentExpression';
 import Identifier from './Identifier';
 import Literal from './Literal';
 import * as NodeType from './NodeType';
@@ -168,11 +169,13 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		const propertyReadSideEffects = (this.context.options.treeshake as NormalizedTreeshakingOptions)
 			.propertyReadSideEffects;
 		return (
-			propertyReadSideEffects === 'always' ||
 			this.property.hasEffects(context) ||
 			this.object.hasEffects(context) ||
-			(propertyReadSideEffects &&
-				this.object.hasEffectsWhenAccessedAtPath([this.propertyKey!], context))
+			// Assignments only access the object before assigning
+			(!(this.parent instanceof AssignmentExpression) &&
+				propertyReadSideEffects &&
+				(propertyReadSideEffects === 'always' ||
+					this.object.hasEffectsWhenAccessedAtPath([this.propertyKey!], context)))
 		);
 	}
 

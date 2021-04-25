@@ -59,6 +59,7 @@ RetainedSub.a;
 class RemovedSub extends RetainedSuper {}
 RemovedSub.b;
 
+// class fields are not part of the prototype
 class RemovedProtoValue {
 	a = true;
 }

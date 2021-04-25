@@ -23,6 +23,7 @@ class RetainedSuper {
 }
 class RetainedSub extends RetainedSuper {}
 RetainedSub.a;
+log();
 
 class DeoptProto {
 	a = true;

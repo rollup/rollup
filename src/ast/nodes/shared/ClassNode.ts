@@ -116,10 +116,12 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 			return this.objectEntity;
 		}
 		const staticProperties: ObjectProperty[] = [];
-		const dynamicProperties: ObjectProperty[] = [];
+		const dynamicMethods: ObjectProperty[] = [];
 		for (const definition of this.body.body) {
-			const properties = definition.static ? staticProperties : dynamicProperties;
+			const properties = definition.static ? staticProperties : dynamicMethods;
 			const definitionKind = (definition as MethodDefinition | { kind: undefined }).kind;
+			// Note that class fields do not end up on the prototype
+			if (properties === dynamicMethods && !definitionKind) continue;
 			const kind = definitionKind === 'set' || definitionKind === 'get' ? definitionKind : 'init';
 			let key: string;
 			if (definition.computed) {
@@ -146,7 +148,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 			key: 'prototype',
 			kind: 'init',
 			property: new ObjectEntity(
-				dynamicProperties,
+				dynamicMethods,
 				this.superClass ? new ObjectMember(this.superClass, 'prototype') : OBJECT_PROTOTYPE
 			)
 		});

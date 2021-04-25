@@ -1,14 +1,12 @@
 import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
+import { HasEffectsContext } from '../../ExecutionContext';
 import { LiteralValueOrUnknown } from '../../unknownValues';
 import { ObjectPath, PathTracker } from '../../utils/PathTracker';
-import SpreadElement from '../SpreadElement';
 import { ExpressionEntity } from './Expression';
-import { ExpressionNode, IncludeChildren } from './Node';
 
 export class ObjectMember implements ExpressionEntity {
-	included = false;
+	included = true;
 
 	constructor(private readonly object: ExpressionEntity, private readonly key: string) {}
 
@@ -53,16 +51,9 @@ export class ObjectMember implements ExpressionEntity {
 		return this.object.hasEffectsWhenCalledAtPath([this.key, ...path], callOptions, context);
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		this.included = true;
-		this.object.include(context, includeChildrenRecursively);
-	}
+	include(): void {}
 
-	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
-		for (const arg of args) {
-			arg.include(context, false);
-		}
-	}
+	includeCallArguments(): void {}
 
 	mayModifyThisWhenCalledAtPath(
 		path: ObjectPath,
