@@ -36,7 +36,7 @@ export default class NewExpression extends NodeBase {
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
-		return path.length > 1;
+		return path.length > 0;
 	}
 
 	initialise() {

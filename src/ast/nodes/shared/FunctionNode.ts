@@ -11,6 +11,7 @@ import SpreadElement from '../SpreadElement';
 import { ExpressionNode, GenericEsTreeNode, IncludeChildren, NodeBase } from './Node';
 import { PatternNode } from './Pattern';
 
+// TODO Lukas improve prototype handling to fix #2219
 export default class FunctionNode extends NodeBase {
 	async!: boolean;
 	body!: BlockStatement;

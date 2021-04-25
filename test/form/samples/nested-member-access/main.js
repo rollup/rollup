@@ -4,9 +4,6 @@ const removedResult1 = removed1.foo;
 const removed2 = { foo: {} };
 const removedResult2 = removed2.foo.bar;
 
-const removed3 = new function () {}();
-const removedResult3 = removed3.foo;
-
 const removed4 = !{};
 const removedResult4 = removed4.foo;
 
