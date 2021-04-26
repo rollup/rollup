@@ -210,6 +210,7 @@ export default class Chunk {
 	} = Object.create(null);
 	private renderedModuleSources = new Map<Module, MagicString>();
 	private renderedSource: MagicStringBundle | null = null;
+	private sanitizeFileName: (id: string) => string;
 	private sortedExportNames: string[] | null = null;
 	private strictFacade = false;
 	private usedModules: Module[] = undefined as any;
@@ -254,6 +255,12 @@ export default class Chunk {
 			}
 		}
 		this.suggestedVariableName = makeLegal(this.generateVariableName());
+		if (this.outputOptions.sanitizeFileName === false)
+			this.sanitizeFileName = (id) => id;
+		else if (typeof this.outputOptions.sanitizeFileName === 'function')
+			this.sanitizeFileName = this.outputOptions.sanitizeFileName;
+		else
+			this.sanitizeFileName = sanitizeFileName;
 	}
 
 	canModuleBeFacade(module: Module, exposedVariables: Set<Variable>): boolean {
@@ -424,7 +431,8 @@ export default class Chunk {
 							? this.computeContentHashWithDependencies(addons, options, existingNames)
 							: '[hash]',
 					name: () => this.getChunkName()
-				}
+				},
+				this.sanitizeFileName
 			),
 			existingNames
 		);
@@ -794,14 +802,6 @@ export default class Chunk {
 		}
 		if (!options.compact && code[code.length - 1] !== '\n') code += '\n';
 		return { code, map };
-	}
-
-	sanitizeFileName (id: string) {
-		if (this.outputOptions.sanitizeFileName === false)
-			return id;
-		else if (typeof this.outputOptions.sanitizeFileName === 'function')
-			return this.outputOptions.sanitizeFileName(id);
-		return sanitizeFileName(id);
 	}
 
 	private addDependenciesToChunk(

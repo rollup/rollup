@@ -1,13 +1,15 @@
 import { errFailedValidation, error } from './error';
 import { extname } from './path';
 import { isPlainPathFragment } from './relativeId';
+import { sanitizeFileName as defaultSanitizeFileName } from './sanitizeFileName';
 
 export function renderNamePattern(
 	pattern: string,
 	patternName: string,
-	replacements: { [name: string]: () => string }
+	replacements: { [name: string]: () => string },
+	sanitizeFileName = defaultSanitizeFileName
 ) {
-	if (!isPlainPathFragment(pattern))
+	if (!isPlainPathFragment(pattern, sanitizeFileName))
 		return error(
 			errFailedValidation(
 				`Invalid pattern "${pattern}" for "${patternName}", patterns can be neither absolute nor relative paths and must not contain invalid characters.`

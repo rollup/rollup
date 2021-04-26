@@ -1100,6 +1100,27 @@ describe('hooks', () => {
 			});
 	});
 
+	it('supports disabling sanitization for in-memory / in-browser / non-fs builds', () => {
+		return rollup
+			.rollup({
+				input: 'input.js',
+				plugins: [{
+					resolveId: id => id,
+					load: () => `export default 5`
+				}]
+			})
+			.then(bundle => {
+				return bundle.generate({
+					format: 'es',
+					sanitizeFileName: false,
+					entryFileNames: 'test:[name]'
+				});
+			})
+			.then(({ output }) => {
+				assert.strictEqual(output[0].fileName, 'test:input');
+			});
+	});
+
 	describe('deprecated', () => {
 		it('caches chunk emission in transform hook', () => {
 			let cache;
