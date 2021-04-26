@@ -649,7 +649,7 @@ export interface OutputOptions {
 	preferConst?: boolean;
 	preserveModules?: boolean;
 	preserveModulesRoot?: string;
-	sanitizeFileName?: boolean | ((string) => string);
+	sanitizeFileName?: boolean | ((fileName: string) => string);
 	sourcemap?: boolean | 'inline' | 'hidden';
 	sourcemapExcludeSources?: boolean;
 	sourcemapFile?: string;
@@ -694,7 +694,7 @@ export interface NormalizedOutputOptions {
 	preferConst: boolean;
 	preserveModules: boolean;
 	preserveModulesRoot: string | undefined;
-	sanitizeFileName: boolean | ((string) => string);
+	sanitizeFileName: boolean | ((fileName: string) => string);
 	sourcemap: boolean | 'inline' | 'hidden';
 	sourcemapExcludeSources: boolean;
 	sourcemapFile: string | undefined;
