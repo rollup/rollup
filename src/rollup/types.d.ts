@@ -649,6 +649,7 @@ export interface OutputOptions {
 	preferConst?: boolean;
 	preserveModules?: boolean;
 	preserveModulesRoot?: string;
+	sanitizeFileName?: boolean | ((string) => string);
 	sourcemap?: boolean | 'inline' | 'hidden';
 	sourcemapExcludeSources?: boolean;
 	sourcemapFile?: string;

@@ -1,6 +1,6 @@
 'use strict';
 
-var external = require('\0do-not-sanitize');
+var external = require(':do-not-sanitize');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 

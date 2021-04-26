@@ -1,4 +1,4 @@
-define(['?do-not-sanitize'], function (external) { 'use strict';
+define([':do-not-sanitize'], function (external) { 'use strict';
 
 	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 

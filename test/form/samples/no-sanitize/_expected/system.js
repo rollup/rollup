@@ -1,4 +1,4 @@
-System.register(['\0do-not-sanitize'], function () {
+System.register([':do-not-sanitize'], function () {
 	'use strict';
 	var external;
 	return {
