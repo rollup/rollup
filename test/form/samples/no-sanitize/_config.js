@@ -2,6 +2,6 @@ module.exports = {
 	description: 'supports disabling sanitization',
 	options: {
 		external: [':do-not-sanitize'],
-		sanitizeFileNames: false
+		sanitizeFileName: false
 	}
 };

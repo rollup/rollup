@@ -796,6 +796,14 @@ export default class Chunk {
 		return { code, map };
 	}
 
+	sanitizeFileName (id: string) {
+		if (this.outputOptions.sanitizeFileName === false)
+			return id;
+		else if (typeof this.outputOptions.sanitizeFileName === 'function')
+			return this.outputOptions.sanitizeFileName(id);
+		return sanitizeFileName(id);
+	}
+
 	private addDependenciesToChunk(
 		moduleDependencies: Set<Module | ExternalModule>,
 		chunkDependencies: Set<Chunk | ExternalModule>
@@ -1242,14 +1250,6 @@ export default class Chunk {
 				importMeta.addAccessedGlobals(this.outputOptions.format, accessedGlobalsByScope);
 			}
 		}
-	}
-
-	sanitizeFileName (id: string) {
-		if (this.outputOptions.sanitizeFileName === false)
-			return id;
-		else if (typeof this.outputOptions.sanitizeFileName === 'function')
-			return this.outputOptions.sanitizeFileName(id);
-		return sanitizeFileName(id);
 	}
 
 	private setExternalRenderPaths(options: NormalizedOutputOptions, inputBase: string) {
