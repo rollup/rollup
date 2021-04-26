@@ -42,6 +42,7 @@ module.exports = {
 					plugins: [],
 					preferConst: false,
 					preserveModules: false,
+					sanitizeFileName: true,
 					sourcemap: false,
 					sourcemapExcludeSources: false,
 					strict: true,
