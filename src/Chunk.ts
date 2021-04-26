@@ -430,14 +430,6 @@ export default class Chunk {
 		);
 	}
 
-	sanitizeFileName (id: string) {
-		if (this.outputOptions.sanitizeFileName === false)
-			return id;
-		else if (typeof this.outputOptions.sanitizeFileName === 'function')
-			return this.outputOptions.sanitizeFileName(id);
-		return sanitizeFileName(id);
-	}
-
 	generateIdPreserveModules(
 		preserveModulesRelativeDir: string,
 		options: NormalizedOutputOptions,
@@ -1250,6 +1242,14 @@ export default class Chunk {
 				importMeta.addAccessedGlobals(this.outputOptions.format, accessedGlobalsByScope);
 			}
 		}
+	}
+
+	sanitizeFileName (id: string) {
+		if (this.outputOptions.sanitizeFileName === false)
+			return id;
+		else if (typeof this.outputOptions.sanitizeFileName === 'function')
+			return this.outputOptions.sanitizeFileName(id);
+		return sanitizeFileName(id);
 	}
 
 	private setExternalRenderPaths(options: NormalizedOutputOptions, inputBase: string) {
