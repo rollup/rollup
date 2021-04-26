@@ -430,6 +430,14 @@ export default class Chunk {
 		);
 	}
 
+	sanitizeFileName (id: string) {
+		if (this.outputOptions.sanitizeFileName === false)
+			return id;
+		else if (typeof this.outputOptions.sanitizeFileName === 'function')
+			return this.outputOptions.sanitizeFileName(id);
+		return sanitizeFileName(id);
+	}
+
 	generateIdPreserveModules(
 		preserveModulesRelativeDir: string,
 		options: NormalizedOutputOptions,
@@ -437,7 +445,7 @@ export default class Chunk {
 		unsetOptions: Set<string>
 	): string {
 		const id = this.orderedModules[0].id;
-		const sanitizedId = sanitizeFileName(id);
+		const sanitizedId = this.sanitizeFileName(id);
 		let path: string;
 		if (isAbsolute(id)) {
 			const extension = extname(id);
@@ -501,7 +509,7 @@ export default class Chunk {
 	}
 
 	getChunkName(): string {
-		return this.name || (this.name = sanitizeFileName(this.getFallbackChunkName()));
+		return this.name || (this.name = this.sanitizeFileName(this.getFallbackChunkName()));
 	}
 
 	getExportNames(): string[] {
@@ -816,7 +824,7 @@ export default class Chunk {
 		if (fileName) {
 			this.fileName = fileName;
 		} else {
-			this.name = sanitizeFileName(name || getChunkNameFromModule(facadedModule));
+			this.name = this.sanitizeFileName(name || getChunkNameFromModule(facadedModule));
 		}
 	}
 
