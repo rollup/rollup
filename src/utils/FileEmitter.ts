@@ -184,7 +184,7 @@ export class FileEmitter {
 				)
 			);
 		}
-		if (!hasValidName(emittedFile, this.outputOptions!.sanitizeFileName)) {
+		if (this.outputOptions && !hasValidName(emittedFile, this.outputOptions.sanitizeFileName)) {
 			return error(
 				errFailedValidation(
 					`The "fileName" or "name" properties of emitted files must be strings that are neither absolute nor relative paths and do not contain invalid characters, received "${
