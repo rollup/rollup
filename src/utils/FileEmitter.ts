@@ -5,8 +5,8 @@ import {
 	EmittedChunk,
 	FilePlaceholder,
 	NormalizedInputOptions,
+	NormalizedOutputOptions,
 	OutputBundleWithPlaceholders,
-	PreRenderedAsset,
 	WarningHandler
 } from '../rollup/types';
 import { BuildPhase } from './buildPhase';
@@ -29,8 +29,8 @@ import { isPlainPathFragment } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';
 
 interface OutputSpecificFileData {
-	assetFileNames: string | ((assetInfo: PreRenderedAsset) => string);
 	bundle: OutputBundleWithPlaceholders;
+	outputOptions: NormalizedOutputOptions;
 }
 
 function generateAssetFileName(
@@ -41,9 +41,9 @@ function generateAssetFileName(
 	const emittedName = name || 'asset';
 	return makeUnique(
 		renderNamePattern(
-			typeof output.assetFileNames === 'function'
-				? output.assetFileNames({ name, source, type: 'asset' })
-				: output.assetFileNames,
+			typeof output.outputOptions.assetFileNames === 'function'
+				? output.outputOptions.assetFileNames({ name, source, type: 'asset' })
+				: output.outputOptions.assetFileNames,
 			'output.assetFileNames',
 			{
 				hash() {
@@ -56,7 +56,8 @@ function generateAssetFileName(
 				ext: () => extname(emittedName).substr(1),
 				extname: () => extname(emittedName),
 				name: () => emittedName.substr(0, emittedName.length - extname(emittedName).length)
-			}
+			},
+			output.outputOptions.sanitizeFileName
 		),
 		output.bundle
 	);
@@ -113,10 +114,10 @@ function hasValidType(
 function hasValidName(emittedFile: {
 	type: 'asset' | 'chunk';
 	[key: string]: unknown;
-}): emittedFile is EmittedFile {
+}, sanitizeFileName: (fileName: string) => string): emittedFile is EmittedFile {
 	const validatedName = emittedFile.fileName || emittedFile.name;
 	return (
-		!validatedName || (typeof validatedName === 'string' && isPlainPathFragment(validatedName))
+		!validatedName || (typeof validatedName === 'string' && isPlainPathFragment(validatedName, sanitizeFileName))
 	);
 }
 
@@ -186,7 +187,7 @@ export class FileEmitter {
 				)
 			);
 		}
-		if (!hasValidName(emittedFile)) {
+		if (!hasValidName(emittedFile, this.output!.outputOptions.sanitizeFileName)) {
 			return error(
 				errFailedValidation(
 					`The "fileName" or "name" properties of emitted files must be strings that are neither absolute nor relative paths and do not contain invalid characters, received "${
@@ -235,12 +236,12 @@ export class FileEmitter {
 
 	public setOutputBundle = (
 		outputBundle: OutputBundleWithPlaceholders,
-		assetFileNames: string | ((assetInfo: PreRenderedAsset) => string),
+		outputOptions: NormalizedOutputOptions,
 		facadeChunkByModule: Map<Module, Chunk>
 	): void => {
 		this.output = {
-			assetFileNames,
-			bundle: outputBundle
+			bundle: outputBundle,
+			outputOptions
 		};
 		this.facadeChunkByModule = facadeChunkByModule;
 		for (const emittedFile of this.filesByReferenceId.values()) {

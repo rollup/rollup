@@ -7,6 +7,7 @@ import {
 	EmitFile,
 	FirstPluginHooks,
 	NormalizedInputOptions,
+	NormalizedOutputOptions,
 	OutputBundleWithPlaceholders,
 	OutputPluginHooks,
 	ParallelPluginHooks,
@@ -74,7 +75,7 @@ export class PluginDriver {
 	public getFileName: (fileReferenceId: string) => string;
 	public setOutputBundle: (
 		outputBundle: OutputBundleWithPlaceholders,
-		assetFileNames: string | ((assetInfo: PreRenderedAsset) => string),
+		outputOptions: NormalizedOutputOptions,
 		facadeChunkByModule: Map<Module, Chunk>
 	) => void;
 

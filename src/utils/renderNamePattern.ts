@@ -1,13 +1,12 @@
 import { errFailedValidation, error } from './error';
 import { extname } from './path';
 import { isPlainPathFragment } from './relativeId';
-import { sanitizeFileName as defaultSanitizeFileName } from './sanitizeFileName';
 
 export function renderNamePattern(
 	pattern: string,
 	patternName: string,
 	replacements: { [name: string]: () => string },
-	sanitizeFileName = defaultSanitizeFileName
+	sanitizeFileName: (fileName: string) => string
 ) {
 	if (!isPlainPathFragment(pattern, sanitizeFileName))
 		return error(
@@ -22,7 +21,7 @@ export function renderNamePattern(
 			);
 		}
 		const replacement = replacements[type]();
-		if (!isPlainPathFragment(replacement))
+		if (!isPlainPathFragment(replacement, sanitizeFileName))
 			return error(
 				errFailedValidation(
 					`Invalid substitution "${replacement}" for placeholder "[${type}]" in "${patternName}" pattern, can be neither absolute nor relative path.`

@@ -455,7 +455,8 @@ export default class Chunk {
 					extname: () => extension,
 					format: () => options.format as string,
 					name: () => this.getChunkName()
-				}
+				},
+				this.outputOptions.sanitizeFileName
 			);
 			const currentPath = `${currentDir}/${fileName}`;
 			const { preserveModulesRoot } = options;

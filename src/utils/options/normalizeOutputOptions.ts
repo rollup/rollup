@@ -67,7 +67,7 @@ export function normalizeOutputOptions(
 		preferConst: (config.preferConst as boolean | undefined) || false,
 		preserveModules,
 		preserveModulesRoot: getPreserveModulesRoot(config),
-		sanitizeFileName: (typeof config.sanitizeFileName === 'function' ? config.sanitizeFileNames : config.sanitizeFileName === false ? (id) => id : defaultSanitizeFileName) as NormalizedOutputOptions['sanitizeFileName'],
+		sanitizeFileName: (typeof config.sanitizeFileName === 'function' ? config.sanitizeFileName : config.sanitizeFileName === false ? (id) => id : defaultSanitizeFileName) as NormalizedOutputOptions['sanitizeFileName'],
 		sourcemap: (config.sourcemap as boolean | 'inline' | 'hidden' | undefined) || false,
 		sourcemapExcludeSources: (config.sourcemapExcludeSources as boolean | undefined) || false,
 		sourcemapFile: config.sourcemapFile as string | undefined,
