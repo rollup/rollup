@@ -155,15 +155,13 @@ export class FileEmitter {
 	private bundle: OutputBundleWithPlaceholders | null = null;
 	private facadeChunkByModule: Map<Module, Chunk> | null = null;
 	private filesByReferenceId: Map<string, ConsumedFile>;
-	private readonly outputOptions: NormalizedOutputOptions;
+	private outputOptions: NormalizedOutputOptions | null = null;
 
 	constructor(
 		private readonly graph: Graph,
 		private readonly options: NormalizedInputOptions,
-		outputOptions: NormalizedOutputOptions,
 		baseFileEmitter?: FileEmitter
 	) {
-		this.outputOptions = outputOptions;
 		this.filesByReferenceId = baseFileEmitter
 			? new Map(baseFileEmitter.filesByReferenceId)
 			: new Map();
@@ -186,7 +184,7 @@ export class FileEmitter {
 				)
 			);
 		}
-		if (!hasValidName(emittedFile, this.outputOptions.sanitizeFileName)) {
+		if (!hasValidName(emittedFile, this.outputOptions!.sanitizeFileName)) {
 			return error(
 				errFailedValidation(
 					`The "fileName" or "name" properties of emitted files must be strings that are neither absolute nor relative paths and do not contain invalid characters, received "${
@@ -235,8 +233,10 @@ export class FileEmitter {
 
 	public setOutputBundle = (
 		outputBundle: OutputBundleWithPlaceholders,
+		outputOptions: NormalizedOutputOptions,
 		facadeChunkByModule: Map<Module, Chunk>
 	): void => {
+		this.outputOptions = outputOptions;
 		this.bundle = outputBundle;
 		this.facadeChunkByModule = facadeChunkByModule;
 		for (const emittedFile of this.filesByReferenceId.values()) {
@@ -329,7 +329,7 @@ export class FileEmitter {
 		const fileName =
 			consumedFile.fileName ||
 			findExistingAssetFileNameWithSource(bundle, source) ||
-			generateAssetFileName(consumedFile.name, source, this.outputOptions, bundle);
+			generateAssetFileName(consumedFile.name, source, this.outputOptions!, bundle);
 
 		// We must not modify the original assets to avoid interaction between outputs
 		const assetWithFileName = { ...consumedFile, source, fileName };
