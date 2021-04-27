@@ -27,6 +27,7 @@ import {
 import { extname } from './path';
 import { isPlainPathFragment } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';
+import { sanitizeFileName } from './sanitizeFileName';
 
 function generateAssetFileName(
 	name: string | undefined,
@@ -184,7 +185,7 @@ export class FileEmitter {
 				)
 			);
 		}
-		if (this.outputOptions && !hasValidName(emittedFile, this.outputOptions.sanitizeFileName)) {
+		if (!hasValidName(emittedFile, this.outputOptions?.sanitizeFileName || sanitizeFileName)) {
 			return error(
 				errFailedValidation(
 					`The "fileName" or "name" properties of emitted files must be strings that are neither absolute nor relative paths and do not contain invalid characters, received "${
