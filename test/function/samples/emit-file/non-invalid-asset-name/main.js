@@ -1,1 +1,2 @@
-throw new Error('should not build');
+console.log('should build');
+

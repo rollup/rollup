@@ -1,1 +1,2 @@
-throw new Error('Not executed');
+console.log('ok');
+
