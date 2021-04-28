@@ -10,12 +10,7 @@ export default function relativeId(id: string) {
 	return relative(resolve(), id);
 }
 
-export function isPlainPathFragment(name: string, sanitizeFileName: (fileName: string) => string) {
-	// not starting with "/", "./", "../"
-	return (
-		name[0] !== '/' &&
-		!(name[0] === '.' && (name[1] === '/' || name[1] === '.')) &&
-		sanitizeFileName(name) === name &&
-		!isAbsolute(name)
-	);
+export function isPathFragment(name: string) {
+	// starting with "/", "./", "../", "C:/"
+	return  name[0] === '/' || name[0] === '.' && (name[1] === '/' || name[1] === '.') || isAbsolute(name);
 }

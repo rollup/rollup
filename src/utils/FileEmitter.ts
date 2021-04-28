@@ -25,9 +25,8 @@ import {
 	warnDeprecation
 } from './error';
 import { extname } from './path';
-import { isPlainPathFragment } from './relativeId';
+import { isPathFragment } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';
-import { sanitizeFileName } from './sanitizeFileName';
 
 function generateAssetFileName(
 	name: string | undefined,
@@ -53,8 +52,7 @@ function generateAssetFileName(
 				ext: () => extname(emittedName).substr(1),
 				extname: () => extname(emittedName),
 				name: () => emittedName.substr(0, emittedName.length - extname(emittedName).length)
-			},
-			outputOptions.sanitizeFileName
+			}
 		),
 		bundle
 	);
@@ -108,14 +106,9 @@ function hasValidType(
 	);
 }
 
-function hasValidName(emittedFile: {
-	type: 'asset' | 'chunk';
-	[key: string]: unknown;
-}, sanitizeFileName: (fileName: string) => string): emittedFile is EmittedFile {
+function hasValidName(emittedFile: { type: 'asset' | 'chunk'; [key: string]: unknown; }): emittedFile is EmittedFile {
 	const validatedName = emittedFile.fileName || emittedFile.name;
-	return (
-		!validatedName || (typeof validatedName === 'string' && isPlainPathFragment(validatedName, sanitizeFileName))
-	);
+	return !validatedName || typeof validatedName === 'string' && !isPathFragment(validatedName);
 }
 
 function getValidSource(
@@ -185,10 +178,10 @@ export class FileEmitter {
 				)
 			);
 		}
-		if (!hasValidName(emittedFile, this.outputOptions?.sanitizeFileName || sanitizeFileName)) {
+		if (!hasValidName(emittedFile)) {
 			return error(
 				errFailedValidation(
-					`The "fileName" or "name" properties of emitted files must be strings that are neither absolute nor relative paths and do not contain invalid characters, received "${
+					`The "fileName" or "name" properties of emitted files must be strings that are neither absolute nor relative paths, received "${
 						emittedFile.fileName || emittedFile.name
 					}".`
 				)
