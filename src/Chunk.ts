@@ -423,8 +423,7 @@ export default class Chunk {
 							? this.computeContentHashWithDependencies(addons, options, existingNames)
 							: '[hash]',
 					name: () => this.getChunkName()
-				},
-				this.outputOptions.sanitizeFileName
+				}
 			),
 			existingNames
 		);
@@ -455,8 +454,7 @@ export default class Chunk {
 					extname: () => extension,
 					format: () => options.format as string,
 					name: () => this.getChunkName()
-				},
-				this.outputOptions.sanitizeFileName
+				}
 			);
 			const currentPath = `${currentDir}/${fileName}`;
 			const { preserveModulesRoot } = options;
