@@ -34,7 +34,7 @@ function generateAssetFileName(
 	outputOptions: NormalizedOutputOptions,
 	bundle: OutputBundleWithPlaceholders
 ): string {
-	const emittedName = name || 'asset';
+	const emittedName = outputOptions.sanitizeFileName(name || 'asset');
 	return makeUnique(
 		renderNamePattern(
 			typeof outputOptions.assetFileNames === 'function'
