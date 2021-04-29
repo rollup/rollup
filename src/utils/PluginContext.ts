@@ -103,7 +103,7 @@ export function getPluginContext(
 			true,
 			options
 		),
-		emitFile: fileEmitter.emitFile,
+		emitFile: fileEmitter.emitFile.bind(fileEmitter),
 		error(err): never {
 			return throwPluginError(err, plugin.name);
 		},

@@ -161,6 +161,7 @@ const outputOptions = {
   namespaceToStringTag,
   noConflict,
   preferConst,
+  sanitizeFileName,
   strict,
   systemNullSetters
 };

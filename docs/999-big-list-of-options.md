@@ -1320,6 +1320,15 @@ Default: `false`
 
 Generate `const` declarations for exports rather than `var` declarations.
 
+#### output.sanitizeFileName
+Type: `boolean | (string) => string`<br>
+CLI: `--sanitizeFileName`/`no-sanitizeFileName`
+Default: `true`
+
+Set to `false` to disable all chunk name sanitizations (removal of `\0`, `?` and `*` characters).
+
+Alternatively set to a function to allow custom chunk name sanitization.
+
 #### output.strict
 Type: `boolean`<br>
 CLI: `--strict`/`--no-strict`<br>

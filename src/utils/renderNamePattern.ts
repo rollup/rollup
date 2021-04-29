@@ -1,16 +1,12 @@
 import { errFailedValidation, error } from './error';
 import { extname } from './path';
-import { isPlainPathFragment } from './relativeId';
+import { isPathFragment } from './relativeId';
 
-export function renderNamePattern(
-	pattern: string,
-	patternName: string,
-	replacements: { [name: string]: () => string }
-) {
-	if (!isPlainPathFragment(pattern))
+export function renderNamePattern(pattern: string, patternName: string, replacements: { [name: string]: () => string }) {
+	if (isPathFragment(pattern))
 		return error(
 			errFailedValidation(
-				`Invalid pattern "${pattern}" for "${patternName}", patterns can be neither absolute nor relative paths and must not contain invalid characters.`
+				`Invalid pattern "${pattern}" for "${patternName}", patterns can be neither absolute nor relative paths.`
 			)
 		);
 	return pattern.replace(/\[(\w+)\]/g, (_match, type) => {
@@ -20,7 +16,7 @@ export function renderNamePattern(
 			);
 		}
 		const replacement = replacements[type]();
-		if (!isPlainPathFragment(replacement))
+		if (isPathFragment(replacement))
 			return error(
 				errFailedValidation(
 					`Invalid substitution "${replacement}" for placeholder "[${type}]" in "${patternName}" pattern, can be neither absolute nor relative path.`

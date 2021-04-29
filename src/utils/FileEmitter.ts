@@ -5,8 +5,8 @@ import {
 	EmittedChunk,
 	FilePlaceholder,
 	NormalizedInputOptions,
+	NormalizedOutputOptions,
 	OutputBundleWithPlaceholders,
-	PreRenderedAsset,
 	WarningHandler
 } from '../rollup/types';
 import { BuildPhase } from './buildPhase';
@@ -25,25 +25,21 @@ import {
 	warnDeprecation
 } from './error';
 import { extname } from './path';
-import { isPlainPathFragment } from './relativeId';
+import { isPathFragment } from './relativeId';
 import { makeUnique, renderNamePattern } from './renderNamePattern';
-
-interface OutputSpecificFileData {
-	assetFileNames: string | ((assetInfo: PreRenderedAsset) => string);
-	bundle: OutputBundleWithPlaceholders;
-}
 
 function generateAssetFileName(
 	name: string | undefined,
 	source: string | Uint8Array,
-	output: OutputSpecificFileData
+	outputOptions: NormalizedOutputOptions,
+	bundle: OutputBundleWithPlaceholders
 ): string {
-	const emittedName = name || 'asset';
+	const emittedName = outputOptions.sanitizeFileName(name || 'asset');
 	return makeUnique(
 		renderNamePattern(
-			typeof output.assetFileNames === 'function'
-				? output.assetFileNames({ name, source, type: 'asset' })
-				: output.assetFileNames,
+			typeof outputOptions.assetFileNames === 'function'
+				? outputOptions.assetFileNames({ name, source, type: 'asset' })
+				: outputOptions.assetFileNames,
 			'output.assetFileNames',
 			{
 				hash() {
@@ -58,7 +54,7 @@ function generateAssetFileName(
 				name: () => emittedName.substr(0, emittedName.length - extname(emittedName).length)
 			}
 		),
-		output.bundle
+		bundle
 	);
 }
 
@@ -110,14 +106,9 @@ function hasValidType(
 	);
 }
 
-function hasValidName(emittedFile: {
-	type: 'asset' | 'chunk';
-	[key: string]: unknown;
-}): emittedFile is EmittedFile {
+function hasValidName(emittedFile: { type: 'asset' | 'chunk'; [key: string]: unknown; }): emittedFile is EmittedFile {
 	const validatedName = emittedFile.fileName || emittedFile.name;
-	return (
-		!validatedName || (typeof validatedName === 'string' && isPlainPathFragment(validatedName))
-	);
+	return !validatedName || typeof validatedName === 'string' && !isPathFragment(validatedName);
 }
 
 function getValidSource(
@@ -155,9 +146,10 @@ function getChunkFileName(
 }
 
 export class FileEmitter {
+	private bundle: OutputBundleWithPlaceholders | null = null;
 	private facadeChunkByModule: Map<Module, Chunk> | null = null;
 	private filesByReferenceId: Map<string, ConsumedFile>;
-	private output: OutputSpecificFileData | null = null;
+	private outputOptions: NormalizedOutputOptions | null = null;
 
 	constructor(
 		private readonly graph: Graph,
@@ -189,7 +181,7 @@ export class FileEmitter {
 		if (!hasValidName(emittedFile)) {
 			return error(
 				errFailedValidation(
-					`The "fileName" or "name" properties of emitted files must be strings that are neither absolute nor relative paths and do not contain invalid characters, received "${
+					`The "fileName" or "name" properties of emitted files must be strings that are neither absolute nor relative paths, received "${
 						emittedFile.fileName || emittedFile.name
 					}".`
 				)
@@ -226,8 +218,8 @@ export class FileEmitter {
 			return error(errAssetSourceAlreadySet(consumedFile.name || referenceId));
 		}
 		const source = getValidSource(requestedSource, consumedFile, referenceId);
-		if (this.output) {
-			this.finalizeAsset(consumedFile, source, referenceId, this.output);
+		if (this.bundle) {
+			this.finalizeAsset(consumedFile, source, referenceId, this.bundle);
 		} else {
 			consumedFile.source = source;
 		}
@@ -235,22 +227,20 @@ export class FileEmitter {
 
 	public setOutputBundle = (
 		outputBundle: OutputBundleWithPlaceholders,
-		assetFileNames: string | ((assetInfo: PreRenderedAsset) => string),
+		outputOptions: NormalizedOutputOptions,
 		facadeChunkByModule: Map<Module, Chunk>
 	): void => {
-		this.output = {
-			assetFileNames,
-			bundle: outputBundle
-		};
+		this.outputOptions = outputOptions;
+		this.bundle = outputBundle;
 		this.facadeChunkByModule = facadeChunkByModule;
 		for (const emittedFile of this.filesByReferenceId.values()) {
 			if (emittedFile.fileName) {
-				reserveFileNameInBundle(emittedFile.fileName, this.output.bundle, this.options.onwarn);
+				reserveFileNameInBundle(emittedFile.fileName, this.bundle, this.options.onwarn);
 			}
 		}
 		for (const [referenceId, consumedFile] of this.filesByReferenceId.entries()) {
 			if (consumedFile.type === 'asset' && consumedFile.source !== undefined) {
-				this.finalizeAsset(consumedFile, consumedFile.source, referenceId, this.output);
+				this.finalizeAsset(consumedFile, consumedFile.source, referenceId, this.bundle);
 			}
 		}
 	};
@@ -285,12 +275,12 @@ export class FileEmitter {
 			consumedAsset,
 			emittedAsset.fileName || emittedAsset.name || emittedAsset.type
 		);
-		if (this.output) {
+		if (this.bundle) {
 			if (emittedAsset.fileName) {
-				reserveFileNameInBundle(emittedAsset.fileName, this.output.bundle, this.options.onwarn);
+				reserveFileNameInBundle(emittedAsset.fileName, this.bundle, this.options.onwarn);
 			}
 			if (source !== undefined) {
-				this.finalizeAsset(consumedAsset, source, referenceId, this.output);
+				this.finalizeAsset(consumedAsset, source, referenceId, this.bundle);
 			}
 		}
 		return referenceId;
@@ -328,18 +318,18 @@ export class FileEmitter {
 		consumedFile: ConsumedFile,
 		source: string | Uint8Array,
 		referenceId: string,
-		output: OutputSpecificFileData
+		bundle: OutputBundleWithPlaceholders
 	): void {
 		const fileName =
 			consumedFile.fileName ||
-			findExistingAssetFileNameWithSource(output.bundle, source) ||
-			generateAssetFileName(consumedFile.name, source, output);
+			findExistingAssetFileNameWithSource(bundle, source) ||
+			generateAssetFileName(consumedFile.name, source, this.outputOptions!, bundle);
 
 		// We must not modify the original assets to avoid interaction between outputs
 		const assetWithFileName = { ...consumedFile, source, fileName };
 		this.filesByReferenceId.set(referenceId, assetWithFileName);
 		const options = this.options;
-		output.bundle[fileName] = {
+		bundle[fileName] = {
 			fileName,
 			name: consumedFile.name,
 			get isAsset(): true {

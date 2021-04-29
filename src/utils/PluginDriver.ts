@@ -7,6 +7,7 @@ import {
 	EmitFile,
 	FirstPluginHooks,
 	NormalizedInputOptions,
+	NormalizedOutputOptions,
 	OutputBundleWithPlaceholders,
 	OutputPluginHooks,
 	ParallelPluginHooks,
@@ -14,7 +15,6 @@ import {
 	PluginContext,
 	PluginHooks,
 	PluginValueHooks,
-	PreRenderedAsset,
 	SequentialPluginHooks,
 	SerializablePluginCache,
 	SyncPluginHooks
@@ -74,7 +74,7 @@ export class PluginDriver {
 	public getFileName: (fileReferenceId: string) => string;
 	public setOutputBundle: (
 		outputBundle: OutputBundleWithPlaceholders,
-		assetFileNames: string | ((assetInfo: PreRenderedAsset) => string),
+		outputOptions: NormalizedOutputOptions,
 		facadeChunkByModule: Map<Module, Chunk>
 	) => void;
 
@@ -92,15 +92,11 @@ export class PluginDriver {
 	) {
 		warnDeprecatedHooks(userPlugins, options);
 		this.pluginCache = pluginCache;
-		this.fileEmitter = new FileEmitter(
-			graph,
-			options,
-			basePluginDriver && basePluginDriver.fileEmitter
-		);
-		this.emitFile = this.fileEmitter.emitFile;
-		this.getFileName = this.fileEmitter.getFileName;
-		this.finaliseAssets = this.fileEmitter.assertAssetsFinalized;
-		this.setOutputBundle = this.fileEmitter.setOutputBundle;
+		this.fileEmitter = new FileEmitter(graph, options, basePluginDriver && basePluginDriver.fileEmitter);
+		this.emitFile = this.fileEmitter.emitFile.bind(this.fileEmitter);
+		this.getFileName = this.fileEmitter.getFileName.bind(this.fileEmitter);
+		this.finaliseAssets = this.fileEmitter.assertAssetsFinalized.bind(this.fileEmitter);
+		this.setOutputBundle = this.fileEmitter.setOutputBundle.bind(this.fileEmitter);
 		this.plugins = userPlugins.concat(basePluginDriver ? basePluginDriver.plugins : []);
 		const existingPluginNames = new Set<string>();
 		for (const plugin of this.plugins) {
