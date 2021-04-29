@@ -110,11 +110,24 @@ export default class ExternalModule {
 						.map(name => `'${name}'`)
 						.join(', ')} and '${unused.slice(-1)}' are`;
 
+		const importersSet = new Set<string>();
+		for (const name of unused) {
+			const {importers, dynamicImporters} = this.declarations[name].module;
+
+			if (Array.isArray(importers)) importers.forEach(v => importersSet.add(v));
+			if (Array.isArray(dynamicImporters)) dynamicImporters.forEach(v => importersSet.add(v));
+		}
+
+		const importersArray = Array.from(importersSet);
+
+		const importerList = ' in' + importersArray.map(s => `\n\t${s};`);
+
 		this.options.onwarn({
 			code: 'UNUSED_EXTERNAL_IMPORT',
-			message: `${names} imported from external module '${this.id}' but never used`,
+			message: `${names} imported from external module '${this.id}' but never used${importerList}`,
 			names: unused,
-			source: this.id
+			source: this.id,
+			sources: importersArray
 		});
 	}
 }
