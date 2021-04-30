@@ -15,7 +15,13 @@ import Identifier from './Identifier';
 import Literal from './Literal';
 import * as NodeType from './NodeType';
 import Property from './Property';
-import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from './shared/Expression';
+import {
+	ExpressionEntity,
+	LiteralValueOrUnknown,
+	NodeEvent,
+	UnknownValue,
+	UNKNOWN_EXPRESSION
+} from './shared/Expression';
 import { NodeBase } from './shared/Node';
 import { ObjectEntity, ObjectProperty } from './shared/ObjectEntity';
 import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';
@@ -33,6 +39,20 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 
 	deoptimizePath(path: ObjectPath) {
 		this.getObjectEntity().deoptimizePath(path);
+	}
+
+	deoptimizeThisOnEventAtPath(
+		event: NodeEvent,
+		path: ObjectPath,
+		thisParameter: ExpressionEntity,
+		recursionTracker: PathTracker
+	) {
+		this.getObjectEntity().deoptimizeThisOnEventAtPath(
+			event,
+			path,
+			thisParameter,
+			recursionTracker
+		);
 	}
 
 	getLiteralValueAtPath(
@@ -69,14 +89,6 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		context: HasEffectsContext
 	): boolean {
 		return this.getObjectEntity().hasEffectsWhenCalledAtPath(path, callOptions, context);
-	}
-
-	mayModifyThisWhenCalledAtPath(
-		path: ObjectPath,
-		recursionTracker: PathTracker,
-		origin: DeoptimizableEntity
-	) {
-		return this.getObjectEntity().mayModifyThisWhenCalledAtPath(path, recursionTracker, origin);
 	}
 
 	render(

@@ -12,7 +12,7 @@ import GlobalVariable from '../variables/GlobalVariable';
 import LocalVariable from '../variables/LocalVariable';
 import Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
-import { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
+import { ExpressionEntity, LiteralValueOrUnknown, NodeEvent } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 import SpreadElement from './SpreadElement';
@@ -85,6 +85,20 @@ export default class Identifier extends NodeBase implements PatternNode {
 		this.variable!.deoptimizePath(path);
 	}
 
+	deoptimizeThisOnEventAtPath(
+		event: NodeEvent,
+		path: ObjectPath,
+		thisParameter: ExpressionEntity,
+		recursionTracker: PathTracker
+	) {
+		this.variable!.deoptimizeThisOnEventAtPath(
+			event,
+			path,
+			thisParameter,
+			recursionTracker
+		);
+	}
+
 	getLiteralValueAtPath(
 		path: ObjectPath,
 		recursionTracker: PathTracker,
@@ -138,14 +152,6 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
 		this.variable!.includeCallArguments(context, args);
-	}
-
-	mayModifyThisWhenCalledAtPath(
-		path: ObjectPath,
-		recursionTracker: PathTracker,
-		origin: DeoptimizableEntity
-	) {
-		return this.variable!.mayModifyThisWhenCalledAtPath(path, recursionTracker, origin);
 	}
 
 	render(

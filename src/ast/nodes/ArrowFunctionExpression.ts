@@ -31,6 +31,9 @@ export default class ArrowFunctionExpression extends NodeBase {
 		}
 	}
 
+	// Arrow functions do not mutate their context
+	deoptimizeThisOnEventAtPath() {}
+
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
 		return path.length === 0 ? this.scope.getReturnExpression() : UNKNOWN_EXPRESSION;
 	}
@@ -96,10 +99,6 @@ export default class ArrowFunctionExpression extends NodeBase {
 		} else {
 			this.scope.addReturnExpression(this.body);
 		}
-	}
-
-	mayModifyThisWhenCalledAtPath() {
-		return false;
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode) {

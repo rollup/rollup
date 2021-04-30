@@ -11,6 +11,7 @@ import {
 import {
 	ExpressionEntity,
 	LiteralValueOrUnknown,
+	NodeEvent,
 	UnknownValue,
 	UNKNOWN_EXPRESSION
 } from './Expression';
@@ -93,6 +94,39 @@ export class ObjectEntity extends ExpressionEntity {
 		}
 		// TODO Lukas only if we have no hit here, we need to continue with the prototype
 		this.prototypeExpression?.deoptimizePath(path.length === 1 ? [UnknownKey, UnknownKey] : path);
+	}
+
+	deoptimizeThisOnEventAtPath(
+		event: NodeEvent,
+		path: ObjectPath,
+		thisParameter: ExpressionEntity,
+		recursionTracker: PathTracker
+	) {
+		if (path.length === 0) {
+			return;
+		}
+		const key = path[0];
+		const expressionAtPath = this.getMemberExpressionAndTrackDeopt(key, {
+			deoptimizeCache() {
+				thisParameter.deoptimizePath(UNKNOWN_PATH);
+			}
+		});
+		if (expressionAtPath) {
+			return expressionAtPath.deoptimizeThisOnEventAtPath(
+				event,
+				path.slice(1),
+				thisParameter,
+				recursionTracker
+			);
+		}
+		if (this.prototypeExpression) {
+			return this.prototypeExpression.deoptimizeThisOnEventAtPath(
+				event,
+				path,
+				thisParameter,
+				recursionTracker
+			);
+		}
 	}
 
 	getLiteralValueAtPath(
@@ -215,29 +249,6 @@ export class ObjectEntity extends ExpressionEntity {
 			return this.prototypeExpression.hasEffectsWhenCalledAtPath(path, callOptions, context);
 		}
 		return true;
-	}
-
-	mayModifyThisWhenCalledAtPath(
-		path: ObjectPath,
-		recursionTracker: PathTracker,
-		origin: DeoptimizableEntity
-	) {
-		if (path.length === 0) {
-			return false;
-		}
-		const key = path[0];
-		const expressionAtPath = this.getMemberExpressionAndTrackDeopt(key, origin);
-		if (expressionAtPath) {
-			return expressionAtPath.mayModifyThisWhenCalledAtPath(
-				path.slice(1),
-				recursionTracker,
-				origin
-			);
-		}
-		if (this.prototypeExpression) {
-			return this.prototypeExpression.mayModifyThisWhenCalledAtPath(path, recursionTracker, origin);
-		}
-		return false;
 	}
 
 	private buildPropertyMaps(properties: ObjectProperty[]): void {

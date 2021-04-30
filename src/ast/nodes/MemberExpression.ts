@@ -23,7 +23,12 @@ import Identifier from './Identifier';
 import Literal from './Literal';
 import * as NodeType from './NodeType';
 import PrivateIdentifier from './PrivateIdentifier';
-import { LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
+import {
+	ExpressionEntity,
+	LiteralValueOrUnknown,
+	NodeEvent,
+	UnknownValue
+} from './shared/Expression';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 import SpreadElement from './SpreadElement';
 import Super from './Super';
@@ -131,6 +136,30 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		}
 	}
 
+	deoptimizeThisOnEventAtPath(
+		event: NodeEvent,
+		path: ObjectPath,
+		thisParameter: ExpressionEntity,
+		recursionTracker: PathTracker
+	): void {
+		this.bind();
+		if (this.variable) {
+			this.variable.deoptimizeThisOnEventAtPath(
+				event,
+				path,
+				thisParameter,
+				recursionTracker
+			);
+		} else {
+			this.object.deoptimizeThisOnEventAtPath(
+				event,
+				[this.propertyKey!, ...path],
+				thisParameter,
+				recursionTracker
+			);
+		}
+	}
+
 	getLiteralValueAtPath(
 		path: ObjectPath,
 		recursionTracker: PathTracker,
@@ -230,22 +259,6 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 
 	initialise() {
 		this.propertyKey = getResolvablePropertyKey(this);
-	}
-
-	mayModifyThisWhenCalledAtPath(
-		path: ObjectPath,
-		recursionTracker: PathTracker,
-		origin: DeoptimizableEntity
-	) {
-		this.bind();
-		if (this.variable) {
-			return this.variable.mayModifyThisWhenCalledAtPath(path, recursionTracker, origin);
-		}
-		return this.object.mayModifyThisWhenCalledAtPath(
-			[this.propertyKey!, ...path],
-			recursionTracker,
-			origin
-		);
 	}
 
 	render(

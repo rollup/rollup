@@ -5,7 +5,13 @@ import { createInclusionContext, HasEffectsContext, InclusionContext } from '../
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import Identifier from '../nodes/Identifier';
 import * as NodeType from '../nodes/NodeType';
-import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
+import {
+	ExpressionEntity,
+	LiteralValueOrUnknown,
+	NodeEvent,
+	UnknownValue,
+	UNKNOWN_EXPRESSION
+} from '../nodes/shared/Expression';
 import { ExpressionNode, Node } from '../nodes/shared/Node';
 import SpreadElement from '../nodes/SpreadElement';
 import { ObjectPath, PathTracker, UNKNOWN_PATH } from '../utils/PathTracker';
@@ -23,7 +29,7 @@ export default class LocalVariable extends Variable {
 
 	// Caching and deoptimization:
 	// We track deoptimization when we do not return something unknown
-	private deoptimizationTracker: PathTracker;
+	protected deoptimizationTracker: PathTracker;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 
 	constructor(
@@ -62,6 +68,7 @@ export default class LocalVariable extends Variable {
 
 	deoptimizePath(path: ObjectPath) {
 		if (path.length > MAX_PATH_DEPTH || this.isReassigned) return;
+		// TODO Lukas how about trackEntityAtPathAndGetIfTracked?
 		const trackedEntities = this.deoptimizationTracker.getEntities(path);
 		if (trackedEntities.has(this)) return;
 		trackedEntities.add(this);
@@ -79,6 +86,28 @@ export default class LocalVariable extends Variable {
 			}
 		} else if (this.init) {
 			this.init.deoptimizePath(path);
+		}
+	}
+
+	deoptimizeThisOnEventAtPath(
+		event: NodeEvent,
+		path: ObjectPath,
+		thisParameter: ExpressionEntity,
+		recursionTracker: PathTracker
+	): void {
+		if (this.isReassigned || !this.init || path.length > MAX_PATH_DEPTH) {
+			return thisParameter.deoptimizePath(UNKNOWN_PATH);
+		}
+		const trackedEntities = recursionTracker.getEntities(path);
+		if (!trackedEntities.has(this.init)) {
+			trackedEntities.add(this.init);
+			this.init?.deoptimizeThisOnEventAtPath(
+				event,
+				path,
+				thisParameter,
+				recursionTracker
+			);
+			trackedEntities.delete(this.init);
 		}
 	}
 
@@ -186,23 +215,5 @@ export default class LocalVariable extends Variable {
 
 	markCalledFromTryStatement() {
 		this.calledFromTryStatement = true;
-	}
-
-	mayModifyThisWhenCalledAtPath(
-		path: ObjectPath,
-		recursionTracker: PathTracker,
-		origin: DeoptimizableEntity
-	) {
-		if (this.isReassigned || !this.init || path.length > MAX_PATH_DEPTH) {
-			return true;
-		}
-		const trackedEntities = recursionTracker.getEntities(path);
-		if (trackedEntities.has(this.init)) {
-			return true;
-		}
-		trackedEntities.add(this.init);
-		const result = this.init.mayModifyThisWhenCalledAtPath(path, recursionTracker, origin);
-		trackedEntities.delete(this.init);
-		return result;
 	}
 }

@@ -14,7 +14,7 @@ import ClassBody from '../ClassBody';
 import Identifier from '../Identifier';
 import Literal from '../Literal';
 import MethodDefinition from '../MethodDefinition';
-import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue } from './Expression';
+import { ExpressionEntity, LiteralValueOrUnknown, NodeEvent, UnknownValue } from './Expression';
 import { ExpressionNode, NodeBase } from './Node';
 import { ObjectEntity, ObjectProperty } from './ObjectEntity';
 import { ObjectMember } from './ObjectMember';
@@ -41,6 +41,20 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 
 	deoptimizePath(path: ObjectPath) {
 		this.getObjectEntity().deoptimizePath(path);
+	}
+
+	deoptimizeThisOnEventAtPath(
+		event: NodeEvent,
+		path: ObjectPath,
+		thisParameter: ExpressionEntity,
+		recursionTracker: PathTracker
+	) {
+		this.getObjectEntity().deoptimizeThisOnEventAtPath(
+			event,
+			path,
+			thisParameter,
+			recursionTracker
+		);
 	}
 
 	getLiteralValueAtPath(
@@ -100,14 +114,6 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 			}
 		}
 		this.classConstructor = null;
-	}
-
-	mayModifyThisWhenCalledAtPath(
-		path: ObjectPath,
-		recursionTracker: PathTracker,
-		origin: DeoptimizableEntity
-	) {
-		return this.getObjectEntity().mayModifyThisWhenCalledAtPath(path, recursionTracker, origin);
 	}
 
 	private getObjectEntity(): ObjectEntity {

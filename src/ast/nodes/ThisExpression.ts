@@ -4,8 +4,6 @@ import ModuleScope from '../scopes/ModuleScope';
 import { ObjectPath } from '../utils/PathTracker';
 import ThisVariable from '../variables/ThisVariable';
 import * as NodeType from './NodeType';
-import ClassNode from './shared/ClassNode';
-import FunctionNode from './shared/FunctionNode';
 import { NodeBase } from './shared/Node';
 
 export default class ThisExpression extends NodeBase {
@@ -53,15 +51,6 @@ export default class ThisExpression extends NodeBase {
 				},
 				this.start
 			);
-		}
-		for (let parent = this.parent; parent instanceof NodeBase; parent = parent.parent) {
-			if (parent instanceof ClassNode) {
-				break;
-			}
-			if (parent instanceof FunctionNode) {
-				parent.referencesThis = true;
-				break;
-			}
 		}
 	}
 

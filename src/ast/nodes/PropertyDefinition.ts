@@ -4,7 +4,13 @@ import { HasEffectsContext } from '../ExecutionContext';
 import { ObjectPath, PathTracker } from '../utils/PathTracker';
 import * as NodeType from './NodeType';
 import PrivateIdentifier from './PrivateIdentifier';
-import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from './shared/Expression';
+import {
+	ExpressionEntity,
+	LiteralValueOrUnknown,
+	NodeEvent,
+	UnknownValue,
+	UNKNOWN_EXPRESSION
+} from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class PropertyDefinition extends NodeBase {
@@ -16,6 +22,15 @@ export default class PropertyDefinition extends NodeBase {
 
 	deoptimizePath(path: ObjectPath) {
 		this.value?.deoptimizePath(path);
+	}
+
+	deoptimizeThisOnEventAtPath(
+		event: NodeEvent,
+		path: ObjectPath,
+		thisParameter: ExpressionEntity,
+		recursionTracker: PathTracker
+	) {
+		this.value?.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
 	}
 
 	getLiteralValueAtPath(
@@ -59,13 +74,5 @@ export default class PropertyDefinition extends NodeBase {
 		context: HasEffectsContext
 	) {
 		return !this.value || this.value.hasEffectsWhenCalledAtPath(path, callOptions, context);
-	}
-
-	mayModifyThisWhenCalledAtPath(
-		path: ObjectPath,
-		recursionTracker: PathTracker,
-		origin: DeoptimizableEntity
-	): boolean {
-		return this.value?.mayModifyThisWhenCalledAtPath(path, recursionTracker, origin) || false;
 	}
 }

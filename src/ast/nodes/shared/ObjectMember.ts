@@ -2,7 +2,7 @@ import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { HasEffectsContext } from '../../ExecutionContext';
 import { ObjectPath, PathTracker } from '../../utils/PathTracker';
-import { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
+import { ExpressionEntity, LiteralValueOrUnknown, NodeEvent } from './Expression';
 
 export class ObjectMember extends ExpressionEntity {
 	constructor(private readonly object: ExpressionEntity, private readonly key: string) {
@@ -11,6 +11,15 @@ export class ObjectMember extends ExpressionEntity {
 
 	deoptimizePath(path: ObjectPath): void {
 		this.object.deoptimizePath([this.key, ...path]);
+	}
+
+	deoptimizeThisOnEventAtPath(
+		event: NodeEvent,
+		path: ObjectPath,
+		thisParameter: ExpressionEntity,
+		recursionTracker: PathTracker
+	) {
+		this.object.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
 	}
 
 	getLiteralValueAtPath(
@@ -48,13 +57,5 @@ export class ObjectMember extends ExpressionEntity {
 		context: HasEffectsContext
 	): boolean {
 		return this.object.hasEffectsWhenCalledAtPath([this.key, ...path], callOptions, context);
-	}
-
-	mayModifyThisWhenCalledAtPath(
-		path: ObjectPath,
-		recursionTracker: PathTracker,
-		origin: DeoptimizableEntity
-	): boolean {
-		return this.object.mayModifyThisWhenCalledAtPath([this.key, ...path], recursionTracker, origin);
 	}
 }

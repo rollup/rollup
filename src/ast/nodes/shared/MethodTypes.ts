@@ -1,9 +1,9 @@
 import { CallOptions, NO_ARGS } from '../../CallOptions';
 import { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
-import { EMPTY_PATH, ObjectPath } from '../../utils/PathTracker';
+import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../../utils/PathTracker';
 import { UNKNOWN_LITERAL_BOOLEAN, UNKNOWN_LITERAL_STRING } from '../../values';
 import SpreadElement from '../SpreadElement';
-import { ExpressionEntity, UNKNOWN_EXPRESSION } from './Expression';
+import { EVENT_CALLED, ExpressionEntity, NodeEvent, UNKNOWN_EXPRESSION } from './Expression';
 import { ExpressionNode } from './Node';
 
 type MethodDescription = {
@@ -23,6 +23,12 @@ type MethodDescription = {
 class Method extends ExpressionEntity {
 	constructor(private readonly description: MethodDescription) {
 		super();
+	}
+
+	deoptimizeThisOnEventAtPath(event: NodeEvent, path: ObjectPath, thisParameter: ExpressionEntity) {
+		if (event === EVENT_CALLED && path.length === 0 && this.description.mutatesSelf) {
+			thisParameter.deoptimizePath(UNKNOWN_PATH);
+		}
 	}
 
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath): ExpressionEntity {
@@ -72,10 +78,6 @@ class Method extends ExpressionEntity {
 		for (const arg of args) {
 			arg.include(context, false);
 		}
-	}
-
-	mayModifyThisWhenCalledAtPath(path: ObjectPath): boolean {
-		return path.length === 0 && this.description.mutatesSelf;
 	}
 }
 

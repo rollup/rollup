@@ -8,7 +8,12 @@ import {
 	SHARED_RECURSION_TRACKER
 } from '../../utils/PathTracker';
 import PrivateIdentifier from '../PrivateIdentifier';
-import { ExpressionEntity, LiteralValueOrUnknown, UNKNOWN_EXPRESSION } from './Expression';
+import {
+	ExpressionEntity,
+	LiteralValueOrUnknown,
+	NodeEvent,
+	UNKNOWN_EXPRESSION
+} from './Expression';
 import { ExpressionNode, NodeBase } from './Node';
 import { PatternNode } from './Pattern';
 
@@ -30,6 +35,20 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 
 	deoptimizePath(path: ObjectPath) {
 		this.getAccessedValue().deoptimizePath(path);
+	}
+
+	deoptimizeThisOnEventAtPath(
+		event: NodeEvent,
+		path: ObjectPath,
+		thisParameter: ExpressionEntity,
+		recursionTracker: PathTracker
+	) {
+		this.getAccessedValue().deoptimizeThisOnEventAtPath(
+			event,
+			path,
+			thisParameter,
+			recursionTracker
+		);
 	}
 
 	getLiteralValueAtPath(
@@ -76,14 +95,6 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 		context: HasEffectsContext
 	) {
 		return this.getAccessedValue().hasEffectsWhenCalledAtPath(path, callOptions, context);
-	}
-
-	mayModifyThisWhenCalledAtPath(
-		path: ObjectPath,
-		recursionTracker: PathTracker,
-		origin: DeoptimizableEntity
-	): boolean {
-		return this.getAccessedValue().mayModifyThisWhenCalledAtPath(path, recursionTracker, origin);
 	}
 
 	protected getAccessedValue(): ExpressionEntity {

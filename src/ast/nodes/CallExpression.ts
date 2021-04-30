@@ -19,7 +19,13 @@ import {
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
-import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from './shared/Expression';
+import {
+	EVENT_CALLED,
+	ExpressionEntity,
+	LiteralValueOrUnknown,
+	UnknownValue,
+	UNKNOWN_EXPRESSION
+} from './shared/Expression';
 import {
 	Annotation,
 	ExpressionNode,
@@ -269,12 +275,13 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 
 	private applyDeoptimizations() {
 		this.deoptimized = true;
-		if (
-			this.callee instanceof MemberExpression &&
-			!this.callee.variable &&
-			this.callee.mayModifyThisWhenCalledAtPath([], SHARED_RECURSION_TRACKER, this)
-		) {
-			this.callee.object.deoptimizePath(UNKNOWN_PATH);
+		if (this.callee instanceof MemberExpression && !this.callee.variable) {
+			this.callee.deoptimizeThisOnEventAtPath(
+				EVENT_CALLED,
+				EMPTY_PATH,
+				this.callee.object,
+				SHARED_RECURSION_TRACKER
+			);
 		}
 		for (const argument of this.arguments) {
 			// This will make sure all properties of parameters behave as "unknown"

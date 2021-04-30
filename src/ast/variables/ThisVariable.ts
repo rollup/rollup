@@ -1,13 +1,39 @@
 import { AstContext } from '../../Module';
 import { CallOptions } from '../CallOptions';
 import { HasEffectsContext } from '../ExecutionContext';
-import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
+import {
+	ExpressionEntity,
+	LiteralValueOrUnknown,
+	UnknownValue,
+	UNKNOWN_EXPRESSION
+} from '../nodes/shared/Expression';
 import { ObjectPath } from '../utils/PathTracker';
 import LocalVariable from './LocalVariable';
 
 export default class ThisVariable extends LocalVariable {
+	private deoptimizedPaths: ObjectPath[] = [];
+	private entitiesToBeDeoptimized: ExpressionEntity[] = [];
+
 	constructor(context: AstContext) {
 		super('this', null, null, context);
+	}
+
+	addEntityToBeDeoptimized(entity: ExpressionEntity) {
+		for (const path of this.deoptimizedPaths) {
+			entity.deoptimizePath(path);
+		}
+		this.entitiesToBeDeoptimized.push(entity);
+	}
+
+	deoptimizePath(path: ObjectPath) {
+		if (path.length === 0) return;
+		const trackedEntities = this.deoptimizationTracker.getEntities(path);
+		if (trackedEntities.has(this)) return;
+		trackedEntities.add(this);
+		this.deoptimizedPaths.push(path);
+		for (const entity of this.entitiesToBeDeoptimized) {
+			entity.deoptimizePath(path);
+		}
 	}
 
 	getLiteralValueAtPath(): LiteralValueOrUnknown {
