@@ -112,7 +112,7 @@ export default class ExternalModule {
 
 		const importersSet = new Set<string>();
 		for (const name of unused) {
-			const {importers, dynamicImporters} = this.declarations[name].module;
+			const { importers, dynamicImporters } = this.declarations[name].module;
 
 			if (Array.isArray(importers)) importers.forEach(v => importersSet.add(v));
 			if (Array.isArray(dynamicImporters)) dynamicImporters.forEach(v => importersSet.add(v));
