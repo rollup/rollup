@@ -1,2 +1,2 @@
 export * from 'external';
-export { noOverride } from 'external';
+export { conflictOverride } from 'external';

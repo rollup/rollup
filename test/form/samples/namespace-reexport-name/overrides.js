@@ -2,4 +2,4 @@ import { indirectOverride, ignoredOverride } from './external-reexport';
 export { directOverride as renamedDirectOverride } from './external-reexport';
 
 export const renamedIndirectOverride = indirectOverride;
-export const noOverride = ignoredOverride;
+export const conflictOverride = ignoredOverride;

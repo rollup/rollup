@@ -6,12 +6,6 @@ var external = require('external');
 
 const renamedIndirectOverride = external.indirectOverride;
 
-Object.defineProperty(exports, 'noOverride', {
-	enumerable: true,
-	get: function () {
-		return external.noOverride;
-	}
-});
 Object.defineProperty(exports, 'renamedDirectOverride', {
 	enumerable: true,
 	get: function () {
