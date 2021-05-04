@@ -8,6 +8,8 @@ import {
 import { EMPTY_ARRAY } from './utils/blank';
 import { makeLegal } from './utils/identifierHelpers';
 import { normalize, relative } from './utils/path';
+import { printQuotedStringList } from './utils/printStringList';
+import relativeId from './utils/relativeId';
 
 export default class ExternalModule {
 	chunk: void;
@@ -99,32 +101,23 @@ export default class ExternalModule {
 			const declaration = this.declarations[name];
 			return !declaration.included && !this.reexported && !declaration.referenced;
 		});
-
 		if (unused.length === 0) return;
-
-		const names =
-			unused.length === 1
-				? `'${unused[0]}' is`
-				: `${unused
-						.slice(0, -1)
-						.map(name => `'${name}'`)
-						.join(', ')} and '${unused.slice(-1)}' are`;
 
 		const importersSet = new Set<string>();
 		for (const name of unused) {
-			const {importers, dynamicImporters} = this.declarations[name].module;
-
-			if (Array.isArray(importers)) importers.forEach(v => importersSet.add(v));
-			if (Array.isArray(dynamicImporters)) dynamicImporters.forEach(v => importersSet.add(v));
+			const { importers } = this.declarations[name].module;
+			for (const importer of importers) {
+				importersSet.add(importer);
+			}
 		}
-
-		const importersArray = Array.from(importersSet);
-
-		const importerList = ' in' + importersArray.map(s => `\n\t${s};`);
-
+		const importersArray = [...importersSet];
 		this.options.onwarn({
 			code: 'UNUSED_EXTERNAL_IMPORT',
-			message: `${names} imported from external module '${this.id}' but never used${importerList}`,
+			message: `${printQuotedStringList(unused, ['is', 'are'])} imported from external module "${
+				this.id
+			}" but never used in ${printQuotedStringList(
+				importersArray.map(importer => relativeId(importer))
+			)}.`,
 			names: unused,
 			source: this.id,
 			sources: importersArray

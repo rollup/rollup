@@ -43,8 +43,8 @@ module.exports = {
 		assertIncludes(
 			stderr,
 			'(!) Conflicting re-exports\n' +
-				"main.js re-exports 'foo' from both dep.js and dep2.js (will be ignored)\n" +
-				"main.js re-exports 'bar' from both dep.js and dep2.js (will be ignored)\n"
+				'"main.js" re-exports "foo" from both "dep.js" and "dep2.js" (will be ignored)\n' +
+				'"main.js" re-exports "bar" from both "dep.js" and "dep2.js" (will be ignored)\n'
 		);
 		assertIncludes(
 			stderr,

@@ -3,7 +3,7 @@ import { RenderOptions } from '../../utils/renderHelpers';
 import { RESERVED_NAMES } from '../../utils/reservedNames';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
 import Identifier from '../nodes/Identifier';
-import { UNKNOWN_PATH } from '../utils/PathTracker';
+import { ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class NamespaceVariable extends Variable {
@@ -29,14 +29,16 @@ export default class NamespaceVariable extends Variable {
 		this.name = identifier.name;
 	}
 
-	// This is only called if "UNKNOWN_PATH" is reassigned as in all other situations, either the
-	// build fails due to an illegal namespace reassignment or MemberExpression already forwards
-	// the reassignment to the right variable. This means we lost track of this variable and thus
-	// need to reassign all exports.
-	deoptimizePath() {
+	deoptimizePath(path: ObjectPath) {
 		const memberVariables = this.getMemberVariables();
-		for (const key of Object.keys(memberVariables)) {
-			memberVariables[key].deoptimizePath(UNKNOWN_PATH);
+		const memberPath = path.length <= 1 ? UNKNOWN_PATH : path.slice(1);
+		const key = path[0];
+		if (typeof key !== 'string') {
+			for (const key of Object.keys(memberVariables)) {
+				memberVariables[key].deoptimizePath(memberPath);
+			}
+		} else {
+			memberVariables[key].deoptimizePath(memberPath);
 		}
 	}
 
@@ -44,10 +46,13 @@ export default class NamespaceVariable extends Variable {
 		if (this.memberVariables) {
 			return this.memberVariables;
 		}
-		const memberVariables = Object.create(null);
+		const memberVariables: { [name: string]: Variable } = Object.create(null);
 		for (const name of this.context.getExports().concat(this.context.getReexports())) {
 			if (name[0] !== '*' && name !== this.module.info.syntheticNamedExports) {
-				memberVariables[name] = this.context.traceExport(name);
+				const exportedVariable = this.context.traceExport(name);
+				if (exportedVariable) {
+					memberVariables[name] = exportedVariable;
+				}
 			}
 		}
 		return (this.memberVariables = memberVariables);

@@ -45,8 +45,10 @@ import {
 	RollupWarning,
 	TransformModuleJSON
 } from './rollup/types';
+import { EMPTY_OBJECT } from './utils/blank';
 import {
 	augmentCodeLocation,
+	errAmbiguousExternalNamespaces,
 	errCircularReexport,
 	errMissingExport,
 	errNamespaceConflict,
@@ -129,8 +131,11 @@ function findSourceMappingURLComments(ast: acorn.Node, code: string): [number, n
 
 		let sourcemappingUrlMatch;
 		const interStatmentCode = code.slice(start, end);
-		while (sourcemappingUrlMatch = SOURCEMAPPING_URL_COMMENT_RE.exec(interStatmentCode)) {
-			ret.push([start + sourcemappingUrlMatch.index, start + SOURCEMAPPING_URL_COMMENT_RE.lastIndex]);
+		while ((sourcemappingUrlMatch = SOURCEMAPPING_URL_COMMENT_RE.exec(interStatmentCode))) {
+			ret.push([
+				start + sourcemappingUrlMatch.index,
+				start + SOURCEMAPPING_URL_COMMENT_RE.lastIndex
+			]);
 		}
 	};
 
@@ -149,7 +154,8 @@ function getVariableForExportNameRecursive(
 	name: string,
 	importerForSideEffects: Module | undefined,
 	isExportAllSearch: boolean,
-	searchedNamesAndModules = new Map<string, Set<Module | ExternalModule>>()
+	searchedNamesAndModules = new Map<string, Set<Module | ExternalModule>>(),
+	skipExternalNamespaceReexports: boolean | undefined
 ): Variable | null {
 	const searchedModules = searchedNamesAndModules.get(name);
 	if (searchedModules) {
@@ -160,12 +166,12 @@ function getVariableForExportNameRecursive(
 	} else {
 		searchedNamesAndModules.set(name, new Set([target]));
 	}
-	return target.getVariableForExportName(
-		name,
+	return target.getVariableForExportName(name, {
 		importerForSideEffects,
 		isExportAllSearch,
-		searchedNamesAndModules
-	);
+		searchedNamesAndModules,
+		skipExternalNamespaceReexports
+	});
 }
 
 function getAndExtendSideEffectModules(variable: Variable, module: Module): Set<Module> {
@@ -253,6 +259,7 @@ export default class Module {
 	private exportNamesByVariable: Map<Variable, string[]> | null = null;
 	private exportShimVariable: ExportShimVariable = new ExportShimVariable(this);
 	private magicString!: MagicString;
+	private namespaceReexportsByName: Record<string, Variable | null> = Object.create(null);
 	private relevantDependencies: Set<Module | ExternalModule> | null = null;
 	private syntheticExports = new Map<string, SyntheticNamedExportVariable>();
 	private syntheticNamespace: Variable | null | undefined = null;
@@ -364,7 +371,10 @@ export default class Module {
 		) {
 			dependencyVariables = new Set(dependencyVariables);
 			for (const exportName of [...this.getReexports(), ...this.getExports()]) {
-				dependencyVariables.add(this.getVariableForExportName(exportName)!);
+				const exportedVariable = this.getVariableForExportName(exportName);
+				if (exportedVariable) {
+					dependencyVariables.add(exportedVariable);
+				}
 			}
 		}
 		for (let variable of dependencyVariables) {
@@ -482,9 +492,17 @@ export default class Module {
 
 	getVariableForExportName(
 		name: string,
-		importerForSideEffects?: Module,
-		isExportAllSearch?: boolean,
-		searchedNamesAndModules?: Map<string, Set<Module | ExternalModule>>
+		{
+			importerForSideEffects,
+			isExportAllSearch,
+			searchedNamesAndModules,
+			skipExternalNamespaceReexports
+		}: {
+			importerForSideEffects?: Module;
+			isExportAllSearch?: boolean;
+			searchedNamesAndModules?: Map<string, Set<Module | ExternalModule>>;
+			skipExternalNamespaceReexports?: boolean;
+		} = EMPTY_OBJECT
 	): Variable | null {
 		if (name[0] === '*') {
 			if (name.length === 1) {
@@ -505,7 +523,8 @@ export default class Module {
 				reexportDeclaration.localName,
 				importerForSideEffects,
 				false,
-				searchedNamesAndModules
+				searchedNamesAndModules,
+				false
 			);
 
 			if (!variable) {
@@ -539,27 +558,17 @@ export default class Module {
 		}
 
 		if (name !== 'default') {
-			let foundSyntheticDeclaration: SyntheticNamedExportVariable | null = null;
-			for (const module of this.exportAllModules) {
-				const declaration = getVariableForExportNameRecursive(
-					module,
-					name,
-					importerForSideEffects,
-					true,
-					searchedNamesAndModules
-				);
-
-				if (declaration) {
-					if (!(declaration instanceof SyntheticNamedExportVariable)) {
-						return declaration;
-					}
-					if (!foundSyntheticDeclaration) {
-						foundSyntheticDeclaration = declaration;
-					}
-				}
-			}
-			if (foundSyntheticDeclaration) {
-				return foundSyntheticDeclaration;
+			const foundNamespaceReexport =
+				name in this.namespaceReexportsByName
+					? this.namespaceReexportsByName[name]
+					: (this.namespaceReexportsByName[name] = this.getVariableFromNamespaceReexports(
+							name,
+							importerForSideEffects,
+							searchedNamesAndModules,
+							skipExternalNamespaceReexports
+					  ));
+			if (foundNamespaceReexport) {
+				return foundNamespaceReexport;
 			}
 		}
 
@@ -618,13 +627,15 @@ export default class Module {
 		}
 
 		for (const name of this.getReexports()) {
-			const variable = this.getVariableForExportName(name)!;
-			variable.deoptimizePath(UNKNOWN_PATH);
-			if (!variable.included) {
-				this.includeVariable(variable);
-			}
-			if (variable instanceof ExternalVariable) {
-				variable.module.reexported = true;
+			const variable = this.getVariableForExportName(name);
+			if (variable) {
+				variable.deoptimizePath(UNKNOWN_PATH);
+				if (!variable.included) {
+					this.includeVariable(variable);
+				}
+				if (variable instanceof ExternalVariable) {
+					variable.module.reexported = true;
+				}
 			}
 		}
 
@@ -798,10 +809,9 @@ export default class Module {
 				return otherModule.namespace;
 			}
 
-			const declaration = otherModule.getVariableForExportName(
-				importDeclaration.name,
-				importerForSideEffects || this
-			);
+			const declaration = otherModule.getVariableForExportName(importDeclaration.name, {
+				importerForSideEffects: importerForSideEffects || this
+			});
 
 			if (!declaration) {
 				return this.error(
@@ -836,7 +846,6 @@ export default class Module {
 			);
 		}
 	}
-
 
 	updateOptions({
 		meta,
@@ -1030,6 +1039,62 @@ export default class Module {
 
 		addSideEffectDependencies(this.dependencies);
 		addSideEffectDependencies(alwaysCheckedDependencies);
+	}
+
+	private getVariableFromNamespaceReexports(
+		name: string,
+		importerForSideEffects?: Module,
+		searchedNamesAndModules?: Map<string, Set<Module | ExternalModule>>,
+		skipExternalNamespaceReexports = false
+	): Variable | null {
+		let foundSyntheticDeclaration: SyntheticNamedExportVariable | null = null;
+		const skipExternalNamespaceValues = new Set([true, skipExternalNamespaceReexports]);
+		for (const skipExternalNamespaces of skipExternalNamespaceValues) {
+			const foundDeclarations = new Set<Variable>();
+			for (const module of this.exportAllModules) {
+				if (module instanceof Module || !skipExternalNamespaces) {
+					const declaration = getVariableForExportNameRecursive(
+						module,
+						name,
+						importerForSideEffects,
+						true,
+						searchedNamesAndModules,
+						skipExternalNamespaces
+					);
+
+					if (declaration) {
+						if (!(declaration instanceof SyntheticNamedExportVariable)) {
+							foundDeclarations.add(declaration);
+						} else if (!foundSyntheticDeclaration) {
+							foundSyntheticDeclaration = declaration;
+						}
+					}
+				}
+			}
+			if (foundDeclarations.size === 1) {
+				return [...foundDeclarations][0];
+			}
+			if (foundDeclarations.size > 1) {
+				if (skipExternalNamespaces) {
+					return null;
+				}
+				const foundDeclarationList = [...(foundDeclarations as Set<ExternalVariable>)];
+				const usedDeclaration = foundDeclarationList[0];
+				this.options.onwarn(
+					errAmbiguousExternalNamespaces(
+						name,
+						this.id,
+						usedDeclaration.module.id,
+						foundDeclarationList.map(declaration => declaration.module.id)
+					)
+				);
+				return usedDeclaration;
+			}
+		}
+		if (foundSyntheticDeclaration) {
+			return foundSyntheticDeclaration;
+		}
+		return null;
 	}
 
 	private includeAndGetAdditionalMergedNamespaces(): Variable[] {

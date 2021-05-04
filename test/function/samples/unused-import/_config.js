@@ -15,10 +15,8 @@ module.exports = {
 			code: 'UNUSED_EXTERNAL_IMPORT',
 			source: 'external',
 			names: ['notused', 'neverused'],
-			message: `'notused' and 'neverused' are imported from external module 'external' but never used in\n\t${path.resolve(__dirname, './main.js')};`,
-			sources: [
-				path.resolve(__dirname, './main.js')
-			]
+			message: `"notused" and "neverused" are imported from external module "external" but never used in "main.js".`,
+			sources: [path.resolve(__dirname, './main.js')]
 		}
 	]
 };

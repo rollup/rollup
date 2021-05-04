@@ -12,7 +12,7 @@ module.exports = {
 			stderr,
 			'(!) Broken sourcemap\n' +
 				'https://rollupjs.org/guide/en/#warning-sourcemap-is-likely-to-be-incorrect\n' +
-				"Plugins that transform code (such as 'test-plugin1', 'test-plugin2' and 'test-plugin3') should generate accompanying sourcemaps"
+				'Plugins that transform code (such as "test-plugin1", "test-plugin2" and "test-plugin3") should generate accompanying sourcemaps'
 		);
 	}
 };
