@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 2.47.0
+*2021-05-04*
+
+### Features
+* Warn about ambiguous imports from combined external namespace reexports (#4064)
+* In case of combined namespace reexports, always prefer local exports over external namespaces (#4064)
+* Treat conflicting names in local namespace reexports as undefined (#4064)
+
+### Pull Requests
+* [#4064](https://github.com/rollup/rollup/pull/4064): Prefer locally defined exports and reexports over external namespaces (@lukastaegert)
+
 ## 2.46.0
 *2021-04-29*
 
