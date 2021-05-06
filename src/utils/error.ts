@@ -8,6 +8,7 @@ import {
 	WarningHandler
 } from '../rollup/types';
 import getCodeFrame from './getCodeFrame';
+import { printQuotedStringList } from './printStringList';
 import relativeId from './relativeId';
 
 export function error(base: Error | RollupError): never {
@@ -63,6 +64,7 @@ export const enum Errors {
 	MISSING_IMPLICIT_DEPENDANT = 'MISSING_IMPLICIT_DEPENDANT',
 	MIXED_EXPORTS = 'MIXED_EXPORTS',
 	NAMESPACE_CONFLICT = 'NAMESPACE_CONFLICT',
+	AMBIGUOUS_EXTERNAL_NAMESPACES = 'AMBIGUOUS_EXTERNAL_NAMESPACES',
 	NO_TRANSFORM_MAP_OR_AST_WITHOUT_CODE = 'NO_TRANSFORM_MAP_OR_AST_WITHOUT_CODE',
 	PLUGIN_ERROR = 'PLUGIN_ERROR',
 	PREFER_NAMED_EXPORTS = 'PREFER_NAMED_EXPORTS',
@@ -307,13 +309,11 @@ export function errImplicitDependantIsNotIncluded(module: Module) {
 	).sort();
 	return {
 		code: Errors.MISSING_IMPLICIT_DEPENDANT,
-		message: `Module "${relativeId(module.id)}" that should be implicitly loaded before "${
-			implicitDependencies.length === 1
-				? implicitDependencies[0]
-				: `${implicitDependencies.slice(0, -1).join('", "')}" and "${
-						implicitDependencies.slice(-1)[0]
-				  }`
-		}" is not included in the module graph. Either it was not imported by an included module or only via a tree-shaken dynamic import, or no imported bindings were used and it had otherwise no side-effects.`
+		message: `Module "${relativeId(
+			module.id
+		)}" that should be implicitly loaded before ${printQuotedStringList(
+			implicitDependencies
+		)} is not included in the module graph. Either it was not imported by an included module or only via a tree-shaken dynamic import, or no imported bindings were used and it had otherwise no side-effects.`
 	};
 }
 
@@ -337,14 +337,33 @@ export function errNamespaceConflict(
 ) {
 	return {
 		code: Errors.NAMESPACE_CONFLICT,
-		message: `Conflicting namespaces: ${relativeId(
+		message: `Conflicting namespaces: "${relativeId(
 			reexportingModule.id
-		)} re-exports '${name}' from both ${relativeId(
+		)}" re-exports "${name}" from both "${relativeId(
 			reexportingModule.exportsAll[name]
-		)} and ${relativeId(additionalExportAllModule.exportsAll[name])} (will be ignored)`,
+		)}" and "${relativeId(additionalExportAllModule.exportsAll[name])}" (will be ignored)`,
 		name,
 		reexporter: reexportingModule.id,
 		sources: [reexportingModule.exportsAll[name], additionalExportAllModule.exportsAll[name]]
+	};
+}
+
+export function errAmbiguousExternalNamespaces(
+	name: string,
+	reexportingModule: string,
+	usedExternalModule: string,
+	externalModules: string[]
+) {
+	return {
+		code: Errors.AMBIGUOUS_EXTERNAL_NAMESPACES,
+		message: `Ambiguous external namespace resolution: "${relativeId(
+			reexportingModule
+		)}" re-exports "${name}" from one of the external modules ${printQuotedStringList(
+			externalModules.map(module => relativeId(module))
+		)}, guessing "${relativeId(usedExternalModule)}".`,
+		name,
+		reexporter: reexportingModule,
+		sources: externalModules
 	};
 }
 

@@ -56,7 +56,6 @@ import relativeId, { getAliasName } from './utils/relativeId';
 import renderChunk from './utils/renderChunk';
 import { RenderOptions } from './utils/renderHelpers';
 import { makeUnique, renderNamePattern } from './utils/renderNamePattern';
-import { sanitizeFileName } from './utils/sanitizeFileName';
 import { timeEnd, timeStart } from './utils/timers';
 import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
 
@@ -437,7 +436,7 @@ export default class Chunk {
 		unsetOptions: Set<string>
 	): string {
 		const id = this.orderedModules[0].id;
-		const sanitizedId = sanitizeFileName(id);
+		const sanitizedId = this.outputOptions.sanitizeFileName(id);
 		let path: string;
 		if (isAbsolute(id)) {
 			const extension = extname(id);
@@ -501,7 +500,7 @@ export default class Chunk {
 	}
 
 	getChunkName(): string {
-		return this.name || (this.name = sanitizeFileName(this.getFallbackChunkName()));
+		return this.name || (this.name = this.outputOptions.sanitizeFileName(this.getFallbackChunkName()));
 	}
 
 	getExportNames(): string[] {
@@ -816,7 +815,7 @@ export default class Chunk {
 		if (fileName) {
 			this.fileName = fileName;
 		} else {
-			this.name = sanitizeFileName(name || getChunkNameFromModule(facadedModule));
+			this.name = this.outputOptions.sanitizeFileName(name || getChunkNameFromModule(facadedModule));
 		}
 	}
 

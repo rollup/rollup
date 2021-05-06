@@ -7,7 +7,7 @@ module.exports = {
 		assertIncludes(
 			stderr,
 			'(!) Missing shims for Node.js built-ins\n' +
-				"Creating a browser bundle that depends on 'url', 'assert' and 'path'. You might need to include https://github.com/ionic-team/rollup-plugin-node-polyfills\n"
+				'Creating a browser bundle that depends on "url", "assert" and "path". You might need to include https://github.com/ionic-team/rollup-plugin-node-polyfills\n'
 		);
 		assertIncludes(
 			stderr,

@@ -43,7 +43,7 @@ export default class Bundle {
 		const outputBundle: OutputBundleWithPlaceholders = Object.create(null);
 		this.pluginDriver.setOutputBundle(
 			outputBundle,
-			this.outputOptions.assetFileNames,
+			this.outputOptions,
 			this.facadeChunkByModule
 		);
 		try {

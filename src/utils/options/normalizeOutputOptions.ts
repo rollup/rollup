@@ -14,6 +14,7 @@ import {
 import { ensureArray } from '../ensureArray';
 import { errInvalidExportOptionValue, error, warnDeprecation } from '../error';
 import { resolve } from '../path';
+import { sanitizeFileName as defaultSanitizeFileName } from '../sanitizeFileName';
 import { GenericConfigObject, warnUnknownOptions } from './options';
 
 export function normalizeOutputOptions(
@@ -66,6 +67,7 @@ export function normalizeOutputOptions(
 		preferConst: (config.preferConst as boolean | undefined) || false,
 		preserveModules,
 		preserveModulesRoot: getPreserveModulesRoot(config),
+		sanitizeFileName: (typeof config.sanitizeFileName === 'function' ? config.sanitizeFileName : config.sanitizeFileName === false ? (id) => id : defaultSanitizeFileName) as NormalizedOutputOptions['sanitizeFileName'],
 		sourcemap: (config.sourcemap as boolean | 'inline' | 'hidden' | undefined) || false,
 		sourcemapExcludeSources: (config.sourcemapExcludeSources as boolean | undefined) || false,
 		sourcemapFile: config.sourcemapFile as string | undefined,

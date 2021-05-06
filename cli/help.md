@@ -51,6 +51,7 @@ Basic options:
 --preserveModules           Preserve module structure
 --preserveModulesRoot       Put preserved modules under this path at root level
 --preserveSymlinks          Do not follow symlinks when resolving files
+--no-sanitizeFileName       Do not replace invalid characters in file names
 --shimMissingExports        Create shim variables for missing exports
 --silent                    Don't print warnings
 --sourcemapExcludeSources   Do not include source code in source maps

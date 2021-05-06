@@ -124,7 +124,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (path.length === 0) this.disallowNamespaceReassignment();
 		if (this.variable) {
 			this.variable.deoptimizePath(path);
-		} else {
+		} else if (!this.replacement) {
 			const propertyKey = this.getPropertyKey();
 			this.wasPathDeoptimizedWhileOptimized = true;
 			this.object.deoptimizePath([propertyKey, ...path]);

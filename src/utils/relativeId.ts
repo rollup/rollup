@@ -1,5 +1,4 @@
 import { basename, extname, isAbsolute, relative, resolve } from './path';
-import { sanitizeFileName } from './sanitizeFileName';
 
 export function getAliasName(id: string) {
 	const base = basename(id);
@@ -11,12 +10,7 @@ export default function relativeId(id: string) {
 	return relative(resolve(), id);
 }
 
-export function isPlainPathFragment(name: string) {
-	// not starting with "/", "./", "../"
-	return (
-		name[0] !== '/' &&
-		!(name[0] === '.' && (name[1] === '/' || name[1] === '.')) &&
-		sanitizeFileName(name) === name &&
-		!isAbsolute(name)
-	);
+export function isPathFragment(name: string) {
+	// starting with "/", "./", "../", "C:/"
+	return  name[0] === '/' || name[0] === '.' && (name[1] === '/' || name[1] === '.') || isAbsolute(name);
 }

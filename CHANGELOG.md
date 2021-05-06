@@ -1,5 +1,30 @@
 # rollup changelog
 
+## 2.47.0
+*2021-05-04*
+
+### Features
+* Warn about ambiguous imports from combined external namespace reexports (#4064)
+* In case of combined namespace reexports, always prefer local exports over external namespaces (#4064)
+* Treat conflicting names in local namespace reexports as undefined (#4064)
+
+### Pull Requests
+* [#4064](https://github.com/rollup/rollup/pull/4064): Prefer locally defined exports and reexports over external namespaces (@lukastaegert)
+
+## 2.46.0
+*2021-04-29*
+
+### Features
+* Add option to disable file name sanitation (#4058)
+* Add information about importers to unused external import warning (#4054)
+
+### Pull Requests
+* [#4042](https://github.com/rollup/rollup/pull/4042): Use Github actions only (@lukastaegert)
+* [#4045](https://github.com/rollup/rollup/pull/4045): Fix REPL artefact branch reference (@lukastaegert)
+* [#4046](https://github.com/rollup/rollup/pull/4046): Use codecov action for coverage (@lukastaegert)
+* [#4054](https://github.com/rollup/rollup/pull/4054): Add to `UNUSED_EXTERNAL_IMPORT` warning information about the origin of the problem (@cawa-93)
+* [#4058](https://github.com/rollup/rollup/pull/4058): Add sanitizeFileName option (@guybedford)
+
 ## 2.45.2
 *2021-04-13*
 
