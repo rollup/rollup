@@ -38,7 +38,7 @@ export default class NamespaceVariable extends Variable {
 				memberVariables[key].deoptimizePath(memberPath);
 			}
 		} else {
-			memberVariables[key].deoptimizePath(memberPath);
+			memberVariables[key]?.deoptimizePath(memberPath);
 		}
 	}
 
