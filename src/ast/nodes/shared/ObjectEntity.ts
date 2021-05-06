@@ -1,14 +1,10 @@
 import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { HasEffectsContext } from '../../ExecutionContext';
+import { ObjectPath, ObjectPathKey, PathTracker, UnknownKey, UNKNOWN_PATH } from '../../utils/PathTracker';
 import {
-	ObjectPath,
-	ObjectPathKey,
-	PathTracker,
-	UnknownKey,
-	UNKNOWN_PATH
-} from '../../utils/PathTracker';
-import {
+	EVENT_ACCESSED,
+	EVENT_CALLED,
 	ExpressionEntity,
 	LiteralValueOrUnknown,
 	NodeEvent,
@@ -36,6 +32,7 @@ export class ObjectEntity extends ExpressionEntity {
 	private hasUnknownDeoptimizedProperty = false;
 	private readonly propertiesByKey: PropertyMap = Object.create(null);
 	private readonly settersByKey: PropertyMap = Object.create(null);
+	private readonly thisParametersToBeDeoptimized = new Set<ExpressionEntity>();
 	private readonly unmatchableGetters: ExpressionEntity[] = [];
 	private readonly unmatchableProperties: ExpressionEntity[] = [];
 	private readonly unmatchableSetters: ExpressionEntity[] = [];
@@ -59,6 +56,9 @@ export class ObjectEntity extends ExpressionEntity {
 			for (const expression of expressionsToBeDeoptimized) {
 				expression.deoptimizeCache();
 			}
+		}
+		for (const expression of this.thisParametersToBeDeoptimized) {
+			expression.deoptimizePath(UNKNOWN_PATH);
 		}
 	}
 
@@ -105,27 +105,75 @@ export class ObjectEntity extends ExpressionEntity {
 		if (path.length === 0) {
 			return;
 		}
-		const key = path[0];
-		const expressionAtPath = this.getMemberExpressionAndTrackDeopt(key, {
-			deoptimizeCache() {
-				thisParameter.deoptimizePath(UNKNOWN_PATH);
+		const [key, ...subPath] = path;
+
+		if (event === EVENT_CALLED || path.length > 1) {
+			const expressionAtPath = this.getMemberExpressionAndTrackDeopt(key, {
+				deoptimizeCache() {
+					thisParameter.deoptimizePath(UNKNOWN_PATH);
+				}
+			});
+			if (expressionAtPath) {
+				return expressionAtPath.deoptimizeThisOnEventAtPath(
+					event,
+					subPath,
+					thisParameter,
+					recursionTracker
+				);
 			}
-		});
-		if (expressionAtPath) {
-			return expressionAtPath.deoptimizeThisOnEventAtPath(
-				event,
-				path.slice(1),
-				thisParameter,
-				recursionTracker
-			);
+			if (this.prototypeExpression) {
+				return this.prototypeExpression.deoptimizeThisOnEventAtPath(
+					event,
+					path,
+					thisParameter,
+					recursionTracker
+				);
+			}
+			return;
 		}
-		if (this.prototypeExpression) {
-			return this.prototypeExpression.deoptimizeThisOnEventAtPath(
-				event,
-				path,
-				thisParameter,
-				recursionTracker
-			);
+		if (event === EVENT_ACCESSED) {
+			if (this.hasUnknownDeoptimizedProperty) {
+				return thisParameter.deoptimizePath(UNKNOWN_PATH);
+			}
+			this.thisParametersToBeDeoptimized.add(thisParameter);
+
+			if (typeof key === 'string') {
+				for (const property of this.gettersByKey[key] || this.unmatchableGetters) {
+					property.deoptimizeThisOnEventAtPath(
+						EVENT_ACCESSED,
+						subPath,
+						thisParameter,
+						recursionTracker
+					);
+				}
+				if (this.prototypeExpression && !this.propertiesByKey[key]) {
+					this.prototypeExpression.deoptimizeThisOnEventAtPath(
+						EVENT_ACCESSED,
+						path,
+						thisParameter,
+						recursionTracker
+					);
+				}
+			} else {
+				for (const getters of Object.values(this.gettersByKey).concat([this.unmatchableGetters])) {
+					for (const getter of getters) {
+						getter.deoptimizeThisOnEventAtPath(
+							EVENT_ACCESSED,
+							subPath,
+							thisParameter,
+							recursionTracker
+						);
+					}
+				}
+				if (this.prototypeExpression) {
+					return this.prototypeExpression.deoptimizeThisOnEventAtPath(
+						EVENT_ACCESSED,
+						path,
+						thisParameter,
+						recursionTracker
+					);
+				}
+			}
 		}
 	}
 
@@ -194,15 +242,23 @@ export class ObjectEntity extends ExpressionEntity {
 			return true;
 		}
 
-		// TODO Lukas we could match all getters for unknown paths as well
-		if (typeof key !== 'string' || this.hasUnknownDeoptimizedProperty) return true;
-
-		const properties = this.gettersByKey[key] || this.unmatchableGetters;
-		for (const property of properties) {
-			if (property.hasEffectsWhenAccessedAtPath(subPath, context)) return true;
-		}
-		if (this.prototypeExpression && !this.propertiesByKey[key]) {
-			return this.prototypeExpression.hasEffectsWhenAccessedAtPath(path, context);
+		if (this.hasUnknownDeoptimizedProperty) return true;
+		if (typeof key === 'string') {
+			for (const property of this.gettersByKey[key] || this.unmatchableGetters) {
+				if (property.hasEffectsWhenAccessedAtPath(subPath, context)) return true;
+			}
+			if (this.prototypeExpression && !this.propertiesByKey[key]) {
+				return this.prototypeExpression.hasEffectsWhenAccessedAtPath(path, context);
+			}
+		} else {
+			for (const getters of Object.values(this.gettersByKey).concat([this.unmatchableGetters])) {
+				for (const getter of getters) {
+					if (getter.hasEffectsWhenAccessedAtPath(subPath, context)) return true;
+				}
+			}
+			if (this.prototypeExpression) {
+				return this.prototypeExpression.hasEffectsWhenAccessedAtPath(path, context);
+			}
 		}
 		return false;
 	}

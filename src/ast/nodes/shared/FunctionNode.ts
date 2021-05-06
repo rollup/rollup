@@ -40,6 +40,7 @@ export default class FunctionNode extends NodeBase {
 		}
 	}
 
+	// TODO Lukas handle other event types as well
 	deoptimizeThisOnEventAtPath(event: NodeEvent, path: ObjectPath, thisParameter: ExpressionEntity) {
 		if (event === EVENT_CALLED) {
 			if (path.length > 0 ) {

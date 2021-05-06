@@ -91,6 +91,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	) {
+		this.bind();
 		this.variable!.deoptimizeThisOnEventAtPath(
 			event,
 			path,

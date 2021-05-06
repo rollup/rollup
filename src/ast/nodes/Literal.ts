@@ -6,7 +6,7 @@ import {
 	getLiteralMembersForValue,
 	getMemberReturnExpressionWhenCalled,
 	hasMemberEffectWhenCalled,
-	MemberDescription,
+	MemberDescription
 } from '../values';
 import * as NodeType from './NodeType';
 import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from './shared/Expression';
@@ -23,6 +23,8 @@ export default class Literal<T extends LiteralValue = LiteralValue> extends Node
 	value!: T;
 
 	private members!: { [key: string]: MemberDescription };
+
+	deoptimizeThisOnEventAtPath() {}
 
 	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
 		if (

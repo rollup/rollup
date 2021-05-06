@@ -24,10 +24,12 @@ import Literal from './Literal';
 import * as NodeType from './NodeType';
 import PrivateIdentifier from './PrivateIdentifier';
 import {
+	EVENT_ACCESSED,
 	ExpressionEntity,
 	LiteralValueOrUnknown,
 	NodeEvent,
-	UnknownValue
+	UnknownValue,
+	UNKNOWN_EXPRESSION
 } from './shared/Expression';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 import SpreadElement from './SpreadElement';
@@ -86,9 +88,9 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	variable: Variable | null = null;
 
 	private bound = false;
+	private deoptimized = false;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 	private replacement: string | null = null;
-	private wasPathDeoptimizedWhileOptimized = false;
 
 	bind() {
 		if (this.bound) return;
@@ -116,9 +118,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized;
 		this.expressionsToBeDeoptimized = [];
 		this.propertyKey = UnknownKey;
-		if (this.wasPathDeoptimizedWhileOptimized) {
-			this.object.deoptimizePath(UNKNOWN_PATH);
-		}
+		this.object.deoptimizePath(UNKNOWN_PATH);
 		for (const expression of expressionsToBeDeoptimized) {
 			expression.deoptimizeCache();
 		}
@@ -131,7 +131,6 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			this.variable.deoptimizePath(path);
 		} else if (!this.replacement) {
 			const propertyKey = this.getPropertyKey();
-			this.wasPathDeoptimizedWhileOptimized = true;
 			this.object.deoptimizePath([propertyKey, ...path]);
 		}
 	}
@@ -144,13 +143,8 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	): void {
 		this.bind();
 		if (this.variable) {
-			this.variable.deoptimizeThisOnEventAtPath(
-				event,
-				path,
-				thisParameter,
-				recursionTracker
-			);
-		} else {
+			this.variable.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
+		} else if (!this.replacement) {
 			this.object.deoptimizeThisOnEventAtPath(
 				event,
 				[this.propertyKey!, ...path],
@@ -169,6 +163,9 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.variable !== null) {
 			return this.variable.getLiteralValueAtPath(path, recursionTracker, origin);
 		}
+		if (this.replacement) {
+			return UnknownValue;
+		}
 		this.expressionsToBeDeoptimized.push(origin);
 		return this.object.getLiteralValueAtPath(
 			[this.getPropertyKey(), ...path],
@@ -186,6 +183,9 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.variable !== null) {
 			return this.variable.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
 		}
+		if (this.replacement) {
+			return UNKNOWN_EXPRESSION;
+		}
 		this.expressionsToBeDeoptimized.push(origin);
 		return this.object.getReturnExpressionWhenCalledAtPath(
 			[this.getPropertyKey(), ...path],
@@ -195,12 +195,13 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
-		const propertyReadSideEffects = (this.context.options.treeshake as NormalizedTreeshakingOptions)
-			.propertyReadSideEffects;
+		if (!this.deoptimized) this.applyDeoptimizations();
+		const { propertyReadSideEffects } = this.context.options
+			.treeshake as NormalizedTreeshakingOptions;
 		return (
 			this.property.hasEffects(context) ||
 			this.object.hasEffects(context) ||
-			// Assignments only access the object before assigning
+			// Assignments do not access the property before assigning
 			(!(this.parent instanceof AssignmentExpression) &&
 				propertyReadSideEffects &&
 				(propertyReadSideEffects === 'always' ||
@@ -213,12 +214,18 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.variable !== null) {
 			return this.variable.hasEffectsWhenAccessedAtPath(path, context);
 		}
+		if (this.replacement) {
+			return false;
+		}
 		return this.object.hasEffectsWhenAccessedAtPath([this.propertyKey!, ...path], context);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		if (this.variable !== null) {
 			return this.variable.hasEffectsWhenAssignedAtPath(path, context);
+		}
+		if (this.replacement) {
+			return true;
 		}
 		return this.object.hasEffectsWhenAssignedAtPath([this.propertyKey!, ...path], context);
 	}
@@ -231,6 +238,9 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.variable !== null) {
 			return this.variable.hasEffectsWhenCalledAtPath(path, callOptions, context);
 		}
+		if (this.replacement) {
+			return true;
+		}
 		return this.object.hasEffectsWhenCalledAtPath(
 			[this.propertyKey!, ...path],
 			callOptions,
@@ -239,6 +249,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+		if (!this.deoptimized) this.applyDeoptimizations();
 		if (!this.included) {
 			this.included = true;
 			if (this.variable !== null) {
@@ -290,6 +301,26 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 				surroundingElement ? { renderedSurroundingElement: surroundingElement } : BLANK
 			);
 			this.property.render(code, options);
+		}
+	}
+
+	private applyDeoptimizations() {
+		this.deoptimized = true;
+		const { propertyReadSideEffects } = this.context.options
+			.treeshake as NormalizedTreeshakingOptions;
+		// Assignments do not access the property before assigning
+		if (
+			// Namespaces are not bound and should not be deoptimized
+			this.bound &&
+			propertyReadSideEffects &&
+			!(this.variable || this.replacement || this.parent instanceof AssignmentExpression)
+		) {
+			this.object.deoptimizeThisOnEventAtPath(
+				EVENT_ACCESSED,
+				[this.propertyKey!],
+				this.object,
+				SHARED_RECURSION_TRACKER
+			);
 		}
 	}
 

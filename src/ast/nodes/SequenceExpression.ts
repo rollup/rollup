@@ -13,7 +13,7 @@ import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { ObjectPath, PathTracker } from '../utils/PathTracker';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
-import { LiteralValueOrUnknown } from './shared/Expression';
+import { EVENT_CALLED, ExpressionEntity, LiteralValueOrUnknown, NodeEvent } from './shared/Expression';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 
 export default class SequenceExpression extends NodeBase {
@@ -22,6 +22,17 @@ export default class SequenceExpression extends NodeBase {
 
 	deoptimizePath(path: ObjectPath) {
 		if (path.length > 0) this.expressions[this.expressions.length - 1].deoptimizePath(path);
+	}
+
+	deoptimizeThisOnEventAtPath(
+		event: NodeEvent,
+		path: ObjectPath,
+		thisParameter: ExpressionEntity,
+		recursionTracker: PathTracker
+	) {
+		if (event === EVENT_CALLED || path.length > 0) {
+			this.expressions[this.expressions.length - 1].deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
+		}
 	}
 
 	getLiteralValueAtPath(

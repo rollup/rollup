@@ -20,7 +20,13 @@ import {
 } from '../utils/PathTracker';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
-import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
+import {
+	EVENT_CALLED,
+	ExpressionEntity,
+	LiteralValueOrUnknown,
+	NodeEvent,
+	UnknownValue
+} from './shared/Expression';
 import { MultiExpression } from './shared/MultiExpression';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 import SpreadElement from './SpreadElement';
@@ -67,6 +73,18 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 				this.wasPathDeoptimizedWhileOptimized = true;
 				usedBranch.deoptimizePath(path);
 			}
+		}
+	}
+
+	deoptimizeThisOnEventAtPath(
+		event: NodeEvent,
+		path: ObjectPath,
+		thisParameter: ExpressionEntity,
+		recursionTracker: PathTracker
+	) {
+		if (event === EVENT_CALLED || path.length > 0) {
+			this.consequent.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
+			this.alternate.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
 		}
 	}
 

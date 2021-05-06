@@ -42,6 +42,9 @@ export default class NamespaceVariable extends Variable {
 		}
 	}
 
+	// TODO Lukas can this be triggered for nested paths?
+	deoptimizeThisOnEventAtPath() {}
+
 	getMemberVariables(): { [name: string]: Variable } {
 		if (this.memberVariables) {
 			return this.memberVariables;

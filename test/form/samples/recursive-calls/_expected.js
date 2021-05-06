@@ -1,13 +1,3 @@
-const removed4 = () => globalThis.unknown ? removed4() : { x: () => {} };
-removed4().x();
-
-const removed8 = {
-	get x () {
-		return globalThis.unknown ? removed8.x : { y: () => {} };
-	}
-};
-removed8.x.y();
-
 const retained1 = () => globalThis.unknown ? retained1() : console.log( 'effect' );
 retained1();
 

@@ -20,7 +20,7 @@ import {
 } from '../utils/PathTracker';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
-import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
+import { EVENT_CALLED, ExpressionEntity, LiteralValueOrUnknown, NodeEvent, UnknownValue } from './shared/Expression';
 import { MultiExpression } from './shared/MultiExpression';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 
@@ -67,6 +67,18 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		} else {
 			this.wasPathDeoptimizedWhileOptimized = true;
 			usedBranch.deoptimizePath(path);
+		}
+	}
+
+	deoptimizeThisOnEventAtPath(
+		event: NodeEvent,
+		path: ObjectPath,
+		thisParameter: ExpressionEntity,
+		recursionTracker: PathTracker
+	) {
+		if (event === EVENT_CALLED || path.length > 0) {
+			this.left.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
+			this.right.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
 		}
 	}
 
