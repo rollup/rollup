@@ -12,7 +12,7 @@ export default commandOptions => {
 			throw new Error(`Unexpected warning: ${warning.message}`);
 		},
 		plugins: [
-			replace( { 'COMMAND_OPTIONS': JSON.stringify(commandOptions) } )
+			replace( { preventAssignment: true, 'COMMAND_OPTIONS': JSON.stringify(commandOptions) } )
 		]
 	};
 };
