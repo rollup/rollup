@@ -11,7 +11,7 @@ module.exports = commands => ({
 				assert.strictEqual(warnings, 1);
 			}
 		},
-		replace({ ANSWER: commands.configAnswer })
+		replace({ preventAssignment: true, ANSWER: commands.configAnswer })
 	],
 	onwarn(warning) {
 		warnings++;

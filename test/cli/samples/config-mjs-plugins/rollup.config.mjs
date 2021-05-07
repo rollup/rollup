@@ -8,5 +8,5 @@ import plugin from './plugin.mjs';
 export default {
 	input: 'main.js',
 	output: { format: 'cjs', exports: 'auto' },
-	plugins: [shebang(), replace({ ANSWER: 42 }), plugin(), nestedPlugin()]
+	plugins: [shebang(), replace({ preventAssignment: true, ANSWER: 42 }), plugin(), nestedPlugin()]
 };
