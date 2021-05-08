@@ -12,8 +12,8 @@ import {
 	ObjectPathKey,
 	PathTracker,
 	SHARED_RECURSION_TRACKER,
-	UNKNOWN_PATH,
-	UnknownKey
+	UnknownKey,
+	UNKNOWN_PATH
 } from '../utils/PathTracker';
 import ExternalVariable from '../variables/ExternalVariable';
 import NamespaceVariable from '../variables/NamespaceVariable';
@@ -29,8 +29,8 @@ import {
 	ExpressionEntity,
 	LiteralValueOrUnknown,
 	NodeEvent,
-	UNKNOWN_EXPRESSION,
-	UnknownValue
+	UnknownValue,
+	UNKNOWN_EXPRESSION
 } from './shared/Expression';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 import SpreadElement from './SpreadElement';

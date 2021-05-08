@@ -5,8 +5,8 @@ import {
 	ExpressionEntity,
 	LiteralValueOrUnknown,
 	NodeEvent,
-	UNKNOWN_EXPRESSION,
-	UnknownValue
+	UnknownValue,
+	UNKNOWN_EXPRESSION
 } from '../nodes/shared/Expression';
 import { ObjectPath, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
 import LocalVariable from './LocalVariable';
