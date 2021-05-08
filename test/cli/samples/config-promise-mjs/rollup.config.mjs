@@ -5,5 +5,5 @@ export default Promise.resolve({
 	output: {
 		format: 'cjs'
 	},
-	plugins: [replace({ ANSWER: 42 })]
+	plugins: [replace({ preventAssignment: true, ANSWER: 42 })]
 });
