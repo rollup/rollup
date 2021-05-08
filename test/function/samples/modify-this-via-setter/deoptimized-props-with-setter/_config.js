@@ -1,6 +1,5 @@
 module.exports = {
-	description: 'handles getters that modify "this" on prototypes for unknown properties',
-	minNodeVersion: 12,
+	description: 'handles fully deoptimized objects',
 	context: {
 		require(id) {
 			return { unknown: 'prop' };

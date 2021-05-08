@@ -12,8 +12,8 @@ import {
 	ObjectPathKey,
 	PathTracker,
 	SHARED_RECURSION_TRACKER,
-	UnknownKey,
-	UNKNOWN_PATH
+	UNKNOWN_PATH,
+	UnknownKey
 } from '../utils/PathTracker';
 import ExternalVariable from '../variables/ExternalVariable';
 import NamespaceVariable from '../variables/NamespaceVariable';
@@ -25,11 +25,12 @@ import * as NodeType from './NodeType';
 import PrivateIdentifier from './PrivateIdentifier';
 import {
 	EVENT_ACCESSED,
+	EVENT_ASSIGNED,
 	ExpressionEntity,
 	LiteralValueOrUnknown,
 	NodeEvent,
-	UnknownValue,
-	UNKNOWN_EXPRESSION
+	UNKNOWN_EXPRESSION,
+	UnknownValue
 } from './shared/Expression';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 import SpreadElement from './SpreadElement';
@@ -202,7 +203,11 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			this.property.hasEffects(context) ||
 			this.object.hasEffects(context) ||
 			// Assignments do not access the property before assigning
-			(!(this.parent instanceof AssignmentExpression) &&
+			(!(
+				this.variable ||
+				this.replacement ||
+				(this.parent instanceof AssignmentExpression && this.parent.operator === '=')
+			) &&
 				propertyReadSideEffects &&
 				(propertyReadSideEffects === 'always' ||
 					this.object.hasEffectsWhenAccessedAtPath([this.propertyKey!], context)))
@@ -308,19 +313,29 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		this.deoptimized = true;
 		const { propertyReadSideEffects } = this.context.options
 			.treeshake as NormalizedTreeshakingOptions;
-		// Assignments do not access the property before assigning
 		if (
 			// Namespaces are not bound and should not be deoptimized
 			this.bound &&
 			propertyReadSideEffects &&
-			!(this.variable || this.replacement || this.parent instanceof AssignmentExpression)
+			!(this.variable || this.replacement)
 		) {
-			this.object.deoptimizeThisOnEventAtPath(
-				EVENT_ACCESSED,
-				[this.propertyKey!],
-				this.object,
-				SHARED_RECURSION_TRACKER
-			);
+			// Regular Assignments do not access the property before assigning
+			if (!(this.parent instanceof AssignmentExpression && this.parent.operator === '=')) {
+				this.object.deoptimizeThisOnEventAtPath(
+					EVENT_ACCESSED,
+					[this.propertyKey!],
+					this.object,
+					SHARED_RECURSION_TRACKER
+				);
+			}
+			if (this.parent instanceof AssignmentExpression) {
+				this.object.deoptimizeThisOnEventAtPath(
+					EVENT_ASSIGNED,
+					[this.propertyKey!],
+					this.object,
+					SHARED_RECURSION_TRACKER
+				);
+			}
 		}
 	}
 

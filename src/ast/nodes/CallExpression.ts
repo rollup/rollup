@@ -30,7 +30,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 	private callOptions!: CallOptions;
 	private deoptimizableDependentExpressions: DeoptimizableEntity[] = [];
 	private deoptimized = false;
-	private expressionsToBeDeoptimized: ExpressionEntity[] = [];
+	private expressionsToBeDeoptimized = new Set<ExpressionEntity>();
 	private returnExpression: ExpressionEntity | null = null;
 	private wasPathDeoptmizedWhileOptimized = false;
 
@@ -72,7 +72,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 				// We need to replace here because it is possible new expressions are added
 				// while we are deoptimizing the old ones
 				this.deoptimizableDependentExpressions = [];
-				this.expressionsToBeDeoptimized = [];
+				this.expressionsToBeDeoptimized = new Set();
 				if (this.wasPathDeoptmizedWhileOptimized) {
 					returnExpression.deoptimizePath(UNKNOWN_PATH);
 					this.wasPathDeoptmizedWhileOptimized = false;
@@ -111,7 +111,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		} else {
 			const trackedEntities = recursionTracker.getEntities(path);
 			if (!trackedEntities.has(returnExpression)) {
-				this.expressionsToBeDeoptimized.push(thisParameter);
+				this.expressionsToBeDeoptimized.add(thisParameter);
 				trackedEntities.add(returnExpression);
 				returnExpression.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
 				trackedEntities.delete(returnExpression);

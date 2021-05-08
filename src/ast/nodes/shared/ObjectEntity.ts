@@ -1,7 +1,13 @@
 import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { HasEffectsContext } from '../../ExecutionContext';
-import { ObjectPath, ObjectPathKey, PathTracker, UnknownKey, UNKNOWN_PATH } from '../../utils/PathTracker';
+import {
+	ObjectPath,
+	ObjectPathKey,
+	PathTracker,
+	UnknownKey,
+	UNKNOWN_PATH
+} from '../../utils/PathTracker';
 import {
 	EVENT_ACCESSED,
 	EVENT_CALLED,
@@ -30,11 +36,12 @@ export class ObjectEntity extends ExpressionEntity {
 	> = Object.create(null);
 	private readonly gettersByKey: PropertyMap = Object.create(null);
 	private hasUnknownDeoptimizedProperty = false;
-	private readonly propertiesByKey: PropertyMap = Object.create(null);
+	private readonly propertiesAndGettersByKey: PropertyMap = Object.create(null);
+	private readonly propertiesAndSettersByKey: PropertyMap = Object.create(null);
 	private readonly settersByKey: PropertyMap = Object.create(null);
 	private readonly thisParametersToBeDeoptimized = new Set<ExpressionEntity>();
 	private readonly unmatchableGetters: ExpressionEntity[] = [];
-	private readonly unmatchableProperties: ExpressionEntity[] = [];
+	private readonly unmatchablePropertiesAndGetters: ExpressionEntity[] = [];
 	private readonly unmatchableSetters: ExpressionEntity[] = [];
 
 	constructor(properties: ObjectProperty[], private prototypeExpression: ExpressionEntity | null) {
@@ -86,7 +93,7 @@ export class ObjectEntity extends ExpressionEntity {
 
 		const subPath = path.length === 1 ? UNKNOWN_PATH : path.slice(1);
 		for (const property of typeof key === 'string'
-			? (this.propertiesByKey[key] || this.unmatchableProperties).concat(
+			? (this.propertiesAndGettersByKey[key] || this.unmatchablePropertiesAndGetters).concat(
 					this.settersByKey[key] || this.unmatchableSetters
 			  )
 			: this.allProperties) {
@@ -108,6 +115,7 @@ export class ObjectEntity extends ExpressionEntity {
 		const [key, ...subPath] = path;
 
 		if (event === EVENT_CALLED || path.length > 1) {
+			// TODO Lukas having the same logic as for the other cases here by checking getters and props
 			const expressionAtPath = this.getMemberExpressionAndTrackDeopt(key, {
 				deoptimizeCache() {
 					thisParameter.deoptimizePath(UNKNOWN_PATH);
@@ -129,9 +137,8 @@ export class ObjectEntity extends ExpressionEntity {
 					recursionTracker
 				);
 			}
-			return;
-		}
-		if (event === EVENT_ACCESSED) {
+			// TODO Lukas check in how far those cases can be merged
+		} else if (event === EVENT_ACCESSED) {
 			if (this.hasUnknownDeoptimizedProperty) {
 				return thisParameter.deoptimizePath(UNKNOWN_PATH);
 			}
@@ -146,7 +153,7 @@ export class ObjectEntity extends ExpressionEntity {
 						recursionTracker
 					);
 				}
-				if (this.prototypeExpression && !this.propertiesByKey[key]) {
+				if (this.prototypeExpression && !this.propertiesAndGettersByKey[key]) {
 					this.prototypeExpression.deoptimizeThisOnEventAtPath(
 						EVENT_ACCESSED,
 						path,
@@ -168,6 +175,39 @@ export class ObjectEntity extends ExpressionEntity {
 				if (this.prototypeExpression) {
 					return this.prototypeExpression.deoptimizeThisOnEventAtPath(
 						EVENT_ACCESSED,
+						path,
+						thisParameter,
+						recursionTracker
+					);
+				}
+			}
+		} else {
+			if (this.hasUnknownDeoptimizedProperty) {
+				return thisParameter.deoptimizePath(UNKNOWN_PATH);
+			}
+			this.thisParametersToBeDeoptimized.add(thisParameter);
+
+			if (typeof key === 'string') {
+				for (const property of this.settersByKey[key] || this.unmatchableSetters) {
+					property.deoptimizeThisOnEventAtPath(event, subPath, thisParameter, recursionTracker);
+				}
+				if (this.prototypeExpression && !this.propertiesAndSettersByKey[key]) {
+					this.prototypeExpression.deoptimizeThisOnEventAtPath(
+						event,
+						path,
+						thisParameter,
+						recursionTracker
+					);
+				}
+			} else {
+				for (const setters of Object.values(this.settersByKey).concat([this.unmatchableSetters])) {
+					for (const setter of setters) {
+						setter.deoptimizeThisOnEventAtPath(event, subPath, thisParameter, recursionTracker);
+					}
+				}
+				if (this.prototypeExpression) {
+					return this.prototypeExpression.deoptimizeThisOnEventAtPath(
+						event,
 						path,
 						thisParameter,
 						recursionTracker
@@ -247,7 +287,7 @@ export class ObjectEntity extends ExpressionEntity {
 			for (const property of this.gettersByKey[key] || this.unmatchableGetters) {
 				if (property.hasEffectsWhenAccessedAtPath(subPath, context)) return true;
 			}
-			if (this.prototypeExpression && !this.propertiesByKey[key]) {
+			if (this.prototypeExpression && !this.propertiesAndGettersByKey[key]) {
 				return this.prototypeExpression.hasEffectsWhenAccessedAtPath(path, context);
 			}
 		} else {
@@ -310,36 +350,43 @@ export class ObjectEntity extends ExpressionEntity {
 	private buildPropertyMaps(properties: ObjectProperty[]): void {
 		const {
 			allProperties,
-			propertiesByKey,
+			propertiesAndGettersByKey,
+			propertiesAndSettersByKey,
 			settersByKey,
 			gettersByKey,
-			unmatchableProperties,
+			unmatchablePropertiesAndGetters,
 			unmatchableGetters,
 			unmatchableSetters
 		} = this;
+		const unmatchablePropertiesAndSetters: ExpressionEntity[] = [];
 		for (let index = properties.length - 1; index >= 0; index--) {
 			const { key, kind, property } = properties[index];
 			allProperties.push(property);
-			if (kind === 'set') {
 				if (typeof key !== 'string') {
-					unmatchableSetters.push(property);
-				} else if (!settersByKey[key]) {
-					settersByKey[key] = [property, ...unmatchableSetters];
-				}
-			} else {
-				if (typeof key !== 'string') {
-					unmatchableProperties.push(property);
-					if (kind === 'get') {
-						unmatchableGetters.push(property);
+					if (kind === 'set') unmatchableSetters.push(property)
+					if (kind === 'get') unmatchableGetters.push(property)
+					if (kind !== 'get') unmatchablePropertiesAndSetters.push(property)
+					if (kind !== 'set') unmatchablePropertiesAndGetters.push(property)
+				} else {
+					if (kind === 'set') {
+						if (!propertiesAndSettersByKey[key]) {
+							propertiesAndSettersByKey[key] = [property, ...unmatchablePropertiesAndSetters]
+							settersByKey[key] = [property, ...unmatchableSetters]
+						}
+					} else if (kind === 'get') {
+						if (!propertiesAndGettersByKey[key]) {
+							propertiesAndGettersByKey[key] = [property, ...unmatchablePropertiesAndGetters]
+							gettersByKey[key] = [property, ...unmatchableGetters]
+						}
+					} else {
+						if (!propertiesAndSettersByKey[key]) {
+							propertiesAndSettersByKey[key] = [property, ...unmatchablePropertiesAndSetters]
+						}
+						if (!propertiesAndGettersByKey[key]) {
+							propertiesAndGettersByKey[key] = [property, ...unmatchablePropertiesAndGetters]
+						}
 					}
-				} else if (!propertiesByKey[key]) {
-					propertiesByKey[key] = [property, ...unmatchableProperties];
-					gettersByKey[key] = [...unmatchableGetters];
-					if (kind === 'get') {
-						gettersByKey[key].push(property);
-					}
 				}
-			}
 		}
 	}
 
@@ -351,11 +398,11 @@ export class ObjectEntity extends ExpressionEntity {
 		) {
 			return UNKNOWN_EXPRESSION;
 		}
-		const properties = this.propertiesByKey[key];
+		const properties = this.propertiesAndGettersByKey[key];
 		if (properties?.length === 1) {
 			return properties[0];
 		}
-		if (properties || this.unmatchableProperties.length > 0) {
+		if (properties || this.unmatchablePropertiesAndGetters.length > 0) {
 			return UNKNOWN_EXPRESSION;
 		}
 		return null;

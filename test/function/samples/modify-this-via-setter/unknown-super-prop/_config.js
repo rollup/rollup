@@ -1,5 +1,5 @@
 module.exports = {
-	description: 'handles getters that modify "this" on prototypes for unknown properties',
+	description: 'handles setters that modify "this" on prototypes for unknown properties',
 	minNodeVersion: 12,
 	context: {
 		require(id) {

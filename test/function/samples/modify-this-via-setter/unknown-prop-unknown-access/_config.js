@@ -1,6 +1,5 @@
 module.exports = {
-	description: 'handles getters that modify "this" on prototypes for unknown properties',
-	minNodeVersion: 12,
+	description: 'handles unknown setters that modify "this" for unknown property access',
 	context: {
 		require(id) {
 			return { unknown: 'prop' };

@@ -1,27 +1,44 @@
 import MagicString from 'magic-string';
 import { HasEffectsContext } from '../ExecutionContext';
 import ModuleScope from '../scopes/ModuleScope';
-import { ObjectPath } from '../utils/PathTracker';
-import ThisVariable from '../variables/ThisVariable';
+import { ObjectPath, PathTracker } from '../utils/PathTracker';
+import Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
+import { ExpressionEntity, NodeEvent } from './shared/Expression';
 import { NodeBase } from './shared/Node';
 
 export default class ThisExpression extends NodeBase {
 	type!: NodeType.tThisExpression;
 
-	variable!: ThisVariable;
+	variable!: Variable;
 	private alias!: string | null;
 	private bound = false;
 
 	bind() {
 		if (this.bound) return;
 		this.bound = true;
-		this.variable = this.scope.findVariable('this') as ThisVariable;
+		this.variable = this.scope.findVariable('this');
 	}
 
 	deoptimizePath(path: ObjectPath) {
 		this.bind();
 		this.variable.deoptimizePath(path);
+	}
+
+	deoptimizeThisOnEventAtPath(
+		event: NodeEvent,
+		path: ObjectPath,
+		thisParameter: ExpressionEntity,
+		recursionTracker: PathTracker
+	) {
+		this.bind();
+		this.variable.deoptimizeThisOnEventAtPath(
+			event,
+			path,
+			// We rewrite the parameter so that a ThisVariable can detect self-mutations
+			thisParameter === this ? this.variable : thisParameter,
+			recursionTracker
+		);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
