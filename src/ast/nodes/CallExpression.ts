@@ -1,11 +1,21 @@
 import MagicString from 'magic-string';
 import { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
-import { findFirstOccurrenceOutsideComment, NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import {
+	findFirstOccurrenceOutsideComment,
+	NodeRenderOptions,
+	RenderOptions
+} from '../../utils/renderHelpers';
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { EMPTY_PATH, ObjectPath, PathTracker, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
+import {
+	EMPTY_PATH,
+	ObjectPath,
+	PathTracker,
+	SHARED_RECURSION_TRACKER,
+	UNKNOWN_PATH
+} from '../utils/PathTracker';
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
@@ -17,7 +27,13 @@ import {
 	UnknownValue,
 	UNKNOWN_EXPRESSION
 } from './shared/Expression';
-import { Annotation, ExpressionNode, IncludeChildren, INCLUDE_PARAMETERS, NodeBase } from './shared/Node';
+import {
+	Annotation,
+	ExpressionNode,
+	IncludeChildren,
+	INCLUDE_PARAMETERS,
+	NodeBase
+} from './shared/Node';
 import SpreadElement from './SpreadElement';
 import Super from './Super';
 
@@ -88,10 +104,12 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 	}
 
 	deoptimizePath(path: ObjectPath) {
-		if (path.length === 0) return;
-		const trackedEntities = this.context.deoptimizationTracker.getEntities(path);
-		if (trackedEntities.has(this)) return;
-		trackedEntities.add(this);
+		if (
+			path.length === 0 ||
+			this.context.deoptimizationTracker.trackEntityAtPathAndGetIfTracked(path, this)
+		) {
+			return;
+		}
 		const returnExpression = this.getReturnExpression();
 		if (returnExpression !== UNKNOWN_EXPRESSION) {
 			this.wasPathDeoptmizedWhileOptimized = true;
@@ -109,13 +127,20 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		if (returnExpression === UNKNOWN_EXPRESSION) {
 			thisParameter.deoptimizePath(UNKNOWN_PATH);
 		} else {
-			const trackedEntities = recursionTracker.getEntities(path);
-			if (!trackedEntities.has(returnExpression)) {
-				this.expressionsToBeDeoptimized.add(thisParameter);
-				trackedEntities.add(returnExpression);
-				returnExpression.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
-				trackedEntities.delete(returnExpression);
-			}
+			recursionTracker.withTrackedEntityAtPath(
+				path,
+				returnExpression,
+				() => {
+					this.expressionsToBeDeoptimized.add(thisParameter);
+					returnExpression.deoptimizeThisOnEventAtPath(
+						event,
+						path,
+						thisParameter,
+						recursionTracker
+					);
+				},
+				undefined
+			);
 		}
 	}
 
@@ -128,39 +153,35 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		if (returnExpression === UNKNOWN_EXPRESSION) {
 			return UnknownValue;
 		}
-		const trackedEntities = recursionTracker.getEntities(path);
-		if (trackedEntities.has(returnExpression)) {
-			return UnknownValue;
-		}
-		this.deoptimizableDependentExpressions.push(origin);
-		trackedEntities.add(returnExpression);
-		const value = returnExpression.getLiteralValueAtPath(path, recursionTracker, origin);
-		trackedEntities.delete(returnExpression);
-		return value;
+		return recursionTracker.withTrackedEntityAtPath(
+			path,
+			returnExpression,
+			() => {
+				this.deoptimizableDependentExpressions.push(origin);
+				return returnExpression.getLiteralValueAtPath(path, recursionTracker, origin);
+			},
+			UnknownValue
+		);
 	}
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
-	) {
+	): ExpressionEntity {
 		const returnExpression = this.getReturnExpression(recursionTracker);
 		if (this.returnExpression === UNKNOWN_EXPRESSION) {
 			return UNKNOWN_EXPRESSION;
 		}
-		const trackedEntities = recursionTracker.getEntities(path);
-		if (trackedEntities.has(returnExpression)) {
-			return UNKNOWN_EXPRESSION;
-		}
-		this.deoptimizableDependentExpressions.push(origin);
-		trackedEntities.add(returnExpression);
-		const value = returnExpression.getReturnExpressionWhenCalledAtPath(
+		return recursionTracker.withTrackedEntityAtPath(
 			path,
-			recursionTracker,
-			origin
+			returnExpression,
+			() => {
+				this.deoptimizableDependentExpressions.push(origin);
+				return returnExpression.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
+			},
+			UNKNOWN_EXPRESSION
 		);
-		trackedEntities.delete(returnExpression);
-		return value;
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
@@ -180,18 +201,17 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (path.length === 0) return false;
-		const trackedExpressions = context.accessed.getEntities(path);
-		if (trackedExpressions.has(this)) return false;
-		trackedExpressions.add(this);
+		if (path.length === 0 || context.accessed.trackEntityAtPathAndGetIfTracked(path, this)) {
+			return false;
+		}
 		return this.getReturnExpression().hasEffectsWhenAccessedAtPath(path, context);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		if (path.length === 0) return true;
-		const trackedExpressions = context.assigned.getEntities(path);
-		if (trackedExpressions.has(this)) return false;
-		trackedExpressions.add(this);
+		if (context.assigned.trackEntityAtPathAndGetIfTracked(path, this)) {
+			return false;
+		}
 		return this.getReturnExpression().hasEffectsWhenAssignedAtPath(path, context);
 	}
 
@@ -200,12 +220,14 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		callOptions: CallOptions,
 		context: HasEffectsContext
 	): boolean {
-		const trackedExpressions = (callOptions.withNew
-			? context.instantiated
-			: context.called
-		).getEntities(path, callOptions);
-		if (trackedExpressions.has(this)) return false;
-		trackedExpressions.add(this);
+		if (
+			(callOptions.withNew
+				? context.instantiated
+				: context.called
+			).trackEntityAtPathAndGetIfTracked(path, callOptions, this)
+		) {
+			return false;
+		}
 		return this.getReturnExpression().hasEffectsWhenCalledAtPath(path, callOptions, context);
 	}
 

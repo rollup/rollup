@@ -37,10 +37,12 @@ export default class ThisVariable extends LocalVariable {
 	}
 
 	deoptimizePath(path: ObjectPath) {
-		if (path.length === 0) return;
-		const trackedEntities = this.deoptimizationTracker.getEntities(path);
-		if (trackedEntities.has(this)) return;
-		trackedEntities.add(this);
+		if (
+			path.length === 0 ||
+			this.deoptimizationTracker.trackEntityAtPathAndGetIfTracked(path, this)
+		) {
+			return;
+		}
 		this.deoptimizedPaths.push(path);
 		for (const entity of this.entitiesToBeDeoptimized) {
 			entity.deoptimizePath(path);

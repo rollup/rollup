@@ -67,11 +67,13 @@ export default class LocalVariable extends Variable {
 	}
 
 	deoptimizePath(path: ObjectPath) {
-		if (path.length > MAX_PATH_DEPTH || this.isReassigned) return;
-		// TODO Lukas how about trackEntityAtPathAndGetIfTracked?
-		const trackedEntities = this.deoptimizationTracker.getEntities(path);
-		if (trackedEntities.has(this)) return;
-		trackedEntities.add(this);
+		if (
+			path.length > MAX_PATH_DEPTH ||
+			this.isReassigned ||
+			this.deoptimizationTracker.trackEntityAtPathAndGetIfTracked(path, this)
+		) {
+			return;
+		}
 		if (path.length === 0) {
 			if (!this.isReassigned) {
 				this.isReassigned = true;
@@ -98,17 +100,12 @@ export default class LocalVariable extends Variable {
 		if (this.isReassigned || !this.init || path.length > MAX_PATH_DEPTH) {
 			return thisParameter.deoptimizePath(UNKNOWN_PATH);
 		}
-		const trackedEntities = recursionTracker.getEntities(path);
-		if (!trackedEntities.has(this.init)) {
-			trackedEntities.add(this.init);
-			this.init?.deoptimizeThisOnEventAtPath(
-				event,
-				path,
-				thisParameter,
-				recursionTracker
-			);
-			trackedEntities.delete(this.init);
-		}
+		recursionTracker.withTrackedEntityAtPath(
+			path,
+			this.init,
+			() => this.init!.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker),
+			undefined
+		);
 	}
 
 	getLiteralValueAtPath(
@@ -119,15 +116,15 @@ export default class LocalVariable extends Variable {
 		if (this.isReassigned || !this.init || path.length > MAX_PATH_DEPTH) {
 			return UnknownValue;
 		}
-		const trackedEntities = recursionTracker.getEntities(path);
-		if (trackedEntities.has(this.init)) {
-			return UnknownValue;
-		}
-		this.expressionsToBeDeoptimized.push(origin);
-		trackedEntities.add(this.init);
-		const value = this.init.getLiteralValueAtPath(path, recursionTracker, origin);
-		trackedEntities.delete(this.init);
-		return value;
+		return recursionTracker.withTrackedEntityAtPath(
+			path,
+			this.init,
+			() => {
+				this.expressionsToBeDeoptimized.push(origin);
+				return this.init!.getLiteralValueAtPath(path, recursionTracker, origin);
+			},
+			UnknownValue
+		);
 	}
 
 	getReturnExpressionWhenCalledAtPath(
@@ -138,23 +135,21 @@ export default class LocalVariable extends Variable {
 		if (this.isReassigned || !this.init || path.length > MAX_PATH_DEPTH) {
 			return UNKNOWN_EXPRESSION;
 		}
-		const trackedEntities = recursionTracker.getEntities(path);
-		if (trackedEntities.has(this.init)) {
-			return UNKNOWN_EXPRESSION;
-		}
-		this.expressionsToBeDeoptimized.push(origin);
-		trackedEntities.add(this.init);
-		const value = this.init.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
-		trackedEntities.delete(this.init);
-		return value;
+		return recursionTracker.withTrackedEntityAtPath(
+			path,
+			this.init,
+			() => {
+				this.expressionsToBeDeoptimized.push(origin);
+				return this.init!.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
+			},
+			UNKNOWN_EXPRESSION
+		);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext) {
 		if (path.length === 0) return false;
 		if (this.isReassigned || path.length > MAX_PATH_DEPTH) return true;
-		const trackedExpressions = context.accessed.getEntities(path);
-		if (trackedExpressions.has(this)) return false;
-		trackedExpressions.add(this);
+		if (context.accessed.trackEntityAtPathAndGetIfTracked(path, this)) return false;
 		return (this.init && this.init.hasEffectsWhenAccessedAtPath(path, context))!;
 	}
 
@@ -162,9 +157,7 @@ export default class LocalVariable extends Variable {
 		if (this.included || path.length > MAX_PATH_DEPTH) return true;
 		if (path.length === 0) return false;
 		if (this.isReassigned) return true;
-		const trackedExpressions = context.assigned.getEntities(path);
-		if (trackedExpressions.has(this)) return false;
-		trackedExpressions.add(this);
+		if (context.accessed.trackEntityAtPathAndGetIfTracked(path, this)) return false;
 		return (this.init && this.init.hasEffectsWhenAssignedAtPath(path, context))!;
 	}
 
@@ -174,12 +167,14 @@ export default class LocalVariable extends Variable {
 		context: HasEffectsContext
 	) {
 		if (path.length > MAX_PATH_DEPTH || this.isReassigned) return true;
-		const trackedExpressions = (callOptions.withNew
-			? context.instantiated
-			: context.called
-		).getEntities(path, callOptions);
-		if (trackedExpressions.has(this)) return false;
-		trackedExpressions.add(this);
+		if (
+			(callOptions.withNew
+				? context.instantiated
+				: context.called
+			).trackEntityAtPathAndGetIfTracked(path, callOptions, this)
+		) {
+			return false;
+		}
 		return (this.init && this.init.hasEffectsWhenCalledAtPath(path, callOptions, context))!;
 	}
 
