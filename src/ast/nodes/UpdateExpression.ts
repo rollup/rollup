@@ -1,28 +1,21 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { getSystemExportFunctionLeft, getSystemExportStatement } from '../../utils/systemJsRendering';
-import { HasEffectsContext } from '../ExecutionContext';
+import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 
 export default class UpdateExpression extends NodeBase {
 	argument!: ExpressionNode;
 	operator!: '++' | '--';
 	prefix!: boolean;
 	type!: NodeType.tUpdateExpression;
-
-	bind() {
-		super.bind();
-		this.argument.deoptimizePath(EMPTY_PATH);
-		if (this.argument instanceof Identifier) {
-			const variable = this.scope.findVariable(this.argument.name);
-			variable.isReassigned = true;
-		}
-	}
+	private deoptimized = false;
 
 	hasEffects(context: HasEffectsContext): boolean {
+		if (!this.deoptimized) this.applyDeoptimizations();
 		return (
 			this.argument.hasEffects(context) ||
 			this.argument.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context)
@@ -31,6 +24,13 @@ export default class UpdateExpression extends NodeBase {
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
 		return path.length > 1;
+	}
+
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+		if (!this.deoptimized) this.applyDeoptimizations();
+		this.included = true;
+		this.argument.include(context, includeChildrenRecursively);
+		super.include(context, includeChildrenRecursively);
 	}
 
 	render(code: MagicString, options: RenderOptions) {
@@ -81,6 +81,15 @@ export default class UpdateExpression extends NodeBase {
 					);
 				}
 			}
+		}
+	}
+
+	private applyDeoptimizations() {
+		this.deoptimized = true;
+		this.argument.deoptimizePath(EMPTY_PATH);
+		if (this.argument instanceof Identifier) {
+			const variable = this.scope.findVariable(this.argument.name);
+			variable.isReassigned = true;
 		}
 	}
 }

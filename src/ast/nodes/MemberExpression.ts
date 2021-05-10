@@ -93,6 +93,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 	private replacement: string | null = null;
 
+	// TODO Lukas get rid of bound check and other usages
 	bind() {
 		if (this.bound) return;
 		this.bound = true;
@@ -110,8 +111,6 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			}
 		} else {
 			super.bind();
-			// ensure the propertyKey is set for the tree-shaking passes
-			this.getPropertyKey();
 		}
 	}
 
@@ -131,8 +130,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.variable) {
 			this.variable.deoptimizePath(path);
 		} else if (!this.replacement) {
-			const propertyKey = this.getPropertyKey();
-			this.object.deoptimizePath([propertyKey, ...path]);
+			this.object.deoptimizePath([this.getPropertyKey(), ...path]);
 		}
 	}
 
@@ -148,7 +146,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		} else if (!this.replacement) {
 			this.object.deoptimizeThisOnEventAtPath(
 				event,
-				[this.propertyKey!, ...path],
+				[this.getPropertyKey(), ...path],
 				thisParameter,
 				recursionTracker
 			);
@@ -210,7 +208,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			) &&
 				propertyReadSideEffects &&
 				(propertyReadSideEffects === 'always' ||
-					this.object.hasEffectsWhenAccessedAtPath([this.propertyKey!], context)))
+					this.object.hasEffectsWhenAccessedAtPath([this.getPropertyKey()], context)))
 		);
 	}
 
@@ -222,7 +220,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.replacement) {
 			return false;
 		}
-		return this.object.hasEffectsWhenAccessedAtPath([this.propertyKey!, ...path], context);
+		return this.object.hasEffectsWhenAccessedAtPath([this.getPropertyKey(), ...path], context);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
@@ -232,7 +230,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.replacement) {
 			return true;
 		}
-		return this.object.hasEffectsWhenAssignedAtPath([this.propertyKey!, ...path], context);
+		return this.object.hasEffectsWhenAssignedAtPath([this.getPropertyKey(), ...path], context);
 	}
 
 	hasEffectsWhenCalledAtPath(
@@ -247,7 +245,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			return true;
 		}
 		return this.object.hasEffectsWhenCalledAtPath(
-			[this.propertyKey!, ...path],
+			[this.getPropertyKey(), ...path],
 			callOptions,
 			context
 		);
@@ -273,6 +271,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		}
 	}
 
+	// TODO Lukas can we get rid of this?
 	initialise() {
 		this.propertyKey = getResolvablePropertyKey(this);
 	}

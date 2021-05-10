@@ -122,8 +122,6 @@ export default class AssignmentExpression extends NodeBase {
 		}
 	}
 
-	// TODO Lukas for operators != "=" we can also trigger getters
-	// This exception needs to be added to MemberExpression
 	// TODO Lukas is it time for propertyWriteSideEffects?
 	private applyDeoptimizations() {
 		this.deoptimized = true;

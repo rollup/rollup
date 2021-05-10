@@ -25,6 +25,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 	variable: Variable | null = null;
 	private bound = false;
+	private deoptimized = false;
 
 	addExportedVariables(
 		variables: Variable[],
@@ -35,19 +36,13 @@ export default class Identifier extends NodeBase implements PatternNode {
 		}
 	}
 
+	// TODO Lukas get rid of bound check and remove other usages
 	bind() {
 		if (this.bound) return;
 		this.bound = true;
 		if (this.variable === null && isReference(this, this.parent as any)) {
 			this.variable = this.scope.findVariable(this.name);
 			this.variable.addReference(this);
-		}
-		if (
-			this.variable !== null &&
-			this.variable instanceof LocalVariable &&
-			this.variable.additionalInitializers !== null
-		) {
-			this.variable.consolidateInitializers();
 		}
 	}
 
@@ -119,6 +114,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 	}
 
 	hasEffects(): boolean {
+		if (!this.deoptimized) this.applyDeoptimizations();
 		return (
 			(this.context.options.treeshake as NormalizedTreeshakingOptions).unknownGlobalSideEffects &&
 			this.variable instanceof GlobalVariable &&
@@ -143,6 +139,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 	}
 
 	include() {
+		if (!this.deoptimized) this.applyDeoptimizations();
 		if (!this.included) {
 			this.included = true;
 			if (this.variable !== null) {
@@ -181,6 +178,18 @@ export default class Identifier extends NodeBase implements PatternNode {
 				code.appendRight(this.start, '0, ');
 			}
 		}
+	}
+
+	private applyDeoptimizations() {
+		this.deoptimized = true;
+		if (
+			this.variable !== null &&
+			this.variable instanceof LocalVariable &&
+			this.variable.additionalInitializers !== null
+		) {
+			this.variable.consolidateInitializers();
+		}
+
 	}
 
 	private disallowImportReassignment() {

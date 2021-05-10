@@ -14,6 +14,7 @@ export default class ThisExpression extends NodeBase {
 	private alias!: string | null;
 	private bound = false;
 
+	// TODO Lukas remove bound check and other usages
 	bind() {
 		if (this.bound) return;
 		this.bound = true;

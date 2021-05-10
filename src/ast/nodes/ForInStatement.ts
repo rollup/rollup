@@ -14,19 +14,14 @@ export default class ForInStatement extends StatementBase {
 	left!: VariableDeclaration | PatternNode;
 	right!: ExpressionNode;
 	type!: NodeType.tForInStatement;
-
-	bind() {
-		this.left.bind();
-		this.left.deoptimizePath(EMPTY_PATH);
-		this.right.bind();
-		this.body.bind();
-	}
+	private deoptimized = false;
 
 	createScope(parentScope: Scope) {
 		this.scope = new BlockScope(parentScope);
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
+		if (!this.deoptimized) this.applyDeoptimizations();
 		if (
 			(this.left &&
 				(this.left.hasEffects(context) ||
@@ -48,6 +43,7 @@ export default class ForInStatement extends StatementBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
 		this.left.include(context, includeChildrenRecursively || true);
 		this.left.deoptimizePath(EMPTY_PATH);
@@ -65,5 +61,10 @@ export default class ForInStatement extends StatementBase {
 			code.prependLeft(this.right.start, ' ');
 		}
 		this.body.render(code, options);
+	}
+
+	private applyDeoptimizations():void {
+		this.deoptimized = true;
+		this.left.deoptimizePath(EMPTY_PATH);
 	}
 }

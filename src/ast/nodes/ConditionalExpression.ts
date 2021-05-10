@@ -42,12 +42,6 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	private usedBranch: ExpressionNode | null = null;
 	private wasPathDeoptimizedWhileOptimized = false;
 
-	bind() {
-		super.bind();
-		// ensure the usedBranch is set for the tree-shaking passes
-		this.getUsedBranch();
-	}
-
 	deoptimizeCache() {
 		if (this.usedBranch !== null) {
 			const unusedBranch = this.usedBranch === this.consequent ? this.alternate : this.consequent;
@@ -116,32 +110,35 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (this.test.hasEffects(context)) return true;
-		if (this.usedBranch === null) {
+		const usedBranch = this.getUsedBranch();
+		if (usedBranch === null) {
 			return this.consequent.hasEffects(context) || this.alternate.hasEffects(context);
 		}
-		return this.usedBranch.hasEffects(context);
+		return usedBranch.hasEffects(context);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		if (path.length === 0) return false;
-		if (this.usedBranch === null) {
+		const usedBranch = this.getUsedBranch();
+		if (usedBranch === null) {
 			return (
 				this.consequent.hasEffectsWhenAccessedAtPath(path, context) ||
 				this.alternate.hasEffectsWhenAccessedAtPath(path, context)
 			);
 		}
-		return this.usedBranch.hasEffectsWhenAccessedAtPath(path, context);
+		return usedBranch.hasEffectsWhenAccessedAtPath(path, context);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		if (path.length === 0) return true;
-		if (this.usedBranch === null) {
+		const usedBranch = this.getUsedBranch();
+		if (usedBranch === null) {
 			return (
 				this.consequent.hasEffectsWhenAssignedAtPath(path, context) ||
 				this.alternate.hasEffectsWhenAssignedAtPath(path, context)
 			);
 		}
-		return this.usedBranch.hasEffectsWhenAssignedAtPath(path, context);
+		return usedBranch.hasEffectsWhenAssignedAtPath(path, context);
 	}
 
 	hasEffectsWhenCalledAtPath(
@@ -149,36 +146,39 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		callOptions: CallOptions,
 		context: HasEffectsContext
 	): boolean {
-		if (this.usedBranch === null) {
+		const usedBranch = this.getUsedBranch();
+		if (usedBranch === null) {
 			return (
 				this.consequent.hasEffectsWhenCalledAtPath(path, callOptions, context) ||
 				this.alternate.hasEffectsWhenCalledAtPath(path, callOptions, context)
 			);
 		}
-		return this.usedBranch.hasEffectsWhenCalledAtPath(path, callOptions, context);
+		return usedBranch.hasEffectsWhenCalledAtPath(path, callOptions, context);
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
+		const usedBranch = this.getUsedBranch();
 		if (
 			includeChildrenRecursively ||
 			this.test.shouldBeIncluded(context) ||
-			this.usedBranch === null
+			usedBranch === null
 		) {
 			this.test.include(context, includeChildrenRecursively);
 			this.consequent.include(context, includeChildrenRecursively);
 			this.alternate.include(context, includeChildrenRecursively);
 		} else {
-			this.usedBranch.include(context, includeChildrenRecursively);
+			usedBranch.include(context, includeChildrenRecursively);
 		}
 	}
 
 	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
-		if (this.usedBranch === null) {
+		const usedBranch = this.getUsedBranch();
+		if (usedBranch === null) {
 			this.consequent.includeCallArguments(context, args);
 			this.alternate.includeCallArguments(context, args);
 		} else {
-			this.usedBranch.includeCallArguments(context, args);
+			usedBranch.includeCallArguments(context, args);
 		}
 	}
 
@@ -187,6 +187,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		options: RenderOptions,
 		{ renderedParentType, isCalleeOfRenderedParent, preventASI }: NodeRenderOptions = BLANK
 	) {
+		const usedBranch = this.getUsedBranch();
 		if (!this.test.included) {
 			const colonPos = findFirstOccurrenceOutsideComment(code.original, ':', this.consequent.end);
 			const inclusionStart = findNonWhiteSpace(
@@ -196,14 +197,14 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 					: colonPos) + 1
 			);
 			if (preventASI) {
-				removeLineBreaks(code, inclusionStart, this.usedBranch!.start);
+				removeLineBreaks(code, inclusionStart, usedBranch!.start);
 			}
 			code.remove(this.start, inclusionStart);
 			if (this.consequent.included) {
 				code.remove(colonPos, this.end);
 			}
 			removeAnnotations(this, code);
-			this.usedBranch!.render(code, options, {
+			usedBranch!.render(code, options, {
 				isCalleeOfRenderedParent: renderedParentType
 					? isCalleeOfRenderedParent
 					: (this.parent as CallExpression).callee === this,
