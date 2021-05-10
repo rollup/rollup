@@ -9,6 +9,7 @@ export default class TemplateElement extends NodeBase {
 		raw: string;
 	};
 
+	// Do not try to bind value
 	bind() {}
 
 	hasEffects() {

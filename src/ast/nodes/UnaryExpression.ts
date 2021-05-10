@@ -1,11 +1,11 @@
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { HasEffectsContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath, PathTracker } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import { LiteralValue } from './Literal';
 import * as NodeType from './NodeType';
 import { LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
-import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
+import { ExpressionNode, NodeBase } from './shared/Node';
 
 const unaryOperators: {
 	[operator: string]: (value: LiteralValue) => LiteralValueOrUnknown;
@@ -24,7 +24,7 @@ export default class UnaryExpression extends NodeBase {
 	operator!: '!' | '+' | '-' | 'delete' | 'typeof' | 'void' | '~';
 	prefix!: boolean;
 	type!: NodeType.tUnaryExpression;
-	private deoptimized = false;
+	protected deoptimized = false;
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
@@ -55,13 +55,7 @@ export default class UnaryExpression extends NodeBase {
 		return path.length > 1;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
-		if (!this.deoptimized) this.applyDeoptimizations();
-		this.included = true;
-		this.argument.include(context, includeChildrenRecursively);
-	}
-
-	private applyDeoptimizations(): void {
+	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
 		if (this.operator === 'delete') {
 			this.argument.deoptimizePath(EMPTY_PATH);

@@ -24,7 +24,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 	type!: NodeType.tIdentifier;
 
 	variable: Variable | null = null;
-	private deoptimized = false;
+	protected deoptimized = false;
 
 	addExportedVariables(
 		variables: Variable[],
@@ -172,7 +172,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		}
 	}
 
-	private applyDeoptimizations() {
+	protected applyDeoptimizations() {
 		this.deoptimized = true;
 		if (
 			this.variable !== null &&

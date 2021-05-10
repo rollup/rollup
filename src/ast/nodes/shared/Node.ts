@@ -96,6 +96,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	scope!: ChildScope;
 	start!: number;
 	type!: keyof typeof NodeType;
+	protected deoptimized?: boolean;
 
 	constructor(
 		esTreeNode: GenericEsTreeNode,
@@ -145,6 +146,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
+		if (this.deoptimized === false) this.applyDeoptimizations();
 		for (const key of this.keys) {
 			const value = (this as GenericEsTreeNode)[key];
 			if (value === null) continue;
@@ -158,6 +160,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+		if (this.deoptimized === false) this.applyDeoptimizations();
 		this.included = true;
 		for (const key of this.keys) {
 			const value = (this as GenericEsTreeNode)[key];
@@ -230,6 +233,8 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	shouldBeIncluded(context: InclusionContext): boolean {
 		return this.included || (!context.brokenFlow && this.hasEffects(createHasEffectsContext()));
 	}
+
+	protected applyDeoptimizations(): void {}
 }
 
 export { NodeBase as StatementBase };

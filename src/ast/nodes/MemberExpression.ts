@@ -87,9 +87,8 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	propertyKey!: ObjectPathKey | null;
 	type!: NodeType.tMemberExpression;
 	variable: Variable | null = null;
-
+	protected deoptimized = false;
 	private bound = false;
-	private deoptimized = false;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 	private replacement: string | null = null;
 
@@ -265,7 +264,6 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		}
 	}
 
-	// TODO Lukas can we get rid of this?
 	initialise() {
 		this.propertyKey = getResolvablePropertyKey(this);
 	}
@@ -302,7 +300,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		}
 	}
 
-	private applyDeoptimizations() {
+	protected applyDeoptimizations() {
 		this.deoptimized = true;
 		const { propertyReadSideEffects } = this.context.options
 			.treeshake as NormalizedTreeshakingOptions;

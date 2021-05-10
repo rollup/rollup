@@ -1,18 +1,21 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
-import { getSystemExportFunctionLeft, getSystemExportStatement } from '../../utils/systemJsRendering';
-import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import {
+	getSystemExportFunctionLeft,
+	getSystemExportStatement
+} from '../../utils/systemJsRendering';
+import { HasEffectsContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
-import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
+import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class UpdateExpression extends NodeBase {
 	argument!: ExpressionNode;
 	operator!: '++' | '--';
 	prefix!: boolean;
 	type!: NodeType.tUpdateExpression;
-	private deoptimized = false;
+	protected deoptimized = false;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
@@ -24,13 +27,6 @@ export default class UpdateExpression extends NodeBase {
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
 		return path.length > 1;
-	}
-
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
-		if (!this.deoptimized) this.applyDeoptimizations();
-		this.included = true;
-		this.argument.include(context, includeChildrenRecursively);
-		super.include(context, includeChildrenRecursively);
 	}
 
 	render(code: MagicString, options: RenderOptions) {
@@ -84,7 +80,7 @@ export default class UpdateExpression extends NodeBase {
 		}
 	}
 
-	private applyDeoptimizations() {
+	protected applyDeoptimizations() {
 		this.deoptimized = true;
 		this.argument.deoptimizePath(EMPTY_PATH);
 		if (this.argument instanceof Identifier) {

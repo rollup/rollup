@@ -15,7 +15,7 @@ export default class ForOfStatement extends StatementBase {
 	left!: VariableDeclaration | PatternNode;
 	right!: ExpressionNode;
 	type!: NodeType.tForOfStatement;
-	private deoptimized = false;
+	protected deoptimized = false;
 
 	createScope(parentScope: Scope) {
 		this.scope = new BlockScope(parentScope);
@@ -31,7 +31,6 @@ export default class ForOfStatement extends StatementBase {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
 		this.left.include(context, includeChildrenRecursively || true);
-		this.left.deoptimizePath(EMPTY_PATH);
 		this.right.include(context, includeChildrenRecursively);
 		const { brokenFlow } = context;
 		this.body.includeAsSingleStatement(context, includeChildrenRecursively);
@@ -48,7 +47,7 @@ export default class ForOfStatement extends StatementBase {
 		this.body.render(code, options);
 	}
 
-	private applyDeoptimizations():void {
+	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
 		this.left.deoptimizePath(EMPTY_PATH);
 	}

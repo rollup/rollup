@@ -42,10 +42,9 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 	callee!: ExpressionNode | Super;
 	optional!: boolean;
 	type!: NodeType.tCallExpression;
-
+	protected deoptimized = false;
 	private callOptions!: CallOptions;
 	private deoptimizableDependentExpressions: DeoptimizableEntity[] = [];
-	private deoptimized = false;
 	private expressionsToBeDeoptimized = new Set<ExpressionEntity>();
 	private returnExpression: ExpressionEntity | null = null;
 	private wasPathDeoptmizedWhileOptimized = false;
@@ -303,7 +302,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		}
 	}
 
-	private applyDeoptimizations() {
+	protected applyDeoptimizations() {
 		this.deoptimized = true;
 		if (this.callee instanceof MemberExpression && !this.callee.variable) {
 			this.callee.deoptimizeThisOnEventAtPath(

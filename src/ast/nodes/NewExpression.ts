@@ -1,16 +1,16 @@
 import { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { CallOptions } from '../CallOptions';
-import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { HasEffectsContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import * as NodeType from './NodeType';
-import { Annotation, ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
+import { Annotation, ExpressionNode, NodeBase } from './shared/Node';
 
 export default class NewExpression extends NodeBase {
 	arguments!: ExpressionNode[];
 	callee!: ExpressionNode;
 	type!: NodeType.tNewExpression;
+	protected deoptimized = false;
 	private callOptions!: CallOptions;
-	private deoptimized = false;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
@@ -32,15 +32,6 @@ export default class NewExpression extends NodeBase {
 		return path.length > 0;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
-		if (!this.deoptimized) this.applyDeoptimizations();
-		this.included = true;
-		this.callee.include(context, includeChildrenRecursively);
-		for (const argument of this.arguments) {
-			argument.include(context, includeChildrenRecursively);
-		}
-	}
-
 	initialise() {
 		this.callOptions = {
 			args: this.arguments,
@@ -48,7 +39,7 @@ export default class NewExpression extends NodeBase {
 		};
 	}
 
-	private applyDeoptimizations(): void {
+	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
 		for (const argument of this.arguments) {
 			// This will make sure all properties of parameters behave as "unknown"
