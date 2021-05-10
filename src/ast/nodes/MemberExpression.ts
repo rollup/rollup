@@ -93,9 +93,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 	private replacement: string | null = null;
 
-	// TODO Lukas get rid of bound check and other usages
 	bind() {
-		if (this.bound) return;
 		this.bound = true;
 		const path = getPathIfNotComputed(this);
 		const baseVariable = path && this.scope.findVariable(path[0].key);
@@ -125,7 +123,6 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	}
 
 	deoptimizePath(path: ObjectPath) {
-		this.bind();
 		if (path.length === 0) this.disallowNamespaceReassignment();
 		if (this.variable) {
 			this.variable.deoptimizePath(path);
@@ -140,7 +137,6 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
-		this.bind();
 		if (this.variable) {
 			this.variable.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
 		} else if (!this.replacement) {
@@ -158,7 +154,6 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		this.bind();
 		if (this.variable !== null) {
 			return this.variable.getLiteralValueAtPath(path, recursionTracker, origin);
 		}
@@ -178,7 +173,6 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	) {
-		this.bind();
 		if (this.variable !== null) {
 			return this.variable.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
 		}

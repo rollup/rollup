@@ -24,7 +24,6 @@ export default class Identifier extends NodeBase implements PatternNode {
 	type!: NodeType.tIdentifier;
 
 	variable: Variable | null = null;
-	private bound = false;
 	private deoptimized = false;
 
 	addExportedVariables(
@@ -36,10 +35,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		}
 	}
 
-	// TODO Lukas get rid of bound check and remove other usages
 	bind() {
-		if (this.bound) return;
-		this.bound = true;
 		if (this.variable === null && isReference(this, this.parent as any)) {
 			this.variable = this.scope.findVariable(this.name);
 			this.variable.addReference(this);
@@ -73,7 +69,6 @@ export default class Identifier extends NodeBase implements PatternNode {
 	}
 
 	deoptimizePath(path: ObjectPath) {
-		this.bind();
 		if (path.length === 0 && !this.scope.contains(this.name)) {
 			this.disallowImportReassignment();
 		}
@@ -86,7 +81,6 @@ export default class Identifier extends NodeBase implements PatternNode {
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	) {
-		this.bind();
 		this.variable!.deoptimizeThisOnEventAtPath(
 			event,
 			path,
@@ -100,7 +94,6 @@ export default class Identifier extends NodeBase implements PatternNode {
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		this.bind();
 		return this.variable!.getLiteralValueAtPath(path, recursionTracker, origin);
 	}
 
@@ -109,7 +102,6 @@ export default class Identifier extends NodeBase implements PatternNode {
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	) {
-		this.bind();
 		return this.variable!.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
 	}
 

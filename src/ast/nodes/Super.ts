@@ -7,16 +7,12 @@ export default class Super extends NodeBase {
 	type!: NodeType.tSuper;
 
 	variable!: ThisVariable;
-	private bound = false;
 
 	bind() {
-		if (this.bound) return;
-		this.bound = true;
 		this.variable = this.scope.findVariable('this') as ThisVariable;
 	}
 
 	deoptimizePath(path: ObjectPath) {
-		this.bind();
 		this.variable.deoptimizePath(path);
 	}
 

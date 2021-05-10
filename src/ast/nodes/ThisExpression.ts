@@ -12,17 +12,12 @@ export default class ThisExpression extends NodeBase {
 
 	variable!: Variable;
 	private alias!: string | null;
-	private bound = false;
 
-	// TODO Lukas remove bound check and other usages
 	bind() {
-		if (this.bound) return;
-		this.bound = true;
 		this.variable = this.scope.findVariable('this');
 	}
 
 	deoptimizePath(path: ObjectPath) {
-		this.bind();
 		this.variable.deoptimizePath(path);
 	}
 
@@ -32,7 +27,6 @@ export default class ThisExpression extends NodeBase {
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	) {
-		this.bind();
 		this.variable.deoptimizeThisOnEventAtPath(
 			event,
 			path,
