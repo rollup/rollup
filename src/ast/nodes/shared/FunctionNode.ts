@@ -2,13 +2,14 @@ import { CallOptions } from '../../CallOptions';
 import { BROKEN_FLOW_NONE, HasEffectsContext, InclusionContext } from '../../ExecutionContext';
 import FunctionScope from '../../scopes/FunctionScope';
 import { ObjectPath, UnknownKey, UNKNOWN_PATH } from '../../utils/PathTracker';
-import { UnknownObjectExpression } from '../../values';
 import BlockStatement from '../BlockStatement';
 import Identifier, { IdentifierWithVariable } from '../Identifier';
 import RestElement from '../RestElement';
 import SpreadElement from '../SpreadElement';
 import { EVENT_CALLED, ExpressionEntity, NodeEvent, UNKNOWN_EXPRESSION } from './Expression';
 import { ExpressionNode, GenericEsTreeNode, IncludeChildren, NodeBase } from './Node';
+import { ObjectEntity } from './ObjectEntity';
+import { OBJECT_PROTOTYPE } from './ObjectPrototype';
 import { PatternNode } from './Pattern';
 
 // TODO Lukas improve prototype handling to fix #2219
@@ -83,7 +84,7 @@ export default class FunctionNode extends NodeBase {
 		const thisInit = context.replacedVariableInits.get(this.scope.thisVariable);
 		context.replacedVariableInits.set(
 			this.scope.thisVariable,
-			callOptions.withNew ? new UnknownObjectExpression() : UNKNOWN_EXPRESSION
+			callOptions.withNew ? new ObjectEntity({}, OBJECT_PROTOTYPE) : UNKNOWN_EXPRESSION
 		);
 		const { brokenFlow, ignore } = context;
 		context.ignore = {

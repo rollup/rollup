@@ -26,7 +26,6 @@ export interface ObjectProperty {
 
 type PropertyMap = Record<string, ExpressionEntity[]>;
 
-// TODO Lukas add a way to directly inject only propertiesByKey and create allProperties lazily/not
 export class ObjectEntity extends ExpressionEntity {
 	private readonly allProperties: ExpressionEntity[] = [];
 	private readonly deoptimizedPaths: Record<string, boolean> = Object.create(null);
@@ -44,9 +43,21 @@ export class ObjectEntity extends ExpressionEntity {
 	private readonly unmatchablePropertiesAndGetters: ExpressionEntity[] = [];
 	private readonly unmatchableSetters: ExpressionEntity[] = [];
 
-	constructor(properties: ObjectProperty[], private prototypeExpression: ExpressionEntity | null) {
+	// If a PropertyMap is used, this will be taken as propertiesAndGettersByKey
+	// and we assume there are no setters or getters
+	constructor(
+		properties: ObjectProperty[] | PropertyMap,
+		private prototypeExpression: ExpressionEntity | null
+	) {
 		super();
-		this.buildPropertyMaps(properties);
+		if (Array.isArray(properties)) {
+			this.buildPropertyMaps(properties);
+		} else {
+			this.propertiesAndGettersByKey = this.propertiesAndSettersByKey = properties;
+			for (const propertiesForKey of Object.values(properties)) {
+				this.allProperties.push(...propertiesForKey);
+			}
+		}
 	}
 
 	deoptimizeAllProperties(): void {
@@ -54,8 +65,12 @@ export class ObjectEntity extends ExpressionEntity {
 			return;
 		}
 		this.hasUnknownDeoptimizedProperty = true;
-		for (const property of this.allProperties) {
-			property.deoptimizePath(UNKNOWN_PATH);
+		for (const properties of Object.values(this.propertiesAndGettersByKey).concat(
+			Object.values(this.settersByKey)
+		)) {
+			for (const property of properties) {
+				property.deoptimizePath(UNKNOWN_PATH);
+			}
 		}
 		// While the prototype itself cannot be mutated, each property can
 		this.prototypeExpression?.deoptimizePath([UnknownKey, UnknownKey]);

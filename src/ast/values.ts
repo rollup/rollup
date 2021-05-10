@@ -231,44 +231,7 @@ const returnsString: RawMemberDescription = {
 	}
 };
 
-// TODO Lukas This could just be the constant and above, we use an ObjectEntity with OBJECT_PROTOTYPE as prototype
-// TODO Lukas Also, the name should reflect we assume neither getters nor setters and do not override builtins
-// or just remove?
-export class UnknownObjectExpression extends ExpressionEntity {
-	included = false;
-
-	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
-		if (path.length === 1) {
-			return getMemberReturnExpressionWhenCalled(objectMembers, path[0]);
-		}
-		return UNKNOWN_EXPRESSION;
-	}
-
-	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
-		return path.length > 1;
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath) {
-		return path.length > 1;
-	}
-
-	hasEffectsWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		context: HasEffectsContext
-	) {
-		if (path.length === 1) {
-			return hasMemberEffectWhenCalled(objectMembers, path[0], this.included, callOptions, context);
-		}
-		return true;
-	}
-
-	include() {
-		this.included = true;
-	}
-}
-
-export const objectMembers: MemberDescriptions = assembleMemberDescriptions({
+const objectMembers: MemberDescriptions = assembleMemberDescriptions({
 	hasOwnProperty: returnsBoolean,
 	isPrototypeOf: returnsBoolean,
 	propertyIsEnumerable: returnsBoolean,
@@ -277,6 +240,7 @@ export const objectMembers: MemberDescriptions = assembleMemberDescriptions({
 	valueOf: returnsUnknown
 });
 
+// TODO Lukas first make arrays proper objects, then get rid of this
 export const arrayMembers: MemberDescriptions = assembleMemberDescriptions(
 	{
 		concat: returnsArray,

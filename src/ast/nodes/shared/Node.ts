@@ -96,6 +96,10 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	scope!: ChildScope;
 	start!: number;
 	type!: keyof typeof NodeType;
+	// Nodes can apply custom deoptimizations once they become part of the
+	// executed code. To do this, they must initialize this as false, implement
+	// applyDeoptimizations and call this from include and hasEffects if they
+	// have custom handlers
 	protected deoptimized?: boolean;
 
 	constructor(
