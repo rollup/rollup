@@ -1,8 +1,9 @@
 import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { HasEffectsContext } from '../../ExecutionContext';
+import { NodeEvent } from '../../NodeEvents';
 import { ObjectPath, PathTracker } from '../../utils/PathTracker';
-import { ExpressionEntity, LiteralValueOrUnknown, NodeEvent } from './Expression';
+import { ExpressionEntity, LiteralValueOrUnknown } from './Expression';
 
 export class ObjectMember extends ExpressionEntity {
 	constructor(private readonly object: ExpressionEntity, private readonly key: string) {

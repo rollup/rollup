@@ -1,13 +1,13 @@
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext } from '../ExecutionContext';
+import { NodeEvent } from '../NodeEvents';
 import { ObjectPath, PathTracker } from '../utils/PathTracker';
 import * as NodeType from './NodeType';
 import PrivateIdentifier from './PrivateIdentifier';
 import {
 	ExpressionEntity,
 	LiteralValueOrUnknown,
-	NodeEvent,
 	UnknownValue,
 	UNKNOWN_EXPRESSION
 } from './shared/Expression';

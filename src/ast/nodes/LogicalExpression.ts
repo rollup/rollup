@@ -11,6 +11,7 @@ import { removeAnnotations } from '../../utils/treeshakeNode';
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { EVENT_CALLED, NodeEvent } from '../NodeEvents';
 import {
 	EMPTY_PATH,
 	ObjectPath,
@@ -20,7 +21,7 @@ import {
 } from '../utils/PathTracker';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
-import { EVENT_CALLED, ExpressionEntity, LiteralValueOrUnknown, NodeEvent, UnknownValue } from './shared/Expression';
+import {  ExpressionEntity, LiteralValueOrUnknown,  UnknownValue } from './shared/Expression';
 import { MultiExpression } from './shared/MultiExpression';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 

@@ -6,6 +6,7 @@ import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { EVENT_ACCESSED, EVENT_ASSIGNED, NodeEvent } from '../NodeEvents';
 import {
 	EMPTY_PATH,
 	ObjectPath,
@@ -24,11 +25,8 @@ import Literal from './Literal';
 import * as NodeType from './NodeType';
 import PrivateIdentifier from './PrivateIdentifier';
 import {
-	EVENT_ACCESSED,
-	EVENT_ASSIGNED,
 	ExpressionEntity,
 	LiteralValueOrUnknown,
-	NodeEvent,
 	UnknownValue,
 	UNKNOWN_EXPRESSION
 } from './shared/Expression';

@@ -1,6 +1,7 @@
 import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { HasEffectsContext } from '../../ExecutionContext';
+import { EVENT_ACCESSED, EVENT_CALLED, NodeEvent } from '../../NodeEvents';
 import {
 	ObjectPath,
 	ObjectPathKey,
@@ -9,11 +10,8 @@ import {
 	UNKNOWN_PATH
 } from '../../utils/PathTracker';
 import {
-	EVENT_ACCESSED,
-	EVENT_CALLED,
 	ExpressionEntity,
 	LiteralValueOrUnknown,
-	NodeEvent,
 	UnknownValue,
 	UNKNOWN_EXPRESSION
 } from './Expression';

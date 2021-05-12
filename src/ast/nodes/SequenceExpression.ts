@@ -10,10 +10,11 @@ import { treeshakeNode } from '../../utils/treeshakeNode';
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { EVENT_CALLED, NodeEvent } from '../NodeEvents';
 import { ObjectPath, PathTracker } from '../utils/PathTracker';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
-import { EVENT_CALLED, ExpressionEntity, LiteralValueOrUnknown, NodeEvent } from './shared/Expression';
+import { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 
 export default class SequenceExpression extends NodeBase {

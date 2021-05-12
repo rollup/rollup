@@ -2,13 +2,13 @@ import Module, { AstContext } from '../../Module';
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { createInclusionContext, HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { NodeEvent } from '../NodeEvents';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import Identifier from '../nodes/Identifier';
 import * as NodeType from '../nodes/NodeType';
 import {
 	ExpressionEntity,
 	LiteralValueOrUnknown,
-	NodeEvent,
 	UnknownValue,
 	UNKNOWN_EXPRESSION
 } from '../nodes/shared/Expression';

@@ -4,6 +4,7 @@ import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext } from '../ExecutionContext';
+import { NodeEvent } from '../NodeEvents';
 import { EMPTY_PATH, ObjectPath, PathTracker, SHARED_RECURSION_TRACKER, UnknownKey } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import Literal from './Literal';
@@ -12,7 +13,6 @@ import Property from './Property';
 import {
 	ExpressionEntity,
 	LiteralValueOrUnknown,
-	NodeEvent,
 	UnknownValue,
 	UNKNOWN_EXPRESSION
 } from './shared/Expression';

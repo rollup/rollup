@@ -1,9 +1,10 @@
 import { CallOptions, NO_ARGS } from '../../CallOptions';
 import { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
+import { EVENT_CALLED, NodeEvent } from '../../NodeEvents';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../../utils/PathTracker';
 import { UNKNOWN_LITERAL_BOOLEAN, UNKNOWN_LITERAL_STRING } from '../../values';
 import SpreadElement from '../SpreadElement';
-import { EVENT_CALLED, ExpressionEntity, NodeEvent, UNKNOWN_EXPRESSION } from './Expression';
+import { ExpressionEntity, UNKNOWN_EXPRESSION } from './Expression';
 import { ExpressionNode } from './Node';
 
 type MethodDescription = {

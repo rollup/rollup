@@ -1,15 +1,12 @@
 import { CallOptions, NO_ARGS } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { HasEffectsContext } from '../../ExecutionContext';
+import { EVENT_ACCESSED, EVENT_ASSIGNED, EVENT_CALLED, NodeEvent } from '../../NodeEvents';
 import { EMPTY_PATH, ObjectPath, PathTracker, SHARED_RECURSION_TRACKER } from '../../utils/PathTracker';
 import PrivateIdentifier from '../PrivateIdentifier';
 import {
-	EVENT_ACCESSED,
-	EVENT_ASSIGNED,
-	EVENT_CALLED,
 	ExpressionEntity,
 	LiteralValueOrUnknown,
-	NodeEvent,
 	UNKNOWN_EXPRESSION
 } from './Expression';
 import { ExpressionNode, NodeBase } from './Node';

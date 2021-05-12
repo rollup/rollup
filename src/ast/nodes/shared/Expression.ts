@@ -2,12 +2,9 @@ import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { WritableEntity } from '../../Entity';
 import { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
+import { NodeEvent } from '../../NodeEvents';
 import { ObjectPath, PathTracker, UNKNOWN_PATH } from '../../utils/PathTracker';
-import AssignmentExpression from '../AssignmentExpression';
-import CallExpression from '../CallExpression';
 import { LiteralValue } from '../Literal';
-import MemberExpression from '../MemberExpression';
-import NewExpression from '../NewExpression';
 import SpreadElement from '../SpreadElement';
 import { ExpressionNode, IncludeChildren } from './Node';
 
@@ -15,25 +12,11 @@ export const UnknownValue = Symbol('Unknown Value');
 
 export type LiteralValueOrUnknown = LiteralValue | typeof UnknownValue;
 
-export const EVENT_ACCESSED = 0;
-export const EVENT_ASSIGNED = 1;
-export const EVENT_CALLED = 2;
-export type NodeEvent = typeof EVENT_ACCESSED | typeof EVENT_ASSIGNED | typeof EVENT_CALLED;
-
-// TODO Lukas use this for events?
-interface NodeEventOptions {
-	event: NodeEvent;
-	initiator: CallExpression | NewExpression | AssignmentExpression | MemberExpression;
-	parameters: ExpressionEntity[];
-	thisParameter: ExpressionEntity | null;
-}
-
 export class ExpressionEntity implements WritableEntity {
 	included = false;
 
 	deoptimizePath(_path: ObjectPath): void {}
 
-	// TODO Lukas this should become "deoptimizeParamsOnEventAtPath" with a "NodeEventOptions" instance as parameter?
 	deoptimizeThisOnEventAtPath(
 		_event: NodeEvent,
 		_path: ObjectPath,

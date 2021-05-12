@@ -1,10 +1,10 @@
 import { AstContext } from '../../Module';
 import { CallOptions } from '../CallOptions';
 import { HasEffectsContext } from '../ExecutionContext';
+import { NodeEvent } from '../NodeEvents';
 import {
 	ExpressionEntity,
 	LiteralValueOrUnknown,
-	NodeEvent,
 	UnknownValue,
 	UNKNOWN_EXPRESSION
 } from '../nodes/shared/Expression';

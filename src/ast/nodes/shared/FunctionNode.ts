@@ -1,12 +1,13 @@
 import { CallOptions } from '../../CallOptions';
 import { BROKEN_FLOW_NONE, HasEffectsContext, InclusionContext } from '../../ExecutionContext';
+import { EVENT_CALLED, NodeEvent } from '../../NodeEvents';
 import FunctionScope from '../../scopes/FunctionScope';
 import { ObjectPath, UnknownKey, UNKNOWN_PATH } from '../../utils/PathTracker';
 import BlockStatement from '../BlockStatement';
 import Identifier, { IdentifierWithVariable } from '../Identifier';
 import RestElement from '../RestElement';
 import SpreadElement from '../SpreadElement';
-import { EVENT_CALLED, ExpressionEntity, NodeEvent, UNKNOWN_EXPRESSION } from './Expression';
+import {  ExpressionEntity,  UNKNOWN_EXPRESSION } from './Expression';
 import { ExpressionNode, GenericEsTreeNode, IncludeChildren, NodeBase } from './Node';
 import { ObjectEntity } from './ObjectEntity';
 import { OBJECT_PROTOTYPE } from './ObjectPrototype';

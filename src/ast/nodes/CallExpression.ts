@@ -9,6 +9,7 @@ import {
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { EVENT_CALLED, NodeEvent } from '../NodeEvents';
 import {
 	EMPTY_PATH,
 	ObjectPath,
@@ -20,10 +21,8 @@ import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
 import {
-	EVENT_CALLED,
 	ExpressionEntity,
 	LiteralValueOrUnknown,
-	NodeEvent,
 	UnknownValue,
 	UNKNOWN_EXPRESSION
 } from './shared/Expression';
