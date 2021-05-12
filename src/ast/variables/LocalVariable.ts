@@ -149,16 +149,18 @@ export default class LocalVariable extends Variable {
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext) {
 		if (path.length === 0) return false;
 		if (this.isReassigned || path.length > MAX_PATH_DEPTH) return true;
-		if (context.accessed.trackEntityAtPathAndGetIfTracked(path, this)) return false;
-		return (this.init && this.init.hasEffectsWhenAccessedAtPath(path, context))!;
+		return (this.init &&
+			!context.accessed.trackEntityAtPathAndGetIfTracked(path, this) &&
+			this.init.hasEffectsWhenAccessedAtPath(path, context))!;
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext) {
 		if (this.included || path.length > MAX_PATH_DEPTH) return true;
 		if (path.length === 0) return false;
 		if (this.isReassigned) return true;
-		if (context.accessed.trackEntityAtPathAndGetIfTracked(path, this)) return false;
-		return (this.init && this.init.hasEffectsWhenAssignedAtPath(path, context))!;
+		return (this.init &&
+			!context.accessed.trackEntityAtPathAndGetIfTracked(path, this) &&
+			this.init.hasEffectsWhenAssignedAtPath(path, context))!;
 	}
 
 	hasEffectsWhenCalledAtPath(
@@ -167,15 +169,12 @@ export default class LocalVariable extends Variable {
 		context: HasEffectsContext
 	) {
 		if (path.length > MAX_PATH_DEPTH || this.isReassigned) return true;
-		if (
-			(callOptions.withNew
+		return (this.init &&
+			!(callOptions.withNew
 				? context.instantiated
 				: context.called
-			).trackEntityAtPathAndGetIfTracked(path, callOptions, this)
-		) {
-			return false;
-		}
-		return (this.init && this.init.hasEffectsWhenCalledAtPath(path, callOptions, context))!;
+			).trackEntityAtPathAndGetIfTracked(path, callOptions, this) &&
+			this.init.hasEffectsWhenCalledAtPath(path, callOptions, context))!;
 	}
 
 	include() {

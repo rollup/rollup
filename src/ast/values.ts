@@ -363,6 +363,8 @@ export function hasMemberEffectWhenCalled(
 				EMPTY_PATH,
 				{
 					args: NO_ARGS,
+					// TODO Lukas think about this
+					thisParam: null,
 					withNew: false
 				},
 				context

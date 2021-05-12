@@ -63,6 +63,8 @@ class Method extends ExpressionEntity {
 					EMPTY_PATH,
 					{
 						args: NO_ARGS,
+						// TODO Lukas check if we need something else here
+						thisParam: null,
 						withNew: false
 					},
 					context

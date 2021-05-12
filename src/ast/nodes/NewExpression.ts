@@ -35,6 +35,8 @@ export default class NewExpression extends NodeBase {
 	initialise() {
 		this.callOptions = {
 			args: this.arguments,
+			// TODO Lukas does it make sense, to use a pre-made object expression here? Can we get rid of "withNew"?
+			thisParam: null,
 			withNew: true
 		};
 	}

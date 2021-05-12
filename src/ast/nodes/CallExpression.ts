@@ -75,6 +75,14 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 				);
 			}
 		}
+		this.callOptions = {
+			args: this.arguments,
+			thisParam:
+				this.callee instanceof MemberExpression && !this.callee.variable
+					? this.callee.object
+					: null,
+			withNew: false
+		};
 	}
 
 	deoptimizeCache() {
@@ -116,6 +124,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		}
 	}
 
+	// TODO Lukas allow "event" to be a CallOptions object and get rid of thisParameter
 	deoptimizeThisOnEventAtPath(
 		event: NodeEvent,
 		path: ObjectPath,
@@ -200,18 +209,21 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (path.length === 0 || context.accessed.trackEntityAtPathAndGetIfTracked(path, this)) {
+		if (path.length === 0) {
 			return false;
 		}
-		return this.getReturnExpression().hasEffectsWhenAccessedAtPath(path, context);
+		return (
+			!context.accessed.trackEntityAtPathAndGetIfTracked(path, this) &&
+			this.getReturnExpression().hasEffectsWhenAccessedAtPath(path, context)
+		);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		if (path.length === 0) return true;
-		if (context.assigned.trackEntityAtPathAndGetIfTracked(path, this)) {
-			return false;
-		}
-		return this.getReturnExpression().hasEffectsWhenAssignedAtPath(path, context);
+		return (
+			!context.assigned.trackEntityAtPathAndGetIfTracked(path, this) &&
+			this.getReturnExpression().hasEffectsWhenAssignedAtPath(path, context)
+		);
 	}
 
 	hasEffectsWhenCalledAtPath(
@@ -219,15 +231,13 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		callOptions: CallOptions,
 		context: HasEffectsContext
 	): boolean {
-		if (
-			(callOptions.withNew
+		return (
+			!(callOptions.withNew
 				? context.instantiated
 				: context.called
-			).trackEntityAtPathAndGetIfTracked(path, callOptions, this)
-		) {
-			return false;
-		}
-		return this.getReturnExpression().hasEffectsWhenCalledAtPath(path, callOptions, context);
+			).trackEntityAtPathAndGetIfTracked(path, callOptions, this) &&
+			this.getReturnExpression().hasEffectsWhenCalledAtPath(path, callOptions, context)
+		);
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
@@ -250,13 +260,6 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		if (!returnExpression.included) {
 			returnExpression.include(context, false);
 		}
-	}
-
-	initialise() {
-		this.callOptions = {
-			args: this.arguments,
-			withNew: false
-		};
 	}
 
 	render(
@@ -304,11 +307,12 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 
 	protected applyDeoptimizations() {
 		this.deoptimized = true;
-		if (this.callee instanceof MemberExpression && !this.callee.variable) {
+		const { thisParam } = this.callOptions;
+		if (thisParam) {
 			this.callee.deoptimizeThisOnEventAtPath(
 				EVENT_CALLED,
 				EMPTY_PATH,
-				this.callee.object,
+				thisParam,
 				SHARED_RECURSION_TRACKER
 			);
 		}

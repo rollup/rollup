@@ -24,6 +24,8 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 	private accessedValue: ExpressionEntity | null = null;
 	private accessorCallOptions: CallOptions = {
 		args: NO_ARGS,
+		// TODO Lukas in the end, handle this differently or get rid of the shared call options
+		thisParam: null,
 		withNew: false
 	};
 
