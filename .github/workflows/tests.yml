@@ -71,7 +71,7 @@ jobs:
     runs-on: windows-2019
     strategy:
       matrix:
-        node: ['14', '12', '10']
+        node: ['10', '12', '14', '16']
     name: Node ${{ matrix.node }} (Windows)
     steps:
       - name: Configure git line-breaks
