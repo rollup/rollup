@@ -10,6 +10,6 @@ export default commandOptions => {
 		onwarn(warning) {
 			throw new Error(`Unexpected warning: ${warning.message}`);
 		},
-		plugins: [replace({ COMMAND_OPTIONS })]
+		plugins: [replace({ preventAssignment: true, COMMAND_OPTIONS })]
 	};
 };

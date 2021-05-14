@@ -10,6 +10,6 @@ module.exports = {
 		format: 'es'
 	},
 	plugins: [
-		replace( { 'ANSWER': 42 } )
+		replace( { preventAssignment: true, 'ANSWER': 42 } )
 	]
 };

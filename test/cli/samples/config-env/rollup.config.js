@@ -7,6 +7,7 @@ module.exports = {
 	},
 	plugins: [
 		replace( {
+			preventAssignment: true,
 			__ENVIRONMENT__: process.env.PRODUCTION ? 'production' : 'development',
 			__FOO__: process.env.FOO,
 			__HOST__: process.env.HOST

@@ -1,7 +1,4 @@
 import * as acorn from 'acorn';
-import injectClassFields from 'acorn-class-fields';
-import injectPrivateMethods from 'acorn-private-methods';
-import injectStaticClassFeatures from 'acorn-static-class-features';
 import {
 	ExternalOption,
 	HasModuleSideEffects,
@@ -101,12 +98,8 @@ const getAcorn = (config: GenericConfigObject): acorn.Options => ({
 	...(config.acorn as Object)
 });
 
-const getAcornInjectPlugins = (config: GenericConfigObject): Function[] => [
-	injectClassFields,
-	injectPrivateMethods,
-	injectStaticClassFeatures,
-	...(ensureArray(config.acornInjectPlugins) as any)
-];
+const getAcornInjectPlugins = (config: GenericConfigObject): Function[] =>
+	ensureArray(config.acornInjectPlugins) as any;
 
 const getCache = (config: GenericConfigObject): false | undefined | RollupCache => {
 	return (config.cache as RollupBuild)?.cache || (config.cache as false | undefined | RollupCache);

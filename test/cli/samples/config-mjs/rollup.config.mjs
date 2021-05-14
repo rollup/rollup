@@ -6,6 +6,6 @@ export default {
 		format: 'cjs'
 	},
 	plugins: [
-		replace( { ANSWER: 42 } )
+		replace( { preventAssignment: true, ANSWER: 42 } )
 	]
 };
