@@ -82,12 +82,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	) {
-		this.variable!.deoptimizeThisOnEventAtPath(
-			event,
-			path,
-			thisParameter,
-			recursionTracker
-		);
+		this.variable!.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
 	}
 
 	getLiteralValueAtPath(
@@ -100,10 +95,16 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
+		callOptions: CallOptions,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
-	) {
-		return this.variable!.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
+	): ExpressionEntity {
+		return this.variable!.getReturnExpressionWhenCalledAtPath(
+			path,
+			callOptions,
+			recursionTracker,
+			origin
+		);
 	}
 
 	hasEffects(): boolean {
@@ -182,7 +183,6 @@ export default class Identifier extends NodeBase implements PatternNode {
 		) {
 			this.variable.consolidateInitializers();
 		}
-
 	}
 
 	private disallowImportReassignment() {

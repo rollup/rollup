@@ -68,14 +68,11 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
+		callOptions: CallOptions,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
-		return this.getObjectEntity().getReturnExpressionWhenCalledAtPath(
-			path,
-			recursionTracker,
-			origin
-		);
+		return this.getObjectEntity().getReturnExpressionWhenCalledAtPath(path, callOptions, recursionTracker, origin);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext) {

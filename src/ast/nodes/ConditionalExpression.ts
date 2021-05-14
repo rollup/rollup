@@ -21,11 +21,7 @@ import {
 } from '../utils/PathTracker';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
-import {
-	ExpressionEntity,
-	LiteralValueOrUnknown,
-	UnknownValue
-} from './shared/Expression';
+import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
 import { MultiExpression } from './shared/MultiExpression';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 import SpreadElement from './SpreadElement';
@@ -94,17 +90,33 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
+		callOptions: CallOptions,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
 		const usedBranch = this.getUsedBranch();
 		if (usedBranch === null)
 			return new MultiExpression([
-				this.consequent.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin),
-				this.alternate.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin)
+				this.consequent.getReturnExpressionWhenCalledAtPath(
+					path,
+					callOptions,
+					recursionTracker,
+					origin
+				),
+				this.alternate.getReturnExpressionWhenCalledAtPath(
+					path,
+					callOptions,
+					recursionTracker,
+					origin
+				)
 			]);
 		this.expressionsToBeDeoptimized.push(origin);
-		return usedBranch.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
+		return usedBranch.getReturnExpressionWhenCalledAtPath(
+			path,
+			callOptions,
+			recursionTracker,
+			origin
+		);
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
@@ -158,11 +170,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
 		this.included = true;
 		const usedBranch = this.getUsedBranch();
-		if (
-			includeChildrenRecursively ||
-			this.test.shouldBeIncluded(context) ||
-			usedBranch === null
-		) {
+		if (includeChildrenRecursively || this.test.shouldBeIncluded(context) || usedBranch === null) {
 			this.test.include(context, includeChildrenRecursively);
 			this.consequent.include(context, includeChildrenRecursively);
 			this.alternate.include(context, includeChildrenRecursively);

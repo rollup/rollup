@@ -129,6 +129,7 @@ export default class LocalVariable extends Variable {
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
+		callOptions: CallOptions,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
@@ -140,7 +141,12 @@ export default class LocalVariable extends Variable {
 			this.init,
 			() => {
 				this.expressionsToBeDeoptimized.push(origin);
-				return this.init!.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
+				return this.init!.getReturnExpressionWhenCalledAtPath(
+					path,
+					callOptions,
+					recursionTracker,
+					origin
+				);
 			},
 			UNKNOWN_EXPRESSION
 		);

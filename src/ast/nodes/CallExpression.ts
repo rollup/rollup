@@ -88,8 +88,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		if (this.returnExpression !== UNKNOWN_EXPRESSION) {
 			this.returnExpression = null;
 			const returnExpression = this.getReturnExpression();
-			const deoptimizableDependentExpressions = this.deoptimizableDependentExpressions;
-			const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized;
+			const { deoptimizableDependentExpressions, expressionsToBeDeoptimized } = this;
 			if (returnExpression !== UNKNOWN_EXPRESSION) {
 				// We need to replace here because it is possible new expressions are added
 				// while we are deoptimizing the old ones
@@ -173,6 +172,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
+		callOptions: CallOptions,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
@@ -185,7 +185,12 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 			returnExpression,
 			() => {
 				this.deoptimizableDependentExpressions.push(origin);
-				return returnExpression.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
+				return returnExpression.getReturnExpressionWhenCalledAtPath(
+					path,
+					callOptions,
+					recursionTracker,
+					origin
+				);
 			},
 			UNKNOWN_EXPRESSION
 		);
@@ -328,6 +333,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 			this.returnExpression = UNKNOWN_EXPRESSION;
 			return (this.returnExpression = this.callee.getReturnExpressionWhenCalledAtPath(
 				EMPTY_PATH,
+				this.callOptions,
 				recursionTracker,
 				this
 			));

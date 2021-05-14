@@ -56,7 +56,7 @@ const _replace = 'ab'.replace( 'a', () => 'b' ).trim();
 const _replaceEffect = 'ab'.replace( 'a', () => console.log( 1 ) || 'b' );
 const _search = 'ab'.search( /a/ ).toExponential( 2 );
 const _slice = 'ab'.slice( 0, 1 ).trim();
-const _split = 'ab'.split( 'a' ).join();
+const _split = 'ab'.split( 'a' );
 const _startsWith = 'ab'.startsWith( 'a' ).valueOf();
 const _substr = 'ab'.substr( 0, 1 ).trim();
 const _substring = 'ab'.substring( 0, 1 ).trim();

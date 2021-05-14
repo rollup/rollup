@@ -45,11 +45,12 @@ export default class PropertyDefinition extends NodeBase {
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
+		callOptions: CallOptions,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
 		return this.value
-			? this.value.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin)
+			? this.value.getReturnExpressionWhenCalledAtPath(path, callOptions, recursionTracker, origin)
 			: UNKNOWN_EXPRESSION;
 	}
 

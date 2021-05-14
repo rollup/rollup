@@ -41,6 +41,7 @@ export class ExpressionEntity implements WritableEntity {
 
 	getReturnExpressionWhenCalledAtPath(
 		_path: ObjectPath,
+		_callOptions: CallOptions,
 		_recursionTracker: PathTracker,
 		_origin: DeoptimizableEntity
 	): ExpressionEntity {

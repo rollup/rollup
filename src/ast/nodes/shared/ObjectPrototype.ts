@@ -7,12 +7,20 @@ import { ObjectEntity } from './ObjectEntity';
 
 export const OBJECT_PROTOTYPE = new ObjectEntity(
 	{
-		hasOwnProperty: [METHOD_RETURNS_BOOLEAN],
-		isPrototypeOf: [METHOD_RETURNS_BOOLEAN],
-		propertyIsEnumerable: [METHOD_RETURNS_BOOLEAN],
-		toLocaleString: [METHOD_RETURNS_STRING],
-		toString: [METHOD_RETURNS_STRING],
-		valueOf: [METHOD_RETURNS_UNKNOWN]
+		// @ts-ignore
+		__proto__: null,
+		// @ts-ignore
+		hasOwnProperty: METHOD_RETURNS_BOOLEAN,
+		// @ts-ignore
+		isPrototypeOf: METHOD_RETURNS_BOOLEAN,
+		// @ts-ignore
+		propertyIsEnumerable: METHOD_RETURNS_BOOLEAN,
+		// @ts-ignore
+		toLocaleString: METHOD_RETURNS_STRING,
+		// @ts-ignore
+		toString: METHOD_RETURNS_STRING,
+		// @ts-ignore
+		valueOf: METHOD_RETURNS_UNKNOWN
 	},
 	null
 );

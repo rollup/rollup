@@ -33,11 +33,13 @@ export class ObjectMember extends ExpressionEntity {
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
+		callOptions: CallOptions,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
 		return this.object.getReturnExpressionWhenCalledAtPath(
 			[this.key, ...path],
+			callOptions,
 			recursionTracker,
 			origin
 		);

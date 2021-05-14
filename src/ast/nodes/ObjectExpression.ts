@@ -5,7 +5,13 @@ import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext } from '../ExecutionContext';
 import { NodeEvent } from '../NodeEvents';
-import { EMPTY_PATH, ObjectPath, PathTracker, SHARED_RECURSION_TRACKER, UnknownKey } from '../utils/PathTracker';
+import {
+	EMPTY_PATH,
+	ObjectPath,
+	PathTracker,
+	SHARED_RECURSION_TRACKER,
+	UnknownKey
+} from '../utils/PathTracker';
 import Identifier from './Identifier';
 import Literal from './Literal';
 import * as NodeType from './NodeType';
@@ -24,7 +30,6 @@ import SpreadElement from './SpreadElement';
 export default class ObjectExpression extends NodeBase implements DeoptimizableEntity {
 	properties!: (Property | SpreadElement)[];
 	type!: NodeType.tObjectExpression;
-
 	private objectEntity: ObjectEntity | null = null;
 
 	deoptimizeCache() {
@@ -59,11 +64,13 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
+		callOptions: CallOptions,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
 		return this.getObjectEntity().getReturnExpressionWhenCalledAtPath(
 			path,
+			callOptions,
 			recursionTracker,
 			origin
 		);

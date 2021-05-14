@@ -40,79 +40,6 @@ const returnsUnknown: RawMemberDescription = {
 		returnsPrimitive: UNKNOWN_EXPRESSION
 	}
 };
-const mutatesSelfReturnsUnknown: RawMemberDescription = {
-	value: { returns: null, returnsPrimitive: UNKNOWN_EXPRESSION, callsArgs: null, mutatesSelf: true }
-};
-const callsArgReturnsUnknown: RawMemberDescription = {
-	value: { returns: null, returnsPrimitive: UNKNOWN_EXPRESSION, callsArgs: [0], mutatesSelf: false }
-};
-
-export class UnknownArrayExpression extends ExpressionEntity {
-	included = false;
-
-	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
-		if (path.length === 1) {
-			return getMemberReturnExpressionWhenCalled(arrayMembers, path[0]);
-		}
-		return UNKNOWN_EXPRESSION;
-	}
-
-	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
-		return path.length > 1;
-	}
-
-	hasEffectsWhenAssignedAtPath(path: ObjectPath) {
-		return path.length > 1;
-	}
-
-	hasEffectsWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		context: HasEffectsContext
-	) {
-		if (path.length === 1) {
-			return hasMemberEffectWhenCalled(arrayMembers, path[0], this.included, callOptions, context);
-		}
-		return true;
-	}
-
-	include() {
-		this.included = true;
-	}
-}
-
-const returnsArray: RawMemberDescription = {
-	value: {
-		callsArgs: null,
-		mutatesSelf: false,
-		returns: UnknownArrayExpression,
-		returnsPrimitive: null
-	}
-};
-const mutatesSelfReturnsArray: RawMemberDescription = {
-	value: {
-		callsArgs: null,
-		mutatesSelf: true,
-		returns: UnknownArrayExpression,
-		returnsPrimitive: null
-	}
-};
-const callsArgReturnsArray: RawMemberDescription = {
-	value: {
-		callsArgs: [0],
-		mutatesSelf: false,
-		returns: UnknownArrayExpression,
-		returnsPrimitive: null
-	}
-};
-const callsArgMutatesSelfReturnsArray: RawMemberDescription = {
-	value: {
-		callsArgs: [0],
-		mutatesSelf: true,
-		returns: UnknownArrayExpression,
-		returnsPrimitive: null
-	}
-};
 
 export const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = new (class UnknownBoolean extends ExpressionEntity {
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
@@ -143,16 +70,8 @@ const returnsBoolean: RawMemberDescription = {
 		returnsPrimitive: UNKNOWN_LITERAL_BOOLEAN
 	}
 };
-const callsArgReturnsBoolean: RawMemberDescription = {
-	value: {
-		callsArgs: [0],
-		mutatesSelf: false,
-		returns: null,
-		returnsPrimitive: UNKNOWN_LITERAL_BOOLEAN
-	}
-};
 
-const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = new (class UnknownNumber extends ExpressionEntity {
+export const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = new (class UnknownNumber extends ExpressionEntity {
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
 		if (path.length === 1) {
 			return getMemberReturnExpressionWhenCalled(literalNumberMembers, path[0]);
@@ -176,22 +95,6 @@ const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = new (class UnknownNumber extend
 const returnsNumber: RawMemberDescription = {
 	value: {
 		callsArgs: null,
-		mutatesSelf: false,
-		returns: null,
-		returnsPrimitive: UNKNOWN_LITERAL_NUMBER
-	}
-};
-const mutatesSelfReturnsNumber: RawMemberDescription = {
-	value: {
-		callsArgs: null,
-		mutatesSelf: true,
-		returns: null,
-		returnsPrimitive: UNKNOWN_LITERAL_NUMBER
-	}
-};
-const callsArgReturnsNumber: RawMemberDescription = {
-	value: {
-		callsArgs: [0],
 		mutatesSelf: false,
 		returns: null,
 		returnsPrimitive: UNKNOWN_LITERAL_NUMBER
@@ -240,37 +143,6 @@ const objectMembers: MemberDescriptions = assembleMemberDescriptions({
 	valueOf: returnsUnknown
 });
 
-// TODO Lukas first make arrays proper objects, then get rid of this
-export const arrayMembers: MemberDescriptions = assembleMemberDescriptions(
-	{
-		concat: returnsArray,
-		copyWithin: mutatesSelfReturnsArray,
-		every: callsArgReturnsBoolean,
-		fill: mutatesSelfReturnsArray,
-		filter: callsArgReturnsArray,
-		find: callsArgReturnsUnknown,
-		findIndex: callsArgReturnsNumber,
-		forEach: callsArgReturnsUnknown,
-		includes: returnsBoolean,
-		indexOf: returnsNumber,
-		join: returnsString,
-		lastIndexOf: returnsNumber,
-		map: callsArgReturnsArray,
-		pop: mutatesSelfReturnsUnknown,
-		push: mutatesSelfReturnsNumber,
-		reduce: callsArgReturnsUnknown,
-		reduceRight: callsArgReturnsUnknown,
-		reverse: mutatesSelfReturnsArray,
-		shift: mutatesSelfReturnsUnknown,
-		slice: returnsArray,
-		some: callsArgReturnsBoolean,
-		sort: callsArgMutatesSelfReturnsArray,
-		splice: mutatesSelfReturnsArray,
-		unshift: mutatesSelfReturnsNumber
-	},
-	objectMembers
-);
-
 const literalBooleanMembers: MemberDescriptions = assembleMemberDescriptions(
 	{
 		valueOf: returnsBoolean
@@ -315,7 +187,7 @@ const literalStringMembers: MemberDescriptions = assembleMemberDescriptions(
 		},
 		search: returnsNumber,
 		slice: returnsString,
-		split: returnsArray,
+		split: returnsUnknown,
 		startsWith: returnsBoolean,
 		substr: returnsString,
 		substring: returnsString,

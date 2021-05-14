@@ -167,11 +167,17 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
+		callOptions: CallOptions,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
-	) {
+	): ExpressionEntity {
 		if (this.variable !== null) {
-			return this.variable.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
+			return this.variable.getReturnExpressionWhenCalledAtPath(
+				path,
+				callOptions,
+				recursionTracker,
+				origin
+			);
 		}
 		if (this.replacement) {
 			return UNKNOWN_EXPRESSION;
@@ -179,6 +185,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		this.expressionsToBeDeoptimized.push(origin);
 		return this.object.getReturnExpressionWhenCalledAtPath(
 			[this.getPropertyKey(), ...path],
+			callOptions,
 			recursionTracker,
 			origin
 		);

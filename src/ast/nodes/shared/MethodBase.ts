@@ -2,13 +2,14 @@ import { CallOptions, NO_ARGS } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { HasEffectsContext } from '../../ExecutionContext';
 import { EVENT_ACCESSED, EVENT_ASSIGNED, EVENT_CALLED, NodeEvent } from '../../NodeEvents';
-import { EMPTY_PATH, ObjectPath, PathTracker, SHARED_RECURSION_TRACKER } from '../../utils/PathTracker';
-import PrivateIdentifier from '../PrivateIdentifier';
 import {
-	ExpressionEntity,
-	LiteralValueOrUnknown,
-	UNKNOWN_EXPRESSION
-} from './Expression';
+	EMPTY_PATH,
+	ObjectPath,
+	PathTracker,
+	SHARED_RECURSION_TRACKER
+} from '../../utils/PathTracker';
+import PrivateIdentifier from '../PrivateIdentifier';
+import { ExpressionEntity, LiteralValueOrUnknown, UNKNOWN_EXPRESSION } from './Expression';
 import { ExpressionNode, NodeBase } from './Node';
 import { PatternNode } from './Pattern';
 
@@ -74,11 +75,13 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
+		callOptions: CallOptions,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
 		return this.getAccessedValue().getReturnExpressionWhenCalledAtPath(
 			path,
+			callOptions,
 			recursionTracker,
 			origin
 		);
@@ -116,6 +119,7 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 				this.accessedValue = UNKNOWN_EXPRESSION;
 				return (this.accessedValue = this.value.getReturnExpressionWhenCalledAtPath(
 					EMPTY_PATH,
+					this.accessorCallOptions,
 					SHARED_RECURSION_TRACKER,
 					this
 				));

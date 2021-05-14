@@ -20,12 +20,13 @@ export class MultiExpression extends ExpressionEntity {
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
+		callOptions: CallOptions,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
 		return new MultiExpression(
 			this.expressions.map(expression =>
-				expression.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin)
+				expression.getReturnExpressionWhenCalledAtPath(path, callOptions, recursionTracker, origin)
 			)
 		);
 	}

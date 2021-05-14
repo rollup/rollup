@@ -2,16 +2,19 @@ import { getOrCreate } from '../../utils/getOrCreate';
 import { Entity } from '../Entity';
 
 export const UnknownKey = Symbol('Unknown Key');
-export type ObjectPathKey = string | typeof UnknownKey;
+export const UnknownInteger = Symbol('Unknown Integer');
+export type ObjectPathKey = string | typeof UnknownKey | typeof UnknownInteger;
 
 export type ObjectPath = ObjectPathKey[];
 export const EMPTY_PATH: ObjectPath = [];
 export const UNKNOWN_PATH: ObjectPath = [UnknownKey];
+export const UNKNOWN_INTEGER_PATH: ObjectPath = [UnknownInteger];
 
 const EntitiesKey = Symbol('Entities');
 interface EntityPaths {
 	[EntitiesKey]: Set<Entity>;
 	[UnknownKey]?: EntityPaths;
+	[UnknownInteger]?: EntityPaths;
 	[pathSegment: string]: EntityPaths;
 }
 
@@ -57,6 +60,7 @@ export const SHARED_RECURSION_TRACKER = new PathTracker();
 interface DiscriminatedEntityPaths {
 	[EntitiesKey]: Map<object, Set<Entity>>;
 	[UnknownKey]?: DiscriminatedEntityPaths;
+	[UnknownInteger]?: DiscriminatedEntityPaths;
 	[pathSegment: string]: DiscriminatedEntityPaths;
 }
 
