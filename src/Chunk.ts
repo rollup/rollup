@@ -448,9 +448,9 @@ export default class Chunk {
 				typeof pattern === 'function' ? pattern(this.getChunkInfo()) : pattern,
 				'output.entryFileNames',
 				{
+					assetExtname: () => NON_ASSET_EXTENSIONS.includes(extension) ? '' : extension,
 					ext: () => extension.substr(1),
 					extname: () => extension,
-					assetExtname: () => NON_ASSET_EXTENSIONS.includes(extension) ? '' : extension,
 					format: () => options.format as string,
 					name: () => this.getChunkName()
 				}
