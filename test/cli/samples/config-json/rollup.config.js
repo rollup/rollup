@@ -7,6 +7,6 @@ module.exports = {
 		format: 'cjs'
 	},
 	plugins: [
-		replace( { '__VERSION__': pkg.version } )
+		replace( { preventAssignment: true, '__VERSION__': pkg.version } )
 	]
 };

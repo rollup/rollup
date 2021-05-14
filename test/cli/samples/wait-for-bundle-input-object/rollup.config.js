@@ -1,5 +1,3 @@
-var replace = require( '@rollup/plugin-replace' );
-
 module.exports = {
 	input: {
 		first: 'first',
