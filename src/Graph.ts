@@ -136,7 +136,7 @@ export default class Graph {
 
 		options.onComment = onCommentOrig;
 
-		markPureCallExpressions(comments, ast);
+		markPureCallExpressions(comments, ast, code);
 
 		return ast;
 	}
