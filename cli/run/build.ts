@@ -24,9 +24,7 @@ export default async function build(
 		} else if (inputOptions.input instanceof Array) {
 			inputFiles = inputOptions.input.join(', ');
 		} else if (typeof inputOptions.input === 'object' && inputOptions.input !== null) {
-			inputFiles = Object.keys(inputOptions.input)
-				.map(name => (inputOptions.input as Record<string, string>)[name])
-				.join(', ');
+			inputFiles = Object.values(inputOptions.input).join(', ');
 		}
 		stderr(cyan(`\n${bold(inputFiles!)} → ${bold(files.join(', '))}...`));
 	}

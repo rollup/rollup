@@ -106,9 +106,7 @@ export async function watch(command: any) {
 						if (typeof input !== 'string') {
 							input = Array.isArray(input)
 								? input.join(', ')
-								: Object.keys(input as Record<string, string>)
-										.map(key => (input as Record<string, string>)[key])
-										.join(', ');
+								: Object.values(input as Record<string, string>).join(', ');
 						}
 						stderr(
 							cyan(`bundles ${bold(input)} → ${bold(event.output.map(relativeId).join(', '))}...`)

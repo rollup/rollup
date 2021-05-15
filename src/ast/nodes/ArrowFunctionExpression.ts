@@ -31,7 +31,6 @@ export default class ArrowFunctionExpression extends NodeBase {
 		}
 	}
 
-	// TODO Lukas handle nested paths and other event types
 	// Arrow functions do not mutate their context
 	deoptimizeThisOnEventAtPath() {}
 

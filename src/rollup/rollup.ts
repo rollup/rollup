@@ -170,9 +170,7 @@ async function handleGenerateWrite(
 				message: 'You must specify "output.file" or "output.dir" for the build.'
 			});
 		}
-		await Promise.all(
-			Object.keys(generated).map(chunkId => writeOutputFile(generated[chunkId], outputOptions))
-		);
+		await Promise.all(Object.values(generated).map(chunk => writeOutputFile(chunk, outputOptions)));
 		await outputPluginDriver.hookParallel('writeBundle', [outputOptions, generated]);
 	}
 	return createOutput(generated);
@@ -228,12 +226,9 @@ function getOutputOptions(
 
 function createOutput(outputBundle: Record<string, OutputChunk | OutputAsset | {}>): RollupOutput {
 	return {
-		output: (Object.keys(outputBundle)
-			.map(fileName => outputBundle[fileName])
-			.filter(outputFile => Object.keys(outputFile).length > 0) as (
-			| OutputChunk
-			| OutputAsset
-		)[]).sort((outputFileA, outputFileB) => {
+		output: (Object.values(outputBundle).filter(
+			outputFile => Object.keys(outputFile).length > 0
+		) as (OutputChunk | OutputAsset)[]).sort((outputFileA, outputFileB) => {
 			const fileTypeA = getSortingFileType(outputFileA);
 			const fileTypeB = getSortingFileType(outputFileB);
 			if (fileTypeA === fileTypeB) return 0;

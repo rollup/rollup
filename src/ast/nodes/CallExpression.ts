@@ -122,7 +122,6 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		}
 	}
 
-	// TODO Lukas allow "event" to be a CallOptions object and get rid of thisParameter
 	deoptimizeThisOnEventAtPath(
 		event: NodeEvent,
 		path: ObjectPath,

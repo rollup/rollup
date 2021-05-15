@@ -195,10 +195,9 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode) {
-		for (const key of Object.keys(esTreeNode)) {
+		for (const [key, value] of Object.entries(esTreeNode)) {
 			// That way, we can override this function to add custom initialisation and then call super.parseNode
 			if (this.hasOwnProperty(key)) continue;
-			const value = esTreeNode[key];
 			if (key === '_rollupAnnotations') {
 				this.annotations = value;
 			} else if (typeof value !== 'object' || value === null) {

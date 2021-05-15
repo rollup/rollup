@@ -76,8 +76,8 @@ function timeEndImpl(label: string, level = 3) {
 
 export function getTimings(): SerializedTimings {
 	const newTimings: SerializedTimings = {};
-	for (const label of Object.keys(timers)) {
-		newTimings[label] = [timers[label].time, timers[label].memory, timers[label].totalMemory];
+	for (const [label, { time, memory, totalMemory }] of Object.entries(timers)) {
+		newTimings[label] = [time, memory, totalMemory];
 	}
 	return newTimings;
 }
@@ -102,7 +102,7 @@ function getPluginWithTimers(plugin: any, index: number): Plugin {
 				timerLabel += ` (${plugin.name})`;
 			}
 			timerLabel += ` - ${hook}`;
-			timedPlugin[hook] = function() {
+			timedPlugin[hook] = function () {
 				timeStart(timerLabel, 4);
 				let result = plugin[hook].apply(this === timedPlugin ? plugin : this, arguments);
 				timeEnd(timerLabel, 4);

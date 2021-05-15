@@ -66,9 +66,7 @@ export default class NamespaceVariable extends Variable {
 		const t = options.indent;
 
 		const memberVariables = this.getMemberVariables();
-		const members = Object.keys(memberVariables).map(name => {
-			const original = memberVariables[name];
-
+		const members = Object.entries(memberVariables).map(([name, original]) => {
 			if (this.referencedEarly || original.isReassigned) {
 				return `${t}get ${name}${_}()${_}{${_}return ${original.getName()}${
 					options.compact ? '' : ';'

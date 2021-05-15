@@ -6,6 +6,7 @@ import {
 	GetManualChunk,
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
+	OutputAsset,
 	OutputBundle,
 	OutputBundleWithPlaceholders,
 	OutputChunk,
@@ -41,11 +42,7 @@ export default class Bundle {
 	async generate(isWrite: boolean): Promise<OutputBundle> {
 		timeStart('GENERATE', 1);
 		const outputBundle: OutputBundleWithPlaceholders = Object.create(null);
-		this.pluginDriver.setOutputBundle(
-			outputBundle,
-			this.outputOptions,
-			this.facadeChunkByModule
-		);
+		this.pluginDriver.setOutputBundle(outputBundle, this.outputOptions, this.facadeChunkByModule);
 		try {
 			await this.pluginDriver.hookParallel('renderStart', [this.outputOptions, this.inputOptions]);
 
@@ -104,9 +101,9 @@ export default class Bundle {
 	): Promise<Map<Module, string>> {
 		const manualChunkAliasByEntry = new Map<Module, string>();
 		const chunkEntries = await Promise.all(
-			Object.keys(manualChunks).map(async alias => ({
+			Object.entries(manualChunks).map(async ([alias, files]) => ({
 				alias,
-				entries: await this.graph.moduleLoader.addAdditionalModules(manualChunks[alias])
+				entries: await this.graph.moduleLoader.addAdditionalModules(files)
 			}))
 		);
 		for (const { alias, entries } of chunkEntries) {
@@ -169,24 +166,23 @@ export default class Bundle {
 	}
 
 	private finaliseAssets(outputBundle: OutputBundleWithPlaceholders): void {
-		for (const key of Object.keys(outputBundle)) {
-			const file = outputBundle[key] as any;
+		for (const file of Object.values(outputBundle)) {
 			if (!file.type) {
 				warnDeprecation(
 					'A plugin is directly adding properties to the bundle object in the "generateBundle" hook. This is deprecated and will be removed in a future Rollup version, please use "this.emitFile" instead.',
 					true,
 					this.inputOptions
 				);
-				file.type = 'asset';
+				(file as OutputAsset).type = 'asset';
 			}
-			if (this.outputOptions.validate && typeof file.code == 'string') {
+			if (this.outputOptions.validate && typeof (file as OutputChunk).code == 'string') {
 				try {
-					this.graph.contextParse(file.code, {
+					this.graph.contextParse((file as OutputChunk).code, {
 						allowHashBang: true,
 						ecmaVersion: 'latest'
 					});
 				} catch (exception) {
-					this.inputOptions.onwarn(errChunkInvalid(file, exception));
+					this.inputOptions.onwarn(errChunkInvalid(file as OutputChunk, exception));
 				}
 			}
 		}

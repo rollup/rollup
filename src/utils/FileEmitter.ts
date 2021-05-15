@@ -106,9 +106,12 @@ function hasValidType(
 	);
 }
 
-function hasValidName(emittedFile: { type: 'asset' | 'chunk'; [key: string]: unknown; }): emittedFile is EmittedFile {
+function hasValidName(emittedFile: {
+	type: 'asset' | 'chunk';
+	[key: string]: unknown;
+}): emittedFile is EmittedFile {
 	const validatedName = emittedFile.fileName || emittedFile.name;
-	return !validatedName || typeof validatedName === 'string' && !isPathFragment(validatedName);
+	return !validatedName || (typeof validatedName === 'string' && !isPathFragment(validatedName));
 }
 
 function getValidSource(
@@ -351,8 +354,7 @@ function findExistingAssetFileNameWithSource(
 	bundle: OutputBundleWithPlaceholders,
 	source: string | Uint8Array
 ): string | null {
-	for (const fileName of Object.keys(bundle)) {
-		const outputFile = bundle[fileName];
+	for (const [fileName, outputFile] of Object.entries(bundle)) {
 		if (outputFile.type === 'asset' && areSourcesEqual(source, outputFile.source)) return fileName;
 	}
 	return null;

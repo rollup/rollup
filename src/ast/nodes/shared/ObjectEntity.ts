@@ -85,9 +85,9 @@ export class ObjectEntity extends ExpressionEntity {
 			return;
 		}
 		this.hasUnknownDeoptimizedInteger = true;
-		for (const key of Object.keys(this.propertiesAndGettersByKey)) {
+		for (const [key, propertiesAndGetters] of Object.entries(this.propertiesAndGettersByKey)) {
 			if (INTEGER_REG_EXP.test(key)) {
-				for (const property of this.propertiesAndGettersByKey[key]) {
+				for (const property of propertiesAndGetters) {
 					property.deoptimizePath(UNKNOWN_PATH);
 				}
 			}
@@ -421,7 +421,6 @@ export class ObjectEntity extends ExpressionEntity {
 		}
 	}
 
-	// TODO Lukas check everywhere if we can replace Object.keys with Object.entries/values
 	private deoptimizeCachedIntegerEntities() {
 		for (const [key, expressionsToBeDeoptimized] of Object.entries(
 			this.expressionsToBeDeoptimizedByKey

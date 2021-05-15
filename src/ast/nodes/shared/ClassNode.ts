@@ -21,14 +21,10 @@ import { ObjectEntity, ObjectProperty } from './ObjectEntity';
 import { ObjectMember } from './ObjectMember';
 import { OBJECT_PROTOTYPE } from './ObjectPrototype';
 
-// TODO Lukas
-//  * __proto__ assignment handling might be possible solely via the object prototype? But it would need to deoptimize the entire prototype chain: Bad. Better we always replace the prototype with "unknown" on assigment
-//  * __proto__: foo handling however is an ObjectExpression feature
 export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	body!: ClassBody;
 	id!: Identifier | null;
 	superClass!: ExpressionNode | null;
-
 	private classConstructor!: MethodDefinition | null;
 	private objectEntity: ObjectEntity | null = null;
 

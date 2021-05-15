@@ -185,8 +185,8 @@ function createChunks(
 			chunkModules[chunkSignature] = [module];
 		}
 	}
-	return Object.keys(chunkModules).map(chunkSignature => ({
+	return Object.values(chunkModules).map(modules => ({
 		alias: null,
-		modules: chunkModules[chunkSignature]
+		modules
 	}));
 }

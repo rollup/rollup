@@ -122,7 +122,6 @@ export default class AssignmentExpression extends NodeBase {
 		}
 	}
 
-	// TODO Lukas is it time for propertyWriteSideEffects?
 	protected applyDeoptimizations() {
 		this.deoptimized = true;
 		this.left.deoptimizePath(EMPTY_PATH);

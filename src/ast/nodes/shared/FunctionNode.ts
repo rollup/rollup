@@ -13,7 +13,6 @@ import { ObjectEntity } from './ObjectEntity';
 import { OBJECT_PROTOTYPE } from './ObjectPrototype';
 import { PatternNode } from './Pattern';
 
-// TODO Lukas improve prototype handling to fix #2219
 export default class FunctionNode extends NodeBase {
 	async!: boolean;
 	body!: BlockStatement;
@@ -21,7 +20,6 @@ export default class FunctionNode extends NodeBase {
 	params!: PatternNode[];
 	preventChildBlockScope!: true;
 	scope!: FunctionScope;
-
 	private isPrototypeDeoptimized = false;
 
 	createScope(parentScope: FunctionScope) {
@@ -42,7 +40,6 @@ export default class FunctionNode extends NodeBase {
 		}
 	}
 
-	// TODO Lukas handle other event types as well
 	deoptimizeThisOnEventAtPath(event: NodeEvent, path: ObjectPath, thisParameter: ExpressionEntity) {
 		if (event === EVENT_CALLED) {
 			if (path.length > 0 ) {
