@@ -446,6 +446,7 @@ This pattern will also be used when setting the [`output.preserveModules`](guide
 * `[name]`: The file name (without extension) of the file.
 * `[ext]`: The extension of the file.
 * `[extname]`: The extension of the file, prefixed by `.` if it is not empty.
+* `[assetExtname]`: The extension of the file, prefixed by `.` if it is not empty and it is not one of `js`, `jsx`, `ts` or `tsx`.
 
 #### output.extend
 Type: `boolean`<br>

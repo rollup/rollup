@@ -19,8 +19,26 @@ basicWalker.PropertyDefinition = function (node: any, st: any, c: any) {
 };
 
 interface CommentState {
+	code: string;
 	commentIndex: number;
 	commentNodes: acorn.Comment[];
+}
+
+function isOnlyWhitespaceOrComments(code: string) {
+	// streamline the typical case
+	if (/^\s*$/.test(code)) return true;
+	try {
+		// successful only if it's a valid Program without statements
+		const ast = acorn.parse(code, { ecmaVersion: 'latest' }) as any;
+		return ast.body && ast.body.length === 0;
+	} catch {
+		// should only be reached by invalid annotations like:
+		//
+		//   foo() /*@__PURE__*/ /* other */, bar();
+		//
+		// where `code` is " /* other */, "
+	}
+	return false;
 }
 
 function handlePureAnnotationsOfNode(
@@ -30,7 +48,8 @@ function handlePureAnnotationsOfNode(
 ) {
 	let commentNode = state.commentNodes[state.commentIndex];
 	while (commentNode && node.start >= commentNode.end) {
-		markPureNode(node, commentNode);
+		const between = state.code.substring(commentNode.end, node.start);
+		if (isOnlyWhitespaceOrComments(between)) markPureNode(node, commentNode);
 		commentNode = state.commentNodes[++state.commentIndex];
 	}
 	if (commentNode && commentNode.end <= node.end) {
@@ -62,8 +81,9 @@ function markPureNode(
 const pureCommentRegex = /[@#]__PURE__/;
 const isPureComment = (comment: acorn.Comment) => pureCommentRegex.test(comment.value);
 
-export function markPureCallExpressions(comments: acorn.Comment[], esTreeAst: acorn.Node) {
+export function markPureCallExpressions(comments: acorn.Comment[], esTreeAst: acorn.Node, code: string) {
 	handlePureAnnotationsOfNode(esTreeAst, {
+		code,
 		commentIndex: 0,
 		commentNodes: comments.filter(isPureComment)
 	});
