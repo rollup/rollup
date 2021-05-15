@@ -441,15 +441,14 @@ export default class Chunk {
 		if (isAbsolute(id)) {
 			const extension = extname(id);
 			const pattern = unsetOptions.has('entryFileNames')
-				? NON_ASSET_EXTENSIONS.includes(extension)
-					? '[name].js'
-					: '[name][extname].js'
+				? '[name][assetExtname].js'
 				: options.entryFileNames;
 			const currentDir = dirname(sanitizedId);
 			const fileName = renderNamePattern(
 				typeof pattern === 'function' ? pattern(this.getChunkInfo()) : pattern,
 				'output.entryFileNames',
 				{
+					assetExtname: () => NON_ASSET_EXTENSIONS.includes(extension) ? '' : extension,
 					ext: () => extension.substr(1),
 					extname: () => extension,
 					format: () => options.format as string,
