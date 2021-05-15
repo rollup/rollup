@@ -3,7 +3,6 @@ import { RenderOptions } from '../../utils/renderHelpers';
 import { RESERVED_NAMES } from '../../utils/reservedNames';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
 import Identifier from '../nodes/Identifier';
-import { ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class NamespaceVariable extends Variable {
@@ -28,22 +27,6 @@ export default class NamespaceVariable extends Variable {
 		this.references.push(identifier);
 		this.name = identifier.name;
 	}
-
-	deoptimizePath(path: ObjectPath) {
-		const memberVariables = this.getMemberVariables();
-		const memberPath = path.length <= 1 ? UNKNOWN_PATH : path.slice(1);
-		const key = path[0];
-		if (typeof key === 'string') {
-			memberVariables[key]?.deoptimizePath(memberPath);
-		} else {
-			for (const key of Object.keys(memberVariables)) {
-				memberVariables[key].deoptimizePath(memberPath);
-			}
-		}
-	}
-
-	// TODO Lukas can this be triggered for nested paths?
-	deoptimizeThisOnEventAtPath() {}
 
 	getMemberVariables(): { [name: string]: Variable } {
 		if (this.memberVariables) {
