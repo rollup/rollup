@@ -33,12 +33,12 @@ export default class NamespaceVariable extends Variable {
 		const memberVariables = this.getMemberVariables();
 		const memberPath = path.length <= 1 ? UNKNOWN_PATH : path.slice(1);
 		const key = path[0];
-		if (typeof key !== 'string') {
+		if (typeof key === 'string') {
+			memberVariables[key]?.deoptimizePath(memberPath);
+		} else {
 			for (const key of Object.keys(memberVariables)) {
 				memberVariables[key].deoptimizePath(memberPath);
 			}
-		} else {
-			memberVariables[key].deoptimizePath(memberPath);
 		}
 	}
 

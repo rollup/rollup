@@ -32,8 +32,11 @@ function isOnlyWhitespaceOrComments(code: string) {
 		const ast = acorn.parse(code, { ecmaVersion: 'latest' }) as any;
 		return ast.body && ast.body.length === 0;
 	} catch {
-		// should never be reached -
-		// the entire module was previously successfully parsed
+		// should only be reached by invalid annotations like:
+		//
+		//   foo() /*@__PURE__*/ /* other */, bar();
+		//
+		// where `code` is " /* other */, "
 	}
 	return false;
 }
