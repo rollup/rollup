@@ -1,5 +1,23 @@
 # rollup changelog
 
+## 2.48.0
+*2021-05-15*
+
+### Features
+* Add replacement to conditionally insert asset extensions in `entryFileNames` when preserving modules (#4077)
+
+### Bug Fixes
+* Fix crash when dynamically assigning to namespace members (#4070)
+* Do not associate pure annotations in front of a semi-colon or comma with succeeding code (#4068)
+
+### Pull Requests
+* [#4068](https://github.com/rollup/rollup/pull/4068): ignore invalid trailing pure annotations (@kzc)
+* [#4070](https://github.com/rollup/rollup/pull/4070): undefined `deoptimizePath` when the first element is empty string (@si3nloong)
+* [#4071](https://github.com/rollup/rollup/pull/4071): add node.js v16 support (@dnalborczyk)
+* [#4077](https://github.com/rollup/rollup/pull/4077): Add assetExtname replacement in entryFileNames (@BPScott)
+* [#4080](https://github.com/rollup/rollup/pull/4080): Added Rollup logo in README.md (@priyanshurav)
+* [#4081](https://github.com/rollup/rollup/pull/4081): fix comment regarding invalid annotation handling (@kzc)
+
 ## 2.47.0
 *2021-05-04*
 
