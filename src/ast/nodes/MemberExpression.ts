@@ -24,12 +24,7 @@ import Identifier from './Identifier';
 import Literal from './Literal';
 import * as NodeType from './NodeType';
 import PrivateIdentifier from './PrivateIdentifier';
-import {
-	ExpressionEntity,
-	LiteralValueOrUnknown,
-	UnknownValue,
-	UNKNOWN_EXPRESSION
-} from './shared/Expression';
+import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from './shared/Expression';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 import SpreadElement from './SpreadElement';
 import Super from './Super';
@@ -211,12 +206,11 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (path.length === 0) return false;
 		if (this.variable !== null) {
 			return this.variable.hasEffectsWhenAccessedAtPath(path, context);
 		}
 		if (this.replacement) {
-			return false;
+			return true;
 		}
 		return this.object.hasEffectsWhenAccessedAtPath([this.getPropertyKey(), ...path], context);
 	}

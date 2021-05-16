@@ -6,8 +6,7 @@ import { EMPTY_PATH, ObjectPath, ObjectPathKey } from './utils/PathTracker';
 
 export interface MemberDescription {
 	callsArgs: number[] | null;
-	returns: { new (): ExpressionEntity } | null;
-	returnsPrimitive: ExpressionEntity | null;
+	returns: ExpressionEntity;
 }
 
 export interface MemberDescriptions {
@@ -34,8 +33,7 @@ export const UNDEFINED_EXPRESSION: ExpressionEntity = new (class UndefinedExpres
 const returnsUnknown: RawMemberDescription = {
 	value: {
 		callsArgs: null,
-		returns: null,
-		returnsPrimitive: UNKNOWN_EXPRESSION
+		returns: UNKNOWN_EXPRESSION
 	}
 };
 
@@ -66,8 +64,7 @@ export const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = new (class UnknownBoole
 const returnsBoolean: RawMemberDescription = {
 	value: {
 		callsArgs: null,
-		returns: null,
-		returnsPrimitive: UNKNOWN_LITERAL_BOOLEAN
+		returns: UNKNOWN_LITERAL_BOOLEAN
 	}
 };
 
@@ -98,8 +95,7 @@ export const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = new (class UnknownNumber
 const returnsNumber: RawMemberDescription = {
 	value: {
 		callsArgs: null,
-		returns: null,
-		returnsPrimitive: UNKNOWN_LITERAL_NUMBER
+		returns: UNKNOWN_LITERAL_NUMBER
 	}
 };
 
@@ -130,8 +126,7 @@ export const UNKNOWN_LITERAL_STRING: ExpressionEntity = new (class UnknownString
 const returnsString: RawMemberDescription = {
 	value: {
 		callsArgs: null,
-		returns: null,
-		returnsPrimitive: UNKNOWN_LITERAL_STRING
+		returns: UNKNOWN_LITERAL_STRING
 	}
 };
 
@@ -181,8 +176,7 @@ const literalStringMembers: MemberDescriptions = assembleMemberDescriptions(
 		replace: {
 			value: {
 				callsArgs: [1],
-				returns: null,
-				returnsPrimitive: UNKNOWN_LITERAL_STRING
+				returns: UNKNOWN_LITERAL_STRING
 			}
 		},
 		search: returnsNumber,
@@ -247,7 +241,5 @@ export function getMemberReturnExpressionWhenCalled(
 	memberName: ObjectPathKey
 ): ExpressionEntity {
 	if (typeof memberName !== 'string' || !members[memberName]) return UNKNOWN_EXPRESSION;
-	return members[memberName].returnsPrimitive !== null
-		? members[memberName].returnsPrimitive!
-		: new members[memberName].returns!();
+	return members[memberName].returns;
 }
