@@ -46,7 +46,6 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 	private deoptimizableDependentExpressions: DeoptimizableEntity[] = [];
 	private expressionsToBeDeoptimized = new Set<ExpressionEntity>();
 	private returnExpression: ExpressionEntity | null = null;
-	private wasPathDeoptmizedWhileOptimized = false;
 
 	bind() {
 		super.bind();
@@ -86,23 +85,11 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 
 	deoptimizeCache() {
 		if (this.returnExpression !== UNKNOWN_EXPRESSION) {
-			this.returnExpression = null;
-			const returnExpression = this.getReturnExpression();
-			const { deoptimizableDependentExpressions, expressionsToBeDeoptimized } = this;
-			if (returnExpression !== UNKNOWN_EXPRESSION) {
-				// We need to replace here because it is possible new expressions are added
-				// while we are deoptimizing the old ones
-				this.deoptimizableDependentExpressions = [];
-				this.expressionsToBeDeoptimized = new Set();
-				if (this.wasPathDeoptmizedWhileOptimized) {
-					returnExpression.deoptimizePath(UNKNOWN_PATH);
-					this.wasPathDeoptmizedWhileOptimized = false;
-				}
-			}
-			for (const expression of deoptimizableDependentExpressions) {
+			this.returnExpression = UNKNOWN_EXPRESSION;
+			for (const expression of this.deoptimizableDependentExpressions) {
 				expression.deoptimizeCache();
 			}
-			for (const expression of expressionsToBeDeoptimized) {
+			for (const expression of this.expressionsToBeDeoptimized) {
 				expression.deoptimizePath(UNKNOWN_PATH);
 			}
 		}
@@ -117,7 +104,6 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		}
 		const returnExpression = this.getReturnExpression();
 		if (returnExpression !== UNKNOWN_EXPRESSION) {
-			this.wasPathDeoptmizedWhileOptimized = true;
 			returnExpression.deoptimizePath(path);
 		}
 	}
@@ -212,9 +198,6 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (path.length === 0) {
-			return false;
-		}
 		return (
 			!context.accessed.trackEntityAtPathAndGetIfTracked(path, this) &&
 			this.getReturnExpression().hasEffectsWhenAccessedAtPath(path, context)
@@ -222,7 +205,6 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (path.length === 0) return true;
 		return (
 			!context.assigned.trackEntityAtPathAndGetIfTracked(path, this) &&
 			this.getReturnExpression().hasEffectsWhenAssignedAtPath(path, context)

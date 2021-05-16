@@ -13,6 +13,7 @@ true.valueOf()();
 (1).valueOf()();
 'ab'.charAt(1).unknown.unknown();
 'ab'.charAt(1)();
+null.unknown;
 
 // number prototype
 const _toExponential = (1).toExponential( 2 ).trim();
