@@ -36,19 +36,14 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 	// We collect deoptimization information if usedBranch !== null
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 	private isBranchResolutionAnalysed = false;
-	private unusedBranch: ExpressionNode | null = null;
 	private usedBranch: ExpressionNode | null = null;
-	private wasPathDeoptimizedWhileOptimized = false;
 
 	deoptimizeCache() {
 		if (this.usedBranch !== null) {
+			const unusedBranch = this.usedBranch === this.left ? this.right : this.left;
 			this.usedBranch = null;
-			const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized;
-			this.expressionsToBeDeoptimized = [];
-			if (this.wasPathDeoptimizedWhileOptimized) {
-				this.unusedBranch!.deoptimizePath(UNKNOWN_PATH);
-			}
-			for (const expression of expressionsToBeDeoptimized) {
+			unusedBranch.deoptimizePath(UNKNOWN_PATH);
+			for (const expression of this.expressionsToBeDeoptimized) {
 				expression.deoptimizeCache();
 			}
 		}
@@ -60,11 +55,11 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 			this.left.deoptimizePath(path);
 			this.right.deoptimizePath(path);
 		} else {
-			this.wasPathDeoptimizedWhileOptimized = true;
 			usedBranch.deoptimizePath(path);
 		}
 	}
 
+	// TODO Lukas other events? And is the given event even relevant?
 	deoptimizeThisOnEventAtPath(
 		event: NodeEvent,
 		path: ObjectPath,
@@ -120,7 +115,6 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (path.length === 0) return false;
 		const usedBranch = this.getUsedBranch();
 		if (usedBranch === null) {
 			return (
@@ -132,7 +126,6 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (path.length === 0) return true;
 		const usedBranch = this.getUsedBranch();
 		if (usedBranch === null) {
 			return (
@@ -214,17 +207,12 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 			if (leftValue === UnknownValue) {
 				return null;
 			} else {
-				if (
+				this.usedBranch =
 					(this.operator === '||' && leftValue) ||
 					(this.operator === '&&' && !leftValue) ||
 					(this.operator === '??' && leftValue != null)
-				) {
-					this.usedBranch = this.left;
-					this.unusedBranch = this.right;
-				} else {
-					this.usedBranch = this.right;
-					this.unusedBranch = this.left;
-				}
+						? this.left
+						: this.right;
 			}
 		}
 		return this.usedBranch;

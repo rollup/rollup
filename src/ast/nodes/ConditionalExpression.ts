@@ -35,36 +35,31 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 	private isBranchResolutionAnalysed = false;
 	private usedBranch: ExpressionNode | null = null;
-	private wasPathDeoptimizedWhileOptimized = false;
 
+	//TODO Lukas check if propertyWriteSideEffects would make sense to prevent hasEffectsWhenAssigned
+	// TODO Lukas check if propertyReadSideEffects also prevents this mutation
 	deoptimizeCache() {
 		if (this.usedBranch !== null) {
 			const unusedBranch = this.usedBranch === this.consequent ? this.alternate : this.consequent;
 			this.usedBranch = null;
-			const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized;
-			this.expressionsToBeDeoptimized = [];
-			if (this.wasPathDeoptimizedWhileOptimized) {
-				unusedBranch.deoptimizePath(UNKNOWN_PATH);
-			}
-			for (const expression of expressionsToBeDeoptimized) {
+			unusedBranch.deoptimizePath(UNKNOWN_PATH);
+			for (const expression of this.expressionsToBeDeoptimized) {
 				expression.deoptimizeCache();
 			}
 		}
 	}
 
 	deoptimizePath(path: ObjectPath) {
-		if (path.length > 0) {
-			const usedBranch = this.getUsedBranch();
-			if (usedBranch === null) {
-				this.consequent.deoptimizePath(path);
-				this.alternate.deoptimizePath(path);
-			} else {
-				this.wasPathDeoptimizedWhileOptimized = true;
-				usedBranch.deoptimizePath(path);
-			}
+		const usedBranch = this.getUsedBranch();
+		if (usedBranch === null) {
+			this.consequent.deoptimizePath(path);
+			this.alternate.deoptimizePath(path);
+		} else {
+			usedBranch.deoptimizePath(path);
 		}
 	}
 
+	// TODO Lukas other events? And is the given event even relevant as we will forget "this" anyway?
 	deoptimizeThisOnEventAtPath(
 		event: NodeEvent,
 		path: ObjectPath,
@@ -129,7 +124,6 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (path.length === 0) return false;
 		const usedBranch = this.getUsedBranch();
 		if (usedBranch === null) {
 			return (
@@ -141,7 +135,6 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (path.length === 0) return true;
 		const usedBranch = this.getUsedBranch();
 		if (usedBranch === null) {
 			return (
