@@ -62,7 +62,7 @@ export default class Literal<T extends LiteralValue = LiteralValue> extends Node
 		context: HasEffectsContext
 	): boolean {
 		if (path.length === 1) {
-			return hasMemberEffectWhenCalled(this.members, path[0], this.included, callOptions, context);
+			return hasMemberEffectWhenCalled(this.members, path[0], callOptions, context);
 		}
 		return true;
 	}

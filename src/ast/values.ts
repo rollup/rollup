@@ -6,7 +6,6 @@ import { EMPTY_PATH, ObjectPath, ObjectPathKey } from './utils/PathTracker';
 
 export interface MemberDescription {
 	callsArgs: number[] | null;
-	mutatesSelf: boolean;
 	returns: { new (): ExpressionEntity } | null;
 	returnsPrimitive: ExpressionEntity | null;
 }
@@ -35,7 +34,6 @@ export const UNDEFINED_EXPRESSION: ExpressionEntity = new (class UndefinedExpres
 const returnsUnknown: RawMemberDescription = {
 	value: {
 		callsArgs: null,
-		mutatesSelf: false,
 		returns: null,
 		returnsPrimitive: UNKNOWN_EXPRESSION
 	}
@@ -53,10 +51,13 @@ export const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = new (class UnknownBoole
 		return path.length > 1;
 	}
 
-	hasEffectsWhenCalledAtPath(path: ObjectPath) {
+	hasEffectsWhenCalledAtPath(
+		path: ObjectPath,
+		callOptions: CallOptions,
+		context: HasEffectsContext
+	) {
 		if (path.length === 1) {
-			const subPath = path[0];
-			return typeof subPath !== 'string' || !literalBooleanMembers[subPath];
+			return hasMemberEffectWhenCalled(literalBooleanMembers, path[0], callOptions, context);
 		}
 		return true;
 	}
@@ -65,7 +66,6 @@ export const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = new (class UnknownBoole
 const returnsBoolean: RawMemberDescription = {
 	value: {
 		callsArgs: null,
-		mutatesSelf: false,
 		returns: null,
 		returnsPrimitive: UNKNOWN_LITERAL_BOOLEAN
 	}
@@ -83,10 +83,13 @@ export const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = new (class UnknownNumber
 		return path.length > 1;
 	}
 
-	hasEffectsWhenCalledAtPath(path: ObjectPath) {
+	hasEffectsWhenCalledAtPath(
+		path: ObjectPath,
+		callOptions: CallOptions,
+		context: HasEffectsContext
+	) {
 		if (path.length === 1) {
-			const subPath = path[0];
-			return typeof subPath !== 'string' || !literalNumberMembers[subPath];
+			return hasMemberEffectWhenCalled(literalNumberMembers, path[0], callOptions, context);
 		}
 		return true;
 	}
@@ -95,7 +98,6 @@ export const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = new (class UnknownNumber
 const returnsNumber: RawMemberDescription = {
 	value: {
 		callsArgs: null,
-		mutatesSelf: false,
 		returns: null,
 		returnsPrimitive: UNKNOWN_LITERAL_NUMBER
 	}
@@ -119,7 +121,7 @@ export const UNKNOWN_LITERAL_STRING: ExpressionEntity = new (class UnknownString
 		context: HasEffectsContext
 	) {
 		if (path.length === 1) {
-			return hasMemberEffectWhenCalled(literalStringMembers, path[0], true, callOptions, context);
+			return hasMemberEffectWhenCalled(literalStringMembers, path[0], callOptions, context);
 		}
 		return true;
 	}
@@ -128,7 +130,6 @@ export const UNKNOWN_LITERAL_STRING: ExpressionEntity = new (class UnknownString
 const returnsString: RawMemberDescription = {
 	value: {
 		callsArgs: null,
-		mutatesSelf: false,
 		returns: null,
 		returnsPrimitive: UNKNOWN_LITERAL_STRING
 	}
@@ -180,7 +181,6 @@ const literalStringMembers: MemberDescriptions = assembleMemberDescriptions(
 		replace: {
 			value: {
 				callsArgs: [1],
-				mutatesSelf: false,
 				returns: null,
 				returnsPrimitive: UNKNOWN_LITERAL_STRING
 			}
@@ -217,16 +217,12 @@ export function getLiteralMembersForValue<T extends LiteralValue = LiteralValue>
 export function hasMemberEffectWhenCalled(
 	members: MemberDescriptions,
 	memberName: ObjectPathKey,
-	parentIncluded: boolean,
 	callOptions: CallOptions,
 	context: HasEffectsContext
 ) {
-	if (
-		typeof memberName !== 'string' ||
-		!members[memberName] ||
-		(members[memberName].mutatesSelf && parentIncluded)
-	)
+	if (typeof memberName !== 'string' || !members[memberName]) {
 		return true;
+	}
 	if (!members[memberName].callsArgs) return false;
 	for (const argIndex of members[memberName].callsArgs!) {
 		if (
