@@ -11,14 +11,8 @@ import { removeAnnotations } from '../../utils/treeshakeNode';
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { EVENT_CALLED, NodeEvent } from '../NodeEvents';
-import {
-	EMPTY_PATH,
-	ObjectPath,
-	PathTracker,
-	SHARED_RECURSION_TRACKER,
-	UNKNOWN_PATH
-} from '../utils/PathTracker';
+import { NodeEvent } from '../NodeEvents';
+import { EMPTY_PATH, ObjectPath, PathTracker, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
 import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
@@ -36,8 +30,6 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	private isBranchResolutionAnalysed = false;
 	private usedBranch: ExpressionNode | null = null;
 
-	//TODO Lukas check if propertyWriteSideEffects would make sense to prevent hasEffectsWhenAssigned
-	// TODO Lukas check if propertyReadSideEffects also prevents this mutation
 	deoptimizeCache() {
 		if (this.usedBranch !== null) {
 			const unusedBranch = this.usedBranch === this.consequent ? this.alternate : this.consequent;
@@ -59,17 +51,14 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		}
 	}
 
-	// TODO Lukas other events? And is the given event even relevant as we will forget "this" anyway?
 	deoptimizeThisOnEventAtPath(
 		event: NodeEvent,
 		path: ObjectPath,
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	) {
-		if (event === EVENT_CALLED || path.length > 0) {
-			this.consequent.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
-			this.alternate.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
-		}
+		this.consequent.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
+		this.alternate.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
 	}
 
 	getLiteralValueAtPath(

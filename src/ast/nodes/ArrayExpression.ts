@@ -16,10 +16,6 @@ export default class ArrayExpression extends NodeBase {
 	type!: NodeType.tArrayExpression;
 	private objectEntity: ObjectEntity | null = null;
 
-	deoptimizeCache() {
-		this.getObjectEntity().deoptimizeAllProperties();
-	}
-
 	deoptimizePath(path: ObjectPath) {
 		this.getObjectEntity().deoptimizePath(path);
 	}

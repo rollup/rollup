@@ -11,7 +11,7 @@ import { removeAnnotations } from '../../utils/treeshakeNode';
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { EVENT_CALLED, NodeEvent } from '../NodeEvents';
+import { NodeEvent } from '../NodeEvents';
 import {
 	EMPTY_PATH,
 	ObjectPath,
@@ -59,17 +59,14 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		}
 	}
 
-	// TODO Lukas other events? And is the given event even relevant?
 	deoptimizeThisOnEventAtPath(
 		event: NodeEvent,
 		path: ObjectPath,
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	) {
-		if (event === EVENT_CALLED || path.length > 0) {
-			this.left.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
-			this.right.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
-		}
+		this.left.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
+		this.right.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
 	}
 
 	getLiteralValueAtPath(

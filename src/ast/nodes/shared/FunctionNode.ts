@@ -40,6 +40,7 @@ export default class FunctionNode extends NodeBase {
 		}
 	}
 
+	// TODO for completeness, we should also track other events here
 	deoptimizeThisOnEventAtPath(event: NodeEvent, path: ObjectPath, thisParameter: ExpressionEntity) {
 		if (event === EVENT_CALLED) {
 			if (path.length > 0 ) {

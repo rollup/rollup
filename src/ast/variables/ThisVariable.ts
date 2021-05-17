@@ -1,13 +1,7 @@
 import { AstContext } from '../../Module';
-import { CallOptions } from '../CallOptions';
 import { HasEffectsContext } from '../ExecutionContext';
 import { NodeEvent } from '../NodeEvents';
-import {
-	ExpressionEntity,
-	LiteralValueOrUnknown,
-	UnknownValue,
-	UNKNOWN_EXPRESSION
-} from '../nodes/shared/Expression';
+import { ExpressionEntity, UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
 import { ObjectPath, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
 import LocalVariable from './LocalVariable';
 
@@ -61,10 +55,6 @@ export default class ThisVariable extends LocalVariable {
 		this.thisDeoptimizations.push(thisDeoptimization);
 	}
 
-	getLiteralValueAtPath(): LiteralValueOrUnknown {
-		return UnknownValue;
-	}
-
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext) {
 		return (
 			this.getInit(context).hasEffectsWhenAccessedAtPath(path, context) ||
@@ -76,17 +66,6 @@ export default class ThisVariable extends LocalVariable {
 		return (
 			this.getInit(context).hasEffectsWhenAssignedAtPath(path, context) ||
 			super.hasEffectsWhenAssignedAtPath(path, context)
-		);
-	}
-
-	hasEffectsWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		context: HasEffectsContext
-	) {
-		return (
-			this.getInit(context).hasEffectsWhenCalledAtPath(path, callOptions, context) ||
-			super.hasEffectsWhenCalledAtPath(path, callOptions, context)
 		);
 	}
 

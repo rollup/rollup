@@ -82,12 +82,10 @@ export default class LocalVariable extends Variable {
 				for (const expression of expressionsToBeDeoptimized) {
 					expression.deoptimizeCache();
 				}
-				if (this.init) {
-					this.init.deoptimizePath(UNKNOWN_PATH);
-				}
+				this.init?.deoptimizePath(UNKNOWN_PATH);
 			}
-		} else if (this.init) {
-			this.init.deoptimizePath(path);
+		} else {
+			this.init?.deoptimizePath(path);
 		}
 	}
 
@@ -153,7 +151,6 @@ export default class LocalVariable extends Variable {
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext) {
-		if (path.length === 0) return false;
 		if (this.isReassigned || path.length > MAX_PATH_DEPTH) return true;
 		return (this.init &&
 			!context.accessed.trackEntityAtPathAndGetIfTracked(path, this) &&
