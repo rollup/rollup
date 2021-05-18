@@ -29,7 +29,7 @@ module.exports = {
 	},
 	stderr(stderr) {
 		if (
-			!/^rollup v\d+\.\d+\.\d+\nbundles main.js → _actual[\\/]main.js...\ncreated _actual[\\/]main.js in \d+ms\n$/.test(
+			!/^rollup v\d+\.\d+\.\d+(-\d+)?\nbundles main.js → _actual[\\/]main.js...\ncreated _actual[\\/]main.js in \d+ms\n$/.test(
 				stderr
 			)
 		) {
