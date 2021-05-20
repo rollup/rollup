@@ -440,6 +440,7 @@ export class ObjectEntity extends ExpressionEntity {
 		if (
 			this.hasUnknownDeoptimizedProperty ||
 			typeof key !== 'string' ||
+			(this.hasUnknownDeoptimizedInteger && INTEGER_REG_EXP.test(key)) ||
 			this.deoptimizedPaths[key]
 		) {
 			return UNKNOWN_EXPRESSION;
