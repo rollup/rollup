@@ -47,7 +47,6 @@ module.exports = {
 	parser: '@typescript-eslint/parser',
 	parserOptions: {
 		ecmaVersion: 2018,
-		project: './tsconfig.eslint.json',
 		sourceType: 'module'
 	},
 	plugins: ['@typescript-eslint'],
@@ -70,7 +69,6 @@ module.exports = {
 		'@typescript-eslint/no-empty-function': 'off',
 		'@typescript-eslint/no-explicit-any': 'off',
 		'@typescript-eslint/no-non-null-assertion': 'off',
-		'@typescript-eslint/no-unnecessary-type-assertion': 'error',
 		'@typescript-eslint/no-unused-vars': 'off',
 		'dot-notation': 'error',
 		'import/no-unresolved': ['error', { ignore: ['package.json', 'is-reference', 'help.md'] }],
