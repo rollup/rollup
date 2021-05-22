@@ -1,7 +1,7 @@
 define(['require', 'external-auto', 'external-default', 'external-defaultOnly', 'external-esModule'], function (require, fooAuto, fooDefault, fooDefaultOnly, fooEsModule) { 'use strict';
 
-	function _interopNamespace(e) {
-		return e && e.__esModule ? e : _interopNamespaceDefault(e);
+	function _interopNamespaceDefaultOnly(e) {
+		return {__proto__: null, 'default': e};
 	}
 
 	function _interopNamespaceDefault(e) {
@@ -23,8 +23,8 @@ define(['require', 'external-auto', 'external-default', 'external-defaultOnly', 
 		return n;
 	}
 
-	function _interopNamespaceDefaultOnly(e) {
-		return {__proto__: null, 'default': e};
+	function _interopNamespace(e) {
+		return e && e.__esModule ? e : _interopNamespaceDefault(e);
 	}
 
 	var fooAuto__namespace = /*#__PURE__*/_interopNamespace(fooAuto);

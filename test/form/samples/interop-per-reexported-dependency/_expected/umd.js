@@ -4,10 +4,6 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.bundle = {}, global.externalauto, global.externaldefault, global.externaldefaultOnly, global.externalesModule));
 }(this, (function (exports, externalAuto, externalDefault, externalDefaultOnly, externalEsModule) { 'use strict';
 
-	function _interopNamespace(e) {
-		return e && e.__esModule ? e : _interopNamespaceDefault(e);
-	}
-
 	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
 		if (e) {
@@ -25,6 +21,10 @@
 		}
 		n['default'] = e;
 		return Object.freeze(n);
+	}
+
+	function _interopNamespace(e) {
+		return e && e.__esModule ? e : _interopNamespaceDefault(e);
 	}
 
 	var externalAuto__namespace = /*#__PURE__*/_interopNamespace(externalAuto);

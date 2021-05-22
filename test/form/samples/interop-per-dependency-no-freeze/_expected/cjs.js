@@ -5,8 +5,8 @@ var fooDefault = require('external-default');
 var fooDefaultOnly = require('external-defaultOnly');
 var fooEsModule = require('external-esModule');
 
-function _interopNamespace(e) {
-	return e && e.__esModule ? e : _interopNamespaceDefault(e);
+function _interopNamespaceDefaultOnly(e) {
+	return {__proto__: null, 'default': e};
 }
 
 function _interopNamespaceDefault(e) {
@@ -28,8 +28,8 @@ function _interopNamespaceDefault(e) {
 	return n;
 }
 
-function _interopNamespaceDefaultOnly(e) {
-	return {__proto__: null, 'default': e};
+function _interopNamespace(e) {
+	return e && e.__esModule ? e : _interopNamespaceDefault(e);
 }
 
 var fooAuto__namespace = /*#__PURE__*/_interopNamespace(fooAuto);

@@ -337,9 +337,8 @@ export type WatchChangeHook = (
  * const myPlugin: PluginImpl<Options> = (options = {}) => { ... }
  * ```
  */
-export type PluginImpl<O extends Record<string, unknown> = Record<string, unknown>> = (
-	options?: O
-) => Plugin;
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type PluginImpl<O extends object = object> = (options?: O) => Plugin;
 
 export interface OutputBundle {
 	[fileName: string]: OutputAsset | OutputChunk;
@@ -521,7 +520,7 @@ export type SourcemapPathTransformOption = (
 ) => string;
 
 export interface InputOptions {
-	acorn?: Record<string | unknown>;
+	acorn?: Record<string, unknown>;
 	acornInjectPlugins?: (() => unknown)[] | (() => unknown);
 	cache?: false | RollupCache;
 	context?: string;
