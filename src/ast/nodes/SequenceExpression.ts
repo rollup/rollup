@@ -21,7 +21,7 @@ export default class SequenceExpression extends NodeBase {
 	expressions!: ExpressionNode[];
 	type!: NodeType.tSequenceExpression;
 
-	deoptimizePath(path: ObjectPath) {
+	deoptimizePath(path: ObjectPath): void {
 		if (path.length > 0) this.expressions[this.expressions.length - 1].deoptimizePath(path);
 	}
 
@@ -81,7 +81,7 @@ export default class SequenceExpression extends NodeBase {
 		);
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		for (let i = 0; i < this.expressions.length - 1; i++) {
 			const node = this.expressions[i];
@@ -95,7 +95,7 @@ export default class SequenceExpression extends NodeBase {
 		code: MagicString,
 		options: RenderOptions,
 		{ renderedParentType, isCalleeOfRenderedParent, preventASI }: NodeRenderOptions = BLANK
-	) {
+	): void {
 		let includedNodes = 0;
 		for (const { node, start, end } of getCommaSeparatedNodesWithBoundaries(
 			this.expressions,

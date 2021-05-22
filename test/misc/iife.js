@@ -1,10 +1,10 @@
-const rollup = require('../../dist/rollup');
 const assert = require('assert');
+const rollup = require('../../dist/rollup');
 const { loader } = require('../utils.js');
 const { compareError } = require('../utils.js');
 
 function runTestCode(code, globals) {
-	const globalsWithAssert = Object.assign({}, globals, { assert });
+	const globalsWithAssert = { ...globals, assert };
 	const globalKeys = Object.keys(globalsWithAssert);
 	const fn = new Function(globalKeys, code);
 	fn.apply(
@@ -42,23 +42,21 @@ function getIifeCode(inputCode, outputOptions) {
 			plugins: [loader({ input: inputCode })]
 		})
 		.then(bundle =>
-			bundle.generate(
-				Object.assign({ format: 'iife', globals: { external: 'external' } }, outputOptions)
-			)
+			bundle.generate({ format: 'iife', globals: { external: 'external' }, ...outputOptions })
 		)
 		.then(({ output }) => output[0].code);
 }
 
 function runTestsWithCode(code, outputOptions, expectedExports) {
 	it('works with extend=false', () => {
-		const options = Object.assign({ extend: false }, outputOptions);
+		const options = { extend: false, ...outputOptions };
 		return getIifeCode(code, options).then(code =>
 			assert.deepEqual(runIifeTest(code, options), expectedExports, 'expected exports are returned')
 		);
 	});
 
 	it('works with extend=true', () => {
-		const options = Object.assign({ extend: true }, outputOptions);
+		const options = { extend: true, ...outputOptions };
 		return getIifeCode(code, options).then(code =>
 			assert.deepEqual(runIifeTest(code, options), expectedExports, 'expected exports are returned')
 		);

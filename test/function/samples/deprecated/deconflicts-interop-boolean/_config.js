@@ -10,7 +10,7 @@ module.exports = {
 		}
 	},
 	context: {
-		require: id => {
+		require: () => {
 			return Object.defineProperty({ foo: 'foo', default: 'bar' }, '__esModule', { value: true });
 		}
 	}

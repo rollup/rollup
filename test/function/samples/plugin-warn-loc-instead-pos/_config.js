@@ -6,7 +6,7 @@ module.exports = {
 		plugins: [
 			{
 				name: 'test',
-				transform(code, id) {
+				transform() {
 					this.warn('foo', { line: 1, column: 22 });
 					return 'assert.equal( 21 * 2, 42 );';
 				}

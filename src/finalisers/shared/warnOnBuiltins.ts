@@ -29,7 +29,7 @@ const builtins = {
 export default function warnOnBuiltins(
 	warn: (warning: RollupWarning) => void,
 	dependencies: ChunkDependencies
-) {
+): void {
 	const externalBuiltins = dependencies.map(({ id }) => id).filter(id => id in builtins);
 
 	if (!externalBuiltins.length) return;

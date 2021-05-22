@@ -14,7 +14,7 @@ export default class LabeledStatement extends StatementBase {
 	label!: Identifier;
 	type!: NodeType.tLabeledStatement;
 
-	hasEffects(context: HasEffectsContext) {
+	hasEffects(context: HasEffectsContext): boolean {
 		const brokenFlow = context.brokenFlow;
 		context.ignore.labels.add(this.label.name);
 		if (this.body.hasEffects(context)) return true;
@@ -26,7 +26,7 @@ export default class LabeledStatement extends StatementBase {
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		const brokenFlow = context.brokenFlow;
 		this.body.include(context, includeChildrenRecursively);
@@ -37,7 +37,7 @@ export default class LabeledStatement extends StatementBase {
 		}
 	}
 
-	render(code: MagicString, options: RenderOptions) {
+	render(code: MagicString, options: RenderOptions): void {
 		if (this.label.included) {
 			this.label.render(code, options);
 		} else {

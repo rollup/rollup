@@ -3,7 +3,7 @@ import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockStatement from './BlockStatement';
 import CatchClause from './CatchClause';
 import * as NodeType from './NodeType';
-import { IncludeChildren, INCLUDE_PARAMETERS, StatementBase } from './shared/Node';
+import { INCLUDE_PARAMETERS, IncludeChildren, StatementBase } from './shared/Node';
 
 export default class TryStatement extends StatementBase {
 	block!: BlockStatement;
@@ -23,7 +23,7 @@ export default class TryStatement extends StatementBase {
 		);
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		const tryCatchDeoptimization = (this.context.options.treeshake as NormalizedTreeshakingOptions)
 			?.tryCatchDeoptimization;
 		const { brokenFlow } = context;

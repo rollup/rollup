@@ -1,7 +1,7 @@
 const assert = require('assert');
-const { SourceMapConsumer } = require('source-map');
 const fs = require('fs');
 const path = require('path');
+const { SourceMapConsumer } = require('source-map');
 
 module.exports = {
 	description:
@@ -9,7 +9,7 @@ module.exports = {
 	options: {
 		plugins: {
 			name: 'test-plugin',
-			transform(code) {
+			transform() {
 				return { meta: { test: true } };
 			},
 			async generateBundle(options, bundle) {

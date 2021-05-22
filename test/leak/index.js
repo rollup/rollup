@@ -1,6 +1,6 @@
 const path = require('path');
-const rollup = require('../..');
 const weak = require('weak-napi');
+const rollup = require('../..');
 
 var shouldCollect = false;
 var isCollected = false;

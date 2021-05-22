@@ -22,7 +22,7 @@ export default class DoWhileStatement extends StatementBase {
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		this.test.include(context, includeChildrenRecursively);
 		const { brokenFlow } = context;

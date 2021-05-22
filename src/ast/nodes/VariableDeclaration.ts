@@ -17,8 +17,8 @@ import { EMPTY_PATH } from '../utils/PathTracker';
 import Variable from '../variables/Variable';
 import Identifier, { IdentifierWithVariable } from './Identifier';
 import * as NodeType from './NodeType';
-import { IncludeChildren, NodeBase } from './shared/Node';
 import VariableDeclarator from './VariableDeclarator';
+import { IncludeChildren, NodeBase } from './shared/Node';
 
 function areAllDeclarationsIncludedAndNotExported(
 	declarations: VariableDeclarator[],
@@ -42,17 +42,17 @@ export default class VariableDeclaration extends NodeBase {
 	kind!: 'var' | 'let' | 'const';
 	type!: NodeType.tVariableDeclaration;
 
-	deoptimizePath() {
+	deoptimizePath(): void {
 		for (const declarator of this.declarations) {
 			declarator.deoptimizePath(EMPTY_PATH);
 		}
 	}
 
-	hasEffectsWhenAssignedAtPath() {
+	hasEffectsWhenAssignedAtPath(): boolean {
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		for (const declarator of this.declarations) {
 			if (includeChildrenRecursively || declarator.shouldBeIncluded(context))
@@ -60,7 +60,10 @@ export default class VariableDeclaration extends NodeBase {
 		}
 	}
 
-	includeAsSingleStatement(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+	includeAsSingleStatement(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		this.included = true;
 		for (const declarator of this.declarations) {
 			if (includeChildrenRecursively || declarator.shouldBeIncluded(context)) {
@@ -70,13 +73,17 @@ export default class VariableDeclaration extends NodeBase {
 		}
 	}
 
-	initialise() {
+	initialise(): void {
 		for (const declarator of this.declarations) {
 			declarator.declareDeclarator(this.kind);
 		}
 	}
 
-	render(code: MagicString, options: RenderOptions, nodeRenderOptions: NodeRenderOptions = BLANK) {
+	render(
+		code: MagicString,
+		options: RenderOptions,
+		nodeRenderOptions: NodeRenderOptions = BLANK
+	): void {
 		if (
 			areAllDeclarationsIncludedAndNotExported(this.declarations, options.exportNamesByVariable)
 		) {

@@ -12,23 +12,19 @@ runTestSuiteWithSamples('sourcemaps', path.resolve(__dirname, 'samples'), (dir, 
 				it('generates ' + format, async () => {
 					process.chdir(dir);
 					const warnings = [];
-					const inputOptions = Object.assign(
-						{
-							input: dir + '/main.js',
-							onwarn: warning => warnings.push(warning),
-							strictDeprecations: true
-						},
-						config.options || {}
-					);
-					const outputOptions = Object.assign(
-						{
-							exports: 'auto',
-							file: dir + '/_actual/bundle.' + format + '.js',
-							format,
-							sourcemap: true
-						},
-						(config.options || {}).output || {}
-					);
+					const inputOptions = {
+						input: dir + '/main.js',
+						onwarn: warning => warnings.push(warning),
+						strictDeprecations: true,
+						...(config.options || {})
+					};
+					const outputOptions = {
+						exports: 'auto',
+						file: dir + '/_actual/bundle.' + format + '.js',
+						format,
+						sourcemap: true,
+						...((config.options || {}).output || {})
+					};
 
 					let bundle = await rollup.rollup(inputOptions);
 					await generateAndTestBundle(bundle, outputOptions, config, format, warnings);
@@ -37,7 +33,7 @@ runTestSuiteWithSamples('sourcemaps', path.resolve(__dirname, 'samples'), (dir, 
 						return;
 					}
 					// test cache noop rebuild
-					bundle = await rollup.rollup(Object.assign({ cache: bundle }, inputOptions));
+					bundle = await rollup.rollup({ cache: bundle, ...inputOptions });
 					await generateAndTestBundle(bundle, outputOptions, config, format, warnings);
 				});
 			}

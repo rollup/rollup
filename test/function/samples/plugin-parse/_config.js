@@ -6,7 +6,7 @@ module.exports = {
 		plugins: [
 			{
 				name: 'test',
-				transform(code, id) {
+				transform(code) {
 					const magicString = new MagicString(code);
 					enforceTheAnswer(this.parse(code), magicString);
 					return magicString.toString();

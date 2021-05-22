@@ -29,23 +29,23 @@ export default class ModuleScope extends ChildScope {
 		return variable;
 	}
 
-	addNamespaceMemberAccess() {}
+	addNamespaceMemberAccess(): void {}
 
 	deconflict(
 		format: InternalModuleFormat,
 		exportNamesByVariable: Map<Variable, string[]>,
 		accessedGlobalsByScope: Map<ChildScope, Set<string>>
-	) {
+	): void {
 		// all module level variables are already deconflicted when deconflicting the chunk
 		for (const scope of this.children)
 			scope.deconflict(format, exportNamesByVariable, accessedGlobalsByScope);
 	}
 
-	findLexicalBoundary() {
+	findLexicalBoundary(): this {
 		return this;
 	}
 
-	findVariable(name: string) {
+	findVariable(name: string): Variable {
 		const knownVariable = this.variables.get(name) || this.accessedOutsideVariables.get(name);
 		if (knownVariable) {
 			return knownVariable;

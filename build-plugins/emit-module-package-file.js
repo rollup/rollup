@@ -1,8 +1,8 @@
 export default function emitModulePackageFile() {
 	return {
-		name: 'emit-module-package-file',
 		generateBundle() {
-			this.emitFile({ type: 'asset', fileName: 'package.json', source: `{"type":"module"}` });
-		}
+			this.emitFile({ fileName: 'package.json', source: `{"type":"module"}`, type: 'asset' });
+		},
+		name: 'emit-module-package-file'
 	};
 }

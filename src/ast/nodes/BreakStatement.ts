@@ -12,7 +12,7 @@ export default class BreakStatement extends StatementBase {
 	label!: Identifier | null;
 	type!: NodeType.tBreakStatement;
 
-	hasEffects(context: HasEffectsContext) {
+	hasEffects(context: HasEffectsContext): boolean {
 		if (this.label) {
 			if (!context.ignore.labels.has(this.label.name)) return true;
 			context.includedLabels.add(this.label.name);
@@ -24,7 +24,7 @@ export default class BreakStatement extends StatementBase {
 		return false;
 	}
 
-	include(context: InclusionContext) {
+	include(context: InclusionContext): void {
 		this.included = true;
 		if (this.label) {
 			this.label.include();

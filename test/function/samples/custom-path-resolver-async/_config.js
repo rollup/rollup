@@ -1,12 +1,12 @@
-const path = require('path');
 const assert = require('assert');
+const path = require('path');
 
 module.exports = {
 	description: 'uses a custom path resolver (asynchronous)',
 	options: {
 		plugins: [
 			{
-				resolveId(importee, importer) {
+				resolveId(importee) {
 					let resolved;
 
 					if (path.normalize(importee) === path.join(__dirname, 'main.js')) return importee;

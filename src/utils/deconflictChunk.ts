@@ -1,10 +1,10 @@
+import Chunk from '../Chunk';
+import ExternalModule from '../ExternalModule';
+import Module from '../Module';
 import ChildScope from '../ast/scopes/ChildScope';
 import ExportDefaultVariable from '../ast/variables/ExportDefaultVariable';
 import SyntheticNamedExportVariable from '../ast/variables/SyntheticNamedExportVariable';
 import Variable from '../ast/variables/Variable';
-import Chunk from '../Chunk';
-import ExternalModule from '../ExternalModule';
-import Module from '../Module';
 import { GetInterop, InternalModuleFormat } from '../rollup/types';
 import {
 	canDefaultBeTakenFromNamespace,
@@ -54,7 +54,7 @@ export function deconflictChunk(
 	exportNamesByVariable: Map<Variable, string[]>,
 	accessedGlobalsByScope: Map<ChildScope, Set<string>>,
 	includedNamespaces: Set<Module>
-) {
+): void {
 	const reversedModules = modules.slice().reverse();
 	for (const module of reversedModules) {
 		module.scope.addUsedOutsideNames(

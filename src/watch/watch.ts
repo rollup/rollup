@@ -47,8 +47,8 @@ export class Watcher {
 		emitter.close = this.close.bind(this);
 		this.tasks = configs.map(config => new Task(this, config));
 		this.buildDelay = configs.reduce(
-			(buildDelay, { watch }: any) =>
-				watch && typeof watch.buildDelay === 'number'
+			(buildDelay, { watch }) =>
+				watch && typeof (watch as WatcherOptions).buildDelay === 'number'
 					? Math.max(buildDelay, (watch as WatcherOptions).buildDelay!)
 					: buildDelay,
 			this.buildDelay
@@ -57,7 +57,7 @@ export class Watcher {
 		process.nextTick(() => this.run());
 	}
 
-	close() {
+	close(): void {
 		if (this.buildTimeout) clearTimeout(this.buildTimeout);
 		for (const task of this.tasks) {
 			task.close();
@@ -66,7 +66,7 @@ export class Watcher {
 		this.emitter.removeAllListeners();
 	}
 
-	invalidate(file?: { event: ChangeEvent; id: string }) {
+	invalidate(file?: { event: ChangeEvent; id: string }): void {
 		if (file) {
 			const prevEvent = this.invalidatedIds.get(file.id);
 			const event = prevEvent ? eventsRewrites[prevEvent][file.event] : file.event;
@@ -144,7 +144,7 @@ export class Task {
 		this.outputs = this.options.output;
 		this.outputFiles = this.outputs.map(output => {
 			if (output.file || output.dir) return path.resolve(output.file || output.dir!);
-			return undefined as any;
+			return undefined as never;
 		});
 
 		const watchOptions: WatcherOptions = this.options.watch || {};
@@ -156,21 +156,21 @@ export class Task {
 		});
 	}
 
-	close() {
+	close(): void {
 		this.closed = true;
 		this.fileWatcher.close();
 	}
 
-	invalidate(id: string, details: { event: ChangeEvent; isTransformDependency?: boolean }) {
+	invalidate(id: string, details: { event: ChangeEvent; isTransformDependency?: boolean }): void {
 		this.invalidated = true;
 		if (details.isTransformDependency) {
 			for (const module of this.cache.modules) {
 				if (module.transformDependencies.indexOf(id) === -1) continue;
 				// effective invalidation
-				module.originalCode = null as any;
+				module.originalCode = null as never;
 			}
 		}
-		this.watcher.invalidate({ id, event: details.event });
+		this.watcher.invalidate({ event: details.event, id });
 	}
 
 	async run(): Promise<void> {

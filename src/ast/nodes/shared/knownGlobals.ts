@@ -1,3 +1,5 @@
+/* eslint sort-keys: "off" */
+
 import { ObjectPath } from '../../utils/PathTracker';
 
 const ValueProperties = Symbol('Value Properties');
@@ -7,8 +9,9 @@ interface ValueDescription {
 }
 
 interface GlobalDescription {
+	[pathKey: string]: GlobalDescription | null;
 	[ValueProperties]: ValueDescription;
-	[pathKey: string]: GlobalDescription;
+	__proto__: null;
 }
 
 const PURE: ValueDescription = { pure: true };
@@ -17,21 +20,18 @@ const IMPURE: ValueDescription = { pure: false };
 // We use shortened variables to reduce file size here
 /* OBJECT */
 const O: GlobalDescription = {
-	// @ts-ignore
 	__proto__: null,
 	[ValueProperties]: IMPURE
 };
 
 /* PURE FUNCTION */
 const PF: GlobalDescription = {
-	// @ts-ignore
 	__proto__: null,
 	[ValueProperties]: PURE
 };
 
 /* CONSTRUCTOR */
 const C: GlobalDescription = {
-	// @ts-ignore
 	__proto__: null,
 	[ValueProperties]: IMPURE,
 	prototype: O
@@ -39,14 +39,12 @@ const C: GlobalDescription = {
 
 /* PURE CONSTRUCTOR */
 const PC: GlobalDescription = {
-	// @ts-ignore
 	__proto__: null,
 	[ValueProperties]: PURE,
 	prototype: O
 };
 
 const ARRAY_TYPE: GlobalDescription = {
-	// @ts-ignore
 	__proto__: null,
 	[ValueProperties]: PURE,
 	from: PF,
@@ -55,7 +53,6 @@ const ARRAY_TYPE: GlobalDescription = {
 };
 
 const INTL_MEMBER: GlobalDescription = {
-	// @ts-ignore
 	__proto__: null,
 	[ValueProperties]: PURE,
 	supportedLocalesOf: PC
@@ -69,11 +66,9 @@ const knownGlobals: GlobalDescription = {
 	window: O,
 
 	// Common globals
-	// @ts-ignore
 	__proto__: null,
 	[ValueProperties]: IMPURE,
 	Array: {
-		// @ts-ignore
 		__proto__: null,
 		[ValueProperties]: IMPURE,
 		from: O,
@@ -82,7 +77,6 @@ const knownGlobals: GlobalDescription = {
 		prototype: O
 	},
 	ArrayBuffer: {
-		// @ts-ignore
 		__proto__: null,
 		[ValueProperties]: PURE,
 		isView: PF,
@@ -93,11 +87,9 @@ const knownGlobals: GlobalDescription = {
 	BigInt64Array: C,
 	BigUint64Array: C,
 	Boolean: PC,
-	// @ts-ignore
 	constructor: C,
 	DataView: PC,
 	Date: {
-		// @ts-ignore
 		__proto__: null,
 		[ValueProperties]: PURE,
 		now: PF,
@@ -116,7 +108,6 @@ const knownGlobals: GlobalDescription = {
 	Float32Array: ARRAY_TYPE,
 	Float64Array: ARRAY_TYPE,
 	Function: C,
-	// @ts-ignore
 	hasOwnProperty: O,
 	Infinity: O,
 	Int16Array: ARRAY_TYPE,
@@ -124,12 +115,10 @@ const knownGlobals: GlobalDescription = {
 	Int8Array: ARRAY_TYPE,
 	isFinite: PF,
 	isNaN: PF,
-	// @ts-ignore
 	isPrototypeOf: O,
 	JSON: O,
 	Map: PC,
 	Math: {
-		// @ts-ignore
 		__proto__: null,
 		[ValueProperties]: IMPURE,
 		abs: PF,
@@ -170,7 +159,6 @@ const knownGlobals: GlobalDescription = {
 	},
 	NaN: O,
 	Number: {
-		// @ts-ignore
 		__proto__: null,
 		[ValueProperties]: PURE,
 		isFinite: PF,
@@ -182,7 +170,6 @@ const knownGlobals: GlobalDescription = {
 		prototype: O
 	},
 	Object: {
-		// @ts-ignore
 		__proto__: null,
 		[ValueProperties]: PURE,
 		create: PF,
@@ -202,7 +189,6 @@ const knownGlobals: GlobalDescription = {
 	parseFloat: PF,
 	parseInt: PF,
 	Promise: {
-		// @ts-ignore
 		__proto__: null,
 		[ValueProperties]: IMPURE,
 		all: PF,
@@ -210,7 +196,6 @@ const knownGlobals: GlobalDescription = {
 		race: PF,
 		resolve: PF
 	},
-	// @ts-ignore
 	propertyIsEnumerable: O,
 	Proxy: O,
 	RangeError: PC,
@@ -220,7 +205,6 @@ const knownGlobals: GlobalDescription = {
 	Set: PC,
 	SharedArrayBuffer: C,
 	String: {
-		// @ts-ignore
 		__proto__: null,
 		[ValueProperties]: PURE,
 		fromCharCode: PF,
@@ -229,7 +213,6 @@ const knownGlobals: GlobalDescription = {
 		raw: PF
 	},
 	Symbol: {
-		// @ts-ignore
 		__proto__: null,
 		[ValueProperties]: PURE,
 		for: PF,
@@ -237,9 +220,7 @@ const knownGlobals: GlobalDescription = {
 		prototype: O
 	},
 	SyntaxError: PC,
-	// @ts-ignore
 	toLocaleString: O,
-	// @ts-ignore
 	toString: O,
 	TypeError: PC,
 	Uint16Array: ARRAY_TYPE,
@@ -250,7 +231,6 @@ const knownGlobals: GlobalDescription = {
 	// undefined: ?,
 	unescape: PF,
 	URIError: PC,
-	// @ts-ignore
 	valueOf: O,
 	WeakMap: PC,
 	WeakSet: PC,
@@ -260,7 +240,6 @@ const knownGlobals: GlobalDescription = {
 	clearTimeout: C,
 	console: O,
 	Intl: {
-		// @ts-ignore
 		__proto__: null,
 		[ValueProperties]: IMPURE,
 		Collator: INTL_MEMBER,
@@ -867,7 +846,7 @@ for (const global of ['window', 'global', 'self', 'globalThis']) {
 }
 
 function getGlobalAtPath(path: ObjectPath): ValueDescription | null {
-	let currentGlobal = knownGlobals;
+	let currentGlobal: GlobalDescription | null = knownGlobals;
 	for (const pathSegment of path) {
 		if (typeof pathSegment !== 'string') {
 			return null;

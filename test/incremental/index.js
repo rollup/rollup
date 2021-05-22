@@ -1,7 +1,7 @@
 const assert = require('assert');
 const acorn = require('acorn');
-const { executeBundle } = require('../utils.js');
 const rollup = require('../../dist/rollup');
+const { executeBundle } = require('../utils.js');
 
 describe('incremental', () => {
 	let resolveIdCalls;

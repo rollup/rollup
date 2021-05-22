@@ -6,7 +6,7 @@ module.exports = {
 	options: {
 		plugins: [
 			{
-				transform(source, id) {
+				transform(source) {
 					const s = new MagicString(source);
 					s.prepend("import _assign from 'object-assign';\n");
 

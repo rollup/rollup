@@ -11,7 +11,7 @@ export default class ClassExpression extends ClassNode {
 		code: MagicString,
 		options: RenderOptions,
 		{ renderedParentType, renderedSurroundingElement }: NodeRenderOptions = BLANK
-	) {
+	): void {
 		super.render(code, options);
 		const surroundingElement = renderedParentType || renderedSurroundingElement;
 		if (surroundingElement === NodeType.ExpressionStatement) {

@@ -24,7 +24,7 @@ export default class SwitchCase extends NodeBase {
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		if (this.test) this.test.include(context, includeChildrenRecursively);
 		for (const node of this.consequent) {
@@ -33,7 +33,7 @@ export default class SwitchCase extends NodeBase {
 		}
 	}
 
-	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions) {
+	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void {
 		if (this.consequent.length) {
 			this.test && this.test.render(code, options);
 			const testEnd = this.test

@@ -1,12 +1,12 @@
-const rollup = require('../../dist/rollup');
 const assert = require('assert');
+const rollup = require('../../dist/rollup');
 const { loader } = require('../utils.js');
 
 function runTestCode(code, thisValue, globals) {
 	const globalThisDesc = Object.getOwnPropertyDescriptor(global, 'globalThis');
 	delete global.globalThis;
 
-	const globalsWithAssert = Object.assign({}, globals, { assert });
+	const globalsWithAssert = { ...globals, assert };
 	const globalKeys = Object.keys(globalsWithAssert);
 	const fn = new Function(globalKeys, code);
 	fn.apply(
@@ -124,9 +124,11 @@ async function getUmdCode(inputCode, outputOptions) {
 		external: ['external'],
 		plugins: [loader({ input: inputCode })]
 	});
-	const { output } = await bundle.generate(
-		Object.assign({ format: 'umd', globals: { external: 'external' } }, outputOptions)
-	);
+	const { output } = await bundle.generate({
+		format: 'umd',
+		globals: { external: 'external' },
+		...outputOptions
+	});
 	return output[0].code;
 }
 

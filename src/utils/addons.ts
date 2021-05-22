@@ -1,6 +1,6 @@
 import { NormalizedOutputOptions } from '../rollup/types';
-import { error } from './error';
 import { PluginDriver } from './PluginDriver';
+import { error } from './error';
 
 export interface Addons {
 	banner?: string;
@@ -28,7 +28,7 @@ export async function createAddons(
 		if (banner.length) banner += '\n';
 		if (footer.length) footer = '\n' + footer;
 
-		return { intro, outro, banner, footer };
+		return { banner, footer, intro, outro };
 	} catch (err) {
 		return error({
 			code: 'ADDON_ERROR',

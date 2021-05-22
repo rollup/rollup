@@ -29,7 +29,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	private consequentScope!: TrackingScope;
 	private testValue: LiteralValueOrUnknown | typeof unset = unset;
 
-	deoptimizeCache() {
+	deoptimizeCache(): void {
 		this.testValue = UnknownValue;
 	}
 
@@ -54,7 +54,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 			: this.alternate !== null && this.alternate.hasEffects(context);
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		if (includeChildrenRecursively) {
 			this.includeRecursively(includeChildrenRecursively, context);
@@ -68,7 +68,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		}
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode) {
+	parseNode(esTreeNode: GenericEsTreeNode): void {
 		this.consequentScope = new TrackingScope(this.scope);
 		this.consequent = new (this.context.nodeConstructors[esTreeNode.consequent.type] ||
 			this.context.nodeConstructors.UnknownNode)(esTreeNode.consequent, this, this.consequentScope);
@@ -80,7 +80,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		super.parseNode(esTreeNode);
 	}
 
-	render(code: MagicString, options: RenderOptions) {
+	render(code: MagicString, options: RenderOptions): void {
 		// Note that unknown test values are always included
 		const testValue = this.getTestValue();
 		const hoistedDeclarations: Identifier[] = [];

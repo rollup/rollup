@@ -14,11 +14,11 @@ import {
 	TransformResult,
 	WarningHandler
 } from '../rollup/types';
+import { getTrackedPluginCache } from './PluginCache';
+import { PluginDriver } from './PluginDriver';
 import { collapseSourcemap } from './collapseSourcemaps';
 import { decodedSourcemap } from './decodedSourcemap';
 import { augmentCodeLocation, errNoTransformMapOrAstWithoutCode } from './error';
-import { getTrackedPluginCache } from './PluginCache';
-import { PluginDriver } from './PluginDriver';
 import { throwPluginError } from './pluginUtils';
 
 export default function transform(
@@ -86,15 +86,24 @@ export default function transform(
 				curPlugin = plugin;
 				return {
 					...pluginContext,
+					addWatchFile(id: string) {
+						transformDependencies.push(id);
+						pluginContext.addWatchFile(id);
+					},
 					cache: customTransformCache
 						? pluginContext.cache
 						: getTrackedPluginCache(pluginContext.cache, useCustomTransformCache),
-					warn(warning: RollupWarning | string, pos?: number | { column: number; line: number }) {
-						if (typeof warning === 'string') warning = { message: warning } as RollupWarning;
-						if (pos) augmentCodeLocation(warning, pos, curSource, id);
-						warning.id = id;
-						warning.hook = 'transform';
-						pluginContext.warn(warning);
+					emitAsset(name: string, source?: string | Uint8Array) {
+						emittedFiles.push({ name, source, type: 'asset' as const });
+						return pluginContext.emitAsset(name, source);
+					},
+					emitChunk(id, options) {
+						emittedFiles.push({ id, name: options && options.name, type: 'chunk' as const });
+						return pluginContext.emitChunk(id, options);
+					},
+					emitFile(emittedFile: EmittedFile) {
+						emittedFiles.push(emittedFile);
+						return pluginDriver.emitFile(emittedFile);
 					},
 					error(err: RollupError | string, pos?: number | { column: number; line: number }): never {
 						if (typeof err === 'string') err = { message: err };
@@ -102,28 +111,6 @@ export default function transform(
 						err.id = id;
 						err.hook = 'transform';
 						return pluginContext.error(err);
-					},
-					emitAsset(name: string, source?: string | Uint8Array) {
-						emittedFiles.push({ type: 'asset' as const, name, source });
-						return pluginContext.emitAsset(name, source);
-					},
-					emitChunk(id, options) {
-						emittedFiles.push({ type: 'chunk' as const, id, name: options && options.name });
-						return pluginContext.emitChunk(id, options);
-					},
-					emitFile(emittedFile: EmittedFile) {
-						emittedFiles.push(emittedFile);
-						return pluginDriver.emitFile(emittedFile);
-					},
-					addWatchFile(id: string) {
-						transformDependencies.push(id);
-						pluginContext.addWatchFile(id);
-					},
-					setAssetSource() {
-						return this.error({
-							code: 'INVALID_SETASSETSOURCE',
-							message: `setAssetSource cannot be called in transform for caching reasons. Use emitFile with a source, or call setAssetSource in another hook.`
-						});
 					},
 					getCombinedSourcemap() {
 						const combinedMap = collapseSourcemap(
@@ -135,7 +122,7 @@ export default function transform(
 						);
 						if (!combinedMap) {
 							const magicString = new MagicString(originalCode);
-							return magicString.generateMap({ includeContent: true, hires: true, source: id });
+							return magicString.generateMap({ hires: true, includeContent: true, source: id });
 						}
 						if (originalSourcemap !== combinedMap) {
 							originalSourcemap = combinedMap;
@@ -143,9 +130,22 @@ export default function transform(
 						}
 						return new SourceMap({
 							...combinedMap,
-							file: null as any,
+							file: null as never,
 							sourcesContent: combinedMap.sourcesContent!
 						});
+					},
+					setAssetSource() {
+						return this.error({
+							code: 'INVALID_SETASSETSOURCE',
+							message: `setAssetSource cannot be called in transform for caching reasons. Use emitFile with a source, or call setAssetSource in another hook.`
+						});
+					},
+					warn(warning: RollupWarning | string, pos?: number | { column: number; line: number }) {
+						if (typeof warning === 'string') warning = { message: warning };
+						if (pos) augmentCodeLocation(warning, pos, curSource, id);
+						warning.id = id;
+						warning.hook = 'transform';
+						pluginContext.warn(warning);
 					}
 				};
 			}

@@ -1,9 +1,9 @@
-import { Bundle as MagicStringBundle } from 'magic-string';
+import { Bundle, Bundle as MagicStringBundle } from 'magic-string';
 import { ChunkDependencies } from '../Chunk';
 import { NormalizedOutputOptions } from '../rollup/types';
-import { FinaliserOptions } from './index';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
+import { FinaliserOptions } from './index';
 
 export default function cjs(
 	magicString: MagicStringBundle,
@@ -29,7 +29,7 @@ export default function cjs(
 		namespaceToStringTag,
 		strict
 	}: NormalizedOutputOptions
-) {
+): Bundle {
 	const n = compact ? '' : '\n';
 	const s = compact ? '' : ';';
 	const _ = compact ? '' : ' ';

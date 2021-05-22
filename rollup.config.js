@@ -1,9 +1,9 @@
+import fs from 'fs';
+import path from 'path';
 import alias from '@rollup/plugin-alias';
 import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
 import resolve from '@rollup/plugin-node-resolve';
-import fs from 'fs';
-import path from 'path';
 import { string } from 'rollup-plugin-string';
 import { terser } from 'rollup-plugin-terser';
 import typescript from 'rollup-plugin-typescript';
@@ -47,12 +47,12 @@ const onwarn = warning => {
 };
 
 const moduleAliases = {
-	resolve: ['.js', '.json', '.md'],
 	entries: [
 		{ find: 'help.md', replacement: path.resolve('cli/help.md') },
 		{ find: 'package.json', replacement: path.resolve('package.json') },
 		{ find: 'acorn', replacement: path.resolve('node_modules/acorn/dist/acorn.mjs') }
-	]
+	],
+	resolve: ['.js', '.json', '.md']
 };
 
 const treeshake = {
@@ -74,17 +74,6 @@ const nodePlugins = [
 export default command => {
 	const { collectLicenses, writeLicense } = getLicenseHandler();
 	const commonJSBuild = {
-		input: {
-			'rollup.js': 'src/node-entry.ts',
-			'loadConfigFile.js': 'cli/run/loadConfigFile.ts'
-		},
-		onwarn,
-		plugins: [
-			...nodePlugins,
-			addCliEntry(),
-			esmDynamicImport(),
-			!command.configTest && collectLicenses()
-		],
 		// fsevents is a dependency of chokidar that cannot be bundled as it contains binary code
 		external: [
 			'assert',
@@ -99,8 +88,11 @@ export default command => {
 			'url',
 			'util'
 		],
-		treeshake,
-		strictDeprecations: true,
+		input: {
+			'loadConfigFile.js': 'cli/run/loadConfigFile.ts',
+			'rollup.js': 'src/node-entry.ts'
+		},
+		onwarn,
 		output: {
 			banner,
 			chunkFileNames: 'shared/[name].js',
@@ -119,7 +111,15 @@ export default command => {
 			},
 			manualChunks: { rollup: ['src/node-entry.ts'] },
 			sourcemap: true
-		}
+		},
+		plugins: [
+			...nodePlugins,
+			addCliEntry(),
+			esmDynamicImport(),
+			!command.configTest && collectLicenses()
+		],
+		strictDeprecations: true,
+		treeshake
 	};
 
 	if (command.configTest) {
@@ -129,19 +129,23 @@ export default command => {
 	const esmBuild = {
 		...commonJSBuild,
 		input: { 'rollup.js': 'src/node-entry.ts' },
-		plugins: [...nodePlugins, emitModulePackageFile(), collectLicenses()],
 		output: {
 			...commonJSBuild.output,
 			dir: 'dist/es',
 			format: 'es',
-			sourcemap: false,
-			minifyInternalExports: false
-		}
+			minifyInternalExports: false,
+			sourcemap: false
+		},
+		plugins: [...nodePlugins, emitModulePackageFile(), collectLicenses()]
 	};
 
 	const browserBuilds = {
 		input: 'src/browser-entry.ts',
 		onwarn,
+		output: [
+			{ banner, file: 'dist/rollup.browser.js', format: 'umd', name: 'rollup', sourcemap: true },
+			{ banner, file: 'dist/es/rollup.browser.js', format: 'es' }
+		],
 		plugins: [
 			replaceBrowserModules(),
 			alias(moduleAliases),
@@ -153,12 +157,8 @@ export default command => {
 			collectLicenses(),
 			writeLicense()
 		],
-		treeshake,
 		strictDeprecations: true,
-		output: [
-			{ file: 'dist/rollup.browser.js', format: 'umd', name: 'rollup', banner, sourcemap: true },
-			{ file: 'dist/es/rollup.browser.js', format: 'es', banner }
-		]
+		treeshake
 	};
 
 	return [commonJSBuild, esmBuild, browserBuilds];

@@ -31,7 +31,7 @@ export default class ExportDefaultVariable extends LocalVariable {
 		}
 	}
 
-	addReference(identifier: Identifier) {
+	addReference(identifier: Identifier): void {
 		if (!this.hasId) {
 			this.name = identifier.name;
 		}
@@ -63,7 +63,7 @@ export default class ExportDefaultVariable extends LocalVariable {
 			: null;
 	}
 
-	getName() {
+	getName(): string {
 		const original = this.getOriginalVariable();
 		if (original === this) {
 			return super.getName();
@@ -74,6 +74,7 @@ export default class ExportDefaultVariable extends LocalVariable {
 
 	getOriginalVariable(): Variable {
 		if (this.originalVariable) return this.originalVariable;
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		let original: Variable | null = this;
 		let currentVariable: Variable;
 		const checkedVariables = new Set<Variable>();

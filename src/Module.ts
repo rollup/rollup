@@ -2,6 +2,8 @@ import * as acorn from 'acorn';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
 import extractAssignedNames from 'rollup-pluginutils/src/extractAssignedNames';
+import ExternalModule from './ExternalModule';
+import Graph from './Graph';
 import { createHasEffectsContext, createInclusionContext } from './ast/ExecutionContext';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
@@ -10,14 +12,14 @@ import Identifier from './ast/nodes/Identifier';
 import ImportDeclaration from './ast/nodes/ImportDeclaration';
 import ImportExpression from './ast/nodes/ImportExpression';
 import ImportSpecifier from './ast/nodes/ImportSpecifier';
-import { nodeConstructors } from './ast/nodes/index';
 import Literal from './ast/nodes/Literal';
 import MetaProperty from './ast/nodes/MetaProperty';
 import * as NodeType from './ast/nodes/NodeType';
 import Program from './ast/nodes/Program';
-import { ExpressionNode, GenericEsTreeNode, NodeBase } from './ast/nodes/shared/Node';
 import TemplateLiteral from './ast/nodes/TemplateLiteral';
 import VariableDeclaration from './ast/nodes/VariableDeclaration';
+import { nodeConstructors } from './ast/nodes/index';
+import { ExpressionNode, GenericEsTreeNode, NodeBase } from './ast/nodes/shared/Node';
 import ModuleScope from './ast/scopes/ModuleScope';
 import { PathTracker, UNKNOWN_PATH } from './ast/utils/PathTracker';
 import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
@@ -26,8 +28,6 @@ import ExternalVariable from './ast/variables/ExternalVariable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import SyntheticNamedExportVariable from './ast/variables/SyntheticNamedExportVariable';
 import Variable from './ast/variables/Variable';
-import ExternalModule from './ExternalModule';
-import Graph from './Graph';
 import {
 	CustomPluginOptions,
 	DecodedSourceMapOrMissing,
@@ -212,7 +212,7 @@ export default class Module {
 	ast: Program | null = null;
 	chunkFileNames = new Set<string>();
 	chunkName: string | null = null;
-	cycles = new Set<Symbol>();
+	cycles = new Set<symbol>();
 	dependencies = new Set<Module | ExternalModule>();
 	dynamicDependencies = new Set<Module | ExternalModule>();
 	dynamicImporters: string[] = [];
@@ -229,8 +229,8 @@ export default class Module {
 	implicitlyLoadedAfter = new Set<Module>();
 	implicitlyLoadedBefore = new Set<Module>();
 	importDescriptions: { [name: string]: ImportDescription } = Object.create(null);
-	importers: string[] = [];
 	importMetas: MetaProperty[] = [];
+	importers: string[] = [];
 	imports = new Set<Variable>();
 	includedDynamicImporters: Module[] = [];
 	info: ModuleInfo;
@@ -278,6 +278,7 @@ export default class Module {
 		this.excludeFromSourcemap = /\0/.test(id);
 		this.context = options.moduleContext(id);
 
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		const module = this;
 		this.info = {
 			ast: null,
@@ -315,14 +316,14 @@ export default class Module {
 		};
 	}
 
-	basename() {
+	basename(): string {
 		const base = basename(this.id);
 		const ext = extname(this.id);
 
 		return makeLegal(ext ? base.slice(0, -ext.length) : base);
 	}
 
-	bindReferences() {
+	bindReferences(): void {
 		this.ast!.bind();
 	}
 
@@ -435,7 +436,7 @@ export default class Module {
 		return (this.exportNamesByVariable = exportNamesByVariable);
 	}
 
-	getExports() {
+	getExports(): string[] {
 		return Object.keys(this.exports);
 	}
 
@@ -462,7 +463,7 @@ export default class Module {
 		return (this.transitiveReexports = [...reexports]);
 	}
 
-	getRenderedExports() {
+	getRenderedExports(): { removedExports: string[]; renderedExports: string[] } {
 		// only direct exports are counted here, not reexports at all
 		const renderedExports: string[] = [];
 		const removedExports: string[] = [];
@@ -470,10 +471,10 @@ export default class Module {
 			const variable = this.getVariableForExportName(exportName);
 			(variable && variable.included ? renderedExports : removedExports).push(exportName);
 		}
-		return { renderedExports, removedExports };
+		return { removedExports, renderedExports };
 	}
 
-	getSyntheticNamespace() {
+	getSyntheticNamespace(): Variable {
 		if (this.syntheticNamespace === null) {
 			this.syntheticNamespace = undefined;
 			this.syntheticNamespace = this.getVariableForExportName(
@@ -598,7 +599,7 @@ export default class Module {
 		return null;
 	}
 
-	hasEffects() {
+	hasEffects(): boolean {
 		return (
 			this.info.hasModuleSideEffects === 'no-treeshake' ||
 			(this.ast!.included && this.ast!.hasEffects(createHasEffectsContext()))
@@ -610,7 +611,7 @@ export default class Module {
 		if (this.ast!.shouldBeIncluded(context)) this.ast!.include(context, false);
 	}
 
-	includeAllExports(includeNamespaceMembers: boolean) {
+	includeAllExports(includeNamespaceMembers: boolean): void {
 		if (!this.isExecuted) {
 			this.graph.needsTreeshakingPass = true;
 			markModuleAndImpureDependenciesAsExecuted(this);
@@ -644,15 +645,15 @@ export default class Module {
 		}
 	}
 
-	includeAllInBundle() {
+	includeAllInBundle(): void {
 		this.ast!.include(createInclusionContext(), true);
 	}
 
-	isIncluded() {
+	isIncluded(): boolean {
 		return this.ast!.included || this.namespace.included;
 	}
 
-	linkImports() {
+	linkImports(): void {
 		this.addModulesToImportDescriptions(this.importDescriptions);
 		this.addModulesToImportDescriptions(this.reexportDescriptions);
 		for (const name in this.exports) {
@@ -701,7 +702,7 @@ export default class Module {
 	}: TransformModuleJSON & {
 		alwaysRemovedCode?: [number, number][];
 		transformFiles?: EmittedFile[] | undefined;
-	}) {
+	}): void {
 		this.info.code = code;
 		this.originalCode = originalCode;
 		this.originalSourcemap = originalSourcemap;
@@ -769,7 +770,7 @@ export default class Module {
 
 		this.scope = new ModuleScope(this.graph.scope, this.astContext);
 		this.namespace = new NamespaceVariable(this.astContext, this.info.syntheticNamedExports);
-		this.ast = new Program(ast, { type: 'Module', context: this.astContext }, this.scope);
+		this.ast = new Program(ast, { context: this.astContext, type: 'Module' }, this.scope);
 		this.info.ast = ast;
 
 		timeEnd('analyse ast', 3);
@@ -851,7 +852,7 @@ export default class Module {
 		meta,
 		moduleSideEffects,
 		syntheticNamedExports
-	}: Partial<PartialNull<ModuleOptions>>) {
+	}: Partial<PartialNull<ModuleOptions>>): void {
 		if (moduleSideEffects != null) {
 			this.info.hasModuleSideEffects = moduleSideEffects;
 		}
@@ -863,7 +864,7 @@ export default class Module {
 		}
 	}
 
-	warn(props: RollupWarning, pos: number) {
+	warn(props: RollupWarning, pos: number): void {
 		this.addLocationToLogProps(props, pos);
 		this.options.onwarn(props);
 	}
@@ -877,7 +878,7 @@ export default class Module {
 		} else if (argument instanceof Literal && typeof argument.value === 'string') {
 			argument = argument.value;
 		}
-		this.dynamicImports.push({ node, resolution: null, argument });
+		this.dynamicImports.push({ argument, node, resolution: null });
 	}
 
 	private addExport(
@@ -899,7 +900,7 @@ export default class Module {
 				const name = node.exported.name;
 				this.reexportDescriptions[name] = {
 					localName: '*',
-					module: null as any, // filled in later,
+					module: null as never, // filled in later,
 					source,
 					start: node.start
 				};
@@ -917,7 +918,7 @@ export default class Module {
 				const name = specifier.exported.name;
 				this.reexportDescriptions[name] = {
 					localName: specifier.local.name,
-					module: null as any, // filled in later,
+					module: null as never, // filled in later,
 					source,
 					start: specifier.start
 				};
@@ -963,7 +964,7 @@ export default class Module {
 				? '*'
 				: (specifier as ImportSpecifier).imported.name;
 			this.importDescriptions[specifier.local.name] = {
-				module: null as any, // filled in later
+				module: null as never, // filled in later
 				name,
 				source,
 				start: specifier.start

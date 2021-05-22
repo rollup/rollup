@@ -1,6 +1,6 @@
+const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
-const assert = require('assert');
 
 module.exports = {
 	description: 'supports emitting assets from plugin hooks',

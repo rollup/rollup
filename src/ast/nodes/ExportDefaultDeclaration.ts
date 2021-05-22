@@ -49,14 +49,14 @@ export default class ExportDefaultDeclaration extends NodeBase {
 
 	private declarationName: string | undefined;
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		super.include(context, includeChildrenRecursively);
 		if (includeChildrenRecursively) {
 			this.context.includeVariableInModule(this.variable);
 		}
 	}
 
-	initialise() {
+	initialise(): void {
 		const declaration = this.declaration as FunctionDeclaration | ClassDeclaration;
 		this.declarationName =
 			(declaration.id && declaration.id.name) || (this.declaration as Identifier).name;
@@ -68,7 +68,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		this.context.addExport(this);
 	}
 
-	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions) {
+	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void {
 		const { start, end } = nodeRenderOptions as { end: number; start: number };
 		const declarationStart = getDeclarationStart(code.original, this.start);
 

@@ -5,12 +5,11 @@ module.exports = {
 	exports(exports) {
 		let triggered1 = false;
 
-			
 		let triggered2 = false;
-		global.obj1.reassigned = function() {
+		global.obj1.reassigned = function () {
 			triggered1 = true;
 		};
-		global.obj2.reassigned = function() {
+		global.obj2.reassigned = function () {
 			triggered2 = true;
 		};
 

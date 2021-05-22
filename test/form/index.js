@@ -1,5 +1,5 @@
-const path = require('path');
 const assert = require('assert');
+const path = require('path');
 const sander = require('sander');
 const rollup = require('../../dist/rollup');
 const { normaliseOutput, runTestSuiteWithSamples } = require('../utils.js');
@@ -20,36 +20,27 @@ runTestSuiteWithSamples('form', path.resolve(__dirname, 'samples'), (dir, config
 					process.chdir(dir);
 					bundle =
 						bundle ||
-						(await rollup.rollup(
-							Object.assign(
-								{
-									input: dir + '/main.js',
-									onwarn: warning => {
-										if (
-											!(
-												config.expectedWarnings &&
-												config.expectedWarnings.indexOf(warning.code) >= 0
-											)
-										) {
-											warnings.push(warning);
-										}
-									},
-									strictDeprecations: true
-								},
-								config.options || {}
-							)
-						));
+						(await rollup.rollup({
+							input: dir + '/main.js',
+							onwarn: warning => {
+								if (
+									!(config.expectedWarnings && config.expectedWarnings.indexOf(warning.code) >= 0)
+								) {
+									warnings.push(warning);
+								}
+							},
+							strictDeprecations: true,
+							...(config.options || {})
+						}));
 					await generateAndTestBundle(
 						bundle,
-						Object.assign(
-							{
-								exports: 'auto',
-								file: inputFile,
-								format: defaultFormat,
-								validate: true
-							},
-							(config.options || {}).output || {}
-						),
+						{
+							exports: 'auto',
+							file: inputFile,
+							format: defaultFormat,
+							validate: true,
+							...((config.options || {}).output || {})
+						},
 						bundleFile,
 						config
 					);

@@ -4,7 +4,7 @@ module.exports = {
 		external: 'external'
 	},
 	context: {
-		require(required) {
+		require() {
 			return false;
 		}
 	}

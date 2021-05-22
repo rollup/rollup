@@ -69,7 +69,7 @@ export default class AssignmentExpression extends NodeBase {
 		code: MagicString,
 		options: RenderOptions,
 		{ preventASI, renderedParentType }: NodeRenderOptions = BLANK
-	) {
+	): void {
 		if (this.left.included) {
 			this.left.render(code, options);
 			this.right.render(code, options);

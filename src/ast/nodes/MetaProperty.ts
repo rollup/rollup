@@ -1,8 +1,8 @@
 import MagicString from 'magic-string';
 import { InternalModuleFormat } from '../../rollup/types';
+import { PluginDriver } from '../../utils/PluginDriver';
 import { warnDeprecation } from '../../utils/error';
 import { dirname, normalize, relative } from '../../utils/path';
-import { PluginDriver } from '../../utils/PluginDriver';
 import ChildScope from '../scopes/ChildScope';
 import { ObjectPathKey } from '../utils/PathTracker';
 import Identifier from './Identifier';
@@ -24,7 +24,7 @@ export default class MetaProperty extends NodeBase {
 	addAccessedGlobals(
 		format: InternalModuleFormat,
 		accessedGlobalsByScope: Map<ChildScope, Set<string>>
-	) {
+	): void {
 		const metaProperty = this.metaProperty;
 		const accessedGlobals = (metaProperty &&
 		(metaProperty.startsWith(FILE_PREFIX) ||
@@ -53,7 +53,7 @@ export default class MetaProperty extends NodeBase {
 		return path.length > 1;
 	}
 
-	include() {
+	include(): void {
 		if (!this.included) {
 			this.included = true;
 			if (this.meta.name === 'import') {

@@ -13,7 +13,7 @@ export default function getExportMode(
 	unsetOptions: Set<string>,
 	facadeModuleId: string,
 	warn: WarningHandler
-) {
+): 'default' | 'named' | 'none' {
 	const exportKeys = chunk.getExportNames();
 
 	if (exportMode === 'default') {

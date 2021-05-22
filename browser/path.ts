@@ -1,24 +1,24 @@
 export const absolutePath = /^(?:\/|(?:[A-Za-z]:)?[\\|/])/;
 export const relativePath = /^\.?\.\//;
 
-export function isAbsolute(path: string) {
+export function isAbsolute(path: string): boolean {
 	return absolutePath.test(path);
 }
 
-export function isRelative(path: string) {
+export function isRelative(path: string): boolean {
 	return relativePath.test(path);
 }
 
-export function normalize(path: string) {
+export function normalize(path: string): string {
 	return path.replace(/\\/g, '/');
 }
 
-export function basename(path: string) {
-	return path.split(/(\/|\\)/).pop();
+export function basename(path: string): string {
+	return path.split(/[/\\]/).pop() || '';
 }
 
-export function dirname(path: string) {
-	const match = /(\/|\\)[^/\\]*$/.exec(path);
+export function dirname(path: string): string {
+	const match = /[/\\][^/\\]*$/.exec(path);
 	if (!match) return '.';
 
 	const dir = path.slice(0, -match[0].length);
@@ -27,13 +27,13 @@ export function dirname(path: string) {
 	return dir ? dir : '/';
 }
 
-export function extname(path: string) {
+export function extname(path: string): string {
 	const match = /\.[^.]+$/.exec(basename(path)!);
 	if (!match) return '';
 	return match[0];
 }
 
-export function relative(from: string, to: string) {
+export function relative(from: string, to: string): string {
 	const fromParts = from.split(/[/\\]/).filter(Boolean);
 	const toParts = to.split(/[/\\]/).filter(Boolean);
 
@@ -57,7 +57,7 @@ export function relative(from: string, to: string) {
 	return toParts.join('/');
 }
 
-export function resolve(...paths: string[]) {
+export function resolve(...paths: string[]): string {
 	const firstPathSegment = paths.shift();
 	if (!firstPathSegment) {
 		return '/';
@@ -77,7 +77,7 @@ export function resolve(...paths: string[]) {
 				}
 			}
 
-			resolvedParts.push.apply(resolvedParts, parts);
+			resolvedParts.push(...parts);
 		}
 	}
 

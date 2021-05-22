@@ -1,7 +1,8 @@
 const assert = require('assert');
 
 module.exports = {
-	description: 'allows overriding imports of external namespace reexports without external live-bindings',
+	description:
+		'allows overriding imports of external namespace reexports without external live-bindings',
 	options: {
 		external: 'path',
 		output: {

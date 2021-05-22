@@ -6,6 +6,11 @@ const REPLACEMENT = "require('../../../src/watch/fsevents-importer').getFsEvents
 export default function conditionalFsEventsImport() {
 	let transformed = false;
 	return {
+		buildEnd(error) {
+			if (!(error || transformed)) {
+				throw new Error('Could not find "fsevents-handler.js", was the file renamed?');
+			}
+		},
 		name: 'conditional-fs-events-import',
 		transform(code, id) {
 			if (id.endsWith('fsevents-handler.js')) {
@@ -21,11 +26,6 @@ export default function conditionalFsEventsImport() {
 					REPLACEMENT
 				);
 				return { code: magicString.toString(), map: magicString.generateMap({ hires: true }) };
-			}
-		},
-		buildEnd(error) {
-			if (!(error || transformed)) {
-				throw new Error('Could not find "fsevents-handler.js", was the file renamed?');
 			}
 		}
 	};

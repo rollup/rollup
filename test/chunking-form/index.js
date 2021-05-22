@@ -15,40 +15,31 @@ runTestSuiteWithSamples('chunking form', path.resolve(__dirname, 'samples'), (di
 					process.chdir(dir);
 					bundle =
 						bundle ||
-						(await rollup.rollup(
-							Object.assign(
-								{
-									input: [dir + '/main.js'],
-									onwarn: warning => {
-										if (
-											!(
-												config.expectedWarnings &&
-												config.expectedWarnings.indexOf(warning.code) >= 0
-											)
-										) {
-											throw new Error(
-												`Unexpected warnings (${warning.code}): ${warning.message}\n` +
-													'If you expect warnings, list their codes in config.expectedWarnings'
-											);
-										}
-									},
-									strictDeprecations: true
-								},
-								config.options || {}
-							)
-						));
+						(await rollup.rollup({
+							input: [dir + '/main.js'],
+							onwarn: warning => {
+								if (
+									!(config.expectedWarnings && config.expectedWarnings.indexOf(warning.code) >= 0)
+								) {
+									throw new Error(
+										`Unexpected warnings (${warning.code}): ${warning.message}\n` +
+											'If you expect warnings, list their codes in config.expectedWarnings'
+									);
+								}
+							},
+							strictDeprecations: true,
+							...(config.options || {})
+						}));
 					await generateAndTestBundle(
 						bundle,
-						Object.assign(
-							{
-								dir: `${dir}/_actual/${format}`,
-								exports: 'auto',
-								format,
-								chunkFileNames: 'generated-[name].js',
-								validate: true
-							},
-							(config.options || {}).output || {}
-						),
+						{
+							dir: `${dir}/_actual/${format}`,
+							exports: 'auto',
+							format,
+							chunkFileNames: 'generated-[name].js',
+							validate: true,
+							...((config.options || {}).output || {})
+						},
 						`${dir}/_expected/${format}`,
 						config
 					);

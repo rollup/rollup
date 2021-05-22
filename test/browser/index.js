@@ -1,5 +1,5 @@
-const fixturify = require('fixturify');
 const { basename, resolve } = require('path');
+const fixturify = require('fixturify');
 const { rollup } = require('../../dist/rollup.browser.js');
 const { assertFilesAreEqual, runTestSuiteWithSamples, compareError } = require('../utils.js');
 

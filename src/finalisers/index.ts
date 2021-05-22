@@ -31,6 +31,6 @@ export type Finaliser = (
 	options: NormalizedOutputOptions
 ) => MagicStringBundle;
 
-export default { system, amd, cjs, es, iife, umd } as {
+export default { amd, cjs, es, iife, system, umd } as {
 	[format: string]: Finaliser;
 };

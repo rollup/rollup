@@ -9,8 +9,8 @@ export interface RollupError extends RollupLogProps {
 export interface RollupWarning extends RollupLogProps {
 	chunkName?: string;
 	cycle?: string[];
-	exporter?: string;
 	exportName?: string;
+	exporter?: string;
 	guess?: string;
 	importer?: string;
 	missing?: string;
@@ -160,8 +160,8 @@ export type EmitFile = (emittedFile: EmittedFile) => string;
 interface ModuleInfo {
 	ast: AcornNode | null;
 	code: string | null;
-	dynamicallyImportedIds: readonly string[];
 	dynamicImporters: readonly string[];
+	dynamicallyImportedIds: readonly string[];
 	hasModuleSideEffects: boolean | 'no-treeshake';
 	id: string;
 	implicitlyLoadedAfterOneOf: readonly string[];
@@ -337,7 +337,9 @@ export type WatchChangeHook = (
  * const myPlugin: PluginImpl<Options> = (options = {}) => { ... }
  * ```
  */
-export type PluginImpl<O extends object = object> = (options?: O) => Plugin;
+export type PluginImpl<O extends Record<string, unknown> = Record<string, unknown>> = (
+	options?: O
+) => Plugin;
 
 export interface OutputBundle {
 	[fileName: string]: OutputAsset | OutputChunk;
@@ -519,8 +521,8 @@ export type SourcemapPathTransformOption = (
 ) => string;
 
 export interface InputOptions {
-	acorn?: Object;
-	acornInjectPlugins?: Function | Function[];
+	acorn?: Record<string | unknown>;
+	acornInjectPlugins?: (() => unknown)[] | (() => unknown);
 	cache?: false | RollupCache;
 	context?: string;
 	experimentalCacheExpiry?: number;
@@ -546,8 +548,8 @@ export interface InputOptions {
 }
 
 export interface NormalizedInputOptions {
-	acorn: Object;
-	acornInjectPlugins: Function[];
+	acorn: Record<string, unknown>;
+	acornInjectPlugins: (() => unknown)[];
 	cache: false | undefined | RollupCache;
 	context: string;
 	experimentalCacheExpiry: number;
@@ -727,11 +729,11 @@ export interface OutputAsset extends PreRenderedAsset {
 }
 
 export interface RenderedModule {
+	code: string | null;
 	originalLength: number;
 	removedExports: string[];
 	renderedExports: string[];
 	renderedLength: number;
-	code: string | null;
 }
 
 export interface PreRenderedChunk {
@@ -812,9 +814,9 @@ export interface ChokidarOptions {
 	depth?: number;
 	disableGlobbing?: boolean;
 	followSymlinks?: boolean;
-	ignored?: any;
 	ignoreInitial?: boolean;
 	ignorePermissionErrors?: boolean;
+	ignored?: any;
 	interval?: number;
 	persistent?: boolean;
 	useFsEvents?: boolean;

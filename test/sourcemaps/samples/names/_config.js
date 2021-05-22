@@ -1,6 +1,6 @@
 const assert = require('assert');
-const getLocation = require('../../getLocation');
 const { SourceMapConsumer } = require('source-map');
+const getLocation = require('../../getLocation');
 
 module.exports = {
 	description: 'names are recovered (https://github.com/rollup/rollup/issues/101)',

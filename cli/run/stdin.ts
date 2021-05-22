@@ -4,18 +4,18 @@ export const stdinName = '-';
 
 let stdinResult: Promise<string> | null = null;
 
-export function stdinPlugin(arg: any): Plugin {
+export function stdinPlugin(arg: unknown): Plugin {
 	const suffix = typeof arg == 'string' && arg.length ? '.' + arg : '';
 	return {
+		load(id) {
+			if (id === stdinName || id.startsWith(stdinName + '.')) {
+				return stdinResult || (stdinResult = readStdin());
+			}
+		},
 		name: 'stdin',
 		resolveId(id) {
 			if (id === stdinName) {
 				return id + suffix;
-			}
-		},
-		load(id) {
-			if (id === stdinName || id.startsWith(stdinName + '.')) {
-				return stdinResult || (stdinResult = readStdin());
 			}
 		}
 	};

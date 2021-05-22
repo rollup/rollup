@@ -79,7 +79,7 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 		return super.hasEffects(context);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
 		return path.length > 1;
 	}
 }

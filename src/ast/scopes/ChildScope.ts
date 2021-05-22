@@ -16,7 +16,7 @@ export default class ChildScope extends Scope {
 		parent.children.push(this);
 	}
 
-	addAccessedDynamicImport(importExpression: ImportExpression) {
+	addAccessedDynamicImport(importExpression: ImportExpression): void {
 		(this.accessedDynamicImports || (this.accessedDynamicImports = new Set())).add(
 			importExpression
 		);
@@ -25,7 +25,10 @@ export default class ChildScope extends Scope {
 		}
 	}
 
-	addAccessedGlobals(globals: string[], accessedGlobalsByScope: Map<ChildScope, Set<string>>) {
+	addAccessedGlobals(
+		globals: string[],
+		accessedGlobalsByScope: Map<ChildScope, Set<string>>
+	): void {
 		const accessedGlobals = accessedGlobalsByScope.get(this) || new Set();
 		for (const name of globals) {
 			accessedGlobals.add(name);
@@ -36,12 +39,12 @@ export default class ChildScope extends Scope {
 		}
 	}
 
-	addNamespaceMemberAccess(name: string, variable: Variable) {
+	addNamespaceMemberAccess(name: string, variable: Variable): void {
 		this.accessedOutsideVariables.set(name, variable);
 		(this.parent as ChildScope).addNamespaceMemberAccess(name, variable);
 	}
 
-	addReturnExpression(expression: ExpressionEntity) {
+	addReturnExpression(expression: ExpressionEntity): void {
 		this.parent instanceof ChildScope && this.parent.addReturnExpression(expression);
 	}
 
@@ -75,7 +78,7 @@ export default class ChildScope extends Scope {
 		format: InternalModuleFormat,
 		exportNamesByVariable: Map<Variable, string[]>,
 		accessedGlobalsByScope: Map<ChildScope, Set<string>>
-	) {
+	): void {
 		const usedNames = new Set<string>();
 		this.addUsedOutsideNames(usedNames, format, exportNamesByVariable, accessedGlobalsByScope);
 		if (this.accessedDynamicImports) {

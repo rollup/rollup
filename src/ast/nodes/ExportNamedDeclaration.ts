@@ -6,8 +6,8 @@ import ExportSpecifier from './ExportSpecifier';
 import FunctionDeclaration from './FunctionDeclaration';
 import Literal from './Literal';
 import * as NodeType from './NodeType';
-import { Node, NodeBase } from './shared/Node';
 import VariableDeclaration from './VariableDeclaration';
+import { Node, NodeBase } from './shared/Node';
 
 export default class ExportNamedDeclaration extends NodeBase {
 	declaration!: FunctionDeclaration | ClassDeclaration | VariableDeclaration | null;
@@ -16,26 +16,26 @@ export default class ExportNamedDeclaration extends NodeBase {
 	specifiers!: ExportSpecifier[];
 	type!: NodeType.tExportNamedDeclaration;
 
-	bind() {
+	bind(): void {
 		// Do not bind specifiers
 		if (this.declaration !== null) this.declaration.bind();
 	}
 
-	hasEffects(context: HasEffectsContext) {
+	hasEffects(context: HasEffectsContext): boolean {
 		return this.declaration !== null && this.declaration.hasEffects(context);
 	}
 
-	initialise() {
+	initialise(): void {
 		this.context.addExport(this);
 	}
 
-	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions) {
+	render(code: MagicString, options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void {
 		const { start, end } = nodeRenderOptions as { end: number; start: number };
 		if (this.declaration === null) {
 			code.remove(start, end);
 		} else {
 			code.remove(this.start, this.declaration.start);
-			(this.declaration as Node).render(code, options, { start, end });
+			(this.declaration as Node).render(code, options, { end, start });
 		}
 	}
 }

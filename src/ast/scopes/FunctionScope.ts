@@ -1,7 +1,7 @@
 import { AstContext } from '../../Module';
 import { InclusionContext } from '../ExecutionContext';
-import { ExpressionNode } from '../nodes/shared/Node';
 import SpreadElement from '../nodes/SpreadElement';
+import { ExpressionNode } from '../nodes/shared/Node';
 import ArgumentsVariable from '../variables/ArgumentsVariable';
 import ThisVariable from '../variables/ThisVariable';
 import ChildScope from './ChildScope';
@@ -17,7 +17,7 @@ export default class FunctionScope extends ReturnValueScope {
 		this.variables.set('this', (this.thisVariable = new ThisVariable(context)));
 	}
 
-	findLexicalBoundary() {
+	findLexicalBoundary(): ChildScope {
 		return this;
 	}
 

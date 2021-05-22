@@ -11,7 +11,7 @@ module.exports = {
 				}
 			},
 			{
-				resolveId(importee, importer) {
+				resolveId() {
 					return 'main';
 				}
 			}

@@ -1,11 +1,11 @@
-import { Bundle as MagicStringBundle } from 'magic-string';
+import { Bundle, Bundle as MagicStringBundle } from 'magic-string';
 import { NormalizedOutputOptions } from '../rollup/types';
-import { FinaliserOptions } from './index';
 import getCompleteAmdId from './shared/getCompleteAmdId';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
 import removeExtensionFromRelativeAmdId from './shared/removeExtensionFromRelativeAmdId';
 import warnOnBuiltins from './shared/warnOnBuiltins';
+import { FinaliserOptions } from './index';
 
 export default function amd(
 	magicString: MagicStringBundle,
@@ -34,7 +34,7 @@ export default function amd(
 		namespaceToStringTag,
 		strict
 	}: NormalizedOutputOptions
-) {
+): Bundle {
 	warnOnBuiltins(warn, dependencies);
 	const deps = dependencies.map(m => `'${removeExtensionFromRelativeAmdId(m.id)}'`);
 	const args = dependencies.map(m => m.name);

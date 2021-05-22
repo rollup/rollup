@@ -6,7 +6,7 @@ module.exports = {
 	options: {
 		plugins: [
 			{
-				resolveId(importee, importer) {
+				resolveId(importee) {
 					return path.basename(importee).replace(/\..+/, '');
 				},
 				load(id) {

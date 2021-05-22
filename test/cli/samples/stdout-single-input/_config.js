@@ -1,4 +1,4 @@
 module.exports = {
 	description: 'bundles a single input to stdout without modifications',
-	command: 'rollup -i main.js -f es -m inline',
+	command: 'rollup -i main.js -f es -m inline'
 };

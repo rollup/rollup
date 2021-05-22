@@ -5,7 +5,9 @@ module.exports = {
 	options: {
 		plugins: [
 			{
-				transform() {}
+				transform() {
+					return null;
+				}
 			}
 		]
 	},

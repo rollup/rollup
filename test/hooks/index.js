@@ -1,8 +1,8 @@
-const path = require('path');
 const assert = require('assert');
+const path = require('path');
 const sander = require('sander');
-const { loader } = require('../utils.js');
 const rollup = require('../../dist/rollup.js');
+const { loader } = require('../utils.js');
 
 const TEMP_DIR = path.join(__dirname, 'tmp');
 
@@ -19,10 +19,7 @@ describe('hooks', () => {
 					}),
 					{
 						outputOptions(options) {
-							const newOptions = Object.assign({}, options, {
-								dir: TEMP_DIR,
-								chunkFileNames: 'chunk.js'
-							});
+							const newOptions = { ...options, dir: TEMP_DIR, chunkFileNames: 'chunk.js' };
 							delete newOptions.file;
 							return newOptions;
 						}
@@ -533,14 +530,14 @@ describe('hooks', () => {
 							const chunk = outputBundle['input.js'];
 
 							// can detect that b has been tree-shaken this way
-							assert.strictEqual(chunk.modules['dep'].renderedExports[0], 'a');
-							assert.strictEqual(chunk.modules['dep'].renderedExports.length, 1);
+							assert.strictEqual(chunk.modules.dep.renderedExports[0], 'a');
+							assert.strictEqual(chunk.modules.dep.renderedExports.length, 1);
 
-							assert.strictEqual(chunk.modules['dep'].removedExports[0], 'b');
-							assert.strictEqual(chunk.modules['dep'].removedExports.length, 1);
+							assert.strictEqual(chunk.modules.dep.removedExports[0], 'b');
+							assert.strictEqual(chunk.modules.dep.removedExports.length, 1);
 
-							assert.strictEqual(chunk.modules['dep'].renderedLength, 10);
-							assert.strictEqual(chunk.modules['dep'].originalLength, 35);
+							assert.strictEqual(chunk.modules.dep.renderedLength, 10);
+							assert.strictEqual(chunk.modules.dep.originalLength, 35);
 						}
 					}
 				]
@@ -1104,10 +1101,12 @@ describe('hooks', () => {
 		return rollup
 			.rollup({
 				input: 'input.js',
-				plugins: [{
-					resolveId: id => id,
-					load: () => `export default 5`
-				}]
+				plugins: [
+					{
+						resolveId: id => id,
+						load: () => `export default 5`
+					}
+				]
 			})
 			.then(bundle => {
 				return bundle.generate({

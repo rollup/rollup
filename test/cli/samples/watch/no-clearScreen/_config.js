@@ -13,5 +13,5 @@ module.exports = {
 	},
 	stderr(stderr) {
 		assert.strictEqual(stderr.slice(0, 10), `${UNDERLINE}rollup`);
-	},
+	}
 };

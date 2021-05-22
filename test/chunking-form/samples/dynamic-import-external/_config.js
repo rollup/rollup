@@ -3,7 +3,7 @@ module.exports = {
 	options: {
 		input: 'main.js',
 		plugins: {
-			resolveDynamicImport(specifier) {
+			resolveDynamicImport() {
 				return false;
 			}
 		}

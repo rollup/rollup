@@ -5,7 +5,7 @@ import { addCommandPluginsToInputOptions } from './commandPlugins';
 import { stdinName } from './stdin';
 
 export default function loadConfigFromCommand(
-	command: any
+	command: Record<string, any>
 ): { options: MergedRollupOptions[]; warnings: BatchWarnings } {
 	const warnings = batchWarnings();
 	if (!command.input && (command.stdin || !process.stdin.isTTY)) {

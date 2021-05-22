@@ -11,7 +11,7 @@ export default class Program extends NodeBase {
 
 	private hasCachedEffect = false;
 
-	hasEffects(context: HasEffectsContext) {
+	hasEffects(context: HasEffectsContext): boolean {
 		// We are caching here to later more efficiently identify side-effect-free modules
 		if (this.hasCachedEffect) return true;
 		for (const node of this.body) {
@@ -22,7 +22,7 @@ export default class Program extends NodeBase {
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		for (const node of this.body) {
 			if (includeChildrenRecursively || node.shouldBeIncluded(context)) {
@@ -31,7 +31,7 @@ export default class Program extends NodeBase {
 		}
 	}
 
-	render(code: MagicString, options: RenderOptions) {
+	render(code: MagicString, options: RenderOptions): void {
 		if (this.body.length) {
 			renderStatementList(this.body, code, this.start, this.end, options);
 		} else {

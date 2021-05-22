@@ -50,7 +50,6 @@ import PropertyDefinition from './PropertyDefinition';
 import RestElement from './RestElement';
 import ReturnStatement from './ReturnStatement';
 import SequenceExpression from './SequenceExpression';
-import { NodeBase } from './shared/Node';
 import SpreadElement from './SpreadElement';
 import Super from './Super';
 import SwitchCase from './SwitchCase';
@@ -68,6 +67,7 @@ import VariableDeclaration from './VariableDeclaration';
 import VariableDeclarator from './VariableDeclarator';
 import WhileStatement from './WhileStatement';
 import YieldExpression from './YieldExpression';
+import { NodeBase } from './shared/Node';
 
 export const nodeConstructors: {
 	[name: string]: typeof NodeBase;

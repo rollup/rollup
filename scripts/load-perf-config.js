@@ -1,5 +1,5 @@
-const path = require('path');
 const fs = require('fs');
+const path = require('path');
 const rollup = require('../dist/rollup.js');
 
 exports.targetDir = path.resolve(__dirname, '..', 'perf');
@@ -16,8 +16,8 @@ try {
 
 exports.loadPerfConfig = async () => {
 	const bundle = await rollup.rollup({
-		input: configFile,
 		external: id => (id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5, id.length) === '.json',
+		input: configFile,
 		onwarn: warning => console.error(warning.message)
 	});
 	let config = loadConfigFromCode((await bundle.generate({ format: 'cjs' })).output[0].code);

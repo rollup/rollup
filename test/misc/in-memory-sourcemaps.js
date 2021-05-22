@@ -1,9 +1,9 @@
 const assert = require('assert');
 const path = require('path');
+const { getLocator } = require('locate-character');
+const { SourceMapConsumer } = require('source-map');
 const rollup = require('../../dist/rollup');
 const { loader } = require('../utils.js');
-const { SourceMapConsumer } = require('source-map');
-const { getLocator } = require('locate-character');
 
 describe('in-memory sourcemaps', () => {
 	it('generates an in-memory sourcemap', async () => {

@@ -1,6 +1,12 @@
-import { CustomPluginOptions, Plugin, PluginContext, ResolvedId } from '../rollup/types';
-import { BLANK } from './blank';
+import {
+	CustomPluginOptions,
+	Plugin,
+	PluginContext,
+	ResolvedId,
+	ResolveIdResult
+} from '../rollup/types';
 import { PluginDriver, ReplaceContext } from './PluginDriver';
+import { BLANK } from './blank';
 
 export function resolveIdViaPlugins(
 	source: string,
@@ -14,7 +20,7 @@ export function resolveIdViaPlugins(
 	) => Promise<ResolvedId | null>,
 	skip: { importer: string | undefined; plugin: Plugin; source: string }[] | null,
 	customOptions: CustomPluginOptions | undefined
-) {
+): Promise<ResolveIdResult> {
 	let skipped: Set<Plugin> | null = null;
 	let replaceContext: ReplaceContext | null = null;
 	if (skip) {

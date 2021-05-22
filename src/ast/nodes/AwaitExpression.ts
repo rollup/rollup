@@ -8,11 +8,11 @@ export default class AwaitExpression extends NodeBase {
 	argument!: ExpressionNode;
 	type!: NodeType.tAwaitExpression;
 
-	hasEffects(context: HasEffectsContext) {
+	hasEffects(context: HasEffectsContext): boolean {
 		return !context.ignore.returnAwaitYield || this.argument.hasEffects(context);
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!this.included) {
 			this.included = true;
 			checkTopLevelAwait: if (!this.context.usesTopLevelAwait) {

@@ -8,11 +8,11 @@ export default class ArgumentsVariable extends LocalVariable {
 		super('arguments', null, UNKNOWN_EXPRESSION, context);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
 		return path.length > 1;
 	}
 
-	hasEffectsWhenAssignedAtPath() {
+	hasEffectsWhenAssignedAtPath(): boolean {
 		return true;
 	}
 

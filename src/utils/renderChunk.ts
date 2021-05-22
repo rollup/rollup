@@ -5,8 +5,8 @@ import {
 	RenderedChunk,
 	SourceMapInput
 } from '../rollup/types';
-import { decodedSourcemap } from './decodedSourcemap';
 import { PluginDriver } from './PluginDriver';
+import { decodedSourcemap } from './decodedSourcemap';
 
 export default function renderChunk({
 	code,

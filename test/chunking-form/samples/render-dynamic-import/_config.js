@@ -13,8 +13,9 @@ module.exports = {
 			renderDynamicImport({ customResolution, format, moduleId, targetModuleId }) {
 				return {
 					left: `${format}SpecialHandler(`,
-					right: `, '${path.relative(__dirname, moduleId)}', '${targetModuleId &&
-						path.relative(__dirname, targetModuleId)}', ${customResolution})`
+					right: `, '${path.relative(__dirname, moduleId)}', '${
+						targetModuleId && path.relative(__dirname, targetModuleId)
+					}', ${customResolution})`
 				};
 			}
 		}

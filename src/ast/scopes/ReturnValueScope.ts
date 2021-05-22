@@ -6,7 +6,7 @@ export default class ReturnValueScope extends ParameterScope {
 	private returnExpression: ExpressionEntity | null = null;
 	private returnExpressions: ExpressionEntity[] = [];
 
-	addReturnExpression(expression: ExpressionEntity) {
+	addReturnExpression(expression: ExpressionEntity): void {
 		this.returnExpressions.push(expression);
 	}
 

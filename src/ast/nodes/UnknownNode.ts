@@ -2,11 +2,11 @@ import { InclusionContext } from '../ExecutionContext';
 import { NodeBase } from './shared/Node';
 
 export default class UnknownNode extends NodeBase {
-	hasEffects() {
+	hasEffects(): boolean {
 		return true;
 	}
 
-	include(context: InclusionContext) {
+	include(context: InclusionContext): void {
 		super.include(context, true);
 	}
 }

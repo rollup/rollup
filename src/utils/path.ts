@@ -1,15 +1,15 @@
 const absolutePath = /^(?:\/|(?:[A-Za-z]:)?[\\|/])/;
 const relativePath = /^\.?\.\//;
 
-export function isAbsolute(path: string) {
+export function isAbsolute(path: string): boolean {
 	return absolutePath.test(path);
 }
 
-export function isRelative(path: string) {
+export function isRelative(path: string): boolean {
 	return relativePath.test(path);
 }
 
-export function normalize(path: string) {
+export function normalize(path: string): string {
 	if (path.indexOf('\\') == -1) return path;
 	return path.replace(/\\/g, '/');
 }

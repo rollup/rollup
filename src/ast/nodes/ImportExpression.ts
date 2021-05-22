@@ -2,11 +2,11 @@ import MagicString from 'magic-string';
 import ExternalModule from '../../ExternalModule';
 import Module from '../../Module';
 import { GetInterop, NormalizedOutputOptions } from '../../rollup/types';
+import { PluginDriver } from '../../utils/PluginDriver';
 import {
 	getDefaultOnlyHelper,
 	namespaceInteropHelpersByInteropType
 } from '../../utils/interopHelpers';
-import { PluginDriver } from '../../utils/PluginDriver';
 import { findFirstOccurrenceOutsideComment, RenderOptions } from '../../utils/renderHelpers';
 import { InclusionContext } from '../ExecutionContext';
 import ChildScope from '../scopes/ChildScope';
@@ -31,7 +31,7 @@ export default class ImportExpression extends NodeBase {
 		return true;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!this.included) {
 			this.included = true;
 			this.context.includeDynamicImport(this);
@@ -40,11 +40,11 @@ export default class ImportExpression extends NodeBase {
 		this.source.include(context, includeChildrenRecursively);
 	}
 
-	initialise() {
+	initialise(): void {
 		this.context.addDynamicImport(this);
 	}
 
-	render(code: MagicString, options: RenderOptions) {
+	render(code: MagicString, options: RenderOptions): void {
 		if (this.inlineNamespace) {
 			const _ = options.compact ? '' : ' ';
 			const s = options.compact ? '' : ';';
@@ -72,7 +72,7 @@ export default class ImportExpression extends NodeBase {
 		resolution: string,
 		namespaceExportName: string | false | undefined,
 		options: NormalizedOutputOptions
-	) {
+	): void {
 		code.overwrite(this.source.start, this.source.end, resolution);
 		if (namespaceExportName) {
 			const _ = options.compact ? '' : ' ';
@@ -108,7 +108,7 @@ export default class ImportExpression extends NodeBase {
 		}
 	}
 
-	setInternalResolution(inlineNamespace: NamespaceVariable) {
+	setInternalResolution(inlineNamespace: NamespaceVariable): void {
 		this.inlineNamespace = inlineNamespace;
 	}
 
@@ -135,7 +135,7 @@ export default class ImportExpression extends NodeBase {
 				const _ = options.compact ? '' : ' ';
 				const s = options.compact ? '' : ';';
 				const leftStart = `Promise.resolve().then(function${_}()${_}{${_}return`;
-				const helper = this.getInteropHelper(resolution, exportMode, options.interop);
+				const helper = getInteropHelper(resolution, exportMode, options.interop);
 				return {
 					helper,
 					mechanism: helper
@@ -153,7 +153,7 @@ export default class ImportExpression extends NodeBase {
 				const _ = options.compact ? '' : ' ';
 				const resolve = options.compact ? 'c' : 'resolve';
 				const reject = options.compact ? 'e' : 'reject';
-				const helper = this.getInteropHelper(resolution, exportMode, options.interop);
+				const helper = getInteropHelper(resolution, exportMode, options.interop);
 				const resolveNamespace = helper
 					? `function${_}(m)${_}{${_}${resolve}(/*#__PURE__*/${helper}(m));${_}}`
 					: resolve;
@@ -186,20 +186,20 @@ export default class ImportExpression extends NodeBase {
 		}
 		return { helper: null, mechanism: null };
 	}
+}
 
-	private getInteropHelper(
-		resolution: Module | ExternalModule | string | null,
-		exportMode: 'none' | 'named' | 'default' | 'external',
-		interop: GetInterop
-	): string | null {
-		return exportMode === 'external'
-			? namespaceInteropHelpersByInteropType[
-					String(interop(resolution instanceof ExternalModule ? resolution.id : null))
-			  ]
-			: exportMode === 'default'
-			? getDefaultOnlyHelper()
-			: null;
-	}
+function getInteropHelper(
+	resolution: Module | ExternalModule | string | null,
+	exportMode: 'none' | 'named' | 'default' | 'external',
+	interop: GetInterop
+): string | null {
+	return exportMode === 'external'
+		? namespaceInteropHelpersByInteropType[
+				String(interop(resolution instanceof ExternalModule ? resolution.id : null))
+		  ]
+		: exportMode === 'default'
+		? getDefaultOnlyHelper()
+		: null;
 }
 
 const accessedImportGlobals: Record<string, string[]> = {

@@ -1,7 +1,7 @@
 import ExternalModule from '../ExternalModule';
 import Module from '../Module';
 
-export function markModuleAndImpureDependenciesAsExecuted(baseModule: Module) {
+export function markModuleAndImpureDependenciesAsExecuted(baseModule: Module): void {
 	baseModule.isExecuted = true;
 	const modules = [baseModule];
 	const visitedModules = new Set<string>();

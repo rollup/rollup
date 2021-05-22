@@ -3,7 +3,7 @@ module.exports = {
 	options: {
 		plugins: [
 			{
-				renderChunk(code) {
+				renderChunk() {
 					return '/* first plugin */';
 				}
 			},

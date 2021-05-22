@@ -1,6 +1,6 @@
 import { error } from '../src/utils/error';
 
-export const throwNoFileSystem = (method: string) => (..._args: any[]): never => {
+export const throwNoFileSystem = (method: string) => (): never => {
 	error({
 		code: 'NO_FS_IN_BROWSER',
 		message: `Cannot access the file system (via "${method}") when using the browser build of Rollup. Make sure you supply a plugin with custom resolveId and load hooks to Rollup.`,

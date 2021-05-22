@@ -3,7 +3,7 @@ import { DecodedSourceMapOrMissing, ExistingDecodedSourceMap } from '../rollup/t
 export function getOriginalLocation(
 	sourcemapChain: DecodedSourceMapOrMissing[],
 	location: { column: number; line: number; name?: string; source?: string }
-) {
+): { column: number; line: number } {
 	// This cast is guaranteed. If it were a missing Map, it wouldn't have a mappings.
 	const filteredSourcemapChain = sourcemapChain.filter(
 		sourcemap => sourcemap.mappings

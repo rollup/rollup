@@ -16,7 +16,7 @@ module.exports = {
 		}
 	],
 	context: {
-		require(x) {
+		require() {
 			return 42;
 		}
 	}

@@ -21,7 +21,7 @@ module.exports = {
 		}
 	},
 	context: {
-		require(id) {
+		require() {
 			return { foo: 42 };
 		}
 	}

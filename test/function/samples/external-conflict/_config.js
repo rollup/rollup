@@ -6,7 +6,7 @@ module.exports = {
 		external: (_id, parent) => parent === 'dep',
 		plugins: [
 			{
-				resolveId(id, parent) {
+				resolveId(id) {
 					if (id === 'dep') return id;
 				},
 				load(id) {

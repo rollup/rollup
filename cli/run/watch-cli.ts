@@ -1,7 +1,7 @@
+import fs from 'fs';
 import chokidar from 'chokidar';
 import { bold, cyan, green, underline } from 'colorette';
 import dateTime from 'date-time';
-import fs from 'fs';
 import ms from 'pretty-ms';
 import onExit from 'signal-exit';
 import * as rollup from '../../src/node-entry';
@@ -15,7 +15,7 @@ import loadConfigFromCommand from './loadConfigFromCommand';
 import { getResetScreen } from './resetScreen';
 import { printTimings } from './timings';
 
-export async function watch(command: any) {
+export async function watch(command: Record<string, any>): Promise<void> {
 	process.env.ROLLUP_WATCH = 'true';
 	const isTTY = process.stderr.isTTY;
 	const silent = command.silent;
@@ -32,7 +32,7 @@ export async function watch(command: any) {
 		process.stdin.resume();
 	}
 
-	if (configFile) {
+	async function loadConfigFromFileAndTrack(configFile: string) {
 		let reloadingConfig = false;
 		let aborted = false;
 		let configFileData: string | null = null;
@@ -42,7 +42,7 @@ export async function watch(command: any) {
 
 		async function reloadConfigFile() {
 			try {
-				const newConfigFileData = fs.readFileSync(configFile!, 'utf-8');
+				const newConfigFileData = fs.readFileSync(configFile, 'utf-8');
 				if (newConfigFileData === configFileData) {
 					return;
 				}
@@ -55,7 +55,7 @@ export async function watch(command: any) {
 				}
 				configFileData = newConfigFileData;
 				reloadingConfig = true;
-				({ options: configs, warnings } = await loadAndParseConfigFile(configFile!, command));
+				({ options: configs, warnings } = await loadAndParseConfigFile(configFile, command));
 				reloadingConfig = false;
 				if (aborted) {
 					aborted = false;
@@ -72,12 +72,15 @@ export async function watch(command: any) {
 				handleError(err, true);
 			}
 		}
+	}
+
+	if (configFile) {
+		await loadConfigFromFileAndTrack(configFile);
 	} else {
 		({ options: configs, warnings } = await loadConfigFromCommand(command));
 		start(configs);
 	}
 
-	// tslint:disable-next-line:no-unnecessary-type-assertion
 	const resetScreen = getResetScreen(configs!, isTTY);
 
 	function start(configs: MergedRollupOptions[]) {

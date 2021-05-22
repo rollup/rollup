@@ -23,5 +23,5 @@ module.exports = {
 				`${COLOR}//→ assets/asset-74b448a5:${STANDARD}\n` +
 				'Hello'
 		);
-	},
+	}
 };

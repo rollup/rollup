@@ -1,5 +1,5 @@
-const { assertIncludes } = require('../../../../utils.js');
 const path = require('path');
+const { assertIncludes } = require('../../../../utils.js');
 
 module.exports = {
 	description: 'Throws when the plugin export cannot be found',
