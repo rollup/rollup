@@ -1,12 +1,6 @@
 import * as acorn from 'acorn';
 import { BaseWalker, base as basicWalker } from 'acorn-walk';
-import {
-	CallExpression,
-	ChainExpression,
-	ExpressionStatement,
-	NewExpression
-} from '../ast/nodes/NodeType';
-import { Annotation } from '../ast/nodes/shared/Node';
+import { ChainExpression, ExpressionStatement } from '../ast/nodes/NodeType';
 
 // patch up acorn-walk until class-fields are officially supported
 basicWalker.PropertyDefinition = function (node: any, st: any, c: any) {
@@ -58,22 +52,41 @@ function handlePureAnnotationsOfNode(
 }
 
 function markPureNode(
-	node: acorn.Node & { _rollupAnnotations?: Annotation[] },
+	node: acorn.Node & { _rollupAnnotations?: acorn.Comment[] },
 	comment: acorn.Comment
 ) {
-	if (node._rollupAnnotations) {
-		node._rollupAnnotations.push({ comment });
-	} else {
-		node._rollupAnnotations = [{ comment }];
+	const annotatedNodes = [];
+	while (true) {
+		annotatedNodes.push(node);
+		switch (node.type) {
+			case ExpressionStatement:
+			case ChainExpression:
+				node = (node as any).expression;
+				continue;
+			// case SequenceExpression:
+			// 	// TODO Lukas check of parens
+			// 	console.log(
+			// 		'associate sequence expression',
+			// 		node.start,
+			// 		(node as any).expressions[0].start
+			// 	);
+			// 	node = (node as any).expressions[0];
+			// 	continue;
+			// case CallExpression:
+			// case NewExpression:
+			// 	// TODO Lukas those are good ones
+			// 	break;
+			// default:
+			// TODO Lukas here, just remove all annotated nodes and mark the comment as to be removed
+		}
+		// TODO Lukas collect them and add them to "always removed code"
+		break;
 	}
-	while (node.type === ExpressionStatement || node.type === ChainExpression) {
-		node = (node as any).expression;
-	}
-	if (node.type === CallExpression || node.type === NewExpression) {
+	for (const node of annotatedNodes) {
 		if (node._rollupAnnotations) {
-			node._rollupAnnotations.push({ pure: true });
+			node._rollupAnnotations.push(comment);
 		} else {
-			node._rollupAnnotations = [{ pure: true }];
+			node._rollupAnnotations = [comment];
 		}
 	}
 }

@@ -21,13 +21,9 @@ export interface GenericEsTreeNode extends acorn.Node {
 
 export const INCLUDE_PARAMETERS = 'variables' as const;
 export type IncludeChildren = boolean | typeof INCLUDE_PARAMETERS;
-export interface Annotation {
-	comment?: acorn.Comment;
-	pure?: boolean;
-}
 
 export interface Node extends Entity {
-	annotations?: Annotation[];
+	annotations?: acorn.Comment[];
 	context: AstContext;
 	end: number;
 	esTreeNode: GenericEsTreeNode;
@@ -87,7 +83,7 @@ export type StatementNode = Node;
 export interface ExpressionNode extends ExpressionEntity, Node {}
 
 export class NodeBase extends ExpressionEntity implements ExpressionNode {
-	annotations?: Annotation[];
+	annotations?: acorn.Comment[];
 	context: AstContext;
 	end!: number;
 	esTreeNode: acorn.Node;
