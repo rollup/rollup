@@ -24,7 +24,7 @@ export interface ObjectProperty {
 	property: ExpressionEntity;
 }
 
-interface PropertyMap {
+export interface PropertyMap {
 	[key: string]: ExpressionEntity[];
 }
 const INTEGER_REG_EXP = /^\d+$/;

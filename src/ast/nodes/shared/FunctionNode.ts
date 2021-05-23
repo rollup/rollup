@@ -87,7 +87,9 @@ export default class FunctionNode extends NodeBase {
 		const thisInit = context.replacedVariableInits.get(this.scope.thisVariable);
 		context.replacedVariableInits.set(
 			this.scope.thisVariable,
-			callOptions.withNew ? new ObjectEntity({}, OBJECT_PROTOTYPE) : UNKNOWN_EXPRESSION
+			callOptions.withNew
+				? new ObjectEntity(Object.create(null), OBJECT_PROTOTYPE)
+				: UNKNOWN_EXPRESSION
 		);
 		const { brokenFlow, ignore } = context;
 		context.ignore = {

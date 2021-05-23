@@ -8,7 +8,7 @@ import {
 	METHOD_RETURNS_STRING,
 	METHOD_RETURNS_UNKNOWN
 } from './MethodTypes';
-import { ObjectEntity, ObjectProperty } from './ObjectEntity';
+import { ObjectEntity, ObjectProperty, PropertyMap } from './ObjectEntity';
 import { OBJECT_PROTOTYPE } from './ObjectPrototype';
 
 const NEW_ARRAY_PROPERTIES: ObjectProperty[] = [
@@ -107,7 +107,8 @@ const METHOD_CALLS_ARG_MUTATES_SELF_RETURNS_SELF: [ExpressionEntity] = [
 ];
 
 export const ARRAY_PROTOTYPE = new ObjectEntity(
-	{
+	({
+		__proto__: null,
 		// We assume that accessors have effects as we do not track the accessed value afterwards
 		at: METHOD_MUTATES_SELF_RETURNS_UNKNOWN,
 		concat: METHOD_RETURNS_NEW_ARRAY,
@@ -137,6 +138,6 @@ export const ARRAY_PROTOTYPE = new ObjectEntity(
 		splice: METHOD_MUTATES_SELF_RETURNS_NEW_ARRAY,
 		unshift: METHOD_MUTATES_SELF_RETURNS_NUMBER,
 		values: METHOD_MUTATES_SELF_RETURNS_UNKNOWN
-	},
+	} as unknown) as PropertyMap,
 	OBJECT_PROTOTYPE
 );
