@@ -187,8 +187,8 @@ const getModuleContext = (
 	}
 	if (configModuleContext) {
 		const contextByModuleId = Object.create(null);
-		for (const key of Object.keys(configModuleContext)) {
-			contextByModuleId[resolve(key)] = configModuleContext[key];
+		for (const [key, moduleContext] of Object.entries(configModuleContext)) {
+			contextByModuleId[resolve(key)] = moduleContext;
 		}
 		return id => contextByModuleId[id] || context;
 	}

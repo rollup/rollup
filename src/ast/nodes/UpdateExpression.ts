@@ -1,6 +1,9 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
-import { getSystemExportFunctionLeft, getSystemExportStatement } from '../../utils/systemJsRendering';
+import {
+	getSystemExportFunctionLeft,
+	getSystemExportStatement
+} from '../../utils/systemJsRendering';
 import { HasEffectsContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath } from '../utils/PathTracker';
 import Identifier from './Identifier';
@@ -12,17 +15,10 @@ export default class UpdateExpression extends NodeBase {
 	operator!: '++' | '--';
 	prefix!: boolean;
 	type!: NodeType.tUpdateExpression;
-
-	bind() {
-		super.bind();
-		this.argument.deoptimizePath(EMPTY_PATH);
-		if (this.argument instanceof Identifier) {
-			const variable = this.scope.findVariable(this.argument.name);
-			variable.isReassigned = true;
-		}
-	}
+	protected deoptimized = false;
 
 	hasEffects(context: HasEffectsContext): boolean {
+		if (!this.deoptimized) this.applyDeoptimizations();
 		return (
 			this.argument.hasEffects(context) ||
 			this.argument.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context)
@@ -81,6 +77,15 @@ export default class UpdateExpression extends NodeBase {
 					);
 				}
 			}
+		}
+	}
+
+	protected applyDeoptimizations() {
+		this.deoptimized = true;
+		this.argument.deoptimizePath(EMPTY_PATH);
+		if (this.argument instanceof Identifier) {
+			const variable = this.scope.findVariable(this.argument.name);
+			variable.isReassigned = true;
 		}
 	}
 }

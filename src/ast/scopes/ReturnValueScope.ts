@@ -1,6 +1,5 @@
-import { ExpressionEntity } from '../nodes/shared/Expression';
+import { ExpressionEntity, UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
-import { UNKNOWN_EXPRESSION } from '../values';
 import ParameterScope from './ParameterScope';
 
 export default class ReturnValueScope extends ParameterScope {

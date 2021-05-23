@@ -52,6 +52,7 @@ export default class TaggedTemplateExpression extends NodeBase {
 	initialise() {
 		this.callOptions = {
 			args: NO_ARGS,
+			thisParam: null,
 			withNew: false,
 		};
 	}

@@ -6,14 +6,14 @@ import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { NodeEvent } from '../NodeEvents';
 import FunctionScope from '../scopes/FunctionScope';
 import { EMPTY_PATH, ObjectPath, PathTracker } from '../utils/PathTracker';
-import { LiteralValueOrUnknown } from '../values';
 import GlobalVariable from '../variables/GlobalVariable';
 import LocalVariable from '../variables/LocalVariable';
 import Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
-import { ExpressionEntity } from './shared/Expression';
+import { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 import SpreadElement from './SpreadElement';
@@ -25,7 +25,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 	type!: NodeType.tIdentifier;
 
 	variable: Variable | null = null;
-	private bound = false;
+	protected deoptimized = false;
 
 	addExportedVariables(
 		variables: Variable[],
@@ -37,18 +37,9 @@ export default class Identifier extends NodeBase implements PatternNode {
 	}
 
 	bind() {
-		if (this.bound) return;
-		this.bound = true;
 		if (this.variable === null && isReference(this, this.parent as any)) {
 			this.variable = this.scope.findVariable(this.name);
 			this.variable.addReference(this);
-		}
-		if (
-			this.variable !== null &&
-			this.variable instanceof LocalVariable &&
-			this.variable.additionalInitializers !== null
-		) {
-			this.variable.consolidateInitializers();
 		}
 	}
 
@@ -79,11 +70,19 @@ export default class Identifier extends NodeBase implements PatternNode {
 	}
 
 	deoptimizePath(path: ObjectPath) {
-		if (!this.bound) this.bind();
 		if (path.length === 0 && !this.scope.contains(this.name)) {
 			this.disallowImportReassignment();
 		}
 		this.variable!.deoptimizePath(path);
+	}
+
+	deoptimizeThisOnEventAtPath(
+		event: NodeEvent,
+		path: ObjectPath,
+		thisParameter: ExpressionEntity,
+		recursionTracker: PathTracker
+	) {
+		this.variable!.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
 	}
 
 	getLiteralValueAtPath(
@@ -91,20 +90,25 @@ export default class Identifier extends NodeBase implements PatternNode {
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		if (!this.bound) this.bind();
 		return this.variable!.getLiteralValueAtPath(path, recursionTracker, origin);
 	}
 
 	getReturnExpressionWhenCalledAtPath(
 		path: ObjectPath,
+		callOptions: CallOptions,
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
-	) {
-		if (!this.bound) this.bind();
-		return this.variable!.getReturnExpressionWhenCalledAtPath(path, recursionTracker, origin);
+	): ExpressionEntity {
+		return this.variable!.getReturnExpressionWhenCalledAtPath(
+			path,
+			callOptions,
+			recursionTracker,
+			origin
+		);
 	}
 
 	hasEffects(): boolean {
+		if (!this.deoptimized) this.applyDeoptimizations();
 		return (
 			(this.context.options.treeshake as NormalizedTreeshakingOptions).unknownGlobalSideEffects &&
 			this.variable instanceof GlobalVariable &&
@@ -129,6 +133,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 	}
 
 	include() {
+		if (!this.deoptimized) this.applyDeoptimizations();
 		if (!this.included) {
 			this.included = true;
 			if (this.variable !== null) {
@@ -139,12 +144,6 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
 		this.variable!.includeCallArguments(context, args);
-	}
-
-	mayModifyThisWhenCalledAtPath(path: ObjectPath, recursionTracker: PathTracker) {
-		return this.variable
-			? this.variable.mayModifyThisWhenCalledAtPath(path, recursionTracker)
-			: true;
 	}
 
 	render(
@@ -172,6 +171,16 @@ export default class Identifier extends NodeBase implements PatternNode {
 			) {
 				code.appendRight(this.start, '0, ');
 			}
+		}
+	}
+
+	protected applyDeoptimizations() {
+		this.deoptimized = true;
+		if (
+			this.variable !== null &&
+			this.variable instanceof LocalVariable
+		) {
+			this.variable.consolidateInitializers();
 		}
 	}
 

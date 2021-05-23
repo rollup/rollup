@@ -1,3 +1,13 @@
+// retained
+true.valueOf().unknown.unknown();
+true.valueOf()();
+(1).valueOf().unknown.unknown();
+(1).valueOf().unknown();
+(1).valueOf()[globalThis.unknown]();
+(1).valueOf()();
+'ab'.charAt(1).unknown.unknown();
+'ab'.charAt(1)();
+null.unknown;
 'ab'.replace( 'a', () => console.log( 1 ) || 'b' );
 
 // deep property access is forbidden

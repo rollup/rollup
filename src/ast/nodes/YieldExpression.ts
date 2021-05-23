@@ -9,15 +9,10 @@ export default class YieldExpression extends NodeBase {
 	argument!: ExpressionNode | null;
 	delegate!: boolean;
 	type!: NodeType.tYieldExpression;
-
-	bind() {
-		super.bind();
-		if (this.argument !== null) {
-			this.argument.deoptimizePath(UNKNOWN_PATH);
-		}
-	}
+	protected deoptimized = false;
 
 	hasEffects(context: HasEffectsContext) {
+		if (!this.deoptimized) this.applyDeoptimizations();
 		return (
 			!context.ignore.returnAwaitYield ||
 			(this.argument !== null && this.argument.hasEffects(context))
@@ -31,5 +26,10 @@ export default class YieldExpression extends NodeBase {
 				code.prependLeft(this.start + 5, ' ');
 			}
 		}
+	}
+
+	protected applyDeoptimizations() {
+		this.deoptimized = true;
+		this.argument?.deoptimizePath(UNKNOWN_PATH);
 	}
 }

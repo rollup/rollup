@@ -10,10 +10,11 @@ import { treeshakeNode } from '../../utils/treeshakeNode';
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { EVENT_CALLED, NodeEvent } from '../NodeEvents';
 import { ObjectPath, PathTracker } from '../utils/PathTracker';
-import { LiteralValueOrUnknown } from '../values';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
+import { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 
 export default class SequenceExpression extends NodeBase {
@@ -22,6 +23,17 @@ export default class SequenceExpression extends NodeBase {
 
 	deoptimizePath(path: ObjectPath) {
 		if (path.length > 0) this.expressions[this.expressions.length - 1].deoptimizePath(path);
+	}
+
+	deoptimizeThisOnEventAtPath(
+		event: NodeEvent,
+		path: ObjectPath,
+		thisParameter: ExpressionEntity,
+		recursionTracker: PathTracker
+	) {
+		if (event === EVENT_CALLED || path.length > 0) {
+			this.expressions[this.expressions.length - 1].deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
+		}
 	}
 
 	getLiteralValueAtPath(

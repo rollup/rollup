@@ -1,8 +1,8 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { ObjectPath } from '../utils/PathTracker';
-import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import * as NodeType from './NodeType';
+import { LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import TemplateElement from './TemplateElement';
 

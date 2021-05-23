@@ -1,18 +1,58 @@
 import { AstContext } from '../../Module';
-import { CallOptions } from '../CallOptions';
 import { HasEffectsContext } from '../ExecutionContext';
-import { ExpressionEntity } from '../nodes/shared/Expression';
-import { ObjectPath } from '../utils/PathTracker';
-import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../values';
+import { NodeEvent } from '../NodeEvents';
+import { ExpressionEntity, UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
+import { ObjectPath, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
 import LocalVariable from './LocalVariable';
 
+interface ThisDeoptimizationEvent {
+	event: NodeEvent;
+	path: ObjectPath;
+	thisParameter: ExpressionEntity;
+}
+
 export default class ThisVariable extends LocalVariable {
+	private deoptimizedPaths: ObjectPath[] = [];
+	private entitiesToBeDeoptimized = new Set<ExpressionEntity>();
+	private thisDeoptimizations: ThisDeoptimizationEvent[] = [];
+
 	constructor(context: AstContext) {
 		super('this', null, null, context);
 	}
 
-	getLiteralValueAtPath(): LiteralValueOrUnknown {
-		return UnknownValue;
+	addEntityToBeDeoptimized(entity: ExpressionEntity) {
+		for (const path of this.deoptimizedPaths) {
+			entity.deoptimizePath(path);
+		}
+		for (const thisDeoptimization of this.thisDeoptimizations) {
+			this.applyThisDeoptimizationEvent(entity, thisDeoptimization);
+		}
+		this.entitiesToBeDeoptimized.add(entity);
+	}
+
+	deoptimizePath(path: ObjectPath) {
+		if (
+			path.length === 0 ||
+			this.deoptimizationTracker.trackEntityAtPathAndGetIfTracked(path, this)
+		) {
+			return;
+		}
+		this.deoptimizedPaths.push(path);
+		for (const entity of this.entitiesToBeDeoptimized) {
+			entity.deoptimizePath(path);
+		}
+	}
+
+	deoptimizeThisOnEventAtPath(event: NodeEvent, path: ObjectPath, thisParameter: ExpressionEntity) {
+		const thisDeoptimization: ThisDeoptimizationEvent = {
+			event,
+			path,
+			thisParameter
+		};
+		for (const entity of this.entitiesToBeDeoptimized) {
+			this.applyThisDeoptimizationEvent(entity, thisDeoptimization);
+		}
+		this.thisDeoptimizations.push(thisDeoptimization);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext) {
@@ -29,14 +69,15 @@ export default class ThisVariable extends LocalVariable {
 		);
 	}
 
-	hasEffectsWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		context: HasEffectsContext
+	private applyThisDeoptimizationEvent(
+		entity: ExpressionEntity,
+		{ event, path, thisParameter }: ThisDeoptimizationEvent
 	) {
-		return (
-			this.getInit(context).hasEffectsWhenCalledAtPath(path, callOptions, context) ||
-			super.hasEffectsWhenCalledAtPath(path, callOptions, context)
+		entity.deoptimizeThisOnEventAtPath(
+			event,
+			path,
+			thisParameter === this ? entity : thisParameter,
+			SHARED_RECURSION_TRACKER
 		);
 	}
 

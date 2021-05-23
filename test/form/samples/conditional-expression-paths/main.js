@@ -19,8 +19,8 @@ var d3 = (false ? baz : foo).x();
 
 var foo2 = { y: {} };
 var baz2 = {};
-(true ? foo2 : baz).y.z = 1;
-(false ? baz : foo2).y.z = 1;
+(true ? foo2 : baz2).y.z = 1;
+(false ? baz2 : foo2).y.z = 1;
 
 // known branch with side-effect
 var a4 = (true ? baz : foo).y.z;

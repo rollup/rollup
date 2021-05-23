@@ -1,13 +1,16 @@
 import { CallOptions } from '../../CallOptions';
 import { BROKEN_FLOW_NONE, HasEffectsContext, InclusionContext } from '../../ExecutionContext';
+import { EVENT_CALLED, NodeEvent } from '../../NodeEvents';
 import FunctionScope from '../../scopes/FunctionScope';
 import { ObjectPath, UnknownKey, UNKNOWN_PATH } from '../../utils/PathTracker';
-import { UnknownObjectExpression, UNKNOWN_EXPRESSION } from '../../values';
 import BlockStatement from '../BlockStatement';
 import Identifier, { IdentifierWithVariable } from '../Identifier';
 import RestElement from '../RestElement';
 import SpreadElement from '../SpreadElement';
+import {  ExpressionEntity,  UNKNOWN_EXPRESSION } from './Expression';
 import { ExpressionNode, GenericEsTreeNode, IncludeChildren, NodeBase } from './Node';
+import { ObjectEntity } from './ObjectEntity';
+import { OBJECT_PROTOTYPE } from './ObjectPrototype';
 import { PatternNode } from './Pattern';
 
 export default class FunctionNode extends NodeBase {
@@ -16,9 +19,7 @@ export default class FunctionNode extends NodeBase {
 	id!: IdentifierWithVariable | null;
 	params!: PatternNode[];
 	preventChildBlockScope!: true;
-	referencesThis!: boolean;
 	scope!: FunctionScope;
-
 	private isPrototypeDeoptimized = false;
 
 	createScope(parentScope: FunctionScope) {
@@ -35,6 +36,17 @@ export default class FunctionNode extends NodeBase {
 				// A reassignment of UNKNOWN_PATH is considered equivalent to having lost track
 				// which means the return expression needs to be reassigned as well
 				this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
+			}
+		}
+	}
+
+	// TODO for completeness, we should also track other events here
+	deoptimizeThisOnEventAtPath(event: NodeEvent, path: ObjectPath, thisParameter: ExpressionEntity) {
+		if (event === EVENT_CALLED) {
+			if (path.length > 0 ) {
+				thisParameter.deoptimizePath(UNKNOWN_PATH);
+			} else {
+				this.scope.thisVariable.addEntityToBeDeoptimized(thisParameter);
 			}
 		}
 	}
@@ -71,7 +83,7 @@ export default class FunctionNode extends NodeBase {
 		const thisInit = context.replacedVariableInits.get(this.scope.thisVariable);
 		context.replacedVariableInits.set(
 			this.scope.thisVariable,
-			callOptions.withNew ? new UnknownObjectExpression() : UNKNOWN_EXPRESSION
+			callOptions.withNew ? new ObjectEntity({}, OBJECT_PROTOTYPE) : UNKNOWN_EXPRESSION
 		);
 		const { brokenFlow, ignore } = context;
 		context.ignore = {
@@ -121,14 +133,7 @@ export default class FunctionNode extends NodeBase {
 		this.body.addImplicitReturnExpressionToScope();
 	}
 
-	mayModifyThisWhenCalledAtPath(
-		path: ObjectPath
-	) {
-		return path.length ? true : this.referencesThis
-	}
-
 	parseNode(esTreeNode: GenericEsTreeNode) {
-		this.referencesThis = false;
 		this.body = new this.context.nodeConstructors.BlockStatement(
 			esTreeNode.body,
 			this,

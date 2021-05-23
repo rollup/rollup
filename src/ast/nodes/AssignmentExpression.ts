@@ -33,7 +33,7 @@ export default class AssignmentExpression extends NodeBase {
 		| '**=';
 	right!: ExpressionNode;
 	type!: NodeType.tAssignmentExpression;
-	private deoptimized = false;
+	protected deoptimized = false;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
@@ -122,7 +122,7 @@ export default class AssignmentExpression extends NodeBase {
 		}
 	}
 
-	private applyDeoptimizations() {
+	protected applyDeoptimizations() {
 		this.deoptimized = true;
 		this.left.deoptimizePath(EMPTY_PATH);
 		this.right.deoptimizePath(UNKNOWN_PATH);

@@ -2,23 +2,49 @@ import { getOrCreate } from '../../utils/getOrCreate';
 import { Entity } from '../Entity';
 
 export const UnknownKey = Symbol('Unknown Key');
-export type ObjectPathKey = string | typeof UnknownKey;
+export const UnknownInteger = Symbol('Unknown Integer');
+export type ObjectPathKey = string | typeof UnknownKey | typeof UnknownInteger;
 
 export type ObjectPath = ObjectPathKey[];
 export const EMPTY_PATH: ObjectPath = [];
 export const UNKNOWN_PATH: ObjectPath = [UnknownKey];
+export const UNKNOWN_INTEGER_PATH: ObjectPath = [UnknownInteger];
 
 const EntitiesKey = Symbol('Entities');
 interface EntityPaths {
 	[EntitiesKey]: Set<Entity>;
 	[UnknownKey]?: EntityPaths;
+	[UnknownInteger]?: EntityPaths;
 	[pathSegment: string]: EntityPaths;
 }
 
 export class PathTracker {
-	entityPaths: EntityPaths = Object.create(null, { [EntitiesKey]: { value: new Set<Entity>() } });
+	private entityPaths: EntityPaths = Object.create(null, {
+		[EntitiesKey]: { value: new Set<Entity>() }
+	});
 
-	getEntities(path: ObjectPath): Set<Entity> {
+	trackEntityAtPathAndGetIfTracked(path: ObjectPath, entity: Entity): boolean {
+		const trackedEntities = this.getEntities(path);
+		if (trackedEntities.has(entity)) return true;
+		trackedEntities.add(entity);
+		return false;
+	}
+
+	withTrackedEntityAtPath<T>(
+		path: ObjectPath,
+		entity: Entity,
+		onUntracked: () => T,
+		returnIfTracked: T
+	): T {
+		const trackedEntities = this.getEntities(path);
+		if (trackedEntities.has(entity)) return returnIfTracked;
+		trackedEntities.add(entity);
+		const result = onUntracked();
+		trackedEntities.delete(entity);
+		return result;
+	}
+
+	private getEntities(path: ObjectPath): Set<Entity> {
 		let currentPaths = this.entityPaths;
 		for (const pathSegment of path) {
 			currentPaths = currentPaths[pathSegment] =
@@ -34,21 +60,29 @@ export const SHARED_RECURSION_TRACKER = new PathTracker();
 interface DiscriminatedEntityPaths {
 	[EntitiesKey]: Map<object, Set<Entity>>;
 	[UnknownKey]?: DiscriminatedEntityPaths;
+	[UnknownInteger]?: DiscriminatedEntityPaths;
 	[pathSegment: string]: DiscriminatedEntityPaths;
 }
 
 export class DiscriminatedPathTracker {
-	entityPaths: DiscriminatedEntityPaths = Object.create(null, {
+	private entityPaths: DiscriminatedEntityPaths = Object.create(null, {
 		[EntitiesKey]: { value: new Map<object, Set<Entity>>() }
 	});
 
-	getEntities(path: ObjectPath, discriminator: object): Set<Entity> {
+	trackEntityAtPathAndGetIfTracked(
+		path: ObjectPath,
+		discriminator: object,
+		entity: Entity
+	): boolean {
 		let currentPaths = this.entityPaths;
 		for (const pathSegment of path) {
 			currentPaths = currentPaths[pathSegment] =
 				currentPaths[pathSegment] ||
 				Object.create(null, { [EntitiesKey]: { value: new Map<object, Set<Entity>>() } });
 		}
-		return getOrCreate(currentPaths[EntitiesKey], discriminator, () => new Set());
+		const trackedEntities = getOrCreate(currentPaths[EntitiesKey], discriminator, () => new Set());
+		if (trackedEntities.has(entity)) return true;
+		trackedEntities.add(entity);
+		return false;
 	}
 }

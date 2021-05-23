@@ -1,9 +1,9 @@
 import { AstContext } from '../../Module';
 import { InclusionContext } from '../ExecutionContext';
 import Identifier from '../nodes/Identifier';
+import { UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
 import { ExpressionNode } from '../nodes/shared/Node';
 import SpreadElement from '../nodes/SpreadElement';
-import { UNKNOWN_EXPRESSION } from '../values';
 import LocalVariable from '../variables/LocalVariable';
 import ChildScope from './ChildScope';
 import Scope from './Scope';

@@ -1,10 +1,10 @@
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath, PathTracker } from '../utils/PathTracker';
-import { LiteralValueOrUnknown, UnknownValue } from '../values';
 import Identifier from './Identifier';
 import { LiteralValue } from './Literal';
 import * as NodeType from './NodeType';
+import { LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 const unaryOperators: {
@@ -24,13 +24,7 @@ export default class UnaryExpression extends NodeBase {
 	operator!: '!' | '+' | '-' | 'delete' | 'typeof' | 'void' | '~';
 	prefix!: boolean;
 	type!: NodeType.tUnaryExpression;
-
-	bind() {
-		super.bind();
-		if (this.operator === 'delete') {
-			this.argument.deoptimizePath(EMPTY_PATH);
-		}
-	}
+	protected deoptimized = false;
 
 	getLiteralValueAtPath(
 		path: ObjectPath,
@@ -45,6 +39,7 @@ export default class UnaryExpression extends NodeBase {
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
+		if (!this.deoptimized) this.applyDeoptimizations();
 		if (this.operator === 'typeof' && this.argument instanceof Identifier) return false;
 		return (
 			this.argument.hasEffects(context) ||
@@ -58,5 +53,12 @@ export default class UnaryExpression extends NodeBase {
 			return path.length > 0;
 		}
 		return path.length > 1;
+	}
+
+	protected applyDeoptimizations(): void {
+		this.deoptimized = true;
+		if (this.operator === 'delete') {
+			this.argument.deoptimizePath(EMPTY_PATH);
+		}
 	}
 }

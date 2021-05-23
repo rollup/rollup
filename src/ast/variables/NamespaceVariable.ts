@@ -3,7 +3,6 @@ import { RenderOptions } from '../../utils/renderHelpers';
 import { RESERVED_NAMES } from '../../utils/reservedNames';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
 import Identifier from '../nodes/Identifier';
-import { ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class NamespaceVariable extends Variable {
@@ -27,19 +26,6 @@ export default class NamespaceVariable extends Variable {
 	addReference(identifier: Identifier) {
 		this.references.push(identifier);
 		this.name = identifier.name;
-	}
-
-	deoptimizePath(path: ObjectPath) {
-		const memberVariables = this.getMemberVariables();
-		const memberPath = path.length <= 1 ? UNKNOWN_PATH : path.slice(1);
-		const key = path[0];
-		if (typeof key === 'string') {
-			memberVariables[key]?.deoptimizePath(memberPath);
-		} else {
-			for (const key of Object.keys(memberVariables)) {
-				memberVariables[key].deoptimizePath(memberPath);
-			}
-		}
 	}
 
 	getMemberVariables(): { [name: string]: Variable } {
@@ -80,9 +66,7 @@ export default class NamespaceVariable extends Variable {
 		const t = options.indent;
 
 		const memberVariables = this.getMemberVariables();
-		const members = Object.keys(memberVariables).map(name => {
-			const original = memberVariables[name];
-
+		const members = Object.entries(memberVariables).map(([name, original]) => {
 			if (this.referencedEarly || original.isReassigned) {
 				return `${t}get ${name}${_}()${_}{${_}return ${original.getName()}${
 					options.compact ? '' : ';'

@@ -3,8 +3,6 @@ import { locate } from 'locate-character';
 import MagicString from 'magic-string';
 import { AstContext } from '../../../Module';
 import { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
-import { CallOptions } from '../../CallOptions';
-import { DeoptimizableEntity } from '../../DeoptimizableEntity';
 import { Entity } from '../../Entity';
 import {
 	createHasEffectsContext,
@@ -13,11 +11,8 @@ import {
 } from '../../ExecutionContext';
 import { getAndCreateKeys, keys } from '../../keys';
 import ChildScope from '../../scopes/ChildScope';
-import { ObjectPath, PathTracker } from '../../utils/PathTracker';
-import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from '../../values';
 import Variable from '../../variables/Variable';
 import * as NodeType from '../NodeType';
-import SpreadElement from '../SpreadElement';
 import { ExpressionEntity } from './Expression';
 
 export interface GenericEsTreeNode extends acorn.Node {
@@ -91,23 +86,28 @@ export interface StatementNode extends Node {}
 
 export interface ExpressionNode extends ExpressionEntity, Node {}
 
-export class NodeBase implements ExpressionNode {
+export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	annotations?: Annotation[];
 	context: AstContext;
 	end!: number;
 	esTreeNode: acorn.Node;
-	included = false;
 	keys: string[];
 	parent: Node | { context: AstContext; type: string };
 	scope!: ChildScope;
 	start!: number;
 	type!: keyof typeof NodeType;
+	// Nodes can apply custom deoptimizations once they become part of the
+	// executed code. To do this, they must initialize this as false, implement
+	// applyDeoptimizations and call this from include and hasEffects if they
+	// have custom handlers
+	protected deoptimized?: boolean;
 
 	constructor(
 		esTreeNode: GenericEsTreeNode,
 		parent: Node | { context: AstContext; type: string },
 		parentScope: ChildScope
 	) {
+		super();
 		this.esTreeNode = esTreeNode;
 		this.keys = keys[esTreeNode.type] || getAndCreateKeys(esTreeNode);
 		this.parent = parent;
@@ -149,25 +149,8 @@ export class NodeBase implements ExpressionNode {
 		this.scope = parentScope;
 	}
 
-	deoptimizePath(_path: ObjectPath) {}
-
-	getLiteralValueAtPath(
-		_path: ObjectPath,
-		_recursionTracker: PathTracker,
-		_origin: DeoptimizableEntity
-	): LiteralValueOrUnknown {
-		return UnknownValue;
-	}
-
-	getReturnExpressionWhenCalledAtPath(
-		_path: ObjectPath,
-		_recursionTracker: PathTracker,
-		_origin: DeoptimizableEntity
-	): ExpressionEntity {
-		return UNKNOWN_EXPRESSION;
-	}
-
 	hasEffects(context: HasEffectsContext): boolean {
+		if (this.deoptimized === false) this.applyDeoptimizations();
 		for (const key of this.keys) {
 			const value = (this as GenericEsTreeNode)[key];
 			if (value === null) continue;
@@ -180,23 +163,8 @@ export class NodeBase implements ExpressionNode {
 		return false;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, _context: HasEffectsContext) {
-		return path.length > 0;
-	}
-
-	hasEffectsWhenAssignedAtPath(_path: ObjectPath, _context: HasEffectsContext) {
-		return true;
-	}
-
-	hasEffectsWhenCalledAtPath(
-		_path: ObjectPath,
-		_callOptions: CallOptions,
-		_context: HasEffectsContext
-	) {
-		return true;
-	}
-
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+		if (this.deoptimized === false) this.applyDeoptimizations();
 		this.included = true;
 		for (const key of this.keys) {
 			const value = (this as GenericEsTreeNode)[key];
@@ -215,12 +183,6 @@ export class NodeBase implements ExpressionNode {
 		this.include(context, includeChildrenRecursively);
 	}
 
-	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
-		for (const arg of args) {
-			arg.include(context, false);
-		}
-	}
-
 	/**
 	 * Override to perform special initialisation steps after the scope is initialised
 	 */
@@ -232,15 +194,10 @@ export class NodeBase implements ExpressionNode {
 		}
 	}
 
-	mayModifyThisWhenCalledAtPath(_path: ObjectPath, _recursionTracker: PathTracker) {
-		return true;
-	}
-
 	parseNode(esTreeNode: GenericEsTreeNode) {
-		for (const key of Object.keys(esTreeNode)) {
+		for (const [key, value] of Object.entries(esTreeNode)) {
 			// That way, we can override this function to add custom initialisation and then call super.parseNode
 			if (this.hasOwnProperty(key)) continue;
-			const value = esTreeNode[key];
 			if (key === '_rollupAnnotations') {
 				this.annotations = value;
 			} else if (typeof value !== 'object' || value === null) {
@@ -279,6 +236,8 @@ export class NodeBase implements ExpressionNode {
 	shouldBeIncluded(context: InclusionContext): boolean {
 		return this.included || (!context.brokenFlow && this.hasEffects(createHasEffectsContext()));
 	}
+
+	protected applyDeoptimizations(): void {}
 }
 
 export { NodeBase as StatementBase };

@@ -4,9 +4,9 @@ import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import ChildScope from '../scopes/ChildScope';
 import Scope from '../scopes/Scope';
-import { UNKNOWN_EXPRESSION } from '../values';
 import ExpressionStatement from './ExpressionStatement';
 import * as NodeType from './NodeType';
+import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import { IncludeChildren, Node, StatementBase, StatementNode } from './shared/Node';
 
 export default class BlockStatement extends StatementBase {

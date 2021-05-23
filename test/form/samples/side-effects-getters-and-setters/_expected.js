@@ -1,34 +1,36 @@
-const retained1a = {
-	get effect () {
-		console.log( 'effect' );
+const retained1 = {
+	get effect() {
+		console.log('effect');
 	},
-	get noEffect () {
+	get noEffect() {
 		const x = 1;
 		return x;
 	}
 };
-retained1a.effect;
-retained1a[ 'eff' + 'ect' ];
+
+//retained
+retained1.effect;
+retained1['eff' + 'ect'];
 
 const retained3 = {
-	set effect ( value ) {
-		console.log( value );
+	set effect(value) {
+		console.log(value);
 	}
 };
 
 retained3.effect = 'retained';
 
 const retained4 = {
-	set effect ( value ) {
-		console.log( value );
+	set effect(value) {
+		console.log(value);
 	}
 };
 
-retained4[ 'eff' + 'ect' ] = 'retained';
+retained4['eff' + 'ect'] = 'retained';
 
 const retained7 = {
 	foo: () => {},
-	get foo () {
+	get foo() {
 		return 1;
 	}
 };

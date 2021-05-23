@@ -5,8 +5,8 @@ import {
 	HasEffectsContext,
 	InclusionContext
 } from '../ExecutionContext';
-import { UNKNOWN_EXPRESSION } from '../values';
 import * as NodeType from './NodeType';
+import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import { ExpressionNode, IncludeChildren, StatementBase } from './shared/Node';
 
 export default class ReturnStatement extends StatementBase {

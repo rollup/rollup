@@ -4,25 +4,16 @@ const valueOf2 = true.valueOf();
 const valueOf3 = true.valueOf().valueOf();
 const valueOf4 = true.valueOf().valueOf().valueOf();
 
-const number = 1;
-const toExponential1 = number.toExponential( 2 );
-const toExponential2 = (1).toExponential( 2 );
-const toExponential3 = (1).toExponential( 2 ).trim();
-
-const string = ' b ';
-const trim1 = string.trim();
-const trim2 = ' x '.trim();
-const trim3 = ' x '.trim().trim();
-const trim4 = ' x '.trim().trim().trim();
-
-// boolean prototype
-const _booleanValueOf = true.valueOf().valueOf();
-// inherited
-const _booleanHasOwnProperty = true.hasOwnProperty( 'toString' ).valueOf();
-const _booleanIsPrototypeOf = true.isPrototypeOf( true ).valueOf();
-const _booleanPropertyIsEnumerable = true.propertyIsEnumerable( 'toString' ).valueOf();
-const _booleanToLocaleString = true.toLocaleString().trim();
-const _booleanToString = true.toString().trim();
+// retained
+true.valueOf().unknown.unknown();
+true.valueOf()();
+(1).valueOf().unknown.unknown();
+(1).valueOf().unknown();
+(1).valueOf()[globalThis.unknown]();
+(1).valueOf()();
+'ab'.charAt(1).unknown.unknown();
+'ab'.charAt(1)();
+null.unknown;
 
 // number prototype
 const _toExponential = (1).toExponential( 2 ).trim();
@@ -56,7 +47,7 @@ const _replace = 'ab'.replace( 'a', () => 'b' ).trim();
 const _replaceEffect = 'ab'.replace( 'a', () => console.log( 1 ) || 'b' );
 const _search = 'ab'.search( /a/ ).toExponential( 2 );
 const _slice = 'ab'.slice( 0, 1 ).trim();
-const _split = 'ab'.split( 'a' ).join();
+const _split = 'ab'.split( 'a' );
 const _startsWith = 'ab'.startsWith( 'a' ).valueOf();
 const _substr = 'ab'.substr( 0, 1 ).trim();
 const _substring = 'ab'.substring( 0, 1 ).trim();

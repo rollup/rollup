@@ -3,11 +3,11 @@ import { BROKEN_FLOW_NONE, HasEffectsContext, InclusionContext } from '../Execut
 import ReturnValueScope from '../scopes/ReturnValueScope';
 import Scope from '../scopes/Scope';
 import { ObjectPath, UnknownKey, UNKNOWN_PATH } from '../utils/PathTracker';
-import { UNKNOWN_EXPRESSION } from '../values';
 import BlockStatement from './BlockStatement';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import RestElement from './RestElement';
+import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import { ExpressionNode, GenericEsTreeNode, IncludeChildren, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 import SpreadElement from './SpreadElement';
@@ -30,6 +30,9 @@ export default class ArrowFunctionExpression extends NodeBase {
 			this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
 		}
 	}
+
+	// Arrow functions do not mutate their context
+	deoptimizeThisOnEventAtPath() {}
 
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
 		return path.length === 0 ? this.scope.getReturnExpression() : UNKNOWN_EXPRESSION;
@@ -96,10 +99,6 @@ export default class ArrowFunctionExpression extends NodeBase {
 		} else {
 			this.scope.addReturnExpression(this.body);
 		}
-	}
-
-	mayModifyThisWhenCalledAtPath() {
-		return false;
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode) {

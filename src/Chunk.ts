@@ -1326,8 +1326,8 @@ export default class Chunk {
 		if (!this.outputOptions.preserveModules) {
 			if (this.includedNamespaces.has(module)) {
 				const memberVariables = module.namespace.getMemberVariables();
-				for (const name of Object.keys(memberVariables)) {
-					moduleImports.add(memberVariables[name]);
+				for (const variable of Object.values(memberVariables)) {
+					moduleImports.add(variable);
 				}
 			}
 		}

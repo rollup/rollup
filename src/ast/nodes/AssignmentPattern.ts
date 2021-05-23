@@ -13,18 +13,13 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 	left!: PatternNode;
 	right!: ExpressionNode;
 	type!: NodeType.tAssignmentPattern;
+	protected deoptimized = false;
 
 	addExportedVariables(
 		variables: Variable[],
 		exportNamesByVariable: Map<Variable, string[]>
 	): void {
 		this.left.addExportedVariables(variables, exportNamesByVariable);
-	}
-
-	bind() {
-		super.bind();
-		this.left.deoptimizePath(EMPTY_PATH);
-		this.right.deoptimizePath(UNKNOWN_PATH);
 	}
 
 	declare(kind: string, init: ExpressionEntity) {
@@ -46,5 +41,11 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 	) {
 		this.left.render(code, options, { isShorthandProperty });
 		this.right.render(code, options);
+	}
+
+	protected applyDeoptimizations():void {
+		this.deoptimized = true;
+		this.left.deoptimizePath(EMPTY_PATH);
+		this.right.deoptimizePath(UNKNOWN_PATH);
 	}
 }

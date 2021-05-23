@@ -1,8 +1,8 @@
 import CatchScope from '../scopes/CatchScope';
 import Scope from '../scopes/Scope';
-import { UNKNOWN_EXPRESSION } from '../values';
 import BlockStatement from './BlockStatement';
 import * as NodeType from './NodeType';
+import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import { GenericEsTreeNode, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 

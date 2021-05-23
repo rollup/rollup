@@ -1002,8 +1002,7 @@ export default class Module {
 	private addModulesToImportDescriptions(importDescription: {
 		[name: string]: ImportDescription | ReexportDescription;
 	}) {
-		for (const name of Object.keys(importDescription)) {
-			const specifier = importDescription[name];
+		for (const specifier of Object.values(importDescription)) {
 			const id = this.resolvedIds[specifier.source].id;
 			specifier.module = this.graph.modulesById.get(id)!;
 		}

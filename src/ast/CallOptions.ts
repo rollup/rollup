@@ -5,5 +5,6 @@ export const NO_ARGS = [];
 
 export interface CallOptions {
 	args: (ExpressionEntity | SpreadElement)[];
+	thisParam: ExpressionEntity | null;
 	withNew: boolean;
 }

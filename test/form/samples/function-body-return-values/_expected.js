@@ -1,9 +1,3 @@
-function removed3 () {
-	return { x: () => {} };
-}
-
-removed3().x();
-
 function retained1 () {
 	return () => console.log( 'effect' );
 }

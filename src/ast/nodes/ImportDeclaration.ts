@@ -13,6 +13,7 @@ export default class ImportDeclaration extends NodeBase {
 	specifiers!: (ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier)[];
 	type!: NodeType.tImportDeclaration;
 
+	// Do not bind specifiers
 	bind() {}
 
 	hasEffects() {

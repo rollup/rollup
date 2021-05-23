@@ -9,18 +9,11 @@ export default class NewExpression extends NodeBase {
 	arguments!: ExpressionNode[];
 	callee!: ExpressionNode;
 	type!: NodeType.tNewExpression;
-
+	protected deoptimized = false;
 	private callOptions!: CallOptions;
 
-	bind() {
-		super.bind();
-		for (const argument of this.arguments) {
-			// This will make sure all properties of parameters behave as "unknown"
-			argument.deoptimizePath(UNKNOWN_PATH);
-		}
-	}
-
 	hasEffects(context: HasEffectsContext): boolean {
+		if (!this.deoptimized) this.applyDeoptimizations();
 		for (const argument of this.arguments) {
 			if (argument.hasEffects(context)) return true;
 		}
@@ -36,13 +29,22 @@ export default class NewExpression extends NodeBase {
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
-		return path.length > 1;
+		return path.length > 0;
 	}
 
 	initialise() {
 		this.callOptions = {
 			args: this.arguments,
+			thisParam: null,
 			withNew: true
 		};
+	}
+
+	protected applyDeoptimizations(): void {
+		this.deoptimized = true;
+		for (const argument of this.arguments) {
+			// This will make sure all properties of parameters behave as "unknown"
+			argument.deoptimizePath(UNKNOWN_PATH);
+		}
 	}
 }

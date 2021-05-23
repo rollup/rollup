@@ -6,12 +6,10 @@ import {
 	getLiteralMembersForValue,
 	getMemberReturnExpressionWhenCalled,
 	hasMemberEffectWhenCalled,
-	LiteralValueOrUnknown,
-	MemberDescription,
-	UnknownValue,
-	UNKNOWN_EXPRESSION
+	MemberDescription
 } from '../values';
 import * as NodeType from './NodeType';
+import { LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from './shared/Expression';
 import { GenericEsTreeNode, NodeBase } from './shared/Node';
 
 export type LiteralValue = string | boolean | null | number | RegExp | undefined;
@@ -25,6 +23,8 @@ export default class Literal<T extends LiteralValue = LiteralValue> extends Node
 	value!: T;
 
 	private members!: { [key: string]: MemberDescription };
+
+	deoptimizeThisOnEventAtPath() {}
 
 	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
 		if (
@@ -62,7 +62,7 @@ export default class Literal<T extends LiteralValue = LiteralValue> extends Node
 		context: HasEffectsContext
 	): boolean {
 		if (path.length === 1) {
-			return hasMemberEffectWhenCalled(this.members, path[0], this.included, callOptions, context);
+			return hasMemberEffectWhenCalled(this.members, path[0], callOptions, context);
 		}
 		return true;
 	}

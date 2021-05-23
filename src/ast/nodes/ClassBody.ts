@@ -1,42 +1,40 @@
-import { CallOptions } from '../CallOptions';
-import { HasEffectsContext } from '../ExecutionContext';
+import { InclusionContext } from '../ExecutionContext';
 import ClassBodyScope from '../scopes/ClassBodyScope';
 import Scope from '../scopes/Scope';
-import { EMPTY_PATH, ObjectPath } from '../utils/PathTracker';
 import MethodDefinition from './MethodDefinition';
 import * as NodeType from './NodeType';
 import PropertyDefinition from './PropertyDefinition';
-import { NodeBase } from './shared/Node';
+import ClassNode from './shared/ClassNode';
+import { GenericEsTreeNode, IncludeChildren, NodeBase } from './shared/Node';
 
 export default class ClassBody extends NodeBase {
 	body!: (MethodDefinition | PropertyDefinition)[];
+	scope!: ClassBodyScope;
 	type!: NodeType.tClassBody;
 
-	private classConstructor!: MethodDefinition | null;
-
 	createScope(parentScope: Scope) {
-		this.scope = new ClassBodyScope(parentScope);
+		this.scope = new ClassBodyScope(parentScope, this.parent as ClassNode, this.context);
 	}
 
-	hasEffectsWhenCalledAtPath(
-		path: ObjectPath,
-		callOptions: CallOptions,
-		context: HasEffectsContext
-	) {
-		if (path.length > 0) return true;
-		return (
-			this.classConstructor !== null &&
-			this.classConstructor.hasEffectsWhenCalledAtPath(EMPTY_PATH, callOptions, context)
-		);
-	}
-
-	initialise() {
-		for (const method of this.body) {
-			if (method instanceof MethodDefinition && method.kind === 'constructor') {
-				this.classConstructor = method;
-				return;
-			}
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+		this.included = true;
+		this.context.includeVariableInModule(this.scope.thisVariable);
+		for (const definition of this.body) {
+			definition.include(context, includeChildrenRecursively);
 		}
-		this.classConstructor = null;
+	}
+
+	parseNode(esTreeNode: GenericEsTreeNode) {
+		const body: NodeBase[] = (this.body = []);
+		for (const definition of esTreeNode.body) {
+			body.push(
+				new this.context.nodeConstructors[definition.type](
+					definition,
+					this,
+					definition.static ? this.scope : this.scope.instanceScope
+				)
+			);
+		}
+		super.parseNode(esTreeNode);
 	}
 }

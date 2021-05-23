@@ -34,9 +34,9 @@ function normalizeEntryModules(
 			name: null
 		}));
 	}
-	return Object.keys(entryModules).map(name => ({
+	return Object.entries(entryModules).map(([name, id]) => ({
 		fileName: null,
-		id: entryModules[name],
+		id,
 		implicitlyLoadedAfter: [],
 		importer: undefined,
 		name
@@ -74,13 +74,14 @@ export default class Graph {
 			// increment access counter
 			for (const name in this.pluginCache) {
 				const cache = this.pluginCache[name];
-				for (const key of Object.keys(cache)) cache[key][0]++;
+				for (const value of Object.values(cache)) value[0]++;
 			}
 		}
 
 		if (watcher) {
 			this.watchMode = true;
-			const handleChange: WatchChangeHook = (...args) => this.pluginDriver.hookSeqSync('watchChange', args);
+			const handleChange: WatchChangeHook = (...args) =>
+				this.pluginDriver.hookSeqSync('watchChange', args);
 			const handleClose = () => this.pluginDriver.hookSeqSync('closeWatcher', []);
 			watcher.on('change', handleChange);
 			watcher.on('close', handleClose);
@@ -118,9 +119,9 @@ export default class Graph {
 
 		if (onCommentOrig && typeof onCommentOrig == 'function') {
 			options.onComment = (block, text, start, end, ...args) => {
-				comments.push({type: block ? "Block" : "Line", value: text, start, end});
+				comments.push({ type: block ? 'Block' : 'Line', value: text, start, end });
 				return onCommentOrig.call(options, block, text, start, end, ...args);
-			}
+			};
 		} else {
 			options.onComment = comments;
 		}
@@ -146,8 +147,8 @@ export default class Graph {
 		for (const name in this.pluginCache) {
 			const cache = this.pluginCache[name];
 			let allDeleted = true;
-			for (const key of Object.keys(cache)) {
-				if (cache[key][0] >= this.options.experimentalCacheExpiry) delete cache[key];
+			for (const [key, value] of Object.entries(cache)) {
+				if (value[0] >= this.options.experimentalCacheExpiry) delete cache[key];
 				else allDeleted = false;
 			}
 			if (allDeleted) delete this.pluginCache[name];
@@ -238,8 +239,7 @@ export default class Graph {
 
 	private warnForMissingExports() {
 		for (const module of this.modules) {
-			for (const importName of Object.keys(module.importDescriptions)) {
-				const importDescription = module.importDescriptions[importName];
+			for (const importDescription of Object.values(module.importDescriptions)) {
 				if (
 					importDescription.name !== '*' &&
 					!(importDescription.module as Module).getVariableForExportName(importDescription.name)
