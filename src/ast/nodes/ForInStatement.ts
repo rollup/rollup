@@ -5,9 +5,9 @@ import BlockScope from '../scopes/BlockScope';
 import Scope from '../scopes/Scope';
 import { EMPTY_PATH } from '../utils/PathTracker';
 import * as NodeType from './NodeType';
+import VariableDeclaration from './VariableDeclaration';
 import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
-import VariableDeclaration from './VariableDeclaration';
 
 export default class ForInStatement extends StatementBase {
 	body!: StatementNode;
@@ -16,7 +16,7 @@ export default class ForInStatement extends StatementBase {
 	type!: NodeType.tForInStatement;
 	protected deoptimized = false;
 
-	createScope(parentScope: Scope) {
+	createScope(parentScope: Scope): void {
 		this.scope = new BlockScope(parentScope);
 	}
 
@@ -42,7 +42,7 @@ export default class ForInStatement extends StatementBase {
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		this.included = true;
 		this.left.include(context, includeChildrenRecursively || true);
@@ -52,7 +52,7 @@ export default class ForInStatement extends StatementBase {
 		context.brokenFlow = brokenFlow;
 	}
 
-	render(code: MagicString, options: RenderOptions) {
+	render(code: MagicString, options: RenderOptions): void {
 		this.left.render(code, options, NO_SEMICOLON);
 		this.right.render(code, options, NO_SEMICOLON);
 		// handle no space between "in" and the right side
@@ -62,7 +62,7 @@ export default class ForInStatement extends StatementBase {
 		this.body.render(code, options);
 	}
 
-	protected applyDeoptimizations():void {
+	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
 		this.left.deoptimizePath(EMPTY_PATH);
 	}

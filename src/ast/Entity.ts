@@ -1,6 +1,7 @@
 import { HasEffectsContext } from './ExecutionContext';
 import { ObjectPath } from './utils/PathTracker';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface Entity {}
 
 export interface WritableEntity extends Entity {

@@ -10,20 +10,20 @@ export default class TemplateElement extends NodeBase {
 	};
 
 	// Do not try to bind value
-	bind() {}
+	bind(): void {}
 
-	hasEffects() {
+	hasEffects(): boolean {
 		return false;
 	}
 
-	include() {
+	include(): void {
 		this.included = true;
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode) {
+	parseNode(esTreeNode: GenericEsTreeNode): void {
 		this.value = esTreeNode.value;
 		super.parseNode(esTreeNode);
 	}
 
-	render() {}
+	render(): void {}
 }

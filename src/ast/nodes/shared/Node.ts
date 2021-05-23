@@ -1,5 +1,5 @@
 import * as acorn from 'acorn';
-import { locate } from 'locate-character';
+import { locate, Location } from 'locate-character';
 import MagicString from 'magic-string';
 import { AstContext } from '../../../Module';
 import { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
@@ -19,7 +19,7 @@ export interface GenericEsTreeNode extends acorn.Node {
 	[key: string]: any;
 }
 
-export const INCLUDE_PARAMETERS: 'variables' = 'variables';
+export const INCLUDE_PARAMETERS = 'variables' as const;
 export type IncludeChildren = boolean | typeof INCLUDE_PARAMETERS;
 export interface Annotation {
 	comment?: acorn.Comment;
@@ -82,7 +82,7 @@ export interface Node extends Entity {
 	shouldBeIncluded(context: InclusionContext): boolean;
 }
 
-export interface StatementNode extends Node {}
+export type StatementNode = Node;
 
 export interface ExpressionNode extends ExpressionEntity, Node {}
 
@@ -128,7 +128,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	 * Override this to bind assignments to variables and do any initialisations that
 	 * require the scopes to be populated with variables.
 	 */
-	bind() {
+	bind(): void {
 		for (const key of this.keys) {
 			const value = (this as GenericEsTreeNode)[key];
 			if (value === null) continue;
@@ -145,7 +145,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	/**
 	 * Override if this node should receive a different scope than the parent scope.
 	 */
-	createScope(parentScope: ChildScope) {
+	createScope(parentScope: ChildScope): void {
 		this.scope = parentScope;
 	}
 
@@ -163,7 +163,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (this.deoptimized === false) this.applyDeoptimizations();
 		this.included = true;
 		for (const key of this.keys) {
@@ -179,22 +179,25 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		}
 	}
 
-	includeAsSingleStatement(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+	includeAsSingleStatement(
+		context: InclusionContext,
+		includeChildrenRecursively: IncludeChildren
+	): void {
 		this.include(context, includeChildrenRecursively);
 	}
 
 	/**
 	 * Override to perform special initialisation steps after the scope is initialised
 	 */
-	initialise() {}
+	initialise(): void {}
 
-	insertSemicolon(code: MagicString) {
+	insertSemicolon(code: MagicString): void {
 		if (code.original[this.end - 1] !== ';') {
 			code.appendLeft(this.end, ';');
 		}
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode) {
+	parseNode(esTreeNode: GenericEsTreeNode): void {
 		for (const [key, value] of Object.entries(esTreeNode)) {
 			// That way, we can override this function to add custom initialisation and then call super.parseNode
 			if (this.hasOwnProperty(key)) continue;
@@ -219,7 +222,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		}
 	}
 
-	render(code: MagicString, options: RenderOptions) {
+	render(code: MagicString, options: RenderOptions): void {
 		for (const key of this.keys) {
 			const value = (this as GenericEsTreeNode)[key];
 			if (value === null) continue;
@@ -242,8 +245,7 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 
 export { NodeBase as StatementBase };
 
-// useful for debugging
-export function locateNode(node: Node) {
+export function locateNode(node: Node): Location {
 	const location = locate(node.context.code, node.start, { offsetLine: 1 });
 	(location as any).file = node.context.fileName;
 	location.toString = () => JSON.stringify(location);
@@ -251,6 +253,6 @@ export function locateNode(node: Node) {
 	return location;
 }
 
-export function logNode(node: Node) {
+export function logNode(node: Node): string {
 	return node.context.code.slice(node.start, node.end);
 }

@@ -12,6 +12,8 @@ import {
 	OutputChunk,
 	WarningHandler
 } from './rollup/types';
+import { FILE_PLACEHOLDER } from './utils/FileEmitter';
+import { PluginDriver } from './utils/PluginDriver';
 import { Addons, createAddons } from './utils/addons';
 import { getChunkAssignments } from './utils/chunkAssignment';
 import commondir from './utils/commondir';
@@ -22,9 +24,7 @@ import {
 	warnDeprecation
 } from './utils/error';
 import { sortByExecutionOrder } from './utils/executionOrder';
-import { FILE_PLACEHOLDER } from './utils/FileEmitter';
 import { basename, isAbsolute } from './utils/path';
-import { PluginDriver } from './utils/PluginDriver';
 import { timeEnd, timeStart } from './utils/timers';
 
 export default class Bundle {

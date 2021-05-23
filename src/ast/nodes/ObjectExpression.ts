@@ -16,27 +16,27 @@ import Identifier from './Identifier';
 import Literal from './Literal';
 import * as NodeType from './NodeType';
 import Property from './Property';
+import SpreadElement from './SpreadElement';
 import {
 	ExpressionEntity,
 	LiteralValueOrUnknown,
-	UnknownValue,
-	UNKNOWN_EXPRESSION
+	UNKNOWN_EXPRESSION,
+	UnknownValue
 } from './shared/Expression';
 import { NodeBase } from './shared/Node';
 import { ObjectEntity, ObjectProperty } from './shared/ObjectEntity';
 import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';
-import SpreadElement from './SpreadElement';
 
 export default class ObjectExpression extends NodeBase implements DeoptimizableEntity {
 	properties!: (Property | SpreadElement)[];
 	type!: NodeType.tObjectExpression;
 	private objectEntity: ObjectEntity | null = null;
 
-	deoptimizeCache() {
+	deoptimizeCache(): void {
 		this.getObjectEntity().deoptimizeAllProperties();
 	}
 
-	deoptimizePath(path: ObjectPath) {
+	deoptimizePath(path: ObjectPath): void {
 		this.getObjectEntity().deoptimizePath(path);
 	}
 
@@ -45,7 +45,7 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		path: ObjectPath,
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
-	) {
+	): void {
 		this.getObjectEntity().deoptimizeThisOnEventAtPath(
 			event,
 			path,
@@ -76,11 +76,11 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		return this.getObjectEntity().hasEffectsWhenAccessedAtPath(path, context);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		return this.getObjectEntity().hasEffectsWhenAssignedAtPath(path, context);
 	}
 
@@ -96,7 +96,7 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		code: MagicString,
 		options: RenderOptions,
 		{ renderedParentType, renderedSurroundingElement }: NodeRenderOptions = BLANK
-	) {
+	): void {
 		super.render(code, options);
 		const surroundingElement = renderedParentType || renderedSurroundingElement;
 		if (
@@ -115,7 +115,7 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		const properties: ObjectProperty[] = [];
 		for (const property of this.properties) {
 			if (property instanceof SpreadElement) {
-				properties.push({ kind: 'init', key: UnknownKey, property });
+				properties.push({ key: UnknownKey, kind: 'init', property });
 				continue;
 			}
 			let key: string;
@@ -126,7 +126,7 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 					this
 				);
 				if (keyValue === UnknownValue) {
-					properties.push({ kind: property.kind, key: UnknownKey, property });
+					properties.push({ key: UnknownKey, kind: property.kind, property });
 					continue;
 				} else {
 					key = String(keyValue);
@@ -137,11 +137,11 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 						? property.key.name
 						: String((property.key as Literal).value);
 				if (key === '__proto__' && property.kind === 'init') {
-					properties.unshift({ kind: 'init', key: UnknownKey, property: UNKNOWN_EXPRESSION });
+					properties.unshift({ key: UnknownKey, kind: 'init', property: UNKNOWN_EXPRESSION });
 					continue;
 				}
 			}
-			properties.push({ kind: property.kind, key, property });
+			properties.push({ key, kind: property.kind, property });
 		}
 		return (this.objectEntity = new ObjectEntity(properties, OBJECT_PROTOTYPE));
 	}

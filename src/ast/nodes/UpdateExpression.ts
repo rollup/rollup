@@ -25,11 +25,11 @@ export default class UpdateExpression extends NodeBase {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
 		return path.length > 1;
 	}
 
-	render(code: MagicString, options: RenderOptions) {
+	render(code: MagicString, options: RenderOptions): void {
 		this.argument.render(code, options);
 		if (options.format === 'system') {
 			const variable = this.argument.variable;
@@ -80,7 +80,7 @@ export default class UpdateExpression extends NodeBase {
 		}
 	}
 
-	protected applyDeoptimizations() {
+	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
 		this.argument.deoptimizePath(EMPTY_PATH);
 		if (this.argument instanceof Identifier) {

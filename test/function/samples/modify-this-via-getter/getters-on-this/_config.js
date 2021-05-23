@@ -1,3 +1,3 @@
 module.exports = {
-	description: 'handles calling getters on "this"',
+	description: 'handles calling getters on "this"'
 };

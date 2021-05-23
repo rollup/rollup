@@ -12,11 +12,11 @@ export default class ClassBody extends NodeBase {
 	scope!: ClassBodyScope;
 	type!: NodeType.tClassBody;
 
-	createScope(parentScope: Scope) {
+	createScope(parentScope: Scope): void {
 		this.scope = new ClassBodyScope(parentScope, this.parent as ClassNode, this.context);
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		this.context.includeVariableInModule(this.scope.thisVariable);
 		for (const definition of this.body) {
@@ -24,7 +24,7 @@ export default class ClassBody extends NodeBase {
 		}
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode) {
+	parseNode(esTreeNode: GenericEsTreeNode): void {
 		const body: NodeBase[] = (this.body = []);
 		for (const definition of esTreeNode.body) {
 			body.push(

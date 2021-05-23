@@ -8,15 +8,15 @@ export default class Super extends NodeBase {
 
 	variable!: ThisVariable;
 
-	bind() {
+	bind(): void {
 		this.variable = this.scope.findVariable('this') as ThisVariable;
 	}
 
-	deoptimizePath(path: ObjectPath) {
+	deoptimizePath(path: ObjectPath): void {
 		this.variable.deoptimizePath(path);
 	}
 
-	include() {
+	include(): void {
 		if (!this.included) {
 			this.included = true;
 			this.context.includeVariableInModule(this.variable);

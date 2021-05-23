@@ -23,7 +23,7 @@ export default class NamespaceVariable extends Variable {
 		this.syntheticNamedExports = syntheticNamedExports;
 	}
 
-	addReference(identifier: Identifier) {
+	addReference(identifier: Identifier): void {
 		this.references.push(identifier);
 		this.name = identifier.name;
 	}
@@ -44,12 +44,12 @@ export default class NamespaceVariable extends Variable {
 		return (this.memberVariables = memberVariables);
 	}
 
-	include() {
+	include(): void {
 		this.included = true;
 		this.context.includeAllExports();
 	}
 
-	prepareNamespace(mergedNamespaces: Variable[]) {
+	prepareNamespace(mergedNamespaces: Variable[]): void {
 		this.mergedNamespaces = mergedNamespaces;
 		const moduleExecIndex = this.context.getModuleExecIndex();
 		for (const identifier of this.references) {
@@ -60,7 +60,7 @@ export default class NamespaceVariable extends Variable {
 		}
 	}
 
-	renderBlock(options: RenderOptions) {
+	renderBlock(options: RenderOptions): string {
 		const _ = options.compact ? '' : ' ';
 		const n = options.compact ? '' : '\n';
 		const t = options.indent;
@@ -113,7 +113,7 @@ export default class NamespaceVariable extends Variable {
 		return output;
 	}
 
-	renderFirst() {
+	renderFirst(): boolean {
 		return this.referencedEarly;
 	}
 }

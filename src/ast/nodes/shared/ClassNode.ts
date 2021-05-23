@@ -28,15 +28,15 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	private classConstructor!: MethodDefinition | null;
 	private objectEntity: ObjectEntity | null = null;
 
-	createScope(parentScope: Scope) {
+	createScope(parentScope: Scope): void {
 		this.scope = new ChildScope(parentScope);
 	}
 
-	deoptimizeCache() {
+	deoptimizeCache(): void {
 		this.getObjectEntity().deoptimizeAllProperties();
 	}
 
-	deoptimizePath(path: ObjectPath) {
+	deoptimizePath(path: ObjectPath): void {
 		this.getObjectEntity().deoptimizePath(path);
 	}
 
@@ -45,7 +45,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		path: ObjectPath,
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
-	) {
+	): void {
 		this.getObjectEntity().deoptimizeThisOnEventAtPath(
 			event,
 			path,
@@ -68,14 +68,19 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
-		return this.getObjectEntity().getReturnExpressionWhenCalledAtPath(path, callOptions, recursionTracker, origin);
+		return this.getObjectEntity().getReturnExpressionWhenCalledAtPath(
+			path,
+			callOptions,
+			recursionTracker,
+			origin
+		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		return this.getObjectEntity().hasEffectsWhenAccessedAtPath(path, context);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		return this.getObjectEntity().hasEffectsWhenAssignedAtPath(path, context);
 	}
 
@@ -83,7 +88,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		path: ObjectPath,
 		callOptions: CallOptions,
 		context: HasEffectsContext
-	) {
+	): boolean {
 		if (path.length === 0) {
 			return (
 				!callOptions.withNew ||
@@ -97,7 +102,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		}
 	}
 
-	initialise() {
+	initialise(): void {
 		if (this.id !== null) {
 			this.id.declare('class', this);
 		}
@@ -130,7 +135,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 					this
 				);
 				if (keyValue === UnknownValue) {
-					properties.push({ kind, key: UnknownKey, property: definition });
+					properties.push({ key: UnknownKey, kind, property: definition });
 					continue;
 				} else {
 					key = String(keyValue);
@@ -141,7 +146,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 						? definition.key.name
 						: String((definition.key as Literal).value);
 			}
-			properties.push({ kind, key, property: definition });
+			properties.push({ key, kind, property: definition });
 		}
 		staticProperties.unshift({
 			key: 'prototype',

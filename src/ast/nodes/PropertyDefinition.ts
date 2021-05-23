@@ -8,8 +8,8 @@ import PrivateIdentifier from './PrivateIdentifier';
 import {
 	ExpressionEntity,
 	LiteralValueOrUnknown,
-	UnknownValue,
-	UNKNOWN_EXPRESSION
+	UNKNOWN_EXPRESSION,
+	UnknownValue
 } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
@@ -20,7 +20,7 @@ export default class PropertyDefinition extends NodeBase {
 	type!: NodeType.tPropertyDefinition;
 	value!: ExpressionNode | null;
 
-	deoptimizePath(path: ObjectPath) {
+	deoptimizePath(path: ObjectPath): void {
 		this.value?.deoptimizePath(path);
 	}
 
@@ -29,7 +29,7 @@ export default class PropertyDefinition extends NodeBase {
 		path: ObjectPath,
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
-	) {
+	): void {
 		this.value?.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
 	}
 
@@ -73,7 +73,7 @@ export default class PropertyDefinition extends NodeBase {
 		path: ObjectPath,
 		callOptions: CallOptions,
 		context: HasEffectsContext
-	) {
+	): boolean {
 		return !this.value || this.value.hasEffectsWhenCalledAtPath(path, callOptions, context);
 	}
 }

@@ -1,9 +1,9 @@
 import * as acorn from 'acorn';
-import GlobalScope from './ast/scopes/GlobalScope';
-import { PathTracker } from './ast/utils/PathTracker';
 import ExternalModule from './ExternalModule';
 import Module from './Module';
 import { ModuleLoader, UnresolvedModule } from './ModuleLoader';
+import GlobalScope from './ast/scopes/GlobalScope';
+import { PathTracker } from './ast/utils/PathTracker';
 import {
 	ModuleInfo,
 	ModuleJSON,
@@ -13,10 +13,10 @@ import {
 	SerializablePluginCache,
 	WatchChangeHook
 } from './rollup/types';
+import { PluginDriver } from './utils/PluginDriver';
 import { BuildPhase } from './utils/buildPhase';
 import { errImplicitDependantIsNotIncluded, error } from './utils/error';
 import { analyseModuleExecution } from './utils/executionOrder';
-import { PluginDriver } from './utils/PluginDriver';
 import { markPureCallExpressions } from './utils/pureComments';
 import relativeId from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
@@ -113,13 +113,13 @@ export default class Graph {
 		this.phase = BuildPhase.GENERATE;
 	}
 
-	contextParse(code: string, options: Partial<acorn.Options> = {}) {
+	contextParse(code: string, options: Partial<acorn.Options> = {}): acorn.Node {
 		const onCommentOrig = options.onComment;
 		const comments: acorn.Comment[] = [];
 
 		if (onCommentOrig && typeof onCommentOrig == 'function') {
 			options.onComment = (block, text, start, end, ...args) => {
-				comments.push({ type: block ? 'Block' : 'Line', value: text, start, end });
+				comments.push({ end, start, type: block ? 'Block' : 'Line', value: text });
 				return onCommentOrig.call(options, block, text, start, end, ...args);
 			};
 		} else {
@@ -127,7 +127,7 @@ export default class Graph {
 		}
 
 		const ast = this.acornParser.parse(code, {
-			...(this.options.acorn as acorn.Options),
+			...((this.options.acorn as unknown) as acorn.Options),
 			...options
 		});
 

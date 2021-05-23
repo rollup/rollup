@@ -12,10 +12,10 @@ export const UNKNOWN_INTEGER_PATH: ObjectPath = [UnknownInteger];
 
 const EntitiesKey = Symbol('Entities');
 interface EntityPaths {
-	[EntitiesKey]: Set<Entity>;
-	[UnknownKey]?: EntityPaths;
-	[UnknownInteger]?: EntityPaths;
 	[pathSegment: string]: EntityPaths;
+	[EntitiesKey]: Set<Entity>;
+	[UnknownInteger]?: EntityPaths;
+	[UnknownKey]?: EntityPaths;
 }
 
 export class PathTracker {
@@ -58,27 +58,27 @@ export class PathTracker {
 export const SHARED_RECURSION_TRACKER = new PathTracker();
 
 interface DiscriminatedEntityPaths {
-	[EntitiesKey]: Map<object, Set<Entity>>;
-	[UnknownKey]?: DiscriminatedEntityPaths;
-	[UnknownInteger]?: DiscriminatedEntityPaths;
 	[pathSegment: string]: DiscriminatedEntityPaths;
+	[EntitiesKey]: Map<unknown, Set<Entity>>;
+	[UnknownInteger]?: DiscriminatedEntityPaths;
+	[UnknownKey]?: DiscriminatedEntityPaths;
 }
 
 export class DiscriminatedPathTracker {
 	private entityPaths: DiscriminatedEntityPaths = Object.create(null, {
-		[EntitiesKey]: { value: new Map<object, Set<Entity>>() }
+		[EntitiesKey]: { value: new Map<unknown, Set<Entity>>() }
 	});
 
 	trackEntityAtPathAndGetIfTracked(
 		path: ObjectPath,
-		discriminator: object,
+		discriminator: unknown,
 		entity: Entity
 	): boolean {
 		let currentPaths = this.entityPaths;
 		for (const pathSegment of path) {
 			currentPaths = currentPaths[pathSegment] =
 				currentPaths[pathSegment] ||
-				Object.create(null, { [EntitiesKey]: { value: new Map<object, Set<Entity>>() } });
+				Object.create(null, { [EntitiesKey]: { value: new Map<unknown, Set<Entity>>() } });
 		}
 		const trackedEntities = getOrCreate(currentPaths[EntitiesKey], discriminator, () => new Set());
 		if (trackedEntities.has(entity)) return true;

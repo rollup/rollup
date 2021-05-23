@@ -38,7 +38,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 	private isBranchResolutionAnalysed = false;
 	private usedBranch: ExpressionNode | null = null;
 
-	deoptimizeCache() {
+	deoptimizeCache(): void {
 		if (this.usedBranch !== null) {
 			const unusedBranch = this.usedBranch === this.left ? this.right : this.left;
 			this.usedBranch = null;
@@ -49,7 +49,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		}
 	}
 
-	deoptimizePath(path: ObjectPath) {
+	deoptimizePath(path: ObjectPath): void {
 		const usedBranch = this.getUsedBranch();
 		if (usedBranch === null) {
 			this.left.deoptimizePath(path);
@@ -64,7 +64,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		path: ObjectPath,
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
-	) {
+	): void {
 		this.left.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
 		this.right.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
 	}
@@ -148,7 +148,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		return usedBranch.hasEffectsWhenCalledAtPath(path, callOptions, context);
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		const usedBranch = this.getUsedBranch();
 		if (
@@ -167,7 +167,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 		code: MagicString,
 		options: RenderOptions,
 		{ renderedParentType, isCalleeOfRenderedParent, preventASI }: NodeRenderOptions = BLANK
-	) {
+	): void {
 		if (!this.left.included || !this.right.included) {
 			const operatorPos = findFirstOccurrenceOutsideComment(
 				code.original,

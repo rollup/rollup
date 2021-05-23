@@ -11,7 +11,7 @@ export default class YieldExpression extends NodeBase {
 	type!: NodeType.tYieldExpression;
 	protected deoptimized = false;
 
-	hasEffects(context: HasEffectsContext) {
+	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		return (
 			!context.ignore.returnAwaitYield ||
@@ -19,7 +19,7 @@ export default class YieldExpression extends NodeBase {
 		);
 	}
 
-	render(code: MagicString, options: RenderOptions) {
+	render(code: MagicString, options: RenderOptions): void {
 		if (this.argument) {
 			this.argument.render(code, options, { preventASI: true });
 			if (this.argument.start === this.start + 5 /* 'yield'.length */) {
@@ -28,7 +28,7 @@ export default class YieldExpression extends NodeBase {
 		}
 	}
 
-	protected applyDeoptimizations() {
+	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
 		this.argument?.deoptimizePath(UNKNOWN_PATH);
 	}

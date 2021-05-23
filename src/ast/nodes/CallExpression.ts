@@ -20,21 +20,21 @@ import {
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
+import SpreadElement from './SpreadElement';
+import Super from './Super';
 import {
 	ExpressionEntity,
 	LiteralValueOrUnknown,
-	UnknownValue,
-	UNKNOWN_EXPRESSION
+	UNKNOWN_EXPRESSION,
+	UnknownValue
 } from './shared/Expression';
 import {
 	Annotation,
 	ExpressionNode,
-	IncludeChildren,
 	INCLUDE_PARAMETERS,
+	IncludeChildren,
 	NodeBase
 } from './shared/Node';
-import SpreadElement from './SpreadElement';
-import Super from './Super';
 
 export default class CallExpression extends NodeBase implements DeoptimizableEntity {
 	arguments!: (ExpressionNode | SpreadElement)[];
@@ -47,7 +47,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 	private expressionsToBeDeoptimized = new Set<ExpressionEntity>();
 	private returnExpression: ExpressionEntity | null = null;
 
-	bind() {
+	bind(): void {
 		super.bind();
 		if (this.callee instanceof Identifier) {
 			const variable = this.scope.findVariable(this.callee.name);
@@ -83,7 +83,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		};
 	}
 
-	deoptimizeCache() {
+	deoptimizeCache(): void {
 		if (this.returnExpression !== UNKNOWN_EXPRESSION) {
 			this.returnExpression = UNKNOWN_EXPRESSION;
 			for (const expression of this.deoptimizableDependentExpressions) {
@@ -95,7 +95,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		}
 	}
 
-	deoptimizePath(path: ObjectPath) {
+	deoptimizePath(path: ObjectPath): void {
 		if (
 			path.length === 0 ||
 			this.context.deoptimizationTracker.trackEntityAtPathAndGetIfTracked(path, this)
@@ -113,7 +113,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		path: ObjectPath,
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
-	) {
+	): void {
 		const returnExpression = this.getReturnExpression(recursionTracker);
 		if (returnExpression === UNKNOWN_EXPRESSION) {
 			thisParameter.deoptimizePath(UNKNOWN_PATH);
@@ -225,7 +225,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		);
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		if (includeChildrenRecursively) {
 			super.include(context, includeChildrenRecursively);
@@ -251,7 +251,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		code: MagicString,
 		options: RenderOptions,
 		{ renderedParentType, renderedSurroundingElement }: NodeRenderOptions = BLANK
-	) {
+	): void {
 		const surroundingELement = renderedParentType || renderedSurroundingElement;
 		this.callee.render(
 			code,
@@ -290,7 +290,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		}
 	}
 
-	protected applyDeoptimizations() {
+	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
 		const { thisParam } = this.callOptions;
 		if (thisParam) {

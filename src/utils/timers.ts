@@ -1,4 +1,4 @@
-import { InputOptions, SerializedTimings } from '../rollup/types';
+import { InputOptions, Plugin, SerializedTimings } from '../rollup/types';
 
 type StartTime = [number, number];
 
@@ -14,8 +14,8 @@ interface Timers {
 	[label: string]: Timer;
 }
 
-const NOOP = () => {};
-let getStartTime: () => StartTime = () => [0, 0];
+const NOOP = (): void => {};
+let getStartTime = (): StartTime => [0, 0];
 let getElapsedTime: (previous: StartTime) => number = () => 0;
 let getMemory: () => number = () => 0;
 let timers: Timers = {};
@@ -53,8 +53,8 @@ function timeStartImpl(label: string, level = 3) {
 	if (!timers.hasOwnProperty(label)) {
 		timers[label] = {
 			memory: 0,
-			startMemory: undefined as any,
-			startTime: undefined as any,
+			startMemory: undefined as never,
+			startTime: undefined as never,
 			time: 0,
 			totalMemory: 0
 		};
@@ -102,13 +102,13 @@ function getPluginWithTimers(plugin: any, index: number): Plugin {
 				timerLabel += ` (${plugin.name})`;
 			}
 			timerLabel += ` - ${hook}`;
-			timedPlugin[hook] = function () {
+			timedPlugin[hook] = function (...args: unknown[]) {
 				timeStart(timerLabel, 4);
-				let result = plugin[hook].apply(this === timedPlugin ? plugin : this, arguments);
+				let result = plugin[hook].apply(this === timedPlugin ? plugin : this, args);
 				timeEnd(timerLabel, 4);
 				if (result && typeof result.then === 'function') {
 					timeStart(`${timerLabel} (async)`, 4);
-					result = result.then((hookResult: any) => {
+					result = result.then((hookResult: unknown) => {
 						timeEnd(`${timerLabel} (async)`, 4);
 						return hookResult;
 					});
@@ -122,7 +122,7 @@ function getPluginWithTimers(plugin: any, index: number): Plugin {
 	return timedPlugin as Plugin;
 }
 
-export function initialiseTimers(inputOptions: InputOptions) {
+export function initialiseTimers(inputOptions: InputOptions): void {
 	if (inputOptions.perf) {
 		timers = {};
 		setTimeHelpers();

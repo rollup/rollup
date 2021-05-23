@@ -2,15 +2,15 @@ import { CallOptions } from '../CallOptions';
 import { BROKEN_FLOW_NONE, HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import ReturnValueScope from '../scopes/ReturnValueScope';
 import Scope from '../scopes/Scope';
-import { ObjectPath, UnknownKey, UNKNOWN_PATH } from '../utils/PathTracker';
+import { ObjectPath, UNKNOWN_PATH, UnknownKey } from '../utils/PathTracker';
 import BlockStatement from './BlockStatement';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import RestElement from './RestElement';
-import { UNKNOWN_EXPRESSION } from './shared/Expression';
+import SpreadElement from './SpreadElement';
+import { ExpressionEntity, UNKNOWN_EXPRESSION } from './shared/Expression';
 import { ExpressionNode, GenericEsTreeNode, IncludeChildren, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
-import SpreadElement from './SpreadElement';
 
 export default class ArrowFunctionExpression extends NodeBase {
 	body!: BlockStatement | ExpressionNode;
@@ -19,11 +19,11 @@ export default class ArrowFunctionExpression extends NodeBase {
 	scope!: ReturnValueScope;
 	type!: NodeType.tArrowFunctionExpression;
 
-	createScope(parentScope: Scope) {
+	createScope(parentScope: Scope): void {
 		this.scope = new ReturnValueScope(parentScope, this.context);
 	}
 
-	deoptimizePath(path: ObjectPath) {
+	deoptimizePath(path: ObjectPath): void {
 		// A reassignment of UNKNOWN_PATH is considered equivalent to having lost track
 		// which means the return expression needs to be reassigned
 		if (path.length === 1 && path[0] === UnknownKey) {
@@ -32,21 +32,21 @@ export default class ArrowFunctionExpression extends NodeBase {
 	}
 
 	// Arrow functions do not mutate their context
-	deoptimizeThisOnEventAtPath() {}
+	deoptimizeThisOnEventAtPath(): void {}
 
-	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
+	getReturnExpressionWhenCalledAtPath(path: ObjectPath): ExpressionEntity {
 		return path.length === 0 ? this.scope.getReturnExpression() : UNKNOWN_EXPRESSION;
 	}
 
-	hasEffects() {
+	hasEffects(): boolean {
 		return false;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
 		return path.length > 1;
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath): boolean {
 		return path.length > 1;
 	}
 
@@ -72,7 +72,7 @@ export default class ArrowFunctionExpression extends NodeBase {
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		for (const param of this.params) {
 			if (!(param instanceof Identifier)) {
@@ -89,7 +89,7 @@ export default class ArrowFunctionExpression extends NodeBase {
 		this.scope.includeCallArguments(context, args);
 	}
 
-	initialise() {
+	initialise(): void {
 		this.scope.addParameterVariables(
 			this.params.map(param => param.declare('parameter', UNKNOWN_EXPRESSION)),
 			this.params[this.params.length - 1] instanceof RestElement
@@ -101,7 +101,7 @@ export default class ArrowFunctionExpression extends NodeBase {
 		}
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode) {
+	parseNode(esTreeNode: GenericEsTreeNode): void {
 		if (esTreeNode.body.type === NodeType.BlockStatement) {
 			this.body = new this.context.nodeConstructors.BlockStatement(
 				esTreeNode.body,

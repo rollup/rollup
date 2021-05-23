@@ -122,7 +122,7 @@ export default class AssignmentExpression extends NodeBase {
 		}
 	}
 
-	protected applyDeoptimizations() {
+	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
 		this.left.deoptimizePath(EMPTY_PATH);
 		this.right.deoptimizePath(UNKNOWN_PATH);

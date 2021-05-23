@@ -48,7 +48,7 @@ export default class UnaryExpression extends NodeBase {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
 		if (this.operator === 'void') {
 			return path.length > 0;
 		}

@@ -30,9 +30,14 @@ export default class SequenceExpression extends NodeBase {
 		path: ObjectPath,
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
-	) {
+	): void {
 		if (event === EVENT_CALLED || path.length > 0) {
-			this.expressions[this.expressions.length - 1].deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
+			this.expressions[this.expressions.length - 1].deoptimizeThisOnEventAtPath(
+				event,
+				path,
+				thisParameter,
+				recursionTracker
+			);
 		}
 	}
 

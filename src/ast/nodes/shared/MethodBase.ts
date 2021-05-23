@@ -30,7 +30,7 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 	// expressions, there is no known situation where a getter is deoptimized.
 	deoptimizeCache(): void {}
 
-	deoptimizePath(path: ObjectPath) {
+	deoptimizePath(path: ObjectPath): void {
 		this.getAccessedValue().deoptimizePath(path);
 	}
 
@@ -39,7 +39,7 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 		path: ObjectPath,
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
-	) {
+	): void {
 		if (event === EVENT_ACCESSED && this.kind === 'get' && path.length === 0) {
 			return this.value.deoptimizeThisOnEventAtPath(
 				EVENT_CALLED,
@@ -86,7 +86,7 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 		);
 	}
 
-	hasEffects(context: HasEffectsContext) {
+	hasEffects(context: HasEffectsContext): boolean {
 		return this.key.hasEffects(context);
 	}
 
@@ -108,7 +108,7 @@ export default class MethodBase extends NodeBase implements DeoptimizableEntity 
 		path: ObjectPath,
 		callOptions: CallOptions,
 		context: HasEffectsContext
-	) {
+	): boolean {
 		return this.getAccessedValue().hasEffectsWhenCalledAtPath(path, callOptions, context);
 	}
 

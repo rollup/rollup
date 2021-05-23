@@ -28,11 +28,11 @@ export default class NewExpression extends NodeBase {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
 		return path.length > 0;
 	}
 
-	initialise() {
+	initialise(): void {
 		this.callOptions = {
 			args: this.arguments,
 			thisParam: null,

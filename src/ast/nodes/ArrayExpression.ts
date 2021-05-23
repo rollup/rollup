@@ -5,18 +5,18 @@ import { NodeEvent } from '../NodeEvents';
 import { ObjectPath, PathTracker, UnknownInteger } from '../utils/PathTracker';
 import { UNDEFINED_EXPRESSION, UNKNOWN_LITERAL_NUMBER } from '../values';
 import * as NodeType from './NodeType';
+import SpreadElement from './SpreadElement';
 import { ARRAY_PROTOTYPE } from './shared/ArrayPrototype';
 import { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import { ObjectEntity, ObjectProperty } from './shared/ObjectEntity';
-import SpreadElement from './SpreadElement';
 
 export default class ArrayExpression extends NodeBase {
 	elements!: (ExpressionNode | SpreadElement | null)[];
 	type!: NodeType.tArrayExpression;
 	private objectEntity: ObjectEntity | null = null;
 
-	deoptimizePath(path: ObjectPath) {
+	deoptimizePath(path: ObjectPath): void {
 		this.getObjectEntity().deoptimizePath(path);
 	}
 
@@ -25,7 +25,7 @@ export default class ArrayExpression extends NodeBase {
 		path: ObjectPath,
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
-	) {
+	): void {
 		this.getObjectEntity().deoptimizeThisOnEventAtPath(
 			event,
 			path,
@@ -56,11 +56,11 @@ export default class ArrayExpression extends NodeBase {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		return this.getObjectEntity().hasEffectsWhenAccessedAtPath(path, context);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		return this.getObjectEntity().hasEffectsWhenAssignedAtPath(path, context);
 	}
 
@@ -77,16 +77,16 @@ export default class ArrayExpression extends NodeBase {
 			return this.objectEntity;
 		}
 		const properties: ObjectProperty[] = [
-			{ kind: 'init', key: 'length', property: UNKNOWN_LITERAL_NUMBER }
+			{ key: 'length', kind: 'init', property: UNKNOWN_LITERAL_NUMBER }
 		];
 		for (let index = 0; index < this.elements.length; index++) {
 			const element = this.elements[index];
 			if (element instanceof SpreadElement) {
-				properties.unshift({ kind: 'init', key: UnknownInteger, property: element });
+				properties.unshift({ key: UnknownInteger, kind: 'init', property: element });
 			} else if (!element) {
-				properties.push({ kind: 'init', key: String(index), property: UNDEFINED_EXPRESSION });
+				properties.push({ key: String(index), kind: 'init', property: UNDEFINED_EXPRESSION });
 			} else {
-				properties.push({ kind: 'init', key: String(index), property: element });
+				properties.push({ key: String(index), kind: 'init', property: element });
 			}
 		}
 		return (this.objectEntity = new ObjectEntity(properties, ARRAY_PROTOTYPE));
