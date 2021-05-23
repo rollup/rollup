@@ -1,5 +1,20 @@
 # rollup changelog
 
+## 2.49.0
+*2021-05-23*
+
+### Features
+* Detect side-effect-free static class methods and properties (#4018)
+* Detect side-effect-free array elements (#4018)
+* Do not apply deoptimizations from dead code (#4018)
+
+### Bug Fixes
+* Handle side effect detection for getters and setters added in untracked code (#4018)
+* Track "this" mutations for methods, getters and setters (#4018)
+
+### Pull Requests
+* [#4018](https://github.com/rollup/rollup/pull/4018): Class method effects (@lukastaegert)
+
 ## 2.48.0
 *2021-05-15*
 
