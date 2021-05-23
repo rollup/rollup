@@ -51,5 +51,4 @@ Keep7(),
 Keep8() /*@__PURE__*/ && Keep9();
 
 // FIXME: unrelated issue
-/*@__PURE__*/ Drop10(),
-/*@__PURE__*/ Drop13();
+/*@__PURE__*/ Drop10();
