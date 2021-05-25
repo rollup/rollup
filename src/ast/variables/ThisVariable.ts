@@ -2,7 +2,11 @@ import { AstContext } from '../../Module';
 import { HasEffectsContext } from '../ExecutionContext';
 import { NodeEvent } from '../NodeEvents';
 import { ExpressionEntity, UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
-import { ObjectPath, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
+import {
+	DiscriminatedPathTracker,
+	ObjectPath,
+	SHARED_RECURSION_TRACKER
+} from '../utils/PathTracker';
 import LocalVariable from './LocalVariable';
 
 interface ThisDeoptimizationEvent {
@@ -14,7 +18,8 @@ interface ThisDeoptimizationEvent {
 export default class ThisVariable extends LocalVariable {
 	private deoptimizedPaths: ObjectPath[] = [];
 	private entitiesToBeDeoptimized = new Set<ExpressionEntity>();
-	private thisDeoptimizations: ThisDeoptimizationEvent[] = [];
+	private thisDeoptimizationList: ThisDeoptimizationEvent[] = [];
+	private thisDeoptimizations = new DiscriminatedPathTracker();
 
 	constructor(context: AstContext) {
 		super('this', null, null, context);
@@ -24,7 +29,7 @@ export default class ThisVariable extends LocalVariable {
 		for (const path of this.deoptimizedPaths) {
 			entity.deoptimizePath(path);
 		}
-		for (const thisDeoptimization of this.thisDeoptimizations) {
+		for (const thisDeoptimization of this.thisDeoptimizationList) {
 			this.applyThisDeoptimizationEvent(entity, thisDeoptimization);
 		}
 		this.entitiesToBeDeoptimized.add(entity);
@@ -53,10 +58,12 @@ export default class ThisVariable extends LocalVariable {
 			path,
 			thisParameter
 		};
-		for (const entity of this.entitiesToBeDeoptimized) {
-			this.applyThisDeoptimizationEvent(entity, thisDeoptimization);
+		if (!this.thisDeoptimizations.trackEntityAtPathAndGetIfTracked(path, event, thisParameter)) {
+			for (const entity of this.entitiesToBeDeoptimized) {
+				this.applyThisDeoptimizationEvent(entity, thisDeoptimization);
+			}
+			this.thisDeoptimizationList.push(thisDeoptimization);
 		}
-		this.thisDeoptimizations.push(thisDeoptimization);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
