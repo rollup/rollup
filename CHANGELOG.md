@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 2.50.0
+*2021-05-25*
+
+### Features
+* Only include last elements of comma expressions if they are used or have side effects (#4087)
+
+### Bug Fixes
+* Prevent a crash that could occur when calling object methods (#4091)
+
+### Pull Requests
+* [#4085](https://github.com/rollup/rollup/pull/4085): Switch to ESLint (@lukastaegert)
+* [#4087](https://github.com/rollup/rollup/pull/4087): Drop unused last sequence element (@lukastaegert)
+* [#4091](https://github.com/rollup/rollup/pull/4091): Prevent crash for recursive "this" deoptimization (@lukastaegert)
+
 ## 2.49.0
 *2021-05-23*
 
