@@ -114,7 +114,6 @@ export interface TransformModuleJSON extends Partial<PartialNull<ModuleOptions>>
 }
 
 export interface ModuleJSON extends TransformModuleJSON {
-	alwaysRemovedCode: [number, number][];
 	ast: AcornNode;
 	dependencies: string[];
 	id: string;
