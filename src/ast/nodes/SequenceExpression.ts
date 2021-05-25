@@ -13,6 +13,7 @@ import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { EVENT_CALLED, NodeEvent } from '../NodeEvents';
 import { ObjectPath, PathTracker } from '../utils/PathTracker';
 import CallExpression from './CallExpression';
+import ExpressionStatement from './ExpressionStatement';
 import * as NodeType from './NodeType';
 import { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
@@ -88,12 +89,15 @@ export default class SequenceExpression extends NodeBase {
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
-		for (let i = 0; i < this.expressions.length - 1; i++) {
-			const node = this.expressions[i];
-			if (includeChildrenRecursively || node.shouldBeIncluded(context))
-				node.include(context, includeChildrenRecursively);
+		const lastExpression = this.expressions[this.expressions.length - 1];
+		for (const expression of this.expressions) {
+			if (
+				includeChildrenRecursively ||
+				(expression === lastExpression && !(this.parent instanceof ExpressionStatement)) ||
+				expression.shouldBeIncluded(context)
+			)
+				expression.include(context, includeChildrenRecursively);
 		}
-		this.expressions[this.expressions.length - 1].include(context, includeChildrenRecursively);
 	}
 
 	render(
@@ -102,7 +106,9 @@ export default class SequenceExpression extends NodeBase {
 		{ renderedParentType, isCalleeOfRenderedParent, preventASI }: NodeRenderOptions = BLANK
 	): void {
 		let includedNodes = 0;
-		for (const { node, start, end } of getCommaSeparatedNodesWithBoundaries(
+		let lastSeparatorPos: number | null = null;
+		const lastNode = this.expressions[this.expressions.length - 1];
+		for (const { node, separator, start, end } of getCommaSeparatedNodesWithBoundaries(
 			this.expressions,
 			code,
 			this.start,
@@ -113,10 +119,11 @@ export default class SequenceExpression extends NodeBase {
 				continue;
 			}
 			includedNodes++;
+			lastSeparatorPos = separator;
 			if (includedNodes === 1 && preventASI) {
 				removeLineBreaks(code, start, node.start);
 			}
-			if (node === this.expressions[this.expressions.length - 1] && includedNodes === 1) {
+			if (node === lastNode && includedNodes === 1) {
 				node.render(code, options, {
 					isCalleeOfRenderedParent: renderedParentType
 						? isCalleeOfRenderedParent
@@ -126,6 +133,9 @@ export default class SequenceExpression extends NodeBase {
 			} else {
 				node.render(code, options);
 			}
+		}
+		if (lastSeparatorPos) {
+			code.remove(lastSeparatorPos, this.end);
 		}
 	}
 }
