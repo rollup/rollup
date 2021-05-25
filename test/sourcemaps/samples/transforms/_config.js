@@ -1,15 +1,15 @@
+const assert = require('assert');
 const buble = require('buble');
 const MagicString = require('magic-string');
-const assert = require('assert');
-const getLocation = require('../../getLocation');
 const { SourceMapConsumer } = require('source-map');
+const getLocation = require('../../getLocation');
 
 module.exports = {
 	description: 'preserves sourcemap chains when transforming',
 	options: {
 		plugins: [
 			{
-				transform(source, id) {
+				transform(source) {
 					return buble.transform(source, {
 						transforms: { modules: false }
 					});
@@ -17,7 +17,7 @@ module.exports = {
 			},
 
 			{
-				transform(source, id) {
+				transform(source) {
 					const s = new MagicString(source);
 					s.append('\nassert.equal( 1 + 1, 2 );\nassert.equal( 2 + 2, 4 );');
 

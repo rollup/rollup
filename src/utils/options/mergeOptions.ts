@@ -99,7 +99,10 @@ function mergeInputOptions(
 	const getOption = (name: string): any => overrides[name] ?? config[name];
 	const inputOptions: CompleteInputOptions<keyof InputOptions> = {
 		acorn: getOption('acorn'),
-		acornInjectPlugins: config.acornInjectPlugins as Function | Function[] | undefined,
+		acornInjectPlugins: config.acornInjectPlugins as
+			| (() => unknown)[]
+			| (() => unknown)
+			| undefined,
 		cache: config.cache as false | RollupCache | undefined,
 		context: getOption('context'),
 		experimentalCacheExpiry: getOption('experimentalCacheExpiry'),
@@ -166,9 +169,11 @@ const getObjectOption = (
 const getWatch = (config: GenericConfigObject, overrides: GenericConfigObject, name: string) =>
 	config.watch !== false && getObjectOption(config, overrides, name);
 
-export const normalizeObjectOptionValue = (optionValue: any) => {
+export const normalizeObjectOptionValue = (
+	optionValue: unknown
+): Record<string, unknown> | undefined => {
 	if (!optionValue) {
-		return optionValue;
+		return optionValue as undefined;
 	}
 	if (Array.isArray(optionValue)) {
 		return optionValue.reduce((result, value) => value && result && { ...result, ...value }, {});
@@ -176,7 +181,7 @@ export const normalizeObjectOptionValue = (optionValue: any) => {
 	if (typeof optionValue !== 'object') {
 		return {};
 	}
-	return optionValue;
+	return optionValue as Record<string, unknown>;
 };
 
 type CompleteOutputOptions<U extends keyof OutputOptions> = {

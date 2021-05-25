@@ -1,10 +1,10 @@
 import { bold } from 'colorette';
-import { NormalizedInputOptions, PluginContext } from '../../src/rollup/types';
+import { PluginContext } from 'rollup';
+import { NormalizedInputOptions, Plugin } from '../../src/rollup/types';
 import { stderr } from '../logging';
 
-export function waitForInputPlugin() {
+export function waitForInputPlugin(): Plugin {
 	return {
-		name: 'wait-for-input',
 		async buildStart(this: PluginContext, options: NormalizedInputOptions) {
 			const inputSpecifiers = Array.isArray(options.input)
 				? options.input
@@ -24,6 +24,7 @@ export function waitForInputPlugin() {
 				}
 				break;
 			}
-		}
+		},
+		name: 'wait-for-input'
 	};
 }

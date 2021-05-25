@@ -7,10 +7,6 @@ var externalDefault = require('external-default');
 var externalDefaultOnly = require('external-defaultOnly');
 var externalEsModule = require('external-esModule');
 
-function _interopNamespace(e) {
-	return e && e.__esModule ? e : _interopNamespaceDefault(e);
-}
-
 function _interopNamespaceDefault(e) {
 	var n = Object.create(null);
 	if (e) {
@@ -28,6 +24,10 @@ function _interopNamespaceDefault(e) {
 	}
 	n['default'] = e;
 	return Object.freeze(n);
+}
+
+function _interopNamespace(e) {
+	return e && e.__esModule ? e : _interopNamespaceDefault(e);
 }
 
 var externalAuto__namespace = /*#__PURE__*/_interopNamespace(externalAuto);

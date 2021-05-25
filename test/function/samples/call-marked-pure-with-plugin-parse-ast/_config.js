@@ -1,19 +1,22 @@
 const assert = require('assert');
 
 module.exports = {
-	description: 'external function calls marked with pure comment do not have effects and should be removed even if parsed by PluginContext.parse method',
+	description:
+		'external function calls marked with pure comment do not have effects and should be removed even if parsed by PluginContext.parse method',
 	options: {
 		external: ['socks'],
-		plugins:[{
-			transform(code, _id) {
-				const comments = [];
-				const ast = this.parse(code, {onComment: comments});
-				if (comments.length != 5 || comments.some(({value}) => !value.includes('PURE'))) {
-					throw new Error('failed to get comments');
+		plugins: [
+			{
+				transform(code) {
+					const comments = [];
+					const ast = this.parse(code, { onComment: comments });
+					if (comments.length != 5 || comments.some(({ value }) => !value.includes('PURE'))) {
+						throw new Error('failed to get comments');
+					}
+					return { ast, code, map: null };
 				}
-				return {ast, code, map: null};
-			},
-		}],
+			}
+		]
 	},
 	context: {
 		require(id) {

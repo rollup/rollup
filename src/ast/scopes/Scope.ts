@@ -15,7 +15,7 @@ export default class Scope {
 		context: AstContext,
 		init: ExpressionEntity | null,
 		_isHoisted: boolean
-	) {
+	): LocalVariable {
 		const name = identifier.name;
 		let variable = this.variables.get(name) as LocalVariable;
 		if (variable) {

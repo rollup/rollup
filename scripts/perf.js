@@ -1,9 +1,11 @@
-const path = require('path');
+/* global gc */
+
 const fs = require('fs');
-const rollup = require('../dist/rollup.js');
-const tc = require('turbocolor');
-const { loadPerfConfig, targetDir } = require('./load-perf-config');
+const path = require('path');
 const prettyBytes = require('pretty-bytes');
+const tc = require('turbocolor');
+const rollup = require('../dist/rollup.js');
+const { loadPerfConfig, targetDir } = require('./load-perf-config');
 
 const initialDir = process.cwd();
 const perfFile = path.resolve(targetDir, 'rollup.perf.json');
@@ -48,13 +50,13 @@ function getAverage(accumulatedMeasurements, runs, discarded) {
 	const average = {};
 	Object.keys(accumulatedMeasurements).forEach(label => {
 		average[label] = {
-			time: getSingleAverage(
-				accumulatedMeasurements[label].map(timing => timing[0]),
+			memory: getSingleAverage(
+				accumulatedMeasurements[label].map(timing => timing[2]),
 				runs,
 				discarded
 			),
-			memory: getSingleAverage(
-				accumulatedMeasurements[label].map(timing => timing[2]),
+			time: getSingleAverage(
+				accumulatedMeasurements[label].map(timing => timing[0]),
 				runs,
 				discarded
 			)
@@ -153,7 +155,7 @@ function persistTimings(timings) {
 		);
 	} catch (e) {
 		console.error(tc.bold(`Could not persist performance information in ${tc.cyan(perfFile)}.`));
-		system.exit(1);
+		process.exit(1);
 	}
 }
 

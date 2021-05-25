@@ -24,7 +24,7 @@ export default class Variable extends ExpressionEntity {
 	 * Binds identifiers that reference this variable to this variable.
 	 * Necessary to be able to change variable names.
 	 */
-	addReference(_identifier: Identifier) {}
+	addReference(_identifier: Identifier): void {}
 
 	getBaseVariableName(): string {
 		return this.renderBaseName || this.renderName || this.name;
@@ -37,7 +37,7 @@ export default class Variable extends ExpressionEntity {
 			: name;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, _context: HasEffectsContext) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, _context: HasEffectsContext): boolean {
 		return path.length > 0;
 	}
 
@@ -47,13 +47,13 @@ export default class Variable extends ExpressionEntity {
 	 * previously.
 	 * Once a variable is included, it should take care all its declarations are included.
 	 */
-	include() {
+	include(): void {
 		this.included = true;
 	}
 
-	markCalledFromTryStatement() {}
+	markCalledFromTryStatement(): void {}
 
-	setRenderNames(baseName: string | null, name: string | null) {
+	setRenderNames(baseName: string | null, name: string | null): void {
 		this.renderBaseName = baseName;
 		this.renderName = name;
 	}

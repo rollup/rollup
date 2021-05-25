@@ -45,14 +45,14 @@ export default class SyntheticNamedExportVariable extends Variable {
 		return `${this.syntheticNamespace.getName()}${getPropertyAccess(name)}`;
 	}
 
-	include() {
+	include(): void {
 		if (!this.included) {
 			this.included = true;
 			this.context.includeVariableInModule(this.syntheticNamespace);
 		}
 	}
 
-	setRenderNames(baseName: string | null, name: string | null) {
+	setRenderNames(baseName: string | null, name: string | null): void {
 		super.setRenderNames(baseName, name);
 	}
 }

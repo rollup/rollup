@@ -5,5 +5,5 @@ module.exports = {
 		if (data.includes('created _actual/main.js')) {
 			return true;
 		}
-	},
+	}
 };

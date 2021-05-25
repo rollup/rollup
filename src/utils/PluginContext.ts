@@ -5,20 +5,20 @@ import {
 	Plugin,
 	PluginCache,
 	PluginContext,
-	RollupWarning,
 	SerializablePluginCache
 } from '../rollup/types';
+import { FileEmitter } from './FileEmitter';
+import { createPluginCache, getCacheForUncacheablePlugin, NO_CACHE } from './PluginCache';
 import { BLANK } from './blank';
 import { BuildPhase } from './buildPhase';
 import { errInvalidRollupPhaseForAddWatchFile, warnDeprecation } from './error';
-import { FileEmitter } from './FileEmitter';
-import { createPluginCache, getCacheForUncacheablePlugin, NO_CACHE } from './PluginCache';
 import {
 	ANONYMOUS_OUTPUT_PLUGIN_PREFIX,
 	ANONYMOUS_PLUGIN_PREFIX,
 	throwPluginError
 } from './pluginUtils';
 
+// eslint-disable-next-line @typescript-eslint/ban-types
 function getDeprecatedContextHandler<H extends Function>(
 	handler: H,
 	handlerName: string,
@@ -87,7 +87,7 @@ export function getPluginContext(
 		cache: cacheInstance,
 		emitAsset: getDeprecatedContextHandler(
 			(name: string, source?: string | Uint8Array) =>
-				fileEmitter.emitFile({ type: 'asset', name, source }),
+				fileEmitter.emitFile({ name, source, type: 'asset' }),
 			'emitAsset',
 			'emitFile',
 			plugin.name,
@@ -96,7 +96,7 @@ export function getPluginContext(
 		),
 		emitChunk: getDeprecatedContextHandler(
 			(id: string, options?: { name?: string }) =>
-				fileEmitter.emitFile({ type: 'chunk', id, name: options && options.name }),
+				fileEmitter.emitFile({ id, name: options && options.name, type: 'chunk' }),
 			'emitChunk',
 			'emitFile',
 			plugin.name,
@@ -153,37 +153,37 @@ export function getPluginContext(
 				yield* moduleIds;
 			}
 
-				const moduleIds = graph.modulesById.keys();
-				return wrappedModuleIds();
-			},
-			parse: graph.contextParse.bind(graph),
-			resolve(source, importer, { custom, skipSelf } = BLANK) {
-				return graph.moduleLoader.resolveId(
-					source,
-					importer,
-					custom,
-					skipSelf ? [{ importer, plugin, source }] : null
-				);
-			},
-			resolveId: getDeprecatedContextHandler(
-				(source: string, importer: string | undefined) =>
-					graph.moduleLoader
-						.resolveId(source, importer, BLANK)
-						.then(resolveId => resolveId && resolveId.id),
-				'resolveId',
-				'resolve',
-				plugin.name,
-				true,
-				options
-			),
-			setAssetSource: fileEmitter.setAssetSource,
-			warn(warning) {
-				if (typeof warning === 'string') warning = { message: warning } as RollupWarning;
-				if (warning.code) warning.pluginCode = warning.code;
-				warning.code = 'PLUGIN_WARNING';
-				warning.plugin = plugin.name;
-				options.onwarn(warning);
-			}
-		};
-		return context;
+			const moduleIds = graph.modulesById.keys();
+			return wrappedModuleIds();
+		},
+		parse: graph.contextParse.bind(graph),
+		resolve(source, importer, { custom, skipSelf } = BLANK) {
+			return graph.moduleLoader.resolveId(
+				source,
+				importer,
+				custom,
+				skipSelf ? [{ importer, plugin, source }] : null
+			);
+		},
+		resolveId: getDeprecatedContextHandler(
+			(source: string, importer: string | undefined) =>
+				graph.moduleLoader
+					.resolveId(source, importer, BLANK)
+					.then(resolveId => resolveId && resolveId.id),
+			'resolveId',
+			'resolve',
+			plugin.name,
+			true,
+			options
+		),
+		setAssetSource: fileEmitter.setAssetSource,
+		warn(warning) {
+			if (typeof warning === 'string') warning = { message: warning };
+			if (warning.code) warning.pluginCode = warning.code;
+			warning.code = 'PLUGIN_WARNING';
+			warning.plugin = plugin.name;
+			options.onwarn(warning);
+		}
+	};
+	return context;
 }

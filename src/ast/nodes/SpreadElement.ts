@@ -9,9 +9,19 @@ export default class SpreadElement extends NodeBase {
 	type!: NodeType.tSpreadElement;
 	protected deoptimized = false;
 
-	deoptimizeThisOnEventAtPath(event: NodeEvent, path: ObjectPath, thisParameter: ExpressionEntity, recursionTracker: PathTracker) {
+	deoptimizeThisOnEventAtPath(
+		event: NodeEvent,
+		path: ObjectPath,
+		thisParameter: ExpressionEntity,
+		recursionTracker: PathTracker
+	): void {
 		if (path.length > 0) {
-			this.argument.deoptimizeThisOnEventAtPath(event, [UnknownKey, ...path], thisParameter, recursionTracker)
+			this.argument.deoptimizeThisOnEventAtPath(
+				event,
+				[UnknownKey, ...path],
+				thisParameter,
+				recursionTracker
+			);
 		}
 	}
 

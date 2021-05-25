@@ -11,15 +11,15 @@ export default class ExportAllDeclaration extends NodeBase {
 	source!: Literal<string>;
 	type!: NodeType.tExportAllDeclaration;
 
-	hasEffects() {
+	hasEffects(): boolean {
 		return false;
 	}
 
-	initialise() {
+	initialise(): void {
 		this.context.addExport(this);
 	}
 
-	render(code: MagicString, _options: RenderOptions, nodeRenderOptions?: NodeRenderOptions) {
+	render(code: MagicString, _options: RenderOptions, nodeRenderOptions?: NodeRenderOptions): void {
 		code.remove(nodeRenderOptions!.start!, nodeRenderOptions!.end!);
 	}
 }

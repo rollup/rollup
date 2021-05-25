@@ -20,7 +20,7 @@ export default class ThisVariable extends LocalVariable {
 		super('this', null, null, context);
 	}
 
-	addEntityToBeDeoptimized(entity: ExpressionEntity) {
+	addEntityToBeDeoptimized(entity: ExpressionEntity): void {
 		for (const path of this.deoptimizedPaths) {
 			entity.deoptimizePath(path);
 		}
@@ -30,7 +30,7 @@ export default class ThisVariable extends LocalVariable {
 		this.entitiesToBeDeoptimized.add(entity);
 	}
 
-	deoptimizePath(path: ObjectPath) {
+	deoptimizePath(path: ObjectPath): void {
 		if (
 			path.length === 0 ||
 			this.deoptimizationTracker.trackEntityAtPathAndGetIfTracked(path, this)
@@ -43,7 +43,11 @@ export default class ThisVariable extends LocalVariable {
 		}
 	}
 
-	deoptimizeThisOnEventAtPath(event: NodeEvent, path: ObjectPath, thisParameter: ExpressionEntity) {
+	deoptimizeThisOnEventAtPath(
+		event: NodeEvent,
+		path: ObjectPath,
+		thisParameter: ExpressionEntity
+	): void {
 		const thisDeoptimization: ThisDeoptimizationEvent = {
 			event,
 			path,
@@ -55,14 +59,14 @@ export default class ThisVariable extends LocalVariable {
 		this.thisDeoptimizations.push(thisDeoptimization);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		return (
 			this.getInit(context).hasEffectsWhenAccessedAtPath(path, context) ||
 			super.hasEffectsWhenAccessedAtPath(path, context)
 		);
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		return (
 			this.getInit(context).hasEffectsWhenAssignedAtPath(path, context) ||
 			super.hasEffectsWhenAssignedAtPath(path, context)

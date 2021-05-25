@@ -1,14 +1,14 @@
-import { Bundle as MagicStringBundle } from 'magic-string';
+import { Bundle, Bundle as MagicStringBundle } from 'magic-string';
 import { NormalizedOutputOptions } from '../rollup/types';
 import { error } from '../utils/error';
 import { isLegal } from '../utils/identifierHelpers';
-import { FinaliserOptions } from './index';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
 import { keypath } from './shared/sanitize';
 import setupNamespace from './shared/setupNamespace';
 import trimEmptyImports from './shared/trimEmptyImports';
 import warnOnBuiltins from './shared/warnOnBuiltins';
+import { FinaliserOptions } from './index';
 
 const thisProp = (name: string) => `this${keypath(name)}`;
 
@@ -38,7 +38,7 @@ export default function iife(
 		namespaceToStringTag,
 		strict
 	}: NormalizedOutputOptions
-) {
+): Bundle {
 	const _ = compact ? '' : ' ';
 	const s = compact ? '' : ';';
 	const n = compact ? '' : '\n';

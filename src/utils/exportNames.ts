@@ -6,7 +6,7 @@ export function assignExportsToMangledNames(
 	exports: Set<Variable>,
 	exportsByName: Record<string, Variable>,
 	exportNamesByVariable: Map<Variable, string[]>
-) {
+): void {
 	let nameIndex = 0;
 	for (const variable of exports) {
 		let exportName = variable.name[0];
@@ -29,7 +29,7 @@ export function assignExportsToNames(
 	exports: Set<Variable>,
 	exportsByName: Record<string, Variable>,
 	exportNamesByVariable: Map<Variable, string[]>
-) {
+): void {
 	for (const variable of exports) {
 		let nameIndex = 0;
 		let exportName = variable.name;

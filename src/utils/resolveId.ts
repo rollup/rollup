@@ -1,7 +1,7 @@
-import { CustomPluginOptions, Plugin, ResolvedId } from '../rollup/types';
+import { CustomPluginOptions, Plugin, ResolvedId, ResolveIdResult } from '../rollup/types';
+import { PluginDriver } from './PluginDriver';
 import { lstatSync, readdirSync, realpathSync } from './fs';
 import { basename, dirname, isAbsolute, resolve } from './path';
-import { PluginDriver } from './PluginDriver';
 import { resolveIdViaPlugins } from './resolveIdViaPlugins';
 
 export async function resolveId(
@@ -17,7 +17,7 @@ export async function resolveId(
 	) => Promise<ResolvedId | null>,
 	skip: { importer: string | undefined; plugin: Plugin; source: string }[] | null,
 	customOptions: CustomPluginOptions | undefined
-) {
+): Promise<ResolveIdResult> {
 	const pluginResult = await resolveIdViaPlugins(
 		source,
 		importer,

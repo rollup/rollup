@@ -2,7 +2,11 @@ import { errFailedValidation, error } from './error';
 import { extname } from './path';
 import { isPathFragment } from './relativeId';
 
-export function renderNamePattern(pattern: string, patternName: string, replacements: { [name: string]: () => string }) {
+export function renderNamePattern(
+	pattern: string,
+	patternName: string,
+	replacements: { [name: string]: () => string }
+): string {
 	if (isPathFragment(pattern))
 		return error(
 			errFailedValidation(
@@ -26,13 +30,13 @@ export function renderNamePattern(pattern: string, patternName: string, replacem
 	});
 }
 
-export function makeUnique(name: string, existingNames: Record<string, any>) {
+export function makeUnique(name: string, existingNames: Record<string, any>): string {
 	const existingNamesLowercase = new Set(Object.keys(existingNames).map(key => key.toLowerCase()));
 	if (!existingNamesLowercase.has(name.toLocaleLowerCase())) return name;
 
 	const ext = extname(name);
 	name = name.substr(0, name.length - ext.length);
-	let uniqueName,
+	let uniqueName: string,
 		uniqueIndex = 1;
 	while (existingNamesLowercase.has((uniqueName = name + ++uniqueIndex + ext).toLowerCase()));
 	return uniqueName;

@@ -4,8 +4,8 @@ import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
 import Scope from '../scopes/Scope';
 import * as NodeType from './NodeType';
-import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from './shared/Node';
 import VariableDeclaration from './VariableDeclaration';
+import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from './shared/Node';
 
 export default class ForStatement extends StatementBase {
 	body!: StatementNode;
@@ -14,7 +14,7 @@ export default class ForStatement extends StatementBase {
 	type!: NodeType.tForStatement;
 	update!: ExpressionNode | null;
 
-	createScope(parentScope: Scope) {
+	createScope(parentScope: Scope): void {
 		this.scope = new BlockScope(parentScope);
 	}
 
@@ -38,7 +38,7 @@ export default class ForStatement extends StatementBase {
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		if (this.init) this.init.includeAsSingleStatement(context, includeChildrenRecursively);
 		if (this.test) this.test.include(context, includeChildrenRecursively);
@@ -48,7 +48,7 @@ export default class ForStatement extends StatementBase {
 		context.brokenFlow = brokenFlow;
 	}
 
-	render(code: MagicString, options: RenderOptions) {
+	render(code: MagicString, options: RenderOptions): void {
 		if (this.init) this.init.render(code, options, NO_SEMICOLON);
 		if (this.test) this.test.render(code, options, NO_SEMICOLON);
 		if (this.update) this.update.render(code, options, NO_SEMICOLON);

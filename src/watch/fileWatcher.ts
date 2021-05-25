@@ -1,5 +1,5 @@
-import chokidar, { FSWatcher } from 'chokidar';
 import { platform } from 'os';
+import chokidar, { FSWatcher } from 'chokidar';
 import { ChangeEvent, ChokidarOptions } from '../rollup/types';
 import { Task } from './watch';
 
@@ -15,14 +15,14 @@ export class FileWatcher {
 		this.watcher = this.createWatcher(null);
 	}
 
-	close() {
+	close(): void {
 		this.watcher.close();
 		for (const watcher of this.transformWatchers.values()) {
 			watcher.close();
 		}
 	}
 
-	unwatch(id: string) {
+	unwatch(id: string): void {
 		this.watcher.unwatch(id);
 		const transformWatcher = this.transformWatchers.get(id);
 		if (transformWatcher) {
@@ -31,7 +31,7 @@ export class FileWatcher {
 		}
 	}
 
-	watch(id: string, isTransformDependency: boolean) {
+	watch(id: string, isTransformDependency: boolean): void {
 		if (isTransformDependency) {
 			const watcher = this.transformWatchers.get(id) || this.createWatcher(id);
 			watcher.add(id);
@@ -54,7 +54,7 @@ export class FileWatcher {
 				watcher.unwatch(changedId);
 				watcher.add(changedId);
 			}
-			task.invalidate(changedId, {isTransformDependency, event});
+			task.invalidate(changedId, { event, isTransformDependency });
 		};
 		const watcher = chokidar
 			.watch([], this.chokidarOptions)

@@ -20,10 +20,6 @@ declare module 'acorn-static-class-features' {
 	export default plugin;
 }
 
-declare module 'fsevents' {
-	export default {};
-}
-
 declare module 'acorn-walk' {
 	type WalkerCallback<TState> = (node: acorn.Node, state: TState) => void;
 	type RecursiveWalkerFn<TState> = (
@@ -39,7 +35,7 @@ declare module 'is-reference' {
 	export default function is_reference(
 		node: NodeWithFieldDefinition,
 		parent: NodeWithFieldDefinition
-	): any;
+	): unknown;
 	export type Node =
 		| import('estree').Identifier
 		| import('estree').SimpleLiteral

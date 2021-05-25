@@ -4,8 +4,8 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.externalAuto, global.externalDefault, global.externalDefaultOnly));
 }(this, (function (externalAuto, externalDefault, externalDefaultOnly) { 'use strict';
 
-	function _interopNamespace(e) {
-		return e && e.__esModule ? e : _interopNamespaceDefault(e);
+	function _interopNamespaceDefaultOnly(e) {
+		return Object.freeze({__proto__: null, [Symbol.toStringTag]: 'Module', 'default': e});
 	}
 
 	function _interopNamespaceDefault(e) {
@@ -27,8 +27,8 @@
 		return Object.freeze(n);
 	}
 
-	function _interopNamespaceDefaultOnly(e) {
-		return Object.freeze({__proto__: null, [Symbol.toStringTag]: 'Module', 'default': e});
+	function _interopNamespace(e) {
+		return e && e.__esModule ? e : _interopNamespaceDefault(e);
 	}
 
 	var externalAuto__namespace = /*#__PURE__*/_interopNamespace(externalAuto);

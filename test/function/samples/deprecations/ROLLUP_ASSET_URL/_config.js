@@ -2,7 +2,7 @@ module.exports = {
 	description: 'marks ROLLUP_ASSET_URL as deprecated',
 	options: {
 		plugins: {
-			load(id) {
+			load() {
 				return `export default import.meta.ROLLUP_ASSET_URL_${this.emitFile({
 					type: 'asset',
 					name: 'asset',

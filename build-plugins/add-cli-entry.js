@@ -2,15 +2,15 @@ import MagicString from 'magic-string';
 
 export default function addCliEntry() {
 	return {
-		name: 'add-cli-entry',
 		buildStart() {
 			this.emitFile({
-				type: 'chunk',
-				id: 'cli/cli.ts',
 				fileName: 'bin/rollup',
-				preserveSignature: false
+				id: 'cli/cli.ts',
+				preserveSignature: false,
+				type: 'chunk'
 			});
 		},
+		name: 'add-cli-entry',
 		renderChunk(code, chunkInfo) {
 			if (chunkInfo.fileName === 'bin/rollup') {
 				const magicString = new MagicString(code);

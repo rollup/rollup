@@ -31,8 +31,12 @@ export interface NodeRenderOptions {
 export const NO_SEMICOLON: NodeRenderOptions = { isNoStatement: true };
 
 // This assumes there are only white-space and comments between start and the string we are looking for
-export function findFirstOccurrenceOutsideComment(code: string, searchString: string, start = 0) {
-	let searchPos, charCodeAfterSlash;
+export function findFirstOccurrenceOutsideComment(
+	code: string,
+	searchString: string,
+	start = 0
+): number {
+	let searchPos: number, charCodeAfterSlash: number;
 	searchPos = code.indexOf(searchString, start);
 	while (true) {
 		start = code.indexOf('/', start);
@@ -53,7 +57,7 @@ export function findFirstOccurrenceOutsideComment(code: string, searchString: st
 
 const NON_WHITESPACE = /\S/g;
 
-export function findNonWhiteSpace(code: string, index: number) {
+export function findNonWhiteSpace(code: string, index: number): number {
 	NON_WHITESPACE.lastIndex = index;
 	const result = NON_WHITESPACE.exec(code)!;
 	return result.index;
@@ -86,7 +90,7 @@ export function renderStatementList(
 	start: number,
 	end: number,
 	options: RenderOptions
-) {
+): void {
 	let currentNode, currentNodeStart, currentNodeNeedsBoundaries, nextNodeStart;
 	let nextNode = statements[0];
 	let nextNodeNeedsBoundaries = !nextNode.included || nextNode.needsBoundaries;
@@ -180,7 +184,7 @@ export function getCommaSeparatedNodesWithBoundaries<N extends Node>(
 }
 
 // This assumes there are only white-space and comments between start and end
-export function removeLineBreaks(code: MagicString, start: number, end: number) {
+export function removeLineBreaks(code: MagicString, start: number, end: number): void {
 	while (true) {
 		const [removeStart, removeEnd] = findFirstLineBreakOutsideComment(
 			code.original.slice(start, end)

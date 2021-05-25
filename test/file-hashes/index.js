@@ -10,16 +10,14 @@ runTestSuiteWithSamples('file hashes', path.resolve(__dirname, 'samples'), (dir,
 				process.chdir(dir);
 				return Promise.all(
 					[config.options1, config.options2].map(options =>
-						rollup
-							.rollup(options)
-							.then(bundle =>
-								bundle.generate(
-									Object.assign(
-										{ format: 'es', chunkFileNames: '[hash]', entryFileNames: '[hash]' },
-										options.output
-									)
-								)
-							)
+						rollup.rollup(options).then(bundle =>
+							bundle.generate({
+								format: 'es',
+								chunkFileNames: '[hash]',
+								entryFileNames: '[hash]',
+								...options.output
+							})
+						)
 					)
 				).then(([generated1, generated2]) => {
 					const fileContentsByHash = new Map();

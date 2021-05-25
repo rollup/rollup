@@ -2,12 +2,12 @@ import { CallOptions } from '../../CallOptions';
 import { BROKEN_FLOW_NONE, HasEffectsContext, InclusionContext } from '../../ExecutionContext';
 import { EVENT_CALLED, NodeEvent } from '../../NodeEvents';
 import FunctionScope from '../../scopes/FunctionScope';
-import { ObjectPath, UnknownKey, UNKNOWN_PATH } from '../../utils/PathTracker';
+import { ObjectPath, UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
 import BlockStatement from '../BlockStatement';
 import Identifier, { IdentifierWithVariable } from '../Identifier';
 import RestElement from '../RestElement';
 import SpreadElement from '../SpreadElement';
-import {  ExpressionEntity,  UNKNOWN_EXPRESSION } from './Expression';
+import { ExpressionEntity, UNKNOWN_EXPRESSION } from './Expression';
 import { ExpressionNode, GenericEsTreeNode, IncludeChildren, NodeBase } from './Node';
 import { ObjectEntity } from './ObjectEntity';
 import { OBJECT_PROTOTYPE } from './ObjectPrototype';
@@ -22,11 +22,11 @@ export default class FunctionNode extends NodeBase {
 	scope!: FunctionScope;
 	private isPrototypeDeoptimized = false;
 
-	createScope(parentScope: FunctionScope) {
+	createScope(parentScope: FunctionScope): void {
 		this.scope = new FunctionScope(parentScope, this.context);
 	}
 
-	deoptimizePath(path: ObjectPath) {
+	deoptimizePath(path: ObjectPath): void {
 		if (path.length === 1) {
 			if (path[0] === 'prototype') {
 				this.isPrototypeDeoptimized = true;
@@ -41,9 +41,13 @@ export default class FunctionNode extends NodeBase {
 	}
 
 	// TODO for completeness, we should also track other events here
-	deoptimizeThisOnEventAtPath(event: NodeEvent, path: ObjectPath, thisParameter: ExpressionEntity) {
+	deoptimizeThisOnEventAtPath(
+		event: NodeEvent,
+		path: ObjectPath,
+		thisParameter: ExpressionEntity
+	): void {
 		if (event === EVENT_CALLED) {
-			if (path.length > 0 ) {
+			if (path.length > 0) {
 				thisParameter.deoptimizePath(UNKNOWN_PATH);
 			} else {
 				this.scope.thisVariable.addEntityToBeDeoptimized(thisParameter);
@@ -51,20 +55,20 @@ export default class FunctionNode extends NodeBase {
 		}
 	}
 
-	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
+	getReturnExpressionWhenCalledAtPath(path: ObjectPath): ExpressionEntity {
 		return path.length === 0 ? this.scope.getReturnExpression() : UNKNOWN_EXPRESSION;
 	}
 
-	hasEffects() {
+	hasEffects(): boolean {
 		return this.id !== null && this.id.hasEffects();
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
 		if (path.length <= 1) return false;
 		return path.length > 2 || path[0] !== 'prototype' || this.isPrototypeDeoptimized;
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath): boolean {
 		if (path.length <= 1) {
 			return false;
 		}
@@ -75,7 +79,7 @@ export default class FunctionNode extends NodeBase {
 		path: ObjectPath,
 		callOptions: CallOptions,
 		context: HasEffectsContext
-	) {
+	): boolean {
 		if (path.length > 0) return true;
 		for (const param of this.params) {
 			if (param.hasEffects(context)) return true;
@@ -83,7 +87,9 @@ export default class FunctionNode extends NodeBase {
 		const thisInit = context.replacedVariableInits.get(this.scope.thisVariable);
 		context.replacedVariableInits.set(
 			this.scope.thisVariable,
-			callOptions.withNew ? new ObjectEntity({}, OBJECT_PROTOTYPE) : UNKNOWN_EXPRESSION
+			callOptions.withNew
+				? new ObjectEntity(Object.create(null), OBJECT_PROTOTYPE)
+				: UNKNOWN_EXPRESSION
 		);
 		const { brokenFlow, ignore } = context;
 		context.ignore = {
@@ -103,7 +109,7 @@ export default class FunctionNode extends NodeBase {
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		if (this.id) this.id.include();
 		const hasArguments = this.scope.argumentsVariable.included;
@@ -122,7 +128,7 @@ export default class FunctionNode extends NodeBase {
 		this.scope.includeCallArguments(context, args);
 	}
 
-	initialise() {
+	initialise(): void {
 		if (this.id !== null) {
 			this.id.declare('function', this);
 		}
@@ -133,7 +139,7 @@ export default class FunctionNode extends NodeBase {
 		this.body.addImplicitReturnExpressionToScope();
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode) {
+	parseNode(esTreeNode: GenericEsTreeNode): void {
 		this.body = new this.context.nodeConstructors.BlockStatement(
 			esTreeNode.body,
 			this,

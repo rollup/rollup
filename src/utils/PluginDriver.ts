@@ -19,9 +19,9 @@ import {
 	SerializablePluginCache,
 	SyncPluginHooks
 } from '../rollup/types';
-import { errInputHookInOutputPlugin, error } from './error';
 import { FileEmitter } from './FileEmitter';
 import { getPluginContext } from './PluginContext';
+import { errInputHookInOutputPlugin, error } from './error';
 import { throwPluginError, warnDeprecatedHooks } from './pluginUtils';
 
 /**
@@ -92,7 +92,11 @@ export class PluginDriver {
 	) {
 		warnDeprecatedHooks(userPlugins, options);
 		this.pluginCache = pluginCache;
-		this.fileEmitter = new FileEmitter(graph, options, basePluginDriver && basePluginDriver.fileEmitter);
+		this.fileEmitter = new FileEmitter(
+			graph,
+			options,
+			basePluginDriver && basePluginDriver.fileEmitter
+		);
 		this.emitFile = this.fileEmitter.emitFile.bind(this.fileEmitter);
 		this.getFileName = this.fileEmitter.getFileName.bind(this.fileEmitter);
 		this.finaliseAssets = this.fileEmitter.assertAssetsFinalized.bind(this.fileEmitter);
@@ -317,6 +321,7 @@ export class PluginDriver {
 					if (permitValues) return hook;
 					return throwInvalidHookError(hookName, plugin.name);
 				}
+				// eslint-disable-next-line @typescript-eslint/ban-types
 				return (hook as Function).apply(context, args);
 			})
 			.catch(err => throwPluginError(err, plugin.name, { hook: hookName }));
@@ -348,6 +353,7 @@ export class PluginDriver {
 			if (typeof hook !== 'function') {
 				return throwInvalidHookError(hookName, plugin.name);
 			}
+			// eslint-disable-next-line @typescript-eslint/ban-types
 			return (hook as Function).apply(context, args);
 		} catch (err) {
 			return throwPluginError(err, plugin.name, { hook: hookName });

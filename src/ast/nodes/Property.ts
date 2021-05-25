@@ -3,6 +3,7 @@ import { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { HasEffectsContext } from '../ExecutionContext';
 import { UnknownKey } from '../utils/PathTracker';
+import LocalVariable from '../variables/LocalVariable';
 import * as NodeType from './NodeType';
 import { ExpressionEntity, UNKNOWN_EXPRESSION } from './shared/Expression';
 import MethodBase from './shared/MethodBase';
@@ -18,7 +19,7 @@ export default class Property extends MethodBase implements PatternNode {
 	protected deoptimized = false;
 	private declarationInit: ExpressionEntity | null = null;
 
-	declare(kind: string, init: ExpressionEntity) {
+	declare(kind: string, init: ExpressionEntity): LocalVariable[] {
 		this.declarationInit = init;
 		return (this.value as PatternNode).declare(kind, UNKNOWN_EXPRESSION);
 	}
@@ -34,14 +35,14 @@ export default class Property extends MethodBase implements PatternNode {
 		);
 	}
 
-	render(code: MagicString, options: RenderOptions) {
+	render(code: MagicString, options: RenderOptions): void {
 		if (!this.shorthand) {
 			this.key.render(code, options);
 		}
 		this.value.render(code, options, { isShorthandProperty: this.shorthand });
 	}
 
-	protected applyDeoptimizations():void {
+	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
 		if (this.declarationInit !== null) {
 			this.declarationInit.deoptimizePath([UnknownKey, UnknownKey]);

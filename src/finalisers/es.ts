@@ -1,4 +1,4 @@
-import { Bundle as MagicStringBundle } from 'magic-string';
+import { Bundle, Bundle as MagicStringBundle } from 'magic-string';
 import { ChunkDependencies, ChunkExports, ImportSpecifier, ReexportSpecifier } from '../Chunk';
 import { NormalizedOutputOptions } from '../rollup/types';
 import { FinaliserOptions } from './index';
@@ -7,7 +7,7 @@ export default function es(
 	magicString: MagicStringBundle,
 	{ intro, outro, dependencies, exports, varOrConst }: FinaliserOptions,
 	{ compact }: NormalizedOutputOptions
-) {
+): Bundle {
 	const _ = compact ? '' : ' ';
 	const n = compact ? '' : '\n';
 

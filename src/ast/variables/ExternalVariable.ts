@@ -15,18 +15,18 @@ export default class ExternalVariable extends Variable {
 		this.referenced = false;
 	}
 
-	addReference(identifier: Identifier) {
+	addReference(identifier: Identifier): void {
 		this.referenced = true;
 		if (this.name === 'default' || this.name === '*') {
 			this.module.suggestName(identifier.name);
 		}
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
 		return path.length > (this.isNamespace ? 1 : 0);
 	}
 
-	include() {
+	include(): void {
 		if (!this.included) {
 			this.included = true;
 			this.module.used = true;

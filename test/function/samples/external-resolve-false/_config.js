@@ -7,8 +7,7 @@ module.exports = {
 		plugins: [
 			{
 				resolveId(id) {
-					if (id === './external')
-						return false;
+					if (id === './external') return false;
 				}
 			}
 		]

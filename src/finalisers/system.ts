@@ -1,4 +1,4 @@
-import { Bundle as MagicStringBundle } from 'magic-string';
+import { Bundle, Bundle as MagicStringBundle } from 'magic-string';
 import { ChunkExports, ModuleDeclarations } from '../Chunk';
 import { NormalizedOutputOptions } from '../rollup/types';
 import { MISSING_EXPORT_SHIM_VARIABLE } from '../utils/variableNames';
@@ -102,7 +102,7 @@ export default function system(
 		varOrConst
 	}: FinaliserOptions,
 	options: NormalizedOutputOptions
-) {
+): Bundle {
 	const n = options.compact ? '' : '\n';
 	const _ = options.compact ? '' : ' ';
 

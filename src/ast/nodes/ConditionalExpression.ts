@@ -12,13 +12,19 @@ import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { NodeEvent } from '../NodeEvents';
-import { EMPTY_PATH, ObjectPath, PathTracker, SHARED_RECURSION_TRACKER, UNKNOWN_PATH } from '../utils/PathTracker';
+import {
+	EMPTY_PATH,
+	ObjectPath,
+	PathTracker,
+	SHARED_RECURSION_TRACKER,
+	UNKNOWN_PATH
+} from '../utils/PathTracker';
 import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
+import SpreadElement from './SpreadElement';
 import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
 import { MultiExpression } from './shared/MultiExpression';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
-import SpreadElement from './SpreadElement';
 
 export default class ConditionalExpression extends NodeBase implements DeoptimizableEntity {
 	alternate!: ExpressionNode;
@@ -30,7 +36,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	private isBranchResolutionAnalysed = false;
 	private usedBranch: ExpressionNode | null = null;
 
-	deoptimizeCache() {
+	deoptimizeCache(): void {
 		if (this.usedBranch !== null) {
 			const unusedBranch = this.usedBranch === this.consequent ? this.alternate : this.consequent;
 			this.usedBranch = null;
@@ -41,7 +47,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		}
 	}
 
-	deoptimizePath(path: ObjectPath) {
+	deoptimizePath(path: ObjectPath): void {
 		const usedBranch = this.getUsedBranch();
 		if (usedBranch === null) {
 			this.consequent.deoptimizePath(path);
@@ -56,7 +62,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		path: ObjectPath,
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
-	) {
+	): void {
 		this.consequent.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
 		this.alternate.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
 	}
@@ -149,7 +155,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		return usedBranch.hasEffectsWhenCalledAtPath(path, callOptions, context);
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		const usedBranch = this.getUsedBranch();
 		if (includeChildrenRecursively || this.test.shouldBeIncluded(context) || usedBranch === null) {
@@ -175,7 +181,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		code: MagicString,
 		options: RenderOptions,
 		{ renderedParentType, isCalleeOfRenderedParent, preventASI }: NodeRenderOptions = BLANK
-	) {
+	): void {
 		const usedBranch = this.getUsedBranch();
 		if (!this.test.included) {
 			const colonPos = findFirstOccurrenceOutsideComment(code.original, ':', this.consequent.end);

@@ -7,7 +7,7 @@ module.exports = {
 	context: {
 		Math
 	},
-	exports(exports) {
+	exports() {
 		assert.equal(Math.square(3), 9);
 		assert.equal(Math.cube(3), 27);
 	}

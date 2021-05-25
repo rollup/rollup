@@ -5,7 +5,7 @@ module.exports = {
 	options: {
 		plugins: [
 			{
-				transform(code, path) {
+				transform(code) {
 					return code.replace(/MAGIC_NUMBER/g, 3);
 				}
 			}

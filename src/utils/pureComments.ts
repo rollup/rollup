@@ -1,5 +1,5 @@
 import * as acorn from 'acorn';
-import { base as basicWalker, BaseWalker } from 'acorn-walk';
+import { BaseWalker, base as basicWalker } from 'acorn-walk';
 import {
 	CallExpression,
 	ChainExpression,
@@ -81,7 +81,11 @@ function markPureNode(
 const pureCommentRegex = /[@#]__PURE__/;
 const isPureComment = (comment: acorn.Comment) => pureCommentRegex.test(comment.value);
 
-export function markPureCallExpressions(comments: acorn.Comment[], esTreeAst: acorn.Node, code: string) {
+export function markPureCallExpressions(
+	comments: acorn.Comment[],
+	esTreeAst: acorn.Node,
+	code: string
+): void {
 	handlePureAnnotationsOfNode(esTreeAst, {
 		code,
 		commentIndex: 0,

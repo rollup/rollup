@@ -5,14 +5,14 @@ module.exports = {
 	options: {
 		plugins: [
 			{
-				transform(code, path) {
+				transform(code) {
 					return code.replace(/MAGIC_NUMBER/g, 3);
 				}
 			},
 
 			{
-				transform(code, path) {
-					return code.replace(/\d+/g, (match) => {
+				transform(code) {
+					return code.replace(/\d+/g, match => {
 						return 2 * +match;
 					});
 				}

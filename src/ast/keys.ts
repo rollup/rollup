@@ -7,7 +7,7 @@ export const keys: {
 	Program: ['body']
 };
 
-export function getAndCreateKeys(esTreeNode: GenericEsTreeNode) {
+export function getAndCreateKeys(esTreeNode: GenericEsTreeNode): string[] {
 	keys[esTreeNode.type] = Object.keys(esTreeNode).filter(
 		key => typeof esTreeNode[key] === 'object' && key !== '_rollupAnnotations'
 	);

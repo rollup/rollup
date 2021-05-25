@@ -6,7 +6,7 @@ module.exports = {
 		external: ['external']
 	},
 	context: {
-		require(id) {
+		require() {
 			return {};
 		}
 	},

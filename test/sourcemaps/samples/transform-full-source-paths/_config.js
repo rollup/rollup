@@ -1,5 +1,5 @@
-const path = require('path');
 const assert = require('assert');
+const path = require('path');
 
 module.exports = {
 	description: 'provides the full source map path when transforming source maps',

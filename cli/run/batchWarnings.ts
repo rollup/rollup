@@ -12,20 +12,12 @@ export interface BatchWarnings {
 	readonly warningOccurred: boolean;
 }
 
-export default function batchWarnings() {
+export default function batchWarnings(): BatchWarnings {
 	let count = 0;
 	let deferredWarnings = new Map<keyof typeof deferredHandlers, RollupWarning[]>();
 	let warningOccurred = false;
 
 	return {
-		get count() {
-			return count;
-		},
-
-		get warningOccurred() {
-			return warningOccurred;
-		},
-
 		add: (warning: RollupWarning) => {
 			count += 1;
 			warningOccurred = true;
@@ -52,6 +44,10 @@ export default function batchWarnings() {
 			}
 		},
 
+		get count() {
+			return count;
+		},
+
 		flush: () => {
 			if (count === 0) return;
 
@@ -65,6 +61,10 @@ export default function batchWarnings() {
 
 			deferredWarnings = new Map();
 			count = 0;
+		},
+
+		get warningOccurred() {
+			return warningOccurred;
 		}
 	};
 }
@@ -72,11 +72,6 @@ export default function batchWarnings() {
 const immediateHandlers: {
 	[code: string]: (warning: RollupWarning) => void;
 } = {
-	UNKNOWN_OPTION: warning => {
-		title(`You have passed an unrecognized option`);
-		stderr(warning.message);
-	},
-
 	MISSING_NODE_BUILTINS: warning => {
 		title(`Missing shims for Node.js built-ins`);
 
@@ -85,6 +80,11 @@ const immediateHandlers: {
 				warning.modules!
 			)}. You might need to include https://github.com/ionic-team/rollup-plugin-node-polyfills`
 		);
+	},
+
+	UNKNOWN_OPTION: warning => {
+		title(`You have passed an unrecognized option`);
+		stderr(warning.message);
 	}
 };
 

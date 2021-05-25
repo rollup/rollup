@@ -38,14 +38,14 @@ const returnsUnknown: RawMemberDescription = {
 };
 
 export const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = new (class UnknownBoolean extends ExpressionEntity {
-	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
+	getReturnExpressionWhenCalledAtPath(path: ObjectPath): ExpressionEntity {
 		if (path.length === 1) {
 			return getMemberReturnExpressionWhenCalled(literalBooleanMembers, path[0]);
 		}
 		return UNKNOWN_EXPRESSION;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
 		return path.length > 1;
 	}
 
@@ -53,7 +53,7 @@ export const UNKNOWN_LITERAL_BOOLEAN: ExpressionEntity = new (class UnknownBoole
 		path: ObjectPath,
 		callOptions: CallOptions,
 		context: HasEffectsContext
-	) {
+	): boolean {
 		if (path.length === 1) {
 			return hasMemberEffectWhenCalled(literalBooleanMembers, path[0], callOptions, context);
 		}
@@ -69,14 +69,14 @@ const returnsBoolean: RawMemberDescription = {
 };
 
 export const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = new (class UnknownNumber extends ExpressionEntity {
-	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
+	getReturnExpressionWhenCalledAtPath(path: ObjectPath): ExpressionEntity {
 		if (path.length === 1) {
 			return getMemberReturnExpressionWhenCalled(literalNumberMembers, path[0]);
 		}
 		return UNKNOWN_EXPRESSION;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
 		return path.length > 1;
 	}
 
@@ -84,7 +84,7 @@ export const UNKNOWN_LITERAL_NUMBER: ExpressionEntity = new (class UnknownNumber
 		path: ObjectPath,
 		callOptions: CallOptions,
 		context: HasEffectsContext
-	) {
+	): boolean {
 		if (path.length === 1) {
 			return hasMemberEffectWhenCalled(literalNumberMembers, path[0], callOptions, context);
 		}
@@ -100,14 +100,14 @@ const returnsNumber: RawMemberDescription = {
 };
 
 export const UNKNOWN_LITERAL_STRING: ExpressionEntity = new (class UnknownString extends ExpressionEntity {
-	getReturnExpressionWhenCalledAtPath(path: ObjectPath) {
+	getReturnExpressionWhenCalledAtPath(path: ObjectPath): ExpressionEntity {
 		if (path.length === 1) {
 			return getMemberReturnExpressionWhenCalled(literalStringMembers, path[0]);
 		}
 		return UNKNOWN_EXPRESSION;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
 		return path.length > 1;
 	}
 
@@ -115,7 +115,7 @@ export const UNKNOWN_LITERAL_STRING: ExpressionEntity = new (class UnknownString
 		path: ObjectPath,
 		callOptions: CallOptions,
 		context: HasEffectsContext
-	) {
+	): boolean {
 		if (path.length === 1) {
 			return hasMemberEffectWhenCalled(literalStringMembers, path[0], callOptions, context);
 		}
@@ -195,7 +195,9 @@ const literalStringMembers: MemberDescriptions = assembleMemberDescriptions(
 	objectMembers
 );
 
-export function getLiteralMembersForValue<T extends LiteralValue = LiteralValue>(value: T) {
+export function getLiteralMembersForValue<T extends LiteralValue = LiteralValue>(
+	value: T
+): MemberDescriptions {
 	switch (typeof value) {
 		case 'boolean':
 			return literalBooleanMembers;
@@ -213,7 +215,7 @@ export function hasMemberEffectWhenCalled(
 	memberName: ObjectPathKey,
 	callOptions: CallOptions,
 	context: HasEffectsContext
-) {
+): boolean {
 	if (typeof memberName !== 'string' || !members[memberName]) {
 		return true;
 	}

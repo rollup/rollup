@@ -1,11 +1,11 @@
-const path = require('path');
 const assert = require('assert');
+const path = require('path');
 const rollup = require('../../dist/rollup');
 const { compareError, compareWarnings, runTestSuiteWithSamples } = require('../utils.js');
 
 function requireWithContext(code, context, exports) {
 	const module = { exports };
-	const contextWithExports = Object.assign({}, context, { module, exports });
+	const contextWithExports = { ...context, module, exports };
 	const contextKeys = Object.keys(contextWithExports);
 	const contextValues = contextKeys.map(key => contextWithExports[key]);
 	try {
@@ -30,7 +30,7 @@ function runCodeSplitTest(codeMap, entryId, configContext) {
 		if (typeof code !== 'undefined') {
 			return (exportsMap[outputId] = requireWithContext(
 				code,
-				Object.assign({ require: requireFromOutputVia(outputId) }, context),
+				{ require: requireFromOutputVia(outputId), ...context },
 				(exportsMap[outputId] = {})
 			));
 		} else {
@@ -38,7 +38,7 @@ function runCodeSplitTest(codeMap, entryId, configContext) {
 		}
 	};
 
-	const context = Object.assign({ assert }, configContext);
+	const context = { assert, ...configContext };
 	let exports;
 	try {
 		exports = requireFromOutputVia(entryId)(entryId);
@@ -58,16 +58,12 @@ runTestSuiteWithSamples('function', path.resolve(__dirname, 'samples'), (dir, co
 			const warnings = [];
 
 			return rollup
-				.rollup(
-					Object.assign(
-						{
-							input: dir + '/main.js',
-							onwarn: warning => warnings.push(warning),
-							strictDeprecations: true
-						},
-						config.options || {}
-					)
-				)
+				.rollup({
+					input: dir + '/main.js',
+					onwarn: warning => warnings.push(warning),
+					strictDeprecations: true,
+					...(config.options || {})
+				})
 				.then(bundle => {
 					let unintendedError;
 
@@ -78,15 +74,11 @@ runTestSuiteWithSamples('function', path.resolve(__dirname, 'samples'), (dir, co
 					let result;
 
 					return bundle
-						.generate(
-							Object.assign(
-								{
-									exports: 'auto',
-									format: 'cjs'
-								},
-								(config.options || {}).output || {}
-							)
-						)
+						.generate({
+							exports: 'auto',
+							format: 'cjs',
+							...((config.options || {}).output || {})
+						})
 						.then(({ output }) => {
 							if (config.generateError) {
 								unintendedError = new Error('Expected an error while generating output');

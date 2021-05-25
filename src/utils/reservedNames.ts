@@ -1,9 +1,9 @@
 export interface NameCollection {
-	[name: string]: true;
+	[name: string]: true | null;
+	__proto__: null;
 }
 
 export const RESERVED_NAMES: NameCollection = {
-	// @ts-ignore
 	__proto__: null,
 	await: true,
 	break: true,

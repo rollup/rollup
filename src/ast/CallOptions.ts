@@ -1,5 +1,5 @@
-import { ExpressionEntity } from './nodes/shared/Expression';
 import SpreadElement from './nodes/SpreadElement';
+import { ExpressionEntity } from './nodes/shared/Expression';
 
 export const NO_ARGS = [];
 

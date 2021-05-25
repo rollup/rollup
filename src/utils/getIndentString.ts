@@ -26,7 +26,10 @@ function guessIndentString(code: string) {
 	return new Array(min + 1).join(' ');
 }
 
-export default function getIndentString(modules: Module[], options: { indent: true | string }) {
+export default function getIndentString(
+	modules: Module[],
+	options: { indent: true | string }
+): string {
 	if (options.indent !== true) return options.indent;
 
 	for (let i = 0; i < modules.length; i++) {

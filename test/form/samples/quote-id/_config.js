@@ -21,7 +21,7 @@ module.exports = {
 		},
 		plugins: [
 			{
-				resolveId(id, parent) {
+				resolveId(id) {
 					if (id === 'external1') {
 						return { id: external1, external: true };
 					}

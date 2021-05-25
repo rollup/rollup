@@ -19,11 +19,11 @@ export default class VariableDeclarator extends NodeBase {
 	init!: ExpressionNode | null;
 	type!: NodeType.tVariableDeclarator;
 
-	declareDeclarator(kind: string) {
+	declareDeclarator(kind: string): void {
 		this.id.declare(kind, this.init || UNDEFINED_EXPRESSION);
 	}
 
-	deoptimizePath(path: ObjectPath) {
+	deoptimizePath(path: ObjectPath): void {
 		this.id.deoptimizePath(path);
 	}
 
@@ -31,7 +31,7 @@ export default class VariableDeclarator extends NodeBase {
 		return this.id.hasEffects(context) || (this.init !== null && this.init.hasEffects(context));
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		if (includeChildrenRecursively || this.id.shouldBeIncluded(context)) {
 			this.id.include(context, includeChildrenRecursively);
@@ -41,7 +41,7 @@ export default class VariableDeclarator extends NodeBase {
 		}
 	}
 
-	render(code: MagicString, options: RenderOptions) {
+	render(code: MagicString, options: RenderOptions): void {
 		const renderId = this.id.included;
 		if (renderId) {
 			this.id.render(code, options);

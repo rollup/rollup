@@ -6,7 +6,7 @@ module.exports = {
 		plugins: [
 			{
 				name: 'test',
-				transform(code, id) {
+				transform() {
 					this.error('nope', { line: 1, column: 22 });
 				}
 			}

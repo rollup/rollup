@@ -8,12 +8,12 @@ import {
 	METHOD_RETURNS_STRING,
 	METHOD_RETURNS_UNKNOWN
 } from './MethodTypes';
-import { ObjectEntity, ObjectProperty } from './ObjectEntity';
+import { ObjectEntity, ObjectProperty, PropertyMap } from './ObjectEntity';
 import { OBJECT_PROTOTYPE } from './ObjectPrototype';
 
 const NEW_ARRAY_PROPERTIES: ObjectProperty[] = [
-	{ kind: 'init', key: UnknownInteger, property: UNKNOWN_EXPRESSION },
-	{ kind: 'init', key: 'length', property: UNKNOWN_LITERAL_NUMBER }
+	{ key: UnknownInteger, kind: 'init', property: UNKNOWN_EXPRESSION },
+	{ key: 'length', kind: 'init', property: UNKNOWN_LITERAL_NUMBER }
 ];
 
 const METHOD_CALLS_ARG_MUTATES_SELF_RETURNS_BOOLEAN: [ExpressionEntity] = [
@@ -107,8 +107,7 @@ const METHOD_CALLS_ARG_MUTATES_SELF_RETURNS_SELF: [ExpressionEntity] = [
 ];
 
 export const ARRAY_PROTOTYPE = new ObjectEntity(
-	{
-		// @ts-ignore
+	({
 		__proto__: null,
 		// We assume that accessors have effects as we do not track the accessed value afterwards
 		at: METHOD_MUTATES_SELF_RETURNS_UNKNOWN,
@@ -139,6 +138,6 @@ export const ARRAY_PROTOTYPE = new ObjectEntity(
 		splice: METHOD_MUTATES_SELF_RETURNS_NEW_ARRAY,
 		unshift: METHOD_MUTATES_SELF_RETURNS_NUMBER,
 		values: METHOD_MUTATES_SELF_RETURNS_UNKNOWN
-	},
+	} as unknown) as PropertyMap,
 	OBJECT_PROTOTYPE
 );

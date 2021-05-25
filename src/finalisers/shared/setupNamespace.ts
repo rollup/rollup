@@ -6,7 +6,7 @@ export default function setupNamespace(
 	root: string,
 	globals: GlobalsOption,
 	compact: boolean | undefined
-) {
+): string {
 	const _ = compact ? '' : ' ';
 	const parts = name.split('.');
 	parts[0] = (typeof globals === 'function' ? globals(parts[0]) : globals[parts[0]]) || parts[0];

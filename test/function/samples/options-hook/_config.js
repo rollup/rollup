@@ -46,7 +46,7 @@ module.exports = {
 				});
 				assert.ok(/^\d+\.\d+\.\d+/.test(this.meta.rollupVersion));
 				assert.strictEqual(this.meta.watchMode, false);
-				return Object.assign({}, options, { input: 'used' });
+				return { ...options, input: 'used' };
 			}
 		}
 	}

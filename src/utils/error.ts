@@ -24,11 +24,11 @@ export function augmentCodeLocation(
 ): void {
 	if (typeof pos === 'object') {
 		const { line, column } = pos;
-		props.loc = { file: id, line, column };
+		props.loc = { column, file: id, line };
 	} else {
 		props.pos = pos;
 		const { line, column } = locate(source, pos, { offsetLine: 1 });
-		props.loc = { file: id, line, column };
+		props.loc = { column, file: id, line };
 	}
 
 	if (props.frame === undefined) {
@@ -75,21 +75,21 @@ export const enum Errors {
 	VALIDATION_ERROR = 'VALIDATION_ERROR'
 }
 
-export function errAssetNotFinalisedForFileName(name: string) {
+export function errAssetNotFinalisedForFileName(name: string): RollupLogProps {
 	return {
 		code: Errors.ASSET_NOT_FINALISED,
 		message: `Plugin error - Unable to get file name for asset "${name}". Ensure that the source is set and that generate is called first.`
 	};
 }
 
-export function errCannotEmitFromOptionsHook() {
+export function errCannotEmitFromOptionsHook(): RollupLogProps {
 	return {
 		code: Errors.CANNOT_EMIT_FROM_OPTIONS_HOOK,
 		message: `Cannot emit files or set asset sources in the "outputOptions" hook, use the "renderStart" hook instead.`
 	};
 }
 
-export function errChunkNotGeneratedForFileName(name: string) {
+export function errChunkNotGeneratedForFileName(name: string): RollupLogProps {
 	return {
 		code: Errors.CHUNK_NOT_GENERATED,
 		message: `Plugin error - Unable to get file name for chunk "${name}". Ensure that generate is called first.`
@@ -99,7 +99,7 @@ export function errChunkNotGeneratedForFileName(name: string) {
 export function errChunkInvalid(
 	{ fileName, code }: { code: string; fileName: string },
 	exception: { loc: { column: number; line: number }; message: string }
-) {
+): RollupLogProps {
 	const errorProps = {
 		code: Errors.CHUNK_INVALID,
 		message: `Chunk "${fileName}" is not valid JavaScript: ${exception.message}.`
@@ -108,7 +108,7 @@ export function errChunkInvalid(
 	return errorProps;
 }
 
-export function errCircularReexport(exportName: string, importedModule: string) {
+export function errCircularReexport(exportName: string, importedModule: string): RollupLogProps {
 	return {
 		code: Errors.CIRCULAR_REEXPORT,
 		id: importedModule,
@@ -139,28 +139,28 @@ export function errCyclicCrossChunkReexport(
 	};
 }
 
-export function errAssetReferenceIdNotFoundForSetSource(assetReferenceId: string) {
+export function errAssetReferenceIdNotFoundForSetSource(assetReferenceId: string): RollupLogProps {
 	return {
 		code: Errors.ASSET_NOT_FOUND,
 		message: `Plugin error - Unable to set the source for unknown asset "${assetReferenceId}".`
 	};
 }
 
-export function errAssetSourceAlreadySet(name: string) {
+export function errAssetSourceAlreadySet(name: string): RollupLogProps {
 	return {
 		code: Errors.ASSET_SOURCE_ALREADY_SET,
 		message: `Unable to set the source for asset "${name}", source already set.`
 	};
 }
 
-export function errNoAssetSourceSet(assetName: string) {
+export function errNoAssetSourceSet(assetName: string): RollupLogProps {
 	return {
 		code: Errors.ASSET_SOURCE_MISSING,
 		message: `Plugin error creating asset "${assetName}" - no asset source set.`
 	};
 }
 
-export function errBadLoader(id: string) {
+export function errBadLoader(id: string): RollupLogProps {
 	return {
 		code: Errors.BAD_LOADER,
 		message: `Error loading ${relativeId(
@@ -169,28 +169,28 @@ export function errBadLoader(id: string) {
 	};
 }
 
-export function errDeprecation(deprecation: string | RollupWarning) {
+export function errDeprecation(deprecation: string | RollupWarning): RollupLogProps {
 	return {
 		code: Errors.DEPRECATED_FEATURE,
 		...(typeof deprecation === 'string' ? { message: deprecation } : deprecation)
 	};
 }
 
-export function errFileReferenceIdNotFoundForFilename(assetReferenceId: string) {
+export function errFileReferenceIdNotFoundForFilename(assetReferenceId: string): RollupLogProps {
 	return {
 		code: Errors.FILE_NOT_FOUND,
 		message: `Plugin error - Unable to get file name for unknown file "${assetReferenceId}".`
 	};
 }
 
-export function errFileNameConflict(fileName: string) {
+export function errFileNameConflict(fileName: string): RollupLogProps {
 	return {
 		code: Errors.FILE_NAME_CONFLICT,
 		message: `The emitted file "${fileName}" overwrites a previously emitted file of the same name.`
 	};
 }
 
-export function errInputHookInOutputPlugin(pluginName: string, hookName: string) {
+export function errInputHookInOutputPlugin(pluginName: string, hookName: string): RollupLogProps {
 	return {
 		code: Errors.INPUT_HOOK_IN_OUTPUT_PLUGIN,
 		message: `The "${hookName}" hook used by the output plugin ${pluginName} is a build time hook and will not be run for that plugin. Either this plugin cannot be used as an output plugin, or it should have an option to configure it as an output plugin.`
@@ -201,7 +201,7 @@ export function errCannotAssignModuleToChunk(
 	moduleId: string,
 	assignToAlias: string,
 	currentAlias: string
-) {
+): RollupLogProps {
 	return {
 		code: Errors.INVALID_CHUNK,
 		message: `Cannot assign ${relativeId(
@@ -210,7 +210,7 @@ export function errCannotAssignModuleToChunk(
 	};
 }
 
-export function errInvalidExportOptionValue(optionValue: string) {
+export function errInvalidExportOptionValue(optionValue: string): RollupLogProps {
 	return {
 		code: Errors.INVALID_EXPORT_OPTION,
 		message: `"output.exports" must be "default", "named", "none", "auto", or left unspecified (defaults to "auto"), received "${optionValue}"`,
@@ -222,7 +222,7 @@ export function errIncompatibleExportOptionValue(
 	optionValue: string,
 	keys: string[],
 	entryModule: string
-) {
+): RollupLogProps {
 	return {
 		code: 'INVALID_EXPORT_OPTION',
 		message: `"${optionValue}" was specified for "output.exports", but entry module "${relativeId(
@@ -231,7 +231,7 @@ export function errIncompatibleExportOptionValue(
 	};
 }
 
-export function errInternalIdCannotBeExternal(source: string, importer: string) {
+export function errInternalIdCannotBeExternal(source: string, importer: string): RollupLogProps {
 	return {
 		code: Errors.INVALID_EXTERNAL_ID,
 		message: `'${source}' is imported as an external by ${relativeId(
@@ -240,21 +240,21 @@ export function errInternalIdCannotBeExternal(source: string, importer: string) 
 	};
 }
 
-export function errInvalidOption(option: string, explanation: string) {
+export function errInvalidOption(option: string, explanation: string): RollupLogProps {
 	return {
 		code: Errors.INVALID_OPTION,
 		message: `Invalid value for option "${option}" - ${explanation}.`
 	};
 }
 
-export function errInvalidRollupPhaseForAddWatchFile() {
+export function errInvalidRollupPhaseForAddWatchFile(): RollupLogProps {
 	return {
 		code: Errors.INVALID_ROLLUP_PHASE,
 		message: `Cannot call addWatchFile after the build has finished.`
 	};
 }
 
-export function errInvalidRollupPhaseForChunkEmission() {
+export function errInvalidRollupPhaseForChunkEmission(): RollupLogProps {
 	return {
 		code: Errors.INVALID_ROLLUP_PHASE,
 		message: `Cannot emit chunks after module loading has finished.`
@@ -265,7 +265,7 @@ export function errMissingExport(
 	exportName: string,
 	importingModule: string,
 	importedModule: string
-) {
+): RollupLogProps {
 	return {
 		code: Errors.MISSING_EXPORT,
 		message: `'${exportName}' is not exported by ${relativeId(
@@ -278,7 +278,7 @@ export function errMissingExport(
 export function errImplicitDependantCannotBeExternal(
 	unresolvedId: string,
 	implicitlyLoadedBefore: string
-) {
+): RollupLogProps {
 	return {
 		code: Errors.MISSING_IMPLICIT_DEPENDANT,
 		message: `Module "${relativeId(
@@ -292,7 +292,7 @@ export function errImplicitDependantCannotBeExternal(
 export function errUnresolvedImplicitDependant(
 	unresolvedId: string,
 	implicitlyLoadedBefore: string
-) {
+): RollupLogProps {
 	return {
 		code: Errors.MISSING_IMPLICIT_DEPENDANT,
 		message: `Module "${relativeId(
@@ -303,7 +303,7 @@ export function errUnresolvedImplicitDependant(
 	};
 }
 
-export function errImplicitDependantIsNotIncluded(module: Module) {
+export function errImplicitDependantIsNotIncluded(module: Module): RollupLogProps {
 	const implicitDependencies = Array.from(module.implicitlyLoadedBefore, dependency =>
 		relativeId(dependency.id)
 	).sort();
@@ -317,7 +317,7 @@ export function errImplicitDependantIsNotIncluded(module: Module) {
 	};
 }
 
-export function errMixedExport(facadeModuleId: string, name?: string) {
+export function errMixedExport(facadeModuleId: string, name?: string): RollupLogProps {
 	return {
 		code: Errors.MIXED_EXPORTS,
 		id: facadeModuleId,
@@ -334,7 +334,7 @@ export function errNamespaceConflict(
 	name: string,
 	reexportingModule: Module,
 	additionalExportAllModule: Module
-) {
+): RollupWarning {
 	return {
 		code: Errors.NAMESPACE_CONFLICT,
 		message: `Conflicting namespaces: "${relativeId(
@@ -353,7 +353,7 @@ export function errAmbiguousExternalNamespaces(
 	reexportingModule: string,
 	usedExternalModule: string,
 	externalModules: string[]
-) {
+): RollupWarning {
 	return {
 		code: Errors.AMBIGUOUS_EXTERNAL_NAMESPACES,
 		message: `Ambiguous external namespace resolution: "${relativeId(
@@ -367,7 +367,7 @@ export function errAmbiguousExternalNamespaces(
 	};
 }
 
-export function errNoTransformMapOrAstWithoutCode(pluginName: string) {
+export function errNoTransformMapOrAstWithoutCode(pluginName: string): RollupLogProps {
 	return {
 		code: Errors.NO_TRANSFORM_MAP_OR_AST_WITHOUT_CODE,
 		message:
@@ -376,7 +376,7 @@ export function errNoTransformMapOrAstWithoutCode(pluginName: string) {
 	};
 }
 
-export function errPreferNamedExports(facadeModuleId: string) {
+export function errPreferNamedExports(facadeModuleId: string): RollupLogProps {
 	const file = relativeId(facadeModuleId);
 	return {
 		code: Errors.PREFER_NAMED_EXPORTS,
@@ -389,7 +389,7 @@ export function errPreferNamedExports(facadeModuleId: string) {
 export function errSyntheticNamedExportsNeedNamespaceExport(
 	id: string,
 	syntheticNamedExportsOption: boolean | string
-) {
+): RollupLogProps {
 	return {
 		code: Errors.SYNTHETIC_NAMED_EXPORTS_NEED_NAMESPACE_EXPORT,
 		id,
@@ -405,7 +405,11 @@ export function errSyntheticNamedExportsNeedNamespaceExport(
 	};
 }
 
-export function errUnexpectedNamedImport(id: string, imported: string, isReexport: boolean) {
+export function errUnexpectedNamedImport(
+	id: string,
+	imported: string,
+	isReexport: boolean
+): RollupLogProps {
 	const importType = isReexport ? 'reexport' : 'import';
 	return {
 		code: Errors.UNEXPECTED_NAMED_IMPORT,
@@ -417,7 +421,7 @@ export function errUnexpectedNamedImport(id: string, imported: string, isReexpor
 	};
 }
 
-export function errUnexpectedNamespaceReexport(id: string) {
+export function errUnexpectedNamespaceReexport(id: string): RollupLogProps {
 	return {
 		code: Errors.UNEXPECTED_NAMED_IMPORT,
 		id,
@@ -428,28 +432,31 @@ export function errUnexpectedNamespaceReexport(id: string) {
 	};
 }
 
-export function errEntryCannotBeExternal(unresolvedId: string) {
+export function errEntryCannotBeExternal(unresolvedId: string): RollupLogProps {
 	return {
 		code: Errors.UNRESOLVED_ENTRY,
 		message: `Entry module cannot be external (${relativeId(unresolvedId)}).`
 	};
 }
 
-export function errUnresolvedEntry(unresolvedId: string) {
+export function errUnresolvedEntry(unresolvedId: string): RollupLogProps {
 	return {
 		code: Errors.UNRESOLVED_ENTRY,
 		message: `Could not resolve entry module (${relativeId(unresolvedId)}).`
 	};
 }
 
-export function errUnresolvedImport(source: string, importer: string) {
+export function errUnresolvedImport(source: string, importer: string): RollupLogProps {
 	return {
 		code: Errors.UNRESOLVED_IMPORT,
 		message: `Could not resolve '${source}' from ${relativeId(importer)}`
 	};
 }
 
-export function errUnresolvedImportTreatedAsExternal(source: string, importer: string) {
+export function errUnresolvedImportTreatedAsExternal(
+	source: string,
+	importer: string
+): RollupWarning {
 	return {
 		code: Errors.UNRESOLVED_IMPORT,
 		importer: relativeId(importer),
@@ -461,7 +468,7 @@ export function errUnresolvedImportTreatedAsExternal(source: string, importer: s
 	};
 }
 
-export function errExternalSyntheticExports(source: string, importer: string) {
+export function errExternalSyntheticExports(source: string, importer: string): RollupWarning {
 	return {
 		code: Errors.EXTERNAL_SYNTHETIC_EXPORTS,
 		importer: relativeId(importer),
@@ -470,14 +477,14 @@ export function errExternalSyntheticExports(source: string, importer: string) {
 	};
 }
 
-export function errFailedValidation(message: string) {
+export function errFailedValidation(message: string): RollupLogProps {
 	return {
 		code: Errors.VALIDATION_ERROR,
 		message
 	};
 }
 
-export function errAlreadyClosed() {
+export function errAlreadyClosed(): RollupLogProps {
 	return {
 		code: Errors.ALREADY_CLOSED,
 		message: 'Bundle is already closed, no more calls to "generate" or "write" are allowed.'

@@ -19,7 +19,7 @@ export default class ClassBodyScope extends ChildScope {
 		this.instanceScope.variables.set('this', new ThisVariable(context));
 	}
 
-	findLexicalBoundary() {
+	findLexicalBoundary(): ChildScope {
 		return this;
 	}
 }

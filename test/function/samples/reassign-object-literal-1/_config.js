@@ -1,3 +1,3 @@
 module.exports = {
-	description: 'track reassignments through object literals',
+	description: 'track reassignments through object literals'
 };

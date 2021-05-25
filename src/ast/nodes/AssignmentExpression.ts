@@ -69,7 +69,7 @@ export default class AssignmentExpression extends NodeBase {
 		code: MagicString,
 		options: RenderOptions,
 		{ preventASI, renderedParentType }: NodeRenderOptions = BLANK
-	) {
+	): void {
 		if (this.left.included) {
 			this.left.render(code, options);
 			this.right.render(code, options);
@@ -122,7 +122,7 @@ export default class AssignmentExpression extends NodeBase {
 		}
 	}
 
-	protected applyDeoptimizations() {
+	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
 		this.left.deoptimizePath(EMPTY_PATH);
 		this.right.deoptimizePath(UNKNOWN_PATH);

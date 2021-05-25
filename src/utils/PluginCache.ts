@@ -4,11 +4,8 @@ import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from './plugi
 
 export function createPluginCache(cache: SerializablePluginCache): PluginCache {
 	return {
-		has(id: string) {
-			const item = cache[id];
-			if (!item) return false;
-			item[0] = 0;
-			return true;
+		delete(id: string) {
+			return delete cache[id];
 		},
 		get(id: string) {
 			const item = cache[id];
@@ -16,47 +13,50 @@ export function createPluginCache(cache: SerializablePluginCache): PluginCache {
 			item[0] = 0;
 			return item[1];
 		},
+		has(id: string) {
+			const item = cache[id];
+			if (!item) return false;
+			item[0] = 0;
+			return true;
+		},
 		set(id: string, value: any) {
 			cache[id] = [0, value];
-		},
-		delete(id: string) {
-			return delete cache[id];
 		}
 	};
 }
 
 export function getTrackedPluginCache(pluginCache: PluginCache, onUse: () => void): PluginCache {
 	return {
-		has(id: string) {
+		delete(id: string) {
 			onUse();
-			return pluginCache.has(id);
+			return pluginCache.delete(id);
 		},
 		get(id: string) {
 			onUse();
 			return pluginCache.get(id);
 		},
+		has(id: string) {
+			onUse();
+			return pluginCache.has(id);
+		},
 		set(id: string, value: any) {
 			onUse();
 			return pluginCache.set(id, value);
-		},
-		delete(id: string) {
-			onUse();
-			return pluginCache.delete(id);
 		}
 	};
 }
 
 export const NO_CACHE: PluginCache = {
-	has() {
+	delete() {
 		return false;
 	},
 	get() {
 		return undefined as any;
 	},
-	set() {},
-	delete() {
+	has() {
 		return false;
-	}
+	},
+	set() {}
 };
 
 function uncacheablePluginError(pluginName: string): never {
@@ -78,16 +78,16 @@ function uncacheablePluginError(pluginName: string): never {
 
 export function getCacheForUncacheablePlugin(pluginName: string): PluginCache {
 	return {
-		has() {
+		delete() {
 			return uncacheablePluginError(pluginName);
 		},
 		get() {
 			return uncacheablePluginError(pluginName);
 		},
-		set() {
+		has() {
 			return uncacheablePluginError(pluginName);
 		},
-		delete() {
+		set() {
 			return uncacheablePluginError(pluginName);
 		}
 	};

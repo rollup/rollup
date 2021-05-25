@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-const { readdirSync, copydirSync, copyFileSync, rimrafSync } = require('sander');
 const { resolve, join } = require('path');
+const { readdirSync, copydirSync, copyFileSync, rimrafSync } = require('sander');
 
 const basePath = resolve(__dirname, '../test');
 

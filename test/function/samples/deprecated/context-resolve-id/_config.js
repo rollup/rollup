@@ -1,5 +1,5 @@
-const path = require('path');
 const assert = require('assert');
+const path = require('path');
 
 module.exports = {
 	description: 'correctly returns string or null for the context resolveId helper',

@@ -6,16 +6,16 @@ import {
 	ObjectPath,
 	ObjectPathKey,
 	PathTracker,
-	UnknownInteger,
-	UnknownKey,
 	UNKNOWN_INTEGER_PATH,
-	UNKNOWN_PATH
+	UNKNOWN_PATH,
+	UnknownInteger,
+	UnknownKey
 } from '../../utils/PathTracker';
 import {
 	ExpressionEntity,
 	LiteralValueOrUnknown,
-	UnknownValue,
-	UNKNOWN_EXPRESSION
+	UNKNOWN_EXPRESSION,
+	UnknownValue
 } from './Expression';
 
 export interface ObjectProperty {
@@ -24,7 +24,9 @@ export interface ObjectProperty {
 	property: ExpressionEntity;
 }
 
-type PropertyMap = Record<string, ExpressionEntity[]>;
+export interface PropertyMap {
+	[key: string]: ExpressionEntity[];
+}
 const INTEGER_REG_EXP = /^\d+$/;
 
 export class ObjectEntity extends ExpressionEntity {
@@ -95,7 +97,7 @@ export class ObjectEntity extends ExpressionEntity {
 		this.deoptimizeCachedIntegerEntities();
 	}
 
-	deoptimizePath(path: ObjectPath) {
+	deoptimizePath(path: ObjectPath): void {
 		if (this.hasUnknownDeoptimizedProperty) return;
 		const key = path[0];
 		if (path.length === 1) {
@@ -135,7 +137,7 @@ export class ObjectEntity extends ExpressionEntity {
 		path: ObjectPath,
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
-	) {
+	): void {
 		if (path.length === 0) {
 			return;
 		}

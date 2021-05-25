@@ -11,14 +11,14 @@ export default class ClassDeclaration extends ClassNode {
 	id!: IdentifierWithVariable | null;
 	type!: NodeType.tClassDeclaration;
 
-	initialise() {
+	initialise(): void {
 		super.initialise();
 		if (this.id !== null) {
 			this.id.variable.isId = true;
 		}
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode) {
+	parseNode(esTreeNode: GenericEsTreeNode): void {
 		if (esTreeNode.id !== null) {
 			this.id = new this.context.nodeConstructors.Identifier(
 				esTreeNode.id,
@@ -29,13 +29,16 @@ export default class ClassDeclaration extends ClassNode {
 		super.parseNode(esTreeNode);
 	}
 
-	render(code: MagicString, options: RenderOptions) {
+	render(code: MagicString, options: RenderOptions): void {
 		if (
 			options.format === 'system' &&
 			this.id &&
 			options.exportNamesByVariable.has(this.id.variable)
 		) {
-			code.appendLeft(this.end, `${options.compact ? '' : ' '}${getSystemExportStatement([this.id.variable], options)};`);
+			code.appendLeft(
+				this.end,
+				`${options.compact ? '' : ' '}${getSystemExportStatement([this.id.variable], options)};`
+			);
 		}
 		super.render(code, options);
 	}

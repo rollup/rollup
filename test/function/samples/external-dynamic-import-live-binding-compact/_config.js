@@ -3,7 +3,7 @@ const assert = require('assert');
 module.exports = {
 	description: 'supports external dynamic imports with live bindings in compact mode',
 	options: {
-		external(id) {
+		external() {
 			return true;
 		},
 		output: {

@@ -2,7 +2,11 @@ import { CallOptions, NO_ARGS } from '../../CallOptions';
 import { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
 import { EVENT_CALLED, NodeEvent } from '../../NodeEvents';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_INTEGER_PATH } from '../../utils/PathTracker';
-import { UNKNOWN_LITERAL_BOOLEAN, UNKNOWN_LITERAL_NUMBER, UNKNOWN_LITERAL_STRING } from '../../values';
+import {
+	UNKNOWN_LITERAL_BOOLEAN,
+	UNKNOWN_LITERAL_NUMBER,
+	UNKNOWN_LITERAL_STRING
+} from '../../values';
 import SpreadElement from '../SpreadElement';
 import { ExpressionEntity, UNKNOWN_EXPRESSION } from './Expression';
 import { ExpressionNode } from './Node';
@@ -26,7 +30,11 @@ export class Method extends ExpressionEntity {
 		super();
 	}
 
-	deoptimizeThisOnEventAtPath(event: NodeEvent, path: ObjectPath, thisParameter: ExpressionEntity) {
+	deoptimizeThisOnEventAtPath(
+		event: NodeEvent,
+		path: ObjectPath,
+		thisParameter: ExpressionEntity
+	): void {
 		if (event === EVENT_CALLED && path.length === 0 && this.description.mutatesSelfAsArray) {
 			thisParameter.deoptimizePath(UNKNOWN_INTEGER_PATH);
 		}

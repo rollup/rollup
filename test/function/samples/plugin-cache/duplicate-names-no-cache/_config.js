@@ -4,11 +4,15 @@ module.exports = {
 		plugins: [
 			{
 				name: 'test-plugin',
-				buildStart() {}
+				buildStart() {
+					return null;
+				}
 			},
 			{
 				name: 'test-plugin',
-				buildStart() {}
+				buildStart() {
+					return null;
+				}
 			}
 		]
 	}

@@ -1,7 +1,7 @@
-import { bold } from 'colorette';
 import * as fs from 'fs';
 import * as path from 'path';
 import { pathToFileURL } from 'url';
+import { bold } from 'colorette';
 import * as rollup from '../../src/node-entry';
 import { MergedRollupOptions } from '../../src/rollup/types';
 import { error } from '../../src/utils/error';
@@ -86,7 +86,7 @@ async function getDefaultFromTranspiledConfigFile(
 						return `'${pathToFileURL(moduleId).href}'`;
 					}
 					if (property == null) {
-						return `{url:'${pathToFileURL(moduleId).href}'}`
+						return `{url:'${pathToFileURL(moduleId).href}'}`;
 					}
 				}
 			}

@@ -13,7 +13,7 @@
 * Track "this" mutations for methods, getters and setters (#4018)
 
 ### Pull Requests
-* [#4018](https://github.com/rollup/rollup/pull/4018): Class method effects (@lukastaegert)
+* [#4018](https://github.com/rollup/rollup/pull/4018): Class method effects (@marijnh and @lukastaegert)
 
 ## 2.48.0
 *2021-05-15*

@@ -15,7 +15,7 @@ export function getExportBlock(
 	t: string,
 	externalLiveBindings: boolean,
 	mechanism = 'return '
-) {
+): string {
 	const _ = compact ? '' : ' ';
 	const n = compact ? '' : '\n';
 	if (!namedExportsMode) {

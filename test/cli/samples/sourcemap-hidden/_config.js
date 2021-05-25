@@ -1,5 +1,5 @@
-const fs = require('fs');
 const assert = require('assert');
+const fs = require('fs');
 
 module.exports = {
 	description: 'omits sourcemap comments',

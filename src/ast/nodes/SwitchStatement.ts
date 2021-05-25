@@ -9,8 +9,8 @@ import {
 import BlockScope from '../scopes/BlockScope';
 import Scope from '../scopes/Scope';
 import * as NodeType from './NodeType';
-import { ExpressionNode, IncludeChildren, StatementBase } from './shared/Node';
 import SwitchCase from './SwitchCase';
+import { ExpressionNode, IncludeChildren, StatementBase } from './shared/Node';
 
 export default class SwitchStatement extends StatementBase {
 	cases!: SwitchCase[];
@@ -19,11 +19,11 @@ export default class SwitchStatement extends StatementBase {
 
 	private defaultCase!: number | null;
 
-	createScope(parentScope: Scope) {
+	createScope(parentScope: Scope): void {
 		this.scope = new BlockScope(parentScope);
 	}
 
-	hasEffects(context: HasEffectsContext) {
+	hasEffects(context: HasEffectsContext): boolean {
 		if (this.discriminant.hasEffects(context)) return true;
 		const {
 			brokenFlow,
@@ -43,7 +43,7 @@ export default class SwitchStatement extends StatementBase {
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		this.included = true;
 		this.discriminant.include(context, includeChildrenRecursively);
 		const { brokenFlow } = context;
@@ -78,7 +78,7 @@ export default class SwitchStatement extends StatementBase {
 		}
 	}
 
-	initialise() {
+	initialise(): void {
 		for (let caseIndex = 0; caseIndex < this.cases.length; caseIndex++) {
 			if (this.cases[caseIndex].test === null) {
 				this.defaultCase = caseIndex;
@@ -88,7 +88,7 @@ export default class SwitchStatement extends StatementBase {
 		this.defaultCase = null;
 	}
 
-	render(code: MagicString, options: RenderOptions) {
+	render(code: MagicString, options: RenderOptions): void {
 		this.discriminant.render(code, options);
 		if (this.cases.length > 0) {
 			renderStatementList(this.cases, code, this.cases[0].start, this.end - 1, options);

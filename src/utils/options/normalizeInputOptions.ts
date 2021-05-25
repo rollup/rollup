@@ -22,10 +22,9 @@ import relativeId from '../relativeId';
 import { defaultOnWarn, GenericConfigObject, warnUnknownOptions } from './options';
 
 export interface CommandConfigObject {
+	[key: string]: unknown;
 	external: (string | RegExp)[];
 	globals: { [id: string]: string } | undefined;
-
-	[key: string]: unknown;
 }
 
 export function normalizeInputOptions(
@@ -39,7 +38,7 @@ export function normalizeInputOptions(
 	const onwarn = getOnwarn(config);
 	const strictDeprecations = (config.strictDeprecations as boolean | undefined) || false;
 	const options: NormalizedInputOptions & InputOptions = {
-		acorn: getAcorn(config),
+		acorn: (getAcorn(config) as unknown) as Record<string, unknown>,
 		acornInjectPlugins: getAcornInjectPlugins(config),
 		cache: getCache(config),
 		context,
@@ -95,10 +94,10 @@ const getAcorn = (config: GenericConfigObject): acorn.Options => ({
 	ecmaVersion: 'latest',
 	preserveParens: false,
 	sourceType: 'module',
-	...(config.acorn as Object)
+	...(config.acorn as Record<string, unknown>)
 });
 
-const getAcornInjectPlugins = (config: GenericConfigObject): Function[] =>
+const getAcornInjectPlugins = (config: GenericConfigObject): (() => unknown)[] =>
 	ensureArray(config.acornInjectPlugins) as any;
 
 const getCache = (config: GenericConfigObject): false | undefined | RollupCache => {
@@ -130,7 +129,7 @@ const getIdMatcher = <T extends Array<any>>(
 				ids.add(value);
 			}
 		}
-		return (id: string, ..._args: T) => ids.has(id) || matchers.some(matcher => matcher.test(id));
+		return (id: string, ..._args) => ids.has(id) || matchers.some(matcher => matcher.test(id));
 	}
 	return () => false;
 };

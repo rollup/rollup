@@ -1,7 +1,7 @@
-const MagicString = require('magic-string');
 const assert = require('assert');
-const getLocation = require('../../getLocation');
+const MagicString = require('magic-string');
 const { SourceMapConsumer } = require('source-map');
+const getLocation = require('../../getLocation');
 
 module.exports = {
 	description: 'get combined sourcemap in transforming',

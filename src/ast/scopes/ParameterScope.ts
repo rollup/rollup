@@ -1,9 +1,9 @@
 import { AstContext } from '../../Module';
 import { InclusionContext } from '../ExecutionContext';
 import Identifier from '../nodes/Identifier';
+import SpreadElement from '../nodes/SpreadElement';
 import { UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
 import { ExpressionNode } from '../nodes/shared/Node';
-import SpreadElement from '../nodes/SpreadElement';
 import LocalVariable from '../variables/LocalVariable';
 import ChildScope from './ChildScope';
 import Scope from './Scope';
@@ -25,7 +25,7 @@ export default class ParameterScope extends ChildScope {
 	 * Adds a parameter to this scope. Parameters must be added in the correct
 	 * order, e.g. from left to right.
 	 */
-	addParameterDeclaration(identifier: Identifier) {
+	addParameterDeclaration(identifier: Identifier): LocalVariable {
 		const name = identifier.name;
 		let variable = this.hoistedBodyVarScope.variables.get(name) as LocalVariable;
 		if (variable) {
@@ -37,7 +37,7 @@ export default class ParameterScope extends ChildScope {
 		return variable;
 	}
 
-	addParameterVariables(parameters: LocalVariable[][], hasRest: boolean) {
+	addParameterVariables(parameters: LocalVariable[][], hasRest: boolean): void {
 		this.parameters = parameters;
 		for (const parameterList of parameters) {
 			for (const parameter of parameterList) {

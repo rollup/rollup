@@ -10,7 +10,7 @@ module.exports = {
 						return { code, syntheticNamedExports: true };
 					}
 				},
-				moduleParsed({id, syntheticNamedExports}) {
+				moduleParsed({ id, syntheticNamedExports }) {
 					if (id.endsWith('dep.js')) {
 						assert.strictEqual(syntheticNamedExports, true);
 					}

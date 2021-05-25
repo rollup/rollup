@@ -1,8 +1,8 @@
 /* eslint-disable no-console */
 
-const execa = require('execa');
-const path = require('path');
 const fs = require('fs');
+const path = require('path');
+const execa = require('execa');
 const sander = require('sander');
 const repoWithBranch = process.argv[2];
 

@@ -8,7 +8,7 @@ export default class ExpressionStatement extends StatementBase {
 	directive?: string;
 	expression!: ExpressionNode;
 
-	initialise() {
+	initialise(): void {
 		if (
 			this.directive &&
 			this.directive !== 'use strict' &&
@@ -25,12 +25,12 @@ export default class ExpressionStatement extends StatementBase {
 		}
 	}
 
-	render(code: MagicString, options: RenderOptions) {
+	render(code: MagicString, options: RenderOptions): void {
 		super.render(code, options);
 		if (this.included) this.insertSemicolon(code);
 	}
 
-	shouldBeIncluded(context: InclusionContext) {
+	shouldBeIncluded(context: InclusionContext): boolean {
 		if (this.directive && this.directive !== 'use strict')
 			return this.parent.type !== NodeType.Program;
 

@@ -13,8 +13,8 @@ import {
 	ObjectPathKey,
 	PathTracker,
 	SHARED_RECURSION_TRACKER,
-	UnknownKey,
-	UNKNOWN_PATH
+	UNKNOWN_PATH,
+	UnknownKey
 } from '../utils/PathTracker';
 import ExternalVariable from '../variables/ExternalVariable';
 import NamespaceVariable from '../variables/NamespaceVariable';
@@ -24,10 +24,15 @@ import Identifier from './Identifier';
 import Literal from './Literal';
 import * as NodeType from './NodeType';
 import PrivateIdentifier from './PrivateIdentifier';
-import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue, UNKNOWN_EXPRESSION } from './shared/Expression';
-import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 import SpreadElement from './SpreadElement';
 import Super from './Super';
+import {
+	ExpressionEntity,
+	LiteralValueOrUnknown,
+	UNKNOWN_EXPRESSION,
+	UnknownValue
+} from './shared/Expression';
+import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 
 function getResolvablePropertyKey(memberExpression: MemberExpression): string | null {
 	return memberExpression.computed
@@ -85,7 +90,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 	private replacement: string | null = null;
 
-	bind() {
+	bind(): void {
 		this.bound = true;
 		const path = getPathIfNotComputed(this);
 		const baseVariable = path && this.scope.findVariable(path[0].key);
@@ -104,7 +109,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		}
 	}
 
-	deoptimizeCache() {
+	deoptimizeCache(): void {
 		const expressionsToBeDeoptimized = this.expressionsToBeDeoptimized;
 		this.expressionsToBeDeoptimized = [];
 		this.propertyKey = UnknownKey;
@@ -114,7 +119,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		}
 	}
 
-	deoptimizePath(path: ObjectPath) {
+	deoptimizePath(path: ObjectPath): void {
 		if (path.length === 0) this.disallowNamespaceReassignment();
 		if (this.variable) {
 			this.variable.deoptimizePath(path);
@@ -243,7 +248,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		);
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		if (!this.included) {
 			this.included = true;
@@ -263,7 +268,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		}
 	}
 
-	initialise() {
+	initialise(): void {
 		this.propertyKey = getResolvablePropertyKey(this);
 	}
 
@@ -275,7 +280,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			isCalleeOfRenderedParent,
 			renderedSurroundingElement
 		}: NodeRenderOptions = BLANK
-	) {
+	): void {
 		const isCalleeOfDifferentParent =
 			renderedParentType === NodeType.CallExpression && isCalleeOfRenderedParent;
 		if (this.variable || this.replacement) {
@@ -299,7 +304,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		}
 	}
 
-	protected applyDeoptimizations() {
+	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
 		const { propertyReadSideEffects } = this.context.options
 			.treeshake as NormalizedTreeshakingOptions;

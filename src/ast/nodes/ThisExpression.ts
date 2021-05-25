@@ -14,11 +14,11 @@ export default class ThisExpression extends NodeBase {
 	variable!: Variable;
 	private alias!: string | null;
 
-	bind() {
+	bind(): void {
 		this.variable = this.scope.findVariable('this');
 	}
 
-	deoptimizePath(path: ObjectPath) {
+	deoptimizePath(path: ObjectPath): void {
 		this.variable.deoptimizePath(path);
 	}
 
@@ -27,7 +27,7 @@ export default class ThisExpression extends NodeBase {
 		path: ObjectPath,
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
-	) {
+	): void {
 		this.variable.deoptimizeThisOnEventAtPath(
 			event,
 			path,
@@ -45,14 +45,14 @@ export default class ThisExpression extends NodeBase {
 		return this.variable.hasEffectsWhenAssignedAtPath(path, context);
 	}
 
-	include() {
+	include(): void {
 		if (!this.included) {
 			this.included = true;
 			this.context.includeVariableInModule(this.variable);
 		}
 	}
 
-	initialise() {
+	initialise(): void {
 		this.alias =
 			this.scope.findLexicalBoundary() instanceof ModuleScope ? this.context.moduleContext : null;
 		if (this.alias === 'undefined') {
@@ -67,7 +67,7 @@ export default class ThisExpression extends NodeBase {
 		}
 	}
 
-	render(code: MagicString) {
+	render(code: MagicString): void {
 		if (this.alias !== null) {
 			code.overwrite(this.start, this.end, this.alias, {
 				contentOnly: false,

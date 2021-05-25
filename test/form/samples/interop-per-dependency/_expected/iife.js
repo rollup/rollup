@@ -1,8 +1,8 @@
 (function (fooAuto, fooDefault, fooDefaultOnly, fooEsModule) {
 	'use strict';
 
-	function _interopNamespace(e) {
-		return e && e.__esModule ? e : _interopNamespaceDefault(e);
+	function _interopNamespaceDefaultOnly(e) {
+		return Object.freeze({__proto__: null, 'default': e});
 	}
 
 	function _interopNamespaceDefault(e) {
@@ -24,8 +24,8 @@
 		return Object.freeze(n);
 	}
 
-	function _interopNamespaceDefaultOnly(e) {
-		return Object.freeze({__proto__: null, 'default': e});
+	function _interopNamespace(e) {
+		return e && e.__esModule ? e : _interopNamespaceDefault(e);
 	}
 
 	var fooAuto__namespace = /*#__PURE__*/_interopNamespace(fooAuto);

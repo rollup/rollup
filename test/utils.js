@@ -1,7 +1,7 @@
 const assert = require('assert');
 const path = require('path');
-const sander = require('sander');
 const fixturify = require('fixturify');
+const sander = require('sander');
 
 exports.compareError = compareError;
 exports.compareWarnings = compareWarnings;
@@ -18,9 +18,7 @@ exports.assertIncludes = assertIncludes;
 function normaliseError(error) {
 	delete error.stack;
 	delete error.toString;
-	return Object.assign({}, error, {
-		message: error.message
-	});
+	return { ...error, message: error.message };
 }
 
 function compareError(actual, expected) {
@@ -44,7 +42,7 @@ function compareError(actual, expected) {
 function compareWarnings(actual, expected) {
 	assert.deepEqual(
 		actual.map(warning => {
-			const clone = Object.assign({}, warning);
+			const clone = { ...warning };
 			delete clone.toString;
 
 			if (clone.frame) {
@@ -202,7 +200,7 @@ function assertDirectoriesAreEqual(actualDir, expectedDir) {
 }
 
 function assertFilesAreEqual(actualFiles, expectedFiles, dirs = []) {
-	Object.keys(Object.assign({}, actualFiles, expectedFiles)).forEach(fileName => {
+	Object.keys({ ...actualFiles, ...expectedFiles }).forEach(fileName => {
 		const pathSegments = dirs.concat(fileName);
 		if (typeof actualFiles[fileName] === 'object' && typeof expectedFiles[fileName] === 'object') {
 			return assertFilesAreEqual(actualFiles[fileName], expectedFiles[fileName], pathSegments);

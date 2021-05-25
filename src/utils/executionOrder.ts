@@ -9,11 +9,13 @@ interface OrderedExecutionUnit {
 const compareExecIndex = <T extends OrderedExecutionUnit>(unitA: T, unitB: T) =>
 	unitA.execIndex > unitB.execIndex ? 1 : -1;
 
-export function sortByExecutionOrder(units: OrderedExecutionUnit[]) {
+export function sortByExecutionOrder(units: OrderedExecutionUnit[]): void {
 	units.sort(compareExecIndex);
 }
 
-export function analyseModuleExecution(entryModules: Module[]) {
+export function analyseModuleExecution(
+	entryModules: Module[]
+): { cyclePaths: string[][]; orderedModules: Module[] } {
 	let nextExecIndex = 0;
 	const cyclePaths: string[][] = [];
 	const analysedModules = new Set<Module | ExternalModule>();
@@ -62,7 +64,7 @@ export function analyseModuleExecution(entryModules: Module[]) {
 		}
 	}
 
-	return { orderedModules, cyclePaths };
+	return { cyclePaths, orderedModules };
 }
 
 function getCyclePath(

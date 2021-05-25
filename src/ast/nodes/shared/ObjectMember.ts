@@ -19,7 +19,7 @@ export class ObjectMember extends ExpressionEntity {
 		path: ObjectPath,
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
-	) {
+	): void {
 		this.object.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
 	}
 

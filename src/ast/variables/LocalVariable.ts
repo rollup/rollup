@@ -6,14 +6,14 @@ import { NodeEvent } from '../NodeEvents';
 import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import Identifier from '../nodes/Identifier';
 import * as NodeType from '../nodes/NodeType';
+import SpreadElement from '../nodes/SpreadElement';
 import {
 	ExpressionEntity,
 	LiteralValueOrUnknown,
-	UnknownValue,
-	UNKNOWN_EXPRESSION
+	UNKNOWN_EXPRESSION,
+	UnknownValue
 } from '../nodes/shared/Expression';
 import { ExpressionNode, Node } from '../nodes/shared/Node';
-import SpreadElement from '../nodes/SpreadElement';
 import { ObjectPath, PathTracker, UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from './Variable';
 
@@ -45,7 +45,7 @@ export default class LocalVariable extends Variable {
 		this.module = context.module;
 	}
 
-	addDeclaration(identifier: Identifier, init: ExpressionEntity | null) {
+	addDeclaration(identifier: Identifier, init: ExpressionEntity | null): void {
 		this.declarations.push(identifier);
 		if (this.additionalInitializers === null) {
 			this.additionalInitializers = this.init === null ? [] : [this.init];
@@ -57,7 +57,7 @@ export default class LocalVariable extends Variable {
 		}
 	}
 
-	consolidateInitializers() {
+	consolidateInitializers(): void {
 		if (this.additionalInitializers !== null) {
 			for (const initializer of this.additionalInitializers) {
 				initializer.deoptimizePath(UNKNOWN_PATH);
@@ -66,7 +66,7 @@ export default class LocalVariable extends Variable {
 		}
 	}
 
-	deoptimizePath(path: ObjectPath) {
+	deoptimizePath(path: ObjectPath): void {
 		if (
 			path.length > MAX_PATH_DEPTH ||
 			this.isReassigned ||
@@ -150,14 +150,14 @@ export default class LocalVariable extends Variable {
 		);
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext) {
+	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		if (this.isReassigned || path.length > MAX_PATH_DEPTH) return true;
 		return (this.init &&
 			!context.accessed.trackEntityAtPathAndGetIfTracked(path, this) &&
 			this.init.hasEffectsWhenAccessedAtPath(path, context))!;
 	}
 
-	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext) {
+	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		if (this.included || path.length > MAX_PATH_DEPTH) return true;
 		if (path.length === 0) return false;
 		if (this.isReassigned) return true;
@@ -170,7 +170,7 @@ export default class LocalVariable extends Variable {
 		path: ObjectPath,
 		callOptions: CallOptions,
 		context: HasEffectsContext
-	) {
+	): boolean {
 		if (path.length > MAX_PATH_DEPTH || this.isReassigned) return true;
 		return (this.init &&
 			!(callOptions.withNew
@@ -180,7 +180,7 @@ export default class LocalVariable extends Variable {
 			this.init.hasEffectsWhenCalledAtPath(path, callOptions, context))!;
 	}
 
-	include() {
+	include(): void {
 		if (!this.included) {
 			this.included = true;
 			for (const declaration of this.declarations) {
@@ -210,7 +210,7 @@ export default class LocalVariable extends Variable {
 		}
 	}
 
-	markCalledFromTryStatement() {
+	markCalledFromTryStatement(): void {
 		this.calledFromTryStatement = true;
 	}
 }

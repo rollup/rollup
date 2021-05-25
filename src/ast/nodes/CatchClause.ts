@@ -13,17 +13,17 @@ export default class CatchClause extends NodeBase {
 	scope!: CatchScope;
 	type!: NodeType.tCatchClause;
 
-	createScope(parentScope: Scope) {
+	createScope(parentScope: Scope): void {
 		this.scope = new CatchScope(parentScope, this.context);
 	}
 
-	initialise() {
+	initialise(): void {
 		if (this.param) {
 			this.param.declare('parameter', UNKNOWN_EXPRESSION);
 		}
 	}
 
-	parseNode(esTreeNode: GenericEsTreeNode) {
+	parseNode(esTreeNode: GenericEsTreeNode): void {
 		this.body = new this.context.nodeConstructors.BlockStatement(
 			esTreeNode.body,
 			this,

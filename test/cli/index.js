@@ -1,7 +1,7 @@
-const path = require('path');
 const assert = require('assert');
-const sander = require('sander');
 const { exec } = require('child_process');
+const path = require('path');
+const sander = require('sander');
 const {
 	normaliseOutput,
 	runTestSuiteWithSamples,
@@ -32,7 +32,7 @@ runTestSuiteWithSamples(
 					command,
 					{
 						timeout: 40000,
-						env: Object.assign({}, process.env, { FORCE_COLOR: '0' }, config.env)
+						env: { ...process.env, FORCE_COLOR: '0', ...config.env }
 					},
 					(err, code, stderr) => {
 						if (config.after) config.after();

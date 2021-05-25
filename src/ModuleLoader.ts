@@ -14,6 +14,7 @@ import {
 	ResolveIdResult,
 	SourceDescription
 } from './rollup/types';
+import { PluginDriver } from './utils/PluginDriver';
 import { EMPTY_OBJECT } from './utils/blank';
 import {
 	errBadLoader,
@@ -29,7 +30,6 @@ import {
 } from './utils/error';
 import { readFile } from './utils/fs';
 import { isAbsolute, isRelative, resolve } from './utils/path';
-import { PluginDriver } from './utils/PluginDriver';
 import relativeId from './utils/relativeId';
 import { resolveId } from './utils/resolveId';
 import { timeEnd, timeStart } from './utils/timers';
@@ -51,7 +51,7 @@ export class ModuleLoader {
 	private readonly hasModuleSideEffects: HasModuleSideEffects;
 	private readonly implicitEntryModules = new Set<Module>();
 	private readonly indexedEntryModules: { index: number; module: Module }[] = [];
-	private latestLoadModulesPromise: Promise<any> = Promise.resolve();
+	private latestLoadModulesPromise: Promise<unknown> = Promise.resolve();
 	private nextEntryModuleIndex = 0;
 
 	constructor(
@@ -99,7 +99,7 @@ export class ModuleLoader {
 						indexedModule => indexedModule.module === entryModule
 					);
 					if (!existingIndexedModule) {
-						this.indexedEntryModules.push({ module: entryModule, index: moduleIndex });
+						this.indexedEntryModules.push({ index: moduleIndex, module: entryModule });
 					} else {
 						existingIndexedModule.index = Math.min(existingIndexedModule.index, moduleIndex);
 					}

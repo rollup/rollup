@@ -1,5 +1,5 @@
-const path = require('path');
 const assert = require('assert');
+const path = require('path');
 
 module.exports = {
 	description: 'external paths from custom resolver remain external (#633)',

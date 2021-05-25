@@ -16,20 +16,20 @@ export default class BlockStatement extends StatementBase {
 	private deoptimizeBody!: boolean;
 	private directlyIncluded = false;
 
-	addImplicitReturnExpressionToScope() {
+	addImplicitReturnExpressionToScope(): void {
 		const lastStatement = this.body[this.body.length - 1];
 		if (!lastStatement || lastStatement.type !== NodeType.ReturnStatement) {
 			this.scope.addReturnExpression(UNKNOWN_EXPRESSION);
 		}
 	}
 
-	createScope(parentScope: Scope) {
+	createScope(parentScope: Scope): void {
 		this.scope = (this.parent as Node).preventChildBlockScope
 			? (parentScope as ChildScope)
 			: new BlockScope(parentScope);
 	}
 
-	hasEffects(context: HasEffectsContext) {
+	hasEffects(context: HasEffectsContext): boolean {
 		if (this.deoptimizeBody) return true;
 		for (const node of this.body) {
 			if (node.hasEffects(context)) return true;
@@ -38,7 +38,7 @@ export default class BlockStatement extends StatementBase {
 		return false;
 	}
 
-	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren) {
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		if (!this.deoptimizeBody || !this.directlyIncluded) {
 			this.included = true;
 			this.directlyIncluded = true;
@@ -50,14 +50,14 @@ export default class BlockStatement extends StatementBase {
 		}
 	}
 
-	initialise() {
+	initialise(): void {
 		const firstBodyStatement = this.body[0];
 		this.deoptimizeBody =
 			firstBodyStatement instanceof ExpressionStatement &&
 			firstBodyStatement.directive === 'use asm';
 	}
 
-	render(code: MagicString, options: RenderOptions) {
+	render(code: MagicString, options: RenderOptions): void {
 		if (this.body.length) {
 			renderStatementList(this.body, code, this.start + 1, this.end - 1, options);
 		} else {

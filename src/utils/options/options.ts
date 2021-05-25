@@ -11,7 +11,7 @@ export function warnUnknownOptions(
 	validOptions: string[],
 	optionType: string,
 	warn: WarningHandler,
-	ignoredKeys: RegExp = /$./
+	ignoredKeys = /$./
 ): void {
 	const validOptionSet = new Set(validOptions);
 	const unknownOptions = Object.keys(passedOptions).filter(

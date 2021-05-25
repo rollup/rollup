@@ -7,8 +7,8 @@ var fooEsModule = require('external-esModule');
 
 function _interopDefault (e) { return e && e.__esModule ? e['default'] : e; }
 
-function _interopNamespace(e) {
-	return e && e.__esModule ? e : _interopNamespaceDefault(e);
+function _interopNamespaceDefaultOnly(e) {
+	return Object.freeze({__proto__: null, 'default': e});
 }
 
 function _interopNamespaceDefault(e) {
@@ -22,8 +22,8 @@ function _interopNamespaceDefault(e) {
 	return Object.freeze(n);
 }
 
-function _interopNamespaceDefaultOnly(e) {
-	return Object.freeze({__proto__: null, 'default': e});
+function _interopNamespace(e) {
+	return e && e.__esModule ? e : _interopNamespaceDefault(e);
 }
 
 var fooAuto__default = /*#__PURE__*/_interopDefault(fooAuto);
