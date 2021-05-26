@@ -1,3 +1,6 @@
+import MagicString from 'magic-string';
+import { BLANK } from '../../utils/blank';
+import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext } from '../ExecutionContext';
 import {
@@ -81,5 +84,16 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath): boolean {
 		return path.length > 1;
+	}
+
+	render(
+		code: MagicString,
+		options: RenderOptions,
+		{ renderedParentType, renderedSurroundingElement }: NodeRenderOptions = BLANK
+	): void {
+		this.left.render(code, options, {
+			renderedSurroundingElement: renderedParentType || renderedSurroundingElement
+		});
+		this.right.render(code, options);
 	}
 }

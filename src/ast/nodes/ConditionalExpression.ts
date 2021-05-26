@@ -180,7 +180,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ renderedParentType, isCalleeOfRenderedParent, preventASI }: NodeRenderOptions = BLANK
+		{ isCalleeOfRenderedParent, renderedParentType, preventASI }: NodeRenderOptions = BLANK
 	): void {
 		const usedBranch = this.getUsedBranch();
 		if (!this.test.included) {
@@ -207,7 +207,11 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 				renderedParentType: renderedParentType || this.parent.type
 			});
 		} else {
-			super.render(code, options);
+			this.test.render(code, options, {
+				renderedSurroundingElement: renderedParentType
+			});
+			this.consequent.render(code, options);
+			this.alternate.render(code, options);
 		}
 	}
 

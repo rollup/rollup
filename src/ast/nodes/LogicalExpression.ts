@@ -166,7 +166,12 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ renderedParentType, isCalleeOfRenderedParent, preventASI }: NodeRenderOptions = BLANK
+		{
+			isCalleeOfRenderedParent,
+			preventASI,
+			renderedParentType,
+			renderedSurroundingElement
+		}: NodeRenderOptions = BLANK
 	): void {
 		if (!this.left.included || !this.right.included) {
 			const operatorPos = findFirstOccurrenceOutsideComment(
@@ -192,7 +197,10 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 				renderedParentType: renderedParentType || this.parent.type
 			});
 		} else {
-			this.left.render(code, options, { preventASI });
+			this.left.render(code, options, {
+				preventASI,
+				renderedSurroundingElement: renderedParentType || renderedSurroundingElement
+			});
 			this.right.render(code, options);
 		}
 	}
