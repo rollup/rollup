@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 2.50.1
+*2021-05-26*
+
+### Bug Fixes
+* Do not associate pure annotations in simplified expressions with wrong elements (#4095)
+* Prevent invalid code when simplified conditionals start with an IIFE function expression (#4099)
+
+### Pull Requests
+* [#4095](https://github.com/rollup/rollup/pull/4095): Correctly associate pure annotations and remove invalid ones (@lukastaegert)
+* [#4099](https://github.com/rollup/rollup/pull/4099): Wrap leading function expression iifes in conditionals (@lukastaegert)
+
 ## 2.50.0
 *2021-05-25*
 
