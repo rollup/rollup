@@ -15,9 +15,9 @@ false ? 1 /*@__PURE__*/ : keep();
 false /*@__PURE__*/ || keep();
 
 // Binary expression
-/* @__PURE__ */(keep() + 1);
-/* @__PURE__ */remove() + /* @__PURE__ */remove();
-1 /* @__PURE__ */ + keep();
+/* @__PURE__ */(keep() / 1);
+/* @__PURE__ */remove() / /* @__PURE__ */remove();
+1 /* @__PURE__ */ / keep();
 
 // Calls with parentheses
 /*@__PURE__*/(remove());

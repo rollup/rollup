@@ -12,7 +12,7 @@ keep();
 keep();
 
 // Binary expression
-(keep() + 1);
-1  + keep();
+(keep() / 1);
+1  / keep();
 
 export { foo };

@@ -41,13 +41,18 @@ function handlePureAnnotationsOfNode(
 	state: CommentState,
 	type: string = node.type
 ) {
-	let commentNode = state.annotations[state.annotationIndex];
-	while (commentNode && node.start >= commentNode.end) {
-		markPureNode(node, commentNode, state.code);
-		commentNode = state.annotations[++state.annotationIndex];
+	const { annotations } = state;
+	let comment = annotations[state.annotationIndex];
+	while (comment && node.start >= comment.end) {
+		markPureNode(node, comment, state.code);
+		comment = annotations[++state.annotationIndex];
 	}
-	if (commentNode && commentNode.end <= node.end) {
+	if (comment && comment.end <= node.end) {
 		(basicWalker as BaseWalker<CommentState>)[type](node, state, handlePureAnnotationsOfNode);
+		while ((comment = annotations[state.annotationIndex]) && comment.end <= node.end) {
+			++state.annotationIndex;
+			annotateNode(node, comment, false);
+		}
 	}
 }
 
