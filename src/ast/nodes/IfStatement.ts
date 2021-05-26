@@ -1,6 +1,5 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
-import { removeAnnotations } from '../../utils/treeshakeNode';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { BROKEN_FLOW_NONE, HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import TrackingScope from '../scopes/TrackingScope';
@@ -89,7 +88,6 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		if (includesIfElse) {
 			this.test.render(code, options);
 		} else {
-			removeAnnotations(this, code);
 			code.remove(this.start, this.consequent.start);
 		}
 		if (this.consequent.included && (noTreeshake || testValue === UnknownValue || testValue)) {

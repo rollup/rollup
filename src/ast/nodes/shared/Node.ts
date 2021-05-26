@@ -2,6 +2,7 @@ import * as acorn from 'acorn';
 import { locate, Location } from 'locate-character';
 import MagicString from 'magic-string';
 import { AstContext } from '../../../Module';
+import { ANNOTATION_KEY, INVALID_COMMENT_KEY } from '../../../utils/pureComments';
 import { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
 import { Entity } from '../../Entity';
 import {
@@ -21,13 +22,9 @@ export interface GenericEsTreeNode extends acorn.Node {
 
 export const INCLUDE_PARAMETERS = 'variables' as const;
 export type IncludeChildren = boolean | typeof INCLUDE_PARAMETERS;
-export interface Annotation {
-	comment?: acorn.Comment;
-	pure?: boolean;
-}
 
 export interface Node extends Entity {
-	annotations?: Annotation[];
+	annotations?: acorn.Comment[];
 	context: AstContext;
 	end: number;
 	esTreeNode: GenericEsTreeNode;
@@ -87,7 +84,7 @@ export type StatementNode = Node;
 export interface ExpressionNode extends ExpressionEntity, Node {}
 
 export class NodeBase extends ExpressionEntity implements ExpressionNode {
-	annotations?: Annotation[];
+	annotations?: acorn.Comment[];
 	context: AstContext;
 	end!: number;
 	esTreeNode: acorn.Node;
@@ -201,8 +198,13 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 		for (const [key, value] of Object.entries(esTreeNode)) {
 			// That way, we can override this function to add custom initialisation and then call super.parseNode
 			if (this.hasOwnProperty(key)) continue;
-			if (key === '_rollupAnnotations') {
-				this.annotations = value;
+			if (key.charCodeAt(0) === 95 /* _ */) {
+				if (key === ANNOTATION_KEY) {
+					this.annotations = value;
+				} else if (key === INVALID_COMMENT_KEY) {
+					for (const { start, end } of value as acorn.Comment[])
+						this.context.magicString.remove(start, end);
+				}
 			} else if (typeof value !== 'object' || value === null) {
 				(this as GenericEsTreeNode)[key] = value;
 			} else if (Array.isArray(value)) {

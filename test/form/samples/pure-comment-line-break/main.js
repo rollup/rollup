@@ -54,7 +54,7 @@ keep6() /*@__PURE__*/ ; // other comment
 keep7();
 keep8() /*@__PURE__*/ && keep9();
 
-/*@__PURE__*/ Drop1(), // FIXME: unrelated issue
+/*@__PURE__*/ Drop1(),
 /*@__PURE__*/
 Drop2(),
 Keep1() /*@__PURE__*/ , Keep2(),
@@ -65,7 +65,6 @@ Keep6() /*@__PURE__*/ , // other comment
 Keep7(),
 Keep8() /*@__PURE__*/ && Keep9();
 
-// FIXME: unrelated issue
 /*@__PURE__*/ Drop10(),
 /*@__PURE__*/ Drop11(),
 /*@__PURE__*/ Drop12(),

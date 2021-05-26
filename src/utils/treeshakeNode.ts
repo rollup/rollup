@@ -6,11 +6,8 @@ export function treeshakeNode(node: Node, code: MagicString, start: number, end:
 	code.remove(start, end);
 	if (node.annotations) {
 		for (const annotation of node.annotations) {
-			if (!annotation.comment) {
-				continue;
-			}
-			if (annotation.comment.start < start) {
-				code.remove(annotation.comment.start, annotation.comment.end);
+			if (annotation.start < start) {
+				code.remove(annotation.start, annotation.end);
 			} else {
 				return;
 			}
@@ -23,8 +20,8 @@ export function removeAnnotations(node: Node, code: MagicString): void {
 		node = node.parent as Node;
 	}
 	if (node.annotations) {
-		for (const annotation of node.annotations.filter(a => a.comment)) {
-			code.remove(annotation.comment!.start, annotation.comment!.end);
+		for (const annotation of node.annotations) {
+			code.remove(annotation.start, annotation.end);
 		}
 	}
 }

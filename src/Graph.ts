@@ -17,7 +17,7 @@ import { PluginDriver } from './utils/PluginDriver';
 import { BuildPhase } from './utils/buildPhase';
 import { errImplicitDependantIsNotIncluded, error } from './utils/error';
 import { analyseModuleExecution } from './utils/executionOrder';
-import { markPureCallExpressions } from './utils/pureComments';
+import { addAnnotations } from './utils/pureComments';
 import relativeId from './utils/relativeId';
 import { timeEnd, timeStart } from './utils/timers';
 import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
@@ -137,7 +137,7 @@ export default class Graph {
 
 		options.onComment = onCommentOrig;
 
-		markPureCallExpressions(comments, ast, code);
+		addAnnotations(comments, ast, code);
 
 		return ast;
 	}

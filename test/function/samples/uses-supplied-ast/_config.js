@@ -18,6 +18,7 @@ const modules = {
 
 	baz: 'export default 42;'
 };
+modules.foo.ast._ignoredProp = {};
 
 module.exports = {
 	description: 'uses supplied AST',

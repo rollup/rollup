@@ -1,12 +1,16 @@
 import * as acorn from 'acorn';
 import { BaseWalker, base as basicWalker } from 'acorn-walk';
 import {
+	BinaryExpression,
 	CallExpression,
 	ChainExpression,
+	ConditionalExpression,
 	ExpressionStatement,
-	NewExpression
+	LogicalExpression,
+	NewExpression,
+	SequenceExpression
 } from '../ast/nodes/NodeType';
-import { Annotation } from '../ast/nodes/shared/Node';
+import { SOURCEMAPPING_URL_RE } from './sourceMappingURL';
 
 // patch up acorn-walk until class-fields are officially supported
 basicWalker.PropertyDefinition = function (node: any, st: any, c: any) {
@@ -19,26 +23,17 @@ basicWalker.PropertyDefinition = function (node: any, st: any, c: any) {
 };
 
 interface CommentState {
+	annotationIndex: number;
+	annotations: acorn.Comment[];
 	code: string;
-	commentIndex: number;
-	commentNodes: acorn.Comment[];
 }
 
-function isOnlyWhitespaceOrComments(code: string) {
-	// streamline the typical case
-	if (/^\s*$/.test(code)) return true;
-	try {
-		// successful only if it's a valid Program without statements
-		const ast = acorn.parse(code, { ecmaVersion: 'latest' }) as any;
-		return ast.body && ast.body.length === 0;
-	} catch {
-		// should only be reached by invalid annotations like:
-		//
-		//   foo() /*@__PURE__*/ /* other */, bar();
-		//
-		// where `code` is " /* other */, "
-	}
-	return false;
+export const ANNOTATION_KEY = '_rollupAnnotations';
+export const INVALID_COMMENT_KEY = '_rollupRemoved';
+
+interface NodeWithComments extends acorn.Node {
+	[ANNOTATION_KEY]?: acorn.Comment[];
+	[INVALID_COMMENT_KEY]?: acorn.Comment[];
 }
 
 function handlePureAnnotationsOfNode(
@@ -46,49 +41,133 @@ function handlePureAnnotationsOfNode(
 	state: CommentState,
 	type: string = node.type
 ) {
-	let commentNode = state.commentNodes[state.commentIndex];
-	while (commentNode && node.start >= commentNode.end) {
-		const between = state.code.substring(commentNode.end, node.start);
-		if (isOnlyWhitespaceOrComments(between)) markPureNode(node, commentNode);
-		commentNode = state.commentNodes[++state.commentIndex];
+	const { annotations } = state;
+	let comment = annotations[state.annotationIndex];
+	while (comment && node.start >= comment.end) {
+		markPureNode(node, comment, state.code);
+		comment = annotations[++state.annotationIndex];
 	}
-	if (commentNode && commentNode.end <= node.end) {
+	if (comment && comment.end <= node.end) {
 		(basicWalker as BaseWalker<CommentState>)[type](node, state, handlePureAnnotationsOfNode);
-	}
-}
-
-function markPureNode(
-	node: acorn.Node & { _rollupAnnotations?: Annotation[] },
-	comment: acorn.Comment
-) {
-	if (node._rollupAnnotations) {
-		node._rollupAnnotations.push({ comment });
-	} else {
-		node._rollupAnnotations = [{ comment }];
-	}
-	while (node.type === ExpressionStatement || node.type === ChainExpression) {
-		node = (node as any).expression;
-	}
-	if (node.type === CallExpression || node.type === NewExpression) {
-		if (node._rollupAnnotations) {
-			node._rollupAnnotations.push({ pure: true });
-		} else {
-			node._rollupAnnotations = [{ pure: true }];
+		while ((comment = annotations[state.annotationIndex]) && comment.end <= node.end) {
+			++state.annotationIndex;
+			annotateNode(node, comment, false);
 		}
 	}
 }
 
-const pureCommentRegex = /[@#]__PURE__/;
-const isPureComment = (comment: acorn.Comment) => pureCommentRegex.test(comment.value);
+const neitherWithespaceNorBrackets = /[^\s(]/g;
+const noWhitespace = /\S/g;
 
-export function markPureCallExpressions(
+function markPureNode(node: NodeWithComments, comment: acorn.Comment, code: string) {
+	const annotatedNodes = [];
+	let invalidAnnotation: boolean | undefined;
+	const codeInBetween = code.slice(comment.end, node.start);
+	if (doesNotMatchOutsideComment(codeInBetween, neitherWithespaceNorBrackets)) {
+		const parentStart = node.start;
+		while (true) {
+			annotatedNodes.push(node);
+			switch (node.type) {
+				case ExpressionStatement:
+				case ChainExpression:
+					node = (node as any).expression;
+					continue;
+				case SequenceExpression:
+					// if there are parentheses, the annotation would apply to the entire expression
+					if (doesNotMatchOutsideComment(code.slice(parentStart, node.start), noWhitespace)) {
+						node = (node as any).expressions[0];
+						continue;
+					}
+					invalidAnnotation = true;
+					break;
+				case ConditionalExpression:
+					// if there are parentheses, the annotation would apply to the entire expression
+					if (doesNotMatchOutsideComment(code.slice(parentStart, node.start), noWhitespace)) {
+						node = (node as any).test;
+						continue;
+					}
+					invalidAnnotation = true;
+					break;
+				case LogicalExpression:
+				case BinaryExpression:
+					// if there are parentheses, the annotation would apply to the entire expression
+					if (doesNotMatchOutsideComment(code.slice(parentStart, node.start), noWhitespace)) {
+						node = (node as any).left;
+						continue;
+					}
+					invalidAnnotation = true;
+					break;
+				case CallExpression:
+				case NewExpression:
+					break;
+				default:
+					invalidAnnotation = true;
+			}
+			break;
+		}
+	} else {
+		invalidAnnotation = true;
+	}
+	if (invalidAnnotation) {
+		annotateNode(node, comment, false);
+	} else {
+		for (const node of annotatedNodes) {
+			annotateNode(node, comment, true);
+		}
+	}
+}
+
+function doesNotMatchOutsideComment(code: string, forbiddenChars: RegExp): boolean {
+	let nextMatch: RegExpExecArray | null;
+	while ((nextMatch = forbiddenChars.exec(code)) !== null) {
+		if (nextMatch[0] === '/') {
+			const charCodeAfterSlash = code.charCodeAt(forbiddenChars.lastIndex);
+			if (charCodeAfterSlash === 42 /*"*"*/) {
+				forbiddenChars.lastIndex = code.indexOf('*/', forbiddenChars.lastIndex + 1) + 2;
+				continue;
+			} else if (charCodeAfterSlash === 47 /*"/"*/) {
+				forbiddenChars.lastIndex = code.indexOf('\n', forbiddenChars.lastIndex + 1) + 1;
+				continue;
+			}
+		}
+		forbiddenChars.lastIndex = 0;
+		return false;
+	}
+	return true;
+}
+
+const pureCommentRegex = /[@#]__PURE__/;
+
+export function addAnnotations(
 	comments: acorn.Comment[],
 	esTreeAst: acorn.Node,
 	code: string
 ): void {
+	const annotations: acorn.Comment[] = [];
+	const sourceMappingComments: acorn.Comment[] = [];
+	for (const comment of comments) {
+		if (pureCommentRegex.test(comment.value)) {
+			annotations.push(comment);
+		} else if (SOURCEMAPPING_URL_RE.test(comment.value)) {
+			sourceMappingComments.push(comment);
+		}
+	}
+	for (const comment of sourceMappingComments) {
+		annotateNode(esTreeAst, comment, false);
+	}
 	handlePureAnnotationsOfNode(esTreeAst, {
-		code,
-		commentIndex: 0,
-		commentNodes: comments.filter(isPureComment)
+		annotationIndex: 0,
+		annotations,
+		code
 	});
+}
+
+function annotateNode(node: NodeWithComments, comment: acorn.Comment, valid: boolean) {
+	const key = valid ? ANNOTATION_KEY : INVALID_COMMENT_KEY;
+	const property = node[key];
+	if (property) {
+		property.push(comment);
+	} else {
+		node[key] = [comment];
+	}
 }

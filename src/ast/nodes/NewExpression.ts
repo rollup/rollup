@@ -3,7 +3,7 @@ import { CallOptions } from '../CallOptions';
 import { HasEffectsContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import * as NodeType from './NodeType';
-import { Annotation, ExpressionNode, NodeBase } from './shared/Node';
+import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class NewExpression extends NodeBase {
 	arguments!: ExpressionNode[];
@@ -19,7 +19,7 @@ export default class NewExpression extends NodeBase {
 		}
 		if (
 			(this.context.options.treeshake as NormalizedTreeshakingOptions).annotations &&
-			this.annotations?.some((a: Annotation) => a.pure)
+			this.annotations
 		)
 			return false;
 		return (
