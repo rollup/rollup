@@ -6,7 +6,7 @@ console.log('should remain impure');
 console.log('code');
 console.log('should remain impure');
 
-console.log('code')/*@__PURE__*/;
+console.log('code');
 console.log('should remain impure');
 console.log('should remain impure');
 
@@ -16,7 +16,7 @@ console.log('should remain impure');
 console.log('code'),
 console.log('should remain impure');
 
-console.log('code')/*@__PURE__*/,
+console.log('code'),
 console.log('should remain impure');
 
 console.log('should remain impure');
@@ -35,20 +35,16 @@ console.log('should remain impure', x);
 {
 	console.log('should remain impure');
 }
-keep1() /*@__PURE__*/ ; keep2();
+keep1()  ; keep2();
 keep3() ; 
-keep4() /*@__PURE__*/ ; /* other comment */ keep5();
-keep6() /*@__PURE__*/ ; // other comment
+keep4()  ; /* other comment */ keep5();
+keep6()  ; // other comment
 keep7();
-keep8() /*@__PURE__*/ && keep9();
+keep8()  && keep9();
 
-/*@__PURE__*/ Drop1(), // FIXME: unrelated issue
-Keep1() /*@__PURE__*/ , Keep2(),
+ Keep1()  , Keep2(),
 Keep3() , 
-Keep4() /*@__PURE__*/ , /* other comment */ Keep5(),
-Keep6() /*@__PURE__*/ , // other comment
+Keep4()  , /* other comment */ Keep5(),
+Keep6()  , // other comment
 Keep7(),
-Keep8() /*@__PURE__*/ && Keep9();
-
-// FIXME: unrelated issue
-/*@__PURE__*/ Drop10();
+Keep8()  && Keep9();

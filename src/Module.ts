@@ -19,7 +19,7 @@ import Program from './ast/nodes/Program';
 import TemplateLiteral from './ast/nodes/TemplateLiteral';
 import VariableDeclaration from './ast/nodes/VariableDeclaration';
 import { nodeConstructors } from './ast/nodes/index';
-import { ExpressionNode, GenericEsTreeNode, NodeBase } from './ast/nodes/shared/Node';
+import { ExpressionNode, NodeBase } from './ast/nodes/shared/Node';
 import ModuleScope from './ast/scopes/ModuleScope';
 import { PathTracker, UNKNOWN_PATH } from './ast/utils/PathTracker';
 import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
@@ -62,7 +62,6 @@ import { makeLegal } from './utils/identifierHelpers';
 import { basename, extname } from './utils/path';
 import relativeId from './utils/relativeId';
 import { RenderOptions } from './utils/renderHelpers';
-import { SOURCEMAPPING_URL_COMMENT_RE } from './utils/sourceMappingURL';
 import { timeEnd, timeStart } from './utils/timers';
 import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
 import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
@@ -120,34 +119,6 @@ const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
 	identifier: null,
 	localName: MISSING_EXPORT_SHIM_VARIABLE
 };
-
-function findSourceMappingURLComments(ast: acorn.Node, code: string): [number, number][] {
-	const ret: [number, number][] = [];
-
-	const addCommentsPos = (start: number, end: number): void => {
-		if (start == end) {
-			return;
-		}
-
-		let sourcemappingUrlMatch;
-		const interStatmentCode = code.slice(start, end);
-		while ((sourcemappingUrlMatch = SOURCEMAPPING_URL_COMMENT_RE.exec(interStatmentCode))) {
-			ret.push([
-				start + sourcemappingUrlMatch.index,
-				start + SOURCEMAPPING_URL_COMMENT_RE.lastIndex
-			]);
-		}
-	};
-
-	let prevStmtEnd = 0;
-	for (const stmt of (ast as GenericEsTreeNode).body) {
-		addCommentsPos(prevStmtEnd, stmt.start);
-		prevStmtEnd = stmt.end;
-	}
-	addCommentsPos(prevStmtEnd, code.length);
-
-	return ret;
-}
 
 function getVariableForExportNameRecursive(
 	target: Module | ExternalModule,
@@ -251,7 +222,6 @@ export default class Module {
 	usesTopLevelAwait = false;
 
 	private allExportNames: Set<string> | null = null;
-	private alwaysRemovedCode!: [number, number][];
 	private astContext!: AstContext;
 	private readonly context: string;
 	private customTransformCache!: boolean;
@@ -688,7 +658,6 @@ export default class Module {
 	}
 
 	setSource({
-		alwaysRemovedCode,
 		ast,
 		code,
 		customTransformCache,
@@ -700,7 +669,6 @@ export default class Module {
 		transformFiles,
 		...moduleOptions
 	}: TransformModuleJSON & {
-		alwaysRemovedCode?: [number, number][];
 		transformFiles?: EmittedFile[] | undefined;
 	}): void {
 		this.info.code = code;
@@ -716,11 +684,9 @@ export default class Module {
 
 		timeStart('generate ast', 3);
 
-		this.alwaysRemovedCode = alwaysRemovedCode || [];
 		if (!ast) {
 			ast = this.tryParse();
 		}
-		this.alwaysRemovedCode.push(...findSourceMappingURLComments(ast, this.info.code));
 
 		timeEnd('generate ast', 3);
 
@@ -734,9 +700,6 @@ export default class Module {
 			filename: (this.excludeFromSourcemap ? null : fileName)!, // don't include plugin helpers in sourcemap
 			indentExclusionRanges: []
 		});
-		for (const [start, end] of this.alwaysRemovedCode) {
-			this.magicString.remove(start, end);
-		}
 
 		timeStart('analyse ast', 3);
 
@@ -778,7 +741,6 @@ export default class Module {
 
 	toJSON(): ModuleJSON {
 		return {
-			alwaysRemovedCode: this.alwaysRemovedCode,
 			ast: this.ast!.esTreeNode,
 			code: this.info.code!,
 			customTransformCache: this.customTransformCache,

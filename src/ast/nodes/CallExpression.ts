@@ -28,13 +28,7 @@ import {
 	UNKNOWN_EXPRESSION,
 	UnknownValue
 } from './shared/Expression';
-import {
-	Annotation,
-	ExpressionNode,
-	INCLUDE_PARAMETERS,
-	IncludeChildren,
-	NodeBase
-} from './shared/Node';
+import { ExpressionNode, INCLUDE_PARAMETERS, IncludeChildren, NodeBase } from './shared/Node';
 
 export default class CallExpression extends NodeBase implements DeoptimizableEntity {
 	arguments!: (ExpressionNode | SpreadElement)[];
@@ -188,7 +182,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		}
 		if (
 			(this.context.options.treeshake as NormalizedTreeshakingOptions).annotations &&
-			this.annotations?.some((a: Annotation) => a.pure)
+			this.annotations
 		)
 			return false;
 		return (
