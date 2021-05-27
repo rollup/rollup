@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 2.50.2
+*2021-05-27*
+
+### Bug Fixes
+* Avoid unnecessary side effects when using methods like `.filter` and `.map` (#4103)
+* Avoid crash when a module with moduleSideEffects no-treeshake imports a tree-shaken module (#4104)
+
+### Pull Requests
+* [#4103](https://github.com/rollup/rollup/pull/4103): Do not track side-effect-free array methods as side effects (@lukastaegert)
+* [#4104](https://github.com/rollup/rollup/pull/4104): Fix crash when using inlineDynamicImports with no-treeshake (@lukastaegert)
+
 ## 2.50.1
 *2021-05-26*
 
