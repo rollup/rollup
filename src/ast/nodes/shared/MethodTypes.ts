@@ -13,7 +13,7 @@ import { ExpressionNode } from './Node';
 
 type MethodDescription = {
 	callsArgs: number[] | null;
-	mutatesSelfAsArray: boolean;
+	mutatesSelfAsArray: boolean | 'deopt-only';
 } & (
 	| {
 			returns: 'self' | (() => ExpressionEntity);
@@ -70,7 +70,7 @@ export class Method extends ExpressionEntity {
 	): boolean {
 		if (
 			path.length > 0 ||
-			(this.description.mutatesSelfAsArray &&
+			(this.description.mutatesSelfAsArray === true &&
 				callOptions.thisParam?.hasEffectsWhenAssignedAtPath(UNKNOWN_INTEGER_PATH, context))
 		) {
 			return true;
