@@ -362,17 +362,18 @@ export default class Module {
 			}
 			necessaryDependencies.add(variable.module!);
 		}
-		if (this.options.treeshake && this.info.hasModuleSideEffects !== 'no-treeshake') {
-			this.addRelevantSideEffectDependencies(
-				relevantDependencies,
-				necessaryDependencies,
-				alwaysCheckedDependencies
-			);
-		} else {
+		if (!this.options.treeshake || this.info.hasModuleSideEffects === 'no-treeshake') {
 			for (const dependency of this.dependencies) {
-				relevantDependencies.add(dependency);
+				if (dependency instanceof ExternalModule || dependency.isIncluded()) {
+					relevantDependencies.add(dependency);
+				}
 			}
 		}
+		this.addRelevantSideEffectDependencies(
+			relevantDependencies,
+			necessaryDependencies,
+			alwaysCheckedDependencies
+		);
 		for (const dependency of necessaryDependencies) {
 			relevantDependencies.add(dependency);
 		}
