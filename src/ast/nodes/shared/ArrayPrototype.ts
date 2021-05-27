@@ -16,30 +16,21 @@ const NEW_ARRAY_PROPERTIES: ObjectProperty[] = [
 	{ key: 'length', kind: 'init', property: UNKNOWN_LITERAL_NUMBER }
 ];
 
-const METHOD_CALLS_ARG_MUTATES_SELF_RETURNS_BOOLEAN: [ExpressionEntity] = [
+const METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_BOOLEAN: [ExpressionEntity] = [
 	new Method({
 		callsArgs: [0],
-		mutatesSelfAsArray: true,
+		mutatesSelfAsArray: 'deopt-only',
 		returns: null,
 		returnsPrimitive: UNKNOWN_LITERAL_BOOLEAN
 	})
 ];
 
-const METHOD_CALLS_ARG_MUTATES_SELF_RETURNS_NUMBER: [ExpressionEntity] = [
+const METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_NUMBER: [ExpressionEntity] = [
 	new Method({
 		callsArgs: [0],
-		mutatesSelfAsArray: true,
+		mutatesSelfAsArray: 'deopt-only',
 		returns: null,
 		returnsPrimitive: UNKNOWN_LITERAL_NUMBER
-	})
-];
-
-export const METHOD_RETURNS_NEW_ARRAY: [ExpressionEntity] = [
-	new Method({
-		callsArgs: null,
-		mutatesSelfAsArray: false,
-		returns: () => new ObjectEntity(NEW_ARRAY_PROPERTIES, ARRAY_PROTOTYPE),
-		returnsPrimitive: null
 	})
 ];
 
@@ -52,10 +43,19 @@ const METHOD_MUTATES_SELF_RETURNS_NEW_ARRAY: [ExpressionEntity] = [
 	})
 ];
 
-const METHOD_CALLS_ARG_MUTATES_SELF_RETURNS_NEW_ARRAY: [ExpressionEntity] = [
+const METHOD_DEOPTS_SELF_RETURNS_NEW_ARRAY: [ExpressionEntity] = [
+	new Method({
+		callsArgs: null,
+		mutatesSelfAsArray: 'deopt-only',
+		returns: () => new ObjectEntity(NEW_ARRAY_PROPERTIES, ARRAY_PROTOTYPE),
+		returnsPrimitive: null
+	})
+];
+
+const METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_NEW_ARRAY: [ExpressionEntity] = [
 	new Method({
 		callsArgs: [0],
-		mutatesSelfAsArray: true,
+		mutatesSelfAsArray: 'deopt-only',
 		returns: () => new ObjectEntity(NEW_ARRAY_PROPERTIES, ARRAY_PROTOTYPE),
 		returnsPrimitive: null
 	})
@@ -79,10 +79,19 @@ const METHOD_MUTATES_SELF_RETURNS_UNKNOWN: [ExpressionEntity] = [
 	})
 ];
 
-const METHOD_CALLS_ARG_MUTATES_SELF_RETURNS_UNKNOWN: [ExpressionEntity] = [
+const METHOD_DEOPTS_SELF_RETURNS_UNKNOWN: [ExpressionEntity] = [
+	new Method({
+		callsArgs: null,
+		mutatesSelfAsArray: 'deopt-only',
+		returns: null,
+		returnsPrimitive: UNKNOWN_EXPRESSION
+	})
+];
+
+const METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_UNKNOWN: [ExpressionEntity] = [
 	new Method({
 		callsArgs: [0],
-		mutatesSelfAsArray: true,
+		mutatesSelfAsArray: 'deopt-only',
 		returns: null,
 		returnsPrimitive: UNKNOWN_EXPRESSION
 	})
@@ -110,34 +119,34 @@ export const ARRAY_PROTOTYPE = new ObjectEntity(
 	({
 		__proto__: null,
 		// We assume that accessors have effects as we do not track the accessed value afterwards
-		at: METHOD_MUTATES_SELF_RETURNS_UNKNOWN,
-		concat: METHOD_RETURNS_NEW_ARRAY,
+		at: METHOD_DEOPTS_SELF_RETURNS_UNKNOWN,
+		concat: METHOD_DEOPTS_SELF_RETURNS_NEW_ARRAY,
 		copyWithin: METHOD_MUTATES_SELF_RETURNS_SELF,
-		entries: METHOD_MUTATES_SELF_RETURNS_NEW_ARRAY,
-		every: METHOD_CALLS_ARG_MUTATES_SELF_RETURNS_BOOLEAN,
+		entries: METHOD_DEOPTS_SELF_RETURNS_NEW_ARRAY,
+		every: METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_BOOLEAN,
 		fill: METHOD_MUTATES_SELF_RETURNS_SELF,
-		filter: METHOD_CALLS_ARG_MUTATES_SELF_RETURNS_NEW_ARRAY,
-		find: METHOD_CALLS_ARG_MUTATES_SELF_RETURNS_UNKNOWN,
-		findIndex: METHOD_CALLS_ARG_MUTATES_SELF_RETURNS_NUMBER,
-		forEach: METHOD_CALLS_ARG_MUTATES_SELF_RETURNS_UNKNOWN,
+		filter: METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_NEW_ARRAY,
+		find: METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_UNKNOWN,
+		findIndex: METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_NUMBER,
+		forEach: METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_UNKNOWN,
 		includes: METHOD_RETURNS_BOOLEAN,
 		indexOf: METHOD_RETURNS_NUMBER,
 		join: METHOD_RETURNS_STRING,
 		keys: METHOD_RETURNS_UNKNOWN,
 		lastIndexOf: METHOD_RETURNS_NUMBER,
-		map: METHOD_CALLS_ARG_MUTATES_SELF_RETURNS_NEW_ARRAY,
+		map: METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_NEW_ARRAY,
 		pop: METHOD_MUTATES_SELF_RETURNS_UNKNOWN,
 		push: METHOD_MUTATES_SELF_RETURNS_NUMBER,
-		reduce: METHOD_CALLS_ARG_MUTATES_SELF_RETURNS_UNKNOWN,
-		reduceRight: METHOD_CALLS_ARG_MUTATES_SELF_RETURNS_UNKNOWN,
+		reduce: METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_UNKNOWN,
+		reduceRight: METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_UNKNOWN,
 		reverse: METHOD_MUTATES_SELF_RETURNS_SELF,
 		shift: METHOD_MUTATES_SELF_RETURNS_UNKNOWN,
-		slice: METHOD_MUTATES_SELF_RETURNS_NEW_ARRAY,
-		some: METHOD_CALLS_ARG_MUTATES_SELF_RETURNS_BOOLEAN,
+		slice: METHOD_DEOPTS_SELF_RETURNS_NEW_ARRAY,
+		some: METHOD_CALLS_ARG_DEOPTS_SELF_RETURNS_BOOLEAN,
 		sort: METHOD_CALLS_ARG_MUTATES_SELF_RETURNS_SELF,
 		splice: METHOD_MUTATES_SELF_RETURNS_NEW_ARRAY,
 		unshift: METHOD_MUTATES_SELF_RETURNS_NUMBER,
-		values: METHOD_MUTATES_SELF_RETURNS_UNKNOWN
+		values: METHOD_DEOPTS_SELF_RETURNS_UNKNOWN
 	} as unknown) as PropertyMap,
 	OBJECT_PROTOTYPE
 );
