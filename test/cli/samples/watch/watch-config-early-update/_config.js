@@ -23,7 +23,7 @@ module.exports = {
                 format: 'es'
               }
             }),
-          500
+          1000
         );
       });
   		`
