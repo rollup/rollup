@@ -298,6 +298,7 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 			// This will make sure all properties of parameters behave as "unknown"
 			argument.deoptimizePath(UNKNOWN_PATH);
 		}
+		this.context.requestTreeshakingPass();
 	}
 
 	private getReturnExpression(

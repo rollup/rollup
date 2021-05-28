@@ -178,6 +178,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		this.deoptimized = true;
 		if (this.variable !== null && this.variable instanceof LocalVariable) {
 			this.variable.consolidateInitializers();
+			this.context.requestTreeshakingPass();
 		}
 	}
 

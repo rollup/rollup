@@ -59,6 +59,7 @@ export default class UnaryExpression extends NodeBase {
 		this.deoptimized = true;
 		if (this.operator === 'delete') {
 			this.argument.deoptimizePath(EMPTY_PATH);
+			this.context.requestTreeshakingPass();
 		}
 	}
 }
