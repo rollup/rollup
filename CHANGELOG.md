@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 2.50.3
+*2021-05-28*
+
+### Bug Fixes
+* Wrap parentheses around leading elements in simplified sequence expressions if this would otherwise lead to invalid code (#4110)
+* Do not associate block soped variables in catch clauses with the clause parameter (#4108)
+* Do not associate hoisted variables in catch clauses with outside variables if they match the parameter (#4108)
+* Use correct "this" context for tagged template literal member expressions in simplified sequences (#4110)
+
+### Pull Requests
+* [#4108](https://github.com/rollup/rollup/pull/4108): Correctly handle catch declarations (@lukastaegert)
+* [#4110](https://github.com/rollup/rollup/pull/4110): Invalid sequence expression simplification (@lukastaegert)
+
 ## 2.50.2
 *2021-05-27*
 
