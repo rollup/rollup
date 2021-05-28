@@ -11,10 +11,13 @@ export default class CatchScope extends ParameterScope {
 		init: ExpressionEntity | null,
 		isHoisted: boolean
 	): LocalVariable {
-		if (isHoisted) {
-			return this.parent.addDeclaration(identifier, context, init, isHoisted);
-		} else {
-			return super.addDeclaration(identifier, context, init, false);
+		const existingParameter = this.variables.get(identifier.name) as LocalVariable;
+		if (existingParameter) {
+			existingParameter.addDeclaration(identifier, init);
+			return existingParameter;
 		}
+		// as parameters are handled differently, all remaining declarations are
+		// hoisted
+		return this.parent.addDeclaration(identifier, context, init, isHoisted);
 	}
 }
