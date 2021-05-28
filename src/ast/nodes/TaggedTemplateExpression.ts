@@ -1,3 +1,5 @@
+import MagicString from 'magic-string';
+import { RenderOptions } from '../../utils/renderHelpers';
 import { CallOptions, NO_ARGS } from '../CallOptions';
 import { HasEffectsContext } from '../ExecutionContext';
 import { EMPTY_PATH } from '../utils/PathTracker';
@@ -55,5 +57,10 @@ export default class TaggedTemplateExpression extends NodeBase {
 			thisParam: null,
 			withNew: false
 		};
+	}
+
+	render(code: MagicString, options: RenderOptions): void {
+		this.tag.render(code, options, { isCalleeOfRenderedParent: true });
+		this.quasi.render(code, options);
 	}
 }

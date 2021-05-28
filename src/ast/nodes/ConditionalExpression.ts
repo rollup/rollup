@@ -19,7 +19,6 @@ import {
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH
 } from '../utils/PathTracker';
-import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
 import SpreadElement from './SpreadElement';
 import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
@@ -205,9 +204,7 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 			}
 			removeAnnotations(this, code);
 			usedBranch!.render(code, options, {
-				isCalleeOfRenderedParent: renderedParentType
-					? isCalleeOfRenderedParent
-					: (this.parent as CallExpression).callee === this,
+				isCalleeOfRenderedParent,
 				preventASI: true,
 				...(renderedSurroundingElement
 					? { renderedSurroundingElement }

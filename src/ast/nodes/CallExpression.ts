@@ -247,11 +247,10 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		{ renderedParentType, renderedSurroundingElement }: NodeRenderOptions = BLANK
 	): void {
 		const surroundingELement = renderedParentType || renderedSurroundingElement;
-		this.callee.render(
-			code,
-			options,
-			surroundingELement ? { renderedSurroundingElement: surroundingELement } : BLANK
-		);
+		this.callee.render(code, options, {
+			isCalleeOfRenderedParent: true,
+			renderedSurroundingElement: surroundingELement
+		});
 		if (this.arguments.length > 0) {
 			if (this.arguments[this.arguments.length - 1].included) {
 				for (const arg of this.arguments) {

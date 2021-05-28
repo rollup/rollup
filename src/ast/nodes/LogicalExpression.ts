@@ -19,7 +19,6 @@ import {
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH
 } from '../utils/PathTracker';
-import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
 import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
 import { MultiExpression } from './shared/MultiExpression';
@@ -190,9 +189,7 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 			}
 			removeAnnotations(this, code);
 			this.getUsedBranch()!.render(code, options, {
-				isCalleeOfRenderedParent: renderedParentType
-					? isCalleeOfRenderedParent
-					: (this.parent as CallExpression).callee === this,
+				isCalleeOfRenderedParent,
 				preventASI,
 				...(renderedSurroundingElement
 					? { renderedSurroundingElement }

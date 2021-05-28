@@ -12,7 +12,6 @@ import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { EVENT_CALLED, NodeEvent } from '../NodeEvents';
 import { ObjectPath, PathTracker } from '../utils/PathTracker';
-import CallExpression from './CallExpression';
 import ExpressionStatement from './ExpressionStatement';
 import * as NodeType from './NodeType';
 import { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
@@ -126,9 +125,7 @@ export default class SequenceExpression extends NodeBase {
 			if (includedNodes === 1) {
 				if (node === lastNode) {
 					node.render(code, options, {
-						isCalleeOfRenderedParent: renderedParentType
-							? isCalleeOfRenderedParent
-							: (this.parent as CallExpression).callee === this,
+						isCalleeOfRenderedParent,
 						renderedParentType: renderedParentType || this.parent.type
 					});
 				} else {
