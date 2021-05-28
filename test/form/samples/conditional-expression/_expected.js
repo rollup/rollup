@@ -10,8 +10,8 @@ unknownValue ? 1 : foo();
 
 // known side-effect
 foo() ;
-(function () {this.x = 1;} )();
+((function () {this.x = 1;}) )();
 (() => () => console.log( 'effect' ) )()();
 foo();
-(function () {this.x = 1;})();
+((function () {this.x = 1;}))();
 (() => () => console.log( 'effect' ))()();

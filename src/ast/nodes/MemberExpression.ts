@@ -281,17 +281,15 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			renderedSurroundingElement
 		}: NodeRenderOptions = BLANK
 	): void {
-		const isCalleeOfDifferentParent =
-			renderedParentType === NodeType.CallExpression && isCalleeOfRenderedParent;
 		if (this.variable || this.replacement) {
 			let replacement = this.variable ? this.variable.getName() : this.replacement;
-			if (isCalleeOfDifferentParent) replacement = '0, ' + replacement;
+			if (renderedParentType && isCalleeOfRenderedParent) replacement = '0, ' + replacement;
 			code.overwrite(this.start, this.end, replacement!, {
 				contentOnly: true,
 				storeName: true
 			});
 		} else {
-			if (isCalleeOfDifferentParent) {
+			if (renderedParentType && isCalleeOfRenderedParent) {
 				code.appendRight(this.start, '0, ');
 			}
 			const surroundingElement = renderedParentType || renderedSurroundingElement;

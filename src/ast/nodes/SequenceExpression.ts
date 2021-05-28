@@ -10,9 +10,8 @@ import { treeshakeNode } from '../../utils/treeshakeNode';
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { EVENT_CALLED, NodeEvent } from '../NodeEvents';
+import { NodeEvent } from '../NodeEvents';
 import { ObjectPath, PathTracker } from '../utils/PathTracker';
-import CallExpression from './CallExpression';
 import ExpressionStatement from './ExpressionStatement';
 import * as NodeType from './NodeType';
 import { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
@@ -23,7 +22,7 @@ export default class SequenceExpression extends NodeBase {
 	type!: NodeType.tSequenceExpression;
 
 	deoptimizePath(path: ObjectPath): void {
-		if (path.length > 0) this.expressions[this.expressions.length - 1].deoptimizePath(path);
+		this.expressions[this.expressions.length - 1].deoptimizePath(path);
 	}
 
 	deoptimizeThisOnEventAtPath(
@@ -32,14 +31,12 @@ export default class SequenceExpression extends NodeBase {
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
-		if (event === EVENT_CALLED || path.length > 0) {
-			this.expressions[this.expressions.length - 1].deoptimizeThisOnEventAtPath(
-				event,
-				path,
-				thisParameter,
-				recursionTracker
-			);
-		}
+		this.expressions[this.expressions.length - 1].deoptimizeThisOnEventAtPath(
+			event,
+			path,
+			thisParameter,
+			recursionTracker
+		);
 	}
 
 	getLiteralValueAtPath(
@@ -69,9 +66,9 @@ export default class SequenceExpression extends NodeBase {
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return (
-			path.length === 0 ||
-			this.expressions[this.expressions.length - 1].hasEffectsWhenAssignedAtPath(path, context)
+		return this.expressions[this.expressions.length - 1].hasEffectsWhenAssignedAtPath(
+			path,
+			context
 		);
 	}
 
@@ -123,13 +120,17 @@ export default class SequenceExpression extends NodeBase {
 			if (includedNodes === 1 && preventASI) {
 				removeLineBreaks(code, start, node.start);
 			}
-			if (node === lastNode && includedNodes === 1) {
-				node.render(code, options, {
-					isCalleeOfRenderedParent: renderedParentType
-						? isCalleeOfRenderedParent
-						: (this.parent as CallExpression).callee === this,
-					renderedParentType: renderedParentType || this.parent.type
-				});
+			if (includedNodes === 1) {
+				if (node === lastNode) {
+					node.render(code, options, {
+						isCalleeOfRenderedParent,
+						renderedParentType: renderedParentType || this.parent.type
+					});
+				} else {
+					node.render(code, options, {
+						renderedSurroundingElement: renderedParentType || this.parent.type
+					});
+				}
 			} else {
 				node.render(code, options);
 			}

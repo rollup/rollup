@@ -19,7 +19,6 @@ import {
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH
 } from '../utils/PathTracker';
-import CallExpression from './CallExpression';
 import * as NodeType from './NodeType';
 import SpreadElement from './SpreadElement';
 import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
@@ -180,7 +179,12 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ isCalleeOfRenderedParent, renderedParentType, preventASI }: NodeRenderOptions = BLANK
+		{
+			isCalleeOfRenderedParent,
+			preventASI,
+			renderedParentType,
+			renderedSurroundingElement
+		}: NodeRenderOptions = BLANK
 	): void {
 		const usedBranch = this.getUsedBranch();
 		if (!this.test.included) {
@@ -200,15 +204,15 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 			}
 			removeAnnotations(this, code);
 			usedBranch!.render(code, options, {
-				isCalleeOfRenderedParent: renderedParentType
-					? isCalleeOfRenderedParent
-					: (this.parent as CallExpression).callee === this,
+				isCalleeOfRenderedParent,
 				preventASI: true,
-				renderedParentType: renderedParentType || this.parent.type
+				...(renderedSurroundingElement
+					? { renderedSurroundingElement }
+					: { renderedParentType: renderedParentType || this.parent.type })
 			});
 		} else {
 			this.test.render(code, options, {
-				renderedSurroundingElement: renderedParentType
+				renderedSurroundingElement: renderedParentType || renderedSurroundingElement
 			});
 			this.consequent.render(code, options);
 			this.alternate.render(code, options);
