@@ -16,9 +16,8 @@ export default class CatchScope extends ParameterScope {
 			existingParameter.addDeclaration(identifier, init);
 			return existingParameter;
 		}
-		if (isHoisted) {
-			return this.parent.addDeclaration(identifier, context, init, isHoisted);
-		}
-		return super.addDeclaration(identifier, context, init, false);
+		// as parameters are handled differently, all remaining declarations are
+		// hoisted
+		return this.parent.addDeclaration(identifier, context, init, isHoisted);
 	}
 }
