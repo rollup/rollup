@@ -123,13 +123,19 @@ export default class SequenceExpression extends NodeBase {
 			if (includedNodes === 1 && preventASI) {
 				removeLineBreaks(code, start, node.start);
 			}
-			if (node === lastNode && includedNodes === 1) {
-				node.render(code, options, {
-					isCalleeOfRenderedParent: renderedParentType
-						? isCalleeOfRenderedParent
-						: (this.parent as CallExpression).callee === this,
-					renderedParentType: renderedParentType || this.parent.type
-				});
+			if (includedNodes === 1) {
+				if (node === lastNode) {
+					node.render(code, options, {
+						isCalleeOfRenderedParent: renderedParentType
+							? isCalleeOfRenderedParent
+							: (this.parent as CallExpression).callee === this,
+						renderedParentType: renderedParentType || this.parent.type
+					});
+				} else {
+					node.render(code, options, {
+						renderedSurroundingElement: renderedParentType || this.parent.type
+					});
+				}
 			} else {
 				node.render(code, options);
 			}
