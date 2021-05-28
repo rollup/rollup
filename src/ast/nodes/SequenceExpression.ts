@@ -10,7 +10,7 @@ import { treeshakeNode } from '../../utils/treeshakeNode';
 import { CallOptions } from '../CallOptions';
 import { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { EVENT_CALLED, NodeEvent } from '../NodeEvents';
+import { NodeEvent } from '../NodeEvents';
 import { ObjectPath, PathTracker } from '../utils/PathTracker';
 import ExpressionStatement from './ExpressionStatement';
 import * as NodeType from './NodeType';
@@ -22,7 +22,7 @@ export default class SequenceExpression extends NodeBase {
 	type!: NodeType.tSequenceExpression;
 
 	deoptimizePath(path: ObjectPath): void {
-		if (path.length > 0) this.expressions[this.expressions.length - 1].deoptimizePath(path);
+		this.expressions[this.expressions.length - 1].deoptimizePath(path);
 	}
 
 	deoptimizeThisOnEventAtPath(
@@ -31,14 +31,12 @@ export default class SequenceExpression extends NodeBase {
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
-		if (event === EVENT_CALLED || path.length > 0) {
-			this.expressions[this.expressions.length - 1].deoptimizeThisOnEventAtPath(
-				event,
-				path,
-				thisParameter,
-				recursionTracker
-			);
-		}
+		this.expressions[this.expressions.length - 1].deoptimizeThisOnEventAtPath(
+			event,
+			path,
+			thisParameter,
+			recursionTracker
+		);
 	}
 
 	getLiteralValueAtPath(
@@ -68,9 +66,9 @@ export default class SequenceExpression extends NodeBase {
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return (
-			path.length === 0 ||
-			this.expressions[this.expressions.length - 1].hasEffectsWhenAssignedAtPath(path, context)
+		return this.expressions[this.expressions.length - 1].hasEffectsWhenAssignedAtPath(
+			path,
+			context
 		);
 	}
 

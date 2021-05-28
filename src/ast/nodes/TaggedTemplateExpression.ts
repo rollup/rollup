@@ -30,17 +30,6 @@ export default class TaggedTemplateExpression extends NodeBase {
 					this.start
 				);
 			}
-
-			if (name === 'eval') {
-				this.context.warn(
-					{
-						code: 'EVAL',
-						message: `Use of eval is strongly discouraged, as it poses security risks and may cause issues with minification`,
-						url: 'https://rollupjs.org/guide/en/#avoiding-eval'
-					},
-					this.start
-				);
-			}
 		}
 	}
 
