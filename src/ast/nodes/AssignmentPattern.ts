@@ -48,5 +48,6 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 		this.deoptimized = true;
 		this.left.deoptimizePath(EMPTY_PATH);
 		this.right.deoptimizePath(UNKNOWN_PATH);
+		this.context.requestTreeshakingPass();
 	}
 }

@@ -50,5 +50,6 @@ export default class ForOfStatement extends StatementBase {
 	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
 		this.left.deoptimizePath(EMPTY_PATH);
+		this.context.requestTreeshakingPass();
 	}
 }

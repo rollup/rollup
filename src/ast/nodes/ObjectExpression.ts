@@ -17,12 +17,7 @@ import Literal from './Literal';
 import * as NodeType from './NodeType';
 import Property from './Property';
 import SpreadElement from './SpreadElement';
-import {
-	ExpressionEntity,
-	LiteralValueOrUnknown,
-	UNKNOWN_EXPRESSION,
-	UnknownValue
-} from './shared/Expression';
+import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
 import { NodeBase } from './shared/Node';
 import { ObjectEntity, ObjectProperty } from './shared/ObjectEntity';
 import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';
@@ -112,6 +107,7 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 		if (this.objectEntity !== null) {
 			return this.objectEntity;
 		}
+		let prototype: ExpressionEntity | null = OBJECT_PROTOTYPE;
 		const properties: ObjectProperty[] = [];
 		for (const property of this.properties) {
 			if (property instanceof SpreadElement) {
@@ -137,12 +133,15 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 						? property.key.name
 						: String((property.key as Literal).value);
 				if (key === '__proto__' && property.kind === 'init') {
-					properties.unshift({ key: UnknownKey, kind: 'init', property: UNKNOWN_EXPRESSION });
+					prototype =
+						property.value instanceof Literal && property.value.value === null
+							? null
+							: property.value;
 					continue;
 				}
 			}
 			properties.push({ key, kind: property.kind, property });
 		}
-		return (this.objectEntity = new ObjectEntity(properties, OBJECT_PROTOTYPE));
+		return (this.objectEntity = new ObjectEntity(properties, prototype));
 	}
 }
