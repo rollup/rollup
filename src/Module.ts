@@ -109,6 +109,7 @@ export interface AstContext {
 	moduleContext: string;
 	nodeConstructors: { [name: string]: typeof NodeBase };
 	options: NormalizedInputOptions;
+	requestTreeshakingPass: () => void;
 	traceExport: (name: string) => Variable | null;
 	traceVariable: (name: string) => Variable | null;
 	usesTopLevelAwait: boolean;
@@ -726,6 +727,7 @@ export default class Module {
 			moduleContext: this.context,
 			nodeConstructors,
 			options: this.options,
+			requestTreeshakingPass: () => (this.graph.needsTreeshakingPass = true),
 			traceExport: this.getVariableForExportName.bind(this),
 			traceVariable: this.traceVariable.bind(this),
 			usesTopLevelAwait: false,

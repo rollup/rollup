@@ -65,5 +65,6 @@ export default class ForInStatement extends StatementBase {
 	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
 		this.left.deoptimizePath(EMPTY_PATH);
+		this.context.requestTreeshakingPass();
 	}
 }

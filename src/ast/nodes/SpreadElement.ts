@@ -30,5 +30,6 @@ export default class SpreadElement extends NodeBase {
 		// Only properties of properties of the argument could become subject to reassignment
 		// This will also reassign the return values of iterators
 		this.argument.deoptimizePath([UnknownKey, UnknownKey]);
+		this.context.requestTreeshakingPass();
 	}
 }
