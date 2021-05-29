@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 2.50.4
+*2021-05-29*
+
+### Bug Fixes
+* Fix a situation where tree-shaking would stop including nodes prematurely (#4111)
+* Track mutations and accessor side effects when using `__proto__` in an object literal (#4112)
+* Check for getter effects when spreading an object (#4113)
+
+### Pull Requests
+* [#4111](https://github.com/rollup/rollup/pull/4111): Always request a new tree-shaking pass when deoptimizations of a node are first included (@lukastaegert)
+* [#4112](https://github.com/rollup/rollup/pull/4112): Actually set the prototype when using a __proto__ property (@lukastaegert)
+* [#4113](https://github.com/rollup/rollup/pull/4113): Track access side effects when using object spread operator (@lukastaegert)
+
 ## 2.50.3
 *2021-05-28*
 
