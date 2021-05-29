@@ -30,6 +30,10 @@ export default class YieldExpression extends NodeBase {
 
 	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
-		this.argument?.deoptimizePath(UNKNOWN_PATH);
+		const { argument } = this;
+		if (argument) {
+			argument.deoptimizePath(UNKNOWN_PATH);
+			this.context.requestTreeshakingPass();
+		}
 	}
 }

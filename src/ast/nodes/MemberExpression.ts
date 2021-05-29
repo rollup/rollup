@@ -329,6 +329,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 					SHARED_RECURSION_TRACKER
 				);
 			}
+			this.context.requestTreeshakingPass();
 		}
 	}
 

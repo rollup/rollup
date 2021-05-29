@@ -46,6 +46,7 @@ export default class Property extends MethodBase implements PatternNode {
 		this.deoptimized = true;
 		if (this.declarationInit !== null) {
 			this.declarationInit.deoptimizePath([UnknownKey, UnknownKey]);
+			this.context.requestTreeshakingPass();
 		}
 	}
 }

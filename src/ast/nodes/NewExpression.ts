@@ -46,5 +46,6 @@ export default class NewExpression extends NodeBase {
 			// This will make sure all properties of parameters behave as "unknown"
 			argument.deoptimizePath(UNKNOWN_PATH);
 		}
+		this.context.requestTreeshakingPass();
 	}
 }
