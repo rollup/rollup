@@ -1,5 +1,11 @@
 # rollup changelog
 
+## 2.50.5
+*unreleased*
+
+### Pull Requests
+* [#4114](https://github.com/rollup/rollup/pull/4114): use `colorette` instead of `turbocolor` (@ryuever)
+
 ## 2.50.4
 *2021-05-29*
 
