@@ -1,4 +1,4 @@
-import { CallOptions } from '../../CallOptions';
+import { CallOptions, NO_ARGS } from '../../CallOptions';
 import { BROKEN_FLOW_NONE, HasEffectsContext, InclusionContext } from '../../ExecutionContext';
 import { EVENT_CALLED, NodeEvent } from '../../NodeEvents';
 import FunctionScope from '../../scopes/FunctionScope';
@@ -56,7 +56,7 @@ export default class FunctionNode extends NodeBase {
 	}
 
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath): ExpressionEntity {
-		return path.length === 0 ? this.scope.getReturnExpression() : UNKNOWN_EXPRESSION;
+		return !this.async && path.length === 0 ? this.scope.getReturnExpression() : UNKNOWN_EXPRESSION;
 	}
 
 	hasEffects(): boolean {
@@ -81,6 +81,18 @@ export default class FunctionNode extends NodeBase {
 		context: HasEffectsContext
 	): boolean {
 		if (path.length > 0) return true;
+		if (
+			this.async &&
+			this.scope
+				.getReturnExpression()
+				.hasEffectsWhenCalledAtPath(
+					['then'],
+					{ args: NO_ARGS, thisParam: null, withNew: false },
+					context
+				)
+		) {
+			return true;
+		}
 		for (const param of this.params) {
 			if (param.hasEffects(context)) return true;
 		}

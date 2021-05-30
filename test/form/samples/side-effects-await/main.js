@@ -11,9 +11,3 @@ async function hasEffects2 () {
 
 hasEffects2();
 
-async function isRemoved () {
-	await globalThis.unknown;
-}
-
-isRemoved();
-

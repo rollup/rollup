@@ -2662,7 +2662,8 @@ var es6Shim = {exports: {}};
     var getsThenSynchronously = supportsDescriptors && (function () {
       var count = 0;
       // eslint-disable-next-line getter-return
-      Object.defineProperty({}, 'then', { get: function () { count += 1; } });
+      var thenable = Object.defineProperty({}, 'then', { get: function () { count += 1; } });
+      Promise.resolve(thenable);
       return count === 1;
     }());
 

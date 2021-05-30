@@ -191,10 +191,11 @@ const knownGlobals: GlobalDescription = {
 	Promise: {
 		__proto__: null,
 		[ValueProperties]: IMPURE,
-		all: PF,
+		all: O,
 		prototype: O,
-		race: PF,
-		resolve: PF
+		race: O,
+		reject: O,
+		resolve: O
 	},
 	propertyIsEnumerable: O,
 	Proxy: O,
