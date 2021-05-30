@@ -1,10 +1,14 @@
 # rollup changelog
 
 ## 2.50.5
-*unreleased*
+*2021-05-30*
+
+### Bug Fixes
+* Detect side effects when accessing thenables (#4115)
 
 ### Pull Requests
 * [#4114](https://github.com/rollup/rollup/pull/4114): use `colorette` instead of `turbocolor` (@ryuever)
+* [#4115](https://github.com/rollup/rollup/pull/4115): Tracks side effects of thenables (@lukastaegert)
 
 ## 2.50.4
 *2021-05-29*
