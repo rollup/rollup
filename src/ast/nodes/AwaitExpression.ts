@@ -1,3 +1,5 @@
+import { NormalizedTreeshakingOptions } from '../../rollup/types';
+import { NO_ARGS } from '../CallOptions';
 import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import ArrowFunctionExpression from './ArrowFunctionExpression';
 import * as NodeType from './NodeType';
@@ -9,7 +11,20 @@ export default class AwaitExpression extends NodeBase {
 	type!: NodeType.tAwaitExpression;
 
 	hasEffects(context: HasEffectsContext): boolean {
-		return !context.ignore.returnAwaitYield || this.argument.hasEffects(context);
+		const { propertyReadSideEffects } = this.context.options
+			.treeshake as NormalizedTreeshakingOptions;
+		return (
+			!context.ignore.returnAwaitYield ||
+			this.argument.hasEffects(context) ||
+			this.argument.hasEffectsWhenCalledAtPath(
+				['then'],
+				{ args: NO_ARGS, thisParam: null, withNew: false },
+				context
+			) ||
+			(propertyReadSideEffects &&
+				(propertyReadSideEffects === 'always' ||
+					this.argument.hasEffectsWhenAccessedAtPath(['then'], context)))
+		);
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
