@@ -7,9 +7,45 @@
 })();
 
 (async function () {
+	return {
+		get then() {
+			console.log(2);
+			return () => {};
+		}
+	};
+})();
+
+(async function () {
+	return {
+		get then() {
+			return () => console.log(3);
+		}
+	};
+})();
+
+(async () => ({
+	then() {
+		console.log(4);
+	}
+}))();
+
+(async () => ({
+	get then() {
+		console.log(5);
+		return () => {};
+	}
+}))();
+
+(async () => ({
+	get then() {
+		return () => console.log(6);
+	}
+}))();
+
+(async function () {
 	await {
 		then: function () {
-			console.log(2);
+			console.log(7);
 		}
 	};
 	return { then() {} };
@@ -18,7 +54,7 @@
 (async function () {
 	await {
 		get then() {
-			console.log(3);
+			console.log(8);
 			return () => {};
 		}
 	};
@@ -28,7 +64,7 @@
 (async function () {
 	await {
 		get then() {
-			return () => console.log(4);
+			return () => console.log(9);
 		}
 	};
 	return { then() {} };
@@ -39,7 +75,7 @@
 		then(resolve) {
 			resolve({
 				then() {
-					console.log(5);
+					console.log(10);
 				}
 			});
 		}
@@ -53,13 +89,13 @@ async function asyncIdentity(x) {
 
 asyncIdentity({}); // no side effects - may be dropped
 
-const promise = asyncIdentity(6);
+const promise = asyncIdentity(11);
 
 promise.then(x => console.log(x));
 
 asyncIdentity({
 	then(success, fail) {
-		success(console.log(7));
+		success(console.log(12));
 	}
 });
 
@@ -67,7 +103,7 @@ asyncIdentity({
 	then(resolve) {
 		resolve({
 			then() {
-				console.log(8);
+				console.log(13);
 			}
 		});
 	}

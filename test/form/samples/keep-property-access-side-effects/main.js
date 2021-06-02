@@ -1,6 +1,6 @@
 const getter = {
-	get foo () {
-		console.log( 'effect' );
+	get foo() {
+		console.log('effect');
 	}
 };
 const foo1 = getter.foo;
@@ -24,6 +24,22 @@ const foo5 = {
 };
 
 const foo6 = (async function () {
+	return {
+		get then() {
+			console.log('effect');
+			return () => {};
+		}
+	};
+})();
+
+const foo7 = (async () => ({
+	get then() {
+		console.log('effect');
+		return () => {};
+	}
+}))();
+
+const foo8 = (async function () {
 	await {
 		get then() {
 			console.log('effect');

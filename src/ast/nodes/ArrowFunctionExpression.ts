@@ -1,4 +1,5 @@
-import { CallOptions } from '../CallOptions';
+import { NormalizedTreeshakingOptions } from '../../rollup/types';
+import { CallOptions, NO_ARGS } from '../CallOptions';
 import { BROKEN_FLOW_NONE, HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import ReturnValueScope from '../scopes/ReturnValueScope';
 import Scope from '../scopes/Scope';
@@ -13,6 +14,7 @@ import { ExpressionNode, GenericEsTreeNode, IncludeChildren, NodeBase } from './
 import { PatternNode } from './shared/Pattern';
 
 export default class ArrowFunctionExpression extends NodeBase {
+	async!: boolean;
 	body!: BlockStatement | ExpressionNode;
 	params!: PatternNode[];
 	preventChildBlockScope!: true;
@@ -35,7 +37,7 @@ export default class ArrowFunctionExpression extends NodeBase {
 	deoptimizeThisOnEventAtPath(): void {}
 
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath): ExpressionEntity {
-		return path.length === 0 ? this.scope.getReturnExpression() : UNKNOWN_EXPRESSION;
+		return !this.async && path.length === 0 ? this.scope.getReturnExpression() : UNKNOWN_EXPRESSION;
 	}
 
 	hasEffects(): boolean {
@@ -56,6 +58,23 @@ export default class ArrowFunctionExpression extends NodeBase {
 		context: HasEffectsContext
 	): boolean {
 		if (path.length > 0) return true;
+		if (this.async) {
+			const { propertyReadSideEffects } = this.context.options
+				.treeshake as NormalizedTreeshakingOptions;
+			const returnExpression = this.scope.getReturnExpression();
+			if (
+				returnExpression.hasEffectsWhenCalledAtPath(
+					['then'],
+					{ args: NO_ARGS, thisParam: null, withNew: false },
+					context
+				) ||
+				(propertyReadSideEffects &&
+					(propertyReadSideEffects === 'always' ||
+						returnExpression.hasEffectsWhenAccessedAtPath(['then'], context)))
+			) {
+				return true;
+			}
+		}
 		for (const param of this.params) {
 			if (param.hasEffects(context)) return true;
 		}
