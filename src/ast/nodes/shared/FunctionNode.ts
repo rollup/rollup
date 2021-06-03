@@ -1,3 +1,4 @@
+import { NormalizedTreeshakingOptions } from '../../../rollup/types';
 import { CallOptions, NO_ARGS } from '../../CallOptions';
 import { BROKEN_FLOW_NONE, HasEffectsContext, InclusionContext } from '../../ExecutionContext';
 import { EVENT_CALLED, NodeEvent } from '../../NodeEvents';
@@ -81,17 +82,22 @@ export default class FunctionNode extends NodeBase {
 		context: HasEffectsContext
 	): boolean {
 		if (path.length > 0) return true;
-		if (
-			this.async &&
-			this.scope
-				.getReturnExpression()
-				.hasEffectsWhenCalledAtPath(
+		if (this.async) {
+			const { propertyReadSideEffects } = this.context.options
+				.treeshake as NormalizedTreeshakingOptions;
+			const returnExpression = this.scope.getReturnExpression();
+			if (
+				returnExpression.hasEffectsWhenCalledAtPath(
 					['then'],
 					{ args: NO_ARGS, thisParam: null, withNew: false },
 					context
-				)
-		) {
-			return true;
+				) ||
+				(propertyReadSideEffects &&
+					(propertyReadSideEffects === 'always' ||
+						returnExpression.hasEffectsWhenAccessedAtPath(['then'], context)))
+			) {
+				return true;
+			}
 		}
 		for (const param of this.params) {
 			if (param.hasEffects(context)) return true;

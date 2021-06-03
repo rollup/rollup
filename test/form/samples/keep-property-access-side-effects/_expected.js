@@ -1,6 +1,6 @@
 const getter = {
-	get foo () {
-		console.log( 'effect' );
+	get foo() {
+		console.log('effect');
 	}
 };
 getter.foo;
@@ -22,6 +22,22 @@ globalThis.unknown.unknownProperty;
 		}
 	}
 });
+
+((async function () {
+	return {
+		get then() {
+			console.log('effect');
+			return () => {};
+		}
+	};
+}))();
+
+(async () => ({
+	get then() {
+		console.log('effect');
+		return () => {};
+	}
+}))();
 
 ((async function () {
 	await {
