@@ -14,3 +14,21 @@ function accessArg(arg) {
 accessArg(null);
 
 globalThis.unknown.unknownProperty;
+
+({
+	...{
+		get prop() {
+			console.log('effect');
+		}
+	}
+});
+
+((async function () {
+	await {
+		get then() {
+			console.log('effect');
+			return () => {};
+		}
+	};
+	return { then() {} };
+}))();

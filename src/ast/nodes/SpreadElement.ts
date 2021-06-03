@@ -1,3 +1,4 @@
+import { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { HasEffectsContext } from '../ExecutionContext';
 import { NodeEvent } from '../NodeEvents';
 import { ObjectPath, PathTracker, UNKNOWN_PATH, UnknownKey } from '../utils/PathTracker';
@@ -27,9 +28,14 @@ export default class SpreadElement extends NodeBase {
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
+		if (!this.deoptimized) this.applyDeoptimizations();
+		const { propertyReadSideEffects } = this.context.options
+			.treeshake as NormalizedTreeshakingOptions;
 		return (
 			this.argument.hasEffects(context) ||
-			this.argument.hasEffectsWhenAccessedAtPath(UNKNOWN_PATH, context)
+			(propertyReadSideEffects &&
+				(propertyReadSideEffects === 'always' ||
+					this.argument.hasEffectsWhenAccessedAtPath(UNKNOWN_PATH, context)))
 		);
 	}
 
