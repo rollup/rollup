@@ -541,7 +541,7 @@ export interface InputOptions {
 	preserveSymlinks?: boolean;
 	shimMissingExports?: boolean;
 	strictDeprecations?: boolean;
-	treeshake?: boolean | TreeshakingOptions;
+	treeshake?: boolean | 'smallest' | 'safest' | TreeshakingOptions;
 	watch?: WatcherOptions | false;
 }
 
