@@ -219,7 +219,7 @@ function getOutputOptions(
 					setAssetSource: emitError
 				};
 			}
-		) as GenericConfigObject,
+		),
 		inputOptions,
 		unsetInputOptions
 	);
