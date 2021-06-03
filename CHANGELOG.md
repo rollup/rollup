@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 2.50.6
+*2021-06-03*
+
+### Bug Fixes
+* Do not consider the object spread operator as side effect when `propertyReadSideEffects` are false (#4119)
+* Detect side effects when returning thenables from async arrow functions (#4120)
+
+### Pull Requests
+* [#4119](https://github.com/rollup/rollup/pull/4119): Respect propertyReadSideEffects in spread elements (@lukastaegert)
+* [#4120](https://github.com/rollup/rollup/pull/4120): Detect async arrow thenable side effects (@lukastaegert)
+
 ## 2.50.5
 *2021-05-30*
 
