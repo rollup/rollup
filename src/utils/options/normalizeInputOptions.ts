@@ -1,19 +1,13 @@
 import * as acorn from 'acorn';
 import {
-	ExternalOption,
 	HasModuleSideEffects,
-	InputOption,
 	InputOptions,
-	ManualChunksOption,
 	ModuleSideEffectsOption,
 	NormalizedInputOptions,
 	PreserveEntrySignaturesOption,
 	PureModulesOption,
 	RollupBuild,
-	RollupCache,
-	TreeshakingOptions,
-	WarningHandler,
-	WarningHandlerWithDefault
+	WarningHandler
 } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
 import { errInvalidOption, warnDeprecationWithOptions } from '../error';
@@ -28,41 +22,40 @@ export interface CommandConfigObject {
 }
 
 export function normalizeInputOptions(
-	config: GenericConfigObject
+	config: InputOptions
 ): { options: NormalizedInputOptions; unsetOptions: Set<string> } {
 	// These are options that may trigger special warnings or behaviour later
 	// if the user did not select an explicit value
 	const unsetOptions = new Set<string>();
 
-	const context = (config.context as string | undefined) ?? 'undefined';
+	const context = config.context ?? 'undefined';
 	const onwarn = getOnwarn(config);
-	const strictDeprecations = (config.strictDeprecations as boolean | undefined) || false;
+	const strictDeprecations = config.strictDeprecations || false;
 	const options: NormalizedInputOptions & InputOptions = {
-		acorn: (getAcorn(config) as unknown) as Record<string, unknown>,
+		acorn: (getAcorn(config) as unknown) as NormalizedInputOptions['acorn'],
 		acornInjectPlugins: getAcornInjectPlugins(config),
 		cache: getCache(config),
 		context,
-		experimentalCacheExpiry: (config.experimentalCacheExpiry as number | undefined) ?? 10,
-		external: getIdMatcher(config.external as ExternalOption),
+		experimentalCacheExpiry: config.experimentalCacheExpiry ?? 10,
+		external: getIdMatcher(config.external),
 		inlineDynamicImports: getInlineDynamicImports(config, onwarn, strictDeprecations),
 		input: getInput(config),
-		makeAbsoluteExternalsRelative:
-			(config.makeAbsoluteExternalsRelative as boolean | 'ifRelativeSource' | undefined) ?? true,
+		makeAbsoluteExternalsRelative: config.makeAbsoluteExternalsRelative ?? true,
 		manualChunks: getManualChunks(config, onwarn, strictDeprecations),
 		moduleContext: getModuleContext(config, context),
 		onwarn,
-		perf: (config.perf as boolean | undefined) || false,
-		plugins: ensureArray(config.plugins) as Plugin[],
+		perf: config.perf || false,
+		plugins: ensureArray(config.plugins),
 		preserveEntrySignatures: getPreserveEntrySignatures(config, unsetOptions),
 		preserveModules: getPreserveModules(config, onwarn, strictDeprecations),
-		preserveSymlinks: (config.preserveSymlinks as boolean | undefined) || false,
-		shimMissingExports: (config.shimMissingExports as boolean | undefined) || false,
+		preserveSymlinks: config.preserveSymlinks || false,
+		shimMissingExports: config.shimMissingExports || false,
 		strictDeprecations,
 		treeshake: getTreeshake(config, onwarn, strictDeprecations)
 	};
 
 	warnUnknownOptions(
-		config,
+		config as GenericConfigObject,
 		[...Object.keys(options), 'watch'],
 		'input options',
 		options.onwarn,
@@ -71,8 +64,9 @@ export function normalizeInputOptions(
 	return { options, unsetOptions };
 }
 
-const getOnwarn = (config: GenericConfigObject): WarningHandler => {
-	return config.onwarn
+const getOnwarn = (config: InputOptions): NormalizedInputOptions['onwarn'] => {
+	const { onwarn } = config;
+	return onwarn
 		? warning => {
 				warning.toString = () => {
 					let str = '';
@@ -84,25 +78,25 @@ const getOnwarn = (config: GenericConfigObject): WarningHandler => {
 
 					return str;
 				};
-				(config.onwarn as WarningHandlerWithDefault)(warning, defaultOnWarn);
+				onwarn(warning, defaultOnWarn);
 		  }
 		: defaultOnWarn;
 };
 
-const getAcorn = (config: GenericConfigObject): acorn.Options => ({
+const getAcorn = (config: InputOptions): acorn.Options => ({
 	allowAwaitOutsideFunction: true,
 	ecmaVersion: 'latest',
 	preserveParens: false,
 	sourceType: 'module',
-	...(config.acorn as Record<string, unknown>)
+	...config.acorn
 });
 
-const getAcornInjectPlugins = (config: GenericConfigObject): (() => unknown)[] =>
-	ensureArray(config.acornInjectPlugins) as any;
+const getAcornInjectPlugins = (
+	config: InputOptions
+): NormalizedInputOptions['acornInjectPlugins'] => ensureArray(config.acornInjectPlugins);
 
-const getCache = (config: GenericConfigObject): false | undefined | RollupCache => {
-	return (config.cache as RollupBuild)?.cache || (config.cache as false | undefined | RollupCache);
-};
+const getCache = (config: InputOptions): NormalizedInputOptions['cache'] =>
+	((config.cache as unknown) as RollupBuild)?.cache || config.cache;
 
 const getIdMatcher = <T extends Array<any>>(
 	option:
@@ -135,11 +129,11 @@ const getIdMatcher = <T extends Array<any>>(
 };
 
 const getInlineDynamicImports = (
-	config: GenericConfigObject,
+	config: InputOptions,
 	warn: WarningHandler,
 	strictDeprecations: boolean
-): boolean | undefined => {
-	const configInlineDynamicImports = config.inlineDynamicImports as boolean | undefined;
+): NormalizedInputOptions['inlineDynamicImports'] => {
+	const configInlineDynamicImports = config.inlineDynamicImports;
 	if (configInlineDynamicImports) {
 		warnDeprecationWithOptions(
 			'The "inlineDynamicImports" option is deprecated. Use the "output.inlineDynamicImports" option instead.',
@@ -151,17 +145,17 @@ const getInlineDynamicImports = (
 	return configInlineDynamicImports;
 };
 
-const getInput = (config: GenericConfigObject): string[] | { [entryAlias: string]: string } => {
-	const configInput = config.input as InputOption | undefined;
+const getInput = (config: InputOptions): NormalizedInputOptions['input'] => {
+	const configInput = config.input;
 	return configInput == null ? [] : typeof configInput === 'string' ? [configInput] : configInput;
 };
 
 const getManualChunks = (
-	config: GenericConfigObject,
+	config: InputOptions,
 	warn: WarningHandler,
 	strictDeprecations: boolean
-): ManualChunksOption | undefined => {
-	const configManualChunks = config.manualChunks as ManualChunksOption | undefined;
+): NormalizedInputOptions['manualChunks'] => {
+	const configManualChunks = config.manualChunks;
 	if (configManualChunks) {
 		warnDeprecationWithOptions(
 			'The "manualChunks" option is deprecated. Use the "output.manualChunks" option instead.',
@@ -174,9 +168,9 @@ const getManualChunks = (
 };
 
 const getModuleContext = (
-	config: GenericConfigObject,
+	config: InputOptions,
 	context: string
-): ((id: string) => string) => {
+): NormalizedInputOptions['moduleContext'] => {
 	const configModuleContext = config.moduleContext as
 		| ((id: string) => string | null | undefined)
 		| { [id: string]: string }
@@ -195,9 +189,9 @@ const getModuleContext = (
 };
 
 const getPreserveEntrySignatures = (
-	config: GenericConfigObject,
+	config: InputOptions,
 	unsetOptions: Set<string>
-): PreserveEntrySignaturesOption => {
+): NormalizedInputOptions['preserveEntrySignatures'] => {
 	const configPreserveEntrySignatures = config.preserveEntrySignatures as
 		| PreserveEntrySignaturesOption
 		| undefined;
@@ -208,11 +202,11 @@ const getPreserveEntrySignatures = (
 };
 
 const getPreserveModules = (
-	config: GenericConfigObject,
+	config: InputOptions,
 	warn: WarningHandler,
 	strictDeprecations: boolean
-): boolean | undefined => {
-	const configPreserveModules = config.preserveModules as boolean | undefined;
+): NormalizedInputOptions['preserveModules'] => {
+	const configPreserveModules = config.preserveModules;
 	if (configPreserveModules) {
 		warnDeprecationWithOptions(
 			'The "preserveModules" option is deprecated. Use the "output.preserveModules" option instead.',
@@ -225,23 +219,15 @@ const getPreserveModules = (
 };
 
 const getTreeshake = (
-	config: GenericConfigObject,
+	config: InputOptions,
 	warn: WarningHandler,
 	strictDeprecations: boolean
-):
-	| false
-	| {
-			annotations: boolean;
-			moduleSideEffects: HasModuleSideEffects;
-			propertyReadSideEffects: boolean | 'always';
-			tryCatchDeoptimization: boolean;
-			unknownGlobalSideEffects: boolean;
-	  } => {
-	const configTreeshake = config.treeshake as boolean | TreeshakingOptions;
+): NormalizedInputOptions['treeshake'] => {
+	const configTreeshake = config.treeshake;
 	if (configTreeshake === false) {
 		return false;
 	}
-	if (configTreeshake && configTreeshake !== true) {
+	if (configTreeshake && typeof configTreeshake === 'object') {
 		if (typeof configTreeshake.pureExternalModules !== 'undefined') {
 			warnDeprecationWithOptions(
 				`The "treeshake.pureExternalModules" option is deprecated. The "treeshake.moduleSideEffects" option should be used instead. "treeshake.pureExternalModules: true" is equivalent to "treeshake.moduleSideEffects: 'no-external'"`,
