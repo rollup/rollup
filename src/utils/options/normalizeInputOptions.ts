@@ -233,16 +233,17 @@ const getTreeshake = (
 	if (configTreeshake === false) {
 		return false;
 	}
-	if (configTreeshake && typeof configTreeshake === 'object') {
-		if (typeof configTreeshake.pureExternalModules !== 'undefined') {
-			warnDeprecationWithOptions(
-				`The "treeshake.pureExternalModules" option is deprecated. The "treeshake.moduleSideEffects" option should be used instead. "treeshake.pureExternalModules: true" is equivalent to "treeshake.moduleSideEffects: 'no-external'"`,
-				true,
-				warn,
-				strictDeprecations
-			);
-		}
-		let configWithPreset = configTreeshake;
+	if (configTreeshake) {
+		if (typeof configTreeshake === 'object') {
+			if (typeof configTreeshake.pureExternalModules !== 'undefined') {
+				warnDeprecationWithOptions(
+					`The "treeshake.pureExternalModules" option is deprecated. The "treeshake.moduleSideEffects" option should be used instead. "treeshake.pureExternalModules: true" is equivalent to "treeshake.moduleSideEffects: 'no-external'"`,
+					true,
+					warn,
+					strictDeprecations
+				);
+			}
+			let configWithPreset = configTreeshake;
 		const presetName = configTreeshake.preset;
 		if (presetName) {
 			const preset = treeshakePresets[presetName];
@@ -256,22 +257,31 @@ const getTreeshake = (
 					)
 				);
 			}
-		}
-		return {
-			annotations: configWithPreset.annotations !== false,
-			moduleSideEffects: configTreeshake.pureExternalModules
-				? getHasModuleSideEffects(
-						configTreeshake.moduleSideEffects,
-						configTreeshake.pureExternalModules
-				  )
+		}return {
+				annotations: configWithPreset.annotations !== false,
+				moduleSideEffects: configTreeshake.pureExternalModules
+				?getHasModuleSideEffects(
+					configTreeshake.moduleSideEffects,
+					configTreeshake.pureExternalModules
+					)
 				: getHasModuleSideEffects(configWithPreset.moduleSideEffects, undefined),
-			propertyReadSideEffects:
-				configWithPreset.propertyReadSideEffects === 'always'
+				propertyReadSideEffects:
+					configWithPreset.propertyReadSideEffects === 'always'
 					? 'always'
 					: configWithPreset.propertyReadSideEffects !== false,
-			tryCatchDeoptimization: configWithPreset.tryCatchDeoptimization !== false,
-			unknownGlobalSideEffects: configWithPreset.unknownGlobalSideEffects !== false
-		};
+				tryCatchDeoptimization: configWithPreset.tryCatchDeoptimization !== false,
+				unknownGlobalSideEffects: configWithPreset.unknownGlobalSideEffects !== false
+			};
+		}
+		if (configTreeshake === 'smallest') {
+			return {
+				annotations: true,
+				moduleSideEffects: () => false,
+				propertyReadSideEffects: false,
+				tryCatchDeoptimization: false,
+				unknownGlobalSideEffects: false
+			};
+		}
 	}
 	const preset = treeshakePresets[configTreeshake];
 	if (preset) {
