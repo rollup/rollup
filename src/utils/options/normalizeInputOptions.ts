@@ -227,28 +227,39 @@ const getTreeshake = (
 	if (configTreeshake === false) {
 		return false;
 	}
-	if (configTreeshake && typeof configTreeshake === 'object') {
-		if (typeof configTreeshake.pureExternalModules !== 'undefined') {
-			warnDeprecationWithOptions(
-				`The "treeshake.pureExternalModules" option is deprecated. The "treeshake.moduleSideEffects" option should be used instead. "treeshake.pureExternalModules: true" is equivalent to "treeshake.moduleSideEffects: 'no-external'"`,
-				true,
-				warn,
-				strictDeprecations
-			);
+	if (configTreeshake) {
+		if (typeof configTreeshake === 'object') {
+			if (typeof configTreeshake.pureExternalModules !== 'undefined') {
+				warnDeprecationWithOptions(
+					`The "treeshake.pureExternalModules" option is deprecated. The "treeshake.moduleSideEffects" option should be used instead. "treeshake.pureExternalModules: true" is equivalent to "treeshake.moduleSideEffects: 'no-external'"`,
+					true,
+					warn,
+					strictDeprecations
+				);
+			}
+			return {
+				annotations: configTreeshake.annotations !== false,
+				moduleSideEffects: getHasModuleSideEffects(
+					configTreeshake.moduleSideEffects,
+					configTreeshake.pureExternalModules,
+					warn
+				),
+				propertyReadSideEffects:
+					(configTreeshake.propertyReadSideEffects === 'always' && 'always') ||
+					configTreeshake.propertyReadSideEffects !== false,
+				tryCatchDeoptimization: configTreeshake.tryCatchDeoptimization !== false,
+				unknownGlobalSideEffects: configTreeshake.unknownGlobalSideEffects !== false
+			};
 		}
-		return {
-			annotations: configTreeshake.annotations !== false,
-			moduleSideEffects: getHasModuleSideEffects(
-				configTreeshake.moduleSideEffects,
-				configTreeshake.pureExternalModules,
-				warn
-			),
-			propertyReadSideEffects:
-				(configTreeshake.propertyReadSideEffects === 'always' && 'always') ||
-				configTreeshake.propertyReadSideEffects !== false,
-			tryCatchDeoptimization: configTreeshake.tryCatchDeoptimization !== false,
-			unknownGlobalSideEffects: configTreeshake.unknownGlobalSideEffects !== false
-		};
+		if (configTreeshake === 'smallest') {
+			return {
+				annotations: true,
+				moduleSideEffects: () => false,
+				propertyReadSideEffects: false,
+				tryCatchDeoptimization: false,
+				unknownGlobalSideEffects: false
+			};
+		}
 	}
 	return {
 		annotations: true,
