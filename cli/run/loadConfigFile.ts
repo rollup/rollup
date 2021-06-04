@@ -1,6 +1,7 @@
 import { extname, isAbsolute } from 'path';
 import { version } from 'process';
 import { pathToFileURL } from 'url';
+import getPackageType from 'get-package-type';
 import * as rollup from '../../src/node-entry';
 import type { MergedRollupOptions } from '../../src/rollup/types';
 import { bold } from '../../src/utils/colors';
@@ -13,7 +14,7 @@ import batchWarnings, { type BatchWarnings } from './batchWarnings';
 import { addCommandPluginsToInputOptions, addPluginsFromCommandOption } from './commandPlugins';
 
 function supportsNativeESM(): boolean {
-	const versionMatch = version.match(/^v(\d+)\.(\d+)\.\d+$/);
+	const versionMatch = version.match(/^v(\d+)\.(\d+)\.\d+$/)!;
 	const major = parseInt(versionMatch[1], 10);
 	const minor = parseInt(versionMatch[2], 10);
 
@@ -52,7 +53,12 @@ async function loadConfigFile(
 
 	const configFileExport =
 		commandOptions.configPlugin ||
-		!(extension === '.cjs' || (extension === '.mjs' && supportsNativeESM()))
+		!(
+			extension === '.cjs' ||
+			(supportsNativeESM() &&
+				(extension === '.mjs' ||
+					(extension === '.js' && getPackageType.sync(fileName) === 'module')))
+		)
 			? await getDefaultFromTranspiledConfigFile(fileName, commandOptions)
 			: extension === '.cjs'
 			? getDefaultFromCjs(require(fileName))
