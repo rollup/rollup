@@ -13,7 +13,11 @@ import batchWarnings, { type BatchWarnings } from './batchWarnings';
 import { addCommandPluginsToInputOptions, addPluginsFromCommandOption } from './commandPlugins';
 
 function supportsNativeESM(): boolean {
-	return Number(/^v(\d+)/.exec(version)![1]) >= 13;
+	const versionMatch = version.match(/^v(\d+)\.(\d+)\.\d+$/);
+	const major = parseInt(versionMatch[1], 10);
+	const minor = parseInt(versionMatch[2], 10);
+
+	return major >= 14 || (major === 13 && minor >= 2) || (major === 12 && minor >= 17);
 }
 
 interface NodeModuleWithCompile extends NodeModule {
