@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { pathToFileURL } from 'url';
 import { bold } from 'colorette';
+import getPackageType from 'get-package-type';
 import * as rollup from '../../src/node-entry';
 import { MergedRollupOptions } from '../../src/rollup/types';
 import { error } from '../../src/utils/error';
@@ -49,7 +50,8 @@ async function loadConfigFile(
 ): Promise<GenericConfigObject[]> {
 	const extension = path.extname(fileName);
 	const configFileExport =
-		extension === '.mjs' && supportsNativeESM()
+		supportsNativeESM() &&
+		(extension === '.mjs' || (extension === '.js' && getPackageType.sync(fileName) === 'module'))
 			? (await import(pathToFileURL(fileName).href)).default
 			: extension === '.cjs'
 			? getDefaultFromCjs(require(fileName))
