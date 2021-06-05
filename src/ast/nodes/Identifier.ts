@@ -9,6 +9,7 @@ import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { NodeEvent } from '../NodeEvents';
 import FunctionScope from '../scopes/FunctionScope';
 import { EMPTY_PATH, ObjectPath, PathTracker } from '../utils/PathTracker';
+import { UNDEFINED_EXPRESSION } from '../values';
 import GlobalVariable from '../variables/GlobalVariable';
 import LocalVariable from '../variables/LocalVariable';
 import Variable from '../variables/Variable';
@@ -19,6 +20,14 @@ import { ExpressionNode, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
 export type IdentifierWithVariable = Identifier & { variable: Variable };
+
+const tdzInitTypesToIgnore = {
+	__proto__: null,
+	ArrowFunctionExpression: true,
+	ClassExpression: true,
+	FunctionExpression: true,
+	ObjectExpression: true
+};
 
 export default class Identifier extends NodeBase implements PatternNode {
 	name!: string;
@@ -109,6 +118,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 	hasEffects(): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
+		if (this.isPossibleTDZ()) return true;
 		return (
 			(this.context.options.treeshake as NormalizedTreeshakingOptions).unknownGlobalSideEffects &&
 			this.variable instanceof GlobalVariable &&
@@ -180,6 +190,68 @@ export default class Identifier extends NodeBase implements PatternNode {
 			this.variable.consolidateInitializers();
 			this.context.requestTreeshakingPass();
 		}
+	}
+
+	protected isPossibleTDZ(): boolean {
+		// TDZ-style violations cannot generally be known without executing the code -
+		// just check the most common statically analyzable scenarios.
+		// Note: the boolean return value is a best guess effort, and may be inaccurate.
+
+		if (!(this.variable instanceof LocalVariable)) return false;
+
+		let init, init_parent;
+		if (
+			(init = (this.variable as any).init) &&
+			init !== UNDEFINED_EXPRESSION &&
+			(init_parent = (init as any).parent) &&
+			init_parent.type == 'VariableDeclarator' &&
+			init_parent.id.variable === this.variable
+		) {
+			if (
+				this !== init_parent.id &&
+				this.scope &&
+				init_parent.id.scope === this.scope &&
+				this.start < init.start
+			) {
+				// same scope variable access before its declaration:
+				//   c ? 1 : 2; const c = true;
+				//   console.log(v ? 3 : 4); var v = true;
+				return true;
+			}
+
+			if (
+				this.start >= init.start &&
+				this.start < init.end &&
+				!(init_parent.init.type in tdzInitTypesToIgnore)
+			) {
+				// any scope variable access within its own declaration init:
+				//   let x = x + 1;
+				return true;
+			}
+		}
+
+		let decl_id, decl, decl_parent;
+		if (
+			(!init || init === UNDEFINED_EXPRESSION) &&
+			this.parent.type !== 'VariableDeclarator' &&
+			this.variable.declarations.length === 1 &&
+			(decl_id = this.variable.declarations[0] as any) &&
+			decl_id.type === 'Identifier' &&
+			(decl = decl_id.parent as any) &&
+			decl.type === 'VariableDeclarator' &&
+			(decl_parent = decl.parent as any) &&
+			decl_parent.type === 'VariableDeclaration' &&
+			decl_parent.kind === 'let' &&
+			this.scope &&
+			decl_id.scope === this.scope &&
+			this.start < decl.start
+		) {
+			// a `let` variable without an init accessed before declaration:
+			//   x; let x;
+			return true;
+		}
+
+		return false;
 	}
 
 	private disallowImportReassignment() {

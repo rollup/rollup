@@ -1,0 +1,29 @@
+console.log(function() {
+	if (x) return "HELLO"; // TDZ
+	const x = 1;           // keep
+}());
+
+const C = 1 + C + 2; // TDZ
+let L = L;           // TDZ
+var V = V;           // TODO: uncommon scenario, but should be dropped
+console.log("X+" ); // optimize
+
+console.log(Y ? "Y+" : "Y-"); // TDZ
+const Y = 2;                  // keep
+
+console.log(Z ? "Z+" : "Z-"); // TDZ
+const Z = 3;                  // keep
+console.log("Z+" ); // keep
+
+console.log(obj.x.y ? 1 : 2); // TDZ
+const obj = {                 // keep
+	x: {
+		y: true
+	}
+};
+console.log(3 ); // keep
+
+L2;              // TDZ for L2
+L3 = 20;    // TDZ for L3
+let L2, L3;  // keep L2, L3
+L3 = 30;             // keep
