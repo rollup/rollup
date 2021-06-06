@@ -50,6 +50,7 @@ class Link {
 		const sources: string[] = [];
 		const sourcesContent: string[] = [];
 		const names: string[] = [];
+		const nameIndexMap: Map<string, number> = new Map();
 
 		const mappings = [];
 
@@ -93,10 +94,11 @@ class Link {
 					];
 
 					if (traced.name) {
-						let nameIndex = names.indexOf(traced.name);
-						if (nameIndex === -1) {
+						let nameIndex = nameIndexMap.get(traced.name);
+						if (nameIndex === undefined) {
 							nameIndex = names.length;
 							names.push(traced.name);
+							nameIndexMap.set(traced.name, nameIndex);
 						}
 
 						(tracedSegment as SourceMapSegment)[4] = nameIndex;
