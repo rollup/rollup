@@ -37,3 +37,17 @@ let L1, L2, L3, L4;  // keep L2, L3
 var V3;              // drop
 L3 = 30;             // keep
 L4 = 40;             // drop
+
+// Note that typical var/const/let use is still optimized
+(function() {
+	console.log(A ? "A" : "!A");
+	var A = 1, B = 2;
+	const C = 3;
+	let D = 4;
+	console.log(A ? "A" : "!A");
+	if (B) console.log("B");
+	else console.log("!B");
+	console.log(B ? "B" : "!B");
+	console.log(C ? "C" : "!C");
+	console.log(D ? "D" : "!D");
+})();

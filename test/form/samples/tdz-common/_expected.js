@@ -27,3 +27,14 @@ L2;              // TDZ for L2
 L3 = 20;    // TDZ for L3
 let L2, L3;  // keep L2, L3
 L3 = 30;             // keep
+
+// Note that typical var/const/let use is still optimized
+(function() {
+	console.log(A ? "A" : "!A");
+	var A = 1;
+	console.log("A" );
+	console.log("B");
+	console.log("B" );
+	console.log("C" );
+	console.log("D" );
+})();

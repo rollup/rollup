@@ -36,4 +36,12 @@ log(c ? "PASS5" : "FAIL5");
 })();
 */
 
+/* TODO: previously existing bug still fails, but in a different way
+	log(function() {
+		if (x) return "HELLO";
+		var x = 1;
+		return "WORLD";
+	}());
+*/
+
 assert.strictEqual(results.join(" "), "PASS1 PASS2 PASS3 PASS4 PASS5");
