@@ -884,5 +884,5 @@ interface AcornNode {
 	type: string;
 }
 
-export function define(options: RollupOptions): RollupOptions;
-export function define(options: RollupOptions[]): RollupOptions[];
+export function defineConfig(options: RollupOptions): RollupOptions;
+export function defineConfig(options: RollupOptions[]): RollupOptions[];
