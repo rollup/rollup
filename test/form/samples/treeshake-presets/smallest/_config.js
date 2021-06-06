@@ -2,6 +2,7 @@ const assert = require('assert');
 const path = require('path');
 
 module.exports = {
+	// solo: true,
 	description: 'handles treeshake preset "smallest"',
 	options: {
 		treeshake: 'smallest',

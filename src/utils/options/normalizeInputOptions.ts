@@ -224,6 +224,36 @@ const getPreserveModules = (
 	return configPreserveModules;
 };
 
+type ObjectValue<Base> = Base extends Record<string, any> ? Base : never;
+
+const treeshakePresets: {
+	[key in NonNullable<
+		ObjectValue<InputOptions['treeshake']>['preset']
+	>]: NormalizedInputOptions['treeshake'];
+} = {
+	recommended: {
+		annotations: true,
+		moduleSideEffects: () => true,
+		propertyReadSideEffects: true,
+		tryCatchDeoptimization: true,
+		unknownGlobalSideEffects: false
+	},
+	safest: {
+		annotations: true,
+		moduleSideEffects: () => true,
+		propertyReadSideEffects: true,
+		tryCatchDeoptimization: true,
+		unknownGlobalSideEffects: true
+	},
+	smallest: {
+		annotations: true,
+		moduleSideEffects: () => false,
+		propertyReadSideEffects: false,
+		tryCatchDeoptimization: false,
+		unknownGlobalSideEffects: false
+	}
+};
+
 const getTreeshake = (
 	config: InputOptions,
 	warn: WarningHandler,
@@ -233,55 +263,36 @@ const getTreeshake = (
 	if (configTreeshake === false) {
 		return false;
 	}
-	if (configTreeshake) {
-		if (typeof configTreeshake === 'object') {
-			if (typeof configTreeshake.pureExternalModules !== 'undefined') {
-				warnDeprecationWithOptions(
-					`The "treeshake.pureExternalModules" option is deprecated. The "treeshake.moduleSideEffects" option should be used instead. "treeshake.pureExternalModules: true" is equivalent to "treeshake.moduleSideEffects: 'no-external'"`,
-					true,
-					warn,
-					strictDeprecations
-				);
-			}
-			let configWithPreset = configTreeshake;
-		const presetName = configTreeshake.preset;
-		if (presetName) {
-			const preset = treeshakePresets[presetName];
-			if (preset) {
-				configWithPreset = { ...preset, ...configTreeshake };
-			} else {
-				error(
-					errInvalidOption(
-						'treeshake.preset',
-						`valid values are ${printQuotedStringList(Object.keys(treeshakePresets))}`
-					)
-				);
-			}
-		}return {
-				annotations: configWithPreset.annotations !== false,
-				moduleSideEffects: configTreeshake.pureExternalModules
-				?getHasModuleSideEffects(
-					configTreeshake.moduleSideEffects,
-					configTreeshake.pureExternalModules
-					)
-				: getHasModuleSideEffects(configWithPreset.moduleSideEffects, undefined),
-				propertyReadSideEffects:
-					configWithPreset.propertyReadSideEffects === 'always'
-					? 'always'
-					: configWithPreset.propertyReadSideEffects !== false,
-				tryCatchDeoptimization: configWithPreset.tryCatchDeoptimization !== false,
-				unknownGlobalSideEffects: configWithPreset.unknownGlobalSideEffects !== false
-			};
+	if (!configTreeshake || configTreeshake === true) {
+		return {
+			annotations: true,
+			moduleSideEffects: () => true,
+			propertyReadSideEffects: true,
+			tryCatchDeoptimization: true,
+			unknownGlobalSideEffects: true
+		};
+	}
+	if (typeof configTreeshake === 'object') {
+		if (typeof configTreeshake.pureExternalModules !== 'undefined') {
+			warnDeprecationWithOptions(
+				`The "treeshake.pureExternalModules" option is deprecated. The "treeshake.moduleSideEffects" option should be used instead. "treeshake.pureExternalModules: true" is equivalent to "treeshake.moduleSideEffects: 'no-external'"`,
+				true,
+				warn,
+				strictDeprecations
+			);
 		}
-		if (configTreeshake === 'smallest') {
-			return {
-				annotations: true,
-				moduleSideEffects: () => false,
-				propertyReadSideEffects: false,
-				tryCatchDeoptimization: false,
-				unknownGlobalSideEffects: false
-			};
-		}
+		return {
+			annotations: configTreeshake.annotations !== false,
+			moduleSideEffects: getHasModuleSideEffects(
+				configTreeshake.moduleSideEffects,
+				configTreeshake.pureExternalModules
+			),
+			propertyReadSideEffects:
+				(configTreeshake.propertyReadSideEffects === 'always' && 'always') ||
+				configTreeshake.propertyReadSideEffects !== false,
+			tryCatchDeoptimization: configTreeshake.tryCatchDeoptimization !== false,
+			unknownGlobalSideEffects: configTreeshake.unknownGlobalSideEffects !== false
+		};
 	}
 	const preset = treeshakePresets[configTreeshake];
 	if (preset) {
@@ -290,9 +301,9 @@ const getTreeshake = (
 	error(
 		errInvalidOption(
 			'treeshake',
-			`valid values are false, true, ${printQuotedStringList(
-				Object.keys(treeshakePresets)
-			)}. You can also supply an object for more fine-grained control`
+			`please use either ${Object.keys(treeshakePresets)
+				.map(name => `"${name}"`)
+				.join(', ')}, false or true`
 		)
 	);
 };
