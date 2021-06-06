@@ -1,5 +1,4 @@
 module.exports = {
-	// solo: true,
 	description: 'throws for unknown string values for the treeshake option',
 	options: {
 		treeshake: 'some-string'
@@ -7,6 +6,6 @@ module.exports = {
 	error: {
 		code: 'INVALID_OPTION',
 		message:
-			'Invalid value for option "treeshake" - please use either "recommended", "safest", "smallest", false or true.'
+			'Invalid value for option "treeshake" - valid values are false, true, "recommended", "safest" and "smallest". You can also supply an object for more fine-grained control.'
 	}
 };

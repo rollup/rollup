@@ -12,6 +12,7 @@ import {
 import { ensureArray } from '../ensureArray';
 import { errInvalidOption, error, warnDeprecationWithOptions } from '../error';
 import { resolve } from '../path';
+import { printQuotedStringList } from '../printStringList';
 import relativeId from '../relativeId';
 import { defaultOnWarn, GenericConfigObject, warnUnknownOptions } from './options';
 
@@ -275,17 +276,35 @@ const getTreeshake = (
 				strictDeprecations
 			);
 		}
+		let configWithPreset = configTreeshake;
+		const presetName = configTreeshake.preset;
+		if (presetName) {
+			const preset = treeshakePresets[presetName];
+			if (preset) {
+				configWithPreset = { ...preset, ...configTreeshake };
+			} else {
+				error(
+					errInvalidOption(
+						'treeshake.preset',
+						`valid values are ${printQuotedStringList(Object.keys(treeshakePresets))}`
+					)
+				);
+			}
+		}
 		return {
-			annotations: configTreeshake.annotations !== false,
-			moduleSideEffects: getHasModuleSideEffects(
-				configTreeshake.moduleSideEffects,
-				configTreeshake.pureExternalModules
-			),
+			annotations: configWithPreset.annotations !== false,
+			moduleSideEffects: configTreeshake.pureExternalModules
+				? getHasModuleSideEffects(
+						configTreeshake.moduleSideEffects,
+						configTreeshake.pureExternalModules
+				  )
+				: getHasModuleSideEffects(configWithPreset.moduleSideEffects, undefined),
 			propertyReadSideEffects:
-				(configTreeshake.propertyReadSideEffects === 'always' && 'always') ||
-				configTreeshake.propertyReadSideEffects !== false,
-			tryCatchDeoptimization: configTreeshake.tryCatchDeoptimization !== false,
-			unknownGlobalSideEffects: configTreeshake.unknownGlobalSideEffects !== false
+				configWithPreset.propertyReadSideEffects === 'always'
+					? 'always'
+					: configWithPreset.propertyReadSideEffects !== false,
+			tryCatchDeoptimization: configWithPreset.tryCatchDeoptimization !== false,
+			unknownGlobalSideEffects: configWithPreset.unknownGlobalSideEffects !== false
 		};
 	}
 	const preset = treeshakePresets[configTreeshake];
@@ -295,9 +314,9 @@ const getTreeshake = (
 	error(
 		errInvalidOption(
 			'treeshake',
-			`please use either ${Object.keys(treeshakePresets)
-				.map(name => `"${name}"`)
-				.join(', ')}, false or true`
+			`valid values are false, true, ${printQuotedStringList(
+				Object.keys(treeshakePresets)
+			)}. You can also supply an object for more fine-grained control`
 		)
 	);
 };
