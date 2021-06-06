@@ -200,7 +200,7 @@ export default commandLineArgs => {
 }
 ```
 
-Config Intellisense
+#### Config Intellisense
 
 Since Rollup ships with TypeScript typings, you can leverage your IDE's intellisense with jsdoc type hints:
 
