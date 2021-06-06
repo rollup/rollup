@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 2.51.0
+*2021-06-06*
+
+### Features
+* Add a helper for IntelliSense support in config files (#4127)
+
+### Bug Fixes
+* Improve performance when generating source maps (#4122)
+
+### Pull Requests
+* [#4122](https://github.com/rollup/rollup/pull/4122): User Map to optimize performance (@izevo)
+* [#4127](https://github.com/rollup/rollup/pull/4127): Export defineConfig defines the auxiliary function of the configuration (@rxliuli)
+
 ## 2.50.6
 *2021-06-03*
 
