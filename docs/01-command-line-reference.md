@@ -200,6 +200,33 @@ export default commandLineArgs => {
 }
 ```
 
+#### Config Intellisense
+
+Since Rollup ships with TypeScript typings, you can leverage your IDE's intellisense with jsdoc type hints:
+
+```javascript
+// rollup.config.js
+/**
+ * @type {import('rollup').RollupOptions}
+ */
+const config = {
+  // ...
+}
+
+export default config
+```
+
+Alternatively you can use the helper which should provide intellisense without the need for jsdoc annotations:defineConfig
+
+```javascript
+// rollup.config.js
+import { defineConfig } from 'rollup'
+
+export default defineConfig({
+  // ...
+})
+```
+
 ### Differences to the JavaScript API
 
 While config files provide an easy way to configure Rollup, they also limit how Rollup can be invoked and where configuration is taken from. Especially if you are rebundling Rollup in another build tool or want to integrate it into an advanced build process, it may be better to directly invoke Rollup programmatically from your scripts.
