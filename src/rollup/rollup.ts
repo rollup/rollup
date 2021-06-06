@@ -20,6 +20,7 @@ import {
 	OutputOptions,
 	Plugin,
 	RollupBuild,
+	RollupOptions,
 	RollupOutput,
 	RollupWatcher
 } from './types';
@@ -218,7 +219,7 @@ function getOutputOptions(
 					setAssetSource: emitError
 				};
 			}
-		),
+		) as GenericConfigObject,
 		inputOptions,
 		unsetInputOptions
 	);
@@ -281,4 +282,13 @@ function writeOutputFile(
 	}
 
 	return Promise.all([writeFile(fileName, source), writeSourceMapPromise]);
+}
+
+/**
+ * Auxiliary function for defining rollup configuration
+ * Mainly to facilitate IDE code prompts, after all, export default does not prompt, even if you add @type annotations, it is not accurate
+ * @param options
+ */
+export function define<T extends RollupOptions | RollupOptions[]>(options: T): T {
+	return options;
 }

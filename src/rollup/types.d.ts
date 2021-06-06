@@ -541,7 +541,7 @@ export interface InputOptions {
 	preserveSymlinks?: boolean;
 	shimMissingExports?: boolean;
 	strictDeprecations?: boolean;
-	treeshake?: boolean | 'smallest' | 'safest' | TreeshakingOptions;
+	treeshake?: boolean | TreeshakingOptions;
 	watch?: WatcherOptions | false;
 }
 
@@ -883,3 +883,6 @@ interface AcornNode {
 	start: number;
 	type: string;
 }
+
+export function define(options: RollupOptions): RollupOptions;
+export function define(options: RollupOptions[]): RollupOptions[];
