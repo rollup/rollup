@@ -3,18 +3,18 @@ const path = require('path');
 
 module.exports = {
 	// solo: true,
-	description: 'handles treeshake preset "smallest"',
+	description: 'handles treeshake preset "recommended"',
 	options: {
-		treeshake: 'smallest',
+		treeshake: 'recommended',
 		plugins: [
 			{
 				buildStart(options) {
-					assert.strictEqual(options.treeshake.propertyReadSideEffects, false);
-					assert.strictEqual(options.treeshake.tryCatchDeoptimization, false);
+					assert.strictEqual(options.treeshake.propertyReadSideEffects, true);
+					assert.strictEqual(options.treeshake.tryCatchDeoptimization, true);
 					assert.strictEqual(options.treeshake.unknownGlobalSideEffects, false);
 					assert.strictEqual(
 						options.treeshake.moduleSideEffects(path.join(__dirname, 'dep.js')),
-						false
+						true
 					);
 				}
 			}

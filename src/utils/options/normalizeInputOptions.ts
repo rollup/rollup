@@ -10,7 +10,7 @@ import {
 	WarningHandler
 } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
-import { errInvalidOption, warnDeprecationWithOptions } from '../error';
+import { errInvalidOption, error, warnDeprecationWithOptions } from '../error';
 import { resolve } from '../path';
 import relativeId from '../relativeId';
 import { defaultOnWarn, GenericConfigObject, warnUnknownOptions } from './options';
@@ -218,6 +218,36 @@ const getPreserveModules = (
 	return configPreserveModules;
 };
 
+type ObjectValue<Base> = Base extends Record<string, any> ? Base : never;
+
+const treeshakePresets: {
+	[key in NonNullable<
+		ObjectValue<InputOptions['treeshake']>['preset']
+	>]: NormalizedInputOptions['treeshake'];
+} = {
+	recommended: {
+		annotations: true,
+		moduleSideEffects: () => true,
+		propertyReadSideEffects: true,
+		tryCatchDeoptimization: true,
+		unknownGlobalSideEffects: false
+	},
+	safest: {
+		annotations: true,
+		moduleSideEffects: () => true,
+		propertyReadSideEffects: true,
+		tryCatchDeoptimization: true,
+		unknownGlobalSideEffects: true
+	},
+	smallest: {
+		annotations: true,
+		moduleSideEffects: () => false,
+		propertyReadSideEffects: false,
+		tryCatchDeoptimization: false,
+		unknownGlobalSideEffects: false
+	}
+};
+
 const getTreeshake = (
 	config: InputOptions,
 	warn: WarningHandler,
@@ -227,53 +257,54 @@ const getTreeshake = (
 	if (configTreeshake === false) {
 		return false;
 	}
-	if (configTreeshake) {
-		if (typeof configTreeshake === 'object') {
-			if (typeof configTreeshake.pureExternalModules !== 'undefined') {
-				warnDeprecationWithOptions(
-					`The "treeshake.pureExternalModules" option is deprecated. The "treeshake.moduleSideEffects" option should be used instead. "treeshake.pureExternalModules: true" is equivalent to "treeshake.moduleSideEffects: 'no-external'"`,
-					true,
-					warn,
-					strictDeprecations
-				);
-			}
-			return {
-				annotations: configTreeshake.annotations !== false,
-				moduleSideEffects: getHasModuleSideEffects(
-					configTreeshake.moduleSideEffects,
-					configTreeshake.pureExternalModules,
-					warn
-				),
-				propertyReadSideEffects:
-					(configTreeshake.propertyReadSideEffects === 'always' && 'always') ||
-					configTreeshake.propertyReadSideEffects !== false,
-				tryCatchDeoptimization: configTreeshake.tryCatchDeoptimization !== false,
-				unknownGlobalSideEffects: configTreeshake.unknownGlobalSideEffects !== false
-			};
-		}
-		if (configTreeshake === 'smallest') {
-			return {
-				annotations: true,
-				moduleSideEffects: () => false,
-				propertyReadSideEffects: false,
-				tryCatchDeoptimization: false,
-				unknownGlobalSideEffects: false
-			};
-		}
+	if (!configTreeshake || configTreeshake === true) {
+		return {
+			annotations: true,
+			moduleSideEffects: () => true,
+			propertyReadSideEffects: true,
+			tryCatchDeoptimization: true,
+			unknownGlobalSideEffects: true
+		};
 	}
-	return {
-		annotations: true,
-		moduleSideEffects: () => true,
-		propertyReadSideEffects: true,
-		tryCatchDeoptimization: true,
-		unknownGlobalSideEffects: true
-	};
+	if (typeof configTreeshake === 'object') {
+		if (typeof configTreeshake.pureExternalModules !== 'undefined') {
+			warnDeprecationWithOptions(
+				`The "treeshake.pureExternalModules" option is deprecated. The "treeshake.moduleSideEffects" option should be used instead. "treeshake.pureExternalModules: true" is equivalent to "treeshake.moduleSideEffects: 'no-external'"`,
+				true,
+				warn,
+				strictDeprecations
+			);
+		}
+		return {
+			annotations: configTreeshake.annotations !== false,
+			moduleSideEffects: getHasModuleSideEffects(
+				configTreeshake.moduleSideEffects,
+				configTreeshake.pureExternalModules
+			),
+			propertyReadSideEffects:
+				(configTreeshake.propertyReadSideEffects === 'always' && 'always') ||
+				configTreeshake.propertyReadSideEffects !== false,
+			tryCatchDeoptimization: configTreeshake.tryCatchDeoptimization !== false,
+			unknownGlobalSideEffects: configTreeshake.unknownGlobalSideEffects !== false
+		};
+	}
+	const preset = treeshakePresets[configTreeshake];
+	if (preset) {
+		return preset;
+	}
+	error(
+		errInvalidOption(
+			'treeshake',
+			`please use either ${Object.keys(treeshakePresets)
+				.map(name => `"${name}"`)
+				.join(', ')}, false or true`
+		)
+	);
 };
 
 const getHasModuleSideEffects = (
 	moduleSideEffectsOption: ModuleSideEffectsOption | undefined,
-	pureExternalModules: PureModulesOption | undefined,
-	warn: WarningHandler
+	pureExternalModules: PureModulesOption | undefined
 ): HasModuleSideEffects => {
 	if (typeof moduleSideEffectsOption === 'boolean') {
 		return () => moduleSideEffectsOption;
@@ -290,7 +321,7 @@ const getHasModuleSideEffects = (
 		return id => ids.has(id);
 	}
 	if (moduleSideEffectsOption) {
-		warn(
+		error(
 			errInvalidOption(
 				'treeshake.moduleSideEffects',
 				'please use one of false, "no-external", a function or an array'

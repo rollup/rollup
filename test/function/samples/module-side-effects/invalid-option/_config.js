@@ -5,11 +5,9 @@ module.exports = {
 			moduleSideEffects: 'what-is-this?'
 		}
 	},
-	warnings: [
-		{
-			code: 'INVALID_OPTION',
-			message:
-				'Invalid value for option "treeshake.moduleSideEffects" - please use one of false, "no-external", a function or an array.'
-		}
-	]
+	error: {
+		code: 'INVALID_OPTION',
+		message:
+			'Invalid value for option "treeshake.moduleSideEffects" - please use one of false, "no-external", a function or an array.'
+	}
 };

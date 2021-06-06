@@ -2,7 +2,8 @@ const assert = require('assert');
 const path = require('path');
 
 module.exports = {
-	description: 'handles treeshake preset "safest""',
+	// solo: true,
+	description: 'handles treeshake preset "safest"',
 	options: {
 		treeshake: 'safest',
 		plugins: [
