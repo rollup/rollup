@@ -27,9 +27,10 @@ export interface CommandConfigObject {
 	globals: { [id: string]: string } | undefined;
 }
 
-export function normalizeInputOptions(
-	config: InputOptions
-): { options: NormalizedInputOptions; unsetOptions: Set<string> } {
+export function normalizeInputOptions(config: InputOptions): {
+	options: NormalizedInputOptions;
+	unsetOptions: Set<string>;
+} {
 	// These are options that may trigger special warnings or behaviour later
 	// if the user did not select an explicit value
 	const unsetOptions = new Set<string>();
@@ -38,7 +39,7 @@ export function normalizeInputOptions(
 	const onwarn = getOnwarn(config);
 	const strictDeprecations = config.strictDeprecations || false;
 	const options: NormalizedInputOptions & InputOptions = {
-		acorn: (getAcorn(config) as unknown) as NormalizedInputOptions['acorn'],
+		acorn: getAcorn(config) as unknown as NormalizedInputOptions['acorn'],
 		acornInjectPlugins: getAcornInjectPlugins(config),
 		cache: getCache(config),
 		context,
@@ -102,7 +103,7 @@ const getAcornInjectPlugins = (
 ): NormalizedInputOptions['acornInjectPlugins'] => ensureArray(config.acornInjectPlugins);
 
 const getCache = (config: InputOptions): NormalizedInputOptions['cache'] =>
-	((config.cache as unknown) as RollupBuild)?.cache || config.cache;
+	(config.cache as unknown as RollupBuild)?.cache || config.cache;
 
 const getIdMatcher = <T extends Array<any>>(
 	option:
