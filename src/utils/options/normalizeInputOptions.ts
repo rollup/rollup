@@ -14,7 +14,12 @@ import { errInvalidOption, error, warnDeprecationWithOptions } from '../error';
 import { resolve } from '../path';
 import { printQuotedStringList } from '../printStringList';
 import relativeId from '../relativeId';
-import { defaultOnWarn, GenericConfigObject, warnUnknownOptions } from './options';
+import {
+	defaultOnWarn,
+	GenericConfigObject,
+	treeshakePresets,
+	warnUnknownOptions
+} from './options';
 
 export interface CommandConfigObject {
 	[key: string]: unknown;
@@ -217,36 +222,6 @@ const getPreserveModules = (
 		);
 	}
 	return configPreserveModules;
-};
-
-type ObjectValue<Base> = Base extends Record<string, any> ? Base : never;
-
-const treeshakePresets: {
-	[key in NonNullable<
-		ObjectValue<InputOptions['treeshake']>['preset']
-	>]: NormalizedInputOptions['treeshake'];
-} = {
-	recommended: {
-		annotations: true,
-		moduleSideEffects: () => true,
-		propertyReadSideEffects: true,
-		tryCatchDeoptimization: true,
-		unknownGlobalSideEffects: false
-	},
-	safest: {
-		annotations: true,
-		moduleSideEffects: () => true,
-		propertyReadSideEffects: true,
-		tryCatchDeoptimization: true,
-		unknownGlobalSideEffects: true
-	},
-	smallest: {
-		annotations: true,
-		moduleSideEffects: () => false,
-		propertyReadSideEffects: false,
-		tryCatchDeoptimization: false,
-		unknownGlobalSideEffects: false
-	}
 };
 
 const getTreeshake = (
