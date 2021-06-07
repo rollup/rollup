@@ -181,7 +181,7 @@ const objectifyTreeshakeOption = (value: unknown): Record<string, unknown> => {
 	if (typeof value === 'string') {
 		const preset = treeshakePresets[value as TreeshakingPreset];
 		if (preset) {
-			return (preset as unknown) as Record<string, unknown>;
+			return preset as unknown as Record<string, unknown>;
 		}
 		error(
 			errInvalidOption(

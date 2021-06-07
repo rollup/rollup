@@ -1385,7 +1385,7 @@ Default: `true`
 
 Whether to apply tree-shaking and to fine-tune the tree-shaking process. Setting this option to `false` will produce bigger bundles but may improve build performance. You may also choose one of three presets that will automatically be updated if new options are added:
 
-* `"smallest"` will choose option values for you to minimize output size as much as possible. This should work for most code bases as long as certain as you do not rely on certain patterns, which are currently:
+* `"smallest"` will choose option values for you to minimize output size as much as possible. This should work for most code bases as long as you do not rely on certain patterns, which are currently:
   * getters with side effects will only be retained if the return value is used (`treeshake.propertyReadSideEffects: false`)
   * code from imported modules will only be retained if at least one exported value is used (`treeshake.moduleSideEffects: false`)
   * you should not bundle polyfills that rely on detecting broken builtins (`treeshake.tryCatchDeoptimization: false`)
