@@ -129,9 +129,6 @@ function mergeInputOptions(
 		preserveSymlinks: getOption('preserveSymlinks'),
 		shimMissingExports: getOption('shimMissingExports'),
 		strictDeprecations: getOption('strictDeprecations'),
-		// TODO Lukas implement "preset" form
-		// TODO Lukas command line string usage overrides this option
-		// TODO Lukas config strings are changed to the "preset" form
 		treeshake: getObjectOption(config, overrides, 'treeshake', objectifyTreeshakeOption),
 		watch: getWatch(config, overrides, 'watch')
 	};

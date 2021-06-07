@@ -224,36 +224,6 @@ const getPreserveModules = (
 	return configPreserveModules;
 };
 
-type ObjectValue<Base> = Base extends Record<string, any> ? Base : never;
-
-const treeshakePresets: {
-	[key in NonNullable<
-		ObjectValue<InputOptions['treeshake']>['preset']
-	>]: NormalizedInputOptions['treeshake'];
-} = {
-	recommended: {
-		annotations: true,
-		moduleSideEffects: () => true,
-		propertyReadSideEffects: true,
-		tryCatchDeoptimization: true,
-		unknownGlobalSideEffects: false
-	},
-	safest: {
-		annotations: true,
-		moduleSideEffects: () => true,
-		propertyReadSideEffects: true,
-		tryCatchDeoptimization: true,
-		unknownGlobalSideEffects: true
-	},
-	smallest: {
-		annotations: true,
-		moduleSideEffects: () => false,
-		propertyReadSideEffects: false,
-		tryCatchDeoptimization: false,
-		unknownGlobalSideEffects: false
-	}
-};
-
 const getTreeshake = (
 	config: InputOptions,
 	warn: WarningHandler,
