@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.51.1
+*2021-06-08*
+
+### Bug Fixes
+* Fix error when using `defineConfig` (#4134)
+
+### Pull Requests
+* [#4134](https://github.com/rollup/rollup/pull/4134): export `rollup.defineConfig` at runtime (@mshrtsr)
+
 ## 2.51.0
 *2021-06-06*
 
