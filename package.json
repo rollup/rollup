@@ -15,7 +15,7 @@
     "ci:lint": "npm run lint:nofix",
     "ci:test": "npm run build:cjs && npm run build:bootstrap && npm run test:all",
     "ci:test:only": "npm run build:cjs && npm run build:bootstrap && npm run test:only",
-    "ci:coverage": "npm run build:cjs && nyc --reporter lcovonly mocha",
+    "ci:coverage": "npm run build:cjs && npm run build:bootstrap && nyc --reporter lcovonly mocha",
     "lint": "npx eslint . --fix --cache && npm run lint:markdown",
     "lint:nofix": "npx eslint . && npm run lint:markdown",
     "lint:markdown": "markdownlint --config markdownlint.json docs/**/*.md",
