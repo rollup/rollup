@@ -29,6 +29,15 @@ Breaking Changes?
 - [ ] no
 
 List any relevant issue numbers:
+<!--
+If this PR resolves any issues, list them as
+
+  resolves #1234
+
+where 1234 is the issue number. This will help us with house-keeping as Github will automatically add a note to those issues stating that a potential fix exists. Once the PR is merged, Github will automatically close those issues.
+
+If an issue is only solved partially or is relevant in some other way, just list the number without "resolves".
+-->
 
 ### Description
 
