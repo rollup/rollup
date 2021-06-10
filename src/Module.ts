@@ -202,6 +202,7 @@ export default class Module {
 	implicitlyLoadedBefore = new Set<Module>();
 	importDescriptions: { [name: string]: ImportDescription } = Object.create(null);
 	importMetas: MetaProperty[] = [];
+	importedFromNotTreeshaken = false;
 	importers: string[] = [];
 	imports = new Set<Variable>();
 	includedDynamicImporters: Module[] = [];
@@ -365,16 +366,15 @@ export default class Module {
 		}
 		if (!this.options.treeshake || this.info.hasModuleSideEffects === 'no-treeshake') {
 			for (const dependency of this.dependencies) {
-				if (dependency instanceof ExternalModule || dependency.isIncluded()) {
-					relevantDependencies.add(dependency);
-				}
+				relevantDependencies.add(dependency);
 			}
+		} else {
+			this.addRelevantSideEffectDependencies(
+				relevantDependencies,
+				necessaryDependencies,
+				alwaysCheckedDependencies
+			);
 		}
-		this.addRelevantSideEffectDependencies(
-			relevantDependencies,
-			necessaryDependencies,
-			alwaysCheckedDependencies
-		);
 		for (const dependency of necessaryDependencies) {
 			relevantDependencies.add(dependency);
 		}
@@ -622,7 +622,7 @@ export default class Module {
 	}
 
 	isIncluded(): boolean {
-		return this.ast!.included || this.namespace.included;
+		return this.ast!.included || this.namespace.included || this.importedFromNotTreeshaken;
 	}
 
 	linkImports(): void {

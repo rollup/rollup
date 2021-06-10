@@ -389,6 +389,13 @@ export class ModuleLoader {
 			module.dependencies.add(dependency);
 			dependency.importers.push(module.id);
 		}
+		if (!this.options.treeshake || module.info.hasModuleSideEffects === 'no-treeshake') {
+			for (const dependency of module.dependencies) {
+				if (dependency instanceof Module) {
+					dependency.importedFromNotTreeshaken = true;
+				}
+			}
+		}
 	}
 
 	private getNormalizedResolvedIdWithoutDefaults(
