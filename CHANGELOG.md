@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.51.2
+*2021-06-11*
+
+### Bug Fixes
+* Include modules imported from no-treeshake modules even if they would be empty (#4138)
+
+### Pull Requests
+* [#4138](https://github.com/rollup/rollup/pull/4138): Include all dependencies from modules with no-treeshake (@lukastaegert)
+
 ## 2.51.1
 *2021-06-08*
 
