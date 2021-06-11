@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { pathToFileURL } from 'url';
 import { bold } from 'colorette';
+import getPackageType from 'get-package-type';
 import * as rollup from '../../src/node-entry';
 import { MergedRollupOptions } from '../../src/rollup/types';
 import { error } from '../../src/utils/error';
@@ -13,7 +14,11 @@ import batchWarnings, { BatchWarnings } from './batchWarnings';
 import { addCommandPluginsToInputOptions } from './commandPlugins';
 
 function supportsNativeESM() {
-	return Number(/^v(\d+)/.exec(process.version)![1]) >= 13;
+	const version = process.version.match(/^v(\d+)\.(\d+)\.\d+$/);
+	const major = parseInt(version[1], 10);
+	const minor = parseInt(version[2], 10);
+
+	return major >= 14 || (major === 13 && minor >= 2) || (major === 12 && minor >= 17);
 }
 
 interface NodeModuleWithCompile extends NodeModule {
@@ -45,7 +50,8 @@ async function loadConfigFile(
 ): Promise<GenericConfigObject[]> {
 	const extension = path.extname(fileName);
 	const configFileExport =
-		extension === '.mjs' && supportsNativeESM()
+		supportsNativeESM() &&
+		(extension === '.mjs' || (extension === '.js' && getPackageType.sync(fileName) === 'module'))
 			? (await import(pathToFileURL(fileName).href)).default
 			: extension === '.cjs'
 			? getDefaultFromCjs(require(fileName))

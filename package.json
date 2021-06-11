@@ -87,6 +87,7 @@
     "eslint-plugin-prettier": "^3.4.0",
     "execa": "^5.0.0",
     "fixturify": "^2.1.1",
+    "get-package-type": "^0.1.0",
     "hash.js": "^1.1.7",
     "husky": "^6.0.0",
     "is-reference": "git+https://github.com/lukastaegert/is-reference.git#update-class-features",
