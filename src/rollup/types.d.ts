@@ -478,6 +478,7 @@ type TreeshakingPreset = 'smallest' | 'safest' | 'recommended';
 
 export interface TreeshakingOptions {
 	annotations?: boolean;
+	correctVarValueBeforeDeclaration?: boolean;
 	moduleSideEffects?: ModuleSideEffectsOption;
 	preset?: TreeshakingPreset;
 	propertyReadSideEffects?: boolean | 'always';
@@ -489,6 +490,7 @@ export interface TreeshakingOptions {
 
 export interface NormalizedTreeshakingOptions {
 	annotations: boolean;
+	correctVarValueBeforeDeclaration: boolean;
 	moduleSideEffects: HasModuleSideEffects;
 	propertyReadSideEffects: boolean | 'always';
 	tryCatchDeoptimization: boolean;

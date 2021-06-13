@@ -11,6 +11,7 @@ module.exports = {
 		plugins: [
 			{
 				buildStart(options) {
+					assert.strictEqual(options.treeshake.correctVarValueBeforeDeclaration, false);
 					assert.strictEqual(options.treeshake.propertyReadSideEffects, false);
 					assert.strictEqual(options.treeshake.tryCatchDeoptimization, false);
 					assert.strictEqual(options.treeshake.unknownGlobalSideEffects, true);

@@ -7,6 +7,7 @@ import {
 	PreserveEntrySignaturesOption,
 	PureModulesOption,
 	RollupBuild,
+	TreeshakingOptions,
 	WarningHandler
 } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
@@ -233,7 +234,22 @@ const getTreeshake = (
 	if (configTreeshake === false) {
 		return false;
 	}
-	if (configTreeshake && typeof configTreeshake === 'object') {
+	if (typeof configTreeshake === 'string') {
+		const preset = treeshakePresets[configTreeshake];
+		if (preset) {
+			return preset;
+		}
+		error(
+			errInvalidOption(
+				'treeshake',
+				`valid values are false, true, ${printQuotedStringList(
+					Object.keys(treeshakePresets)
+				)}. You can also supply an object for more fine-grained control`
+			)
+		);
+	}
+	let configWithPreset: TreeshakingOptions = {};
+	if (typeof configTreeshake === 'object') {
 		if (typeof configTreeshake.pureExternalModules !== 'undefined') {
 			warnDeprecationWithOptions(
 				`The "treeshake.pureExternalModules" option is deprecated. The "treeshake.moduleSideEffects" option should be used instead. "treeshake.pureExternalModules: true" is equivalent to "treeshake.moduleSideEffects: 'no-external'"`,
@@ -242,7 +258,7 @@ const getTreeshake = (
 				strictDeprecations
 			);
 		}
-		let configWithPreset = configTreeshake;
+		configWithPreset = configTreeshake;
 		const presetName = configTreeshake.preset;
 		if (presetName) {
 			const preset = treeshakePresets[presetName];
@@ -257,34 +273,24 @@ const getTreeshake = (
 				);
 			}
 		}
-		return {
-			annotations: configWithPreset.annotations !== false,
-			moduleSideEffects: configTreeshake.pureExternalModules
+	}
+	return {
+		annotations: configWithPreset.annotations !== false,
+		correctVarValueBeforeDeclaration: configWithPreset.correctVarValueBeforeDeclaration === true,
+		moduleSideEffects:
+			typeof configTreeshake === 'object' && configTreeshake.pureExternalModules
 				? getHasModuleSideEffects(
 						configTreeshake.moduleSideEffects,
 						configTreeshake.pureExternalModules
 				  )
 				: getHasModuleSideEffects(configWithPreset.moduleSideEffects, undefined),
-			propertyReadSideEffects:
-				configWithPreset.propertyReadSideEffects === 'always'
-					? 'always'
-					: configWithPreset.propertyReadSideEffects !== false,
-			tryCatchDeoptimization: configWithPreset.tryCatchDeoptimization !== false,
-			unknownGlobalSideEffects: configWithPreset.unknownGlobalSideEffects !== false
-		};
-	}
-	const preset = treeshakePresets[configTreeshake];
-	if (preset) {
-		return preset;
-	}
-	error(
-		errInvalidOption(
-			'treeshake',
-			`valid values are false, true, ${printQuotedStringList(
-				Object.keys(treeshakePresets)
-			)}. You can also supply an object for more fine-grained control`
-		)
-	);
+		propertyReadSideEffects:
+			configWithPreset.propertyReadSideEffects === 'always'
+				? 'always'
+				: configWithPreset.propertyReadSideEffects !== false,
+		tryCatchDeoptimization: configWithPreset.tryCatchDeoptimization !== false,
+		unknownGlobalSideEffects: configWithPreset.unknownGlobalSideEffects !== false
+	};
 };
 
 const getHasModuleSideEffects = (
