@@ -41,7 +41,7 @@ const onwarn = warning => {
 	// eslint-disable-next-line no-console
 	console.error(
 		'Building Rollup produced warnings that need to be resolved. ' +
-		'Please keep in mind that the browser build may never have external dependencies!'
+			'Please keep in mind that the browser build may never have external dependencies!'
 	);
 	throw new Error(warning.message);
 };
@@ -68,7 +68,7 @@ const nodePlugins = [
 	conditionalFsEventsImport(),
 	string({ include: '**/*.md' }),
 	commonjs({ include: 'node_modules/**' }),
-	typescript(),
+	typescript()
 ];
 
 export default command => {
