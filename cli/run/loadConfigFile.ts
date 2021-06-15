@@ -10,7 +10,7 @@ import { GenericConfigObject } from '../../src/utils/options/options';
 import relativeId from '../../src/utils/relativeId';
 import { stderr } from '../logging';
 import batchWarnings, { BatchWarnings } from './batchWarnings';
-import { addCommandPluginsToInputOptions } from './commandPlugins';
+import { addCommandPluginsToInputOptions, addPluginsFromCommandOption } from './commandPlugins';
 
 function supportsNativeESM() {
 	return Number(/^v(\d+)/.exec(process.version)![1]) >= 13;
@@ -41,16 +41,17 @@ export default async function loadAndParseConfigFile(
 
 async function loadConfigFile(
 	fileName: string,
-	commandOptions: any
+	commandOptions: Record<string, unknown>
 ): Promise<GenericConfigObject[]> {
 	const extension = path.extname(fileName);
 
 	const configFileExport =
-		extension === '.mjs' && supportsNativeESM()
-			? (await import(pathToFileURL(fileName).href)).default
+		commandOptions.configPlugin ||
+		!(extension === '.cjs' || (extension === '.mjs' && supportsNativeESM()))
+			? await getDefaultFromTranspiledConfigFile(fileName, commandOptions)
 			: extension === '.cjs'
 			? getDefaultFromCjs(require(fileName))
-			: await getDefaultFromTranspiledConfigFile(fileName, commandOptions, extension);
+			: (await import(pathToFileURL(fileName).href)).default;
 
 	return getConfigList(configFileExport, commandOptions);
 }
@@ -61,8 +62,7 @@ function getDefaultFromCjs(namespace: GenericConfigObject) {
 
 async function getDefaultFromTranspiledConfigFile(
 	fileName: string,
-	commandOptions: any,
-	extension: string
+	commandOptions: Record<string, unknown>
 ): Promise<unknown> {
 	const warnings = batchWarnings();
 	const inputOptions = {
@@ -73,7 +73,7 @@ async function getDefaultFromTranspiledConfigFile(
 		plugins: [],
 		treeshake: false
 	};
-	addCommandPluginsToInputOptions(inputOptions, commandOptions, 'configPlugin', extension);
+	addPluginsFromCommandOption(commandOptions.configPlugin, inputOptions);
 	const bundle = await rollup.rollup(inputOptions);
 	if (!commandOptions.silent && warnings.count > 0) {
 		stderr(bold(`loaded ${relativeId(fileName)} with warnings`));

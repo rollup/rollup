@@ -1,5 +1,5 @@
 module.exports = {
-	description: 'uses config file (.ts)',
-	command: 'rollup --config rollup.config.ts',
+	description: 'supports loading TypeScript config files via plugin option',
+	command: 'rollup --config rollup.config.ts --configPlugin typescript',
 	execute: true
 };

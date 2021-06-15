@@ -1,12 +1,10 @@
-import replace from '@rollup/plugin-replace';
+import { RollupOptions } from '../../../../dist/rollup';
 
-export default {
+const options: RollupOptions = {
 	input: 'main.js',
 	output: {
 		format: 'cjs'
-	},
-	plugins: [
-		//@ts-ignore
-		replace({ ANSWER: 42 })
-	]
+	}
 };
+
+export { options as default };
