@@ -23,10 +23,8 @@ export function getChunkAssignments(
 
 	const assignedEntryPointsByModule: DependentModuleMap = new Map();
 	const { dependentEntryPointsByModule, dynamicEntryModules } = analyzeModuleGraph(entryModules);
-	const dynamicallyDependentEntryPointsByDynamicEntry: DependentModuleMap = getDynamicDependentEntryPoints(
-		dependentEntryPointsByModule,
-		dynamicEntryModules
-	);
+	const dynamicallyDependentEntryPointsByDynamicEntry: DependentModuleMap =
+		getDynamicDependentEntryPoints(dependentEntryPointsByModule, dynamicEntryModules);
 	const staticEntries = new Set(entryModules);
 
 	function assignEntryToStaticDependencies(
@@ -63,9 +61,8 @@ export function getChunkAssignments(
 		for (const entry of entriesToCheck) {
 			if (!containedIn.has(entry)) {
 				if (staticEntries.has(entry)) return false;
-				const dynamicallyDependentEntryPoints = dynamicallyDependentEntryPointsByDynamicEntry.get(
-					entry
-				)!;
+				const dynamicallyDependentEntryPoints =
+					dynamicallyDependentEntryPointsByDynamicEntry.get(entry)!;
 				for (const dependentEntry of dynamicallyDependentEntryPoints) {
 					entriesToCheck.add(dependentEntry);
 				}
@@ -112,9 +109,7 @@ function addStaticDependenciesToManualChunk(
 	}
 }
 
-function analyzeModuleGraph(
-	entryModules: Module[]
-): {
+function analyzeModuleGraph(entryModules: Module[]): {
 	dependentEntryPointsByModule: DependentModuleMap;
 	dynamicEntryModules: Set<Module>;
 } {

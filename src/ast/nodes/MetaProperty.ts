@@ -26,12 +26,14 @@ export default class MetaProperty extends NodeBase {
 		accessedGlobalsByScope: Map<ChildScope, Set<string>>
 	): void {
 		const metaProperty = this.metaProperty;
-		const accessedGlobals = (metaProperty &&
-		(metaProperty.startsWith(FILE_PREFIX) ||
-			metaProperty.startsWith(ASSET_PREFIX) ||
-			metaProperty.startsWith(CHUNK_PREFIX))
-			? accessedFileUrlGlobals
-			: accessedMetaUrlGlobals)[format];
+		const accessedGlobals = (
+			metaProperty &&
+			(metaProperty.startsWith(FILE_PREFIX) ||
+				metaProperty.startsWith(ASSET_PREFIX) ||
+				metaProperty.startsWith(CHUNK_PREFIX))
+				? accessedFileUrlGlobals
+				: accessedMetaUrlGlobals
+		)[format];
 		if (accessedGlobals.length > 0) {
 			this.scope.addAccessedGlobals(accessedGlobals, accessedGlobalsByScope);
 		}
@@ -188,13 +190,15 @@ const getRelativeUrlFromDocument = (relativePath: string) =>
 		`'${relativePath}', document.currentScript && document.currentScript.src || document.baseURI`
 	);
 
-const getGenericImportMetaMechanism = (getUrl: (chunkId: string) => string) => (
-	prop: string | null,
-	chunkId: string
-) => {
-	const urlMechanism = getUrl(chunkId);
-	return prop === null ? `({ url: ${urlMechanism} })` : prop === 'url' ? urlMechanism : 'undefined';
-};
+const getGenericImportMetaMechanism =
+	(getUrl: (chunkId: string) => string) => (prop: string | null, chunkId: string) => {
+		const urlMechanism = getUrl(chunkId);
+		return prop === null
+			? `({ url: ${urlMechanism} })`
+			: prop === 'url'
+			? urlMechanism
+			: 'undefined';
+	};
 
 const getUrlFromDocument = (chunkId: string) =>
 	`(document.currentScript && document.currentScript.src || new URL('${chunkId}', document.baseURI).href)`;

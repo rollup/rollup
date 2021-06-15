@@ -127,7 +127,7 @@ export default class Graph {
 		}
 
 		const ast = this.acornParser.parse(code, {
-			...((this.options.acorn as unknown) as acorn.Options),
+			...(this.options.acorn as unknown as acorn.Options),
 			...options
 		});
 
@@ -167,10 +167,8 @@ export default class Graph {
 	};
 
 	private async generateModuleGraph(): Promise<void> {
-		({
-			entryModules: this.entryModules,
-			implicitEntryModules: this.implicitEntryModules
-		} = await this.moduleLoader.addEntryModules(normalizeEntryModules(this.options.input), true));
+		({ entryModules: this.entryModules, implicitEntryModules: this.implicitEntryModules } =
+			await this.moduleLoader.addEntryModules(normalizeEntryModules(this.options.input), true));
 		if (this.entryModules.length === 0) {
 			throw new Error('You must supply options.input to rollup');
 		}

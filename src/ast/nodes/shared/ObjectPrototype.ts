@@ -6,7 +6,7 @@ import {
 import { ObjectEntity, PropertyMap } from './ObjectEntity';
 
 export const OBJECT_PROTOTYPE = new ObjectEntity(
-	({
+	{
 		__proto__: null,
 		hasOwnProperty: METHOD_RETURNS_BOOLEAN,
 		isPrototypeOf: METHOD_RETURNS_BOOLEAN,
@@ -14,6 +14,6 @@ export const OBJECT_PROTOTYPE = new ObjectEntity(
 		toLocaleString: METHOD_RETURNS_STRING,
 		toString: METHOD_RETURNS_STRING,
 		valueOf: METHOD_RETURNS_UNKNOWN
-	} as unknown) as PropertyMap,
+	} as unknown as PropertyMap,
 	null
 );

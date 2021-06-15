@@ -173,9 +173,8 @@ export default class LocalVariable extends Variable {
 	): boolean {
 		if (path.length > MAX_PATH_DEPTH || this.isReassigned) return true;
 		return (this.init &&
-			!(callOptions.withNew
-				? context.instantiated
-				: context.called
+			!(
+				callOptions.withNew ? context.instantiated : context.called
 			).trackEntityAtPathAndGetIfTracked(path, callOptions, this) &&
 			this.init.hasEffectsWhenCalledAtPath(path, callOptions, context))!;
 	}

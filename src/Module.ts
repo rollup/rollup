@@ -167,9 +167,8 @@ function getAndExtendSideEffectModules(variable: Variable, module: Module): Set<
 		}
 		referencedVariables.add(currentVariable);
 		sideEffectModules.add(importingModule);
-		const originalSideEffects = importingModule.sideEffectDependenciesByVariable.get(
-			currentVariable
-		);
+		const originalSideEffects =
+			importingModule.sideEffectDependenciesByVariable.get(currentVariable);
 		if (originalSideEffects) {
 			for (const module of originalSideEffects) {
 				sideEffectModules.add(module);
@@ -1081,9 +1080,11 @@ export default class Module {
 	}
 
 	private includeDynamicImport(node: ImportExpression) {
-		const resolution = (this.dynamicImports.find(dynamicImport => dynamicImport.node === node) as {
-			resolution: string | Module | ExternalModule | undefined;
-		}).resolution;
+		const resolution = (
+			this.dynamicImports.find(dynamicImport => dynamicImport.node === node) as {
+				resolution: string | Module | ExternalModule | undefined;
+			}
+		).resolution;
 		if (resolution instanceof Module) {
 			resolution.includedDynamicImporters.push(this);
 			resolution.includeAllExports(true);

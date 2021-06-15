@@ -229,9 +229,12 @@ function createOutput(
 	outputBundle: Record<string, OutputChunk | OutputAsset | Record<string, never>>
 ): RollupOutput {
 	return {
-		output: (Object.values(outputBundle).filter(
-			outputFile => Object.keys(outputFile).length > 0
-		) as (OutputChunk | OutputAsset)[]).sort((outputFileA, outputFileB) => {
+		output: (
+			Object.values(outputBundle).filter(outputFile => Object.keys(outputFile).length > 0) as (
+				| OutputChunk
+				| OutputAsset
+			)[]
+		).sort((outputFileA, outputFileB) => {
 			const fileTypeA = getSortingFileType(outputFileA);
 			const fileTypeB = getSortingFileType(outputFileB);
 			if (fileTypeA === fileTypeB) return 0;

@@ -75,4 +75,5 @@ export class ExpressionEntity implements WritableEntity {
 	}
 }
 
-export const UNKNOWN_EXPRESSION: ExpressionEntity = new (class UnknownExpression extends ExpressionEntity {})();
+export const UNKNOWN_EXPRESSION: ExpressionEntity =
+	new (class UnknownExpression extends ExpressionEntity {})();

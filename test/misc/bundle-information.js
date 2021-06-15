@@ -530,8 +530,7 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 					[
 						{
 							input: {
-								code:
-									"console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));",
+								code: "console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));",
 								originalLength: 169,
 								removedExports: [],
 								renderedExports: [],
