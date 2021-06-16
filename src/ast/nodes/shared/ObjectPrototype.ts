@@ -15,5 +15,6 @@ export const OBJECT_PROTOTYPE = new ObjectEntity(
 		toString: METHOD_RETURNS_STRING,
 		valueOf: METHOD_RETURNS_UNKNOWN
 	} as unknown as PropertyMap,
-	null
+	null,
+	true
 );
