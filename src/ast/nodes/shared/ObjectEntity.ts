@@ -400,11 +400,6 @@ export class ObjectEntity extends ExpressionEntity {
 					}
 					if (!propertiesAndGettersByKey[key]) {
 						propertiesAndGettersByKey[key] = [property, ...unmatchablePropertiesAndGetters];
-						if (INTEGER_REG_EXP.test(key)) {
-							for (const integerProperty of unknownIntegerProps) {
-								propertiesAndGettersByKey[key].push(integerProperty);
-							}
-						}
 					}
 				}
 			}

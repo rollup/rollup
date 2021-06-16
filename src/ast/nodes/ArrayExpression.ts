@@ -79,10 +79,14 @@ export default class ArrayExpression extends NodeBase {
 		const properties: ObjectProperty[] = [
 			{ key: 'length', kind: 'init', property: UNKNOWN_LITERAL_NUMBER }
 		];
+		let hasSpread = false;
 		for (let index = 0; index < this.elements.length; index++) {
 			const element = this.elements[index];
-			if (element instanceof SpreadElement) {
-				properties.unshift({ key: UnknownInteger, kind: 'init', property: element });
+			if (element instanceof SpreadElement || hasSpread) {
+				if (element) {
+					hasSpread = true;
+					properties.unshift({ key: UnknownInteger, kind: 'init', property: element });
+				}
 			} else if (!element) {
 				properties.push({ key: String(index), kind: 'init', property: UNDEFINED_EXPRESSION });
 			} else {
