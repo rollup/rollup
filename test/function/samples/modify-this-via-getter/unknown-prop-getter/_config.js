@@ -1,7 +1,7 @@
 module.exports = {
 	description: 'handles unknown getters that modify "this"',
 	context: {
-		require(id) {
+		require() {
 			return { unknown: 'prop' };
 		}
 	},

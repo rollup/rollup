@@ -137,9 +137,6 @@ export class ObjectEntity extends ExpressionEntity {
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
-		if (path.length === 0) {
-			return;
-		}
 		const [key, ...subPath] = path;
 
 		if (
@@ -288,7 +285,9 @@ export class ObjectEntity extends ExpressionEntity {
 				return false;
 			}
 			for (const getter of this.unmatchableGetters) {
-				if (getter.hasEffectsWhenAccessedAtPath(subPath, context)) return true;
+				if (getter.hasEffectsWhenAccessedAtPath(subPath, context)) {
+					return true;
+				}
 			}
 		} else {
 			for (const getters of Object.values(this.gettersByKey).concat([this.unmatchableGetters])) {
@@ -320,6 +319,7 @@ export class ObjectEntity extends ExpressionEntity {
 		}
 
 		if (this.hasUnknownDeoptimizedProperty) return true;
+		// We do not need to test for unknown properties as in that case, hasUnknownDeoptimizedProperty is true
 		if (typeof key === 'string') {
 			if (this.propertiesAndSettersByKey[key]) {
 				const setters = this.settersByKey[key];
@@ -331,12 +331,8 @@ export class ObjectEntity extends ExpressionEntity {
 				return false;
 			}
 			for (const property of this.unmatchableSetters) {
-				if (property.hasEffectsWhenAssignedAtPath(subPath, context)) return true;
-			}
-		} else {
-			for (const setters of Object.values(this.settersByKey).concat([this.unmatchableSetters])) {
-				for (const setter of setters) {
-					if (setter.hasEffectsWhenAssignedAtPath(subPath, context)) return true;
+				if (property.hasEffectsWhenAssignedAtPath(subPath, context)) {
+					return true;
 				}
 			}
 		}
