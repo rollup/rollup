@@ -116,7 +116,7 @@ const METHOD_CALLS_ARG_MUTATES_SELF_RETURNS_SELF: [ExpressionEntity] = [
 ];
 
 export const ARRAY_PROTOTYPE = new ObjectEntity(
-	({
+	{
 		__proto__: null,
 		// We assume that accessors have effects as we do not track the accessed value afterwards
 		at: METHOD_DEOPTS_SELF_RETURNS_UNKNOWN,
@@ -147,6 +147,6 @@ export const ARRAY_PROTOTYPE = new ObjectEntity(
 		splice: METHOD_MUTATES_SELF_RETURNS_NEW_ARRAY,
 		unshift: METHOD_MUTATES_SELF_RETURNS_NUMBER,
 		values: METHOD_DEOPTS_SELF_RETURNS_UNKNOWN
-	} as unknown) as PropertyMap,
+	} as unknown as PropertyMap,
 	OBJECT_PROTOTYPE
 );

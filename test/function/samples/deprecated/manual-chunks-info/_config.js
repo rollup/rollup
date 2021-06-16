@@ -99,8 +99,7 @@ module.exports = {
 								],
 								sourceType: 'module'
 							},
-							code:
-								"export const promise = import('./dynamic');\nexport { default as value } from './lib';\nexport { external } from 'external';\n",
+							code: "export const promise = import('./dynamic');\nexport { default as value } from './lib';\nexport { external } from 'external';\n",
 							dynamicallyImportedIds: [getId('dynamic')],
 							dynamicImporters: [],
 							hasModuleSideEffects: true,
@@ -217,8 +216,7 @@ module.exports = {
 								],
 								sourceType: 'module'
 							},
-							code:
-								"export const promise = import('external');\nexport { default as internal } from './lib';\n",
+							code: "export const promise = import('external');\nexport { default as internal } from './lib';\n",
 							dynamicallyImportedIds: ['external'],
 							dynamicImporters: [getId('main')],
 							hasModuleSideEffects: true,

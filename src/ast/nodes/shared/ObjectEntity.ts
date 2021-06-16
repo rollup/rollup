@@ -32,10 +32,8 @@ const INTEGER_REG_EXP = /^\d+$/;
 export class ObjectEntity extends ExpressionEntity {
 	private readonly allProperties: ExpressionEntity[] = [];
 	private readonly deoptimizedPaths: Record<string, boolean> = Object.create(null);
-	private readonly expressionsToBeDeoptimizedByKey: Record<
-		string,
-		DeoptimizableEntity[]
-	> = Object.create(null);
+	private readonly expressionsToBeDeoptimizedByKey: Record<string, DeoptimizableEntity[]> =
+		Object.create(null);
 	private readonly gettersByKey: PropertyMap = Object.create(null);
 	private hasUnknownDeoptimizedInteger = false;
 	private hasUnknownDeoptimizedProperty = false;

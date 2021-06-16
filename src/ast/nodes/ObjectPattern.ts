@@ -19,7 +19,7 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 	): void {
 		for (const property of this.properties) {
 			if (property.type === NodeType.Property) {
-				((property.value as unknown) as PatternNode).addExportedVariables(
+				(property.value as unknown as PatternNode).addExportedVariables(
 					variables,
 					exportNamesByVariable
 				);

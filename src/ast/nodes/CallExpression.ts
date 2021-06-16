@@ -211,9 +211,8 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 		context: HasEffectsContext
 	): boolean {
 		return (
-			!(callOptions.withNew
-				? context.instantiated
-				: context.called
+			!(
+				callOptions.withNew ? context.instantiated : context.called
 			).trackEntityAtPathAndGetIfTracked(path, callOptions, this) &&
 			this.getReturnExpression().hasEffectsWhenCalledAtPath(path, callOptions, context)
 		);

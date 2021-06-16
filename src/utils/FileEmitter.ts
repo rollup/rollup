@@ -307,7 +307,7 @@ export class FileEmitter {
 			type: 'chunk'
 		};
 		this.graph.moduleLoader
-			.emitChunk((emittedChunk as unknown) as EmittedChunk)
+			.emitChunk(emittedChunk as unknown as EmittedChunk)
 			.then(module => (consumedChunk.module = module))
 			.catch(() => {
 				// Avoid unhandled Promise rejection as the error will be thrown later

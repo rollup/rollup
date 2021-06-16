@@ -27,9 +27,10 @@ export interface CommandConfigObject {
 	globals: { [id: string]: string } | undefined;
 }
 
-export function normalizeInputOptions(
-	config: GenericConfigObject
-): { options: NormalizedInputOptions; unsetOptions: Set<string> } {
+export function normalizeInputOptions(config: GenericConfigObject): {
+	options: NormalizedInputOptions;
+	unsetOptions: Set<string>;
+} {
 	// These are options that may trigger special warnings or behaviour later
 	// if the user did not select an explicit value
 	const unsetOptions = new Set<string>();
@@ -38,7 +39,7 @@ export function normalizeInputOptions(
 	const onwarn = getOnwarn(config);
 	const strictDeprecations = (config.strictDeprecations as boolean | undefined) || false;
 	const options: NormalizedInputOptions & InputOptions = {
-		acorn: (getAcorn(config) as unknown) as Record<string, unknown>,
+		acorn: getAcorn(config) as unknown as Record<string, unknown>,
 		acornInjectPlugins: getAcornInjectPlugins(config),
 		cache: getCache(config),
 		context,

@@ -113,8 +113,7 @@ module.exports = {
 						],
 						sourceType: 'module'
 					},
-					code:
-						"import { lib1 } from './lib1';\nimport { lib1b } from './lib1b';\nimport { lib2 } from './lib2';\nconsole.log('main1', lib1,  lib1b, lib2);\n",
+					code: "import { lib1 } from './lib1';\nimport { lib1b } from './lib1b';\nimport { lib2 } from './lib2';\nconsole.log('main1', lib1,  lib1b, lib2);\n",
 					dynamicallyImportedIds: [],
 					dynamicImporters: [],
 					hasModuleSideEffects: true,
@@ -208,8 +207,7 @@ module.exports = {
 						],
 						sourceType: 'module'
 					},
-					code:
-						"import { lib1 } from './lib1';\nimport { lib1b } from './lib1b';\nimport { lib3 } from './lib3';\nconsole.log('main2', lib1, lib1b, lib3);\n",
+					code: "import { lib1 } from './lib1';\nimport { lib1b } from './lib1b';\nimport { lib3 } from './lib3';\nconsole.log('main2', lib1, lib1b, lib3);\n",
 					dynamicallyImportedIds: [],
 					dynamicImporters: [],
 					hasModuleSideEffects: true,
@@ -302,8 +300,7 @@ module.exports = {
 						],
 						sourceType: 'module'
 					},
-					code:
-						"import { lib1 } from './lib1';\nimport { lib2 } from './lib2';\nimport { lib3 } from './lib3';\nconsole.log(lib1, lib2, lib3);\n",
+					code: "import { lib1 } from './lib1';\nimport { lib2 } from './lib2';\nimport { lib3 } from './lib3';\nconsole.log(lib1, lib2, lib3);\n",
 					dynamicallyImportedIds: [],
 					dynamicImporters: [],
 					hasModuleSideEffects: true,

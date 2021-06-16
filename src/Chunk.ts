@@ -152,10 +152,8 @@ export default class Chunk {
 	private readonly isEmpty: boolean = true;
 	private name: string | null = null;
 	private needsExportsShim = false;
-	private renderedDependencies: Map<
-		ExternalModule | Chunk,
-		ModuleDeclarationDependency
-	> | null = null;
+	private renderedDependencies: Map<ExternalModule | Chunk, ModuleDeclarationDependency> | null =
+		null;
 	private renderedExports: ChunkExports | null = null;
 	private renderedHash: string = undefined as never;
 	private renderedModuleSources = new Map<Module, MagicString>();

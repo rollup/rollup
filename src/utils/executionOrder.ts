@@ -13,9 +13,10 @@ export function sortByExecutionOrder(units: OrderedExecutionUnit[]): void {
 	units.sort(compareExecIndex);
 }
 
-export function analyseModuleExecution(
-	entryModules: Module[]
-): { cyclePaths: string[][]; orderedModules: Module[] } {
+export function analyseModuleExecution(entryModules: Module[]): {
+	cyclePaths: string[][];
+	orderedModules: Module[];
+} {
 	let nextExecIndex = 0;
 	const cyclePaths: string[][] = [];
 	const analysedModules = new Set<Module | ExternalModule>();

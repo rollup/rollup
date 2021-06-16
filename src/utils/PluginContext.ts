@@ -28,7 +28,7 @@ function getDeprecatedContextHandler<H extends Function>(
 	options: NormalizedInputOptions
 ): H {
 	let deprecationWarningShown = false;
-	return (((...args: any[]) => {
+	return ((...args: any[]) => {
 		if (!deprecationWarningShown) {
 			deprecationWarningShown = true;
 			warnDeprecation(
@@ -41,7 +41,7 @@ function getDeprecatedContextHandler<H extends Function>(
 			);
 		}
 		return handler(...args);
-	}) as unknown) as H;
+	}) as unknown as H;
 }
 
 export function getPluginContext(

@@ -161,8 +161,7 @@ module.exports = {
 								],
 								sourceType: 'module'
 							},
-							code:
-								"export { foo } from './foo.js';\nexport const nested = import('./nested/nested');\nexport const path = import('path');\nexport const pathAgain = import(thePath);\n",
+							code: "export { foo } from './foo.js';\nexport const nested = import('./nested/nested');\nexport const path = import('path');\nexport const pathAgain = import(thePath);\n",
 							dynamicallyImportedIds: [ID_NESTED, ID_PATH],
 							dynamicImporters: [],
 							hasModuleSideEffects: true,
