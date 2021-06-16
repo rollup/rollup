@@ -14,7 +14,7 @@ import LocalVariable from '../variables/LocalVariable';
 import Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
 import SpreadElement from './SpreadElement';
-import { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
+import { ExpressionEntity, LiteralValueOrUnknown, UNKNOWN_EXPRESSION } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
@@ -45,9 +45,15 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 	declare(kind: string, init: ExpressionEntity): LocalVariable[] {
 		let variable: LocalVariable;
+		const { treeshake } = this.context.options;
 		switch (kind) {
 			case 'var':
-				variable = this.scope.addDeclaration(this, this.context, init, true);
+				variable = this.scope.addDeclaration(
+					this,
+					this.context,
+					treeshake && treeshake.correctVarValueBeforeDeclaration ? UNKNOWN_EXPRESSION : init,
+					true
+				);
 				break;
 			case 'function':
 				// in strict mode, functions are only hoisted within a scope but not across block scopes
