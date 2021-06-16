@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 2.52.0
+*2021-06-16*
+
+### Features
+* Add `--configPlugin` CLI option to apply plugins to the config file for e.g. TypeScript configs (#3835)
+* Add "safest" and "smallest" presets to tree-shaking options for easier configuration (#4131)
+* Add `treeshake.correctVarValueBeforeDeclaration` option to deoptimize `var` declarations (#4139)
+
+### Pull Requests
+* [#3835](https://github.com/rollup/rollup/pull/3835): Add typescript config support (@TheRealSyler)
+* [#4131](https://github.com/rollup/rollup/pull/4131): Add presets to the tree-shaking options (@lukastaegert)
+* [#4139](https://github.com/rollup/rollup/pull/4139): Add option to deoptimize var declarations for tree-shaking (@lukastaegert)
+* [#4141](https://github.com/rollup/rollup/pull/4141): Update dependencies (@lukastaegert)
+
 ## 2.51.2
 *2021-06-11*
 
@@ -1535,7 +1549,7 @@ This version is identical to 2.4.0
 * The file structure of Rollup's ESM builds has changed:
   - The main ESM entry point is now at `rollup/dist/es/rollup.js` instead of `rollup/dist/rollup.es.js`
   - The ESM browser build is at `rollup/dist/es/rollup.browser.js` instead of `rollup/dist/rollup.browser.es.js`
-  
+
   In general, the ESM builds now follow the same naming scheme as the CJS builds but are located in the `rollup/dist/es` subfolder instead of `rollup/dist` (#3391)
 * The "watch.chokidar" option no longer accepts a `boolean` value but only an object of parameters that is passed to the bundled Chokidar instance. Chokidar installations by the user will be ignored in favour of the bundled instance (#3331)
 * Modules that are completely tree-shaken will no longer be listed as part of any chunks in `generateBundle`
@@ -2968,7 +2982,7 @@ This version is identical to 2.4.0
   - globals -> output.globals
   - indent -> output.indent
   - interop -> output.interop
-  - intro -> output.intro 
+  - intro -> output.intro
   - load -> use plugin API
   - moduleName -> output.name
   - name -> output.name
@@ -3123,9 +3137,9 @@ none
 
 ### Bug Fixes
 * Fix TypeScript type for sourcemaps (#2507)
-* Fix order of external and inter-chunk imports to match the proper execution order (#2508) 
-* Do not tree-shake children of unknown nodes to e.g. properly handle do-expressions via acorn plugin (#2510) 
-* Prevent memory leak when using the bundle as cache (#2522) 
+* Fix order of external and inter-chunk imports to match the proper execution order (#2508)
+* Do not tree-shake children of unknown nodes to e.g. properly handle do-expressions via acorn plugin (#2510)
+* Prevent memory leak when using the bundle as cache (#2522)
 * Fix mis-placed semicolons for certain SystemJS exports (#2529)
 
 ### Pull Requests
