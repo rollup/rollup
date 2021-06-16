@@ -10,7 +10,7 @@ import { GenericConfigObject } from '../../src/utils/options/options';
 import relativeId from '../../src/utils/relativeId';
 import { stderr } from '../logging';
 import batchWarnings, { BatchWarnings } from './batchWarnings';
-import { addCommandPluginsToInputOptions } from './commandPlugins';
+import { addCommandPluginsToInputOptions, addPluginsFromCommandOption } from './commandPlugins';
 
 function supportsNativeESM() {
 	return Number(/^v(\d+)/.exec(process.version)![1]) >= 13;
@@ -41,15 +41,18 @@ export default async function loadAndParseConfigFile(
 
 async function loadConfigFile(
 	fileName: string,
-	commandOptions: any
+	commandOptions: Record<string, unknown>
 ): Promise<GenericConfigObject[]> {
 	const extension = path.extname(fileName);
+
 	const configFileExport =
-		extension === '.mjs' && supportsNativeESM()
-			? (await import(pathToFileURL(fileName).href)).default
+		commandOptions.configPlugin ||
+		!(extension === '.cjs' || (extension === '.mjs' && supportsNativeESM()))
+			? await getDefaultFromTranspiledConfigFile(fileName, commandOptions)
 			: extension === '.cjs'
 			? getDefaultFromCjs(require(fileName))
-			: await getDefaultFromTranspiledConfigFile(fileName, commandOptions.silent);
+			: (await import(pathToFileURL(fileName).href)).default;
+
 	return getConfigList(configFileExport, commandOptions);
 }
 
@@ -59,17 +62,20 @@ function getDefaultFromCjs(namespace: GenericConfigObject) {
 
 async function getDefaultFromTranspiledConfigFile(
 	fileName: string,
-	silent: boolean
+	commandOptions: Record<string, unknown>
 ): Promise<unknown> {
 	const warnings = batchWarnings();
-	const bundle = await rollup.rollup({
+	const inputOptions = {
 		external: (id: string) =>
 			(id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5, id.length) === '.json',
 		input: fileName,
 		onwarn: warnings.add,
+		plugins: [],
 		treeshake: false
-	});
-	if (!silent && warnings.count > 0) {
+	};
+	addPluginsFromCommandOption(commandOptions.configPlugin, inputOptions);
+	const bundle = await rollup.rollup(inputOptions);
+	if (!commandOptions.silent && warnings.count > 0) {
 		stderr(bold(`loaded ${relativeId(fileName)} with warnings`));
 		warnings.flush();
 	}

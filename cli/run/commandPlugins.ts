@@ -13,7 +13,13 @@ export function addCommandPluginsToInputOptions(
 	if (command.waitForBundleInput === true) {
 		inputOptions.plugins!.push(waitForInputPlugin());
 	}
-	const commandPlugin = command.plugin;
+	addPluginsFromCommandOption(command.plugin, inputOptions);
+}
+
+export function addPluginsFromCommandOption(
+	commandPlugin: unknown,
+	inputOptions: InputOptions
+): void {
 	if (commandPlugin) {
 		const plugins = Array.isArray(commandPlugin) ? commandPlugin : [commandPlugin];
 		for (const plugin of plugins) {
@@ -30,7 +36,7 @@ export function addCommandPluginsToInputOptions(
 	}
 }
 
-function loadAndRegisterPlugin(inputOptions: InputOptions, pluginText: string) {
+function loadAndRegisterPlugin(inputOptions: InputOptions, pluginText: string): void {
 	let plugin: any = null;
 	let pluginArg: any = undefined;
 	if (pluginText[0] === '{') {

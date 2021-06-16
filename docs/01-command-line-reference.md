@@ -22,6 +22,12 @@ Typically, it is called `rollup.config.js` and sits in the root directory of you
 
 If you want to write your config as a CommonJS module using `require` and `module.exports`, you should change the file extension to `.cjs`, which will prevent Rollup from trying to transpile the file. Furthermore if you are on Node 13+, changing the file extension to `.mjs` will also prevent Rollup from transpiling it but import the file as an ES module instead. See [using untranspiled config files](guide/en/#using-untranspiled-config-files) for more details and why you might want to do this.
 
+You can also use other languages for your configuration files like TypeScript. To do that, install a corresponding Rollup plugin like `@rollup/plugin-typescript` and use the [`--configPlugin`](guide/en/#--configplugin-plugin) option:
+
+```
+rollup --config rollup.config.ts --configPlugin typescript
+```
+
 Config files support the options listed below. Consult the [big list of options](guide/en/#big-list-of-options) for details on each option:
 
 ```javascript
@@ -227,6 +233,8 @@ export default defineConfig({
 })
 ```
 
+See also the [`--configPlugin`](guide/en/#--configplugin-plugin) for how to write your config in TypeScript.
+
 ### Differences to the JavaScript API
 
 While config files provide an easy way to configure Rollup, they also limit how Rollup can be invoked and where configuration is taken from. Especially if you are rebundling Rollup in another build tool or want to integrate it into an advanced build process, it may be better to directly invoke Rollup programmatically from your scripts.
@@ -409,6 +417,16 @@ By default, plugin functions be called with no argument to create the plugin. Yo
 ```
 rollup -i input.js -f es -p 'terser={output: {beautify: true, indent_level: 2}}'
 ```
+
+#### `--configPlugin <plugin>`
+
+Allows to specify Rollup plugins to transpile or otherwise control the parsing of your configuration file. The main benefit is that it allows you to use non-JavaScript configuration files. For instance the following will allow you to write your configuration in TypeScript, provided you have `@rollup/plugin-typescript` installed:
+
+```
+rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript
+```
+
+It supports the same syntax as the [`--plugin`](guide/en/#-p-plugin---plugin-plugin) option i.e. you can spcify the option multiple times, you can omit the `@rollup/plugin-` prefix and just write `typescript` and you can specify plugin options via `={...}`.
 
 #### `-v`/`--version`
 

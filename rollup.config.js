@@ -76,6 +76,8 @@ export default command => {
 	const commonJSBuild = {
 		// fsevents is a dependency of chokidar that cannot be bundled as it contains binary code
 		external: [
+			'buffer',
+			'@rollup/plugin-typescript',
 			'assert',
 			'crypto',
 			'events',

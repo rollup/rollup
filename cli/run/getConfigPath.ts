@@ -33,7 +33,7 @@ export function getConfigPath(commandConfig: string | true): string {
 
 function findConfigFileNameInCwd(): string {
 	const filesInWorkingDir = new Set(readdirSync(process.cwd()));
-	for (const extension of ['mjs', 'cjs']) {
+	for (const extension of ['mjs', 'cjs', 'ts']) {
 		const fileName = `${DEFAULT_CONFIG_BASE}.${extension}`;
 		if (filesInWorkingDir.has(fileName)) return fileName;
 	}
