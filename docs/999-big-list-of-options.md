@@ -1379,11 +1379,21 @@ Default: `false`
 If this option is provided, bundling will not fail if bindings are imported from a file that does not define these bindings. Instead, new variables will be created for these bindings with the value `undefined`.
 
 #### treeshake
-Type: `boolean | { annotations?: boolean, moduleSideEffects?: ModuleSideEffectsOption, propertyReadSideEffects?: boolean | 'always', tryCatchDeoptimization?: boolean, unknownGlobalSideEffects?: boolean }`<br>
+Type: `boolean | "smallest" | "safest" | "recommended" | { annotations?: boolean, moduleSideEffects?: ModuleSideEffectsOption, preset?: "smallest" | "safest" | "recommended", propertyReadSideEffects?: boolean | 'always', tryCatchDeoptimization?: boolean, unknownGlobalSideEffects?: boolean }`<br>
 CLI: `--treeshake`/`--no-treeshake`<br>
 Default: `true`
 
-Whether to apply tree-shaking and to fine-tune the tree-shaking process. Setting this option to `false` will produce bigger bundles but may improve build performance. If you discover a bug caused by the tree-shaking algorithm, please file an issue!
+Whether to apply tree-shaking and to fine-tune the tree-shaking process. Setting this option to `false` will produce bigger bundles but may improve build performance. You may also choose one of three presets that will automatically be updated if new options are added:
+
+* `"smallest"` will choose option values for you to minimize output size as much as possible. This should work for most code bases as long as you do not rely on certain patterns, which are currently:
+  * getters with side effects will only be retained if the return value is used (`treeshake.propertyReadSideEffects: false`)
+  * code from imported modules will only be retained if at least one exported value is used (`treeshake.moduleSideEffects: false`)
+  * you should not bundle polyfills that rely on detecting broken builtins (`treeshake.tryCatchDeoptimization: false`)
+  * some semantic errors may be swallowed (`treeshake.unknownGlobalSideEffects: false`)
+* `"recommended"` should work well for most usage patterns. Some semantic errors may be swallowed, though (`treeshake.unknownGlobalSideEffects: false`)
+* `"safest"` tries to be as spec compliant as possible while still providing some basic tree-shaking capabilities. This is currently equivalent to `true` but this may change in the next major version.
+
+If you discover a bug caused by the tree-shaking algorithm, please file an issue!
 Setting this option to an object implies tree-shaking is enabled and grants the following additional options:
 
 **treeshake.annotations**<br>
@@ -1491,6 +1501,22 @@ console.log(foo);
 ```
 
 Note that despite the name, this option does not "add" side effects to modules that do not have side effects. If it is important that e.g. an empty module is "included" in the bundle because you need this for dependency tracking, the plugin interface allows you to designate modules as being excluded from tree-shaking via the [`resolveId`](guide/en/#resolveid), [`load`](guide/en/#load) or [`transform`](guide/en/#transform) hook.
+
+**treeshake.preset**<br>
+Type: `"smallest" | "safest" | "recommended"`<br>
+CLI: `--treeshake <value>`<br>
+
+Allows choosing one of the presets listed above while overriding some of the options.
+
+```js
+export default {
+  treeshake: {
+    preset: 'smallest',
+    propertyReadSideEffects: true
+  }
+  // ...
+}
+```
 
 **treeshake.propertyReadSideEffects**<br>
 Type: `boolean | 'always'`<br>

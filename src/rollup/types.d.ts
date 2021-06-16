@@ -474,9 +474,12 @@ export interface OutputPlugin extends Partial<OutputPluginHooks>, Partial<Output
 	name: string;
 }
 
+type TreeshakingPreset = 'smallest' | 'safest' | 'recommended';
+
 export interface TreeshakingOptions {
 	annotations?: boolean;
 	moduleSideEffects?: ModuleSideEffectsOption;
+	preset?: TreeshakingPreset;
 	propertyReadSideEffects?: boolean | 'always';
 	/** @deprecated Use `moduleSideEffects` instead */
 	pureExternalModules?: PureModulesOption;
@@ -541,7 +544,7 @@ export interface InputOptions {
 	preserveSymlinks?: boolean;
 	shimMissingExports?: boolean;
 	strictDeprecations?: boolean;
-	treeshake?: boolean | TreeshakingOptions;
+	treeshake?: boolean | TreeshakingPreset | TreeshakingOptions;
 	watch?: WatcherOptions | false;
 }
 
