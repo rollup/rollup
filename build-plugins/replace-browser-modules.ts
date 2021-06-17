@@ -1,11 +1,12 @@
 import path from 'path';
+import { Plugin } from 'rollup';
 
 const ID_CRYPTO = path.resolve('src/utils/crypto');
 const ID_FS = path.resolve('src/utils/fs');
 const ID_PATH = path.resolve('src/utils/path');
 const ID_RESOLVEID = path.resolve('src/utils/resolveId');
 
-export default function replaceBrowserModules() {
+export default function replaceBrowserModules(): Plugin {
 	return {
 		name: 'replace-browser-modules',
 		resolveId: (source, importee) => {

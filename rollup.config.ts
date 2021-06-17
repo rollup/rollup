@@ -4,15 +4,16 @@ import alias from '@rollup/plugin-alias';
 import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
 import resolve from '@rollup/plugin-node-resolve';
+import { RollupOptions, WarningHandlerWithDefault } from 'rollup';
 import { string } from 'rollup-plugin-string';
 import { terser } from 'rollup-plugin-terser';
 import typescript from 'rollup-plugin-typescript';
-import addCliEntry from './build-plugins/add-cli-entry.js';
+import addCliEntry from './build-plugins/add-cli-entry';
 import conditionalFsEventsImport from './build-plugins/conditional-fsevents-import';
-import emitModulePackageFile from './build-plugins/emit-module-package-file.js';
-import esmDynamicImport from './build-plugins/esm-dynamic-import.js';
+import emitModulePackageFile from './build-plugins/emit-module-package-file';
+import esmDynamicImport from './build-plugins/esm-dynamic-import';
 import getLicenseHandler from './build-plugins/generate-license-file';
-import replaceBrowserModules from './build-plugins/replace-browser-modules.js';
+import replaceBrowserModules from './build-plugins/replace-browser-modules';
 import pkg from './package.json';
 
 const commitHash = (function () {
@@ -24,7 +25,9 @@ const commitHash = (function () {
 })();
 
 const now = new Date(
-	process.env.SOURCE_DATE_EPOCH ? process.env.SOURCE_DATE_EPOCH * 1000 : new Date().getTime()
+	process.env.SOURCE_DATE_EPOCH
+		? 1000 * parseInt(process.env.SOURCE_DATE_EPOCH)
+		: new Date().getTime()
 ).toUTCString();
 
 const banner = `/*
@@ -37,7 +40,7 @@ const banner = `/*
 	Released under the MIT License.
 */`;
 
-const onwarn = warning => {
+const onwarn: WarningHandlerWithDefault = warning => {
 	// eslint-disable-next-line no-console
 	console.error(
 		'Building Rollup produced warnings that need to be resolved. ' +
@@ -71,9 +74,9 @@ const nodePlugins = [
 	typescript()
 ];
 
-export default command => {
+export default (command: Record<string, unknown>): RollupOptions | RollupOptions[] => {
 	const { collectLicenses, writeLicense } = getLicenseHandler();
-	const commonJSBuild = {
+	const commonJSBuild: RollupOptions = {
 		// fsevents is a dependency of chokidar that cannot be bundled as it contains binary code
 		external: [
 			'buffer',
@@ -118,7 +121,8 @@ export default command => {
 			...nodePlugins,
 			addCliEntry(),
 			esmDynamicImport(),
-			!command.configTest && collectLicenses()
+			// TODO this relied on an unpublished type update
+			(!command.configTest && collectLicenses()) as Plugin
 		],
 		strictDeprecations: true,
 		treeshake
@@ -128,7 +132,7 @@ export default command => {
 		return commonJSBuild;
 	}
 
-	const esmBuild = {
+	const esmBuild: RollupOptions = {
 		...commonJSBuild,
 		input: { 'rollup.js': 'src/node-entry.ts' },
 		output: {
@@ -141,7 +145,7 @@ export default command => {
 		plugins: [...nodePlugins, emitModulePackageFile(), collectLicenses()]
 	};
 
-	const browserBuilds = {
+	const browserBuilds: RollupOptions = {
 		input: 'src/browser-entry.ts',
 		onwarn,
 		output: [

@@ -9,10 +9,11 @@
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
 		"pretty": true,
+		"resolveJsonModule": true,
 		"skipLibCheck": true,
 		"strict": true,
 		"target": "es2018"
 	},
-	"include": ["typings/**/*.d.ts", "src", "cli", "browser"],
+	"include": ["typings/**/*.d.ts", "src", "cli", "browser", "rollup.config.ts"],
 	"exclude": ["dist", "node_modules", "test/typescript"]
 }

@@ -1,4 +1,6 @@
-export function ensureArray<T>(items: (T | null | undefined)[] | T | null | undefined): T[] {
+export function ensureArray<T>(
+	items: (T | false | null | undefined)[] | T | false | null | undefined
+): T[] {
 	if (Array.isArray(items)) {
 		return items.filter(Boolean) as T[];
 	}

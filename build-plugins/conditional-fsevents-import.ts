@@ -1,9 +1,10 @@
 import MagicString from 'magic-string';
+import { Plugin } from 'rollup';
 
 const FSEVENTS_REQUIRE = "require('fsevents')";
 const REPLACEMENT = "require('../../../src/watch/fsevents-importer').getFsEvents()";
 
-export default function conditionalFsEventsImport() {
+export default function conditionalFsEventsImport(): Plugin {
 	let transformed = false;
 	return {
 		buildEnd(error) {

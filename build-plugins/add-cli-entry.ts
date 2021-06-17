@@ -1,6 +1,7 @@
 import MagicString from 'magic-string';
+import { Plugin } from 'rollup';
 
-export default function addCliEntry() {
+export default function addCliEntry(): Plugin {
 	return {
 		buildStart() {
 			this.emitFile({
@@ -17,6 +18,7 @@ export default function addCliEntry() {
 				magicString.prepend('#!/usr/bin/env node\n\n');
 				return { code: magicString.toString(), map: magicString.generateMap({ hires: true }) };
 			}
+			return null;
 		}
 	};
 }
