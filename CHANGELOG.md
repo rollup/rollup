@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.52.1
+*2021-06-17*
+
+### Bug Fixes
+* Fix a memory leak in watch mode (#4142)
+
+### Pull Requests
+* [#4142](https://github.com/rollup/rollup/pull/4142): Make array and object prototype singletons immutable for now (@lukastaegert)
+
 ## 2.52.0
 *2021-06-16*
 
