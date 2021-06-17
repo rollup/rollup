@@ -277,7 +277,8 @@ export type RenderChunkHook = (
 	| Promise<{ code: string; map?: SourceMapInput } | null>
 	| { code: string; map?: SourceMapInput }
 	| string
-	| null;
+	| null
+	| undefined;
 
 export type ResolveDynamicImportHook = (
 	this: PluginContext,
