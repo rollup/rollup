@@ -50,7 +50,8 @@ export class ObjectEntity extends ExpressionEntity {
 	// and we assume there are no setters or getters
 	constructor(
 		properties: ObjectProperty[] | PropertyMap,
-		private prototypeExpression: ExpressionEntity | null
+		private prototypeExpression: ExpressionEntity | null,
+		private immutable = false
 	) {
 		super();
 		if (Array.isArray(properties)) {
@@ -96,7 +97,7 @@ export class ObjectEntity extends ExpressionEntity {
 	}
 
 	deoptimizePath(path: ObjectPath): void {
-		if (this.hasUnknownDeoptimizedProperty) return;
+		if (this.hasUnknownDeoptimizedProperty || this.immutable) return;
 		const key = path[0];
 		if (path.length === 1) {
 			if (typeof key !== 'string') {
@@ -136,9 +137,6 @@ export class ObjectEntity extends ExpressionEntity {
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
-		if (path.length === 0) {
-			return;
-		}
 		const [key, ...subPath] = path;
 
 		if (
@@ -171,7 +169,9 @@ export class ObjectEntity extends ExpressionEntity {
 						property.deoptimizeThisOnEventAtPath(event, subPath, thisParameter, recursionTracker);
 					}
 				}
-				this.thisParametersToBeDeoptimized.add(thisParameter);
+				if (!this.immutable) {
+					this.thisParametersToBeDeoptimized.add(thisParameter);
+				}
 				return;
 			}
 			for (const property of relevantUnmatchableProperties) {
@@ -194,7 +194,9 @@ export class ObjectEntity extends ExpressionEntity {
 				property.deoptimizeThisOnEventAtPath(event, subPath, thisParameter, recursionTracker);
 			}
 		}
-		this.thisParametersToBeDeoptimized.add(thisParameter);
+		if (!this.immutable) {
+			this.thisParametersToBeDeoptimized.add(thisParameter);
+		}
 		this.prototypeExpression?.deoptimizeThisOnEventAtPath(
 			event,
 			path,
@@ -283,7 +285,9 @@ export class ObjectEntity extends ExpressionEntity {
 				return false;
 			}
 			for (const getter of this.unmatchableGetters) {
-				if (getter.hasEffectsWhenAccessedAtPath(subPath, context)) return true;
+				if (getter.hasEffectsWhenAccessedAtPath(subPath, context)) {
+					return true;
+				}
 			}
 		} else {
 			for (const getters of Object.values(this.gettersByKey).concat([this.unmatchableGetters])) {
@@ -315,6 +319,7 @@ export class ObjectEntity extends ExpressionEntity {
 		}
 
 		if (this.hasUnknownDeoptimizedProperty) return true;
+		// We do not need to test for unknown properties as in that case, hasUnknownDeoptimizedProperty is true
 		if (typeof key === 'string') {
 			if (this.propertiesAndSettersByKey[key]) {
 				const setters = this.settersByKey[key];
@@ -326,12 +331,8 @@ export class ObjectEntity extends ExpressionEntity {
 				return false;
 			}
 			for (const property of this.unmatchableSetters) {
-				if (property.hasEffectsWhenAssignedAtPath(subPath, context)) return true;
-			}
-		} else {
-			for (const setters of Object.values(this.settersByKey).concat([this.unmatchableSetters])) {
-				for (const setter of setters) {
-					if (setter.hasEffectsWhenAssignedAtPath(subPath, context)) return true;
+				if (property.hasEffectsWhenAssignedAtPath(subPath, context)) {
+					return true;
 				}
 			}
 		}
@@ -399,11 +400,6 @@ export class ObjectEntity extends ExpressionEntity {
 					}
 					if (!propertiesAndGettersByKey[key]) {
 						propertiesAndGettersByKey[key] = [property, ...unmatchablePropertiesAndGetters];
-						if (INTEGER_REG_EXP.test(key)) {
-							for (const integerProperty of unknownIntegerProps) {
-								propertiesAndGettersByKey[key].push(integerProperty);
-							}
-						}
 					}
 				}
 			}
@@ -467,7 +463,7 @@ export class ObjectEntity extends ExpressionEntity {
 			return UNKNOWN_EXPRESSION;
 		}
 		const expression = this.getMemberExpression(key);
-		if (expression !== UNKNOWN_EXPRESSION) {
+		if (!(expression === UNKNOWN_EXPRESSION || this.immutable)) {
 			const expressionsToBeDeoptimized = (this.expressionsToBeDeoptimizedByKey[key] =
 				this.expressionsToBeDeoptimizedByKey[key] || []);
 			expressionsToBeDeoptimized.push(origin);

@@ -148,5 +148,6 @@ export const ARRAY_PROTOTYPE = new ObjectEntity(
 		unshift: METHOD_MUTATES_SELF_RETURNS_NUMBER,
 		values: METHOD_DEOPTS_SELF_RETURNS_UNKNOWN
 	} as unknown as PropertyMap,
-	OBJECT_PROTOTYPE
+	OBJECT_PROTOTYPE,
+	true
 );
