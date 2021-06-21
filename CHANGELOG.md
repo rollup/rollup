@@ -1,5 +1,15 @@
 # rollup changelog
 
+## 2.52.2
+*2021-06-21*
+
+### Bug Fixes
+* Support falsy plugins in types (#4144)
+* Do not require return value in renderChunkHook type (#4144)
+
+### Pull Requests
+* [#4144](https://github.com/rollup/rollup/pull/4144): Use TypeScript config and improve some types (@lukastaegert)
+
 ## 2.52.1
 *2021-06-17*
 
