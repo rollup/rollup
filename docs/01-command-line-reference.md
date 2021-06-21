@@ -28,6 +28,8 @@ You can also use other languages for your configuration files like TypeScript. T
 rollup --config rollup.config.ts --configPlugin typescript
 ```
 
+Also have a look at [Config Intellisense](guide/en/#config-intellisense) for more ways to use TypeScript typings in your config files.
+
 Config files support the options listed below. Consult the [big list of options](guide/en/#big-list-of-options) for details on each option:
 
 ```javascript
@@ -208,7 +210,7 @@ export default commandLineArgs => {
 
 #### Config Intellisense
 
-Since Rollup ships with TypeScript typings, you can leverage your IDE's intellisense with jsdoc type hints:
+Since Rollup ships with TypeScript typings, you can leverage your IDE's Intellisense with JSDoc type hints:
 
 ```javascript
 // rollup.config.js
@@ -222,7 +224,7 @@ const config = {
 export default config
 ```
 
-Alternatively you can use the helper which should provide intellisense without the need for jsdoc annotations:defineConfig
+Alternatively you can use the `defineConfig` helper, which should provide Intellisense without the need for JSDoc annotations:
 
 ```javascript
 // rollup.config.js
@@ -233,7 +235,13 @@ export default defineConfig({
 })
 ```
 
-See also the [`--configPlugin`](guide/en/#--configplugin-plugin) for how to write your config in TypeScript.
+Besides `RollupOptions` and the `defineConfig` helper that encapsulates this type, the following types can prove useful as well:
+
+* `OutputOptions`: The `output` part of a config file
+* `Plugin`: A plugin object that provides a `name` and some hooks. All hooks are fully typed to aid in plugin development.
+* `PluginImpl`: A function that maps an options object to a plugin object. Most public Rollup plugins follow this pattern.
+
+You can also directly write your config in TypeScript via the [`--configPlugin`](guide/en/#--configplugin-plugin) option.
 
 ### Differences to the JavaScript API
 
