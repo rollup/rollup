@@ -434,7 +434,7 @@ Allows to specify Rollup plugins to transpile or otherwise control the parsing o
 rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript
 ```
 
-It supports the same syntax as the [`--plugin`](guide/en/#-p-plugin---plugin-plugin) option i.e. you can spcify the option multiple times, you can omit the `@rollup/plugin-` prefix and just write `typescript` and you can specify plugin options via `={...}`.
+It supports the same syntax as the [`--plugin`](guide/en/#-p-plugin---plugin-plugin) option i.e. you can specify the option multiple times, you can omit the `@rollup/plugin-` prefix and just write `typescript` and you can specify plugin options via `={...}`.
 
 #### `-v`/`--version`
 
