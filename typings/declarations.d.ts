@@ -5,6 +5,15 @@ declare module 'help.md' {
 }
 
 // external libs
+declare module 'rollup-plugin-string' {
+	export const string: import('rollup').PluginImpl;
+}
+
+declare module 'rollup-plugin-typescript' {
+	const typescript: import('rollup').PluginImpl;
+	export default typescript;
+}
+
 declare module 'acorn-class-fields' {
 	const plugin: (BaseParser: typeof acorn.Parser) => typeof acorn.Parser;
 	export default plugin;

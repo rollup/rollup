@@ -277,7 +277,8 @@ export type RenderChunkHook = (
 	| Promise<{ code: string; map?: SourceMapInput } | null>
 	| { code: string; map?: SourceMapInput }
 	| string
-	| null;
+	| null
+	| undefined;
 
 export type ResolveDynamicImportHook = (
 	this: PluginContext,
@@ -539,7 +540,7 @@ export interface InputOptions {
 	moduleContext?: ((id: string) => string | null | undefined) | { [id: string]: string };
 	onwarn?: WarningHandlerWithDefault;
 	perf?: boolean;
-	plugins?: Plugin[];
+	plugins?: (Plugin | null | false | undefined)[];
 	preserveEntrySignatures?: PreserveEntrySignaturesOption;
 	/** @deprecated Use the "preserveModules" output option instead. */
 	preserveModules?: boolean;
@@ -650,7 +651,7 @@ export interface OutputOptions {
 	noConflict?: boolean;
 	outro?: string | (() => string | Promise<string>);
 	paths?: OptionsPaths;
-	plugins?: OutputPlugin[];
+	plugins?: (OutputPlugin | null | false | undefined)[];
 	preferConst?: boolean;
 	preserveModules?: boolean;
 	preserveModulesRoot?: string;

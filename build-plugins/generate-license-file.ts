@@ -1,11 +1,12 @@
 import fs from 'fs';
-import license from 'rollup-plugin-license';
+import { PluginImpl } from 'rollup';
+import license, { Dependency, Person } from 'rollup-plugin-license';
 
-function generateLicenseFile(dependencies) {
+function generateLicenseFile(dependencies: Dependency[]) {
 	const coreLicense = fs.readFileSync('LICENSE-CORE.md');
 	const licenses = new Set();
 	const dependencyLicenseTexts = dependencies
-		.sort(({ name: nameA }, { name: nameB }) => (nameA > nameB ? 1 : -1))
+		.sort(({ name: nameA }, { name: nameB }) => (nameA! > nameB! ? 1 : -1))
 		.map(({ name, license, licenseText, author, maintainers, contributors, repository }) => {
 			let text = `## ${name}\n`;
 			if (license) {
@@ -15,7 +16,8 @@ function generateLicenseFile(dependencies) {
 			if (author && author.name) {
 				names.add(author.name);
 			}
-			for (const person of maintainers.concat(contributors)) {
+			// TODO there is an inconsistency in the rollup-plugin-license types
+			for (const person of contributors.concat(maintainers as unknown as Person[])) {
 				if (person && person.name) {
 					names.add(person.name);
 				}
@@ -24,7 +26,7 @@ function generateLicenseFile(dependencies) {
 				text += `By: ${Array.from(names).join(', ')}\n`;
 			}
 			if (repository) {
-				text += `Repository: ${repository.url || repository}\n`;
+				text += `Repository: ${(typeof repository === 'object' && repository.url) || repository}\n`;
 			}
 			if (licenseText) {
 				text +=
@@ -57,11 +59,14 @@ function generateLicenseFile(dependencies) {
 	}
 }
 
-export default function getLicenseHandler() {
+export default function getLicenseHandler(): {
+	collectLicenses: PluginImpl;
+	writeLicense: PluginImpl;
+} {
 	const licenses = new Map();
 	return {
 		collectLicenses() {
-			function addLicenses(dependencies) {
+			function addLicenses(dependencies: Dependency[]) {
 				for (const dependency of dependencies) {
 					licenses.set(dependency.name, dependency);
 				}
@@ -71,6 +76,7 @@ export default function getLicenseHandler() {
 		},
 		writeLicense() {
 			return {
+				name: 'write-license',
 				writeBundle() {
 					generateLicenseFile(Array.from(licenses.values()));
 				}

@@ -1,4 +1,6 @@
-export default function addBinShebangAndEsmImport() {
+import { Plugin } from 'rollup';
+
+export default function addBinShebangAndEsmImport(): Plugin {
 	let importFound = false;
 	return {
 		generateBundle() {
