@@ -18,7 +18,7 @@ export default {
 };
 ```
 
-Typically, it is called `rollup.config.js` and sits in the root directory of your project. Behind the scenes, Rollup will transpile and bundle this file and its relative dependencies to CommonJS before requiring it, which has the advantage that you can share code with an ES module code base while having full interoperability with the Node ecosystem.
+Typically, it is called `rollup.config.js` and sits in the root directory of your project. Behind the scenes, Rollup will usually transpile and bundle this file and its relative dependencies to CommonJS before requiring it. This has the advantage that you can share code with an ES module code base while having full interoperability with the Node ecosystem.
 
 If you want to write your config as a CommonJS module using `require` and `module.exports`, you should change the file extension to `.cjs`, which will prevent Rollup from trying to transpile the file. Furthermore if you are on Node 13+, changing the file extension to `.mjs` will also prevent Rollup from transpiling it but import the file as an ES module instead. See [using untranspiled config files](guide/en/#using-untranspiled-config-files) for more details and why you might want to do this.
 
@@ -119,7 +119,7 @@ export default { // can be an array (for multiple inputs)
 };
 ```
 
-You can export an **array** from your config file to build bundles from several different unrelated inputs at once, even in watch mode. To build different bundles with the same input, you supply an array of output options for each input:
+You can export an **array** from your config file to build bundles from several unrelated inputs at once, even in watch mode. To build different bundles with the same input, you supply an array of output options for each input:
 
 ```javascript
 // rollup.config.js (building more than one bundle)
@@ -245,7 +245,7 @@ You can also directly write your config in TypeScript via the [`--configPlugin`]
 
 ### Differences to the JavaScript API
 
-While config files provide an easy way to configure Rollup, they also limit how Rollup can be invoked and where configuration is taken from. Especially if you are rebundling Rollup in another build tool or want to integrate it into an advanced build process, it may be better to directly invoke Rollup programmatically from your scripts.
+While config files provide an easy way to configure Rollup, they also limit how Rollup can be invoked and configured. Especially if you are bundling Rollup into another build tool or want to integrate it into an advanced build process, it may be better to directly invoke Rollup programmatically from your scripts.
 
 If you want to switch from config files to using the [JavaScript API](guide/en/#javascript-api) at some point, there are some important differences to be aware of:
 
@@ -280,7 +280,7 @@ module.exports = {
 
 It may be pertinent if you want to use the config file not only from the command line, but also from your custom scripts programmatically.
 
-On the other hand if you are using at least Node 13 and have `"type": "module"` in your `package.json` file, Rollup's transpilation will prevent your configuration file from importing packages that are themselves ES modules. In that case, changing your file extension to `.mjs` will instruct Rollup to import your configuration directly as an ES module. However note that this is specific to Node 13+; on older Node versions, `.mjs` is treated just like `.js`.
+On the other hand if you are using at least Node 13 and have `"type": "module"` in your `package.json` file, Rollup's transpilation will prevent your configuration file from importing packages that are themselves ES modules. In that case, changing your file extension to `.mjs` will instruct Rollup to import your configuration directly as an ES module. However, note that this is specific to Node 13+; on older Node versions, `.mjs` is treated just like `.js`.
 
 There are some potential gotchas when using `.mjs` on Node 13+:
 
@@ -420,7 +420,7 @@ If you want to load more than one plugin, you can repeat the option or supply a 
 rollup -i input.js -f es -p node-resolve -p commonjs,json
 ```
 
-By default, plugin functions be called with no argument to create the plugin. You can however pass a custom argument as well:
+By default, plugin functions will be called with no argument to create the plugin. You can however pass a custom argument as well:
 
 ```
 rollup -i input.js -f es -p 'terser={output: {beautify: true, indent_level: 2}}'
@@ -428,13 +428,13 @@ rollup -i input.js -f es -p 'terser={output: {beautify: true, indent_level: 2}}'
 
 #### `--configPlugin <plugin>`
 
-Allows to specify Rollup plugins to transpile or otherwise control the parsing of your configuration file. The main benefit is that it allows you to use non-JavaScript configuration files. For instance the following will allow you to write your configuration in TypeScript, provided you have `@rollup/plugin-typescript` installed:
+Allows specifying Rollup plugins to transpile or otherwise control the parsing of your configuration file. The main benefit is that it allows you to use non-JavaScript configuration files. For instance the following will allow you to write your configuration in TypeScript, provided you have `@rollup/plugin-typescript` installed:
 
 ```
 rollup --config rollup.config.ts --configPlugin @rollup/plugin-typescript
 ```
 
-It supports the same syntax as the [`--plugin`](guide/en/#-p-plugin---plugin-plugin) option i.e. you can specify the option multiple times, you can omit the `@rollup/plugin-` prefix and just write `typescript` and you can specify plugin options via `={...}`.
+It supports the same syntax as the [`--plugin`](guide/en/#-p-plugin---plugin-plugin) option i.e., you can specify the option multiple times, you can omit the `@rollup/plugin-` prefix and just write `typescript` and you can specify plugin options via `={...}`.
 
 #### `-v`/`--version`
 
@@ -501,7 +501,7 @@ When using the command line interface, Rollup can also read content from stdin:
 echo "export const foo = 42;" | rollup --format cjs --file out.js
 ```
 
-When this file contains imports, Rollup will try to resolve them relative to the current working directory. When a config file is used, Rollup will only use `stdin` as an entry point if the file name of the entry point is `-`. To read a non-entry-point file from stdin, just call it `-`, which is the file name that is used internally to reference `stdin`. I.e.
+When this file contains imports, Rollup will try to resolve them relative to the current working directory. When using a config file, Rollup will only use `stdin` as an entry point if the file name of the entry point is `-`. To read a non-entry-point file from stdin, just call it `-`, which is the file name that is used internally to reference `stdin`. I.e.
 
 ```js
 import foo from "-";
