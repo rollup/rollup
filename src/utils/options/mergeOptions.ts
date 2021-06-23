@@ -242,6 +242,7 @@ function mergeOutputOptions(
 		footer: getOption('footer'),
 		format: getOption('format'),
 		freeze: getOption('freeze'),
+		generatedCode: getObjectOption(config, overrides, 'generatedCode'),
 		globals: getOption('globals'),
 		hoistTransitiveImports: getOption('hoistTransitiveImports'),
 		indent: getOption('indent'),

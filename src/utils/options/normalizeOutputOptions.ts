@@ -44,6 +44,7 @@ export function normalizeOutputOptions(
 		footer: getAddon(config, 'footer'),
 		format,
 		freeze: config.freeze ?? true,
+		generatedCode: getGeneratedCode(config),
 		globals: config.globals || {},
 		hoistTransitiveImports: config.hoistTransitiveImports ?? true,
 		indent: getIndent(config, compact),
@@ -187,21 +188,21 @@ const getPreserveModulesRoot = (
 };
 
 const getAmd = (config: OutputOptions): NormalizedOutputOptions['amd'] => {
-	const collection: { autoId: boolean; basePath: string; define: string; id?: string } = {
+	const mergedOption: { autoId: boolean; basePath: string; define: string; id?: string } = {
 		autoId: false,
 		basePath: '',
 		define: 'define',
 		...config.amd
 	};
 
-	if ((collection.autoId || collection.basePath) && collection.id) {
+	if ((mergedOption.autoId || mergedOption.basePath) && mergedOption.id) {
 		return error({
 			code: 'INVALID_OPTION',
 			message:
 				'"output.amd.autoId"/"output.amd.basePath" and "output.amd.id" cannot be used together.'
 		});
 	}
-	if (collection.basePath && !collection.autoId) {
+	if (mergedOption.basePath && !mergedOption.autoId) {
 		return error({
 			code: 'INVALID_OPTION',
 			message: '"output.amd.basePath" only works with "output.amd.autoId".'
@@ -209,17 +210,17 @@ const getAmd = (config: OutputOptions): NormalizedOutputOptions['amd'] => {
 	}
 
 	let normalized: NormalizedOutputOptions['amd'];
-	if (collection.autoId) {
+	if (mergedOption.autoId) {
 		normalized = {
 			autoId: true,
-			basePath: collection.basePath,
-			define: collection.define
+			basePath: mergedOption.basePath,
+			define: mergedOption.define
 		};
 	} else {
 		normalized = {
 			autoId: false,
-			define: collection.define,
-			id: collection.id
+			define: mergedOption.define,
+			id: mergedOption.id
 		};
 	}
 	return normalized;
@@ -288,6 +289,11 @@ function getExports(
 	}
 	return configExports || 'auto';
 }
+
+const getGeneratedCode = (config: OutputOptions): NormalizedOutputOptions['generatedCode'] => ({
+	arrowFunction: false,
+	...config.generatedCode
+});
 
 const getIndent = (config: OutputOptions, compact: boolean): NormalizedOutputOptions['indent'] => {
 	if (compact) {
