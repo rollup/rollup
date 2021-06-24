@@ -34,6 +34,9 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 		for (const property of this.properties) {
 			variables.push(...property.declare(kind, init));
 		}
+		variables.forEach(v => {
+			v.initReached = true;
+		});
 		return variables;
 	}
 

@@ -28,10 +28,16 @@ export default class VariableDeclarator extends NodeBase {
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
+		if (this.id instanceof Identifier && this.id.variable) {
+			this.id.variable.initReached = true;
+		}
 		return this.id.hasEffects(context) || (this.init !== null && this.init.hasEffects(context));
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		if (this.id instanceof Identifier && this.id.variable) {
+			this.id.variable.initReached = true;
+		}
 		this.included = true;
 		if (includeChildrenRecursively || this.id.shouldBeIncluded(context)) {
 			this.id.include(context, includeChildrenRecursively);

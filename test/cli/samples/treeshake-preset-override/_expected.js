@@ -11,3 +11,6 @@ try {
 } catch {}
 
 unknownGlobal;
+
+if (!foo) console.log('effect');
+var foo = true;

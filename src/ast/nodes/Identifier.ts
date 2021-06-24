@@ -15,13 +15,29 @@ import LocalVariable from '../variables/LocalVariable';
 import Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
 import SpreadElement from './SpreadElement';
-import { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
+import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
 export type IdentifierWithVariable = Identifier & { variable: Variable };
 
+const tdzInitTypesToIgnore = {
+	__proto__: null,
+	ArrowFunctionExpression: true,
+	ClassExpression: true,
+	FunctionExpression: true,
+	ObjectExpression: true
+};
+
+const variableKinds = {
+	__proto__: null,
+	const: true,
+	let: true,
+	var: true
+};
+
 export default class Identifier extends NodeBase implements PatternNode {
+	TDZ: boolean | undefined = undefined;
 	name!: string;
 	type!: NodeType.tIdentifier;
 
@@ -72,6 +88,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 				/* istanbul ignore next */
 				throw new Error(`Internal Error: Unexpected identifier kind ${kind}.`);
 		}
+		variable.kind = kind;
 		return [(this.variable = variable)];
 	}
 
@@ -96,6 +113,9 @@ export default class Identifier extends NodeBase implements PatternNode {
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
+		if (this.isPossibleTDZ()) {
+			return UnknownValue;
+		}
 		return this.variable!.getLiteralValueAtPath(path, recursionTracker, origin);
 	}
 
@@ -115,6 +135,9 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 	hasEffects(): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
+		if (this.isPossibleTDZ()) {
+			return true;
+		}
 		return (
 			(this.context.options.treeshake as NormalizedTreeshakingOptions).unknownGlobalSideEffects &&
 			this.variable instanceof GlobalVariable &&
@@ -186,6 +209,60 @@ export default class Identifier extends NodeBase implements PatternNode {
 			this.variable.consolidateInitializers();
 			this.context.requestTreeshakingPass();
 		}
+	}
+
+	protected isPossibleTDZ(): boolean {
+		// return cached value if present
+		if (this.TDZ !== undefined) return this.TDZ;
+
+		if (
+			!(this.variable instanceof LocalVariable) ||
+			!this.variable.kind ||
+			!(this.variable.kind in variableKinds)
+		) {
+			return (this.TDZ = false);
+		}
+
+		if (
+			this.variable.kind === 'var' &&
+			((this.parent.type === 'AssignmentExpression' && this === (this.parent as any).left) ||
+				(this.parent.type === 'UpdateExpression' && this === (this.parent as any).argument) ||
+				this.parent.type === 'SequenceExpression' ||
+				this.parent.type === 'ExpressionStatement')
+		) {
+			// If a `var` variable is modified or innocuous
+			// then pretend the init was reached in these cases
+			// and have rollup's treeshaking take care of it.
+			this.variable.initReached = true;
+			return (this.TDZ = false);
+		}
+
+		if (!this.variable.initReached) {
+			// Either a const/let TDZ violation or
+			// var use before declaration was encountered.
+			// Retain this variable accesss to preserve the input behavior.
+			return (this.TDZ = true);
+		}
+
+		let init, init_parent;
+		if (
+			(init = (this.variable as any).init) &&
+			init !== UNDEFINED_EXPRESSION &&
+			(init_parent = (init as any).parent) &&
+			init_parent.type == 'VariableDeclarator' &&
+			init_parent.id.variable === this.variable &&
+			!(init_parent.init.type in tdzInitTypesToIgnore) &&
+			// code position comparisons must be in the same context
+			this.context === init_parent.id.context &&
+			this.start >= init.start &&
+			this.start < init.end
+		) {
+			// any scope variable access within its own declaration init:
+			//   let x = x + 1;
+			return (this.TDZ = true);
+		}
+
+		return (this.TDZ = false);
 	}
 
 	private disallowImportReassignment() {

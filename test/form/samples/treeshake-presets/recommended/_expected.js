@@ -11,3 +11,6 @@ console.log('main');
 try {
 	const noeffect = 1;
 } catch {}
+
+if (!foo) console.log('effect');
+var foo = true;
