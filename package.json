@@ -11,7 +11,7 @@
   "scripts": {
     "build": "shx rm -rf dist && git rev-parse HEAD > .commithash && rollup --config rollup.config.ts --configPlugin typescript && shx cp src/rollup/types.d.ts dist/rollup.d.ts && shx chmod a+x dist/bin/rollup",
     "build:cjs": "shx rm -rf dist && rollup --config rollup.config.ts --configPlugin typescript --configTest && shx cp src/rollup/types.d.ts dist/rollup.d.ts && shx chmod a+x dist/bin/rollup",
-    "build:bootstrap": "dist/bin/rollup --config rollup.config.ts --configPlugin typescript && shx cp src/rollup/types.d.ts dist/rollup.d.ts && shx chmod a+x dist/bin/rollup",
+    "build:bootstrap": "node dist/bin/rollup --config rollup.config.ts --configPlugin typescript && shx cp src/rollup/types.d.ts dist/rollup.d.ts && shx chmod a+x dist/bin/rollup",
     "ci:lint": "npm run lint:nofix",
     "ci:test": "npm run build:cjs && npm run build:bootstrap && npm run test:all",
     "ci:test:only": "npm run build:cjs && npm run build:bootstrap && npm run test:only",
