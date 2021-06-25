@@ -13,9 +13,9 @@ export default class BlockScope extends ChildScope {
 		isHoisted: boolean
 	): LocalVariable {
 		if (isHoisted) {
-			// Necessary to make sure the init is deoptimized
-			this.parent.addDeclaration(identifier, context, UNDEFINED_EXPRESSION, isHoisted);
-			return this.parent.addDeclaration(identifier, context, init, isHoisted);
+			this.parent.addDeclaration(identifier, context, init, isHoisted);
+			// Necessary to make sure the init is deoptimized. We cannot call deoptimizePath here.
+			return this.parent.addDeclaration(identifier, context, UNDEFINED_EXPRESSION, isHoisted);
 		} else {
 			return super.addDeclaration(identifier, context, init, false);
 		}
