@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.52.3
+*2021-06-25*
+
+### Bug Fixes
+* Fix an issue where code was wrongly removed when using vars in nested scopes (#4149)
+
+### Pull Requests
+* [#4149](https://github.com/rollup/rollup/pull/4149): Make sure the initializer of hoisted variables is deoptimized (@lukastaegert)
+
 ## 2.52.2
 *2021-06-21*
 
