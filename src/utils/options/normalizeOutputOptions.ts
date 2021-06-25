@@ -291,7 +291,7 @@ function getExports(
 }
 
 const getGeneratedCode = (config: OutputOptions): NormalizedOutputOptions['generatedCode'] => ({
-	arrowFunction: false,
+	arrowFunctions: false,
 	...config.generatedCode
 });
 

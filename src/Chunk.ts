@@ -38,6 +38,7 @@ import {
 } from './utils/error';
 import { escapeId } from './utils/escapeId';
 import { assignExportsToMangledNames, assignExportsToNames } from './utils/exportNames';
+import { getGenerateCodeSnippets } from './utils/generateCodeSnippets';
 import getExportMode from './utils/getExportMode';
 import { getId } from './utils/getId';
 import getIndentString from './utils/getIndentString';
@@ -556,9 +557,6 @@ export default class Chunk {
 		this.usedModules = [];
 		this.indentString = getIndentString(this.orderedModules, options);
 
-		const n = options.compact ? '' : '\n';
-		const _ = options.compact ? '' : ' ';
-
 		const renderOptions: RenderOptions = {
 			compact: options.compact,
 			dynamicImportFunction: options.dynamicImportFunction,
@@ -568,6 +566,7 @@ export default class Chunk {
 			indent: this.indentString,
 			namespaceToStringTag: options.namespaceToStringTag,
 			outputPluginDriver: this.pluginDriver,
+			snippets: getGenerateCodeSnippets(options),
 			varOrConst: options.preferConst ? 'const' : 'var'
 		};
 
@@ -587,6 +586,7 @@ export default class Chunk {
 
 		let hoistedSource = '';
 		const renderedModules = this.renderedModules;
+		const { n, _ } = renderOptions.snippets;
 
 		for (const module of this.orderedModules) {
 			let renderedLength = 0;

@@ -579,7 +579,7 @@ export type InternalModuleFormat = 'amd' | 'cjs' | 'es' | 'iife' | 'system' | 'u
 export type ModuleFormat = InternalModuleFormat | 'commonjs' | 'esm' | 'module' | 'systemjs';
 
 interface NormalizedGeneratedCodeOptions {
-	arrowFunction: boolean;
+	arrowFunctions: boolean;
 }
 
 type GeneratedCodeOptions = Partial<NormalizedGeneratedCodeOptions>;

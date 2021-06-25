@@ -49,20 +49,15 @@ export function renderSystemExportFunction(
 	code: MagicString,
 	options: RenderOptions
 ): void {
-	const _ = options.compact ? '' : ' ';
-	const s = options.compact ? '' : ';';
-	code.prependRight(
+	const { _, renderDirectReturnIife } = options.snippets;
+	renderDirectReturnIife(
+		['v'],
+		`${getSystemExportStatement(exportedVariables, options)},${_}v`,
+		code,
 		expressionStart,
-		`function${_}(v)${_}{${_}return ${getSystemExportStatement(
-			exportedVariables,
-			options
-		)},${_}v${s}${_}}(`
+		expressionEnd,
+		{ needsArrowReturnParens: true, needsWrappedFunction: needsParens }
 	);
-	code.appendLeft(expressionEnd, ')');
-	if (needsParens) {
-		code.prependRight(expressionStart, '(');
-		code.appendLeft(expressionEnd, ')');
-	}
 }
 
 export function renderSystemExportSequenceAfterExpression(

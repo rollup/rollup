@@ -61,8 +61,7 @@ export default class NamespaceVariable extends Variable {
 	}
 
 	renderBlock(options: RenderOptions): string {
-		const _ = options.compact ? '' : ' ';
-		const n = options.compact ? '' : '\n';
+		const { _, n } = options.snippets;
 		const t = options.indent;
 
 		const memberVariables = this.getMemberVariables();

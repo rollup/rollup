@@ -3,8 +3,10 @@ import { Node, StatementNode } from '../ast/nodes/shared/Node';
 import Variable from '../ast/variables/Variable';
 import { InternalModuleFormat } from '../rollup/types';
 import { PluginDriver } from './PluginDriver';
+import { GenerateCodeSnippets } from './generateCodeSnippets';
 import { treeshakeNode } from './treeshakeNode';
 
+// TODO Lukas replace most of them with code snippets
 export interface RenderOptions {
 	compact: boolean;
 	dynamicImportFunction: string | undefined;
@@ -14,6 +16,7 @@ export interface RenderOptions {
 	indent: string;
 	namespaceToStringTag: boolean;
 	outputPluginDriver: PluginDriver;
+	snippets: GenerateCodeSnippets;
 	varOrConst: 'var' | 'const';
 }
 
