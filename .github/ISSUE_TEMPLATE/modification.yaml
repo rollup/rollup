@@ -18,20 +18,17 @@ body:
     id: expected_behaviour
     attributes:
       label: Expected Behavior / Situation
-      render: markdown
     validations:
       required: true
   - type: textarea
     id: actual_behaviour
     attributes:
       label: Actual Behavior / Situation
-      render: markdown
     validations:
       required: true
   - type: textarea
     id: proposal
     attributes:
       label: Modification Proposal
-      render: markdown
     validations:
       required: true

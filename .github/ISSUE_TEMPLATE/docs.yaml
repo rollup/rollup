@@ -27,13 +27,11 @@ body:
     id: explanation
     attributes:
       label: Please Explain in Detail...
-      render: markdown
     validations:
       required: true
   - type: textarea
     id: proposal
     attributes:
       label: Your Proposal for Changes
-      render: markdown
     validations:
       required: true

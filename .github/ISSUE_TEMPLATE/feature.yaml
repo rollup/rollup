@@ -18,13 +18,11 @@ body:
     id: use_case
     attributes:
       label: Feature Use Case
-      render: markdown
     validations:
       required: true
   - type: textarea
     id: proposal
     attributes:
       label: Feature Proposal
-      render: markdown
     validations:
       required: true

@@ -55,13 +55,11 @@ body:
     id: expected_behaviour
     attributes:
       label: Expected Behaviour
-      render: markdown
     validations:
       required: true
   - type: textarea
     id: actual_behaviour
     attributes:
       label: Actual Behaviour
-      render: markdown
     validations:
       required: true
