@@ -1,6 +1,5 @@
 name: 🔧 Modification Request
 description: Would you like something work differently? Have an alternative approach? This is the template for you.
-title: '[Modification]: '
 labels: [t⁷ ⋅ modification, triage]
 body:
   - type: markdown
