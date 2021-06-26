@@ -62,14 +62,9 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 	declare(kind: string, init: ExpressionEntity): LocalVariable[] {
 		let variable: LocalVariable;
-		const { treeshake } = this.context.options;
 		switch (kind) {
 			case 'var':
 				variable = this.scope.addDeclaration(this, this.context, init, true);
-				if (treeshake && treeshake.correctVarValueBeforeDeclaration) {
-					// Necessary to make sure the init is deoptimized. We cannot call deoptimizePath here.
-					this.scope.addDeclaration(this, this.context, UNDEFINED_EXPRESSION, true);
-				}
 				break;
 			case 'function':
 				// in strict mode, functions are only hoisted within a scope but not across block scopes
