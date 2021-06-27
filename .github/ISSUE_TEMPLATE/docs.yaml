@@ -1,6 +1,6 @@
 name: 📚 Documentation
 description: Are the docs lacking or missing something? Do they need some new 🔥 hotness? Tell us here.
-labels: [t² 📚 documentation, triage]
+labels: [t² 📚 documentation, t⁸ ⋅ triage]
 body:
   - type: markdown
     attributes:

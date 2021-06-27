@@ -1,6 +1,6 @@
 name: 🐞 Bug Report
 description: Something went awry and you'd like to tell us about it.
-labels: [t¹ 🐞 bug, triage]
+labels: [t¹ 🐞 bug, t⁸ ⋅ triage]
 body:
   - type: markdown
     attributes:
