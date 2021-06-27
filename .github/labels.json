@@ -39,6 +39,8 @@
 	{ "name": "t⁴ ⋅ regression", "color": "#0052cc" },
 	{ "name": "t⁵ ⋅ todo", "color": "#311B92" },
 	{ "name": "t⁶ ⋅ waiting on upstream", "color": "#0D47A1" },
+	{ "name": "t⁷ ⋅ modification", "color": "#03a9f4" },
+	{ "name": "t⁸ ⋅ triage", "color": "#CFD8DC" },
 
 	{ "name": "v¹ ⋅ major", "color": "#CDDC39" },
 	{ "name": "v² ⋅ minor", "color": "#FF9800" },

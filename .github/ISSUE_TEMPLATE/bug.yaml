@@ -1,0 +1,65 @@
+name: 🐞 Bug Report
+description: Something went awry and you'd like to tell us about it.
+labels: [t¹ 🐞 bug, t⁸ ⋅ triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ⚡️ katchow! We 💛 issues.
+
+        👉🏽 Need help or tech support? Please don't open an issue!
+        Head to https://is.gd/rollup_chat or https://stackoverflow.com/questions/tagged/rollupjs
+
+        👉🏽 Is this issue related to an official plugin? Please do not open an issue here, go to the plugins repository instead: https://github.com/rollup/plugins/issues
+
+        ❤️ Rollup? Please consider supporting our collective:
+        👉 https://opencollective.com/rollup/donate
+  - type: input
+    id: version
+    attributes:
+      label: Rollup Version
+      placeholder: e.g. vX.Y.Z
+    validations:
+      required: true
+  - type: input
+    id: os_version
+    attributes:
+      label: Operating System (or Browser)
+    validations:
+      required: true
+  - type: input
+    id: node_version
+    attributes:
+      label: Node Version (if applicable)
+    validations:
+      required: false
+  - type: input
+    id: reproduction_link
+    attributes:
+      label: Link To Reproduction
+      description: |
+        Issues without minimal reproductions will be closed! Please provide a link to one by:
+        1. Using the REPL at https://rollupjs.org/repl/, or
+        2. Using the REPL.it reproduction template at https://repl.it/@rollup/rollup-repro
+          (allows full use of all rollup options and plugins), or
+        3. Provide a minimal repository link (Read https://git.io/fNzHA for instructions).
+          These may take more time to triage than the other options.
+          
+        For some bugs it this may seem like overkill but believe us, very often what seems like a
+        "clear issue" is actually specific to some details of your setup. Having a runnable
+        reproduction not only "proves" your bug to us but also allows us to spend all our effort
+        fixing the bug instead of struggling to understand your issue.
+    validations:
+      required: true
+  - type: textarea
+    id: expected_behaviour
+    attributes:
+      label: Expected Behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: actual_behaviour
+    attributes:
+      label: Actual Behaviour
+    validations:
+      required: true

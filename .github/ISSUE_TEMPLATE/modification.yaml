@@ -1,0 +1,34 @@
+name: 🔧 Modification Request
+description: Would you like something work differently? Have an alternative approach? This is the template for you.
+labels: [t⁷ ⋅ modification, t⁸ ⋅ triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ⚡️ katchow! We 💛 issues.
+
+        👉🏽 Need help or tech support? Please don't open an issue!
+        Head to https://is.gd/rollup_chat or https://stackoverflow.com/questions/tagged/rollupjs
+
+        👉🏽 Is this issue related to an official plugin? Please do not open an issue here, go to the plugins repository instead: https://github.com/rollup/plugins/issues
+
+        ❤️ Rollup? Please consider supporting our collective:
+        👉 https://opencollective.com/rollup/donate
+  - type: textarea
+    id: expected_behaviour
+    attributes:
+      label: Expected Behavior / Situation
+    validations:
+      required: true
+  - type: textarea
+    id: actual_behaviour
+    attributes:
+      label: Actual Behavior / Situation
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Modification Proposal
+    validations:
+      required: true
