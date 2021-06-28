@@ -6,7 +6,7 @@ on:
 
 jobs:
   upload:
-    if: ${{ github.event.pull_request.head.repo.full_name == 'rollup/rollup' || contains( toJson(github.event.pull_request.labels), 'x8 ⚙️ build repl artefacts' ) }}
+    if: ${{ github.event.pull_request.head.repo.full_name == 'rollup/rollup' || contains( toJson(github.event.pull_request.labels), 'x⁸ ⚙️ build repl artefacts' ) }}
     runs-on: ubuntu-latest
     name: Upload
     steps:

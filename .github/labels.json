@@ -49,5 +49,5 @@
 	{ "name": "x⁵ ⋅ in progress", "color": "#4CAF50" },
 	{ "name": "x⁶ ⋅ invalid", "color": "#CFD8DC" },
 	{ "name": "x⁷ ⋅ wontfix", "color": "#CFD8DC" },
-	{ "name": "x8 ⚙️ build repl artefacts", "color": "#4CAF50" }
+	{ "name": "x⁸ ⚙️ build repl artefacts", "color": "#4CAF50" }
 ]
