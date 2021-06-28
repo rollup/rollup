@@ -2,10 +2,6 @@
 	{ "name": "💩 template incomplete", "color": "#4E342E" },
 	{ "name": "💩 template removed", "color": "#4E342E" },
 
-	{ "name": "b¹ 🐞 code-splitting", "color": "#F44336" },
-	{ "name": "b² 🐞 scope-hoisting", "color": "#F44336" },
-	{ "name": "b³ 🐞 tree-shaking", "color": "#F44336" },
-
 	{ "name": "c¹ ⋅ discussion", "color": "#1976D2" },
 	{ "name": "c² ⋅ feedback wanted", "color": "#F9A825" },
 	{ "name": "c³ ⋅ PR welcome", "color": "#1B5E20" },
