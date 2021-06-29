@@ -29,9 +29,6 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 				variables.push(...element.declare(kind, UNKNOWN_EXPRESSION));
 			}
 		}
-		variables.forEach(v => {
-			v.initReached = true;
-		});
 		return variables;
 	}
 
@@ -52,5 +49,13 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 				return true;
 		}
 		return false;
+	}
+
+	markDeclarationReached(): void {
+		for (const element of this.elements) {
+			if (element !== null) {
+				element.markDeclarationReached();
+			}
+		}
 	}
 }

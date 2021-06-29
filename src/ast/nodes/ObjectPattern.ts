@@ -34,9 +34,6 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 		for (const property of this.properties) {
 			variables.push(...property.declare(kind, init));
 		}
-		variables.forEach(v => {
-			v.initReached = true;
-		});
 		return variables;
 	}
 
@@ -54,5 +51,11 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 			if (property.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context)) return true;
 		}
 		return false;
+	}
+
+	markDeclarationReached(): void {
+		for (const property of this.properties) {
+			property.markDeclarationReached();
+		}
 	}
 }

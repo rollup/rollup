@@ -170,6 +170,10 @@ export default class Identifier extends NodeBase implements PatternNode {
 		this.variable!.includeCallArguments(context, args);
 	}
 
+	markDeclarationReached(): void {
+		this.variable!.initReached = true;
+	}
+
 	render(
 		code: MagicString,
 		_options: RenderOptions,

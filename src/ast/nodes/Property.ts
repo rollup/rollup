@@ -35,6 +35,10 @@ export default class Property extends MethodBase implements PatternNode {
 		);
 	}
 
+	markDeclarationReached(): void {
+		(this.value as PatternNode).markDeclarationReached();
+	}
+
 	render(code: MagicString, options: RenderOptions): void {
 		if (!this.shorthand) {
 			this.key.render(code, options);
