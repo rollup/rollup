@@ -533,12 +533,15 @@ export default class Module {
 			const foundNamespaceReexport =
 				name in this.namespaceReexportsByName
 					? this.namespaceReexportsByName[name]
-					: (this.namespaceReexportsByName[name] = this.getVariableFromNamespaceReexports(
+					: this.getVariableFromNamespaceReexports(
 							name,
 							importerForSideEffects,
 							searchedNamesAndModules,
 							skipExternalNamespaceReexports
-					  ));
+					  );
+			if (!skipExternalNamespaceReexports) {
+				this.namespaceReexportsByName[name] = foundNamespaceReexport;
+			}
 			if (foundNamespaceReexport) {
 				return foundNamespaceReexport;
 			}
@@ -1012,8 +1015,18 @@ export default class Module {
 		skipExternalNamespaceReexports = false
 	): Variable | null {
 		let foundSyntheticDeclaration: SyntheticNamedExportVariable | null = null;
-		const skipExternalNamespaceValues = new Set([true, skipExternalNamespaceReexports]);
-		for (const skipExternalNamespaces of skipExternalNamespaceValues) {
+		const skipExternalNamespaceValues = [{ searchedNamesAndModules, skipExternalNamespaces: true }];
+		if (!skipExternalNamespaceReexports) {
+			const clonedSearchedNamesAndModules = new Map<string, Set<Module | ExternalModule>>();
+			for (const [name, modules] of searchedNamesAndModules || []) {
+				clonedSearchedNamesAndModules.set(name, new Set(modules));
+			}
+			skipExternalNamespaceValues.push({
+				searchedNamesAndModules: clonedSearchedNamesAndModules,
+				skipExternalNamespaces: false
+			});
+		}
+		for (const { skipExternalNamespaces, searchedNamesAndModules } of skipExternalNamespaceValues) {
 			const foundDeclarations = new Set<Variable>();
 			for (const module of this.exportAllModules) {
 				if (module instanceof Module || !skipExternalNamespaces) {
