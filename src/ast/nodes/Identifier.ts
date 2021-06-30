@@ -29,8 +29,9 @@ const tdzInitTypesToIgnore = {
 	ObjectExpression: true
 };
 
-const variableKinds = {
+const tdzVariableKinds = {
 	__proto__: null,
+	class: true,
 	const: true,
 	let: true,
 	var: true
@@ -217,7 +218,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		if (
 			!(this.variable instanceof LocalVariable) ||
 			!this.variable.kind ||
-			!(this.variable.kind in variableKinds)
+			!(this.variable.kind in tdzVariableKinds)
 		) {
 			return (this.TDZ = false);
 		}

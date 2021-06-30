@@ -1,6 +1,6 @@
 import { CallOptions } from '../../CallOptions';
 import { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import { HasEffectsContext } from '../../ExecutionContext';
+import { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
 import { NodeEvent } from '../../NodeEvents';
 import ChildScope from '../../scopes/ChildScope';
 import Scope from '../../scopes/Scope';
@@ -16,7 +16,7 @@ import Identifier from '../Identifier';
 import Literal from '../Literal';
 import MethodDefinition from '../MethodDefinition';
 import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue } from './Expression';
-import { ExpressionNode, NodeBase } from './Node';
+import { ExpressionNode, IncludeChildren, NodeBase } from './Node';
 import { ObjectEntity, ObjectProperty } from './ObjectEntity';
 import { ObjectMember } from './ObjectMember';
 import { OBJECT_PROTOTYPE } from './ObjectPrototype';
@@ -76,6 +76,11 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		);
 	}
 
+	hasEffects(context: HasEffectsContext): boolean {
+		this.id?.markDeclarationReached();
+		return super.hasEffects(context);
+	}
+
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		return this.getObjectEntity().hasEffectsWhenAccessedAtPath(path, context);
 	}
@@ -102,10 +107,13 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 		}
 	}
 
+	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
+		this.id?.markDeclarationReached();
+		super.include(context, includeChildrenRecursively);
+	}
+
 	initialise(): void {
-		if (this.id !== null) {
-			this.id.declare('class', this);
-		}
+		this.id?.declare('class', this);
 		for (const method of this.body.body) {
 			if (method instanceof MethodDefinition && method.kind === 'constructor') {
 				this.classConstructor = method;

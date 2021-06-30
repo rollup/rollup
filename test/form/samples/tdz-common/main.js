@@ -7,6 +7,7 @@ console.log(function() {
 const unused1 = 1;   // drop
 let unused2 = 2;     // drop
 var unused3 = 3;     // drop
+class unused4 {}     // drop
 
 const C = 1 + C + 2; // TDZ
 let L = L;           // TDZ
@@ -37,6 +38,9 @@ let L1, L2, L3, L4;  // keep L2, L3
 var V3;              // drop
 L3 = 30;             // keep
 L4 = 40;             // drop
+
+cls;                 // TDZ
+class cls {}
 
 // Note that typical var/const/let use is still optimized
 (function() {
