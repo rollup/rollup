@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.52.4
+*2021-06-30*
+
+### Bug Fixes
+* Fix an error when external namespaces are reexported across several files (#4159)
+
+### Pull Requests
+* [#4159](https://github.com/rollup/rollup/pull/4159): Properly handle double reexports from external namespaces (@lukastaegert)
+
 ## 2.52.3
 *2021-06-25*
 
