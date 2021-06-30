@@ -242,4 +242,30 @@ console.log(x);
 		assert.strictEqual(subfeature.fileName, 'base/main/feature/sub');
 		assert.ok(subfeature.code.startsWith("import { fn } from '../../main'"));
 	});
+
+	it('throws the proper error on max call stack exception', async () => {
+		const count = 10000;
+		let source = '';
+		for (let i = 0; i < count; i++) {
+			source += `if (foo) {`;
+		}
+		for (let i = 0; i < count; i++) {
+			source += '}';
+		}
+		try {
+			await rollup.rollup({
+				input: {
+					input: 'input'
+				},
+				plugins: [
+					loader({
+						input: source
+					})
+				]
+			});
+		} catch (err) {
+			assert.notDeepStrictEqual(err.message, 'Maximum call stack size exceeded');
+			assert.strictEqual(err.name, 'Error');
+		}
+	});
 });

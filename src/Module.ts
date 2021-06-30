@@ -947,24 +947,27 @@ export default class Module {
 		props.id = this.id;
 		props.pos = pos;
 		let code = this.info.code;
-		let { column, line } = locate(code!, pos, { offsetLine: 1 });
-		try {
-			({ column, line } = getOriginalLocation(this.sourcemapChain, { column, line }));
-			code = this.originalCode;
-		} catch (e) {
-			this.options.onwarn({
-				code: 'SOURCEMAP_ERROR',
-				id: this.id,
-				loc: {
-					column,
-					file: this.id,
-					line
-				},
-				message: `Error when using sourcemap for reporting an error: ${e.message}`,
-				pos
-			});
+		const location = locate(code!, pos, { offsetLine: 1 });
+		if (location) {
+			let { column, line } = location;
+			try {
+				({ column, line } = getOriginalLocation(this.sourcemapChain, { column, line }));
+				code = this.originalCode;
+			} catch (e) {
+				this.options.onwarn({
+					code: 'SOURCEMAP_ERROR',
+					id: this.id,
+					loc: {
+						column,
+						file: this.id,
+						line
+					},
+					message: `Error when using sourcemap for reporting an error: ${e.message}`,
+					pos
+				});
+			}
+			augmentCodeLocation(props, { column, line }, code!, this.id);
 		}
-		augmentCodeLocation(props, { column, line }, code!, this.id);
 	}
 
 	private addModulesToImportDescriptions(importDescription: {
