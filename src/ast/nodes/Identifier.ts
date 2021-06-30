@@ -38,12 +38,11 @@ const tdzVariableKinds = {
 };
 
 export default class Identifier extends NodeBase implements PatternNode {
-	TDZ: boolean | undefined = undefined;
 	name!: string;
 	type!: NodeType.tIdentifier;
-
 	variable: Variable | null = null;
 	protected deoptimized = false;
+	private isTDZAccess = false;
 
 	addExportedVariables(
 		variables: Variable[],
@@ -213,14 +212,14 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 	protected isPossibleTDZ(): boolean {
 		// return cached value if present
-		if (this.TDZ !== undefined) return this.TDZ;
+		if (this.isTDZAccess !== undefined) return this.isTDZAccess;
 
 		if (
 			!(this.variable instanceof LocalVariable) ||
 			!this.variable.kind ||
 			!(this.variable.kind in tdzVariableKinds)
 		) {
-			return (this.TDZ = false);
+			return (this.isTDZAccess = false);
 		}
 
 		if (
@@ -234,14 +233,14 @@ export default class Identifier extends NodeBase implements PatternNode {
 			// then pretend the init was reached in these cases
 			// and have rollup's treeshaking take care of it.
 			this.variable.initReached = true;
-			return (this.TDZ = false);
+			return (this.isTDZAccess = false);
 		}
 
 		if (!this.variable.initReached) {
 			// Either a const/let TDZ violation or
 			// var use before declaration was encountered.
 			// Retain this variable accesss to preserve the input behavior.
-			return (this.TDZ = true);
+			return (this.isTDZAccess = true);
 		}
 
 		let init, init_parent;
@@ -259,10 +258,10 @@ export default class Identifier extends NodeBase implements PatternNode {
 		) {
 			// any scope variable access within its own declaration init:
 			//   let x = x + 1;
-			return (this.TDZ = true);
+			return (this.isTDZAccess = true);
 		}
 
-		return (this.TDZ = false);
+		return (this.isTDZAccess = false);
 	}
 
 	private disallowImportReassignment() {
