@@ -15,7 +15,7 @@ export default class ReturnStatement extends StatementBase {
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (
-			!context.ignore.returnAwaitYield ||
+			!context.ignore.returnYield ||
 			(this.argument !== null && this.argument.hasEffects(context))
 		)
 			return true;
