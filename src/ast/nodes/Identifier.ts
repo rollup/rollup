@@ -42,7 +42,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 	type!: NodeType.tIdentifier;
 	variable: Variable | null = null;
 	protected deoptimized = false;
-	private isTDZAccess = false;
+	private isTDZAccess: boolean | null = null;
 
 	addExportedVariables(
 		variables: Variable[],
@@ -212,7 +212,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 	protected isPossibleTDZ(): boolean {
 		// return cached value if present
-		if (this.isTDZAccess !== undefined) return this.isTDZAccess;
+		if (this.isTDZAccess !== null) return this.isTDZAccess;
 
 		if (
 			!(this.variable instanceof LocalVariable) ||
