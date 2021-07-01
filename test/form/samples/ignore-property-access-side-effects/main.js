@@ -38,13 +38,3 @@ const foo7 = (async () => ({
 		return () => {};
 	}
 }))();
-
-const foo8 = (async function () {
-	await {
-		get then() {
-			console.log('effect');
-			return () => {};
-		}
-	};
-	return { then() {} };
-})();

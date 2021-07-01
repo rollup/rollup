@@ -14,8 +14,7 @@ export default class YieldExpression extends NodeBase {
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
 		return (
-			!context.ignore.returnAwaitYield ||
-			(this.argument !== null && this.argument.hasEffects(context))
+			!context.ignore.returnYield || (this.argument !== null && this.argument.hasEffects(context))
 		);
 	}
 

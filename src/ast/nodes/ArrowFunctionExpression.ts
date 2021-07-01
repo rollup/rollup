@@ -83,7 +83,7 @@ export default class ArrowFunctionExpression extends NodeBase {
 			breaks: false,
 			continues: false,
 			labels: new Set(),
-			returnAwaitYield: true
+			returnYield: true
 		};
 		if (this.body.hasEffects(context)) return true;
 		context.ignore = ignore;

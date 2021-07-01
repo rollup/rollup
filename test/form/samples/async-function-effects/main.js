@@ -77,14 +77,6 @@
 	return { then() {} };
 })();
 
-// removed
-(async function () {
-	await {
-		then: function () {}
-	};
-	return { then() {} };
-})();
-
 (async function () {
 	await {
 		get then() {
@@ -99,16 +91,6 @@
 	await {
 		get then() {
 			return () => console.log(9);
-		}
-	};
-	return { then() {} };
-})();
-
-// removed
-(async function () {
-	await {
-		get then() {
-			return () => {};
 		}
 	};
 	return { then() {} };
