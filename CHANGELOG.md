@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.52.5
+*2021-07-01*
+
+### Bug Fixes
+* Properly display parser errors not tied to a code location (#4160)
+
+### Pull Requests
+* [#4160](https://github.com/rollup/rollup/pull/4160): fix: max stack call error is caught on locate (@semoal)
+
 ## 2.52.4
 *2021-06-30*
 
