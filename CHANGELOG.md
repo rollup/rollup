@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.52.6
+*2021-07-01*
+
+### Bug Fixes
+* Fix an issue where reassignments where not tracked through an await expression (#4162)
+
+### Pull Requests
+* [#4162](https://github.com/rollup/rollup/pull/4162): eoptimize awaited expressions (@lukastaegert)
+
 ## 2.52.5
 *2021-07-01*
 
