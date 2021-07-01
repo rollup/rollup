@@ -21,6 +21,7 @@ export default class FunctionNode extends NodeBase {
 	params!: PatternNode[];
 	preventChildBlockScope!: true;
 	scope!: FunctionScope;
+	private deoptimizedReturn = false;
 	private isPrototypeDeoptimized = false;
 
 	createScope(parentScope: FunctionScope): void {
@@ -57,7 +58,18 @@ export default class FunctionNode extends NodeBase {
 	}
 
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath): ExpressionEntity {
-		return !this.async && path.length === 0 ? this.scope.getReturnExpression() : UNKNOWN_EXPRESSION;
+		if (path.length !== 0) {
+			return UNKNOWN_EXPRESSION;
+		}
+		if (this.async) {
+			if (!this.deoptimizedReturn) {
+				this.deoptimizedReturn = true;
+				this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
+				this.context.requestTreeshakingPass();
+			}
+			return UNKNOWN_EXPRESSION;
+		}
+		return this.scope.getReturnExpression();
 	}
 
 	hasEffects(): boolean {

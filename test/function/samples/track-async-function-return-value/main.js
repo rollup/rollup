@@ -1,4 +1,4 @@
-function fn() {
+async function fn() {
 	const obj = {
 		test() {
 			if (typeof obj.testfn === 'function') {
