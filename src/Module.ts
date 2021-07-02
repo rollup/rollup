@@ -587,8 +587,8 @@ export default class Module {
 
 	includeAllExports(includeNamespaceMembers: boolean): void {
 		if (!this.isExecuted) {
-			this.graph.needsTreeshakingPass = true;
 			markModuleAndImpureDependenciesAsExecuted(this);
+			this.graph.needsTreeshakingPass = true;
 		}
 
 		for (const exportName of this.getExports()) {

@@ -4,18 +4,12 @@ const test = () => {
 };
 
 const foo = () => {
-	// TODO: treeshake optimization regression.
-	return BUILD ? 'A' : 'B';
+	return 'A' ;
 };
 
 const bar = () => {
-	// TODO: treeshake optimization regression.
-	return getBuild() ? 'A' : 'B';
+	return 'A' ;
 };
-
-const getBuild = () => BUILD;
-
-const BUILD = true;
 
 (function() {
 	const test = () => {

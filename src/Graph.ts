@@ -183,11 +183,7 @@ export default class Graph {
 
 	private includeStatements() {
 		for (const module of [...this.entryModules, ...this.implicitEntryModules]) {
-			if (module.preserveSignature !== false) {
-				module.includeAllExports(false);
-			} else {
-				markModuleAndImpureDependenciesAsExecuted(module);
-			}
+			markModuleAndImpureDependenciesAsExecuted(module);
 		}
 		if (this.options.treeshake) {
 			let treeshakingPass = 1;
@@ -200,6 +196,16 @@ export default class Graph {
 							module.includeAllInBundle();
 						} else {
 							module.include();
+						}
+					}
+				}
+				if (treeshakingPass === 1) {
+					// We only include exports after the first pass to avoid issues with
+					// the TDZ detection logic
+					for (const module of [...this.entryModules, ...this.implicitEntryModules]) {
+						if (module.preserveSignature !== false) {
+							module.includeAllExports(false);
+							this.needsTreeshakingPass = true;
 						}
 					}
 				}
