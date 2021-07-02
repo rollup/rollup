@@ -6,7 +6,6 @@ console.log(function() {
 
 const C = 1 + C + 2; // TDZ
 let L = L;           // TDZ
-var V = V;           // TODO: uncommon scenario, but should be dropped
 console.log("X+" ); // optimize
 
 console.log(Y ? "Y+" : "Y-"); // TDZ

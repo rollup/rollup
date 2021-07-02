@@ -15,7 +15,7 @@ import LocalVariable from '../variables/LocalVariable';
 import Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
 import SpreadElement from './SpreadElement';
-import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
+import { ExpressionEntity, LiteralValueOrUnknown, UNKNOWN_EXPRESSION } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
@@ -108,10 +108,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		if (this.isPossibleTDZ()) {
-			return UnknownValue;
-		}
-		return this.variable!.getLiteralValueAtPath(path, recursionTracker, origin);
+		return this.getVariableRespectingTDZ().getLiteralValueAtPath(path, recursionTracker, origin);
 	}
 
 	getReturnExpressionWhenCalledAtPath(
@@ -120,7 +117,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
-		return this.variable!.getReturnExpressionWhenCalledAtPath(
+		return this.getVariableRespectingTDZ().getReturnExpressionWhenCalledAtPath(
 			path,
 			callOptions,
 			recursionTracker,
@@ -130,7 +127,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 	hasEffects(): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
-		if (this.isPossibleTDZ()) {
+		if (this.isPossibleTDZ() && this.variable!.kind !== 'var') {
 			return true;
 		}
 		return (
@@ -141,11 +138,16 @@ export default class Identifier extends NodeBase implements PatternNode {
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return this.variable !== null && this.variable.hasEffectsWhenAccessedAtPath(path, context);
+		return (
+			this.variable !== null &&
+			this.getVariableRespectingTDZ().hasEffectsWhenAccessedAtPath(path, context)
+		);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return !this.variable || this.variable.hasEffectsWhenAssignedAtPath(path, context);
+		return (
+			!this.variable || this.getVariableRespectingTDZ().hasEffectsWhenAssignedAtPath(path, context)
+		);
 	}
 
 	hasEffectsWhenCalledAtPath(
@@ -153,7 +155,10 @@ export default class Identifier extends NodeBase implements PatternNode {
 		callOptions: CallOptions,
 		context: HasEffectsContext
 	): boolean {
-		return !this.variable || this.variable.hasEffectsWhenCalledAtPath(path, callOptions, context);
+		return (
+			!this.variable ||
+			this.getVariableRespectingTDZ().hasEffectsWhenCalledAtPath(path, callOptions, context)
+		);
 	}
 
 	include(): void {
@@ -167,7 +172,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 	}
 
 	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
-		this.variable!.includeCallArguments(context, args);
+		this.getVariableRespectingTDZ().includeCallArguments(context, args);
 	}
 
 	markDeclarationReached(): void {
@@ -210,7 +215,24 @@ export default class Identifier extends NodeBase implements PatternNode {
 		}
 	}
 
-	protected isPossibleTDZ(): boolean {
+	private disallowImportReassignment() {
+		return this.context.error(
+			{
+				code: 'ILLEGAL_REASSIGNMENT',
+				message: `Illegal reassignment to import '${this.name}'`
+			},
+			this.start
+		);
+	}
+
+	private getVariableRespectingTDZ(): ExpressionEntity {
+		if (this.isPossibleTDZ()) {
+			return UNKNOWN_EXPRESSION;
+		}
+		return this.variable!;
+	}
+
+	private isPossibleTDZ(): boolean {
 		// return cached value if present
 		if (this.isTDZAccess !== null) return this.isTDZAccess;
 
@@ -262,15 +284,5 @@ export default class Identifier extends NodeBase implements PatternNode {
 		}
 
 		return (this.isTDZAccess = false);
-	}
-
-	private disallowImportReassignment() {
-		return this.context.error(
-			{
-				code: 'ILLEGAL_REASSIGNMENT',
-				message: `Illegal reassignment to import '${this.name}'`
-			},
-			this.start
-		);
 	}
 }

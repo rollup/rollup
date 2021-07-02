@@ -6,12 +6,12 @@ console.log(function() {
 
 const unused1 = 1;   // drop
 let unused2 = 2;     // drop
+unused3;             // drop
 var unused3 = 3;     // drop
 class unused4 {}     // drop
 
 const C = 1 + C + 2; // TDZ
 let L = L;           // TDZ
-var V = V;           // TODO: uncommon scenario, but should be dropped
 
 const X = 1;                  // drop
 console.log(X ? "X+" : "X-"); // optimize
