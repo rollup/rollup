@@ -77,8 +77,12 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
-		this.id?.markDeclarationReached();
-		return super.hasEffects(context);
+		const initEffect = this.superClass?.hasEffects(context) || this.body.hasEffects(context);
+		if (this.id) {
+			this.id.markDeclarationReached();
+			if (this.id.hasEffects()) return true;
+		}
+		return initEffect || super.hasEffects(context);
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
@@ -108,8 +112,13 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		this.id?.markDeclarationReached();
-		super.include(context, includeChildrenRecursively);
+		this.included = true;
+		this.superClass?.include(context, includeChildrenRecursively);
+		this.body.include(context, includeChildrenRecursively);
+		if (this.id) {
+			this.id.markDeclarationReached();
+			this.id.include();
+		}
 	}
 
 	initialise(): void {

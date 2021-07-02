@@ -9,7 +9,6 @@ import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { NodeEvent } from '../NodeEvents';
 import FunctionScope from '../scopes/FunctionScope';
 import { EMPTY_PATH, ObjectPath, PathTracker } from '../utils/PathTracker';
-import { UNDEFINED_EXPRESSION } from '../values';
 import GlobalVariable from '../variables/GlobalVariable';
 import LocalVariable from '../variables/LocalVariable';
 import Variable from '../variables/Variable';
@@ -20,14 +19,6 @@ import { ExpressionNode, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
 export type IdentifierWithVariable = Identifier & { variable: Variable };
-
-const tdzInitTypesToIgnore = {
-	__proto__: null,
-	ArrowFunctionExpression: true,
-	ClassExpression: true,
-	FunctionExpression: true,
-	ObjectExpression: true
-};
 
 const tdzVariableKinds = {
 	__proto__: null,
@@ -237,7 +228,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 	}
 
 	private isPossibleTDZ(): boolean {
-		// return cached value if present
+		// return cached value to avoid issues with the next tree-shaking pass
 		if (this.isTDZAccess !== null) return this.isTDZAccess;
 
 		if (
@@ -251,25 +242,6 @@ export default class Identifier extends NodeBase implements PatternNode {
 		if (!this.variable.initReached) {
 			// Either a const/let TDZ violation or
 			// var use before declaration was encountered.
-			// Retain this variable accesss to preserve the input behavior.
-			return (this.isTDZAccess = true);
-		}
-
-		let init, init_parent;
-		if (
-			(init = (this.variable as any).init) &&
-			init !== UNDEFINED_EXPRESSION &&
-			(init_parent = (init as any).parent) &&
-			init_parent.type == 'VariableDeclarator' &&
-			init_parent.id.variable === this.variable &&
-			!(init_parent.init.type in tdzInitTypesToIgnore) &&
-			// code position comparisons must be in the same context
-			this.context === init_parent.id.context &&
-			this.start >= init.start &&
-			this.start < init.end
-		) {
-			// any scope variable access within its own declaration init:
-			//   let x = x + 1;
 			return (this.isTDZAccess = true);
 		}
 
