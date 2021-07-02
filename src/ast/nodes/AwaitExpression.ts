@@ -34,5 +34,6 @@ export default class AwaitExpression extends NodeBase {
 	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
 		this.argument.deoptimizePath(UNKNOWN_PATH);
+		this.context.requestTreeshakingPass();
 	}
 }

@@ -1,4 +1,4 @@
-function fn() {
+const fn = async () => {
 	const obj = {
 		test() {
 			if (typeof obj.testfn === 'function') {
@@ -7,12 +7,13 @@ function fn() {
 		}
 	};
 	return obj;
-}
+};
 
 export let toggled = false;
 
 export const test = async function () {
-	const obj = await fn();
-	obj.testfn = () => (toggled = true);
-	obj.test();
+	const obj1 = await fn();
+	const obj2 = await fn();
+	obj1.testfn = () => (toggled = true);
+	obj1.test();
 };

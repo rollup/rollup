@@ -20,6 +20,7 @@ export default class ArrowFunctionExpression extends NodeBase {
 	preventChildBlockScope!: true;
 	scope!: ReturnValueScope;
 	type!: NodeType.tArrowFunctionExpression;
+	private deoptimizedReturn = false;
 
 	createScope(parentScope: Scope): void {
 		this.scope = new ReturnValueScope(parentScope, this.context);
@@ -37,7 +38,18 @@ export default class ArrowFunctionExpression extends NodeBase {
 	deoptimizeThisOnEventAtPath(): void {}
 
 	getReturnExpressionWhenCalledAtPath(path: ObjectPath): ExpressionEntity {
-		return !this.async && path.length === 0 ? this.scope.getReturnExpression() : UNKNOWN_EXPRESSION;
+		if (path.length !== 0) {
+			return UNKNOWN_EXPRESSION;
+		}
+		if (this.async) {
+			if (!this.deoptimizedReturn) {
+				this.deoptimizedReturn = true;
+				this.scope.getReturnExpression().deoptimizePath(UNKNOWN_PATH);
+				this.context.requestTreeshakingPass();
+			}
+			return UNKNOWN_EXPRESSION;
+		}
+		return this.scope.getReturnExpression();
 	}
 
 	hasEffects(): boolean {
