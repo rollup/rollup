@@ -146,7 +146,11 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
 		return (
-			!this.variable || this.getVariableRespectingTDZ().hasEffectsWhenAssignedAtPath(path, context)
+			!this.variable ||
+			(path.length > 0
+				? this.getVariableRespectingTDZ()
+				: this.variable
+			).hasEffectsWhenAssignedAtPath(path, context)
 		);
 	}
 
@@ -241,20 +245,6 @@ export default class Identifier extends NodeBase implements PatternNode {
 			!this.variable.kind ||
 			!(this.variable.kind in tdzVariableKinds)
 		) {
-			return (this.isTDZAccess = false);
-		}
-
-		if (
-			this.variable.kind === 'var' &&
-			((this.parent.type === 'AssignmentExpression' && this === (this.parent as any).left) ||
-				(this.parent.type === 'UpdateExpression' && this === (this.parent as any).argument) ||
-				this.parent.type === 'SequenceExpression' ||
-				this.parent.type === 'ExpressionStatement')
-		) {
-			// If a `var` variable is modified or innocuous
-			// then pretend the init was reached in these cases
-			// and have rollup's treeshaking take care of it.
-			this.variable.initReached = true;
 			return (this.isTDZAccess = false);
 		}
 
