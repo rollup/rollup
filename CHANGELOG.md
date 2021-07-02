@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.52.7
+*2021-07-02*
+
+### Bug Fixes
+* Fix an issue where reassignments where not tracked through async function returns (#4163)
+
+### Pull Requests
+* [#4163](https://github.com/rollup/rollup/pull/4163): Deoptimize return values of async functions (@lukastaegert)
+
 ## 2.52.6
 *2021-07-01*
 
@@ -7,7 +16,7 @@
 * Fix an issue where reassignments where not tracked through an await expression (#4162)
 
 ### Pull Requests
-* [#4162](https://github.com/rollup/rollup/pull/4162): eoptimize awaited expressions (@lukastaegert)
+* [#4162](https://github.com/rollup/rollup/pull/4162): doptimize awaited expressions (@lukastaegert)
 
 ## 2.52.5
 *2021-07-01*
