@@ -38,7 +38,6 @@ export const treeshakePresets: {
 } = {
 	recommended: {
 		annotations: true,
-		correctVarValueBeforeDeclaration: false,
 		moduleSideEffects: () => true,
 		propertyReadSideEffects: true,
 		tryCatchDeoptimization: true,
@@ -46,7 +45,6 @@ export const treeshakePresets: {
 	},
 	safest: {
 		annotations: true,
-		correctVarValueBeforeDeclaration: true,
 		moduleSideEffects: () => true,
 		propertyReadSideEffects: true,
 		tryCatchDeoptimization: true,
@@ -54,7 +52,6 @@ export const treeshakePresets: {
 	},
 	smallest: {
 		annotations: true,
-		correctVarValueBeforeDeclaration: false,
 		moduleSideEffects: () => false,
 		propertyReadSideEffects: false,
 		tryCatchDeoptimization: false,
