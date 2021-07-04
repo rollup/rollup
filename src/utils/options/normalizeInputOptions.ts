@@ -262,7 +262,7 @@ const getTreeshake = (
 		if (typeof configTreeshake.correctVarValueBeforeDeclaration !== 'undefined') {
 			warnDeprecationWithOptions(
 				`The "treeshake.correctVarValueBeforeDeclaration" option is deprecated and no longer has any effect. An improved algorithm is now in place that renders this option unnecessary.`,
-				true,
+				false,
 				warn,
 				strictDeprecations
 			);

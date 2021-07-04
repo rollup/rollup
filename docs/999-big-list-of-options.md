@@ -1744,7 +1744,7 @@ Type: `boolean`<br>
 CLI: `--treeshake.correctVarValueBeforeDeclaration`/`--no-treeshake.correctVarValueBeforeDeclaration`<br>
 Default: `false`
 
-This was temporarily an option to deoptimize the values of all `var` declarations to handle accessing a variable before it is declared. This option no longer has an effect as there is now an improved logic in place to automatically detect these situations. The option will be removed entirely in future Rollup versions.
+This was temporarily an option to deoptimize the values of all `var` declarations to handle accessing a variable before it is declared. This option no longer has an effect as there is now improved logic in place to automatically detect these situations. The option will be removed entirely in future Rollup versions.
 
 #### treeshake.pureExternalModules
 _Use [`treeshake.moduleSideEffects: 'no-external'`](guide/en/#treeshake) instead._<br>
