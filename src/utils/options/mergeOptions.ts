@@ -120,6 +120,7 @@ function mergeInputOptions(
 		input: getOption('input') || [],
 		makeAbsoluteExternalsRelative: getOption('makeAbsoluteExternalsRelative'),
 		manualChunks: getOption('manualChunks'),
+		maxParallelFileReads: getOption('maxParallelFileReads'),
 		moduleContext: getOption('moduleContext'),
 		onwarn: getOnWarn(config, defaultOnWarnHandler),
 		perf: getOption('perf'),
