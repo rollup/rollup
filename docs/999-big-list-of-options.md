@@ -1379,7 +1379,7 @@ Default: `false`
 If this option is provided, bundling will not fail if bindings are imported from a file that does not define these bindings. Instead, new variables will be created for these bindings with the value `undefined`.
 
 #### treeshake
-Type: `boolean | "smallest" | "safest" | "recommended" | { annotations?: boolean, moduleSideEffects?: ModuleSideEffectsOption, preset?: "smallest" | "safest" | "recommended", propertyReadSideEffects?: boolean | 'always', tryCatchDeoptimization?: boolean, unknownGlobalSideEffects?: boolean }`<br>
+Type: `boolean | "smallest" | "safest" | "recommended" | { annotations?: boolean, correctVarValueBeforeDeclaration?: boolean, moduleSideEffects?: ModuleSideEffectsOption, preset?: "smallest" | "safest" | "recommended", propertyReadSideEffects?: boolean | 'always', tryCatchDeoptimization?: boolean, unknownGlobalSideEffects?: boolean }`<br>
 CLI: `--treeshake`/`--no-treeshake`<br>
 Default: `true`
 
@@ -1389,8 +1389,8 @@ Whether to apply tree-shaking and to fine-tune the tree-shaking process. Setting
   * getters with side effects will only be retained if the return value is used (`treeshake.propertyReadSideEffects: false`)
   * code from imported modules will only be retained if at least one exported value is used (`treeshake.moduleSideEffects: false`)
   * you should not bundle polyfills that rely on detecting broken builtins (`treeshake.tryCatchDeoptimization: false`)
-  * some semantic issues may be swallowed (`treeshake.unknownGlobalSideEffects: false`)
-* `"recommended"` should work well for most usage patterns. Some semantic issues may be swallowed, though (`treeshake.unknownGlobalSideEffects: false`)
+  * some semantic issues may be swallowed (`treeshake.unknownGlobalSideEffects: false`, `treeshake.correctVarValueBeforeDeclaration: false`)
+* `"recommended"` should work well for most usage patterns. Some semantic issues may be swallowed, though (`treeshake.unknownGlobalSideEffects: false`, `treeshake.correctVarValueBeforeDeclaration: false`)
 * `"safest"` tries to be as spec compliant as possible while still providing some basic tree-shaking capabilities.
 * `true` is equivalent to not specifying the option and will always choose the default value (see below).
 
@@ -1414,6 +1414,30 @@ class Impure {
 }
 
 /*@__PURE__*/new Impure();
+```
+
+**treeshake.correctVarValueBeforeDeclaration**<br>
+Type: `boolean`<br>
+CLI: `--treeshake.correctVarValueBeforeDeclaration`/`--no-treeshake.correctVarValueBeforeDeclaration`<br>
+Default: `false`
+
+If a variable is assigned a value in its declaration and is never reassigned, Rollup sometimes assumes the value to be constant. This is not true if the variable is declared with `var`, however, as those variables can be accessed before their declaration where they will evaluate to `undefined`.
+Choosing `true` will make sure Rollup does not make (wrong) assumptions about the value of such variables. Note though that this can have a noticeable negative impact on tree-shaking results.
+
+```js
+// input
+if (Math.random() < 0.5) var x = true;
+if (!x) {
+  console.log('effect');
+}
+
+// no output with treeshake.correctVarValueBeforeDeclaration === false
+
+// output with treeshake.correctVarValueBeforeDeclaration === true
+if (Math.random() < 0.5) var x = true;
+if (!x) {
+  console.log('effect');
+}
 ```
 
 **treeshake.moduleSideEffects**<br>
@@ -1738,13 +1762,6 @@ CLI: `--dynamicImportFunction <name>`<br>
 Default: `import`
 
 This will rename the dynamic import function to the chosen name when outputting ES bundles. This is useful for generating code that uses a dynamic import polyfill such as [this one](https://github.com/uupaa/dynamic-import-polyfill).
-
-**treeshake.correctVarValueBeforeDeclaration**<br>
-Type: `boolean`<br>
-CLI: `--treeshake.correctVarValueBeforeDeclaration`/`--no-treeshake.correctVarValueBeforeDeclaration`<br>
-Default: `false`
-
-This was temporarily an option to deoptimize the values of all `var` declarations to handle accessing a variable before it is declared. This option no longer has an effect as there is now improved logic in place to automatically detect these situations. The option will be removed entirely in future Rollup versions.
 
 #### treeshake.pureExternalModules
 _Use [`treeshake.moduleSideEffects: 'no-external'`](guide/en/#treeshake) instead._<br>

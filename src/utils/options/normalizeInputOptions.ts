@@ -259,14 +259,6 @@ const getTreeshake = (
 				strictDeprecations
 			);
 		}
-		if (typeof configTreeshake.correctVarValueBeforeDeclaration !== 'undefined') {
-			warnDeprecationWithOptions(
-				`The "treeshake.correctVarValueBeforeDeclaration" option is deprecated and no longer has any effect. An improved algorithm is now in place that renders this option unnecessary.`,
-				false,
-				warn,
-				strictDeprecations
-			);
-		}
 		configWithPreset = configTreeshake;
 		const presetName = configTreeshake.preset;
 		if (presetName) {
@@ -285,6 +277,7 @@ const getTreeshake = (
 	}
 	return {
 		annotations: configWithPreset.annotations !== false,
+		correctVarValueBeforeDeclaration: configWithPreset.correctVarValueBeforeDeclaration === true,
 		moduleSideEffects:
 			typeof configTreeshake === 'object' && configTreeshake.pureExternalModules
 				? getHasModuleSideEffects(
