@@ -78,10 +78,7 @@ export default class ClassNode extends NodeBase implements DeoptimizableEntity {
 
 	hasEffects(context: HasEffectsContext): boolean {
 		const initEffect = this.superClass?.hasEffects(context) || this.body.hasEffects(context);
-		if (this.id) {
-			this.id.markDeclarationReached();
-			if (this.id.hasEffects()) return true;
-		}
+		this.id?.markDeclarationReached();
 		return initEffect || super.hasEffects(context);
 	}
 
