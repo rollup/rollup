@@ -4,5 +4,6 @@ require('./deprecations');
 require('./iife');
 require('./in-memory-sourcemaps');
 require('./misc');
+require('./queue');
 require('./sanity-checks');
 require('./umd');
