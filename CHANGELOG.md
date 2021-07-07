@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.52.8
+*2021-07-07*
+
+### Bug Fixes
+* Automatically handle many use `var` before declaration and TDZ access scenarios correctly without the need for `treeshake.correctVarValueBeforeDeclaration` (#4148)
+
+### Pull Requests
+* [#4148](https://github.com/rollup/rollup/pull/4148): Fix var/const/let variable use before declaration (@kzc and @lukastaegert)
+
 ## 2.52.7
 *2021-07-02*
 
