@@ -86,6 +86,7 @@ export async function rollupInternal(
 				graph
 			);
 		},
+		maxParallelFileReads: graph.parallelFileReadsMax,
 		watchFiles: Object.keys(graph.watchFiles),
 		async write(rawOutputOptions: OutputOptions) {
 			if (result.closed) return error(errAlreadyClosed());

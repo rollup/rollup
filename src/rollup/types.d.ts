@@ -791,6 +791,7 @@ export interface RollupBuild {
 	closed: boolean;
 	generate: (outputOptions: OutputOptions) => Promise<RollupOutput>;
 	getTimings?: () => SerializedTimings;
+	maxParallelFileReads: number;
 	watchFiles: string[];
 	write: (options: OutputOptions) => Promise<RollupOutput>;
 }

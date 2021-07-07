@@ -51,6 +51,8 @@ export default class Graph {
 	moduleLoader: ModuleLoader;
 	modulesById = new Map<string, Module | ExternalModule>();
 	needsTreeshakingPass = false;
+	parallelFileReads = 0;
+	parallelFileReadsMax = 0;
 	phase: BuildPhase = BuildPhase.LOAD_AND_PARSE;
 	pluginDriver: PluginDriver;
 	scope: GlobalScope;

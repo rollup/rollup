@@ -222,7 +222,14 @@ export class ModuleLoader {
 		try {
 			source =
 				(await this.pluginDriver.hookFirst('load', [id])) ??
-				(await this.readQueue.run(() => readFile(id)));
+				(await this.readQueue.run(async () => {
+					this.graph.parallelFileReads++;
+					this.graph.parallelFileReadsMax = Math.max(
+						this.graph.parallelFileReadsMax,
+						this.graph.parallelFileReads
+					);
+					return readFile(id).finally(() => this.graph.parallelFileReads--);
+				}));
 		} catch (err) {
 			timeEnd('load modules', 3);
 			let msg = `Could not load ${id}`;
