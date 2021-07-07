@@ -14,5 +14,16 @@ try {
 
 unknownGlobal;
 
-if (!foo) console.log('effect');
-var foo = true;
+let flag = true;
+
+function test() {
+	if (flag) var x = true;
+	if (x) {
+		return;
+	}
+	console.log('effect');
+}
+
+test();
+flag = false;
+test();

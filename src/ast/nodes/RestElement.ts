@@ -33,6 +33,10 @@ export default class RestElement extends NodeBase implements PatternNode {
 		return path.length > 0 || this.argument.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context);
 	}
 
+	markDeclarationReached(): void {
+		this.argument.markDeclarationReached();
+	}
+
 	protected applyDeoptimizations(): void {
 		this.deoptimized = true;
 		if (this.declarationInit !== null) {

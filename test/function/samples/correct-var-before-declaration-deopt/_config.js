@@ -1,6 +1,3 @@
 module.exports = {
-	description: 'adds necessary deoptimizations when using treeshake.correctVarBeforeDeclaration',
-	options: {
-		treeshake: { correctVarValueBeforeDeclaration: true }
-	}
+	description: 'adds necessary deoptimizations when using var'
 };

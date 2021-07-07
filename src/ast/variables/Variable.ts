@@ -8,10 +8,12 @@ import { ObjectPath } from '../utils/PathTracker';
 
 export default class Variable extends ExpressionEntity {
 	alwaysRendered = false;
+	initReached = false;
 	isId = false;
 	// both NamespaceVariable and ExternalVariable can be namespaces
 	isNamespace?: boolean;
 	isReassigned = false;
+	kind: string | null = null;
 	module?: Module | ExternalModule;
 	renderBaseName: string | null = null;
 	renderName: string | null = null;
