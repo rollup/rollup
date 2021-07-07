@@ -35,6 +35,10 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 		return path.length > 0 || this.left.hasEffectsWhenAssignedAtPath(EMPTY_PATH, context);
 	}
 
+	markDeclarationReached(): void {
+		this.left.markDeclarationReached();
+	}
+
 	render(
 		code: MagicString,
 		options: RenderOptions,

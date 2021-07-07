@@ -15,18 +15,26 @@ import LocalVariable from '../variables/LocalVariable';
 import Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
 import SpreadElement from './SpreadElement';
-import { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
+import { ExpressionEntity, LiteralValueOrUnknown, UNKNOWN_EXPRESSION } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
 export type IdentifierWithVariable = Identifier & { variable: Variable };
 
+const tdzVariableKinds = {
+	__proto__: null,
+	class: true,
+	const: true,
+	let: true,
+	var: true
+};
+
 export default class Identifier extends NodeBase implements PatternNode {
 	name!: string;
 	type!: NodeType.tIdentifier;
-
 	variable: Variable | null = null;
 	protected deoptimized = false;
+	private isTDZAccess: boolean | null = null;
 
 	addExportedVariables(
 		variables: Variable[],
@@ -72,6 +80,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 				/* istanbul ignore next */
 				throw new Error(`Internal Error: Unexpected identifier kind ${kind}.`);
 		}
+		variable.kind = kind;
 		return [(this.variable = variable)];
 	}
 
@@ -96,7 +105,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		return this.variable!.getLiteralValueAtPath(path, recursionTracker, origin);
+		return this.getVariableRespectingTDZ().getLiteralValueAtPath(path, recursionTracker, origin);
 	}
 
 	getReturnExpressionWhenCalledAtPath(
@@ -105,7 +114,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
-		return this.variable!.getReturnExpressionWhenCalledAtPath(
+		return this.getVariableRespectingTDZ().getReturnExpressionWhenCalledAtPath(
 			path,
 			callOptions,
 			recursionTracker,
@@ -115,6 +124,9 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 	hasEffects(): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();
+		if (this.isPossibleTDZ() && this.variable!.kind !== 'var') {
+			return true;
+		}
 		return (
 			(this.context.options.treeshake as NormalizedTreeshakingOptions).unknownGlobalSideEffects &&
 			this.variable instanceof GlobalVariable &&
@@ -123,11 +135,20 @@ export default class Identifier extends NodeBase implements PatternNode {
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return this.variable !== null && this.variable.hasEffectsWhenAccessedAtPath(path, context);
+		return (
+			this.variable !== null &&
+			this.getVariableRespectingTDZ().hasEffectsWhenAccessedAtPath(path, context)
+		);
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		return !this.variable || this.variable.hasEffectsWhenAssignedAtPath(path, context);
+		return (
+			!this.variable ||
+			(path.length > 0
+				? this.getVariableRespectingTDZ()
+				: this.variable
+			).hasEffectsWhenAssignedAtPath(path, context)
+		);
 	}
 
 	hasEffectsWhenCalledAtPath(
@@ -135,7 +156,10 @@ export default class Identifier extends NodeBase implements PatternNode {
 		callOptions: CallOptions,
 		context: HasEffectsContext
 	): boolean {
-		return !this.variable || this.variable.hasEffectsWhenCalledAtPath(path, callOptions, context);
+		return (
+			!this.variable ||
+			this.getVariableRespectingTDZ().hasEffectsWhenCalledAtPath(path, callOptions, context)
+		);
 	}
 
 	include(): void {
@@ -149,7 +173,11 @@ export default class Identifier extends NodeBase implements PatternNode {
 	}
 
 	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
-		this.variable!.includeCallArguments(context, args);
+		this.getVariableRespectingTDZ().includeCallArguments(context, args);
+	}
+
+	markDeclarationReached(): void {
+		this.variable!.initReached = true;
 	}
 
 	render(
@@ -196,5 +224,33 @@ export default class Identifier extends NodeBase implements PatternNode {
 			},
 			this.start
 		);
+	}
+
+	private getVariableRespectingTDZ(): ExpressionEntity {
+		if (this.isPossibleTDZ()) {
+			return UNKNOWN_EXPRESSION;
+		}
+		return this.variable!;
+	}
+
+	private isPossibleTDZ(): boolean {
+		// return cached value to avoid issues with the next tree-shaking pass
+		if (this.isTDZAccess !== null) return this.isTDZAccess;
+
+		if (
+			!(this.variable instanceof LocalVariable) ||
+			!this.variable.kind ||
+			!(this.variable.kind in tdzVariableKinds)
+		) {
+			return (this.isTDZAccess = false);
+		}
+
+		if (!this.variable.initReached) {
+			// Either a const/let TDZ violation or
+			// var use before declaration was encountered.
+			return (this.isTDZAccess = true);
+		}
+
+		return (this.isTDZAccess = false);
 	}
 }

@@ -52,4 +52,10 @@ export default class ObjectPattern extends NodeBase implements PatternNode {
 		}
 		return false;
 	}
+
+	markDeclarationReached(): void {
+		for (const property of this.properties) {
+			property.markDeclarationReached();
+		}
+	}
 }

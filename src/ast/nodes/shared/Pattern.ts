@@ -5,4 +5,5 @@ import { Node } from './Node';
 
 export interface PatternNode extends WritableEntity, Node {
 	declare(kind: string, init: ExpressionEntity | null): LocalVariable[];
+	markDeclarationReached(): void;
 }

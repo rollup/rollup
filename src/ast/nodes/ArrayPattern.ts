@@ -50,4 +50,12 @@ export default class ArrayPattern extends NodeBase implements PatternNode {
 		}
 		return false;
 	}
+
+	markDeclarationReached(): void {
+		for (const element of this.elements) {
+			if (element !== null) {
+				element.markDeclarationReached();
+			}
+		}
+	}
 }
