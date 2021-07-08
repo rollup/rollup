@@ -184,9 +184,6 @@ const getMaxParallelFileReads = (
 		if (maxParallelFileReads <= 0) return Infinity;
 		return maxParallelFileReads;
 	}
-	if (typeof maxParallelFileReads === 'string' && maxParallelFileReads.match(/^inf(inity)?$/i)) {
-		return Infinity;
-	}
 	return 20;
 };
 
