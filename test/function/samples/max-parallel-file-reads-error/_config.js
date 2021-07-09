@@ -1,5 +1,5 @@
-const assert = require('assert');
 const fs = require('fs');
+const path = require('path');
 const { loader } = require('../../../utils.js');
 
 const fsReadFile = fs.readFile;
@@ -14,8 +14,8 @@ module.exports = {
 	},
 	before() {
 		fs.readFile = (path, options, callback) => {
-			if (path.endsWith('test/function/samples/max-parallel-file-reads-error/dep.js')) {
-				return callback(Error());
+			if (path.endsWith('dep.js')) {
+				return callback(new Error('broken'));
 			}
 
 			fsReadFile(path, options, callback);
@@ -25,7 +25,7 @@ module.exports = {
 		fs.readFile = fsReadFile;
 	},
 	error: {
-		message: `Could not load ${__dirname}/dep.js (imported by main): `,
-		watchFiles: ['main', `${__dirname}/dep.js`]
+		message: `Could not load ${path.join(__dirname, 'dep.js')} (imported by main): broken`,
+		watchFiles: ['main', path.join(__dirname, 'dep.js')]
 	}
 };
