@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.53.0
+*2021-07-09*
+
+### Features
+* Add `maxParallelFileReads` option to limit read operations with a default of 20 (#4170)
+
+### Pull Requests
+* [#4170](https://github.com/rollup/rollup/pull/4170): Limit parallel file reads to prevent "EMFILE: too many open files" error (@schummar)
+
 ## 2.52.8
 *2021-07-07*
 
