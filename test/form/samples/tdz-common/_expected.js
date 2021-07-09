@@ -41,3 +41,16 @@ class cls {}
 	console.log("C" );
 	console.log("D" );
 })();
+
+(function let_tdz() {
+	let flag = false;
+	function foo() {
+		if (flag) {
+			value; // TDZ
+		}
+		let value;
+	}
+	foo();
+	flag = true;
+	foo();
+})();

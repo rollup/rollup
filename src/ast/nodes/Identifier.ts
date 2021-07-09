@@ -245,6 +245,19 @@ export default class Identifier extends NodeBase implements PatternNode {
 			return (this.isTDZAccess = false);
 		}
 
+		let decl_id;
+		if (
+			this.variable.declarations &&
+			this.variable.declarations.length === 1 &&
+			(decl_id = this.variable.declarations[0] as any) &&
+			this.start < decl_id.start &&
+			closestParentFunctionOrProgram(this) === closestParentFunctionOrProgram(decl_id)
+		) {
+			// a variable accessed before its declaration
+			// in the same function or at top level of module
+			return (this.isTDZAccess = true);
+		}
+
 		if (!this.variable.initReached) {
 			// Either a const/let TDZ violation or
 			// var use before declaration was encountered.
@@ -253,4 +266,12 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 		return (this.isTDZAccess = false);
 	}
+}
+
+function closestParentFunctionOrProgram(node: any): any {
+	while (node && !/^Program|Function/.test(node.type)) {
+		node = node.parent;
+	}
+	// one of: ArrowFunctionExpression, FunctionDeclaration, FunctionExpression or Program
+	return node;
 }

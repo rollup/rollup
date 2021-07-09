@@ -55,3 +55,26 @@ class cls {}
 	console.log(C ? "C" : "!C");
 	console.log(D ? "D" : "!D");
 })();
+
+(function let_tdz() {
+	let flag = false;
+	function foo() {
+		if (flag) {
+			value; // TDZ
+		}
+		let value;
+	}
+	foo();
+	flag = true;
+	foo();
+})();
+
+// should be dropped
+(function() {
+	function foo() {
+		const access = () => value;
+		let value;
+		access();
+	};
+	foo();
+})();

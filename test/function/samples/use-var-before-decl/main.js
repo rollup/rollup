@@ -41,4 +41,21 @@ log(function() {
 	}
 })();
 
-assert.strictEqual(results.join(" "), "PASS1 PASS2 PASS3 PASS4 PASS5 PASS6 OFF ON");
+(function () {
+	var flag = false;
+
+	function foo() {
+		if (flag) {
+			if (!value) log(flag + "1");
+		}
+		var value = true;
+		log(flag + "2");
+	}
+
+	foo();
+
+	flag = true;
+	foo();
+})();
+
+assert.strictEqual(results.join(" "), "PASS1 PASS2 PASS3 PASS4 PASS5 PASS6 OFF ON false2 true1 true2");

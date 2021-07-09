@@ -14,6 +14,6 @@ export default class TrackingScope extends BlockScope {
 		isHoisted: boolean
 	): LocalVariable {
 		this.hoistedDeclarations.push(identifier);
-		return this.parent.addDeclaration(identifier, context, init, isHoisted);
+		return super.addDeclaration(identifier, context, init, isHoisted);
 	}
 }
