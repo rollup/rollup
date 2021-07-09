@@ -50,6 +50,7 @@ export function normalizeInputOptions(config: InputOptions): {
 		input: getInput(config),
 		makeAbsoluteExternalsRelative: config.makeAbsoluteExternalsRelative ?? true,
 		manualChunks: getManualChunks(config, onwarn, strictDeprecations),
+		maxParallelFileReads: getMaxParallelFileReads(config),
 		moduleContext: getModuleContext(config, context),
 		onwarn,
 		perf: config.perf || false,
@@ -173,6 +174,17 @@ const getManualChunks = (
 		);
 	}
 	return configManualChunks;
+};
+
+const getMaxParallelFileReads = (
+	config: InputOptions
+): NormalizedInputOptions['maxParallelFileReads'] => {
+	const maxParallelFileReads = config.maxParallelFileReads as unknown;
+	if (typeof maxParallelFileReads === 'number') {
+		if (maxParallelFileReads <= 0) return Infinity;
+		return maxParallelFileReads;
+	}
+	return 20;
 };
 
 const getModuleContext = (

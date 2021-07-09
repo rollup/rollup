@@ -537,6 +537,7 @@ export interface InputOptions {
 	makeAbsoluteExternalsRelative?: boolean | 'ifRelativeSource';
 	/** @deprecated Use the "manualChunks" output option instead. */
 	manualChunks?: ManualChunksOption;
+	maxParallelFileReads?: number;
 	moduleContext?: ((id: string) => string | null | undefined) | { [id: string]: string };
 	onwarn?: WarningHandlerWithDefault;
 	perf?: boolean;
@@ -564,6 +565,7 @@ export interface NormalizedInputOptions {
 	makeAbsoluteExternalsRelative: boolean | 'ifRelativeSource';
 	/** @deprecated Use the "manualChunks" output option instead. */
 	manualChunks: ManualChunksOption | undefined;
+	maxParallelFileReads: number;
 	moduleContext: (id: string) => string;
 	onwarn: WarningHandler;
 	perf: boolean;

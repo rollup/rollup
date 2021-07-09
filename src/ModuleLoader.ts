@@ -30,6 +30,7 @@ import {
 } from './utils/error';
 import { readFile } from './utils/fs';
 import { isAbsolute, isRelative, resolve } from './utils/path';
+import { Queue } from './utils/queue';
 import relativeId from './utils/relativeId';
 import { resolveId } from './utils/resolveId';
 import { timeEnd, timeStart } from './utils/timers';
@@ -53,6 +54,7 @@ export class ModuleLoader {
 	private readonly indexedEntryModules: { index: number; module: Module }[] = [];
 	private latestLoadModulesPromise: Promise<unknown> = Promise.resolve();
 	private nextEntryModuleIndex = 0;
+	private readQueue = new Queue();
 
 	constructor(
 		private readonly graph: Graph,
@@ -63,6 +65,7 @@ export class ModuleLoader {
 		this.hasModuleSideEffects = options.treeshake
 			? options.treeshake.moduleSideEffects
 			: () => true;
+		this.readQueue.maxParallel = options.maxParallelFileReads;
 	}
 
 	async addAdditionalModules(unresolvedModules: string[]): Promise<Module[]> {
@@ -217,7 +220,9 @@ export class ModuleLoader {
 		timeStart('load modules', 3);
 		let source: string | SourceDescription;
 		try {
-			source = (await this.pluginDriver.hookFirst('load', [id])) ?? (await readFile(id));
+			source =
+				(await this.pluginDriver.hookFirst('load', [id])) ??
+				(await this.readQueue.run(async () => readFile(id)));
 		} catch (err) {
 			timeEnd('load modules', 3);
 			let msg = `Could not load ${id}`;
