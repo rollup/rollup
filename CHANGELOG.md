@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.53.1
+*2021-07-11*
+
+### Bug Fixes
+* Do not omit namespace reexports when `treeshake` is `false` (#4175)
+
+### Pull Requests
+* [#4175](https://github.com/rollup/rollup/pull/4175): Generate namespace objects when not tree-shaking (@lukastaegert)
+
 ## 2.53.0
 *2021-07-09*
 
