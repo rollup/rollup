@@ -621,6 +621,7 @@ export default class Module {
 
 	includeAllInBundle(): void {
 		this.ast!.include(createInclusionContext(), true);
+		this.includeAllExports(false);
 	}
 
 	isIncluded(): boolean {
