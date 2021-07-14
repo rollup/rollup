@@ -18,9 +18,9 @@ export default class CatchClause extends NodeBase {
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode): void {
-		// Parameters need to be declared first as the logic is that hoisted body
-		// variables are associated with outside vars unless there is a parameter,
-		// in which case they are associated with the parameter
+		// Parameters need to be declared first as the logic is that initializers
+		// of hoisted body variables are associated with parameters of the same
+		// name instead of the variable
 		const { param } = esTreeNode;
 		if (param) {
 			(this.param as GenericEsTreeNode) = new (this.context.nodeConstructors[param.type] ||
