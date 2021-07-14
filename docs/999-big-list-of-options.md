@@ -1428,8 +1428,31 @@ Type: `boolean`<br>
 CLI: `--treeshake.correctVarValueBeforeDeclaration`/`--no-treeshake.correctVarValueBeforeDeclaration`<br>
 Default: `false`
 
-If a variable is assigned a value in its declaration and is never reassigned, Rollup sometimes assumes the value to be constant. This is not true if the variable is declared with `var`, however, as those variables can be accessed before their declaration where they will evaluate to `undefined`.
-Choosing `true` will make sure Rollup does not make (wrong) assumptions about the value of such variables. Note though that this can have a noticeable negative impact on tree-shaking results.
+If a variable is assigned a value in its declaration and is never reassigned, Rollup can in some adge case scenarios assume the value to be constant, see below. This is not true if the variable is declared with `var`, however, as those variables can be accessed before their declaration where they will evaluate to `undefined`.
+Choosing `true` will make sure Rollup does not make any assumptions about the value of such variables. Note though that this can have a noticeable negative impact on tree-shaking results.
+
+```js
+// everything will be tree-shaken unless treeshake.correctVarValueBeforeDeclaration === true
+let logBeforeDeclaration = false;
+
+function logIfEnabled() {
+  if (logBeforeDeclaration) {
+    log();
+  }
+
+  var value = true;
+
+  function log() {
+    if (!value) {
+      console.log('should be retained, value is undefined');
+    }
+  }
+};
+
+logIfEnabled(); // could be removed
+logBeforeDeclaration = true;
+logIfEnabled(); // needs to be retained as it displays a log
+```
 
 **treeshake.moduleSideEffects**<br>
 Type: `boolean | "no-external" | string[] | (id: string, external: boolean) => boolean`<br>
