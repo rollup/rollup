@@ -1428,8 +1428,8 @@ Type: `boolean`<br>
 CLI: `--treeshake.correctVarValueBeforeDeclaration`/`--no-treeshake.correctVarValueBeforeDeclaration`<br>
 Default: `false`
 
-If a variable is assigned a value in its declaration and is never reassigned, Rollup can in some adge case scenarios assume the value to be constant, see below. This is not true if the variable is declared with `var`, however, as those variables can be accessed before their declaration where they will evaluate to `undefined`.
-Choosing `true` will make sure Rollup does not make any assumptions about the value of such variables. Note though that this can have a noticeable negative impact on tree-shaking results.
+In some edge cases if a variable is accessed before its declaration assignment and is not reassigned, then Rollup may incorrectly assume that variable is constant throughout the program, as in the example below. This is not true if the variable is declared with `var`, however, as those variables can be accessed before their declaration where they will evaluate to `undefined`.
+Choosing `true` will make sure Rollup does not make any assumptions about the value of variables declared with `var`. Note though that this can have a noticeable negative impact on tree-shaking results.
 
 ```js
 // everything will be tree-shaken unless treeshake.correctVarValueBeforeDeclaration === true
