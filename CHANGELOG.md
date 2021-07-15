@@ -1,5 +1,16 @@
 # rollup changelog
 
+## 2.53.2
+*2021-07-15*
+
+### Bug Fixes
+* Identify additional TDZ situations in functions that are run more than once (#4177)
+* Fix a scoping issue when a variable inside a catch scope matches the scope parameter's name (#4178)
+
+### Pull Requests
+* [#4177](https://github.com/rollup/rollup/pull/4177): Fix additional let/var init bugs (@kzc)
+* [#4178](https://github.com/rollup/rollup/pull/4178): Correctly create outside variable when shadowed by catch parameter (@lukastaegert)
+
 ## 2.53.1
 *2021-07-11*
 
