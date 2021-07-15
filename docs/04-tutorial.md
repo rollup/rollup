@@ -127,7 +127,7 @@ rollup --config rollup.config.dev.js
 rollup --config rollup.config.prod.js
 ```
 
-### Installing Rollup locally
+### Installing Rollup Locally
 
 When working within teams or distributed environments it can be wise to add Rollup as a _local_ dependency. Installing Rollup locally prevents the requirement that multiple contributors install Rollup separately as an extra step, and ensures that all contributors are using the same version of Rollup.
 

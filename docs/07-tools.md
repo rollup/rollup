@@ -77,7 +77,7 @@ The [@rollup/plugin-commonjs](https://github.com/rollup/plugins/tree/master/pack
 Note that most of the times `@rollup/plugin-commonjs` should go *before* other plugins that transform your modules — this is to prevent other plugins from making changes that break the CommonJS detection. An exception for this rule is the Babel plugin, if you're using it then place it before the commonjs one.
 
 
-### Peer dependencies
+### Peer Dependencies
 
 Let's say that you're building a library that has a peer dependency, such as React or Lodash. If you set up externals as described above, your rollup will bundle *all* imports:
 
