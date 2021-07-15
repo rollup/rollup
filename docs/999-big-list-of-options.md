@@ -1428,23 +1428,30 @@ Type: `boolean`<br>
 CLI: `--treeshake.correctVarValueBeforeDeclaration`/`--no-treeshake.correctVarValueBeforeDeclaration`<br>
 Default: `false`
 
-If a variable is assigned a value in its declaration and is never reassigned, Rollup sometimes assumes the value to be constant. This is not true if the variable is declared with `var`, however, as those variables can be accessed before their declaration where they will evaluate to `undefined`.
-Choosing `true` will make sure Rollup does not make (wrong) assumptions about the value of such variables. Note though that this can have a noticeable negative impact on tree-shaking results.
+In some edge cases if a variable is accessed before its declaration assignment and is not reassigned, then Rollup may incorrectly assume that variable is constant throughout the program, as in the example below. This is not true if the variable is declared with `var`, however, as those variables can be accessed before their declaration where they will evaluate to `undefined`.
+Choosing `true` will make sure Rollup does not make any assumptions about the value of variables declared with `var`. Note though that this can have a noticeable negative impact on tree-shaking results.
 
 ```js
-// input
-if (Math.random() < 0.5) var x = true;
-if (!x) {
-  console.log('effect');
-}
+// everything will be tree-shaken unless treeshake.correctVarValueBeforeDeclaration === true
+let logBeforeDeclaration = false;
 
-// no output with treeshake.correctVarValueBeforeDeclaration === false
+function logIfEnabled() {
+  if (logBeforeDeclaration) {
+    log();
+  }
 
-// output with treeshake.correctVarValueBeforeDeclaration === true
-if (Math.random() < 0.5) var x = true;
-if (!x) {
-  console.log('effect');
-}
+  var value = true;
+
+  function log() {
+    if (!value) {
+      console.log('should be retained, value is undefined');
+    }
+  }
+};
+
+logIfEnabled(); // could be removed
+logBeforeDeclaration = true;
+logIfEnabled(); // needs to be retained as it displays a log
 ```
 
 **treeshake.moduleSideEffects**<br>
