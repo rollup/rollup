@@ -21,4 +21,4 @@ function augment ( x ) {
 function x () {}
 augment( x.prototype );
 
-export default x;
+export { x as default };

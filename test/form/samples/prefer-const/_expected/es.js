@@ -14,4 +14,4 @@ console.log( name );
 
 const main = 42;
 
-export default main;
+export { main as default };

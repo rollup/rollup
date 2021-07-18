@@ -7,4 +7,4 @@ var main = (input) => {
 	}
 };
 
-export default main;
+export { main as default };

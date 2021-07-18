@@ -6,7 +6,7 @@ define(['exports'], function (exports) { 'use strict';
     sideEffect(arg);
   }
 
-  exports.default = _missingExportShim;
+  exports['default'] = _missingExportShim;
   exports.missingExport = _missingExportShim;
   exports.missingFn = _missingExportShim;
   exports.x = x;

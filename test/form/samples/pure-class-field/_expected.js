@@ -3,4 +3,4 @@ class main {
 	static [/*#__PURE__*/ W()];
 }
 
-export default main;
+export { main as default };

@@ -45,4 +45,4 @@ function nested2() {
 
 nested2();
 
-export default value;
+export { value as default };

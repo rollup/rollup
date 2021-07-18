@@ -16,5 +16,5 @@ class Main2 {
   }
 }
 
-export default Main2;
+export { Main2 as default };
 //# sourceMappingURL=main2.js.map

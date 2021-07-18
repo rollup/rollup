@@ -35,7 +35,7 @@ describe('The bundle object', () => {
 					output.map(chunk => chunk.code),
 					[
 						`import { u as used, s as shared } from './generated-shared-c4fdd061.js';\n\nconsole.log("input1", used, shared);const out = true;\n\nexport { out };\n`,
-						`import './generated-shared-c4fdd061.js';\n\nconsole.log("input2");var input2 = 42;\n\nexport default input2;\n`,
+						`import './generated-shared-c4fdd061.js';\n\nconsole.log("input2");var input2 = 42;\n\nexport { input2 as default };\n`,
 						`console.log("shared");const used = "used"; var shared = "stuff";\n\nexport { shared as s, used as u };\n`
 					],
 					'code'

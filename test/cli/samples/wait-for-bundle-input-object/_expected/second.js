@@ -1,3 +1,3 @@
 var second = 'second';
 
-export default second;
+export { second as default };

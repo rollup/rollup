@@ -8,4 +8,4 @@ class Main2 {
   }
 }
 
-export default Main2;
+export { Main2 as default };

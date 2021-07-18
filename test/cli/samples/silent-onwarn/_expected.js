@@ -2,4 +2,4 @@ var doIt = () => console.log('main');
 
 doIt();
 
-export default doIt;
+export { doIt as default };

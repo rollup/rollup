@@ -1,3 +1,3 @@
 var bar = 1;
 
-export default bar;
+export { bar as default };

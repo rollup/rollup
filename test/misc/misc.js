@@ -175,7 +175,10 @@ describe('misc', () => {
 			.rollup(options)
 			.then(bundle => bundle.generate(options))
 			.then(output =>
-				assert.strictEqual(output.output[0].code, 'var input = 42;\n\nexport default input;\n')
+				assert.strictEqual(
+					output.output[0].code,
+					'var input = 42;\n\nexport { input as default };\n'
+				)
 			);
 	});
 

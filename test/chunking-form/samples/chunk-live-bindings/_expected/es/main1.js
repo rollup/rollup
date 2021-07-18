@@ -7,4 +7,4 @@ class Main1 {
   }
 }
 
-export default Main1;
+export { Main1 as default };

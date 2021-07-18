@@ -8,4 +8,4 @@ var a = 4;
 console.log(a, b);
 
 exports.b = b;
-exports.default = a;
+exports['default'] = a;

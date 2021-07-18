@@ -8,7 +8,7 @@ function x (arg) {
   sideEffect(arg);
 }
 
-exports.default = _missingExportShim;
+exports['default'] = _missingExportShim;
 exports.missingExport = _missingExportShim;
 exports.missingFn = _missingExportShim;
 exports.x = x;

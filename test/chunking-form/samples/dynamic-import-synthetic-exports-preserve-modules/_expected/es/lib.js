@@ -1,4 +1,4 @@
 const __moduleExports = { foo: 'bar' };
 var lib = 'baz';
 
-export default lib;
+export { lib as default };

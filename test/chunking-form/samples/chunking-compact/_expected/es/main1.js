@@ -5,4 +5,4 @@ import {f as fn$1}from'./generated-dep2.js';function fn () {
     fn();
     fn$1();
   }
-}export default Main1;
+}export{Main1 as default};

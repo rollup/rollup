@@ -2,4 +2,5 @@ import main from './main.js';
 
 
 
-export default main.one.two.three.four;
+var four = main.one.two.three.four;
+export { four as default };

@@ -43,4 +43,4 @@ Menu.Item2 = Item;
 console.log('test-package-default-export', Menu$1.Item);
 console.log('test-package-named-export', NamedExport.Item);
 
-export default Menu;
+export { Menu as default };

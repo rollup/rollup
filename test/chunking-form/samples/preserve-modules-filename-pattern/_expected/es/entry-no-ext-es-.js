@@ -1,3 +1,3 @@
 var noExt = 'no-ext';
 
-export default noExt;
+export { noExt as default };

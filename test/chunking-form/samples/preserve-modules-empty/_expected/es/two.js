@@ -1,3 +1,3 @@
 var a = {};
 
-export default a;
+export { a as default };

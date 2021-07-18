@@ -2,4 +2,4 @@ import 'babel-polyfill';
 
 var main = new WeakMap();
 
-export default main;
+export { main as default };

@@ -1,3 +1,3 @@
 var third = 'third';
 
-export default third;
+export { third as default };

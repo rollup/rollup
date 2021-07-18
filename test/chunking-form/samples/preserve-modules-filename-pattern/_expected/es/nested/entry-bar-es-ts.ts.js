@@ -1,3 +1,3 @@
 var bar = 'banana';
 
-export default bar;
+export { bar as default };
