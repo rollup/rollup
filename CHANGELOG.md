@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.53.3
+*2021-07-21*
+
+### Bug Fixes
+* Solve an issue that could lead to severe memory issues and crashes when there are a lot of hoisted variables (#4183)
+
+### Pull Requests
+* [#4183](https://github.com/rollup/rollup/pull/4183): Avoid memory issues with hoisted variables (@lukastaegert)
+
 ## 2.53.2
 *2021-07-15*
 
