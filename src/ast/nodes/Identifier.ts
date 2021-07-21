@@ -9,7 +9,6 @@ import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import { NodeEvent } from '../NodeEvents';
 import FunctionScope from '../scopes/FunctionScope';
 import { EMPTY_PATH, ObjectPath, PathTracker } from '../utils/PathTracker';
-import { UNDEFINED_EXPRESSION } from '../values';
 import GlobalVariable from '../variables/GlobalVariable';
 import LocalVariable from '../variables/LocalVariable';
 import Variable from '../variables/Variable';
@@ -60,7 +59,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 				variable = this.scope.addDeclaration(this, this.context, init, true);
 				if (treeshake && treeshake.correctVarValueBeforeDeclaration) {
 					// Necessary to make sure the init is deoptimized. We cannot call deoptimizePath here.
-					this.scope.addDeclaration(this, this.context, UNDEFINED_EXPRESSION, true);
+					variable.markInitializersForDeoptimization();
 				}
 				break;
 			case 'function':
