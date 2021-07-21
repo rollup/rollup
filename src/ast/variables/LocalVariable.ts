@@ -21,7 +21,6 @@ import Variable from './Variable';
 const MAX_PATH_DEPTH = 7;
 
 export default class LocalVariable extends Variable {
-	additionalInitializers: ExpressionEntity[] | null = null;
 	calledFromTryStatement = false;
 	declarations: (Identifier | ExportDefaultDeclaration)[];
 	init: ExpressionEntity | null;
@@ -30,6 +29,7 @@ export default class LocalVariable extends Variable {
 	// Caching and deoptimization:
 	// We track deoptimization when we do not return something unknown
 	protected deoptimizationTracker: PathTracker;
+	private additionalInitializers: ExpressionEntity[] | null = null;
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 
 	constructor(
@@ -47,13 +47,9 @@ export default class LocalVariable extends Variable {
 
 	addDeclaration(identifier: Identifier, init: ExpressionEntity | null): void {
 		this.declarations.push(identifier);
-		if (this.additionalInitializers === null) {
-			this.additionalInitializers = this.init === null ? [] : [this.init];
-			this.init = UNKNOWN_EXPRESSION;
-			this.isReassigned = true;
-		}
+		const additionalInitializers = this.markInitializersForDeoptimization();
 		if (init !== null) {
-			this.additionalInitializers.push(init);
+			additionalInitializers.push(init);
 		}
 	}
 
@@ -211,5 +207,14 @@ export default class LocalVariable extends Variable {
 
 	markCalledFromTryStatement(): void {
 		this.calledFromTryStatement = true;
+	}
+
+	markInitializersForDeoptimization(): ExpressionEntity[] {
+		if (this.additionalInitializers === null) {
+			this.additionalInitializers = this.init === null ? [] : [this.init];
+			this.init = UNKNOWN_EXPRESSION;
+			this.isReassigned = true;
+		}
+		return this.additionalInitializers;
 	}
 }
