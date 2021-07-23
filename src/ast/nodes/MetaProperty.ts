@@ -217,10 +217,10 @@ const relativeUrlMechanisms: Record<InternalModuleFormat, (relativePath: string)
 	iife: relativePath => getRelativeUrlFromDocument(relativePath),
 	system: relativePath => getResolveUrl(`'${relativePath}', module.meta.url`),
 	umd: relativePath =>
-		`(typeof document === 'undefined' ? ${getResolveUrl(
+		`(typeof document === 'undefined' ? (typeof self === 'undefined' || typeof location === 'undefined' ? ${getResolveUrl(
 			`'file:' + __dirname + '/${relativePath}'`,
 			`(require('u' + 'rl').URL)`
-		)} : ${getRelativeUrlFromDocument(relativePath)})`
+		)} : location.href) : ${getRelativeUrlFromDocument(relativePath)})`
 };
 
 const importMetaMechanisms: Record<string, (prop: string | null, chunkId: string) => string> = {
@@ -236,9 +236,9 @@ const importMetaMechanisms: Record<string, (prop: string | null, chunkId: string
 	system: prop => (prop === null ? `module.meta` : `module.meta.${prop}`),
 	umd: getGenericImportMetaMechanism(
 		chunkId =>
-			`(typeof document === 'undefined' ? ${getResolveUrl(
+			`(typeof document === 'undefined' ? (typeof self === 'undefined' || typeof location === 'undefined' ? ${getResolveUrl(
 				`'file:' + __filename`,
 				`(require('u' + 'rl').URL)`
-			)} : ${getUrlFromDocument(chunkId)})`
+			)} : location.href) : ${getUrlFromDocument(chunkId)})`
 	)
 };
