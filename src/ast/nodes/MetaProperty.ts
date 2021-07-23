@@ -217,10 +217,10 @@ const relativeUrlMechanisms: Record<InternalModuleFormat, (relativePath: string)
 	iife: relativePath => getRelativeUrlFromDocument(relativePath),
 	system: relativePath => getResolveUrl(`'${relativePath}', module.meta.url`),
 	umd: relativePath =>
-		`(typeof document === 'undefined' ? (typeof self === 'undefined' || typeof location === 'undefined' ? ${getResolveUrl(
+		`(typeof document === 'undefined' ? (typeof location !== 'undefined' ? location.href : ${getResolveUrl(
 			`'file:' + __dirname + '/${relativePath}'`,
 			`(require('u' + 'rl').URL)`
-		)} : location.href) : ${getRelativeUrlFromDocument(relativePath)})`
+		)}) : ${getRelativeUrlFromDocument(relativePath)})`
 };
 
 const importMetaMechanisms: Record<string, (prop: string | null, chunkId: string) => string> = {
@@ -236,9 +236,9 @@ const importMetaMechanisms: Record<string, (prop: string | null, chunkId: string
 	system: prop => (prop === null ? `module.meta` : `module.meta.${prop}`),
 	umd: getGenericImportMetaMechanism(
 		chunkId =>
-			`(typeof document === 'undefined' ? (typeof self === 'undefined' || typeof location === 'undefined' ? ${getResolveUrl(
+			`(typeof document === 'undefined' ? (typeof location !== 'undefined' ? location.href : ${getResolveUrl(
 				`'file:' + __filename`,
 				`(require('u' + 'rl').URL)`
-			)} : location.href) : ${getUrlFromDocument(chunkId)})`
+			)}) : ${getUrlFromDocument(chunkId)})`
 	)
 };

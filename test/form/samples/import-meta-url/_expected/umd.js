@@ -11,6 +11,6 @@
 		}
 	}
 
-	log((typeof document === 'undefined' ? (typeof self === 'undefined' || typeof location === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __filename).href : location.href) : (document.currentScript && document.currentScript.src || new URL('umd.js', document.baseURI).href)));
+	log((typeof document === 'undefined' ? (typeof location !== 'undefined' ? location.href : new (require('u' + 'rl').URL)('file:' + __filename).href) : (document.currentScript && document.currentScript.src || new URL('umd.js', document.baseURI).href)));
 
 })));
