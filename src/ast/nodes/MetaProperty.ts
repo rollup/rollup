@@ -185,9 +185,11 @@ const accessedFileUrlGlobals = {
 
 const getResolveUrl = (path: string, URL = 'URL') => `new ${URL}(${path}).href`;
 
-const getRelativeUrlFromDocument = (relativePath: string) =>
+const getRelativeUrlFromDocument = (relativePath: string, umd = false) =>
 	getResolveUrl(
-		`'${relativePath}', document.currentScript && document.currentScript.src || document.baseURI`
+		`'${relativePath}', ${
+			umd ? `typeof document === 'undefined' ? location.href : ` : ''
+		}document.currentScript && document.currentScript.src || document.baseURI`
 	);
 
 const getGenericImportMetaMechanism =
@@ -200,8 +202,10 @@ const getGenericImportMetaMechanism =
 			: 'undefined';
 	};
 
-const getUrlFromDocument = (chunkId: string) =>
-	`(document.currentScript && document.currentScript.src || new URL('${chunkId}', document.baseURI).href)`;
+const getUrlFromDocument = (chunkId: string, umd = false) =>
+	`${
+		umd ? `typeof document === 'undefined' ? location.href : ` : ''
+	}(document.currentScript && document.currentScript.src || new URL('${chunkId}', document.baseURI).href)`;
 
 const relativeUrlMechanisms: Record<InternalModuleFormat, (relativePath: string) => string> = {
 	amd: relativePath => {
@@ -217,10 +221,10 @@ const relativeUrlMechanisms: Record<InternalModuleFormat, (relativePath: string)
 	iife: relativePath => getRelativeUrlFromDocument(relativePath),
 	system: relativePath => getResolveUrl(`'${relativePath}', module.meta.url`),
 	umd: relativePath =>
-		`(typeof document === 'undefined' ? ${getResolveUrl(
+		`(typeof document === 'undefined' && typeof location === 'undefined' ? ${getResolveUrl(
 			`'file:' + __dirname + '/${relativePath}'`,
 			`(require('u' + 'rl').URL)`
-		)} : ${getRelativeUrlFromDocument(relativePath)})`
+		)} : ${getRelativeUrlFromDocument(relativePath, true)})`
 };
 
 const importMetaMechanisms: Record<string, (prop: string | null, chunkId: string) => string> = {
@@ -236,9 +240,9 @@ const importMetaMechanisms: Record<string, (prop: string | null, chunkId: string
 	system: prop => (prop === null ? `module.meta` : `module.meta.${prop}`),
 	umd: getGenericImportMetaMechanism(
 		chunkId =>
-			`(typeof document === 'undefined' ? ${getResolveUrl(
+			`(typeof document === 'undefined' && typeof location === 'undefined' ? ${getResolveUrl(
 				`'file:' + __filename`,
 				`(require('u' + 'rl').URL)`
-			)} : ${getUrlFromDocument(chunkId)})`
+			)} : ${getUrlFromDocument(chunkId, true)})`
 	)
 };

@@ -3,7 +3,7 @@
 	factory();
 }((function () { 'use strict';
 
-	var logo = (typeof document === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __dirname + '/assets/logo-25585ac1.svg').href : new URL('assets/logo-25585ac1.svg', document.currentScript && document.currentScript.src || document.baseURI).href);
+	var logo = (typeof document === 'undefined' && typeof location === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __dirname + '/assets/logo-25585ac1.svg').href : new URL('assets/logo-25585ac1.svg', typeof document === 'undefined' ? location.href : document.currentScript && document.currentScript.src || document.baseURI).href);
 
 	function showImage(url) {
 		console.log(url);
