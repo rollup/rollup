@@ -20,7 +20,12 @@ export class ObjectMember extends ExpressionEntity {
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
-		this.object.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
+		this.object.deoptimizeThisOnEventAtPath(
+			event,
+			[this.key, ...path],
+			thisParameter,
+			recursionTracker
+		);
 	}
 
 	getLiteralValueAtPath(
