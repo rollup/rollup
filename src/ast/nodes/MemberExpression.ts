@@ -127,7 +127,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.variable) {
 			this.variable.deoptimizePath(path);
 		} else if (!this.replacement) {
-			if (path.length <= MAX_PATH_DEPTH) {
+			if (path.length < MAX_PATH_DEPTH) {
 				this.object.deoptimizePath([this.getPropertyKey(), ...path]);
 			}
 		}
@@ -142,7 +142,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.variable) {
 			this.variable.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
 		} else if (!this.replacement) {
-			if (path.length <= MAX_PATH_DEPTH) {
+			if (path.length < MAX_PATH_DEPTH) {
 				this.object.deoptimizeThisOnEventAtPath(
 					event,
 					[this.getPropertyKey(), ...path],
@@ -167,7 +167,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			return UnknownValue;
 		}
 		this.expressionsToBeDeoptimized.push(origin);
-		if (path.length <= MAX_PATH_DEPTH) {
+		if (path.length < MAX_PATH_DEPTH) {
 			return this.object.getLiteralValueAtPath(
 				[this.getPropertyKey(), ...path],
 				recursionTracker,
@@ -195,7 +195,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			return UNKNOWN_EXPRESSION;
 		}
 		this.expressionsToBeDeoptimized.push(origin);
-		if (path.length <= MAX_PATH_DEPTH) {
+		if (path.length < MAX_PATH_DEPTH) {
 			return this.object.getReturnExpressionWhenCalledAtPath(
 				[this.getPropertyKey(), ...path],
 				callOptions,
@@ -232,7 +232,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.replacement) {
 			return true;
 		}
-		if (path.length <= MAX_PATH_DEPTH) {
+		if (path.length < MAX_PATH_DEPTH) {
 			return this.object.hasEffectsWhenAccessedAtPath([this.getPropertyKey(), ...path], context);
 		}
 		return true;
@@ -245,7 +245,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.replacement) {
 			return true;
 		}
-		if (path.length <= MAX_PATH_DEPTH) {
+		if (path.length < MAX_PATH_DEPTH) {
 			return this.object.hasEffectsWhenAssignedAtPath([this.getPropertyKey(), ...path], context);
 		}
 		return true;
@@ -262,7 +262,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.replacement) {
 			return true;
 		}
-		if (path.length <= MAX_PATH_DEPTH) {
+		if (path.length < MAX_PATH_DEPTH) {
 			return this.object.hasEffectsWhenCalledAtPath(
 				[this.getPropertyKey(), ...path],
 				callOptions,
