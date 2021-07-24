@@ -1,4 +1,3 @@
-
 ---
 title: JavaScript API
 ---
