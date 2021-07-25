@@ -34,6 +34,9 @@ import {
 } from './shared/Expression';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 
+// To avoid infinite recursions
+const MAX_PATH_DEPTH = 7;
+
 function getResolvablePropertyKey(memberExpression: MemberExpression): string | null {
 	return memberExpression.computed
 		? getResolvableComputedPropertyKey(memberExpression.property)
@@ -124,7 +127,9 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.variable) {
 			this.variable.deoptimizePath(path);
 		} else if (!this.replacement) {
-			this.object.deoptimizePath([this.getPropertyKey(), ...path]);
+			if (path.length < MAX_PATH_DEPTH) {
+				this.object.deoptimizePath([this.getPropertyKey(), ...path]);
+			}
 		}
 	}
 
@@ -137,12 +142,16 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.variable) {
 			this.variable.deoptimizeThisOnEventAtPath(event, path, thisParameter, recursionTracker);
 		} else if (!this.replacement) {
-			this.object.deoptimizeThisOnEventAtPath(
-				event,
-				[this.getPropertyKey(), ...path],
-				thisParameter,
-				recursionTracker
-			);
+			if (path.length < MAX_PATH_DEPTH) {
+				this.object.deoptimizeThisOnEventAtPath(
+					event,
+					[this.getPropertyKey(), ...path],
+					thisParameter,
+					recursionTracker
+				);
+			} else {
+				thisParameter.deoptimizePath(UNKNOWN_PATH);
+			}
 		}
 	}
 
@@ -158,11 +167,14 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			return UnknownValue;
 		}
 		this.expressionsToBeDeoptimized.push(origin);
-		return this.object.getLiteralValueAtPath(
-			[this.getPropertyKey(), ...path],
-			recursionTracker,
-			origin
-		);
+		if (path.length < MAX_PATH_DEPTH) {
+			return this.object.getLiteralValueAtPath(
+				[this.getPropertyKey(), ...path],
+				recursionTracker,
+				origin
+			);
+		}
+		return UnknownValue;
 	}
 
 	getReturnExpressionWhenCalledAtPath(
@@ -183,12 +195,15 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			return UNKNOWN_EXPRESSION;
 		}
 		this.expressionsToBeDeoptimized.push(origin);
-		return this.object.getReturnExpressionWhenCalledAtPath(
-			[this.getPropertyKey(), ...path],
-			callOptions,
-			recursionTracker,
-			origin
-		);
+		if (path.length < MAX_PATH_DEPTH) {
+			return this.object.getReturnExpressionWhenCalledAtPath(
+				[this.getPropertyKey(), ...path],
+				callOptions,
+				recursionTracker,
+				origin
+			);
+		}
+		return UNKNOWN_EXPRESSION;
 	}
 
 	hasEffects(context: HasEffectsContext): boolean {
@@ -217,7 +232,10 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.replacement) {
 			return true;
 		}
-		return this.object.hasEffectsWhenAccessedAtPath([this.getPropertyKey(), ...path], context);
+		if (path.length < MAX_PATH_DEPTH) {
+			return this.object.hasEffectsWhenAccessedAtPath([this.getPropertyKey(), ...path], context);
+		}
+		return true;
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
@@ -227,7 +245,10 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.replacement) {
 			return true;
 		}
-		return this.object.hasEffectsWhenAssignedAtPath([this.getPropertyKey(), ...path], context);
+		if (path.length < MAX_PATH_DEPTH) {
+			return this.object.hasEffectsWhenAssignedAtPath([this.getPropertyKey(), ...path], context);
+		}
+		return true;
 	}
 
 	hasEffectsWhenCalledAtPath(
@@ -241,11 +262,14 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		if (this.replacement) {
 			return true;
 		}
-		return this.object.hasEffectsWhenCalledAtPath(
-			[this.getPropertyKey(), ...path],
-			callOptions,
-			context
-		);
+		if (path.length < MAX_PATH_DEPTH) {
+			return this.object.hasEffectsWhenCalledAtPath(
+				[this.getPropertyKey(), ...path],
+				callOptions,
+				context
+			);
+		}
+		return true;
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {

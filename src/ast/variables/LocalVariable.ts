@@ -17,9 +17,6 @@ import { ExpressionNode, Node } from '../nodes/shared/Node';
 import { ObjectPath, PathTracker, UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from './Variable';
 
-// To avoid infinite recursions
-const MAX_PATH_DEPTH = 7;
-
 export default class LocalVariable extends Variable {
 	calledFromTryStatement = false;
 	declarations: (Identifier | ExportDefaultDeclaration)[];
@@ -64,7 +61,6 @@ export default class LocalVariable extends Variable {
 
 	deoptimizePath(path: ObjectPath): void {
 		if (
-			path.length > MAX_PATH_DEPTH ||
 			this.isReassigned ||
 			this.deoptimizationTracker.trackEntityAtPathAndGetIfTracked(path, this)
 		) {
@@ -91,7 +87,7 @@ export default class LocalVariable extends Variable {
 		thisParameter: ExpressionEntity,
 		recursionTracker: PathTracker
 	): void {
-		if (this.isReassigned || !this.init || path.length > MAX_PATH_DEPTH) {
+		if (this.isReassigned || !this.init) {
 			return thisParameter.deoptimizePath(UNKNOWN_PATH);
 		}
 		recursionTracker.withTrackedEntityAtPath(
@@ -107,7 +103,7 @@ export default class LocalVariable extends Variable {
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): LiteralValueOrUnknown {
-		if (this.isReassigned || !this.init || path.length > MAX_PATH_DEPTH) {
+		if (this.isReassigned || !this.init) {
 			return UnknownValue;
 		}
 		return recursionTracker.withTrackedEntityAtPath(
@@ -127,7 +123,7 @@ export default class LocalVariable extends Variable {
 		recursionTracker: PathTracker,
 		origin: DeoptimizableEntity
 	): ExpressionEntity {
-		if (this.isReassigned || !this.init || path.length > MAX_PATH_DEPTH) {
+		if (this.isReassigned || !this.init) {
 			return UNKNOWN_EXPRESSION;
 		}
 		return recursionTracker.withTrackedEntityAtPath(
@@ -147,14 +143,14 @@ export default class LocalVariable extends Variable {
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (this.isReassigned || path.length > MAX_PATH_DEPTH) return true;
+		if (this.isReassigned) return true;
 		return (this.init &&
 			!context.accessed.trackEntityAtPathAndGetIfTracked(path, this) &&
 			this.init.hasEffectsWhenAccessedAtPath(path, context))!;
 	}
 
 	hasEffectsWhenAssignedAtPath(path: ObjectPath, context: HasEffectsContext): boolean {
-		if (this.included || path.length > MAX_PATH_DEPTH) return true;
+		if (this.included) return true;
 		if (path.length === 0) return false;
 		if (this.isReassigned) return true;
 		return (this.init &&
@@ -167,7 +163,7 @@ export default class LocalVariable extends Variable {
 		callOptions: CallOptions,
 		context: HasEffectsContext
 	): boolean {
-		if (path.length > MAX_PATH_DEPTH || this.isReassigned) return true;
+		if (this.isReassigned) return true;
 		return (this.init &&
 			!(
 				callOptions.withNew ? context.instantiated : context.called
