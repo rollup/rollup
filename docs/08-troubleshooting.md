@@ -91,7 +91,7 @@ export default {
 
 If you *do* want to include the module in your bundle, you need to tell Rollup how to find it. In most cases, this is a question of using [@rollup/plugin-node-resolve](https://github.com/rollup/plugins/tree/master/packages/node-resolve).
 
-Some modules, like `events` or `util`, are built in to Node.js. If you want to include those (for example, so that your bundle runs in the browser), you may need to include [rollup-plugin-node-polyfills](https://github.com/ionic-team/rollup-plugin-node-polyfills).
+Some modules, like `events` or `util`, are built in to Node.js. If you want to include those (for example, so that your bundle runs in the browser), you may need to include [rollup-plugin-polyfill-node](https://github.com/snowpackjs/rollup-plugin-polyfill-node).
 
 ### Error: "EMFILE: too many open files"
 

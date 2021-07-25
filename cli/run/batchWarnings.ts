@@ -78,7 +78,7 @@ const immediateHandlers: {
 		stderr(
 			`Creating a browser bundle that depends on ${printQuotedStringList(
 				warning.modules!
-			)}. You might need to include https://github.com/ionic-team/rollup-plugin-node-polyfills`
+			)}. You might need to include https://github.com/snowpackjs/rollup-plugin-polyfill-node`
 		);
 	},
 
