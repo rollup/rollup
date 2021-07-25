@@ -1,5 +1,20 @@
 # rollup changelog
 
+## 2.54.0
+*2021-07-25*
+
+### Features
+* Extend UMD import.meta.url polyfill to support web workers (#4186)
+
+### Bug Fixes
+* Resolve an issue where certain uses of classes could lead to an infinite recursion (#4189)
+
+### Pull Requests
+* [#4186](https://github.com/rollup/rollup/pull/4186): Fix UMD import.meta.url inside web workers (@ceifa)
+* [#4188](https://github.com/rollup/rollup/pull/4188): Fix typo in renderHelpers.ts (@eltociear)
+* [#4189](https://github.com/rollup/rollup/pull/4189): Move long path recursion prevention to MemberExpression (@lukastaegert)
+* [#4190](https://github.com/rollup/rollup/pull/4190): Stop recommending node-builtins (@curran)
+
 ## 2.53.3
 *2021-07-21*
 
