@@ -181,11 +181,11 @@ watcher.on('event', event => {
   //   START        — the watcher is (re)starting
   //   BUNDLE_START — building an individual bundle
   //                  * event.input will be the input options object if present
-  //                  * event.outputFiles cantains an array of the "file" or
+  //                  * event.output contains an array of the "file" or
   //                    "dir" option values of the generated outputs
   //   BUNDLE_END   — finished building a bundle
   //                  * event.input will be the input options object if present
-  //                  * event.outputFiles cantains an array of the "file" or
+  //                  * event.output contains an array of the "file" or
   //                    "dir" option values of the generated outputs
   //                  * event.duration is the build duration in milliseconds
   //                  * event.result contains the bundle object that can be
