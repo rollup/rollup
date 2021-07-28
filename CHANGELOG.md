@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 2.55.0
+*2021-07-28*
+
+### Features
+* Support default export live-bindings when generating ESM output (#4182)
+
+### Bug Fixes
+* Always write `["default"]` as computed property when used as named export (#4182)
+* Do not mask default export TDZ errors (#4182)
+
+### Pull Requests
+* [#4182](https://github.com/rollup/rollup/pull/4182): Use mutable bindings for default exports (@lukastaegert)
+
 ## 2.54.0
 *2021-07-25*
 
