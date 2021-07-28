@@ -237,7 +237,13 @@ const deferredHandlers: {
 	UNUSED_EXTERNAL_IMPORT(warnings) {
 		title('Unused external imports');
 		for (const warning of warnings) {
-			stderr(`${warning.names} imported from external module '${warning.source}' but never used`);
+			stderr(
+				`${warning.names} imported from external module '${warning.source}' but never used${
+					warning.sources
+						? ' in ' + printQuotedStringList(warning.sources.map(id => relativeId(id)))
+						: ''
+				}`
+			);
 		}
 	}
 };
