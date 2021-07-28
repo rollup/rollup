@@ -1,3 +1,3 @@
 var deb = 'string';
 
-export default deb;
+export { deb as default };

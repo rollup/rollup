@@ -1,3 +1,3 @@
 var a = 'one.js';
 
-export default a;
+export { a as default };

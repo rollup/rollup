@@ -1,3 +1,3 @@
 var value2 = 43;
 
-export default value2;
+export { value2 as default };

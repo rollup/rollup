@@ -1,3 +1,3 @@
 var baz = 'whatever';
 
-export default baz;
+export { baz as default };

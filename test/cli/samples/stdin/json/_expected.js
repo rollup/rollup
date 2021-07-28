@@ -5,5 +5,4 @@ var _ = {
 	bar: bar
 };
 
-export default _;
-export { bar, foo };
+export { bar, _ as default, foo };

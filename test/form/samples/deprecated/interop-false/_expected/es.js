@@ -2,4 +2,4 @@ import View from 'core/view';
 
 var main = View.extend({});
 
-export default main;
+export { main as default };

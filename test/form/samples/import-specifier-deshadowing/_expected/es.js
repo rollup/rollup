@@ -8,4 +8,4 @@ var Sticky = function () {
 	return Sticky;
 }();
 
-export default Sticky;
+export { Sticky as default };

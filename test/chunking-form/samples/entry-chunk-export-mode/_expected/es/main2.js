@@ -2,4 +2,4 @@ function fn () {
   console.log('main fn');
 }
 
-export default fn;
+export { fn as default };

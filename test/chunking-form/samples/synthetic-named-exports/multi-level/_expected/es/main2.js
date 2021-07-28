@@ -2,4 +2,5 @@ import main from './main.js';
 
 
 
-export default main.one;
+var one = main.one;
+export { one as default };

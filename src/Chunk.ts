@@ -1015,7 +1015,7 @@ export default class Chunk {
 				}
 			} else if (variable instanceof SyntheticNamedExportVariable) {
 				expression = local;
-				if (format === 'es' && exportName !== 'default') {
+				if (format === 'es') {
 					local = variable.renderName!;
 				}
 			}

@@ -1,3 +1,3 @@
 var m3 = {b:2};
 
-export default m3;
+export { m3 as default };

@@ -1,3 +1,3 @@
 var head2 = 'first';
 
-export default head2;
+export { head2 as default };

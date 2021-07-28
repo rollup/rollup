@@ -54,6 +54,7 @@ export default class ExportDefaultVariable extends LocalVariable {
 		return this.originalId &&
 			(this.hasId ||
 				!(
+					this.originalId.isPossibleTDZ() ||
 					this.originalId.variable.isReassigned ||
 					this.originalId.variable instanceof UndefinedVariable ||
 					// this avoids a circular dependency

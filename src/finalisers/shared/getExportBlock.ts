@@ -5,6 +5,7 @@ import {
 	isDefaultAProperty,
 	namespaceInteropHelpersByInteropType
 } from '../../utils/interopHelpers';
+import { RESERVED_NAMES } from '../../utils/reservedNames';
 
 export function getExportBlock(
 	exports: ChunkExports,
@@ -65,9 +66,9 @@ export function getExportBlock(
 		}
 	}
 
-	for (const chunkExport of exports) {
-		const lhs = `exports.${chunkExport.exported}`;
-		const rhs = chunkExport.local;
+	for (const { exported, local } of exports) {
+		const lhs = `exports${RESERVED_NAMES[exported] ? `['${exported}']` : `.${exported}`}`;
+		const rhs = local;
 		if (lhs !== rhs) {
 			if (exportBlock) exportBlock += n;
 			exportBlock += `${lhs}${_}=${_}${rhs};`;

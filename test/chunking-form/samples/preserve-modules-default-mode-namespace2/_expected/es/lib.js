@@ -1,3 +1,3 @@
 var lib = 'foo';
 
-export default lib;
+export { lib as default };

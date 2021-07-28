@@ -4,7 +4,7 @@ define(['exports'], function (exports) { 'use strict';
 	const x = 2;
 	console.log('separate');
 
-	exports.default = separate;
+	exports['default'] = separate;
 	exports.x = x;
 
 });

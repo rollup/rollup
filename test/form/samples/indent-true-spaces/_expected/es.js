@@ -2,4 +2,4 @@ function foo () {
   console.log( 'indented with spaces' );
 }
 
-export default foo;
+export { foo as default };

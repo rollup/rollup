@@ -7,4 +7,4 @@ var module = {
   base2,
 };
 
-export default module;
+export { module as default };

@@ -1,3 +1,3 @@
 var dep = 42;
 
-export default dep;
+export { dep as default };

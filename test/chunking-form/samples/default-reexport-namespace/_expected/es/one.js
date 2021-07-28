@@ -1,3 +1,3 @@
 const __icon__ = {};
 
-export default __icon__;
+export { __icon__ as default };

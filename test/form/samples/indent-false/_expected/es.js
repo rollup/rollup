@@ -2,4 +2,4 @@ function foo () {
 	console.log( 'not indented' );
 }
 
-export default foo;
+export { foo as default };

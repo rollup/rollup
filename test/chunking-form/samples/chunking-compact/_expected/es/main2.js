@@ -9,4 +9,4 @@ import {f as fn$3}from'./generated-dep2.js';import {fn as fn$2}from'external';fu
     fn();
     fn$3();
   }
-}export default Main2;
+}export{Main2 as default};

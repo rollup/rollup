@@ -5,4 +5,4 @@ var cjs = commonjsGlobal.fn;
 
 var main1 = shared.map(cjs);
 
-export default main1;
+export { main1 as default };

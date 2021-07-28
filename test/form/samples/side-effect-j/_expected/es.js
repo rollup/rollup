@@ -4,4 +4,4 @@ augment = y => y.augmented = true;
 function x () {}
 augment( x );
 
-export default x;
+export { x as default };

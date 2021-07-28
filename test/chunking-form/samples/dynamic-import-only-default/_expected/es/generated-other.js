@@ -1,3 +1,3 @@
 var other = 42;
 
-export default other;
+export { other as default };

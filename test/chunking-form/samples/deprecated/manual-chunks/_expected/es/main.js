@@ -13,4 +13,4 @@ class Main {
   }
 }
 
-export default Main;
+export { Main as default };

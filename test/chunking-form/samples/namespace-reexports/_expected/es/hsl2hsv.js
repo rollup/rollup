@@ -7,5 +7,4 @@ var hsl2hsv = (h, s, l) => {
 
 var p = 5;
 
-export default hsl2hsv;
-export { p };
+export { hsl2hsv as default, p };

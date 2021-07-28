@@ -9,4 +9,4 @@ console.log(external, value);
 
 var commonjs = 42;
 
-export default commonjs;
+export { commonjs as default };

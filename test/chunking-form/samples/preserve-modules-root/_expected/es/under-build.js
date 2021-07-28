@@ -7,4 +7,4 @@ var underBuild = {
 	base
 };
 
-export default underBuild;
+export { underBuild as default };

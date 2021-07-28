@@ -1,3 +1,3 @@
 var main = null;
 
-export default main;
+export { main as default };

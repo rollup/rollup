@@ -17,4 +17,4 @@ function isSafe (int) {
 	return min<=int && int<=max;
 }
 
-export default isSafe;
+export { isSafe as default };

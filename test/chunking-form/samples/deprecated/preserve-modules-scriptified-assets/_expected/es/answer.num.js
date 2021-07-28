@@ -1,3 +1,3 @@
 var answer = 42;
 
-export default answer;
+export { answer as default };

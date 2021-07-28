@@ -1,3 +1,3 @@
 var main = { foo: 42 };
 
-export default main;
+export { main as default };

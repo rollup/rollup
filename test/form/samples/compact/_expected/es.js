@@ -3,4 +3,4 @@ function foo () {
 	console.log( x );
 }
 // trailing comment
-export default foo;
+export{foo as default};
