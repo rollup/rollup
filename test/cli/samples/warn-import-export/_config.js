@@ -16,7 +16,7 @@ module.exports = {
 		assertIncludes(
 			stderr,
 			'(!) Unused external imports\n' +
-				"default imported from external module 'external' but never used\n"
+				`default imported from external module "external" but never used in "main.js"\n`
 		);
 		assertIncludes(
 			stderr,
