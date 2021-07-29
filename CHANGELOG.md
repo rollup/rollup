@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.55.1
+*2021-07-29*
+
+### Bug Fixes
+* Improve CLI warning message for unused external imports (#4194)
+
+### Pull Requests
+* [#4194](https://github.com/rollup/rollup/pull/4194): Align batch warning for UNUSED_EXTERNAL_IMPORT to individual warning (@benmccann)
+
 ## 2.55.0
 *2021-07-28*
 
