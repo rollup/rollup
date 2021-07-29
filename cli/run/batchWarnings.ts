@@ -239,9 +239,9 @@ const deferredHandlers: {
 		for (const warning of warnings) {
 			stderr(
 				warning.names +
-					' imported from external module ' +
+					" imported from external module '" +
 					warning.source +
-					' but never used in ' +
+					"' but never used in " +
 					printQuotedStringList((warning.sources as string[]).map(id => relativeId(id)))
 			);
 		}
