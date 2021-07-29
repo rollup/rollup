@@ -238,9 +238,10 @@ const deferredHandlers: {
 		title('Unused external imports');
 		for (const warning of warnings) {
 			stderr(
-				`${warning.names} imported from external module '${warning.source}' but never used in ${
-					printQuotedStringList((<string[]>warning.sources).map(id => relativeId(id)))
-				}`
+				`${warning.names} imported from external module '${warning.source}'
+				 but never used in ${printQuotedStringList(
+						(warning.sources as string[]).map(id => relativeId(id))
+					)}`
 			);
 		}
 	}
