@@ -639,7 +639,7 @@ Keep in mind that for Rollup, `import * as ext_namespace from 'external'; consol
 
 There are some additional options that have an effect on the generated interop code:
 
-- Setting [`output.exernalLiveBindings`](guide/en/#outputexternallivebindings) to `false` will generate simplified namespace helpers as well as simplified code for extracted default imports.
+- Setting [`output.externalLiveBindings`](guide/en/#outputexternallivebindings) to `false` will generate simplified namespace helpers as well as simplified code for extracted default imports.
 - Setting [`output.freeze`](guide/en/#outputfreeze) to `false` will prevent generated interop namespace objects from being frozen.
 
 #### output.intro/output.outro
