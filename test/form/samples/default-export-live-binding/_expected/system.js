@@ -4,7 +4,7 @@ System.register('bundle', [], function (exports) {
 		execute: function () {
 
 			let foo = exports('default', null);
-			const setFoo = exports('setFoo', value => (foo = exports('default', value)));
+			const setFoo = exports('setFoo', value => (exports('default', foo = value)));
 
 		}
 	};

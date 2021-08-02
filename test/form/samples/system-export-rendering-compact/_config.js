@@ -1,5 +1,5 @@
 module.exports = {
-	description: 'supports destructuring assignments of exports for systemJS',
+	description: 'Renders updates of exported variables for SystemJS output in compact mode',
 	options: {
 		output: {
 			format: 'system',

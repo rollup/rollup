@@ -5,7 +5,7 @@ System.register([], function (exports) {
 
 			let foo = exports('foo', 'foo');
 
-			foo = exports('foo', 'bar');
+			exports('foo', foo = 'bar');
 
 		}
 	};

@@ -33,7 +33,7 @@ System.register('bundle', ['external'], function (exports, module) {
 				console.log(_interopDefault, _interopNamespace, module$1, require, exports$1, document, URL);
 
 				module.import('external').then(console.log);
-				value = exports('default', 1);
+				exports('default', value = 1);
 				console.log(module.meta.url);
 			}
 

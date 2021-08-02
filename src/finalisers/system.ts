@@ -60,9 +60,7 @@ function getExportsBlock(
 
 const getHoistedExportsBlock = (exports: ChunkExports, _: string, t: string, n: string): string =>
 	getExportsBlock(
-		exports
-			.filter(expt => expt.hoisted || expt.uninitialized)
-			.map(expt => ({ name: expt.exported, value: expt.uninitialized ? 'void 0' : expt.local })),
+		exports.filter(expt => expt.hoisted).map(expt => ({ name: expt.exported, value: expt.local })),
 		_,
 		t,
 		n
