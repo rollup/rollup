@@ -7,13 +7,14 @@ System.register([], function (exports) {
 
 			var singleLine = exports('singleLine', /*#__PURE__*/pureFunc());
 
-			singleLine = exports('singleLine', /*#__PURE__*/pureFunc());
+			exports('singleLine', singleLine = /*#__PURE__*/pureFunc());
 
 			var multiLine =
 				exports('multiLine', /*#__PURE__*/
 				pureFunc());
 
-			multiLine = exports('multiLine', /*#__PURE__*/
+			exports('multiLine', multiLine =
+				/*#__PURE__*/
 				pureFunc());
 
 		}

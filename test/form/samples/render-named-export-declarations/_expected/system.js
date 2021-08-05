@@ -3,26 +3,17 @@ System.register('bundle', [], function (exports) {
 	return {
 		execute: function () {
 
-			exports({
-				aBar: void 0,
-				aFoo: void 0,
-				bBar: void 0,
-				bFoo: void 0,
-				cFoo: void 0,
-				dBar: void 0
-			});
+			var aFoo, aBar; exports({ aFoo: aFoo, aBar: aBar });
+			exports('aBar', aBar = 2);
 
-			var aFoo, aBar;
-			aBar = exports('aBar', 2);
+			var bFoo, bBar; exports({ bFoo: bFoo, bBar: bBar });
+			exports('bFoo', bFoo = 2);
 
-			var bFoo, bBar;
-			bFoo = exports('bFoo', 2);
+			var cFoo, cBar = 1; exports({ cFoo: cFoo, cBar: cBar });
+			exports('cBar', cBar = 2);
 
-			var cFoo, cBar = exports('cBar', 1);
-			cBar = exports('cBar', 2);
-
-			var dFoo = exports('dFoo', 1), dBar;
-			dFoo = exports('dFoo', 2);
+			var dFoo = 1, dBar; exports({ dFoo: dFoo, dBar: dBar });
+			exports('dFoo', dFoo = 2);
 
 		}
 	};

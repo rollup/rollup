@@ -9,8 +9,8 @@ import {
 	RenderOptions
 } from '../../utils/renderHelpers';
 import {
-	getSystemExportFunctionLeft,
-	getSystemExportStatement
+	getSystemExportStatement,
+	renderSystemExportExpression
 } from '../../utils/systemJsRendering';
 import { InclusionContext } from '../ExecutionContext';
 import { EMPTY_PATH } from '../utils/PathTracker';
@@ -165,7 +165,12 @@ export default class VariableDeclaration extends NodeBase {
 		let separatorString = '',
 			leadingString,
 			nextSeparatorString;
-		const systemPatternExports: Variable[] = [];
+		const aggregatedSystemExports: Variable[] = [];
+		const singleSystemExport = gatherSystemExportsAndGetSingleExport(
+			separatedNodes,
+			options,
+			aggregatedSystemExports
+		);
 		for (const { node, start, separator, contentEnd, end } of separatedNodes) {
 			if (!node.included) {
 				code.remove(start, end);
@@ -186,27 +191,15 @@ export default class VariableDeclaration extends NodeBase {
 				}
 				isInDeclaration = false;
 			} else {
-				if (options.format === 'system' && node.init !== null) {
-					if (node.id.type !== NodeType.Identifier) {
-						node.id.addExportedVariables(systemPatternExports, options.exportNamesByVariable);
-					} else {
-						const exportNames = options.exportNamesByVariable.get(node.id.variable!);
-						if (exportNames) {
-							const _ = options.compact ? '' : ' ';
-							const operatorPos = findFirstOccurrenceOutsideComment(
-								code.original,
-								'=',
-								node.id.end
-							);
-							code.prependLeft(
-								findNonWhiteSpace(code.original, operatorPos + 1),
-								exportNames.length === 1
-									? `exports('${exportNames[0]}',${_}`
-									: getSystemExportFunctionLeft([node.id.variable!], false, options)
-							);
-							nextSeparatorString += ')';
-						}
-					}
+				if (singleSystemExport && singleSystemExport === node.id.variable) {
+					const operatorPos = findFirstOccurrenceOutsideComment(code.original, '=', node.id.end);
+					renderSystemExportExpression(
+						singleSystemExport,
+						findNonWhiteSpace(code.original, operatorPos + 1),
+						separator === null ? contentEnd : separator,
+						code,
+						options
+					);
 				}
 				if (isInDeclaration) {
 					separatorString += ',';
@@ -237,9 +230,40 @@ export default class VariableDeclaration extends NodeBase {
 			lastSeparatorPos,
 			actualContentEnd!,
 			renderedContentEnd,
-			systemPatternExports,
+			aggregatedSystemExports,
 			options,
 			isNoStatement
 		);
 	}
+}
+
+function gatherSystemExportsAndGetSingleExport(
+	separatedNodes: {
+		node: VariableDeclarator;
+	}[],
+	options: RenderOptions,
+	aggregatedSystemExports: Variable[]
+): Variable | null {
+	let singleSystemExport: Variable | null = null;
+	if (options.format === 'system') {
+		for (const { node } of separatedNodes) {
+			if (
+				node.id instanceof Identifier &&
+				node.init &&
+				aggregatedSystemExports.length === 0 &&
+				options.exportNamesByVariable.get(node.id.variable!)?.length === 1
+			) {
+				singleSystemExport = node.id.variable!;
+				aggregatedSystemExports.push(singleSystemExport);
+			} else {
+				node.id.addExportedVariables(aggregatedSystemExports, options.exportNamesByVariable);
+			}
+		}
+		if (aggregatedSystemExports.length > 1) {
+			singleSystemExport = null;
+		} else if (singleSystemExport) {
+			aggregatedSystemExports.length = 0;
+		}
+	}
+	return singleSystemExport;
 }

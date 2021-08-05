@@ -6,13 +6,11 @@ import { FinaliserOptions } from './index';
 
 function getStarExcludes({ dependencies, exports }: ModuleDeclarations): Set<string> {
 	const starExcludes = new Set(exports.map(expt => expt.exported));
-	if (!starExcludes.has('default')) starExcludes.add('default');
-	// also include reexport names
+	starExcludes.add('default');
 	for (const { reexports } of dependencies) {
 		if (reexports) {
 			for (const reexport of reexports) {
-				if (reexport.imported !== '*' && !starExcludes.has(reexport.reexported))
-					starExcludes.add(reexport.reexported);
+				if (reexport.imported !== '*') starExcludes.add(reexport.reexported);
 			}
 		}
 	}
@@ -60,9 +58,7 @@ function getExportsBlock(
 
 const getHoistedExportsBlock = (exports: ChunkExports, _: string, t: string, n: string): string =>
 	getExportsBlock(
-		exports
-			.filter(expt => expt.hoisted || expt.uninitialized)
-			.map(expt => ({ name: expt.exported, value: expt.uninitialized ? 'void 0' : expt.local })),
+		exports.filter(expt => expt.hoisted).map(expt => ({ name: expt.exported, value: expt.local })),
 		_,
 		t,
 		n
@@ -139,10 +135,8 @@ export default function system(
 					if (!starExcludes) {
 						starExcludes = getStarExcludes({ dependencies, exports });
 					}
-					if (!createdSetter) {
-						setter.push(`${varOrConst} _setter${_}=${_}{};`);
-						createdSetter = true;
-					}
+					createdSetter = true;
+					setter.push(`${varOrConst} _setter${_}=${_}{};`);
 					setter.push(`for${_}(var _$p${_}in${_}module)${_}{`);
 					setter.push(`${t}if${_}(!_starExcludes[_$p])${_}_setter[_$p]${_}=${_}module[_$p];`);
 					setter.push('}');

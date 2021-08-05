@@ -51,7 +51,8 @@ export default class ImportExpression extends NodeBase {
 			code.overwrite(
 				this.start,
 				this.end,
-				`Promise.resolve().then(function${_}()${_}{${_}return ${this.inlineNamespace.getName()}${s}${_}})`
+				`Promise.resolve().then(function${_}()${_}{${_}return ${this.inlineNamespace.getName()}${s}${_}})`,
+				{ contentOnly: true }
 			);
 			return;
 		}
@@ -60,9 +61,10 @@ export default class ImportExpression extends NodeBase {
 			code.overwrite(
 				this.start,
 				findFirstOccurrenceOutsideComment(code.original, '(', this.start + 6) + 1,
-				this.mechanism.left
+				this.mechanism.left,
+				{ contentOnly: true }
 			);
-			code.overwrite(this.end - 1, this.end, this.mechanism.right);
+			code.overwrite(this.end - 1, this.end, this.mechanism.right, { contentOnly: true });
 		}
 		this.source.render(code, options);
 	}
