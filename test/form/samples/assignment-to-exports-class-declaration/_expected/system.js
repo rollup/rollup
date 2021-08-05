@@ -4,7 +4,7 @@ System.register('myModule', [], function (exports) {
 		execute: function () {
 
 			let Foo = exports('Foo', class Foo {});
-			Foo = exports('Foo', lol( Foo ));
+			exports('Foo', Foo = lol( Foo ));
 
 		}
 	};

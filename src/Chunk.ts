@@ -5,7 +5,6 @@ import Module from './Module';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
 import ChildScope from './ast/scopes/ChildScope';
-import { UNDEFINED_EXPRESSION } from './ast/values';
 import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
 import ExportShimVariable from './ast/variables/ExportShimVariable';
 import LocalVariable from './ast/variables/LocalVariable';
@@ -83,7 +82,6 @@ export type ChunkExports = {
 	expression: string | null;
 	hoisted: boolean;
 	local: string;
-	uninitialized: boolean;
 }[];
 
 export interface ReexportSpecifier {
@@ -997,12 +995,8 @@ export default class Chunk {
 			}
 			let expression = null;
 			let hoisted = false;
-			let uninitialized = false;
 			let local = variable.getName();
 			if (variable instanceof LocalVariable) {
-				if (variable.init === UNDEFINED_EXPRESSION) {
-					uninitialized = true;
-				}
 				for (const declaration of variable.declarations) {
 					if (
 						declaration.parent instanceof FunctionDeclaration ||
@@ -1024,8 +1018,7 @@ export default class Chunk {
 				exported: exportName,
 				expression,
 				hoisted,
-				local,
-				uninitialized
+				local
 			});
 		}
 		return exports;

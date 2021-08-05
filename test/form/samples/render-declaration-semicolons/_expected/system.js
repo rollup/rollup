@@ -3,13 +3,6 @@ System.register('bundle', [], function (exports) {
 	return {
 		execute: function () {
 
-			exports({
-				i: void 0,
-				j: void 0,
-				k: void 0,
-				l: void 0
-			});
-
 			var a, b;
 			console.log(a, b);
 
@@ -22,13 +15,13 @@ System.register('bundle', [], function (exports) {
 			const g = 3, h = 4;
 			console.log(g, h);
 
-			var i, j;
+			var i, j; exports({ i: i, j: j });
 
-			var k, l;
+			var k, l; exports({ k: k, l: l });
 
-			const m = exports('m', 1), n = exports('n', 2);
+			const m = 1, n = 2; exports({ m: m, n: n });
 
-			const o = exports('o', 3), p = exports('p', 4);
+			const o = 3, p = 4; exports({ o: o, p: p });
 
 		}
 	};

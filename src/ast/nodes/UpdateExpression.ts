@@ -1,8 +1,9 @@
 import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import {
-	getSystemExportFunctionLeft,
-	getSystemExportStatement
+	renderSystemExportExpression,
+	renderSystemExportSequenceAfterExpression,
+	renderSystemExportSequenceBeforeExpression
 } from '../../utils/systemJsRendering';
 import { HasEffectsContext } from '../ExecutionContext';
 import { EMPTY_PATH, ObjectPath } from '../utils/PathTracker';
@@ -32,48 +33,33 @@ export default class UpdateExpression extends NodeBase {
 	render(code: MagicString, options: RenderOptions): void {
 		this.argument.render(code, options);
 		if (options.format === 'system') {
-			const variable = this.argument.variable;
-			const exportNames = options.exportNamesByVariable.get(variable!);
-			if (exportNames && exportNames.length) {
+			const variable = this.argument.variable!;
+			const exportNames = options.exportNamesByVariable.get(variable);
+			if (exportNames) {
 				const _ = options.compact ? '' : ' ';
-				const name = variable!.getName();
 				if (this.prefix) {
 					if (exportNames.length === 1) {
-						code.overwrite(
-							this.start,
-							this.end,
-							`exports('${exportNames[0]}',${_}${this.operator}${name})`
-						);
+						renderSystemExportExpression(variable, this.start, this.end, code, options);
 					} else {
-						code.overwrite(
+						renderSystemExportSequenceAfterExpression(
+							variable,
 							this.start,
 							this.end,
-							`(${this.operator}${name},${_}${getSystemExportStatement(
-								[variable!],
-								options
-							)},${_}${name})`
+							this.parent.type !== NodeType.ExpressionStatement,
+							code,
+							options
 						);
 					}
-				} else if (exportNames.length > 1) {
-					code.overwrite(
-						this.start,
-						this.end,
-						`(${getSystemExportFunctionLeft([variable!], false, options)}${this.operator}${name}))`
-					);
 				} else {
-					let op;
-					switch (this.operator) {
-						case '++':
-							op = `${name}${_}+${_}1`;
-							break;
-						case '--':
-							op = `${name}${_}-${_}1`;
-							break;
-					}
-					code.overwrite(
+					const operator = this.operator[0];
+					renderSystemExportSequenceBeforeExpression(
+						variable,
 						this.start,
 						this.end,
-						`(exports('${exportNames[0]}',${_}${op}),${_}${name}${this.operator})`
+						this.parent.type !== NodeType.ExpressionStatement,
+						code,
+						options,
+						`${_}${operator}${_}1`
 					);
 				}
 			}

@@ -4,19 +4,19 @@ System.register('bundle', [], function (exports) {
 		execute: function () {
 
 			let x = exports('x', 1);
-			x = exports('x', 2);
-			x = exports('x', x + 1);
-			x = exports('x', x - 1);
-			x = exports('x', x * 2);
-			x = exports('x', x / 2);
-			x = exports('x', x % 2);
-			x = exports('x', x ** 2);
-			x = exports('x', x << 1);
-			x = exports('x', x >> 1);
-			x = exports('x', x >>> 1);
-			x = exports('x', x & 3);
-			x = exports('x', x ^ 2);
-			x = exports('x', x | 2);
+			exports('x', x = 2);
+			exports('x', x += 1);
+			exports('x', x -= 1);
+			exports('x', x *= 2);
+			exports('x', x /= 2);
+			exports('x', x %= 2);
+			exports('x', x **= 2);
+			exports('x', x <<= 1);
+			exports('x', x >>= 1);
+			exports('x', x >>>= 1);
+			exports('x', x &= 3);
+			exports('x', x ^= 2);
+			exports('x', x |= 2);
 
 		}
 	};

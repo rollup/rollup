@@ -11,15 +11,10 @@ System.register('bundle', ['external'], function (exports) {
 		}],
 		execute: function () {
 
-			exports({
-				b: void 0,
-				c: void 0
-			});
-
 			const a = exports('a', 'defined');
-			let b;
-			var c;
-			const reassign = exports('reassign', () => (b = exports('b', 'defined')));
+			let b; exports('b', b);
+			var c; exports('c', c);
+			const reassign = exports('reassign', () => (exports('b', b = 'defined')));
 
 		}
 	};
