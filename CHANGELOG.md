@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 2.56.0
+*2021-08-05*
+
+### Features
+* Create more efficient code for SystemJS exports (#4199)
+* Extend `maxParallelFileReads` option to also throttle plugin load hooks (#4200)
+
+### Bug Fixes
+* Return correct value for postfix update expressions of exported variables (#4194)
+
+### Pull Requests
+* [#4199](https://github.com/rollup/rollup/pull/4199): Refine SystemJS export rendering (@lukastaegert)
+* [#4200](https://github.com/rollup/rollup/pull/4200): Restrict parallel execution of load hook (@schummar)
+
 ## 2.55.1
 *2021-07-29*
 
