@@ -10,6 +10,8 @@ System.register([], function (exports) {
 			var m = exports('m', 1);
 			var {m} = global6; exports('m', m);
 
+			(function (v) { return exports('m', m), v; }({m} = global7));
+
 		}
 	};
 });

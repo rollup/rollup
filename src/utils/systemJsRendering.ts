@@ -60,8 +60,8 @@ export function renderSystemExportFunction(
 	);
 	code.appendLeft(expressionEnd, ')');
 	if (needsParens) {
-		code.appendRight(expressionStart, '(');
-		code.prependLeft(expressionEnd, ')');
+		code.prependRight(expressionStart, '(');
+		code.appendLeft(expressionEnd, ')');
 	}
 }
 
