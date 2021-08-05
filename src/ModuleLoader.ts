@@ -220,9 +220,9 @@ export class ModuleLoader {
 		timeStart('load modules', 3);
 		let source: string | SourceDescription;
 		try {
-			source =
-				(await this.pluginDriver.hookFirst('load', [id])) ??
-				(await this.readQueue.run(async () => readFile(id)));
+			source = await this.readQueue.run(
+				async () => (await this.pluginDriver.hookFirst('load', [id])) ?? (await readFile(id))
+			);
 		} catch (err) {
 			timeEnd('load modules', 3);
 			let msg = `Could not load ${id}`;
