@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.56.1
+*2021-08-08*
+
+### Bug Fixes
+* Fix rendering of SystemJS export declarations initialized with a simplifiable expression (#4202)
+
+### Pull Requests
+* [#4202](https://github.com/rollup/rollup/pull/4202): Fix incorrect rendering of export declarations in SystemJS (@lukastaegert)
+
 ## 2.56.0
 *2021-08-05*
 
