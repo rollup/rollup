@@ -21,7 +21,6 @@ module.exports = {
 	},
 	before() {
 		fs.readFile = (path, options, callback) => {
-			console.log('mock read');
 			currentReads++;
 			maxReads = Math.max(maxReads, currentReads);
 			fsReadFile(path, options, (err, data) => {

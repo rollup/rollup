@@ -176,6 +176,7 @@ export default class VariableDeclaration extends NodeBase {
 				code.remove(start, end);
 				continue;
 			}
+			node.render(code, options);
 			leadingString = '';
 			nextSeparatorString = '';
 			if (
@@ -217,7 +218,6 @@ export default class VariableDeclaration extends NodeBase {
 				code.overwrite(lastSeparatorPos, lastSeparatorPos + 1, separatorString);
 				code.appendLeft(renderedContentEnd, leadingString);
 			}
-			node.render(code, options);
 			actualContentEnd = contentEnd;
 			renderedContentEnd = end;
 			hasRenderedContent = true;
