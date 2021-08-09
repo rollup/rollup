@@ -17,6 +17,7 @@ import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from '../variables/Variable';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
+import ObjectPattern from './ObjectPattern';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
@@ -75,6 +76,7 @@ export default class AssignmentExpression extends NodeBase {
 		options: RenderOptions,
 		{ preventASI, renderedParentType, renderedSurroundingElement }: NodeRenderOptions = BLANK
 	): void {
+		const surroundingElement = renderedParentType || renderedSurroundingElement;
 		if (this.left.included) {
 			this.left.render(code, options);
 			this.right.render(code, options);
@@ -88,7 +90,7 @@ export default class AssignmentExpression extends NodeBase {
 				removeLineBreaks(code, inclusionStart, this.right.start);
 			}
 			this.right.render(code, options, {
-				renderedParentType: renderedParentType || renderedSurroundingElement || this.parent.type
+				renderedParentType: surroundingElement || this.parent.type
 			});
 		}
 		if (options.format === 'system') {
@@ -108,6 +110,7 @@ export default class AssignmentExpression extends NodeBase {
 							options
 						);
 					}
+					return;
 				}
 			} else {
 				const systemPatternExports: Variable[] = [];
@@ -121,8 +124,18 @@ export default class AssignmentExpression extends NodeBase {
 						code,
 						options
 					);
+					return;
 				}
 			}
+		}
+		if (
+			this.left.included &&
+			this.left instanceof ObjectPattern &&
+			(surroundingElement === NodeType.ExpressionStatement ||
+				surroundingElement === NodeType.ArrowFunctionExpression)
+		) {
+			code.appendRight(this.start, '(');
+			code.prependLeft(this.end, ')');
 		}
 	}
 
