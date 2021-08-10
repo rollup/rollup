@@ -1,5 +1,14 @@
 # rollup changelog
 
+## 2.56.2
+*2021-08-10*
+
+### Bug Fixes
+* Check if after simplification, an object pattern would become an expression statement or arrow function return value (#4204)
+
+### Pull Requests
+* [#4204](https://github.com/rollup/rollup/pull/4204): Do not create invalid code when simplifying object pattern assignments (@lukastaegert)
+
 ## 2.56.1
 *2021-08-08*
 
