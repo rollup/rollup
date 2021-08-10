@@ -10,11 +10,10 @@ export default class FunctionExpression extends FunctionNode {
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ renderedParentType, renderedSurroundingElement }: NodeRenderOptions = BLANK
+		{ renderedSurroundingElement }: NodeRenderOptions = BLANK
 	): void {
 		super.render(code, options);
-		const surroundingElement = renderedParentType || renderedSurroundingElement;
-		if (surroundingElement === NodeType.ExpressionStatement) {
+		if (renderedSurroundingElement === NodeType.ExpressionStatement) {
 			code.appendRight(this.start, '(');
 			code.prependLeft(this.end, ')');
 		}

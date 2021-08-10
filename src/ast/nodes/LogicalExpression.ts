@@ -191,14 +191,13 @@ export default class LogicalExpression extends NodeBase implements Deoptimizable
 			this.getUsedBranch()!.render(code, options, {
 				isCalleeOfRenderedParent,
 				preventASI,
-				...(renderedSurroundingElement
-					? { renderedSurroundingElement }
-					: { renderedParentType: renderedParentType || this.parent.type })
+				renderedParentType: renderedParentType || this.parent.type,
+				renderedSurroundingElement: renderedSurroundingElement || this.parent.type
 			});
 		} else {
 			this.left.render(code, options, {
 				preventASI,
-				renderedSurroundingElement: renderedParentType || renderedSurroundingElement
+				renderedSurroundingElement
 			});
 			this.right.render(code, options);
 		}

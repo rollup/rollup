@@ -56,7 +56,7 @@ export default class VariableDeclarator extends NodeBase {
 			this.init.render(
 				code,
 				options,
-				renderId ? BLANK : { renderedParentType: NodeType.ExpressionStatement }
+				renderId ? BLANK : { renderedSurroundingElement: NodeType.ExpressionStatement }
 			);
 		} else if (
 			this.id instanceof Identifier &&

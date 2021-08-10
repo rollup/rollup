@@ -90,13 +90,12 @@ export default class ObjectExpression extends NodeBase implements DeoptimizableE
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ renderedParentType, renderedSurroundingElement }: NodeRenderOptions = BLANK
+		{ renderedSurroundingElement }: NodeRenderOptions = BLANK
 	): void {
 		super.render(code, options);
-		const surroundingElement = renderedParentType || renderedSurroundingElement;
 		if (
-			surroundingElement === NodeType.ExpressionStatement ||
-			surroundingElement === NodeType.ArrowFunctionExpression
+			renderedSurroundingElement === NodeType.ExpressionStatement ||
+			renderedSurroundingElement === NodeType.ArrowFunctionExpression
 		) {
 			code.appendRight(this.start, '(');
 			code.prependLeft(this.end, ')');

@@ -23,8 +23,12 @@ export interface NodeRenderOptions {
 	isNoStatement?: boolean;
 	isShorthandProperty?: boolean;
 	preventASI?: boolean;
-	renderedParentType?: string; // also serves as a flag if the rendered parent is different from the actual parent
-	renderedSurroundingElement?: string; // same as parent type, but for changed non-direct parents that directly precede elements
+	/* Indicates if the direct parent of an element changed.
+	Necessary for determining the "this" context of callees. */
+	renderedParentType?: string;
+	/* Indicates if the parent or ancestor surrounding an element has changed and what it changed to.
+	Necessary for adding parentheses. */
+	renderedSurroundingElement?: string;
 	start?: number;
 }
 

@@ -76,7 +76,6 @@ export default class AssignmentExpression extends NodeBase {
 		options: RenderOptions,
 		{ preventASI, renderedParentType, renderedSurroundingElement }: NodeRenderOptions = BLANK
 	): void {
-		const surroundingElement = renderedParentType || renderedSurroundingElement;
 		if (this.left.included) {
 			this.left.render(code, options);
 			this.right.render(code, options);
@@ -90,7 +89,8 @@ export default class AssignmentExpression extends NodeBase {
 				removeLineBreaks(code, inclusionStart, this.right.start);
 			}
 			this.right.render(code, options, {
-				renderedParentType: surroundingElement || this.parent.type
+				renderedParentType: renderedParentType || this.parent.type,
+				renderedSurroundingElement: renderedSurroundingElement || this.parent.type
 			});
 		}
 		if (options.format === 'system') {
@@ -120,7 +120,7 @@ export default class AssignmentExpression extends NodeBase {
 						systemPatternExports,
 						this.start,
 						this.end,
-						(renderedParentType || renderedSurroundingElement) === NodeType.ExpressionStatement,
+						renderedSurroundingElement === NodeType.ExpressionStatement,
 						code,
 						options
 					);
@@ -131,8 +131,8 @@ export default class AssignmentExpression extends NodeBase {
 		if (
 			this.left.included &&
 			this.left instanceof ObjectPattern &&
-			(surroundingElement === NodeType.ExpressionStatement ||
-				surroundingElement === NodeType.ArrowFunctionExpression)
+			(renderedSurroundingElement === NodeType.ExpressionStatement ||
+				renderedSurroundingElement === NodeType.ArrowFunctionExpression)
 		) {
 			code.appendRight(this.start, '(');
 			code.prependLeft(this.end, ')');

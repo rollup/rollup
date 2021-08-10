@@ -121,16 +121,12 @@ export default class SequenceExpression extends NodeBase {
 				removeLineBreaks(code, start, node.start);
 			}
 			if (includedNodes === 1) {
-				if (node === lastNode) {
-					node.render(code, options, {
-						isCalleeOfRenderedParent,
-						renderedParentType: renderedParentType || this.parent.type
-					});
-				} else {
-					node.render(code, options, {
-						renderedSurroundingElement: renderedParentType || this.parent.type
-					});
-				}
+				const parentType = renderedParentType || this.parent.type;
+				node.render(code, options, {
+					isCalleeOfRenderedParent: isCalleeOfRenderedParent && node === lastNode,
+					renderedParentType: parentType,
+					renderedSurroundingElement: parentType
+				});
 			} else {
 				node.render(code, options);
 			}

@@ -316,12 +316,7 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 			if (renderedParentType && isCalleeOfRenderedParent) {
 				code.appendRight(this.start, '0, ');
 			}
-			const surroundingElement = renderedParentType || renderedSurroundingElement;
-			this.object.render(
-				code,
-				options,
-				surroundingElement ? { renderedSurroundingElement: surroundingElement } : BLANK
-			);
+			this.object.render(code, options, { renderedSurroundingElement });
 			this.property.render(code, options);
 		}
 	}

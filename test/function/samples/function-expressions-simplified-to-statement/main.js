@@ -9,17 +9,17 @@ true ? function foo(x){
 	value = x;
 }("consequent") : 2;
 
-assert.equal(value, 'consequent');
+assert.strictEqual(value, 'consequent');
 
 foo("incorrect");
 
-assert.equal(value, 'foo');
+assert.strictEqual(value, 'foo');
 
 false ? null: function foo(x){
 	value = x;
 }("alternate");
 
-assert.equal(value, 'alternate');
+assert.strictEqual(value, 'alternate');
 
 // logical expression
 function bar(){
@@ -30,17 +30,17 @@ true && function bar(x){
 	value = x;
 }("and");
 
-assert.equal(value, 'and');
+assert.strictEqual(value, 'and');
 
 bar("incorrect");
 
-assert.equal(value, 'bar');
+assert.strictEqual(value, 'bar');
 
 false || function bar(x){
 	value = x;
 }("or");
 
-assert.equal(value, 'or');
+assert.strictEqual(value, 'or');
 
 // sequence expression
 function baz(){
@@ -50,9 +50,8 @@ function baz(){
 0, function baz(x){
 	value = x;
 }("comma");
-
-assert.equal(value, 'comma');
+assert.strictEqual(value, 'comma');
 
 baz("incorrect");
 
-assert.equal(value, 'baz');
+assert.strictEqual(value, 'baz');

@@ -89,11 +89,9 @@ export default class BinaryExpression extends NodeBase implements DeoptimizableE
 	render(
 		code: MagicString,
 		options: RenderOptions,
-		{ renderedParentType, renderedSurroundingElement }: NodeRenderOptions = BLANK
+		{ renderedSurroundingElement }: NodeRenderOptions = BLANK
 	): void {
-		this.left.render(code, options, {
-			renderedSurroundingElement: renderedParentType || renderedSurroundingElement
-		});
+		this.left.render(code, options, { renderedSurroundingElement });
 		this.right.render(code, options);
 	}
 }

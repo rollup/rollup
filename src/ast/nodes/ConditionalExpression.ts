@@ -206,14 +206,11 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 			usedBranch!.render(code, options, {
 				isCalleeOfRenderedParent,
 				preventASI: true,
-				...(renderedSurroundingElement
-					? { renderedSurroundingElement }
-					: { renderedParentType: renderedParentType || this.parent.type })
+				renderedParentType: renderedParentType || this.parent.type,
+				renderedSurroundingElement: renderedSurroundingElement || this.parent.type
 			});
 		} else {
-			this.test.render(code, options, {
-				renderedSurroundingElement: renderedParentType || renderedSurroundingElement
-			});
+			this.test.render(code, options, { renderedSurroundingElement });
 			this.consequent.render(code, options);
 			this.alternate.render(code, options);
 		}
