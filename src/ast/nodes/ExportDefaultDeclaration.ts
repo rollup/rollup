@@ -99,8 +99,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		} else {
 			code.remove(this.start, declarationStart);
 			this.declaration.render(code, options, {
-				isCalleeOfRenderedParent: false,
-				renderedParentType: NodeType.ExpressionStatement
+				renderedSurroundingElement: NodeType.ExpressionStatement
 			});
 			if (code.original[this.end - 1] !== ';') {
 				code.appendLeft(this.end, ';');

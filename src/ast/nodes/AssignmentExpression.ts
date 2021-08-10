@@ -17,6 +17,7 @@ import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from '../variables/Variable';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
+import ObjectPattern from './ObjectPattern';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
@@ -88,7 +89,8 @@ export default class AssignmentExpression extends NodeBase {
 				removeLineBreaks(code, inclusionStart, this.right.start);
 			}
 			this.right.render(code, options, {
-				renderedParentType: renderedParentType || renderedSurroundingElement || this.parent.type
+				renderedParentType: renderedParentType || this.parent.type,
+				renderedSurroundingElement: renderedSurroundingElement || this.parent.type
 			});
 		}
 		if (options.format === 'system') {
@@ -108,6 +110,7 @@ export default class AssignmentExpression extends NodeBase {
 							options
 						);
 					}
+					return;
 				}
 			} else {
 				const systemPatternExports: Variable[] = [];
@@ -117,12 +120,22 @@ export default class AssignmentExpression extends NodeBase {
 						systemPatternExports,
 						this.start,
 						this.end,
-						(renderedParentType || renderedSurroundingElement) === NodeType.ExpressionStatement,
+						renderedSurroundingElement === NodeType.ExpressionStatement,
 						code,
 						options
 					);
+					return;
 				}
 			}
+		}
+		if (
+			this.left.included &&
+			this.left instanceof ObjectPattern &&
+			(renderedSurroundingElement === NodeType.ExpressionStatement ||
+				renderedSurroundingElement === NodeType.ArrowFunctionExpression)
+		) {
+			code.appendRight(this.start, '(');
+			code.prependLeft(this.end, ')');
 		}
 	}
 
