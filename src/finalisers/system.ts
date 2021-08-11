@@ -91,16 +91,15 @@ export default function system(
 		dependencies,
 		exports,
 		hasExports,
-		indentString: t,
 		intro,
+		snippets,
 		outro,
 		usesTopLevelAwait,
 		varOrConst
 	}: FinaliserOptions,
 	options: NormalizedOutputOptions
 ): Bundle {
-	const n = options.compact ? '' : '\n';
-	const _ = options.compact ? '' : ' ';
+	const { n, t, _ } = snippets;
 
 	const dependencyIds = dependencies.map(m => `'${m.id}'`);
 

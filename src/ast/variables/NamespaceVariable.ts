@@ -61,8 +61,7 @@ export default class NamespaceVariable extends Variable {
 	}
 
 	renderBlock(options: RenderOptions): string {
-		const { _, n } = options.snippets;
-		const t = options.indent;
+		const { _, n, t } = options.snippets;
 
 		const memberVariables = this.getMemberVariables();
 		const members = Object.entries(memberVariables).map(([name, original]) => {

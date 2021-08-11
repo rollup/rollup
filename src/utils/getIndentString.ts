@@ -26,14 +26,14 @@ function guessIndentString(code: string) {
 	return new Array(min + 1).join(' ');
 }
 
+// TODO Lukas can we rather do this globally in Bundle?
 export default function getIndentString(
 	modules: Module[],
 	options: { indent: true | string }
 ): string {
 	if (options.indent !== true) return options.indent;
-
-	for (let i = 0; i < modules.length; i++) {
-		const indent = guessIndentString(modules[i].originalCode);
+	for (const module of modules) {
+		const indent = guessIndentString(module.originalCode);
 		if (indent !== null) return indent;
 	}
 

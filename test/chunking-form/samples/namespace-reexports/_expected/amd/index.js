@@ -2,8 +2,8 @@ define(['exports', './hsl2hsv', './generated-index'], function (exports, hsl2hsv
 
 
 
-	exports.hsl2hsv = hsl2hsv['default'];
+  exports.hsl2hsv = hsl2hsv['default'];
 
-	Object.defineProperty(exports, '__esModule', { value: true });
+  Object.defineProperty(exports, '__esModule', { value: true });
 
 });

@@ -15,7 +15,6 @@ export interface FinaliserOptions {
 	exports: ChunkExports;
 	hasExports: boolean;
 	id: string;
-	indentString: string;
 	intro: string;
 	isEntryFacade: boolean;
 	isModuleFacade: boolean;

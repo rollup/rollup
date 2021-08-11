@@ -1,5 +1,6 @@
 import { ModuleDeclarationDependency, ReexportSpecifier } from '../../Chunk';
 import { GetInterop } from '../../rollup/types';
+import { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 import {
 	defaultInteropHelpersByInteropType,
 	getDefaultOnlyHelper,
@@ -15,10 +16,7 @@ export default function getInteropBlock(
 	freeze: boolean,
 	namespaceToStringTag: boolean,
 	accessedGlobals: Set<string>,
-	_: string,
-	n: string,
-	s: string,
-	t: string
+	{ _, n, s, t }: GenerateCodeSnippets
 ): string {
 	const neededInteropHelpers = new Set<string>();
 	const interopStatements: string[] = [];

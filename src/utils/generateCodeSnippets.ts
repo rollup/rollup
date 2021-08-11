@@ -5,6 +5,7 @@ export interface GenerateCodeSnippets {
 	_: string;
 	n: string;
 	s: string;
+	t: string;
 	renderDirectReturnIife(
 		params: string[],
 		returned: string,
@@ -18,12 +19,11 @@ export interface GenerateCodeSnippets {
 	): void;
 }
 
-// TODO Lukas indent
 // TODO Lukas varOrConst
-export function getGenerateCodeSnippets({
-	compact,
-	generatedCode: { arrowFunctions }
-}: NormalizedOutputOptions): GenerateCodeSnippets {
+export function getGenerateCodeSnippets(
+	{ compact, generatedCode: { arrowFunctions } }: NormalizedOutputOptions,
+	indentString: string
+): GenerateCodeSnippets {
 	const { _, n, s } = compact ? { _: '', n: '', s: '' } : { _: ' ', n: '\n', s: ';' };
 	return {
 		_,
@@ -63,7 +63,8 @@ export function getGenerateCodeSnippets({
 						code.appendLeft(argEnd, ')');
 					}
 			  },
-		s
+		s,
+		t: indentString
 	};
 }
 

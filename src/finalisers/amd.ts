@@ -15,7 +15,6 @@ export default function amd(
 		exports,
 		hasExports,
 		id,
-		indentString: t,
 		intro,
 		isEntryFacade,
 		isModuleFacade,
@@ -38,7 +37,7 @@ export default function amd(
 	warnOnBuiltins(warn, dependencies);
 	const deps = dependencies.map(m => `'${removeExtensionFromRelativeAmdId(m.id)}'`);
 	const args = dependencies.map(m => m.name);
-	const { n, s, _ } = snippets;
+	const { n, t, _ } = snippets;
 
 	if (namedExportsMode && hasExports) {
 		args.unshift(`exports`);
@@ -70,10 +69,7 @@ export default function amd(
 			freeze,
 			namespaceToStringTag,
 			accessedGlobals,
-			_,
-			n,
-			s,
-			t
+			snippets
 		)}`
 	);
 

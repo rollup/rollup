@@ -31,7 +31,6 @@ export default function umd(
 		exports,
 		hasExports,
 		id,
-		indentString: t,
 		intro,
 		namedExportsMode,
 		outro,
@@ -54,7 +53,8 @@ export default function umd(
 		strict
 	}: NormalizedOutputOptions
 ): Bundle {
-	const { _, n, s } = snippets;
+	// TODO Lukas for Rollup 3: Do not guess indent
+	const { _, n, t } = snippets;
 	const factoryVar = compact ? 'f' : 'factory';
 	const globalVar = compact ? 'g' : 'global';
 
@@ -167,10 +167,7 @@ export default function umd(
 			freeze,
 			namespaceToStringTag,
 			accessedGlobals,
-			_,
-			n,
-			s,
-			t
+			snippets
 		)}`
 	);
 
