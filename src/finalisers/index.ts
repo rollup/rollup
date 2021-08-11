@@ -1,6 +1,7 @@
 import { Bundle as MagicStringBundle } from 'magic-string';
 import { ChunkDependencies, ChunkExports } from '../Chunk';
 import { NormalizedOutputOptions, RollupWarning } from '../rollup/types';
+import { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
 import amd from './amd';
 import cjs from './cjs';
 import es from './es';
@@ -20,6 +21,7 @@ export interface FinaliserOptions {
 	isModuleFacade: boolean;
 	namedExportsMode: boolean;
 	outro: string;
+	snippets: GenerateCodeSnippets;
 	usesTopLevelAwait: boolean;
 	varOrConst: 'var' | 'const';
 	warn(warning: RollupWarning): void;

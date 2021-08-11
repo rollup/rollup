@@ -38,7 +38,7 @@ import {
 } from './utils/error';
 import { escapeId } from './utils/escapeId';
 import { assignExportsToMangledNames, assignExportsToNames } from './utils/exportNames';
-import { getGenerateCodeSnippets } from './utils/generateCodeSnippets';
+import { GenerateCodeSnippets } from './utils/generateCodeSnippets';
 import getExportMode from './utils/getExportMode';
 import { getId } from './utils/getId';
 import getIndentString from './utils/getIndentString';
@@ -552,7 +552,11 @@ export default class Chunk {
 	}
 
 	// prerender allows chunk hashes and names to be generated before finalizing
-	preRender(options: NormalizedOutputOptions, inputBase: string): void {
+	preRender(
+		options: NormalizedOutputOptions,
+		inputBase: string,
+		snippets: GenerateCodeSnippets
+	): void {
 		const magicString = new MagicStringBundle({ separator: options.compact ? '' : '\n\n' });
 		this.usedModules = [];
 		this.indentString = getIndentString(this.orderedModules, options);
@@ -566,7 +570,7 @@ export default class Chunk {
 			indent: this.indentString,
 			namespaceToStringTag: options.namespaceToStringTag,
 			outputPluginDriver: this.pluginDriver,
-			snippets: getGenerateCodeSnippets(options),
+			snippets,
 			varOrConst: options.preferConst ? 'const' : 'var'
 		};
 
@@ -653,7 +657,8 @@ export default class Chunk {
 	async render(
 		options: NormalizedOutputOptions,
 		addons: Addons,
-		outputChunk: RenderedChunk
+		outputChunk: RenderedChunk,
+		snippets: GenerateCodeSnippets
 	): Promise<{ code: string; map: SourceMap }> {
 		timeStart('render format', 2);
 
@@ -732,6 +737,7 @@ export default class Chunk {
 				isModuleFacade: this.facadeModule !== null,
 				namedExportsMode: this.exportMode !== 'default',
 				outro: addons.outro!,
+				snippets,
 				usesTopLevelAwait,
 				varOrConst: options.preferConst ? 'const' : 'var',
 				warn: this.inputOptions.onwarn

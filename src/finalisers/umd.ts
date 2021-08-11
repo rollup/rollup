@@ -35,6 +35,7 @@ export default function umd(
 		intro,
 		namedExportsMode,
 		outro,
+		snippets,
 		varOrConst,
 		warn
 	}: FinaliserOptions,
@@ -53,9 +54,7 @@ export default function umd(
 		strict
 	}: NormalizedOutputOptions
 ): Bundle {
-	const _ = compact ? '' : ' ';
-	const n = compact ? '' : '\n';
-	const s = compact ? '' : ';';
+	const { _, n, s } = snippets;
 	const factoryVar = compact ? 'f' : 'factory';
 	const globalVar = compact ? 'g' : 'global';
 
@@ -180,7 +179,7 @@ export default function umd(
 		dependencies,
 		namedExportsMode,
 		interop,
-		compact,
+		snippets,
 		t,
 		externalLiveBindings
 	);

@@ -21,12 +21,12 @@ export default function amd(
 		isModuleFacade,
 		namedExportsMode,
 		outro,
+		snippets,
 		varOrConst,
 		warn
 	}: FinaliserOptions,
 	{
 		amd,
-		compact,
 		esModule,
 		externalLiveBindings,
 		freeze,
@@ -38,9 +38,7 @@ export default function amd(
 	warnOnBuiltins(warn, dependencies);
 	const deps = dependencies.map(m => `'${removeExtensionFromRelativeAmdId(m.id)}'`);
 	const args = dependencies.map(m => m.name);
-	const n = compact ? '' : '\n';
-	const s = compact ? '' : ';';
-	const _ = compact ? '' : ' ';
+	const { n, s, _ } = snippets;
 
 	if (namedExportsMode && hasExports) {
 		args.unshift(`exports`);
@@ -84,7 +82,7 @@ export default function amd(
 		dependencies,
 		namedExportsMode,
 		interop,
-		compact,
+		snippets,
 		t,
 		externalLiveBindings
 	);

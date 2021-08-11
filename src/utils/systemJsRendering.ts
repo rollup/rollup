@@ -68,7 +68,7 @@ export function renderSystemExportSequenceAfterExpression(
 	code: MagicString,
 	options: RenderOptions
 ): void {
-	const _ = options.compact ? '' : ' ';
+	const { _ } = options.snippets;
 	code.appendLeft(
 		expressionEnd,
 		`,${_}${getSystemExportStatement(
@@ -91,7 +91,7 @@ export function renderSystemExportSequenceBeforeExpression(
 	options: RenderOptions,
 	modifier: string
 ): void {
-	const _ = options.compact ? '' : ' ';
+	const { _ } = options.snippets;
 	code.prependRight(
 		expressionStart,
 		`${getSystemExportStatement([exportedVariable], options, modifier)},${_}`

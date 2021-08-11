@@ -1,23 +1,23 @@
 import { GlobalsOption } from '../../rollup/types';
+import { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 import { property } from './sanitize';
 
 export default function setupNamespace(
 	name: string,
 	root: string,
 	globals: GlobalsOption,
+	{ _, s }: GenerateCodeSnippets,
 	compact: boolean | undefined
 ): string {
-	const _ = compact ? '' : ' ';
 	const parts = name.split('.');
 	parts[0] = (typeof globals === 'function' ? globals(parts[0]) : globals[parts[0]]) || parts[0];
 	parts.pop();
 
+	// TODO Lukas find out how this works, can we get rid of compact?
 	let acc = root;
 	return (
 		parts
-			.map(
-				part => ((acc += property(part)), `${acc}${_}=${_}${acc}${_}||${_}{}${compact ? '' : ';'}`)
-			)
+			.map(part => ((acc += property(part)), `${acc}${_}=${_}${acc}${_}||${_}{}${s}`))
 			.join(compact ? ',' : '\n') + (compact && parts.length ? ';' : '\n')
 	);
 }

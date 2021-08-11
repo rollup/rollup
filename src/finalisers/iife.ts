@@ -23,6 +23,7 @@ export default function iife(
 		intro,
 		namedExportsMode,
 		outro,
+		snippets,
 		varOrConst,
 		warn
 	}: FinaliserOptions,
@@ -39,10 +40,7 @@ export default function iife(
 		strict
 	}: NormalizedOutputOptions
 ): Bundle {
-	const _ = compact ? '' : ' ';
-	const s = compact ? '' : ';';
-	const n = compact ? '' : '\n';
-
+	const { _, s, n } = snippets;
 	const isNamespaced = name && name.indexOf('.') !== -1;
 	const useVariableAssignment = !extend && !isNamespaced;
 
@@ -100,7 +98,7 @@ export default function iife(
 				`${_}=${_}${wrapperIntro}`;
 		}
 		if (isNamespaced) {
-			wrapperIntro = setupNamespace(name!, 'this', globals, compact) + wrapperIntro;
+			wrapperIntro = setupNamespace(name!, 'this', globals, snippets, compact) + wrapperIntro;
 		}
 	}
 
@@ -114,7 +112,7 @@ export default function iife(
 		dependencies,
 		namedExportsMode,
 		interop,
-		compact,
+		snippets,
 		t,
 		externalLiveBindings
 	);

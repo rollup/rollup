@@ -1,5 +1,6 @@
 import { ChunkDependencies, ChunkExports } from '../../Chunk';
 import { GetInterop } from '../../rollup/types';
+import { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 import {
 	defaultInteropHelpersByInteropType,
 	isDefaultAProperty,
@@ -12,13 +13,11 @@ export function getExportBlock(
 	dependencies: ChunkDependencies,
 	namedExportsMode: boolean,
 	interop: GetInterop,
-	compact: boolean | undefined,
+	{ _, n }: GenerateCodeSnippets,
 	t: string,
 	externalLiveBindings: boolean,
 	mechanism = 'return '
 ): string {
-	const _ = compact ? '' : ' ';
-	const n = compact ? '' : '\n';
 	if (!namedExportsMode) {
 		return `${n}${n}${mechanism}${getSingleDefaultExport(
 			exports,

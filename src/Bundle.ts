@@ -24,6 +24,7 @@ import {
 	warnDeprecation
 } from './utils/error';
 import { sortByExecutionOrder } from './utils/executionOrder';
+import { GenerateCodeSnippets, getGenerateCodeSnippets } from './utils/generateCodeSnippets';
 import { basename, isAbsolute } from './utils/path';
 import { timeEnd, timeStart } from './utils/timers';
 
@@ -59,10 +60,11 @@ export default class Bundle {
 			// We need to create addons before prerender because at the moment, there
 			// can be no async code between prerender and render due to internal state
 			const addons = await createAddons(this.outputOptions, this.pluginDriver);
-			this.prerenderChunks(chunks, inputBase);
+			const snippets = getGenerateCodeSnippets(this.outputOptions);
+			this.prerenderChunks(chunks, inputBase, snippets);
 			timeEnd('render modules', 2);
 
-			await this.addFinalizedChunksToBundle(chunks, inputBase, addons, outputBundle);
+			await this.addFinalizedChunksToBundle(chunks, inputBase, addons, outputBundle, snippets);
 		} catch (error) {
 			await this.pluginDriver.hookParallel('renderError', [error]);
 			throw error;
@@ -82,7 +84,8 @@ export default class Bundle {
 		chunks: Chunk[],
 		inputBase: string,
 		addons: Addons,
-		outputBundle: OutputBundleWithPlaceholders
+		outputBundle: OutputBundleWithPlaceholders,
+		snippets: GenerateCodeSnippets
 	): Promise<void> {
 		this.assignChunkIds(chunks, inputBase, addons, outputBundle);
 		for (const chunk of chunks) {
@@ -91,7 +94,10 @@ export default class Bundle {
 		await Promise.all(
 			chunks.map(async chunk => {
 				const outputChunk = outputBundle[chunk.id!] as OutputChunk;
-				Object.assign(outputChunk, await chunk.render(this.outputOptions, addons, outputChunk));
+				Object.assign(
+					outputChunk,
+					await chunk.render(this.outputOptions, addons, outputChunk, snippets)
+				);
 			})
 		);
 	}
@@ -233,12 +239,16 @@ export default class Bundle {
 		return [...chunks, ...facades];
 	}
 
-	private prerenderChunks(chunks: Chunk[], inputBase: string): void {
+	private prerenderChunks(
+		chunks: Chunk[],
+		inputBase: string,
+		snippets: GenerateCodeSnippets
+	): void {
 		for (const chunk of chunks) {
 			chunk.generateExports();
 		}
 		for (const chunk of chunks) {
-			chunk.preRender(this.outputOptions, inputBase);
+			chunk.preRender(this.outputOptions, inputBase, snippets);
 		}
 	}
 }
