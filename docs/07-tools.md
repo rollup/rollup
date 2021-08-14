@@ -38,8 +38,7 @@ https://github.com/rollup/rollup/wiki/Troubleshooting#treating-module-as-externa
 the-answer (imported by main.js)
 ```
 
-The resulting `bundle.js` will still work in Node.js, because the `import` declaration gets turned into a CommonJS `require` statement, but `the-answer` does *not* get included in the bundle. For that, we need a plugin.
-
+The resulting `bundle.js` will still work in Node.js, because the `import` declaration gets turned into a CommonJS `require` statement, but `the-answer` does _not_ get included in the bundle. For that, we need a plugin.
 
 #### @rollup/plugin-node-resolve
 
@@ -61,12 +60,11 @@ export default {
     file: 'bundle.js',
     format: 'cjs'
   },
-  plugins: [ resolve() ]
+  plugins: [resolve()]
 };
 ```
 
 This time, when you `npm run build`, no warning is emitted — the bundle contains the imported module.
-
 
 #### @rollup/plugin-commonjs
 
@@ -74,12 +72,11 @@ Some libraries expose ES modules that you can import as-is — `the-answer` is o
 
 The [@rollup/plugin-commonjs](https://github.com/rollup/plugins/tree/master/packages/commonjs) plugin does exactly that.
 
-Note that most of the times `@rollup/plugin-commonjs` should go *before* other plugins that transform your modules — this is to prevent other plugins from making changes that break the CommonJS detection. An exception for this rule is the Babel plugin, if you're using it then place it before the commonjs one.
-
+Note that most of the times `@rollup/plugin-commonjs` should go _before_ other plugins that transform your modules — this is to prevent other plugins from making changes that break the CommonJS detection. An exception for this rule is the Babel plugin, if you're using it then place it before the commonjs one.
 
 ### Peer dependencies
 
-Let's say that you're building a library that has a peer dependency, such as React or Lodash. If you set up externals as described above, your rollup will bundle *all* imports:
+Let's say that you're building a library that has a peer dependency, such as React or Lodash. If you set up externals as described above, your rollup will bundle _all_ imports:
 
 ```js
 import answer from 'the-answer';
@@ -100,12 +97,14 @@ export default {
     file: 'bundle.js',
     format: 'cjs'
   },
-  plugins: [resolve({
-    // pass custom options to the resolve plugin
-    customResolveOptions: {
-      moduleDirectory: 'node_modules'
-    }
-  })],
+  plugins: [
+    resolve({
+      // pass custom options to the resolve plugin
+      customResolveOptions: {
+        moduleDirectory: 'node_modules'
+      }
+    })
+  ],
   // indicate which modules should be treated as external
   external: ['lodash']
 };
@@ -119,7 +118,7 @@ The `external` key accepts either an array of module names, or a function which 
 export default {
   // ...
   external: id => /lodash/.test(id)
-}
+};
 ```
 
 You might use this form if you're using [babel-plugin-lodash](https://github.com/lodash/babel-plugin-lodash) to cherry-pick `lodash` modules. In this case, Babel will convert your import statements to look like this:
@@ -129,7 +128,6 @@ import _merge from 'lodash/merge';
 ```
 
 The array form of `external` does not handle wildcards, so this import will only be treated as external in the functional form.
-
 
 ### Babel
 
@@ -154,10 +152,7 @@ export default {
     file: 'bundle.js',
     format: 'cjs'
   },
-  plugins: [
-    resolve(),
-    babel({ babelHelpers: 'bundled' })
-  ]
+  plugins: [resolve(), babel({ babelHelpers: 'bundled' })]
 };
 ```
 
@@ -165,19 +160,13 @@ Before Babel will actually compile your code, it needs to be configured. Create 
 
 ```json
 {
-  "presets": [
-    "@babel/env"
-  ]
+  "presets": ["@babel/env"]
 }
 ```
 
-We're putting our `.babelrc.json` file in `src`, rather than the project root. This allows us to have a different `.babelrc.json` for things like tests, if we need that later – See the [Babel documentation](https://babeljs.io/docs/en/config-files#project-wide-configuration) for more information on both project wide and file relative configuration. 
+We're putting our `.babelrc.json` file in `src`, rather than the project root. This allows us to have a different `.babelrc.json` for things like tests, if we need that later – See the [Babel documentation](https://babeljs.io/docs/en/config-files#project-wide-configuration) for more information on both project wide and file relative configuration.
 
-Now, before we run rollup, we need to install
-[`babel-core`](https://babeljs.io/docs/en/babel-core)
-and the
-[`env`](https://babeljs.io/docs/en/babel-preset-env)
-preset:
+Now, before we run rollup, we need to install [`babel-core`](https://babeljs.io/docs/en/babel-core) and the [`env`](https://babeljs.io/docs/en/babel-preset-env) preset:
 
 ```
 npm i -D @babel/core @babel/preset-env
@@ -191,7 +180,7 @@ import answer from 'the-answer';
 
 export default () => {
   console.log(`the answer is ${answer}`);
-}
+};
 ```
 
 Run Rollup with `npm run build`, and check the bundle:
@@ -201,9 +190,9 @@ Run Rollup with `npm run build`, and check the bundle:
 
 var index = 42;
 
-var main = (function () {
+var main = function () {
   console.log('the answer is ' + index);
-});
+};
 
 module.exports = main;
 ```
@@ -220,19 +209,19 @@ const rollup = require('rollup');
 const rollupTypescript = require('@rollup/plugin-typescript');
 
 gulp.task('build', () => {
-  return rollup.rollup({
-    input: './src/main.ts',
-    plugins: [
-      rollupTypescript()
-    ]
-  }).then(bundle => {
-    return bundle.write({
-      file: './dist/library.js',
-      format: 'umd',
-      name: 'library',
-      sourcemap: true
+  return rollup
+    .rollup({
+      input: './src/main.ts',
+      plugins: [rollupTypescript()]
+    })
+    .then(bundle => {
+      return bundle.write({
+        file: './dist/library.js',
+        format: 'umd',
+        name: 'library',
+        sourcemap: true
+      });
     });
-  });
 });
 ```
 
@@ -246,9 +235,7 @@ const rollupTypescript = require('@rollup/plugin-typescript');
 gulp.task('build', async function () {
   const bundle = await rollup.rollup({
     input: './src/main.ts',
-    plugins: [
-      rollupTypescript()
-    ]
+    plugins: [rollupTypescript()]
   });
 
   await bundle.write({

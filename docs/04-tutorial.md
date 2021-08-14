@@ -4,7 +4,7 @@ title: Tutorial
 
 ### Creating Your First Bundle
 
-*Before we begin, you'll need to have [Node.js](https://nodejs.org) installed so that you can use [NPM](https://npmjs.com). You'll also need to know how to access the [command line](https://www.codecademy.com/learn/learn-the-command-line) on your machine.*
+_Before we begin, you'll need to have [Node.js](https://nodejs.org) installed so that you can use [NPM](https://npmjs.com). You'll also need to know how to access the [command line](https://www.codecademy.com/learn/learn-the-command-line) on your machine._
 
 The easiest way to use Rollup is via the Command Line Interface (or CLI). For now, we'll install it globally (later on we'll learn how to install it locally to your project so that your build process is portable, but don't worry about that yet). Type this into the command line:
 
@@ -28,7 +28,7 @@ mkdir -p my-rollup-project/src
 cd my-rollup-project
 ```
 
-First, we need an *entry point*. Paste this into a new file called `src/main.js`:
+First, we need an _entry point_. Paste this into a new file called `src/main.js`:
 
 ```js
 // src/main.js
@@ -171,7 +171,7 @@ _Note: Once installed locally, both NPM and Yarn will resolve the dependency's b
 
 So far, we've created a simple bundle from an entry point and a module imported via a relative path. As you build more complex bundles, you'll often need more flexibility – importing modules installed with NPM, compiling code with Babel, working with JSON files and so on.
 
-For that, we use *plugins*, which change the behaviour of Rollup at key points in the bundling process. A list of awesome plugins is maintained on [the Rollup Awesome List](https://github.com/rollup/awesome).
+For that, we use _plugins_, which change the behaviour of Rollup at key points in the bundling process. A list of awesome plugins is maintained on [the Rollup Awesome List](https://github.com/rollup/awesome).
 
 For this tutorial, we'll use [@rollup/plugin-json](https://github.com/rollup/plugins/tree/master/packages/json), which allows Rollup to import data from a JSON file.
 
@@ -218,7 +218,7 @@ export default {
     file: 'bundle.js',
     format: 'cjs'
   },
-  plugins: [ json() ]
+  plugins: [json()]
 };
 ```
 
@@ -227,9 +227,9 @@ Run Rollup with `npm run build`. The result should look like this:
 ```js
 'use strict';
 
-var version = "1.0.0";
+var version = '1.0.0';
 
-function main () {
+function main() {
   console.log('version ' + version);
 }
 
@@ -253,7 +253,7 @@ Edit your `rollup.config.js` file to add a second minified output. As format, we
 ```js
 // rollup.config.js
 import json from '@rollup/plugin-json';
-import {terser} from 'rollup-plugin-terser';
+import { terser } from 'rollup-plugin-terser';
 
 export default {
   input: 'src/main.js',
@@ -269,16 +269,21 @@ export default {
       plugins: [terser()]
     }
   ],
-  plugins: [ json() ]
+  plugins: [json()]
 };
 ```
 
 Besides `bundle.js`, Rollup will now create a second file `bundle.min.js`:
 
 ```js
-var version=function(){"use strict";var n="1.0.0";return function(){console.log("version "+n)}}();
+var version = (function () {
+  'use strict';
+  var n = '1.0.0';
+  return function () {
+    console.log('version ' + n);
+  };
+})();
 ```
-
 
 ### Code Splitting
 
@@ -313,14 +318,14 @@ If we do not use the `--dir` option, Rollup will again print the chunks to `stdo
 //→ main.js:
 'use strict';
 
-function main () {
+function main() {
   Promise.resolve(require('./chunk-b8774ea3.js')).then(({ default: foo }) => console.log(foo));
 }
 
 module.exports = main;
 
 //→ chunk-b8774ea3.js:
-'use strict';
+('use strict');
 
 var foo = 'hello world!';
 
@@ -351,25 +356,25 @@ will output
 //→ main.js:
 'use strict';
 
-function main () {
+function main() {
   Promise.resolve(require('./chunk-b8774ea3.js')).then(({ default: foo }) => console.log(foo));
 }
 
 module.exports = main;
 
 //→ main2.js:
-'use strict';
+('use strict');
 
 var foo_js = require('./chunk-b8774ea3.js');
 
-function main2 () {
+function main2() {
   console.log(foo_js.default);
 }
 
 module.exports = main2;
 
 //→ chunk-b8774ea3.js:
-'use strict';
+('use strict');
 
 var foo = 'hello world!';
 
@@ -387,7 +392,7 @@ rollup src/main.js src/main2.js -f es -d dist
 ```
 
 ```html
-<!doctype html>
+<!DOCTYPE html>
 <script type="module">
   import main2 from './dist/main2.js';
   main2();
@@ -409,11 +414,10 @@ npm install --save-dev systemjs
 And then load either or both entry points in an HTML page as needed:
 
 ```html
-<!doctype html>
+<!DOCTYPE html>
 <script src="node_modules/systemjs/dist/s.min.js"></script>
 <script>
-  System.import('./dist/main2.js')
-  .then(({ default: main }) => main());
+  System.import('./dist/main2.js').then(({ default: main }) => main());
 </script>
 ```
 

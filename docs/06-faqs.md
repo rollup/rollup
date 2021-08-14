@@ -18,7 +18,7 @@ Rollup strives to implement the specification for ES modules, not necessarily th
 
 There are two primary reasons:
 
-1. Philosophically, it's because Rollup is essentially a [polyfill](https://en.wikipedia.org/wiki/Polyfill_(programming)) of sorts for native module loaders in both Node and browsers. In a browser, `import foo from 'foo'` won't work, because browsers don't use Node's resolution algorithm.
+1. Philosophically, it's because Rollup is essentially a [polyfill](<https://en.wikipedia.org/wiki/Polyfill_(programming)>) of sorts for native module loaders in both Node and browsers. In a browser, `import foo from 'foo'` won't work, because browsers don't use Node's resolution algorithm.
 
 2. On a practical level, it's just much easier to develop software if these concerns are neatly separated with a good API. Rollup's core is quite large, and everything that stops it getting larger is a good thing. Meanwhile, it's easier to fix bugs and add features. By keeping Rollup lean, the potential for technical debt is small.
 
@@ -51,12 +51,14 @@ export default value;
 ```
 
 This does not affect code execution order or behaviour, but it will speed up how your code is loaded and parsed. Without this optimization, a JavaScript engine needs to perform the following steps to run `main.js`:
+
 1. Load and parse `main.js`. At the end, an import to `other-entry.js` will be discovered.
 2. Load and parse `other-entry.js`. At the end, an import to `external` will be discovered.
 3. Load and parse `external`.
 4. Execute `main.js`.
 
 With this optimization, a JavaScript engine will discover all transitive dependencies after parsing an entry module, avoiding the waterfall:
+
 1. Load and parse `main.js`. At the end, imports to `other-entry.js` and `external` will be discovered.
 2. Load and parse `other-entry.js` and `external`. The import of `external` from `other-entry.js` is already loaded and parsed.
 3. Execute `main.js`.
