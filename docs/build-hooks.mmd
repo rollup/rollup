@@ -1,0 +1,59 @@
+flowchart TB
+    classDef hook-parallel fill:#ffb3b3,stroke:#000;
+    classDef hook-sequential fill:#ffd2b3,stroke:#000;
+    classDef hook-first fill:#fff2b3,stroke:#000;
+    classDef hook-sequential-sync fill:#ffd2b3,stroke:#f00;
+
+	buildend("buildEnd"):::hook-parallel
+	click buildend "/guide/en/#buildend" _parent
+
+    buildstart("buildStart"):::hook-parallel
+	click buildstart "/guide/en/#buildstart" _parent
+
+	load("load"):::hook-first
+	click load "/guide/en/#load" _parent
+
+	moduleparsed("moduleParsed"):::hook-parallel
+	click moduleparsed "/guide/en/#moduleparsed" _parent
+
+	options("options"):::hook-sequential
+	click options "/guide/en/#options" _parent
+
+	resolvedynamicimport("resolveDynamicImport"):::hook-first
+	click resolvedynamicimport "/guide/en/#resolvedynamicimport" _parent
+
+	resolveid("resolveId"):::hook-first
+	click resolveid "/guide/en/#resolveid" _parent
+
+	transform("transform"):::hook-sequential
+	click transform "/guide/en/#transform" _parent
+
+	watchchange("watchChange"):::hook-sequential-sync
+	click watchchange "/guide/en/#watchchange" _parent
+
+    closewatcher("closeWatcher"):::hook-sequential-sync
+	click closewatcher "/guide/en/#closewatcher" _parent
+
+    options
+    --> buildstart
+    --> |each entry|resolveid
+    .-> |external|buildend
+
+    resolveid
+    --> |non-external|load
+    --> transform
+    --> moduleparsed
+    .-> |no imports|buildend
+
+    moduleparsed
+    --> |"each import()"|resolvedynamicimport
+    --> |non-external|load
+
+    moduleparsed
+    --> |each import|resolveid
+
+    resolvedynamicimport
+    .-> |external|buildend
+
+    resolvedynamicimport
+    --> |unresolved|resolveid

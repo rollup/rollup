@@ -59,6 +59,7 @@ export default ({
 ### Properties
 
 #### `name`
+
 Type: `string`
 
 The name of the plugin, for use in error messages and warnings.
@@ -67,45 +68,41 @@ The name of the plugin, for use in error messages and warnings.
 
 To interact with the build process, your plugin object includes 'hooks'. Hooks are functions which are called at various stages of the build. Hooks can affect how a build is run, provide information about a build, or modify a build once complete. There are different kinds of hooks:
 
-* `async`: The hook may also return a promise resolving to the same type of value; otherwise, the hook is marked as `sync`.
-* `first`: If several plugins implement this hook, the hooks are run sequentially until a hook returns a value other than `null` or `undefined`.
-* `sequential`: If several plugins implement this hook, all of them will be run in the specified plugin order. If a hook is async, subsequent hooks of this kind will wait until the current hook is resolved.
-* `parallel`: If several plugins implement this hook, all of them will be run in the specified plugin order. If a hook is async, subsequent hooks of this kind will be run in parallel and not wait for the current hook.
+- `async`: The hook may also return a promise resolving to the same type of value; otherwise, the hook is marked as `sync`.
+- `first`: If several plugins implement this hook, the hooks are run sequentially until a hook returns a value other than `null` or `undefined`.
+- `sequential`: If several plugins implement this hook, all of them will be run in the specified plugin order. If a hook is async, subsequent hooks of this kind will wait until the current hook is resolved.
+- `parallel`: If several plugins implement this hook, all of them will be run in the specified plugin order. If a hook is async, subsequent hooks of this kind will be run in parallel and not wait for the current hook.
 
-Build hooks are run during the build phase, which is triggered by `rollup.rollup(inputOptions)`. They are mainly concerned with locating, providing and transforming input files before they are processed by Rollup. The first hook of the build phase is [`options`](guide/en/#options), the last one is always [`buildEnd`](guide/en/#buildend), unless there is a build error in which case [`closeBundle`](guide/en/#closebundle) will be called after that.
+Build hooks are run during the build phase, which is triggered by `rollup.rollup(inputOptions)`. They are mainly concerned with locating, providing and transforming input files before they are processed by Rollup. The first hook of the build phase is [`options`](guide/en/#options), the last one is always [`buildEnd`](guide/en/#buildend). If there is a build error, [`closeBundle`](guide/en/#closebundle) will be called after that.
+
+<!-- html:hooks-legend.html -->
+<!-- mermaid:build-hooks.mmd -->
 
 Additionally, in watch mode the [`watchChange`](guide/en/#watchchange) hook can be triggered at any time to notify a new run will be triggered once the current run has generated its outputs. Also, when watcher closes, the [`closeWatcher`](guide/en/#closewatcher) hook will be triggered.
 
 See [Output Generation Hooks](guide/en/#output-generation-hooks) for hooks that run during the output generation phase to modify the generated output.
 
 #### `buildEnd`
-Type: `(error?: Error) => void`<br>
-Kind: `async, parallel`<br>
-Previous Hook: [`moduleParsed`](guide/en/#moduleparsed), [`resolveId`](guide/en/#resolveid) or [`resolveDynamicImport`](guide/en/#resolvedynamicimport).<br>
-Next Hook: [`outputOptions`](guide/en/#outputoptions) in the output generation phase as this is the last hook of the build phase.
+
+Type: `(error?: Error) => void`<br> Kind: `async, parallel`<br> Previous Hook: [`moduleParsed`](guide/en/#moduleparsed), [`resolveId`](guide/en/#resolveid) or [`resolveDynamicImport`](guide/en/#resolvedynamicimport).<br> Next Hook: [`outputOptions`](guide/en/#outputoptions) in the output generation phase as this is the last hook of the build phase.
 
 Called when rollup has finished bundling, but before `generate` or `write` is called; you can also return a Promise. If an error occurred during the build, it is passed on to this hook.
 
 #### `buildStart`
-Type: `(options: InputOptions) => void`<br>
-Kind: `async, parallel`<br>
-Previous Hook: [`options`](guide/en/#options)<br>
-Next Hook: [`resolveId`](guide/en/#resolveid) to resolve each entry point in parallel.
+
+Type: `(options: InputOptions) => void`<br> Kind: `async, parallel`<br> Previous Hook: [`options`](guide/en/#options)<br> Next Hook: [`resolveId`](guide/en/#resolveid) to resolve each entry point in parallel.
 
 Called on each `rollup.rollup` build. This is the recommended hook to use when you need access to the options passed to `rollup.rollup()` as it takes the transformations by all [`options`](guide/en/#options) hooks into account and also contains the right default values for unset options.
 
 #### `closeWatcher`
-Type: `() => void`<br>
-Kind: `sync, sequential`<br>
-Previous/Next Hook: This hook can be triggered at any time both during the build and the output generation phases. If that is the case, the current build will still proceed but no new [`watchChange`](guide/en/#watchchange) events will be triggered ever.
+
+Type: `() => void`<br> Kind: `sync, sequential`<br> Previous/Next Hook: This hook can be triggered at any time both during the build and the output generation phases. If that is the case, the current build will still proceed but no new [`watchChange`](guide/en/#watchchange) events will be triggered ever.
 
 Notifies a plugin when watcher process closes and all open resources should be closed too. This hook cannot be used by output plugins.
 
 #### `load`
-Type: `(id: string) => string | null | {code: string, map?: string | SourceMap, ast? : ESTree.Program, moduleSideEffects?: boolean | "no-treeshake" | null, syntheticNamedExports?: boolean | string | null, meta?: {[plugin: string]: any} | null}`<br>
-Kind: `async, first`<br>
-Previous Hook: [`resolveId`](guide/en/#resolveid) or [`resolveDynamicImport`](guide/en/#resolvedynamicimport) where the loaded id was resolved.<br>
-Next Hook: [`transform`](guide/en/#transform) to transform the loaded file.
+
+Type: `(id: string) => string | null | {code: string, map?: string | SourceMap, ast? : ESTree.Program, moduleSideEffects?: boolean | "no-treeshake" | null, syntheticNamedExports?: boolean | string | null, meta?: {[plugin: string]: any} | null}`<br> Kind: `async, first`<br> Previous Hook: [`resolveId`](guide/en/#resolveid) or [`resolveDynamicImport`](guide/en/#resolvedynamicimport) where the loaded id was resolved.<br> Next Hook: [`transform`](guide/en/#transform) to transform the loaded file.
 
 Defines a custom loader. Returning `null` defers to other `load` functions (and eventually the default behavior of loading from the file system). To prevent additional parsing overhead in case e.g. this hook already used `this.parse` to generate an AST for some reason, this hook can optionally return a `{ code, ast, map }` object. The `ast` must be a standard ESTree AST with `start` and `end` properties for each node. If the transformation does not move code, you can preserve existing sourcemaps by setting `map` to `null`. Otherwise you might need to generate the source map. See [the section on source code transformations](#source-code-transformations).
 
@@ -118,10 +115,8 @@ See [custom module meta-data](guide/en/#custom-module-meta-data) for how to use 
 You can use [`this.getModuleInfo`](guide/en/#thisgetmoduleinfomoduleid-string--moduleinfo--null) to find out the previous values of `moduleSideEffects`, `syntheticNamedExports` and `meta` inside this hook.
 
 #### `moduleParsed`
-Type: `(moduleInfo: ModuleInfo) => void`<br>
-Kind: `async, parallel`<br>
-Previous Hook: [`transform`](guide/en/#transform) where the currently handled file was transformed.<br>
-NextHook: [`resolveId`](guide/en/#resolveid) and [`resolveDynamicImport`](guide/en/#resolvedynamicimport) to resolve all discovered static and dynamic imports in parallel if present, otherwise [`buildEnd`](guide/en/#buildend).
+
+Type: `(moduleInfo: ModuleInfo) => void`<br> Kind: `async, parallel`<br> Previous Hook: [`transform`](guide/en/#transform) where the currently handled file was transformed.<br> NextHook: [`resolveId`](guide/en/#resolveid) and [`resolveDynamicImport`](guide/en/#resolvedynamicimport) to resolve all discovered static and dynamic imports in parallel if present, otherwise [`buildEnd`](guide/en/#buildend).
 
 This hook is called each time a module has been fully parsed by Rollup. See [`this.getModuleInfo`](guide/en/#thisgetmoduleinfomoduleid-string--moduleinfo--null) for what information is passed to this hook.
 
@@ -130,37 +125,32 @@ In contrast to the [`transform`](guide/en/#transform) hook, this hook is never c
 Note that information about imported modules is not yet available in this hook, and information about importing modules may be incomplete as additional importers could be discovered later. If you need this information, use the [`buildEnd`](guide/en/#buildend) hook.
 
 #### `options`
-Type: `(options: InputOptions) => InputOptions | null`<br>
-Kind: `async, sequential`<br>
-Previous Hook: This is the first hook of the build phase.<br>
-Next Hook: [`buildStart`](guide/en/#buildstart)
+
+Type: `(options: InputOptions) => InputOptions | null`<br> Kind: `async, sequential`<br> Previous Hook: This is the first hook of the build phase.<br> Next Hook: [`buildStart`](guide/en/#buildstart)
 
 Replaces or manipulates the options object passed to `rollup.rollup`. Returning `null` does not replace anything. If you just need to read the options, it is recommended to use the [`buildStart`](guide/en/#buildstart) hook as that hook has access to the options after the transformations from all `options` hooks have been taken into account.
 
 This is the only hook that does not have access to most [plugin context](guide/en/#plugin-context) utility functions as it is run before rollup is fully configured.
 
 #### `resolveDynamicImport`
-Type: `(specifier: string | ESTree.Node, importer: string) => string | false | null | {id: string, external?: boolean}`<br>
-Kind: `async, first`<br>
-Previous Hook: [`moduleParsed`](guide/en/#moduleparsed) for the importing file.<br>
-Next Hook: [`load`](guide/en/#load) if the hook resolved with an id that has not yet been loaded, [`resolveId`](guide/en/#resolveid) if the dynamic import contains a string and was not resolved by the hook, otherwise [`buildEnd`](guide/en/#buildend).
+
+Type: `(specifier: string | ESTree.Node, importer: string) => string | false | null | {id: string, external?: boolean}`<br> Kind: `async, first`<br> Previous Hook: [`moduleParsed`](guide/en/#moduleparsed) for the importing file.<br> Next Hook: [`load`](guide/en/#load) if the hook resolved with an id that has not yet been loaded, [`resolveId`](guide/en/#resolveid) if the dynamic import contains a string and was not resolved by the hook, otherwise [`buildEnd`](guide/en/#buildend).
 
 Defines a custom resolver for dynamic imports. Returning `false` signals that the import should be kept as it is and not be passed to other resolvers thus making it external. Similar to the [`resolveId`](guide/en/#resolveid) hook, you can also return an object to resolve the import to a different id while marking it as external at the same time.
 
 In case a dynamic import is passed a string as argument, a string returned from this hook will be interpreted as an existing module id while returning `null` will defer to other resolvers and eventually to `resolveId` .
 
 In case a dynamic import is not passed a string as argument, this hook gets access to the raw AST nodes to analyze and behaves slightly different in the following ways:
+
 - If all plugins return `null`, the import is treated as `external` without a warning.
-- If a string is returned, this string is *not* interpreted as a module id but is instead used as a replacement for the import argument. It is the responsibility of the plugin to make sure the generated code is valid.
+- If a string is returned, this string is _not_ interpreted as a module id but is instead used as a replacement for the import argument. It is the responsibility of the plugin to make sure the generated code is valid.
 - To resolve such an import to an existing module, you can still return an object `{id, external}`.
 
 Note that the return value of this hook will not be passed to `resolveId` afterwards; if you need access to the static resolution algorithm, you can use [`this.resolve(source, importer)`](guide/en/#thisresolvesource-string-importer-string-options-skipself-boolean-custom-plugin-string-any--promiseid-string-external-boolean--absolute-modulesideeffects-boolean--no-treeshake-syntheticnamedexports-boolean--string-meta-plugin-string-any--null) on the plugin context.
 
 #### `resolveId`
-Type: `(source: string, importer: string | undefined, options: {custom?: {[plugin: string]: any}) => string | false | null | {id: string, external?: boolean | "relative" | "absolute", moduleSideEffects?: boolean | "no-treeshake" | null, syntheticNamedExports?: boolean | string | null, meta?: {[plugin: string]: any} | null}`<br>
-Kind: `async, first`<br>
-Previous Hook: [`buildStart`](guide/en/#buildstart) if we are resolving an entry point, [`moduleParsed`](guide/en/#moduleparsed) if we are resolving an import, or as fallback for [`resolveDynamicImport`](guide/en/#resolvedynamicimport). Additionally this hook can be triggered during the build phase from plugin hooks by calling [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string) to emit an entry point or at any time by calling [`this.resolve`](guide/en/#thisresolvesource-string-importer-string-options-skipself-boolean-custom-plugin-string-any--promiseid-string-external-boolean--absolute-modulesideeffects-boolean--no-treeshake-syntheticnamedexports-boolean--string-meta-plugin-string-any--null) to manually resolve an id.<br>
-Next Hook: [`load`](guide/en/#load) if the resolved id that has not yet been loaded, otherwise [`buildEnd`](guide/en/#buildend).
+
+Type: `(source: string, importer: string | undefined, options: {custom?: {[plugin: string]: any}) => string | false | null | {id: string, external?: boolean | "relative" | "absolute", moduleSideEffects?: boolean | "no-treeshake" | null, syntheticNamedExports?: boolean | string | null, meta?: {[plugin: string]: any} | null}`<br> Kind: `async, first`<br> Previous Hook: [`buildStart`](guide/en/#buildstart) if we are resolving an entry point, [`moduleParsed`](guide/en/#moduleparsed) if we are resolving an import, or as fallback for [`resolveDynamicImport`](guide/en/#resolvedynamicimport). Additionally this hook can be triggered during the build phase from plugin hooks by calling [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string) to emit an entry point or at any time by calling [`this.resolve`](guide/en/#thisresolvesource-string-importer-string-options-skipself-boolean-custom-plugin-string-any--promiseid-string-external-boolean--absolute-modulesideeffects-boolean--no-treeshake-syntheticnamedexports-boolean--string-meta-plugin-string-any--null) to manually resolve an id.<br> Next Hook: [`load`](guide/en/#load) if the resolved id that has not yet been loaded, otherwise [`buildEnd`](guide/en/#buildend).
 
 Defines a custom resolver. A resolver can be useful for e.g. locating third-party dependencies. Here `source` is the importee exactly as it is written in the import statement, i.e. for
 
@@ -208,7 +198,7 @@ resolveId(source) {
 }
 ```
 
-If `external` is `true`, then absolute ids will be converted to relative ids based on the user's choice for the [`makeAbsoluteExternalsRelative`](guide/en/#makeabsoluteexternalsrelative) option. This choice can be overridden by passing either `external: "relative"` to always convert an absolute id to a relative id or `external: "absolute"` to keep it as an absolute id. When returning an object, relative external ids, i.e. ids starting with `./` or `../`, will *not* be internally converted to an absolute id and converted back to a relative id in the output, but are instead included in the output unchanged. If you want relative ids to be renormalised and deduplicated instead, return an absolute file system location as `id` and choose `external: "relative"`.
+If `external` is `true`, then absolute ids will be converted to relative ids based on the user's choice for the [`makeAbsoluteExternalsRelative`](guide/en/#makeabsoluteexternalsrelative) option. This choice can be overridden by passing either `external: "relative"` to always convert an absolute id to a relative id or `external: "absolute"` to keep it as an absolute id. When returning an object, relative external ids, i.e. ids starting with `./` or `../`, will _not_ be internally converted to an absolute id and converted back to a relative id in the output, but are instead included in the output unchanged. If you want relative ids to be renormalised and deduplicated instead, return an absolute file system location as `id` and choose `external: "relative"`.
 
 If `false` is returned for `moduleSideEffects` in the first hook that resolves a module id and no other module imports anything from this module, then this module will not be included even if the module would have side-effects. If `true` is returned, Rollup will use its default algorithm to include all statements in the module that have side-effects (such as modifying a global or exported variable). If `"no-treeshake"` is returned, treeshaking will be turned off for this module and it will also be included in one of the generated chunks even if it is empty. If `null` is returned or the flag is omitted, then `moduleSideEffects` will be determined by the `treeshake.moduleSideEffects` option or default to `true`. The `load` and `transform` hooks can override this.
 
@@ -219,10 +209,8 @@ See [custom module meta-data](guide/en/#custom-module-meta-data) for how to use 
 When triggering this hook from a plugin via [`this.resolve(source, importer, options)`](guide/en/#thisresolvesource-string-importer-string-options-skipself-boolean-custom-plugin-string-any--promiseid-string-external-boolean--absolute-modulesideeffects-boolean--no-treeshake-syntheticnamedexports-boolean--string-meta-plugin-string-any--null), it is possible to pass a custom options object to this hook. While this object will be passed unmodified, plugins should follow the convention of adding a `custom` property with an object where the keys correspond to the names of the plugins that the options are intended for. For details see [custom resolver options](guide/en/#custom-resolver-options).
 
 #### `transform`
-Type: `(code: string, id: string) => string | null | {code?: string, map?: string | SourceMap, ast? : ESTree.Program, moduleSideEffects?: boolean | "no-treeshake" | null, syntheticNamedExports?: boolean | string | null, meta?: {[plugin: string]: any} | null}`<br>
-Kind: `async, sequential`<br>
-Previous Hook: [`load`](guide/en/#load) where the currently handled file was loaded.<br>
-NextHook: [`moduleParsed`](guide/en/#moduleparsed) once the file has been processed and parsed.
+
+Type: `(code: string, id: string) => string | null | {code?: string, map?: string | SourceMap, ast? : ESTree.Program, moduleSideEffects?: boolean | "no-treeshake" | null, syntheticNamedExports?: boolean | string | null, meta?: {[plugin: string]: any} | null}`<br> Kind: `async, sequential`<br> Previous Hook: [`load`](guide/en/#load) where the currently handled file was loaded.<br> NextHook: [`moduleParsed`](guide/en/#moduleparsed) once the file has been processed and parsed.
 
 Can be used to transform individual modules. To prevent additional parsing overhead in case e.g. this hook already used `this.parse` to generate an AST for some reason, this hook can optionally return a `{ code, ast, map }` object. The `ast` must be a standard ESTree AST with `start` and `end` properties for each node. If the transformation does not move code, you can preserve existing sourcemaps by setting `map` to `null`. Otherwise you might need to generate the source map. See [the section on source code transformations](#source-code-transformations).
 
@@ -245,11 +233,10 @@ See [custom module meta-data](guide/en/#custom-module-meta-data) for how to use 
 You can use [`this.getModuleInfo`](guide/en/#thisgetmoduleinfomoduleid-string--moduleinfo--null) to find out the previous values of `moduleSideEffects`, `syntheticNamedExports` and `meta` inside this hook.
 
 #### `watchChange`
-Type: `watchChange: (id: string, change: {event: 'create' | 'update' | 'delete'}) => void`<br>
-Kind: `sync, sequential`<br>
-Previous/Next Hook: This hook can be triggered at any time both during the build and the output generation phases. If that is the case, the current build will still proceed but a new build will be scheduled to start once the current build has completed, starting again with [`options`](guide/en/#options).
 
-Notifies a plugin whenever rollup has detected a change to a monitored file in `--watch` mode. This hook cannot be used by output plugins. Second argument contains additional details of change event.  
+Type: `watchChange: (id: string, change: {event: 'create' | 'update' | 'delete'}) => void`<br> Kind: `sync, sequential`<br> Previous/Next Hook: This hook can be triggered at any time both during the build and the output generation phases. If that is the case, the current build will still proceed but a new build will be scheduled to start once the current build has completed, starting again with [`options`](guide/en/#options).
+
+Notifies a plugin whenever rollup has detected a change to a monitored file in `--watch` mode. This hook cannot be used by output plugins. Second argument contains additional details of change event.
 
 ### Output Generation Hooks
 
@@ -257,13 +244,14 @@ Output generation hooks can provide information about a generated bundle and mod
 
 The first hook of the output generation phase is [`outputOptions`](guide/en/#outputoptions), the last one is either [`generateBundle`](guide/en/#generatebundle) if the output was successfully generated via `bundle.generate(...)`, [`writeBundle`](guide/en/#writebundle) if the output was successfully generated via `bundle.write(...)`, or [`renderError`](guide/en/#rendererror) if an error occurred at any time during the output generation.
 
+<!-- html:hooks-legend.html -->
+<!-- mermaid:output-generation-hooks.mmd -->
+
 Additionally, [`closeBundle`](guide/en/#closebundle) can be called as the very last hook, but it is the responsibility of the User to manually call [`bundle.close()`](guide/en/#rolluprollup) to trigger this. The CLI will always make sure this is the case.
 
 #### `augmentChunkHash`
-Type: `(chunkInfo: ChunkInfo) => string`<br>
-Kind: `sync, sequential`<br>
-Previous Hook: [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression.<br>
-Next Hook: [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta`.
+
+Type: `(chunkInfo: ChunkInfo) => string`<br> Kind: `sync, sequential`<br> Previous Hook: [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression.<br> Next Hook: [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta`.
 
 Can be used to augment the hash of individual chunks. Called for each Rollup output chunk. Returning a falsy value will not modify the hash. Truthy values will be passed to [`hash.update`](https://nodejs.org/dist/latest-v12.x/docs/api/crypto.html#crypto_hash_update_data_inputencoding). The `chunkInfo` is a reduced version of the one in [`generateBundle`](guide/en/#generatebundle) without properties that rely on file names.
 
@@ -279,35 +267,28 @@ augmentChunkHash(chunkInfo) {
 ```
 
 #### `banner`
-Type: `string | (() => string)`<br>
-Kind: `async, parallel`<br>
-Previous Hook: [`renderStart`](guide/en/#renderstart)<br>
-Next Hook: [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression.
+
+Type: `string | (() => string)`<br> Kind: `async, parallel`<br> Previous Hook: [`renderStart`](guide/en/#renderstart)<br> Next Hook: [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression.
 
 Cf. [`output.banner/output.footer`](guide/en/#outputbanneroutputfooter).
 
 #### `closeBundle`
-Type: `closeBundle: () => Promise<void> | void`<br>
-Kind: `async, parallel`<br>
-Previous Hook: [`buildEnd`](guide/en/#buildend) if there was a build error, otherwise when [`bundle.close()`](guide/en/#rolluprollup) is called, in which case this would be the last hook to be triggered.
+
+Type: `closeBundle: () => Promise<void> | void`<br> Kind: `async, parallel`<br> Previous Hook: [`buildEnd`](guide/en/#buildend) if there was a build error, otherwise when [`bundle.close()`](guide/en/#rolluprollup) is called, in which case this would be the last hook to be triggered.
 
 Can be used to clean up any external service that may be running. Rollup's CLI will make sure this hook is called after each run, but it is the responsibility of users of the JavaScript API to manually call `bundle.close()` once they are done generating bundles. For that reason, any plugin relying on this feature should carefully mention this in its documentation.
 
 If a plugin wants to retain resources across builds in watch mode, they can check for [`this.meta.watchMode`](guide/en/#thismeta-rollupversion-string-watchmode-boolean) in this hook and perform the necessary cleanup for watch mode in [`closeWatcher`](guide/en/#closewatcher).
 
 #### `footer`
-Type: `string | (() => string)`<br>
-Kind: `async, parallel`<br>
-Previous Hook: [`renderStart`](guide/en/#renderstart)<br>
-Next Hook: [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression.
+
+Type: `string | (() => string)`<br> Kind: `async, parallel`<br> Previous Hook: [`renderStart`](guide/en/#renderstart)<br> Next Hook: [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression.
 
 Cf. [`output.banner/output.footer`](guide/en/#outputbanneroutputfooter).
 
 #### `generateBundle`
-Type: `(options: OutputOptions, bundle: { [fileName: string]: AssetInfo | ChunkInfo }, isWrite: boolean) => void`<br>
-Kind: `async, sequential`<br>
-Previous Hook: [`renderChunk`](guide/en/#renderchunk) for each chunk.<br>
-Next Hook: [`writeBundle`](guide/en/#writebundle) if the output was generated via `bundle.write(...)`, otherwise this is the last hook of the output generation phase and may again be followed by [`outputOptions`](guide/en/#outputoptions) if another output is generated.
+
+Type: `(options: OutputOptions, bundle: { [fileName: string]: AssetInfo | ChunkInfo }, isWrite: boolean) => void`<br> Kind: `async, sequential`<br> Previous Hook: [`renderChunk`](guide/en/#renderchunk) for each chunk.<br> Next Hook: [`writeBundle`](guide/en/#writebundle) if the output was generated via `bundle.write(...)`, otherwise this is the last hook of the output generation phase and may again be followed by [`outputOptions`](guide/en/#outputoptions) if another output is generated.
 
 Called at the end of `bundle.generate()` or immediately before the files are written in `bundle.write()`. To modify the files after they have been written, use the [`writeBundle`](guide/en/#writebundle) hook. `bundle` provides the full list of files being written or generated along with their details:
 
@@ -349,45 +330,35 @@ Called at the end of `bundle.generate()` or immediately before the files are wri
 }
 ```
 
-You can prevent files from being emitted by deleting them from the bundle object in this hook. To emit additional files, use the [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string)  plugin context function.
+You can prevent files from being emitted by deleting them from the bundle object in this hook. To emit additional files, use the [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string) plugin context function.
 
 #### `intro`
-Type: `string | (() => string)`<br>
-Kind: `async, parallel`<br>
-Previous Hook: [`renderStart`](guide/en/#renderstart)<br>
-Next Hook: [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression.
+
+Type: `string | (() => string)`<br> Kind: `async, parallel`<br> Previous Hook: [`renderStart`](guide/en/#renderstart)<br> Next Hook: [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression.
 
 Cf. [`output.intro/output.outro`](guide/en/#outputintrooutputoutro).
 
 #### `outputOptions`
-Type: `(outputOptions: OutputOptions) => OutputOptions | null`<br>
-Kind: `sync, sequential`<br>
-Previous Hook: [`buildEnd`](guide/en/#buildend) if this is the first time an output is generated, otherwise either [`generateBundle`](guide/en/#generatebundle), [`writeBundle`](guide/en/#writebundle) or [`renderError`](guide/en/#rendererror) depending on the previously generated output. This is the first hook of the output generation phase.<br>
-Next Hook: [`renderStart`](guide/en/#renderstart).
+
+Type: `(outputOptions: OutputOptions) => OutputOptions | null`<br> Kind: `sync, sequential`<br> Previous Hook: [`buildEnd`](guide/en/#buildend) if this is the first time an output is generated, otherwise either [`generateBundle`](guide/en/#generatebundle), [`writeBundle`](guide/en/#writebundle) or [`renderError`](guide/en/#rendererror) depending on the previously generated output. This is the first hook of the output generation phase.<br> Next Hook: [`renderStart`](guide/en/#renderstart).
 
 Replaces or manipulates the output options object passed to `bundle.generate()` or `bundle.write()`. Returning `null` does not replace anything. If you just need to read the output options, it is recommended to use the [`renderStart`](guide/en/#renderstart) hook as this hook has access to the output options after the transformations from all `outputOptions` hooks have been taken into account.
 
 #### `outro`
-Type: `string | (() => string)`<br>
-Kind: `async, parallel`<br>
-Previous Hook: [`renderStart`](guide/en/#renderstart)<br>
-Next Hook: [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression.
+
+Type: `string | (() => string)`<br> Kind: `async, parallel`<br> Previous Hook: [`renderStart`](guide/en/#renderstart)<br> Next Hook: [`renderDynamicImport`](guide/en/#renderdynamicimport) for each dynamic import expression.
 
 Cf. [`output.intro/output.outro`](guide/en/#outputintrooutputoutro).
 
 #### `renderChunk`
-Type: `(code: string, chunk: ChunkInfo, options: OutputOptions) => string | { code: string, map: SourceMap } | null`<br>
-Kind: `async, sequential`<br>
-Previous Hook: [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta`.<br>
-Next Hook: [`generateBundle`](guide/en/#generatebundle).
+
+Type: `(code: string, chunk: ChunkInfo, options: OutputOptions) => string | { code: string, map: SourceMap } | null`<br> Kind: `async, sequential`<br> Previous Hook: [`resolveFileUrl`](guide/en/#resolvefileurl) for each use of `import.meta.ROLLUP_FILE_URL_referenceId` and [`resolveImportMeta`](guide/en/#resolveimportmeta) for all other accesses to `import.meta`.<br> Next Hook: [`generateBundle`](guide/en/#generatebundle).
 
 Can be used to transform individual chunks. Called for each Rollup output chunk file. Returning `null` will apply no transformations.
 
 #### `renderDynamicImport`
-Type: `({format: string, moduleId: string, targetModuleId: string | null, customResolution: string | null}) => {left: string, right: string} | null`<br>
-Kind: `sync, first`<br>
-Previous Hook: [`banner`](guide/en/#banner), [`footer`](guide/en/#footer), [`intro`](guide/en/#intro), [`outro`](guide/en/#outro).<br>
-Next Hook: [`augmentChunkHash`](guide/en/#augmentchunkhash) for each chunk that would contain a hash in the file name.
+
+Type: `({format: string, moduleId: string, targetModuleId: string | null, customResolution: string | null}) => {left: string, right: string} | null`<br> Kind: `sync, first`<br> Previous Hook: [`banner`](guide/en/#banner), [`footer`](guide/en/#footer), [`intro`](guide/en/#intro), [`outro`](guide/en/#outro).<br> Next Hook: [`augmentChunkHash`](guide/en/#augmentchunkhash) for each chunk that would contain a hash in the file name.
 
 This hook provides fine-grained control over how dynamic imports are rendered by providing replacements for the code to the left (`import(`) and right (`)`) of the argument of the import expression. Returning `null` defers to other hooks of this type and ultimately renders a format-specific default.
 
@@ -403,7 +374,7 @@ const plugin = {
     return {
       left: 'dynamicImportPolyfill(',
       right: ', import.meta.url)'
-    }
+    };
   }
 };
 
@@ -424,11 +395,12 @@ const plugin = {
     if (specifier === 'esm-lib') return false;
     return null;
   },
-  renderDynamicImport({targetModuleId}) {
-    if (targetModuleId === 'esm-lib')
-    return {
-      left: 'import(',
-      right: ')'
+  renderDynamicImport({ targetModuleId }) {
+    if (targetModuleId === 'esm-lib') {
+      return {
+        left: 'import(',
+        right: ')'
+      };
     }
   }
 };
@@ -437,26 +409,20 @@ const plugin = {
 Note that when this hook rewrites dynamic imports in non-ES formats, no interop code to make sure that e.g. the default export is available as `.default` is generated. It is the responsibility of the plugin to make sure the rewritten dynamic import returns a Promise that resolves to a proper namespace object.
 
 #### `renderError`
-Type: `(error: Error) => void`<br>
-Kind: `async, parallel`<br>
-Previous Hook: Any hook from [`renderStart`](guide/en/#renderstart) to [`renderChunk`](guide/en/#renderchunk).<br>
-Next Hook: If it is called, this is the last hook of the output generation phase and may again be followed by [`outputOptions`](guide/en/#outputoptions) if another output is generated.
+
+Type: `(error: Error) => void`<br> Kind: `async, parallel`<br> Previous Hook: Any hook from [`renderStart`](guide/en/#renderstart) to [`renderChunk`](guide/en/#renderchunk).<br> Next Hook: If it is called, this is the last hook of the output generation phase and may again be followed by [`outputOptions`](guide/en/#outputoptions) if another output is generated.
 
 Called when rollup encounters an error during `bundle.generate()` or `bundle.write()`. The error is passed to this hook. To get notified when generation completes successfully, use the `generateBundle` hook.
 
 #### `renderStart`
-Type: `(outputOptions: OutputOptions, inputOptions: InputOptions) => void`<br>
-Kind: `async, parallel`<br>
-Previous Hook: [`outputOptions`](guide/en/#outputoptions)<br>
-Next Hook: [`banner`](guide/en/#banner), [`footer`](guide/en/#footer), [`intro`](guide/en/#intro) and [`outro`](guide/en/#outro) run in parallel.
+
+Type: `(outputOptions: OutputOptions, inputOptions: InputOptions) => void`<br> Kind: `async, parallel`<br> Previous Hook: [`outputOptions`](guide/en/#outputoptions)<br> Next Hook: [`banner`](guide/en/#banner), [`footer`](guide/en/#footer), [`intro`](guide/en/#intro) and [`outro`](guide/en/#outro) run in parallel.
 
 Called initially each time `bundle.generate()` or `bundle.write()` is called. To get notified when generation has completed, use the `generateBundle` and `renderError` hooks. This is the recommended hook to use when you need access to the output options passed to `bundle.generate()` or `bundle.write()` as it takes the transformations by all [`outputOptions`](guide/en/#outputoptions) hooks into account and also contains the right default values for unset options. It also receives the input options passed to `rollup.rollup()` so that plugins that can be used as output plugins, i.e. plugins that only use `generate` phase hooks, can get access to them.
 
 #### `resolveFileUrl`
-Type: `({chunkId: string, fileName: string, format: string, moduleId: string, referenceId: string, relativePath: string}) => string | null`<br>
-Kind: `sync, first`<br>
-Previous Hook: [`augmentChunkHash`](guide/en/#augmentchunkhash) for each chunk that would contain a hash in the file name.<br>
-Next Hook: [`renderChunk`](guide/en/#renderchunk) for each chunk.
+
+Type: `({chunkId: string, fileName: string, format: string, moduleId: string, referenceId: string, relativePath: string}) => string | null`<br> Kind: `sync, first`<br> Previous Hook: [`augmentChunkHash`](guide/en/#augmentchunkhash) for each chunk that would contain a hash in the file name.<br> Next Hook: [`renderChunk`](guide/en/#renderchunk) for each chunk.
 
 Allows to customize how Rollup resolves URLs of files that were emitted by plugins via `this.emitFile`. By default, Rollup will generate code for `import.meta.ROLLUP_FILE_URL_referenceId` that should correctly generate absolute URLs of emitted files independent of the output format and the host system where the code is deployed.
 
@@ -481,16 +447,14 @@ resolveFileUrl({fileName}) {
 ```
 
 #### `resolveImportMeta`
-Type: `(property: string | null, {chunkId: string, moduleId: string, format: string}) => string | null`<br>
-Kind: `sync, first`<br>
-Previous Hook: [`augmentChunkHash`](guide/en/#augmentchunkhash) for each chunk that would contain a hash in the file name.<br>
-Next Hook: [`renderChunk`](guide/en/#renderchunk) for each chunk.
+
+Type: `(property: string | null, {chunkId: string, moduleId: string, format: string}) => string | null`<br> Kind: `sync, first`<br> Previous Hook: [`augmentChunkHash`](guide/en/#augmentchunkhash) for each chunk that would contain a hash in the file name.<br> Next Hook: [`renderChunk`](guide/en/#renderchunk) for each chunk.
 
 Allows to customize how Rollup handles `import.meta` and `import.meta.someProperty`, in particular `import.meta.url`. In ES modules, `import.meta` is an object and `import.meta.url` contains the URL of the current module, e.g. `http://server.net/bundle.js` for browsers or `file:///path/to/bundle.js` in Node.
 
 By default for formats other than ES modules, Rollup replaces `import.meta.url` with code that attempts to match this behaviour by returning the dynamic URL of the current chunk. Note that all formats except CommonJS and UMD assume that they run in a browser environment where `URL` and `document` are available. For other properties, `import.meta.someProperty` is replaced with `undefined` while `import.meta` is replaced with an object containing a `url` property.
 
- This behaviour can be changed—also for ES modules—via this hook. For each occurrence of `import.meta<.someProperty>`, this hook is called with the name of the property or `null` if `import.meta` is accessed directly. For example, the following code will resolve `import.meta.url` using the relative path of the original module to the current working directory and again resolve this path against the base URL of the current document at runtime:
+This behaviour can be changed—also for ES modules—via this hook. For each occurrence of `import.meta<.someProperty>`, this hook is called with the name of the property or `null` if `import.meta` is accessed directly. For example, the following code will resolve `import.meta.url` using the relative path of the original module to the current working directory and again resolve this path against the base URL of the current document at runtime:
 
 ```javascript
 // rollup.config.js
@@ -505,10 +469,8 @@ resolveImportMeta(property, {moduleId}) {
 Note that since this hook has access to the filename of the current chunk, its return value will not be considered when generating the hash of this chunk.
 
 #### `writeBundle`
-Type: `(options: OutputOptions, bundle: { [fileName: string]: AssetInfo | ChunkInfo }) => void`<br>
-Kind: `async, parallel`<br>
-Previous Hook: [`generateBundle`](guide/en/#generatebundle)<br>
-Next Hook: If it is called, this is the last hook of the output generation phase and may again be followed by [`outputOptions`](guide/en/#outputoptions) if another output is generated.
+
+Type: `(options: OutputOptions, bundle: { [fileName: string]: AssetInfo | ChunkInfo }) => void`<br> Kind: `async, parallel`<br> Previous Hook: [`generateBundle`](guide/en/#generatebundle)<br> Next Hook: If it is called, this is the last hook of the output generation phase and may again be followed by [`outputOptions`](guide/en/#outputoptions) if another output is generated.
 
 Called only at the end of `bundle.write()` once all files have been written. Similar to the [`generateBundle`](guide/en/#generatebundle) hook, `bundle` provides the full list of files being written along with their details.
 
@@ -563,7 +525,7 @@ You can reference the URL of an emitted file in any code returned by a [`load`](
 
 The generated code that replaces `import.meta.ROLLUP_FILE_URL_referenceId` can be customized via the [`resolveFileUrl`](guide/en/#resolvefileurl) plugin hook. You can also use [`this.getFileName(referenceId)`](guide/en/#thisgetfilenamereferenceid-string--string) to determine the file name as soon as it is available
 
-If the `type` is *`chunk`*, then this emits a new chunk with the given module `id` as entry point. To resolve it, the `id` will be passed through build hooks just like regular entry points, starting with [`resolveId`](guide/en/#resolveid). If an `importer` is provided, this acts as the second parameter of `resolveId` and is important to properly resolve relative paths. If it is not provided, paths will be resolved relative to the current working directory. If a value for `preserveSignature` is provided, this will override [`preserveEntrySignatures`](guide/en/#preserveentrysignatures) for this particular chunk.
+If the `type` is _`chunk`_, then this emits a new chunk with the given module `id` as entry point. To resolve it, the `id` will be passed through build hooks just like regular entry points, starting with [`resolveId`](guide/en/#resolveid). If an `importer` is provided, this acts as the second parameter of `resolveId` and is important to properly resolve relative paths. If it is not provided, paths will be resolved relative to the current working directory. If a value for `preserveSignature` is provided, this will override [`preserveEntrySignatures`](guide/en/#preserveentrysignatures) for this particular chunk.
 
 This will not result in duplicate modules in the graph, instead if necessary, existing chunks will be split or a facade chunk with reexports will be created. Chunks with a specified `fileName` will always generate separate chunks while other emitted chunks may be deduplicated with existing chunks even if the `name` does not match. If such a chunk is not deduplicated, the [`output.chunkFileNames`](guide/en/#outputchunkfilenames) name pattern will be used.
 
@@ -591,20 +553,23 @@ function generateHtml() {
       });
     },
     generateBundle() {
-      this.emitFile({type: 'asset', fileName: 'index.html', source: `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <title>Title</title>
-       </head>
-      <body>
-        <script src="${this.getFileName(ref1)}" type="module"></script>
-        <script src="${this.getFileName(ref2)}" type="module"></script>
-        <script src="${this.getFileName(ref3)}" type="module"></script>
-      </body>
-      </html>
-      `})
+      this.emitFile({
+        type: 'asset',
+        fileName: 'index.html',
+        source: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>Title</title>
+         </head>
+        <body>
+          <script src="${this.getFileName(ref1)}" type="module"></script>
+          <script src="${this.getFileName(ref2)}" type="module"></script>
+          <script src="${this.getFileName(ref3)}" type="module"></script>
+        </body>
+        </html>`
+      });
     }
   };
 }
@@ -612,9 +577,7 @@ function generateHtml() {
 export default {
   input: [],
   preserveEntrySignatures: false,
-  plugins: [
-    generateHtml(),
-  ],
+  plugins: [generateHtml()],
   output: {
     format: 'es',
     dir: 'dist'
@@ -626,7 +589,7 @@ If there are no dynamic imports, this will create exactly three chunks where the
 
 Note that even though any module id can be used in `implicitlyLoadedAfterOneOf`, Rollup will throw an error if such an id cannot be uniquely associated with a chunk, e.g. because the `id` cannot be reached implicitly or explicitly from the existing static entry points, or because the file is completely tree-shaken. Using only entry points, either defined by the user or of previously emitted chunks, will always work, though.
 
-If the `type` is *`asset`*, then this emits an arbitrary new file with the given `source` as content. It is possible to defer setting the `source` via [`this.setAssetSource(referenceId, source)`](guide/en/#thissetassetsourcereferenceid-string-source-string--uint8array--void) to a later time to be able to reference a file during the build phase while setting the source separately for each output during the generate phase. Assets with a specified `fileName` will always generate separate files while other emitted assets may be deduplicated with existing assets if they have the same source even if the `name` does not match. If such an asset is not deduplicated, the [`output.assetFileNames`](guide/en/#outputassetfilenames) name pattern will be used.
+If the `type` is _`asset`_, then this emits an arbitrary new file with the given `source` as content. It is possible to defer setting the `source` via [`this.setAssetSource(referenceId, source)`](guide/en/#thissetassetsourcereferenceid-string-source-string--uint8array--void) to a later time to be able to reference a file during the build phase while setting the source separately for each output during the generate phase. Assets with a specified `fileName` will always generate separate files while other emitted assets may be deduplicated with existing assets if they have the same source even if the `name` does not match. If such an asset is not deduplicated, the [`output.assetFileNames`](guide/en/#outputassetfilenames) name pattern will be used.
 
 #### `this.error(error: string | Error, position?: number | { column: number; line: number }) => never`
 
@@ -645,7 +608,9 @@ Get the file name of a chunk or asset that has been emitted via [`this.emitFile`
 Returns an `Iterator` that gives access to all module ids in the current graph. It can be iterated via
 
 ```js
-for (const moduleId of this.getModuleIds()) { /* ... */ }
+for (const moduleId of this.getModuleIds()) {
+  /* ... */
+}
 ```
 
 or converted into an Array via `Array.from(this.getModuleIds())`.
@@ -673,9 +638,8 @@ Returns additional information about the module in question in the form
 }
 ```
 
-During the build, this object represents currently available information about the module. Before the [`buildEnd`](guide/en/#buildend) hook, this information may be incomplete as e.g.
- the `importedIds` are not yet resolved or additional `importers` are discovered.
- 
+During the build, this object represents currently available information about the module. Before the [`buildEnd`](guide/en/#buildend) hook, this information may be incomplete as e.g. the `importedIds` are not yet resolved or additional `importers` are discovered.
+
 Returns `null` if the module id cannot be found.
 
 #### `this.getWatchFiles() => string[]`
@@ -696,9 +660,10 @@ An object containing potentially useful Rollup metadata:
 Use Rollup's internal acorn instance to parse code to an AST.
 
 #### `this.resolve(source: string, importer?: string, options?: {skipSelf?: boolean, custom?: {[plugin: string]: any}}) => Promise<{id: string, external: boolean | "absolute", moduleSideEffects: boolean | 'no-treeshake', syntheticNamedExports: boolean | string, meta: {[plugin: string]: any}} | null>`
+
 Resolve imports to module ids (i.e. file names) using the same plugins that Rollup uses, and determine if an import should be external. If `null` is returned, the import could not be resolved by Rollup or any plugin but was not explicitly marked as external by the user. If an absolute external id is returned that should remain absolute in the output either via the [`makeAbsoluteExternalsRelative`](guide/en/#makeabsoluteexternalsrelative) option or by explicit plugin choice in the [`resolveId`](guide/en/#resolveid) hook, `external` will be `"absolute"` instead of `true`.
 
-If you pass `skipSelf: true`, then the `resolveId` hook of the plugin from which `this.resolve` is called will be skipped when resolving. When other plugins themselves also call `this.resolve` in their `resolveId` hooks with the *exact same `source` and `importer`* while handling the original `this.resolve` call, then the `resolveId` hook of the original plugin will be skipped for those calls as well. The rationale here is that the plugin already stated that it "does not know" how to resolve this particular combination of `source` and `importer` at this point in time. If you do not want this behaviour, do not use `skipSelf` but implement your own infinite loop prevention mechanism if necessary.
+If you pass `skipSelf: true`, then the `resolveId` hook of the plugin from which `this.resolve` is called will be skipped when resolving. When other plugins themselves also call `this.resolve` in their `resolveId` hooks with the _exact same `source` and `importer`_ while handling the original `this.resolve` call, then the `resolveId` hook of the original plugin will be skipped for those calls as well. The rationale here is that the plugin already stated that it "does not know" how to resolve this particular combination of `source` and `importer` at this point in time. If you do not want this behaviour, do not use `skipSelf` but implement your own infinite loop prevention mechanism if necessary.
 
 You can also pass an object of plugin-specific options via the `custom` option, see [custom resolver options](guide/en/#custom-resolver-options) for details.
 
@@ -713,7 +678,7 @@ Using this method will queue warnings for a build. These warnings will be printe
 The `warning` argument can be a `string` or an object with (at minimum) a `message` property:
 
 ```js
-this.warn( 'hmm...' );
+this.warn('hmm...');
 // is equivalent to
 this.warn({ message: 'hmm...' });
 ```
@@ -747,11 +712,12 @@ The `position` argument is a character index where the warning was raised. If pr
 - `this.moduleIds: IterableIterator<string>` - _**Use [`this.getModuleIds`](guide/en/#thisgetmoduleids--iterableiteratorstring)**_ - An `Iterator` that gives access to all module ids in the current graph. It can be iterated via
 
   ```js
-  for (const moduleId of this.moduleIds) { /* ... */ }
+  for (const moduleId of this.moduleIds) {
+    /* ... */
+  }
   ```
 
   or converted into an Array via `Array.from(this.moduleIds)`.
-
 
 - `this.resolveId(source: string, importer?: string) => Promise<string | null>` - _**Use [`this.resolve`](guide/en/#thisresolvesource-string-importer-string-options-skipself-boolean-custom-plugin-string-any--promiseid-string-external-boolean--absolute-modulesideeffects-boolean--no-treeshake-syntheticnamedexports-boolean--string-meta-plugin-string-any--null)**_ - Resolve imports to module ids (i.e. file names) using the same plugins that Rollup uses. Returns `null` if an id cannot be resolved.
 
@@ -763,8 +729,8 @@ The following example will detect imports of `.svg` files, emit the imported fil
 
 ```js
 // plugin
-export default function svgResolverPlugin () {
-  return ({
+export default function svgResolverPlugin() {
+  return {
     resolveId(source, importer) {
       if (source.endsWith('.svg')) {
         return path.resolve(path.dirname(importer), source);
@@ -772,7 +738,7 @@ export default function svgResolverPlugin () {
     },
     load(id) {
       if (id.endsWith('.svg')) {
-      	const referenceId = this.emitFile({
+        const referenceId = this.emitFile({
           type: 'asset',
           name: path.basename(id),
           source: fs.readFileSync(id)
@@ -780,7 +746,7 @@ export default function svgResolverPlugin () {
         return `export default import.meta.ROLLUP_FILE_URL_${referenceId};`;
       }
     }
-  });
+  };
 }
 ```
 
@@ -800,8 +766,8 @@ The following example will detect imports prefixed with `register-paint-worklet:
 ```js
 // plugin
 const REGISTER_WORKLET = 'register-paint-worklet:';
-export default function paintWorkletPlugin () {
-  return ({
+export default function paintWorkletPlugin() {
+  return {
     load(id) {
       if (id.startsWith(REGISTER_WORKLET)) {
         return `CSS.paintWorklet.addModule(import.meta.ROLLUP_FILE_URL_${this.emitFile({
@@ -813,14 +779,14 @@ export default function paintWorkletPlugin () {
     resolveId(source, importer) {
       // We remove the prefix, resolve everything to absolute ids and add the prefix again
       // This makes sure that you can use relative imports to define worklets
-	  if (source.startsWith(REGISTER_WORKLET)) {
-	    return this.resolve(source.slice(REGISTER_WORKLET.length), importer).then(
-	      resolvedId => REGISTER_WORKLET + resolvedId.id
-	    );
-	  }
-	  return null;
+      if (source.startsWith(REGISTER_WORKLET)) {
+        return this.resolve(source.slice(REGISTER_WORKLET.length), importer).then(
+          resolvedId => REGISTER_WORKLET + resolvedId.id
+        );
+      }
+      return null;
     }
-  });
+  };
 }
 ```
 
@@ -863,19 +829,17 @@ The `transform` hook, if returning an object, can also include an `ast` property
 
 #### Example Transformer
 
-(Use [@rollup/pluginutils](https://github.com/rollup/plugins/tree/master/packages/pluginutils) for
-commonly needed functions, and to implement a transformer in the recommended
-manner.)
+(Use [@rollup/pluginutils](https://github.com/rollup/plugins/tree/master/packages/pluginutils) for commonly needed functions, and to implement a transformer in the recommended manner.)
 
 ```js
 import { createFilter } from '@rollup/pluginutils';
 
-export default function myPlugin ( options = {} ) {
-  const filter = createFilter( options.include, options.exclude );
+export default function myPlugin(options = {}) {
+  const filter = createFilter(options.include, options.exclude);
 
   return {
-    transform ( code, id ) {
-      if ( !filter( id ) ) return;
+    transform(code, id) {
+      if (!filter(id)) return;
 
       // proceed with the transformation...
       return {
@@ -898,8 +862,7 @@ return {
 };
 ```
 
-If the transformation does not move code, you can preserve existing sourcemaps
-by returning `null`:
+If the transformation does not move code, you can preserve existing sourcemaps by returning `null`:
 
 ```js
 return {
@@ -908,10 +871,10 @@ return {
 };
 ```
 
-If you create a plugin that you think would be useful to others, please publish
-it to NPM and add submit it to [github.com/rollup/awesome](https://github.com/rollup/awesome)!
+If you create a plugin that you think would be useful to others, please publish it to NPM and add submit it to [github.com/rollup/awesome](https://github.com/rollup/awesome)!
 
 ### Synthetic named exports
+
 It is possible to designate a fallback export for missing exports by setting the `syntheticNamedExports` option for a module in the [`resolveId`](guide/en/#resolveid), [`load`](guide/en/#load) or [`transform`](guide/en/#transform) hook. If a string value is used for `syntheticNamedExports`, this module will fallback the resolution of any missing named exports to properties of the named export of the given name:
 
 **dep.js: (`{syntheticNamedExports: '__synthetic'}`)**
@@ -927,7 +890,7 @@ export const __synthetic = {
 **main.js:**
 
 ```js
-import { foo, bar, baz, __synthetic } from './dep.js'
+import { foo, bar, baz, __synthetic } from './dep.js';
 
 // logs "explicit" as non-synthetic exports take precedence
 console.log(foo);
@@ -956,18 +919,17 @@ The problem here, however, is that this proxy id may or may not cause unintended
 
 Custom resolver option offer a solution here by allowing to pass additional options for plugins when manually resolving a module. This happens without changing the id and thus without impairing the ability for other plugins to resolve the module correctly if the intended target plugin is not present.
 
-
 ```js
 function requestingPlugin() {
   return {
     name: 'requesting',
     async buildStart() {
       const resolution = await this.resolve('foo', undefined, {
-        custom: {resolving: {specialResolution: true}}
+        custom: { resolving: { specialResolution: true } }
       });
       console.log(resolution.id); // "special"
     }
-  }
+  };
 }
 
 function resolvingPlugin() {
@@ -979,7 +941,7 @@ function resolvingPlugin() {
       }
       return null;
     }
-  }
+  };
 }
 ```
 
@@ -995,10 +957,10 @@ function annotatingPlugin() {
     name: 'annotating',
     transform(code, id) {
       if (thisModuleIsSpecial(code, id)) {
-        return {meta: {annotating: {special: true}}}
+        return { meta: { annotating: { special: true } } };
       }
     }
-  }
+  };
 }
 
 function readingPlugin() {
@@ -1006,11 +968,12 @@ function readingPlugin() {
   return {
     name: 'reading',
     buildEnd() {
-      const specialModules = Array.from(this.getModuleIds())
-        .filter(id => this.getModuleInfo(id).meta.annotating?.special);
+      const specialModules = Array.from(this.getModuleIds()).filter(
+        id => this.getModuleInfo(id).meta.annotating?.special
+      );
       // do something with this list
     }
-  }
+  };
 }
 ```
 

@@ -6,8 +6,7 @@ The following is intended as a lightweight reference for the module behaviors de
 
 ### Importing
 
-Imported values cannot be reassigned, though imported objects and arrays *can* be mutated (and the exporting module, and any other importers, will be affected by the mutation). In that way, they behave similarly to `const` declarations.
-
+Imported values cannot be reassigned, though imported objects and arrays _can_ be mutated (and the exporting module, and any other importers, will be affected by the mutation). In that way, they behave similarly to `const` declarations.
 
 #### Named Imports
 
@@ -28,7 +27,7 @@ import { something as somethingElse } from './module.js';
 Import everything from the source module as an object which exposes all the source module's named exports as properties and methods.
 
 ```js
-import * as module from './module.js'
+import * as module from './module.js';
 ```
 
 The `something` example from above would then be attached to the imported object as a property, e.g. `module.something`. If present, the default export can be accessed via `module.default`.
@@ -56,9 +55,9 @@ This is useful for polyfills, or when the primary purpose of the imported code i
 Import modules using the [dynamic import API](https://github.com/tc39/proposal-dynamic-import#import).
 
 ```js
-import('./modules.js').then(({ default: DefaultExport, NamedExport })=> {
+import('./modules.js').then(({ default: DefaultExport, NamedExport }) => {
   // do something with modules.
-})
+});
 ```
 
 This is useful for code-splitting applications and using modules on-the-fly.
@@ -87,7 +86,6 @@ Export a value immediately upon declaration:
 export const something = true;
 ```
 
-
 #### Default Export
 
 Export a single value as the source module's default export:
@@ -100,10 +98,9 @@ This practice is only recommended if your source module only has one export.
 
 It is bad practice to mix default and named exports in the same module, though it is allowed by the specification.
 
-
 ### How bindings work
 
-ES modules export *live bindings*, not values, so values can be changed after they are initially imported as per [this demo](https://rollupjs.org/repl/?shareable=JTdCJTIybW9kdWxlcyUyMiUzQSU1QiU3QiUyMm5hbWUlMjIlM0ElMjJtYWluLmpzJTIyJTJDJTIyY29kZSUyMiUzQSUyMmltcG9ydCUyMCU3QiUyMGNvdW50JTJDJTIwaW5jcmVtZW50JTIwJTdEJTIwZnJvbSUyMCcuJTJGaW5jcmVtZW50ZXIuanMnJTNCJTVDbiU1Q25jb25zb2xlLmxvZyhjb3VudCklM0IlNUNuaW5jcmVtZW50KCklM0IlNUNuY29uc29sZS5sb2coY291bnQpJTNCJTIyJTdEJTJDJTdCJTIybmFtZSUyMiUzQSUyMmluY3JlbWVudGVyLmpzJTIyJTJDJTIyY29kZSUyMiUzQSUyMmV4cG9ydCUyMGxldCUyMGNvdW50JTIwJTNEJTIwMCUzQiU1Q24lNUNuZXhwb3J0JTIwZnVuY3Rpb24lMjBpbmNyZW1lbnQoKSUyMCU3QiU1Q24lNUN0Y291bnQlMjAlMkIlM0QlMjAxJTNCJTVDbiU3RCUyMiU3RCU1RCUyQyUyMm9wdGlvbnMlMjIlM0ElN0IlMjJmb3JtYXQlMjIlM0ElMjJjanMlMjIlMkMlMjJnbG9iYWxzJTIyJTNBJTdCJTdEJTJDJTIybW9kdWxlSWQlMjIlM0ElMjIlMjIlMkMlMjJuYW1lJTIyJTNBJTIybXlCdW5kbGUlMjIlN0QlMkMlMjJleGFtcGxlJTIyJTNBbnVsbCU3RA==):
+ES modules export _live bindings_, not values, so values can be changed after they are initially imported as per [this demo](https://rollupjs.org/repl/?shareable=JTdCJTIybW9kdWxlcyUyMiUzQSU1QiU3QiUyMm5hbWUlMjIlM0ElMjJtYWluLmpzJTIyJTJDJTIyY29kZSUyMiUzQSUyMmltcG9ydCUyMCU3QiUyMGNvdW50JTJDJTIwaW5jcmVtZW50JTIwJTdEJTIwZnJvbSUyMCcuJTJGaW5jcmVtZW50ZXIuanMnJTNCJTVDbiU1Q25jb25zb2xlLmxvZyhjb3VudCklM0IlNUNuaW5jcmVtZW50KCklM0IlNUNuY29uc29sZS5sb2coY291bnQpJTNCJTIyJTdEJTJDJTdCJTIybmFtZSUyMiUzQSUyMmluY3JlbWVudGVyLmpzJTIyJTJDJTIyY29kZSUyMiUzQSUyMmV4cG9ydCUyMGxldCUyMGNvdW50JTIwJTNEJTIwMCUzQiU1Q24lNUNuZXhwb3J0JTIwZnVuY3Rpb24lMjBpbmNyZW1lbnQoKSUyMCU3QiU1Q24lNUN0Y291bnQlMjAlMkIlM0QlMjAxJTNCJTVDbiU3RCUyMiU3RCU1RCUyQyUyMm9wdGlvbnMlMjIlM0ElN0IlMjJmb3JtYXQlMjIlM0ElMjJjanMlMjIlMkMlMjJnbG9iYWxzJTIyJTNBJTdCJTdEJTJDJTIybW9kdWxlSWQlMjIlM0ElMjIlMjIlMkMlMjJuYW1lJTIyJTNBJTIybXlCdW5kbGUlMjIlN0QlMkMlMjJleGFtcGxlJTIyJTNBbnVsbCU3RA==):
 
 ```js
 // incrementer.js
