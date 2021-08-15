@@ -5,7 +5,6 @@ export interface GenerateCodeSnippets {
 	_: string;
 	n: string;
 	s: string;
-	t: string;
 	getFunctionIntro(params: string[]): string;
 	// TODO Lukas pass the arg to be rendered instead
 	renderDirectReturnIife(
@@ -21,10 +20,10 @@ export interface GenerateCodeSnippets {
 	): void;
 }
 
-export function getGenerateCodeSnippets(
-	{ compact, generatedCode: { arrowFunctions } }: NormalizedOutputOptions,
-	indentString: string
-): GenerateCodeSnippets {
+export function getGenerateCodeSnippets({
+	compact,
+	generatedCode: { arrowFunctions }
+}: NormalizedOutputOptions): GenerateCodeSnippets {
 	const { _, n, s } = compact ? { _: '', n: '', s: '' } : { _: ' ', n: '\n', s: ';' };
 	const getFunctionIntro = arrowFunctions
 		? (params: string[]) =>
@@ -68,8 +67,7 @@ export function getGenerateCodeSnippets(
 						code.appendLeft(argEnd, ')');
 					}
 			  },
-		s,
-		t: indentString
+		s
 	};
 }
 

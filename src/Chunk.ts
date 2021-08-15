@@ -41,6 +41,7 @@ import { assignExportsToMangledNames, assignExportsToNames } from './utils/expor
 import { GenerateCodeSnippets } from './utils/generateCodeSnippets';
 import getExportMode from './utils/getExportMode';
 import { getId } from './utils/getId';
+import getIndentString from './utils/getIndentString';
 import { getOrCreate } from './utils/getOrCreate';
 import { getStaticDependencies } from './utils/getStaticDependencies';
 import { makeLegal } from './utils/identifierHelpers';
@@ -146,6 +147,7 @@ export default class Chunk {
 	private implicitEntryModules: Module[] = [];
 	private implicitlyLoadedBefore = new Set<Chunk>();
 	private imports = new Set<Variable>();
+	private indentString: string = undefined as never;
 	private readonly isEmpty: boolean = true;
 	private name: string | null = null;
 	private needsExportsShim = false;
@@ -557,6 +559,7 @@ export default class Chunk {
 	): void {
 		const magicString = new MagicStringBundle({ separator: options.compact ? '' : '\n\n' });
 		this.usedModules = [];
+		this.indentString = getIndentString(this.orderedModules, options);
 
 		const renderOptions: RenderOptions = {
 			compact: options.compact,
@@ -564,6 +567,7 @@ export default class Chunk {
 			exportNamesByVariable: this.exportNamesByVariable,
 			format: options.format,
 			freeze: options.freeze,
+			indent: this.indentString,
 			namespaceToStringTag: options.namespaceToStringTag,
 			outputPluginDriver: this.pluginDriver,
 			snippets,
@@ -725,6 +729,7 @@ export default class Chunk {
 				exports: this.renderedExports!,
 				hasExports,
 				id: this.id,
+				indent: this.indentString,
 				intro: addons.intro!,
 				isEntryFacade:
 					this.outputOptions.preserveModules ||

@@ -16,7 +16,8 @@ export default function getInteropBlock(
 	freeze: boolean,
 	namespaceToStringTag: boolean,
 	accessedGlobals: Set<string>,
-	{ _, n, s, t }: GenerateCodeSnippets
+	t: string,
+	{ _, n, s }: GenerateCodeSnippets
 ): string {
 	const neededInteropHelpers = new Set<string>();
 	const interopStatements: string[] = [];

@@ -61,14 +61,20 @@ export default class NamespaceVariable extends Variable {
 	}
 
 	renderBlock(options: RenderOptions): string {
-		const { _, n, t } = options.snippets;
+		const {
+			exportNamesByVariable,
+			format,
+			freeze,
+			indent: t,
+			namespaceToStringTag,
+			snippets: { _, n, s },
+			varOrConst
+		} = options;
 
 		const memberVariables = this.getMemberVariables();
 		const members = Object.entries(memberVariables).map(([name, original]) => {
 			if (this.referencedEarly || original.isReassigned) {
-				return `${t}get ${name}${_}()${_}{${_}return ${original.getName()}${
-					options.compact ? '' : ';'
-				}${_}}`;
+				return `${t}get ${name}${_}()${_}{${_}return ${original.getName()}${s}${_}}`;
 			}
 
 			const safeName = RESERVED_NAMES[name] ? `'${name}'` : name;
@@ -76,7 +82,7 @@ export default class NamespaceVariable extends Variable {
 			return `${t}${safeName}: ${original.getName()}`;
 		});
 
-		if (options.namespaceToStringTag) {
+		if (namespaceToStringTag) {
 			members.unshift(`${t}[Symbol.toStringTag]:${_}'Module'`);
 		}
 
@@ -97,14 +103,14 @@ export default class NamespaceVariable extends Variable {
 			}
 			output = `/*#__PURE__*/Object.assign(${assignmentArgs.join(`,${_}`)})`;
 		}
-		if (options.freeze) {
+		if (freeze) {
 			output = `/*#__PURE__*/Object.freeze(${output})`;
 		}
 
 		const name = this.getName();
-		output = `${options.varOrConst} ${name}${_}=${_}${output};`;
+		output = `${varOrConst} ${name}${_}=${_}${output};`;
 
-		if (options.format === 'system' && options.exportNamesByVariable.has(this)) {
+		if (format === 'system' && exportNamesByVariable.has(this)) {
 			output += `${n}${getSystemExportStatement([this], options)};`;
 		}
 

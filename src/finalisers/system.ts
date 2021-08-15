@@ -91,6 +91,7 @@ export default function system(
 		dependencies,
 		exports,
 		hasExports,
+		indent: t,
 		intro,
 		snippets,
 		outro,
@@ -99,7 +100,7 @@ export default function system(
 	}: FinaliserOptions,
 	options: NormalizedOutputOptions
 ): Bundle {
-	const { n, t, _ } = snippets;
+	const { n, _ } = snippets;
 
 	const dependencyIds = dependencies.map(m => `'${m.id}'`);
 

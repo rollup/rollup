@@ -19,6 +19,7 @@ export default function iife(
 		dependencies,
 		exports,
 		hasExports,
+		indent: t,
 		intro,
 		namedExportsMode,
 		outro,
@@ -39,7 +40,7 @@ export default function iife(
 		strict
 	}: NormalizedOutputOptions
 ): Bundle {
-	const { _, n, t } = snippets;
+	const { _, n } = snippets;
 	const isNamespaced = name && name.indexOf('.') !== -1;
 	const useVariableAssignment = !extend && !isNamespaced;
 
@@ -82,6 +83,7 @@ export default function iife(
 		freeze,
 		namespaceToStringTag,
 		accessedGlobals,
+		t,
 		snippets
 	);
 	magicString.prepend(`${intro}${interopBlock}`);

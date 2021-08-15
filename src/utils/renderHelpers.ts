@@ -13,6 +13,7 @@ export interface RenderOptions {
 	exportNamesByVariable: Map<Variable, string[]>;
 	format: InternalModuleFormat;
 	freeze: boolean;
+	indent: string;
 	namespaceToStringTag: boolean;
 	outputPluginDriver: PluginDriver;
 	snippets: GenerateCodeSnippets;

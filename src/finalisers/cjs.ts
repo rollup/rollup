@@ -13,6 +13,7 @@ export default function cjs(
 		dependencies,
 		exports,
 		hasExports,
+		indent: t,
 		intro,
 		isEntryFacade,
 		isModuleFacade,
@@ -31,7 +32,7 @@ export default function cjs(
 		strict
 	}: NormalizedOutputOptions
 ): Bundle {
-	const { n, t, _ } = snippets;
+	const { n, _ } = snippets;
 
 	const useStrict = strict ? `'use strict';${n}${n}` : '';
 	let namespaceMarkers = getNamespaceMarkers(
@@ -53,6 +54,7 @@ export default function cjs(
 		freeze,
 		namespaceToStringTag,
 		accessedGlobals,
+		t,
 		snippets
 	);
 

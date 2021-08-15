@@ -25,7 +25,6 @@ import {
 } from './utils/error';
 import { sortByExecutionOrder } from './utils/executionOrder';
 import { GenerateCodeSnippets, getGenerateCodeSnippets } from './utils/generateCodeSnippets';
-import getIndentString from './utils/getIndentString';
 import { basename, isAbsolute } from './utils/path';
 import { timeEnd, timeStart } from './utils/timers';
 
@@ -49,8 +48,7 @@ export default class Bundle {
 			await this.pluginDriver.hookParallel('renderStart', [this.outputOptions, this.inputOptions]);
 
 			timeStart('generate chunks', 2);
-			const includedModules = getIncludedModules(this.graph.modulesById);
-			const chunks = await this.generateChunks(includedModules);
+			const chunks = await this.generateChunks();
 			if (chunks.length > 1) {
 				validateOptionsForMultiChunkOutput(this.outputOptions, this.inputOptions.onwarn);
 			}
@@ -62,10 +60,7 @@ export default class Bundle {
 			// We need to create addons before prerender because at the moment, there
 			// can be no async code between prerender and render due to internal state
 			const addons = await createAddons(this.outputOptions, this.pluginDriver);
-			const snippets = getGenerateCodeSnippets(
-				this.outputOptions,
-				getIndentString(includedModules, this.outputOptions)
-			);
+			const snippets = getGenerateCodeSnippets(this.outputOptions);
 			this.prerenderChunks(chunks, inputBase, snippets);
 			timeEnd('render modules', 2);
 
@@ -200,7 +195,7 @@ export default class Bundle {
 		this.pluginDriver.finaliseAssets();
 	}
 
-	private async generateChunks(includedModules: Module[]): Promise<Chunk[]> {
+	private async generateChunks(): Promise<Chunk[]> {
 		const { manualChunks } = this.outputOptions;
 		const manualChunkAliasByEntry =
 			typeof manualChunks === 'object'
@@ -209,9 +204,9 @@ export default class Bundle {
 		const chunks: Chunk[] = [];
 		const chunkByModule = new Map<Module, Chunk>();
 		for (const { alias, modules } of this.outputOptions.inlineDynamicImports
-			? [{ alias: null, modules: includedModules }]
+			? [{ alias: null, modules: getIncludedModules(this.graph.modulesById) }]
 			: this.outputOptions.preserveModules
-			? includedModules.map(module => ({
+			? getIncludedModules(this.graph.modulesById).map(module => ({
 					alias: null,
 					modules: [module]
 			  }))
