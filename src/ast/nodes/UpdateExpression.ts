@@ -30,7 +30,6 @@ export default class UpdateExpression extends NodeBase {
 		return path.length > 1;
 	}
 
-	// TODO Lukas destructure options in all render functions
 	render(code: MagicString, options: RenderOptions): void {
 		const {
 			exportNamesByVariable,

@@ -50,6 +50,7 @@ export default class ImportExpression extends NodeBase {
 			const {
 				snippets: { _, s }
 			} = options;
+			// TODO Lukas use arrow functions
 			code.overwrite(
 				this.start,
 				this.end,
@@ -94,8 +95,9 @@ export default class ImportExpression extends NodeBase {
 		pluginDriver: PluginDriver,
 		accessedGlobalsByScope: Map<ChildScope, Set<string>>
 	): void {
+		const { format } = options;
 		this.resolution = resolution;
-		const accessedGlobals = [...(accessedImportGlobals[options.format] || [])];
+		const accessedGlobals = [...(accessedImportGlobals[format] || [])];
 		let helper: string | null;
 		({ helper, mechanism: this.mechanism } = this.getDynamicImportMechanismAndHelper(
 			resolution,

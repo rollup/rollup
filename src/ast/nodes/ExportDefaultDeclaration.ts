@@ -117,6 +117,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		needsId: boolean,
 		options: RenderOptions
 	) {
+		const { exportNamesByVariable, format } = options;
 		const name = this.variable.getName();
 		// Remove `export default`
 		code.remove(this.start, declarationStart);
@@ -128,9 +129,9 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			);
 		}
 		if (
-			options.format === 'system' &&
+			format === 'system' &&
 			this.declaration instanceof ClassDeclaration &&
-			options.exportNamesByVariable.has(this.variable)
+			exportNamesByVariable.has(this.variable)
 		) {
 			code.appendLeft(this.end, ` ${getSystemExportStatement([this.variable], options)};`);
 		}
@@ -139,28 +140,23 @@ export default class ExportDefaultDeclaration extends NodeBase {
 	private renderVariableDeclaration(
 		code: MagicString,
 		declarationStart: number,
-		options: RenderOptions
+		{ format, exportNamesByVariable, varOrConst }: RenderOptions
 	) {
 		const hasTrailingSemicolon = code.original.charCodeAt(this.end - 1) === 59; /*";"*/
-		const systemExportNames =
-			options.format === 'system' && options.exportNamesByVariable.get(this.variable);
+		const systemExportNames = format === 'system' && exportNamesByVariable.get(this.variable);
 
 		if (systemExportNames) {
 			code.overwrite(
 				this.start,
 				declarationStart,
-				`${options.varOrConst} ${this.variable.getName()} = exports('${systemExportNames[0]}', `
+				`${varOrConst} ${this.variable.getName()} = exports('${systemExportNames[0]}', `
 			);
 			code.appendRight(
 				hasTrailingSemicolon ? this.end - 1 : this.end,
 				')' + (hasTrailingSemicolon ? '' : ';')
 			);
 		} else {
-			code.overwrite(
-				this.start,
-				declarationStart,
-				`${options.varOrConst} ${this.variable.getName()} = `
-			);
+			code.overwrite(this.start, declarationStart, `${varOrConst} ${this.variable.getName()} = `);
 			if (!hasTrailingSemicolon) {
 				code.appendLeft(this.end, ';');
 			}

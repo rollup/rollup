@@ -4,6 +4,7 @@ const INTEROP_NAMESPACE_VARIABLE = '_interopNamespace';
 const INTEROP_NAMESPACE_DEFAULT_VARIABLE = '_interopNamespaceDefault';
 const INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE = '_interopNamespaceDefaultOnly';
 
+// TODO Lukas use snippets in this file
 export const defaultInteropHelpersByInteropType: { [interopType: string]: string | null } = {
 	auto: INTEROP_DEFAULT_VARIABLE,
 	default: null,

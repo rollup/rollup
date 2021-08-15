@@ -30,15 +30,13 @@ export default class ClassDeclaration extends ClassNode {
 	}
 
 	render(code: MagicString, options: RenderOptions): void {
-		if (
-			options.format === 'system' &&
-			this.id &&
-			options.exportNamesByVariable.has(this.id.variable)
-		) {
-			code.appendLeft(
-				this.end,
-				`${options.compact ? '' : ' '}${getSystemExportStatement([this.id.variable], options)};`
-			);
+		const {
+			exportNamesByVariable,
+			format,
+			snippets: { _ }
+		} = options;
+		if (format === 'system' && this.id && exportNamesByVariable.has(this.id.variable)) {
+			code.appendLeft(this.end, `${_}${getSystemExportStatement([this.id.variable], options)};`);
 		}
 		super.render(code, options);
 	}

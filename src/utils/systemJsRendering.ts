@@ -2,6 +2,7 @@ import MagicString from 'magic-string';
 import Variable from '../ast/variables/Variable';
 import { RenderOptions } from './renderHelpers';
 
+// TODO Lukas simplify object if variable name matches export name
 export function getSystemExportStatement(
 	exportedVariables: Variable[],
 	{ exportNamesByVariable, snippets: { _ } }: RenderOptions,
