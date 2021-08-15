@@ -2,7 +2,7 @@
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('external-auto'), require('external-default'), require('external-defaultOnly')) :
 	typeof define === 'function' && define.amd ? define(['external-auto', 'external-default', 'external-defaultOnly'], factory) :
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.externalAuto, global.externalDefault, global.externalDefaultOnly));
-}(this, (function (externalAuto, externalDefault, externalDefaultOnly) { 'use strict';
+})(this, (function (externalAuto, externalDefault, externalDefaultOnly) { 'use strict';
 
 	function _interopNamespaceDefaultOnly(e) {
 		return Object.freeze({__proto__: null, [Symbol.toStringTag]: 'Module', 'default': e});
@@ -47,4 +47,4 @@
 	assert.strictEqual(Object.prototype.toString.call(externalDefaultOnly__namespace), '[object Module]');
 	assert.deepStrictEqual(externalDefaultOnly__namespace.default, { foo: 42 });
 
-})));
+}));

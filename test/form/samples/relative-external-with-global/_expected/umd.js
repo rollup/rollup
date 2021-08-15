@@ -2,7 +2,7 @@
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('./lib/throttle.js')) :
 	typeof define === 'function' && define.amd ? define(['./lib/throttle'], factory) :
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.Lib.throttle));
-}(this, (function (throttle) { 'use strict';
+})(this, (function (throttle) { 'use strict';
 
 	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -14,4 +14,4 @@
 
 	window.addEventListener( 'mousemove', throttle__default['default'] );
 
-})));
+}));

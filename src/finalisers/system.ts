@@ -30,6 +30,7 @@ const getStarExcludesBlock = (
 				.join(`,${_}`)}${_}};`
 		: '';
 
+// TODO Lukas use let instead of var
 const getImportBindingsBlock = (
 	importBindings: string[],
 	_: string,
@@ -84,6 +85,7 @@ const getSyntheticExportsBlock = (exports: ChunkExports, _: string, t: string, n
 		n
 	);
 
+// TODO Lukas wrap factory
 export default function system(
 	magicString: MagicStringBundle,
 	{
@@ -100,7 +102,7 @@ export default function system(
 	}: FinaliserOptions,
 	options: NormalizedOutputOptions
 ): Bundle {
-	const { n, _ } = snippets;
+	const { _, getFunctionIntro, n } = snippets;
 
 	const dependencyIds = dependencies.map(m => `'${m.id}'`);
 
@@ -170,15 +172,15 @@ export default function system(
 
 	const registeredName = options.name ? `'${options.name}',${_}` : '';
 	const wrapperParams = accessedGlobals.has('module')
-		? `exports,${_}module`
+		? ['exports', 'module']
 		: hasExports
-		? 'exports'
-		: '';
+		? ['exports']
+		: [];
 
 	let wrapperStart =
 		`System.register(${registeredName}[` +
 		dependencyIds.join(`,${_}`) +
-		`],${_}function${_}(${wrapperParams})${_}{${n}${t}${options.strict ? "'use strict';" : ''}` +
+		`],${_}${getFunctionIntro(wrapperParams)}{${n}${t}${options.strict ? "'use strict';" : ''}` +
 		getStarExcludesBlock(starExcludes, varOrConst, _, t, n) +
 		getImportBindingsBlock(importBindings, _, t, n) +
 		`${n}${t}return${_}{${
@@ -186,7 +188,7 @@ export default function system(
 				? `${n}${t}${t}setters:${_}[${setters
 						.map(s =>
 							s
-								? `function${_}(module)${_}{${n}${t}${t}${t}${s}${n}${t}${t}}`
+								? `${getFunctionIntro(['module'])}{${n}${t}${t}${t}${s}${n}${t}${t}}`
 								: options.systemNullSetters
 								? `null`
 								: `function${_}()${_}{}`
@@ -195,7 +197,7 @@ export default function system(
 				: ''
 		}${n}`;
 	wrapperStart +=
-		`${t}${t}execute:${_}${usesTopLevelAwait ? `async${_}` : ''}function${_}()${_}{${n}${n}` +
+		`${t}${t}execute:${_}${getFunctionIntro([], usesTopLevelAwait)}{${n}${n}` +
 		getHoistedExportsBlock(exports, _, t, n);
 
 	const wrapperEnd =

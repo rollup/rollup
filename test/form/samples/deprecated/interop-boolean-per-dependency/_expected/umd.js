@@ -2,7 +2,7 @@
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('external-false'), require('external-true')) :
 	typeof define === 'function' && define.amd ? define(['external-false', 'external-true'], factory) :
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.externalfalse, global.externaltrue));
-}(this, (function (fooFalse, fooTrue) { 'use strict';
+})(this, (function (fooFalse, fooTrue) { 'use strict';
 
 	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -35,4 +35,4 @@
 	import('external-false').then(console.log);
 	import('external-true').then(console.log);
 
-})));
+}));

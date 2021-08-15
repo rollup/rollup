@@ -38,7 +38,7 @@ export default function amd(
 	warnOnBuiltins(warn, dependencies);
 	const deps = dependencies.map(m => `'${removeExtensionFromRelativeAmdId(m.id)}'`);
 	const args = dependencies.map(m => m.name);
-	const { n, _ } = snippets;
+	const { n, getFunctionIntro, _ } = snippets;
 
 	if (namedExportsMode && hasExports) {
 		args.unshift(`exports`);
@@ -95,8 +95,9 @@ export default function amd(
 		namespaceMarkers = n + n + namespaceMarkers;
 	}
 	magicString.append(`${exportBlock}${namespaceMarkers}${outro}`);
+	// TODO Lukas wrap factory
 	return magicString
 		.indent(t)
-		.prepend(`${amd.define}(${params}function${_}(${args.join(`,${_}`)})${_}{${useStrict}${n}${n}`)
+		.prepend(`${amd.define}(${params}${getFunctionIntro(args)}{${useStrict}${n}${n}`)
 		.append(`${n}${n}});`);
 }

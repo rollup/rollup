@@ -1,7 +1,7 @@
 (function (factory) {
 	typeof define === 'function' && define.amd ? define(factory) :
 	factory();
-}((function () { 'use strict';
+})((function () { 'use strict';
 
 	for ( let i = 0; i < 2; i++ ) {
 		console.log( 'effect' );
@@ -28,4 +28,4 @@
 		break;
 	} while ( true );
 
-})));
+}));

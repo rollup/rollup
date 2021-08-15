@@ -2,7 +2,7 @@
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('foo'), require('bar')) :
 	typeof define === 'function' && define.amd ? define(['foo', 'bar'], factory) :
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.foo, global.bar));
-}(this, (function (foo, bar) { 'use strict';
+})(this, (function (foo, bar) { 'use strict';
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -30,4 +30,4 @@
 	foo__namespace.x();
 	console.log(bar__namespace);
 
-})));
+}));

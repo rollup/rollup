@@ -5,7 +5,7 @@ export interface GenerateCodeSnippets {
 	_: string;
 	n: string;
 	s: string;
-	getFunctionIntro(params: string[]): string;
+	getFunctionIntro(params: string[], isAsync?: boolean): string;
 	// TODO Lukas pass the arg to be rendered instead
 	renderDirectReturnIife(
 		params: string[],
@@ -26,9 +26,13 @@ export function getGenerateCodeSnippets({
 }: NormalizedOutputOptions): GenerateCodeSnippets {
 	const { _, n, s } = compact ? { _: '', n: '', s: '' } : { _: ' ', n: '\n', s: ';' };
 	const getFunctionIntro = arrowFunctions
-		? (params: string[]) =>
-				`${params.length === 1 ? params[0] : `(${params.join(`,${_}`)})`}${_}=>${_}`
-		: (params: string[]) => `function${_}(${params.join(`,${_}`)})${_}`;
+		? (params: string[], isAsync?: boolean) => {
+				const singleParam = params.length === 1;
+				const asyncString = isAsync ? `async${singleParam ? ' ' : _}` : '';
+				return `${asyncString}${singleParam ? params[0] : `(${params.join(`,${_}`)})`}${_}=>${_}`;
+		  }
+		: (params: string[], isAsync?: boolean) =>
+				`${isAsync ? `async ` : ''}function${_}(${params.join(`,${_}`)})${_}`;
 
 	return {
 		_,

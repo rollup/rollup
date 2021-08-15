@@ -1,4 +1,5 @@
+import {b} from 'external';
 export let a;
 
-null, {a} = someObject;
-console.log({a} = someObject);
+null, {a} = b;
+console.log({a} = b);

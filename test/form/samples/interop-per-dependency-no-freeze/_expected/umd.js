@@ -2,7 +2,7 @@
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('external-auto'), require('external-default'), require('external-defaultOnly'), require('external-esModule')) :
 	typeof define === 'function' && define.amd ? define(['external-auto', 'external-default', 'external-defaultOnly', 'external-esModule'], factory) :
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.externalauto, global.externaldefault, global.externaldefaultOnly, global.externalesModule));
-}(this, (function (fooAuto, fooDefault, fooDefaultOnly, fooEsModule) { 'use strict';
+})(this, (function (fooAuto, fooDefault, fooDefaultOnly, fooEsModule) { 'use strict';
 
 	function _interopNamespaceDefaultOnly(e) {
 		return {__proto__: null, 'default': e};
@@ -45,4 +45,4 @@
 	import('external-defaultOnly').then(console.log);
 	import('external-esModule').then(console.log);
 
-})));
+}));

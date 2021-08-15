@@ -1,6 +1,8 @@
+import { b } from 'external';
+
 let a;
 
-({a} = someObject);
-console.log({a} = someObject);
+({a} = b);
+console.log({a} = b);
 
 export { a };

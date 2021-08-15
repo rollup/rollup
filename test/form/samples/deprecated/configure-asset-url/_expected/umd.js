@@ -1,7 +1,7 @@
 (function (factory) {
 	typeof define === 'function' && define.amd ? define(factory) :
 	factory();
-}((function () { 'use strict';
+})((function () { 'use strict';
 
 	var asset1 = 'umd.js:solved:assets/asset-solved-28a7ac89.txt:assets/asset-solved-28a7ac89.txt';
 
@@ -11,4 +11,4 @@
 
 	console.log(asset1, asset2, asset3);
 
-})));
+}));

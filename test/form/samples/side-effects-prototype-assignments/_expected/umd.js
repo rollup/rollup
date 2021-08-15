@@ -1,7 +1,7 @@
 (function (factory) {
 	typeof define === 'function' && define.amd ? define(factory) :
 	factory();
-}((function () { 'use strict';
+})((function () { 'use strict';
 
 	function V8Engine () {}
 
@@ -14,4 +14,4 @@
 
 	console.log( new V8Engine().toString() );
 
-})));
+}));

@@ -54,8 +54,7 @@ export default function umd(
 		strict
 	}: NormalizedOutputOptions
 ): Bundle {
-	// TODO Lukas for Rollup 3: Do not guess indent
-	const { _, n } = snippets;
+	const { _, getFunctionIntro, n } = snippets;
 	const factoryVar = compact ? 'f' : 'factory';
 	const globalVar = compact ? 'g' : 'global';
 
@@ -74,7 +73,7 @@ export default function umd(
 
 	const trimmedImports = trimEmptyImports(dependencies);
 	const globalDeps = trimmedImports.map(module => globalProp(module.globalName, globalVar));
-	const factoryArgs = trimmedImports.map(m => m.name);
+	const factoryParams = trimmedImports.map(m => m.name);
 
 	if (namedExportsMode && (hasExports || noConflict)) {
 		amdDeps.unshift(`'exports'`);
@@ -89,7 +88,7 @@ export default function umd(
 			)
 		);
 
-		factoryArgs.unshift('exports');
+		factoryParams.unshift('exports');
 	}
 
 	const completeAmdId = getCompleteAmdId(amd, id);
@@ -138,7 +137,10 @@ export default function umd(
 	}
 
 	const iifeNeedsGlobal = hasExports || (noConflict && namedExportsMode) || globalDeps.length > 0;
-	const globalParam = iifeNeedsGlobal ? `${globalVar},${_}` : '';
+	const wrapperParams: string[] = [factoryVar];
+	if (iifeNeedsGlobal) {
+		wrapperParams.unshift(globalVar);
+	}
 	const globalArg = iifeNeedsGlobal ? `this,${_}` : '';
 	const iifeStart = iifeNeedsGlobal
 		? `(${globalVar}${_}=${_}typeof globalThis${_}!==${_}'undefined'${_}?${_}globalThis${_}:${_}${globalVar}${_}||${_}self,${_}`
@@ -149,15 +151,16 @@ export default function umd(
 		  `${_}${cjsExport}${factoryVar}(${cjsDeps.join(`,${_}`)})${_}:${n}`
 		: '';
 
-	// factory function should be wrapped by parentheses to avoid lazy parsing
 	const wrapperIntro =
-		`(function${_}(${globalParam}${factoryVar})${_}{${n}` +
+		`(${getFunctionIntro(wrapperParams)}{${n}` +
 		cjsIntro +
 		`${t}typeof ${define}${_}===${_}'function'${_}&&${_}${define}.amd${_}?${_}${define}(${amdParams}${factoryVar})${_}:${n}` +
 		`${t}${iifeStart}${iifeExport}${iifeEnd};${n}` +
-		`}(${globalArg}(function${_}(${factoryArgs.join(', ')})${_}{${useStrict}${n}`;
+		// factory function should be wrapped by parentheses to avoid lazy parsing,
+		// cf. https://v8.dev/blog/preparser#pife
+		`})(${globalArg}(${getFunctionIntro(factoryParams)}{${useStrict}${n}`;
 
-	const wrapperOutro = n + n + '})));';
+	const wrapperOutro = n + n + '}));';
 
 	magicString.prepend(
 		`${intro}${getInteropBlock(

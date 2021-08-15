@@ -40,7 +40,7 @@ export default function iife(
 		strict
 	}: NormalizedOutputOptions
 ): Bundle {
-	const { _, n } = snippets;
+	const { _, getFunctionIntro, n } = snippets;
 	const isNamespaced = name && name.indexOf('.') !== -1;
 	const useVariableAssignment = !extend && !isNamespaced;
 
@@ -88,7 +88,7 @@ export default function iife(
 	);
 	magicString.prepend(`${intro}${interopBlock}`);
 
-	let wrapperIntro = `(${snippets.getFunctionIntro(args)}{${n}${useStrict}${n}`;
+	let wrapperIntro = `(${getFunctionIntro(args)}{${n}${useStrict}${n}`;
 	if (hasExports) {
 		if (name && !(extend && namedExportsMode)) {
 			wrapperIntro =

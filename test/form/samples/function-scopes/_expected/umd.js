@@ -1,7 +1,7 @@
 (function (factory) {
 	typeof define === 'function' && define.amd ? define(factory) :
 	factory();
-}((function () { 'use strict';
+})((function () { 'use strict';
 
 	var effect1 = () => console.log( 'effect' ); // must not be removed!
 	function isKept1 ( x = effect1 ) {
@@ -21,4 +21,4 @@
 	};
 	isKept3();
 
-})));
+}));

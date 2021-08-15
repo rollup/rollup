@@ -2,7 +2,7 @@
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('external-package')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'external-package'], factory) :
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.iife = {}, global.externalPackage));
-}(this, (function (exports, externalPackage) { 'use strict';
+})(this, (function (exports, externalPackage) { 'use strict';
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -32,4 +32,4 @@
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));

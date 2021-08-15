@@ -1,12 +1,16 @@
-System.register('bundle', [], function (exports) {
+System.register('bundle', ['external'], exports => {
 	'use strict';
+	var b;
 	return {
-		execute: function () {
+		setters: [module => {
+			b = module.b;
+		}],
+		execute: () => {
 
 			let a; exports('a', a);
 
-			(v => (exports('a', a), v))({a} = someObject);
-			console.log((v => (exports('a', a), v))({a} = someObject));
+			(v => (exports('a', a), v))({a} = b);
+			console.log((v => (exports('a', a), v))({a} = b));
 
 		}
 	};

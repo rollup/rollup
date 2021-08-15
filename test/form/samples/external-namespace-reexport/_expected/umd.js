@@ -2,7 +2,7 @@
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('highcharts')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'highcharts'], factory) :
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.myBundle = {}, global.highcharts));
-}(this, (function (exports, highcharts) { 'use strict';
+})(this, (function (exports, highcharts) { 'use strict';
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -32,4 +32,4 @@
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-})));
+}));

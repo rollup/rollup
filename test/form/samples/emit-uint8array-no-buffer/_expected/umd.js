@@ -1,7 +1,7 @@
 (function (factory) {
 	typeof define === 'function' && define.amd ? define(factory) :
 	factory();
-}((function () { 'use strict';
+})((function () { 'use strict';
 
 	var asset1a = (typeof document === 'undefined' && typeof location === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __dirname + '/assets/asset-dc5cb674').href : new URL('assets/asset-dc5cb674', typeof document === 'undefined' ? location.href : document.currentScript && document.currentScript.src || document.baseURI).href);
 
@@ -15,4 +15,4 @@
 
 	console.log(asset1a, asset1b, asset2a, asset2b, asset99a);
 
-})));
+}));
