@@ -31,4 +31,4 @@ var myBundle = (function (exports, highcharts) {
 
 	return exports;
 
-}({}, highcharts));
+})({}, highcharts);

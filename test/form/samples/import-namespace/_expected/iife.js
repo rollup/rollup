@@ -27,4 +27,4 @@
 	foo__namespace.x();
 	console.log(bar__namespace);
 
-}(foo, bar));
+})(foo, bar);

@@ -13,4 +13,4 @@
 
 	console.log(asset1a, asset1b, asset2a, asset2b, asset99a);
 
-}());
+})();

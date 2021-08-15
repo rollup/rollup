@@ -20,4 +20,4 @@ var myBundle = (function (exports, a, Test$1) {
 
   return exports;
 
-}({}, a, b));
+})({}, a, b);

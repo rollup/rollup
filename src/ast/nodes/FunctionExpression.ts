@@ -13,7 +13,6 @@ export default class FunctionExpression extends FunctionNode {
 		{ renderedSurroundingElement }: NodeRenderOptions = BLANK
 	): void {
 		super.render(code, options);
-		// TODO Lukas how about arrow function expressions?
 		if (renderedSurroundingElement === NodeType.ExpressionStatement) {
 			code.appendRight(this.start, '(');
 			code.prependLeft(this.end, ')');

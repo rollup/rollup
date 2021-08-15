@@ -7,4 +7,4 @@
 
 	console.log(someClass, someFunction);
 
-}());
+})();

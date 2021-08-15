@@ -44,4 +44,4 @@
 	assert.strictEqual(Object.prototype.toString.call(externalDefaultOnly__namespace), '[object Module]');
 	assert.deepStrictEqual(externalDefaultOnly__namespace.default, { foo: 42 });
 
-}(externalAuto, externalDefault, externalDefaultOnly));
+})(externalAuto, externalDefault, externalDefaultOnly);

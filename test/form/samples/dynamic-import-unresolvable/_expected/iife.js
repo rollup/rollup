@@ -6,4 +6,4 @@
 	import('./seven.js');
 	import('./seven.js');
 
-}());
+})();

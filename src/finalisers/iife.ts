@@ -86,7 +86,7 @@ export default function iife(
 	);
 	magicString.prepend(`${intro}${interopBlock}`);
 
-	let wrapperIntro = `(function${_}(${args.join(`,${_}`)})${_}{${n}${useStrict}${n}`;
+	let wrapperIntro = `(${snippets.getFunctionIntro(args)}{${n}${useStrict}${n}`;
 	if (hasExports) {
 		if (name && !(extend && namedExportsMode)) {
 			wrapperIntro =
@@ -98,7 +98,7 @@ export default function iife(
 		}
 	}
 
-	let wrapperOutro = `${n}${n}}(${deps.join(`,${_}`)}));`;
+	let wrapperOutro = `${n}${n}})(${deps.join(`,${_}`)});`;
 	if (hasExports && !extend && namedExportsMode) {
 		wrapperOutro = `${n}${n}${t}return exports;${wrapperOutro}`;
 	}

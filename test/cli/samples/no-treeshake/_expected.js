@@ -7,4 +7,4 @@ var shakeless = (function () {
 
 	return main;
 
-}());
+})();

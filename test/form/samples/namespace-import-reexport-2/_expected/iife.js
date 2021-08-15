@@ -37,4 +37,4 @@ var iife = (function (exports, external1, external2) {
 
 	return exports;
 
-}({}, external1, external2));
+})({}, external1, external2);

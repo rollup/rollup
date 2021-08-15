@@ -8,4 +8,4 @@
 
 	console.log(a__default['default'], b__default['default']);
 
-}(thisIsA, thisIsB));
+})(thisIsA, thisIsB);

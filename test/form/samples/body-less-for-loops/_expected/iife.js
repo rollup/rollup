@@ -14,4 +14,4 @@
 	let index;
 	for ( index in array ) console.log( index );
 
-}());
+})();

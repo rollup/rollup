@@ -15,4 +15,4 @@ var foo = (function (exports, external) {
 
 	return exports;
 
-}({}, external));
+})({}, external);

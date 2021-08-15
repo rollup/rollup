@@ -10,4 +10,4 @@
 
 	assert.equal( isUsed( true ), 2 );
 
-}());
+})();

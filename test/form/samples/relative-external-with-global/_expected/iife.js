@@ -11,4 +11,4 @@
 
 	window.addEventListener( 'mousemove', throttle__default['default'] );
 
-}(Lib.throttle));
+})(Lib.throttle);

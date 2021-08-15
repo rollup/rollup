@@ -14,4 +14,4 @@
 
 	showImage(logo);
 
-}());
+})();

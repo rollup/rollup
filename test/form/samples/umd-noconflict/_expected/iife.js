@@ -17,4 +17,4 @@ var FooBar = (function (exports) {
 
 	return exports;
 
-}({}));
+})({});

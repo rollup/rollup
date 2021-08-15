@@ -5,4 +5,4 @@ var foo = (function (View) {
 
 	return main;
 
-}(View));
+})(View);

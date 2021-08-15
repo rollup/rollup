@@ -13,4 +13,4 @@
 	console.log('privateProp=iife.js:resolve-import-meta-url/main.js');
 	console.log('null=iife.js:resolve-import-meta-url/main.js');
 
-}());
+})();

@@ -16,4 +16,4 @@ var iife = (function (exports) {
 
 	return exports;
 
-}({}));
+})({});

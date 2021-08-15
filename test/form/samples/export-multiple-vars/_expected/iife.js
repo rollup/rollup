@@ -11,4 +11,4 @@
 	assert.equal( e, 5 );
 	assert.equal( i, 9 );
 
-}());
+})();

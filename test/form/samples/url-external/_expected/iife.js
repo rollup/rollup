@@ -7,4 +7,4 @@
 
 	console.log(external__default['default']);
 
-}(external));
+})(external);

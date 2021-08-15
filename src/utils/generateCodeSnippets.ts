@@ -6,6 +6,8 @@ export interface GenerateCodeSnippets {
 	n: string;
 	s: string;
 	t: string;
+	getFunctionIntro(params: string[]): string;
+	// TODO Lukas pass the arg to be rendered instead
 	renderDirectReturnIife(
 		params: string[],
 		returned: string,
@@ -19,14 +21,19 @@ export interface GenerateCodeSnippets {
 	): void;
 }
 
-// TODO Lukas varOrConst
 export function getGenerateCodeSnippets(
 	{ compact, generatedCode: { arrowFunctions } }: NormalizedOutputOptions,
 	indentString: string
 ): GenerateCodeSnippets {
 	const { _, n, s } = compact ? { _: '', n: '', s: '' } : { _: ' ', n: '\n', s: ';' };
+	const getFunctionIntro = arrowFunctions
+		? (params: string[]) =>
+				`${params.length === 1 ? params[0] : `(${params.join(`,${_}`)})`}${_}=>${_}`
+		: (params: string[]) => `function${_}(${params.join(`,${_}`)})${_}`;
+
 	return {
 		_,
+		getFunctionIntro,
 		n,
 		renderDirectReturnIife: arrowFunctions
 			? (
@@ -39,9 +46,7 @@ export function getGenerateCodeSnippets(
 			  ) => {
 					code.prependRight(
 						argStart,
-						`(${
-							params.length === 1 ? params[0] : `(${params.join(`,${_}`)})`
-						}${_}=>${_}${wrapIfNeeded(returned, needsArrowReturnParens)})(`
+						`(${getFunctionIntro(params)}${wrapIfNeeded(returned, needsArrowReturnParens)})(`
 					);
 					code.appendLeft(argEnd, ')');
 			  }
@@ -55,7 +60,7 @@ export function getGenerateCodeSnippets(
 			  ) => {
 					code.prependRight(
 						argStart,
-						`function${_}(${params.join(`,${_}`)})${_}{${_}return ${returned}${s}${_}}(`
+						`${getFunctionIntro(params)}{${_}return ${returned}${s}${_}}(`
 					);
 					code.appendLeft(argEnd, ')');
 					if (needsWrappedFunction) {

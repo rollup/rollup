@@ -31,4 +31,4 @@ var iife = (function (exports, externalPackage) {
 
 	return exports;
 
-}({}, externalPackage));
+})({}, externalPackage);

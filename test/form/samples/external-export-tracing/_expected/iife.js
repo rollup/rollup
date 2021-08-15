@@ -14,4 +14,4 @@ var myBundle = (function (exports, external) {
 
 	return exports;
 
-}({}, external));
+})({}, external);

@@ -7,4 +7,4 @@ this.foo.bar.baz = (function () {
 
 	return main;
 
-}());
+})();

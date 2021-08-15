@@ -19,4 +19,4 @@
 	// outside a function, `this` is undefined
 	assert.strictEqual( undefined, undefined );
 
-}());
+})();

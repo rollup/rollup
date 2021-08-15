@@ -33,4 +33,4 @@
 	console.log( alphabet.a );
 	console.log( alphabet__default['default'].length );
 
-}(factory, baz, containers, alphabet));
+})(factory, baz, containers, alphabet);

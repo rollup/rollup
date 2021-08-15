@@ -16,4 +16,4 @@ var bundle = (function (exports, myExternal) {
 
 	return exports;
 
-}({}, myExternal));
+})({}, myExternal);

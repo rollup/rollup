@@ -52,4 +52,4 @@ var bundle = (function (external) {
 
 	return exports['default'];
 
-}(external));
+})(external);

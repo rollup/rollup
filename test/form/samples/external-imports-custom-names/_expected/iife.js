@@ -9,4 +9,4 @@
 		$__default['default']( 'body' ).html( '<h1>hello world!</h1>' );
 	});
 
-}(jQuery));
+})(jQuery);

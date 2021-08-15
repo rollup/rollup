@@ -3,4 +3,4 @@ function foo () {
 	console.log( x__default['default'] );
 }
 // trailing comment
-return foo;}(x));
+return foo;})(x);

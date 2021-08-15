@@ -32,4 +32,4 @@ var foo = (function (a) {
 
 	// outro 4
 
-}(a));
+})(a);

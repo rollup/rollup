@@ -17,4 +17,4 @@ const myBundle = (function (other) {
 
 	return main;
 
-}(other));
+})(other);

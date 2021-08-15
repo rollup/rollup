@@ -8,4 +8,4 @@
 	L__default['default'].terminator = function(options) {
 	};
 
-}(L));
+})(L);

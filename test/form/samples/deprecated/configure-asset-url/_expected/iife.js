@@ -9,4 +9,4 @@
 
 	console.log(asset1, asset2, asset3);
 
-}());
+})();

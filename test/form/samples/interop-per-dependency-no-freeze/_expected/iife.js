@@ -42,4 +42,4 @@
 	import('external-defaultOnly').then(console.log);
 	import('external-esModule').then(console.log);
 
-}(externalauto, externaldefault, externaldefaultOnly, externalesModule));
+})(externalauto, externaldefault, externaldefaultOnly, externalesModule);

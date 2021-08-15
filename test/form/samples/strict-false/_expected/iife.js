@@ -10,4 +10,4 @@
         Function("g", "globalVariable = g")(localVariable);
     }
 
-}());
+})();

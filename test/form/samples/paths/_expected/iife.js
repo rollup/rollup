@@ -7,4 +7,4 @@
 
 	assert.equal( foo__default['default'], 42 );
 
-}(foo));
+})(foo);

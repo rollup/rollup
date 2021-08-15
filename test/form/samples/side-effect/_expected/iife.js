@@ -5,4 +5,4 @@
 
 	assert.equal( foo, 42 );
 
-}());
+})();

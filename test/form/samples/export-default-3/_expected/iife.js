@@ -5,4 +5,4 @@ var myBundle = (function () {
 
 	return bar;
 
-}());
+})();

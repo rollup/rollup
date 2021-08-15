@@ -12,4 +12,4 @@
 
 	assert.equal( foo.value, 2 );
 
-}());
+})();

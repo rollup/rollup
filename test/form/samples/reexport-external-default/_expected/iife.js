@@ -9,4 +9,4 @@ var bundle = (function (external1, external2) {
 
 	return external2__default['default'];
 
-}(external1, external2));
+})(external1, external2);

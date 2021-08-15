@@ -7,4 +7,4 @@ this.my.global.namespace = (function () {
 
 	return main;
 
-}());
+})();

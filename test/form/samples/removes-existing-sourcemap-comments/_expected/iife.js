@@ -11,4 +11,4 @@
 
 	console.log( foo(str) );
 
-}());
+})();

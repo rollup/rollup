@@ -7,4 +7,4 @@ function foo () {
 
 return foo;
 
-}());
+})();

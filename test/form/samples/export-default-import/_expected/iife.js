@@ -18,4 +18,4 @@ var myBundle = (function (exports, x) {
 
 	return exports;
 
-}({}, x));
+})({}, x);

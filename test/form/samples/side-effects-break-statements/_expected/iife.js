@@ -26,4 +26,4 @@
 		break;
 	} while ( true );
 
-}());
+})();

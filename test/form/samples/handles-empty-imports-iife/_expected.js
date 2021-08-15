@@ -4,4 +4,4 @@
 	dns.resolve('name');
 	fs.writeFileSync('foo', 'bar');
 
-}(dns, util, fs));
+})(dns, util, fs);

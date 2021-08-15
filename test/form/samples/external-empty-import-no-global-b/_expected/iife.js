@@ -7,4 +7,4 @@ var myBundle = (function (babelPolyfill, other) {
 
 	return main;
 
-}(null, other));
+})(null, other);

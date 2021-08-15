@@ -7,4 +7,4 @@ var bundle = (function () {
 
 	return value;
 
-}());
+})();

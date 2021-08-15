@@ -1,4 +1,4 @@
-var bundle = (function (exports) {
+var bundle = (exports => {
 	'use strict';
 
 	exports.a = void 0;
@@ -10,4 +10,4 @@ var bundle = (function (exports) {
 
 	return exports;
 
-}({}));
+})({});

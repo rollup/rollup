@@ -4,4 +4,4 @@
 	import(external.join('a', 'b'));
 	console.log(external.join);
 
-}(external));
+})(external);

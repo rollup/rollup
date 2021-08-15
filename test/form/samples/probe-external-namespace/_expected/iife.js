@@ -25,4 +25,4 @@
 
 	console.log(external__namespace.default, external__namespace.foo);
 
-}(external));
+})(external);

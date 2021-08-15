@@ -69,4 +69,4 @@ var bundle = (function (exports, externalAuto, externalDefault, externalDefaultO
 
 	return exports;
 
-}({}, externalauto, externaldefault, externaldefaultOnly, externalesModule));
+})({}, externalauto, externaldefault, externaldefaultOnly, externalesModule);

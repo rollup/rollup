@@ -30,4 +30,4 @@
 
 	console.log( foo__default['default'] );
 
-}(foo));
+})(foo);

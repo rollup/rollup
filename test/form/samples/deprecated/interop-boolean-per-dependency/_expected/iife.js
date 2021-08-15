@@ -32,4 +32,4 @@
 	import('external-false').then(console.log);
 	import('external-true').then(console.log);
 
-}(externalfalse, externaltrue));
+})(externalfalse, externaltrue);

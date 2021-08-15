@@ -11,4 +11,4 @@
 
 	log((document.currentScript && document.currentScript.src || new URL('iife.js', document.baseURI).href));
 
-}());
+})();

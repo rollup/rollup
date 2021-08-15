@@ -27,4 +27,4 @@
 	console.log(foo.blah);
 	console.log(foo.bar);
 
-}(foo));
+})(foo);

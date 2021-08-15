@@ -18,4 +18,4 @@
 	assert.equal( c, '1\n  2' );
 	assert.equal( d, '1\n\t2' );
 
-}());
+})();

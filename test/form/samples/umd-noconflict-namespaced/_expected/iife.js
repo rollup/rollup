@@ -20,4 +20,4 @@ this.my.name.spaced.module = (function (exports) {
 
 	return exports;
 
-}({}));
+})({});

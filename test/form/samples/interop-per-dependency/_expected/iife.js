@@ -44,4 +44,4 @@
 	import(globalThis.external1).then(console.log);
 	import(globalThis.external2).then(console.log);
 
-}(externalauto, externaldefault, externaldefaultOnly, externalesModule));
+})(externalauto, externaldefault, externaldefaultOnly, externalesModule);

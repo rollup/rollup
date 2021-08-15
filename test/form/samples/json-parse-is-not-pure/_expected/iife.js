@@ -12,4 +12,4 @@ var myBundle = (function () {
 
 	return main;
 
-}());
+})();

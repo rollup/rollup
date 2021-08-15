@@ -55,4 +55,4 @@
 	importedUsedFunction();
 	usedNamedFunction();
 
-}());
+})();

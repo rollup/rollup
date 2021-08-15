@@ -7,4 +7,4 @@
 
   assert.equal( foo(), 'foo' );
 
-}());
+})();
