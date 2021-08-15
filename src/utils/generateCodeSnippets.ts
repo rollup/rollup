@@ -1,12 +1,16 @@
 import MagicString from 'magic-string';
 import { NormalizedOutputOptions } from '../rollup/types';
+import { RESERVED_NAMES } from './reservedNames';
 
 export interface GenerateCodeSnippets {
 	_: string;
 	n: string;
 	s: string;
 	getFunctionIntro(params: string[], isAsync?: boolean): string;
-	getObject(fields: [key: string, value: string][]): string;
+	getObject(
+		fields: [key: string | null, value: string][],
+		options: { indent: string; lineBreaks: boolean }
+	): string;
 	renderDirectReturnIife(
 		params: string[],
 		returned: string,
@@ -37,10 +41,18 @@ export function getGenerateCodeSnippets({
 	return {
 		_,
 		getFunctionIntro,
-		getObject: fields =>
-			`{${_}${fields
-				.map(([key, value]) => (objectShorthand && key === value ? key : `${key}:${_}${value}`))
-				.join(`,${_}`)}${_}}`,
+		getObject(fields, { indent, lineBreaks }) {
+			const prefix = `${lineBreaks ? n : ''}${indent}`;
+			return `{${fields
+				.map(([key, value]) => {
+					if (key === null) return `${prefix}${value}`;
+					const needsQuotes = RESERVED_NAMES[key];
+					return key === value && objectShorthand && !needsQuotes
+						? prefix + key
+						: `${prefix}${needsQuotes ? `'${key}'` : key}:${_}${value}`;
+				})
+				.join(`,`)}${lineBreaks ? n : indent}}`;
+		},
 		n,
 		renderDirectReturnIife: arrowFunctions
 			? (params, returned, code, argStart, argEnd, { needsArrowReturnParens }) => {

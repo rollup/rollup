@@ -1,6 +1,5 @@
 import Module, { AstContext } from '../../Module';
 import { RenderOptions } from '../../utils/renderHelpers';
-import { RESERVED_NAMES } from '../../utils/reservedNames';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
 import Identifier from '../nodes/Identifier';
 import Variable from './Variable';
@@ -69,29 +68,29 @@ export default class NamespaceVariable extends Variable {
 			freeze,
 			indent: t,
 			namespaceToStringTag,
-			snippets: { _, n, s },
+			snippets: { _, getObject, n, s },
 			varOrConst
 		} = options;
 
 		const memberVariables = this.getMemberVariables();
-		const members = Object.entries(memberVariables).map(([name, original]) => {
-			if (this.referencedEarly || original.isReassigned) {
-				return `${t}get ${name}${_}()${_}{${_}return ${original.getName()}${s}${_}}`;
+		const members: [key: string | null, value: string][] = Object.entries(memberVariables).map(
+			([name, original]) => {
+				if (this.referencedEarly || original.isReassigned) {
+					return [null, `get ${name}${_}()${_}{${_}return ${original.getName()}${s}${_}}`];
+				}
+
+				return [name, original.getName()];
 			}
-
-			const safeName = RESERVED_NAMES[name] ? `'${name}'` : name;
-
-			return `${t}${safeName}: ${original.getName()}`;
-		});
+		);
 
 		if (namespaceToStringTag) {
-			members.unshift(`${t}[Symbol.toStringTag]:${_}'Module'`);
+			members.unshift([null, `[Symbol.toStringTag]:${_}'Module'`]);
 		}
 
 		const needsObjectAssign = this.mergedNamespaces.length > 0 || this.syntheticNamedExports;
-		if (!needsObjectAssign) members.unshift(`${t}__proto__:${_}null`);
+		if (!needsObjectAssign) members.unshift([null, `__proto__:${_}null`]);
 
-		let output = `{${n}${members.join(`,${n}`)}${n}}`;
+		let output = getObject(members, { indent: t, lineBreaks: true });
 		if (needsObjectAssign) {
 			const assignmentArgs: string[] = ['/*#__PURE__*/Object.create(null)'];
 			if (this.mergedNamespaces.length > 0) {
@@ -103,7 +102,7 @@ export default class NamespaceVariable extends Variable {
 			if (members.length > 0) {
 				assignmentArgs.push(output);
 			}
-			// TODO Lukas Object.assign is not really ES5? Also, can we just spread instead? Search for other usages?
+			// TODO Lukas Object.assign is not really ES5? Also, can we just spread instead?
 			output = `/*#__PURE__*/Object.assign(${assignmentArgs.join(`,${_}`)})`;
 		}
 		if (freeze) {

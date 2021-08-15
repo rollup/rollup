@@ -20,7 +20,7 @@ export function getSystemExportStatement(
 				fields.push([exportName, variable.getName() + modifier]);
 			}
 		}
-		return `exports(${getObject(fields)})`;
+		return `exports(${getObject(fields, { indent: _, lineBreaks: false })})`;
 	}
 }
 

@@ -3,7 +3,18 @@ System.register('bundle', [], (function (exports) {
 	return {
 		execute: (function () {
 
-			const foo = 1; exports({ foo, bar: foo });
+			const a = 'a';
+
+			var ns = /*#__PURE__*/Object.freeze({
+				__proto__: null,
+				a,
+				b: a,
+				'default': a
+			});
+
+			console.log(ns);
+
+			const foo = 1; exports({ foo, bar: foo, 'default': foo });
 
 		})
 	};

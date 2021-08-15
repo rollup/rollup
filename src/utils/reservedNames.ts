@@ -3,6 +3,7 @@ export interface NameCollection {
 	__proto__: null;
 }
 
+// TODO Lukas these are allowed as object properties in ES6
 export const RESERVED_NAMES: NameCollection = {
 	__proto__: null,
 	await: true,

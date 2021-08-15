@@ -1,3 +1,5 @@
-const foo = 1;
+import * as ns from './other.js';
+console.log(ns);
 
-export { foo, foo as bar };
+const foo = 1;
+export { foo, foo as bar, foo as default };
