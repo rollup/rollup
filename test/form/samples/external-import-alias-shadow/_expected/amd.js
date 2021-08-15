@@ -1,4 +1,4 @@
-define(['acorn'], function (acorn) { 'use strict';
+define(['acorn'], (function (acorn) { 'use strict';
 
 	function parse(source) {
 		return acorn.parse(source, { ecmaVersion: 6 });
@@ -6,4 +6,4 @@ define(['acorn'], function (acorn) { 'use strict';
 
 	console.log(parse('foo'));
 
-});
+}));

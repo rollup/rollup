@@ -1,12 +1,12 @@
-System.register(['./shared.js'], function () {
+System.register(['./shared.js'], (function () {
 	'use strict';
 	var size, color;
 	return {
-		setters: [function (module) {
+		setters: [(function (module) {
 			size = module.s;
 			color = module.c;
-		}],
-		execute: function () {
+		})],
+		execute: (function () {
 
 			registerPaint(
 				'vertical-lines',
@@ -22,6 +22,6 @@ System.register(['./shared.js'], function () {
 				}
 			);
 
-		}
+		})
 	};
-});
+}));

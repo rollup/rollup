@@ -1,4 +1,4 @@
-define(['external', './other', './_virtual/other.js_commonjs-exports'], function (require$$0, other$1, other) { 'use strict';
+define(['external', './other', './_virtual/other.js_commonjs-exports'], (function (require$$0, other$1, other) { 'use strict';
 
 	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -13,4 +13,4 @@ define(['external', './other', './_virtual/other.js_commonjs-exports'], function
 
 	return commonjs;
 
-});
+}));

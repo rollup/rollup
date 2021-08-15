@@ -1,4 +1,4 @@
-define(['exports'], function (exports) { 'use strict';
+define(['exports'], (function (exports) { 'use strict';
 
   class One {
     test() {
@@ -11,4 +11,4 @@ define(['exports'], function (exports) { 'use strict';
   exports.ONE_CONSTANT = ONE_CONSTANT;
   exports.One = One;
 
-});
+}));

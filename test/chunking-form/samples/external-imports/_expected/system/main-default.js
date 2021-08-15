@@ -1,20 +1,20 @@
-System.register(['external-all', 'external-default', 'external-default-named', 'external-default-namespace'], function () {
+System.register(['external-all', 'external-default', 'external-default-named', 'external-default-namespace'], (function () {
 	'use strict';
 	var foo__default, bar, baz, quux__default;
 	return {
-		setters: [function (module) {
+		setters: [(function (module) {
 			foo__default = module.default;
-		}, function (module) {
+		}), (function (module) {
 			bar = module.default;
-		}, function (module) {
+		}), (function (module) {
 			baz = module.default;
-		}, function (module) {
+		}), (function (module) {
 			quux__default = module.default;
-		}],
-		execute: function () {
+		})],
+		execute: (function () {
 
 			console.log(foo__default, bar, baz, quux__default);
 
-		}
+		})
 	};
-});
+}));

@@ -1,4 +1,4 @@
-define(['exports'], function (exports) { 'use strict';
+define(['exports'], (function (exports) { 'use strict';
 
   class C$1 {
     fn (num) {
@@ -23,4 +23,4 @@ define(['exports'], function (exports) { 'use strict';
   exports.p = p$1;
   exports.p$1 = p;
 
-});
+}));

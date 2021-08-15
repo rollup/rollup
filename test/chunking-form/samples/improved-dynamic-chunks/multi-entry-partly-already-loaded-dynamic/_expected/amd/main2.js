@@ -1,4 +1,4 @@
-define(['require', 'exports', './generated-dep2'], function (require, exports, dep2) { 'use strict';
+define(['require', 'exports', './generated-dep2'], (function (require, exports, dep2) { 'use strict';
 
 	console.log('main2', dep2.value2);
 	new Promise(function (resolve, reject) { require(['./generated-dynamic2'], resolve, reject) });
@@ -7,4 +7,4 @@ define(['require', 'exports', './generated-dep2'], function (require, exports, d
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

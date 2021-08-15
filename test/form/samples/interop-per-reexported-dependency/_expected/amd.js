@@ -1,4 +1,4 @@
-define(['exports', 'external-auto', 'external-default', 'external-defaultOnly', 'external-esModule'], function (exports, externalAuto, externalDefault, externalDefaultOnly, externalEsModule) { 'use strict';
+define(['exports', 'external-auto', 'external-default', 'external-defaultOnly', 'external-esModule'], (function (exports, externalAuto, externalDefault, externalDefaultOnly, externalEsModule) { 'use strict';
 
 	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
@@ -66,4 +66,4 @@ define(['exports', 'external-auto', 'external-default', 'external-defaultOnly', 
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

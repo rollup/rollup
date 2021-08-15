@@ -1,15 +1,15 @@
-System.register(['./generated-dep.js'], function () {
+System.register(['./generated-dep.js'], (function () {
 	'use strict';
 	var value, x;
 	return {
-		setters: [function (module) {
+		setters: [(function (module) {
 			value = module.v;
 			x = module.x;
-		}],
-		execute: function () {
+		})],
+		execute: (function () {
 
 			[43].map(dep => console.log(dep, value, x));
 
-		}
+		})
 	};
-});
+}));

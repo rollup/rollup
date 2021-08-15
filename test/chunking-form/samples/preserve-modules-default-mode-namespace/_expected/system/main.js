@@ -1,16 +1,16 @@
-System.register(['./lib.js'], function (exports, module) {
+System.register(['./lib.js'], (function (exports, module) {
 	'use strict';
 	var lib;
 	return {
-		setters: [function (module) {
+		setters: [(function (module) {
 			lib = module;
 			exports('lib', module);
-		}],
-		execute: function () {
+		})],
+		execute: (function () {
 
 			console.log(lib);
 			module.import('./lib.js').then(console.log);
 
-		}
+		})
 	};
-});
+}));

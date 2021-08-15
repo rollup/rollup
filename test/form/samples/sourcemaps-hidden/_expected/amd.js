@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	function foo () {
 		console.log( 'hello from foo.js' );
@@ -13,4 +13,4 @@ define(function () { 'use strict';
 	foo();
 	bar();
 
-});
+}));

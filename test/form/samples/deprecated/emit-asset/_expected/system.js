@@ -1,7 +1,7 @@
-System.register([], function (exports, module) {
+System.register([], (function (exports, module) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			var logo = new URL('assets/logo-25585ac1.svg', module.meta.url).href;
 
@@ -16,6 +16,6 @@ System.register([], function (exports, module) {
 
 			showImage(logo);
 
-		}
+		})
 	};
-});
+}));

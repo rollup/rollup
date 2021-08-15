@@ -85,7 +85,6 @@ const getSyntheticExportsBlock = (exports: ChunkExports, _: string, t: string, n
 		n
 	);
 
-// TODO Lukas wrap factory
 export default function system(
 	magicString: MagicStringBundle,
 	{
@@ -102,7 +101,7 @@ export default function system(
 	}: FinaliserOptions,
 	options: NormalizedOutputOptions
 ): Bundle {
-	const { _, getFunctionIntro, n } = snippets;
+	const { _, getFunctionIntro, n, s } = snippets;
 
 	const dependencyIds = dependencies.map(m => `'${m.id}'`);
 
@@ -177,18 +176,20 @@ export default function system(
 		? ['exports']
 		: [];
 
+	// factory function should be wrapped by parentheses to avoid lazy parsing,
+	// cf. https://v8.dev/blog/preparser#pife
 	let wrapperStart =
 		`System.register(${registeredName}[` +
 		dependencyIds.join(`,${_}`) +
-		`],${_}${getFunctionIntro(wrapperParams)}{${n}${t}${options.strict ? "'use strict';" : ''}` +
+		`],${_}(${getFunctionIntro(wrapperParams)}{${n}${t}${options.strict ? "'use strict';" : ''}` +
 		getStarExcludesBlock(starExcludes, varOrConst, _, t, n) +
 		getImportBindingsBlock(importBindings, _, t, n) +
 		`${n}${t}return${_}{${
 			setters.length
 				? `${n}${t}${t}setters:${_}[${setters
-						.map(s =>
-							s
-								? `${getFunctionIntro(['module'])}{${n}${t}${t}${t}${s}${n}${t}${t}}`
+						.map(setter =>
+							setter
+								? `(${getFunctionIntro(['module'])}{${n}${t}${t}${t}${setter}${n}${t}${t}})`
 								: options.systemNullSetters
 								? `null`
 								: `function${_}()${_}{}`
@@ -197,14 +198,14 @@ export default function system(
 				: ''
 		}${n}`;
 	wrapperStart +=
-		`${t}${t}execute:${_}${getFunctionIntro([], usesTopLevelAwait)}{${n}${n}` +
+		`${t}${t}execute:${_}(${getFunctionIntro([], usesTopLevelAwait)}{${n}${n}` +
 		getHoistedExportsBlock(exports, _, t, n);
 
 	const wrapperEnd =
 		`${n}${n}` +
 		getSyntheticExportsBlock(exports, _, t, n) +
 		getMissingExportsBlock(exports, _, t, n) +
-		`${t}${t}}${n}${t}}${options.compact ? '' : ';'}${n}});`;
+		`${t}${t}})${n}${t}}${s}${n}}));`;
 
 	if (intro) magicString.prepend(intro);
 	if (outro) magicString.append(outro);

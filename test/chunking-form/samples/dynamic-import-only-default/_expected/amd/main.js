@@ -1,4 +1,4 @@
-define(['require'], function (require) { 'use strict';
+define(['require'], (function (require) { 'use strict';
 
 	function _interopNamespaceDefaultOnly(e) {
 		return Object.freeze({__proto__: null, 'default': e});
@@ -8,4 +8,4 @@ define(['require'], function (require) { 'use strict';
 
 	return main;
 
-});
+}));

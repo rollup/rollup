@@ -1,7 +1,7 @@
-System.register([], function (exports, module) {
+System.register([], (function (exports, module) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			const asset$1 = 'resolved';
 			const chunk$1 = 'resolved';
@@ -11,6 +11,6 @@ System.register([], function (exports, module) {
 
 			module.import('./nested/chunk2.js').then(result => console.log(result, chunk$1, chunk, asset$1, asset));
 
-		}
+		})
 	};
-});
+}));

@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	var effect = function() {
 		console.log('effect');
@@ -7,4 +7,4 @@ define(function () { 'use strict';
 	var alsoEffect = effect;
 	alsoEffect();
 
-});
+}));

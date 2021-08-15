@@ -1,11 +1,11 @@
-System.register(['./generated-emptyTransformed.js'], function () {
+System.register(['./generated-emptyTransformed.js'], (function () {
 	'use strict';
 	return {
 		setters: [function () {}],
-		execute: function () {
+		execute: (function () {
 
 			console.log('main2');
 
-		}
+		})
 	};
-});
+}));

@@ -1,7 +1,7 @@
-System.register([], function (exports) {
+System.register([], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			var synthetic = {
 				foo: 'synthetic-foo',
@@ -27,6 +27,6 @@ System.register([], function (exports) {
 			}));
 			exports('dep', dep$1);
 
-		}
+		})
 	};
-});
+}));

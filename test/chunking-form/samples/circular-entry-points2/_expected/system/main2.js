@@ -1,7 +1,7 @@
-System.register([], function (exports) {
+System.register([], (function (exports) {
   'use strict';
   return {
-    execute: function () {
+    execute: (function () {
 
       class C$1 {
         fn (num) {
@@ -23,6 +23,6 @@ System.register([], function (exports) {
 
       new C().fn(p);
 
-    }
+    })
   };
-});
+}));

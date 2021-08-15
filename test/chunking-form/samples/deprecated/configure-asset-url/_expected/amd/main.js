@@ -1,4 +1,4 @@
-define(['require'], function (require) { 'use strict';
+define(['require'], (function (require) { 'use strict';
 
 	var asset2 = 'resolved';
 
@@ -6,4 +6,4 @@ define(['require'], function (require) { 'use strict';
 
 	new Promise(function (resolve, reject) { require(['./nested/chunk'], resolve, reject) }).then(result => console.log(result, asset2, asset3));
 
-});
+}));

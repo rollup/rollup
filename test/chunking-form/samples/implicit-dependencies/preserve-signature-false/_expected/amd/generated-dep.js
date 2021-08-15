@@ -1,4 +1,4 @@
-define(['require', 'exports'], function (require, exports) { 'use strict';
+define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	const value = 42;
 
@@ -7,4 +7,4 @@ define(['require', 'exports'], function (require, exports) { 'use strict';
 
 	exports.value = value;
 
-});
+}));

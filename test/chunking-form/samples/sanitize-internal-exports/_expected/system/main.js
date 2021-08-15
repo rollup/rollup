@@ -1,7 +1,7 @@
-System.register([], function (exports, module) {
+System.register([], (function (exports, module) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			var v1,
 				v2,
@@ -278,6 +278,6 @@ System.register([], function (exports, module) {
 
 			const lazy = exports('lazy', module.import('./generated-lazy.js'));
 
-		}
+		})
 	};
-});
+}));

@@ -1,7 +1,7 @@
-System.register([], function () {
+System.register([], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			const hs = document.documentElement.style;
 
@@ -9,6 +9,6 @@ System.register([], function () {
 				hs.color = "#222";
 			}
 
-		}
+		})
 	};
-});
+}));

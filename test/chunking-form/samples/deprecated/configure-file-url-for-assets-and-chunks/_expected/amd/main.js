@@ -1,4 +1,4 @@
-define(['require'], function (require) { 'use strict';
+define(['require'], (function (require) { 'use strict';
 
 	const asset$1 = 'resolved';
 	const chunk$1 = 'resolved';
@@ -8,4 +8,4 @@ define(['require'], function (require) { 'use strict';
 
 	new Promise(function (resolve, reject) { require(['./nested/chunk2'], resolve, reject) }).then(result => console.log(result, chunk$1, chunk, asset$1, asset));
 
-});
+}));

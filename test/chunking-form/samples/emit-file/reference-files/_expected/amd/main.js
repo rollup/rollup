@@ -1,4 +1,4 @@
-define(['require', 'exports'], function (require, exports) { 'use strict';
+define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	var logo = new URL(require.toUrl('./assets/logo1-a5ec488b.svg'), document.baseURI).href;
 
@@ -18,4 +18,4 @@ define(['require', 'exports'], function (require, exports) { 'use strict';
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

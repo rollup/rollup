@@ -1,4 +1,4 @@
-define(['external-all', 'external-default', 'external-default-named', 'external-default-namespace'], function (foo, bar, baz, quux) { 'use strict';
+define(['external-all', 'external-default', 'external-default-named', 'external-default-namespace'], (function (foo, bar, baz, quux) { 'use strict';
 
 	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -9,4 +9,4 @@ define(['external-all', 'external-default', 'external-default-named', 'external-
 
 	console.log(foo__default['default'], bar__default['default'], baz__default['default'], quux__default['default']);
 
-});
+}));

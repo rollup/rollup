@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	console.log('dep');
 	const dep = 'dep';
@@ -7,4 +7,4 @@ define(function () { 'use strict';
 
 	console.log('main2', dep);
 
-});
+}));

@@ -1,7 +1,7 @@
-System.register([], function (exports) {
+System.register([], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			// ---
 			// Single export name
@@ -59,6 +59,6 @@ System.register([], function (exports) {
 			console.log((++bar, exports({ bar: bar, bar2: bar }), bar));
 			--bar, exports({ bar: bar, bar2: bar }), bar;
 
-		}
+		})
 	};
-});
+}));

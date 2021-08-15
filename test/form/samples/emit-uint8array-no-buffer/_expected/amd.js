@@ -1,4 +1,4 @@
-define(['require'], function (require) { 'use strict';
+define(['require'], (function (require) { 'use strict';
 
 	var asset1a = new URL(require.toUrl('./assets/asset-dc5cb674'), document.baseURI).href;
 
@@ -12,4 +12,4 @@ define(['require'], function (require) { 'use strict';
 
 	console.log(asset1a, asset1b, asset2a, asset2b, asset99a);
 
-});
+}));

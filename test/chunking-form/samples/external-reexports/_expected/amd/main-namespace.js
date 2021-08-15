@@ -1,4 +1,4 @@
-define(['exports', 'external-all', 'external-namespace', 'external-default-namespace', 'external-named-namespace'], function (exports, externalAll, externalNamespace$1, externalDefaultNamespace, externalNamedNamespace) { 'use strict';
+define(['exports', 'external-all', 'external-namespace', 'external-default-namespace', 'external-named-namespace'], (function (exports, externalAll, externalNamespace$1, externalDefaultNamespace, externalNamedNamespace) { 'use strict';
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -36,4 +36,4 @@ define(['exports', 'external-all', 'external-namespace', 'external-default-names
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

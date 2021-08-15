@@ -1,14 +1,14 @@
-System.register(['./two.js'], function () {
+System.register(['./two.js'], (function () {
 	'use strict';
 	var a;
 	return {
-		setters: [function (module) {
+		setters: [(function (module) {
 			a = module.default;
-		}],
-		execute: function () {
+		})],
+		execute: (function () {
 
 			window.APP = { a };
 
-		}
+		})
 	};
-});
+}));

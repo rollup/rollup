@@ -1,5 +1,5 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	lolwut.prop = '???';
 
-});
+}));

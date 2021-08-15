@@ -1,4 +1,4 @@
-define(['module', 'require', 'external'], function (module, require, external) { 'use strict';
+define(['module', 'require', 'external'], (function (module, require, external) { 'use strict';
 
 	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -71,4 +71,4 @@ define(['module', 'require', 'external'], function (module, require, external) {
 
 	return exports['default'];
 
-});
+}));

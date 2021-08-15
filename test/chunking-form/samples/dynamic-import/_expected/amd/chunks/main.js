@@ -1,4 +1,4 @@
-define(['require', 'exports'], function (require, exports) { 'use strict';
+define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	const sharedValue = 'shared';
 
@@ -11,4 +11,4 @@ define(['require', 'exports'], function (require, exports) { 'use strict';
 	exports.promise = promise;
 	exports.sharedValue = sharedValue;
 
-});
+}));

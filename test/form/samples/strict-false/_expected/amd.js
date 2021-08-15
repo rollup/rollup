@@ -1,4 +1,4 @@
-define(function () {
+define((function () {
 
     const localVariable = 'local';
 
@@ -10,4 +10,4 @@ define(function () {
         Function("g", "globalVariable = g")(localVariable);
     }
 
-});
+}));

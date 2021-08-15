@@ -1,5 +1,5 @@
-define(['./generated-shared'], function (shared) { 'use strict';
+define(['./generated-shared'], (function (shared) { 'use strict';
 
 	console.log('main1');
 
-});
+}));

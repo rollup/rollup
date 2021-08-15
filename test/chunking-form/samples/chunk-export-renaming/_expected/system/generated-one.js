@@ -1,7 +1,7 @@
-System.register([], function (exports) {
+System.register([], (function (exports) {
   'use strict';
   return {
-    execute: function () {
+    execute: (function () {
 
       class One {
         test() {
@@ -11,6 +11,6 @@ System.register([], function (exports) {
 
       const ONE_CONSTANT = exports('a', 'oneconstant');
 
-    }
+    })
   };
-});
+}));

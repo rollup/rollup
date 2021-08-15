@@ -1,4 +1,4 @@
-define(['factory', 'baz', 'shipping-port', 'alphabet'], function (factory, baz, containers, alphabet) { 'use strict';
+define(['factory', 'baz', 'shipping-port', 'alphabet'], (function (factory, baz, containers, alphabet) { 'use strict';
 
 	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -32,4 +32,4 @@ define(['factory', 'baz', 'shipping-port', 'alphabet'], function (factory, baz, 
 	console.log( alphabet.a );
 	console.log( alphabet__default['default'].length );
 
-});
+}));

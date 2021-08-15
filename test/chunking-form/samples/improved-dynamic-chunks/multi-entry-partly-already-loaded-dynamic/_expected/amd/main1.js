@@ -1,4 +1,4 @@
-define(['require', 'exports', './generated-dep2'], function (require, exports, dep2) { 'use strict';
+define(['require', 'exports', './generated-dep2'], (function (require, exports, dep2) { 'use strict';
 
 	const value1 = 'shared1';
 
@@ -10,4 +10,4 @@ define(['require', 'exports', './generated-dep2'], function (require, exports, d
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

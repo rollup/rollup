@@ -1,7 +1,7 @@
-System.register([], function () {
+System.register([], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			function fn () {
 				return Math.random() < 0.5 ? foo : bar;
@@ -17,6 +17,6 @@ System.register([], function () {
 
 			fn()();
 
-		}
+		})
 	};
-});
+}));

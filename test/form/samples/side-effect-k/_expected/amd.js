@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	function augment ( x ) {
 		var prop, source;
@@ -25,4 +25,4 @@ define(function () { 'use strict';
 
 	return x;
 
-});
+}));

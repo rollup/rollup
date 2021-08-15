@@ -1,11 +1,11 @@
-System.register(['external'], function () {
+System.register(['external'], (function () {
 	'use strict';
 	return {
 		setters: [function () {}],
-		execute: function () {
+		execute: (function () {
 
 			console.log('dep');
 
-		}
+		})
 	};
-});
+}));

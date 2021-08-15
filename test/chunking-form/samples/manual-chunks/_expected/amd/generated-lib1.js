@@ -1,4 +1,4 @@
-define(['exports'], function (exports) { 'use strict';
+define(['exports'], (function (exports) { 'use strict';
 
   function fn () {
     console.log('lib1 fn');
@@ -6,4 +6,4 @@ define(['exports'], function (exports) { 'use strict';
 
   exports.fn = fn;
 
-});
+}));

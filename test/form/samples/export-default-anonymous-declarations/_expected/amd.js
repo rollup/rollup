@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
   // jsjjjsjjjjsjs
 
@@ -87,4 +87,4 @@ define(function () { 'use strict';
   spacelessFn();
   spacelessGenerator();
 
-});
+}));

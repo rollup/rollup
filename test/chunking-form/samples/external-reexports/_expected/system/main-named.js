@@ -1,19 +1,19 @@
-System.register(['external-all', 'external-named', 'external-default-named', 'external-named-namespace'], function (exports) {
+System.register(['external-all', 'external-named', 'external-default-named', 'external-named-namespace'], (function (exports) {
 	'use strict';
 	return {
-		setters: [function (module) {
+		setters: [(function (module) {
 			exports('foo', module.foo);
-		}, function (module) {
+		}), (function (module) {
 			exports('bar', module.bar);
-		}, function (module) {
+		}), (function (module) {
 			exports('baz', module.baz);
-		}, function (module) {
+		}), (function (module) {
 			exports('quux', module.quux);
-		}],
-		execute: function () {
+		})],
+		execute: (function () {
 
 
 
-		}
+		})
 	};
-});
+}));

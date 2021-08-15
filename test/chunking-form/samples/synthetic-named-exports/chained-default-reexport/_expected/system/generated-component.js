@@ -1,11 +1,11 @@
-System.register(['./generated-main.js'], function (exports) {
+System.register(['./generated-main.js'], (function (exports) {
 	'use strict';
 	var lib;
 	return {
-		setters: [function (module) {
+		setters: [(function (module) {
 			lib = module.l;
-		}],
-		execute: function () {
+		})],
+		execute: (function () {
 
 			var component = { lib, lib2: lib.named, lib3: lib.named.named };
 
@@ -14,6 +14,6 @@ System.register(['./generated-main.js'], function (exports) {
 			}));
 			exports('c', component$1);
 
-		}
+		})
 	};
-});
+}));

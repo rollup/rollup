@@ -1,18 +1,18 @@
-System.register(['./generated-name.js', './generated-secondName.js', './generated-name2.js'], function () {
+System.register(['./generated-name.js', './generated-secondName.js', './generated-name2.js'], (function () {
 	'use strict';
 	var value1, value2, value3;
 	return {
-		setters: [function (module) {
+		setters: [(function (module) {
 			value1 = module.default;
-		}, function (module) {
+		}), (function (module) {
 			value2 = module.default;
-		}, function (module) {
+		}), (function (module) {
 			value3 = module.default;
-		}],
-		execute: function () {
+		})],
+		execute: (function () {
 
 			console.log('main', value1, value2, value3);
 
-		}
+		})
 	};
-});
+}));

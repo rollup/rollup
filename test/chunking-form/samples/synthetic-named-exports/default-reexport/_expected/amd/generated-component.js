@@ -1,4 +1,4 @@
-define(['exports', './main'], function (exports, main) { 'use strict';
+define(['exports', './main'], (function (exports, main) { 'use strict';
 
 	var component = { lib: main.lib, someExport: main.lib.someExport };
 
@@ -8,4 +8,4 @@ define(['exports', './main'], function (exports, main) { 'use strict';
 
 	exports.component = component$1;
 
-});
+}));

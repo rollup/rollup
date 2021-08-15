@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	// parameters are associated correctly
 	const retained1 = function ( func, obj ) { return func( obj ); };
@@ -43,4 +43,4 @@ define(function () { 'use strict';
 
 	retained7( {}, {} );
 
-});
+}));

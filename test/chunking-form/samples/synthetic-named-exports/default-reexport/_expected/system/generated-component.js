@@ -1,11 +1,11 @@
-System.register(['./main.js'], function (exports) {
+System.register(['./main.js'], (function (exports) {
 	'use strict';
 	var lib;
 	return {
-		setters: [function (module) {
+		setters: [(function (module) {
 			lib = module.lib;
-		}],
-		execute: function () {
+		})],
+		execute: (function () {
 
 			var component = { lib, someExport: lib.someExport };
 
@@ -14,6 +14,6 @@ System.register(['./main.js'], function (exports) {
 			}));
 			exports('c', component$1);
 
-		}
+		})
 	};
-});
+}));

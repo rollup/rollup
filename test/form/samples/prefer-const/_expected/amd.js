@@ -1,4 +1,4 @@
-define(['other'], function (other) { 'use strict';
+define(['other'], (function (other) { 'use strict';
 
 	const a = 1;
 	const b = 2;
@@ -16,4 +16,4 @@ define(['other'], function (other) { 'use strict';
 
 	return main;
 
-});
+}));

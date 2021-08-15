@@ -1,7 +1,7 @@
-System.register('FooBar', [], function (exports) {
+System.register('FooBar', [], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			exports('doThings', doThings);
 
@@ -13,6 +13,6 @@ System.register('FooBar', [], function (exports) {
 
 			var setting = exports('setting', 'no');
 
-		}
+		})
 	};
-});
+}));

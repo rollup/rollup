@@ -1,15 +1,15 @@
-System.register(['./_virtual/other.js_commonjs-exports'], function (exports) {
+System.register(['./_virtual/other.js_commonjs-exports'], (function (exports) {
 	'use strict';
 	var other;
 	return {
-		setters: [function (module) {
+		setters: [(function (module) {
 			other = module.__exports;
 			exports('default', module.__exports);
-		}],
-		execute: function () {
+		})],
+		execute: (function () {
 
 			other.value = 43;
 
-		}
+		})
 	};
-});
+}));

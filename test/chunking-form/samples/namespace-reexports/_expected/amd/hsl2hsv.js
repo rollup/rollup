@@ -1,4 +1,4 @@
-define(['exports'], function (exports) { 'use strict';
+define(['exports'], (function (exports) { 'use strict';
 
   var hsl2hsv = (h, s, l) => {
     const t = s * (l < 0.5 ? 1 : 1 - l),
@@ -14,4 +14,4 @@ define(['exports'], function (exports) { 'use strict';
 
   Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

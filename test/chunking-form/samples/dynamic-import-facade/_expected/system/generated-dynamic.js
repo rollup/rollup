@@ -1,7 +1,7 @@
-System.register([], function (exports) {
+System.register([], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			console.log('dep');
 
@@ -16,6 +16,6 @@ System.register([], function (exports) {
 			});
 			exports('b', dynamic$1);
 
-		}
+		})
 	};
-});
+}));

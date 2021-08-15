@@ -1,10 +1,10 @@
-System.register('my.global.namespace', [], function (exports) {
+System.register('my.global.namespace', [], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			var main = exports('default', 42);
 
-		}
+		})
 	};
-});
+}));

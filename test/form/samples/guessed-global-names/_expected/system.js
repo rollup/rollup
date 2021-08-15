@@ -1,22 +1,22 @@
-System.register(['unchanged', 'changed', 'special-character', 'with/slash', './relative.js'], function () {
+System.register(['unchanged', 'changed', 'special-character', 'with/slash', './relative.js'], (function () {
 	'use strict';
 	var foo, changedName, bar, baz, quux;
 	return {
-		setters: [function (module) {
+		setters: [(function (module) {
 			foo = module.foo;
-		}, function (module) {
+		}), (function (module) {
 			changedName = module.default;
-		}, function (module) {
+		}), (function (module) {
 			bar = module.bar;
-		}, function (module) {
+		}), (function (module) {
 			baz = module.baz;
-		}, function (module) {
+		}), (function (module) {
 			quux = module.quux;
-		}],
-		execute: function () {
+		})],
+		execute: (function () {
 
 			console.log(foo, changedName, bar, baz, quux);
 
-		}
+		})
 	};
-});
+}));

@@ -1,4 +1,4 @@
-define(['exports', 'lib'], function (exports, value) { 'use strict';
+define(['exports', 'lib'], (function (exports, value) { 'use strict';
 
 	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -8,4 +8,4 @@ define(['exports', 'lib'], function (exports, value) { 'use strict';
 
 	exports.dep = dep;
 
-});
+}));

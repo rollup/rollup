@@ -1,4 +1,4 @@
-define(['exports', 'highcharts'], function (exports, highcharts) { 'use strict';
+define(['exports', 'highcharts'], (function (exports, highcharts) { 'use strict';
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -28,4 +28,4 @@ define(['exports', 'highcharts'], function (exports, highcharts) { 'use strict';
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

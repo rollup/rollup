@@ -1,4 +1,4 @@
-define(['./lib/throttle'], function (throttle) { 'use strict';
+define(['./lib/throttle'], (function (throttle) { 'use strict';
 
 	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -10,4 +10,4 @@ define(['./lib/throttle'], function (throttle) { 'use strict';
 
 	window.addEventListener( 'mousemove', throttle__default['default'] );
 
-});
+}));

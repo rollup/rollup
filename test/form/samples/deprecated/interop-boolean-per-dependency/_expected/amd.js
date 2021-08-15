@@ -1,4 +1,4 @@
-define(['require', 'external-false', 'external-true'], function (require, fooFalse, fooTrue) { 'use strict';
+define(['require', 'external-false', 'external-true'], (function (require, fooFalse, fooTrue) { 'use strict';
 
 	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -31,4 +31,4 @@ define(['require', 'external-false', 'external-true'], function (require, fooFal
 	new Promise(function (resolve, reject) { require(['external-false'], resolve, reject) }).then(console.log);
 	new Promise(function (resolve, reject) { require(['external-true'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) }).then(console.log);
 
-});
+}));

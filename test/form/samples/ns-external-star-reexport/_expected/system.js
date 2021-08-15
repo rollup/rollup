@@ -1,13 +1,13 @@
-System.register('bundle', ['external1', 'external2'], function (exports) {
+System.register('bundle', ['external1', 'external2'], (function (exports) {
 	'use strict';
 	var external1, external2;
 	return {
-		setters: [function (module) {
+		setters: [(function (module) {
 			external1 = module;
-		}, function (module) {
+		}), (function (module) {
 			external2 = module;
-		}],
-		execute: function () {
+		})],
+		execute: (function () {
 
 			var reexportExternal = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), external1));
 			exports('external', reexportExternal);
@@ -24,6 +24,6 @@ System.register('bundle', ['external1', 'external2'], function (exports) {
 			}));
 			exports('externalOverride', reexportExternalsWithOverride$1);
 
-		}
+		})
 	};
-});
+}));

@@ -1,4 +1,4 @@
-define(['external-all', 'external-namespace', 'external-default-namespace', 'external-named-namespace'], function (foo, bar, quux, quux$1) { 'use strict';
+define(['external-all', 'external-namespace', 'external-default-namespace', 'external-named-namespace'], (function (foo, bar, quux, quux$1) { 'use strict';
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -27,4 +27,4 @@ define(['external-all', 'external-namespace', 'external-default-namespace', 'ext
 
 	console.log(foo__namespace, bar__namespace, quux__namespace, quux__namespace$1);
 
-});
+}));

@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	var main = (input) => {
 		try {
@@ -11,4 +11,4 @@ define(function () { 'use strict';
 
 	return main;
 
-});
+}));

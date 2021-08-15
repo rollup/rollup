@@ -1,8 +1,8 @@
-System.register(['./generated-separate.js'], function (exports, module) {
+System.register(['./generated-separate.js'], (function (exports, module) {
 	'use strict';
 	return {
 		setters: [function () {}],
-		execute: function () {
+		execute: (function () {
 
 			var inlined$1 = 'inlined';
 			const x = 1;
@@ -17,6 +17,6 @@ System.register(['./generated-separate.js'], function (exports, module) {
 			const inlined = exports('inlined', Promise.resolve().then(function () { return inlined$2; }));
 			const separate = exports('separate', module.import('./generated-separate.js'));
 
-		}
+		})
 	};
-});
+}));

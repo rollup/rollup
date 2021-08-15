@@ -1,4 +1,4 @@
-define(['require', 'exports', './default', './named'], function (require, exports, _default, named) { 'use strict';
+define(['require', 'exports', './default', './named'], (function (require, exports, _default, named) { 'use strict';
 
 	console.log(_default['default'], named.value);
 
@@ -9,4 +9,4 @@ define(['require', 'exports', './default', './named'], function (require, export
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

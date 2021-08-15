@@ -1,4 +1,4 @@
-define(['external1', 'external2'], function (external1, external2) { 'use strict';
+define(['external1', 'external2'], (function (external1, external2) { 'use strict';
 
 	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -8,4 +8,4 @@ define(['external1', 'external2'], function (external1, external2) { 'use strict
 
 	return external2__default['default'];
 
-});
+}));

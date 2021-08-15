@@ -1,4 +1,4 @@
-define(['./custom_modules/@my-scope/my-base-pkg/index', './_virtual/index.js_commonjs-exports'], function (index$1, index) { 'use strict';
+define(['./custom_modules/@my-scope/my-base-pkg/index', './_virtual/index.js_commonjs-exports'], (function (index$1, index) { 'use strict';
 
 	const base = index.__exports;
 
@@ -8,4 +8,4 @@ define(['./custom_modules/@my-scope/my-base-pkg/index', './_virtual/index.js_com
 
 	return underBuild;
 
-});
+}));

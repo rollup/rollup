@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	var a = '1\
   2';
@@ -17,4 +17,4 @@ define(function () { 'use strict';
 	assert.equal( c, '1\n  2' );
 	assert.equal( d, '1\n\t2' );
 
-});
+}));

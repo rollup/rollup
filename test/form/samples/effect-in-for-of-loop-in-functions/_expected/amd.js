@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	const items = { children: [ {}, {}, {} ] };
 
@@ -25,4 +25,4 @@ define(function () { 'use strict';
 		{ foo: 'a', bar: 'c' }
 	] );
 
-});
+}));

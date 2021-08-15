@@ -1,4 +1,4 @@
-define(['require', 'exports', './generated-separate'], function (require, exports, separate$1) { 'use strict';
+define(['require', 'exports', './generated-separate'], (function (require, exports, separate$1) { 'use strict';
 
 	var inlined$1 = 'inlined';
 	const x = 1;
@@ -18,4 +18,4 @@ define(['require', 'exports', './generated-separate'], function (require, export
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

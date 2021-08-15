@@ -1,7 +1,7 @@
-define(['external-false'], function (externalFalse) { 'use strict';
+define(['external-false'], (function (externalFalse) { 'use strict';
 
 
 
 	return externalFalse;
 
-});
+}));

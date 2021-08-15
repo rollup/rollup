@@ -1,4 +1,4 @@
-define(['babel-polyfill', 'other'], function (babelPolyfill, other) { 'use strict';
+define(['babel-polyfill', 'other'], (function (babelPolyfill, other) { 'use strict';
 
 	other.x();
 
@@ -6,4 +6,4 @@ define(['babel-polyfill', 'other'], function (babelPolyfill, other) { 'use stric
 
 	return main;
 
-});
+}));

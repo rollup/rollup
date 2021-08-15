@@ -1,4 +1,4 @@
-define(['exports'], function (exports) { 'use strict';
+define(['exports'], (function (exports) { 'use strict';
 
 	const value = 42;
 	const otherValue = 43;
@@ -8,4 +8,4 @@ define(['exports'], function (exports) { 'use strict';
 	exports.otherValue = otherValue;
 	exports.value = value;
 
-});
+}));

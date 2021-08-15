@@ -1,4 +1,4 @@
-define(['external'], function (a) { 'use strict';
+define(['external'], (function (a) { 'use strict';
 
 	/* this is an intro */
 
@@ -31,4 +31,4 @@ define(['external'], function (a) { 'use strict';
 
 	// outro 4
 
-});
+}));

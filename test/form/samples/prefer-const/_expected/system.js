@@ -1,11 +1,11 @@
-System.register('myBundle', ['other'], function (exports) {
+System.register('myBundle', ['other'], (function (exports) {
 	'use strict';
 	var name;
 	return {
-		setters: [function (module) {
+		setters: [(function (module) {
 			name = module.name;
-		}],
-		execute: function () {
+		})],
+		execute: (function () {
 
 			const a = 1;
 			const b = 2;
@@ -21,6 +21,6 @@ System.register('myBundle', ['other'], function (exports) {
 
 			const main = exports('default', 42);
 
-		}
+		})
 	};
-});
+}));

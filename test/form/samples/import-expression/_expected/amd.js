@@ -1,4 +1,4 @@
-define(['require', 'external'], function (require, external) { 'use strict';
+define(['require', 'external'], (function (require, external) { 'use strict';
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -23,4 +23,4 @@ define(['require', 'external'], function (require, external) { 'use strict';
 	new Promise(function (resolve, reject) { require([external.join('a', 'b')], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) });
 	console.log(external.join);
 
-});
+}));

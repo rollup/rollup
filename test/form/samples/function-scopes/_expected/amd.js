@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	var effect1 = () => console.log( 'effect' ); // must not be removed!
 	function isKept1 ( x = effect1 ) {
@@ -18,4 +18,4 @@ define(function () { 'use strict';
 	};
 	isKept3();
 
-});
+}));

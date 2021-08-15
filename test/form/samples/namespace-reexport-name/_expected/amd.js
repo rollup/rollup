@@ -1,4 +1,4 @@
-define(['exports', 'external'], function (exports, external) { 'use strict';
+define(['exports', 'external'], (function (exports, external) { 'use strict';
 
 	const renamedIndirectOverride = external.indirectOverride;
 
@@ -20,4 +20,4 @@ define(['exports', 'external'], function (exports, external) { 'use strict';
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

@@ -1,12 +1,12 @@
-System.register(['./generated-dep1.js'], function (exports) {
+System.register(['./generated-dep1.js'], (function (exports) {
   'use strict';
   var fn, text;
   return {
-    setters: [function (module) {
+    setters: [(function (module) {
       fn = module.a;
       text = module.b;
-    }],
-    execute: function () {
+    })],
+    execute: (function () {
 
       class Main2 {
         constructor () {
@@ -15,6 +15,6 @@ System.register(['./generated-dep1.js'], function (exports) {
         }
       } exports('default', Main2);
 
-    }
+    })
   };
-});
+}));

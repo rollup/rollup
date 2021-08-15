@@ -1,4 +1,4 @@
-define(['require', './direct-relative-external', 'to-indirect-relative-external', 'direct-absolute-external', 'to-indirect-absolute-external'], function (require, directRelativeExternal, toIndirectRelativeExternal, directAbsoluteExternal, toIndirectAbsoluteExternal) { 'use strict';
+define(['require', './direct-relative-external', 'to-indirect-relative-external', 'direct-absolute-external', 'to-indirect-absolute-external'], (function (require, directRelativeExternal, toIndirectRelativeExternal, directAbsoluteExternal, toIndirectAbsoluteExternal) { 'use strict';
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -47,4 +47,4 @@ define(['require', './direct-relative-external', 'to-indirect-relative-external'
 	Promise.resolve().then(function () { return existing; });
 	new Promise(function (resolve, reject) { require(['my' + 'replacement'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) });
 
-});
+}));

@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	async function main() {
 		const foo$1 = 1;
@@ -15,4 +15,4 @@ define(function () { 'use strict';
 		value: value
 	});
 
-});
+}));

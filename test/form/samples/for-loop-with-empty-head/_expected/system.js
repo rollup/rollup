@@ -1,12 +1,12 @@
-System.register([], function () {
+System.register([], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			for ( ; ; ) {
 				console.log( 42 );
 			}
 
-		}
+		})
 	};
-});
+}));

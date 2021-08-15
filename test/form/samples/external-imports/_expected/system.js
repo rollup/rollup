@@ -1,20 +1,20 @@
-System.register(['factory', 'baz', 'shipping-port', 'alphabet'], function () {
+System.register(['factory', 'baz', 'shipping-port', 'alphabet'], (function () {
 	'use strict';
 	var factory, foo, bar, port, containers, a, alphabet;
 	return {
-		setters: [function (module) {
+		setters: [(function (module) {
 			factory = module.default;
-		}, function (module) {
+		}), (function (module) {
 			foo = module.foo;
 			bar = module.bar;
-		}, function (module) {
+		}), (function (module) {
 			port = module.port;
 			containers = module;
-		}, function (module) {
+		}), (function (module) {
 			a = module.a;
 			alphabet = module.default;
-		}],
-		execute: function () {
+		})],
+		execute: (function () {
 
 			factory( null );
 			foo( bar, port );
@@ -22,6 +22,6 @@ System.register(['factory', 'baz', 'shipping-port', 'alphabet'], function () {
 			console.log( a );
 			console.log( alphabet.length );
 
-		}
+		})
 	};
-});
+}));

@@ -1,7 +1,7 @@
-System.register([], function (exports) {
+System.register([], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			const pureFunc = () => console.log('not really pure') || 0;
 
@@ -17,6 +17,6 @@ System.register([], function (exports) {
 				/*#__PURE__*/
 				pureFunc());
 
-		}
+		})
 	};
-});
+}));

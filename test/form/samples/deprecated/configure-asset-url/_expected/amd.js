@@ -1,4 +1,4 @@
-define(['require'], function (require) { 'use strict';
+define(['require'], (function (require) { 'use strict';
 
 	var asset1 = 'amd.js:solved:assets/asset-solved-28a7ac89.txt:assets/asset-solved-28a7ac89.txt';
 
@@ -8,4 +8,4 @@ define(['require'], function (require) { 'use strict';
 
 	console.log(asset1, asset2, asset3);
 
-});
+}));

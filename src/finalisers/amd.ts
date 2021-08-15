@@ -95,9 +95,12 @@ export default function amd(
 		namespaceMarkers = n + n + namespaceMarkers;
 	}
 	magicString.append(`${exportBlock}${namespaceMarkers}${outro}`);
-	// TODO Lukas wrap factory
-	return magicString
-		.indent(t)
-		.prepend(`${amd.define}(${params}${getFunctionIntro(args)}{${useStrict}${n}${n}`)
-		.append(`${n}${n}});`);
+	return (
+		magicString
+			.indent(t)
+			// factory function should be wrapped by parentheses to avoid lazy parsing,
+			// cf. https://v8.dev/blog/preparser#pife
+			.prepend(`${amd.define}(${params}(${getFunctionIntro(args)}{${useStrict}${n}${n}`)
+			.append(`${n}${n}}));`)
+	);
 }

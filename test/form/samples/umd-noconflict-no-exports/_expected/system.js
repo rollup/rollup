@@ -1,10 +1,10 @@
-System.register('FooBar', [], function () {
+System.register('FooBar', [], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			console.log('no exports');
 
-		}
+		})
 	};
-});
+}));

@@ -1,4 +1,4 @@
-define(['require', 'exports', './lib'], function (require, exports, lib) { 'use strict';
+define(['require', 'exports', './lib'], (function (require, exports, lib) { 'use strict';
 
 	function _interopNamespaceDefaultOnly(e) {
 		return Object.freeze({__proto__: null, 'default': e});
@@ -13,4 +13,4 @@ define(['require', 'exports', './lib'], function (require, exports, lib) { 'use 
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

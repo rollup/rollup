@@ -1,16 +1,16 @@
-System.register(['./a.js', './one.js'], function () {
+System.register(['./a.js', './one.js'], (function () {
 	'use strict';
 	var a, d;
 	return {
-		setters: [function (module) {
+		setters: [(function (module) {
 			a = module.a;
-		}, function (module) {
+		}), (function (module) {
 			d = module.d;
-		}],
-		execute: function () {
+		})],
+		execute: (function () {
 
 			console.log(a + d);
 
-		}
+		})
 	};
-});
+}));

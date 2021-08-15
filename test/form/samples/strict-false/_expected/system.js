@@ -1,7 +1,7 @@
-System.register([], function () {
+System.register([], (function () {
     
     return {
-        execute: function () {
+        execute: (function () {
 
             const localVariable = 'local';
 
@@ -13,6 +13,6 @@ System.register([], function () {
                 Function("g", "globalVariable = g")(localVariable);
             }
 
-        }
+        })
     };
-});
+}));

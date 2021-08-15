@@ -1,14 +1,14 @@
-System.register('foo', ['core/view'], function (exports) {
+System.register('foo', ['core/view'], (function (exports) {
 	'use strict';
 	var View;
 	return {
-		setters: [function (module) {
+		setters: [(function (module) {
 			View = module.default;
-		}],
-		execute: function () {
+		})],
+		execute: (function () {
 
 			var main = exports('default', View.extend({}));
 
-		}
+		})
 	};
-});
+}));

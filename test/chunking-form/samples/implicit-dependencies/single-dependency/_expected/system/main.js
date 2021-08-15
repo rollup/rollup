@@ -1,12 +1,12 @@
-System.register([], function (exports) {
+System.register([], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			const value = exports('v', 42);
 
 			console.log(value);
 
-		}
+		})
 	};
-});
+}));

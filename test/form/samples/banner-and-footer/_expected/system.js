@@ -2,16 +2,16 @@
 /* first banner */
 /* second banner */
 /* 3rd banner */
-System.register([], function () {
+System.register([], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			console.log( 'hello world' );
 
-		}
+		})
 	};
-});
+}));
 /* this is a footer */
 /* first footer */
 /* second footer */

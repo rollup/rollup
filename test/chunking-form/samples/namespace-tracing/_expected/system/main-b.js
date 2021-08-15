@@ -1,21 +1,21 @@
-System.register(['./generated-foo.js', './generated-bar.js', './generated-broken.js'], function () {
+System.register(['./generated-foo.js', './generated-bar.js', './generated-broken.js'], (function () {
 	'use strict';
 	var foo, bar, broken;
 	return {
-		setters: [function (module) {
+		setters: [(function (module) {
 			foo = module.f;
-		}, function (module) {
+		}), (function (module) {
 			bar = module.b;
-		}, function (module) {
+		}), (function (module) {
 			broken = module.b;
-		}],
-		execute: function () {
+		})],
+		execute: (function () {
 
 			foo();
 			broken();
 			bar();
 			broken();
 
-		}
+		})
 	};
-});
+}));

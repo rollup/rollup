@@ -1,4 +1,4 @@
-define(['unchanged', 'changed', 'special-character', 'with/slash', './relative'], function (unchanged, changedName, specialCharacter, slash, relative_js) { 'use strict';
+define(['unchanged', 'changed', 'special-character', 'with/slash', './relative'], (function (unchanged, changedName, specialCharacter, slash, relative_js) { 'use strict';
 
 	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -6,4 +6,4 @@ define(['unchanged', 'changed', 'special-character', 'with/slash', './relative']
 
 	console.log(unchanged.foo, changedName__default['default'], specialCharacter.bar, slash.baz, relative_js.quux);
 
-});
+}));

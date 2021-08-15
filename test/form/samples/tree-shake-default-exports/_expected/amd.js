@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	/* header 3 */
 
@@ -54,4 +54,4 @@ define(function () { 'use strict';
 	importedUsedFunction();
 	usedNamedFunction();
 
-});
+}));

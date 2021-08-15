@@ -1,17 +1,17 @@
-System.register('bundle', ['external'], function (exports) {
+System.register('bundle', ['external'], (function (exports) {
 	'use strict';
 	var b;
 	return {
-		setters: [function (module) {
+		setters: [(function (module) {
 			b = module.b;
-		}],
-		execute: function () {
+		})],
+		execute: (function () {
 
 			let a; exports('a', a);
 
 			(function (v) { return exports('a', a), v; }({a} = b));
 			console.log(function (v) { return exports('a', a), v; }({a} = b));
 
-		}
+		})
 	};
-});
+}));

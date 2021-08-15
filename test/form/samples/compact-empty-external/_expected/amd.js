@@ -1,1 +1,1 @@
-define(['external'],function(external){'use strict';});
+define(['external'],(function(external){'use strict';}));

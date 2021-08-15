@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	function foo ( ok ) {
 		if ( !ok ) {
@@ -12,4 +12,4 @@ define(function () { 'use strict';
 
 	return main;
 
-});
+}));

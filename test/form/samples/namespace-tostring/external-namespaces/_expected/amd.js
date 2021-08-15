@@ -1,4 +1,4 @@
-define(['external-auto', 'external-default', 'external-defaultOnly'], function (externalAuto, externalDefault, externalDefaultOnly) { 'use strict';
+define(['external-auto', 'external-default', 'external-defaultOnly'], (function (externalAuto, externalDefault, externalDefaultOnly) { 'use strict';
 
 	function _interopNamespaceDefaultOnly(e) {
 		return Object.freeze({__proto__: null, [Symbol.toStringTag]: 'Module', 'default': e});
@@ -43,4 +43,4 @@ define(['external-auto', 'external-default', 'external-defaultOnly'], function (
 	assert.strictEqual(Object.prototype.toString.call(externalDefaultOnly__namespace), '[object Module]');
 	assert.deepStrictEqual(externalDefaultOnly__namespace.default, { foo: 42 });
 
-});
+}));

@@ -1,4 +1,4 @@
-define(['exports', 'external-all', 'external-named', 'external-default-named', 'external-named-namespace'], function (exports, externalAll, externalNamed, externalDefaultNamed, externalNamedNamespace) { 'use strict';
+define(['exports', 'external-all', 'external-named', 'external-default-named', 'external-named-namespace'], (function (exports, externalAll, externalNamed, externalDefaultNamed, externalNamedNamespace) { 'use strict';
 
 
 
@@ -29,4 +29,4 @@ define(['exports', 'external-all', 'external-named', 'external-default-named', '
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

@@ -1,5 +1,5 @@
-define(['module'], function (module) { 'use strict';
+define(['module'], (function (module) { 'use strict';
 
 	undefined('./foo.js');
 
-});
+}));

@@ -1,15 +1,15 @@
-System.register(['./m2.js', './m3.js'], function (exports) {
+System.register(['./m2.js', './m3.js'], (function (exports) {
 	'use strict';
 	return {
-		setters: [function (module) {
+		setters: [(function (module) {
 			exports('m2', module.default);
-		}, function (module) {
+		}), (function (module) {
 			exports('m3', module.default);
-		}],
-		execute: function () {
+		})],
+		execute: (function () {
 
 
 
-		}
+		})
 	};
-});
+}));

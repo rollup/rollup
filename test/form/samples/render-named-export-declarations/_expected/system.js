@@ -1,7 +1,7 @@
-System.register('bundle', [], function (exports) {
+System.register('bundle', [], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			var aFoo, aBar; exports({ aFoo: aFoo, aBar: aBar });
 			exports('aBar', aBar = 2);
@@ -15,6 +15,6 @@ System.register('bundle', [], function (exports) {
 			var dFoo = 1, dBar; exports({ dFoo: dFoo, dBar: dBar });
 			exports('dFoo', dFoo = 2);
 
-		}
+		})
 	};
-});
+}));

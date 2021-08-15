@@ -1,4 +1,4 @@
-define(['exports', 'external-false', 'external-true'], function (exports, externalFalse, externalTrue) { 'use strict';
+define(['exports', 'external-false', 'external-true'], (function (exports, externalFalse, externalTrue) { 'use strict';
 
 	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -51,4 +51,4 @@ define(['exports', 'external-false', 'external-true'], function (exports, extern
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

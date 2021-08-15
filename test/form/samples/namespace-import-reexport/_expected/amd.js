@@ -1,4 +1,4 @@
-define(['exports', 'external-package'], function (exports, externalPackage) { 'use strict';
+define(['exports', 'external-package'], (function (exports, externalPackage) { 'use strict';
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -28,4 +28,4 @@ define(['exports', 'external-package'], function (exports, externalPackage) { 'u
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

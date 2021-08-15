@@ -1,4 +1,4 @@
-define(['./generated-dep2', 'external'], function (dep2, external) { 'use strict';
+define(['./generated-dep2', 'external'], (function (dep2, external) { 'use strict';
 
   function fn$1 () {
     console.log('lib1 fn');
@@ -19,4 +19,4 @@ define(['./generated-dep2', 'external'], function (dep2, external) { 'use strict
 
   return Main2;
 
-});
+}));

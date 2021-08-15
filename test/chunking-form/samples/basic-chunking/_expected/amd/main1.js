@@ -1,4 +1,4 @@
-define(['./generated-dep2'], function (dep2) { 'use strict';
+define(['./generated-dep2'], (function (dep2) { 'use strict';
 
   function fn () {
     console.log('dep1 fn');
@@ -13,4 +13,4 @@ define(['./generated-dep2'], function (dep2) { 'use strict';
 
   return Main1;
 
-});
+}));

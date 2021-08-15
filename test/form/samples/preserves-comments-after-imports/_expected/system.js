@@ -1,7 +1,7 @@
-System.register('myBundle', [], function (exports) {
+System.register('myBundle', [], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			/** A comment for a number */
 			var number = 5;
@@ -9,6 +9,6 @@ System.register('myBundle', [], function (exports) {
 			/** A comment for obj */
 			var obj = exports('obj', { number });
 
-		}
+		})
 	};
-});
+}));

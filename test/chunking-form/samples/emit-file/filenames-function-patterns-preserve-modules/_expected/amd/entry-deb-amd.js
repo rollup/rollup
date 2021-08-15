@@ -1,7 +1,7 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	var deb = 'string';
 
 	return deb;
 
-});
+}));

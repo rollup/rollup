@@ -1,4 +1,4 @@
-define(['external'], function (external) { 'use strict';
+define(['external'], (function (external) { 'use strict';
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -24,4 +24,4 @@ define(['external'], function (external) { 'use strict';
 
 	console.log(external__namespace.default, external__namespace.foo);
 
-});
+}));

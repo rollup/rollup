@@ -1,4 +1,4 @@
-define(['exports', './generated-otherEntry'], function (exports, otherEntry) { 'use strict';
+define(['exports', './generated-otherEntry'], (function (exports, otherEntry) { 'use strict';
 
 
 
@@ -7,4 +7,4 @@ define(['exports', './generated-otherEntry'], function (exports, otherEntry) { '
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

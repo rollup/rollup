@@ -1,11 +1,11 @@
-System.register('bundle', [], function (exports, module) {
+System.register('bundle', [], (function (exports, module) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			const url = exports('url', 'url');
 			const meta = exports('meta', 'meta');
 
-		}
+		})
 	};
-});
+}));

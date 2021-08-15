@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	const wrapper = {
 		foo() {
@@ -26,4 +26,4 @@ define(function () { 'use strict';
 
 	testEval.call('test');
 
-});
+}));

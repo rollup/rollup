@@ -1,10 +1,10 @@
-System.register([], function (exports) {
+System.register([], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			var c = exports('default', 'One1.js');
 
-		}
+		})
 	};
-});
+}));

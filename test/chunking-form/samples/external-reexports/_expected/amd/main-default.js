@@ -1,4 +1,4 @@
-define(['exports', 'external-all', 'external-default', 'external-default-named', 'external-default-namespace'], function (exports, externalAll, externalDefault, externalDefaultNamed, externalDefaultNamespace) { 'use strict';
+define(['exports', 'external-all', 'external-default', 'external-default-named', 'external-default-namespace'], (function (exports, externalAll, externalDefault, externalDefaultNamed, externalDefaultNamespace) { 'use strict';
 
 	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -36,4 +36,4 @@ define(['exports', 'external-all', 'external-default', 'external-default-named',
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

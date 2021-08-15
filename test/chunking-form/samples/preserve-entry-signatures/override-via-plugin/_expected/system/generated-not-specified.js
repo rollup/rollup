@@ -1,7 +1,7 @@
-System.register([], function (exports, module) {
+System.register([], (function (exports, module) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			const shared = exports('s', 'shared');
 
@@ -9,6 +9,6 @@ System.register([], function (exports, module) {
 			module.import('./generated-dynamic4.js');
 			const unused = exports('unused', 42);
 
-		}
+		})
 	};
-});
+}));

@@ -1,7 +1,7 @@
-System.register('my.name.spaced.module', [], function (exports) {
+System.register('my.name.spaced.module', [], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			exports('doThings', doThings);
 
@@ -13,6 +13,6 @@ System.register('my.name.spaced.module', [], function (exports) {
 
 			var setting = exports('setting', 'no');
 
-		}
+		})
 	};
-});
+}));

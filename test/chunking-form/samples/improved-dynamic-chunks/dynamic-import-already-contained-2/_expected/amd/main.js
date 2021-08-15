@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	Promise.resolve().then(function () { return dynamic2; }).then(console.log);
 	console.log('dynamic1');
@@ -20,4 +20,4 @@ define(function () { 'use strict';
 	Promise.resolve().then(function () { return dynamic1; }).then(console.log);
 	console.log('main', value1, value2);
 
-});
+}));

@@ -1,4 +1,4 @@
-define(['exports', './generated-lib1', './generated-lib2'], function (exports, lib1, lib2) { 'use strict';
+define(['exports', './generated-lib1', './generated-lib2'], (function (exports, lib1, lib2) { 'use strict';
 
 
 
@@ -6,4 +6,4 @@ define(['exports', './generated-lib1', './generated-lib2'], function (exports, l
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

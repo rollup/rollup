@@ -1,6 +1,6 @@
-define(['./first'], function (first) { 'use strict';
+define(['./first'], (function (first) { 'use strict';
 
 	console.log(first);
 	console.log(first);
 
-});
+}));

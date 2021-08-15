@@ -1,7 +1,7 @@
-System.register('myBundle', [], function (exports) {
+System.register('myBundle', [], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			if ( !ok ) {
 				throw new Error( 'this will be included' );
@@ -9,6 +9,6 @@ System.register('myBundle', [], function (exports) {
 
 			var main = exports('default', 42);
 
-		}
+		})
 	};
-});
+}));

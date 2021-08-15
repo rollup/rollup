@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	const effect = () => console.log( 'effect' );
 	var { x: a2 = effect() } = {};
@@ -28,4 +28,4 @@ define(function () { 'use strict';
 	[ d4 = effect ] = [];
 	d4();
 
-});
+}));

@@ -1,7 +1,7 @@
-System.register([], function () {
+System.register([], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			const fooContext = {};
 
@@ -21,6 +21,6 @@ System.register([], function () {
 			// outside a function, `this` is undefined
 			assert.strictEqual( undefined, undefined );
 
-		}
+		})
 	};
-});
+}));

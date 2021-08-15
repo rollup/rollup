@@ -1,10 +1,10 @@
-System.register('bundle', [], function (exports) {
+System.register('bundle', [], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			var main = exports('default', 42);
 
-		}
+		})
 	};
-});
+}));

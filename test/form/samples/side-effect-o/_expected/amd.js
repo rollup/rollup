@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	function fn () {
 		return Math.random() < 0.5 ? foo : bar;
@@ -14,4 +14,4 @@ define(function () { 'use strict';
 
 	fn()();
 
-});
+}));

@@ -1,7 +1,7 @@
-System.register([], function (exports) {
+System.register([], (function (exports) {
   'use strict';
   return {
-    execute: function () {
+    execute: (function () {
 
       const d = {
         fn: 42,
@@ -26,6 +26,6 @@ System.register([], function (exports) {
         stuff: d.stuff
       });
 
-    }
+    })
   };
-});
+}));

@@ -1,4 +1,4 @@
-define(['require', 'exports', 'external'], function (require, exports, myExternal) { 'use strict';
+define(['require', 'exports', 'external'], (function (require, exports, myExternal) { 'use strict';
 
 	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -33,4 +33,4 @@ define(['require', 'exports', 'external'], function (require, exports, myExterna
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

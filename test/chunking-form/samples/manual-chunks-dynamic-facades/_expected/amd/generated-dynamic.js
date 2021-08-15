@@ -1,4 +1,4 @@
-define(['exports'], function (exports) { 'use strict';
+define(['exports'], (function (exports) { 'use strict';
 
 	const DEP = 'DEP';
 
@@ -31,4 +31,4 @@ define(['exports'], function (exports) { 'use strict';
 	exports.dynamic2 = dynamic2;
 	exports.dynamic3 = dynamic3;
 
-});
+}));

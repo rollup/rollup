@@ -1,15 +1,15 @@
-System.register(['./generated-dynamic.js'], function () {
+System.register(['./generated-dynamic.js'], (function () {
 	'use strict';
 	var dynamic, dep;
 	return {
-		setters: [function (module) {
+		setters: [(function (module) {
 			dynamic = module.d;
 			dep = module.a;
-		}],
-		execute: function () {
+		})],
+		execute: (function () {
 
 			console.log('main2', dynamic, dep);
 
-		}
+		})
 	};
-});
+}));

@@ -1,4 +1,4 @@
-define(['exports', './generated-main'], function (exports, main) { 'use strict';
+define(['exports', './generated-main'], (function (exports, main) { 'use strict';
 
 	var component = { lib: main.lib, lib2: main.lib.named, lib3: main.lib.named.named };
 
@@ -8,4 +8,4 @@ define(['exports', './generated-main'], function (exports, main) { 'use strict';
 
 	exports.component = component$1;
 
-});
+}));

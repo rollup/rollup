@@ -1,7 +1,7 @@
-System.register('iife', [], function (exports) {
+System.register('iife', [], (function (exports) {
   'use strict';
   return {
-    execute: function () {
+    execute: (function () {
 
       exports({
         updateBar: update$1,
@@ -37,6 +37,6 @@ System.register('iife', [], function (exports) {
       update();
       console.log(baz);
 
-    }
+    })
   };
-});
+}));

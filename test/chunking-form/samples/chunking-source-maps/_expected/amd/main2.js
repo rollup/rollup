@@ -1,4 +1,4 @@
-define(['./generated-dep2'], function (dep2) { 'use strict';
+define(['./generated-dep2'], (function (dep2) { 'use strict';
 
   function fn$1 () {
     console.log('lib1 fn');
@@ -18,5 +18,5 @@ define(['./generated-dep2'], function (dep2) { 'use strict';
 
   return Main2;
 
-});
+}));
 //# sourceMappingURL=main2.js.map

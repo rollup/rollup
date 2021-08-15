@@ -1,16 +1,16 @@
-System.register(['./generated-dep1.js', './generated-dep2.js'], function () {
+System.register(['./generated-dep1.js', './generated-dep2.js'], (function () {
 	'use strict';
 	var num, num$1;
 	return {
-		setters: [function (module) {
+		setters: [(function (module) {
 			num = module.n;
-		}, function (module) {
+		}), (function (module) {
 			num$1 = module.n;
-		}],
-		execute: function () {
+		})],
+		execute: (function () {
 
 			console.log(num + num$1);
 
-		}
+		})
 	};
-});
+}));

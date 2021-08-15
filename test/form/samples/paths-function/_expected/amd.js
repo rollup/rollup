@@ -1,4 +1,4 @@
-define(['require', 'https://unpkg.com/foo'], function (require, foo) { 'use strict';
+define(['require', 'https://unpkg.com/foo'], (function (require, foo) { 'use strict';
 
 	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -28,4 +28,4 @@ define(['require', 'https://unpkg.com/foo'], function (require, foo) { 'use stri
 
 	new Promise(function (resolve, reject) { require(['https://unpkg.com/foo'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) }).then(({ default: foo }) => assert.equal(foo, 42));
 
-});
+}));

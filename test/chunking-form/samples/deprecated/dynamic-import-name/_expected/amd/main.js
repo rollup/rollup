@@ -1,4 +1,4 @@
-define(['require'], function (require) { 'use strict';
+define(['require'], (function (require) { 'use strict';
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -22,4 +22,4 @@ define(['require'], function (require) { 'use strict';
 
 	new Promise(function (resolve, reject) { require(['./foo'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) }).then(result => console.log(result));
 
-});
+}));

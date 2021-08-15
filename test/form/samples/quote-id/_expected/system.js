@@ -1,20 +1,20 @@
 System.register('Q', ['quoted\'\\
 \ \ external1', './quoted\'\\
-\ \ external2', './C:/File/Path.js'], function () {
+\ \ external2', './C:/File/Path.js'], (function () {
 	'use strict';
 	var foo, bar, baz;
 	return {
-		setters: [function (module) {
+		setters: [(function (module) {
 			foo = module.foo;
-		}, function (module) {
+		}), (function (module) {
 			bar = module.bar;
-		}, function (module) {
+		}), (function (module) {
 			baz = module.baz;
-		}],
-		execute: function () {
+		})],
+		execute: (function () {
 
 			console.log(foo, bar, baz);
 
-		}
+		})
 	};
-});
+}));

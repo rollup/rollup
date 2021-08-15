@@ -1,15 +1,15 @@
-System.register(['external-auto', 'external-default', 'external-defaultOnly'], function () {
+System.register(['external-auto', 'external-default', 'external-defaultOnly'], (function () {
 	'use strict';
 	var externalAuto, externalDefault, externalDefaultOnly;
 	return {
-		setters: [function (module) {
+		setters: [(function (module) {
 			externalAuto = module;
-		}, function (module) {
+		}), (function (module) {
 			externalDefault = module;
-		}, function (module) {
+		}), (function (module) {
 			externalDefaultOnly = module;
-		}],
-		execute: function () {
+		})],
+		execute: (function () {
 
 			assert.strictEqual(externalAuto[Symbol.toStringTag], 'Module');
 			assert.strictEqual(Object.prototype.toString.call(externalAuto), '[object Module]');
@@ -23,6 +23,6 @@ System.register(['external-auto', 'external-default', 'external-defaultOnly'], f
 			assert.strictEqual(Object.prototype.toString.call(externalDefaultOnly), '[object Module]');
 			assert.deepStrictEqual(externalDefaultOnly.default, { foo: 42 });
 
-		}
+		})
 	};
-});
+}));

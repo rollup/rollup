@@ -1,13 +1,13 @@
-System.register(['./generated-dep1.js', './generated-dep2.js'], function (exports) {
+System.register(['./generated-dep1.js', './generated-dep2.js'], (function (exports) {
 	'use strict';
 	var x$1, x$2;
 	return {
-		setters: [function (module) {
+		setters: [(function (module) {
 			x$1 = module.x;
-		}, function (module) {
+		}), (function (module) {
 			x$2 = module.x;
-		}],
-		execute: function () {
+		})],
+		execute: (function () {
 
 			var x = exports('x', x$1 + 1);
 			console.log('shared1');
@@ -15,6 +15,6 @@ System.register(['./generated-dep1.js', './generated-dep2.js'], function (export
 			var y = exports('y', x$2 + 1);
 			console.log('shared2');
 
-		}
+		})
 	};
-});
+}));

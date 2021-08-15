@@ -1,7 +1,7 @@
-System.register('myBundle', [], function (exports) {
+System.register('myBundle', [], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			const foo = 1;
 			const bar = 2;
@@ -17,6 +17,6 @@ System.register('myBundle', [], function (exports) {
 			const a = exports('a', 1);
 			const b = exports('b', 2);
 
-		}
+		})
 	};
-});
+}));

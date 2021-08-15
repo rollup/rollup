@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	if ( !ok ) {
 		throw new Error( 'this will be included' );
@@ -8,4 +8,4 @@ define(function () { 'use strict';
 
 	return main;
 
-});
+}));

@@ -1,12 +1,12 @@
-System.register(['./generated-deps2and3.js', './generated-lib1.js'], function (exports) {
+System.register(['./generated-deps2and3.js', './generated-lib1.js'], (function (exports) {
   'use strict';
   var fn$1, fn$2;
   return {
-    setters: [function (module) {
+    setters: [(function (module) {
       fn$1 = module.f;
       fn$2 = module.a;
-    }, function () {}],
-    execute: function () {
+    }), function () {}],
+    execute: (function () {
 
       function fn () {
         console.log('dep1 fn');
@@ -20,6 +20,6 @@ System.register(['./generated-deps2and3.js', './generated-lib1.js'], function (e
         }
       } exports('default', Main);
 
-    }
+    })
   };
-});
+}));

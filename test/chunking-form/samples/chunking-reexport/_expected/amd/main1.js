@@ -1,4 +1,4 @@
-define(['exports', './generated-dep', 'external'], function (exports, dep, external) { 'use strict';
+define(['exports', './generated-dep', 'external'], (function (exports, dep, external) { 'use strict';
 
 
 
@@ -11,4 +11,4 @@ define(['exports', './generated-dep', 'external'], function (exports, dep, exter
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

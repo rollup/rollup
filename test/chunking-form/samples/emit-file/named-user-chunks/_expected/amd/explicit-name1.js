@@ -1,4 +1,4 @@
-define(['exports', './mainChunk'], function (exports, mainChunk) { 'use strict';
+define(['exports', './mainChunk'], (function (exports, mainChunk) { 'use strict';
 
 
 
@@ -6,4 +6,4 @@ define(['exports', './mainChunk'], function (exports, mainChunk) { 'use strict';
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

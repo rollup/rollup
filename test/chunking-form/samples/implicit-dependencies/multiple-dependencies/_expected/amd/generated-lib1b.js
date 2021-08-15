@@ -1,4 +1,4 @@
-define(['exports'], function (exports) { 'use strict';
+define(['exports'], (function (exports) { 'use strict';
 
 	const lib1 = 'lib1';
 
@@ -7,4 +7,4 @@ define(['exports'], function (exports) { 'use strict';
 	exports.lib1 = lib1;
 	exports.lib1b = lib1b;
 
-});
+}));

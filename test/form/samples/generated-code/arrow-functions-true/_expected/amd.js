@@ -1,4 +1,4 @@
-define(['exports', 'external'], (exports, external) => { 'use strict';
+define(['exports', 'external'], ((exports, external) => { 'use strict';
 
 	exports.a = void 0;
 
@@ -7,4 +7,4 @@ define(['exports', 'external'], (exports, external) => { 'use strict';
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

@@ -1,4 +1,4 @@
-define(['require', 'exports', './generated-dep1', './generated-dep2'], function (require, exports, dep1, dep2) { 'use strict';
+define(['require', 'exports', './generated-dep1', './generated-dep2'], (function (require, exports, dep1, dep2) { 'use strict';
 
 	const something = 'something';
 
@@ -10,4 +10,4 @@ define(['require', 'exports', './generated-dep1', './generated-dep2'], function 
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

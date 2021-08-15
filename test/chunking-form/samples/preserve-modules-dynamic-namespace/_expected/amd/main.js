@@ -1,5 +1,5 @@
-define(['./m1'], function (m1) { 'use strict';
+define(['./m1'], (function (m1) { 'use strict';
 
 	console.log(m1);
 
-});
+}));

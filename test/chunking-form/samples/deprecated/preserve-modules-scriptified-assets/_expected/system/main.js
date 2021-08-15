@@ -1,17 +1,17 @@
-System.register(['./answer.num.js', './lorem.str.js', './no-ext.js'], function (exports) {
+System.register(['./answer.num.js', './lorem.str.js', './no-ext.js'], (function (exports) {
 	'use strict';
 	return {
-		setters: [function (module) {
+		setters: [(function (module) {
 			exports('answer', module.default);
-		}, function (module) {
+		}), (function (module) {
 			exports('lorem', module.default);
-		}, function (module) {
+		}), (function (module) {
 			exports('noExt', module.default);
-		}],
-		execute: function () {
+		})],
+		execute: (function () {
 
 
 
-		}
+		})
 	};
-});
+}));

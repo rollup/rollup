@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	function foo () {
 		throw new Error( 'throw side effect' );
@@ -6,4 +6,4 @@ define(function () { 'use strict';
 
 	foo();
 
-});
+}));

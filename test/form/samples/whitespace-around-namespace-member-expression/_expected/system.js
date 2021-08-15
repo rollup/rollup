@@ -1,7 +1,7 @@
-System.register([], function () {
+System.register([], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			function yar() {
 				console.log('yar?');
@@ -9,6 +9,6 @@ System.register([], function () {
 
 			yar();
 
-		}
+		})
 	};
-});
+}));

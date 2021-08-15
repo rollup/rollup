@@ -1,4 +1,4 @@
-define(['exports', './sub/index'], function (exports, index) { 'use strict';
+define(['exports', './sub/index'], (function (exports, index) { 'use strict';
 
 	const baz = { bar: index['default'] };
 
@@ -7,4 +7,4 @@ define(['exports', './sub/index'], function (exports, index) { 'use strict';
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

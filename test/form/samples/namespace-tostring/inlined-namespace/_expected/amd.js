@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	const bar = 42;
 
@@ -12,4 +12,4 @@ define(function () { 'use strict';
 	assert.strictEqual(Object.prototype.toString.call(foo), '[object Module]');
 	assert.strictEqual(bar, 42);
 
-});
+}));

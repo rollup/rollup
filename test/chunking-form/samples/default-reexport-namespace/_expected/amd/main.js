@@ -1,4 +1,4 @@
-define(['exports', './one'], function (exports, one) { 'use strict';
+define(['exports', './one'], (function (exports, one) { 'use strict';
 
 	const __icon__ = {};
 
@@ -14,4 +14,4 @@ define(['exports', './one'], function (exports, one) { 'use strict';
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

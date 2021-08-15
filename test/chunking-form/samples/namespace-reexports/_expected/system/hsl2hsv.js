@@ -1,7 +1,7 @@
-System.register([], function (exports) {
+System.register([], (function (exports) {
   'use strict';
   return {
-    execute: function () {
+    execute: (function () {
 
       var hsl2hsv = exports('default', (h, s, l) => {
         const t = s * (l < 0.5 ? 1 : 1 - l),
@@ -12,6 +12,6 @@ System.register([], function (exports) {
 
       var p = exports('p', 5);
 
-    }
+    })
   };
-});
+}));

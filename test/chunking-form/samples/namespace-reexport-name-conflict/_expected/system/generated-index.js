@@ -1,13 +1,13 @@
-System.register(['./generated-dep.js', 'external'], function (exports) {
+System.register(['./generated-dep.js', 'external'], (function (exports) {
 	'use strict';
 	var reexported$1, reexported;
 	return {
-		setters: [function (module) {
+		setters: [(function (module) {
 			reexported$1 = module.r;
-		}, function (module) {
+		}), (function (module) {
 			reexported = module.reexported;
-		}],
-		execute: function () {
+		})],
+		execute: (function () {
 
 			console.log(reexported);
 
@@ -17,6 +17,6 @@ System.register(['./generated-dep.js', 'external'], function (exports) {
 			});
 			exports('l', lib);
 
-		}
+		})
 	};
-});
+}));

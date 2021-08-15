@@ -1,4 +1,4 @@
-define(['./generated-geometry'], function (geometry) { 'use strict';
+define(['./generated-geometry'], (function (geometry) { 'use strict';
 
 	var mod = /*#__PURE__*/Object.freeze({
 		__proto__: null,
@@ -8,4 +8,4 @@ define(['./generated-geometry'], function (geometry) { 'use strict';
 
 	console.log(mod);
 
-});
+}));

@@ -1,7 +1,7 @@
-System.register('bundle', [], function (exports) {
+System.register('bundle', [], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			// Unassigned export
 			var foo1; exports('foo1', foo1);
@@ -27,6 +27,6 @@ System.register('bundle', [], function (exports) {
 
 			console.log( kept1, kept2 );
 
-		}
+		})
 	};
-});
+}));

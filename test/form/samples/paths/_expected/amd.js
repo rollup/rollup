@@ -1,4 +1,4 @@
-define(['https://unpkg.com/foo'], function (foo) { 'use strict';
+define(['https://unpkg.com/foo'], (function (foo) { 'use strict';
 
 	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -6,4 +6,4 @@ define(['https://unpkg.com/foo'], function (foo) { 'use strict';
 
 	assert.equal( foo__default['default'], 42 );
 
-});
+}));

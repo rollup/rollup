@@ -1,4 +1,4 @@
-define(['exports', './generated-dep', 'external2', 'starexternal2'], function (exports, dep, external2, starexternal2) { 'use strict';
+define(['exports', './generated-dep', 'external2', 'starexternal2'], (function (exports, dep, external2, starexternal2) { 'use strict';
 
 	var main = '2';
 
@@ -21,4 +21,4 @@ define(['exports', './generated-dep', 'external2', 'starexternal2'], function (e
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

@@ -1,4 +1,4 @@
-define(['require', './default', './named'], function (require, _default, named) { 'use strict';
+define(['require', './default', './named'], (function (require, _default, named) { 'use strict';
 
 	function _interopNamespaceDefaultOnly(e) {
 		return Object.freeze({__proto__: null, 'default': e});
@@ -11,4 +11,4 @@ define(['require', './default', './named'], function (require, _default, named) 
 
 	return _default;
 
-});
+}));

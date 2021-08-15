@@ -1,7 +1,7 @@
-System.register([], function (exports) {
+System.register([], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			var dep = { foo: 1 };
 			const bar = 2;
@@ -12,6 +12,6 @@ System.register([], function (exports) {
 			}));
 			exports('d', dep$1);
 
-		}
+		})
 	};
-});
+}));

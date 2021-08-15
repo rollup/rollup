@@ -1,4 +1,4 @@
-define(['exports', 'external1', 'external2'], function (exports, external1, external2) { 'use strict';
+define(['exports', 'external1', 'external2'], (function (exports, external1, external2) { 'use strict';
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -41,4 +41,4 @@ define(['exports', 'external1', 'external2'], function (exports, external1, exte
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

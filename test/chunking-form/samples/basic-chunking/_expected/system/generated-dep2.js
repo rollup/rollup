@@ -1,7 +1,7 @@
-System.register([], function (exports) {
+System.register([], (function (exports) {
   'use strict';
   return {
-    execute: function () {
+    execute: (function () {
 
       exports('f', fn);
 
@@ -14,6 +14,6 @@ System.register([], function (exports) {
         console.log('dep2 fn');
       }
 
-    }
+    })
   };
-});
+}));

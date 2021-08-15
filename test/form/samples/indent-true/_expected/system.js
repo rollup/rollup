@@ -1,7 +1,7 @@
-System.register('foo', [], function (exports) {
+System.register('foo', [], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			exports('default', foo);
 
@@ -9,6 +9,6 @@ System.register('foo', [], function (exports) {
 				console.log( 'indented with tabs' );
 			}
 
-		}
+		})
 	};
-});
+}));

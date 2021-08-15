@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
     function bar () { console.log("outer bar"); }
 
@@ -20,4 +20,4 @@ define(function () { 'use strict';
 
     console.log( getClass().name );
 
-});
+}));

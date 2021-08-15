@@ -1,4 +1,4 @@
-define(['exports', 'external'], function (exports, external) { 'use strict';
+define(['exports', 'external'], (function (exports, external) { 'use strict';
 
 	class Foo extends external.Component {
 		constructor () {
@@ -31,4 +31,4 @@ define(['exports', 'external'], function (exports, external) { 'use strict';
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

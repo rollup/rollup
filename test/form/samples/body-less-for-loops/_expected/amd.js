@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	for ( let i = 0; i < 10; i += 1 ) console.log( i );
 	for ( const letter of array ) console.log( letter );
@@ -13,4 +13,4 @@ define(function () { 'use strict';
 	let index;
 	for ( index in array ) console.log( index );
 
-});
+}));

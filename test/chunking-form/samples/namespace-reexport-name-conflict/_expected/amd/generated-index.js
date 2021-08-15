@@ -1,4 +1,4 @@
-define(['exports', './generated-dep', 'external'], function (exports, dep, external) { 'use strict';
+define(['exports', './generated-dep', 'external'], (function (exports, dep, external) { 'use strict';
 
 	console.log(external.reexported);
 
@@ -9,4 +9,4 @@ define(['exports', './generated-dep', 'external'], function (exports, dep, exter
 
 	exports.lib = lib;
 
-});
+}));

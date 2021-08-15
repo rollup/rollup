@@ -1,7 +1,7 @@
-System.register([], function () {
+System.register([], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			var effect1 = () => console.log( 'effect' ); // must not be removed!
 			function isKept1 ( x = effect1 ) {
@@ -21,6 +21,6 @@ System.register([], function () {
 			};
 			isKept3();
 
-		}
+		})
 	};
-});
+}));

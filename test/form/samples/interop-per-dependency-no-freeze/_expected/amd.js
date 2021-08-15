@@ -1,4 +1,4 @@
-define(['require', 'external-auto', 'external-default', 'external-defaultOnly', 'external-esModule'], function (require, fooAuto, fooDefault, fooDefaultOnly, fooEsModule) { 'use strict';
+define(['require', 'external-auto', 'external-default', 'external-defaultOnly', 'external-esModule'], (function (require, fooAuto, fooDefault, fooDefaultOnly, fooEsModule) { 'use strict';
 
 	function _interopNamespaceDefaultOnly(e) {
 		return {__proto__: null, 'default': e};
@@ -41,4 +41,4 @@ define(['require', 'external-auto', 'external-default', 'external-defaultOnly', 
 	new Promise(function (resolve, reject) { require(['external-defaultOnly'], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefaultOnly(m)); }, reject) }).then(console.log);
 	new Promise(function (resolve, reject) { require(['external-esModule'], resolve, reject) }).then(console.log);
 
-});
+}));

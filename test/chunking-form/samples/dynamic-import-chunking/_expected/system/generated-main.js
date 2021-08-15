@@ -1,7 +1,7 @@
-System.register([], function (exports, module) {
+System.register([], (function (exports, module) {
   'use strict';
   return {
-    execute: function () {
+    execute: (function () {
 
       var multiplier = exports('m', 7);
 
@@ -26,6 +26,6 @@ System.register([], function (exports, module) {
         console.log(num);
       });
 
-    }
+    })
   };
-});
+}));

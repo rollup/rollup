@@ -1,4 +1,4 @@
-define(['jquery'], function ($) { 'use strict';
+define(['jquery'], (function ($) { 'use strict';
 
 	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -8,4 +8,4 @@ define(['jquery'], function ($) { 'use strict';
 		$__default['default']( 'body' ).html( '<h1>hello world!</h1>' );
 	});
 
-});
+}));

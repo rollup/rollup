@@ -1,7 +1,7 @@
-System.register([], function () {
+System.register([], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			function V8Engine () {}
 
@@ -14,6 +14,6 @@ System.register([], function () {
 
 			console.log( new V8Engine().toString() );
 
-		}
+		})
 	};
-});
+}));

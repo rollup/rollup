@@ -1,4 +1,4 @@
-define(['leaflet'], function (L) { 'use strict';
+define(['leaflet'], (function (L) { 'use strict';
 
 	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -7,4 +7,4 @@ define(['leaflet'], function (L) { 'use strict';
 	L__default['default'].terminator = function(options) {
 	};
 
-});
+}));

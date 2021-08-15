@@ -1,4 +1,4 @@
-define(['./lib'], function (lib) { 'use strict';
+define(['./lib'], (function (lib) { 'use strict';
 
 	function _interopNamespaceDefaultOnly(e) {
 		return Object.freeze({__proto__: null, 'default': e});
@@ -8,4 +8,4 @@ define(['./lib'], function (lib) { 'use strict';
 
 	console.log(lib__namespace);
 
-});
+}));

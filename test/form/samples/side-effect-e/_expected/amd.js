@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	function foo () {
 		var Object = {
@@ -17,4 +17,4 @@ define(function () { 'use strict';
 
 	return main;
 
-});
+}));

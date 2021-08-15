@@ -1,4 +1,4 @@
-define(['exports', './components/index', './components/sub/index'], function (exports, index, index$1) { 'use strict';
+define(['exports', './components/index', './components/sub/index'], (function (exports, index, index$1) { 'use strict';
 
 
 
@@ -7,4 +7,4 @@ define(['exports', './components/index', './components/sub/index'], function (ex
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

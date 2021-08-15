@@ -1,4 +1,4 @@
-define(['require', 'exports'], function (require, exports) { 'use strict';
+define(['require', 'exports'], (function (require, exports) { 'use strict';
 
   var multiplier = 7;
 
@@ -25,4 +25,4 @@ define(['require', 'exports'], function (require, exports) { 'use strict';
 
   exports.multiplier = multiplier;
 
-});
+}));

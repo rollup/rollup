@@ -1,8 +1,8 @@
-System.register(['./generated-chunk-c.js', './generated-chunk-b.js'], function () {
+System.register(['./generated-chunk-c.js', './generated-chunk-b.js'], (function () {
 	'use strict';
 	return {
 		setters: [function () {}, function () {}],
-		execute: function () {
+		execute: (function () {
 
 			console.log('dep1');
 
@@ -10,6 +10,6 @@ System.register(['./generated-chunk-c.js', './generated-chunk-b.js'], function (
 
 			console.log('main-a');
 
-		}
+		})
 	};
-});
+}));

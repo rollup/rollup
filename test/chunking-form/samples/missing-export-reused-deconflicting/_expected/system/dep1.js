@@ -1,7 +1,7 @@
-System.register([], function (exports) {
+System.register([], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			var _missingExportShim = void 0;
 
@@ -17,6 +17,6 @@ System.register([], function (exports) {
 
 			exports('missing1', _missingExportShim);
 
-		}
+		})
 	};
-});
+}));

@@ -1,4 +1,4 @@
-define(['exports', './generated-main'], function (exports, main) { 'use strict';
+define(['exports', './generated-main'], (function (exports, main) { 'use strict';
 
   function mult (num) {
     return num + main.multiplier;
@@ -6,4 +6,4 @@ define(['exports', './generated-main'], function (exports, main) { 'use strict';
 
   exports.mult = mult;
 
-});
+}));

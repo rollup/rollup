@@ -1,4 +1,4 @@
-enifed(function () { 'use strict';
+enifed((function () { 'use strict';
 
     var a = () => {
         console.log('props');
@@ -7,4 +7,4 @@ enifed(function () { 'use strict';
     a();
     a();
 
-});
+}));

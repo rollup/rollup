@@ -1,7 +1,7 @@
-System.register([], function (exports) {
+System.register([], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			const {a = 1, ...b} = global1, c = global2, {d} = global3; exports({ a: a, b: b, c: c, d: d });
 			const [e, ...f] = global4; exports({ e: e, f: f });
@@ -12,6 +12,6 @@ System.register([], function (exports) {
 
 			(function (v) { return exports('m', m), v; }({m} = global7));
 
-		}
+		})
 	};
-});
+}));

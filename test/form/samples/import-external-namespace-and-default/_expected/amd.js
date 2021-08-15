@@ -1,4 +1,4 @@
-define(['foo'], function (foo) { 'use strict';
+define(['foo'], (function (foo) { 'use strict';
 
 	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -29,4 +29,4 @@ define(['foo'], function (foo) { 'use strict';
 
 	console.log( foo__default['default'] );
 
-});
+}));

@@ -1,4 +1,4 @@
-System.register([],function(exports){'use strict';return{execute:function(){// ---
+System.register([],(function(exports){'use strict';return{execute:(function(){// ---
 // Single export name
 let foo = exports('foo',1);
 
@@ -52,4 +52,4 @@ exports({bar:bar-1,bar2:bar-1}),bar--;
 // ++bar
 ++bar,exports({bar:bar,bar2:bar}),bar;
 console.log((++bar,exports({bar:bar,bar2:bar}),bar));
---bar,exports({bar:bar,bar2:bar}),bar;}}});
+--bar,exports({bar:bar,bar2:bar}),bar;})}}));

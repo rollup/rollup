@@ -1,4 +1,4 @@
-define(['module', 'require', 'exports'], function (module, require, exports) { 'use strict';
+define(['module', 'require', 'exports'], (function (module, require, exports) { 'use strict';
 
 	function log(url) {
 		if (typeof document === 'undefined') {
@@ -15,4 +15,4 @@ define(['module', 'require', 'exports'], function (module, require, exports) { '
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

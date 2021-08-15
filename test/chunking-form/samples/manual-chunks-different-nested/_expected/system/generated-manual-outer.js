@@ -1,11 +1,11 @@
-System.register(['./generated-manual-middle.js'], function () {
+System.register(['./generated-manual-middle.js'], (function () {
 	'use strict';
 	return {
 		setters: [function () {}],
-		execute: function () {
+		execute: (function () {
 
 			console.log('outer');
 
-		}
+		})
 	};
-});
+}));

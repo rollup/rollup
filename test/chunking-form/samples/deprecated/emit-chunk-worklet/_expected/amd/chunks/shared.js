@@ -1,4 +1,4 @@
-define(['exports'], function (exports) { 'use strict';
+define(['exports'], (function (exports) { 'use strict';
 
 	const color = 'greenyellow';
 	const size = 6;
@@ -6,4 +6,4 @@ define(['exports'], function (exports) { 'use strict';
 	exports.color = color;
 	exports.size = size;
 
-});
+}));

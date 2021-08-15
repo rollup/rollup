@@ -1,7 +1,7 @@
-System.register([], function () {
+System.register([], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			function foo (x) {
 				return x;
@@ -13,6 +13,6 @@ System.register([], function () {
 
 			console.log( foo(str) );
 
-		}
+		})
 	};
-});
+}));

@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	var augment;
 	augment = y => y.augmented = true;
@@ -8,4 +8,4 @@ define(function () { 'use strict';
 
 	return x;
 
-});
+}));

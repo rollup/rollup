@@ -1,4 +1,4 @@
-define(['exports', './generated-emitted'], function (exports, emitted) { 'use strict';
+define(['exports', './generated-emitted'], (function (exports, emitted) { 'use strict';
 
 
 
@@ -6,4 +6,4 @@ define(['exports', './generated-emitted'], function (exports, emitted) { 'use st
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

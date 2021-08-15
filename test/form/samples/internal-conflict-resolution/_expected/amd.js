@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	var bar$1 = 42;
 
@@ -12,4 +12,4 @@ define(function () { 'use strict';
 
 	bar();
 
-});
+}));

@@ -1,7 +1,7 @@
-System.register([], function () {
+System.register([], (function () {
     'use strict';
     return {
-        execute: function () {
+        execute: (function () {
 
             var a = () => {
                 console.log('props');
@@ -10,6 +10,6 @@ System.register([], function () {
             a();
             a();
 
-        }
+        })
     };
-});
+}));

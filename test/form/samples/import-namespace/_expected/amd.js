@@ -1,4 +1,4 @@
-define(['foo', 'bar'], function (foo, bar) { 'use strict';
+define(['foo', 'bar'], (function (foo, bar) { 'use strict';
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -26,4 +26,4 @@ define(['foo', 'bar'], function (foo, bar) { 'use strict';
 	foo__namespace.x();
 	console.log(bar__namespace);
 
-});
+}));

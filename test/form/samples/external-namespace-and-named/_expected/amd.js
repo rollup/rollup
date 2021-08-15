@@ -1,4 +1,4 @@
-define(['foo'], function (foo) { 'use strict';
+define(['foo'], (function (foo) { 'use strict';
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -26,4 +26,4 @@ define(['foo'], function (foo) { 'use strict';
 	console.log(foo.blah);
 	console.log(foo.bar);
 
-});
+}));
