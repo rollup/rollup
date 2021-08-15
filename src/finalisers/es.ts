@@ -1,15 +1,12 @@
 import { Bundle, Bundle as MagicStringBundle } from 'magic-string';
 import { ChunkDependencies, ChunkExports, ImportSpecifier, ReexportSpecifier } from '../Chunk';
-import { NormalizedOutputOptions } from '../rollup/types';
 import { FinaliserOptions } from './index';
 
 export default function es(
 	magicString: MagicStringBundle,
-	{ intro, outro, dependencies, exports, varOrConst }: FinaliserOptions,
-	{ compact }: NormalizedOutputOptions
+	{ intro, outro, dependencies, exports, snippets, varOrConst }: FinaliserOptions
 ): Bundle {
-	const _ = compact ? '' : ' ';
-	const n = compact ? '' : '\n';
+	const { _, n } = snippets;
 
 	const importBlock = getImportBlock(dependencies, _);
 	if (importBlock.length > 0) intro += importBlock.join(n) + n + n;

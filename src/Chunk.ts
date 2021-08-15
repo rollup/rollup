@@ -557,7 +557,8 @@ export default class Chunk {
 		inputBase: string,
 		snippets: GenerateCodeSnippets
 	): void {
-		const magicString = new MagicStringBundle({ separator: options.compact ? '' : '\n\n' });
+		const { _, n } = snippets;
+		const magicString = new MagicStringBundle({ separator: `${n}${n}` });
 		this.usedModules = [];
 		this.indentString = getIndentString(this.orderedModules, options);
 
@@ -585,12 +586,11 @@ export default class Chunk {
 			}
 		}
 
-		this.prepareDynamicImportsAndImportMetas();
+		this.prepareDynamicImportsAndImportMetas(snippets);
 		this.setIdentifierRenderResolutions(options);
 
 		let hoistedSource = '';
 		const renderedModules = this.renderedModules;
-		const { n, _ } = renderOptions.snippets;
 
 		for (const module of this.orderedModules) {
 			let renderedLength = 0;
@@ -686,7 +686,7 @@ export default class Chunk {
 			}
 		}
 
-		this.finaliseDynamicImports(options);
+		this.finaliseDynamicImports(options, snippets);
 		this.finaliseImportMetas(format);
 
 		const hasExports =
@@ -901,7 +901,7 @@ export default class Chunk {
 		}
 	}
 
-	private finaliseDynamicImports(options: NormalizedOutputOptions) {
+	private finaliseDynamicImports(options: NormalizedOutputOptions, snippets: GenerateCodeSnippets) {
 		const stripKnownJsExtensions = options.format === 'amd';
 		for (const [module, code] of this.renderedModuleSources) {
 			for (const { node, resolution } of module.dynamicImports) {
@@ -926,7 +926,7 @@ export default class Chunk {
 					resolution instanceof Module &&
 						!facadeChunk?.strictFacade &&
 						chunk!.exportNamesByVariable.get(resolution.namespace)![0],
-					options
+					snippets
 				);
 			}
 		}
@@ -1211,7 +1211,7 @@ export default class Chunk {
 		}
 	}
 
-	private prepareDynamicImportsAndImportMetas() {
+	private prepareDynamicImportsAndImportMetas(snippets: GenerateCodeSnippets) {
 		const accessedGlobalsByScope = this.accessedGlobalsByScope;
 		for (const module of this.orderedModules) {
 			for (const { node, resolution } of module.dynamicImports) {
@@ -1225,6 +1225,7 @@ export default class Chunk {
 								this.facadeChunkByModule.get(resolution)?.exportMode || chunk!.exportMode,
 								resolution,
 								this.outputOptions,
+								snippets,
 								this.pluginDriver,
 								accessedGlobalsByScope
 							);
@@ -1234,6 +1235,7 @@ export default class Chunk {
 							'external',
 							resolution,
 							this.outputOptions,
+							snippets,
 							this.pluginDriver,
 							accessedGlobalsByScope
 						);

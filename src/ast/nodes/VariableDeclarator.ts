@@ -45,6 +45,10 @@ export default class VariableDeclarator extends NodeBase {
 	}
 
 	render(code: MagicString, options: RenderOptions): void {
+		const {
+			exportNamesByVariable,
+			snippets: { _ }
+		} = options;
 		const renderId = this.id.included;
 		if (renderId) {
 			this.id.render(code, options);
@@ -60,9 +64,8 @@ export default class VariableDeclarator extends NodeBase {
 			);
 		} else if (
 			this.id instanceof Identifier &&
-			isReassignedExportsMember(this.id.variable!, options.exportNamesByVariable)
+			isReassignedExportsMember(this.id.variable!, exportNamesByVariable)
 		) {
-			const _ = options.compact ? '' : ' ';
 			code.appendLeft(this.end, `${_}=${_}void 0`);
 		}
 	}

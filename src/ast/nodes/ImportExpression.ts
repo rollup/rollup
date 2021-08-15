@@ -3,6 +3,7 @@ import ExternalModule from '../../ExternalModule';
 import Module from '../../Module';
 import { GetInterop, NormalizedOutputOptions } from '../../rollup/types';
 import { PluginDriver } from '../../utils/PluginDriver';
+import { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 import {
 	getDefaultOnlyHelper,
 	namespaceInteropHelpersByInteropType
@@ -46,8 +47,9 @@ export default class ImportExpression extends NodeBase {
 
 	render(code: MagicString, options: RenderOptions): void {
 		if (this.inlineNamespace) {
-			const _ = options.compact ? '' : ' ';
-			const s = options.compact ? '' : ';';
+			const {
+				snippets: { _, s }
+			} = options;
 			code.overwrite(
 				this.start,
 				this.end,
@@ -73,12 +75,10 @@ export default class ImportExpression extends NodeBase {
 		code: MagicString,
 		resolution: string,
 		namespaceExportName: string | false | undefined,
-		options: NormalizedOutputOptions
+		{ _, s }: GenerateCodeSnippets
 	): void {
 		code.overwrite(this.source.start, this.source.end, resolution);
 		if (namespaceExportName) {
-			const _ = options.compact ? '' : ' ';
-			const s = options.compact ? '' : ';';
 			code.prependLeft(
 				this.end,
 				`.then(function${_}(n)${_}{${_}return n.${namespaceExportName}${s}${_}})`
@@ -90,6 +90,7 @@ export default class ImportExpression extends NodeBase {
 		exportMode: 'none' | 'named' | 'default' | 'external',
 		resolution: Module | ExternalModule | string | null,
 		options: NormalizedOutputOptions,
+		snippets: GenerateCodeSnippets,
 		pluginDriver: PluginDriver,
 		accessedGlobalsByScope: Map<ChildScope, Set<string>>
 	): void {
@@ -100,6 +101,7 @@ export default class ImportExpression extends NodeBase {
 			resolution,
 			exportMode,
 			options,
+			snippets,
 			pluginDriver
 		));
 		if (helper) {
@@ -117,13 +119,14 @@ export default class ImportExpression extends NodeBase {
 	private getDynamicImportMechanismAndHelper(
 		resolution: Module | ExternalModule | string | null,
 		exportMode: 'none' | 'named' | 'default' | 'external',
-		options: NormalizedOutputOptions,
+		{ compact, dynamicImportFunction, format, interop }: NormalizedOutputOptions,
+		{ _, s }: GenerateCodeSnippets,
 		pluginDriver: PluginDriver
 	): { helper: string | null; mechanism: DynamicImportMechanism | null } {
 		const mechanism = pluginDriver.hookFirstSync('renderDynamicImport', [
 			{
 				customResolution: typeof this.resolution === 'string' ? this.resolution : null,
-				format: options.format,
+				format,
 				moduleId: this.context.module.id,
 				targetModuleId:
 					this.resolution && typeof this.resolution !== 'string' ? this.resolution.id : null
@@ -132,12 +135,10 @@ export default class ImportExpression extends NodeBase {
 		if (mechanism) {
 			return { helper: null, mechanism };
 		}
-		switch (options.format) {
+		switch (format) {
 			case 'cjs': {
-				const _ = options.compact ? '' : ' ';
-				const s = options.compact ? '' : ';';
 				const leftStart = `Promise.resolve().then(function${_}()${_}{${_}return`;
-				const helper = getInteropHelper(resolution, exportMode, options.interop);
+				const helper = getInteropHelper(resolution, exportMode, interop);
 				return {
 					helper,
 					mechanism: helper
@@ -152,10 +153,9 @@ export default class ImportExpression extends NodeBase {
 				};
 			}
 			case 'amd': {
-				const _ = options.compact ? '' : ' ';
-				const resolve = options.compact ? 'c' : 'resolve';
-				const reject = options.compact ? 'e' : 'reject';
-				const helper = getInteropHelper(resolution, exportMode, options.interop);
+				const resolve = compact ? 'c' : 'resolve';
+				const reject = compact ? 'e' : 'reject';
+				const helper = getInteropHelper(resolution, exportMode, interop);
 				const resolveNamespace = helper
 					? `function${_}(m)${_}{${_}${resolve}(/*#__PURE__*/${helper}(m));${_}}`
 					: resolve;
@@ -176,11 +176,11 @@ export default class ImportExpression extends NodeBase {
 					}
 				};
 			case 'es':
-				if (options.dynamicImportFunction) {
+				if (dynamicImportFunction) {
 					return {
 						helper: null,
 						mechanism: {
-							left: `${options.dynamicImportFunction}(`,
+							left: `${dynamicImportFunction}(`,
 							right: ')'
 						}
 					};

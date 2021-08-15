@@ -26,10 +26,9 @@ export function assignToDeepVariable(
 	deepName: string,
 	root: string,
 	globals: GlobalsOption,
-	compact: boolean | undefined,
-	assignment: string
+	assignment: string,
+	{ _ }: GenerateCodeSnippets
 ): string {
-	const _ = compact ? '' : ' ';
 	const parts = deepName.split('.');
 	parts[0] = (typeof globals === 'function' ? globals(parts[0]) : globals[parts[0]]) || parts[0];
 	const last = parts.pop();

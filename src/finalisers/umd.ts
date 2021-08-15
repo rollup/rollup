@@ -54,7 +54,7 @@ export default function umd(
 		strict
 	}: NormalizedOutputOptions
 ): Bundle {
-	const { _, getFunctionIntro, n } = snippets;
+	const { _, getFunctionIntro, n, s } = snippets;
 	const factoryVar = compact ? 'f' : 'factory';
 	const globalVar = compact ? 'g' : 'global';
 
@@ -83,8 +83,8 @@ export default function umd(
 				name!,
 				globalVar,
 				globals,
-				compact,
-				`${extend ? `${globalProp(name!, globalVar)}${_}||${_}` : ''}{}`
+				`${extend ? `${globalProp(name!, globalVar)}${_}||${_}` : ''}{}`,
+				snippets
 			)
 		);
 
@@ -111,8 +111,8 @@ export default function umd(
 				name!,
 				globalVar,
 				globals,
-				compact,
-				`${factoryVar}(${globalDeps.join(`,${_}`)})`
+				`${factoryVar}(${globalDeps.join(`,${_}`)})`,
+				snippets
 			)};`;
 		} else {
 			const module = globalDeps.shift();
@@ -125,14 +125,15 @@ export default function umd(
 			`${t}${t}var current${_}=${_}${safeAccess(name!, globalVar, _)};${n}` +
 			`${t}${t}${factory}${n}` +
 			`${t}${t}${noConflictExportsVar}.noConflict${_}=${_}function${_}()${_}{${_}` +
-			`${globalProp(name!, globalVar)}${_}=${_}current;${_}return ${noConflictExportsVar}${
-				compact ? '' : '; '
-			}};${n}` +
+			`${globalProp(
+				name!,
+				globalVar
+			)}${_}=${_}current;${_}return ${noConflictExportsVar}${s}${_}};${n}` +
 			`${t}}())`;
 	} else {
 		iifeExport = `${factoryVar}(${globalDeps.join(`,${_}`)})`;
 		if (!namedExportsMode && hasExports) {
-			iifeExport = assignToDeepVariable(name!, globalVar, globals, compact, iifeExport);
+			iifeExport = assignToDeepVariable(name!, globalVar, globals, iifeExport, snippets);
 		}
 	}
 

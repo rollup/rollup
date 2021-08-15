@@ -4,10 +4,9 @@ import { RenderOptions } from './renderHelpers';
 
 export function getSystemExportStatement(
 	exportedVariables: Variable[],
-	{ compact, exportNamesByVariable }: RenderOptions,
+	{ exportNamesByVariable, snippets: { _ } }: RenderOptions,
 	modifier = ''
 ): string {
-	const _ = compact ? '' : ' ';
 	if (
 		exportedVariables.length === 1 &&
 		exportNamesByVariable.get(exportedVariables[0])!.length === 1
@@ -31,9 +30,8 @@ export function renderSystemExportExpression(
 	expressionStart: number,
 	expressionEnd: number,
 	code: MagicString,
-	{ compact, exportNamesByVariable }: RenderOptions
+	{ exportNamesByVariable, snippets: { _ } }: RenderOptions
 ): void {
-	const _ = compact ? '' : ' ';
 	code.prependRight(
 		expressionStart,
 		`exports('${exportNamesByVariable.get(exportedVariable)}',${_}`

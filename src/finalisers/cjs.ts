@@ -32,7 +32,7 @@ export default function cjs(
 		strict
 	}: NormalizedOutputOptions
 ): Bundle {
-	const { n, _ } = snippets;
+	const { _, n } = snippets;
 
 	const useStrict = strict ? `'use strict';${n}${n}` : '';
 	let namespaceMarkers = getNamespaceMarkers(
@@ -85,7 +85,7 @@ function getImportBlock(
 	for (const { id, name, reexports, imports } of dependencies) {
 		if (!reexports && !imports) {
 			if (importBlock) {
-				importBlock += !compact || definingVariable ? `;${n}` : ',';
+				importBlock += compact && !definingVariable ? ',' : `;${n}`;
 			}
 			definingVariable = false;
 			importBlock += `require('${id}')`;
