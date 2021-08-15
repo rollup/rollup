@@ -177,14 +177,18 @@ function runTestsInDir(dir, runTest) {
 }
 
 function loadConfigAndRunTest(dir, runTest) {
-	const config = loadConfig(dir + '/_config.js');
+	const configFile = path.join(dir, '_config.js');
+	const config = loadConfig(configFile);
+	if (!config || !config.description) {
+		throw new Error(`Found invalid config without description: ${configFile}`);
+	}
 	if (
-		config &&
 		(!config.skipIfWindows || process.platform !== 'win32') &&
 		(!config.onlyWindows || process.platform === 'win32') &&
 		(!config.minNodeVersion || config.minNodeVersion <= Number(/^v(\d+)/.exec(process.version)[1]))
-	)
+	) {
 		runTest(dir, config);
+	}
 }
 
 function assertDirectoriesAreEqual(actualDir, expectedDir) {
