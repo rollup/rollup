@@ -8,7 +8,6 @@ import { treeshakeNode } from './treeshakeNode';
 
 // TODO Lukas replace most of them with code snippets
 export interface RenderOptions {
-	compact: boolean;
 	dynamicImportFunction: string | undefined;
 	exportNamesByVariable: Map<Variable, string[]>;
 	format: InternalModuleFormat;

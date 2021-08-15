@@ -13,7 +13,6 @@ export default function setupNamespace(
 	parts[0] = (typeof globals === 'function' ? globals(parts[0]) : globals[parts[0]]) || parts[0];
 	parts.pop();
 
-	// TODO Lukas find out how this works, can we get rid of compact?
 	let acc = root;
 	return (
 		parts

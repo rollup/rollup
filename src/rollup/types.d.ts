@@ -580,6 +580,7 @@ export type ModuleFormat = InternalModuleFormat | 'commonjs' | 'esm' | 'module' 
 
 interface NormalizedGeneratedCodeOptions {
 	arrowFunctions: boolean;
+	objectShorthand: boolean;
 }
 
 type GeneratedCodeOptions = Partial<NormalizedGeneratedCodeOptions>;

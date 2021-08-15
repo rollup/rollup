@@ -290,8 +290,10 @@ function getExports(
 	return configExports || 'auto';
 }
 
+// TODO Lukas add presets
 const getGeneratedCode = (config: OutputOptions): NormalizedOutputOptions['generatedCode'] => ({
 	arrowFunctions: false,
+	objectShorthand: false,
 	...config.generatedCode
 });
 

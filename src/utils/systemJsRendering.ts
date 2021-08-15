@@ -2,10 +2,9 @@ import MagicString from 'magic-string';
 import Variable from '../ast/variables/Variable';
 import { RenderOptions } from './renderHelpers';
 
-// TODO Lukas simplify object if variable name matches export name
 export function getSystemExportStatement(
 	exportedVariables: Variable[],
-	{ exportNamesByVariable, snippets: { _ } }: RenderOptions,
+	{ exportNamesByVariable, snippets: { _, getObject } }: RenderOptions,
 	modifier = ''
 ): string {
 	if (
@@ -15,14 +14,13 @@ export function getSystemExportStatement(
 		const variable = exportedVariables[0];
 		return `exports('${exportNamesByVariable.get(variable)}',${_}${variable.getName()}${modifier})`;
 	} else {
-		return `exports({${_}${exportedVariables
-			.map(variable => {
-				return exportNamesByVariable
-					.get(variable)!
-					.map(exportName => `${exportName}:${_}${variable.getName()}${modifier}`)
-					.join(`,${_}`);
-			})
-			.join(`,${_}`)}${_}})`;
+		const fields: [key: string, value: string][] = [];
+		for (const variable of exportedVariables) {
+			for (const exportName of exportNamesByVariable.get(variable)!) {
+				fields.push([exportName, variable.getName() + modifier]);
+			}
+		}
+		return `exports(${getObject(fields)})`;
 	}
 }
 

@@ -563,7 +563,6 @@ export default class Chunk {
 		this.indentString = getIndentString(this.orderedModules, options);
 
 		const renderOptions: RenderOptions = {
-			compact: options.compact,
 			dynamicImportFunction: options.dynamicImportFunction,
 			exportNamesByVariable: this.exportNamesByVariable,
 			format: options.format,

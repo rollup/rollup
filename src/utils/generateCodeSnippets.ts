@@ -6,7 +6,7 @@ export interface GenerateCodeSnippets {
 	n: string;
 	s: string;
 	getFunctionIntro(params: string[], isAsync?: boolean): string;
-	// TODO Lukas pass the arg to be rendered instead
+	getObject(fields: [key: string, value: string][]): string;
 	renderDirectReturnIife(
 		params: string[],
 		returned: string,
@@ -22,7 +22,7 @@ export interface GenerateCodeSnippets {
 
 export function getGenerateCodeSnippets({
 	compact,
-	generatedCode: { arrowFunctions }
+	generatedCode: { arrowFunctions, objectShorthand }
 }: NormalizedOutputOptions): GenerateCodeSnippets {
 	const { _, n, s } = compact ? { _: '', n: '', s: '' } : { _: ' ', n: '\n', s: ';' };
 	const getFunctionIntro = arrowFunctions
@@ -37,30 +37,20 @@ export function getGenerateCodeSnippets({
 	return {
 		_,
 		getFunctionIntro,
+		getObject: fields =>
+			`{${_}${fields
+				.map(([key, value]) => (objectShorthand && key === value ? key : `${key}:${_}${value}`))
+				.join(`,${_}`)}${_}}`,
 		n,
 		renderDirectReturnIife: arrowFunctions
-			? (
-					params: string[],
-					returned: string,
-					code: MagicString,
-					argStart: number,
-					argEnd: number,
-					{ needsArrowReturnParens }
-			  ) => {
+			? (params, returned, code, argStart, argEnd, { needsArrowReturnParens }) => {
 					code.prependRight(
 						argStart,
 						`(${getFunctionIntro(params)}${wrapIfNeeded(returned, needsArrowReturnParens)})(`
 					);
 					code.appendLeft(argEnd, ')');
 			  }
-			: (
-					params: string[],
-					returned: string,
-					code: MagicString,
-					argStart: number,
-					argEnd: number,
-					{ needsWrappedFunction }
-			  ) => {
+			: (params, returned, code, argStart, argEnd, { needsWrappedFunction }) => {
 					code.prependRight(
 						argStart,
 						`${getFunctionIntro(params)}{${_}return ${returned}${s}${_}}(`
