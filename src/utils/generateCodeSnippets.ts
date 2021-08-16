@@ -56,7 +56,7 @@ export function getGenerateCodeSnippets({
 						? prefix + key
 						: `${prefix}${needsQuotes ? `'${key}'` : key}:${_}${value}`;
 				})
-				.join(`,`)}${lineBreaks ? n : indent}}`;
+				.join(`,`)}${fields.length === 0 ? '' : lineBreaks ? n : indent}}`;
 		},
 		getPropertyAccess: (name: string): string =>
 			isValidPropName(name) ? `.${name}` : `[${JSON.stringify(name)}]`,

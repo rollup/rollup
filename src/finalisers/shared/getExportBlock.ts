@@ -22,7 +22,8 @@ export function getExportBlock(
 			exports,
 			dependencies,
 			interop,
-			externalLiveBindings
+			externalLiveBindings,
+			getPropertyAccess
 		)};`;
 	}
 
@@ -49,7 +50,8 @@ export function getExportBlock(
 						namespaceVariableName!,
 						interop,
 						id,
-						externalLiveBindings
+						externalLiveBindings,
+						getPropertyAccess
 					);
 					if (exportBlock) exportBlock += n;
 					exportBlock +=
@@ -108,7 +110,8 @@ function getSingleDefaultExport(
 	exports: ChunkExports,
 	dependencies: ChunkDependencies,
 	interop: GetInterop,
-	externalLiveBindings: boolean
+	externalLiveBindings: boolean,
+	getPropertyAccess: (name: string) => string
 ) {
 	if (exports.length > 0) {
 		return exports[0].local;
@@ -132,13 +135,15 @@ function getSingleDefaultExport(
 					namespaceVariableName!,
 					interop,
 					id,
-					externalLiveBindings
+					externalLiveBindings,
+					getPropertyAccess
 				);
 			}
 		}
 	}
 }
 
+// TODO Lukas we may not need to escape default here
 function getReexportedImportName(
 	moduleVariableName: string,
 	imported: string,
@@ -148,7 +153,8 @@ function getReexportedImportName(
 	namespaceVariableName: string,
 	interop: GetInterop,
 	moduleId: string,
-	externalLiveBindings: boolean
+	externalLiveBindings: boolean,
+	getPropertyAccess: (name: string) => string
 ) {
 	if (imported === 'default') {
 		if (!isChunk) {
@@ -172,7 +178,7 @@ function getReexportedImportName(
 			: moduleVariableName;
 	}
 	// TODO Lukas needs escaping?
-	return `${moduleVariableName}.${imported}`;
+	return `${moduleVariableName}${getPropertyAccess(imported)}`;
 }
 
 function getEsModuleExport(_: string): string {

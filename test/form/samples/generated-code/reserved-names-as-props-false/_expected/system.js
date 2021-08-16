@@ -1,6 +1,11 @@
-System.register('bundle', [], (function (exports, module) {
+System.register('bundle', ['external'], (function (exports, module) {
 	'use strict';
+	var function$1;
 	return {
+		setters: [(function (module) {
+			function$1 = module["function"];
+			exports({ bar: module["function"], 'default': module.foo });
+		})],
 		execute: (function () {
 
 			var other = {
@@ -11,7 +16,7 @@ System.register('bundle', [], (function (exports, module) {
 				'default': other
 			}));
 
-			console.log(ns, other.foo, other["function"], other["some-prop"]);
+			console.log(ns, other.foo, other["function"], other["some-prop"], function$1);
 			console.log(module.meta["function"], module.meta["some-prop"]);
 
 			let f = exports('function', 1);

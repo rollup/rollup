@@ -5,10 +5,7 @@ System.register(['./generated-from-main-1-and-2.js'], (function (exports, module
 		setters: [(function (module) {
 			value2 = module.v;
 			value3 = module.a;
-			var _setter = {};
-			_setter.value2 = module.v;
-			_setter.value3 = module.a;
-			exports(_setter);
+			exports({ value2: module.v, value3: module.a });
 		})],
 		execute: (function () {
 

@@ -2,10 +2,7 @@ System.register(['./dep.js'], (function (exports) {
 	'use strict';
 	return {
 		setters: [(function (module) {
-			var _setter = {};
-			_setter.bar = module.foo;
-			_setter.foo = module.foo;
-			exports(_setter);
+			exports({ bar: module.foo, foo: module.foo });
 		})],
 		execute: (function () {
 

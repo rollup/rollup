@@ -1,6 +1,7 @@
 module.exports = {
 	description: 'does not escape reserved names used as props',
 	options: {
+		external: ['external'],
 		output: {
 			exports: 'named',
 			generatedCode: { reservedNamesAsProps: true },
