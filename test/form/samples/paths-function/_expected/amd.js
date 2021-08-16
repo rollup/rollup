@@ -24,7 +24,7 @@ define(['require', 'https://unpkg.com/foo'], (function (require, foo) { 'use str
 
 	var foo__default = /*#__PURE__*/_interopDefaultLegacy(foo);
 
-	assert.equal(foo__default['default'], 42);
+	assert.equal(foo__default["default"], 42);
 
 	new Promise(function (resolve, reject) { require(['https://unpkg.com/foo'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) }).then(({ default: foo }) => assert.equal(foo, 42));
 

@@ -4,7 +4,7 @@ define(['leaflet'], (function (L) { 'use strict';
 
 	var L__default = /*#__PURE__*/_interopDefaultLegacy(L);
 
-	L__default['default'].terminator = function(options) {
+	L__default["default"].terminator = function(options) {
 	};
 
 }));

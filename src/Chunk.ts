@@ -557,7 +557,7 @@ export default class Chunk {
 		inputBase: string,
 		snippets: GenerateCodeSnippets
 	): void {
-		const { _, n } = snippets;
+		const { _, getPropertyAccess, n } = snippets;
 		const magicString = new MagicStringBundle({ separator: `${n}${n}` });
 		this.usedModules = [];
 		this.indentString = getIndentString(this.orderedModules, options);
@@ -648,9 +648,11 @@ export default class Chunk {
 
 		this.setExternalRenderPaths(options, inputBase);
 
-		this.renderedDependencies = this.getChunkDependencyDeclarations(options);
+		this.renderedDependencies = this.getChunkDependencyDeclarations(options, getPropertyAccess);
 		this.renderedExports =
-			this.exportMode === 'none' ? [] : this.getChunkExportDeclarations(options.format);
+			this.exportMode === 'none'
+				? []
+				: this.getChunkExportDeclarations(options.format, getPropertyAccess);
 	}
 
 	async render(
@@ -686,7 +688,7 @@ export default class Chunk {
 		}
 
 		this.finaliseDynamicImports(options, snippets);
-		this.finaliseImportMetas(format);
+		this.finaliseImportMetas(format, snippets);
 
 		const hasExports =
 			this.renderedExports!.length !== 0 ||
@@ -931,10 +933,10 @@ export default class Chunk {
 		}
 	}
 
-	private finaliseImportMetas(format: InternalModuleFormat): void {
+	private finaliseImportMetas(format: InternalModuleFormat, snippets: GenerateCodeSnippets): void {
 		for (const [module, code] of this.renderedModuleSources) {
 			for (const importMeta of module.importMetas) {
-				importMeta.renderFinalMechanism(code, this.id!, format, this.pluginDriver);
+				importMeta.renderFinalMechanism(code, this.id!, format, snippets, this.pluginDriver);
 			}
 		}
 	}
@@ -955,9 +957,10 @@ export default class Chunk {
 	}
 
 	private getChunkDependencyDeclarations(
-		options: NormalizedOutputOptions
+		options: NormalizedOutputOptions,
+		getPropertyAccess: (name: string) => string
 	): Map<Chunk | ExternalModule, ModuleDeclarationDependency> {
-		const importSpecifiers = this.getImportSpecifiers();
+		const importSpecifiers = this.getImportSpecifiers(getPropertyAccess);
 		const reexportSpecifiers = this.getReexportSpecifiers();
 		const dependencyDeclaration = new Map<Chunk | ExternalModule, ModuleDeclarationDependency>();
 		for (const dep of this.dependencies) {
@@ -988,7 +991,10 @@ export default class Chunk {
 		return dependencyDeclaration;
 	}
 
-	private getChunkExportDeclarations(format: InternalModuleFormat): ChunkExports {
+	private getChunkExportDeclarations(
+		format: InternalModuleFormat,
+		getPropertyAccess: (name: string) => string
+	): ChunkExports {
 		const exports: ChunkExports = [];
 		for (const exportName of this.getExportNames()) {
 			if (exportName[0] === '*') continue;
@@ -1000,7 +1006,7 @@ export default class Chunk {
 			}
 			let expression = null;
 			let hoisted = false;
-			let local = variable.getName();
+			let local = variable.getName(getPropertyAccess);
 			if (variable instanceof LocalVariable) {
 				for (const declaration of variable.declarations) {
 					if (
@@ -1089,7 +1095,9 @@ export default class Chunk {
 		return getAliasName(this.orderedModules[this.orderedModules.length - 1].id);
 	}
 
-	private getImportSpecifiers(): Map<Chunk | ExternalModule, ImportSpecifier[]> {
+	private getImportSpecifiers(
+		getPropertyAccess: (name: string) => string
+	): Map<Chunk | ExternalModule, ImportSpecifier[]> {
 		const { interop } = this.outputOptions;
 		const importsByDependency = new Map<Chunk | ExternalModule, ImportSpecifier[]>();
 		for (const variable of this.imports) {
@@ -1108,7 +1116,7 @@ export default class Chunk {
 			}
 			getOrCreate(importsByDependency, dependency, () => []).push({
 				imported,
-				local: variable.getName()
+				local: variable.getName(getPropertyAccess)
 			});
 		}
 		return importsByDependency;

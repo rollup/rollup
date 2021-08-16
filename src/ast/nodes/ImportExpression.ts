@@ -48,13 +48,15 @@ export default class ImportExpression extends NodeBase {
 	render(code: MagicString, options: RenderOptions): void {
 		if (this.inlineNamespace) {
 			const {
-				snippets: { _, s }
+				snippets: { _, getPropertyAccess, s }
 			} = options;
-			// TODO Lukas use arrow functions
+			// TODO Lukas arrow functions
 			code.overwrite(
 				this.start,
 				this.end,
-				`Promise.resolve().then(function${_}()${_}{${_}return ${this.inlineNamespace.getName()}${s}${_}})`,
+				`Promise.resolve().then(function${_}()${_}{${_}return ${this.inlineNamespace.getName(
+					getPropertyAccess
+				)}${s}${_}})`,
 				{ contentOnly: true }
 			);
 			return;
@@ -82,6 +84,7 @@ export default class ImportExpression extends NodeBase {
 		if (namespaceExportName) {
 			code.prependLeft(
 				this.end,
+				// TODO Lukas arrow functions
 				`.then(function${_}(n)${_}{${_}return n.${namespaceExportName}${s}${_}})`
 			);
 		}
@@ -139,6 +142,7 @@ export default class ImportExpression extends NodeBase {
 		}
 		switch (format) {
 			case 'cjs': {
+				// TODO Lukas arrow functions
 				const leftStart = `Promise.resolve().then(function${_}()${_}{${_}return`;
 				const helper = getInteropHelper(resolution, exportMode, interop);
 				return {
@@ -158,12 +162,14 @@ export default class ImportExpression extends NodeBase {
 				const resolve = compact ? 'c' : 'resolve';
 				const reject = compact ? 'e' : 'reject';
 				const helper = getInteropHelper(resolution, exportMode, interop);
+				// TODO Lukas arrpw functions
 				const resolveNamespace = helper
 					? `function${_}(m)${_}{${_}${resolve}(/*#__PURE__*/${helper}(m));${_}}`
 					: resolve;
 				return {
 					helper,
 					mechanism: {
+						// TODO Lukas arrpw functions
 						left: `new Promise(function${_}(${resolve},${_}${reject})${_}{${_}require([`,
 						right: `],${_}${resolveNamespace},${_}${reject})${_}})`
 					}

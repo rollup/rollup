@@ -29,4 +29,4 @@ var foo__default = /*#__PURE__*/_interopDefaultLegacy(foo);
 
 console.log( foo__namespace.bar );
 
-console.log( foo__default['default'] );
+console.log( foo__default["default"] );

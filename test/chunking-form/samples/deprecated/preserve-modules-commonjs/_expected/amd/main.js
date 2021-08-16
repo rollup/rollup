@@ -4,6 +4,6 @@ define(['./commonjs', 'external'], (function (commonjs, require$$0) { 'use stric
 
 	var require$$0__default = /*#__PURE__*/_interopDefaultLegacy(require$$0);
 
-	console.log(commonjs, require$$0__default['default']);
+	console.log(commonjs, require$$0__default["default"]);
 
 }));

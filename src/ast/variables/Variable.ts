@@ -1,6 +1,5 @@
 import ExternalModule from '../../ExternalModule';
 import Module from '../../Module';
-import { RESERVED_NAMES } from '../../utils/reservedNames';
 import { HasEffectsContext } from '../ExecutionContext';
 import Identifier from '../nodes/Identifier';
 import { ExpressionEntity } from '../nodes/shared/Expression';
@@ -32,11 +31,9 @@ export default class Variable extends ExpressionEntity {
 		return this.renderBaseName || this.renderName || this.name;
 	}
 
-	getName(): string {
+	getName(getPropertyAccess: (name: string) => string): string {
 		const name = this.renderName || this.name;
-		return this.renderBaseName
-			? `${this.renderBaseName}${RESERVED_NAMES[name] ? `['${name}']` : `.${name}`}`
-			: name;
+		return this.renderBaseName ? `${this.renderBaseName}${getPropertyAccess(name)}` : name;
 	}
 
 	hasEffectsWhenAccessedAtPath(path: ObjectPath, _context: HasEffectsContext): boolean {

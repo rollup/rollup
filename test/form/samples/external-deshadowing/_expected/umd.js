@@ -13,7 +13,7 @@
   };
 
   const Test1 = () => {
-    console.log(Test__default['default']);
+    console.log(Test__default["default"]);
   };
 
   exports.Test = Test;

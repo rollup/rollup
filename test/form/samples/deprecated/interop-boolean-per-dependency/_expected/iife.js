@@ -27,7 +27,7 @@
 	var fooTrue__namespace = /*#__PURE__*/_interopNamespace(fooTrue);
 
 	console.log(fooFalse, fooFalse.barFalse, fooFalse);
-	console.log(fooTrue__default['default'], fooTrue.barTrue, fooTrue__namespace);
+	console.log(fooTrue__default["default"], fooTrue.barTrue, fooTrue__namespace);
 
 	import('external-false').then(console.log);
 	import('external-true').then(console.log);

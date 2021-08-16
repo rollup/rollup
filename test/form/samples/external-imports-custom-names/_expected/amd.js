@@ -4,8 +4,8 @@ define(['jquery'], (function ($) { 'use strict';
 
 	var $__default = /*#__PURE__*/_interopDefaultLegacy($);
 
-	$__default['default']( function () {
-		$__default['default']( 'body' ).html( '<h1>hello world!</h1>' );
+	$__default["default"]( function () {
+		$__default["default"]( 'body' ).html( '<h1>hello world!</h1>' );
 	});
 
 }));

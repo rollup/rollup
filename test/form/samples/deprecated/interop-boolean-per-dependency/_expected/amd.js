@@ -26,7 +26,7 @@ define(['require', 'external-false', 'external-true'], (function (require, fooFa
 	var fooTrue__namespace = /*#__PURE__*/_interopNamespace(fooTrue);
 
 	console.log(fooFalse, fooFalse.barFalse, fooFalse);
-	console.log(fooTrue__default['default'], fooTrue.barTrue, fooTrue__namespace);
+	console.log(fooTrue__default["default"], fooTrue.barTrue, fooTrue__namespace);
 
 	new Promise(function (resolve, reject) { require(['external-false'], resolve, reject) }).then(console.log);
 	new Promise(function (resolve, reject) { require(['external-true'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) }).then(console.log);

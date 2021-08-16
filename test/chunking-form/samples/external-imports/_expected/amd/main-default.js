@@ -7,6 +7,6 @@ define(['external-all', 'external-default', 'external-default-named', 'external-
 	var baz__default = /*#__PURE__*/_interopDefaultLegacy(baz);
 	var quux__default = /*#__PURE__*/_interopDefaultLegacy(quux);
 
-	console.log(foo__default['default'], bar__default['default'], baz__default['default'], quux__default['default']);
+	console.log(foo__default["default"], bar__default["default"], baz__default["default"], quux__default["default"]);
 
 }));

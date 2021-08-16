@@ -9,7 +9,7 @@ define(['exports', 'a', 'b'], (function (exports, a, Test$1) { 'use strict';
   };
 
   const Test1 = () => {
-    console.log(Test__default['default']);
+    console.log(Test__default["default"]);
   };
 
   exports.Test = Test;

@@ -16,7 +16,7 @@ function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'defau
 
 var a__default = /*#__PURE__*/_interopDefaultLegacy(a);
 
-console.log( a__default['default'] );
+console.log( a__default["default"] );
 console.log( a.b );
 
 var main = 42;

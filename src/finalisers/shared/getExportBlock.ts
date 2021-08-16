@@ -6,14 +6,13 @@ import {
 	isDefaultAProperty,
 	namespaceInteropHelpersByInteropType
 } from '../../utils/interopHelpers';
-import { RESERVED_NAMES } from '../../utils/reservedNames';
 
 export function getExportBlock(
 	exports: ChunkExports,
 	dependencies: ChunkDependencies,
 	namedExportsMode: boolean,
 	interop: GetInterop,
-	{ _, n }: GenerateCodeSnippets,
+	{ _, getPropertyAccess, n }: GenerateCodeSnippets,
 	t: string,
 	externalLiveBindings: boolean,
 	mechanism = 'return '
@@ -59,14 +58,15 @@ export function getExportBlock(
 							  `${t}enumerable:${_}true,${n}` +
 							  `${t}get:${_}function${_}()${_}{${n}` +
 							  `${t}${t}return ${importName};${n}${t}}${n}});`
-							: `exports.${specifier.reexported}${_}=${_}${importName};`;
+							: // TODO Lukas needs escaping?
+							  `exports.${specifier.reexported}${_}=${_}${importName};`;
 				}
 			}
 		}
 	}
 
 	for (const { exported, local } of exports) {
-		const lhs = `exports${RESERVED_NAMES[exported] ? `['${exported}']` : `.${exported}`}`;
+		const lhs = `exports${getPropertyAccess(exported)}`;
 		const rhs = local;
 		if (lhs !== rhs) {
 			if (exportBlock) exportBlock += n;
@@ -171,6 +171,7 @@ function getReexportedImportName(
 			? namespaceVariableName
 			: moduleVariableName;
 	}
+	// TODO Lukas needs escaping?
 	return `${moduleVariableName}.${imported}`;
 }
 

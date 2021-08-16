@@ -4,10 +4,10 @@ define(['./lib/throttle'], (function (throttle) { 'use strict';
 
 	var throttle__default = /*#__PURE__*/_interopDefaultLegacy(throttle);
 
-	throttle__default['default']( () => {
+	throttle__default["default"]( () => {
 		console.log( '.' );
 	}, 500 );
 
-	window.addEventListener( 'mousemove', throttle__default['default'] );
+	window.addEventListener( 'mousemove', throttle__default["default"] );
 
 }));

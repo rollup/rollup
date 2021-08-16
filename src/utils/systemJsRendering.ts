@@ -4,7 +4,7 @@ import { RenderOptions } from './renderHelpers';
 
 export function getSystemExportStatement(
 	exportedVariables: Variable[],
-	{ exportNamesByVariable, snippets: { _, getObject } }: RenderOptions,
+	{ exportNamesByVariable, snippets: { _, getObject, getPropertyAccess } }: RenderOptions,
 	modifier = ''
 ): string {
 	if (
@@ -12,12 +12,14 @@ export function getSystemExportStatement(
 		exportNamesByVariable.get(exportedVariables[0])!.length === 1
 	) {
 		const variable = exportedVariables[0];
-		return `exports('${exportNamesByVariable.get(variable)}',${_}${variable.getName()}${modifier})`;
+		return `exports('${exportNamesByVariable.get(variable)}',${_}${variable.getName(
+			getPropertyAccess
+		)}${modifier})`;
 	} else {
 		const fields: [key: string, value: string][] = [];
 		for (const variable of exportedVariables) {
 			for (const exportName of exportNamesByVariable.get(variable)!) {
-				fields.push([exportName, variable.getName() + modifier]);
+				fields.push([exportName, variable.getName(getPropertyAccess) + modifier]);
 			}
 		}
 		return `exports(${getObject(fields, { indent: _, lineBreaks: false })})`;
@@ -65,13 +67,12 @@ export function renderSystemExportSequenceAfterExpression(
 	code: MagicString,
 	options: RenderOptions
 ): void {
-	const { _ } = options.snippets;
+	const { _, getPropertyAccess } = options.snippets;
 	code.appendLeft(
 		expressionEnd,
-		`,${_}${getSystemExportStatement(
-			[exportedVariable],
-			options
-		)},${_}${exportedVariable.getName()}`
+		`,${_}${getSystemExportStatement([exportedVariable], options)},${_}${exportedVariable.getName(
+			getPropertyAccess
+		)}`
 	);
 	if (needsParens) {
 		code.prependRight(expressionStart, '(');

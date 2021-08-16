@@ -4,7 +4,7 @@ define(['exports', 'lib'], (function (exports, value) { 'use strict';
 
 	var value__default = /*#__PURE__*/_interopDefaultLegacy(value);
 
-	var dep = 2 * value__default['default'];
+	var dep = 2 * value__default["default"];
 
 	exports.dep = dep;
 

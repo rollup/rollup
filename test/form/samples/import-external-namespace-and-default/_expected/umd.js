@@ -31,6 +31,6 @@
 
 	console.log( foo__namespace.bar );
 
-	console.log( foo__default['default'] );
+	console.log( foo__default["default"] );
 
 }));

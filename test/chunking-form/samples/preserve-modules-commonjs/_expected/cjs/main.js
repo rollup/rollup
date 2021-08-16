@@ -7,4 +7,4 @@ function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'defau
 
 var require$$0__default = /*#__PURE__*/_interopDefaultLegacy(require$$0);
 
-console.log(commonjs, require$$0__default['default']);
+console.log(commonjs, require$$0__default["default"]);

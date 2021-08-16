@@ -27,10 +27,10 @@
 	var containers__namespace = /*#__PURE__*/_interopNamespace(containers);
 	var alphabet__default = /*#__PURE__*/_interopDefaultLegacy(alphabet);
 
-	factory__default['default']( null );
+	factory__default["default"]( null );
 	baz.foo( baz.bar, containers.port );
 	containers__namespace.forEach( console.log, console );
 	console.log( alphabet.a );
-	console.log( alphabet__default['default'].length );
+	console.log( alphabet__default["default"].length );
 
 })(factory, baz, containers, alphabet);

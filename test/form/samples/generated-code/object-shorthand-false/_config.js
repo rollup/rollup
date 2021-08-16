@@ -1,5 +1,5 @@
 module.exports = {
-	description: 'uses object shorthand syntax',
+	description: 'does not use object shorthand syntax',
 	options: {
 		output: {
 			exports: 'named',

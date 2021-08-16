@@ -24,7 +24,7 @@ define(['require', 'exports', 'external'], (function (require, exports, myExtern
 
 	var myExternal__default = /*#__PURE__*/_interopDefaultLegacy(myExternal);
 
-	const test = () => myExternal__default['default'];
+	const test = () => myExternal__default["default"];
 
 	const someDynamicImport = () => new Promise(function (resolve, reject) { require(['external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) });
 

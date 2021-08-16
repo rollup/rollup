@@ -306,7 +306,10 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		}: NodeRenderOptions = BLANK
 	): void {
 		if (this.variable || this.replacement) {
-			let replacement = this.variable ? this.variable.getName() : this.replacement;
+			const {
+				snippets: { getPropertyAccess }
+			} = options;
+			let replacement = this.variable ? this.variable.getName(getPropertyAccess) : this.replacement;
 			if (renderedParentType && isCalleeOfRenderedParent) replacement = '0, ' + replacement;
 			code.overwrite(this.start, this.end, replacement!, {
 				contentOnly: true,

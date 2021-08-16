@@ -2,6 +2,7 @@
 // if the property name isn't trivial
 const shouldUseDot = /^[a-zA-Z$_][a-zA-Z0-9$_]*$/;
 
+// TODO Lukas replace usages and clean up file
 export function property(prop: string): string {
 	return shouldUseDot.test(prop) ? `.${prop}` : `['${prop}']`;
 }

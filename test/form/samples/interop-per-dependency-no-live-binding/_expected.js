@@ -34,7 +34,7 @@ var fooDefaultOnly__namespace = /*#__PURE__*/_interopNamespaceDefaultOnly(fooDef
 console.log(fooAuto__default, fooAuto.barAuto, fooAuto__namespace);
 console.log(fooDefault, fooDefault.barDefault, fooDefault__namespace);
 console.log(fooDefaultOnly, fooDefaultOnly__namespace);
-console.log(fooEsModule['default'], fooEsModule.barEsModule, fooEsModule);
+console.log(fooEsModule["default"], fooEsModule.barEsModule, fooEsModule);
 
 Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('external-auto')); }).then(console.log);
 Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefault(require('external-default')); }).then(console.log);

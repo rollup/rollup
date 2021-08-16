@@ -117,6 +117,7 @@ export default function system(
 				if (specifier.imported === '*') {
 					setter.push(`${specifier.local}${_}=${_}module;`);
 				} else {
+					// TODO Lukas needs escaping?
 					setter.push(`${specifier.local}${_}=${_}module.${specifier.imported};`);
 				}
 			}
@@ -154,6 +155,7 @@ export default function system(
 						setter.push(`${varOrConst} _setter${_}=${_}{};`);
 						createdSetter = true;
 					}
+					// TODO Lukas needs escaping?
 					setter.push(`_setter.${specifier.reexported}${_}=${_}module.${specifier.imported};`);
 				}
 				if (createdSetter) {
@@ -162,6 +164,7 @@ export default function system(
 			} else {
 				// single reexport
 				for (const specifier of reexports) {
+					// TODO Lukas needs escaping?
 					setter.push(`exports('${specifier.reexported}',${_}module.${specifier.imported});`);
 				}
 			}

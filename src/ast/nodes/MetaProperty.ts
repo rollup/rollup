@@ -2,6 +2,7 @@ import MagicString from 'magic-string';
 import { InternalModuleFormat } from '../../rollup/types';
 import { PluginDriver } from '../../utils/PluginDriver';
 import { warnDeprecation } from '../../utils/error';
+import { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 import { dirname, normalize, relative } from '../../utils/path';
 import ChildScope from '../scopes/ChildScope';
 import { ObjectPathKey } from '../utils/PathTracker';
@@ -73,6 +74,7 @@ export default class MetaProperty extends NodeBase {
 		code: MagicString,
 		chunkId: string,
 		format: InternalModuleFormat,
+		snippets: GenerateCodeSnippets,
 		outputPluginDriver: PluginDriver
 	): void {
 		const parent = this.parent;
@@ -154,7 +156,7 @@ export default class MetaProperty extends NodeBase {
 					format,
 					moduleId: this.context.module.id
 				}
-			]) || importMetaMechanisms[format]?.(metaProperty, chunkId);
+			]) || importMetaMechanisms[format]?.(metaProperty, { chunkId, snippets });
 		if (typeof replacement === 'string') {
 			if (parent instanceof MemberExpression) {
 				code.overwrite(parent.start, parent.end, replacement, { contentOnly: true });
@@ -193,7 +195,8 @@ const getRelativeUrlFromDocument = (relativePath: string, umd = false) =>
 	);
 
 const getGenericImportMetaMechanism =
-	(getUrl: (chunkId: string) => string) => (prop: string | null, chunkId: string) => {
+	(getUrl: (chunkId: string) => string) =>
+	(prop: string | null, { chunkId }: { chunkId: string }) => {
 		const urlMechanism = getUrl(chunkId);
 		return prop === null
 			? `({ url: ${urlMechanism} })`
@@ -227,7 +230,10 @@ const relativeUrlMechanisms: Record<InternalModuleFormat, (relativePath: string)
 		)} : ${getRelativeUrlFromDocument(relativePath, true)})`
 };
 
-const importMetaMechanisms: Record<string, (prop: string | null, chunkId: string) => string> = {
+const importMetaMechanisms: Record<
+	string,
+	(prop: string | null, options: { chunkId: string; snippets: GenerateCodeSnippets }) => string
+> = {
 	amd: getGenericImportMetaMechanism(() => getResolveUrl(`module.uri, document.baseURI`)),
 	cjs: getGenericImportMetaMechanism(
 		chunkId =>
@@ -237,7 +243,8 @@ const importMetaMechanisms: Record<string, (prop: string | null, chunkId: string
 			)} : ${getUrlFromDocument(chunkId)})`
 	),
 	iife: getGenericImportMetaMechanism(chunkId => getUrlFromDocument(chunkId)),
-	system: prop => (prop === null ? `module.meta` : `module.meta.${prop}`),
+	system: (prop, { snippets: { getPropertyAccess } }) =>
+		prop === null ? `module.meta` : `module.meta${getPropertyAccess(prop)}`,
 	umd: getGenericImportMetaMechanism(
 		chunkId =>
 			`(typeof document === 'undefined' && typeof location === 'undefined' ? ${getResolveUrl(

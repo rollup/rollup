@@ -26,6 +26,6 @@ function _interopNamespace(e) {
 
 var foo__default = /*#__PURE__*/_interopDefaultLegacy(foo);
 
-assert.equal(foo__default['default'], 42);
+assert.equal(foo__default["default"], 42);
 
 Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('https://unpkg.com/foo')); }).then(({ default: foo }) => assert.equal(foo, 42));

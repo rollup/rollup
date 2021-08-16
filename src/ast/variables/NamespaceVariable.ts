@@ -68,18 +68,20 @@ export default class NamespaceVariable extends Variable {
 			freeze,
 			indent: t,
 			namespaceToStringTag,
-			snippets: { _, getObject, n, s },
+			snippets: { _, getObject, getPropertyAccess, n, s },
 			varOrConst
 		} = options;
-
 		const memberVariables = this.getMemberVariables();
 		const members: [key: string | null, value: string][] = Object.entries(memberVariables).map(
 			([name, original]) => {
 				if (this.referencedEarly || original.isReassigned) {
-					return [null, `get ${name}${_}()${_}{${_}return ${original.getName()}${s}${_}}`];
+					return [
+						null,
+						`get ${name}${_}()${_}{${_}return ${original.getName(getPropertyAccess)}${s}${_}}`
+					];
 				}
 
-				return [name, original.getName()];
+				return [name, original.getName(getPropertyAccess)];
 			}
 		);
 
@@ -94,10 +96,12 @@ export default class NamespaceVariable extends Variable {
 		if (needsObjectAssign) {
 			const assignmentArgs: string[] = ['/*#__PURE__*/Object.create(null)'];
 			if (this.mergedNamespaces.length > 0) {
-				assignmentArgs.push(...this.mergedNamespaces.map(variable => variable.getName()));
+				assignmentArgs.push(
+					...this.mergedNamespaces.map(variable => variable.getName(getPropertyAccess))
+				);
 			}
 			if (this.syntheticNamedExports) {
-				assignmentArgs.push(this.module.getSyntheticNamespace().getName());
+				assignmentArgs.push(this.module.getSyntheticNamespace().getName(getPropertyAccess));
 			}
 			if (members.length > 0) {
 				assignmentArgs.push(output);
@@ -109,7 +113,7 @@ export default class NamespaceVariable extends Variable {
 			output = `/*#__PURE__*/Object.freeze(${output})`;
 		}
 
-		const name = this.getName();
+		const name = this.getName(getPropertyAccess);
 		output = `${varOrConst} ${name}${_}=${_}${output};`;
 
 		if (format === 'system' && exportNamesByVariable.has(this)) {

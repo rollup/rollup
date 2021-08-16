@@ -31,10 +31,10 @@ define(['require', 'external-auto', 'external-default', 'external-defaultOnly', 
 	var fooDefault__namespace = /*#__PURE__*/_interopNamespaceDefault(fooDefault);
 	var fooDefaultOnly__namespace = /*#__PURE__*/_interopNamespaceDefaultOnly(fooDefaultOnly);
 
-	console.log(fooAuto__namespace['default'], fooAuto.barAuto, fooAuto__namespace);
+	console.log(fooAuto__namespace["default"], fooAuto.barAuto, fooAuto__namespace);
 	console.log(fooDefault, fooDefault.barDefault, fooDefault__namespace);
 	console.log(fooDefaultOnly, fooDefaultOnly__namespace);
-	console.log(fooEsModule['default'], fooEsModule.barEsModule, fooEsModule);
+	console.log(fooEsModule["default"], fooEsModule.barEsModule, fooEsModule);
 
 	new Promise(function (resolve, reject) { require(['external-auto'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) }).then(console.log);
 	new Promise(function (resolve, reject) { require(['external-default'], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefault(m)); }, reject) }).then(console.log);
