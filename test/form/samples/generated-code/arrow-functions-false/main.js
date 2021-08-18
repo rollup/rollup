@@ -3,3 +3,5 @@ export let a;
 
 null, {a} = b;
 console.log({a} = b);
+
+import('external').then(console.log);

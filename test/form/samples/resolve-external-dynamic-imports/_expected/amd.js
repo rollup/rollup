@@ -26,7 +26,7 @@ define(['require', 'exports', 'external'], (function (require, exports, myExtern
 
 	const test = () => myExternal__default["default"];
 
-	const someDynamicImport = () => new Promise(function (resolve, reject) { require(['external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) });
+	const someDynamicImport = () => new Promise(function (resolve, reject) { require(['external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
 
 	exports.someDynamicImport = someDynamicImport;
 	exports.test = test;

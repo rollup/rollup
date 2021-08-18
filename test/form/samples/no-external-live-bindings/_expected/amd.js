@@ -12,7 +12,7 @@ define(['require', 'exports', 'external1', 'external2'], (function (require, exp
 		return Object.freeze(n);
 	}
 
-	const dynamic = new Promise(function (resolve, reject) { require(['external3'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) });
+	const dynamic = new Promise(function (resolve, reject) { require(['external3'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
 
 	exports.external1 = external1.external1;
 	exports.dynamic = dynamic;

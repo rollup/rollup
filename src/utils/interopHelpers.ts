@@ -71,6 +71,7 @@ export function getHelpersBlock(
 	).join('');
 }
 
+// TODO Lukas why are those properly indented?
 const HELPER_GENERATORS: {
 	[variable: string]: (
 		_: string,

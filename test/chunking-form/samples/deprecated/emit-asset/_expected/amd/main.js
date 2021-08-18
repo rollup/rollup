@@ -12,7 +12,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 	}
 
 	showImage(logo);
-	new Promise(function (resolve, reject) { require(['./nested/chunk'], resolve, reject) });
+	new Promise(function (resolve, reject) { require(['./nested/chunk'], resolve, reject); });
 
 	exports.showImage = showImage;
 

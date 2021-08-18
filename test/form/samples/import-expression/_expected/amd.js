@@ -20,7 +20,7 @@ define(['require', 'external'], (function (require, external) { 'use strict';
 		return Object.freeze(n);
 	}
 
-	new Promise(function (resolve, reject) { require([external.join('a', 'b')], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) });
+	new Promise(function (resolve, reject) { require([external.join('a', 'b')], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
 	console.log(external.join);
 
 }));

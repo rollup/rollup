@@ -7,7 +7,7 @@ define(['require', 'exports', './lib'], (function (require, exports, lib) { 'use
 	var lib__namespace = /*#__PURE__*/_interopNamespaceDefaultOnly(lib);
 
 	console.log(lib__namespace);
-	new Promise(function (resolve, reject) { require(['./lib'], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefaultOnly(m)); }, reject) }).then(console.log);
+	new Promise(function (resolve, reject) { require(['./lib'], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefaultOnly(m)); }, reject); }).then(console.log);
 
 	exports.lib = lib__namespace;
 

@@ -3,7 +3,7 @@ define(['require', 'exports', './generated-dep1', './generated-dep2'], (function
 	const something = 'something';
 
 	console.log('main1', dep1.value1, dep2.value2, something);
-	new Promise(function (resolve, reject) { require(['./generated-dynamic'], resolve, reject) });
+	new Promise(function (resolve, reject) { require(['./generated-dynamic'], resolve, reject); });
 
 	exports.value1 = dep1.value1;
 	exports.value2 = dep2.value2;

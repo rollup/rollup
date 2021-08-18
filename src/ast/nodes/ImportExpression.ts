@@ -121,11 +121,12 @@ export default class ImportExpression extends NodeBase {
 		this.inlineNamespace = inlineNamespace;
 	}
 
+	// TODO Lukas test compact mode and potentially add parameters for (un)necessary leading spaces
 	private getDynamicImportMechanismAndHelper(
 		resolution: Module | ExternalModule | string | null,
 		exportMode: 'none' | 'named' | 'default' | 'external',
 		{ compact, dynamicImportFunction, format, interop }: NormalizedOutputOptions,
-		{ _, s }: GenerateCodeSnippets,
+		{ _, getDirectReturnFunctionLeft, directReturnFunctionRight }: GenerateCodeSnippets,
 		pluginDriver: PluginDriver
 	): { helper: string | null; mechanism: DynamicImportMechanism | null } {
 		const mechanism = pluginDriver.hookFirstSync('renderDynamicImport', [
@@ -142,19 +143,20 @@ export default class ImportExpression extends NodeBase {
 		}
 		switch (format) {
 			case 'cjs': {
-				// TODO Lukas arrow functions
-				const leftStart = `Promise.resolve().then(function${_}()${_}{${_}return`;
+				const leftStart = `Promise.resolve().then(${getDirectReturnFunctionLeft([], {
+					functionReturn: true
+				})}`;
 				const helper = getInteropHelper(resolution, exportMode, interop);
 				return {
 					helper,
 					mechanism: helper
 						? {
-								left: `${leftStart} /*#__PURE__*/${helper}(require(`,
-								right: `))${s}${_}})`
+								left: `${leftStart}/*#__PURE__*/${helper}(require(`,
+								right: `))${directReturnFunctionRight})`
 						  }
 						: {
-								left: `${leftStart} require(`,
-								right: `)${s}${_}})`
+								left: `${leftStart}require(`,
+								right: `)${directReturnFunctionRight})`
 						  }
 				};
 			}
@@ -162,16 +164,18 @@ export default class ImportExpression extends NodeBase {
 				const resolve = compact ? 'c' : 'resolve';
 				const reject = compact ? 'e' : 'reject';
 				const helper = getInteropHelper(resolution, exportMode, interop);
-				// TODO Lukas arrpw functions
 				const resolveNamespace = helper
-					? `function${_}(m)${_}{${_}${resolve}(/*#__PURE__*/${helper}(m));${_}}`
+					? `${getDirectReturnFunctionLeft(['m'], {
+							functionReturn: false
+					  })}${resolve}(/*#__PURE__*/${helper}(m))${directReturnFunctionRight}`
 					: resolve;
 				return {
 					helper,
 					mechanism: {
-						// TODO Lukas arrpw functions
-						left: `new Promise(function${_}(${resolve},${_}${reject})${_}{${_}require([`,
-						right: `],${_}${resolveNamespace},${_}${reject})${_}})`
+						left: `new Promise(${getDirectReturnFunctionLeft([resolve, reject], {
+							functionReturn: false
+						})}require([`,
+						right: `],${_}${resolveNamespace},${_}${reject})${directReturnFunctionRight})`
 					}
 				};
 			}
@@ -217,3 +221,9 @@ const accessedImportGlobals: Record<string, string[]> = {
 	cjs: ['require'],
 	system: ['module']
 };
+
+// TODO Lukas consider fixing context issue for non-arrow resolutions IF it is dynamic:
+// import(this.foo) ->
+// (function (arg) {
+//   return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(arg))
+// })} (this.foo))

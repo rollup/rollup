@@ -273,7 +273,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 		v271,
 		v272;
 
-	const lazy = new Promise(function (resolve, reject) { require(['./generated-lazy'], resolve, reject) });
+	const lazy = new Promise(function (resolve, reject) { require(['./generated-lazy'], resolve, reject); });
 
 	exports.lazy = lazy;
 	exports.v1 = v1;

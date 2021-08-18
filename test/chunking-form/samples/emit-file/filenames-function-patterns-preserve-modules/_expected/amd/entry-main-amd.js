@@ -5,6 +5,6 @@ define(['require'], (function (require) { 'use strict';
 	}
 
 	console.log('main');
-	new Promise(function (resolve, reject) { require(['./entry-deb-amd'], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefaultOnly(m)); }, reject) }).then(console.log);
+	new Promise(function (resolve, reject) { require(['./entry-deb-amd'], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefaultOnly(m)); }, reject); }).then(console.log);
 
 }));

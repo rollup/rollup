@@ -4,8 +4,10 @@ import { RESERVED_NAMES } from './reservedNames';
 
 export interface GenerateCodeSnippets {
 	_: string;
+	directReturnFunctionRight: string;
 	n: string;
 	s: string;
+	getDirectReturnFunctionLeft(params: string[], options: { functionReturn: boolean }): string;
 	getFunctionIntro(params: string[], isAsync?: boolean): string;
 	getObject(
 		fields: [key: string | null, value: string][],
@@ -30,14 +32,22 @@ export function getGenerateCodeSnippets({
 	generatedCode: { arrowFunctions, objectShorthand, reservedNamesAsProps }
 }: NormalizedOutputOptions): GenerateCodeSnippets {
 	const { _, n, s } = compact ? { _: '', n: '', s: '' } : { _: ' ', n: '\n', s: ';' };
-	const getFunctionIntro = arrowFunctions
-		? (params: string[], isAsync?: boolean) => {
+
+	const getFunctionIntro: GenerateCodeSnippets['getFunctionIntro'] = arrowFunctions
+		? (params, isAsync) => {
 				const singleParam = params.length === 1;
 				const asyncString = isAsync ? `async${singleParam ? ' ' : _}` : '';
 				return `${asyncString}${singleParam ? params[0] : `(${params.join(`,${_}`)})`}${_}=>${_}`;
 		  }
-		: (params: string[], isAsync?: boolean) =>
-				`${isAsync ? `async ` : ''}function${_}(${params.join(`,${_}`)})${_}`;
+		: (params, isAsync) => `${isAsync ? `async ` : ''}function${_}(${params.join(`,${_}`)})${_}`;
+
+	const getDirectReturnFunctionLeft: GenerateCodeSnippets['getDirectReturnFunctionLeft'] = (
+		params,
+		{ functionReturn }
+	) =>
+		`${getFunctionIntro(params)}${arrowFunctions ? '' : `{${_}${functionReturn ? 'return ' : ''}`}`;
+
+	const directReturnFunctionRight = arrowFunctions ? '' : `${s}${_}}`;
 
 	const isValidPropName = reservedNamesAsProps
 		? (name: string): boolean => validPropName.test(name)
@@ -45,6 +55,8 @@ export function getGenerateCodeSnippets({
 
 	return {
 		_,
+		directReturnFunctionRight,
+		getDirectReturnFunctionLeft,
 		getFunctionIntro,
 		getObject(fields, { indent, lineBreaks }) {
 			const prefix = `${lineBreaks ? n : ''}${indent}`;
@@ -61,25 +73,26 @@ export function getGenerateCodeSnippets({
 		getPropertyAccess: (name: string): string =>
 			isValidPropName(name) ? `.${name}` : `[${JSON.stringify(name)}]`,
 		n,
-		renderDirectReturnIife: arrowFunctions
-			? (params, returned, code, argStart, argEnd, { needsArrowReturnParens }) => {
-					code.prependRight(
-						argStart,
-						`(${getFunctionIntro(params)}${wrapIfNeeded(returned, needsArrowReturnParens)})(`
-					);
-					code.appendLeft(argEnd, ')');
-			  }
-			: (params, returned, code, argStart, argEnd, { needsWrappedFunction }) => {
-					code.prependRight(
-						argStart,
-						`${getFunctionIntro(params)}{${_}return ${returned}${s}${_}}(`
-					);
-					code.appendLeft(argEnd, ')');
-					if (needsWrappedFunction) {
-						code.prependRight(argStart, '(');
-						code.appendLeft(argEnd, ')');
-					}
-			  },
+		renderDirectReturnIife: (
+			params,
+			returned,
+			code,
+			argStart,
+			argEnd,
+			{ needsArrowReturnParens, needsWrappedFunction }
+		) => {
+			code.prependRight(
+				argStart,
+				`${wrapIfNeeded(
+					`${getDirectReturnFunctionLeft(params, { functionReturn: true })}${wrapIfNeeded(
+						returned,
+						arrowFunctions && needsArrowReturnParens
+					)}${directReturnFunctionRight}`,
+					arrowFunctions || needsWrappedFunction
+				)}(`
+			);
+			code.appendLeft(argEnd, ')');
+		},
 		s
 	};
 }

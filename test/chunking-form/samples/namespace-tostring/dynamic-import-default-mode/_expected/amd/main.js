@@ -4,6 +4,6 @@ define(['require'], (function (require) { 'use strict';
 		return Object.freeze({__proto__: null, [Symbol.toStringTag]: 'Module', 'default': e});
 	}
 
-	new Promise(function (resolve, reject) { require(['./foo'], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefaultOnly(m)); }, reject) }).then(console.log);
+	new Promise(function (resolve, reject) { require(['./foo'], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefaultOnly(m)); }, reject); }).then(console.log);
 
 }));

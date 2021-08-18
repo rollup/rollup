@@ -20,6 +20,6 @@ define(['require'], (function (require) { 'use strict';
 		return Object.freeze(n);
 	}
 
-	new Promise(function (resolve, reject) { require(['./foo'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) });
+	new Promise(function (resolve, reject) { require(['./foo'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
 
 }));

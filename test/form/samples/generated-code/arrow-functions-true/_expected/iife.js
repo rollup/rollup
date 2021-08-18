@@ -6,6 +6,8 @@ var bundle = ((exports, external) => {
 	({a: exports.a} = external.b);
 	console.log({a: exports.a} = external.b);
 
+	import('external').then(console.log);
+
 	Object.defineProperty(exports, '__esModule', { value: true });
 
 	return exports;

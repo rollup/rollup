@@ -1,4 +1,4 @@
-System.register('bundle', ['external'], (exports => {
+System.register('bundle', ['external'], ((exports, module) => {
 	'use strict';
 	var b;
 	return {
@@ -11,6 +11,8 @@ System.register('bundle', ['external'], (exports => {
 
 			(v => (exports('a', a), v))({a} = b);
 			console.log((v => (exports('a', a), v))({a} = b));
+
+			module.import('external').then(console.log);
 
 		})
 	};

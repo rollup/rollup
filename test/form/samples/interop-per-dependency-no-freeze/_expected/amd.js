@@ -36,9 +36,9 @@ define(['require', 'external-auto', 'external-default', 'external-defaultOnly', 
 	console.log(fooDefaultOnly, fooDefaultOnly__namespace);
 	console.log(fooEsModule["default"], fooEsModule.barEsModule, fooEsModule);
 
-	new Promise(function (resolve, reject) { require(['external-auto'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) }).then(console.log);
-	new Promise(function (resolve, reject) { require(['external-default'], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefault(m)); }, reject) }).then(console.log);
-	new Promise(function (resolve, reject) { require(['external-defaultOnly'], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefaultOnly(m)); }, reject) }).then(console.log);
-	new Promise(function (resolve, reject) { require(['external-esModule'], resolve, reject) }).then(console.log);
+	new Promise(function (resolve, reject) { require(['external-auto'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }).then(console.log);
+	new Promise(function (resolve, reject) { require(['external-default'], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefault(m)); }, reject); }).then(console.log);
+	new Promise(function (resolve, reject) { require(['external-defaultOnly'], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefaultOnly(m)); }, reject); }).then(console.log);
+	new Promise(function (resolve, reject) { require(['external-esModule'], resolve, reject); }).then(console.log);
 
 }));

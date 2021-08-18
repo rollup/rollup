@@ -35,7 +35,7 @@ define(['module', 'require', 'external'], (function (module, require, external) 
 	const URL$1 = 1;
 	console.log(_interopDefault$1, _interopNamespace$1, module$1, require$1, exports$1, document$1, URL$1);
 
-	new Promise(function (resolve, reject) { require(['external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) }).then(console.log);
+	new Promise(function (resolve, reject) { require(['external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }).then(console.log);
 	exports["default"] = 0;
 	console.log(new URL(module.uri, document.baseURI).href);
 
@@ -49,7 +49,7 @@ define(['module', 'require', 'external'], (function (module, require, external) 
 		const URL$1 = 1;
 		console.log(_interopDefault, _interopNamespace$1, module$1, require$1, exports$1, document$1, URL$1);
 
-		new Promise(function (resolve, reject) { require(['external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) }).then(console.log);
+		new Promise(function (resolve, reject) { require(['external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }).then(console.log);
 		exports["default"] = 1;
 		console.log(new URL(module.uri, document.baseURI).href);
 	}

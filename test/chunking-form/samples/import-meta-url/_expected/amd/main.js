@@ -9,7 +9,7 @@ define(['module', 'require', 'exports'], (function (module, require, exports) { 
 	}
 
 	log('main: ' + new URL(module.uri, document.baseURI).href);
-	new Promise(function (resolve, reject) { require(['./nested/chunk'], resolve, reject) });
+	new Promise(function (resolve, reject) { require(['./nested/chunk'], resolve, reject); });
 
 	exports.log = log;
 

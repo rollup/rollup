@@ -22,10 +22,10 @@ define(['require', './direct-relative-external', 'to-indirect-relative-external'
 
 	// nested
 	Promise.resolve().then(function () { return existing; });
-	new Promise(function (resolve, reject) { require(['./direct-relative-external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) });
-	new Promise(function (resolve, reject) { require(['to-indirect-relative-external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) });
-	new Promise(function (resolve, reject) { require(['direct-absolute-external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) });
-	new Promise(function (resolve, reject) { require(['to-indirect-absolute-external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) });
+	new Promise(function (resolve, reject) { require(['./direct-relative-external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
+	new Promise(function (resolve, reject) { require(['to-indirect-relative-external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
+	new Promise(function (resolve, reject) { require(['direct-absolute-external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
+	new Promise(function (resolve, reject) { require(['to-indirect-absolute-external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
 
 	const value = 'existing';
 	console.log('existing');
@@ -37,14 +37,14 @@ define(['require', './direct-relative-external', 'to-indirect-relative-external'
 
 	//main
 	Promise.resolve().then(function () { return existing; });
-	new Promise(function (resolve, reject) { require(['./direct-relative-external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) });
-	new Promise(function (resolve, reject) { require(['to-indirect-relative-external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) });
-	new Promise(function (resolve, reject) { require(['direct-absolute-external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) });
-	new Promise(function (resolve, reject) { require(['to-indirect-absolute-external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) });
+	new Promise(function (resolve, reject) { require(['./direct-relative-external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
+	new Promise(function (resolve, reject) { require(['to-indirect-relative-external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
+	new Promise(function (resolve, reject) { require(['direct-absolute-external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
+	new Promise(function (resolve, reject) { require(['to-indirect-absolute-external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
 
-	new Promise(function (resolve, reject) { require(['dynamic-direct-external' + unknown], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) });
-	new Promise(function (resolve, reject) { require(['to-dynamic-indirect-external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) });
+	new Promise(function (resolve, reject) { require(['dynamic-direct-external' + unknown], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
+	new Promise(function (resolve, reject) { require(['to-dynamic-indirect-external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
 	Promise.resolve().then(function () { return existing; });
-	new Promise(function (resolve, reject) { require(['my' + 'replacement'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) });
+	new Promise(function (resolve, reject) { require(['my' + 'replacement'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
 
 }));

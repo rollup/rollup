@@ -22,7 +22,7 @@ define(['require', '../generated-dep'], (function (require, dep) { 'use strict';
 
 	console.log('main2', dep.value);
 
-	new Promise(function (resolve, reject) { require(['../generated-dynamic'], resolve, reject) }).then(result => console.log(result));
-	new Promise(function (resolve, reject) { require(['../external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) }).then(result => console.log(result));
+	new Promise(function (resolve, reject) { require(['../generated-dynamic'], resolve, reject); }).then(result => console.log(result));
+	new Promise(function (resolve, reject) { require(['../external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }).then(result => console.log(result));
 
 }));

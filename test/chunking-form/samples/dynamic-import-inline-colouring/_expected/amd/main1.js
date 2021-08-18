@@ -11,7 +11,7 @@ define(['require', 'exports', './generated-separate'], (function (require, expor
 	});
 
 	const inlined = Promise.resolve().then(function () { return inlined$2; });
-	const separate = new Promise(function (resolve, reject) { require(['./generated-separate'], resolve, reject) });
+	const separate = new Promise(function (resolve, reject) { require(['./generated-separate'], resolve, reject); });
 
 	exports.inlined = inlined;
 	exports.separate = separate;

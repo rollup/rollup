@@ -22,6 +22,6 @@ define(['require'], (function (require) { 'use strict';
 
 	new Promise(function (resolve, reject) { require([
 	/* webpackChunkName: "chunk-name" */
-	'./foo'/*suffix*/], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) });
+	'./foo'/*suffix*/], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
 
 }));

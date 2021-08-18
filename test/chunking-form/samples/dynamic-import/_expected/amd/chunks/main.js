@@ -4,7 +4,7 @@ define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	assert.equal(sharedValue, 'shared');
 
-	const promise = new Promise(function (resolve, reject) { require(['./other'], resolve, reject) }).then(result =>
+	const promise = new Promise(function (resolve, reject) { require(['./other'], resolve, reject); }).then(result =>
 		assert.deepEqual(result, { value: 'shared' })
 	);
 
