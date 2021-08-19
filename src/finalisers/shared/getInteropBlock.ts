@@ -16,9 +16,10 @@ export default function getInteropBlock(
 	freeze: boolean,
 	namespaceToStringTag: boolean,
 	accessedGlobals: Set<string>,
-	t: string,
-	{ _, n, s }: GenerateCodeSnippets
+	indent: string,
+	snippets: GenerateCodeSnippets
 ): string {
+	const { _, n } = snippets;
 	const neededInteropHelpers = new Set<string>();
 	const interopStatements: string[] = [];
 	const addInteropStatement = (
@@ -87,10 +88,8 @@ export default function getInteropBlock(
 	return `${getHelpersBlock(
 		neededInteropHelpers,
 		accessedGlobals,
-		_,
-		n,
-		s,
-		t,
+		indent,
+		snippets,
 		externalLiveBindings,
 		freeze,
 		namespaceToStringTag
