@@ -12,7 +12,5 @@ console.log(external.value);
 
 Object.defineProperty(exports, 'reexported', {
 	enumerable: true,
-	get: function () {
-		return external__default['default'];
-	}
+	get: function () { return external__default["default"]; }
 });

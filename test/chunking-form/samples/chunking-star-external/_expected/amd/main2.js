@@ -5,17 +5,13 @@ define(['exports', './generated-dep', 'external2', 'starexternal2'], (function (
 	exports.dep = dep.dep;
 	Object.defineProperty(exports, 'e', {
 		enumerable: true,
-		get: function () {
-			return external2.e;
-		}
+		get: function () { return external2.e; }
 	});
 	exports.main = main;
 	Object.keys(starexternal2).forEach(function (k) {
 		if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
 			enumerable: true,
-			get: function () {
-				return starexternal2[k];
-			}
+			get: function () { return starexternal2[k]; }
 		});
 	});
 

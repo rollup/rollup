@@ -6,6 +6,6 @@ define(['external'], (function (path) { 'use strict';
 
 
 
-	return path__default['default'];
+	return path__default["default"];
 
 }));

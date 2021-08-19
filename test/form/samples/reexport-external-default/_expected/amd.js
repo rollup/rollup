@@ -6,6 +6,6 @@ define(['external1', 'external2'], (function (external1, external2) { 'use stric
 
 	console.log(external1.foo);
 
-	return external2__default['default'];
+	return external2__default["default"];
 
 }));

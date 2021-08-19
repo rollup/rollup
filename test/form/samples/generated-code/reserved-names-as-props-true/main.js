@@ -8,4 +8,5 @@ let f = 1;
 f++;
 
 export { f as function };
-export { foo as default, function as bar } from 'external';
+export * as default from 'external';
+export { default as void, function as bar } from 'external';

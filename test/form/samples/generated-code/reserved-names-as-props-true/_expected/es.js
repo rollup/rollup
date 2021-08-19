@@ -1,5 +1,7 @@
 import { function as function$1 } from 'external';
-export { function as bar, foo as default } from 'external';
+import * as external from 'external';
+export { external as default };
+export { function as bar, default as void } from 'external';
 
 var other = {
 	foo: 'bar'

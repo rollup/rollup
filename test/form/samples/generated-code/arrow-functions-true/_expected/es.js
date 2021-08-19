@@ -1,4 +1,6 @@
 import { b } from 'external';
+export * from 'external';
+export { foo } from 'external';
 
 let a;
 

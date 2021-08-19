@@ -1,5 +1,30 @@
 define(['module', 'exports', 'external'], (function (module, exports, external) { 'use strict';
 
+	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+
+	function _interopNamespace(e) {
+		if (e && e.__esModule) return e;
+		var n = Object.create(null);
+		if (e) {
+			Object.keys(e).forEach(function (k) {
+				if (k !== 'default') {
+					var d = Object.getOwnPropertyDescriptor(e, k);
+					Object.defineProperty(n, k, d.get ? d : {
+						enumerable: true,
+						get: function () {
+							return e[k];
+						}
+					});
+				}
+			});
+		}
+		n['default'] = e;
+		return Object.freeze(n);
+	}
+
+	var external__namespace = /*#__PURE__*/_interopNamespace(external);
+	var external__default = /*#__PURE__*/_interopDefaultLegacy(external);
+
 	var other = {
 		foo: 'bar'
 	};
@@ -16,15 +41,12 @@ define(['module', 'exports', 'external'], (function (module, exports, external) 
 
 	Object.defineProperty(exports, 'bar', {
 		enumerable: true,
-		get: function () {
-			return external.function;
-		}
+		get: function () { return external.function; }
 	});
-	Object.defineProperty(exports, 'default', {
+	exports.default = external__namespace;
+	Object.defineProperty(exports, 'void', {
 		enumerable: true,
-		get: function () {
-			return external.foo;
-		}
+		get: function () { return external__default.default; }
 	});
 
 	Object.defineProperty(exports, '__esModule', { value: true });

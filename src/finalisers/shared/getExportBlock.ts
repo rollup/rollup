@@ -7,12 +7,21 @@ import {
 	namespaceInteropHelpersByInteropType
 } from '../../utils/interopHelpers';
 
+// TODO Lukas add letters, rework tests for arrow function and prop access
 export function getExportBlock(
 	exports: ChunkExports,
 	dependencies: ChunkDependencies,
 	namedExportsMode: boolean,
 	interop: GetInterop,
-	{ _, getPropertyAccess, n }: GenerateCodeSnippets,
+	{
+		_,
+		s,
+		directReturnFunctionRight,
+		getDirectReturnFunctionLeft,
+		getFunctionIntro,
+		getPropertyAccess,
+		n
+	}: GenerateCodeSnippets,
 	t: string,
 	externalLiveBindings: boolean,
 	mechanism = 'return '
@@ -58,10 +67,10 @@ export function getExportBlock(
 						specifier.imported !== '*' && specifier.needsLiveBinding
 							? `Object.defineProperty(exports,${_}'${specifier.reexported}',${_}{${n}` +
 							  `${t}enumerable:${_}true,${n}` +
-							  `${t}get:${_}function${_}()${_}{${n}` +
-							  `${t}${t}return ${importName};${n}${t}}${n}});`
-							: // TODO Lukas needs escaping?
-							  `exports.${specifier.reexported}${_}=${_}${importName};`;
+							  `${t}get:${_}${getDirectReturnFunctionLeft([], {
+									functionReturn: true
+							  })}${importName}${directReturnFunctionRight}${n}});`
+							: `exports${getPropertyAccess(specifier.reexported)}${_}=${_}${importName};`;
 				}
 			}
 		}
@@ -81,19 +90,16 @@ export function getExportBlock(
 			for (const specifier of reexports) {
 				if (specifier.reexported === '*') {
 					if (exportBlock) exportBlock += n;
-					if (specifier.needsLiveBinding) {
-						exportBlock +=
-							`Object.keys(${name}).forEach(function${_}(k)${_}{${n}` +
-							`${t}if${_}(k${_}!==${_}'default'${_}&&${_}!exports.hasOwnProperty(k))${_}Object.defineProperty(exports,${_}k,${_}{${n}` +
-							`${t}${t}enumerable:${_}true,${n}` +
-							`${t}${t}get:${_}function${_}()${_}{${n}` +
-							`${t}${t}${t}return ${name}[k];${n}` +
-							`${t}${t}}${n}${t}});${n}});`;
-					} else {
-						exportBlock +=
-							`Object.keys(${name}).forEach(function${_}(k)${_}{${n}` +
-							`${t}if${_}(k${_}!==${_}'default'${_}&&${_}!exports.hasOwnProperty(k))${_}exports[k]${_}=${_}${name}[k];${n}});`;
-					}
+					const defineProperty = specifier.needsLiveBinding
+						? `Object.defineProperty(exports,${_}k,${_}{${n}` +
+						  `${t}${t}enumerable:${_}true,${n}` +
+						  `${t}${t}get:${_}${getDirectReturnFunctionLeft([], {
+								functionReturn: true
+						  })}${name}[k]${directReturnFunctionRight}${n}${t}})`
+						: `exports[k]${_}=${_}${name}[k]`;
+					exportBlock +=
+						`Object.keys(${name}).forEach(${getFunctionIntro(['k'])}{${n}` +
+						`${t}if${_}(k${_}!==${_}'default'${_}&&${_}!exports.hasOwnProperty(k))${_}${defineProperty}${s}${n}});`;
 				}
 			}
 		}
@@ -143,7 +149,6 @@ function getSingleDefaultExport(
 	}
 }
 
-// TODO Lukas we may not need to escape default here
 function getReexportedImportName(
 	moduleVariableName: string,
 	imported: string,
@@ -163,9 +168,10 @@ function getReexportedImportName(
 				? defaultVariableName
 				: moduleVariableName;
 			return isDefaultAProperty(moduleInterop, externalLiveBindings)
-				? `${variableName}['default']`
+				? `${variableName}${getPropertyAccess('default')}`
 				: variableName;
 		}
+		// TODO Lukas property access, needs extra testing
 		return depNamedExportsMode ? `${moduleVariableName}['default']` : moduleVariableName;
 	}
 	if (imported === '*') {
@@ -177,7 +183,6 @@ function getReexportedImportName(
 			? namespaceVariableName
 			: moduleVariableName;
 	}
-	// TODO Lukas needs escaping?
 	return `${moduleVariableName}${getPropertyAccess(imported)}`;
 }
 

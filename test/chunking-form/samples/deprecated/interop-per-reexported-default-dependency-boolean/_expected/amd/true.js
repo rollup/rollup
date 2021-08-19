@@ -6,6 +6,6 @@ define(['external-true'], (function (externalTrue) { 'use strict';
 
 
 
-	return externalTrue__default['default'];
+	return externalTrue__default["default"];
 
 }));

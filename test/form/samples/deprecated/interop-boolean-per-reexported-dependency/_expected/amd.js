@@ -29,24 +29,18 @@ define(['exports', 'external-false', 'external-true'], (function (exports, exter
 
 	Object.defineProperty(exports, 'barFalse', {
 		enumerable: true,
-		get: function () {
-			return externalFalse.barFalse;
-		}
+		get: function () { return externalFalse.barFalse; }
 	});
 	exports.externalFalse = externalFalse;
 	exports.fooFalse = externalFalse;
 	Object.defineProperty(exports, 'barTrue', {
 		enumerable: true,
-		get: function () {
-			return externalTrue.barTrue;
-		}
+		get: function () { return externalTrue.barTrue; }
 	});
 	exports.externalTrue = externalTrue__namespace;
 	Object.defineProperty(exports, 'fooTrue', {
 		enumerable: true,
-		get: function () {
-			return externalTrue__default['default'];
-		}
+		get: function () { return externalTrue__default["default"]; }
 	});
 
 	Object.defineProperty(exports, '__esModule', { value: true });

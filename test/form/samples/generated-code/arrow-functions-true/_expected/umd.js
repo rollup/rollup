@@ -11,6 +11,17 @@
 
 	import('external').then(console.log);
 
+	Object.defineProperty(exports, 'foo', {
+		enumerable: true,
+		get: () => external.foo
+	});
+	Object.keys(external).forEach(k => {
+		if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
+			enumerable: true,
+			get: () => external[k]
+		});
+	});
+
 	Object.defineProperty(exports, '__esModule', { value: true });
 
 }));

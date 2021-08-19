@@ -8,7 +8,5 @@ var external = require('external');
 
 Object.defineProperty(exports, 's', {
 	enumerable: true,
-	get: function () {
-		return external.p;
-	}
+	get: function () { return external.p; }
 });

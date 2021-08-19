@@ -6,6 +6,6 @@ define(['external-auto'], (function (externalAuto) { 'use strict';
 
 
 
-	return externalAuto__default['default'];
+	return externalAuto__default["default"];
 
 }));

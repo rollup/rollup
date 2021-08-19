@@ -27,6 +27,17 @@ define(['require', 'exports', 'external'], (function (require, exports, external
 
 	new Promise(function (resolve, reject) { require(['external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }).then(console.log);
 
+	Object.defineProperty(exports, 'foo', {
+		enumerable: true,
+		get: function () { return external.foo; }
+	});
+	Object.keys(external).forEach(function (k) {
+		if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
+			enumerable: true,
+			get: function () { return external[k]; }
+		});
+	});
+
 	Object.defineProperty(exports, '__esModule', { value: true });
 
 }));

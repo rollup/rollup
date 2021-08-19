@@ -12,9 +12,7 @@
 
 	Object.defineProperty(exports, 'default', {
 		enumerable: true,
-		get: function () {
-			return external__default['default'];
-		}
+		get: function () { return external__default["default"]; }
 	});
 	exports.value = value;
 

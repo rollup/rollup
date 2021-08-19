@@ -12,9 +12,7 @@
 
 	Object.defineProperty(exports, 'x', {
 		enumerable: true,
-		get: function () {
-			return x__default['default'];
-		}
+		get: function () { return x__default["default"]; }
 	});
 
 	Object.defineProperty(exports, '__esModule', { value: true });

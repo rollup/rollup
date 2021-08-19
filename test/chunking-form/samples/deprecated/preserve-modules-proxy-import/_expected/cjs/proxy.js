@@ -8,4 +8,4 @@ var path__default = /*#__PURE__*/_interopDefaultLegacy(path);
 
 
 
-module.exports = path__default['default'];
+module.exports = path__default["default"];
