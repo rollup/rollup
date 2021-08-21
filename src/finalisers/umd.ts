@@ -153,13 +153,16 @@ export default function umd(
 		: '';
 
 	const wrapperIntro =
-		`(${getFunctionIntro(wrapperParams)}{${n}` +
+		`(${getFunctionIntro(wrapperParams, { isAsync: false, name: null })}{${n}` +
 		cjsIntro +
 		`${t}typeof ${define}${_}===${_}'function'${_}&&${_}${define}.amd${_}?${_}${define}(${amdParams}${factoryVar})${_}:${n}` +
 		`${t}${iifeStart}${iifeExport}${iifeEnd};${n}` +
 		// factory function should be wrapped by parentheses to avoid lazy parsing,
 		// cf. https://v8.dev/blog/preparser#pife
-		`})(${globalArg}(${getFunctionIntro(factoryParams)}{${useStrict}${n}`;
+		`})(${globalArg}(${getFunctionIntro(factoryParams, {
+			isAsync: false,
+			name: null
+		})}{${useStrict}${n}`;
 
 	const wrapperOutro = n + n + '}));';
 

@@ -1,7 +1,23 @@
 module.exports = {
-	description: 'replaces functions with arrow functions',
+	description: 'does not use arrow functions',
 	options: {
-		external: ['external'],
-		output: { generatedCode: { arrowFunctions: true }, name: 'bundle' }
+		external: ['external', 'externalAuto', 'externalDefault', 'externalDefaultOnly'],
+		strictDeprecations: false,
+		output: {
+			generatedCode: { arrowFunctions: true },
+			interop(id) {
+				if (id === 'externalDefault') {
+					return 'default';
+				}
+				if (id === 'externalDefaultOnly') {
+					return 'defaultOnly';
+				}
+				if (id === 'externalAuto') {
+					return 'auto';
+				}
+				return true;
+			},
+			name: 'bundle'
+		}
 	}
 };

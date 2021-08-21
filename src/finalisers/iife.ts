@@ -88,7 +88,10 @@ export default function iife(
 	);
 	magicString.prepend(`${intro}${interopBlock}`);
 
-	let wrapperIntro = `(${getFunctionIntro(args)}{${n}${useStrict}${n}`;
+	let wrapperIntro = `(${getFunctionIntro(args, {
+		isAsync: false,
+		name: null
+	})}{${n}${useStrict}${n}`;
 	if (hasExports) {
 		if (name && !(extend && namedExportsMode)) {
 			wrapperIntro =

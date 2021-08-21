@@ -6,13 +6,18 @@ export interface GenerateCodeSnippets {
 	_: string;
 	directReturnFunctionRight: string;
 	n: string;
+	namedFunctionSemicolon: string;
 	s: string;
-	getDirectReturnFunctionLeft(params: string[], options: { functionReturn: boolean }): string;
-	getFunctionIntro(params: string[], isAsync?: boolean): string;
+	getDirectReturnFunctionLeft(
+		params: string[],
+		options: { functionReturn: boolean; name: string | null }
+	): string;
+	getFunctionIntro(params: string[], options: { isAsync: boolean; name: string | null }): string;
 	getObject(
 		fields: [key: string | null, value: string][],
 		options: { indent: string; lineBreaks: boolean }
 	): string;
+	// TODO Lukas also for default access as constant
 	getPropertyAccess(name: string): string;
 	renderDirectReturnIife(
 		params: string[],
@@ -33,19 +38,28 @@ export function getGenerateCodeSnippets({
 }: NormalizedOutputOptions): GenerateCodeSnippets {
 	const { _, n, s } = compact ? { _: '', n: '', s: '' } : { _: ' ', n: '\n', s: ';' };
 
+	// TODO Lukas use const
 	const getFunctionIntro: GenerateCodeSnippets['getFunctionIntro'] = arrowFunctions
-		? (params, isAsync) => {
+		? (params, { isAsync, name }) => {
 				const singleParam = params.length === 1;
 				const asyncString = isAsync ? `async${singleParam ? ' ' : _}` : '';
-				return `${asyncString}${singleParam ? params[0] : `(${params.join(`,${_}`)})`}${_}=>${_}`;
+				return `${name ? `var ${name}${_}=${_}` : ''}${asyncString}${
+					singleParam ? params[0] : `(${params.join(`,${_}`)})`
+				}${_}=>${_}`;
 		  }
-		: (params, isAsync) => `${isAsync ? `async ` : ''}function${_}(${params.join(`,${_}`)})${_}`;
+		: (params, { isAsync, name }) =>
+				`${isAsync ? `async ` : ''}function${name ? ` ${name}` : ''}${_}(${params.join(
+					`,${_}`
+				)})${_}`;
 
 	const getDirectReturnFunctionLeft: GenerateCodeSnippets['getDirectReturnFunctionLeft'] = (
 		params,
-		{ functionReturn }
+		{ functionReturn, name }
 	) =>
-		`${getFunctionIntro(params)}${arrowFunctions ? '' : `{${_}${functionReturn ? 'return ' : ''}`}`;
+		`${getFunctionIntro(params, {
+			isAsync: false,
+			name
+		})}${arrowFunctions ? '' : `{${_}${functionReturn ? 'return ' : ''}`}`;
 
 	const directReturnFunctionRight = arrowFunctions ? '' : `${s}${_}}`;
 
@@ -73,6 +87,7 @@ export function getGenerateCodeSnippets({
 		getPropertyAccess: (name: string): string =>
 			isValidPropName(name) ? `.${name}` : `[${JSON.stringify(name)}]`,
 		n,
+		namedFunctionSemicolon: arrowFunctions ? ';' : '',
 		renderDirectReturnIife: (
 			params,
 			returned,
@@ -84,7 +99,10 @@ export function getGenerateCodeSnippets({
 			code.prependRight(
 				argStart,
 				`${wrapIfNeeded(
-					`${getDirectReturnFunctionLeft(params, { functionReturn: true })}${wrapIfNeeded(
+					`${getDirectReturnFunctionLeft(params, {
+						functionReturn: true,
+						name: null
+					})}${wrapIfNeeded(
 						returned,
 						arrowFunctions && needsArrowReturnParens
 					)}${directReturnFunctionRight}`,

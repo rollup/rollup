@@ -101,7 +101,12 @@ export default function amd(
 			.indent(t)
 			// factory function should be wrapped by parentheses to avoid lazy parsing,
 			// cf. https://v8.dev/blog/preparser#pife
-			.prepend(`${amd.define}(${params}(${getFunctionIntro(args)}{${useStrict}${n}${n}`)
+			.prepend(
+				`${amd.define}(${params}(${getFunctionIntro(args, {
+					isAsync: false,
+					name: null
+				})}{${useStrict}${n}${n}`
+			)
 			.append(`${n}${n}}));`)
 	);
 }

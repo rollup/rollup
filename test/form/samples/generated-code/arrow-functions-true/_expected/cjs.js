@@ -2,42 +2,59 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-var external = require('external');
+var defaultLegacy = require('external');
+var externalAuto = require('externalAuto');
+var externalDefault = require('externalDefault');
+var externalDefaultOnly = require('externalDefaultOnly');
 
-function _interopNamespace(e) {
-	if (e && e.__esModule) return e;
+var _interopDefaultLegacy = e => e && typeof e === 'object' && 'default' in e ? e : { 'default': e };
+
+var _interopDefault = e => e && e.__esModule ? e : { 'default': e };
+
+var _interopNamespaceDefaultOnly = e => Object.freeze({ __proto__: null, 'default': e });
+
+function _interopNamespaceDefault(e) {
 	var n = Object.create(null);
 	if (e) {
-		Object.keys(e).forEach(function (k) {
+		Object.keys(e).forEach(k => {
 			if (k !== 'default') {
 				var d = Object.getOwnPropertyDescriptor(e, k);
 				Object.defineProperty(n, k, d.get ? d : {
 					enumerable: true,
-					get: function () {
-						return e[k];
-					}
+					get: () => e[k]
 				});
 			}
 		});
 	}
-	n['default'] = e;
+	n["default"] = e;
 	return Object.freeze(n);
 }
 
+var _interopNamespace = e => e && e.__esModule ? e : _interopNamespaceDefault(e);
+
+var defaultLegacy__default = /*#__PURE__*/_interopDefaultLegacy(defaultLegacy);
+var externalAuto__default = /*#__PURE__*/_interopDefault(externalAuto);
+var externalDefault__namespace = /*#__PURE__*/_interopNamespaceDefault(externalDefault);
+var externalDefaultOnly__namespace = /*#__PURE__*/_interopNamespaceDefaultOnly(externalDefaultOnly);
+
 exports.a = void 0;
 
-({a: exports.a} = external.b);
-console.log({a: exports.a} = external.b);
+({ a: exports.a } = defaultLegacy.b);
+console.log({ a: exports.a } = defaultLegacy.b);
 
 Promise.resolve().then(() => /*#__PURE__*/_interopNamespace(require('external'))).then(console.log);
+console.log(defaultLegacy__default["default"]);
+console.log(externalAuto__default["default"]);
+console.log(externalDefault__namespace);
+console.log(externalDefaultOnly__namespace);
 
 Object.defineProperty(exports, 'foo', {
 	enumerable: true,
-	get: () => external.foo
+	get: () => defaultLegacy.foo
 });
-Object.keys(external).forEach(k => {
+Object.keys(defaultLegacy).forEach(k => {
 	if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
 		enumerable: true,
-		get: () => external[k]
+		get: () => defaultLegacy[k]
 	});
 });

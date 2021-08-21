@@ -68,7 +68,8 @@ export function getExportBlock(
 							? `Object.defineProperty(exports,${_}'${specifier.reexported}',${_}{${n}` +
 							  `${t}enumerable:${_}true,${n}` +
 							  `${t}get:${_}${getDirectReturnFunctionLeft([], {
-									functionReturn: true
+									functionReturn: true,
+									name: null
 							  })}${importName}${directReturnFunctionRight}${n}});`
 							: `exports${getPropertyAccess(specifier.reexported)}${_}=${_}${importName};`;
 				}
@@ -94,11 +95,15 @@ export function getExportBlock(
 						? `Object.defineProperty(exports,${_}k,${_}{${n}` +
 						  `${t}${t}enumerable:${_}true,${n}` +
 						  `${t}${t}get:${_}${getDirectReturnFunctionLeft([], {
-								functionReturn: true
+								functionReturn: true,
+								name: null
 						  })}${name}[k]${directReturnFunctionRight}${n}${t}})`
 						: `exports[k]${_}=${_}${name}[k]`;
 					exportBlock +=
-						`Object.keys(${name}).forEach(${getFunctionIntro(['k'])}{${n}` +
+						`Object.keys(${name}).forEach(${getFunctionIntro(['k'], {
+							isAsync: false,
+							name: null
+						})}{${n}` +
 						`${t}if${_}(k${_}!==${_}'default'${_}&&${_}!exports.hasOwnProperty(k))${_}${defineProperty}${s}${n}});`;
 				}
 			}

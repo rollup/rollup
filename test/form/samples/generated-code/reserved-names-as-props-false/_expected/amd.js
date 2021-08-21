@@ -1,6 +1,8 @@
-define(['module', 'exports', 'external'], (function (module, exports, external) { 'use strict';
+define(['module', 'exports', 'external', 'externalDefaultOnly', 'external2'], (function (module, exports, external, defaultOnly, someDefault) { 'use strict';
 
-	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
+	function _interopDefault (e) { return e && e.__esModule ? e : { 'default': e }; }
+
+	function _interopNamespaceDefaultOnly (e) { return Object.freeze({ __proto__: null, 'default': e }); }
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -11,19 +13,18 @@ define(['module', 'exports', 'external'], (function (module, exports, external) 
 					var d = Object.getOwnPropertyDescriptor(e, k);
 					Object.defineProperty(n, k, d.get ? d : {
 						enumerable: true,
-						get: function () {
-							return e[k];
-						}
+						get: function () { return e[k]; }
 					});
 				}
 			});
 		}
-		n['default'] = e;
+		n["default"] = e;
 		return Object.freeze(n);
 	}
 
 	var external__namespace = /*#__PURE__*/_interopNamespace(external);
-	var external__default = /*#__PURE__*/_interopDefaultLegacy(external);
+	var defaultOnly__namespace = /*#__PURE__*/_interopNamespaceDefaultOnly(defaultOnly);
+	var someDefault__default = /*#__PURE__*/_interopDefault(someDefault);
 
 	var other = {
 		foo: 'bar'
@@ -33,7 +34,7 @@ define(['module', 'exports', 'external'], (function (module, exports, external) 
 		'default': other
 	}));
 
-	console.log(ns, other.foo, other["function"], other["some-prop"], external["function"]);
+	console.log(ns, other.foo, other["function"], other["some-prop"], external["function"], someDefault__default["default"], defaultOnly__namespace);
 	console.log(undefined, undefined);
 
 	exports["function"] = 1;
@@ -46,7 +47,7 @@ define(['module', 'exports', 'external'], (function (module, exports, external) 
 	exports["default"] = external__namespace;
 	Object.defineProperty(exports, 'void', {
 		enumerable: true,
-		get: function () { return external__default["default"]; }
+		get: function () { return external__namespace["default"]; }
 	});
 
 	Object.defineProperty(exports, '__esModule', { value: true });

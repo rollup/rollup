@@ -5,11 +5,9 @@ var fooDefault = require('external-default');
 var fooDefaultOnly = require('external-defaultOnly');
 var fooEsModule = require('external-esModule');
 
-function _interopDefault (e) { return e && e.__esModule ? e['default'] : e; }
+function _interopDefault (e) { return e && e.__esModule ? e["default"] : e; }
 
-function _interopNamespaceDefaultOnly(e) {
-	return Object.freeze({__proto__: null, 'default': e});
-}
+function _interopNamespaceDefaultOnly (e) { return Object.freeze({ __proto__: null, 'default': e }); }
 
 function _interopNamespaceDefault(e) {
 	var n = Object.create(null);
@@ -18,13 +16,11 @@ function _interopNamespaceDefault(e) {
 			n[k] = e[k];
 		});
 	}
-	n['default'] = e;
+	n["default"] = e;
 	return Object.freeze(n);
 }
 
-function _interopNamespace(e) {
-	return e && e.__esModule ? e : _interopNamespaceDefault(e);
-}
+function _interopNamespace (e) { return e && e.__esModule ? e : _interopNamespaceDefault(e); }
 
 var fooAuto__default = /*#__PURE__*/_interopDefault(fooAuto);
 var fooAuto__namespace = /*#__PURE__*/_interopNamespace(fooAuto);

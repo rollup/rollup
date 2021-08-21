@@ -41,7 +41,9 @@ export default function system(
 	let wrapperStart =
 		`System.register(${registeredName}[` +
 		dependencies.map(({ id }) => `'${id}'`).join(`,${_}`) +
-		`],${_}(${getFunctionIntro(wrapperParams)}{${n}${t}${options.strict ? "'use strict';" : ''}` +
+		`],${_}(${getFunctionIntro(wrapperParams, { isAsync: false, name: null })}{${n}${t}${
+			options.strict ? "'use strict';" : ''
+		}` +
 		getStarExcludesBlock(starExcludes, varOrConst, t, snippets) +
 		getImportBindingsBlock(importBindings, t, snippets) +
 		`${n}${t}return${_}{${
@@ -49,7 +51,10 @@ export default function system(
 				? `${n}${t}${t}setters:${_}[${setters
 						.map(setter =>
 							setter
-								? `(${getFunctionIntro(['module'])}{${n}${t}${t}${t}${setter}${n}${t}${t}})`
+								? `(${getFunctionIntro(['module'], {
+										isAsync: false,
+										name: null
+								  })}{${n}${t}${t}${t}${setter}${n}${t}${t}})`
 								: options.systemNullSetters
 								? `null`
 								: `function${_}()${_}{}`
@@ -58,8 +63,10 @@ export default function system(
 				: ''
 		}${n}`;
 	wrapperStart +=
-		`${t}${t}execute:${_}(${getFunctionIntro([], usesTopLevelAwait)}{${n}${n}` +
-		getHoistedExportsBlock(exports, t, snippets);
+		`${t}${t}execute:${_}(${getFunctionIntro([], {
+			isAsync: usesTopLevelAwait,
+			name: null
+		})}{${n}${n}` + getHoistedExportsBlock(exports, t, snippets);
 
 	const wrapperEnd =
 		`${n}${n}` +

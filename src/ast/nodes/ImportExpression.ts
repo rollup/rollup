@@ -145,7 +145,8 @@ export default class ImportExpression extends NodeBase {
 		switch (format) {
 			case 'cjs': {
 				const leftStart = `Promise.resolve().then(${getDirectReturnFunctionLeft([], {
-					functionReturn: true
+					functionReturn: true,
+					name: null
 				})}`;
 				const helper = getInteropHelper(resolution, exportMode, interop);
 				return {
@@ -167,14 +168,16 @@ export default class ImportExpression extends NodeBase {
 				const helper = getInteropHelper(resolution, exportMode, interop);
 				const resolveNamespace = helper
 					? `${getDirectReturnFunctionLeft(['m'], {
-							functionReturn: false
+							functionReturn: false,
+							name: null
 					  })}${resolve}(/*#__PURE__*/${helper}(m))${directReturnFunctionRight}`
 					: resolve;
 				return {
 					helper,
 					mechanism: {
 						left: `new Promise(${getDirectReturnFunctionLeft([resolve, reject], {
-							functionReturn: false
+							functionReturn: false,
+							name: null
 						})}require([`,
 						right: `],${_}${resolveNamespace},${_}${reject})${directReturnFunctionRight})`
 					}

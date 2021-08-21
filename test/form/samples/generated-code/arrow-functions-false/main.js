@@ -1,9 +1,21 @@
-import {b} from 'external';
+import { b } from 'external';
 export let a;
 
-null, {a} = b;
-console.log({a} = b);
+null, { a } = b;
+console.log({ a } = b);
 
 import('external').then(console.log);
 export * from 'external';
-export {foo} from 'external';
+export { foo } from 'external';
+
+import defaultLegacy from 'external';
+console.log(defaultLegacy);
+
+import externalAuto from 'externalAuto';
+console.log(externalAuto);
+
+import * as externalDefault from 'externalDefault';
+console.log(externalDefault);
+
+import * as externalDefaultOnly from 'externalDefaultOnly';
+console.log(externalDefaultOnly);
