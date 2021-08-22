@@ -1,7 +1,7 @@
 import * as acorn from 'acorn';
 import ExternalModule from './ExternalModule';
 import Graph from './Graph';
-import Module from './Module';
+import Module, { DynamicImport } from './Module';
 import {
 	CustomPluginOptions,
 	EmittedChunk,
@@ -276,27 +276,27 @@ export class ModuleLoader {
 		return loadNewModulesPromise;
 	}
 
-	private async fetchDynamicDependencies(module: Module): Promise<void> {
+	private async fetchDynamicDependencies(
+		module: Module,
+		resolveDynamicImportPromises: Promise<
+			[dynamicImport: DynamicImport, resolvedId: ResolvedId | string | null]
+		>[]
+	): Promise<void> {
 		const dependencies = await Promise.all(
-			module.dynamicImports.map(async dynamicImport => {
-				const resolvedId = await this.resolveDynamicImport(
-					module,
-					typeof dynamicImport.argument === 'string'
-						? dynamicImport.argument
-						: dynamicImport.argument.esTreeNode,
-					module.id
-				);
-				if (resolvedId === null) return null;
-				if (typeof resolvedId === 'string') {
-					dynamicImport.resolution = resolvedId;
-					return null;
-				}
-				return (dynamicImport.resolution = await this.fetchResolvedDependency(
-					relativeId(resolvedId.id),
-					module.id,
-					resolvedId
-				));
-			})
+			resolveDynamicImportPromises.map(resolveDynamicImportPromise =>
+				resolveDynamicImportPromise.then(async ([dynamicImport, resolvedId]) => {
+					if (resolvedId === null) return null;
+					if (typeof resolvedId === 'string') {
+						dynamicImport.resolution = resolvedId;
+						return null;
+					}
+					return (dynamicImport.resolution = await this.fetchResolvedDependency(
+						relativeId(resolvedId.id),
+						module.id,
+						resolvedId
+					));
+				})
+			)
 		);
 		for (const dependency of dependencies) {
 			if (dependency) {
@@ -336,10 +336,15 @@ export class ModuleLoader {
 		this.modulesById.set(id, module);
 		this.graph.watchFiles[id] = true;
 		await this.addModuleSource(id, importer, module);
-		await this.pluginDriver.hookParallel('moduleParsed', [module.info]);
+		const resolveStaticDependencyPromises = this.getResolveStaticDependencyPromises(module);
+		const resolveDynamicImportPromises = this.getResolveDynamicImportPromises(module);
+		Promise.all([
+			...(resolveStaticDependencyPromises as Promise<never>[]),
+			...(resolveDynamicImportPromises as Promise<never>[])
+		]).then(() => this.pluginDriver.hookParallel('moduleParsed', [module.info]));
 		await Promise.all([
-			this.fetchStaticDependencies(module),
-			this.fetchDynamicDependencies(module)
+			this.fetchStaticDependencies(module, resolveStaticDependencyPromises),
+			this.fetchDynamicDependencies(module, resolveDynamicImportPromises)
 		]);
 		module.linkImports();
 		return module;
@@ -375,19 +380,14 @@ export class ModuleLoader {
 		}
 	}
 
-	private async fetchStaticDependencies(module: Module): Promise<void> {
+	private async fetchStaticDependencies(
+		module: Module,
+		resolveStaticDependencyPromises: Promise<[source: string, resolvedId: ResolvedId]>[]
+	): Promise<void> {
 		for (const dependency of await Promise.all(
-			Array.from(module.sources, async source =>
-				this.fetchResolvedDependency(
-					source,
-					module.id,
-					(module.resolvedIds[source] =
-						module.resolvedIds[source] ||
-						this.handleResolveId(
-							await this.resolveId(source, module.id, EMPTY_OBJECT),
-							source,
-							module.id
-						))
+			resolveStaticDependencyPromises.map(resolveStaticDependencyPromise =>
+				resolveStaticDependencyPromise.then(([source, resolvedId]) =>
+					this.fetchResolvedDependency(source, module.id, resolvedId)
 				)
 			)
 		)) {
@@ -448,6 +448,43 @@ export class ModuleLoader {
 			external: isNotAbsoluteExternal(id, source, makeAbsoluteExternalsRelative) || 'absolute',
 			id
 		};
+	}
+
+	private getResolveDynamicImportPromises(
+		module: Module
+	): Promise<[dynamicImport: DynamicImport, resolvedId: ResolvedId | string | null]>[] {
+		return module.dynamicImports.map(async dynamicImport => {
+			const resolvedId = await this.resolveDynamicImport(
+				module,
+				typeof dynamicImport.argument === 'string'
+					? dynamicImport.argument
+					: dynamicImport.argument.esTreeNode,
+				module.id
+			);
+			if (resolvedId && typeof resolvedId === 'object') {
+				dynamicImport.id = resolvedId.id;
+			}
+			return [dynamicImport, resolvedId] as [DynamicImport, ResolvedId | string | null];
+		});
+	}
+
+	private getResolveStaticDependencyPromises(
+		module: Module
+	): Promise<[source: string, resolvedId: ResolvedId]>[] {
+		return Array.from(
+			module.sources,
+			async source =>
+				[
+					source,
+					(module.resolvedIds[source] =
+						module.resolvedIds[source] ||
+						this.handleResolveId(
+							await this.resolveId(source, module.id, EMPTY_OBJECT),
+							source,
+							module.id
+						))
+				] as [string, ResolvedId]
+		);
 	}
 
 	private handleResolveId(
