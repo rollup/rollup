@@ -25,6 +25,7 @@ define(['require', 'exports', 'external', 'externalAuto', 'externalDefault', 'ex
 
 	var _interopNamespace = e => e && e.__esModule ? e : _interopNamespaceDefault(e);
 
+	var defaultLegacy__namespace = /*#__PURE__*/_interopNamespace(defaultLegacy);
 	var defaultLegacy__default = /*#__PURE__*/_interopDefaultLegacy(defaultLegacy);
 	var externalAuto__default = /*#__PURE__*/_interopDefault(externalAuto);
 	var externalDefault__namespace = /*#__PURE__*/_interopNamespaceDefault(externalDefault);
@@ -35,11 +36,18 @@ define(['require', 'exports', 'external', 'externalAuto', 'externalDefault', 'ex
 	({ a: exports.a } = defaultLegacy.b);
 	console.log({ a: exports.a } = defaultLegacy.b);
 
+	Promise.resolve().then(() => main).then(console.log);
+
 	new Promise((resolve, reject) => require(['external'], m => resolve(/*#__PURE__*/_interopNamespace(m)), reject)).then(console.log);
 	console.log(defaultLegacy__default["default"]);
 	console.log(externalAuto__default["default"]);
 	console.log(externalDefault__namespace);
 	console.log(externalDefaultOnly__namespace);
+
+	var main = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), defaultLegacy__namespace, {
+		get a () { return exports.a; },
+		foo: foo
+	}));
 
 	Object.defineProperty(exports, 'foo', {
 		enumerable: true,

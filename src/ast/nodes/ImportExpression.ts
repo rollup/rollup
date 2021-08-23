@@ -48,15 +48,15 @@ export default class ImportExpression extends NodeBase {
 	render(code: MagicString, options: RenderOptions): void {
 		if (this.inlineNamespace) {
 			const {
-				snippets: { _, getPropertyAccess, s }
+				snippets: { directReturnFunctionRight, getDirectReturnFunctionLeft, getPropertyAccess }
 			} = options;
-			// TODO Lukas arrow functions
 			code.overwrite(
 				this.start,
 				this.end,
-				`Promise.resolve().then(function${_}()${_}{${_}return ${this.inlineNamespace.getName(
-					getPropertyAccess
-				)}${s}${_}})`,
+				`Promise.resolve().then(${getDirectReturnFunctionLeft([], {
+					functionReturn: true,
+					name: null
+				})}${this.inlineNamespace.getName(getPropertyAccess)}${directReturnFunctionRight})`,
 				{ contentOnly: true }
 			);
 			return;
@@ -78,14 +78,16 @@ export default class ImportExpression extends NodeBase {
 		code: MagicString,
 		resolution: string,
 		namespaceExportName: string | false | undefined,
-		{ _, s }: GenerateCodeSnippets
+		{ directReturnFunctionRight, getDirectReturnFunctionLeft }: GenerateCodeSnippets
 	): void {
 		code.overwrite(this.source.start, this.source.end, resolution);
 		if (namespaceExportName) {
 			code.prependLeft(
 				this.end,
-				// TODO Lukas arrow functions
-				`.then(function${_}(n)${_}{${_}return n.${namespaceExportName}${s}${_}})`
+				`.then(${getDirectReturnFunctionLeft(['n'], {
+					functionReturn: true,
+					name: null
+				})}n.${namespaceExportName}${directReturnFunctionRight})`
 			);
 		}
 	}
@@ -121,7 +123,6 @@ export default class ImportExpression extends NodeBase {
 		this.inlineNamespace = inlineNamespace;
 	}
 
-	// TODO Lukas test compact mode and potentially add parameters for (un)necessary leading spaces
 	private getDynamicImportMechanismAndHelper(
 		resolution: Module | ExternalModule | string | null,
 		exportMode: 'none' | 'named' | 'default' | 'external',

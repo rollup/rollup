@@ -1,5 +1,5 @@
 module.exports = {
-	description: 'does not use arrow functions',
+	description: 'uses arrow functions',
 	options: {
 		external: ['external', 'externalAuto', 'externalDefault', 'externalDefaultOnly'],
 		strictDeprecations: false,

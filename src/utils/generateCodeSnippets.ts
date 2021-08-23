@@ -6,6 +6,7 @@ export interface GenerateCodeSnippets {
 	_: string;
 	directReturnFunctionRight: string;
 	n: string;
+	// TODO Lukas replace with namedDirectReturnFunctionRight?
 	namedFunctionSemicolon: string;
 	s: string;
 	getDirectReturnFunctionLeft(

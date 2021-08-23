@@ -4,6 +4,8 @@ export let a;
 null, { a } = b;
 console.log({ a } = b);
 
+import('./main.js').then(console.log);
+
 import('external').then(console.log);
 export * from 'external';
 export { foo } from 'external';
