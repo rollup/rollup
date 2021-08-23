@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 2.56.3
+
+_2021-08-23_
+
+### Bug Fixes
+
+- Make sure moduleInfo contains complete information about imported ids in the moduleParsed hook (#4208)
+
+### Pull Requests
+
+- [#4208](https://github.com/rollup/rollup/pull/4208): `ModuleInfo.importedIds` will return null if `resolvedIds[source]` is undefined (@FoxDaxian and @lukastaegert)
+
 ## 2.56.2
 
 _2021-08-10_
