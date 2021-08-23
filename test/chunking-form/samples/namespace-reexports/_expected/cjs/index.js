@@ -7,4 +7,4 @@ require('./generated-index.js');
 
 
 
-exports.hsl2hsv = hsl2hsv['default'];
+exports.hsl2hsv = hsl2hsv["default"];

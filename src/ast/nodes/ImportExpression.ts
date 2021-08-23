@@ -45,7 +45,6 @@ export default class ImportExpression extends NodeBase {
 		this.context.addDynamicImport(this);
 	}
 
-	// TODO Lukas search for all usages of ['default‘]
 	render(code: MagicString, options: RenderOptions): void {
 		if (this.inlineNamespace) {
 			const {

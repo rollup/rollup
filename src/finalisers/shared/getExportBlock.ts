@@ -7,7 +7,6 @@ import {
 	namespaceInteropHelpersByInteropType
 } from '../../utils/interopHelpers';
 
-// TODO Lukas add letters, rework tests for arrow function and prop access
 export function getExportBlock(
 	exports: ChunkExports,
 	dependencies: ChunkDependencies,
@@ -176,8 +175,9 @@ function getReexportedImportName(
 				? `${variableName}${getPropertyAccess('default')}`
 				: variableName;
 		}
-		// TODO Lukas property access, needs extra testing
-		return depNamedExportsMode ? `${moduleVariableName}['default']` : moduleVariableName;
+		return depNamedExportsMode
+			? `${moduleVariableName}${getPropertyAccess('default')}`
+			: moduleVariableName;
 	}
 	if (imported === '*') {
 		return (
