@@ -116,6 +116,13 @@ export interface AstContext {
 	warn: (warning: RollupWarning, pos: number) => void;
 }
 
+export interface DynamicImport {
+	argument: string | ExpressionNode;
+	id: string | null;
+	node: ImportExpression;
+	resolution: Module | ExternalModule | string | null;
+}
+
 const MISSING_EXPORT_SHIM_DESCRIPTION: ExportDescription = {
 	identifier: null,
 	localName: MISSING_EXPORT_SHIM_VARIABLE
@@ -187,11 +194,7 @@ export default class Module {
 	dependencies = new Set<Module | ExternalModule>();
 	dynamicDependencies = new Set<Module | ExternalModule>();
 	dynamicImporters: string[] = [];
-	dynamicImports: {
-		argument: string | ExpressionNode;
-		node: ImportExpression;
-		resolution: Module | ExternalModule | string | null;
-	}[] = [];
+	dynamicImports: DynamicImport[] = [];
 	excludeFromSourcemap: boolean;
 	execIndex = Infinity;
 	exportAllSources = new Set<string>();
@@ -256,9 +259,9 @@ export default class Module {
 			code: null,
 			get dynamicallyImportedIds() {
 				const dynamicallyImportedIds: string[] = [];
-				for (const { resolution } of module.dynamicImports) {
-					if (resolution instanceof Module || resolution instanceof ExternalModule) {
-						dynamicallyImportedIds.push(resolution.id);
+				for (const { id } of module.dynamicImports) {
+					if (id) {
+						dynamicallyImportedIds.push(id);
 					}
 				}
 				return dynamicallyImportedIds;
@@ -846,7 +849,7 @@ export default class Module {
 		} else if (argument instanceof Literal && typeof argument.value === 'string') {
 			argument = argument.value;
 		}
-		this.dynamicImports.push({ argument, node, resolution: null });
+		this.dynamicImports.push({ argument, id: null, node, resolution: null });
 	}
 
 	private addExport(

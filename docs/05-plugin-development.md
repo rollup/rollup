@@ -122,7 +122,7 @@ This hook is called each time a module has been fully parsed by Rollup. See [`th
 
 In contrast to the [`transform`](guide/en/#transform) hook, this hook is never cached and can be used to get information about both cached and other modules, including the final shape of the `meta` property, the `code` and the `ast`.
 
-Note that information about imported modules is not yet available in this hook, and information about importing modules may be incomplete as additional importers could be discovered later. If you need this information, use the [`buildEnd`](guide/en/#buildend) hook.
+This hook will wait until all imports are resolved so that the information in `moduleInfo.importedIds` and `moduleInfo.dynamicallyImportedIds` is complete and accurate. Note however that information about importing modules may be incomplete as additional importers could be discovered later. If you need this information, use the [`buildEnd`](guide/en/#buildend) hook.
 
 #### `options`
 
