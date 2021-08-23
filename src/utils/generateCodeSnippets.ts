@@ -6,8 +6,7 @@ export interface GenerateCodeSnippets {
 	_: string;
 	directReturnFunctionRight: string;
 	n: string;
-	// TODO Lukas replace with namedDirectReturnFunctionRight?
-	namedFunctionSemicolon: string;
+	namedDirectReturnFunctionRight: string;
 	s: string;
 	getDirectReturnFunctionLeft(
 		params: string[],
@@ -18,7 +17,6 @@ export interface GenerateCodeSnippets {
 		fields: [key: string | null, value: string][],
 		options: { indent: string; lineBreaks: boolean }
 	): string;
-	// TODO Lukas also for default access as constant
 	getPropertyAccess(name: string): string;
 	renderDirectReturnIife(
 		params: string[],
@@ -88,7 +86,7 @@ export function getGenerateCodeSnippets({
 		getPropertyAccess: (name: string): string =>
 			isValidPropName(name) ? `.${name}` : `[${JSON.stringify(name)}]`,
 		n,
-		namedFunctionSemicolon: arrowFunctions ? ';' : '',
+		namedDirectReturnFunctionRight: `${directReturnFunctionRight}${arrowFunctions ? ';' : ''}`,
 		renderDirectReturnIife: (
 			params,
 			returned,

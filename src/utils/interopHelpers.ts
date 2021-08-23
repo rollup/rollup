@@ -70,8 +70,7 @@ const HELPER_GENERATORS: {
 	) => string;
 } = {
 	[INTEROP_DEFAULT_LEGACY_VARIABLE]: (_t, snippets, liveBindings) => {
-		const { _, directReturnFunctionRight, getDirectReturnFunctionLeft, n, namedFunctionSemicolon } =
-			snippets;
+		const { _, getDirectReturnFunctionLeft, n, namedDirectReturnFunctionRight } = snippets;
 		return (
 			`${getDirectReturnFunctionLeft(['e'], {
 				functionReturn: true,
@@ -79,12 +78,11 @@ const HELPER_GENERATORS: {
 			})}e${_}&&${_}typeof e${_}===${_}'object'${_}&&${_}'default'${_}in e${_}?${_}` +
 			`${
 				liveBindings ? getDefaultLiveBinding(snippets) : getDefaultStatic(snippets)
-			}${directReturnFunctionRight}${namedFunctionSemicolon}${n}${n}`
+			}${namedDirectReturnFunctionRight}${n}${n}`
 		);
 	},
 	[INTEROP_DEFAULT_VARIABLE]: (_t, snippets, liveBindings) => {
-		const { _, directReturnFunctionRight, getDirectReturnFunctionLeft, n, namedFunctionSemicolon } =
-			snippets;
+		const { _, getDirectReturnFunctionLeft, n, namedDirectReturnFunctionRight } = snippets;
 		return (
 			`${getDirectReturnFunctionLeft(['e'], {
 				functionReturn: true,
@@ -92,19 +90,12 @@ const HELPER_GENERATORS: {
 			})}e${_}&&${_}e.__esModule${_}?${_}` +
 			`${
 				liveBindings ? getDefaultLiveBinding(snippets) : getDefaultStatic(snippets)
-			}${directReturnFunctionRight}${namedFunctionSemicolon}${n}${n}`
+			}${namedDirectReturnFunctionRight}${n}${n}`
 		);
 	},
 	[INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE]: (
 		_t,
-		{
-			_,
-			directReturnFunctionRight,
-			getDirectReturnFunctionLeft,
-			getObject,
-			n,
-			namedFunctionSemicolon
-		},
+		{ _, getDirectReturnFunctionLeft, getObject, n, namedDirectReturnFunctionRight },
 		_liveBindings: boolean,
 		freeze: boolean,
 		namespaceToStringTag: boolean
@@ -124,7 +115,7 @@ const HELPER_GENERATORS: {
 				{ indent: _, lineBreaks: false }
 			),
 			freeze
-		)}${directReturnFunctionRight}${namedFunctionSemicolon}${n}${n}`,
+		)}${namedDirectReturnFunctionRight}${n}${n}`,
 	[INTEROP_NAMESPACE_DEFAULT_VARIABLE]: (
 		t,
 		snippets,
@@ -147,13 +138,12 @@ const HELPER_GENERATORS: {
 		namespaceToStringTag,
 		usedHelpers
 	) => {
-		const { _, directReturnFunctionRight, getDirectReturnFunctionLeft, n, namedFunctionSemicolon } =
-			snippets;
+		const { _, getDirectReturnFunctionLeft, n, namedDirectReturnFunctionRight } = snippets;
 		return usedHelpers.has(INTEROP_NAMESPACE_DEFAULT_VARIABLE)
 			? `${getDirectReturnFunctionLeft(['e'], {
 					functionReturn: true,
 					name: INTEROP_NAMESPACE_VARIABLE
-			  })}e${_}&&${_}e.__esModule${_}?${_}e${_}:${_}${INTEROP_NAMESPACE_DEFAULT_VARIABLE}(e)${directReturnFunctionRight}${namedFunctionSemicolon}${n}${n}`
+			  })}e${_}&&${_}e.__esModule${_}?${_}e${_}:${_}${INTEROP_NAMESPACE_DEFAULT_VARIABLE}(e)${namedDirectReturnFunctionRight}${n}${n}`
 			: `function ${INTEROP_NAMESPACE_VARIABLE}(e)${_}{${n}` +
 					`${t}if${_}(e${_}&&${_}e.__esModule)${_}return e;${n}` +
 					createNamespaceObject(t, t, snippets, liveBindings, freeze, namespaceToStringTag) +
