@@ -14,21 +14,6 @@ declare module 'rollup-plugin-typescript' {
 	export default typescript;
 }
 
-declare module 'acorn-class-fields' {
-	const plugin: (BaseParser: typeof acorn.Parser) => typeof acorn.Parser;
-	export default plugin;
-}
-
-declare module 'acorn-private-methods' {
-	const plugin: (BaseParser: typeof acorn.Parser) => typeof acorn.Parser;
-	export default plugin;
-}
-
-declare module 'acorn-static-class-features' {
-	const plugin: (BaseParser: typeof acorn.Parser) => typeof acorn.Parser;
-	export default plugin;
-}
-
 declare module 'acorn-walk' {
 	type WalkerCallback<TState> = (node: acorn.Node, state: TState) => void;
 	type RecursiveWalkerFn<TState> = (
