@@ -20,6 +20,6 @@ define(['require'], (function (require) { 'use strict';
 
 	var dep = 'dep';
 
-	new Promise(function (resolve, reject) { require([dep], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
+	(function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }); })(dep);
 
 }));

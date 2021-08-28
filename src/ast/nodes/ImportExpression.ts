@@ -126,8 +126,19 @@ export default class ImportExpression extends NodeBase {
 	private getDynamicImportMechanismAndHelper(
 		resolution: Module | ExternalModule | string | null,
 		exportMode: 'none' | 'named' | 'default' | 'external',
-		{ compact, dynamicImportFunction, format, interop }: NormalizedOutputOptions,
-		{ _, getDirectReturnFunctionLeft, directReturnFunctionRight }: GenerateCodeSnippets,
+		{
+			compact,
+			dynamicImportFunction,
+			format,
+			generatedCode: { arrowFunctions },
+			interop
+		}: NormalizedOutputOptions,
+		{
+			_,
+			directReturnFunctionRight,
+			getDirectReturnFunctionLeft,
+			getDirectReturnIifeLeft
+		}: GenerateCodeSnippets,
 		pluginDriver: PluginDriver
 	): { helper: string | null; mechanism: DynamicImportMechanism | null } {
 		const mechanism = pluginDriver.hookFirstSync('renderDynamicImport', [
@@ -142,24 +153,31 @@ export default class ImportExpression extends NodeBase {
 		if (mechanism) {
 			return { helper: null, mechanism };
 		}
+		const hasDynamicTarget = !this.resolution || typeof this.resolution === 'string';
 		switch (format) {
 			case 'cjs': {
-				const leftStart = `Promise.resolve().then(${getDirectReturnFunctionLeft([], {
+				const helper = getInteropHelper(resolution, exportMode, interop);
+				let left = `require(`;
+				let right = `)`;
+				if (helper) {
+					left = `/*#__PURE__*/${helper}(${left}`;
+					right += ')';
+				}
+				left = `Promise.resolve().then(${getDirectReturnFunctionLeft([], {
 					functionReturn: true,
 					name: null
-				})}`;
-				const helper = getInteropHelper(resolution, exportMode, interop);
+				})}${left}`;
+				right += `${directReturnFunctionRight})`;
+				if (!arrowFunctions && hasDynamicTarget) {
+					left = getDirectReturnIifeLeft(['t'], `${left}t${right}`, {
+						needsArrowReturnParens: false,
+						needsWrappedFunction: true
+					});
+					right = ')';
+				}
 				return {
 					helper,
-					mechanism: helper
-						? {
-								left: `${leftStart}/*#__PURE__*/${helper}(require(`,
-								right: `))${directReturnFunctionRight})`
-						  }
-						: {
-								left: `${leftStart}require(`,
-								right: `)${directReturnFunctionRight})`
-						  }
+					mechanism: { left, right }
 				};
 			}
 			case 'amd': {
@@ -172,15 +190,21 @@ export default class ImportExpression extends NodeBase {
 							name: null
 					  })}${resolve}(/*#__PURE__*/${helper}(m))${directReturnFunctionRight}`
 					: resolve;
+				let left = `new Promise(${getDirectReturnFunctionLeft([resolve, reject], {
+					functionReturn: false,
+					name: null
+				})}require([`;
+				let right = `],${_}${resolveNamespace},${_}${reject})${directReturnFunctionRight})`;
+				if (!arrowFunctions && hasDynamicTarget) {
+					left = getDirectReturnIifeLeft(['t'], `${left}t${right}`, {
+						needsArrowReturnParens: false,
+						needsWrappedFunction: true
+					});
+					right = ')';
+				}
 				return {
 					helper,
-					mechanism: {
-						left: `new Promise(${getDirectReturnFunctionLeft([resolve, reject], {
-							functionReturn: false,
-							name: null
-						})}require([`,
-						right: `],${_}${resolveNamespace},${_}${reject})${directReturnFunctionRight})`
-					}
+					mechanism: { left, right }
 				};
 			}
 			case 'system':
@@ -225,9 +249,3 @@ const accessedImportGlobals: Record<string, string[]> = {
 	cjs: ['require'],
 	system: ['module']
 };
-
-// TODO Lukas consider fixing context issue for non-arrow resolutions IF it is dynamic:
-// import(this.foo) ->
-// (function (arg) {
-//   return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(arg))
-// })} (this.foo))

@@ -48,15 +48,16 @@ export function renderSystemExportFunction(
 	code: MagicString,
 	options: RenderOptions
 ): void {
-	const { _, renderDirectReturnIife } = options.snippets;
-	renderDirectReturnIife(
-		['v'],
-		`${getSystemExportStatement(exportedVariables, options)},${_}v`,
-		code,
+	const { _, getDirectReturnIifeLeft } = options.snippets;
+	code.prependRight(
 		expressionStart,
-		expressionEnd,
-		{ needsArrowReturnParens: true, needsWrappedFunction: needsParens }
+		getDirectReturnIifeLeft(
+			['v'],
+			`${getSystemExportStatement(exportedVariables, options)},${_}v`,
+			{ needsArrowReturnParens: true, needsWrappedFunction: needsParens }
+		)
 	);
+	code.appendLeft(expressionEnd, ')');
 }
 
 export function renderSystemExportSequenceAfterExpression(

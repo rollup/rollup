@@ -39,5 +39,5 @@ Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(requi
 Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefault(require('external-default')); }).then(console.log);
 Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespaceDefaultOnly(require('external-defaultOnly')); }).then(console.log);
 Promise.resolve().then(function () { return require('external-esModule'); }).then(console.log);
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(globalThis.external1)); }).then(console.log);
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(globalThis.external2)); }).then(console.log);
+(function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(t)); }); })(globalThis.external1).then(console.log);
+(function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(t)); }); })(globalThis.external2).then(console.log);

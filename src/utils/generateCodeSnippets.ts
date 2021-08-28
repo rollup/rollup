@@ -1,4 +1,3 @@
-import MagicString from 'magic-string';
 import { NormalizedOutputOptions } from '../rollup/types';
 import { RESERVED_NAMES } from './reservedNames';
 
@@ -12,23 +11,20 @@ export interface GenerateCodeSnippets {
 		params: string[],
 		options: { functionReturn: boolean; name: string | null }
 	): string;
+	getDirectReturnIifeLeft(
+		params: string[],
+		returned: string,
+		options: {
+			needsArrowReturnParens: boolean | undefined;
+			needsWrappedFunction: boolean | undefined;
+		}
+	): string;
 	getFunctionIntro(params: string[], options: { isAsync: boolean; name: string | null }): string;
 	getObject(
 		fields: [key: string | null, value: string][],
 		options: { indent: string; lineBreaks: boolean }
 	): string;
 	getPropertyAccess(name: string): string;
-	renderDirectReturnIife(
-		params: string[],
-		returned: string,
-		code: MagicString,
-		argStart: number,
-		argEnd: number,
-		options: {
-			needsArrowReturnParens: boolean | undefined;
-			needsWrappedFunction: boolean | undefined;
-		}
-	): void;
 }
 
 export function getGenerateCodeSnippets({
@@ -70,6 +66,17 @@ export function getGenerateCodeSnippets({
 		_,
 		directReturnFunctionRight,
 		getDirectReturnFunctionLeft,
+		getDirectReturnIifeLeft: (params, returned, { needsArrowReturnParens, needsWrappedFunction }) =>
+			`${wrapIfNeeded(
+				`${getDirectReturnFunctionLeft(params, {
+					functionReturn: true,
+					name: null
+				})}${wrapIfNeeded(
+					returned,
+					arrowFunctions && needsArrowReturnParens
+				)}${directReturnFunctionRight}`,
+				arrowFunctions || needsWrappedFunction
+			)}(`,
 		getFunctionIntro,
 		getObject(fields, { indent, lineBreaks }) {
 			const prefix = `${lineBreaks ? n : ''}${indent}`;
@@ -87,29 +94,6 @@ export function getGenerateCodeSnippets({
 			isValidPropName(name) ? `.${name}` : `[${JSON.stringify(name)}]`,
 		n,
 		namedDirectReturnFunctionRight: `${directReturnFunctionRight}${arrowFunctions ? ';' : ''}`,
-		renderDirectReturnIife: (
-			params,
-			returned,
-			code,
-			argStart,
-			argEnd,
-			{ needsArrowReturnParens, needsWrappedFunction }
-		) => {
-			code.prependRight(
-				argStart,
-				`${wrapIfNeeded(
-					`${getDirectReturnFunctionLeft(params, {
-						functionReturn: true,
-						name: null
-					})}${wrapIfNeeded(
-						returned,
-						arrowFunctions && needsArrowReturnParens
-					)}${directReturnFunctionRight}`,
-					arrowFunctions || needsWrappedFunction
-				)}(`
-			);
-			code.appendLeft(argEnd, ')');
-		},
 		s
 	};
 }

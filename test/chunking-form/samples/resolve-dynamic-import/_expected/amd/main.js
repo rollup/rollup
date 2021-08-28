@@ -40,9 +40,9 @@ define(['require', './direct-relative-external', 'to-indirect-relative-external'
 	new Promise(function (resolve, reject) { require(['direct-absolute-external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
 	new Promise(function (resolve, reject) { require(['to-indirect-absolute-external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
 
-	new Promise(function (resolve, reject) { require(['dynamic-direct-external' + unknown], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
+	(function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }); })('dynamic-direct-external' + unknown);
 	new Promise(function (resolve, reject) { require(['to-dynamic-indirect-external'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
 	Promise.resolve().then(function () { return existing; });
-	new Promise(function (resolve, reject) { require(['my' + 'replacement'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
+	(function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }); })('my' + 'replacement');
 
 }));

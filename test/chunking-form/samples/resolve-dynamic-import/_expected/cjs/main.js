@@ -45,7 +45,7 @@ Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(requi
 Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('direct-absolute-external')); });
 Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('to-indirect-absolute-external')); });
 
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('dynamic-direct-external' + unknown)); });
+(function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(t)); }); })('dynamic-direct-external' + unknown);
 Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('to-dynamic-indirect-external')); });
 Promise.resolve().then(function () { return existing; });
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('my' + 'replacement')); });
+(function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(t)); }); })('my' + 'replacement');

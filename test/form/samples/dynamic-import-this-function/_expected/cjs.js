@@ -1,5 +1,9 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var input = require('input');
+
 function _interopNamespace(e) {
 	if (e && e.__esModule) return e;
 	var n = Object.create(null);
@@ -18,6 +22,16 @@ function _interopNamespace(e) {
 	return Object.freeze(n);
 }
 
-var dep = 'dep';
+class Importer {
+	constructor() {
+		this.outputPath = input.outputPath;
+	}
 
-(function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(t)); }); })(dep);
+	getImport() {
+		return (function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(t)); }); })(this.outputPath);
+	}
+}
+
+const promise = new Importer().getImport();
+
+exports.promise = promise;

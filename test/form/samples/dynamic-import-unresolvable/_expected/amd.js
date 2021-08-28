@@ -18,9 +18,9 @@ define(['require'], (function (require) { 'use strict';
 		return Object.freeze(n);
 	}
 
-	new Promise(function (resolve, reject) { require([`${globalThis.unknown}`], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
-	new Promise(function (resolve, reject) { require([`My ${globalThis.unknown}`], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
-	new Promise(function (resolve, reject) { require(['./seven.js'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
+	(function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }); })(`${globalThis.unknown}`);
+	(function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }); })(`My ${globalThis.unknown}`);
+	(function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }); })('./seven.js');
 	new Promise(function (resolve, reject) { require(['./seven'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); });
 
 }));

@@ -20,5 +20,5 @@ function _interopNamespace(e) {
 	return Object.freeze(n);
 }
 
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(external.join('a', 'b'))); });
+(function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(t)); }); })(external.join('a', 'b'));
 console.log(external.join);

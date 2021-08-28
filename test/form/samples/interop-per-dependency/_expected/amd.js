@@ -34,7 +34,7 @@ define(['require', 'external-auto', 'external-default', 'external-defaultOnly', 
 	new Promise(function (resolve, reject) { require(['external-default'], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefault(m)); }, reject); }).then(console.log);
 	new Promise(function (resolve, reject) { require(['external-defaultOnly'], function (m) { resolve(/*#__PURE__*/_interopNamespaceDefaultOnly(m)); }, reject); }).then(console.log);
 	new Promise(function (resolve, reject) { require(['external-esModule'], resolve, reject); }).then(console.log);
-	new Promise(function (resolve, reject) { require([globalThis.external1], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }).then(console.log);
-	new Promise(function (resolve, reject) { require([globalThis.external2], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }).then(console.log);
+	(function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }); })(globalThis.external1).then(console.log);
+	(function (t) { return new Promise(function (resolve, reject) { require([t], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }); })(globalThis.external2).then(console.log);
 
 }));
