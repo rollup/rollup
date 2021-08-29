@@ -304,6 +304,7 @@ const getHasModuleSideEffects = (
 		error(
 			errInvalidOption(
 				'treeshake.moduleSideEffects',
+				'treeshake',
 				'please use one of false, "no-external", a function or an array'
 			)
 		);

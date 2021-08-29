@@ -6,6 +6,7 @@ module.exports = {
 	error: {
 		code: 'INVALID_OPTION',
 		message:
-			'Invalid value for option "treeshake" - valid values are false, true, "recommended", "safest" and "smallest". You can also supply an object for more fine-grained control.'
+			'Invalid value "some-string" for option "treeshake" - valid values are false, true, "recommended", "safest" and "smallest". You can also supply an object for more fine-grained control.',
+		url: 'https://rollupjs.org/guide/en/#treeshake'
 	}
 };

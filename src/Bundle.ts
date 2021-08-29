@@ -20,6 +20,7 @@ import commondir from './utils/commondir';
 import {
 	errCannotAssignModuleToChunk,
 	errChunkInvalid,
+	errInvalidOption,
 	error,
 	warnDeprecation
 } from './utils/error';
@@ -270,28 +271,38 @@ function validateOptionsForMultiChunkOutput(
 	onWarn: WarningHandler
 ) {
 	if (outputOptions.format === 'umd' || outputOptions.format === 'iife')
-		return error({
-			code: 'INVALID_OPTION',
-			message: 'UMD and IIFE output formats are not supported for code-splitting builds.'
-		});
+		return error(
+			errInvalidOption(
+				'output.format',
+				'outputformat',
+				'UMD and IIFE output formats are not supported for code-splitting builds',
+				outputOptions.format
+			)
+		);
 	if (typeof outputOptions.file === 'string')
-		return error({
-			code: 'INVALID_OPTION',
-			message:
-				'When building multiple chunks, the "output.dir" option must be used, not "output.file". ' +
-				'To inline dynamic imports, set the "inlineDynamicImports" option.'
-		});
+		return error(
+			errInvalidOption(
+				'output.file',
+				'outputdir',
+				'when building multiple chunks, the "output.dir" option must be used, not "output.file". To inline dynamic imports, set the "inlineDynamicImports" option'
+			)
+		);
 	if (outputOptions.sourcemapFile)
-		return error({
-			code: 'INVALID_OPTION',
-			message: '"output.sourcemapFile" is only supported for single-file builds.'
-		});
+		return error(
+			errInvalidOption(
+				'output.sourcemapFile',
+				'outputsourcemapfile',
+				'"output.sourcemapFile" is only supported for single-file builds'
+			)
+		);
 	if (!outputOptions.amd.autoId && outputOptions.amd.id)
-		onWarn({
-			code: 'INVALID_OPTION',
-			message:
-				'"output.amd.id" is only properly supported for single-file builds. Use "output.amd.autoId" and "output.amd.basePath".'
-		});
+		onWarn(
+			errInvalidOption(
+				'output.amd.id',
+				'outputamd',
+				'this option is only properly supported for single-file builds. Use "output.amd.autoId" and "output.amd.basePath" instead'
+			)
+		);
 }
 
 function getIncludedModules(modulesById: Map<string, Module | ExternalModule>): Module[] {

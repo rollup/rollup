@@ -458,6 +458,12 @@ Type: `boolean`<br> CLI: `--extend`/`--no-extend`<br> Default: `false`
 
 Whether to extend the global variable defined by the `name` option in `umd` or `iife` formats. When `true`, the global variable will be defined as `(global.name = global.name || {})`. When false, the global defined by `name` will be overwritten like `(global.name = {})`.
 
+#### output.generatedCode
+
+Type: `"es5" | "es2015" | { arrowFunctions?: boolean, objectShorthand?: boolean, reservedNamesAsProps?: boolean }`<br>CLI: `--generatedCode <preset>`<br>Default: `"es5"`
+
+Which language features Rollup can safely use in generated code. This will not transpile any user code but only change the code Rollup uses in wrappers and helpers.
+
 #### output.hoistTransitiveImports
 
 Type: `boolean`<br> CLI: `--hoistTransitiveImports`/`--no-hoistTransitiveImports`<br> Default: `true`

@@ -24,6 +24,7 @@ export default function watch(configs: GenericConfigObject[] | GenericConfigObje
 		throw error(
 			errInvalidOption(
 				'watch',
+				'watch',
 				'there must be at least one config where "watch" is not set to "false"'
 			)
 		);

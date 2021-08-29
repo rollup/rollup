@@ -6,6 +6,7 @@ module.exports = {
 	generateError: {
 		code: 'INVALID_OPTION',
 		message:
-			'You must set either "output.file" for a single-file build or "output.dir" when generating multiple chunks.'
+			'Invalid value for option "output.dir" - you must set either "output.file" for a single-file build or "output.dir" when generating multiple chunks.',
+		url: 'https://rollupjs.org/guide/en/#outputdir'
 	}
 };

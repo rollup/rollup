@@ -5,6 +5,8 @@ module.exports = {
 	},
 	generateError: {
 		code: 'INVALID_OPTION',
-		message: '"output.amd.basePath" only works with "output.amd.autoId".'
+		message:
+			'Invalid value for option "output.amd.basePath" - this option only works with "output.amd.autoId".',
+		url: 'https://rollupjs.org/guide/en/#outputamd'
 	}
 };

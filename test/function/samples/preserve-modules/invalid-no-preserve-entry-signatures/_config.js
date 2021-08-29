@@ -8,6 +8,7 @@ module.exports = {
 	generateError: {
 		code: 'INVALID_OPTION',
 		message:
-			'Setting "preserveEntrySignatures" to "false" is not supported for "output.preserveModules".'
+			'Invalid value for option "preserveEntrySignatures" - setting this option to false is not supported for "output.preserveModules".',
+		url: 'https://rollupjs.org/guide/en/#preserveentrysignatures'
 	}
 };

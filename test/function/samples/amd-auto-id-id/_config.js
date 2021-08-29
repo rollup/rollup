@@ -6,6 +6,7 @@ module.exports = {
 	generateError: {
 		code: 'INVALID_OPTION',
 		message:
-			'"output.amd.autoId"/"output.amd.basePath" and "output.amd.id" cannot be used together.'
+			'Invalid value for option "output.amd.id" - this option cannot be used together with "output.amd.autoId"/"output.amd.basePath".',
+		url: 'https://rollupjs.org/guide/en/#outputamd'
 	}
 };

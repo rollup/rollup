@@ -107,9 +107,11 @@ export const objectifyOptionWithPresets =
 			error(
 				errInvalidOption(
 					optionName,
+					getHashFromObjectOption(optionName),
 					`valid values are ${additionalValues}${printQuotedStringList(
 						Object.keys(presets)
-					)}. You can also supply an object for more fine-grained control`
+					)}. You can also supply an object for more fine-grained control`,
+					value
 				)
 			);
 		}
@@ -131,10 +133,15 @@ export const getOptionWithPreset = <T extends ObjectOptionWithPresets>(
 			error(
 				errInvalidOption(
 					`${optionName}.preset`,
-					`valid values are ${printQuotedStringList(Object.keys(presets))}`
+					getHashFromObjectOption(optionName),
+					`valid values are ${printQuotedStringList(Object.keys(presets))}`,
+					presetName
 				)
 			);
 		}
 	}
 	return objectifyOptionWithPresets(presets, optionName, additionalValues)(value);
 };
+
+const getHashFromObjectOption = (optionName: string): string =>
+	optionName.split('.').join('').toLowerCase();

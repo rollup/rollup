@@ -29,7 +29,9 @@ module.exports = {
 	warnings: [
 		{
 			code: 'INVALID_OPTION',
-			message: '"output.dynamicImportFunction" is ignored for formats other than "es".'
+			message:
+				'Invalid value for option "output.dynamicImportFunction" - this option is ignored for formats other than "es".',
+			url: 'https://rollupjs.org/guide/en/#outputdynamicImportFunction'
 		}
 	]
 };

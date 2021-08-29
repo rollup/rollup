@@ -32,6 +32,7 @@ import { deconflictChunk, DependenciesToBeDeconflicted } from './utils/deconflic
 import {
 	errCyclicCrossChunkReexport,
 	errFailedValidation,
+	errInvalidOption,
 	error,
 	errUnexpectedNamedImport,
 	errUnexpectedNamespaceReexport
@@ -666,10 +667,13 @@ export default class Chunk {
 		const format = options.format;
 		const finalise = finalisers[format];
 		if (options.dynamicImportFunction && format !== 'es') {
-			this.inputOptions.onwarn({
-				code: 'INVALID_OPTION',
-				message: '"output.dynamicImportFunction" is ignored for formats other than "es".'
-			});
+			this.inputOptions.onwarn(
+				errInvalidOption(
+					'output.dynamicImportFunction',
+					'outputdynamicImportFunction',
+					'this option is ignored for formats other than "es"'
+				)
+			);
 		}
 
 		// populate ids in the rendered declarations only here

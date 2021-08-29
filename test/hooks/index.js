@@ -889,7 +889,7 @@ describe('hooks', () => {
 				watcher.close();
 				assert.strictEqual(
 					err.message,
-					'When building multiple chunks, the "output.dir" option must be used, not "output.file". To inline dynamic imports, set the "inlineDynamicImports" option.'
+					'Invalid value for option "output.file" - when building multiple chunks, the "output.dir" option must be used, not "output.file". To inline dynamic imports, set the "inlineDynamicImports" option.'
 				);
 			})
 			.then(() => watcher.close());
@@ -915,7 +915,7 @@ describe('hooks', () => {
 				watcher.close();
 				assert.strictEqual(
 					err.message,
-					'"output.sourcemapFile" is only supported for single-file builds.'
+					'Invalid value for option "output.sourcemapFile" - "output.sourcemapFile" is only supported for single-file builds.'
 				);
 			})
 			.then(() => watcher.close());

@@ -240,10 +240,18 @@ export function errInternalIdCannotBeExternal(source: string, importer: string):
 	};
 }
 
-export function errInvalidOption(option: string, explanation: string): RollupLogProps {
+export function errInvalidOption(
+	option: string,
+	urlHash: string,
+	explanation: string,
+	value?: string | boolean | null
+): RollupLogProps {
 	return {
 		code: Errors.INVALID_OPTION,
-		message: `Invalid value for option "${option}" - ${explanation}.`
+		message: `Invalid value ${
+			value !== undefined ? `${JSON.stringify(value)} ` : ''
+		}for option "${option}" - ${explanation}.`,
+		url: `https://rollupjs.org/guide/en/#${urlHash}`
 	};
 }
 
