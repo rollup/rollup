@@ -578,13 +578,17 @@ export type InternalModuleFormat = 'amd' | 'cjs' | 'es' | 'iife' | 'system' | 'u
 
 export type ModuleFormat = InternalModuleFormat | 'commonjs' | 'esm' | 'module' | 'systemjs';
 
+type GeneratedCodePreset = 'es5' | 'es2015';
+
 interface NormalizedGeneratedCodeOptions {
 	arrowFunctions: boolean;
 	objectShorthand: boolean;
 	reservedNamesAsProps: boolean;
 }
 
-type GeneratedCodeOptions = Partial<NormalizedGeneratedCodeOptions>;
+interface GeneratedCodeOptions extends Partial<NormalizedGeneratedCodeOptions> {
+	preset?: GeneratedCodePreset;
+}
 
 export type OptionsPaths = Record<string, string> | ((id: string) => string);
 
@@ -643,7 +647,7 @@ export interface OutputOptions {
 	footer?: string | (() => string | Promise<string>);
 	format?: ModuleFormat;
 	freeze?: boolean;
-	generatedCode?: GeneratedCodeOptions;
+	generatedCode?: GeneratedCodePreset | GeneratedCodeOptions;
 	globals?: GlobalsOption;
 	hoistTransitiveImports?: boolean;
 	indent?: string | boolean;

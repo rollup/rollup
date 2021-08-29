@@ -33,7 +33,7 @@ export default function getExportMode(
 			}
 			exportMode = 'default';
 		} else {
-			if (format !== 'es' && exportKeys.indexOf('default') !== -1) {
+			if (format !== 'es' && format !== 'system' && exportKeys.indexOf('default') !== -1) {
 				warn(errMixedExport(facadeModuleId, name));
 			}
 			exportMode = 'named';

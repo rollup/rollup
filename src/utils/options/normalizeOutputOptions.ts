@@ -10,7 +10,12 @@ import { ensureArray } from '../ensureArray';
 import { errInvalidExportOptionValue, error, warnDeprecation } from '../error';
 import { resolve } from '../path';
 import { sanitizeFileName as defaultSanitizeFileName } from '../sanitizeFileName';
-import { GenericConfigObject, warnUnknownOptions } from './options';
+import {
+	generatedCodePresets,
+	GenericConfigObject,
+	getOptionWithPreset,
+	warnUnknownOptions
+} from './options';
 
 export function normalizeOutputOptions(
 	config: OutputOptions,
@@ -290,13 +295,19 @@ function getExports(
 	return configExports || 'auto';
 }
 
-// TODO Lukas add presets
-const getGeneratedCode = (config: OutputOptions): NormalizedOutputOptions['generatedCode'] => ({
-	arrowFunctions: false,
-	objectShorthand: false,
-	reservedNamesAsProps: false,
-	...config.generatedCode
-});
+const getGeneratedCode = (config: OutputOptions): NormalizedOutputOptions['generatedCode'] => {
+	const configWithPreset = getOptionWithPreset(
+		config.generatedCode,
+		generatedCodePresets,
+		'output.generatedCode',
+		''
+	);
+	return {
+		arrowFunctions: configWithPreset.arrowFunctions === true,
+		objectShorthand: configWithPreset.objectShorthand === true,
+		reservedNamesAsProps: configWithPreset.reservedNamesAsProps === true
+	};
+};
 
 const getIndent = (config: OutputOptions, compact: boolean): NormalizedOutputOptions['indent'] => {
 	if (compact) {
@@ -308,6 +319,7 @@ const getIndent = (config: OutputOptions, compact: boolean): NormalizedOutputOpt
 
 const ALLOWED_INTEROP_TYPES = new Set(['auto', 'esModule', 'default', 'defaultOnly', true, false]);
 
+// TODO Lukas replace all INVALID_OPTION
 const getInterop = (
 	config: OutputOptions,
 	inputOptions: NormalizedInputOptions
