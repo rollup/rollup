@@ -60,7 +60,6 @@ export default class NamespaceVariable extends Variable {
 	}
 
 	// TODO Lukas looks for ES6 simplifications: shorthand etc
-	// TODO Lukas namespaceToStringTag should move into the generated code options
 	renderBlock(options: RenderOptions): string {
 		const {
 			exportNamesByVariable,

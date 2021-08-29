@@ -1,26 +1,32 @@
 import { Bundle, Bundle as MagicStringBundle } from 'magic-string';
 import { NormalizedOutputOptions } from '../rollup/types';
 import { error } from '../utils/error';
+import { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
 import getCompleteAmdId from './shared/getCompleteAmdId';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
 import removeExtensionFromRelativeAmdId from './shared/removeExtensionFromRelativeAmdId';
-import { keypath, property } from './shared/sanitize';
+import { keypath } from './shared/sanitize';
 import { assignToDeepVariable } from './shared/setupNamespace';
 import trimEmptyImports from './shared/trimEmptyImports';
 import warnOnBuiltins from './shared/warnOnBuiltins';
 import { FinaliserOptions } from './index';
 
-function globalProp(name: string, globalVar: string) {
+function globalProp(name: string, globalVar: string, getPropertyAccess: (name: string) => string) {
 	if (!name) return 'null';
-	return `${globalVar}${keypath(name)}`;
+	return `${globalVar}${keypath(name, getPropertyAccess)}`;
 }
 
-function safeAccess(name: string, globalVar: string, _: string) {
-	const parts = name.split('.');
-
-	let acc = globalVar;
-	return parts.map(part => (acc += property(part))).join(`${_}&&${_}`);
+function safeAccess(
+	name: string,
+	globalVar: string,
+	{ _, getPropertyAccess }: GenerateCodeSnippets
+) {
+	let propertyPath = globalVar;
+	return name
+		.split('.')
+		.map(part => (propertyPath += getPropertyAccess(part)))
+		.join(`${_}&&${_}`);
 }
 
 export default function umd(
@@ -54,7 +60,7 @@ export default function umd(
 		strict
 	}: NormalizedOutputOptions
 ): Bundle {
-	const { _, getFunctionIntro, n, s } = snippets;
+	const { _, getFunctionIntro, getPropertyAccess, n, s } = snippets;
 	const factoryVar = compact ? 'f' : 'factory';
 	const globalVar = compact ? 'g' : 'global';
 
@@ -72,7 +78,9 @@ export default function umd(
 	const cjsDeps = dependencies.map(m => `require('${m.id}')`);
 
 	const trimmedImports = trimEmptyImports(dependencies);
-	const globalDeps = trimmedImports.map(module => globalProp(module.globalName, globalVar));
+	const globalDeps = trimmedImports.map(module =>
+		globalProp(module.globalName, globalVar, getPropertyAccess)
+	);
 	const factoryParams = trimmedImports.map(m => m.name);
 
 	if (namedExportsMode && (hasExports || noConflict)) {
@@ -83,7 +91,7 @@ export default function umd(
 				name!,
 				globalVar,
 				globals,
-				`${extend ? `${globalProp(name!, globalVar)}${_}||${_}` : ''}{}`,
+				`${extend ? `${globalProp(name!, globalVar, getPropertyAccess)}${_}||${_}` : ''}{}`,
 				snippets
 			)
 		);
@@ -122,12 +130,13 @@ export default function umd(
 		}
 		iifeExport =
 			`(function${_}()${_}{${n}` +
-			`${t}${t}var current${_}=${_}${safeAccess(name!, globalVar, _)};${n}` +
+			`${t}${t}var current${_}=${_}${safeAccess(name!, globalVar, snippets)};${n}` +
 			`${t}${t}${factory}${n}` +
 			`${t}${t}${noConflictExportsVar}.noConflict${_}=${_}function${_}()${_}{${_}` +
 			`${globalProp(
 				name!,
-				globalVar
+				globalVar,
+				getPropertyAccess
 			)}${_}=${_}current;${_}return ${noConflictExportsVar}${s}${_}};${n}` +
 			`${t}}())`;
 	} else {

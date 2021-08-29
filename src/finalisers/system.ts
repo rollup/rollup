@@ -91,7 +91,6 @@ function analyzeDependencies(
 	let starExcludes: Set<string> | null = null;
 
 	for (const { imports, reexports } of dependencies) {
-		// TODO Lukas we can use destructuring in the setter if module itself is not needed
 		const setter: string[] = [];
 		if (imports) {
 			for (const specifier of imports) {

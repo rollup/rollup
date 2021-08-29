@@ -1637,7 +1637,7 @@ Whether to collect performance timings. When used from the command line or a con
 
 `getTimings()` returns an object of the following form:
 
-```json
+```
 {
   "# BUILD": [ 698.020877, 33979632, 45328080 ],
   "## parse modules": [ 537.509342, 16295024, 27660296 ],

@@ -10,8 +10,6 @@ import trimEmptyImports from './shared/trimEmptyImports';
 import warnOnBuiltins from './shared/warnOnBuiltins';
 import { FinaliserOptions } from './index';
 
-const thisProp = (name: string) => `this${keypath(name)}`;
-
 export default function iife(
 	magicString: MagicStringBundle,
 	{
@@ -40,7 +38,7 @@ export default function iife(
 		strict
 	}: NormalizedOutputOptions
 ): Bundle {
-	const { _, getFunctionIntro, n } = snippets;
+	const { _, getFunctionIntro, getPropertyAccess, n } = snippets;
 	const isNamespaced = name && name.indexOf('.') !== -1;
 	const useVariableAssignment = !extend && !isNamespaced;
 
@@ -66,7 +64,12 @@ export default function iife(
 
 	if (namedExportsMode && hasExports) {
 		if (extend) {
-			deps.unshift(`${thisProp(name!)}${_}=${_}${thisProp(name!)}${_}||${_}{}`);
+			deps.unshift(
+				`this${keypath(name!, getPropertyAccess)}${_}=${_}this${keypath(
+					name!,
+					getPropertyAccess
+				)}${_}||${_}{}`
+			);
 			args.unshift('exports');
 		} else {
 			deps.unshift('{}');
@@ -95,8 +98,9 @@ export default function iife(
 	if (hasExports) {
 		if (name && !(extend && namedExportsMode)) {
 			wrapperIntro =
-				(useVariableAssignment ? `${varOrConst} ${name}` : thisProp(name)) +
-				`${_}=${_}${wrapperIntro}`;
+				(useVariableAssignment
+					? `${varOrConst} ${name}`
+					: `this${keypath(name, getPropertyAccess)}`) + `${_}=${_}${wrapperIntro}`;
 		}
 		if (isNamespaced) {
 			wrapperIntro = setupNamespace(name!, 'this', globals, snippets, compact) + wrapperIntro;
