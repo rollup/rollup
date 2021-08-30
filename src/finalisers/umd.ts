@@ -115,6 +115,7 @@ export default function umd(
 		let factory;
 
 		if (!namedExportsMode && hasExports) {
+			// TODO Lukas const
 			factory = `var ${noConflictExportsVar}${_}=${_}${assignToDeepVariable(
 				name!,
 				globalVar,
@@ -124,10 +125,12 @@ export default function umd(
 			)};`;
 		} else {
 			const module = globalDeps.shift();
+			// TODO Lukas const
 			factory =
 				`var ${noConflictExportsVar}${_}=${_}${module};${n}` +
 				`${t}${t}${factoryVar}(${[noConflictExportsVar].concat(globalDeps).join(`,${_}`)});`;
 		}
+		// TODO Lukas const
 		iifeExport =
 			`(function${_}()${_}{${n}` +
 			`${t}${t}var current${_}=${_}${safeAccess(name!, globalVar, snippets)};${n}` +

@@ -6,7 +6,6 @@ import { PluginDriver } from './PluginDriver';
 import { GenerateCodeSnippets } from './generateCodeSnippets';
 import { treeshakeNode } from './treeshakeNode';
 
-// TODO Lukas replace most of them with code snippets
 export interface RenderOptions {
 	dynamicImportFunction: string | undefined;
 	exportNamesByVariable: Map<Variable, string[]>;
@@ -16,6 +15,7 @@ export interface RenderOptions {
 	namespaceToStringTag: boolean;
 	outputPluginDriver: PluginDriver;
 	snippets: GenerateCodeSnippets;
+	// TODO Lukas deprecate
 	varOrConst: 'var' | 'const';
 }
 

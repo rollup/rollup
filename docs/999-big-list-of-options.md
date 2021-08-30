@@ -473,6 +473,94 @@ Whether to use arrow functions for module wrappers and some auto-generated code 
 
 ```javascript
 // input
+console.log('main');
+
+// iife output with arrowFunctions: false
+(function () {
+  'use strict';
+
+  console.log('main');
+})();
+
+// iife output with arrowFunctions: true
+(() => {
+  'use strict';
+
+  console.log('main');
+})();
+```
+
+**output.generatedCode.objectShorthand**<br> Type: `boolean`<br> CLI: `--generatedCode.objectShorthand`/`--no-generatedCode.objectShorthand`<br> Default: `false`
+
+Allows the use of shorthand notation in objects when the property name matches the value.
+
+```javascript
+// input
+const foo = 1;
+export { foo, foo as bar };
+
+// system output with objectShorthand: false
+System.register('bundle', [], function (exports) {
+  'use strict';
+  return {
+    execute: function () {
+      const foo = 1;
+      exports({ foo: foo, bar: foo });
+    }
+  };
+});
+
+// system output with objectShorthand: true
+System.register('bundle', [], function (exports) {
+  'use strict';
+  return {
+    execute: function () {
+      const foo = 1;
+      exports({ foo, bar: foo });
+    }
+  };
+});
+```
+
+**output.generatedCode.preset**<br> Type: `"es5" | "es2015"`<br> CLI: `--generatedCode <value>`
+
+Allows choosing one of the presets listed above while overriding some options.
+
+```js
+export default {
+  // ...
+  output: {
+    generatedCode: {
+      preset: 'es2015',
+      arrowFunctions: false
+    }
+    // ...
+  }
+};
+```
+
+**output.generatedCode.reservedNamesAsProps**<br> Type: `boolean`<br> CLI: `--generatedCode.reservedNamesAsProps`/`--no-generatedCode.reservedNamesAsProps`<br> Default: `false`
+
+Determine whether reserved words like "default" can be used as prop names without using quotes.
+
+```javascript
+// input
+const foo = null;
+export { foo as void };
+
+// cjs output with reservedNamesAsProps: false
+Object.defineProperty(exports, '__esModule', { value: true });
+
+const foo = null;
+
+exports['void'] = foo;
+
+// cjs output with reservedNamesAsProps: true
+Object.defineProperty(exports, '__esModule', { value: true });
+
+const foo = null;
+
+exports.void = foo;
 ```
 
 #### output.hoistTransitiveImports
@@ -1542,7 +1630,7 @@ Note that despite the name, this option does not "add" side effects to modules t
 
 **treeshake.preset**<br> Type: `"smallest" | "safest" | "recommended"`<br> CLI: `--treeshake <value>`<br>
 
-Allows choosing one of the presets listed above while overriding some of the options.
+Allows choosing one of the presets listed above while overriding some options.
 
 ```js
 export default {

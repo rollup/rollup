@@ -59,7 +59,6 @@ export default class NamespaceVariable extends Variable {
 		}
 	}
 
-	// TODO Lukas looks for ES6 simplifications: shorthand etc
 	renderBlock(options: RenderOptions): string {
 		const {
 			exportNamesByVariable,
@@ -105,7 +104,7 @@ export default class NamespaceVariable extends Variable {
 			if (members.length > 0) {
 				assignmentArgs.push(output);
 			}
-			// TODO Lukas Object.assign is not really ES5? Also, can we just spread instead?
+			// TODO Lukas Object.assign is not really ES5?
 			output = `/*#__PURE__*/Object.assign(${assignmentArgs.join(`,${_}`)})`;
 		}
 		if (freeze) {

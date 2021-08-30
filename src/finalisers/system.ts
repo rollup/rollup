@@ -123,6 +123,7 @@ function analyzeDependencies(
 					}
 					setter.push(
 						`${varOrConst} setter${_}=${_}${exportMapping};`,
+						// TODO Lukas const
 						`for${_}(var name${_}in${_}module)${_}{`,
 						`${t}if${_}(!_starExcludes[name])${_}setter[name]${_}=${_}module[name];`,
 						'}',

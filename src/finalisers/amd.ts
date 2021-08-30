@@ -7,7 +7,6 @@ import removeExtensionFromRelativeAmdId from './shared/removeExtensionFromRelati
 import warnOnBuiltins from './shared/warnOnBuiltins';
 import { FinaliserOptions } from './index';
 
-// TODO Lukas looks through all finalizers for ES6 possibilities
 export default function amd(
 	magicString: MagicStringBundle,
 	{
