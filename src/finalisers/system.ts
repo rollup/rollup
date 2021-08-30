@@ -131,7 +131,7 @@ function analyzeDependencies(
 				} else {
 					setter.push(`exports(${exportMapping});`);
 				}
-			} else if (reexportedNames.length === 1) {
+			} else {
 				const [key, value] = reexportedNames[0];
 				setter.push(`exports('${key}',${_}${value});`);
 			}

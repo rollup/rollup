@@ -44,10 +44,8 @@ export default class SyntheticNamedExportVariable extends Variable {
 	}
 
 	include(): void {
-		if (!this.included) {
-			this.included = true;
-			this.context.includeVariableInModule(this.syntheticNamespace);
-		}
+		this.included = true;
+		this.context.includeVariableInModule(this.syntheticNamespace);
 	}
 
 	setRenderNames(baseName: string | null, name: string | null): void {
