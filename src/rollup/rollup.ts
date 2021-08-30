@@ -51,7 +51,7 @@ export async function rollupInternal(
 	try {
 		await graph.pluginDriver.hookParallel('buildStart', [inputOptions]);
 		await graph.build();
-	} catch (err) {
+	} catch (err: any) {
 		const watchFiles = Object.keys(graph.watchFiles);
 		if (watchFiles.length > 0) {
 			err.watchFiles = watchFiles;

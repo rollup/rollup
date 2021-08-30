@@ -801,7 +801,7 @@ export default class Module {
 	tryParse(): acorn.Node {
 		try {
 			return this.graph.contextParse(this.info.code!);
-		} catch (err) {
+		} catch (err: any) {
 			let message = err.message.replace(/ \(\d+:\d+\)$/, '');
 			if (this.id.endsWith('.json')) {
 				message += ' (Note that you need @rollup/plugin-json to import JSON files)';
@@ -957,7 +957,7 @@ export default class Module {
 			try {
 				({ column, line } = getOriginalLocation(this.sourcemapChain, { column, line }));
 				code = this.originalCode;
-			} catch (e) {
+			} catch (err: any) {
 				this.options.onwarn({
 					code: 'SOURCEMAP_ERROR',
 					id: this.id,
@@ -966,7 +966,7 @@ export default class Module {
 						file: this.id,
 						line
 					},
-					message: `Error when using sourcemap for reporting an error: ${e.message}`,
+					message: `Error when using sourcemap for reporting an error: ${err.message}`,
 					pos
 				});
 			}

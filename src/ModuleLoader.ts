@@ -223,7 +223,7 @@ export class ModuleLoader {
 			source = await this.readQueue.run(
 				async () => (await this.pluginDriver.hookFirst('load', [id])) ?? (await readFile(id))
 			);
-		} catch (err) {
+		} catch (err: any) {
 			timeEnd('load modules', 3);
 			let msg = `Could not load ${id}`;
 			if (importer) msg += ` (imported by ${relativeId(importer)})`;

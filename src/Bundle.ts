@@ -66,9 +66,9 @@ export default class Bundle {
 			timeEnd('render modules', 2);
 
 			await this.addFinalizedChunksToBundle(chunks, inputBase, addons, outputBundle, snippets);
-		} catch (error) {
-			await this.pluginDriver.hookParallel('renderError', [error]);
-			throw error;
+		} catch (err: any) {
+			await this.pluginDriver.hookParallel('renderError', [err]);
+			throw err;
 		}
 		await this.pluginDriver.hookSeq('generateBundle', [
 			this.outputOptions,
@@ -188,8 +188,8 @@ export default class Bundle {
 						allowHashBang: true,
 						ecmaVersion: 'latest'
 					});
-				} catch (exception) {
-					this.inputOptions.onwarn(errChunkInvalid(file as OutputChunk, exception));
+				} catch (err: any) {
+					this.inputOptions.onwarn(errChunkInvalid(file as OutputChunk, err));
 				}
 			}
 		}

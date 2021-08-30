@@ -460,9 +460,20 @@ Whether to extend the global variable defined by the `name` option in `umd` or `
 
 #### output.generatedCode
 
-Type: `"es5" | "es2015" | { arrowFunctions?: boolean, objectShorthand?: boolean, reservedNamesAsProps?: boolean }`<br>CLI: `--generatedCode <preset>`<br>Default: `"es5"`
+Type: `"es5" | "es2015" | { arrowFunctions?: boolean, objectShorthand?: boolean, preset?: "es5" | "es2015", reservedNamesAsProps?: boolean }`<br> CLI: `--generatedCode <preset>`<br> Default: `"es5"`
 
-Which language features Rollup can safely use in generated code. This will not transpile any user code but only change the code Rollup uses in wrappers and helpers.
+Which language features Rollup can safely use in generated code. This will not transpile any user code but only change the code Rollup uses in wrappers and helpers. You may choose one of several presets:
+
+- `"es5"`: Do not use ES2015+ features like arrow functions.
+- `"es2015"`: Use any JavaScript features up to ES2015.
+
+**output.generatedCode.arrowFunctions**<br> Type: `boolean`<br> CLI: `--generatedCode.arrowFunctions`/`--no-generatedCode.arrowFunctions`<br> Default: `false`
+
+Whether to use arrow functions for module wrappers and some auto-generated code snippets.
+
+```javascript
+// input
+```
 
 #### output.hoistTransitiveImports
 

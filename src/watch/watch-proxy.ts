@@ -21,7 +21,7 @@ export default function watch(configs: GenericConfigObject[] | GenericConfigObje
 	const configArray = ensureArray(configs);
 	const watchConfigs = configArray.filter(config => config.watch !== false);
 	if (watchConfigs.length === 0) {
-		throw error(
+		return error(
 			errInvalidOption(
 				'watch',
 				'watch',

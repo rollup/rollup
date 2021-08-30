@@ -486,7 +486,8 @@ export interface NormalizedTreeshakingOptions {
 	unknownGlobalSideEffects: boolean;
 }
 
-export interface TreeshakingOptions extends Partial<NormalizedTreeshakingOptions> {
+export interface TreeshakingOptions
+	extends Partial<Omit<NormalizedTreeshakingOptions, 'moduleSideEffects'>> {
 	moduleSideEffects?: ModuleSideEffectsOption;
 	preset?: TreeshakingPreset;
 	/** @deprecated Use `moduleSideEffects` instead */

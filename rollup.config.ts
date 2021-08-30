@@ -19,7 +19,7 @@ import pkg from './package.json';
 const commitHash = (function () {
 	try {
 		return fs.readFileSync('.commithash', 'utf-8');
-	} catch (err) {
+	} catch {
 		return 'unknown';
 	}
 })();

@@ -355,7 +355,7 @@ export class PluginDriver {
 			}
 			// eslint-disable-next-line @typescript-eslint/ban-types
 			return (hook as Function).apply(context, args);
-		} catch (err) {
+		} catch (err: any) {
 			return throwPluginError(err, plugin.name, { hook: hookName });
 		}
 	}

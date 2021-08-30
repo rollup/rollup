@@ -59,7 +59,7 @@ function loadAndRegisterPlugin(inputOptions: InputOptions, pluginText: string): 
 				try {
 					plugin = require(prefix + pluginText);
 					break;
-				} catch (ex) {
+				} catch {
 					// if this does not work, we try requiring the actual name below
 				}
 			}
@@ -68,8 +68,8 @@ function loadAndRegisterPlugin(inputOptions: InputOptions, pluginText: string): 
 			try {
 				if (pluginText[0] == '.') pluginText = path.resolve(pluginText);
 				plugin = require(pluginText);
-			} catch (ex) {
-				throw new Error(`Cannot load plugin "${pluginText}": ${ex.message}.`);
+			} catch (err: any) {
+				throw new Error(`Cannot load plugin "${pluginText}": ${err.message}.`);
 			}
 		}
 	}

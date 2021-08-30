@@ -22,12 +22,12 @@ runTestSuiteWithSamples('browser', resolve(__dirname, 'samples'), (dir, config) 
 					strictDeprecations: true,
 					...config.options
 				});
-			} catch (error) {
+			} catch (err) {
 				if (config.error) {
-					compareError(error, config.error);
+					compareError(err, config.error);
 					return;
 				} else {
-					throw error;
+					throw err;
 				}
 			}
 			if (config.error) {
@@ -40,12 +40,12 @@ runTestSuiteWithSamples('browser', resolve(__dirname, 'samples'), (dir, config) 
 					format: 'es',
 					...(config.options || {}).output
 				}));
-			} catch (error) {
+			} catch (err) {
 				if (config.generateError) {
-					compareError(error, config.generateError);
+					compareError(err, config.generateError);
 					return;
 				} else {
-					throw error;
+					throw err;
 				}
 			}
 			if (config.generateError) {

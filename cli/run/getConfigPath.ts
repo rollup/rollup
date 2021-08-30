@@ -14,10 +14,10 @@ export function getConfigPath(commandConfig: string | true): string {
 		const pkgName = commandConfig.slice(5);
 		try {
 			return relative.resolve(`rollup-config-${pkgName}`, cwd);
-		} catch (err) {
+		} catch {
 			try {
 				return relative.resolve(pkgName, cwd);
-			} catch (err) {
+			} catch (err: any) {
 				if (err.code === 'MODULE_NOT_FOUND') {
 					handleError({
 						code: 'MISSING_EXTERNAL_CONFIG',
