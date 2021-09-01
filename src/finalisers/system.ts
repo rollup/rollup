@@ -155,7 +155,6 @@ const getStarExcludes = ({ dependencies, exports }: ModuleDeclarations): Set<str
 	return starExcludes;
 };
 
-// TODO Lukas _starExcludes must not conflict with local variables.
 const getStarExcludesBlock = (
 	starExcludes: Set<string> | null,
 	varOrConst: string,

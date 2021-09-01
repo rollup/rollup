@@ -19,8 +19,7 @@ export default function cjs(
 		isModuleFacade,
 		namedExportsMode,
 		outro,
-		snippets,
-		varOrConst
+		snippets
 	}: FinaliserOptions,
 	{
 		compact,
@@ -45,10 +44,9 @@ export default function cjs(
 	if (namespaceMarkers) {
 		namespaceMarkers += n + n;
 	}
-	const importBlock = getImportBlock(dependencies, snippets, compact, varOrConst);
+	const importBlock = getImportBlock(dependencies, snippets, compact);
 	const interopBlock = getInteropBlock(
 		dependencies,
-		varOrConst,
 		interop,
 		externalLiveBindings,
 		freeze,
@@ -76,9 +74,8 @@ export default function cjs(
 
 function getImportBlock(
 	dependencies: ChunkDependencies,
-	{ n, _ }: GenerateCodeSnippets,
-	compact: boolean,
-	varOrConst: string
+	{ _, cnst, n }: GenerateCodeSnippets,
+	compact: boolean
 ): string {
 	let importBlock = '';
 	let definingVariable = false;
@@ -90,8 +87,7 @@ function getImportBlock(
 			definingVariable = false;
 			importBlock += `require('${id}')`;
 		} else {
-			importBlock +=
-				compact && definingVariable ? ',' : `${importBlock ? `;${n}` : ''}${varOrConst} `;
+			importBlock += compact && definingVariable ? ',' : `${importBlock ? `;${n}` : ''}${cnst} `;
 			definingVariable = true;
 			importBlock += `${name}${_}=${_}require('${id}')`;
 		}

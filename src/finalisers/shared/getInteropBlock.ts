@@ -10,7 +10,6 @@ import {
 
 export default function getInteropBlock(
 	dependencies: ModuleDeclarationDependency[],
-	varOrConst: string,
 	interop: GetInterop,
 	externalLiveBindings: boolean,
 	freeze: boolean,
@@ -19,7 +18,7 @@ export default function getInteropBlock(
 	indent: string,
 	snippets: GenerateCodeSnippets
 ): string {
-	const { _, n } = snippets;
+	const { _, cnst, n } = snippets;
 	const neededInteropHelpers = new Set<string>();
 	const interopStatements: string[] = [];
 	const addInteropStatement = (
@@ -29,7 +28,7 @@ export default function getInteropBlock(
 	): void => {
 		neededInteropHelpers.add(helper);
 		interopStatements.push(
-			`${varOrConst} ${helperVariableName}${_}=${_}/*#__PURE__*/${helper}(${dependencyVariableName});`
+			`${cnst} ${helperVariableName}${_}=${_}/*#__PURE__*/${helper}(${dependencyVariableName});`
 		);
 	};
 	for (const {

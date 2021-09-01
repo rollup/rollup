@@ -42,7 +42,6 @@ export default function umd(
 		namedExportsMode,
 		outro,
 		snippets,
-		varOrConst,
 		warn
 	}: FinaliserOptions,
 	{
@@ -181,7 +180,6 @@ export default function umd(
 	magicString.prepend(
 		`${intro}${getInteropBlock(
 			dependencies,
-			varOrConst,
 			interop,
 			externalLiveBindings,
 			freeze,

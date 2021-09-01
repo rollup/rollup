@@ -22,7 +22,6 @@ export default function amd(
 		namedExportsMode,
 		outro,
 		snippets,
-		varOrConst,
 		warn
 	}: FinaliserOptions,
 	{
@@ -64,7 +63,6 @@ export default function amd(
 	magicString.prepend(
 		`${intro}${getInteropBlock(
 			dependencies,
-			varOrConst,
 			interop,
 			externalLiveBindings,
 			freeze,

@@ -80,7 +80,6 @@ export default function iife(
 	const useStrict = strict ? `${t}'use strict';${n}` : '';
 	const interopBlock = getInteropBlock(
 		dependencies,
-		varOrConst,
 		interop,
 		externalLiveBindings,
 		freeze,

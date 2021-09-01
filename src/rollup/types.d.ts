@@ -583,6 +583,7 @@ type GeneratedCodePreset = 'es5' | 'es2015';
 
 interface NormalizedGeneratedCodeOptions {
 	arrowFunctions: boolean;
+	blockBindings: boolean;
 	objectShorthand: boolean;
 	reservedNamesAsProps: boolean;
 }

@@ -32,6 +32,7 @@ module.exports = {
 					freeze: true,
 					generatedCode: {
 						arrowFunctions: false,
+						blockBindings: false,
 						objectShorthand: false,
 						reservedNamesAsProps: false
 					},

@@ -3,6 +3,7 @@ import { RESERVED_NAMES } from './reservedNames';
 
 export interface GenerateCodeSnippets {
 	_: string;
+	cnst: string;
 	directReturnFunctionRight: string;
 	n: string;
 	namedDirectReturnFunctionRight: string;
@@ -27,18 +28,20 @@ export interface GenerateCodeSnippets {
 	getPropertyAccess(name: string): string;
 }
 
+// TODO Lukas deprecate preferConst
 export function getGenerateCodeSnippets({
 	compact,
-	generatedCode: { arrowFunctions, objectShorthand, reservedNamesAsProps }
+	generatedCode: { arrowFunctions, blockBindings, objectShorthand, reservedNamesAsProps },
+	preferConst
 }: NormalizedOutputOptions): GenerateCodeSnippets {
 	const { _, n, s } = compact ? { _: '', n: '', s: '' } : { _: ' ', n: '\n', s: ';' };
+	const cnst = blockBindings || preferConst ? 'const' : 'var';
 
-	// TODO Lukas use const
 	const getFunctionIntro: GenerateCodeSnippets['getFunctionIntro'] = arrowFunctions
 		? (params, { isAsync, name }) => {
 				const singleParam = params.length === 1;
 				const asyncString = isAsync ? `async${singleParam ? ' ' : _}` : '';
-				return `${name ? `var ${name}${_}=${_}` : ''}${asyncString}${
+				return `${name ? `${cnst} ${name}${_}=${_}` : ''}${asyncString}${
 					singleParam ? params[0] : `(${params.join(`,${_}`)})`
 				}${_}=>${_}`;
 		  }
@@ -64,6 +67,7 @@ export function getGenerateCodeSnippets({
 
 	return {
 		_,
+		cnst,
 		directReturnFunctionRight,
 		getDirectReturnFunctionLeft,
 		getDirectReturnIifeLeft: (params, returned, { needsArrowReturnParens, needsWrappedFunction }) =>
