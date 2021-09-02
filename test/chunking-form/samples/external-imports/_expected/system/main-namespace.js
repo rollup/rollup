@@ -2,15 +2,15 @@ System.register(['external-all', 'external-namespace', 'external-default-namespa
 	'use strict';
 	var foo, bar, quux, quux$1;
 	return {
-		setters: [(function (module) {
+		setters: [function (module) {
 			foo = module;
-		}), (function (module) {
+		}, function (module) {
 			bar = module;
-		}), (function (module) {
+		}, function (module) {
 			quux = module;
-		}), (function (module) {
+		}, function (module) {
 			quux$1 = module;
-		})],
+		}],
 		execute: (function () {
 
 			console.log(foo, bar, quux, quux$1);

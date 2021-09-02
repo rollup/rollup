@@ -2,10 +2,10 @@ System.register(['./shared.js'], (function () {
 	'use strict';
 	var size, color;
 	return {
-		setters: [(function (module) {
+		setters: [function (module) {
 			size = module.s;
 			color = module.c;
-		})],
+		}],
 		execute: (function () {
 
 			registerPaint(

@@ -2,9 +2,9 @@ System.register(['./custom_modules/@my-scope/my-base-pkg/index.js', './_virtual/
 	'use strict';
 	var myBasePkg;
 	return {
-		setters: [function () {}, (function (module) {
+		setters: [function () {}, function (module) {
 			myBasePkg = module.__exports;
-		})],
+		}],
 		execute: (function () {
 
 			const base = myBasePkg;

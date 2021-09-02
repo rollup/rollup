@@ -2,9 +2,9 @@ System.register(['./hsl2hsv.js'], (function (exports) {
 	'use strict';
 	var hsl2hsv$1;
 	return {
-		setters: [(function (module) {
+		setters: [function (module) {
 			hsl2hsv$1 = module["default"];
-		})],
+		}],
 		execute: (function () {
 
 			var hsl2hsv = 'asdf';

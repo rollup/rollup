@@ -1,3 +1,4 @@
+import 'externalNoImport';
 import * as defaultLegacy from 'external';
 import defaultLegacy__default, { b } from 'external';
 export * from 'external';

@@ -1,12 +1,12 @@
-System.register(['./generated-dep1.js'], (() => {
+System.register(['./generated-dep1.js'], (function () {
 	'use strict';
 	var foo, bar;
 	return {
-		setters: [(module => {
+		setters: [module => {
 			foo = module.f;
 			bar = module.b;
-		})],
-		execute: (() => {
+		}],
+		execute: (function () {
 
 			console.log(foo, bar);
 

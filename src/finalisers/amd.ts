@@ -37,7 +37,7 @@ export default function amd(
 	warnOnBuiltins(warn, dependencies);
 	const deps = dependencies.map(m => `'${removeExtensionFromRelativeAmdId(m.id)}'`);
 	const args = dependencies.map(m => m.name);
-	const { n, getFunctionIntro, _ } = snippets;
+	const { n, getNonArrowFunctionIntro, _ } = snippets;
 
 	if (namedExportsMode && hasExports) {
 		args.unshift(`exports`);
@@ -99,7 +99,7 @@ export default function amd(
 			// factory function should be wrapped by parentheses to avoid lazy parsing,
 			// cf. https://v8.dev/blog/preparser#pife
 			.prepend(
-				`${amd.define}(${params}(${getFunctionIntro(args, {
+				`${amd.define}(${params}(${getNonArrowFunctionIntro(args, {
 					isAsync: false,
 					name: null
 				})}{${useStrict}${n}${n}`

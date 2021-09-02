@@ -4,13 +4,13 @@ System.register('Q', ['quoted\'\\
 	'use strict';
 	var foo, bar, baz;
 	return {
-		setters: [(function (module) {
+		setters: [function (module) {
 			foo = module.foo;
-		}), (function (module) {
+		}, function (module) {
 			bar = module.bar;
-		}), (function (module) {
+		}, function (module) {
 			baz = module.baz;
-		})],
+		}],
 		execute: (function () {
 
 			console.log(foo, bar, baz);

@@ -1,4 +1,4 @@
-define(['exports'], (exports => { 'use strict';
+define(['exports'], (function (exports) { 'use strict';
 
 	const foo = 'dep2';
 	Promise.resolve().then(() => dep1).then(console.log);

@@ -2,17 +2,17 @@ System.register(['starexternal1', 'external1', './generated-dep.js', 'starextern
 	'use strict';
 	var _starExcludes = { main: 1, 'default': 1, e: 1, dep: 1 };
 	return {
-		setters: [(function (module) {
+		setters: [function (module) {
 			var setter = {};
 			for (var name in module) {
 				if (!_starExcludes[name]) setter[name] = module[name];
 			}
 			exports(setter);
-		}), (function (module) {
+		}, function (module) {
 			exports('e', module.e);
-		}), (function (module) {
+		}, function (module) {
 			exports('dep', module.d);
-		}), function () {}, function () {}],
+		}, function () {}, function () {}],
 		execute: (function () {
 
 			var main = exports('main', '1');

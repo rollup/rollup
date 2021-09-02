@@ -2,6 +2,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+require('externalNoImport');
 var defaultLegacy = require('external');
 var externalAuto = require('externalAuto');
 var externalDefault = require('externalDefault');

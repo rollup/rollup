@@ -2,9 +2,9 @@ System.register(['./main.js'], (function (exports) {
 	'use strict';
 	var main;
 	return {
-		setters: [(function (module) {
+		setters: [function (module) {
 			main = module["default"];
-		})],
+		}],
 		execute: (function () {
 
 

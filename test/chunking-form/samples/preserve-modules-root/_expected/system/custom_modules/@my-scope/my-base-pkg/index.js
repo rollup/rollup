@@ -2,10 +2,10 @@ System.register(['../../../_virtual/index.js_commonjs-exports'], (function (expo
 	'use strict';
 	var myBasePkg;
 	return {
-		setters: [(function (module) {
+		setters: [function (module) {
 			myBasePkg = module.__exports;
 			exports('default', module.__exports);
-		})],
+		}],
 		execute: (function () {
 
 			Object.defineProperty(myBasePkg, '__esModule', { value: true });

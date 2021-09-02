@@ -1,7 +1,13 @@
 module.exports = {
 	description: 'does not use arrow functions',
 	options: {
-		external: ['external', 'externalAuto', 'externalDefault', 'externalDefaultOnly'],
+		external: [
+			'external',
+			'externalAuto',
+			'externalDefault',
+			'externalDefaultOnly',
+			'externalNoImport'
+		],
 		strictDeprecations: false,
 		output: {
 			generatedCode: { arrowFunctions: false },

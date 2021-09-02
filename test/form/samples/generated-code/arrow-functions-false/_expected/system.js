@@ -1,9 +1,9 @@
-System.register('bundle', ['external', 'externalAuto', 'externalDefault', 'externalDefaultOnly'], (function (exports, module) {
+System.register('bundle', ['externalNoImport', 'external', 'externalAuto', 'externalDefault', 'externalDefaultOnly'], (function (exports, module) {
 	'use strict';
 	var _starExcludes = { a: 1, 'default': 1, foo: 1 };
 	var b, defaultLegacy, defaultLegacy__default, externalAuto, externalDefault, externalDefaultOnly;
 	return {
-		setters: [(function (module) {
+		setters: [function () {}, function (module) {
 			b = module.b;
 			defaultLegacy = module;
 			defaultLegacy__default = module["default"];
@@ -12,13 +12,13 @@ System.register('bundle', ['external', 'externalAuto', 'externalDefault', 'exter
 				if (!_starExcludes[name]) setter[name] = module[name];
 			}
 			exports(setter);
-		}), (function (module) {
+		}, function (module) {
 			externalAuto = module["default"];
-		}), (function (module) {
+		}, function (module) {
 			externalDefault = module;
-		}), (function (module) {
+		}, function (module) {
 			externalDefaultOnly = module;
-		})],
+		}],
 		execute: (function () {
 
 			let a; exports('a', a);

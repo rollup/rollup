@@ -2,10 +2,10 @@ System.register(['./generated-dynamic1.js'], (function (exports) {
 	'use strict';
 	var value;
 	return {
-		setters: [(function (module) {
+		setters: [function (module) {
 			value = module.value;
 			exports('value', module.value);
-		})],
+		}],
 		execute: (function () {
 
 			console.log('dynamic2', value);

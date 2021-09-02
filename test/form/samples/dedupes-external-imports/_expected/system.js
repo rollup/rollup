@@ -2,9 +2,9 @@ System.register('myBundle', ['external'], (function (exports) {
 	'use strict';
 	var Component;
 	return {
-		setters: [(function (module) {
+		setters: [function (module) {
 			Component = module.Component;
-		})],
+		}],
 		execute: (function () {
 
 			class Foo extends Component {

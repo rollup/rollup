@@ -2,9 +2,9 @@ System.register('myBundle', ['other'], (function (exports) {
 	'use strict';
 	var name;
 	return {
-		setters: [(function (module) {
+		setters: [function (module) {
 			name = module.name;
-		})],
+		}],
 		execute: (function () {
 
 			const a = 1;

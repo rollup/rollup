@@ -21,6 +21,10 @@ export interface GenerateCodeSnippets {
 		}
 	): string;
 	getFunctionIntro(params: string[], options: { isAsync: boolean; name: string | null }): string;
+	getNonArrowFunctionIntro(
+		params: string[],
+		options: { isAsync: boolean; name: string | null }
+	): string;
 	getObject(
 		fields: [key: string | null, value: string][],
 		options: { indent: string; lineBreaks: boolean }
@@ -36,6 +40,11 @@ export function getGenerateCodeSnippets({
 }: NormalizedOutputOptions): GenerateCodeSnippets {
 	const { _, n, s } = compact ? { _: '', n: '', s: '' } : { _: ' ', n: '\n', s: ';' };
 	const cnst = blockBindings || preferConst ? 'const' : 'var';
+	const getNonArrowFunctionIntro: GenerateCodeSnippets['getNonArrowFunctionIntro'] = (
+		params,
+		{ isAsync, name }
+	) =>
+		`${isAsync ? `async ` : ''}function${name ? ` ${name}` : ''}${_}(${params.join(`,${_}`)})${_}`;
 
 	const getFunctionIntro: GenerateCodeSnippets['getFunctionIntro'] = arrowFunctions
 		? (params, { isAsync, name }) => {
@@ -45,10 +54,7 @@ export function getGenerateCodeSnippets({
 					singleParam ? params[0] : `(${params.join(`,${_}`)})`
 				}${_}=>${_}`;
 		  }
-		: (params, { isAsync, name }) =>
-				`${isAsync ? `async ` : ''}function${name ? ` ${name}` : ''}${_}(${params.join(
-					`,${_}`
-				)})${_}`;
+		: getNonArrowFunctionIntro;
 
 	const getDirectReturnFunctionLeft: GenerateCodeSnippets['getDirectReturnFunctionLeft'] = (
 		params,
@@ -82,6 +88,7 @@ export function getGenerateCodeSnippets({
 				arrowFunctions || needsWrappedFunction
 			)}(`,
 		getFunctionIntro,
+		getNonArrowFunctionIntro,
 		getObject(fields, { indent, lineBreaks }) {
 			const prefix = `${lineBreaks ? n : ''}${indent}`;
 			return `{${fields

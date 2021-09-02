@@ -1,8 +1,8 @@
 (function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('external'), require('externalAuto'), require('externalDefault'), require('externalDefaultOnly')) :
-	typeof define === 'function' && define.amd ? define(['exports', 'external', 'externalAuto', 'externalDefault', 'externalDefaultOnly'], factory) :
-	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.bundle = {}, global.defaultLegacy, global.externalAuto, global.externalDefault, global.externalDefaultOnly));
-})(this, (function (exports, defaultLegacy, externalAuto, externalDefault, externalDefaultOnly) { 'use strict';
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('externalNoImport'), require('external'), require('externalAuto'), require('externalDefault'), require('externalDefaultOnly')) :
+	typeof define === 'function' && define.amd ? define(['exports', 'externalNoImport', 'external', 'externalAuto', 'externalDefault', 'externalDefaultOnly'], factory) :
+	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.bundle = {}, null, global.defaultLegacy, global.externalAuto, global.externalDefault, global.externalDefaultOnly));
+})(this, (function (exports, externalNoImport, defaultLegacy, externalAuto, externalDefault, externalDefaultOnly) { 'use strict';
 
 	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 

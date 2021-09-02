@@ -1,11 +1,11 @@
-System.register('bundle', ['external'], (() => {
+System.register('bundle', ['external'], (function () {
 	'use strict';
 	var foo;
 	return {
-		setters: [(module => {
+		setters: [module => {
 			foo = module["default"];
-		})],
-		execute: (() => {
+		}],
+		execute: (function () {
 
 			console.log(foo);
 

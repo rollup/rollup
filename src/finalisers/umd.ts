@@ -59,7 +59,7 @@ export default function umd(
 		strict
 	}: NormalizedOutputOptions
 ): Bundle {
-	const { _, getFunctionIntro, getPropertyAccess, n, s } = snippets;
+	const { _, getNonArrowFunctionIntro, getPropertyAccess, n, s } = snippets;
 	const factoryVar = compact ? 'f' : 'factory';
 	const globalVar = compact ? 'g' : 'global';
 
@@ -164,13 +164,13 @@ export default function umd(
 		: '';
 
 	const wrapperIntro =
-		`(${getFunctionIntro(wrapperParams, { isAsync: false, name: null })}{${n}` +
+		`(${getNonArrowFunctionIntro(wrapperParams, { isAsync: false, name: null })}{${n}` +
 		cjsIntro +
 		`${t}typeof ${define}${_}===${_}'function'${_}&&${_}${define}.amd${_}?${_}${define}(${amdParams}${factoryVar})${_}:${n}` +
 		`${t}${iifeStart}${iifeExport}${iifeEnd};${n}` +
 		// factory function should be wrapped by parentheses to avoid lazy parsing,
 		// cf. https://v8.dev/blog/preparser#pife
-		`})(${globalArg}(${getFunctionIntro(factoryParams, {
+		`})(${globalArg}(${getNonArrowFunctionIntro(factoryParams, {
 			isAsync: false,
 			name: null
 		})}{${useStrict}${n}`;

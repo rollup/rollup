@@ -2,9 +2,9 @@ System.register(['./chunks/shared.js'], (function (exports, module) {
   'use strict';
   var shared;
   return {
-    setters: [(function (module) {
+    setters: [function (module) {
       shared = module.s;
-    })],
+    }],
     execute: (function () {
 
       const getWorkerMessage = () => new Promise(resolve => {

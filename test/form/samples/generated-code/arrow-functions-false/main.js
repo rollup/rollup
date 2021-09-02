@@ -1,3 +1,4 @@
+import 'externalNoImport';
 import { b } from 'external';
 export let a;
 

@@ -2,9 +2,9 @@ System.register(['./generated-dep2.js'], (function (exports) {
   'use strict';
   var fn$1;
   return {
-    setters: [(function (module) {
+    setters: [function (module) {
       fn$1 = module.f;
-    })],
+    }],
     execute: (function () {
 
       function fn () {

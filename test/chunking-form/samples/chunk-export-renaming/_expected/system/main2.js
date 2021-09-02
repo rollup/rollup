@@ -2,9 +2,9 @@ System.register(['./generated-one.js'], (function (exports) {
     'use strict';
     var ONE_CONSTANT;
     return {
-        setters: [(function (module) {
+        setters: [function (module) {
             ONE_CONSTANT = module.a;
-        })],
+        }],
         execute: (function () {
 
             class Two {

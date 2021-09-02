@@ -2,10 +2,10 @@ System.register(['./generated-shared2.js', './generated-dep1.js', './generated-d
 	'use strict';
 	var x, y;
 	return {
-		setters: [(function (module) {
+		setters: [function (module) {
 			x = module.x;
 			y = module.y;
-		}), function () {}, function () {}],
+		}, function () {}, function () {}],
 		execute: (function () {
 
 			console.log(x + y);

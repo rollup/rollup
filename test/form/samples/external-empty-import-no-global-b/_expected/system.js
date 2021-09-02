@@ -2,9 +2,9 @@ System.register('myBundle', ['babel-polyfill', 'other'], (function (exports) {
 	'use strict';
 	var x;
 	return {
-		setters: [function () {}, (function (module) {
+		setters: [function () {}, function (module) {
 			x = module.x;
-		})],
+		}],
 		execute: (function () {
 
 			x();

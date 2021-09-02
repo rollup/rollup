@@ -2,13 +2,13 @@ System.register(['external-auto', 'external-default', 'external-defaultOnly'], (
 	'use strict';
 	var externalAuto, externalDefault, externalDefaultOnly;
 	return {
-		setters: [(function (module) {
+		setters: [function (module) {
 			externalAuto = module;
-		}), (function (module) {
+		}, function (module) {
 			externalDefault = module;
-		}), (function (module) {
+		}, function (module) {
 			externalDefaultOnly = module;
-		})],
+		}],
 		execute: (function () {
 
 			assert.strictEqual(externalAuto[Symbol.toStringTag], 'Module');

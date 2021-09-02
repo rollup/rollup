@@ -2,9 +2,9 @@ System.register(['./generated-dep11.js', './generated-dep112.js', './generated-d
 	'use strict';
 	var x;
 	return {
-		setters: [function () {}, (function (module) {
+		setters: [function () {}, function (module) {
 			x = module.x;
-		}), function () {}],
+		}, function () {}],
 		execute: (function () {
 
 			console.log('1');

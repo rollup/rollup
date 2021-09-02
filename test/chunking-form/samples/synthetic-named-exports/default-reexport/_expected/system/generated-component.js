@@ -2,9 +2,9 @@ System.register(['./main.js'], (function (exports) {
 	'use strict';
 	var lib;
 	return {
-		setters: [(function (module) {
+		setters: [function (module) {
 			lib = module.lib;
-		})],
+		}],
 		execute: (function () {
 
 			var component = { lib, someExport: lib.someExport };

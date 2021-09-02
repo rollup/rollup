@@ -2,9 +2,9 @@ System.register(['./generated-index.js', './generated-dep.js', 'external'], (fun
 	'use strict';
 	var lib;
 	return {
-		setters: [(function (module) {
+		setters: [function (module) {
 			lib = module.l;
-		}), function () {}, function () {}],
+		}, function () {}, function () {}],
 		execute: (function () {
 
 			console.log(lib);

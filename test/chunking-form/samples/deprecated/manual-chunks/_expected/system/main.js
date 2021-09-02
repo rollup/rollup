@@ -2,10 +2,10 @@ System.register(['./generated-deps2and3.js', './generated-lib1.js'], (function (
   'use strict';
   var fn$1, fn$2;
   return {
-    setters: [(function (module) {
+    setters: [function (module) {
       fn$1 = module.f;
       fn$2 = module.a;
-    }), function () {}],
+    }, function () {}],
     execute: (function () {
 
       function fn () {

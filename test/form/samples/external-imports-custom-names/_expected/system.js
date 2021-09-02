@@ -2,9 +2,9 @@ System.register(['jquery'], (function () {
 	'use strict';
 	var $;
 	return {
-		setters: [(function (module) {
+		setters: [function (module) {
 			$ = module["default"];
-		})],
+		}],
 		execute: (function () {
 
 			$( function () {

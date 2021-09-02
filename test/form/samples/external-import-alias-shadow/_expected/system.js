@@ -2,9 +2,9 @@ System.register(['acorn'], (function () {
 	'use strict';
 	var parse$1;
 	return {
-		setters: [(function (module) {
+		setters: [function (module) {
 			parse$1 = module.parse;
-		})],
+		}],
 		execute: (function () {
 
 			function parse(source) {

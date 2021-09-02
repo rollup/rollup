@@ -2,10 +2,10 @@ System.register(['./generated-geometry.js'], (function () {
 	'use strict';
 	var volume, geometry;
 	return {
-		setters: [(function (module) {
+		setters: [function (module) {
 			volume = module.v;
 			geometry = module.g;
-		})],
+		}],
 		execute: (function () {
 
 			var mod = /*#__PURE__*/Object.freeze({

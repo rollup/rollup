@@ -1,4 +1,4 @@
-import*as defaultLegacy from'external';import defaultLegacy__default,{b}from'external';export*from'external';export{foo}from'external';import externalAuto from'externalAuto';import*as externalDefault from'externalDefault';import*as externalDefaultOnly from'externalDefaultOnly';let a;
+import'externalNoImport';import*as defaultLegacy from'external';import defaultLegacy__default,{b}from'external';export*from'external';export{foo}from'external';import externalAuto from'externalAuto';import*as externalDefault from'externalDefault';import*as externalDefaultOnly from'externalDefaultOnly';let a;
 
 ({ a } = b);
 console.log({ a } = b);

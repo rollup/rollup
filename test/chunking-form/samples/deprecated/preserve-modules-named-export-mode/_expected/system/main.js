@@ -2,12 +2,12 @@ System.register(['./default.js', './named.js'], (function (exports, module) {
 	'use strict';
 	var foo, value;
 	return {
-		setters: [(function (module) {
+		setters: [function (module) {
 			foo = module["default"];
 			exports('default', module["default"]);
-		}), (function (module) {
+		}, function (module) {
 			value = module.value;
-		})],
+		}],
 		execute: (function () {
 
 			console.log(foo, value);

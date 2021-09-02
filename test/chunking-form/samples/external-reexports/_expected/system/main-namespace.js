@@ -1,15 +1,15 @@
 System.register(['external-all', 'external-namespace', 'external-default-namespace', 'external-named-namespace'], (function (exports) {
 	'use strict';
 	return {
-		setters: [(function (module) {
+		setters: [function (module) {
 			exports('foo', module);
-		}), (function (module) {
+		}, function (module) {
 			exports('bar', module);
-		}), (function (module) {
+		}, function (module) {
 			exports('baz', module);
-		}), (function (module) {
+		}, function (module) {
 			exports('quux', module);
-		})],
+		}],
 		execute: (function () {
 
 			const externalNamespace = 1;

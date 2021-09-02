@@ -2,11 +2,11 @@ System.register(['./generated-bar.js', './generated-broken.js'], (function () {
 	'use strict';
 	var bar, broken;
 	return {
-		setters: [(function (module) {
+		setters: [function (module) {
 			bar = module.b;
-		}), (function (module) {
+		}, function (module) {
 			broken = module.b;
-		})],
+		}],
 		execute: (function () {
 
 			bar();

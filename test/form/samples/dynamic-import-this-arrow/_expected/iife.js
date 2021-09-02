@@ -1,4 +1,4 @@
-var bundle = ((exports, input) => {
+var bundle = (function (exports, input) {
 	'use strict';
 
 	class Importer {

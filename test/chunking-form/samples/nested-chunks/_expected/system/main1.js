@@ -2,9 +2,9 @@ System.register(['./generated-dep.js'], (function (exports, module) {
 	'use strict';
 	var value;
 	return {
-		setters: [(function (module) {
+		setters: [function (module) {
 			value = module.v;
-		})],
+		}],
 		execute: (function () {
 
 			console.log('main1', value);

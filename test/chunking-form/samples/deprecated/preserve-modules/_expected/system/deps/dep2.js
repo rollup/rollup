@@ -2,9 +2,9 @@ System.register(['../lib/lib2.js'], (function (exports) {
   'use strict';
   var fn$1;
   return {
-    setters: [(function (module) {
+    setters: [function (module) {
       fn$1 = module.fn;
-    })],
+    }],
     execute: (function () {
 
       exports('fn', fn);

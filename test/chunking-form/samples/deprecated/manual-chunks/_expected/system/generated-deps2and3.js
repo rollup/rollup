@@ -2,9 +2,9 @@ System.register(['./generated-lib1.js'], (function (exports) {
   'use strict';
   var fn$3;
   return {
-    setters: [(function (module) {
+    setters: [function (module) {
       fn$3 = module.f;
-    })],
+    }],
     execute: (function () {
 
       exports({

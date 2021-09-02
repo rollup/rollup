@@ -1,4 +1,4 @@
-define(['external'], (foo => { 'use strict';
+define(['external'], (function (foo) { 'use strict';
 
 	var _interopDefaultLegacy = e => e && typeof e === 'object' && 'default' in e ? e : { 'default': e };
 

@@ -2,10 +2,10 @@ System.register('foo', ['external'], (function (exports) {
 	'use strict';
 	var a, b;
 	return {
-		setters: [(function (module) {
+		setters: [function (module) {
 			a = module["default"];
 			b = module.b;
-		})],
+		}],
 		execute: (function () {
 
 			/* this is an intro */

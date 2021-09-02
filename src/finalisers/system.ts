@@ -21,7 +21,7 @@ export default function system(
 	}: FinaliserOptions,
 	options: NormalizedOutputOptions
 ): Bundle {
-	const { _, getFunctionIntro, n, s } = snippets;
+	const { _, getFunctionIntro, getNonArrowFunctionIntro, n, s } = snippets;
 	const { importBindings, setters, starExcludes } = analyzeDependencies(
 		dependencies,
 		exports,
@@ -41,7 +41,7 @@ export default function system(
 	let wrapperStart =
 		`System.register(${registeredName}[` +
 		dependencies.map(({ id }) => `'${id}'`).join(`,${_}`) +
-		`],${_}(${getFunctionIntro(wrapperParams, { isAsync: false, name: null })}{${n}${t}${
+		`],${_}(${getNonArrowFunctionIntro(wrapperParams, { isAsync: false, name: null })}{${n}${t}${
 			options.strict ? "'use strict';" : ''
 		}` +
 		getStarExcludesBlock(starExcludes, varOrConst, t, snippets) +
@@ -51,19 +51,19 @@ export default function system(
 				? `${n}${t}${t}setters:${_}[${setters
 						.map(setter =>
 							setter
-								? `(${getFunctionIntro(['module'], {
+								? `${getFunctionIntro(['module'], {
 										isAsync: false,
 										name: null
-								  })}{${n}${t}${t}${t}${setter}${n}${t}${t}})`
+								  })}{${n}${t}${t}${t}${setter}${n}${t}${t}}`
 								: options.systemNullSetters
 								? `null`
-								: `function${_}()${_}{}`
+								: `${getFunctionIntro([], { isAsync: false, name: null })}{}`
 						)
 						.join(`,${_}`)}],`
 				: ''
 		}${n}`;
 	wrapperStart +=
-		`${t}${t}execute:${_}(${getFunctionIntro([], {
+		`${t}${t}execute:${_}(${getNonArrowFunctionIntro([], {
 			isAsync: usesTopLevelAwait,
 			name: null
 		})}{${n}${n}` + getHoistedExportsBlock(exports, t, snippets);

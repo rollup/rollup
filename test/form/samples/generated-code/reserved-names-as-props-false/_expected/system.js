@@ -2,14 +2,14 @@ System.register('bundle', ['external', 'externalDefaultOnly', 'external2'], (fun
 	'use strict';
 	var function$1, defaultOnly, someDefault;
 	return {
-		setters: [(function (module) {
+		setters: [function (module) {
 			function$1 = module["function"];
 			exports({ bar: module["function"], 'default': module, 'void': module["default"] });
-		}), (function (module) {
+		}, function (module) {
 			defaultOnly = module;
-		}), (function (module) {
+		}, function (module) {
 			someDefault = module["default"];
-		})],
+		}],
 		execute: (function () {
 
 			var other = {

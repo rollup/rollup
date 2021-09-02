@@ -2,9 +2,9 @@ System.register('bundle', ['external'], (function (exports, module) {
 	'use strict';
 	var myExternal;
 	return {
-		setters: [(function (module) {
+		setters: [function (module) {
 			myExternal = module["default"];
-		})],
+		}],
 		execute: (function () {
 
 			const test = exports('test', () => myExternal);

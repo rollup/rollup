@@ -1,4 +1,4 @@
-define(['require', 'exports', 'input'], ((require, exports, input) => { 'use strict';
+define(['require', 'exports', 'input'], (function (require, exports, input) { 'use strict';
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;

@@ -2,9 +2,9 @@ System.register(['./chunk-dep2.js'], (function () {
 	'use strict';
 	var num$1;
 	return {
-		setters: [(function (module) {
+		setters: [function (module) {
 			num$1 = module.n;
-		})],
+		}],
 		execute: (function () {
 
 			var num = 1;

@@ -1,4 +1,4 @@
-var bundle = ((exports, defaultLegacy, externalAuto, externalDefault, externalDefaultOnly) => {
+var bundle = (function (exports, externalNoImport, defaultLegacy, externalAuto, externalDefault, externalDefaultOnly) {
 	'use strict';
 
 	var _interopDefaultLegacy = e => e && typeof e === 'object' && 'default' in e ? e : { 'default': e };
@@ -65,4 +65,4 @@ var bundle = ((exports, defaultLegacy, externalAuto, externalDefault, externalDe
 
 	return exports;
 
-})({}, defaultLegacy, externalAuto, externalDefault, externalDefaultOnly);
+})({}, null, defaultLegacy, externalAuto, externalDefault, externalDefaultOnly);

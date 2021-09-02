@@ -1,11 +1,11 @@
-System.register('bundle', ['input'], ((exports, module) => {
+System.register('bundle', ['input'], (function (exports, module) {
 	'use strict';
 	var outputPath;
 	return {
-		setters: [(module => {
+		setters: [module => {
 			outputPath = module.outputPath;
-		})],
-		execute: (() => {
+		}],
+		execute: (function () {
 
 			class Importer {
 				constructor() {

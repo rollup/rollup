@@ -2,9 +2,9 @@ System.register(['./lib/throttle.js'], (function () {
 	'use strict';
 	var throttle;
 	return {
-		setters: [(function (module) {
+		setters: [function (module) {
 			throttle = module["default"];
-		})],
+		}],
 		execute: (function () {
 
 			throttle( () => {

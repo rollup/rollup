@@ -2,9 +2,9 @@ System.register('bundle', ['input'], (function (exports, module) {
 	'use strict';
 	var outputPath;
 	return {
-		setters: [(function (module) {
+		setters: [function (module) {
 			outputPath = module.outputPath;
-		})],
+		}],
 		execute: (function () {
 
 			class Importer {

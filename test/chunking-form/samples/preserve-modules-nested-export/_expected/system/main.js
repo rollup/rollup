@@ -1,9 +1,9 @@
 System.register(['./inner/more_inner/something.js', './inner/some_effect.js'], (function (exports) {
 	'use strict';
 	return {
-		setters: [(function (module) {
+		setters: [function (module) {
 			exports('Something', module.Something);
-		}), function () {}],
+		}, function () {}],
 		execute: (function () {
 
 

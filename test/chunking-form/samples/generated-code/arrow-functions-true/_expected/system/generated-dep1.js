@@ -1,7 +1,7 @@
-System.register([], (exports => {
+System.register([], (function (exports) {
 	'use strict';
 	return {
-		execute: (() => {
+		execute: (function () {
 
 			const foo = exports('f', 'dep2');
 			Promise.resolve().then(() => dep1).then(console.log);
