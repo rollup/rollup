@@ -1,8 +1,10 @@
-let fsEvents: typeof import('fsevents');
+let fsEvents: any; // TODO find better type solution, fsevents is only being installed on macOS
 let fsEventsImportError: Error | undefined;
 
+const mod = 'fsevents';
+
 export function loadFsEvents(): Promise<void> {
-	return import('fsevents')
+	return import(mod)
 		.then(namespace => {
 			fsEvents = namespace.default;
 		})
@@ -12,7 +14,7 @@ export function loadFsEvents(): Promise<void> {
 }
 
 // A call to this function will be injected into the chokidar code
-export function getFsEvents(): typeof import('fsevents') {
+export function getFsEvents(): any {
 	if (fsEventsImportError) throw fsEventsImportError;
 	return fsEvents;
 }
