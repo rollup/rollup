@@ -102,7 +102,7 @@
     "pretty-ms": "^7.0.1",
     "require-relative": "^0.8.7",
     "requirejs": "^2.3.6",
-    "rollup": "^2.52.0",
+    "rollup": "^2.56.3",
     "rollup-plugin-license": "^2.5.0",
     "rollup-plugin-string": "^3.0.0",
     "rollup-plugin-terser": "^7.0.2",
