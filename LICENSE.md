@@ -19,7 +19,7 @@ MIT, ISC
 ## @rollup/pluginutils
 License: MIT
 By: Rich Harris
-Repository: git+https://github.com/rollup/plugins.git
+Repository: rollup/plugins
 
 ---------------------------------------
 
