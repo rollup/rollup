@@ -2,6 +2,7 @@
 	"compilerOptions": {
 		"allowSyntheticDefaultImports": true,
 		"diagnostics": true,
+		"forceConsistentCasingInFileNames": true,
 		"isolatedModules": true,
 		"module": "ESNext",
 		"moduleResolution": "Node",
