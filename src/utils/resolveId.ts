@@ -36,13 +36,20 @@ export async function resolveId(
 	// absolute path is created. Absolute importees therefore shortcircuit the
 	// resolve call and require no special handing on our part.
 	// See https://nodejs.org/api/path.html#path_path_resolve_paths
-	return addJsExtensionIfNecessary(
+	return addJsExtensionOrDirIfNecessary(
 		importer ? resolve(dirname(importer), source) : resolve(source),
 		preserveSymlinks
 	);
 }
 
-function addJsExtensionIfNecessary(file: string, preserveSymlinks: boolean) {
+function addJsExtensionOrDirIfNecessary(file: string, preserveSymlinks: boolean) {
+	let found = findFileBase(file, preserveSymlinks);
+	if (found) return found;
+	found = findFileBase(resolve(file, './index'), preserveSymlinks);
+	return found;
+}
+
+function findFileBase(file: string, preserveSymlinks: boolean) {
 	let found = findFile(file, preserveSymlinks);
 	if (found) return found;
 	found = findFile(file + '.mjs', preserveSymlinks);
