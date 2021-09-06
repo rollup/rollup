@@ -2,6 +2,7 @@
 	"compilerOptions": {
 		"allowSyntheticDefaultImports": true,
 		"diagnostics": true,
+		"forceConsistentCasingInFileNames": true,
 		"isolatedModules": true,
 		"module": "ESNext",
 		"moduleResolution": "Node",
@@ -12,7 +13,7 @@
 		"resolveJsonModule": true,
 		"skipLibCheck": true,
 		"strict": true,
-		"target": "es2018"
+		"target": "ES2018"
 	},
 	"include": ["typings/**/*.d.ts", "src", "cli", "browser", "rollup.config.ts"],
 	"exclude": ["dist", "node_modules", "test/typescript"]
