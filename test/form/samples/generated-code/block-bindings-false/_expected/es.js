@@ -1,3 +1,4 @@
-import foo from 'external';
+import foo__default from 'external';
+export * from 'external';
 
-console.log(foo);
+console.log(foo__default);

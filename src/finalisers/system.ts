@@ -16,8 +16,7 @@ export default function system(
 		intro,
 		snippets,
 		outro,
-		usesTopLevelAwait,
-		varOrConst
+		usesTopLevelAwait
 	}: FinaliserOptions,
 	options: NormalizedOutputOptions
 ): Bundle {
@@ -25,7 +24,6 @@ export default function system(
 	const { importBindings, setters, starExcludes } = analyzeDependencies(
 		dependencies,
 		exports,
-		varOrConst,
 		t,
 		snippets
 	);
@@ -44,7 +42,7 @@ export default function system(
 		`],${_}(${getNonArrowFunctionIntro(wrapperParams, { isAsync: false, name: null })}{${n}${t}${
 			options.strict ? "'use strict';" : ''
 		}` +
-		getStarExcludesBlock(starExcludes, varOrConst, t, snippets) +
+		getStarExcludesBlock(starExcludes, t, snippets) +
 		getImportBindingsBlock(importBindings, t, snippets) +
 		`${n}${t}return${_}{${
 			setters.length
@@ -82,9 +80,8 @@ export default function system(
 function analyzeDependencies(
 	dependencies: ChunkDependencies,
 	exports: ChunkExports,
-	varOrConst: 'var' | 'const',
 	t: string,
-	{ _, getObject, getPropertyAccess, n }: GenerateCodeSnippets
+	{ _, cnst, getObject, getPropertyAccess, n }: GenerateCodeSnippets
 ): { importBindings: string[]; setters: string[]; starExcludes: Set<string> | null } {
 	const importBindings: string[] = [];
 	const setters: string[] = [];
@@ -122,9 +119,8 @@ function analyzeDependencies(
 						starExcludes = getStarExcludes({ dependencies, exports });
 					}
 					setter.push(
-						`${varOrConst} setter${_}=${_}${exportMapping};`,
-						// TODO Lukas const
-						`for${_}(var name${_}in${_}module)${_}{`,
+						`${cnst} setter${_}=${_}${exportMapping};`,
+						`for${_}(${cnst} name${_}in${_}module)${_}{`,
 						`${t}if${_}(!_starExcludes[name])${_}setter[name]${_}=${_}module[name];`,
 						'}',
 						'exports(setter);'
@@ -157,18 +153,16 @@ const getStarExcludes = ({ dependencies, exports }: ModuleDeclarations): Set<str
 
 const getStarExcludesBlock = (
 	starExcludes: Set<string> | null,
-	varOrConst: string,
 	t: string,
-	{ _, getObject, n }: GenerateCodeSnippets
+	{ _, cnst, getObject, n }: GenerateCodeSnippets
 ): string =>
 	starExcludes
-		? `${n}${t}${varOrConst} _starExcludes${_}=${_}${getObject(
+		? `${n}${t}${cnst} _starExcludes${_}=${_}${getObject(
 				[...starExcludes].map(prop => [prop, '1']),
 				{ indent: _, lineBreaks: false }
 		  )};`
 		: '';
 
-// TODO Lukas use let instead of var
 const getImportBindingsBlock = (
 	importBindings: string[],
 	t: string,
