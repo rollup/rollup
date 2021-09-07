@@ -19,14 +19,14 @@ MIT, ISC
 ## @rollup/pluginutils
 License: MIT
 By: Rich Harris
-Repository: git+https://github.com/rollup/plugins.git
+Repository: rollup/plugins
 
 ---------------------------------------
 
 ## acorn
 License: MIT
 By: Marijn Haverbeke, Ingvar Stepanyan, Adrian Heine
-Repository: git+https://github.com/acornjs/acorn.git
+Repository: https://github.com/acornjs/acorn.git
 
 > MIT License
 > 
@@ -55,7 +55,7 @@ Repository: git+https://github.com/acornjs/acorn.git
 ## acorn-walk
 License: MIT
 By: Marijn Haverbeke, Ingvar Stepanyan, Adrian Heine
-Repository: git+https://github.com/acornjs/acorn.git
+Repository: https://github.com/acornjs/acorn.git
 
 > MIT License
 > 
@@ -84,7 +84,7 @@ Repository: git+https://github.com/acornjs/acorn.git
 ## anymatch
 License: ISC
 By: Elan Shanker
-Repository: git+https://github.com/micromatch/anymatch.git
+Repository: https://github.com/micromatch/anymatch
 
 > The ISC License
 > 
@@ -107,7 +107,7 @@ Repository: git+https://github.com/micromatch/anymatch.git
 ## binary-extensions
 License: MIT
 By: Sindre Sorhus
-Repository: git+https://github.com/sindresorhus/binary-extensions.git
+Repository: sindresorhus/binary-extensions
 
 > MIT License
 > 
@@ -124,7 +124,7 @@ Repository: git+https://github.com/sindresorhus/binary-extensions.git
 ## braces
 License: MIT
 By: Jon Schlinkert, Brian Woodward, Elan Shanker, Eugene Sharygin, hemanth.hm
-Repository: git+https://github.com/micromatch/braces.git
+Repository: micromatch/braces
 
 > The MIT License (MIT)
 > 
@@ -182,7 +182,7 @@ Repository: git+https://github.com/paulmillr/chokidar.git
 ## colorette
 License: MIT
 By: Jorge Bucaran
-Repository: git+https://github.com/jorgebucaran/colorette.git
+Repository: jorgebucaran/colorette
 
 > Copyright © Jorge Bucaran <<https://jorgebucaran.com>>
 > 
@@ -197,7 +197,7 @@ Repository: git+https://github.com/jorgebucaran/colorette.git
 ## date-time
 License: MIT
 By: Sindre Sorhus
-Repository: git+https://github.com/sindresorhus/date-time.git
+Repository: sindresorhus/date-time
 
 > MIT License
 > 
@@ -214,7 +214,7 @@ Repository: git+https://github.com/sindresorhus/date-time.git
 ## fill-range
 License: MIT
 By: Jon Schlinkert, Edo Rivai, Paul Miller, Rouven Weßling
-Repository: git+https://github.com/jonschlinkert/fill-range.git
+Repository: jonschlinkert/fill-range
 
 > The MIT License (MIT)
 > 
@@ -243,7 +243,7 @@ Repository: git+https://github.com/jonschlinkert/fill-range.git
 ## glob-parent
 License: ISC
 By: Gulp Team, Elan Shanker, Blaine Bublitz
-Repository: git+https://github.com/gulpjs/glob-parent.git
+Repository: gulpjs/glob-parent
 
 > The ISC License
 > 
@@ -266,13 +266,13 @@ Repository: git+https://github.com/gulpjs/glob-parent.git
 ## hash.js
 License: MIT
 By: Fedor Indutny
-Repository: git+ssh://git@github.com/indutny/hash.js.git
+Repository: git@github.com:indutny/hash.js
 
 ---------------------------------------
 
 ## inherits
 License: ISC
-Repository: git://github.com/isaacs/inherits.git
+Repository: git://github.com/isaacs/inherits
 
 > The ISC License
 > 
@@ -295,7 +295,7 @@ Repository: git://github.com/isaacs/inherits.git
 ## is-binary-path
 License: MIT
 By: Sindre Sorhus
-Repository: git+https://github.com/sindresorhus/is-binary-path.git
+Repository: sindresorhus/is-binary-path
 
 > MIT License
 > 
@@ -312,7 +312,7 @@ Repository: git+https://github.com/sindresorhus/is-binary-path.git
 ## is-extglob
 License: MIT
 By: Jon Schlinkert
-Repository: git+https://github.com/jonschlinkert/is-extglob.git
+Repository: jonschlinkert/is-extglob
 
 > The MIT License (MIT)
 > 
@@ -341,7 +341,7 @@ Repository: git+https://github.com/jonschlinkert/is-extglob.git
 ## is-glob
 License: MIT
 By: Jon Schlinkert, Brian Woodward, Daniel Perez
-Repository: git+https://github.com/micromatch/is-glob.git
+Repository: micromatch/is-glob
 
 > The MIT License (MIT)
 > 
@@ -370,7 +370,7 @@ Repository: git+https://github.com/micromatch/is-glob.git
 ## is-number
 License: MIT
 By: Jon Schlinkert, Olsten Larck, Rouven Weßling
-Repository: git+https://github.com/jonschlinkert/is-number.git
+Repository: jonschlinkert/is-number
 
 > The MIT License (MIT)
 > 
@@ -406,14 +406,14 @@ Repository: git+https://github.com/Rich-Harris/is-reference.git
 ## locate-character
 License: MIT
 By: Rich Harris
-Repository: git+https://github.com/Rich-Harris/locate-character.git
+Repository: Rich-Harris/locate-character
 
 ---------------------------------------
 
 ## magic-string
 License: MIT
 By: Rich Harris
-Repository: git+https://github.com/rich-harris/magic-string.git
+Repository: https://github.com/rich-harris/magic-string
 
 > Copyright 2018 Rich Harris
 > 
@@ -427,7 +427,7 @@ Repository: git+https://github.com/rich-harris/magic-string.git
 
 ## minimalistic-assert
 License: ISC
-Repository: git+https://github.com/calvinmetcalf/minimalistic-assert.git
+Repository: https://github.com/calvinmetcalf/minimalistic-assert.git
 
 > Copyright 2015 Calvin Metcalf
 > 
@@ -448,7 +448,7 @@ Repository: git+https://github.com/calvinmetcalf/minimalistic-assert.git
 ## normalize-path
 License: MIT
 By: Jon Schlinkert, Blaine Bublitz
-Repository: git+https://github.com/jonschlinkert/normalize-path.git
+Repository: jonschlinkert/normalize-path
 
 > The MIT License (MIT)
 > 
@@ -477,7 +477,7 @@ Repository: git+https://github.com/jonschlinkert/normalize-path.git
 ## parse-ms
 License: MIT
 By: Sindre Sorhus
-Repository: git+https://github.com/sindresorhus/parse-ms.git
+Repository: sindresorhus/parse-ms
 
 > MIT License
 > 
@@ -494,7 +494,7 @@ Repository: git+https://github.com/sindresorhus/parse-ms.git
 ## picomatch
 License: MIT
 By: Jon Schlinkert
-Repository: git+https://github.com/micromatch/picomatch.git
+Repository: micromatch/picomatch
 
 > The MIT License (MIT)
 > 
@@ -523,7 +523,7 @@ Repository: git+https://github.com/micromatch/picomatch.git
 ## pretty-bytes
 License: MIT
 By: Sindre Sorhus
-Repository: git+https://github.com/sindresorhus/pretty-bytes.git
+Repository: sindresorhus/pretty-bytes
 
 > MIT License
 > 
@@ -540,7 +540,7 @@ Repository: git+https://github.com/sindresorhus/pretty-bytes.git
 ## pretty-ms
 License: MIT
 By: Sindre Sorhus
-Repository: git+https://github.com/sindresorhus/pretty-ms.git
+Repository: sindresorhus/pretty-ms
 
 > MIT License
 > 
@@ -593,7 +593,7 @@ Repository: git://github.com/kamicane/require-relative.git
 ## signal-exit
 License: ISC
 By: Ben Coe
-Repository: git+https://github.com/tapjs/signal-exit.git
+Repository: https://github.com/tapjs/signal-exit.git
 
 > The ISC License
 > 
@@ -617,7 +617,7 @@ Repository: git+https://github.com/tapjs/signal-exit.git
 ## sourcemap-codec
 License: MIT
 By: Rich Harris
-Repository: git+https://github.com/Rich-Harris/sourcemap-codec.git
+Repository: https://github.com/Rich-Harris/sourcemap-codec
 
 > The MIT License
 > 
@@ -646,7 +646,7 @@ Repository: git+https://github.com/Rich-Harris/sourcemap-codec.git
 ## time-zone
 License: MIT
 By: Sindre Sorhus
-Repository: git+https://github.com/sindresorhus/time-zone.git
+Repository: sindresorhus/time-zone
 
 > MIT License
 > 
@@ -663,7 +663,7 @@ Repository: git+https://github.com/sindresorhus/time-zone.git
 ## to-regex-range
 License: MIT
 By: Jon Schlinkert, Rouven Weßling
-Repository: git+https://github.com/micromatch/to-regex-range.git
+Repository: micromatch/to-regex-range
 
 > The MIT License (MIT)
 > 
@@ -692,7 +692,7 @@ Repository: git+https://github.com/micromatch/to-regex-range.git
 ## yargs-parser
 License: ISC
 By: Ben Coe
-Repository: git+https://github.com/yargs/yargs-parser.git
+Repository: https://github.com/yargs/yargs-parser.git
 
 > Copyright (c) 2016, Contributors
 > 
