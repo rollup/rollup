@@ -1,7 +1,7 @@
+import { extractAssignedNames } from '@rollup/pluginutils';
 import * as acorn from 'acorn';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
-import extractAssignedNames from 'rollup-pluginutils/src/extractAssignedNames';
 import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import { createHasEffectsContext, createInclusionContext } from './ast/ExecutionContext';
