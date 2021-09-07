@@ -1,4 +1,4 @@
-let fsEvents: any; // TODO find better type solution, fsevents is only being installed on macOS
+let fsEvents: unknown;
 let fsEventsImportError: Error | undefined;
 
 const mod = 'fsevents';
@@ -14,7 +14,7 @@ export function loadFsEvents(): Promise<void> {
 }
 
 // A call to this function will be injected into the chokidar code
-export function getFsEvents(): any {
+export function getFsEvents(): unknown {
 	if (fsEventsImportError) throw fsEventsImportError;
 	return fsEvents;
 }
