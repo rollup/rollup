@@ -1,10 +1,10 @@
 let fsEvents: unknown;
 let fsEventsImportError: Error | undefined;
 
-const mod = 'fsevents';
-
 export function loadFsEvents(): Promise<void> {
-	return import(mod)
+	const moduleName = 'fsevents';
+
+	return import(moduleName)
 		.then(namespace => {
 			fsEvents = namespace.default;
 		})
