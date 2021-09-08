@@ -23,7 +23,8 @@ module.exports = {
 				}
 				return true;
 			},
-			name: 'bundle'
+			name: 'bundle',
+			noConflict: true
 		}
 	}
 };

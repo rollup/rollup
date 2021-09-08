@@ -59,7 +59,7 @@ export default function umd(
 		strict
 	}: NormalizedOutputOptions
 ): Bundle {
-	const { _, getNonArrowFunctionIntro, getPropertyAccess, n, s } = snippets;
+	const { _, cnst, getFunctionIntro, getNonArrowFunctionIntro, getPropertyAccess, n, s } = snippets;
 	const factoryVar = compact ? 'f' : 'factory';
 	const globalVar = compact ? 'g' : 'global';
 
@@ -114,8 +114,7 @@ export default function umd(
 		let factory;
 
 		if (!namedExportsMode && hasExports) {
-			// TODO Lukas const
-			factory = `var ${noConflictExportsVar}${_}=${_}${assignToDeepVariable(
+			factory = `${cnst} ${noConflictExportsVar}${_}=${_}${assignToDeepVariable(
 				name!,
 				globalVar,
 				globals,
@@ -124,23 +123,24 @@ export default function umd(
 			)};`;
 		} else {
 			const module = globalDeps.shift();
-			// TODO Lukas const
 			factory =
-				`var ${noConflictExportsVar}${_}=${_}${module};${n}` +
+				`${cnst} ${noConflictExportsVar}${_}=${_}${module};${n}` +
 				`${t}${t}${factoryVar}(${[noConflictExportsVar].concat(globalDeps).join(`,${_}`)});`;
 		}
-		// TODO Lukas const
 		iifeExport =
-			`(function${_}()${_}{${n}` +
-			`${t}${t}var current${_}=${_}${safeAccess(name!, globalVar, snippets)};${n}` +
+			`(${getFunctionIntro([], { isAsync: false, name: null })}{${n}` +
+			`${t}${t}${cnst} current${_}=${_}${safeAccess(name!, globalVar, snippets)};${n}` +
 			`${t}${t}${factory}${n}` +
-			`${t}${t}${noConflictExportsVar}.noConflict${_}=${_}function${_}()${_}{${_}` +
+			`${t}${t}${noConflictExportsVar}.noConflict${_}=${_}${getFunctionIntro([], {
+				isAsync: false,
+				name: null
+			})}{${_}` +
 			`${globalProp(
 				name!,
 				globalVar,
 				getPropertyAccess
 			)}${_}=${_}current;${_}return ${noConflictExportsVar}${s}${_}};${n}` +
-			`${t}}())`;
+			`${t}})()`;
 	} else {
 		iifeExport = `${factoryVar}(${globalDeps.join(`,${_}`)})`;
 		if (!namedExportsMode && hasExports) {

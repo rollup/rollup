@@ -1,7 +1,12 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('externalNoImport'), require('external'), require('externalAuto'), require('externalDefault'), require('externalDefaultOnly')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'externalNoImport', 'external', 'externalAuto', 'externalDefault', 'externalDefaultOnly'], factory) :
-	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.bundle = {}, null, global.defaultLegacy, global.externalAuto, global.externalDefault, global.externalDefaultOnly));
+	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, (() => {
+		var current = global.bundle;
+		var exports = global.bundle = {};
+		factory(exports, null, global.defaultLegacy, global.externalAuto, global.externalDefault, global.externalDefaultOnly);
+		exports.noConflict = () => { global.bundle = current; return exports; };
+	})());
 })(this, (function (exports, externalNoImport, defaultLegacy, externalAuto, externalDefault, externalDefaultOnly) { 'use strict';
 
 	var _interopDefaultLegacy = e => e && typeof e === 'object' && 'default' in e ? e : { 'default': e };

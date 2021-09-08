@@ -5,7 +5,8 @@ module.exports = {
 		output: {
 			compact: true,
 			generatedCode: { arrowFunctions: true, blockBindings: true },
-			name: 'bundle'
+			name: 'bundle',
+			noConflict: true
 		}
 	}
 };

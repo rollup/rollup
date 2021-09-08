@@ -4,7 +4,8 @@ module.exports = {
 		external: ['external'],
 		output: {
 			generatedCode: { arrowFunctions: true, blockBindings: true },
-			name: 'bundle'
+			name: 'bundle',
+			noConflict: true
 		}
 	}
 };

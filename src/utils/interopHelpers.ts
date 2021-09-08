@@ -157,7 +157,6 @@ const getDefaultLiveBinding = ({ _, getObject }: GenerateCodeSnippets) =>
 const getDefaultStatic = ({ _, getPropertyAccess }: GenerateCodeSnippets) =>
 	`e${getPropertyAccess('default')}${_}:${_}e`;
 
-// TODO Lukas const
 const createNamespaceObject = (
 	t: string,
 	i: string,
@@ -166,9 +165,9 @@ const createNamespaceObject = (
 	freeze: boolean,
 	namespaceToStringTag: boolean
 ) => {
-	const { _, getFunctionIntro, getPropertyAccess, n } = snippets;
+	const { _, cnst, getFunctionIntro, getPropertyAccess, n } = snippets;
 	return (
-		`${i}var n${_}=${_}${
+		`${i}${cnst} n${_}=${_}${
 			namespaceToStringTag
 				? `{__proto__:${_}null,${_}[Symbol.toStringTag]:${_}'Module'}`
 				: 'Object.create(null)'
@@ -186,14 +185,13 @@ const createNamespaceObject = (
 	);
 };
 
-// TODO Lukas const
 const copyPropertyLiveBinding = (
 	t: string,
 	i: string,
-	{ _, directReturnFunctionRight, getDirectReturnFunctionLeft, n }: GenerateCodeSnippets
+	{ _, cnst, directReturnFunctionRight, getDirectReturnFunctionLeft, n }: GenerateCodeSnippets
 ) =>
 	`${i}if${_}(k${_}!==${_}'default')${_}{${n}` +
-	`${i}${t}var d${_}=${_}Object.getOwnPropertyDescriptor(e,${_}k);${n}` +
+	`${i}${t}${cnst} d${_}=${_}Object.getOwnPropertyDescriptor(e,${_}k);${n}` +
 	`${i}${t}Object.defineProperty(n,${_}k,${_}d.get${_}?${_}d${_}:${_}{${n}` +
 	`${i}${t}${t}enumerable:${_}true,${n}` +
 	`${i}${t}${t}get:${_}${getDirectReturnFunctionLeft([], {

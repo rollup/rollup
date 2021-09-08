@@ -1,14 +1,38 @@
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('external')) :
 	typeof define === 'function' && define.amd ? define(['exports', 'external'], factory) :
-	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.bundle = {}, global.foo));
+	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, (() => {
+		const current = global.bundle;
+		const exports = global.bundle = {};
+		factory(exports, global.foo);
+		exports.noConflict = () => { global.bundle = current; return exports; };
+	})());
 })(this, (function (exports, foo) { 'use strict';
 
 	const _interopDefaultLegacy = e => e && typeof e === 'object' && 'default' in e ? e : { 'default': e };
 
-	const foo__default = /*#__PURE__*/_interopDefaultLegacy(foo);
+	function _interopNamespace(e) {
+		if (e && e.__esModule) return e;
+		const n = Object.create(null);
+		if (e) {
+			Object.keys(e).forEach(k => {
+				if (k !== 'default') {
+					const d = Object.getOwnPropertyDescriptor(e, k);
+					Object.defineProperty(n, k, d.get ? d : {
+						enumerable: true,
+						get: () => e[k]
+					});
+				}
+			});
+		}
+		n["default"] = e;
+		return Object.freeze(n);
+	}
 
-	console.log(foo__default["default"]);
+	const foo__default = /*#__PURE__*/_interopDefaultLegacy(foo);
+	const foo__namespace = /*#__PURE__*/_interopNamespace(foo);
+
+	console.log(foo__default["default"], foo__namespace);
 
 	Object.keys(foo).forEach(k => {
 		if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
