@@ -15,11 +15,11 @@ const CHUNK_PREFIX = 'ROLLUP_CHUNK_URL_';
 const FILE_PREFIX = 'ROLLUP_FILE_URL_';
 
 export default class MetaProperty extends NodeBase {
-	meta!: Identifier;
-	property!: Identifier;
-	type!: NodeType.tMetaProperty;
+	declare meta: Identifier;
+	declare property: Identifier;
+	declare type: NodeType.tMetaProperty;
 
-	private metaProperty?: string | null;
+	private declare metaProperty?: string | null;
 
 	addAccessedGlobals(
 		format: InternalModuleFormat,

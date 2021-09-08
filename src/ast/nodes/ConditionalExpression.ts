@@ -26,10 +26,10 @@ import { MultiExpression } from './shared/MultiExpression';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 
 export default class ConditionalExpression extends NodeBase implements DeoptimizableEntity {
-	alternate!: ExpressionNode;
-	consequent!: ExpressionNode;
-	test!: ExpressionNode;
-	type!: NodeType.tConditionalExpression;
+	declare alternate: ExpressionNode;
+	declare consequent: ExpressionNode;
+	declare test: ExpressionNode;
+	declare type: NodeType.tConditionalExpression;
 
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];
 	private isBranchResolutionAnalysed = false;

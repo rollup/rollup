@@ -8,9 +8,9 @@ import ClassNode from './shared/ClassNode';
 import { GenericEsTreeNode, IncludeChildren, NodeBase } from './shared/Node';
 
 export default class ClassBody extends NodeBase {
-	body!: (MethodDefinition | PropertyDefinition)[];
-	scope!: ClassBodyScope;
-	type!: NodeType.tClassBody;
+	declare body: (MethodDefinition | PropertyDefinition)[];
+	declare scope: ClassBodyScope;
+	declare type: NodeType.tClassBody;
 
 	createScope(parentScope: Scope): void {
 		this.scope = new ClassBodyScope(parentScope, this.parent as ClassNode, this.context);

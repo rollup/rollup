@@ -15,12 +15,12 @@ import { OBJECT_PROTOTYPE } from './ObjectPrototype';
 import { PatternNode } from './Pattern';
 
 export default class FunctionNode extends NodeBase {
-	async!: boolean;
-	body!: BlockStatement;
-	id!: IdentifierWithVariable | null;
-	params!: PatternNode[];
-	preventChildBlockScope!: true;
-	scope!: FunctionScope;
+	declare async: boolean;
+	declare body: BlockStatement;
+	declare id: IdentifierWithVariable | null;
+	declare params: PatternNode[];
+	declare preventChildBlockScope: true;
+	declare scope: FunctionScope;
 	private deoptimizedReturn = false;
 	private isPrototypeDeoptimized = false;
 

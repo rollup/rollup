@@ -10,8 +10,8 @@ import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import { ExpressionNode, IncludeChildren, StatementBase } from './shared/Node';
 
 export default class ReturnStatement extends StatementBase {
-	argument!: ExpressionNode | null;
-	type!: NodeType.tReturnStatement;
+	declare argument: ExpressionNode | null;
+	declare type: NodeType.tReturnStatement;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (

@@ -3,9 +3,9 @@ import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from './shared/Node';
 
 export default class WhileStatement extends StatementBase {
-	body!: StatementNode;
-	test!: ExpressionNode;
-	type!: NodeType.tWhileStatement;
+	declare body: StatementNode;
+	declare test: ExpressionNode;
+	declare type: NodeType.tWhileStatement;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (this.test.hasEffects(context)) return true;

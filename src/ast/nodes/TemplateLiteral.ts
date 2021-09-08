@@ -7,9 +7,9 @@ import { LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class TemplateLiteral extends NodeBase {
-	expressions!: ExpressionNode[];
-	quasis!: TemplateElement[];
-	type!: NodeType.tTemplateLiteral;
+	declare expressions: ExpressionNode[];
+	declare quasis: TemplateElement[];
+	declare type: NodeType.tTemplateLiteral;
 
 	getLiteralValueAtPath(path: ObjectPath): LiteralValueOrUnknown {
 		if (path.length > 0 || this.quasis.length !== 1) {

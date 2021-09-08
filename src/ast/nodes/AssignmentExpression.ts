@@ -22,8 +22,8 @@ import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
 export default class AssignmentExpression extends NodeBase {
-	left!: ExpressionNode | PatternNode;
-	operator!:
+	declare left: ExpressionNode | PatternNode;
+	declare operator:
 		| '='
 		| '+='
 		| '-='
@@ -37,8 +37,8 @@ export default class AssignmentExpression extends NodeBase {
 		| '^='
 		| '&='
 		| '**=';
-	right!: ExpressionNode;
-	type!: NodeType.tAssignmentExpression;
+	declare right: ExpressionNode;
+	declare type: NodeType.tAssignmentExpression;
 	protected deoptimized = false;
 
 	hasEffects(context: HasEffectsContext): boolean {

@@ -19,13 +19,13 @@ import {
 const unset = Symbol('unset');
 
 export default class IfStatement extends StatementBase implements DeoptimizableEntity {
-	alternate!: StatementNode | null;
-	consequent!: StatementNode;
-	test!: ExpressionNode;
-	type!: NodeType.tIfStatement;
+	declare alternate: StatementNode | null;
+	declare consequent: StatementNode;
+	declare test: ExpressionNode;
+	declare type: NodeType.tIfStatement;
 
-	private alternateScope?: TrackingScope;
-	private consequentScope!: TrackingScope;
+	private declare alternateScope?: TrackingScope;
+	private declare consequentScope: TrackingScope;
 	private testValue: LiteralValueOrUnknown | typeof unset = unset;
 
 	deoptimizeCache(): void {

@@ -20,14 +20,14 @@ import { GenericEsTreeNode, NodeBase } from './shared/Node';
 export type LiteralValue = string | boolean | null | number | RegExp | undefined;
 
 export default class Literal<T extends LiteralValue = LiteralValue> extends NodeBase {
-	regex?: {
+	declare regex?: {
 		flags: string;
 		pattern: string;
 	};
-	type!: NodeType.tLiteral;
-	value!: T;
+	declare type: NodeType.tLiteral;
+	declare value: T;
 
-	private members!: { [key: string]: MemberDescription };
+	private declare members: { [key: string]: MemberDescription };
 
 	deoptimizeThisOnEventAtPath(): void {}
 

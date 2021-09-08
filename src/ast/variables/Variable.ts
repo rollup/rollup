@@ -11,10 +11,10 @@ export default class Variable extends ExpressionEntity {
 	initReached = false;
 	isId = false;
 	// both NamespaceVariable and ExternalVariable can be namespaces
-	isNamespace?: boolean;
+	declare isNamespace?: boolean;
 	isReassigned = false;
 	kind: string | null = null;
-	module?: Module | ExternalModule;
+	declare module?: Module | ExternalModule;
 	renderBaseName: string | null = null;
 	renderName: string | null = null;
 

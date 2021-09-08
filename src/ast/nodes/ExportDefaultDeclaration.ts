@@ -41,13 +41,13 @@ function getIdInsertPosition(
 }
 
 export default class ExportDefaultDeclaration extends NodeBase {
-	declaration!: FunctionDeclaration | ClassDeclaration | ExpressionNode;
-	needsBoundaries!: true;
-	scope!: ModuleScope;
-	type!: NodeType.tExportDefaultDeclaration;
-	variable!: ExportDefaultVariable;
+	declare declaration: FunctionDeclaration | ClassDeclaration | ExpressionNode;
+	declare needsBoundaries: true;
+	declare scope: ModuleScope;
+	declare type: NodeType.tExportDefaultDeclaration;
+	declare variable: ExportDefaultVariable;
 
-	private declarationName: string | undefined;
+	private declare declarationName: string | undefined;
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
 		super.include(context, includeChildrenRecursively);

@@ -9,11 +9,11 @@ import TemplateLiteral from './TemplateLiteral';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class TaggedTemplateExpression extends NodeBase {
-	quasi!: TemplateLiteral;
-	tag!: ExpressionNode;
-	type!: NodeType.tTaggedTemplateExpression;
+	declare quasi: TemplateLiteral;
+	declare tag: ExpressionNode;
+	declare type: NodeType.tTaggedTemplateExpression;
 
-	private callOptions!: CallOptions;
+	private declare callOptions: CallOptions;
 
 	bind(): void {
 		super.bind();

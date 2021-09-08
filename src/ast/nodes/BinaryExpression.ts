@@ -46,10 +46,10 @@ const binaryOperators: {
 };
 
 export default class BinaryExpression extends NodeBase implements DeoptimizableEntity {
-	left!: ExpressionNode;
-	operator!: keyof typeof binaryOperators;
-	right!: ExpressionNode;
-	type!: NodeType.tBinaryExpression;
+	declare left: ExpressionNode;
+	declare operator: keyof typeof binaryOperators;
+	declare right: ExpressionNode;
+	declare type: NodeType.tBinaryExpression;
 
 	deoptimizeCache(): void {}
 

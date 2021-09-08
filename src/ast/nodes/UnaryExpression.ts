@@ -20,10 +20,10 @@ const unaryOperators: {
 };
 
 export default class UnaryExpression extends NodeBase {
-	argument!: ExpressionNode;
-	operator!: '!' | '+' | '-' | 'delete' | 'typeof' | 'void' | '~';
-	prefix!: boolean;
-	type!: NodeType.tUnaryExpression;
+	declare argument: ExpressionNode;
+	declare operator: '!' | '+' | '-' | 'delete' | 'typeof' | 'void' | '~';
+	declare prefix: boolean;
+	declare type: NodeType.tUnaryExpression;
 	protected deoptimized = false;
 
 	getLiteralValueAtPath(

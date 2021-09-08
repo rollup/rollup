@@ -15,9 +15,9 @@ import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
 export default class VariableDeclarator extends NodeBase {
-	id!: PatternNode;
-	init!: ExpressionNode | null;
-	type!: NodeType.tVariableDeclarator;
+	declare id: PatternNode;
+	declare init: ExpressionNode | null;
+	declare type: NodeType.tVariableDeclarator;
 
 	declareDeclarator(kind: string): void {
 		this.id.declare(kind, this.init || UNDEFINED_EXPRESSION);

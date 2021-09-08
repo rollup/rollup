@@ -18,8 +18,8 @@ import { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
 import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 
 export default class SequenceExpression extends NodeBase {
-	expressions!: ExpressionNode[];
-	type!: NodeType.tSequenceExpression;
+	declare expressions: ExpressionNode[];
+	declare type: NodeType.tSequenceExpression;
 
 	deoptimizePath(path: ObjectPath): void {
 		this.expressions[this.expressions.length - 1].deoptimizePath(path);

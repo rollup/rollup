@@ -5,7 +5,7 @@ import LocalVariable from '../variables/LocalVariable';
 import BlockScope from './BlockScope';
 
 export default class TrackingScope extends BlockScope {
-	public hoistedDeclarations: Identifier[] = [];
+	hoistedDeclarations: Identifier[] = [];
 
 	addDeclaration(
 		identifier: Identifier,

@@ -21,8 +21,8 @@ interface DynamicImportMechanism {
 
 export default class ImportExpression extends NodeBase {
 	inlineNamespace: NamespaceVariable | null = null;
-	source!: ExpressionNode;
-	type!: NodeType.tImportExpression;
+	declare source: ExpressionNode;
+	declare type: NodeType.tImportExpression;
 
 	private mechanism: DynamicImportMechanism | null = null;
 	private resolution: Module | ExternalModule | string | null = null;

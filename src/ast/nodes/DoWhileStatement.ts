@@ -3,9 +3,9 @@ import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from './shared/Node';
 
 export default class DoWhileStatement extends StatementBase {
-	body!: StatementNode;
-	test!: ExpressionNode;
-	type!: NodeType.tDoWhileStatement;
+	declare body: StatementNode;
+	declare test: ExpressionNode;
+	declare type: NodeType.tDoWhileStatement;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (this.test.hasEffects(context)) return true;

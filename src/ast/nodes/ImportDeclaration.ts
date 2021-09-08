@@ -8,10 +8,10 @@ import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
 export default class ImportDeclaration extends NodeBase {
-	needsBoundaries!: true;
-	source!: Literal<string>;
-	specifiers!: (ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier)[];
-	type!: NodeType.tImportDeclaration;
+	declare needsBoundaries: true;
+	declare source: Literal<string>;
+	declare specifiers: (ImportSpecifier | ImportDefaultSpecifier | ImportNamespaceSpecifier)[];
+	declare type: NodeType.tImportDeclaration;
 
 	// Do not bind specifiers
 	bind(): void {}

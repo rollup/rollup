@@ -6,13 +6,12 @@ import Variable from './Variable';
 export default class ExternalVariable extends Variable {
 	isNamespace: boolean;
 	module: ExternalModule;
-	referenced: boolean;
+	referenced = false;
 
 	constructor(module: ExternalModule, name: string) {
 		super(name);
 		this.module = module;
 		this.isNamespace = name === '*';
-		this.referenced = false;
 	}
 
 	addReference(identifier: Identifier): void {

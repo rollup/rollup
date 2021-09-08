@@ -37,9 +37,9 @@ export class Watcher {
 
 	private buildDelay = 0;
 	private buildTimeout: NodeJS.Timer | null = null;
-	private invalidatedIds: Map<string, ChangeEvent> = new Map();
+	private invalidatedIds = new Map<string, ChangeEvent>();
 	private rerun = false;
-	private running: boolean;
+	private running = true;
 	private tasks: Task[];
 
 	constructor(configs: GenericConfigObject[], emitter: RollupWatcher) {
@@ -53,7 +53,6 @@ export class Watcher {
 					: buildDelay,
 			this.buildDelay
 		);
-		this.running = true;
 		process.nextTick(() => this.run());
 	}
 
@@ -123,7 +122,7 @@ export class Task {
 	cache: RollupCache = { modules: [] };
 	watchFiles: string[] = [];
 
-	private closed: boolean;
+	private closed = false;
 	private fileWatcher: FileWatcher;
 	private filter: (id: string) => boolean;
 	private invalidated = true;
@@ -131,13 +130,11 @@ export class Task {
 	private outputFiles: string[];
 	private outputs: OutputOptions[];
 	private skipWrite: boolean;
-	private watched: Set<string>;
+	private watched = new Set<string>();
 	private watcher: Watcher;
 
 	constructor(watcher: Watcher, config: GenericConfigObject) {
 		this.watcher = watcher;
-		this.closed = false;
-		this.watched = new Set();
 
 		this.skipWrite = Boolean(config.watch && (config.watch as GenericConfigObject).skipWrite);
 		this.options = mergeOptions(config);

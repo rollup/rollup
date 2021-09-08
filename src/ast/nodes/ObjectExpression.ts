@@ -23,8 +23,8 @@ import { ObjectEntity, ObjectProperty } from './shared/ObjectEntity';
 import { OBJECT_PROTOTYPE } from './shared/ObjectPrototype';
 
 export default class ObjectExpression extends NodeBase implements DeoptimizableEntity {
-	properties!: (Property | SpreadElement)[];
-	type!: NodeType.tObjectExpression;
+	declare properties: (Property | SpreadElement)[];
+	declare type: NodeType.tObjectExpression;
 	private objectEntity: ObjectEntity | null = null;
 
 	deoptimizeCache(): void {

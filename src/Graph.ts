@@ -45,26 +45,24 @@ function normalizeEntryModules(
 
 export default class Graph {
 	acornParser: typeof acorn.Parser;
-	cachedModules: Map<string, ModuleJSON>;
-	deoptimizationTracker: PathTracker;
+	cachedModules = new Map<string, ModuleJSON>();
+	deoptimizationTracker = new PathTracker();
 	entryModules: Module[] = [];
 	moduleLoader: ModuleLoader;
 	modulesById = new Map<string, Module | ExternalModule>();
 	needsTreeshakingPass = false;
 	phase: BuildPhase = BuildPhase.LOAD_AND_PARSE;
 	pluginDriver: PluginDriver;
-	scope: GlobalScope;
+	scope = new GlobalScope();
 	watchFiles: Record<string, true> = Object.create(null);
 	watchMode = false;
 
 	private externalModules: ExternalModule[] = [];
 	private implicitEntryModules: Module[] = [];
 	private modules: Module[] = [];
-	private pluginCache?: Record<string, SerializablePluginCache>;
+	private declare pluginCache?: Record<string, SerializablePluginCache>;
 
 	constructor(private readonly options: NormalizedInputOptions, watcher: RollupWatcher | null) {
-		this.deoptimizationTracker = new PathTracker();
-		this.cachedModules = new Map();
 		if (options.cache !== false) {
 			if (options.cache?.modules) {
 				for (const module of options.cache.modules) this.cachedModules.set(module.id, module);
@@ -91,7 +89,6 @@ export default class Graph {
 			});
 		}
 		this.pluginDriver = new PluginDriver(this, options, options.plugins, this.pluginCache);
-		this.scope = new GlobalScope();
 		this.acornParser = acorn.Parser.extend(...(options.acornInjectPlugins as any));
 		this.moduleLoader = new ModuleLoader(this, this.modulesById, this.options, this.pluginDriver);
 	}

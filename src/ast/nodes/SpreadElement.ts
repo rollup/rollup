@@ -7,8 +7,8 @@ import { ExpressionEntity } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class SpreadElement extends NodeBase {
-	argument!: ExpressionNode;
-	type!: NodeType.tSpreadElement;
+	declare argument: ExpressionNode;
+	declare type: NodeType.tSpreadElement;
 	protected deoptimized = false;
 
 	deoptimizeThisOnEventAtPath(

@@ -13,11 +13,11 @@ import SwitchCase from './SwitchCase';
 import { ExpressionNode, IncludeChildren, StatementBase } from './shared/Node';
 
 export default class SwitchStatement extends StatementBase {
-	cases!: SwitchCase[];
-	discriminant!: ExpressionNode;
-	type!: NodeType.tSwitchStatement;
+	declare cases: SwitchCase[];
+	declare discriminant: ExpressionNode;
+	declare type: NodeType.tSwitchStatement;
 
-	private defaultCase!: number | null;
+	private declare defaultCase: number | null;
 
 	createScope(parentScope: Scope): void {
 		this.scope = new BlockScope(parentScope);

@@ -6,10 +6,10 @@ import * as NodeType from './NodeType';
 import { INCLUDE_PARAMETERS, IncludeChildren, StatementBase } from './shared/Node';
 
 export default class TryStatement extends StatementBase {
-	block!: BlockStatement;
-	finalizer!: BlockStatement | null;
-	handler!: CatchClause | null;
-	type!: NodeType.tTryStatement;
+	declare block: BlockStatement;
+	declare finalizer: BlockStatement | null;
+	declare handler: CatchClause | null;
+	declare type: NodeType.tTryStatement;
 
 	private directlyIncluded = false;
 	private includedLabelsAfterBlock: string[] | null = null;

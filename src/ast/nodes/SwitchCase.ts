@@ -10,10 +10,10 @@ import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, NodeBase, StatementNode } from './shared/Node';
 
 export default class SwitchCase extends NodeBase {
-	consequent!: StatementNode[];
-	needsBoundaries!: true;
-	test!: ExpressionNode | null;
-	type!: NodeType.tSwitchCase;
+	declare consequent: StatementNode[];
+	declare needsBoundaries: true;
+	declare test: ExpressionNode | null;
+	declare type: NodeType.tSwitchCase;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (this.test && this.test.hasEffects(context)) return true;
