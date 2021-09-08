@@ -66,8 +66,7 @@ export default class NamespaceVariable extends Variable {
 			freeze,
 			indent: t,
 			namespaceToStringTag,
-			snippets: { _, getObject, getPropertyAccess, n, s },
-			varOrConst
+			snippets: { _, cnst, getObject, getPropertyAccess, n, s }
 		} = options;
 		const memberVariables = this.getMemberVariables();
 		const members: [key: string | null, value: string][] = Object.entries(memberVariables).map(
@@ -112,7 +111,7 @@ export default class NamespaceVariable extends Variable {
 		}
 
 		const name = this.getName(getPropertyAccess);
-		output = `${varOrConst} ${name}${_}=${_}${output};`;
+		output = `${cnst} ${name}${_}=${_}${output};`;
 
 		if (format === 'system' && exportNamesByVariable.has(this)) {
 			output += `${n}${getSystemExportStatement([this], options)};`;

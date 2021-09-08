@@ -212,6 +212,7 @@ export default class Module {
 	isExecuted = false;
 	isUserDefinedEntryPoint = false;
 	declare namespace: NamespaceVariable;
+	needsExportShim = false;
 	declare originalCode: string;
 	declare originalSourcemap: ExistingDecodedSourceMap | null;
 	preserveSignature: PreserveEntrySignaturesOption = this.options.preserveEntrySignatures;

@@ -1,3 +1,6 @@
 import foo, * as ns from 'external';
-console.log(foo, ns);
+import * as other from './other';
+import { missing } from './other';
+console.log(foo, ns, other, bar, missing);
 export * from 'external';
+export default 42;

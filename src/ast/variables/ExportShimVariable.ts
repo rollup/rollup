@@ -9,4 +9,9 @@ export default class ExportShimVariable extends Variable {
 		super(MISSING_EXPORT_SHIM_VARIABLE);
 		this.module = module;
 	}
+
+	include(): void {
+		super.include();
+		this.module.needsExportShim = true;
+	}
 }

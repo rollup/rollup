@@ -144,7 +144,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 	private renderVariableDeclaration(
 		code: MagicString,
 		declarationStart: number,
-		{ format, exportNamesByVariable, snippets: { getPropertyAccess }, varOrConst }: RenderOptions
+		{ format, exportNamesByVariable, snippets: { cnst, getPropertyAccess } }: RenderOptions
 	) {
 		const hasTrailingSemicolon = code.original.charCodeAt(this.end - 1) === 59; /*";"*/
 		const systemExportNames = format === 'system' && exportNamesByVariable.get(this.variable);
@@ -153,9 +153,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			code.overwrite(
 				this.start,
 				declarationStart,
-				`${varOrConst} ${this.variable.getName(getPropertyAccess)} = exports('${
-					systemExportNames[0]
-				}', `
+				`${cnst} ${this.variable.getName(getPropertyAccess)} = exports('${systemExportNames[0]}', `
 			);
 			code.appendRight(
 				hasTrailingSemicolon ? this.end - 1 : this.end,
@@ -165,7 +163,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			code.overwrite(
 				this.start,
 				declarationStart,
-				`${varOrConst} ${this.variable.getName(getPropertyAccess)} = `
+				`${cnst} ${this.variable.getName(getPropertyAccess)} = `
 			);
 			if (!hasTrailingSemicolon) {
 				code.appendLeft(this.end, ';');

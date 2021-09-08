@@ -4,10 +4,10 @@
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, (() => {
 		var current = global.bundle;
 		var exports = global.bundle = {};
-		factory(exports, global.foo);
+		factory(exports, global.foo$1);
 		exports.noConflict = () => { global.bundle = current; return exports; };
 	})());
-})(this, (function (exports, foo) { 'use strict';
+})(this, (function (exports, foo$1) { 'use strict';
 
 	var _interopDefaultLegacy = e => e && typeof e === 'object' && 'default' in e ? e : { 'default': e };
 
@@ -29,15 +29,27 @@
 		return Object.freeze(n);
 	}
 
-	var foo__default = /*#__PURE__*/_interopDefaultLegacy(foo);
-	var foo__namespace = /*#__PURE__*/_interopNamespace(foo);
+	var foo__default = /*#__PURE__*/_interopDefaultLegacy(foo$1);
+	var foo__namespace = /*#__PURE__*/_interopNamespace(foo$1);
 
-	console.log(foo__default["default"], foo__namespace);
+	var _missingExportShim = void 0;
 
-	Object.keys(foo).forEach(k => {
+	const foo = 'bar';
+
+	var other = /*#__PURE__*/Object.freeze({
+		__proto__: null,
+		foo: foo,
+		missing: _missingExportShim
+	});
+
+	console.log(foo__default["default"], foo__namespace, other, bar, _missingExportShim);
+	var main = 42;
+
+	exports["default"] = main;
+	Object.keys(foo$1).forEach(k => {
 		if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
 			enumerable: true,
-			get: () => foo[k]
+			get: () => foo$1[k]
 		});
 	});
 

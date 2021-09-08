@@ -6,7 +6,6 @@ import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
 import ChildScope from './ast/scopes/ChildScope';
 import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
-import ExportShimVariable from './ast/variables/ExportShimVariable';
 import LocalVariable from './ast/variables/LocalVariable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import SyntheticNamedExportVariable from './ast/variables/SyntheticNamedExportVariable';
@@ -133,6 +132,7 @@ export default class Chunk {
 	facadeModule: Module | null = null;
 	id: string | null = null;
 	namespaceVariableName = '';
+	needsExportsShim = false;
 	suggestedVariableName: string;
 	variableName = '';
 
@@ -151,7 +151,6 @@ export default class Chunk {
 	private indentString: string = undefined as never;
 	private readonly isEmpty: boolean = true;
 	private name: string | null = null;
-	private needsExportsShim = false;
 	private renderedDependencies: Map<ExternalModule | Chunk, ModuleDeclarationDependency> | null =
 		null;
 	private renderedExports: ChunkExports | null = null;
@@ -571,8 +570,7 @@ export default class Chunk {
 			indent: this.indentString,
 			namespaceToStringTag: options.namespaceToStringTag,
 			outputPluginDriver: this.pluginDriver,
-			snippets,
-			varOrConst: options.preferConst ? 'const' : 'var'
+			snippets
 		};
 
 		// for static and dynamic entry points, inline the execution list to avoid loading latency
@@ -627,7 +625,7 @@ export default class Chunk {
 
 		if (this.needsExportsShim) {
 			magicString.prepend(
-				`${n}${renderOptions.varOrConst} ${MISSING_EXPORT_SHIM_VARIABLE}${_}=${_}void 0;${n}${n}`
+				`${n}${snippets.cnst} ${MISSING_EXPORT_SHIM_VARIABLE}${_}=${_}void 0;${n}${n}`
 			);
 		}
 		if (options.compact) {
@@ -1275,9 +1273,6 @@ export default class Chunk {
 		const syntheticExports = new Set<SyntheticNamedExportVariable>();
 		for (const exportName of this.getExportNames()) {
 			const exportVariable = this.exportsByName[exportName];
-			if (exportVariable instanceof ExportShimVariable) {
-				this.needsExportsShim = true;
-			}
 			if (
 				format !== 'es' &&
 				format !== 'system' &&
@@ -1291,7 +1286,12 @@ export default class Chunk {
 				exportVariable.setRenderNames(null, null);
 			}
 		}
-
+		for (const module of this.orderedModules) {
+			if (module.needsExportShim) {
+				this.needsExportsShim = true;
+				break;
+			}
+		}
 		const usedNames = new Set<string>(['Object', 'Promise']);
 		if (this.needsExportsShim) {
 			usedNames.add(MISSING_EXPORT_SHIM_VARIABLE);

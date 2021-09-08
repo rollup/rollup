@@ -1,11 +1,11 @@
 System.register('bundle', ['external'], (function (exports) {
 	'use strict';
 	var _starExcludes = { 'default': 1 };
-	var foo__default, foo;
+	var foo__default, foo$1;
 	return {
 		setters: [module => {
 			foo__default = module["default"];
-			foo = module;
+			foo$1 = module;
 			var setter = {};
 			for (var name in module) {
 				if (!_starExcludes[name]) setter[name] = module[name];
@@ -14,7 +14,18 @@ System.register('bundle', ['external'], (function (exports) {
 		}],
 		execute: (function () {
 
-			console.log(foo__default, foo);
+			var _missingExportShim = void 0;
+
+			const foo = 'bar';
+
+			var other = /*#__PURE__*/Object.freeze({
+				__proto__: null,
+				foo: foo,
+				missing: _missingExportShim
+			});
+
+			console.log(foo__default, foo$1, other, bar, _missingExportShim);
+			var main = exports('default', 42);
 
 		})
 	};

@@ -15,8 +15,6 @@ export interface RenderOptions {
 	namespaceToStringTag: boolean;
 	outputPluginDriver: PluginDriver;
 	snippets: GenerateCodeSnippets;
-	// TODO Lukas deprecate
-	varOrConst: 'var' | 'const';
 }
 
 export interface NodeRenderOptions {
