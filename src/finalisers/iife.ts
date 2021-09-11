@@ -22,7 +22,6 @@ export default function iife(
 		namedExportsMode,
 		outro,
 		snippets,
-		varOrConst,
 		warn
 	}: FinaliserOptions,
 	{
@@ -38,7 +37,7 @@ export default function iife(
 		strict
 	}: NormalizedOutputOptions
 ): Bundle {
-	const { _, getNonArrowFunctionIntro, getPropertyAccess, n } = snippets;
+	const { _, cnst, getNonArrowFunctionIntro, getPropertyAccess, n } = snippets;
 	const isNamespaced = name && name.indexOf('.') !== -1;
 	const useVariableAssignment = !extend && !isNamespaced;
 
@@ -97,9 +96,8 @@ export default function iife(
 	if (hasExports) {
 		if (name && !(extend && namedExportsMode)) {
 			wrapperIntro =
-				(useVariableAssignment
-					? `${varOrConst} ${name}`
-					: `this${keypath(name, getPropertyAccess)}`) + `${_}=${_}${wrapperIntro}`;
+				(useVariableAssignment ? `${cnst} ${name}` : `this${keypath(name, getPropertyAccess)}`) +
+				`${_}=${_}${wrapperIntro}`;
 		}
 		if (isNamespaced) {
 			wrapperIntro = setupNamespace(name!, 'this', globals, snippets, compact) + wrapperIntro;

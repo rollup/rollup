@@ -1,6 +1,6 @@
 System.register('bundle', ['external'], (function (exports) {
 	'use strict';
-	var _starExcludes = { 'default': 1 };
+	var _starExcludes = { 'default': 1, syntheticMissing: 1 };
 	var foo__default, foo$1;
 	return {
 		setters: [module => {
@@ -24,8 +24,12 @@ System.register('bundle', ['external'], (function (exports) {
 				missing: _missingExportShim
 			});
 
+			var synthetic = { bar: 'baz' };
+
 			console.log(foo__default, foo$1, other, bar, _missingExportShim);
 			var main = exports('default', 42);
+
+			exports('syntheticMissing', synthetic.syntheticMissing);
 
 		})
 	};

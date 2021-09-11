@@ -12,7 +12,10 @@ var other = /*#__PURE__*/Object.freeze({
 	missing: _missingExportShim
 });
 
+var synthetic = { bar: 'baz' };
+
 console.log(foo__default, foo$1, other, bar, _missingExportShim);
 var main = 42;
 
-export { main as default };
+var syntheticMissing = synthetic.syntheticMissing;
+export { main as default, syntheticMissing };

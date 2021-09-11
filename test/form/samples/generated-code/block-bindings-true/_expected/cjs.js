@@ -37,10 +37,13 @@ const other = /*#__PURE__*/Object.freeze({
 	missing: _missingExportShim
 });
 
+const synthetic = { bar: 'baz' };
+
 console.log(foo__default["default"], foo__namespace, other, bar, _missingExportShim);
 const main = 42;
 
 exports["default"] = main;
+exports.syntheticMissing = synthetic.syntheticMissing;
 Object.keys(foo$1).forEach(k => {
 	if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
 		enumerable: true,

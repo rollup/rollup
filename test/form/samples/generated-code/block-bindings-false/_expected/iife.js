@@ -34,10 +34,13 @@ var bundle = (function (exports, foo$1) {
 		missing: _missingExportShim
 	});
 
+	var synthetic = { bar: 'baz' };
+
 	console.log(foo__default["default"], foo__namespace, other, bar, _missingExportShim);
 	var main = 42;
 
 	exports["default"] = main;
+	exports.syntheticMissing = synthetic.syntheticMissing;
 	Object.keys(foo$1).forEach(k => {
 		if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
 			enumerable: true,

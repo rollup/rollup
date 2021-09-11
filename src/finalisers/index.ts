@@ -23,7 +23,6 @@ export interface FinaliserOptions {
 	outro: string;
 	snippets: GenerateCodeSnippets;
 	usesTopLevelAwait: boolean;
-	varOrConst: 'var' | 'const';
 	warn(warning: RollupWarning): void;
 }
 

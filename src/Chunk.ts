@@ -742,7 +742,6 @@ export default class Chunk {
 				outro: addons.outro!,
 				snippets,
 				usesTopLevelAwait,
-				varOrConst: options.preferConst ? 'const' : 'var',
 				warn: this.inputOptions.onwarn
 			},
 			options

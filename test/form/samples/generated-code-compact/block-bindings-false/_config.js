@@ -1,5 +1,6 @@
 module.exports = {
 	description: 'does not use block bindings',
+	expectedWarnings: ['SHIMMED_EXPORT'],
 	options: {
 		external: ['external'],
 		shimMissingExports: true,
@@ -7,7 +8,17 @@ module.exports = {
 			compact: true,
 			generatedCode: { arrowFunctions: true, blockBindings: true },
 			name: 'bundle',
-			noConflict: true
-		}
+			noConflict: true,
+			exports: 'named'
+		},
+		plugins: [
+			{
+				transform(code, id) {
+					if (id.endsWith('/synthetic.js')) {
+						return { syntheticNamedExports: true };
+					}
+				}
+			}
+		]
 	}
 };
