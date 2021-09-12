@@ -32,7 +32,6 @@ export interface GenerateCodeSnippets {
 	getPropertyAccess(name: string): string;
 }
 
-// TODO Lukas deprecate preferConst
 export function getGenerateCodeSnippets({
 	compact,
 	generatedCode: { arrowFunctions, blockBindings, objectShorthand, reservedNamesAsProps }

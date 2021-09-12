@@ -1848,6 +1848,12 @@ _Use the [`renderDynamicImport`](guide/en/#renderdynamicimport) plugin hook inst
 
 This will rename the dynamic import function to the chosen name when outputting ES bundles. This is useful for generating code that uses a dynamic import polyfill such as [this one](https://github.com/uupaa/dynamic-import-polyfill).
 
+#### output.preferConst
+
+_Use the [`output.generatedCode.blockBindings`](guide/en/#outputgeneratedcode) option instead._<br> Type: `boolean`<br> CLI: `--preferConst`/`--no-preferConst`<br> Default: `false`
+
+Generate `const` declarations for exports rather than `var` declarations.
+
 #### treeshake.pureExternalModules
 
 _Use [`treeshake.moduleSideEffects: 'no-external'`](guide/en/#treeshake) instead._<br> Type: `boolean | string[] | (id: string) => boolean | null`<br> CLI: `--treeshake.pureExternalModules`/`--no-treeshake.pureExternalModules`<br> Default: `false`

@@ -13,7 +13,7 @@ module.exports = {
 		plugins: [
 			{
 				transform(code, id) {
-					if (id.endsWith('/synthetic.js')) {
+					if (id.endsWith('synthetic.js')) {
 						return { syntheticNamedExports: true };
 					}
 				}

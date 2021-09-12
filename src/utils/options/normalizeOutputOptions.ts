@@ -31,6 +31,7 @@ export function normalizeOutputOptions(
 	const inlineDynamicImports = getInlineDynamicImports(config, inputOptions);
 	const preserveModules = getPreserveModules(config, inlineDynamicImports, inputOptions);
 	const file = getFile(config, preserveModules, inputOptions);
+	const preferConst = getPreferConst(config, inputOptions);
 
 	const outputOptions: NormalizedOutputOptions & OutputOptions = {
 		amd: getAmd(config),
@@ -49,7 +50,7 @@ export function normalizeOutputOptions(
 		footer: getAddon(config, 'footer'),
 		format,
 		freeze: config.freeze ?? true,
-		generatedCode: getGeneratedCode(config),
+		generatedCode: getGeneratedCode(config, preferConst),
 		globals: config.globals || {},
 		hoistTransitiveImports: config.hoistTransitiveImports ?? true,
 		indent: getIndent(config, compact),
@@ -64,7 +65,7 @@ export function normalizeOutputOptions(
 		outro: getAddon(config, 'outro'),
 		paths: config.paths || {},
 		plugins: ensureArray(config.plugins),
-		preferConst: config.preferConst || false,
+		preferConst,
 		preserveModules,
 		preserveModulesRoot: getPreserveModulesRoot(config),
 		sanitizeFileName:
@@ -195,6 +196,21 @@ const getPreserveModules = (
 	return preserveModules;
 };
 
+const getPreferConst = (
+	config: OutputOptions,
+	inputOptions: NormalizedInputOptions
+): NormalizedOutputOptions['preferConst'] => {
+	const configPreferConst = config.preferConst;
+	if (configPreferConst != null) {
+		warnDeprecation(
+			`The "output.preferConst" option is deprecated. Use the "output.generatedCode.blockBindings" option instead.`,
+			false,
+			inputOptions
+		);
+	}
+	return !!configPreferConst;
+};
+
 const getPreserveModulesRoot = (
 	config: OutputOptions
 ): NormalizedOutputOptions['preserveModulesRoot'] => {
@@ -315,7 +331,10 @@ function getExports(
 	return configExports || 'auto';
 }
 
-const getGeneratedCode = (config: OutputOptions): NormalizedOutputOptions['generatedCode'] => {
+const getGeneratedCode = (
+	config: OutputOptions,
+	preferConst: boolean
+): NormalizedOutputOptions['generatedCode'] => {
 	const configWithPreset = getOptionWithPreset(
 		config.generatedCode,
 		generatedCodePresets,
@@ -324,7 +343,7 @@ const getGeneratedCode = (config: OutputOptions): NormalizedOutputOptions['gener
 	);
 	return {
 		arrowFunctions: configWithPreset.arrowFunctions === true,
-		blockBindings: configWithPreset.blockBindings === true || config.preferConst === true,
+		blockBindings: configWithPreset.blockBindings === true || preferConst,
 		objectShorthand: configWithPreset.objectShorthand === true,
 		reservedNamesAsProps: configWithPreset.reservedNamesAsProps === true
 	};
