@@ -35,11 +35,10 @@ export interface GenerateCodeSnippets {
 // TODO Lukas deprecate preferConst
 export function getGenerateCodeSnippets({
 	compact,
-	generatedCode: { arrowFunctions, blockBindings, objectShorthand, reservedNamesAsProps },
-	preferConst
+	generatedCode: { arrowFunctions, blockBindings, objectShorthand, reservedNamesAsProps }
 }: NormalizedOutputOptions): GenerateCodeSnippets {
 	const { _, n, s } = compact ? { _: '', n: '', s: '' } : { _: ' ', n: '\n', s: ';' };
-	const cnst = blockBindings || preferConst ? 'const' : 'var';
+	const cnst = blockBindings ? 'const' : 'var';
 	const getNonArrowFunctionIntro: GenerateCodeSnippets['getNonArrowFunctionIntro'] = (
 		params,
 		{ isAsync, name }

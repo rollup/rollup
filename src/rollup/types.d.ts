@@ -664,6 +664,7 @@ export interface OutputOptions {
 	outro?: string | (() => string | Promise<string>);
 	paths?: OptionsPaths;
 	plugins?: (OutputPlugin | null | false | undefined)[];
+	/** @deprecated Use the "generatedCode.blockBindings" instead. */
 	preferConst?: boolean;
 	preserveModules?: boolean;
 	preserveModulesRoot?: string;
@@ -710,6 +711,7 @@ export interface NormalizedOutputOptions {
 	outro: () => string | Promise<string>;
 	paths: OptionsPaths;
 	plugins: OutputPlugin[];
+	/** @deprecated Use the "renderDynamicImport" plugin hook instead. */
 	preferConst: boolean;
 	preserveModules: boolean;
 	preserveModulesRoot: string | undefined;

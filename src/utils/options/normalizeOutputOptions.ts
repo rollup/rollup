@@ -324,7 +324,7 @@ const getGeneratedCode = (config: OutputOptions): NormalizedOutputOptions['gener
 	);
 	return {
 		arrowFunctions: configWithPreset.arrowFunctions === true,
-		blockBindings: configWithPreset.blockBindings === true,
+		blockBindings: configWithPreset.blockBindings === true || config.preferConst === true,
 		objectShorthand: configWithPreset.objectShorthand === true,
 		reservedNamesAsProps: configWithPreset.reservedNamesAsProps === true
 	};
