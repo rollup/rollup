@@ -584,7 +584,7 @@ export default class Chunk {
 			}
 		}
 
-		this.prepareDynamicImportsAndImportMetas(snippets);
+		this.prepareModulesForRendering(snippets);
 		this.setIdentifierRenderResolutions(options);
 
 		let hoistedSource = '';
@@ -1219,7 +1219,7 @@ export default class Chunk {
 		}
 	}
 
-	private prepareDynamicImportsAndImportMetas(snippets: GenerateCodeSnippets) {
+	private prepareModulesForRendering(snippets: GenerateCodeSnippets) {
 		const accessedGlobalsByScope = this.accessedGlobalsByScope;
 		for (const module of this.orderedModules) {
 			for (const { node, resolution } of module.dynamicImports) {
@@ -1252,6 +1252,9 @@ export default class Chunk {
 			}
 			for (const importMeta of module.importMetas) {
 				importMeta.addAccessedGlobals(this.outputOptions.format, accessedGlobalsByScope);
+			}
+			if (this.includedNamespaces.has(module) && !this.outputOptions.preserveModules) {
+				module.namespace.prepare(accessedGlobalsByScope);
 			}
 		}
 	}

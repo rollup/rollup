@@ -25,6 +25,19 @@ define(['require', 'exports', 'externalNoImport', 'external', 'externalAuto', 'e
 
 	var _interopNamespace = e => e && e.__esModule ? e : _interopNamespaceDefault(e);
 
+	function _mergeNamespaces(n, m) {
+		m.forEach(e => Object.keys(e).forEach(k => {
+			if (k !== 'default' && !(k in n)) {
+				var d = Object.getOwnPropertyDescriptor(e, k);
+				Object.defineProperty(n, k, d.get ? d : {
+					enumerable: true,
+					get: () => e[k]
+				});
+			}
+		}));
+		return Object.freeze(n);
+	}
+
 	var defaultLegacy__namespace = /*#__PURE__*/_interopNamespace(defaultLegacy);
 	var defaultLegacy__default = /*#__PURE__*/_interopDefaultLegacy(defaultLegacy);
 	var externalAuto__default = /*#__PURE__*/_interopDefault(externalAuto);
@@ -44,10 +57,11 @@ define(['require', 'exports', 'externalNoImport', 'external', 'externalAuto', 'e
 	console.log(externalDefault__namespace);
 	console.log(externalDefaultOnly__namespace);
 
-	var main = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), defaultLegacy__namespace, {
+	var main = /*#__PURE__*/Object.freeze(/*#__PURE__*/_mergeNamespaces({
+		__proto__: null,
 		get a () { return exports.a; },
 		foo: foo
-	}));
+	}, [defaultLegacy__namespace]));
 
 	Object.defineProperty(exports, 'foo', {
 		enumerable: true,

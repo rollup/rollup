@@ -33,6 +33,19 @@ function _interopNamespaceDefault(e) {
 
 function _interopNamespace (e) { return e && e.__esModule ? e : _interopNamespaceDefault(e); }
 
+function _mergeNamespaces(n, m) {
+	m.forEach(function (e) { Object.keys(e).forEach(function (k) {
+		if (k !== 'default' && !(k in n)) {
+			var d = Object.getOwnPropertyDescriptor(e, k);
+			Object.defineProperty(n, k, d.get ? d : {
+				enumerable: true,
+				get: function () { return e[k]; }
+			});
+		}
+	}); });
+	return Object.freeze(n);
+}
+
 var defaultLegacy__namespace = /*#__PURE__*/_interopNamespace(defaultLegacy);
 var defaultLegacy__default = /*#__PURE__*/_interopDefaultLegacy(defaultLegacy);
 var externalAuto__default = /*#__PURE__*/_interopDefault(externalAuto);
@@ -52,10 +65,11 @@ console.log(externalAuto__default["default"]);
 console.log(externalDefault__namespace);
 console.log(externalDefaultOnly__namespace);
 
-var main = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), defaultLegacy__namespace, {
+var main = /*#__PURE__*/Object.freeze(/*#__PURE__*/_mergeNamespaces({
+	__proto__: null,
 	get a () { return exports.a; },
 	foo: foo
-}));
+}, [defaultLegacy__namespace]));
 
 Object.defineProperty(exports, 'foo', {
 	enumerable: true,

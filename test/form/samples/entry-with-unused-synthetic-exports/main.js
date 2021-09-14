@@ -1,2 +1,2 @@
-console.log(lib);
+console.log('main');
 export const __moduleExports = { not: 'included' };

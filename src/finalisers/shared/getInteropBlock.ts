@@ -3,8 +3,8 @@ import { GetInterop } from '../../rollup/types';
 import { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 import {
 	defaultInteropHelpersByInteropType,
-	getDefaultOnlyHelper,
 	getHelpersBlock,
+	INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE,
 	namespaceInteropHelpersByInteropType
 } from '../../utils/interopHelpers';
 
@@ -48,7 +48,11 @@ export default function getInteropBlock(
 			] as ReexportSpecifier[]) {
 				if (imported === '*' && reexported !== '*') {
 					if (!namedExportsMode) {
-						addInteropStatement(namespaceVariableName!, getDefaultOnlyHelper(), name);
+						addInteropStatement(
+							namespaceVariableName!,
+							INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE,
+							name
+						);
 					}
 					break;
 				}

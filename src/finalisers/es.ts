@@ -1,16 +1,28 @@
 import { Bundle, Bundle as MagicStringBundle } from 'magic-string';
 import { ChunkDependencies, ChunkExports, ImportSpecifier, ReexportSpecifier } from '../Chunk';
+import { NormalizedOutputOptions } from '../rollup/types';
 import { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
+import { getHelpersBlock } from '../utils/interopHelpers';
 import { FinaliserOptions } from './index';
 
 export default function es(
 	magicString: MagicStringBundle,
-	{ intro, outro, dependencies, exports, snippets }: FinaliserOptions
+	{ accessedGlobals, indent: t, intro, outro, dependencies, exports, snippets }: FinaliserOptions,
+	{ externalLiveBindings, freeze, namespaceToStringTag }: NormalizedOutputOptions
 ): Bundle {
 	const { _, n } = snippets;
 
 	const importBlock = getImportBlock(dependencies, _);
 	if (importBlock.length > 0) intro += importBlock.join(n) + n + n;
+	intro += getHelpersBlock(
+		null,
+		accessedGlobals,
+		t,
+		snippets,
+		externalLiveBindings,
+		freeze,
+		namespaceToStringTag
+	);
 	if (intro) magicString.prepend(intro);
 
 	const exportBlock = getExportBlock(exports, snippets);

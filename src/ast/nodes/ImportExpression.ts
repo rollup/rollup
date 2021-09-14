@@ -5,7 +5,7 @@ import { GetInterop, NormalizedOutputOptions } from '../../rollup/types';
 import { PluginDriver } from '../../utils/PluginDriver';
 import { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 import {
-	getDefaultOnlyHelper,
+	INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE,
 	namespaceInteropHelpersByInteropType
 } from '../../utils/interopHelpers';
 import { findFirstOccurrenceOutsideComment, RenderOptions } from '../../utils/renderHelpers';
@@ -240,7 +240,7 @@ function getInteropHelper(
 				String(interop(resolution instanceof ExternalModule ? resolution.id : null))
 		  ]
 		: exportMode === 'default'
-		? getDefaultOnlyHelper()
+		? INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE
 		: null;
 }
 

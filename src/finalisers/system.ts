@@ -2,6 +2,7 @@ import { Bundle, Bundle as MagicStringBundle } from 'magic-string';
 import { ChunkDependencies, ChunkExports, ModuleDeclarations } from '../Chunk';
 import { NormalizedOutputOptions } from '../rollup/types';
 import { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
+import { getHelpersBlock } from '../utils/interopHelpers';
 import { MISSING_EXPORT_SHIM_VARIABLE } from '../utils/variableNames';
 import { FinaliserOptions } from './index';
 
@@ -18,7 +19,14 @@ export default function system(
 		outro,
 		usesTopLevelAwait
 	}: FinaliserOptions,
-	options: NormalizedOutputOptions
+	{
+		externalLiveBindings,
+		freeze,
+		name,
+		namespaceToStringTag,
+		strict,
+		systemNullSetters
+	}: NormalizedOutputOptions
 ): Bundle {
 	const { _, getFunctionIntro, getNonArrowFunctionIntro, n, s } = snippets;
 	const { importBindings, setters, starExcludes } = analyzeDependencies(
@@ -27,7 +35,7 @@ export default function system(
 		t,
 		snippets
 	);
-	const registeredName = options.name ? `'${options.name}',${_}` : '';
+	const registeredName = name ? `'${name}',${_}` : '';
 	const wrapperParams = accessedGlobals.has('module')
 		? ['exports', 'module']
 		: hasExports
@@ -40,7 +48,7 @@ export default function system(
 		`System.register(${registeredName}[` +
 		dependencies.map(({ id }) => `'${id}'`).join(`,${_}`) +
 		`],${_}(${getNonArrowFunctionIntro(wrapperParams, { isAsync: false, name: null })}{${n}${t}${
-			options.strict ? "'use strict';" : ''
+			strict ? "'use strict';" : ''
 		}` +
 		getStarExcludesBlock(starExcludes, t, snippets) +
 		getImportBindingsBlock(importBindings, t, snippets) +
@@ -53,27 +61,38 @@ export default function system(
 										isAsync: false,
 										name: null
 								  })}{${n}${t}${t}${t}${setter}${n}${t}${t}}`
-								: options.systemNullSetters
+								: systemNullSetters
 								? `null`
 								: `${getFunctionIntro([], { isAsync: false, name: null })}{}`
 						)
 						.join(`,${_}`)}],`
 				: ''
 		}${n}`;
-	wrapperStart +=
-		`${t}${t}execute:${_}(${getNonArrowFunctionIntro([], {
-			isAsync: usesTopLevelAwait,
-			name: null
-		})}{${n}${n}` + getHoistedExportsBlock(exports, t, snippets);
+	wrapperStart += `${t}${t}execute:${_}(${getNonArrowFunctionIntro([], {
+		isAsync: usesTopLevelAwait,
+		name: null
+	})}{${n}${n}`;
 
-	const wrapperEnd =
-		`${n}${n}` +
-		getSyntheticExportsBlock(exports, t, snippets) +
-		getMissingExportsBlock(exports, t, snippets) +
-		`${t}${t}})${n}${t}}${s}${n}}));`;
+	const wrapperEnd = `${t}${t}})${n}${t}}${s}${n}}));`;
 
-	if (intro) magicString.prepend(intro);
-	if (outro) magicString.append(outro);
+	magicString.prepend(
+		intro +
+			getHelpersBlock(
+				null,
+				accessedGlobals,
+				t,
+				snippets,
+				externalLiveBindings,
+				freeze,
+				namespaceToStringTag
+			) +
+			getHoistedExportsBlock(exports, t, snippets)
+	);
+	magicString.append(
+		`${outro}${n}${n}` +
+			getSyntheticExportsBlock(exports, t, snippets) +
+			getMissingExportsBlock(exports, t, snippets)
+	);
 	return magicString.indent(`${t}${t}${t}`).append(wrapperEnd).prepend(wrapperStart);
 }
 
@@ -120,7 +139,7 @@ function analyzeDependencies(
 					}
 					setter.push(
 						`${cnst} setter${_}=${_}${exportMapping};`,
-						`for${_}(${cnst} name${_}in${_}module)${_}{`,
+						`for${_}(${cnst} name in module)${_}{`,
 						`${t}if${_}(!_starExcludes[name])${_}setter[name]${_}=${_}module[name];`,
 						'}',
 						'exports(setter);'
@@ -189,12 +208,12 @@ function getExportsBlock(
 		return '';
 	}
 	if (exports.length === 1) {
-		return `${t}${t}${t}exports('${exports[0].name}',${_}${exports[0].value});${n}${n}`;
+		return `exports('${exports[0].name}',${_}${exports[0].value});${n}${n}`;
 	}
 	return (
-		`${t}${t}${t}exports({${n}` +
-		exports.map(({ name, value }) => `${t}${t}${t}${t}${name}:${_}${value}`).join(`,${n}`) +
-		`${n}${t}${t}${t}});${n}${n}`
+		`exports({${n}` +
+		exports.map(({ name, value }) => `${t}${name}:${_}${value}`).join(`,${n}`) +
+		`${n}});${n}${n}`
 	);
 }
 

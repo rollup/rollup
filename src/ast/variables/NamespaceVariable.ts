@@ -1,7 +1,9 @@
 import Module, { AstContext } from '../../Module';
+import { MERGE_NAMESPACES_VARIABLE } from '../../utils/interopHelpers';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
 import Identifier from '../nodes/Identifier';
+import ChildScope from '../scopes/ChildScope';
 import Variable from './Variable';
 
 export default class NamespaceVariable extends Variable {
@@ -48,14 +50,9 @@ export default class NamespaceVariable extends Variable {
 		this.context.includeAllExports();
 	}
 
-	prepareNamespace(mergedNamespaces: Variable[]): void {
-		this.mergedNamespaces = mergedNamespaces;
-		const moduleExecIndex = this.context.getModuleExecIndex();
-		for (const identifier of this.references) {
-			if (identifier.context.getModuleExecIndex() <= moduleExecIndex) {
-				this.referencedEarly = true;
-				break;
-			}
+	prepare(accessedGlobalsByScope: Map<ChildScope, Set<string>>): void {
+		if (this.mergedNamespaces.length > 0 || this.syntheticNamedExports) {
+			this.module.scope.addAccessedGlobals([MERGE_NAMESPACES_VARIABLE], accessedGlobalsByScope);
 		}
 	}
 
@@ -86,12 +83,11 @@ export default class NamespaceVariable extends Variable {
 			members.unshift([null, `[Symbol.toStringTag]:${_}'Module'`]);
 		}
 
-		const needsObjectAssign = this.mergedNamespaces.length > 0 || this.syntheticNamedExports;
-		if (!needsObjectAssign) members.unshift([null, `__proto__:${_}null`]);
+		members.unshift([null, `__proto__:${_}null`]);
 
 		let output = getObject(members, { indent: t, lineBreaks: true });
-		if (needsObjectAssign) {
-			const assignmentArgs: string[] = ['/*#__PURE__*/Object.create(null)'];
+		if (this.mergedNamespaces.length > 0 || this.syntheticNamedExports) {
+			const assignmentArgs: string[] = [];
 			if (this.mergedNamespaces.length > 0) {
 				assignmentArgs.push(
 					...this.mergedNamespaces.map(variable => variable.getName(getPropertyAccess))
@@ -100,11 +96,9 @@ export default class NamespaceVariable extends Variable {
 			if (this.syntheticNamedExports) {
 				assignmentArgs.push(this.module.getSyntheticNamespace().getName(getPropertyAccess));
 			}
-			if (members.length > 0) {
-				assignmentArgs.push(output);
-			}
-			// TODO Lukas Object.assign is not really ES5?
-			output = `/*#__PURE__*/Object.assign(${assignmentArgs.join(`,${_}`)})`;
+			output = `/*#__PURE__*/${MERGE_NAMESPACES_VARIABLE}(${output}, [${assignmentArgs.join(
+				`,${_}`
+			)}])`;
 		}
 		if (freeze) {
 			output = `/*#__PURE__*/Object.freeze(${output})`;
@@ -122,6 +116,17 @@ export default class NamespaceVariable extends Variable {
 
 	renderFirst(): boolean {
 		return this.referencedEarly;
+	}
+
+	setMergedNamespaces(mergedNamespaces: Variable[]): void {
+		this.mergedNamespaces = mergedNamespaces;
+		const moduleExecIndex = this.context.getModuleExecIndex();
+		for (const identifier of this.references) {
+			if (identifier.context.getModuleExecIndex() <= moduleExecIndex) {
+				this.referencedEarly = true;
+				break;
+			}
+		}
 	}
 }
 

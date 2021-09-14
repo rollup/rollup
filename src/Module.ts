@@ -619,7 +619,7 @@ export default class Module {
 		}
 
 		if (includeNamespaceMembers) {
-			this.namespace.prepareNamespace(this.includeAndGetAdditionalMergedNamespaces());
+			this.namespace.setMergedNamespaces(this.includeAndGetAdditionalMergedNamespaces());
 		}
 	}
 
@@ -1094,7 +1094,7 @@ export default class Module {
 				const syntheticNamespace = module.getSyntheticNamespace();
 				syntheticNamespace.include();
 				this.imports.add(syntheticNamespace);
-				mergedNamespaces.push(syntheticNamespace);
+				mergedNamespaces.unshift(syntheticNamespace);
 			}
 		}
 		return mergedNamespaces;
