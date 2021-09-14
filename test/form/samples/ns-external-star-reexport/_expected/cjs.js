@@ -53,7 +53,7 @@ var reexportExternalsWithOverride$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/_m
 	override: override,
 	'default': reexportExternalsWithOverride,
 	extra: extra
-}, [external1__namespace, external2__namespace, reexportExternalsWithOverride]));
+}, [reexportExternalsWithOverride, external1__namespace, external2__namespace]));
 
 exports.external = reexportExternal;
 exports.externalOverride = reexportExternalsWithOverride$1;

@@ -742,7 +742,7 @@ export default class Module {
 		};
 
 		this.scope = new ModuleScope(this.graph.scope, this.astContext);
-		this.namespace = new NamespaceVariable(this.astContext, this.info.syntheticNamedExports);
+		this.namespace = new NamespaceVariable(this.astContext);
 		this.ast = new Program(ast, { context: this.astContext, type: 'Module' }, this.scope);
 		this.info.ast = ast;
 
@@ -1083,21 +1083,22 @@ export default class Module {
 	}
 
 	private includeAndGetAdditionalMergedNamespaces(): Variable[] {
-		const mergedNamespaces: Variable[] = [];
-		for (const module of this.exportAllModules) {
+		const externalNamespaces = new Set<Variable>();
+		const syntheticNamespaces = new Set<Variable>();
+		for (const module of [this, ...this.exportAllModules]) {
 			if (module instanceof ExternalModule) {
 				const externalVariable = module.getVariableForExportName('*');
 				externalVariable.include();
 				this.imports.add(externalVariable);
-				mergedNamespaces.push(externalVariable);
+				externalNamespaces.add(externalVariable);
 			} else if (module.info.syntheticNamedExports) {
 				const syntheticNamespace = module.getSyntheticNamespace();
 				syntheticNamespace.include();
 				this.imports.add(syntheticNamespace);
-				mergedNamespaces.unshift(syntheticNamespace);
+				syntheticNamespaces.add(syntheticNamespace);
 			}
 		}
-		return mergedNamespaces;
+		return [...syntheticNamespaces, ...externalNamespaces];
 	}
 
 	private includeDynamicImport(node: ImportExpression) {

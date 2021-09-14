@@ -15,13 +15,11 @@ export default class NamespaceVariable extends Variable {
 	private mergedNamespaces: Variable[] = [];
 	private referencedEarly = false;
 	private references: Identifier[] = [];
-	private syntheticNamedExports: boolean | string;
 
-	constructor(context: AstContext, syntheticNamedExports: boolean | string) {
+	constructor(context: AstContext) {
 		super(context.getModuleName());
 		this.context = context;
 		this.module = context.module;
-		this.syntheticNamedExports = syntheticNamedExports;
 	}
 
 	addReference(identifier: Identifier): void {
@@ -51,7 +49,7 @@ export default class NamespaceVariable extends Variable {
 	}
 
 	prepare(accessedGlobalsByScope: Map<ChildScope, Set<string>>): void {
-		if (this.mergedNamespaces.length > 0 || this.syntheticNamedExports) {
+		if (this.mergedNamespaces.length > 0) {
 			this.module.scope.addAccessedGlobals([MERGE_NAMESPACES_VARIABLE], accessedGlobalsByScope);
 		}
 	}
@@ -86,16 +84,10 @@ export default class NamespaceVariable extends Variable {
 		members.unshift([null, `__proto__:${_}null`]);
 
 		let output = getObject(members, { indent: t, lineBreaks: true });
-		if (this.mergedNamespaces.length > 0 || this.syntheticNamedExports) {
-			const assignmentArgs: string[] = [];
-			if (this.mergedNamespaces.length > 0) {
-				assignmentArgs.push(
-					...this.mergedNamespaces.map(variable => variable.getName(getPropertyAccess))
-				);
-			}
-			if (this.syntheticNamedExports) {
-				assignmentArgs.push(this.module.getSyntheticNamespace().getName(getPropertyAccess));
-			}
+		if (this.mergedNamespaces.length > 0) {
+			const assignmentArgs = this.mergedNamespaces.map(variable =>
+				variable.getName(getPropertyAccess)
+			);
 			output = `/*#__PURE__*/${MERGE_NAMESPACES_VARIABLE}(${output}, [${assignmentArgs.join(
 				`,${_}`
 			)}])`;

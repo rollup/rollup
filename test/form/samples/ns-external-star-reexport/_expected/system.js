@@ -37,7 +37,7 @@ System.register('bundle', ['external1', 'external2'], (function (exports) {
 				override: override,
 				'default': reexportExternalsWithOverride,
 				extra: extra
-			}, [external1, external2, reexportExternalsWithOverride]));
+			}, [reexportExternalsWithOverride, external1, external2]));
 			exports('externalOverride', reexportExternalsWithOverride$1);
 
 		})

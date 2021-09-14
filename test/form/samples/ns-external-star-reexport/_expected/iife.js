@@ -49,7 +49,7 @@ var bundle = (function (exports, external1, external2) {
 		override: override,
 		'default': reexportExternalsWithOverride,
 		extra: extra
-	}, [external1__namespace, external2__namespace, reexportExternalsWithOverride]));
+	}, [reexportExternalsWithOverride, external1__namespace, external2__namespace]));
 
 	exports.external = reexportExternal;
 	exports.externalOverride = reexportExternalsWithOverride$1;
