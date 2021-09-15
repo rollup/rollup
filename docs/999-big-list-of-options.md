@@ -460,7 +460,7 @@ Whether to extend the global variable defined by the `name` option in `umd` or `
 
 #### output.generatedCode
 
-Type: `"es5" | "es2015" | { arrowFunctions?: boolean, objectShorthand?: boolean, preset?: "es5" | "es2015", reservedNamesAsProps?: boolean }`<br> CLI: `--generatedCode <preset>`<br> Default: `"es5"`
+Type: `"es5" | "es2015" | { arrowFunctions?: boolean, constBindings?: boolean, objectShorthand?: boolean, preset?: "es5" | "es2015", reservedNamesAsProps?: boolean }`<br> CLI: `--generatedCode <preset>`<br> Default: `"es5"`
 
 Which language features Rollup can safely use in generated code. This will not transpile any user code but only change the code Rollup uses in wrappers and helpers. You may choose one of several presets:
 
@@ -469,26 +469,11 @@ Which language features Rollup can safely use in generated code. This will not t
 
 **output.generatedCode.arrowFunctions**<br> Type: `boolean`<br> CLI: `--generatedCode.arrowFunctions`/`--no-generatedCode.arrowFunctions`<br> Default: `false`
 
-Whether to use arrow functions for module wrappers and some auto-generated code snippets.
+Whether to use arrow functions for auto-generated code snippets. Note that in certain places like module wrappers, Rollup will keep using regular functions wrapped in parentheses as in some JavaScript engines, these will provide [noticeably better performance](https://v8.dev/blog/preparser#pife).
 
-```javascript
-// input
-console.log('main');
+**output.generatedCode.constBindings**<br> Type: `boolean`<br> CLI: `--generatedCode.constBindings`/`--no-generatedCode.constBindings`<br> Default: `false`
 
-// iife output with arrowFunctions: false
-(function () {
-  'use strict';
-
-  console.log('main');
-})();
-
-// iife output with arrowFunctions: true
-(() => {
-  'use strict';
-
-  console.log('main');
-})();
-```
+This will use `const` instead of `var` in certain places and helper functions. Depending on the engine, this can provide [marginally better performance](https://benediktmeurer.de/2017/06/29/javascript-optimization-patterns-part2) in optimized machine code.
 
 **output.generatedCode.objectShorthand**<br> Type: `boolean`<br> CLI: `--generatedCode.objectShorthand`/`--no-generatedCode.objectShorthand`<br> Default: `false`
 
