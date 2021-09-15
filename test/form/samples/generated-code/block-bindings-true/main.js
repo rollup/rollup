@@ -1,1 +1,0 @@
-../../generated-code/block-bindings-false/main.js

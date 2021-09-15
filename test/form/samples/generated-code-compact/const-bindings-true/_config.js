@@ -1,11 +1,12 @@
 module.exports = {
-	description: 'does not use block bindings',
+	description: 'uses block bindings',
 	expectedWarnings: ['SHIMMED_EXPORT'],
 	options: {
 		external: ['external'],
 		shimMissingExports: true,
 		output: {
-			generatedCode: { arrowFunctions: true, blockBindings: false },
+			compact: true,
+			generatedCode: { arrowFunctions: true, constBindings: true },
 			name: 'bundle',
 			noConflict: true,
 			exports: 'named'

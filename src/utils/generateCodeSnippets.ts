@@ -34,10 +34,10 @@ export interface GenerateCodeSnippets {
 
 export function getGenerateCodeSnippets({
 	compact,
-	generatedCode: { arrowFunctions, blockBindings, objectShorthand, reservedNamesAsProps }
+	generatedCode: { arrowFunctions, constBindings, objectShorthand, reservedNamesAsProps }
 }: NormalizedOutputOptions): GenerateCodeSnippets {
 	const { _, n, s } = compact ? { _: '', n: '', s: '' } : { _: ' ', n: '\n', s: ';' };
-	const cnst = blockBindings ? 'const' : 'var';
+	const cnst = constBindings ? 'const' : 'var';
 	const getNonArrowFunctionIntro: GenerateCodeSnippets['getNonArrowFunctionIntro'] = (
 		params,
 		{ isAsync, name }

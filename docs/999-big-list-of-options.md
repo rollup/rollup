@@ -1850,7 +1850,7 @@ This will rename the dynamic import function to the chosen name when outputting 
 
 #### output.preferConst
 
-_Use the [`output.generatedCode.blockBindings`](guide/en/#outputgeneratedcode) option instead._<br> Type: `boolean`<br> CLI: `--preferConst`/`--no-preferConst`<br> Default: `false`
+_Use the [`output.generatedCode.constBindings`](guide/en/#outputgeneratedcode) option instead._<br> Type: `boolean`<br> CLI: `--preferConst`/`--no-preferConst`<br> Default: `false`
 
 Generate `const` declarations for exports rather than `var` declarations.
 

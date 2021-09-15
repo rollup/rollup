@@ -8,6 +8,6 @@ module.exports = {
 	generateError: {
 		code: 'DEPRECATED_FEATURE',
 		message:
-			'The "output.preferConst" option is deprecated. Use the "output.generatedCode.blockBindings" option instead.'
+			'The "output.preferConst" option is deprecated. Use the "output.generatedCode.constBindings" option instead.'
 	}
 };

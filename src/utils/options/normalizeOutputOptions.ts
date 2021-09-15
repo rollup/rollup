@@ -203,7 +203,7 @@ const getPreferConst = (
 	const configPreferConst = config.preferConst;
 	if (configPreferConst != null) {
 		warnDeprecation(
-			`The "output.preferConst" option is deprecated. Use the "output.generatedCode.blockBindings" option instead.`,
+			`The "output.preferConst" option is deprecated. Use the "output.generatedCode.constBindings" option instead.`,
 			false,
 			inputOptions
 		);
@@ -343,7 +343,7 @@ const getGeneratedCode = (
 	);
 	return {
 		arrowFunctions: configWithPreset.arrowFunctions === true,
-		blockBindings: configWithPreset.blockBindings === true || preferConst,
+		constBindings: configWithPreset.constBindings === true || preferConst,
 		objectShorthand: configWithPreset.objectShorthand === true,
 		reservedNamesAsProps: configWithPreset.reservedNamesAsProps === true
 	};

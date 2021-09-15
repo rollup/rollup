@@ -78,13 +78,13 @@ export const generatedCodePresets: {
 } = {
 	es2015: {
 		arrowFunctions: true,
-		blockBindings: true,
+		constBindings: true,
 		objectShorthand: true,
 		reservedNamesAsProps: true
 	},
 	es5: {
 		arrowFunctions: false,
-		blockBindings: false,
+		constBindings: false,
 		objectShorthand: false,
 		reservedNamesAsProps: false
 	}
