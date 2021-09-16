@@ -12,9 +12,9 @@ function _interopNamespaceDefaultOnly (e) { return Object.freeze({ __proto__: nu
 function _interopNamespaceDefault(e) {
 	var n = Object.create(null);
 	if (e) {
-		Object.keys(e).forEach(function (k) {
+		for (var k in e) {
 			n[k] = e[k];
-		});
+		}
 	}
 	n["default"] = e;
 	return Object.freeze(n);

@@ -473,7 +473,36 @@ Whether to use arrow functions for auto-generated code snippets. Note that in ce
 
 **output.generatedCode.constBindings**<br> Type: `boolean`<br> CLI: `--generatedCode.constBindings`/`--no-generatedCode.constBindings`<br> Default: `false`
 
-This will use `const` instead of `var` in certain places and helper functions. Depending on the engine, this can provide [marginally better performance](https://benediktmeurer.de/2017/06/29/javascript-optimization-patterns-part2) in optimized machine code.
+This will use `const` instead of `var` in certain places and helper functions. Depending on the engine, this can provide [marginally better performance](https://benediktmeurer.de/2017/06/29/javascript-optimization-patterns-part2) in optimized machine code. It will also allow Rollup to generate more efficient helpers due to block scoping.
+
+```js
+// input
+export * from 'external';
+
+// cjs output with constBindings: false
+var external = require('external');
+
+Object.keys(external).forEach(function (k) {
+  if (k !== 'default' && !exports.hasOwnProperty(k))
+    Object.defineProperty(exports, k, {
+      enumerable: true,
+      get: function () {
+        return external[k];
+      }
+    });
+});
+
+// cjs output with constBindings: true
+const external = require('external');
+
+for (const k in external) {
+  if (k !== 'default' && !exports.hasOwnProperty(k))
+    Object.defineProperty(exports, k, {
+      enumerable: true,
+      get: () => external[k]
+    });
+}
+```
 
 **output.generatedCode.objectShorthand**<br> Type: `boolean`<br> CLI: `--generatedCode.objectShorthand`/`--no-generatedCode.objectShorthand`<br> Default: `false`
 
@@ -1346,8 +1375,6 @@ Example:
 export { x } from 'external';
 
 // CJS output with externalLiveBindings: true
-('use strict');
-
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var external = require('external');
@@ -1360,8 +1387,6 @@ Object.defineProperty(exports, 'x', {
 });
 
 // CJS output with externalLiveBindings: false
-('use strict');
-
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var external = require('external');

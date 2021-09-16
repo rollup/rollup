@@ -153,6 +153,7 @@ const HELPER_GENERATORS: {
 	[MERGE_NAMESPACES_VARIABLE](t, snippets, liveBindings, freeze) {
 		const { _, directReturnFunctionRight, getDirectReturnFunctionLeft, getFunctionIntro, n } =
 			snippets;
+		// TODO Lukas use more efficient loops if we can use const
 		return (
 			`function ${MERGE_NAMESPACES_VARIABLE}(n, m)${_}{${n}` +
 			`${t}m.forEach(${getDirectReturnFunctionLeft(['e'], {
@@ -186,7 +187,15 @@ const createNamespaceObject = (
 	freeze: boolean,
 	namespaceToStringTag: boolean
 ) => {
-	const { _, cnst, getFunctionIntro, getPropertyAccess, n } = snippets;
+	const { _, cnst, getPropertyAccess, n, s } = snippets;
+	const copyProperty =
+		`{${n}` +
+		(liveBindings ? copyNonDefaultPropertyLiveBinding : copyPropertyStatic)(
+			t,
+			i + t + t,
+			snippets
+		) +
+		`${i}${t}}`;
 	return (
 		`${i}${cnst} n${_}=${_}${
 			namespaceToStringTag
@@ -194,21 +203,24 @@ const createNamespaceObject = (
 				: 'Object.create(null)'
 		};${n}` +
 		`${i}if${_}(e)${_}{${n}` +
-		`${i}${t}Object.keys(e).forEach(${getFunctionIntro(['k'], {
-			isAsync: false,
-			name: null
-		})}{${n}` +
-		(liveBindings ? copyNonDefaultPropertyLiveBinding : copyPropertyStatic)(
-			t,
-			i + t + t,
-			snippets
-		) +
-		`${i}${t}});${n}` +
+		`${i}${t}${loopOverKeys(copyProperty, !liveBindings, snippets)}${n}` +
 		`${i}}${n}` +
 		`${i}n${getPropertyAccess('default')}${_}=${_}e;${n}` +
-		`${i}return ${getFrozen('n', freeze)};${n}`
+		`${i}return ${getFrozen('n', freeze)}${s}${n}`
 	);
 };
+
+const loopOverKeys = (
+	body: string,
+	allowVarLoopVariable: boolean,
+	{ _, cnst, getFunctionIntro, s }: GenerateCodeSnippets
+) =>
+	cnst !== 'var' || allowVarLoopVariable
+		? `for${_}(${cnst} k in e)${_}${body}`
+		: `Object.keys(e).forEach(${getFunctionIntro(['k'], {
+				isAsync: false,
+				name: null
+		  })}${body})${s}`;
 
 const copyNonDefaultPropertyLiveBinding = (
 	t: string,

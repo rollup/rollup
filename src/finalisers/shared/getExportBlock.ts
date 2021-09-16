@@ -14,12 +14,13 @@ export function getExportBlock(
 	interop: GetInterop,
 	{
 		_,
-		s,
+		cnst,
 		directReturnFunctionRight,
 		getDirectReturnFunctionLeft,
 		getFunctionIntro,
 		getPropertyAccess,
-		n
+		n,
+		s
 	}: GenerateCodeSnippets,
 	t: string,
 	externalLiveBindings: boolean,
@@ -98,12 +99,14 @@ export function getExportBlock(
 								name: null
 						  })}${name}[k]${directReturnFunctionRight}${n}${t}})`
 						: `exports[k]${_}=${_}${name}[k]`;
+					const copyPropertyIfNecessary = `{${n}${t}if${_}(k${_}!==${_}'default'${_}&&${_}!exports.hasOwnProperty(k))${_}${defineProperty}${s}${n}}`;
 					exportBlock +=
-						`Object.keys(${name}).forEach(${getFunctionIntro(['k'], {
-							isAsync: false,
-							name: null
-						})}{${n}` +
-						`${t}if${_}(k${_}!==${_}'default'${_}&&${_}!exports.hasOwnProperty(k))${_}${defineProperty}${s}${n}});`;
+						cnst === 'var' && specifier.needsLiveBinding
+							? `Object.keys(${name}).forEach(${getFunctionIntro(['k'], {
+									isAsync: false,
+									name: null
+							  })}${copyPropertyIfNecessary});`
+							: `for${_}(${cnst} k in ${name})${_}${copyPropertyIfNecessary}`;
 				}
 			}
 		}

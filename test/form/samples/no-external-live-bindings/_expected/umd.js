@@ -8,9 +8,9 @@
 
 	exports.external1 = external1.external1;
 	exports.dynamic = dynamic;
-	Object.keys(external2).forEach(function (k) {
+	for (var k in external2) {
 		if (k !== 'default' && !exports.hasOwnProperty(k)) exports[k] = external2[k];
-	});
+	}
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

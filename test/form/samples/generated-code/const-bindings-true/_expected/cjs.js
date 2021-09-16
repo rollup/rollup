@@ -10,7 +10,7 @@ function _interopNamespace(e) {
 	if (e && e.__esModule) return e;
 	const n = Object.create(null);
 	if (e) {
-		Object.keys(e).forEach(k => {
+		for (const k in e) {
 			if (k !== 'default') {
 				const d = Object.getOwnPropertyDescriptor(e, k);
 				Object.defineProperty(n, k, d.get ? d : {
@@ -18,7 +18,7 @@ function _interopNamespace(e) {
 					get: () => e[k]
 				});
 			}
-		});
+		}
 	}
 	n["default"] = e;
 	return Object.freeze(n);
@@ -44,9 +44,9 @@ const main = 42;
 
 exports["default"] = main;
 exports.syntheticMissing = synthetic.syntheticMissing;
-Object.keys(foo$1).forEach(k => {
+for (const k in foo$1) {
 	if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
 		enumerable: true,
 		get: () => foo$1[k]
 	});
-});
+}

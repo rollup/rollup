@@ -4,9 +4,9 @@ define(['require', 'exports', 'external1', 'external2'], (function (require, exp
 		if (e && e.__esModule) return e;
 		var n = Object.create(null);
 		if (e) {
-			Object.keys(e).forEach(function (k) {
+			for (var k in e) {
 				n[k] = e[k];
-			});
+			}
 		}
 		n["default"] = e;
 		return Object.freeze(n);
@@ -16,9 +16,9 @@ define(['require', 'exports', 'external1', 'external2'], (function (require, exp
 
 	exports.external1 = external1.external1;
 	exports.dynamic = dynamic;
-	Object.keys(external2).forEach(function (k) {
+	for (var k in external2) {
 		if (k !== 'default' && !exports.hasOwnProperty(k)) exports[k] = external2[k];
-	});
+	}
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
