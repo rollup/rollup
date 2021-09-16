@@ -464,7 +464,7 @@ Type: `"es5" | "es2015" | { arrowFunctions?: boolean, constBindings?: boolean, o
 
 Which language features Rollup can safely use in generated code. This will not transpile any user code but only change the code Rollup uses in wrappers and helpers. You may choose one of several presets:
 
-- `"es5"`: Do not use ES2015+ features like arrow functions.
+- `"es5"`: Do not use ES2015+ features like arrow functions, but do not quote reserved names used as props.
 - `"es2015"`: Use any JavaScript features up to ES2015.
 
 **output.generatedCode.arrowFunctions**<br> Type: `boolean`<br> CLI: `--generatedCode.arrowFunctions`/`--no-generatedCode.arrowFunctions`<br> Default: `false`

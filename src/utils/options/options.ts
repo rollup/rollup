@@ -86,7 +86,7 @@ export const generatedCodePresets: {
 		arrowFunctions: false,
 		constBindings: false,
 		objectShorthand: false,
-		reservedNamesAsProps: false
+		reservedNamesAsProps: true
 	}
 };
 

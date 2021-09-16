@@ -14,7 +14,7 @@ module.exports = {
 				renderStart(options) {
 					assert.strictEqual(options.generatedCode.arrowFunctions, false);
 					assert.strictEqual(options.generatedCode.objectShorthand, false);
-					assert.strictEqual(options.generatedCode.reservedNamesAsProps, false);
+					assert.strictEqual(options.generatedCode.reservedNamesAsProps, true);
 				}
 			}
 		]
