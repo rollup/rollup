@@ -4,14 +4,18 @@ import { RESERVED_NAMES } from './reservedNames';
 export interface GenerateCodeSnippets {
 	_: string;
 	cnst: string;
-	directReturnFunctionRight: string;
 	n: string;
-	namedDirectReturnFunctionRight: string;
 	s: string;
 	getDirectReturnFunctionLeft(
 		params: string[],
-		options: { functionReturn: boolean; name: string | null }
+		options: {
+			functionReturn: boolean;
+			lineBreakIndent: string | false;
+			name: string | null;
+			t: string;
+		}
 	): string;
+	getDirectReturnFunctionRight(options: { lineBreakIndent: string | false; name: boolean }): string;
 	getDirectReturnIifeLeft(
 		params: string[],
 		returned: string,
@@ -25,9 +29,10 @@ export interface GenerateCodeSnippets {
 		params: string[],
 		options: { isAsync: boolean; name: string | null }
 	): string;
+	// TODO Lukas adjust line-break handling with functions, change in System wrapper
 	getObject(
 		fields: [key: string | null, value: string][],
-		options: { indent: string; lineBreaks: boolean }
+		options: { lineBreakIndent: string | false }
 	): string;
 	getPropertyAccess(name: string): string;
 }
@@ -56,14 +61,26 @@ export function getGenerateCodeSnippets({
 
 	const getDirectReturnFunctionLeft: GenerateCodeSnippets['getDirectReturnFunctionLeft'] = (
 		params,
-		{ functionReturn, name }
+		{ functionReturn, t, lineBreakIndent, name }
 	) =>
 		`${getFunctionIntro(params, {
 			isAsync: false,
 			name
-		})}${arrowFunctions ? '' : `{${_}${functionReturn ? 'return ' : ''}`}`;
+		})}${
+			arrowFunctions
+				? lineBreakIndent
+					? `${n}${lineBreakIndent}${t}`
+					: ''
+				: `{${lineBreakIndent ? `${n}${lineBreakIndent}${t}` : _}${functionReturn ? 'return ' : ''}`
+		}`;
 
-	const directReturnFunctionRight = arrowFunctions ? '' : `${s}${_}}`;
+	const getDirectReturnFunctionRight: GenerateCodeSnippets['getDirectReturnFunctionRight'] = ({
+		lineBreakIndent,
+		name
+	}) =>
+		arrowFunctions
+			? `${name ? ';' : ''}${lineBreakIndent ? `${n}${lineBreakIndent}` : ''}`
+			: `${s}${lineBreakIndent ? `${n}${lineBreakIndent}` : _}}`;
 
 	const isValidPropName = reservedNamesAsProps
 		? (name: string): boolean => validPropName.test(name)
@@ -72,23 +89,25 @@ export function getGenerateCodeSnippets({
 	return {
 		_,
 		cnst,
-		directReturnFunctionRight,
 		getDirectReturnFunctionLeft,
+		getDirectReturnFunctionRight,
 		getDirectReturnIifeLeft: (params, returned, { needsArrowReturnParens, needsWrappedFunction }) =>
 			`${wrapIfNeeded(
 				`${getDirectReturnFunctionLeft(params, {
 					functionReturn: true,
-					name: null
+					lineBreakIndent: false,
+					name: null,
+					t: ''
 				})}${wrapIfNeeded(
 					returned,
 					arrowFunctions && needsArrowReturnParens
-				)}${directReturnFunctionRight}`,
+				)}${getDirectReturnFunctionRight({ lineBreakIndent: false, name: false })}`,
 				arrowFunctions || needsWrappedFunction
 			)}(`,
 		getFunctionIntro,
 		getNonArrowFunctionIntro,
-		getObject(fields, { indent, lineBreaks }) {
-			const prefix = `${lineBreaks ? n : ''}${indent}`;
+		getObject(fields, { lineBreakIndent }) {
+			const prefix = lineBreakIndent === false ? _ : `${n}${lineBreakIndent}`;
 			return `{${fields
 				.map(([key, value]) => {
 					if (key === null) return `${prefix}${value}`;
@@ -97,12 +116,11 @@ export function getGenerateCodeSnippets({
 						? prefix + key
 						: `${prefix}${needsQuotes ? `'${key}'` : key}:${_}${value}`;
 				})
-				.join(`,`)}${fields.length === 0 ? '' : lineBreaks ? n : indent}}`;
+				.join(`,`)}${fields.length === 0 ? '' : lineBreakIndent === false ? _ : n}}`;
 		},
 		getPropertyAccess: (name: string): string =>
 			isValidPropName(name) ? `.${name}` : `[${JSON.stringify(name)}]`,
 		n,
-		namedDirectReturnFunctionRight: `${directReturnFunctionRight}${arrowFunctions ? ';' : ''}`,
 		s
 	};
 }

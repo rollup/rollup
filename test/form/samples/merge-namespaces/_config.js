@@ -1,5 +1,5 @@
 module.exports = {
-	description: 'merges namespaces without live-bindings',
+	description: 'merges namespaces with live-bindings',
 	options: {
 		external: ['external1', 'external2'],
 		plugins: [

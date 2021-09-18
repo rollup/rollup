@@ -132,7 +132,7 @@ function analyzeDependencies(
 				}
 			}
 			if (reexportedNames.length > 1 || hasStarReexport) {
-				const exportMapping = getObject(reexportedNames, { indent: _, lineBreaks: false });
+				const exportMapping = getObject(reexportedNames, { lineBreakIndent: false });
 				if (hasStarReexport) {
 					if (!starExcludes) {
 						starExcludes = getStarExcludes({ dependencies, exports });
@@ -178,7 +178,7 @@ const getStarExcludesBlock = (
 	starExcludes
 		? `${n}${t}${cnst} _starExcludes${_}=${_}${getObject(
 				[...starExcludes].map(prop => [prop, '1']),
-				{ indent: _, lineBreaks: false }
+				{ lineBreakIndent: false }
 		  )};`
 		: '';
 

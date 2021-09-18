@@ -48,15 +48,20 @@ export default class ImportExpression extends NodeBase {
 	render(code: MagicString, options: RenderOptions): void {
 		if (this.inlineNamespace) {
 			const {
-				snippets: { directReturnFunctionRight, getDirectReturnFunctionLeft, getPropertyAccess }
+				snippets: { getDirectReturnFunctionLeft, getDirectReturnFunctionRight, getPropertyAccess }
 			} = options;
 			code.overwrite(
 				this.start,
 				this.end,
 				`Promise.resolve().then(${getDirectReturnFunctionLeft([], {
 					functionReturn: true,
-					name: null
-				})}${this.inlineNamespace.getName(getPropertyAccess)}${directReturnFunctionRight})`,
+					lineBreakIndent: false,
+					name: null,
+					t: ''
+				})}${this.inlineNamespace.getName(getPropertyAccess)}${getDirectReturnFunctionRight({
+					lineBreakIndent: false,
+					name: false
+				})})`,
 				{ contentOnly: true }
 			);
 			return;
@@ -78,7 +83,7 @@ export default class ImportExpression extends NodeBase {
 		code: MagicString,
 		resolution: string,
 		namespaceExportName: string | false | undefined,
-		{ directReturnFunctionRight, getDirectReturnFunctionLeft }: GenerateCodeSnippets
+		{ getDirectReturnFunctionLeft, getDirectReturnFunctionRight }: GenerateCodeSnippets
 	): void {
 		code.overwrite(this.source.start, this.source.end, resolution);
 		if (namespaceExportName) {
@@ -86,8 +91,13 @@ export default class ImportExpression extends NodeBase {
 				this.end,
 				`.then(${getDirectReturnFunctionLeft(['n'], {
 					functionReturn: true,
-					name: null
-				})}n.${namespaceExportName}${directReturnFunctionRight})`
+					lineBreakIndent: false,
+					name: null,
+					t: ''
+				})}n.${namespaceExportName}${getDirectReturnFunctionRight({
+					lineBreakIndent: false,
+					name: false
+				})})`
 			);
 		}
 	}
@@ -135,8 +145,8 @@ export default class ImportExpression extends NodeBase {
 		}: NormalizedOutputOptions,
 		{
 			_,
-			directReturnFunctionRight,
 			getDirectReturnFunctionLeft,
+			getDirectReturnFunctionRight,
 			getDirectReturnIifeLeft
 		}: GenerateCodeSnippets,
 		pluginDriver: PluginDriver
@@ -165,9 +175,14 @@ export default class ImportExpression extends NodeBase {
 				}
 				left = `Promise.resolve().then(${getDirectReturnFunctionLeft([], {
 					functionReturn: true,
-					name: null
+					lineBreakIndent: false,
+					name: null,
+					t: ''
 				})}${left}`;
-				right += `${directReturnFunctionRight})`;
+				right += `${getDirectReturnFunctionRight({
+					lineBreakIndent: false,
+					name: false
+				})})`;
 				if (!arrowFunctions && hasDynamicTarget) {
 					left = getDirectReturnIifeLeft(['t'], `${left}t${right}`, {
 						needsArrowReturnParens: false,
@@ -187,14 +202,24 @@ export default class ImportExpression extends NodeBase {
 				const resolveNamespace = helper
 					? `${getDirectReturnFunctionLeft(['m'], {
 							functionReturn: false,
-							name: null
-					  })}${resolve}(/*#__PURE__*/${helper}(m))${directReturnFunctionRight}`
+							lineBreakIndent: false,
+							name: null,
+							t: ''
+					  })}${resolve}(/*#__PURE__*/${helper}(m))${getDirectReturnFunctionRight({
+							lineBreakIndent: false,
+							name: false
+					  })}`
 					: resolve;
 				let left = `new Promise(${getDirectReturnFunctionLeft([resolve, reject], {
 					functionReturn: false,
-					name: null
+					lineBreakIndent: false,
+					name: null,
+					t: ''
 				})}require([`;
-				let right = `],${_}${resolveNamespace},${_}${reject})${directReturnFunctionRight})`;
+				let right = `],${_}${resolveNamespace},${_}${reject})${getDirectReturnFunctionRight({
+					lineBreakIndent: false,
+					name: false
+				})})`;
 				if (!arrowFunctions && hasDynamicTarget) {
 					left = getDirectReturnIifeLeft(['t'], `${left}t${right}`, {
 						needsArrowReturnParens: false,

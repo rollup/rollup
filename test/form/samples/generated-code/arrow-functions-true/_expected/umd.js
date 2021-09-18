@@ -35,15 +35,17 @@
 	var _interopNamespace = e => e && e.__esModule ? e : _interopNamespaceDefault(e);
 
 	function _mergeNamespaces(n, m) {
-		m.forEach(e => Object.keys(e).forEach(k => {
-			if (k !== 'default' && !(k in n)) {
-				var d = Object.getOwnPropertyDescriptor(e, k);
-				Object.defineProperty(n, k, d.get ? d : {
-					enumerable: true,
-					get: () => e[k]
-				});
-			}
-		}));
+		m.forEach(e => 
+			Object.keys(e).forEach(k => {
+				if (k !== 'default' && !(k in n)) {
+					var d = Object.getOwnPropertyDescriptor(e, k);
+					Object.defineProperty(n, k, d.get ? d : {
+						enumerable: true,
+						get: () => e[k]
+					});
+				}
+			})
+		);
 		return Object.freeze(n);
 	}
 

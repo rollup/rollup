@@ -83,7 +83,7 @@ export default class NamespaceVariable extends Variable {
 
 		members.unshift([null, `__proto__:${_}null`]);
 
-		let output = getObject(members, { indent: t, lineBreaks: true });
+		let output = getObject(members, { lineBreakIndent: t });
 		if (this.mergedNamespaces.length > 0) {
 			const assignmentArgs = this.mergedNamespaces.map(variable =>
 				variable.getName(getPropertyAccess)

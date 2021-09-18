@@ -2,11 +2,14 @@ import * as external1 from 'external1';
 import * as external2 from 'external2';
 
 function _mergeNamespaces(n, m) {
-	m.forEach(function (e) { Object.keys(e).forEach(function (k) {
-		if (k !== 'default' && !(k in n)) {
-			n[k] = e[k];
+	for (var i = 0; i < m.length; i++) {
+		var e = m[i];
+		for (var k in e) {
+			if (k !== 'default' && !(k in n)) {
+				n[k] = e[k];
+			}
 		}
-	}); });
+	}
 	return Object.freeze(n);
 }
 

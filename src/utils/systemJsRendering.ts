@@ -22,7 +22,7 @@ export function getSystemExportStatement(
 				fields.push([exportName, variable.getName(getPropertyAccess) + modifier]);
 			}
 		}
-		return `exports(${getObject(fields, { indent: _, lineBreaks: false })})`;
+		return `exports(${getObject(fields, { lineBreakIndent: false })})`;
 	}
 }
 

@@ -15,8 +15,8 @@ export function getExportBlock(
 	{
 		_,
 		cnst,
-		directReturnFunctionRight,
 		getDirectReturnFunctionLeft,
+		getDirectReturnFunctionRight,
 		getFunctionIntro,
 		getPropertyAccess,
 		n,
@@ -69,8 +69,13 @@ export function getExportBlock(
 							  `${t}enumerable:${_}true,${n}` +
 							  `${t}get:${_}${getDirectReturnFunctionLeft([], {
 									functionReturn: true,
-									name: null
-							  })}${importName}${directReturnFunctionRight}${n}});`
+									lineBreakIndent: false,
+									name: null,
+									t: ''
+							  })}${importName}${getDirectReturnFunctionRight({
+									lineBreakIndent: false,
+									name: false
+							  })}${n}});`
 							: `exports${getPropertyAccess(specifier.reexported)}${_}=${_}${importName};`;
 				}
 			}
@@ -96,8 +101,13 @@ export function getExportBlock(
 						  `${t}${t}enumerable:${_}true,${n}` +
 						  `${t}${t}get:${_}${getDirectReturnFunctionLeft([], {
 								functionReturn: true,
-								name: null
-						  })}${name}[k]${directReturnFunctionRight}${n}${t}})`
+								lineBreakIndent: false,
+								name: null,
+								t: ''
+						  })}${name}[k]${getDirectReturnFunctionRight({
+								lineBreakIndent: false,
+								name: false
+						  })}${n}${t}})`
 						: `exports[k]${_}=${_}${name}[k]`;
 					const copyPropertyIfNecessary = `{${n}${t}if${_}(k${_}!==${_}'default'${_}&&${_}!exports.hasOwnProperty(k))${_}${defineProperty}${s}${n}}`;
 					exportBlock +=
