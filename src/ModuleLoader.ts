@@ -341,7 +341,11 @@ export class ModuleLoader {
 		Promise.all([
 			...(resolveStaticDependencyPromises as Promise<never>[]),
 			...(resolveDynamicImportPromises as Promise<never>[])
-		]).then(() => this.pluginDriver.hookParallel('moduleParsed', [module.info]));
+		])
+			.then(() => this.pluginDriver.hookParallel('moduleParsed', [module.info]))
+			.catch(() => {
+				/* rejections thrown here are also handled within PluginDriver - they are safe to ignore */
+			});
 		await Promise.all([
 			this.fetchStaticDependencies(module, resolveStaticDependencyPromises),
 			this.fetchDynamicDependencies(module, resolveDynamicImportPromises)
