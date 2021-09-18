@@ -473,7 +473,7 @@ Whether to use arrow functions for auto-generated code snippets. Note that in ce
 
 **output.generatedCode.constBindings**<br> Type: `boolean`<br> CLI: `--generatedCode.constBindings`/`--no-generatedCode.constBindings`<br> Default: `false`
 
-This will use `const` instead of `var` in certain places and helper functions. Depending on the engine, this can provide [marginally better performance](https://benediktmeurer.de/2017/06/29/javascript-optimization-patterns-part2) in optimized machine code. It will also allow Rollup to generate more efficient helpers due to block scoping.
+This will use `const` instead of `var` in certain places and helper functions. This will allow Rollup to generate more efficient helpers due to block scoping.
 
 ```js
 // input
@@ -555,7 +555,7 @@ export default {
 
 **output.generatedCode.reservedNamesAsProps**<br> Type: `boolean`<br> CLI: `--generatedCode.reservedNamesAsProps`/`--no-generatedCode.reservedNamesAsProps`<br> Default: `false`
 
-Determine whether reserved words like "default" can be used as prop names without using quotes.
+Determine whether reserved words like "default" can be used as prop names without using quotes. This will make the syntax of the generated code ES3 compliant. Note however that for full ES3 compliance, you may also need to polyfill some builtin functions like `Object.keys` or `Array.prototype.forEach`.
 
 ```javascript
 // input

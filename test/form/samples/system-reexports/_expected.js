@@ -1,6 +1,14 @@
 System.register(['external1', 'external2', 'external3', 'external4', 'external5'], (function (exports) {
 	'use strict';
-	var _starExcludes = { 'default': 1, namedReexport1: 1, namedReexport2a: 1, namedReexport2b: 1, namespaceReexport3: 1, namedReexport5: 1, namespaceReexport5: 1 };
+	var _starExcludes = {
+		'default': 1,
+		namedReexport1: 1,
+		namedReexport2a: 1,
+		namedReexport2b: 1,
+		namespaceReexport3: 1,
+		namedReexport5: 1,
+		namespaceReexport5: 1
+	};
 	return {
 		setters: [function (module) {
 			exports('namedReexport1', module.namedReexport1);

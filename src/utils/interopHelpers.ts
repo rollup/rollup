@@ -77,11 +77,10 @@ const HELPER_GENERATORS: {
 } = {
 	[INTEROP_DEFAULT_LEGACY_VARIABLE](_t, snippets, liveBindings) {
 		const { _, getDirectReturnFunction, n } = snippets;
-		const { left, right } = getDirectReturnFunction(['e'], {
+		const [left, right] = getDirectReturnFunction(['e'], {
 			functionReturn: true,
-			lineBreakIndent: false,
-			name: INTEROP_DEFAULT_LEGACY_VARIABLE,
-			t: ''
+			lineBreakIndent: null,
+			name: INTEROP_DEFAULT_LEGACY_VARIABLE
 		});
 		return (
 			`${left}e${_}&&${_}typeof e${_}===${_}'object'${_}&&${_}'default'${_}in e${_}?${_}` +
@@ -92,11 +91,10 @@ const HELPER_GENERATORS: {
 	},
 	[INTEROP_DEFAULT_VARIABLE](_t, snippets, liveBindings) {
 		const { _, getDirectReturnFunction, n } = snippets;
-		const { left, right } = getDirectReturnFunction(['e'], {
+		const [left, right] = getDirectReturnFunction(['e'], {
 			functionReturn: true,
-			lineBreakIndent: false,
-			name: INTEROP_DEFAULT_VARIABLE,
-			t: ''
+			lineBreakIndent: null,
+			name: INTEROP_DEFAULT_VARIABLE
 		});
 		return (
 			`${left}e${_}&&${_}e.__esModule${_}?${_}` +
@@ -112,11 +110,10 @@ const HELPER_GENERATORS: {
 		freeze: boolean,
 		namespaceToStringTag: boolean
 	) {
-		const { left, right } = getDirectReturnFunction(['e'], {
+		const [left, right] = getDirectReturnFunction(['e'], {
 			functionReturn: true,
-			lineBreakIndent: false,
-			name: INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE,
-			t: ''
+			lineBreakIndent: null,
+			name: INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE
 		});
 		return `${left}${getFrozen(
 			getObject(
@@ -127,7 +124,7 @@ const HELPER_GENERATORS: {
 						: []),
 					['default', 'e']
 				],
-				{ lineBreakIndent: false }
+				{ lineBreakIndent: null }
 			),
 			freeze
 		)}${right}${n}${n}`;
@@ -150,11 +147,10 @@ const HELPER_GENERATORS: {
 	) {
 		const { _, getDirectReturnFunction, n } = snippets;
 		if (usedHelpers.has(INTEROP_NAMESPACE_DEFAULT_VARIABLE)) {
-			const { left, right } = getDirectReturnFunction(['e'], {
+			const [left, right] = getDirectReturnFunction(['e'], {
 				functionReturn: true,
-				lineBreakIndent: false,
-				name: INTEROP_NAMESPACE_VARIABLE,
-				t: ''
+				lineBreakIndent: null,
+				name: INTEROP_NAMESPACE_VARIABLE
 			});
 			return `${left}e${_}&&${_}e.__esModule${_}?${_}e${_}:${_}${INTEROP_NAMESPACE_DEFAULT_VARIABLE}(e)${right}${n}${n}`;
 		}
@@ -167,7 +163,6 @@ const HELPER_GENERATORS: {
 	},
 	[MERGE_NAMESPACES_VARIABLE](t, snippets, liveBindings, freeze) {
 		const { _, n } = snippets;
-		// TODO Lukas mention improved helpers and used builtins in generatedCode docs
 		return (
 			`function ${MERGE_NAMESPACES_VARIABLE}(n, m)${_}{${n}` +
 			`${t}${loopOverNamespaces(
@@ -191,7 +186,7 @@ const HELPER_GENERATORS: {
 };
 
 const getDefaultLiveBinding = ({ _, getObject }: GenerateCodeSnippets) =>
-	`e${_}:${_}${getObject([['default', 'e']], { lineBreakIndent: false })}`;
+	`e${_}:${_}${getObject([['default', 'e']], { lineBreakIndent: null })}`;
 
 const getDefaultStatic = ({ _, getPropertyAccess }: GenerateCodeSnippets) =>
 	`e${getPropertyAccess('default')}${_}:${_}e`;
@@ -220,7 +215,7 @@ const createNamespaceObject = (
 				: 'Object.create(null)'
 		};${n}` +
 		`${i}if${_}(e)${_}{${n}` +
-		`${i}${t}${loopOverKeys(copyProperty, !liveBindings, true, snippets)}${n}` +
+		`${i}${t}${loopOverKeys(copyProperty, !liveBindings, snippets)}${n}` +
 		`${i}}${n}` +
 		`${i}n${getPropertyAccess('default')}${_}=${_}e;${n}` +
 		`${i}return ${getFrozen('n', freeze)}${s}${n}`
@@ -230,15 +225,14 @@ const createNamespaceObject = (
 const loopOverKeys = (
 	body: string,
 	allowVarLoopVariable: boolean,
-	isStatement: boolean,
 	{ _, cnst, getFunctionIntro, s }: GenerateCodeSnippets
 ) =>
 	cnst !== 'var' || allowVarLoopVariable
-		? wrapBracesIfNeeded(`for${_}(${cnst} k in e)${_}${body}`, !isStatement, _)
+		? `for${_}(${cnst} k in e)${_}${body}`
 		: `Object.keys(e).forEach(${getFunctionIntro(['k'], {
 				isAsync: false,
 				name: null
-		  })}${body})${isStatement ? s : ''}`;
+		  })}${body})${s}`;
 
 const loopOverNamespaces = (
 	body: string,
@@ -253,11 +247,10 @@ const loopOverNamespaces = (
 			`${t}${t}for${_}(${cnst} k in e)${_}${body}${n}${t}}`
 		);
 	}
-	const { left, right } = getDirectReturnFunction(['e'], {
+	const [left, right] = getDirectReturnFunction(['e'], {
 		functionReturn: false,
-		lineBreakIndent: t,
-		name: null,
-		t
+		lineBreakIndent: { base: t, t },
+		name: null
 	});
 	return (
 		`m.forEach(${left}` +
@@ -286,11 +279,10 @@ const copyPropertyLiveBinding = (
 	i: string,
 	{ _, cnst, getDirectReturnFunction, n }: GenerateCodeSnippets
 ) => {
-	const { left, right } = getDirectReturnFunction([], {
+	const [left, right] = getDirectReturnFunction([], {
 		functionReturn: true,
-		lineBreakIndent: false,
-		name: null,
-		t: ''
+		lineBreakIndent: null,
+		name: null
 	});
 	return (
 		`${i}${cnst} d${_}=${_}Object.getOwnPropertyDescriptor(e,${_}k);${n}` +
@@ -308,6 +300,3 @@ const getFrozen = (fragment: string, freeze: boolean) =>
 	freeze ? `Object.freeze(${fragment})` : fragment;
 
 export const HELPER_NAMES = Object.keys(HELPER_GENERATORS);
-
-const wrapBracesIfNeeded = (code: string, needsBraces: boolean | undefined, _: string): string =>
-	needsBraces ? `{${_}${code}${_}` : code;

@@ -1,6 +1,11 @@
 System.register(['./generated-dep.js', 'external2', 'starexternal2'], (function (exports) {
 	'use strict';
-	var _starExcludes = { main: 1, 'default': 1, dep: 1, e: 1 };
+	var _starExcludes = {
+		main: 1,
+		'default': 1,
+		dep: 1,
+		e: 1
+	};
 	return {
 		setters: [function (module) {
 			exports('dep', module.d);

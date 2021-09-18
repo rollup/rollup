@@ -1,6 +1,9 @@
 System.register('bundle', ['external'], (function (exports) {
 	'use strict';
-	const _starExcludes = { 'default': 1, syntheticMissing: 1 };
+	const _starExcludes = {
+		'default': 1,
+		syntheticMissing: 1
+	};
 	var foo__default, foo$1;
 	return {
 		setters: [module => {

@@ -1,6 +1,10 @@
 System.register('bundle', ['externalNoImport', 'external', 'externalAuto', 'externalDefault', 'externalDefaultOnly'], (function (exports, module) {
 	'use strict';
-	var _starExcludes = { a: 1, 'default': 1, foo: 1 };
+	var _starExcludes = {
+		a: 1,
+		'default': 1,
+		foo: 1
+	};
 	var b, defaultLegacy, defaultLegacy__default, externalAuto, externalDefault, externalDefaultOnly;
 	return {
 		setters: [function () {}, function (module) {

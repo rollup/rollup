@@ -10,11 +10,10 @@ export interface GenerateCodeSnippets {
 		params: string[],
 		options: {
 			functionReturn: boolean;
-			lineBreakIndent: string | false;
+			lineBreakIndent: { base: string; t: string } | null;
 			name: string | null;
-			t: string;
 		}
-	): { left: string; right: string };
+	): [left: string, right: string];
 	getDirectReturnIifeLeft(
 		params: string[],
 		returned: string,
@@ -28,10 +27,9 @@ export interface GenerateCodeSnippets {
 		params: string[],
 		options: { isAsync: boolean; name: string | null }
 	): string;
-	// TODO Lukas adjust line-break handling with functions, change in System wrapper
 	getObject(
 		fields: [key: string | null, value: string][],
-		options: { lineBreakIndent: string | false }
+		options: { lineBreakIndent: { base: string; t: string } | null }
 	): string;
 	getPropertyAccess(name: string): string;
 }
@@ -60,22 +58,24 @@ export function getGenerateCodeSnippets({
 
 	const getDirectReturnFunction: GenerateCodeSnippets['getDirectReturnFunction'] = (
 		params,
-		{ functionReturn, t, lineBreakIndent, name }
-	) => ({
-		left: `${getFunctionIntro(params, {
+		{ functionReturn, lineBreakIndent, name }
+	) => [
+		`${getFunctionIntro(params, {
 			isAsync: false,
 			name
 		})}${
 			arrowFunctions
 				? lineBreakIndent
-					? `${n}${lineBreakIndent}${t}`
+					? `${n}${lineBreakIndent.base}${lineBreakIndent.t}`
 					: ''
-				: `{${lineBreakIndent ? `${n}${lineBreakIndent}${t}` : _}${functionReturn ? 'return ' : ''}`
+				: `{${lineBreakIndent ? `${n}${lineBreakIndent.base}${lineBreakIndent.t}` : _}${
+						functionReturn ? 'return ' : ''
+				  }`
 		}`,
-		right: arrowFunctions
-			? `${name ? ';' : ''}${lineBreakIndent ? `${n}${lineBreakIndent}` : ''}`
-			: `${s}${lineBreakIndent ? `${n}${lineBreakIndent}` : _}}`
-	});
+		arrowFunctions
+			? `${name ? ';' : ''}${lineBreakIndent ? `${n}${lineBreakIndent.base}` : ''}`
+			: `${s}${lineBreakIndent ? `${n}${lineBreakIndent.base}` : _}}`
+	];
 
 	const isValidPropName = reservedNamesAsProps
 		? (name: string): boolean => validPropName.test(name)
@@ -90,11 +90,10 @@ export function getGenerateCodeSnippets({
 			returned,
 			{ needsArrowReturnParens, needsWrappedFunction }
 		) => {
-			const { left, right } = getDirectReturnFunction(params, {
+			const [left, right] = getDirectReturnFunction(params, {
 				functionReturn: true,
-				lineBreakIndent: false,
-				name: null,
-				t: ''
+				lineBreakIndent: null,
+				name: null
 			});
 			return `${wrapIfNeeded(
 				`${left}${wrapIfNeeded(returned, arrowFunctions && needsArrowReturnParens)}${right}`,
@@ -104,7 +103,7 @@ export function getGenerateCodeSnippets({
 		getFunctionIntro,
 		getNonArrowFunctionIntro,
 		getObject(fields, { lineBreakIndent }) {
-			const prefix = lineBreakIndent === false ? _ : `${n}${lineBreakIndent}`;
+			const prefix = lineBreakIndent ? `${n}${lineBreakIndent.base}${lineBreakIndent.t}` : _;
 			return `{${fields
 				.map(([key, value]) => {
 					if (key === null) return `${prefix}${value}`;
@@ -113,7 +112,9 @@ export function getGenerateCodeSnippets({
 						? prefix + key
 						: `${prefix}${needsQuotes ? `'${key}'` : key}:${_}${value}`;
 				})
-				.join(`,`)}${fields.length === 0 ? '' : lineBreakIndent === false ? _ : n}}`;
+				.join(`,`)}${
+				fields.length === 0 ? '' : lineBreakIndent ? `${n}${lineBreakIndent.base}` : _
+			}}`;
 		},
 		getPropertyAccess: (name: string): string =>
 			isValidPropName(name) ? `.${name}` : `[${JSON.stringify(name)}]`,

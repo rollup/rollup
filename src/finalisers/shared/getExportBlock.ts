@@ -56,11 +56,10 @@ export function getExportBlock(
 					);
 					if (exportBlock) exportBlock += n;
 					if (specifier.imported !== '*' && specifier.needsLiveBinding) {
-						const { left, right } = getDirectReturnFunction([], {
+						const [left, right] = getDirectReturnFunction([], {
 							functionReturn: true,
-							lineBreakIndent: false,
-							name: null,
-							t: ''
+							lineBreakIndent: null,
+							name: null
 						});
 						exportBlock +=
 							`Object.defineProperty(exports,${_}'${specifier.reexported}',${_}{${n}` +
@@ -227,11 +226,10 @@ const getDefineProperty = (
 	{ _, getDirectReturnFunction, n }: GenerateCodeSnippets
 ) => {
 	if (needsLiveBinding) {
-		const { left, right } = getDirectReturnFunction([], {
+		const [left, right] = getDirectReturnFunction([], {
 			functionReturn: true,
-			lineBreakIndent: false,
-			name: null,
-			t: ''
+			lineBreakIndent: null,
+			name: null
 		});
 		return (
 			`Object.defineProperty(exports,${_}k,${_}{${n}` +

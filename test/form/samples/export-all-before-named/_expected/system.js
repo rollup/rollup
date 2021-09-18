@@ -1,6 +1,9 @@
 System.register('exposedInternals', ['external'], (function (exports) {
 	'use strict';
-	var _starExcludes = { internalFn: 1, 'default': 1 };
+	var _starExcludes = {
+		internalFn: 1,
+		'default': 1
+	};
 	return {
 		setters: [function (module) {
 			var setter = {};
