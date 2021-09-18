@@ -1,5 +1,5 @@
-const assert = require('assert');
 const path = require('path');
+const { assertIncludes } = require('../../../utils.js');
 
 module.exports = {
 	description: 'warns on top-level this (#770)',
@@ -24,6 +24,7 @@ module.exports = {
 		}
 	],
 	runtimeError: err => {
-		assert.equal(err.message, `Cannot set property 'foo' of undefined`);
+		assertIncludes(err.message, 'Cannot set propert');
+		assertIncludes(err.message, "'foo'");
 	}
 };

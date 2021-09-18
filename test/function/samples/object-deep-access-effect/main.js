@@ -1,6 +1,6 @@
 import { unknown } from 'external';
 
-export function expectError() {
+assert.throws(() => {
 	const obj = {};
 	obj[unknown].prop;
-}
+}, /^TypeError: Cannot read propert.*'prop'.*$/ );
