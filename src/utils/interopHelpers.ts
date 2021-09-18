@@ -76,52 +76,49 @@ const HELPER_GENERATORS: {
 	) => string;
 } = {
 	[INTEROP_DEFAULT_LEGACY_VARIABLE](_t, snippets, liveBindings) {
-		const { _, getDirectReturnFunctionLeft, getDirectReturnFunctionRight, n } = snippets;
+		const { _, getDirectReturnFunction, n } = snippets;
+		const { left, right } = getDirectReturnFunction(['e'], {
+			functionReturn: true,
+			lineBreakIndent: false,
+			name: INTEROP_DEFAULT_LEGACY_VARIABLE,
+			t: ''
+		});
 		return (
-			`${getDirectReturnFunctionLeft(['e'], {
-				functionReturn: true,
-				lineBreakIndent: false,
-				name: INTEROP_DEFAULT_LEGACY_VARIABLE,
-				t: ''
-			})}e${_}&&${_}typeof e${_}===${_}'object'${_}&&${_}'default'${_}in e${_}?${_}` +
+			`${left}e${_}&&${_}typeof e${_}===${_}'object'${_}&&${_}'default'${_}in e${_}?${_}` +
 			`${
 				liveBindings ? getDefaultLiveBinding(snippets) : getDefaultStatic(snippets)
-			}${getDirectReturnFunctionRight({
-				lineBreakIndent: false,
-				name: true
-			})}${n}${n}`
+			}${right}${n}${n}`
 		);
 	},
 	[INTEROP_DEFAULT_VARIABLE](_t, snippets, liveBindings) {
-		const { _, getDirectReturnFunctionLeft, getDirectReturnFunctionRight, n } = snippets;
+		const { _, getDirectReturnFunction, n } = snippets;
+		const { left, right } = getDirectReturnFunction(['e'], {
+			functionReturn: true,
+			lineBreakIndent: false,
+			name: INTEROP_DEFAULT_VARIABLE,
+			t: ''
+		});
 		return (
-			`${getDirectReturnFunctionLeft(['e'], {
-				functionReturn: true,
-				lineBreakIndent: false,
-				name: INTEROP_DEFAULT_VARIABLE,
-				t: ''
-			})}e${_}&&${_}e.__esModule${_}?${_}` +
+			`${left}e${_}&&${_}e.__esModule${_}?${_}` +
 			`${
 				liveBindings ? getDefaultLiveBinding(snippets) : getDefaultStatic(snippets)
-			}${getDirectReturnFunctionRight({
-				lineBreakIndent: false,
-				name: true
-			})}${n}${n}`
+			}${right}${n}${n}`
 		);
 	},
 	[INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE](
 		_t,
-		{ _, getDirectReturnFunctionLeft, getDirectReturnFunctionRight, getObject, n },
+		{ _, getDirectReturnFunction, getObject, n },
 		_liveBindings: boolean,
 		freeze: boolean,
 		namespaceToStringTag: boolean
 	) {
-		return `${getDirectReturnFunctionLeft(['e'], {
+		const { left, right } = getDirectReturnFunction(['e'], {
 			functionReturn: true,
 			lineBreakIndent: false,
 			name: INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE,
 			t: ''
-		})}${getFrozen(
+		});
+		return `${left}${getFrozen(
 			getObject(
 				[
 					['__proto__', 'null'],
@@ -133,10 +130,7 @@ const HELPER_GENERATORS: {
 				{ lineBreakIndent: false }
 			),
 			freeze
-		)}${getDirectReturnFunctionRight({
-			lineBreakIndent: false,
-			name: true
-		})}${n}${n}`;
+		)}${right}${n}${n}`;
 	},
 	[INTEROP_NAMESPACE_DEFAULT_VARIABLE](t, snippets, liveBindings, freeze, namespaceToStringTag) {
 		const { _, n } = snippets;
@@ -154,27 +148,25 @@ const HELPER_GENERATORS: {
 		namespaceToStringTag,
 		usedHelpers
 	) {
-		const { _, getDirectReturnFunctionLeft, getDirectReturnFunctionRight, n } = snippets;
-		return usedHelpers.has(INTEROP_NAMESPACE_DEFAULT_VARIABLE)
-			? `${getDirectReturnFunctionLeft(['e'], {
-					functionReturn: true,
-					lineBreakIndent: false,
-					name: INTEROP_NAMESPACE_VARIABLE,
-					t: ''
-			  })}e${_}&&${_}e.__esModule${_}?${_}e${_}:${_}${INTEROP_NAMESPACE_DEFAULT_VARIABLE}(e)${getDirectReturnFunctionRight(
-					{
-						lineBreakIndent: false,
-						name: true
-					}
-			  )}${n}${n}`
-			: `function ${INTEROP_NAMESPACE_VARIABLE}(e)${_}{${n}` +
-					`${t}if${_}(e${_}&&${_}e.__esModule)${_}return e;${n}` +
-					createNamespaceObject(t, t, snippets, liveBindings, freeze, namespaceToStringTag) +
-					`}${n}${n}`;
+		const { _, getDirectReturnFunction, n } = snippets;
+		if (usedHelpers.has(INTEROP_NAMESPACE_DEFAULT_VARIABLE)) {
+			const { left, right } = getDirectReturnFunction(['e'], {
+				functionReturn: true,
+				lineBreakIndent: false,
+				name: INTEROP_NAMESPACE_VARIABLE,
+				t: ''
+			});
+			return `${left}e${_}&&${_}e.__esModule${_}?${_}e${_}:${_}${INTEROP_NAMESPACE_DEFAULT_VARIABLE}(e)${right}${n}${n}`;
+		}
+		return (
+			`function ${INTEROP_NAMESPACE_VARIABLE}(e)${_}{${n}` +
+			`${t}if${_}(e${_}&&${_}e.__esModule)${_}return e;${n}` +
+			createNamespaceObject(t, t, snippets, liveBindings, freeze, namespaceToStringTag) +
+			`}${n}${n}`
+		);
 	},
 	[MERGE_NAMESPACES_VARIABLE](t, snippets, liveBindings, freeze) {
 		const { _, n } = snippets;
-		// TODO Lukas use more efficient loops if we can use const
 		// TODO Lukas mention improved helpers and used builtins in generatedCode docs
 		return (
 			`function ${MERGE_NAMESPACES_VARIABLE}(n, m)${_}{${n}` +
@@ -248,38 +240,33 @@ const loopOverKeys = (
 				name: null
 		  })}${body})${isStatement ? s : ''}`;
 
-// TODO Lukas getDirectReturnFunctionLeft
 const loopOverNamespaces = (
 	body: string,
 	allowVarLoopVariable: boolean,
 	t: string,
-	{
-		_,
-		cnst,
-		getDirectReturnFunctionLeft,
-		getDirectReturnFunctionRight,
-		getFunctionIntro,
-		n,
-		s
-	}: GenerateCodeSnippets
-) =>
-	cnst !== 'var' || allowVarLoopVariable
-		? `for${_}(var i${_}=${_}0;${_}i${_}<${_}m.length;${_}i++)${_}{${n}` +
-		  `${t}${t}${cnst} e${_}=${_}m[i];${n}` +
-		  `${t}${t}for${_}(${cnst} k in e)${_}${body}${n}${t}}`
-		: `m.forEach(${getDirectReturnFunctionLeft(['e'], {
-				functionReturn: false,
-				lineBreakIndent: t,
-				name: null,
-				t
-		  })}` +
-		  `Object.keys(e).forEach(${getFunctionIntro(['k'], {
-				isAsync: false,
-				name: null
-		  })}${body})${getDirectReturnFunctionRight({
-				lineBreakIndent: t,
-				name: false
-		  })})${s}`;
+	{ _, cnst, getDirectReturnFunction, getFunctionIntro, n }: GenerateCodeSnippets
+) => {
+	if (cnst !== 'var' || allowVarLoopVariable) {
+		return (
+			`for${_}(var i${_}=${_}0;${_}i${_}<${_}m.length;${_}i++)${_}{${n}` +
+			`${t}${t}${cnst} e${_}=${_}m[i];${n}` +
+			`${t}${t}for${_}(${cnst} k in e)${_}${body}${n}${t}}`
+		);
+	}
+	const { left, right } = getDirectReturnFunction(['e'], {
+		functionReturn: false,
+		lineBreakIndent: t,
+		name: null,
+		t
+	});
+	return (
+		`m.forEach(${left}` +
+		`Object.keys(e).forEach(${getFunctionIntro(['k'], {
+			isAsync: false,
+			name: null
+		})}${body})${right});`
+	);
+};
 
 const copyNonDefaultPropertyLiveBinding = (
 	t: string,
@@ -297,21 +284,22 @@ const copyNonDefaultPropertyLiveBinding = (
 const copyPropertyLiveBinding = (
 	t: string,
 	i: string,
-	{ _, cnst, getDirectReturnFunctionLeft, getDirectReturnFunctionRight, n }: GenerateCodeSnippets
-) =>
-	`${i}${cnst} d${_}=${_}Object.getOwnPropertyDescriptor(e,${_}k);${n}` +
-	`${i}Object.defineProperty(n,${_}k,${_}d.get${_}?${_}d${_}:${_}{${n}` +
-	`${i}${t}enumerable:${_}true,${n}` +
-	`${i}${t}get:${_}${getDirectReturnFunctionLeft([], {
+	{ _, cnst, getDirectReturnFunction, n }: GenerateCodeSnippets
+) => {
+	const { left, right } = getDirectReturnFunction([], {
 		functionReturn: true,
 		lineBreakIndent: false,
 		name: null,
 		t: ''
-	})}e[k]${getDirectReturnFunctionRight({
-		lineBreakIndent: false,
-		name: false
-	})}${n}` +
-	`${i}});${n}`;
+	});
+	return (
+		`${i}${cnst} d${_}=${_}Object.getOwnPropertyDescriptor(e,${_}k);${n}` +
+		`${i}Object.defineProperty(n,${_}k,${_}d.get${_}?${_}d${_}:${_}{${n}` +
+		`${i}${t}enumerable:${_}true,${n}` +
+		`${i}${t}get:${_}${left}e[k]${right}${n}` +
+		`${i}});${n}`
+	);
+};
 
 const copyPropertyStatic = (_t: string, i: string, { _, n }: GenerateCodeSnippets) =>
 	`${i}n[k]${_}=${_}e[k];${n}`;

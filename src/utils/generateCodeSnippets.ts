@@ -6,7 +6,7 @@ export interface GenerateCodeSnippets {
 	cnst: string;
 	n: string;
 	s: string;
-	getDirectReturnFunctionLeft(
+	getDirectReturnFunction(
 		params: string[],
 		options: {
 			functionReturn: boolean;
@@ -14,8 +14,7 @@ export interface GenerateCodeSnippets {
 			name: string | null;
 			t: string;
 		}
-	): string;
-	getDirectReturnFunctionRight(options: { lineBreakIndent: string | false; name: boolean }): string;
+	): { left: string; right: string };
 	getDirectReturnIifeLeft(
 		params: string[],
 		returned: string,
@@ -59,11 +58,11 @@ export function getGenerateCodeSnippets({
 		  }
 		: getNonArrowFunctionIntro;
 
-	const getDirectReturnFunctionLeft: GenerateCodeSnippets['getDirectReturnFunctionLeft'] = (
+	const getDirectReturnFunction: GenerateCodeSnippets['getDirectReturnFunction'] = (
 		params,
 		{ functionReturn, t, lineBreakIndent, name }
-	) =>
-		`${getFunctionIntro(params, {
+	) => ({
+		left: `${getFunctionIntro(params, {
 			isAsync: false,
 			name
 		})}${
@@ -72,15 +71,11 @@ export function getGenerateCodeSnippets({
 					? `${n}${lineBreakIndent}${t}`
 					: ''
 				: `{${lineBreakIndent ? `${n}${lineBreakIndent}${t}` : _}${functionReturn ? 'return ' : ''}`
-		}`;
-
-	const getDirectReturnFunctionRight: GenerateCodeSnippets['getDirectReturnFunctionRight'] = ({
-		lineBreakIndent,
-		name
-	}) =>
-		arrowFunctions
+		}`,
+		right: arrowFunctions
 			? `${name ? ';' : ''}${lineBreakIndent ? `${n}${lineBreakIndent}` : ''}`
-			: `${s}${lineBreakIndent ? `${n}${lineBreakIndent}` : _}}`;
+			: `${s}${lineBreakIndent ? `${n}${lineBreakIndent}` : _}}`
+	});
 
 	const isValidPropName = reservedNamesAsProps
 		? (name: string): boolean => validPropName.test(name)
@@ -89,21 +84,23 @@ export function getGenerateCodeSnippets({
 	return {
 		_,
 		cnst,
-		getDirectReturnFunctionLeft,
-		getDirectReturnFunctionRight,
-		getDirectReturnIifeLeft: (params, returned, { needsArrowReturnParens, needsWrappedFunction }) =>
-			`${wrapIfNeeded(
-				`${getDirectReturnFunctionLeft(params, {
-					functionReturn: true,
-					lineBreakIndent: false,
-					name: null,
-					t: ''
-				})}${wrapIfNeeded(
-					returned,
-					arrowFunctions && needsArrowReturnParens
-				)}${getDirectReturnFunctionRight({ lineBreakIndent: false, name: false })}`,
+		getDirectReturnFunction,
+		getDirectReturnIifeLeft: (
+			params,
+			returned,
+			{ needsArrowReturnParens, needsWrappedFunction }
+		) => {
+			const { left, right } = getDirectReturnFunction(params, {
+				functionReturn: true,
+				lineBreakIndent: false,
+				name: null,
+				t: ''
+			});
+			return `${wrapIfNeeded(
+				`${left}${wrapIfNeeded(returned, arrowFunctions && needsArrowReturnParens)}${right}`,
 				arrowFunctions || needsWrappedFunction
-			)}(`,
+			)}(`;
+		},
 		getFunctionIntro,
 		getNonArrowFunctionIntro,
 		getObject(fields, { lineBreakIndent }) {

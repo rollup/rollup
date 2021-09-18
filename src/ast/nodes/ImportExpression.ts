@@ -48,20 +48,18 @@ export default class ImportExpression extends NodeBase {
 	render(code: MagicString, options: RenderOptions): void {
 		if (this.inlineNamespace) {
 			const {
-				snippets: { getDirectReturnFunctionLeft, getDirectReturnFunctionRight, getPropertyAccess }
+				snippets: { getDirectReturnFunction, getPropertyAccess }
 			} = options;
+			const { left, right } = getDirectReturnFunction([], {
+				functionReturn: true,
+				lineBreakIndent: false,
+				name: null,
+				t: ''
+			});
 			code.overwrite(
 				this.start,
 				this.end,
-				`Promise.resolve().then(${getDirectReturnFunctionLeft([], {
-					functionReturn: true,
-					lineBreakIndent: false,
-					name: null,
-					t: ''
-				})}${this.inlineNamespace.getName(getPropertyAccess)}${getDirectReturnFunctionRight({
-					lineBreakIndent: false,
-					name: false
-				})})`,
+				`Promise.resolve().then(${left}${this.inlineNamespace.getName(getPropertyAccess)}${right})`,
 				{ contentOnly: true }
 			);
 			return;
@@ -83,22 +81,17 @@ export default class ImportExpression extends NodeBase {
 		code: MagicString,
 		resolution: string,
 		namespaceExportName: string | false | undefined,
-		{ getDirectReturnFunctionLeft, getDirectReturnFunctionRight }: GenerateCodeSnippets
+		{ getDirectReturnFunction }: GenerateCodeSnippets
 	): void {
 		code.overwrite(this.source.start, this.source.end, resolution);
 		if (namespaceExportName) {
-			code.prependLeft(
-				this.end,
-				`.then(${getDirectReturnFunctionLeft(['n'], {
-					functionReturn: true,
-					lineBreakIndent: false,
-					name: null,
-					t: ''
-				})}n.${namespaceExportName}${getDirectReturnFunctionRight({
-					lineBreakIndent: false,
-					name: false
-				})})`
-			);
+			const { left, right } = getDirectReturnFunction(['n'], {
+				functionReturn: true,
+				lineBreakIndent: false,
+				name: null,
+				t: ''
+			});
+			code.prependLeft(this.end, `.then(${left}n.${namespaceExportName}${right})`);
 		}
 	}
 
@@ -143,12 +136,7 @@ export default class ImportExpression extends NodeBase {
 			generatedCode: { arrowFunctions },
 			interop
 		}: NormalizedOutputOptions,
-		{
-			_,
-			getDirectReturnFunctionLeft,
-			getDirectReturnFunctionRight,
-			getDirectReturnIifeLeft
-		}: GenerateCodeSnippets,
+		{ _, getDirectReturnFunction, getDirectReturnIifeLeft }: GenerateCodeSnippets,
 		pluginDriver: PluginDriver
 	): { helper: string | null; mechanism: DynamicImportMechanism | null } {
 		const mechanism = pluginDriver.hookFirstSync('renderDynamicImport', [
@@ -173,16 +161,14 @@ export default class ImportExpression extends NodeBase {
 					left = `/*#__PURE__*/${helper}(${left}`;
 					right += ')';
 				}
-				left = `Promise.resolve().then(${getDirectReturnFunctionLeft([], {
+				const { left: functionLeft, right: functionRight } = getDirectReturnFunction([], {
 					functionReturn: true,
 					lineBreakIndent: false,
 					name: null,
 					t: ''
-				})}${left}`;
-				right += `${getDirectReturnFunctionRight({
-					lineBreakIndent: false,
-					name: false
-				})})`;
+				});
+				left = `Promise.resolve().then(${functionLeft}${left}`;
+				right += `${functionRight})`;
 				if (!arrowFunctions && hasDynamicTarget) {
 					left = getDirectReturnIifeLeft(['t'], `${left}t${right}`, {
 						needsArrowReturnParens: false,
@@ -199,27 +185,26 @@ export default class ImportExpression extends NodeBase {
 				const resolve = compact ? 'c' : 'resolve';
 				const reject = compact ? 'e' : 'reject';
 				const helper = getInteropHelper(resolution, exportMode, interop);
-				const resolveNamespace = helper
-					? `${getDirectReturnFunctionLeft(['m'], {
-							functionReturn: false,
-							lineBreakIndent: false,
-							name: null,
-							t: ''
-					  })}${resolve}(/*#__PURE__*/${helper}(m))${getDirectReturnFunctionRight({
-							lineBreakIndent: false,
-							name: false
-					  })}`
-					: resolve;
-				let left = `new Promise(${getDirectReturnFunctionLeft([resolve, reject], {
+				const { left: resolveLeft, right: resolveRight } = getDirectReturnFunction(['m'], {
 					functionReturn: false,
 					lineBreakIndent: false,
 					name: null,
 					t: ''
-				})}require([`;
-				let right = `],${_}${resolveNamespace},${_}${reject})${getDirectReturnFunctionRight({
-					lineBreakIndent: false,
-					name: false
-				})})`;
+				});
+				const resolveNamespace = helper
+					? `${resolveLeft}${resolve}(/*#__PURE__*/${helper}(m))${resolveRight}`
+					: resolve;
+				const { left: handlerLeft, right: handlerRight } = getDirectReturnFunction(
+					[resolve, reject],
+					{
+						functionReturn: false,
+						lineBreakIndent: false,
+						name: null,
+						t: ''
+					}
+				);
+				let left = `new Promise(${handlerLeft}require([`;
+				let right = `],${_}${resolveNamespace},${_}${reject})${handlerRight})`;
 				if (!arrowFunctions && hasDynamicTarget) {
 					left = getDirectReturnIifeLeft(['t'], `${left}t${right}`, {
 						needsArrowReturnParens: false,

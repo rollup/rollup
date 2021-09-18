@@ -12,20 +12,12 @@ export function getExportBlock(
 	dependencies: ChunkDependencies,
 	namedExportsMode: boolean,
 	interop: GetInterop,
-	{
-		_,
-		cnst,
-		getDirectReturnFunctionLeft,
-		getDirectReturnFunctionRight,
-		getFunctionIntro,
-		getPropertyAccess,
-		n,
-		s
-	}: GenerateCodeSnippets,
+	snippets: GenerateCodeSnippets,
 	t: string,
 	externalLiveBindings: boolean,
 	mechanism = 'return '
 ): string {
+	const { _, cnst, getDirectReturnFunction, getFunctionIntro, getPropertyAccess, n, s } = snippets;
 	if (!namedExportsMode) {
 		return `${n}${n}${mechanism}${getSingleDefaultExport(
 			exports,
@@ -63,20 +55,22 @@ export function getExportBlock(
 						getPropertyAccess
 					);
 					if (exportBlock) exportBlock += n;
-					exportBlock +=
-						specifier.imported !== '*' && specifier.needsLiveBinding
-							? `Object.defineProperty(exports,${_}'${specifier.reexported}',${_}{${n}` +
-							  `${t}enumerable:${_}true,${n}` +
-							  `${t}get:${_}${getDirectReturnFunctionLeft([], {
-									functionReturn: true,
-									lineBreakIndent: false,
-									name: null,
-									t: ''
-							  })}${importName}${getDirectReturnFunctionRight({
-									lineBreakIndent: false,
-									name: false
-							  })}${n}});`
-							: `exports${getPropertyAccess(specifier.reexported)}${_}=${_}${importName};`;
+					if (specifier.imported !== '*' && specifier.needsLiveBinding) {
+						const { left, right } = getDirectReturnFunction([], {
+							functionReturn: true,
+							lineBreakIndent: false,
+							name: null,
+							t: ''
+						});
+						exportBlock +=
+							`Object.defineProperty(exports,${_}'${specifier.reexported}',${_}{${n}` +
+							`${t}enumerable:${_}true,${n}` +
+							`${t}get:${_}${left}${importName}${right}${n}});`;
+					} else {
+						exportBlock += `exports${getPropertyAccess(
+							specifier.reexported
+						)}${_}=${_}${importName};`;
+					}
 				}
 			}
 		}
@@ -96,20 +90,12 @@ export function getExportBlock(
 			for (const specifier of reexports) {
 				if (specifier.reexported === '*') {
 					if (exportBlock) exportBlock += n;
-					const defineProperty = specifier.needsLiveBinding
-						? `Object.defineProperty(exports,${_}k,${_}{${n}` +
-						  `${t}${t}enumerable:${_}true,${n}` +
-						  `${t}${t}get:${_}${getDirectReturnFunctionLeft([], {
-								functionReturn: true,
-								lineBreakIndent: false,
-								name: null,
-								t: ''
-						  })}${name}[k]${getDirectReturnFunctionRight({
-								lineBreakIndent: false,
-								name: false
-						  })}${n}${t}})`
-						: `exports[k]${_}=${_}${name}[k]`;
-					const copyPropertyIfNecessary = `{${n}${t}if${_}(k${_}!==${_}'default'${_}&&${_}!exports.hasOwnProperty(k))${_}${defineProperty}${s}${n}}`;
+					const copyPropertyIfNecessary = `{${n}${t}if${_}(k${_}!==${_}'default'${_}&&${_}!exports.hasOwnProperty(k))${_}${getDefineProperty(
+						name,
+						specifier.needsLiveBinding,
+						t,
+						snippets
+					)}${s}${n}}`;
 					exportBlock +=
 						cnst === 'var' && specifier.needsLiveBinding
 							? `Object.keys(${name}).forEach(${getFunctionIntro(['k'], {
@@ -233,3 +219,25 @@ export function getNamespaceMarkers(
 	}
 	return namespaceMarkers;
 }
+
+const getDefineProperty = (
+	name: string,
+	needsLiveBinding: boolean,
+	t: string,
+	{ _, getDirectReturnFunction, n }: GenerateCodeSnippets
+) => {
+	if (needsLiveBinding) {
+		const { left, right } = getDirectReturnFunction([], {
+			functionReturn: true,
+			lineBreakIndent: false,
+			name: null,
+			t: ''
+		});
+		return (
+			`Object.defineProperty(exports,${_}k,${_}{${n}` +
+			`${t}${t}enumerable:${_}true,${n}` +
+			`${t}${t}get:${_}${left}${name}[k]${right}${n}${t}})`
+		);
+	}
+	return `exports[k]${_}=${_}${name}[k]`;
+};
