@@ -13,7 +13,7 @@
 		"skipLibCheck": true,
 		"strict": true,
 		"target": "ES2018",
-		"useDefineForClassFields": true
+		"useDefineForClassFields": false
 	},
 	"include": ["typings/**/*.d.ts", "src", "cli", "browser", "rollup.config.ts"],
 	"exclude": ["dist", "node_modules", "test/typescript"]
