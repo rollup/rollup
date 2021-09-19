@@ -4,6 +4,6 @@ import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
 export default class ChainExpression extends NodeBase {
-	expression!: CallExpression | MemberExpression;
-	type!: NodeType.tChainExpression;
+	declare expression: CallExpression | MemberExpression;
+	declare type: NodeType.tChainExpression;
 }

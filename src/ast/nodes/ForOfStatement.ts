@@ -10,11 +10,11 @@ import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from '.
 import { PatternNode } from './shared/Pattern';
 
 export default class ForOfStatement extends StatementBase {
-	await!: boolean;
-	body!: StatementNode;
-	left!: VariableDeclaration | PatternNode;
-	right!: ExpressionNode;
-	type!: NodeType.tForOfStatement;
+	declare await: boolean;
+	declare body: StatementNode;
+	declare left: VariableDeclaration | PatternNode;
+	declare right: ExpressionNode;
+	declare type: NodeType.tForOfStatement;
 	protected deoptimized = false;
 
 	createScope(parentScope: Scope): void {

@@ -11,11 +11,11 @@ import { ExpressionNode } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
 export default class Property extends MethodBase implements PatternNode {
-	key!: ExpressionNode;
-	kind!: 'init' | 'get' | 'set';
-	method!: boolean;
-	shorthand!: boolean;
-	type!: NodeType.tProperty;
+	declare key: ExpressionNode;
+	declare kind: 'init' | 'get' | 'set';
+	declare method: boolean;
+	declare shorthand: boolean;
+	declare type: NodeType.tProperty;
 	protected deoptimized = false;
 	private declarationInit: ExpressionEntity | null = null;
 

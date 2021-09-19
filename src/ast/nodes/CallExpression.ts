@@ -31,12 +31,12 @@ import {
 import { ExpressionNode, INCLUDE_PARAMETERS, IncludeChildren, NodeBase } from './shared/Node';
 
 export default class CallExpression extends NodeBase implements DeoptimizableEntity {
-	arguments!: (ExpressionNode | SpreadElement)[];
-	callee!: ExpressionNode | Super;
-	optional!: boolean;
-	type!: NodeType.tCallExpression;
+	declare arguments: (ExpressionNode | SpreadElement)[];
+	declare callee: ExpressionNode | Super;
+	declare optional: boolean;
+	declare type: NodeType.tCallExpression;
 	protected deoptimized = false;
-	private callOptions!: CallOptions;
+	private declare callOptions: CallOptions;
 	private deoptimizableDependentExpressions: DeoptimizableEntity[] = [];
 	private expressionsToBeDeoptimized = new Set<ExpressionEntity>();
 	private returnExpression: ExpressionEntity | null = null;

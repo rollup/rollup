@@ -3,7 +3,7 @@ import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
 export default class ImportSpecifier extends NodeBase {
-	imported!: Identifier;
-	local!: Identifier;
-	type!: NodeType.tImportSpecifier;
+	declare imported: Identifier;
+	declare local: Identifier;
+	declare type: NodeType.tImportSpecifier;
 }

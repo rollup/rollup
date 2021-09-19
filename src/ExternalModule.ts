@@ -12,16 +12,16 @@ import { printQuotedStringList } from './utils/printStringList';
 import relativeId from './utils/relativeId';
 
 export default class ExternalModule {
-	chunk: void;
-	declarations: { [name: string]: ExternalVariable };
+	declare chunk: void;
+	declarations: { [name: string]: ExternalVariable } = Object.create(null);
 	defaultVariableName = '';
 	dynamicImporters: string[] = [];
-	execIndex: number;
-	exportedVariables: Map<ExternalVariable, string>;
+	execIndex = Infinity;
+	exportedVariables = new Map<ExternalVariable, string>();
 	importers: string[] = [];
 	info: ModuleInfo;
 	mostCommonSuggestion = 0;
-	nameSuggestions: { [name: string]: number };
+	nameSuggestions: { [name: string]: number } = Object.create(null);
 	namespaceVariableName = '';
 	reexported = false;
 	renderPath: string = undefined as never;
@@ -36,11 +36,7 @@ export default class ExternalModule {
 		meta: CustomPluginOptions,
 		public renormalizeRenderPath: boolean
 	) {
-		this.execIndex = Infinity;
 		this.suggestedVariableName = makeLegal(id.split(/[\\/]/).pop()!);
-		this.nameSuggestions = Object.create(null);
-		this.declarations = Object.create(null);
-		this.exportedVariables = new Map();
 
 		const { importers, dynamicImporters } = this;
 		this.info = {

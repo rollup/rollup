@@ -2,9 +2,9 @@ import * as NodeType from './NodeType';
 import { GenericEsTreeNode, NodeBase } from './shared/Node';
 
 export default class TemplateElement extends NodeBase {
-	tail!: boolean;
-	type!: NodeType.tTemplateElement;
-	value!: {
+	declare tail: boolean;
+	declare type: NodeType.tTemplateElement;
+	declare value: {
 		cooked: string | null;
 		raw: string;
 	};

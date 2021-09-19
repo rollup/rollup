@@ -5,8 +5,8 @@ import * as NodeType from './NodeType';
 import { ExpressionNode, StatementBase } from './shared/Node';
 
 export default class ExpressionStatement extends StatementBase {
-	directive?: string;
-	expression!: ExpressionNode;
+	declare directive?: string;
+	declare expression: ExpressionNode;
 
 	initialise(): void {
 		if (

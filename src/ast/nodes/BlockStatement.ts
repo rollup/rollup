@@ -10,10 +10,10 @@ import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import { IncludeChildren, Node, StatementBase, StatementNode } from './shared/Node';
 
 export default class BlockStatement extends StatementBase {
-	body!: StatementNode[];
-	type!: NodeType.tBlockStatement;
+	declare body: StatementNode[];
+	declare type: NodeType.tBlockStatement;
 
-	private deoptimizeBody!: boolean;
+	private declare deoptimizeBody: boolean;
 	private directlyIncluded = false;
 
 	addImplicitReturnExpressionToScope(): void {

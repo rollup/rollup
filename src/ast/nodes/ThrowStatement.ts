@@ -5,8 +5,8 @@ import * as NodeType from './NodeType';
 import { ExpressionNode, IncludeChildren, StatementBase } from './shared/Node';
 
 export default class ThrowStatement extends StatementBase {
-	argument!: ExpressionNode;
-	type!: NodeType.tThrowStatement;
+	declare argument: ExpressionNode;
+	declare type: NodeType.tThrowStatement;
 
 	hasEffects(): boolean {
 		return true;

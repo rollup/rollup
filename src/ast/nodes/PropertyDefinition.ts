@@ -14,11 +14,11 @@ import {
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class PropertyDefinition extends NodeBase {
-	computed!: boolean;
-	key!: ExpressionNode | PrivateIdentifier;
-	static!: boolean;
-	type!: NodeType.tPropertyDefinition;
-	value!: ExpressionNode | null;
+	declare computed: boolean;
+	declare key: ExpressionNode | PrivateIdentifier;
+	declare static: boolean;
+	declare type: NodeType.tPropertyDefinition;
+	declare value: ExpressionNode | null;
 
 	deoptimizePath(path: ObjectPath): void {
 		this.value?.deoptimizePath(path);

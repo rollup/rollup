@@ -6,11 +6,11 @@ import * as NodeType from './NodeType';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class NewExpression extends NodeBase {
-	arguments!: ExpressionNode[];
-	callee!: ExpressionNode;
-	type!: NodeType.tNewExpression;
+	declare arguments: ExpressionNode[];
+	declare callee: ExpressionNode;
+	declare type: NodeType.tNewExpression;
 	protected deoptimized = false;
-	private callOptions!: CallOptions;
+	private declare callOptions: CallOptions;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (!this.deoptimized) this.applyDeoptimizations();

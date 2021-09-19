@@ -12,8 +12,8 @@ import { ExpressionNode, NodeBase } from './shared/Node';
 import { ObjectEntity, ObjectProperty } from './shared/ObjectEntity';
 
 export default class ArrayExpression extends NodeBase {
-	elements!: (ExpressionNode | SpreadElement | null)[];
-	type!: NodeType.tArrayExpression;
+	declare elements: (ExpressionNode | SpreadElement | null)[];
+	declare type: NodeType.tArrayExpression;
 	private objectEntity: ObjectEntity | null = null;
 
 	deoptimizePath(path: ObjectPath): void {

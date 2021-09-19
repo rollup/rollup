@@ -8,7 +8,7 @@ import Scope from './Scope';
 export default class ChildScope extends Scope {
 	accessedOutsideVariables = new Map<string, Variable>();
 	parent: Scope;
-	private accessedDynamicImports?: Set<ImportExpression>;
+	private declare accessedDynamicImports?: Set<ImportExpression>;
 
 	constructor(parent: Scope) {
 		super();

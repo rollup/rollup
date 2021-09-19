@@ -12,10 +12,9 @@ import { basename, dirname, relative, resolve } from './path';
 class Source {
 	content: string;
 	filename: string;
-	isOriginal: boolean;
+	isOriginal = true;
 
 	constructor(filename: string, content: string) {
-		this.isOriginal = true;
 		this.filename = filename;
 		this.content = content;
 	}

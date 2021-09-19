@@ -4,9 +4,8 @@ import * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
 export default class Super extends NodeBase {
-	type!: NodeType.tSuper;
-
-	variable!: ThisVariable;
+	declare type: NodeType.tSuper;
+	declare variable: ThisVariable;
 
 	bind(): void {
 		this.variable = this.scope.findVariable('this') as ThisVariable;

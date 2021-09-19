@@ -27,10 +27,10 @@ import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
 export type LogicalOperator = '||' | '&&' | '??';
 
 export default class LogicalExpression extends NodeBase implements DeoptimizableEntity {
-	left!: ExpressionNode;
-	operator!: LogicalOperator;
-	right!: ExpressionNode;
-	type!: NodeType.tLogicalExpression;
+	declare left: ExpressionNode;
+	declare operator: LogicalOperator;
+	declare right: ExpressionNode;
+	declare type: NodeType.tLogicalExpression;
 
 	// We collect deoptimization information if usedBranch !== null
 	private expressionsToBeDeoptimized: DeoptimizableEntity[] = [];

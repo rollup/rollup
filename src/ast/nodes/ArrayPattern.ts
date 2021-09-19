@@ -8,8 +8,8 @@ import { NodeBase } from './shared/Node';
 import { PatternNode } from './shared/Pattern';
 
 export default class ArrayPattern extends NodeBase implements PatternNode {
-	elements!: (PatternNode | null)[];
-	type!: NodeType.tArrayPattern;
+	declare elements: (PatternNode | null)[];
+	declare type: NodeType.tArrayPattern;
 
 	addExportedVariables(
 		variables: Variable[],

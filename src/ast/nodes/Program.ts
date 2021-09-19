@@ -5,9 +5,9 @@ import * as NodeType from './NodeType';
 import { IncludeChildren, NodeBase, StatementNode } from './shared/Node';
 
 export default class Program extends NodeBase {
-	body!: StatementNode[];
-	sourceType!: 'module';
-	type!: NodeType.tProgram;
+	declare body: StatementNode[];
+	declare sourceType: 'module';
+	declare type: NodeType.tProgram;
 
 	private hasCachedEffect = false;
 

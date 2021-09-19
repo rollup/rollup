@@ -84,15 +84,15 @@ export type StatementNode = Node;
 export interface ExpressionNode extends ExpressionEntity, Node {}
 
 export class NodeBase extends ExpressionEntity implements ExpressionNode {
-	annotations?: acorn.Comment[];
+	declare annotations?: acorn.Comment[];
 	context: AstContext;
-	end!: number;
+	declare end: number;
 	esTreeNode: acorn.Node;
 	keys: string[];
 	parent: Node | { context: AstContext; type: string };
-	scope!: ChildScope;
-	start!: number;
-	type!: keyof typeof NodeType;
+	declare scope: ChildScope;
+	declare start: number;
+	declare type: keyof typeof NodeType;
 	// Nodes can apply custom deoptimizations once they become part of the
 	// executed code. To do this, they must initialize this as false, implement
 	// applyDeoptimizations and call this from include and hasEffects if they

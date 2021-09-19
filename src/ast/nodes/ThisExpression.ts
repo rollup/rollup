@@ -9,10 +9,9 @@ import { ExpressionEntity } from './shared/Expression';
 import { NodeBase } from './shared/Node';
 
 export default class ThisExpression extends NodeBase {
-	type!: NodeType.tThisExpression;
-
-	variable!: Variable;
-	private alias!: string | null;
+	declare type: NodeType.tThisExpression;
+	declare variable: Variable;
+	private declare alias: string | null;
 
 	bind(): void {
 		this.variable = this.scope.findVariable('this');

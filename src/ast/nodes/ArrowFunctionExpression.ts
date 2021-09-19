@@ -14,12 +14,12 @@ import { ExpressionNode, GenericEsTreeNode, IncludeChildren, NodeBase } from './
 import { PatternNode } from './shared/Pattern';
 
 export default class ArrowFunctionExpression extends NodeBase {
-	async!: boolean;
-	body!: BlockStatement | ExpressionNode;
-	params!: PatternNode[];
-	preventChildBlockScope!: true;
-	scope!: ReturnValueScope;
-	type!: NodeType.tArrowFunctionExpression;
+	declare async: boolean;
+	declare body: BlockStatement | ExpressionNode;
+	declare params: PatternNode[];
+	declare preventChildBlockScope: true;
+	declare scope: ReturnValueScope;
+	declare type: NodeType.tArrowFunctionExpression;
 	private deoptimizedReturn = false;
 
 	createScope(parentScope: Scope): void {

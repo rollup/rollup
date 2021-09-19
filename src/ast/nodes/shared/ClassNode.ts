@@ -22,10 +22,10 @@ import { ObjectMember } from './ObjectMember';
 import { OBJECT_PROTOTYPE } from './ObjectPrototype';
 
 export default class ClassNode extends NodeBase implements DeoptimizableEntity {
-	body!: ClassBody;
-	id!: Identifier | null;
-	superClass!: ExpressionNode | null;
-	private classConstructor!: MethodDefinition | null;
+	declare body: ClassBody;
+	declare id: Identifier | null;
+	declare superClass: ExpressionNode | null;
+	private declare classConstructor: MethodDefinition | null;
 	private objectEntity: ObjectEntity | null = null;
 
 	createScope(parentScope: Scope): void {

@@ -9,8 +9,8 @@ import * as NodeType from './NodeType';
 import { StatementBase } from './shared/Node';
 
 export default class ContinueStatement extends StatementBase {
-	label!: Identifier | null;
-	type!: NodeType.tContinueStatement;
+	declare label: Identifier | null;
+	declare type: NodeType.tContinueStatement;
 
 	hasEffects(context: HasEffectsContext): boolean {
 		if (this.label) {

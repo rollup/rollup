@@ -38,9 +38,9 @@ function areAllDeclarationsIncludedAndNotExported(
 }
 
 export default class VariableDeclaration extends NodeBase {
-	declarations!: VariableDeclarator[];
-	kind!: 'var' | 'let' | 'const';
-	type!: NodeType.tVariableDeclaration;
+	declare declarations: VariableDeclarator[];
+	declare kind: 'var' | 'let' | 'const';
+	declare type: NodeType.tVariableDeclaration;
 
 	deoptimizePath(): void {
 		for (const declarator of this.declarations) {

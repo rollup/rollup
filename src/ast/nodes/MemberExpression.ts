@@ -81,12 +81,12 @@ function getStringFromPath(path: PathWithPositions): string {
 }
 
 export default class MemberExpression extends NodeBase implements DeoptimizableEntity {
-	computed!: boolean;
-	object!: ExpressionNode | Super;
-	optional!: boolean;
-	property!: ExpressionNode | PrivateIdentifier;
-	propertyKey!: ObjectPathKey | null;
-	type!: NodeType.tMemberExpression;
+	declare computed: boolean;
+	declare object: ExpressionNode | Super;
+	declare optional: boolean;
+	declare property: ExpressionNode | PrivateIdentifier;
+	declare propertyKey: ObjectPathKey | null;
+	declare type: NodeType.tMemberExpression;
 	variable: Variable | null = null;
 	protected deoptimized = false;
 	private bound = false;
