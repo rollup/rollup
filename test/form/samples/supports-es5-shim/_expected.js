@@ -57,6 +57,12 @@ var es5Shim = {exports: {}};
     var floor = Math.floor;
     var abs = Math.abs;
     var pow = Math.pow;
+    var round = Math.round;
+    var log = Math.log;
+    var LOG10E = Math.LOG10E;
+    var log10 = Math.log10 || function log10(value) {
+        return log(value) * LOG10E;
+    };
 
     // Having a toString local variable name breaks in Opera so use to_string.
     var to_string = ObjectPrototype.toString;
@@ -244,33 +250,31 @@ var es5Shim = {exports: {}};
                     }
                     return this;
 
-                } else {
-                    // 15.3.4.5.1 [[Call]]
-                    // When the [[Call]] internal method of a function object, F,
-                    // which was created using the bind function is called with a
-                    // this value and a list of arguments ExtraArgs, the following
-                    // steps are taken:
-                    // 1. Let boundArgs be the value of F's [[BoundArgs]] internal
-                    //   property.
-                    // 2. Let boundThis be the value of F's [[BoundThis]] internal
-                    //   property.
-                    // 3. Let target be the value of F's [[TargetFunction]] internal
-                    //   property.
-                    // 4. Let args be a new list containing the same values as the
-                    //   list boundArgs in the same order followed by the same
-                    //   values as the list ExtraArgs in the same order.
-                    // 5. Return the result of calling the [[Call]] internal method
-                    //   of target providing boundThis as the this value and
-                    //   providing args as the arguments.
-
-                    // equiv: target.call(this, ...boundArgs, ...args)
-                    return apply.call(
-                        target,
-                        that,
-                        array_concat.call(args, array_slice.call(arguments))
-                    );
-
                 }
+                // 15.3.4.5.1 [[Call]]
+                // When the [[Call]] internal method of a function object, F,
+                // which was created using the bind function is called with a
+                // this value and a list of arguments ExtraArgs, the following
+                // steps are taken:
+                // 1. Let boundArgs be the value of F's [[BoundArgs]] internal
+                //   property.
+                // 2. Let boundThis be the value of F's [[BoundThis]] internal
+                //   property.
+                // 3. Let target be the value of F's [[TargetFunction]] internal
+                //   property.
+                // 4. Let args be a new list containing the same values as the
+                //   list boundArgs in the same order followed by the same
+                //   values as the list ExtraArgs in the same order.
+                // 5. Return the result of calling the [[Call]] internal method
+                //   of target providing boundThis as the this value and
+                //   providing args as the arguments.
+
+                // equiv: target.call(this, ...boundArgs, ...args)
+                return apply.call(
+                    target,
+                    that,
+                    array_concat.call(args, array_slice.call(arguments))
+                );
 
             };
 
@@ -761,9 +765,9 @@ var es5Shim = {exports: {}};
         splice: function splice(start, deleteCount) {
             if (arguments.length === 0) {
                 return [];
-            } else {
-                return array_splice.apply(this, arguments);
             }
+            return array_splice.apply(this, arguments);
+
         }
     }, !spliceNoopReturnsEmptyArray);
 
@@ -998,6 +1002,7 @@ var es5Shim = {exports: {}};
     // http://es5.github.com/#x15.2.3.14
 
     // http://whattheheadsaid.com/2010/10/a-safer-object-keys-compatibility-implementation
+    // eslint-disable-next-line quote-props
     var hasDontEnumBug = !isEnum({ 'toString': null }, 'toString'); // jscs:ignore disallowQuotedKeysInObjects
     var hasProtoEnumBug = isEnum(function () {}, 'prototype');
     var hasStringEnumBug = !owns('x', '0');
@@ -1140,9 +1145,9 @@ var es5Shim = {exports: {}};
         keys: function keys(object) {
             if (isArguments(object)) {
                 return originalKeys(arraySlice(object));
-            } else {
-                return originalKeys(object);
             }
+            return originalKeys(object);
+
         }
     }, !keysWorksWithArguments || keysHasArgumentsLengthBug);
 
@@ -1774,6 +1779,135 @@ var es5Shim = {exports: {}};
     };
     defineProperties(NumberPrototype, { toFixed: toFixedShim }, hasToFixedBugs);
 
+    var hasToExponentialRoundingBug = (function () {
+        try {
+            return (-6.9e-11).toExponential(4) !== '-6.9000e-11';
+        } catch (e) {
+            return false;
+        }
+    }());
+    var toExponentialAllowsInfiniteDigits = (function () {
+        try {
+            (1).toExponential(Infinity);
+            (1).toExponential(-Infinity);
+            return true;
+        } catch (e) {
+            return false;
+        }
+    }());
+    var originalToExponential = call.bind(NumberPrototype.toExponential);
+    var numberToString = call.bind(NumberPrototype.toString);
+    defineProperties(NumberPrototype, {
+        toExponential: function toExponential(fractionDigits) {
+            // 1: Let x be this Number value.
+            var x = $Number(this);
+
+            if (typeof fractionDigits === 'undefined') {
+                return originalToExponential(x);
+            }
+            var f = ES.ToInteger(fractionDigits);
+            if (isActualNaN(x)) {
+                return 'NaN';
+            }
+
+            if (f < 0 || f > 20) {
+                // this will probably have thrown already
+                return originalToExponential(x, f);
+            }
+
+            // only cases left are a finite receiver + in-range fractionDigits
+
+            // implementation adapted from https://gist.github.com/SheetJSDev/1100ad56b9f856c95299ed0e068eea08
+
+            // 4: Let s be the empty string
+            var s = '';
+
+            // 5: If x < 0
+            if (x < 0) {
+                s = '-';
+                x = -x;
+            }
+
+            // 6: If x = +Infinity
+            if (x === Infinity) {
+                return s + 'Infinity';
+            }
+
+            // 7: If fractionDigits is not undefined and (f < 0 or f > 20), throw a RangeError exception.
+            if (typeof fractionDigits !== 'undefined' && (f < 0 || f > 20)) {
+                throw new RangeError('Fraction digits ' + fractionDigits + ' out of range');
+            }
+
+            var m = '';
+            var e = 0;
+            var c = '';
+            var d = '';
+
+            // 8: If x = 0 then
+            if (x === 0) {
+                e = 0;
+                f = 0;
+                m = '0';
+            } else { // 9: Else, x != 0
+                var L = log10(x);
+                e = floor(L); // 10 ** e <= x and x < 10 ** (e+1)
+                var n = 0;
+                if (typeof fractionDigits !== 'undefined') { // eslint-disable-line no-negated-condition
+                    var w = pow(10, e - f); // x / 10 ** (f+1) < w and w <= x / 10 ** f
+                    n = round(x / w); // 10 ** f <= n and n < 10 ** (f+1)
+                    if (2 * x >= (((2 * n) + 1) * w)) {
+                        n += 1; // pick larger value
+                    }
+                    if (n >= pow(10, f + 1)) { // 10e-1 = 1e0
+                        n /= 10;
+                        e += 1;
+                    }
+                } else {
+                    f = 16; // start from Math.ceil(Math.log10(Number.MAX_SAFE_INTEGER)) and loop down
+                    var guess_n = round(pow(10, L - e + f));
+                    var target_f = f;
+                    while (f-- > 0) {
+                        guess_n = round(pow(10, L - e + f));
+                        if (
+                            abs((guess_n * pow(10, e - f)) - x)
+                            <= abs((n * pow(10, e - target_f)) - x)
+                        ) {
+                            target_f = f;
+                            n = guess_n;
+                        }
+                    }
+                }
+                m = numberToString(n, 10);
+                if (typeof fractionDigits === 'undefined') {
+                    while (strSlice(m, -1) === '0') {
+                        m = strSlice(m, 0, -1);
+                        d += 1;
+                    }
+                }
+            }
+
+            // 10: If f != 0, then
+            if (f !== 0) {
+                m = strSlice(m, 0, 1) + '.' + strSlice(m, 1);
+            }
+
+            // 11: If e = 0, then
+            if (e === 0) {
+                c = '+';
+                d = '0';
+            } else { // 12: Else
+                c = e > 0 ? '+' : '-';
+                d = numberToString(abs(e), 10);
+            }
+
+            // 13: Let m be the concatenation of the four Strings m, "e", c, and d.
+            m += 'e' + c + d;
+
+            // 14: Return the concatenation of the Strings s and m.
+            return s + m;
+        }
+    }, hasToExponentialRoundingBug || toExponentialAllowsInfiniteDigits);
+
     var hasToPrecisionUndefinedBug = (function () {
         try {
             return 1.0.toPrecision(undefined) === '1';
@@ -1781,10 +1915,10 @@ var es5Shim = {exports: {}};
             return true;
         }
     }());
-    var originalToPrecision = NumberPrototype.toPrecision;
+    var originalToPrecision = call.bind(NumberPrototype.toPrecision);
     defineProperties(NumberPrototype, {
         toPrecision: function toPrecision(precision) {
-            return typeof precision === 'undefined' ? originalToPrecision.call(this) : originalToPrecision.call(this, precision);
+            return typeof precision === 'undefined' ? originalToPrecision(this) : originalToPrecision(this, precision);
         }
     }, hasToPrecisionUndefinedBug);
 
@@ -1926,18 +2060,18 @@ var es5Shim = {exports: {}};
             var hasCapturingGroups = isRegex(searchValue) && (/\)[*?]/).test(searchValue.source);
             if (!isFn || !hasCapturingGroups) {
                 return str_replace.call(this, searchValue, replaceValue);
-            } else {
-                var wrappedReplaceValue = function (match) {
-                    var length = arguments.length;
-                    var originalLastIndex = searchValue.lastIndex;
-                    searchValue.lastIndex = 0; // eslint-disable-line no-param-reassign
-                    var args = searchValue.exec(match) || [];
-                    searchValue.lastIndex = originalLastIndex; // eslint-disable-line no-param-reassign
-                    pushCall(args, arguments[length - 2], arguments[length - 1]);
-                    return replaceValue.apply(this, args);
-                };
-                return str_replace.call(this, searchValue, wrappedReplaceValue);
             }
+            var wrappedReplaceValue = function (match) {
+                var length = arguments.length;
+                var originalLastIndex = searchValue.lastIndex;
+                searchValue.lastIndex = 0; // eslint-disable-line no-param-reassign
+                var args = searchValue.exec(match) || [];
+                searchValue.lastIndex = originalLastIndex; // eslint-disable-line no-param-reassign
+                pushCall(args, arguments[length - 2], arguments[length - 1]);
+                return replaceValue.apply(this, args);
+            };
+            return str_replace.call(this, searchValue, wrappedReplaceValue);
+
         };
     }
 
@@ -2011,19 +2145,56 @@ var es5Shim = {exports: {}};
         }
     }, StringPrototype.lastIndexOf.length !== 1);
 
+    var hexRegex = /^[-+]?0[xX]/;
+
     // ES-5 15.1.2.2
     // eslint-disable-next-line radix
     if (parseInt(ws + '08') !== 8 || parseInt(ws + '0x16') !== 22) {
         // eslint-disable-next-line no-global-assign, no-implicit-globals
         parseInt = (function (origParseInt) {
-            var hexRegex = /^[-+]?0[xX]/;
             return function parseInt(str, radix) {
-                if (typeof str === 'symbol') {
+                var string = trim(String(str));
+                var defaultedRadix = $Number(radix) || (hexRegex.test(string) ? 16 : 10);
+                return origParseInt(string, defaultedRadix);
+            };
+        }(parseInt));
+    }
+    // Edge 15-18
+    var parseIntFailsToThrowOnBoxedSymbols = (function () {
+        if (typeof Symbol !== 'function') {
+            return false;
+        }
+        try {
+            // eslint-disable-next-line radix
+            parseInt(Object(Symbol.iterator));
+            return true;
+        } catch (e) { /**/ }
+
+        try {
+            // eslint-disable-next-line radix
+            parseInt(Symbol.iterator);
+            return true;
+        } catch (e) { /**/ }
+
+        return false;
+    }());
+    if (parseIntFailsToThrowOnBoxedSymbols) {
+        var symbolValueOf = Symbol.prototype.valueOf;
+        // eslint-disable-next-line no-global-assign, no-implicit-globals
+        parseInt = (function (origParseInt) {
+            return function parseInt(str, radix) {
+                var isSym = typeof str === 'symbol';
+                if (!isSym && str && typeof str === 'object') {
+                    try {
+                        symbolValueOf.call(str);
+                        isSym = true;
+                    } catch (e) { /**/ }
+                }
+                if (isSym) {
                     // handle Symbols in node 8.3/8.4
                     // eslint-disable-next-line no-implicit-coercion, no-unused-expressions
                     '' + str; // jscs:ignore disallowImplicitTypeConversion
                 }
-
                 var string = trim(String(str));
                 var defaultedRadix = $Number(radix) || (hexRegex.test(string) ? 16 : 10);
                 return origParseInt(string, defaultedRadix);
