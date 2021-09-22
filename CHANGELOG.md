@@ -1,5 +1,33 @@
 # rollup changelog
 
+## 2.57.0
+
+_2021-09-22_
+
+### Features
+
+- Add `generatedCode` option to allow Rollup to use es2015 features for smaller output and more efficient helpers (#4215)
+- Improve AMD and SystemJS parsing performance by wrapping relevant functions in parentheses (#4215)
+- Using `preferConst` will now show a warning with `strictDeprecations: true` (#4215)
+
+### Bug Fixes
+
+- Improve ES3 syntax compatibility by more consequently quoting reserved words as props in generated code (#4215)
+- Do not use `Object.assign` in generated code to ensure ES5 compatibility without the need for polyfills (#4215)
+- Support live-bindings in dynamic namespace objects that contain reexported external or synthetic namespaces (#4215)
+- Use correct "this" binding in dynamic import expressions for CommonJS and AMD (#4215)
+- Properly handle `shimMissingExports` for exports that are only used internally (#4215)
+- Prevent unhandled rejection for failed module parsing (#4228)
+
+### Pull Requests
+
+- [#4212](https://github.com/rollup/rollup/pull/4212): chore: remove unused ambient types (@dnalborczyk)
+- [#4215](https://github.com/rollup/rollup/pull/4215): Use ES2015 features in generated code snippets (@lukastaegert)
+- [#4219](https://github.com/rollup/rollup/pull/4219): chore: bump rollup typescript, remove unused micromatch (@dnalborczyk)
+- [#4220](https://github.com/rollup/rollup/pull/4220): chore: use forceConsistentCasingInFileNames in ts-config (@dnalborczyk)
+- [#4224](https://github.com/rollup/rollup/pull/4224): prepare for useDefineForClassFields (@dnalborczyk)
+- [#4228](https://github.com/rollup/rollup/pull/4228): fix: prevent UnhandledPromiseRejectionWarning when module resolution/parsing fails (@kherock)
+
 ## 2.56.3
 
 _2021-08-23_
