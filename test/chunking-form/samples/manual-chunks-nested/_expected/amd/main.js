@@ -1,5 +1,5 @@
-define(['./generated-manual'], function (manual) { 'use strict';
+define(['./generated-manual'], (function (manual) { 'use strict';
 
 	console.log('main');
 
-});
+}));

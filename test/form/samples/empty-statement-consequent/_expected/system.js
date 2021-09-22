@@ -1,11 +1,11 @@
-System.register([], function () {
+System.register([], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			if ( a === 0 );
 			else a++;
 
-		}
+		})
 	};
-});
+}));

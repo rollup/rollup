@@ -1,7 +1,7 @@
-System.register('stirred', [], function () {
+System.register('stirred', [], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			const other$1 = {
 				something: 'here'
@@ -11,6 +11,6 @@ System.register('stirred', [], function () {
 				somethingElse: 'here'
 			};
 
-		}
+		})
 	};
-});
+}));

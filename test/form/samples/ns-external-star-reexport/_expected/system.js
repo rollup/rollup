@@ -1,4 +1,4 @@
-System.register('bundle', ['external1', 'external2'], function (exports) {
+System.register('bundle', ['external1', 'external2'], (function (exports) {
 	'use strict';
 	var external1, external2;
 	return {
@@ -7,9 +7,26 @@ System.register('bundle', ['external1', 'external2'], function (exports) {
 		}, function (module) {
 			external2 = module;
 		}],
-		execute: function () {
+		execute: (function () {
 
-			var reexportExternal = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), external1));
+			function _mergeNamespaces(n, m) {
+				m.forEach(function (e) {
+					Object.keys(e).forEach(function (k) {
+						if (k !== 'default' && !(k in n)) {
+							var d = Object.getOwnPropertyDescriptor(e, k);
+							Object.defineProperty(n, k, d.get ? d : {
+								enumerable: true,
+								get: function () { return e[k]; }
+							});
+						}
+					});
+				});
+				return Object.freeze(n);
+			}
+
+			var reexportExternal = /*#__PURE__*/Object.freeze(/*#__PURE__*/_mergeNamespaces({
+				__proto__: null
+			}, [external1]));
 			exports('external', reexportExternal);
 
 			const extra = 'extra';
@@ -17,13 +34,14 @@ System.register('bundle', ['external1', 'external2'], function (exports) {
 			const override = 'override';
 			var reexportExternalsWithOverride = { synthetic: 'synthetic' };
 
-			var reexportExternalsWithOverride$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), external1, external2, reexportExternalsWithOverride, {
+			var reexportExternalsWithOverride$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/_mergeNamespaces({
+				__proto__: null,
 				override: override,
 				'default': reexportExternalsWithOverride,
 				extra: extra
-			}));
+			}, [reexportExternalsWithOverride, external1, external2]));
 			exports('externalOverride', reexportExternalsWithOverride$1);
 
-		}
+		})
 	};
-});
+}));

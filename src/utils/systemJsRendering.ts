@@ -4,25 +4,25 @@ import { RenderOptions } from './renderHelpers';
 
 export function getSystemExportStatement(
 	exportedVariables: Variable[],
-	{ compact, exportNamesByVariable }: RenderOptions,
+	{ exportNamesByVariable, snippets: { _, getObject, getPropertyAccess } }: RenderOptions,
 	modifier = ''
 ): string {
-	const _ = compact ? '' : ' ';
 	if (
 		exportedVariables.length === 1 &&
 		exportNamesByVariable.get(exportedVariables[0])!.length === 1
 	) {
 		const variable = exportedVariables[0];
-		return `exports('${exportNamesByVariable.get(variable)}',${_}${variable.getName()}${modifier})`;
+		return `exports('${exportNamesByVariable.get(variable)}',${_}${variable.getName(
+			getPropertyAccess
+		)}${modifier})`;
 	} else {
-		return `exports({${_}${exportedVariables
-			.map(variable => {
-				return exportNamesByVariable
-					.get(variable)!
-					.map(exportName => `${exportName}:${_}${variable.getName()}${modifier}`)
-					.join(`,${_}`);
-			})
-			.join(`,${_}`)}${_}})`;
+		const fields: [key: string, value: string][] = [];
+		for (const variable of exportedVariables) {
+			for (const exportName of exportNamesByVariable.get(variable)!) {
+				fields.push([exportName, variable.getName(getPropertyAccess) + modifier]);
+			}
+		}
+		return `exports(${getObject(fields, { lineBreakIndent: null })})`;
 	}
 }
 
@@ -31,9 +31,8 @@ export function renderSystemExportExpression(
 	expressionStart: number,
 	expressionEnd: number,
 	code: MagicString,
-	{ compact, exportNamesByVariable }: RenderOptions
+	{ exportNamesByVariable, snippets: { _ } }: RenderOptions
 ): void {
-	const _ = compact ? '' : ' ';
 	code.prependRight(
 		expressionStart,
 		`exports('${exportNamesByVariable.get(exportedVariable)}',${_}`
@@ -49,20 +48,16 @@ export function renderSystemExportFunction(
 	code: MagicString,
 	options: RenderOptions
 ): void {
-	const _ = options.compact ? '' : ' ';
-	const s = options.compact ? '' : ';';
+	const { _, getDirectReturnIifeLeft } = options.snippets;
 	code.prependRight(
 		expressionStart,
-		`function${_}(v)${_}{${_}return ${getSystemExportStatement(
-			exportedVariables,
-			options
-		)},${_}v${s}${_}}(`
+		getDirectReturnIifeLeft(
+			['v'],
+			`${getSystemExportStatement(exportedVariables, options)},${_}v`,
+			{ needsArrowReturnParens: true, needsWrappedFunction: needsParens }
+		)
 	);
 	code.appendLeft(expressionEnd, ')');
-	if (needsParens) {
-		code.prependRight(expressionStart, '(');
-		code.appendLeft(expressionEnd, ')');
-	}
 }
 
 export function renderSystemExportSequenceAfterExpression(
@@ -73,13 +68,12 @@ export function renderSystemExportSequenceAfterExpression(
 	code: MagicString,
 	options: RenderOptions
 ): void {
-	const _ = options.compact ? '' : ' ';
+	const { _, getPropertyAccess } = options.snippets;
 	code.appendLeft(
 		expressionEnd,
-		`,${_}${getSystemExportStatement(
-			[exportedVariable],
-			options
-		)},${_}${exportedVariable.getName()}`
+		`,${_}${getSystemExportStatement([exportedVariable], options)},${_}${exportedVariable.getName(
+			getPropertyAccess
+		)}`
 	);
 	if (needsParens) {
 		code.prependRight(expressionStart, '(');
@@ -96,7 +90,7 @@ export function renderSystemExportSequenceBeforeExpression(
 	options: RenderOptions,
 	modifier: string
 ): void {
-	const _ = options.compact ? '' : ' ';
+	const { _ } = options.snippets;
 	code.prependRight(
 		expressionStart,
 		`${getSystemExportStatement([exportedVariable], options, modifier)},${_}`

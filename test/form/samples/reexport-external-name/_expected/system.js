@@ -1,4 +1,4 @@
-System.register('bundle', ['external1', 'external2'], function (exports) {
+System.register('bundle', ['external1', 'external2'], (function (exports) {
 	'use strict';
 	return {
 		setters: [function (module) {
@@ -6,10 +6,10 @@ System.register('bundle', ['external1', 'external2'], function (exports) {
 		}, function (module) {
 			exports('bar', module.foo);
 		}],
-		execute: function () {
+		execute: (function () {
 
 
 
-		}
+		})
 	};
-});
+}));

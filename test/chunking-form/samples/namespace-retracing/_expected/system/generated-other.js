@@ -1,7 +1,7 @@
-System.register([], function (exports) {
+System.register([], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			class Broken {
 			} exports('B', Broken);
@@ -15,6 +15,6 @@ System.register([], function (exports) {
 
 			Other.doSomething = function() { console.log('other'); };
 
-		}
+		})
 	};
-});
+}));

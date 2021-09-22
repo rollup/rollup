@@ -8,4 +8,4 @@
 	var alsoEffect = effect;
 	alsoEffect();
 
-}());
+})();

@@ -1,4 +1,4 @@
-define(['exports', './m2'], function (exports, m2) { 'use strict';
+define(['exports', './m2'], (function (exports, m2) { 'use strict';
 
 	var ms = /*#__PURE__*/Object.freeze({
 		__proto__: null,
@@ -7,4 +7,4 @@ define(['exports', './m2'], function (exports, m2) { 'use strict';
 
 	exports.ms = ms;
 
-});
+}));

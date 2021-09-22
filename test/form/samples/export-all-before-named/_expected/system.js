@@ -1,15 +1,18 @@
-System.register('exposedInternals', ['external'], function (exports) {
+System.register('exposedInternals', ['external'], (function (exports) {
 	'use strict';
-	var _starExcludes = { internalFn: 1, default: 1 };
+	var _starExcludes = {
+		internalFn: 1,
+		'default': 1
+	};
 	return {
 		setters: [function (module) {
-			var _setter = {};
-			for (var _$p in module) {
-				if (!_starExcludes[_$p]) _setter[_$p] = module[_$p];
+			var setter = {};
+			for (var name in module) {
+				if (!_starExcludes[name]) setter[name] = module[name];
 			}
-			exports(_setter);
+			exports(setter);
 		}],
-		execute: function () {
+		execute: (function () {
 
 			exports('internalFn', internalFn);
 
@@ -17,6 +20,6 @@ System.register('exposedInternals', ['external'], function (exports) {
 				return path[0] === '.';
 			}
 
-		}
+		})
 	};
-});
+}));

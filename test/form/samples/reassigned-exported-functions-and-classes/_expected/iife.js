@@ -14,4 +14,4 @@ var bundle = (function (exports) {
 
 	return exports;
 
-}({}));
+})({});

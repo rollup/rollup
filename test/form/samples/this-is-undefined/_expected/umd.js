@@ -1,7 +1,7 @@
 (function (factory) {
 	typeof define === 'function' && define.amd ? define(factory) :
 	factory();
-}((function () { 'use strict';
+})((function () { 'use strict';
 
 	const fooContext = {};
 
@@ -21,4 +21,4 @@
 	// outside a function, `this` is undefined
 	assert.strictEqual( undefined, undefined );
 
-})));
+}));

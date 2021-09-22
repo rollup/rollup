@@ -1,7 +1,7 @@
-System.register([], function () {
+System.register([], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			var a = 1;
 
@@ -13,6 +13,6 @@ System.register([], function () {
 			assert.equal( e, 5 );
 			assert.equal( i, 9 );
 
-		}
+		})
 	};
-});
+}));

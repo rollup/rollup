@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	const other$1 = {
 		something: 'here'
@@ -8,4 +8,4 @@ define(function () { 'use strict';
 		somethingElse: 'here'
 	};
 
-});
+}));

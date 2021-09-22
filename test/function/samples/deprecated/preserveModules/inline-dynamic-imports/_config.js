@@ -9,6 +9,7 @@ module.exports = {
 	generateError: {
 		code: 'INVALID_OPTION',
 		message:
-			'The "output.inlineDynamicImports" option is not supported for "output.preserveModules".'
+			'Invalid value for option "output.inlineDynamicImports" - this option is not supported for "output.preserveModules".',
+		url: 'https://rollupjs.org/guide/en/#outputinlinedynamicimports'
 	}
 };

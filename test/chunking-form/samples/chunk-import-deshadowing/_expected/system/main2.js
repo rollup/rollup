@@ -1,11 +1,11 @@
-System.register(['./generated-lib.js'], function () {
+System.register(['./generated-lib.js'], (function () {
 	'use strict';
 	return {
 		setters: [function () {}],
-		execute: function () {
+		execute: (function () {
 
 			console.log('dep2');
 
-		}
+		})
 	};
-});
+}));

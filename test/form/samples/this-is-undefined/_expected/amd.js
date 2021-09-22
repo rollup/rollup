@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	const fooContext = {};
 
@@ -18,4 +18,4 @@ define(function () { 'use strict';
 	// outside a function, `this` is undefined
 	assert.strictEqual( undefined, undefined );
 
-});
+}));

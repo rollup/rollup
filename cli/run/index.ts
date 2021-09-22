@@ -74,11 +74,11 @@ export default async function runRollup(command: Record<string, any>): Promise<v
 						message: 'Warnings occurred and --failAfterWarnings flag present'
 					});
 				}
-			} catch (err) {
+			} catch (err: any) {
 				warnings.flush();
 				handleError(err);
 			}
-		} catch (err) {
+		} catch (err: any) {
 			handleError(err);
 		}
 	}

@@ -31,12 +31,16 @@ export default class UpdateExpression extends NodeBase {
 	}
 
 	render(code: MagicString, options: RenderOptions): void {
+		const {
+			exportNamesByVariable,
+			format,
+			snippets: { _ }
+		} = options;
 		this.argument.render(code, options);
-		if (options.format === 'system') {
+		if (format === 'system') {
 			const variable = this.argument.variable!;
-			const exportNames = options.exportNamesByVariable.get(variable);
+			const exportNames = exportNamesByVariable.get(variable);
 			if (exportNames) {
-				const _ = options.compact ? '' : ' ';
 				if (this.prefix) {
 					if (exportNames.length === 1) {
 						renderSystemExportExpression(variable, this.start, this.end, code, options);

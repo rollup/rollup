@@ -1,7 +1,7 @@
-System.register('myBundle', [], function () {
+System.register('myBundle', [], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			function foo() { return true; }
 
@@ -11,6 +11,6 @@ System.register('myBundle', [], function () {
 
 			console.log(baz());
 
-		}
+		})
 	};
-});
+}));

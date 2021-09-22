@@ -1,4 +1,4 @@
-define(['require', 'external-false', 'external-true'], function (require, fooFalse, fooTrue) { 'use strict';
+define(['require', 'external-false', 'external-true'], (function (require, fooFalse, fooTrue) { 'use strict';
 
 	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -11,14 +11,12 @@ define(['require', 'external-false', 'external-true'], function (require, fooFal
 					var d = Object.getOwnPropertyDescriptor(e, k);
 					Object.defineProperty(n, k, d.get ? d : {
 						enumerable: true,
-						get: function () {
-							return e[k];
-						}
+						get: function () { return e[k]; }
 					});
 				}
 			});
 		}
-		n['default'] = e;
+		n["default"] = e;
 		return Object.freeze(n);
 	}
 
@@ -26,9 +24,9 @@ define(['require', 'external-false', 'external-true'], function (require, fooFal
 	var fooTrue__namespace = /*#__PURE__*/_interopNamespace(fooTrue);
 
 	console.log(fooFalse, fooFalse.barFalse, fooFalse);
-	console.log(fooTrue__default['default'], fooTrue.barTrue, fooTrue__namespace);
+	console.log(fooTrue__default["default"], fooTrue.barTrue, fooTrue__namespace);
 
-	new Promise(function (resolve, reject) { require(['external-false'], resolve, reject) }).then(console.log);
-	new Promise(function (resolve, reject) { require(['external-true'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject) }).then(console.log);
+	new Promise(function (resolve, reject) { require(['external-false'], resolve, reject); }).then(console.log);
+	new Promise(function (resolve, reject) { require(['external-true'], function (m) { resolve(/*#__PURE__*/_interopNamespace(m)); }, reject); }).then(console.log);
 
-});
+}));

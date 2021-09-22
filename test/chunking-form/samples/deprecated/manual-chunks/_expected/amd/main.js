@@ -1,4 +1,4 @@
-define(['./generated-deps2and3', './generated-lib1'], function (deps2and3, lib1) { 'use strict';
+define(['./generated-deps2and3', './generated-lib1'], (function (deps2and3, lib1) { 'use strict';
 
   function fn () {
     console.log('dep1 fn');
@@ -14,4 +14,4 @@ define(['./generated-deps2and3', './generated-lib1'], function (deps2and3, lib1)
 
   return Main;
 
-});
+}));

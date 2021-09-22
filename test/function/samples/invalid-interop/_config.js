@@ -9,7 +9,7 @@ module.exports = {
 	generateError: {
 		code: 'INVALID_OPTION',
 		message:
-			'The value "true" is not supported for "output.interop". Use one of "auto", "esModule", "default", "defaultOnly", true, false instead.',
+			'Invalid value "true" for option "output.interop" - use one of "auto", "esModule", "default", "defaultOnly", true, false.',
 		url: 'https://rollupjs.org/guide/en/#outputinterop'
 	}
 };

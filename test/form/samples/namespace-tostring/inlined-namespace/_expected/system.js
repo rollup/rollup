@@ -1,7 +1,7 @@
-System.register([], function () {
+System.register([], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			const bar = 42;
 
@@ -15,6 +15,6 @@ System.register([], function () {
 			assert.strictEqual(Object.prototype.toString.call(foo), '[object Module]');
 			assert.strictEqual(bar, 42);
 
-		}
+		})
 	};
-});
+}));

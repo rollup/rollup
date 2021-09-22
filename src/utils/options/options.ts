@@ -1,4 +1,13 @@
-import { InputOptions, NormalizedInputOptions, WarningHandler } from '../../rollup/types';
+import {
+	InputOptions,
+	NormalizedGeneratedCodeOptions,
+	NormalizedOutputOptions,
+	NormalizedTreeshakingOptions,
+	OutputOptions,
+	WarningHandler
+} from '../../rollup/types';
+import { errInvalidOption, error } from '../error';
+import { printQuotedStringList } from '../printStringList';
 
 export interface GenericConfigObject {
 	[key: string]: unknown;
@@ -34,7 +43,7 @@ type ObjectValue<Base> = Base extends Record<string, any> ? Base : never;
 export const treeshakePresets: {
 	[key in NonNullable<
 		ObjectValue<InputOptions['treeshake']>['preset']
-	>]: NormalizedInputOptions['treeshake'];
+	>]: NormalizedTreeshakingOptions;
 } = {
 	recommended: {
 		annotations: true,
@@ -61,3 +70,80 @@ export const treeshakePresets: {
 		unknownGlobalSideEffects: false
 	}
 };
+
+export const generatedCodePresets: {
+	[key in NonNullable<
+		ObjectValue<OutputOptions['generatedCode']>['preset']
+	>]: NormalizedOutputOptions['generatedCode'];
+} = {
+	es2015: {
+		arrowFunctions: true,
+		constBindings: true,
+		objectShorthand: true,
+		reservedNamesAsProps: true
+	},
+	es5: {
+		arrowFunctions: false,
+		constBindings: false,
+		objectShorthand: false,
+		reservedNamesAsProps: true
+	}
+};
+
+type ObjectOptionWithPresets =
+	| Partial<NormalizedTreeshakingOptions>
+	| Partial<NormalizedGeneratedCodeOptions>;
+
+export const objectifyOptionWithPresets =
+	<T extends ObjectOptionWithPresets>(
+		presets: Record<string, T>,
+		optionName: string,
+		additionalValues: string
+	) =>
+	(value: unknown): Record<string, unknown> => {
+		if (typeof value === 'string') {
+			const preset = presets[value];
+			if (preset) {
+				return preset;
+			}
+			error(
+				errInvalidOption(
+					optionName,
+					getHashFromObjectOption(optionName),
+					`valid values are ${additionalValues}${printQuotedStringList(
+						Object.keys(presets)
+					)}. You can also supply an object for more fine-grained control`,
+					value
+				)
+			);
+		}
+		return value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+	};
+
+export const getOptionWithPreset = <T extends ObjectOptionWithPresets>(
+	value: unknown,
+	presets: Record<string, T>,
+	optionName: string,
+	additionalValues: string
+): Record<string, unknown> => {
+	const presetName: string | undefined = (value as any)?.preset;
+	if (presetName) {
+		const preset = presets[presetName];
+		if (preset) {
+			return { ...preset, ...(value as Record<string, unknown>) };
+		} else {
+			error(
+				errInvalidOption(
+					`${optionName}.preset`,
+					getHashFromObjectOption(optionName),
+					`valid values are ${printQuotedStringList(Object.keys(presets))}`,
+					presetName
+				)
+			);
+		}
+	}
+	return objectifyOptionWithPresets(presets, optionName, additionalValues)(value);
+};
+
+const getHashFromObjectOption = (optionName: string): string =>
+	optionName.split('.').join('').toLowerCase();

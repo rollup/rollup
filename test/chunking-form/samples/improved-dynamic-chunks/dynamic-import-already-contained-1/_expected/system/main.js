@@ -1,7 +1,7 @@
-System.register([], function (exports) {
+System.register([], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			Promise.resolve().then(function () { return main; }).then(console.log);
 			console.log('dep1');
@@ -25,6 +25,6 @@ System.register([], function (exports) {
 				value: value
 			});
 
-		}
+		})
 	};
-});
+}));

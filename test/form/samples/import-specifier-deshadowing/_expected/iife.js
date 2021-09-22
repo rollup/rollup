@@ -11,4 +11,4 @@ var Sticky = (function (reactSticky) {
 
 	return Sticky;
 
-}(reactSticky));
+})(reactSticky);

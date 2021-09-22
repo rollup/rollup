@@ -1,4 +1,4 @@
-define(['exports', 'external-all', 'external-namespace', 'external-default-namespace', 'external-named-namespace'], function (exports, externalAll, externalNamespace$1, externalDefaultNamespace, externalNamedNamespace) { 'use strict';
+define(['exports', 'external-all', 'external-namespace', 'external-default-namespace', 'external-named-namespace'], (function (exports, externalAll, externalNamespace$1, externalDefaultNamespace, externalNamedNamespace) { 'use strict';
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -9,14 +9,12 @@ define(['exports', 'external-all', 'external-namespace', 'external-default-names
 					var d = Object.getOwnPropertyDescriptor(e, k);
 					Object.defineProperty(n, k, d.get ? d : {
 						enumerable: true,
-						get: function () {
-							return e[k];
-						}
+						get: function () { return e[k]; }
 					});
 				}
 			});
 		}
-		n['default'] = e;
+		n["default"] = e;
 		return Object.freeze(n);
 	}
 
@@ -36,4 +34,4 @@ define(['exports', 'external-all', 'external-namespace', 'external-default-names
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

@@ -5,4 +5,4 @@ var bundle = (function () {
 
 	return main;
 
-}());
+})();

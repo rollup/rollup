@@ -1,7 +1,7 @@
 (function (factory) {
 	typeof define === 'function' && define.amd ? define(factory) :
 	factory();
-}((function () { 'use strict';
+})((function () { 'use strict';
 
 	function isUsed ( x ) {
 		if ( x ) {
@@ -12,4 +12,4 @@
 
 	assert.equal( isUsed( true ), 2 );
 
-})));
+}));

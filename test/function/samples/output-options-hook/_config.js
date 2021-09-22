@@ -30,6 +30,12 @@ module.exports = {
 					externalLiveBindings: true,
 					format: 'cjs',
 					freeze: true,
+					generatedCode: {
+						arrowFunctions: false,
+						constBindings: false,
+						objectShorthand: false,
+						reservedNamesAsProps: false
+					},
 					globals: {},
 					hoistTransitiveImports: true,
 					indent: true,

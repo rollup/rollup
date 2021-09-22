@@ -1,12 +1,12 @@
-System.register([], function (exports, module) {
+System.register([], (function (exports, module) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			var dep = 'dep';
 
 			module.import(dep);
 
-		}
+		})
 	};
-});
+}));

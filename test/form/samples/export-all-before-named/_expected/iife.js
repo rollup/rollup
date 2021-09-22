@@ -9,9 +9,7 @@ var exposedInternals = (function (exports, external) {
 	Object.keys(external).forEach(function (k) {
 		if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
 			enumerable: true,
-			get: function () {
-				return external[k];
-			}
+			get: function () { return external[k]; }
 		});
 	});
 
@@ -19,4 +17,4 @@ var exposedInternals = (function (exports, external) {
 
 	return exports;
 
-}({}, external));
+})({}, external);

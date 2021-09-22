@@ -1,4 +1,4 @@
-define(['require', 'exports'], function (require, exports) { 'use strict';
+define(['require', 'exports'], (function (require, exports) { 'use strict';
 
   const getWorkerMessage = () => new Promise(resolve => {
     const worker = new Worker(new URL(require.toUrl('./worker-proxy.js'), document.baseURI).href);
@@ -7,4 +7,4 @@ define(['require', 'exports'], function (require, exports) { 'use strict';
 
   exports.getWorkerMessage = getWorkerMessage;
 
-});
+}));

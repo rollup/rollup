@@ -202,7 +202,7 @@ export class Task {
 				output: this.outputFiles,
 				result
 			});
-		} catch (error) {
+		} catch (error: any) {
 			if (!this.closed) {
 				if (Array.isArray(error.watchFiles)) {
 					for (const id of error.watchFiles) {

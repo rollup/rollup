@@ -10,4 +10,4 @@ var foo = (function (exports) {
 
 	return exports;
 
-}({}));
+})({});

@@ -1,11 +1,11 @@
-System.register(['./generated-dep1.js'], function (exports) {
+System.register(['./generated-dep1.js'], (function (exports) {
   'use strict';
   var fn;
   return {
     setters: [function (module) {
       fn = module.f;
     }],
-    execute: function () {
+    execute: (function () {
 
       class Main1 {
         constructor () {
@@ -13,6 +13,6 @@ System.register(['./generated-dep1.js'], function (exports) {
         }
       } exports('default', Main1);
 
-    }
+    })
   };
-});
+}));

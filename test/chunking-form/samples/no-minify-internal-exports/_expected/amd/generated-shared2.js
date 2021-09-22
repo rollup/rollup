@@ -1,4 +1,4 @@
-define(['exports'], function (exports) { 'use strict';
+define(['exports'], (function (exports) { 'use strict';
 
 	const shared1 = 'shared1';
 	const foo$1 = 'foo1';
@@ -11,4 +11,4 @@ define(['exports'], function (exports) { 'use strict';
 	exports.shared1 = shared1;
 	exports.shared2 = shared2;
 
-});
+}));

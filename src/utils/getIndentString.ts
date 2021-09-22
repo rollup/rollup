@@ -31,9 +31,8 @@ export default function getIndentString(
 	options: { indent: true | string }
 ): string {
 	if (options.indent !== true) return options.indent;
-
-	for (let i = 0; i < modules.length; i++) {
-		const indent = guessIndentString(modules[i].originalCode);
+	for (const module of modules) {
+		const indent = guessIndentString(module.originalCode);
 		if (indent !== null) return indent;
 	}
 

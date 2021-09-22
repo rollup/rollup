@@ -117,7 +117,7 @@ async function loadConfigFromBundledFile(fileName: string, bundledCode: string) 
 		const config = getDefaultFromCjs(require(fileName));
 		require.extensions[extension] = defaultLoader;
 		return config;
-	} catch (err) {
+	} catch (err: any) {
 		if (err.code === 'ERR_REQUIRE_ESM') {
 			return error({
 				code: 'TRANSPILED_ESM_CONFIG',

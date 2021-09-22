@@ -1,4 +1,4 @@
-System.register(['./module-a/v1/index.js', './module-b/v1/index.js'], function (exports) {
+System.register(['./module-a/v1/index.js', './module-b/v1/index.js'], (function (exports) {
 	'use strict';
 	return {
 		setters: [function (module) {
@@ -6,10 +6,10 @@ System.register(['./module-a/v1/index.js', './module-b/v1/index.js'], function (
 		}, function (module) {
 			exports('ModuleB_V1', module);
 		}],
-		execute: function () {
+		execute: (function () {
 
 
 
-		}
+		})
 	};
-});
+}));

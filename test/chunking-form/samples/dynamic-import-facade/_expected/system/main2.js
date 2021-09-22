@@ -1,4 +1,4 @@
-System.register(['./generated-dynamic.js'], function () {
+System.register(['./generated-dynamic.js'], (function () {
 	'use strict';
 	var dynamic, dep;
 	return {
@@ -6,10 +6,10 @@ System.register(['./generated-dynamic.js'], function () {
 			dynamic = module.d;
 			dep = module.a;
 		}],
-		execute: function () {
+		execute: (function () {
 
 			console.log('main2', dynamic, dep);
 
-		}
+		})
 	};
-});
+}));

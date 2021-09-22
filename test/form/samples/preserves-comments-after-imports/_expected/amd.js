@@ -1,4 +1,4 @@
-define(['exports'], function (exports) { 'use strict';
+define(['exports'], (function (exports) { 'use strict';
 
 	/** A comment for a number */
 	var number = 5;
@@ -10,4 +10,4 @@ define(['exports'], function (exports) { 'use strict';
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

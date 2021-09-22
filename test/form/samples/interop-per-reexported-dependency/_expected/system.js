@@ -1,31 +1,19 @@
-System.register('bundle', ['external-auto', 'external-default', 'external-defaultOnly', 'external-esModule'], function (exports) {
+System.register('bundle', ['external-auto', 'external-default', 'external-defaultOnly', 'external-esModule'], (function (exports) {
 	'use strict';
 	return {
 		setters: [function (module) {
-			exports('externalAuto', module);
-			var _setter = {};
-			_setter.barAuto = module.barAuto;
-			_setter.fooAuto = module.default;
-			exports(_setter);
+			exports({ barAuto: module.barAuto, externalAuto: module, fooAuto: module["default"] });
 		}, function (module) {
-			exports('externalDefault', module);
-			var _setter = {};
-			_setter.barDefault = module.barDefault;
-			_setter.fooDefault = module.default;
-			exports(_setter);
+			exports({ barDefault: module.barDefault, externalDefault: module, fooDefault: module["default"] });
 		}, function (module) {
-			exports('fooDefaultOnly', module.default);
+			exports('fooDefaultOnly', module["default"]);
 		}, function (module) {
-			exports('externalEsModule', module);
-			var _setter = {};
-			_setter.barEsModule = module.barEsModule;
-			_setter.fooEsModule = module.default;
-			exports(_setter);
+			exports({ barEsModule: module.barEsModule, externalEsModule: module, fooEsModule: module["default"] });
 		}],
-		execute: function () {
+		execute: (function () {
 
 
 
-		}
+		})
 	};
-});
+}));

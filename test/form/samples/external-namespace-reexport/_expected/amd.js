@@ -1,4 +1,4 @@
-define(['exports', 'highcharts'], function (exports, highcharts) { 'use strict';
+define(['exports', 'highcharts'], (function (exports, highcharts) { 'use strict';
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -9,14 +9,12 @@ define(['exports', 'highcharts'], function (exports, highcharts) { 'use strict';
 					var d = Object.getOwnPropertyDescriptor(e, k);
 					Object.defineProperty(n, k, d.get ? d : {
 						enumerable: true,
-						get: function () {
-							return e[k];
-						}
+						get: function () { return e[k]; }
 					});
 				}
 			});
 		}
-		n['default'] = e;
+		n["default"] = e;
 		return Object.freeze(n);
 	}
 
@@ -28,4 +26,4 @@ define(['exports', 'highcharts'], function (exports, highcharts) { 'use strict';
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

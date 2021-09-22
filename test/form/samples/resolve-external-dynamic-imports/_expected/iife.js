@@ -5,7 +5,7 @@ var bundle = (function (exports, myExternal) {
 
 	var myExternal__default = /*#__PURE__*/_interopDefaultLegacy(myExternal);
 
-	const test = () => myExternal__default['default'];
+	const test = () => myExternal__default["default"];
 
 	const someDynamicImport = () => import('external');
 
@@ -16,4 +16,4 @@ var bundle = (function (exports, myExternal) {
 
 	return exports;
 
-}({}, myExternal));
+})({}, myExternal);

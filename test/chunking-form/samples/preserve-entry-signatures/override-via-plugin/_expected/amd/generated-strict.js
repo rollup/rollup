@@ -1,4 +1,4 @@
-define(['exports', './generated-main'], function (exports, strict) { 'use strict';
+define(['exports', './generated-main'], (function (exports, strict) { 'use strict';
 
 
 
@@ -6,4 +6,4 @@ define(['exports', './generated-main'], function (exports, strict) { 'use strict
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

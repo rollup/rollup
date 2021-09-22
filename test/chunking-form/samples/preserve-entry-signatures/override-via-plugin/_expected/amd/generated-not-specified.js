@@ -1,9 +1,9 @@
-define(['require', 'exports'], function (require, exports) { 'use strict';
+define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	const shared = 'shared';
 
 	console.log(shared);
-	new Promise(function (resolve, reject) { require(['./generated-dynamic4'], resolve, reject) });
+	new Promise(function (resolve, reject) { require(['./generated-dynamic4'], resolve, reject); });
 	const unused = 42;
 
 	exports.shared = shared;
@@ -11,4 +11,4 @@ define(['require', 'exports'], function (require, exports) { 'use strict';
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

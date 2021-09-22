@@ -1,10 +1,10 @@
-System.register([], function (exports) {
+System.register([], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			var m2 = exports('default', {a:1});
 
-		}
+		})
 	};
-});
+}));

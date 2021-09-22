@@ -12,14 +12,12 @@ var bundle = (function (exports, externalFalse, externalTrue) {
 					var d = Object.getOwnPropertyDescriptor(e, k);
 					Object.defineProperty(n, k, d.get ? d : {
 						enumerable: true,
-						get: function () {
-							return e[k];
-						}
+						get: function () { return e[k]; }
 					});
 				}
 			});
 		}
-		n['default'] = e;
+		n["default"] = e;
 		return Object.freeze(n);
 	}
 
@@ -30,28 +28,22 @@ var bundle = (function (exports, externalFalse, externalTrue) {
 
 	Object.defineProperty(exports, 'barFalse', {
 		enumerable: true,
-		get: function () {
-			return externalFalse.barFalse;
-		}
+		get: function () { return externalFalse.barFalse; }
 	});
 	exports.externalFalse = externalFalse;
 	exports.fooFalse = externalFalse;
 	Object.defineProperty(exports, 'barTrue', {
 		enumerable: true,
-		get: function () {
-			return externalTrue.barTrue;
-		}
+		get: function () { return externalTrue.barTrue; }
 	});
 	exports.externalTrue = externalTrue__namespace;
 	Object.defineProperty(exports, 'fooTrue', {
 		enumerable: true,
-		get: function () {
-			return externalTrue__default['default'];
-		}
+		get: function () { return externalTrue__default["default"]; }
 	});
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
 	return exports;
 
-}({}, externalfalse, externaltrue));
+})({}, externalfalse, externaltrue);

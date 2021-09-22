@@ -1,4 +1,4 @@
-define(['factory', 'baz', 'shipping-port', 'alphabet'], function (factory, baz, containers, alphabet) { 'use strict';
+define(['factory', 'baz', 'shipping-port', 'alphabet'], (function (factory, baz, containers, alphabet) { 'use strict';
 
 	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -11,14 +11,12 @@ define(['factory', 'baz', 'shipping-port', 'alphabet'], function (factory, baz, 
 					var d = Object.getOwnPropertyDescriptor(e, k);
 					Object.defineProperty(n, k, d.get ? d : {
 						enumerable: true,
-						get: function () {
-							return e[k];
-						}
+						get: function () { return e[k]; }
 					});
 				}
 			});
 		}
-		n['default'] = e;
+		n["default"] = e;
 		return Object.freeze(n);
 	}
 
@@ -26,10 +24,10 @@ define(['factory', 'baz', 'shipping-port', 'alphabet'], function (factory, baz, 
 	var containers__namespace = /*#__PURE__*/_interopNamespace(containers);
 	var alphabet__default = /*#__PURE__*/_interopDefaultLegacy(alphabet);
 
-	factory__default['default']( null );
+	factory__default["default"]( null );
 	baz.foo( baz.bar, containers.port );
 	containers__namespace.forEach( console.log, console );
 	console.log( alphabet.a );
-	console.log( alphabet__default['default'].length );
+	console.log( alphabet__default["default"].length );
 
-});
+}));

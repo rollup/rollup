@@ -1,4 +1,4 @@
-define(['exports', 'external-auto', 'external-default', 'external-defaultOnly', 'external-esModule'], function (exports, externalAuto, externalDefault, externalDefaultOnly, externalEsModule) { 'use strict';
+define(['exports', 'external-auto', 'external-default', 'external-defaultOnly', 'external-esModule'], (function (exports, externalAuto, externalDefault, externalDefaultOnly, externalEsModule) { 'use strict';
 
 	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
@@ -8,20 +8,16 @@ define(['exports', 'external-auto', 'external-default', 'external-defaultOnly', 
 					var d = Object.getOwnPropertyDescriptor(e, k);
 					Object.defineProperty(n, k, d.get ? d : {
 						enumerable: true,
-						get: function () {
-							return e[k];
-						}
+						get: function () { return e[k]; }
 					});
 				}
 			});
 		}
-		n['default'] = e;
+		n["default"] = e;
 		return Object.freeze(n);
 	}
 
-	function _interopNamespace(e) {
-		return e && e.__esModule ? e : _interopNamespaceDefault(e);
-	}
+	function _interopNamespace (e) { return e && e.__esModule ? e : _interopNamespaceDefault(e); }
 
 	var externalAuto__namespace = /*#__PURE__*/_interopNamespace(externalAuto);
 	var externalDefault__namespace = /*#__PURE__*/_interopNamespaceDefault(externalDefault);
@@ -30,40 +26,30 @@ define(['exports', 'external-auto', 'external-default', 'external-defaultOnly', 
 
 	Object.defineProperty(exports, 'barAuto', {
 		enumerable: true,
-		get: function () {
-			return externalAuto.barAuto;
-		}
+		get: function () { return externalAuto.barAuto; }
 	});
 	exports.externalAuto = externalAuto__namespace;
 	Object.defineProperty(exports, 'fooAuto', {
 		enumerable: true,
-		get: function () {
-			return externalAuto__namespace['default'];
-		}
+		get: function () { return externalAuto__namespace["default"]; }
 	});
 	Object.defineProperty(exports, 'barDefault', {
 		enumerable: true,
-		get: function () {
-			return externalDefault.barDefault;
-		}
+		get: function () { return externalDefault.barDefault; }
 	});
 	exports.externalDefault = externalDefault__namespace;
 	exports.fooDefault = externalDefault;
 	exports.fooDefaultOnly = externalDefaultOnly;
 	Object.defineProperty(exports, 'barEsModule', {
 		enumerable: true,
-		get: function () {
-			return externalEsModule.barEsModule;
-		}
+		get: function () { return externalEsModule.barEsModule; }
 	});
 	exports.externalEsModule = externalEsModule;
 	Object.defineProperty(exports, 'fooEsModule', {
 		enumerable: true,
-		get: function () {
-			return externalEsModule['default'];
-		}
+		get: function () { return externalEsModule["default"]; }
 	});
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

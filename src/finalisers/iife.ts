@@ -10,8 +10,6 @@ import trimEmptyImports from './shared/trimEmptyImports';
 import warnOnBuiltins from './shared/warnOnBuiltins';
 import { FinaliserOptions } from './index';
 
-const thisProp = (name: string) => `this${keypath(name)}`;
-
 export default function iife(
 	magicString: MagicStringBundle,
 	{
@@ -19,11 +17,11 @@ export default function iife(
 		dependencies,
 		exports,
 		hasExports,
-		indentString: t,
+		indent: t,
 		intro,
 		namedExportsMode,
 		outro,
-		varOrConst,
+		snippets,
 		warn
 	}: FinaliserOptions,
 	{
@@ -39,10 +37,7 @@ export default function iife(
 		strict
 	}: NormalizedOutputOptions
 ): Bundle {
-	const _ = compact ? '' : ' ';
-	const s = compact ? '' : ';';
-	const n = compact ? '' : '\n';
-
+	const { _, cnst, getNonArrowFunctionIntro, getPropertyAccess, n } = snippets;
 	const isNamespaced = name && name.indexOf('.') !== -1;
 	const useVariableAssignment = !extend && !isNamespaced;
 
@@ -68,7 +63,12 @@ export default function iife(
 
 	if (namedExportsMode && hasExports) {
 		if (extend) {
-			deps.unshift(`${thisProp(name!)}${_}=${_}${thisProp(name!)}${_}||${_}{}`);
+			deps.unshift(
+				`this${keypath(name!, getPropertyAccess)}${_}=${_}this${keypath(
+					name!,
+					getPropertyAccess
+				)}${_}||${_}{}`
+			);
 			args.unshift('exports');
 		} else {
 			deps.unshift('{}');
@@ -79,32 +79,32 @@ export default function iife(
 	const useStrict = strict ? `${t}'use strict';${n}` : '';
 	const interopBlock = getInteropBlock(
 		dependencies,
-		varOrConst,
 		interop,
 		externalLiveBindings,
 		freeze,
 		namespaceToStringTag,
 		accessedGlobals,
-		_,
-		n,
-		s,
-		t
+		t,
+		snippets
 	);
 	magicString.prepend(`${intro}${interopBlock}`);
 
-	let wrapperIntro = `(function${_}(${args.join(`,${_}`)})${_}{${n}${useStrict}${n}`;
+	let wrapperIntro = `(${getNonArrowFunctionIntro(args, {
+		isAsync: false,
+		name: null
+	})}{${n}${useStrict}${n}`;
 	if (hasExports) {
 		if (name && !(extend && namedExportsMode)) {
 			wrapperIntro =
-				(useVariableAssignment ? `${varOrConst} ${name}` : thisProp(name)) +
+				(useVariableAssignment ? `${cnst} ${name}` : `this${keypath(name, getPropertyAccess)}`) +
 				`${_}=${_}${wrapperIntro}`;
 		}
 		if (isNamespaced) {
-			wrapperIntro = setupNamespace(name!, 'this', globals, compact) + wrapperIntro;
+			wrapperIntro = setupNamespace(name!, 'this', globals, snippets, compact) + wrapperIntro;
 		}
 	}
 
-	let wrapperOutro = `${n}${n}}(${deps.join(`,${_}`)}));`;
+	let wrapperOutro = `${n}${n}})(${deps.join(`,${_}`)});`;
 	if (hasExports && !extend && namedExportsMode) {
 		wrapperOutro = `${n}${n}${t}return exports;${wrapperOutro}`;
 	}
@@ -114,7 +114,7 @@ export default function iife(
 		dependencies,
 		namedExportsMode,
 		interop,
-		compact,
+		snippets,
 		t,
 		externalLiveBindings
 	);

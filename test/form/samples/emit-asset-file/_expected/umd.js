@@ -1,7 +1,7 @@
 (function (factory) {
 	typeof define === 'function' && define.amd ? define(factory) :
 	factory();
-}((function () { 'use strict';
+})((function () { 'use strict';
 
 	var logo = (typeof document === 'undefined' && typeof location === 'undefined' ? new (require('u' + 'rl').URL)('file:' + __dirname + '/assets/logo-25585ac1.svg').href : new URL('assets/logo-25585ac1.svg', typeof document === 'undefined' ? location.href : document.currentScript && document.currentScript.src || document.baseURI).href);
 
@@ -16,4 +16,4 @@
 
 	showImage(logo);
 
-})));
+}));

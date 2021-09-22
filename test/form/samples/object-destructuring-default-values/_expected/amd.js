@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	const a = 1;
 	const b = 2;
@@ -6,4 +6,4 @@ define(function () { 'use strict';
 	const [ d = b ] = [];
 	console.log(c, d);
 
-});
+}));

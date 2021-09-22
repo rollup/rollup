@@ -9,4 +9,4 @@ var libraryName = (function (exports) {
 
 	return exports;
 
-}({}));
+})({});

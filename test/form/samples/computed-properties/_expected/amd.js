@@ -1,4 +1,4 @@
-define(['exports'], function (exports) { 'use strict';
+define(['exports'], (function (exports) { 'use strict';
 
 	var foo = 'foo';
 	var bar = 'bar';
@@ -18,4 +18,4 @@ define(['exports'], function (exports) { 'use strict';
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

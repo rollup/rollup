@@ -1,4 +1,4 @@
-define(['exports', 'external-false', 'external-true'], function (exports, externalFalse, externalTrue) { 'use strict';
+define(['exports', 'external-false', 'external-true'], (function (exports, externalFalse, externalTrue) { 'use strict';
 
 	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -11,14 +11,12 @@ define(['exports', 'external-false', 'external-true'], function (exports, extern
 					var d = Object.getOwnPropertyDescriptor(e, k);
 					Object.defineProperty(n, k, d.get ? d : {
 						enumerable: true,
-						get: function () {
-							return e[k];
-						}
+						get: function () { return e[k]; }
 					});
 				}
 			});
 		}
-		n['default'] = e;
+		n["default"] = e;
 		return Object.freeze(n);
 	}
 
@@ -29,26 +27,20 @@ define(['exports', 'external-false', 'external-true'], function (exports, extern
 
 	Object.defineProperty(exports, 'barFalse', {
 		enumerable: true,
-		get: function () {
-			return externalFalse.barFalse;
-		}
+		get: function () { return externalFalse.barFalse; }
 	});
 	exports.externalFalse = externalFalse;
 	exports.fooFalse = externalFalse;
 	Object.defineProperty(exports, 'barTrue', {
 		enumerable: true,
-		get: function () {
-			return externalTrue.barTrue;
-		}
+		get: function () { return externalTrue.barTrue; }
 	});
 	exports.externalTrue = externalTrue__namespace;
 	Object.defineProperty(exports, 'fooTrue', {
 		enumerable: true,
-		get: function () {
-			return externalTrue__default['default'];
-		}
+		get: function () { return externalTrue__default["default"]; }
 	});
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

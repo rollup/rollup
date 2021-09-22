@@ -1,7 +1,7 @@
-System.register([], function () {
+System.register([], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			const effect = () => console.log( 'effect' );
 			var { x: a2 = effect() } = {};
@@ -31,6 +31,6 @@ System.register([], function () {
 			[ d4 = effect ] = [];
 			d4();
 
-		}
+		})
 	};
-});
+}));

@@ -2,6 +2,21 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+function _mergeNamespaces(n, m) {
+	m.forEach(function (e) {
+		Object.keys(e).forEach(function (k) {
+			if (k !== 'default' && !(k in n)) {
+				var d = Object.getOwnPropertyDescriptor(e, k);
+				Object.defineProperty(n, k, d.get ? d : {
+					enumerable: true,
+					get: function () { return e[k]; }
+				});
+			}
+		});
+	});
+	return Object.freeze(n);
+}
+
 var synthetic = {
 	foo: 'synthetic-foo',
 	bar: 'synthetic-bar',
@@ -10,19 +25,21 @@ var synthetic = {
 };
 const foo = 'foo';
 
-var synthetic$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), synthetic, {
+var synthetic$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/_mergeNamespaces({
+	__proto__: null,
 	'default': synthetic,
 	foo: foo
-}));
+}, [synthetic]));
 
 const bar = 'bar';
 var dep = 'not-overwritten';
 
-var dep$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), synthetic, {
+var dep$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/_mergeNamespaces({
+	__proto__: null,
 	bar: bar,
 	'default': dep,
 	synthetic: synthetic$1,
 	foo: foo
-}));
+}, [synthetic]));
 
 exports.dep = dep$1;

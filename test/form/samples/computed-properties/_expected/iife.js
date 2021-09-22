@@ -21,4 +21,4 @@ var computedProperties = (function (exports) {
 
 	return exports;
 
-}({}));
+})({});

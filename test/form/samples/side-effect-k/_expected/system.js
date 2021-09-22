@@ -1,7 +1,7 @@
-System.register('myBundle', [], function (exports) {
+System.register('myBundle', [], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			exports('default', x);
 
@@ -28,6 +28,6 @@ System.register('myBundle', [], function (exports) {
 			function x () {}
 			augment( x.prototype );
 
-		}
+		})
 	};
-});
+}));

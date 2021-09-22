@@ -1,11 +1,11 @@
-System.register('bundle', ['external'], function (exports, module) {
+System.register('bundle', ['external'], (function (exports, module) {
 	'use strict';
 	var external;
 	return {
 		setters: [function (module) {
-			external = module.default;
+			external = module["default"];
 		}],
-		execute: function () {
+		execute: (function () {
 
 			console.log(external);
 
@@ -52,6 +52,6 @@ System.register('bundle', ['external'], function (exports, module) {
 
 			nested2();
 
-		}
+		})
 	};
-});
+}));

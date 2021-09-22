@@ -1,4 +1,4 @@
-define(['exports'], function (exports) { 'use strict';
+define(['exports'], (function (exports) { 'use strict';
 
 	let a = {};
 	let b = {};
@@ -9,4 +9,4 @@ define(['exports'], function (exports) { 'use strict';
 	exports.b = b;
 	exports.c = c;
 
-});
+}));

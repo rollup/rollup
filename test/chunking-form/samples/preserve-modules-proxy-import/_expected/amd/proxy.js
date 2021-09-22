@@ -1,4 +1,4 @@
-define(['external'], function (path) { 'use strict';
+define(['external'], (function (path) { 'use strict';
 
 	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -6,6 +6,6 @@ define(['external'], function (path) { 'use strict';
 
 
 
-	return path__default['default'];
+	return path__default["default"];
 
-});
+}));

@@ -1,7 +1,7 @@
-System.register([], function (exports, module) {
+System.register([], (function (exports, module) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			function log(url) {
 				if (typeof document === 'undefined') {
@@ -13,6 +13,6 @@ System.register([], function (exports, module) {
 
 			log(module.meta.url);
 
-		}
+		})
 	};
-});
+}));

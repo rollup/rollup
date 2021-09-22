@@ -1,4 +1,4 @@
-System.register(['./generated-build-starter.js'], function () {
+System.register(['./generated-build-starter.js'], (function () {
 	'use strict';
 	var value, otherValue;
 	return {
@@ -6,10 +6,10 @@ System.register(['./generated-build-starter.js'], function () {
 			value = module.v;
 			otherValue = module.o;
 		}],
-		execute: function () {
+		execute: (function () {
 
 			console.log('main', value, otherValue);
 
-		}
+		})
 	};
-});
+}));

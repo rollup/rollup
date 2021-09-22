@@ -117,7 +117,12 @@ export default class ExportDefaultDeclaration extends NodeBase {
 		needsId: boolean,
 		options: RenderOptions
 	) {
-		const name = this.variable.getName();
+		const {
+			exportNamesByVariable,
+			format,
+			snippets: { getPropertyAccess }
+		} = options;
+		const name = this.variable.getName(getPropertyAccess);
 		// Remove `export default`
 		code.remove(this.start, declarationStart);
 
@@ -128,9 +133,9 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			);
 		}
 		if (
-			options.format === 'system' &&
+			format === 'system' &&
 			this.declaration instanceof ClassDeclaration &&
-			options.exportNamesByVariable.has(this.variable)
+			exportNamesByVariable.has(this.variable)
 		) {
 			code.appendLeft(this.end, ` ${getSystemExportStatement([this.variable], options)};`);
 		}
@@ -139,17 +144,16 @@ export default class ExportDefaultDeclaration extends NodeBase {
 	private renderVariableDeclaration(
 		code: MagicString,
 		declarationStart: number,
-		options: RenderOptions
+		{ format, exportNamesByVariable, snippets: { cnst, getPropertyAccess } }: RenderOptions
 	) {
 		const hasTrailingSemicolon = code.original.charCodeAt(this.end - 1) === 59; /*";"*/
-		const systemExportNames =
-			options.format === 'system' && options.exportNamesByVariable.get(this.variable);
+		const systemExportNames = format === 'system' && exportNamesByVariable.get(this.variable);
 
 		if (systemExportNames) {
 			code.overwrite(
 				this.start,
 				declarationStart,
-				`${options.varOrConst} ${this.variable.getName()} = exports('${systemExportNames[0]}', `
+				`${cnst} ${this.variable.getName(getPropertyAccess)} = exports('${systemExportNames[0]}', `
 			);
 			code.appendRight(
 				hasTrailingSemicolon ? this.end - 1 : this.end,
@@ -159,7 +163,7 @@ export default class ExportDefaultDeclaration extends NodeBase {
 			code.overwrite(
 				this.start,
 				declarationStart,
-				`${options.varOrConst} ${this.variable.getName()} = `
+				`${cnst} ${this.variable.getName(getPropertyAccess)} = `
 			);
 			if (!hasTrailingSemicolon) {
 				code.appendLeft(this.end, ';');

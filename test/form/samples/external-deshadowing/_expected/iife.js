@@ -10,7 +10,7 @@ var myBundle = (function (exports, a, Test$1) {
   };
 
   const Test1 = () => {
-    console.log(Test__default['default']);
+    console.log(Test__default["default"]);
   };
 
   exports.Test = Test;
@@ -20,4 +20,4 @@ var myBundle = (function (exports, a, Test$1) {
 
   return exports;
 
-}({}, a, b));
+})({}, a, b);

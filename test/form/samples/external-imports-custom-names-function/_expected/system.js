@@ -1,14 +1,14 @@
-System.register(['a-b-c'], function () {
+System.register(['a-b-c'], (function () {
 	'use strict';
 	var foo;
 	return {
 		setters: [function (module) {
 			foo = module.foo;
 		}],
-		execute: function () {
+		execute: (function () {
 
 			foo();
 
-		}
+		})
 	};
-});
+}));

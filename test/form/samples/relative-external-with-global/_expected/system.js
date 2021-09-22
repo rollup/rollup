@@ -1,11 +1,11 @@
-System.register(['./lib/throttle.js'], function () {
+System.register(['./lib/throttle.js'], (function () {
 	'use strict';
 	var throttle;
 	return {
 		setters: [function (module) {
-			throttle = module.default;
+			throttle = module["default"];
 		}],
-		execute: function () {
+		execute: (function () {
 
 			throttle( () => {
 				console.log( '.' );
@@ -13,6 +13,6 @@ System.register(['./lib/throttle.js'], function () {
 
 			window.addEventListener( 'mousemove', throttle );
 
-		}
+		})
 	};
-});
+}));

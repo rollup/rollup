@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	var effect1 = () => console.log( 'effect' );
 	var associated = () => {};
@@ -13,4 +13,4 @@ define(function () { 'use strict';
 		break;
 	}
 
-});
+}));

@@ -1,5 +1,5 @@
-define(['./generated-manual-middle'], function (manualMiddle) { 'use strict';
+define(['./generated-manual-middle'], (function (manualMiddle) { 'use strict';
 
 	console.log('outer');
 
-});
+}));

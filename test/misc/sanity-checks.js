@@ -165,7 +165,7 @@ describe('sanity checks', () => {
 		}
 		assert.strictEqual(
 			error && error.message,
-			'When building multiple chunks, the "output.dir" option must be used, not "output.file". To inline dynamic imports, set the "inlineDynamicImports" option.'
+			'Invalid value for option "output.file" - when building multiple chunks, the "output.dir" option must be used, not "output.file". To inline dynamic imports, set the "inlineDynamicImports" option.'
 		);
 	});
 
@@ -190,7 +190,7 @@ describe('sanity checks', () => {
 		}
 		assert.strictEqual(
 			error && error.message,
-			'When building multiple chunks, the "output.dir" option must be used, not "output.file". To inline dynamic imports, set the "inlineDynamicImports" option.'
+			'Invalid value for option "output.file" - when building multiple chunks, the "output.dir" option must be used, not "output.file". To inline dynamic imports, set the "inlineDynamicImports" option.'
 		);
 	});
 
@@ -216,7 +216,7 @@ describe('sanity checks', () => {
 		}
 		assert.strictEqual(
 			error && error.message,
-			'You must set "output.dir" instead of "output.file" when providing named inputs.'
+			'Invalid value for option "output.file" - you must set "output.dir" instead of "output.file" when providing named inputs.'
 		);
 	});
 
@@ -233,7 +233,7 @@ describe('sanity checks', () => {
 		}
 		assert.strictEqual(
 			error && error.message,
-			'You must set "output.dir" instead of "output.file" when using the "output.preserveModules" option.'
+			'Invalid value for option "output.file" - you must set "output.dir" instead of "output.file" when using the "output.preserveModules" option.'
 		);
 	});
 
@@ -287,7 +287,7 @@ describe('sanity checks', () => {
 
 		assert.strictEqual(
 			warning && warning.message,
-			'"output.amd.id" is only properly supported for single-file builds. Use "output.amd.autoId" and "output.amd.basePath".'
+			'Invalid value for option "output.amd.id" - this option is only properly supported for single-file builds. Use "output.amd.autoId" and "output.amd.basePath" instead.'
 		);
 	});
 });

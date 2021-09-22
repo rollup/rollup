@@ -1,7 +1,7 @@
-System.register('myBundle', [], function () {
+System.register('myBundle', [], (function () {
     'use strict';
     return {
-        execute: function () {
+        execute: (function () {
 
             var a = 'a',
                 b = 'b';
@@ -9,6 +9,6 @@ System.register('myBundle', [], function () {
             assert.equal( a, 'a' );
             assert.equal( b, 'b' );
 
-        }
+        })
     };
-});
+}));

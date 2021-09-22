@@ -1,2 +1,2 @@
-System.register(['external-1','external-2','external-3','external-4','external-5'],function(){'use strict';var value,value$1;return{setters:[function(){},function(){},function(module){value=module.value;},function(module){value$1=module.value;},function(){}],execute:function(){assert.equal(value, '3');
-assert.equal(value$1, '4');}}});
+System.register(['external-1','external-2','external-3','external-4','external-5'],(function(){'use strict';var value,value$1;return{setters:[function(){},function(){},function(module){value=module.value;},function(module){value$1=module.value;},function(){}],execute:(function(){assert.equal(value, '3');
+assert.equal(value$1, '4');})}}));

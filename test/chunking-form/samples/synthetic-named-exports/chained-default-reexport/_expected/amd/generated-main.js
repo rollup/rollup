@@ -1,4 +1,4 @@
-define(['require', 'exports'], function (require, exports) { 'use strict';
+define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	const lib = { named: { named: 42 } };
 
@@ -6,9 +6,9 @@ define(['require', 'exports'], function (require, exports) { 'use strict';
 
 	console.log('side-effect', lib.named.named);
 
-	const component = new Promise(function (resolve, reject) { require(['./generated-component'], resolve, reject) }).then(function (n) { return n.component; });
+	const component = new Promise(function (resolve, reject) { require(['./generated-component'], resolve, reject); }).then(function (n) { return n.component; });
 
 	exports.component = component;
 	exports.lib = lib;
 
-});
+}));

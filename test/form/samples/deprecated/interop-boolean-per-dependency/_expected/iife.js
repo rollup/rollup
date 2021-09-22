@@ -12,14 +12,12 @@
 					var d = Object.getOwnPropertyDescriptor(e, k);
 					Object.defineProperty(n, k, d.get ? d : {
 						enumerable: true,
-						get: function () {
-							return e[k];
-						}
+						get: function () { return e[k]; }
 					});
 				}
 			});
 		}
-		n['default'] = e;
+		n["default"] = e;
 		return Object.freeze(n);
 	}
 
@@ -27,9 +25,9 @@
 	var fooTrue__namespace = /*#__PURE__*/_interopNamespace(fooTrue);
 
 	console.log(fooFalse, fooFalse.barFalse, fooFalse);
-	console.log(fooTrue__default['default'], fooTrue.barTrue, fooTrue__namespace);
+	console.log(fooTrue__default["default"], fooTrue.barTrue, fooTrue__namespace);
 
 	import('external-false').then(console.log);
 	import('external-true').then(console.log);
 
-}(externalfalse, externaltrue));
+})(externalfalse, externaltrue);

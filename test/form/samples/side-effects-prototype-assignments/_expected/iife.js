@@ -12,4 +12,4 @@
 
 	console.log( new V8Engine().toString() );
 
-}());
+})();

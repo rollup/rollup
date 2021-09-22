@@ -1,17 +1,17 @@
-System.register(['foo'], function () {
+System.register(['foo'], (function () {
 	'use strict';
 	var foo, foo__default;
 	return {
 		setters: [function (module) {
 			foo = module;
-			foo__default = module.default;
+			foo__default = module["default"];
 		}],
-		execute: function () {
+		execute: (function () {
 
 			console.log( foo.bar );
 
 			console.log( foo__default );
 
-		}
+		})
 	};
-});
+}));

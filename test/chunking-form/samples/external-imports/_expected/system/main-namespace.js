@@ -1,4 +1,4 @@
-System.register(['external-all', 'external-namespace', 'external-default-namespace', 'external-named-namespace'], function () {
+System.register(['external-all', 'external-namespace', 'external-default-namespace', 'external-named-namespace'], (function () {
 	'use strict';
 	var foo, bar, quux, quux$1;
 	return {
@@ -11,10 +11,10 @@ System.register(['external-all', 'external-namespace', 'external-default-namespa
 		}, function (module) {
 			quux$1 = module;
 		}],
-		execute: function () {
+		execute: (function () {
 
 			console.log(foo, bar, quux, quux$1);
 
-		}
+		})
 	};
-});
+}));

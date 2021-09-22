@@ -8,4 +8,4 @@ var externalAuto__default = /*#__PURE__*/_interopDefault(externalAuto);
 
 
 
-module.exports = externalAuto__default['default'];
+module.exports = externalAuto__default["default"];

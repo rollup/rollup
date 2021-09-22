@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	for ( let i = 0; i < 2; i++ ) {
 		console.log( 'effect' );
@@ -25,4 +25,4 @@ define(function () { 'use strict';
 		break;
 	} while ( true );
 
-});
+}));

@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	var value = global;
 
@@ -6,4 +6,4 @@ define(function () { 'use strict';
 
 	return value;
 
-});
+}));

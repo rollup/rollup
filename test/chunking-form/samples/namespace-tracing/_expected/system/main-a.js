@@ -1,4 +1,4 @@
-System.register(['./generated-foo.js', './generated-broken.js'], function () {
+System.register(['./generated-foo.js', './generated-broken.js'], (function () {
 	'use strict';
 	var foo, broken;
 	return {
@@ -7,11 +7,11 @@ System.register(['./generated-foo.js', './generated-broken.js'], function () {
 		}, function (module) {
 			broken = module.b;
 		}],
-		execute: function () {
+		execute: (function () {
 
 			foo();
 			broken();
 
-		}
+		})
 	};
-});
+}));

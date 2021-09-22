@@ -3,4 +3,4 @@
 
 	console.log('iife', '!iife!');
 
-}());
+})();

@@ -3,10 +3,10 @@ import { Node, StatementNode } from '../ast/nodes/shared/Node';
 import Variable from '../ast/variables/Variable';
 import { InternalModuleFormat } from '../rollup/types';
 import { PluginDriver } from './PluginDriver';
+import { GenerateCodeSnippets } from './generateCodeSnippets';
 import { treeshakeNode } from './treeshakeNode';
 
 export interface RenderOptions {
-	compact: boolean;
 	dynamicImportFunction: string | undefined;
 	exportNamesByVariable: Map<Variable, string[]>;
 	format: InternalModuleFormat;
@@ -14,7 +14,7 @@ export interface RenderOptions {
 	indent: string;
 	namespaceToStringTag: boolean;
 	outputPluginDriver: PluginDriver;
-	varOrConst: 'var' | 'const';
+	snippets: GenerateCodeSnippets;
 }
 
 export interface NodeRenderOptions {

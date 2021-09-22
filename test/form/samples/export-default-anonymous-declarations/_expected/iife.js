@@ -88,4 +88,4 @@
   spacelessFn();
   spacelessGenerator();
 
-}());
+})();

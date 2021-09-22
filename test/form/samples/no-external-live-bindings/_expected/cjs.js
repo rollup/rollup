@@ -9,11 +9,11 @@ function _interopNamespace(e) {
 	if (e && e.__esModule) return e;
 	var n = Object.create(null);
 	if (e) {
-		Object.keys(e).forEach(function (k) {
+		for (var k in e) {
 			n[k] = e[k];
-		});
+		}
 	}
-	n['default'] = e;
+	n["default"] = e;
 	return Object.freeze(n);
 }
 
@@ -21,6 +21,6 @@ const dynamic = Promise.resolve().then(function () { return /*#__PURE__*/_intero
 
 exports.external1 = external1.external1;
 exports.dynamic = dynamic;
-Object.keys(external2).forEach(function (k) {
+for (var k in external2) {
 	if (k !== 'default' && !exports.hasOwnProperty(k)) exports[k] = external2[k];
-});
+}

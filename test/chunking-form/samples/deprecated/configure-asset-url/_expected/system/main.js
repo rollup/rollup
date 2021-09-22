@@ -1,7 +1,7 @@
-System.register([], function (exports, module) {
+System.register([], (function (exports, module) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			var asset2 = 'resolved';
 
@@ -9,6 +9,6 @@ System.register([], function (exports, module) {
 
 			module.import('./nested/chunk.js').then(result => console.log(result, asset2, asset3));
 
-		}
+		})
 	};
-});
+}));

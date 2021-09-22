@@ -1,7 +1,7 @@
-System.register([], function () {
+System.register([], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			var effect = function() {
 				console.log('effect');
@@ -10,6 +10,6 @@ System.register([], function () {
 			var alsoEffect = effect;
 			alsoEffect();
 
-		}
+		})
 	};
-});
+}));

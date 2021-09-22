@@ -1,7 +1,7 @@
 (function (factory) {
 	typeof define === 'function' && define.amd ? define(factory) :
 	factory();
-}((function () { 'use strict';
+})((function () { 'use strict';
 
 	function x$2 () {
 		return 'foo';
@@ -25,4 +25,4 @@
 	assert.equal( bar.x(), 'bar' );
 	assert.equal( baz.x(), 'baz' );
 
-})));
+}));

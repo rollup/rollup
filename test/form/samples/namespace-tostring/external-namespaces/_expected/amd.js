@@ -1,8 +1,6 @@
-define(['external-auto', 'external-default', 'external-defaultOnly'], function (externalAuto, externalDefault, externalDefaultOnly) { 'use strict';
+define(['external-auto', 'external-default', 'external-defaultOnly'], (function (externalAuto, externalDefault, externalDefaultOnly) { 'use strict';
 
-	function _interopNamespaceDefaultOnly(e) {
-		return Object.freeze({__proto__: null, [Symbol.toStringTag]: 'Module', 'default': e});
-	}
+	function _interopNamespaceDefaultOnly (e) { return Object.freeze({ __proto__: null, [Symbol.toStringTag]: 'Module', 'default': e }); }
 
 	function _interopNamespaceDefault(e) {
 		var n = {__proto__: null, [Symbol.toStringTag]: 'Module'};
@@ -12,20 +10,16 @@ define(['external-auto', 'external-default', 'external-defaultOnly'], function (
 					var d = Object.getOwnPropertyDescriptor(e, k);
 					Object.defineProperty(n, k, d.get ? d : {
 						enumerable: true,
-						get: function () {
-							return e[k];
-						}
+						get: function () { return e[k]; }
 					});
 				}
 			});
 		}
-		n['default'] = e;
+		n["default"] = e;
 		return Object.freeze(n);
 	}
 
-	function _interopNamespace(e) {
-		return e && e.__esModule ? e : _interopNamespaceDefault(e);
-	}
+	function _interopNamespace (e) { return e && e.__esModule ? e : _interopNamespaceDefault(e); }
 
 	var externalAuto__namespace = /*#__PURE__*/_interopNamespace(externalAuto);
 	var externalDefault__namespace = /*#__PURE__*/_interopNamespaceDefault(externalDefault);
@@ -43,4 +37,4 @@ define(['external-auto', 'external-default', 'external-defaultOnly'], function (
 	assert.strictEqual(Object.prototype.toString.call(externalDefaultOnly__namespace), '[object Module]');
 	assert.deepStrictEqual(externalDefaultOnly__namespace.default, { foo: 42 });
 
-});
+}));

@@ -1,4 +1,4 @@
-System.register(['./generated-dep.js', 'external'], function (exports) {
+System.register(['./generated-dep.js', 'external'], (function (exports) {
 	'use strict';
 	var reexported$1, reexported;
 	return {
@@ -7,7 +7,7 @@ System.register(['./generated-dep.js', 'external'], function (exports) {
 		}, function (module) {
 			reexported = module.reexported;
 		}],
-		execute: function () {
+		execute: (function () {
 
 			console.log(reexported);
 
@@ -17,6 +17,6 @@ System.register(['./generated-dep.js', 'external'], function (exports) {
 			});
 			exports('l', lib);
 
-		}
+		})
 	};
-});
+}));

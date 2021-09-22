@@ -1,4 +1,4 @@
-define(['react-sticky'], function (reactSticky) { 'use strict';
+define(['react-sticky'], (function (reactSticky) { 'use strict';
 
 	var Sticky = function () {
 		function Sticky() {}
@@ -10,4 +10,4 @@ define(['react-sticky'], function (reactSticky) { 'use strict';
 
 	return Sticky;
 
-});
+}));

@@ -1,14 +1,14 @@
-System.register(['https://external.com/external.js'], function () {
+System.register(['https://external.com/external.js'], (function () {
 	'use strict';
 	var external;
 	return {
 		setters: [function (module) {
-			external = module.default;
+			external = module["default"];
 		}],
-		execute: function () {
+		execute: (function () {
 
 			console.log(external);
 
-		}
+		})
 	};
-});
+}));

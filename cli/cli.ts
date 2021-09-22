@@ -16,7 +16,7 @@ if (command.help || (process.argv.length <= 2 && process.stdin.isTTY)) {
 } else {
 	try {
 		require('source-map-support').install();
-	} catch (err) {
+	} catch {
 		// do nothing
 	}
 

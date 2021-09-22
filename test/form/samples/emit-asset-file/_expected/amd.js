@@ -1,4 +1,4 @@
-define(['require'], function (require) { 'use strict';
+define(['require'], (function (require) { 'use strict';
 
 	var logo = new URL(require.toUrl('./assets/logo-25585ac1.svg'), document.baseURI).href;
 
@@ -13,4 +13,4 @@ define(['require'], function (require) { 'use strict';
 
 	showImage(logo);
 
-});
+}));

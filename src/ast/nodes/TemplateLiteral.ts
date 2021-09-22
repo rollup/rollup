@@ -19,10 +19,7 @@ export default class TemplateLiteral extends NodeBase {
 	}
 
 	render(code: MagicString, options: RenderOptions): void {
-		(code.indentExclusionRanges as [number, number][]).push([this.start, this.end] as [
-			number,
-			number
-		]);
+		(code.indentExclusionRanges as [number, number][]).push([this.start, this.end]);
 		super.render(code, options);
 	}
 }

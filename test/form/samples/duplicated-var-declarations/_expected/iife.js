@@ -12,4 +12,4 @@
 	assert.equal( b, 4 );
 	assert.equal( c, 5 );
 
-}());
+})();

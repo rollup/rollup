@@ -15,18 +15,17 @@ export default function amd(
 		exports,
 		hasExports,
 		id,
-		indentString: t,
+		indent: t,
 		intro,
 		isEntryFacade,
 		isModuleFacade,
 		namedExportsMode,
 		outro,
-		varOrConst,
+		snippets,
 		warn
 	}: FinaliserOptions,
 	{
 		amd,
-		compact,
 		esModule,
 		externalLiveBindings,
 		freeze,
@@ -38,9 +37,7 @@ export default function amd(
 	warnOnBuiltins(warn, dependencies);
 	const deps = dependencies.map(m => `'${removeExtensionFromRelativeAmdId(m.id)}'`);
 	const args = dependencies.map(m => m.name);
-	const n = compact ? '' : '\n';
-	const s = compact ? '' : ';';
-	const _ = compact ? '' : ' ';
+	const { n, getNonArrowFunctionIntro, _ } = snippets;
 
 	if (namedExportsMode && hasExports) {
 		args.unshift(`exports`);
@@ -66,16 +63,13 @@ export default function amd(
 	magicString.prepend(
 		`${intro}${getInteropBlock(
 			dependencies,
-			varOrConst,
 			interop,
 			externalLiveBindings,
 			freeze,
 			namespaceToStringTag,
 			accessedGlobals,
-			_,
-			n,
-			s,
-			t
+			t,
+			snippets
 		)}`
 	);
 
@@ -84,7 +78,7 @@ export default function amd(
 		dependencies,
 		namedExportsMode,
 		interop,
-		compact,
+		snippets,
 		t,
 		externalLiveBindings
 	);
@@ -99,8 +93,17 @@ export default function amd(
 		namespaceMarkers = n + n + namespaceMarkers;
 	}
 	magicString.append(`${exportBlock}${namespaceMarkers}${outro}`);
-	return magicString
-		.indent(t)
-		.prepend(`${amd.define}(${params}function${_}(${args.join(`,${_}`)})${_}{${useStrict}${n}${n}`)
-		.append(`${n}${n}});`);
+	return (
+		magicString
+			.indent(t)
+			// factory function should be wrapped by parentheses to avoid lazy parsing,
+			// cf. https://v8.dev/blog/preparser#pife
+			.prepend(
+				`${amd.define}(${params}(${getNonArrowFunctionIntro(args, {
+					isAsync: false,
+					name: null
+				})}{${useStrict}${n}${n}`
+			)
+			.append(`${n}${n}}));`)
+	);
 }

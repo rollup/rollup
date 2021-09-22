@@ -1,13 +1,13 @@
-System.register('bundle', ['external'], function (exports) {
+System.register('bundle', ['external'], (function (exports) {
 	'use strict';
 	return {
 		setters: [function (module) {
-			exports('default', module.default);
+			exports('default', module["default"]);
 		}],
-		execute: function () {
+		execute: (function () {
 
 			const value = exports('value', 42);
 
-		}
+		})
 	};
-});
+}));

@@ -85,37 +85,6 @@ function getObject(entries) {
 	return object;
 }
 
-function loadConfig(configFile) {
-	try {
-		return require(configFile);
-	} catch (err) {
-		if (err.code === 'MODULE_NOT_FOUND') {
-			const dir = path.dirname(configFile);
-			removeOldTest(dir);
-		} else {
-			throw new Error(`Failed to load ${configFile}: ${err.message}`);
-		}
-	}
-}
-
-function removeOldOutput(dir) {
-	if (sander.existsSync(path.join(dir, '_actual'))) {
-		sander.rimrafSync(path.join(dir, '_actual'));
-	}
-	if (sander.existsSync(path.join(dir, '_actual.js'))) {
-		sander.unlinkSync(path.join(dir, '_actual.js'));
-	}
-}
-
-function removeOldTest(dir) {
-	removeOldOutput(dir);
-	console.warn(
-		`Test configuration in ${dir} not found.\nTrying to clean up no longer existing test...`
-	);
-	sander.rmdirSync(dir);
-	console.warn('Directory removed.');
-}
-
 function loader(modules) {
 	modules = Object.assign(Object.create(null), modules);
 	return {
@@ -158,14 +127,12 @@ function runSamples(samplesDir, runTest, onTeardown) {
 }
 
 function runTestsInDir(dir, runTest) {
-	const fileNames = sander.readdirSync(dir);
-
+	const fileNames = getFileNamesAndRemoveOutput(dir);
 	if (fileNames.indexOf('_config.js') >= 0) {
-		removeOldOutput(dir);
 		loadConfigAndRunTest(dir, runTest);
-	} else if (fileNames.indexOf('_actual') >= 0 || fileNames.indexOf('_actual.js') >= 0) {
-		removeOldOutput(dir);
-		removeOldTest(dir);
+	} else if (fileNames.length === 0) {
+		console.warn(`Removing empty test directory ${dir}`);
+		sander.rmdirSync(dir);
 	} else {
 		describe(path.basename(dir), () => {
 			fileNames
@@ -176,15 +143,42 @@ function runTestsInDir(dir, runTest) {
 	}
 }
 
+function getFileNamesAndRemoveOutput(dir) {
+	try {
+		return sander.readdirSync(dir).filter(fileName => {
+			if (fileName === '_actual') {
+				sander.rimrafSync(path.join(dir, '_actual'));
+				return false;
+			}
+			if (fileName === '_actual.js') {
+				sander.unlinkSync(path.join(dir, '_actual.js'));
+				return false;
+			}
+			return true;
+		});
+	} catch (error) {
+		if (error.code === 'ENOTDIR') {
+			throw new Error(
+				`${dir} is not located next to a "_config.js" file but is not a directory or old test output either. Please inspect and consider removing the file.`
+			);
+		}
+		throw error;
+	}
+}
+
 function loadConfigAndRunTest(dir, runTest) {
-	const config = loadConfig(dir + '/_config.js');
+	const configFile = path.join(dir, '_config.js');
+	const config = require(configFile);
+	if (!config || !config.description) {
+		throw new Error(`Found invalid config without description: ${configFile}`);
+	}
 	if (
-		config &&
 		(!config.skipIfWindows || process.platform !== 'win32') &&
 		(!config.onlyWindows || process.platform === 'win32') &&
 		(!config.minNodeVersion || config.minNodeVersion <= Number(/^v(\d+)/.exec(process.version)[1]))
-	)
+	) {
 		runTest(dir, config);
+	}
 }
 
 function assertDirectoriesAreEqual(actualDir, expectedDir) {

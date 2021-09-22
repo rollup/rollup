@@ -1,14 +1,14 @@
-System.register(['dependency'], function () {
+System.register(['dependency'], (function () {
 	'use strict';
 	var dependency;
 	return {
 		setters: [function (module) {
 			dependency = module;
 		}],
-		execute: function () {
+		execute: (function () {
 
 			console.log(dependency);
 
-		}
+		})
 	};
-});
+}));

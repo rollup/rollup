@@ -1,4 +1,4 @@
-define(['exports'], function (exports) { 'use strict';
+define(['exports'], (function (exports) { 'use strict';
 
 	console.log('b');
 
@@ -15,4 +15,4 @@ define(['exports'], function (exports) { 'use strict';
 	exports.b = b;
 	exports.c = c;
 
-});
+}));

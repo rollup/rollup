@@ -1,4 +1,4 @@
-System.register(['../../../_virtual/index.js_commonjs-exports'], function (exports) {
+System.register(['../../../_virtual/index.js_commonjs-exports'], (function (exports) {
 	'use strict';
 	var myBasePkg;
 	return {
@@ -6,7 +6,7 @@ System.register(['../../../_virtual/index.js_commonjs-exports'], function (expor
 			myBasePkg = module.__exports;
 			exports('default', module.__exports);
 		}],
-		execute: function () {
+		execute: (function () {
 
 			Object.defineProperty(myBasePkg, '__esModule', { value: true });
 
@@ -14,6 +14,6 @@ System.register(['../../../_virtual/index.js_commonjs-exports'], function (expor
 
 			myBasePkg.hello = hello;
 
-		}
+		})
 	};
-});
+}));

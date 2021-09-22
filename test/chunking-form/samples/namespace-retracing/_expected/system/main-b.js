@@ -1,14 +1,14 @@
-System.register(['./generated-other.js'], function () {
+System.register(['./generated-other.js'], (function () {
 	'use strict';
 	var Other;
 	return {
 		setters: [function (module) {
 			Other = module.O;
 		}],
-		execute: function () {
+		execute: (function () {
 
 			Other.doSomething();
 
-		}
+		})
 	};
-});
+}));

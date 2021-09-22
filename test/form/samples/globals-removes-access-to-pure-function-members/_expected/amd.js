@@ -1,6 +1,6 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	Unknown.staticMember;
 	Unknown.prototype.method;
 
-});
+}));

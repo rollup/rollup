@@ -1,4 +1,4 @@
-System.register(['./generated-dep2.js', 'external'], function (exports) {
+System.register(['./generated-dep2.js', 'external'], (function (exports) {
   'use strict';
   var fn$3, fn$2;
   return {
@@ -7,7 +7,7 @@ System.register(['./generated-dep2.js', 'external'], function (exports) {
     }, function (module) {
       fn$2 = module.fn;
     }],
-    execute: function () {
+    execute: (function () {
 
       function fn$1 () {
         console.log('lib1 fn');
@@ -26,6 +26,6 @@ System.register(['./generated-dep2.js', 'external'], function (exports) {
         }
       } exports('default', Main2);
 
-    }
+    })
   };
-});
+}));

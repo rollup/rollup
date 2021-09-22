@@ -1,7 +1,7 @@
-System.register([], function () {
+System.register([], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			async function main() {
 				const foo$1 = 1;
@@ -18,6 +18,6 @@ System.register([], function () {
 				value: value
 			});
 
-		}
+		})
 	};
-});
+}));

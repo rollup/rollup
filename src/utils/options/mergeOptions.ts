@@ -4,17 +4,16 @@ import {
 	MergedRollupOptions,
 	OutputOptions,
 	RollupCache,
-	TreeshakingPreset,
 	WarningHandler,
 	WarningHandlerWithDefault
 } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
-import { errInvalidOption, error } from '../error';
-import { printQuotedStringList } from '../printStringList';
 import { CommandConfigObject } from './normalizeInputOptions';
 import {
 	defaultOnWarn,
+	generatedCodePresets,
 	GenericConfigObject,
+	objectifyOptionWithPresets,
 	treeshakePresets,
 	warnUnknownOptions
 } from './options';
@@ -130,7 +129,12 @@ function mergeInputOptions(
 		preserveSymlinks: getOption('preserveSymlinks'),
 		shimMissingExports: getOption('shimMissingExports'),
 		strictDeprecations: getOption('strictDeprecations'),
-		treeshake: getObjectOption(config, overrides, 'treeshake', objectifyTreeshakeOption),
+		treeshake: getObjectOption(
+			config,
+			overrides,
+			'treeshake',
+			objectifyOptionWithPresets(treeshakePresets, 'treeshake', 'false, true, ')
+		),
 		watch: getWatch(config, overrides, 'watch')
 	};
 
@@ -176,24 +180,6 @@ const getObjectOption = (
 		return commandOption && { ...configOption, ...commandOption };
 	}
 	return configOption;
-};
-
-const objectifyTreeshakeOption = (value: unknown): Record<string, unknown> => {
-	if (typeof value === 'string') {
-		const preset = treeshakePresets[value as TreeshakingPreset];
-		if (preset) {
-			return preset as unknown as Record<string, unknown>;
-		}
-		error(
-			errInvalidOption(
-				'treeshake',
-				`valid values are false, true, ${printQuotedStringList(
-					Object.keys(treeshakePresets)
-				)}. You can also supply an object for more fine-grained control`
-			)
-		);
-	}
-	return typeof value === 'object' ? (value as Record<string, unknown>) : {};
 };
 
 const getWatch = (config: GenericConfigObject, overrides: GenericConfigObject, name: string) =>
@@ -242,6 +228,12 @@ function mergeOutputOptions(
 		footer: getOption('footer'),
 		format: getOption('format'),
 		freeze: getOption('freeze'),
+		generatedCode: getObjectOption(
+			config,
+			overrides,
+			'generatedCode',
+			objectifyOptionWithPresets(generatedCodePresets, 'output.generatedCode', '')
+		),
 		globals: getOption('globals'),
 		hoistTransitiveImports: getOption('hoistTransitiveImports'),
 		indent: getOption('indent'),

@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	const hs = document.documentElement.style;
 
@@ -6,4 +6,4 @@ define(function () { 'use strict';
 		hs.color = "#222";
 	}
 
-});
+}));

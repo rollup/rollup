@@ -1,5 +1,5 @@
-define(['a-b-c'], function (aBC) { 'use strict';
+define(['a-b-c'], (function (aBC) { 'use strict';
 
 	aBC.foo();
 
-});
+}));

@@ -1,4 +1,4 @@
-System.register('bundle', ['external1', 'external2'], function (exports) {
+System.register('bundle', ['external1', 'external2'], (function (exports) {
 	'use strict';
 	var imported1, imported2;
 	return {
@@ -9,10 +9,10 @@ System.register('bundle', ['external1', 'external2'], function (exports) {
 			imported2 = module.imported2;
 			exports('external2', module);
 		}],
-		execute: function () {
+		execute: (function () {
 
 			console.log(imported1, imported2);
 
-		}
+		})
 	};
-});
+}));

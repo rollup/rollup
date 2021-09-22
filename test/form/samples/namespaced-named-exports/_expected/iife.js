@@ -11,4 +11,4 @@ this.foo.bar.baz = (function (exports) {
 
 	return exports;
 
-}({}));
+})({});

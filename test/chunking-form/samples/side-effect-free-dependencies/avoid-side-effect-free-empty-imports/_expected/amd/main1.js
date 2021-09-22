@@ -1,4 +1,4 @@
-define(['external-side-effect'], function (externalSideEffect) { 'use strict';
+define(['external-side-effect'], (function (externalSideEffect) { 'use strict';
 
 	function onlyUsedByOne() {
 		console.log('Hello');
@@ -6,4 +6,4 @@ define(['external-side-effect'], function (externalSideEffect) { 'use strict';
 
 	onlyUsedByOne();
 
-});
+}));

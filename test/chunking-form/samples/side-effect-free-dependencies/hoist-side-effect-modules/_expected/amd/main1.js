@@ -1,4 +1,4 @@
-define(['./generated-dep2-effect', './generated-dep4-effect'], function (dep2Effect, dep4Effect) { 'use strict';
+define(['./generated-dep2-effect', './generated-dep4-effect'], (function (dep2Effect, dep4Effect) { 'use strict';
 
 	var value = 42;
 
@@ -8,4 +8,4 @@ define(['./generated-dep2-effect', './generated-dep4-effect'], function (dep2Eff
 
 	onlyUsedByOne(value);
 
-});
+}));

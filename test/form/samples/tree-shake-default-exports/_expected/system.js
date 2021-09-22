@@ -1,7 +1,7 @@
-System.register([], function () {
+System.register([], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			/* header 3 */
 
@@ -57,6 +57,6 @@ System.register([], function () {
 			importedUsedFunction();
 			usedNamedFunction();
 
-		}
+		})
 	};
-});
+}));

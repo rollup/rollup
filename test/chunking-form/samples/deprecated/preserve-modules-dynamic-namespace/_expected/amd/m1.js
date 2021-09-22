@@ -1,4 +1,4 @@
-define(['exports', './m2', './m3'], function (exports, m2, m3) { 'use strict';
+define(['exports', './m2', './m3'], (function (exports, m2, m3) { 'use strict';
 
 
 
@@ -7,4 +7,4 @@ define(['exports', './m2', './m3'], function (exports, m2, m3) { 'use strict';
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

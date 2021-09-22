@@ -2,4 +2,4 @@
 
 var deb = 'string';
 
-exports['default'] = deb;
+exports["default"] = deb;

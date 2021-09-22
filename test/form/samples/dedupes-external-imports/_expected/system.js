@@ -1,11 +1,11 @@
-System.register('myBundle', ['external'], function (exports) {
+System.register('myBundle', ['external'], (function (exports) {
 	'use strict';
 	var Component;
 	return {
 		setters: [function (module) {
 			Component = module.Component;
 		}],
-		execute: function () {
+		execute: (function () {
 
 			class Foo extends Component {
 				constructor () {
@@ -32,6 +32,6 @@ System.register('myBundle', ['external'], function (exports) {
 			const bar = exports('bar', new Bar());
 			const baz = exports('baz', new Baz());
 
-		}
+		})
 	};
-});
+}));

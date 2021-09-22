@@ -1,4 +1,4 @@
-define(['module'], function (module) { 'use strict';
+define(['module'], (function (module) { 'use strict';
 
 	console.log('resolved');
 	console.log('resolved');
@@ -12,4 +12,4 @@ define(['module'], function (module) { 'use strict';
 	console.log('privateProp=amd.js:resolve-import-meta-url/main.js');
 	console.log('null=amd.js:resolve-import-meta-url/main.js');
 
-});
+}));

@@ -1,13 +1,13 @@
-System.register([], function (exports) {
+System.register([], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			var num = exports('n', 2);
 
-		}
+		})
 	};
-});
+}));
 console.log('fileName', 'chunk-dep2.js');
 console.log('imports', '');
 console.log('isEntry', false);

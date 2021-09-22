@@ -1,14 +1,14 @@
-System.register(['./generated-module1.js'], function () {
+System.register(['./generated-module1.js'], (function () {
 	'use strict';
 	var firebase;
 	return {
 		setters: [function (module) {
 			firebase = module.f;
 		}],
-		execute: function () {
+		execute: (function () {
 
 			console.log(firebase, firebase);
 
-		}
+		})
 	};
-});
+}));

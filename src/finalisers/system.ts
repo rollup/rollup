@@ -1,88 +1,10 @@
 import { Bundle, Bundle as MagicStringBundle } from 'magic-string';
-import { ChunkExports, ModuleDeclarations } from '../Chunk';
+import { ChunkDependencies, ChunkExports, ModuleDeclarations } from '../Chunk';
 import { NormalizedOutputOptions } from '../rollup/types';
+import { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
+import { getHelpersBlock } from '../utils/interopHelpers';
 import { MISSING_EXPORT_SHIM_VARIABLE } from '../utils/variableNames';
 import { FinaliserOptions } from './index';
-
-function getStarExcludes({ dependencies, exports }: ModuleDeclarations): Set<string> {
-	const starExcludes = new Set(exports.map(expt => expt.exported));
-	starExcludes.add('default');
-	for (const { reexports } of dependencies) {
-		if (reexports) {
-			for (const reexport of reexports) {
-				if (reexport.imported !== '*') starExcludes.add(reexport.reexported);
-			}
-		}
-	}
-	return starExcludes;
-}
-
-const getStarExcludesBlock = (
-	starExcludes: Set<string> | undefined,
-	varOrConst: string,
-	_: string,
-	t: string,
-	n: string
-): string =>
-	starExcludes
-		? `${n}${t}${varOrConst} _starExcludes${_}=${_}{${_}${[...starExcludes]
-				.map(prop => `${prop}:${_}1`)
-				.join(`,${_}`)}${_}};`
-		: '';
-
-const getImportBindingsBlock = (
-	importBindings: string[],
-	_: string,
-	t: string,
-	n: string
-): string => (importBindings.length ? `${n}${t}var ${importBindings.join(`,${_}`)};` : '');
-
-function getExportsBlock(
-	exports: { name: string; value: string }[],
-	_: string,
-	t: string,
-	n: string
-): string {
-	if (exports.length === 0) {
-		return '';
-	}
-	if (exports.length === 1) {
-		return `${t}${t}${t}exports('${exports[0].name}',${_}${exports[0].value});${n}${n}`;
-	}
-	return (
-		`${t}${t}${t}exports({${n}` +
-		exports.map(({ name, value }) => `${t}${t}${t}${t}${name}:${_}${value}`).join(`,${n}`) +
-		`${n}${t}${t}${t}});${n}${n}`
-	);
-}
-
-const getHoistedExportsBlock = (exports: ChunkExports, _: string, t: string, n: string): string =>
-	getExportsBlock(
-		exports.filter(expt => expt.hoisted).map(expt => ({ name: expt.exported, value: expt.local })),
-		_,
-		t,
-		n
-	);
-
-const getMissingExportsBlock = (exports: ChunkExports, _: string, t: string, n: string): string =>
-	getExportsBlock(
-		exports
-			.filter(expt => expt.local === MISSING_EXPORT_SHIM_VARIABLE)
-			.map(expt => ({ name: expt.exported, value: MISSING_EXPORT_SHIM_VARIABLE })),
-		_,
-		t,
-		n
-	);
-
-const getSyntheticExportsBlock = (exports: ChunkExports, _: string, t: string, n: string): string =>
-	getExportsBlock(
-		exports
-			.filter(expt => expt.expression)
-			.map(expt => ({ name: expt.exported, value: expt.local })),
-		_,
-		t,
-		n
-	);
 
 export default function system(
 	magicString: MagicStringBundle,
@@ -91,22 +13,98 @@ export default function system(
 		dependencies,
 		exports,
 		hasExports,
-		indentString: t,
+		indent: t,
 		intro,
+		snippets,
 		outro,
-		usesTopLevelAwait,
-		varOrConst
+		usesTopLevelAwait
 	}: FinaliserOptions,
-	options: NormalizedOutputOptions
+	{
+		externalLiveBindings,
+		freeze,
+		name,
+		namespaceToStringTag,
+		strict,
+		systemNullSetters
+	}: NormalizedOutputOptions
 ): Bundle {
-	const n = options.compact ? '' : '\n';
-	const _ = options.compact ? '' : ' ';
+	const { _, getFunctionIntro, getNonArrowFunctionIntro, n, s } = snippets;
+	const { importBindings, setters, starExcludes } = analyzeDependencies(
+		dependencies,
+		exports,
+		t,
+		snippets
+	);
+	const registeredName = name ? `'${name}',${_}` : '';
+	const wrapperParams = accessedGlobals.has('module')
+		? ['exports', 'module']
+		: hasExports
+		? ['exports']
+		: [];
 
-	const dependencyIds = dependencies.map(m => `'${m.id}'`);
+	// factory function should be wrapped by parentheses to avoid lazy parsing,
+	// cf. https://v8.dev/blog/preparser#pife
+	let wrapperStart =
+		`System.register(${registeredName}[` +
+		dependencies.map(({ id }) => `'${id}'`).join(`,${_}`) +
+		`],${_}(${getNonArrowFunctionIntro(wrapperParams, { isAsync: false, name: null })}{${n}${t}${
+			strict ? "'use strict';" : ''
+		}` +
+		getStarExcludesBlock(starExcludes, t, snippets) +
+		getImportBindingsBlock(importBindings, t, snippets) +
+		`${n}${t}return${_}{${
+			setters.length
+				? `${n}${t}${t}setters:${_}[${setters
+						.map(setter =>
+							setter
+								? `${getFunctionIntro(['module'], {
+										isAsync: false,
+										name: null
+								  })}{${n}${t}${t}${t}${setter}${n}${t}${t}}`
+								: systemNullSetters
+								? `null`
+								: `${getFunctionIntro([], { isAsync: false, name: null })}{}`
+						)
+						.join(`,${_}`)}],`
+				: ''
+		}${n}`;
+	wrapperStart += `${t}${t}execute:${_}(${getNonArrowFunctionIntro([], {
+		isAsync: usesTopLevelAwait,
+		name: null
+	})}{${n}${n}`;
 
+	const wrapperEnd = `${t}${t}})${n}${t}}${s}${n}}));`;
+
+	magicString.prepend(
+		intro +
+			getHelpersBlock(
+				null,
+				accessedGlobals,
+				t,
+				snippets,
+				externalLiveBindings,
+				freeze,
+				namespaceToStringTag
+			) +
+			getHoistedExportsBlock(exports, t, snippets)
+	);
+	magicString.append(
+		`${outro}${n}${n}` +
+			getSyntheticExportsBlock(exports, t, snippets) +
+			getMissingExportsBlock(exports, t, snippets)
+	);
+	return magicString.indent(`${t}${t}${t}`).append(wrapperEnd).prepend(wrapperStart);
+}
+
+function analyzeDependencies(
+	dependencies: ChunkDependencies,
+	exports: ChunkExports,
+	t: string,
+	{ _, cnst, getObject, getPropertyAccess, n }: GenerateCodeSnippets
+): { importBindings: string[]; setters: string[]; starExcludes: Set<string> | null } {
 	const importBindings: string[] = [];
-	let starExcludes: Set<string> | undefined;
 	const setters: string[] = [];
+	let starExcludes: Set<string> | null = null;
 
 	for (const { imports, reexports } of dependencies) {
 		const setter: string[] = [];
@@ -116,95 +114,131 @@ export default function system(
 				if (specifier.imported === '*') {
 					setter.push(`${specifier.local}${_}=${_}module;`);
 				} else {
-					setter.push(`${specifier.local}${_}=${_}module.${specifier.imported};`);
+					setter.push(`${specifier.local}${_}=${_}module${getPropertyAccess(specifier.imported)};`);
 				}
 			}
 		}
 		if (reexports) {
-			let createdSetter = false;
-			// bulk-reexport form
-			if (
-				reexports.length > 1 ||
-				(reexports.length === 1 &&
-					(reexports[0].reexported === '*' || reexports[0].imported === '*'))
-			) {
-				// star reexports
-				for (const specifier of reexports) {
-					if (specifier.reexported !== '*') continue;
-					// need own exports list for deduping in star export case
+			const reexportedNames: [key: string | null, value: string][] = [];
+			let hasStarReexport = false;
+			for (const { imported, reexported } of reexports) {
+				if (reexported === '*') {
+					hasStarReexport = true;
+				} else {
+					reexportedNames.push([
+						reexported,
+						imported === '*' ? 'module' : `module${getPropertyAccess(imported)}`
+					]);
+				}
+			}
+			if (reexportedNames.length > 1 || hasStarReexport) {
+				const exportMapping = getObject(reexportedNames, { lineBreakIndent: null });
+				if (hasStarReexport) {
 					if (!starExcludes) {
 						starExcludes = getStarExcludes({ dependencies, exports });
 					}
-					createdSetter = true;
-					setter.push(`${varOrConst} _setter${_}=${_}{};`);
-					setter.push(`for${_}(var _$p${_}in${_}module)${_}{`);
-					setter.push(`${t}if${_}(!_starExcludes[_$p])${_}_setter[_$p]${_}=${_}module[_$p];`);
-					setter.push('}');
-				}
-				// star import reexport
-				for (const specifier of reexports) {
-					if (specifier.imported !== '*' || specifier.reexported === '*') continue;
-					setter.push(`exports('${specifier.reexported}',${_}module);`);
-				}
-				// reexports
-				for (const specifier of reexports) {
-					if (specifier.reexported === '*' || specifier.imported === '*') continue;
-					if (!createdSetter) {
-						setter.push(`${varOrConst} _setter${_}=${_}{};`);
-						createdSetter = true;
-					}
-					setter.push(`_setter.${specifier.reexported}${_}=${_}module.${specifier.imported};`);
-				}
-				if (createdSetter) {
-					setter.push('exports(_setter);');
+					setter.push(
+						`${cnst} setter${_}=${_}${exportMapping};`,
+						`for${_}(${cnst} name in module)${_}{`,
+						`${t}if${_}(!_starExcludes[name])${_}setter[name]${_}=${_}module[name];`,
+						'}',
+						'exports(setter);'
+					);
+				} else {
+					setter.push(`exports(${exportMapping});`);
 				}
 			} else {
-				// single reexport
-				for (const specifier of reexports) {
-					setter.push(`exports('${specifier.reexported}',${_}module.${specifier.imported});`);
-				}
+				const [key, value] = reexportedNames[0];
+				setter.push(`exports('${key}',${_}${value});`);
 			}
 		}
 		setters.push(setter.join(`${n}${t}${t}${t}`));
 	}
+	return { importBindings, setters, starExcludes };
+}
 
-	const registeredName = options.name ? `'${options.name}',${_}` : '';
-	const wrapperParams = accessedGlobals.has('module')
-		? `exports,${_}module`
-		: hasExports
-		? 'exports'
+const getStarExcludes = ({ dependencies, exports }: ModuleDeclarations): Set<string> => {
+	const starExcludes = new Set(exports.map(expt => expt.exported));
+	starExcludes.add('default');
+	for (const { reexports } of dependencies) {
+		if (reexports) {
+			for (const reexport of reexports) {
+				if (reexport.reexported !== '*') starExcludes.add(reexport.reexported);
+			}
+		}
+	}
+	return starExcludes;
+};
+
+const getStarExcludesBlock = (
+	starExcludes: Set<string> | null,
+	t: string,
+	{ _, cnst, getObject, n }: GenerateCodeSnippets
+): string =>
+	starExcludes
+		? `${n}${t}${cnst} _starExcludes${_}=${_}${getObject(
+				[...starExcludes].map(prop => [prop, '1']),
+				{ lineBreakIndent: { base: t, t } }
+		  )};`
 		: '';
 
-	let wrapperStart =
-		`System.register(${registeredName}[` +
-		dependencyIds.join(`,${_}`) +
-		`],${_}function${_}(${wrapperParams})${_}{${n}${t}${options.strict ? "'use strict';" : ''}` +
-		getStarExcludesBlock(starExcludes, varOrConst, _, t, n) +
-		getImportBindingsBlock(importBindings, _, t, n) +
-		`${n}${t}return${_}{${
-			setters.length
-				? `${n}${t}${t}setters:${_}[${setters
-						.map(s =>
-							s
-								? `function${_}(module)${_}{${n}${t}${t}${t}${s}${n}${t}${t}}`
-								: options.systemNullSetters
-								? `null`
-								: `function${_}()${_}{}`
-						)
-						.join(`,${_}`)}],`
-				: ''
-		}${n}`;
-	wrapperStart +=
-		`${t}${t}execute:${_}${usesTopLevelAwait ? `async${_}` : ''}function${_}()${_}{${n}${n}` +
-		getHoistedExportsBlock(exports, _, t, n);
+const getImportBindingsBlock = (
+	importBindings: string[],
+	t: string,
+	{ _, n }: GenerateCodeSnippets
+): string => (importBindings.length ? `${n}${t}var ${importBindings.join(`,${_}`)};` : '');
 
-	const wrapperEnd =
-		`${n}${n}` +
-		getSyntheticExportsBlock(exports, _, t, n) +
-		getMissingExportsBlock(exports, _, t, n) +
-		`${t}${t}}${n}${t}}${options.compact ? '' : ';'}${n}});`;
+const getHoistedExportsBlock = (
+	exports: ChunkExports,
+	t: string,
+	snippets: GenerateCodeSnippets
+): string =>
+	getExportsBlock(
+		exports.filter(expt => expt.hoisted).map(expt => ({ name: expt.exported, value: expt.local })),
+		t,
+		snippets
+	);
 
-	if (intro) magicString.prepend(intro);
-	if (outro) magicString.append(outro);
-	return magicString.indent(`${t}${t}${t}`).append(wrapperEnd).prepend(wrapperStart);
+function getExportsBlock(
+	exports: { name: string; value: string }[],
+	t: string,
+	{ _, n }: GenerateCodeSnippets
+): string {
+	if (exports.length === 0) {
+		return '';
+	}
+	if (exports.length === 1) {
+		return `exports('${exports[0].name}',${_}${exports[0].value});${n}${n}`;
+	}
+	return (
+		`exports({${n}` +
+		exports.map(({ name, value }) => `${t}${name}:${_}${value}`).join(`,${n}`) +
+		`${n}});${n}${n}`
+	);
 }
+
+const getSyntheticExportsBlock = (
+	exports: ChunkExports,
+	t: string,
+	snippets: GenerateCodeSnippets
+): string =>
+	getExportsBlock(
+		exports
+			.filter(expt => expt.expression)
+			.map(expt => ({ name: expt.exported, value: expt.local })),
+		t,
+		snippets
+	);
+
+const getMissingExportsBlock = (
+	exports: ChunkExports,
+	t: string,
+	snippets: GenerateCodeSnippets
+): string =>
+	getExportsBlock(
+		exports
+			.filter(expt => expt.local === MISSING_EXPORT_SHIM_VARIABLE)
+			.map(expt => ({ name: expt.exported, value: MISSING_EXPORT_SHIM_VARIABLE })),
+		t,
+		snippets
+	);

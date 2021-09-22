@@ -1,4 +1,4 @@
-System.register(['./generated-deps2and3.js', './generated-lib1.js'], function (exports) {
+System.register(['./generated-deps2and3.js', './generated-lib1.js'], (function (exports) {
   'use strict';
   var fn$1, fn$2;
   return {
@@ -6,7 +6,7 @@ System.register(['./generated-deps2and3.js', './generated-lib1.js'], function (e
       fn$1 = module.f;
       fn$2 = module.a;
     }, function () {}],
-    execute: function () {
+    execute: (function () {
 
       function fn () {
         console.log('dep1 fn');
@@ -20,6 +20,6 @@ System.register(['./generated-deps2and3.js', './generated-lib1.js'], function (e
         }
       } exports('default', Main);
 
-    }
+    })
   };
-});
+}));

@@ -21,4 +21,4 @@
 
     console.log( getClass().name );
 
-}());
+})();

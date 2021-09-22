@@ -1,4 +1,4 @@
-System.register(['./dep1.js', './dep2.js'], function () {
+System.register(['./dep1.js', './dep2.js'], (function () {
 	'use strict';
 	var _missingExportShim, _missingExportShim$1, _missingExportShim$2;
 	return {
@@ -8,10 +8,10 @@ System.register(['./dep1.js', './dep2.js'], function () {
 			_missingExportShim$1 = module.missing2;
 			_missingExportShim$2 = module.previousShimmedExport;
 		}],
-		execute: function () {
+		execute: (function () {
 
 			console.log(_missingExportShim, _missingExportShim$1, _missingExportShim$2);
 
-		}
+		})
 	};
-});
+}));

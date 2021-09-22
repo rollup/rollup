@@ -1,11 +1,11 @@
-System.register(['./hsl2hsv.js'], function (exports) {
+System.register(['./hsl2hsv.js'], (function (exports) {
 	'use strict';
 	var hsl2hsv$1;
 	return {
 		setters: [function (module) {
-			hsl2hsv$1 = module.default;
+			hsl2hsv$1 = module["default"];
 		}],
-		execute: function () {
+		execute: (function () {
 
 			var hsl2hsv = 'asdf';
 
@@ -17,6 +17,6 @@ System.register(['./hsl2hsv.js'], function (exports) {
 			});
 			exports('l', lib);
 
-		}
+		})
 	};
-});
+}));

@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	function V8Engine () {}
 
@@ -11,4 +11,4 @@ define(function () { 'use strict';
 
 	console.log( new V8Engine().toString() );
 
-});
+}));

@@ -9,18 +9,16 @@ function _interopNamespace(e) {
 				var d = Object.getOwnPropertyDescriptor(e, k);
 				Object.defineProperty(n, k, d.get ? d : {
 					enumerable: true,
-					get: function () {
-						return e[k];
-					}
+					get: function () { return e[k]; }
 				});
 			}
 		});
 	}
-	n['default'] = e;
+	n["default"] = e;
 	return Object.freeze(n);
 }
 
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(`${globalThis.unknown}`)); });
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(`My ${globalThis.unknown}`)); });
-Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('./seven.js')); });
+(function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(t)); }); })(`${globalThis.unknown}`);
+(function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(t)); }); })(`My ${globalThis.unknown}`);
+(function (t) { return Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(t)); }); })('./seven.js');
 Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('./seven.js')); });

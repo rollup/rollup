@@ -212,6 +212,7 @@ export default class Module {
 	isExecuted = false;
 	isUserDefinedEntryPoint = false;
 	declare namespace: NamespaceVariable;
+	needsExportShim = false;
 	declare originalCode: string;
 	declare originalSourcemap: ExistingDecodedSourceMap | null;
 	preserveSignature: PreserveEntrySignaturesOption = this.options.preserveEntrySignatures;
@@ -618,7 +619,7 @@ export default class Module {
 		}
 
 		if (includeNamespaceMembers) {
-			this.namespace.prepareNamespace(this.includeAndGetAdditionalMergedNamespaces());
+			this.namespace.setMergedNamespaces(this.includeAndGetAdditionalMergedNamespaces());
 		}
 	}
 
@@ -741,7 +742,7 @@ export default class Module {
 		};
 
 		this.scope = new ModuleScope(this.graph.scope, this.astContext);
-		this.namespace = new NamespaceVariable(this.astContext, this.info.syntheticNamedExports);
+		this.namespace = new NamespaceVariable(this.astContext);
 		this.ast = new Program(ast, { context: this.astContext, type: 'Module' }, this.scope);
 		this.info.ast = ast;
 
@@ -801,7 +802,7 @@ export default class Module {
 	tryParse(): acorn.Node {
 		try {
 			return this.graph.contextParse(this.info.code!);
-		} catch (err) {
+		} catch (err: any) {
 			let message = err.message.replace(/ \(\d+:\d+\)$/, '');
 			if (this.id.endsWith('.json')) {
 				message += ' (Note that you need @rollup/plugin-json to import JSON files)';
@@ -957,7 +958,7 @@ export default class Module {
 			try {
 				({ column, line } = getOriginalLocation(this.sourcemapChain, { column, line }));
 				code = this.originalCode;
-			} catch (e) {
+			} catch (err: any) {
 				this.options.onwarn({
 					code: 'SOURCEMAP_ERROR',
 					id: this.id,
@@ -966,7 +967,7 @@ export default class Module {
 						file: this.id,
 						line
 					},
-					message: `Error when using sourcemap for reporting an error: ${e.message}`,
+					message: `Error when using sourcemap for reporting an error: ${err.message}`,
 					pos
 				});
 			}
@@ -1082,21 +1083,22 @@ export default class Module {
 	}
 
 	private includeAndGetAdditionalMergedNamespaces(): Variable[] {
-		const mergedNamespaces: Variable[] = [];
-		for (const module of this.exportAllModules) {
+		const externalNamespaces = new Set<Variable>();
+		const syntheticNamespaces = new Set<Variable>();
+		for (const module of [this, ...this.exportAllModules]) {
 			if (module instanceof ExternalModule) {
 				const externalVariable = module.getVariableForExportName('*');
 				externalVariable.include();
 				this.imports.add(externalVariable);
-				mergedNamespaces.push(externalVariable);
+				externalNamespaces.add(externalVariable);
 			} else if (module.info.syntheticNamedExports) {
 				const syntheticNamespace = module.getSyntheticNamespace();
 				syntheticNamespace.include();
 				this.imports.add(syntheticNamespace);
-				mergedNamespaces.push(syntheticNamespace);
+				syntheticNamespaces.add(syntheticNamespace);
 			}
 		}
-		return mergedNamespaces;
+		return [...syntheticNamespaces, ...externalNamespaces];
 	}
 
 	private includeDynamicImport(node: ImportExpression) {

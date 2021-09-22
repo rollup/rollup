@@ -1,0 +1,1 @@
+../../generated-code/object-shorthand-false/main.js

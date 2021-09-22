@@ -1,7 +1,7 @@
-System.register([], function () {
+System.register([], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			Promise.resolve().then(function () { return dynamic2; }).then(console.log);
 			console.log('dynamic1');
@@ -23,6 +23,6 @@ System.register([], function () {
 			Promise.resolve().then(function () { return dynamic1; }).then(console.log);
 			console.log('main', value1, value2);
 
-		}
+		})
 	};
-});
+}));

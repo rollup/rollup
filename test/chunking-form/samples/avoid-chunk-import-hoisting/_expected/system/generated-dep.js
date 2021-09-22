@@ -1,14 +1,14 @@
-System.register(['lib'], function (exports) {
+System.register(['lib'], (function (exports) {
 	'use strict';
 	var value;
 	return {
 		setters: [function (module) {
-			value = module.default;
+			value = module["default"];
 		}],
-		execute: function () {
+		execute: (function () {
 
 			var dep = exports('d', 2 * value);
 
-		}
+		})
 	};
-});
+}));

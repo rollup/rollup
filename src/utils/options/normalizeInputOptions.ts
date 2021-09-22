@@ -7,17 +7,16 @@ import {
 	PreserveEntrySignaturesOption,
 	PureModulesOption,
 	RollupBuild,
-	TreeshakingOptions,
 	WarningHandler
 } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
 import { errInvalidOption, error, warnDeprecationWithOptions } from '../error';
 import { resolve } from '../path';
-import { printQuotedStringList } from '../printStringList';
 import relativeId from '../relativeId';
 import {
 	defaultOnWarn,
 	GenericConfigObject,
+	getOptionWithPreset,
 	treeshakePresets,
 	warnUnknownOptions
 } from './options';
@@ -247,45 +246,19 @@ const getTreeshake = (
 	if (configTreeshake === false) {
 		return false;
 	}
-	if (typeof configTreeshake === 'string') {
-		const preset = treeshakePresets[configTreeshake];
-		if (preset) {
-			return preset;
-		}
-		error(
-			errInvalidOption(
-				'treeshake',
-				`valid values are false, true, ${printQuotedStringList(
-					Object.keys(treeshakePresets)
-				)}. You can also supply an object for more fine-grained control`
-			)
+	const configWithPreset = getOptionWithPreset(
+		config.treeshake,
+		treeshakePresets,
+		'treeshake',
+		'false, true, '
+	);
+	if (typeof configWithPreset.pureExternalModules !== 'undefined') {
+		warnDeprecationWithOptions(
+			`The "treeshake.pureExternalModules" option is deprecated. The "treeshake.moduleSideEffects" option should be used instead. "treeshake.pureExternalModules: true" is equivalent to "treeshake.moduleSideEffects: 'no-external'"`,
+			true,
+			warn,
+			strictDeprecations
 		);
-	}
-	let configWithPreset: TreeshakingOptions = {};
-	if (typeof configTreeshake === 'object') {
-		if (typeof configTreeshake.pureExternalModules !== 'undefined') {
-			warnDeprecationWithOptions(
-				`The "treeshake.pureExternalModules" option is deprecated. The "treeshake.moduleSideEffects" option should be used instead. "treeshake.pureExternalModules: true" is equivalent to "treeshake.moduleSideEffects: 'no-external'"`,
-				true,
-				warn,
-				strictDeprecations
-			);
-		}
-		configWithPreset = configTreeshake;
-		const presetName = configTreeshake.preset;
-		if (presetName) {
-			const preset = treeshakePresets[presetName];
-			if (preset) {
-				configWithPreset = { ...preset, ...configTreeshake };
-			} else {
-				error(
-					errInvalidOption(
-						'treeshake.preset',
-						`valid values are ${printQuotedStringList(Object.keys(treeshakePresets))}`
-					)
-				);
-			}
-		}
 	}
 	return {
 		annotations: configWithPreset.annotations !== false,
@@ -296,7 +269,10 @@ const getTreeshake = (
 						configTreeshake.moduleSideEffects,
 						configTreeshake.pureExternalModules
 				  )
-				: getHasModuleSideEffects(configWithPreset.moduleSideEffects, undefined),
+				: getHasModuleSideEffects(
+						configWithPreset.moduleSideEffects as ModuleSideEffectsOption | undefined,
+						undefined
+				  ),
 		propertyReadSideEffects:
 			configWithPreset.propertyReadSideEffects === 'always'
 				? 'always'
@@ -328,6 +304,7 @@ const getHasModuleSideEffects = (
 		error(
 			errInvalidOption(
 				'treeshake.moduleSideEffects',
+				'treeshake',
 				'please use one of false, "no-external", a function or an array'
 			)
 		);

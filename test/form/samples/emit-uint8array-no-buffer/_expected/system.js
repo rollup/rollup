@@ -1,7 +1,7 @@
-System.register([], function (exports, module) {
+System.register([], (function (exports, module) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			var asset1a = new URL('assets/asset-dc5cb674', module.meta.url).href;
 
@@ -15,6 +15,6 @@ System.register([], function (exports, module) {
 
 			console.log(asset1a, asset1b, asset2a, asset2b, asset99a);
 
-		}
+		})
 	};
-});
+}));

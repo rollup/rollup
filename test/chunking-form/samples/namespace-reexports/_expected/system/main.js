@@ -1,4 +1,4 @@
-System.register(['./generated-index.js', './hsl2hsv.js'], function (exports) {
+System.register(['./generated-index.js', './hsl2hsv.js'], (function (exports) {
 	'use strict';
 	var lib, p;
 	return {
@@ -7,11 +7,11 @@ System.register(['./generated-index.js', './hsl2hsv.js'], function (exports) {
 		}, function (module) {
 			p = module.p;
 		}],
-		execute: function () {
+		execute: (function () {
 
 			console.log(p);
 			var main = exports('default', new Map(Object.entries(lib)));
 
-		}
+		})
 	};
-});
+}));

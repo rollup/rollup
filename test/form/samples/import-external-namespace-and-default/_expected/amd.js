@@ -1,4 +1,4 @@
-define(['foo'], function (foo) { 'use strict';
+define(['foo'], (function (foo) { 'use strict';
 
 	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -11,14 +11,12 @@ define(['foo'], function (foo) { 'use strict';
 					var d = Object.getOwnPropertyDescriptor(e, k);
 					Object.defineProperty(n, k, d.get ? d : {
 						enumerable: true,
-						get: function () {
-							return e[k];
-						}
+						get: function () { return e[k]; }
 					});
 				}
 			});
 		}
-		n['default'] = e;
+		n["default"] = e;
 		return Object.freeze(n);
 	}
 
@@ -27,6 +25,6 @@ define(['foo'], function (foo) { 'use strict';
 
 	console.log( foo__namespace.bar );
 
-	console.log( foo__default['default'] );
+	console.log( foo__default["default"] );
 
-});
+}));

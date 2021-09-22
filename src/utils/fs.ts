@@ -12,13 +12,13 @@ function mkdirpath(path: string) {
 	const dir = dirname(path);
 	try {
 		fs.readdirSync(dir);
-	} catch (err) {
+	} catch {
 		mkdirpath(dir);
 		try {
 			fs.mkdirSync(dir);
-		} catch (err2) {
-			if (err2.code !== 'EEXIST') {
-				throw err2;
+		} catch (err: any) {
+			if (err.code !== 'EEXIST') {
+				throw err;
 			}
 		}
 	}

@@ -1,4 +1,4 @@
-define(['exports', 'a', 'b'], function (exports, a, Test$1) { 'use strict';
+define(['exports', 'a', 'b'], (function (exports, a, Test$1) { 'use strict';
 
   function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -9,7 +9,7 @@ define(['exports', 'a', 'b'], function (exports, a, Test$1) { 'use strict';
   };
 
   const Test1 = () => {
-    console.log(Test__default['default']);
+    console.log(Test__default["default"]);
   };
 
   exports.Test = Test;
@@ -17,4 +17,4 @@ define(['exports', 'a', 'b'], function (exports, a, Test$1) { 'use strict';
 
   Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

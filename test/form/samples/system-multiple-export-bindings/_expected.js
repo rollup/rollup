@@ -1,7 +1,7 @@
-System.register([], function (exports) {
+System.register([], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			exports({
 				fn: fn,
@@ -50,6 +50,6 @@ System.register([], function (exports) {
 			// Class Declaration
 			class A {} exports({ A: A, B: A });
 
-		}
+		})
 	};
-});
+}));

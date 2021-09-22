@@ -458,6 +458,125 @@ Type: `boolean`<br> CLI: `--extend`/`--no-extend`<br> Default: `false`
 
 Whether to extend the global variable defined by the `name` option in `umd` or `iife` formats. When `true`, the global variable will be defined as `(global.name = global.name || {})`. When false, the global defined by `name` will be overwritten like `(global.name = {})`.
 
+#### output.generatedCode
+
+Type: `"es5" | "es2015" | { arrowFunctions?: boolean, constBindings?: boolean, objectShorthand?: boolean, preset?: "es5" | "es2015", reservedNamesAsProps?: boolean }`<br> CLI: `--generatedCode <preset>`<br> Default: `"es5"`
+
+Which language features Rollup can safely use in generated code. This will not transpile any user code but only change the code Rollup uses in wrappers and helpers. You may choose one of several presets:
+
+- `"es5"`: Do not use ES2015+ features like arrow functions, but do not quote reserved names used as props.
+- `"es2015"`: Use any JavaScript features up to ES2015.
+
+**output.generatedCode.arrowFunctions**<br> Type: `boolean`<br> CLI: `--generatedCode.arrowFunctions`/`--no-generatedCode.arrowFunctions`<br> Default: `false`
+
+Whether to use arrow functions for auto-generated code snippets. Note that in certain places like module wrappers, Rollup will keep using regular functions wrapped in parentheses as in some JavaScript engines, these will provide [noticeably better performance](https://v8.dev/blog/preparser#pife).
+
+**output.generatedCode.constBindings**<br> Type: `boolean`<br> CLI: `--generatedCode.constBindings`/`--no-generatedCode.constBindings`<br> Default: `false`
+
+This will use `const` instead of `var` in certain places and helper functions. This will allow Rollup to generate more efficient helpers due to block scoping.
+
+```js
+// input
+export * from 'external';
+
+// cjs output with constBindings: false
+var external = require('external');
+
+Object.keys(external).forEach(function (k) {
+  if (k !== 'default' && !exports.hasOwnProperty(k))
+    Object.defineProperty(exports, k, {
+      enumerable: true,
+      get: function () {
+        return external[k];
+      }
+    });
+});
+
+// cjs output with constBindings: true
+const external = require('external');
+
+for (const k in external) {
+  if (k !== 'default' && !exports.hasOwnProperty(k))
+    Object.defineProperty(exports, k, {
+      enumerable: true,
+      get: () => external[k]
+    });
+}
+```
+
+**output.generatedCode.objectShorthand**<br> Type: `boolean`<br> CLI: `--generatedCode.objectShorthand`/`--no-generatedCode.objectShorthand`<br> Default: `false`
+
+Allows the use of shorthand notation in objects when the property name matches the value.
+
+```javascript
+// input
+const foo = 1;
+export { foo, foo as bar };
+
+// system output with objectShorthand: false
+System.register('bundle', [], function (exports) {
+  'use strict';
+  return {
+    execute: function () {
+      const foo = 1;
+      exports({ foo: foo, bar: foo });
+    }
+  };
+});
+
+// system output with objectShorthand: true
+System.register('bundle', [], function (exports) {
+  'use strict';
+  return {
+    execute: function () {
+      const foo = 1;
+      exports({ foo, bar: foo });
+    }
+  };
+});
+```
+
+**output.generatedCode.preset**<br> Type: `"es5" | "es2015"`<br> CLI: `--generatedCode <value>`
+
+Allows choosing one of the presets listed above while overriding some options.
+
+```js
+export default {
+  // ...
+  output: {
+    generatedCode: {
+      preset: 'es2015',
+      arrowFunctions: false
+    }
+    // ...
+  }
+};
+```
+
+**output.generatedCode.reservedNamesAsProps**<br> Type: `boolean`<br> CLI: `--generatedCode.reservedNamesAsProps`/`--no-generatedCode.reservedNamesAsProps`<br> Default: `false`
+
+Determine whether reserved words like "default" can be used as prop names without using quotes. This will make the syntax of the generated code ES3 compliant. Note however that for full ES3 compliance, you may also need to polyfill some builtin functions like `Object.keys` or `Array.prototype.forEach`.
+
+```javascript
+// input
+const foo = null;
+export { foo as void };
+
+// cjs output with reservedNamesAsProps: false
+Object.defineProperty(exports, '__esModule', { value: true });
+
+const foo = null;
+
+exports['void'] = foo;
+
+// cjs output with reservedNamesAsProps: true
+Object.defineProperty(exports, '__esModule', { value: true });
+
+const foo = null;
+
+exports.void = foo;
+```
+
 #### output.hoistTransitiveImports
 
 Type: `boolean`<br> CLI: `--hoistTransitiveImports`/`--no-hoistTransitiveImports`<br> Default: `true`
@@ -1256,8 +1375,6 @@ Example:
 export { x } from 'external';
 
 // CJS output with externalLiveBindings: true
-('use strict');
-
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var external = require('external');
@@ -1270,8 +1387,6 @@ Object.defineProperty(exports, 'x', {
 });
 
 // CJS output with externalLiveBindings: false
-('use strict');
-
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var external = require('external');
@@ -1525,7 +1640,7 @@ Note that despite the name, this option does not "add" side effects to modules t
 
 **treeshake.preset**<br> Type: `"smallest" | "safest" | "recommended"`<br> CLI: `--treeshake <value>`<br>
 
-Allows choosing one of the presets listed above while overriding some of the options.
+Allows choosing one of the presets listed above while overriding some options.
 
 ```js
 export default {
@@ -1631,7 +1746,7 @@ Whether to collect performance timings. When used from the command line or a con
 
 `getTimings()` returns an object of the following form:
 
-```json
+```
 {
   "# BUILD": [ 698.020877, 33979632, 45328080 ],
   "## parse modules": [ 537.509342, 16295024, 27660296 ],
@@ -1742,6 +1857,12 @@ _Use the [`output.preserveModules`](guide/en/#outputpreservemodules) output opti
 _Use the [`renderDynamicImport`](guide/en/#renderdynamicimport) plugin hook instead._<br> Type: `string`<br> CLI: `--dynamicImportFunction <name>`<br> Default: `import`
 
 This will rename the dynamic import function to the chosen name when outputting ES bundles. This is useful for generating code that uses a dynamic import polyfill such as [this one](https://github.com/uupaa/dynamic-import-polyfill).
+
+#### output.preferConst
+
+_Use the [`output.generatedCode.constBindings`](guide/en/#outputgeneratedcode) option instead._<br> Type: `boolean`<br> CLI: `--preferConst`/`--no-preferConst`<br> Default: `false`
+
+Generate `const` declarations for exports rather than `var` declarations.
 
 #### treeshake.pureExternalModules
 

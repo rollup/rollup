@@ -1,4 +1,4 @@
-define(['require', 'exports'], function (require, exports) { 'use strict';
+define(['require', 'exports'], (function (require, exports) { 'use strict';
 
   var multiplier = 7;
 
@@ -11,7 +11,7 @@ define(['require', 'exports'], function (require, exports) { 'use strict';
   }
 
   function dynamic (num) {
-    return new Promise(function (resolve, reject) { require(['./generated-dep2'], resolve, reject) })
+    return new Promise(function (resolve, reject) { require(['./generated-dep2'], resolve, reject); })
     .then(dep2 => {
       return dep2.mult(num);
     });
@@ -25,4 +25,4 @@ define(['require', 'exports'], function (require, exports) { 'use strict';
 
   exports.multiplier = multiplier;
 
-});
+}));

@@ -11,4 +11,4 @@ var exposedInternals = (function (exports) {
 
 	return exports;
 
-}({}));
+})({});

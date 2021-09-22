@@ -1,5 +1,5 @@
-define(['test'], function (test) { 'use strict';
+define(['test'], (function (test) { 'use strict';
 
 	console.log(test.module, test.other);
 
-});
+}));

@@ -29,7 +29,7 @@ export async function createAddons(
 		if (footer.length) footer = '\n' + footer;
 
 		return { banner, footer, intro, outro };
-	} catch (err) {
+	} catch (err: any) {
 		return error({
 			code: 'ADDON_ERROR',
 			message: `Could not retrieve ${err.hook}. Check configuration of plugin ${err.plugin}.

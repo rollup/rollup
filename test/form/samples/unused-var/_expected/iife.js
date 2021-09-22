@@ -5,4 +5,4 @@
 
 	console.log( foo );
 
-}());
+})();

@@ -7,4 +7,4 @@
 
 	console.log(parse('foo'));
 
-}(acorn));
+})(acorn);

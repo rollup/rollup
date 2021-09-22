@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
   function foo () {
     console.log( 'indented with spaces' );
@@ -6,4 +6,4 @@ define(function () { 'use strict';
 
   return foo;
 
-});
+}));

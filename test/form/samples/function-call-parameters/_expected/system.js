@@ -1,7 +1,7 @@
-System.register([], function () {
+System.register([], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			// parameters are associated correctly
 			const retained1 = function ( func, obj ) { return func( obj ); };
@@ -46,6 +46,6 @@ System.register([], function () {
 
 			retained7( {}, {} );
 
-		}
+		})
 	};
-});
+}));

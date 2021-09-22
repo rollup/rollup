@@ -6,7 +6,6 @@ import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
 import ChildScope from './ast/scopes/ChildScope';
 import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
-import ExportShimVariable from './ast/variables/ExportShimVariable';
 import LocalVariable from './ast/variables/LocalVariable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import SyntheticNamedExportVariable from './ast/variables/SyntheticNamedExportVariable';
@@ -32,12 +31,14 @@ import { deconflictChunk, DependenciesToBeDeconflicted } from './utils/deconflic
 import {
 	errCyclicCrossChunkReexport,
 	errFailedValidation,
+	errInvalidOption,
 	error,
 	errUnexpectedNamedImport,
 	errUnexpectedNamespaceReexport
 } from './utils/error';
 import { escapeId } from './utils/escapeId';
 import { assignExportsToMangledNames, assignExportsToNames } from './utils/exportNames';
+import { GenerateCodeSnippets } from './utils/generateCodeSnippets';
 import getExportMode from './utils/getExportMode';
 import { getId } from './utils/getId';
 import getIndentString from './utils/getIndentString';
@@ -131,6 +132,7 @@ export default class Chunk {
 	facadeModule: Module | null = null;
 	id: string | null = null;
 	namespaceVariableName = '';
+	needsExportsShim = false;
 	suggestedVariableName: string;
 	variableName = '';
 
@@ -149,7 +151,6 @@ export default class Chunk {
 	private indentString: string = undefined as never;
 	private readonly isEmpty: boolean = true;
 	private name: string | null = null;
-	private needsExportsShim = false;
 	private renderedDependencies: Map<ExternalModule | Chunk, ModuleDeclarationDependency> | null =
 		null;
 	private renderedExports: ChunkExports | null = null;
@@ -551,16 +552,17 @@ export default class Chunk {
 	}
 
 	// prerender allows chunk hashes and names to be generated before finalizing
-	preRender(options: NormalizedOutputOptions, inputBase: string): void {
-		const magicString = new MagicStringBundle({ separator: options.compact ? '' : '\n\n' });
+	preRender(
+		options: NormalizedOutputOptions,
+		inputBase: string,
+		snippets: GenerateCodeSnippets
+	): void {
+		const { _, getPropertyAccess, n } = snippets;
+		const magicString = new MagicStringBundle({ separator: `${n}${n}` });
 		this.usedModules = [];
 		this.indentString = getIndentString(this.orderedModules, options);
 
-		const n = options.compact ? '' : '\n';
-		const _ = options.compact ? '' : ' ';
-
 		const renderOptions: RenderOptions = {
-			compact: options.compact,
 			dynamicImportFunction: options.dynamicImportFunction,
 			exportNamesByVariable: this.exportNamesByVariable,
 			format: options.format,
@@ -568,7 +570,7 @@ export default class Chunk {
 			indent: this.indentString,
 			namespaceToStringTag: options.namespaceToStringTag,
 			outputPluginDriver: this.pluginDriver,
-			varOrConst: options.preferConst ? 'const' : 'var'
+			snippets
 		};
 
 		// for static and dynamic entry points, inline the execution list to avoid loading latency
@@ -582,7 +584,7 @@ export default class Chunk {
 			}
 		}
 
-		this.prepareDynamicImportsAndImportMetas();
+		this.prepareModulesForRendering(snippets);
 		this.setIdentifierRenderResolutions(options);
 
 		let hoistedSource = '';
@@ -623,7 +625,7 @@ export default class Chunk {
 
 		if (this.needsExportsShim) {
 			magicString.prepend(
-				`${n}${renderOptions.varOrConst} ${MISSING_EXPORT_SHIM_VARIABLE}${_}=${_}void 0;${n}${n}`
+				`${n}${snippets.cnst} ${MISSING_EXPORT_SHIM_VARIABLE}${_}=${_}void 0;${n}${n}`
 			);
 		}
 		if (options.compact) {
@@ -645,25 +647,31 @@ export default class Chunk {
 
 		this.setExternalRenderPaths(options, inputBase);
 
-		this.renderedDependencies = this.getChunkDependencyDeclarations(options);
+		this.renderedDependencies = this.getChunkDependencyDeclarations(options, getPropertyAccess);
 		this.renderedExports =
-			this.exportMode === 'none' ? [] : this.getChunkExportDeclarations(options.format);
+			this.exportMode === 'none'
+				? []
+				: this.getChunkExportDeclarations(options.format, getPropertyAccess);
 	}
 
 	async render(
 		options: NormalizedOutputOptions,
 		addons: Addons,
-		outputChunk: RenderedChunk
+		outputChunk: RenderedChunk,
+		snippets: GenerateCodeSnippets
 	): Promise<{ code: string; map: SourceMap }> {
 		timeStart('render format', 2);
 
 		const format = options.format;
 		const finalise = finalisers[format];
 		if (options.dynamicImportFunction && format !== 'es') {
-			this.inputOptions.onwarn({
-				code: 'INVALID_OPTION',
-				message: '"output.dynamicImportFunction" is ignored for formats other than "es".'
-			});
+			this.inputOptions.onwarn(
+				errInvalidOption(
+					'output.dynamicImportFunction',
+					'outputdynamicImportFunction',
+					'this option is ignored for formats other than "es"'
+				)
+			);
 		}
 
 		// populate ids in the rendered declarations only here
@@ -681,8 +689,8 @@ export default class Chunk {
 			}
 		}
 
-		this.finaliseDynamicImports(options);
-		this.finaliseImportMetas(format);
+		this.finaliseDynamicImports(options, snippets);
+		this.finaliseImportMetas(format, snippets);
 
 		const hasExports =
 			this.renderedExports!.length !== 0 ||
@@ -724,7 +732,7 @@ export default class Chunk {
 				exports: this.renderedExports!,
 				hasExports,
 				id: this.id,
-				indentString: this.indentString,
+				indent: this.indentString,
 				intro: addons.intro!,
 				isEntryFacade:
 					this.outputOptions.preserveModules ||
@@ -732,8 +740,8 @@ export default class Chunk {
 				isModuleFacade: this.facadeModule !== null,
 				namedExportsMode: this.exportMode !== 'default',
 				outro: addons.outro!,
+				snippets,
 				usesTopLevelAwait,
-				varOrConst: options.preferConst ? 'const' : 'var',
 				warn: this.inputOptions.onwarn
 			},
 			options
@@ -895,7 +903,7 @@ export default class Chunk {
 		}
 	}
 
-	private finaliseDynamicImports(options: NormalizedOutputOptions) {
+	private finaliseDynamicImports(options: NormalizedOutputOptions, snippets: GenerateCodeSnippets) {
 		const stripKnownJsExtensions = options.format === 'amd';
 		for (const [module, code] of this.renderedModuleSources) {
 			for (const { node, resolution } of module.dynamicImports) {
@@ -920,16 +928,16 @@ export default class Chunk {
 					resolution instanceof Module &&
 						!facadeChunk?.strictFacade &&
 						chunk!.exportNamesByVariable.get(resolution.namespace)![0],
-					options
+					snippets
 				);
 			}
 		}
 	}
 
-	private finaliseImportMetas(format: InternalModuleFormat): void {
+	private finaliseImportMetas(format: InternalModuleFormat, snippets: GenerateCodeSnippets): void {
 		for (const [module, code] of this.renderedModuleSources) {
 			for (const importMeta of module.importMetas) {
-				importMeta.renderFinalMechanism(code, this.id!, format, this.pluginDriver);
+				importMeta.renderFinalMechanism(code, this.id!, format, snippets, this.pluginDriver);
 			}
 		}
 	}
@@ -950,9 +958,10 @@ export default class Chunk {
 	}
 
 	private getChunkDependencyDeclarations(
-		options: NormalizedOutputOptions
+		options: NormalizedOutputOptions,
+		getPropertyAccess: (name: string) => string
 	): Map<Chunk | ExternalModule, ModuleDeclarationDependency> {
-		const importSpecifiers = this.getImportSpecifiers();
+		const importSpecifiers = this.getImportSpecifiers(getPropertyAccess);
 		const reexportSpecifiers = this.getReexportSpecifiers();
 		const dependencyDeclaration = new Map<Chunk | ExternalModule, ModuleDeclarationDependency>();
 		for (const dep of this.dependencies) {
@@ -983,7 +992,10 @@ export default class Chunk {
 		return dependencyDeclaration;
 	}
 
-	private getChunkExportDeclarations(format: InternalModuleFormat): ChunkExports {
+	private getChunkExportDeclarations(
+		format: InternalModuleFormat,
+		getPropertyAccess: (name: string) => string
+	): ChunkExports {
 		const exports: ChunkExports = [];
 		for (const exportName of this.getExportNames()) {
 			if (exportName[0] === '*') continue;
@@ -995,7 +1007,7 @@ export default class Chunk {
 			}
 			let expression = null;
 			let hoisted = false;
-			let local = variable.getName();
+			let local = variable.getName(getPropertyAccess);
 			if (variable instanceof LocalVariable) {
 				for (const declaration of variable.declarations) {
 					if (
@@ -1084,7 +1096,9 @@ export default class Chunk {
 		return getAliasName(this.orderedModules[this.orderedModules.length - 1].id);
 	}
 
-	private getImportSpecifiers(): Map<Chunk | ExternalModule, ImportSpecifier[]> {
+	private getImportSpecifiers(
+		getPropertyAccess: (name: string) => string
+	): Map<Chunk | ExternalModule, ImportSpecifier[]> {
 		const { interop } = this.outputOptions;
 		const importsByDependency = new Map<Chunk | ExternalModule, ImportSpecifier[]>();
 		for (const variable of this.imports) {
@@ -1103,7 +1117,7 @@ export default class Chunk {
 			}
 			getOrCreate(importsByDependency, dependency, () => []).push({
 				imported,
-				local: variable.getName()
+				local: variable.getName(getPropertyAccess)
 			});
 		}
 		return importsByDependency;
@@ -1205,7 +1219,7 @@ export default class Chunk {
 		}
 	}
 
-	private prepareDynamicImportsAndImportMetas() {
+	private prepareModulesForRendering(snippets: GenerateCodeSnippets) {
 		const accessedGlobalsByScope = this.accessedGlobalsByScope;
 		for (const module of this.orderedModules) {
 			for (const { node, resolution } of module.dynamicImports) {
@@ -1219,6 +1233,7 @@ export default class Chunk {
 								this.facadeChunkByModule.get(resolution)?.exportMode || chunk!.exportMode,
 								resolution,
 								this.outputOptions,
+								snippets,
 								this.pluginDriver,
 								accessedGlobalsByScope
 							);
@@ -1228,6 +1243,7 @@ export default class Chunk {
 							'external',
 							resolution,
 							this.outputOptions,
+							snippets,
 							this.pluginDriver,
 							accessedGlobalsByScope
 						);
@@ -1236,6 +1252,9 @@ export default class Chunk {
 			}
 			for (const importMeta of module.importMetas) {
 				importMeta.addAccessedGlobals(this.outputOptions.format, accessedGlobalsByScope);
+			}
+			if (this.includedNamespaces.has(module) && !this.outputOptions.preserveModules) {
+				module.namespace.prepare(accessedGlobalsByScope);
 			}
 		}
 	}
@@ -1256,9 +1275,6 @@ export default class Chunk {
 		const syntheticExports = new Set<SyntheticNamedExportVariable>();
 		for (const exportName of this.getExportNames()) {
 			const exportVariable = this.exportsByName[exportName];
-			if (exportVariable instanceof ExportShimVariable) {
-				this.needsExportsShim = true;
-			}
 			if (
 				format !== 'es' &&
 				format !== 'system' &&
@@ -1272,7 +1288,12 @@ export default class Chunk {
 				exportVariable.setRenderNames(null, null);
 			}
 		}
-
+		for (const module of this.orderedModules) {
+			if (module.needsExportShim) {
+				this.needsExportsShim = true;
+				break;
+			}
+		}
 		const usedNames = new Set<string>(['Object', 'Promise']);
 		if (this.needsExportsShim) {
 			usedNames.add(MISSING_EXPORT_SHIM_VARIABLE);

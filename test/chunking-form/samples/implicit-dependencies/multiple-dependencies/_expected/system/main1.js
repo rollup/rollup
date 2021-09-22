@@ -1,4 +1,4 @@
-System.register(['./generated-lib1b.js', './generated-lib2.js'], function () {
+System.register(['./generated-lib1b.js', './generated-lib2.js'], (function () {
 	'use strict';
 	var lib1, lib1b, lib2;
 	return {
@@ -8,10 +8,10 @@ System.register(['./generated-lib1b.js', './generated-lib2.js'], function () {
 		}, function (module) {
 			lib2 = module.l;
 		}],
-		execute: function () {
+		execute: (function () {
 
 			console.log('main1', lib1,  lib1b, lib2);
 
-		}
+		})
 	};
-});
+}));

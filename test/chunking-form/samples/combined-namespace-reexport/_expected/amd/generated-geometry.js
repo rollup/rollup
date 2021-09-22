@@ -1,4 +1,4 @@
-define(['exports'], function (exports) { 'use strict';
+define(['exports'], (function (exports) { 'use strict';
 
 	const foo = 'foo';
 
@@ -19,4 +19,4 @@ define(['exports'], function (exports) { 'use strict';
 	exports.geometry = geometry;
 	exports.volume = volume;
 
-});
+}));

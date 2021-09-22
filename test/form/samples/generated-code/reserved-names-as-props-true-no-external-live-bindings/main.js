@@ -1,0 +1,1 @@
+../../generated-code/reserved-names-as-props-false-no-external-live-bindings/main.js

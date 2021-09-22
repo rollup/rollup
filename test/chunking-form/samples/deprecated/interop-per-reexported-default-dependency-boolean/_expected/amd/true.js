@@ -1,4 +1,4 @@
-define(['external-true'], function (externalTrue) { 'use strict';
+define(['external-true'], (function (externalTrue) { 'use strict';
 
 	function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
@@ -6,6 +6,6 @@ define(['external-true'], function (externalTrue) { 'use strict';
 
 
 
-	return externalTrue__default['default'];
+	return externalTrue__default["default"];
 
-});
+}));

@@ -1,7 +1,7 @@
-System.register([], function (exports) {
+System.register([], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			// middle binding
 			const a1 = 1, a2 = exports('a2', 2), a3 = 3;
@@ -25,6 +25,6 @@ System.register([], function (exports) {
 			// destructuring declaration
 			let {f1, f2} = globalThis.obj; exports('f2', f2);
 
-		}
+		})
 	};
-});
+}));

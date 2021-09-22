@@ -1,4 +1,4 @@
-define(['exports', './inner/more_inner/something', './inner/some_effect'], function (exports, something, some_effect) { 'use strict';
+define(['exports', './inner/more_inner/something', './inner/some_effect'], (function (exports, something, some_effect) { 'use strict';
 
 
 
@@ -6,4 +6,4 @@ define(['exports', './inner/more_inner/something', './inner/some_effect'], funct
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

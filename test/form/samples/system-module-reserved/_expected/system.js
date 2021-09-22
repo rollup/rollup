@@ -1,4 +1,4 @@
-System.register('systemReserved', ['test'], function () {
+System.register('systemReserved', ['test'], (function () {
 	'use strict';
 	var module$1, other;
 	return {
@@ -6,10 +6,10 @@ System.register('systemReserved', ['test'], function () {
 			module$1 = module.module;
 			other = module.other;
 		}],
-		execute: function () {
+		execute: (function () {
 
 			console.log(module$1, other);
 
-		}
+		})
 	};
-});
+}));

@@ -1,4 +1,4 @@
-define(['exports'], function (exports) { 'use strict';
+define(['exports'], (function (exports) { 'use strict';
 
 	class Broken {
 	}
@@ -15,4 +15,4 @@ define(['exports'], function (exports) { 'use strict';
 	exports.Broken = Broken;
 	exports.Other = Other;
 
-});
+}));

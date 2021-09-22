@@ -2,7 +2,7 @@
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('foo')) :
 	typeof define === 'function' && define.amd ? define(['foo'], factory) :
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.foo));
-}(this, (function (foo) { 'use strict';
+})(this, (function (foo) { 'use strict';
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -13,14 +13,12 @@
 					var d = Object.getOwnPropertyDescriptor(e, k);
 					Object.defineProperty(n, k, d.get ? d : {
 						enumerable: true,
-						get: function () {
-							return e[k];
-						}
+						get: function () { return e[k]; }
 					});
 				}
 			});
 		}
-		n['default'] = e;
+		n["default"] = e;
 		return Object.freeze(n);
 	}
 
@@ -30,4 +28,4 @@
 	console.log(foo.blah);
 	console.log(foo.bar);
 
-})));
+}));

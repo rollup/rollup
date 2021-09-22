@@ -1,4 +1,4 @@
-define(['exports', './generated-build-starter'], function (exports, buildStarter) { 'use strict';
+define(['exports', './generated-build-starter'], (function (exports, buildStarter) { 'use strict';
 
 
 
@@ -6,4 +6,4 @@ define(['exports', './generated-build-starter'], function (exports, buildStarter
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

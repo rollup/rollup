@@ -1,16 +1,16 @@
-System.register('myBundle', ['babel-polyfill', 'other'], function (exports) {
+System.register('myBundle', ['babel-polyfill', 'other'], (function (exports) {
 	'use strict';
 	var x;
 	return {
 		setters: [function () {}, function (module) {
 			x = module.x;
 		}],
-		execute: function () {
+		execute: (function () {
 
 			x();
 
 			var main = exports('default', new WeakMap());
 
-		}
+		})
 	};
-});
+}));

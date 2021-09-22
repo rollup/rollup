@@ -1,7 +1,7 @@
 (function (factory) {
     typeof define === 'function' && define.amd ? define(factory) :
     factory();
-}((function () {
+})((function () {
     const localVariable = 'local';
 
     try {
@@ -12,4 +12,4 @@
         Function("g", "globalVariable = g")(localVariable);
     }
 
-})));
+}));

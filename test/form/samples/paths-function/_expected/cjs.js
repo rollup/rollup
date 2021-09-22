@@ -13,19 +13,17 @@ function _interopNamespace(e) {
 				var d = Object.getOwnPropertyDescriptor(e, k);
 				Object.defineProperty(n, k, d.get ? d : {
 					enumerable: true,
-					get: function () {
-						return e[k];
-					}
+					get: function () { return e[k]; }
 				});
 			}
 		});
 	}
-	n['default'] = e;
+	n["default"] = e;
 	return Object.freeze(n);
 }
 
 var foo__default = /*#__PURE__*/_interopDefaultLegacy(foo);
 
-assert.equal(foo__default['default'], 42);
+assert.equal(foo__default["default"], 42);
 
 Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require('https://unpkg.com/foo')); }).then(({ default: foo }) => assert.equal(foo, 42));

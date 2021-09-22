@@ -1,7 +1,7 @@
-System.register('bundle', [], function (exports) {
+System.register('bundle', [], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			var buffer = new ArrayBuffer( 8 );
 
@@ -10,6 +10,6 @@ System.register('bundle', [], function (exports) {
 
 			view16[ 0 ] = 3;
 
-		}
+		})
 	};
-});
+}));

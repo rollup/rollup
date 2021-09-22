@@ -1,4 +1,4 @@
-System.register(['./main.js'], function (exports) {
+System.register(['./main.js'], (function (exports) {
 	'use strict';
 	var value;
 	return {
@@ -6,10 +6,10 @@ System.register(['./main.js'], function (exports) {
 			value = module.value;
 			exports('value', module.value);
 		}],
-		execute: function () {
+		execute: (function () {
 
 			console.log('dynamic', value);
 
-		}
+		})
 	};
-});
+}));

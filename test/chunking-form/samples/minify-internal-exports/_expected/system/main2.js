@@ -1,4 +1,4 @@
-System.register(['./generated-shared2.js'], function () {
+System.register(['./generated-shared2.js'], (function () {
 	'use strict';
 	var shared1, shared2, foo;
 	return {
@@ -7,10 +7,10 @@ System.register(['./generated-shared2.js'], function () {
 			shared2 = module.a;
 			foo = module.b;
 		}],
-		execute: function () {
+		execute: (function () {
 
 			console.log(shared1, shared2, foo);
 
-		}
+		})
 	};
-});
+}));

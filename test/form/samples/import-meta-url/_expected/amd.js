@@ -1,4 +1,4 @@
-define(['module'], function (module) { 'use strict';
+define(['module'], (function (module) { 'use strict';
 
 	function log(url) {
 		if (typeof document === 'undefined') {
@@ -10,4 +10,4 @@ define(['module'], function (module) { 'use strict';
 
 	log(new URL(module.uri, document.baseURI).href);
 
-});
+}));

@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	const effectY = () => {
 		console.log('effect');
@@ -12,4 +12,4 @@ define(function () { 'use strict';
 	foo++;
 	foo.bar.baz = 1;
 
-});
+}));

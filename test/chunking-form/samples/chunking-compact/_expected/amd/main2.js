@@ -1,4 +1,4 @@
-define(['./generated-dep2','external'],function(dep2,external){'use strict';function fn$1 () {
+define(['./generated-dep2','external'],(function(dep2,external){'use strict';function fn$1 () {
   console.log('lib1 fn');
   external.fn();
 }function fn () {
@@ -9,4 +9,4 @@ define(['./generated-dep2','external'],function(dep2,external){'use strict';func
     fn();
     dep2.f();
   }
-}return Main2;});
+}return Main2;}));

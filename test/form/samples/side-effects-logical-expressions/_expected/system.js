@@ -1,7 +1,7 @@
-System.register([], function () {
+System.register([], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			// effect
 			console.log( 'effect' );
@@ -36,6 +36,6 @@ System.register([], function () {
 			((() => () => console.log( 'effect' )))()();
 			((() => () => console.log( 'effect' )))()();
 
-		}
+		})
 	};
-});
+}));

@@ -1,7 +1,7 @@
-define(['external-default'], function (externalDefault) { 'use strict';
+define(['external-default'], (function (externalDefault) { 'use strict';
 
 
 
 	return externalDefault;
 
-});
+}));

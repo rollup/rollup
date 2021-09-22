@@ -1,7 +1,7 @@
-System.register('bundle', [], function (exports) {
+System.register('bundle', [], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			exports('a', a);
 
@@ -44,6 +44,6 @@ System.register('bundle', [], function (exports) {
 			});
 			i.foo = foo;
 
-		}
+		})
 	};
-});
+}));

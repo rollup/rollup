@@ -1,4 +1,4 @@
-define(['exports'], function (exports) { 'use strict';
+define(['exports'], (function (exports) { 'use strict';
 
 	var dep =
 		/*#__PURE__*/
@@ -8,4 +8,4 @@ define(['exports'], function (exports) { 'use strict';
 
 	exports.dep = dep;
 
-});
+}));

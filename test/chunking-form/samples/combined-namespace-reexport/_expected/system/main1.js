@@ -1,4 +1,4 @@
-System.register(['./generated-geometry.js'], function () {
+System.register(['./generated-geometry.js'], (function () {
 	'use strict';
 	var volume, geometry;
 	return {
@@ -6,7 +6,7 @@ System.register(['./generated-geometry.js'], function () {
 			volume = module.v;
 			geometry = module.g;
 		}],
-		execute: function () {
+		execute: (function () {
 
 			var mod = /*#__PURE__*/Object.freeze({
 				__proto__: null,
@@ -16,6 +16,6 @@ System.register(['./generated-geometry.js'], function () {
 
 			console.log(mod);
 
-		}
+		})
 	};
-});
+}));

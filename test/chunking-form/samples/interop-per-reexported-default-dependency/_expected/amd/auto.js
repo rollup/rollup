@@ -1,4 +1,4 @@
-define(['external-auto'], function (externalAuto) { 'use strict';
+define(['external-auto'], (function (externalAuto) { 'use strict';
 
 	function _interopDefault (e) { return e && e.__esModule ? e : { 'default': e }; }
 
@@ -6,6 +6,6 @@ define(['external-auto'], function (externalAuto) { 'use strict';
 
 
 
-	return externalAuto__default['default'];
+	return externalAuto__default["default"];
 
-});
+}));

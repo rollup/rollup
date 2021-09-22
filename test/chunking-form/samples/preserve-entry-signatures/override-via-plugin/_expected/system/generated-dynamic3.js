@@ -1,14 +1,14 @@
-System.register(['./generated-false.js'], function () {
+System.register(['./generated-false.js'], (function () {
 	'use strict';
 	var shared;
 	return {
 		setters: [function (module) {
 			shared = module.s;
 		}],
-		execute: function () {
+		execute: (function () {
 
 			console.log(shared);
 
-		}
+		})
 	};
-});
+}));

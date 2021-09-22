@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	function foo() { return true; }
 
@@ -8,4 +8,4 @@ define(function () { 'use strict';
 
 	console.log(baz());
 
-});
+}));

@@ -12,15 +12,11 @@ var external__default = /*#__PURE__*/_interopDefaultLegacy(external);
 
 Object.defineProperty(exports, 'default', {
 	enumerable: true,
-	get: function () {
-		return external__default['default'];
-	}
+	get: function () { return external__default["default"]; }
 });
 Object.keys(external).forEach(function (k) {
 	if (k !== 'default' && !exports.hasOwnProperty(k)) Object.defineProperty(exports, k, {
 		enumerable: true,
-		get: function () {
-			return external[k];
-		}
+		get: function () { return external[k]; }
 	});
 });

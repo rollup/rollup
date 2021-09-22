@@ -1,21 +1,31 @@
 import { Bundle, Bundle as MagicStringBundle } from 'magic-string';
 import { ChunkDependencies, ChunkExports, ImportSpecifier, ReexportSpecifier } from '../Chunk';
 import { NormalizedOutputOptions } from '../rollup/types';
+import { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
+import { getHelpersBlock } from '../utils/interopHelpers';
 import { FinaliserOptions } from './index';
 
 export default function es(
 	magicString: MagicStringBundle,
-	{ intro, outro, dependencies, exports, varOrConst }: FinaliserOptions,
-	{ compact }: NormalizedOutputOptions
+	{ accessedGlobals, indent: t, intro, outro, dependencies, exports, snippets }: FinaliserOptions,
+	{ externalLiveBindings, freeze, namespaceToStringTag }: NormalizedOutputOptions
 ): Bundle {
-	const _ = compact ? '' : ' ';
-	const n = compact ? '' : '\n';
+	const { _, n } = snippets;
 
 	const importBlock = getImportBlock(dependencies, _);
 	if (importBlock.length > 0) intro += importBlock.join(n) + n + n;
+	intro += getHelpersBlock(
+		null,
+		accessedGlobals,
+		t,
+		snippets,
+		externalLiveBindings,
+		freeze,
+		namespaceToStringTag
+	);
 	if (intro) magicString.prepend(intro);
 
-	const exportBlock = getExportBlock(exports, _, varOrConst);
+	const exportBlock = getExportBlock(exports, snippets);
 	if (exportBlock.length) magicString.append(n + n + exportBlock.join(n).trim());
 	if (outro) magicString.append(outro);
 
@@ -110,12 +120,12 @@ function getImportBlock(dependencies: ChunkDependencies, _: string): string[] {
 	return importBlock;
 }
 
-function getExportBlock(exports: ChunkExports, _: string, varOrConst: string): string[] {
+function getExportBlock(exports: ChunkExports, { _, cnst }: GenerateCodeSnippets): string[] {
 	const exportBlock: string[] = [];
 	const exportDeclaration: string[] = [];
 	for (const specifier of exports) {
 		if (specifier.expression) {
-			exportBlock.push(`${varOrConst} ${specifier.local}${_}=${_}${specifier.expression};`);
+			exportBlock.push(`${cnst} ${specifier.local}${_}=${_}${specifier.expression};`);
 		}
 		exportDeclaration.push(
 			specifier.exported === specifier.local

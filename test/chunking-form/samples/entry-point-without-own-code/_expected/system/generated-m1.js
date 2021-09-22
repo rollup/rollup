@@ -1,11 +1,11 @@
-System.register(['./m2.js'], function (exports) {
+System.register(['./m2.js'], (function (exports) {
 	'use strict';
 	var m2;
 	return {
 		setters: [function (module) {
-			m2 = module.default;
+			m2 = module["default"];
 		}],
-		execute: function () {
+		execute: (function () {
 
 			var ms = /*#__PURE__*/Object.freeze({
 				__proto__: null,
@@ -13,6 +13,6 @@ System.register(['./m2.js'], function (exports) {
 			});
 			exports('m', ms);
 
-		}
+		})
 	};
-});
+}));

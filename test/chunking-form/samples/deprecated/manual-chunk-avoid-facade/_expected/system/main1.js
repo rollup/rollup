@@ -1,14 +1,14 @@
-System.register(['./main2.js'], function () {
+System.register(['./main2.js'], (function () {
 	'use strict';
 	var value;
 	return {
 		setters: [function (module) {
 			value = module.reexported;
 		}],
-		execute: function () {
+		execute: (function () {
 
 			console.log('main', value);
 
-		}
+		})
 	};
-});
+}));

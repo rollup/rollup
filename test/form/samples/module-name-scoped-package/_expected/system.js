@@ -1,10 +1,10 @@
-System.register('@scoped/npm-package', [], function (exports) {
+System.register('@scoped/npm-package', [], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			let foo = exports('foo', 'foo');
 
-		}
+		})
 	};
-});
+}));

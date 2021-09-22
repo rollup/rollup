@@ -1,4 +1,4 @@
-define(['exports'], function (exports) { 'use strict';
+define(['exports'], (function (exports) { 'use strict';
 
 	const exists = 'exists';
 	const __synthetic = { synthetic: 'synthetic' };
@@ -6,4 +6,4 @@ define(['exports'], function (exports) { 'use strict';
 	exports.__synthetic = __synthetic;
 	exports.exists = exists;
 
-});
+}));

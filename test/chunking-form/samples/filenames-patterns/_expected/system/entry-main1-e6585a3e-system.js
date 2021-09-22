@@ -1,4 +1,4 @@
-System.register(['./chunk-main2-97f5caac-system.js'], function () {
+System.register(['./chunk-main2-97f5caac-system.js'], (function () {
 	'use strict';
 	var log, dep;
 	return {
@@ -6,10 +6,10 @@ System.register(['./chunk-main2-97f5caac-system.js'], function () {
 			log = module.l;
 			dep = module.d;
 		}],
-		execute: function () {
+		execute: (function () {
 
 			log(dep);
 
-		}
+		})
 	};
-});
+}));

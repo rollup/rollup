@@ -1,14 +1,14 @@
-System.register(['https://unpkg.com/foo'], function () {
+System.register(['https://unpkg.com/foo'], (function () {
 	'use strict';
 	var foo;
 	return {
 		setters: [function (module) {
-			foo = module.default;
+			foo = module["default"];
 		}],
-		execute: function () {
+		execute: (function () {
 
 			assert.equal( foo, 42 );
 
-		}
+		})
 	};
-});
+}));

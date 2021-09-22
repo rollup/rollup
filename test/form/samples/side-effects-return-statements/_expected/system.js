@@ -1,7 +1,7 @@
-System.register('myBundle', [], function () {
+System.register('myBundle', [], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			function isUsed ( x ) {
 				if ( x ) {
@@ -12,6 +12,6 @@ System.register('myBundle', [], function () {
 
 			assert.equal( isUsed( true ), 2 );
 
-		}
+		})
 	};
-});
+}));

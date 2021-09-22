@@ -1,4 +1,4 @@
-System.register(['./main1.js', './generated-dep2.js'], function (exports) {
+System.register(['./main1.js', './generated-dep2.js'], (function (exports) {
 	'use strict';
 	var value1;
 	return {
@@ -6,10 +6,10 @@ System.register(['./main1.js', './generated-dep2.js'], function (exports) {
 			value1 = module.value1;
 			exports('value1', module.value1);
 		}, function () {}],
-		execute: function () {
+		execute: (function () {
 
 			console.log('dynamic1', value1);
 
-		}
+		})
 	};
-});
+}));

@@ -1,8 +1,8 @@
-define(['exports'], function (exports) { 'use strict';
+define(['exports'], (function (exports) { 'use strict';
 
 	const x = 0;
 	console.log('112');
 
 	exports.x = x;
 
-});
+}));

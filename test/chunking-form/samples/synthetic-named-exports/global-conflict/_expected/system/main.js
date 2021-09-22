@@ -1,7 +1,7 @@
-System.register([], function (exports) {
+System.register([], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			var dep = { foo: 'bar' };
 			// This should log a global variable
@@ -9,6 +9,6 @@ System.register([], function (exports) {
 
 			exports('foo', dep.foo);
 
-		}
+		})
 	};
-});
+}));

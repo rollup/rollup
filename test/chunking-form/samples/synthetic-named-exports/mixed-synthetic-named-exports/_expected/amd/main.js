@@ -1,4 +1,19 @@
-define(['exports'], function (exports) { 'use strict';
+define(['exports'], (function (exports) { 'use strict';
+
+  function _mergeNamespaces(n, m) {
+    m.forEach(function (e) {
+      Object.keys(e).forEach(function (k) {
+        if (k !== 'default' && !(k in n)) {
+          var d = Object.getOwnPropertyDescriptor(e, k);
+          Object.defineProperty(n, k, d.get ? d : {
+            enumerable: true,
+            get: function () { return e[k]; }
+          });
+        }
+      });
+    });
+    return Object.freeze(n);
+  }
 
   const d = {
     fn: 42,
@@ -6,10 +21,11 @@ define(['exports'], function (exports) { 'use strict';
   };
   const foo = 100;
 
-  var ns = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.assign(/*#__PURE__*/Object.create(null), d, {
+  var ns = /*#__PURE__*/Object.freeze(/*#__PURE__*/_mergeNamespaces({
+    __proto__: null,
     foo: foo,
     'default': d
-  }));
+  }, [d]));
 
   const stuff = 12;
   console.log(stuff);
@@ -24,4 +40,4 @@ define(['exports'], function (exports) { 'use strict';
 
   Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

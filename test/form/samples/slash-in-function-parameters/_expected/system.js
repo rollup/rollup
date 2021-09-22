@@ -1,7 +1,7 @@
-System.register([], function () {
+System.register([], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			class someClass {}
 
@@ -9,6 +9,6 @@ System.register([], function () {
 
 			console.log(someClass, someFunction);
 
-		}
+		})
 	};
-});
+}));

@@ -1,8 +1,8 @@
-System.register(['./direct-relative-external', 'to-indirect-relative-external', 'direct-absolute-external', 'to-indirect-absolute-external'], function (exports, module) {
+System.register(['./direct-relative-external', 'to-indirect-relative-external', 'direct-absolute-external', 'to-indirect-absolute-external'], (function (exports, module) {
 	'use strict';
 	return {
 		setters: [function () {}, function () {}, function () {}, function () {}],
-		execute: function () {
+		execute: (function () {
 
 			// nested
 			Promise.resolve().then(function () { return existing; });
@@ -31,6 +31,6 @@ System.register(['./direct-relative-external', 'to-indirect-relative-external', 
 			Promise.resolve().then(function () { return existing; });
 			module.import('my' + 'replacement');
 
-		}
+		})
 	};
-});
+}));

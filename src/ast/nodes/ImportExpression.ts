@@ -3,8 +3,9 @@ import ExternalModule from '../../ExternalModule';
 import Module from '../../Module';
 import { GetInterop, NormalizedOutputOptions } from '../../rollup/types';
 import { PluginDriver } from '../../utils/PluginDriver';
+import { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 import {
-	getDefaultOnlyHelper,
+	INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE,
 	namespaceInteropHelpersByInteropType
 } from '../../utils/interopHelpers';
 import { findFirstOccurrenceOutsideComment, RenderOptions } from '../../utils/renderHelpers';
@@ -46,12 +47,18 @@ export default class ImportExpression extends NodeBase {
 
 	render(code: MagicString, options: RenderOptions): void {
 		if (this.inlineNamespace) {
-			const _ = options.compact ? '' : ' ';
-			const s = options.compact ? '' : ';';
+			const {
+				snippets: { getDirectReturnFunction, getPropertyAccess }
+			} = options;
+			const [left, right] = getDirectReturnFunction([], {
+				functionReturn: true,
+				lineBreakIndent: null,
+				name: null
+			});
 			code.overwrite(
 				this.start,
 				this.end,
-				`Promise.resolve().then(function${_}()${_}{${_}return ${this.inlineNamespace.getName()}${s}${_}})`,
+				`Promise.resolve().then(${left}${this.inlineNamespace.getName(getPropertyAccess)}${right})`,
 				{ contentOnly: true }
 			);
 			return;
@@ -73,16 +80,16 @@ export default class ImportExpression extends NodeBase {
 		code: MagicString,
 		resolution: string,
 		namespaceExportName: string | false | undefined,
-		options: NormalizedOutputOptions
+		{ getDirectReturnFunction }: GenerateCodeSnippets
 	): void {
 		code.overwrite(this.source.start, this.source.end, resolution);
 		if (namespaceExportName) {
-			const _ = options.compact ? '' : ' ';
-			const s = options.compact ? '' : ';';
-			code.prependLeft(
-				this.end,
-				`.then(function${_}(n)${_}{${_}return n.${namespaceExportName}${s}${_}})`
-			);
+			const [left, right] = getDirectReturnFunction(['n'], {
+				functionReturn: true,
+				lineBreakIndent: null,
+				name: null
+			});
+			code.prependLeft(this.end, `.then(${left}n.${namespaceExportName}${right})`);
 		}
 	}
 
@@ -90,16 +97,19 @@ export default class ImportExpression extends NodeBase {
 		exportMode: 'none' | 'named' | 'default' | 'external',
 		resolution: Module | ExternalModule | string | null,
 		options: NormalizedOutputOptions,
+		snippets: GenerateCodeSnippets,
 		pluginDriver: PluginDriver,
 		accessedGlobalsByScope: Map<ChildScope, Set<string>>
 	): void {
+		const { format } = options;
 		this.resolution = resolution;
-		const accessedGlobals = [...(accessedImportGlobals[options.format] || [])];
+		const accessedGlobals = [...(accessedImportGlobals[format] || [])];
 		let helper: string | null;
 		({ helper, mechanism: this.mechanism } = this.getDynamicImportMechanismAndHelper(
 			resolution,
 			exportMode,
 			options,
+			snippets,
 			pluginDriver
 		));
 		if (helper) {
@@ -117,13 +127,20 @@ export default class ImportExpression extends NodeBase {
 	private getDynamicImportMechanismAndHelper(
 		resolution: Module | ExternalModule | string | null,
 		exportMode: 'none' | 'named' | 'default' | 'external',
-		options: NormalizedOutputOptions,
+		{
+			compact,
+			dynamicImportFunction,
+			format,
+			generatedCode: { arrowFunctions },
+			interop
+		}: NormalizedOutputOptions,
+		{ _, getDirectReturnFunction, getDirectReturnIifeLeft }: GenerateCodeSnippets,
 		pluginDriver: PluginDriver
 	): { helper: string | null; mechanism: DynamicImportMechanism | null } {
 		const mechanism = pluginDriver.hookFirstSync('renderDynamicImport', [
 			{
 				customResolution: typeof this.resolution === 'string' ? this.resolution : null,
-				format: options.format,
+				format,
 				moduleId: this.context.module.id,
 				targetModuleId:
 					this.resolution && typeof this.resolution !== 'string' ? this.resolution.id : null
@@ -132,39 +149,64 @@ export default class ImportExpression extends NodeBase {
 		if (mechanism) {
 			return { helper: null, mechanism };
 		}
-		switch (options.format) {
+		const hasDynamicTarget = !this.resolution || typeof this.resolution === 'string';
+		switch (format) {
 			case 'cjs': {
-				const _ = options.compact ? '' : ' ';
-				const s = options.compact ? '' : ';';
-				const leftStart = `Promise.resolve().then(function${_}()${_}{${_}return`;
-				const helper = getInteropHelper(resolution, exportMode, options.interop);
+				const helper = getInteropHelper(resolution, exportMode, interop);
+				let left = `require(`;
+				let right = `)`;
+				if (helper) {
+					left = `/*#__PURE__*/${helper}(${left}`;
+					right += ')';
+				}
+				const [functionLeft, functionRight] = getDirectReturnFunction([], {
+					functionReturn: true,
+					lineBreakIndent: null,
+					name: null
+				});
+				left = `Promise.resolve().then(${functionLeft}${left}`;
+				right += `${functionRight})`;
+				if (!arrowFunctions && hasDynamicTarget) {
+					left = getDirectReturnIifeLeft(['t'], `${left}t${right}`, {
+						needsArrowReturnParens: false,
+						needsWrappedFunction: true
+					});
+					right = ')';
+				}
 				return {
 					helper,
-					mechanism: helper
-						? {
-								left: `${leftStart} /*#__PURE__*/${helper}(require(`,
-								right: `))${s}${_}})`
-						  }
-						: {
-								left: `${leftStart} require(`,
-								right: `)${s}${_}})`
-						  }
+					mechanism: { left, right }
 				};
 			}
 			case 'amd': {
-				const _ = options.compact ? '' : ' ';
-				const resolve = options.compact ? 'c' : 'resolve';
-				const reject = options.compact ? 'e' : 'reject';
-				const helper = getInteropHelper(resolution, exportMode, options.interop);
+				const resolve = compact ? 'c' : 'resolve';
+				const reject = compact ? 'e' : 'reject';
+				const helper = getInteropHelper(resolution, exportMode, interop);
+				const [resolveLeft, resolveRight] = getDirectReturnFunction(['m'], {
+					functionReturn: false,
+					lineBreakIndent: null,
+					name: null
+				});
 				const resolveNamespace = helper
-					? `function${_}(m)${_}{${_}${resolve}(/*#__PURE__*/${helper}(m));${_}}`
+					? `${resolveLeft}${resolve}(/*#__PURE__*/${helper}(m))${resolveRight}`
 					: resolve;
+				const [handlerLeft, handlerRight] = getDirectReturnFunction([resolve, reject], {
+					functionReturn: false,
+					lineBreakIndent: null,
+					name: null
+				});
+				let left = `new Promise(${handlerLeft}require([`;
+				let right = `],${_}${resolveNamespace},${_}${reject})${handlerRight})`;
+				if (!arrowFunctions && hasDynamicTarget) {
+					left = getDirectReturnIifeLeft(['t'], `${left}t${right}`, {
+						needsArrowReturnParens: false,
+						needsWrappedFunction: true
+					});
+					right = ')';
+				}
 				return {
 					helper,
-					mechanism: {
-						left: `new Promise(function${_}(${resolve},${_}${reject})${_}{${_}require([`,
-						right: `],${_}${resolveNamespace},${_}${reject})${_}})`
-					}
+					mechanism: { left, right }
 				};
 			}
 			case 'system':
@@ -176,11 +218,11 @@ export default class ImportExpression extends NodeBase {
 					}
 				};
 			case 'es':
-				if (options.dynamicImportFunction) {
+				if (dynamicImportFunction) {
 					return {
 						helper: null,
 						mechanism: {
-							left: `${options.dynamicImportFunction}(`,
+							left: `${dynamicImportFunction}(`,
 							right: ')'
 						}
 					};
@@ -200,7 +242,7 @@ function getInteropHelper(
 				String(interop(resolution instanceof ExternalModule ? resolution.id : null))
 		  ]
 		: exportMode === 'default'
-		? getDefaultOnlyHelper()
+		? INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE
 		: null;
 }
 

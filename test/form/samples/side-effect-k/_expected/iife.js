@@ -26,4 +26,4 @@ var myBundle = (function () {
 
 	return x;
 
-}());
+})();

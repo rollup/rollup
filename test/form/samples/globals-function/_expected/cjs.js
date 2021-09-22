@@ -8,4 +8,4 @@ function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'defau
 var a__default = /*#__PURE__*/_interopDefaultLegacy(a);
 var b__default = /*#__PURE__*/_interopDefaultLegacy(b);
 
-console.log(a__default['default'], b__default['default']);
+console.log(a__default["default"], b__default["default"]);

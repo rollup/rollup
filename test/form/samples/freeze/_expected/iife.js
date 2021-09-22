@@ -22,4 +22,4 @@ var myBundle = (function (exports) {
 
 	return exports;
 
-}({}));
+})({});

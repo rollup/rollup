@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	var a = 1, b = 2;
 
@@ -11,4 +11,4 @@ define(function () { 'use strict';
 	assert.equal( b, 4 );
 	assert.equal( c, 5 );
 
-});
+}));

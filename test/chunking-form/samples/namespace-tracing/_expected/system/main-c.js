@@ -1,4 +1,4 @@
-System.register(['./generated-bar.js', './generated-broken.js'], function () {
+System.register(['./generated-bar.js', './generated-broken.js'], (function () {
 	'use strict';
 	var bar, broken;
 	return {
@@ -7,11 +7,11 @@ System.register(['./generated-bar.js', './generated-broken.js'], function () {
 		}, function (module) {
 			broken = module.b;
 		}],
-		execute: function () {
+		execute: (function () {
 
 			bar();
 			broken();
 
-		}
+		})
 	};
-});
+}));

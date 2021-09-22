@@ -64,12 +64,12 @@ export default class ExportDefaultVariable extends LocalVariable {
 			: null;
 	}
 
-	getName(): string {
+	getName(getPropertyAccess: (name: string) => string): string {
 		const original = this.getOriginalVariable();
 		if (original === this) {
-			return super.getName();
+			return super.getName(getPropertyAccess);
 		} else {
-			return original.getName();
+			return original.getName(getPropertyAccess);
 		}
 	}
 

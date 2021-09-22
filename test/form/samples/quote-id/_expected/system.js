@@ -1,6 +1,6 @@
 System.register('Q', ['quoted\'\\
 \ \ external1', './quoted\'\\
-\ \ external2', './C:/File/Path.js'], function () {
+\ \ external2', './C:/File/Path.js'], (function () {
 	'use strict';
 	var foo, bar, baz;
 	return {
@@ -11,10 +11,10 @@ System.register('Q', ['quoted\'\\
 		}, function (module) {
 			baz = module.baz;
 		}],
-		execute: function () {
+		execute: (function () {
 
 			console.log(foo, bar, baz);
 
-		}
+		})
 	};
-});
+}));

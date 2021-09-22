@@ -1,11 +1,11 @@
-System.register(['./generated-lib.js'], function () {
+System.register(['./generated-lib.js'], (function () {
 	'use strict';
 	var emptyFunction;
 	return {
 		setters: [function (module) {
 			emptyFunction = module.e;
 		}],
-		execute: function () {
+		execute: (function () {
 
 			function fn() {
 				var emptyFunction$1 = emptyFunction;
@@ -16,6 +16,6 @@ System.register(['./generated-lib.js'], function () {
 
 			fn();
 
-		}
+		})
 	};
-});
+}));

@@ -1,14 +1,14 @@
-System.register(['./generated-dep.js'], function () {
+System.register(['./generated-dep.js'], (function () {
 	'use strict';
 	var value;
 	return {
 		setters: [function (module) {
-			value = module.default;
+			value = module["default"];
 		}],
-		execute: function () {
+		execute: (function () {
 
 			console.log('main1', value);
 
-		}
+		})
 	};
-});
+}));

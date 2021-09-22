@@ -1,4 +1,4 @@
-System.register(['./deps/dep1.js', './deps/dep2.js'], function (exports) {
+System.register(['./deps/dep1.js', './deps/dep2.js'], (function (exports) {
   'use strict';
   var fn, fn$1;
   return {
@@ -7,7 +7,7 @@ System.register(['./deps/dep1.js', './deps/dep2.js'], function (exports) {
     }, function (module) {
       fn$1 = module.fn;
     }],
-    execute: function () {
+    execute: (function () {
 
       class Main1 {
         constructor () {
@@ -16,6 +16,6 @@ System.register(['./deps/dep1.js', './deps/dep2.js'], function (exports) {
         }
       } exports('default', Main1);
 
-    }
+    })
   };
-});
+}));

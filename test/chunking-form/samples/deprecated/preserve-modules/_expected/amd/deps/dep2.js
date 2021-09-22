@@ -1,4 +1,4 @@
-define(['exports', '../lib/lib2'], function (exports, lib2) { 'use strict';
+define(['exports', '../lib/lib2'], (function (exports, lib2) { 'use strict';
 
   function fn () {
     lib2.fn();
@@ -9,4 +9,4 @@ define(['exports', '../lib/lib2'], function (exports, lib2) { 'use strict';
 
   Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

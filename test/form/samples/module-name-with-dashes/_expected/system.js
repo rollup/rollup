@@ -1,10 +1,10 @@
-System.register('module-name-with-dashes', [], function (exports) {
+System.register('module-name-with-dashes', [], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			let foo = exports('foo', 'foo');
 
-		}
+		})
 	};
-});
+}));

@@ -1,4 +1,4 @@
-define(['require', 'exports'], function (require, exports) { 'use strict';
+define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	var v1,
 		v2,
@@ -273,7 +273,7 @@ define(['require', 'exports'], function (require, exports) { 'use strict';
 		v271,
 		v272;
 
-	const lazy = new Promise(function (resolve, reject) { require(['./generated-lazy'], resolve, reject) });
+	const lazy = new Promise(function (resolve, reject) { require(['./generated-lazy'], resolve, reject); });
 
 	exports.lazy = lazy;
 	exports.v1 = v1;
@@ -551,4 +551,4 @@ define(['require', 'exports'], function (require, exports) { 'use strict';
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

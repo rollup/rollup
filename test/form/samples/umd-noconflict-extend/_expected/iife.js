@@ -15,4 +15,4 @@
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-}(this.FooBar = this.FooBar || {}));
+})(this.FooBar = this.FooBar || {});

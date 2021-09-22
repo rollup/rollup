@@ -1,13 +1,13 @@
-System.register(['external-true'], function (exports) {
+System.register(['external-true'], (function (exports) {
 	'use strict';
 	return {
 		setters: [function (module) {
-			exports('default', module.default);
+			exports('default', module["default"]);
 		}],
-		execute: function () {
+		execute: (function () {
 
 
 
-		}
+		})
 	};
-});
+}));

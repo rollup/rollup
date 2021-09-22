@@ -1,4 +1,4 @@
-define(['./shared'], function (shared) { 'use strict';
+define(['./shared'], (function (shared) { 'use strict';
 
 	registerPaint(
 		'vertical-lines',
@@ -14,4 +14,4 @@ define(['./shared'], function (shared) { 'use strict';
 		}
 	);
 
-});
+}));

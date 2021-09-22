@@ -1,4 +1,4 @@
-System.register(['./a.js', './one.js'], function () {
+System.register(['./a.js', './one.js'], (function () {
 	'use strict';
 	var a, d;
 	return {
@@ -7,10 +7,10 @@ System.register(['./a.js', './one.js'], function () {
 		}, function (module) {
 			d = module.d;
 		}],
-		execute: function () {
+		execute: (function () {
 
 			console.log(a + d);
 
-		}
+		})
 	};
-});
+}));

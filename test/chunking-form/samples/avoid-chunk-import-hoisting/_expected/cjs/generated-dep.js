@@ -6,6 +6,6 @@ function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'defau
 
 var value__default = /*#__PURE__*/_interopDefaultLegacy(value);
 
-var dep = 2 * value__default['default'];
+var dep = 2 * value__default["default"];
 
 exports.dep = dep;

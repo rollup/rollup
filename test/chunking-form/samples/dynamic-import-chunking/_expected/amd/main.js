@@ -1,5 +1,5 @@
-define(['./generated-main'], function (main) { 'use strict';
+define(['./generated-main'], (function (main) { 'use strict';
 
 
 
-});
+}));

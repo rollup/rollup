@@ -1,30 +1,32 @@
-System.register('myBundle', ['foo', 'bar', 'baz'], function (exports) {
+System.register('myBundle', ['foo', 'bar', 'baz'], (function (exports) {
 	'use strict';
-	var _starExcludes = { default: 1 };
+	var _starExcludes = {
+		'default': 1
+	};
 	return {
 		setters: [function (module) {
-			var _setter = {};
-			for (var _$p in module) {
-				if (!_starExcludes[_$p]) _setter[_$p] = module[_$p];
+			var setter = {};
+			for (var name in module) {
+				if (!_starExcludes[name]) setter[name] = module[name];
 			}
-			exports(_setter);
+			exports(setter);
 		}, function (module) {
-			var _setter = {};
-			for (var _$p in module) {
-				if (!_starExcludes[_$p]) _setter[_$p] = module[_$p];
+			var setter = {};
+			for (var name in module) {
+				if (!_starExcludes[name]) setter[name] = module[name];
 			}
-			exports(_setter);
+			exports(setter);
 		}, function (module) {
-			var _setter = {};
-			for (var _$p in module) {
-				if (!_starExcludes[_$p]) _setter[_$p] = module[_$p];
+			var setter = {};
+			for (var name in module) {
+				if (!_starExcludes[name]) setter[name] = module[name];
 			}
-			exports(_setter);
+			exports(setter);
 		}],
-		execute: function () {
+		execute: (function () {
 
 
 
-		}
+		})
 	};
-});
+}));

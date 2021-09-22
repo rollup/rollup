@@ -1,4 +1,4 @@
-System.register(['./_virtual/other.js_commonjs-exports'], function (exports) {
+System.register(['./_virtual/other.js_commonjs-exports'], (function (exports) {
 	'use strict';
 	var other;
 	return {
@@ -6,10 +6,10 @@ System.register(['./_virtual/other.js_commonjs-exports'], function (exports) {
 			other = module.__exports;
 			exports('default', module.__exports);
 		}],
-		execute: function () {
+		execute: (function () {
 
 			other.value = 43;
 
-		}
+		})
 	};
-});
+}));

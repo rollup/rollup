@@ -1,6 +1,7 @@
 import { Bundle, Bundle as MagicStringBundle } from 'magic-string';
 import { ChunkDependencies } from '../Chunk';
 import { NormalizedOutputOptions } from '../rollup/types';
+import { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
 import { FinaliserOptions } from './index';
@@ -12,13 +13,13 @@ export default function cjs(
 		dependencies,
 		exports,
 		hasExports,
-		indentString: t,
+		indent: t,
 		intro,
 		isEntryFacade,
 		isModuleFacade,
 		namedExportsMode,
 		outro,
-		varOrConst
+		snippets
 	}: FinaliserOptions,
 	{
 		compact,
@@ -30,9 +31,7 @@ export default function cjs(
 		strict
 	}: NormalizedOutputOptions
 ): Bundle {
-	const n = compact ? '' : '\n';
-	const s = compact ? '' : ';';
-	const _ = compact ? '' : ' ';
+	const { _, n } = snippets;
 
 	const useStrict = strict ? `'use strict';${n}${n}` : '';
 	let namespaceMarkers = getNamespaceMarkers(
@@ -45,19 +44,16 @@ export default function cjs(
 	if (namespaceMarkers) {
 		namespaceMarkers += n + n;
 	}
-	const importBlock = getImportBlock(dependencies, compact, varOrConst, n, _);
+	const importBlock = getImportBlock(dependencies, snippets, compact);
 	const interopBlock = getInteropBlock(
 		dependencies,
-		varOrConst,
 		interop,
 		externalLiveBindings,
 		freeze,
 		namespaceToStringTag,
 		accessedGlobals,
-		_,
-		n,
-		s,
-		t
+		t,
+		snippets
 	);
 
 	magicString.prepend(`${useStrict}${intro}${namespaceMarkers}${importBlock}${interopBlock}`);
@@ -67,7 +63,7 @@ export default function cjs(
 		dependencies,
 		namedExportsMode,
 		interop,
-		compact,
+		snippets,
 		t,
 		externalLiveBindings,
 		`module.exports${_}=${_}`
@@ -78,23 +74,20 @@ export default function cjs(
 
 function getImportBlock(
 	dependencies: ChunkDependencies,
-	compact: boolean,
-	varOrConst: string,
-	n: string,
-	_: string
+	{ _, cnst, n }: GenerateCodeSnippets,
+	compact: boolean
 ): string {
 	let importBlock = '';
 	let definingVariable = false;
 	for (const { id, name, reexports, imports } of dependencies) {
 		if (!reexports && !imports) {
 			if (importBlock) {
-				importBlock += !compact || definingVariable ? `;${n}` : ',';
+				importBlock += compact && !definingVariable ? ',' : `;${n}`;
 			}
 			definingVariable = false;
 			importBlock += `require('${id}')`;
 		} else {
-			importBlock +=
-				compact && definingVariable ? ',' : `${importBlock ? `;${n}` : ''}${varOrConst} `;
+			importBlock += compact && definingVariable ? ',' : `${importBlock ? `;${n}` : ''}${cnst} `;
 			definingVariable = true;
 			importBlock += `${name}${_}=${_}require('${id}')`;
 		}

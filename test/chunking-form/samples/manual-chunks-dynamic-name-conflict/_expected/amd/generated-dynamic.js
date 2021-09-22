@@ -1,4 +1,4 @@
-define(['exports'], function (exports) { 'use strict';
+define(['exports'], (function (exports) { 'use strict';
 
 	console.log('dynamic2');
 
@@ -22,4 +22,4 @@ define(['exports'], function (exports) { 'use strict';
 	exports.dynamic1 = dynamic1;
 	exports.dynamic2 = dynamic2;
 
-});
+}));

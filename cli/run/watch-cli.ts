@@ -66,7 +66,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 					}
 					start(configs);
 				}
-			} catch (err) {
+			} catch (err: any) {
 				configs = [];
 				reloadingConfig = false;
 				handleError(err, true);
@@ -86,7 +86,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 	function start(configs: MergedRollupOptions[]) {
 		try {
 			watcher = rollup.watch(configs as any);
-		} catch (err) {
+		} catch (err: any) {
 			return handleError(err);
 		}
 

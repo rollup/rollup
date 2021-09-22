@@ -1,4 +1,4 @@
-define(['./deps/dep2', './deps/dep3'], function (dep2, dep3) { 'use strict';
+define(['./deps/dep2', './deps/dep3'], (function (dep2, dep3) { 'use strict';
 
   class Main2 {
     constructor () {
@@ -9,4 +9,4 @@ define(['./deps/dep2', './deps/dep3'], function (dep2, dep3) { 'use strict';
 
   return Main2;
 
-});
+}));

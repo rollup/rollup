@@ -1,4 +1,4 @@
-System.register(['./dep.js'], function () {
+System.register(['./dep.js'], (function () {
 	'use strict';
 	var _missingExportShim, x;
 	return {
@@ -6,11 +6,11 @@ System.register(['./dep.js'], function () {
 			_missingExportShim = module.missingFn;
 			x = module.x;
 		}],
-		execute: function () {
+		execute: (function () {
 
 			_missingExportShim();
 			x(_missingExportShim);
 
-		}
+		})
 	};
-});
+}));

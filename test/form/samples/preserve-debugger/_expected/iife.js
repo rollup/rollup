@@ -5,4 +5,4 @@
 	debugger;
 	after();
 
-}());
+})();

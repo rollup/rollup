@@ -1,4 +1,4 @@
-System.register(['foo', 'bar'], function () {
+System.register(['foo', 'bar'], (function () {
 	'use strict';
 	var a$1, a;
 	return {
@@ -7,12 +7,12 @@ System.register(['foo', 'bar'], function () {
 		}, function (module) {
 			a = module.a;
 		}],
-		execute: function () {
+		execute: (function () {
 
 			console.log( a );
 
 			console.log( a$1 );
 
-		}
+		})
 	};
-});
+}));

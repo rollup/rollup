@@ -1,4 +1,4 @@
-System.register(['external-all', 'external-named', 'external-default-named', 'external-named-namespace'], function (exports) {
+System.register(['external-all', 'external-named', 'external-default-named', 'external-named-namespace'], (function (exports) {
 	'use strict';
 	return {
 		setters: [function (module) {
@@ -10,10 +10,10 @@ System.register(['external-all', 'external-named', 'external-default-named', 'ex
 		}, function (module) {
 			exports('quux', module.quux);
 		}],
-		execute: function () {
+		execute: (function () {
 
 
 
-		}
+		})
 	};
-});
+}));

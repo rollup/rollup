@@ -1,7 +1,7 @@
-System.register([], function () {
+System.register([], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			const a = 1;
 			const b = 2;
@@ -9,6 +9,6 @@ System.register([], function () {
 			const [ d = b ] = [];
 			console.log(c, d);
 
-		}
+		})
 	};
-});
+}));

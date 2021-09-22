@@ -1,7 +1,7 @@
-System.register([], function () {
+System.register([], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			const items = { children: [ {}, {}, {} ] };
 
@@ -28,6 +28,6 @@ System.register([], function () {
 				{ foo: 'a', bar: 'c' }
 			] );
 
-		}
+		})
 	};
-});
+}));

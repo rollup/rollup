@@ -1,7 +1,7 @@
-System.register([], function (exports, module) {
+System.register([], (function (exports, module) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			var asset1 = 'chunkId=system.js:moduleId=solved:fileName=assets/asset-solved-28a7ac89.txt:format=system:relativePath=assets/asset-solved-28a7ac89.txt:referenceId=6296c678';
 
@@ -11,6 +11,6 @@ System.register([], function (exports, module) {
 
 			console.log(asset1, asset2, asset3);
 
-		}
+		})
 	};
-});
+}));

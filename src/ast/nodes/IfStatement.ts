@@ -80,6 +80,9 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	}
 
 	render(code: MagicString, options: RenderOptions): void {
+		const {
+			snippets: { getPropertyAccess }
+		} = options;
 		// Note that unknown test values are always included
 		const testValue = this.getTestValue();
 		const hoistedDeclarations: Identifier[] = [];
@@ -115,7 +118,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 				hoistedDeclarations.push(...this.alternateScope!.hoistedDeclarations);
 			}
 		}
-		this.renderHoistedDeclarations(hoistedDeclarations, code);
+		this.renderHoistedDeclarations(hoistedDeclarations, code, getPropertyAccess);
 	}
 
 	private getTestValue(): LiteralValueOrUnknown {
@@ -168,12 +171,16 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 		}
 	}
 
-	private renderHoistedDeclarations(hoistedDeclarations: Identifier[], code: MagicString) {
+	private renderHoistedDeclarations(
+		hoistedDeclarations: Identifier[],
+		code: MagicString,
+		getPropertyAccess: (name: string) => string
+	) {
 		const hoistedVars = [
 			...new Set(
 				hoistedDeclarations.map(identifier => {
 					const variable = identifier.variable!;
-					return variable.included ? variable.getName() : '';
+					return variable.included ? variable.getName(getPropertyAccess) : '';
 				})
 			)
 		]

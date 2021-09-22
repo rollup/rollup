@@ -1,4 +1,4 @@
-define(['exports', './hsl2hsv'], function (exports, hsl2hsv$1) { 'use strict';
+define(['exports', './hsl2hsv'], (function (exports, hsl2hsv$1) { 'use strict';
 
 	var hsl2hsv = 'asdf';
 
@@ -6,9 +6,9 @@ define(['exports', './hsl2hsv'], function (exports, hsl2hsv$1) { 'use strict';
 
 	var lib = /*#__PURE__*/Object.freeze({
 		__proto__: null,
-		hsl2hsv: hsl2hsv$1['default']
+		hsl2hsv: hsl2hsv$1["default"]
 	});
 
 	exports.lib = lib;
 
-});
+}));

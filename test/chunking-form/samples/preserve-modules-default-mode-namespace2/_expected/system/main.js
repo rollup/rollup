@@ -1,14 +1,14 @@
-System.register(['./lib.js'], function () {
+System.register(['./lib.js'], (function () {
 	'use strict';
 	var lib;
 	return {
 		setters: [function (module) {
 			lib = module;
 		}],
-		execute: function () {
+		execute: (function () {
 
 			console.log(lib);
 
-		}
+		})
 	};
-});
+}));

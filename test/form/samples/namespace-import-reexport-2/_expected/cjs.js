@@ -14,14 +14,12 @@ function _interopNamespace(e) {
 				var d = Object.getOwnPropertyDescriptor(e, k);
 				Object.defineProperty(n, k, d.get ? d : {
 					enumerable: true,
-					get: function () {
-						return e[k];
-					}
+					get: function () { return e[k]; }
 				});
 			}
 		});
 	}
-	n['default'] = e;
+	n["default"] = e;
 	return Object.freeze(n);
 }
 
@@ -31,8 +29,6 @@ var external2__namespace = /*#__PURE__*/_interopNamespace(external2);
 
 Object.defineProperty(exports, 'x', {
 	enumerable: true,
-	get: function () {
-		return external1.x;
-	}
+	get: function () { return external1.x; }
 });
 exports.ext = external2__namespace;

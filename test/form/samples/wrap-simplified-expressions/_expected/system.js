@@ -1,7 +1,7 @@
-System.register([], function () {
+System.register([], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			const wrapper = {
 				foo() {
@@ -29,6 +29,6 @@ System.register([], function () {
 
 			testEval.call('test');
 
-		}
+		})
 	};
-});
+}));

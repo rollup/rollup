@@ -15,7 +15,7 @@ var foo = (function (a) {
 
 	var a__default = /*#__PURE__*/_interopDefaultLegacy(a);
 
-	console.log( a__default['default'] );
+	console.log( a__default["default"] );
 	console.log( a.b );
 
 	var main = 42;
@@ -32,4 +32,4 @@ var foo = (function (a) {
 
 	// outro 4
 
-}(a));
+})(a);

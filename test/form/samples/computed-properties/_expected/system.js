@@ -1,7 +1,7 @@
-System.register('computedProperties', [], function (exports) {
+System.register('computedProperties', [], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			var foo = 'foo';
 			var bar = 'bar';
@@ -16,6 +16,6 @@ System.register('computedProperties', [], function (exports) {
 				set [bam] ( value ) {}
 			} exports('X', X);
 
-		}
+		})
 	};
-});
+}));

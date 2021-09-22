@@ -1,4 +1,4 @@
-define(['exports', 'external1', 'external2'], function (exports, external1, external2) { 'use strict';
+define(['exports', 'external1', 'external2'], (function (exports, external1, external2) { 'use strict';
 
 	function _interopNamespace(e) {
 		if (e && e.__esModule) return e;
@@ -9,14 +9,12 @@ define(['exports', 'external1', 'external2'], function (exports, external1, exte
 					var d = Object.getOwnPropertyDescriptor(e, k);
 					Object.defineProperty(n, k, d.get ? d : {
 						enumerable: true,
-						get: function () {
-							return e[k];
-						}
+						get: function () { return e[k]; }
 					});
 				}
 			});
 		}
-		n['default'] = e;
+		n["default"] = e;
 		return Object.freeze(n);
 	}
 
@@ -26,12 +24,10 @@ define(['exports', 'external1', 'external2'], function (exports, external1, exte
 
 	Object.defineProperty(exports, 'x', {
 		enumerable: true,
-		get: function () {
-			return external1.x;
-		}
+		get: function () { return external1.x; }
 	});
 	exports.ext = external2__namespace;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

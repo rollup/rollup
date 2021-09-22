@@ -1,7 +1,7 @@
-System.register('myBundle', [], function () {
+System.register('myBundle', [], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			function foo () {
 				throw new Error( 'throw side effect' );
@@ -9,6 +9,6 @@ System.register('myBundle', [], function () {
 
 			foo();
 
-		}
+		})
 	};
-});
+}));

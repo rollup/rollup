@@ -477,18 +477,6 @@ export interface OutputPlugin extends Partial<OutputPluginHooks>, Partial<Output
 
 type TreeshakingPreset = 'smallest' | 'safest' | 'recommended';
 
-export interface TreeshakingOptions {
-	annotations?: boolean;
-	correctVarValueBeforeDeclaration?: boolean;
-	moduleSideEffects?: ModuleSideEffectsOption;
-	preset?: TreeshakingPreset;
-	propertyReadSideEffects?: boolean | 'always';
-	/** @deprecated Use `moduleSideEffects` instead */
-	pureExternalModules?: PureModulesOption;
-	tryCatchDeoptimization?: boolean;
-	unknownGlobalSideEffects?: boolean;
-}
-
 export interface NormalizedTreeshakingOptions {
 	annotations: boolean;
 	correctVarValueBeforeDeclaration: boolean;
@@ -496,6 +484,14 @@ export interface NormalizedTreeshakingOptions {
 	propertyReadSideEffects: boolean | 'always';
 	tryCatchDeoptimization: boolean;
 	unknownGlobalSideEffects: boolean;
+}
+
+export interface TreeshakingOptions
+	extends Partial<Omit<NormalizedTreeshakingOptions, 'moduleSideEffects'>> {
+	moduleSideEffects?: ModuleSideEffectsOption;
+	preset?: TreeshakingPreset;
+	/** @deprecated Use `moduleSideEffects` instead */
+	pureExternalModules?: PureModulesOption;
 }
 
 interface GetManualChunkApi {
@@ -583,6 +579,19 @@ export type InternalModuleFormat = 'amd' | 'cjs' | 'es' | 'iife' | 'system' | 'u
 
 export type ModuleFormat = InternalModuleFormat | 'commonjs' | 'esm' | 'module' | 'systemjs';
 
+type GeneratedCodePreset = 'es5' | 'es2015';
+
+interface NormalizedGeneratedCodeOptions {
+	arrowFunctions: boolean;
+	constBindings: boolean;
+	objectShorthand: boolean;
+	reservedNamesAsProps: boolean;
+}
+
+interface GeneratedCodeOptions extends Partial<NormalizedGeneratedCodeOptions> {
+	preset?: GeneratedCodePreset;
+}
+
 export type OptionsPaths = Record<string, string> | ((id: string) => string);
 
 export type InteropType = boolean | 'auto' | 'esModule' | 'default' | 'defaultOnly';
@@ -640,6 +649,7 @@ export interface OutputOptions {
 	footer?: string | (() => string | Promise<string>);
 	format?: ModuleFormat;
 	freeze?: boolean;
+	generatedCode?: GeneratedCodePreset | GeneratedCodeOptions;
 	globals?: GlobalsOption;
 	hoistTransitiveImports?: boolean;
 	indent?: string | boolean;
@@ -654,6 +664,7 @@ export interface OutputOptions {
 	outro?: string | (() => string | Promise<string>);
 	paths?: OptionsPaths;
 	plugins?: (OutputPlugin | null | false | undefined)[];
+	/** @deprecated Use the "generatedCode.constBindings" instead. */
 	preferConst?: boolean;
 	preserveModules?: boolean;
 	preserveModulesRoot?: string;
@@ -685,6 +696,7 @@ export interface NormalizedOutputOptions {
 	footer: () => string | Promise<string>;
 	format: InternalModuleFormat;
 	freeze: boolean;
+	generatedCode: NormalizedGeneratedCodeOptions;
 	globals: GlobalsOption;
 	hoistTransitiveImports: boolean;
 	indent: true | string;
@@ -699,6 +711,7 @@ export interface NormalizedOutputOptions {
 	outro: () => string | Promise<string>;
 	paths: OptionsPaths;
 	plugins: OutputPlugin[];
+	/** @deprecated Use the "renderDynamicImport" plugin hook instead. */
 	preferConst: boolean;
 	preserveModules: boolean;
 	preserveModulesRoot: string | undefined;

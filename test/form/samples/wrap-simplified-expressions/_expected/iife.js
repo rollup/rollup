@@ -27,4 +27,4 @@
 
 	testEval.call('test');
 
-}());
+})();

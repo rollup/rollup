@@ -1,11 +1,11 @@
-System.register(['../lib/lib1.js'], function (exports) {
+System.register(['../lib/lib1.js'], (function (exports) {
   'use strict';
   var fn$1;
   return {
     setters: [function (module) {
       fn$1 = module.fn;
     }],
-    execute: function () {
+    execute: (function () {
 
       exports('fn', fn);
 
@@ -14,6 +14,6 @@ System.register(['../lib/lib1.js'], function (exports) {
         console.log('dep3 fn');
       }
 
-    }
+    })
   };
-});
+}));

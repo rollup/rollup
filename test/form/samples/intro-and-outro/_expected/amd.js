@@ -1,4 +1,4 @@
-define(['external'], function (a) { 'use strict';
+define(['external'], (function (a) { 'use strict';
 
 	/* this is an intro */
 
@@ -14,7 +14,7 @@ define(['external'], function (a) { 'use strict';
 
 	var a__default = /*#__PURE__*/_interopDefaultLegacy(a);
 
-	console.log( a__default['default'] );
+	console.log( a__default["default"] );
 	console.log( a.b );
 
 	var main = 42;
@@ -31,4 +31,4 @@ define(['external'], function (a) { 'use strict';
 
 	// outro 4
 
-});
+}));

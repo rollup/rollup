@@ -1,13 +1,13 @@
-System.register(['./main.js'], function (exports) {
+System.register(['./main.js'], (function (exports) {
 	'use strict';
 	return {
 		setters: [function (module) {
 			exports('value', module.s);
 		}],
-		execute: function () {
+		execute: (function () {
 
 
 
-		}
+		})
 	};
-});
+}));

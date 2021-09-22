@@ -13,4 +13,4 @@
 	assert.strictEqual(Object.prototype.toString.call(foo), '[object Module]');
 	assert.strictEqual(bar, 42);
 
-}());
+})();

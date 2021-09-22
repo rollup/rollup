@@ -1,7 +1,7 @@
 (function (factory) {
 	typeof define === 'function' && define.amd ? define(factory) :
 	factory();
-}((function () { 'use strict';
+})((function () { 'use strict';
 
 	function fn () {
 		return Math.random() < 0.5 ? foo : bar;
@@ -17,4 +17,4 @@
 
 	fn()();
 
-})));
+}));

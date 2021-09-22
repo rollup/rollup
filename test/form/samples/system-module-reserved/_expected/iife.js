@@ -3,4 +3,4 @@
 
 	console.log(test.module, test.other);
 
-}(test));
+})(test);

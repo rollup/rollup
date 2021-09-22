@@ -6,9 +6,9 @@
 		var exports = global.FooBar = {};
 		factory(exports);
 		exports.noConflict = function () { global.FooBar = current; return exports; };
-	}()));
-}(this, (function (exports) { 'use strict';
+	})());
+})(this, (function (exports) { 'use strict';
 
 	console.log('no exports');
 
-})));
+}));

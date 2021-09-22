@@ -23,4 +23,4 @@
 	assert.equal( bar.x(), 'bar' );
 	assert.equal( baz.x(), 'baz' );
 
-}());
+})();

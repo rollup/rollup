@@ -1,4 +1,4 @@
-System.register(['./generated-lib.js'], function (exports) {
+System.register(['./generated-lib.js'], (function (exports) {
 	'use strict';
 	var lib;
 	return {
@@ -6,12 +6,12 @@ System.register(['./generated-lib.js'], function (exports) {
 			lib = module.l;
 			exports('lib', module.l);
 		}],
-		execute: function () {
+		execute: (function () {
 
 
 
 			exports('foo', lib.foo);
 
-		}
+		})
 	};
-});
+}));

@@ -20,10 +20,12 @@ import commondir from './utils/commondir';
 import {
 	errCannotAssignModuleToChunk,
 	errChunkInvalid,
+	errInvalidOption,
 	error,
 	warnDeprecation
 } from './utils/error';
 import { sortByExecutionOrder } from './utils/executionOrder';
+import { GenerateCodeSnippets, getGenerateCodeSnippets } from './utils/generateCodeSnippets';
 import { basename, isAbsolute } from './utils/path';
 import { timeEnd, timeStart } from './utils/timers';
 
@@ -59,13 +61,14 @@ export default class Bundle {
 			// We need to create addons before prerender because at the moment, there
 			// can be no async code between prerender and render due to internal state
 			const addons = await createAddons(this.outputOptions, this.pluginDriver);
-			this.prerenderChunks(chunks, inputBase);
+			const snippets = getGenerateCodeSnippets(this.outputOptions);
+			this.prerenderChunks(chunks, inputBase, snippets);
 			timeEnd('render modules', 2);
 
-			await this.addFinalizedChunksToBundle(chunks, inputBase, addons, outputBundle);
-		} catch (error) {
-			await this.pluginDriver.hookParallel('renderError', [error]);
-			throw error;
+			await this.addFinalizedChunksToBundle(chunks, inputBase, addons, outputBundle, snippets);
+		} catch (err: any) {
+			await this.pluginDriver.hookParallel('renderError', [err]);
+			throw err;
 		}
 		await this.pluginDriver.hookSeq('generateBundle', [
 			this.outputOptions,
@@ -82,7 +85,8 @@ export default class Bundle {
 		chunks: Chunk[],
 		inputBase: string,
 		addons: Addons,
-		outputBundle: OutputBundleWithPlaceholders
+		outputBundle: OutputBundleWithPlaceholders,
+		snippets: GenerateCodeSnippets
 	): Promise<void> {
 		this.assignChunkIds(chunks, inputBase, addons, outputBundle);
 		for (const chunk of chunks) {
@@ -91,7 +95,10 @@ export default class Bundle {
 		await Promise.all(
 			chunks.map(async chunk => {
 				const outputChunk = outputBundle[chunk.id!] as OutputChunk;
-				Object.assign(outputChunk, await chunk.render(this.outputOptions, addons, outputChunk));
+				Object.assign(
+					outputChunk,
+					await chunk.render(this.outputOptions, addons, outputChunk, snippets)
+				);
 			})
 		);
 	}
@@ -181,8 +188,8 @@ export default class Bundle {
 						allowHashBang: true,
 						ecmaVersion: 'latest'
 					});
-				} catch (exception) {
-					this.inputOptions.onwarn(errChunkInvalid(file as OutputChunk, exception));
+				} catch (err: any) {
+					this.inputOptions.onwarn(errChunkInvalid(file as OutputChunk, err));
 				}
 			}
 		}
@@ -233,12 +240,16 @@ export default class Bundle {
 		return [...chunks, ...facades];
 	}
 
-	private prerenderChunks(chunks: Chunk[], inputBase: string): void {
+	private prerenderChunks(
+		chunks: Chunk[],
+		inputBase: string,
+		snippets: GenerateCodeSnippets
+	): void {
 		for (const chunk of chunks) {
 			chunk.generateExports();
 		}
 		for (const chunk of chunks) {
-			chunk.preRender(this.outputOptions, inputBase);
+			chunk.preRender(this.outputOptions, inputBase, snippets);
 		}
 	}
 }
@@ -260,28 +271,38 @@ function validateOptionsForMultiChunkOutput(
 	onWarn: WarningHandler
 ) {
 	if (outputOptions.format === 'umd' || outputOptions.format === 'iife')
-		return error({
-			code: 'INVALID_OPTION',
-			message: 'UMD and IIFE output formats are not supported for code-splitting builds.'
-		});
+		return error(
+			errInvalidOption(
+				'output.format',
+				'outputformat',
+				'UMD and IIFE output formats are not supported for code-splitting builds',
+				outputOptions.format
+			)
+		);
 	if (typeof outputOptions.file === 'string')
-		return error({
-			code: 'INVALID_OPTION',
-			message:
-				'When building multiple chunks, the "output.dir" option must be used, not "output.file". ' +
-				'To inline dynamic imports, set the "inlineDynamicImports" option.'
-		});
+		return error(
+			errInvalidOption(
+				'output.file',
+				'outputdir',
+				'when building multiple chunks, the "output.dir" option must be used, not "output.file". To inline dynamic imports, set the "inlineDynamicImports" option'
+			)
+		);
 	if (outputOptions.sourcemapFile)
-		return error({
-			code: 'INVALID_OPTION',
-			message: '"output.sourcemapFile" is only supported for single-file builds.'
-		});
+		return error(
+			errInvalidOption(
+				'output.sourcemapFile',
+				'outputsourcemapfile',
+				'"output.sourcemapFile" is only supported for single-file builds'
+			)
+		);
 	if (!outputOptions.amd.autoId && outputOptions.amd.id)
-		onWarn({
-			code: 'INVALID_OPTION',
-			message:
-				'"output.amd.id" is only properly supported for single-file builds. Use "output.amd.autoId" and "output.amd.basePath".'
-		});
+		onWarn(
+			errInvalidOption(
+				'output.amd.id',
+				'outputamd',
+				'this option is only properly supported for single-file builds. Use "output.amd.autoId" and "output.amd.basePath" instead'
+			)
+		);
 }
 
 function getIncludedModules(modulesById: Map<string, Module | ExternalModule>): Module[] {

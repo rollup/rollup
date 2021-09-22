@@ -1,11 +1,11 @@
-System.register(['./generated-dep2.js'], function (exports) {
+System.register(['./generated-dep2.js'], (function (exports) {
   'use strict';
   var fn$2;
   return {
     setters: [function (module) {
       fn$2 = module.f;
     }],
-    execute: function () {
+    execute: (function () {
 
       function fn$1 () {
         console.log('lib1 fn');
@@ -23,6 +23,6 @@ System.register(['./generated-dep2.js'], function (exports) {
         }
       } exports('default', Main2);
 
-    }
+    })
   };
-});
+}));

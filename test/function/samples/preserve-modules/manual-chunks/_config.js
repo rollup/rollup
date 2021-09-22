@@ -11,6 +11,8 @@ module.exports = {
 	},
 	generateError: {
 		code: 'INVALID_OPTION',
-		message: 'The "output.manualChunks" option is not supported for "output.preserveModules".'
+		message:
+			'Invalid value for option "output.manualChunks" - this option is not supported for "output.preserveModules".',
+		url: 'https://rollupjs.org/guide/en/#outputmanualchunks'
 	}
 };

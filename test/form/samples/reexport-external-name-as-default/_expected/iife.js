@@ -5,4 +5,4 @@ var bundle = (function (external) {
 
 	return external.value;
 
-}(external));
+})(external);

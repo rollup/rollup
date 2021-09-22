@@ -1,7 +1,7 @@
-System.register([], function (exports, module) {
+System.register([], (function (exports, module) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			const shared = exports('s', 'shared');
 
@@ -10,6 +10,6 @@ System.register([], function (exports, module) {
 
 			globalThis.sharedStatic = shared;
 
-		}
+		})
 	};
-});
+}));

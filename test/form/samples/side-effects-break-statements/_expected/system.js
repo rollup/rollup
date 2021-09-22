@@ -1,7 +1,7 @@
-System.register('myBundle', [], function () {
+System.register('myBundle', [], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			for ( let i = 0; i < 2; i++ ) {
 				console.log( 'effect' );
@@ -28,6 +28,6 @@ System.register('myBundle', [], function () {
 				break;
 			} while ( true );
 
-		}
+		})
 	};
-});
+}));

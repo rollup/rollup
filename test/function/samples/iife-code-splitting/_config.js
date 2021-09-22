@@ -5,6 +5,8 @@ module.exports = {
 	},
 	generateError: {
 		code: 'INVALID_OPTION',
-		message: 'UMD and IIFE output formats are not supported for code-splitting builds.'
+		message:
+			'Invalid value "iife" for option "output.format" - UMD and IIFE output formats are not supported for code-splitting builds.',
+		url: 'https://rollupjs.org/guide/en/#outputformat'
 	}
 };

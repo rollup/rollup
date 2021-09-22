@@ -1,4 +1,4 @@
-define(function () { 'use strict';
+define((function () { 'use strict';
 
 	function yar() {
 		return {
@@ -10,4 +10,4 @@ define(function () { 'use strict';
 
 	yar.har();
 
-});
+}));

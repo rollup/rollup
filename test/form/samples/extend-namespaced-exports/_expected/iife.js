@@ -9,4 +9,4 @@ this.foo.bar = this.foo.bar || {};
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-}(this.foo.bar.baz = this.foo.bar.baz || {}));
+})(this.foo.bar.baz = this.foo.bar.baz || {});

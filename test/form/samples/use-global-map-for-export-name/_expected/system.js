@@ -1,15 +1,15 @@
-System.register('leaflet.terminator', ['leaflet'], function () {
+System.register('leaflet.terminator', ['leaflet'], (function () {
 	'use strict';
 	var L;
 	return {
 		setters: [function (module) {
-			L = module.default;
+			L = module["default"];
 		}],
-		execute: function () {
+		execute: (function () {
 
 			L.terminator = function(options) {
 			};
 
-		}
+		})
 	};
-});
+}));

@@ -1,4 +1,4 @@
-define(['require', 'exports'], function (require, exports) { 'use strict';
+define(['require', 'exports'], (function (require, exports) { 'use strict';
 
 	const renderStart = new URL(require.toUrl('./assets/renderStart-66600c78.txt'), document.baseURI).href;
 	const renderStartNamed = new URL(require.toUrl('./renderStart.txt'), document.baseURI).href;
@@ -26,4 +26,4 @@ define(['require', 'exports'], function (require, exports) { 'use strict';
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

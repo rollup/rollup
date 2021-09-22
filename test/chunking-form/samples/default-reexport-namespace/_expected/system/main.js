@@ -1,11 +1,11 @@
-System.register(['./one.js'], function (exports) {
+System.register(['./one.js'], (function (exports) {
 	'use strict';
 	var __icon__$1;
 	return {
 		setters: [function (module) {
-			__icon__$1 = module.default;
+			__icon__$1 = module["default"];
 		}],
-		execute: function () {
+		execute: (function () {
 
 			const __icon__ = {};
 
@@ -17,6 +17,6 @@ System.register(['./one.js'], function (exports) {
 
 			const __component__ = exports('Component_one', { icons });
 
-		}
+		})
 	};
-});
+}));

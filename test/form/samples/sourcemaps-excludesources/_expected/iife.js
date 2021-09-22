@@ -14,5 +14,5 @@
 	foo();
 	bar();
 
-}());
+})();
 //# sourceMappingURL=iife.js.map

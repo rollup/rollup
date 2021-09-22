@@ -1,7 +1,7 @@
-System.register([], function (exports, module) {
+System.register([], (function (exports, module) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			console.log('resolved');
 			console.log('resolved');
@@ -15,6 +15,6 @@ System.register([], function (exports, module) {
 			console.log('privateProp=system.js:resolve-import-meta-url/main.js');
 			console.log('null=system.js:resolve-import-meta-url/main.js');
 
-		}
+		})
 	};
-});
+}));

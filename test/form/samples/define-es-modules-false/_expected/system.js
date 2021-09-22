@@ -1,12 +1,12 @@
-System.register('foo', [], function (exports) {
+System.register('foo', [], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			const make1 = exports('make1', () => {});
 
 			const make2 = exports('make2', () => {});
 
-		}
+		})
 	};
-});
+}));

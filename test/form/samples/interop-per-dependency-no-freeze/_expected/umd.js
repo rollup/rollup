@@ -2,11 +2,9 @@
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(require('external-auto'), require('external-default'), require('external-defaultOnly'), require('external-esModule')) :
 	typeof define === 'function' && define.amd ? define(['external-auto', 'external-default', 'external-defaultOnly', 'external-esModule'], factory) :
 	(global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.externalauto, global.externaldefault, global.externaldefaultOnly, global.externalesModule));
-}(this, (function (fooAuto, fooDefault, fooDefaultOnly, fooEsModule) { 'use strict';
+})(this, (function (fooAuto, fooDefault, fooDefaultOnly, fooEsModule) { 'use strict';
 
-	function _interopNamespaceDefaultOnly(e) {
-		return {__proto__: null, 'default': e};
-	}
+	function _interopNamespaceDefaultOnly (e) { return { __proto__: null, 'default': e }; }
 
 	function _interopNamespaceDefault(e) {
 		var n = Object.create(null);
@@ -16,33 +14,29 @@
 					var d = Object.getOwnPropertyDescriptor(e, k);
 					Object.defineProperty(n, k, d.get ? d : {
 						enumerable: true,
-						get: function () {
-							return e[k];
-						}
+						get: function () { return e[k]; }
 					});
 				}
 			});
 		}
-		n['default'] = e;
+		n["default"] = e;
 		return n;
 	}
 
-	function _interopNamespace(e) {
-		return e && e.__esModule ? e : _interopNamespaceDefault(e);
-	}
+	function _interopNamespace (e) { return e && e.__esModule ? e : _interopNamespaceDefault(e); }
 
 	var fooAuto__namespace = /*#__PURE__*/_interopNamespace(fooAuto);
 	var fooDefault__namespace = /*#__PURE__*/_interopNamespaceDefault(fooDefault);
 	var fooDefaultOnly__namespace = /*#__PURE__*/_interopNamespaceDefaultOnly(fooDefaultOnly);
 
-	console.log(fooAuto__namespace['default'], fooAuto.barAuto, fooAuto__namespace);
+	console.log(fooAuto__namespace["default"], fooAuto.barAuto, fooAuto__namespace);
 	console.log(fooDefault, fooDefault.barDefault, fooDefault__namespace);
 	console.log(fooDefaultOnly, fooDefaultOnly__namespace);
-	console.log(fooEsModule['default'], fooEsModule.barEsModule, fooEsModule);
+	console.log(fooEsModule["default"], fooEsModule.barEsModule, fooEsModule);
 
 	import('external-auto').then(console.log);
 	import('external-default').then(console.log);
 	import('external-defaultOnly').then(console.log);
 	import('external-esModule').then(console.log);
 
-})));
+}));

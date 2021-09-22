@@ -1,11 +1,11 @@
-System.register([], function () {
+System.register([], (function () {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			function x () { return 'x' }
 			assert.equal( x(), 'x' );
 
-		}
+		})
 	};
-});
+}));

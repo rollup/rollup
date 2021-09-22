@@ -1,4 +1,4 @@
-System.register(['./generated-main2.js'], function () {
+System.register(['./generated-main2.js'], (function () {
 	'use strict';
 	var log, dep;
 	return {
@@ -6,10 +6,10 @@ System.register(['./generated-main2.js'], function () {
 			log = module.l;
 			dep = module.d;
 		}],
-		execute: function () {
+		execute: (function () {
 
 			log(dep);
 
-		}
+		})
 	};
-});
+}));

@@ -1,16 +1,13 @@
-System.register(['./generated-otherEntry.js'], function (exports) {
+System.register(['./generated-otherEntry.js'], (function (exports) {
 	'use strict';
 	return {
 		setters: [function (module) {
-			var _setter = {};
-			_setter.a = module.a;
-			_setter.c = module.c;
-			exports(_setter);
+			exports({ a: module.a, c: module.c });
 		}],
-		execute: function () {
+		execute: (function () {
 
 
 
-		}
+		})
 	};
-});
+}));

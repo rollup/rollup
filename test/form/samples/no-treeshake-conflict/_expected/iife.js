@@ -9,4 +9,4 @@
 		somethingElse: 'here'
 	};
 
-}());
+})();

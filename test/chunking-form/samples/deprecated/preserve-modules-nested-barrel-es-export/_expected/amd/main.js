@@ -1,4 +1,4 @@
-define(['exports', './module-a/v1/index', './module-b/v1/index'], function (exports, index, index$1) { 'use strict';
+define(['exports', './module-a/v1/index', './module-b/v1/index'], (function (exports, index, index$1) { 'use strict';
 
 
 
@@ -7,4 +7,4 @@ define(['exports', './module-a/v1/index', './module-b/v1/index'], function (expo
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 
-});
+}));

@@ -1,11 +1,11 @@
-System.register(['./main.js'], function () {
+System.register(['./main.js'], (function () {
 	'use strict';
 	return {
 		setters: [function () {}],
-		execute: function () {
+		execute: (function () {
 
 
 
-		}
+		})
 	};
-});
+}));

@@ -7,4 +7,4 @@
 	const [ d = b ] = [];
 	console.log(c, d);
 
-}());
+})();

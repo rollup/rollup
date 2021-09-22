@@ -12,7 +12,6 @@ import { printQuotedStringList } from './utils/printStringList';
 import relativeId from './utils/relativeId';
 
 export default class ExternalModule {
-	declare chunk: void;
 	declarations: { [name: string]: ExternalVariable } = Object.create(null);
 	defaultVariableName = '';
 	dynamicImporters: string[] = [];

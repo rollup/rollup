@@ -1,7 +1,7 @@
-System.register([], function (exports, module) {
+System.register([], (function (exports, module) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			const renderStart = exports('renderStart', new URL('assets/renderStart-66600c78.txt', module.meta.url).href);
 			const renderStartNamed = exports('renderStartNamed', new URL('renderStart.txt', module.meta.url).href);
@@ -15,6 +15,6 @@ System.register([], function (exports, module) {
 			const outro = exports('outro', new URL('assets/outro-21f77720.txt', module.meta.url).href);
 			const outroNamed = exports('outroNamed', new URL('outro.txt', module.meta.url).href);
 
-		}
+		})
 	};
-});
+}));

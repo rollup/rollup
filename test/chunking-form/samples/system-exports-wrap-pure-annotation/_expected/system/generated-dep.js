@@ -1,7 +1,7 @@
-System.register([], function (exports) {
+System.register([], (function (exports) {
 	'use strict';
 	return {
-		execute: function () {
+		execute: (function () {
 
 			var dep =
 				exports('d', /*#__PURE__*/
@@ -9,6 +9,6 @@ System.register([], function (exports) {
 					return 0;
 				})());
 
-		}
+		})
 	};
-});
+}));

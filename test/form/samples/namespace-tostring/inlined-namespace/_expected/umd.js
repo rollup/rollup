@@ -1,7 +1,7 @@
 (function (factory) {
 	typeof define === 'function' && define.amd ? define(factory) :
 	factory();
-}((function () { 'use strict';
+})((function () { 'use strict';
 
 	const bar = 42;
 
@@ -15,4 +15,4 @@
 	assert.strictEqual(Object.prototype.toString.call(foo), '[object Module]');
 	assert.strictEqual(bar, 42);
 
-})));
+}));
