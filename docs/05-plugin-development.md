@@ -150,7 +150,7 @@ Note that the return value of this hook will not be passed to `resolveId` afterw
 
 #### `resolveId`
 
-Type: `(source: string, importer: string | undefined, options: {custom?: {[plugin: string]: any}) => string | false | null | {id: string, external?: boolean | "relative" | "absolute", moduleSideEffects?: boolean | "no-treeshake" | null, syntheticNamedExports?: boolean | string | null, meta?: {[plugin: string]: any} | null}`<br> Kind: `async, first`<br> Previous Hook: [`buildStart`](guide/en/#buildstart) if we are resolving an entry point, [`moduleParsed`](guide/en/#moduleparsed) if we are resolving an import, or as fallback for [`resolveDynamicImport`](guide/en/#resolvedynamicimport). Additionally this hook can be triggered during the build phase from plugin hooks by calling [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string) to emit an entry point or at any time by calling [`this.resolve`](guide/en/#thisresolvesource-string-importer-string-options-skipself-boolean-custom-plugin-string-any--promiseid-string-external-boolean--absolute-modulesideeffects-boolean--no-treeshake-syntheticnamedexports-boolean--string-meta-plugin-string-any--null) to manually resolve an id.<br> Next Hook: [`load`](guide/en/#load) if the resolved id that has not yet been loaded, otherwise [`buildEnd`](guide/en/#buildend).
+Type: `(source: string, importer: string | undefined, options: {isEntry: boolean, custom?: {[plugin: string]: any}) => string | false | null | {id: string, external?: boolean | "relative" | "absolute", moduleSideEffects?: boolean | "no-treeshake" | null, syntheticNamedExports?: boolean | string | null, meta?: {[plugin: string]: any} | null}`<br> Kind: `async, first`<br> Previous Hook: [`buildStart`](guide/en/#buildstart) if we are resolving an entry point, [`moduleParsed`](guide/en/#moduleparsed) if we are resolving an import, or as fallback for [`resolveDynamicImport`](guide/en/#resolvedynamicimport). Additionally, this hook can be triggered during the build phase from plugin hooks by calling [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string) to emit an entry point or at any time by calling [`this.resolve`](guide/en/#thisresolvesource-string-importer-string-options-skipself-boolean-custom-plugin-string-any--promiseid-string-external-boolean--absolute-modulesideeffects-boolean--no-treeshake-syntheticnamedexports-boolean--string-meta-plugin-string-any--null) to manually resolve an id.<br> Next Hook: [`load`](guide/en/#load) if the resolved id that has not yet been loaded, otherwise [`buildEnd`](guide/en/#buildend).
 
 Defines a custom resolver. A resolver can be useful for e.g. locating third-party dependencies. Here `source` is the importee exactly as it is written in the import statement, i.e. for
 
@@ -160,28 +160,35 @@ import { foo } from '../bar.js';
 
 the source will be `"../bar.js""`.
 
-The `importer` is the fully resolved id of the importing module. When resolving entry points, importer will be `undefined`. You can use this for instance as a mechanism to define custom proxy modules for entry points.
+The `importer` is the fully resolved id of the importing module. When resolving entry points, importer will usually be `undefined`. An exception here are entry points generated via [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string) as here, you can provide an `importer` argument.
 
-The following plugin will only expose the default export from entry points while still keeping named exports available for internal usage:
+For those cases, the `isEntry` option will tell you if we are resolving a user defined entry point, an emitted chunk, or if the `isEntry` parameter was provided for the [`this.resolve(source, importer)`](guide/en/#thisresolvesource-string-importer-string-options-skipself-boolean-custom-plugin-string-any--promiseid-string-external-boolean--absolute-modulesideeffects-boolean--no-treeshake-syntheticnamedexports-boolean--string-meta-plugin-string-any--null) context function.
+
+You can use this for instance as a mechanism to define custom proxy modules for entry points. The following plugin will only expose the default export from entry points while still keeping named exports available for internal usage:
 
 ```js
-async resolveId(source,importer) {
-  if (!importer) {
-    // We need to skip this plugin to avoid an infinite loop
-    const resolution = await this.resolve(source, undefined, { skipSelf: true });
-    // If it cannot be resolved, return `null` so that Rollup displays an error
-    if (!resolution) return null;
-    return `${resolution.id}?entry-proxy`;
-  }
-  return null;
-},
-load(id) {
-  if (id.endsWith('?entry-proxy')) {
-    const importee = id.slice(0, -'?entry-proxy'.length);
-    // Note that this will throw if there is no default export
-    return `export {default} from '${importee}';`;
-  }
-  return null;
+function onlyDefaultForEntriesPlugin() {
+  return {
+    name: 'only-default-for-entries',
+    async resolveId(source, importer, options) {
+      if (isEntry) {
+        // We need to skip this plugin to avoid an infinite loop
+        const resolution = await this.resolve(source, importer, { skipSelf: true, ...options });
+        // If it cannot be resolved, return `null` so that Rollup displays an error
+        if (!resolution) return null;
+        return `${resolution.id}?entry-proxy`;
+      }
+      return null;
+    },
+    load(id) {
+      if (id.endsWith('?entry-proxy')) {
+        const importee = id.slice(0, -'?entry-proxy'.length);
+        // Note that this will throw if there is no default export
+        return `export {default} from '${importee}';`;
+      }
+      return null;
+    }
+  };
 }
 ```
 
@@ -190,11 +197,16 @@ Returning `null` defers to other `resolveId` functions and eventually the defaul
 If you return an object, then it is possible to resolve an import to a different id while excluding it from the bundle at the same time. This allows you to replace dependencies with external dependencies without the need for the user to mark them as "external" manually via the `external` option:
 
 ```js
-resolveId(source) {
-  if (source === 'my-dependency') {
-    return {id: 'my-dependency-develop', external: true};
-  }
-  return null;
+function externalizeDependencyPlugin() {
+  return {
+    name: 'externalize-dependency',
+    resolveId(source) {
+      if (source === 'my-dependency') {
+        return { id: 'my-dependency-develop', external: true };
+      }
+      return null;
+    }
+  };
 }
 ```
 
@@ -257,12 +269,16 @@ Can be used to augment the hash of individual chunks. Called for each Rollup out
 
 The following plugin will invalidate the hash of chunk `foo` with the timestamp of the last build:
 
-```javascript
-// rollup.config.js
-augmentChunkHash(chunkInfo) {
-  if(chunkInfo.name === 'foo') {
-    return Date.now().toString();
-  }
+```js
+function augmentWithDatePlugin() {
+  return {
+    name: 'augment-with-date',
+    augmentChunkHash(chunkInfo) {
+      if (chunkInfo.name === 'foo') {
+        return Date.now().toString();
+      }
+    }
+  };
 }
 ```
 
@@ -292,42 +308,40 @@ Type: `(options: OutputOptions, bundle: { [fileName: string]: AssetInfo | ChunkI
 
 Called at the end of `bundle.generate()` or immediately before the files are written in `bundle.write()`. To modify the files after they have been written, use the [`writeBundle`](guide/en/#writebundle) hook. `bundle` provides the full list of files being written or generated along with their details:
 
-```
-// AssetInfo
-{
-  fileName: string,
-  name?: string,
-  source: string | Uint8Array,
-  type: 'asset',
-}
+```ts
+type AssetInfo = {
+  fileName: string;
+  name?: string;
+  source: string | Uint8Array;
+  type: 'asset';
+};
 
-// ChunkInfo
-{
-  code: string,
-  dynamicImports: string[],
-  exports: string[],
-  facadeModuleId: string | null,
-  fileName: string,
-  implicitlyLoadedBefore: string[],
-  imports: string[],
-  importedBindings: {[imported: string]: string[]},
-  isDynamicEntry: boolean,
-  isEntry: boolean,
-  isImplicitEntry: boolean,
-  map: SourceMap | null,
+type ChunkInfo = {
+  code: string;
+  dynamicImports: string[];
+  exports: string[];
+  facadeModuleId: string | null;
+  fileName: string;
+  implicitlyLoadedBefore: string[];
+  imports: string[];
+  importedBindings: { [imported: string]: string[] };
+  isDynamicEntry: boolean;
+  isEntry: boolean;
+  isImplicitEntry: boolean;
+  map: SourceMap | null;
   modules: {
     [id: string]: {
-      renderedExports: string[],
-      removedExports: string[],
-      renderedLength: number,
-      originalLength: number,
-      code: string | null
-    },
-  },
-  name: string,
-  referencedFiles: string[],
-  type: 'chunk',
-}
+      renderedExports: string[];
+      removedExports: string[];
+      renderedLength: number;
+      originalLength: number;
+      code: string | null;
+    };
+  };
+  name: string;
+  referencedFiles: string[];
+  type: 'chunk';
+};
 ```
 
 You can prevent files from being emitted by deleting them from the bundle object in this hook. To emit additional files, use the [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string) plugin context function.
@@ -367,16 +381,17 @@ This hook provides fine-grained control over how dynamic imports are rendered by
 The following code will replace all dynamic imports with a custom handler, adding `import.meta.url` as a second argument to allow the handler to resolve relative imports correctly:
 
 ```js
-// plugin
-const plugin = {
-  name: 'dynamic-import-polyfill',
-  renderDynamicImport() {
-    return {
-      left: 'dynamicImportPolyfill(',
-      right: ', import.meta.url)'
-    };
-  }
-};
+function dynamicImportPolyfillPlugin() {
+  return {
+    name: 'dynamic-import-polyfill',
+    renderDynamicImport() {
+      return {
+        left: 'dynamicImportPolyfill(',
+        right: ', import.meta.url)'
+      };
+    }
+  };
+}
 
 // input
 import('./lib.js');
@@ -388,22 +403,23 @@ dynamicImportPolyfill('./lib.js', import.meta.url);
 The next plugin will make sure all dynamic imports of `esm-lib` are marked as external and retained as import expressions to e.g. allow a CommonJS build to import an ES module in Node 13+, cf. how to [import ES modules from CommonJS](https://nodejs.org/api/esm.html#esm_import_expressions) in the Node documentation.
 
 ```js
-// plugin
-const plugin = {
-  name: 'retain-import-expression',
-  resolveDynamicImport(specifier) {
-    if (specifier === 'esm-lib') return false;
-    return null;
-  },
-  renderDynamicImport({ targetModuleId }) {
-    if (targetModuleId === 'esm-lib') {
-      return {
-        left: 'import(',
-        right: ')'
-      };
+function retainImportExpressionPlugin() {
+  return {
+    name: 'retain-import-expression',
+    resolveDynamicImport(specifier) {
+      if (specifier === 'esm-lib') return false;
+      return null;
+    },
+    renderDynamicImport({ targetModuleId }) {
+      if (targetModuleId === 'esm-lib') {
+        return {
+          left: 'import(',
+          right: ')'
+        };
+      }
     }
-  }
-};
+  };
+}
 ```
 
 Note that when this hook rewrites dynamic imports in non-ES formats, no interop code to make sure that e.g. the default export is available as `.default` is generated. It is the responsibility of the plugin to make sure the rewritten dynamic import returns a Promise that resolves to a proper namespace object.
@@ -439,10 +455,14 @@ Note that since this hook has access to the filename of the current chunk, its r
 
 The following plugin will always resolve all files relative to the current document:
 
-```javascript
-// rollup.config.js
-resolveFileUrl({fileName}) {
-  return `new URL('${fileName}', document.baseURI).href`;
+```js
+function resolveToDocumentPlugin() {
+  return {
+    name: 'resolve-to-document',
+    resolveFileUrl({ fileName }) {
+      return `new URL('${fileName}', document.baseURI).href`;
+    }
+  };
 }
 ```
 
@@ -456,13 +476,17 @@ By default for formats other than ES modules, Rollup replaces `import.meta.url` 
 
 This behaviour can be changed—also for ES modules—via this hook. For each occurrence of `import.meta<.someProperty>`, this hook is called with the name of the property or `null` if `import.meta` is accessed directly. For example, the following code will resolve `import.meta.url` using the relative path of the original module to the current working directory and again resolve this path against the base URL of the current document at runtime:
 
-```javascript
-// rollup.config.js
-resolveImportMeta(property, {moduleId}) {
-  if (property === 'url') {
-    return `new URL('${path.relative(process.cwd(), moduleId)}', document.baseURI).href`;
-  }
-  return null;
+```js
+function importMetaUrlCurrentModulePlugin() {
+  return {
+    name: 'import-meta-url-current-module',
+    resolveImportMeta(property, { moduleId }) {
+      if (property === 'url') {
+        return `new URL('${path.relative(process.cwd(), moduleId)}', document.baseURI).href`;
+      }
+      return null;
+    }
+  };
 }
 ```
 
@@ -498,25 +522,23 @@ In general, it is recommended to use `this.addWatchFile` from within the hook th
 
 Emits a new file that is included in the build output and returns a `referenceId` that can be used in various places to reference the emitted file. `emittedFile` can have one of two forms:
 
-```
-// EmittedChunk
-{
-  type: 'chunk',
-  id: string,
-  name?: string,
-  fileName?: string,
-  implicitlyLoadedAfterOneOf?: string[],
-  importer?: string,
-  preserveSignature?: 'strict' | 'allow-extension' | 'exports-only' | false,
-}
+```ts
+type EmittedChunk = {
+  type: 'chunk';
+  id: string;
+  name?: string;
+  fileName?: string;
+  implicitlyLoadedAfterOneOf?: string[];
+  importer?: string;
+  preserveSignature?: 'strict' | 'allow-extension' | 'exports-only' | false;
+};
 
-// EmittedAsset
-{
-  type: 'asset',
-  name?: string,
-  fileName?: string,
-  source?: string | Uint8Array
-}
+type EmittedAsset = {
+  type: 'asset';
+  name?: string;
+  fileName?: string;
+  source?: string | Uint8Array;
+};
 ```
 
 In both cases, either a `name` or a `fileName` can be supplied. If a `fileName` is provided, it will be used unmodified as the name of the generated file, throwing an error if this causes a conflict. Otherwise if a `name` is supplied, this will be used as substitution for `[name]` in the corresponding [`output.chunkFileNames`](guide/en/#outputchunkfilenames) or [`output.assetFileNames`](guide/en/#outputassetfilenames) pattern, possibly adding a unique number to the end of the file name to avoid conflicts. If neither a `name` nor `fileName` is supplied, a default name will be used.
@@ -533,9 +555,10 @@ By default, Rollup assumes that emitted chunks are executed independent of other
 
 ```js
 // rollup.config.js
-function generateHtml() {
+function generateHtmlPlugin() {
   let ref1, ref2, ref3;
   return {
+    name: 'generate-html',
     buildStart() {
       ref1 = this.emitFile({
         type: 'chunk',
@@ -577,7 +600,7 @@ function generateHtml() {
 export default {
   input: [],
   preserveEntrySignatures: false,
-  plugins: [generateHtml()],
+  plugins: [generateHtmlPlugin()],
   output: {
     format: 'es',
     dir: 'dist'
@@ -619,23 +642,23 @@ or converted into an Array via `Array.from(this.getModuleIds())`.
 
 Returns additional information about the module in question in the form
 
-```
-{
-  id: string, // the id of the module, for convenience
-  code: string | null, // the source code of the module, `null` if external or not yet available
-  ast: ESTree.Program, // the parsed abstract syntax tree if available
-  isEntry: boolean, // is this a user- or plugin-defined entry point
-  isExternal: boolean, // for external modules that are referenced but not included in the graph
-  importedIds: string[], // the module ids statically imported by this module
-  importers: string[], // the ids of all modules that statically import this module
-  dynamicallyImportedIds: string[], // the module ids imported by this module via dynamic import()
-  dynamicImporters: string[], // the ids of all modules that import this module via dynamic import()
-  implicitlyLoadedAfterOneOf: string[], // implicit relationships, declared via this.emitChunk
-  implicitlyLoadedBefore: string[], // implicit relationships, declared via this.emitChunk
-  hasModuleSideEffects: boolean | "no-treeshake" // are imports of this module included if nothing is imported from it
-  meta: {[plugin: string]: any} // custom module meta-data
-  syntheticNamedExports: boolean | string // final value of synthetic named exports
-}
+```ts
+type ModuleInfo = {
+  id: string; // the id of the module, for convenience
+  code: string | null; // the source code of the module, `null` if external or not yet available
+  ast: ESTree.Program; // the parsed abstract syntax tree if available
+  isEntry: boolean; // is this a user- or plugin-defined entry point
+  isExternal: boolean; // for external modules that are referenced but not included in the graph
+  importedIds: string[]; // the module ids statically imported by this module
+  importers: string[]; // the ids of all modules that statically import this module
+  dynamicallyImportedIds: string[]; // the module ids imported by this module via dynamic import()
+  dynamicImporters: string[]; // the ids of all modules that import this module via dynamic import()
+  implicitlyLoadedAfterOneOf: string[]; // implicit relationships, declared via this.emitFile
+  implicitlyLoadedBefore: string[]; // implicit relationships, declared via this.emitFile
+  hasModuleSideEffects: boolean | 'no-treeshake'; // are imports of this module included if nothing is imported from it
+  meta: { [plugin: string]: any }; // custom module meta-data
+  syntheticNamedExports: boolean | string; // final value of synthetic named exports
+};
 ```
 
 During the build, this object represents currently available information about the module. Before the [`buildEnd`](guide/en/#buildend) hook, this information may be incomplete as e.g. the `importedIds` are not yet resolved or additional `importers` are discovered.
@@ -659,13 +682,17 @@ An object containing potentially useful Rollup metadata:
 
 Use Rollup's internal acorn instance to parse code to an AST.
 
-#### `this.resolve(source: string, importer?: string, options?: {skipSelf?: boolean, custom?: {[plugin: string]: any}}) => Promise<{id: string, external: boolean | "absolute", moduleSideEffects: boolean | 'no-treeshake', syntheticNamedExports: boolean | string, meta: {[plugin: string]: any}} | null>`
+#### `this.resolve(source: string, importer?: string, options?: {skipSelf?: boolean, isEntry?: boolean, custom?: {[plugin: string]: any}}) => Promise<{id: string, external: boolean | "absolute", moduleSideEffects: boolean | 'no-treeshake', syntheticNamedExports: boolean | string, meta: {[plugin: string]: any}} | null>`
 
 Resolve imports to module ids (i.e. file names) using the same plugins that Rollup uses, and determine if an import should be external. If `null` is returned, the import could not be resolved by Rollup or any plugin but was not explicitly marked as external by the user. If an absolute external id is returned that should remain absolute in the output either via the [`makeAbsoluteExternalsRelative`](guide/en/#makeabsoluteexternalsrelative) option or by explicit plugin choice in the [`resolveId`](guide/en/#resolveid) hook, `external` will be `"absolute"` instead of `true`.
 
 If you pass `skipSelf: true`, then the `resolveId` hook of the plugin from which `this.resolve` is called will be skipped when resolving. When other plugins themselves also call `this.resolve` in their `resolveId` hooks with the _exact same `source` and `importer`_ while handling the original `this.resolve` call, then the `resolveId` hook of the original plugin will be skipped for those calls as well. The rationale here is that the plugin already stated that it "does not know" how to resolve this particular combination of `source` and `importer` at this point in time. If you do not want this behaviour, do not use `skipSelf` but implement your own infinite loop prevention mechanism if necessary.
 
 You can also pass an object of plugin-specific options via the `custom` option, see [custom resolver options](guide/en/#custom-resolver-options) for details.
+
+The value for `isEntry` you pass here will be passed along to the [`resolveId`](guide/en/#resolveid) hooks handling this call, otherwise `false` will be passed if there is an importer and `true` if there is not.
+
+When calling this function from a `resolveId` hook, you should always check if it makes sense for you to pass along the `isEntry` and `custom` options.
 
 #### `this.setAssetSource(referenceId: string, source: string | Uint8Array) => void`
 
@@ -728,9 +755,9 @@ To reference a file URL reference from within JS code, use the `import.meta.ROLL
 The following example will detect imports of `.svg` files, emit the imported files as assets, and return their URLs to be used e.g. as the `src` attribute of an `img` tag:
 
 ```js
-// plugin
-export default function svgResolverPlugin() {
+function svgResolverPlugin() {
   return {
+    name: 'svg-resolver',
     resolveId(source, importer) {
       if (source.endsWith('.svg')) {
         return path.resolve(path.dirname(importer), source);
@@ -764,10 +791,11 @@ Similar to assets, emitted chunks can be referenced from within JS code via `imp
 The following example will detect imports prefixed with `register-paint-worklet:` and generate the necessary code and separate chunk to generate a CSS paint worklet. Note that this will only work in modern browsers and will only work if the output format is set to `es`.
 
 ```js
-// plugin
 const REGISTER_WORKLET = 'register-paint-worklet:';
-export default function paintWorkletPlugin() {
+
+function registerPaintWorkletPlugin() {
   return {
+    name: 'register-paint-worklet',
     load(id) {
       if (id.startsWith(REGISTER_WORKLET)) {
         return `CSS.paintWorklet.addModule(import.meta.ROLLUP_FILE_URL_${this.emitFile({
@@ -834,10 +862,11 @@ The `transform` hook, if returning an object, can also include an `ast` property
 ```js
 import { createFilter } from '@rollup/pluginutils';
 
-export default function myPlugin(options = {}) {
+function transformCodePlugin(options = {}) {
   const filter = createFilter(options.include, options.exclude);
 
   return {
+    name: 'transform-code',
     transform(code, id) {
       if (!filter(id)) return;
 
@@ -879,12 +908,12 @@ It is possible to designate a fallback export for missing exports by setting the
 
 **dep.js: (`{syntheticNamedExports: '__synthetic'}`)**
 
-```
+```js
 export const foo = 'explicit';
 export const __synthetic = {
   foo: 'foo',
   bar: 'bar'
-}
+};
 ```
 
 **main.js:**
