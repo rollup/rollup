@@ -685,6 +685,38 @@ Returns `null` if the module id cannot be found.
 
 Get ids of the files which has been watched previously. Include both files added by plugins with `this.addWatchFile` and files added implicitly by rollup during the build.
 
+#### `this.load({id: string, moduleSideEffects?: boolean | 'no-treeshake' | null, syntheticNamedExports?: boolean | string | null, meta?: {[plugin: string]: any} | null}) => Promise<ModuleInfo>`
+
+Loads and parses the module corresponding to the given id, attaching additional meta information to the module if provided. This will trigger the same [`load`](guide/en/#load), [`transform`](guide/en/#transform) and [`moduleParsed`](guide/en/#moduleparsed) hooks that would be triggered if the module were imported by another module.
+
+This allows you to inspect the final content of modules before deciding how to resolve them in the [`resolveId`](guide/en/#resolveid) hook and e.g. resolve to a proxy module instead. If the module becomes part of the graph later, there is no additional overhead from using this context function as the module will not be parsed again. The signature allows you to directly pass the return value of [`this.resolve`](guide/en/#thisresolve) to this function as long as it is neither `null` nor external.
+
+```js
+export default function addProxyPlugin() {
+  return {
+    async resolveId(source, importer) {
+      const resolution = await this.resolve(source, importer, { skipSelf: true });
+      if (!resolution?.external) {
+        const moduleInfo = await this.load(resolution);
+        if (moduleInfo.code.indexOf('/* use proxy */') >= 0) {
+          return `${resolution.id}?proxy`;
+        }
+      }
+      return null;
+    },
+    load(id) {
+      if (id.endsWith('?proxy')) {
+        const importee = id.slice(0, -'?proxy'.length);
+        return `console.log('proxy!); export * from '${importee}';`;
+      }
+      return null;
+    }
+  };
+}
+```
+
+If the module was already loaded, this will just wait for the parsing to complete and then return its module information. If the module was not yet imported by another module, this will not automatically trigger loading other modules imported by this module. Instead, imported modules will only be loaded once this module has actually been imported at least once.
+
 #### `this.meta`
 
 **Type:** `{rollupVersion: string, watchMode: boolean}`
