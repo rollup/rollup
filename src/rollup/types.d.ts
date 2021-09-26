@@ -204,7 +204,7 @@ export interface PluginContext extends MinimalPluginContext {
 	resolve: (
 		source: string,
 		importer?: string,
-		options?: { custom?: CustomPluginOptions; skipSelf?: boolean }
+		options?: { custom?: CustomPluginOptions; isEntry?: boolean; skipSelf?: boolean }
 	) => Promise<ResolvedId | null>;
 	/** @deprecated Use `this.resolve` instead */
 	resolveId: (source: string, importer?: string) => Promise<string | null>;
@@ -237,7 +237,7 @@ export type ResolveIdHook = (
 	this: PluginContext,
 	source: string,
 	importer: string | undefined,
-	options: { custom?: CustomPluginOptions }
+	options: { custom?: CustomPluginOptions; isEntry: boolean }
 ) => Promise<ResolveIdResult> | ResolveIdResult;
 
 export type IsExternal = (

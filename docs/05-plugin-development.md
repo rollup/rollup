@@ -171,7 +171,7 @@ function onlyDefaultForEntriesPlugin() {
   return {
     name: 'only-default-for-entries',
     async resolveId(source, importer, options) {
-      if (isEntry) {
+      if (options.isEntry) {
         // We need to skip this plugin to avoid an infinite loop
         const resolution = await this.resolve(source, importer, { skipSelf: true, ...options });
         // If it cannot be resolved, return `null` so that Rollup displays an error

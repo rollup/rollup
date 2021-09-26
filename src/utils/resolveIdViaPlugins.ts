@@ -16,10 +16,12 @@ export function resolveIdViaPlugins(
 		source: string,
 		importer: string | undefined,
 		customOptions: CustomPluginOptions | undefined,
+		isEntry: boolean | undefined,
 		skip: { importer: string | undefined; plugin: Plugin; source: string }[] | null
 	) => Promise<ResolvedId | null>,
 	skip: { importer: string | undefined; plugin: Plugin; source: string }[] | null,
-	customOptions: CustomPluginOptions | undefined
+	customOptions: CustomPluginOptions | undefined,
+	isEntry: boolean
 ): Promise<ResolveIdResult> {
 	let skipped: Set<Plugin> | null = null;
 	let replaceContext: ReplaceContext | null = null;
@@ -32,11 +34,12 @@ export function resolveIdViaPlugins(
 		}
 		replaceContext = (pluginContext, plugin): PluginContext => ({
 			...pluginContext,
-			resolve: (source, importer, { custom, skipSelf } = BLANK) => {
+			resolve: (source, importer, { custom, isEntry, skipSelf } = BLANK) => {
 				return moduleLoaderResolveId(
 					source,
 					importer,
 					custom,
+					isEntry,
 					skipSelf ? [...skip, { importer, plugin, source }] : skip
 				);
 			}
@@ -44,7 +47,7 @@ export function resolveIdViaPlugins(
 	}
 	return pluginDriver.hookFirst(
 		'resolveId',
-		[source, importer, { custom: customOptions }],
+		[source, importer, { custom: customOptions, isEntry }],
 		replaceContext,
 		skipped
 	);
