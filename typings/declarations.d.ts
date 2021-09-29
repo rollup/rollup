@@ -9,11 +9,6 @@ declare module 'rollup-plugin-string' {
 	export const string: import('rollup').PluginImpl;
 }
 
-declare module 'rollup-plugin-typescript' {
-	const typescript: import('rollup').PluginImpl;
-	export default typescript;
-}
-
 declare module 'acorn-walk' {
 	type WalkerCallback<TState> = (node: acorn.Node, state: TState) => void;
 	type RecursiveWalkerFn<TState> = (
