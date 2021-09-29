@@ -24,7 +24,7 @@ declare module 'is-reference' {
 	export default function is_reference(
 		node: NodeWithFieldDefinition,
 		parent: NodeWithFieldDefinition
-	): unknown;
+	): boolean;
 	export type Node =
 		| import('estree').Identifier
 		| import('estree').SimpleLiteral
