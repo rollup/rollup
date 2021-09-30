@@ -366,16 +366,19 @@ export class ModuleLoader {
 			.then(([resolveStaticDependencyPromises, resolveDynamicImportPromises]) =>
 				Promise.all<unknown>([...resolveStaticDependencyPromises, ...resolveDynamicImportPromises])
 			)
-			.then(() => this.pluginDriver.hookParallel('moduleParsed', [module.info]))
-			.catch(() => {
-				/* rejections thrown here are also handled within PluginDriver - they are safe to ignore */
-			});
+			.then(() => this.pluginDriver.hookParallel('moduleParsed', [module.info]));
+		loadAndResolveDependenciesPromise.catch(() => {
+			/* avoid unhandled promise rejections */
+		});
+
 		if (isPreload) {
 			this.moduleLoadingState.set(module, { loadAndResolveDependenciesPromise, loadPromise });
 			await loadAndResolveDependenciesPromise;
 		} else {
 			this.moduleLoadingState.set(module, { loadAndResolveDependenciesPromise, loadPromise: null });
 			await this.fetchModuleDependencies(module, ...(await loadPromise));
+			// To handle errors when resolving dependencies or in moduleParsed
+			await loadAndResolveDependenciesPromise;
 		}
 		return module;
 	}
