@@ -6,6 +6,7 @@ import {
 	CustomPluginOptions,
 	EmittedChunk,
 	HasModuleSideEffects,
+	ModuleInfo,
 	ModuleOptions,
 	NormalizedInputOptions,
 	PartialNull,
@@ -48,11 +49,30 @@ type NormalizedResolveIdWithoutDefaults = Partial<PartialNull<ModuleOptions>> & 
 	id: string;
 };
 
+type ResolveStaticDependencyPromise = Promise<[source: string, resolvedId: ResolvedId]>;
+type ResolveDynamicDependencyPromise = Promise<
+	[dynamicImport: DynamicImport, resolvedId: ResolvedId | string | null]
+>;
+type LoadModulePromise = Promise<
+	[
+		resolveStaticDependencies: ResolveStaticDependencyPromise[],
+		resolveDynamicDependencies: ResolveDynamicDependencyPromise[]
+	]
+>;
+
 export class ModuleLoader {
 	private readonly hasModuleSideEffects: HasModuleSideEffects;
 	private readonly implicitEntryModules = new Set<Module>();
 	private readonly indexedEntryModules: { index: number; module: Module }[] = [];
 	private latestLoadModulesPromise: Promise<unknown> = Promise.resolve();
+	private moduleLoadingState = new Map<
+		Module,
+		{
+			loadAndResolveDependenciesPromise: Promise<void>;
+			// Set to null once/if dependencies will be loaded as well
+			loadPromise: null | LoadModulePromise;
+		}
+	>();
 	private nextEntryModuleIndex = 0;
 	private readQueue = new Queue();
 
@@ -143,6 +163,12 @@ export class ModuleLoader {
 			module.preserveSignature = preserveSignature;
 		}
 		return module;
+	}
+
+	public preloadModule(resolvedId: NormalizedResolveIdWithoutDefaults): Promise<ModuleInfo> {
+		return this.fetchModule(this.addDefaultsToResolvedId(resolvedId)!, undefined, false, true).then(
+			module => module.info
+		);
 	}
 
 	resolveId = async (
@@ -280,9 +306,7 @@ export class ModuleLoader {
 
 	private async fetchDynamicDependencies(
 		module: Module,
-		resolveDynamicImportPromises: Promise<
-			[dynamicImport: DynamicImport, resolvedId: ResolvedId | string | null]
-		>[]
+		resolveDynamicImportPromises: ResolveDynamicDependencyPromise[]
 	): Promise<void> {
 		const dependencies = await Promise.all(
 			resolveDynamicImportPromises.map(resolveDynamicImportPromise =>
@@ -308,21 +332,18 @@ export class ModuleLoader {
 		}
 	}
 
+	// If this is a preload, then this method always waits for the dependencies of the module to be resolved.
+	// Otherwise if the module does not exist, it waits for the module and all its dependencies to be loaded.
+	// Otherwise it returns immediately.
 	private async fetchModule(
 		{ id, meta, moduleSideEffects, syntheticNamedExports }: ResolvedId,
 		importer: string | undefined,
-		isEntry: boolean
+		isEntry: boolean,
+		isPreload: boolean
 	): Promise<Module> {
 		const existingModule = this.modulesById.get(id);
 		if (existingModule instanceof Module) {
-			if (isEntry) {
-				existingModule.info.isEntry = true;
-				this.implicitEntryModules.delete(existingModule);
-				for (const dependant of existingModule.implicitlyLoadedAfter) {
-					dependant.implicitlyLoadedBefore.delete(existingModule);
-				}
-				existingModule.implicitlyLoadedAfter.clear();
-			}
+			await this.handleExistingModule(existingModule, isEntry, isPreload);
 			return existingModule;
 		}
 
@@ -337,23 +358,38 @@ export class ModuleLoader {
 		);
 		this.modulesById.set(id, module);
 		this.graph.watchFiles[id] = true;
-		await this.addModuleSource(id, importer, module);
-		const resolveStaticDependencyPromises = this.getResolveStaticDependencyPromises(module);
-		const resolveDynamicImportPromises = this.getResolveDynamicImportPromises(module);
-		Promise.all([
-			...(resolveStaticDependencyPromises as Promise<never>[]),
-			...(resolveDynamicImportPromises as Promise<never>[])
-		])
+		const loadPromise: LoadModulePromise = this.addModuleSource(id, importer, module).then(() => [
+			this.getResolveStaticDependencyPromises(module),
+			this.getResolveDynamicImportPromises(module)
+		]);
+		const loadAndResolveDependenciesPromise = loadPromise
+			.then(([resolveStaticDependencyPromises, resolveDynamicImportPromises]) =>
+				Promise.all<unknown>([...resolveStaticDependencyPromises, ...resolveDynamicImportPromises])
+			)
 			.then(() => this.pluginDriver.hookParallel('moduleParsed', [module.info]))
 			.catch(() => {
 				/* rejections thrown here are also handled within PluginDriver - they are safe to ignore */
 			});
+		if (isPreload) {
+			this.moduleLoadingState.set(module, { loadAndResolveDependenciesPromise, loadPromise });
+			await loadAndResolveDependenciesPromise;
+		} else {
+			this.moduleLoadingState.set(module, { loadAndResolveDependenciesPromise, loadPromise: null });
+			await this.fetchModuleDependencies(module, ...(await loadPromise));
+		}
+		return module;
+	}
+
+	private async fetchModuleDependencies(
+		module: Module,
+		resolveStaticDependencyPromises: ResolveStaticDependencyPromise[],
+		resolveDynamicDependencyPromises: ResolveDynamicDependencyPromise[]
+	) {
 		await Promise.all([
 			this.fetchStaticDependencies(module, resolveStaticDependencyPromises),
-			this.fetchDynamicDependencies(module, resolveDynamicImportPromises)
+			this.fetchDynamicDependencies(module, resolveDynamicDependencyPromises)
 		]);
 		module.linkImports();
-		return module;
 	}
 
 	private fetchResolvedDependency(
@@ -382,13 +418,13 @@ export class ModuleLoader {
 			}
 			return Promise.resolve(externalModule);
 		} else {
-			return this.fetchModule(resolvedId, importer, false);
+			return this.fetchModule(resolvedId, importer, false, false);
 		}
 	}
 
 	private async fetchStaticDependencies(
 		module: Module,
-		resolveStaticDependencyPromises: Promise<[source: string, resolvedId: ResolvedId]>[]
+		resolveStaticDependencyPromises: ResolveStaticDependencyPromise[]
 	): Promise<void> {
 		for (const dependency of await Promise.all(
 			resolveStaticDependencyPromises.map(resolveStaticDependencyPromise =>
@@ -456,9 +492,7 @@ export class ModuleLoader {
 		};
 	}
 
-	private getResolveDynamicImportPromises(
-		module: Module
-	): Promise<[dynamicImport: DynamicImport, resolvedId: ResolvedId | string | null]>[] {
+	private getResolveDynamicImportPromises(module: Module): ResolveDynamicDependencyPromise[] {
 		return module.dynamicImports.map(async dynamicImport => {
 			const resolvedId = await this.resolveDynamicImport(
 				module,
@@ -474,9 +508,7 @@ export class ModuleLoader {
 		});
 	}
 
-	private getResolveStaticDependencyPromises(
-		module: Module
-	): Promise<[source: string, resolvedId: ResolvedId]>[] {
+	private getResolveStaticDependencyPromises(module: Module): ResolveStaticDependencyPromise[] {
 		return Array.from(
 			module.sources,
 			async source =>
@@ -491,6 +523,28 @@ export class ModuleLoader {
 						))
 				] as [string, ResolvedId]
 		);
+	}
+
+	private async handleExistingModule(module: Module, isEntry: boolean, isPreload: boolean) {
+		const loadingState = this.moduleLoadingState.get(module)!;
+		if (isPreload) {
+			await loadingState.loadAndResolveDependenciesPromise;
+			return;
+		}
+		if (isEntry) {
+			module.info.isEntry = true;
+			this.implicitEntryModules.delete(module);
+			for (const dependant of module.implicitlyLoadedAfter) {
+				dependant.implicitlyLoadedBefore.delete(module);
+			}
+			module.implicitlyLoadedAfter.clear();
+		}
+		const { loadPromise } = loadingState;
+		if (loadPromise) {
+			loadingState.loadPromise = null;
+			await this.fetchModuleDependencies(module, ...(await loadPromise));
+		}
+		return;
 	}
 
 	private handleResolveId(
@@ -558,7 +612,8 @@ export class ModuleLoader {
 					: { id: resolveIdResult }
 			)!,
 			undefined,
-			isEntry
+			isEntry,
+			false
 		);
 	}
 
