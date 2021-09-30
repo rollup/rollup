@@ -9,9 +9,6 @@ const transformedModules = [];
 const parsedModules = [];
 
 module.exports = {
-	solo: true,
-	// TODO Lukas test
-	// * moduleParsed errors abort the build (or other hook errors)
 	description: 'allows pre-loading modules via this.load',
 	options: {
 		plugins: [
