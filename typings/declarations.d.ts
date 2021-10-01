@@ -9,11 +9,6 @@ declare module 'rollup-plugin-string' {
 	export const string: import('rollup').PluginImpl;
 }
 
-declare module 'rollup-plugin-typescript' {
-	const typescript: import('rollup').PluginImpl;
-	export default typescript;
-}
-
 declare module 'acorn-walk' {
 	type WalkerCallback<TState> = (node: acorn.Node, state: TState) => void;
 	type RecursiveWalkerFn<TState> = (
@@ -29,7 +24,7 @@ declare module 'is-reference' {
 	export default function is_reference(
 		node: NodeWithFieldDefinition,
 		parent: NodeWithFieldDefinition
-	): unknown;
+	): boolean;
 	export type Node =
 		| import('estree').Identifier
 		| import('estree').SimpleLiteral
