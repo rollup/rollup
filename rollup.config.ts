@@ -108,6 +108,7 @@ export default (command: Record<string, unknown>): RollupOptions | RollupOptions
 			externalLiveBindings: false,
 			format: 'cjs',
 			freeze: false,
+			generatedCode: 'es2015',
 			interop: id => {
 				if (id === 'fsevents') {
 					return 'defaultOnly';
