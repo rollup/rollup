@@ -13,10 +13,12 @@ export async function resolveId(
 		source: string,
 		importer: string | undefined,
 		customOptions: CustomPluginOptions | undefined,
+		isEntry: boolean | undefined,
 		skip: { importer: string | undefined; plugin: Plugin; source: string }[] | null
 	) => Promise<ResolvedId | null>,
 	skip: { importer: string | undefined; plugin: Plugin; source: string }[] | null,
-	customOptions: CustomPluginOptions | undefined
+	customOptions: CustomPluginOptions | undefined,
+	isEntry: boolean
 ): Promise<ResolveIdResult> {
 	const pluginResult = await resolveIdViaPlugins(
 		source,
@@ -24,7 +26,8 @@ export async function resolveId(
 		pluginDriver,
 		moduleLoaderResolveId,
 		skip,
-		customOptions
+		customOptions,
+		isEntry
 	);
 	if (pluginResult != null) return pluginResult;
 

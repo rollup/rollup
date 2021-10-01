@@ -149,6 +149,7 @@ export class ModuleLoader {
 		source: string,
 		importer: string | undefined,
 		customOptions: CustomPluginOptions | undefined,
+		isEntry: boolean | undefined,
 		skip: { importer: string | undefined; plugin: Plugin; source: string }[] | null = null
 	): Promise<ResolvedId | null> => {
 		return this.addDefaultsToResolvedId(
@@ -162,7 +163,8 @@ export class ModuleLoader {
 							this.pluginDriver,
 							this.resolveId,
 							skip,
-							customOptions
+							customOptions,
+							typeof isEntry === 'boolean' ? isEntry : !importer
 					  ),
 
 				importer,
@@ -483,7 +485,7 @@ export class ModuleLoader {
 					(module.resolvedIds[source] =
 						module.resolvedIds[source] ||
 						this.handleResolveId(
-							await this.resolveId(source, module.id, EMPTY_OBJECT),
+							await this.resolveId(source, module.id, EMPTY_OBJECT, false),
 							source,
 							module.id
 						))
@@ -529,7 +531,8 @@ export class ModuleLoader {
 			this.pluginDriver,
 			this.resolveId,
 			null,
-			EMPTY_OBJECT
+			EMPTY_OBJECT,
+			true
 		);
 		if (resolveIdResult == null) {
 			return error(
@@ -585,7 +588,7 @@ export class ModuleLoader {
 			return (module.resolvedIds[specifier] =
 				module.resolvedIds[specifier] ||
 				this.handleResolveId(
-					await this.resolveId(specifier, module.id, EMPTY_OBJECT),
+					await this.resolveId(specifier, module.id, EMPTY_OBJECT, false),
 					specifier,
 					module.id
 				));

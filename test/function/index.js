@@ -48,7 +48,7 @@ function runCodeSplitTest(codeMap, entryId, configContext) {
 	return { exports };
 }
 
-runTestSuiteWithSamples('function', path.resolve(__dirname, 'samples'), (dir, config) => {
+runTestSuiteWithSamples('function', path.join(__dirname, 'samples'), (dir, config) => {
 	(config.skip ? it.skip : config.solo ? it.only : it)(
 		path.basename(dir) + ': ' + config.description,
 		() => {
@@ -59,7 +59,7 @@ runTestSuiteWithSamples('function', path.resolve(__dirname, 'samples'), (dir, co
 
 			return rollup
 				.rollup({
-					input: dir + '/main.js',
+					input: path.join(dir, 'main.js'),
 					onwarn: warning => warnings.push(warning),
 					strictDeprecations: true,
 					...(config.options || {})

@@ -448,7 +448,7 @@ Print the installed version number.
 
 Rebuild the bundle when its source files change on disk.
 
-_Note: While in watch mode, the `ROLLUP_WATCH` environment variable will be set to `"true"` by Rollup's command line interface and can be checked by other processes. Plugins should instead check [`this.meta.watchMode`](guide/en/#thismeta-rollupversion-string-watchmode-boolean), which is independent of the command line interface._
+_Note: While in watch mode, the `ROLLUP_WATCH` environment variable will be set to `"true"` by Rollup's command line interface and can be checked by other processes. Plugins should instead check [`this.meta.watchMode`](guide/en/#thismeta), which is independent of the command line interface._
 
 #### `--silent`
 
@@ -469,7 +469,6 @@ rollup -c --environment INCLUDE_DEPS,BUILD:production
 will set `process.env.INCLUDE_DEPS === 'true'` and `process.env.BUILD === 'production'`. You can use this option several times. In that case, subsequently set variables will overwrite previous definitions. This enables you for instance to overwrite environment variables in `package.json` scripts:
 
 ```json
-// in package.json
 {
   "scripts": {
     "build": "rollup -c --environment INCLUDE_DEPS,BUILD:production"

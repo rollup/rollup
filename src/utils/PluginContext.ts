@@ -157,18 +157,19 @@ export function getPluginContext(
 			return wrappedModuleIds();
 		},
 		parse: graph.contextParse.bind(graph),
-		resolve(source, importer, { custom, skipSelf } = BLANK) {
+		resolve(source, importer, { custom, isEntry, skipSelf } = BLANK) {
 			return graph.moduleLoader.resolveId(
 				source,
 				importer,
 				custom,
+				isEntry,
 				skipSelf ? [{ importer, plugin, source }] : null
 			);
 		},
 		resolveId: getDeprecatedContextHandler(
 			(source: string, importer: string | undefined) =>
 				graph.moduleLoader
-					.resolveId(source, importer, BLANK)
+					.resolveId(source, importer, BLANK, undefined)
 					.then(resolveId => resolveId && resolveId.id),
 			'resolveId',
 			'resolve',

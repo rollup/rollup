@@ -91,7 +91,7 @@ export default {
 };
 ```
 
-The option can be omitted if some plugin emits at least one chunk (using [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string)) by the end of the [`buildStart`](guide/en/#buildstart) hook.
+The option can be omitted if some plugin emits at least one chunk (using [`this.emitFile`](guide/en/#thisemitfile)) by the end of the [`buildStart`](guide/en/#buildstart) hook.
 
 When using the command line interface, multiple inputs can be provided by using the option multiple times. When provided as the first options, it is equivalent to not prefix them with `--input`:
 
@@ -422,7 +422,7 @@ The pattern to use for naming shared chunks created when code-splitting, or a fu
 
 - `[format]`: The rendering format defined in the output options, e.g. `es` or `cjs`.
 - `[hash]`: A hash based on the content of the chunk and the content of all its dependencies.
-- `[name]`: The name of the chunk. This can be explicitly set via the [`output.manualChunks`](guide/en/#outputmanualchunks) option or when the chunk is created by a plugin via [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string). Otherwise, it will be derived from the chunk contents.
+- `[name]`: The name of the chunk. This can be explicitly set via the [`output.manualChunks`](guide/en/#outputmanualchunks) option or when the chunk is created by a plugin via [`this.emitFile`](guide/en/#thisemitfile). Otherwise, it will be derived from the chunk contents.
 
 Forward slashes `/` can be used to place files in sub-directories. When using a function, `chunkInfo` is a reduced version of the one in [`generateBundle`](guide/en/#generatebundle) without properties that depend on file names. See also [`output.assetFileNames`](guide/en/#outputassetfilenames), [`output.entryFileNames`](guide/en/#outputentryfilenames).
 
@@ -823,7 +823,7 @@ manualChunks(id) {
 
 Be aware that manual chunks can change the behaviour of the application if side effects are triggered before the corresponding modules are actually used.
 
-When using the function form, `manualChunks` will be passed an object as second parameter containing the functions `getModuleInfo` and `getModuleIds` that work the same way as [`this.getModuleInfo`](guide/en/#thisgetmoduleinfomoduleid-string--moduleinfo--null) and [`this.getModuleIds`](guide/en/#thisgetmoduleids--iterableiteratorstring) on the plugin context.
+When using the function form, `manualChunks` will be passed an object as second parameter containing the functions `getModuleInfo` and `getModuleIds` that work the same way as [`this.getModuleInfo`](guide/en/#thisgetmoduleinfo) and [`this.getModuleIds`](guide/en/#thisgetmoduleids) on the plugin context.
 
 This can be used to dynamically determine into which manual chunk a module should be placed depending on its position in the module graph. For instance consider a scenario where you have a set of components, each of which dynamically imports a set of translated strings, i.e.
 
@@ -1169,7 +1169,7 @@ const shared = 'shared';
 console.log(shared);
 ```
 
-At the moment, the only way to override this setting for individual entry chunks is to use the plugin API and emit those chunks via [`this.emitFile`](guide/en/#thisemitfileemittedfile-emittedchunk--emittedasset--string) instead of using the [`input`](guide/en/#input) option.
+At the moment, the only way to override this setting for individual entry chunks is to use the plugin API and emit those chunks via [`this.emitFile`](guide/en/#thisemitfile) instead of using the [`input`](guide/en/#input) option.
 
 #### strictDeprecations
 

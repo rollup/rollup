@@ -123,7 +123,7 @@ function runSamples(samplesDir, runTest, onTeardown) {
 		.readdirSync(samplesDir)
 		.filter(name => name[0] !== '.')
 		.sort()
-		.forEach(fileName => runTestsInDir(samplesDir + '/' + fileName, runTest));
+		.forEach(fileName => runTestsInDir(path.join(samplesDir, fileName), runTest));
 }
 
 function runTestsInDir(dir, runTest) {
@@ -138,7 +138,7 @@ function runTestsInDir(dir, runTest) {
 			fileNames
 				.filter(name => name[0] !== '.')
 				.sort()
-				.forEach(fileName => runTestsInDir(dir + '/' + fileName, runTest));
+				.forEach(fileName => runTestsInDir(path.join(dir, fileName), runTest));
 		});
 	}
 }
