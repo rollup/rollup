@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 2.58.0
+
+_2021-10-01_
+
+### Features
+
+- Add a flag to more reliably identify entry points in the `resolveId` hook (#4230)
+
+### Pull Requests
+
+- [#4230](https://github.com/rollup/rollup/pull/4230): Add isEntry flag to resolveId and this.resolve (@lukastaegert)
+- [#4233](https://github.com/rollup/rollup/pull/4233): Remove unused rollup-plugin-typescript ambient module types (@dnalborczyk)
+- [#4235](https://github.com/rollup/rollup/pull/4235): Update dependencies (@lukastaegert)
+
 ## 2.57.0
 
 _2021-09-22_
