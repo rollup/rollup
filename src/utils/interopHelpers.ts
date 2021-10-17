@@ -254,7 +254,7 @@ const loopOverNamespaces = (
 	});
 	return (
 		`m.forEach(${left}` +
-		`Object.keys(e).forEach(${getFunctionIntro(['k'], {
+		`e && Object.keys(e).forEach(${getFunctionIntro(['k'], {
 			isAsync: false,
 			name: null
 		})}${body})${right});`
