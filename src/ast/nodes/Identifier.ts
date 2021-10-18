@@ -1,4 +1,4 @@
-import isReference from 'is-reference';
+import isReference, { NodeWithFieldDefinition } from 'is-reference';
 import MagicString from 'magic-string';
 import { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
@@ -45,7 +45,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 	}
 
 	bind(): void {
-		if (this.variable === null && isReference(this, this.parent)) {
+		if (this.variable === null && isReference(this, this.parent as NodeWithFieldDefinition)) {
 			this.variable = this.scope.findVariable(this.name);
 			this.variable.addReference(this);
 		}
