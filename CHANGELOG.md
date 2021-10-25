@@ -1,5 +1,13 @@
 # rollup changelog
 
+## 2.58.3
+
+_2021-10-25_
+
+### Bug Fixes
+
+- Republish 2.58.1 with npm 6 as files were missing
+
 ## 2.58.2
 
 _2021-10-25_
