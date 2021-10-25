@@ -28,7 +28,7 @@ var bundle = (function (exports, externalNoImport, defaultLegacy, externalAuto, 
 
 	function _mergeNamespaces(n, m) {
 		m.forEach(e => 
-			Object.keys(e).forEach(k => {
+			e && typeof e !== 'string' && !Array.isArray(e) && Object.keys(e).forEach(k => {
 				if (k !== 'default' && !(k in n)) {
 					var d = Object.getOwnPropertyDescriptor(e, k);
 					Object.defineProperty(n, k, d.get ? d : {

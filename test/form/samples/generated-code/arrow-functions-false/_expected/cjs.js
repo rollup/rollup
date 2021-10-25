@@ -35,7 +35,7 @@ function _interopNamespace (e) { return e && e.__esModule ? e : _interopNamespac
 
 function _mergeNamespaces(n, m) {
 	m.forEach(function (e) {
-		Object.keys(e).forEach(function (k) {
+		e && typeof e !== 'string' && !Array.isArray(e) && Object.keys(e).forEach(function (k) {
 			if (k !== 'default' && !(k in n)) {
 				var d = Object.getOwnPropertyDescriptor(e, k);
 				Object.defineProperty(n, k, d.get ? d : {
