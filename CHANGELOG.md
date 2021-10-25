@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 2.58.1
+
+_2021-10-25_
+
+### Bug Fixes
+
+- Fix an issue with the CommonJS plugin when module.exports is falsy (#4247)
+
+### Pull Requests
+
+- [#4247](https://github.com/rollup/rollup/pull/4247): Handle falsy synthetic namespaces (@lukastaegert)
+
 ## 2.58.0
 
 _2021-10-01_
