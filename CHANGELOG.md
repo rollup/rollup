@@ -1,5 +1,13 @@
 # rollup changelog
 
+## 2.58.2
+
+_2021-10-25_
+
+### Bug Fixes
+
+- Republish 2.58.1 as files were missing
+
 ## 2.58.1
 
 _2021-10-25_
