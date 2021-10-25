@@ -99,6 +99,7 @@ export interface AstContext {
 	getExports: () => string[];
 	getModuleExecIndex: () => number;
 	getModuleName: () => string;
+	getNodeConstructor: (name: string) => typeof NodeBase;
 	getReexports: () => string[];
 	importDescriptions: { [name: string]: ImportDescription };
 	includeAllExports: () => void;
@@ -107,7 +108,6 @@ export interface AstContext {
 	magicString: MagicString;
 	module: Module; // not to be used for tree-shaking
 	moduleContext: string;
-	nodeConstructors: { [name: string]: typeof NodeBase };
 	options: NormalizedInputOptions;
 	requestTreeshakingPass: () => void;
 	traceExport: (name: string) => Variable | null;
@@ -724,6 +724,7 @@ export default class Module {
 			getExports: this.getExports.bind(this),
 			getModuleExecIndex: () => this.execIndex,
 			getModuleName: this.basename.bind(this),
+			getNodeConstructor: (name: string) => nodeConstructors[name] || nodeConstructors.UnknownNode,
 			getReexports: this.getReexports.bind(this),
 			importDescriptions: this.importDescriptions,
 			includeAllExports: () => this.includeAllExports(true),
@@ -732,7 +733,6 @@ export default class Module {
 			magicString: this.magicString,
 			module: this,
 			moduleContext: this.context,
-			nodeConstructors,
 			options: this.options,
 			requestTreeshakingPass: () => (this.graph.needsTreeshakingPass = true),
 			traceExport: this.getVariableForExportName.bind(this),

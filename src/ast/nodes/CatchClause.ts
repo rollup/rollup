@@ -23,8 +23,11 @@ export default class CatchClause extends NodeBase {
 		// name instead of the variable
 		const { param } = esTreeNode;
 		if (param) {
-			(this.param as GenericEsTreeNode) = new (this.context.nodeConstructors[param.type] ||
-				this.context.nodeConstructors.UnknownNode)(param, this, this.scope);
+			(this.param as GenericEsTreeNode) = new (this.context.getNodeConstructor(param.type))(
+				param,
+				this,
+				this.scope
+			);
 			this.param!.declare('parameter', UNKNOWN_EXPRESSION);
 		}
 		super.parseNode(esTreeNode);
