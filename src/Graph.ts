@@ -89,7 +89,7 @@ export default class Graph {
 			});
 		}
 		this.pluginDriver = new PluginDriver(this, options, options.plugins, this.pluginCache);
-		this.acornParser = acorn.Parser.extend(...(options.acornInjectPlugins as any));
+		this.acornParser = acorn.Parser.extend(...options.acornInjectPlugins);
 		this.moduleLoader = new ModuleLoader(this, this.modulesById, this.options, this.pluginDriver);
 	}
 

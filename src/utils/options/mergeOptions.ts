@@ -1,3 +1,4 @@
+import * as acorn from 'acorn';
 import {
 	ExternalOption,
 	InputOptions,
@@ -108,8 +109,8 @@ function mergeInputOptions(
 	const inputOptions: CompleteInputOptions<keyof InputOptions> = {
 		acorn: getOption('acorn'),
 		acornInjectPlugins: config.acornInjectPlugins as
-			| (() => unknown)[]
-			| (() => unknown)
+			| ((BaseParser: typeof acorn.Parser) => typeof acorn.Parser)[]
+			| ((BaseParser: typeof acorn.Parser) => typeof acorn.Parser)
 			| undefined,
 		cache: config.cache as false | RollupCache | undefined,
 		context: getOption('context'),

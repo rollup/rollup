@@ -522,7 +522,9 @@ export type SourcemapPathTransformOption = (
 
 export interface InputOptions {
 	acorn?: Record<string, unknown>;
-	acornInjectPlugins?: (() => unknown)[] | (() => unknown);
+	acornInjectPlugins?:
+		| ((BaseParser: typeof import('acorn').Parser) => typeof import('acorn').Parser)[]
+		| ((BaseParser: typeof import('acorn').Parser) => typeof import('acorn').Parser);
 	cache?: false | RollupCache;
 	context?: string;
 	experimentalCacheExpiry?: number;
@@ -550,7 +552,9 @@ export interface InputOptions {
 
 export interface NormalizedInputOptions {
 	acorn: Record<string, unknown>;
-	acornInjectPlugins: (() => unknown)[];
+	acornInjectPlugins: ((
+		BaseParser: typeof import('acorn').Parser
+	) => typeof import('acorn').Parser)[];
 	cache: false | undefined | RollupCache;
 	context: string;
 	experimentalCacheExpiry: number;
