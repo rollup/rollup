@@ -20,6 +20,20 @@ export class Example {
 	static {}
 }
 
+class A {
+	static foo = 'bar';
+
+	static someStatic() {
+		return 'foo';
+	}
+
+	static {
+		A.foo = A.someStatic();
+	}
+}
+
+console.log(A.foo);
+
 class UnusedNoEffect {
 	static {
 		const foo = 'unused';
