@@ -39,7 +39,7 @@ export default class BlockStatement extends StatementBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.deoptimizeBody || !this.directlyIncluded) {
+		if (!(this.deoptimizeBody && this.directlyIncluded)) {
 			this.included = true;
 			this.directlyIncluded = true;
 			if (this.deoptimizeBody) includeChildrenRecursively = true;

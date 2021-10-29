@@ -17,7 +17,7 @@ class Example {
 	static {}
 }
 
-class A {
+class WithAssignment {
 	static foo = 'bar';
 
 	static someStatic() {
@@ -25,24 +25,15 @@ class A {
 	}
 
 	static {
-		A.foo = A.someStatic();
+		WithAssignment.foo = WithAssignment.someStatic();
 	}
 }
 
-console.log(A.foo);
+console.log(WithAssignment.foo);
 
 class UnusedWithError {
 	static {
 		throw new Error('no code after this point');
-	}
-}
-
-console.log(UsedAfterError);
-
-throw new Error('No side-effects after this point');
-
-class UsedAfterError {
-	static {
 	}
 }
 

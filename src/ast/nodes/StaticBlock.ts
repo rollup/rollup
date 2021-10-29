@@ -6,11 +6,9 @@ import Scope from '../scopes/Scope';
 import * as NodeType from './NodeType';
 import { IncludeChildren, StatementBase, StatementNode } from './shared/Node';
 
-export default class BlockStatement extends StatementBase {
+export default class StaticBlock extends StatementBase {
 	declare body: StatementNode[];
 	declare type: NodeType.tStaticBlock;
-
-	private directlyIncluded = false;
 
 	createScope(parentScope: Scope): void {
 		this.scope = new BlockScope(parentScope);
@@ -24,13 +22,10 @@ export default class BlockStatement extends StatementBase {
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.directlyIncluded) {
-			this.included = true;
-			this.directlyIncluded = true;
-			for (const node of this.body) {
-				if (includeChildrenRecursively || node.shouldBeIncluded(context))
-					node.include(context, includeChildrenRecursively);
-			}
+		this.included = true;
+		for (const node of this.body) {
+			if (includeChildrenRecursively || node.shouldBeIncluded(context))
+				node.include(context, includeChildrenRecursively);
 		}
 	}
 

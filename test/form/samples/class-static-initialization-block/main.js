@@ -20,7 +20,7 @@ export class Example {
 	static {}
 }
 
-class A {
+class WithAssignment {
 	static foo = 'bar';
 
 	static someStatic() {
@@ -28,11 +28,11 @@ class A {
 	}
 
 	static {
-		A.foo = A.someStatic();
+		WithAssignment.foo = WithAssignment.someStatic();
 	}
 }
 
-console.log(A.foo);
+console.log(WithAssignment.foo);
 
 class UnusedNoEffect {
 	static {
