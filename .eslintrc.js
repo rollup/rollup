@@ -71,7 +71,10 @@ module.exports = {
 		'@typescript-eslint/no-non-null-assertion': 'off',
 		'@typescript-eslint/no-unused-vars': 'off',
 		'dot-notation': 'error',
-		'import/no-unresolved': ['error', { ignore: ['package.json', 'is-reference', 'help.md'] }],
+		'import/no-unresolved': [
+			'error',
+			{ ignore: ['package.json', 'is-reference', 'help.md', 'types'] }
+		],
 		'import/order': ['error', { alphabetize: { order: 'asc' } }],
 		'no-constant-condition': ['error', { checkLoops: false }],
 		'no-prototype-builtins': 'off',

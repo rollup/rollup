@@ -1,6 +1,6 @@
 {
   "name": "rollup",
-  "version": "2.58.0",
+  "version": "2.58.3",
   "description": "Next-generation ES module bundler",
   "main": "dist/rollup.js",
   "module": "dist/es/rollup.js",
@@ -124,6 +124,7 @@
     "dist/**/*.js",
     "dist/*.d.ts",
     "dist/bin/rollup",
+    "dist/es/package.json",
     "dist/rollup.browser.js.map"
   ],
   "engines": {

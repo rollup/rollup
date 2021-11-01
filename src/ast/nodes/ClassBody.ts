@@ -28,7 +28,7 @@ export default class ClassBody extends NodeBase {
 		const body: NodeBase[] = (this.body = []);
 		for (const definition of esTreeNode.body) {
 			body.push(
-				new this.context.nodeConstructors[definition.type](
+				new (this.context.getNodeConstructor(definition.type))(
 					definition,
 					this,
 					definition.static ? this.scope : this.scope.instanceScope

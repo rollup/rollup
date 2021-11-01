@@ -103,3 +103,13 @@ export default {
   }
 };
 ```
+
+### Error: JavaScript heap out of memory
+
+As Rollup needs to keep all module information in memory simultaneously to be able to analyze relevant side effects for tree-shaking, it is possible that bundling large projects reaches Node's memory limit. If this happens, it can help to increase this limit by running Rollup via
+
+```shell
+node --max-old-space-size=8192 node_modules/rollup/bin/rollup -c
+```
+
+increasing `--max-old-space-size` as needed. Note that this number can safely surpass your available physical memory. In that case, Node will start paging memory to disk as needed.

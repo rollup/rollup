@@ -244,7 +244,7 @@ const loopOverNamespaces = (
 		return (
 			`for${_}(var i${_}=${_}0;${_}i${_}<${_}m.length;${_}i++)${_}{${n}` +
 			`${t}${t}${cnst} e${_}=${_}m[i];${n}` +
-			`${t}${t}for${_}(${cnst} k in e)${_}${body}${n}${t}}`
+			`${t}${t}if${_}(typeof e${_}!==${_}'string'${_}&&${_}!Array.isArray(e))${_}{${_}for${_}(${cnst} k in e)${_}${body}${_}}${n}${t}}`
 		);
 	}
 	const [left, right] = getDirectReturnFunction(['e'], {
@@ -254,10 +254,13 @@ const loopOverNamespaces = (
 	});
 	return (
 		`m.forEach(${left}` +
-		`Object.keys(e).forEach(${getFunctionIntro(['k'], {
-			isAsync: false,
-			name: null
-		})}${body})${right});`
+		`e${_}&&${_}typeof e${_}!==${_}'string'${_}&&${_}!Array.isArray(e)${_}&&${_}Object.keys(e).forEach(${getFunctionIntro(
+			['k'],
+			{
+				isAsync: false,
+				name: null
+			}
+		)}${body})${right});`
 	);
 };
 

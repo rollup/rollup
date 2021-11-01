@@ -51,6 +51,7 @@ import RestElement from './RestElement';
 import ReturnStatement from './ReturnStatement';
 import SequenceExpression from './SequenceExpression';
 import SpreadElement from './SpreadElement';
+import StaticBlock from './StaticBlock';
 import Super from './Super';
 import SwitchCase from './SwitchCase';
 import SwitchStatement from './SwitchStatement';
@@ -125,6 +126,7 @@ export const nodeConstructors: {
 	ReturnStatement,
 	SequenceExpression,
 	SpreadElement,
+	StaticBlock,
 	Super,
 	SwitchCase,
 	SwitchStatement,
