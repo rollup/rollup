@@ -215,7 +215,7 @@ export default class Module {
 	needsExportShim = false;
 	declare originalCode: string;
 	declare originalSourcemap: ExistingDecodedSourceMap | null;
-	preserveSignature: PreserveEntrySignaturesOption = this.options.preserveEntrySignatures;
+	preserveSignature: PreserveEntrySignaturesOption;
 	reexportDescriptions: { [name: string]: ReexportDescription } = Object.create(null);
 	declare resolvedIds: ResolvedIdMap;
 	declare scope: ModuleScope;
@@ -252,6 +252,7 @@ export default class Module {
 	) {
 		this.excludeFromSourcemap = /\0/.test(id);
 		this.context = options.moduleContext(id);
+		this.preserveSignature = this.options.preserveEntrySignatures;
 
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		const module = this;
