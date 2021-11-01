@@ -134,11 +134,7 @@ export default class ArrowFunctionExpression extends NodeBase {
 
 	parseNode(esTreeNode: GenericEsTreeNode): void {
 		if (esTreeNode.body.type === NodeType.BlockStatement) {
-			this.body = new this.context.nodeConstructors.BlockStatement(
-				esTreeNode.body,
-				this,
-				this.scope.hoistedBodyVarScope
-			);
+			this.body = new BlockStatement(esTreeNode.body, this, this.scope.hoistedBodyVarScope);
 		}
 		super.parseNode(esTreeNode);
 	}
