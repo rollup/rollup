@@ -162,20 +162,21 @@ const HELPER_GENERATORS: {
 		);
 	},
 	[MERGE_NAMESPACES_VARIABLE](t, snippets, liveBindings, freeze) {
-		const { _, n } = snippets;
+		const { _, cnst, n } = snippets;
+		const useForEach = cnst === 'var' && liveBindings;
 		return (
 			`function ${MERGE_NAMESPACES_VARIABLE}(n, m)${_}{${n}` +
 			`${t}${loopOverNamespaces(
 				`{${n}` +
 					`${t}${t}${t}if${_}(k${_}!==${_}'default'${_}&&${_}!(k in n))${_}{${n}` +
-					(liveBindings ? copyPropertyLiveBinding : copyPropertyStatic)(
-						t,
-						t + t + t + t,
-						snippets
-					) +
+					(liveBindings
+						? useForEach
+							? copyOwnPropertyLiveBinding
+							: copyPropertyLiveBinding
+						: copyPropertyStatic)(t, t + t + t + t, snippets) +
 					`${t}${t}${t}}${n}` +
 					`${t}${t}}`,
-				!liveBindings,
+				useForEach,
 				t,
 				snippets
 			)}${n}` +
@@ -202,7 +203,7 @@ const createNamespaceObject = (
 	const { _, cnst, getPropertyAccess, n, s } = snippets;
 	const copyProperty =
 		`{${n}` +
-		(liveBindings ? copyNonDefaultPropertyLiveBinding : copyPropertyStatic)(
+		(liveBindings ? copyNonDefaultOwnPropertyLiveBinding : copyPropertyStatic)(
 			t,
 			i + t + t,
 			snippets
@@ -236,35 +237,35 @@ const loopOverKeys = (
 
 const loopOverNamespaces = (
 	body: string,
-	allowVarLoopVariable: boolean,
+	useForEach: boolean,
 	t: string,
 	{ _, cnst, getDirectReturnFunction, getFunctionIntro, n }: GenerateCodeSnippets
 ) => {
-	if (cnst !== 'var' || allowVarLoopVariable) {
+	if (useForEach) {
+		const [left, right] = getDirectReturnFunction(['e'], {
+			functionReturn: false,
+			lineBreakIndent: { base: t, t },
+			name: null
+		});
 		return (
-			`for${_}(var i${_}=${_}0;${_}i${_}<${_}m.length;${_}i++)${_}{${n}` +
-			`${t}${t}${cnst} e${_}=${_}m[i];${n}` +
-			`${t}${t}if${_}(typeof e${_}!==${_}'string'${_}&&${_}!Array.isArray(e))${_}{${_}for${_}(${cnst} k in e)${_}${body}${_}}${n}${t}}`
+			`m.forEach(${left}` +
+			`e${_}&&${_}typeof e${_}!==${_}'string'${_}&&${_}!Array.isArray(e)${_}&&${_}Object.keys(e).forEach(${getFunctionIntro(
+				['k'],
+				{
+					isAsync: false,
+					name: null
+				}
+			)}${body})${right});`
 		);
 	}
-	const [left, right] = getDirectReturnFunction(['e'], {
-		functionReturn: false,
-		lineBreakIndent: { base: t, t },
-		name: null
-	});
 	return (
-		`m.forEach(${left}` +
-		`e${_}&&${_}typeof e${_}!==${_}'string'${_}&&${_}!Array.isArray(e)${_}&&${_}Object.keys(e).forEach(${getFunctionIntro(
-			['k'],
-			{
-				isAsync: false,
-				name: null
-			}
-		)}${body})${right});`
+		`for${_}(var i${_}=${_}0;${_}i${_}<${_}m.length;${_}i++)${_}{${n}` +
+		`${t}${t}${cnst} e${_}=${_}m[i];${n}` +
+		`${t}${t}if${_}(typeof e${_}!==${_}'string'${_}&&${_}!Array.isArray(e))${_}{${_}for${_}(${cnst} k in e)${_}${body}${_}}${n}${t}}`
 	);
 };
 
-const copyNonDefaultPropertyLiveBinding = (
+const copyNonDefaultOwnPropertyLiveBinding = (
 	t: string,
 	i: string,
 	snippets: GenerateCodeSnippets
@@ -272,12 +273,12 @@ const copyNonDefaultPropertyLiveBinding = (
 	const { _, n } = snippets;
 	return (
 		`${i}if${_}(k${_}!==${_}'default')${_}{${n}` +
-		copyPropertyLiveBinding(t, i + t, snippets) +
+		copyOwnPropertyLiveBinding(t, i + t, snippets) +
 		`${i}}${n}`
 	);
 };
 
-const copyPropertyLiveBinding = (
+const copyOwnPropertyLiveBinding = (
 	t: string,
 	i: string,
 	{ _, cnst, getDirectReturnFunction, n }: GenerateCodeSnippets
@@ -293,6 +294,27 @@ const copyPropertyLiveBinding = (
 		`${i}${t}enumerable:${_}true,${n}` +
 		`${i}${t}get:${_}${left}e[k]${right}${n}` +
 		`${i}});${n}`
+	);
+};
+
+const copyPropertyLiveBinding = (
+	t: string,
+	i: string,
+	{ _, cnst, getDirectReturnFunction, n }: GenerateCodeSnippets
+) => {
+	const [left, right] = getDirectReturnFunction([], {
+		functionReturn: true,
+		lineBreakIndent: null,
+		name: null
+	});
+	return (
+		`${i}${cnst} d${_}=${_}Object.getOwnPropertyDescriptor(e,${_}k);${n}` +
+		`${i}if${_}(d)${_}{${n}` +
+		`${i}${t}Object.defineProperty(n,${_}k,${_}d.get${_}?${_}d${_}:${_}{${n}` +
+		`${i}${t}${t}enumerable:${_}true,${n}` +
+		`${i}${t}${t}get:${_}${left}e[k]${right}${n}` +
+		`${i}${t}});${n}` +
+		`${i}}${n}`
 	);
 };
 
