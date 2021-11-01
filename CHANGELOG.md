@@ -1,5 +1,23 @@
 # rollup changelog
 
+## 2.59.0
+
+_2021-11-01_
+
+### Features
+
+- Support static class initialization blocks (#4249)
+
+### Bug Fixes
+
+- Fix an issue with the CommonJS plugin when module.exports has inherited properties (#4256)
+
+### Pull Requests
+
+- [#4236](https://github.com/rollup/rollup/pull/4236): typescript bug class field initialization order (@dnalborczyk)
+- [#4249](https://github.com/rollup/rollup/pull/4249): Support for class static initialization block (@dnalborczyk and @lukastaegert)
+- [#4256](https://github.com/rollup/rollup/pull/4256): Skip inherited properties in synthetic namespaces (@lukastaegert)
+
 ## 2.58.3
 
 _2021-10-25_
