@@ -32,14 +32,14 @@ export default class BlockStatement extends StatementBase {
 	hasEffects(context: HasEffectsContext): boolean {
 		if (this.deoptimizeBody) return true;
 		for (const node of this.body) {
-			if (node.hasEffects(context)) return true;
 			if (context.brokenFlow) break;
+			if (node.hasEffects(context)) return true;
 		}
 		return false;
 	}
 
 	include(context: InclusionContext, includeChildrenRecursively: IncludeChildren): void {
-		if (!this.deoptimizeBody || !this.directlyIncluded) {
+		if (!(this.deoptimizeBody && this.directlyIncluded)) {
 			this.included = true;
 			this.directlyIncluded = true;
 			if (this.deoptimizeBody) includeChildrenRecursively = true;

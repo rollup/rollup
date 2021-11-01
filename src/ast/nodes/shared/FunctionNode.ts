@@ -170,11 +170,7 @@ export default class FunctionNode extends NodeBase {
 	}
 
 	parseNode(esTreeNode: GenericEsTreeNode): void {
-		this.body = new this.context.nodeConstructors.BlockStatement(
-			esTreeNode.body,
-			this,
-			this.scope.hoistedBodyVarScope
-		) as BlockStatement;
+		this.body = new BlockStatement(esTreeNode.body, this, this.scope.hoistedBodyVarScope);
 		super.parseNode(esTreeNode);
 	}
 }

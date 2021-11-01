@@ -213,13 +213,15 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 					(this as GenericEsTreeNode)[key].push(
 						child === null
 							? null
-							: new (this.context.nodeConstructors[child.type] ||
-									this.context.nodeConstructors.UnknownNode)(child, this, this.scope)
+							: new (this.context.getNodeConstructor(child.type))(child, this, this.scope)
 					);
 				}
 			} else {
-				(this as GenericEsTreeNode)[key] = new (this.context.nodeConstructors[value.type] ||
-					this.context.nodeConstructors.UnknownNode)(value, this, this.scope);
+				(this as GenericEsTreeNode)[key] = new (this.context.getNodeConstructor(value.type))(
+					value,
+					this,
+					this.scope
+				);
 			}
 		}
 	}

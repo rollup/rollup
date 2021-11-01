@@ -2,7 +2,7 @@ import MagicString from 'magic-string';
 import { RenderOptions } from '../../utils/renderHelpers';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
 import ChildScope from '../scopes/ChildScope';
-import { IdentifierWithVariable } from './Identifier';
+import Identifier, { IdentifierWithVariable } from './Identifier';
 import * as NodeType from './NodeType';
 import ClassNode from './shared/ClassNode';
 import { GenericEsTreeNode } from './shared/Node';
@@ -20,7 +20,7 @@ export default class ClassDeclaration extends ClassNode {
 
 	parseNode(esTreeNode: GenericEsTreeNode): void {
 		if (esTreeNode.id !== null) {
-			this.id = new this.context.nodeConstructors.Identifier(
+			this.id = new Identifier(
 				esTreeNode.id,
 				this,
 				this.scope.parent as ChildScope
