@@ -4,15 +4,15 @@ import batchWarnings, { BatchWarnings } from './batchWarnings';
 import { addCommandPluginsToInputOptions } from './commandPlugins';
 import { stdinName } from './stdin';
 
-export default function loadConfigFromCommand(command: Record<string, any>): {
+export default async function loadConfigFromCommand(command: Record<string, any>): Promise<{
 	options: MergedRollupOptions[];
 	warnings: BatchWarnings;
-} {
+}> {
 	const warnings = batchWarnings();
 	if (!command.input && (command.stdin || !process.stdin.isTTY)) {
 		command.input = stdinName;
 	}
 	const options = mergeOptions({ input: [] }, command, warnings.add);
-	addCommandPluginsToInputOptions(options, command);
+	await addCommandPluginsToInputOptions(options, command);
 	return { options: [options], warnings };
 }
