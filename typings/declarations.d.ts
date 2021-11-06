@@ -9,6 +9,10 @@ declare module 'rollup-plugin-string' {
 	export const string: import('rollup').PluginImpl;
 }
 
+declare module 'acorn-import-assertions' {
+	export const importAssertions: (BaseParser: typeof acorn.Parser) => typeof acorn.Parser;
+}
+
 declare module 'acorn-walk' {
 	type WalkerCallback<TState> = (node: acorn.Node, state: TState) => void;
 	type RecursiveWalkerFn<TState> = (

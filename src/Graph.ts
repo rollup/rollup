@@ -1,4 +1,5 @@
 import * as acorn from 'acorn';
+import { importAssertions } from 'acorn-import-assertions';
 import ExternalModule from './ExternalModule';
 import Module from './Module';
 import { ModuleLoader, UnresolvedModule } from './ModuleLoader';
@@ -89,7 +90,10 @@ export default class Graph {
 			});
 		}
 		this.pluginDriver = new PluginDriver(this, options, options.plugins, this.pluginCache);
-		this.acornParser = acorn.Parser.extend(...(options.acornInjectPlugins as any));
+		this.acornParser = acorn.Parser.extend(
+			importAssertions,
+			...(options.acornInjectPlugins as any)
+		);
 		this.moduleLoader = new ModuleLoader(this, this.modulesById, this.options, this.pluginDriver);
 	}
 
