@@ -38,7 +38,7 @@ module.exports = {
 							id: ID_MAIN,
 							implicitlyLoadedAfterOneOf: [],
 							implicitlyLoadedBefore: [],
-							importedIds: [ID_DEP],
+							importedIds: [],
 							importers: [],
 							isEntry: false,
 							isExternal: false,
@@ -50,7 +50,7 @@ module.exports = {
 							transformedModules.filter(id => id === ID_MAIN, 'transformed').length,
 							1
 						);
-						assert.strictEqual(parsedModules.filter(id => id === ID_MAIN, 'parsed').length, 1);
+						assert.strictEqual(parsedModules.filter(id => id === ID_MAIN, 'parsed').length, 0);
 						// No dependencies have been loaded yet
 						assert.deepStrictEqual([...this.getModuleIds()], [ID_MAIN]);
 						await this.load({ id: ID_OTHER });

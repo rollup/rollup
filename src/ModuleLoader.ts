@@ -65,14 +65,7 @@ export class ModuleLoader {
 	private readonly implicitEntryModules = new Set<Module>();
 	private readonly indexedEntryModules: { index: number; module: Module }[] = [];
 	private latestLoadModulesPromise: Promise<unknown> = Promise.resolve();
-	private moduleLoadingState = new Map<
-		Module,
-		{
-			loadAndResolveDependenciesPromise: Promise<void>;
-			// Set to null once/if dependencies will be loaded as well
-			loadPromise: null | LoadModulePromise;
-		}
-	>();
+	private moduleLoadPromises = new Map<Module, LoadModulePromise>();
 	private nextEntryModuleIndex = 0;
 	private readQueue = new Queue();
 
@@ -372,10 +365,9 @@ export class ModuleLoader {
 		});
 
 		if (isPreload) {
-			this.moduleLoadingState.set(module, { loadAndResolveDependenciesPromise, loadPromise });
-			await loadAndResolveDependenciesPromise;
+			this.moduleLoadPromises.set(module, loadPromise);
+			await loadPromise;
 		} else {
-			this.moduleLoadingState.set(module, { loadAndResolveDependenciesPromise, loadPromise: null });
 			await this.fetchModuleDependencies(module, ...(await loadPromise));
 			// To handle errors when resolving dependencies or in moduleParsed
 			await loadAndResolveDependenciesPromise;
@@ -529,9 +521,9 @@ export class ModuleLoader {
 	}
 
 	private async handleExistingModule(module: Module, isEntry: boolean, isPreload: boolean) {
-		const loadingState = this.moduleLoadingState.get(module)!;
+		const loadPromise = this.moduleLoadPromises.get(module);
 		if (isPreload) {
-			await loadingState.loadAndResolveDependenciesPromise;
+			await loadPromise;
 			return;
 		}
 		if (isEntry) {
@@ -542,9 +534,8 @@ export class ModuleLoader {
 			}
 			module.implicitlyLoadedAfter.clear();
 		}
-		const { loadPromise } = loadingState;
 		if (loadPromise) {
-			loadingState.loadPromise = null;
+			this.moduleLoadPromises.delete(module);
 			await this.fetchModuleDependencies(module, ...(await loadPromise));
 		}
 		return;
