@@ -136,12 +136,16 @@ export function getPluginContext(
 			true,
 			options
 		),
+		load(resolvedId) {
+			return graph.moduleLoader.preloadModule(resolvedId);
+		},
 		meta: {
 			rollupVersion,
 			watchMode: graph.watchMode
 		},
 		get moduleIds() {
 			function* wrappedModuleIds() {
+				// We are wrapping this in a generator to only show the message once we are actually iterating
 				warnDeprecation(
 					{
 						message: `Accessing "this.moduleIds" on the plugin context by plugin ${plugin.name} is deprecated. The "this.getModuleIds" plugin context function should be used instead.`,
