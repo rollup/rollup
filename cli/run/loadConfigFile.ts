@@ -27,11 +27,12 @@ export default async function loadAndParseConfigFile(
 	const configs = await loadConfigFile(fileName, commandOptions);
 	const warnings = batchWarnings();
 	try {
-		const normalizedConfigs = configs.map(config => {
+		const normalizedConfigs: MergedRollupOptions[] = [];
+		for (const config of configs) {
 			const options = mergeOptions(config, commandOptions, warnings.add);
-			addCommandPluginsToInputOptions(options, commandOptions);
-			return options;
-		});
+			await addCommandPluginsToInputOptions(options, commandOptions);
+			normalizedConfigs.push(options);
+		}
 		return { options: normalizedConfigs, warnings };
 	} catch (err) {
 		warnings.flush();
@@ -73,7 +74,7 @@ async function getDefaultFromTranspiledConfigFile(
 		plugins: [],
 		treeshake: false
 	};
-	addPluginsFromCommandOption(commandOptions.configPlugin, inputOptions);
+	await addPluginsFromCommandOption(commandOptions.configPlugin, inputOptions);
 	const bundle = await rollup.rollup(inputOptions);
 	if (!commandOptions.silent && warnings.count > 0) {
 		stderr(bold(`loaded ${relativeId(fileName)} with warnings`));

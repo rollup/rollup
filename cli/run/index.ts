@@ -92,5 +92,5 @@ async function getConfigs(
 		const { options, warnings } = await loadAndParseConfigFile(configFile, command);
 		return { options, warnings };
 	}
-	return loadConfigFromCommand(command);
+	return await loadConfigFromCommand(command);
 }
