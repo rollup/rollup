@@ -13,7 +13,7 @@ export default function addBinShebangAndEsmImport(): Plugin {
 		name: 'esm-dynamic-import',
 		renderDynamicImport({ moduleId }) {
 			importFound = true;
-			if (moduleId.endsWith('loadConfigFile.ts')) {
+			if (moduleId.endsWith('commandPlugins.ts') || moduleId.endsWith('loadConfigFile.ts')) {
 				return { left: 'import(', right: ')' };
 			}
 		}
