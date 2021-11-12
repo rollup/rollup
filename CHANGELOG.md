@@ -1,5 +1,21 @@
 # rollup changelog
 
+## 2.60.0
+
+_2021-11-11_
+
+### Features
+
+- Add `this.load` context function to load, transform and parse modules without adding them to the graph (#4234)
+- Sanitize non-url-safe characters in generated chunk names by default (#4262)
+- Support ESM plugins via command line (#4265)
+
+### Pull Requests
+
+- [#4234](https://github.com/rollup/rollup/pull/4234): Plugin context function for pre-loading modules (@lukastaegert)
+- [#4262](https://github.com/rollup/rollup/pull/4262): exclude invalid URL chars (@danielroe)
+- [#4265](https://github.com/rollup/rollup/pull/4265): support loading ESM plugins from the CLI via --plugin (@kzc)
+
 ## 2.59.0
 
 _2021-11-01_
