@@ -1,4 +1,4 @@
-System.register(['./custom_modules/@my-scope/my-base-pkg/index.js', './_virtual/index.js_commonjs-exports'], (function (exports) {
+System.register(['./custom_modules/@my-scope/my-base-pkg/index.js', './_virtual/index.js_commonjs-exports.js'], (function (exports) {
 	'use strict';
 	var myBasePkg;
 	return {

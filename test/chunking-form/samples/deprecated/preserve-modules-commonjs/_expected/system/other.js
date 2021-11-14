@@ -1,4 +1,4 @@
-System.register(['./_virtual/other.js_commonjs-exports'], (function (exports) {
+System.register(['./_virtual/other.js_commonjs-exports.js'], (function (exports) {
 	'use strict';
 	var other;
 	return {
