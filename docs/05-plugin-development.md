@@ -102,7 +102,7 @@ Notifies a plugin when watcher process closes and all open resources should be c
 
 #### `load`
 
-**Type:** `(id: string) => string | null | {code: string, map?: string | SourceMap, ast? : ESTree.Program, moduleSideEffects?: boolean | "no-treeshake" | null, syntheticNamedExports?: boolean | string | null, meta?: {[plugin: string]: any} | null}`<br> **Kind:** `async, first`<br> **Previous Hook:** [`resolveId`](guide/en/#resolveid) or [`resolveDynamicImport`](guide/en/#resolvedynamicimport) where the loaded id was resolved.<br> **Next Hook:** [`transform`](guide/en/#transform) to transform the loaded file.
+**Type:** `(id: string) => string | null | {code: string, map?: string | SourceMap, ast? : ESTree.Program, moduleSideEffects?: boolean | "no-treeshake" | null, syntheticNamedExports?: boolean | string | null, meta?: {[plugin: string]: any} | null}`<br> **Kind:** `async, first`<br> **Previous Hook:** [`resolveId`](guide/en/#resolveid) or [`resolveDynamicImport`](guide/en/#resolvedynamicimport) where the loaded id was resolved. Additionally, this hook can be triggered at any time from plugin hooks by calling [`this.load`](guide/en/#thisload) to preload the module corresponding to an id.<br> **Next Hook:** [`transform`](guide/en/#transform) to transform the loaded file.
 
 Defines a custom loader. Returning `null` defers to other `load` functions (and eventually the default behavior of loading from the file system). To prevent additional parsing overhead in case e.g. this hook already used `this.parse` to generate an AST for some reason, this hook can optionally return a `{ code, ast, map }` object. The `ast` must be a standard ESTree AST with `start` and `end` properties for each node. If the transformation does not move code, you can preserve existing sourcemaps by setting `map` to `null`. Otherwise you might need to generate the source map. See [the section on source code transformations](#source-code-transformations).
 
@@ -162,7 +162,7 @@ the source will be `"../bar.js""`.
 
 The `importer` is the fully resolved id of the importing module. When resolving entry points, importer will usually be `undefined`. An exception here are entry points generated via [`this.emitFile`](guide/en/#thisemitfile) as here, you can provide an `importer` argument.
 
-For those cases, the `isEntry` option will tell you if we are resolving a user defined entry point, an emitted chunk, or if the `isEntry` parameter was provided for the [`this.resolve(source, importer)`](guide/en/#thisresolve) context function.
+For those cases, the `isEntry` option will tell you if we are resolving a user defined entry point, an emitted chunk, or if the `isEntry` parameter was provided for the [`this.resolve`](guide/en/#thisresolve) context function.
 
 You can use this for instance as a mechanism to define custom proxy modules for entry points. The following plugin will only expose the default export from entry points while still keeping named exports available for internal usage:
 
@@ -218,7 +218,9 @@ See [synthetic named exports](guide/en/#synthetic-named-exports) for the effect 
 
 See [custom module meta-data](guide/en/#custom-module-meta-data) for how to use the `meta` option. If `null` is returned or the option is omitted, then `meta` will default to an empty object. The `load` and `transform` hooks can add or replace properties of this object.
 
-When triggering this hook from a plugin via [`this.resolve(source, importer, options)`](guide/en/#thisresolve), it is possible to pass a custom options object to this hook. While this object will be passed unmodified, plugins should follow the convention of adding a `custom` property with an object where the keys correspond to the names of the plugins that the options are intended for. For details see [custom resolver options](guide/en/#custom-resolver-options).
+Note that while `resolveId` will be called for each import of a module and can therefore resolve to the same `id` many times, values for `external`, `moduleSideEffects`, `syntheticNamedExports` or `meta` can only be set once before the module is loaded. The reason is that after this call, Rollup will continue with the [`load`](guide/en/#load) and [`transform`](guide/en/#transform) hooks for that module that may override these values and should take precedence if they do so.
+
+When triggering this hook from a plugin via [`this.resolve`](guide/en/#thisresolve), it is possible to pass a custom options object to this hook. While this object will be passed unmodified, plugins should follow the convention of adding a `custom` property with an object where the keys correspond to the names of the plugins that the options are intended for. For details see [custom resolver options](guide/en/#custom-resolver-options).
 
 #### `transform`
 
@@ -685,6 +687,54 @@ Returns `null` if the module id cannot be found.
 
 Get ids of the files which has been watched previously. Include both files added by plugins with `this.addWatchFile` and files added implicitly by rollup during the build.
 
+#### `this.load`
+
+**Type:** `({id: string, moduleSideEffects?: boolean | 'no-treeshake' | null, syntheticNamedExports?: boolean | string | null, meta?: {[plugin: string]: any} | null}) => Promise<ModuleInfo>`
+
+Loads and parses the module corresponding to the given id, attaching additional meta information to the module if provided. This will trigger the same [`load`](guide/en/#load), [`transform`](guide/en/#transform) and [`moduleParsed`](guide/en/#moduleparsed) hooks that would be triggered if the module were imported by another module.
+
+This allows you to inspect the final content of modules before deciding how to resolve them in the [`resolveId`](guide/en/#resolveid) hook and e.g. resolve to a proxy module instead. If the module becomes part of the graph later, there is no additional overhead from using this context function as the module will not be parsed again. The signature allows you to directly pass the return value of [`this.resolve`](guide/en/#thisresolve) to this function as long as it is neither `null` nor external.
+
+The returned promise will resolve once the module has been fully transformed and parsed but before any imports have been resolved. That means that the resulting `ModuleInfo` will have empty `importedIds` and `dynamicallyImportedIds`. This helps to avoid deadlock situations when awaiting `this.load` in a `resolveId` hook. If you are interested in `importedIds` and `dynamicallyImportedIds`, you should implement a `moduleParsed` hook.
+
+Note that with regard to the `moduleSideEffects`, `syntheticNamedExports` and `meta` options, the same restrictions apply as for the `resolveId` hook: Their values only have an effect if the module has not been loaded yet. Thus, it is very important to use `this.resolve` first to find out if any plugins want to set special values for these options in their `resolveId` hook, and pass these options on to `this.load` if appropriate. The example below showcases how this can be handled to add a proxy module for modules containing a special code comment:
+
+```js
+export default function addProxyPlugin() {
+  return {
+    async resolveId(source, importer, options) {
+      if (importer?.endsWith('?proxy')) {
+        // Do not proxy ids used in proxies
+        return null;
+      }
+      // We make sure to pass on any resolveId options to this.resolve to get the module id
+      const resolution = await this.resolve(source, importer, { skipSelf: true, ...options });
+      // We can only pre-load existing and non-external ids
+      if (resolution && !resolution.external) {
+        // we pass on the entire resolution information
+        const moduleInfo = await this.load(resolution);
+        if (moduleInfo.code.indexOf('/* use proxy */') >= 0) {
+          return `${resolution.id}?proxy`;
+        }
+      }
+      // As we already fully resolved the module, there is no reason to resolve it again
+      return resolution;
+    },
+    load(id) {
+      if (id.endsWith('?proxy')) {
+        const importee = id.slice(0, -'?proxy'.length);
+        return `console.log('proxy for ${importee}'); export * from ${JSON.stringify(importee)};`;
+      }
+      return null;
+    }
+  };
+}
+```
+
+If the module was already loaded, this will just wait for the parsing to complete and then return its module information. If the module was not yet imported by another module, this will not automatically trigger loading other modules imported by this module. Instead, static and dynamic dependencies will only be loaded once this module has actually been imported at least once.
+
+While it is safe to use `this.load` in a `resolveId` hook, you should be very careful when awaiting it in a `load` or `transform` hook. If there are cyclic dependencies in the module graph, this can easily lead to a deadlock, so any plugin needs to manually take care to avoid waiting for `this.load` inside the `load` or `transform` of the any module that is in a cycle with the loaded module.
+
 #### `this.meta`
 
 **Type:** `{rollupVersion: string, watchMode: boolean}`
@@ -704,7 +754,7 @@ Use Rollup's internal acorn instance to parse code to an AST.
 
 #### `this.resolve`
 
-**Type:** `(source: string, importer?: string, options?: {skipSelf?: boolean, isEntry?: boolean, custom?: {[plugin: string]: any}}) => Promise<{id: string, external: boolean | "absolute", moduleSideEffects: boolean | 'no-treeshake', syntheticNamedExports: boolean | string, meta: {[plugin: string]: any}} | null>`
+**Type:** `(source: string, importer?: string, options?: {skipSelf?: boolean, isEntry?: boolean, isEntry?: boolean, custom?: {[plugin: string]: any}}) => Promise<{id: string, external: boolean | "absolute", moduleSideEffects: boolean | 'no-treeshake', syntheticNamedExports: boolean | string, meta: {[plugin: string]: any}} | null>`
 
 Resolve imports to module ids (i.e. file names) using the same plugins that Rollup uses, and determine if an import should be external. If `null` is returned, the import could not be resolved by Rollup or any plugin but was not explicitly marked as external by the user. If an absolute external id is returned that should remain absolute in the output either via the [`makeAbsoluteExternalsRelative`](guide/en/#makeabsoluteexternalsrelative) option or by explicit plugin choice in the [`resolveId`](guide/en/#resolveid) hook, `external` will be `"absolute"` instead of `true`.
 
@@ -968,11 +1018,11 @@ At some point when using many dedicated plugins, there may be the need for unrel
 
 #### Custom resolver options
 
-Assume you have a plugin that should resolve a module to different ids depending on how it is imported. One way to achieve this would be to use special proxy ids when importing this module, e.g. a transpiled import via `require("foo")` could be denoted with an id `foo?require=true` so that a resolver plugin knows this.
+Assume you have a plugin that should resolve an import to different ids depending on how the import was generated by another plugin. One way to achieve this would be to rewrite the import to use special proxy ids, e.g. a transpiled import via `require("foo")` in a CommonJS file could become a regular import with a special id `import "foo?require=true"` so that a resolver plugin knows this.
 
-The problem here, however, is that this proxy id may or may not cause unintended side-effects when passed to other resolvers. Moreover, if the id is created by plugin `A` and the resolution happens in plugin `B`, it creates a dependency between these plugins so that one `A` is not usable without `B`.
+The problem here, however, is that this proxy id may or may not cause unintended side effects when passed to other resolvers because it does not really correspond to a file. Moreover, if the id is created by plugin `A` and the resolution happens in plugin `B`, it creates a dependency between these plugins so that `A` is not usable without `B`.
 
-Custom resolver option offer a solution here by allowing to pass additional options for plugins when manually resolving a module. This happens without changing the id and thus without impairing the ability for other plugins to resolve the module correctly if the intended target plugin is not present.
+Custom resolver option offer a solution here by allowing to pass additional options for plugins when manually resolving a module via `this resolve`. This happens without changing the id and thus without impairing the ability for other plugins to resolve the module correctly if the intended target plugin is not present.
 
 ```js
 function requestingPlugin() {

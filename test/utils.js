@@ -106,7 +106,7 @@ function runTestSuiteWithSamples(suiteName, samplesDir, runTest, onTeardown) {
 	describe(suiteName, () => runSamples(samplesDir, runTest, onTeardown));
 }
 
-// You can run only or skip certain kinds of tests be appending .only or .skip
+// You can run only or skip certain kinds of tests by appending .only or .skip
 runTestSuiteWithSamples.only = function (suiteName, samplesDir, runTest, onTeardown) {
 	describe.only(suiteName, () => runSamples(samplesDir, runTest, onTeardown));
 };

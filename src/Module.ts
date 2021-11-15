@@ -280,7 +280,7 @@ export default class Module {
 				return Array.from(module.implicitlyLoadedBefore, getId);
 			},
 			get importedIds() {
-				return Array.from(module.sources, source => module.resolvedIds[source].id);
+				return Array.from(module.sources, source => module.resolvedIds[source]?.id).filter(Boolean);
 			},
 			get importers() {
 				return module.importers.sort();
