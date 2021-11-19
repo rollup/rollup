@@ -5,6 +5,7 @@ import { CallOptions } from '../CallOptions';
 import { HasEffectsContext } from '../ExecutionContext';
 import { EMPTY_PATH } from '../utils/PathTracker';
 import Identifier from './Identifier';
+import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
 import TemplateLiteral from './TemplateLiteral';
 import { ExpressionNode, NodeBase } from './shared/Node';
