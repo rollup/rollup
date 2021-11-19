@@ -1,7 +1,7 @@
 import MagicString from 'magic-string';
 import { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { RenderOptions } from '../../utils/renderHelpers';
-import { CallOptions, NO_ARGS } from '../CallOptions';
+import { CallOptions } from '../CallOptions';
 import { HasEffectsContext } from '../ExecutionContext';
 import { EMPTY_PATH } from '../utils/PathTracker';
 import Identifier from './Identifier';
