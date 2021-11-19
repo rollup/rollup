@@ -8,7 +8,8 @@ import {
 	ExpressionStatement,
 	LogicalExpression,
 	NewExpression,
-	SequenceExpression
+	SequenceExpression,
+	TaggedTemplateExpression
 } from '../ast/nodes/NodeType';
 import { SOURCEMAPPING_URL_RE } from './sourceMappingURL';
 
@@ -99,6 +100,7 @@ function markPureNode(node: NodeWithComments, comment: acorn.Comment, code: stri
 					break;
 				case CallExpression:
 				case NewExpression:
+				case TaggedTemplateExpression:
 					break;
 				default:
 					invalidAnnotation = true;
