@@ -9,6 +9,7 @@ import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
 import TemplateLiteral from './TemplateLiteral';
 import { ExpressionNode, NodeBase } from './shared/Node';
+import { UNKNOWN_EXPRESSION } from './shared/Expression';
 
 export default class TaggedTemplateExpression extends NodeBase {
 	declare quasi: TemplateLiteral;
@@ -52,7 +53,7 @@ export default class TaggedTemplateExpression extends NodeBase {
 
 	initialise(): void {
 		this.callOptions = {
-			args: [, ...this.quasi.expressions],
+			args: [UNKNOWN_EXPRESSION, ...this.quasi.expressions],
 			thisParam:
 				this.tag instanceof MemberExpression && !this.tag.variable ? this.tag.object : null,
 			withNew: false
