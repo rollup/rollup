@@ -4,12 +4,12 @@ import { RenderOptions } from '../../utils/renderHelpers';
 import { CallOptions } from '../CallOptions';
 import { HasEffectsContext } from '../ExecutionContext';
 import { EMPTY_PATH } from '../utils/PathTracker';
+import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
 import TemplateLiteral from './TemplateLiteral';
 import { ExpressionNode, NodeBase } from './shared/Node';
-import { UNKNOWN_EXPRESSION } from './shared/Expression';
 
 export default class TaggedTemplateExpression extends NodeBase {
 	declare quasi: TemplateLiteral;
