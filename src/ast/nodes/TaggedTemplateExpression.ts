@@ -52,7 +52,7 @@ export default class TaggedTemplateExpression extends NodeBase {
 
 	initialise(): void {
 		this.callOptions = {
-			args: this.quasi.expressions,
+			args: [, ...this.quasi.expressions],
 			thisParam:
 				this.tag instanceof MemberExpression && !this.tag.variable ? this.tag.object : null,
 			withNew: false
