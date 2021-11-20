@@ -4,11 +4,11 @@ import { RenderOptions } from '../../utils/renderHelpers';
 import { CallOptions } from '../CallOptions';
 import { HasEffectsContext } from '../ExecutionContext';
 import { EMPTY_PATH } from '../utils/PathTracker';
-import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
 import * as NodeType from './NodeType';
 import TemplateLiteral from './TemplateLiteral';
+import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import { ExpressionNode, NodeBase } from './shared/Node';
 
 export default class TaggedTemplateExpression extends NodeBase {
