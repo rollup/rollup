@@ -45,7 +45,7 @@ export async function resolveId(
 	);
 }
 
-function addJsExtensionIfNecessary(file: string, preserveSymlinks: boolean) {
+function addJsExtensionIfNecessary(file: string, preserveSymlinks: boolean): string | undefined {
 	let found = findFile(file, preserveSymlinks);
 	if (found) return found;
 	found = findFile(file + '.mjs', preserveSymlinks);
