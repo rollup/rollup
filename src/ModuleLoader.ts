@@ -158,10 +158,14 @@ export class ModuleLoader {
 		return module;
 	}
 
-	public preloadModule(resolvedId: NormalizedResolveIdWithoutDefaults): Promise<ModuleInfo> {
-		return this.fetchModule(this.addDefaultsToResolvedId(resolvedId)!, undefined, false, true).then(
-			module => module.info
+	async preloadModule(resolvedId: NormalizedResolveIdWithoutDefaults): Promise<ModuleInfo> {
+		const module = await this.fetchModule(
+			this.addDefaultsToResolvedId(resolvedId)!,
+			undefined,
+			false,
+			true
 		);
+		return module.info;
 	}
 
 	resolveId = async (
