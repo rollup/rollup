@@ -158,7 +158,7 @@ Defines a custom resolver. A resolver can be useful for e.g. locating third-part
 import { foo } from '../bar.js';
 ```
 
-the source will be `"../bar.js""`.
+the source will be `"../bar.js"`.
 
 The `importer` is the fully resolved id of the importing module. When resolving entry points, importer will usually be `undefined`. An exception here are entry points generated via [`this.emitFile`](guide/en/#thisemitfile) as here, you can provide an `importer` argument.
 
