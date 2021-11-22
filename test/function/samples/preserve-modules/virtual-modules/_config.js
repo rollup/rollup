@@ -23,7 +23,7 @@ module.exports = {
 		return bundle.generate({ format: 'es', preserveModules: true }).then(generated =>
 			assert.deepEqual(
 				generated.output.map(chunk => chunk.fileName),
-				['main.js', '_virtual/_virtualModule', 'lib/lib.js']
+				['main.js', '_virtual/_virtualModule.js', 'lib/lib.js']
 			)
 		);
 	}

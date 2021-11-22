@@ -2,7 +2,7 @@
 
 var require$$0 = require('external');
 require('./other.js');
-var other = require('./_virtual/other.js_commonjs-exports');
+var other = require('./_virtual/other.js_commonjs-exports.js');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 

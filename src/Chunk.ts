@@ -434,23 +434,22 @@ export default class Chunk {
 		const id = this.orderedModules[0].id;
 		const sanitizedId = this.outputOptions.sanitizeFileName(id);
 		let path: string;
+
+		const patternOpt = unsetOptions.has('entryFileNames')
+			? '[name][assetExtname].js'
+			: options.entryFileNames;
+		const pattern = typeof patternOpt === 'function' ? patternOpt(this.getChunkInfo()) : patternOpt;
+
 		if (isAbsolute(id)) {
-			const extension = extname(id);
-			const pattern = unsetOptions.has('entryFileNames')
-				? '[name][assetExtname].js'
-				: options.entryFileNames;
 			const currentDir = dirname(sanitizedId);
-			const fileName = renderNamePattern(
-				typeof pattern === 'function' ? pattern(this.getChunkInfo()) : pattern,
-				'output.entryFileNames',
-				{
-					assetExtname: () => (NON_ASSET_EXTENSIONS.includes(extension) ? '' : extension),
-					ext: () => extension.substr(1),
-					extname: () => extension,
-					format: () => options.format as string,
-					name: () => this.getChunkName()
-				}
-			);
+			const extension = extname(id);
+			const fileName = renderNamePattern(pattern, 'output.entryFileNames', {
+				assetExtname: () => (NON_ASSET_EXTENSIONS.includes(extension) ? '' : extension),
+				ext: () => extension.substr(1),
+				extname: () => extension,
+				format: () => options.format as string,
+				name: () => this.getChunkName()
+			});
 			const currentPath = `${currentDir}/${fileName}`;
 			const { preserveModulesRoot } = options;
 			if (preserveModulesRoot && currentPath.startsWith(preserveModulesRoot)) {
@@ -459,7 +458,15 @@ export default class Chunk {
 				path = relative(preserveModulesRelativeDir, currentPath);
 			}
 		} else {
-			path = `_virtual/${basename(sanitizedId)}`;
+			const extension = extname(sanitizedId);
+			const fileName = renderNamePattern(pattern, 'output.entryFileNames', {
+				assetExtname: () => (NON_ASSET_EXTENSIONS.includes(extension) ? '' : extension),
+				ext: () => extension.substr(1),
+				extname: () => extension,
+				format: () => options.format as string,
+				name: () => getAliasName(sanitizedId)
+			});
+			path = `_virtual/${fileName}`;
 		}
 		return makeUnique(normalize(path), existingNames);
 	}
