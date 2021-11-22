@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 2.60.1
+
+_2021-11-22_
+
+### Bug Fixes
+
+- Make sure virtual files have proper file extensions when preserving modules (#4270)
+
+### Pull Requests
+
+- [#4270](https://github.com/rollup/rollup/pull/4270): Use entryFileNames when generating filenames for virtual modules (@BPScott)
+
 ## 2.60.0
 
 _2021-11-11_
