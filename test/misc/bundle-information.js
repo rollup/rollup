@@ -480,7 +480,12 @@ describe('The bundle object', () => {
 			.then(({ output }) => {
 				assert.deepEqual(
 					output.map(chunk => chunk.fileName),
-					['_virtual/input', '_virtual/dynamic1', '_virtual/other', '_virtual/dynamic2'],
+					[
+						'_virtual/input.js',
+						'_virtual/dynamic1.js',
+						'_virtual/other.js',
+						'_virtual/dynamic2.js'
+					],
 					'fileName'
 				);
 				assert.deepEqual(
@@ -491,9 +496,9 @@ describe('The bundle object', () => {
 				assert.deepEqual(
 					output.map(chunk => chunk.code),
 					[
-						`import { other } from './other';
+						`import { other } from './other.js';
 
-console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));\n`,
+console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));\n`,
 						'const dynamic1 = "dynamic1";\n\nexport { dynamic1 };\n',
 						'const other = "other";\n\nexport { other };\n',
 						'const dynamic2 = "dynamic2";\n\nexport { dynamic2 };\n'
@@ -507,12 +512,12 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.imports),
-					[['_virtual/other'], [], [], []],
+					[['_virtual/other.js'], [], [], []],
 					'imports'
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.importedBindings),
-					[{ '_virtual/other': ['other'] }, {}, {}, {}],
+					[{ '_virtual/other.js': ['other'] }, {}, {}, {}],
 					'importedBindings'
 				);
 				assert.deepEqual(
@@ -522,7 +527,7 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 				);
 				assert.deepEqual(
 					output.map(chunk => chunk.dynamicImports),
-					[['_virtual/dynamic1', '_virtual/dynamic2'], [], [], []],
+					[['_virtual/dynamic1.js', '_virtual/dynamic2.js'], [], [], []],
 					'dynamicImports'
 				);
 				assert.deepEqual(
@@ -530,7 +535,7 @@ console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).the
 					[
 						{
 							input: {
-								code: "console.log(other);Promise.all([import('./dynamic1'), import('./dynamic2')]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));",
+								code: "console.log(other);Promise.all([import('./dynamic1.js'), import('./dynamic2.js')]).then(([{dynamic1}, {dynamic2}]) => console.log(dynamic1, dynamic2));",
 								originalLength: 169,
 								removedExports: [],
 								renderedExports: [],
