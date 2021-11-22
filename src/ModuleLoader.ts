@@ -348,7 +348,7 @@ export class ModuleLoader {
 			return existingModule;
 		}
 
-		const module: Module = new Module(
+		const module = new Module(
 			this.graph,
 			id,
 			this.options,
