@@ -9,7 +9,7 @@ export function readFile(file: string): Promise<string> {
 	);
 }
 
-function mkdirpath(path: string) {
+function mkdirpath(path: string): void {
 	const dir = dirname(path);
 	try {
 		fs.readdirSync(dir);
