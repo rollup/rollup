@@ -33,7 +33,7 @@ export async function resolveId(
 
 	// external modules (non-entry modules that start with neither '.' or '/')
 	// are skipped at this stage.
-	if (importer !== undefined && !isAbsolute(source) && source[0] !== '.') return null;
+	if (importer !== undefined && !isAbsolute(source) && !source.startsWith('.')) return null;
 
 	// `resolve` processes paths from right to left, prepending them until an
 	// absolute path is created. Absolute importees therefore shortcircuit the
