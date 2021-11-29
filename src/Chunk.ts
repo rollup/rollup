@@ -921,13 +921,15 @@ export default class Chunk {
 				}
 				const renderedResolution =
 					resolution instanceof Module
-						? `'${this.getRelativePath((facadeChunk || chunk!).id!, stripKnownJsExtensions)}'`
+						? `'${escapeId(
+								this.getRelativePath((facadeChunk || chunk!).id!, stripKnownJsExtensions)
+						  )}'`
 						: resolution instanceof ExternalModule
-						? `'${
+						? `'${escapeId(
 								resolution.renormalizeRenderPath
 									? this.getRelativePath(resolution.renderPath, stripKnownJsExtensions)
 									: resolution.renderPath
-						  }'`
+						  )}'`
 						: resolution;
 				node.renderFinalResolution(
 					code,
