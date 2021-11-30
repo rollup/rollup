@@ -10,18 +10,7 @@ export const readFile = (file: string): Promise<string> =>
 
 function mkdirpath(path: string) {
 	const dir = dirname(path);
-	try {
-		fs.readdirSync(dir);
-	} catch {
-		mkdirpath(dir);
-		try {
-			fs.mkdirSync(dir);
-		} catch (err: any) {
-			if (err.code !== 'EEXIST') {
-				throw err;
-			}
-		}
-	}
+	fs.mkdirSync(dir, { recursive: true });
 }
 
 export function writeFile(dest: string, data: string | Uint8Array): Promise<void> {
