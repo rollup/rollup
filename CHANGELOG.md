@@ -1,5 +1,17 @@
 # rollup changelog
 
+## 2.60.2
+
+_2021-11-30_
+
+### Bug Fixes
+
+- Produce correct output when dynamic import paths contain quotes (#4286)
+
+### Pull Requests
+
+- [#4286](https://github.com/rollup/rollup/pull/4286): Escape dynamic import paths (@danielroe)
+
 ## 2.60.1
 
 _2021-11-22_
