@@ -1,7 +1,7 @@
-import { bold, cyan, green } from 'colorette';
 import ms from 'pretty-ms';
 import * as rollup from '../../src/node-entry';
 import { MergedRollupOptions } from '../../src/rollup/types';
+import { bold, cyan, green } from '../../src/utils/colors';
 import relativeId from '../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
 import SOURCEMAPPING_URL from '../sourceMappingUrl';

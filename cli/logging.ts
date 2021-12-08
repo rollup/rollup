@@ -1,12 +1,6 @@
-import { bold, cyan, dim, options, red } from 'colorette';
 import { RollupError } from '../src/rollup/types';
+import { bold, cyan, dim, red } from '../src/utils/colors';
 import relativeId from '../src/utils/relativeId';
-
-// @see https://no-color.org
-// @see https://www.npmjs.com/package/chalk
-if (process.env.FORCE_COLOR === '0' || process.env.NO_COLOR) {
-	options.enabled = false;
-}
 
 // log to stderr to keep `rollup main.js > bundle.js` from breaking
 export const stderr = console.error.bind(console);
