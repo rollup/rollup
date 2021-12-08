@@ -94,7 +94,7 @@
     "lint-staged": "^10.5.4",
     "locate-character": "^2.0.5",
     "magic-string": "^0.25.7",
-    "mocha": "^8.4.0",
+    "mocha": "^9.1.3",
     "nyc": "^15.1.0",
     "pinst": "^2.1.6",
     "prettier": "^2.5.1",
