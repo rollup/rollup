@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 2.61.0
+
+_2021-12-09_
+
+### Features
+
+- Support ergonomic brand checks for private fields (#4293)
+
+### Bug Fixes
+
+- Improve handling of directory creation on systems with restrictive open files limit (#4288)
+
+### Pull Requests
+
+- [#4288](https://github.com/rollup/rollup/pull/4288): modifymkdirpath (@mgrabowski84)
+- [#4293](https://github.com/rollup/rollup/pull/4293): bump deps (@dnalborczyk)
+
 ## 2.60.2
 
 _2021-11-30_
