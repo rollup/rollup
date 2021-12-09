@@ -1,6 +1,6 @@
-import { bold } from 'colorette';
 import { PluginContext } from 'rollup';
 import { NormalizedInputOptions, Plugin } from '../../src/rollup/types';
+import { bold } from '../../src/utils/colors';
 import { stderr } from '../logging';
 
 export function waitForInputPlugin(): Plugin {

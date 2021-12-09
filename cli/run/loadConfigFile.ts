@@ -1,9 +1,9 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { pathToFileURL } from 'url';
-import { bold } from 'colorette';
 import * as rollup from '../../src/node-entry';
 import { MergedRollupOptions } from '../../src/rollup/types';
+import { bold } from '../../src/utils/colors';
 import { error } from '../../src/utils/error';
 import { mergeOptions } from '../../src/utils/options/mergeOptions';
 import { GenericConfigObject } from '../../src/utils/options/options';
