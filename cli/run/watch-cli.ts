@@ -1,11 +1,11 @@
 import fs from 'fs';
 import chokidar from 'chokidar';
-import { bold, cyan, green, underline } from 'colorette';
 import dateTime from 'date-time';
 import ms from 'pretty-ms';
 import onExit from 'signal-exit';
 import * as rollup from '../../src/node-entry';
 import { MergedRollupOptions, RollupWatcher } from '../../src/rollup/types';
+import { bold, cyan, green, underline } from '../../src/utils/colors';
 import relativeId from '../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
 import { BatchWarnings } from './batchWarnings';
