@@ -1,5 +1,18 @@
 # rollup changelog
 
+## 2.61.1
+
+_2021-12-11_
+
+### Bug Fixes
+
+- Only resolve this.load once the code of the module is available (#4296)
+
+### Pull Requests
+
+- [#4296](https://github.com/rollup/rollup/pull/4296): Make sure this.load waits for modules that are already loading (@lukastaegert)
+- [#4298](https://github.com/rollup/rollup/pull/4298): use set for reserved words (@dnalborczyk)
+
 ## 2.61.0
 
 _2021-12-09_
