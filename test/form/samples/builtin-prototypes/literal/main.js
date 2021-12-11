@@ -29,6 +29,7 @@ const _numberToLocaleString = (1).toLocaleString().trim();
 const _numberToString = (1).toString().trim();
 
 // string prototype
+const _at = 'ab'.at( 1 ).trim();
 const _charAt = 'ab'.charAt( 1 ).trim();
 const _charCodeAt = 'ab'.charCodeAt( 1 ).toExponential( 2 );
 const _codePointAt = 'ab'.codePointAt( 1 ).toExponential( 2 );
@@ -39,12 +40,15 @@ const _indexOf = 'ab'.indexOf( 'a' ).toExponential( 2 );
 const _lastIndexOf = 'ab'.lastIndexOf( 'a' ).toExponential( 2 );
 const _localeCompare = 'ab'.localeCompare( 'a' ).toExponential( 2 );
 const _match = 'ab'.match( /a/ ).valueOf();
+const _matchAll = 'ab'.matchAll( /a/ ).valueOf();
 const _normalize = 'ab'.normalize().trim();
 const _padEnd = 'ab'.padEnd( 4, 'a' ).trim();
 const _padStart = 'ab'.padStart( 4, 'a' ).trim();
 const _repeat = 'ab'.repeat( 2 ).trim();
 const _replace = 'ab'.replace( 'a', () => 'b' ).trim();
 const _replaceEffect = 'ab'.replace( 'a', () => console.log( 1 ) || 'b' );
+const _replaceAll = 'ab'.replaceAll( 'a', () => 'b' ).trim();
+const _replaceAllEffect = 'ab'.replaceAll( 'a', () => console.log( 1 ) || 'b' );
 const _search = 'ab'.search( /a/ ).toExponential( 2 );
 const _slice = 'ab'.slice( 0, 1 ).trim();
 const _split = 'ab'.split( 'a' );
@@ -56,6 +60,10 @@ const _toLocaleUpperCase = 'ab'.toLocaleUpperCase().trim();
 const _toLowerCase = 'ab'.toLowerCase().trim();
 const _toUpperCase = 'ab'.toUpperCase().trim();
 const _trim = 'ab'.trim().trim();
+const _trimEnd = 'ab'.trimEnd().trim();
+const _trimLeft = 'ab'.trimLeft().trim();
+const _trimRight = 'ab'.trimRight().trim();
+const _trimStart = 'ab'.trimStart().trim();
 const _stringValueOf = 'ab'.valueOf().trim();
 // inherited
 const _stringHasOwnProperty = 'ab'.hasOwnProperty( 'toString' ).valueOf();

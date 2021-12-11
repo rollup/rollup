@@ -163,6 +163,7 @@ const literalNumberMembers: MemberDescriptions = assembleMemberDescriptions(
 
 const literalStringMembers: MemberDescriptions = assembleMemberDescriptions(
 	{
+		at: returnsString,
 		charAt: returnsString,
 		charCodeAt: returnsNumber,
 		codePointAt: returnsNumber,
@@ -173,6 +174,7 @@ const literalStringMembers: MemberDescriptions = assembleMemberDescriptions(
 		lastIndexOf: returnsNumber,
 		localeCompare: returnsNumber,
 		match: returnsBoolean,
+		matchAll: returnsBoolean,
 		normalize: returnsString,
 		padEnd: returnsString,
 		padStart: returnsString,
@@ -183,17 +185,27 @@ const literalStringMembers: MemberDescriptions = assembleMemberDescriptions(
 				returns: UNKNOWN_LITERAL_STRING
 			}
 		},
+		replaceAll: {
+			value: {
+				callsArgs: [1],
+				returns: UNKNOWN_LITERAL_STRING
+			}
+		},
 		search: returnsNumber,
 		slice: returnsString,
 		split: returnsUnknown,
 		startsWith: returnsBoolean,
-		substr: returnsString,
+		substr: returnsString, // deprecated
 		substring: returnsString,
 		toLocaleLowerCase: returnsString,
 		toLocaleUpperCase: returnsString,
 		toLowerCase: returnsString,
 		toUpperCase: returnsString,
 		trim: returnsString,
+		trimEnd: returnsString,
+		trimLeft: returnsString, // deprecated, alias for trimStart
+		trimRight: returnsString, // deprecated, alias for trimEnd
+		trimStart: returnsString,
 		valueOf: returnsString
 	},
 	objectMembers
