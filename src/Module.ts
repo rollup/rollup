@@ -274,10 +274,10 @@ export default class Module {
 			hasModuleSideEffects,
 			id,
 			get implicitlyLoadedAfterOneOf() {
-				return Array.from(module.implicitlyLoadedAfter, getId);
+				return Array.from(module.implicitlyLoadedAfter, getId).sort();
 			},
 			get implicitlyLoadedBefore() {
-				return Array.from(module.implicitlyLoadedBefore, getId);
+				return Array.from(module.implicitlyLoadedBefore, getId).sort();
 			},
 			get importedIds() {
 				return Array.from(module.sources, source => module.resolvedIds[source]?.id).filter(Boolean);
