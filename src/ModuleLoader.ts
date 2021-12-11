@@ -56,7 +56,8 @@ type ResolveDynamicDependencyPromise = Promise<
 type LoadModulePromise = Promise<
 	[
 		resolveStaticDependencies: ResolveStaticDependencyPromise[],
-		resolveDynamicDependencies: ResolveDynamicDependencyPromise[]
+		resolveDynamicDependencies: ResolveDynamicDependencyPromise[],
+		loadAndResolveDependencies: Promise<void>
 	]
 >;
 
@@ -66,6 +67,7 @@ export class ModuleLoader {
 	private readonly indexedEntryModules: { index: number; module: Module }[] = [];
 	private latestLoadModulesPromise: Promise<unknown> = Promise.resolve();
 	private moduleLoadPromises = new Map<Module, LoadModulePromise>();
+	private modulesWithLoadedDependencies = new Set<Module>();
 	private nextEntryModuleIndex = 0;
 	private readQueue = new Queue();
 
@@ -353,7 +355,8 @@ export class ModuleLoader {
 		this.graph.watchFiles[id] = true;
 		const loadPromise: LoadModulePromise = this.addModuleSource(id, importer, module).then(() => [
 			this.getResolveStaticDependencyPromises(module),
-			this.getResolveDynamicImportPromises(module)
+			this.getResolveDynamicImportPromises(module),
+			loadAndResolveDependenciesPromise
 		]);
 		const loadAndResolveDependenciesPromise = loadPromise
 			.then(([resolveStaticDependencyPromises, resolveDynamicImportPromises]) =>
@@ -363,14 +366,10 @@ export class ModuleLoader {
 		loadAndResolveDependenciesPromise.catch(() => {
 			/* avoid unhandled promise rejections */
 		});
-
-		if (isPreload) {
-			this.moduleLoadPromises.set(module, loadPromise);
-			await loadPromise;
-		} else {
-			await this.fetchModuleDependencies(module, ...(await loadPromise));
-			// To handle errors when resolving dependencies or in moduleParsed
-			await loadAndResolveDependenciesPromise;
+		this.moduleLoadPromises.set(module, loadPromise);
+		const resolveDependencyPromises = await loadPromise;
+		if (!isPreload) {
+			await this.fetchModuleDependencies(module, ...resolveDependencyPromises);
 		}
 		return module;
 	}
@@ -378,13 +377,20 @@ export class ModuleLoader {
 	private async fetchModuleDependencies(
 		module: Module,
 		resolveStaticDependencyPromises: ResolveStaticDependencyPromise[],
-		resolveDynamicDependencyPromises: ResolveDynamicDependencyPromise[]
+		resolveDynamicDependencyPromises: ResolveDynamicDependencyPromise[],
+		loadAndResolveDependenciesPromise: Promise<void>
 	) {
+		if (this.modulesWithLoadedDependencies.has(module)) {
+			return;
+		}
+		this.modulesWithLoadedDependencies.add(module);
 		await Promise.all([
 			this.fetchStaticDependencies(module, resolveStaticDependencyPromises),
 			this.fetchDynamicDependencies(module, resolveDynamicDependencyPromises)
 		]);
 		module.linkImports();
+		// To handle errors when resolving dependencies or in moduleParsed
+		await loadAndResolveDependenciesPromise;
 	}
 
 	private fetchResolvedDependency(
@@ -521,10 +527,9 @@ export class ModuleLoader {
 	}
 
 	private async handleExistingModule(module: Module, isEntry: boolean, isPreload: boolean) {
-		const loadPromise = this.moduleLoadPromises.get(module);
+		const loadPromise = this.moduleLoadPromises.get(module)!;
 		if (isPreload) {
-			await loadPromise;
-			return;
+			return loadPromise;
 		}
 		if (isEntry) {
 			module.info.isEntry = true;
@@ -534,11 +539,7 @@ export class ModuleLoader {
 			}
 			module.implicitlyLoadedAfter.clear();
 		}
-		if (loadPromise) {
-			this.moduleLoadPromises.delete(module);
-			await this.fetchModuleDependencies(module, ...(await loadPromise));
-		}
-		return;
+		return this.fetchModuleDependencies(module, ...(await loadPromise));
 	}
 
 	private handleResolveId(
