@@ -79,7 +79,7 @@ export function getGenerateCodeSnippets({
 
 	const isValidPropName = reservedNamesAsProps
 		? (name: string): boolean => validPropName.test(name)
-		: (name: string): boolean => !RESERVED_NAMES[name] && validPropName.test(name);
+		: (name: string): boolean => !RESERVED_NAMES.has(name) && validPropName.test(name);
 
 	return {
 		_,

@@ -18,7 +18,7 @@ export function assignExportsToMangledNames(
 					nameIndex += 9 * 64 ** (exportName.length - 1);
 					exportName = toBase64(nameIndex);
 				}
-			} while (RESERVED_NAMES[exportName] || exportsByName[exportName]);
+			} while (RESERVED_NAMES.has(exportName) || exportsByName[exportName]);
 		}
 		exportsByName[exportName] = variable;
 		exportNamesByVariable.set(variable, [exportName]);
