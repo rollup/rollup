@@ -18,7 +18,8 @@ export async function resolveId(
 	) => Promise<ResolvedId | null>,
 	skip: { importer: string | undefined; plugin: Plugin; source: string }[] | null,
 	customOptions: CustomPluginOptions | undefined,
-	isEntry: boolean
+	isEntry: boolean,
+	fileExtensions: 'required' | readonly string[]
 ): Promise<ResolveIdResult> {
 	const pluginResult = await resolveIdViaPlugins(
 		source,
@@ -41,17 +42,35 @@ export async function resolveId(
 	// See https://nodejs.org/api/path.html#path_path_resolve_paths
 	return addJsExtensionIfNecessary(
 		importer ? resolve(dirname(importer), source) : resolve(source),
-		preserveSymlinks
+		preserveSymlinks,
+		fileExtensions
 	);
 }
 
-function addJsExtensionIfNecessary(file: string, preserveSymlinks: boolean) {
+function addJsExtensionIfNecessary(
+	file: string,
+	preserveSymlinks: boolean,
+	fileExtensions: 'required' | readonly string[]
+): string | undefined {
 	let found = findFile(file, preserveSymlinks);
-	if (found) return found;
-	found = findFile(file + '.mjs', preserveSymlinks);
-	if (found) return found;
-	found = findFile(file + '.js', preserveSymlinks);
-	return found;
+
+	if (found) {
+		return found;
+	}
+
+	if (fileExtensions === 'required') {
+		return undefined;
+	}
+
+	for (const fileExtension of fileExtensions) {
+		found = findFile(`${file}${fileExtension}`, preserveSymlinks);
+
+		if (found) {
+			return found;
+		}
+	}
+
+	return undefined;
 }
 
 function findFile(file: string, preserveSymlinks: boolean): string | undefined {

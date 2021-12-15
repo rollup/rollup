@@ -38,13 +38,14 @@ export function normalizeInputOptions(config: InputOptions): {
 	const context = config.context ?? 'undefined';
 	const onwarn = getOnwarn(config);
 	const strictDeprecations = config.strictDeprecations || false;
-	const options: NormalizedInputOptions & InputOptions = {
+	const options: NormalizedInputOptions = {
 		acorn: getAcorn(config) as unknown as NormalizedInputOptions['acorn'],
 		acornInjectPlugins: getAcornInjectPlugins(config),
 		cache: getCache(config),
 		context,
 		experimentalCacheExpiry: config.experimentalCacheExpiry ?? 10,
 		external: getIdMatcher(config.external),
+		fileExtensions: getFileExtensions(config.fileExtensions),
 		inlineDynamicImports: getInlineDynamicImports(config, onwarn, strictDeprecations),
 		input: getInput(config),
 		makeAbsoluteExternalsRelative: config.makeAbsoluteExternalsRelative ?? true,
@@ -174,6 +175,23 @@ const getManualChunks = (
 	}
 	return configManualChunks;
 };
+
+const DEFAULT_FILE_EXTENSIONS = ['.mjs', '.js'];
+
+function getFileExtensions(
+	fileExtensions: InputOptions['fileExtensions']
+): NormalizedInputOptions['fileExtensions'] {
+	// default
+	if (!fileExtensions) {
+		return DEFAULT_FILE_EXTENSIONS;
+	}
+
+	if (Array.isArray(fileExtensions)) {
+		return fileExtensions;
+	}
+
+	return 'required';
+}
 
 const getMaxParallelFileReads = (
 	config: InputOptions

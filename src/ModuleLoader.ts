@@ -185,7 +185,8 @@ export class ModuleLoader {
 							this.resolveId,
 							skip,
 							customOptions,
-							typeof isEntry === 'boolean' ? isEntry : !importer
+							typeof isEntry === 'boolean' ? isEntry : !importer,
+							this.options.fileExtensions
 					  ),
 
 				importer,
@@ -581,7 +582,8 @@ export class ModuleLoader {
 			this.resolveId,
 			null,
 			EMPTY_OBJECT,
-			true
+			true,
+			this.options.fileExtensions
 		);
 		if (resolveIdResult == null) {
 			return error(

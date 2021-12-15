@@ -18,6 +18,7 @@ module.exports = {
 					acornInjectPlugins: [],
 					context: 'undefined',
 					experimentalCacheExpiry: 10,
+					fileExtensions: ['.mjs', '.js'],
 					input: ['used'],
 					makeAbsoluteExternalsRelative: true,
 					maxParallelFileReads: 20,

@@ -1,4 +1,4 @@
-import { InputOptions, Plugin, SerializedTimings } from '../rollup/types';
+import { NormalizedInputOptions, Plugin, SerializedTimings } from '../rollup/types';
 
 type StartTime = [number, number];
 
@@ -122,7 +122,7 @@ function getPluginWithTimers(plugin: any, index: number): Plugin {
 	return timedPlugin as Plugin;
 }
 
-export function initialiseTimers(inputOptions: InputOptions): void {
+export function initialiseTimers(inputOptions: NormalizedInputOptions): void {
 	if (inputOptions.perf) {
 		timers = {};
 		setTimeHelpers();
