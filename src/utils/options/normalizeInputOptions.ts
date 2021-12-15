@@ -176,7 +176,7 @@ const getManualChunks = (
 	return configManualChunks;
 };
 
-const DEFAULT_FILE_EXTENSIONS = ['.mjs', '.js'];
+const DEFAULT_FILE_EXTENSIONS = ['.mjs', '.js'] as const;
 
 function getFileExtensions(
 	fileExtensions: InputOptions['fileExtensions']
