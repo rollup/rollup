@@ -68,6 +68,64 @@ console.log(x);
 
 The conversion back to a relative import is done as if `output.file` or `output.dir` were in the same location as the entry point or the common base directory of all entry points if there is more than one.
 
+#### fileExtensions
+
+Type: `"explicit" | false | string[]`<br> CLI: `--file-extensions <extension,another-extension,...>` Default: `false`
+
+`"explicit"` requires file exensions to be specified in import statements as well as for the rollup input. `false` does not require file extensions, and provides a fallback for the file lookup. The current order is `.mjs` then `.js`. The `Array` of file extensions overwrites the internal fallback. The format is `[".js", ".mjs"]` Note that extension-less imports are always working.
+
+```js
+// rollup.config.js
+export default {
+  ...,
+  fileExtensions: 'explicit',
+  ...,
+  // extension is required for input
+  input: 'src/main.js',
+};
+```
+
+```js
+// "explicit"
+import x from './lib-a/some-file.js'; // works if .js file exists
+import x from './lib-b/some-file'; // fails, unless an extension-less file exists
+```
+
+```js
+export default {
+  ...,
+  fileExtensions: false,
+  ...,
+  // extension is not required for input file
+  input: 'src/main',
+};
+```
+
+```js
+import x from './lib-a/some-file'; // works, if either .mjs, .js or extension-less file exists
+import x from './lib-b/some-file.js'; // works, if .js file exists
+import x from './lib-c/some-file.mjs'; // works, if .mjs file exists
+import x from './lib-d/some-file.foo'; // fails, unless extension is supported by a plugin
+```
+
+```js
+// rollup.config.js
+export default {
+  ...,
+  fileExtensions: ['.js', '.foo'],
+  ...,
+  // specified file extension is required for input file
+  input: 'src/main.js',
+};
+```
+
+```js
+import x from './lib-a/some-file'; // fails, unless an extension-less file exists
+import x from './lib-b/some-file.js'; // works
+import x from './lib-c/some-file.mjs'; // fails
+import x from './lib-d/some-file.foo'; // works
+```
+
 #### input
 
 Type: `string | string [] | { [entryName: string]: string }`<br> CLI: `-i`/`--input <filename>`
