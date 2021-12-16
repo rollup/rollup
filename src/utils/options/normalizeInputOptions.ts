@@ -190,7 +190,7 @@ function getFileExtensions(
 		return fileExtensions;
 	}
 
-	return 'required';
+	return 'explicit';
 }
 
 const getMaxParallelFileReads = (

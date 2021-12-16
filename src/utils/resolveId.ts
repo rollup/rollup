@@ -19,7 +19,7 @@ export async function resolveId(
 	skip: { importer: string | undefined; plugin: Plugin; source: string }[] | null,
 	customOptions: CustomPluginOptions | undefined,
 	isEntry: boolean,
-	fileExtensions: 'required' | readonly string[]
+	fileExtensions: 'explicit' | readonly string[]
 ): Promise<ResolveIdResult> {
 	const pluginResult = await resolveIdViaPlugins(
 		source,
@@ -50,7 +50,7 @@ export async function resolveId(
 function addJsExtensionIfNecessary(
 	file: string,
 	preserveSymlinks: boolean,
-	fileExtensions: 'required' | readonly string[]
+	fileExtensions: 'explicit' | readonly string[]
 ): string | undefined {
 	let found = findFile(file, preserveSymlinks);
 
@@ -58,7 +58,7 @@ function addJsExtensionIfNecessary(
 		return found;
 	}
 
-	if (fileExtensions === 'required') {
+	if (fileExtensions === 'explicit') {
 		return undefined;
 	}
 

@@ -8,6 +8,6 @@ module.exports = {
 		watchFiles: [join(__dirname, 'main.js')]
 	},
 	options: {
-		fileExtensions: true
+		fileExtensions: 'explicit'
 	}
 };
