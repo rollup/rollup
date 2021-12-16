@@ -1,4 +1,4 @@
-export const RESERVED_NAMES = new Set([
+const RESERVED_WORDS: ReadonlySet<string> = new Set([
 	'await',
 	'break',
 	'case',
@@ -48,3 +48,5 @@ export const RESERVED_NAMES = new Set([
 	'with',
 	'yield'
 ]);
+
+export default RESERVED_WORDS;
