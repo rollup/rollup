@@ -22,6 +22,7 @@ import {
 import { FileEmitter } from './FileEmitter';
 import { getPluginContext } from './PluginContext';
 import { errInputHookInOutputPlugin, error } from './error';
+import { addUnresolvedAction, resolveAction } from './hookActions';
 import { throwPluginError, warnDeprecatedHooks } from './pluginUtils';
 
 /**
@@ -314,6 +315,7 @@ export class PluginDriver {
 			context = hookContext(context, plugin);
 		}
 
+		let action: [string, string, Parameters<any>] | null = null;
 		return Promise.resolve()
 			.then(() => {
 				// permit values allows values to be returned instead of a functional hook
@@ -322,9 +324,38 @@ export class PluginDriver {
 					return throwInvalidHookError(hookName, plugin.name);
 				}
 				// eslint-disable-next-line @typescript-eslint/ban-types
-				return (hook as Function).apply(context, args);
+				const hookResult = (hook as Function).apply(context, args);
+
+				if (!hookResult || !hookResult.then) {
+					// short circuit for non-thenables and non-Promises
+					return hookResult;
+				}
+
+				// Track pending hook actions to properly error out when
+				// unfulfilled promises cause rollup to abruptly and confusingly
+				// exit with a successful 0 return code but without producing any
+				// output, errors or warnings.
+				action = [plugin.name, hookName, args];
+				addUnresolvedAction(action);
+
+				// Although it would be more elegant to just return hookResult here
+				// and put the .then() handler just above the .catch() handler below,
+				// doing so would subtly change the defacto async event dispatch order
+				// which at least one test and some plugins in the wild may depend on.
+				const promise = Promise.resolve(hookResult);
+				return promise.then(() => {
+					// action was fulfilled
+					resolveAction(action as [string, string, Parameters<any>]);
+					return promise;
+				});
 			})
-			.catch(err => throwPluginError(err, plugin.name, { hook: hookName }));
+			.catch(err => {
+				if (action !== null) {
+					// action considered to be fulfilled since error being handled
+					resolveAction(action);
+				}
+				return throwPluginError(err, plugin.name, { hook: hookName });
+			});
 	}
 
 	/**
