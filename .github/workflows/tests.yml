@@ -55,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: ['10', '12']
+        node: ['10', '12', '17']
     name: Node ${{ matrix.node }} (Linux)
     steps:
       - name: Checkout Commit
@@ -92,10 +92,10 @@ jobs:
           CI: true
 
   windows:
-    runs-on: windows-2019
+    runs-on: windows-latest
     strategy:
       matrix:
-        node: ['10', '16']
+        node: ['10', '12', '14', '16', '17']
     name: Node ${{ matrix.node }} (Windows)
     steps:
       - name: Configure git line-breaks
