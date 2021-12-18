@@ -78,8 +78,6 @@ jobs:
         node: ['10', '16']
     name: Node ${{ matrix.node }} (Windows)
     steps:
-      - name: Configure git line-breaks
-        run: git config --global core.autocrlf false
       - name: Checkout Commit
         uses: actions/checkout@v2
       - name: Setup Node
