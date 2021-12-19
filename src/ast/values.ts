@@ -163,10 +163,10 @@ const literalNumberMembers: MemberDescriptions = assembleMemberDescriptions(
 
 const literalStringMembers: MemberDescriptions = assembleMemberDescriptions(
 	{
-		at: returnsString,
+		at: returnsUnknown,
 		charAt: returnsString,
 		charCodeAt: returnsNumber,
-		codePointAt: returnsNumber,
+		codePointAt: returnsUnknown,
 		concat: returnsString,
 		endsWith: returnsBoolean,
 		includes: returnsBoolean,

@@ -29,10 +29,10 @@ const _numberToLocaleString = (1).toLocaleString().trim();
 const _numberToString = (1).toString().trim();
 
 // string prototype
-const _at = 'ab'.at( 1 ).trim();
+const _at = 'ab'.at( 1 )
 const _charAt = 'ab'.charAt( 1 ).trim();
 const _charCodeAt = 'ab'.charCodeAt( 1 ).toExponential( 2 );
-const _codePointAt = 'ab'.codePointAt( 1 ).toExponential( 2 );
+const _codePointAt = 'ab'.codePointAt( 1 );
 const _concat = 'ab'.concat( 'c' ).trim();
 const _includes = 'ab'.includes( 'a' ).valueOf();
 const _endsWith = 'ab'.endsWith( 'a' ).valueOf();
