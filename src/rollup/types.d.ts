@@ -169,6 +169,7 @@ interface ModuleInfo {
 	importers: readonly string[];
 	isEntry: boolean;
 	isExternal: boolean;
+	isIncluded: boolean | null;
 	meta: CustomPluginOptions;
 	syntheticNamedExports: boolean | string;
 }
