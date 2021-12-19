@@ -163,15 +163,26 @@ const literalNumberMembers: MemberDescriptions = assembleMemberDescriptions(
 
 const literalStringMembers: MemberDescriptions = assembleMemberDescriptions(
 	{
+		// note on DEPRECATED methods:
+		// we still have support until being removed from engines (if ever)
+		anchor: returnsString, // DEPRECATED
 		at: returnsUnknown,
+		big: returnsString, // DEPRECATED
+		blink: returnsString, // DEPRECATED
+		bold: returnsString, // DEPRECATED
 		charAt: returnsString,
 		charCodeAt: returnsNumber,
 		codePointAt: returnsUnknown,
 		concat: returnsString,
 		endsWith: returnsBoolean,
+		fixed: returnsString, // DEPRECATED
+		fontcolor: returnsString, // DEPRECATED
+		fontsize: returnsString, // DEPRECATED
 		includes: returnsBoolean,
 		indexOf: returnsNumber,
+		italics: returnsString, // DEPRECATED
 		lastIndexOf: returnsNumber,
+		link: returnsString, // DEPRECATED
 		localeCompare: returnsNumber,
 		match: returnsUnknown,
 		matchAll: returnsUnknown,
@@ -193,18 +204,22 @@ const literalStringMembers: MemberDescriptions = assembleMemberDescriptions(
 		},
 		search: returnsNumber,
 		slice: returnsString,
+		small: returnsString, // DEPRECATED
 		split: returnsUnknown,
 		startsWith: returnsBoolean,
-		substr: returnsString, // deprecated
+		strike: returnsString, // DEPRECATED
+		sub: returnsString, // DEPRECATED
+		substr: returnsString, // DEPRECATED
 		substring: returnsString,
+		sup: returnsString, // DEPRECATED
 		toLocaleLowerCase: returnsString,
 		toLocaleUpperCase: returnsString,
 		toLowerCase: returnsString,
 		toUpperCase: returnsString,
 		trim: returnsString,
 		trimEnd: returnsString,
-		trimLeft: returnsString, // deprecated, alias for trimStart
-		trimRight: returnsString, // deprecated, alias for trimEnd
+		trimLeft: returnsString, // DEPRECATED, alias for trimStart
+		trimRight: returnsString, // DEPRECATED, alias for trimEnd
 		trimStart: returnsString,
 		valueOf: returnsString
 	},

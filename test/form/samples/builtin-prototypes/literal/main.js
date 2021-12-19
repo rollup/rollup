@@ -53,7 +53,6 @@ const _search = 'ab'.search( /a/ ).toExponential( 2 );
 const _slice = 'ab'.slice( 0, 1 ).trim();
 const _split = 'ab'.split( 'a' );
 const _startsWith = 'ab'.startsWith( 'a' ).valueOf();
-const _substr = 'ab'.substr( 0, 1 ).trim();
 const _substring = 'ab'.substring( 0, 1 ).trim();
 const _toLocaleLowerCase = 'ab'.toLocaleLowerCase().trim();
 const _toLocaleUpperCase = 'ab'.toLocaleUpperCase().trim();
@@ -61,10 +60,27 @@ const _toLowerCase = 'ab'.toLowerCase().trim();
 const _toUpperCase = 'ab'.toUpperCase().trim();
 const _trim = 'ab'.trim().trim();
 const _trimEnd = 'ab'.trimEnd().trim();
-const _trimLeft = 'ab'.trimLeft().trim();
-const _trimRight = 'ab'.trimRight().trim();
 const _trimStart = 'ab'.trimStart().trim();
 const _stringValueOf = 'ab'.valueOf().trim();
+
+// DEPRECATED prototype methods
+const _anchor = 'ab'.anchor().trim();
+const _big = 'ab'.big().trim();
+const _blink = 'ab'.blink().trim();
+const _bold = 'ab'.bold().trim();
+const _fixed = 'ab'.fixed().trim();
+const _fontcolor = 'ab'.fontcolor().trim();
+const _fontsize = 'ab'.fontsize().trim();
+const _italics = 'ab'.italics().trim();
+const _link = 'ab'.link().trim();
+const _small = 'ab'.small().trim();
+const _strike = 'ab'.strike().trim();
+const _sub = 'ab'.sub().trim();
+const _substr = 'ab'.substr(0, 1).trim();
+const _sup = 'ab'.sup().trim();
+const _trimLeft = 'ab'.trimLeft().trim();
+const _trimRight = 'ab'.trimRight().trim();
+
 // inherited
 const _stringHasOwnProperty = 'ab'.hasOwnProperty( 'toString' ).valueOf();
 const _stringIsPrototypeOf = 'ab'.isPrototypeOf( '' ).valueOf();
