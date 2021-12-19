@@ -139,10 +139,11 @@ exported.splice(0);
 const _unshift = [1].unshift(0).toPrecision(1);
 exported.unshift(0);
 
+const _toLocaleString = [1].toLocaleString().trim();
+const _toString = [1].toString().trim();
+
 // inherited
 const _hasOwnProperty = [1].hasOwnProperty('toString').valueOf();
 const _isPrototypeOf = [1].isPrototypeOf([]).valueOf();
 const _propertyIsEnumerable = [1].propertyIsEnumerable('toString').valueOf();
-const _toLocaleString = [1].toLocaleString().trim();
-const _toString = [1].toString().trim();
 const _valueOf = [1].valueOf();
