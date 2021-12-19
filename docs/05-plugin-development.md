@@ -665,6 +665,7 @@ type ModuleInfo = {
   ast: ESTree.Program; // the parsed abstract syntax tree if available
   isEntry: boolean; // is this a user- or plugin-defined entry point
   isExternal: boolean; // for external modules that are referenced but not included in the graph
+  isIncluded: boolean | null; // is the module included after tree-shaking, `null` if external or not yet available
   importedIds: string[]; // the module ids statically imported by this module
   importers: string[]; // the ids of all modules that statically import this module
   dynamicallyImportedIds: string[]; // the module ids imported by this module via dynamic import()

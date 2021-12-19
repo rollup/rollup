@@ -80,6 +80,7 @@ module.exports = {
 					importers: [],
 					isEntry: true,
 					isExternal: false,
+					isIncluded: true,
 					meta: {},
 					syntheticNamedExports: false
 				});
@@ -139,6 +140,7 @@ module.exports = {
 					importers: [],
 					isEntry: true,
 					isExternal: false,
+					isIncluded: true,
 					meta: {},
 					syntheticNamedExports: false
 				});
