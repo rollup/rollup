@@ -215,6 +215,7 @@ const literalStringMembers: MemberDescriptions = assembleMemberDescriptions(
 		toLocaleLowerCase: returnsString,
 		toLocaleUpperCase: returnsString,
 		toLowerCase: returnsString,
+		toString: returnsString, // overrides the toString() method of the Object object; it does not inherit Object.prototype.toString()
 		toUpperCase: returnsString,
 		trim: returnsString,
 		trimEnd: returnsString,

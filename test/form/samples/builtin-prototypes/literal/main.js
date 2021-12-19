@@ -57,6 +57,7 @@ const _substring = 'ab'.substring( 0, 1 ).trim();
 const _toLocaleLowerCase = 'ab'.toLocaleLowerCase().trim();
 const _toLocaleUpperCase = 'ab'.toLocaleUpperCase().trim();
 const _toLowerCase = 'ab'.toLowerCase().trim();
+const _toString = 'ab'.trim();
 const _toUpperCase = 'ab'.toUpperCase().trim();
 const _trim = 'ab'.trim().trim();
 const _trimEnd = 'ab'.trimEnd().trim();
