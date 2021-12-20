@@ -163,26 +163,25 @@ const literalNumberMembers: MemberDescriptions = assembleMemberDescriptions(
 
 const literalStringMembers: MemberDescriptions = assembleMemberDescriptions(
 	{
-		// note on DEPRECATED methods:
-		// we still have support until being removed from engines (if ever)
-		anchor: returnsString, // DEPRECATED
+		anchor: returnsString,
+
 		at: returnsUnknown,
-		big: returnsString, // DEPRECATED
-		blink: returnsString, // DEPRECATED
-		bold: returnsString, // DEPRECATED
+		big: returnsString,
+		blink: returnsString,
+		bold: returnsString,
 		charAt: returnsString,
 		charCodeAt: returnsNumber,
 		codePointAt: returnsUnknown,
 		concat: returnsString,
 		endsWith: returnsBoolean,
-		fixed: returnsString, // DEPRECATED
-		fontcolor: returnsString, // DEPRECATED
-		fontsize: returnsString, // DEPRECATED
+		fixed: returnsString,
+		fontcolor: returnsString,
+		fontsize: returnsString,
 		includes: returnsBoolean,
 		indexOf: returnsNumber,
-		italics: returnsString, // DEPRECATED
+		italics: returnsString,
 		lastIndexOf: returnsNumber,
-		link: returnsString, // DEPRECATED
+		link: returnsString,
 		localeCompare: returnsNumber,
 		match: returnsUnknown,
 		matchAll: returnsUnknown,
@@ -204,14 +203,14 @@ const literalStringMembers: MemberDescriptions = assembleMemberDescriptions(
 		},
 		search: returnsNumber,
 		slice: returnsString,
-		small: returnsString, // DEPRECATED
+		small: returnsString,
 		split: returnsUnknown,
 		startsWith: returnsBoolean,
-		strike: returnsString, // DEPRECATED
-		sub: returnsString, // DEPRECATED
-		substr: returnsString, // DEPRECATED
+		strike: returnsString,
+		sub: returnsString,
+		substr: returnsString,
 		substring: returnsString,
-		sup: returnsString, // DEPRECATED
+		sup: returnsString,
 		toLocaleLowerCase: returnsString,
 		toLocaleUpperCase: returnsString,
 		toLowerCase: returnsString,
@@ -219,8 +218,8 @@ const literalStringMembers: MemberDescriptions = assembleMemberDescriptions(
 		toUpperCase: returnsString,
 		trim: returnsString,
 		trimEnd: returnsString,
-		trimLeft: returnsString, // DEPRECATED, alias for trimStart
-		trimRight: returnsString, // DEPRECATED, alias for trimEnd
+		trimLeft: returnsString,
+		trimRight: returnsString,
 		trimStart: returnsString,
 		valueOf: returnsString
 	},
