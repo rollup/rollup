@@ -163,16 +163,28 @@ const literalNumberMembers: MemberDescriptions = assembleMemberDescriptions(
 
 const literalStringMembers: MemberDescriptions = assembleMemberDescriptions(
 	{
+		anchor: returnsString,
+
+		at: returnsUnknown,
+		big: returnsString,
+		blink: returnsString,
+		bold: returnsString,
 		charAt: returnsString,
 		charCodeAt: returnsNumber,
-		codePointAt: returnsNumber,
+		codePointAt: returnsUnknown,
 		concat: returnsString,
 		endsWith: returnsBoolean,
+		fixed: returnsString,
+		fontcolor: returnsString,
+		fontsize: returnsString,
 		includes: returnsBoolean,
 		indexOf: returnsNumber,
+		italics: returnsString,
 		lastIndexOf: returnsNumber,
+		link: returnsString,
 		localeCompare: returnsNumber,
-		match: returnsBoolean,
+		match: returnsUnknown,
+		matchAll: returnsUnknown,
 		normalize: returnsString,
 		padEnd: returnsString,
 		padStart: returnsString,
@@ -183,17 +195,32 @@ const literalStringMembers: MemberDescriptions = assembleMemberDescriptions(
 				returns: UNKNOWN_LITERAL_STRING
 			}
 		},
+		replaceAll: {
+			value: {
+				callsArgs: [1],
+				returns: UNKNOWN_LITERAL_STRING
+			}
+		},
 		search: returnsNumber,
 		slice: returnsString,
+		small: returnsString,
 		split: returnsUnknown,
 		startsWith: returnsBoolean,
+		strike: returnsString,
+		sub: returnsString,
 		substr: returnsString,
 		substring: returnsString,
+		sup: returnsString,
 		toLocaleLowerCase: returnsString,
 		toLocaleUpperCase: returnsString,
 		toLowerCase: returnsString,
+		toString: returnsString, // overrides the toString() method of the Object object; it does not inherit Object.prototype.toString()
 		toUpperCase: returnsString,
 		trim: returnsString,
+		trimEnd: returnsString,
+		trimLeft: returnsString,
+		trimRight: returnsString,
+		trimStart: returnsString,
 		valueOf: returnsString
 	},
 	objectMembers

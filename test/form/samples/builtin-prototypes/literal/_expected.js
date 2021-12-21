@@ -9,6 +9,7 @@ true.valueOf()();
 'ab'.charAt(1)();
 null.unknown;
 'ab'.replace( 'a', () => console.log( 1 ) || 'b' );
+'ab'.replaceAll( 'a', () => console.log( 1 ) || 'b' );
 
 // deep property access is forbidden
 true.x.y;
