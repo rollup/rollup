@@ -1,4 +1,4 @@
-import { type FSWatcher, readFileSync } from 'fs';
+import { type FSWatcher, promises } from 'fs';
 import chokidar from 'chokidar';
 import dateTime from 'date-time';
 import ms from 'pretty-ms';
@@ -22,7 +22,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 	let watcher: RollupWatcher;
 	let configWatcher: FSWatcher;
 	let resetScreen: (heading: string) => void;
-	const configFile = command.config ? getConfigPath(command.config) : null;
+	const configFile = command.config ? await getConfigPath(command.config) : null;
 
 	onExit(close);
 	process.on('uncaughtException', close);
@@ -40,7 +40,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 
 		async function reloadConfigFile() {
 			try {
-				const newConfigFileData = readFileSync(configFile, 'utf-8');
+				const newConfigFileData = await promises.readFile(configFile, 'utf8');
 				if (newConfigFileData === configFileData) {
 					return;
 				}
