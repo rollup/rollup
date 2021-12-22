@@ -1,6 +1,6 @@
 import { CustomPluginOptions, Plugin, ResolvedId, ResolveIdResult } from '../rollup/types';
 import { PluginDriver } from './PluginDriver';
-import { lstatSync, readdirSync, realpathSync } from './fs';
+import { lstat, readdir, realpath } from './fs';
 import { basename, dirname, isAbsolute, resolve } from './path';
 import { resolveIdViaPlugins } from './resolveIdViaPlugins';
 
@@ -45,23 +45,26 @@ export async function resolveId(
 	);
 }
 
-function addJsExtensionIfNecessary(file: string, preserveSymlinks: boolean): string | undefined {
+async function addJsExtensionIfNecessary(
+	file: string,
+	preserveSymlinks: boolean
+): Promise<string | undefined> {
 	return (
-		findFile(file, preserveSymlinks) ??
-		findFile(file + '.mjs', preserveSymlinks) ??
-		findFile(file + '.js', preserveSymlinks)
+		(await findFile(file, preserveSymlinks)) ??
+		(await findFile(file + '.mjs', preserveSymlinks)) ??
+		(await findFile(file + '.js', preserveSymlinks))
 	);
 }
 
-function findFile(file: string, preserveSymlinks: boolean): string | undefined {
+async function findFile(file: string, preserveSymlinks: boolean): Promise<string | undefined> {
 	try {
-		const stats = lstatSync(file);
+		const stats = await lstat(file);
 		if (!preserveSymlinks && stats.isSymbolicLink())
-			return findFile(realpathSync(file), preserveSymlinks);
+			return await findFile(await realpath(file), preserveSymlinks);
 		if ((preserveSymlinks && stats.isSymbolicLink()) || stats.isFile()) {
 			// check case
 			const name = basename(file);
-			const files = readdirSync(dirname(file));
+			const files = await readdir(dirname(file));
 
 			if (files.includes(name)) return file;
 		}

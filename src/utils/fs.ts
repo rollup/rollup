@@ -1,7 +1,7 @@
 import { promises as fs } from 'fs';
 import { dirname } from './path';
 
-export * from 'fs';
+export const { lstat, readdir, realpath } = fs;
 
 export function readFile(file: string): Promise<string> {
 	return fs.readFile(file, 'utf8');
