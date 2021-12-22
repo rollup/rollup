@@ -75,7 +75,7 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        node: ['10', '12', '14', '16', '17']
+        node: ['12', '16']
     name: Node ${{ matrix.node }} (macOS)
     steps:
       - name: Checkout Commit
@@ -95,7 +95,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        node: ['10', '12', '14', '16', '17']
+        node: ['10', '16']
     name: Node ${{ matrix.node }} (Windows)
     steps:
       - name: Checkout Commit
