@@ -55,6 +55,7 @@ export default class ExternalModule {
 			},
 			isEntry: false,
 			isExternal: true,
+			isIncluded: null,
 			meta,
 			syntheticNamedExports: false
 		};

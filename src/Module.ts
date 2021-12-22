@@ -46,6 +46,7 @@ import {
 	TransformModuleJSON
 } from './rollup/types';
 import { EMPTY_OBJECT } from './utils/blank';
+import { BuildPhase } from './utils/buildPhase';
 import {
 	augmentCodeLocation,
 	errAmbiguousExternalNamespaces,
@@ -287,6 +288,12 @@ export default class Module {
 			},
 			isEntry,
 			isExternal: false,
+			get isIncluded() {
+				if (module.graph.phase !== BuildPhase.GENERATE) {
+					return null;
+				}
+				return module.isIncluded();
+			},
 			meta,
 			syntheticNamedExports
 		};
