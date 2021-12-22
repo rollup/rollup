@@ -248,7 +248,7 @@ gulp.task('build', async function () {
 ```
 
 ### Deno
-If you like to run Rollup in you can use [esm.sh](https://esm.sh/) like so:
+If you like to run Rollup in Deno you can use [esm.sh](https://esm.sh/) like so:
 ```js
 import {rollup} from "https://esm.sh/rollup@2.61.1";
 
