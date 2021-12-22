@@ -55,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: ['10', '12']
+        node: ['10', '12', '17']
     name: Node ${{ matrix.node }} (Linux)
     steps:
       - name: Checkout Commit
@@ -71,8 +71,28 @@ jobs:
         env:
           CI: true
 
+  macos:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        node: ['12', '16']
+    name: Node ${{ matrix.node }} (macOS)
+    steps:
+      - name: Checkout Commit
+        uses: actions/checkout@v2
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+      - name: Run tests
+        run: npm run ci:test:only
+        env:
+          CI: true
+
   windows:
-    runs-on: windows-2019
+    runs-on: windows-latest
     strategy:
       matrix:
         node: ['10', '16']
