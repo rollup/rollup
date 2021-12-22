@@ -63,7 +63,7 @@ function findFile(file: string, preserveSymlinks: boolean): string | undefined {
 			const name = basename(file);
 			const files = readdirSync(dirname(file));
 
-			if (files.indexOf(name) !== -1) return file;
+			if (files.includes(name)) return file;
 		}
 	} catch {
 		// suppress
