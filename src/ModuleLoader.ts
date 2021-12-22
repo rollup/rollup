@@ -253,7 +253,8 @@ export class ModuleLoader {
 		let source: LoadResult;
 		try {
 			source = await this.readQueue.run(
-				async () => (await this.pluginDriver.hookFirst('load', [id])) ?? (await readFile(id))
+				async () =>
+					(await this.pluginDriver.hookFirst('load', [id])) ?? (await readFile(id, 'utf8'))
 			);
 		} catch (err: any) {
 			timeEnd('load modules', 3);
