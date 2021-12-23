@@ -173,8 +173,6 @@ const knownGlobals: GlobalDescription = {
 		__proto__: null,
 		[ValueProperties]: PURE,
 		create: PF,
-		getNotifier: PF,
-		getOwn: PF,
 		getOwnPropertyDescriptor: PF,
 		getOwnPropertyNames: PF,
 		getOwnPropertySymbols: PF,
