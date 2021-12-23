@@ -4,12 +4,12 @@ import alias from '@rollup/plugin-alias';
 import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
 import resolve from '@rollup/plugin-node-resolve';
+import replace from '@rollup/plugin-replace';
 import typescript from '@rollup/plugin-typescript';
 import { RollupOptions, WarningHandlerWithDefault } from 'rollup';
 import { string } from 'rollup-plugin-string';
 import { terser } from 'rollup-plugin-terser';
 import addCliEntry from './build-plugins/add-cli-entry';
-import conditionalFsEventsImport from './build-plugins/conditional-fsevents-import';
 import emitModulePackageFile from './build-plugins/emit-module-package-file';
 import esmDynamicImport from './build-plugins/esm-dynamic-import';
 import getLicenseHandler from './build-plugins/generate-license-file';
@@ -68,7 +68,14 @@ const nodePlugins = [
 	alias(moduleAliases),
 	resolve(),
 	json(),
-	conditionalFsEventsImport(),
+	replace({
+		delimiters: ['', ''],
+		incude: 'fsevents-handler.js',
+		preventAssignment: true, // required, likely bug in plugin or docs
+		values: {
+			"require('fsevents')": "require('../../../src/watch/fsevents-importer').getFsEvents()"
+		}
+	}),
 	string({ include: '**/*.md' }),
 	commonjs({
 		ignoreTryCatch: false,
