@@ -246,3 +246,25 @@ gulp.task('build', async function () {
   });
 });
 ```
+
+### Deno
+
+If you like to run Rollup in Deno you can use [esm.sh](https://esm.sh/) like so:
+
+```js
+import {rollup} from "https://esm.sh/rollup@2.61.1";
+
+const bundle = await rollup({ //...
+```
+
+Alternatively you can install rollup from npm and use the [node compatibility layer](https://deno.land/std@0.110.0/node):
+
+```js
+import {createRequire} from "https://deno.land/std@0.110.0/node/module.ts";
+const require = createRequire(import.meta.url);
+const {rollup} = require("rollup");
+
+const bundle = await rollup({ //...
+```
+
+Be sure to run deno with the `--unstable` flag. And don't forget `--allow-read` and `--allow-write` if you plan on using `bundle.write()`.

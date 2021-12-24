@@ -109,6 +109,7 @@ module.exports = {
 							importers: [],
 							isEntry: true,
 							isExternal: false,
+							isIncluded: true,
 							meta: {},
 							syntheticNamedExports: false
 						},
@@ -125,6 +126,7 @@ module.exports = {
 							importers: [getId('main')],
 							isEntry: false,
 							isExternal: true,
+							isIncluded: null,
 							meta: {},
 							syntheticNamedExports: false
 						},
@@ -154,6 +156,7 @@ module.exports = {
 							importers: [getId('dynamic'), getId('main')],
 							isEntry: false,
 							isExternal: false,
+							isIncluded: true,
 							meta: {},
 							syntheticNamedExports: false
 						},
@@ -226,6 +229,7 @@ module.exports = {
 							importers: [],
 							isEntry: false,
 							isExternal: false,
+							isIncluded: true,
 							meta: {},
 							syntheticNamedExports: false
 						}

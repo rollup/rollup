@@ -70,7 +70,10 @@ const nodePlugins = [
 	json(),
 	conditionalFsEventsImport(),
 	string({ include: '**/*.md' }),
-	commonjs({ include: 'node_modules/**' }),
+	commonjs({
+		ignoreTryCatch: false,
+		include: 'node_modules/**'
+	}),
 	typescript()
 ];
 

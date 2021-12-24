@@ -27,6 +27,7 @@ module.exports = {
 					importers: [],
 					isEntry: id === ID_MAIN,
 					isExternal: false,
+					isIncluded: null,
 					meta: {},
 					syntheticNamedExports: false
 				});
@@ -172,6 +173,7 @@ module.exports = {
 							importers: [],
 							isEntry: true,
 							isExternal: false,
+							isIncluded: true,
 							meta: {},
 							syntheticNamedExports: false
 						},
@@ -248,6 +250,7 @@ module.exports = {
 							importers: [ID_MAIN, ID_NESTED],
 							isEntry: false,
 							isExternal: false,
+							isIncluded: true,
 							meta: {},
 							syntheticNamedExports: false
 						},
@@ -264,6 +267,7 @@ module.exports = {
 							importers: [ID_FOO],
 							isEntry: false,
 							isExternal: true,
+							isIncluded: null,
 							meta: {},
 							syntheticNamedExports: false
 						},
@@ -343,6 +347,7 @@ module.exports = {
 							importers: [],
 							isEntry: false,
 							isExternal: false,
+							isIncluded: true,
 							meta: {},
 							syntheticNamedExports: false
 						}
