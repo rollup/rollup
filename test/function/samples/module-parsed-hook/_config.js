@@ -58,6 +58,7 @@ module.exports = {
 						importers: [],
 						isEntry: true,
 						isExternal: false,
+						isIncluded: false,
 						meta: {},
 						syntheticNamedExports: false
 					},
@@ -103,6 +104,7 @@ module.exports = {
 						importers: [ID_MAIN],
 						isEntry: false,
 						isExternal: false,
+						isIncluded: true,
 						meta: {},
 						syntheticNamedExports: false
 					}

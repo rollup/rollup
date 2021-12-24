@@ -42,6 +42,7 @@ module.exports = {
 							importers: [],
 							isEntry: false,
 							isExternal: false,
+							isIncluded: null,
 							meta: { testPlugin: 'first' },
 							syntheticNamedExports: false
 						});
@@ -79,6 +80,7 @@ module.exports = {
 						importers: [ID_MAIN],
 						isEntry: false,
 						isExternal: false,
+						isIncluded: true,
 						meta: {},
 						syntheticNamedExports: false
 					});
