@@ -1,5 +1,34 @@
 # rollup changelog
 
+## 2.62.0
+
+_2021-12-24_
+
+### Features
+
+- Only resolve this.load once the code of the module is available (#4296)
+- Mark additional string prototype methods as side-effect-free and correct typings of existing ones (#4299)
+- Mark additional array prototype methods as side-effect-free and correct typings of existing ones (#4309)
+- Expose if a module is included after tree-shaking in its ModuleInfo (#4305)
+
+### Bug Fixes
+
+- Fix how fsevents is included to improve watch mode on MacOS (#4312)
+
+### Pull Requests
+
+- [#4299](https://github.com/rollup/rollup/pull/4299): Add additional string prototype methods (@dnalborczyk)
+- [#4300](https://github.com/rollup/rollup/pull/4300): Bump deps, fix expected test result for core-js (@dnalborczyk)
+- [#4302](https://github.com/rollup/rollup/pull/4302): Replace type assertion with type guard (@dnalborczyk)
+- [#4304](https://github.com/rollup/rollup/pull/4304): Re-use reserved names set (@dnalborczyk)
+- [#4305](https://github.com/rollup/rollup/pull/4305): Expose isIncluded in module info (@william57m)
+- [#4306](https://github.com/rollup/rollup/pull/4306): Fix git line breaks on windows (@dnalborczyk)
+- [#4307](https://github.com/rollup/rollup/pull/4307): Add macos to pipeline (@dnalborczyk)
+- [#4309](https://github.com/rollup/rollup/pull/4309): Add additional array prototype methods (@dnalborczyk)
+- [#4311](https://github.com/rollup/rollup/pull/4311): Add Deno instructions to docs (@jespertheend)
+- [#4312](https://github.com/rollup/rollup/pull/4312): fsevents integration (@dnalborczyk)
+- [#4313](https://github.com/rollup/rollup/pull/4313): Remove non-existing static functions from known globals (@dnalborczyk)
+
 ## 2.61.1
 
 _2021-12-11_
