@@ -50,12 +50,11 @@ const onwarn: WarningHandlerWithDefault = warning => {
 };
 
 const moduleAliases = {
-	entries: [
-		{ find: 'help.md', replacement: path.resolve('cli/help.md') },
-		{ find: 'package.json', replacement: path.resolve('package.json') },
-		{ find: 'acorn', replacement: path.resolve('node_modules/acorn/dist/acorn.mjs') }
-	],
-	resolve: ['.js', '.json', '.md']
+	entries: {
+		acorn: path.resolve('node_modules/acorn/dist/acorn.mjs'),
+		'help.md': path.resolve('cli/help.md'),
+		'package.json': path.resolve('package.json')
+	}
 };
 
 const treeshake = {
