@@ -6,7 +6,6 @@ _2021-12-24_
 
 ### Features
 
-- Only resolve this.load once the code of the module is available (#4296)
 - Mark additional string prototype methods as side-effect-free and correct typings of existing ones (#4299)
 - Mark additional array prototype methods as side-effect-free and correct typings of existing ones (#4309)
 - Expose if a module is included after tree-shaking in its ModuleInfo (#4305)
