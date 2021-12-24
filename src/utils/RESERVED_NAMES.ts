@@ -1,4 +1,4 @@
-const RESERVED_WORDS: ReadonlySet<string> = new Set([
+const RESERVED_NAMES: ReadonlySet<string> = new Set([
 	'await',
 	'break',
 	'case',
@@ -26,6 +26,7 @@ const RESERVED_WORDS: ReadonlySet<string> = new Set([
 	'instanceof',
 	'interface',
 	'let',
+	'NaN',
 	'new',
 	'null',
 	'package',
@@ -49,4 +50,4 @@ const RESERVED_WORDS: ReadonlySet<string> = new Set([
 	'yield'
 ]);
 
-export default RESERVED_WORDS;
+export default RESERVED_NAMES;

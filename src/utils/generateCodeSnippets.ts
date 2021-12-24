@@ -1,5 +1,5 @@
 import { NormalizedOutputOptions } from '../rollup/types';
-import RESERVED_WORDS from './RESERVED_WORDS';
+import RESERVED_NAMES from './RESERVED_NAMES';
 
 export interface GenerateCodeSnippets {
 	_: string;
@@ -79,7 +79,7 @@ export function getGenerateCodeSnippets({
 
 	const isValidPropName = reservedNamesAsProps
 		? (name: string): boolean => validPropName.test(name)
-		: (name: string): boolean => !RESERVED_WORDS.has(name) && validPropName.test(name);
+		: (name: string): boolean => !RESERVED_NAMES.has(name) && validPropName.test(name);
 
 	return {
 		_,

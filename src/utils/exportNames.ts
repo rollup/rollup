@@ -1,5 +1,5 @@
 import Variable from '../ast/variables/Variable';
-import RESERVED_WORDS from './RESERVED_WORDS';
+import RESERVED_NAMES from './RESERVED_NAMES';
 import { toBase64 } from './base64';
 
 export function assignExportsToMangledNames(
@@ -18,7 +18,7 @@ export function assignExportsToMangledNames(
 					nameIndex += 9 * 64 ** (exportName.length - 1);
 					exportName = toBase64(nameIndex);
 				}
-			} while (RESERVED_WORDS.has(exportName) || exportsByName[exportName]);
+			} while (RESERVED_NAMES.has(exportName) || exportsByName[exportName]);
 		}
 		exportsByName[exportName] = variable;
 		exportNamesByVariable.set(variable, [exportName]);
