@@ -1,5 +1,5 @@
 import { NormalizedOutputOptions } from '../rollup/types';
-import { RESERVED_NAMES } from './reservedNames';
+import RESERVED_NAMES from './RESERVED_NAMES';
 
 export interface GenerateCodeSnippets {
 	_: string;

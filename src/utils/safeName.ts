@@ -1,5 +1,5 @@
+import RESERVED_NAMES from './RESERVED_NAMES';
 import { toBase64 } from './base64';
-import { RESERVED_NAMES } from './reservedNames';
 
 export function getSafeName(baseName: string, usedNames: Set<string>): string {
 	let safeName = baseName;

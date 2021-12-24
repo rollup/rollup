@@ -1,4 +1,4 @@
-export const RESERVED_NAMES = new Set([
+const RESERVED_NAMES: ReadonlySet<string> = new Set([
 	'await',
 	'break',
 	'case',
@@ -26,6 +26,7 @@ export const RESERVED_NAMES = new Set([
 	'instanceof',
 	'interface',
 	'let',
+	'NaN',
 	'new',
 	'null',
 	'package',
@@ -48,3 +49,5 @@ export const RESERVED_NAMES = new Set([
 	'with',
 	'yield'
 ]);
+
+export default RESERVED_NAMES;
