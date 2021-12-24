@@ -307,10 +307,10 @@ function validateOptionsForMultiChunkOutput(
 
 function getIncludedModules(modulesById: Map<string, Module | ExternalModule>): Module[] {
 	return [...modulesById.values()].filter(
-		module =>
+		(module): module is Module =>
 			module instanceof Module &&
 			(module.isIncluded() || module.info.isEntry || module.includedDynamicImporters.length > 0)
-	) as Module[];
+	);
 }
 
 function addModuleToManualChunk(
