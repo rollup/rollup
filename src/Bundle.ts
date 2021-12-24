@@ -306,7 +306,7 @@ function validateOptionsForMultiChunkOutput(
 }
 
 function getIncludedModules(modulesById: Map<string, Module | ExternalModule>): Module[] {
-	return Array.from(modulesById.values()).filter(
+	return [...modulesById.values()].filter(
 		(module): module is Module =>
 			module instanceof Module &&
 			(module.isIncluded() || module.info.isEntry || module.includedDynamicImporters.length > 0)
