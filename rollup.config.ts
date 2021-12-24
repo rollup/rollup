@@ -88,9 +88,9 @@ export default (command: Record<string, unknown>): RollupOptions | RollupOptions
 	const commonJSBuild: RollupOptions = {
 		// fsevents is a dependency of chokidar that cannot be bundled as it contains binary code
 		external: [
-			'buffer',
 			'@rollup/plugin-typescript',
 			'assert',
+			'buffer',
 			'crypto',
 			'events',
 			'fs',
@@ -131,8 +131,7 @@ export default (command: Record<string, unknown>): RollupOptions | RollupOptions
 			...nodePlugins,
 			addCliEntry(),
 			esmDynamicImport(),
-			// TODO this relied on an unpublished type update
-			(!command.configTest && collectLicenses()) as Plugin
+			!command.configTest && collectLicenses()
 		],
 		strictDeprecations: true,
 		treeshake
