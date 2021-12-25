@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { atomicWriteFileSync } = require('../../../../utils');
 
 let mainFile;
 
@@ -16,7 +17,7 @@ module.exports = {
 	},
 	abortOnStderr(data) {
 		if (data.includes('Error: Unexpected token')) {
-			setTimeout(() => fs.writeFileSync(mainFile, 'export default 42;'), 500);
+			setTimeout(() => atomicWriteFileSync(mainFile, 'export default 42;'), 500);
 			return false;
 		}
 		if (data.includes('created _actual')) {

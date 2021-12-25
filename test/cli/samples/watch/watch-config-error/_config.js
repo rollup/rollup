@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { atomicWriteFileSync } = require('../../../../utils');
 
 let configFile;
 
@@ -25,12 +26,12 @@ module.exports = {
 	},
 	abortOnStderr(data) {
 		if (data.includes(`created _actual${path.sep}main1.js`)) {
-			fs.writeFileSync(configFile, 'throw new Error("Config contains errors");');
+			atomicWriteFileSync(configFile, 'throw new Error("Config contains errors");');
 			return false;
 		}
 		if (data.includes('Config contains errors')) {
 			setTimeout(() => {
-				fs.writeFileSync(
+				atomicWriteFileSync(
 					configFile,
 					'export default {\n' +
 						'\tinput: "main.js",\n' +
