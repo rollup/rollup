@@ -1,4 +1,4 @@
-const fs = require('fs');
+const { unlinkSync, writeFileSync } = require('fs');
 const path = require('path');
 
 let mainFile;
@@ -10,12 +10,12 @@ module.exports = {
 		mainFile = path.resolve(__dirname, 'main.js');
 	},
 	after() {
-		fs.unlinkSync(mainFile);
+		unlinkSync(mainFile);
 	},
 	abortOnStderr(data) {
 		if (data.includes('waiting for input main.js')) {
 			// wait longer than one polling interval
-			setTimeout(() => fs.writeFileSync(mainFile, 'export default 42;'), 600);
+			setTimeout(() => writeFileSync(mainFile, 'export default 42;'), 600);
 		}
 	}
 };

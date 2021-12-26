@@ -1,4 +1,4 @@
-const fs = require('fs');
+const { mkdirSync, unlinkSync, writeFileSync } = require('fs');
 const path = require('path');
 
 let configFile;
@@ -7,9 +7,9 @@ module.exports = {
 	description: 'immediately reloads the config file if a change happens while it is parsed',
 	command: 'rollup -cw',
 	before() {
-		fs.mkdirSync(path.resolve(__dirname, '_actual'));
+		mkdirSync(path.resolve(__dirname, '_actual'));
 		configFile = path.resolve(__dirname, 'rollup.config.js');
-		fs.writeFileSync(
+		writeFileSync(
 			configFile,
 			`
 			console.error('initial');
@@ -30,11 +30,11 @@ module.exports = {
 		);
 	},
 	after() {
-		fs.unlinkSync(configFile);
+		unlinkSync(configFile);
 	},
 	abortOnStderr(data) {
 		if (data === 'initial\n') {
-			fs.writeFileSync(
+			writeFileSync(
 				configFile,
 				`
 				console.error('updated');

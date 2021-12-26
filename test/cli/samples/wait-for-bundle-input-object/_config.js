@@ -1,4 +1,4 @@
-const fs = require('fs');
+const { unlinkSync, writeFileSync } = require('fs');
 const path = require('path');
 
 let second;
@@ -12,14 +12,14 @@ module.exports = {
 		third = path.resolve(__dirname, 'third.js');
 	},
 	after() {
-		fs.unlinkSync(second);
-		fs.unlinkSync(third);
+		unlinkSync(second);
+		unlinkSync(third);
 	},
 	abortOnStderr(data) {
 		if (data.includes('waiting for input second')) {
-			fs.writeFileSync(second, "export default 'second'");
+			writeFileSync(second, "export default 'second'");
 		} else if (data.includes('waiting for input third')) {
-			fs.writeFileSync(third, "export default 'third'");
+			writeFileSync(third, "export default 'third'");
 		}
 	}
 };

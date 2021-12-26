@@ -1,4 +1,4 @@
-const fs = require('fs');
+const { unlinkSync, writeFileSync } = require('fs');
 const path = require('path');
 
 let configFile;
@@ -8,7 +8,7 @@ module.exports = {
 	command: 'rollup -cw',
 	before() {
 		configFile = path.resolve(__dirname, 'rollup.config.js');
-		fs.writeFileSync(
+		writeFileSync(
 			configFile,
 			'export default {\n' +
 				'\tinput: "main.js",\n' +
@@ -21,16 +21,16 @@ module.exports = {
 	},
 	after() {
 		// synchronous sometimes does not seem to work, probably because the watch is not yet removed properly
-		setTimeout(() => fs.unlinkSync(configFile), 300);
+		setTimeout(() => unlinkSync(configFile), 300);
 	},
 	abortOnStderr(data) {
 		if (data.includes(`created _actual${path.sep}main1.js`)) {
-			fs.writeFileSync(configFile, 'throw new Error("Config contains errors");');
+			writeFileSync(configFile, 'throw new Error("Config contains errors");');
 			return false;
 		}
 		if (data.includes('Config contains errors')) {
 			setTimeout(() => {
-				fs.writeFileSync(
+				writeFileSync(
 					configFile,
 					'export default {\n' +
 						'\tinput: "main.js",\n' +
