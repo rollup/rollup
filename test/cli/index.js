@@ -1,8 +1,9 @@
 const assert = require('assert');
 const { exec } = require('child_process');
 const { existsSync, readFileSync } = require('fs');
-const path = require('path');
-const sander = require('sander');
+const { basename, resolve, sep } = require('path');
+const process = require('process');
+const { copySync, removeSync, statSync } = require('fs-extra');
 const {
 	normaliseOutput,
 	runTestSuiteWithSamples,
@@ -11,22 +12,22 @@ const {
 
 const cwd = process.cwd();
 
-sander.rimrafSync(__dirname, 'node_modules');
-sander.copydirSync(__dirname, 'node_modules_rename_me').to(__dirname, 'node_modules');
+removeSync(resolve(__dirname, 'node_modules'));
+copySync(resolve(__dirname, 'node_modules_rename_me'), resolve(__dirname, 'node_modules'));
 
 runTestSuiteWithSamples(
 	'cli',
-	path.resolve(__dirname, 'samples'),
+	resolve(__dirname, 'samples'),
 	(dir, config) => {
 		(config.skip ? it.skip : config.solo ? it.only : it)(
-			path.basename(dir) + ': ' + config.description,
+			basename(dir) + ': ' + config.description,
 			done => {
 				process.chdir(config.cwd || dir);
 				if (config.before) config.before();
 
 				const command = config.command.replace(
 					/(^| )rollup($| )/g,
-					`node ${path.resolve(__dirname, '../../dist/bin')}${path.sep}rollup `
+					`node ${resolve(__dirname, '../../dist/bin')}${sep}rollup `
 				);
 
 				const childProcess = exec(
@@ -99,7 +100,7 @@ runTestSuiteWithSamples(
 							} catch (err) {
 								done(err);
 							}
-						} else if (existsSync('_expected') && sander.statSync('_expected').isDirectory()) {
+						} else if (existsSync('_expected') && statSync('_expected').isDirectory()) {
 							try {
 								assertDirectoriesAreEqual('_actual', '_expected');
 								done();
