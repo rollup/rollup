@@ -1,6 +1,6 @@
 const assert = require('assert');
 const { exec } = require('child_process');
-const { readFileSync } = require('fs');
+const { existsSync, readFileSync } = require('fs');
 const path = require('path');
 const sander = require('sander');
 const {
@@ -99,10 +99,7 @@ runTestSuiteWithSamples(
 							} catch (err) {
 								done(err);
 							}
-						} else if (
-							sander.existsSync('_expected') &&
-							sander.statSync('_expected').isDirectory()
-						) {
+						} else if (existsSync('_expected') && sander.statSync('_expected').isDirectory()) {
 							try {
 								assertDirectoriesAreEqual('_actual', '_expected');
 								done();

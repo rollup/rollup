@@ -1,14 +1,13 @@
 const assert = require('assert');
-const { readFileSync } = require('fs');
+const { existsSync, readFileSync } = require('fs');
 const path = require('path');
-const sander = require('sander');
 const rollup = require('../../dist/rollup');
 const { normaliseOutput, runTestSuiteWithSamples } = require('../utils.js');
 
 const FORMATS = ['amd', 'cjs', 'system', 'es', 'iife', 'umd'];
 
 runTestSuiteWithSamples('form', path.resolve(__dirname, 'samples'), (dir, config) => {
-	const isSingleFormatTest = sander.existsSync(dir + '/_expected.js');
+	const isSingleFormatTest = existsSync(dir + '/_expected.js');
 	const itOrDescribe = isSingleFormatTest ? it : describe;
 	(config.skip ? itOrDescribe.skip : config.solo ? itOrDescribe.only : itOrDescribe)(
 		path.basename(dir) + ': ' + config.description,

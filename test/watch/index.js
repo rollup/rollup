@@ -1,5 +1,5 @@
 const assert = require('assert');
-const { readFileSync } = require('fs');
+const { existsSync, readFileSync } = require('fs');
 const path = require('path');
 const sander = require('sander');
 const rollup = require('../../dist/rollup');
@@ -572,7 +572,7 @@ describe('rollup.watch', () => {
 					'BUNDLE_START',
 					'ERROR',
 					() => {
-						assert.strictEqual(sander.existsSync('../_tmp/output/bundle.js'), false);
+						assert.strictEqual(existsSync('../_tmp/output/bundle.js'), false);
 						sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
 					},
 					'START',
@@ -613,7 +613,7 @@ describe('rollup.watch', () => {
 					'BUNDLE_START',
 					'ERROR',
 					() => {
-						assert.strictEqual(sander.existsSync('../_tmp/output/bundle.js'), false);
+						assert.strictEqual(existsSync('../_tmp/output/bundle.js'), false);
 						sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
 					},
 					'START',
@@ -1048,11 +1048,11 @@ describe('rollup.watch', () => {
 					'END',
 					() => {
 						assert.strictEqual(
-							sander.existsSync(path.resolve(__dirname, '../_tmp/output/bundle1.js')),
+							existsSync(path.resolve(__dirname, '../_tmp/output/bundle1.js')),
 							false
 						);
 						assert.strictEqual(
-							sander.existsSync(path.resolve(__dirname, '../_tmp/output/bundle2.js')),
+							existsSync(path.resolve(__dirname, '../_tmp/output/bundle2.js')),
 							true
 						);
 						assert.deepStrictEqual(run('../_tmp/output/bundle2.js'), 43);
@@ -1275,7 +1275,7 @@ describe('rollup.watch', () => {
 					'END',
 					() => {
 						watchChangeCnt = 0;
-						assert.strictEqual(sander.existsSync('../_tmp/output/bundle.js'), false);
+						assert.strictEqual(existsSync('../_tmp/output/bundle.js'), false);
 						sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
 					},
 					'START',
@@ -1283,7 +1283,7 @@ describe('rollup.watch', () => {
 					'BUNDLE_END',
 					'END',
 					() => {
-						assert.strictEqual(sander.existsSync('../_tmp/output/bundle.js'), false);
+						assert.strictEqual(existsSync('../_tmp/output/bundle.js'), false);
 						assert.strictEqual(watchChangeCnt, 1);
 						sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
 					},
@@ -1292,7 +1292,7 @@ describe('rollup.watch', () => {
 					'BUNDLE_END',
 					'END',
 					() => {
-						assert.strictEqual(sander.existsSync('../_tmp/output/bundle.js'), false);
+						assert.strictEqual(existsSync('../_tmp/output/bundle.js'), false);
 						assert.strictEqual(watchChangeCnt, 2);
 						sander.writeFileSync('test/_tmp/input/main.js', 'export default 43;');
 					},
@@ -1301,7 +1301,7 @@ describe('rollup.watch', () => {
 					'BUNDLE_END',
 					// 'END',
 					evt => {
-						assert.strictEqual(sander.existsSync('../_tmp/output/bundle.js'), false);
+						assert.strictEqual(existsSync('../_tmp/output/bundle.js'), false);
 						assert.strictEqual(watchChangeCnt, 3);
 						// still aware of its output destination
 						assert.strictEqual(evt.output[0], path.resolve('test/_tmp/output/bundle.js'));
@@ -1658,7 +1658,7 @@ describe('rollup.watch', () => {
 						plugins: {
 							transform() {
 								this.addWatchFile('test/_tmp/input');
-								return `export default ${sander.existsSync(WATCHED_ID)}`;
+								return `export default ${existsSync(WATCHED_ID)}`;
 							}
 						}
 					});
@@ -1699,7 +1699,7 @@ describe('rollup.watch', () => {
 						plugins: {
 							transform() {
 								this.addWatchFile('test/_tmp/input/dep');
-								return `export default ${sander.existsSync('test/_tmp/input/dep')}`;
+								return `export default ${existsSync('test/_tmp/input/dep')}`;
 							}
 						}
 					});
@@ -1740,7 +1740,7 @@ describe('rollup.watch', () => {
 						plugins: {
 							transform() {
 								this.addWatchFile('test/_tmp/input/dep');
-								return `export default ${sander.existsSync('test/_tmp/input/dep')}`;
+								return `export default ${existsSync('test/_tmp/input/dep')}`;
 							}
 						}
 					});
