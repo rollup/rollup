@@ -1,4 +1,5 @@
 const assert = require('assert');
+const { readdirSync } = require('fs');
 const path = require('path');
 const sander = require('sander');
 const rollup = require('../../dist/rollup.js');
@@ -33,7 +34,7 @@ describe('hooks', () => {
 				})
 			)
 			.then(() => {
-				const fileNames = sander.readdirSync(TEMP_DIR).sort();
+				const fileNames = readdirSync(TEMP_DIR).sort();
 				assert.deepStrictEqual(fileNames, ['chunk.js', 'input.js']);
 				return sander.rimraf(TEMP_DIR);
 			}));

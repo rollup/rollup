@@ -1,5 +1,12 @@
 const assert = require('assert');
-const { existsSync, promises, readFileSync, unlinkSync, writeFileSync } = require('fs');
+const {
+	existsSync,
+	promises,
+	readdirSync,
+	readFileSync,
+	unlinkSync,
+	writeFileSync
+} = require('fs');
 const path = require('path');
 const sander = require('sander');
 const rollup = require('../../dist/rollup');
@@ -1150,7 +1157,7 @@ describe('rollup.watch', () => {
 					'BUNDLE_END',
 					'END',
 					() => {
-						[dynamicName, staticName, chunkName] = sander.readdirSync('test/_tmp/output').sort();
+						[dynamicName, staticName, chunkName] = readdirSync('test/_tmp/output').sort();
 						sander.rimrafSync('test/_tmp/output');
 
 						// this should only update the hash of that particular entry point

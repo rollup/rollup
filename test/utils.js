@@ -1,5 +1,5 @@
 const assert = require('assert');
-const { unlinkSync } = require('fs');
+const { readdirSync, unlinkSync } = require('fs');
 const path = require('path');
 const fixturify = require('fixturify');
 const sander = require('sander');
@@ -120,8 +120,8 @@ function runSamples(samplesDir, runTest, onTeardown) {
 	if (onTeardown) {
 		afterEach(onTeardown);
 	}
-	sander
-		.readdirSync(samplesDir)
+
+	readdirSync(samplesDir)
 		.filter(name => name[0] !== '.')
 		.sort()
 		.forEach(fileName => runTestsInDir(path.join(samplesDir, fileName), runTest));
@@ -146,7 +146,7 @@ function runTestsInDir(dir, runTest) {
 
 function getFileNamesAndRemoveOutput(dir) {
 	try {
-		return sander.readdirSync(dir).filter(fileName => {
+		return readdirSync(dir).filter(fileName => {
 			if (fileName === '_actual') {
 				sander.rimrafSync(path.join(dir, '_actual'));
 				return false;

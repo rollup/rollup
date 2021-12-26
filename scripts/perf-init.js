@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 
-const fs = require('fs');
+const { accessSync, constants } = require('fs');
 const path = require('path');
 const execa = require('execa');
 const sander = require('sander');
@@ -43,7 +43,7 @@ async function setupNewRepo(repo, branch) {
 	gitArgs.push(`https://github.com/${repo}.git`, TARGET_DIR);
 	await execWithOutput('git', gitArgs);
 	try {
-		fs.accessSync(path.resolve(TARGET_DIR, 'rollup.config.js'), fs.constants.R_OK);
+		accessSync(path.resolve(TARGET_DIR, 'rollup.config.js'), constants.R_OK);
 	} catch (e) {
 		throw new Error('The repository needs to have a file "rollup.config.js" at the top level.');
 	}
