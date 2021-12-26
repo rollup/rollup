@@ -3,7 +3,7 @@
 const { accessSync, constants } = require('fs');
 const path = require('path');
 const execa = require('execa');
-const sander = require('sander');
+const { removeSync } = require('fs-extra');
 const repoWithBranch = process.argv[2];
 
 const TARGET_DIR = path.resolve(__dirname, '..', 'perf');
@@ -17,7 +17,7 @@ if (process.argv.length !== 3 || !VALID_REPO.test(repoWithBranch)) {
 	process.exit(1);
 }
 console.error(`Cleaning up '${TARGET_DIR}'...`);
-sander.rimrafSync(TARGET_DIR);
+removeSync(TARGET_DIR);
 
 const [, repo, , branch] = VALID_REPO.exec(repoWithBranch);
 

@@ -2,7 +2,7 @@ const assert = require('assert');
 const { readdirSync, unlinkSync } = require('fs');
 const path = require('path');
 const fixturify = require('fixturify');
-const sander = require('sander');
+const { removeSync } = require('fs-extra');
 
 exports.compareError = compareError;
 exports.compareWarnings = compareWarnings;
@@ -133,7 +133,7 @@ function runTestsInDir(dir, runTest) {
 		loadConfigAndRunTest(dir, runTest);
 	} else if (fileNames.length === 0) {
 		console.warn(`Removing empty test directory ${dir}`);
-		sander.rmdirSync(dir);
+		removeSync(dir);
 	} else {
 		describe(path.basename(dir), () => {
 			fileNames
@@ -148,7 +148,7 @@ function getFileNamesAndRemoveOutput(dir) {
 	try {
 		return readdirSync(dir).filter(fileName => {
 			if (fileName === '_actual') {
-				sander.rimrafSync(path.join(dir, '_actual'));
+				removeSync(path.join(dir, '_actual'));
 				return false;
 			}
 			if (fileName === '_actual.js') {

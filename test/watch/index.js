@@ -8,6 +8,7 @@ const {
 	writeFileSync
 } = require('fs');
 const path = require('path');
+const { removeSync } = require('fs-extra');
 const sander = require('sander');
 const rollup = require('../../dist/rollup');
 
@@ -24,7 +25,7 @@ describe('rollup.watch', () => {
 
 	beforeEach(() => {
 		process.chdir(cwd);
-		return sander.rimraf('test/_tmp');
+		return removeSync('test/_tmp');
 	});
 
 	afterEach(() => {
@@ -1158,7 +1159,7 @@ describe('rollup.watch', () => {
 					'END',
 					() => {
 						[dynamicName, staticName, chunkName] = readdirSync('test/_tmp/output').sort();
-						sander.rimrafSync('test/_tmp/output');
+						removeSync('test/_tmp/output');
 
 						// this should only update the hash of that particular entry point
 						writeFileSync(
@@ -1171,10 +1172,9 @@ describe('rollup.watch', () => {
 					'BUNDLE_END',
 					'END',
 					() => {
-						const [newDynamicName, newStaticName, newChunkName] = sander
-							.readdirSync('test/_tmp/output')
-							.sort();
-						sander.rimrafSync('test/_tmp/output');
+						const [newDynamicName, newStaticName, newChunkName] =
+							readdirSync('test/_tmp/output').sort();
+						removeSync('test/_tmp/output');
 						assert.notEqual(newStaticName, staticName);
 						assert.strictEqual(newDynamicName, dynamicName);
 						assert.strictEqual(newChunkName, chunkName);
@@ -1188,9 +1188,8 @@ describe('rollup.watch', () => {
 					'BUNDLE_END',
 					'END',
 					() => {
-						const [newDynamicName, newStaticName, newChunkName] = sander
-							.readdirSync('test/_tmp/output')
-							.sort();
+						const [newDynamicName, newStaticName, newChunkName] =
+							readdirSync('test/_tmp/output').sort();
 						assert.notEqual(newStaticName, staticName);
 						assert.notEqual(newDynamicName, dynamicName);
 						assert.notEqual(newChunkName, chunkName);
