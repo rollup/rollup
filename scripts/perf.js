@@ -1,6 +1,6 @@
 /* global gc */
 
-const fs = require('fs');
+const { readFileSync, writeFileSync } = require('fs');
 const path = require('path');
 const colorette = require('colorette');
 const prettyBytes = require('pretty-bytes');
@@ -137,7 +137,7 @@ function clearLines(numberOfLines) {
 
 function getExistingTimings() {
 	try {
-		const timings = JSON.parse(fs.readFileSync(perfFile, 'utf8'));
+		const timings = JSON.parse(readFileSync(perfFile, 'utf8'));
 		console.info(
 			colorette.bold(
 				`Comparing with ${colorette.cyan(perfFile)}. Delete this file to create a new base line.`
@@ -151,7 +151,7 @@ function getExistingTimings() {
 
 function persistTimings(timings) {
 	try {
-		fs.writeFileSync(perfFile, JSON.stringify(timings, null, 2), 'utf8');
+		writeFileSync(perfFile, JSON.stringify(timings, null, 2), 'utf8');
 		console.info(
 			colorette.bold(
 				`Saving performance information to new reference file ${colorette.cyan(perfFile)}.`

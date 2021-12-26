@@ -1,5 +1,6 @@
 const assert = require('assert');
 const { exec } = require('child_process');
+const { readFileSync } = require('fs');
 const path = require('path');
 const sander = require('sander');
 const {
@@ -109,7 +110,7 @@ runTestSuiteWithSamples(
 								done(err);
 							}
 						} else {
-							const expected = sander.readFileSync('_expected.js').toString();
+							const expected = readFileSync('_expected.js', 'utf8');
 							try {
 								assert.equal(normaliseOutput(code), normaliseOutput(expected));
 								done();

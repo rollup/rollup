@@ -1,4 +1,5 @@
 const assert = require('assert');
+const { readFileSync } = require('fs');
 const path = require('path');
 const sander = require('sander');
 const rollup = require('../../dist/rollup');
@@ -79,19 +80,19 @@ runTestSuiteWithSamples('form', path.resolve(__dirname, 'samples'), (dir, config
 
 async function generateAndTestBundle(bundle, outputOptions, expectedFile, { show }) {
 	await bundle.write(outputOptions);
-	const actualCode = normaliseOutput(sander.readFileSync(outputOptions.file));
+	const actualCode = normaliseOutput(readFileSync(outputOptions.file, 'utf8'));
 	let expectedCode;
 	let actualMap;
 	let expectedMap;
 
 	try {
-		expectedCode = normaliseOutput(sander.readFileSync(expectedFile));
+		expectedCode = normaliseOutput(readFileSync(expectedFile, 'utf8'));
 	} catch (err) {
 		expectedCode = 'missing file';
 	}
 
 	try {
-		actualMap = JSON.parse(sander.readFileSync(outputOptions.file + '.map').toString());
+		actualMap = JSON.parse(readFileSync(outputOptions.file + '.map', 'utf8'));
 		actualMap.sourcesContent = actualMap.sourcesContent
 			? actualMap.sourcesContent.map(normaliseOutput)
 			: null;
@@ -100,7 +101,7 @@ async function generateAndTestBundle(bundle, outputOptions, expectedFile, { show
 	}
 
 	try {
-		expectedMap = JSON.parse(sander.readFileSync(expectedFile + '.map').toString());
+		expectedMap = JSON.parse(readFileSync(expectedFile + '.map', 'utf8'));
 		expectedMap.sourcesContent = actualMap.sourcesContent
 			? expectedMap.sourcesContent.map(normaliseOutput)
 			: null;

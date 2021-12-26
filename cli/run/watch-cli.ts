@@ -1,4 +1,4 @@
-import fs from 'fs';
+import { FSWatcher, readFileSync } from 'fs';
 import chokidar from 'chokidar';
 import dateTime from 'date-time';
 import ms from 'pretty-ms';
@@ -22,7 +22,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 	let configs: MergedRollupOptions[];
 	let warnings: BatchWarnings;
 	let watcher: RollupWatcher;
-	let configWatcher: fs.FSWatcher;
+	let configWatcher: FSWatcher;
 	const configFile = command.config ? getConfigPath(command.config) : null;
 
 	onExit(close);
@@ -42,7 +42,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 
 		async function reloadConfigFile() {
 			try {
-				const newConfigFileData = fs.readFileSync(configFile, 'utf-8');
+				const newConfigFileData = readFileSync(configFile, 'utf-8');
 				if (newConfigFileData === configFileData) {
 					return;
 				}

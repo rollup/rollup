@@ -1,4 +1,4 @@
-const fs = require('fs');
+const { readFileSync } = require('fs');
 
 module.exports = {
 	description: 'uses custom loaders, falling back to default',
@@ -7,14 +7,14 @@ module.exports = {
 			{
 				load(id) {
 					if (/foo\.js/.test(id)) {
-						return fs.readFileSync(id, 'utf-8').replace('@', 1);
+						return readFileSync(id, 'utf-8').replace('@', 1);
 					}
 				}
 			},
 			{
 				load(id) {
 					if (/bar\.js/.test(id)) {
-						return fs.readFileSync(id, 'utf-8').replace('@', 2);
+						return readFileSync(id, 'utf-8').replace('@', 2);
 					}
 				}
 			}

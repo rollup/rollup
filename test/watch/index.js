@@ -1,4 +1,5 @@
 const assert = require('assert');
+const { readFileSync } = require('fs');
 const path = require('path');
 const sander = require('sander');
 const rollup = require('../../dist/rollup');
@@ -1083,9 +1084,7 @@ describe('rollup.watch', () => {
 					'BUNDLE_END',
 					'END',
 					() => {
-						const generated = sander.readFileSync('test/_tmp/output/bundle.js', {
-							encoding: 'utf-8'
-						});
+						const generated = readFileSync('test/_tmp/output/bundle.js', 'utf8');
 						assert.ok(/jQuery/.test(generated));
 					}
 				]);
@@ -1505,7 +1504,7 @@ describe('rollup.watch', () => {
 						plugins: {
 							load() {
 								this.addWatchFile(WATCHED_ID);
-								return `export default "${sander.readFileSync(WATCHED_ID).toString().trim()}"`;
+								return `export default "${readFileSync(WATCHED_ID, 'utf8').trim()}"`;
 							}
 						}
 					});
@@ -1562,10 +1561,7 @@ describe('rollup.watch', () => {
 									if (addWatchFile) {
 										this.addWatchFile(WATCHED_ID);
 									}
-									return `export const value = "${sander
-										.readFileSync(WATCHED_ID)
-										.toString()
-										.trim()}"`;
+									return `export const value = "${readFileSync(WATCHED_ID, 'utf8').trim()}"`;
 								}
 							}
 						}
@@ -1613,7 +1609,7 @@ describe('rollup.watch', () => {
 							transform(code, id) {
 								if (id.endsWith('dep1.js')) {
 									this.addWatchFile(path.resolve('test/_tmp/input/dep2.js'));
-									const text = sander.readFileSync('test/_tmp/input/dep2.js').toString().trim();
+									const text = readFileSync('test/_tmp/input/dep2.js', 'utf8').trim();
 									return `export default ${JSON.stringify(text)}`;
 								}
 							}
@@ -1800,7 +1796,7 @@ describe('rollup.watch', () => {
 							transform() {
 								transformRuns++;
 								this.addWatchFile(WATCHED_ID);
-								return `export default "${sander.readFileSync(WATCHED_ID).toString().trim()}"`;
+								return `export default "${readFileSync(WATCHED_ID, 'utf8').trim()}"`;
 							}
 						}
 					});

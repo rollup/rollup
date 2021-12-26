@@ -1,4 +1,4 @@
-import fs from 'fs';
+import { readFileSync } from 'fs';
 import path from 'path';
 import alias from '@rollup/plugin-alias';
 import commonjs from '@rollup/plugin-commonjs';
@@ -18,7 +18,7 @@ import pkg from './package.json';
 
 const commitHash = (function () {
 	try {
-		return fs.readFileSync('.commithash', 'utf-8');
+		return readFileSync('.commithash', 'utf-8');
 	} catch {
 		return 'unknown';
 	}
