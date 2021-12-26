@@ -1,5 +1,5 @@
 const assert = require('assert');
-const { existsSync, readFileSync, writeFileSync } = require('fs');
+const { existsSync, promises, readFileSync, unlinkSync, writeFileSync } = require('fs');
 const path = require('path');
 const sander = require('sander');
 const rollup = require('../../dist/rollup');
@@ -241,7 +241,7 @@ describe('rollup.watch', () => {
 		let ids;
 		const expectedIds = [WATCHED_ID, path.resolve('test/_tmp/input/main.js')];
 		await sander.copydir('test/watch/samples/watch-files').to('test/_tmp/input');
-		await sander.unlink(WATCHED_ID);
+		await promises.unlink(WATCHED_ID);
 		await wait(100);
 		watcher = rollup.watch({
 			input: 'test/_tmp/input/main.js',
@@ -293,7 +293,7 @@ describe('rollup.watch', () => {
 				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
 				assert.deepStrictEqual(events, ['create', 'update']);
 				assert.deepStrictEqual(ids, expectedIds);
-				sander.unlinkSync(WATCHED_ID);
+				unlinkSync(WATCHED_ID);
 			},
 			'START',
 			'BUNDLE_START',
@@ -348,7 +348,7 @@ describe('rollup.watch', () => {
 				assert.strictEqual(lastEvent, null);
 				writeFileSync(WATCHED_ID, 'another');
 				await wait(100);
-				sander.unlinkSync(WATCHED_ID);
+				unlinkSync(WATCHED_ID);
 			},
 			'START',
 			'BUNDLE_START',
@@ -359,7 +359,7 @@ describe('rollup.watch', () => {
 				lastEvent = null;
 				writeFileSync(WATCHED_ID, '123');
 				await wait(100);
-				sander.unlinkSync(WATCHED_ID);
+				unlinkSync(WATCHED_ID);
 				// To ensure there is always another change to trigger a rebuild
 				writeFileSync(MAIN_ID, 'export default 43;');
 			},
@@ -648,14 +648,14 @@ describe('rollup.watch', () => {
 					'END',
 					() => {
 						assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-						sander.unlinkSync('test/_tmp/input/main.js');
+						unlinkSync('test/_tmp/input/main.js');
 						writeFileSync('test/_tmp/input/main.js', 'export nope;');
 					},
 					'START',
 					'BUNDLE_START',
 					'ERROR',
 					() => {
-						sander.unlinkSync('test/_tmp/input/main.js');
+						unlinkSync('test/_tmp/input/main.js');
 						writeFileSync('test/_tmp/input/main.js', 'export default 43;');
 					},
 					'START',
@@ -690,14 +690,14 @@ describe('rollup.watch', () => {
 					'END',
 					() => {
 						assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
-						sander.unlinkSync('test/_tmp/input/dep.js');
+						unlinkSync('test/_tmp/input/dep.js');
 						writeFileSync('test/_tmp/input/dep.js', 'export nope;');
 					},
 					'START',
 					'BUNDLE_START',
 					'ERROR',
 					() => {
-						sander.unlinkSync('test/_tmp/input/dep.js');
+						unlinkSync('test/_tmp/input/dep.js');
 						writeFileSync('test/_tmp/input/dep.js', 'export const value = 43;');
 					},
 					'START',
@@ -1670,7 +1670,7 @@ describe('rollup.watch', () => {
 						'END',
 						() => {
 							assert.strictEqual(run('../_tmp/output/bundle.js'), true);
-							sander.unlinkSync(WATCHED_ID);
+							unlinkSync(WATCHED_ID);
 						},
 						'START',
 						'BUNDLE_START',
@@ -1752,7 +1752,7 @@ describe('rollup.watch', () => {
 						'END',
 						() => {
 							assert.strictEqual(run('../_tmp/output/bundle.js'), true);
-							sander.unlinkSync('test/_tmp/input/dep');
+							unlinkSync('test/_tmp/input/dep');
 						},
 						'START',
 						'BUNDLE_START',

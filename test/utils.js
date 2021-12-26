@@ -1,4 +1,5 @@
 const assert = require('assert');
+const { unlinkSync } = require('fs');
 const path = require('path');
 const fixturify = require('fixturify');
 const sander = require('sander');
@@ -151,7 +152,7 @@ function getFileNamesAndRemoveOutput(dir) {
 				return false;
 			}
 			if (fileName === '_actual.js') {
-				sander.unlinkSync(path.join(dir, '_actual.js'));
+				unlinkSync(path.join(dir, '_actual.js'));
 				return false;
 			}
 			return true;
