@@ -192,6 +192,8 @@ const knownGlobals: GlobalDescription = {
 		__proto__: null,
 		[ValueProperties]: IMPURE,
 		all: O,
+		allSettled: O,
+		any: O,
 		prototype: O,
 		race: O,
 		reject: O,
