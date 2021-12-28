@@ -1,9 +1,11 @@
+interface QueueItem {
+	reject: (reason?: any) => void;
+	resolve: (value: any) => void;
+	task: () => any;
+}
+
 export class Queue {
-	private readonly queue = new Array<{
-		reject: (reason?: any) => void;
-		resolve: (value: any) => void;
-		task: () => any;
-	}>();
+	private readonly queue: QueueItem[] = [];
 	private workerCount = 0;
 
 	constructor(public maxParallel = 1) {}
@@ -15,7 +17,7 @@ export class Queue {
 		});
 	}
 
-	private async work() {
+	private async work(): Promise<void> {
 		if (this.workerCount >= this.maxParallel) return;
 		this.workerCount++;
 
