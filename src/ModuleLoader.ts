@@ -84,7 +84,7 @@ export class ModuleLoader {
 		this.readQueue = new Queue(options.maxParallelFileReads);
 	}
 
-	async addAdditionalModules(unresolvedModules: string[]): Promise<Module[]> {
+	async addAdditionalModules(unresolvedModules: readonly string[]): Promise<Module[]> {
 		const result = this.extendLoadModulesPromise(
 			Promise.all(unresolvedModules.map(id => this.loadEntryModule(id, false, undefined, null)))
 		);
@@ -93,7 +93,7 @@ export class ModuleLoader {
 	}
 
 	async addEntryModules(
-		unresolvedEntryModules: UnresolvedModule[],
+		unresolvedEntryModules: readonly UnresolvedModule[],
 		isUserDefined: boolean
 	): Promise<{
 		entryModules: Module[];
@@ -161,10 +161,14 @@ export class ModuleLoader {
 		return module;
 	}
 
-	public preloadModule(resolvedId: NormalizedResolveIdWithoutDefaults): Promise<ModuleInfo> {
-		return this.fetchModule(this.addDefaultsToResolvedId(resolvedId)!, undefined, false, true).then(
-			module => module.info
+	public async preloadModule(resolvedId: NormalizedResolveIdWithoutDefaults): Promise<ModuleInfo> {
+		const module = await this.fetchModule(
+			this.addDefaultsToResolvedId(resolvedId)!,
+			undefined,
+			false,
+			true
 		);
+		return module.info;
 	}
 
 	resolveId = async (
@@ -214,7 +218,7 @@ export class ModuleLoader {
 
 	private addEntryWithImplicitDependants(
 		unresolvedModule: UnresolvedModule,
-		implicitlyLoadedAfter: string[]
+		implicitlyLoadedAfter: readonly string[]
 	): Promise<Module> {
 		return this.extendLoadModulesPromise(
 			this.loadEntryModule(unresolvedModule.id, false, unresolvedModule.importer, null).then(
@@ -240,7 +244,11 @@ export class ModuleLoader {
 		);
 	}
 
-	private async addModuleSource(id: string, importer: string | undefined, module: Module) {
+	private async addModuleSource(
+		id: string,
+		importer: string | undefined,
+		module: Module
+	): Promise<void> {
 		timeStart('load modules', 3);
 		let source: LoadResult;
 		try {
@@ -380,7 +388,7 @@ export class ModuleLoader {
 		resolveStaticDependencyPromises: ResolveStaticDependencyPromise[],
 		resolveDynamicDependencyPromises: ResolveDynamicDependencyPromise[],
 		loadAndResolveDependenciesPromise: Promise<void>
-	) {
+	): Promise<void> {
 		if (this.modulesWithLoadedDependencies.has(module)) {
 			return;
 		}
@@ -666,7 +674,7 @@ function addChunkNamesToModule(
 	module: Module,
 	{ fileName, name }: UnresolvedModule,
 	isUserDefined: boolean
-) {
+): void {
 	if (fileName !== null) {
 		module.chunkFileNames.add(fileName);
 	} else if (name !== null) {
@@ -683,7 +691,7 @@ function isNotAbsoluteExternal(
 	id: string,
 	source: string,
 	makeAbsoluteExternalsRelative: boolean | 'ifRelativeSource'
-) {
+): boolean {
 	return (
 		makeAbsoluteExternalsRelative === true ||
 		(makeAbsoluteExternalsRelative === 'ifRelativeSource' && isRelative(source)) ||
