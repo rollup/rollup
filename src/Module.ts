@@ -11,7 +11,6 @@ import ExportNamedDeclaration from './ast/nodes/ExportNamedDeclaration';
 import Identifier from './ast/nodes/Identifier';
 import ImportDeclaration from './ast/nodes/ImportDeclaration';
 import ImportExpression from './ast/nodes/ImportExpression';
-import ImportSpecifier from './ast/nodes/ImportSpecifier';
 import Literal from './ast/nodes/Literal';
 import MetaProperty from './ast/nodes/MetaProperty';
 import * as NodeType from './ast/nodes/NodeType';
