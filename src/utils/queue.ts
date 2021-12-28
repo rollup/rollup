@@ -3,8 +3,8 @@ interface Task<T> {
 }
 
 interface QueueItem<T> {
-	reject: (reason?: any) => void;
-	resolve: (value: any) => void;
+	reject: (reason?: unknown) => void;
+	resolve: (value: T) => void;
 	task: Task<T>;
 }
 
@@ -25,7 +25,7 @@ export class Queue<T> {
 		if (this.workerCount >= this.maxParallel) return;
 		this.workerCount++;
 
-		let entry;
+		let entry: QueueItem<T> | undefined;
 		while ((entry = this.queue.shift())) {
 			const { reject, resolve, task } = entry;
 
