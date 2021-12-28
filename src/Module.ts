@@ -863,7 +863,7 @@ export default class Module {
 
 	private addExport(
 		node: ExportAllDeclaration | ExportNamedDeclaration | ExportDefaultDeclaration
-	) {
+	): void {
 		if (node instanceof ExportDefaultDeclaration) {
 			// export default foo;
 
@@ -931,7 +931,7 @@ export default class Module {
 		}
 	}
 
-	private addImport(node: ImportDeclaration) {
+	private addImport(node: ImportDeclaration): void {
 		const source = node.source.value;
 		this.sources.add(source);
 		for (const specifier of node.specifiers) {
@@ -948,7 +948,7 @@ export default class Module {
 		}
 	}
 
-	private addImportMeta(node: MetaProperty) {
+	private addImportMeta(node: MetaProperty): void {
 		this.importMetas.push(node);
 	}
 
@@ -981,7 +981,7 @@ export default class Module {
 
 	private addModulesToImportDescriptions(importDescription: {
 		[name: string]: ImportDescription | ReexportDescription;
-	}) {
+	}): void {
 		for (const specifier of Object.values(importDescription)) {
 			const id = this.resolvedIds[specifier.source].id;
 			specifier.module = this.graph.modulesById.get(id)!;
@@ -992,7 +992,7 @@ export default class Module {
 		relevantDependencies: Set<Module | ExternalModule>,
 		necessaryDependencies: Set<Module | ExternalModule>,
 		alwaysCheckedDependencies: Set<Module | ExternalModule>
-	) {
+	): void {
 		const handledDependencies = new Set<Module | ExternalModule>();
 
 		const addSideEffectDependencies = (possibleDependencies: Set<Module | ExternalModule>) => {
@@ -1105,7 +1105,7 @@ export default class Module {
 		return [...syntheticNamespaces, ...externalNamespaces];
 	}
 
-	private includeDynamicImport(node: ImportExpression) {
+	private includeDynamicImport(node: ImportExpression): void {
 		const resolution = (
 			this.dynamicImports.find(dynamicImport => dynamicImport.node === node) as {
 				resolution: string | Module | ExternalModule | undefined;
@@ -1117,7 +1117,7 @@ export default class Module {
 		}
 	}
 
-	private includeVariable(variable: Variable) {
+	private includeVariable(variable: Variable): void {
 		if (!variable.included) {
 			variable.include();
 			this.graph.needsTreeshakingPass = true;
@@ -1138,7 +1138,7 @@ export default class Module {
 		}
 	}
 
-	private includeVariableInModule(variable: Variable) {
+	private includeVariableInModule(variable: Variable): void {
 		this.includeVariable(variable);
 		const variableModule = variable.module;
 		if (variableModule && variableModule !== this) {
@@ -1160,7 +1160,11 @@ export default class Module {
 // if there is a cyclic import in the reexport chain, we should not
 // import from the original module but from the cyclic module to not
 // mess up execution order.
-function setAlternativeExporterIfCyclic(variable: Variable, importer: Module, reexporter: Module) {
+function setAlternativeExporterIfCyclic(
+	variable: Variable,
+	importer: Module,
+	reexporter: Module
+): void {
 	if (variable.module instanceof Module && variable.module !== reexporter) {
 		const exporterCycles = variable.module.cycles;
 		if (exporterCycles.size > 0) {

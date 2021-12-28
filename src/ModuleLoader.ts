@@ -310,7 +310,7 @@ export class ModuleLoader {
 
 	private async fetchDynamicDependencies(
 		module: Module,
-		resolveDynamicImportPromises: ResolveDynamicDependencyPromise[]
+		resolveDynamicImportPromises: readonly ResolveDynamicDependencyPromise[]
 	): Promise<void> {
 		const dependencies = await Promise.all(
 			resolveDynamicImportPromises.map(resolveDynamicImportPromise =>
@@ -385,8 +385,8 @@ export class ModuleLoader {
 
 	private async fetchModuleDependencies(
 		module: Module,
-		resolveStaticDependencyPromises: ResolveStaticDependencyPromise[],
-		resolveDynamicDependencyPromises: ResolveDynamicDependencyPromise[],
+		resolveStaticDependencyPromises: readonly ResolveStaticDependencyPromise[],
+		resolveDynamicDependencyPromises: readonly ResolveDynamicDependencyPromise[],
 		loadAndResolveDependenciesPromise: Promise<void>
 	): Promise<void> {
 		if (this.modulesWithLoadedDependencies.has(module)) {
@@ -434,7 +434,7 @@ export class ModuleLoader {
 
 	private async fetchStaticDependencies(
 		module: Module,
-		resolveStaticDependencyPromises: ResolveStaticDependencyPromise[]
+		resolveStaticDependencyPromises: readonly ResolveStaticDependencyPromise[]
 	): Promise<void> {
 		for (const dependency of await Promise.all(
 			resolveStaticDependencyPromises.map(resolveStaticDependencyPromise =>
