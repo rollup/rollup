@@ -361,7 +361,7 @@ export class ModuleLoader {
 		]);
 		const loadAndResolveDependenciesPromise = loadPromise
 			.then(([resolveStaticDependencyPromises, resolveDynamicImportPromises]) =>
-				Promise.all<unknown>([...resolveStaticDependencyPromises, ...resolveDynamicImportPromises])
+				Promise.all([...resolveStaticDependencyPromises, ...resolveDynamicImportPromises])
 			)
 			.then(() => this.pluginDriver.hookParallel('moduleParsed', [module.info]));
 		loadAndResolveDependenciesPromise.catch(() => {
