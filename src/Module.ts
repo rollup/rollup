@@ -320,7 +320,7 @@ export default class Module {
 			return this.allExportNames;
 		}
 		const allExportNames = (this.allExportNames = new Set<string>());
-		for (const name of Object.keys(this.exports)) {
+		for (const name of this.getExports()) {
 			allExportNames.add(name);
 		}
 		for (const name of Object.keys(this.reexportDescriptions)) {
