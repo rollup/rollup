@@ -2,18 +2,18 @@ import * as acorn from 'acorn';
 import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import Module, { DynamicImport } from './Module';
-import {
+import type {
 	CustomPluginOptions,
 	EmittedChunk,
 	HasModuleSideEffects,
+	LoadResult,
 	ModuleInfo,
 	ModuleOptions,
 	NormalizedInputOptions,
 	PartialNull,
 	Plugin,
 	ResolvedId,
-	ResolveIdResult,
-	SourceDescription
+	ResolveIdResult
 } from './rollup/types';
 import { PluginDriver } from './utils/PluginDriver';
 import { EMPTY_OBJECT } from './utils/blank';
@@ -69,7 +69,7 @@ export class ModuleLoader {
 	private moduleLoadPromises = new Map<Module, LoadModulePromise>();
 	private modulesWithLoadedDependencies = new Set<Module>();
 	private nextEntryModuleIndex = 0;
-	private readonly readQueue: Queue;
+	private readonly readQueue: Queue<LoadResult>;
 
 	constructor(
 		private readonly graph: Graph,
@@ -242,7 +242,7 @@ export class ModuleLoader {
 
 	private async addModuleSource(id: string, importer: string | undefined, module: Module) {
 		timeStart('load modules', 3);
-		let source: string | SourceDescription;
+		let source: LoadResult;
 		try {
 			source = await this.readQueue.run(
 				async () => (await this.pluginDriver.hookFirst('load', [id])) ?? (await readFile(id))

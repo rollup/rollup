@@ -1,16 +1,20 @@
-interface QueueItem {
-	reject: (reason?: any) => void;
-	resolve: (value: any) => void;
-	task: () => any;
+interface Task<T> {
+	(): T | Promise<T>;
 }
 
-export class Queue {
-	private readonly queue: QueueItem[] = [];
+interface QueueItem<T> {
+	reject: (reason?: any) => void;
+	resolve: (value: any) => void;
+	task: Task<T>;
+}
+
+export class Queue<T> {
+	private readonly queue: QueueItem<T>[] = [];
 	private workerCount = 0;
 
 	constructor(private maxParallel = 1) {}
 
-	run<T>(task: () => T | Promise<T>): Promise<T> {
+	run(task: Task<T>): Promise<T> {
 		return new Promise((resolve, reject) => {
 			this.queue.push({ reject, resolve, task });
 			this.work();
