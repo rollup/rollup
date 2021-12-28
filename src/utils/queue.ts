@@ -1,5 +1,5 @@
 export class Queue {
-	private queue = new Array<{
+	private readonly queue = new Array<{
 		reject: (reason?: any) => void;
 		resolve: (value: any) => void;
 		task: () => any;
