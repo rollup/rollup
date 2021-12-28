@@ -938,11 +938,7 @@ export default class Module {
 			const isDefault = specifier.type === NodeType.ImportDefaultSpecifier;
 			const isNamespace = specifier.type === NodeType.ImportNamespaceSpecifier;
 
-			const name = isDefault
-				? 'default'
-				: isNamespace
-				? '*'
-				: (specifier as ImportSpecifier).imported.name;
+			const name = isDefault ? 'default' : isNamespace ? '*' : specifier.imported.name;
 			this.importDescriptions[specifier.local.name] = {
 				module: null as never, // filled in later
 				name,
