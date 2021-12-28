@@ -69,7 +69,7 @@ export class ModuleLoader {
 	private moduleLoadPromises = new Map<Module, LoadModulePromise>();
 	private modulesWithLoadedDependencies = new Set<Module>();
 	private nextEntryModuleIndex = 0;
-	private readQueue = new Queue();
+	private readonly readQueue: Queue;
 
 	constructor(
 		private readonly graph: Graph,
@@ -80,7 +80,8 @@ export class ModuleLoader {
 		this.hasModuleSideEffects = options.treeshake
 			? options.treeshake.moduleSideEffects
 			: () => true;
-		this.readQueue.maxParallel = options.maxParallelFileReads;
+
+		this.readQueue = new Queue(options.maxParallelFileReads);
 	}
 
 	async addAdditionalModules(unresolvedModules: string[]): Promise<Module[]> {
