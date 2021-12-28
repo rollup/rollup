@@ -66,8 +66,8 @@ export class ModuleLoader {
 	private readonly implicitEntryModules = new Set<Module>();
 	private readonly indexedEntryModules: { index: number; module: Module }[] = [];
 	private latestLoadModulesPromise: Promise<unknown> = Promise.resolve();
-	private moduleLoadPromises = new Map<Module, LoadModulePromise>();
-	private modulesWithLoadedDependencies = new Set<Module>();
+	private readonly moduleLoadPromises = new Map<Module, LoadModulePromise>();
+	private readonly modulesWithLoadedDependencies = new Set<Module>();
 	private nextEntryModuleIndex = 0;
 	private readonly readQueue: Queue<LoadResult>;
 
