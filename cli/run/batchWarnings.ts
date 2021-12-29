@@ -261,12 +261,12 @@ interface Nested<T> {
 	key: string;
 }
 
-function nest<T>(array: readonly T[], prop: string): Nested<T>[] {
+function nest<T extends Record<string, any>>(array: readonly T[], prop: string): Nested<T>[] {
 	const nested: Nested<T>[] = [];
 	const lookup = new Map<string, Nested<T>>();
 
 	for (const item of array) {
-		const key = (item as any)[prop];
+		const key = item[prop];
 		getOrCreate(lookup, key, () => {
 			const items = {
 				items: [],
