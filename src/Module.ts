@@ -1121,7 +1121,7 @@ export default class Module {
 			variable.include();
 			this.graph.needsTreeshakingPass = true;
 			const variableModule = variable.module;
-			if (variableModule && variableModule instanceof Module) {
+			if (variableModule instanceof Module) {
 				if (!variableModule.isExecuted) {
 					markModuleAndImpureDependenciesAsExecuted(variableModule);
 				}
