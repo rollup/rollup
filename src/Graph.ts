@@ -243,16 +243,16 @@ export default class Graph {
 			for (const importDescription of Object.values(module.importDescriptions)) {
 				if (
 					importDescription.name !== '*' &&
-					!(importDescription.module as Module).getVariableForExportName(importDescription.name)
+					!importDescription.module.getVariableForExportName(importDescription.name)
 				) {
 					module.warn(
 						{
 							code: 'NON_EXISTENT_EXPORT',
 							message: `Non-existent export '${
 								importDescription.name
-							}' is imported from ${relativeId((importDescription.module as Module).id)}`,
+							}' is imported from ${relativeId(importDescription.module.id)}`,
 							name: importDescription.name,
-							source: (importDescription.module as Module).id
+							source: importDescription.module.id
 						},
 						importDescription.start
 					);
