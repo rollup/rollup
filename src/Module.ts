@@ -395,7 +395,7 @@ export default class Module {
 		if (this.exportNamesByVariable) {
 			return this.exportNamesByVariable;
 		}
-		const exportNamesByVariable: Map<Variable, string[]> = new Map();
+		const exportNamesByVariable = new Map<Variable, string[]>();
 		for (const exportName of this.getAllExportNames()) {
 			if (exportName === this.info.syntheticNamedExports) continue;
 			let tracedVariable = this.getVariableForExportName(exportName);
