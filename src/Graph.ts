@@ -44,17 +44,17 @@ function normalizeEntryModules(
 }
 
 export default class Graph {
-	acornParser: typeof acorn.Parser;
-	cachedModules = new Map<string, ModuleJSON>();
-	deoptimizationTracker = new PathTracker();
+	readonly acornParser: typeof acorn.Parser;
+	readonly cachedModules = new Map<string, ModuleJSON>();
+	readonly deoptimizationTracker = new PathTracker();
 	entryModules: Module[] = [];
-	moduleLoader: ModuleLoader;
-	modulesById = new Map<string, Module | ExternalModule>();
+	readonly moduleLoader: ModuleLoader;
+	readonly modulesById = new Map<string, Module | ExternalModule>();
 	needsTreeshakingPass = false;
 	phase: BuildPhase = BuildPhase.LOAD_AND_PARSE;
-	pluginDriver: PluginDriver;
-	scope = new GlobalScope();
-	watchFiles: Record<string, true> = Object.create(null);
+	readonly pluginDriver: PluginDriver;
+	readonly scope = new GlobalScope();
+	readonly watchFiles: Record<string, true> = Object.create(null);
 	watchMode = false;
 
 	private readonly externalModules: ExternalModule[] = [];
