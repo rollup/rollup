@@ -3,7 +3,7 @@ import RESERVED_NAMES from './RESERVED_NAMES';
 import { toBase64 } from './base64';
 
 export function assignExportsToMangledNames(
-	exports: Set<Variable>,
+	exports: ReadonlySet<Variable>,
 	exportsByName: Record<string, Variable>,
 	exportNamesByVariable: Map<Variable, string[]>
 ): void {
@@ -26,7 +26,7 @@ export function assignExportsToMangledNames(
 }
 
 export function assignExportsToNames(
-	exports: Set<Variable>,
+	exports: ReadonlySet<Variable>,
 	exportsByName: Record<string, Variable>,
 	exportNamesByVariable: Map<Variable, string[]>
 ): void {

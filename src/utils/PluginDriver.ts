@@ -86,7 +86,7 @@ export class PluginDriver {
 	constructor(
 		private readonly graph: Graph,
 		private readonly options: NormalizedInputOptions,
-		userPlugins: Plugin[],
+		userPlugins: readonly Plugin[],
 		pluginCache: Record<string, SerializablePluginCache> | undefined,
 		basePluginDriver?: PluginDriver
 	) {
@@ -120,7 +120,7 @@ export class PluginDriver {
 		}
 	}
 
-	public createOutputPluginDriver(plugins: Plugin[]): PluginDriver {
+	public createOutputPluginDriver(plugins: readonly Plugin[]): PluginDriver {
 		return new PluginDriver(this.graph, this.options, plugins, this.pluginCache, this);
 	}
 

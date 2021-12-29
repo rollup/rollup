@@ -13,7 +13,7 @@ import {
 import { SOURCEMAPPING_URL_RE } from './sourceMappingURL';
 
 // patch up acorn-walk until class-fields are officially supported
-basicWalker.PropertyDefinition = function (node: any, st: any, c: any) {
+basicWalker.PropertyDefinition = function (node: any, st: any, c: any): void {
 	if (node.computed) {
 		c(node.key, st, 'Expression');
 	}
@@ -40,7 +40,7 @@ function handlePureAnnotationsOfNode(
 	node: acorn.Node,
 	state: CommentState,
 	type: string = node.type
-) {
+): void {
 	const { annotations } = state;
 	let comment = annotations[state.annotationIndex];
 	while (comment && node.start >= comment.end) {
@@ -59,7 +59,7 @@ function handlePureAnnotationsOfNode(
 const neitherWithespaceNorBrackets = /[^\s(]/g;
 const noWhitespace = /\S/g;
 
-function markPureNode(node: NodeWithComments, comment: acorn.Comment, code: string) {
+function markPureNode(node: NodeWithComments, comment: acorn.Comment, code: string): void {
 	const annotatedNodes = [];
 	let invalidAnnotation: boolean | undefined;
 	const codeInBetween = code.slice(comment.end, node.start);
@@ -162,7 +162,7 @@ export function addAnnotations(
 	});
 }
 
-function annotateNode(node: NodeWithComments, comment: acorn.Comment, valid: boolean) {
+function annotateNode(node: NodeWithComments, comment: acorn.Comment, valid: boolean): void {
 	const key = valid ? ANNOTATION_KEY : INVALID_COMMENT_KEY;
 	const property = node[key];
 	if (property) {

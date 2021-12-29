@@ -23,7 +23,7 @@ import { timeEnd, timeStart } from './utils/timers';
 import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
 
 function normalizeEntryModules(
-	entryModules: string[] | Record<string, string>
+	entryModules: readonly string[] | Record<string, string>
 ): UnresolvedModule[] {
 	if (Array.isArray(entryModules)) {
 		return entryModules.map(id => ({
@@ -57,7 +57,7 @@ export default class Graph {
 	watchFiles: Record<string, true> = Object.create(null);
 	watchMode = false;
 
-	private externalModules: ExternalModule[] = [];
+	private readonly externalModules: ExternalModule[] = [];
 	private implicitEntryModules: Module[] = [];
 	private modules: Module[] = [];
 	private declare pluginCache?: Record<string, SerializablePluginCache>;
@@ -178,7 +178,7 @@ export default class Graph {
 		}
 	}
 
-	private includeStatements() {
+	private includeStatements(): void {
 		for (const module of [...this.entryModules, ...this.implicitEntryModules]) {
 			markModuleAndImpureDependenciesAsExecuted(module);
 		}
@@ -221,7 +221,7 @@ export default class Graph {
 		}
 	}
 
-	private sortModules() {
+	private sortModules(): void {
 		const { orderedModules, cyclePaths } = analyseModuleExecution(this.entryModules);
 		for (const cyclePath of cyclePaths) {
 			this.options.onwarn({
@@ -238,7 +238,7 @@ export default class Graph {
 		this.warnForMissingExports();
 	}
 
-	private warnForMissingExports() {
+	private warnForMissingExports(): void {
 		for (const module of this.modules) {
 			for (const importDescription of Object.values(module.importDescriptions)) {
 				if (

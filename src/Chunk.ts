@@ -887,7 +887,7 @@ export default class Chunk {
 		return hash.digest('hex').substr(0, 8);
 	}
 
-	private ensureReexportsAreAvailableForModule(module: Module) {
+	private ensureReexportsAreAvailableForModule(module: Module): void {
 		const map = module.getExportNamesByVariable();
 		for (const exportedVariable of map.keys()) {
 			const isSynthetic = exportedVariable instanceof SyntheticNamedExportVariable;
@@ -910,7 +910,10 @@ export default class Chunk {
 		}
 	}
 
-	private finaliseDynamicImports(options: NormalizedOutputOptions, snippets: GenerateCodeSnippets) {
+	private finaliseDynamicImports(
+		options: NormalizedOutputOptions,
+		snippets: GenerateCodeSnippets
+	): void {
 		const stripKnownJsExtensions = options.format === 'amd';
 		for (const [module, code] of this.renderedModuleSources) {
 			for (const { node, resolution } of module.dynamicImports) {
@@ -1218,7 +1221,7 @@ export default class Chunk {
 		return relativePath.startsWith('../') ? relativePath : './' + relativePath;
 	}
 
-	private inlineChunkDependencies(chunk: Chunk) {
+	private inlineChunkDependencies(chunk: Chunk): void {
 		for (const dep of chunk.dependencies) {
 			if (this.dependencies.has(dep)) continue;
 			this.dependencies.add(dep);
@@ -1228,7 +1231,7 @@ export default class Chunk {
 		}
 	}
 
-	private prepareModulesForRendering(snippets: GenerateCodeSnippets) {
+	private prepareModulesForRendering(snippets: GenerateCodeSnippets): void {
 		const accessedGlobalsByScope = this.accessedGlobalsByScope;
 		for (const module of this.orderedModules) {
 			for (const { node, resolution } of module.dynamicImports) {
@@ -1268,7 +1271,7 @@ export default class Chunk {
 		}
 	}
 
-	private setExternalRenderPaths(options: NormalizedOutputOptions, inputBase: string) {
+	private setExternalRenderPaths(options: NormalizedOutputOptions, inputBase: string): void {
 		for (const dependency of [...this.dependencies, ...this.dynamicDependencies]) {
 			if (dependency instanceof ExternalModule) {
 				dependency.setRenderPath(options, inputBase);
@@ -1347,7 +1350,7 @@ export default class Chunk {
 		);
 	}
 
-	private setUpChunkImportsAndExportsForModule(module: Module) {
+	private setUpChunkImportsAndExportsForModule(module: Module): void {
 		const moduleImports = new Set(module.imports);
 		// when we are not preserving modules, we need to make all namespace variables available for
 		// rendering the namespace object

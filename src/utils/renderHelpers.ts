@@ -89,7 +89,7 @@ function findFirstLineBreakOutsideComment(code: string): [number, number] {
 }
 
 export function renderStatementList(
-	statements: StatementNode[],
+	statements: readonly StatementNode[],
 	code: MagicString,
 	start: number,
 	end: number,
@@ -134,7 +134,7 @@ export function renderStatementList(
 
 // This assumes that the first character is not part of the first node
 export function getCommaSeparatedNodesWithBoundaries<N extends Node>(
-	nodes: N[],
+	nodes: readonly N[],
 	code: MagicString,
 	start: number,
 	end: number
