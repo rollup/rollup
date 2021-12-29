@@ -344,15 +344,14 @@ export default class Module {
 		const relevantDependencies = new Set<Module | ExternalModule>();
 		const necessaryDependencies = new Set<Module | ExternalModule>();
 		const alwaysCheckedDependencies = new Set<Module>();
+		const dependencyVariables = new Set(this.imports);
 
-		let dependencyVariables: Set<Variable> | IterableIterator<Variable> = this.imports.keys();
 		if (
 			this.info.isEntry ||
 			this.includedDynamicImporters.length > 0 ||
 			this.namespace.included ||
 			this.implicitlyLoadedAfter.size > 0
 		) {
-			dependencyVariables = new Set(dependencyVariables);
 			for (const exportName of [...this.getReexports(), ...this.getExports()]) {
 				const exportedVariable = this.getVariableForExportName(exportName);
 				if (exportedVariable) {
