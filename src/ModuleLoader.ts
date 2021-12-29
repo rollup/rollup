@@ -104,8 +104,8 @@ export class ModuleLoader {
 		this.nextEntryModuleIndex += unresolvedEntryModules.length;
 		const newEntryModules = await this.extendLoadModulesPromise(
 			Promise.all(
-				unresolvedEntryModules.map(
-					({ id, importer }): Promise<Module> => this.loadEntryModule(id, true, importer, null)
+				unresolvedEntryModules.map(({ id, importer }) =>
+					this.loadEntryModule(id, true, importer, null)
 				)
 			).then(entryModules => {
 				let moduleIndex = firstEntryModuleIndex;
@@ -351,7 +351,7 @@ export class ModuleLoader {
 			return existingModule;
 		}
 
-		const module: Module = new Module(
+		const module = new Module(
 			this.graph,
 			id,
 			this.options,
