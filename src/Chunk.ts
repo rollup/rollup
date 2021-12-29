@@ -108,7 +108,7 @@ function getGlobalName(
 	globals: GlobalsOption,
 	hasExports: boolean,
 	warn: WarningHandler
-) {
+): string | undefined {
 	const globalName = typeof globals === 'function' ? globals(module.id) : globals[module.id];
 	if (globalName) {
 		return globalName;
@@ -126,7 +126,7 @@ function getGlobalName(
 }
 
 export default class Chunk {
-	entryModules: Module[] = [];
+	readonly entryModules: Module[] = [];
 	execIndex: number;
 	exportMode: 'none' | 'named' | 'default' = 'named';
 	facadeModule: Module | null = null;
@@ -136,27 +136,27 @@ export default class Chunk {
 	suggestedVariableName: string;
 	variableName = '';
 
-	private accessedGlobalsByScope = new Map<ChildScope, Set<string>>();
+	private readonly accessedGlobalsByScope = new Map<ChildScope, Set<string>>();
 	private dependencies = new Set<ExternalModule | Chunk>();
-	private dynamicDependencies = new Set<ExternalModule | Chunk>();
-	private dynamicEntryModules: Module[] = [];
+	private readonly dynamicDependencies = new Set<ExternalModule | Chunk>();
+	private readonly dynamicEntryModules: Module[] = [];
 	private dynamicName: string | null = null;
-	private exportNamesByVariable = new Map<Variable, string[]>();
-	private exports = new Set<Variable>();
-	private exportsByName: Record<string, Variable> = Object.create(null);
+	private readonly exportNamesByVariable = new Map<Variable, string[]>();
+	private readonly exports = new Set<Variable>();
+	private readonly exportsByName: Record<string, Variable> = Object.create(null);
 	private fileName: string | null = null;
 	private implicitEntryModules: Module[] = [];
-	private implicitlyLoadedBefore = new Set<Chunk>();
-	private imports = new Set<Variable>();
+	private readonly implicitlyLoadedBefore = new Set<Chunk>();
+	private readonly imports = new Set<Variable>();
 	private indentString: string = undefined as never;
-	private readonly isEmpty: boolean = true;
+	private isEmpty = true;
 	private name: string | null = null;
 	private renderedDependencies: Map<ExternalModule | Chunk, ModuleDeclarationDependency> | null =
 		null;
 	private renderedExports: ChunkExports | null = null;
-	private renderedHash: string = undefined as never;
-	private renderedModuleSources = new Map<Module, MagicString>();
-	private renderedModules: {
+	private renderedHash: string | undefined = undefined;
+	private readonly renderedModuleSources = new Map<Module, MagicString>();
+	private readonly renderedModules: {
 		[moduleId: string]: RenderedModule;
 	} = Object.create(null);
 	private renderedSource: MagicStringBundle | null = null;
@@ -251,7 +251,7 @@ export default class Chunk {
 		return chunk;
 	}
 
-	canModuleBeFacade(module: Module, exposedVariables: Set<Variable>): boolean {
+	canModuleBeFacade(module: Module, exposedVariables: ReadonlySet<Variable>): boolean {
 		const moduleExportNamesByVariable = module.getExportNamesByVariable();
 		for (const exposedVariable of this.exports) {
 			if (!moduleExportNamesByVariable.has(exposedVariable)) {
@@ -429,9 +429,9 @@ export default class Chunk {
 		preserveModulesRelativeDir: string,
 		options: NormalizedOutputOptions,
 		existingNames: Record<string, unknown>,
-		unsetOptions: Set<string>
+		unsetOptions: ReadonlySet<string>
 	): string {
-		const id = this.orderedModules[0].id;
+		const [{ id }] = this.orderedModules;
 		const sanitizedId = this.outputOptions.sanitizeFileName(id);
 		let path: string;
 
@@ -641,7 +641,7 @@ export default class Chunk {
 			this.renderedSource = magicString.trim();
 		}
 
-		this.renderedHash = undefined as never;
+		this.renderedHash = undefined;
 
 		if (this.isEmpty && this.getExportNames().length === 0 && this.dependencies.size === 0) {
 			const chunkName = this.getChunkName();
@@ -811,9 +811,9 @@ export default class Chunk {
 	}
 
 	private addDependenciesToChunk(
-		moduleDependencies: Set<Module | ExternalModule>,
+		moduleDependencies: ReadonlySet<Module | ExternalModule>,
 		chunkDependencies: Set<Chunk | ExternalModule>
-	) {
+	): void {
 		for (const module of moduleDependencies) {
 			if (module instanceof Module) {
 				const chunk = this.chunkByModule.get(module);
@@ -826,7 +826,7 @@ export default class Chunk {
 		}
 	}
 
-	private assignFacadeName({ fileName, name }: FacadeName, facadedModule: Module) {
+	private assignFacadeName({ fileName, name }: FacadeName, facadedModule: Module): void {
 		if (fileName) {
 			this.fileName = fileName;
 		} else {
@@ -870,7 +870,7 @@ export default class Chunk {
 		hash.update(
 			[addons.intro, addons.outro, addons.banner, addons.footer].map(addon => addon || '').join(':')
 		);
-		hash.update(options.format as string);
+		hash.update(options.format);
 		const dependenciesForHashing = new Set<Chunk | ExternalModule>([this]);
 		for (const current of dependenciesForHashing) {
 			if (current instanceof ExternalModule) {
@@ -1306,7 +1306,7 @@ export default class Chunk {
 				break;
 			}
 		}
-		const usedNames = new Set<string>(['Object', 'Promise']);
+		const usedNames = new Set(['Object', 'Promise']);
 		if (this.needsExportsShim) {
 			usedNames.add(MISSING_EXPORT_SHIM_VARIABLE);
 		}

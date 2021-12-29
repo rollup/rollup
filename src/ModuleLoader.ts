@@ -176,7 +176,7 @@ export class ModuleLoader {
 		importer: string | undefined,
 		customOptions: CustomPluginOptions | undefined,
 		isEntry: boolean | undefined,
-		skip: { importer: string | undefined; plugin: Plugin; source: string }[] | null = null
+		skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null = null
 	): Promise<ResolvedId | null> => {
 		return this.addDefaultsToResolvedId(
 			this.getNormalizedResolvedIdWithoutDefaults(

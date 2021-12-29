@@ -1,4 +1,4 @@
-import * as path from 'path';
+import { resolve } from 'path';
 import { createFilter } from '@rollup/pluginutils';
 import { rollupInternal } from '../rollup/rollup';
 import {
@@ -33,16 +33,16 @@ const eventsRewrites: Record<ChangeEvent, Record<ChangeEvent, ChangeEvent | 'bug
 };
 
 export class Watcher {
-	emitter: RollupWatcher;
+	readonly emitter: RollupWatcher;
 
 	private buildDelay = 0;
 	private buildTimeout: NodeJS.Timer | null = null;
-	private invalidatedIds = new Map<string, ChangeEvent>();
+	private readonly invalidatedIds = new Map<string, ChangeEvent>();
 	private rerun = false;
 	private running = true;
-	private tasks: Task[];
+	private readonly tasks: Task[];
 
-	constructor(configs: GenericConfigObject[], emitter: RollupWatcher) {
+	constructor(configs: readonly GenericConfigObject[], emitter: RollupWatcher) {
 		this.emitter = emitter;
 		emitter.close = this.close.bind(this);
 		this.tasks = configs.map(config => new Task(this, config));
@@ -97,7 +97,7 @@ export class Watcher {
 		}, this.buildDelay);
 	}
 
-	private async run() {
+	private async run(): Promise<void> {
 		this.running = true;
 		this.emitter.emit('event', {
 			code: 'START'
@@ -123,15 +123,15 @@ export class Task {
 	watchFiles: string[] = [];
 
 	private closed = false;
-	private fileWatcher: FileWatcher;
+	private readonly fileWatcher: FileWatcher;
 	private filter: (id: string) => boolean;
 	private invalidated = true;
-	private options: MergedRollupOptions;
-	private outputFiles: string[];
-	private outputs: OutputOptions[];
+	private readonly options: MergedRollupOptions;
+	private readonly outputFiles: string[];
+	private readonly outputs: OutputOptions[];
 	private skipWrite: boolean;
 	private watched = new Set<string>();
-	private watcher: Watcher;
+	private readonly watcher: Watcher;
 
 	constructor(watcher: Watcher, config: GenericConfigObject) {
 		this.watcher = watcher;
@@ -140,7 +140,7 @@ export class Task {
 		this.options = mergeOptions(config);
 		this.outputs = this.options.output;
 		this.outputFiles = this.outputs.map(output => {
-			if (output.file || output.dir) return path.resolve(output.file || output.dir!);
+			if (output.file || output.dir) return resolve(output.file || output.dir!);
 			return undefined as never;
 		});
 

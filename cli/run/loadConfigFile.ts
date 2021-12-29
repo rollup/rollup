@@ -1,5 +1,5 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import { realpathSync } from 'fs';
+import { extname, isAbsolute } from 'path';
 import { pathToFileURL } from 'url';
 import * as rollup from '../../src/node-entry';
 import { MergedRollupOptions } from '../../src/rollup/types';
@@ -12,7 +12,7 @@ import { stderr } from '../logging';
 import batchWarnings, { BatchWarnings } from './batchWarnings';
 import { addCommandPluginsToInputOptions, addPluginsFromCommandOption } from './commandPlugins';
 
-function supportsNativeESM() {
+function supportsNativeESM(): boolean {
 	return Number(/^v(\d+)/.exec(process.version)![1]) >= 13;
 }
 
@@ -44,7 +44,7 @@ async function loadConfigFile(
 	fileName: string,
 	commandOptions: Record<string, unknown>
 ): Promise<GenericConfigObject[]> {
-	const extension = path.extname(fileName);
+	const extension = extname(fileName);
 
 	const configFileExport =
 		commandOptions.configPlugin ||
@@ -68,7 +68,7 @@ async function getDefaultFromTranspiledConfigFile(
 	const warnings = batchWarnings();
 	const inputOptions = {
 		external: (id: string) =>
-			(id[0] !== '.' && !path.isAbsolute(id)) || id.slice(-5, id.length) === '.json',
+			(id[0] !== '.' && !isAbsolute(id)) || id.slice(-5, id.length) === '.json',
 		input: fileName,
 		onwarn: warnings.add,
 		plugins: [],
@@ -102,9 +102,9 @@ async function getDefaultFromTranspiledConfigFile(
 	return loadConfigFromBundledFile(fileName, code);
 }
 
-async function loadConfigFromBundledFile(fileName: string, bundledCode: string) {
-	const resolvedFileName = fs.realpathSync(fileName);
-	const extension = path.extname(resolvedFileName);
+async function loadConfigFromBundledFile(fileName: string, bundledCode: string): Promise<unknown> {
+	const resolvedFileName = realpathSync(fileName);
+	const extension = extname(resolvedFileName);
 	const defaultLoader = require.extensions[extension];
 	require.extensions[extension] = (module: NodeModule, requiredFileName: string) => {
 		if (requiredFileName === resolvedFileName) {
@@ -132,7 +132,7 @@ async function loadConfigFromBundledFile(fileName: string, bundledCode: string) 
 	}
 }
 
-async function getConfigList(configFileExport: any, commandOptions: any) {
+async function getConfigList(configFileExport: any, commandOptions: any): Promise<any[]> {
 	const config = await (typeof configFileExport === 'function'
 		? configFileExport(commandOptions)
 		: configFileExport);

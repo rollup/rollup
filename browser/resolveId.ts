@@ -13,9 +13,9 @@ export async function resolveId(
 		importer: string | undefined,
 		customOptions: CustomPluginOptions | undefined,
 		isEntry: boolean | undefined,
-		skip: { importer: string | undefined; plugin: Plugin; source: string }[] | null
+		skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null
 	) => Promise<ResolvedId | null>,
-	skip: { importer: string | undefined; plugin: Plugin; source: string }[] | null,
+	skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null,
 	customOptions: CustomPluginOptions | undefined,
 	isEntry: boolean
 ): Promise<ResolveIdResult> {

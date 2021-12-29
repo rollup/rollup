@@ -1,5 +1,5 @@
 import { readdirSync } from 'fs';
-import * as path from 'path';
+import { resolve } from 'path';
 import relative from 'require-relative';
 import { handleError } from '../logging';
 
@@ -8,7 +8,7 @@ const DEFAULT_CONFIG_BASE = 'rollup.config';
 export function getConfigPath(commandConfig: string | true): string {
 	const cwd = process.cwd();
 	if (commandConfig === true) {
-		return path.resolve(findConfigFileNameInCwd());
+		return resolve(findConfigFileNameInCwd());
 	}
 	if (commandConfig.slice(0, 5) === 'node:') {
 		const pkgName = commandConfig.slice(5);
@@ -28,7 +28,7 @@ export function getConfigPath(commandConfig: string | true): string {
 			}
 		}
 	}
-	return path.resolve(commandConfig);
+	return resolve(commandConfig);
 }
 
 function findConfigFileNameInCwd(): string {
