@@ -321,7 +321,7 @@ describe('rollup.watch', () => {
 				exports: 'auto'
 			},
 			watch: {
-				buildDelay: 300,
+				buildDelay: 600,
 				chokidar: {
 					atomic: false
 				}
