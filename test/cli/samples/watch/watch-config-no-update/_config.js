@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { atomicWriteFileSync } = require('../../../../utils');
 
 let configFile;
 const configContent =
@@ -23,7 +24,7 @@ module.exports = {
 	},
 	abortOnStderr(data) {
 		if (data.includes('created _actual/main.js')) {
-			fs.writeFileSync(configFile, configContent);
+			atomicWriteFileSync(configFile, configContent);
 			return new Promise(resolve => setTimeout(() => resolve(true), 500));
 		}
 	},

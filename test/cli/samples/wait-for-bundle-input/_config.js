@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { atomicWriteFileSync } = require('../../../utils');
 
 let mainFile;
 
@@ -15,7 +16,7 @@ module.exports = {
 	abortOnStderr(data) {
 		if (data.includes('waiting for input main.js')) {
 			// wait longer than one polling interval
-			setTimeout(() => fs.writeFileSync(mainFile, 'export default 42;'), 600);
+			setTimeout(() => atomicWriteFileSync(mainFile, 'export default 42;'), 600);
 		}
 	}
 };
