@@ -117,6 +117,23 @@ class Link {
 		const segments = this.mappings[line];
 		if (!segments) return null;
 
+		// Sometimes a high-resolution sourcemap will be preceded in the sourcemap chain
+		// by a low-resolution sourcemap. We can detect this by checking if the mappings
+		// array for this line only contains a segment for column zero. In that case, we
+		// want to fall back to a low-resolution mapping instead of returning null.
+		if (segments.length == 1 && segments[0][0] == 0) {
+			const segment = segments[0];
+			if (segment.length == 1) {
+				return null;
+			}
+			const source = this.sources[segment[1]] || null;
+			return source?.traceSegment(
+				segment[2],
+				segment[3],
+				segment.length === 5 ? this.names[segment[4]] : name
+			);
+		}
+
 		// binary search through segments for the given column
 		let i = 0;
 		let j = segments.length - 1;
