@@ -74,11 +74,23 @@ const _findArray = [{ effect() {} }];
 _findArray.find(element => (element.effect = () => console.log(1)));
 _findArray[0].effect();
 
+const _findLast = [1].findLast(() => true);
+const _findLastEffect = [1].findLast(() => console.log(1) || true);
+const _findLastArray = [{ effect() {} }];
+_findLastArray.findLast(element => (element.effect = () => console.log(1)));
+_findLastArray[0].effect();
+
 const _findIndex = [1].findIndex(() => true).toPrecision(1);
 const _findIndexEffect = [1].findIndex(() => console.log(1) || true);
 const _findIndexArray = [{ effect() {} }];
 _findIndexArray.findIndex(element => (element.effect = () => console.log(1)));
 _findIndexArray[0].effect();
+
+const _findLastIndex = [1].findLastIndex(() => true).toPrecision(1);
+const _findLastIndexEffect = [1].findLastIndex(() => console.log(1) || true);
+const _findLastIndexArray = [{ effect() {} }];
+_findLastIndexArray.findLastIndex(element => (element.effect = () => console.log(1)));
+_findLastIndexArray[0].effect();
 
 const _flatMap = [1].flatMap(() => 1).join(',');
 const _flatMapEffect = [1].flatMap(() => console.log(1) || 1);
