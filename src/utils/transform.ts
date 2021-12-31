@@ -37,7 +37,7 @@ export default async function transform(
 	const emittedFiles: EmittedFile[] = [];
 	let customTransformCache = false;
 	const useCustomTransformCache = () => (customTransformCache = true);
-	let curPlugin: Plugin | undefined;
+	let pluginName = '';
 	const curSource: string = source.code;
 
 	function transformReducer(
@@ -85,7 +85,7 @@ export default async function transform(
 			[curSource, id],
 			transformReducer,
 			(pluginContext, plugin): TransformPluginContext => {
-				curPlugin = plugin;
+				pluginName = plugin.name;
 				return {
 					...pluginContext,
 					addWatchFile(id: string) {
@@ -153,7 +153,7 @@ export default async function transform(
 			}
 		);
 	} catch (err: any) {
-		throwPluginError(err, curPlugin?.name ?? 'Unknown plugin', { hook: 'transform', id });
+		throwPluginError(err, pluginName, { hook: 'transform', id });
 	}
 
 	if (!customTransformCache) {
