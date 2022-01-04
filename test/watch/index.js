@@ -250,6 +250,9 @@ describe('rollup.watch', () => {
 				format: 'cjs',
 				exports: 'auto'
 			},
+			watch: {
+				buildDelay: 300
+			},
 			plugins: {
 				buildStart() {
 					this.addWatchFile(WATCHED_ID);
