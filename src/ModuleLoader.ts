@@ -204,7 +204,7 @@ export class ModuleLoader {
 		return {
 			external,
 			id: resolvedId.id,
-			meta: resolvedId.meta || EMPTY_OBJECT,
+			meta: resolvedId.meta || {},
 			moduleSideEffects:
 				resolvedId.moduleSideEffects ?? this.hasModuleSideEffects(resolvedId.id, !!external),
 			syntheticNamedExports: resolvedId.syntheticNamedExports ?? false
@@ -555,7 +555,7 @@ export class ModuleLoader {
 			return {
 				external: true,
 				id: source,
-				meta: EMPTY_OBJECT,
+				meta: {},
 				moduleSideEffects: this.hasModuleSideEffects(source, true),
 				syntheticNamedExports: false
 			};

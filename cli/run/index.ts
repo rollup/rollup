@@ -1,4 +1,5 @@
 import { MergedRollupOptions } from '../../src/rollup/types';
+import { isWatchEnabled } from '../../src/utils/options/mergeOptions';
 import { getAliasName } from '../../src/utils/relativeId';
 import { loadFsEvents } from '../../src/watch/fsevents-importer';
 import { handleError } from '../logging';
@@ -56,7 +57,7 @@ export default async function runRollup(command: Record<string, any>): Promise<v
 		});
 	}
 
-	if (command.watch) {
+	if (isWatchEnabled(command.watch)) {
 		await loadFsEvents();
 		const { watch } = await import('./watch-cli');
 		watch(command);
