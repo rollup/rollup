@@ -82,7 +82,7 @@ function getPluginWithTimers(plugin: any, index: number): Plugin {
 			timerLabel += ` - ${hook}`;
 			timedPlugin[hook] = function (...args: unknown[]) {
 				timeStart(timerLabel, 4);
-				const result = plugin[hook].apply(this === timedPlugin ? plugin : this, args);
+				const result = plugin[hook](...args);
 				timeEnd(timerLabel, 4);
 				if (result && typeof result.then === 'function') {
 					timeStart(`${timerLabel} (async)`, 4);
