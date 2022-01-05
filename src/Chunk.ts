@@ -149,7 +149,8 @@ export default class Chunk {
 	private readonly implicitlyLoadedBefore = new Set<Chunk>();
 	private readonly imports = new Set<Variable>();
 	private indentString: string = undefined as never;
-	private isEmpty = true;
+	// This may only be updated in the constructor
+	private readonly isEmpty: boolean = true;
 	private name: string | null = null;
 	private renderedDependencies: Map<ExternalModule | Chunk, ModuleDeclarationDependency> | null =
 		null;

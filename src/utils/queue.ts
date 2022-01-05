@@ -12,7 +12,7 @@ export class Queue<T> {
 	private readonly queue: QueueItem<T>[] = [];
 	private workerCount = 0;
 
-	constructor(private maxParallel = 1) {}
+	constructor(private maxParallel: number) {}
 
 	run(task: Task<T>): Promise<T> {
 		return new Promise((resolve, reject) => {
