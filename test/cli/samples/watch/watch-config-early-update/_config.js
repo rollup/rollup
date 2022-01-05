@@ -18,19 +18,18 @@ module.exports = {
 		fs.writeFileSync(
 			configFile,
 			`
-		  import chokidar from 'chokidar';
+		  import { watch } from 'fs';
       export default new Promise(resolve => {
-				const watcher = chokidar.watch(${JSON.stringify(configFile)})
-				  .on('change', () => {
-				    watcher.close();
-				    setTimeout(() => resolve({
-              input: { output1: 'main.js' },
-              output: {
-                dir: '_actual',
-                format: 'es'
-              }
-            }), 600)
-				  });
+				const watcher = watch(${JSON.stringify(configFile)}, () => {
+				  watcher.close();
+				  setTimeout(() => resolve({
+            input: { output1: 'main.js' },
+            output: {
+              dir: '_actual',
+              format: 'es'
+            }
+          }), 600)
+				});
 				console.error('initial');
       });
   		`
