@@ -3,6 +3,7 @@ import type { Plugin } from 'rollup';
 
 const ID_CRYPTO = resolve('src/utils/crypto');
 const ID_FS = resolve('src/utils/fs');
+const ID_HOOKACTIONS = resolve('src/utils/hookActions');
 const ID_PATH = resolve('src/utils/path');
 const ID_PERFORMANCE = resolve('src/utils/performance');
 const ID_PROCESS = resolve('src/utils/process');
@@ -19,6 +20,8 @@ export default function replaceBrowserModules(): Plugin {
 						return resolve('browser/crypto.ts');
 					case ID_FS:
 						return resolve('browser/fs.ts');
+					case ID_HOOKACTIONS:
+						return resolve('browser/hookActions.ts');
 					case ID_PATH:
 						return resolve('browser/path.ts');
 					case ID_PERFORMANCE:

@@ -1,5 +1,30 @@
 # rollup changelog
 
+## 2.63.0
+
+_2022-01-04_
+
+### Features
+
+- Report a helpful error if rollup exits due to an empty event loop when using `this.load` (#4320)
+- Allow directly mutating ModuleInfo.meta for modules and never replace this object (#4328)
+- Detect additional side effect free array prototype methods (#4332)
+
+### Bug Fixes
+
+- Do not watch if CLI watch options are specified but `--watch` is missing (#4335)
+
+### Pull Requests
+
+- [#4320](https://github.com/rollup/rollup/pull/4320): Detect unfulfilled async hook actions and report error on exit (@kzc)
+- [#4328](https://github.com/rollup/rollup/pull/4328): Make initial ModuleInfo.meta mutable and maintain object identity (@lukastaegert)
+- [#4318](https://github.com/rollup/rollup/pull/4318): Stabilize watch tests (@lukastaegert)
+- [#4331](https://github.com/rollup/rollup/pull/4331): Improve JS docs example (@lukastaegert)
+- [#4332](https://github.com/rollup/rollup/pull/4332): add support for Array.prototype.findLast,findLastIndex (@dnalborczyk)
+- [#4333](https://github.com/rollup/rollup/pull/4333): convert utils.transform to async function (@dnalborczyk)
+- [#4335](https://github.com/rollup/rollup/pull/4335): Do not watch unless --watch is specified explicitly (@lukastaegert)
+- [#4338](https://github.com/rollup/rollup/pull/4338): Add build delay for plugin event test (@lukastaegert)
+
 ## 2.62.0
 
 _2021-12-24_

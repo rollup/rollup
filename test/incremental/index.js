@@ -293,18 +293,17 @@ describe('incremental', () => {
 			},
 
 			load(id) {
-				assert.deepStrictEqual(this.getModuleInfo(id).meta, { test: { resolved: id } });
 				return { code: modules[id], meta: { test: { loaded: id } } };
 			},
 
 			transform(code, id) {
 				transformCalls++;
-				assert.deepStrictEqual(this.getModuleInfo(id).meta, { test: { loaded: id } });
+				assert.deepStrictEqual(this.getModuleInfo(id).meta, { test: { loaded: id } }, 'transform');
 				return { code, meta: { test: { transformed: id } } };
 			},
 
 			moduleParsed({ id, meta }) {
-				assert.deepStrictEqual(meta, { test: { transformed: id } });
+				assert.deepStrictEqual(meta, { test: { transformed: id } }, 'moduleParsed');
 				moduleParsedCalls++;
 			},
 
@@ -314,7 +313,8 @@ describe('incremental', () => {
 					[
 						{ id: 'entry', meta: { test: { transformed: 'entry' } } },
 						{ id: 'foo', meta: { test: { transformed: 'foo' } } }
-					]
+					],
+					'buildEnd'
 				);
 			}
 		};

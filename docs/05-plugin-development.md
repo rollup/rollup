@@ -1055,7 +1055,7 @@ Note the convention that custom options should be added using a property corresp
 
 #### Custom module meta-data
 
-Plugins can annotate modules with custom meta-data which can be accessed by themselves and other plugins via the [`resolveId`](guide/en/#resolveid), [`load`](guide/en/#load), and [`transform`](guide/en/#transform) hooks. This meta-data should always be JSON.stringifyable and will be persisted in the cache e.g. in watch mode.
+Plugins can annotate modules with custom meta-data which can be set by themselves and other plugins via the [`resolveId`](guide/en/#resolveid), [`load`](guide/en/#load), and [`transform`](guide/en/#transform) hooks and accessed via [`this.getModuleInfo`](guide/en/#thisgetmoduleinfo), [`this.load`](guide/en/#thisload) and the [`moduleParsed`](guide/en/#moduleparsed) hook. This meta-data should always be JSON.stringifyable and will be persisted in the cache e.g. in watch mode.
 
 ```js
 function annotatingPlugin() {
@@ -1086,6 +1086,26 @@ function readingPlugin() {
 Note the convention that plugins that add or modify data should use a property corresponding to the plugin name, in this case `annotating`. On the other hand, any plugin can read all meta-data from other plugins via `this.getModuleInfo`.
 
 If several plugins add meta-data or meta-data is added in different hooks, then these `meta` objects will be merged shallowly. That means if plugin `first` adds `{meta: {first: {resolved: "first"}}}` in the resolveId hook and `{meta: {first: {loaded: "first"}}}` in the load hook while plugin `second` adds `{meta: {second: {transformed: "second"}}}` in the `transform` hook, then the resulting `meta` object will be `{first: {loaded: "first"}, second: {transformed: "second"}}`. Here the result of the `resolveId` hook will be overwritten by the result of the `load` hook as the plugin was both storing them under its `first` top-level property. The `transform` data of the other plugin on the other hand will be placed next to it.
+
+The `meta` object of a module is created as soon as Rollup starts loading a module and is updated for each lifecycle hook of the module. If you store a reference to this object, you can also update it manually. To access the meta object of a module that has not been loaded yet, you can trigger its creation and loading the module via [`this.load`](guide/en/#thisload):
+
+```js
+function plugin() {
+  return {
+    name: 'test',
+    buildStart() {
+      // trigger loading a module. We could also pass an initial "meta" object
+      // here, but it would be ignored if the module was already loaded via
+      // other means
+      this.load({ id: 'my-id' });
+      // the module info is now available, we do not need to await this.load
+      const meta = this.getModuleInfo('my-id').meta;
+      // we can also modify meta manually now
+      meta.test = { some: 'data' };
+    }
+  };
+}
+```
 
 #### Direct plugin communication
 
