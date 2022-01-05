@@ -90,8 +90,10 @@ export default (command: Record<string, unknown>): RollupOptions | RollupOptions
 			'fs',
 			'fsevents',
 			'module',
-			'path',
 			'os',
+			'path',
+			'perf_hooks',
+			'process',
 			'stream',
 			'url',
 			'util'

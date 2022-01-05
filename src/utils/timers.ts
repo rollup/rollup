@@ -1,11 +1,11 @@
 import { InputOptions, Plugin, SerializedTimings } from '../rollup/types';
-
-type StartTime = [number, number];
+import now from './performance';
+import getMemory from './process';
 
 interface Timer {
 	memory: number;
 	startMemory: number;
-	startTime: StartTime;
+	startTime: number;
 	time: number;
 	totalMemory: number;
 }
@@ -15,25 +15,8 @@ interface Timers {
 }
 
 const NOOP = (): void => {};
-let getStartTime = (): StartTime => [0, 0];
-let getElapsedTime: (previous: StartTime) => number = () => 0;
-let getMemory: () => number = () => 0;
+
 let timers: Timers = {};
-
-const normalizeHrTime = (time: [number, number]) => time[0] * 1e3 + time[1] / 1e6;
-
-function setTimeHelpers() {
-	if (typeof process !== 'undefined' && typeof process.hrtime === 'function') {
-		getStartTime = process.hrtime.bind(process);
-		getElapsedTime = previous => normalizeHrTime(process.hrtime(previous));
-	} else if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
-		getStartTime = () => [performance.now(), 0];
-		getElapsedTime = previous => performance.now() - previous[0];
-	}
-	if (typeof process !== 'undefined' && typeof process.memoryUsage === 'function') {
-		getMemory = () => process.memoryUsage().heapUsed;
-	}
-}
 
 function getPersistedLabel(label: string, level: number) {
 	switch (level) {
@@ -60,7 +43,7 @@ function timeStartImpl(label: string, level = 3) {
 		};
 	}
 	const currentMemory = getMemory();
-	timers[label].startTime = getStartTime();
+	timers[label].startTime = now();
 	timers[label].startMemory = currentMemory;
 }
 
@@ -68,7 +51,7 @@ function timeEndImpl(label: string, level = 3) {
 	label = getPersistedLabel(label, level);
 	if (timers.hasOwnProperty(label)) {
 		const currentMemory = getMemory();
-		timers[label].time += getElapsedTime(timers[label].startTime);
+		timers[label].time += now() - timers[label].startTime;
 		timers[label].totalMemory = Math.max(timers[label].totalMemory, currentMemory);
 		timers[label].memory += currentMemory - timers[label].startMemory;
 	}
@@ -125,7 +108,6 @@ function getPluginWithTimers(plugin: any, index: number): Plugin {
 export function initialiseTimers(inputOptions: InputOptions): void {
 	if (inputOptions.perf) {
 		timers = {};
-		setTimeHelpers();
 		timeStart = timeStartImpl;
 		timeEnd = timeEndImpl;
 		inputOptions.plugins = inputOptions.plugins!.map(getPluginWithTimers);
