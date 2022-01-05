@@ -65,21 +65,16 @@ export function getTimings(): SerializedTimings {
 	return newTimings;
 }
 
-export let timeStart: (label: string, level?: number) => void = NOOP,
-	timeEnd: (label: string, level?: number) => void = NOOP;
+export let timeStart: (label: string, level?: number) => void = NOOP;
+export let timeEnd: (label: string, level?: number) => void = NOOP;
 
-const TIMED_PLUGIN_HOOKS: { [hook: string]: boolean } = {
-	load: true,
-	resolveDynamicImport: true,
-	resolveId: true,
-	transform: true
-};
+const TIMED_PLUGIN_HOOKS = ['load', 'resolveDynamicImport', 'resolveId', 'transform'] as const;
 
 function getPluginWithTimers(plugin: any, index: number): Plugin {
 	const timedPlugin: { [hook: string]: any } = {};
 
-	for (const hook of Object.keys(plugin)) {
-		if (TIMED_PLUGIN_HOOKS[hook] === true) {
+	for (const hook of TIMED_PLUGIN_HOOKS) {
+		if (hook in plugin) {
 			let timerLabel = `plugin ${index}`;
 			if (plugin.name) {
 				timerLabel += ` (${plugin.name})`;
@@ -87,22 +82,23 @@ function getPluginWithTimers(plugin: any, index: number): Plugin {
 			timerLabel += ` - ${hook}`;
 			timedPlugin[hook] = function (...args: unknown[]) {
 				timeStart(timerLabel, 4);
-				let result = plugin[hook].apply(this === timedPlugin ? plugin : this, args);
+				const result = plugin[hook].apply(this === timedPlugin ? plugin : this, args);
 				timeEnd(timerLabel, 4);
 				if (result && typeof result.then === 'function') {
 					timeStart(`${timerLabel} (async)`, 4);
-					result = result.then((hookResult: unknown) => {
+					return result.then((hookResult: unknown) => {
 						timeEnd(`${timerLabel} (async)`, 4);
 						return hookResult;
 					});
 				}
 				return result;
 			};
-		} else {
-			timedPlugin[hook] = plugin[hook];
 		}
 	}
-	return timedPlugin as Plugin;
+	return {
+		...plugin,
+		...timedPlugin
+	};
 }
 
 export function initialiseTimers(inputOptions: InputOptions): void {
