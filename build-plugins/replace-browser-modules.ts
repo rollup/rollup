@@ -12,7 +12,7 @@ const ID_RESOLVEID = resolve('src/utils/resolveId');
 export default function replaceBrowserModules(): Plugin {
 	return {
 		name: 'replace-browser-modules',
-		resolveId: (source, importee) => {
+		resolveId(source, importee) {
 			if (importee && source[0] === '.') {
 				const resolved = join(dirname(importee), source);
 				switch (resolved) {
