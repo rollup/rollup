@@ -18,7 +18,7 @@ const NOOP = (): void => {};
 
 let timers: Timers = {};
 
-function getPersistedLabel(label: string, level: number) {
+function getPersistedLabel(label: string, level: number): string {
 	switch (level) {
 		case 1:
 			return `# ${label}`;
@@ -31,7 +31,7 @@ function getPersistedLabel(label: string, level: number) {
 	}
 }
 
-function timeStartImpl(label: string, level = 3) {
+function timeStartImpl(label: string, level = 3): void {
 	label = getPersistedLabel(label, level);
 	if (!timers.hasOwnProperty(label)) {
 		timers[label] = {
@@ -42,12 +42,12 @@ function timeStartImpl(label: string, level = 3) {
 			totalMemory: 0
 		};
 	}
-	const currentMemory = getMemory();
+
+	timers[label].startMemory = getMemory();
 	timers[label].startTime = now();
-	timers[label].startMemory = currentMemory;
 }
 
-function timeEndImpl(label: string, level = 3) {
+function timeEndImpl(label: string, level = 3): void {
 	label = getPersistedLabel(label, level);
 	if (timers.hasOwnProperty(label)) {
 		const currentMemory = getMemory();
