@@ -7,7 +7,6 @@ let configFile;
 module.exports = {
 	description: 'keeps watching the config file in case the config is changed to an invalid state',
 	command: 'rollup -cw',
-	repeat: 10,
 	before() {
 		configFile = path.resolve(__dirname, 'rollup.config.js');
 		fs.writeFileSync(
