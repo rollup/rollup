@@ -1,4 +1,5 @@
 const assert = require('assert');
+const fs = require('fs');
 const path = require('path');
 const fixturify = require('fixturify');
 const sander = require('sander');
@@ -14,6 +15,7 @@ exports.runTestSuiteWithSamples = runTestSuiteWithSamples;
 exports.assertDirectoriesAreEqual = assertDirectoriesAreEqual;
 exports.assertFilesAreEqual = assertFilesAreEqual;
 exports.assertIncludes = assertIncludes;
+exports.atomicWriteFileSync = atomicWriteFileSync;
 
 function normaliseError(error) {
 	delete error.stack;
@@ -219,4 +221,13 @@ function assertIncludes(actual, expected) {
 		err.expected = expected;
 		throw err;
 	}
+}
+
+// Workaround a race condition in fs.writeFileSync that temporarily creates
+// an empty file for a brief moment which may be read by rollup watch - even
+// if the content being overwritten is identical.
+function atomicWriteFileSync(filePath, contents) {
+	const stagingPath = filePath + '_';
+	fs.writeFileSync(stagingPath, contents);
+	fs.renameSync(stagingPath, filePath);
 }

@@ -35,7 +35,7 @@ runTestSuiteWithSamples(
 						env: { ...process.env, FORCE_COLOR: '0', ...config.env }
 					},
 					(err, code, stderr) => {
-						if (config.after) config.after();
+						if (config.after) config.after(err, code, stderr);
 						if (err && !err.killed) {
 							if (config.error) {
 								const shouldContinue = config.error(err);

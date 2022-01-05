@@ -838,7 +838,7 @@ export default class Module {
 			this.info.syntheticNamedExports = syntheticNamedExports;
 		}
 		if (meta != null) {
-			this.info.meta = { ...this.info.meta, ...meta };
+			Object.assign(this.info.meta, meta);
 		}
 	}
 
