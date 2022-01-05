@@ -21,14 +21,18 @@ module.exports = {
 		  import { watch } from 'fs';
       export default new Promise(resolve => {
 				const watcher = watch(${JSON.stringify(configFile)}, () => {
+				  console.error('change detected');
 				  watcher.close();
-				  setTimeout(() => resolve({
-            input: { output1: 'main.js' },
-            output: {
-              dir: '_actual',
-              format: 'es'
-            }
-          }), 600)
+				  setTimeout(() => {
+				    console.error('resolve config');
+				    resolve({
+              input: { output1: 'main.js' },
+              output: {
+                dir: '_actual',
+                format: 'es'
+              }
+            })
+          }, 600)
 				});
 				console.error('initial');
       });
