@@ -20,9 +20,9 @@ let getElapsedTime: (previous: StartTime) => number = () => 0;
 let getMemory: () => number = () => 0;
 let timers: Timers = {};
 
-const normalizeHrTime = (time: [number, number]) => time[0] * 1e3 + time[1] / 1e6;
+const normalizeHrTime = (time: [number, number]): number => time[0] * 1e3 + time[1] / 1e6;
 
-function setTimeHelpers() {
+function setTimeHelpers(): void {
 	if (typeof process !== 'undefined' && typeof process.hrtime === 'function') {
 		getStartTime = process.hrtime.bind(process);
 		getElapsedTime = previous => normalizeHrTime(process.hrtime(previous));
@@ -35,7 +35,7 @@ function setTimeHelpers() {
 	}
 }
 
-function getPersistedLabel(label: string, level: number) {
+function getPersistedLabel(label: string, level: number): string {
 	switch (level) {
 		case 1:
 			return `# ${label}`;
@@ -48,7 +48,7 @@ function getPersistedLabel(label: string, level: number) {
 	}
 }
 
-function timeStartImpl(label: string, level = 3) {
+function timeStartImpl(label: string, level = 3): void {
 	label = getPersistedLabel(label, level);
 	if (!timers.hasOwnProperty(label)) {
 		timers[label] = {
@@ -64,7 +64,7 @@ function timeStartImpl(label: string, level = 3) {
 	timers[label].startMemory = currentMemory;
 }
 
-function timeEndImpl(label: string, level = 3) {
+function timeEndImpl(label: string, level = 3): void {
 	label = getPersistedLabel(label, level);
 	if (timers.hasOwnProperty(label)) {
 		const currentMemory = getMemory();

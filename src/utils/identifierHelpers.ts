@@ -2,7 +2,7 @@ import RESERVED_NAMES from './RESERVED_NAMES';
 
 const illegalCharacters = /[^$_a-zA-Z0-9]/g;
 
-const startsWithDigit = (str: string) => /\d/.test(str[0]);
+const startsWithDigit = (str: string): boolean => /\d/.test(str[0]);
 
 export function isLegal(str: string): boolean {
 	if (startsWithDigit(str) || RESERVED_NAMES.has(str)) {

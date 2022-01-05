@@ -12,15 +12,15 @@ import { printQuotedStringList } from './utils/printStringList';
 import relativeId from './utils/relativeId';
 
 export default class ExternalModule {
-	declarations: { [name: string]: ExternalVariable } = Object.create(null);
+	readonly declarations: { [name: string]: ExternalVariable } = Object.create(null);
 	defaultVariableName = '';
-	dynamicImporters: string[] = [];
+	readonly dynamicImporters: string[] = [];
 	execIndex = Infinity;
-	exportedVariables = new Map<ExternalVariable, string>();
-	importers: string[] = [];
-	info: ModuleInfo;
+	readonly exportedVariables = new Map<ExternalVariable, string>();
+	readonly importers: string[] = [];
+	readonly info: ModuleInfo;
 	mostCommonSuggestion = 0;
-	nameSuggestions: { [name: string]: number } = Object.create(null);
+	readonly nameSuggestions: { [name: string]: number } = Object.create(null);
 	namespaceVariableName = '';
 	reexported = false;
 	renderPath: string = undefined as never;
@@ -33,7 +33,7 @@ export default class ExternalModule {
 		public readonly id: string,
 		hasModuleSideEffects: boolean | 'no-treeshake',
 		meta: CustomPluginOptions,
-		public renormalizeRenderPath: boolean
+		public readonly renormalizeRenderPath: boolean
 	) {
 		this.suggestedVariableName = makeLegal(id.split(/[\\/]/).pop()!);
 

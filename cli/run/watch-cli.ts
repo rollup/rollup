@@ -1,4 +1,4 @@
-import fs from 'fs';
+import { type FSWatcher, readFileSync } from 'fs';
 import chokidar from 'chokidar';
 import dateTime from 'date-time';
 import ms from 'pretty-ms';
@@ -22,17 +22,17 @@ export async function watch(command: Record<string, any>): Promise<void> {
 	let configs: MergedRollupOptions[];
 	let warnings: BatchWarnings;
 	let watcher: RollupWatcher;
-	let configWatcher: fs.FSWatcher;
+	let configWatcher: FSWatcher;
 	const configFile = command.config ? getConfigPath(command.config) : null;
 
 	onExit(close);
-	process.on('uncaughtException' as any, close);
+	process.on('uncaughtException', close);
 	if (!process.stdin.isTTY) {
 		process.stdin.on('end', close);
 		process.stdin.resume();
 	}
 
-	async function loadConfigFromFileAndTrack(configFile: string) {
+	async function loadConfigFromFileAndTrack(configFile: string): Promise<void> {
 		let reloadingConfig = false;
 		let aborted = false;
 		let configFileData: string | null = null;
@@ -42,7 +42,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 
 		async function reloadConfigFile() {
 			try {
-				const newConfigFileData = fs.readFileSync(configFile, 'utf-8');
+				const newConfigFileData = readFileSync(configFile, 'utf-8');
 				if (newConfigFileData === configFileData) {
 					return;
 				}
@@ -83,7 +83,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 
 	const resetScreen = getResetScreen(configs!, isTTY);
 
-	function start(configs: MergedRollupOptions[]) {
+	function start(configs: MergedRollupOptions[]): void {
 		try {
 			watcher = rollup.watch(configs as any);
 		} catch (err: any) {
@@ -144,7 +144,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 		});
 	}
 
-	function close(code: number | null) {
+	function close(code: number | null): void {
 		process.removeListener('uncaughtException', close);
 		// removing a non-existent listener is a no-op
 		process.stdin.removeListener('end', close);

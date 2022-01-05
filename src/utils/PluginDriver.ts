@@ -70,24 +70,24 @@ function throwInvalidHookError(hookName: string, pluginName: string) {
 }
 
 export class PluginDriver {
-	public emitFile: EmitFile;
+	public readonly emitFile: EmitFile;
 	public finaliseAssets: () => void;
 	public getFileName: (fileReferenceId: string) => string;
-	public setOutputBundle: (
+	public readonly setOutputBundle: (
 		outputBundle: OutputBundleWithPlaceholders,
 		outputOptions: NormalizedOutputOptions,
 		facadeChunkByModule: Map<Module, Chunk>
 	) => void;
 
-	private fileEmitter: FileEmitter;
-	private pluginCache: Record<string, SerializablePluginCache> | undefined;
-	private pluginContexts = new Map<Plugin, PluginContext>();
-	private plugins: Plugin[];
+	private readonly fileEmitter: FileEmitter;
+	private readonly pluginCache: Record<string, SerializablePluginCache> | undefined;
+	private readonly pluginContexts = new Map<Plugin, PluginContext>();
+	private readonly plugins: Plugin[];
 
 	constructor(
 		private readonly graph: Graph,
 		private readonly options: NormalizedInputOptions,
-		userPlugins: Plugin[],
+		userPlugins: readonly Plugin[],
 		pluginCache: Record<string, SerializablePluginCache> | undefined,
 		basePluginDriver?: PluginDriver
 	) {
@@ -121,7 +121,7 @@ export class PluginDriver {
 		}
 	}
 
-	public createOutputPluginDriver(plugins: Plugin[]): PluginDriver {
+	public createOutputPluginDriver(plugins: readonly Plugin[]): PluginDriver {
 		return new PluginDriver(this.graph, this.options, plugins, this.pluginCache, this);
 	}
 

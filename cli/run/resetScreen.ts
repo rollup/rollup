@@ -4,7 +4,7 @@ import { stderr } from '../logging';
 const CLEAR_SCREEN = '\u001Bc';
 
 export function getResetScreen(
-	configs: MergedRollupOptions[],
+	configs: readonly MergedRollupOptions[],
 	allowClearScreen: boolean | undefined
 ): (heading: string) => void {
 	let clearScreen = allowClearScreen;
