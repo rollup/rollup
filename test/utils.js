@@ -16,6 +16,7 @@ exports.assertDirectoriesAreEqual = assertDirectoriesAreEqual;
 exports.assertFilesAreEqual = assertFilesAreEqual;
 exports.assertIncludes = assertIncludes;
 exports.atomicWriteFileSync = atomicWriteFileSync;
+exports.getFileNamesAndRemoveOutput = getFileNamesAndRemoveOutput;
 
 function normaliseError(error) {
 	delete error.stack;

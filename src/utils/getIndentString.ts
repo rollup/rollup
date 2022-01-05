@@ -1,6 +1,6 @@
 import Module from '../Module';
 
-function guessIndentString(code: string) {
+function guessIndentString(code: string): string | null {
 	const lines = code.split('\n');
 
 	const tabbed = lines.filter(line => /^\t+/.test(line));
@@ -27,7 +27,7 @@ function guessIndentString(code: string) {
 }
 
 export default function getIndentString(
-	modules: Module[],
+	modules: readonly Module[],
 	options: { indent: true | string }
 ): string {
 	if (options.indent !== true) return options.indent;

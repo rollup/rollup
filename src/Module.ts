@@ -11,7 +11,6 @@ import ExportNamedDeclaration from './ast/nodes/ExportNamedDeclaration';
 import Identifier from './ast/nodes/Identifier';
 import ImportDeclaration from './ast/nodes/ImportDeclaration';
 import ImportExpression from './ast/nodes/ImportExpression';
-import ImportSpecifier from './ast/nodes/ImportSpecifier';
 import Literal from './ast/nodes/Literal';
 import MetaProperty from './ast/nodes/MetaProperty';
 import * as NodeType from './ast/nodes/NodeType';
@@ -187,29 +186,29 @@ function getAndExtendSideEffectModules(variable: Variable, module: Module): Set<
 }
 
 export default class Module {
-	alternativeReexportModules = new Map<Variable, Module>();
+	readonly alternativeReexportModules = new Map<Variable, Module>();
 	ast: Program | null = null;
-	chunkFileNames = new Set<string>();
+	readonly chunkFileNames = new Set<string>();
 	chunkName: string | null = null;
-	cycles = new Set<symbol>();
-	dependencies = new Set<Module | ExternalModule>();
-	dynamicDependencies = new Set<Module | ExternalModule>();
-	dynamicImporters: string[] = [];
-	dynamicImports: DynamicImport[] = [];
+	readonly cycles = new Set<symbol>();
+	readonly dependencies = new Set<Module | ExternalModule>();
+	readonly dynamicDependencies = new Set<Module | ExternalModule>();
+	readonly dynamicImporters: string[] = [];
+	readonly dynamicImports: DynamicImport[] = [];
 	excludeFromSourcemap: boolean;
 	execIndex = Infinity;
-	exportAllSources = new Set<string>();
-	exports: { [name: string]: ExportDescription } = Object.create(null);
-	exportsAll: { [name: string]: string } = Object.create(null);
-	implicitlyLoadedAfter = new Set<Module>();
-	implicitlyLoadedBefore = new Set<Module>();
-	importDescriptions: { [name: string]: ImportDescription } = Object.create(null);
-	importMetas: MetaProperty[] = [];
+	readonly exportAllSources = new Set<string>();
+	readonly exports: { [name: string]: ExportDescription } = Object.create(null);
+	readonly exportsAll: { [name: string]: string } = Object.create(null);
+	readonly implicitlyLoadedAfter = new Set<Module>();
+	readonly implicitlyLoadedBefore = new Set<Module>();
+	readonly importDescriptions: { [name: string]: ImportDescription } = Object.create(null);
+	readonly importMetas: MetaProperty[] = [];
 	importedFromNotTreeshaken = false;
-	importers: string[] = [];
-	imports = new Set<Variable>();
-	includedDynamicImporters: Module[] = [];
-	info: ModuleInfo;
+	readonly importers: string[] = [];
+	readonly imports = new Set<Variable>();
+	readonly includedDynamicImporters: Module[] = [];
+	readonly info: ModuleInfo;
 	isExecuted = false;
 	isUserDefinedEntryPoint = false;
 	declare namespace: NamespaceVariable;
@@ -217,27 +216,27 @@ export default class Module {
 	declare originalCode: string;
 	declare originalSourcemap: ExistingDecodedSourceMap | null;
 	preserveSignature: PreserveEntrySignaturesOption;
-	reexportDescriptions: { [name: string]: ReexportDescription } = Object.create(null);
+	readonly reexportDescriptions: { [name: string]: ReexportDescription } = Object.create(null);
 	declare resolvedIds: ResolvedIdMap;
 	declare scope: ModuleScope;
-	sideEffectDependenciesByVariable = new Map<Variable, Set<Module>>();
+	readonly sideEffectDependenciesByVariable = new Map<Variable, Set<Module>>();
 	declare sourcemapChain: DecodedSourceMapOrMissing[];
-	sources = new Set<string>();
+	readonly sources = new Set<string>();
 	declare transformFiles?: EmittedFile[];
-	userChunkNames = new Set<string>();
+	readonly userChunkNames = new Set<string>();
 	usesTopLevelAwait = false;
 
 	private allExportNames: Set<string> | null = null;
 	private declare astContext: AstContext;
 	private readonly context: string;
 	private declare customTransformCache: boolean;
-	private exportAllModules: (Module | ExternalModule)[] = [];
+	private readonly exportAllModules: (Module | ExternalModule)[] = [];
 	private exportNamesByVariable: Map<Variable, string[]> | null = null;
-	private exportShimVariable: ExportShimVariable = new ExportShimVariable(this);
+	private readonly exportShimVariable: ExportShimVariable = new ExportShimVariable(this);
 	private declare magicString: MagicString;
 	private namespaceReexportsByName: Record<string, Variable | null> = Object.create(null);
 	private relevantDependencies: Set<Module | ExternalModule> | null = null;
-	private syntheticExports = new Map<string, SyntheticNamedExportVariable>();
+	private readonly syntheticExports = new Map<string, SyntheticNamedExportVariable>();
 	private syntheticNamespace: Variable | null | undefined = null;
 	private transformDependencies: string[] = [];
 	private transitiveReexports: string[] | null = null;
@@ -320,7 +319,7 @@ export default class Module {
 			return this.allExportNames;
 		}
 		const allExportNames = (this.allExportNames = new Set<string>());
-		for (const name of Object.keys(this.exports)) {
+		for (const name of this.getExports()) {
 			allExportNames.add(name);
 		}
 		for (const name of Object.keys(this.reexportDescriptions)) {
@@ -345,15 +344,14 @@ export default class Module {
 		const relevantDependencies = new Set<Module | ExternalModule>();
 		const necessaryDependencies = new Set<Module | ExternalModule>();
 		const alwaysCheckedDependencies = new Set<Module>();
+		const dependencyVariables = new Set(this.imports);
 
-		let dependencyVariables: Set<Variable> | IterableIterator<Variable> = this.imports.keys();
 		if (
 			this.info.isEntry ||
 			this.includedDynamicImporters.length > 0 ||
 			this.namespace.included ||
 			this.implicitlyLoadedAfter.size > 0
 		) {
-			dependencyVariables = new Set(dependencyVariables);
 			for (const exportName of [...this.getReexports(), ...this.getExports()]) {
 				const exportedVariable = this.getVariableForExportName(exportName);
 				if (exportedVariable) {
@@ -396,7 +394,7 @@ export default class Module {
 		if (this.exportNamesByVariable) {
 			return this.exportNamesByVariable;
 		}
-		const exportNamesByVariable: Map<Variable, string[]> = new Map();
+		const exportNamesByVariable = new Map<Variable, string[]>();
 		for (const exportName of this.getAllExportNames()) {
 			if (exportName === this.info.syntheticNamedExports) continue;
 			let tracedVariable = this.getVariableForExportName(exportName);
@@ -863,7 +861,7 @@ export default class Module {
 
 	private addExport(
 		node: ExportAllDeclaration | ExportNamedDeclaration | ExportDefaultDeclaration
-	) {
+	): void {
 		if (node instanceof ExportDefaultDeclaration) {
 			// export default foo;
 
@@ -931,18 +929,14 @@ export default class Module {
 		}
 	}
 
-	private addImport(node: ImportDeclaration) {
+	private addImport(node: ImportDeclaration): void {
 		const source = node.source.value;
 		this.sources.add(source);
 		for (const specifier of node.specifiers) {
 			const isDefault = specifier.type === NodeType.ImportDefaultSpecifier;
 			const isNamespace = specifier.type === NodeType.ImportNamespaceSpecifier;
 
-			const name = isDefault
-				? 'default'
-				: isNamespace
-				? '*'
-				: (specifier as ImportSpecifier).imported.name;
+			const name = isDefault ? 'default' : isNamespace ? '*' : specifier.imported.name;
 			this.importDescriptions[specifier.local.name] = {
 				module: null as never, // filled in later
 				name,
@@ -952,7 +946,7 @@ export default class Module {
 		}
 	}
 
-	private addImportMeta(node: MetaProperty) {
+	private addImportMeta(node: MetaProperty): void {
 		this.importMetas.push(node);
 	}
 
@@ -985,7 +979,7 @@ export default class Module {
 
 	private addModulesToImportDescriptions(importDescription: {
 		[name: string]: ImportDescription | ReexportDescription;
-	}) {
+	}): void {
 		for (const specifier of Object.values(importDescription)) {
 			const id = this.resolvedIds[specifier.source].id;
 			specifier.module = this.graph.modulesById.get(id)!;
@@ -996,7 +990,7 @@ export default class Module {
 		relevantDependencies: Set<Module | ExternalModule>,
 		necessaryDependencies: Set<Module | ExternalModule>,
 		alwaysCheckedDependencies: Set<Module | ExternalModule>
-	) {
+	): void {
 		const handledDependencies = new Set<Module | ExternalModule>();
 
 		const addSideEffectDependencies = (possibleDependencies: Set<Module | ExternalModule>) => {
@@ -1109,7 +1103,7 @@ export default class Module {
 		return [...syntheticNamespaces, ...externalNamespaces];
 	}
 
-	private includeDynamicImport(node: ImportExpression) {
+	private includeDynamicImport(node: ImportExpression): void {
 		const resolution = (
 			this.dynamicImports.find(dynamicImport => dynamicImport.node === node) as {
 				resolution: string | Module | ExternalModule | undefined;
@@ -1121,12 +1115,12 @@ export default class Module {
 		}
 	}
 
-	private includeVariable(variable: Variable) {
+	private includeVariable(variable: Variable): void {
 		if (!variable.included) {
 			variable.include();
 			this.graph.needsTreeshakingPass = true;
 			const variableModule = variable.module;
-			if (variableModule && variableModule instanceof Module) {
+			if (variableModule instanceof Module) {
 				if (!variableModule.isExecuted) {
 					markModuleAndImpureDependenciesAsExecuted(variableModule);
 				}
@@ -1142,7 +1136,7 @@ export default class Module {
 		}
 	}
 
-	private includeVariableInModule(variable: Variable) {
+	private includeVariableInModule(variable: Variable): void {
 		this.includeVariable(variable);
 		const variableModule = variable.module;
 		if (variableModule && variableModule !== this) {
@@ -1164,7 +1158,11 @@ export default class Module {
 // if there is a cyclic import in the reexport chain, we should not
 // import from the original module but from the cyclic module to not
 // mess up execution order.
-function setAlternativeExporterIfCyclic(variable: Variable, importer: Module, reexporter: Module) {
+function setAlternativeExporterIfCyclic(
+	variable: Variable,
+	importer: Module,
+	reexporter: Module
+): void {
 	if (variable.module instanceof Module && variable.module !== reexporter) {
 		const exporterCycles = variable.module.cycles;
 		if (exporterCycles.size > 0) {

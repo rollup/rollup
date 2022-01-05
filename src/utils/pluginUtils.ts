@@ -28,7 +28,10 @@ export const deprecatedHooks: { active: boolean; deprecated: string; replacement
 	{ active: true, deprecated: 'resolveAssetUrl', replacement: 'resolveFileUrl' }
 ];
 
-export function warnDeprecatedHooks(plugins: Plugin[], options: NormalizedInputOptions): void {
+export function warnDeprecatedHooks(
+	plugins: readonly Plugin[],
+	options: NormalizedInputOptions
+): void {
 	for (const { active, deprecated, replacement } of deprecatedHooks) {
 		for (const plugin of plugins) {
 			if (deprecated in plugin) {

@@ -1,7 +1,7 @@
 import { DecodedSourceMapOrMissing, ExistingDecodedSourceMap } from '../rollup/types';
 
 export function getOriginalLocation(
-	sourcemapChain: DecodedSourceMapOrMissing[],
+	sourcemapChain: readonly DecodedSourceMapOrMissing[],
 	location: { column: number; line: number; name?: string; source?: string }
 ): { column: number; line: number } {
 	const filteredSourcemapChain = sourcemapChain.filter(

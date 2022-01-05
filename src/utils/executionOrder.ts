@@ -13,7 +13,7 @@ export function sortByExecutionOrder(units: OrderedExecutionUnit[]): void {
 	units.sort(compareExecIndex);
 }
 
-export function analyseModuleExecution(entryModules: Module[]): {
+export function analyseModuleExecution(entryModules: readonly Module[]): {
 	cyclePaths: string[][];
 	orderedModules: Module[];
 } {
@@ -72,7 +72,7 @@ function getCyclePath(
 	module: Module,
 	parent: Module,
 	parents: Map<Module | ExternalModule, Module | null>
-) {
+): string[] {
 	const cycleSymbol = Symbol(module.id);
 	const path = [relativeId(module.id)];
 	let nextModule = parent;

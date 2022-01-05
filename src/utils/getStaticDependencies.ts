@@ -4,8 +4,8 @@ import Module from '../Module';
 
 export function getStaticDependencies(
 	chunk: Chunk,
-	orderedModules: Module[],
-	chunkByModule: Map<Module, Chunk>
+	orderedModules: readonly Module[],
+	chunkByModule: ReadonlyMap<Module, Chunk>
 ): Set<Chunk | ExternalModule> {
 	const staticDependencyBlocks: (Chunk | ExternalModule)[][] = [];
 	const handledDependencies = new Set<Module>();
@@ -31,7 +31,7 @@ function addStaticDependencies(
 	staticDependencies: (Chunk | ExternalModule)[],
 	handledModules: Set<Module>,
 	chunk: Chunk,
-	chunkByModule: Map<Module, Chunk>
+	chunkByModule: ReadonlyMap<Module, Chunk>
 ): void {
 	const dependencies = module.getDependenciesToBeIncluded();
 	for (const dependency of dependencies) {

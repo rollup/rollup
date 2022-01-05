@@ -38,7 +38,10 @@ export async function addPluginsFromCommandOption(
 	}
 }
 
-async function loadAndRegisterPlugin(inputOptions: InputOptions, pluginText: string) {
+async function loadAndRegisterPlugin(
+	inputOptions: InputOptions,
+	pluginText: string
+): Promise<void> {
 	let plugin: any = null;
 	let pluginArg: any = undefined;
 	if (pluginText[0] === '{') {
