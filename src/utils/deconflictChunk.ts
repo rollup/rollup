@@ -41,7 +41,7 @@ const DECONFLICT_IMPORTED_VARIABLES_BY_FORMAT: {
 };
 
 export function deconflictChunk(
-	modules: Module[],
+	modules: readonly Module[],
 	dependenciesToBeDeconflicted: DependenciesToBeDeconflicted,
 	imports: Set<Variable>,
 	usedNames: Set<string>,
@@ -51,9 +51,9 @@ export function deconflictChunk(
 	externalLiveBindings: boolean,
 	chunkByModule: Map<Module, Chunk>,
 	syntheticExports: Set<SyntheticNamedExportVariable>,
-	exportNamesByVariable: Map<Variable, string[]>,
-	accessedGlobalsByScope: Map<ChildScope, Set<string>>,
-	includedNamespaces: Set<Module>
+	exportNamesByVariable: ReadonlyMap<Variable, string[]>,
+	accessedGlobalsByScope: ReadonlyMap<ChildScope, Set<string>>,
+	includedNamespaces: ReadonlySet<Module>
 ): void {
 	const reversedModules = modules.slice().reverse();
 	for (const module of reversedModules) {
@@ -83,7 +83,7 @@ export function deconflictChunk(
 
 function deconflictImportsEsmOrSystem(
 	usedNames: Set<string>,
-	imports: Set<Variable>,
+	imports: ReadonlySet<Variable>,
 	dependenciesToBeDeconflicted: DependenciesToBeDeconflicted,
 	_interop: GetInterop,
 	preserveModules: boolean,
@@ -134,7 +134,7 @@ function deconflictImportsOther(
 	preserveModules: boolean,
 	externalLiveBindings: boolean,
 	chunkByModule: Map<Module, Chunk>
-) {
+): void {
 	for (const chunkOrExternalModule of dependencies) {
 		chunkOrExternalModule.variableName = getSafeName(
 			chunkOrExternalModule.suggestedVariableName,
@@ -206,9 +206,9 @@ function deconflictImportsOther(
 
 function deconflictTopLevelVariables(
 	usedNames: Set<string>,
-	modules: Module[],
-	includedNamespaces: Set<Module>
-) {
+	modules: readonly Module[],
+	includedNamespaces: ReadonlySet<Module>
+): void {
 	for (const module of modules) {
 		for (const variable of module.scope.variables.values()) {
 			if (

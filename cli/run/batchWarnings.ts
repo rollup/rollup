@@ -248,20 +248,25 @@ const deferredHandlers: {
 	}
 };
 
-function title(str: string) {
+function title(str: string): void {
 	stderr(bold(yellow(`(!) ${str}`)));
 }
 
-function info(url: string) {
+function info(url: string): void {
 	stderr(gray(url));
 }
 
-function nest<T>(array: T[], prop: string) {
-	const nested: { items: T[]; key: string }[] = [];
-	const lookup = new Map<string, { items: T[]; key: string }>();
+interface Nested<T> {
+	items: T[];
+	key: string;
+}
+
+function nest<T extends Record<string, any>>(array: readonly T[], prop: string): Nested<T>[] {
+	const nested: Nested<T>[] = [];
+	const lookup = new Map<string, Nested<T>>();
 
 	for (const item of array) {
-		const key = (item as any)[prop];
+		const key = item[prop];
 		getOrCreate(lookup, key, () => {
 			const items = {
 				items: [],
@@ -275,7 +280,7 @@ function nest<T>(array: T[], prop: string) {
 	return nested;
 }
 
-function showTruncatedWarnings(warnings: RollupWarning[]) {
+function showTruncatedWarnings(warnings: readonly RollupWarning[]): void {
 	const nestedByModule = nest(warnings, 'id');
 
 	const displayedByModule = nestedByModule.length > 5 ? nestedByModule.slice(0, 3) : nestedByModule;

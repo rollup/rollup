@@ -1,9 +1,9 @@
-import fs from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import { PluginImpl } from 'rollup';
 import license, { Dependency, Person } from 'rollup-plugin-license';
 
 function generateLicenseFile(dependencies: Dependency[]) {
-	const coreLicense = fs.readFileSync('LICENSE-CORE.md');
+	const coreLicense = readFileSync('LICENSE-CORE.md');
 	const licenses = new Set();
 	const dependencyLicenseTexts = dependencies
 		.sort(({ name: nameA }, { name: nameB }) => (nameA! > nameB! ? 1 : -1))
@@ -52,9 +52,9 @@ function generateLicenseFile(dependencies: Dependency[]) {
 		`${Array.from(licenses).join(', ')}\n\n` +
 		`# Bundled dependencies:\n` +
 		dependencyLicenseTexts;
-	const existingLicenseText = fs.readFileSync('LICENSE.md', 'utf8');
+	const existingLicenseText = readFileSync('LICENSE.md', 'utf8');
 	if (existingLicenseText !== licenseText) {
-		fs.writeFileSync('LICENSE.md', licenseText);
+		writeFileSync('LICENSE.md', licenseText);
 		console.warn('LICENSE.md updated. You should commit the updated file.');
 	}
 }

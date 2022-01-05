@@ -1,10 +1,10 @@
-function spaces(i: number) {
+function spaces(i: number): string {
 	let result = '';
 	while (i--) result += ' ';
 	return result;
 }
 
-function tabsToSpaces(str: string) {
+function tabsToSpaces(str: string): string {
 	return str.replace(/^\t+/, match => match.split('\t').join('  '));
 }
 

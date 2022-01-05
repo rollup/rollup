@@ -10,7 +10,7 @@ import {
 export default function getExportMode(
 	chunk: Chunk,
 	{ exports: exportMode, name, format }: NormalizedOutputOptions,
-	unsetOptions: Set<string>,
+	unsetOptions: ReadonlySet<string>,
 	facadeModuleId: string,
 	warn: WarningHandler
 ): 'default' | 'named' | 'none' {
