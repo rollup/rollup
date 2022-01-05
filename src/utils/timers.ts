@@ -10,13 +10,9 @@ interface Timer {
 	totalMemory: number;
 }
 
-interface Timers {
-	[label: string]: Timer;
-}
-
 const NOOP = (): void => {};
 
-let timers: Timers = {};
+let timers = new Map<string, Timer>();
 
 function getPersistedLabel(label: string, level: number): string {
 	switch (level) {
@@ -33,33 +29,43 @@ function getPersistedLabel(label: string, level: number): string {
 
 function timeStartImpl(label: string, level = 3): void {
 	label = getPersistedLabel(label, level);
-	if (!timers.hasOwnProperty(label)) {
-		timers[label] = {
+
+	const startMemory = getMemory();
+	const startTime = now();
+
+	const timer = timers.get(label);
+
+	if (timer === undefined) {
+		timers.set(label, {
 			memory: 0,
-			startMemory: undefined as never,
-			startTime: undefined as never,
+			startMemory,
+			startTime,
 			time: 0,
 			totalMemory: 0
-		};
+		});
+	} else {
+		timer.startMemory = startMemory;
+		timer.startTime = startTime;
 	}
-
-	timers[label].startMemory = getMemory();
-	timers[label].startTime = now();
 }
 
 function timeEndImpl(label: string, level = 3): void {
 	label = getPersistedLabel(label, level);
-	if (timers.hasOwnProperty(label)) {
+
+	const timer = timers.get(label);
+
+	if (timer !== undefined) {
 		const currentMemory = getMemory();
-		timers[label].time += now() - timers[label].startTime;
-		timers[label].totalMemory = Math.max(timers[label].totalMemory, currentMemory);
-		timers[label].memory += currentMemory - timers[label].startMemory;
+		timer.memory += currentMemory - timer.startMemory;
+		timer.time += now() - timer.startTime;
+		timer.totalMemory = Math.max(timer.totalMemory, currentMemory);
 	}
 }
 
 export function getTimings(): SerializedTimings {
 	const newTimings: SerializedTimings = {};
-	for (const [label, { time, memory, totalMemory }] of Object.entries(timers)) {
+
+	for (const [label, { memory, time, totalMemory }] of timers) {
 		newTimings[label] = [time, memory, totalMemory];
 	}
 	return newTimings;
@@ -71,7 +77,7 @@ export let timeEnd: (label: string, level?: number) => void = NOOP;
 const TIMED_PLUGIN_HOOKS = ['load', 'resolveDynamicImport', 'resolveId', 'transform'] as const;
 
 function getPluginWithTimers(plugin: any, index: number): Plugin {
-	const timedPlugin: { [hook: string]: any } = {};
+	const timedPlugin: Pick<Plugin, typeof TIMED_PLUGIN_HOOKS[number]> = {};
 
 	for (const hook of TIMED_PLUGIN_HOOKS) {
 		if (hook in plugin) {
@@ -103,7 +109,7 @@ function getPluginWithTimers(plugin: any, index: number): Plugin {
 
 export function initialiseTimers(inputOptions: InputOptions): void {
 	if (inputOptions.perf) {
-		timers = {};
+		timers = new Map();
 		timeStart = timeStartImpl;
 		timeEnd = timeEndImpl;
 		inputOptions.plugins = inputOptions.plugins!.map(getPluginWithTimers);
