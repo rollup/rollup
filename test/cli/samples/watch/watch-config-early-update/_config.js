@@ -9,34 +9,27 @@ module.exports = {
 	description: 'immediately reloads the config file if a change happens while it is parsed',
 	command: 'rollup -cw',
 	before() {
-		// This test writes a config file that watches itself for changes and resolves only once it has
-		// been rewritten. As soon as that watcher is set up, the config file writes a message to stderr
-		// that is observed by the parent process and triggers overwriting the config file.
-		// That way, we reliably simulate a complicated config file being changed while it is parsed.
-		fs.mkdirSync(path.resolve(__dirname, '_actual'));
+		// This test writes a config file that prints a message to stderr but delays resolving to a
+		// config. The stderr message is  observed by the parent process and triggers overwriting the
+		// config file. That way, we simulate a complicated config file being changed while it is parsed.
 		configFile = path.resolve(__dirname, 'rollup.config.js');
 		fs.writeFileSync(
 			configFile,
 			`
-		  import { watch } from 'fs';
+			console.error('initial');
       export default new Promise(resolve => {
-				const watcher = watch(${JSON.stringify(configFile)}, () => {
-				  console.error('change detected');
-				  watcher.close();
-				  setTimeout(() => {
-				    console.error('resolve config');
-				    resolve({
-              input: { output1: 'main.js' },
+        setTimeout(
+          () =>
+            resolve({
+              input: 'main.js',
               output: {
-                dir: '_actual',
+                file: '_actual/output1.js',
                 format: 'es'
               }
-            })
-          }, 600)
-				});
-				console.error('initial');
-      });
-  		`
+            }),
+          3000
+        );
+      });`
 		);
 	},
 	after() {
@@ -49,9 +42,9 @@ module.exports = {
 				`
 				console.error('updated');
 		    export default {
-		      input: {output2: "main.js"},
+          input: 'main.js',
 		      output: {
-		        dir: "_actual",
+            file: '_actual/output2.js',
 		        format: "es"
 		      }
 		    };
@@ -59,8 +52,8 @@ module.exports = {
 			);
 			return false;
 		}
-		if (data === 'updated\n') {
-			return new Promise(resolve => setTimeout(() => resolve(true), 500));
+		if (data.includes(`created _actual${path.sep}output2.js`)) {
+			return new Promise(resolve => setTimeout(() => resolve(true), 600));
 		}
 	}
 };
