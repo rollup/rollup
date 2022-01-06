@@ -1,3 +1,7 @@
-export default function getMemory(): 0 {
-	return 0;
-}
+export default {
+	memoryUsage() {
+		return {
+			heapUsed: 0
+		};
+	}
+};

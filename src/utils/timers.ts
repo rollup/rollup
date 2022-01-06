@@ -1,6 +1,6 @@
 import { InputOptions, Plugin, SerializedTimings } from '../rollup/types';
 import performance from './performance';
-import getMemory from './process';
+import process from './process';
 
 interface Timer {
 	memory: number;
@@ -30,7 +30,7 @@ function getPersistedLabel(label: string, level: number): string {
 function timeStartImpl(label: string, level = 3): void {
 	label = getPersistedLabel(label, level);
 
-	const startMemory = getMemory();
+	const startMemory = process.memoryUsage().heapUsed;
 	const startTime = performance.now();
 
 	const timer = timers.get(label);
@@ -55,7 +55,7 @@ function timeEndImpl(label: string, level = 3): void {
 	const timer = timers.get(label);
 
 	if (timer !== undefined) {
-		const currentMemory = getMemory();
+		const currentMemory = process.memoryUsage().heapUsed;
 		timer.memory += currentMemory - timer.startMemory;
 		timer.time += performance.now() - timer.startTime;
 		timer.totalMemory = Math.max(timer.totalMemory, currentMemory);
