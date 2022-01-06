@@ -1,5 +1,1 @@
-import { performance } from 'perf_hooks';
-
-export default function now(): number {
-	return performance.now();
-}
+export { performance as default } from 'perf_hooks';

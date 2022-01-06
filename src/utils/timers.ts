@@ -1,5 +1,5 @@
 import { InputOptions, Plugin, SerializedTimings } from '../rollup/types';
-import now from './performance';
+import performance from './performance';
 import getMemory from './process';
 
 interface Timer {
@@ -31,7 +31,7 @@ function timeStartImpl(label: string, level = 3): void {
 	label = getPersistedLabel(label, level);
 
 	const startMemory = getMemory();
-	const startTime = now();
+	const startTime = performance.now();
 
 	const timer = timers.get(label);
 
@@ -57,7 +57,7 @@ function timeEndImpl(label: string, level = 3): void {
 	if (timer !== undefined) {
 		const currentMemory = getMemory();
 		timer.memory += currentMemory - timer.startMemory;
-		timer.time += now() - timer.startTime;
+		timer.time += performance.now() - timer.startTime;
 		timer.totalMemory = Math.max(timer.totalMemory, currentMemory);
 	}
 }

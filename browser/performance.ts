@@ -1,3 +1,1 @@
-export default function now(): number {
-	return performance.now();
-}
+export default performance;
