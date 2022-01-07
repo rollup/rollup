@@ -127,7 +127,6 @@ export default (command: Record<string, unknown>): RollupOptions | RollupOptions
 			...nodePlugins,
 			addCliEntry(),
 			esmDynamicImport(),
-			// TODO this relied on an unpublished type update
 			!command.configTest && collectLicenses()
 		],
 		strictDeprecations: true,
