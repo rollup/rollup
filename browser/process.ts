@@ -1,5 +1,9 @@
+interface MemoryUsage {
+	heapUsed: 0;
+}
+
 export default {
-	memoryUsage() {
+	memoryUsage(): MemoryUsage {
 		return {
 			heapUsed: 0
 		};
