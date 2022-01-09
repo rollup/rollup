@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { syncFile } = require('../../../../utils');
+const { writeAndSync } = require('../../../../utils');
 
 let configFile;
 
@@ -26,7 +26,7 @@ module.exports = {
                 format: 'es'
               }
             }),
-          3000
+          2000
         );
       });`
 		);
@@ -36,7 +36,7 @@ module.exports = {
 	},
 	abortOnStderr(data) {
 		if (data === 'initial\n') {
-			fs.writeFileSync(
+			writeAndSync(
 				configFile,
 				`
 				console.error('updated');
@@ -49,7 +49,6 @@ module.exports = {
 		    };
 		    `
 			);
-			syncFile(configFile);
 			return false;
 		}
 		if (data.includes(`created _actual${path.sep}output2.js`)) {
