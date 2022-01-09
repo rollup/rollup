@@ -336,4 +336,54 @@ describe('incremental', () => {
 		assert.strictEqual(transformCalls, 2);
 		assert.strictEqual(moduleParsedCalls, 4); // should not be cached
 	});
+
+	it('runs shouldTransformCachedModule when using a cached module', async () => {
+		let shouldTransformCachedModuleCalls = 0;
+
+		const transformPlugin = {
+			async shouldTransformCachedModule({ ast, id, meta, ...other }) {
+				shouldTransformCachedModuleCalls++;
+				assert.strictEqual(ast.type, 'Program');
+				assert.deepStrictEqual(other, {
+					code: modules[id],
+					moduleSideEffects: true,
+					syntheticNamedExports: false
+				});
+				switch (id) {
+					case 'foo':
+						assert.deepStrictEqual(meta, { transform: { calls: 1, id } });
+						// we return promises to ensure they are awaited
+						return Promise.resolve(false);
+					case 'entry':
+						assert.deepStrictEqual(meta, { transform: { calls: 0, id } });
+						return Promise.resolve(true);
+					default:
+						throw new Error(`Unexpected id ${id}.`);
+				}
+			},
+			transform: (code, id) => {
+				return { meta: { transform: { calls: transformCalls, id } } };
+			}
+		};
+		const cache = await rollup.rollup({
+			input: 'entry',
+			plugins: [transformPlugin, plugin]
+		});
+		assert.strictEqual(shouldTransformCachedModuleCalls, 0);
+		assert.strictEqual(transformCalls, 2);
+
+		const {
+			cache: { modules: cachedModules }
+		} = await rollup.rollup({
+			input: 'entry',
+			plugins: [transformPlugin, plugin],
+			cache
+		});
+		assert.strictEqual(shouldTransformCachedModuleCalls, 2);
+		assert.strictEqual(transformCalls, 3);
+		assert.strictEqual(cachedModules[0].id, 'foo');
+		assert.deepStrictEqual(cachedModules[0].meta, { transform: { calls: 1, id: 'foo' } });
+		assert.strictEqual(cachedModules[1].id, 'entry');
+		assert.deepStrictEqual(cachedModules[1].meta, { transform: { calls: 2, id: 'entry' } });
+	});
 });
