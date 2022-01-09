@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { atomicWriteFileSync } = require('../../../../utils');
+const { syncFile } = require('../../../../utils');
 
 let configFile;
 
@@ -36,7 +36,7 @@ module.exports = {
 	},
 	abortOnStderr(data) {
 		if (data === 'initial\n') {
-			atomicWriteFileSync(
+			fs.writeFileSync(
 				configFile,
 				`
 				console.error('updated');
@@ -49,6 +49,7 @@ module.exports = {
 		    };
 		    `
 			);
+			syncFile(configFile);
 			return false;
 		}
 		if (data.includes(`created _actual${path.sep}output2.js`)) {

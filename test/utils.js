@@ -16,6 +16,7 @@ exports.assertDirectoriesAreEqual = assertDirectoriesAreEqual;
 exports.assertFilesAreEqual = assertFilesAreEqual;
 exports.assertIncludes = assertIncludes;
 exports.atomicWriteFileSync = atomicWriteFileSync;
+exports.syncFile = syncFile;
 exports.getFileNamesAndRemoveOutput = getFileNamesAndRemoveOutput;
 
 function normaliseError(error) {
@@ -231,4 +232,11 @@ function atomicWriteFileSync(filePath, contents) {
 	const stagingPath = filePath + '_';
 	fs.writeFileSync(stagingPath, contents);
 	fs.renameSync(stagingPath, filePath);
+}
+
+// It appears that on MacOS, it sometimes takes long for the file system to update
+function syncFile(filePath) {
+	const file = fs.openSync(filePath);
+	fs.fsyncSync(file);
+	fs.closeSync(file);
 }
