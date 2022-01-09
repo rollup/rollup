@@ -116,7 +116,7 @@ You can use [`this.getModuleInfo`](guide/en/#thisgetmoduleinfo) to find out the 
 
 #### `moduleParsed`
 
-**Type:** `(moduleInfo: ModuleInfo) => void`<br> **Kind:** `async, parallel`<br> **Previous Hook:** [`transform`](guide/en/#transform) where the currently handled file was transformed.<br> NextHook: [`resolveId`](guide/en/#resolveid) and [`resolveDynamicImport`](guide/en/#resolvedynamicimport) to resolve all discovered static and dynamic imports in parallel if present, otherwise [`buildEnd`](guide/en/#buildend).
+**Type:** `(moduleInfo: ModuleInfo) => void`<br> **Kind:** `async, parallel`<br> **Previous Hook:** [`transform`](guide/en/#transform) where the currently handled file was transformed.<br> **Next Hook:** [`resolveId`](guide/en/#resolveid) and [`resolveDynamicImport`](guide/en/#resolvedynamicimport) to resolve all discovered static and dynamic imports in parallel if present, otherwise [`buildEnd`](guide/en/#buildend).
 
 This hook is called each time a module has been fully parsed by Rollup. See [`this.getModuleInfo`](guide/en/#thisgetmoduleinfo) for what information is passed to this hook.
 
@@ -224,7 +224,7 @@ When triggering this hook from a plugin via [`this.resolve`](guide/en/#thisresol
 
 #### `shouldTransformCachedModule`
 
-**Type:** `({id: string, code: string, ast: ESTree.Program, meta: {[plugin: string]: any}, moduleSideEffects: boolean | "no-treeshake", syntheticNamedExports: string | boolean}) => boolean`<br> **Kind:** `async, first`<br> **Previous Hook:** [`load`](guide/en/#load) where the cached file was loaded to compare its code with the cached version.<br> NextHook: [`moduleParsed`](guide/en/#moduleparsed) if no plugin returns `true`, otherwise [`transform`](guide/en/#transform).
+**Type:** `({id: string, code: string, ast: ESTree.Program, meta: {[plugin: string]: any}, moduleSideEffects: boolean | "no-treeshake", syntheticNamedExports: string | boolean}) => boolean`<br> **Kind:** `async, first`<br> **Previous Hook:** [`load`](guide/en/#load) where the cached file was loaded to compare its code with the cached version.<br> **Next Hook:** [`moduleParsed`](guide/en/#moduleparsed) if no plugin returns `true`, otherwise [`transform`](guide/en/#transform).
 
 If the Rollup cache is used (e.g. in watch mode or explicitly via the JavaScript API), Rollup will skip the [`transform`](guide/en/#transform) hook of a module if after the [`load`](guide/en/#transform) hook, the loaded `code` is identical to the code of the cached copy. To prevent this, discard the cached copy and instead transform a module, plugins can implement this hook and return `true`.
 
@@ -234,7 +234,7 @@ If a plugin does not return `true`, Rollup will trigger this hook for other plug
 
 #### `transform`
 
-**Type:** `(code: string, id: string) => string | null | {code?: string, map?: string | SourceMap, ast? : ESTree.Program, moduleSideEffects?: boolean | "no-treeshake" | null, syntheticNamedExports?: boolean | string | null, meta?: {[plugin: string]: any} | null}`<br> **Kind:** `async, sequential`<br> **Previous Hook:** [`load`](guide/en/#load) where the currently handled file was loaded. If caching is used and there was a cached copy of that module, [`shouldTransformCachedModule`](guide/en/#shouldtransformcachedmodule) if a plugin returned `true` for that hook.<br> NextHook: [`moduleParsed`](guide/en/#moduleparsed) once the file has been processed and parsed.
+**Type:** `(code: string, id: string) => string | null | {code?: string, map?: string | SourceMap, ast? : ESTree.Program, moduleSideEffects?: boolean | "no-treeshake" | null, syntheticNamedExports?: boolean | string | null, meta?: {[plugin: string]: any} | null}`<br> **Kind:** `async, sequential`<br> **Previous Hook:** [`load`](guide/en/#load) where the currently handled file was loaded. If caching is used and there was a cached copy of that module, [`shouldTransformCachedModule`](guide/en/#shouldtransformcachedmodule) if a plugin returned `true` for that hook.<br> **Next Hook:** [`moduleParsed`](guide/en/#moduleparsed) once the file has been processed and parsed.
 
 Can be used to transform individual modules. To prevent additional parsing overhead in case e.g. this hook already used `this.parse` to generate an AST for some reason, this hook can optionally return a `{ code, ast, map }` object. The `ast` must be a standard ESTree AST with `start` and `end` properties for each node. If the transformation does not move code, you can preserve existing sourcemaps by setting `map` to `null`. Otherwise you might need to generate the source map. See [the section on source code transformations](#source-code-transformations).
 
