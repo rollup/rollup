@@ -27,7 +27,7 @@ module.exports = {
                 format: 'es'
               }
             }),
-          3000
+          2000
         );
       });`
 		);
