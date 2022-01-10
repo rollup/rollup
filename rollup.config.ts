@@ -68,7 +68,7 @@ const nodePlugins = [
 	alias(moduleAliases),
 	resolve(),
 	json(),
-	process.platform !== 'darwin' && conditionalFsEventsImport(),
+	conditionalFsEventsImport(),
 	string({ include: '**/*.md' }),
 	commonjs({
 		ignoreTryCatch: false,
