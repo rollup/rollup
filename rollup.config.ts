@@ -9,7 +9,7 @@ import { RollupOptions, WarningHandlerWithDefault } from 'rollup';
 import { string } from 'rollup-plugin-string';
 import { terser } from 'rollup-plugin-terser';
 import addCliEntry from './build-plugins/add-cli-entry';
-import conditionalFsEventsImport from './build-plugins/conditional-fsevents-import';
+//import conditionalFsEventsImport from './build-plugins/conditional-fsevents-import';
 import emitModulePackageFile from './build-plugins/emit-module-package-file';
 import esmDynamicImport from './build-plugins/esm-dynamic-import';
 import getLicenseHandler from './build-plugins/generate-license-file';
@@ -68,7 +68,7 @@ const nodePlugins = [
 	alias(moduleAliases),
 	resolve(),
 	json(),
-	conditionalFsEventsImport(),
+	//conditionalFsEventsImport(),
 	string({ include: '**/*.md' }),
 	commonjs({
 		ignoreTryCatch: false,
