@@ -13,10 +13,11 @@ module.exports = {
 		// config. The stderr message is  observed by the parent process and triggers overwriting the
 		// config file. That way, we simulate a complicated config file being changed while it is parsed.
 		configFile = path.resolve(__dirname, 'rollup.config.js');
-		fs.writeFileSync(
+		atomicWriteFileSync(
 			configFile,
 			`
-			console.error('initial');
+			process.stderr.write('initial\n');
+			fs.fsyncSync(process.stderr.fd);
       export default new Promise(resolve => {
         setTimeout(
           () =>
@@ -27,7 +28,7 @@ module.exports = {
                 format: 'es'
               }
             }),
-          6000
+          4000
         );
       });`
 		);
@@ -36,11 +37,12 @@ module.exports = {
 		fs.unlinkSync(configFile);
 	},
 	abortOnStderr(data) {
-		if (data === 'initial\n') {
+		if (data.includes('initial')) {
 			atomicWriteFileSync(
 				configFile,
 				`
-				console.error('updated');
+				process.stderr.write('updated\n');
+				fs.fsyncSync(process.stderr.fd);
 		    export default {
           input: 'main.js',
 		      output: {
@@ -53,7 +55,7 @@ module.exports = {
 			return false;
 		}
 		if (data.includes(`created _actual${path.sep}output2.js`)) {
-			return new Promise(resolve => setTimeout(() => resolve(true), 600));
+			return new Promise(resolve => setTimeout(() => resolve(true), 3000));
 		}
 	}
 };
