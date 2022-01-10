@@ -5,7 +5,7 @@ const { atomicWriteFileSync } = require('../../../../utils');
 let configFile;
 
 module.exports = {
-	repeat: 40,
+	repeat: 100,
 	description: 'immediately reloads the config file if a change happens while it is parsed',
 	command: 'rollup -cw',
 	before() {
@@ -27,7 +27,7 @@ module.exports = {
                 format: 'es'
               }
             }),
-          12000
+          3000
         );
       });`
 		);
