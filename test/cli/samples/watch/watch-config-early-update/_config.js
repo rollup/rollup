@@ -5,6 +5,7 @@ const { writeAndSync } = require('../../../../utils');
 let configFile;
 
 module.exports = {
+	repeat: 100,
 	description: 'immediately reloads the config file if a change happens while it is parsed',
 	command: 'rollup -cw',
 	before() {
@@ -15,26 +16,33 @@ module.exports = {
 		fs.writeFileSync(
 			configFile,
 			`
-			console.error('initial');
+		  import { watch } from 'fs';
       export default new Promise(resolve => {
-        setTimeout(
-          () =>
-            resolve({
+				const watcher = watch(${JSON.stringify(configFile)}, () => {
+				  console.error('config update detected');
+				  watcher.close();
+				  setTimeout(() => {
+				    console.error('resolve original config');
+				    resolve({
               input: 'main.js',
               output: {
                 file: '_actual/output1.js',
                 format: 'es'
               }
-            }),
-          4000
-        );
-      });`
+            })
+          // wait a moment to make sure we do not trigger before Rollup's watcher
+          }, 600)
+				});
+				console.error('initial');
+      });
+  		`
 		);
 	},
 	after() {
 		fs.unlinkSync(configFile);
 	},
 	abortOnStderr(data) {
+		console.log('data:', data);
 		if (data === 'initial\n') {
 			writeAndSync(
 				configFile,
