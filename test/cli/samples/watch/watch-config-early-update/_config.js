@@ -17,7 +17,7 @@ module.exports = {
 		atomicWriteFileSync(
 			configFile,
 			`
-			process.stderr.write('initial\\n');
+			console.error('initial');
       export default new Promise(resolve => {
         setTimeout(
           () =>
@@ -32,16 +32,18 @@ module.exports = {
         );
       });`
 		);
+		console.error('** first config file written.');
 	},
 	after() {
 		fs.unlinkSync(configFile);
 	},
 	abortOnStderr(data) {
+		console.error('*** abortOnStderr data:', JSON.stringify(data));
 		if (data.includes('initial')) {
 			atomicWriteFileSync(
 				configFile,
 				`
-				process.stderr.write('updated\\n');
+				console.error('updated');
 		    export default {
           input: 'main.js',
 		      output: {
@@ -51,6 +53,7 @@ module.exports = {
 		    };
 		    `
 			);
+			console.error('** second config file written.');
 			return false;
 		}
 		if (data.includes(`created _actual${path.sep}output2.js`)) {
