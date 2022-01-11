@@ -3,8 +3,8 @@ import { bold, cyan, dim, red } from '../src/utils/colors';
 import relativeId from '../src/utils/relativeId';
 
 try {
-        (process.stdout as any)._handle.setBlocking(true);
-        (process.stderr as any)._handle.setBlocking(true);
+	(process.stdout as any)._handle.setBlocking(true);
+	(process.stderr as any)._handle.setBlocking(true);
 } catch {}
 
 // log to stderr to keep `rollup main.js > bundle.js` from breaking
