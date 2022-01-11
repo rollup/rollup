@@ -19,24 +19,33 @@ module.exports = {
 			configFile,
 			`
 		  import { watch } from 'fs';
-      export default new Promise(resolve => {
-				const watcher = watch(${JSON.stringify(configFile)}, () => {
-				  console.error('config update detected');
-				  watcher.close();
-				  setTimeout(() => {
-				    console.error('resolve original config');
-				    resolve({
-              input: 'main.js',
-              output: {
-                file: '_actual/output1.js',
-                format: 'es'
-              }
-            })
-          // wait a moment to make sure we do not trigger before Rollup's watcher
-          }, 600)
-				});
-				console.error('initial');
-      });
+		  let watcher;
+		  
+		  // Sometimes, fs.watch does not seem to trigger on MacOS. Thus, we wait at most 5 seconds.
+      export default Promise.race([
+        new Promise(resolve => {
+		      watcher = watch(${JSON.stringify(configFile)}, () => {
+			  	  console.error('config update detected');
+			  	  watcher.close();
+			  	  watcher = null;
+            // wait a moment to make sure we do not trigger before Rollup's watcher
+			  	  setTimeout(resolve, 600);
+			  	})
+		    }),
+		    new Promise(resolve => setTimeout(() => {
+		      if (watcher) {
+		        watcher.close();
+		      };
+		      resolve();
+		    }, 5000))
+      ]).then(() => ({
+        input: 'main.js',
+        output: {
+          file: '_actual/output1.js',
+          format: 'es'
+        }
+      }));
+			console.error('initial');
   		`
 		);
 		return new Promise(resolve => setTimeout(resolve, 600));
