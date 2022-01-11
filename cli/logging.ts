@@ -2,10 +2,8 @@ import { RollupError } from '../src/rollup/types';
 import { bold, cyan, dim, red } from '../src/utils/colors';
 import relativeId from '../src/utils/relativeId';
 
-try {
-	(process.stdout as any)._handle.setBlocking(true);
-	(process.stderr as any)._handle.setBlocking(true);
-} catch {}
+(process.stdout as any)._handle.setBlocking(true);
+(process.stderr as any)._handle.setBlocking(true);
 
 // log to stderr to keep `rollup main.js > bundle.js` from breaking
 export const stderr = console.error.bind(console);
