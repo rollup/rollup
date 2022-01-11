@@ -28,7 +28,7 @@ module.exports = {
                 format: 'es'
               }
             }),
-          3000
+          4000
         );
       });`
 		);
@@ -54,7 +54,7 @@ module.exports = {
 			return false;
 		}
 		if (data.includes(`created _actual${path.sep}output2.js`)) {
-			return new Promise(resolve => setTimeout(() => resolve(true), 600));
+			return new Promise(resolve => setTimeout(() => resolve(true), 1000));
 		}
 	}
 };
