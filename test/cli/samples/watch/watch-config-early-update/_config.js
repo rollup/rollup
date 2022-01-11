@@ -3,7 +3,7 @@ const path = require('path');
 const { atomicWriteFileSync } = require('../../../../utils');
 
 function log(...args) {
-	console.error(`*** ${Date.now()/1000}`, ...args);
+	console.error(`*** ${Date.now() / 1000}`, ...args);
 }
 
 let configFile;
