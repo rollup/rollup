@@ -5,6 +5,7 @@ const { writeAndSync } = require('../../../../utils');
 let configFile;
 
 module.exports = {
+	solo: true,
 	repeat: 100,
 	description: 'immediately reloads the config file if a change happens while it is parsed',
 	command: 'rollup -cw',
@@ -13,14 +14,15 @@ module.exports = {
 		// config. The stderr message is  observed by the parent process and triggers overwriting the
 		// config file. That way, we simulate a complicated config file being changed while it is parsed.
 		configFile = path.resolve(__dirname, 'rollup.config.js');
-		fs.writeFileSync(
+		console.time('testTime');
+		writeAndSync(
 			configFile,
 			`
-		  import { watchFile, unwatchFile } from 'fs';
+		  import { watch } from 'fs';
       export default new Promise(resolve => {
-        const listener = () => {
+				const watcher = watch(${JSON.stringify(configFile)}, () => {
 				  console.error('config update detected');
-				  unwatchFile(${JSON.stringify(configFile)}, listener);
+				  watcher.close();
 				  setTimeout(() => {
 				    console.error('resolve original config');
 				    resolve({
@@ -32,14 +34,15 @@ module.exports = {
             })
           // wait a moment to make sure we do not trigger before Rollup's watcher
           }, 600)
-				};
-				watchFile(${JSON.stringify(configFile)}, { interval: 100 }, listener);
+				});
 				console.error('initial');
       });
   		`
 		);
+		return new Promise(resolve => setTimeout(resolve, 600));
 	},
 	after() {
+		console.timeEnd('testTime');
 		fs.unlinkSync(configFile);
 	},
 	abortOnStderr(data) {
