@@ -16,11 +16,11 @@ module.exports = {
 		fs.writeFileSync(
 			configFile,
 			`
-		  import { watch } from 'fs';
+		  import { watchFile, unwatchFile } from 'fs';
       export default new Promise(resolve => {
-				const watcher = watch(${JSON.stringify(configFile)}, () => {
+        const listener = () => {
 				  console.error('config update detected');
-				  watcher.close();
+				  unwatchFile(${JSON.stringify(configFile)}, listener);
 				  setTimeout(() => {
 				    console.error('resolve original config');
 				    resolve({
@@ -32,7 +32,8 @@ module.exports = {
             })
           // wait a moment to make sure we do not trigger before Rollup's watcher
           }, 600)
-				});
+				};
+				watchFile(${JSON.stringify(configFile)}, { interval: 100 }, listener);
 				console.error('initial');
       });
   		`
