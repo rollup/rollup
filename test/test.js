@@ -1,3 +1,6 @@
+process.stdout._handle.setBlocking(true);
+process.stderr._handle.setBlocking(true);
+
 require('source-map-support').install();
 
 describe('rollup', function () {
