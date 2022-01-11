@@ -2,6 +2,10 @@ const fs = require('fs');
 const path = require('path');
 const { atomicWriteFileSync } = require('../../../../utils');
 
+function log(...args) {
+	console.error(`*** ${Date.now()/1000}`, ...args);
+}
+
 let configFile;
 
 module.exports = {
@@ -32,13 +36,13 @@ module.exports = {
         );
       });`
 		);
-		console.error('** first config file written.');
+		log('first config file written.');
 	},
 	after() {
 		fs.unlinkSync(configFile);
 	},
 	abortOnStderr(data) {
-		console.error('*** abortOnStderr data:', JSON.stringify(data));
+		log('abortOnStderr data:', JSON.stringify(data));
 		if (data.includes('initial')) {
 			atomicWriteFileSync(
 				configFile,
@@ -53,7 +57,7 @@ module.exports = {
 		    };
 		    `
 			);
-			console.error('** second config file written.');
+			log('second config file written.');
 			return false;
 		}
 		if (data.includes(`created _actual${path.sep}output2.js`)) {
