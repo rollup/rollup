@@ -1,4 +1,4 @@
-import fs from 'fs';
+import { readFileSync } from 'fs';
 import path from 'path';
 import alias from '@rollup/plugin-alias';
 import commonjs from '@rollup/plugin-commonjs';
@@ -18,7 +18,7 @@ import pkg from './package.json';
 
 const commitHash = (function () {
 	try {
-		return fs.readFileSync('.commithash', 'utf-8');
+		return readFileSync('.commithash', 'utf-8');
 	} catch {
 		return 'unknown';
 	}
@@ -90,8 +90,10 @@ export default (command: Record<string, unknown>): RollupOptions | RollupOptions
 			'fs',
 			'fsevents',
 			'module',
-			'path',
 			'os',
+			'path',
+			'perf_hooks',
+			'process',
 			'stream',
 			'url',
 			'util'
@@ -125,8 +127,7 @@ export default (command: Record<string, unknown>): RollupOptions | RollupOptions
 			...nodePlugins,
 			addCliEntry(),
 			esmDynamicImport(),
-			// TODO this relied on an unpublished type update
-			(!command.configTest && collectLicenses()) as Plugin
+			!command.configTest && collectLicenses()
 		],
 		strictDeprecations: true,
 		treeshake

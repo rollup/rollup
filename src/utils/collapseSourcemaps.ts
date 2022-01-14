@@ -49,7 +49,7 @@ class Link {
 		const sources: string[] = [];
 		const sourcesContent: string[] = [];
 		const names: string[] = [];
-		const nameIndexMap: Map<string, number> = new Map();
+		const nameIndexMap = new Map<string, number>();
 
 		const mappings = [];
 
@@ -147,7 +147,7 @@ class Link {
 }
 
 function getLinkMap(warn: WarningHandler) {
-	return function linkMap(source: Source | Link, map: DecodedSourceMapOrMissing) {
+	return function linkMap(source: Source | Link, map: DecodedSourceMapOrMissing): Link {
 		if (map.mappings) {
 			return new Link(map, [source]);
 		}

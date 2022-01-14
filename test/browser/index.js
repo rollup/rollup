@@ -1,3 +1,8 @@
+// since we don't run the browser tests in an actual browser, we need to make `performance`
+// globally accessible same as in the browser. this can be removed once `performance` is
+// available globally in all supported platforms. [currently global for node.js v16+].
+global.performance = require('perf_hooks').performance;
+
 const { basename, resolve } = require('path');
 const fixturify = require('fixturify');
 const { rollup } = require('../../dist/rollup.browser.js');
