@@ -23,9 +23,10 @@ module.exports = {
 		fs.unlinkSync(configFile);
 	},
 	abortOnStderr(data) {
-		if (data.includes('created _actual/main.js')) {
+		if (data.includes(`created _actual${path.sep}main.js`)) {
 			atomicWriteFileSync(configFile, configContent);
-			return new Promise(resolve => setTimeout(() => resolve(true), 500));
+			// wait some time for the watcher to trigger
+			return new Promise(resolve => setTimeout(() => resolve(true), 600));
 		}
 	},
 	stderr(stderr) {

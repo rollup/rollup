@@ -18,6 +18,7 @@ exports.assertIncludes = assertIncludes;
 exports.atomicWriteFileSync = atomicWriteFileSync;
 exports.writeAndSync = writeAndSync;
 exports.getFileNamesAndRemoveOutput = getFileNamesAndRemoveOutput;
+exports.writeAndRetry = writeAndRetry;
 
 function normaliseError(error) {
 	delete error.stack;
@@ -240,4 +241,24 @@ function writeAndSync(filePath, contents) {
 	fs.writeSync(file, contents);
 	fs.fsyncSync(file);
 	fs.closeSync(file);
+}
+
+// Sometimes, watchers on MacOS do not seem to fire. In those cases, it helps
+// to write the same content again. This function returns a callback to stop
+// further updates.
+function writeAndRetry(filePath, contents) {
+	let retries = 0;
+	let updateRetryTimeout;
+
+	const writeFile = () => {
+		if (retries > 0) {
+			console.error(`RETRIED writeFile (${retries})`);
+		}
+		retries++;
+		atomicWriteFileSync(filePath, contents);
+		updateRetryTimeout = setTimeout(writeFile, 1000);
+	};
+
+	writeFile();
+	return () => clearTimeout(updateRetryTimeout);
 }
