@@ -23,6 +23,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 	let warnings: BatchWarnings;
 	let watcher: RollupWatcher;
 	let configWatcher: FSWatcher;
+	let resetScreen: (heading: string) => void;
 	const configFile = command.config ? getConfigPath(command.config) : null;
 
 	onExit(close);
@@ -33,11 +34,10 @@ export async function watch(command: Record<string, any>): Promise<void> {
 	}
 
 	async function loadConfigFromFileAndTrack(configFile: string): Promise<void> {
-		let reloadingConfig = false;
-		let aborted = false;
 		let configFileData: string | null = null;
+		let configFileRevision = 0;
 
-		configWatcher = chokidar.watch(configFile).on('change', () => reloadConfigFile());
+		configWatcher = chokidar.watch(configFile).on('change', reloadConfigFile);
 		await reloadConfigFile();
 
 		async function reloadConfigFile() {
@@ -46,29 +46,23 @@ export async function watch(command: Record<string, any>): Promise<void> {
 				if (newConfigFileData === configFileData) {
 					return;
 				}
-				if (reloadingConfig) {
-					aborted = true;
-					return;
-				}
+				configFileRevision++;
+				const currentConfigFileRevision = configFileRevision;
 				if (configFileData) {
 					stderr(`\nReloading updated config...`);
 				}
 				configFileData = newConfigFileData;
-				reloadingConfig = true;
-				({ options: configs, warnings } = await loadAndParseConfigFile(configFile, command));
-				reloadingConfig = false;
-				if (aborted) {
-					aborted = false;
-					reloadConfigFile();
-				} else {
-					if (watcher) {
-						watcher.close();
-					}
-					start(configs);
+				const parsedConfig = await loadAndParseConfigFile(configFile, command);
+				if (currentConfigFileRevision !== configFileRevision) {
+					return;
 				}
+				if (watcher) {
+					watcher.close();
+				}
+				({ options: configs, warnings } = parsedConfig);
+				start(configs);
 			} catch (err: any) {
 				configs = [];
-				reloadingConfig = false;
 				handleError(err, true);
 			}
 		}
@@ -80,8 +74,6 @@ export async function watch(command: Record<string, any>): Promise<void> {
 		({ options: configs, warnings } = await loadConfigFromCommand(command));
 		start(configs);
 	}
-
-	const resetScreen = getResetScreen(configs!, isTTY);
 
 	function start(configs: MergedRollupOptions[]): void {
 		try {
@@ -99,6 +91,9 @@ export async function watch(command: Record<string, any>): Promise<void> {
 
 				case 'START':
 					if (!silent) {
+						if (!resetScreen) {
+							resetScreen = getResetScreen(configs!, isTTY);
+						}
 						resetScreen(underline(`rollup v${rollup.VERSION}`));
 					}
 					break;

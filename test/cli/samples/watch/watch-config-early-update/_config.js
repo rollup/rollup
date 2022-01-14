@@ -5,57 +5,49 @@ const { writeAndSync } = require('../../../../utils');
 let configFile;
 
 module.exports = {
-	solo: true,
 	repeat: 100,
 	description: 'immediately reloads the config file if a change happens while it is parsed',
 	command: 'rollup -cw',
 	before() {
-		// This test writes a config file that prints a message to stderr but delays resolving to a
-		// config. The stderr message is  observed by the parent process and triggers overwriting the
-		// config file. That way, we simulate a complicated config file being changed while it is parsed.
-		configFile = path.resolve(__dirname, 'rollup.config.js');
-		console.time('testTime');
+		// This test writes a config file that prints a message to stderr which signals to the test that
+		// the config files has been parsed, at which point the test replaces the config file. The
+		// initial file returns a Promise that only resolves once the second config file has been
+		// parsed. To do that, the first config hooks into process.stderr and looks for a log from the
+		// second config.
+		// That way, we simulate a complicated config file being changed while it is parsed.
+		configFile = path.join(__dirname, 'rollup.config.js');
+		fs.mkdirSync(path.join(__dirname, '_actual'));
 		writeAndSync(
 			configFile,
 			`
-		  import { watch } from 'fs';
-		  let watcher;
-		  
-		  // Sometimes, fs.watch does not seem to trigger on MacOS. Thus, we wait at most 5 seconds.
-      export default Promise.race([
-        new Promise(resolve => {
-		      watcher = watch(${JSON.stringify(configFile)}, () => {
-			  	  console.error('config update detected');
-			  	  watcher.close();
-			  	  watcher = null;
-            // wait a moment to make sure we do not trigger before Rollup's watcher
-			  	  setTimeout(resolve, 600);
-			  	})
-		    }),
-		    new Promise(resolve => setTimeout(() => {
-		      if (watcher) {
-		        watcher.close();
-		      };
-		      resolve();
-		    }, 5000))
-      ]).then(() => ({
-        input: 'main.js',
-        output: {
-          file: '_actual/output1.js',
-          format: 'es'
-        }
-      }));
-			console.error('initial');
-  		`
+			import { Writable } from 'stream';
+			process.stderr.write('initial\\n');
+      const processStderr = process.stderr;
+      export default new Promise(resolve => {
+			  delete process.stderr;
+        process.stderr = new Writable({
+          write(chunk, encoding, next) {
+            processStderr.write(chunk, encoding, next);
+            if (chunk.toString() === 'updated\\n') {
+              process.stderr.end();
+              process.stderr = processStderr;
+              resolve({
+                input: 'main.js',
+                output: {
+                  file: '_actual/output1.js',
+                  format: 'es'
+                }
+              })
+            }
+          },
+        });
+      });`
 		);
-		return new Promise(resolve => setTimeout(resolve, 600));
 	},
 	after() {
-		console.timeEnd('testTime');
 		fs.unlinkSync(configFile);
 	},
 	abortOnStderr(data) {
-		console.log('data:', data);
 		if (data === 'initial\n') {
 			writeAndSync(
 				configFile,
@@ -67,13 +59,12 @@ module.exports = {
             file: '_actual/output2.js',
 		        format: "es"
 		      }
-		    };
-		    `
+		    };`
 			);
 			return false;
 		}
 		if (data.includes(`created _actual${path.sep}output2.js`)) {
-			return new Promise(resolve => setTimeout(() => resolve(true), 600));
+			return new Promise(resolve => setTimeout(() => resolve(true), 500));
 		}
 	}
 };
