@@ -1,5 +1,27 @@
 # rollup changelog
 
+## 2.64.0
+
+_2022-01-14_
+
+### Features
+
+- Allow inspecting cached modules and forcing them to be transformed again via shouldTransformCachedModule (#4320)
+- Do not wait for the config file to be parsed in watch mode if it is updated before that (#4344)
+
+### Bug Fixes
+
+- Do not mutate objects returned as `meta` from the resolveId hook (#4347)
+
+### Pull Requests
+
+- [#4326](https://github.com/rollup/rollup/pull/4326): refactor: type fixes (@dnalborczyk)
+- [#4339](https://github.com/rollup/rollup/pull/4339): More watch test stabilization (@lukastaegert)
+- [#4340](https://github.com/rollup/rollup/pull/4340): refactor: performance timers for node.js and browser (@dnalborczyk)
+- [#4341](https://github.com/rollup/rollup/pull/4341): Implement shouldTransformCachedModule hook (@lukastaegert)
+- [#4344](https://github.com/rollup/rollup/pull/4344): Directly restart Rollup when config file change is detected in watch mode (@lukastaegert)
+- [#4347](https://github.com/rollup/rollup/pull/4347): Create a shallow copy when returning meta from resolveId (@lukastaegert)
+
 ## 2.63.0
 
 _2022-01-04_
