@@ -6,7 +6,6 @@ const configFile = path.join(__dirname, 'rollup.config.js');
 let stopUpdate;
 
 module.exports = {
-	repeat: 100,
 	description: 'immediately reloads the config file if a change happens while it is parsed',
 	command: 'rollup -cw',
 	before() {

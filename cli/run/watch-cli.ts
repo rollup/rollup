@@ -19,8 +19,6 @@ export async function watch(command: Record<string, any>): Promise<void> {
 	process.env.ROLLUP_WATCH = 'true';
 	const isTTY = process.stderr.isTTY;
 	const silent = command.silent;
-	let configs: MergedRollupOptions[];
-	let warnings: BatchWarnings;
 	let watcher: RollupWatcher;
 	let configWatcher: FSWatcher;
 	let resetScreen: (heading: string) => void;
@@ -52,17 +50,15 @@ export async function watch(command: Record<string, any>): Promise<void> {
 					stderr(`\nReloading updated config...`);
 				}
 				configFileData = newConfigFileData;
-				const parsedConfig = await loadAndParseConfigFile(configFile, command);
+				const { options, warnings } = await loadAndParseConfigFile(configFile, command);
 				if (currentConfigFileRevision !== configFileRevision) {
 					return;
 				}
 				if (watcher) {
 					watcher.close();
 				}
-				({ options: configs, warnings } = parsedConfig);
-				start(configs);
+				start(options, warnings);
 			} catch (err: any) {
-				configs = [];
 				handleError(err, true);
 			}
 		}
@@ -71,11 +67,11 @@ export async function watch(command: Record<string, any>): Promise<void> {
 	if (configFile) {
 		await loadConfigFromFileAndTrack(configFile);
 	} else {
-		({ options: configs, warnings } = await loadConfigFromCommand(command));
-		start(configs);
+		const { options, warnings } = await loadConfigFromCommand(command);
+		start(options, warnings);
 	}
 
-	function start(configs: MergedRollupOptions[]): void {
+	function start(configs: MergedRollupOptions[], warnings: BatchWarnings): void {
 		try {
 			watcher = rollup.watch(configs as any);
 		} catch (err: any) {
@@ -92,7 +88,7 @@ export async function watch(command: Record<string, any>): Promise<void> {
 				case 'START':
 					if (!silent) {
 						if (!resetScreen) {
-							resetScreen = getResetScreen(configs!, isTTY);
+							resetScreen = getResetScreen(configs, isTTY);
 						}
 						resetScreen(underline(`rollup v${rollup.VERSION}`));
 					}
