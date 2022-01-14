@@ -48,7 +48,7 @@ module.exports = {
 			return false;
 		}
 		if (data.includes(`created _actual${path.sep}main2.js`)) {
-			return new Promise(resolve => setTimeout(() => resolve(true), 600));
+			return true;
 		}
 	}
 };

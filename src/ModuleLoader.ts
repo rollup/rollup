@@ -274,7 +274,17 @@ export class ModuleLoader {
 		if (
 			cachedModule &&
 			!cachedModule.customTransformCache &&
-			cachedModule.originalCode === sourceDescription.code
+			cachedModule.originalCode === sourceDescription.code &&
+			!(await this.pluginDriver.hookFirst('shouldTransformCachedModule', [
+				{
+					ast: cachedModule.ast,
+					code: cachedModule.code,
+					id: cachedModule.id,
+					meta: cachedModule.meta,
+					moduleSideEffects: cachedModule.moduleSideEffects,
+					syntheticNamedExports: cachedModule.syntheticNamedExports
+				}
+			]))
 		) {
 			if (cachedModule.transformFiles) {
 				for (const emittedFile of cachedModule.transformFiles)
