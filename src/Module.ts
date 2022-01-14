@@ -293,7 +293,7 @@ export default class Module {
 				}
 				return module.isIncluded();
 			},
-			meta,
+			meta: { ...meta },
 			syntheticNamedExports
 		};
 	}
