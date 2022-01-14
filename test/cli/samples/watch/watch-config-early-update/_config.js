@@ -1,10 +1,9 @@
 const fs = require('fs');
 const path = require('path');
-const { writeAndSync } = require('../../../../utils');
+const { writeAndSync, writeAndRetry } = require('../../../../utils');
 
 const configFile = path.join(__dirname, 'rollup.config.js');
-let updateRetryTimeout;
-let retries = 0;
+let stopUpdate;
 
 module.exports = {
 	repeat: 100,
@@ -50,25 +49,9 @@ module.exports = {
 	},
 	abortOnStderr(data) {
 		if (data === 'initial\n') {
-			retries = 0;
-			updateConfig();
-			return false;
-		}
-		if (data.includes(`created _actual${path.sep}output2.js`)) {
-			clearTimeout(updateRetryTimeout);
-			return true;
-		}
-	}
-};
-
-const updateConfig = () => {
-	if (retries > 0) {
-		console.error('RETRIED updateConfig', retries);
-	}
-	retries++;
-	writeAndSync(
-		configFile,
-		`
+			stopUpdate = writeAndRetry(
+				configFile,
+				`
 				console.error('updated');
 		    export default {
           input: 'main.js',
@@ -77,7 +60,12 @@ const updateConfig = () => {
 		        format: "es"
 		      }
 		    };`
-	);
-	// rarely, the watcher does not trigger on MacOS
-	updateRetryTimeout = setTimeout(updateConfig, 1000);
+			);
+			return false;
+		}
+		if (data.includes(`created _actual${path.sep}output2.js`)) {
+			stopUpdate();
+			return true;
+		}
+	}
 };
