@@ -165,7 +165,6 @@ export default async function transform(
 		ast,
 		code,
 		customTransformCache,
-		meta: module.info.meta,
 		originalCode,
 		originalSourcemap,
 		sourcemapChain,

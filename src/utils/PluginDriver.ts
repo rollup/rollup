@@ -55,6 +55,7 @@ const inputHookNames: {
 	options: 1,
 	resolveDynamicImport: 1,
 	resolveId: 1,
+	shouldTransformCachedModule: 1,
 	transform: 1,
 	watchChange: 1
 };
