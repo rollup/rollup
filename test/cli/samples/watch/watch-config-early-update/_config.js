@@ -2,7 +2,9 @@ const fs = require('fs');
 const path = require('path');
 const { writeAndSync } = require('../../../../utils');
 
-let configFile;
+const configFile = path.join(__dirname, 'rollup.config.js');
+let updateRetryTimeout;
+let retries = 0;
 
 module.exports = {
 	repeat: 100,
@@ -15,7 +17,6 @@ module.exports = {
 		// parsed. To do that, the first config hooks into process.stderr and looks for a log from the
 		// second config.
 		// That way, we simulate a complicated config file being changed while it is parsed.
-		configFile = path.join(__dirname, 'rollup.config.js');
 		fs.mkdirSync(path.join(__dirname, '_actual'));
 		writeAndSync(
 			configFile,
@@ -49,9 +50,25 @@ module.exports = {
 	},
 	abortOnStderr(data) {
 		if (data === 'initial\n') {
-			writeAndSync(
-				configFile,
-				`
+			retries = 0;
+			updateConfig();
+			return false;
+		}
+		if (data.includes(`created _actual${path.sep}output2.js`)) {
+			clearTimeout(updateRetryTimeout);
+			return true;
+		}
+	}
+};
+
+const updateConfig = () => {
+	if (retries > 0) {
+		console.error('RETRIED updateConfig', retries);
+	}
+	retries++;
+	writeAndSync(
+		configFile,
+		`
 				console.error('updated');
 		    export default {
           input: 'main.js',
@@ -60,11 +77,7 @@ module.exports = {
 		        format: "es"
 		      }
 		    };`
-			);
-			return false;
-		}
-		if (data.includes(`created _actual${path.sep}output2.js`)) {
-			return new Promise(resolve => setTimeout(() => resolve(true), 500));
-		}
-	}
+	);
+	// rarely, the watcher does not trigger on MacOS
+	updateRetryTimeout = setTimeout(updateConfig, 1000);
 };

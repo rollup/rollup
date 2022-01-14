@@ -18,5 +18,7 @@ module.exports = {
 			// wait longer than one polling interval
 			setTimeout(() => atomicWriteFileSync(mainFile, 'export default 42;'), 600);
 		}
+		// We wait for a regular abort as we do not watch
+		return false;
 	}
 };
