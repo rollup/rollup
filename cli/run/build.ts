@@ -3,8 +3,8 @@ import * as rollup from '../../src/node-entry';
 import { MergedRollupOptions } from '../../src/rollup/types';
 import { bold, cyan, green } from '../../src/utils/colors';
 import relativeId from '../../src/utils/relativeId';
+import { SOURCEMAPPING_URL } from '../../src/utils/sourceMappingURL';
 import { handleError, stderr } from '../logging';
-import SOURCEMAPPING_URL from '../sourceMappingUrl';
 import { BatchWarnings } from './batchWarnings';
 import { printTimings } from './timings';
 
