@@ -583,13 +583,6 @@ Repository: git://github.com/paulmillr/readdirp.git
 
 ---------------------------------------
 
-## require-relative
-License: MIT
-By: Valerio Proietti
-Repository: git://github.com/kamicane/require-relative.git
-
----------------------------------------
-
 ## signal-exit
 License: ISC
 By: Ben Coe
