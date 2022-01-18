@@ -120,6 +120,38 @@ var es5Shim = {exports: {}};
         };
     }(ObjectPrototype.hasOwnProperty));
 
+    // this is needed in Chrome 15 (probably earlier) - 36
+    // https://bugs.chromium.org/p/v8/issues/detail?id=3334
+    if ($Object.defineProperty) {
+        var F = function () {};
+        var toStringSentinel = {};
+        var sentinel = { toString: toStringSentinel };
+        $Object.defineProperty(F, 'prototype', { value: sentinel, writable: false });
+        if ((new F()).toString !== toStringSentinel) {
+            var $dP = $Object.defineProperty;
+            var $gOPD = $Object.getOwnPropertyDescriptor;
+            defineProperties($Object, {
+                defineProperty: function defineProperty(o, k, d) {
+                    var key = $String(k);
+                    if (typeof o === 'function' && key === 'prototype') {
+                        var desc = $gOPD(o, key);
+                        if (desc.writable && !d.writable && 'value' in d) {
+                            try {
+                                o[key] = d.value; // eslint-disable-line no-param-reassign
+                            } catch (e) { /**/ }
+                        }
+                        return $dP(o, key, {
+                            configurable: 'configurable' in d ? d.configurable : desc.configurable,
+                            enumerable: 'enumerable' in d ? d.enumerable : desc.enumerable,
+                            writable: d.writable
+                        });
+                    }
+                    return $dP(o, key, d);
+                }
+            }, true);
+        }
+    }
+
     //
     // Util
     // ======
@@ -1525,10 +1557,10 @@ var es5Shim = {exports: {}};
                 var t = month > 1 ? 1 : 0;
                 return (
                     months[month]
-                    + floor((year - 1969 + t) / 4)
-                    - floor((year - 1901 + t) / 100)
-                    + floor((year - 1601 + t) / 400)
-                    + (365 * (year - 1970))
+                        + floor((year - 1969 + t) / 4)
+                        - floor((year - 1901 + t) / 100)
+                        + floor((year - 1601 + t) / 400)
+                        + (365 * (year - 1970))
                 );
             };
 
@@ -1797,10 +1829,11 @@ var es5Shim = {exports: {}};
     }());
     var originalToExponential = call.bind(NumberPrototype.toExponential);
     var numberToString = call.bind(NumberPrototype.toString);
+    var numberValueOf = call.bind(NumberPrototype.valueOf);
     defineProperties(NumberPrototype, {
         toExponential: function toExponential(fractionDigits) {
             // 1: Let x be this Number value.
-            var x = $Number(this);
+            var x = numberValueOf(this);
 
             if (typeof fractionDigits === 'undefined') {
                 return originalToExponential(x);
