@@ -277,6 +277,12 @@ export default class Module {
 			get dynamicImporters() {
 				return module.dynamicImporters.sort();
 			},
+			get hasDefaultExport() {
+				if (module.graph.phase !== BuildPhase.GENERATE) {
+					return null;
+				}
+				return 'default' in module.exports;
+			},
 			hasModuleSideEffects,
 			id,
 			get implicitlyLoadedAfterOneOf() {
