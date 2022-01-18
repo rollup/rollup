@@ -1,11 +1,11 @@
 import ms from 'pretty-ms';
-import * as rollup from '../../src/node-entry';
-import { MergedRollupOptions } from '../../src/rollup/types';
+import { rollup } from '../../src/node-entry';
+import type { MergedRollupOptions } from '../../src/rollup/types';
 import { bold, cyan, green } from '../../src/utils/colors';
 import relativeId from '../../src/utils/relativeId';
+import { SOURCEMAPPING_URL } from '../../src/utils/sourceMappingURL';
 import { handleError, stderr } from '../logging';
-import SOURCEMAPPING_URL from '../sourceMappingUrl';
-import { BatchWarnings } from './batchWarnings';
+import type { BatchWarnings } from './batchWarnings';
 import { printTimings } from './timings';
 
 export default async function build(
@@ -29,7 +29,7 @@ export default async function build(
 		stderr(cyan(`\n${bold(inputFiles!)} → ${bold(files.join(', '))}...`));
 	}
 
-	const bundle = await rollup.rollup(inputOptions as any);
+	const bundle = await rollup(inputOptions as any);
 	if (useStdout) {
 		const output = outputOptions[0];
 		if (output.sourcemap && output.sourcemap !== 'inline') {
