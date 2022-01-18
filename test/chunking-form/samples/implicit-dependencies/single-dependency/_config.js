@@ -65,12 +65,22 @@ module.exports = {
 						sourceType: 'module'
 					},
 					code: "import { value } from './lib';\nconsole.log(value);\n",
+					dynamicallyImportedIdResolutions: [],
 					dynamicallyImportedIds: [],
 					dynamicImporters: [],
 					hasModuleSideEffects: true,
 					id: ID_MAIN,
 					implicitlyLoadedAfterOneOf: [],
 					implicitlyLoadedBefore: [ID_DEP],
+					importedIdResolutions: [
+						{
+							external: false,
+							id: ID_LIB,
+							meta: {},
+							moduleSideEffects: true,
+							syntheticNamedExports: false
+						}
+					],
 					importedIds: [ID_LIB],
 					importers: [],
 					isEntry: true,
@@ -125,12 +135,22 @@ module.exports = {
 						sourceType: 'module'
 					},
 					code: "import { value } from './lib';\nconsole.log(value);\n",
+					dynamicallyImportedIdResolutions: [],
 					dynamicallyImportedIds: [],
 					dynamicImporters: [],
 					hasModuleSideEffects: true,
 					id: ID_DEP,
 					implicitlyLoadedAfterOneOf: [ID_MAIN],
 					implicitlyLoadedBefore: [],
+					importedIdResolutions: [
+						{
+							external: false,
+							id: ID_LIB,
+							meta: {},
+							moduleSideEffects: true,
+							syntheticNamedExports: false
+						}
+					],
 					importedIds: [ID_LIB],
 					importers: [],
 					isEntry: false,

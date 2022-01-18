@@ -18,11 +18,13 @@ module.exports = {
 					ast: null,
 					code: null,
 					dynamicImporters: [],
+					dynamicallyImportedIdResolutions: [],
 					dynamicallyImportedIds: [],
 					hasModuleSideEffects: true,
 					id,
 					implicitlyLoadedAfterOneOf: [],
 					implicitlyLoadedBefore: [],
+					importedIdResolutions: [],
 					importedIds: [],
 					importers: [],
 					isEntry: id === ID_MAIN,
@@ -163,12 +165,37 @@ module.exports = {
 								sourceType: 'module'
 							},
 							code: "export { foo } from './foo.js';\nexport const nested = import('./nested/nested');\nexport const path = import('path');\nexport const pathAgain = import(thePath);\n",
+							dynamicallyImportedIdResolutions: [
+								{
+									external: false,
+									id: ID_NESTED,
+									meta: {},
+									moduleSideEffects: true,
+									syntheticNamedExports: false
+								},
+								{
+									external: true,
+									id: ID_PATH,
+									meta: {},
+									moduleSideEffects: true,
+									syntheticNamedExports: false
+								}
+							],
 							dynamicallyImportedIds: [ID_NESTED, ID_PATH],
 							dynamicImporters: [],
 							hasModuleSideEffects: true,
 							id: ID_MAIN,
 							implicitlyLoadedAfterOneOf: [],
 							implicitlyLoadedBefore: [],
+							importedIdResolutions: [
+								{
+									external: false,
+									id: ID_FOO,
+									meta: {},
+									moduleSideEffects: true,
+									syntheticNamedExports: false
+								}
+							],
 							importedIds: [ID_FOO],
 							importers: [],
 							isEntry: true,
@@ -240,12 +267,22 @@ module.exports = {
 								sourceType: 'module'
 							},
 							code: "import path from 'path';\n\nexport const foo = path.resolve('foo');\n",
+							dynamicallyImportedIdResolutions: [],
 							dynamicallyImportedIds: [],
 							dynamicImporters: [],
 							hasModuleSideEffects: true,
 							id: ID_FOO,
 							implicitlyLoadedAfterOneOf: [],
 							implicitlyLoadedBefore: [],
+							importedIdResolutions: [
+								{
+									external: true,
+									id: ID_PATH,
+									meta: {},
+									moduleSideEffects: true,
+									syntheticNamedExports: false
+								}
+							],
 							importedIds: [ID_PATH],
 							importers: [ID_MAIN, ID_NESTED],
 							isEntry: false,
@@ -257,12 +294,14 @@ module.exports = {
 						{
 							ast: null,
 							code: null,
+							dynamicallyImportedIdResolutions: [],
 							dynamicallyImportedIds: [],
 							dynamicImporters: [ID_MAIN],
 							hasModuleSideEffects: true,
 							id: ID_PATH,
 							implicitlyLoadedAfterOneOf: [],
 							implicitlyLoadedBefore: [],
+							importedIdResolutions: [],
 							importedIds: [],
 							importers: [ID_FOO],
 							isEntry: false,
@@ -337,12 +376,22 @@ module.exports = {
 								sourceType: 'module'
 							},
 							code: "import { foo } from '../foo.js';\n\nexport const nested = 'nested' + foo;\n",
+							dynamicallyImportedIdResolutions: [],
 							dynamicallyImportedIds: [],
 							dynamicImporters: [ID_MAIN],
 							hasModuleSideEffects: true,
 							id: ID_NESTED,
 							implicitlyLoadedAfterOneOf: [],
 							implicitlyLoadedBefore: [],
+							importedIdResolutions: [
+								{
+									external: false,
+									id: ID_FOO,
+									meta: {},
+									moduleSideEffects: true,
+									syntheticNamedExports: false
+								}
+							],
 							importedIds: [ID_FOO],
 							importers: [],
 							isEntry: false,

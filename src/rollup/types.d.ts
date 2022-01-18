@@ -160,11 +160,13 @@ interface ModuleInfo {
 	ast: AcornNode | null;
 	code: string | null;
 	dynamicImporters: readonly string[];
+	dynamicallyImportedIdResolutions: readonly ResolvedId[];
 	dynamicallyImportedIds: readonly string[];
 	hasModuleSideEffects: boolean | 'no-treeshake';
 	id: string;
 	implicitlyLoadedAfterOneOf: readonly string[];
 	implicitlyLoadedBefore: readonly string[];
+	importedIdResolutions: readonly ResolvedId[];
 	importedIds: readonly string[];
 	importers: readonly string[];
 	isEntry: boolean;

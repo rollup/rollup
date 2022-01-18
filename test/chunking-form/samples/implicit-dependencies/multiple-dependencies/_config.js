@@ -114,12 +114,36 @@ module.exports = {
 						sourceType: 'module'
 					},
 					code: "import { lib1 } from './lib1';\nimport { lib1b } from './lib1b';\nimport { lib2 } from './lib2';\nconsole.log('main1', lib1,  lib1b, lib2);\n",
+					dynamicallyImportedIdResolutions: [],
 					dynamicallyImportedIds: [],
 					dynamicImporters: [],
 					hasModuleSideEffects: true,
 					id: ID_MAIN1,
 					implicitlyLoadedAfterOneOf: [],
 					implicitlyLoadedBefore: [ID_DEP],
+					importedIdResolutions: [
+						{
+							external: false,
+							id: ID_LIB1,
+							meta: {},
+							moduleSideEffects: true,
+							syntheticNamedExports: false
+						},
+						{
+							external: false,
+							id: ID_LIB1B,
+							meta: {},
+							moduleSideEffects: true,
+							syntheticNamedExports: false
+						},
+						{
+							external: false,
+							id: ID_LIB2,
+							meta: {},
+							moduleSideEffects: true,
+							syntheticNamedExports: false
+						}
+					],
 					importedIds: [ID_LIB1, ID_LIB1B, ID_LIB2],
 					importers: [],
 					isEntry: true,
@@ -209,12 +233,36 @@ module.exports = {
 						sourceType: 'module'
 					},
 					code: "import { lib1 } from './lib1';\nimport { lib1b } from './lib1b';\nimport { lib3 } from './lib3';\nconsole.log('main2', lib1, lib1b, lib3);\n",
+					dynamicallyImportedIdResolutions: [],
 					dynamicallyImportedIds: [],
 					dynamicImporters: [],
 					hasModuleSideEffects: true,
 					id: ID_MAIN2,
 					implicitlyLoadedAfterOneOf: [],
 					implicitlyLoadedBefore: [ID_DEP],
+					importedIdResolutions: [
+						{
+							external: false,
+							id: ID_LIB1,
+							meta: {},
+							moduleSideEffects: true,
+							syntheticNamedExports: false
+						},
+						{
+							external: false,
+							id: ID_LIB1B,
+							meta: {},
+							moduleSideEffects: true,
+							syntheticNamedExports: false
+						},
+						{
+							external: false,
+							id: ID_LIB3,
+							meta: {},
+							moduleSideEffects: true,
+							syntheticNamedExports: false
+						}
+					],
 					importedIds: [ID_LIB1, ID_LIB1B, ID_LIB3],
 					importers: [],
 					isEntry: true,
@@ -303,12 +351,36 @@ module.exports = {
 						sourceType: 'module'
 					},
 					code: "import { lib1 } from './lib1';\nimport { lib2 } from './lib2';\nimport { lib3 } from './lib3';\nconsole.log(lib1, lib2, lib3);\n",
+					dynamicallyImportedIdResolutions: [],
 					dynamicallyImportedIds: [],
 					dynamicImporters: [],
 					hasModuleSideEffects: true,
 					id: ID_DEP,
 					implicitlyLoadedAfterOneOf: [ID_MAIN1, ID_MAIN2],
 					implicitlyLoadedBefore: [],
+					importedIdResolutions: [
+						{
+							external: false,
+							id: ID_LIB1,
+							meta: {},
+							moduleSideEffects: true,
+							syntheticNamedExports: false
+						},
+						{
+							external: false,
+							id: ID_LIB2,
+							meta: {},
+							moduleSideEffects: true,
+							syntheticNamedExports: false
+						},
+						{
+							external: false,
+							id: ID_LIB3,
+							meta: {},
+							moduleSideEffects: true,
+							syntheticNamedExports: false
+						}
+					],
 					importedIds: [ID_LIB1, ID_LIB2, ID_LIB3],
 					importers: [],
 					isEntry: false,

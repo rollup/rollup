@@ -38,6 +38,7 @@ import {
 	NormalizedInputOptions,
 	PartialNull,
 	PreserveEntrySignaturesOption,
+	ResolvedId,
 	ResolvedIdMap,
 	RollupError,
 	RollupLogProps,
@@ -259,6 +260,11 @@ export default class Module {
 		this.info = {
 			ast: null,
 			code: null,
+			get dynamicallyImportedIdResolutions() {
+				return module.dynamicImports
+					.map(({ argument }) => typeof argument === 'string' && module.resolvedIds[argument])
+					.filter(Boolean) as ResolvedId[];
+			},
 			get dynamicallyImportedIds() {
 				const dynamicallyImportedIds: string[] = [];
 				for (const { id } of module.dynamicImports) {
@@ -278,6 +284,9 @@ export default class Module {
 			},
 			get implicitlyLoadedBefore() {
 				return Array.from(module.implicitlyLoadedBefore, getId).sort();
+			},
+			get importedIdResolutions() {
+				return Array.from(module.sources, source => module.resolvedIds[source]).filter(Boolean);
 			},
 			get importedIds() {
 				return Array.from(module.sources, source => module.resolvedIds[source]?.id).filter(Boolean);

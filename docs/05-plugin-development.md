@@ -122,7 +122,7 @@ This hook is called each time a module has been fully parsed by Rollup. See [`th
 
 In contrast to the [`transform`](guide/en/#transform) hook, this hook is never cached and can be used to get information about both cached and other modules, including the final shape of the `meta` property, the `code` and the `ast`.
 
-This hook will wait until all imports are resolved so that the information in `moduleInfo.importedIds` and `moduleInfo.dynamicallyImportedIds` is complete and accurate. Note however that information about importing modules may be incomplete as additional importers could be discovered later. If you need this information, use the [`buildEnd`](guide/en/#buildend) hook.
+This hook will wait until all imports are resolved so that the information in `moduleInfo.importedIds`, `moduleInfo.dynamicallyImportedIds`, `moduleInfo.importedIdResolutions`, and `moduleInfo.dynamicallyImportedIdResolutions` is complete and accurate. Note however that information about importing modules may be incomplete as additional importers could be discovered later. If you need this information, use the [`buildEnd`](guide/en/#buildend) hook.
 
 #### `options`
 
@@ -677,14 +677,24 @@ type ModuleInfo = {
   isExternal: boolean; // for external modules that are referenced but not included in the graph
   isIncluded: boolean | null; // is the module included after tree-shaking, `null` if external or not yet available
   importedIds: string[]; // the module ids statically imported by this module
+  importedIdResolutions: ResolvedId[]; // how statically imported ids were resolved, for use with this.load
   importers: string[]; // the ids of all modules that statically import this module
   dynamicallyImportedIds: string[]; // the module ids imported by this module via dynamic import()
+  dynamicallyImportedIdResolutions: ResolvedId[]; // how ids imported via dynamic import() were resolved
   dynamicImporters: string[]; // the ids of all modules that import this module via dynamic import()
   implicitlyLoadedAfterOneOf: string[]; // implicit relationships, declared via this.emitFile
   implicitlyLoadedBefore: string[]; // implicit relationships, declared via this.emitFile
   hasModuleSideEffects: boolean | 'no-treeshake'; // are imports of this module included if nothing is imported from it
   meta: { [plugin: string]: any }; // custom module meta-data
   syntheticNamedExports: boolean | string; // final value of synthetic named exports
+};
+
+type ResolvedId = {
+  id: string; // the id of the imported module
+  external: boolean | 'absolute'; // is this module external, "absolute" means it will not be rendered as relative in the module
+  moduleSideEffects: boolean | 'no-treeshake'; // are side effects of the module observed, is tree-shaking enabled
+  syntheticNamedExports: boolean | string; // does the module allow importing non-existing named exports
+  meta: { [plugin: string]: any }; // custom module meta-data when resolving the module
 };
 ```
 
@@ -706,7 +716,7 @@ Loads and parses the module corresponding to the given id, attaching additional 
 
 This allows you to inspect the final content of modules before deciding how to resolve them in the [`resolveId`](guide/en/#resolveid) hook and e.g. resolve to a proxy module instead. If the module becomes part of the graph later, there is no additional overhead from using this context function as the module will not be parsed again. The signature allows you to directly pass the return value of [`this.resolve`](guide/en/#thisresolve) to this function as long as it is neither `null` nor external.
 
-The returned promise will resolve once the module has been fully transformed and parsed but before any imports have been resolved. That means that the resulting `ModuleInfo` will have empty `importedIds` and `dynamicallyImportedIds`. This helps to avoid deadlock situations when awaiting `this.load` in a `resolveId` hook. If you are interested in `importedIds` and `dynamicallyImportedIds`, you should implement a `moduleParsed` hook.
+The returned promise will resolve once the module has been fully transformed and parsed but before any imports have been resolved. That means that the resulting `ModuleInfo` will have empty `importedIds`, `dynamicallyImportedIds`, `importedIdResolutions` and `dynamicallyImportedIdResolutions`. This helps to avoid deadlock situations when awaiting `this.load` in a `resolveId` hook. If you are interested in `importedIds` and `dynamicallyImportedIds`, you should implement a `moduleParsed` hook.
 
 Note that with regard to the `moduleSideEffects`, `syntheticNamedExports` and `meta` options, the same restrictions apply as for the `resolveId` hook: Their values only have an effect if the module has not been loaded yet. Thus, it is very important to use `this.resolve` first to find out if any plugins want to set special values for these options in their `resolveId` hook, and pass these options on to `this.load` if appropriate. The example below showcases how this can be handled to add a proxy module for modules containing a special code comment:
 
