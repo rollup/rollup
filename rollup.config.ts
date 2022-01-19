@@ -1,9 +1,10 @@
 import { readFileSync } from 'fs';
-import path from 'path';
+import { resolve } from 'path';
+import process from 'process';
 import alias from '@rollup/plugin-alias';
 import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
-import resolve from '@rollup/plugin-node-resolve';
+import { nodeResolve } from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
 import { RollupOptions, WarningHandlerWithDefault } from 'rollup';
 import { string } from 'rollup-plugin-string';
@@ -51,9 +52,9 @@ const onwarn: WarningHandlerWithDefault = warning => {
 
 const moduleAliases = {
 	entries: [
-		{ find: 'help.md', replacement: path.resolve('cli/help.md') },
-		{ find: 'package.json', replacement: path.resolve('package.json') },
-		{ find: 'acorn', replacement: path.resolve('node_modules/acorn/dist/acorn.mjs') }
+		{ find: 'help.md', replacement: resolve('cli/help.md') },
+		{ find: 'package.json', replacement: resolve('package.json') },
+		{ find: 'acorn', replacement: resolve('node_modules/acorn/dist/acorn.mjs') }
 	],
 	resolve: ['.js', '.json', '.md']
 };
@@ -66,7 +67,7 @@ const treeshake = {
 
 const nodePlugins = [
 	alias(moduleAliases),
-	resolve(),
+	nodeResolve(),
 	json(),
 	conditionalFsEventsImport(),
 	string({ include: '**/*.md' }),
@@ -142,7 +143,7 @@ export default (command: Record<string, unknown>): RollupOptions | RollupOptions
 		plugins: [
 			replaceBrowserModules(),
 			alias(moduleAliases),
-			resolve({ browser: true }),
+			nodeResolve({ browser: true }),
 			json(),
 			commonjs(),
 			typescript(),
