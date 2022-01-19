@@ -6,7 +6,7 @@ import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
-import { RollupOptions, WarningHandlerWithDefault } from 'rollup';
+import type { RollupOptions, WarningHandlerWithDefault } from 'rollup';
 import { string } from 'rollup-plugin-string';
 import { terser } from 'rollup-plugin-terser';
 import addCliEntry from './build-plugins/add-cli-entry';
@@ -15,7 +15,7 @@ import emitModulePackageFile from './build-plugins/emit-module-package-file';
 import esmDynamicImport from './build-plugins/esm-dynamic-import';
 import getLicenseHandler from './build-plugins/generate-license-file';
 import replaceBrowserModules from './build-plugins/replace-browser-modules';
-import pkg from './package.json';
+import { version } from './package.json';
 
 const commitHash = (function () {
 	try {
@@ -26,14 +26,12 @@ const commitHash = (function () {
 })();
 
 const now = new Date(
-	process.env.SOURCE_DATE_EPOCH
-		? 1000 * parseInt(process.env.SOURCE_DATE_EPOCH)
-		: new Date().getTime()
+	process.env.SOURCE_DATE_EPOCH ? 1000 * +process.env.SOURCE_DATE_EPOCH : Date.now()
 ).toUTCString();
 
 const banner = `/*
   @license
-	Rollup.js v${pkg.version}
+	Rollup.js v${version}
 	${now} - commit ${commitHash}
 
 	https://github.com/rollup/rollup
