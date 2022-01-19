@@ -80,24 +80,6 @@ const nodePlugins = [
 export default (command: Record<string, unknown>): RollupOptions | RollupOptions[] => {
 	const { collectLicenses, writeLicense } = getLicenseHandler();
 	const commonJSBuild: RollupOptions = {
-		// fsevents is a dependency of chokidar that cannot be bundled as it contains binary code
-		external: [
-			'buffer',
-			'@rollup/plugin-typescript',
-			'assert',
-			'crypto',
-			'events',
-			'fs',
-			'fsevents',
-			'module',
-			'os',
-			'path',
-			'perf_hooks',
-			'process',
-			'stream',
-			'url',
-			'util'
-		],
 		input: {
 			'loadConfigFile.js': 'cli/run/loadConfigFile.ts',
 			'rollup.js': 'src/node-entry.ts'
