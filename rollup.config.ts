@@ -49,11 +49,11 @@ const onwarn: WarningHandlerWithDefault = warning => {
 };
 
 const moduleAliases = {
-	entries: [
-		{ find: 'help.md', replacement: resolve('cli/help.md') },
-		{ find: 'package.json', replacement: resolve('package.json') },
-		{ find: 'acorn', replacement: resolve('node_modules/acorn/dist/acorn.mjs') }
-	],
+	entries: {
+		acorn: resolve('node_modules/acorn/dist/acorn.mjs'),
+		'help.md': resolve('cli/help.md'),
+		'package.json': resolve('package.json')
+	},
 	resolve: ['.js', '.json', '.md']
 };
 
