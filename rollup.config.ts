@@ -96,12 +96,7 @@ export default (command: Record<string, unknown>): RollupOptions | RollupOptions
 			format: 'cjs',
 			freeze: false,
 			generatedCode: 'es2015',
-			interop: id => {
-				if (id === 'fsevents') {
-					return 'defaultOnly';
-				}
-				return 'default';
-			},
+			interop: 'default',
 			manualChunks: { rollup: ['src/node-entry.ts'] },
 			sourcemap: true
 		},
