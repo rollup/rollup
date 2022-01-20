@@ -726,13 +726,13 @@ Get ids of the files which has been watched previously. Include both files added
 
 #### `this.load`
 
-**Type:** `({id: string, moduleSideEffects?: boolean | 'no-treeshake' | null, syntheticNamedExports?: boolean | string | null, meta?: {[plugin: string]: any} | null}) => Promise<ModuleInfo>`
+**Type:** `({id: string, moduleSideEffects?: boolean | 'no-treeshake' | null, syntheticNamedExports?: boolean | string | null, meta?: {[plugin: string]: any} | null, resolveDependencies?: boolean}) => Promise<ModuleInfo>`
 
 Loads and parses the module corresponding to the given id, attaching additional meta information to the module if provided. This will trigger the same [`load`](guide/en/#load), [`transform`](guide/en/#transform) and [`moduleParsed`](guide/en/#moduleparsed) hooks that would be triggered if the module were imported by another module.
 
 This allows you to inspect the final content of modules before deciding how to resolve them in the [`resolveId`](guide/en/#resolveid) hook and e.g. resolve to a proxy module instead. If the module becomes part of the graph later, there is no additional overhead from using this context function as the module will not be parsed again. The signature allows you to directly pass the return value of [`this.resolve`](guide/en/#thisresolve) to this function as long as it is neither `null` nor external.
 
-The returned promise will resolve once the module has been fully transformed and parsed but before any imports have been resolved. That means that the resulting `ModuleInfo` will have empty `importedIds`, `dynamicallyImportedIds`, `importedIdResolutions` and `dynamicallyImportedIdResolutions`. This helps to avoid deadlock situations when awaiting `this.load` in a `resolveId` hook. If you are interested in `importedIds` and `dynamicallyImportedIds`, you should implement a `moduleParsed` hook.
+The returned promise will resolve once the module has been fully transformed and parsed but before any imports have been resolved. That means that the resulting `ModuleInfo` will have empty `importedIds`, `dynamicallyImportedIds`, `importedIdResolutions` and `dynamicallyImportedIdResolutions`. This helps to avoid deadlock situations when awaiting `this.load` in a `resolveId` hook. If you are interested in `importedIds` and `dynamicallyImportedIds`, you can either implement a `moduleParsed` hook or pass the `resolveDependencies` flag, which will make the promise returned by `this.load` wait until all dependency ids have been resolved.
 
 Note that with regard to the `moduleSideEffects`, `syntheticNamedExports` and `meta` options, the same restrictions apply as for the `resolveId` hook: Their values only have an effect if the module has not been loaded yet. Thus, it is very important to use `this.resolve` first to find out if any plugins want to set special values for these options in their `resolveId` hook, and pass these options on to `this.load` if appropriate. The example below showcases how this can be handled to add a proxy module for modules containing a special code comment. Note the special handling for re-exporting the default export:
 
@@ -777,9 +777,76 @@ export default function addProxyPlugin() {
 }
 ```
 
-If the module was already loaded, this will just wait for the parsing to complete and then return its module information. If the module was not yet imported by another module, this will not automatically trigger loading other modules imported by this module. Instead, static and dynamic dependencies will only be loaded once this module has actually been imported at least once.
+If the module was already loaded, `this.load` will just wait for the parsing to complete and then return its module information. If the module was not yet imported by another module, it will not automatically trigger loading other modules imported by this module. Instead, static and dynamic dependencies will only be loaded once this module has actually been imported at least once.
 
 While it is safe to use `this.load` in a `resolveId` hook, you should be very careful when awaiting it in a `load` or `transform` hook. If there are cyclic dependencies in the module graph, this can easily lead to a deadlock, so any plugin needs to manually take care to avoid waiting for `this.load` inside the `load` or `transform` of the any module that is in a cycle with the loaded module.
+
+Here is another, more elaborate example where we scan entire dependency sub-graphs via the `resolveDependencies` option and repeated calls to `this.load`. We use a `Set` of handled module ids to handle cyclic dependencies. The goal of the plugin is to add a log to each dynamically imported chunk that just lists all modules in the chunk. While this is just a toy example, the technique could be used to e.g. create a single style tag for all CSS imported in the sub-graph.
+
+```js
+// The leading \0 instructs other plugins not to try to resolve, load or
+// transform our proxy modules
+const DYNAMIC_IMPORT_PROXY_PREFIX = '\0dynamic-import:';
+
+export default function dynamicChunkLogsPlugin() {
+  return {
+    name: 'dynamic-chunk-logs',
+    async resolveDynamicImport(specifier, importer) {
+      // Ignore non-static targets
+      if (!(typeof specifier === 'string')) return;
+      // Get the id and initial meta information of the import target
+      const resolved = await this.resolve(specifier, importer);
+      // Ignore external targets. Explicit externals have the "external"
+      // property while unresolved imports are "null".
+      if (resolved && !resolved.external) {
+        // We trigger loading the module without waiting for it here
+        // because meta information attached by resolveId hooks, that may
+        // be contained in "resolved" and that plugins like "commonjs" may
+        // depend upon, is only attached to a module the first time it is
+        // loaded.
+        // This ensures that this meta information is not lost when we later
+        // use "this.load" again in the load hook with just the module id.
+        this.load(resolved);
+        return `${DYNAMIC_IMPORT_PROXY_PREFIX}${resolved.id}`;
+      }
+    },
+    async load(id) {
+      // Ignore all files except our dynamic import proxies
+      if (!id.startsWith('\0dynamic-import:')) return null;
+      const actualId = id.slice(DYNAMIC_IMPORT_PROXY_PREFIX.length);
+      // To allow loading modules in parallel while keeping complexity low,
+      // we do not directly await each "this.load" call but put their
+      // promises into an array where we await them via an async for loop.
+      const moduleInfoPromises = [this.load({ id: actualId, resolveDependencies: true })];
+      // We track each loaded dependency here so that we do not load a file
+      // twice and also do  not get stuck when there are circular
+      // dependencies.
+      const dependencies = new Set([actualId]);
+      // "importedIdResolutions" tracks the objects created by resolveId
+      // hooks. We are using those instead of "importedIds" so that again,
+      // important meta information is not lost.
+      for await (const { importedIdResolutions } of moduleInfoPromises) {
+        for (const resolved of importedIdResolutions) {
+          if (!dependencies.has(resolved.id)) {
+            dependencies.add(resolved.id);
+            moduleInfoPromises.push(this.load({ ...resolved, resolveDependencies: true }));
+          }
+        }
+      }
+      // We log all modules in a dynamic chunk when it is loaded.
+      let code = `console.log([${[...dependencies]
+        .map(JSON.stringify)
+        .join(', ')}]); export * from ${JSON.stringify(actualId)};`;
+      // Namespace reexports do not reexport default exports, which is why
+      // we reexport it manually if it exists
+      if (this.getModuleInfo(actualId).hasDefaultExport) {
+        code += `export { default } from ${JSON.stringify(actualId)};`;
+      }
+      return code;
+    }
+  };
+}
+```
 
 #### `this.meta`
 

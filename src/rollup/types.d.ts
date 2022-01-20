@@ -202,7 +202,9 @@ export interface PluginContext extends MinimalPluginContext {
 	getWatchFiles: () => string[];
 	/** @deprecated Use `this.resolve` instead */
 	isExternal: IsExternal;
-	load: (options: { id: string } & Partial<PartialNull<ModuleOptions>>) => Promise<ModuleInfo>;
+	load: (
+		options: { id: string; resolveDependencies?: boolean } & Partial<PartialNull<ModuleOptions>>
+	) => Promise<ModuleInfo>;
 	/** @deprecated Use `this.getModuleIds` instead */
 	moduleIds: IterableIterator<string>;
 	parse: (input: string, options?: any) => AcornNode;
