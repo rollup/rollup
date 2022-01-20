@@ -79,6 +79,7 @@ const nodePlugins = [
 export default (command: Record<string, unknown>): RollupOptions | RollupOptions[] => {
 	const { collectLicenses, writeLicense } = getLicenseHandler();
 	const commonJSBuild: RollupOptions = {
+		external: ['fsevents'],
 		input: {
 			'loadConfigFile.js': 'cli/run/loadConfigFile.ts',
 			'rollup.js': 'src/node-entry.ts'
