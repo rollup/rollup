@@ -79,6 +79,7 @@ const nodePlugins = [
 export default (command: Record<string, unknown>): RollupOptions | RollupOptions[] => {
 	const { collectLicenses, writeLicense } = getLicenseHandler();
 	const commonJSBuild: RollupOptions = {
+		// 'fsevents' is a dependency of 'chokidar' that cannot be bundled as it contains binary code
 		external: ['fsevents'],
 		input: {
 			'loadConfigFile.js': 'cli/run/loadConfigFile.ts',
