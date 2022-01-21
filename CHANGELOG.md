@@ -1,5 +1,26 @@
 # rollup changelog
 
+## 2.65.0
+
+_2022-01-21_
+
+### Features
+
+- Add complete import resolution objects to ModuleInfo for use in `this.load` (#4354)
+
+### Bug Fixes
+
+- Use correct context in plugin hooks with `perf: true` (#4357)
+
+### Pull Requests
+
+- [#4351](https://github.com/rollup/rollup/pull/4351): refactor: re-use source mapping url (@dnalborczyk)
+- [#4352](https://github.com/rollup/rollup/pull/4352): refactor: replace require-relative with built-in require.resolve (@dnalborczyk)
+- [#4353](https://github.com/rollup/rollup/pull/4353): chore: bump deps (@dnalborczyk)
+- [#4354](https://github.com/rollup/rollup/pull/4354): Add importedIdResolutions to moduleInfo (@lukastaegert)
+- [#4355](https://github.com/rollup/rollup/pull/4355): chore: remove external from config (@dnalborczyk)
+- [#4357](https://github.com/rollup/rollup/pull/4357): fix: timed plugin context (@dnalborczyk)
+
 ## 2.64.0
 
 _2022-01-14_
