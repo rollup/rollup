@@ -164,27 +164,42 @@ The `importer` is the fully resolved id of the importing module. When resolving 
 
 For those cases, the `isEntry` option will tell you if we are resolving a user defined entry point, an emitted chunk, or if the `isEntry` parameter was provided for the [`this.resolve`](guide/en/#thisresolve) context function.
 
-You can use this for instance as a mechanism to define custom proxy modules for entry points. The following plugin will only expose the default export from entry points while still keeping named exports available for internal usage:
+You can use this for instance as a mechanism to define custom proxy modules for entry points. The following plugin will proxy all entry points to inject a polyfill import.
 
 ```js
-function onlyDefaultForEntriesPlugin() {
+function injectPolyfillPlugin() {
   return {
-    name: 'only-default-for-entries',
+    name: 'inject-polyfill',
     async resolveId(source, importer, options) {
       if (options.isEntry) {
         // We need to skip this plugin to avoid an infinite loop
         const resolution = await this.resolve(source, importer, { skipSelf: true, ...options });
-        // If it cannot be resolved, return `null` so that Rollup displays an error
-        if (!resolution) return null;
+        // If it cannot be resolved or is external, just return it so that
+        // Rollup can display an error
+        if (!resolution || resolution.external) return resolution;
+        // In the load hook of the proxy, we want to use this.load to find out
+        // if the entry has a default export. In the load hook, however, we no
+        // longer have the full "resolution" object that may contain meta-data
+        // from other plugins that is only added on first load. Therefore we
+        // trigger loading here without waiting for it.
+        this.load(resolution);
         return `${resolution.id}?entry-proxy`;
       }
       return null;
     },
-    load(id) {
+    async load(id) {
       if (id.endsWith('?entry-proxy')) {
-        const importee = id.slice(0, -'?entry-proxy'.length);
-        // Note that this will throw if there is no default export
-        return `export {default} from '${importee}';`;
+        const entryId = id.slice(0, -'?entry-proxy'.length);
+        // We need to load and parse the original entry first because we need
+        // to know if it has a default export
+        const { hasDefaultExport } = await this.load({ id: entryId });
+        let code = `import 'polyfill';export * from ${JSON.stringify(entryId)};`;
+        // Namespace reexports do not reexport default, so we need special
+        // handling here
+        if (hasDefaultExport) {
+          code += `export { default } from ${JSON.stringify(entryId)};`;
+        }
+        return code;
       }
       return null;
     }
