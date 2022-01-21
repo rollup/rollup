@@ -41,6 +41,7 @@ export default class ExternalModule {
 		this.info = {
 			ast: null,
 			code: null,
+			dynamicallyImportedIdResolutions: EMPTY_ARRAY,
 			dynamicallyImportedIds: EMPTY_ARRAY,
 			get dynamicImporters() {
 				return dynamicImporters.sort();
@@ -49,6 +50,7 @@ export default class ExternalModule {
 			id,
 			implicitlyLoadedAfterOneOf: EMPTY_ARRAY,
 			implicitlyLoadedBefore: EMPTY_ARRAY,
+			importedIdResolutions: EMPTY_ARRAY,
 			importedIds: EMPTY_ARRAY,
 			get importers() {
 				return importers.sort();

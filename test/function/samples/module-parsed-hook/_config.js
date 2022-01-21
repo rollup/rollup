@@ -48,12 +48,22 @@ module.exports = {
 							sourceType: 'module'
 						},
 						code: "export { value } from './dep.js';\n",
+						dynamicallyImportedIdResolutions: [],
 						dynamicallyImportedIds: [],
 						dynamicImporters: [],
 						hasModuleSideEffects: true,
 						id: ID_MAIN,
 						implicitlyLoadedAfterOneOf: [],
 						implicitlyLoadedBefore: [],
+						importedIdResolutions: [
+							{
+								external: false,
+								id: ID_DEP,
+								meta: {},
+								moduleSideEffects: true,
+								syntheticNamedExports: false
+							}
+						],
 						importedIds: [ID_DEP],
 						importers: [],
 						isEntry: true,
@@ -94,12 +104,14 @@ module.exports = {
 							sourceType: 'module'
 						},
 						code: 'export const value = 42;\n',
+						dynamicallyImportedIdResolutions: [],
 						dynamicallyImportedIds: [],
 						dynamicImporters: [],
 						hasModuleSideEffects: true,
 						id: ID_DEP,
 						implicitlyLoadedAfterOneOf: [],
 						implicitlyLoadedBefore: [],
+						importedIdResolutions: [],
 						importedIds: [],
 						importers: [ID_MAIN],
 						isEntry: false,
