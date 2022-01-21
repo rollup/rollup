@@ -25,9 +25,8 @@ const commitHash = (function () {
 	}
 })();
 
-const now = new Date(
-	process.env.SOURCE_DATE_EPOCH ? 1000 * +process.env.SOURCE_DATE_EPOCH : Date.now()
-).toUTCString();
+const { SOURCE_DATE_EPOCH } = process.env;
+const now = new Date(SOURCE_DATE_EPOCH ? 1000 * +SOURCE_DATE_EPOCH : Date.now()).toUTCString();
 
 const banner = `/*
   @license
