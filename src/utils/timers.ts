@@ -1,4 +1,4 @@
-import { InputOptions, Plugin, SerializedTimings } from '../rollup/types';
+import type { InputOptions, Plugin, SerializedTimings } from '../rollup/types';
 import performance from './performance';
 import process from './process';
 
@@ -77,8 +77,6 @@ export let timeEnd: (label: string, level?: number) => void = NOOP;
 const TIMED_PLUGIN_HOOKS = ['load', 'resolveDynamicImport', 'resolveId', 'transform'] as const;
 
 function getPluginWithTimers(plugin: any, index: number): Plugin {
-	const timedPlugin: Pick<Plugin, typeof TIMED_PLUGIN_HOOKS[number]> = {};
-
 	for (const hook of TIMED_PLUGIN_HOOKS) {
 		if (hook in plugin) {
 			let timerLabel = `plugin ${index}`;
@@ -86,9 +84,12 @@ function getPluginWithTimers(plugin: any, index: number): Plugin {
 				timerLabel += ` (${plugin.name})`;
 			}
 			timerLabel += ` - ${hook}`;
-			timedPlugin[hook] = function (...args: unknown[]) {
+
+			const func = plugin[hook];
+
+			plugin[hook] = function (...args: readonly unknown[]) {
 				timeStart(timerLabel, 4);
-				const result = plugin[hook](...args);
+				const result = func.apply(this, args);
 				timeEnd(timerLabel, 4);
 				if (result && typeof result.then === 'function') {
 					timeStart(`${timerLabel} (async)`, 4);
@@ -101,10 +102,7 @@ function getPluginWithTimers(plugin: any, index: number): Plugin {
 			};
 		}
 	}
-	return {
-		...plugin,
-		...timedPlugin
-	};
+	return plugin;
 }
 
 export function initialiseTimers(inputOptions: InputOptions): void {
