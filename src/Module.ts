@@ -278,10 +278,11 @@ export default class Module {
 				return module.dynamicImporters.sort();
 			},
 			get hasDefaultExport() {
-				if (module.graph.phase !== BuildPhase.GENERATE) {
+				// This information is only valid after parsing
+				if (!module.ast) {
 					return null;
 				}
-				return 'default' in module.exports;
+				return 'default' in module.exports || 'default' in module.reexportDescriptions;
 			},
 			hasModuleSideEffects,
 			id,

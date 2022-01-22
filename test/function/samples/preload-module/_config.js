@@ -33,7 +33,7 @@ module.exports = {
 						assert.deepStrictEqual(moduleInfo, {
 							code: "import './dep';\nassert.ok(true);\n",
 							dynamicImporters: [],
-							hasDefaultExport: null,
+							hasDefaultExport: false,
 							dynamicallyImportedIdResolutions: [],
 							dynamicallyImportedIds: [],
 							hasModuleSideEffects: true,
