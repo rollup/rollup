@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 2.66.0
+
+_2022-01-22_
+
+### Features
+
+- Note if a module has a default export in ModuleInfo to allow writing better proxy modules (#4356)
+- Add option to wait until all imported ids have been resolved when awaiting `this.load` (#4358)
+
+### Pull Requests
+
+- [#4356](https://github.com/rollup/rollup/pull/4356): Add hasDefaultExport to ModuleInfo (@lukastaegert)
+- [#4358](https://github.com/rollup/rollup/pull/4358): Add "resolveDependencies" option to "this.load" (@lukastaegert)
+
 ## 2.65.0
 
 _2022-01-21_
