@@ -46,6 +46,7 @@ export default class ExternalModule {
 			get dynamicImporters() {
 				return dynamicImporters.sort();
 			},
+			hasDefaultExport: null,
 			hasModuleSideEffects,
 			id,
 			implicitlyLoadedAfterOneOf: EMPTY_ARRAY,

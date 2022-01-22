@@ -277,6 +277,13 @@ export default class Module {
 			get dynamicImporters() {
 				return module.dynamicImporters.sort();
 			},
+			get hasDefaultExport() {
+				// This information is only valid after parsing
+				if (!module.ast) {
+					return null;
+				}
+				return 'default' in module.exports || 'default' in module.reexportDescriptions;
+			},
 			hasModuleSideEffects,
 			id,
 			get implicitlyLoadedAfterOneOf() {
