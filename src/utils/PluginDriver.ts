@@ -1,7 +1,7 @@
-import Chunk from '../Chunk';
-import Graph from '../Graph';
-import Module from '../Module';
-import {
+import type Chunk from '../Chunk';
+import type Graph from '../Graph';
+import type Module from '../Module';
+import type {
 	AddonHookFunction,
 	AsyncPluginHooks,
 	EmitFile,

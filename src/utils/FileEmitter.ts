@@ -1,7 +1,7 @@
-import Chunk from '../Chunk';
-import Graph from '../Graph';
-import Module from '../Module';
-import {
+import type Chunk from '../Chunk';
+import type Graph from '../Graph';
+import type Module from '../Module';
+import type {
 	EmittedChunk,
 	FilePlaceholder,
 	NormalizedInputOptions,
@@ -141,7 +141,7 @@ function getAssetFileName(file: ConsumedAsset, referenceId: string): string {
 
 function getChunkFileName(
 	file: ConsumedChunk,
-	facadeChunkByModule: Map<Module, Chunk> | null
+	facadeChunkByModule: ReadonlyMap<Module, Chunk> | null
 ): string {
 	const fileName = file.fileName || (file.module && facadeChunkByModule?.get(file.module)?.id);
 	if (!fileName) return error(errChunkNotGeneratedForFileName(file.fileName || file.name));
