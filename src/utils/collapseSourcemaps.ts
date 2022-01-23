@@ -218,9 +218,7 @@ export function collapseSourcemaps(
 			)
 		);
 
-	// DecodedSourceMap (from magic-string) uses a number[] instead of the more
-	// correct SourceMapSegment tuples. Cast it here to gain type safety.
-	let source = new Link(map as ExistingDecodedSourceMap, moduleSources);
+	let source = new Link(map, moduleSources);
 
 	source = bundleSourcemapChain.reduce(linkMap, source);
 
