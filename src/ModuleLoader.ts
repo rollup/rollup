@@ -549,12 +549,17 @@ export class ModuleLoader {
 		};
 	}
 
-	private async handleExistingModule(module: Module, isEntry: boolean, isPreload: PreloadType) {
+	private async handleExistingModule(
+		module: Module,
+		isEntry: boolean,
+		isPreload: PreloadType
+	): Promise<void> {
 		const loadPromise = this.moduleLoadPromises.get(module)!;
 		if (isPreload) {
-			return isPreload === RESOLVE_DEPENDENCIES
+			await (isPreload === RESOLVE_DEPENDENCIES
 				? waitForDependencyResolution(loadPromise)
-				: loadPromise;
+				: loadPromise);
+			return;
 		}
 		if (isEntry) {
 			module.info.isEntry = true;
@@ -564,7 +569,7 @@ export class ModuleLoader {
 			}
 			module.implicitlyLoadedAfter.clear();
 		}
-		return this.fetchModuleDependencies(module, ...(await loadPromise));
+		await this.fetchModuleDependencies(module, ...(await loadPromise));
 	}
 
 	private handleResolveId(
@@ -715,7 +720,7 @@ function isNotAbsoluteExternal(
 	);
 }
 
-async function waitForDependencyResolution(loadPromise: LoadModulePromise) {
+async function waitForDependencyResolution(loadPromise: LoadModulePromise): Promise<void> {
 	const [resolveStaticDependencyPromises, resolveDynamicImportPromises] = await loadPromise;
-	return Promise.all([...resolveStaticDependencyPromises, ...resolveDynamicImportPromises]);
+	await Promise.all([...resolveStaticDependencyPromises, ...resolveDynamicImportPromises]);
 }
