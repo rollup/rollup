@@ -51,8 +51,8 @@ export default class ChildScope extends Scope {
 	addUsedOutsideNames(
 		usedNames: Set<string>,
 		format: InternalModuleFormat,
-		exportNamesByVariable: ReadonlyMap<Variable, string[]>,
-		accessedGlobalsByScope: ReadonlyMap<ChildScope, Set<string>>
+		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>,
+		accessedGlobalsByScope: ReadonlyMap<ChildScope, ReadonlySet<string>>
 	): void {
 		for (const variable of this.accessedOutsideVariables.values()) {
 			if (variable.included) {
@@ -76,8 +76,8 @@ export default class ChildScope extends Scope {
 
 	deconflict(
 		format: InternalModuleFormat,
-		exportNamesByVariable: ReadonlyMap<Variable, string[]>,
-		accessedGlobalsByScope: ReadonlyMap<ChildScope, Set<string>>
+		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>,
+		accessedGlobalsByScope: ReadonlyMap<ChildScope, ReadonlySet<string>>
 	): void {
 		const usedNames = new Set<string>();
 		this.addUsedOutsideNames(usedNames, format, exportNamesByVariable, accessedGlobalsByScope);

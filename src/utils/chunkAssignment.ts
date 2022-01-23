@@ -29,7 +29,7 @@ export function getChunkAssignments(
 
 	function assignEntryToStaticDependencies(
 		entry: Module,
-		dynamicDependentEntryPoints: Set<Module> | null
+		dynamicDependentEntryPoints: ReadonlySet<Module> | null
 	) {
 		const modulesToHandle = new Set([entry]);
 		for (const module of modulesToHandle) {

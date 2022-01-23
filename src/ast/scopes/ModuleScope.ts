@@ -33,8 +33,8 @@ export default class ModuleScope extends ChildScope {
 
 	deconflict(
 		format: InternalModuleFormat,
-		exportNamesByVariable: ReadonlyMap<Variable, string[]>,
-		accessedGlobalsByScope: ReadonlyMap<ChildScope, Set<string>>
+		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>,
+		accessedGlobalsByScope: ReadonlyMap<ChildScope, ReadonlySet<string>>
 	): void {
 		// all module level variables are already deconflicted when deconflicting the chunk
 		for (const scope of this.children)

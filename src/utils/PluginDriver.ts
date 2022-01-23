@@ -83,7 +83,7 @@ export class PluginDriver {
 	private readonly fileEmitter: FileEmitter;
 	private readonly pluginCache: Record<string, SerializablePluginCache> | undefined;
 	private readonly pluginContexts = new Map<Plugin, PluginContext>();
-	private readonly plugins: Plugin[];
+	private readonly plugins: readonly Plugin[];
 
 	constructor(
 		private readonly graph: Graph,

@@ -165,13 +165,13 @@ export default class Chunk {
 	private strictFacade = false;
 	private usedModules: Module[] = undefined as never;
 	constructor(
-		private readonly orderedModules: Module[],
+		private readonly orderedModules: readonly Module[],
 		private readonly inputOptions: NormalizedInputOptions,
 		private readonly outputOptions: NormalizedOutputOptions,
-		private readonly unsetOptions: Set<string>,
+		private readonly unsetOptions: ReadonlySet<string>,
 		private readonly pluginDriver: PluginDriver,
-		private readonly modulesById: Map<string, Module | ExternalModule>,
-		private readonly chunkByModule: Map<Module, Chunk>,
+		private readonly modulesById: ReadonlyMap<string, Module | ExternalModule>,
+		private readonly chunkByModule: ReadonlyMap<Module, Chunk>,
 		private readonly facadeChunkByModule: Map<Module, Chunk>,
 		private readonly includedNamespaces: Set<Module>,
 		private readonly manualChunkAlias: string | null
@@ -209,10 +209,10 @@ export default class Chunk {
 	private static generateFacade(
 		inputOptions: NormalizedInputOptions,
 		outputOptions: NormalizedOutputOptions,
-		unsetOptions: Set<string>,
+		unsetOptions: ReadonlySet<string>,
 		pluginDriver: PluginDriver,
-		modulesById: Map<string, Module | ExternalModule>,
-		chunkByModule: Map<Module, Chunk>,
+		modulesById: ReadonlyMap<string, Module | ExternalModule>,
+		chunkByModule: ReadonlyMap<Module, Chunk>,
 		facadeChunkByModule: Map<Module, Chunk>,
 		includedNamespaces: Set<Module>,
 		facadedModule: Module,

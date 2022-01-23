@@ -104,7 +104,7 @@ export default class Bundle {
 	}
 
 	private async addManualChunks(
-		manualChunks: Record<string, string[]>
+		manualChunks: Record<string, readonly string[]>
 	): Promise<Map<Module, string>> {
 		const manualChunkAliasByEntry = new Map<Module, string>();
 		const chunkEntries = await Promise.all(
