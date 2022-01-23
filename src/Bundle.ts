@@ -317,7 +317,7 @@ function addModuleToManualChunk(
 	alias: string,
 	module: Module,
 	manualChunkAliasByEntry: Map<Module, string>
-) {
+): void {
 	const existingAlias = manualChunkAliasByEntry.get(module);
 	if (typeof existingAlias === 'string' && existingAlias !== alias) {
 		return error(errCannotAssignModuleToChunk(module.id, alias, existingAlias));

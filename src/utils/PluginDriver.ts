@@ -63,7 +63,7 @@ const inputHooks = Object.keys(inputHookNames);
 
 export type ReplaceContext = (context: PluginContext, plugin: Plugin) => PluginContext;
 
-function throwInvalidHookError(hookName: string, pluginName: string) {
+function throwInvalidHookError(hookName: string, pluginName: string): never {
 	return error({
 		code: 'INVALID_PLUGIN_HOOK',
 		message: `Error running plugin hook ${hookName} for ${pluginName}, expected a function hook.`

@@ -837,7 +837,7 @@ export default class Chunk {
 		}
 	}
 
-	private checkCircularDependencyImport(variable: Variable, importingModule: Module) {
+	private checkCircularDependencyImport(variable: Variable, importingModule: Module): void {
 		const variableModule = variable.module;
 		if (variableModule instanceof Module) {
 			const exportChunk = this.chunkByModule.get(variableModule);
