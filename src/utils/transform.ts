@@ -21,7 +21,7 @@ import { decodedSourcemap } from './decodedSourcemap';
 import { augmentCodeLocation, errNoTransformMapOrAstWithoutCode } from './error';
 import { throwPluginError } from './pluginUtils';
 
-export default function transform(
+export default async function transform(
 	source: SourceDescription,
 	module: Module,
 	pluginDriver: PluginDriver,
@@ -37,7 +37,7 @@ export default function transform(
 	const emittedFiles: EmittedFile[] = [];
 	let customTransformCache = false;
 	const useCustomTransformCache = () => (customTransformCache = true);
-	let curPlugin: Plugin;
+	let pluginName = '';
 	const curSource: string = source.code;
 
 	function transformReducer(
@@ -77,13 +77,15 @@ export default function transform(
 		return code;
 	}
 
-	return pluginDriver
-		.hookReduceArg0(
+	let code: string;
+
+	try {
+		code = await pluginDriver.hookReduceArg0(
 			'transform',
 			[curSource, id],
 			transformReducer,
 			(pluginContext, plugin): TransformPluginContext => {
-				curPlugin = plugin;
+				pluginName = plugin.name;
 				return {
 					...pluginContext,
 					addWatchFile(id: string) {
@@ -149,23 +151,23 @@ export default function transform(
 					}
 				};
 			}
-		)
-		.catch(err => throwPluginError(err, curPlugin.name, { hook: 'transform', id }))
-		.then(code => {
-			if (!customTransformCache) {
-				// files emitted by a transform hook need to be emitted again if the hook is skipped
-				if (emittedFiles.length) module.transformFiles = emittedFiles;
-			}
+		);
+	} catch (err: any) {
+		throwPluginError(err, pluginName, { hook: 'transform', id });
+	}
 
-			return {
-				ast,
-				code,
-				customTransformCache,
-				meta: module.info.meta,
-				originalCode,
-				originalSourcemap,
-				sourcemapChain,
-				transformDependencies
-			};
-		});
+	if (!customTransformCache) {
+		// files emitted by a transform hook need to be emitted again if the hook is skipped
+		if (emittedFiles.length) module.transformFiles = emittedFiles;
+	}
+
+	return {
+		ast,
+		code,
+		customTransformCache,
+		originalCode,
+		originalSourcemap,
+		sourcemapChain,
+		transformDependencies
+	};
 }

@@ -1,5 +1,6 @@
-const { unlinkSync, writeFileSync } = require('fs');
+const { unlinkSync } = require('fs');
 const path = require('path');
+const { atomicWriteFileSync } = require('../../../utils');
 
 let second;
 let third;
@@ -17,9 +18,9 @@ module.exports = {
 	},
 	abortOnStderr(data) {
 		if (data.includes('waiting for input second')) {
-			writeFileSync(second, "export default 'second'");
+			atomicWriteFileSync(second, "export default 'second'");
 		} else if (data.includes('waiting for input third')) {
-			writeFileSync(third, "export default 'third'");
+			atomicWriteFileSync(third, "export default 'third'");
 		}
 	}
 };

@@ -1,5 +1,5 @@
 import MagicString from 'magic-string';
-import { Plugin } from 'rollup';
+import type { Plugin } from 'rollup';
 
 const FSEVENTS_REQUIRE = "require('fsevents')";
 const REPLACEMENT = "require('../../../src/watch/fsevents-importer').getFsEvents()";

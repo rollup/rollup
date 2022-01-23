@@ -3,7 +3,7 @@ import { bold, cyan, dim, red } from '../src/utils/colors';
 import relativeId from '../src/utils/relativeId';
 
 // log to stderr to keep `rollup main.js > bundle.js` from breaking
-export const stderr = console.error.bind(console);
+export const stderr = (...args: unknown[]) => process.stderr.write(`${args.join('')}\n`);
 
 export function handleError(err: RollupError, recover = false): void {
 	let description = err.message || err;

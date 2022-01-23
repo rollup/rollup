@@ -1,5 +1,6 @@
 const { unlinkSync, writeFileSync } = require('fs');
 const path = require('path');
+const { atomicWriteFileSync } = require('../../../../utils');
 
 let configFile;
 
@@ -16,7 +17,7 @@ module.exports = {
 	async abortOnStderr(data) {
 		if (data.includes('Config contains initial errors')) {
 			await new Promise(resolve => setTimeout(resolve, 100));
-			writeFileSync(
+			atomicWriteFileSync(
 				configFile,
 				'export default {\n' +
 					'\tinput: "main.js",\n' +

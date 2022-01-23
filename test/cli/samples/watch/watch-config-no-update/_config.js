@@ -1,5 +1,6 @@
 const { unlinkSync, writeFileSync } = require('fs');
 const path = require('path');
+const { atomicWriteFileSync } = require('../../../../utils');
 
 let configFile;
 const configContent =
@@ -22,9 +23,10 @@ module.exports = {
 		unlinkSync(configFile);
 	},
 	abortOnStderr(data) {
-		if (data.includes('created _actual/main.js')) {
-			writeFileSync(configFile, configContent);
-			return new Promise(resolve => setTimeout(() => resolve(true), 500));
+		if (data.includes(`created _actual${path.sep}main.js`)) {
+			atomicWriteFileSync(configFile, configContent);
+			// wait some time for the watcher to trigger
+			return new Promise(resolve => setTimeout(() => resolve(true), 600));
 		}
 	},
 	stderr(stderr) {

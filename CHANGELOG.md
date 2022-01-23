@@ -1,5 +1,87 @@
 # rollup changelog
 
+## 2.66.0
+
+_2022-01-22_
+
+### Features
+
+- Note if a module has a default export in ModuleInfo to allow writing better proxy modules (#4356)
+- Add option to wait until all imported ids have been resolved when awaiting `this.load` (#4358)
+
+### Pull Requests
+
+- [#4356](https://github.com/rollup/rollup/pull/4356): Add hasDefaultExport to ModuleInfo (@lukastaegert)
+- [#4358](https://github.com/rollup/rollup/pull/4358): Add "resolveDependencies" option to "this.load" (@lukastaegert)
+
+## 2.65.0
+
+_2022-01-21_
+
+### Features
+
+- Add complete import resolution objects to ModuleInfo for use in `this.load` (#4354)
+
+### Bug Fixes
+
+- Use correct context in plugin hooks with `perf: true` (#4357)
+
+### Pull Requests
+
+- [#4351](https://github.com/rollup/rollup/pull/4351): refactor: re-use source mapping url (@dnalborczyk)
+- [#4352](https://github.com/rollup/rollup/pull/4352): refactor: replace require-relative with built-in require.resolve (@dnalborczyk)
+- [#4353](https://github.com/rollup/rollup/pull/4353): chore: bump deps (@dnalborczyk)
+- [#4354](https://github.com/rollup/rollup/pull/4354): Add importedIdResolutions to moduleInfo (@lukastaegert)
+- [#4355](https://github.com/rollup/rollup/pull/4355): chore: remove external from config (@dnalborczyk)
+- [#4357](https://github.com/rollup/rollup/pull/4357): fix: timed plugin context (@dnalborczyk)
+
+## 2.64.0
+
+_2022-01-14_
+
+### Features
+
+- Allow inspecting cached modules and forcing them to be transformed again via shouldTransformCachedModule (#4320)
+- Do not wait for the config file to be parsed in watch mode if it is updated before that (#4344)
+
+### Bug Fixes
+
+- Do not mutate objects returned as `meta` from the resolveId hook (#4347)
+
+### Pull Requests
+
+- [#4326](https://github.com/rollup/rollup/pull/4326): refactor: type fixes (@dnalborczyk)
+- [#4339](https://github.com/rollup/rollup/pull/4339): More watch test stabilization (@lukastaegert)
+- [#4340](https://github.com/rollup/rollup/pull/4340): refactor: performance timers for node.js and browser (@dnalborczyk)
+- [#4341](https://github.com/rollup/rollup/pull/4341): Implement shouldTransformCachedModule hook (@lukastaegert)
+- [#4344](https://github.com/rollup/rollup/pull/4344): Directly restart Rollup when config file change is detected in watch mode (@lukastaegert)
+- [#4347](https://github.com/rollup/rollup/pull/4347): Create a shallow copy when returning meta from resolveId (@lukastaegert)
+
+## 2.63.0
+
+_2022-01-04_
+
+### Features
+
+- Report a helpful error if rollup exits due to an empty event loop when using `this.load` (#4320)
+- Allow directly mutating ModuleInfo.meta for modules and never replace this object (#4328)
+- Detect additional side effect free array prototype methods (#4332)
+
+### Bug Fixes
+
+- Do not watch if CLI watch options are specified but `--watch` is missing (#4335)
+
+### Pull Requests
+
+- [#4320](https://github.com/rollup/rollup/pull/4320): Detect unfulfilled async hook actions and report error on exit (@kzc)
+- [#4328](https://github.com/rollup/rollup/pull/4328): Make initial ModuleInfo.meta mutable and maintain object identity (@lukastaegert)
+- [#4318](https://github.com/rollup/rollup/pull/4318): Stabilize watch tests (@lukastaegert)
+- [#4331](https://github.com/rollup/rollup/pull/4331): Improve JS docs example (@lukastaegert)
+- [#4332](https://github.com/rollup/rollup/pull/4332): add support for Array.prototype.findLast,findLastIndex (@dnalborczyk)
+- [#4333](https://github.com/rollup/rollup/pull/4333): convert utils.transform to async function (@dnalborczyk)
+- [#4335](https://github.com/rollup/rollup/pull/4335): Do not watch unless --watch is specified explicitly (@lukastaegert)
+- [#4338](https://github.com/rollup/rollup/pull/4338): Add build delay for plugin event test (@lukastaegert)
+
 ## 2.62.0
 
 _2021-12-24_

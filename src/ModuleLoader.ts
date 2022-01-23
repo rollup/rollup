@@ -2,18 +2,18 @@ import * as acorn from 'acorn';
 import ExternalModule from './ExternalModule';
 import Graph from './Graph';
 import Module, { DynamicImport } from './Module';
-import {
+import type {
 	CustomPluginOptions,
 	EmittedChunk,
 	HasModuleSideEffects,
+	LoadResult,
 	ModuleInfo,
 	ModuleOptions,
 	NormalizedInputOptions,
 	PartialNull,
 	Plugin,
 	ResolvedId,
-	ResolveIdResult,
-	SourceDescription
+	ResolveIdResult
 } from './rollup/types';
 import { PluginDriver } from './utils/PluginDriver';
 import { EMPTY_OBJECT } from './utils/blank';
@@ -60,16 +60,18 @@ type LoadModulePromise = Promise<
 		loadAndResolveDependencies: Promise<void>
 	]
 >;
+type PreloadType = boolean | 'resolveDependencies';
+const RESOLVE_DEPENDENCIES: PreloadType = 'resolveDependencies';
 
 export class ModuleLoader {
 	private readonly hasModuleSideEffects: HasModuleSideEffects;
 	private readonly implicitEntryModules = new Set<Module>();
 	private readonly indexedEntryModules: { index: number; module: Module }[] = [];
 	private latestLoadModulesPromise: Promise<unknown> = Promise.resolve();
-	private moduleLoadPromises = new Map<Module, LoadModulePromise>();
-	private modulesWithLoadedDependencies = new Set<Module>();
+	private readonly moduleLoadPromises = new Map<Module, LoadModulePromise>();
+	private readonly modulesWithLoadedDependencies = new Set<Module>();
 	private nextEntryModuleIndex = 0;
-	private readQueue = new Queue();
+	private readonly readQueue: Queue<LoadResult>;
 
 	constructor(
 		private readonly graph: Graph,
@@ -80,10 +82,11 @@ export class ModuleLoader {
 		this.hasModuleSideEffects = options.treeshake
 			? options.treeshake.moduleSideEffects
 			: () => true;
-		this.readQueue.maxParallel = options.maxParallelFileReads;
+
+		this.readQueue = new Queue(options.maxParallelFileReads);
 	}
 
-	async addAdditionalModules(unresolvedModules: string[]): Promise<Module[]> {
+	async addAdditionalModules(unresolvedModules: readonly string[]): Promise<Module[]> {
 		const result = this.extendLoadModulesPromise(
 			Promise.all(unresolvedModules.map(id => this.loadEntryModule(id, false, undefined, null)))
 		);
@@ -92,7 +95,7 @@ export class ModuleLoader {
 	}
 
 	async addEntryModules(
-		unresolvedEntryModules: UnresolvedModule[],
+		unresolvedEntryModules: readonly UnresolvedModule[],
 		isUserDefined: boolean
 	): Promise<{
 		entryModules: Module[];
@@ -103,8 +106,8 @@ export class ModuleLoader {
 		this.nextEntryModuleIndex += unresolvedEntryModules.length;
 		const newEntryModules = await this.extendLoadModulesPromise(
 			Promise.all(
-				unresolvedEntryModules.map(
-					({ id, importer }): Promise<Module> => this.loadEntryModule(id, true, importer, null)
+				unresolvedEntryModules.map(({ id, importer }) =>
+					this.loadEntryModule(id, true, importer, null)
 				)
 			).then(entryModules => {
 				let moduleIndex = firstEntryModuleIndex;
@@ -160,10 +163,16 @@ export class ModuleLoader {
 		return module;
 	}
 
-	public preloadModule(resolvedId: NormalizedResolveIdWithoutDefaults): Promise<ModuleInfo> {
-		return this.fetchModule(this.addDefaultsToResolvedId(resolvedId)!, undefined, false, true).then(
-			module => module.info
+	public async preloadModule(
+		resolvedId: { id: string; resolveDependencies?: boolean } & Partial<PartialNull<ModuleOptions>>
+	): Promise<ModuleInfo> {
+		const module = await this.fetchModule(
+			this.getResolvedIdWithDefaults(resolvedId)!,
+			undefined,
+			false,
+			resolvedId.resolveDependencies ? RESOLVE_DEPENDENCIES : true
 		);
+		return module.info;
 	}
 
 	resolveId = async (
@@ -171,9 +180,9 @@ export class ModuleLoader {
 		importer: string | undefined,
 		customOptions: CustomPluginOptions | undefined,
 		isEntry: boolean | undefined,
-		skip: { importer: string | undefined; plugin: Plugin; source: string }[] | null = null
+		skip: readonly { importer: string | undefined; plugin: Plugin; source: string }[] | null = null
 	): Promise<ResolvedId | null> => {
-		return this.addDefaultsToResolvedId(
+		return this.getResolvedIdWithDefaults(
 			this.getNormalizedResolvedIdWithoutDefaults(
 				this.options.external(source, importer, false)
 					? false
@@ -194,26 +203,9 @@ export class ModuleLoader {
 		);
 	};
 
-	private addDefaultsToResolvedId(
-		resolvedId: NormalizedResolveIdWithoutDefaults | null
-	): ResolvedId | null {
-		if (!resolvedId) {
-			return null;
-		}
-		const external = resolvedId.external || false;
-		return {
-			external,
-			id: resolvedId.id,
-			meta: resolvedId.meta || EMPTY_OBJECT,
-			moduleSideEffects:
-				resolvedId.moduleSideEffects ?? this.hasModuleSideEffects(resolvedId.id, !!external),
-			syntheticNamedExports: resolvedId.syntheticNamedExports ?? false
-		};
-	}
-
 	private addEntryWithImplicitDependants(
 		unresolvedModule: UnresolvedModule,
-		implicitlyLoadedAfter: string[]
+		implicitlyLoadedAfter: readonly string[]
 	): Promise<Module> {
 		return this.extendLoadModulesPromise(
 			this.loadEntryModule(unresolvedModule.id, false, unresolvedModule.importer, null).then(
@@ -239,9 +231,13 @@ export class ModuleLoader {
 		);
 	}
 
-	private async addModuleSource(id: string, importer: string | undefined, module: Module) {
+	private async addModuleSource(
+		id: string,
+		importer: string | undefined,
+		module: Module
+	): Promise<void> {
 		timeStart('load modules', 3);
-		let source: string | SourceDescription;
+		let source: LoadResult;
 		try {
 			source = await this.readQueue.run(
 				async () => (await this.pluginDriver.hookFirst('load', [id])) ?? (await readFile(id))
@@ -258,14 +254,24 @@ export class ModuleLoader {
 		const sourceDescription =
 			typeof source === 'string'
 				? { code: source }
-				: typeof source === 'object' && typeof source.code === 'string'
+				: source != null && typeof source === 'object' && typeof source.code === 'string'
 				? source
 				: error(errBadLoader(id));
 		const cachedModule = this.graph.cachedModules.get(id);
 		if (
 			cachedModule &&
 			!cachedModule.customTransformCache &&
-			cachedModule.originalCode === sourceDescription.code
+			cachedModule.originalCode === sourceDescription.code &&
+			!(await this.pluginDriver.hookFirst('shouldTransformCachedModule', [
+				{
+					ast: cachedModule.ast,
+					code: cachedModule.code,
+					id: cachedModule.id,
+					meta: cachedModule.meta,
+					moduleSideEffects: cachedModule.moduleSideEffects,
+					syntheticNamedExports: cachedModule.syntheticNamedExports
+				}
+			]))
 		) {
 			if (cachedModule.transformFiles) {
 				for (const emittedFile of cachedModule.transformFiles)
@@ -301,7 +307,7 @@ export class ModuleLoader {
 
 	private async fetchDynamicDependencies(
 		module: Module,
-		resolveDynamicImportPromises: ResolveDynamicDependencyPromise[]
+		resolveDynamicImportPromises: readonly ResolveDynamicDependencyPromise[]
 	): Promise<void> {
 		const dependencies = await Promise.all(
 			resolveDynamicImportPromises.map(resolveDynamicImportPromise =>
@@ -334,7 +340,7 @@ export class ModuleLoader {
 		{ id, meta, moduleSideEffects, syntheticNamedExports }: ResolvedId,
 		importer: string | undefined,
 		isEntry: boolean,
-		isPreload: boolean
+		isPreload: PreloadType
 	): Promise<Module> {
 		const existingModule = this.modulesById.get(id);
 		if (existingModule instanceof Module) {
@@ -342,7 +348,7 @@ export class ModuleLoader {
 			return existingModule;
 		}
 
-		const module: Module = new Module(
+		const module = new Module(
 			this.graph,
 			id,
 			this.options,
@@ -358,11 +364,9 @@ export class ModuleLoader {
 			this.getResolveDynamicImportPromises(module),
 			loadAndResolveDependenciesPromise
 		]);
-		const loadAndResolveDependenciesPromise = loadPromise
-			.then(([resolveStaticDependencyPromises, resolveDynamicImportPromises]) =>
-				Promise.all<unknown>([...resolveStaticDependencyPromises, ...resolveDynamicImportPromises])
-			)
-			.then(() => this.pluginDriver.hookParallel('moduleParsed', [module.info]));
+		const loadAndResolveDependenciesPromise = waitForDependencyResolution(loadPromise).then(() =>
+			this.pluginDriver.hookParallel('moduleParsed', [module.info])
+		);
 		loadAndResolveDependenciesPromise.catch(() => {
 			/* avoid unhandled promise rejections */
 		});
@@ -370,16 +374,18 @@ export class ModuleLoader {
 		const resolveDependencyPromises = await loadPromise;
 		if (!isPreload) {
 			await this.fetchModuleDependencies(module, ...resolveDependencyPromises);
+		} else if (isPreload === RESOLVE_DEPENDENCIES) {
+			await loadAndResolveDependenciesPromise;
 		}
 		return module;
 	}
 
 	private async fetchModuleDependencies(
 		module: Module,
-		resolveStaticDependencyPromises: ResolveStaticDependencyPromise[],
-		resolveDynamicDependencyPromises: ResolveDynamicDependencyPromise[],
+		resolveStaticDependencyPromises: readonly ResolveStaticDependencyPromise[],
+		resolveDynamicDependencyPromises: readonly ResolveDynamicDependencyPromise[],
 		loadAndResolveDependenciesPromise: Promise<void>
-	) {
+	): Promise<void> {
 		if (this.modulesWithLoadedDependencies.has(module)) {
 			return;
 		}
@@ -425,7 +431,7 @@ export class ModuleLoader {
 
 	private async fetchStaticDependencies(
 		module: Module,
-		resolveStaticDependencyPromises: ResolveStaticDependencyPromise[]
+		resolveStaticDependencyPromises: readonly ResolveStaticDependencyPromise[]
 	): Promise<void> {
 		for (const dependency of await Promise.all(
 			resolveStaticDependencyPromises.map(resolveStaticDependencyPromise =>
@@ -526,10 +532,29 @@ export class ModuleLoader {
 		);
 	}
 
-	private async handleExistingModule(module: Module, isEntry: boolean, isPreload: boolean) {
+	private getResolvedIdWithDefaults(
+		resolvedId: NormalizedResolveIdWithoutDefaults | null
+	): ResolvedId | null {
+		if (!resolvedId) {
+			return null;
+		}
+		const external = resolvedId.external || false;
+		return {
+			external,
+			id: resolvedId.id,
+			meta: resolvedId.meta || {},
+			moduleSideEffects:
+				resolvedId.moduleSideEffects ?? this.hasModuleSideEffects(resolvedId.id, !!external),
+			syntheticNamedExports: resolvedId.syntheticNamedExports ?? false
+		};
+	}
+
+	private async handleExistingModule(module: Module, isEntry: boolean, isPreload: PreloadType) {
 		const loadPromise = this.moduleLoadPromises.get(module)!;
 		if (isPreload) {
-			return loadPromise;
+			return isPreload === RESOLVE_DEPENDENCIES
+				? waitForDependencyResolution(loadPromise)
+				: loadPromise;
 		}
 		if (isEntry) {
 			module.info.isEntry = true;
@@ -555,7 +580,7 @@ export class ModuleLoader {
 			return {
 				external: true,
 				id: source,
-				meta: EMPTY_OBJECT,
+				meta: {},
 				moduleSideEffects: this.hasModuleSideEffects(source, true),
 				syntheticNamedExports: false
 			};
@@ -601,7 +626,7 @@ export class ModuleLoader {
 			);
 		}
 		return this.fetchModule(
-			this.addDefaultsToResolvedId(
+			this.getResolvedIdWithDefaults(
 				typeof resolveIdResult === 'object'
 					? (resolveIdResult as NormalizedResolveIdWithoutDefaults)
 					: { id: resolveIdResult }
@@ -644,7 +669,7 @@ export class ModuleLoader {
 				));
 		}
 		return this.handleResolveId(
-			this.addDefaultsToResolvedId(
+			this.getResolvedIdWithDefaults(
 				this.getNormalizedResolvedIdWithoutDefaults(resolution, importer, specifier)
 			),
 			specifier,
@@ -665,7 +690,7 @@ function addChunkNamesToModule(
 	module: Module,
 	{ fileName, name }: UnresolvedModule,
 	isUserDefined: boolean
-) {
+): void {
 	if (fileName !== null) {
 		module.chunkFileNames.add(fileName);
 	} else if (name !== null) {
@@ -682,10 +707,15 @@ function isNotAbsoluteExternal(
 	id: string,
 	source: string,
 	makeAbsoluteExternalsRelative: boolean | 'ifRelativeSource'
-) {
+): boolean {
 	return (
 		makeAbsoluteExternalsRelative === true ||
 		(makeAbsoluteExternalsRelative === 'ifRelativeSource' && isRelative(source)) ||
 		!isAbsolute(id)
 	);
+}
+
+async function waitForDependencyResolution(loadPromise: LoadModulePromise) {
+	const [resolveStaticDependencyPromises, resolveDynamicImportPromises] = await loadPromise;
+	return Promise.all([...resolveStaticDependencyPromises, ...resolveDynamicImportPromises]);
 }

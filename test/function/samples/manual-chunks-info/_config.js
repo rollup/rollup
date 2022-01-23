@@ -99,12 +99,38 @@ module.exports = {
 								sourceType: 'module'
 							},
 							code: "export const promise = import('./dynamic');\nexport { default as value } from './lib';\nexport { external } from 'external';\n",
+							dynamicallyImportedIdResolutions: [
+								{
+									external: false,
+									id: getId('dynamic'),
+									meta: {},
+									moduleSideEffects: true,
+									syntheticNamedExports: false
+								}
+							],
 							dynamicallyImportedIds: [getId('dynamic')],
 							dynamicImporters: [],
+							hasDefaultExport: false,
 							hasModuleSideEffects: true,
 							id: getId('main'),
 							implicitlyLoadedAfterOneOf: [],
 							implicitlyLoadedBefore: [],
+							importedIdResolutions: [
+								{
+									external: false,
+									id: getId('lib'),
+									meta: {},
+									moduleSideEffects: true,
+									syntheticNamedExports: false
+								},
+								{
+									external: true,
+									id: 'external',
+									meta: {},
+									moduleSideEffects: true,
+									syntheticNamedExports: false
+								}
+							],
 							importedIds: [getId('lib'), 'external'],
 							importers: [],
 							isEntry: true,
@@ -116,12 +142,15 @@ module.exports = {
 						{
 							ast: null,
 							code: null,
+							dynamicallyImportedIdResolutions: [],
 							dynamicallyImportedIds: [],
 							dynamicImporters: [getId('dynamic')],
+							hasDefaultExport: null,
 							hasModuleSideEffects: true,
 							id: 'external',
 							implicitlyLoadedAfterOneOf: [],
 							implicitlyLoadedBefore: [],
+							importedIdResolutions: [],
 							importedIds: [],
 							importers: [getId('main')],
 							isEntry: false,
@@ -146,12 +175,15 @@ module.exports = {
 								sourceType: 'module'
 							},
 							code: 'export default 42;\n',
+							dynamicallyImportedIdResolutions: [],
 							dynamicallyImportedIds: [],
 							dynamicImporters: [],
+							hasDefaultExport: true,
 							hasModuleSideEffects: true,
 							id: getId('lib'),
 							implicitlyLoadedAfterOneOf: [],
 							implicitlyLoadedBefore: [],
+							importedIdResolutions: [],
 							importedIds: [],
 							importers: [getId('dynamic'), getId('main')],
 							isEntry: false,
@@ -219,12 +251,31 @@ module.exports = {
 								sourceType: 'module'
 							},
 							code: "export const promise = import('external');\nexport { default as internal } from './lib';\n",
+							dynamicallyImportedIdResolutions: [
+								{
+									external: true,
+									id: 'external',
+									meta: {},
+									moduleSideEffects: true,
+									syntheticNamedExports: false
+								}
+							],
 							dynamicallyImportedIds: ['external'],
 							dynamicImporters: [getId('main')],
+							hasDefaultExport: false,
 							hasModuleSideEffects: true,
 							id: getId('dynamic'),
 							implicitlyLoadedAfterOneOf: [],
 							implicitlyLoadedBefore: [],
+							importedIdResolutions: [
+								{
+									external: false,
+									id: getId('lib'),
+									meta: {},
+									moduleSideEffects: true,
+									syntheticNamedExports: false
+								}
+							],
 							importedIds: [getId('lib')],
 							importers: [],
 							isEntry: false,

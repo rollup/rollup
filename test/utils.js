@@ -1,6 +1,16 @@
 const assert = require('assert');
-const { readdirSync, unlinkSync } = require('fs');
-const path = require('path');
+const {
+	closeSync,
+	fsyncSync,
+	openSync,
+	readdirSync,
+	renameSync,
+	unlinkSync,
+	writeFileSync,
+	writeSync
+} = require('fs');
+const { basename, join } = require('path');
+const { platform, version } = require('process');
 const fixturify = require('fixturify');
 const { removeSync } = require('fs-extra');
 
@@ -15,6 +25,10 @@ exports.runTestSuiteWithSamples = runTestSuiteWithSamples;
 exports.assertDirectoriesAreEqual = assertDirectoriesAreEqual;
 exports.assertFilesAreEqual = assertFilesAreEqual;
 exports.assertIncludes = assertIncludes;
+exports.atomicWriteFileSync = atomicWriteFileSync;
+exports.writeAndSync = writeAndSync;
+exports.getFileNamesAndRemoveOutput = getFileNamesAndRemoveOutput;
+exports.writeAndRetry = writeAndRetry;
 
 function normaliseError(error) {
 	delete error.stack;
@@ -124,7 +138,7 @@ function runSamples(samplesDir, runTest, onTeardown) {
 	readdirSync(samplesDir)
 		.filter(name => name[0] !== '.')
 		.sort()
-		.forEach(fileName => runTestsInDir(path.join(samplesDir, fileName), runTest));
+		.forEach(fileName => runTestsInDir(join(samplesDir, fileName), runTest));
 }
 
 function runTestsInDir(dir, runTest) {
@@ -135,11 +149,11 @@ function runTestsInDir(dir, runTest) {
 		console.warn(`Removing empty test directory ${dir}`);
 		removeSync(dir);
 	} else {
-		describe(path.basename(dir), () => {
+		describe(basename(dir), () => {
 			fileNames
 				.filter(name => name[0] !== '.')
 				.sort()
-				.forEach(fileName => runTestsInDir(path.join(dir, fileName), runTest));
+				.forEach(fileName => runTestsInDir(join(dir, fileName), runTest));
 		});
 	}
 }
@@ -148,11 +162,11 @@ function getFileNamesAndRemoveOutput(dir) {
 	try {
 		return readdirSync(dir).filter(fileName => {
 			if (fileName === '_actual') {
-				removeSync(path.join(dir, '_actual'));
+				removeSync(join(dir, '_actual'));
 				return false;
 			}
 			if (fileName === '_actual.js') {
-				unlinkSync(path.join(dir, '_actual.js'));
+				unlinkSync(join(dir, '_actual.js'));
 				return false;
 			}
 			return true;
@@ -168,15 +182,15 @@ function getFileNamesAndRemoveOutput(dir) {
 }
 
 function loadConfigAndRunTest(dir, runTest) {
-	const configFile = path.join(dir, '_config.js');
+	const configFile = join(dir, '_config.js');
 	const config = require(configFile);
 	if (!config || !config.description) {
 		throw new Error(`Found invalid config without description: ${configFile}`);
 	}
 	if (
-		(!config.skipIfWindows || process.platform !== 'win32') &&
-		(!config.onlyWindows || process.platform === 'win32') &&
-		(!config.minNodeVersion || config.minNodeVersion <= Number(/^v(\d+)/.exec(process.version)[1]))
+		(!config.skipIfWindows || platform !== 'win32') &&
+		(!config.onlyWindows || platform === 'win32') &&
+		(!config.minNodeVersion || config.minNodeVersion <= Number(/^v(\d+)/.exec(version)[1]))
 	) {
 		runTest(dir, config);
 	}
@@ -220,4 +234,41 @@ function assertIncludes(actual, expected) {
 		err.expected = expected;
 		throw err;
 	}
+}
+
+// Workaround a race condition in fs.writeFileSync that temporarily creates
+// an empty file for a brief moment which may be read by rollup watch - even
+// if the content being overwritten is identical.
+function atomicWriteFileSync(filePath, contents) {
+	const stagingPath = filePath + '_';
+	writeFileSync(stagingPath, contents);
+	renameSync(stagingPath, filePath);
+}
+
+// It appears that on MacOS, it sometimes takes long for the file system to update
+function writeAndSync(filePath, contents) {
+	const file = openSync(filePath, 'w');
+	writeSync(file, contents);
+	fsyncSync(file);
+	closeSync(file);
+}
+
+// Sometimes, watchers on MacOS do not seem to fire. In those cases, it helps
+// to write the same content again. This function returns a callback to stop
+// further updates.
+function writeAndRetry(filePath, contents) {
+	let retries = 0;
+	let updateRetryTimeout;
+
+	const writeFile = () => {
+		if (retries > 0) {
+			console.error(`RETRIED writeFile (${retries})`);
+		}
+		retries++;
+		atomicWriteFileSync(filePath, contents);
+		updateRetryTimeout = setTimeout(writeFile, 1000);
+	};
+
+	writeFile();
+	return () => clearTimeout(updateRetryTimeout);
 }

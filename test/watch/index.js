@@ -8,11 +8,10 @@ const {
 	writeFileSync
 } = require('fs');
 const { resolve } = require('path');
+const { chdir, cwd, hrtime } = require('process');
 const { copy, removeSync } = require('fs-extra');
-const sander = require('sander');
 const rollup = require('../../dist/rollup');
-
-const cwd = process.cwd();
+const { atomicWriteFileSync } = require('../utils');
 
 function wait(ms) {
 	return new Promise(fulfil => {
@@ -24,7 +23,7 @@ describe('rollup.watch', () => {
 	let watcher;
 
 	beforeEach(() => {
-		process.chdir(cwd);
+		chdir(cwd());
 		return removeSync('test/_tmp');
 	});
 
@@ -76,7 +75,7 @@ describe('rollup.watch', () => {
 	}
 
 	function getTimeDiffInMs(previous) {
-		const [seconds, nanoseconds] = process.hrtime(previous);
+		const [seconds, nanoseconds] = hrtime(previous);
 		return seconds * 1e3 + nanoseconds / 1e6;
 	}
 
@@ -87,7 +86,7 @@ describe('rollup.watch', () => {
 			watcher = rollup.watch({
 				input: 'test/_tmp/input/main.js',
 				plugins: {
-					options(options) {
+					options() {
 						assert.strictEqual(this.meta.watchMode, true, 'watchMode in options');
 					},
 					transform(code) {
@@ -95,7 +94,7 @@ describe('rollup.watch', () => {
 						if (triggerRestart) {
 							triggerRestart = false;
 							return wait(100)
-								.then(() => writeFileSync('test/_tmp/input/main.js', 'export default 44;'))
+								.then(() => atomicWriteFileSync('test/_tmp/input/main.js', 'export default 44;'))
 								.then(() => wait(100))
 								.then(() => code);
 						}
@@ -116,7 +115,7 @@ describe('rollup.watch', () => {
 				() => {
 					assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
 					triggerRestart = true;
-					writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+					atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
 				},
 				'START',
 				'BUNDLE_START',
@@ -163,7 +162,7 @@ describe('rollup.watch', () => {
 				'END',
 				() => {
 					assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-					writeFileSync(
+					atomicWriteFileSync(
 						'test/_tmp/input/main.js',
 						"import {value} from 'virtual';\nexport default value + 1;"
 					);
@@ -206,7 +205,7 @@ describe('rollup.watch', () => {
 			() => {
 				watchChangeCnt = 0;
 				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-				writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
 			},
 			'START',
 			'BUNDLE_START',
@@ -215,7 +214,7 @@ describe('rollup.watch', () => {
 			() => {
 				assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
 				assert.strictEqual(watchChangeCnt, 1);
-				writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
 			},
 			'START',
 			'BUNDLE_START',
@@ -224,7 +223,7 @@ describe('rollup.watch', () => {
 			() => {
 				assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
 				assert.strictEqual(watchChangeCnt, 2);
-				writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
 			},
 			'START',
 			'BUNDLE_START',
@@ -252,6 +251,9 @@ describe('rollup.watch', () => {
 				format: 'cjs',
 				exports: 'auto'
 			},
+			watch: {
+				buildDelay: 300
+			},
 			plugins: {
 				buildStart() {
 					this.addWatchFile(WATCHED_ID);
@@ -275,7 +277,7 @@ describe('rollup.watch', () => {
 				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
 				assert.deepStrictEqual(events, []);
 				assert.deepStrictEqual(ids, expectedIds);
-				writeFileSync(WATCHED_ID, 'first');
+				atomicWriteFileSync(WATCHED_ID, 'first');
 			},
 			'START',
 			'BUNDLE_START',
@@ -285,7 +287,7 @@ describe('rollup.watch', () => {
 				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
 				assert.deepStrictEqual(events, ['create']);
 				assert.deepStrictEqual(ids, expectedIds);
-				writeFileSync(WATCHED_ID, 'first');
+				atomicWriteFileSync(WATCHED_ID, 'first');
 			},
 			'START',
 			'BUNDLE_START',
@@ -323,7 +325,7 @@ describe('rollup.watch', () => {
 				exports: 'auto'
 			},
 			watch: {
-				buildDelay: 300,
+				buildDelay: 600,
 				chokidar: {
 					atomic: false
 				}
@@ -348,7 +350,7 @@ describe('rollup.watch', () => {
 			'END',
 			async () => {
 				assert.strictEqual(lastEvent, null);
-				writeFileSync(WATCHED_ID, 'another');
+				atomicWriteFileSync(WATCHED_ID, 'another');
 				await wait(100);
 				unlinkSync(WATCHED_ID);
 			},
@@ -359,11 +361,11 @@ describe('rollup.watch', () => {
 			async () => {
 				assert.strictEqual(lastEvent, 'delete');
 				lastEvent = null;
-				writeFileSync(WATCHED_ID, '123');
+				atomicWriteFileSync(WATCHED_ID, '123');
 				await wait(100);
 				unlinkSync(WATCHED_ID);
 				// To ensure there is always another change to trigger a rebuild
-				writeFileSync(MAIN_ID, 'export default 43;');
+				atomicWriteFileSync(MAIN_ID, 'export default 43;');
 			},
 			'START',
 			'BUNDLE_START',
@@ -371,9 +373,9 @@ describe('rollup.watch', () => {
 			'END',
 			async () => {
 				assert.strictEqual(lastEvent, null);
-				writeFileSync(WATCHED_ID, '123');
+				atomicWriteFileSync(WATCHED_ID, '123');
 				await wait(100);
-				writeFileSync(WATCHED_ID, 'asd');
+				atomicWriteFileSync(WATCHED_ID, 'asd');
 			},
 			'START',
 			'BUNDLE_START',
@@ -456,7 +458,7 @@ describe('rollup.watch', () => {
 				() => {
 					assert.strictEqual(run('../_tmp/output/main1.js'), 21);
 					assert.strictEqual(run('../_tmp/output/main2.js'), 42);
-					writeFileSync('test/_tmp/input/shared.js', 'export const value = 22;');
+					atomicWriteFileSync('test/_tmp/input/shared.js', 'export const value = 22;');
 				},
 				'START',
 				'BUNDLE_START',
@@ -492,7 +494,7 @@ describe('rollup.watch', () => {
 				() => {
 					assert.strictEqual(run('../_tmp/output/_main_1.js'), 21);
 					assert.strictEqual(run('../_tmp/output/subfolder/_main_2.js'), 42);
-					writeFileSync('test/_tmp/input/shared.js', 'export const value = 22;');
+					atomicWriteFileSync('test/_tmp/input/shared.js', 'export const value = 22;');
 				},
 				'START',
 				'BUNDLE_START',
@@ -524,13 +526,13 @@ describe('rollup.watch', () => {
 				'END',
 				() => {
 					assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-					writeFileSync('test/_tmp/input/main.js', 'export nope;');
+					atomicWriteFileSync('test/_tmp/input/main.js', 'export nope;');
 				},
 				'START',
 				'BUNDLE_START',
 				'ERROR',
 				() => {
-					writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+					atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
 				},
 				'START',
 				'BUNDLE_START',
@@ -560,7 +562,7 @@ describe('rollup.watch', () => {
 				'ERROR',
 				() => {
 					assert.strictEqual(existsSync('../_tmp/output/bundle.js'), false);
-					writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+					atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
 				},
 				'START',
 				'BUNDLE_START',
@@ -598,7 +600,7 @@ describe('rollup.watch', () => {
 				'ERROR',
 				() => {
 					assert.strictEqual(existsSync('../_tmp/output/bundle.js'), false);
-					writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+					atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
 				},
 				'START',
 				'BUNDLE_START',
@@ -630,14 +632,14 @@ describe('rollup.watch', () => {
 				() => {
 					assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
 					unlinkSync('test/_tmp/input/main.js');
-					writeFileSync('test/_tmp/input/main.js', 'export nope;');
+					atomicWriteFileSync('test/_tmp/input/main.js', 'export nope;');
 				},
 				'START',
 				'BUNDLE_START',
 				'ERROR',
 				() => {
 					unlinkSync('test/_tmp/input/main.js');
-					writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+					atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
 				},
 				'START',
 				'BUNDLE_START',
@@ -669,14 +671,14 @@ describe('rollup.watch', () => {
 				() => {
 					assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
 					unlinkSync('test/_tmp/input/dep.js');
-					writeFileSync('test/_tmp/input/dep.js', 'export nope;');
+					atomicWriteFileSync('test/_tmp/input/dep.js', 'export nope;');
 				},
 				'START',
 				'BUNDLE_START',
 				'ERROR',
 				() => {
 					unlinkSync('test/_tmp/input/dep.js');
-					writeFileSync('test/_tmp/input/dep.js', 'export const value = 43;');
+					atomicWriteFileSync('test/_tmp/input/dep.js', 'export const value = 43;');
 				},
 				'START',
 				'BUNDLE_START',
@@ -711,7 +713,7 @@ describe('rollup.watch', () => {
 				'START',
 				'BUNDLE_START',
 				() => {
-					writeFileSync('test/_tmp/input/main.js', 'export default 44;');
+					atomicWriteFileSync('test/_tmp/input/main.js', 'export default 44;');
 					return wait(400).then(() => assert.deepStrictEqual(events, ['START', 'BUNDLE_START']));
 				}
 			]);
@@ -740,7 +742,7 @@ describe('rollup.watch', () => {
 				'START',
 				'BUNDLE_START',
 				() => {
-					writeFileSync('test/_tmp/input/main.js', 'export default 44;');
+					atomicWriteFileSync('test/_tmp/input/main.js', 'export default 44;');
 					return wait(400).then(() => assert.deepStrictEqual(events, ['START', 'BUNDLE_START']));
 				}
 			]);
@@ -765,7 +767,7 @@ describe('rollup.watch', () => {
 				'END',
 				() => {
 					assert.strictEqual(run('../_tmp/output/bundle.js'), 43);
-					writeFileSync('test/_tmp/input/main.js', 'export default 42;');
+					atomicWriteFileSync('test/_tmp/input/main.js', 'export default 42;');
 				},
 				'START',
 				'BUNDLE_START',
@@ -777,7 +779,7 @@ describe('rollup.watch', () => {
 					watcher.once('event', event => {
 						unexpectedEvent = event;
 					});
-					writeFileSync('test/_tmp/input/dep.js', '= invalid');
+					atomicWriteFileSync('test/_tmp/input/dep.js', '= invalid');
 					return wait(400).then(() => assert.strictEqual(unexpectedEvent, false));
 				}
 			]);
@@ -802,14 +804,14 @@ describe('rollup.watch', () => {
 				'END',
 				() => {
 					assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-					writeFileSync('test/_tmp/input/main.js', `import '../output/bundle.js'`);
+					atomicWriteFileSync('test/_tmp/input/main.js', `import '../output/bundle.js'`);
 				},
 				'START',
 				'BUNDLE_START',
 				'ERROR',
 				event => {
 					assert.strictEqual(event.error.message, 'Cannot import the generated bundle');
-					writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+					atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
 				},
 				'START',
 				'BUNDLE_START',
@@ -846,7 +848,7 @@ describe('rollup.watch', () => {
 						foo: 'foo-1',
 						bar: 'bar-1'
 					});
-					writeFileSync('test/_tmp/input/foo.js', `export default 'foo-2';`);
+					atomicWriteFileSync('test/_tmp/input/foo.js', `export default 'foo-2';`);
 				},
 				'START',
 				'BUNDLE_START',
@@ -861,7 +863,7 @@ describe('rollup.watch', () => {
 					watcher.once('event', event => {
 						unexpectedEvent = event;
 					});
-					writeFileSync('test/_tmp/input/bar.js', "export default 'bar-2';");
+					atomicWriteFileSync('test/_tmp/input/bar.js', "export default 'bar-2';");
 					return wait(400).then(() => {
 						assert.deepStrictEqual(run('../_tmp/output/bundle.js'), {
 							foo: 'foo-2',
@@ -898,7 +900,7 @@ describe('rollup.watch', () => {
 						foo: 'foo-1',
 						bar: 'bar-1'
 					});
-					writeFileSync('test/_tmp/input/foo.js', `export default 'foo-2';`);
+					atomicWriteFileSync('test/_tmp/input/foo.js', `export default 'foo-2';`);
 				},
 				'START',
 				'BUNDLE_START',
@@ -913,7 +915,7 @@ describe('rollup.watch', () => {
 					watcher.once('event', event => {
 						unexpectedEvent = event;
 					});
-					writeFileSync('test/_tmp/input/bar.js', "export default 'bar-2';");
+					atomicWriteFileSync('test/_tmp/input/bar.js', "export default 'bar-2';");
 					return wait(400).then(() => {
 						assert.deepStrictEqual(run('../_tmp/output/bundle.js'), {
 							foo: 'foo-2',
@@ -959,7 +961,7 @@ describe('rollup.watch', () => {
 					() => {
 						assert.deepStrictEqual(run('../_tmp/output/bundle1.js'), 42);
 						assert.deepStrictEqual(run('../_tmp/output/bundle2.js'), 43);
-						writeFileSync('test/_tmp/input/main2.js', 'export default 44');
+						atomicWriteFileSync('test/_tmp/input/main2.js', 'export default 44');
 					},
 					'START',
 					'BUNDLE_START',
@@ -1031,7 +1033,9 @@ describe('rollup.watch', () => {
 				'BUNDLE_END',
 				'END',
 				() => {
-					const generated = readFileSync('test/_tmp/output/bundle.js', 'utf8');
+					const generated = readFileSync('test/_tmp/output/bundle.js', {
+						encoding: 'utf-8'
+					});
 					assert.ok(/jQuery/.test(generated));
 				}
 			]);
@@ -1056,7 +1060,7 @@ describe('rollup.watch', () => {
 				'END',
 				() => {
 					assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-					writeFileSync('test/_tmp/input/[foo]/bar.js', `export const bar = 43;`);
+					atomicWriteFileSync('test/_tmp/input/[foo]/bar.js', `export const bar = 43;`);
 				},
 				'START',
 				'BUNDLE_START',
@@ -1095,7 +1099,7 @@ describe('rollup.watch', () => {
 					removeSync('test/_tmp/output');
 
 					// this should only update the hash of that particular entry point
-					writeFileSync(
+					atomicWriteFileSync(
 						'test/_tmp/input/main-static.js',
 						"import {value} from './shared';\nexport default 2 * value;"
 					);
@@ -1114,7 +1118,7 @@ describe('rollup.watch', () => {
 					staticName = newStaticName;
 
 					// this should update all hashes
-					writeFileSync('test/_tmp/input/shared.js', 'export const value = 42;');
+					atomicWriteFileSync('test/_tmp/input/shared.js', 'export const value = 42;');
 				},
 				'START',
 				'BUNDLE_START',
@@ -1134,53 +1138,54 @@ describe('rollup.watch', () => {
 	it('runs transforms again on previously erroring files that were changed back', () => {
 		const brokenFiles = new Set();
 		const INITIAL_CONTENT = 'export default 42;';
-		sander.writeFileSync('test/_tmp/input/main.js', INITIAL_CONTENT);
-		watcher = rollup.watch({
-			input: 'test/_tmp/input/main.js',
-			plugins: {
-				transform(code, id) {
-					if (code.includes('broken')) {
-						brokenFiles.add(id);
-						throw new Error('Broken in transform');
-					} else {
-						brokenFiles.delete(id);
+		promises.writeFile('test/_tmp/input/main.js', INITIAL_CONTENT).then(() => {
+			watcher = rollup.watch({
+				input: 'test/_tmp/input/main.js',
+				plugins: {
+					transform(code, id) {
+						if (code.includes('broken')) {
+							brokenFiles.add(id);
+							throw new Error('Broken in transform');
+						} else {
+							brokenFiles.delete(id);
+						}
+					},
+					generateBundle() {
+						if (brokenFiles.size > 0) {
+							throw new Error('Broken in generate');
+						}
 					}
 				},
-				generateBundle() {
-					if (brokenFiles.size > 0) {
-						throw new Error('Broken in generate');
-					}
+				output: {
+					file: 'test/_tmp/output/bundle.js',
+					format: 'cjs',
+					exports: 'auto'
 				}
-			},
-			output: {
-				file: 'test/_tmp/output/bundle.js',
-				format: 'cjs',
-				exports: 'auto'
-			}
+			});
+			return sequence(watcher, [
+				'START',
+				'BUNDLE_START',
+				'BUNDLE_END',
+				'END',
+				() => {
+					assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+					atomicWriteFileSync('test/_tmp/input/main.js', 'export default "broken";');
+				},
+				'START',
+				'BUNDLE_START',
+				'ERROR',
+				() => {
+					atomicWriteFileSync('test/_tmp/input/main.js', INITIAL_CONTENT);
+				},
+				'START',
+				'BUNDLE_START',
+				'BUNDLE_END',
+				'END',
+				() => {
+					assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
+				}
+			]);
 		});
-		return sequence(watcher, [
-			'START',
-			'BUNDLE_START',
-			'BUNDLE_END',
-			'END',
-			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-				sander.writeFileSync('test/_tmp/input/main.js', 'export default "broken";');
-			},
-			'START',
-			'BUNDLE_START',
-			'ERROR',
-			() => {
-				sander.writeFileSync('test/_tmp/input/main.js', INITIAL_CONTENT);
-			},
-			'START',
-			'BUNDLE_START',
-			'BUNDLE_END',
-			'END',
-			() => {
-				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-			}
-		]);
 	});
 
 	it('skips filesystem writes when configured', () => {
@@ -1212,7 +1217,7 @@ describe('rollup.watch', () => {
 				() => {
 					watchChangeCnt = 0;
 					assert.strictEqual(existsSync('../_tmp/output/bundle.js'), false);
-					writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+					atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
 				},
 				'START',
 				'BUNDLE_START',
@@ -1221,7 +1226,7 @@ describe('rollup.watch', () => {
 				() => {
 					assert.strictEqual(existsSync('../_tmp/output/bundle.js'), false);
 					assert.strictEqual(watchChangeCnt, 1);
-					writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+					atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
 				},
 				'START',
 				'BUNDLE_START',
@@ -1230,7 +1235,7 @@ describe('rollup.watch', () => {
 				() => {
 					assert.strictEqual(existsSync('../_tmp/output/bundle.js'), false);
 					assert.strictEqual(watchChangeCnt, 2);
-					writeFileSync('test/_tmp/input/main.js', 'export default 43;');
+					atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
 				},
 				'START',
 				'BUNDLE_START',
@@ -1267,8 +1272,8 @@ describe('rollup.watch', () => {
 				'END',
 				() => {
 					assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-					writeFileSync('test/_tmp/input/main.js', 'export default 43;');
-					startTime = process.hrtime();
+					atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
+					startTime = hrtime();
 				},
 				'START',
 				'BUNDLE_START',
@@ -1341,8 +1346,8 @@ describe('rollup.watch', () => {
 			'END',
 			() => {
 				assert.strictEqual(run('../_tmp/output/bundle.js'), 42);
-				writeFileSync('test/_tmp/input/main.js', 'export default 43;');
-				startTime = process.hrtime();
+				atomicWriteFileSync('test/_tmp/input/main.js', 'export default 43;');
+				startTime = hrtime();
 			},
 			'START',
 			'BUNDLE_START',
@@ -1434,7 +1439,7 @@ describe('rollup.watch', () => {
 					plugins: {
 						load() {
 							this.addWatchFile(WATCHED_ID);
-							return `export default "${readFileSync(WATCHED_ID, 'utf8').trim()}"`;
+							return `export default "${readFileSync(WATCHED_ID).toString().trim()}"`;
 						}
 					}
 				});
@@ -1446,7 +1451,7 @@ describe('rollup.watch', () => {
 					'END',
 					() => {
 						assert.strictEqual(run('../_tmp/output/bundle.js'), 'initial');
-						writeFileSync(WATCHED_ID, 'next');
+						atomicWriteFileSync(WATCHED_ID, 'next');
 					},
 					'START',
 					'BUNDLE_START',
@@ -1488,7 +1493,7 @@ describe('rollup.watch', () => {
 								if (addWatchFile) {
 									this.addWatchFile(WATCHED_ID);
 								}
-								return `export const value = "${readFileSync(WATCHED_ID, 'utf8').trim()}"`;
+								return `export const value = "${readFileSync(WATCHED_ID).toString().trim()}"`;
 							}
 						}
 					}
@@ -1504,7 +1509,7 @@ describe('rollup.watch', () => {
 					() => {
 						assert.strictEqual(run('../_tmp/output/bundle.js'), 'initial');
 						addWatchFile = false;
-						writeFileSync(WATCHED_ID, 'next');
+						atomicWriteFileSync(WATCHED_ID, 'next');
 					},
 					'START',
 					'BUNDLE_START',
@@ -1512,7 +1517,7 @@ describe('rollup.watch', () => {
 					'END',
 					() => {
 						assert.strictEqual(run('../_tmp/output/bundle.js'), 'next');
-						writeFileSync(WATCHED_ID, 'other');
+						atomicWriteFileSync(WATCHED_ID, 'other');
 						events.length = 0;
 						return wait(400).then(() => assert.deepStrictEqual(events, []));
 					}
@@ -1533,7 +1538,7 @@ describe('rollup.watch', () => {
 						transform(code, id) {
 							if (id.endsWith('dep1.js')) {
 								this.addWatchFile(resolve('test/_tmp/input/dep2.js'));
-								const text = readFileSync('test/_tmp/input/dep2.js', 'utf8').trim();
+								const text = readFileSync('test/_tmp/input/dep2.js').toString().trim();
 								return `export default ${JSON.stringify(text)}`;
 							}
 						}
@@ -1550,7 +1555,7 @@ describe('rollup.watch', () => {
 							run('../_tmp/output/bundle.js'),
 							`dep1: "export default 'dep2';", dep2: "dep2"`
 						);
-						writeFileSync('test/_tmp/input/dep2.js', 'export default "next";');
+						atomicWriteFileSync('test/_tmp/input/dep2.js', 'export default "next";');
 					},
 					'START',
 					'BUNDLE_START',
@@ -1629,7 +1634,7 @@ describe('rollup.watch', () => {
 					'END',
 					() => {
 						assert.strictEqual(run('../_tmp/output/bundle.js'), false);
-						writeFileSync('test/_tmp/input/dep', '');
+						atomicWriteFileSync('test/_tmp/input/dep', '');
 					},
 					'START',
 					'BUNDLE_START',
@@ -1675,7 +1680,7 @@ describe('rollup.watch', () => {
 					'END',
 					() => {
 						assert.strictEqual(run('../_tmp/output/bundle.js'), false);
-						writeFileSync('test/_tmp/input/dep', '');
+						atomicWriteFileSync('test/_tmp/input/dep', '');
 					},
 					'START',
 					'BUNDLE_START',
@@ -1709,7 +1714,7 @@ describe('rollup.watch', () => {
 							transform() {
 								transformRuns++;
 								this.addWatchFile(WATCHED_ID);
-								return `export default "${readFileSync(WATCHED_ID, 'utf8').trim()}"`;
+								return `export default "${readFileSync(WATCHED_ID).toString().trim()}"`;
 							}
 						}
 					});
@@ -1721,7 +1726,7 @@ describe('rollup.watch', () => {
 						'END',
 						() => {
 							assert.strictEqual(transformRuns, 1);
-							writeFileSync('test/_tmp/input/alsoWatched', 'next');
+							atomicWriteFileSync('test/_tmp/input/alsoWatched', 'next');
 						},
 						'START',
 						'BUNDLE_START',

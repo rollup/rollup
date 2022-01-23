@@ -94,6 +94,9 @@ type ObjectOptionWithPresets =
 	| Partial<NormalizedTreeshakingOptions>
 	| Partial<NormalizedGeneratedCodeOptions>;
 
+export const objectifyOption = (value: unknown): Record<string, unknown> =>
+	value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+
 export const objectifyOptionWithPresets =
 	<T extends ObjectOptionWithPresets>(
 		presets: Record<string, T>,
@@ -117,7 +120,7 @@ export const objectifyOptionWithPresets =
 				)
 			);
 		}
-		return value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+		return objectifyOption(value);
 	};
 
 export const getOptionWithPreset = <T extends ObjectOptionWithPresets>(

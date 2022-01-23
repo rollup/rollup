@@ -1,41 +1,20 @@
-import { InputOptions, Plugin, SerializedTimings } from '../rollup/types';
-
-type StartTime = [number, number];
+import type { InputOptions, Plugin, SerializedTimings } from '../rollup/types';
+import performance from './performance';
+import process from './process';
 
 interface Timer {
 	memory: number;
 	startMemory: number;
-	startTime: StartTime;
+	startTime: number;
 	time: number;
 	totalMemory: number;
 }
 
-interface Timers {
-	[label: string]: Timer;
-}
-
 const NOOP = (): void => {};
-let getStartTime = (): StartTime => [0, 0];
-let getElapsedTime: (previous: StartTime) => number = () => 0;
-let getMemory: () => number = () => 0;
-let timers: Timers = {};
 
-const normalizeHrTime = (time: [number, number]) => time[0] * 1e3 + time[1] / 1e6;
+let timers = new Map<string, Timer>();
 
-function setTimeHelpers() {
-	if (typeof process !== 'undefined' && typeof process.hrtime === 'function') {
-		getStartTime = process.hrtime.bind(process);
-		getElapsedTime = previous => normalizeHrTime(process.hrtime(previous));
-	} else if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
-		getStartTime = () => [performance.now(), 0];
-		getElapsedTime = previous => performance.now() - previous[0];
-	}
-	if (typeof process !== 'undefined' && typeof process.memoryUsage === 'function') {
-		getMemory = () => process.memoryUsage().heapUsed;
-	}
-}
-
-function getPersistedLabel(label: string, level: number) {
+function getPersistedLabel(label: string, level: number): string {
 	switch (level) {
 		case 1:
 			return `# ${label}`;
@@ -48,84 +27,87 @@ function getPersistedLabel(label: string, level: number) {
 	}
 }
 
-function timeStartImpl(label: string, level = 3) {
+function timeStartImpl(label: string, level = 3): void {
 	label = getPersistedLabel(label, level);
-	if (!timers.hasOwnProperty(label)) {
-		timers[label] = {
+
+	const startMemory = process.memoryUsage().heapUsed;
+	const startTime = performance.now();
+
+	const timer = timers.get(label);
+
+	if (timer === undefined) {
+		timers.set(label, {
 			memory: 0,
-			startMemory: undefined as never,
-			startTime: undefined as never,
+			startMemory,
+			startTime,
 			time: 0,
 			totalMemory: 0
-		};
+		});
+	} else {
+		timer.startMemory = startMemory;
+		timer.startTime = startTime;
 	}
-	const currentMemory = getMemory();
-	timers[label].startTime = getStartTime();
-	timers[label].startMemory = currentMemory;
 }
 
-function timeEndImpl(label: string, level = 3) {
+function timeEndImpl(label: string, level = 3): void {
 	label = getPersistedLabel(label, level);
-	if (timers.hasOwnProperty(label)) {
-		const currentMemory = getMemory();
-		timers[label].time += getElapsedTime(timers[label].startTime);
-		timers[label].totalMemory = Math.max(timers[label].totalMemory, currentMemory);
-		timers[label].memory += currentMemory - timers[label].startMemory;
+
+	const timer = timers.get(label);
+
+	if (timer !== undefined) {
+		const currentMemory = process.memoryUsage().heapUsed;
+		timer.memory += currentMemory - timer.startMemory;
+		timer.time += performance.now() - timer.startTime;
+		timer.totalMemory = Math.max(timer.totalMemory, currentMemory);
 	}
 }
 
 export function getTimings(): SerializedTimings {
 	const newTimings: SerializedTimings = {};
-	for (const [label, { time, memory, totalMemory }] of Object.entries(timers)) {
+
+	for (const [label, { memory, time, totalMemory }] of timers) {
 		newTimings[label] = [time, memory, totalMemory];
 	}
 	return newTimings;
 }
 
-export let timeStart: (label: string, level?: number) => void = NOOP,
-	timeEnd: (label: string, level?: number) => void = NOOP;
+export let timeStart: (label: string, level?: number) => void = NOOP;
+export let timeEnd: (label: string, level?: number) => void = NOOP;
 
-const TIMED_PLUGIN_HOOKS: { [hook: string]: boolean } = {
-	load: true,
-	resolveDynamicImport: true,
-	resolveId: true,
-	transform: true
-};
+const TIMED_PLUGIN_HOOKS = ['load', 'resolveDynamicImport', 'resolveId', 'transform'] as const;
 
 function getPluginWithTimers(plugin: any, index: number): Plugin {
-	const timedPlugin: { [hook: string]: any } = {};
-
-	for (const hook of Object.keys(plugin)) {
-		if (TIMED_PLUGIN_HOOKS[hook] === true) {
+	for (const hook of TIMED_PLUGIN_HOOKS) {
+		if (hook in plugin) {
 			let timerLabel = `plugin ${index}`;
 			if (plugin.name) {
 				timerLabel += ` (${plugin.name})`;
 			}
 			timerLabel += ` - ${hook}`;
-			timedPlugin[hook] = function (...args: unknown[]) {
+
+			const func = plugin[hook];
+
+			plugin[hook] = function (...args: readonly unknown[]) {
 				timeStart(timerLabel, 4);
-				let result = plugin[hook].apply(this === timedPlugin ? plugin : this, args);
+				const result = func.apply(this, args);
 				timeEnd(timerLabel, 4);
 				if (result && typeof result.then === 'function') {
 					timeStart(`${timerLabel} (async)`, 4);
-					result = result.then((hookResult: unknown) => {
+					return result.then((hookResult: unknown) => {
 						timeEnd(`${timerLabel} (async)`, 4);
 						return hookResult;
 					});
 				}
 				return result;
 			};
-		} else {
-			timedPlugin[hook] = plugin[hook];
 		}
 	}
-	return timedPlugin as Plugin;
+	return plugin;
 }
 
 export function initialiseTimers(inputOptions: InputOptions): void {
 	if (inputOptions.perf) {
-		timers = {};
-		setTimeHelpers();
+		timers = new Map();
 		timeStart = timeStartImpl;
 		timeEnd = timeEndImpl;
 		inputOptions.plugins = inputOptions.plugins!.map(getPluginWithTimers);

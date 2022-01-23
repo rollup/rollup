@@ -30,8 +30,8 @@ import { basename, isAbsolute } from './utils/path';
 import { timeEnd, timeStart } from './utils/timers';
 
 export default class Bundle {
-	private facadeChunkByModule = new Map<Module, Chunk>();
-	private includedNamespaces = new Set<Module>();
+	private readonly facadeChunkByModule = new Map<Module, Chunk>();
+	private readonly includedNamespaces = new Set<Module>();
 
 	constructor(
 		private readonly outputOptions: NormalizedOutputOptions,
@@ -82,7 +82,7 @@ export default class Bundle {
 	}
 
 	private async addFinalizedChunksToBundle(
-		chunks: Chunk[],
+		chunks: readonly Chunk[],
 		inputBase: string,
 		addons: Addons,
 		outputBundle: OutputBundleWithPlaceholders,
@@ -122,11 +122,11 @@ export default class Bundle {
 	}
 
 	private assignChunkIds(
-		chunks: Chunk[],
+		chunks: readonly Chunk[],
 		inputBase: string,
 		addons: Addons,
 		bundle: OutputBundleWithPlaceholders
-	) {
+	): void {
 		const entryChunks: Chunk[] = [];
 		const otherChunks: Chunk[] = [];
 		for (const chunk of chunks) {
@@ -137,7 +137,7 @@ export default class Bundle {
 		}
 
 		// make sure entry chunk names take precedence with regard to deconflicting
-		const chunksForNaming: Chunk[] = entryChunks.concat(otherChunks);
+		const chunksForNaming = entryChunks.concat(otherChunks);
 		for (const chunk of chunksForNaming) {
 			if (this.outputOptions.file) {
 				chunk.id = basename(this.outputOptions.file);
@@ -241,7 +241,7 @@ export default class Bundle {
 	}
 
 	private prerenderChunks(
-		chunks: Chunk[],
+		chunks: readonly Chunk[],
 		inputBase: string,
 		snippets: GenerateCodeSnippets
 	): void {
@@ -254,7 +254,7 @@ export default class Bundle {
 	}
 }
 
-function getAbsoluteEntryModulePaths(chunks: Chunk[]): string[] {
+function getAbsoluteEntryModulePaths(chunks: readonly Chunk[]): string[] {
 	const absoluteEntryModulePaths: string[] = [];
 	for (const chunk of chunks) {
 		for (const entryModule of chunk.entryModules) {

@@ -13,6 +13,7 @@ import {
 	defaultOnWarn,
 	generatedCodePresets,
 	GenericConfigObject,
+	objectifyOption,
 	objectifyOptionWithPresets,
 	treeshakePresets,
 	warnUnknownOptions
@@ -135,7 +136,7 @@ function mergeInputOptions(
 			'treeshake',
 			objectifyOptionWithPresets(treeshakePresets, 'treeshake', 'false, true, ')
 		),
-		watch: getWatch(config, overrides, 'watch')
+		watch: getWatch(config, overrides)
 	};
 
 	warnUnknownOptions(
@@ -171,8 +172,7 @@ const getObjectOption = (
 	config: GenericConfigObject,
 	overrides: GenericConfigObject,
 	name: string,
-	objectifyValue: (value: unknown) => Record<string, unknown> | undefined = value =>
-		(typeof value === 'object' ? value : {}) as Record<string, unknown> | undefined
+	objectifyValue = objectifyOption
 ) => {
 	const commandOption = normalizeObjectOptionValue(overrides[name], objectifyValue);
 	const configOption = normalizeObjectOptionValue(config[name], objectifyValue);
@@ -182,8 +182,18 @@ const getObjectOption = (
 	return configOption;
 };
 
-const getWatch = (config: GenericConfigObject, overrides: GenericConfigObject, name: string) =>
-	config.watch !== false && getObjectOption(config, overrides, name);
+export const getWatch = (config: GenericConfigObject, overrides: GenericConfigObject) =>
+	config.watch !== false && getObjectOption(config, overrides, 'watch');
+
+export const isWatchEnabled = (optionValue: unknown): boolean => {
+	if (Array.isArray(optionValue)) {
+		return optionValue.reduce(
+			(result, value) => (typeof value === 'boolean' ? value : result),
+			false
+		);
+	}
+	return optionValue === true;
+};
 
 export const normalizeObjectOptionValue = (
 	optionValue: unknown,

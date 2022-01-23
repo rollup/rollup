@@ -1,5 +1,6 @@
 const { unlinkSync, writeFileSync } = require('fs');
 const path = require('path');
+const { atomicWriteFileSync } = require('../../../../utils');
 
 let configFile;
 
@@ -10,27 +11,30 @@ module.exports = {
 		configFile = path.resolve(__dirname, 'rollup.config.js');
 		writeFileSync(
 			configFile,
-			'export default {\n' +
-				'\tinput: "main.js",\n' +
-				'\toutput: {\n' +
-				'\t\tfile: "_actual/main1.js",\n' +
-				'\t\tformat: "es"\n' +
-				'\t}\n' +
-				'};'
+			`
+			export default {
+			  input: "main.js",
+        output: {
+          file: "_actual/main1.js",
+          format: "es"
+        }
+      };`
 		);
 	},
 	after() {
-		// synchronous sometimes does not seem to work, probably because the watch is not yet removed properly
-		setTimeout(() => unlinkSync(configFile), 300);
+		unlinkSync(configFile);
 	},
 	abortOnStderr(data) {
 		if (data.includes(`created _actual${path.sep}main1.js`)) {
-			writeFileSync(configFile, 'throw new Error("Config contains errors");');
+			setTimeout(
+				() => atomicWriteFileSync(configFile, 'throw new Error("Config contains errors");'),
+				600
+			);
 			return false;
 		}
 		if (data.includes('Config contains errors')) {
 			setTimeout(() => {
-				writeFileSync(
+				atomicWriteFileSync(
 					configFile,
 					'export default {\n' +
 						'\tinput: "main.js",\n' +
@@ -40,7 +44,7 @@ module.exports = {
 						'\t}\n' +
 						'};'
 				);
-			}, 400);
+			}, 600);
 			return false;
 		}
 		if (data.includes(`created _actual${path.sep}main2.js`)) {

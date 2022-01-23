@@ -101,7 +101,7 @@ export interface SourceDescription extends Partial<PartialNull<ModuleOptions>> {
 	map?: SourceMapInput;
 }
 
-export interface TransformModuleJSON extends Partial<PartialNull<ModuleOptions>> {
+export interface TransformModuleJSON {
 	ast?: AcornNode;
 	code: string;
 	// note if plugins use new this.cache to opt-out auto transform cache
@@ -113,7 +113,7 @@ export interface TransformModuleJSON extends Partial<PartialNull<ModuleOptions>>
 	transformDependencies: string[];
 }
 
-export interface ModuleJSON extends TransformModuleJSON {
+export interface ModuleJSON extends TransformModuleJSON, ModuleOptions {
 	ast: AcornNode;
 	dependencies: string[];
 	id: string;
@@ -160,11 +160,14 @@ interface ModuleInfo {
 	ast: AcornNode | null;
 	code: string | null;
 	dynamicImporters: readonly string[];
+	dynamicallyImportedIdResolutions: readonly ResolvedId[];
 	dynamicallyImportedIds: readonly string[];
+	hasDefaultExport: boolean | null;
 	hasModuleSideEffects: boolean | 'no-treeshake';
 	id: string;
 	implicitlyLoadedAfterOneOf: readonly string[];
 	implicitlyLoadedBefore: readonly string[];
+	importedIdResolutions: readonly ResolvedId[];
 	importedIds: readonly string[];
 	importers: readonly string[];
 	isEntry: boolean;
@@ -199,7 +202,9 @@ export interface PluginContext extends MinimalPluginContext {
 	getWatchFiles: () => string[];
 	/** @deprecated Use `this.resolve` instead */
 	isExternal: IsExternal;
-	load: (options: { id: string } & Partial<PartialNull<ModuleOptions>>) => Promise<ModuleInfo>;
+	load: (
+		options: { id: string; resolveDependencies?: boolean } & Partial<PartialNull<ModuleOptions>>
+	) => Promise<ModuleInfo>;
 	/** @deprecated Use `this.getModuleIds` instead */
 	moduleIds: IterableIterator<string>;
 	parse: (input: string, options?: any) => AcornNode;
@@ -241,6 +246,18 @@ export type ResolveIdHook = (
 	importer: string | undefined,
 	options: { custom?: CustomPluginOptions; isEntry: boolean }
 ) => Promise<ResolveIdResult> | ResolveIdResult;
+
+export type ShouldTransformCachedModuleHook = (
+	this: PluginContext,
+	options: {
+		ast: AcornNode;
+		code: string;
+		id: string;
+		meta: CustomPluginOptions;
+		moduleSideEffects: boolean | 'no-treeshake';
+		syntheticNamedExports: boolean | string;
+	}
+) => Promise<boolean> | boolean;
 
 export type IsExternal = (
 	source: string,
@@ -367,6 +384,7 @@ export interface PluginHooks extends OutputPluginHooks {
 	) => Promise<InputOptions | null | undefined> | InputOptions | null | undefined;
 	resolveDynamicImport: ResolveDynamicImportHook;
 	resolveId: ResolveIdHook;
+	shouldTransformCachedModule: ShouldTransformCachedModuleHook;
 	transform: TransformHook;
 	watchChange: WatchChangeHook;
 }
@@ -419,6 +437,7 @@ export type AsyncPluginHooks =
 	| 'renderStart'
 	| 'resolveDynamicImport'
 	| 'resolveId'
+	| 'shouldTransformCachedModule'
 	| 'transform'
 	| 'writeBundle'
 	| 'closeBundle';
@@ -434,7 +453,8 @@ export type FirstPluginHooks =
 	| 'resolveDynamicImport'
 	| 'resolveFileUrl'
 	| 'resolveId'
-	| 'resolveImportMeta';
+	| 'resolveImportMeta'
+	| 'shouldTransformCachedModule';
 
 export type SequentialPluginHooks =
 	| 'augmentChunkHash'

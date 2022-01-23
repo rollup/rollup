@@ -7,7 +7,8 @@ const { copySync, removeSync, statSync } = require('fs-extra');
 const {
 	normaliseOutput,
 	runTestSuiteWithSamples,
-	assertDirectoriesAreEqual
+	assertDirectoriesAreEqual,
+	getFileNamesAndRemoveOutput
 } = require('../utils.js');
 
 const cwd = process.cwd();
@@ -19,17 +20,29 @@ runTestSuiteWithSamples(
 	'cli',
 	resolve(__dirname, 'samples'),
 	(dir, config) => {
-		(config.skip ? it.skip : config.solo ? it.only : it)(
-			basename(dir) + ': ' + config.description,
-			done => {
-				process.chdir(config.cwd || dir);
-				if (config.before) config.before();
+		// allow to repeat flaky tests for debugging on CLI
+		for (let pass = 0; pass < (config.repeat || 1); pass++) {
+			runTest(dir, config, pass);
+		}
+	},
+	() => process.chdir(cwd)
+);
 
-				const command = config.command.replace(
-					/(^| )rollup($| )/g,
-					`node ${resolve(__dirname, '../../dist/bin')}${sep}rollup `
-				);
+function runTest(dir, config, pass) {
+	const name = basename(dir) + ': ' + config.description;
+	(config.skip ? it.skip : config.solo ? it.only : it)(
+		pass > 0 ? `${name} (pass ${pass + 1})` : name,
+		done => {
+			process.chdir(config.cwd || dir);
+			if (pass > 0) {
+				getFileNamesAndRemoveOutput(dir);
+			}
+			const command = config.command.replace(
+				/(^| )rollup($| )/g,
+				`node ${resolve(__dirname, '../../dist/bin')}${sep}rollup `
+			);
 
+			Promise.resolve(config.before && config.before()).then(() => {
 				const childProcess = exec(
 					command,
 					{
@@ -37,7 +50,7 @@ runTestSuiteWithSamples(
 						env: { ...process.env, FORCE_COLOR: '0', ...config.env }
 					},
 					(err, code, stderr) => {
-						if (config.after) config.after();
+						if (config.after) config.after(err, code, stderr);
 						if (err && !err.killed) {
 							if (config.error) {
 								const shouldContinue = config.error(err);
@@ -131,8 +144,7 @@ runTestSuiteWithSamples(
 						}
 					}
 				});
-			}
-		).timeout(50000);
-	},
-	() => process.chdir(cwd)
-);
+			});
+		}
+	).timeout(50000);
+}
