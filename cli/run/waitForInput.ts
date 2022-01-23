@@ -1,5 +1,5 @@
-import { PluginContext } from 'rollup';
-import { NormalizedInputOptions, Plugin } from '../../src/rollup/types';
+import type { PluginContext } from 'rollup';
+import type { NormalizedInputOptions, Plugin } from '../../src/rollup/types';
 import { bold } from '../../src/utils/colors';
 import { stderr } from '../logging';
 
