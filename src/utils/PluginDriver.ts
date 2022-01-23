@@ -82,7 +82,7 @@ export class PluginDriver {
 
 	private readonly fileEmitter: FileEmitter;
 	private readonly pluginCache: Record<string, SerializablePluginCache> | undefined;
-	private readonly pluginContexts = new Map<Plugin, PluginContext>();
+	private readonly pluginContexts: ReadonlyMap<Plugin, PluginContext>;
 	private readonly plugins: readonly Plugin[];
 
 	constructor(
@@ -105,12 +105,14 @@ export class PluginDriver {
 		this.setOutputBundle = this.fileEmitter.setOutputBundle.bind(this.fileEmitter);
 		this.plugins = userPlugins.concat(basePluginDriver ? basePluginDriver.plugins : []);
 		const existingPluginNames = new Set<string>();
-		for (const plugin of this.plugins) {
-			this.pluginContexts.set(
+
+		this.pluginContexts = new Map(
+			this.plugins.map(plugin => [
 				plugin,
 				getPluginContext(plugin, pluginCache, graph, options, this.fileEmitter, existingPluginNames)
-			);
-		}
+			])
+		);
+
 		if (basePluginDriver) {
 			for (const plugin of userPlugins) {
 				for (const hook of inputHooks) {
