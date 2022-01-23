@@ -10,7 +10,7 @@ export function getChunkAssignments(
 	manualChunkAliasByEntry: ReadonlyMap<Module, string>
 ): ChunkDefinitions {
 	const chunkDefinitions: ChunkDefinitions = [];
-	const modulesInManualChunks = new Set<Module>(manualChunkAliasByEntry.keys());
+	const modulesInManualChunks = new Set(manualChunkAliasByEntry.keys());
 	const manualChunkModulesByAlias: Record<string, Module[]> = Object.create(null);
 	for (const [entry, alias] of manualChunkAliasByEntry) {
 		const chunkModules = (manualChunkModulesByAlias[alias] =
@@ -117,7 +117,7 @@ function analyzeModuleGraph(entryModules: readonly Module[]): {
 	const dependentEntryPointsByModule: DependentModuleMap = new Map();
 	const entriesToHandle = new Set(entryModules);
 	for (const currentEntry of entriesToHandle) {
-		const modulesToHandle = new Set<Module>([currentEntry]);
+		const modulesToHandle = new Set([currentEntry]);
 		for (const module of modulesToHandle) {
 			getOrCreate(dependentEntryPointsByModule, module, () => new Set()).add(currentEntry);
 			for (const dependency of module.getDependenciesToBeIncluded()) {
