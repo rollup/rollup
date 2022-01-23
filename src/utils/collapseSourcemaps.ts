@@ -218,10 +218,8 @@ export function collapseSourcemaps(
 			)
 		);
 
-	let source = new Link(map, moduleSources);
-
-	source = bundleSourcemapChain.reduce(linkMap, source);
-
+	const link = new Link(map, moduleSources);
+	const source = bundleSourcemapChain.reduce(linkMap, link);
 	let { sources, sourcesContent, names, mappings } = source.traceMappings();
 
 	if (file) {
