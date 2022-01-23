@@ -6,8 +6,8 @@ type DependentModuleMap = Map<Module, Set<Module>>;
 type ChunkDefinitions = { alias: string | null; modules: Module[] }[];
 
 export function getChunkAssignments(
-	entryModules: Module[],
-	manualChunkAliasByEntry: Map<Module, string>
+	entryModules: readonly Module[],
+	manualChunkAliasByEntry: ReadonlyMap<Module, string>
 ): ChunkDefinitions {
 	const chunkDefinitions: ChunkDefinitions = [];
 	const modulesInManualChunks = new Set<Module>(manualChunkAliasByEntry.keys());
@@ -54,8 +54,8 @@ export function getChunkAssignments(
 	}
 
 	function areEntryPointsContainedOrDynamicallyDependent(
-		entryPoints: Set<Module>,
-		containedIn: Set<Module>
+		entryPoints: ReadonlySet<Module>,
+		containedIn: ReadonlySet<Module>
 	): boolean {
 		const entriesToCheck = new Set(entryPoints);
 		for (const entry of entriesToCheck) {
@@ -96,7 +96,7 @@ function addStaticDependenciesToManualChunk(
 	entry: Module,
 	manualChunkModules: Module[],
 	modulesInManualChunks: Set<Module>
-) {
+): void {
 	const modulesToHandle = new Set([entry]);
 	for (const module of modulesToHandle) {
 		modulesInManualChunks.add(module);
@@ -109,7 +109,7 @@ function addStaticDependenciesToManualChunk(
 	}
 }
 
-function analyzeModuleGraph(entryModules: Module[]): {
+function analyzeModuleGraph(entryModules: readonly Module[]): {
 	dependentEntryPointsByModule: DependentModuleMap;
 	dynamicEntryModules: Set<Module>;
 } {
@@ -142,7 +142,7 @@ function analyzeModuleGraph(entryModules: Module[]): {
 
 function getDynamicDependentEntryPoints(
 	dependentEntryPointsByModule: DependentModuleMap,
-	dynamicEntryModules: Set<Module>
+	dynamicEntryModules: ReadonlySet<Module>
 ): DependentModuleMap {
 	const dynamicallyDependentEntryPointsByDynamicEntry: DependentModuleMap = new Map();
 	for (const dynamicEntry of dynamicEntryModules) {
@@ -164,7 +164,7 @@ function getDynamicDependentEntryPoints(
 }
 
 function createChunks(
-	allEntryPoints: Module[],
+	allEntryPoints: readonly Module[],
 	assignedEntryPointsByModule: DependentModuleMap
 ): ChunkDefinitions {
 	const chunkModules: { [chunkSignature: string]: Module[] } = Object.create(null);

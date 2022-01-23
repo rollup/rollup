@@ -1004,12 +1004,14 @@ export default class Module {
 
 	private addRelevantSideEffectDependencies(
 		relevantDependencies: Set<Module | ExternalModule>,
-		necessaryDependencies: Set<Module | ExternalModule>,
-		alwaysCheckedDependencies: Set<Module | ExternalModule>
+		necessaryDependencies: ReadonlySet<Module | ExternalModule>,
+		alwaysCheckedDependencies: ReadonlySet<Module | ExternalModule>
 	): void {
 		const handledDependencies = new Set<Module | ExternalModule>();
 
-		const addSideEffectDependencies = (possibleDependencies: Set<Module | ExternalModule>) => {
+		const addSideEffectDependencies = (
+			possibleDependencies: ReadonlySet<Module | ExternalModule>
+		) => {
 			for (const dependency of possibleDependencies) {
 				if (handledDependencies.has(dependency)) {
 					continue;
