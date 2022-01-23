@@ -106,7 +106,6 @@
     "rollup-plugin-string": "^3.0.0",
     "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-thatworks": "^1.0.4",
-    "sander": "^0.6.0",
     "shx": "^0.3.4",
     "signal-exit": "^3.0.6",
     "source-map": "^0.7.3",
