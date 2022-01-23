@@ -340,19 +340,22 @@ export function errMixedExport(facadeModuleId: string, name?: string): RollupLog
 
 export function errNamespaceConflict(
 	name: string,
-	reexportingModule: Module,
+	reexportingModuleId: string,
+	reexportsAll: Record<string, string>,
 	additionalExportAllModule: Module
 ): RollupWarning {
+	const [firstId] = reexportsAll[name].split('*');
+	const [secondId] = additionalExportAllModule.exportsAll[name].split('*');
 	return {
 		code: Errors.NAMESPACE_CONFLICT,
 		message: `Conflicting namespaces: "${relativeId(
-			reexportingModule.id
-		)}" re-exports "${name}" from both "${relativeId(
-			reexportingModule.exportsAll[name]
-		)}" and "${relativeId(additionalExportAllModule.exportsAll[name])}" (will be ignored)`,
+			reexportingModuleId
+		)}" re-exports "${name}" from both "${relativeId(firstId)}" and "${relativeId(
+			secondId
+		)}" (will be ignored)`,
 		name,
-		reexporter: reexportingModule.id,
-		sources: [reexportingModule.exportsAll[name], additionalExportAllModule.exportsAll[name]]
+		reexporter: reexportingModuleId,
+		sources: [firstId, secondId]
 	};
 }
 

@@ -659,10 +659,18 @@ export default class Module {
 		this.addModulesToImportDescriptions(this.reexportDescriptions);
 		for (const name in this.exports) {
 			if (name !== 'default' && name !== this.info.syntheticNamedExports) {
-				this.exportsAll[name] = this.id;
+				this.exportsAll[name] = `${this.id}*${name}`;
+			}
+		}
+		for (const name in this.reexportDescriptions) {
+			if (name !== 'default' && name !== this.info.syntheticNamedExports) {
+				const module = this.reexportDescriptions[name].module;
+				this.exportsAll[name] =
+					module instanceof ExternalModule ? `${module.id}*${name}` : module.exportsAll[name];
 			}
 		}
 		const externalExportAllModules: ExternalModule[] = [];
+		const reexportsAll = Object.create(null);
 		for (const source of this.exportAllSources) {
 			const module = this.graph.modulesById.get(this.resolvedIds[source].id)!;
 			if (module instanceof ExternalModule) {
@@ -671,12 +679,19 @@ export default class Module {
 			}
 			this.exportAllModules.push(module);
 			for (const name in module.exportsAll) {
-				if (name in this.exportsAll) {
-					this.options.onwarn(errNamespaceConflict(name, this, module));
-				} else {
-					this.exportsAll[name] = module.exportsAll[name];
+				if (!(name in this.exportsAll)) {
+					if (name in reexportsAll) {
+						if (reexportsAll[name] !== module.exportsAll[name]) {
+							this.options.onwarn(errNamespaceConflict(name, this.id, reexportsAll, module));
+						}
+					} else {
+						reexportsAll[name] = module.exportsAll[name];
+					}
 				}
 			}
+		}
+		for (const name in reexportsAll) {
+			this.exportsAll[name] = reexportsAll[name];
 		}
 		this.exportAllModules.push(...externalExportAllModules);
 	}
