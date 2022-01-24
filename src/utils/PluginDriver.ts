@@ -5,6 +5,7 @@ import type {
 	AddonHookFunction,
 	AsyncPluginHooks,
 	EmitFile,
+	EmittedFile,
 	FirstPluginHooks,
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
@@ -99,11 +100,16 @@ export class PluginDriver {
 			options,
 			basePluginDriver && basePluginDriver.fileEmitter
 		);
-		this.emitFile = this.fileEmitter.emitFile.bind(this.fileEmitter);
-		this.getFileName = this.fileEmitter.getFileName.bind(this.fileEmitter);
-		this.finaliseAssets = this.fileEmitter.assertAssetsFinalized.bind(this.fileEmitter);
-		this.setOutputBundle = this.fileEmitter.setOutputBundle.bind(this.fileEmitter);
+		this.emitFile = (emittedFile: EmittedFile) => this.fileEmitter.emitFile(emittedFile);
+		this.getFileName = (fileReferenceId: string) => this.fileEmitter.getFileName(fileReferenceId);
+		this.finaliseAssets = () => this.fileEmitter.assertAssetsFinalized();
+		this.setOutputBundle = (
+			outputBundle: OutputBundleWithPlaceholders,
+			outputOptions: NormalizedOutputOptions,
+			facadeChunkByModule: Map<Module, Chunk>
+		) => this.fileEmitter.setOutputBundle(outputBundle, outputOptions, facadeChunkByModule);
 		this.plugins = userPlugins.concat(basePluginDriver ? basePluginDriver.plugins : []);
+
 		const existingPluginNames = new Set<string>();
 
 		this.pluginContexts = new Map(
