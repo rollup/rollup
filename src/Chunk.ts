@@ -143,7 +143,7 @@ export default class Chunk {
 	private dynamicName: string | null = null;
 	private readonly exportNamesByVariable = new Map<Variable, string[]>();
 	private readonly exports = new Set<Variable>();
-	private readonly exportsByName: Record<string, Variable> = Object.create(null);
+	private readonly exportsByName = new Map<string, Variable>();
 	private fileName: string | null = null;
 	private implicitEntryModules: Module[] = [];
 	private readonly implicitlyLoadedBefore = new Set<Chunk>();
@@ -295,7 +295,7 @@ export default class Chunk {
 			for (const [variable, exportNames] of exportNamesByVariable) {
 				this.exportNamesByVariable.set(variable, [...exportNames]);
 				for (const exportName of exportNames) {
-					this.exportsByName[exportName] = variable;
+					this.exportsByName.set(exportName, variable);
 				}
 				remainingExports.delete(variable);
 			}
@@ -533,7 +533,7 @@ export default class Chunk {
 		hash.update(
 			this.getExportNames()
 				.map(exportName => {
-					const variable = this.exportsByName[exportName];
+					const variable = this.exportsByName.get(exportName)!;
 					return `${relativeId((variable.module as Module).id).replace(/\\/g, '/')}:${
 						variable.name
 					}:${exportName}`;
@@ -1013,7 +1013,7 @@ export default class Chunk {
 		for (const exportName of this.getExportNames()) {
 			if (exportName[0] === '*') continue;
 
-			const variable = this.exportsByName[exportName];
+			const variable = this.exportsByName.get(exportName)!;
 			if (!(variable instanceof SyntheticNamedExportVariable)) {
 				const module = variable.module;
 				if (module && this.chunkByModule.get(module as Module) !== this) continue;
@@ -1171,7 +1171,7 @@ export default class Chunk {
 				dependency = this.modulesById.get(id) as ExternalModule;
 				imported = exportName = '*';
 			} else {
-				const variable = this.exportsByName[exportName];
+				const variable = this.exportsByName.get(exportName)!;
 				if (variable instanceof SyntheticNamedExportVariable) continue;
 				const module = variable.module!;
 				if (module instanceof Module) {
@@ -1287,7 +1287,7 @@ export default class Chunk {
 	}: NormalizedOutputOptions) {
 		const syntheticExports = new Set<SyntheticNamedExportVariable>();
 		for (const exportName of this.getExportNames()) {
-			const exportVariable = this.exportsByName[exportName];
+			const exportVariable = this.exportsByName.get(exportName)!;
 			if (
 				format !== 'es' &&
 				format !== 'system' &&
