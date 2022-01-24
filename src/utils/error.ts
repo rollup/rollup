@@ -341,40 +341,37 @@ export function errMixedExport(facadeModuleId: string, name?: string): RollupLog
 export function errNamespaceConflict(
 	name: string,
 	reexportingModuleId: string,
-	reexportsAll: Record<string, string>,
-	additionalExportAllModule: Module
+	sources: string[]
 ): RollupWarning {
-	const [firstId] = reexportsAll[name].split('*');
-	const [secondId] = additionalExportAllModule.exportsAll[name].split('*');
 	return {
 		code: Errors.NAMESPACE_CONFLICT,
 		message: `Conflicting namespaces: "${relativeId(
 			reexportingModuleId
-		)}" re-exports "${name}" from both "${relativeId(firstId)}" and "${relativeId(
-			secondId
-		)}" (will be ignored)`,
+		)}" re-exports "${name}" from one of the modules ${printQuotedStringList(
+			sources.map(moduleId => relativeId(moduleId))
+		)} (will be ignored)`,
 		name,
 		reexporter: reexportingModuleId,
-		sources: [firstId, secondId]
+		sources
 	};
 }
 
 export function errAmbiguousExternalNamespaces(
 	name: string,
 	reexportingModule: string,
-	usedExternalModule: string,
-	externalModules: string[]
+	usedModule: string,
+	sources: string[]
 ): RollupWarning {
 	return {
 		code: Errors.AMBIGUOUS_EXTERNAL_NAMESPACES,
 		message: `Ambiguous external namespace resolution: "${relativeId(
 			reexportingModule
 		)}" re-exports "${name}" from one of the external modules ${printQuotedStringList(
-			externalModules.map(module => relativeId(module))
-		)}, guessing "${relativeId(usedExternalModule)}".`,
+			sources.map(module => relativeId(module))
+		)}, guessing "${relativeId(usedModule)}".`,
 		name,
 		reexporter: reexportingModule,
-		sources: externalModules
+		sources
 	};
 }
 
