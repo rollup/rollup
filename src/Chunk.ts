@@ -503,15 +503,11 @@ export default class Chunk {
 	}
 
 	getChunkName(): string {
-		return (
-			this.name || (this.name = this.outputOptions.sanitizeFileName(this.getFallbackChunkName()))
-		);
+		return (this.name ??= this.outputOptions.sanitizeFileName(this.getFallbackChunkName()));
 	}
 
 	getExportNames(): string[] {
-		return (
-			this.sortedExportNames || (this.sortedExportNames = Object.keys(this.exportsByName).sort())
-		);
+		return (this.sortedExportNames ??= Array.from(this.exportsByName.keys()).sort());
 	}
 
 	getRenderedHash(): string {
@@ -869,13 +865,13 @@ export default class Chunk {
 	): string {
 		const hash = createHash();
 		hash.update(
-			[addons.intro, addons.outro, addons.banner, addons.footer].map(addon => addon || '').join(':')
+			[addons.intro, addons.outro, addons.banner, addons.footer].map(addon => addon ?? '').join(':')
 		);
 		hash.update(options.format);
 		const dependenciesForHashing = new Set<Chunk | ExternalModule>([this]);
 		for (const current of dependenciesForHashing) {
 			if (current instanceof ExternalModule) {
-				hash.update(':' + current.renderPath);
+				hash.update(`:${current.renderPath}`);
 			} else {
 				hash.update(current.getRenderedHash());
 				hash.update(current.generateId(addons, options, existingNames, false));
