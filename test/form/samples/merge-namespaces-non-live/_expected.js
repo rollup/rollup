@@ -13,10 +13,12 @@ function _mergeNamespaces(n, m) {
 	return Object.freeze(n);
 }
 
-const __synthetic = { foo: 'foo' };
+const __synthetic$1 = { module: 'synthetic' };
+
+const __synthetic = { module: 'reexport' };
 
 var ns = /*#__PURE__*/Object.freeze(/*#__PURE__*/_mergeNamespaces({
 	__proto__: null
-}, [__synthetic, external1, external2]));
+}, [__synthetic, __synthetic$1, external1, external2]));
 
 console.log(ns);
