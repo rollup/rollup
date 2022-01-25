@@ -3,10 +3,10 @@ import { PluginDriver } from './PluginDriver';
 import { error } from './error';
 
 export interface Addons {
-	banner?: string;
-	footer?: string;
-	intro?: string;
-	outro?: string;
+	banner: string;
+	footer: string;
+	intro: string;
+	outro: string;
 }
 
 const concatSep = (out: string, next: string) => (next ? `${out}\n${next}` : out);

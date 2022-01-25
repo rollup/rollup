@@ -737,13 +737,13 @@ export default class Chunk {
 				hasExports,
 				id: this.id,
 				indent: this.indentString,
-				intro: addons.intro!,
+				intro: addons.intro,
 				isEntryFacade:
 					this.outputOptions.preserveModules ||
 					(this.facadeModule !== null && this.facadeModule.info.isEntry),
 				isModuleFacade: this.facadeModule !== null,
 				namedExportsMode: this.exportMode !== 'default',
-				outro: addons.outro!,
+				outro: addons.outro,
 				snippets,
 				usesTopLevelAwait,
 				warn: this.inputOptions.onwarn
@@ -864,9 +864,7 @@ export default class Chunk {
 		existingNames: Record<string, unknown>
 	): string {
 		const hash = createHash();
-		hash.update(
-			[addons.intro, addons.outro, addons.banner, addons.footer].map(addon => addon ?? '').join(':')
-		);
+		hash.update([addons.intro, addons.outro, addons.banner, addons.footer].join(':'));
 		hash.update(options.format);
 		const dependenciesForHashing = new Set<Chunk | ExternalModule>([this]);
 		for (const current of dependenciesForHashing) {
