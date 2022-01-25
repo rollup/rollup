@@ -351,7 +351,11 @@ export default class Module {
 				if (name !== 'default') allExportNames.add(name);
 			}
 		}
-
+		// We do not count the synthetic namespace as a regular export to hide it
+		// from entry signatures and namespace objects
+		if (typeof this.info.syntheticNamedExports === 'string') {
+			allExportNames.delete(this.info.syntheticNamedExports);
+		}
 		return allExportNames;
 	}
 
@@ -412,7 +416,6 @@ export default class Module {
 		}
 		const exportNamesByVariable = new Map<Variable, string[]>();
 		for (const exportName of this.getAllExportNames()) {
-			if (exportName === this.info.syntheticNamedExports) continue;
 			let [tracedVariable] = this.getVariableForExportName(exportName);
 			if (tracedVariable instanceof ExportDefaultVariable) {
 				tracedVariable = tracedVariable.getOriginalVariable();
@@ -477,7 +480,8 @@ export default class Module {
 			[this.syntheticNamespace] = this.getVariableForExportName(
 				typeof this.info.syntheticNamedExports === 'string'
 					? this.info.syntheticNamedExports
-					: 'default'
+					: 'default',
+				{ onlyExplicit: true }
 			);
 		}
 		if (!this.syntheticNamespace) {
@@ -493,10 +497,12 @@ export default class Module {
 		{
 			importerForSideEffects,
 			isExportAllSearch,
+			onlyExplicit,
 			searchedNamesAndModules
 		}: {
 			importerForSideEffects?: Module;
 			isExportAllSearch?: boolean;
+			onlyExplicit?: boolean;
 			searchedNamesAndModules?: Map<string, Set<Module | ExternalModule>>;
 		} = EMPTY_OBJECT
 	): [variable: Variable | null, indirectExternal?: boolean] {
@@ -521,7 +527,6 @@ export default class Module {
 				false,
 				searchedNamesAndModules
 			);
-
 			if (!variable) {
 				return this.error(
 					errMissingExport(reexportDeclaration.localName, this.id, reexportDeclaration.module.id),
@@ -550,6 +555,10 @@ export default class Module {
 				setAlternativeExporterIfCyclic(variable, importerForSideEffects, this);
 			}
 			return [variable];
+		}
+
+		if (onlyExplicit) {
+			return [null];
 		}
 
 		if (name !== 'default') {
@@ -1021,6 +1030,10 @@ export default class Module {
 		const foundInternalDeclarations = new Map<Variable, Module>();
 		const foundExternalDeclarations = new Set<ExternalVariable>();
 		for (const module of this.exportAllModules) {
+			// Synthetic namespaces should not hide "regular" exports of the same name
+			if (module.info.syntheticNamedExports === name) {
+				continue;
+			}
 			const [variable, indirectExternal] = getVariableForExportNameRecursive(
 				module,
 				name,

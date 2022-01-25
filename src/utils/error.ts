@@ -407,7 +407,7 @@ export function errSyntheticNamedExportsNeedNamespaceExport(
 			syntheticNamedExportsOption
 		)}' needs ${
 			typeof syntheticNamedExportsOption === 'string' && syntheticNamedExportsOption !== 'default'
-				? `an export named "${syntheticNamedExportsOption}"`
+				? `an explicit export named "${syntheticNamedExportsOption}"`
 				: 'a default export'
 		} that does not reexport an unresolved named export of the same module.`
 	};
