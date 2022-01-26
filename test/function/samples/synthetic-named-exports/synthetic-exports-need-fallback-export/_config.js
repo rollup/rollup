@@ -17,7 +17,7 @@ module.exports = {
 	error: {
 		code: 'SYNTHETIC_NAMED_EXPORTS_NEED_NAMESPACE_EXPORT',
 		id: DEP_ID,
-		message: `Module "dep.js" that is marked with 'syntheticNamedExports: "__synthetic"' needs an export named "__synthetic" that does not reexport an unresolved named export of the same module.`,
+		message: `Module "dep.js" that is marked with 'syntheticNamedExports: "__synthetic"' needs an explicit export named "__synthetic" that does not reexport an unresolved named export of the same module.`,
 		watchFiles: [path.join(__dirname, 'main.js'), DEP_ID]
 	}
 };
