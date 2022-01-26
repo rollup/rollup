@@ -735,36 +735,32 @@ export default class Module {
 		timeStart('analyse ast', 3);
 
 		this.astContext = {
-			addDynamicImport: (node: ImportExpression): void => this.addDynamicImport(node),
-			addExport: (
-				node: ExportAllDeclaration | ExportNamedDeclaration | ExportDefaultDeclaration
-			): void => this.addExport(node),
-			addImport: (node: ImportDeclaration): void => this.addImport(node),
-			addImportMeta: (node: MetaProperty): void => this.addImportMeta(node),
+			addDynamicImport: this.addDynamicImport.bind(this),
+			addExport: this.addExport.bind(this),
+			addImport: this.addImport.bind(this),
+			addImportMeta: this.addImportMeta.bind(this),
 			code, // Only needed for debugging
 			deoptimizationTracker: this.graph.deoptimizationTracker,
-			error: (props: RollupError, pos: number) => this.error(props, pos),
+			error: this.error.bind(this),
 			fileName, // Needed for warnings
-			getExports: () => this.getExports(),
+			getExports: this.getExports.bind(this),
 			getModuleExecIndex: () => this.execIndex,
-			getModuleName: () => this.basename(),
+			getModuleName: this.basename.bind(this),
 			getNodeConstructor: (name: string) => nodeConstructors[name] || nodeConstructors.UnknownNode,
-			getReexports: () => this.getReexports(),
+			getReexports: this.getReexports.bind(this),
 			importDescriptions: this.importDescriptions,
 			includeAllExports: () => this.includeAllExports(true),
-			includeDynamicImport: (node: ImportExpression) => this.includeDynamicImport(node),
-			includeVariableInModule: (variable: Variable) => this.includeVariableInModule(variable),
+			includeDynamicImport: this.includeDynamicImport.bind(this),
+			includeVariableInModule: this.includeVariableInModule.bind(this),
 			magicString: this.magicString,
 			module: this,
 			moduleContext: this.context,
 			options: this.options,
-			requestTreeshakingPass: () => {
-				this.graph.needsTreeshakingPass = true;
-			},
-			traceExport: (name: string) => this.getVariableForExportName(name),
-			traceVariable: (name: string) => this.traceVariable(name),
+			requestTreeshakingPass: () => (this.graph.needsTreeshakingPass = true),
+			traceExport: this.getVariableForExportName.bind(this),
+			traceVariable: this.traceVariable.bind(this),
 			usesTopLevelAwait: false,
-			warn: (warning: RollupWarning, pos: number) => this.warn(warning, pos)
+			warn: this.warn.bind(this)
 		};
 
 		this.scope = new ModuleScope(this.graph.scope, this.astContext);
