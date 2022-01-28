@@ -71,7 +71,7 @@ export function analyseModuleExecution(entryModules: readonly Module[]): {
 function getCyclePath(
 	module: Module,
 	parent: Module,
-	parents: Map<Module | ExternalModule, Module | null>
+	parents: ReadonlyMap<Module | ExternalModule, Module | null>
 ): string[] {
 	const cycleSymbol = Symbol(module.id);
 	const path = [relativeId(module.id)];

@@ -150,8 +150,8 @@ function getChunkFileName(
 
 export class FileEmitter {
 	private bundle: OutputBundleWithPlaceholders | null = null;
-	private facadeChunkByModule: Map<Module, Chunk> | null = null;
-	private filesByReferenceId: Map<string, ConsumedFile>;
+	private facadeChunkByModule: ReadonlyMap<Module, Chunk> | null = null;
+	private readonly filesByReferenceId: Map<string, ConsumedFile>;
 	private outputOptions: NormalizedOutputOptions | null = null;
 
 	constructor(
@@ -231,7 +231,7 @@ export class FileEmitter {
 	public setOutputBundle = (
 		outputBundle: OutputBundleWithPlaceholders,
 		outputOptions: NormalizedOutputOptions,
-		facadeChunkByModule: Map<Module, Chunk>
+		facadeChunkByModule: ReadonlyMap<Module, Chunk>
 	): void => {
 		this.outputOptions = outputOptions;
 		this.bundle = outputBundle;

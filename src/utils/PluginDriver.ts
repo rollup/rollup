@@ -77,7 +77,7 @@ export class PluginDriver {
 	public readonly setOutputBundle: (
 		outputBundle: OutputBundleWithPlaceholders,
 		outputOptions: NormalizedOutputOptions,
-		facadeChunkByModule: Map<Module, Chunk>
+		facadeChunkByModule: ReadonlyMap<Module, Chunk>
 	) => void;
 
 	private readonly fileEmitter: FileEmitter;

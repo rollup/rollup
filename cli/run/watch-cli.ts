@@ -1,4 +1,5 @@
 import { type FSWatcher, readFileSync } from 'fs';
+import process from 'process';
 import chokidar from 'chokidar';
 import dateTime from 'date-time';
 import ms from 'pretty-ms';

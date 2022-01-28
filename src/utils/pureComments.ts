@@ -60,7 +60,7 @@ const neitherWithespaceNorBrackets = /[^\s(]/g;
 const noWhitespace = /\S/g;
 
 function markPureNode(node: NodeWithComments, comment: acorn.Comment, code: string): void {
-	const annotatedNodes = [];
+	const annotatedNodes: NodeWithComments[] = [];
 	let invalidAnnotation: boolean | undefined;
 	const codeInBetween = code.slice(comment.end, node.start);
 	if (doesNotMatchOutsideComment(codeInBetween, neitherWithespaceNorBrackets)) {
@@ -139,7 +139,7 @@ function doesNotMatchOutsideComment(code: string, forbiddenChars: RegExp): boole
 const pureCommentRegex = /[@#]__PURE__/;
 
 export function addAnnotations(
-	comments: acorn.Comment[],
+	comments: readonly acorn.Comment[],
 	esTreeAst: acorn.Node,
 	code: string
 ): void {

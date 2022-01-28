@@ -32,12 +32,12 @@ interface SourceMapSegmentObject {
 }
 
 class Link {
-	readonly mappings: SourceMapSegment[][];
-	readonly names: string[];
+	readonly mappings: readonly SourceMapSegment[][];
+	readonly names: readonly string[];
 	readonly sources: (Source | Link)[];
 
 	constructor(
-		map: { mappings: SourceMapSegment[][]; names: string[] },
+		map: { mappings: readonly SourceMapSegment[][]; names: readonly string[] },
 		sources: (Source | Link)[]
 	) {
 		this.sources = sources;

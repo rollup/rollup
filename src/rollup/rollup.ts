@@ -136,7 +136,7 @@ function applyOptionHook(watchMode: boolean) {
 	};
 }
 
-function normalizePlugins(plugins: Plugin[], anonymousPrefix: string): void {
+function normalizePlugins(plugins: readonly Plugin[], anonymousPrefix: string): void {
 	for (let pluginIndex = 0; pluginIndex < plugins.length; pluginIndex++) {
 		const plugin = plugins[pluginIndex];
 		if (!plugin.name) {
@@ -148,7 +148,7 @@ function normalizePlugins(plugins: Plugin[], anonymousPrefix: string): void {
 async function handleGenerateWrite(
 	isWrite: boolean,
 	inputOptions: NormalizedInputOptions,
-	unsetInputOptions: Set<string>,
+	unsetInputOptions: ReadonlySet<string>,
 	rawOutputOptions: GenericConfigObject,
 	graph: Graph
 ): Promise<RollupOutput> {
@@ -181,7 +181,7 @@ function getOutputOptionsAndPluginDriver(
 	rawOutputOptions: GenericConfigObject,
 	inputPluginDriver: PluginDriver,
 	inputOptions: NormalizedInputOptions,
-	unsetInputOptions: Set<string>
+	unsetInputOptions: ReadonlySet<string>
 ): {
 	options: NormalizedOutputOptions;
 	outputPluginDriver: PluginDriver;
@@ -202,7 +202,7 @@ function getOutputOptionsAndPluginDriver(
 
 function getOutputOptions(
 	inputOptions: NormalizedInputOptions,
-	unsetInputOptions: Set<string>,
+	unsetInputOptions: ReadonlySet<string>,
 	rawOutputOptions: GenericConfigObject,
 	outputPluginDriver: PluginDriver
 ): { options: NormalizedOutputOptions; unsetOptions: Set<string> } {
