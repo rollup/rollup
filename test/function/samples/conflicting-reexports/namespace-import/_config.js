@@ -6,7 +6,7 @@ module.exports = {
 		{
 			code: 'NAMESPACE_CONFLICT',
 			message:
-				'Conflicting namespaces: "reexport.js" re-exports "foo" from both "first.js" and "second.js" (will be ignored)',
+				'Conflicting namespaces: "reexport.js" re-exports "foo" from one of the modules "first.js" and "second.js" (will be ignored)',
 			name: 'foo',
 			reexporter: path.join(__dirname, 'reexport.js'),
 			sources: [path.join(__dirname, 'first.js'), path.join(__dirname, 'second.js')]

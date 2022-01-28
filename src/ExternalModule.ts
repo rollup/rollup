@@ -64,13 +64,13 @@ export default class ExternalModule {
 		};
 	}
 
-	getVariableForExportName(name: string): ExternalVariable {
+	getVariableForExportName(name: string): [variable: ExternalVariable] {
 		let declaration = this.declarations[name];
-		if (declaration) return declaration;
+		if (declaration) return [declaration];
 
 		this.declarations[name] = declaration = new ExternalVariable(this, name);
 		this.exportedVariables.set(declaration, name);
-		return declaration;
+		return [declaration];
 	}
 
 	setRenderPath(options: NormalizedOutputOptions, inputBase: string): string {
