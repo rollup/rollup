@@ -1,18 +1,18 @@
 import { version as rollupVersion } from 'package.json';
 import Bundle from '../Bundle';
 import Graph from '../Graph';
-import { PluginDriver } from '../utils/PluginDriver';
+import type { PluginDriver } from '../utils/PluginDriver';
 import { ensureArray } from '../utils/ensureArray';
 import { errAlreadyClosed, errCannotEmitFromOptionsHook, error } from '../utils/error';
 import { writeFile } from '../utils/fs';
 import { normalizeInputOptions } from '../utils/options/normalizeInputOptions';
 import { normalizeOutputOptions } from '../utils/options/normalizeOutputOptions';
-import { GenericConfigObject } from '../utils/options/options';
+import type { GenericConfigObject } from '../utils/options/options';
 import { basename, dirname, resolve } from '../utils/path';
 import { ANONYMOUS_OUTPUT_PLUGIN_PREFIX, ANONYMOUS_PLUGIN_PREFIX } from '../utils/pluginUtils';
 import { SOURCEMAPPING_URL } from '../utils/sourceMappingURL';
 import { getTimings, initialiseTimers, timeEnd, timeStart } from '../utils/timers';
-import {
+import type {
 	NormalizedInputOptions,
 	NormalizedOutputOptions,
 	OutputAsset,
@@ -136,7 +136,7 @@ function applyOptionHook(watchMode: boolean) {
 	};
 }
 
-function normalizePlugins(plugins: Plugin[], anonymousPrefix: string): void {
+function normalizePlugins(plugins: readonly Plugin[], anonymousPrefix: string): void {
 	for (let pluginIndex = 0; pluginIndex < plugins.length; pluginIndex++) {
 		const plugin = plugins[pluginIndex];
 		if (!plugin.name) {
@@ -148,7 +148,7 @@ function normalizePlugins(plugins: Plugin[], anonymousPrefix: string): void {
 async function handleGenerateWrite(
 	isWrite: boolean,
 	inputOptions: NormalizedInputOptions,
-	unsetInputOptions: Set<string>,
+	unsetInputOptions: ReadonlySet<string>,
 	rawOutputOptions: GenericConfigObject,
 	graph: Graph
 ): Promise<RollupOutput> {
@@ -181,7 +181,7 @@ function getOutputOptionsAndPluginDriver(
 	rawOutputOptions: GenericConfigObject,
 	inputPluginDriver: PluginDriver,
 	inputOptions: NormalizedInputOptions,
-	unsetInputOptions: Set<string>
+	unsetInputOptions: ReadonlySet<string>
 ): {
 	options: NormalizedOutputOptions;
 	outputPluginDriver: PluginDriver;
@@ -202,7 +202,7 @@ function getOutputOptionsAndPluginDriver(
 
 function getOutputOptions(
 	inputOptions: NormalizedInputOptions,
-	unsetInputOptions: Set<string>,
+	unsetInputOptions: ReadonlySet<string>,
 	rawOutputOptions: GenericConfigObject,
 	outputPluginDriver: PluginDriver
 ): { options: NormalizedOutputOptions; unsetOptions: Set<string> } {

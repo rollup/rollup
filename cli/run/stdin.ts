@@ -1,4 +1,4 @@
-import { Plugin } from '../../src/rollup/types';
+import type { Plugin } from '../../src/rollup/types';
 
 export const stdinName = '-';
 

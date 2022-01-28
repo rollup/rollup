@@ -1,5 +1,5 @@
-import Chunk from '../Chunk';
-import { NormalizedOutputOptions, WarningHandler } from '../rollup/types';
+import type Chunk from '../Chunk';
+import type { NormalizedOutputOptions, WarningHandler } from '../rollup/types';
 import {
 	errIncompatibleExportOptionValue,
 	errMixedExport,

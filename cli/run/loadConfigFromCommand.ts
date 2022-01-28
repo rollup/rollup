@@ -4,7 +4,7 @@ import batchWarnings, { BatchWarnings } from './batchWarnings';
 import { addCommandPluginsToInputOptions } from './commandPlugins';
 import { stdinName } from './stdin';
 
-export default async function loadConfigFromCommand(command: Record<string, any>): Promise<{
+export default async function loadConfigFromCommand(command: Record<string, unknown>): Promise<{
 	options: MergedRollupOptions[];
 	warnings: BatchWarnings;
 }> {

@@ -1,6 +1,6 @@
-import Chunk from '../Chunk';
+import type Chunk from '../Chunk';
 import ExternalModule from '../ExternalModule';
-import Module from '../Module';
+import type Module from '../Module';
 
 export function getStaticDependencies(
 	chunk: Chunk,

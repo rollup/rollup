@@ -1,9 +1,9 @@
-import MagicString from 'magic-string';
-import { Node, StatementNode } from '../ast/nodes/shared/Node';
-import Variable from '../ast/variables/Variable';
-import { InternalModuleFormat } from '../rollup/types';
-import { PluginDriver } from './PluginDriver';
-import { GenerateCodeSnippets } from './generateCodeSnippets';
+import type MagicString from 'magic-string';
+import type { Node, StatementNode } from '../ast/nodes/shared/Node';
+import type Variable from '../ast/variables/Variable';
+import type { InternalModuleFormat } from '../rollup/types';
+import type { PluginDriver } from './PluginDriver';
+import type { GenerateCodeSnippets } from './generateCodeSnippets';
 import { treeshakeNode } from './treeshakeNode';
 
 export interface RenderOptions {

@@ -1,5 +1,5 @@
 import * as acorn from 'acorn';
-import {
+import type {
 	HasModuleSideEffects,
 	InputOptions,
 	ModuleSideEffectsOption,
@@ -15,7 +15,7 @@ import { resolve } from '../path';
 import relativeId from '../relativeId';
 import {
 	defaultOnWarn,
-	GenericConfigObject,
+	type GenericConfigObject,
 	getOptionWithPreset,
 	treeshakePresets,
 	warnUnknownOptions

@@ -1,17 +1,17 @@
-import MagicString, { Bundle as MagicStringBundle, SourceMap } from 'magic-string';
+import MagicString, { Bundle as MagicStringBundle, type SourceMap } from 'magic-string';
 import { relative } from '../browser/path';
 import ExternalModule from './ExternalModule';
 import Module from './Module';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
 import FunctionDeclaration from './ast/nodes/FunctionDeclaration';
-import ChildScope from './ast/scopes/ChildScope';
+import type ChildScope from './ast/scopes/ChildScope';
 import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
 import LocalVariable from './ast/variables/LocalVariable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import SyntheticNamedExportVariable from './ast/variables/SyntheticNamedExportVariable';
-import Variable from './ast/variables/Variable';
+import type Variable from './ast/variables/Variable';
 import finalisers from './finalisers/index';
-import {
+import type {
 	DecodedSourceMapOrMissing,
 	GetInterop,
 	GlobalsOption,
@@ -23,11 +23,11 @@ import {
 	RenderedModule,
 	WarningHandler
 } from './rollup/types';
-import { PluginDriver } from './utils/PluginDriver';
-import { Addons } from './utils/addons';
+import type { PluginDriver } from './utils/PluginDriver';
+import type { Addons } from './utils/addons';
 import { collapseSourcemaps } from './utils/collapseSourcemaps';
 import { createHash } from './utils/crypto';
-import { deconflictChunk, DependenciesToBeDeconflicted } from './utils/deconflictChunk';
+import { deconflictChunk, type DependenciesToBeDeconflicted } from './utils/deconflictChunk';
 import {
 	errCyclicCrossChunkReexport,
 	errFailedValidation,
@@ -38,7 +38,7 @@ import {
 } from './utils/error';
 import { escapeId } from './utils/escapeId';
 import { assignExportsToMangledNames, assignExportsToNames } from './utils/exportNames';
-import { GenerateCodeSnippets } from './utils/generateCodeSnippets';
+import type { GenerateCodeSnippets } from './utils/generateCodeSnippets';
 import getExportMode from './utils/getExportMode';
 import { getId } from './utils/getId';
 import getIndentString from './utils/getIndentString';
@@ -54,7 +54,7 @@ import {
 import { basename, dirname, extname, isAbsolute, normalize, resolve } from './utils/path';
 import relativeId, { getAliasName } from './utils/relativeId';
 import renderChunk from './utils/renderChunk';
-import { RenderOptions } from './utils/renderHelpers';
+import type { RenderOptions } from './utils/renderHelpers';
 import { makeUnique, renderNamePattern } from './utils/renderNamePattern';
 import { timeEnd, timeStart } from './utils/timers';
 import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
@@ -165,13 +165,13 @@ export default class Chunk {
 	private strictFacade = false;
 	private usedModules: Module[] = undefined as never;
 	constructor(
-		private readonly orderedModules: Module[],
+		private readonly orderedModules: readonly Module[],
 		private readonly inputOptions: NormalizedInputOptions,
 		private readonly outputOptions: NormalizedOutputOptions,
-		private readonly unsetOptions: Set<string>,
+		private readonly unsetOptions: ReadonlySet<string>,
 		private readonly pluginDriver: PluginDriver,
-		private readonly modulesById: Map<string, Module | ExternalModule>,
-		private readonly chunkByModule: Map<Module, Chunk>,
+		private readonly modulesById: ReadonlyMap<string, Module | ExternalModule>,
+		private readonly chunkByModule: ReadonlyMap<Module, Chunk>,
 		private readonly facadeChunkByModule: Map<Module, Chunk>,
 		private readonly includedNamespaces: Set<Module>,
 		private readonly manualChunkAlias: string | null
@@ -209,10 +209,10 @@ export default class Chunk {
 	private static generateFacade(
 		inputOptions: NormalizedInputOptions,
 		outputOptions: NormalizedOutputOptions,
-		unsetOptions: Set<string>,
+		unsetOptions: ReadonlySet<string>,
 		pluginDriver: PluginDriver,
-		modulesById: Map<string, Module | ExternalModule>,
-		chunkByModule: Map<Module, Chunk>,
+		modulesById: ReadonlyMap<string, Module | ExternalModule>,
+		chunkByModule: ReadonlyMap<Module, Chunk>,
 		facadeChunkByModule: Map<Module, Chunk>,
 		includedNamespaces: Set<Module>,
 		facadedModule: Module,
@@ -833,7 +833,7 @@ export default class Chunk {
 		}
 	}
 
-	private checkCircularDependencyImport(variable: Variable, importingModule: Module) {
+	private checkCircularDependencyImport(variable: Variable, importingModule: Module): void {
 		const variableModule = variable.module;
 		if (variableModule instanceof Module) {
 			const exportChunk = this.chunkByModule.get(variableModule);

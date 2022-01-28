@@ -1,5 +1,5 @@
 import ExternalVariable from './ast/variables/ExternalVariable';
-import {
+import type {
 	CustomPluginOptions,
 	ModuleInfo,
 	NormalizedInputOptions,

@@ -1,6 +1,6 @@
 import { locate } from 'locate-character';
-import Module from '../Module';
-import {
+import type Module from '../Module';
+import type {
 	NormalizedInputOptions,
 	RollupError,
 	RollupLogProps,
@@ -220,7 +220,7 @@ export function errInvalidExportOptionValue(optionValue: string): RollupLogProps
 
 export function errIncompatibleExportOptionValue(
 	optionValue: string,
-	keys: string[],
+	keys: readonly string[],
 	entryModule: string
 ): RollupLogProps {
 	return {
