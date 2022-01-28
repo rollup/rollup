@@ -243,7 +243,7 @@ export default class Graph {
 			for (const importDescription of Object.values(module.importDescriptions)) {
 				if (
 					importDescription.name !== '*' &&
-					!importDescription.module.getVariableForExportName(importDescription.name)
+					!importDescription.module.getVariableForExportName(importDescription.name)[0]
 				) {
 					module.warn(
 						{
