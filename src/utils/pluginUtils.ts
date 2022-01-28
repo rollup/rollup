@@ -24,9 +24,9 @@ export function throwPluginError(
 	return error(err);
 }
 
-export const deprecatedHooks: { active: boolean; deprecated: string; replacement: string }[] = [
+const deprecatedHooks = [
 	{ active: true, deprecated: 'resolveAssetUrl', replacement: 'resolveFileUrl' }
-];
+] as const;
 
 export function warnDeprecatedHooks(
 	plugins: readonly Plugin[],
