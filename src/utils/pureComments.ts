@@ -12,16 +12,6 @@ import {
 } from '../ast/nodes/NodeType';
 import { SOURCEMAPPING_URL_RE } from './sourceMappingURL';
 
-// patch up acorn-walk until class-fields are officially supported
-basicWalker.PropertyDefinition = function (node: any, st: any, c: any): void {
-	if (node.computed) {
-		c(node.key, st, 'Expression');
-	}
-	if (node.value) {
-		c(node.value, st, 'Expression');
-	}
-};
-
 interface CommentState {
 	annotationIndex: number;
 	annotations: acorn.Comment[];
