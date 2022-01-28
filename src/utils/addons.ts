@@ -1,5 +1,5 @@
-import { NormalizedOutputOptions } from '../rollup/types';
-import { PluginDriver } from './PluginDriver';
+import type { NormalizedOutputOptions } from '../rollup/types';
+import type { PluginDriver } from './PluginDriver';
 import { error } from './error';
 
 export interface Addons {

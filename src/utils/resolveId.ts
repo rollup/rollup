@@ -1,5 +1,5 @@
-import { CustomPluginOptions, Plugin, ResolvedId, ResolveIdResult } from '../rollup/types';
-import { PluginDriver } from './PluginDriver';
+import type { CustomPluginOptions, Plugin, ResolvedId, ResolveIdResult } from '../rollup/types';
+import type { PluginDriver } from './PluginDriver';
 import { lstatSync, readdirSync, realpathSync } from './fs';
 import { basename, dirname, isAbsolute, resolve } from './path';
 import { resolveIdViaPlugins } from './resolveIdViaPlugins';

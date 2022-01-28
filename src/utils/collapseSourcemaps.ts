@@ -1,6 +1,6 @@
-import { DecodedSourceMap, SourceMap } from 'magic-string';
-import Module from '../Module';
-import {
+import { type DecodedSourceMap, SourceMap } from 'magic-string';
+import type Module from '../Module';
+import type {
 	DecodedSourceMapOrMissing,
 	ExistingDecodedSourceMap,
 	SourceMapSegment,

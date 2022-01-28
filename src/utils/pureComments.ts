@@ -1,5 +1,5 @@
 import * as acorn from 'acorn';
-import { BaseWalker, base as basicWalker } from 'acorn-walk';
+import { type BaseWalker, base as basicWalker } from 'acorn-walk';
 import {
 	BinaryExpression,
 	CallExpression,

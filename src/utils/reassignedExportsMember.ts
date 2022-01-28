@@ -1,4 +1,4 @@
-import Variable from '../ast/variables/Variable';
+import type Variable from '../ast/variables/Variable';
 
 export function isReassignedExportsMember(
 	variable: Variable,

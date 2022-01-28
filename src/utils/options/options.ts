@@ -1,4 +1,4 @@
-import {
+import type {
 	InputOptions,
 	NormalizedGeneratedCodeOptions,
 	NormalizedOutputOptions,

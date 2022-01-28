@@ -1,4 +1,4 @@
-import {
+import type {
 	InternalModuleFormat,
 	InteropType,
 	NormalizedInputOptions,
@@ -12,7 +12,7 @@ import { resolve } from '../path';
 import { sanitizeFileName as defaultSanitizeFileName } from '../sanitizeFileName';
 import {
 	generatedCodePresets,
-	GenericConfigObject,
+	type GenericConfigObject,
 	getOptionWithPreset,
 	warnUnknownOptions
 } from './options';

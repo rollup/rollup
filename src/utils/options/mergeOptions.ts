@@ -1,4 +1,4 @@
-import {
+import type {
 	ExternalOption,
 	InputOptions,
 	MergedRollupOptions,
@@ -8,11 +8,11 @@ import {
 	WarningHandlerWithDefault
 } from '../../rollup/types';
 import { ensureArray } from '../ensureArray';
-import { CommandConfigObject } from './normalizeInputOptions';
+import type { CommandConfigObject } from './normalizeInputOptions';
 import {
 	defaultOnWarn,
 	generatedCodePresets,
-	GenericConfigObject,
+	type GenericConfigObject,
 	objectifyOption,
 	objectifyOptionWithPresets,
 	treeshakePresets,

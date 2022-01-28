@@ -1,8 +1,8 @@
 import { EventEmitter } from 'events';
-import { RollupWatcher } from '../rollup/types';
+import type { RollupWatcher } from '../rollup/types';
 import { ensureArray } from '../utils/ensureArray';
 import { errInvalidOption, error } from '../utils/error';
-import { GenericConfigObject } from '../utils/options/options';
+import type { GenericConfigObject } from '../utils/options/options';
 import { loadFsEvents } from './fsevents-importer';
 
 class WatchEmitter extends EventEmitter {

@@ -1,11 +1,11 @@
-import Chunk from '../Chunk';
+import type Chunk from '../Chunk';
 import ExternalModule from '../ExternalModule';
-import Module from '../Module';
-import ChildScope from '../ast/scopes/ChildScope';
+import type Module from '../Module';
+import type ChildScope from '../ast/scopes/ChildScope';
 import ExportDefaultVariable from '../ast/variables/ExportDefaultVariable';
-import SyntheticNamedExportVariable from '../ast/variables/SyntheticNamedExportVariable';
-import Variable from '../ast/variables/Variable';
-import { GetInterop, InternalModuleFormat } from '../rollup/types';
+import type SyntheticNamedExportVariable from '../ast/variables/SyntheticNamedExportVariable';
+import type Variable from '../ast/variables/Variable';
+import type { GetInterop, InternalModuleFormat } from '../rollup/types';
 import {
 	canDefaultBeTakenFromNamespace,
 	defaultInteropHelpersByInteropType,

@@ -1,4 +1,4 @@
-import { NormalizedInputOptions, Plugin, RollupError } from '../rollup/types';
+import type { NormalizedInputOptions, Plugin, RollupError } from '../rollup/types';
 import { error, Errors, warnDeprecation } from './error';
 
 export const ANONYMOUS_PLUGIN_PREFIX = 'at position ';

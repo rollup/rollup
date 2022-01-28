@@ -1,4 +1,4 @@
-import Variable from '../ast/variables/Variable';
+import type Variable from '../ast/variables/Variable';
 import RESERVED_NAMES from './RESERVED_NAMES';
 import { toBase64 } from './base64';
 

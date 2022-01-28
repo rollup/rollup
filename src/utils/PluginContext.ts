@@ -1,13 +1,13 @@
 import { version as rollupVersion } from 'package.json';
-import Graph from '../Graph';
-import {
+import type Graph from '../Graph';
+import type {
 	NormalizedInputOptions,
 	Plugin,
 	PluginCache,
 	PluginContext,
 	SerializablePluginCache
 } from '../rollup/types';
-import { FileEmitter } from './FileEmitter';
+import type { FileEmitter } from './FileEmitter';
 import { createPluginCache, getCacheForUncacheablePlugin, NO_CACHE } from './PluginCache';
 import { BLANK } from './blank';
 import { BuildPhase } from './buildPhase';

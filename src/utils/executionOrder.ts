@@ -1,4 +1,4 @@
-import ExternalModule from '../ExternalModule';
+import type ExternalModule from '../ExternalModule';
 import Module from '../Module';
 import relativeId from './relativeId';
 
