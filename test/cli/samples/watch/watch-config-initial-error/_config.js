@@ -1,4 +1,4 @@
-const fs = require('fs');
+const { unlinkSync, writeFileSync } = require('fs');
 const path = require('path');
 const { atomicWriteFileSync } = require('../../../../utils');
 
@@ -9,10 +9,10 @@ module.exports = {
 	command: 'rollup -cw',
 	before() {
 		configFile = path.join(__dirname, 'rollup.config.js');
-		fs.writeFileSync(configFile, 'throw new Error("Config contains initial errors");');
+		writeFileSync(configFile, 'throw new Error("Config contains initial errors");');
 	},
 	after() {
-		fs.unlinkSync(configFile);
+		unlinkSync(configFile);
 	},
 	async abortOnStderr(data) {
 		if (data.includes('Config contains initial errors')) {

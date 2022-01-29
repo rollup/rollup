@@ -1,4 +1,4 @@
-const fs = require('fs');
+const { readFileSync } = require('fs');
 const path = require('path');
 
 module.exports = {
@@ -21,7 +21,7 @@ module.exports = {
 					return `export default import.meta.ROLLUP_FILE_URL_${this.emitFile({
 						type: 'asset',
 						name: path.basename(id),
-						source: fs.readFileSync(id)
+						source: readFileSync(id)
 					})};`;
 				}
 			}

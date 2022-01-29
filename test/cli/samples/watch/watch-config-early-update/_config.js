@@ -1,4 +1,4 @@
-const fs = require('fs');
+const { mkdirSync, unlinkSync } = require('fs');
 const path = require('path');
 const { writeAndSync, writeAndRetry } = require('../../../../utils');
 
@@ -15,7 +15,7 @@ module.exports = {
 		// parsed. To do that, the first config hooks into process.stderr and looks for a log from the
 		// second config.
 		// That way, we simulate a complicated config file being changed while it is parsed.
-		fs.mkdirSync(path.join(__dirname, '_actual'));
+		mkdirSync(path.join(__dirname, '_actual'));
 		writeAndSync(
 			configFile,
 			`
@@ -44,7 +44,7 @@ module.exports = {
 		);
 	},
 	after() {
-		fs.unlinkSync(configFile);
+		unlinkSync(configFile);
 	},
 	abortOnStderr(data) {
 		if (data === 'initial\n') {

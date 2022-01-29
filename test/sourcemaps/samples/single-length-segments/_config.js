@@ -1,10 +1,10 @@
 const assert = require('assert');
-const fs = require('fs');
+const { readFileSync } = require('fs');
 const path = require('path');
 const { SourceMapConsumer } = require('source-map');
 const getLocation = require('../../getLocation');
 
-const original = fs.readFileSync(path.resolve(__dirname, 'main.js'), 'utf-8');
+const original = readFileSync(path.resolve(__dirname, 'main.js'), 'utf-8');
 
 module.exports = {
 	description: 'handles single-length sourcemap segments',
@@ -13,8 +13,8 @@ module.exports = {
 			{
 				transform() {
 					return {
-						code: fs.readFileSync(path.resolve(__dirname, 'output.js'), 'utf-8'),
-						map: fs.readFileSync(path.resolve(__dirname, 'output.js.map'), 'utf-8')
+						code: readFileSync(path.resolve(__dirname, 'output.js'), 'utf-8'),
+						map: readFileSync(path.resolve(__dirname, 'output.js.map'), 'utf-8')
 					};
 				}
 			}

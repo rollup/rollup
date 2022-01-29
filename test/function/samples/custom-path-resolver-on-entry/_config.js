@@ -1,5 +1,5 @@
 const assert = require('assert');
-const fs = require('fs');
+const { readFileSync } = require('fs');
 const path = require('path');
 
 const cachedModules = {
@@ -25,7 +25,7 @@ module.exports = {
 						return cachedModules[moduleId];
 					}
 
-					return fs.readFileSync(moduleId, 'utf-8');
+					return readFileSync(moduleId, 'utf-8');
 				}
 			}
 		]

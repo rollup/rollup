@@ -1,5 +1,5 @@
 const assert = require('assert');
-const fs = require('fs');
+const { readFileSync } = require('fs');
 const path = require('path');
 
 module.exports = {
@@ -16,7 +16,7 @@ module.exports = {
 					return `export default import.meta.ROLLUP_FILE_URL_${this.emitFile({
 						type: 'asset',
 						name: path.basename(id),
-						source: fs.readFileSync(id)
+						source: readFileSync(id)
 					})};`;
 				}
 			},
@@ -28,7 +28,7 @@ module.exports = {
 				assert.strictEqual(asset.fileName, 'assets/logo-25585ac1.svg');
 				assert.strictEqual(asset.type, 'asset');
 				assert.ok(
-					asset.source.equals(fs.readFileSync(path.resolve(__dirname, 'logo.svg'))),
+					asset.source.equals(readFileSync(path.resolve(__dirname, 'logo.svg'))),
 					'asset has correct source'
 				);
 				assert.ok(keys[1].endsWith('.js'), `${keys[1]} ends with ".js"`);

@@ -1,8 +1,18 @@
 const assert = require('assert');
-const fs = require('fs');
-const path = require('path');
+const {
+	closeSync,
+	fsyncSync,
+	openSync,
+	readdirSync,
+	renameSync,
+	unlinkSync,
+	writeFileSync,
+	writeSync
+} = require('fs');
+const { basename, join } = require('path');
+const { platform, version } = require('process');
 const fixturify = require('fixturify');
-const sander = require('sander');
+const { removeSync } = require('fs-extra');
 
 exports.compareError = compareError;
 exports.compareWarnings = compareWarnings;
@@ -124,11 +134,11 @@ function runSamples(samplesDir, runTest, onTeardown) {
 	if (onTeardown) {
 		afterEach(onTeardown);
 	}
-	sander
-		.readdirSync(samplesDir)
+
+	readdirSync(samplesDir)
 		.filter(name => name[0] !== '.')
 		.sort()
-		.forEach(fileName => runTestsInDir(path.join(samplesDir, fileName), runTest));
+		.forEach(fileName => runTestsInDir(join(samplesDir, fileName), runTest));
 }
 
 function runTestsInDir(dir, runTest) {
@@ -137,26 +147,26 @@ function runTestsInDir(dir, runTest) {
 		loadConfigAndRunTest(dir, runTest);
 	} else if (fileNames.length === 0) {
 		console.warn(`Removing empty test directory ${dir}`);
-		sander.rmdirSync(dir);
+		removeSync(dir);
 	} else {
-		describe(path.basename(dir), () => {
+		describe(basename(dir), () => {
 			fileNames
 				.filter(name => name[0] !== '.')
 				.sort()
-				.forEach(fileName => runTestsInDir(path.join(dir, fileName), runTest));
+				.forEach(fileName => runTestsInDir(join(dir, fileName), runTest));
 		});
 	}
 }
 
 function getFileNamesAndRemoveOutput(dir) {
 	try {
-		return sander.readdirSync(dir).filter(fileName => {
+		return readdirSync(dir).filter(fileName => {
 			if (fileName === '_actual') {
-				sander.rimrafSync(path.join(dir, '_actual'));
+				removeSync(join(dir, '_actual'));
 				return false;
 			}
 			if (fileName === '_actual.js') {
-				sander.unlinkSync(path.join(dir, '_actual.js'));
+				unlinkSync(join(dir, '_actual.js'));
 				return false;
 			}
 			return true;
@@ -172,15 +182,15 @@ function getFileNamesAndRemoveOutput(dir) {
 }
 
 function loadConfigAndRunTest(dir, runTest) {
-	const configFile = path.join(dir, '_config.js');
+	const configFile = join(dir, '_config.js');
 	const config = require(configFile);
 	if (!config || !config.description) {
 		throw new Error(`Found invalid config without description: ${configFile}`);
 	}
 	if (
-		(!config.skipIfWindows || process.platform !== 'win32') &&
-		(!config.onlyWindows || process.platform === 'win32') &&
-		(!config.minNodeVersion || config.minNodeVersion <= Number(/^v(\d+)/.exec(process.version)[1]))
+		(!config.skipIfWindows || platform !== 'win32') &&
+		(!config.onlyWindows || platform === 'win32') &&
+		(!config.minNodeVersion || config.minNodeVersion <= Number(/^v(\d+)/.exec(version)[1]))
 	) {
 		runTest(dir, config);
 	}
@@ -231,16 +241,16 @@ function assertIncludes(actual, expected) {
 // if the content being overwritten is identical.
 function atomicWriteFileSync(filePath, contents) {
 	const stagingPath = filePath + '_';
-	fs.writeFileSync(stagingPath, contents);
-	fs.renameSync(stagingPath, filePath);
+	writeFileSync(stagingPath, contents);
+	renameSync(stagingPath, filePath);
 }
 
 // It appears that on MacOS, it sometimes takes long for the file system to update
 function writeAndSync(filePath, contents) {
-	const file = fs.openSync(filePath, 'w');
-	fs.writeSync(file, contents);
-	fs.fsyncSync(file);
-	fs.closeSync(file);
+	const file = openSync(filePath, 'w');
+	writeSync(file, contents);
+	fsyncSync(file);
+	closeSync(file);
 }
 
 // Sometimes, watchers on MacOS do not seem to fire. In those cases, it helps

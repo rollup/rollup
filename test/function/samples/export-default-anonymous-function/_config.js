@@ -1,4 +1,4 @@
-const fs = require('fs');
+const { readFileSync } = require('fs');
 const path = require('path');
 
 module.exports = {
@@ -10,7 +10,7 @@ module.exports = {
 					return path.basename(importee).replace(/\..+/, '');
 				},
 				load(id) {
-					return fs.readFileSync(path.join(__dirname, id + '.js'), 'utf-8');
+					return readFileSync(path.join(__dirname, id + '.js'), 'utf-8');
 				}
 			}
 		]

@@ -1,4 +1,4 @@
-const fs = require('fs');
+const { unlinkSync } = require('fs');
 const path = require('path');
 const { assertIncludes } = require('../../../utils.js');
 
@@ -6,8 +6,8 @@ module.exports = {
 	description: 'displays warnings for broken sourcemaps',
 	command: 'rollup -c',
 	stderr: stderr => {
-		fs.unlinkSync(path.resolve(__dirname, 'bundle'));
-		fs.unlinkSync(path.resolve(__dirname, 'bundle.map'));
+		unlinkSync(path.resolve(__dirname, 'bundle'));
+		unlinkSync(path.resolve(__dirname, 'bundle.map'));
 		assertIncludes(
 			stderr,
 			'(!) Broken sourcemap\n' +

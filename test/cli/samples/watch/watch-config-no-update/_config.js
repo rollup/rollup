@@ -1,4 +1,4 @@
-const fs = require('fs');
+const { unlinkSync, writeFileSync } = require('fs');
 const path = require('path');
 const { atomicWriteFileSync } = require('../../../../utils');
 
@@ -17,10 +17,10 @@ module.exports = {
 	command: 'rollup -cw',
 	before() {
 		configFile = path.resolve(__dirname, 'rollup.config.js');
-		fs.writeFileSync(configFile, configContent);
+		writeFileSync(configFile, configContent);
 	},
 	after() {
-		fs.unlinkSync(configFile);
+		unlinkSync(configFile);
 	},
 	abortOnStderr(data) {
 		if (data.includes(`created _actual${path.sep}main.js`)) {
