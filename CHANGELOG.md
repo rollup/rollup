@@ -1,5 +1,20 @@
 # rollup changelog
 
+## 2.66.1
+
+_2022-01-25_
+
+### Bug Fixes
+
+- Only warn for conflicting names in namespace reexports if it actually causes problems (#4363)
+- Only allow explicit exports or reexports as synthetic namespaces and hide them from namespace reexports (#4364)
+
+### Pull Requests
+
+- [#4362](https://github.com/rollup/rollup/pull/4362): refactor: convert exportsByName object to map (@lukastaegert)
+- [#4363](https://github.com/rollup/rollup/pull/4363): Do not warn unnecessarily for namespace conflicts (@lukastaegert)
+- [#4364](https://github.com/rollup/rollup/pull/4364): Do not expose synthetic namespace export in entries and namespaces (@lukastaegert)
+
 ## 2.66.0
 
 _2022-01-22_

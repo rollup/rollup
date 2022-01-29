@@ -1,4 +1,4 @@
-import {
+import type {
 	InputOptions,
 	NormalizedGeneratedCodeOptions,
 	NormalizedOutputOptions,
@@ -38,7 +38,7 @@ export function warnUnknownOptions(
 	}
 }
 
-type ObjectValue<Base> = Base extends Record<string, any> ? Base : never;
+type ObjectValue<Base> = Base extends Record<string, unknown> ? Base : never;
 
 export const treeshakePresets: {
 	[key in NonNullable<

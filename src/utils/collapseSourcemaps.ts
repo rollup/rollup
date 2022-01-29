@@ -1,6 +1,6 @@
-import { DecodedSourceMap, SourceMap } from 'magic-string';
-import Module from '../Module';
-import {
+import { type DecodedSourceMap, SourceMap } from 'magic-string';
+import type Module from '../Module';
+import type {
 	DecodedSourceMapOrMissing,
 	ExistingDecodedSourceMap,
 	SourceMapSegment,
@@ -32,12 +32,12 @@ interface SourceMapSegmentObject {
 }
 
 class Link {
-	readonly mappings: SourceMapSegment[][];
-	readonly names: string[];
+	readonly mappings: readonly SourceMapSegment[][];
+	readonly names: readonly string[];
 	readonly sources: (Source | Link)[];
 
 	constructor(
-		map: { mappings: SourceMapSegment[][]; names: string[] },
+		map: { mappings: readonly SourceMapSegment[][]; names: readonly string[] },
 		sources: (Source | Link)[]
 	) {
 		this.sources = sources;
@@ -218,12 +218,8 @@ export function collapseSourcemaps(
 			)
 		);
 
-	// DecodedSourceMap (from magic-string) uses a number[] instead of the more
-	// correct SourceMapSegment tuples. Cast it here to gain type safety.
-	let source = new Link(map as ExistingDecodedSourceMap, moduleSources);
-
-	source = bundleSourcemapChain.reduce(linkMap, source);
-
+	const link = new Link(map, moduleSources);
+	const source = bundleSourcemapChain.reduce(linkMap, link);
 	let { sources, sourcesContent, names, mappings } = source.traceMappings();
 
 	if (file) {

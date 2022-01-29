@@ -1,11 +1,11 @@
-import {
+import type {
 	DecodedSourceMapOrMissing,
 	NormalizedOutputOptions,
 	Plugin,
 	RenderedChunk,
 	SourceMapInput
 } from '../rollup/types';
-import { PluginDriver } from './PluginDriver';
+import type { PluginDriver } from './PluginDriver';
 import { decodedSourcemap } from './decodedSourcemap';
 
 export default function renderChunk({

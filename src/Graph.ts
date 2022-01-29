@@ -1,10 +1,10 @@
 import * as acorn from 'acorn';
-import ExternalModule from './ExternalModule';
+import type ExternalModule from './ExternalModule';
 import Module from './Module';
-import { ModuleLoader, UnresolvedModule } from './ModuleLoader';
+import { ModuleLoader, type UnresolvedModule } from './ModuleLoader';
 import GlobalScope from './ast/scopes/GlobalScope';
 import { PathTracker } from './ast/utils/PathTracker';
-import {
+import type {
 	ModuleInfo,
 	ModuleJSON,
 	NormalizedInputOptions,
@@ -243,7 +243,7 @@ export default class Graph {
 			for (const importDescription of Object.values(module.importDescriptions)) {
 				if (
 					importDescription.name !== '*' &&
-					!importDescription.module.getVariableForExportName(importDescription.name)
+					!importDescription.module.getVariableForExportName(importDescription.name)[0]
 				) {
 					module.warn(
 						{

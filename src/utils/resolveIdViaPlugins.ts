@@ -1,11 +1,11 @@
-import {
+import type {
 	CustomPluginOptions,
 	Plugin,
 	PluginContext,
 	ResolvedId,
 	ResolveIdResult
 } from '../rollup/types';
-import { PluginDriver, ReplaceContext } from './PluginDriver';
+import type { PluginDriver, ReplaceContext } from './PluginDriver';
 import { BLANK } from './blank';
 
 export function resolveIdViaPlugins(

@@ -1,6 +1,6 @@
 import { locate } from 'locate-character';
-import Module from '../Module';
-import {
+import type Module from '../Module';
+import type {
 	NormalizedInputOptions,
 	RollupError,
 	RollupLogProps,
@@ -220,7 +220,7 @@ export function errInvalidExportOptionValue(optionValue: string): RollupLogProps
 
 export function errIncompatibleExportOptionValue(
 	optionValue: string,
-	keys: string[],
+	keys: readonly string[],
 	entryModule: string
 ): RollupLogProps {
 	return {
@@ -340,38 +340,38 @@ export function errMixedExport(facadeModuleId: string, name?: string): RollupLog
 
 export function errNamespaceConflict(
 	name: string,
-	reexportingModule: Module,
-	additionalExportAllModule: Module
+	reexportingModuleId: string,
+	sources: string[]
 ): RollupWarning {
 	return {
 		code: Errors.NAMESPACE_CONFLICT,
 		message: `Conflicting namespaces: "${relativeId(
-			reexportingModule.id
-		)}" re-exports "${name}" from both "${relativeId(
-			reexportingModule.exportsAll[name]
-		)}" and "${relativeId(additionalExportAllModule.exportsAll[name])}" (will be ignored)`,
+			reexportingModuleId
+		)}" re-exports "${name}" from one of the modules ${printQuotedStringList(
+			sources.map(moduleId => relativeId(moduleId))
+		)} (will be ignored)`,
 		name,
-		reexporter: reexportingModule.id,
-		sources: [reexportingModule.exportsAll[name], additionalExportAllModule.exportsAll[name]]
+		reexporter: reexportingModuleId,
+		sources
 	};
 }
 
 export function errAmbiguousExternalNamespaces(
 	name: string,
 	reexportingModule: string,
-	usedExternalModule: string,
-	externalModules: string[]
+	usedModule: string,
+	sources: string[]
 ): RollupWarning {
 	return {
 		code: Errors.AMBIGUOUS_EXTERNAL_NAMESPACES,
 		message: `Ambiguous external namespace resolution: "${relativeId(
 			reexportingModule
 		)}" re-exports "${name}" from one of the external modules ${printQuotedStringList(
-			externalModules.map(module => relativeId(module))
-		)}, guessing "${relativeId(usedExternalModule)}".`,
+			sources.map(module => relativeId(module))
+		)}, guessing "${relativeId(usedModule)}".`,
 		name,
 		reexporter: reexportingModule,
-		sources: externalModules
+		sources
 	};
 }
 
@@ -407,7 +407,7 @@ export function errSyntheticNamedExportsNeedNamespaceExport(
 			syntheticNamedExportsOption
 		)}' needs ${
 			typeof syntheticNamedExportsOption === 'string' && syntheticNamedExportsOption !== 'default'
-				? `an export named "${syntheticNamedExportsOption}"`
+				? `an explicit export named "${syntheticNamedExportsOption}"`
 				: 'a default export'
 		} that does not reexport an unresolved named export of the same module.`
 	};
