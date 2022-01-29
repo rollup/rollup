@@ -1,7 +1,7 @@
-import Chunk from '../Chunk';
-import Graph from '../Graph';
-import Module from '../Module';
-import {
+import type Chunk from '../Chunk';
+import type Graph from '../Graph';
+import type Module from '../Module';
+import type {
 	AddonHookFunction,
 	AsyncPluginHooks,
 	EmitFile,
@@ -63,7 +63,7 @@ const inputHooks = Object.keys(inputHookNames);
 
 export type ReplaceContext = (context: PluginContext, plugin: Plugin) => PluginContext;
 
-function throwInvalidHookError(hookName: string, pluginName: string) {
+function throwInvalidHookError(hookName: string, pluginName: string): never {
 	return error({
 		code: 'INVALID_PLUGIN_HOOK',
 		message: `Error running plugin hook ${hookName} for ${pluginName}, expected a function hook.`
@@ -77,13 +77,13 @@ export class PluginDriver {
 	public readonly setOutputBundle: (
 		outputBundle: OutputBundleWithPlaceholders,
 		outputOptions: NormalizedOutputOptions,
-		facadeChunkByModule: Map<Module, Chunk>
+		facadeChunkByModule: ReadonlyMap<Module, Chunk>
 	) => void;
 
 	private readonly fileEmitter: FileEmitter;
 	private readonly pluginCache: Record<string, SerializablePluginCache> | undefined;
-	private readonly pluginContexts = new Map<Plugin, PluginContext>();
-	private readonly plugins: Plugin[];
+	private readonly pluginContexts: ReadonlyMap<Plugin, PluginContext>;
+	private readonly plugins: readonly Plugin[];
 
 	constructor(
 		private readonly graph: Graph,
@@ -105,12 +105,14 @@ export class PluginDriver {
 		this.setOutputBundle = this.fileEmitter.setOutputBundle.bind(this.fileEmitter);
 		this.plugins = userPlugins.concat(basePluginDriver ? basePluginDriver.plugins : []);
 		const existingPluginNames = new Set<string>();
-		for (const plugin of this.plugins) {
-			this.pluginContexts.set(
+
+		this.pluginContexts = new Map(
+			this.plugins.map(plugin => [
 				plugin,
 				getPluginContext(plugin, pluginCache, graph, options, this.fileEmitter, existingPluginNames)
-			);
-		}
+			])
+		);
+
 		if (basePluginDriver) {
 			for (const plugin of userPlugins) {
 				for (const hook of inputHooks) {

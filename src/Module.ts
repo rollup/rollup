@@ -3,31 +3,31 @@ import * as acorn from 'acorn';
 import { locate } from 'locate-character';
 import MagicString from 'magic-string';
 import ExternalModule from './ExternalModule';
-import Graph from './Graph';
+import type Graph from './Graph';
 import { createHasEffectsContext, createInclusionContext } from './ast/ExecutionContext';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
-import ExportNamedDeclaration from './ast/nodes/ExportNamedDeclaration';
-import Identifier from './ast/nodes/Identifier';
-import ImportDeclaration from './ast/nodes/ImportDeclaration';
-import ImportExpression from './ast/nodes/ImportExpression';
+import type ExportNamedDeclaration from './ast/nodes/ExportNamedDeclaration';
+import type Identifier from './ast/nodes/Identifier';
+import type ImportDeclaration from './ast/nodes/ImportDeclaration';
+import type ImportExpression from './ast/nodes/ImportExpression';
 import Literal from './ast/nodes/Literal';
-import MetaProperty from './ast/nodes/MetaProperty';
+import type MetaProperty from './ast/nodes/MetaProperty';
 import * as NodeType from './ast/nodes/NodeType';
 import Program from './ast/nodes/Program';
 import TemplateLiteral from './ast/nodes/TemplateLiteral';
 import VariableDeclaration from './ast/nodes/VariableDeclaration';
 import { nodeConstructors } from './ast/nodes/index';
-import { ExpressionNode, NodeBase } from './ast/nodes/shared/Node';
+import type { ExpressionNode, NodeBase } from './ast/nodes/shared/Node';
 import ModuleScope from './ast/scopes/ModuleScope';
-import { PathTracker, UNKNOWN_PATH } from './ast/utils/PathTracker';
+import { type PathTracker, UNKNOWN_PATH } from './ast/utils/PathTracker';
 import ExportDefaultVariable from './ast/variables/ExportDefaultVariable';
 import ExportShimVariable from './ast/variables/ExportShimVariable';
 import ExternalVariable from './ast/variables/ExternalVariable';
 import NamespaceVariable from './ast/variables/NamespaceVariable';
 import SyntheticNamedExportVariable from './ast/variables/SyntheticNamedExportVariable';
-import Variable from './ast/variables/Variable';
-import {
+import type Variable from './ast/variables/Variable';
+import type {
 	CustomPluginOptions,
 	DecodedSourceMapOrMissing,
 	EmittedFile,
@@ -62,7 +62,7 @@ import { getOriginalLocation } from './utils/getOriginalLocation';
 import { makeLegal } from './utils/identifierHelpers';
 import { basename, extname } from './utils/path';
 import relativeId from './utils/relativeId';
-import { RenderOptions } from './utils/renderHelpers';
+import type { RenderOptions } from './utils/renderHelpers';
 import { timeEnd, timeStart } from './utils/timers';
 import { markModuleAndImpureDependenciesAsExecuted } from './utils/traverseStaticDependencies';
 import { MISSING_EXPORT_SHIM_VARIABLE } from './utils/variableNames';
@@ -991,12 +991,14 @@ export default class Module {
 
 	private addRelevantSideEffectDependencies(
 		relevantDependencies: Set<Module | ExternalModule>,
-		necessaryDependencies: Set<Module | ExternalModule>,
-		alwaysCheckedDependencies: Set<Module | ExternalModule>
+		necessaryDependencies: ReadonlySet<Module | ExternalModule>,
+		alwaysCheckedDependencies: ReadonlySet<Module | ExternalModule>
 	): void {
 		const handledDependencies = new Set<Module | ExternalModule>();
 
-		const addSideEffectDependencies = (possibleDependencies: Set<Module | ExternalModule>) => {
+		const addSideEffectDependencies = (
+			possibleDependencies: ReadonlySet<Module | ExternalModule>
+		) => {
 			for (const dependency of possibleDependencies) {
 				if (handledDependencies.has(dependency)) {
 					continue;

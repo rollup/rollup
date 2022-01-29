@@ -1,14 +1,15 @@
 import { type FSWatcher, readFileSync } from 'fs';
+import process from 'process';
 import chokidar from 'chokidar';
 import dateTime from 'date-time';
 import ms from 'pretty-ms';
 import onExit from 'signal-exit';
 import * as rollup from '../../src/node-entry';
-import { MergedRollupOptions, RollupWatcher } from '../../src/rollup/types';
+import type { MergedRollupOptions, RollupWatcher } from '../../src/rollup/types';
 import { bold, cyan, green, underline } from '../../src/utils/colors';
 import relativeId from '../../src/utils/relativeId';
 import { handleError, stderr } from '../logging';
-import { BatchWarnings } from './batchWarnings';
+import type { BatchWarnings } from './batchWarnings';
 import { getConfigPath } from './getConfigPath';
 import loadAndParseConfigFile from './loadConfigFile';
 import loadConfigFromCommand from './loadConfigFromCommand';

@@ -1,4 +1,4 @@
-const fs = require('fs');
+const { accessSync, constants } = require('fs');
 const path = require('path');
 const rollup = require('../dist/rollup.js');
 
@@ -6,7 +6,7 @@ exports.targetDir = path.resolve(__dirname, '..', 'perf');
 const configFile = path.resolve(exports.targetDir, 'rollup.config.js');
 
 try {
-	fs.accessSync(configFile, fs.constants.R_OK);
+	accessSync(configFile, constants.R_OK);
 } catch (e) {
 	console.error(
 		`No valid "rollup.config.js" in ${exports.targetDir}. Did you "npm run perf:init"?`

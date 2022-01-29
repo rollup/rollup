@@ -1,7 +1,9 @@
 const assert = require('assert');
 const { exec } = require('child_process');
-const path = require('path');
-const sander = require('sander');
+const { existsSync, readFileSync } = require('fs');
+const { basename, resolve, sep } = require('path');
+const process = require('process');
+const { copySync, removeSync, statSync } = require('fs-extra');
 const {
 	normaliseOutput,
 	runTestSuiteWithSamples,
@@ -11,12 +13,12 @@ const {
 
 const cwd = process.cwd();
 
-sander.rimrafSync(__dirname, 'node_modules');
-sander.copydirSync(__dirname, 'node_modules_rename_me').to(__dirname, 'node_modules');
+removeSync(resolve(__dirname, 'node_modules'));
+copySync(resolve(__dirname, 'node_modules_rename_me'), resolve(__dirname, 'node_modules'));
 
 runTestSuiteWithSamples(
 	'cli',
-	path.resolve(__dirname, 'samples'),
+	resolve(__dirname, 'samples'),
 	(dir, config) => {
 		// allow to repeat flaky tests for debugging on CLI
 		for (let pass = 0; pass < (config.repeat || 1); pass++) {
@@ -27,7 +29,7 @@ runTestSuiteWithSamples(
 );
 
 function runTest(dir, config, pass) {
-	const name = path.basename(dir) + ': ' + config.description;
+	const name = basename(dir) + ': ' + config.description;
 	(config.skip ? it.skip : config.solo ? it.only : it)(
 		pass > 0 ? `${name} (pass ${pass + 1})` : name,
 		done => {
@@ -37,7 +39,7 @@ function runTest(dir, config, pass) {
 			}
 			const command = config.command.replace(
 				/(^| )rollup($| )/g,
-				`node ${path.resolve(__dirname, '../../dist/bin')}${path.sep}rollup `
+				`node ${resolve(__dirname, '../../dist/bin')}${sep}rollup `
 			);
 
 			Promise.resolve(config.before && config.before()).then(() => {
@@ -111,10 +113,7 @@ function runTest(dir, config, pass) {
 							} catch (err) {
 								done(err);
 							}
-						} else if (
-							sander.existsSync('_expected') &&
-							sander.statSync('_expected').isDirectory()
-						) {
+						} else if (existsSync('_expected') && statSync('_expected').isDirectory()) {
 							try {
 								assertDirectoriesAreEqual('_actual', '_expected');
 								done();
@@ -122,7 +121,7 @@ function runTest(dir, config, pass) {
 								done(err);
 							}
 						} else {
-							const expected = sander.readFileSync('_expected.js').toString();
+							const expected = readFileSync('_expected.js', 'utf8');
 							try {
 								assert.equal(normaliseOutput(code), normaliseOutput(expected));
 								done();

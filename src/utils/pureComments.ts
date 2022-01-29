@@ -1,5 +1,5 @@
 import * as acorn from 'acorn';
-import { BaseWalker, base as basicWalker } from 'acorn-walk';
+import { type BaseWalker, base as basicWalker } from 'acorn-walk';
 import {
 	BinaryExpression,
 	CallExpression,
@@ -11,16 +11,6 @@ import {
 	SequenceExpression
 } from '../ast/nodes/NodeType';
 import { SOURCEMAPPING_URL_RE } from './sourceMappingURL';
-
-// patch up acorn-walk until class-fields are officially supported
-basicWalker.PropertyDefinition = function (node: any, st: any, c: any): void {
-	if (node.computed) {
-		c(node.key, st, 'Expression');
-	}
-	if (node.value) {
-		c(node.value, st, 'Expression');
-	}
-};
 
 interface CommentState {
 	annotationIndex: number;
@@ -60,7 +50,7 @@ const neitherWithespaceNorBrackets = /[^\s(]/g;
 const noWhitespace = /\S/g;
 
 function markPureNode(node: NodeWithComments, comment: acorn.Comment, code: string): void {
-	const annotatedNodes = [];
+	const annotatedNodes: NodeWithComments[] = [];
 	let invalidAnnotation: boolean | undefined;
 	const codeInBetween = code.slice(comment.end, node.start);
 	if (doesNotMatchOutsideComment(codeInBetween, neitherWithespaceNorBrackets)) {
@@ -139,7 +129,7 @@ function doesNotMatchOutsideComment(code: string, forbiddenChars: RegExp): boole
 const pureCommentRegex = /[@#]__PURE__/;
 
 export function addAnnotations(
-	comments: acorn.Comment[],
+	comments: readonly acorn.Comment[],
 	esTreeAst: acorn.Node,
 	code: string
 ): void {

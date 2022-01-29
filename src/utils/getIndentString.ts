@@ -1,4 +1,4 @@
-import Module from '../Module';
+import type Module from '../Module';
 
 function guessIndentString(code: string): string | null {
 	const lines = code.split('\n');

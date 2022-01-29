@@ -2,14 +2,14 @@ import { realpathSync } from 'fs';
 import { extname, isAbsolute } from 'path';
 import { pathToFileURL } from 'url';
 import * as rollup from '../../src/node-entry';
-import { MergedRollupOptions } from '../../src/rollup/types';
+import type { MergedRollupOptions } from '../../src/rollup/types';
 import { bold } from '../../src/utils/colors';
 import { error } from '../../src/utils/error';
 import { mergeOptions } from '../../src/utils/options/mergeOptions';
-import { GenericConfigObject } from '../../src/utils/options/options';
+import type { GenericConfigObject } from '../../src/utils/options/options';
 import relativeId from '../../src/utils/relativeId';
 import { stderr } from '../logging';
-import batchWarnings, { BatchWarnings } from './batchWarnings';
+import batchWarnings, { type BatchWarnings } from './batchWarnings';
 import { addCommandPluginsToInputOptions, addPluginsFromCommandOption } from './commandPlugins';
 
 function supportsNativeESM(): boolean {

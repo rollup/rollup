@@ -1,5 +1,5 @@
 const assert = require('assert');
-const fs = require('fs');
+const { readFileSync } = require('fs');
 const path = require('path');
 const { SourceMapConsumer } = require('source-map');
 
@@ -21,7 +21,7 @@ module.exports = {
 				const smc = await new SourceMapConsumer(map);
 				const originalLoc = smc.originalPositionFor({ line, column });
 				assert.notStrictEqual(originalLoc.line, null);
-				const originalCode = fs.readFileSync(path.join(__dirname, 'main.js'), 'utf8');
+				const originalCode = readFileSync(path.join(__dirname, 'main.js'), 'utf8');
 				assert.strictEqual(
 					originalCode.split('\n')[originalLoc.line - 1].substr(originalLoc.column, 2),
 					'42'

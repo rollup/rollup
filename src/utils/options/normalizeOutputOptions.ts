@@ -1,4 +1,4 @@
-import {
+import type {
 	InternalModuleFormat,
 	InteropType,
 	NormalizedInputOptions,
@@ -12,7 +12,7 @@ import { resolve } from '../path';
 import { sanitizeFileName as defaultSanitizeFileName } from '../sanitizeFileName';
 import {
 	generatedCodePresets,
-	GenericConfigObject,
+	type GenericConfigObject,
 	getOptionWithPreset,
 	warnUnknownOptions
 } from './options';
@@ -20,7 +20,7 @@ import {
 export function normalizeOutputOptions(
 	config: OutputOptions,
 	inputOptions: NormalizedInputOptions,
-	unsetInputOptions: Set<string>
+	unsetInputOptions: ReadonlySet<string>
 ): { options: NormalizedOutputOptions; unsetOptions: Set<string> } {
 	// These are options that may trigger special warnings or behaviour later
 	// if the user did not select an explicit value
@@ -357,7 +357,14 @@ const getIndent = (config: OutputOptions, compact: boolean): NormalizedOutputOpt
 	return configIndent === false ? '' : configIndent ?? true;
 };
 
-const ALLOWED_INTEROP_TYPES = new Set(['auto', 'esModule', 'default', 'defaultOnly', true, false]);
+const ALLOWED_INTEROP_TYPES: ReadonlySet<string | boolean> = new Set([
+	'auto',
+	'esModule',
+	'default',
+	'defaultOnly',
+	true,
+	false
+]);
 
 const getInterop = (
 	config: OutputOptions,

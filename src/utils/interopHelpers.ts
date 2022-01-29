@@ -37,8 +37,8 @@ export const canDefaultBeTakenFromNamespace = (
 	defaultInteropHelpersByInteropType[interopType] === INTEROP_DEFAULT_VARIABLE;
 
 export const getHelpersBlock = (
-	additionalHelpers: Set<string> | null,
-	accessedGlobals: Set<string>,
+	additionalHelpers: ReadonlySet<string> | null,
+	accessedGlobals: ReadonlySet<string>,
 	indent: string,
 	snippets: GenerateCodeSnippets,
 	liveBindings: boolean,
@@ -72,7 +72,7 @@ const HELPER_GENERATORS: {
 		liveBindings: boolean,
 		freeze: boolean,
 		namespaceToStringTag: boolean,
-		usedHelpers: Set<string>
+		usedHelpers: ReadonlySet<string>
 	) => string;
 } = {
 	[INTEROP_DEFAULT_LEGACY_VARIABLE](_t, snippets, liveBindings) {

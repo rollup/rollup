@@ -1,4 +1,4 @@
-const unfulfilledActions: Set<[string, string, Parameters<any>]> = new Set();
+const unfulfilledActions = new Set<[string, string, Parameters<any>]>();
 
 export function addUnresolvedAction(actionTuple: [string, string, Parameters<any>]): void {
 	unfulfilledActions.add(actionTuple);

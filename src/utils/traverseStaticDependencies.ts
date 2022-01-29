@@ -1,5 +1,5 @@
 import ExternalModule from '../ExternalModule';
-import Module from '../Module';
+import type Module from '../Module';
 
 export function markModuleAndImpureDependenciesAsExecuted(baseModule: Module): void {
 	baseModule.isExecuted = true;

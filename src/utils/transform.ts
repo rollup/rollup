@@ -1,6 +1,6 @@
 import MagicString, { SourceMap } from 'magic-string';
-import Module from '../Module';
-import {
+import type Module from '../Module';
+import type {
 	DecodedSourceMapOrMissing,
 	EmittedFile,
 	ExistingRawSourceMap,
@@ -15,7 +15,7 @@ import {
 	WarningHandler
 } from '../rollup/types';
 import { getTrackedPluginCache } from './PluginCache';
-import { PluginDriver } from './PluginDriver';
+import type { PluginDriver } from './PluginDriver';
 import { collapseSourcemap } from './collapseSourcemaps';
 import { decodedSourcemap } from './decodedSourcemap';
 import { augmentCodeLocation, errNoTransformMapOrAstWithoutCode } from './error';

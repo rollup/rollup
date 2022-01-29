@@ -1,24 +1,24 @@
 import { readFileSync, writeFileSync } from 'fs';
-import { PluginImpl } from 'rollup';
-import license, { Dependency, Person } from 'rollup-plugin-license';
+import type { PluginImpl } from 'rollup';
+import license, { type Dependency, type Person } from 'rollup-plugin-license';
 
-function generateLicenseFile(dependencies: Dependency[]) {
+function generateLicenseFile(dependencies: readonly Dependency[]) {
 	const coreLicense = readFileSync('LICENSE-CORE.md');
-	const licenses = new Set();
-	const dependencyLicenseTexts = dependencies
+	const licenses = new Set<string>();
+	const dependencyLicenseTexts = Array.from(dependencies)
 		.sort(({ name: nameA }, { name: nameB }) => (nameA! > nameB! ? 1 : -1))
 		.map(({ name, license, licenseText, author, maintainers, contributors, repository }) => {
 			let text = `## ${name}\n`;
 			if (license) {
 				text += `License: ${license}\n`;
 			}
-			const names = new Set();
-			if (author && author.name) {
+			const names = new Set<string>();
+			if (author?.name) {
 				names.add(author.name);
 			}
 			// TODO there is an inconsistency in the rollup-plugin-license types
 			for (const person of contributors.concat(maintainers as unknown as Person[])) {
-				if (person && person.name) {
+				if (person?.name) {
 					names.add(person.name);
 				}
 			}
@@ -39,7 +39,7 @@ function generateLicenseFile(dependencies: Dependency[]) {
 						.join('\n') +
 					'\n';
 			}
-			licenses.add(license);
+			licenses.add(license!);
 			return text;
 		})
 		.join('\n---------------------------------------\n\n');
@@ -59,16 +59,18 @@ function generateLicenseFile(dependencies: Dependency[]) {
 	}
 }
 
-export default function getLicenseHandler(): {
+interface LicenseHandler {
 	collectLicenses: PluginImpl;
 	writeLicense: PluginImpl;
-} {
-	const licenses = new Map();
+}
+
+export default function getLicenseHandler(): LicenseHandler {
+	const licenses = new Map<string, Dependency>();
 	return {
 		collectLicenses() {
-			function addLicenses(dependencies: Dependency[]) {
+			function addLicenses(dependencies: readonly Dependency[]) {
 				for (const dependency of dependencies) {
-					licenses.set(dependency.name, dependency);
+					licenses.set(dependency.name!, dependency);
 				}
 			}
 

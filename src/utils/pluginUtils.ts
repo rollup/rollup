@@ -1,4 +1,4 @@
-import { NormalizedInputOptions, Plugin, RollupError } from '../rollup/types';
+import type { NormalizedInputOptions, Plugin, RollupError } from '../rollup/types';
 import { error, Errors, warnDeprecation } from './error';
 
 export const ANONYMOUS_PLUGIN_PREFIX = 'at position ';
@@ -24,9 +24,9 @@ export function throwPluginError(
 	return error(err);
 }
 
-export const deprecatedHooks: { active: boolean; deprecated: string; replacement: string }[] = [
+const deprecatedHooks = [
 	{ active: true, deprecated: 'resolveAssetUrl', replacement: 'resolveFileUrl' }
-];
+] as const;
 
 export function warnDeprecatedHooks(
 	plugins: readonly Plugin[],

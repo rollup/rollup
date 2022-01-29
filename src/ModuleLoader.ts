@@ -1,7 +1,7 @@
 import * as acorn from 'acorn';
 import ExternalModule from './ExternalModule';
-import Graph from './Graph';
-import Module, { DynamicImport } from './Module';
+import type Graph from './Graph';
+import Module, { type DynamicImport } from './Module';
 import type {
 	CustomPluginOptions,
 	EmittedChunk,
@@ -15,7 +15,7 @@ import type {
 	ResolvedId,
 	ResolveIdResult
 } from './rollup/types';
-import { PluginDriver } from './utils/PluginDriver';
+import type { PluginDriver } from './utils/PluginDriver';
 import { EMPTY_OBJECT } from './utils/blank';
 import {
 	errBadLoader,
@@ -584,10 +584,8 @@ export class ModuleLoader {
 				moduleSideEffects: this.hasModuleSideEffects(source, true),
 				syntheticNamedExports: false
 			};
-		} else {
-			if (resolvedId.external && resolvedId.syntheticNamedExports) {
-				this.options.onwarn(errExternalSyntheticExports(source, importer));
-			}
+		} else if (resolvedId.external && resolvedId.syntheticNamedExports) {
+			this.options.onwarn(errExternalSyntheticExports(source, importer));
 		}
 		return resolvedId;
 	}
