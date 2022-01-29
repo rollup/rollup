@@ -1253,6 +1253,7 @@ describe('rollup.watch', () => {
 
 	it('rebuilds immediately by default', async () => {
 		await copy('test/watch/samples/basic', 'test/_tmp/input');
+		await wait(100);
 		watcher = rollup.watch({
 			input: 'test/_tmp/input/main.js',
 			output: {
