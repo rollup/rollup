@@ -29,7 +29,7 @@ import {
 	errUnresolvedImport,
 	errUnresolvedImportTreatedAsExternal
 } from './utils/error';
-import { readFile } from './utils/fs';
+import { promises as fs } from './utils/fs';
 import { isAbsolute, isRelative, resolve } from './utils/path';
 import { Queue } from './utils/queue';
 import relativeId from './utils/relativeId';
@@ -240,7 +240,8 @@ export class ModuleLoader {
 		let source: LoadResult;
 		try {
 			source = await this.readQueue.run(
-				async () => (await this.pluginDriver.hookFirst('load', [id])) ?? (await readFile(id))
+				async () =>
+					(await this.pluginDriver.hookFirst('load', [id])) ?? (await fs.readFile(id, 'utf8'))
 			);
 		} catch (err: any) {
 			timeEnd('load modules', 3);
