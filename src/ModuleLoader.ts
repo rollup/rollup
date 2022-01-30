@@ -16,6 +16,7 @@ import type {
 	ResolveIdResult
 } from './rollup/types';
 import type { PluginDriver } from './utils/PluginDriver';
+import Queue from './utils/Queue';
 import { EMPTY_OBJECT } from './utils/blank';
 import {
 	errBadLoader,
@@ -31,7 +32,6 @@ import {
 } from './utils/error';
 import { promises as fs } from './utils/fs';
 import { isAbsolute, isRelative, resolve } from './utils/path';
-import { Queue } from './utils/queue';
 import relativeId from './utils/relativeId';
 import { resolveId } from './utils/resolveId';
 import { timeEnd, timeStart } from './utils/timers';
