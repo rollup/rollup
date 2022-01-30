@@ -1,6 +1,6 @@
 'use strict';
 
-var other = require('./_virtual/other.js_commonjs-exports.js');
+var other = require('./_virtual/other.js');
 
 other.__exports.value = 43;
 
