@@ -1,8 +1,8 @@
-const { promises } = require('fs');
+const { promises: fs } = require('fs');
 const { join } = require('path');
 const { loader } = require('../../../utils.js');
 
-const fsReadFile = promises.readFile;
+const fsReadFile = fs.readFile;
 
 module.exports = {
 	description: 'maxParallelFileReads: fileRead error is forwarded',
@@ -13,7 +13,7 @@ module.exports = {
 		})
 	},
 	before() {
-		promises.readFile = (path, options) => {
+		fs.readFile = (path, options) => {
 			if (path.endsWith('dep.js')) {
 				throw new Error('broken');
 			}
@@ -22,7 +22,7 @@ module.exports = {
 		};
 	},
 	after() {
-		promises.readFile = fsReadFile;
+		fs.readFile = fsReadFile;
 	},
 	error: {
 		message: `Could not load ${join(__dirname, 'dep.js')} (imported by main): broken`,
