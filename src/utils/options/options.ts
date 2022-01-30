@@ -17,7 +17,7 @@ export const defaultOnWarn: WarningHandler = warning => console.warn(warning.mes
 
 export function warnUnknownOptions(
 	passedOptions: GenericConfigObject,
-	validOptions: string[],
+	validOptions: readonly string[],
 	optionType: string,
 	warn: WarningHandler,
 	ignoredKeys = /$./

@@ -1,11 +1,11 @@
-import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { HasEffectsContext } from '../ExecutionContext';
-import { EMPTY_PATH, ObjectPath, PathTracker } from '../utils/PathTracker';
+import type { DeoptimizableEntity } from '../DeoptimizableEntity';
+import type { HasEffectsContext } from '../ExecutionContext';
+import { EMPTY_PATH, type ObjectPath, type PathTracker } from '../utils/PathTracker';
 import Identifier from './Identifier';
-import { LiteralValue } from './Literal';
-import * as NodeType from './NodeType';
-import { LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import type { LiteralValue } from './Literal';
+import type * as NodeType from './NodeType';
+import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
+import { type ExpressionNode, NodeBase } from './shared/Node';
 
 const unaryOperators: {
 	[operator: string]: (value: LiteralValue) => LiteralValueOrUnknown;

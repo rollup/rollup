@@ -1,7 +1,7 @@
-import { Bundle, Bundle as MagicStringBundle } from 'magic-string';
-import { NormalizedOutputOptions } from '../rollup/types';
+import type { Bundle, Bundle as MagicStringBundle } from 'magic-string';
+import type { NormalizedOutputOptions } from '../rollup/types';
 import { error } from '../utils/error';
-import { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
+import type { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
 import getCompleteAmdId from './shared/getCompleteAmdId';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
@@ -10,7 +10,7 @@ import { keypath } from './shared/sanitize';
 import { assignToDeepVariable } from './shared/setupNamespace';
 import trimEmptyImports from './shared/trimEmptyImports';
 import warnOnBuiltins from './shared/warnOnBuiltins';
-import { FinaliserOptions } from './index';
+import type { FinaliserOptions } from './index';
 
 function globalProp(name: string, globalVar: string, getPropertyAccess: (name: string) => string) {
 	if (!name) return 'null';

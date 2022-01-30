@@ -1,19 +1,19 @@
-import MagicString from 'magic-string';
+import type MagicString from 'magic-string';
 import ExternalModule from '../../ExternalModule';
-import Module from '../../Module';
-import { GetInterop, NormalizedOutputOptions } from '../../rollup/types';
-import { PluginDriver } from '../../utils/PluginDriver';
-import { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
+import type Module from '../../Module';
+import type { GetInterop, NormalizedOutputOptions } from '../../rollup/types';
+import type { PluginDriver } from '../../utils/PluginDriver';
+import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 import {
 	INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE,
 	namespaceInteropHelpersByInteropType
 } from '../../utils/interopHelpers';
-import { findFirstOccurrenceOutsideComment, RenderOptions } from '../../utils/renderHelpers';
-import { InclusionContext } from '../ExecutionContext';
-import ChildScope from '../scopes/ChildScope';
-import NamespaceVariable from '../variables/NamespaceVariable';
-import * as NodeType from './NodeType';
-import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
+import { findFirstOccurrenceOutsideComment, type RenderOptions } from '../../utils/renderHelpers';
+import type { InclusionContext } from '../ExecutionContext';
+import type ChildScope from '../scopes/ChildScope';
+import type NamespaceVariable from '../variables/NamespaceVariable';
+import type * as NodeType from './NodeType';
+import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
 
 interface DynamicImportMechanism {
 	left: string;

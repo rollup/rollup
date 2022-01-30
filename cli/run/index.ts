@@ -1,9 +1,9 @@
-import { MergedRollupOptions } from '../../src/rollup/types';
+import type { MergedRollupOptions } from '../../src/rollup/types';
 import { isWatchEnabled } from '../../src/utils/options/mergeOptions';
 import { getAliasName } from '../../src/utils/relativeId';
 import { loadFsEvents } from '../../src/watch/fsevents-importer';
 import { handleError } from '../logging';
-import { BatchWarnings } from './batchWarnings';
+import type { BatchWarnings } from './batchWarnings';
 import build from './build';
 import { getConfigPath } from './getConfigPath';
 import loadAndParseConfigFile from './loadConfigFile';

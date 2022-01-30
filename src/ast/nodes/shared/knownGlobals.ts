@@ -1,6 +1,6 @@
 /* eslint sort-keys: "off" */
 
-import { ObjectPath } from '../../utils/PathTracker';
+import type { ObjectPath } from '../../utils/PathTracker';
 
 const ValueProperties = Symbol('Value Properties');
 

@@ -1,18 +1,18 @@
 import * as acorn from 'acorn';
-import { locate, Location } from 'locate-character';
-import MagicString from 'magic-string';
-import { AstContext } from '../../../Module';
+import { locate, type Location } from 'locate-character';
+import type MagicString from 'magic-string';
+import type { AstContext } from '../../../Module';
 import { ANNOTATION_KEY, INVALID_COMMENT_KEY } from '../../../utils/pureComments';
-import { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
-import { Entity } from '../../Entity';
+import type { NodeRenderOptions, RenderOptions } from '../../../utils/renderHelpers';
+import type { Entity } from '../../Entity';
 import {
 	createHasEffectsContext,
-	HasEffectsContext,
-	InclusionContext
+	type HasEffectsContext,
+	type InclusionContext
 } from '../../ExecutionContext';
 import { getAndCreateKeys, keys } from '../../keys';
-import ChildScope from '../../scopes/ChildScope';
-import Variable from '../../variables/Variable';
+import type ChildScope from '../../scopes/ChildScope';
+import type Variable from '../../variables/Variable';
 import * as NodeType from '../NodeType';
 import { ExpressionEntity } from './Expression';
 
@@ -37,7 +37,10 @@ export interface Node extends Entity {
 	type: string;
 	variable?: Variable | null;
 
-	addExportedVariables(variables: Variable[], exportNamesByVariable: Map<Variable, string[]>): void;
+	addExportedVariables(
+		variables: readonly Variable[],
+		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
+	): void;
 
 	/**
 	 * Called once all nodes have been initialised and the scopes have been populated.
@@ -117,8 +120,8 @@ export class NodeBase extends ExpressionEntity implements ExpressionNode {
 	}
 
 	addExportedVariables(
-		_variables: Variable[],
-		_exportNamesByVariable: Map<Variable, string[]>
+		_variables: readonly Variable[],
+		_exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
 	): void {}
 
 	/**

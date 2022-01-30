@@ -1,12 +1,12 @@
-import MagicString from 'magic-string';
-import { RenderOptions } from '../../utils/renderHelpers';
-import { CallOptions, NO_ARGS } from '../CallOptions';
-import { HasEffectsContext } from '../ExecutionContext';
+import type MagicString from 'magic-string';
+import { type RenderOptions } from '../../utils/renderHelpers';
+import { type CallOptions, NO_ARGS } from '../CallOptions';
+import type { HasEffectsContext } from '../ExecutionContext';
 import { EMPTY_PATH } from '../utils/PathTracker';
-import Identifier from './Identifier';
+import type Identifier from './Identifier';
 import * as NodeType from './NodeType';
-import TemplateLiteral from './TemplateLiteral';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import type TemplateLiteral from './TemplateLiteral';
+import { type ExpressionNode, NodeBase } from './shared/Node';
 
 export default class TaggedTemplateExpression extends NodeBase {
 	declare quasi: TemplateLiteral;

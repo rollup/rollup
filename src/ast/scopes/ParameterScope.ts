@@ -1,17 +1,17 @@
-import { AstContext } from '../../Module';
-import { InclusionContext } from '../ExecutionContext';
-import Identifier from '../nodes/Identifier';
+import type { AstContext } from '../../Module';
+import type { InclusionContext } from '../ExecutionContext';
+import type Identifier from '../nodes/Identifier';
 import SpreadElement from '../nodes/SpreadElement';
 import { UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
-import { ExpressionNode } from '../nodes/shared/Node';
+import type { ExpressionNode } from '../nodes/shared/Node';
 import LocalVariable from '../variables/LocalVariable';
 import ChildScope from './ChildScope';
-import Scope from './Scope';
+import type Scope from './Scope';
 
 export default class ParameterScope extends ChildScope {
-	hoistedBodyVarScope: ChildScope;
+	readonly hoistedBodyVarScope: ChildScope;
 
-	protected parameters: LocalVariable[][] = [];
+	protected parameters: readonly LocalVariable[][] = [];
 	private context: AstContext;
 	private hasRest = false;
 
@@ -47,7 +47,10 @@ export default class ParameterScope extends ChildScope {
 		this.hasRest = hasRest;
 	}
 
-	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
+	includeCallArguments(
+		context: InclusionContext,
+		args: readonly (ExpressionNode | SpreadElement)[]
+	): void {
 		let calledFromTryStatement = false;
 		let argIncluded = false;
 		const restParam = this.hasRest && this.parameters[this.parameters.length - 1];
