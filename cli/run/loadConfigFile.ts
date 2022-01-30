@@ -1,4 +1,4 @@
-import { realpathSync } from 'fs';
+import { promises as fs } from 'fs';
 import { extname, isAbsolute } from 'path';
 import { pathToFileURL } from 'url';
 import * as rollup from '../../src/node-entry';
@@ -57,7 +57,7 @@ async function loadConfigFile(
 	return getConfigList(configFileExport, commandOptions);
 }
 
-function getDefaultFromCjs(namespace: GenericConfigObject) {
+function getDefaultFromCjs(namespace: GenericConfigObject): unknown {
 	return namespace.__esModule ? namespace.default : namespace;
 }
 
@@ -103,7 +103,7 @@ async function getDefaultFromTranspiledConfigFile(
 }
 
 async function loadConfigFromBundledFile(fileName: string, bundledCode: string): Promise<unknown> {
-	const resolvedFileName = realpathSync(fileName);
+	const resolvedFileName = await fs.realpath(fileName);
 	const extension = extname(resolvedFileName);
 	const defaultLoader = require.extensions[extension];
 	require.extensions[extension] = (module: NodeModule, requiredFileName: string) => {
