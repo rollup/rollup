@@ -6,6 +6,7 @@ import type {
 	NormalizedOutputOptions
 } from './rollup/types';
 import { EMPTY_ARRAY } from './utils/blank';
+import { warnDeprecation } from './utils/error';
 import { makeLegal } from './utils/identifierHelpers';
 import { normalize, relative } from './utils/path';
 import { printQuotedStringList } from './utils/printStringList';
@@ -31,14 +32,14 @@ export default class ExternalModule {
 	constructor(
 		private readonly options: NormalizedInputOptions,
 		public readonly id: string,
-		hasModuleSideEffects: boolean | 'no-treeshake',
+		moduleSideEffects: boolean | 'no-treeshake',
 		meta: CustomPluginOptions,
 		public readonly renormalizeRenderPath: boolean
 	) {
 		this.suggestedVariableName = makeLegal(id.split(/[\\/]/).pop()!);
 
 		const { importers, dynamicImporters } = this;
-		this.info = {
+		const info: ModuleInfo = (this.info = {
 			ast: null,
 			code: null,
 			dynamicallyImportedIdResolutions: EMPTY_ARRAY,
@@ -47,7 +48,14 @@ export default class ExternalModule {
 				return dynamicImporters.sort();
 			},
 			hasDefaultExport: null,
-			hasModuleSideEffects,
+			get hasModuleSideEffects() {
+				warnDeprecation(
+					'Accessing ModuleInfo.hasModuleSideEffects from plugins is deprecated. Please use ModuleInfo.moduleSideEffects instead.',
+					false,
+					options
+				);
+				return info.moduleSideEffects;
+			},
 			id,
 			implicitlyLoadedAfterOneOf: EMPTY_ARRAY,
 			implicitlyLoadedBefore: EMPTY_ARRAY,
@@ -60,8 +68,14 @@ export default class ExternalModule {
 			isExternal: true,
 			isIncluded: null,
 			meta,
+			moduleSideEffects,
 			syntheticNamedExports: false
-		};
+		});
+		// Hide the deprecated key so that it only warns when accessed explicitly
+		Object.defineProperty(this.info, 'hasModuleSideEffects', {
+			...Object.getOwnPropertyDescriptor(this.info, 'hasModuleSideEffects'),
+			enumerable: false
+		});
 	}
 
 	getVariableForExportName(name: string): [variable: ExternalVariable] {

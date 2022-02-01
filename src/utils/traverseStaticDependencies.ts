@@ -10,7 +10,7 @@ export function markModuleAndImpureDependenciesAsExecuted(baseModule: Module): v
 			if (
 				!(dependency instanceof ExternalModule) &&
 				!dependency.isExecuted &&
-				(dependency.info.hasModuleSideEffects || module.implicitlyLoadedBefore.has(dependency)) &&
+				(dependency.info.moduleSideEffects || module.implicitlyLoadedBefore.has(dependency)) &&
 				!visitedModules.has(dependency.id)
 			) {
 				dependency.isExecuted = true;
