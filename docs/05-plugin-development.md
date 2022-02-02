@@ -739,9 +739,16 @@ type ResolvedId = {
 };
 ```
 
-During the build, this object represents currently available information about the module. Before the [`buildEnd`](guide/en/#buildend) hook, this information may be incomplete as e.g. the `importedIds` are not yet resolved or additional `importers` are discovered.
+During the build, this object represents currently available information about the module which may be inaccurate before the [`buildEnd`](guide/en/#buildend) hook:
 
-Note that while most properties are read-only, `moduleSideEffects` is writable and changes will be picked up if they occur before the `buildEnd` hook is triggered. `meta` should not be overwritten but it is ok to mutate its properties at any time to store meta information about a module. The advantage of doing this instead of keeping state in a plugin is that `meta` is persisted to and restored from the cache if it is used, e.g. when using watch mode from the CLI.
+- `id` and `isExternal` will never change.
+- `code`, `ast` and `hasDefaultExport` are only available after parsing, i.e. in the [`moduleParsed`](guide/en/#moduleparsed) hook or after awaiting [`this.load`](guide/en/#thisload). At that point, they will no longer change.
+- if `isEntry` is `true`, it will no longer change. It is however possible for modules to become entry points after they are parsed, either via [`this.emitFile`](guide/en/#thisemitfile) or because a plugin inspects a potential entry point via [`this.load`](guide/en/#thisload) in the [`resolveId`](guide/en/#resolveid) hook when resolving an entry point. Therefore, it is not recommended relying on this flag in the [`transform`](guide/en/#transform) hook. It will no longer change after `buildEnd`.
+- Similarly, `implicitlyLoadedAfterOneOf` can receive additional entries at any time before `buildEnd` via [`this.emitFile`](guide/en/#thisemitfile).
+- `importers`, `dynamicImporters` and `implicitlyLoadedBefore` will start as empty arrays, which receive additional entries as new importers and implicit dependents are discovered. They will no longer change after `buildEnd`.
+- `isIncluded` is only available after `buildEnd`, at which point it will no longer change.
+- `importedIds`, `importedIdResolutions`, `dynamicallyImportedIds` and `dynamicallyImportedIdResolutions` are available when a module has been parsed and its dependencies have been resolved. This is the case in the `moduleParsed` hook or after awaiting [`this.load`](guide/en/#thisload) with the `resolveDependencies` flag. At that point, they will no longer change.
+- `meta`, `moduleSideEffects` and `syntheticNamedExports` can be changed by [`load`](guide/en/#load) and [`transform`](guide/en/#transform) hooks. Moreover, while most properties are read-only, `moduleSideEffects` is writable and changes will be picked up if they occur before the `buildEnd` hook is triggered. `meta` should not be overwritten, but it is ok to mutate its properties at any time to store meta information about a module. The advantage of doing this instead of keeping state in a plugin is that `meta` is persisted to and restored from the cache if it is used, e.g. when using watch mode from the CLI.
 
 Returns `null` if the module id cannot be found.
 
