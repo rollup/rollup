@@ -6,7 +6,7 @@ _2022-02-02_
 
 ### Features
 
-- Improve side-effect detection when using Array.prototype.groupBy/groupByToMap (#4360)
+- Improve side effect detection when using Array.prototype.groupBy/groupByToMap (#4360)
 - Allow changing `moduleSideEffects` at any time during the build (#4379)
 - Soft-deprecate `ModuleInfo.hasModuleSideEffects` in favour of `ModuleInfo.moduleSideEffects` (#4379)
 
@@ -23,7 +23,7 @@ _2022-02-02_
 - [#4371](https://github.com/rollup/rollup/pull/4371): refactor: use fs.promises in cli/run (@dnalborczyk)
 - [#4372](https://github.com/rollup/rollup/pull/4372): refactor: use fs.promises in module loader (@dnalborczyk)
 - [#4374](https://github.com/rollup/rollup/pull/4374): Ignore queries and hashes in file names when preserving modules (@lukastaegert)
-- [#4375](https://github.com/rollup/rollup/pull/4375): Fix typo in _config.js (@eltociear)
+- [#4375](https://github.com/rollup/rollup/pull/4375): Fix typo in \_config.js (@eltociear)
 - [#4376](https://github.com/rollup/rollup/pull/4376): refactor: fs.promises, move mkdir to writeoutputfile, Part 3 (@dnalborczyk)
 - [#4379](https://github.com/rollup/rollup/pull/4379): Deprecate hasModuleSideEffects in favor of moduleSideEffects and ensure it is mutable on ModuleInfo (@lukastaegert)
 
