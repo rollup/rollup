@@ -1,7 +1,7 @@
 import { throwNoFileSystem } from './error';
 
 export const promises = {
-	readFile: throwNoFileSystem('fs.readFile')
+	mkdir: throwNoFileSystem('fs.mkdir'),
+	readFile: throwNoFileSystem('fs.readFile'),
+	writeFile: throwNoFileSystem('fs.writeFile')
 };
-
-export const writeFile = throwNoFileSystem('fs.writeFile');
