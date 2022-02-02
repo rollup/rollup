@@ -241,7 +241,7 @@ export default class Chunk {
 		}
 		if (
 			!chunk.dependencies.has(chunkByModule.get(facadedModule)!) &&
-			facadedModule.info.hasModuleSideEffects &&
+			facadedModule.info.moduleSideEffects &&
 			facadedModule.hasEffects()
 		) {
 			chunk.dependencies.add(chunkByModule.get(facadedModule)!);

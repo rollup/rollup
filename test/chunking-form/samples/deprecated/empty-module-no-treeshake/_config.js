@@ -1,10 +1,11 @@
 const assert = require('assert');
 const path = require('path');
-const { getObject } = require('../../../utils');
+const { getObject } = require('../../../../utils');
 
 module.exports = {
 	description: 'associates empty modules with chunks if tree-shaking is disabled for them',
 	options: {
+		strictDeprecations: false,
 		input: ['main1.js', 'main2.js'],
 		plugins: {
 			resolveId(id) {
@@ -36,7 +37,7 @@ module.exports = {
 					getObject(
 						Array.from(this.getModuleIds(), id => [
 							id.startsWith('empty') ? id : path.relative(__dirname, id),
-							this.getModuleInfo(id).moduleSideEffects
+							this.getModuleInfo(id).hasModuleSideEffects
 						])
 					),
 					{
