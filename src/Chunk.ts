@@ -433,7 +433,7 @@ export default class Chunk {
 		unsetOptions: ReadonlySet<string>
 	): string {
 		const [{ id }] = this.orderedModules;
-		const sanitizedId = this.outputOptions.sanitizeFileName(id);
+		const sanitizedId = this.outputOptions.sanitizeFileName(id.split(QUERY_HASH_REGEX, 1)[0]);
 		let path: string;
 
 		const patternOpt = unsetOptions.has('entryFileNames')
@@ -441,9 +441,9 @@ export default class Chunk {
 			: options.entryFileNames;
 		const pattern = typeof patternOpt === 'function' ? patternOpt(this.getChunkInfo()) : patternOpt;
 
-		if (isAbsolute(id)) {
+		if (isAbsolute(sanitizedId)) {
 			const currentDir = dirname(sanitizedId);
-			const extension = extname(id);
+			const extension = extname(sanitizedId);
 			const fileName = renderNamePattern(pattern, 'output.entryFileNames', {
 				assetExtname: () => (NON_ASSET_EXTENSIONS.includes(extension) ? '' : extension),
 				ext: () => extension.substr(1),
@@ -1400,3 +1400,5 @@ export default class Chunk {
 function getChunkNameFromModule(module: Module): string {
 	return module.chunkName || getAliasName(module.id);
 }
+
+const QUERY_HASH_REGEX = /[?#]/;
