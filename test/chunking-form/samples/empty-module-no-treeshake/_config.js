@@ -36,7 +36,7 @@ module.exports = {
 					getObject(
 						Array.from(this.getModuleIds(), id => [
 							id.startsWith('empty') ? id : path.relative(__dirname, id),
-							this.getModuleInfo(id).hasModuleSideEffects
+							this.getModuleInfo(id).moduleSideEffects
 						])
 					),
 					{

@@ -1,4 +1,4 @@
-define(['../../../_virtual/index.js_commonjs-exports'], (function (index) { 'use strict';
+define(['../../../_virtual/index'], (function (index) { 'use strict';
 
 	Object.defineProperty(index.__exports, '__esModule', { value: true });
 
