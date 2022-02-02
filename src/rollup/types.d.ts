@@ -156,13 +156,14 @@ export type EmitChunk = (id: string, options?: { name?: string }) => string;
 
 export type EmitFile = (emittedFile: EmittedFile) => string;
 
-interface ModuleInfo {
+interface ModuleInfo extends ModuleOptions {
 	ast: AcornNode | null;
 	code: string | null;
 	dynamicImporters: readonly string[];
 	dynamicallyImportedIdResolutions: readonly ResolvedId[];
 	dynamicallyImportedIds: readonly string[];
 	hasDefaultExport: boolean | null;
+	/** @deprecated Use `moduleSideEffects` instead */
 	hasModuleSideEffects: boolean | 'no-treeshake';
 	id: string;
 	implicitlyLoadedAfterOneOf: readonly string[];
@@ -173,8 +174,6 @@ interface ModuleInfo {
 	isEntry: boolean;
 	isExternal: boolean;
 	isIncluded: boolean | null;
-	meta: CustomPluginOptions;
-	syntheticNamedExports: boolean | string;
 }
 
 export type GetModuleInfo = (moduleId: string) => ModuleInfo | null;

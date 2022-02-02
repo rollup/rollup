@@ -54,7 +54,8 @@ import {
 	errMissingExport,
 	errNamespaceConflict,
 	error,
-	errSyntheticNamedExportsNeedNamespaceExport
+	errSyntheticNamedExportsNeedNamespaceExport,
+	warnDeprecation
 } from './utils/error';
 import { getId } from './utils/getId';
 import { getOrCreate } from './utils/getOrCreate';
@@ -247,7 +248,7 @@ export default class Module {
 		public readonly id: string,
 		private readonly options: NormalizedInputOptions,
 		isEntry: boolean,
-		hasModuleSideEffects: boolean | 'no-treeshake',
+		moduleSideEffects: boolean | 'no-treeshake',
 		syntheticNamedExports: boolean | string,
 		meta: CustomPluginOptions
 	) {
@@ -257,17 +258,26 @@ export default class Module {
 
 		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		const module = this;
+		const {
+			dynamicImports,
+			dynamicImporters,
+			reexportDescriptions,
+			implicitlyLoadedAfter,
+			implicitlyLoadedBefore,
+			sources,
+			importers
+		} = this;
 		this.info = {
 			ast: null,
 			code: null,
 			get dynamicallyImportedIdResolutions() {
-				return module.dynamicImports
+				return dynamicImports
 					.map(({ argument }) => typeof argument === 'string' && module.resolvedIds[argument])
 					.filter(Boolean) as ResolvedId[];
 			},
 			get dynamicallyImportedIds() {
 				const dynamicallyImportedIds: string[] = [];
-				for (const { id } of module.dynamicImports) {
+				for (const { id } of dynamicImports) {
 					if (id) {
 						dynamicallyImportedIds.push(id);
 					}
@@ -275,43 +285,56 @@ export default class Module {
 				return dynamicallyImportedIds;
 			},
 			get dynamicImporters() {
-				return module.dynamicImporters.sort();
+				return dynamicImporters.sort();
 			},
 			get hasDefaultExport() {
 				// This information is only valid after parsing
 				if (!module.ast) {
 					return null;
 				}
-				return 'default' in module.exports || 'default' in module.reexportDescriptions;
+				return 'default' in module.exports || 'default' in reexportDescriptions;
 			},
-			hasModuleSideEffects,
+			get hasModuleSideEffects() {
+				warnDeprecation(
+					'Accessing ModuleInfo.hasModuleSideEffects from plugins is deprecated. Please use ModuleInfo.moduleSideEffects instead.',
+					false,
+					options
+				);
+				return module.info.moduleSideEffects;
+			},
 			id,
 			get implicitlyLoadedAfterOneOf() {
-				return Array.from(module.implicitlyLoadedAfter, getId).sort();
+				return Array.from(implicitlyLoadedAfter, getId).sort();
 			},
 			get implicitlyLoadedBefore() {
-				return Array.from(module.implicitlyLoadedBefore, getId).sort();
+				return Array.from(implicitlyLoadedBefore, getId).sort();
 			},
 			get importedIdResolutions() {
-				return Array.from(module.sources, source => module.resolvedIds[source]).filter(Boolean);
+				return Array.from(sources, source => module.resolvedIds[source]).filter(Boolean);
 			},
 			get importedIds() {
-				return Array.from(module.sources, source => module.resolvedIds[source]?.id).filter(Boolean);
+				return Array.from(sources, source => module.resolvedIds[source]?.id).filter(Boolean);
 			},
 			get importers() {
-				return module.importers.sort();
+				return importers.sort();
 			},
 			isEntry,
 			isExternal: false,
 			get isIncluded() {
-				if (module.graph.phase !== BuildPhase.GENERATE) {
+				if (graph.phase !== BuildPhase.GENERATE) {
 					return null;
 				}
 				return module.isIncluded();
 			},
 			meta: { ...meta },
+			moduleSideEffects,
 			syntheticNamedExports
 		};
+		// Hide the deprecated key so that it only warns when accessed explicitly
+		Object.defineProperty(this.info, 'hasModuleSideEffects', {
+			...Object.getOwnPropertyDescriptor(this.info, 'hasModuleSideEffects'),
+			enumerable: false
+		});
 	}
 
 	basename(): string {
@@ -393,7 +416,7 @@ export default class Module {
 			}
 			necessaryDependencies.add(variable.module!);
 		}
-		if (!this.options.treeshake || this.info.hasModuleSideEffects === 'no-treeshake') {
+		if (!this.options.treeshake || this.info.moduleSideEffects === 'no-treeshake') {
 			for (const dependency of this.dependencies) {
 				relevantDependencies.add(dependency);
 			}
@@ -600,7 +623,7 @@ export default class Module {
 
 	hasEffects(): boolean {
 		return (
-			this.info.hasModuleSideEffects === 'no-treeshake' ||
+			this.info.moduleSideEffects === 'no-treeshake' ||
 			(this.ast!.included && this.ast!.hasEffects(createHasEffectsContext()))
 		);
 	}
@@ -766,7 +789,7 @@ export default class Module {
 			dependencies: Array.from(this.dependencies, getId),
 			id: this.id,
 			meta: this.info.meta,
-			moduleSideEffects: this.info.hasModuleSideEffects,
+			moduleSideEffects: this.info.moduleSideEffects,
 			originalCode: this.originalCode,
 			originalSourcemap: this.originalSourcemap,
 			resolvedIds: this.resolvedIds,
@@ -835,7 +858,7 @@ export default class Module {
 		syntheticNamedExports
 	}: Partial<PartialNull<ModuleOptions>>): void {
 		if (moduleSideEffects != null) {
-			this.info.hasModuleSideEffects = moduleSideEffects;
+			this.info.moduleSideEffects = moduleSideEffects;
 		}
 		if (syntheticNamedExports != null) {
 			this.info.syntheticNamedExports = syntheticNamedExports;
@@ -1008,7 +1031,7 @@ export default class Module {
 					relevantDependencies.add(dependency);
 					continue;
 				}
-				if (!(dependency.info.hasModuleSideEffects || alwaysCheckedDependencies.has(dependency))) {
+				if (!(dependency.info.moduleSideEffects || alwaysCheckedDependencies.has(dependency))) {
 					continue;
 				}
 				if (dependency instanceof ExternalModule || dependency.hasEffects()) {

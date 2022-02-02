@@ -167,33 +167,58 @@ For those cases, the `isEntry` option will tell you if we are resolving a user d
 You can use this for instance as a mechanism to define custom proxy modules for entry points. The following plugin will proxy all entry points to inject a polyfill import.
 
 ```js
+// We prefix the polyfill id with \0 to tell other plugins not to try to load or
+// transform it
+const POLYFILL_ID = '\0polyfill';
+const PROXY_SUFFIX = '?inject-polyfill-proxy';
+
 function injectPolyfillPlugin() {
   return {
     name: 'inject-polyfill',
     async resolveId(source, importer, options) {
+      if (source === POLYFILL_ID) {
+        // It is important that side effects are always respected for polyfills,
+        // otherwise using "treeshake.moduleSideEffects: false" may prevent the
+        // polyfill from being included.
+        return { id: POLYFILL_ID, moduleSideEffects: true };
+      }
       if (options.isEntry) {
-        // We need to skip this plugin to avoid an infinite loop
+        // Determine what the actual entry would have been. We need "skipSelf"
+        // to avoid an infinite loop.
         const resolution = await this.resolve(source, importer, { skipSelf: true, ...options });
         // If it cannot be resolved or is external, just return it so that
         // Rollup can display an error
         if (!resolution || resolution.external) return resolution;
-        // In the load hook of the proxy, we want to use this.load to find out
-        // if the entry has a default export. In the load hook, however, we no
-        // longer have the full "resolution" object that may contain meta-data
-        // from other plugins that is only added on first load. Therefore we
-        // trigger loading here without waiting for it.
-        this.load(resolution);
-        return `${resolution.id}?entry-proxy`;
+        // In the load hook of the proxy, we need to know if the entry has a
+        // default export. There, however, we no longer have the full
+        // "resolution" object that may contain meta-data from other plugins
+        // that is only added on first load. Therefore we trigger loading here.
+        const moduleInfo = await this.load(resolution);
+        // We need to make sure side effects in the original entry point
+        // are respected even for treeshake.moduleSideEffects: false.
+        // "moduleSideEffects" is a writable property on ModuleInfo.
+        moduleInfo.moduleSideEffects = true;
+        // It is important that the new entry does not start with \0 and
+        // has the same directory as the original one to not mess up
+        // relative external import generation. Also keeping the name and
+        // just adding a "?query" to the end ensures that preserveModules
+        // will generate the original entry name for this entry.
+        return `${resolution.id}${PROXY_SUFFIX}`;
       }
       return null;
     },
-    async load(id) {
-      if (id.endsWith('?entry-proxy')) {
-        const entryId = id.slice(0, -'?entry-proxy'.length);
-        // We need to load and parse the original entry first because we need
-        // to know if it has a default export
-        const { hasDefaultExport } = await this.load({ id: entryId });
-        let code = `import 'polyfill';export * from ${JSON.stringify(entryId)};`;
+    load(id) {
+      if (id === POLYFILL_ID) {
+        // Replace with actual polyfill
+        return "console.log('polyfill');";
+      }
+      if (id.endsWith(PROXY_SUFFIX)) {
+        const entryId = id.slice(0, -PROXY_SUFFIX.length);
+        // We know ModuleInfo.hasDefaultExport is reliable because we awaited
+        // this.load in resolveId
+        const { hasDefaultExport } = this.getModuleInfo(entryId);
+        let code =
+          `import ${JSON.stringify(POLYFILL_ID)};` + `export * from ${JSON.stringify(entryId)};`;
         // Namespace reexports do not reexport default, so we need special
         // handling here
         if (hasDefaultExport) {
@@ -700,8 +725,8 @@ type ModuleInfo = {
   dynamicImporters: string[]; // the ids of all modules that import this module via dynamic import()
   implicitlyLoadedAfterOneOf: string[]; // implicit relationships, declared via this.emitFile
   implicitlyLoadedBefore: string[]; // implicit relationships, declared via this.emitFile
-  hasModuleSideEffects: boolean | 'no-treeshake'; // are imports of this module included if nothing is imported from it
   meta: { [plugin: string]: any }; // custom module meta-data
+  moduleSideEffects: boolean | 'no-treeshake'; // are imports of this module included if nothing is imported from it
   syntheticNamedExports: boolean | string; // final value of synthetic named exports
 };
 
@@ -714,7 +739,16 @@ type ResolvedId = {
 };
 ```
 
-During the build, this object represents currently available information about the module. Before the [`buildEnd`](guide/en/#buildend) hook, this information may be incomplete as e.g. the `importedIds` are not yet resolved or additional `importers` are discovered.
+During the build, this object represents currently available information about the module which may be inaccurate before the [`buildEnd`](guide/en/#buildend) hook:
+
+- `id` and `isExternal` will never change.
+- `code`, `ast` and `hasDefaultExport` are only available after parsing, i.e. in the [`moduleParsed`](guide/en/#moduleparsed) hook or after awaiting [`this.load`](guide/en/#thisload). At that point, they will no longer change.
+- if `isEntry` is `true`, it will no longer change. It is however possible for modules to become entry points after they are parsed, either via [`this.emitFile`](guide/en/#thisemitfile) or because a plugin inspects a potential entry point via [`this.load`](guide/en/#thisload) in the [`resolveId`](guide/en/#resolveid) hook when resolving an entry point. Therefore, it is not recommended relying on this flag in the [`transform`](guide/en/#transform) hook. It will no longer change after `buildEnd`.
+- Similarly, `implicitlyLoadedAfterOneOf` can receive additional entries at any time before `buildEnd` via [`this.emitFile`](guide/en/#thisemitfile).
+- `importers`, `dynamicImporters` and `implicitlyLoadedBefore` will start as empty arrays, which receive additional entries as new importers and implicit dependents are discovered. They will no longer change after `buildEnd`.
+- `isIncluded` is only available after `buildEnd`, at which point it will no longer change.
+- `importedIds`, `importedIdResolutions`, `dynamicallyImportedIds` and `dynamicallyImportedIdResolutions` are available when a module has been parsed and its dependencies have been resolved. This is the case in the `moduleParsed` hook or after awaiting [`this.load`](guide/en/#thisload) with the `resolveDependencies` flag. At that point, they will no longer change.
+- `meta`, `moduleSideEffects` and `syntheticNamedExports` can be changed by [`load`](guide/en/#load) and [`transform`](guide/en/#transform) hooks. Moreover, while most properties are read-only, `moduleSideEffects` is writable and changes will be picked up if they occur before the `buildEnd` hook is triggered. `meta` should not be overwritten, but it is ok to mutate its properties at any time to store meta information about a module. The advantage of doing this instead of keeping state in a plugin is that `meta` is persisted to and restored from the cache if it is used, e.g. when using watch mode from the CLI.
 
 Returns `null` if the module id cannot be found.
 
