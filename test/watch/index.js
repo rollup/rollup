@@ -1104,9 +1104,8 @@ describe('rollup.watch', () => {
 						if (code.includes('broken')) {
 							brokenFiles.add(id);
 							throw new Error('Broken in transform');
-						} else {
-							brokenFiles.delete(id);
 						}
+						brokenFiles.delete(id);
 					},
 					generateBundle() {
 						if (brokenFiles.size > 0) {
