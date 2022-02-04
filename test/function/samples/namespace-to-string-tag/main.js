@@ -12,5 +12,11 @@ assert.strictEqual(configurable, false, 'configurable');
 assert.strictEqual(enumerable, false, 'enumerable');
 assert.strictEqual(writable, false, 'writable');
 
-assert.deepEqual(assign({}, ns), { foo: 'bar' });
-assert.deepEqual({ ...ns }, { foo: 'bar' });
+const a = assign({}, ns);
+const b = { ...ns };
+
+assert.deepEqual(a, { foo: 'bar' });
+assert.strictEqual(a[Symbol.toStringTag], undefined);
+
+assert.deepEqual(b, { foo: 'bar' });
+assert.strictEqual(b[Symbol.toStringTag], undefined);
