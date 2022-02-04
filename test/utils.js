@@ -14,6 +14,7 @@ const { platform, version } = require('process');
 const fixturify = require('fixturify');
 const { removeSync } = require('fs-extra');
 
+exports.wait = wait;
 exports.compareError = compareError;
 exports.compareWarnings = compareWarnings;
 exports.deindent = deindent;
@@ -29,6 +30,12 @@ exports.atomicWriteFileSync = atomicWriteFileSync;
 exports.writeAndSync = writeAndSync;
 exports.getFileNamesAndRemoveOutput = getFileNamesAndRemoveOutput;
 exports.writeAndRetry = writeAndRetry;
+
+function wait(ms) {
+	return new Promise(fulfil => {
+		setTimeout(fulfil, ms);
+	});
+}
 
 function normaliseError(error) {
 	delete error.stack;
