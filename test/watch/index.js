@@ -1,7 +1,7 @@
 const assert = require('assert');
 const {
 	existsSync,
-	promises,
+	promises: fs,
 	readdirSync,
 	readFileSync,
 	unlinkSync,
@@ -239,7 +239,7 @@ describe('rollup.watch', () => {
 		let ids;
 		const expectedIds = [WATCHED_ID, resolve('test/_tmp/input/main.js')];
 		await copy('test/watch/samples/watch-files', 'test/_tmp/input');
-		await promises.unlink(WATCHED_ID);
+		await fs.unlink(WATCHED_ID);
 		await wait(100);
 		watcher = rollup.watch({
 			input: 'test/_tmp/input/main.js',
@@ -1096,7 +1096,7 @@ describe('rollup.watch', () => {
 	it('runs transforms again on previously erroring files that were changed back', () => {
 		const brokenFiles = new Set();
 		const INITIAL_CONTENT = 'export default 42;';
-		promises.writeFile('test/_tmp/input/main.js', INITIAL_CONTENT).then(() => {
+		fs.writeFile('test/_tmp/input/main.js', INITIAL_CONTENT).then(() => {
 			watcher = rollup.watch({
 				input: 'test/_tmp/input/main.js',
 				plugins: {
