@@ -11,13 +11,7 @@ const { resolve } = require('path');
 const { chdir, cwd, hrtime } = require('process');
 const { copy, removeSync } = require('fs-extra');
 const rollup = require('../../dist/rollup');
-const { atomicWriteFileSync } = require('../utils');
-
-function wait(ms) {
-	return new Promise(fulfil => {
-		setTimeout(fulfil, ms);
-	});
-}
+const { atomicWriteFileSync, wait } = require('../utils');
 
 describe('rollup.watch', () => {
 	let watcher;

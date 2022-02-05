@@ -14,21 +14,11 @@ const { platform, version } = require('process');
 const fixturify = require('fixturify');
 const { removeSync } = require('fs-extra');
 
-exports.compareError = compareError;
-exports.compareWarnings = compareWarnings;
-exports.deindent = deindent;
-exports.executeBundle = executeBundle;
-exports.getObject = getObject;
-exports.loader = loader;
-exports.normaliseOutput = normaliseOutput;
-exports.runTestSuiteWithSamples = runTestSuiteWithSamples;
-exports.assertDirectoriesAreEqual = assertDirectoriesAreEqual;
-exports.assertFilesAreEqual = assertFilesAreEqual;
-exports.assertIncludes = assertIncludes;
-exports.atomicWriteFileSync = atomicWriteFileSync;
-exports.writeAndSync = writeAndSync;
-exports.getFileNamesAndRemoveOutput = getFileNamesAndRemoveOutput;
-exports.writeAndRetry = writeAndRetry;
+exports.wait = function wait(ms) {
+	return new Promise(fulfil => {
+		setTimeout(fulfil, ms);
+	});
+};
 
 function normaliseError(error) {
 	delete error.stack;
@@ -36,7 +26,7 @@ function normaliseError(error) {
 	return { ...error, message: error.message };
 }
 
-function compareError(actual, expected) {
+exports.compareError = function compareError(actual, expected) {
 	actual = normaliseError(actual);
 
 	if (actual.parserError) {
@@ -52,9 +42,9 @@ function compareError(actual, expected) {
 	}
 
 	assert.deepEqual(actual, expected);
-}
+};
 
-function compareWarnings(actual, expected) {
+exports.compareWarnings = function compareWarnings(actual, expected) {
 	assert.deepEqual(
 		actual.map(warning => {
 			const clone = { ...warning };
@@ -73,13 +63,15 @@ function compareWarnings(actual, expected) {
 			return warning;
 		})
 	);
-}
+};
 
 function deindent(str) {
 	return str.slice(1).replace(/^\t+/gm, '').replace(/\s+$/gm, '').trim();
 }
 
-async function executeBundle(bundle, require) {
+exports.deindent = deindent;
+
+exports.executeBundle = async function executeBundle(bundle, require) {
 	const {
 		output: [cjs]
 	} = await bundle.generate({
@@ -90,17 +82,17 @@ async function executeBundle(bundle, require) {
 	const module = { exports: {} };
 	wrapper(module, module.exports, require);
 	return module.exports;
-}
+};
 
-function getObject(entries) {
+exports.getObject = function getObject(entries) {
 	const object = {};
 	for (const [key, value] of entries) {
 		object[key] = value;
 	}
 	return object;
-}
+};
 
-function loader(modules) {
+exports.loader = function loader(modules) {
 	modules = Object.assign(Object.create(null), modules);
 	return {
 		resolveId(id) {
@@ -111,11 +103,11 @@ function loader(modules) {
 			return modules[id];
 		}
 	};
-}
+};
 
-function normaliseOutput(code) {
+exports.normaliseOutput = function normaliseOutput(code) {
 	return code.toString().trim().replace(/\r\n/g, '\n');
-}
+};
 
 function runTestSuiteWithSamples(suiteName, samplesDir, runTest, onTeardown) {
 	describe(suiteName, () => runSamples(samplesDir, runTest, onTeardown));
@@ -129,6 +121,8 @@ runTestSuiteWithSamples.only = function (suiteName, samplesDir, runTest, onTeard
 runTestSuiteWithSamples.skip = function (suiteName) {
 	describe.skip(suiteName, () => {});
 };
+
+exports.runTestSuiteWithSamples = runTestSuiteWithSamples;
 
 function runSamples(samplesDir, runTest, onTeardown) {
 	if (onTeardown) {
@@ -181,6 +175,8 @@ function getFileNamesAndRemoveOutput(dir) {
 	}
 }
 
+exports.getFileNamesAndRemoveOutput = getFileNamesAndRemoveOutput;
+
 function loadConfigAndRunTest(dir, runTest) {
 	const configFile = join(dir, '_config.js');
 	const config = require(configFile);
@@ -196,7 +192,7 @@ function loadConfigAndRunTest(dir, runTest) {
 	}
 }
 
-function assertDirectoriesAreEqual(actualDir, expectedDir) {
+exports.assertDirectoriesAreEqual = function assertDirectoriesAreEqual(actualDir, expectedDir) {
 	const actualFiles = fixturify.readSync(actualDir);
 
 	let expectedFiles;
@@ -206,7 +202,7 @@ function assertDirectoriesAreEqual(actualDir, expectedDir) {
 		expectedFiles = [];
 	}
 	assertFilesAreEqual(actualFiles, expectedFiles);
-}
+};
 
 function assertFilesAreEqual(actualFiles, expectedFiles, dirs = []) {
 	Object.keys({ ...actualFiles, ...expectedFiles }).forEach(fileName => {
@@ -223,7 +219,9 @@ function assertFilesAreEqual(actualFiles, expectedFiles, dirs = []) {
 	});
 }
 
-function assertIncludes(actual, expected) {
+exports.assertFilesAreEqual = assertFilesAreEqual;
+
+exports.assertIncludes = function assertIncludes(actual, expected) {
 	try {
 		assert.ok(
 			actual.includes(expected),
@@ -234,7 +232,7 @@ function assertIncludes(actual, expected) {
 		err.expected = expected;
 		throw err;
 	}
-}
+};
 
 // Workaround a race condition in fs.writeFileSync that temporarily creates
 // an empty file for a brief moment which may be read by rollup watch - even
@@ -245,13 +243,15 @@ function atomicWriteFileSync(filePath, contents) {
 	renameSync(stagingPath, filePath);
 }
 
+exports.atomicWriteFileSync = atomicWriteFileSync;
+
 // It appears that on MacOS, it sometimes takes long for the file system to update
-function writeAndSync(filePath, contents) {
+exports.writeAndSync = function writeAndSync(filePath, contents) {
 	const file = openSync(filePath, 'w');
 	writeSync(file, contents);
 	fsyncSync(file);
 	closeSync(file);
-}
+};
 
 // Sometimes, watchers on MacOS do not seem to fire. In those cases, it helps
 // to write the same content again. This function returns a callback to stop
@@ -272,3 +272,5 @@ function writeAndRetry(filePath, contents) {
 	writeFile();
 	return () => clearTimeout(updateRetryTimeout);
 }
+
+exports.writeAndRetry = writeAndRetry;
