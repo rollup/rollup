@@ -1,10 +1,10 @@
-import { AstContext } from '../../Module';
-import { HasEffectsContext } from '../ExecutionContext';
-import { NodeEvent } from '../NodeEvents';
-import { ExpressionEntity, UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
+import type { AstContext } from '../../Module';
+import type { HasEffectsContext } from '../ExecutionContext';
+import type { NodeEvent } from '../NodeEvents';
+import { type ExpressionEntity, UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
 import {
 	DiscriminatedPathTracker,
-	ObjectPath,
+	type ObjectPath,
 	SHARED_RECURSION_TRACKER
 } from '../utils/PathTracker';
 import LocalVariable from './LocalVariable';
@@ -16,10 +16,10 @@ interface ThisDeoptimizationEvent {
 }
 
 export default class ThisVariable extends LocalVariable {
-	private deoptimizedPaths: ObjectPath[] = [];
-	private entitiesToBeDeoptimized = new Set<ExpressionEntity>();
-	private thisDeoptimizationList: ThisDeoptimizationEvent[] = [];
-	private thisDeoptimizations = new DiscriminatedPathTracker();
+	private readonly deoptimizedPaths: ObjectPath[] = [];
+	private readonly entitiesToBeDeoptimized = new Set<ExpressionEntity>();
+	private readonly thisDeoptimizationList: ThisDeoptimizationEvent[] = [];
+	private readonly thisDeoptimizations = new DiscriminatedPathTracker();
 
 	constructor(context: AstContext) {
 		super('this', null, null, context);

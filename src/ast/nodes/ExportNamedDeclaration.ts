@@ -1,19 +1,19 @@
-import MagicString from 'magic-string';
-import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import { HasEffectsContext } from '../ExecutionContext';
-import ClassDeclaration from './ClassDeclaration';
-import ExportSpecifier from './ExportSpecifier';
-import FunctionDeclaration from './FunctionDeclaration';
-import Literal from './Literal';
-import * as NodeType from './NodeType';
-import VariableDeclaration from './VariableDeclaration';
-import { Node, NodeBase } from './shared/Node';
+import type MagicString from 'magic-string';
+import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import type { HasEffectsContext } from '../ExecutionContext';
+import type ClassDeclaration from './ClassDeclaration';
+import type ExportSpecifier from './ExportSpecifier';
+import type FunctionDeclaration from './FunctionDeclaration';
+import type Literal from './Literal';
+import type * as NodeType from './NodeType';
+import type VariableDeclaration from './VariableDeclaration';
+import { type Node, NodeBase } from './shared/Node';
 
 export default class ExportNamedDeclaration extends NodeBase {
 	declare declaration: FunctionDeclaration | ClassDeclaration | VariableDeclaration | null;
 	declare needsBoundaries: true;
 	declare source: Literal<string> | null;
-	declare specifiers: ExportSpecifier[];
+	declare specifiers: readonly ExportSpecifier[];
 	declare type: NodeType.tExportNamedDeclaration;
 
 	bind(): void {

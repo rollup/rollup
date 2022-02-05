@@ -1,5 +1,5 @@
 import MagicString from 'magic-string';
-import { Plugin } from 'rollup';
+import type { Plugin } from 'rollup';
 
 export default function addCliEntry(): Plugin {
 	return {

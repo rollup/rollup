@@ -1,10 +1,10 @@
-import { NormalizedTreeshakingOptions } from '../../rollup/types';
-import { HasEffectsContext } from '../ExecutionContext';
-import { NodeEvent } from '../NodeEvents';
-import { ObjectPath, PathTracker, UNKNOWN_PATH, UnknownKey } from '../utils/PathTracker';
-import * as NodeType from './NodeType';
-import { ExpressionEntity } from './shared/Expression';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import type { NormalizedTreeshakingOptions } from '../../rollup/types';
+import type { HasEffectsContext } from '../ExecutionContext';
+import type { NodeEvent } from '../NodeEvents';
+import { type ObjectPath, type PathTracker, UNKNOWN_PATH, UnknownKey } from '../utils/PathTracker';
+import type * as NodeType from './NodeType';
+import type { ExpressionEntity } from './shared/Expression';
+import { type ExpressionNode, NodeBase } from './shared/Node';
 
 export default class SpreadElement extends NodeBase {
 	declare argument: ExpressionNode;

@@ -1,19 +1,23 @@
-import MagicString from 'magic-string';
-import { RenderOptions } from '../../utils/renderHelpers';
-import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { BROKEN_FLOW_NONE, HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import type MagicString from 'magic-string';
+import type { RenderOptions } from '../../utils/renderHelpers';
+import type { DeoptimizableEntity } from '../DeoptimizableEntity';
+import {
+	BROKEN_FLOW_NONE,
+	type HasEffectsContext,
+	type InclusionContext
+} from '../ExecutionContext';
 import TrackingScope from '../scopes/TrackingScope';
 import { EMPTY_PATH, SHARED_RECURSION_TRACKER } from '../utils/PathTracker';
 import BlockStatement from './BlockStatement';
-import Identifier from './Identifier';
+import type Identifier from './Identifier';
 import * as NodeType from './NodeType';
-import { LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
+import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
 import {
-	ExpressionNode,
-	GenericEsTreeNode,
-	IncludeChildren,
+	type ExpressionNode,
+	type GenericEsTreeNode,
+	type IncludeChildren,
 	StatementBase,
-	StatementNode
+	type StatementNode
 } from './shared/Node';
 
 const unset = Symbol('unset');
@@ -178,7 +182,7 @@ export default class IfStatement extends StatementBase implements DeoptimizableE
 	}
 
 	private renderHoistedDeclarations(
-		hoistedDeclarations: Identifier[],
+		hoistedDeclarations: readonly Identifier[],
 		code: MagicString,
 		getPropertyAccess: (name: string) => string
 	) {

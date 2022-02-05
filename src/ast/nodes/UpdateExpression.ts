@@ -1,15 +1,15 @@
-import MagicString from 'magic-string';
-import { RenderOptions } from '../../utils/renderHelpers';
+import type MagicString from 'magic-string';
+import type { RenderOptions } from '../../utils/renderHelpers';
 import {
 	renderSystemExportExpression,
 	renderSystemExportSequenceAfterExpression,
 	renderSystemExportSequenceBeforeExpression
 } from '../../utils/systemJsRendering';
-import { HasEffectsContext } from '../ExecutionContext';
-import { EMPTY_PATH, ObjectPath } from '../utils/PathTracker';
+import type { HasEffectsContext } from '../ExecutionContext';
+import { EMPTY_PATH, type ObjectPath } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import { type ExpressionNode, NodeBase } from './shared/Node';
 
 export default class UpdateExpression extends NodeBase {
 	declare argument: ExpressionNode;

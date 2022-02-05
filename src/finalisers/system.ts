@@ -1,10 +1,10 @@
-import { Bundle, Bundle as MagicStringBundle } from 'magic-string';
-import { ChunkDependencies, ChunkExports, ModuleDeclarations } from '../Chunk';
-import { NormalizedOutputOptions } from '../rollup/types';
-import { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
+import type { Bundle, Bundle as MagicStringBundle } from 'magic-string';
+import type { ChunkDependencies, ChunkExports, ModuleDeclarations } from '../Chunk';
+import type { NormalizedOutputOptions } from '../rollup/types';
+import type { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
 import { getHelpersBlock } from '../utils/interopHelpers';
 import { MISSING_EXPORT_SHIM_VARIABLE } from '../utils/variableNames';
-import { FinaliserOptions } from './index';
+import type { FinaliserOptions } from './index';
 
 export default function system(
 	magicString: MagicStringBundle,
@@ -171,7 +171,7 @@ const getStarExcludes = ({ dependencies, exports }: ModuleDeclarations): Set<str
 };
 
 const getStarExcludesBlock = (
-	starExcludes: Set<string> | null,
+	starExcludes: ReadonlySet<string> | null,
 	t: string,
 	{ _, cnst, getObject, n }: GenerateCodeSnippets
 ): string =>
@@ -183,7 +183,7 @@ const getStarExcludesBlock = (
 		: '';
 
 const getImportBindingsBlock = (
-	importBindings: string[],
+	importBindings: readonly string[],
 	t: string,
 	{ _, n }: GenerateCodeSnippets
 ): string => (importBindings.length ? `${n}${t}var ${importBindings.join(`,${_}`)};` : '');
@@ -200,7 +200,7 @@ const getHoistedExportsBlock = (
 	);
 
 function getExportsBlock(
-	exports: { name: string; value: string }[],
+	exports: readonly { name: string; value: string }[],
 	t: string,
 	{ _, n }: GenerateCodeSnippets
 ): string {

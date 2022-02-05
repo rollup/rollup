@@ -1,4 +1,4 @@
-import { ExpressionEntity, UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
+import { type ExpressionEntity, UNKNOWN_EXPRESSION } from '../nodes/shared/Expression';
 import { UNKNOWN_PATH } from '../utils/PathTracker';
 import ParameterScope from './ParameterScope';
 

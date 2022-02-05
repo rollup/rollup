@@ -1,22 +1,31 @@
-import { NormalizedTreeshakingOptions } from '../../rollup/types';
-import { CallOptions, NO_ARGS } from '../CallOptions';
-import { BROKEN_FLOW_NONE, HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import type { NormalizedTreeshakingOptions } from '../../rollup/types';
+import { type CallOptions, NO_ARGS } from '../CallOptions';
+import {
+	BROKEN_FLOW_NONE,
+	type HasEffectsContext,
+	type InclusionContext
+} from '../ExecutionContext';
 import ReturnValueScope from '../scopes/ReturnValueScope';
-import Scope from '../scopes/Scope';
-import { ObjectPath, UNKNOWN_PATH, UnknownKey } from '../utils/PathTracker';
+import type Scope from '../scopes/Scope';
+import { type ObjectPath, UNKNOWN_PATH, UnknownKey } from '../utils/PathTracker';
 import BlockStatement from './BlockStatement';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import RestElement from './RestElement';
-import SpreadElement from './SpreadElement';
-import { ExpressionEntity, UNKNOWN_EXPRESSION } from './shared/Expression';
-import { ExpressionNode, GenericEsTreeNode, IncludeChildren, NodeBase } from './shared/Node';
-import { PatternNode } from './shared/Pattern';
+import type SpreadElement from './SpreadElement';
+import { type ExpressionEntity, UNKNOWN_EXPRESSION } from './shared/Expression';
+import {
+	type ExpressionNode,
+	type GenericEsTreeNode,
+	type IncludeChildren,
+	NodeBase
+} from './shared/Node';
+import type { PatternNode } from './shared/Pattern';
 
 export default class ArrowFunctionExpression extends NodeBase {
 	declare async: boolean;
 	declare body: BlockStatement | ExpressionNode;
-	declare params: PatternNode[];
+	declare params: readonly PatternNode[];
 	declare preventChildBlockScope: true;
 	declare scope: ReturnValueScope;
 	declare type: NodeType.tArrowFunctionExpression;
@@ -116,7 +125,10 @@ export default class ArrowFunctionExpression extends NodeBase {
 		context.brokenFlow = brokenFlow;
 	}
 
-	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
+	includeCallArguments(
+		context: InclusionContext,
+		args: readonly (ExpressionNode | SpreadElement)[]
+	): void {
 		this.scope.includeCallArguments(context, args);
 	}
 

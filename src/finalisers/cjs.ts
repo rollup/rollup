@@ -1,10 +1,10 @@
-import { Bundle, Bundle as MagicStringBundle } from 'magic-string';
-import { ChunkDependencies } from '../Chunk';
-import { NormalizedOutputOptions } from '../rollup/types';
-import { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
+import type { Bundle, Bundle as MagicStringBundle } from 'magic-string';
+import type { ChunkDependencies } from '../Chunk';
+import type { NormalizedOutputOptions } from '../rollup/types';
+import type { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
 import { getExportBlock, getNamespaceMarkers } from './shared/getExportBlock';
 import getInteropBlock from './shared/getInteropBlock';
-import { FinaliserOptions } from './index';
+import type { FinaliserOptions } from './index';
 
 export default function cjs(
 	magicString: MagicStringBundle,

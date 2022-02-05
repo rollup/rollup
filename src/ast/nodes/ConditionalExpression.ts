@@ -19,7 +19,7 @@ import {
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH
 } from '../utils/PathTracker';
-import * as NodeType from './NodeType';
+import type * as NodeType from './NodeType';
 import SpreadElement from './SpreadElement';
 import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
 import { MultiExpression } from './shared/MultiExpression';
@@ -166,7 +166,10 @@ export default class ConditionalExpression extends NodeBase implements Deoptimiz
 		}
 	}
 
-	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
+	includeCallArguments(
+		context: InclusionContext,
+		args: readonly (ExpressionNode | SpreadElement)[]
+	): void {
 		const usedBranch = this.getUsedBranch();
 		if (usedBranch === null) {
 			this.consequent.includeCallArguments(context, args);

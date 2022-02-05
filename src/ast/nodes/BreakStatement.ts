@@ -1,11 +1,11 @@
 import {
 	BROKEN_FLOW_BREAK_CONTINUE,
 	BROKEN_FLOW_ERROR_RETURN_LABEL,
-	HasEffectsContext,
-	InclusionContext
+	type HasEffectsContext,
+	type InclusionContext
 } from '../ExecutionContext';
-import Identifier from './Identifier';
-import * as NodeType from './NodeType';
+import type Identifier from './Identifier';
+import type * as NodeType from './NodeType';
 import { StatementBase } from './shared/Node';
 
 export default class BreakStatement extends StatementBase {

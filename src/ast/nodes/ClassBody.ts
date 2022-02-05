@@ -1,11 +1,11 @@
-import { InclusionContext } from '../ExecutionContext';
+import type { InclusionContext } from '../ExecutionContext';
 import ClassBodyScope from '../scopes/ClassBodyScope';
-import Scope from '../scopes/Scope';
-import MethodDefinition from './MethodDefinition';
-import * as NodeType from './NodeType';
-import PropertyDefinition from './PropertyDefinition';
-import ClassNode from './shared/ClassNode';
-import { GenericEsTreeNode, IncludeChildren, NodeBase } from './shared/Node';
+import type Scope from '../scopes/Scope';
+import type MethodDefinition from './MethodDefinition';
+import type * as NodeType from './NodeType';
+import type PropertyDefinition from './PropertyDefinition';
+import type ClassNode from './shared/ClassNode';
+import { type GenericEsTreeNode, type IncludeChildren, NodeBase } from './shared/Node';
 
 export default class ClassBody extends NodeBase {
 	declare body: (MethodDefinition | PropertyDefinition)[];

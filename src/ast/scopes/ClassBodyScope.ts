@@ -1,9 +1,9 @@
-import { AstContext } from '../../Module';
-import { ExpressionEntity } from '../nodes/shared/Expression';
+import type { AstContext } from '../../Module';
+import type { ExpressionEntity } from '../nodes/shared/Expression';
 import LocalVariable from '../variables/LocalVariable';
 import ThisVariable from '../variables/ThisVariable';
 import ChildScope from './ChildScope';
-import Scope from './Scope';
+import type Scope from './Scope';
 
 export default class ClassBodyScope extends ChildScope {
 	instanceScope: ChildScope;

@@ -1,17 +1,17 @@
-import { CallOptions } from '../CallOptions';
-import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { HasEffectsContext } from '../ExecutionContext';
-import { NodeEvent } from '../NodeEvents';
-import { ObjectPath, PathTracker } from '../utils/PathTracker';
-import * as NodeType from './NodeType';
-import PrivateIdentifier from './PrivateIdentifier';
+import type { CallOptions } from '../CallOptions';
+import type { DeoptimizableEntity } from '../DeoptimizableEntity';
+import type { HasEffectsContext } from '../ExecutionContext';
+import type { NodeEvent } from '../NodeEvents';
+import type { ObjectPath, PathTracker } from '../utils/PathTracker';
+import type * as NodeType from './NodeType';
+import type PrivateIdentifier from './PrivateIdentifier';
 import {
-	ExpressionEntity,
-	LiteralValueOrUnknown,
+	type ExpressionEntity,
+	type LiteralValueOrUnknown,
 	UNKNOWN_EXPRESSION,
 	UnknownValue
 } from './shared/Expression';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import { type ExpressionNode, NodeBase } from './shared/Node';
 
 export default class PropertyDefinition extends NodeBase {
 	declare computed: boolean;

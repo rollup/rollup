@@ -1,6 +1,6 @@
-import { ModuleDeclarationDependency, ReexportSpecifier } from '../../Chunk';
-import { GetInterop } from '../../rollup/types';
-import { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
+import type { ModuleDeclarationDependency, ReexportSpecifier } from '../../Chunk';
+import type { GetInterop } from '../../rollup/types';
+import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 import {
 	defaultInteropHelpersByInteropType,
 	getHelpersBlock,
@@ -9,7 +9,7 @@ import {
 } from '../../utils/interopHelpers';
 
 export default function getInteropBlock(
-	dependencies: ModuleDeclarationDependency[],
+	dependencies: readonly ModuleDeclarationDependency[],
 	interop: GetInterop,
 	externalLiveBindings: boolean,
 	freeze: boolean,

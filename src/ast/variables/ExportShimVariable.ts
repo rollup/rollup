@@ -1,4 +1,4 @@
-import Module from '../../Module';
+import type Module from '../../Module';
 import { MISSING_EXPORT_SHIM_VARIABLE } from '../../utils/variableNames';
 import Variable from './Variable';
 

@@ -1,5 +1,5 @@
-import { GlobalsOption } from '../../rollup/types';
-import { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
+import type { GlobalsOption } from '../../rollup/types';
+import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 
 export default function setupNamespace(
 	name: string,

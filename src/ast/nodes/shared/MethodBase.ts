@@ -1,17 +1,21 @@
-import { CallOptions, NO_ARGS } from '../../CallOptions';
-import { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import { HasEffectsContext } from '../../ExecutionContext';
-import { EVENT_ACCESSED, EVENT_ASSIGNED, EVENT_CALLED, NodeEvent } from '../../NodeEvents';
+import { type CallOptions, NO_ARGS } from '../../CallOptions';
+import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
+import type { HasEffectsContext } from '../../ExecutionContext';
+import { EVENT_ACCESSED, EVENT_ASSIGNED, EVENT_CALLED, type NodeEvent } from '../../NodeEvents';
 import {
 	EMPTY_PATH,
-	ObjectPath,
-	PathTracker,
+	type ObjectPath,
+	type PathTracker,
 	SHARED_RECURSION_TRACKER
 } from '../../utils/PathTracker';
-import PrivateIdentifier from '../PrivateIdentifier';
-import { ExpressionEntity, LiteralValueOrUnknown, UNKNOWN_EXPRESSION } from './Expression';
-import { ExpressionNode, NodeBase } from './Node';
-import { PatternNode } from './Pattern';
+import type PrivateIdentifier from '../PrivateIdentifier';
+import {
+	type ExpressionEntity,
+	type LiteralValueOrUnknown,
+	UNKNOWN_EXPRESSION
+} from './Expression';
+import { type ExpressionNode, NodeBase } from './Node';
+import type { PatternNode } from './Pattern';
 
 export default class MethodBase extends NodeBase implements DeoptimizableEntity {
 	declare computed: boolean;

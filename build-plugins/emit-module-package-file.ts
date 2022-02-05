@@ -1,4 +1,4 @@
-import { Plugin } from 'rollup';
+import type { Plugin } from 'rollup';
 
 export default function emitModulePackageFile(): Plugin {
 	return {
