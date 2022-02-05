@@ -1,4 +1,5 @@
-import Module, { AstContext } from '../../Module';
+import type Module from '../../Module';
+import type { AstContext } from '../../Module';
 import ExportDefaultVariable from './ExportDefaultVariable';
 import Variable from './Variable';
 

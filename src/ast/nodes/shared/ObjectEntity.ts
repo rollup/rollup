@@ -358,7 +358,7 @@ export class ObjectEntity extends ExpressionEntity {
 		return true;
 	}
 
-	private buildPropertyMaps(properties: ObjectProperty[]): void {
+	private buildPropertyMaps(properties: readonly ObjectProperty[]): void {
 		const {
 			allProperties,
 			propertiesAndGettersByKey,

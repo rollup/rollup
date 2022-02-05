@@ -1,21 +1,21 @@
-import MagicString from 'magic-string';
-import { CallOptions } from '../CallOptions';
-import { HasEffectsContext } from '../ExecutionContext';
-import { ObjectPath } from '../utils/PathTracker';
+import type MagicString from 'magic-string';
+import type { CallOptions } from '../CallOptions';
+import type { HasEffectsContext } from '../ExecutionContext';
+import type { ObjectPath } from '../utils/PathTracker';
 import {
 	getLiteralMembersForValue,
 	getMemberReturnExpressionWhenCalled,
 	hasMemberEffectWhenCalled,
-	MemberDescription
+	type MemberDescription
 } from '../values';
-import * as NodeType from './NodeType';
+import type * as NodeType from './NodeType';
 import {
-	ExpressionEntity,
-	LiteralValueOrUnknown,
+	type ExpressionEntity,
+	type LiteralValueOrUnknown,
 	UNKNOWN_EXPRESSION,
 	UnknownValue
 } from './shared/Expression';
-import { GenericEsTreeNode, NodeBase } from './shared/Node';
+import { type GenericEsTreeNode, NodeBase } from './shared/Node';
 
 export type LiteralValue = string | boolean | null | number | RegExp | undefined;
 

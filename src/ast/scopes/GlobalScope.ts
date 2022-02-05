@@ -1,6 +1,6 @@
 import GlobalVariable from '../variables/GlobalVariable';
 import UndefinedVariable from '../variables/UndefinedVariable';
-import Variable from '../variables/Variable';
+import type Variable from '../variables/Variable';
 import Scope from './Scope';
 
 export default class GlobalScope extends Scope {

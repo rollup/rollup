@@ -1,6 +1,6 @@
-import ExternalModule from '../../ExternalModule';
-import Identifier from '../nodes/Identifier';
-import { ObjectPath } from '../utils/PathTracker';
+import type ExternalModule from '../../ExternalModule';
+import type Identifier from '../nodes/Identifier';
+import type { ObjectPath } from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class ExternalVariable extends Variable {

@@ -1,5 +1,5 @@
-import * as path from 'path';
-import { InputOptions } from '../../src/rollup/types';
+import { resolve } from 'path';
+import type { InputOptions } from '../../src/rollup/types';
 import { stdinPlugin } from './stdin';
 import { waitForInputPlugin } from './waitForInput';
 
@@ -71,7 +71,7 @@ async function loadAndRegisterPlugin(
 		}
 		if (!plugin) {
 			try {
-				if (pluginText[0] == '.') pluginText = path.resolve(pluginText);
+				if (pluginText[0] == '.') pluginText = resolve(pluginText);
 				plugin = await requireOrImport(pluginText);
 			} catch (err: any) {
 				throw new Error(`Cannot load plugin "${pluginText}": ${err.message}.`);

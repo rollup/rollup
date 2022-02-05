@@ -1,22 +1,26 @@
-import isReference, { NodeWithFieldDefinition } from 'is-reference';
-import MagicString from 'magic-string';
-import { NormalizedTreeshakingOptions } from '../../rollup/types';
+import isReference, { type NodeWithFieldDefinition } from 'is-reference';
+import type MagicString from 'magic-string';
+import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
-import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import { CallOptions } from '../CallOptions';
-import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { NodeEvent } from '../NodeEvents';
-import FunctionScope from '../scopes/FunctionScope';
-import { EMPTY_PATH, ObjectPath, PathTracker } from '../utils/PathTracker';
+import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import type { CallOptions } from '../CallOptions';
+import type { DeoptimizableEntity } from '../DeoptimizableEntity';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import type { NodeEvent } from '../NodeEvents';
+import type FunctionScope from '../scopes/FunctionScope';
+import { EMPTY_PATH, type ObjectPath, type PathTracker } from '../utils/PathTracker';
 import GlobalVariable from '../variables/GlobalVariable';
 import LocalVariable from '../variables/LocalVariable';
-import Variable from '../variables/Variable';
+import type Variable from '../variables/Variable';
 import * as NodeType from './NodeType';
-import SpreadElement from './SpreadElement';
-import { ExpressionEntity, LiteralValueOrUnknown, UNKNOWN_EXPRESSION } from './shared/Expression';
-import { ExpressionNode, NodeBase } from './shared/Node';
-import { PatternNode } from './shared/Pattern';
+import type SpreadElement from './SpreadElement';
+import {
+	type ExpressionEntity,
+	type LiteralValueOrUnknown,
+	UNKNOWN_EXPRESSION
+} from './shared/Expression';
+import { type ExpressionNode, NodeBase } from './shared/Node';
+import type { PatternNode } from './shared/Pattern';
 
 export type IdentifierWithVariable = Identifier & { variable: Variable };
 
@@ -37,7 +41,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 
 	addExportedVariables(
 		variables: Variable[],
-		exportNamesByVariable: Map<Variable, string[]>
+		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
 	): void {
 		if (this.variable !== null && exportNamesByVariable.has(this.variable)) {
 			variables.push(this.variable);
@@ -171,7 +175,10 @@ export default class Identifier extends NodeBase implements PatternNode {
 		}
 	}
 
-	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
+	includeCallArguments(
+		context: InclusionContext,
+		args: readonly (ExpressionNode | SpreadElement)[]
+	): void {
 		this.getVariableRespectingTDZ().includeCallArguments(context, args);
 	}
 
@@ -249,7 +256,7 @@ export default class Identifier extends NodeBase implements PatternNode {
 		}
 	}
 
-	private disallowImportReassignment() {
+	private disallowImportReassignment(): never {
 		return this.context.error(
 			{
 				code: 'ILLEGAL_REASSIGNMENT',

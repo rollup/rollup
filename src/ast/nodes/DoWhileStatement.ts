@@ -1,6 +1,11 @@
-import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import * as NodeType from './NodeType';
-import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from './shared/Node';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import type * as NodeType from './NodeType';
+import {
+	type ExpressionNode,
+	type IncludeChildren,
+	StatementBase,
+	type StatementNode
+} from './shared/Node';
 
 export default class DoWhileStatement extends StatementBase {
 	declare body: StatementNode;

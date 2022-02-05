@@ -1,5 +1,5 @@
-import * as NodeType from './NodeType';
-import { GenericEsTreeNode, NodeBase } from './shared/Node';
+import type * as NodeType from './NodeType';
+import { type GenericEsTreeNode, NodeBase } from './shared/Node';
 
 export default class TemplateElement extends NodeBase {
 	declare tail: boolean;

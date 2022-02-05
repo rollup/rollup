@@ -1,14 +1,14 @@
-import { CallOptions } from '../../CallOptions';
-import { DeoptimizableEntity } from '../../DeoptimizableEntity';
-import { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
-import { ObjectPath, PathTracker } from '../../utils/PathTracker';
+import type { CallOptions } from '../../CallOptions';
+import type { DeoptimizableEntity } from '../../DeoptimizableEntity';
+import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
+import type { ObjectPath, PathTracker } from '../../utils/PathTracker';
 import { ExpressionEntity } from './Expression';
-import { IncludeChildren } from './Node';
+import type { IncludeChildren } from './Node';
 
 export class MultiExpression extends ExpressionEntity {
 	included = false;
 
-	constructor(private expressions: ExpressionEntity[]) {
+	constructor(private expressions: readonly ExpressionEntity[]) {
 		super();
 	}
 

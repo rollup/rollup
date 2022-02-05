@@ -8,7 +8,7 @@ interface QueueItem<T> {
 	task: Task<T>;
 }
 
-export class Queue<T> {
+export default class Queue<T> {
 	private readonly queue: QueueItem<T>[] = [];
 	private workerCount = 0;
 

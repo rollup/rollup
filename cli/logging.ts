@@ -1,9 +1,10 @@
-import { RollupError } from '../src/rollup/types';
+import process from 'process';
+import type { RollupError } from '../src/rollup/types';
 import { bold, cyan, dim, red } from '../src/utils/colors';
 import relativeId from '../src/utils/relativeId';
 
 // log to stderr to keep `rollup main.js > bundle.js` from breaking
-export const stderr = (...args: unknown[]) => process.stderr.write(`${args.join('')}\n`);
+export const stderr = (...args: readonly unknown[]) => process.stderr.write(`${args.join('')}\n`);
 
 export function handleError(err: RollupError, recover = false): void {
 	let description = err.message || err;

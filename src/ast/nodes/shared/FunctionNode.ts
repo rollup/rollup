@@ -1,24 +1,33 @@
-import { NormalizedTreeshakingOptions } from '../../../rollup/types';
-import { CallOptions, NO_ARGS } from '../../CallOptions';
-import { BROKEN_FLOW_NONE, HasEffectsContext, InclusionContext } from '../../ExecutionContext';
-import { EVENT_CALLED, NodeEvent } from '../../NodeEvents';
+import type { NormalizedTreeshakingOptions } from '../../../rollup/types';
+import { type CallOptions, NO_ARGS } from '../../CallOptions';
+import {
+	BROKEN_FLOW_NONE,
+	type HasEffectsContext,
+	type InclusionContext
+} from '../../ExecutionContext';
+import { EVENT_CALLED, type NodeEvent } from '../../NodeEvents';
 import FunctionScope from '../../scopes/FunctionScope';
-import { ObjectPath, UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
+import { type ObjectPath, UNKNOWN_PATH, UnknownKey } from '../../utils/PathTracker';
 import BlockStatement from '../BlockStatement';
-import Identifier, { IdentifierWithVariable } from '../Identifier';
+import Identifier, { type IdentifierWithVariable } from '../Identifier';
 import RestElement from '../RestElement';
-import SpreadElement from '../SpreadElement';
-import { ExpressionEntity, UNKNOWN_EXPRESSION } from './Expression';
-import { ExpressionNode, GenericEsTreeNode, IncludeChildren, NodeBase } from './Node';
+import type SpreadElement from '../SpreadElement';
+import { type ExpressionEntity, UNKNOWN_EXPRESSION } from './Expression';
+import {
+	type ExpressionNode,
+	type GenericEsTreeNode,
+	type IncludeChildren,
+	NodeBase
+} from './Node';
 import { ObjectEntity } from './ObjectEntity';
 import { OBJECT_PROTOTYPE } from './ObjectPrototype';
-import { PatternNode } from './Pattern';
+import type { PatternNode } from './Pattern';
 
 export default class FunctionNode extends NodeBase {
 	declare async: boolean;
 	declare body: BlockStatement;
 	declare id: IdentifierWithVariable | null;
-	declare params: PatternNode[];
+	declare params: readonly PatternNode[];
 	declare preventChildBlockScope: true;
 	declare scope: FunctionScope;
 	private deoptimizedReturn = false;
@@ -154,7 +163,10 @@ export default class FunctionNode extends NodeBase {
 		context.brokenFlow = brokenFlow;
 	}
 
-	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
+	includeCallArguments(
+		context: InclusionContext,
+		args: readonly (ExpressionNode | SpreadElement)[]
+	): void {
 		this.scope.includeCallArguments(context, args);
 	}
 

@@ -1,19 +1,19 @@
-import MagicString from 'magic-string';
+import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
-import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { HasEffectsContext } from '../ExecutionContext';
+import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import type { DeoptimizableEntity } from '../DeoptimizableEntity';
+import type { HasEffectsContext } from '../ExecutionContext';
 import {
 	EMPTY_PATH,
-	ObjectPath,
-	PathTracker,
+	type ObjectPath,
+	type PathTracker,
 	SHARED_RECURSION_TRACKER
 } from '../utils/PathTracker';
 import ExpressionStatement from './ExpressionStatement';
-import { LiteralValue } from './Literal';
-import * as NodeType from './NodeType';
-import { LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import type { LiteralValue } from './Literal';
+import type * as NodeType from './NodeType';
+import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
+import { type ExpressionNode, NodeBase } from './shared/Node';
 
 const binaryOperators: {
 	[operator: string]: (left: LiteralValue, right: LiteralValue) => LiteralValueOrUnknown;

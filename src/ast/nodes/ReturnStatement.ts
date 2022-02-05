@@ -1,13 +1,13 @@
-import MagicString from 'magic-string';
-import { RenderOptions } from '../../utils/renderHelpers';
+import type MagicString from 'magic-string';
+import type { RenderOptions } from '../../utils/renderHelpers';
 import {
 	BROKEN_FLOW_ERROR_RETURN_LABEL,
-	HasEffectsContext,
-	InclusionContext
+	type HasEffectsContext,
+	type InclusionContext
 } from '../ExecutionContext';
-import * as NodeType from './NodeType';
+import type * as NodeType from './NodeType';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
-import { ExpressionNode, IncludeChildren, StatementBase } from './shared/Node';
+import { type ExpressionNode, type IncludeChildren, StatementBase } from './shared/Node';
 
 export default class ReturnStatement extends StatementBase {
 	declare argument: ExpressionNode | null;

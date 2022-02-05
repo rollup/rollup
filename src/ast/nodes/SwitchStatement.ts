@@ -1,19 +1,19 @@
-import MagicString from 'magic-string';
-import { RenderOptions, renderStatementList } from '../../utils/renderHelpers';
+import type MagicString from 'magic-string';
+import { type RenderOptions, renderStatementList } from '../../utils/renderHelpers';
 import {
 	BROKEN_FLOW_BREAK_CONTINUE,
 	createHasEffectsContext,
-	HasEffectsContext,
-	InclusionContext
+	type HasEffectsContext,
+	type InclusionContext
 } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
-import Scope from '../scopes/Scope';
-import * as NodeType from './NodeType';
-import SwitchCase from './SwitchCase';
-import { ExpressionNode, IncludeChildren, StatementBase } from './shared/Node';
+import type Scope from '../scopes/Scope';
+import type * as NodeType from './NodeType';
+import type SwitchCase from './SwitchCase';
+import { type ExpressionNode, type IncludeChildren, StatementBase } from './shared/Node';
 
 export default class SwitchStatement extends StatementBase {
-	declare cases: SwitchCase[];
+	declare cases: readonly SwitchCase[];
 	declare discriminant: ExpressionNode;
 	declare type: NodeType.tSwitchStatement;
 

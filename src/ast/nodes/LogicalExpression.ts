@@ -1,28 +1,32 @@
-import MagicString from 'magic-string';
+import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import {
 	findFirstOccurrenceOutsideComment,
 	findNonWhiteSpace,
-	NodeRenderOptions,
+	type NodeRenderOptions,
 	removeLineBreaks,
-	RenderOptions
+	type RenderOptions
 } from '../../utils/renderHelpers';
 import { removeAnnotations } from '../../utils/treeshakeNode';
-import { CallOptions } from '../CallOptions';
-import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { NodeEvent } from '../NodeEvents';
+import type { CallOptions } from '../CallOptions';
+import type { DeoptimizableEntity } from '../DeoptimizableEntity';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import type { NodeEvent } from '../NodeEvents';
 import {
 	EMPTY_PATH,
-	ObjectPath,
-	PathTracker,
+	type ObjectPath,
+	type PathTracker,
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH
 } from '../utils/PathTracker';
-import * as NodeType from './NodeType';
-import { ExpressionEntity, LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
+import type * as NodeType from './NodeType';
+import {
+	type ExpressionEntity,
+	type LiteralValueOrUnknown,
+	UnknownValue
+} from './shared/Expression';
 import { MultiExpression } from './shared/MultiExpression';
-import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
+import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
 
 export type LogicalOperator = '||' | '&&' | '??';
 

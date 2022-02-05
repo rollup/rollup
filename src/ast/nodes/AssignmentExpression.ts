@@ -1,25 +1,29 @@
-import MagicString from 'magic-string';
+import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import {
 	findFirstOccurrenceOutsideComment,
 	findNonWhiteSpace,
-	NodeRenderOptions,
+	type NodeRenderOptions,
 	removeLineBreaks,
-	RenderOptions
+	type RenderOptions
 } from '../../utils/renderHelpers';
 import {
 	renderSystemExportExpression,
 	renderSystemExportFunction,
 	renderSystemExportSequenceAfterExpression
 } from '../../utils/systemJsRendering';
-import { createHasEffectsContext, HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
-import Variable from '../variables/Variable';
+import {
+	createHasEffectsContext,
+	type HasEffectsContext,
+	type InclusionContext
+} from '../ExecutionContext';
+import { EMPTY_PATH, type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
+import type Variable from '../variables/Variable';
 import Identifier from './Identifier';
 import * as NodeType from './NodeType';
 import ObjectPattern from './ObjectPattern';
-import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
-import { PatternNode } from './shared/Pattern';
+import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
+import type { PatternNode } from './shared/Pattern';
 
 export default class AssignmentExpression extends NodeBase {
 	declare left: ExpressionNode | PatternNode;

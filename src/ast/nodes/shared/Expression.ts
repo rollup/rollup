@@ -68,7 +68,10 @@ export class ExpressionEntity implements WritableEntity {
 		this.included = true;
 	}
 
-	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
+	includeCallArguments(
+		context: InclusionContext,
+		args: readonly (ExpressionNode | SpreadElement)[]
+	): void {
 		for (const arg of args) {
 			arg.include(context, false);
 		}

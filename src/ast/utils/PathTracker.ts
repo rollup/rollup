@@ -1,5 +1,5 @@
 import { getOrCreate } from '../../utils/getOrCreate';
-import { Entity } from '../Entity';
+import type { Entity } from '../Entity';
 
 export const UnknownKey = Symbol('Unknown Key');
 export const UnknownInteger = Symbol('Unknown Integer');

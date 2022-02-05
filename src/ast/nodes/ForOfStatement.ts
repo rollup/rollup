@@ -1,13 +1,18 @@
-import MagicString from 'magic-string';
-import { NO_SEMICOLON, RenderOptions } from '../../utils/renderHelpers';
-import { InclusionContext } from '../ExecutionContext';
+import type MagicString from 'magic-string';
+import { NO_SEMICOLON, type RenderOptions } from '../../utils/renderHelpers';
+import type { InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
-import Scope from '../scopes/Scope';
+import type Scope from '../scopes/Scope';
 import { EMPTY_PATH } from '../utils/PathTracker';
-import * as NodeType from './NodeType';
-import VariableDeclaration from './VariableDeclaration';
-import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from './shared/Node';
-import { PatternNode } from './shared/Pattern';
+import type * as NodeType from './NodeType';
+import type VariableDeclaration from './VariableDeclaration';
+import {
+	type ExpressionNode,
+	type IncludeChildren,
+	StatementBase,
+	type StatementNode
+} from './shared/Node';
+import type { PatternNode } from './shared/Pattern';
 
 export default class ForOfStatement extends StatementBase {
 	declare await: boolean;

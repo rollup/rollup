@@ -1,10 +1,10 @@
-import MagicString from 'magic-string';
-import { RenderOptions } from '../../utils/renderHelpers';
-import { ObjectPath } from '../utils/PathTracker';
-import * as NodeType from './NodeType';
-import TemplateElement from './TemplateElement';
-import { LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
-import { ExpressionNode, NodeBase } from './shared/Node';
+import type MagicString from 'magic-string';
+import type { RenderOptions } from '../../utils/renderHelpers';
+import type { ObjectPath } from '../utils/PathTracker';
+import type * as NodeType from './NodeType';
+import type TemplateElement from './TemplateElement';
+import { type LiteralValueOrUnknown, UnknownValue } from './shared/Expression';
+import { type ExpressionNode, NodeBase } from './shared/Node';
 
 export default class TemplateLiteral extends NodeBase {
 	declare expressions: ExpressionNode[];

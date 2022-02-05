@@ -1,6 +1,6 @@
-import { ObjectPath } from '../utils/PathTracker';
-import ThisVariable from '../variables/ThisVariable';
-import * as NodeType from './NodeType';
+import type { ObjectPath } from '../utils/PathTracker';
+import type ThisVariable from '../variables/ThisVariable';
+import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
 export default class Super extends NodeBase {
