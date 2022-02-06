@@ -1,8 +1,8 @@
-import MagicString from 'magic-string';
-import { RenderOptions } from '../../utils/renderHelpers';
-import { BROKEN_FLOW_ERROR_RETURN_LABEL, InclusionContext } from '../ExecutionContext';
-import * as NodeType from './NodeType';
-import { ExpressionNode, IncludeChildren, StatementBase } from './shared/Node';
+import type MagicString from 'magic-string';
+import type { RenderOptions } from '../../utils/renderHelpers';
+import { BROKEN_FLOW_ERROR_RETURN_LABEL, type InclusionContext } from '../ExecutionContext';
+import type * as NodeType from './NodeType';
+import { type ExpressionNode, type IncludeChildren, StatementBase } from './shared/Node';
 
 export default class ThrowStatement extends StatementBase {
 	declare argument: ExpressionNode;

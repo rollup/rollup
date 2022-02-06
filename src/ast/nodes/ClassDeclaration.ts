@@ -1,11 +1,11 @@
-import MagicString from 'magic-string';
-import { RenderOptions } from '../../utils/renderHelpers';
+import type MagicString from 'magic-string';
+import type { RenderOptions } from '../../utils/renderHelpers';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
-import ChildScope from '../scopes/ChildScope';
-import Identifier, { IdentifierWithVariable } from './Identifier';
-import * as NodeType from './NodeType';
+import type ChildScope from '../scopes/ChildScope';
+import Identifier, { type IdentifierWithVariable } from './Identifier';
+import type * as NodeType from './NodeType';
 import ClassNode from './shared/ClassNode';
-import { GenericEsTreeNode } from './shared/Node';
+import type { GenericEsTreeNode } from './shared/Node';
 
 export default class ClassDeclaration extends ClassNode {
 	declare id: IdentifierWithVariable | null;

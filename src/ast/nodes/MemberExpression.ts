@@ -1,38 +1,38 @@
-import MagicString from 'magic-string';
-import { NormalizedTreeshakingOptions } from '../../rollup/types';
+import type MagicString from 'magic-string';
+import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import relativeId from '../../utils/relativeId';
-import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import { CallOptions } from '../CallOptions';
-import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { EVENT_ACCESSED, EVENT_ASSIGNED, NodeEvent } from '../NodeEvents';
+import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import type { CallOptions } from '../CallOptions';
+import type { DeoptimizableEntity } from '../DeoptimizableEntity';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { EVENT_ACCESSED, EVENT_ASSIGNED, type NodeEvent } from '../NodeEvents';
 import {
 	EMPTY_PATH,
-	ObjectPath,
-	ObjectPathKey,
-	PathTracker,
+	type ObjectPath,
+	type ObjectPathKey,
+	type PathTracker,
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH,
 	UnknownKey
 } from '../utils/PathTracker';
 import ExternalVariable from '../variables/ExternalVariable';
-import NamespaceVariable from '../variables/NamespaceVariable';
-import Variable from '../variables/Variable';
+import type NamespaceVariable from '../variables/NamespaceVariable';
+import type Variable from '../variables/Variable';
 import AssignmentExpression from './AssignmentExpression';
 import Identifier from './Identifier';
 import Literal from './Literal';
-import * as NodeType from './NodeType';
-import PrivateIdentifier from './PrivateIdentifier';
-import SpreadElement from './SpreadElement';
-import Super from './Super';
+import type * as NodeType from './NodeType';
+import type PrivateIdentifier from './PrivateIdentifier';
+import type SpreadElement from './SpreadElement';
+import type Super from './Super';
 import {
-	ExpressionEntity,
-	LiteralValueOrUnknown,
+	type ExpressionEntity,
+	type LiteralValueOrUnknown,
 	UNKNOWN_EXPRESSION,
 	UnknownValue
 } from './shared/Expression';
-import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
+import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
 
 // To avoid infinite recursions
 const MAX_PATH_DEPTH = 7;
@@ -284,7 +284,10 @@ export default class MemberExpression extends NodeBase implements DeoptimizableE
 		this.property.include(context, includeChildrenRecursively);
 	}
 
-	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
+	includeCallArguments(
+		context: InclusionContext,
+		args: readonly (ExpressionNode | SpreadElement)[]
+	): void {
 		if (this.variable) {
 			this.variable.includeCallArguments(context, args);
 		} else {

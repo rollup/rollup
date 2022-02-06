@@ -1,15 +1,15 @@
-import { CallOptions, NO_ARGS } from '../../CallOptions';
-import { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
-import { EVENT_CALLED, NodeEvent } from '../../NodeEvents';
-import { EMPTY_PATH, ObjectPath, UNKNOWN_INTEGER_PATH } from '../../utils/PathTracker';
+import { type CallOptions, NO_ARGS } from '../../CallOptions';
+import type { HasEffectsContext, InclusionContext } from '../../ExecutionContext';
+import { EVENT_CALLED, type NodeEvent } from '../../NodeEvents';
+import { EMPTY_PATH, type ObjectPath, UNKNOWN_INTEGER_PATH } from '../../utils/PathTracker';
 import {
 	UNKNOWN_LITERAL_BOOLEAN,
 	UNKNOWN_LITERAL_NUMBER,
 	UNKNOWN_LITERAL_STRING
 } from '../../values';
-import SpreadElement from '../SpreadElement';
+import type SpreadElement from '../SpreadElement';
 import { ExpressionEntity, UNKNOWN_EXPRESSION } from './Expression';
-import { ExpressionNode } from './Node';
+import type { ExpressionNode } from './Node';
 
 type MethodDescription = {
 	callsArgs: number[] | null;
@@ -96,7 +96,10 @@ export class Method extends ExpressionEntity {
 		return false;
 	}
 
-	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
+	includeCallArguments(
+		context: InclusionContext,
+		args: readonly (ExpressionNode | SpreadElement)[]
+	): void {
 		for (const arg of args) {
 			arg.include(context, false);
 		}

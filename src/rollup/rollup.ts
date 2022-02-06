@@ -4,7 +4,7 @@ import Graph from '../Graph';
 import type { PluginDriver } from '../utils/PluginDriver';
 import { ensureArray } from '../utils/ensureArray';
 import { errAlreadyClosed, errCannotEmitFromOptionsHook, error } from '../utils/error';
-import { writeFile } from '../utils/fs';
+import { promises as fs } from '../utils/fs';
 import { normalizeInputOptions } from '../utils/options/normalizeInputOptions';
 import { normalizeOutputOptions } from '../utils/options/normalizeOutputOptions';
 import type { GenericConfigObject } from '../utils/options/options';
@@ -259,11 +259,15 @@ function getSortingFileType(file: OutputAsset | OutputChunk): SortingFileType {
 	return SortingFileType.SECONDARY_CHUNK;
 }
 
-function writeOutputFile(
+async function writeOutputFile(
 	outputFile: OutputAsset | OutputChunk,
 	outputOptions: NormalizedOutputOptions
 ): Promise<unknown> {
 	const fileName = resolve(outputOptions.dir || dirname(outputOptions.file!), outputFile.fileName);
+
+	// 'recursive: true' does not throw if the folder structure, or parts of it, already exist
+	await fs.mkdir(dirname(fileName), { recursive: true });
+
 	let writeSourceMapPromise: Promise<void> | undefined;
 	let source: string | Uint8Array;
 	if (outputFile.type === 'asset') {
@@ -276,7 +280,7 @@ function writeOutputFile(
 				url = outputFile.map.toUrl();
 			} else {
 				url = `${basename(outputFile.fileName)}.map`;
-				writeSourceMapPromise = writeFile(`${fileName}.map`, outputFile.map.toString());
+				writeSourceMapPromise = fs.writeFile(`${fileName}.map`, outputFile.map.toString());
 			}
 			if (outputOptions.sourcemap !== 'hidden') {
 				source += `//# ${SOURCEMAPPING_URL}=${url}\n`;
@@ -284,7 +288,7 @@ function writeOutputFile(
 		}
 	}
 
-	return Promise.all([writeFile(fileName, source), writeSourceMapPromise]);
+	return Promise.all([fs.writeFile(fileName, source), writeSourceMapPromise]);
 }
 
 /**

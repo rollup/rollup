@@ -1,34 +1,39 @@
-import MagicString from 'magic-string';
-import { NormalizedTreeshakingOptions } from '../../rollup/types';
+import type MagicString from 'magic-string';
+import type { NormalizedTreeshakingOptions } from '../../rollup/types';
 import { BLANK } from '../../utils/blank';
 import {
 	findFirstOccurrenceOutsideComment,
-	NodeRenderOptions,
-	RenderOptions
+	type NodeRenderOptions,
+	type RenderOptions
 } from '../../utils/renderHelpers';
-import { CallOptions } from '../CallOptions';
-import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { EVENT_CALLED, NodeEvent } from '../NodeEvents';
+import type { CallOptions } from '../CallOptions';
+import type { DeoptimizableEntity } from '../DeoptimizableEntity';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import { EVENT_CALLED, type NodeEvent } from '../NodeEvents';
 import {
 	EMPTY_PATH,
-	ObjectPath,
-	PathTracker,
+	type ObjectPath,
+	type PathTracker,
 	SHARED_RECURSION_TRACKER,
 	UNKNOWN_PATH
 } from '../utils/PathTracker';
 import Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
-import * as NodeType from './NodeType';
-import SpreadElement from './SpreadElement';
-import Super from './Super';
+import type * as NodeType from './NodeType';
+import type SpreadElement from './SpreadElement';
+import type Super from './Super';
 import {
-	ExpressionEntity,
-	LiteralValueOrUnknown,
+	type ExpressionEntity,
+	type LiteralValueOrUnknown,
 	UNKNOWN_EXPRESSION,
 	UnknownValue
 } from './shared/Expression';
-import { ExpressionNode, INCLUDE_PARAMETERS, IncludeChildren, NodeBase } from './shared/Node';
+import {
+	type ExpressionNode,
+	INCLUDE_PARAMETERS,
+	type IncludeChildren,
+	NodeBase
+} from './shared/Node';
 
 export default class CallExpression extends NodeBase implements DeoptimizableEntity {
 	declare arguments: (ExpressionNode | SpreadElement)[];
@@ -37,8 +42,8 @@ export default class CallExpression extends NodeBase implements DeoptimizableEnt
 	declare type: NodeType.tCallExpression;
 	protected deoptimized = false;
 	private declare callOptions: CallOptions;
-	private deoptimizableDependentExpressions: DeoptimizableEntity[] = [];
-	private expressionsToBeDeoptimized = new Set<ExpressionEntity>();
+	private readonly deoptimizableDependentExpressions: DeoptimizableEntity[] = [];
+	private readonly expressionsToBeDeoptimized = new Set<ExpressionEntity>();
 	private returnExpression: ExpressionEntity | null = null;
 
 	bind(): void {

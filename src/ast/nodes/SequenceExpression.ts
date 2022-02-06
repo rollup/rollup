@@ -1,21 +1,21 @@
-import MagicString from 'magic-string';
+import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
 import {
 	getCommaSeparatedNodesWithBoundaries,
-	NodeRenderOptions,
+	type NodeRenderOptions,
 	removeLineBreaks,
-	RenderOptions
+	type RenderOptions
 } from '../../utils/renderHelpers';
 import { treeshakeNode } from '../../utils/treeshakeNode';
-import { CallOptions } from '../CallOptions';
-import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { NodeEvent } from '../NodeEvents';
-import { ObjectPath, PathTracker } from '../utils/PathTracker';
+import type { CallOptions } from '../CallOptions';
+import type { DeoptimizableEntity } from '../DeoptimizableEntity';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import type { NodeEvent } from '../NodeEvents';
+import type { ObjectPath, PathTracker } from '../utils/PathTracker';
 import ExpressionStatement from './ExpressionStatement';
-import * as NodeType from './NodeType';
-import { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
-import { ExpressionNode, IncludeChildren, NodeBase } from './shared/Node';
+import type * as NodeType from './NodeType';
+import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
+import { type ExpressionNode, type IncludeChildren, NodeBase } from './shared/Node';
 
 export default class SequenceExpression extends NodeBase {
 	declare expressions: ExpressionNode[];

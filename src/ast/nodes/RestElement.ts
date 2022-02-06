@@ -1,11 +1,11 @@
-import { HasEffectsContext } from '../ExecutionContext';
-import { EMPTY_PATH, ObjectPath, UnknownKey } from '../utils/PathTracker';
-import LocalVariable from '../variables/LocalVariable';
-import Variable from '../variables/Variable';
-import * as NodeType from './NodeType';
-import { ExpressionEntity, UNKNOWN_EXPRESSION } from './shared/Expression';
+import type { HasEffectsContext } from '../ExecutionContext';
+import { EMPTY_PATH, type ObjectPath, UnknownKey } from '../utils/PathTracker';
+import type LocalVariable from '../variables/LocalVariable';
+import type Variable from '../variables/Variable';
+import type * as NodeType from './NodeType';
+import { type ExpressionEntity, UNKNOWN_EXPRESSION } from './shared/Expression';
 import { NodeBase } from './shared/Node';
-import { PatternNode } from './shared/Pattern';
+import type { PatternNode } from './shared/Pattern';
 
 export default class RestElement extends NodeBase implements PatternNode {
 	declare argument: PatternNode;
@@ -14,8 +14,8 @@ export default class RestElement extends NodeBase implements PatternNode {
 	private declarationInit: ExpressionEntity | null = null;
 
 	addExportedVariables(
-		variables: Variable[],
-		exportNamesByVariable: Map<Variable, string[]>
+		variables: readonly Variable[],
+		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
 	): void {
 		this.argument.addExportedVariables(variables, exportNamesByVariable);
 	}

@@ -1,6 +1,6 @@
-import CallExpression from './CallExpression';
-import MemberExpression from './MemberExpression';
-import * as NodeType from './NodeType';
+import type CallExpression from './CallExpression';
+import type MemberExpression from './MemberExpression';
+import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
 export default class ChainExpression extends NodeBase {

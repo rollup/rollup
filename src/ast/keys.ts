@@ -1,4 +1,4 @@
-import { GenericEsTreeNode } from './nodes/shared/Node';
+import type { GenericEsTreeNode } from './nodes/shared/Node';
 
 export const keys: {
 	[name: string]: string[];

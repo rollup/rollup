@@ -1,11 +1,11 @@
-import MagicString from 'magic-string';
-import { HasEffectsContext } from '../ExecutionContext';
-import { NodeEvent } from '../NodeEvents';
+import type MagicString from 'magic-string';
+import type { HasEffectsContext } from '../ExecutionContext';
+import type { NodeEvent } from '../NodeEvents';
 import ModuleScope from '../scopes/ModuleScope';
-import { ObjectPath, PathTracker } from '../utils/PathTracker';
-import Variable from '../variables/Variable';
-import * as NodeType from './NodeType';
-import { ExpressionEntity } from './shared/Expression';
+import type { ObjectPath, PathTracker } from '../utils/PathTracker';
+import type Variable from '../variables/Variable';
+import type * as NodeType from './NodeType';
+import type { ExpressionEntity } from './shared/Expression';
 import { NodeBase } from './shared/Node';
 
 export default class ThisExpression extends NodeBase {

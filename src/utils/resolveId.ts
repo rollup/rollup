@@ -45,13 +45,12 @@ export async function resolveId(
 	);
 }
 
-function addJsExtensionIfNecessary(file: string, preserveSymlinks: boolean) {
-	let found = findFile(file, preserveSymlinks);
-	if (found) return found;
-	found = findFile(file + '.mjs', preserveSymlinks);
-	if (found) return found;
-	found = findFile(file + '.js', preserveSymlinks);
-	return found;
+function addJsExtensionIfNecessary(file: string, preserveSymlinks: boolean): string | undefined {
+	return (
+		findFile(file, preserveSymlinks) ??
+		findFile(file + '.mjs', preserveSymlinks) ??
+		findFile(file + '.js', preserveSymlinks)
+	);
 }
 
 function findFile(file: string, preserveSymlinks: boolean): string | undefined {
@@ -64,7 +63,7 @@ function findFile(file: string, preserveSymlinks: boolean): string | undefined {
 			const name = basename(file);
 			const files = readdirSync(dirname(file));
 
-			if (files.indexOf(name) !== -1) return file;
+			if (files.includes(name)) return file;
 		}
 	} catch {
 		// suppress

@@ -1,13 +1,13 @@
-import { AstContext } from '../../Module';
-import { InternalModuleFormat } from '../../rollup/types';
-import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
+import type { AstContext } from '../../Module';
+import type { InternalModuleFormat } from '../../rollup/types';
+import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
 import { UNDEFINED_EXPRESSION } from '../values';
 import ExportDefaultVariable from '../variables/ExportDefaultVariable';
 import GlobalVariable from '../variables/GlobalVariable';
 import LocalVariable from '../variables/LocalVariable';
-import Variable from '../variables/Variable';
+import type Variable from '../variables/Variable';
 import ChildScope from './ChildScope';
-import GlobalScope from './GlobalScope';
+import type GlobalScope from './GlobalScope';
 
 export default class ModuleScope extends ChildScope {
 	context: AstContext;

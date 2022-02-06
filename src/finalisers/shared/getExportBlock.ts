@@ -1,6 +1,6 @@
-import { ChunkDependencies, ChunkExports } from '../../Chunk';
-import { GetInterop } from '../../rollup/types';
-import { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
+import type { ChunkDependencies, ChunkExports } from '../../Chunk';
+import type { GetInterop } from '../../rollup/types';
+import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 import {
 	defaultInteropHelpersByInteropType,
 	isDefaultAProperty,

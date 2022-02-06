@@ -1,9 +1,10 @@
-import Module, { AstContext } from '../../Module';
+import type Module from '../../Module';
+import type { AstContext } from '../../Module';
 import { MERGE_NAMESPACES_VARIABLE } from '../../utils/interopHelpers';
-import { RenderOptions } from '../../utils/renderHelpers';
+import type { RenderOptions } from '../../utils/renderHelpers';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
-import Identifier from '../nodes/Identifier';
-import ChildScope from '../scopes/ChildScope';
+import type Identifier from '../nodes/Identifier';
+import type ChildScope from '../scopes/ChildScope';
 import Variable from './Variable';
 
 export default class NamespaceVariable extends Variable {
@@ -12,7 +13,7 @@ export default class NamespaceVariable extends Variable {
 	module: Module;
 
 	private memberVariables: { [name: string]: Variable } | null = null;
-	private mergedNamespaces: Variable[] = [];
+	private mergedNamespaces: readonly Variable[] = [];
 	private referencedEarly = false;
 	private references: Identifier[] = [];
 
@@ -110,7 +111,7 @@ export default class NamespaceVariable extends Variable {
 		return this.referencedEarly;
 	}
 
-	setMergedNamespaces(mergedNamespaces: Variable[]): void {
+	setMergedNamespaces(mergedNamespaces: readonly Variable[]): void {
 		this.mergedNamespaces = mergedNamespaces;
 		const moduleExecIndex = this.context.getModuleExecIndex();
 		for (const identifier of this.references) {

@@ -1,7 +1,7 @@
 const assert = require('assert');
-const { promises } = require('fs');
+const { promises: fs } = require('fs');
 
-const fsReadFile = promises.readFile;
+const fsReadFile = fs.readFile;
 let currentReads = 0;
 let maxReads = 0;
 
@@ -11,7 +11,7 @@ module.exports = {
 		maxParallelFileReads: 3
 	},
 	before() {
-		promises.readFile = async (path, options) => {
+		fs.readFile = async (path, options) => {
 			currentReads++;
 			maxReads = Math.max(maxReads, currentReads);
 			const content = await fsReadFile(path, options);
@@ -20,7 +20,7 @@ module.exports = {
 		};
 	},
 	after() {
-		promises.readFile = fsReadFile;
+		fs.readFile = fsReadFile;
 		assert.strictEqual(maxReads, 3, 'Wrong number of parallel file reads: ' + maxReads);
 	}
 };

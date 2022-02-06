@@ -1,11 +1,16 @@
-import MagicString from 'magic-string';
-import { NO_SEMICOLON, RenderOptions } from '../../utils/renderHelpers';
-import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import type MagicString from 'magic-string';
+import { NO_SEMICOLON, type RenderOptions } from '../../utils/renderHelpers';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
 import BlockScope from '../scopes/BlockScope';
-import Scope from '../scopes/Scope';
-import * as NodeType from './NodeType';
-import VariableDeclaration from './VariableDeclaration';
-import { ExpressionNode, IncludeChildren, StatementBase, StatementNode } from './shared/Node';
+import type Scope from '../scopes/Scope';
+import type * as NodeType from './NodeType';
+import type VariableDeclaration from './VariableDeclaration';
+import {
+	type ExpressionNode,
+	type IncludeChildren,
+	StatementBase,
+	type StatementNode
+} from './shared/Node';
 
 export default class ForStatement extends StatementBase {
 	declare body: StatementNode;

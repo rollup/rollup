@@ -49,29 +49,26 @@ module.exports = {
 					Array.from(this.getModuleIds())
 						.filter(id => !path.isAbsolute(id))
 						.sort()
-						.map(id => ({ id, hasModuleSideEffects: this.getModuleInfo(id).hasModuleSideEffects })),
+						.map(id => ({ id, moduleSideEffects: this.getModuleInfo(id).moduleSideEffects })),
 					[
-						{ id: 'sideeffects-false-usereffects-false', hasModuleSideEffects: false },
-						{
-							id: 'sideeffects-false-usereffects-false-unused-import',
-							hasModuleSideEffects: false
-						},
-						{ id: 'sideeffects-false-usereffects-false-used-import', hasModuleSideEffects: false },
-						{ id: 'sideeffects-false-usereffects-true', hasModuleSideEffects: false },
-						{ id: 'sideeffects-false-usereffects-true-unused-import', hasModuleSideEffects: false },
-						{ id: 'sideeffects-false-usereffects-true-used-import', hasModuleSideEffects: false },
-						{ id: 'sideeffects-null-usereffects-false', hasModuleSideEffects: false },
-						{ id: 'sideeffects-null-usereffects-false-unused-import', hasModuleSideEffects: false },
-						{ id: 'sideeffects-null-usereffects-false-used-import', hasModuleSideEffects: false },
-						{ id: 'sideeffects-null-usereffects-true', hasModuleSideEffects: true },
-						{ id: 'sideeffects-null-usereffects-true-unused-import', hasModuleSideEffects: true },
-						{ id: 'sideeffects-null-usereffects-true-used-import', hasModuleSideEffects: true },
-						{ id: 'sideeffects-true-usereffects-false', hasModuleSideEffects: true },
-						{ id: 'sideeffects-true-usereffects-false-unused-import', hasModuleSideEffects: true },
-						{ id: 'sideeffects-true-usereffects-false-used-import', hasModuleSideEffects: true },
-						{ id: 'sideeffects-true-usereffects-true', hasModuleSideEffects: true },
-						{ id: 'sideeffects-true-usereffects-true-unused-import', hasModuleSideEffects: true },
-						{ id: 'sideeffects-true-usereffects-true-used-import', hasModuleSideEffects: true }
+						{ id: 'sideeffects-false-usereffects-false', moduleSideEffects: false },
+						{ id: 'sideeffects-false-usereffects-false-unused-import', moduleSideEffects: false },
+						{ id: 'sideeffects-false-usereffects-false-used-import', moduleSideEffects: false },
+						{ id: 'sideeffects-false-usereffects-true', moduleSideEffects: false },
+						{ id: 'sideeffects-false-usereffects-true-unused-import', moduleSideEffects: false },
+						{ id: 'sideeffects-false-usereffects-true-used-import', moduleSideEffects: false },
+						{ id: 'sideeffects-null-usereffects-false', moduleSideEffects: false },
+						{ id: 'sideeffects-null-usereffects-false-unused-import', moduleSideEffects: false },
+						{ id: 'sideeffects-null-usereffects-false-used-import', moduleSideEffects: false },
+						{ id: 'sideeffects-null-usereffects-true', moduleSideEffects: true },
+						{ id: 'sideeffects-null-usereffects-true-unused-import', moduleSideEffects: true },
+						{ id: 'sideeffects-null-usereffects-true-used-import', moduleSideEffects: true },
+						{ id: 'sideeffects-true-usereffects-false', moduleSideEffects: true },
+						{ id: 'sideeffects-true-usereffects-false-unused-import', moduleSideEffects: true },
+						{ id: 'sideeffects-true-usereffects-false-used-import', moduleSideEffects: true },
+						{ id: 'sideeffects-true-usereffects-true', moduleSideEffects: true },
+						{ id: 'sideeffects-true-usereffects-true-unused-import', moduleSideEffects: true },
+						{ id: 'sideeffects-true-usereffects-true-used-import', moduleSideEffects: true }
 					]
 				);
 			}

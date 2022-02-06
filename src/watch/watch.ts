@@ -1,4 +1,5 @@
 import { resolve } from 'path';
+import process from 'process';
 import { createFilter } from '@rollup/pluginutils';
 import { rollupInternal } from '../rollup/rollup';
 import type {

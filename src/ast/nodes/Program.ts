@@ -1,11 +1,11 @@
-import MagicString from 'magic-string';
-import { RenderOptions, renderStatementList } from '../../utils/renderHelpers';
-import { HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import * as NodeType from './NodeType';
-import { IncludeChildren, NodeBase, StatementNode } from './shared/Node';
+import type MagicString from 'magic-string';
+import { type RenderOptions, renderStatementList } from '../../utils/renderHelpers';
+import type { HasEffectsContext, InclusionContext } from '../ExecutionContext';
+import type * as NodeType from './NodeType';
+import { type IncludeChildren, NodeBase, type StatementNode } from './shared/Node';
 
 export default class Program extends NodeBase {
-	declare body: StatementNode[];
+	declare body: readonly StatementNode[];
 	declare sourceType: 'module';
 	declare type: NodeType.tProgram;
 

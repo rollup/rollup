@@ -1,18 +1,18 @@
-import { CallOptions } from '../CallOptions';
-import { DeoptimizableEntity } from '../DeoptimizableEntity';
-import { HasEffectsContext } from '../ExecutionContext';
-import { NodeEvent } from '../NodeEvents';
-import { ObjectPath, PathTracker, UnknownInteger } from '../utils/PathTracker';
+import type { CallOptions } from '../CallOptions';
+import type { DeoptimizableEntity } from '../DeoptimizableEntity';
+import type { HasEffectsContext } from '../ExecutionContext';
+import type { NodeEvent } from '../NodeEvents';
+import { type ObjectPath, type PathTracker, UnknownInteger } from '../utils/PathTracker';
 import { UNDEFINED_EXPRESSION, UNKNOWN_LITERAL_NUMBER } from '../values';
-import * as NodeType from './NodeType';
+import type * as NodeType from './NodeType';
 import SpreadElement from './SpreadElement';
 import { ARRAY_PROTOTYPE } from './shared/ArrayPrototype';
-import { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
-import { ExpressionNode, NodeBase } from './shared/Node';
-import { ObjectEntity, ObjectProperty } from './shared/ObjectEntity';
+import type { ExpressionEntity, LiteralValueOrUnknown } from './shared/Expression';
+import { type ExpressionNode, NodeBase } from './shared/Node';
+import { ObjectEntity, type ObjectProperty } from './shared/ObjectEntity';
 
 export default class ArrayExpression extends NodeBase {
-	declare elements: (ExpressionNode | SpreadElement | null)[];
+	declare elements: readonly (ExpressionNode | SpreadElement | null)[];
 	declare type: NodeType.tArrayExpression;
 	private objectEntity: ObjectEntity | null = null;
 

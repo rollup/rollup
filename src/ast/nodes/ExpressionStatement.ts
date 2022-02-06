@@ -1,8 +1,8 @@
-import MagicString from 'magic-string';
-import { RenderOptions } from '../../utils/renderHelpers';
-import { InclusionContext } from '../ExecutionContext';
+import type MagicString from 'magic-string';
+import type { RenderOptions } from '../../utils/renderHelpers';
+import type { InclusionContext } from '../ExecutionContext';
 import * as NodeType from './NodeType';
-import { ExpressionNode, StatementBase } from './shared/Node';
+import { type ExpressionNode, StatementBase } from './shared/Node';
 
 export default class ExpressionStatement extends StatementBase {
 	declare directive?: string;

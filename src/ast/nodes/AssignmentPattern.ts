@@ -1,14 +1,14 @@
-import MagicString from 'magic-string';
+import type MagicString from 'magic-string';
 import { BLANK } from '../../utils/blank';
-import { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
-import { HasEffectsContext } from '../ExecutionContext';
-import { EMPTY_PATH, ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
-import LocalVariable from '../variables/LocalVariable';
-import Variable from '../variables/Variable';
-import * as NodeType from './NodeType';
-import { ExpressionEntity } from './shared/Expression';
-import { ExpressionNode, NodeBase } from './shared/Node';
-import { PatternNode } from './shared/Pattern';
+import type { NodeRenderOptions, RenderOptions } from '../../utils/renderHelpers';
+import type { HasEffectsContext } from '../ExecutionContext';
+import { EMPTY_PATH, type ObjectPath, UNKNOWN_PATH } from '../utils/PathTracker';
+import type LocalVariable from '../variables/LocalVariable';
+import type Variable from '../variables/Variable';
+import type * as NodeType from './NodeType';
+import type { ExpressionEntity } from './shared/Expression';
+import { type ExpressionNode, NodeBase } from './shared/Node';
+import type { PatternNode } from './shared/Pattern';
 
 export default class AssignmentPattern extends NodeBase implements PatternNode {
 	declare left: PatternNode;
@@ -17,8 +17,8 @@ export default class AssignmentPattern extends NodeBase implements PatternNode {
 	protected deoptimized = false;
 
 	addExportedVariables(
-		variables: Variable[],
-		exportNamesByVariable: Map<Variable, string[]>
+		variables: readonly Variable[],
+		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
 	): void {
 		this.left.addExportedVariables(variables, exportNamesByVariable);
 	}
