@@ -33,7 +33,9 @@ exports.writeAndRetry = writeAndRetry;
 function normaliseError(error) {
 	delete error.stack;
 	delete error.toString;
-	error.watchFiles?.sort();
+	if (error.watchFiles) {
+		error.watchFiles.sort();
+	}
 	return { ...error, message: error.message };
 }
 
