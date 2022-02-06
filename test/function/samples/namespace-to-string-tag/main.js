@@ -15,8 +15,8 @@ assert.strictEqual(writable, false, 'writable');
 const a = assign({}, ns);
 const b = { ...ns };
 
-assert.deepEqual(a, { foo: 'bar' });
+assert.deepStrictEqual(a, { foo: 'bar' });
 assert.strictEqual(a[Symbol.toStringTag], undefined);
 
-assert.deepEqual(b, { foo: 'bar' });
+assert.deepStrictEqual(b, { foo: 'bar' });
 assert.strictEqual(b[Symbol.toStringTag], undefined);
