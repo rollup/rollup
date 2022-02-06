@@ -1,4 +1,4 @@
-import { RollupWarning } from '../../src/rollup/types';
+import type { RollupWarning } from '../../src/rollup/types';
 import { bold, gray, yellow } from '../../src/utils/colors';
 import { getOrCreate } from '../../src/utils/getOrCreate';
 import { printQuotedStringList } from '../../src/utils/printStringList';

@@ -1,9 +1,9 @@
-import { Bundle, Bundle as MagicStringBundle } from 'magic-string';
-import { ChunkDependencies, ChunkExports, ImportSpecifier, ReexportSpecifier } from '../Chunk';
-import { NormalizedOutputOptions } from '../rollup/types';
-import { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
+import type { Bundle, Bundle as MagicStringBundle } from 'magic-string';
+import type { ChunkDependencies, ChunkExports, ImportSpecifier, ReexportSpecifier } from '../Chunk';
+import type { NormalizedOutputOptions } from '../rollup/types';
+import type { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
 import { getHelpersBlock } from '../utils/interopHelpers';
-import { FinaliserOptions } from './index';
+import type { FinaliserOptions } from './index';
 
 export default function es(
 	magicString: MagicStringBundle,

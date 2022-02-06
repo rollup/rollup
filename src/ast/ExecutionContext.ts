@@ -1,7 +1,7 @@
-import { Entity } from './Entity';
-import { ExpressionEntity } from './nodes/shared/Expression';
+import type { Entity } from './Entity';
+import type { ExpressionEntity } from './nodes/shared/Expression';
 import { DiscriminatedPathTracker, PathTracker } from './utils/PathTracker';
-import ThisVariable from './variables/ThisVariable';
+import type ThisVariable from './variables/ThisVariable';
 
 interface ExecutionContextIgnore {
 	breaks: boolean;

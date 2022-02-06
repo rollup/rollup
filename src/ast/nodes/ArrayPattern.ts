@@ -1,19 +1,19 @@
-import { HasEffectsContext } from '../ExecutionContext';
-import { EMPTY_PATH, ObjectPath } from '../utils/PathTracker';
-import LocalVariable from '../variables/LocalVariable';
-import Variable from '../variables/Variable';
-import * as NodeType from './NodeType';
+import type { HasEffectsContext } from '../ExecutionContext';
+import { EMPTY_PATH, type ObjectPath } from '../utils/PathTracker';
+import type LocalVariable from '../variables/LocalVariable';
+import type Variable from '../variables/Variable';
+import type * as NodeType from './NodeType';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
 import { NodeBase } from './shared/Node';
-import { PatternNode } from './shared/Pattern';
+import type { PatternNode } from './shared/Pattern';
 
 export default class ArrayPattern extends NodeBase implements PatternNode {
 	declare elements: (PatternNode | null)[];
 	declare type: NodeType.tArrayPattern;
 
 	addExportedVariables(
-		variables: Variable[],
-		exportNamesByVariable: Map<Variable, string[]>
+		variables: readonly Variable[],
+		exportNamesByVariable: ReadonlyMap<Variable, readonly string[]>
 	): void {
 		for (const element of this.elements) {
 			if (element !== null) {

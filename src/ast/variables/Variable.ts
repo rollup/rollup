@@ -1,9 +1,9 @@
-import ExternalModule from '../../ExternalModule';
-import Module from '../../Module';
-import { HasEffectsContext } from '../ExecutionContext';
-import Identifier from '../nodes/Identifier';
+import type ExternalModule from '../../ExternalModule';
+import type Module from '../../Module';
+import type { HasEffectsContext } from '../ExecutionContext';
+import type Identifier from '../nodes/Identifier';
 import { ExpressionEntity } from '../nodes/shared/Expression';
-import { ObjectPath } from '../utils/PathTracker';
+import type { ObjectPath } from '../utils/PathTracker';
 
 export default class Variable extends ExpressionEntity {
 	alwaysRendered = false;

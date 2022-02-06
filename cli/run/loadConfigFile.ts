@@ -1,5 +1,6 @@
 import { promises as fs } from 'fs';
 import { extname, isAbsolute } from 'path';
+import { version } from 'process';
 import { pathToFileURL } from 'url';
 import * as rollup from '../../src/node-entry';
 import type { MergedRollupOptions } from '../../src/rollup/types';
@@ -13,7 +14,7 @@ import batchWarnings, { type BatchWarnings } from './batchWarnings';
 import { addCommandPluginsToInputOptions, addPluginsFromCommandOption } from './commandPlugins';
 
 function supportsNativeESM(): boolean {
-	return Number(/^v(\d+)/.exec(process.version)![1]) >= 13;
+	return Number(/^v(\d+)/.exec(version)![1]) >= 13;
 }
 
 interface NodeModuleWithCompile extends NodeModule {

@@ -1,14 +1,14 @@
-import MagicString from 'magic-string';
-import { InternalModuleFormat } from '../../rollup/types';
-import { PluginDriver } from '../../utils/PluginDriver';
+import type MagicString from 'magic-string';
+import type { InternalModuleFormat } from '../../rollup/types';
+import type { PluginDriver } from '../../utils/PluginDriver';
 import { warnDeprecation } from '../../utils/error';
-import { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
+import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 import { dirname, normalize, relative } from '../../utils/path';
-import ChildScope from '../scopes/ChildScope';
-import { ObjectPathKey } from '../utils/PathTracker';
-import Identifier from './Identifier';
+import type ChildScope from '../scopes/ChildScope';
+import type { ObjectPathKey } from '../utils/PathTracker';
+import type Identifier from './Identifier';
 import MemberExpression from './MemberExpression';
-import * as NodeType from './NodeType';
+import type * as NodeType from './NodeType';
 import { NodeBase } from './shared/Node';
 
 const ASSET_PREFIX = 'ROLLUP_ASSET_URL_';
@@ -52,7 +52,7 @@ export default class MetaProperty extends NodeBase {
 		return false;
 	}
 
-	hasEffectsWhenAccessedAtPath(path: ObjectPathKey[]): boolean {
+	hasEffectsWhenAccessedAtPath(path: readonly ObjectPathKey[]): boolean {
 		return path.length > 1;
 	}
 

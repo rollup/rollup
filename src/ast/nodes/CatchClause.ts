@@ -1,10 +1,10 @@
 import CatchScope from '../scopes/CatchScope';
-import Scope from '../scopes/Scope';
-import BlockStatement from './BlockStatement';
-import * as NodeType from './NodeType';
+import type Scope from '../scopes/Scope';
+import type BlockStatement from './BlockStatement';
+import type * as NodeType from './NodeType';
 import { UNKNOWN_EXPRESSION } from './shared/Expression';
-import { GenericEsTreeNode, NodeBase } from './shared/Node';
-import { PatternNode } from './shared/Pattern';
+import { type GenericEsTreeNode, NodeBase } from './shared/Node';
+import type { PatternNode } from './shared/Pattern';
 
 export default class CatchClause extends NodeBase {
 	declare body: BlockStatement;

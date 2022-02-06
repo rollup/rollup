@@ -1,7 +1,7 @@
-import { Bundle as MagicStringBundle } from 'magic-string';
-import { ChunkDependencies, ChunkExports } from '../Chunk';
-import { NormalizedOutputOptions, RollupWarning } from '../rollup/types';
-import { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
+import type { Bundle as MagicStringBundle } from 'magic-string';
+import type { ChunkDependencies, ChunkExports } from '../Chunk';
+import type { NormalizedOutputOptions, RollupWarning } from '../rollup/types';
+import type { GenerateCodeSnippets } from '../utils/generateCodeSnippets';
 import amd from './amd';
 import cjs from './cjs';
 import es from './es';

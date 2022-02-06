@@ -1,27 +1,28 @@
-import Module, { AstContext } from '../../Module';
-import { CallOptions } from '../CallOptions';
-import { DeoptimizableEntity } from '../DeoptimizableEntity';
+import type Module from '../../Module';
+import type { AstContext } from '../../Module';
+import type { CallOptions } from '../CallOptions';
+import type { DeoptimizableEntity } from '../DeoptimizableEntity';
 import { createInclusionContext, HasEffectsContext, InclusionContext } from '../ExecutionContext';
-import { NodeEvent } from '../NodeEvents';
-import ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
-import Identifier from '../nodes/Identifier';
+import type { NodeEvent } from '../NodeEvents';
+import type ExportDefaultDeclaration from '../nodes/ExportDefaultDeclaration';
+import type Identifier from '../nodes/Identifier';
 import * as NodeType from '../nodes/NodeType';
-import SpreadElement from '../nodes/SpreadElement';
+import type SpreadElement from '../nodes/SpreadElement';
 import {
-	ExpressionEntity,
-	LiteralValueOrUnknown,
+	type ExpressionEntity,
+	type LiteralValueOrUnknown,
 	UNKNOWN_EXPRESSION,
 	UnknownValue
 } from '../nodes/shared/Expression';
-import { ExpressionNode, Node } from '../nodes/shared/Node';
-import { ObjectPath, PathTracker, UNKNOWN_PATH } from '../utils/PathTracker';
+import type { ExpressionNode, Node } from '../nodes/shared/Node';
+import { type ObjectPath, type PathTracker, UNKNOWN_PATH } from '../utils/PathTracker';
 import Variable from './Variable';
 
 export default class LocalVariable extends Variable {
 	calledFromTryStatement = false;
-	declarations: (Identifier | ExportDefaultDeclaration)[];
+	readonly declarations: (Identifier | ExportDefaultDeclaration)[];
 	init: ExpressionEntity | null;
-	module: Module;
+	readonly module: Module;
 
 	// Caching and deoptimization:
 	// We track deoptimization when we do not return something unknown
@@ -189,7 +190,10 @@ export default class LocalVariable extends Variable {
 		}
 	}
 
-	includeCallArguments(context: InclusionContext, args: (ExpressionNode | SpreadElement)[]): void {
+	includeCallArguments(
+		context: InclusionContext,
+		args: readonly (ExpressionNode | SpreadElement)[]
+	): void {
 		if (this.isReassigned || (this.init && context.includedCallArguments.has(this.init))) {
 			for (const arg of args) {
 				arg.include(context, false);

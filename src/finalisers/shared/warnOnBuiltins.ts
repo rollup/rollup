@@ -1,5 +1,5 @@
-import { ChunkDependencies } from '../../Chunk';
-import { RollupWarning } from '../../rollup/types';
+import type { ChunkDependencies } from '../../Chunk';
+import type { RollupWarning } from '../../rollup/types';
 import { printQuotedStringList } from '../../utils/printStringList';
 
 const builtins = {
