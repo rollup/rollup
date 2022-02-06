@@ -70,6 +70,7 @@ export class ModuleLoader {
 	private latestLoadModulesPromise: Promise<unknown> = Promise.resolve();
 	private readonly moduleLoadPromises = new Map<Module, LoadModulePromise>();
 	private readonly modulesWithLoadedDependencies = new Set<Module>();
+	private nextChunkNamePriority = 0;
 	private nextEntryModuleIndex = 0;
 	private readonly readQueue: Queue<LoadResult>;
 
@@ -104,27 +105,38 @@ export class ModuleLoader {
 	}> {
 		const firstEntryModuleIndex = this.nextEntryModuleIndex;
 		this.nextEntryModuleIndex += unresolvedEntryModules.length;
+		const firstChunkNamePriority = this.nextChunkNamePriority;
+		this.nextChunkNamePriority += unresolvedEntryModules.length;
 		const newEntryModules = await this.extendLoadModulesPromise(
 			Promise.all(
 				unresolvedEntryModules.map(({ id, importer }) =>
 					this.loadEntryModule(id, true, importer, null)
 				)
 			).then(entryModules => {
-				let moduleIndex = firstEntryModuleIndex;
 				for (let index = 0; index < entryModules.length; index++) {
 					const entryModule = entryModules[index];
 					entryModule.isUserDefinedEntryPoint =
 						entryModule.isUserDefinedEntryPoint || isUserDefined;
-					addChunkNamesToModule(entryModule, unresolvedEntryModules[index], isUserDefined);
+					addChunkNamesToModule(
+						entryModule,
+						unresolvedEntryModules[index],
+						isUserDefined,
+						firstChunkNamePriority + index
+					);
 					const existingIndexedModule = this.indexedEntryModules.find(
 						indexedModule => indexedModule.module === entryModule
 					);
 					if (!existingIndexedModule) {
-						this.indexedEntryModules.push({ index: moduleIndex, module: entryModule });
+						this.indexedEntryModules.push({
+							index: firstEntryModuleIndex + index,
+							module: entryModule
+						});
 					} else {
-						existingIndexedModule.index = Math.min(existingIndexedModule.index, moduleIndex);
+						existingIndexedModule.index = Math.min(
+							existingIndexedModule.index,
+							firstEntryModuleIndex + index
+						);
 					}
-					moduleIndex++;
 				}
 				this.indexedEntryModules.sort(({ index: indexA }, { index: indexB }) =>
 					indexA > indexB ? 1 : -1
@@ -207,10 +219,11 @@ export class ModuleLoader {
 		unresolvedModule: UnresolvedModule,
 		implicitlyLoadedAfter: readonly string[]
 	): Promise<Module> {
+		const chunkNamePriority = this.nextChunkNamePriority++;
 		return this.extendLoadModulesPromise(
 			this.loadEntryModule(unresolvedModule.id, false, unresolvedModule.importer, null).then(
 				async entryModule => {
-					addChunkNamesToModule(entryModule, unresolvedModule, false);
+					addChunkNamesToModule(entryModule, unresolvedModule, false, chunkNamePriority);
 					if (!entryModule.info.isEntry) {
 						this.implicitEntryModules.add(entryModule);
 						const implicitlyLoadedAfterModules = await Promise.all(
@@ -688,17 +701,16 @@ function normalizeRelativeExternalId(source: string, importer: string | undefine
 function addChunkNamesToModule(
 	module: Module,
 	{ fileName, name }: UnresolvedModule,
-	isUserDefined: boolean
+	isUserDefined: boolean,
+	priority: number
 ): void {
 	if (fileName !== null) {
 		module.chunkFileNames.add(fileName);
 	} else if (name !== null) {
-		if (module.chunkName === null) {
-			module.chunkName = name;
-		}
-		if (isUserDefined) {
-			module.userChunkNames.add(name);
-		}
+		// Always keep chunkNames sorted by priority
+		let namePosition = 0;
+		while (module.chunkNames[namePosition]?.priority < priority) namePosition++;
+		module.chunkNames.splice(namePosition, 0, { isUserDefined, name, priority });
 	}
 }
 
