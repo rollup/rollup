@@ -2,7 +2,7 @@ import { promises as fs } from 'fs';
 import type { PluginImpl } from 'rollup';
 import license, { type Dependency, type Person } from 'rollup-plugin-license';
 
-async function generateLicenseFile(dependencies: readonly Dependency[]) {
+async function generateLicenseFile(dependencies: readonly Dependency[]): Promise<void> {
 	const coreLicense = await fs.readFile('LICENSE-CORE.md', 'utf8');
 	const licenses = new Set<string>();
 	const dependencyLicenseTexts = Array.from(dependencies)
