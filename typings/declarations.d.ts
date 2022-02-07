@@ -103,76 +103,7 @@ declare module 'is-reference' {
 		| estree.ExportSpecifier;
 
 	export type NodeWithFieldDefinition =
-		| estree.Identifier
-		| estree.SimpleLiteral
-		| estree.RegExpLiteral
-		| estree.Program
-		| estree.FunctionDeclaration
-		| estree.FunctionExpression
-		| estree.ArrowFunctionExpression
-		| estree.SwitchCase
-		| estree.CatchClause
-		| estree.VariableDeclarator
-		| estree.ExpressionStatement
-		| estree.BlockStatement
-		| estree.EmptyStatement
-		| estree.DebuggerStatement
-		| estree.WithStatement
-		| estree.ReturnStatement
-		| estree.LabeledStatement
-		| estree.BreakStatement
-		| estree.ContinueStatement
-		| estree.IfStatement
-		| estree.SwitchStatement
-		| estree.ThrowStatement
-		| estree.TryStatement
-		| estree.WhileStatement
-		| estree.DoWhileStatement
-		| estree.ForStatement
-		| estree.ForInStatement
-		| estree.ForOfStatement
-		| estree.VariableDeclaration
-		| estree.ClassDeclaration
-		| estree.ThisExpression
-		| estree.ArrayExpression
-		| estree.ObjectExpression
-		| estree.YieldExpression
-		| estree.UnaryExpression
-		| estree.UpdateExpression
-		| estree.BinaryExpression
-		| estree.AssignmentExpression
-		| estree.LogicalExpression
-		| estree.MemberExpression
-		| estree.ConditionalExpression
-		| estree.SimpleCallExpression
-		| estree.NewExpression
-		| estree.SequenceExpression
-		| estree.TemplateLiteral
-		| estree.TaggedTemplateExpression
-		| estree.ClassExpression
-		| estree.MetaProperty
-		| estree.AwaitExpression
-		| estree.ImportExpression
-		| estree.ChainExpression
-		| estree.Property
-		| estree.AssignmentProperty
-		| estree.Super
-		| estree.TemplateElement
-		| estree.SpreadElement
-		| estree.ObjectPattern
-		| estree.ArrayPattern
-		| estree.RestElement
-		| estree.AssignmentPattern
-		| estree.ClassBody
-		| estree.MethodDefinition
-		| estree.ImportDeclaration
-		| estree.ExportNamedDeclaration
-		| estree.ExportDefaultDeclaration
-		| estree.ExportAllDeclaration
-		| estree.ImportSpecifier
-		| estree.ImportDefaultSpecifier
-		| estree.ImportNamespaceSpecifier
-		| estree.ExportSpecifier
+		| Node
 		| {
 				computed: boolean;
 				type: 'FieldDefinition';
