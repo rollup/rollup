@@ -66,6 +66,7 @@
     "@rollup/plugin-replace": "^3.0.1",
     "@rollup/plugin-typescript": "^8.3.0",
     "@rollup/pluginutils": "^4.1.2",
+    "@types/estree": "0.0.51",
     "@types/node": "^10.17.60",
     "@types/signal-exit": "^3.0.1",
     "@types/yargs-parser": "^20.2.1",
