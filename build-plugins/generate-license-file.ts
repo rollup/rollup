@@ -1,9 +1,9 @@
-import { readFileSync, writeFileSync } from 'fs';
+import { promises as fs } from 'fs';
 import type { PluginImpl } from 'rollup';
 import license, { type Dependency, type Person } from 'rollup-plugin-license';
 
-function generateLicenseFile(dependencies: readonly Dependency[]) {
-	const coreLicense = readFileSync('LICENSE-CORE.md');
+async function generateLicenseFile(dependencies: readonly Dependency[]): Promise<void> {
+	const coreLicense = await fs.readFile('LICENSE-CORE.md', 'utf8');
 	const licenses = new Set<string>();
 	const dependencyLicenseTexts = Array.from(dependencies)
 		.sort(({ name: nameA }, { name: nameB }) => (nameA! > nameB! ? 1 : -1))
@@ -52,9 +52,9 @@ function generateLicenseFile(dependencies: readonly Dependency[]) {
 		`${Array.from(licenses).join(', ')}\n\n` +
 		`# Bundled dependencies:\n` +
 		dependencyLicenseTexts;
-	const existingLicenseText = readFileSync('LICENSE.md', 'utf8');
+	const existingLicenseText = await fs.readFile('LICENSE.md', 'utf8');
 	if (existingLicenseText !== licenseText) {
-		writeFileSync('LICENSE.md', licenseText);
+		await fs.writeFile('LICENSE.md', licenseText);
 		console.warn('LICENSE.md updated. You should commit the updated file.');
 	}
 }
@@ -80,7 +80,7 @@ export default function getLicenseHandler(): LicenseHandler {
 			return {
 				name: 'write-license',
 				writeBundle() {
-					generateLicenseFile(Array.from(licenses.values()));
+					return generateLicenseFile(Array.from(licenses.values()));
 				}
 			};
 		}
