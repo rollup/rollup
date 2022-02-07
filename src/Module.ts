@@ -189,7 +189,11 @@ export default class Module {
 	readonly alternativeReexportModules = new Map<Variable, Module>();
 	ast: Program | null = null;
 	readonly chunkFileNames = new Set<string>();
-	chunkName: string | null = null;
+	chunkNames: {
+		isUserDefined: boolean;
+		name: string;
+		priority: number;
+	}[] = [];
 	readonly cycles = new Set<symbol>();
 	readonly dependencies = new Set<Module | ExternalModule>();
 	readonly dynamicDependencies = new Set<Module | ExternalModule>();
@@ -222,7 +226,6 @@ export default class Module {
 	declare sourcemapChain: DecodedSourceMapOrMissing[];
 	readonly sources = new Set<string>();
 	declare transformFiles?: EmittedFile[];
-	readonly userChunkNames = new Set<string>();
 	usesTopLevelAwait = false;
 
 	private allExportNames: Set<string> | null = null;
