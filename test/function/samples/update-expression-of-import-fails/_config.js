@@ -7,7 +7,7 @@ module.exports = {
 		message: `Illegal reassignment to import 'a'`,
 		id: path.join(__dirname, 'main.js'),
 		pos: 28,
-		watchFiles: [path.join(__dirname, 'main.js'), path.join(__dirname, 'foo.js')],
+		watchFiles: [path.join(__dirname, 'foo.js'), path.join(__dirname, 'main.js')],
 		loc: {
 			file: path.join(__dirname, 'main.js'),
 			line: 3,

@@ -16,7 +16,7 @@ module.exports = {
 			raisedAt: 34
 		},
 		pos: 25,
-		watchFiles: [path.join(__dirname, 'main.js'), path.join(__dirname, 'foo.js')],
+		watchFiles: [path.join(__dirname, 'foo.js'), path.join(__dirname, 'main.js')],
 		loc: {
 			file: path.join(__dirname, 'foo.js'),
 			line: 2,

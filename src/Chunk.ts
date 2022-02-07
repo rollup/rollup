@@ -329,9 +329,14 @@ export default class Chunk {
 			}
 		}
 		for (const module of entryModules) {
-			const requiredFacades: FacadeName[] = Array.from(module.userChunkNames, name => ({
-				name
-			}));
+			const requiredFacades: FacadeName[] = Array.from(
+				new Set(
+					module.chunkNames.filter(({ isUserDefined }) => isUserDefined).map(({ name }) => name)
+				),
+				name => ({
+					name
+				})
+			);
 			if (requiredFacades.length === 0 && module.isUserDefinedEntryPoint) {
 				requiredFacades.push({});
 			}
@@ -959,7 +964,7 @@ export default class Chunk {
 			this.dynamicEntryModules[0] ||
 			this.orderedModules[this.orderedModules.length - 1];
 		if (moduleForNaming) {
-			return moduleForNaming.chunkName || getAliasName(moduleForNaming.id);
+			return getChunkNameFromModule(moduleForNaming);
 		}
 		return 'chunk';
 	}
@@ -1398,7 +1403,11 @@ export default class Chunk {
 }
 
 function getChunkNameFromModule(module: Module): string {
-	return module.chunkName || getAliasName(module.id);
+	return (
+		module.chunkNames.find(({ isUserDefined }) => isUserDefined)?.name ??
+		module.chunkNames[0]?.name ??
+		getAliasName(module.id)
+	);
 }
 
 const QUERY_HASH_REGEX = /[?#]/;

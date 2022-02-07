@@ -8,9 +8,9 @@ module.exports = {
 		id: path.join(__dirname, 'main.js'),
 		pos: 7,
 		watchFiles: [
-			path.join(__dirname, 'main.js'),
+			path.join(__dirname, 'bar.js'),
 			path.join(__dirname, 'foo.js'),
-			path.join(__dirname, 'bar.js')
+			path.join(__dirname, 'main.js')
 		],
 		loc: {
 			file: path.join(__dirname, 'main.js'),

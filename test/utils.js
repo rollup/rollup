@@ -23,6 +23,9 @@ exports.wait = function wait(ms) {
 function normaliseError(error) {
 	delete error.stack;
 	delete error.toString;
+	if (error.watchFiles) {
+		error.watchFiles.sort();
+	}
 	return { ...error, message: error.message };
 }
 

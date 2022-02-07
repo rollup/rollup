@@ -1,5 +1,5 @@
-define(['./generated-name', './generated-secondName', './generated-name2'], (function (name, secondName, name$1) { 'use strict';
+define(['./generated-name', './generated-firstName', './generated-name2'], (function (name, firstName, name$1) { 'use strict';
 
-	console.log('main', name, secondName, name$1);
+	console.log('main', name, firstName, name$1);
 
 }));
