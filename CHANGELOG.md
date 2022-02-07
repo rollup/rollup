@@ -1,5 +1,24 @@
 # rollup changelog
 
+## 2.67.1
+
+_2022-02-07_
+
+### Bug Fixes
+
+- Make chunk file and variable names more deterministic when emitting chunks (#4386)
+- Improve default module resolver performance by using non-blocking IO (#4386)
+
+### Pull Requests
+
+- [#4373](https://github.com/rollup/rollup/pull/4373): fix: even more types (@dnalborczyk)
+- [#4382](https://github.com/rollup/rollup/pull/4382): Update contribution tut link desc (@lemredd)
+- [#4383](https://github.com/rollup/rollup/pull/4383): chore: bump deps (@dnalborczyk)
+- [#4384](https://github.com/rollup/rollup/pull/4384): chore: move "wait" to utils + re-use (@dnalborczyk)
+- [#4385](https://github.com/rollup/rollup/pull/4385): refactor: convert watch tests to async functions (@dnalborczyk)
+- [#4386](https://github.com/rollup/rollup/pull/4386): refactor: use fs.promises in resolve id, Part 4 (@dnalborczyk and @lukastaegert)
+- [#4389](https://github.com/rollup/rollup/pull/4389): refactor: use fs.promises in generate license file, rollup config, Part 5 (@dnalborczyk)
+
 ## 2.67.0
 
 _2022-02-02_
