@@ -31,76 +31,76 @@ declare module 'is-reference' {
 	): boolean;
 
 	export type Node =
-		| estree.Identifier
-		| estree.SimpleLiteral
-		| estree.RegExpLiteral
-		| estree.Program
-		| estree.FunctionDeclaration
-		| estree.FunctionExpression
+		| estree.ArrayExpression
+		| estree.ArrayPattern
 		| estree.ArrowFunctionExpression
-		| estree.SwitchCase
-		| estree.CatchClause
-		| estree.VariableDeclarator
-		| estree.ExpressionStatement
+		| estree.AssignmentExpression
+		| estree.AssignmentPattern
+		| estree.AssignmentProperty
+		| estree.AwaitExpression
+		| estree.BinaryExpression
 		| estree.BlockStatement
-		| estree.EmptyStatement
-		| estree.DebuggerStatement
-		| estree.WithStatement
-		| estree.ReturnStatement
-		| estree.LabeledStatement
 		| estree.BreakStatement
+		| estree.CatchClause
+		| estree.ChainExpression
+		| estree.ClassBody
+		| estree.ClassDeclaration
+		| estree.ClassExpression
+		| estree.ConditionalExpression
 		| estree.ContinueStatement
-		| estree.IfStatement
-		| estree.SwitchStatement
-		| estree.ThrowStatement
-		| estree.TryStatement
-		| estree.WhileStatement
+		| estree.DebuggerStatement
 		| estree.DoWhileStatement
-		| estree.ForStatement
+		| estree.EmptyStatement
+		| estree.ExportAllDeclaration
+		| estree.ExportDefaultDeclaration
+		| estree.ExportNamedDeclaration
+		| estree.ExportSpecifier
+		| estree.ExpressionStatement
 		| estree.ForInStatement
 		| estree.ForOfStatement
-		| estree.VariableDeclaration
-		| estree.ClassDeclaration
-		| estree.ThisExpression
-		| estree.ArrayExpression
-		| estree.ObjectExpression
-		| estree.YieldExpression
-		| estree.UnaryExpression
-		| estree.UpdateExpression
-		| estree.BinaryExpression
-		| estree.AssignmentExpression
+		| estree.ForStatement
+		| estree.FunctionDeclaration
+		| estree.FunctionExpression
+		| estree.IfStatement
+		| estree.Identifier
+		| estree.ImportDeclaration
+		| estree.ImportDefaultSpecifier
+		| estree.ImportExpression
+		| estree.ImportNamespaceSpecifier
+		| estree.ImportSpecifier
+		| estree.LabeledStatement
 		| estree.LogicalExpression
 		| estree.MemberExpression
-		| estree.ConditionalExpression
-		| estree.SimpleCallExpression
-		| estree.NewExpression
-		| estree.SequenceExpression
-		| estree.TemplateLiteral
-		| estree.TaggedTemplateExpression
-		| estree.ClassExpression
 		| estree.MetaProperty
-		| estree.AwaitExpression
-		| estree.ImportExpression
-		| estree.ChainExpression
-		| estree.Property
-		| estree.AssignmentProperty
-		| estree.Super
-		| estree.TemplateElement
-		| estree.SpreadElement
-		| estree.ObjectPattern
-		| estree.ArrayPattern
-		| estree.RestElement
-		| estree.AssignmentPattern
-		| estree.ClassBody
 		| estree.MethodDefinition
-		| estree.ImportDeclaration
-		| estree.ExportNamedDeclaration
-		| estree.ExportDefaultDeclaration
-		| estree.ExportAllDeclaration
-		| estree.ImportSpecifier
-		| estree.ImportDefaultSpecifier
-		| estree.ImportNamespaceSpecifier
-		| estree.ExportSpecifier;
+		| estree.NewExpression
+		| estree.ObjectExpression
+		| estree.ObjectPattern
+		| estree.Program
+		| estree.Property
+		| estree.RegExpLiteral
+		| estree.RestElement
+		| estree.ReturnStatement
+		| estree.SequenceExpression
+		| estree.SimpleCallExpression
+		| estree.SimpleLiteral
+		| estree.SpreadElement
+		| estree.Super
+		| estree.SwitchCase
+		| estree.SwitchStatement
+		| estree.TaggedTemplateExpression
+		| estree.TemplateElement
+		| estree.TemplateLiteral
+		| estree.ThisExpression
+		| estree.ThrowStatement
+		| estree.TryStatement
+		| estree.UnaryExpression
+		| estree.UpdateExpression
+		| estree.VariableDeclaration
+		| estree.VariableDeclarator
+		| estree.WhileStatement
+		| estree.WithStatement
+		| estree.YieldExpression;
 
 	export type NodeWithFieldDefinition =
 		| Node
