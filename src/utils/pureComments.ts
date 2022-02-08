@@ -1,5 +1,5 @@
 import * as acorn from 'acorn';
-import { type BaseWalker, base as basicWalker } from 'acorn-walk';
+import { base as basicWalker } from 'acorn-walk';
 import {
 	BinaryExpression,
 	CallExpression,
@@ -29,7 +29,7 @@ interface NodeWithComments extends acorn.Node {
 function handlePureAnnotationsOfNode(
 	node: acorn.Node,
 	state: CommentState,
-	type: string = node.type
+	type = node.type
 ): void {
 	const { annotations } = state;
 	let comment = annotations[state.annotationIndex];
@@ -38,7 +38,7 @@ function handlePureAnnotationsOfNode(
 		comment = annotations[++state.annotationIndex];
 	}
 	if (comment && comment.end <= node.end) {
-		(basicWalker as BaseWalker<CommentState>)[type](node, state, handlePureAnnotationsOfNode);
+		basicWalker[type](node, state, handlePureAnnotationsOfNode);
 		while ((comment = annotations[state.annotationIndex]) && comment.end <= node.end) {
 			++state.annotationIndex;
 			annotateNode(node, comment, false);
