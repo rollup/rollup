@@ -1,4 +1,4 @@
-import { version as rollupVersion } from 'package.json';
+import { version as rollupVersion } from '../../package.json';
 import type Graph from '../Graph';
 import type {
 	NormalizedInputOptions,

@@ -1,7 +1,7 @@
 import process from 'process';
 import help from 'help.md';
-import { version } from 'package.json';
 import argParser from 'yargs-parser';
+import { version } from '../package.json';
 import { commandAliases } from '../src/utils/options/mergeOptions';
 import run from './run/index';
 

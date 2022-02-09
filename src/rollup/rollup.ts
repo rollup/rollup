@@ -1,4 +1,4 @@
-import { version as rollupVersion } from 'package.json';
+import { version as rollupVersion } from '../../package.json';
 import Bundle from '../Bundle';
 import Graph from '../Graph';
 import type { PluginDriver } from '../utils/PluginDriver';
