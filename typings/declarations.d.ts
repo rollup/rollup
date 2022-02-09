@@ -11,17 +11,6 @@ declare module 'rollup-plugin-string' {
 	export const string: PluginImpl;
 }
 
-declare module 'acorn-walk' {
-	type WalkerCallback<TState> = (node: acorn.Node, state: TState) => void;
-	type RecursiveWalkerFn<TState> = (
-		node: acorn.Node,
-		state: TState,
-		callback: WalkerCallback<TState>
-	) => void;
-	export type BaseWalker<TState> = Record<string, RecursiveWalkerFn<TState>>;
-	export const base: BaseWalker<unknown>;
-}
-
 declare module 'is-reference' {
 	import type * as estree from 'estree';
 
