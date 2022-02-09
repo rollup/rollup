@@ -1,13 +1,10 @@
 import { promises as fs } from 'fs';
-import { resolve } from 'path';
 import { env } from 'process';
-import alias from '@rollup/plugin-alias';
 import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
 import type { RollupOptions, WarningHandlerWithDefault } from 'rollup';
-import { string } from 'rollup-plugin-string';
 import { terser } from 'rollup-plugin-terser';
 import addCliEntry from './build-plugins/add-cli-entry';
 import conditionalFsEventsImport from './build-plugins/conditional-fsevents-import';
@@ -50,13 +47,6 @@ const onwarn: WarningHandlerWithDefault = warning => {
 	throw new Error(warning.message);
 };
 
-const moduleAliases = {
-	entries: {
-		'help.md': resolve('cli/help.md')
-	},
-	resolve: ['.js', '.json', '.md']
-};
-
 const treeshake = {
 	moduleSideEffects: false,
 	propertyReadSideEffects: false,
@@ -64,11 +54,9 @@ const treeshake = {
 };
 
 const nodePlugins = [
-	alias(moduleAliases),
 	nodeResolve(),
 	json(),
 	conditionalFsEventsImport(),
-	string({ include: '**/*.md' }),
 	commonjs({
 		ignoreTryCatch: false,
 		include: 'node_modules/**'
@@ -141,7 +129,6 @@ export default async function (
 		],
 		plugins: [
 			replaceBrowserModules(),
-			alias(moduleAliases),
 			nodeResolve({ browser: true }),
 			json(),
 			commonjs(),

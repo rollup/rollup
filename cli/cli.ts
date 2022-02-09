@@ -1,8 +1,8 @@
 import process from 'process';
-import help from 'help.md';
 import argParser from 'yargs-parser';
 import { version } from '../package.json';
 import { commandAliases } from '../src/utils/options/mergeOptions';
+import help from './help';
 import run from './run/index';
 
 const command = argParser(process.argv.slice(2), {
@@ -11,7 +11,7 @@ const command = argParser(process.argv.slice(2), {
 });
 
 if (command.help || (process.argv.length <= 2 && process.stdin.isTTY)) {
-	console.log(`\n${help.replace('__VERSION__', version)}\n`);
+	console.log(`\n${help}\n`);
 } else if (command.version) {
 	console.log(`rollup v${version}`);
 } else {
