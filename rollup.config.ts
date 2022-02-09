@@ -52,7 +52,6 @@ const onwarn: WarningHandlerWithDefault = warning => {
 
 const moduleAliases = {
 	entries: {
-		acorn: resolve('node_modules/acorn/dist/acorn.mjs'),
 		'help.md': resolve('cli/help.md')
 	},
 	resolve: ['.js', '.json', '.md']
