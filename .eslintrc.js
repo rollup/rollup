@@ -75,7 +75,7 @@ module.exports = {
 			'error',
 			{
 				// 'fsevents' is ony available on macOS, and not installed on linux/windows
-				ignore: ['fsevents', 'help.md', 'is-reference', 'package.json', 'types']
+				ignore: ['fsevents', 'help.md']
 			}
 		],
 		'import/order': ['error', { alphabetize: { order: 'asc' } }],
