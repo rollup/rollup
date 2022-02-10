@@ -1,3 +1,5 @@
+const assert = require('assert');
+
 module.exports = {
 	description: 'allows to define manual chunks via a function',
 	options: {
@@ -8,6 +10,19 @@ module.exports = {
 					return `chunk-${id[id.length - 4]}`;
 				}
 			}
-		}
+		},
+		plugins: [
+			{
+				generateBundle(options, bundle) {
+					// This also asserts the sorting order, which should be alphabetical
+					// between the manual chunks
+					assert.deepStrictEqual(Object.keys(bundle), [
+						'main-a.js',
+						'generated-chunk-b.js',
+						'generated-chunk-c.js'
+					]);
+				}
+			}
+		]
 	}
 };
