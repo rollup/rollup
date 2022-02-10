@@ -156,7 +156,7 @@ export default class Bundle {
 	}
 
 	private assignManualChunks(getManualChunk: GetManualChunk): Map<Module, string> {
-		const manualChunkAliasByEntry = new Map<Module, string>();
+		const manualChunkAliasesWithEntry: [alias: string, module: Module][] = [];
 		const manualChunksApi = {
 			getModuleIds: () => this.graph.modulesById.keys(),
 			getModuleInfo: this.graph.getModuleInfo
@@ -165,9 +165,16 @@ export default class Bundle {
 			if (module instanceof Module) {
 				const manualChunkAlias = getManualChunk(module.id, manualChunksApi);
 				if (typeof manualChunkAlias === 'string') {
-					addModuleToManualChunk(manualChunkAlias, module, manualChunkAliasByEntry);
+					manualChunkAliasesWithEntry.push([manualChunkAlias, module]);
 				}
 			}
+		}
+		manualChunkAliasesWithEntry.sort(([aliasA], [aliasB]) =>
+			aliasA > aliasB ? 1 : aliasA < aliasB ? -1 : 0
+		);
+		const manualChunkAliasByEntry = new Map<Module, string>();
+		for (const [alias, module] of manualChunkAliasesWithEntry) {
+			addModuleToManualChunk(alias, module, manualChunkAliasByEntry);
 		}
 		return manualChunkAliasByEntry;
 	}
