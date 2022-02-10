@@ -1,5 +1,19 @@
 # rollup changelog
 
+## 2.67.2
+
+_2022-02-10_
+
+### Bug Fixes
+
+- Ensure consistent order between manual chunks to fix hashing issues (#4397)
+
+### Pull Requests
+
+- [#4390](https://github.com/rollup/rollup/pull/4390): refactor: add @types/estree explicitly, fix dynamic type imports (@dnalborczyk)
+- [#4391](https://github.com/rollup/rollup/pull/4391): chore: remove acorn-walk ambient type definitions (@dnalborczyk)
+- [#4397](https://github.com/rollup/rollup/pull/4397): Sort manual chunks generated via a function by name (@lukastaegert)
+
 ## 2.67.1
 
 _2022-02-07_
