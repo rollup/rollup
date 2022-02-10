@@ -1,16 +1,3 @@
-// internal
-declare module 'help.md' {
-	const str: string;
-	export default str;
-}
-
-// external libs
-declare module 'rollup-plugin-string' {
-	import type { PluginImpl } from 'rollup';
-
-	export const string: PluginImpl;
-}
-
 declare module 'is-reference' {
 	import type * as estree from 'estree';
 
