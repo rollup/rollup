@@ -8,6 +8,10 @@ System.register(['./generated-chunk-c.js', './generated-chunk-b.js'], (function 
 
 			console.log('dep-a');
 
+			console.log('dep2-a');
+
+			console.log('dep3-a');
+
 			console.log('main-a');
 
 		})
