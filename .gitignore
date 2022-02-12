@@ -14,5 +14,3 @@ test/tmp
 test/typescript/typings
 perf/
 .nyc_output/
-
-cli/help.ts

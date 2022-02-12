@@ -16,6 +16,7 @@
     "ci:test": "npm run build:cjs && npm run build:bootstrap && npm run test:all",
     "ci:test:only": "npm run build:cjs && npm run build:bootstrap && npm run test:only",
     "ci:coverage": "npm run build:cjs && npm run build:bootstrap && nyc --reporter lcovonly mocha",
+    "generate:help": "node ./scripts/generate-help-module",
     "lint": "eslint . --fix --cache && prettier --write \"**/*.md\"",
     "lint:nofix": "eslint . && prettier --check \"**/*.md\"",
     "lint:markdown": "prettier --write \"**/*.md\"",
