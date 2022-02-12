@@ -29,7 +29,7 @@ async function build() {
   let buildFailed = false;
   try {
     // create a bundle
-    const bundle = await rollup(inputOptions);
+    bundle = await rollup(inputOptions);
 
     // an array of file names this bundle depends on
     console.log(bundle.watchFiles);
