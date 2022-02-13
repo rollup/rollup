@@ -335,7 +335,6 @@ export default class Module {
 		};
 		// Hide the deprecated key so that it only warns when accessed explicitly
 		Object.defineProperty(this.info, 'hasModuleSideEffects', {
-			...Object.getOwnPropertyDescriptor(this.info, 'hasModuleSideEffects'),
 			enumerable: false
 		});
 	}
