@@ -103,7 +103,7 @@ export interface AstContext {
 	getModuleName: () => string;
 	getNodeConstructor: (name: string) => typeof NodeBase;
 	getReexports: () => string[];
-	importDescriptions: { [name: string]: ImportDescription };
+	importDescriptions: Map<string, ImportDescription>;
 	includeAllExports: () => void;
 	includeDynamicImport: (node: ImportExpression) => void;
 	includeVariableInModule: (variable: Variable) => void;
@@ -205,7 +205,7 @@ export default class Module {
 	readonly exports: { [name: string]: ExportDescription } = Object.create(null);
 	readonly implicitlyLoadedAfter = new Set<Module>();
 	readonly implicitlyLoadedBefore = new Set<Module>();
-	readonly importDescriptions: { [name: string]: ImportDescription } = Object.create(null);
+	readonly importDescriptions = new Map<string, ImportDescription>();
 	readonly importMetas: MetaProperty[] = [];
 	importedFromNotTreeshaken = false;
 	readonly importers: string[] = [];
@@ -219,7 +219,7 @@ export default class Module {
 	declare originalCode: string;
 	declare originalSourcemap: ExistingDecodedSourceMap | null;
 	preserveSignature: PreserveEntrySignaturesOption;
-	readonly reexportDescriptions: { [name: string]: ReexportDescription } = Object.create(null);
+	readonly reexportDescriptions = new Map<string, ReexportDescription>();
 	declare resolvedIds: ResolvedIdMap;
 	declare scope: ModuleScope;
 	readonly sideEffectDependenciesByVariable = new Map<Variable, Set<Module>>();
@@ -295,7 +295,7 @@ export default class Module {
 				if (!module.ast) {
 					return null;
 				}
-				return 'default' in module.exports || 'default' in reexportDescriptions;
+				return 'default' in module.exports || reexportDescriptions.has('default');
 			},
 			get hasModuleSideEffects() {
 				warnDeprecation(
@@ -364,7 +364,7 @@ export default class Module {
 		for (const name of this.getExports()) {
 			allExportNames.add(name);
 		}
-		for (const name of Object.keys(this.reexportDescriptions)) {
+		for (const name of this.reexportDescriptions.keys()) {
 			allExportNames.add(name);
 		}
 		for (const module of this.exportAllModules) {
@@ -474,7 +474,7 @@ export default class Module {
 		this.transitiveReexports = [];
 
 		const reexports = new Set<string>();
-		for (const name in this.reexportDescriptions) {
+		for (const name of this.reexportDescriptions.keys()) {
 			reexports.add(name);
 		}
 		for (const module of this.exportAllModules) {
@@ -544,7 +544,7 @@ export default class Module {
 		}
 
 		// export { foo } from './other'
-		const reexportDeclaration = this.reexportDescriptions[name];
+		const reexportDeclaration = this.reexportDescriptions.get(name);
 		if (reexportDeclaration) {
 			const [variable] = getVariableForExportNameRecursive(
 				reexportDeclaration.module,
@@ -809,8 +809,8 @@ export default class Module {
 			return localVariable;
 		}
 
-		if (name in this.importDescriptions) {
-			const importDeclaration = this.importDescriptions[name];
+		const importDeclaration = this.importDescriptions.get(name);
+		if (importDeclaration) {
 			const otherModule = importDeclaration.module;
 
 			if (otherModule instanceof Module && importDeclaration.name === '*') {
@@ -905,12 +905,12 @@ export default class Module {
 				// export * as name from './other'
 
 				const name = node.exported.name;
-				this.reexportDescriptions[name] = {
+				this.reexportDescriptions.set(name, {
 					localName: '*',
 					module: null as never, // filled in later,
 					source,
 					start: node.start
-				};
+				});
 			} else {
 				// export * from './other'
 
@@ -923,12 +923,12 @@ export default class Module {
 			this.sources.add(source);
 			for (const specifier of node.specifiers) {
 				const name = specifier.exported.name;
-				this.reexportDescriptions[name] = {
+				this.reexportDescriptions.set(name, {
 					localName: specifier.local.name,
 					module: null as never, // filled in later,
 					source,
 					start: specifier.start
-				};
+				});
 			}
 		} else if (node.declaration) {
 			const declaration = node.declaration;
@@ -966,12 +966,12 @@ export default class Module {
 			const isNamespace = specifier.type === NodeType.ImportNamespaceSpecifier;
 
 			const name = isDefault ? 'default' : isNamespace ? '*' : specifier.imported.name;
-			this.importDescriptions[specifier.local.name] = {
+			this.importDescriptions.set(specifier.local.name, {
 				module: null as never, // filled in later
 				name,
 				source,
 				start: specifier.start
-			};
+			});
 		}
 	}
 
@@ -1006,11 +1006,11 @@ export default class Module {
 		}
 	}
 
-	private addModulesToImportDescriptions(importDescription: {
-		[name: string]: ImportDescription | ReexportDescription;
-	}): void {
-		for (const specifier of Object.values(importDescription)) {
-			const id = this.resolvedIds[specifier.source].id;
+	private addModulesToImportDescriptions(
+		importDescription: Map<string, ImportDescription | ReexportDescription>
+	): void {
+		for (const specifier of importDescription.values()) {
+			const { id } = this.resolvedIds[specifier.source];
 			specifier.module = this.graph.modulesById.get(id)!;
 		}
 	}
