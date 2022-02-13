@@ -14,18 +14,23 @@ export function getOriginalLocation(
 		let locationFound = false;
 
 		if (line !== undefined) {
-			for (const segment of line) {
-				if (segment[0] >= location.column) {
-					if (segment.length === 1) break;
-					location = {
-						column: segment[3],
-						line: segment[2] + 1,
-						name: segment.length === 5 ? sourcemap.names[segment[4]] : undefined,
-						source: sourcemap.sources[segment[1]]
-					};
-					locationFound = true;
-					break;
-				}
+			// Sometimes a high-resolution sourcemap will be preceded in the sourcemap chain
+			// by a low-resolution sourcemap. We can detect this by checking if the mappings
+			// array for this line only contains a segment for column zero. In that case, we
+			// want to fall back to a low-resolution mapping instead of throwing an error.
+			const segment =
+				line.length == 1 && line[0][0] == 0
+					? line[0]
+					: line.find(segment => segment[0] >= location.column);
+
+			if (segment && segment.length !== 1) {
+				locationFound = true;
+				location = {
+					column: segment[3],
+					line: segment[2] + 1,
+					name: segment.length === 5 ? sourcemap.names[segment[4]] : undefined,
+					source: sourcemap.sources[segment[1]]
+				};
 			}
 		}
 		if (!locationFound) {
