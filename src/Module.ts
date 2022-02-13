@@ -473,10 +473,8 @@ export default class Module {
 		// to avoid infinite recursion when using circular `export * from X`
 		this.transitiveReexports = [];
 
-		const reexports = new Set<string>();
-		for (const name of this.reexportDescriptions.keys()) {
-			reexports.add(name);
-		}
+		const reexports = new Set(this.reexportDescriptions.keys());
+
 		for (const module of this.exportAllModules) {
 			if (module instanceof ExternalModule) {
 				reexports.add(`*${module.id}`);
