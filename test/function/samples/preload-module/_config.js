@@ -58,7 +58,7 @@ module.exports = {
 						// No dependencies have been loaded yet
 						assert.deepStrictEqual([...this.getModuleIds()], [ID_MAIN]);
 						await this.load({ id: ID_OTHER });
-						assert.deepStrictEqual([...this.getModuleIds()], [ID_MAIN, ID_OTHER]);
+						assert.deepStrictEqual([...this.getModuleIds()].sort(), [ID_MAIN, ID_OTHER]);
 						return resolvedId;
 					}
 				},
@@ -96,7 +96,7 @@ module.exports = {
 						1
 					);
 					assert.strictEqual(parsedModules.filter(id => id === ID_DEP, 'parsed').length, 1);
-					assert.deepStrictEqual([...this.getModuleIds()], [ID_MAIN, ID_OTHER, ID_DEP]);
+					assert.deepStrictEqual([...this.getModuleIds()].sort(), [ID_DEP, ID_MAIN, ID_OTHER]);
 				}
 			}
 		]

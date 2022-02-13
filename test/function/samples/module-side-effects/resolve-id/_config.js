@@ -1,5 +1,7 @@
 const assert = require('assert');
 const path = require('path');
+const { getObject } = require('../../../../utils');
+
 const sideEffects = [];
 
 module.exports = {
@@ -54,30 +56,32 @@ module.exports = {
 			},
 			buildEnd() {
 				assert.deepStrictEqual(
-					Array.from(this.getModuleIds())
-						.filter(id => !path.isAbsolute(id))
-						.sort()
-						.map(id => ({ id, moduleSideEffects: this.getModuleInfo(id).moduleSideEffects })),
-					[
-						{ id: 'sideeffects-false-usereffects-false', moduleSideEffects: false },
-						{ id: 'sideeffects-false-usereffects-false-unused-import', moduleSideEffects: false },
-						{ id: 'sideeffects-false-usereffects-false-used-import', moduleSideEffects: false },
-						{ id: 'sideeffects-false-usereffects-true', moduleSideEffects: false },
-						{ id: 'sideeffects-false-usereffects-true-unused-import', moduleSideEffects: false },
-						{ id: 'sideeffects-false-usereffects-true-used-import', moduleSideEffects: false },
-						{ id: 'sideeffects-null-usereffects-false', moduleSideEffects: false },
-						{ id: 'sideeffects-null-usereffects-false-unused-import', moduleSideEffects: false },
-						{ id: 'sideeffects-null-usereffects-false-used-import', moduleSideEffects: false },
-						{ id: 'sideeffects-null-usereffects-true', moduleSideEffects: true },
-						{ id: 'sideeffects-null-usereffects-true-unused-import', moduleSideEffects: true },
-						{ id: 'sideeffects-null-usereffects-true-used-import', moduleSideEffects: true },
-						{ id: 'sideeffects-true-usereffects-false', moduleSideEffects: true },
-						{ id: 'sideeffects-true-usereffects-false-unused-import', moduleSideEffects: true },
-						{ id: 'sideeffects-true-usereffects-false-used-import', moduleSideEffects: true },
-						{ id: 'sideeffects-true-usereffects-true', moduleSideEffects: true },
-						{ id: 'sideeffects-true-usereffects-true-unused-import', moduleSideEffects: true },
-						{ id: 'sideeffects-true-usereffects-true-used-import', moduleSideEffects: true }
-					]
+					getObject(
+						[...this.getModuleIds()]
+							.filter(id => !path.isAbsolute(id))
+							.sort()
+							.map(id => [id, this.getModuleInfo(id).moduleSideEffects])
+					),
+					{
+						'sideeffects-false-usereffects-false': false,
+						'sideeffects-false-usereffects-false-unused-import': false,
+						'sideeffects-false-usereffects-false-used-import': false,
+						'sideeffects-false-usereffects-true': false,
+						'sideeffects-false-usereffects-true-unused-import': false,
+						'sideeffects-false-usereffects-true-used-import': false,
+						'sideeffects-null-usereffects-false': false,
+						'sideeffects-null-usereffects-false-unused-import': false,
+						'sideeffects-null-usereffects-false-used-import': false,
+						'sideeffects-null-usereffects-true': true,
+						'sideeffects-null-usereffects-true-unused-import': true,
+						'sideeffects-null-usereffects-true-used-import': true,
+						'sideeffects-true-usereffects-false': true,
+						'sideeffects-true-usereffects-false-unused-import': true,
+						'sideeffects-true-usereffects-false-used-import': true,
+						'sideeffects-true-usereffects-true': true,
+						'sideeffects-true-usereffects-true-unused-import': true,
+						'sideeffects-true-usereffects-true-used-import': true
+					}
 				);
 			}
 		}

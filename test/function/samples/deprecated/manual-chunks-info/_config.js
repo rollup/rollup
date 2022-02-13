@@ -1,5 +1,6 @@
 const assert = require('assert');
 const path = require('path');
+const { getObject } = require('../../../../utils');
 
 function getId(name) {
 	return path.join(__dirname, `${name}.js`);
@@ -13,9 +14,11 @@ module.exports = {
 		output: {
 			manualChunks(id, { getModuleIds, getModuleInfo }) {
 				assert.deepStrictEqual(
-					JSON.parse(JSON.stringify([...getModuleIds()].sort().map(id => getModuleInfo(id)))),
-					[
-						{
+					getObject(
+						[...getModuleIds()].map(id => [id, JSON.parse(JSON.stringify(getModuleInfo(id)))])
+					),
+					{
+						[getId('dynamic')]: {
 							id: getId('dynamic'),
 							ast: {
 								type: 'Program',
@@ -107,7 +110,7 @@ module.exports = {
 							meta: {},
 							syntheticNamedExports: false
 						},
-						{
+						[getId('lib')]: {
 							id: getId('lib'),
 							ast: {
 								type: 'Program',
@@ -140,7 +143,7 @@ module.exports = {
 							meta: {},
 							syntheticNamedExports: false
 						},
-						{
+						[getId('main')]: {
 							id: getId('main'),
 							ast: {
 								type: 'Program',
@@ -261,7 +264,7 @@ module.exports = {
 							meta: {},
 							syntheticNamedExports: false
 						},
-						{
+						external: {
 							id: 'external',
 							ast: null,
 							code: null,
@@ -281,7 +284,7 @@ module.exports = {
 							meta: {},
 							syntheticNamedExports: false
 						}
-					]
+					}
 				);
 			}
 		}
