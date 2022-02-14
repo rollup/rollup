@@ -360,10 +360,7 @@ export default class Module {
 		if (this.allExportNames) {
 			return this.allExportNames;
 		}
-		this.allExportNames = new Set([
-			...this.exports.keys(),
-			...this.reexportDescriptions.keys()
-		]);
+		this.allExportNames = new Set([...this.exports.keys(), ...this.reexportDescriptions.keys()]);
 		for (const module of this.exportAllModules) {
 			if (module instanceof ExternalModule) {
 				this.allExportNames.add(`*${module.id}`);
