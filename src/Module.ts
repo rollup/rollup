@@ -360,14 +360,10 @@ export default class Module {
 		if (this.allExportNames) {
 			return this.allExportNames;
 		}
-		this.allExportNames = new Set<string>();
-
-		for (const name of this.getExports()) {
-			this.allExportNames.add(name);
-		}
-		for (const name of Object.keys(this.reexportDescriptions)) {
-			this.allExportNames.add(name);
-		}
+		this.allExportNames = new Set([
+			...this.exports.keys(),
+			...Object.keys(this.reexportDescriptions)
+		]);
 
 		for (const module of this.exportAllModules) {
 			if (module instanceof ExternalModule) {
