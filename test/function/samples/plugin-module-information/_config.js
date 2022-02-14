@@ -1,5 +1,6 @@
 const assert = require('assert');
 const path = require('path');
+const { getObject } = require('../../../utils');
 
 const ID_MAIN = path.join(__dirname, 'main.js');
 const ID_FOO = path.join(__dirname, 'foo.js');
@@ -14,7 +15,7 @@ module.exports = {
 		external: ['path'],
 		plugins: {
 			load(id) {
-				assert.deepStrictEqual(this.getModuleInfo(id), {
+				assert.deepStrictEqual(JSON.parse(JSON.stringify(this.getModuleInfo(id))), {
 					ast: null,
 					code: null,
 					dynamicImporters: [],
@@ -38,11 +39,14 @@ module.exports = {
 			renderStart() {
 				rendered = true;
 				assert.deepStrictEqual(
-					JSON.parse(
-						JSON.stringify([...this.getModuleIds()].sort().map(id => this.getModuleInfo(id)))
+					getObject(
+						[...this.getModuleIds()].map(id => [
+							id,
+							JSON.parse(JSON.stringify(this.getModuleInfo(id)))
+						])
 					),
-					[
-						{
+					{
+						[ID_FOO]: {
 							ast: {
 								type: 'Program',
 								start: 0,
@@ -130,7 +134,7 @@ module.exports = {
 							meta: {},
 							syntheticNamedExports: false
 						},
-						{
+						[ID_MAIN]: {
 							ast: {
 								type: 'Program',
 								start: 0,
@@ -295,7 +299,7 @@ module.exports = {
 							meta: {},
 							syntheticNamedExports: false
 						},
-						{
+						[ID_NESTED]: {
 							ast: {
 								type: 'Program',
 								start: 0,
@@ -386,7 +390,7 @@ module.exports = {
 							meta: {},
 							syntheticNamedExports: false
 						},
-						{
+						[ID_PATH]: {
 							ast: null,
 							code: null,
 							dynamicallyImportedIdResolutions: [],
@@ -406,7 +410,7 @@ module.exports = {
 							meta: {},
 							syntheticNamedExports: false
 						}
-					]
+					}
 				);
 			}
 		}

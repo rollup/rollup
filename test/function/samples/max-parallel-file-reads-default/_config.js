@@ -1,5 +1,6 @@
 const assert = require('assert');
 const { promises: fs } = require('fs');
+const { wait } = require('../../../utils');
 
 const fsReadFile = fs.readFile;
 let currentReads = 0;
@@ -12,6 +13,7 @@ module.exports = {
 			currentReads++;
 			maxReads = Math.max(maxReads, currentReads);
 			const content = await fsReadFile(path, options);
+			await wait(50);
 			currentReads--;
 			return content;
 		};

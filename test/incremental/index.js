@@ -1,7 +1,7 @@
 const assert = require('assert');
 const acorn = require('acorn');
 const rollup = require('../../dist/rollup');
-const { executeBundle } = require('../utils.js');
+const { executeBundle, getObject } = require('../utils.js');
 
 describe('incremental', () => {
 	let resolveIdCalls;
@@ -309,11 +309,11 @@ describe('incremental', () => {
 
 			buildEnd() {
 				assert.deepStrictEqual(
-					[...this.getModuleIds()].map(id => ({ id, meta: this.getModuleInfo(id).meta })),
-					[
-						{ id: 'entry', meta: { test: { transformed: 'entry' } } },
-						{ id: 'foo', meta: { test: { transformed: 'foo' } } }
-					],
+					getObject([...this.getModuleIds()].map(id => [id, this.getModuleInfo(id).meta])),
+					{
+						entry: { test: { transformed: 'entry' } },
+						foo: { test: { transformed: 'foo' } }
+					},
 					'buildEnd'
 				);
 			}
