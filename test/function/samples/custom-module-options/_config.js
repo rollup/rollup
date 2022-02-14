@@ -1,4 +1,5 @@
 const assert = require('assert');
+const { getObject } = require('../../../utils');
 
 function getTestPlugin(index) {
 	const pluginName = `test-${index}`;
@@ -40,28 +41,26 @@ module.exports = {
 				name: 'wrap-up',
 				buildEnd() {
 					assert.deepStrictEqual(
-						[...this.getModuleIds()]
-							.filter(id => id.includes('resolve'))
-							.sort()
-							.map(id => ({ id, meta: this.getModuleInfo(id).meta })),
-						[
-							{
-								id: 'resolve1-load2-transform3',
-								meta: {
-									'test-1': { resolved: 1 },
-									'test-2': { loaded: 2 },
-									'test-3': { transformed: 3 }
-								}
+						getObject(
+							[...this.getModuleIds()]
+								.filter(id => id.includes('resolve'))
+								.map(id => [id, this.getModuleInfo(id).meta])
+						),
+						{
+							'resolve1-load2-transform3': {
+								'test-1': { resolved: 1 },
+								'test-2': { loaded: 2 },
+								'test-3': { transformed: 3 }
 							},
-							{
-								id: 'resolve2-load2-transform3',
-								meta: { 'test-2': { loaded: 2 }, 'test-3': { transformed: 3 } }
+							'resolve2-load2-transform3': {
+								'test-2': { loaded: 2 },
+								'test-3': { transformed: 3 }
 							},
-							{
-								id: 'resolve3-load3-transform1-transform3',
-								meta: { 'test-3': { transformed: 3 }, 'test-1': { transformed: 1 } }
+							'resolve3-load3-transform1-transform3': {
+								'test-3': { transformed: 3 },
+								'test-1': { transformed: 1 }
 							}
-						]
+						}
 					);
 				}
 			}
