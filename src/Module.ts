@@ -642,7 +642,7 @@ export default class Module {
 			this.graph.needsTreeshakingPass = true;
 		}
 
-		for (const exportName of this.getExports()) {
+		for (const exportName of this.exports.keys()) {
 			if (includeNamespaceMembers || exportName !== this.info.syntheticNamedExports) {
 				const variable = this.getVariableForExportName(exportName)[0]!;
 				variable.deoptimizePath(UNKNOWN_PATH);
