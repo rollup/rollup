@@ -187,7 +187,6 @@ function getAndExtendSideEffectModules(variable: Variable, module: Module): Set<
 
 export default class Module {
 	readonly alternativeReexportModules = new Map<Variable, Module>();
-	ast: Program | null = null;
 	readonly chunkFileNames = new Set<string>();
 	chunkNames: {
 		isUserDefined: boolean;
@@ -201,8 +200,6 @@ export default class Module {
 	readonly dynamicImports: DynamicImport[] = [];
 	excludeFromSourcemap: boolean;
 	execIndex = Infinity;
-	readonly exportAllSources = new Set<string>();
-	readonly exports = new Map<string, ExportDescription>();
 	readonly implicitlyLoadedAfter = new Set<Module>();
 	readonly implicitlyLoadedBefore = new Set<Module>();
 	readonly importDescriptions: { [name: string]: ImportDescription } = Object.create(null);
@@ -219,7 +216,6 @@ export default class Module {
 	declare originalCode: string;
 	declare originalSourcemap: ExistingDecodedSourceMap | null;
 	preserveSignature: PreserveEntrySignaturesOption;
-	readonly reexportDescriptions: { [name: string]: ReexportDescription } = Object.create(null);
 	declare resolvedIds: ResolvedIdMap;
 	declare scope: ModuleScope;
 	readonly sideEffectDependenciesByVariable = new Map<Variable, Set<Module>>();
@@ -229,17 +225,22 @@ export default class Module {
 	usesTopLevelAwait = false;
 
 	private allExportNames: Set<string> | null = null;
+	private ast: Program | null = null;
 	private declare astContext: AstContext;
 	private readonly context: string;
 	private declare customTransformCache: boolean;
 	private readonly exportAllModules: (Module | ExternalModule)[] = [];
+	private readonly exportAllSources = new Set<string>();
 	private exportNamesByVariable: Map<Variable, string[]> | null = null;
 	private readonly exportShimVariable: ExportShimVariable = new ExportShimVariable(this);
+	private readonly exports = new Map<string, ExportDescription>();
 	private declare magicString: MagicString;
 	private namespaceReexportsByName: Record<
 		string,
 		[variable: Variable | null, indirectExternal?: boolean]
 	> = Object.create(null);
+	private readonly reexportDescriptions: { [name: string]: ReexportDescription } =
+		Object.create(null);
 	private relevantDependencies: Set<Module | ExternalModule> | null = null;
 	private readonly syntheticExports = new Map<string, SyntheticNamedExportVariable>();
 	private syntheticNamespace: Variable | null | undefined = null;
