@@ -360,29 +360,31 @@ export default class Module {
 		if (this.allExportNames) {
 			return this.allExportNames;
 		}
-		const allExportNames = (this.allExportNames = new Set<string>());
+		this.allExportNames = new Set<string>();
+
 		for (const name of this.getExports()) {
-			allExportNames.add(name);
+			this.allExportNames.add(name);
 		}
 		for (const name of Object.keys(this.reexportDescriptions)) {
-			allExportNames.add(name);
+			this.allExportNames.add(name);
 		}
+
 		for (const module of this.exportAllModules) {
 			if (module instanceof ExternalModule) {
-				allExportNames.add(`*${module.id}`);
+				this.allExportNames.add(`*${module.id}`);
 				continue;
 			}
 
 			for (const name of module.getAllExportNames()) {
-				if (name !== 'default') allExportNames.add(name);
+				if (name !== 'default') this.allExportNames.add(name);
 			}
 		}
 		// We do not count the synthetic namespace as a regular export to hide it
 		// from entry signatures and namespace objects
 		if (typeof this.info.syntheticNamedExports === 'string') {
-			allExportNames.delete(this.info.syntheticNamedExports);
+			this.allExportNames.delete(this.info.syntheticNamedExports);
 		}
-		return allExportNames;
+		return this.allExportNames;
 	}
 
 	getDependenciesToBeIncluded(): Set<Module | ExternalModule> {
