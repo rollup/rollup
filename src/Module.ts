@@ -5,6 +5,7 @@ import MagicString from 'magic-string';
 import ExternalModule from './ExternalModule';
 import type Graph from './Graph';
 import { createHasEffectsContext, createInclusionContext } from './ast/ExecutionContext';
+import { nodeConstructors } from './ast/nodes';
 import ExportAllDeclaration from './ast/nodes/ExportAllDeclaration';
 import ExportDefaultDeclaration from './ast/nodes/ExportDefaultDeclaration';
 import type ExportNamedDeclaration from './ast/nodes/ExportNamedDeclaration';
@@ -17,7 +18,6 @@ import * as NodeType from './ast/nodes/NodeType';
 import Program from './ast/nodes/Program';
 import TemplateLiteral from './ast/nodes/TemplateLiteral';
 import VariableDeclaration from './ast/nodes/VariableDeclaration';
-import { nodeConstructors } from './ast/nodes/index';
 import type { ExpressionNode, NodeBase } from './ast/nodes/shared/Node';
 import ModuleScope from './ast/scopes/ModuleScope';
 import { type PathTracker, UNKNOWN_PATH } from './ast/utils/PathTracker';
@@ -335,7 +335,6 @@ export default class Module {
 		};
 		// Hide the deprecated key so that it only warns when accessed explicitly
 		Object.defineProperty(this.info, 'hasModuleSideEffects', {
-			...Object.getOwnPropertyDescriptor(this.info, 'hasModuleSideEffects'),
 			enumerable: false
 		});
 	}
