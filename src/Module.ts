@@ -1005,7 +1005,7 @@ export default class Module {
 	}
 
 	private addModulesToImportDescriptions(
-		importDescription: Map<string, ImportDescription | ReexportDescription>
+		importDescription: ReadonlyMap<string, ImportDescription | ReexportDescription>
 	): void {
 		for (const specifier of importDescription.values()) {
 			const { id } = this.resolvedIds[specifier.source];
