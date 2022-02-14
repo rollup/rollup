@@ -202,7 +202,7 @@ export default class Module {
 	excludeFromSourcemap: boolean;
 	execIndex = Infinity;
 	readonly exportAllSources = new Set<string>();
-	readonly exports: { [name: string]: ExportDescription } = Object.create(null);
+	readonly exports = new Map<string, ExportDescription>();
 	readonly implicitlyLoadedAfter = new Set<Module>();
 	readonly implicitlyLoadedBefore = new Set<Module>();
 	readonly importDescriptions: { [name: string]: ImportDescription } = Object.create(null);
@@ -295,7 +295,7 @@ export default class Module {
 				if (!module.ast) {
 					return null;
 				}
-				return 'default' in module.exports || 'default' in reexportDescriptions;
+				return module.exports.has('default') || 'default' in reexportDescriptions;
 			},
 			get hasModuleSideEffects() {
 				warnDeprecation(
@@ -463,7 +463,7 @@ export default class Module {
 	}
 
 	getExports(): string[] {
-		return Object.keys(this.exports);
+		return Array.from(this.exports.keys());
 	}
 
 	getReexports(): string[] {
@@ -493,7 +493,7 @@ export default class Module {
 		// only direct exports are counted here, not reexports at all
 		const renderedExports: string[] = [];
 		const removedExports: string[] = [];
-		for (const exportName in this.exports) {
+		for (const exportName of this.exports.keys()) {
 			const [variable] = this.getVariableForExportName(exportName);
 			(variable && variable.included ? renderedExports : removedExports).push(exportName);
 		}
@@ -565,7 +565,7 @@ export default class Module {
 			return [variable];
 		}
 
-		const exportDeclaration = this.exports[name];
+		const exportDeclaration = this.exports.get(name);
 		if (exportDeclaration) {
 			if (exportDeclaration === MISSING_EXPORT_SHIM_DESCRIPTION) {
 				return [this.exportShimVariable];
@@ -894,10 +894,10 @@ export default class Module {
 		if (node instanceof ExportDefaultDeclaration) {
 			// export default foo;
 
-			this.exports.default = {
+			this.exports.set('default', {
 				identifier: node.variable.getAssignedVariableName(),
 				localName: 'default'
-			};
+			});
 		} else if (node instanceof ExportAllDeclaration) {
 			const source = node.source.value;
 			this.sources.add(source);
@@ -938,14 +938,14 @@ export default class Module {
 
 				for (const declarator of declaration.declarations) {
 					for (const localName of extractAssignedNames(declarator.id)) {
-						this.exports[localName] = { identifier: null, localName };
+						this.exports.set(localName, { identifier: null, localName });
 					}
 				}
 			} else {
 				// export function foo () {}
 
 				const localName = (declaration.id as Identifier).name;
-				this.exports[localName] = { identifier: null, localName };
+				this.exports.set(localName, { identifier: null, localName });
 			}
 		} else {
 			// export { foo, bar, baz }
@@ -953,7 +953,7 @@ export default class Module {
 			for (const specifier of node.specifiers) {
 				const localName = specifier.local.name;
 				const exportedName = specifier.exported.name;
-				this.exports[exportedName] = { identifier: null, localName };
+				this.exports.set(exportedName, { identifier: null, localName });
 			}
 		}
 	}
@@ -1184,7 +1184,7 @@ export default class Module {
 			exportName: name,
 			message: `Missing export "${name}" has been shimmed in module ${relativeId(this.id)}.`
 		});
-		this.exports[name] = MISSING_EXPORT_SHIM_DESCRIPTION;
+		this.exports.set(name, MISSING_EXPORT_SHIM_DESCRIPTION);
 	}
 }
 
