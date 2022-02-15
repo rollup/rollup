@@ -1277,7 +1277,7 @@ function dependentPlugin() {
     name: 'dependent',
     buildStart({ plugins }) {
       const parentName = 'parent';
-      const parentPlugin = options.plugins.find(plugin => plugin.name === parentName);
+      const parentPlugin = plugins.find(plugin => plugin.name === parentName);
       if (!parentPlugin) {
         // or handle this silently if it is optional
         throw new Error(`This plugin depends on the "${parentName}" plugin.`);
