@@ -262,6 +262,8 @@ Note that while `resolveId` will be called for each import of a module and can t
 
 When triggering this hook from a plugin via [`this.resolve`](guide/en/#thisresolve), it is possible to pass a custom options object to this hook. While this object will be passed unmodified, plugins should follow the convention of adding a `custom` property with an object where the keys correspond to the names of the plugins that the options are intended for. For details see [custom resolver options](guide/en/#custom-resolver-options).
 
+In watch mode or when using the cache explicitly, the resolved imports of a cached module are also taken from the cache and not determined via the `resolveId` hook again. To prevent this, you can return `true` from the [`shouldTransformCachedModule`](guide/en/#shouldtransformcachedmodule) hook for that module. This will remove the module and its import resolutions from cache and call `transform` and `resolveId` again.
+
 #### `shouldTransformCachedModule`
 
 **Type:** `({id: string, code: string, ast: ESTree.Program, meta: {[plugin: string]: any}, moduleSideEffects: boolean | "no-treeshake", syntheticNamedExports: string | boolean}) => boolean`<br> **Kind:** `async, first`<br> **Previous Hook:** [`load`](guide/en/#load) where the cached file was loaded to compare its code with the cached version.<br> **Next Hook:** [`moduleParsed`](guide/en/#moduleparsed) if no plugin returns `true`, otherwise [`transform`](guide/en/#transform).
@@ -278,7 +280,9 @@ If a plugin does not return `true`, Rollup will trigger this hook for other plug
 
 Can be used to transform individual modules. To prevent additional parsing overhead in case e.g. this hook already used `this.parse` to generate an AST for some reason, this hook can optionally return a `{ code, ast, map }` object. The `ast` must be a standard ESTree AST with `start` and `end` properties for each node. If the transformation does not move code, you can preserve existing sourcemaps by setting `map` to `null`. Otherwise you might need to generate the source map. See [the section on source code transformations](#source-code-transformations).
 
-Note that in watch mode, the result of this hook is cached when rebuilding and the hook is only triggered again for a module `id` if either the `code` of the module has changed or a file has changed that was added via `this.addWatchFile` the last time the hook was triggered for this module.
+Note that in watch mode or when using the cache explicitly, the result of this hook is cached when rebuilding and the hook is only triggered again for a module `id` if either the `code` of the module has changed or a file has changed that was added via `this.addWatchFile` the last time the hook was triggered for this module.
+
+In all other cases, the [`shouldTransformCachedModule`](guide/en/#shouldtransformcachedmodule) hook is triggered instead, which gives access to the cached module. Returning `true` from `shouldTransformCachedModule` will remove the module from cache and instead call `transform` again.
 
 You can also use the object form of the return value to configure additional properties of the module. Note that it's possible to return only properties and no code transformations.
 
