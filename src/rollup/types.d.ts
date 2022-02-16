@@ -116,6 +116,7 @@ export interface TransformModuleJSON {
 export interface ModuleJSON extends TransformModuleJSON, ModuleOptions {
 	ast: AcornNode;
 	dependencies: string[];
+	dynamicDependencies: string[];
 	id: string;
 	transformFiles: EmittedFile[] | undefined;
 }
@@ -251,7 +252,9 @@ export type ShouldTransformCachedModuleHook = (
 	options: {
 		ast: AcornNode;
 		code: string;
+		dynamicallyImportedIds: string[];
 		id: string;
+		importedIds: string[];
 		meta: CustomPluginOptions;
 		moduleSideEffects: boolean | 'no-treeshake';
 		syntheticNamedExports: boolean | string;

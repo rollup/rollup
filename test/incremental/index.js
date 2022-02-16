@@ -338,10 +338,22 @@ describe('incremental', () => {
 	});
 
 	it('runs shouldTransformCachedModule when using a cached module', async () => {
+		modules = {
+			entry: `import foo from 'foo'; export default foo; import('bar').then(console.log);`,
+			foo: `export default 42`,
+			bar: `export default 21`
+		};
 		let shouldTransformCachedModuleCalls = 0;
 
 		const transformPlugin = {
-			async shouldTransformCachedModule({ ast, id, meta, ...other }) {
+			async shouldTransformCachedModule({
+				ast,
+				id,
+				meta,
+				importedIds,
+				dynamicallyImportedIds,
+				...other
+			}) {
 				shouldTransformCachedModuleCalls++;
 				assert.strictEqual(ast.type, 'Program');
 				assert.deepStrictEqual(other, {
@@ -352,10 +364,19 @@ describe('incremental', () => {
 				switch (id) {
 					case 'foo':
 						assert.deepStrictEqual(meta, { transform: { calls: 1, id } });
+						assert.deepStrictEqual(importedIds, []);
+						assert.deepStrictEqual(dynamicallyImportedIds, []);
 						// we return promises to ensure they are awaited
+						return Promise.resolve(false);
+					case 'bar':
+						assert.deepStrictEqual(meta, { transform: { calls: 1, id } });
+						assert.deepStrictEqual(importedIds, []);
+						assert.deepStrictEqual(dynamicallyImportedIds, []);
 						return Promise.resolve(false);
 					case 'entry':
 						assert.deepStrictEqual(meta, { transform: { calls: 0, id } });
+						assert.deepStrictEqual(importedIds, ['foo']);
+						assert.deepStrictEqual(dynamicallyImportedIds, ['bar']);
 						return Promise.resolve(true);
 					default:
 						throw new Error(`Unexpected id ${id}.`);
@@ -369,8 +390,12 @@ describe('incremental', () => {
 			input: 'entry',
 			plugins: [transformPlugin, plugin]
 		});
-		assert.strictEqual(shouldTransformCachedModuleCalls, 0);
-		assert.strictEqual(transformCalls, 2);
+		assert.strictEqual(
+			shouldTransformCachedModuleCalls,
+			0,
+			'initial shouldTransformCachedModule calls'
+		);
+		assert.strictEqual(transformCalls, 3, 'initial transform calls');
 
 		const {
 			cache: { modules: cachedModules }
@@ -379,11 +404,17 @@ describe('incremental', () => {
 			plugins: [transformPlugin, plugin],
 			cache
 		});
-		assert.strictEqual(shouldTransformCachedModuleCalls, 2);
-		assert.strictEqual(transformCalls, 3);
+		assert.strictEqual(
+			shouldTransformCachedModuleCalls,
+			3,
+			'final shouldTransformCachedModule calls'
+		);
+		assert.strictEqual(transformCalls, 4, 'final transform calls');
 		assert.strictEqual(cachedModules[0].id, 'foo');
 		assert.deepStrictEqual(cachedModules[0].meta, { transform: { calls: 1, id: 'foo' } });
 		assert.strictEqual(cachedModules[1].id, 'entry');
-		assert.deepStrictEqual(cachedModules[1].meta, { transform: { calls: 2, id: 'entry' } });
+		assert.deepStrictEqual(cachedModules[1].meta, { transform: { calls: 3, id: 'entry' } });
+		assert.strictEqual(cachedModules[2].id, 'bar');
+		assert.deepStrictEqual(cachedModules[2].meta, { transform: { calls: 1, id: 'bar' } });
 	});
 });
