@@ -23,6 +23,12 @@ function formatAction([pluginName, hookName, args]: [string, string, Parameters<
 		case 'transform':
 			action += ` ${s(args[1])}`;
 			break;
+		case 'shouldTransformCachedModule':
+			action += ` ${s((args[0] as { id: string }).id)}`;
+			break;
+		case 'moduleParsed':
+			action += ` ${s((args[0] as { id: string }).id)}`;
+			break;
 	}
 	return action;
 }
