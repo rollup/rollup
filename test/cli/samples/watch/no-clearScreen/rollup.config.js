@@ -3,20 +3,20 @@ export default [
 		input: 'main.js',
 		output: {
 			file: '_actual.js',
-			format: 'es',
+			format: 'es'
 		},
 		watch: {
-			clearScreen: true,
-		},
+			clearScreen: true
+		}
 	},
 	{
 		input: 'main.js',
 		output: {
 			file: '_actual.js',
-			format: 'es',
+			format: 'es'
 		},
 		watch: {
-			clearScreen: false,
-		},
-	},
+			clearScreen: false
+		}
+	}
 ];

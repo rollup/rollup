@@ -3,5 +3,5 @@ export default async () => ({
 	output: {
 		format: 'cjs',
 		exports: 'auto'
-	},
+	}
 });

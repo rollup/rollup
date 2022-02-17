@@ -11,21 +11,21 @@ export default {
 			this.emitFile({
 				type: 'asset',
 				fileName: `${options.format}.txt`,
-				source: this.getFileName(fileReference),
+				source: this.getFileName(fileReference)
 			});
-		},
+		}
 	},
 	output: [
 		{
 			format: 'es',
 			dir: '_actual',
-			entryFileNames: 'es-[name].js',
+			entryFileNames: 'es-[name].js'
 		},
 		{
 			format: 'cjs',
 			dir: '_actual',
 			entryFileNames: 'cjs-[name].js',
 			exports: 'auto'
-		},
-	],
+		}
+	]
 };

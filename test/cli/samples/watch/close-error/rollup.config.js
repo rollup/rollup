@@ -9,7 +9,7 @@ export default {
 		}
 	],
 	output: {
-		dir: "_actual",
-		format: "es"
+		dir: '_actual',
+		format: 'es'
 	}
 };

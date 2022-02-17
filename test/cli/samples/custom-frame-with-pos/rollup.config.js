@@ -10,9 +10,9 @@ module.exports = {
 				err.frame = 'custom code frame';
 				this.error(err, {
 					line: 1,
-					column: 5,
+					column: 5
 				});
 			}
-		},
+		}
 	]
 };

@@ -5,7 +5,5 @@ export default {
 	output: {
 		format: 'cjs'
 	},
-	plugins: [
-		replace( { preventAssignment: true, 'ANSWER': 42 } )
-	]
+	plugins: [replace({ preventAssignment: true, ANSWER: 42 })]
 };
