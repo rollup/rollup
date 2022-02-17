@@ -3,6 +3,7 @@ flowchart TB
     classDef hook-sequential fill:#ffd2b3,stroke:#000;
     classDef hook-first fill:#fff2b3,stroke:#000;
     classDef hook-sequential-sync fill:#ffd2b3,stroke:#f00;
+    classDef hook-first-sync fill:#fff2b3,stroke:#f00;
 
 	buildend("buildEnd"):::hook-parallel
 	click buildend "/guide/en/#buildend" _parent
@@ -60,7 +61,10 @@ flowchart TB
     --> |non-external|load
 
     moduleparsed
-    --> |each import|resolveid
+    --> |"each import\n(cached)"|load
+
+    moduleparsed
+    --> |"each import\n(not cached)"|resolveid
 
     resolvedynamicimport
     .-> |external|buildend
