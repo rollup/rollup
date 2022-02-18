@@ -1,5 +1,25 @@
 # rollup changelog
 
+## 2.67.3
+
+_2022-02-18_
+
+### Bug Fixes
+
+- Do not swallow other errors when unfinished hook actions are detected (#4409)
+- Add additional information to output when there are unfinished hook actions (#4409)
+
+### Pull Requests
+
+- [#4399](https://github.com/rollup/rollup/pull/4399): docs: remove const (@TrickyPi)
+- [#4401](https://github.com/rollup/rollup/pull/4401): Improve test stability by getting independent of module id ordering in more places (@lukastaegert)
+- [#4403](https://github.com/rollup/rollup/pull/4403): fix: remove unnecessary property descriptor spread (@dnalborczyk)
+- [#4404](https://github.com/rollup/rollup/pull/4404): refactor: use map for import descriptions + re-export descriptions (@dnalborczyk)
+- [#4405](https://github.com/rollup/rollup/pull/4405): refactor: module exports to map (@dnalborczyk)
+- [#4406](https://github.com/rollup/rollup/pull/4406): Fix a typo in 'Direct plugin communication' code example (@younesmln)
+- [#4407](https://github.com/rollup/rollup/pull/4407): Document how resolveId is cached (@lukastaegert)
+- [#4409](https://github.com/rollup/rollup/pull/4409): Print ids for unfinished moduleParsed and shouldTransformCachedModule hooks (@lukastaegert)
+
 ## 2.67.2
 
 _2022-02-10_
