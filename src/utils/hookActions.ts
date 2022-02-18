@@ -40,6 +40,6 @@ process.on('exit', () => {
 			err += formatAction(action) + '\n';
 		}
 		console.error('%s', err);
-		process.exit(1);
+		process.exitCode = 1;
 	}
 });
