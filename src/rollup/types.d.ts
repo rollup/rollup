@@ -108,7 +108,6 @@ export interface TransformModuleJSON {
 	customTransformCache: boolean;
 	originalCode: string;
 	originalSourcemap: ExistingDecodedSourceMap | null;
-	resolvedIds?: ResolvedIdMap;
 	sourcemapChain: DecodedSourceMapOrMissing[];
 	transformDependencies: string[];
 }
@@ -116,8 +115,8 @@ export interface TransformModuleJSON {
 export interface ModuleJSON extends TransformModuleJSON, ModuleOptions {
 	ast: AcornNode;
 	dependencies: string[];
-	dynamicDependencies: string[];
 	id: string;
+	resolvedIds: ResolvedIdMap;
 	transformFiles: EmittedFile[] | undefined;
 }
 
@@ -252,11 +251,10 @@ export type ShouldTransformCachedModuleHook = (
 	options: {
 		ast: AcornNode;
 		code: string;
-		dynamicallyImportedIds: string[];
 		id: string;
-		importedIds: string[];
 		meta: CustomPluginOptions;
 		moduleSideEffects: boolean | 'no-treeshake';
+		resolvedSources: ResolvedIdMap;
 		syntheticNamedExports: boolean | string;
 	}
 ) => Promise<boolean> | boolean;

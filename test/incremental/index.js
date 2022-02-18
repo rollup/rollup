@@ -346,14 +346,7 @@ describe('incremental', () => {
 		let shouldTransformCachedModuleCalls = 0;
 
 		const transformPlugin = {
-			async shouldTransformCachedModule({
-				ast,
-				id,
-				meta,
-				importedIds,
-				dynamicallyImportedIds,
-				...other
-			}) {
+			async shouldTransformCachedModule({ ast, id, meta, resolvedSources, ...other }) {
 				shouldTransformCachedModuleCalls++;
 				assert.strictEqual(ast.type, 'Program');
 				assert.deepStrictEqual(other, {
@@ -364,19 +357,32 @@ describe('incremental', () => {
 				switch (id) {
 					case 'foo':
 						assert.deepStrictEqual(meta, { transform: { calls: 1, id } });
-						assert.deepStrictEqual(importedIds, []);
-						assert.deepStrictEqual(dynamicallyImportedIds, []);
+						assert.deepStrictEqual(resolvedSources, { __proto__: null });
 						// we return promises to ensure they are awaited
 						return Promise.resolve(false);
 					case 'bar':
 						assert.deepStrictEqual(meta, { transform: { calls: 1, id } });
-						assert.deepStrictEqual(importedIds, []);
-						assert.deepStrictEqual(dynamicallyImportedIds, []);
+						assert.deepStrictEqual(resolvedSources, { __proto__: null });
 						return Promise.resolve(false);
 					case 'entry':
 						assert.deepStrictEqual(meta, { transform: { calls: 0, id } });
-						assert.deepStrictEqual(importedIds, ['foo']);
-						assert.deepStrictEqual(dynamicallyImportedIds, ['bar']);
+						assert.deepStrictEqual(resolvedSources, {
+							__proto__: null,
+							bar: {
+								external: false,
+								id: 'bar',
+								meta: {},
+								moduleSideEffects: true,
+								syntheticNamedExports: false
+							},
+							foo: {
+								external: false,
+								id: 'foo',
+								meta: {},
+								moduleSideEffects: true,
+								syntheticNamedExports: false
+							}
+						});
 						return Promise.resolve(true);
 					default:
 						throw new Error(`Unexpected id ${id}.`);

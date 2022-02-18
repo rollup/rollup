@@ -280,11 +280,10 @@ export class ModuleLoader {
 				{
 					ast: cachedModule.ast,
 					code: cachedModule.code,
-					dynamicallyImportedIds: cachedModule.dynamicDependencies,
 					id: cachedModule.id,
-					importedIds: cachedModule.dependencies,
 					meta: cachedModule.meta,
 					moduleSideEffects: cachedModule.moduleSideEffects,
+					resolvedSources: cachedModule.resolvedIds,
 					syntheticNamedExports: cachedModule.syntheticNamedExports
 				}
 			]))

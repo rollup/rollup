@@ -708,6 +708,7 @@ export default class Module {
 		transformFiles,
 		...moduleOptions
 	}: TransformModuleJSON & {
+		resolvedIds?: ResolvedIdMap;
 		transformFiles?: EmittedFile[] | undefined;
 	}): void {
 		this.info.code = code;
@@ -785,7 +786,6 @@ export default class Module {
 			code: this.info.code!,
 			customTransformCache: this.customTransformCache,
 			dependencies: Array.from(this.dependencies, getId),
-			dynamicDependencies: Array.from(this.dynamicDependencies, getId),
 			id: this.id,
 			meta: this.info.meta,
 			moduleSideEffects: this.info.moduleSideEffects,
