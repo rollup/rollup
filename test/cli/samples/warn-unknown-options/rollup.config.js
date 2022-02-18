@@ -1,5 +1,5 @@
-var replace = require('@rollup/plugin-replace');
 var assert = require('assert');
+var replace = require('@rollup/plugin-replace');
 
 let warnings = 0;
 

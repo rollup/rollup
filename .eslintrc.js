@@ -19,7 +19,8 @@ module.exports = {
 		'!/test/*.js',
 		'!/test/*/*.js',
 		'/test/node_modules/*.*',
-		'!/test/*/samples/**/_config.js'
+		'!/test/*/samples/**/_config.js',
+		'!/test/*/samples/**/rollup.config.js'
 	],
 	overrides: [
 		{

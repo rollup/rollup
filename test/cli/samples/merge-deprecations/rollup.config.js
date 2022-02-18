@@ -1,4 +1,4 @@
-var replace = require( '@rollup/plugin-replace' );
+var replace = require('@rollup/plugin-replace');
 
 module.exports = {
 	entry: 'main.js',
@@ -9,7 +9,5 @@ module.exports = {
 		file: '_actual/bundle2.js',
 		format: 'es'
 	},
-	plugins: [
-		replace( { preventAssignment: true, 'ANSWER': 42 } )
-	]
+	plugins: [replace({ preventAssignment: true, ANSWER: 42 })]
 };
