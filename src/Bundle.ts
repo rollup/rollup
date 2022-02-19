@@ -35,7 +35,7 @@ export default class Bundle {
 
 	constructor(
 		private readonly outputOptions: NormalizedOutputOptions,
-		private readonly unsetOptions: Set<string>,
+		private readonly unsetOptions: ReadonlySet<string>,
 		private readonly inputOptions: NormalizedInputOptions,
 		private readonly pluginDriver: PluginDriver,
 		private readonly graph: Graph
