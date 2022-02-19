@@ -527,11 +527,10 @@ export default class Module {
 			if (name.length === 1) {
 				// export * from './other'
 				return [this.namespace];
-			} else {
-				// export * from 'external'
-				const module = this.graph.modulesById.get(name.slice(1)) as ExternalModule;
-				return module.getVariableForExportName('*');
 			}
+			// export * from 'external'
+			const module = this.graph.modulesById.get(name.slice(1)) as ExternalModule;
+			return module.getVariableForExportName('*');
 		}
 
 		// export { foo } from './other'
