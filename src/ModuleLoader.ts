@@ -671,13 +671,11 @@ export class ModuleLoader {
 			} as ResolvedId;
 		}
 		if (resolution == null) {
-			return (module.resolvedIds[specifier] =
-				module.resolvedIds[specifier] ||
-				this.handleResolveId(
-					await this.resolveId(specifier, module.id, EMPTY_OBJECT, false),
-					specifier,
-					module.id
-				));
+			return (module.resolvedIds[specifier] ??= this.handleResolveId(
+				await this.resolveId(specifier, module.id, EMPTY_OBJECT, false),
+				specifier,
+				module.id
+			));
 		}
 		return this.handleResolveId(
 			this.getResolvedIdWithDefaults(
