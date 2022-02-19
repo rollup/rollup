@@ -235,10 +235,10 @@ export default class Module {
 	private readonly exportShimVariable: ExportShimVariable = new ExportShimVariable(this);
 	private readonly exports = new Map<string, ExportDescription>();
 	private declare magicString: MagicString;
-	private namespaceReexportsByName: Record<
+	private readonly namespaceReexportsByName = new Map<
 		string,
 		[variable: Variable | null, indirectExternal?: boolean]
-	> = Object.create(null);
+	>();
 	private readonly reexportDescriptions = new Map<string, ReexportDescription>();
 	private relevantDependencies: Set<Module | ExternalModule> | null = null;
 	private readonly syntheticExports = new Map<string, SyntheticNamedExportVariable>();
@@ -580,14 +580,13 @@ export default class Module {
 
 		if (name !== 'default') {
 			const foundNamespaceReexport =
-				name in this.namespaceReexportsByName
-					? this.namespaceReexportsByName[name]
-					: this.getVariableFromNamespaceReexports(
-							name,
-							importerForSideEffects,
-							searchedNamesAndModules
-					  );
-			this.namespaceReexportsByName[name] = foundNamespaceReexport;
+				this.namespaceReexportsByName.get(name) ??
+				this.getVariableFromNamespaceReexports(
+					name,
+					importerForSideEffects,
+					searchedNamesAndModules
+				);
+			this.namespaceReexportsByName.set(name, foundNamespaceReexport);
 			if (foundNamespaceReexport[0]) {
 				return foundNamespaceReexport;
 			}
