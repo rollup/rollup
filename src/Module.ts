@@ -232,7 +232,7 @@ export default class Module {
 	private readonly exportAllModules: (Module | ExternalModule)[] = [];
 	private readonly exportAllSources = new Set<string>();
 	private exportNamesByVariable: Map<Variable, string[]> | null = null;
-	private readonly exportShimVariable: ExportShimVariable = new ExportShimVariable(this);
+	private readonly exportShimVariable = new ExportShimVariable(this);
 	private readonly exports = new Map<string, ExportDescription>();
 	private declare magicString: MagicString;
 	private readonly namespaceReexportsByName = new Map<
