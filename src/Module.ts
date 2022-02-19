@@ -380,7 +380,8 @@ export default class Module {
 
 	getDependenciesToBeIncluded(): Set<Module | ExternalModule> {
 		if (this.relevantDependencies) return this.relevantDependencies;
-		const relevantDependencies = new Set<Module | ExternalModule>();
+
+		this.relevantDependencies = new Set<Module | ExternalModule>();
 		const necessaryDependencies = new Set<Module | ExternalModule>();
 		const alwaysCheckedDependencies = new Set<Module>();
 		const dependencyVariables = new Set(this.imports);
@@ -414,19 +415,19 @@ export default class Module {
 		}
 		if (!this.options.treeshake || this.info.moduleSideEffects === 'no-treeshake') {
 			for (const dependency of this.dependencies) {
-				relevantDependencies.add(dependency);
+				this.relevantDependencies.add(dependency);
 			}
 		} else {
 			this.addRelevantSideEffectDependencies(
-				relevantDependencies,
+				this.relevantDependencies,
 				necessaryDependencies,
 				alwaysCheckedDependencies
 			);
 		}
 		for (const dependency of necessaryDependencies) {
-			relevantDependencies.add(dependency);
+			this.relevantDependencies.add(dependency);
 		}
-		return (this.relevantDependencies = relevantDependencies);
+		return this.relevantDependencies;
 	}
 
 	getExportNamesByVariable(): Map<Variable, string[]> {
