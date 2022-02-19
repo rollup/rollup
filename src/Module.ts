@@ -464,8 +464,6 @@ export default class Module {
 		if (this.transitiveReexports) {
 			return this.transitiveReexports;
 		}
-		// to avoid infinite recursion when using circular `export * from X`
-		this.transitiveReexports = [];
 
 		const reexports = new Set(this.reexportDescriptions.keys());
 
