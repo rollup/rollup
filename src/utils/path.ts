@@ -10,8 +10,7 @@ export function isRelative(path: string): boolean {
 }
 
 export function normalize(path: string): string {
-	if (path.indexOf('\\') == -1) return path;
-	return path.replace(/\\/g, '/');
+	return path.includes('\\') ? path.replace(/\\/g, '/') : path;
 }
 
 export { basename, dirname, extname, relative, resolve } from 'path';

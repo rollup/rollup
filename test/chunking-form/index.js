@@ -1,26 +1,25 @@
-const path = require('path');
-const rollup = require('../../dist/rollup');
+const { basename, resolve } = require('path');
+const { chdir } = require('process');
+const { rollup } = require('../../dist/rollup');
 const { runTestSuiteWithSamples, assertDirectoriesAreEqual } = require('../utils.js');
 
 const FORMATS = ['es', 'cjs', 'amd', 'system'];
 
-runTestSuiteWithSamples('chunking form', path.resolve(__dirname, 'samples'), (dir, config) => {
+runTestSuiteWithSamples('chunking form', resolve(__dirname, 'samples'), (dir, config) => {
 	(config.skip ? describe.skip : config.solo ? describe.only : describe)(
-		path.basename(dir) + ': ' + config.description,
+		basename(dir) + ': ' + config.description,
 		() => {
 			let bundle;
 
 			for (const format of FORMATS) {
 				it('generates ' + format, async () => {
-					process.chdir(dir);
+					chdir(dir);
 					bundle =
 						bundle ||
-						(await rollup.rollup({
+						(await rollup({
 							input: [dir + '/main.js'],
 							onwarn: warning => {
-								if (
-									!(config.expectedWarnings && config.expectedWarnings.indexOf(warning.code) >= 0)
-								) {
+								if (!(config.expectedWarnings && config.expectedWarnings.includes(warning.code))) {
 									throw new Error(
 										`Unexpected warnings (${warning.code}): ${warning.message}\n` +
 											'If you expect warnings, list their codes in config.expectedWarnings'
