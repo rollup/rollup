@@ -14,7 +14,7 @@ export interface BatchWarnings {
 
 export default function batchWarnings(): BatchWarnings {
 	let count = 0;
-	let deferredWarnings = new Map<keyof typeof deferredHandlers, RollupWarning[]>();
+	const deferredWarnings = new Map<keyof typeof deferredHandlers, RollupWarning[]>();
 	let warningOccurred = false;
 
 	return {
@@ -59,7 +59,7 @@ export default function batchWarnings(): BatchWarnings {
 				deferredHandlers[code](deferredWarnings.get(code)!);
 			}
 
-			deferredWarnings = new Map();
+			deferredWarnings.clear();
 			count = 0;
 		},
 
