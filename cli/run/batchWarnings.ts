@@ -224,13 +224,13 @@ const deferredHandlers: {
 		title('Unresolved dependencies');
 		info('https://rollupjs.org/guide/en/#warning-treating-module-as-external-dependency');
 
-		const dependencies = new Map();
+		const dependencies = new Map<string, string[]>();
 		for (const warning of warnings) {
-			getOrCreate(dependencies, warning.source, () => []).push(warning.importer);
+			getOrCreate(dependencies, warning.source, () => []).push(warning.importer!);
 		}
 
 		for (const dependency of dependencies.keys()) {
-			const importers = dependencies.get(dependency);
+			const importers = dependencies.get(dependency)!;
 			stderr(`${bold(dependency)} (imported by ${importers.join(', ')})`);
 		}
 	},
