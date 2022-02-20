@@ -229,8 +229,7 @@ const deferredHandlers: {
 			getOrCreate(dependencies, warning.source, () => []).push(warning.importer!);
 		}
 
-		for (const dependency of dependencies.keys()) {
-			const importers = dependencies.get(dependency)!;
+		for (const [dependency, importers] of dependencies) {
 			stderr(`${bold(dependency)} (imported by ${importers.join(', ')})`);
 		}
 	},
