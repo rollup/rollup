@@ -13,7 +13,7 @@ import { printQuotedStringList } from './utils/printStringList';
 import relativeId from './utils/relativeId';
 
 export default class ExternalModule {
-	readonly declarations: { [name: string]: ExternalVariable } = Object.create(null);
+	readonly declarations = new Map<string, ExternalVariable>();
 	defaultVariableName = '';
 	readonly dynamicImporters: string[] = [];
 	execIndex = Infinity;
@@ -21,7 +21,7 @@ export default class ExternalModule {
 	readonly importers: string[] = [];
 	readonly info: ModuleInfo;
 	mostCommonSuggestion = 0;
-	readonly nameSuggestions: { [name: string]: number } = Object.create(null);
+	readonly nameSuggestions = new Map<string, number>();
 	namespaceVariableName = '';
 	reexported = false;
 	renderPath: string = undefined as never;
@@ -78,12 +78,13 @@ export default class ExternalModule {
 	}
 
 	getVariableForExportName(name: string): [variable: ExternalVariable] {
-		let declaration = this.declarations[name];
+		const declaration = this.declarations.get(name);
 		if (declaration) return [declaration];
+		const externalVariable = new ExternalVariable(this, name);
 
-		this.declarations[name] = declaration = new ExternalVariable(this, name);
-		this.exportedVariables.set(declaration, name);
-		return [declaration];
+		this.declarations.set(name, externalVariable);
+		this.exportedVariables.set(externalVariable, name);
+		return [externalVariable];
 	}
 
 	setRenderPath(options: NormalizedOutputOptions, inputBase: string): string {
@@ -98,27 +99,28 @@ export default class ExternalModule {
 	}
 
 	suggestName(name: string): void {
-		if (!this.nameSuggestions[name]) this.nameSuggestions[name] = 0;
-		this.nameSuggestions[name] += 1;
+		const value = (this.nameSuggestions.get(name) ?? 0) + 1;
+		this.nameSuggestions.set(name, value);
 
-		if (this.nameSuggestions[name] > this.mostCommonSuggestion) {
-			this.mostCommonSuggestion = this.nameSuggestions[name];
+		if (value > this.mostCommonSuggestion) {
+			this.mostCommonSuggestion = value;
 			this.suggestedVariableName = name;
 		}
 	}
 
 	warnUnusedImports(): void {
-		const unused = Object.keys(this.declarations).filter(name => {
-			if (name === '*') return false;
-			const declaration = this.declarations[name];
-			return !declaration.included && !this.reexported && !declaration.referenced;
-		});
+		const unused = Array.from(this.declarations)
+			.filter(
+				([name, declaration]) =>
+					name !== '*' && !declaration.included && !this.reexported && !declaration.referenced
+			)
+			.map(([name]) => name);
+
 		if (unused.length === 0) return;
 
 		const importersSet = new Set<string>();
 		for (const name of unused) {
-			const { importers } = this.declarations[name].module;
-			for (const importer of importers) {
+			for (const importer of this.declarations.get(name)!.module.importers) {
 				importersSet.add(importer);
 			}
 		}
