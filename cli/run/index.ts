@@ -1,3 +1,4 @@
+import { env } from 'process';
 import type { MergedRollupOptions } from '../../src/rollup/types';
 import { isWatchEnabled } from '../../src/utils/options/mergeOptions';
 import { getAliasName } from '../../src/utils/relativeId';
@@ -48,11 +49,7 @@ export default async function runRollup(command: Record<string, any>): Promise<v
 		environment.forEach((arg: string) => {
 			arg.split(',').forEach((pair: string) => {
 				const [key, ...value] = pair.split(':');
-				if (value.length) {
-					process.env[key] = value.join(':');
-				} else {
-					process.env[key] = String(true);
-				}
+				env[key] = value.length === 0 ? String(true) : value.join(':');
 			});
 		});
 	}
