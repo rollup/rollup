@@ -331,10 +331,11 @@ export default class Chunk {
 		for (const module of entryModules) {
 			const requiredFacades: FacadeName[] = Array.from(
 				new Set(
-					module.chunkNames
-						.filter(({ isUserDefined }) => isUserDefined)
-						.map(({ name }) => ({ name }))
-				)
+					module.chunkNames.filter(({ isUserDefined }) => isUserDefined).map(({ name }) => name)
+				),
+				name => ({
+					name
+				})
 			);
 			if (requiredFacades.length === 0 && module.isUserDefinedEntryPoint) {
 				requiredFacades.push({});
