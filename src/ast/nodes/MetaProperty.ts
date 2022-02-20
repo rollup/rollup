@@ -43,7 +43,7 @@ export default class MetaProperty extends NodeBase {
 	getReferencedFileName(outputPluginDriver: PluginDriver): string | null {
 		const metaProperty = this.metaProperty as string | null;
 		if (metaProperty && metaProperty.startsWith(FILE_PREFIX)) {
-			return outputPluginDriver.getFileName(metaProperty.substr(FILE_PREFIX.length));
+			return outputPluginDriver.getFileName(metaProperty.substring(FILE_PREFIX.length));
 		}
 		return null;
 	}
@@ -91,7 +91,7 @@ export default class MetaProperty extends NodeBase {
 			let chunkReferenceId: string | null = null;
 			let fileName: string;
 			if (metaProperty.startsWith(FILE_PREFIX)) {
-				referenceId = metaProperty.substr(FILE_PREFIX.length);
+				referenceId = metaProperty.substring(FILE_PREFIX.length);
 				fileName = outputPluginDriver.getFileName(referenceId);
 			} else if (metaProperty.startsWith(ASSET_PREFIX)) {
 				warnDeprecation(
@@ -99,7 +99,7 @@ export default class MetaProperty extends NodeBase {
 					true,
 					this.context.options
 				);
-				assetReferenceId = metaProperty.substr(ASSET_PREFIX.length);
+				assetReferenceId = metaProperty.substring(ASSET_PREFIX.length);
 				fileName = outputPluginDriver.getFileName(assetReferenceId);
 			} else {
 				warnDeprecation(
@@ -107,7 +107,7 @@ export default class MetaProperty extends NodeBase {
 					true,
 					this.context.options
 				);
-				chunkReferenceId = metaProperty.substr(CHUNK_PREFIX.length);
+				chunkReferenceId = metaProperty.substring(CHUNK_PREFIX.length);
 				fileName = outputPluginDriver.getFileName(chunkReferenceId);
 			}
 			const relativePath = normalize(relative(dirname(chunkId), fileName));

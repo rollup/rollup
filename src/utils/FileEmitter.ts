@@ -42,16 +42,17 @@ function generateAssetFileName(
 				: outputOptions.assetFileNames,
 			'output.assetFileNames',
 			{
-				ext: () => extname(emittedName).substr(1),
+				ext: () => extname(emittedName).substring(1),
 				extname: () => extname(emittedName),
 				hash() {
-					const hash = createHash();
-					hash.update(emittedName);
-					hash.update(':');
-					hash.update(source);
-					return hash.digest('hex').substr(0, 8);
+					return createHash()
+						.update(emittedName)
+						.update(':')
+						.update(source)
+						.digest('hex')
+						.substring(0, 8);
 				},
-				name: () => emittedName.substr(0, emittedName.length - extname(emittedName).length)
+				name: () => emittedName.substring(0, emittedName.length - extname(emittedName).length)
 			}
 		),
 		bundle
