@@ -242,7 +242,7 @@ const deferredHandlers: {
 					' imported from external module "' +
 					warning.source +
 					'" but never used in ' +
-					printQuotedStringList((warning.sources as string[]).map(id => relativeId(id)))
+					printQuotedStringList(warning.sources!.map(id => relativeId(id)))
 			);
 		}
 	}
