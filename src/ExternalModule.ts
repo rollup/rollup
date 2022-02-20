@@ -110,10 +110,10 @@ export default class ExternalModule {
 
 	warnUnusedImports(): void {
 		const unused = Array.from(this.declarations)
-			.filter(([name, declaration]) => {
-				if (name === '*') return false;
-				return !declaration.included && !this.reexported && !declaration.referenced;
-			})
+			.filter(
+				([name, declaration]) =>
+					name !== '*' && !declaration.included && !this.reexported && !declaration.referenced
+			)
 			.map(([name]) => name);
 
 		if (unused.length === 0) return;
