@@ -266,7 +266,7 @@ In watch mode or when using the cache explicitly, the resolved imports of a cach
 
 #### `shouldTransformCachedModule`
 
-**Type:** `({id: string, code: string, ast: ESTree.Program, meta: {[plugin: string]: any}, moduleSideEffects: boolean | "no-treeshake", syntheticNamedExports: string | boolean}) => boolean`<br> **Kind:** `async, first`<br> **Previous Hook:** [`load`](guide/en/#load) where the cached file was loaded to compare its code with the cached version.<br> **Next Hook:** [`moduleParsed`](guide/en/#moduleparsed) if no plugin returns `true`, otherwise [`transform`](guide/en/#transform).
+**Type:** `({id: string, code: string, ast: ESTree.Program, resoledSources: {[source: string]: ResolvedId}, meta: {[plugin: string]: any}, moduleSideEffects: boolean | "no-treeshake", syntheticNamedExports: string | boolean}) => boolean`<br> **Kind:** `async, first`<br> **Previous Hook:** [`load`](guide/en/#load) where the cached file was loaded to compare its code with the cached version.<br> **Next Hook:** [`moduleParsed`](guide/en/#moduleparsed) if no plugin returns `true`, otherwise [`transform`](guide/en/#transform).
 
 If the Rollup cache is used (e.g. in watch mode or explicitly via the JavaScript API), Rollup will skip the [`transform`](guide/en/#transform) hook of a module if after the [`load`](guide/en/#transform) hook, the loaded `code` is identical to the code of the cached copy. To prevent this, discard the cached copy and instead transform a module, plugins can implement this hook and return `true`.
 

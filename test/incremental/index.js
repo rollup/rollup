@@ -339,9 +339,9 @@ describe('incremental', () => {
 
 	it('runs shouldTransformCachedModule when using a cached module', async () => {
 		modules = {
-			entry: `import foo from 'foo'; export default foo; import('bar').then(console.log);`,
-			foo: `export default 42`,
-			bar: `export default 21`
+			entry: `import foo from 'foo'; export default foo;`,
+			foo: `export default import('bar')`,
+			bar: `export default 42`
 		};
 		let shouldTransformCachedModuleCalls = 0;
 
@@ -357,15 +357,6 @@ describe('incremental', () => {
 				switch (id) {
 					case 'foo':
 						assert.deepStrictEqual(meta, { transform: { calls: 1, id } });
-						assert.deepStrictEqual(resolvedSources, { __proto__: null });
-						// we return promises to ensure they are awaited
-						return Promise.resolve(false);
-					case 'bar':
-						assert.deepStrictEqual(meta, { transform: { calls: 1, id } });
-						assert.deepStrictEqual(resolvedSources, { __proto__: null });
-						return Promise.resolve(false);
-					case 'entry':
-						assert.deepStrictEqual(meta, { transform: { calls: 0, id } });
 						assert.deepStrictEqual(resolvedSources, {
 							__proto__: null,
 							bar: {
@@ -374,7 +365,18 @@ describe('incremental', () => {
 								meta: {},
 								moduleSideEffects: true,
 								syntheticNamedExports: false
-							},
+							}
+						});
+						// we return promises to ensure they are awaited
+						return Promise.resolve(false);
+					case 'bar':
+						assert.deepStrictEqual(meta, { transform: { calls: 2, id } });
+						assert.deepStrictEqual(resolvedSources, { __proto__: null });
+						return Promise.resolve(false);
+					case 'entry':
+						assert.deepStrictEqual(meta, { transform: { calls: 0, id } });
+						assert.deepStrictEqual(resolvedSources, {
+							__proto__: null,
 							foo: {
 								external: false,
 								id: 'foo',
@@ -421,6 +423,6 @@ describe('incremental', () => {
 		assert.strictEqual(cachedModules[1].id, 'entry');
 		assert.deepStrictEqual(cachedModules[1].meta, { transform: { calls: 3, id: 'entry' } });
 		assert.strictEqual(cachedModules[2].id, 'bar');
-		assert.deepStrictEqual(cachedModules[2].meta, { transform: { calls: 1, id: 'bar' } });
+		assert.deepStrictEqual(cachedModules[2].meta, { transform: { calls: 2, id: 'bar' } });
 	});
 });
