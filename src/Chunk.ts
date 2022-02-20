@@ -333,6 +333,7 @@ export default class Chunk {
 				new Set(
 					module.chunkNames.filter(({ isUserDefined }) => isUserDefined).map(({ name }) => name)
 				),
+				// mapping must run after Set 'name' dedupe
 				name => ({
 					name
 				})
