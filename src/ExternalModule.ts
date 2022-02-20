@@ -117,8 +117,7 @@ export default class ExternalModule {
 
 		const importersSet = new Set<string>();
 		for (const name of unused) {
-			const { importers } = this.declarations[name].module;
-			for (const importer of importers) {
+			for (const importer of this.declarations[name].module.importers) {
 				importersSet.add(importer);
 			}
 		}

@@ -319,7 +319,7 @@ export default class Chunk {
 		const facades: Chunk[] = [];
 		const entryModules = new Set([...this.entryModules, ...this.implicitEntryModules]);
 		const exposedVariables = new Set<Variable>(
-			this.dynamicEntryModules.map(module => module.namespace)
+			this.dynamicEntryModules.map(({ namespace }) => namespace)
 		);
 		for (const module of entryModules) {
 			if (module.preserveSignature) {
