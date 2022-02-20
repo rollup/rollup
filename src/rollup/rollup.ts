@@ -137,12 +137,11 @@ function applyOptionHook(watchMode: boolean) {
 }
 
 function normalizePlugins(plugins: readonly Plugin[], anonymousPrefix: string): void {
-	for (let pluginIndex = 0; pluginIndex < plugins.length; pluginIndex++) {
-		const plugin = plugins[pluginIndex];
+	plugins.forEach((plugin, index) => {
 		if (!plugin.name) {
-			plugin.name = `${anonymousPrefix}${pluginIndex + 1}`;
+			plugin.name = `${anonymousPrefix}${index + 1}`;
 		}
-	}
+	});
 }
 
 async function handleGenerateWrite(
