@@ -109,17 +109,18 @@ export default class ExternalModule {
 	}
 
 	warnUnusedImports(): void {
-		const unused = Array.from(this.declarations.keys()).filter(name => {
-			if (name === '*') return false;
-			const declaration = this.declarations.get(name)!;
-			return !declaration.included && !this.reexported && !declaration.referenced;
-		});
+		const unused = Array.from(this.declarations)
+			.filter(([name, declaration]) => {
+				if (name === '*') return false;
+				return !declaration.included && !this.reexported && !declaration.referenced;
+			})
+			.map(([name]) => name);
+
 		if (unused.length === 0) return;
 
 		const importersSet = new Set<string>();
 		for (const name of unused) {
-			const { importers } = this.declarations.get(name)!.module;
-			for (const importer of importers) {
+			for (const importer of this.declarations.get(name)!.module.importers) {
 				importersSet.add(importer);
 			}
 		}
