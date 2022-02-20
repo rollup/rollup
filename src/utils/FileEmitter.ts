@@ -165,7 +165,7 @@ export class FileEmitter {
 	}
 
 	public assertAssetsFinalized = (): void => {
-		for (const [referenceId, emittedFile] of this.filesByReferenceId.entries()) {
+		for (const [referenceId, emittedFile] of this.filesByReferenceId) {
 			if (emittedFile.type === 'asset' && typeof emittedFile.fileName !== 'string')
 				return error(errNoAssetSourceSet(emittedFile.name || referenceId));
 		}
@@ -241,7 +241,7 @@ export class FileEmitter {
 				reserveFileNameInBundle(emittedFile.fileName, this.bundle, this.options.onwarn);
 			}
 		}
-		for (const [referenceId, consumedFile] of this.filesByReferenceId.entries()) {
+		for (const [referenceId, consumedFile] of this.filesByReferenceId) {
 			if (consumedFile.type === 'asset' && consumedFile.source !== undefined) {
 				this.finalizeAsset(consumedFile, consumedFile.source, referenceId, this.bundle);
 			}
