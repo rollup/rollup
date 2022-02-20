@@ -249,16 +249,12 @@ export class FileEmitter {
 	};
 
 	private assignReferenceId(file: ConsumedFile, idBase: string): string {
-		let referenceId: string | undefined;
+		let referenceId = idBase;
+
 		do {
-			const hash = createHash();
-			if (referenceId) {
-				hash.update(referenceId);
-			} else {
-				hash.update(idBase);
-			}
-			referenceId = hash.digest('hex').substr(0, 8);
+			referenceId = createHash().update(referenceId).digest('hex').substring(0, 8);
 		} while (this.filesByReferenceId.has(referenceId));
+
 		this.filesByReferenceId.set(referenceId, file);
 		return referenceId;
 	}
