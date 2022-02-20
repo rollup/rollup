@@ -189,14 +189,14 @@ export default class Bundle {
 				);
 				(file as OutputAsset).type = 'asset';
 			}
-			if (this.outputOptions.validate && typeof (file as OutputChunk).code == 'string') {
+			if (this.outputOptions.validate && 'code' in file) {
 				try {
-					this.graph.contextParse((file as OutputChunk).code, {
+					this.graph.contextParse(file.code, {
 						allowHashBang: true,
 						ecmaVersion: 'latest'
 					});
 				} catch (err: any) {
-					this.inputOptions.onwarn(errChunkInvalid(file as OutputChunk, err));
+					this.inputOptions.onwarn(errChunkInvalid(file, err));
 				}
 			}
 		}
