@@ -38,7 +38,7 @@ export default function iife(
 	}: NormalizedOutputOptions
 ): Bundle {
 	const { _, cnst, getNonArrowFunctionIntro, getPropertyAccess, n } = snippets;
-	const isNamespaced = name && name.indexOf('.') !== -1;
+	const isNamespaced = name && name.includes('.');
 	const useVariableAssignment = !extend && !isNamespaced;
 
 	if (name && useVariableAssignment && !isLegal(name)) {

@@ -18,7 +18,7 @@ module.exports = {
 					const resolution = await this.resolve(source, importer, { skipSelf: true, ...options });
 					if (resolution && !resolution.external) {
 						const moduleInfo = await this.load(resolution);
-						if (moduleInfo.code.indexOf('/* use proxy */') >= 0) {
+						if (moduleInfo.code.includes('/* use proxy */')) {
 							return `${resolution.id}?proxy`;
 						}
 					}

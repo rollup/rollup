@@ -605,7 +605,7 @@ export default class Chunk {
 				const source = module.render(renderOptions).trim();
 				renderedLength = source.length();
 				if (renderedLength) {
-					if (options.compact && source.lastLine().indexOf('//') !== -1) source.append('\n');
+					if (options.compact && source.lastLine().includes('//')) source.append('\n');
 					this.renderedModuleSources.set(module, source);
 					magicString.addSource(source);
 					this.usedModules.push(module);

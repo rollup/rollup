@@ -26,13 +26,13 @@ export default async function runRollup(command: Record<string, any>): Promise<v
 	}
 
 	if (inputSource && inputSource.length > 0) {
-		if (inputSource.some((input: string) => input.indexOf('=') !== -1)) {
+		if (inputSource.some((input: string) => input.includes('='))) {
 			command.input = {};
 			inputSource.forEach((input: string) => {
 				const equalsIndex = input.indexOf('=');
-				const value = input.substr(equalsIndex + 1);
-				let key = input.substr(0, equalsIndex);
-				if (!key) key = getAliasName(input);
+				const value = input.substring(equalsIndex + 1);
+				const key = input.substring(0, equalsIndex) || getAliasName(input);
+
 				command.input[key] = value;
 			});
 		} else {
