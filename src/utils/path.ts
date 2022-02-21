@@ -1,17 +1,18 @@
-const absolutePath = /^(?:\/|(?:[A-Za-z]:)?[\\|/])/;
-const relativePath = /^\.?\.\//;
+const ABSOLUTE_PATH_REGEX = /^(?:\/|(?:[A-Za-z]:)?[\\|/])/;
+const RELATIVE_PATH_REGEX = /^\.?\.\//;
 
 export function isAbsolute(path: string): boolean {
-	return absolutePath.test(path);
+	return ABSOLUTE_PATH_REGEX.test(path);
 }
 
 export function isRelative(path: string): boolean {
-	return relativePath.test(path);
+	return RELATIVE_PATH_REGEX.test(path);
 }
 
+const BACKSLASH_REGEX = /\\/g;
+
 export function normalize(path: string): string {
-	if (path.indexOf('\\') == -1) return path;
-	return path.replace(/\\/g, '/');
+	return path.replace(BACKSLASH_REGEX, '/');
 }
 
 export { basename, dirname, extname, relative, resolve } from 'path';

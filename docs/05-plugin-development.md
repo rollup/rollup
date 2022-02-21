@@ -788,7 +788,7 @@ export default function addProxyPlugin() {
       if (resolution && !resolution.external) {
         // we pass on the entire resolution information
         const moduleInfo = await this.load(resolution);
-        if (moduleInfo.code.indexOf('/* use proxy */') >= 0) {
+        if (moduleInfo.code.includes('/* use proxy */')) {
           return `${resolution.id}?proxy`;
         }
       }

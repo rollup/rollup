@@ -1,5 +1,5 @@
 const assert = require('assert');
-const rollup = require('../../dist/rollup');
+const { rollup } = require('../../dist/rollup');
 const { loader } = require('../utils.js');
 
 function runTestCode(code, thisValue, globals) {
@@ -60,7 +60,7 @@ function runAmdTest(code, outputOptions) {
 				}
 			})
 		) || {};
-	return defineArgs[0].indexOf('exports') === -1 ? result : module.exports;
+	return defineArgs[0].includes('exports') ? module.exports : result;
 }
 
 function runIifeTestWithThis(code, outputOptions) {
@@ -119,7 +119,7 @@ function getIifeExports(global, outputOptions) {
 }
 
 async function getUmdCode(inputCode, outputOptions) {
-	const bundle = await rollup.rollup({
+	const bundle = await rollup({
 		input: 'input',
 		external: ['external'],
 		plugins: [loader({ input: inputCode })]

@@ -163,7 +163,7 @@ export class Task {
 		this.invalidated = true;
 		if (details.isTransformDependency) {
 			for (const module of this.cache.modules) {
-				if (module.transformDependencies.indexOf(id) === -1) continue;
+				if (!module.transformDependencies.includes(id)) continue;
 				// effective invalidation
 				module.originalCode = null as never;
 			}
