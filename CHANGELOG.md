@@ -1,5 +1,22 @@
 # rollup changelog
 
+## 2.68.0
+
+_2022-02-22_
+
+### Features
+
+- provide information about cached import resolutions in `shouldTransformCachedModule` (#4414)
+- Add "types" field to Rollup's package exports (#4416)
+
+### Pull Requests
+
+- [#4410](https://github.com/rollup/rollup/pull/4410): refactor: use map for declarations and name suggestions (@dnalborczyk)
+- [#4411](https://github.com/rollup/rollup/pull/4411): refactor: use map for namespace reexports by name (@dnalborczyk)
+- [#4412](https://github.com/rollup/rollup/pull/4412): refactor: use includes where appropriate (@dnalborczyk)
+- [#4414](https://github.com/rollup/rollup/pull/4414): Add resolved sources to shouldTransformCachedModule (@lukastaegert)
+- [#4416](https://github.com/rollup/rollup/pull/4416): Add Typescript 4.5 nodenext node12 module resolution support (@frank-dspeed)
+
 ## 2.67.3
 
 _2022-02-18_
