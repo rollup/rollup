@@ -279,6 +279,8 @@ export default class Module {
 					.filter(Boolean) as ResolvedId[];
 			},
 			get dynamicallyImportedIds() {
+				// We cannot use this.dynamicDependencies because this is needed before
+				// dynamicDependencies are populated
 				const dynamicallyImportedIds: string[] = [];
 				for (const { id } of dynamicImports) {
 					if (id) {
@@ -316,6 +318,8 @@ export default class Module {
 				return Array.from(sources, source => module.resolvedIds[source]).filter(Boolean);
 			},
 			get importedIds() {
+				// We cannot use this.dependencies because this is needed before
+				// dependencies are populated
 				return Array.from(sources, source => module.resolvedIds[source]?.id).filter(Boolean);
 			},
 			get importers() {
@@ -703,6 +707,7 @@ export default class Module {
 		transformFiles,
 		...moduleOptions
 	}: TransformModuleJSON & {
+		resolvedIds?: ResolvedIdMap;
 		transformFiles?: EmittedFile[] | undefined;
 	}): void {
 		this.info.code = code;
