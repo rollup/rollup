@@ -87,7 +87,7 @@ function getCommandOptions(rawCommandOptions: GenericConfigObject): CommandConfi
 				? rawCommandOptions.globals.split(',').reduce((globals, globalDefinition) => {
 						const [id, variableName] = globalDefinition.split(':');
 						globals[id] = variableName;
-						if (external.indexOf(id) === -1) {
+						if (!external.includes(id)) {
 							external.push(id);
 						}
 						return globals;
@@ -156,7 +156,7 @@ const getExternal = (
 	const configExternal = config.external as ExternalOption | undefined;
 	return typeof configExternal === 'function'
 		? (source: string, importer: string | undefined, isResolved: boolean) =>
-				configExternal(source, importer, isResolved) || overrides.external.indexOf(source) !== -1
+				configExternal(source, importer, isResolved) || overrides.external.includes(source)
 		: ensureArray(configExternal).concat(overrides.external);
 };
 
