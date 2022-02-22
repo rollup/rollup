@@ -232,13 +232,13 @@ export default class Module {
 	private readonly exportAllModules: (Module | ExternalModule)[] = [];
 	private readonly exportAllSources = new Set<string>();
 	private exportNamesByVariable: Map<Variable, string[]> | null = null;
-	private readonly exportShimVariable: ExportShimVariable = new ExportShimVariable(this);
+	private readonly exportShimVariable = new ExportShimVariable(this);
 	private readonly exports = new Map<string, ExportDescription>();
 	private declare magicString: MagicString;
-	private namespaceReexportsByName: Record<
+	private readonly namespaceReexportsByName = new Map<
 		string,
 		[variable: Variable | null, indirectExternal?: boolean]
-	> = Object.create(null);
+	>();
 	private readonly reexportDescriptions = new Map<string, ReexportDescription>();
 	private relevantDependencies: Set<Module | ExternalModule> | null = null;
 	private readonly syntheticExports = new Map<string, SyntheticNamedExportVariable>();
@@ -380,7 +380,8 @@ export default class Module {
 
 	getDependenciesToBeIncluded(): Set<Module | ExternalModule> {
 		if (this.relevantDependencies) return this.relevantDependencies;
-		const relevantDependencies = new Set<Module | ExternalModule>();
+
+		this.relevantDependencies = new Set<Module | ExternalModule>();
 		const necessaryDependencies = new Set<Module | ExternalModule>();
 		const alwaysCheckedDependencies = new Set<Module>();
 		const dependencyVariables = new Set(this.imports);
@@ -414,19 +415,19 @@ export default class Module {
 		}
 		if (!this.options.treeshake || this.info.moduleSideEffects === 'no-treeshake') {
 			for (const dependency of this.dependencies) {
-				relevantDependencies.add(dependency);
+				this.relevantDependencies.add(dependency);
 			}
 		} else {
 			this.addRelevantSideEffectDependencies(
-				relevantDependencies,
+				this.relevantDependencies,
 				necessaryDependencies,
 				alwaysCheckedDependencies
 			);
 		}
 		for (const dependency of necessaryDependencies) {
-			relevantDependencies.add(dependency);
+			this.relevantDependencies.add(dependency);
 		}
-		return (this.relevantDependencies = relevantDependencies);
+		return this.relevantDependencies;
 	}
 
 	getExportNamesByVariable(): Map<Variable, string[]> {
@@ -579,14 +580,13 @@ export default class Module {
 
 		if (name !== 'default') {
 			const foundNamespaceReexport =
-				name in this.namespaceReexportsByName
-					? this.namespaceReexportsByName[name]
-					: this.getVariableFromNamespaceReexports(
-							name,
-							importerForSideEffects,
-							searchedNamesAndModules
-					  );
-			this.namespaceReexportsByName[name] = foundNamespaceReexport;
+				this.namespaceReexportsByName.get(name) ??
+				this.getVariableFromNamespaceReexports(
+					name,
+					importerForSideEffects,
+					searchedNamesAndModules
+				);
+			this.namespaceReexportsByName.set(name, foundNamespaceReexport);
 			if (foundNamespaceReexport[0]) {
 				return foundNamespaceReexport;
 			}
