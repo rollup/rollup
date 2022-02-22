@@ -131,6 +131,7 @@
   },
   "exports": {
     ".": {
+      "types": "./dist/rollup.d.ts",
       "node": {
         "require": "./dist/rollup.js",
         "import": "./dist/es/rollup.js"
