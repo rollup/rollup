@@ -18,7 +18,7 @@ export default function batchWarnings(): BatchWarnings {
 	let warningOccurred = false;
 
 	return {
-		add: (warning: RollupWarning) => {
+		add(warning: RollupWarning) {
 			count += 1;
 			warningOccurred = true;
 
@@ -48,7 +48,7 @@ export default function batchWarnings(): BatchWarnings {
 			return count;
 		},
 
-		flush: () => {
+		flush() {
 			if (count === 0) return;
 
 			const codes = Array.from(deferredWarnings.keys()).sort(
@@ -72,7 +72,7 @@ export default function batchWarnings(): BatchWarnings {
 const immediateHandlers: {
 	[code: string]: (warning: RollupWarning) => void;
 } = {
-	MISSING_NODE_BUILTINS: warning => {
+	MISSING_NODE_BUILTINS(warning) {
 		title(`Missing shims for Node.js built-ins`);
 
 		stderr(
@@ -82,7 +82,7 @@ const immediateHandlers: {
 		);
 	},
 
-	UNKNOWN_OPTION: warning => {
+	UNKNOWN_OPTION(warning) {
 		title(`You have passed an unrecognized option`);
 		stderr(warning.message);
 	}
@@ -138,7 +138,7 @@ const deferredHandlers: {
 		}
 	},
 
-	MIXED_EXPORTS: warnings => {
+	MIXED_EXPORTS(warnings) {
 		title('Mixing named and default exports');
 		info(`https://rollupjs.org/guide/en/#outputexports`);
 		stderr(bold('The following entry modules are using named and default exports together:'));
