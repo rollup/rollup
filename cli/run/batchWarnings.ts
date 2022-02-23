@@ -204,9 +204,7 @@ const deferredHandlers: {
 		title(`Broken sourcemap`);
 		info('https://rollupjs.org/guide/en/#warning-sourcemap-is-likely-to-be-incorrect');
 
-		const plugins = [
-			...new Set(warnings.map(warning => warning.plugin).filter(Boolean))
-		] as string[];
+		const plugins = [...new Set(warnings.map(({ plugin }) => plugin).filter(Boolean))] as string[];
 		stderr(
 			`Plugins that transform code (such as ${printQuotedStringList(
 				plugins

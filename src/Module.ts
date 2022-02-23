@@ -282,13 +282,7 @@ export default class Module {
 			get dynamicallyImportedIds() {
 				// We cannot use this.dynamicDependencies because this is needed before
 				// dynamicDependencies are populated
-				const dynamicallyImportedIds: string[] = [];
-				for (const { id } of dynamicImports) {
-					if (id) {
-						dynamicallyImportedIds.push(id);
-					}
-				}
-				return dynamicallyImportedIds;
+				return dynamicImports.map(({ id }) => id).filter((id): id is string => id != null);
 			},
 			get dynamicImporters() {
 				return dynamicImporters.sort();
