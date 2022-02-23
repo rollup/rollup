@@ -306,7 +306,7 @@ export default class Module {
 					false,
 					options
 				);
-				return module.info.moduleSideEffects;
+				return this.moduleSideEffects;
 			},
 			id,
 			get implicitlyLoadedAfterOneOf() {
