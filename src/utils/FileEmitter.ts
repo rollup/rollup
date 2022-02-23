@@ -193,9 +193,8 @@ export class FileEmitter {
 		}
 		if (emittedFile.type === 'chunk') {
 			return this.emitChunk(emittedFile);
-		} else {
-			return this.emitAsset(emittedFile);
 		}
+		return this.emitAsset(emittedFile);
 	};
 
 	public getFileName = (fileReferenceId: string): string => {
@@ -203,9 +202,8 @@ export class FileEmitter {
 		if (!emittedFile) return error(errFileReferenceIdNotFoundForFilename(fileReferenceId));
 		if (emittedFile.type === 'chunk') {
 			return getChunkFileName(emittedFile, this.facadeChunkByModule);
-		} else {
-			return getAssetFileName(emittedFile, fileReferenceId);
 		}
+		return getAssetFileName(emittedFile, fileReferenceId);
 	};
 
 	public setAssetSource = (referenceId: string, requestedSource: unknown): void => {
