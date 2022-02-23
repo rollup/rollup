@@ -380,9 +380,9 @@ const getInterop = (
 					errInvalidOption(
 						'output.interop',
 						'outputinterop',
-						`use one of ${Array.from(ALLOWED_INTEROP_TYPES.values(), value =>
-							JSON.stringify(value)
-						).join(', ')}`,
+						`use one of ${Array.from(ALLOWED_INTEROP_TYPES, value => JSON.stringify(value)).join(
+							', '
+						)}`,
 						interop
 					)
 				);

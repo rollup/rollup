@@ -236,9 +236,8 @@ export function getLiteralMembersForValue<T extends LiteralValue = LiteralValue>
 			return literalNumberMembers;
 		case 'string':
 			return literalStringMembers;
-		default:
-			return Object.create(null);
 	}
+	return Object.create(null);
 }
 
 export function hasMemberEffectWhenCalled(

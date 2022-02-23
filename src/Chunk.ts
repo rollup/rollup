@@ -319,7 +319,7 @@ export default class Chunk {
 		const facades: Chunk[] = [];
 		const entryModules = new Set([...this.entryModules, ...this.implicitEntryModules]);
 		const exposedVariables = new Set<Variable>(
-			this.dynamicEntryModules.map(module => module.namespace)
+			this.dynamicEntryModules.map(({ namespace }) => namespace)
 		);
 		for (const module of entryModules) {
 			if (module.preserveSignature) {
@@ -333,6 +333,7 @@ export default class Chunk {
 				new Set(
 					module.chunkNames.filter(({ isUserDefined }) => isUserDefined).map(({ name }) => name)
 				),
+				// mapping must run after Set 'name' dedupe
 				name => ({
 					name
 				})
@@ -451,7 +452,7 @@ export default class Chunk {
 			const extension = extname(sanitizedId);
 			const fileName = renderNamePattern(pattern, 'output.entryFileNames', {
 				assetExtname: () => (NON_ASSET_EXTENSIONS.includes(extension) ? '' : extension),
-				ext: () => extension.substr(1),
+				ext: () => extension.substring(1),
 				extname: () => extension,
 				format: () => options.format as string,
 				name: () => this.getChunkName()
@@ -467,7 +468,7 @@ export default class Chunk {
 			const extension = extname(sanitizedId);
 			const fileName = renderNamePattern(pattern, 'output.entryFileNames', {
 				assetExtname: () => (NON_ASSET_EXTENSIONS.includes(extension) ? '' : extension),
-				ext: () => extension.substr(1),
+				ext: () => extension.substring(1),
 				extname: () => extension,
 				format: () => options.format as string,
 				name: () => getAliasName(sanitizedId)
@@ -1162,7 +1163,7 @@ export default class Chunk {
 			let imported: string;
 			let needsLiveBinding = false;
 			if (exportName[0] === '*') {
-				const id = exportName.substr(1);
+				const id = exportName.substring(1);
 				if (interop(id) === 'defaultOnly') {
 					this.inputOptions.onwarn(errUnexpectedNamespaceReexport(id));
 				}

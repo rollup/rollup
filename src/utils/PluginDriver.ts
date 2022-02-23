@@ -133,7 +133,7 @@ export class PluginDriver {
 		hookName: H,
 		args: Parameters<PluginHooks[H]>,
 		replaceContext?: ReplaceContext | null,
-		skipped?: Set<Plugin> | null
+		skipped?: ReadonlySet<Plugin> | null
 	): EnsurePromise<ReturnType<PluginHooks[H]>> {
 		let promise: EnsurePromise<ReturnType<PluginHooks[H]>> = Promise.resolve(undefined as any);
 		for (const plugin of this.plugins) {

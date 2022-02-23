@@ -11,24 +11,19 @@ export function resolveAction(actionTuple: [string, string, Parameters<any>]): v
 }
 
 function formatAction([pluginName, hookName, args]: [string, string, Parameters<any>]): string {
-	let action = `(${pluginName}) ${hookName}`;
+	const action = `(${pluginName}) ${hookName}`;
 	const s = JSON.stringify;
 	switch (hookName) {
 		case 'resolveId':
-			action += ` ${s(args[0])} ${s(args[1])}`;
-			break;
+			return `${action} ${s(args[0])} ${s(args[1])}`;
 		case 'load':
-			action += ` ${s(args[0])}`;
-			break;
+			return `${action} ${s(args[0])}`;
 		case 'transform':
-			action += ` ${s(args[1])}`;
-			break;
+			return `${action} ${s(args[1])}`;
 		case 'shouldTransformCachedModule':
-			action += ` ${s((args[0] as { id: string }).id)}`;
-			break;
+			return `${action} ${s((args[0] as { id: string }).id)}`;
 		case 'moduleParsed':
-			action += ` ${s((args[0] as { id: string }).id)}`;
-			break;
+			return `${action} ${s((args[0] as { id: string }).id)}`;
 	}
 	return action;
 }

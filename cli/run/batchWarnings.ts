@@ -14,11 +14,11 @@ export interface BatchWarnings {
 
 export default function batchWarnings(): BatchWarnings {
 	let count = 0;
-	let deferredWarnings = new Map<keyof typeof deferredHandlers, RollupWarning[]>();
+	const deferredWarnings = new Map<keyof typeof deferredHandlers, RollupWarning[]>();
 	let warningOccurred = false;
 
 	return {
-		add: (warning: RollupWarning) => {
+		add(warning: RollupWarning) {
 			count += 1;
 			warningOccurred = true;
 
@@ -48,7 +48,7 @@ export default function batchWarnings(): BatchWarnings {
 			return count;
 		},
 
-		flush: () => {
+		flush() {
 			if (count === 0) return;
 
 			const codes = Array.from(deferredWarnings.keys()).sort(
@@ -59,7 +59,7 @@ export default function batchWarnings(): BatchWarnings {
 				deferredHandlers[code](deferredWarnings.get(code)!);
 			}
 
-			deferredWarnings = new Map();
+			deferredWarnings.clear();
 			count = 0;
 		},
 
@@ -72,7 +72,7 @@ export default function batchWarnings(): BatchWarnings {
 const immediateHandlers: {
 	[code: string]: (warning: RollupWarning) => void;
 } = {
-	MISSING_NODE_BUILTINS: warning => {
+	MISSING_NODE_BUILTINS(warning) {
 		title(`Missing shims for Node.js built-ins`);
 
 		stderr(
@@ -82,7 +82,7 @@ const immediateHandlers: {
 		);
 	},
 
-	UNKNOWN_OPTION: warning => {
+	UNKNOWN_OPTION(warning) {
 		title(`You have passed an unrecognized option`);
 		stderr(warning.message);
 	}
@@ -138,7 +138,7 @@ const deferredHandlers: {
 		}
 	},
 
-	MIXED_EXPORTS: warnings => {
+	MIXED_EXPORTS(warnings) {
 		title('Mixing named and default exports');
 		info(`https://rollupjs.org/guide/en/#outputexports`);
 		stderr(bold('The following entry modules are using named and default exports together:'));
@@ -204,9 +204,7 @@ const deferredHandlers: {
 		title(`Broken sourcemap`);
 		info('https://rollupjs.org/guide/en/#warning-sourcemap-is-likely-to-be-incorrect');
 
-		const plugins = [
-			...new Set(warnings.map(warning => warning.plugin).filter(Boolean))
-		] as string[];
+		const plugins = [...new Set(warnings.map(({ plugin }) => plugin).filter(Boolean))] as string[];
 		stderr(
 			`Plugins that transform code (such as ${printQuotedStringList(
 				plugins
@@ -224,13 +222,12 @@ const deferredHandlers: {
 		title('Unresolved dependencies');
 		info('https://rollupjs.org/guide/en/#warning-treating-module-as-external-dependency');
 
-		const dependencies = new Map();
+		const dependencies = new Map<string, string[]>();
 		for (const warning of warnings) {
-			getOrCreate(dependencies, warning.source, () => []).push(warning.importer);
+			getOrCreate(dependencies, warning.source, () => []).push(warning.importer!);
 		}
 
-		for (const dependency of dependencies.keys()) {
-			const importers = dependencies.get(dependency);
+		for (const [dependency, importers] of dependencies) {
 			stderr(`${bold(dependency)} (imported by ${importers.join(', ')})`);
 		}
 	},
@@ -243,7 +240,7 @@ const deferredHandlers: {
 					' imported from external module "' +
 					warning.source +
 					'" but never used in ' +
-					printQuotedStringList((warning.sources as string[]).map(id => relativeId(id)))
+					printQuotedStringList(warning.sources!.map(id => relativeId(id)))
 			);
 		}
 	}

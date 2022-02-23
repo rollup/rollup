@@ -439,9 +439,8 @@ export class ModuleLoader {
 				return error(errInternalIdCannotBeExternal(source, importer));
 			}
 			return Promise.resolve(externalModule);
-		} else {
-			return this.fetchModule(resolvedId, importer, false, false);
 		}
+		return this.fetchModule(resolvedId, importer, false, false);
 	}
 
 	private async fetchStaticDependencies(
@@ -673,13 +672,11 @@ export class ModuleLoader {
 			} as ResolvedId;
 		}
 		if (resolution == null) {
-			return (module.resolvedIds[specifier] =
-				module.resolvedIds[specifier] ||
-				this.handleResolveId(
-					await this.resolveId(specifier, module.id, EMPTY_OBJECT, false),
-					specifier,
-					module.id
-				));
+			return (module.resolvedIds[specifier] ??= this.handleResolveId(
+				await this.resolveId(specifier, module.id, EMPTY_OBJECT, false),
+				specifier,
+				module.id
+			));
 		}
 		return this.handleResolveId(
 			this.getResolvedIdWithDefaults(

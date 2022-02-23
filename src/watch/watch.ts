@@ -89,7 +89,7 @@ export class Watcher {
 
 		this.buildTimeout = setTimeout(() => {
 			this.buildTimeout = null;
-			for (const [id, event] of this.invalidatedIds.entries()) {
+			for (const [id, event] of this.invalidatedIds) {
 				this.emitter.emit('change', id, { event });
 			}
 			this.invalidatedIds.clear();

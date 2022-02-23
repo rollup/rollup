@@ -264,12 +264,13 @@ export default class Module {
 		const {
 			dynamicImports,
 			dynamicImporters,
-			reexportDescriptions,
 			implicitlyLoadedAfter,
 			implicitlyLoadedBefore,
-			sources,
-			importers
+			importers,
+			reexportDescriptions,
+			sources
 		} = this;
+
 		this.info = {
 			ast: null,
 			code: null,
@@ -281,13 +282,7 @@ export default class Module {
 			get dynamicallyImportedIds() {
 				// We cannot use this.dynamicDependencies because this is needed before
 				// dynamicDependencies are populated
-				const dynamicallyImportedIds: string[] = [];
-				for (const { id } of dynamicImports) {
-					if (id) {
-						dynamicallyImportedIds.push(id);
-					}
-				}
-				return dynamicallyImportedIds;
+				return dynamicImports.map(({ id }) => id).filter((id): id is string => id != null);
 			},
 			get dynamicImporters() {
 				return dynamicImporters.sort();
@@ -305,7 +300,7 @@ export default class Module {
 					false,
 					options
 				);
-				return module.info.moduleSideEffects;
+				return this.moduleSideEffects;
 			},
 			id,
 			get implicitlyLoadedAfterOneOf() {
