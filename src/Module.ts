@@ -264,12 +264,13 @@ export default class Module {
 		const {
 			dynamicImports,
 			dynamicImporters,
-			reexportDescriptions,
 			implicitlyLoadedAfter,
 			implicitlyLoadedBefore,
-			sources,
-			importers
+			importers,
+			reexportDescriptions,
+			sources
 		} = this;
+
 		this.info = {
 			ast: null,
 			code: null,
