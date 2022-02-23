@@ -5,6 +5,6 @@ module.exports = {
 	command: 'rollup main.js --format cjs --external=path,util',
 	execute: true,
 	stderr(stderr) {
-		assert.strictEqual(stderr.indexOf('(!)'), -1);
+		assert.ok(!stderr.includes('(!)'));
 	}
 };

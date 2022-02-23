@@ -1,16 +1,16 @@
 const assert = require('assert');
 const { existsSync, readFileSync } = require('fs');
-const path = require('path');
-const rollup = require('../../dist/rollup');
+const { basename, resolve } = require('path');
+const { rollup } = require('../../dist/rollup');
 const { normaliseOutput, runTestSuiteWithSamples } = require('../utils.js');
 
 const FORMATS = ['amd', 'cjs', 'system', 'es', 'iife', 'umd'];
 
-runTestSuiteWithSamples('form', path.resolve(__dirname, 'samples'), (dir, config) => {
+runTestSuiteWithSamples('form', resolve(__dirname, 'samples'), (dir, config) => {
 	const isSingleFormatTest = existsSync(dir + '/_expected.js');
 	const itOrDescribe = isSingleFormatTest ? it : describe;
 	(config.skip ? itOrDescribe.skip : config.solo ? itOrDescribe.only : itOrDescribe)(
-		path.basename(dir) + ': ' + config.description,
+		basename(dir) + ': ' + config.description,
 		() => {
 			let bundle;
 			const runRollupTest = async (inputFile, bundleFile, defaultFormat) => {
@@ -20,12 +20,10 @@ runTestSuiteWithSamples('form', path.resolve(__dirname, 'samples'), (dir, config
 					process.chdir(dir);
 					bundle =
 						bundle ||
-						(await rollup.rollup({
+						(await rollup({
 							input: dir + '/main.js',
 							onwarn: warning => {
-								if (
-									!(config.expectedWarnings && config.expectedWarnings.indexOf(warning.code) >= 0)
-								) {
+								if (!(config.expectedWarnings && config.expectedWarnings.includes(warning.code))) {
 									warnings.push(warning);
 								}
 							},

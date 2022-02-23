@@ -283,6 +283,7 @@ export class ModuleLoader {
 					id: cachedModule.id,
 					meta: cachedModule.meta,
 					moduleSideEffects: cachedModule.moduleSideEffects,
+					resolvedSources: cachedModule.resolvedIds,
 					syntheticNamedExports: cachedModule.syntheticNamedExports
 				}
 			]))

@@ -1,20 +1,23 @@
-export const absolutePath = /^(?:\/|(?:[A-Za-z]:)?[\\|/])/;
-export const relativePath = /^\.?\.\//;
+const ABSOLUTE_PATH_REGEX = /^(?:\/|(?:[A-Za-z]:)?[\\|/])/;
+const RELATIVE_PATH_REGEX = /^\.?\.\//;
+const ALL_BACKSLASHES_REGEX = /\\/g;
+const ANY_SLASH_REGEX = /[/\\]/;
+const EXTNAME_REGEX = /\.[^.]+$/;
 
 export function isAbsolute(path: string): boolean {
-	return absolutePath.test(path);
+	return ABSOLUTE_PATH_REGEX.test(path);
 }
 
 export function isRelative(path: string): boolean {
-	return relativePath.test(path);
+	return RELATIVE_PATH_REGEX.test(path);
 }
 
 export function normalize(path: string): string {
-	return path.replace(/\\/g, '/');
+	return path.replace(ALL_BACKSLASHES_REGEX, '/');
 }
 
 export function basename(path: string): string {
-	return path.split(/[/\\]/).pop() || '';
+	return path.split(ANY_SLASH_REGEX).pop() || '';
 }
 
 export function dirname(path: string): string {
@@ -28,14 +31,13 @@ export function dirname(path: string): string {
 }
 
 export function extname(path: string): string {
-	const match = /\.[^.]+$/.exec(basename(path)!);
-	if (!match) return '';
-	return match[0];
+	const match = EXTNAME_REGEX.exec(basename(path)!);
+	return match ? match[0] : '';
 }
 
 export function relative(from: string, to: string): string {
-	const fromParts = from.split(/[/\\]/).filter(Boolean);
-	const toParts = to.split(/[/\\]/).filter(Boolean);
+	const fromParts = from.split(ANY_SLASH_REGEX).filter(Boolean);
+	const toParts = to.split(ANY_SLASH_REGEX).filter(Boolean);
 
 	if (fromParts[0] === '.') fromParts.shift();
 	if (toParts[0] === '.') toParts.shift();
@@ -62,13 +64,13 @@ export function resolve(...paths: string[]): string {
 	if (!firstPathSegment) {
 		return '/';
 	}
-	let resolvedParts = firstPathSegment.split(/[/\\]/);
+	let resolvedParts = firstPathSegment.split(ANY_SLASH_REGEX);
 
 	for (const path of paths) {
 		if (isAbsolute(path)) {
-			resolvedParts = path.split(/[/\\]/);
+			resolvedParts = path.split(ANY_SLASH_REGEX);
 		} else {
-			const parts = path.split(/[/\\]/);
+			const parts = path.split(ANY_SLASH_REGEX);
 
 			while (parts[0] === '.' || parts[0] === '..') {
 				const part = parts.shift();

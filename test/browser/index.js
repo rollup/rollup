@@ -17,7 +17,7 @@ runTestSuiteWithSamples('browser', resolve(__dirname, 'samples'), (dir, config) 
 				bundle = await rollup({
 					input: 'main',
 					onwarn: warning => {
-						if (!(config.expectedWarnings && config.expectedWarnings.indexOf(warning.code) >= 0)) {
+						if (!(config.expectedWarnings && config.expectedWarnings.includes(warning.code))) {
 							throw new Error(
 								`Unexpected warnings (${warning.code}): ${warning.message}\n` +
 									'If you expect warnings, list their codes in config.expectedWarnings'
