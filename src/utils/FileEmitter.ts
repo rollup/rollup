@@ -250,7 +250,7 @@ export class FileEmitter {
 	};
 
 	private assignReferenceId(file: ConsumedFile, idBase: string): string {
-		let referenceId = idBase;
+		let referenceId: string | undefined;
 
 		do {
 			referenceId = createHash()
