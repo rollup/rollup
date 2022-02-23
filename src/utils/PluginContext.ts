@@ -18,17 +18,20 @@ import {
 	throwPluginError
 } from './pluginUtils';
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-function getDeprecatedContextHandler<H extends Function>(
-	handler: H,
+function getDeprecatedContextHandler<
+	THandler extends (...args: TParams) => TResult,
+	TParams extends readonly any[],
+	TResult
+>(
+	handler: THandler,
 	handlerName: string,
 	newHandlerName: string,
 	pluginName: string,
 	activeDeprecation: boolean,
 	options: NormalizedInputOptions
-): H {
+): THandler {
 	let deprecationWarningShown = false;
-	return ((...args: any[]) => {
+	return ((...args: TParams): TResult => {
 		if (!deprecationWarningShown) {
 			deprecationWarningShown = true;
 			warnDeprecation(
@@ -41,7 +44,7 @@ function getDeprecatedContextHandler<H extends Function>(
 			);
 		}
 		return handler(...args);
-	}) as unknown as H;
+	}) as THandler;
 }
 
 export function getPluginContext(
