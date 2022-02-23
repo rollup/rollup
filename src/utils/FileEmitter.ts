@@ -253,7 +253,10 @@ export class FileEmitter {
 		let referenceId = idBase;
 
 		do {
-			referenceId = createHash().update(referenceId).digest('hex').substring(0, 8);
+			referenceId = createHash()
+				.update(referenceId || idBase)
+				.digest('hex')
+				.substring(0, 8);
 		} while (this.filesByReferenceId.has(referenceId));
 
 		this.filesByReferenceId.set(referenceId, file);
