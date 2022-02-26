@@ -247,6 +247,8 @@ console.log(x);
 		assert.match(subfeature.code, /^import { fn } from '\.\.\/\.\.\/main'/);
 		assert.strictEqual(subsubfeature.fileName, 'base/main/feature/sub/sub');
 		assert.match(subsubfeature.code, /^import { fn } from '\.\.\/\.\.\/\.\.\/main'/);
+		assert.strictEqual(subsubfeature.fileName, 'base/main/feature/sub/sub');
+		assert.ok(subsubfeature.code.startsWith("import { fn } from '../../../main'"));
 	});
 
 	it('throws the proper error on max call stack exception', async () => {
