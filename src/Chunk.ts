@@ -51,8 +51,8 @@ import {
 	isDefaultAProperty,
 	namespaceInteropHelpersByInteropType
 } from './utils/interopHelpers';
-import { basename, dirname, extname, isAbsolute, normalize, resolve } from './utils/path';
-import relativeId, { getAliasName } from './utils/relativeId';
+import { dirname, extname, isAbsolute, normalize, resolve } from './utils/path';
+import relativeId, { getAliasName, getImportPath } from './utils/relativeId';
 import renderChunk from './utils/renderChunk';
 import type { RenderOptions } from './utils/renderHelpers';
 import { makeUnique, renderNamePattern } from './utils/renderNamePattern';
@@ -691,11 +691,13 @@ export default class Chunk {
 			if (dependency instanceof ExternalModule) {
 				const originalId = dependency.renderPath;
 				renderedDependency.id = escapeId(
-					dependency.renormalizeRenderPath ? this.getRelativePath(originalId, false) : originalId
+					dependency.renormalizeRenderPath
+						? getImportPath(this.id!, originalId, false, false)
+						: originalId
 				);
 			} else {
 				renderedDependency.namedExportsMode = dependency.exportMode !== 'default';
-				renderedDependency.id = escapeId(this.getRelativePath(dependency.id!, false));
+				renderedDependency.id = escapeId(getImportPath(this.id!, dependency.id!, false, true));
 			}
 		}
 
@@ -926,12 +928,12 @@ export default class Chunk {
 				const renderedResolution =
 					resolution instanceof Module
 						? `'${escapeId(
-								this.getRelativePath((facadeChunk || chunk!).id!, stripKnownJsExtensions)
+								getImportPath(this.id!, (facadeChunk || chunk!).id!, stripKnownJsExtensions, true)
 						  )}'`
 						: resolution instanceof ExternalModule
 						? `'${escapeId(
 								resolution.renormalizeRenderPath
-									? this.getRelativePath(resolution.renderPath, stripKnownJsExtensions)
+									? getImportPath(this.id!, resolution.renderPath, stripKnownJsExtensions, false)
 									: resolution.renderPath
 						  )}'`
 						: resolution;
@@ -1210,16 +1212,6 @@ export default class Chunk {
 			}
 		}
 		return referencedFiles;
-	}
-
-	private getRelativePath(targetPath: string, stripJsExtension: boolean): string {
-		let relativePath = normalize(relative(dirname(this.id!), targetPath));
-		if (stripJsExtension && relativePath.endsWith('.js')) {
-			relativePath = relativePath.slice(0, -3);
-		}
-		if (relativePath === '..') return '../../' + basename(targetPath);
-		if (relativePath === '') return '../' + basename(targetPath);
-		return relativePath.startsWith('../') ? relativePath : './' + relativePath;
 	}
 
 	private inlineChunkDependencies(chunk: Chunk): void {

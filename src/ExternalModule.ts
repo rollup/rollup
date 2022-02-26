@@ -87,7 +87,7 @@ export default class ExternalModule {
 		return [externalVariable];
 	}
 
-	setRenderPath(options: NormalizedOutputOptions, inputBase: string): string {
+	setRenderPath(options: NormalizedOutputOptions, inputBase: string): void {
 		this.renderPath =
 			typeof options.paths === 'function' ? options.paths(this.id) : options.paths[this.id];
 		if (!this.renderPath) {
@@ -95,7 +95,6 @@ export default class ExternalModule {
 				? normalize(relative(inputBase, this.id))
 				: this.id;
 		}
-		return this.renderPath;
 	}
 
 	suggestName(name: string): void {
