@@ -311,10 +311,10 @@ var store$4 = sharedStore;
 (shared$7.exports = function (key, value) {
   return store$4[key] || (store$4[key] = value !== undefined ? value : {});
 })('versions', []).push({
-  version: '3.21.0',
+  version: '3.21.1',
   mode: 'global',
   copyright: '© 2014-2022 Denis Pushkarev (zloirock.ru)',
-  license: 'https://github.com/zloirock/core-js/blob/v3.21.0/LICENSE',
+  license: 'https://github.com/zloirock/core-js/blob/v3.21.1/LICENSE',
   source: 'https://github.com/zloirock/core-js'
 });
 
@@ -2533,19 +2533,19 @@ addToUnscopables$j('copyWithin');
 
 var fails$10 = fails$1g;
 
-var arrayMethodIsStrict$9 = function (METHOD_NAME, argument) {
+var arrayMethodIsStrict$b = function (METHOD_NAME, argument) {
   var method = [][METHOD_NAME];
   return !!method && fails$10(function () {
-    // eslint-disable-next-line no-useless-call,no-throw-literal -- required for testing
-    method.call(null, argument || function () { throw 1; }, 1);
+    // eslint-disable-next-line no-useless-call -- required for testing
+    method.call(null, argument || function () { return 1; }, 1);
   });
 };
 
 var $$4s = _export;
 var $every$2 = arrayIteration.every;
-var arrayMethodIsStrict$8 = arrayMethodIsStrict$9;
+var arrayMethodIsStrict$a = arrayMethodIsStrict$b;
 
-var STRICT_METHOD$8 = arrayMethodIsStrict$8('every');
+var STRICT_METHOD$8 = arrayMethodIsStrict$a('every');
 
 // `Array.prototype.every` method
 // https://tc39.es/ecma262/#sec-array.prototype.every
@@ -2720,9 +2720,9 @@ $$4m({ target: 'Array', proto: true }, {
 });
 
 var $forEach$2 = arrayIteration.forEach;
-var arrayMethodIsStrict$7 = arrayMethodIsStrict$9;
+var arrayMethodIsStrict$9 = arrayMethodIsStrict$b;
 
-var STRICT_METHOD$7 = arrayMethodIsStrict$7('forEach');
+var STRICT_METHOD$7 = arrayMethodIsStrict$9('forEach');
 
 // `Array.prototype.forEach` method implementation
 // https://tc39.es/ecma262/#sec-array.prototype.foreach
@@ -2873,12 +2873,12 @@ addToUnscopables$f('includes');
 var $$4i = _export;
 var uncurryThis$1a = functionUncurryThis;
 var $IndexOf = arrayIncludes.indexOf;
-var arrayMethodIsStrict$6 = arrayMethodIsStrict$9;
+var arrayMethodIsStrict$8 = arrayMethodIsStrict$b;
 
 var un$IndexOf = uncurryThis$1a([].indexOf);
 
 var NEGATIVE_ZERO$1 = !!un$IndexOf && 1 / un$IndexOf([1], 1, -0) < 0;
-var STRICT_METHOD$6 = arrayMethodIsStrict$6('indexOf');
+var STRICT_METHOD$6 = arrayMethodIsStrict$8('indexOf');
 
 // `Array.prototype.indexOf` method
 // https://tc39.es/ecma262/#sec-array.prototype.indexof
@@ -3123,12 +3123,12 @@ var $$4f = _export;
 var uncurryThis$19 = functionUncurryThis;
 var IndexedObject$5 = indexedObject;
 var toIndexedObject$c = toIndexedObject$k;
-var arrayMethodIsStrict$5 = arrayMethodIsStrict$9;
+var arrayMethodIsStrict$7 = arrayMethodIsStrict$b;
 
 var un$Join = uncurryThis$19([].join);
 
 var ES3_STRINGS = IndexedObject$5 != Object;
-var STRICT_METHOD$5 = arrayMethodIsStrict$5('join', ',');
+var STRICT_METHOD$5 = arrayMethodIsStrict$7('join', ',');
 
 // `Array.prototype.join` method
 // https://tc39.es/ecma262/#sec-array.prototype.join
@@ -3143,12 +3143,12 @@ var apply$n = functionApply$1;
 var toIndexedObject$b = toIndexedObject$k;
 var toIntegerOrInfinity$h = toIntegerOrInfinity$m;
 var lengthOfArrayLike$k = lengthOfArrayLike$x;
-var arrayMethodIsStrict$4 = arrayMethodIsStrict$9;
+var arrayMethodIsStrict$6 = arrayMethodIsStrict$b;
 
 var min$8 = Math.min;
 var $lastIndexOf$1 = [].lastIndexOf;
 var NEGATIVE_ZERO = !!$lastIndexOf$1 && 1 / [1].lastIndexOf(1, -0) < 0;
-var STRICT_METHOD$4 = arrayMethodIsStrict$4('lastIndexOf');
+var STRICT_METHOD$4 = arrayMethodIsStrict$6('lastIndexOf');
 var FORCED$t = NEGATIVE_ZERO || !STRICT_METHOD$4;
 
 // `Array.prototype.lastIndexOf` method implementation
@@ -3268,11 +3268,11 @@ var engineIsNode = classof$d(global$1p.process) == 'process';
 
 var $$4b = _export;
 var $reduce$1 = arrayReduce.left;
-var arrayMethodIsStrict$3 = arrayMethodIsStrict$9;
+var arrayMethodIsStrict$5 = arrayMethodIsStrict$b;
 var CHROME_VERSION$1 = engineV8Version;
 var IS_NODE$6 = engineIsNode;
 
-var STRICT_METHOD$3 = arrayMethodIsStrict$3('reduce');
+var STRICT_METHOD$3 = arrayMethodIsStrict$5('reduce');
 // Chrome 80-82 has a critical bug
 // https://bugs.chromium.org/p/chromium/issues/detail?id=1049982
 var CHROME_BUG$1 = !IS_NODE$6 && CHROME_VERSION$1 > 79 && CHROME_VERSION$1 < 83;
@@ -3288,11 +3288,11 @@ $$4b({ target: 'Array', proto: true, forced: !STRICT_METHOD$3 || CHROME_BUG$1 },
 
 var $$4a = _export;
 var $reduceRight$1 = arrayReduce.right;
-var arrayMethodIsStrict$2 = arrayMethodIsStrict$9;
+var arrayMethodIsStrict$4 = arrayMethodIsStrict$b;
 var CHROME_VERSION = engineV8Version;
 var IS_NODE$5 = engineIsNode;
 
-var STRICT_METHOD$2 = arrayMethodIsStrict$2('reduceRight');
+var STRICT_METHOD$2 = arrayMethodIsStrict$4('reduceRight');
 // Chrome 80-82 has a critical bug
 // https://bugs.chromium.org/p/chromium/issues/detail?id=1049982
 var CHROME_BUG = !IS_NODE$5 && CHROME_VERSION > 79 && CHROME_VERSION < 83;
@@ -3376,9 +3376,9 @@ $$48({ target: 'Array', proto: true, forced: !HAS_SPECIES_SUPPORT$1 }, {
 
 var $$47 = _export;
 var $some$2 = arrayIteration.some;
-var arrayMethodIsStrict$1 = arrayMethodIsStrict$9;
+var arrayMethodIsStrict$3 = arrayMethodIsStrict$b;
 
-var STRICT_METHOD$1 = arrayMethodIsStrict$1('some');
+var STRICT_METHOD$1 = arrayMethodIsStrict$3('some');
 
 // `Array.prototype.some` method
 // https://tc39.es/ecma262/#sec-array.prototype.some
@@ -3457,7 +3457,7 @@ var lengthOfArrayLike$h = lengthOfArrayLike$x;
 var toString$v = toString$y;
 var fails$Z = fails$1g;
 var internalSort$1 = arraySort$1;
-var arrayMethodIsStrict = arrayMethodIsStrict$9;
+var arrayMethodIsStrict$2 = arrayMethodIsStrict$b;
 var FF$1 = engineFfVersion;
 var IE_OR_EDGE$1 = engineIsIeOrEdge;
 var V8$1 = engineV8Version;
@@ -3476,7 +3476,7 @@ var FAILS_ON_NULL = fails$Z(function () {
   test.sort(null);
 });
 // Old WebKit
-var STRICT_METHOD = arrayMethodIsStrict('sort');
+var STRICT_METHOD = arrayMethodIsStrict$2('sort');
 
 var STABLE_SORT$1 = !fails$Z(function () {
   // feature detection can be too slow, so check engines versions
@@ -11239,11 +11239,13 @@ var arrayGroupBy = function ($this, callbackfn, that, specificConstructor) {
 
 var $$24 = _export;
 var $groupBy$1 = arrayGroupBy;
+var arrayMethodIsStrict$1 = arrayMethodIsStrict$b;
 var addToUnscopables$7 = addToUnscopables$l;
 
 // `Array.prototype.groupBy` method
 // https://github.com/tc39/proposal-array-grouping
-$$24({ target: 'Array', proto: true }, {
+// https://bugs.webkit.org/show_bug.cgi?id=236541
+$$24({ target: 'Array', proto: true, forced: !arrayMethodIsStrict$1('groupBy') }, {
   groupBy: function groupBy(callbackfn /* , thisArg */) {
     var thisArg = arguments.length > 1 ? arguments[1] : undefined;
     return $groupBy$1(this, callbackfn, thisArg);
@@ -11259,6 +11261,7 @@ var uncurryThis$i = functionUncurryThis;
 var IndexedObject = indexedObject;
 var toObject$6 = toObject$z;
 var lengthOfArrayLike$8 = lengthOfArrayLike$x;
+var arrayMethodIsStrict = arrayMethodIsStrict$b;
 var addToUnscopables$6 = addToUnscopables$l;
 
 var Map$5 = getBuiltIn$o('Map');
@@ -11270,7 +11273,8 @@ var push$b = uncurryThis$i([].push);
 
 // `Array.prototype.groupByToMap` method
 // https://github.com/tc39/proposal-array-grouping
-$$23({ target: 'Array', proto: true }, {
+// https://bugs.webkit.org/show_bug.cgi?id=236541
+$$23({ target: 'Array', proto: true, forced: !arrayMethodIsStrict('groupByToMap') }, {
   groupByToMap: function groupByToMap(callbackfn /* , thisArg */) {
     var O = toObject$6(this);
     var self = IndexedObject(O);
