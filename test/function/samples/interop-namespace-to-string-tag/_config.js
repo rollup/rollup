@@ -2,11 +2,13 @@ module.exports = {
 	description: 'generated interop namespaces should have correct Symbol.toStringTag',
 	context: {
 		require() {
-			return 42;
+			return { answer: 42 };
 		}
 	},
 	options: {
-		external: true,
+		external(id) {
+			return id.includes('external');
+		},
 		output: {
 			namespaceToStringTag: true,
 			interop(id) {

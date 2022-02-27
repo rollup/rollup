@@ -87,14 +87,14 @@ export default class NamespaceVariable extends Variable {
 			output = `/*#__PURE__*/${MERGE_NAMESPACES_VARIABLE}(${output},${_}[${assignmentArgs.join(
 				`,${_}`
 			)}])`;
-		}
-		// TODO Lukas inline this to merge helper if possible
-		if (namespaceToStringTag) {
-			output = `/*#__PURE__*/Object.defineProperty(${output},${_}Symbol.toStringTag,${_}{${_}value:${_}'Module'${_}})`;
-		}
-		// The helper to merge namespaces will also freeze the output, avoiding duplication
-		if (freeze && this.mergedNamespaces.length === 0) {
-			output = `/*#__PURE__*/Object.freeze(${output})`;
+		} else {
+			// The helper to merge namespaces will also take care of freezing and toStringTag
+			if (namespaceToStringTag) {
+				output = `/*#__PURE__*/Object.defineProperty(${output},${_}Symbol.toStringTag,${_}{${_}value:${_}'Module'${_}})`;
+			}
+			if (freeze) {
+				output = `/*#__PURE__*/Object.freeze(${output})`;
+			}
 		}
 
 		const name = this.getName(getPropertyAccess);

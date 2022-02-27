@@ -19,9 +19,9 @@ function _mergeNamespaces(n, m) {
 
 var component = { lib: main.lib, someExport: main.lib.someExport };
 
-var component$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/_mergeNamespaces({
+var component$1 = /*#__PURE__*/_mergeNamespaces({
 	__proto__: null,
 	'default': component
-}, [component]));
+}, [component]);
 
 exports.component = component$1;

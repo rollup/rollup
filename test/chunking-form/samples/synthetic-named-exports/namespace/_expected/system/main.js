@@ -26,22 +26,22 @@ System.register([], (function (exports) {
 			};
 			const foo = 'foo';
 
-			var synthetic$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/_mergeNamespaces({
+			var synthetic$1 = /*#__PURE__*/_mergeNamespaces({
 				__proto__: null,
 				'default': synthetic,
 				foo: foo
-			}, [synthetic]));
+			}, [synthetic]);
 
 			const bar = 'bar';
 			var dep = 'not-overwritten';
 
-			var dep$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/_mergeNamespaces({
+			var dep$1 = /*#__PURE__*/_mergeNamespaces({
 				__proto__: null,
 				bar: bar,
 				'default': dep,
 				synthetic: synthetic$1,
 				foo: foo
-			}, [synthetic]));
+			}, [synthetic]);
 			exports('dep', dep$1);
 
 		})

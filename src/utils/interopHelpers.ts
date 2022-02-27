@@ -163,8 +163,7 @@ const HELPER_GENERATORS: {
 			`}${n}${n}`
 		);
 	},
-	// TODO Lukas check this
-	[MERGE_NAMESPACES_VARIABLE](t, snippets, liveBindings, freeze) {
+	[MERGE_NAMESPACES_VARIABLE](t, snippets, liveBindings, freeze, namespaceToStringTag) {
 		const { _, cnst, n } = snippets;
 		const useForEach = cnst === 'var' && liveBindings;
 		return (
@@ -183,7 +182,10 @@ const HELPER_GENERATORS: {
 				t,
 				snippets
 			)}${n}` +
-			`${t}return ${getFrozen(freeze, 'n')};${n}` +
+			`${t}return ${getFrozen(
+				freeze,
+				getWithToStringTag(namespaceToStringTag, 'n', snippets)
+			)};${n}` +
 			`}${n}${n}`
 		);
 	}
