@@ -5,11 +5,10 @@ System.register([], (function () {
 
 			const bar = 42;
 
-			var foo = /*#__PURE__*/Object.freeze({
+			var foo = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
 				__proto__: null,
-				[Symbol.toStringTag]: 'Module',
 				bar: bar
-			});
+			}, Symbol.toStringTag, { value: 'Module' }));
 
 			assert.strictEqual(foo[Symbol.toStringTag], 'Module');
 			assert.strictEqual(Object.prototype.toString.call(foo), '[object Module]');

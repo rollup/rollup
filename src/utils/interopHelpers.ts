@@ -115,6 +115,7 @@ const HELPER_GENERATORS: {
 			lineBreakIndent: null,
 			name: INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE
 		});
+		// TODO Lukas check this
 		return `${left}${getFrozen(
 			getObject(
 				[

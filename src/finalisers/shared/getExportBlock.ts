@@ -193,6 +193,7 @@ function getEsModuleExport(_: string): string {
 	return `Object.defineProperty(exports,${_}'__esModule',${_}{${_}value:${_}true${_}});`;
 }
 
+// TODO Lukas check this
 function getNamespaceToStringExport(_: string): string {
 	return `exports[Symbol.toStringTag]${_}=${_}'Module';`;
 }

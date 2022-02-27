@@ -77,11 +77,6 @@ export default class NamespaceVariable extends Variable {
 				return [name, original.getName(getPropertyAccess)];
 			}
 		);
-
-		if (namespaceToStringTag) {
-			members.unshift([null, `[Symbol.toStringTag]:${_}'Module'`]);
-		}
-
 		members.unshift([null, `__proto__:${_}null`]);
 
 		let output = getObject(members, { lineBreakIndent: { base: '', t } });
@@ -89,9 +84,12 @@ export default class NamespaceVariable extends Variable {
 			const assignmentArgs = this.mergedNamespaces.map(variable =>
 				variable.getName(getPropertyAccess)
 			);
-			output = `/*#__PURE__*/${MERGE_NAMESPACES_VARIABLE}(${output}, [${assignmentArgs.join(
+			output = `/*#__PURE__*/${MERGE_NAMESPACES_VARIABLE}(${output},${_}[${assignmentArgs.join(
 				`,${_}`
 			)}])`;
+		}
+		if (namespaceToStringTag) {
+			output = `/*#__PURE__*/Object.defineProperty(${output},${_}Symbol.toStringTag,${_}{${_}value:${_}'Module'${_}})`;
 		}
 		if (freeze) {
 			output = `/*#__PURE__*/Object.freeze(${output})`;
