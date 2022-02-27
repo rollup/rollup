@@ -88,10 +88,12 @@ export default class NamespaceVariable extends Variable {
 				`,${_}`
 			)}])`;
 		}
+		// TODO Lukas inline this to merge helper if possible
 		if (namespaceToStringTag) {
 			output = `/*#__PURE__*/Object.defineProperty(${output},${_}Symbol.toStringTag,${_}{${_}value:${_}'Module'${_}})`;
 		}
-		if (freeze) {
+		// The helper to merge namespaces will also freeze the output, avoiding duplication
+		if (freeze && this.mergedNamespaces.length === 0) {
 			output = `/*#__PURE__*/Object.freeze(${output})`;
 		}
 
