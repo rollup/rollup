@@ -4,7 +4,6 @@ define(['exports'], (function (exports) { 'use strict';
 
 	exports.foo = foo;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-	exports[Symbol.toStringTag] = 'Module';
+	Object.defineProperties(exports, { __esModule: { value: true }, [Symbol.toStringTag]: { value: 'Module' } });
 
 }));

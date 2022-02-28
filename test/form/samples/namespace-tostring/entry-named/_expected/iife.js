@@ -5,8 +5,7 @@ var bundle = (function (exports) {
 
 	exports.foo = foo;
 
-	Object.defineProperty(exports, '__esModule', { value: true });
-	exports[Symbol.toStringTag] = 'Module';
+	Object.defineProperties(exports, { __esModule: { value: true }, [Symbol.toStringTag]: { value: 'Module' } });
 
 	return exports;
 

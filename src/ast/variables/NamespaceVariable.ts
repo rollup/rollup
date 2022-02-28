@@ -1,6 +1,6 @@
 import type Module from '../../Module';
 import type { AstContext } from '../../Module';
-import { MERGE_NAMESPACES_VARIABLE } from '../../utils/interopHelpers';
+import { getToStringTagValue, MERGE_NAMESPACES_VARIABLE } from '../../utils/interopHelpers';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
 import type Identifier from '../nodes/Identifier';
@@ -90,7 +90,9 @@ export default class NamespaceVariable extends Variable {
 		} else {
 			// The helper to merge namespaces will also take care of freezing and toStringTag
 			if (namespaceToStringTag) {
-				output = `/*#__PURE__*/Object.defineProperty(${output},${_}Symbol.toStringTag,${_}{${_}value:${_}'Module'${_}})`;
+				output = `/*#__PURE__*/Object.defineProperty(${output},${_}Symbol.toStringTag,${_}${getToStringTagValue(
+					getObject
+				)})`;
 			}
 			if (freeze) {
 				output = `/*#__PURE__*/Object.freeze(${output})`;

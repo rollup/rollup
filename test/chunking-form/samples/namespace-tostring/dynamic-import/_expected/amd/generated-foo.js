@@ -4,6 +4,6 @@ define(['exports'], (function (exports) { 'use strict';
 
 	exports.bar = bar;
 
-	exports[Symbol.toStringTag] = 'Module';
+	Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
 
 }));

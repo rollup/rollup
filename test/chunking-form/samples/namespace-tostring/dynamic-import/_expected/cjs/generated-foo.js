@@ -1,6 +1,6 @@
 'use strict';
 
-exports[Symbol.toStringTag] = 'Module';
+Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
 
 const bar = 42;
 

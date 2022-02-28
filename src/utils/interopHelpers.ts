@@ -205,7 +205,7 @@ const createNamespaceObject = (
 	freeze: boolean,
 	namespaceToStringTag: boolean
 ) => {
-	const { _, cnst, getPropertyAccess, n, s } = snippets;
+	const { _, cnst, getObject, getPropertyAccess, n, s } = snippets;
 	const copyProperty =
 		`{${n}` +
 		(liveBindings ? copyNonDefaultOwnPropertyLiveBinding : copyPropertyStatic)(
@@ -217,7 +217,7 @@ const createNamespaceObject = (
 	return (
 		`${i}${cnst} n${_}=${_}Object.create(null${
 			namespaceToStringTag
-				? `,${_}{${_}[Symbol.toStringTag]:${_}{${_}value:${_}'Module'${_}}${_}}`
+				? `,${_}{${_}[Symbol.toStringTag]:${_}${getToStringTagValue(getObject)}${_}}`
 				: ''
 		});${n}` +
 		`${i}if${_}(e)${_}{${n}` +
@@ -332,10 +332,18 @@ const getFrozen = (freeze: boolean, fragment: string) =>
 const getWithToStringTag = (
 	namespaceToStringTag: boolean,
 	fragment: string,
-	{ _ }: GenerateCodeSnippets
+	{ _, getObject }: GenerateCodeSnippets
 ) =>
 	namespaceToStringTag
-		? `Object.defineProperty(${fragment},${_}Symbol.toStringTag,${_}{${_}value:${_}'Module'${_}})`
+		? `Object.defineProperty(${fragment},${_}Symbol.toStringTag,${_}${getToStringTagValue(
+				getObject
+		  )})`
 		: fragment;
 
 export const HELPER_NAMES = Object.keys(HELPER_GENERATORS);
+
+export function getToStringTagValue(getObject: GenerateCodeSnippets['getObject']) {
+	return getObject([['value', "'Module'"]], {
+		lineBreakIndent: null
+	});
+}
