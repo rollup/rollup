@@ -593,7 +593,10 @@ const foo = 42;
 exports.foo = foo;
 
 // cjs output with symbols: true
-Object.defineProperties(exports, { __esModule: { value: true }, [Symbol.toStringTag]: { value: 'Module' } });
+Object.defineProperties(exports, {
+  __esModule: { value: true },
+  [Symbol.toStringTag]: { value: 'Module' }
+});
 
 const foo = 42;
 
@@ -1901,8 +1904,7 @@ You can also supply a list of external ids to be considered pure or a function t
 
 #### output.namespaceToStringTag
 
-_Use [`output.generatedCode.symbols`](guide/en/#outputgeneratedcode) instead._<br>
-Type: `boolean`<br> CLI: `--namespaceToStringTag`/`--no-namespaceToStringTag`<br> Default: `false`
+_Use [`output.generatedCode.symbols`](guide/en/#outputgeneratedcode) instead._<br> Type: `boolean`<br> CLI: `--namespaceToStringTag`/`--no-namespaceToStringTag`<br> Default: `false`
 
 Whether to add spec compliant `.toString()` tags to namespace objects. If this option is set,
 
