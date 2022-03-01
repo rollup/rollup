@@ -10,7 +10,7 @@ module.exports = {
 			return id.includes('external');
 		},
 		output: {
-			namespaceToStringTag: true,
+			generatedCode: { symbols: true },
 			interop(id) {
 				return id.split('-')[1];
 			}

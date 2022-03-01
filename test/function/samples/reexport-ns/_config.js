@@ -5,7 +5,7 @@ module.exports = {
 	options: {
 		external: ['external'],
 		output: {
-			namespaceToStringTag: true
+			generatedCode: { symbols: true }
 		}
 	},
 	exports(exports) {
