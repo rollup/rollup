@@ -26,6 +26,6 @@ module.exports = {
 	},
 	error: {
 		message: `Could not load ${join(__dirname, 'dep.js')} (imported by main): broken`,
-		watchFiles: ['main', join(__dirname, 'dep.js')]
+		watchFiles: [join(__dirname, 'dep.js'), 'main']
 	}
 };

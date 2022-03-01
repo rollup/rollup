@@ -3,12 +3,12 @@ const { assertIncludes } = require('../../../utils.js');
 
 module.exports = {
 	description: 'show errors with non-zero exit code for unfulfilled async plugin actions on exit',
-	command: 'rollup main.js -p ./buggy-plugin.js --silent',
+	command: 'rollup -c --silent',
 	after(err) {
 		// exit code check has to be here as error(err) is only called upon failure
 		assert.strictEqual(err && err.code, 1);
 	},
-	error(err) {
+	error() {
 		// do not abort test upon error
 		return true;
 	},
@@ -19,6 +19,7 @@ module.exports = {
 		assertIncludes(stderr, '(buggy-plugin) resolveId "./c.js" "main.js"');
 		assertIncludes(stderr, '(buggy-plugin) load "./b.js"');
 		assertIncludes(stderr, '(buggy-plugin) transform "./a.js"');
-		assertIncludes(stderr, '(buggy-plugin) moduleParsed');
+		assertIncludes(stderr, '(buggy-plugin) moduleParsed "./d.js"');
+		assertIncludes(stderr, '(buggy-plugin) shouldTransformCachedModule "./e.js"');
 	}
 };

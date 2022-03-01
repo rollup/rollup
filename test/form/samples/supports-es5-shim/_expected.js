@@ -26,9 +26,9 @@ var es5Shim = {exports: {}};
      * Brings an environment as close to ECMAScript 5 compliance
      * as is possible with the facilities of erstwhile engines.
      *
-     * Annotated ES5: http://es5.github.com/ (specific links below)
-     * ES5 Spec: http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-262.pdf
-     * Required reading: http://javascriptweblog.wordpress.com/2011/12/05/extending-javascript-natives/
+     * Annotated ES5: https://es5.github.io/ (specific links below)
+     * ES5 Spec: https://www.ecma-international.org/wp-content/uploads/ECMA-262_5.1_edition_june_2011.pdf
+     * Required reading: https://javascriptweblog.wordpress.com/2011/12/05/extending-javascript-natives/
      */
 
     // Shortcut to an often accessed properties, in order to avoid multiple
@@ -75,7 +75,7 @@ var es5Shim = {exports: {}};
     var isString; /* inlined from https://npmjs.com/is-string */ var strValue = String.prototype.valueOf, tryStringObject = function tryStringObject(value) { try { strValue.call(value); return true; } catch (e) { return false; } }, stringClass = '[object String]'; isString = function isString(value) { if (typeof value === 'string') { return true; } if (typeof value !== 'object') { return false; } return hasToStringTag ? tryStringObject(value) : to_string.call(value) === stringClass; };
     /* eslint-enable one-var-declaration-per-line, no-redeclare, max-statements-per-line */
 
-    /* inlined from http://npmjs.com/define-properties */
+    /* inlined from https://npmjs.com/define-properties */
     var supportsDescriptors = $Object.defineProperty && (function () {
         try {
             var obj = {};
@@ -122,7 +122,7 @@ var es5Shim = {exports: {}};
 
     // this is needed in Chrome 15 (probably earlier) - 36
     // https://bugs.chromium.org/p/v8/issues/detail?id=3334
-    if ($Object.defineProperty) {
+    if ($Object.defineProperty && supportsDescriptors) {
         var F = function () {};
         var toStringSentinel = {};
         var sentinel = { toString: toStringSentinel };
@@ -169,7 +169,7 @@ var es5Shim = {exports: {}};
 
     var ES = {
         // ES5 9.4
-        // http://es5.github.com/#x9.4
+        // https://es5.github.io/#x9.4
         // http://jsperf.com/to-integer
         /* replaceable with https://npmjs.com/package/es-abstract ES5.ToInteger */
         ToInteger: function ToInteger(num) {
@@ -206,7 +206,7 @@ var es5Shim = {exports: {}};
         },
 
         // ES5 9.9
-        // http://es5.github.com/#x9.9
+        // https://es5.github.io/#x9.9
         /* replaceable with https://npmjs.com/package/es-abstract ES5.ToObject */
         ToObject: function (o) {
             if (o == null) { // this matches both null and undefined
@@ -227,7 +227,7 @@ var es5Shim = {exports: {}};
     //
 
     // ES-5 15.3.4.5
-    // http://es5.github.com/#x15.3.4.5
+    // https://es5.github.io/#x15.3.4.5
 
     var Empty = function Empty() {};
 
@@ -408,7 +408,7 @@ var es5Shim = {exports: {}};
     };
 
     // ES5 15.4.4.12
-    // http://es5.github.com/#x15.4.4.13
+    // https://es5.github.io/#x15.4.4.13
     // Return len+argCount.
     // [bugfix, ielt8]
     // IE < 8 bug: [].unshift(0) === undefined but should be "1"
@@ -421,7 +421,7 @@ var es5Shim = {exports: {}};
     }, hasUnshiftReturnValueBug);
 
     // ES5 15.4.3.2
-    // http://es5.github.com/#x15.4.3.2
+    // https://es5.github.io/#x15.4.3.2
     // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/isArray
     defineProperties($Array, { isArray: isArray });
 
@@ -438,7 +438,7 @@ var es5Shim = {exports: {}};
     // expressions.
 
     // ES5 15.4.4.18
-    // http://es5.github.com/#x15.4.4.18
+    // https://es5.github.io/#x15.4.4.18
     // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/array/forEach
 
     // Check failure of by-index access of string characters (IE < 9)
@@ -502,7 +502,7 @@ var es5Shim = {exports: {}};
     }, !properlyBoxesContext(ArrayPrototype.forEach));
 
     // ES5 15.4.4.19
-    // http://es5.github.com/#x15.4.4.19
+    // https://es5.github.io/#x15.4.4.19
     // https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Objects/Array/map
     defineProperties(ArrayPrototype, {
         map: function map(callbackfn/*, thisArg*/) {
@@ -534,7 +534,7 @@ var es5Shim = {exports: {}};
     }, !properlyBoxesContext(ArrayPrototype.map));
 
     // ES5 15.4.4.20
-    // http://es5.github.com/#x15.4.4.20
+    // https://es5.github.io/#x15.4.4.20
     // https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Objects/Array/filter
     defineProperties(ArrayPrototype, {
         filter: function filter(callbackfn/*, thisArg*/) {
@@ -566,7 +566,7 @@ var es5Shim = {exports: {}};
     }, !properlyBoxesContext(ArrayPrototype.filter));
 
     // ES5 15.4.4.16
-    // http://es5.github.com/#x15.4.4.16
+    // https://es5.github.io/#x15.4.4.16
     // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/every
     defineProperties(ArrayPrototype, {
         every: function every(callbackfn/*, thisArg*/) {
@@ -593,7 +593,7 @@ var es5Shim = {exports: {}};
     }, !properlyBoxesContext(ArrayPrototype.every));
 
     // ES5 15.4.4.17
-    // http://es5.github.com/#x15.4.4.17
+    // https://es5.github.io/#x15.4.4.17
     // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/some
     defineProperties(ArrayPrototype, {
         some: function some(callbackfn/*, thisArg */) {
@@ -620,7 +620,7 @@ var es5Shim = {exports: {}};
     }, !properlyBoxesContext(ArrayPrototype.some));
 
     // ES5 15.4.4.21
-    // http://es5.github.com/#x15.4.4.21
+    // https://es5.github.io/#x15.4.4.21
     // https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Objects/Array/reduce
     var reduceCoercesToObject = false;
     if (ArrayPrototype.reduce) {
@@ -673,7 +673,7 @@ var es5Shim = {exports: {}};
     }, !reduceCoercesToObject);
 
     // ES5 15.4.4.22
-    // http://es5.github.com/#x15.4.4.22
+    // https://es5.github.io/#x15.4.4.22
     // https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Objects/Array/reduceRight
     var reduceRightCoercesToObject = false;
     if (ArrayPrototype.reduceRight) {
@@ -730,7 +730,7 @@ var es5Shim = {exports: {}};
     }, !reduceRightCoercesToObject);
 
     // ES5 15.4.4.14
-    // http://es5.github.com/#x15.4.4.14
+    // https://es5.github.io/#x15.4.4.14
     // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/indexOf
     var hasFirefox2IndexOfBug = ArrayPrototype.indexOf && [0, 1].indexOf(1, 2) !== -1;
     defineProperties(ArrayPrototype, {
@@ -759,7 +759,7 @@ var es5Shim = {exports: {}};
     }, hasFirefox2IndexOfBug);
 
     // ES5 15.4.4.15
-    // http://es5.github.com/#x15.4.4.15
+    // https://es5.github.io/#x15.4.4.15
     // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/lastIndexOf
     var hasFirefox2LastIndexOfBug = ArrayPrototype.lastIndexOf && [0, 1].lastIndexOf(0, -3) !== -1;
     defineProperties(ArrayPrototype, {
@@ -786,7 +786,7 @@ var es5Shim = {exports: {}};
     }, hasFirefox2LastIndexOfBug);
 
     // ES5 15.4.4.12
-    // http://es5.github.com/#x15.4.4.12
+    // https://es5.github.io/#x15.4.4.12
     var spliceNoopReturnsEmptyArray = (function () {
         var a = [1, 2];
         var result = a.splice();
@@ -976,7 +976,7 @@ var es5Shim = {exports: {}};
     defineProperties(ArrayPrototype, { push: pushShim }, pushUndefinedIsWeird);
 
     // ES5 15.2.3.14
-    // http://es5.github.io/#x15.4.4.10
+    // https://es5.github.io/#x15.4.4.10
     // Fix boxed string bug
     defineProperties(ArrayPrototype, {
         slice: function (start, end) {
@@ -1031,9 +1031,9 @@ var es5Shim = {exports: {}};
     //
 
     // ES5 15.2.3.14
-    // http://es5.github.com/#x15.2.3.14
+    // https://es5.github.io/#x15.2.3.14
 
-    // http://whattheheadsaid.com/2010/10/a-safer-object-keys-compatibility-implementation
+    // https://web.archive.org/web/20140727042234/http://whattheheadsaid.com/2010/10/a-safer-object-keys-compatibility-implementation
     // eslint-disable-next-line quote-props
     var hasDontEnumBug = !isEnum({ 'toString': null }, 'toString'); // jscs:ignore disallowQuotedKeysInObjects
     var hasProtoEnumBug = isEnum(function () {}, 'prototype');
@@ -1373,7 +1373,7 @@ var es5Shim = {exports: {}};
     }
 
     // ES5 15.9.5.43
-    // http://es5.github.com/#x15.9.5.43
+    // https://es5.github.io/#x15.9.5.43
     // This function returns a String value represent the instance in time
     // represented by this Date object. The format of the String is the Date Time
     // string format defined in 15.9.1.15. All fields are present in the String.
@@ -1427,7 +1427,7 @@ var es5Shim = {exports: {}};
     }, hasNegativeDateBug || hasSafari51DateBug);
 
     // ES5 15.9.5.44
-    // http://es5.github.com/#x15.9.5.44
+    // https://es5.github.io/#x15.9.5.44
     // This function provides a String representation of a Date object for use by
     // JSON.stringify (15.12.3).
     var dateToJSONIsSupported = (function () {
@@ -1479,9 +1479,9 @@ var es5Shim = {exports: {}};
     }
 
     // ES5 15.9.4.2
-    // http://es5.github.com/#x15.9.4.2
+    // https://es5.github.io/#x15.9.4.2
     // based on work shared by Daniel Friesen (dantman)
-    // http://gist.github.com/303249
+    // https://gist.github.com/303249
     var supportsExtendedYears = Date.parse('+033658-09-27T01:46:40.000Z') === 1e15;
     var acceptsInvalidDates = !isNaN(Date.parse('2012-04-04T24:00:00.500Z')) || !isNaN(Date.parse('2012-11-31T23:59:59.000Z')) || !isNaN(Date.parse('2012-12-31T23:59:60.000Z'));
     var doesNotParseY2KNewYear = isNaN(Date.parse('2000-01-01T00:00:00.000Z'));
@@ -1650,7 +1650,7 @@ var es5Shim = {exports: {}};
     }
 
     // ES5 15.9.4.4
-    // http://es5.github.com/#x15.9.4.4
+    // https://es5.github.io/#x15.9.4.4
     if (!Date.now) {
         Date.now = function now() {
             return new Date().getTime();
@@ -1663,7 +1663,7 @@ var es5Shim = {exports: {}};
     //
 
     // ES5.1 15.7.4.5
-    // http://es5.github.com/#x15.7.4.5
+    // https://es5.github.io/#x15.7.4.5
     var hasToFixedBugs = NumberPrototype.toFixed && (
         (0.00008).toFixed(3) !== '0.000'
         || (0.9).toFixed(0) !== '1'
@@ -1961,12 +1961,12 @@ var es5Shim = {exports: {}};
     //
 
     // ES5 15.5.4.14
-    // http://es5.github.com/#x15.5.4.14
+    // https://es5.github.io/#x15.5.4.14
 
     // [bugfix, IE lt 9, firefox 4, Konqueror, Opera, obscure browsers]
     // Many browsers do not split properly with regular expressions or they
     // do not perform the split correctly under obscure conditions.
-    // See http://blog.stevenlevithan.com/archives/cross-browser-split
+    // See https://blog.stevenlevithan.com/archives/cross-browser-split
     // I've tested in many browsers and this seems to cover the deviant ones:
     //    'ab'.split(/(?:ab)*/) should be ["", ""], not [""]
     //    '.'.split(/(.?)(.?)/) should be ["", ".", "", ""], not ["", ""]
@@ -2126,7 +2126,7 @@ var es5Shim = {exports: {}};
     }, hasNegativeSubstrBug);
 
     // ES5 15.5.4.20
-    // whitespace from: http://es5.github.io/#x15.5.4.20
+    // whitespace from: https://es5.github.io/#x15.5.4.20
     var ws = '\x09\x0A\x0B\x0C\x0D\x20\xA0\u1680\u180E\u2000\u2001\u2002\u2003'
         + '\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000\u2028'
         + '\u2029\uFEFF';
@@ -2136,7 +2136,7 @@ var es5Shim = {exports: {}};
     var trimEndRegexp = new RegExp(wsRegexChars + wsRegexChars + '*$');
     var hasTrimWhitespaceBug = StringPrototype.trim && (ws.trim() || !zeroWidth.trim());
     defineProperties(StringPrototype, {
-        // http://blog.stevenlevithan.com/archives/faster-trim-javascript
+        // https://blog.stevenlevithan.com/archives/faster-trim-javascript
         // http://perfectionkills.com/whitespace-deviations/
         trim: function trim() {
             if (typeof this === 'undefined' || this === null) {

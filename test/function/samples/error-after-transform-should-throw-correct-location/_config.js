@@ -23,7 +23,7 @@ module.exports = {
 		message: `'default' is not exported by empty.js, imported by main.js`,
 		id: path.join(__dirname, 'main.js'),
 		pos: 44,
-		watchFiles: [path.join(__dirname, 'main.js'), path.join(__dirname, 'empty.js')],
+		watchFiles: [path.join(__dirname, 'empty.js'), path.join(__dirname, 'main.js')],
 		loc: {
 			file: path.join(__dirname, 'main.js'),
 			line: 1,

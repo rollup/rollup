@@ -1,6 +1,6 @@
-import { readFileSync } from 'fs';
+import { promises as fs } from 'fs';
 import { resolve } from 'path';
-import process from 'process';
+import { env } from 'process';
 import alias from '@rollup/plugin-alias';
 import commonjs from '@rollup/plugin-commonjs';
 import json from '@rollup/plugin-json';
@@ -17,26 +17,29 @@ import getLicenseHandler from './build-plugins/generate-license-file';
 import replaceBrowserModules from './build-plugins/replace-browser-modules';
 import { version } from './package.json';
 
-const commitHash = (function () {
+async function getBanner(): Promise<string> {
+	let commitHash: string;
+
 	try {
-		return readFileSync('.commithash', 'utf-8');
+		commitHash = await fs.readFile('.commithash', 'utf8');
 	} catch {
-		return 'unknown';
+		commitHash = 'unknown';
 	}
-})();
 
-const { SOURCE_DATE_EPOCH } = process.env;
-const now = new Date(SOURCE_DATE_EPOCH ? 1000 * +SOURCE_DATE_EPOCH : Date.now()).toUTCString();
+	const date = new Date(
+		env.SOURCE_DATE_EPOCH ? 1000 * +env.SOURCE_DATE_EPOCH : Date.now()
+	).toUTCString();
 
-const banner = `/*
+	return `/*
   @license
 	Rollup.js v${version}
-	${now} - commit ${commitHash}
+	${date} - commit ${commitHash}
 
 	https://github.com/rollup/rollup
 
 	Released under the MIT License.
 */`;
+}
 
 const onwarn: WarningHandlerWithDefault = warning => {
 	// eslint-disable-next-line no-console
@@ -75,8 +78,12 @@ const nodePlugins = [
 	typescript()
 ];
 
-export default (command: Record<string, unknown>): RollupOptions | RollupOptions[] => {
+export default async function (
+	command: Record<string, unknown>
+): Promise<RollupOptions | RollupOptions[]> {
+	const banner = await getBanner();
 	const { collectLicenses, writeLicense } = getLicenseHandler();
+
 	const commonJSBuild: RollupOptions = {
 		// 'fsevents' is a dependency of 'chokidar' that cannot be bundled as it contains binary code
 		external: ['fsevents'],
@@ -150,4 +157,4 @@ export default (command: Record<string, unknown>): RollupOptions | RollupOptions
 	};
 
 	return [commonJSBuild, esmBuild, browserBuilds];
-};
+}

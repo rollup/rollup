@@ -23,6 +23,9 @@ exports.wait = function wait(ms) {
 function normaliseError(error) {
 	delete error.stack;
 	delete error.toString;
+	if (error.watchFiles) {
+		error.watchFiles.sort();
+	}
 	return { ...error, message: error.message };
 }
 
@@ -137,7 +140,7 @@ function runSamples(samplesDir, runTest, onTeardown) {
 
 function runTestsInDir(dir, runTest) {
 	const fileNames = getFileNamesAndRemoveOutput(dir);
-	if (fileNames.indexOf('_config.js') >= 0) {
+	if (fileNames.includes('_config.js')) {
 		loadConfigAndRunTest(dir, runTest);
 	} else if (fileNames.length === 0) {
 		console.warn(`Removing empty test directory ${dir}`);

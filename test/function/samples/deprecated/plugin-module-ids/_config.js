@@ -11,9 +11,9 @@ module.exports = {
 		plugins: {
 			renderStart() {
 				rendered = true;
-				assert.deepStrictEqual(Array.from(this.moduleIds), [
-					path.join(__dirname, 'main.js'),
+				assert.deepStrictEqual([...this.moduleIds].sort(), [
 					path.join(__dirname, 'foo.js'),
+					path.join(__dirname, 'main.js'),
 					'path'
 				]);
 			}

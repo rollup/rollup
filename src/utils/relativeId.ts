@@ -2,7 +2,7 @@ import { basename, extname, isAbsolute, relative, resolve } from './path';
 
 export function getAliasName(id: string): string {
 	const base = basename(id);
-	return base.substr(0, base.length - extname(id).length);
+	return base.substring(0, base.length - extname(id).length);
 }
 
 export default function relativeId(id: string): string {

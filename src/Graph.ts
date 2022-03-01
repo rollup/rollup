@@ -240,7 +240,7 @@ export default class Graph {
 
 	private warnForMissingExports(): void {
 		for (const module of this.modules) {
-			for (const importDescription of Object.values(module.importDescriptions)) {
+			for (const importDescription of module.importDescriptions.values()) {
 				if (
 					importDescription.name !== '*' &&
 					!importDescription.module.getVariableForExportName(importDescription.name)[0]

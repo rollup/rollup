@@ -10,6 +10,6 @@ module.exports = {
 				err.frame = 'custom code frame';
 				this.error(err);
 			}
-		},
+		}
 	]
 };

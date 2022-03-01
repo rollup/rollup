@@ -21,9 +21,9 @@ module.exports = {
 		pos: 9,
 		url: 'https://rollupjs.org/guide/en/#error-name-is-not-exported-by-module',
 		watchFiles: [
+			path.join(__dirname, 'first.js'),
 			ID_MAIN,
 			path.join(__dirname, 'reexport.js'),
-			path.join(__dirname, 'first.js'),
 			path.join(__dirname, 'second.js')
 		]
 	}

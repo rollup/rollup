@@ -33,8 +33,8 @@ module.exports = {
 			path.join(__dirname, 'dep1.js'),
 			path.join(__dirname, 'dep2.js'),
 			path.join(__dirname, 'dep3.js'),
-			path.join(__dirname, 'main.js'),
-			path.join(__dirname, 'dependant.js')
+			path.join(__dirname, 'dependant.js'),
+			path.join(__dirname, 'main.js')
 		]
 	}
 };

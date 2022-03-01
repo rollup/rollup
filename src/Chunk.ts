@@ -319,7 +319,7 @@ export default class Chunk {
 		const facades: Chunk[] = [];
 		const entryModules = new Set([...this.entryModules, ...this.implicitEntryModules]);
 		const exposedVariables = new Set<Variable>(
-			this.dynamicEntryModules.map(module => module.namespace)
+			this.dynamicEntryModules.map(({ namespace }) => namespace)
 		);
 		for (const module of entryModules) {
 			if (module.preserveSignature) {
@@ -329,9 +329,15 @@ export default class Chunk {
 			}
 		}
 		for (const module of entryModules) {
-			const requiredFacades: FacadeName[] = Array.from(module.userChunkNames, name => ({
-				name
-			}));
+			const requiredFacades: FacadeName[] = Array.from(
+				new Set(
+					module.chunkNames.filter(({ isUserDefined }) => isUserDefined).map(({ name }) => name)
+				),
+				// mapping must run after Set 'name' dedupe
+				name => ({
+					name
+				})
+			);
 			if (requiredFacades.length === 0 && module.isUserDefinedEntryPoint) {
 				requiredFacades.push({});
 			}
@@ -446,7 +452,7 @@ export default class Chunk {
 			const extension = extname(sanitizedId);
 			const fileName = renderNamePattern(pattern, 'output.entryFileNames', {
 				assetExtname: () => (NON_ASSET_EXTENSIONS.includes(extension) ? '' : extension),
-				ext: () => extension.substr(1),
+				ext: () => extension.substring(1),
 				extname: () => extension,
 				format: () => options.format as string,
 				name: () => this.getChunkName()
@@ -462,7 +468,7 @@ export default class Chunk {
 			const extension = extname(sanitizedId);
 			const fileName = renderNamePattern(pattern, 'output.entryFileNames', {
 				assetExtname: () => (NON_ASSET_EXTENSIONS.includes(extension) ? '' : extension),
-				ext: () => extension.substr(1),
+				ext: () => extension.substring(1),
 				extname: () => extension,
 				format: () => options.format as string,
 				name: () => getAliasName(sanitizedId)
@@ -600,7 +606,7 @@ export default class Chunk {
 				const source = module.render(renderOptions).trim();
 				renderedLength = source.length();
 				if (renderedLength) {
-					if (options.compact && source.lastLine().indexOf('//') !== -1) source.append('\n');
+					if (options.compact && source.lastLine().includes('//')) source.append('\n');
 					this.renderedModuleSources.set(module, source);
 					magicString.addSource(source);
 					this.usedModules.push(module);
@@ -959,7 +965,7 @@ export default class Chunk {
 			this.dynamicEntryModules[0] ||
 			this.orderedModules[this.orderedModules.length - 1];
 		if (moduleForNaming) {
-			return moduleForNaming.chunkName || getAliasName(moduleForNaming.id);
+			return getChunkNameFromModule(moduleForNaming);
 		}
 		return 'chunk';
 	}
@@ -1157,7 +1163,7 @@ export default class Chunk {
 			let imported: string;
 			let needsLiveBinding = false;
 			if (exportName[0] === '*') {
-				const id = exportName.substr(1);
+				const id = exportName.substring(1);
 				if (interop(id) === 'defaultOnly') {
 					this.inputOptions.onwarn(errUnexpectedNamespaceReexport(id));
 				}
@@ -1398,7 +1404,11 @@ export default class Chunk {
 }
 
 function getChunkNameFromModule(module: Module): string {
-	return module.chunkName || getAliasName(module.id);
+	return (
+		module.chunkNames.find(({ isUserDefined }) => isUserDefined)?.name ??
+		module.chunkNames[0]?.name ??
+		getAliasName(module.id)
+	);
 }
 
 const QUERY_HASH_REGEX = /[?#]/;

@@ -1,5 +1,5 @@
 const assert = require('assert');
-const rollup = require('../../dist/rollup');
+const { rollup } = require('../../dist/rollup');
 const { loader } = require('../utils.js');
 const { compareError } = require('../utils.js');
 
@@ -17,7 +17,7 @@ function runIifeTest(code, outputOptions) {
 	const bundleName = outputOptions.name.split('.')[0];
 	const globals = { external: 'external', __exports: {} };
 	runTestCode(
-		bundleName && bundleName.indexOf('@') === -1
+		bundleName && !bundleName.includes('@')
 			? `${code}if (typeof ${bundleName} !== 'undefined') __exports.${bundleName} = ${bundleName};`
 			: code,
 		globals
@@ -35,12 +35,11 @@ function getIifeExports(global, outputOptions) {
 }
 
 function getIifeCode(inputCode, outputOptions) {
-	return rollup
-		.rollup({
-			input: 'input',
-			external: ['external'],
-			plugins: [loader({ input: inputCode })]
-		})
+	return rollup({
+		input: 'input',
+		external: ['external'],
+		plugins: [loader({ input: inputCode })]
+	})
 		.then(bundle =>
 			bundle.generate({ format: 'iife', globals: { external: 'external' }, ...outputOptions })
 		)

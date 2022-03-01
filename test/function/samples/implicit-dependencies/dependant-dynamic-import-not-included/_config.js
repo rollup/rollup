@@ -27,8 +27,8 @@ module.exports = {
 		watchFiles: [
 			path.join(__dirname, 'dep1.js'),
 			path.join(__dirname, 'dep2.js'),
-			path.join(__dirname, 'main.js'),
-			path.join(__dirname, 'dependant.js')
+			path.join(__dirname, 'dependant.js'),
+			path.join(__dirname, 'main.js')
 		]
 	}
 };
