@@ -709,10 +709,12 @@ export default class Chunk {
 			);
 
 		let usesTopLevelAwait = false;
+		let usesTopLevelAwaitId: string;
 		const accessedGlobals = new Set<string>();
 		for (const module of this.orderedModules) {
 			if (module.usesTopLevelAwait) {
 				usesTopLevelAwait = true;
+				usesTopLevelAwaitId = module.id;
 			}
 			const accessedGlobalVariables = this.accessedGlobalsByScope.get(module.scope);
 			if (accessedGlobalVariables) {
@@ -725,7 +727,8 @@ export default class Chunk {
 		if (usesTopLevelAwait && format !== 'es' && format !== 'system') {
 			return error({
 				code: 'INVALID_TLA_FORMAT',
-				message: `Module format ${format} does not support top-level await. Use the "es" or "system" output formats rather.`
+				message: `Module format ${format} does not support top-level await. Use the "es" or "system" output formats rather.`,
+				id: usesTopLevelAwaitId!
 			});
 		}
 
