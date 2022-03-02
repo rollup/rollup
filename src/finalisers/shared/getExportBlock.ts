@@ -3,6 +3,7 @@ import type { GetInterop } from '../../rollup/types';
 import type { GenerateCodeSnippets } from '../../utils/generateCodeSnippets';
 import {
 	defaultInteropHelpersByInteropType,
+	getToStringTagValue,
 	isDefaultAProperty,
 	namespaceInteropHelpersByInteropType
 } from '../../utils/interopHelpers';
@@ -189,34 +190,40 @@ function getReexportedImportName(
 	return `${moduleVariableName}${getPropertyAccess(imported)}`;
 }
 
-function getEsModuleExport(_: string): string {
-	return `Object.defineProperty(exports,${_}'__esModule',${_}{${_}value:${_}true${_}});`;
-}
-
-function getNamespaceToStringExport(_: string): string {
-	return `exports[Symbol.toStringTag]${_}=${_}'Module';`;
+function getEsModuleValue(getObject: GenerateCodeSnippets['getObject']) {
+	return getObject([['value', 'true']], {
+		lineBreakIndent: null
+	});
 }
 
 export function getNamespaceMarkers(
 	hasNamedExports: boolean,
 	addEsModule: boolean,
 	addNamespaceToStringTag: boolean,
-	_: string,
-	n: string
+	{ _, getObject }: GenerateCodeSnippets
 ): string {
-	let namespaceMarkers = '';
 	if (hasNamedExports) {
 		if (addEsModule) {
-			namespaceMarkers += getEsModuleExport(_);
+			if (addNamespaceToStringTag) {
+				return `Object.defineProperties(exports,${_}${getObject(
+					[
+						['__esModule', getEsModuleValue(getObject)],
+						[null, `[Symbol.toStringTag]:${_}${getToStringTagValue(getObject)}`]
+					],
+					{
+						lineBreakIndent: null
+					}
+				)});`;
+			}
+			return `Object.defineProperty(exports,${_}'__esModule',${_}${getEsModuleValue(getObject)});`;
 		}
 		if (addNamespaceToStringTag) {
-			if (namespaceMarkers) {
-				namespaceMarkers += n;
-			}
-			namespaceMarkers += getNamespaceToStringExport(_);
+			return `Object.defineProperty(exports,${_}Symbol.toStringTag,${_}${getToStringTagValue(
+				getObject
+			)});`;
 		}
 	}
-	return namespaceMarkers;
+	return '';
 }
 
 const getDefineProperty = (

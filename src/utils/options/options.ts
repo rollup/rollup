@@ -38,7 +38,7 @@ export function warnUnknownOptions(
 	}
 }
 
-type ObjectValue<Base> = Base extends Record<string, unknown> ? Base : never;
+type ObjectValue<Base> = Base extends Record<string, any> ? Base : never;
 
 export const treeshakePresets: {
 	[key in NonNullable<
@@ -80,13 +80,15 @@ export const generatedCodePresets: {
 		arrowFunctions: true,
 		constBindings: true,
 		objectShorthand: true,
-		reservedNamesAsProps: true
+		reservedNamesAsProps: true,
+		symbols: true
 	},
 	es5: {
 		arrowFunctions: false,
 		constBindings: false,
 		objectShorthand: false,
-		reservedNamesAsProps: true
+		reservedNamesAsProps: true,
+		symbols: false
 	}
 };
 

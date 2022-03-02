@@ -24,10 +24,10 @@ System.register(['./generated-main.js'], (function (exports) {
 
 			var component = { lib, lib2: lib.named, lib3: lib.named.named };
 
-			var component$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/_mergeNamespaces({
+			var component$1 = /*#__PURE__*/_mergeNamespaces({
 				__proto__: null,
 				'default': component
-			}, [component]));
+			}, [component]);
 			exports('c', component$1);
 
 		})

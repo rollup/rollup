@@ -1,6 +1,6 @@
 import type Module from '../../Module';
 import type { AstContext } from '../../Module';
-import { MERGE_NAMESPACES_VARIABLE } from '../../utils/interopHelpers';
+import { getToStringTagValue, MERGE_NAMESPACES_VARIABLE } from '../../utils/interopHelpers';
 import type { RenderOptions } from '../../utils/renderHelpers';
 import { getSystemExportStatement } from '../../utils/systemJsRendering';
 import type Identifier from '../nodes/Identifier';
@@ -77,11 +77,6 @@ export default class NamespaceVariable extends Variable {
 				return [name, original.getName(getPropertyAccess)];
 			}
 		);
-
-		if (namespaceToStringTag) {
-			members.unshift([null, `[Symbol.toStringTag]:${_}'Module'`]);
-		}
-
 		members.unshift([null, `__proto__:${_}null`]);
 
 		let output = getObject(members, { lineBreakIndent: { base: '', t } });
@@ -89,12 +84,19 @@ export default class NamespaceVariable extends Variable {
 			const assignmentArgs = this.mergedNamespaces.map(variable =>
 				variable.getName(getPropertyAccess)
 			);
-			output = `/*#__PURE__*/${MERGE_NAMESPACES_VARIABLE}(${output}, [${assignmentArgs.join(
+			output = `/*#__PURE__*/${MERGE_NAMESPACES_VARIABLE}(${output},${_}[${assignmentArgs.join(
 				`,${_}`
 			)}])`;
-		}
-		if (freeze) {
-			output = `/*#__PURE__*/Object.freeze(${output})`;
+		} else {
+			// The helper to merge namespaces will also take care of freezing and toStringTag
+			if (namespaceToStringTag) {
+				output = `/*#__PURE__*/Object.defineProperty(${output},${_}Symbol.toStringTag,${_}${getToStringTagValue(
+					getObject
+				)})`;
+			}
+			if (freeze) {
+				output = `/*#__PURE__*/Object.freeze(${output})`;
+			}
 		}
 
 		const name = this.getName(getPropertyAccess);

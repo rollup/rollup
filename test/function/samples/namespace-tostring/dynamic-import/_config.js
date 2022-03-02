@@ -4,13 +4,18 @@ module.exports = {
 	description: 'adds Symbol.toStringTag property to dynamic imports',
 	options: {
 		output: {
-			namespaceToStringTag: true
+			generatedCode: { symbols: true }
 		}
 	},
 	async exports(exports) {
-		const foo = await exports;
-		assert.strictEqual(foo[Symbol.toStringTag], 'Module');
-		assert.strictEqual(Object.prototype.toString.call(foo), '[object Module]');
-		assert.strictEqual(foo.bar, 42);
+		const namespace = await exports;
+		assert.strictEqual(Object.prototype.toString.call(namespace), '[object Module]');
+		assert.strictEqual(namespace[Symbol.toStringTag], 'Module');
+		assert.strictEqual(namespace.bar, 42);
+
+		const copied = { ...namespace };
+		assert.deepStrictEqual(copied, { bar: 42 });
+		assert.strictEqual(Object.prototype.toString.call(copied), '[object Object]');
+		assert.strictEqual(copied[Symbol.toStringTag], undefined);
 	}
 };
