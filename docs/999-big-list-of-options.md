@@ -460,7 +460,7 @@ Whether to extend the global variable defined by the `name` option in `umd` or `
 
 #### output.generatedCode
 
-Type: `"es5" | "es2015" | { arrowFunctions?: boolean, constBindings?: boolean, objectShorthand?: boolean, preset?: "es5" | "es2015", reservedNamesAsProps?: boolean }`<br> CLI: `--generatedCode <preset>`<br> Default: `"es5"`
+Type: `"es5" | "es2015" | { arrowFunctions?: boolean, constBindings?: boolean, objectShorthand?: boolean, preset?: "es5" | "es2015", reservedNamesAsProps?: boolean, symbols?: boolean }`<br> CLI: `--generatedCode <preset>`<br> Default: `"es5"`
 
 Which language features Rollup can safely use in generated code. This will not transpile any user code but only change the code Rollup uses in wrappers and helpers. You may choose one of several presets:
 
@@ -576,6 +576,34 @@ const foo = null;
 
 exports.void = foo;
 ```
+
+**output.generatedCode.symbols**<br> Type: `boolean`<br> CLI: `--generatedCode.symbols`/`--no-generatedCode.symbols`<br> Default: `false`
+
+Whether to allow the use of `Symbol` in auto-generated code snippets. Currently, this only controls if namespaces will have the `Symbol.toStringTag` property set to the correct value of `Module`, which means that for a namespace, `String(namespace)` logs `[object Module]`. This again is used for feature detection in certain libraries and frameworks.
+
+```javascript
+// input
+export const foo = 42;
+
+// cjs output with symbols: false
+Object.defineProperty(exports, '__esModule', { value: true });
+
+const foo = 42;
+
+exports.foo = foo;
+
+// cjs output with symbols: true
+Object.defineProperties(exports, {
+  __esModule: { value: true },
+  [Symbol.toStringTag]: { value: 'Module' }
+});
+
+const foo = 42;
+
+exports.foo = foo;
+```
+
+Note: The `__esModule` flag in the example can be prevented via the [`output.esModule`](https://rollupjs.org/guide/en/#outputesmodule) option.
 
 #### output.hoistTransitiveImports
 
@@ -1417,19 +1445,6 @@ export default {
 };
 ```
 
-#### output.namespaceToStringTag
-
-Type: `boolean`<br> CLI: `--namespaceToStringTag`/`--no-namespaceToStringTag`<br> Default: `false`
-
-Whether to add spec compliant `.toString()` tags to namespace objects. If this option is set,
-
-```javascript
-import * as namespace from './file.js';
-console.log(String(namespace));
-```
-
-will always log `[object Module]`;
-
 #### output.noConflict
 
 Type: `boolean`<br> CLI: `--noConflict`/`--no-noConflict`<br> Default: `false`
@@ -1848,10 +1863,6 @@ _Use the [`output.inlineDynamicImports`](guide/en/#outputinlinedynamicimports) o
 
 _Use the [`output.manualChunks`](guide/en/#outputmanualchunks) output option instead, which has the same signature._
 
-#### preserveModules
-
-_Use the [`output.preserveModules`](guide/en/#outputpreservemodules) output option instead, which has the same signature._
-
 #### output.dynamicImportFunction
 
 _Use the [`renderDynamicImport`](guide/en/#renderdynamicimport) plugin hook instead._<br> Type: `string`<br> CLI: `--dynamicImportFunction <name>`<br> Default: `import`
@@ -1890,3 +1901,20 @@ console.log(42);
 ```
 
 You can also supply a list of external ids to be considered pure or a function that is called whenever an external import could be removed.
+
+#### output.namespaceToStringTag
+
+_Use [`output.generatedCode.symbols`](guide/en/#outputgeneratedcode) instead._<br> Type: `boolean`<br> CLI: `--namespaceToStringTag`/`--no-namespaceToStringTag`<br> Default: `false`
+
+Whether to add spec compliant `.toString()` tags to namespace objects. If this option is set,
+
+```javascript
+import * as namespace from './file.js';
+console.log(String(namespace));
+```
+
+will always log `[object Module]`;
+
+#### preserveModules
+
+_Use the [`output.preserveModules`](guide/en/#outputpreservemodules) output option instead, which has the same signature._

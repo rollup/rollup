@@ -608,6 +608,7 @@ interface NormalizedGeneratedCodeOptions {
 	constBindings: boolean;
 	objectShorthand: boolean;
 	reservedNamesAsProps: boolean;
+	symbols: boolean;
 }
 
 interface GeneratedCodeOptions extends Partial<NormalizedGeneratedCodeOptions> {
@@ -681,12 +682,13 @@ export interface OutputOptions {
 	manualChunks?: ManualChunksOption;
 	minifyInternalExports?: boolean;
 	name?: string;
+	/** @deprecated Use "generatedCode.symbols" instead. */
 	namespaceToStringTag?: boolean;
 	noConflict?: boolean;
 	outro?: string | (() => string | Promise<string>);
 	paths?: OptionsPaths;
 	plugins?: (OutputPlugin | null | false | undefined)[];
-	/** @deprecated Use the "generatedCode.constBindings" instead. */
+	/** @deprecated Use "generatedCode.constBindings" instead. */
 	preferConst?: boolean;
 	preserveModules?: boolean;
 	preserveModulesRoot?: string;

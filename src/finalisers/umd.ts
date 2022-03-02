@@ -203,8 +203,7 @@ export default function umd(
 		namedExportsMode && hasExports,
 		esModule,
 		namespaceToStringTag,
-		_,
-		n
+		snippets
 	);
 	if (namespaceMarkers) {
 		namespaceMarkers = n + n + namespaceMarkers;

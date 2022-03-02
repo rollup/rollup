@@ -26,7 +26,7 @@ module.exports = {
 		setTimeout(() => unlinkSync(configFile), 300);
 	},
 	abortOnStderr(data) {
-		if (data.includes(`created _actual${path.sep}main1.js`)) {
+		if (data.includes(`created _actual/main1.js`)) {
 			setTimeout(
 				() => atomicWriteFileSync(configFile, 'throw new Error("Config contains errors");'),
 				600
@@ -48,7 +48,7 @@ module.exports = {
 			}, 600);
 			return false;
 		}
-		if (data.includes(`created _actual${path.sep}main2.js`)) {
+		if (data.includes(`created _actual/main2.js`)) {
 			return true;
 		}
 	}

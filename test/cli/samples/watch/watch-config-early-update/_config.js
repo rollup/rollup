@@ -45,6 +45,7 @@ module.exports = {
 	},
 	after() {
 		unlinkSync(configFile);
+		stopUpdate();
 	},
 	abortOnStderr(data) {
 		if (data === 'initial\n') {
@@ -62,7 +63,7 @@ module.exports = {
 			);
 			return false;
 		}
-		if (data.includes(`created _actual${path.sep}output2.js`)) {
+		if (data.includes(`created _actual/output2.js`)) {
 			stopUpdate();
 			return true;
 		}

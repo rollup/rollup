@@ -18,10 +18,10 @@ function _mergeNamespaces(n, m) {
 var dep = { foo: 1 };
 const bar = 2;
 
-var dep$1 = /*#__PURE__*/Object.freeze(/*#__PURE__*/_mergeNamespaces({
+var dep$1 = /*#__PURE__*/_mergeNamespaces({
 	__proto__: null,
 	'default': dep,
 	bar: bar
-}, [dep]));
+}, [dep]);
 
 exports.dep = dep$1;

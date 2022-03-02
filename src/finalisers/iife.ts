@@ -122,8 +122,7 @@ export default function iife(
 		namedExportsMode && hasExports,
 		esModule,
 		namespaceToStringTag,
-		_,
-		n
+		snippets
 	);
 	if (namespaceMarkers) {
 		namespaceMarkers = n + n + namespaceMarkers;

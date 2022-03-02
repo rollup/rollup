@@ -34,7 +34,8 @@ module.exports = {
 						arrowFunctions: false,
 						constBindings: false,
 						objectShorthand: false,
-						reservedNamesAsProps: false
+						reservedNamesAsProps: false,
+						symbols: false
 					},
 					globals: {},
 					hoistTransitiveImports: true,
