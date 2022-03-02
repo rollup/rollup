@@ -86,8 +86,7 @@ export default function amd(
 		namedExportsMode && hasExports,
 		isEntryFacade && esModule,
 		isModuleFacade && namespaceToStringTag,
-		_,
-		n
+		snippets
 	);
 	if (namespaceMarkers) {
 		namespaceMarkers = n + n + namespaceMarkers;

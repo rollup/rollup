@@ -105,28 +105,30 @@ const HELPER_GENERATORS: {
 	},
 	[INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE](
 		_t,
-		{ _, getDirectReturnFunction, getObject, n },
+		snippets,
 		_liveBindings: boolean,
 		freeze: boolean,
 		namespaceToStringTag: boolean
 	) {
+		const { getDirectReturnFunction, getObject, n } = snippets;
 		const [left, right] = getDirectReturnFunction(['e'], {
 			functionReturn: true,
 			lineBreakIndent: null,
 			name: INTEROP_NAMESPACE_DEFAULT_ONLY_VARIABLE
 		});
 		return `${left}${getFrozen(
-			getObject(
-				[
-					['__proto__', 'null'],
-					...(namespaceToStringTag
-						? [[null, `[Symbol.toStringTag]:${_}'Module'`] as [null, string]]
-						: []),
-					['default', 'e']
-				],
-				{ lineBreakIndent: null }
-			),
-			freeze
+			freeze,
+			getWithToStringTag(
+				namespaceToStringTag,
+				getObject(
+					[
+						['__proto__', 'null'],
+						['default', 'e']
+					],
+					{ lineBreakIndent: null }
+				),
+				snippets
+			)
 		)}${right}${n}${n}`;
 	},
 	[INTEROP_NAMESPACE_DEFAULT_VARIABLE](t, snippets, liveBindings, freeze, namespaceToStringTag) {
@@ -161,7 +163,7 @@ const HELPER_GENERATORS: {
 			`}${n}${n}`
 		);
 	},
-	[MERGE_NAMESPACES_VARIABLE](t, snippets, liveBindings, freeze) {
+	[MERGE_NAMESPACES_VARIABLE](t, snippets, liveBindings, freeze, namespaceToStringTag) {
 		const { _, cnst, n } = snippets;
 		const useForEach = cnst === 'var' && liveBindings;
 		return (
@@ -180,7 +182,10 @@ const HELPER_GENERATORS: {
 				t,
 				snippets
 			)}${n}` +
-			`${t}return ${getFrozen('n', freeze)};${n}` +
+			`${t}return ${getFrozen(
+				freeze,
+				getWithToStringTag(namespaceToStringTag, 'n', snippets)
+			)};${n}` +
 			`}${n}${n}`
 		);
 	}
@@ -200,7 +205,7 @@ const createNamespaceObject = (
 	freeze: boolean,
 	namespaceToStringTag: boolean
 ) => {
-	const { _, cnst, getPropertyAccess, n, s } = snippets;
+	const { _, cnst, getObject, getPropertyAccess, n, s } = snippets;
 	const copyProperty =
 		`{${n}` +
 		(liveBindings ? copyNonDefaultOwnPropertyLiveBinding : copyPropertyStatic)(
@@ -210,16 +215,16 @@ const createNamespaceObject = (
 		) +
 		`${i}${t}}`;
 	return (
-		`${i}${cnst} n${_}=${_}${
+		`${i}${cnst} n${_}=${_}Object.create(null${
 			namespaceToStringTag
-				? `{__proto__:${_}null,${_}[Symbol.toStringTag]:${_}'Module'}`
-				: 'Object.create(null)'
-		};${n}` +
+				? `,${_}{${_}[Symbol.toStringTag]:${_}${getToStringTagValue(getObject)}${_}}`
+				: ''
+		});${n}` +
 		`${i}if${_}(e)${_}{${n}` +
 		`${i}${t}${loopOverKeys(copyProperty, !liveBindings, snippets)}${n}` +
 		`${i}}${n}` +
 		`${i}n${getPropertyAccess('default')}${_}=${_}e;${n}` +
-		`${i}return ${getFrozen('n', freeze)}${s}${n}`
+		`${i}return ${getFrozen(freeze, 'n')}${s}${n}`
 	);
 };
 
@@ -321,7 +326,24 @@ const copyPropertyLiveBinding = (
 const copyPropertyStatic = (_t: string, i: string, { _, n }: GenerateCodeSnippets) =>
 	`${i}n[k]${_}=${_}e[k];${n}`;
 
-const getFrozen = (fragment: string, freeze: boolean) =>
+const getFrozen = (freeze: boolean, fragment: string) =>
 	freeze ? `Object.freeze(${fragment})` : fragment;
 
+const getWithToStringTag = (
+	namespaceToStringTag: boolean,
+	fragment: string,
+	{ _, getObject }: GenerateCodeSnippets
+) =>
+	namespaceToStringTag
+		? `Object.defineProperty(${fragment},${_}Symbol.toStringTag,${_}${getToStringTagValue(
+				getObject
+		  )})`
+		: fragment;
+
 export const HELPER_NAMES = Object.keys(HELPER_GENERATORS);
+
+export function getToStringTagValue(getObject: GenerateCodeSnippets['getObject']) {
+	return getObject([['value', "'Module'"]], {
+		lineBreakIndent: null
+	});
+}
