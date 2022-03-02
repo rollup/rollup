@@ -38,8 +38,7 @@ export default function cjs(
 		namedExportsMode && hasExports,
 		isEntryFacade && esModule,
 		isModuleFacade && namespaceToStringTag,
-		_,
-		n
+		snippets
 	);
 	if (namespaceMarkers) {
 		namespaceMarkers += n + n;

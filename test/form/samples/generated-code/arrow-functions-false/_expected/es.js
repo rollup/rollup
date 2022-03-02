@@ -35,10 +35,10 @@ console.log(externalAuto);
 console.log(externalDefault);
 console.log(externalDefaultOnly);
 
-var main = /*#__PURE__*/Object.freeze(/*#__PURE__*/_mergeNamespaces({
+var main = /*#__PURE__*/_mergeNamespaces({
 	__proto__: null,
 	get a () { return a; },
 	foo: foo
-}, [defaultLegacy]));
+}, [defaultLegacy]);
 
 export { a };

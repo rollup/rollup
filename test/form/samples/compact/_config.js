@@ -6,7 +6,7 @@ module.exports = {
 		output: {
 			name: 'foo',
 			compact: true,
-			namespaceToStringTag: true,
+			generatedCode: { symbols: true },
 			globals: {
 				external: 'x'
 			}

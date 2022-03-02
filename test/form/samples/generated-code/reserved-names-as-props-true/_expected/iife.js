@@ -46,10 +46,10 @@ var bundle = (function (exports, external, defaultOnly, someDefault) {
 		foo: 'bar'
 	};
 
-	var ns = /*#__PURE__*/Object.freeze(/*#__PURE__*/_mergeNamespaces({
+	var ns = /*#__PURE__*/_mergeNamespaces({
 		__proto__: null,
 		default: other
-	}, [other]));
+	}, [other]);
 
 	console.log(ns, other.foo, other.function, other["some-prop"], external.function, someDefault__default.default, defaultOnly__namespace);
 	console.log(undefined, undefined);
