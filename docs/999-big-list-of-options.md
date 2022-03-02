@@ -893,7 +893,7 @@ manualChunks(id, { getModuleInfo }) {
       for (const importerId of importers) idsToHandle.add(importerId);
     }
 
-    // If there is a unique entry, we put it into into a chunk based on the entry name
+    // If there is a unique entry, we put it into a chunk based on the entry name
     if (dependentEntryPoints.length === 1) {
       return `${dependentEntryPoints[0].split('/').slice(-1)[0].split('.')[0]}.strings.${language}`;
     }
