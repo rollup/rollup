@@ -221,29 +221,32 @@ console.log(x);
 			input: {
 				'base/main': 'main.js',
 				'base/main/feature': 'feature.js',
-				'base/main/feature/sub': 'subfeature.js'
+				'base/main/feature/sub': 'subfeature.js',
+				'base/main/feature/sub/sub': 'subsubfeature.js'
 			},
 			plugins: [
 				loader({
 					'main.js': 'export function fn () { return "main"; } console.log(fn());',
 					'feature.js': 'import { fn } from "main.js"; console.log(fn() + " feature");',
-					'subfeature.js': 'import { fn } from "main.js"; console.log(fn() + " subfeature");'
+					'subfeature.js': 'import { fn } from "main.js"; console.log(fn() + " subfeature");',
+					'subsubfeature.js': 'import { fn } from "main.js"; console.log(fn() + " subsubfeature");'
 				})
 			]
 		});
 		const {
-			output: [main, feature, subfeature]
+			output: [main, feature, subfeature, subsubfeature]
 		} = await bundle.generate({
 			entryFileNames: `[name]`,
 			chunkFileNames: `[name]`,
 			format: 'es'
 		});
 		assert.strictEqual(main.fileName, 'base/main');
-		assert.ok(main.code.startsWith('function fn'));
 		assert.strictEqual(feature.fileName, 'base/main/feature');
 		assert.ok(feature.code.startsWith("import { fn } from '../main'"));
 		assert.strictEqual(subfeature.fileName, 'base/main/feature/sub');
 		assert.ok(subfeature.code.startsWith("import { fn } from '../../main'"));
+		assert.strictEqual(subsubfeature.fileName, 'base/main/feature/sub/sub');
+		assert.ok(subsubfeature.code.startsWith("import { fn } from '../../../main'"));
 	});
 
 	it('throws the proper error on max call stack exception', async () => {
