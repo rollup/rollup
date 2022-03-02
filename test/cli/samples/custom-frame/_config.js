@@ -9,7 +9,7 @@ module.exports = {
 			stderr,
 			'[!] (plugin at position 1) Error: My error.\n' +
 				'main.js\ncustom code frame\nError: My error.\n' +
-				'    at Object.transform'
+				'    at Object.'
 		);
 		assertIncludes(stderr, 'rollup.config.js:11:17');
 	}
