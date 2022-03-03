@@ -47,6 +47,7 @@ class Link {
 
 	traceMappings() {
 		const sources: string[] = [];
+		const sourceIndexMap = new Map<string, number>();
 		const sourcesContent: string[] = [];
 		const names: string[] = [];
 		const nameIndexMap = new Map<string, number>();
@@ -68,36 +69,34 @@ class Link {
 				);
 
 				if (traced) {
-					// newer sources are more likely to be used, so search backwards.
-					let sourceIndex = sources.lastIndexOf(traced.source.filename);
-					if (sourceIndex === -1) {
+					const {
+						column,
+						line,
+						name,
+						source: { content, filename }
+					} = traced;
+					let sourceIndex = sourceIndexMap.get(filename);
+					if (sourceIndex === undefined) {
 						sourceIndex = sources.length;
-						sources.push(traced.source.filename);
-						sourcesContent[sourceIndex] = traced.source.content;
+						sources.push(filename);
+						sourceIndexMap.set(filename, sourceIndex);
+						sourcesContent[sourceIndex] = content;
 					} else if (sourcesContent[sourceIndex] == null) {
-						sourcesContent[sourceIndex] = traced.source.content;
-					} else if (
-						traced.source.content != null &&
-						sourcesContent[sourceIndex] !== traced.source.content
-					) {
+						sourcesContent[sourceIndex] = content;
+					} else if (content != null && sourcesContent[sourceIndex] !== content) {
 						return error({
-							message: `Multiple conflicting contents for sourcemap source ${traced.source.filename}`
+							message: `Multiple conflicting contents for sourcemap source ${filename}`
 						});
 					}
 
-					const tracedSegment: SourceMapSegment = [
-						segment[0],
-						sourceIndex,
-						traced.line,
-						traced.column
-					];
+					const tracedSegment: SourceMapSegment = [segment[0], sourceIndex, line, column];
 
-					if (traced.name) {
-						let nameIndex = nameIndexMap.get(traced.name);
+					if (name) {
+						let nameIndex = nameIndexMap.get(name);
 						if (nameIndex === undefined) {
 							nameIndex = names.length;
-							names.push(traced.name);
-							nameIndexMap.set(traced.name, nameIndex);
+							names.push(name);
+							nameIndexMap.set(name, nameIndex);
 						}
 
 						(tracedSegment as SourceMapSegment)[4] = nameIndex;
