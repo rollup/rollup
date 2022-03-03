@@ -117,34 +117,23 @@ class Link {
 		const segments = this.mappings[line];
 		if (!segments) return null;
 
-		// Sometimes a high-resolution sourcemap will be preceded in the sourcemap chain
-		// by a low-resolution sourcemap. We can detect this by checking if the mappings
-		// array for this line only contains a segment for column zero. In that case, we
-		// want to fall back to a low-resolution mapping instead of returning null.
-		if (segments.length == 1 && segments[0][0] == 0) {
-			const segment = segments[0];
-			if (segment.length == 1) {
-				return null;
-			}
-			const source = this.sources[segment[1]] || null;
-			return source?.traceSegment(
-				segment[2],
-				segment[3],
-				segment.length === 5 ? this.names[segment[4]] : name
-			);
-		}
-
 		// binary search through segments for the given column
-		let i = 0;
-		let j = segments.length - 1;
+		let searchStart = 0;
+		let searchEnd = segments.length - 1;
 
-		while (i <= j) {
-			const m = (i + j) >> 1;
+		while (searchStart <= searchEnd) {
+			const m = (searchStart + searchEnd) >> 1;
 			const segment = segments[m];
-			if (segment[0] === column) {
+
+			// If a sourcemap does not have sufficient resolution to contain a
+			// necessary mapping, e.g. because it only contains line information, we
+			// use the best approximation we could find
+			if (segment[0] === column || searchStart === searchEnd) {
 				if (segment.length == 1) return null;
 				const source = this.sources[segment[1]];
-				if (!source) return null;
+				if (!source) {
+					return null;
+				}
 
 				return source.traceSegment(
 					segment[2],
@@ -153,9 +142,9 @@ class Link {
 				);
 			}
 			if (segment[0] > column) {
-				j = m - 1;
+				searchEnd = m - 1;
 			} else {
-				i = m + 1;
+				searchStart = m + 1;
 			}
 		}
 
